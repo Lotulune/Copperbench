@@ -20,7 +20,7 @@
 
 阶段 0 名称检索未发现显著的软件同名冲突；该结果不是商标法律意见。原始检索输出保存在 [`copperbench-name-search.json`](../evidence/stage-0/2026-08-16/copperbench-name-search.json)。
 
-GitHub 仓库 URL 在仓库实际创建前不得写入产品文案。
+公开仓库：<https://github.com/Lotulune/Copperbench>
 
 ## 已确认边界
 

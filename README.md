@@ -2,7 +2,7 @@
 
 Copperbench is a Windows 11 desktop Minecraft mod-creation workbench. It is an independent GPL-3.0 derivative of MCreator, with the Fabric generator included as a built-in plugin.
 
-Public distribution is the GitHub repository and unsigned GitHub Releases. There is no product website, app-store listing, or Authenticode-signed installer. Windows SmartScreen may warn on the unsigned binaries. The product ID `dev.copperbench.studio` is a reverse-DNS identifier, not a live website.
+Public distribution is the GitHub repository [Lotulune/Copperbench](https://github.com/Lotulune/Copperbench) and unsigned GitHub Releases. There is no product website, app-store listing, or Authenticode-signed installer. Windows SmartScreen may warn on the unsigned binaries. The product ID `dev.copperbench.studio` is a reverse-DNS identifier, not a live website.
 
 Immutable source records are in [`UPSTREAM.md`](UPSTREAM.md) and [`compliance/baseline.lock.json`](compliance/baseline.lock.json). Build instructions are in [`docs/build/windows-clean-build.md`](docs/build/windows-clean-build.md).
 

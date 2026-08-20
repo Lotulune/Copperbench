@@ -21,7 +21,7 @@ jsign 7.4 仍留在 Windows 导出配方中。以后若提供 `WIN_CERT_*` 与 `
 
 - G7 不因本决定变为 `passed`。Hyper-V 客户机 GUI 常驻仍未宣称。
 - 发布说明以 `PUBLIC_DISTRIBUTION_GITHUB_ONLY` 和 `CODE_SIGNING_UNSIGNED_GITHUB` 记录政策，不再把品牌/域名/证书列为待补机器证据。
-- GitHub 仓库尚未创建时，不要在产品文案里发明具体仓库 URL。
+- 公开仓库是 <https://github.com/Lotulune/Copperbench>。以后若更换托管地址，必须同步 README、BRANDING 与本 ADR。
 - 若以后要做商店上架、独立网站或付费签名，必须新增 ADR 并重开对应门禁。
 
 ## 依据
