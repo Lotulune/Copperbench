@@ -1,0 +1,73 @@
+{
+  "schemaVersion": "0.1",
+  "scenarioId": "history-ready",
+  "extendsScenarioId": "ready",
+  "title": { "key": "scenario.history_ready", "fallback": "History ready", "args": {} },
+  "description": "A workspace with local recovery points and a projected comparison.",
+  "viewportState": "ready",
+  "initialMessages": [
+    {
+      "messageType": "query_result",
+      "schemaVersion": "0.1",
+      "requestId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa41",
+      "workspaceId": "11111111-1111-4111-8111-111111111111",
+      "operation": "get_history",
+      "status": "succeeded",
+      "revision": 42,
+      "data": {
+        "currentRevision": 42,
+        "recoveryPoints": [
+          {
+            "id": "7d7c3e34c657acc1",
+            "label": "Before MCP batch edit",
+            "actor": "mcp",
+            "taskId": "mcp-edit-184",
+            "createdAt": "2026-08-17T02:10:00Z"
+          },
+          {
+            "id": "51bcbf674b6399a2",
+            "label": "Copper Lamp validated",
+            "actor": "ui",
+            "taskId": "validate-183",
+            "createdAt": "2026-08-17T01:42:00Z"
+          },
+          {
+            "id": "3a6f0da7b6da984e",
+            "label": "Workspace opened",
+            "actor": "system",
+            "taskId": "",
+            "createdAt": "2026-08-17T01:05:00Z"
+          }
+        ]
+      },
+      "diagnostics": []
+    },
+    {
+      "messageType": "query_result",
+      "schemaVersion": "0.1",
+      "requestId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa42",
+      "workspaceId": "11111111-1111-4111-8111-111111111111",
+      "operation": "get_diff",
+      "status": "succeeded",
+      "revision": 42,
+      "data": {
+        "fromRecoveryPointId": "51bcbf674b6399a2",
+        "toRecoveryPointId": "7d7c3e34c657acc1",
+        "baseRevision": 42,
+        "changes": [
+          { "type": "modify", "path": "elements/copper_lamp.mod.json" },
+          { "type": "add", "path": "elements/trail_compass.mod.json" },
+          { "type": "modify", "path": "workspace.mcreator" },
+          { "type": "delete", "path": "resources/assets/copper_trails/lang/en_us.json.bak" }
+        ]
+      },
+      "diagnostics": []
+    }
+  ],
+  "timeline": [],
+  "expectedUi": {
+    "announcement": null,
+    "primaryAction": "create_recovery_point",
+    "focusTarget": "[data-testid=history-view]"
+  }
+}

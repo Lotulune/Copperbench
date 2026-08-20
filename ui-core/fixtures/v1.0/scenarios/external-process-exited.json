@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "1.0",
+  "scenarioId": "external-process-exited",
+  "extendsScenarioId": "ready",
+  "title": { "key": "scenario.external_process_exited", "fallback": "External process exited", "args": {} },
+  "description": "A managed Minecraft test client exits unexpectedly and produces an actionable diagnostic.",
+  "viewportState": "error",
+  "initialMessages": [
+    {
+      "messageType": "event",
+      "schemaVersion": "1.0",
+      "eventId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb6",
+      "workspaceId": "11111111-1111-4111-8111-111111111111",
+      "revision": 42,
+      "sequence": 106,
+      "occurredAt": "2026-08-16T06:40:00Z",
+      "event": "task_completed",
+      "causedByRequestId": null,
+      "payload": {
+        "task": {
+          "id": "33333333-3333-4333-8333-333333333332",
+          "kind": "run_client",
+          "state": "failed",
+          "cancellable": false,
+          "progress": null,
+          "stage": { "key": "task.client_exited", "fallback": "Minecraft exited unexpectedly", "args": {} },
+          "startedAt": "2026-08-16T06:39:00Z",
+          "completedAt": "2026-08-16T06:40:00Z",
+          "diagnostics": { "error": 1, "warning": 0, "info": 0 }
+        }
+      }
+    },
+    {
+      "messageType": "event",
+      "schemaVersion": "1.0",
+      "eventId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb7",
+      "workspaceId": "11111111-1111-4111-8111-111111111111",
+      "revision": 42,
+      "sequence": 107,
+      "occurredAt": "2026-08-16T06:40:00Z",
+      "event": "diagnostics_changed",
+      "causedByRequestId": null,
+      "payload": {
+        "counts": { "error": 1, "warning": 0, "info": 0 },
+        "diagnostics": [
+          {
+            "code": "EXTERNAL_PROCESS_EXITED",
+            "severity": "error",
+            "message": {
+              "key": "diagnostic.external_process_exited",
+              "fallback": "Minecraft exited with code 1.",
+              "args": { "exitCode": 1 }
+            },
+            "path": null,
+            "elementId": null,
+            "recoverable": true,
+            "actions": [
+              {
+                "id": "open_client_logs",
+                "label": { "key": "action.open_logs", "fallback": "Open logs", "args": {} },
+                "kind": "open_logs",
+                "target": "33333333-3333-4333-8333-333333333332"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "timeline": [],
+  "expectedUi": {
+    "announcement": "EXTERNAL_PROCESS_EXITED",
+    "primaryAction": "open_client_logs",
+    "focusTarget": "[data-testid=task-failure]"
+  }
+}

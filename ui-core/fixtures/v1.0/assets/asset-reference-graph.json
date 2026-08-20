@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "1.0",
+  "assets": [
+    {
+      "id": "asset:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "relativePath": "assets/coppertrails/models/block/copper_lamp.json",
+      "category": "MODEL",
+      "size": 256,
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "mediaType": "application/json"
+    },
+    {
+      "id": "asset:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "relativePath": "assets/coppertrails/textures/block/copper_lamp.png",
+      "category": "TEXTURE",
+      "size": 1024,
+      "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "mediaType": "image/png"
+    }
+  ],
+  "references": [
+    {
+      "sourceAssetId": "asset:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "sourcePath": "assets/coppertrails/models/block/copper_lamp.json",
+      "targetPath": "assets/coppertrails/textures/block/copper_lamp.png",
+      "targetAssetId": "asset:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "kind": "RESOURCE_ID"
+    }
+  ],
+  "diagnostics": []
+}

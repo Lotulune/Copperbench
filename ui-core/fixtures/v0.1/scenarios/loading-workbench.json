@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "0.1",
+  "scenarioId": "loading-workbench",
+  "extendsScenarioId": null,
+  "title": { "key": "scenario.loading_workbench", "fallback": "Loading workspace", "args": {} },
+  "description": "The workbench query is in flight and no success state may be implied yet.",
+  "viewportState": "loading",
+  "initialMessages": [
+    {
+      "messageType": "query",
+      "schemaVersion": "0.1",
+      "requestId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa4",
+      "workspaceId": "11111111-1111-4111-8111-111111111111",
+      "operation": "get_workbench",
+      "payload": {}
+    }
+  ],
+  "timeline": [],
+  "expectedUi": {
+    "announcement": "workspace_loading",
+    "primaryAction": null,
+    "focusTarget": null
+  }
+}

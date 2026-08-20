@@ -1,0 +1,12 @@
+{
+  "id": "fixture-c-swing",
+  "weight": 0,
+  "supportedversions": [2026001],
+  "javaplugin": "fixtures.SwingPlugin",
+  "info": {
+    "name": "Fixture C Swing",
+    "version": "1.0.0",
+    "description": "Legacy Swing compatibility fixture",
+    "author": "Copperbench"
+  }
+}

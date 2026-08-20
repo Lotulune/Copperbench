@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "1.0",
+  "scenarioId": "revision-conflict",
+  "extendsScenarioId": "ready",
+  "title": { "key": "scenario.revision_conflict", "fallback": "Revision conflict", "args": {} },
+  "description": "Another writer commits revision 43 before the UI update based on revision 42.",
+  "viewportState": "error",
+  "initialMessages": [
+    {
+      "messageType": "command_result",
+      "schemaVersion": "1.0",
+      "requestId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa7",
+      "workspaceId": "11111111-1111-4111-8111-111111111111",
+      "operation": "update_mod_element",
+      "status": "rejected",
+      "newRevision": 43,
+      "recoveryPointId": null,
+      "task": null,
+      "data": null,
+      "diagnostics": [
+        {
+          "code": "WORKSPACE_REVISION_CONFLICT",
+          "severity": "error",
+          "message": {
+            "key": "diagnostic.workspace_revision_conflict",
+            "fallback": "The workspace changed after this editor was opened.",
+            "args": { "expected": 42, "actual": 43 }
+          },
+          "path": "/elements/22222222-2222-4222-8222-222222222221",
+          "elementId": "22222222-2222-4222-8222-222222222221",
+          "recoverable": true,
+          "actions": [
+            {
+              "id": "refresh_element",
+              "label": { "key": "action.refresh", "fallback": "Review latest changes", "args": {} },
+              "kind": "refresh",
+              "target": "/elements/22222222-2222-4222-8222-222222222221"
+            }
+          ]
+        }
+      ],
+      "conflict": {
+        "expectedRevision": 42,
+        "actualRevision": 43,
+        "changedPaths": ["/elements/22222222-2222-4222-8222-222222222221/fields/hardness"]
+      },
+      "denial": null
+    }
+  ],
+  "timeline": [
+    {
+      "afterMs": 0,
+      "message": {
+        "messageType": "event",
+        "schemaVersion": "1.0",
+        "eventId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb1",
+        "workspaceId": "11111111-1111-4111-8111-111111111111",
+        "revision": 43,
+        "sequence": 101,
+        "occurredAt": "2026-08-16T06:25:00Z",
+        "event": "workspace_revision_advanced",
+        "causedByRequestId": null,
+        "payload": {
+          "changedPaths": ["/elements/22222222-2222-4222-8222-222222222221/fields/hardness"],
+          "actor": "mcp"
+        }
+      }
+    }
+  ],
+  "expectedUi": {
+    "announcement": "WORKSPACE_REVISION_CONFLICT",
+    "primaryAction": "refresh_element",
+    "focusTarget": "[data-testid=revision-conflict-dialog]"
+  }
+}

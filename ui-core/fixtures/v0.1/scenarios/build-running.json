@@ -1,0 +1,116 @@
+{
+  "schemaVersion": "0.1",
+  "scenarioId": "build-running",
+  "extendsScenarioId": "ready",
+  "title": { "key": "scenario.build_running", "fallback": "Build in progress", "args": {} },
+  "description": "A build command is accepted and progresses through task events to success.",
+  "viewportState": "ready",
+  "initialMessages": [
+    {
+      "messageType": "command_result",
+      "schemaVersion": "0.1",
+      "requestId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa9",
+      "workspaceId": "11111111-1111-4111-8111-111111111111",
+      "operation": "build_workspace",
+      "status": "accepted",
+      "newRevision": 42,
+      "recoveryPointId": null,
+      "task": {
+        "id": "33333333-3333-4333-8333-333333333331",
+        "kind": "build",
+        "state": "running",
+        "cancellable": true,
+        "progress": 0.1,
+        "stage": { "key": "task.resolving_dependencies", "fallback": "Resolving dependencies", "args": {} },
+        "startedAt": "2026-08-16T06:35:00Z",
+        "completedAt": null,
+        "diagnostics": { "error": 0, "warning": 0, "info": 0 }
+      },
+      "data": null,
+      "diagnostics": [],
+      "conflict": null,
+      "denial": null
+    }
+  ],
+  "timeline": [
+    {
+      "afterMs": 800,
+      "message": {
+        "messageType": "event",
+        "schemaVersion": "0.1",
+        "eventId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb3",
+        "workspaceId": "11111111-1111-4111-8111-111111111111",
+        "revision": 42,
+        "sequence": 103,
+        "occurredAt": "2026-08-16T06:35:01Z",
+        "event": "task_progressed",
+        "causedByRequestId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa9",
+        "payload": {
+          "task": {
+            "id": "33333333-3333-4333-8333-333333333331",
+            "kind": "build",
+            "state": "running",
+            "cancellable": true,
+            "progress": 0.65,
+            "stage": { "key": "task.compiling", "fallback": "Compiling generated sources", "args": {} },
+            "startedAt": "2026-08-16T06:35:00Z",
+            "completedAt": null,
+            "diagnostics": { "error": 0, "warning": 0, "info": 0 }
+          }
+        }
+      }
+    },
+    {
+      "afterMs": 1200,
+      "message": {
+        "messageType": "event",
+        "schemaVersion": "0.1",
+        "eventId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb4",
+        "workspaceId": "11111111-1111-4111-8111-111111111111",
+        "revision": 42,
+        "sequence": 104,
+        "occurredAt": "2026-08-16T06:35:02Z",
+        "event": "task_log_appended",
+        "causedByRequestId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa9",
+        "payload": {
+          "taskId": "33333333-3333-4333-8333-333333333331",
+          "entries": [
+            { "sequence": 1, "timestamp": "2026-08-16T06:35:02Z", "level": "info", "text": "Generated sources compiled successfully." }
+          ]
+        }
+      }
+    },
+    {
+      "afterMs": 1800,
+      "message": {
+        "messageType": "event",
+        "schemaVersion": "0.1",
+        "eventId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb5",
+        "workspaceId": "11111111-1111-4111-8111-111111111111",
+        "revision": 42,
+        "sequence": 105,
+        "occurredAt": "2026-08-16T06:35:03Z",
+        "event": "task_completed",
+        "causedByRequestId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa9",
+        "payload": {
+          "task": {
+            "id": "33333333-3333-4333-8333-333333333331",
+            "kind": "build",
+            "state": "succeeded",
+            "cancellable": false,
+            "progress": 1,
+            "stage": { "key": "task.completed", "fallback": "Build completed", "args": {} },
+            "startedAt": "2026-08-16T06:35:00Z",
+            "completedAt": "2026-08-16T06:35:03Z",
+            "diagnostics": { "error": 0, "warning": 0, "info": 0 }
+          }
+        }
+      }
+    }
+  ],
+  "expectedUi": {
+    "announcement": "build_started",
+    "primaryAction": "cancel_task",
+    "focusTarget": "[data-task-id=33333333-3333-4333-8333-333333333331]"
+  }
+}

@@ -1,0 +1,46 @@
+node_modules/
+ui-core/node_modules/
+ui-core/coverage/
+
+# Gradle and IDE state
+.gradle/
+build/
+**/build/
+**/.idea/workspace.xml
+**/.idea/tasks.xml
+**/.idea/uiDesigner.xml
+**/.idea/gradle.xml
+**/.idea/modules.xml
+**/.idea/deployment.xml
+**/.idea/discord.xml
+**/.idea/shelf/
+**/.idea/libraries-with-intellij-classes.xml
+**/.idea/php.xml
+**/.idea/copilot*
+/.idea/runConfigurations.xml
+
+# Local runtime state
+/jdk/
+/logs/
+hs_err_pid*
+debug.log
+*.log
+
+# Local scratch, generated reports, empty Tomcat leftovers
+.tmp/
+test-results/
+tomcat.0/
+ui-shell/dist/
+ui-shell/playwright-report/
+ui-shell/test-results/
+ui-shell/blob-report/
+
+# Signing material never belongs in git
+codesign-chain.pem
+*.pfx
+*.p12
+*.password.txt
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db

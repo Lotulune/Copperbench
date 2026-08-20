@@ -1,0 +1,10 @@
+{
+  "id": "fixture-a-resource",
+  "weight": 0,
+  "info": {
+    "name": "Fixture A Resource",
+    "version": "1.0.0",
+    "description": "Resource-only compatibility fixture",
+    "author": "Copperbench"
+  }
+}

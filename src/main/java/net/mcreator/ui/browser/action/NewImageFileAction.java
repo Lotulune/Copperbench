@@ -1,0 +1,54 @@
+/*
+ * MCreator (https://mcreator.net/)
+ * Copyright (C) 2020 Pylo and contributors
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+package net.mcreator.ui.browser.action;
+
+import net.mcreator.minecraft.RegistryNameFixer;
+import net.mcreator.ui.action.ActionRegistry;
+import net.mcreator.ui.action.BasicAction;
+import net.mcreator.ui.dialogs.imageeditor.NewImageDialog;
+import net.mcreator.ui.init.L10N;
+import net.mcreator.ui.init.UIRES;
+import net.mcreator.ui.views.editor.image.ImageMakerView;
+
+import javax.swing.*;
+import java.io.File;
+
+public class NewImageFileAction extends BasicAction {
+
+	public NewImageFileAction(ActionRegistry actionRegistry) {
+		super(actionRegistry, L10N.t("action.browser.new_image_file"), _ -> {
+			String fileName = JOptionPane.showInputDialog(actionRegistry.getMCreator(),
+					L10N.t("workspace_file_browser.new_image"));
+
+			if (fileName != null) {
+				fileName = RegistryNameFixer.fix(fileName);
+				File workingDir = actionRegistry.getMCreator().getProjectBrowser().getCurrentSelectedDirectory();
+				if (workingDir != null) {
+					ImageMakerView imageMakerView = new ImageMakerView(actionRegistry.getMCreator());
+					new NewImageDialog(actionRegistry.getMCreator(), imageMakerView).setVisible(true);
+					imageMakerView.setSaveLocation(
+							new File(workingDir, fileName + (fileName.contains(".") ? "" : ".png")));
+					actionRegistry.getMCreator().getProjectBrowser().reloadTree();
+				}
+			}
+		});
+		setIcon(UIRES.get("laf.image"));
+	}
+
+}

@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "preview-track-compile-probe",
+  "generatorId": "fabric-1.20.1",
+  "minecraftVersion": "1.20.1",
+  "loaderVersion": "0.15.11",
+  "loomVersion": "1.7.4",
+  "fabricApiVersion": "0.92.2+1.20.1",
+  "javaRelease": 17,
+  "jdk": "D:\\AICoding\\Minecraft_ModCreator\\jdk\\jdk21_win_64",
+  "gradleUserHome": "C:\\Users\\Administrator\\.gradle",
+  "osNetworkDisconnected": false,
+  "cacheWarm": {
+    "completed": true,
+    "timedOut": false,
+    "exitCode": 0,
+    "offline": false
+  },
+  "offline": {
+    "completed": true,
+    "timedOut": false,
+    "exitCode": 0,
+    "offline": true
+  },
+  "generateSucceeded": true,
+  "jarPresent": true,
+  "compileSucceeded": true,
+  "goldenClaimed": false,
+  "catalogStatus": "PREVIEW",
+  "catalogReasonCode": "TRACK_GENERATE_READY",
+  "catalogGeneratable": false,
+  "diagnostics": [],
+  "logFile": "evidence/stage-8/2026-08-19/fabric-1201-compile.log",
+  "completedAt": "2026-08-19T11:43:32.960015900Z",
+  "durationSeconds": 503.81
+}

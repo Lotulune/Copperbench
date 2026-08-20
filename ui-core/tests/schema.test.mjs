@@ -1,0 +1,195 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { createValidator, validateAll } from '../scripts/validate.mjs';
+
+test('all UI-Core schemas compile and all mock scenarios validate', async () => {
+  const result = await validateAll();
+  assert.ok(result.schemaCount >= 9);
+  assert.ok(result.fixtureCount >= 13);
+  assert.deepEqual(result.failures, []);
+});
+
+test('version track matrix fixture validates against the canonical tracks schema', async () => {
+  const { ajv } = await createValidator();
+  const validate = ajv.getSchema('urn:ui-core:1.0:tracks');
+  assert.ok(validate, 'tracks schema should be registered');
+  const fixture = JSON.parse(await (await import('node:fs/promises')).readFile(
+    new URL('../fixtures/v1.0/tracks/version-tracks.json', import.meta.url), 'utf8'));
+  assert.equal(validate(fixture), true, JSON.stringify(validate.errors));
+});
+
+test('release notes fixture validates against the canonical release schema', async () => {
+  const { ajv } = await createValidator();
+  const validate = ajv.getSchema('urn:ui-core:1.0:release');
+  assert.ok(validate, 'release schema should be registered');
+  const fixture = JSON.parse(await (await import('node:fs/promises')).readFile(
+    new URL('../fixtures/v1.0/release/release-notes.json', import.meta.url), 'utf8'));
+  assert.equal(validate(fixture), true, JSON.stringify(validate.errors));
+});
+
+test('asset reference graph fixture validates against the canonical asset projection schema', async () => {
+  const { ajv } = await createValidator();
+  const validate = ajv.getSchema('urn:ui-core:1.0:asset');
+  assert.ok(validate, 'asset schema should be registered');
+  const fixture = JSON.parse(await (await import('node:fs/promises')).readFile(
+    new URL('../fixtures/v1.0/assets/asset-reference-graph.json', import.meta.url), 'utf8'));
+  assert.equal(validate(fixture), true, JSON.stringify(validate.errors));
+});
+
+test('legacy v0.1 schemas and fixtures remain valid after the v1 freeze', async () => {
+  const result = await validateAll('0.1');
+  assert.deepEqual(result.failures, []);
+});
+
+test('handshake rejects an incompatible version without an untyped fallback', async () => {
+  const { ajv } = await createValidator();
+  const validate = ajv.getSchema('urn:ui-core:1.0:handshake-result');
+  const valid = validate({
+    messageType: 'handshake_result',
+    requestId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa22',
+    status: 'incompatible',
+    selectedSchemaVersion: '1.0',
+    coreSchemaVersions: ['1.0'],
+    diagnostics: [],
+  });
+  assert.equal(valid, false);
+});
+
+test('a mutating command without expectedRevision is rejected', async () => {
+  const { ajv } = await createValidator();
+  const validate = ajv.getSchema('urn:ui-core:1.0:command');
+  const valid = validate({
+    messageType: 'command',
+    schemaVersion: '1.0',
+    requestId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa12',
+    workspaceId: '11111111-1111-4111-8111-111111111111',
+    operation: 'delete_mod_element',
+    payload: {
+      clientMutationId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa13',
+      elementId: '22222222-2222-4222-8222-222222222221',
+    },
+  });
+  assert.equal(valid, false);
+});
+
+test('an event with the wrong payload shape is rejected', async () => {
+  const { ajv } = await createValidator();
+  const validate = ajv.getSchema('urn:ui-core:1.0:event');
+  const valid = validate({
+    messageType: 'event',
+    schemaVersion: '1.0',
+    eventId: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbba1',
+    workspaceId: '11111111-1111-4111-8111-111111111111',
+    revision: 42,
+    sequence: 999,
+    occurredAt: '2026-08-16T07:00:00Z',
+    event: 'task_progressed',
+    causedByRequestId: null,
+    payload: { core: 'connected', network: 'online', bridge: 'ready' },
+  });
+  assert.equal(valid, false);
+});
+
+test('history lifecycle events emitted by Java Core are accepted', async () => {
+  const { ajv } = await createValidator();
+  const validate = ajv.getSchema('urn:ui-core:1.0:event');
+  const valid = validate({
+    messageType: 'event',
+    schemaVersion: '1.0',
+    eventId: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbba2',
+    workspaceId: '11111111-1111-4111-8111-111111111111',
+    revision: 42,
+    sequence: 1000,
+    occurredAt: '2026-08-17T02:10:00Z',
+    event: 'recovery_point_created',
+    causedByRequestId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa31',
+    payload: {
+      recoveryPoint: {
+        id: '7d7c3e34c657acc1',
+        label: 'Before MCP batch edit',
+        actor: 'mcp',
+        taskId: '',
+        createdAt: '2026-08-17T02:10:00Z',
+      },
+    },
+  });
+  assert.equal(valid, true, JSON.stringify(validate.errors));
+});
+
+test('unknown envelope properties are rejected', async () => {
+  const { ajv } = await createValidator();
+  const validate = ajv.getSchema('urn:ui-core:1.0:query');
+  const valid = validate({
+    messageType: 'query',
+    schemaVersion: '1.0',
+    requestId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa14',
+    workspaceId: '11111111-1111-4111-8111-111111111111',
+    operation: 'get_workbench',
+    payload: {},
+    arbitraryPath: 'C:\\Users\\example',
+  });
+  assert.equal(valid, false);
+});
+
+test('history projections use versioned query envelopes', async () => {
+  const { ajv } = await createValidator();
+  const validate = ajv.getSchema('urn:ui-core:1.0:query-result');
+  const valid = validate({
+    messageType: 'query_result',
+    schemaVersion: '1.0',
+    requestId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa31',
+    workspaceId: '11111111-1111-4111-8111-111111111111',
+    operation: 'get_history',
+    status: 'succeeded',
+    revision: 42,
+    data: {
+      currentRevision: 42,
+      recoveryPoints: [{
+        id: '7d7c3e34c657acc1',
+        label: 'Before MCP batch edit',
+        actor: 'mcp',
+        taskId: 'task-184',
+        createdAt: '2026-08-17T02:10:00Z',
+      }],
+    },
+    diagnostics: [],
+  });
+  assert.equal(valid, true, JSON.stringify(validate.errors));
+});
+
+test('restore requires an explicit confirmation fact', async () => {
+  const { ajv } = await createValidator();
+  const validate = ajv.getSchema('urn:ui-core:1.0:command');
+  const valid = validate({
+    messageType: 'command',
+    schemaVersion: '1.0',
+    requestId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa32',
+    workspaceId: '11111111-1111-4111-8111-111111111111',
+    expectedRevision: 42,
+    operation: 'restore_recovery_point',
+    payload: {
+      clientMutationId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa33',
+      recoveryPointId: '7d7c3e34c657acc1',
+    },
+  });
+  assert.equal(valid, false);
+});
+
+test('protected operation decisions are explicit and bounded', async () => {
+  const { ajv } = await createValidator();
+  const validate = ajv.getSchema('urn:ui-core:1.0:command');
+  const valid = validate({
+    messageType: 'command',
+    schemaVersion: '1.0',
+    requestId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa34',
+    workspaceId: '11111111-1111-4111-8111-111111111111',
+    expectedRevision: 42,
+    operation: 'resolve_operation_approval',
+    payload: {
+      clientMutationId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa35',
+      approvalId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa36',
+      decision: 'allow_forever',
+    },
+  });
+  assert.equal(valid, false);
+});

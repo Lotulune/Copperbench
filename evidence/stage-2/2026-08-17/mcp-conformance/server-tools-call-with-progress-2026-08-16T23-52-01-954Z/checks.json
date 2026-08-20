@@ -1,0 +1,16 @@
+[
+  {
+    "id": "tools-call-with-progress",
+    "name": "ToolsCallWithProgress",
+    "description": "Tool reports progress notifications",
+    "status": "FAILURE",
+    "timestamp": "2026-08-16T23:52:01.983Z",
+    "errorMessage": "Failed: MCP error -32602: Unknown tool: invalid_tool_name",
+    "specReferences": [
+      {
+        "id": "MCP-Progress",
+        "url": "https://modelcontextprotocol.io/specification/2025-06-18/server/utilities/progress"
+      }
+    ]
+  }
+]

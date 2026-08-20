@@ -1,0 +1,208 @@
+/*
+ * MCreator (https://mcreator.net/)
+ * Copyright (C) 2020 Pylo and contributors
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+package net.mcreator.ui.workspace.breadcrumb;
+
+import net.mcreator.ui.MCreator;
+import net.mcreator.ui.component.JScrollablePopupMenu;
+import net.mcreator.ui.init.UIRES;
+import net.mcreator.ui.laf.themes.Theme;
+import net.mcreator.ui.variants.modmaker.ModMaker;
+import net.mcreator.util.ColorUtils;
+import net.mcreator.util.image.IconUtils;
+import net.mcreator.workspace.elements.FolderElement;
+import net.mcreator.workspace.elements.IElement;
+import net.mcreator.workspace.elements.ModElement;
+import net.mcreator.workspace.elements.ModElementManager;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
+public class WorkspaceFolderBreadcrumb extends JPanel {
+
+	private final MCreator mcreator;
+	private final int maxDepth;
+	private final boolean canExpandTrailHead;
+
+	private SelectionListener selectionListener;
+
+	private FolderElement currentFolder;
+
+	public WorkspaceFolderBreadcrumb(MCreator mcreator, int maxDepth, boolean canExpandTrailHead) {
+		super(new FlowLayout(FlowLayout.LEFT, 0, 0));
+		this.mcreator = mcreator;
+		this.maxDepth = maxDepth;
+		this.canExpandTrailHead = canExpandTrailHead;
+
+		setBorder(BorderFactory.createEmptyBorder(2, 5, 2, 0));
+		setOpaque(false);
+	}
+
+	@Override public void paintComponent(Graphics g) {
+		g.setColor(mcreator.hasBackgroundImage() ?
+				ColorUtils.applyAlpha(Theme.current().getAltBackgroundColor(), 100) :
+				Theme.current().getBackgroundColor());
+		g.fillRect(0, 0, getWidth(), getHeight());
+		super.paintComponent(g);
+	}
+
+	@SuppressWarnings("EqualsBetweenInconvertibleTypes")
+	public void reloadPath(FolderElement file, Class<? extends IElement> childElement) {
+		this.currentFolder = file;
+
+		removeAll();
+
+		List<FolderElement> path = new ArrayList<>();
+
+		int depth = 0;
+		while (true) {
+			path.add(file);
+			if (file == null || file.equals(mcreator.getWorkspace().getFoldersRoot()))
+				break;
+			file = file.getParent();
+
+			depth++;
+			if (depth > maxDepth - 1)
+				break;
+		}
+		Collections.reverse(path);
+
+		int idx = 0;
+		for (FolderElement filePathPart : path) {
+			JLabel entry = new FolderElementCrumb(filePathPart);
+
+			if (filePathPart.equals(mcreator.getWorkspace().getFoldersRoot())) {
+				entry.setText(mcreator.getWorkspaceSettings().getModName());
+			}
+
+			add(entry);
+
+			if (idx < path.size() - 1 || canExpandTrailHead) {
+				entry.addMouseListener(new MouseAdapter() {
+
+					private long lastClickTime = 0;
+					private Timer timer;
+
+					private static final int DOUBLE_CLICK_THRESHOLD = 250;
+
+					@Override public void mouseClicked(MouseEvent e) {
+						long now = System.currentTimeMillis();
+						if (lastClickTime != 0 && now - lastClickTime < DOUBLE_CLICK_THRESHOLD) {
+							lastClickTime = 0;
+
+							if (timer != null)
+								timer.stop();
+
+							if (selectionListener != null)
+								selectionListener.elementSelected(filePathPart, entry, e);
+						} else {
+							lastClickTime = now;
+							timer = new Timer(DOUBLE_CLICK_THRESHOLD, _ -> showPopup(e));
+							timer.setRepeats(false);
+							timer.start();
+						}
+					}
+
+					private void showPopup(MouseEvent mouseEvent) {
+						JScrollablePopupMenu popupMenu = new JScrollablePopupMenu();
+						List<IElement> files = filePathPart.getDirectFolderChildren().stream().map(e -> (IElement) e)
+								.collect(Collectors.toList());
+
+						if (childElement == ModElement.class) {
+							for (ModElement modElement : mcreator.getWorkspace().getModElements()) {
+								if (filePathPart.equals(modElement.getFolderPath())) {
+									files.add(modElement);
+								}
+							}
+						}
+
+						for (IElement file : files) {
+							JMenuItem menuItem = new JMenuItem("<html>&nbsp;" + file.getName());
+							if (file instanceof ModElement)
+								menuItem.setIcon(
+										IconUtils.resize(ModElementManager.getModElementIcon((ModElement) file), 16,
+												16));
+							else if (file instanceof FolderElement)
+								menuItem.setIcon(UIRES.get("laf.directory"));
+
+							menuItem.addActionListener(_ -> {
+								if (selectionListener != null)
+									selectionListener.elementSelected(file, entry, mouseEvent);
+							});
+							popupMenu.add(menuItem);
+						}
+						try {
+							popupMenu.show(entry, 0, 18);
+						} catch (Exception e) {
+							popupMenu.show(WorkspaceFolderBreadcrumb.this, 0, 18);
+						}
+					}
+				});
+			}
+
+			if (idx < path.size() - 1)
+				add(new JLabel(UIRES.get("16px.subpath")));
+
+			idx++;
+		}
+
+		revalidate();
+		repaint();
+	}
+
+	public FolderElement getCurrentFolder() {
+		return currentFolder;
+	}
+
+	public void setSelectionListener(SelectionListener selectionListener) {
+		this.selectionListener = selectionListener;
+	}
+
+	public interface SelectionListener {
+		void elementSelected(IElement element, JComponent component, MouseEvent event);
+	}
+
+	public static class Small extends WorkspaceFolderBreadcrumb {
+
+		public Small(MCreator mcreator) {
+			super(mcreator, 3, true);
+			if (mcreator instanceof ModMaker modMaker) {
+				reloadPath(modMaker.getWorkspacePanel().currentFolder, FolderElement.class);
+			}
+			setSelectionListener((element, _, _) -> {
+				if (element instanceof FolderElement fe)
+					reloadPath(fe, FolderElement.class);
+			});
+		}
+
+		public JScrollPane getInScrollPane() {
+			JScrollPane scrollPane = new JScrollPane(this, JScrollPane.VERTICAL_SCROLLBAR_NEVER,
+					JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+			scrollPane.getHorizontalScrollBar().setPreferredSize(new Dimension());
+			return scrollPane;
+		}
+
+	}
+
+}

@@ -1,0 +1,136 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ui-core:0.1:scenario",
+  "title": "UI-Core mock scenario v0.1",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "scenarioId",
+    "extendsScenarioId",
+    "title",
+    "description",
+    "viewportState",
+    "initialMessages",
+    "timeline",
+    "expectedUi"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "0.1"
+    },
+    "scenarioId": {
+      "$ref": "urn:ui-core:0.1:common#/$defs/identifier"
+    },
+    "extendsScenarioId": {
+      "oneOf": [
+        {
+          "$ref": "urn:ui-core:0.1:common#/$defs/identifier"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "title": {
+      "$ref": "urn:ui-core:0.1:common#/$defs/localizedText"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1
+    },
+    "viewportState": {
+      "type": "string",
+      "enum": [
+        "loading",
+        "empty",
+        "ready",
+        "degraded",
+        "error",
+        "recovery"
+      ]
+    },
+    "initialMessages": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/message"
+      }
+    },
+    "timeline": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "afterMs",
+          "message"
+        ],
+        "properties": {
+          "afterMs": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "message": {
+            "$ref": "#/$defs/message"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "expectedUi": {
+      "type": "object",
+      "required": [
+        "announcement",
+        "primaryAction",
+        "focusTarget"
+      ],
+      "properties": {
+        "announcement": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "primaryAction": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "focusTarget": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "$defs": {
+    "message": {
+      "oneOf": [
+        {
+          "$ref": "urn:ui-core:0.1:handshake"
+        },
+        {
+          "$ref": "urn:ui-core:0.1:handshake-result"
+        },
+        {
+          "$ref": "urn:ui-core:0.1:command"
+        },
+        {
+          "$ref": "urn:ui-core:0.1:query"
+        },
+        {
+          "$ref": "urn:ui-core:0.1:command-result"
+        },
+        {
+          "$ref": "urn:ui-core:0.1:query-result"
+        },
+        {
+          "$ref": "urn:ui-core:0.1:event"
+        }
+      ]
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,337 @@
+/*
+ * MCreator (https://mcreator.net/)
+ * Copyright (C) 2020 Pylo and contributors
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+package net.mcreator.ui.modgui;
+
+import net.mcreator.blockly.BlocklyCompileNote;
+import net.mcreator.blockly.InternalBlocksLoader;
+import net.mcreator.blockly.data.BlocklyLoader;
+import net.mcreator.blockly.data.DynamicBlockLoader;
+import net.mcreator.blockly.data.ToolboxBlock;
+import net.mcreator.blockly.data.ToolboxType;
+import net.mcreator.blockly.datapack.BlocklyToJSONTrigger;
+import net.mcreator.element.ModElementType;
+import net.mcreator.element.parts.AchievementEntry;
+import net.mcreator.element.types.Achievement;
+import net.mcreator.element.util.AnnotationUtils;
+import net.mcreator.generator.blockly.BlocklyBlockCodeGenerator;
+import net.mcreator.generator.blockly.OutputBlockCodeGenerator;
+import net.mcreator.generator.blockly.ProceduralBlockCodeGenerator;
+import net.mcreator.generator.mapping.NonMappableElement;
+import net.mcreator.generator.template.TemplateGeneratorException;
+import net.mcreator.minecraft.DataListEntry;
+import net.mcreator.minecraft.ElementUtil;
+import net.mcreator.ui.MCreator;
+import net.mcreator.ui.MCreatorApplication;
+import net.mcreator.ui.blockly.*;
+import net.mcreator.ui.component.TranslatedComboBox;
+import net.mcreator.ui.component.util.ComboBoxUtil;
+import net.mcreator.ui.component.util.ComponentUtils;
+import net.mcreator.ui.component.util.PanelUtils;
+import net.mcreator.ui.help.HelpUtils;
+import net.mcreator.ui.init.L10N;
+import net.mcreator.ui.minecraft.*;
+import net.mcreator.ui.modgui.util.ComponentFromAnnotation;
+import net.mcreator.ui.validation.ValidationGroup;
+import net.mcreator.ui.validation.component.VTextField;
+import net.mcreator.ui.workspace.resources.TextureType;
+import net.mcreator.util.StringUtils;
+import net.mcreator.util.TestUtil;
+import net.mcreator.workspace.elements.ModElement;
+
+import javax.annotation.Nullable;
+import javax.swing.*;
+import java.awt.*;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+public class AchievementGUI extends ModElementGUI<Achievement> implements IBlocklyPanelHolder {
+
+	private final VTextField achievementName = new VTextField(20).requireValue("elementgui.advancement.cant_be_empty")
+			.enableRealtimeValidation();
+	private final VTextField achievementDescription = new VTextField(20).requireValue(
+			"elementgui.advancement.must_have_description").enableRealtimeValidation();
+
+	private final DataListComboBox parentAchievement = new DataListComboBox(mcreator);
+
+	private MCItemHolder achievementIcon;
+
+	private final TranslatedComboBox achievementType = ComponentFromAnnotation.translatedOptions(Achievement.class,
+			"achievementType", "elementgui.advancement.achievement_type.");
+
+	private TextureComboBox background;
+
+	private final JCheckBox showPopup = L10N.checkbox("elementgui.common.enable");
+	private final JCheckBox announceToChat = L10N.checkbox("elementgui.common.enable");
+	private final JCheckBox hideIfNotCompleted = L10N.checkbox("elementgui.common.enable");
+	private final JCheckBox disableDisplay = L10N.checkbox("elementgui.common.enable");
+
+	private final ValidationGroup page1group = new ValidationGroup();
+
+	private SingleModElementSelector rewardFunction;
+	private ModElementListField rewardLoot;
+	private ModElementListField rewardRecipes;
+
+	private final JSpinner rewardXP = ComponentFromAnnotation.spinner(Achievement.class, "rewardXP");
+
+	private BlocklyPanel blocklyPanel;
+	private final CompileNotesPanel compileNotesPanel = new CompileNotesPanel();
+	private Map<String, ToolboxBlock> externalBlocks;
+	private final List<BlocklyChangedListener> blocklyChangedListeners = new ArrayList<>();
+
+	public AchievementGUI(MCreator mcreator, ModElement modElement, boolean editingMode) {
+		super(mcreator, modElement, editingMode);
+		this.initGUI();
+		super.finalizeGUI();
+	}
+
+	@Override public void addBlocklyChangedListener(BlocklyChangedListener listener) {
+		blocklyChangedListeners.add(listener);
+	}
+
+	@Override protected void initGUI() {
+		achievementIcon = new MCItemHolder(mcreator, ElementUtil::loadBlocksAndItems).requireValue(
+				"elementgui.advancement.error_advancement_needs_icon");
+
+		background = new TextureComboBox(mcreator, TextureType.SCREEN, true, "Default");
+
+		JPanel propertiesPanel = new JPanel(new GridLayout(7, 2, 10, 2));
+		JPanel logicPanel = new JPanel(new GridLayout(7, 2, 10, 2));
+
+		rewardFunction = new SingleModElementSelector(mcreator, ModElementType.FUNCTION);
+		rewardFunction.setDefaultText(L10N.t("elementgui.advancement.no_reward_function"));
+		rewardLoot = new ModElementListField(mcreator, ModElementType.LOOTTABLE);
+		rewardRecipes = new ModElementListField(mcreator, ModElementType.RECIPE);
+
+		ComponentUtils.deriveFont(achievementName, 16);
+		ComponentUtils.deriveFont(achievementDescription, 16);
+
+		parentAchievement.setPrototypeDisplayValue(new DataListEntry.Dummy("XXXXXXXXXXXXXXXXXXXXXXX"));
+
+		showPopup.setOpaque(false);
+		announceToChat.setOpaque(false);
+		hideIfNotCompleted.setOpaque(false);
+		disableDisplay.setOpaque(false);
+
+		showPopup.setSelected(true);
+		announceToChat.setSelected(true);
+
+		propertiesPanel.add(HelpUtils.wrapWithHelpButton(this.withEntry("advancement/name"),
+				L10N.label("elementgui.advancement.name")));
+		propertiesPanel.add(achievementName);
+
+		propertiesPanel.add(HelpUtils.wrapWithHelpButton(this.withEntry("advancement/description"),
+				L10N.label("elementgui.advancement.description")));
+		propertiesPanel.add(achievementDescription);
+
+		propertiesPanel.add(HelpUtils.wrapWithHelpButton(this.withEntry("advancement/icon"),
+				L10N.label("elementgui.advancement.icon")));
+		propertiesPanel.add(PanelUtils.join(FlowLayout.LEFT, achievementIcon));
+
+		propertiesPanel.add(HelpUtils.wrapWithHelpButton(this.withEntry("advancement/background"),
+				L10N.label("elementgui.advancement.background")));
+		propertiesPanel.add(background);
+
+		propertiesPanel.add(HelpUtils.wrapWithHelpButton(this.withEntry("advancement/type"),
+				L10N.label("elementgui.advancement.type")));
+		propertiesPanel.add(achievementType);
+
+		propertiesPanel.add(HelpUtils.wrapWithHelpButton(this.withEntry("advancement/parent"),
+				L10N.label("elementgui.advancement.parent")));
+		propertiesPanel.add(parentAchievement);
+
+		propertiesPanel.add(HelpUtils.wrapWithHelpButton(this.withEntry("advancement/show_toast"),
+				L10N.label("elementgui.advancement.show_toast")));
+		propertiesPanel.add(showPopup);
+
+		logicPanel.add(HelpUtils.wrapWithHelpButton(this.withEntry("advancement/reward_xp"),
+				L10N.label("elementgui.advancement.reward_xp")));
+		logicPanel.add(rewardXP);
+
+		logicPanel.add(HelpUtils.wrapWithHelpButton(this.withEntry("advancement/reward_function"),
+				L10N.label("elementgui.advancement.reward_functions")));
+		logicPanel.add(rewardFunction);
+
+		logicPanel.add(HelpUtils.wrapWithHelpButton(this.withEntry("advancement/reward_loot_tables"),
+				L10N.label("elementgui.advancement.reward_loot_tables")));
+		logicPanel.add(rewardLoot);
+
+		logicPanel.add(HelpUtils.wrapWithHelpButton(this.withEntry("advancement/reward_recipes"),
+				L10N.label("elementgui.advancement.reward_recipes")));
+		logicPanel.add(rewardRecipes);
+
+		logicPanel.add(HelpUtils.wrapWithHelpButton(this.withEntry("advancement/announce_to_chat"),
+				L10N.label("elementgui.advancement.announce_to_chat")));
+		logicPanel.add(announceToChat);
+
+		logicPanel.add(HelpUtils.wrapWithHelpButton(this.withEntry("advancement/hide_if_not_completed"),
+				L10N.label("elementgui.advancement.hide_if_not_completed")));
+		logicPanel.add(hideIfNotCompleted);
+
+		logicPanel.add(HelpUtils.wrapWithHelpButton(this.withEntry("advancement/hide_display"),
+				L10N.label("elementgui.advancement.hide_display")));
+		logicPanel.add(disableDisplay);
+
+		ComponentUtils.makeSection(logicPanel, L10N.t("elementgui.advancement.logic"));
+
+		ComponentUtils.makeSection(propertiesPanel, L10N.t("elementgui.advancement.display_paramters"));
+
+		propertiesPanel.setOpaque(false);
+		logicPanel.setOpaque(false);
+
+		page1group.addValidationElement(achievementIcon);
+		page1group.addValidationElement(achievementName);
+		page1group.addValidationElement(achievementDescription);
+
+		externalBlocks = BlocklyLoader.INSTANCE.getBlockLoader(BlocklyEditorType.JSON_TRIGGER).getDefinedBlocks();
+		blocklyPanel = new BlocklyPanel(mcreator, BlocklyEditorType.JSON_TRIGGER);
+		blocklyPanel.addTaskToRunAfterLoaded(() -> {
+			InternalBlocksLoader.loadBlocksAndCategoriesInPanel(blocklyPanel);
+			DynamicBlockLoader.loadBlocksAndCategoriesInPanel(blocklyPanel);
+			BlocklyLoader.INSTANCE.getBlockLoader(BlocklyEditorType.JSON_TRIGGER)
+					.loadBlocksAndCategoriesInPanel(blocklyPanel, ToolboxType.JSON_TRIGGER);
+			blocklyPanel.addChangeListener(
+					_ -> new Thread(() -> regenerateBlockAssemblies(true), "TriggerRegenerate").start());
+		});
+		if (!isEditingMode()) {
+			blocklyPanel.setInitialXML(AnnotationUtils.getBlocklyXMLDefaultValue(Achievement.class, "triggerxml"));
+		}
+
+		JPanel blocklyAndToolbarPanel = new JPanel(new GridLayout());
+		blocklyAndToolbarPanel.setOpaque(false);
+		BlocklyEditorToolbar blocklyEditorToolbar = new BlocklyEditorToolbar(mcreator, BlocklyEditorType.JSON_TRIGGER,
+				blocklyPanel, false);
+		blocklyEditorToolbar.setTemplateLibButtonWidth(163);
+		blocklyAndToolbarPanel.add(PanelUtils.northAndCenterElement(blocklyEditorToolbar, blocklyPanel));
+
+		compileNotesPanel.setPreferredSize(new Dimension(0, 70));
+
+		JComponent advancementTrigger = PanelUtils.centerAndSouthElement(blocklyAndToolbarPanel, compileNotesPanel);
+		ComponentUtils.makeSection(advancementTrigger, L10N.t("elementgui.advancement.trigger_builder"));
+		advancementTrigger.setPreferredSize(new Dimension(0, 460));
+
+		JComponent wrap = PanelUtils.northAndCenterElement(
+				PanelUtils.gridElements(1, 2, 5, 5, propertiesPanel, logicPanel), advancementTrigger);
+		wrap.setBorder(BorderFactory.createEmptyBorder(0, 5, 5, 5));
+
+		JPanel page1 = new JPanel(new BorderLayout(10, 10));
+		page1.add("Center",
+				PanelUtils.northAndCenterElement(PanelUtils.join(FlowLayout.LEFT, wrap), advancementTrigger));
+
+		page1.setOpaque(false);
+
+		addPage(page1).validate(page1group).lazyValidate(BlocklyAggregatedValidationResult.blocklyValidator(this,
+				compileNote -> L10N.t("elementgui.advancement.trigger", compileNote)));
+
+		if (!isEditingMode()) {
+			String readableNameFromModElement = StringUtils.machineToReadableName(modElement.getName());
+			achievementName.setText(readableNameFromModElement);
+		}
+	}
+
+	@Override public synchronized List<BlocklyCompileNote> regenerateBlockAssemblies(boolean jsEventTriggeredChange) {
+		BlocklyBlockCodeGenerator blocklyBlockCodeGenerator = new BlocklyBlockCodeGenerator(externalBlocks,
+				mcreator.getGeneratorStats().getBlocklyBlocks(BlocklyEditorType.JSON_TRIGGER));
+
+		BlocklyToJSONTrigger blocklyToJSONTrigger;
+		try {
+			blocklyToJSONTrigger = new BlocklyToJSONTrigger(mcreator.getWorkspace(), this.modElement,
+					blocklyPanel.getXML(), null, new ProceduralBlockCodeGenerator(blocklyBlockCodeGenerator),
+					new OutputBlockCodeGenerator(blocklyBlockCodeGenerator));
+		} catch (TemplateGeneratorException e) {
+			TestUtil.failIfTestingEnvironment();
+			return List.of(); // should not be possible to happen here
+		}
+
+		List<BlocklyCompileNote> compileNotesArrayList = blocklyToJSONTrigger.getCompileNotes();
+
+		if (!blocklyToJSONTrigger.hasTrigger()) {
+			compileNotesArrayList.add(new BlocklyCompileNote(BlocklyCompileNote.Type.ERROR,
+					L10N.t("elementgui.advancement.need_trigger")));
+		}
+
+		SwingUtilities.invokeLater(() -> compileNotesPanel.updateCompileNotes(compileNotesArrayList));
+
+		blocklyChangedListeners.forEach(l -> l.blocklyChanged(blocklyPanel, jsEventTriggeredChange));
+
+		return compileNotesArrayList;
+	}
+
+	@Override public void reloadDataLists() {
+		ComboBoxUtil.updateComboBoxContents(parentAchievement,
+				ElementUtil.loadAllAchievements(mcreator.getWorkspace()));
+
+		background.reload();
+	}
+
+	@Override public void openInEditingMode(Achievement achievement) {
+		achievementName.setText(achievement.achievementName);
+		achievementDescription.setText(achievement.achievementDescription);
+		achievementIcon.setBlock(achievement.achievementIcon);
+		achievementType.setSelectedItem(achievement.achievementType);
+		parentAchievement.setSelectedItem(achievement.parent);
+		disableDisplay.setSelected(achievement.disableDisplay);
+		showPopup.setSelected(achievement.showPopup);
+		announceToChat.setSelected(achievement.announceToChat);
+		hideIfNotCompleted.setSelected(achievement.hideIfNotCompleted);
+		rewardFunction.setEntry(achievement.rewardFunction);
+		background.setTextureFromTextureName(achievement.background);
+		rewardLoot.setListElements(achievement.rewardLoot.stream().map(NonMappableElement::new).toList());
+		rewardRecipes.setListElements(achievement.rewardRecipes.stream().map(NonMappableElement::new).toList());
+		rewardXP.setValue(achievement.rewardXP);
+		blocklyPanel.setInitialXML(achievement.triggerxml);
+	}
+
+	@Override public Achievement getElementFromGUI() {
+		Achievement achievement = new Achievement(modElement);
+		achievement.achievementName = achievementName.getText();
+		achievement.achievementDescription = achievementDescription.getText();
+		achievement.achievementIcon = achievementIcon.getBlock();
+		achievement.achievementType = achievementType.getSelectedItem();
+		achievement.parent = new AchievementEntry(mcreator.getWorkspace(), parentAchievement.getSelectedItem());
+		achievement.showPopup = showPopup.isSelected();
+		achievement.disableDisplay = disableDisplay.isSelected();
+		achievement.announceToChat = announceToChat.isSelected();
+		achievement.hideIfNotCompleted = hideIfNotCompleted.isSelected();
+		achievement.rewardFunction = rewardFunction.getEntry();
+		achievement.background = background.getTextureName();
+		achievement.rewardLoot = rewardLoot.getListElements().stream().map(NonMappableElement::getUnmappedValue)
+				.collect(Collectors.toList());
+		achievement.rewardRecipes = rewardRecipes.getListElements().stream().map(NonMappableElement::getUnmappedValue)
+				.collect(Collectors.toList());
+		achievement.rewardXP = (int) rewardXP.getValue();
+
+		achievement.triggerxml = blocklyPanel.getXML();
+
+		return achievement;
+	}
+
+	@Override public @Nullable URI contextURL() throws URISyntaxException {
+		return new URI(MCreatorApplication.SERVER_DOMAIN + "/wiki/how-make-achievement");
+	}
+
+	@Override public Set<BlocklyPanel> getBlocklyPanels() {
+		return Set.of(blocklyPanel);
+	}
+
+}

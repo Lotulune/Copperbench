@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "preview-track-runclient-probe-runner",
+  "generatorId": "neoforge-1.20.1",
+  "probeRan": true,
+  "runClientSucceeded": true,
+  "goldenClaimed": false,
+  "catalogStatus": "PREVIEW",
+  "catalogReasonCode": "TRACK_GENERATE_READY",
+  "probeEvidence": "D:\\AICoding\\Minecraft_ModCreator\\evidence\\stage-8\\2026-08-20\\neoforge-1201-runclient.json",
+  "completedAt": "2026-08-20T06:40:14.1022804+08:00",
+  "durationSeconds": 843.1
+}

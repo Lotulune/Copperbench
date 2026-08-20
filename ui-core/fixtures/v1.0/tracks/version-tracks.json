@@ -1,0 +1,111 @@
+{
+  "schemaVersion": "1.0",
+  "latestMinecraftVersion": "26.2",
+  "previousMinecraftVersion": "26.1",
+  "tracks": [
+    {
+      "id": "latest_stable",
+      "minecraftVersion": "26.2",
+      "displayName": "Latest stable (Minecraft 26.2)",
+      "dynamic": true,
+      "loaders": [
+        {
+          "loader": "fabric",
+          "generatorId": "fabric-26.2",
+          "minecraftVersion": "26.2",
+          "status": "supported",
+          "pluginId": null,
+          "reasonCode": "TRACK_SUPPORTED",
+          "notes": "Latest stable Minecraft 26.2. First-party Fabric vertical slice with compile and runClient evidence (unobfuscated Loom 1.17.19)."
+        },
+        {
+          "loader": "neoforge",
+          "generatorId": "neoforge-26.2",
+          "minecraftVersion": "26.2",
+          "status": "supported",
+          "pluginId": null,
+          "reasonCode": "TRACK_SUPPORTED",
+          "notes": "Latest stable Minecraft 26.2. First-party NeoForge vertical slice with compile and runClient evidence (NeoForge 26.2.0.63)."
+        }
+      ]
+    },
+    {
+      "id": "previous_stable",
+      "minecraftVersion": "26.1",
+      "displayName": "Previous stable (Minecraft 26.1)",
+      "dynamic": true,
+      "loaders": [
+        {
+          "loader": "fabric",
+          "generatorId": "fabric-26.1.2",
+          "minecraftVersion": "26.1",
+          "status": "supported",
+          "pluginId": "generator-fabric-26.1.2",
+          "reasonCode": "TRACK_SUPPORTED",
+          "notes": "Previous stable Minecraft 26.1.2. First-party Fabric vertical slice with compile and runClient evidence (unobfuscated Loom, Fabric API 0.155.2+26.1.2)."
+        },
+        {
+          "loader": "neoforge",
+          "generatorId": "neoforge-26.1.2",
+          "minecraftVersion": "26.1",
+          "status": "supported",
+          "pluginId": "generator-26.1.x",
+          "reasonCode": "TRACK_SUPPORTED",
+          "notes": "Previous stable Minecraft 26.1.2. First-party NeoForge vertical slice with compile and runClient evidence (NeoForge 26.1.2.95)."
+        }
+      ]
+    },
+    {
+      "id": "minecraft_1_21_1",
+      "minecraftVersion": "1.21.1",
+      "displayName": "Minecraft 1.21.1 (maintenance)",
+      "dynamic": false,
+      "loaders": [
+        {
+          "loader": "fabric",
+          "generatorId": "fabric-1.21.1",
+          "minecraftVersion": "1.21.1",
+          "status": "supported",
+          "pluginId": null,
+          "reasonCode": "TRACK_SUPPORTED",
+          "notes": "Maintenance track. Copperbench-owned Fabric 1.21.1 vertical slice with golden build and runClient evidence."
+        },
+        {
+          "loader": "neoforge",
+          "generatorId": "neoforge-1.21.1",
+          "minecraftVersion": "1.21.1",
+          "status": "supported",
+          "pluginId": "generator-1.21.1",
+          "reasonCode": "TRACK_SUPPORTED",
+          "notes": "Maintenance track. Copperbench-owned NeoForge 1.21.1 vertical slice with golden build and runClient evidence."
+        }
+      ]
+    },
+    {
+      "id": "minecraft_1_20_1",
+      "minecraftVersion": "1.20.1",
+      "displayName": "Minecraft 1.20.1 (maintenance)",
+      "dynamic": false,
+      "loaders": [
+        {
+          "loader": "fabric",
+          "generatorId": "fabric-1.20.1",
+          "minecraftVersion": "1.20.1",
+          "status": "supported",
+          "pluginId": null,
+          "reasonCode": "TRACK_SUPPORTED",
+          "notes": "Maintenance track. Copperbench-owned Fabric 1.20.1 vertical slice with compile and runClient evidence (Gradle 8.8 + loom 1.7.4)."
+        },
+        {
+          "loader": "neoforge",
+          "generatorId": "neoforge-1.20.1",
+          "minecraftVersion": "1.20.1",
+          "status": "supported",
+          "pluginId": null,
+          "reasonCode": "TRACK_SUPPORTED",
+          "notes": "Maintenance track. Copperbench-owned NeoForge 1.20.1 vertical slice with compile and runClient evidence (NeoForged Forge 1.20.1-47.1.106 + userdev 7.0.165)."
+        }
+      ]
+    }
+  ]
+}

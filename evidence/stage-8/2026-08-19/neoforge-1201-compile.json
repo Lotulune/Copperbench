@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "preview-track-compile-probe",
+  "generatorId": "neoforge-1.20.1",
+  "minecraftVersion": "1.20.1",
+  "neoForgeVersion": "47.1.106",
+  "moddevVersion": "7.0.165",
+  "javaRelease": 17,
+  "jdk": "D:\\AICoding\\Minecraft_ModCreator\\jdk\\jdk21_win_64",
+  "gradleUserHome": "C:\\Users\\Administrator\\.gradle",
+  "osNetworkDisconnected": false,
+  "cacheWarm": {
+    "completed": true,
+    "timedOut": false,
+    "exitCode": 0,
+    "offline": false
+  },
+  "offline": {
+    "completed": true,
+    "timedOut": false,
+    "exitCode": 1,
+    "offline": true
+  },
+  "generateSucceeded": true,
+  "jarPresent": true,
+  "compileSucceeded": true,
+  "offlineSucceeded": false,
+  "rootCause": "cache-warm build produced copper_trails-1.0.0.jar. Gradle --offline then failed because NeoGradle could not find the workspace-local 1.20.1 client.jar cache.",
+  "goldenClaimed": false,
+  "catalogStatus": "PREVIEW",
+  "catalogReasonCode": "TRACK_GENERATE_READY",
+  "catalogGeneratable": false,
+  "diagnostics": [
+    "FAILURE: Build failed with an exception.",
+    "* What went wrong:",
+    "Execution failed for task ':cacheVersionExecutableClient1.20.1'.",
+    "org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':cacheVersionExecutableClient1.20.1'.",
+    "Caused by: java.lang.RuntimeException: Could not find the file: C:\\Users\\Administrator\\AppData\\Local\\Temp\\junit-7814337868656455321\\.gradle\\caches\\minecraft\\versions\\1.20.1\\client.jar and we are offline."
+  ],
+  "logFile": "evidence/stage-8/2026-08-19/neoforge-1201-compile.log",
+  "completedAt": "2026-08-19T12:40:42.096310900Z",
+  "durationSeconds": 103.06
+}

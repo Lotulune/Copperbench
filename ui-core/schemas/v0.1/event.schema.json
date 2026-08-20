@@ -1,0 +1,514 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ui-core:0.1:event",
+  "title": "UI-Core event v0.1",
+  "type": "object",
+  "required": [
+    "messageType",
+    "schemaVersion",
+    "eventId",
+    "workspaceId",
+    "revision",
+    "sequence",
+    "occurredAt",
+    "event",
+    "causedByRequestId",
+    "payload"
+  ],
+  "properties": {
+    "messageType": {
+      "const": "event"
+    },
+    "schemaVersion": {
+      "const": "0.1"
+    },
+    "eventId": {
+      "$ref": "urn:ui-core:0.1:common#/$defs/uuid"
+    },
+    "workspaceId": {
+      "$ref": "urn:ui-core:0.1:common#/$defs/uuid"
+    },
+    "revision": {
+      "$ref": "urn:ui-core:0.1:common#/$defs/revision"
+    },
+    "sequence": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "occurredAt": {
+      "$ref": "urn:ui-core:0.1:common#/$defs/timestamp"
+    },
+    "event": {
+      "type": "string",
+      "enum": [
+        "workspace_revision_advanced",
+        "mod_element_created",
+        "mod_element_updated",
+        "mod_element_deleted",
+        "diagnostics_changed",
+        "task_started",
+        "task_progressed",
+        "task_log_appended",
+        "task_completed",
+        "connectivity_changed",
+        "capabilities_changed",
+        "bridge_recovery_required",
+        "recovery_point_created",
+        "workspace_restored"
+      ]
+    },
+    "causedByRequestId": {
+      "oneOf": [
+        {
+          "$ref": "urn:ui-core:0.1:common#/$defs/uuid"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "payload": {
+      "type": "object"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "event": {
+            "const": "workspace_revision_advanced"
+          }
+        },
+        "required": [
+          "event"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/revisionAdvancedPayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event": {
+            "const": "diagnostics_changed"
+          }
+        },
+        "required": [
+          "event"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/diagnosticsPayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event": {
+            "enum": [
+              "mod_element_created",
+              "mod_element_updated"
+            ]
+          }
+        },
+        "required": [
+          "event"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/elementPayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event": {
+            "const": "mod_element_deleted"
+          }
+        },
+        "required": [
+          "event"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/deletedElementPayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event": {
+            "enum": [
+              "task_started",
+              "task_progressed",
+              "task_completed"
+            ]
+          }
+        },
+        "required": [
+          "event"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/taskPayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event": {
+            "const": "task_log_appended"
+          }
+        },
+        "required": [
+          "event"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/taskLogPayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event": {
+            "const": "connectivity_changed"
+          }
+        },
+        "required": [
+          "event"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "urn:ui-core:0.1:common#/$defs/connectionProjection"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event": {
+            "const": "capabilities_changed"
+          }
+        },
+        "required": [
+          "event"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/capabilitiesPayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event": {
+            "const": "bridge_recovery_required"
+          }
+        },
+        "required": [
+          "event"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/recoveryPayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event": {
+            "const": "recovery_point_created"
+          }
+        },
+        "required": [
+          "event"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/recoveryPointPayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event": {
+            "const": "workspace_restored"
+          }
+        },
+        "required": [
+          "event"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/restoredPayload"
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "revisionAdvancedPayload": {
+      "type": "object",
+      "required": [
+        "changedPaths",
+        "actor"
+      ],
+      "properties": {
+        "changedPaths": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^/"
+          },
+          "uniqueItems": true
+        },
+        "actor": {
+          "type": "string",
+          "enum": [
+            "ui",
+            "mcp",
+            "headless",
+            "legacy_ui",
+            "system"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "diagnosticsPayload": {
+      "type": "object",
+      "required": [
+        "counts",
+        "diagnostics"
+      ],
+      "properties": {
+        "counts": {
+          "$ref": "urn:ui-core:0.1:common#/$defs/diagnosticCounts"
+        },
+        "diagnostics": {
+          "type": "array",
+          "items": {
+            "$ref": "urn:ui-core:0.1:common#/$defs/diagnostic"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "elementPayload": {
+      "type": "object",
+      "required": [
+        "element"
+      ],
+      "properties": {
+        "element": {
+          "$ref": "urn:ui-core:0.1:common#/$defs/modElementSummary"
+        }
+      },
+      "additionalProperties": false
+    },
+    "deletedElementPayload": {
+      "type": "object",
+      "required": [
+        "elementId",
+        "name"
+      ],
+      "properties": {
+        "elementId": {
+          "$ref": "urn:ui-core:0.1:common#/$defs/uuid"
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "taskPayload": {
+      "type": "object",
+      "required": [
+        "task"
+      ],
+      "properties": {
+        "task": {
+          "$ref": "urn:ui-core:0.1:common#/$defs/taskSummary"
+        }
+      },
+      "additionalProperties": false
+    },
+    "taskLogPayload": {
+      "type": "object",
+      "required": [
+        "taskId",
+        "entries"
+      ],
+      "properties": {
+        "taskId": {
+          "$ref": "urn:ui-core:0.1:common#/$defs/uuid"
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "sequence",
+              "timestamp",
+              "level",
+              "text"
+            ],
+            "properties": {
+              "sequence": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "timestamp": {
+                "$ref": "urn:ui-core:0.1:common#/$defs/timestamp"
+              },
+              "level": {
+                "type": "string",
+                "enum": [
+                  "info",
+                  "warning",
+                  "error"
+                ]
+              },
+              "text": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          },
+          "minItems": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "capabilitiesPayload": {
+      "type": "object",
+      "required": [
+        "capabilities"
+      ],
+      "properties": {
+        "capabilities": {
+          "type": "array",
+          "items": {
+            "$ref": "urn:ui-core:0.1:common#/$defs/capabilityDecision"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "recoveryPayload": {
+      "type": "object",
+      "required": [
+        "reasonCode",
+        "lastCommittedRevision",
+        "uncommittedRequestIds"
+      ],
+      "properties": {
+        "reasonCode": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]{2,127}$"
+        },
+        "lastCommittedRevision": {
+          "$ref": "urn:ui-core:0.1:common#/$defs/revision"
+        },
+        "uncommittedRequestIds": {
+          "type": "array",
+          "items": {
+            "$ref": "urn:ui-core:0.1:common#/$defs/uuid"
+          },
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "recoveryPointPayload": {
+      "type": "object",
+      "required": [
+        "recoveryPoint"
+      ],
+      "properties": {
+        "recoveryPoint": {
+          "$ref": "urn:ui-core:0.1:common#/$defs/recoveryPoint"
+        }
+      },
+      "additionalProperties": false
+    },
+    "restoredPayload": {
+      "type": "object",
+      "required": [
+        "recoveryPointId",
+        "actor",
+        "changedPaths"
+      ],
+      "properties": {
+        "recoveryPointId": {
+          "$ref": "urn:ui-core:0.1:common#/$defs/recoveryPointId"
+        },
+        "actor": {
+          "type": "string",
+          "enum": [
+            "ui",
+            "mcp",
+            "headless",
+            "legacy_ui",
+            "system"
+          ]
+        },
+        "changedPaths": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

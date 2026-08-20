@@ -1,0 +1,162 @@
+import org.apache.tools.ant.taskdefs.condition.Os
+
+launch4j {
+    outfile = 'copperbench.exe'
+    mainClassName = 'net.mcreator.Launcher'
+    dontWrapJar = false
+    copyConfigurable = []
+    classpath = ["./lib/*"]
+    jvmOptions = ["--add-opens=java.base/java.lang=ALL-UNNAMED", "--enable-native-access=ALL-UNNAMED,jcef", "-Dcopperbench.productShell=true"]
+    libraryDir = "null"
+    stayAlive = true
+
+    bundledJrePath = 'jdk'
+    requiresJdk = true
+    requires64Bit = true
+
+    errTitle = project.productName
+		if (project.snapshot) {
+        fileDescription = project.productName + " " + project.productVersion
+        textVersion = project.productVersion
+    } else {
+        fileDescription = project.productName + " " + project.productVersion
+        textVersion = project.productVersion
+    }
+
+    productName = project.productName
+    companyName = project.productPublisher
+    copyright = project.productPublisher
+
+    icon = "${projectDir}/src/main/resources/net/mcreator/ui/res/" + (project.snapshot ? "icon_eap.ico" : "icon.ico")
+}
+
+tasks.register('exportWin64', Copy.class) {
+    dependsOn downloadJDKWin64
+    dependsOn createAllExecutables
+    dependsOn jar
+    dependsOn exportPlugins
+
+    into 'build/export/win64'
+    into('') {
+        from file('LICENSE.txt')
+        from file('build/launch4j/copperbench.exe')
+    }
+    into('lib') {
+        from 'build/libs'
+        from configurations.export
+        from configurations.win64
+    }
+    into('plugins') { from 'build/plugins/' }
+    into('license') { from 'license' }
+    into('user') { from file('docs/user/README.md') }
+    into('jdk') { from 'jdk/jbr25_win_64' }
+
+    doLast {
+        signFile(file('build/export/win64/copperbench.exe'))
+    }
+}
+
+tasks.register('exportWindowsZip', Zip.class) {
+    dependsOn exportWin64
+
+    from 'build/export/win64/'
+    into project.productName + project.productVersion.replace(".", "").replace(" ", "")
+    destinationDirectory = file('build/export/')
+    archiveFileName = project.productName + ' ' + project.productVersion + ' Windows 64bit.zip'
+}
+
+tasks.register('buildInstallerWin64', Exec.class) {
+    dependsOn downloadNSIS
+    dependsOn exportWin64
+
+    doFirst {
+        copy {
+            from file('platform/windows/installer/install.nsi') into 'build/export' rename('install.nsi', 'install64.nsi') filter { line ->
+                line.replace('%year%', new Date().format('yyyy'))
+                        .replace('%build%', project.builddate)
+                        .replace('%mcreator%', (String) project.mcreatorconf.getProperty('mcreator'))
+                        .replace('%productversion%', project.productVersion)
+            }
+        }
+    }
+
+    def nsis_binary
+    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+        nsis_binary = new File(projectDir, '/build/tools/nsis/makensis')
+    } else {
+        nsis_binary = 'makensis'
+    }
+    commandLine nsis_binary, 'build/export/install64.nsi'
+
+    doLast {
+        delete 'build/export/install64.nsi'
+        signFile(file('build/export/' + project.productName + ' ' + project.productVersion + ' Windows 64bit.exe'))
+    }
+}
+
+tasks.register('buildMsixWin64') {
+    dependsOn exportWin64
+
+    doLast {
+        def workingDir = file('build/export/win64msix')
+
+        def fullVersion = project.productVersion
+
+        def outFile = file('build/export/' + project.productName + ' ' + project.productVersion + ' Windows 64bit.msix')
+
+        copy { from 'build/export/win64' into workingDir }
+        copy {
+            from 'platform/windows/msix'
+            include '*.png'
+            into new File(workingDir, 'Assets')
+        }
+
+        copy {
+            from 'platform/windows/msix/AppxManifest.xml' into workingDir
+            filter { line -> line.replace('%version%', fullVersion) }
+        }
+
+        delete outFile
+        def toolSearchPath = (System.getenv('ProgramFiles(x86)') ?: 'C:\\Program Files (x86)') + "\\Windows Kits\\10\\bin\\*\\x64\\makeappx.exe"
+        def toolArgs = "pack /d '${workingDir.absolutePath}' /p '${outFile.absolutePath}'"
+        def psCommand = "& (Get-ChildItem '${toolSearchPath}' | Sort-Object FullName | Select-Object -Last 1).FullName $toolArgs"
+		execCtx.execOps.exec { commandLine 'pwsh', '-NoProfile', '-Command', psCommand }
+
+        delete workingDir
+    }
+}
+
+tasks.register('exportWindows') {
+    group = 'export'
+
+    dependsOn exportWindowsZip
+
+    // Add installer only if this is not a snapshot build (and not MacOS that does not support makensis)
+    if (!project.snapshot && !Os.isFamily(Os.FAMILY_MAC)) {
+        dependsOn buildInstallerWin64
+        if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+            dependsOn buildMsixWin64
+        }
+    }
+
+    doLast {
+        delete 'build/export/win64'
+    }
+}
+
+void signFile(File fileToSign) {
+    if (System.getenv('WIN_CERT_KEYSTORE') != null) {
+        execCtx.execOps.exec {
+            commandLine 'java', '-jar', file('platform/windows/lib/jsign-7.4.jar'),
+                    '--storetype', 'GOOGLECLOUD',
+                    '--storepass', System.getenv('WIN_CERT_STOREPASS'),
+                    '--keystore', System.getenv('WIN_CERT_KEYSTORE'),
+                    '--alias', System.getenv('WIN_CERT_KEYNAME'),
+                    '--certfile', 'codesign-chain.pem',
+                    '--tsmode', 'RFC3161',
+                    '--tsaurl', 'http://timestamp.globalsign.com/tsa/r45standard',
+                    '--name', project.productName,
+                    fileToSign
+        }
+    }
+}

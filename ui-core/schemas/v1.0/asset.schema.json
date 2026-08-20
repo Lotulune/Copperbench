@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ui-core:1.0:asset",
+  "title": "UI-Core asset projection v1.0",
+  "type": "object",
+  "required": ["schemaVersion", "assets", "references", "diagnostics"],
+  "properties": {
+    "schemaVersion": { "const": "1.0" },
+    "assets": { "type": "array", "items": { "$ref": "#/$defs/asset" } },
+    "references": { "type": "array", "items": { "$ref": "#/$defs/reference" } },
+    "diagnostics": { "type": "array", "items": { "$ref": "#/$defs/diagnostic" } }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "asset": {
+      "type": "object",
+      "required": ["id", "relativePath", "category", "size", "sha256", "mediaType"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^asset:[0-9a-f]{64}$" },
+        "relativePath": { "type": "string", "minLength": 1, "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$)).+$" },
+        "category": { "type": "string", "enum": ["MODEL", "TEXTURE", "ANIMATION", "LANGUAGE", "SOUND", "RESOURCE_PACK", "BLOCKSTATE", "OTHER"] },
+        "size": { "type": "integer", "minimum": 0 },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "mediaType": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "reference": {
+      "type": "object",
+      "required": ["sourceAssetId", "sourcePath", "targetPath", "targetAssetId", "kind"],
+      "properties": {
+        "sourceAssetId": { "type": "string", "pattern": "^asset:[0-9a-f]{64}$" },
+        "sourcePath": { "type": "string", "minLength": 1 },
+        "targetPath": { "type": "string", "minLength": 1 },
+        "targetAssetId": { "type": "string", "pattern": "^asset:[0-9a-f]{64}$" },
+        "kind": { "type": "string", "enum": ["RESOURCE_ID", "JSON_STRING"] }
+      },
+      "additionalProperties": false
+    },
+    "diagnostic": {
+      "type": "object",
+      "required": ["code", "severity", "sourcePath", "targetPath", "message"],
+      "properties": {
+        "code": { "type": "string", "enum": ["INVALID_ASSET_DOCUMENT", "REFERENCE_PATH_ESCAPE", "MISSING_ASSET_REFERENCE"] },
+        "severity": { "type": "string", "enum": ["INFO", "WARNING", "ERROR"] },
+        "sourcePath": { "type": "string", "minLength": 1 },
+        "targetPath": { "type": ["string", "null"] },
+        "message": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    }
+  }
+}

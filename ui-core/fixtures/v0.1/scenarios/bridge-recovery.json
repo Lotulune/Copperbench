@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "0.1",
+  "scenarioId": "bridge-recovery",
+  "extendsScenarioId": "ready",
+  "title": { "key": "scenario.bridge_recovery", "fallback": "UI recovery required", "args": {} },
+  "description": "The JCEF renderer restarts and the UI must reconcile against the last committed revision.",
+  "viewportState": "recovery",
+  "initialMessages": [
+    {
+      "messageType": "event",
+      "schemaVersion": "0.1",
+      "eventId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb8",
+      "workspaceId": "11111111-1111-4111-8111-111111111111",
+      "revision": 42,
+      "sequence": 108,
+      "occurredAt": "2026-08-16T06:45:00Z",
+      "event": "bridge_recovery_required",
+      "causedByRequestId": null,
+      "payload": {
+        "reasonCode": "JCEF_RENDERER_CRASHED",
+        "lastCommittedRevision": 42,
+        "uncommittedRequestIds": ["aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa10"]
+      }
+    }
+  ],
+  "timeline": [],
+  "expectedUi": {
+    "announcement": "JCEF_RENDERER_CRASHED",
+    "primaryAction": "refresh",
+    "focusTarget": "[data-testid=recovery-view]"
+  }
+}

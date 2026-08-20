@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "product": "Copperbench",
+  "productVersion": "0.1.0",
+  "generatedAt": "2026-08-17T02:53:38.9434074+08:00",
+  "source": {
+    "mcreatorTag": "2026.2.33518",
+    "mcreatorCommit": "361429609b772039a3eb9ab81662c25b225f1d0d",
+    "fabricTag": "26.1.2-2026.2-2.8",
+    "fabricCommit": "abfe19329126b679a26baafe5cade5a75d455528"
+  },
+  "runtimeLock": "evidence/stage-0/2026-08-16/jbr25-windows-runtime-lock.json",
+  "artifacts": [
+    {
+      "id": "windowsZip",
+      "path": "build/export/Copperbench 0.1.0 Windows 64bit.zip",
+      "bytes": 324459854,
+      "sha256": "0e2c033933dd548a6759cad7e543c166b041b7a1f0732dba53bbfee6c07b5471",
+      "signature": "NotApplicable"
+    },
+    {
+      "id": "windowsInstaller",
+      "path": "build/export/Copperbench 0.1.0 Windows 64bit.exe",
+      "bytes": 308968559,
+      "sha256": "5105cf813ca8e8192333c387325c514dbd1ea5029e2bdb053f627094379bfbba",
+      "signature": "NotSigned"
+    },
+    {
+      "id": "windowsMsix",
+      "path": "build/export/Copperbench 0.1.0 Windows 64bit.msix",
+      "bytes": 332558292,
+      "sha256": "55a80c63a4831f9bb7c64812897609e510b42c54ec8bbf1b583204220ea9ad53",
+      "signature": "NotSigned"
+    },
+    {
+      "id": "applicationJar",
+      "path": "build/libs/copperbench.jar",
+      "bytes": 5680957,
+      "sha256": "b9d96eab6072787bcbcc65f3965abe7d60b6ae836319c150ecb43f0f88fd6609",
+      "signature": "NotApplicable"
+    },
+    {
+      "id": "fabricPlugin",
+      "path": "build/plugins/generator-fabric-26.1.2.zip",
+      "bytes": 454175,
+      "sha256": "de87cabb2b67722e792218b8302afb101336bf62a4ed0247983ed4c5a58ad806",
+      "signature": "NotApplicable"
+    }
+  ]
+}

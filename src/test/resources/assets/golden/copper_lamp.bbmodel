@@ -1,0 +1,15 @@
+{
+  "meta": { "format_version": "4.10", "model_format": "java_block", "unknown_fixture_field": "preserve-me" },
+  "name": "copper_lamp",
+  "textures": {
+    "0": { "name": "copper_lamp", "id": "texture-0", "path": "copperbench:block/copper_lamp" },
+    "1": "copperbench:block/copper_lamp_emissive"
+  },
+  "elements": [
+    { "uuid": "element-lamp-body", "name": "Lamp Body" },
+    { "uuid": "element-lamp-glass", "name": "Lamp Glass" }
+  ],
+  "animations": [
+    { "uuid": "animation-flicker", "name": "Flicker" }
+  ]
+}

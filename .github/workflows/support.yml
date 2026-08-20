@@ -1,0 +1,25 @@
+name: 'Support Requests'
+
+on:
+  issues:
+    types: [labeled, unlabeled, reopened]
+
+permissions:
+  issues: write
+
+jobs:
+  action:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: dessant/support-requests@04320880d61b7fcaac4216e60522cb569478a63d #v5.0.2
+        with:
+          github-token: ${{ github.token }}
+          support-label: 'invalid: support request'
+          issue-comment: >
+            :wave: @{issue-author}, this repository uses GitHub issues for Copperbench bugs.
+            Support questions can stay in Discussions or Issues of this unofficial Copperbench
+            repository. This is not official MCreator; do not use mcreator.net support channels
+            for Copperbench-specific problems.
+          close-issue: true
+          lock-issue: true
+          issue-lock-reason: 'off-topic'

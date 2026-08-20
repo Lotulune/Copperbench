@@ -1,0 +1,76 @@
+[
+  {
+    "id": "server-accepts-multiple-post-streams",
+    "name": "ServerAcceptsMultiplePostStreams",
+    "description": "Server allows multiple concurrent POST requests (each may return SSE or JSON)",
+    "status": "SUCCESS",
+    "timestamp": "2026-08-17T00:08:43.055Z",
+    "specReferences": [
+      {
+        "id": "SEP-1699",
+        "url": "https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1699"
+      }
+    ],
+    "details": {
+      "numStreamsAttempted": 3,
+      "numStreamsAccepted": 3,
+      "numSseStreams": 3,
+      "statuses": [
+        200,
+        200,
+        200
+      ],
+      "contentTypes": [
+        "text/event-stream;charset=UTF-8",
+        "text/event-stream;charset=UTF-8",
+        "text/event-stream;charset=UTF-8"
+      ]
+    }
+  },
+  {
+    "id": "server-sse-streams-functional",
+    "name": "ServerSSEStreamsFunctional",
+    "description": "Multiple POST SSE streams should be functional",
+    "status": "SUCCESS",
+    "timestamp": "2026-08-17T00:08:43.059Z",
+    "specReferences": [
+      {
+        "id": "SEP-1699",
+        "url": "https://github.com/modelcontextprotocol/modelcontextprotocol/issues/1699"
+      }
+    ],
+    "details": {
+      "numSseStreams": 3,
+      "functionalSseStreams": 3,
+      "results": [
+        {
+          "index": 0,
+          "type": "sse",
+          "event": {
+            "id": "63e8cc38-5e63-440d-bbce-64c0e6031eb5",
+            "event": "message",
+            "data": "{\"jsonrpc\":\"2.0\",\"id\":1000,\"result\":{\"tools\":[{\"name\":\"get_workspace\",\"description\":\"Read workspace state\",\"inputSchema\":{\"additionalProperties\":false,\"properties\":{},\"type\":\"object\"}},{\"name\":\"list_mod_elements\",\"description\":\"List mod elements\",\"inputSchema\":{\"type\":\"object\",\"properties\":{\"search\":{\"type\":\"string\"}}}},{\"name\":\"read_mod_element\",\"description\":\"Read a mod element\",\"inputSchema\":{\"properties\":{\"elementId\":{\"type\":\"string\",\"format\":\"uuid\"}},\"type\":\"object\",\"required\":[\"elementId\"]}},{\"name\":\"preview_mod_element_change\",\"description\":\"Preview validated element changes without committing\",\"inputSchema\":{\"properties\":{\"elementId\":{\"type\":\"string\",\"format\":\"uuid\"},\"changes\":{\"type\":\"array\",\"items\":{\"type\":\"object\"},\"minItems\":1}},\"type\":\"object\",\"required\":[\"elementId\",\"changes\"]}},{\"name\":\"validate_workspace\",\"description\":\"Validate the workspace\",\"inputSchema\":{\"type\":\"object\",\"properties\":{\"expectedRevision\":{\"type\":\"integer\",\"minimum\":0}}}},{\"name\":\"create_recovery_point\",\"description\":\"Create a local recovery point\",\"inputSchema\":{\"properties\":{\"expectedRevision\":{\"type\":\"integer\",\"minimum\":0},\"label\":{\"type\":\"string\",\"minLength\":1}},\"type\":\"object\",\"required\":[\"label\",\"expectedRevision\"]}},{\"name\":\"list_recovery_points\",\"description\":\"List local history recovery points\",\"inputSchema\":{\"additionalProperties\":false,\"properties\":{},\"type\":\"object\"}}]}}"
+          }
+        },
+        {
+          "index": 1,
+          "type": "sse",
+          "event": {
+            "id": "63e8cc38-5e63-440d-bbce-64c0e6031eb5",
+            "event": "message",
+            "data": "{\"jsonrpc\":\"2.0\",\"id\":1001,\"result\":{\"tools\":[{\"name\":\"get_workspace\",\"description\":\"Read workspace state\",\"inputSchema\":{\"additionalProperties\":false,\"properties\":{},\"type\":\"object\"}},{\"name\":\"list_mod_elements\",\"description\":\"List mod elements\",\"inputSchema\":{\"type\":\"object\",\"properties\":{\"search\":{\"type\":\"string\"}}}},{\"name\":\"read_mod_element\",\"description\":\"Read a mod element\",\"inputSchema\":{\"properties\":{\"elementId\":{\"type\":\"string\",\"format\":\"uuid\"}},\"type\":\"object\",\"required\":[\"elementId\"]}},{\"name\":\"preview_mod_element_change\",\"description\":\"Preview validated element changes without committing\",\"inputSchema\":{\"properties\":{\"elementId\":{\"type\":\"string\",\"format\":\"uuid\"},\"changes\":{\"type\":\"array\",\"items\":{\"type\":\"object\"},\"minItems\":1}},\"type\":\"object\",\"required\":[\"elementId\",\"changes\"]}},{\"name\":\"validate_workspace\",\"description\":\"Validate the workspace\",\"inputSchema\":{\"type\":\"object\",\"properties\":{\"expectedRevision\":{\"type\":\"integer\",\"minimum\":0}}}},{\"name\":\"create_recovery_point\",\"description\":\"Create a local recovery point\",\"inputSchema\":{\"properties\":{\"expectedRevision\":{\"type\":\"integer\",\"minimum\":0},\"label\":{\"type\":\"string\",\"minLength\":1}},\"type\":\"object\",\"required\":[\"label\",\"expectedRevision\"]}},{\"name\":\"list_recovery_points\",\"description\":\"List local history recovery points\",\"inputSchema\":{\"additionalProperties\":false,\"properties\":{},\"type\":\"object\"}}]}}"
+          }
+        },
+        {
+          "index": 2,
+          "type": "sse",
+          "event": {
+            "id": "63e8cc38-5e63-440d-bbce-64c0e6031eb5",
+            "event": "message",
+            "data": "{\"jsonrpc\":\"2.0\",\"id\":1002,\"result\":{\"tools\":[{\"name\":\"get_workspace\",\"description\":\"Read workspace state\",\"inputSchema\":{\"additionalProperties\":false,\"properties\":{},\"type\":\"object\"}},{\"name\":\"list_mod_elements\",\"description\":\"List mod elements\",\"inputSchema\":{\"type\":\"object\",\"properties\":{\"search\":{\"type\":\"string\"}}}},{\"name\":\"read_mod_element\",\"description\":\"Read a mod element\",\"inputSchema\":{\"properties\":{\"elementId\":{\"type\":\"string\",\"format\":\"uuid\"}},\"type\":\"object\",\"required\":[\"elementId\"]}},{\"name\":\"preview_mod_element_change\",\"description\":\"Preview validated element changes without committing\",\"inputSchema\":{\"properties\":{\"elementId\":{\"type\":\"string\",\"format\":\"uuid\"},\"changes\":{\"type\":\"array\",\"items\":{\"type\":\"object\"},\"minItems\":1}},\"type\":\"object\",\"required\":[\"elementId\",\"changes\"]}},{\"name\":\"validate_workspace\",\"description\":\"Validate the workspace\",\"inputSchema\":{\"type\":\"object\",\"properties\":{\"expectedRevision\":{\"type\":\"integer\",\"minimum\":0}}}},{\"name\":\"create_recovery_point\",\"description\":\"Create a local recovery point\",\"inputSchema\":{\"properties\":{\"expectedRevision\":{\"type\":\"integer\",\"minimum\":0},\"label\":{\"type\":\"string\",\"minLength\":1}},\"type\":\"object\",\"required\":[\"label\",\"expectedRevision\"]}},{\"name\":\"list_recovery_points\",\"description\":\"List local history recovery points\",\"inputSchema\":{\"additionalProperties\":false,\"properties\":{},\"type\":\"object\"}}]}}"
+          }
+        }
+      ]
+    }
+  }
+]

@@ -1,0 +1,137 @@
+{
+  "ok": true,
+  "error_type": "",
+  "error": "",
+  "session_id": "26e9297a1f05",
+  "query": "PCL2 命令行 下载 Minecraft 指定版本 1.21.1 Hex-Dragon 官方",
+  "platform": "",
+  "model": "grok-4.20-multi-agent-0309",
+  "primary_api_mode": "chat-completions",
+  "content": "**✅ PCL2 命令行下载 Minecraft 1.21.1（Hex-Dragon 官方推荐方式）**\n\n### 推荐命令（最常用且有效）\n\n在 **PCL2.exe 所在文件夹** 下打开 CMD 或 PowerShell，执行以下命令：\n\n```cmd\nPCL2.exe Download 1.21.1\n```\n\n或者使用等号形式（两种都可行）：\n\n```cmd\nPCL2.exe \"Download=1.21.1\"\n```\n\n使用完整路径示例：\n```cmd\n\"D:\\Minecraft\\Plain Craft Launcher 2.exe\" Download 1.21.1\n```\n\n### 使用 Hex-Dragon 官方源（强烈建议先设置）\n\n1. 先打开 PCL2 图形界面。\n2. 进入 **设置 → 下载 → 下载源**。\n3. 选择 **官方**（这是 Hex-Dragon 官方推荐的源）。\n   - “官方”源会优先使用 Mojang 官方结合国内加速节点（BMCLAPI 等），速度和稳定性最佳。\n\n设置完成后再执行上面的命令，下载就会使用官方源。\n\n### 额外说明\n\n- 执行后通常会弹出 PCL2 的下载界面开始下载 1.21.1 原版。\n- 如果你想下载 Forge / Fabric / NeoForge / Quilt 版本，命令示例：\n  - `PCL2.exe Download 1.21.1 forge`（最新 Forge）\n  - `PCL2.exe Download 1.21.1 fabric`（最新 Fabric）\n\n- 查看所有支持的命令行参数可执行：\n  ```cmd\n  PCL2.exe -help\n  ```\n\n**推荐方式**：先把下载源设为「官方」，再用 `PCL2.exe Download 1.21.1` 命令。\n\n需要我给你一个完整的 `.bat` 批处理脚本，或者教你如何静默下载 + 自动安装 Fabric/Forge 吗？",
+  "sources": [
+    {
+      "url": "https://www.mcmod.cn/post/3997.html",
+      "provider": "tavily",
+      "title": "pcl2安装我的世界简易教程及附带1.20.1真实物理兼容mod推荐 - 真实物理 (Physics Mod) - MC百科|最大的Minecraft中文MOD百科",
+      "description": "站点导航\n\n 主站\n 整合包\n 社群\n 找服玩\n 实用工具\n 特性\n 词典\n\n 登录\n\n >\n 辅助Mod\n >\n 真实物理 (Physics Mod)\n >\n pcl2安装我的世界简易教程及附带1.20.1真实物理兼容mod推荐\n\npluto0\n\npluto0\n\n 教程权限：个人教程\n 浏览量：127142\n 创建日期：2年前\n\n最近参与编辑\n\n pluto0\n\n(/post/diff/list/3997.html)\n\n最近浏览\n\n QQ酱1327929\n QQ酱1489893\n Gyh711\n QQ酱1490937\n QQ酱1063742\n ？\n QQ酱1489910\n QQ酱1485544\n QQ酱1200346\n QQ酱1477453\n 人生何处不青山\n 诺诺米°\n sweetheart\n QQ酱100043\n QQ酱1466117\n 困惫之蛾\n Yanheng\\_0202\n QQ酱1476002\n\n##### pcl2安装我的世界简易教程及附带1.20.1真实物理兼容mod推荐\n\n本篇教程由作者设定使用 CC BY-NC-SA;) 协议。\n\n1.通过pcl2玩游戏需要三个部分：Java相关、pcl2启动器相关、mod资源光影等。\n\n2.首先windows玩游戏是不需要安装java的！只需要下载java运行需要的文件即可。（经过我的实践证明8，17，21都不需要安装，这三个基本涵盖了我的世界1.21之前的版本。）\n\n在java官方下载页面：\n\n然后放在任意位置解压即可。压缩包可以删除。建议为游戏建立独立的文件夹。路径中最好不出现中文（大家都懂，英文支持更好，有些mod也不支持中文路径）。此处我建立文件夹pcl2为示例。然后将解压的文件放在示例建的名为pcl2的文件夹中。 [...] 3.下载pcl2启动器。直接搜索pcl下载，在爱发电（网页平台）有原作者龙先生提供的下载地址。（\n\n启动器也是不需要安装的。下载后解压出一个exe程序文件。压缩包可以删除。exe文件也放在上面示例建的名为pcl2的文件夹中。\n\n然后点击pcl2启动器运行。Pcl2中推荐使用前先看看各个设置。我推荐设置中将版本隔离选为隔离所有版本。这个好处大大滴（其实安装游戏很简单，最烦的是各个mod版本兼容的选择，隔离开能防止不同版本间mod出问题）。\n\n这是我建立的文件夹，其中光影和资源源文件是我自己新建的用来下载文件，对游戏运行并不起作用。就是放一下相关的文件。第一个文件夹是游戏运行相关的，所有的游戏版本、mod、光影、资源等都在这里，配置文件也是。第二个jdk开头是java解压后的文件夹，不需要安装！第三个是pcl的文件夹，pcl启动器的文件在这。最后一个是pcl2启动器。\n\n4.下载游戏和mod等。\n\n在pcl2页面，点击下载栏。运行游戏需要在游戏本体。在自动安装栏选择需要的版本。比如1.20.1如图。然后开始安装，即可安装好原版的游戏。然后启动游戏即可游玩。但先别急，我推荐启动前在版本设置中手动选择一下java版本。（我相信来这的都是为了mod吧）\n\n一般玩mod、光影等。所以需要相应的加载器。Mod加载常用forge和fabric。Forge端常用optifine加载光影。Fabric端常用iris+纳（元素周期表）等一些组合mod加载光影。我使用的是forge端。示例如下。\n\n这儿就需要开始考虑头疼的版本兼容问题了。示例我选的是兼容的版本。如何选，需要大量的工作。要考虑后面想玩的mod等。 [...] 这儿就需要开始考虑头疼的版本兼容问题了。示例我选的是兼容的版本。如何选，需要大量的工作。要考虑后面想玩的mod等。\n\n这儿一点感悟。forge和opitife兼容可以在opifine官方查询。Mod的话就五花八门。最推荐的方法是加一个mod就运行游戏试一下。加一个试一下。或者懒得查找就下载整合包。后面示例我会放我试的：真实物理+机械动力+瓦尔基里+农夫乐事+枪+时装+alex生物等。\n\nMod的安装就很简单。在安装好游戏后还是上面下载栏选择mod栏。然后就可以下载。\n\nPcl2中提供绝大多数mod的下载。Mod文件是jar文件。Mod文件可以在任何地方获得（真任何，比如用u盘把朋友整理好的mod直接借鉴一下）。Mod的jar文件只需要放在模组文件夹即可被游戏使用。mod文件夹可在pcl2-启动-版本设置-快捷方式-mod文件夹找到。也就是上面下载最后跳出的路径。这是我安装的。目前没发现问题。\n\n使用光影是经典的complementary reimagined。那光影怎么加呢？下载好光影的zip文件后将zip放光影对应的文件夹即可。不需要解压。光影文件夹可以直接找。也可以先运行游戏，在游戏设置-选项-视频设置-光影中左下角打开光影文件夹。图中shaderpacks文件夹。（为什么不直接文件管理器搜呢？）"
+    },
+    {
+      "url": "https://github.com/PCL-Community/PCL2-Language",
+      "provider": "tavily",
+      "title": "GitHub - PCL-Community/PCL2-Language: Plain Craft Launcher 2, a third-party Minecraft Launcher. Now it has muilt-Language version. · GitHub",
+      "description": "| README-en\\_US.md | | README-en\\_US.md |  |  |\n| README-zh\\_TW.md | | README-zh\\_TW.md |  |  |\n| README.md | | README.md |  |  |\n| cliff.toml | | cliff.toml |  |  |\n| 最新正式版.zip | | 最新正式版.zip |  |  |\n| View all files | | | [...] | Name | | Name | Last commit message | Last commit date |\n ---  --- \n| Latest commit   History1,989 Commits   1,989 Commits | | |\n| .github | | .github |  |  |\n| MeloongCore @ 546e7f9 | | MeloongCore @ 546e7f9 |  |  |\n| PCLCS | | PCLCS |  |  |\n| Plain Craft Launcher 2 | | Plain Craft Launcher 2 |  |  |\n| docs/images | | docs/images |  |  |\n| patches | | patches |  |  |\n| remote\\_config | | remote\\_config |  |  |\n| .editorconfig | | .editorconfig |  |  |\n| .gitattributes | | .gitattributes |  |  |\n| .gitignore | | .gitignore |  |  |\n| .gitmodules | | .gitmodules |  |  |\n| CONTRIBUTING.md | | CONTRIBUTING.md |  |  |\n| LICENCE | | LICENCE |  |  |\n| Plain Craft Launcher 2.sln | | Plain Craft Launcher 2.sln |  |  |\n| README-en\\_US.md | | README-en\\_US.md |  |  | [...] ## Latest commit\n\n## History\n\n## Repository files navigation\n\nStars\nIssues\n哔哩哔哩\n爱发电\n\nStars\nIssues\n哔哩哔哩\n爱发电\n\n简体中文 | 繁體中文 | English\n\nLogo\n\n### Plain Craft Launcher 2 Language\n\n一个惊艳且出色的启动器\n  \n  \n查看上游\n·\n反馈问题\n·\n新功能提议\n\n## 特色介绍\n\n### 简洁的启动界面\n\nimage\n\nimage\n\n### 轻松的下载和安装功能\n\nimage\n\nimage\n\nimage\n\nimage\n\nimage\n\nimage\n\nimage\n\nimage\n\n### 一目了然的版本管理界面\n\nimage\n\nimage\n\nimage\n\nimage\n\n## 参与开发\n\n### 克隆项目到本地\n\n除非您很确定本版本的 PCL 存在问题，否则我们推荐您使用上游分支的版本进行开发。\n\n### 使用 Visual Studio 开发\n\n你可以在此处下载 Visual Studio。\n\n使用 Visual Studio 打开克隆下来的仓库中的 `Plain Craft Launcher 2.sln` 文件。\n\n`Plain Craft Launcher 2.sln`\n\n## 贡献者们\n\ncontrib.rocks image\n\n## 相关资源\n\n## 协议相关\n\n如果你需要使用本项目中的相关内容，请参阅 LICENSE 中的相关规定。\n\n## About\n\nPlain Craft Launcher 2, a third-party Minecraft Launcher. Now it has muilt-Language version.\n\n### Topics\n\n### Resources"
+    }
+  ],
+  "sources_count": 2,
+  "primary_sources": [],
+  "primary_sources_count": 0,
+  "extra_sources": [
+    {
+      "url": "https://www.mcmod.cn/post/3997.html",
+      "provider": "tavily",
+      "title": "pcl2安装我的世界简易教程及附带1.20.1真实物理兼容mod推荐 - 真实物理 (Physics Mod) - MC百科|最大的Minecraft中文MOD百科",
+      "description": "站点导航\n\n 主站\n 整合包\n 社群\n 找服玩\n 实用工具\n 特性\n 词典\n\n 登录\n\n >\n 辅助Mod\n >\n 真实物理 (Physics Mod)\n >\n pcl2安装我的世界简易教程及附带1.20.1真实物理兼容mod推荐\n\npluto0\n\npluto0\n\n 教程权限：个人教程\n 浏览量：127142\n 创建日期：2年前\n\n最近参与编辑\n\n pluto0\n\n(/post/diff/list/3997.html)\n\n最近浏览\n\n QQ酱1327929\n QQ酱1489893\n Gyh711\n QQ酱1490937\n QQ酱1063742\n ？\n QQ酱1489910\n QQ酱1485544\n QQ酱1200346\n QQ酱1477453\n 人生何处不青山\n 诺诺米°\n sweetheart\n QQ酱100043\n QQ酱1466117\n 困惫之蛾\n Yanheng\\_0202\n QQ酱1476002\n\n##### pcl2安装我的世界简易教程及附带1.20.1真实物理兼容mod推荐\n\n本篇教程由作者设定使用 CC BY-NC-SA;) 协议。\n\n1.通过pcl2玩游戏需要三个部分：Java相关、pcl2启动器相关、mod资源光影等。\n\n2.首先windows玩游戏是不需要安装java的！只需要下载java运行需要的文件即可。（经过我的实践证明8，17，21都不需要安装，这三个基本涵盖了我的世界1.21之前的版本。）\n\n在java官方下载页面：\n\n然后放在任意位置解压即可。压缩包可以删除。建议为游戏建立独立的文件夹。路径中最好不出现中文（大家都懂，英文支持更好，有些mod也不支持中文路径）。此处我建立文件夹pcl2为示例。然后将解压的文件放在示例建的名为pcl2的文件夹中。 [...] 3.下载pcl2启动器。直接搜索pcl下载，在爱发电（网页平台）有原作者龙先生提供的下载地址。（\n\n启动器也是不需要安装的。下载后解压出一个exe程序文件。压缩包可以删除。exe文件也放在上面示例建的名为pcl2的文件夹中。\n\n然后点击pcl2启动器运行。Pcl2中推荐使用前先看看各个设置。我推荐设置中将版本隔离选为隔离所有版本。这个好处大大滴（其实安装游戏很简单，最烦的是各个mod版本兼容的选择，隔离开能防止不同版本间mod出问题）。\n\n这是我建立的文件夹，其中光影和资源源文件是我自己新建的用来下载文件，对游戏运行并不起作用。就是放一下相关的文件。第一个文件夹是游戏运行相关的，所有的游戏版本、mod、光影、资源等都在这里，配置文件也是。第二个jdk开头是java解压后的文件夹，不需要安装！第三个是pcl的文件夹，pcl启动器的文件在这。最后一个是pcl2启动器。\n\n4.下载游戏和mod等。\n\n在pcl2页面，点击下载栏。运行游戏需要在游戏本体。在自动安装栏选择需要的版本。比如1.20.1如图。然后开始安装，即可安装好原版的游戏。然后启动游戏即可游玩。但先别急，我推荐启动前在版本设置中手动选择一下java版本。（我相信来这的都是为了mod吧）\n\n一般玩mod、光影等。所以需要相应的加载器。Mod加载常用forge和fabric。Forge端常用optifine加载光影。Fabric端常用iris+纳（元素周期表）等一些组合mod加载光影。我使用的是forge端。示例如下。\n\n这儿就需要开始考虑头疼的版本兼容问题了。示例我选的是兼容的版本。如何选，需要大量的工作。要考虑后面想玩的mod等。 [...] 这儿就需要开始考虑头疼的版本兼容问题了。示例我选的是兼容的版本。如何选，需要大量的工作。要考虑后面想玩的mod等。\n\n这儿一点感悟。forge和opitife兼容可以在opifine官方查询。Mod的话就五花八门。最推荐的方法是加一个mod就运行游戏试一下。加一个试一下。或者懒得查找就下载整合包。后面示例我会放我试的：真实物理+机械动力+瓦尔基里+农夫乐事+枪+时装+alex生物等。\n\nMod的安装就很简单。在安装好游戏后还是上面下载栏选择mod栏。然后就可以下载。\n\nPcl2中提供绝大多数mod的下载。Mod文件是jar文件。Mod文件可以在任何地方获得（真任何，比如用u盘把朋友整理好的mod直接借鉴一下）。Mod的jar文件只需要放在模组文件夹即可被游戏使用。mod文件夹可在pcl2-启动-版本设置-快捷方式-mod文件夹找到。也就是上面下载最后跳出的路径。这是我安装的。目前没发现问题。\n\n使用光影是经典的complementary reimagined。那光影怎么加呢？下载好光影的zip文件后将zip放光影对应的文件夹即可。不需要解压。光影文件夹可以直接找。也可以先运行游戏，在游戏设置-选项-视频设置-光影中左下角打开光影文件夹。图中shaderpacks文件夹。（为什么不直接文件管理器搜呢？）"
+    },
+    {
+      "url": "https://github.com/PCL-Community/PCL2-Language",
+      "provider": "tavily",
+      "title": "GitHub - PCL-Community/PCL2-Language: Plain Craft Launcher 2, a third-party Minecraft Launcher. Now it has muilt-Language version. · GitHub",
+      "description": "| README-en\\_US.md | | README-en\\_US.md |  |  |\n| README-zh\\_TW.md | | README-zh\\_TW.md |  |  |\n| README.md | | README.md |  |  |\n| cliff.toml | | cliff.toml |  |  |\n| 最新正式版.zip | | 最新正式版.zip |  |  |\n| View all files | | | [...] | Name | | Name | Last commit message | Last commit date |\n ---  --- \n| Latest commit   History1,989 Commits   1,989 Commits | | |\n| .github | | .github |  |  |\n| MeloongCore @ 546e7f9 | | MeloongCore @ 546e7f9 |  |  |\n| PCLCS | | PCLCS |  |  |\n| Plain Craft Launcher 2 | | Plain Craft Launcher 2 |  |  |\n| docs/images | | docs/images |  |  |\n| patches | | patches |  |  |\n| remote\\_config | | remote\\_config |  |  |\n| .editorconfig | | .editorconfig |  |  |\n| .gitattributes | | .gitattributes |  |  |\n| .gitignore | | .gitignore |  |  |\n| .gitmodules | | .gitmodules |  |  |\n| CONTRIBUTING.md | | CONTRIBUTING.md |  |  |\n| LICENCE | | LICENCE |  |  |\n| Plain Craft Launcher 2.sln | | Plain Craft Launcher 2.sln |  |  |\n| README-en\\_US.md | | README-en\\_US.md |  |  | [...] ## Latest commit\n\n## History\n\n## Repository files navigation\n\nStars\nIssues\n哔哩哔哩\n爱发电\n\nStars\nIssues\n哔哩哔哩\n爱发电\n\n简体中文 | 繁體中文 | English\n\nLogo\n\n### Plain Craft Launcher 2 Language\n\n一个惊艳且出色的启动器\n  \n  \n查看上游\n·\n反馈问题\n·\n新功能提议\n\n## 特色介绍\n\n### 简洁的启动界面\n\nimage\n\nimage\n\n### 轻松的下载和安装功能\n\nimage\n\nimage\n\nimage\n\nimage\n\nimage\n\nimage\n\nimage\n\nimage\n\n### 一目了然的版本管理界面\n\nimage\n\nimage\n\nimage\n\nimage\n\n## 参与开发\n\n### 克隆项目到本地\n\n除非您很确定本版本的 PCL 存在问题，否则我们推荐您使用上游分支的版本进行开发。\n\n### 使用 Visual Studio 开发\n\n你可以在此处下载 Visual Studio。\n\n使用 Visual Studio 打开克隆下来的仓库中的 `Plain Craft Launcher 2.sln` 文件。\n\n`Plain Craft Launcher 2.sln`\n\n## 贡献者们\n\ncontrib.rocks image\n\n## 相关资源\n\n## 协议相关\n\n如果你需要使用本项目中的相关内容，请参阅 LICENSE 中的相关规定。\n\n## About\n\nPlain Craft Launcher 2, a third-party Minecraft Launcher. Now it has muilt-Language version.\n\n### Topics\n\n### Resources"
+    }
+  ],
+  "extra_sources_count": 2,
+  "source_warning": "extra_sources are retrieved in parallel and are not automatically used to verify generated content; use fetch on key URLs for claim-level evidence.",
+  "routing_decision": {
+    "docs_intent": false,
+    "zh_current_intent": false,
+    "web_current_intent": false,
+    "fetch_intent": false,
+    "supplemental_paths": [],
+    "validation_level": "balanced",
+    "fallback_mode": "auto",
+    "providers": "auto",
+    "main_search_chain": [
+      "openai-compatible"
+    ],
+    "openai_compatible_stream": true
+  },
+  "providers_used": [
+    "OpenAI-compatible",
+    "tavily"
+  ],
+  "provider_attempts": [
+    {
+      "capability": "main_search",
+      "provider": "OpenAI-compatible",
+      "status": "ok",
+      "error_type": "",
+      "error": "",
+      "elapsed_ms": 43172.21,
+      "result_count": 1
+    },
+    {
+      "capability": "web_search",
+      "provider": "tavily",
+      "status": "ok",
+      "error_type": "",
+      "error": "",
+      "elapsed_ms": 47687.03,
+      "result_count": 2
+    }
+  ],
+  "fallback_used": false,
+  "validation_level": "balanced",
+  "minimum_profile_ok": true,
+  "capability_status": {
+    "main_search": {
+      "configured": [
+        "openai-compatible"
+      ],
+      "fallback_chain": [
+        "xai-responses",
+        "openai-compatible"
+      ],
+      "ok": true
+    },
+    "web_search": {
+      "configured": [
+        "tavily"
+      ],
+      "fallback_chain": [
+        "zhipu",
+        "tavily",
+        "firecrawl"
+      ],
+      "ok": true
+    },
+    "docs_search": {
+      "configured": [
+        "context7"
+      ],
+      "fallback_chain": [
+        "context7",
+        "exa"
+      ],
+      "ok": true
+    },
+    "web_fetch": {
+      "configured": [
+        "tavily"
+      ],
+      "fallback_chain": [
+        "tavily",
+        "firecrawl"
+      ],
+      "ok": true
+    },
+    "vertical_search": {
+      "configured": [],
+      "fallback_chain": [
+        "anysearch"
+      ],
+      "experimental": true,
+      "ok": false
+    }
+  },
+  "elapsed_ms": 47687.06
+}

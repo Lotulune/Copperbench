@@ -1,0 +1,201 @@
+/*
+ * MCreator (https://mcreator.net/)
+ * Copyright (C) 2020 Pylo and contributors
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+package net.mcreator.ui.component.util;
+
+import javax.swing.*;
+import java.awt.*;
+
+public class PanelUtils {
+
+	public static JPanel join(Component... c1) {
+		return join(FlowLayout.CENTER, c1);
+	}
+
+	public static JPanel join(int align, Component... c1) {
+		JPanel p = new JPanel(new FlowLayout(align));
+		p.setOpaque(false);
+		for (Component c : c1) {
+			p.add(c);
+		}
+		return p;
+	}
+
+	public static JPanel join(int align, int hgap, int vgap, Component... c1) {
+		JPanel p = new JPanel(new FlowLayout(align, hgap, vgap));
+		p.setOpaque(false);
+		for (Component c : c1) {
+			p.add(c);
+		}
+		return p;
+	}
+
+	public static JPanel column(Component... components) {
+		JPanel column = new JPanel();
+		column.setOpaque(false);
+		column.setLayout(new BoxLayout(column, BoxLayout.Y_AXIS));
+		for (Component c : components) {
+			column.add(c);
+		}
+		return column;
+	}
+
+	public static JPanel column(int spacing, Component... components) {
+		JPanel column = new JPanel();
+		column.setOpaque(false);
+		column.setLayout(new BoxLayout(column, BoxLayout.Y_AXIS));
+		for (int i = 0; i < components.length; i++) {
+			column.add(components[i]);
+			if (i < components.length - 1) {
+				column.add(Box.createVerticalStrut(spacing));
+			}
+		}
+		return column;
+	}
+
+	public static JPanel centerInPanel(Component component) {
+		return join(component);
+	}
+
+	public static JPanel totalCenterInPanel(Component component) {
+		JPanel p = new JPanel(new GridBagLayout());
+		p.setOpaque(false);
+		p.add(component, new GridBagConstraints());
+		return p;
+	}
+
+	public static JPanel centerInPanelPadding(Component component, int x, int y) {
+		JPanel p = new JPanel(new FlowLayout(FlowLayout.CENTER, x, y));
+		p.setOpaque(false);
+		p.add(component);
+		return p;
+	}
+
+	public static JPanel northAndCenterElement(Component top, Component center) {
+		JPanel p = new JPanel(new BorderLayout());
+		p.setOpaque(false);
+		p.add("North", top);
+		p.add("Center", center);
+		return p;
+	}
+
+	public static JPanel centerAndSouthElement(Component top, Component center) {
+		JPanel p = new JPanel(new BorderLayout());
+		p.setOpaque(false);
+		p.add("Center", top);
+		p.add("South", center);
+		return p;
+	}
+
+	public static JPanel centerAndSouthElement(Component top, Component center, int hg, int vg) {
+		JPanel p = new JPanel(new BorderLayout(hg, vg));
+		p.setOpaque(false);
+		p.add("Center", top);
+		p.add("South", center);
+		return p;
+	}
+
+	public static JPanel westAndEastElement(Component west, Component east) {
+		return westAndEastElement(west, east, 0, 0);
+	}
+
+	public static JPanel gridElements(int row, int col, int mw, int mh, Component... components) {
+		JPanel p = new JPanel(new GridLayout(row, col, mw, mh));
+		p.setOpaque(false);
+		for (Component component : components)
+			p.add(component);
+		return p;
+	}
+
+	public static JPanel gridElements(int row, int col, Component... components) {
+		JPanel p = new JPanel(new GridLayout(row, col));
+		p.setOpaque(false);
+		for (Component component : components)
+			p.add(component);
+		return p;
+	}
+
+	public static JPanel northAndCenterElement(Component top, Component center, int px, int py) {
+		JPanel p = new JPanel(new BorderLayout(px, py));
+		p.setOpaque(false);
+		p.add("North", top);
+		p.add("Center", center);
+		return p;
+	}
+
+	public static JPanel westAndEastElement(Component west, Component east, int px, int py) {
+		JPanel p = new JPanel(new BorderLayout(px, py));
+		p.setOpaque(false);
+		p.add("West", west);
+		p.add("East", east);
+		return p;
+	}
+
+	public static JPanel westAndCenterElement(Component west, Component center) {
+		JPanel p = new JPanel(new BorderLayout());
+		p.setOpaque(false);
+		p.add("West", west);
+		p.add("Center", center);
+		return p;
+	}
+
+	public static JPanel centerAndEastElement(Component center, Component east) {
+		JPanel p = new JPanel(new BorderLayout());
+		p.setOpaque(false);
+		p.add("East", east);
+		p.add("Center", center);
+		return p;
+	}
+
+	public static JPanel centerAndEastElement(Component center, Component east, int px, int py) {
+		JPanel p = new JPanel(new BorderLayout(px, py));
+		p.setOpaque(false);
+		p.add("East", east);
+		p.add("Center", center);
+		return p;
+	}
+
+	public static JPanel pullElementUp(Component element) {
+		JPanel p = new JPanel(new BorderLayout());
+		p.setOpaque(false);
+		p.add("North", element);
+		return p;
+	}
+
+	public static JPanel westAndCenterElement(JComponent west, JComponent center, int px, int py) {
+		JPanel p = new JPanel(new BorderLayout(px, py));
+		p.setOpaque(false);
+		p.add("West", west);
+		p.add("Center", center);
+		return p;
+	}
+
+	public static JPanel expandHorizontally(Component element) {
+		JPanel p = new JPanel(new GridBagLayout());
+
+		GridBagConstraints gbc = new GridBagConstraints();
+		gbc.fill = GridBagConstraints.HORIZONTAL;
+		gbc.weightx = 1;
+		gbc.gridx = 0;
+
+		p.setOpaque(false);
+		p.add(element, gbc);
+		return p;
+	}
+
+}

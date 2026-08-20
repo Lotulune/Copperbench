@@ -1,0 +1,66 @@
+/*
+ * MCreator (https://mcreator.net/)
+ * Copyright (C) 2012-2020, Pylo
+ * Copyright (C) 2020-2023, Pylo, opensource contributors
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+package net.mcreator.ui.validation.validators;
+
+import net.mcreator.element.parts.MItemBlock;
+import net.mcreator.minecraft.MCItem;
+import net.mcreator.ui.component.JItemListField;
+import net.mcreator.ui.init.L10N;
+import net.mcreator.ui.minecraft.MCItemListField;
+import net.mcreator.ui.validation.ValidationResult;
+import net.mcreator.ui.validation.Validator;
+
+import java.util.List;
+
+public class ItemListFieldSingleTagValidator implements Validator {
+
+	private final JItemListField<?> holder;
+
+	public ItemListFieldSingleTagValidator(JItemListField<?> holder) {
+		this.holder = holder;
+	}
+
+	@Override public ValidationResult validate() {
+		if (holder instanceof MCItemListField mcItemListField) {
+			List<MItemBlock> listElements = mcItemListField.getListElements();
+			if (listElements.size() > 1) {
+				for (MItemBlock object : listElements) {
+					MCItem dle = object.getDataListEntry().isPresent() ?
+							(MCItem) object.getDataListEntry().get() :
+							null;
+					if (object.toString().startsWith("TAG:") || (dle != null && !dle.hasNoSubtypes()))
+						return new ValidationResult(ValidationResult.Type.ERROR,
+								L10N.t("validator.singletag.multiple"));
+				}
+			}
+		} else {
+			List<?> listElements = holder.getListElements();
+			if (listElements.size() > 1) {
+				for (Object object : listElements) {
+					if (object.toString().startsWith("#"))
+						return new ValidationResult(ValidationResult.Type.ERROR,
+								L10N.t("validator.singletag.multiple"));
+				}
+			}
+		}
+
+		return ValidationResult.PASSED;
+	}
+}

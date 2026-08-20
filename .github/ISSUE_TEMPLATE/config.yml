@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Upstream MCreator
+    url: https://github.com/MCreator/MCreator
+    about: Official MCreator project. This repository is an unofficial Copperbench derivative.

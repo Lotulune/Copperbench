@@ -1,0 +1,140 @@
+/*
+ * MCreator (https://mcreator.net/)
+ * Copyright (C) 2020 Pylo and contributors
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+package net.mcreator.ui.dialogs.preferences;
+
+import net.mcreator.io.FileIO;
+import net.mcreator.io.UserFolderManager;
+import net.mcreator.ui.component.JEmptyBox;
+import net.mcreator.ui.component.util.PanelUtils;
+import net.mcreator.ui.dialogs.file.FileDialogs;
+import net.mcreator.ui.init.L10N;
+import net.mcreator.ui.init.UIRES;
+import net.mcreator.util.DesktopUtils;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.io.File;
+import java.util.Arrays;
+import java.util.Locale;
+
+class EditTemplatesPanel {
+
+	private final CardLayout cardLayout = new CardLayout();
+	private final JPanel panel = new JPanel(cardLayout);
+
+	EditTemplatesPanel(PreferencesDialog preferencesDialog, String name, String templatesFolder, String templateExt) {
+		this(preferencesDialog, name, templatesFolder, templateExt, false);
+	}
+
+	EditTemplatesPanel(PreferencesDialog preferencesDialog, String name, String templatesFolder, String templateExt,
+			boolean mainSection) {
+		if (mainSection)
+			preferencesDialog.addSection(name);
+		else
+			preferencesDialog.addTemplateSection(name);
+
+		JPanel sectionPanel = new JPanel(new BorderLayout(0, 0));
+
+		JComponent titlebar = L10N.label("dialog.preferences.change_language", name.toLowerCase(), templateExt);
+		titlebar.setBorder(BorderFactory.createEmptyBorder(0, 10, 5, 10));
+		sectionPanel.add("North", titlebar);
+
+		JPanel opts = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+
+		JButton add = L10N.button("dialog.preferences.add_language", name.toLowerCase());
+		add.setIcon(UIRES.get("16px.add"));
+		opts.add(add);
+
+		opts.add(new JEmptyBox(5, 5));
+
+		JButton remove = L10N.button("dialog.preferences.remove_selected_language");
+		remove.setIcon(UIRES.get("16px.delete"));
+		opts.add(remove);
+
+		opts.add(new JEmptyBox(5, 5));
+
+		JButton openFolder = L10N.button("dialog.preferences.open_folder", name.toLowerCase());
+		openFolder.setIcon(UIRES.get("16px.open"));
+		opts.add(openFolder);
+
+		DefaultListModel<String> tmodel = new DefaultListModel<>();
+		JList<String> templates = new JList<>(tmodel);
+
+		openFolder.addActionListener(
+				e -> DesktopUtils.openSafe(UserFolderManager.getFileFromUserFolder(templatesFolder)));
+
+		remove.addActionListener(a -> deleteCurrentlySelected(templatesFolder, tmodel, templates));
+
+		templates.addKeyListener(new KeyAdapter() {
+			@Override public void keyReleased(KeyEvent e) {
+				if (e.getKeyCode() == KeyEvent.VK_DELETE) {
+					deleteCurrentlySelected(templatesFolder, tmodel, templates);
+				}
+			}
+		});
+
+		add.addActionListener(e -> {
+			File[] files = FileDialogs.getMultiOpenDialog(preferencesDialog, new String[] { templateExt });
+			if (files != null) {
+				Arrays.stream(files).forEach(f -> {
+					FileIO.copyFile(f, new File(UserFolderManager.getFileFromUserFolder(templatesFolder), f.getName()));
+					tmodel.addElement(f.getName());
+				});
+				updateVisibility(tmodel);
+			}
+		});
+
+		File[] files = UserFolderManager.getFileFromUserFolder(templatesFolder).listFiles();
+		if (files != null) {
+			Arrays.stream(files).forEach(f -> {
+				if (f.getName().toLowerCase(Locale.ENGLISH).endsWith(templateExt.toLowerCase(Locale.ENGLISH)))
+					tmodel.addElement(f.getName());
+			});
+		}
+
+		panel.add(PanelUtils.totalCenterInPanel(L10N.label("dialog.preferences.no_templates")), "EMPTY");
+		panel.add(new JScrollPane(templates), "LIST");
+
+		sectionPanel.add("Center", PanelUtils.northAndCenterElement(opts, panel, 5, 5));
+
+		preferencesDialog.preferences.add(sectionPanel, name);
+
+		updateVisibility(tmodel);
+	}
+
+	private void deleteCurrentlySelected(String templatesFolder, DefaultListModel<String> tmodel,
+			JList<String> templates) {
+		templates.getSelectedValuesList().forEach(el -> {
+			new File(UserFolderManager.getFileFromUserFolder(templatesFolder), el).delete();
+			tmodel.removeElement(el);
+		});
+		updateVisibility(tmodel);
+	}
+
+	public void updateVisibility(DefaultListModel<String> tmodel) {
+		if (tmodel.isEmpty()) {
+			cardLayout.show(panel, "EMPTY");
+		} else {
+			cardLayout.show(panel, "LIST");
+		}
+	}
+
+}

@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.local/baseline-lock.schema.json",
+  "title": "Stage 0 baseline lock",
+  "type": "object",
+  "required": ["baselineVersion", "capturedAt", "sources", "toolchain", "productIdentity"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "baselineVersion": { "const": 1 },
+    "capturedAt": { "type": "string", "format": "date-time" },
+    "sources": {
+      "type": "object",
+      "required": ["mcreator", "fabricGenerator"],
+      "properties": {
+        "mcreator": { "$ref": "#/$defs/source" },
+        "fabricGenerator": { "$ref": "#/$defs/source" }
+      },
+      "additionalProperties": false
+    },
+    "toolchain": { "type": "object" },
+    "productIdentity": { "type": "object" }
+  },
+  "$defs": {
+    "source": {
+      "type": "object",
+      "required": ["repository", "tag", "commit", "license", "licenseFile", "files"],
+      "properties": {
+        "repository": { "type": "string", "format": "uri" },
+        "releasePage": { "type": "string", "format": "uri" },
+        "tag": { "type": "string", "minLength": 1 },
+        "commit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "commitDate": { "type": "string", "format": "date-time" },
+        "license": { "type": "string", "minLength": 1 },
+        "licenseFile": { "type": "string", "minLength": 1 },
+        "mcreatorVersion": { "type": "string" },
+        "minecraftVersion": { "type": "string" },
+        "files": {
+          "type": "object",
+          "additionalProperties": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+          "minProperties": 1
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

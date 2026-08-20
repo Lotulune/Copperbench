@@ -1,0 +1,1 @@
+Typ narzędzia, jakim jest dane narzędzie.

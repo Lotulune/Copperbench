@@ -1,0 +1,114 @@
+{
+  "gate": "G3",
+  "stage": "stage-2-history-mcp-headless",
+  "date": "2026-08-17",
+  "environment": "Windows 11 x64, bundled JBR 25",
+  "reproduce": "powershell -ExecutionPolicy Bypass -File scripts/verify-stage-2.ps1",
+  "suites": {
+    "java": {
+      "command": "gradlew test --tests dev.copperbench.*",
+      "total": 34,
+      "failed": 0,
+      "skipped": 0,
+      "classes": {
+        "dev.copperbench.automation.AutomationSecurityTest": {
+          "tests": 4,
+          "failures": 0
+        },
+        "dev.copperbench.core.HistoryContractTest": {
+          "tests": 4,
+          "failures": 0
+        },
+        "dev.copperbench.core.PluginCompatibilityClassifierTest": {
+          "tests": 2,
+          "failures": 0
+        },
+        "dev.copperbench.core.SchemaNegotiatorTest": {
+          "tests": 1,
+          "failures": 0
+        },
+        "dev.copperbench.core.WorkspaceApplicationServiceTest": {
+          "tests": 10,
+          "failures": 0
+        },
+        "dev.copperbench.core.WorkspacePersistenceFoundationTest": {
+          "tests": 5,
+          "failures": 0
+        },
+        "dev.copperbench.headless.HeadlessCliTest": {
+          "tests": 2,
+          "failures": 0
+        },
+        "dev.copperbench.history.LocalHistoryServiceTest": {
+          "tests": 2,
+          "failures": 0
+        },
+        "dev.copperbench.mcp.McpHttpServerTest": {
+          "tests": 3,
+          "failures": 0
+        },
+        "dev.copperbench.ProductIdentityTest": {
+          "tests": 1,
+          "failures": 0
+        }
+      }
+    },
+    "ui-core": {
+      "command": "npm test",
+      "total": 9,
+      "failed": 0
+    },
+    "ui-shell-build": {
+      "command": "npm run build",
+      "failed": 0
+    },
+    "ui-shell-playwright": {
+      "command": "npx playwright test",
+      "passed": 54,
+      "failed": 0,
+      "note": "27 cases x 2 viewports"
+    },
+    "mcp-official-conformance": {
+      "command": "pwsh -NoProfile -File scripts/verify-mcp-conformance.ps1",
+      "toolVersion": "0.1.16",
+      "specVersion": "2025-11-25",
+      "applicableChecks": 8,
+      "failed": 0,
+      "summary": "evidence/stage-2/2026-08-17/mcp-conformance-summary.json"
+    }
+  },
+  "gateCoverage": {
+    "mcp_protocol_schema_versioning": [
+      "dev.copperbench.mcp.McpHttpServerTest",
+      "dev.copperbench.core.SchemaNegotiatorTest",
+      "ui-core schema tests",
+      "official conformance applicable scenarios (8/8)"
+    ],
+    "permissions_protected_ops_tokens_cors_redaction": [
+      "dev.copperbench.automation.AutomationSecurityTest",
+      "dev.copperbench.mcp.McpHttpServerTest"
+    ],
+    "concurrent_revision_conflicts": [
+      "dev.copperbench.core.WorkspaceApplicationServiceTest",
+      "dev.copperbench.core.HistoryContractTest"
+    ],
+    "headless_json_exit_codes": [
+      "dev.copperbench.headless.HeadlessCliTest"
+    ],
+    "recovery_points_not_bypassed": [
+      "dev.copperbench.history.LocalHistoryServiceTest",
+      "dev.copperbench.core.HistoryContractTest"
+    ],
+    "adapters_consistent_results": [
+      "dev.copperbench.core.WorkspaceApplicationServiceTest",
+      "dev.copperbench.core.HistoryContractTest"
+    ],
+    "ai_cannot_silently_enable_plugins": [
+      "dev.copperbench.automation.AutomationSecurityTest",
+      "ui-shell e2e stage2-history-approval.spec.ts"
+    ],
+    "ui_history_diff_approval_prototypes": [
+      "ui-shell e2e stage2-history-approval.spec.ts"
+    ]
+  }
+}

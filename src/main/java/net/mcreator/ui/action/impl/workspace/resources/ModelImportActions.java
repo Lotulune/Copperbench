@@ -1,0 +1,384 @@
+/*
+ * MCreator (https://mcreator.net/)
+ * Copyright (C) 2020 Pylo and contributors
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+/*
+ * Additional permission under GNU GPL version 3 section 7
+ *
+ * If you modify this Program, or any covered work, by linking or combining
+ * it with JBoss Forge (or a modified version of that library), containing
+ * parts covered by the terms of Eclipse Public License, the licensors of
+ * this Program grant you additional permission to convey the resulting work.
+ */
+
+package net.mcreator.ui.action.impl.workspace.resources;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import de.javagl.obj.Mtl;
+import de.javagl.obj.MtlReader;
+import de.javagl.obj.MtlWriter;
+import net.mcreator.io.FileIO;
+import net.mcreator.java.JavaConventions;
+import net.mcreator.minecraft.RegistryNameFixer;
+import net.mcreator.ui.MCreator;
+import net.mcreator.ui.action.ActionRegistry;
+import net.mcreator.ui.action.BasicAction;
+import net.mcreator.ui.dialogs.JavaModelAnimationEditorDialog;
+import net.mcreator.ui.dialogs.TextureMappingDialog;
+import net.mcreator.ui.dialogs.file.FileDialogs;
+import net.mcreator.ui.init.L10N;
+import net.mcreator.ui.init.UIRES;
+import net.mcreator.ui.modgui.ModElementGUI;
+import net.mcreator.workspace.Workspace;
+import net.mcreator.workspace.resources.TexturedModel;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.jboss.forge.roaster.Roaster;
+import org.jboss.forge.roaster.model.source.Import;
+import org.jboss.forge.roaster.model.source.JavaClassSource;
+
+import javax.annotation.Nullable;
+import javax.swing.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+public class ModelImportActions {
+
+	private static final Logger LOG = LogManager.getLogger("Model import actions");
+
+	public static class JAVA extends BasicAction {
+		public JAVA(ActionRegistry actionRegistry) {
+			super(actionRegistry, L10N.t("action.workspace.resources.import_java_model"), actionEvent -> {
+				if (actionRegistry.getMCreator().getGeneratorConfiguration().getJavaModelsKey().equals("legacy")) {
+					JOptionPane.showMessageDialog(actionRegistry.getMCreator(),
+							L10N.t("dialog.workspace.resources.import_java_model.version_notice.message"),
+							L10N.t("dialog.workspace.resources.import_java_model.version_notice.title"),
+							JOptionPane.INFORMATION_MESSAGE);
+				} else {
+					JOptionPane.showMessageDialog(actionRegistry.getMCreator(),
+							L10N.t("dialog.workspace.resources.import_java_model.version_notice_new.message",
+									actionRegistry.getMCreator().getGeneratorConfiguration()
+											.getCompatibleJavaModelKeys().toString().replace("[", "").replace("]", "")
+											.replace("legacy", "mcp-pre-1.17.x")),
+							L10N.t("dialog.workspace.resources.import_java_model.version_notice.title"),
+							JOptionPane.INFORMATION_MESSAGE);
+				}
+
+				File file = FileDialogs.getOpenDialog(actionRegistry.getMCreator(), new String[] { ".java" });
+				if (file != null)
+					importJavaModel(actionRegistry.getMCreator(), actionRegistry.getMCreator().getWorkspace(),
+							FileIO.readFileToString(file));
+			});
+			setIcon(UIRES.get("16px.importjavamodel"));
+		}
+
+		@Override public boolean isEnabled() {
+			return actionRegistry.getMCreator().getGeneratorStats().hasBaseCoverage("model_java");
+		}
+	}
+
+	public static void importJavaModel(@Nullable MCreator mcreator, Workspace workspace, String origCode) {
+		if (workspace.getGeneratorConfiguration().getJavaModelsKey().equals("legacy")) {
+			origCode = origCode.replace("public class", "public static class")
+					.replace("RendererModel ", "ModelRenderer ").replace("RendererModel(", "ModelRenderer(")
+					.replace("ModelRenderer ;", "");
+		}
+
+		boolean compatibleModel = true;
+		for (String keyword : workspace.getGeneratorConfiguration().getJavaModelRequirementKeyWords()) {
+			if (keyword.startsWith("~")) {
+				if (origCode.contains(keyword.substring(1))) {
+					compatibleModel = false;
+					LOG.warn("Incompatible model as it contains keyword {}", keyword.substring(1));
+					break;
+				}
+			} else if (!origCode.contains(keyword)) {
+				compatibleModel = false;
+				LOG.warn("Incompatible model as it does not contain keyword {}", keyword);
+				break;
+			}
+		}
+
+		if (!compatibleModel) {
+			if (mcreator == null)
+				throw new RuntimeException("Incompatible model");
+			else
+				JOptionPane.showMessageDialog(mcreator,
+						L10N.t("dialog.workspace.resources.import_java_model.incompatible_model.message"),
+						L10N.t("dialog.workspace.resources.import_java_model.incompatible_model.title"),
+						JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+
+		if (origCode.contains("software.bernie.geckolib.animation.model.AnimatedEntityModel")
+				&& !workspace.getWorkspaceSettings().getMCreatorDependencies().contains("geckolib")) {
+			if (mcreator == null)
+				throw new RuntimeException("Geckolib model");
+			else
+				JOptionPane.showMessageDialog(mcreator,
+						L10N.t("dialog.workspace.resources.import_java_model.geckolib_needed.message"),
+						L10N.t("dialog.workspace.resources.import_java_model.geckolib_needed.title"),
+						JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+
+		JavaClassSource classJavaSource;
+
+		try {
+			if (origCode.contains("software.bernie.geckolib.animation.model.AnimatedEntityModel")) {
+				origCode = origCode.replaceAll("AnimatedEntityModel<[\\w\\d$_€]+>", "AnimatedEntityModel");
+			}
+
+			classJavaSource = (JavaClassSource) Roaster.parse(origCode);
+			classJavaSource.toString();
+
+			String className = origCode.split("(?= class\\s+" + classJavaSource.getName() + ")")[1].replaceAll(
+					"class\\s+", "").split("( extends )|(<\\w+? extends)")[0].trim();
+
+			if (!JavaConventions.isValidJavaIdentifier(className)) {
+				JOptionPane.showMessageDialog(null,
+						L10N.t("dialog.workspace.resources.import_java_model.invalid_model_name.message", className),
+						L10N.t("dialog.workspace.resources.import_java_model.invalid_model_name.title"),
+						JOptionPane.ERROR_MESSAGE);
+				return;
+			}
+		} catch (Exception err) {
+			LOG.error("Failed to load Java model", err);
+			if (mcreator == null)
+				throw new RuntimeException("Failed to load model");
+			else
+				JOptionPane.showMessageDialog(mcreator,
+						L10N.t("dialog.workspace.resources.import_java_model.invalid_model_format.message"),
+						L10N.t("dialog.workspace.resources.import_java_model.invalid_model_format.title"),
+						JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+
+		List<Import> imports = classJavaSource.getImports();
+		for (Import imprt : imports) {
+			classJavaSource.removeImport(imprt);
+		}
+
+		classJavaSource.setDefaultPackage();
+
+		if (!classJavaSource.getName().startsWith("Model"))
+			classJavaSource.setName("Model" + classJavaSource.getName());
+
+		String finalModelCode = mcreator != null ?
+				JavaModelAnimationEditorDialog.openAnimationEditorDialog(mcreator, classJavaSource.toString()) :
+				classJavaSource.toString();
+
+		if (finalModelCode == null)
+			finalModelCode = classJavaSource.toString();
+
+		if (new File(workspace.getFolderManager().getModelsDir(), classJavaSource.getName() + ".java").exists()) {
+			if (mcreator == null)
+				throw new RuntimeException("Model already exists");
+			else
+				JOptionPane.showMessageDialog(mcreator,
+						L10N.t("dialog.workspace.resources.import_java_model.model_already_exists.message",
+								classJavaSource.getName()),
+						L10N.t("dialog.workspace.resources.import_java_model.model_already_exists.title"),
+						JOptionPane.WARNING_MESSAGE);
+			return;
+		}
+
+		if (workspace.getGeneratorConfiguration().getJavaModelsKey().equals("legacy")) {
+			FileIO.writeStringToFile(finalModelCode.replace("setRotationAngles(f, f1, f2, f3, f4, f5);",
+							"setRotationAngles(f, f1, f2, f3, f4, f5, entity);"),
+					new File(workspace.getFolderManager().getModelsDir(), classJavaSource.getName() + ".java"));
+		} else {
+			FileIO.writeStringToFile(finalModelCode, new File(workspace.getFolderManager().getModelsDir(),
+					workspace.getGeneratorConfiguration().getJavaModelsKey() + "/" + classJavaSource.getName()
+							+ ".java"));
+		}
+
+		if (mcreator != null) {
+			mcreator.reloadWorkspaceTabContents();
+			if (mcreator.getTabs().getCurrentTab().getContent() instanceof ModElementGUI)
+				((ModElementGUI<?>) mcreator.getTabs().getCurrentTab().getContent()).reloadDataLists();
+		}
+	}
+
+	public static class JSON extends BasicAction {
+		public JSON(ActionRegistry actionRegistry) {
+			super(actionRegistry, L10N.t("action.workspace.resources.import_json_model"), actionEvent -> {
+				File json = FileDialogs.getOpenDialog(actionRegistry.getMCreator(), new String[] { ".json" });
+				if (json != null)
+					importJSONModel(actionRegistry.getMCreator(), json);
+			});
+			setIcon(UIRES.get("16px.importjsonmodel"));
+		}
+
+		@Override public boolean isEnabled() {
+			return actionRegistry.getMCreator().getGeneratorStats().hasBaseCoverage("model_json");
+		}
+	}
+
+	public static void importJSONModel(MCreator mcreator, File file) {
+		// find the textures
+		String cmodel = FileIO.readFileToString(file);
+		HashSet<String> txs = new HashSet<>();
+		Pattern pattern = Pattern.compile("\"#(.*?)\"");
+		Matcher matcher = pattern.matcher(cmodel);
+		while (matcher.find())
+			txs.add(matcher.group(1));
+
+		if (!txs.isEmpty()) {
+			newTextureMapDialog(mcreator, txs, file, true);
+
+			mcreator.reloadWorkspaceTabContents();
+			if (mcreator.getTabs().getCurrentTab().getContent() instanceof ModElementGUI)
+				((ModElementGUI<?>) mcreator.getTabs().getCurrentTab().getContent()).reloadDataLists();
+		}
+	}
+
+	public static class BEDROCK extends BasicAction {
+		public BEDROCK(ActionRegistry actionRegistry) {
+			super(actionRegistry, L10N.t("action.workspace.resources.import_bedrock_model"), actionEvent -> {
+				MCreator mcreator = actionRegistry.getMCreator();
+				File json = FileDialogs.getOpenDialog(mcreator, new String[] { ".json" });
+				if (json != null) {
+					if (json.getName().endsWith(".geo.json")) {
+						importBedrockModel(mcreator, json);
+					} else {
+						JOptionPane.showMessageDialog(mcreator,
+								L10N.t("dialog.workspace.resources.import_bedrock_model.wrong_type"),
+								L10N.t("dialog.workspace.resources.import_bedrock_model.title"),
+								JOptionPane.ERROR_MESSAGE);
+					}
+				}
+			});
+			setIcon(UIRES.get("16px.importbedrockmodel"));
+		}
+
+		@Override public boolean isEnabled() {
+			return actionRegistry.getMCreator().getGeneratorStats().hasBaseCoverage("model_bedrock");
+		}
+	}
+
+	public static void importBedrockModel(MCreator mcreator, File file) {
+		String identifier;
+		try {
+			JsonObject obj = new Gson().fromJson(FileIO.readFileToString(file), JsonObject.class);
+			identifier = obj.get("minecraft:geometry").getAsJsonArray().get(0).getAsJsonObject().get("description")
+					.getAsJsonObject().get("identifier").getAsString();
+		} catch (JsonParseException | NullPointerException e) {
+			LOG.error("Bedrock model {} identifier could not be parsed", file.getName(), e);
+
+			JOptionPane.showMessageDialog(mcreator,
+					L10N.t("dialog.workspace.resources.import_bedrock_model.missing_identifier"),
+					L10N.t("dialog.workspace.resources.import_bedrock_model.title"), JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+
+		FileIO.copyFile(file, new File(mcreator.getFolderManager().getModelsDir(),
+				identifier.replace("geometry.", "") + ".geo.json"));
+
+		mcreator.reloadWorkspaceTabContents();
+		if (mcreator.getTabs().getCurrentTab().getContent() instanceof ModElementGUI)
+			((ModElementGUI<?>) mcreator.getTabs().getCurrentTab().getContent()).reloadDataLists();
+	}
+
+	public static class OBJ extends BasicAction {
+		public OBJ(ActionRegistry actionRegistry) {
+			super(actionRegistry, L10N.t("action.workspace.resources.import_obj_mtl_model"), actionEvent -> {
+				JOptionPane.showMessageDialog(actionRegistry.getMCreator(),
+						L10N.t("dialog.workspace.resources.import_obj_mtl_model.message"),
+						L10N.t("dialog.workspace.resources.import_obj_mtl_model.title"),
+						JOptionPane.INFORMATION_MESSAGE);
+				File obj = FileDialogs.getOpenDialog(actionRegistry.getMCreator(), new String[] { ".obj" });
+				if (obj != null) {
+					File mtl = FileDialogs.getOpenDialog(actionRegistry.getMCreator(), new String[] { ".mtl" });
+					if (mtl != null)
+						importOBJModel(actionRegistry.getMCreator(), obj, mtl);
+				}
+			});
+			setIcon(UIRES.get("16px.importobjmodel"));
+		}
+
+		@Override public boolean isEnabled() {
+			return actionRegistry.getMCreator().getGeneratorStats().hasBaseCoverage("model_obj");
+		}
+	}
+
+	public static void importOBJModel(MCreator mcreator, File obj, File mtl) {
+		if (obj == null && mtl == null)
+			return;
+
+		if (mtl == null) {
+			mtl = new File(obj.getAbsolutePath().replace(".obj", ".mtl"));
+			if (!mtl.isFile())
+				return;
+		}
+
+		if (obj == null) {
+			obj = new File(mtl.getAbsolutePath().replace(".mtl", ".obj"));
+			if (!obj.isFile())
+				return;
+		}
+
+		String modelName = RegistryNameFixer.fix(obj.getName());
+		File objFile = new File(mcreator.getFolderManager().getModelsDir(), modelName);
+		FileIO.copyFile(obj, objFile);
+		File mtlFile = new File(mcreator.getFolderManager().getModelsDir(),
+				modelName.substring(0, modelName.lastIndexOf('.')) + ".mtl");
+		FileIO.copyFile(mtl, mtlFile);
+
+		try {
+			List<Mtl> mtlList = MtlReader.read(new FileInputStream(mtlFile));
+			HashSet<String> txs = new HashSet<>();
+			for (Mtl mtlElement : mtlList)
+				if (mtlElement.getMapKd() != null) {
+					txs.add(mtlElement.getName());
+					mtlElement.setMapKd(
+							null); // we remove inline textures, they are defined in json or redefined by generator
+				}
+			if (!txs.isEmpty()) {
+				newTextureMapDialog(mcreator, txs, objFile, false);
+				MtlWriter.write(mtlList, new FileOutputStream(mtlFile));
+			}
+		} catch (Exception ignore) {
+		}
+		mcreator.reloadWorkspaceTabContents();
+		if (mcreator.getTabs().getCurrentTab().getContent() instanceof ModElementGUI)
+			((ModElementGUI<?>) mcreator.getTabs().getCurrentTab().getContent()).reloadDataLists();
+	}
+
+	private static void newTextureMapDialog(MCreator mcreator, HashSet<String> txs, File modelFile,
+			boolean supportMultiple) {
+		Map<String, TexturedModel.TextureMapping> textureMappingMap = new TextureMappingDialog(null).openMappingDialog(
+				mcreator, txs, supportMultiple);
+		if (textureMappingMap != null) {
+			String modelNameBase = RegistryNameFixer.fix(modelFile.getName());
+			String data = TexturedModel.getJSONForTextureMapping(textureMappingMap);
+			FileIO.writeStringToFile(data,
+					new File(mcreator.getFolderManager().getModelsDir(), modelNameBase + ".textures"));
+			// copy the actual model
+			FileIO.copyFile(modelFile, new File(mcreator.getFolderManager().getModelsDir(), modelNameBase));
+		}
+	}
+
+}

@@ -1,0 +1,2768 @@
+{
+  "schemaVersion": 1,
+  "runtime": "JetBrains Runtime with JCEF",
+  "version": "25.0.3+1-b329.124",
+  "distribution": "jbrsdk_jcef-25.0.3-windows-x64-b329.124",
+  "sourceUrl": "https://cache-redirector.jetbrains.com/intellij-jbr/jbrsdk_jcef-25.0.3-windows-x64-b329.124.zip",
+  "localSource": "IntelliJ IDEA 2026.1.4 bundled JBR",
+  "fileCount": 551,
+  "totalBytes": 554054143.0,
+  "treeSha256": "01412c80bb06dd91726321cc59cdb13bb7cfebf3362ebdff3ae2169f6b626d69",
+  "files": [
+    {
+      "path": "bin/api-ms-win-core-console-l1-1-0.dll",
+      "bytes": 31664,
+      "sha256": "9e7b2f563f97c0b37cf53bf0f51d48d109e9112fa5bc535939acb4304a8d9e4c"
+    },
+    {
+      "path": "bin/api-ms-win-core-console-l1-2-0.dll",
+      "bytes": 31656,
+      "sha256": "3e556291cb3b1e17fcc0a75b0b093e55881bb2f169a486d8de6e1d520e6ca7e5"
+    },
+    {
+      "path": "bin/api-ms-win-core-datetime-l1-1-0.dll",
+      "bytes": 31152,
+      "sha256": "17bb283de1f8d039e6f1e23da33327bbbd2f4c0b6145c604dadc91b51f90c8a7"
+    },
+    {
+      "path": "bin/api-ms-win-core-debug-l1-1-0.dll",
+      "bytes": 31176,
+      "sha256": "31e90289677c5b87673a68cb16bd48f967bd1a803430c850a739083b66a03600"
+    },
+    {
+      "path": "bin/api-ms-win-core-errorhandling-l1-1-0.dll",
+      "bytes": 31160,
+      "sha256": "bf04993d522ebab6779284dd2f4e05310fb278f93667dec0a6fb46e3b964de85"
+    },
+    {
+      "path": "bin/api-ms-win-core-file-l1-1-0.dll",
+      "bytes": 34728,
+      "sha256": "31addc820b2d4c9a943c919865bc42f110e8a6fb25e1df3378b71c4296d70719"
+    },
+    {
+      "path": "bin/api-ms-win-core-file-l1-2-0.dll",
+      "bytes": 31144,
+      "sha256": "e0fc9efafc0a3aa9f43d6d0a210d7c440a073f1295d0c12d885716e21518b6c0"
+    },
+    {
+      "path": "bin/api-ms-win-core-file-l2-1-0.dll",
+      "bytes": 31144,
+      "sha256": "12b3e3cec0ba638e9ea77cdcd8fdec409e2c3dce85f3e3e4e40bacbdc998c697"
+    },
+    {
+      "path": "bin/api-ms-win-core-handle-l1-1-0.dll",
+      "bytes": 31144,
+      "sha256": "47166defbb79a2deace32e48d5b6ff2817ec0585ee586de5f6cccdc568193b7a"
+    },
+    {
+      "path": "bin/api-ms-win-core-heap-l1-1-0.dll",
+      "bytes": 31656,
+      "sha256": "341cd4f9d0335a2ca712558604e67f08da1b9b48a28aebf4a9f280b8951db02b"
+    },
+    {
+      "path": "bin/api-ms-win-core-interlocked-l1-1-0.dll",
+      "bytes": 31160,
+      "sha256": "acc89cf249a921c4ff8828bb9eb56796daa380a66a36bff1a3603047e77fc5d2"
+    },
+    {
+      "path": "bin/api-ms-win-core-libraryloader-l1-1-0.dll",
+      "bytes": 32208,
+      "sha256": "f2cf083dbdcd01dbee789d7e498ce22b61e946a3cefe4c86c99825d8f212381b"
+    },
+    {
+      "path": "bin/api-ms-win-core-localization-l1-2-0.dll",
+      "bytes": 33720,
+      "sha256": "d079ee55c8f549b6796c0f50464c23dc03b8194438ace072f7367b43b8b1ca8f"
+    },
+    {
+      "path": "bin/api-ms-win-core-memory-l1-1-0.dll",
+      "bytes": 31656,
+      "sha256": "c0969aae0b69853909c53c94b8d40f14a9df36268dd6da0e2365bbc3e25534e3"
+    },
+    {
+      "path": "bin/api-ms-win-core-namedpipe-l1-1-0.dll",
+      "bytes": 31152,
+      "sha256": "f4623409961086899417f62ca72bbc97d3b5a8aad42a60139ffeb79aaa917c26"
+    },
+    {
+      "path": "bin/api-ms-win-core-processenvironment-l1-1-0.dll",
+      "bytes": 32200,
+      "sha256": "249647d01592253200fdec035deec69f0febb83a681555dc0241b41178d932dd"
+    },
+    {
+      "path": "bin/api-ms-win-core-processthreads-l1-1-0.dll",
+      "bytes": 33208,
+      "sha256": "6034ec1e0bd34d3aa83f254cad4576fcb272214fd5852037292fb4aea4cc3b90"
+    },
+    {
+      "path": "bin/api-ms-win-core-processthreads-l1-1-1.dll",
+      "bytes": 31696,
+      "sha256": "2761afc4b0c69c2a20dd917bd1f11d9c68dc5a5a3b89dfe4469d7049101aca43"
+    },
+    {
+      "path": "bin/api-ms-win-core-profile-l1-1-0.dll",
+      "bytes": 30632,
+      "sha256": "8e6373eb6ec3a9e93cf17a535dff7ce0b4119b3b6d895fa415fced054809d666"
+    },
+    {
+      "path": "bin/api-ms-win-core-rtlsupport-l1-1-0.dll",
+      "bytes": 31696,
+      "sha256": "7920f8c4db18096bdba978aa1a2c2f065928350e901146d09de041ca46ca2cdf"
+    },
+    {
+      "path": "bin/api-ms-win-core-string-l1-1-0.dll",
+      "bytes": 31144,
+      "sha256": "e22aa366f4315cf830f22aeceb913a283ff0128bdec9c8d8e1a87f97bc83bf93"
+    },
+    {
+      "path": "bin/api-ms-win-core-synch-l1-1-0.dll",
+      "bytes": 33192,
+      "sha256": "16a9d6f525792676e8d07d9169542d2d8024af1d236e71e19d72684252a8a375"
+    },
+    {
+      "path": "bin/api-ms-win-core-synch-l1-2-0.dll",
+      "bytes": 31656,
+      "sha256": "64079263f85bed1874e2513fa91103aa9e9d21ecf695611e8c4a379a05f96af2"
+    },
+    {
+      "path": "bin/api-ms-win-core-sysinfo-l1-1-0.dll",
+      "bytes": 32176,
+      "sha256": "02a8353443b212a50ee19520a5ede51f563f4ff5db2067c42c0460e266ffaf88"
+    },
+    {
+      "path": "bin/api-ms-win-core-timezone-l1-1-0.dll",
+      "bytes": 31664,
+      "sha256": "f425ef15af78c39bb6cc279c07ef4c0f7d43a63e7bdc13f1afb353669ae5cc4a"
+    },
+    {
+      "path": "bin/api-ms-win-core-util-l1-1-0.dll",
+      "bytes": 31144,
+      "sha256": "ef3f5759b3cda59faf7a8ccd314f8c127a7d5d90cb43884056a47d2043158351"
+    },
+    {
+      "path": "bin/api-ms-win-crt-conio-l1-1-0.dll",
+      "bytes": 32168,
+      "sha256": "888c127fdabf4c58708434fb000f0a1ad9b73a81d6a7a4d9d7e5974262028a95"
+    },
+    {
+      "path": "bin/api-ms-win-crt-convert-l1-1-0.dll",
+      "bytes": 35248,
+      "sha256": "c23d0eb423c7317fdacc759d95bf578d921b9b4dc2292eb8b7d2e08306e8c299"
+    },
+    {
+      "path": "bin/api-ms-win-crt-environment-l1-1-0.dll",
+      "bytes": 31664,
+      "sha256": "ac3cc21a5b5b7ca2d375ca4adbc8309d0d0198e84401d01291b3ed95baf300f6"
+    },
+    {
+      "path": "bin/api-ms-win-crt-filesystem-l1-1-0.dll",
+      "bytes": 33200,
+      "sha256": "273ce94e30a802905a7038c1259a3d4bd0e10484084943e7da90f265d78a12a0"
+    },
+    {
+      "path": "bin/api-ms-win-crt-heap-l1-1-0.dll",
+      "bytes": 32168,
+      "sha256": "3ed8abcdee5f1395dbf9d537edc8ae9522e1ec76d241febd81e6744a7b74e6bb"
+    },
+    {
+      "path": "bin/api-ms-win-crt-locale-l1-1-0.dll",
+      "bytes": 31656,
+      "sha256": "8dd9f4522b8f06c4fd5fe44a1885cccbd2f561807b812f4e0765c9ed317bc1a1"
+    },
+    {
+      "path": "bin/api-ms-win-crt-math-l1-1-0.dll",
+      "bytes": 40152,
+      "sha256": "a27759dec7b4b13b79305f45a681024f38aa1be0063b9a256cc6a88b9c292abc"
+    },
+    {
+      "path": "bin/api-ms-win-crt-multibyte-l1-1-0.dll",
+      "bytes": 39368,
+      "sha256": "4a27771e8e548d149633139d14b932fc66922f326e84d389baeda75a3ca93efb"
+    },
+    {
+      "path": "bin/api-ms-win-crt-private-l1-1-0.dll",
+      "bytes": 83672,
+      "sha256": "18d185436239c2e0d0730cac9ec6512856269b72d06aa82249914be3c6389c43"
+    },
+    {
+      "path": "bin/api-ms-win-crt-process-l1-1-0.dll",
+      "bytes": 32192,
+      "sha256": "ec22aac0bc4e626287d78a18b61321fd286718d36040c1b1e19c0a2924e767cf"
+    },
+    {
+      "path": "bin/api-ms-win-crt-runtime-l1-1-0.dll",
+      "bytes": 35760,
+      "sha256": "6871443b144007a85bc077a2f6e7ac29ce3187260b642c9333d62bca532e1e43"
+    },
+    {
+      "path": "bin/api-ms-win-crt-stdio-l1-1-0.dll",
+      "bytes": 37288,
+      "sha256": "ff075b79773f08842041afdd167d1bba522b146dcc98f1839c46bd33ded3798d"
+    },
+    {
+      "path": "bin/api-ms-win-crt-string-l1-1-0.dll",
+      "bytes": 37296,
+      "sha256": "c87dba6cb02bd9fb7dd7a3d0182ac9331cc62166e2acf2379262664a59f38e66"
+    },
+    {
+      "path": "bin/api-ms-win-crt-time-l1-1-0.dll",
+      "bytes": 33704,
+      "sha256": "bc0b4f97de7b4fbb6af3f0dfe4c51f51ff1b29fa21e6a93d5f8541fbe3832282"
+    },
+    {
+      "path": "bin/api-ms-win-crt-utility-l1-1-0.dll",
+      "bytes": 31664,
+      "sha256": "1b632b1c83611bd6d6795e78c1bf6f2087e44d8d3ca011a7c56e68b977fa6f54"
+    },
+    {
+      "path": "bin/attach.dll",
+      "bytes": 30560,
+      "sha256": "63967012791e250d499416a7fdca498401c9661c1c90d6df3d912fae8e8c84ce"
+    },
+    {
+      "path": "bin/awt.dll",
+      "bytes": 1477472,
+      "sha256": "4f5b342aedd7641a2a44895e1ff3e675d1249017eb1fe3955c4e6e5c5d710f58"
+    },
+    {
+      "path": "bin/cef_server.exe",
+      "bytes": 4454760,
+      "sha256": "9e9be2896da8067c5fe0c6c26ae2739f18cdb2ac03f3cec912670829c9e3cb09"
+    },
+    {
+      "path": "bin/chrome_100_percent.pak",
+      "bytes": 775954,
+      "sha256": "a196ddf400e2b6f23e6a1c060f9b075b811c4616e6c32148cd0a18acf09318c6"
+    },
+    {
+      "path": "bin/chrome_200_percent.pak",
+      "bytes": 1306362,
+      "sha256": "c724e259d9f3f28cccbc231782980709bb8579005d2bd3c82bb474389fac3b10"
+    },
+    {
+      "path": "bin/chrome_elf.dll",
+      "bytes": 1784680,
+      "sha256": "976162a92ee231587c5d03f7f9ba2f6ddc8ce6d764e6090e824a50a1a826984c"
+    },
+    {
+      "path": "bin/d3dcompiler_47.dll",
+      "bytes": 4702136,
+      "sha256": "7b67c9a745c820e07784f7eedd81c9d4969f6a2cd4dbdd4c5b07a848719b2935"
+    },
+    {
+      "path": "bin/dt_shmem.dll",
+      "bytes": 37736,
+      "sha256": "7a96d96263ecd28d3b36c53fe422cf9e9ae786d1fed0ec580b4cb6cd22d02104"
+    },
+    {
+      "path": "bin/dt_socket.dll",
+      "bytes": 37224,
+      "sha256": "1461e82a78ed35af2875cde40b3ac28693ba3ec1b55cacfc02ea66646ccc32ea"
+    },
+    {
+      "path": "bin/dxcompiler.dll",
+      "bytes": 25846632,
+      "sha256": "ca692058e81cf3ebc94dda29996b43e8fc92fcb62e82cda98e8cf07da0ae0ecc"
+    },
+    {
+      "path": "bin/dxil.dll",
+      "bytes": 1513400,
+      "sha256": "33e5d7e4f714c7f10c3a808035e6b95ac92b0692cfbb98d26426cec1cb129f33"
+    },
+    {
+      "path": "bin/extnet.dll",
+      "bytes": 24928,
+      "sha256": "88b109d3b39fe8261a992b29c4d2bbad3f62ad05a9aad104e6d1d931335fc390"
+    },
+    {
+      "path": "bin/fontmanager.dll",
+      "bytes": 1005424,
+      "sha256": "4672048b1d70f2d83bab4d3a4da2cef890b87f37f56472decdd4429b35e7455b"
+    },
+    {
+      "path": "bin/freetype.dll",
+      "bytes": 563048,
+      "sha256": "405372fae5b3a763ed42b50070510c9c656708975152cfd352fbfed7da924cd3"
+    },
+    {
+      "path": "bin/gluegen_rt.dll",
+      "bytes": 29544,
+      "sha256": "df03fee08277d3315dcde955639b6ab49ea264952ceff8dae8deef1a4e0b1f30"
+    },
+    {
+      "path": "bin/icudtl.dat",
+      "bytes": 10467680,
+      "sha256": "5070de99fbd8a48378543511fb7a072f85bf36f94b4f4e1d420d54be1435d6f1"
+    },
+    {
+      "path": "bin/instrument.dll",
+      "bytes": 53096,
+      "sha256": "7a9fd4d5160d410501ad3a3875631e0108e0624834c27b80d5ee0c4b82ba2016"
+    },
+    {
+      "path": "bin/j2gss.dll",
+      "bytes": 53600,
+      "sha256": "f2efb6449b15cae10fa498baef7583073161d1477dc621a85bb6ea48133d5bb3"
+    },
+    {
+      "path": "bin/j2pcsc.dll",
+      "bytes": 26976,
+      "sha256": "cecdcc291b0bffef54d06350e89ab6d661a3b6bf8bd4488a23268a7176e2a4a2"
+    },
+    {
+      "path": "bin/j2pkcs11.dll",
+      "bytes": 84840,
+      "sha256": "0916d239f5106ea5e7f5be516384c108e9ed9643172991974ed5e175a2aa0710"
+    },
+    {
+      "path": "bin/jaas.dll",
+      "bytes": 29024,
+      "sha256": "1a10daf0784d76190006a82aae8775ab6b53777d847142c8e30c96969fe97ded"
+    },
+    {
+      "path": "bin/jabswitch.exe",
+      "bytes": 45416,
+      "sha256": "31d275de14710be9d252a75910e48ab41b7a4bfc15a4932e05ba410843c7e843"
+    },
+    {
+      "path": "bin/jaccessinspector.exe",
+      "bytes": 106360,
+      "sha256": "7d7d545a2687086178972b0e1ae92d6f8ae05142eb85266f1c237bfbf3fc0d4a"
+    },
+    {
+      "path": "bin/jaccesswalker.exe",
+      "bytes": 71536,
+      "sha256": "e886629fcce69459b62a4ceb58aa8669cd5e1ce3e0031ff0237559019e635b5a"
+    },
+    {
+      "path": "bin/java.dll",
+      "bytes": 120672,
+      "sha256": "42f5fea3e9b84054b06c6830374db6d577c675fac33a62bcf08d0415213aac2b"
+    },
+    {
+      "path": "bin/java.exe",
+      "bytes": 34144,
+      "sha256": "92250af03f8ad1f4ed4567b3490ce25a8475110aaca05219feeeeb4ca87af877"
+    },
+    {
+      "path": "bin/javaaccessbridge.dll",
+      "bytes": 310648,
+      "sha256": "2e9172d6a4fc0e6ab51183c2ca885197b006a1dd1699f59bf4d674c4bcd3e188"
+    },
+    {
+      "path": "bin/javac.exe",
+      "bytes": 24928,
+      "sha256": "b43a0cccdf1350c3de8f651045e9928b963bdf3095e8c7285367f0f953c05ecd"
+    },
+    {
+      "path": "bin/javadoc.exe",
+      "bytes": 24936,
+      "sha256": "954b029bad34274a7a4050237d466da48d2bb2ba1caa37cdd9e45f83a725a3bb"
+    },
+    {
+      "path": "bin/javajpeg.dll",
+      "bytes": 184168,
+      "sha256": "947afb32f71040cbe2c7f725f4572cc5d2264854e2b68b93497521658a27224c"
+    },
+    {
+      "path": "bin/javaw.exe",
+      "bytes": 34144,
+      "sha256": "d4159fbdd0b4adc405e30aa5b1a301910e86df83cd675c4470d6ade23b3fddbf"
+    },
+    {
+      "path": "bin/jawt.dll",
+      "bytes": 21856,
+      "sha256": "fa6a377a193704e1557edf80f9a6c110d17303ab9b042cf44e126de9aa9a0c81"
+    },
+    {
+      "path": "bin/jcef_helper.dll",
+      "bytes": 759152,
+      "sha256": "1d53bf375151bf7f025eb068a4249066a57c18ee312838f9263776ea3781309b"
+    },
+    {
+      "path": "bin/jcef_helper.exe",
+      "bytes": 759664,
+      "sha256": "305c6accdc2d50347137557b7ee3faf580a0086981f812138aa7e12bbe12cc0c"
+    },
+    {
+      "path": "bin/jcef.dll",
+      "bytes": 1167712,
+      "sha256": "874c97eda90358743e156f5ec940d77f645c9ef734d31d01295eb0df81e4bb2b"
+    },
+    {
+      "path": "bin/jcmd.exe",
+      "bytes": 24416,
+      "sha256": "00d9be89721ac027fea4dc167c6700fd6153909eb4e8922f13a6baca4a7f462d"
+    },
+    {
+      "path": "bin/jdb.exe",
+      "bytes": 24416,
+      "sha256": "4dbf84da4e25853ebeaa67742ff401c30dc717881ea4d41f7d44f47d0dce2a1e"
+    },
+    {
+      "path": "bin/jdwp.dll",
+      "bytes": 243552,
+      "sha256": "fe926cf59cbc2fc83a37b62a798e5c5279147e84483831dd0a41f65b29d42327"
+    },
+    {
+      "path": "bin/jfr.exe",
+      "bytes": 24416,
+      "sha256": "cd31be493be522be4c3feb937e15c6686ded86df219254141d8727f27ebf65fa"
+    },
+    {
+      "path": "bin/jhsdb.exe",
+      "bytes": 24928,
+      "sha256": "bc1f05d134be5127191f1f4883e0837be15ed69d4bbcc920b2c1b9a3c003ced4"
+    },
+    {
+      "path": "bin/jimage.dll",
+      "bytes": 34656,
+      "sha256": "dffa68d28ae4c4859ab9745cc80c0c3ef64d7030242c791cd7a1653c30583410"
+    },
+    {
+      "path": "bin/jinfo.exe",
+      "bytes": 24928,
+      "sha256": "c4e1d47385d71572447cd6de38d5ff295c1ce5910c59b7d26000d2a3cf0d64b4"
+    },
+    {
+      "path": "bin/jli.dll",
+      "bytes": 84832,
+      "sha256": "2057ed22bd6003fb934de2220554bd42493e92f6e9ec3ed48f78bcd5ebd4860a"
+    },
+    {
+      "path": "bin/jmap.exe",
+      "bytes": 24928,
+      "sha256": "c1ec82b4077e69e282020987910841f03cde06b1a4fda3bde4f758a689dbcad6"
+    },
+    {
+      "path": "bin/jogl_desktop.dll",
+      "bytes": 702832,
+      "sha256": "910a66991dbb8c77fcc574c9aa4dcedeef1be4e7f15130b2eef08c782a5e59fc"
+    },
+    {
+      "path": "bin/jogl_mobile.dll",
+      "bytes": 370032,
+      "sha256": "5a29a0d9c8ed5446f02c1b2106bbebef26f4717b810ce7146385337de6f619ed"
+    },
+    {
+      "path": "bin/jps.exe",
+      "bytes": 24416,
+      "sha256": "9243c85e4a0f88e3897e2deb8f25f8c1a4925585ccb7590ccd82a27d6dcf83c1"
+    },
+    {
+      "path": "bin/jrunscript.exe",
+      "bytes": 24936,
+      "sha256": "acffe80efe1a64c1a2e4c2801776121e08d2e062952d901832c70da0a088c5cd"
+    },
+    {
+      "path": "bin/jsound.dll",
+      "bytes": 61792,
+      "sha256": "91fc625da81f613cc65b058795301906d4195c7c5b4e10f85551061314e75d90"
+    },
+    {
+      "path": "bin/jstack.exe",
+      "bytes": 24928,
+      "sha256": "a532583d28b6d02e219f924e75ed872a0d7837adb0d221e0caa9cf282c70c4ab"
+    },
+    {
+      "path": "bin/jstat.exe",
+      "bytes": 24928,
+      "sha256": "cf03f80d26e1374aae5ec5960d640b99af9bda9eb49ee214d228fef4440435e4"
+    },
+    {
+      "path": "bin/jwebserver.exe",
+      "bytes": 24936,
+      "sha256": "1d3e635a445f1e71f2d57f32c51cb4755dbad7efbf769c5dd5c5b782cfeb2ee6"
+    },
+    {
+      "path": "bin/keytool.exe",
+      "bytes": 24936,
+      "sha256": "a0de83fee61a9d0c11addcb80f7fac2246f897a42df0a396754b9f2f17de1606"
+    },
+    {
+      "path": "bin/kinit.exe",
+      "bytes": 24928,
+      "sha256": "2ca2dc2be931d22a8fbd4078aae87c88b1104fabbd2e9b644bf5cbe874247a8c"
+    },
+    {
+      "path": "bin/klist.exe",
+      "bytes": 24928,
+      "sha256": "b8db8b929ac7890bfe9633de23d90e502107d35d6c2886854d1f4048607cac40"
+    },
+    {
+      "path": "bin/ktab.exe",
+      "bytes": 24416,
+      "sha256": "d1bf9402f0840a96966be71698cdcba67a59a1b80e9bb35fce30ee43c72c5969"
+    },
+    {
+      "path": "bin/lcms.dll",
+      "bytes": 261472,
+      "sha256": "2deae729337ad007fec3706dec29bb608ebd2855d5e2342f998cbb57cbc0dd04"
+    },
+    {
+      "path": "bin/libcef.dll",
+      "bytes": 237997920,
+      "sha256": "8aed92e7a3aa965baddf4aa1cc4d0ba92730b253f54d797007921c13e79b2971"
+    },
+    {
+      "path": "bin/libEGL.dll",
+      "bytes": 512352,
+      "sha256": "c5377882791894595349ea238b710449b8faff02a2fcb776b839edb588289995"
+    },
+    {
+      "path": "bin/libGLESv2.dll",
+      "bytes": 7882088,
+      "sha256": "7d9f1e14e957eec1bf05bd4df83173f1cfab343639eb59f61d831bf6262c3477"
+    },
+    {
+      "path": "bin/locales/af.pak",
+      "bytes": 601633,
+      "sha256": "86d5d0f016602ecd2525575d26e93b0ab3c2506694cac567bb8cf2442327f1d6"
+    },
+    {
+      "path": "bin/locales/am.pak",
+      "bytes": 967574,
+      "sha256": "beabcd6135a2d2242c0297fbd6d474f85a145be6b9d6e50722456b5da509e081"
+    },
+    {
+      "path": "bin/locales/ar.pak",
+      "bytes": 1068548,
+      "sha256": "75d0486009e996b835e386be0b9f2970472cf68380232f455e2065876a2a66ef"
+    },
+    {
+      "path": "bin/locales/bg.pak",
+      "bytes": 1102034,
+      "sha256": "7eb1e515fbe48eac4aa4ad8f6e98fbf1c4a09fd01ae43a0447b0003fecb8421b"
+    },
+    {
+      "path": "bin/locales/bn.pak",
+      "bytes": 1417418,
+      "sha256": "8636cebdfc9984dc5a6430e9ab6a3cb93b0287ece8d6d5fbca657b55a6b1958f"
+    },
+    {
+      "path": "bin/locales/ca.pak",
+      "bytes": 682605,
+      "sha256": "2cb8e804e681514a4ce3a7f8d60305e893c2cc2ed96a29cc27e729b2ef2d279e"
+    },
+    {
+      "path": "bin/locales/cs.pak",
+      "bytes": 693863,
+      "sha256": "c25b82cdb020979aecc009c9a4a361da6ae0566ad840cee533a14da95d821751"
+    },
+    {
+      "path": "bin/locales/da.pak",
+      "bytes": 633468,
+      "sha256": "80310d0bfa0a7148116395eb9e908f8e71a074ec73f04583565617773b6f8635"
+    },
+    {
+      "path": "bin/locales/de.pak",
+      "bytes": 682120,
+      "sha256": "52fcf1d30ed3eb9c9ac0b3ce9787e55192edd8b777602747aaf30f575d7b95a2"
+    },
+    {
+      "path": "bin/locales/el.pak",
+      "bytes": 1208620,
+      "sha256": "2829fcabea4ab960cc01fda4c647b91e463884b4938ebff1f1ffa48e25508ad9"
+    },
+    {
+      "path": "bin/locales/en-GB.pak",
+      "bytes": 548377,
+      "sha256": "c71da8424b685aeeec9b3ba51ec544b9c746e602784b6b04a8077831c5dd43b0"
+    },
+    {
+      "path": "bin/locales/en-US.pak",
+      "bytes": 554056,
+      "sha256": "a9333b999e1c84d5e698c4af661c5adefd16cf79517e8958de6a7af1e0bc04d5"
+    },
+    {
+      "path": "bin/locales/es-419.pak",
+      "bytes": 667646,
+      "sha256": "b6cb886ed6607cc24e18c89acca1e48c7dc8710e6450cd6f523e49f89de3ebf6"
+    },
+    {
+      "path": "bin/locales/es.pak",
+      "bytes": 664459,
+      "sha256": "a1dac38d16a9e2be1214f0ddfdfb9b84f173653f3d1f3e01a7f87b0cb8a8aba4"
+    },
+    {
+      "path": "bin/locales/et.pak",
+      "bytes": 607800,
+      "sha256": "0edc22b641522b88668ee56ca89d5b0164b3c4455773c179fb10b0dcc057fce0"
+    },
+    {
+      "path": "bin/locales/fa.pak",
+      "bytes": 987875,
+      "sha256": "d36bc31bbc81831eef35ad574a59cc45ed65530437b8a58e2d743aafad74b7e8"
+    },
+    {
+      "path": "bin/locales/fi.pak",
+      "bytes": 617590,
+      "sha256": "4e64c6d0470fbca92e06de211349f087b5f8f172150b11bef065c8c0ebe51baf"
+    },
+    {
+      "path": "bin/locales/fil.pak",
+      "bytes": 698455,
+      "sha256": "c3c2f03f9156da0016663eda4a0a3baffc53595354a6413142b75978a57972af"
+    },
+    {
+      "path": "bin/locales/fr.pak",
+      "bytes": 720221,
+      "sha256": "8281f1cd359aa6372b46258c3c73395a50c8b451202e266b10d3139c1ac4577a"
+    },
+    {
+      "path": "bin/locales/gu.pak",
+      "bytes": 1405647,
+      "sha256": "d077a290dafe50593b2fc36ec0140423c668aff7b580a6c0c6580952353f41e5"
+    },
+    {
+      "path": "bin/locales/he.pak",
+      "bytes": 871206,
+      "sha256": "8372d0cbb8fcee7fdea8bb4ebaedefe1ec31432ad3d88aa36f445eb6d4ae5747"
+    },
+    {
+      "path": "bin/locales/hi.pak",
+      "bytes": 1498596,
+      "sha256": "242d0918b84fd7846c43b21d0d21c56c3a4bee6c0cfa81c9c66ac97e49479a13"
+    },
+    {
+      "path": "bin/locales/hr.pak",
+      "bytes": 672685,
+      "sha256": "cab6b5606e15e1ae651bbd31c4d5a9b65d47afe43e6e7a0c4e295b687b951b56"
+    },
+    {
+      "path": "bin/locales/hu.pak",
+      "bytes": 722139,
+      "sha256": "bf60f72c937e1440e32e82689f2a531cdbe867ce250b299963562c9c6b7e31a9"
+    },
+    {
+      "path": "bin/locales/id.pak",
+      "bytes": 598737,
+      "sha256": "db90ce88e0284cbf2cb88ae45aacd91d0341e869ac7e3623a72c23518ff0aca8"
+    },
+    {
+      "path": "bin/locales/it.pak",
+      "bytes": 661935,
+      "sha256": "2969f1451aeafcaea1d3aa1854538238139748c4e905017bdb59e5b8ac95aa14"
+    },
+    {
+      "path": "bin/locales/ja.pak",
+      "bytes": 799591,
+      "sha256": "9ae2c45c574482e1e75b3ada7ff4f124fd2505ee43eadf57a7022ee22e262c24"
+    },
+    {
+      "path": "bin/locales/kn.pak",
+      "bytes": 1593465,
+      "sha256": "60f38a7d2b80aed111a34d9c0fc5398e1716adf3bc2fde0a1575e45f765a65dd"
+    },
+    {
+      "path": "bin/locales/ko.pak",
+      "bytes": 676839,
+      "sha256": "0f7becf17c4bb6824e01972f8c52d77707a7b4c56f889eee99d81b44d044a65b"
+    },
+    {
+      "path": "bin/locales/lt.pak",
+      "bytes": 727077,
+      "sha256": "93674033c55d1aa1ba392d3321cbc274fed9e239f6ddc0c7f11ff776eae68217"
+    },
+    {
+      "path": "bin/locales/lv.pak",
+      "bytes": 726355,
+      "sha256": "009cb5449729fe729fe6ae1ae929a82ba206a424ea882eebf157be4691f66fd0"
+    },
+    {
+      "path": "bin/locales/ml.pak",
+      "bytes": 1655630,
+      "sha256": "2508051917958c57e64fcea24157c41444da66c1d222afb85defbea503440434"
+    },
+    {
+      "path": "bin/locales/mr.pak",
+      "bytes": 1372156,
+      "sha256": "0bd69cf86948d7b089511d3915c22f7beac44a52979def8ff332d7c0bb5082f6"
+    },
+    {
+      "path": "bin/locales/ms.pak",
+      "bytes": 627946,
+      "sha256": "502ef1b465a0fc7b049d7d4be800cfd9a4fd578428a0e5b29c6ce62b68edac87"
+    },
+    {
+      "path": "bin/locales/nb.pak",
+      "bytes": 606172,
+      "sha256": "69e6e5fb46b07c76f3839c41ae13f8ee667f0b48093fd6679872328c4bbd93ed"
+    },
+    {
+      "path": "bin/locales/nl.pak",
+      "bytes": 628909,
+      "sha256": "940c7a4a1abfb5edfae30faecea13acd086b59ecf5f62b5c7f38d5c9934bd63e"
+    },
+    {
+      "path": "bin/locales/pl.pak",
+      "bytes": 698161,
+      "sha256": "934cb22deb21a0ab7da7a5e6b34944f4f3ac07c721215d58d51b3111636d9214"
+    },
+    {
+      "path": "bin/locales/pt-BR.pak",
+      "bytes": 655270,
+      "sha256": "ca31c984368a9bb1d1f132005362761d5241a1a57d34825e5a70f6e6799a913d"
+    },
+    {
+      "path": "bin/locales/pt-PT.pak",
+      "bytes": 660316,
+      "sha256": "3aeb291fe94eebaf2d869605e826f144d593801c1eb1bfdfe263ed3b906f2fc7"
+    },
+    {
+      "path": "bin/locales/ro.pak",
+      "bytes": 683840,
+      "sha256": "8847acf25b8a25105b4f3101c1338626c229fad18c7ee6fc8567d148cb447520"
+    },
+    {
+      "path": "bin/locales/ru.pak",
+      "bytes": 1119153,
+      "sha256": "6b7c59655aa9925697b18db9822eadd5a0d2df18cf9ce17dcc3bd43337de8cf8"
+    },
+    {
+      "path": "bin/locales/sk.pak",
+      "bytes": 706471,
+      "sha256": "2abd76770573c75c013d88d3097806530a8a0f63fd86fa670fcab431c13548a6"
+    },
+    {
+      "path": "bin/locales/sl.pak",
+      "bytes": 678220,
+      "sha256": "307f1402b7084aea2083d2cc97bf2ada9aadbcc18998e174a193b9e6cfe11846"
+    },
+    {
+      "path": "bin/locales/sr.pak",
+      "bytes": 1038645,
+      "sha256": "122b67e8e360a353da87e49a5ad1593d3e704967a91b3e72e9e7184b7bd90761"
+    },
+    {
+      "path": "bin/locales/sv.pak",
+      "bytes": 611007,
+      "sha256": "e022f92fae8370b9c32c5f8f24aa7bad207a93378093c07175cef2eb0cc8d368"
+    },
+    {
+      "path": "bin/locales/sw.pak",
+      "bytes": 644008,
+      "sha256": "2fbe8cae54fc6e2d344867e620d270d58b05405cdf81007a002530e0db5c2e81"
+    },
+    {
+      "path": "bin/locales/ta.pak",
+      "bytes": 1649763,
+      "sha256": "5289d15b8aac0cc0f591355f24a2587251997c0960b14ce1010426714a136e97"
+    },
+    {
+      "path": "bin/locales/te.pak",
+      "bytes": 1521000,
+      "sha256": "cf60bb15dca009a46fc39626c1fbfc2500065dcbc56e1fe80af5c1c6503c2350"
+    },
+    {
+      "path": "bin/locales/th.pak",
+      "bytes": 1280532,
+      "sha256": "174e4be240d754ea969ce4e77726c51060f339ebb962819c059cf8072ab5e096"
+    },
+    {
+      "path": "bin/locales/tr.pak",
+      "bytes": 655570,
+      "sha256": "e61c0d2d33bd8f542bd7964f58c14b01dd3b8fe8950d82f7b684f7ff9573fe98"
+    },
+    {
+      "path": "bin/locales/uk.pak",
+      "bytes": 1122224,
+      "sha256": "9c8f0f38bdcdca2afdf4b017ced9194ff8344e93b8b9af9ebc48c60f2ae0315e"
+    },
+    {
+      "path": "bin/locales/ur.pak",
+      "bytes": 979183,
+      "sha256": "d1e026b867fc81c2770841cd59b4ab7af4b068954a894e47aa254798be3874da"
+    },
+    {
+      "path": "bin/locales/vi.pak",
+      "bytes": 778762,
+      "sha256": "cdf999f845d14f40315545d1540a62479b058c1cf5e0a7537a0affb24c320f2f"
+    },
+    {
+      "path": "bin/locales/zh-CN.pak",
+      "bytes": 560298,
+      "sha256": "0a70795944ad5e5246f4a14d72d018549062e89d820a39b5ec7dad61e8d39214"
+    },
+    {
+      "path": "bin/locales/zh-TW.pak",
+      "bytes": 555931,
+      "sha256": "c45727f036ae2afe9aab1ec69ab0d9e968d739c10d2da3171f8ae5bab22dbfbd"
+    },
+    {
+      "path": "bin/management_agent.dll",
+      "bytes": 24952,
+      "sha256": "5d03760ae6752d2bdbfe1e648e318f3768d7e3502ed80bf86f476bb0a1391d4d"
+    },
+    {
+      "path": "bin/management_ext.dll",
+      "bytes": 36720,
+      "sha256": "1a3cf076b8f5619ca5d04ac6c676dce7dd0076920ef9b5d89f4560f80fd63e95"
+    },
+    {
+      "path": "bin/management.dll",
+      "bytes": 30056,
+      "sha256": "27821296ca54bdba155e65e542252c5f8e70b580158e2daf09b0b095e5b830de"
+    },
+    {
+      "path": "bin/mlib_image.dll",
+      "bytes": 522600,
+      "sha256": "ff18602019036ace76c003496afbefc0273f618d809b43aa2074f609858a4325"
+    },
+    {
+      "path": "bin/msvcp140.dll",
+      "bytes": 568312,
+      "sha256": "821ea08e9020809f31f7780de1424c74b08db40ec2a4ff7e66c239ce29e3f95f"
+    },
+    {
+      "path": "bin/nativewindow_awt.dll",
+      "bytes": 27512,
+      "sha256": "48148330a3c7e356ead3851e1e0706bbfd906ad2aaafecf25137b26a282592d7"
+    },
+    {
+      "path": "bin/nativewindow_win32.dll",
+      "bytes": 42872,
+      "sha256": "ff1ed7d040a12252df76b71056631cc6361b1ea9fddea7ef46e5a6709ac088f2"
+    },
+    {
+      "path": "bin/net.dll",
+      "bytes": 62304,
+      "sha256": "2889e77f04602e5aea2a2048f632d8ac3db8d0cdf9584d6029a8d5611dc9bcc7"
+    },
+    {
+      "path": "bin/newt_head.dll",
+      "bytes": 53096,
+      "sha256": "143b3f83c70baa95b8de6c47d05a7d4ef8847539731f416a4ba57fd48c01feee"
+    },
+    {
+      "path": "bin/nio.dll",
+      "bytes": 82272,
+      "sha256": "8e9de803d42c69b24e2d069972b396245714746f2fafba7d3614d9553b03d079"
+    },
+    {
+      "path": "bin/nvdaControllerClient64.dll",
+      "bytes": 276264,
+      "sha256": "563b3377c4c6022b0564080a8cec73f97a2dbee2da3019fed4f381059001e118"
+    },
+    {
+      "path": "bin/prefs.dll",
+      "bytes": 25952,
+      "sha256": "71e2741cbdb26a61b569ae3e91dcccecce966480287d4fa1408f1e028238fa30"
+    },
+    {
+      "path": "bin/resources.pak",
+      "bytes": 11538574,
+      "sha256": "2cc93a71ad1e7a623539a9546493f4f95fa2e9c7727890a903d003b4532e8a67"
+    },
+    {
+      "path": "bin/rmi.dll",
+      "bytes": 21344,
+      "sha256": "cc7b3c19736bf445b63c186951880f989a3e40382bc568217383bfe4074969a3"
+    },
+    {
+      "path": "bin/rmiregistry.exe",
+      "bytes": 24944,
+      "sha256": "d36722a1f02078e9e9080eda9b83f3941a4df8aa0d856f8336a2a0134cd8c863"
+    },
+    {
+      "path": "bin/saproc.dll",
+      "bytes": 39776,
+      "sha256": "79d64b34c3c25fd9216b37bc3269b050e1f20262a868015f3df0b6dbadf12651"
+    },
+    {
+      "path": "bin/serialver.exe",
+      "bytes": 24936,
+      "sha256": "4efc1a0a001934411810bbf2e0424828f74681e6505f5363d0e3bc14cc371588"
+    },
+    {
+      "path": "bin/server/classes_nocoops.jsa",
+      "bytes": 33816576,
+      "sha256": "e1bceb79b35d9a18c1d9889416556a71928e87a6c687d68d04c41702ec37a6a4"
+    },
+    {
+      "path": "bin/server/classes.jsa",
+      "bytes": 33095680,
+      "sha256": "7d92e8494dc1e8c36e911ea171a1c051b5b9c496035f319e14d72442a3cf339e"
+    },
+    {
+      "path": "bin/server/jvm.dll",
+      "bytes": 15552352,
+      "sha256": "05e3f8a0c57a6c572ca343aa43dda708897d88a8e1a05e7edd720b14bf8f0d78"
+    },
+    {
+      "path": "bin/shared_mem_helper.dll",
+      "bytes": 104312,
+      "sha256": "33c8c85f4203ced10a3b776da0b60beceac1b17f9b35ab89a8e8228bcf55896d"
+    },
+    {
+      "path": "bin/splashscreen.dll",
+      "bytes": 213872,
+      "sha256": "362f69100153a96035cea18e9fb1468968718a5419298fba17f207bb81162b3d"
+    },
+    {
+      "path": "bin/sspi_bridge.dll",
+      "bytes": 45424,
+      "sha256": "98783726c42b4f58e831e316ec251c0f8e36ccb8daabc125eabe4786051fda4e"
+    },
+    {
+      "path": "bin/sunmscapi.dll",
+      "bytes": 50024,
+      "sha256": "1bf8cf135f394a7b173b1e56d5de1aa03df8af30b1246bf50e72041d6807e46d"
+    },
+    {
+      "path": "bin/syslookup.dll",
+      "bytes": 29032,
+      "sha256": "aa69a111f0f4a3f2b0a7a0fd63e0fcf61568467b79698654713c3a3fc05bc7eb"
+    },
+    {
+      "path": "bin/ucrtbase.dll",
+      "bytes": 1036672,
+      "sha256": "c8f98d8171ff705f2cefb559174d89006ce40551bd71255752d271acf621e39c"
+    },
+    {
+      "path": "bin/v8_context_snapshot.bin",
+      "bytes": 714429,
+      "sha256": "4fe7480ccea155736affffbbb78c6f47baa5822eace7bdf858c76dc6f33445d8"
+    },
+    {
+      "path": "bin/vcruntime140_1.dll",
+      "bytes": 60392,
+      "sha256": "a1508ab523278a9cc62f371ee1de58b5a4c212045a7dcdb1d87a1bc50e611857"
+    },
+    {
+      "path": "bin/vcruntime140.dll",
+      "bytes": 135144,
+      "sha256": "6488c4abf0e7150c53a3404ba1f23d22138b5d0928c87f4b6d5817d1ba9c3380"
+    },
+    {
+      "path": "bin/verify.dll",
+      "bytes": 55648,
+      "sha256": "daade9c1baf16afb60113653497d09d77ead80f0d26f996b82af989cf4beb0a9"
+    },
+    {
+      "path": "bin/vk_swiftshader.dll",
+      "bytes": 5439344,
+      "sha256": "4d4aef3df8c3eadae6bd640f24af9ce2dd02766d667377f18b1b8897e1eb4d2d"
+    },
+    {
+      "path": "bin/vulkan-1.dll",
+      "bytes": 911720,
+      "sha256": "3b9ade0d2e54b0f8706ed801780bd291c6d5352f18d366c64144211bd2cff04c"
+    },
+    {
+      "path": "bin/w2k_lsa_auth.dll",
+      "bytes": 32624,
+      "sha256": "d73b24d8273a5f5c991abeb2504f299a46378d3c8e9fc6c66a84ea00714e4a59"
+    },
+    {
+      "path": "bin/windowsaccessbridge-64.dll",
+      "bytes": 73088,
+      "sha256": "365b414fd0905b7cfc6a5d2448fe8d635bd14f67f4785f02f98923c7af0164b4"
+    },
+    {
+      "path": "bin/zip.dll",
+      "bytes": 82784,
+      "sha256": "13f8ad65d87b2a61c1e8dbc5db734e568c4a61c9490dd398421b1dbd3d49e0f9"
+    },
+    {
+      "path": "conf/jaxp-strict.properties.template",
+      "bytes": 4937,
+      "sha256": "3cc9b87633769414b22c24c97ecded8a15df630fe5ab12abca2398d88e31b32b"
+    },
+    {
+      "path": "conf/jaxp.properties",
+      "bytes": 8222,
+      "sha256": "d4f45052a100e5aef02b6638a3b9c69b2bdd46155ceb58a52671e5d594c30100"
+    },
+    {
+      "path": "conf/logging.properties",
+      "bytes": 2740,
+      "sha256": "8590633e1e8a7d88ffe74cc04189c5c61b1ed4703180cbc851dcd5575efcce74"
+    },
+    {
+      "path": "conf/management/jmxremote.access",
+      "bytes": 3997,
+      "sha256": "0c25d26ee212ca1e8c33f67c3c460d43fe849c3a1d23dbe341148517602b280c"
+    },
+    {
+      "path": "conf/management/jmxremote.password.template",
+      "bytes": 5690,
+      "sha256": "0273b6a6b9e20e6ce54c5aee70164028e0395063b2b7d39060a40b6495543dbf"
+    },
+    {
+      "path": "conf/management/management.properties",
+      "bytes": 15015,
+      "sha256": "75e60327531d34d1ce5eb507db52711a1d926b9c77d14d6b3a392d747105488d"
+    },
+    {
+      "path": "conf/net.properties",
+      "bytes": 7404,
+      "sha256": "594bc40230a0bd7c441fe069989d66e534a6bae2ee5910f9f4bf64e59b583256"
+    },
+    {
+      "path": "conf/security/java.security",
+      "bytes": 73874,
+      "sha256": "a86d4ca2038d0978d8b539224e9d60ff55b475fee2e6d113ee24c8a60852c70b"
+    },
+    {
+      "path": "conf/security/policy/limited/default_local.policy",
+      "bytes": 647,
+      "sha256": "2b2627548e61316150d47ffc3e6cad465ca05b3cccd4785eb7d21aa7baa0f441"
+    },
+    {
+      "path": "conf/security/policy/limited/default_US_export.policy",
+      "bytes": 146,
+      "sha256": "758b930a526fc670ab7537f8c26321527050a31f5f42149a2dda623c56a0a1a9"
+    },
+    {
+      "path": "conf/security/policy/limited/exempt_local.policy",
+      "bytes": 566,
+      "sha256": "8c3d7648abcd95a272ce12db870082937f4d7f6878d730d83cb7fbb31eb8b2c9"
+    },
+    {
+      "path": "conf/security/policy/README.txt",
+      "bytes": 2390,
+      "sha256": "6da0747334b0fea7592fd92614b2bbc8b126535e129b1fee483774d914e98eb5"
+    },
+    {
+      "path": "conf/security/policy/unlimited/default_local.policy",
+      "bytes": 193,
+      "sha256": "8d8a318e6d90dfd7e26612d2b6385aa704f686ca6134c551f8928418d92b851a"
+    },
+    {
+      "path": "conf/security/policy/unlimited/default_US_export.policy",
+      "bytes": 146,
+      "sha256": "758b930a526fc670ab7537f8c26321527050a31f5f42149a2dda623c56a0a1a9"
+    },
+    {
+      "path": "conf/sound.properties",
+      "bytes": 1210,
+      "sha256": "299c2360b6155eb28990ec49cd21753f97e43442fe8fab03e04f3e213df43a66"
+    },
+    {
+      "path": "include/classfile_constants.h",
+      "bytes": 22155,
+      "sha256": "8b6de72964eb1c95de92a0855b27b14428ffb7a076c7b0238b2380594033be5e"
+    },
+    {
+      "path": "include/jawt.h",
+      "bytes": 12458,
+      "sha256": "85101d07928a589accfef9d7c261850faa8d5afc8ef262af7ec9734008f6f2f5"
+    },
+    {
+      "path": "include/jdwpTransport.h",
+      "bytes": 8166,
+      "sha256": "c42256f8596cbf3b59aa25be54bbf2ece47a5dee75d4e6153791dc5620cff2c8"
+    },
+    {
+      "path": "include/jni.h",
+      "bytes": 76300,
+      "sha256": "1e03bd83d1662ac00647f7a06c11d32333767ee537803ec1d153e89888414520"
+    },
+    {
+      "path": "include/jvmti.h",
+      "bytes": 85905,
+      "sha256": "fc6e474d904d17993ab029a93bba3daaffaf7155549439d22ebca708fb835486"
+    },
+    {
+      "path": "include/jvmticmlr.h",
+      "bytes": 4771,
+      "sha256": "6ee3e52d24bdb4f4d0312dfbab3d47bd524cbdac5540a4d790cac0620c59b3c8"
+    },
+    {
+      "path": "include/win32/bridge/AccessBridgeCallbacks.h",
+      "bytes": 5518,
+      "sha256": "92ecc9dc75d30ebdd6ba6da032f567586d258cdd69ccb04621327b9d388f814f"
+    },
+    {
+      "path": "include/win32/bridge/AccessBridgeCalls.h",
+      "bytes": 36050,
+      "sha256": "77c5684dbf00c074ce36c6ca0b5a89e82a503bd23e09f29ec8d57db9239a6565"
+    },
+    {
+      "path": "include/win32/bridge/AccessBridgePackages.h",
+      "bytes": 77659,
+      "sha256": "08f29e6dfc01d32726605d29ff9111b3132dbed0ddecafe4480fcb2b8201b0af"
+    },
+    {
+      "path": "include/win32/jawt_md.h",
+      "bytes": 1895,
+      "sha256": "9c0f6287252019b77a1bac18b92f28153ad46709423fe2cc9e1fa5d16bca38e3"
+    },
+    {
+      "path": "include/win32/jni_md.h",
+      "bytes": 1484,
+      "sha256": "c989b8c6f03c26c6f170836df8531379eb5cb3f5891f5d53f3bd17c1fdb28938"
+    },
+    {
+      "path": "legal/java.base/ADDITIONAL_LICENSE_INFO",
+      "bytes": 2114,
+      "sha256": "a69bce275ba7a3570af6579cb0f55682cd75fedfcd49e0e8e9022270c447c916"
+    },
+    {
+      "path": "legal/java.base/aes.md",
+      "bytes": 1444,
+      "sha256": "45c6d4da48325edfbff3dcf71c704e504c057904435ed23c6d57046d551eb69d"
+    },
+    {
+      "path": "legal/java.base/ASSEMBLY_EXCEPTION",
+      "bytes": 1514,
+      "sha256": "75292f03bf23d3db7c985aecc191029b93883200721ed23ed34a2e601463df33"
+    },
+    {
+      "path": "legal/java.base/c-libutl.md",
+      "bytes": 1556,
+      "sha256": "bef40679922d6fdfb7e4ddb223ad6722300f6054ba737bbf6188d60fcec517f9"
+    },
+    {
+      "path": "legal/java.base/cldr.md",
+      "bytes": 8790,
+      "sha256": "472e341c36efc1136860ed7a6461a2af4a53ae95d55d1126726340f5ba62b06a"
+    },
+    {
+      "path": "legal/java.base/icu.md",
+      "bytes": 4147,
+      "sha256": "be23ad20a8231d2241b37fcf401548febd8597de8373f89268882020cb7c8818"
+    },
+    {
+      "path": "legal/java.base/LICENSE",
+      "bytes": 19274,
+      "sha256": "4b9abebc4338048a7c2dc184e9f800deb349366bdf28eb23c2677a77b4c87726"
+    },
+    {
+      "path": "legal/java.base/public_suffix.md",
+      "bytes": 17783,
+      "sha256": "861de1e4992a7d28f1de25c73cd50d26a94779ebd749c0643fecfa56442c3429"
+    },
+    {
+      "path": "legal/java.base/README.JAVASE",
+      "bytes": 329,
+      "sha256": "924088f1c5c3340acf1470a0f41587f47f3aff91f6ea0f8f791826787e13e708"
+    },
+    {
+      "path": "legal/java.base/siphash.md",
+      "bytes": 8256,
+      "sha256": "5a792b5a74ad2a5f3d6a7ad8b7a841116e58a772c18bc6e392320a365b222c76"
+    },
+    {
+      "path": "legal/java.base/unicode.md",
+      "bytes": 15098,
+      "sha256": "5194d6760f2e7eccc07804196cc619f84e730fa9d10c0529b71416186f4d12dc"
+    },
+    {
+      "path": "legal/java.base/wepoll.md",
+      "bytes": 1454,
+      "sha256": "3ac2992770080453b98c42afa807ba4b2c1738ef756b92a55c645f55e7df48f0"
+    },
+    {
+      "path": "legal/java.base/zlib.md",
+      "bytes": 1010,
+      "sha256": "c9c70c36a1f0325e8788771906202d42ba6ab4205caca44ec0f665707e83226b"
+    },
+    {
+      "path": "legal/java.compiler/ADDITIONAL_LICENSE_INFO",
+      "bytes": 49,
+      "sha256": "ebf9777bd307ed789ceabf282a9aca168c391c7f48e15a60939352efb3ea33f9"
+    },
+    {
+      "path": "legal/java.compiler/ASSEMBLY_EXCEPTION",
+      "bytes": 44,
+      "sha256": "b998cda101e5a1ebcfb5ff9cddd76ed43a2f2169676592d428b7c0d780665f2a"
+    },
+    {
+      "path": "legal/java.compiler/LICENSE",
+      "bytes": 33,
+      "sha256": "86e0516b888276a492b19f9a84f5a866ed36925fae1510b3a94a0b6213e69192"
+    },
+    {
+      "path": "legal/java.compiler/README.JAVASE",
+      "bytes": 39,
+      "sha256": "a599d79ec20f64079704f1ed4588d5c725ff798824f7d22838a5fb7bd0b01ddb"
+    },
+    {
+      "path": "legal/java.datatransfer/ADDITIONAL_LICENSE_INFO",
+      "bytes": 49,
+      "sha256": "ebf9777bd307ed789ceabf282a9aca168c391c7f48e15a60939352efb3ea33f9"
+    },
+    {
+      "path": "legal/java.datatransfer/ASSEMBLY_EXCEPTION",
+      "bytes": 44,
+      "sha256": "b998cda101e5a1ebcfb5ff9cddd76ed43a2f2169676592d428b7c0d780665f2a"
+    },
+    {
+      "path": "legal/java.datatransfer/LICENSE",
+      "bytes": 33,
+      "sha256": "86e0516b888276a492b19f9a84f5a866ed36925fae1510b3a94a0b6213e69192"
+    },
+    {
+      "path": "legal/java.datatransfer/README.JAVASE",
+      "bytes": 39,
+      "sha256": "a599d79ec20f64079704f1ed4588d5c725ff798824f7d22838a5fb7bd0b01ddb"
+    },
+    {
+      "path": "legal/java.desktop/ADDITIONAL_LICENSE_INFO",
+      "bytes": 49,
+      "sha256": "ebf9777bd307ed789ceabf282a9aca168c391c7f48e15a60939352efb3ea33f9"
+    },
+    {
+      "path": "legal/java.desktop/ASSEMBLY_EXCEPTION",
+      "bytes": 44,
+      "sha256": "b998cda101e5a1ebcfb5ff9cddd76ed43a2f2169676592d428b7c0d780665f2a"
+    },
+    {
+      "path": "legal/java.desktop/colorimaging.md",
+      "bytes": 167,
+      "sha256": "04d61e3e8e71dd452ebe52008af5378d9f6640d14578aeb515dc5375973b0189"
+    },
+    {
+      "path": "legal/java.desktop/freetype.md",
+      "bytes": 30565,
+      "sha256": "bb0b505d7ba8e0cef1d3790caebd18802d64658cb7597f0656137935cbbad953"
+    },
+    {
+      "path": "legal/java.desktop/giflib.md",
+      "bytes": 1689,
+      "sha256": "4fdfc68f8c5e461ee899cec851290cc713e17673a0466f46973178866ddc9ed0"
+    },
+    {
+      "path": "legal/java.desktop/harfbuzz.md",
+      "bytes": 3628,
+      "sha256": "9050c60ce9a0c2b212e746bf5b3eb8ccb064d2c41a77ac7b681b3a6eb22cc304"
+    },
+    {
+      "path": "legal/java.desktop/jpeg.md",
+      "bytes": 3474,
+      "sha256": "c1dfb9719a71ad9f861f8728550542d681e25c8ef40e6393606e6e2a0c1d653a"
+    },
+    {
+      "path": "legal/java.desktop/lcms.md",
+      "bytes": 2642,
+      "sha256": "3fea7c1d86ee0955f4b3911f9edfc0452008131727e6219255efdd3cc11095be"
+    },
+    {
+      "path": "legal/java.desktop/libpng.md",
+      "bytes": 7519,
+      "sha256": "46e55b9dc9cc25bfd3ff2bb6d48b9b9caa1b8f85e69473630ec5b41d22afc3c2"
+    },
+    {
+      "path": "legal/java.desktop/LICENSE",
+      "bytes": 33,
+      "sha256": "86e0516b888276a492b19f9a84f5a866ed36925fae1510b3a94a0b6213e69192"
+    },
+    {
+      "path": "legal/java.desktop/mesa3d.md",
+      "bytes": 5732,
+      "sha256": "63f4e6f75caebbccb95d903fb43e46ac7111b3624d0a34f146b276d7d9e7b152"
+    },
+    {
+      "path": "legal/java.desktop/README.JAVASE",
+      "bytes": 39,
+      "sha256": "a599d79ec20f64079704f1ed4588d5c725ff798824f7d22838a5fb7bd0b01ddb"
+    },
+    {
+      "path": "legal/java.instrument/ADDITIONAL_LICENSE_INFO",
+      "bytes": 49,
+      "sha256": "ebf9777bd307ed789ceabf282a9aca168c391c7f48e15a60939352efb3ea33f9"
+    },
+    {
+      "path": "legal/java.instrument/ASSEMBLY_EXCEPTION",
+      "bytes": 44,
+      "sha256": "b998cda101e5a1ebcfb5ff9cddd76ed43a2f2169676592d428b7c0d780665f2a"
+    },
+    {
+      "path": "legal/java.instrument/LICENSE",
+      "bytes": 33,
+      "sha256": "86e0516b888276a492b19f9a84f5a866ed36925fae1510b3a94a0b6213e69192"
+    },
+    {
+      "path": "legal/java.instrument/README.JAVASE",
+      "bytes": 39,
+      "sha256": "a599d79ec20f64079704f1ed4588d5c725ff798824f7d22838a5fb7bd0b01ddb"
+    },
+    {
+      "path": "legal/java.logging/ADDITIONAL_LICENSE_INFO",
+      "bytes": 49,
+      "sha256": "ebf9777bd307ed789ceabf282a9aca168c391c7f48e15a60939352efb3ea33f9"
+    },
+    {
+      "path": "legal/java.logging/ASSEMBLY_EXCEPTION",
+      "bytes": 44,
+      "sha256": "b998cda101e5a1ebcfb5ff9cddd76ed43a2f2169676592d428b7c0d780665f2a"
+    },
+    {
+      "path": "legal/java.logging/LICENSE",
+      "bytes": 33,
+      "sha256": "86e0516b888276a492b19f9a84f5a866ed36925fae1510b3a94a0b6213e69192"
+    },
+    {
+      "path": "legal/java.logging/README.JAVASE",
+      "bytes": 39,
+      "sha256": "a599d79ec20f64079704f1ed4588d5c725ff798824f7d22838a5fb7bd0b01ddb"
+    },
+    {
+      "path": "legal/java.management.rmi/ADDITIONAL_LICENSE_INFO",
+      "bytes": 49,
+      "sha256": "ebf9777bd307ed789ceabf282a9aca168c391c7f48e15a60939352efb3ea33f9"
+    },
+    {
+      "path": "legal/java.management.rmi/ASSEMBLY_EXCEPTION",
+      "bytes": 44,
+      "sha256": "b998cda101e5a1ebcfb5ff9cddd76ed43a2f2169676592d428b7c0d780665f2a"
+    },
+    {
+      "path": "legal/java.management.rmi/LICENSE",
+      "bytes": 33,
+      "sha256": "86e0516b888276a492b19f9a84f5a866ed36925fae1510b3a94a0b6213e69192"
+    },
+    {
+      "path": "legal/java.management.rmi/README.JAVASE",
+      "bytes": 39,
+      "sha256": "a599d79ec20f64079704f1ed4588d5c725ff798824f7d22838a5fb7bd0b01ddb"
+    },
+    {
+      "path": "legal/java.management/ADDITIONAL_LICENSE_INFO",
+      "bytes": 49,
+      "sha256": "ebf9777bd307ed789ceabf282a9aca168c391c7f48e15a60939352efb3ea33f9"
+    },
+    {
+      "path": "legal/java.management/ASSEMBLY_EXCEPTION",
+      "bytes": 44,
+      "sha256": "b998cda101e5a1ebcfb5ff9cddd76ed43a2f2169676592d428b7c0d780665f2a"
+    },
+    {
+      "path": "legal/java.management/LICENSE",
+      "bytes": 33,
+      "sha256": "86e0516b888276a492b19f9a84f5a866ed36925fae1510b3a94a0b6213e69192"
+    },
+    {
+      "path": "legal/java.management/README.JAVASE",
+      "bytes": 39,
+      "sha256": "a599d79ec20f64079704f1ed4588d5c725ff798824f7d22838a5fb7bd0b01ddb"
+    },
+    {
+      "path": "legal/java.naming/ADDITIONAL_LICENSE_INFO",
+      "bytes": 49,
+      "sha256": "ebf9777bd307ed789ceabf282a9aca168c391c7f48e15a60939352efb3ea33f9"
+    },
+    {
+      "path": "legal/java.naming/ASSEMBLY_EXCEPTION",
+      "bytes": 44,
+      "sha256": "b998cda101e5a1ebcfb5ff9cddd76ed43a2f2169676592d428b7c0d780665f2a"
+    },
+    {
+      "path": "legal/java.naming/LICENSE",
+      "bytes": 33,
+      "sha256": "86e0516b888276a492b19f9a84f5a866ed36925fae1510b3a94a0b6213e69192"
+    },
+    {
+      "path": "legal/java.naming/README.JAVASE",
+      "bytes": 39,
+      "sha256": "a599d79ec20f64079704f1ed4588d5c725ff798824f7d22838a5fb7bd0b01ddb"
+    },
+    {
+      "path": "legal/java.net.http/ADDITIONAL_LICENSE_INFO",
+      "bytes": 49,
+      "sha256": "ebf9777bd307ed789ceabf282a9aca168c391c7f48e15a60939352efb3ea33f9"
+    },
+    {
+      "path": "legal/java.net.http/ASSEMBLY_EXCEPTION",
+      "bytes": 44,
+      "sha256": "b998cda101e5a1ebcfb5ff9cddd76ed43a2f2169676592d428b7c0d780665f2a"
+    },
+    {
+      "path": "legal/java.net.http/LICENSE",
+      "bytes": 33,
+      "sha256": "86e0516b888276a492b19f9a84f5a866ed36925fae1510b3a94a0b6213e69192"
+    },
+    {
+      "path": "legal/java.net.http/README.JAVASE",
+      "bytes": 39,
+      "sha256": "a599d79ec20f64079704f1ed4588d5c725ff798824f7d22838a5fb7bd0b01ddb"
+    },
+    {
+      "path": "legal/java.prefs/ADDITIONAL_LICENSE_INFO",
+      "bytes": 49,
+      "sha256": "ebf9777bd307ed789ceabf282a9aca168c391c7f48e15a60939352efb3ea33f9"
+    },
+    {
+      "path": "legal/java.prefs/ASSEMBLY_EXCEPTION",
+      "bytes": 44,
+      "sha256": "b998cda101e5a1ebcfb5ff9cddd76ed43a2f2169676592d428b7c0d780665f2a"
+    },
+    {
+      "path": "legal/java.prefs/LICENSE",
+      "bytes": 33,
+      "sha256": "86e0516b888276a492b19f9a84f5a866ed36925fae1510b3a94a0b6213e69192"
+    },
+    {
+      "path": "legal/java.prefs/README.JAVASE",
+      "bytes": 39,
+      "sha256": "a599d79ec20f64079704f1ed4588d5c725ff798824f7d22838a5fb7bd0b01ddb"
+    },
+    {
+      "path": "legal/java.rmi/ADDITIONAL_LICENSE_INFO",
+      "bytes": 49,
+      "sha256": "ebf9777bd307ed789ceabf282a9aca168c391c7f48e15a60939352efb3ea33f9"
+    },
+    {
+      "path": "legal/java.rmi/ASSEMBLY_EXCEPTION",
+      "bytes": 44,
+      "sha256": "b998cda101e5a1ebcfb5ff9cddd76ed43a2f2169676592d428b7c0d780665f2a"
+    },
+    {
+      "path": "legal/java.rmi/LICENSE",
+      "bytes": 33,
+      "sha256": "86e0516b888276a492b19f9a84f5a866ed36925fae1510b3a94a0b6213e69192"
+    },
+    {
+      "path": "legal/java.rmi/README.JAVASE",
+      "bytes": 39,
+      "sha256": "a599d79ec20f64079704f1ed4588d5c725ff798824f7d22838a5fb7bd0b01ddb"
+    },
+    {
+      "path": "legal/java.scripting/ADDITIONAL_LICENSE_INFO",
+      "bytes": 49,
+      "sha256": "ebf9777bd307ed789ceabf282a9aca168c391c7f48e15a60939352efb3ea33f9"
+    },
+    {
+      "path": "legal/java.scripting/ASSEMBLY_EXCEPTION",
+      "bytes": 44,
+      "sha256": "b998cda101e5a1ebcfb5ff9cddd76ed43a2f2169676592d428b7c0d780665f2a"
+    },
+    {
+      "path": "legal/java.scripting/LICENSE",
+      "bytes": 33,
+      "sha256": "86e0516b888276a492b19f9a84f5a866ed36925fae1510b3a94a0b6213e69192"
+    },
+    {
+      "path": "legal/java.scripting/README.JAVASE",
+      "bytes": 39,
+      "sha256": "a599d79ec20f64079704f1ed4588d5c725ff798824f7d22838a5fb7bd0b01ddb"
+    },
+    {
+      "path": "legal/java.se/ADDITIONAL_LICENSE_INFO",
+      "bytes": 49,
+      "sha256": "ebf9777bd307ed789ceabf282a9aca168c391c7f48e15a60939352efb3ea33f9"
+    },
+    {
+      "path": "legal/java.se/ASSEMBLY_EXCEPTION",
+      "bytes": 44,
+      "sha256": "b998cda101e5a1ebcfb5ff9cddd76ed43a2f2169676592d428b7c0d780665f2a"
+    },
+    {
+      "path": "legal/java.se/LICENSE",
+      "bytes": 33,
+      "sha256": "86e0516b888276a492b19f9a84f5a866ed36925fae1510b3a94a0b6213e69192"
+    },
+    {
+      "path": "legal/java.se/README.JAVASE",
+      "bytes": 39,
+      "sha256": "a599d79ec20f64079704f1ed4588d5c725ff798824f7d22838a5fb7bd0b01ddb"
+    },
+    {
+      "path": "legal/java.security.jgss/ADDITIONAL_LICENSE_INFO",
+      "bytes": 49,
+      "sha256": "ebf9777bd307ed789ceabf282a9aca168c391c7f48e15a60939352efb3ea33f9"
+    },
+    {
+      "path": "legal/java.security.jgss/ASSEMBLY_EXCEPTION",
+      "bytes": 44,
+      "sha256": "b998cda101e5a1ebcfb5ff9cddd76ed43a2f2169676592d428b7c0d780665f2a"
+    },
+    {
+      "path": "legal/java.security.jgss/LICENSE",
+      "bytes": 33,
+      "sha256": "86e0516b888276a492b19f9a84f5a866ed36925fae1510b3a94a0b6213e69192"
+    },
+    {
+      "path": "legal/java.security.jgss/README.JAVASE",
+      "bytes": 39,
+      "sha256": "a599d79ec20f64079704f1ed4588d5c725ff798824f7d22838a5fb7bd0b01ddb"
+    },
+    {
+      "path": "legal/java.security.sasl/ADDITIONAL_LICENSE_INFO",
+      "bytes": 49,
+      "sha256": "ebf9777bd307ed789ceabf282a9aca168c391c7f48e15a60939352efb3ea33f9"
+    },
+    {
+      "path": "legal/java.security.sasl/ASSEMBLY_EXCEPTION",
+      "bytes": 44,
+      "sha256": "b998cda101e5a1ebcfb5ff9cddd76ed43a2f2169676592d428b7c0d780665f2a"
+    },
+    {
+      "path": "legal/java.security.sasl/LICENSE",
+      "bytes": 33,
+      "sha256": "86e0516b888276a492b19f9a84f5a866ed36925fae1510b3a94a0b6213e69192"
+    },
+    {
+      "path": "legal/java.security.sasl/README.JAVASE",
+      "bytes": 39,
+      "sha256": "a599d79ec20f64079704f1ed4588d5c725ff798824f7d22838a5fb7bd0b01ddb"
+    },
+    {
+      "path": "legal/java.smartcardio/ADDITIONAL_LICENSE_INFO",
+      "bytes": 49,
+      "sha256": "ebf9777bd307ed789ceabf282a9aca168c391c7f48e15a60939352efb3ea33f9"
+    },
+    {
+      "path": "legal/java.smartcardio/ASSEMBLY_EXCEPTION",
+      "bytes": 44,
+      "sha256": "b998cda101e5a1ebcfb5ff9cddd76ed43a2f2169676592d428b7c0d780665f2a"
+    },
+    {
+      "path": "legal/java.smartcardio/LICENSE",
+      "bytes": 33,
+      "sha256": "86e0516b888276a492b19f9a84f5a866ed36925fae1510b3a94a0b6213e69192"
+    },
+    {
+      "path": "legal/java.smartcardio/README.JAVASE",
+      "bytes": 39,
+      "sha256": "a599d79ec20f64079704f1ed4588d5c725ff798824f7d22838a5fb7bd0b01ddb"
+    },
+    {
+      "path": "legal/java.sql.rowset/ADDITIONAL_LICENSE_INFO",
+      "bytes": 49,
+      "sha256": "ebf9777bd307ed789ceabf282a9aca168c391c7f48e15a60939352efb3ea33f9"
+    },
+    {
+      "path": "legal/java.sql.rowset/ASSEMBLY_EXCEPTION",
+      "bytes": 44,
+      "sha256": "b998cda101e5a1ebcfb5ff9cddd76ed43a2f2169676592d428b7c0d780665f2a"
+    },
+    {
+      "path": "legal/java.sql.rowset/LICENSE",
+      "bytes": 33,
+      "sha256": "86e0516b888276a492b19f9a84f5a866ed36925fae1510b3a94a0b6213e69192"
+    },
+    {
+      "path": "legal/java.sql.rowset/README.JAVASE",
+      "bytes": 39,
+      "sha256": "a599d79ec20f64079704f1ed4588d5c725ff798824f7d22838a5fb7bd0b01ddb"
+    },
+    {
+      "path": "legal/java.sql/ADDITIONAL_LICENSE_INFO",
+      "bytes": 49,
+      "sha256": "ebf9777bd307ed789ceabf282a9aca168c391c7f48e15a60939352efb3ea33f9"
+    },
+    {
+      "path": "legal/java.sql/ASSEMBLY_EXCEPTION",
+      "bytes": 44,
+      "sha256": "b998cda101e5a1ebcfb5ff9cddd76ed43a2f2169676592d428b7c0d780665f2a"
+    },
+    {
+      "path": "legal/java.sql/LICENSE",
+      "bytes": 33,
+      "sha256": "86e0516b888276a492b19f9a84f5a866ed36925fae1510b3a94a0b6213e69192"
+    },
+    {
+      "path": "legal/java.sql/README.JAVASE",
+      "bytes": 39,
+      "sha256": "a599d79ec20f64079704f1ed4588d5c725ff798824f7d22838a5fb7bd0b01ddb"
+    },
+    {
+      "path": "legal/java.transaction.xa/ADDITIONAL_LICENSE_INFO",
+      "bytes": 49,
+      "sha256": "ebf9777bd307ed789ceabf282a9aca168c391c7f48e15a60939352efb3ea33f9"
+    },
+    {
+      "path": "legal/java.transaction.xa/ASSEMBLY_EXCEPTION",
+      "bytes": 44,
+      "sha256": "b998cda101e5a1ebcfb5ff9cddd76ed43a2f2169676592d428b7c0d780665f2a"
+    },
+    {
+      "path": "legal/java.transaction.xa/LICENSE",
+      "bytes": 33,
+      "sha256": "86e0516b888276a492b19f9a84f5a866ed36925fae1510b3a94a0b6213e69192"
+    },
+    {
+      "path": "legal/java.transaction.xa/README.JAVASE",
+      "bytes": 39,
+      "sha256": "a599d79ec20f64079704f1ed4588d5c725ff798824f7d22838a5fb7bd0b01ddb"
+    },
+    {
+      "path": "legal/java.xml.crypto/ADDITIONAL_LICENSE_INFO",
+      "bytes": 49,
+      "sha256": "ebf9777bd307ed789ceabf282a9aca168c391c7f48e15a60939352efb3ea33f9"
+    },
+    {
+      "path": "legal/java.xml.crypto/ASSEMBLY_EXCEPTION",
+      "bytes": 44,
+      "sha256": "b998cda101e5a1ebcfb5ff9cddd76ed43a2f2169676592d428b7c0d780665f2a"
+    },
+    {
+      "path": "legal/java.xml.crypto/LICENSE",
+      "bytes": 33,
+      "sha256": "86e0516b888276a492b19f9a84f5a866ed36925fae1510b3a94a0b6213e69192"
+    },
+    {
+      "path": "legal/java.xml.crypto/README.JAVASE",
+      "bytes": 39,
+      "sha256": "a599d79ec20f64079704f1ed4588d5c725ff798824f7d22838a5fb7bd0b01ddb"
+    },
+    {
+      "path": "legal/java.xml.crypto/santuario.md",
+      "bytes": 11505,
+      "sha256": "d08690d25f660f145c73365d260ed522cd0aace8a0e1396706551b7a1ae8c9a3"
+    },
+    {
+      "path": "legal/java.xml/ADDITIONAL_LICENSE_INFO",
+      "bytes": 49,
+      "sha256": "ebf9777bd307ed789ceabf282a9aca168c391c7f48e15a60939352efb3ea33f9"
+    },
+    {
+      "path": "legal/java.xml/ASSEMBLY_EXCEPTION",
+      "bytes": 44,
+      "sha256": "b998cda101e5a1ebcfb5ff9cddd76ed43a2f2169676592d428b7c0d780665f2a"
+    },
+    {
+      "path": "legal/java.xml/bcel.md",
+      "bytes": 11196,
+      "sha256": "cd578186ad93de46cca29ec8ace2b11f9da751987f3f140e6095c528596cc8c1"
+    },
+    {
+      "path": "legal/java.xml/dom.md",
+      "bytes": 3761,
+      "sha256": "6686e8877667584a3a7c07344baadca1a03e29f677162d87c3c0811e990d1148"
+    },
+    {
+      "path": "legal/java.xml/jcup.md",
+      "bytes": 1448,
+      "sha256": "8d5dcfdf50455a3c34c753a98f21e953248af200415a9084e3f102cb6c43b8bf"
+    },
+    {
+      "path": "legal/java.xml/LICENSE",
+      "bytes": 33,
+      "sha256": "86e0516b888276a492b19f9a84f5a866ed36925fae1510b3a94a0b6213e69192"
+    },
+    {
+      "path": "legal/java.xml/README.JAVASE",
+      "bytes": 39,
+      "sha256": "a599d79ec20f64079704f1ed4588d5c725ff798824f7d22838a5fb7bd0b01ddb"
+    },
+    {
+      "path": "legal/java.xml/schema10part1.md",
+      "bytes": 2138,
+      "sha256": "b220f891e5bfa3aa4b2a4b34dfab53a291553c2ae0fd0b15a4cb1116d4e97770"
+    },
+    {
+      "path": "legal/java.xml/schema10part2.md",
+      "bytes": 2136,
+      "sha256": "2350e35e91866d5ee5bd7ee7c303b3e424bbca335d36c71452588aac494eaa3e"
+    },
+    {
+      "path": "legal/java.xml/xalan.md",
+      "bytes": 13477,
+      "sha256": "02bd013fc3f438dbb8fa41fa57888177e015efa6431d37fce6e794c6f353a6a1"
+    },
+    {
+      "path": "legal/java.xml/xerces.md",
+      "bytes": 11848,
+      "sha256": "4a6bf6b367193ee68681cb2d9fed30ffc5d62dd2d477bd62e0271707d71b3244"
+    },
+    {
+      "path": "legal/java.xml/xhtml10.md",
+      "bytes": 2634,
+      "sha256": "9a5cde47073ca80cf59127891420f4aed603eb65070738ad027bb19e76fb9319"
+    },
+    {
+      "path": "legal/java.xml/xhtml10schema.md",
+      "bytes": 7521,
+      "sha256": "7bc51d884aaae6ef27551ee78d404ba3116356790da3d06b665679eb2e1cc002"
+    },
+    {
+      "path": "legal/java.xml/xhtml11.md",
+      "bytes": 3258,
+      "sha256": "4f99a390896f0f55a0b78376de89bfd2ac845713de85e67e37f884b77e0c3122"
+    },
+    {
+      "path": "legal/java.xml/xhtml11schema.md",
+      "bytes": 3224,
+      "sha256": "8cd69b1392e286538008f4cb003f85caea3a375c619e697813d820b69857cf74"
+    },
+    {
+      "path": "legal/java.xml/xmlspec.md",
+      "bytes": 2719,
+      "sha256": "afec263bf5dc67697ee33734ee243f86a878161335ef6298273e4041673b0544"
+    },
+    {
+      "path": "legal/java.xml/xmlxsd.md",
+      "bytes": 1951,
+      "sha256": "498a5fec63509a8f3949983bb6878ac5c95aaf1d5e3679272d93314371aa0211"
+    },
+    {
+      "path": "legal/jdk.accessibility/ADDITIONAL_LICENSE_INFO",
+      "bytes": 49,
+      "sha256": "ebf9777bd307ed789ceabf282a9aca168c391c7f48e15a60939352efb3ea33f9"
+    },
+    {
+      "path": "legal/jdk.accessibility/ASSEMBLY_EXCEPTION",
+      "bytes": 44,
+      "sha256": "b998cda101e5a1ebcfb5ff9cddd76ed43a2f2169676592d428b7c0d780665f2a"
+    },
+    {
+      "path": "legal/jdk.accessibility/LICENSE",
+      "bytes": 33,
+      "sha256": "86e0516b888276a492b19f9a84f5a866ed36925fae1510b3a94a0b6213e69192"
+    },
+    {
+      "path": "legal/jdk.accessibility/README.JAVASE",
+      "bytes": 39,
+      "sha256": "a599d79ec20f64079704f1ed4588d5c725ff798824f7d22838a5fb7bd0b01ddb"
+    },
+    {
+      "path": "legal/jdk.attach/ADDITIONAL_LICENSE_INFO",
+      "bytes": 49,
+      "sha256": "ebf9777bd307ed789ceabf282a9aca168c391c7f48e15a60939352efb3ea33f9"
+    },
+    {
+      "path": "legal/jdk.attach/ASSEMBLY_EXCEPTION",
+      "bytes": 44,
+      "sha256": "b998cda101e5a1ebcfb5ff9cddd76ed43a2f2169676592d428b7c0d780665f2a"
+    },
+    {
+      "path": "legal/jdk.attach/LICENSE",
+      "bytes": 33,
+      "sha256": "86e0516b888276a492b19f9a84f5a866ed36925fae1510b3a94a0b6213e69192"
+    },
+    {
+      "path": "legal/jdk.attach/README.JAVASE",
+      "bytes": 39,
+      "sha256": "a599d79ec20f64079704f1ed4588d5c725ff798824f7d22838a5fb7bd0b01ddb"
+    },
+    {
+      "path": "legal/jdk.charsets/ADDITIONAL_LICENSE_INFO",
+      "bytes": 49,
+      "sha256": "ebf9777bd307ed789ceabf282a9aca168c391c7f48e15a60939352efb3ea33f9"
+    },
+    {
+      "path": "legal/jdk.charsets/ASSEMBLY_EXCEPTION",
+      "bytes": 44,
+      "sha256": "b998cda101e5a1ebcfb5ff9cddd76ed43a2f2169676592d428b7c0d780665f2a"
+    },
+    {
+      "path": "legal/jdk.charsets/LICENSE",
+      "bytes": 33,
+      "sha256": "86e0516b888276a492b19f9a84f5a866ed36925fae1510b3a94a0b6213e69192"
+    },
+    {
+      "path": "legal/jdk.charsets/README.JAVASE",
+      "bytes": 39,
+      "sha256": "a599d79ec20f64079704f1ed4588d5c725ff798824f7d22838a5fb7bd0b01ddb"
+    },
+    {
+      "path": "legal/jdk.compiler/ADDITIONAL_LICENSE_INFO",
+      "bytes": 49,
+      "sha256": "ebf9777bd307ed789ceabf282a9aca168c391c7f48e15a60939352efb3ea33f9"
+    },
+    {
+      "path": "legal/jdk.compiler/ASSEMBLY_EXCEPTION",
+      "bytes": 44,
+      "sha256": "b998cda101e5a1ebcfb5ff9cddd76ed43a2f2169676592d428b7c0d780665f2a"
+    },
+    {
+      "path": "legal/jdk.compiler/LICENSE",
+      "bytes": 33,
+      "sha256": "86e0516b888276a492b19f9a84f5a866ed36925fae1510b3a94a0b6213e69192"
+    },
+    {
+      "path": "legal/jdk.compiler/README.JAVASE",
+      "bytes": 39,
+      "sha256": "a599d79ec20f64079704f1ed4588d5c725ff798824f7d22838a5fb7bd0b01ddb"
+    },
+    {
+      "path": "legal/jdk.crypto.cryptoki/ADDITIONAL_LICENSE_INFO",
+      "bytes": 49,
+      "sha256": "ebf9777bd307ed789ceabf282a9aca168c391c7f48e15a60939352efb3ea33f9"
+    },
+    {
+      "path": "legal/jdk.crypto.cryptoki/ASSEMBLY_EXCEPTION",
+      "bytes": 44,
+      "sha256": "b998cda101e5a1ebcfb5ff9cddd76ed43a2f2169676592d428b7c0d780665f2a"
+    },
+    {
+      "path": "legal/jdk.crypto.cryptoki/LICENSE",
+      "bytes": 33,
+      "sha256": "86e0516b888276a492b19f9a84f5a866ed36925fae1510b3a94a0b6213e69192"
+    },
+    {
+      "path": "legal/jdk.crypto.cryptoki/pkcs11cryptotoken.md",
+      "bytes": 4095,
+      "sha256": "1f36ff1342a581142c858f90064e20633d43529ac82adb85345bd902a14e18b2"
+    },
+    {
+      "path": "legal/jdk.crypto.cryptoki/pkcs11wrapper.md",
+      "bytes": 2131,
+      "sha256": "371974b1fca3744a3892c7ee1fcc593b8b4281fc218f4cafd2f709e9df5fd81d"
+    },
+    {
+      "path": "legal/jdk.crypto.cryptoki/README.JAVASE",
+      "bytes": 39,
+      "sha256": "a599d79ec20f64079704f1ed4588d5c725ff798824f7d22838a5fb7bd0b01ddb"
+    },
+    {
+      "path": "legal/jdk.crypto.ec/ADDITIONAL_LICENSE_INFO",
+      "bytes": 49,
+      "sha256": "ebf9777bd307ed789ceabf282a9aca168c391c7f48e15a60939352efb3ea33f9"
+    },
+    {
+      "path": "legal/jdk.crypto.ec/ASSEMBLY_EXCEPTION",
+      "bytes": 44,
+      "sha256": "b998cda101e5a1ebcfb5ff9cddd76ed43a2f2169676592d428b7c0d780665f2a"
+    },
+    {
+      "path": "legal/jdk.crypto.ec/LICENSE",
+      "bytes": 33,
+      "sha256": "86e0516b888276a492b19f9a84f5a866ed36925fae1510b3a94a0b6213e69192"
+    },
+    {
+      "path": "legal/jdk.crypto.ec/README.JAVASE",
+      "bytes": 39,
+      "sha256": "a599d79ec20f64079704f1ed4588d5c725ff798824f7d22838a5fb7bd0b01ddb"
+    },
+    {
+      "path": "legal/jdk.crypto.mscapi/ADDITIONAL_LICENSE_INFO",
+      "bytes": 49,
+      "sha256": "ebf9777bd307ed789ceabf282a9aca168c391c7f48e15a60939352efb3ea33f9"
+    },
+    {
+      "path": "legal/jdk.crypto.mscapi/ASSEMBLY_EXCEPTION",
+      "bytes": 44,
+      "sha256": "b998cda101e5a1ebcfb5ff9cddd76ed43a2f2169676592d428b7c0d780665f2a"
+    },
+    {
+      "path": "legal/jdk.crypto.mscapi/LICENSE",
+      "bytes": 33,
+      "sha256": "86e0516b888276a492b19f9a84f5a866ed36925fae1510b3a94a0b6213e69192"
+    },
+    {
+      "path": "legal/jdk.crypto.mscapi/README.JAVASE",
+      "bytes": 39,
+      "sha256": "a599d79ec20f64079704f1ed4588d5c725ff798824f7d22838a5fb7bd0b01ddb"
+    },
+    {
+      "path": "legal/jdk.dynalink/ADDITIONAL_LICENSE_INFO",
+      "bytes": 49,
+      "sha256": "ebf9777bd307ed789ceabf282a9aca168c391c7f48e15a60939352efb3ea33f9"
+    },
+    {
+      "path": "legal/jdk.dynalink/ASSEMBLY_EXCEPTION",
+      "bytes": 44,
+      "sha256": "b998cda101e5a1ebcfb5ff9cddd76ed43a2f2169676592d428b7c0d780665f2a"
+    },
+    {
+      "path": "legal/jdk.dynalink/dynalink.md",
+      "bytes": 1502,
+      "sha256": "17312591cabee3ef6c34ed8897d92e4e361ba9cea41ec00dcd61a322a8fc2cdb"
+    },
+    {
+      "path": "legal/jdk.dynalink/LICENSE",
+      "bytes": 33,
+      "sha256": "86e0516b888276a492b19f9a84f5a866ed36925fae1510b3a94a0b6213e69192"
+    },
+    {
+      "path": "legal/jdk.dynalink/README.JAVASE",
+      "bytes": 39,
+      "sha256": "a599d79ec20f64079704f1ed4588d5c725ff798824f7d22838a5fb7bd0b01ddb"
+    },
+    {
+      "path": "legal/jdk.hotspot.agent/ADDITIONAL_LICENSE_INFO",
+      "bytes": 49,
+      "sha256": "ebf9777bd307ed789ceabf282a9aca168c391c7f48e15a60939352efb3ea33f9"
+    },
+    {
+      "path": "legal/jdk.hotspot.agent/ASSEMBLY_EXCEPTION",
+      "bytes": 44,
+      "sha256": "b998cda101e5a1ebcfb5ff9cddd76ed43a2f2169676592d428b7c0d780665f2a"
+    },
+    {
+      "path": "legal/jdk.hotspot.agent/LICENSE",
+      "bytes": 33,
+      "sha256": "86e0516b888276a492b19f9a84f5a866ed36925fae1510b3a94a0b6213e69192"
+    },
+    {
+      "path": "legal/jdk.hotspot.agent/README.JAVASE",
+      "bytes": 39,
+      "sha256": "a599d79ec20f64079704f1ed4588d5c725ff798824f7d22838a5fb7bd0b01ddb"
+    },
+    {
+      "path": "legal/jdk.httpserver/ADDITIONAL_LICENSE_INFO",
+      "bytes": 49,
+      "sha256": "ebf9777bd307ed789ceabf282a9aca168c391c7f48e15a60939352efb3ea33f9"
+    },
+    {
+      "path": "legal/jdk.httpserver/ASSEMBLY_EXCEPTION",
+      "bytes": 44,
+      "sha256": "b998cda101e5a1ebcfb5ff9cddd76ed43a2f2169676592d428b7c0d780665f2a"
+    },
+    {
+      "path": "legal/jdk.httpserver/LICENSE",
+      "bytes": 33,
+      "sha256": "86e0516b888276a492b19f9a84f5a866ed36925fae1510b3a94a0b6213e69192"
+    },
+    {
+      "path": "legal/jdk.httpserver/README.JAVASE",
+      "bytes": 39,
+      "sha256": "a599d79ec20f64079704f1ed4588d5c725ff798824f7d22838a5fb7bd0b01ddb"
+    },
+    {
+      "path": "legal/jdk.internal.ed/ADDITIONAL_LICENSE_INFO",
+      "bytes": 49,
+      "sha256": "ebf9777bd307ed789ceabf282a9aca168c391c7f48e15a60939352efb3ea33f9"
+    },
+    {
+      "path": "legal/jdk.internal.ed/ASSEMBLY_EXCEPTION",
+      "bytes": 44,
+      "sha256": "b998cda101e5a1ebcfb5ff9cddd76ed43a2f2169676592d428b7c0d780665f2a"
+    },
+    {
+      "path": "legal/jdk.internal.ed/LICENSE",
+      "bytes": 33,
+      "sha256": "86e0516b888276a492b19f9a84f5a866ed36925fae1510b3a94a0b6213e69192"
+    },
+    {
+      "path": "legal/jdk.internal.ed/README.JAVASE",
+      "bytes": 39,
+      "sha256": "a599d79ec20f64079704f1ed4588d5c725ff798824f7d22838a5fb7bd0b01ddb"
+    },
+    {
+      "path": "legal/jdk.internal.jvmstat/ADDITIONAL_LICENSE_INFO",
+      "bytes": 49,
+      "sha256": "ebf9777bd307ed789ceabf282a9aca168c391c7f48e15a60939352efb3ea33f9"
+    },
+    {
+      "path": "legal/jdk.internal.jvmstat/ASSEMBLY_EXCEPTION",
+      "bytes": 44,
+      "sha256": "b998cda101e5a1ebcfb5ff9cddd76ed43a2f2169676592d428b7c0d780665f2a"
+    },
+    {
+      "path": "legal/jdk.internal.jvmstat/LICENSE",
+      "bytes": 33,
+      "sha256": "86e0516b888276a492b19f9a84f5a866ed36925fae1510b3a94a0b6213e69192"
+    },
+    {
+      "path": "legal/jdk.internal.jvmstat/README.JAVASE",
+      "bytes": 39,
+      "sha256": "a599d79ec20f64079704f1ed4588d5c725ff798824f7d22838a5fb7bd0b01ddb"
+    },
+    {
+      "path": "legal/jdk.internal.le/ADDITIONAL_LICENSE_INFO",
+      "bytes": 49,
+      "sha256": "ebf9777bd307ed789ceabf282a9aca168c391c7f48e15a60939352efb3ea33f9"
+    },
+    {
+      "path": "legal/jdk.internal.le/ASSEMBLY_EXCEPTION",
+      "bytes": 44,
+      "sha256": "b998cda101e5a1ebcfb5ff9cddd76ed43a2f2169676592d428b7c0d780665f2a"
+    },
+    {
+      "path": "legal/jdk.internal.le/jline.md",
+      "bytes": 1579,
+      "sha256": "a6fb63a226b77b03cbd7559cce6cdc3e1ea8563af960b1dce2330c8e1dce1abf"
+    },
+    {
+      "path": "legal/jdk.internal.le/LICENSE",
+      "bytes": 33,
+      "sha256": "86e0516b888276a492b19f9a84f5a866ed36925fae1510b3a94a0b6213e69192"
+    },
+    {
+      "path": "legal/jdk.internal.le/README.JAVASE",
+      "bytes": 39,
+      "sha256": "a599d79ec20f64079704f1ed4588d5c725ff798824f7d22838a5fb7bd0b01ddb"
+    },
+    {
+      "path": "legal/jdk.internal.md/ADDITIONAL_LICENSE_INFO",
+      "bytes": 49,
+      "sha256": "ebf9777bd307ed789ceabf282a9aca168c391c7f48e15a60939352efb3ea33f9"
+    },
+    {
+      "path": "legal/jdk.internal.md/ASSEMBLY_EXCEPTION",
+      "bytes": 44,
+      "sha256": "b998cda101e5a1ebcfb5ff9cddd76ed43a2f2169676592d428b7c0d780665f2a"
+    },
+    {
+      "path": "legal/jdk.internal.md/commonmark.md",
+      "bytes": 1354,
+      "sha256": "23a6f08218b13b6dbe16410d11104d56d14861316dd3a064e1fbd5054b6f470c"
+    },
+    {
+      "path": "legal/jdk.internal.md/LICENSE",
+      "bytes": 33,
+      "sha256": "86e0516b888276a492b19f9a84f5a866ed36925fae1510b3a94a0b6213e69192"
+    },
+    {
+      "path": "legal/jdk.internal.md/README.JAVASE",
+      "bytes": 39,
+      "sha256": "a599d79ec20f64079704f1ed4588d5c725ff798824f7d22838a5fb7bd0b01ddb"
+    },
+    {
+      "path": "legal/jdk.internal.opt/ADDITIONAL_LICENSE_INFO",
+      "bytes": 49,
+      "sha256": "ebf9777bd307ed789ceabf282a9aca168c391c7f48e15a60939352efb3ea33f9"
+    },
+    {
+      "path": "legal/jdk.internal.opt/ASSEMBLY_EXCEPTION",
+      "bytes": 44,
+      "sha256": "b998cda101e5a1ebcfb5ff9cddd76ed43a2f2169676592d428b7c0d780665f2a"
+    },
+    {
+      "path": "legal/jdk.internal.opt/jopt-simple.md",
+      "bytes": 1122,
+      "sha256": "99bc67f93cf57d6d20e6047731c93fbb267d70fbdd4115d119e0f85c6efe5c05"
+    },
+    {
+      "path": "legal/jdk.internal.opt/LICENSE",
+      "bytes": 33,
+      "sha256": "86e0516b888276a492b19f9a84f5a866ed36925fae1510b3a94a0b6213e69192"
+    },
+    {
+      "path": "legal/jdk.internal.opt/README.JAVASE",
+      "bytes": 39,
+      "sha256": "a599d79ec20f64079704f1ed4588d5c725ff798824f7d22838a5fb7bd0b01ddb"
+    },
+    {
+      "path": "legal/jdk.internal.vm.ci/ADDITIONAL_LICENSE_INFO",
+      "bytes": 49,
+      "sha256": "ebf9777bd307ed789ceabf282a9aca168c391c7f48e15a60939352efb3ea33f9"
+    },
+    {
+      "path": "legal/jdk.internal.vm.ci/ASSEMBLY_EXCEPTION",
+      "bytes": 44,
+      "sha256": "b998cda101e5a1ebcfb5ff9cddd76ed43a2f2169676592d428b7c0d780665f2a"
+    },
+    {
+      "path": "legal/jdk.internal.vm.ci/LICENSE",
+      "bytes": 33,
+      "sha256": "86e0516b888276a492b19f9a84f5a866ed36925fae1510b3a94a0b6213e69192"
+    },
+    {
+      "path": "legal/jdk.internal.vm.ci/README.JAVASE",
+      "bytes": 39,
+      "sha256": "a599d79ec20f64079704f1ed4588d5c725ff798824f7d22838a5fb7bd0b01ddb"
+    },
+    {
+      "path": "legal/jdk.javadoc/ADDITIONAL_LICENSE_INFO",
+      "bytes": 49,
+      "sha256": "ebf9777bd307ed789ceabf282a9aca168c391c7f48e15a60939352efb3ea33f9"
+    },
+    {
+      "path": "legal/jdk.javadoc/ASSEMBLY_EXCEPTION",
+      "bytes": 44,
+      "sha256": "b998cda101e5a1ebcfb5ff9cddd76ed43a2f2169676592d428b7c0d780665f2a"
+    },
+    {
+      "path": "legal/jdk.javadoc/dejavufonts.md",
+      "bytes": 8841,
+      "sha256": "bcec55913c89822a8292af4e97a5ad7a07aa920dbc49524439ff7c70638dd1e8"
+    },
+    {
+      "path": "legal/jdk.javadoc/highlightjs.md",
+      "bytes": 1573,
+      "sha256": "3e153ecf41179d31916d1e478e432541df8be58250624cab3a0e77c9b872e90d"
+    },
+    {
+      "path": "legal/jdk.javadoc/jquery.md",
+      "bytes": 1157,
+      "sha256": "b68f454c2bd58959c862d94bf0f16c3f78a2d537388ca060d354344db80ee695"
+    },
+    {
+      "path": "legal/jdk.javadoc/jqueryUI.md",
+      "bytes": 1871,
+      "sha256": "7854d2d568992ae25ff65867bd9021d655f70670142f0796b29a3b0621f19530"
+    },
+    {
+      "path": "legal/jdk.javadoc/LICENSE",
+      "bytes": 33,
+      "sha256": "86e0516b888276a492b19f9a84f5a866ed36925fae1510b3a94a0b6213e69192"
+    },
+    {
+      "path": "legal/jdk.javadoc/README.JAVASE",
+      "bytes": 39,
+      "sha256": "a599d79ec20f64079704f1ed4588d5c725ff798824f7d22838a5fb7bd0b01ddb"
+    },
+    {
+      "path": "legal/jdk.jcmd/ADDITIONAL_LICENSE_INFO",
+      "bytes": 49,
+      "sha256": "ebf9777bd307ed789ceabf282a9aca168c391c7f48e15a60939352efb3ea33f9"
+    },
+    {
+      "path": "legal/jdk.jcmd/ASSEMBLY_EXCEPTION",
+      "bytes": 44,
+      "sha256": "b998cda101e5a1ebcfb5ff9cddd76ed43a2f2169676592d428b7c0d780665f2a"
+    },
+    {
+      "path": "legal/jdk.jcmd/LICENSE",
+      "bytes": 33,
+      "sha256": "86e0516b888276a492b19f9a84f5a866ed36925fae1510b3a94a0b6213e69192"
+    },
+    {
+      "path": "legal/jdk.jcmd/README.JAVASE",
+      "bytes": 39,
+      "sha256": "a599d79ec20f64079704f1ed4588d5c725ff798824f7d22838a5fb7bd0b01ddb"
+    },
+    {
+      "path": "legal/jdk.jdi/ADDITIONAL_LICENSE_INFO",
+      "bytes": 49,
+      "sha256": "ebf9777bd307ed789ceabf282a9aca168c391c7f48e15a60939352efb3ea33f9"
+    },
+    {
+      "path": "legal/jdk.jdi/ASSEMBLY_EXCEPTION",
+      "bytes": 44,
+      "sha256": "b998cda101e5a1ebcfb5ff9cddd76ed43a2f2169676592d428b7c0d780665f2a"
+    },
+    {
+      "path": "legal/jdk.jdi/LICENSE",
+      "bytes": 33,
+      "sha256": "86e0516b888276a492b19f9a84f5a866ed36925fae1510b3a94a0b6213e69192"
+    },
+    {
+      "path": "legal/jdk.jdi/README.JAVASE",
+      "bytes": 39,
+      "sha256": "a599d79ec20f64079704f1ed4588d5c725ff798824f7d22838a5fb7bd0b01ddb"
+    },
+    {
+      "path": "legal/jdk.jdwp.agent/ADDITIONAL_LICENSE_INFO",
+      "bytes": 49,
+      "sha256": "ebf9777bd307ed789ceabf282a9aca168c391c7f48e15a60939352efb3ea33f9"
+    },
+    {
+      "path": "legal/jdk.jdwp.agent/ASSEMBLY_EXCEPTION",
+      "bytes": 44,
+      "sha256": "b998cda101e5a1ebcfb5ff9cddd76ed43a2f2169676592d428b7c0d780665f2a"
+    },
+    {
+      "path": "legal/jdk.jdwp.agent/LICENSE",
+      "bytes": 33,
+      "sha256": "86e0516b888276a492b19f9a84f5a866ed36925fae1510b3a94a0b6213e69192"
+    },
+    {
+      "path": "legal/jdk.jdwp.agent/README.JAVASE",
+      "bytes": 39,
+      "sha256": "a599d79ec20f64079704f1ed4588d5c725ff798824f7d22838a5fb7bd0b01ddb"
+    },
+    {
+      "path": "legal/jdk.jfr/ADDITIONAL_LICENSE_INFO",
+      "bytes": 49,
+      "sha256": "ebf9777bd307ed789ceabf282a9aca168c391c7f48e15a60939352efb3ea33f9"
+    },
+    {
+      "path": "legal/jdk.jfr/ASSEMBLY_EXCEPTION",
+      "bytes": 44,
+      "sha256": "b998cda101e5a1ebcfb5ff9cddd76ed43a2f2169676592d428b7c0d780665f2a"
+    },
+    {
+      "path": "legal/jdk.jfr/LICENSE",
+      "bytes": 33,
+      "sha256": "86e0516b888276a492b19f9a84f5a866ed36925fae1510b3a94a0b6213e69192"
+    },
+    {
+      "path": "legal/jdk.jfr/README.JAVASE",
+      "bytes": 39,
+      "sha256": "a599d79ec20f64079704f1ed4588d5c725ff798824f7d22838a5fb7bd0b01ddb"
+    },
+    {
+      "path": "legal/jdk.localedata/ADDITIONAL_LICENSE_INFO",
+      "bytes": 49,
+      "sha256": "ebf9777bd307ed789ceabf282a9aca168c391c7f48e15a60939352efb3ea33f9"
+    },
+    {
+      "path": "legal/jdk.localedata/ASSEMBLY_EXCEPTION",
+      "bytes": 44,
+      "sha256": "b998cda101e5a1ebcfb5ff9cddd76ed43a2f2169676592d428b7c0d780665f2a"
+    },
+    {
+      "path": "legal/jdk.localedata/cldr.md",
+      "bytes": 33,
+      "sha256": "09972449731a1d1a0863af0384aeb7839f84cac74983c96856e6c305e31ed8b2"
+    },
+    {
+      "path": "legal/jdk.localedata/LICENSE",
+      "bytes": 33,
+      "sha256": "86e0516b888276a492b19f9a84f5a866ed36925fae1510b3a94a0b6213e69192"
+    },
+    {
+      "path": "legal/jdk.localedata/README.JAVASE",
+      "bytes": 39,
+      "sha256": "a599d79ec20f64079704f1ed4588d5c725ff798824f7d22838a5fb7bd0b01ddb"
+    },
+    {
+      "path": "legal/jdk.localedata/thaidict.md",
+      "bytes": 1346,
+      "sha256": "c326144a2351c9608fa708b5d7d3c5a3da03e82b66479b128e9db4969539824a"
+    },
+    {
+      "path": "legal/jdk.management.agent/ADDITIONAL_LICENSE_INFO",
+      "bytes": 49,
+      "sha256": "ebf9777bd307ed789ceabf282a9aca168c391c7f48e15a60939352efb3ea33f9"
+    },
+    {
+      "path": "legal/jdk.management.agent/ASSEMBLY_EXCEPTION",
+      "bytes": 44,
+      "sha256": "b998cda101e5a1ebcfb5ff9cddd76ed43a2f2169676592d428b7c0d780665f2a"
+    },
+    {
+      "path": "legal/jdk.management.agent/LICENSE",
+      "bytes": 33,
+      "sha256": "86e0516b888276a492b19f9a84f5a866ed36925fae1510b3a94a0b6213e69192"
+    },
+    {
+      "path": "legal/jdk.management.agent/README.JAVASE",
+      "bytes": 39,
+      "sha256": "a599d79ec20f64079704f1ed4588d5c725ff798824f7d22838a5fb7bd0b01ddb"
+    },
+    {
+      "path": "legal/jdk.management.jfr/ADDITIONAL_LICENSE_INFO",
+      "bytes": 49,
+      "sha256": "ebf9777bd307ed789ceabf282a9aca168c391c7f48e15a60939352efb3ea33f9"
+    },
+    {
+      "path": "legal/jdk.management.jfr/ASSEMBLY_EXCEPTION",
+      "bytes": 44,
+      "sha256": "b998cda101e5a1ebcfb5ff9cddd76ed43a2f2169676592d428b7c0d780665f2a"
+    },
+    {
+      "path": "legal/jdk.management.jfr/LICENSE",
+      "bytes": 33,
+      "sha256": "86e0516b888276a492b19f9a84f5a866ed36925fae1510b3a94a0b6213e69192"
+    },
+    {
+      "path": "legal/jdk.management.jfr/README.JAVASE",
+      "bytes": 39,
+      "sha256": "a599d79ec20f64079704f1ed4588d5c725ff798824f7d22838a5fb7bd0b01ddb"
+    },
+    {
+      "path": "legal/jdk.management/ADDITIONAL_LICENSE_INFO",
+      "bytes": 49,
+      "sha256": "ebf9777bd307ed789ceabf282a9aca168c391c7f48e15a60939352efb3ea33f9"
+    },
+    {
+      "path": "legal/jdk.management/ASSEMBLY_EXCEPTION",
+      "bytes": 44,
+      "sha256": "b998cda101e5a1ebcfb5ff9cddd76ed43a2f2169676592d428b7c0d780665f2a"
+    },
+    {
+      "path": "legal/jdk.management/LICENSE",
+      "bytes": 33,
+      "sha256": "86e0516b888276a492b19f9a84f5a866ed36925fae1510b3a94a0b6213e69192"
+    },
+    {
+      "path": "legal/jdk.management/README.JAVASE",
+      "bytes": 39,
+      "sha256": "a599d79ec20f64079704f1ed4588d5c725ff798824f7d22838a5fb7bd0b01ddb"
+    },
+    {
+      "path": "legal/jdk.naming.dns/ADDITIONAL_LICENSE_INFO",
+      "bytes": 49,
+      "sha256": "ebf9777bd307ed789ceabf282a9aca168c391c7f48e15a60939352efb3ea33f9"
+    },
+    {
+      "path": "legal/jdk.naming.dns/ASSEMBLY_EXCEPTION",
+      "bytes": 44,
+      "sha256": "b998cda101e5a1ebcfb5ff9cddd76ed43a2f2169676592d428b7c0d780665f2a"
+    },
+    {
+      "path": "legal/jdk.naming.dns/LICENSE",
+      "bytes": 33,
+      "sha256": "86e0516b888276a492b19f9a84f5a866ed36925fae1510b3a94a0b6213e69192"
+    },
+    {
+      "path": "legal/jdk.naming.dns/README.JAVASE",
+      "bytes": 39,
+      "sha256": "a599d79ec20f64079704f1ed4588d5c725ff798824f7d22838a5fb7bd0b01ddb"
+    },
+    {
+      "path": "legal/jdk.naming.rmi/ADDITIONAL_LICENSE_INFO",
+      "bytes": 49,
+      "sha256": "ebf9777bd307ed789ceabf282a9aca168c391c7f48e15a60939352efb3ea33f9"
+    },
+    {
+      "path": "legal/jdk.naming.rmi/ASSEMBLY_EXCEPTION",
+      "bytes": 44,
+      "sha256": "b998cda101e5a1ebcfb5ff9cddd76ed43a2f2169676592d428b7c0d780665f2a"
+    },
+    {
+      "path": "legal/jdk.naming.rmi/LICENSE",
+      "bytes": 33,
+      "sha256": "86e0516b888276a492b19f9a84f5a866ed36925fae1510b3a94a0b6213e69192"
+    },
+    {
+      "path": "legal/jdk.naming.rmi/README.JAVASE",
+      "bytes": 39,
+      "sha256": "a599d79ec20f64079704f1ed4588d5c725ff798824f7d22838a5fb7bd0b01ddb"
+    },
+    {
+      "path": "legal/jdk.net/ADDITIONAL_LICENSE_INFO",
+      "bytes": 49,
+      "sha256": "ebf9777bd307ed789ceabf282a9aca168c391c7f48e15a60939352efb3ea33f9"
+    },
+    {
+      "path": "legal/jdk.net/ASSEMBLY_EXCEPTION",
+      "bytes": 44,
+      "sha256": "b998cda101e5a1ebcfb5ff9cddd76ed43a2f2169676592d428b7c0d780665f2a"
+    },
+    {
+      "path": "legal/jdk.net/LICENSE",
+      "bytes": 33,
+      "sha256": "86e0516b888276a492b19f9a84f5a866ed36925fae1510b3a94a0b6213e69192"
+    },
+    {
+      "path": "legal/jdk.net/README.JAVASE",
+      "bytes": 39,
+      "sha256": "a599d79ec20f64079704f1ed4588d5c725ff798824f7d22838a5fb7bd0b01ddb"
+    },
+    {
+      "path": "legal/jdk.sctp/ADDITIONAL_LICENSE_INFO",
+      "bytes": 49,
+      "sha256": "ebf9777bd307ed789ceabf282a9aca168c391c7f48e15a60939352efb3ea33f9"
+    },
+    {
+      "path": "legal/jdk.sctp/ASSEMBLY_EXCEPTION",
+      "bytes": 44,
+      "sha256": "b998cda101e5a1ebcfb5ff9cddd76ed43a2f2169676592d428b7c0d780665f2a"
+    },
+    {
+      "path": "legal/jdk.sctp/LICENSE",
+      "bytes": 33,
+      "sha256": "86e0516b888276a492b19f9a84f5a866ed36925fae1510b3a94a0b6213e69192"
+    },
+    {
+      "path": "legal/jdk.sctp/README.JAVASE",
+      "bytes": 39,
+      "sha256": "a599d79ec20f64079704f1ed4588d5c725ff798824f7d22838a5fb7bd0b01ddb"
+    },
+    {
+      "path": "legal/jdk.security.auth/ADDITIONAL_LICENSE_INFO",
+      "bytes": 49,
+      "sha256": "ebf9777bd307ed789ceabf282a9aca168c391c7f48e15a60939352efb3ea33f9"
+    },
+    {
+      "path": "legal/jdk.security.auth/ASSEMBLY_EXCEPTION",
+      "bytes": 44,
+      "sha256": "b998cda101e5a1ebcfb5ff9cddd76ed43a2f2169676592d428b7c0d780665f2a"
+    },
+    {
+      "path": "legal/jdk.security.auth/LICENSE",
+      "bytes": 33,
+      "sha256": "86e0516b888276a492b19f9a84f5a866ed36925fae1510b3a94a0b6213e69192"
+    },
+    {
+      "path": "legal/jdk.security.auth/README.JAVASE",
+      "bytes": 39,
+      "sha256": "a599d79ec20f64079704f1ed4588d5c725ff798824f7d22838a5fb7bd0b01ddb"
+    },
+    {
+      "path": "legal/jdk.security.jgss/ADDITIONAL_LICENSE_INFO",
+      "bytes": 49,
+      "sha256": "ebf9777bd307ed789ceabf282a9aca168c391c7f48e15a60939352efb3ea33f9"
+    },
+    {
+      "path": "legal/jdk.security.jgss/ASSEMBLY_EXCEPTION",
+      "bytes": 44,
+      "sha256": "b998cda101e5a1ebcfb5ff9cddd76ed43a2f2169676592d428b7c0d780665f2a"
+    },
+    {
+      "path": "legal/jdk.security.jgss/LICENSE",
+      "bytes": 33,
+      "sha256": "86e0516b888276a492b19f9a84f5a866ed36925fae1510b3a94a0b6213e69192"
+    },
+    {
+      "path": "legal/jdk.security.jgss/README.JAVASE",
+      "bytes": 39,
+      "sha256": "a599d79ec20f64079704f1ed4588d5c725ff798824f7d22838a5fb7bd0b01ddb"
+    },
+    {
+      "path": "legal/jdk.unsupported.desktop/ADDITIONAL_LICENSE_INFO",
+      "bytes": 49,
+      "sha256": "ebf9777bd307ed789ceabf282a9aca168c391c7f48e15a60939352efb3ea33f9"
+    },
+    {
+      "path": "legal/jdk.unsupported.desktop/ASSEMBLY_EXCEPTION",
+      "bytes": 44,
+      "sha256": "b998cda101e5a1ebcfb5ff9cddd76ed43a2f2169676592d428b7c0d780665f2a"
+    },
+    {
+      "path": "legal/jdk.unsupported.desktop/LICENSE",
+      "bytes": 33,
+      "sha256": "86e0516b888276a492b19f9a84f5a866ed36925fae1510b3a94a0b6213e69192"
+    },
+    {
+      "path": "legal/jdk.unsupported.desktop/README.JAVASE",
+      "bytes": 39,
+      "sha256": "a599d79ec20f64079704f1ed4588d5c725ff798824f7d22838a5fb7bd0b01ddb"
+    },
+    {
+      "path": "legal/jdk.unsupported/ADDITIONAL_LICENSE_INFO",
+      "bytes": 49,
+      "sha256": "ebf9777bd307ed789ceabf282a9aca168c391c7f48e15a60939352efb3ea33f9"
+    },
+    {
+      "path": "legal/jdk.unsupported/ASSEMBLY_EXCEPTION",
+      "bytes": 44,
+      "sha256": "b998cda101e5a1ebcfb5ff9cddd76ed43a2f2169676592d428b7c0d780665f2a"
+    },
+    {
+      "path": "legal/jdk.unsupported/LICENSE",
+      "bytes": 33,
+      "sha256": "86e0516b888276a492b19f9a84f5a866ed36925fae1510b3a94a0b6213e69192"
+    },
+    {
+      "path": "legal/jdk.unsupported/README.JAVASE",
+      "bytes": 39,
+      "sha256": "a599d79ec20f64079704f1ed4588d5c725ff798824f7d22838a5fb7bd0b01ddb"
+    },
+    {
+      "path": "legal/jdk.xml.dom/ADDITIONAL_LICENSE_INFO",
+      "bytes": 49,
+      "sha256": "ebf9777bd307ed789ceabf282a9aca168c391c7f48e15a60939352efb3ea33f9"
+    },
+    {
+      "path": "legal/jdk.xml.dom/ASSEMBLY_EXCEPTION",
+      "bytes": 44,
+      "sha256": "b998cda101e5a1ebcfb5ff9cddd76ed43a2f2169676592d428b7c0d780665f2a"
+    },
+    {
+      "path": "legal/jdk.xml.dom/LICENSE",
+      "bytes": 33,
+      "sha256": "86e0516b888276a492b19f9a84f5a866ed36925fae1510b3a94a0b6213e69192"
+    },
+    {
+      "path": "legal/jdk.xml.dom/README.JAVASE",
+      "bytes": 39,
+      "sha256": "a599d79ec20f64079704f1ed4588d5c725ff798824f7d22838a5fb7bd0b01ddb"
+    },
+    {
+      "path": "legal/jdk.zipfs/ADDITIONAL_LICENSE_INFO",
+      "bytes": 49,
+      "sha256": "ebf9777bd307ed789ceabf282a9aca168c391c7f48e15a60939352efb3ea33f9"
+    },
+    {
+      "path": "legal/jdk.zipfs/ASSEMBLY_EXCEPTION",
+      "bytes": 44,
+      "sha256": "b998cda101e5a1ebcfb5ff9cddd76ed43a2f2169676592d428b7c0d780665f2a"
+    },
+    {
+      "path": "legal/jdk.zipfs/LICENSE",
+      "bytes": 33,
+      "sha256": "86e0516b888276a492b19f9a84f5a866ed36925fae1510b3a94a0b6213e69192"
+    },
+    {
+      "path": "legal/jdk.zipfs/README.JAVASE",
+      "bytes": 39,
+      "sha256": "a599d79ec20f64079704f1ed4588d5c725ff798824f7d22838a5fb7bd0b01ddb"
+    },
+    {
+      "path": "lib/classlist",
+      "bytes": 203896,
+      "sha256": "3550a7756e254b4490021e90d366f4a7b3faac7ecfd2ea2daa4ddaf39fe4b423"
+    },
+    {
+      "path": "lib/ct.sym",
+      "bytes": 10889287,
+      "sha256": "d44149febad9d51138624a6f15616542b88fb0435b994a20bff04304a8fa5f77"
+    },
+    {
+      "path": "lib/fontconfig.bfc",
+      "bytes": 4958,
+      "sha256": "18db3daa9e2e8dd036195daeac943d0c1b95b1ecaef5e5eb087cf93f2211d636"
+    },
+    {
+      "path": "lib/fontconfig.properties.src",
+      "bytes": 12711,
+      "sha256": "dab4e26663d5ede2bb5f21ff629a3858b80ee01eb0f4b06984d1f4eefd6f8b0e"
+    },
+    {
+      "path": "lib/fonts/DroidSans-Bold.ttf",
+      "bytes": 194488,
+      "sha256": "2f529a3e60c007979d95d29794c3660694217fb882429fb33919d2245fe969e9"
+    },
+    {
+      "path": "lib/fonts/DroidSans.ttf",
+      "bytes": 190776,
+      "sha256": "f51b88945f4c1b236f44b8d55a2d304316869127e95248c435c23f1e4142a7db"
+    },
+    {
+      "path": "lib/fonts/DroidSansMono.ttf",
+      "bytes": 119380,
+      "sha256": "12b552de765dc1265d64f9f5566649930dde4dba07da0251d9f92801e70a1047"
+    },
+    {
+      "path": "lib/fonts/DroidSansMonoDotted.ttf",
+      "bytes": 117696,
+      "sha256": "bf8c5e6b662df177af25226e61c34d6cf6ae23bb39939530347a81a5b5bbffc8"
+    },
+    {
+      "path": "lib/fonts/DroidSansMonoSlashed.ttf",
+      "bytes": 117744,
+      "sha256": "01550d67b4c7a8c113da222a26f0e77f39d9fe2264369c7cc2d8f6962682be35"
+    },
+    {
+      "path": "lib/fonts/DroidSerif-Bold.ttf",
+      "bytes": 185228,
+      "sha256": "c746c6383a03effbcad6ccb028e4b39e87071ff1a146a24fb2110a23e05776bb"
+    },
+    {
+      "path": "lib/fonts/DroidSerif-BoldItalic.ttf",
+      "bytes": 190304,
+      "sha256": "1aba99421b31afe890182663270c28bc619f00d8746234da3dda054cd5bf09b0"
+    },
+    {
+      "path": "lib/fonts/DroidSerif-Italic.ttf",
+      "bytes": 177560,
+      "sha256": "02c0108dea583e393fbcbec39c7093e9a3095a09d65e37fafff9a9b7a89123a4"
+    },
+    {
+      "path": "lib/fonts/DroidSerif-Regular.ttf",
+      "bytes": 172916,
+      "sha256": "ae32140265dbe0dfde24b9abd222be9210a531888f014ff9b2326aba2d6fd777"
+    },
+    {
+      "path": "lib/fonts/FiraCode-Bold.ttf",
+      "bytes": 324328,
+      "sha256": "37a609b7e27516ce0cf55cb7550edd1a1cbd8cd5bc028415a1d520c426c10357"
+    },
+    {
+      "path": "lib/fonts/FiraCode-Light.ttf",
+      "bytes": 285000,
+      "sha256": "965786b0157a8f0607701077e226acab9d7a66b2b32f01848c46bb54b24bcb9a"
+    },
+    {
+      "path": "lib/fonts/FiraCode-Medium.ttf",
+      "bytes": 294960,
+      "sha256": "f94d9fa1ffb46463e6d8fda12041088397adea1c47de7c50a8f9f57ce9a6d788"
+    },
+    {
+      "path": "lib/fonts/FiraCode-Regular.ttf",
+      "bytes": 299152,
+      "sha256": "28c3ae21a853f1d74673384c7a0d620abb0e877b8c6cd8b64173a95512476824"
+    },
+    {
+      "path": "lib/fonts/FiraCode-Retina.ttf",
+      "bytes": 295252,
+      "sha256": "e8aad8140dd254b73bac71205ec4e0cc3f1c3914aa73f514e2cc4b3cf937d35d"
+    },
+    {
+      "path": "lib/fonts/font.conf",
+      "bytes": 584,
+      "sha256": "10be692d96ca5b3abc7bff76685c777e62d3e8db5e1628d83ddcabbc141df2a5"
+    },
+    {
+      "path": "lib/fonts/fonts.dir",
+      "bytes": 36170,
+      "sha256": "6b41d9e657bf9f835d12fd06bcc35af7f3874459f44c8f56ccad058a3e46623b"
+    },
+    {
+      "path": "lib/fonts/Inconsolata.ttf",
+      "bytes": 22416,
+      "sha256": "691b7811a052b517a1b23c83b29aab3ac2ea0bd19a3f0816cf32aa1f1b1793b2"
+    },
+    {
+      "path": "lib/fonts/Inter-Italic.otf",
+      "bytes": 271400,
+      "sha256": "45ecfe6cbadfd4803de6214e02c336a95163a7703973bc8a5ce7ac2d174ecaf7"
+    },
+    {
+      "path": "lib/fonts/Inter-Regular.otf",
+      "bytes": 258992,
+      "sha256": "a7e791e8f5a0fb02b65663f7fca73e1d1ca9543f772ad480cbd76f4e3fe3f8cc"
+    },
+    {
+      "path": "lib/fonts/Inter-SemiBold.otf",
+      "bytes": 270760,
+      "sha256": "8c1990b6012254ea2b487161697d107357dd0ee55811cfd91c8c11227bbef457"
+    },
+    {
+      "path": "lib/fonts/Inter-SemiBoldItalic.otf",
+      "bytes": 279536,
+      "sha256": "404251faffd4c55dfcb53007e7afb9d5c2891584c842165e35050345ab97744b"
+    },
+    {
+      "path": "lib/fonts/JetBrainsMono-Bold.ttf",
+      "bytes": 277828,
+      "sha256": "5590990c82e097397517f275f430af4546e1c45cff408bde4255dad142479dcb"
+    },
+    {
+      "path": "lib/fonts/JetBrainsMono-BoldItalic.ttf",
+      "bytes": 279832,
+      "sha256": "4039d5ce0ed225bf9c8b2c8c6436290ae2f356b7e90d70fa666227238324aa3b"
+    },
+    {
+      "path": "lib/fonts/JetBrainsMono-ExtraBold.ttf",
+      "bytes": 279404,
+      "sha256": "8e501d3a6a883e83ea4f7852804fb0894cebdd67751bb1006b37a476cef34cd6"
+    },
+    {
+      "path": "lib/fonts/JetBrainsMono-ExtraBoldItalic.ttf",
+      "bytes": 281616,
+      "sha256": "ec3a860fa87d0a3b1451277d1c2f3072f5ba19d2367aec54f7169d5710872610"
+    },
+    {
+      "path": "lib/fonts/JetBrainsMono-ExtraLight.ttf",
+      "bytes": 274144,
+      "sha256": "8391e7ec13e8ba758c1838f56bccd973228ccf4dc74aa5bffe9525b9147b12f8"
+    },
+    {
+      "path": "lib/fonts/JetBrainsMono-ExtraLightItalic.ttf",
+      "bytes": 274240,
+      "sha256": "3c7fee57538f18b61cc5f0784a8133fe5ee95feb41f633e8f6f7ef609e6207ec"
+    },
+    {
+      "path": "lib/fonts/JetBrainsMono-Italic.ttf",
+      "bytes": 276840,
+      "sha256": "9d0a1f7a708e6af183f1193b7e81d40da294f5c67682c085d8401c60aac8ded4"
+    },
+    {
+      "path": "lib/fonts/JetBrainsMono-Light.ttf",
+      "bytes": 276452,
+      "sha256": "60c18d7dd58d81b3bbd12e8ce32744a8771bfe2b5280574082b0eaed46c60d24"
+    },
+    {
+      "path": "lib/fonts/JetBrainsMono-LightItalic.ttf",
+      "bytes": 277104,
+      "sha256": "18ffadb91fa711b45feae027ddfd561e7f97ace805ec4baf9905046cf450befb"
+    },
+    {
+      "path": "lib/fonts/JetBrainsMono-Medium.ttf",
+      "bytes": 273860,
+      "sha256": "31c92d01a8a08528b718a43addf0ad3df0af2ca4b7b3290a452f70f358e14d3d"
+    },
+    {
+      "path": "lib/fonts/JetBrainsMono-MediumItalic.ttf",
+      "bytes": 276804,
+      "sha256": "4477fda6bd472ef96b11bc1083370f7fc3ff427bdc807e682ced5819e3dee9df"
+    },
+    {
+      "path": "lib/fonts/JetBrainsMono-Regular.ttf",
+      "bytes": 273900,
+      "sha256": "a0bf60ef0f83c5ed4d7a75d45838548b1f6873372dfac88f71804491898d138f"
+    },
+    {
+      "path": "lib/fonts/JetBrainsMono-SemiBold.ttf",
+      "bytes": 277092,
+      "sha256": "1b3bfa1ed5665a4ce3f9feb68d2d4e40e70bf8b4b7d9a3edd418f321b4e166a0"
+    },
+    {
+      "path": "lib/fonts/JetBrainsMono-SemiBoldItalic.ttf",
+      "bytes": 279828,
+      "sha256": "3b3000507a7285872395ddbb4e53a28f07910dbf494fb0d5e1421dd60b5d8436"
+    },
+    {
+      "path": "lib/fonts/JetBrainsMono-Thin.ttf",
+      "bytes": 270112,
+      "sha256": "0756e8e8cf1d65fa7519776764479b3973efb15af4f419d5d7274dc27ae1b702"
+    },
+    {
+      "path": "lib/fonts/JetBrainsMono-ThinItalic.ttf",
+      "bytes": 272984,
+      "sha256": "ebcdd13119b6beb7457e2f76b31094cb8cf1108e567030f8402b24dde018e76a"
+    },
+    {
+      "path": "lib/fonts/Roboto-Light.ttf",
+      "bytes": 140276,
+      "sha256": "b17667ce7e13581db105777f986e141168231e88a8ef16d13e581c7c1525f14b"
+    },
+    {
+      "path": "lib/fonts/Roboto-Thin.ttf",
+      "bytes": 130044,
+      "sha256": "11dbd8bf4f8c61d665f4f3157027b9643db2454d5d84daffbe6385d70e8bf131"
+    },
+    {
+      "path": "lib/fonts/SourceCodePro-Bold.ttf",
+      "bytes": 197004,
+      "sha256": "72f35788b9ed009b4f2e9c947447e6b31fbdd00bb8d583e5675660a0e2bc40dd"
+    },
+    {
+      "path": "lib/fonts/SourceCodePro-BoldIt.ttf",
+      "bytes": 162976,
+      "sha256": "b242cf3324b3b6fd268bb98aedb6fd1c4ba47e09cd72cc9380fb68de524462a9"
+    },
+    {
+      "path": "lib/fonts/SourceCodePro-It.ttf",
+      "bytes": 163624,
+      "sha256": "04c0fb338201c9fed2821176461165d27cf70182bdb9aa47ffb75e1ddfcf54cc"
+    },
+    {
+      "path": "lib/fonts/SourceCodePro-Regular.ttf",
+      "bytes": 197644,
+      "sha256": "ef6ea62b6849bc1535aae941d32de8d7b3ad14eab87d681dd237d125e36aebec"
+    },
+    {
+      "path": "lib/jawt.lib",
+      "bytes": 1682,
+      "sha256": "e6107f60a56b5cdacbe70ecd835908fe115a180520b8fcc463107d73dcedff3f"
+    },
+    {
+      "path": "lib/jfr/default.jfc",
+      "bytes": 40505,
+      "sha256": "26f2d7bf2f8473b3849f9480629eee695edf59fd667da838890a22919237718a"
+    },
+    {
+      "path": "lib/jfr/profile.jfc",
+      "bytes": 40387,
+      "sha256": "3e2c847608b1e7d182337f56bbf75b6a026ba4e9634b398bd92aec865e9ea8a7"
+    },
+    {
+      "path": "lib/jrt-fs.jar",
+      "bytes": 109851,
+      "sha256": "7d4375b39db8dabca76b70c7474688e6c33702b8a9587e1b95582269f032b090"
+    },
+    {
+      "path": "lib/jvm.cfg",
+      "bytes": 29,
+      "sha256": "aa9efb969444c1484e29adecab55a122458090616e766b2f1230ef05bc3867e0"
+    },
+    {
+      "path": "lib/jvm.lib",
+      "bytes": 1217826,
+      "sha256": "9a00084ffec236efddbee2eae36feb13fd1c36104e6ab946cfb269c388f933eb"
+    },
+    {
+      "path": "lib/modules",
+      "bytes": 70496060,
+      "sha256": "2b5ba26ff36c1bcbf2737f43f6ec29c22b5eef6b990895db389f4108f0af0660"
+    },
+    {
+      "path": "lib/psfont.properties.ja",
+      "bytes": 3793,
+      "sha256": "5a4bd51b969bf187ff86d94f4a71fdfbfa602762975fa3c73d264b4575f7c78f"
+    },
+    {
+      "path": "lib/psfontj2d.properties",
+      "bytes": 11402,
+      "sha256": "cfb2f55fc4a22368567273c38f1afe3fc627ad56710a1d922ada68015710e53f"
+    },
+    {
+      "path": "lib/security/blocked.certs",
+      "bytes": 2527,
+      "sha256": "583500b76965eb54b03493372989ab4d3426f85462d1db232c5ae6706a4d6c58"
+    },
+    {
+      "path": "lib/security/cacerts",
+      "bytes": 132316,
+      "sha256": "707312d3e8018928f53d108e4534f628cbbfad18196df1a2e72884300be1a69f"
+    },
+    {
+      "path": "lib/security/public_suffix_list.dat",
+      "bytes": 229254,
+      "sha256": "37e71e43c8605f29b9072f152d0ea4708735cdf335a5b68b2bc2f875760806c3"
+    },
+    {
+      "path": "lib/tzdb.dat",
+      "bytes": 102820,
+      "sha256": "36cf71e63ce2816fe4456e9195e6c27fa7c9cd431c89ba762eba394ec2c7a1e3"
+    },
+    {
+      "path": "lib/tzmappings",
+      "bytes": 15933,
+      "sha256": "3929ab1380771d0d542d91cfbae02ce519a76678f5f63813739a6c6b98dc6d72"
+    },
+    {
+      "path": "lib/vk_swiftshader_icd.json",
+      "bytes": 106,
+      "sha256": "32d83ff113fef532a9f97e0d2831f8656628ab1c99e9060f0332b1532839afd9"
+    },
+    {
+      "path": "release",
+      "bytes": 1311,
+      "sha256": "7ea1d265f3b54c28d37acc272649ffac8da4662a2d43900f25e42b6f72608302"
+    }
+  ]
+}

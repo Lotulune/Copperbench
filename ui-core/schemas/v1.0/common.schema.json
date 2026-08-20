@@ -1,0 +1,1060 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ui-core:1.0:common",
+  "title": "UI-Core common types v1.0",
+  "$defs": {
+    "uuid": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "identifier": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9._-]{0,127}$"
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "localizedText": {
+      "type": "object",
+      "required": [
+        "key",
+        "fallback"
+      ],
+      "properties": {
+        "key": {
+          "$ref": "#/$defs/identifier"
+        },
+        "fallback": {
+          "type": "string",
+          "minLength": 1
+        },
+        "args": {
+          "type": "object",
+          "additionalProperties": {
+            "type": [
+              "string",
+              "number",
+              "boolean",
+              "null"
+            ]
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "actionHint": {
+      "type": "object",
+      "required": [
+        "id",
+        "label",
+        "kind"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "label": {
+          "$ref": "#/$defs/localizedText"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "retry",
+            "refresh",
+            "open_field",
+            "open_logs",
+            "request_permission",
+            "dismiss"
+          ]
+        },
+        "target": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "diagnostic": {
+      "type": "object",
+      "required": [
+        "code",
+        "severity",
+        "message",
+        "path",
+        "recoverable",
+        "actions"
+      ],
+      "properties": {
+        "code": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]{2,127}$"
+        },
+        "severity": {
+          "type": "string",
+          "enum": [
+            "info",
+            "warning",
+            "error"
+          ]
+        },
+        "message": {
+          "$ref": "#/$defs/localizedText"
+        },
+        "path": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^/"
+        },
+        "elementId": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/uuid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "recoverable": {
+          "type": "boolean"
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/actionHint"
+          },
+          "maxItems": 5
+        }
+      },
+      "additionalProperties": false
+    },
+    "diagnosticCounts": {
+      "type": "object",
+      "required": [
+        "error",
+        "warning",
+        "info"
+      ],
+      "properties": {
+        "error": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "warning": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "info": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "generatorTarget": {
+      "type": "object",
+      "required": [
+        "id",
+        "loader",
+        "minecraftVersion",
+        "displayName",
+        "state"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "loader": {
+          "type": "string",
+          "enum": [
+            "fabric",
+            "neoforge",
+            "resource_pack"
+          ]
+        },
+        "minecraftVersion": {
+          "type": "string",
+          "minLength": 1
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "ready",
+            "partial",
+            "missing",
+            "outdated",
+            "incompatible"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "workspaceLock": {
+      "type": "object",
+      "required": [
+        "state",
+        "holder"
+      ],
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": [
+            "write_available",
+            "read_only",
+            "locked_elsewhere"
+          ]
+        },
+        "holder": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "workspaceSummary": {
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "kind",
+        "revision",
+        "dirty",
+        "generator",
+        "lock",
+        "compatibility"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "mod",
+            "resource_pack"
+          ]
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "dirty": {
+          "type": "boolean"
+        },
+        "generator": {
+          "$ref": "#/$defs/generatorTarget"
+        },
+        "lock": {
+          "$ref": "#/$defs/workspaceLock"
+        },
+        "compatibility": {
+          "type": "object",
+          "required": [
+            "mode",
+            "unknownDataPreserved"
+          ],
+          "properties": {
+            "mode": {
+              "type": "string",
+              "enum": [
+                "native",
+                "upstream",
+                "partial"
+              ]
+            },
+            "unknownDataPreserved": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "permissionProjection": {
+      "type": "object",
+      "required": [
+        "profile",
+        "canRequestElevation",
+        "protectedOperationsAlwaysConfirm"
+      ],
+      "properties": {
+        "profile": {
+          "type": "string",
+          "enum": [
+            "read_only",
+            "workspace",
+            "full_access"
+          ]
+        },
+        "canRequestElevation": {
+          "type": "boolean"
+        },
+        "protectedOperationsAlwaysConfirm": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "connectionProjection": {
+      "type": "object",
+      "required": [
+        "core",
+        "network",
+        "bridge"
+      ],
+      "properties": {
+        "core": {
+          "type": "string",
+          "enum": [
+            "connected",
+            "reconnecting",
+            "disconnected"
+          ]
+        },
+        "network": {
+          "type": "string",
+          "enum": [
+            "online",
+            "offline",
+            "limited"
+          ]
+        },
+        "bridge": {
+          "type": "string",
+          "enum": [
+            "ready",
+            "degraded",
+            "recovery_required"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "capabilityDecision": {
+      "type": "object",
+      "required": [
+        "id",
+        "availability",
+        "reasonCode",
+        "message",
+        "affectedPaths"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "availability": {
+          "type": "string",
+          "enum": [
+            "available",
+            "partial",
+            "unavailable"
+          ]
+        },
+        "reasonCode": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[A-Z][A-Z0-9_]{2,127}$"
+        },
+        "message": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/localizedText"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "affectedPaths": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^/"
+          },
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "modElementType": {
+      "type": "string",
+      "enum": [
+        "block",
+        "item",
+        "recipe",
+        "procedure"
+      ]
+    },
+    "modElementSummary": {
+      "type": "object",
+      "required": [
+        "id",
+        "type",
+        "name",
+        "displayName",
+        "state",
+        "ownership",
+        "updatedAt",
+        "diagnostics"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "type": {
+          "$ref": "#/$defs/modElementType"
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "valid",
+            "invalid",
+            "draft",
+            "unsupported"
+          ]
+        },
+        "ownership": {
+          "type": "string",
+          "enum": [
+            "generated",
+            "manual",
+            "mixed"
+          ]
+        },
+        "updatedAt": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "diagnostics": {
+          "$ref": "#/$defs/diagnosticCounts"
+        }
+      },
+      "additionalProperties": false
+    },
+    "taskSummary": {
+      "type": "object",
+      "required": [
+        "id",
+        "kind",
+        "state",
+        "cancellable",
+        "progress",
+        "stage",
+        "startedAt",
+        "diagnostics"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "validate",
+            "generate",
+            "build",
+            "export",
+            "run_client",
+            "import"
+          ]
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "queued",
+            "running",
+            "succeeded",
+            "failed",
+            "cancelled"
+          ]
+        },
+        "cancellable": {
+          "type": "boolean"
+        },
+        "progress": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 1
+        },
+        "stage": {
+          "$ref": "#/$defs/localizedText"
+        },
+        "startedAt": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "completedAt": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/timestamp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "diagnostics": {
+          "$ref": "#/$defs/diagnosticCounts"
+        }
+      },
+      "additionalProperties": false
+    },
+    "elementCounts": {
+      "type": "object",
+      "required": [
+        "total",
+        "valid",
+        "invalid",
+        "draft",
+        "unsupported"
+      ],
+      "properties": {
+        "total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "valid": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "invalid": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "draft": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "unsupported": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "workbenchProjection": {
+      "type": "object",
+      "required": [
+        "workspace",
+        "permission",
+        "connection",
+        "elementCounts",
+        "activeTasks",
+        "capabilities",
+        "recentElements"
+      ],
+      "properties": {
+        "workspace": {
+          "$ref": "#/$defs/workspaceSummary"
+        },
+        "permission": {
+          "$ref": "#/$defs/permissionProjection"
+        },
+        "connection": {
+          "$ref": "#/$defs/connectionProjection"
+        },
+        "elementCounts": {
+          "$ref": "#/$defs/elementCounts"
+        },
+        "activeTasks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/taskSummary"
+          }
+        },
+        "capabilities": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/capabilityDecision"
+          }
+        },
+        "recentElements": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/modElementSummary"
+          },
+          "maxItems": 12
+        }
+      },
+      "additionalProperties": false
+    },
+    "modElementListProjection": {
+      "type": "object",
+      "required": [
+        "items",
+        "page",
+        "pageSize",
+        "total",
+        "availableTypes"
+      ],
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/modElementSummary"
+          }
+        },
+        "page": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "pageSize": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 200
+        },
+        "total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "availableTypes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/modElementType"
+          },
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "fieldOption": {
+      "type": "object",
+      "required": [
+        "value",
+        "label",
+        "disabled"
+      ],
+      "properties": {
+        "value": {
+          "type": [
+            "string",
+            "number",
+            "boolean"
+          ]
+        },
+        "label": {
+          "$ref": "#/$defs/localizedText"
+        },
+        "disabled": {
+          "type": "boolean"
+        },
+        "reason": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/localizedText"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "editorField": {
+      "type": "object",
+      "required": [
+        "path",
+        "label",
+        "control",
+        "required",
+        "readOnly",
+        "value",
+        "options",
+        "diagnostics"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "pattern": "^/"
+        },
+        "label": {
+          "$ref": "#/$defs/localizedText"
+        },
+        "help": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/localizedText"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "control": {
+          "type": "string",
+          "enum": [
+            "text",
+            "textarea",
+            "number",
+            "toggle",
+            "select",
+            "resource_reference",
+            "procedure_reference"
+          ]
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "readOnly": {
+          "type": "boolean"
+        },
+        "value": {},
+        "options": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/fieldOption"
+          }
+        },
+        "constraints": {
+          "type": "object",
+          "properties": {
+            "min": {
+              "type": "number"
+            },
+            "max": {
+              "type": "number"
+            },
+            "step": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "minLength": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "maxLength": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "pattern": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "diagnostics": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/diagnostic"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "editorSection": {
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "fields"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "title": {
+          "$ref": "#/$defs/localizedText"
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/editorField"
+          },
+          "minItems": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "modElementEditorProjection": {
+      "type": "object",
+      "required": [
+        "element",
+        "sections",
+        "capabilities"
+      ],
+      "properties": {
+        "element": {
+          "$ref": "#/$defs/modElementSummary"
+        },
+        "sections": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/editorSection"
+          },
+          "minItems": 1
+        },
+        "capabilities": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/capabilityDecision"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "taskProjection": {
+      "type": "object",
+      "required": [
+        "task",
+        "logs",
+        "diagnostics"
+      ],
+      "properties": {
+        "task": {
+          "$ref": "#/$defs/taskSummary"
+        },
+        "logs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "sequence",
+              "timestamp",
+              "level",
+              "text"
+            ],
+            "properties": {
+              "sequence": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "timestamp": {
+                "$ref": "#/$defs/timestamp"
+              },
+              "level": {
+                "type": "string",
+                "enum": [
+                  "info",
+                  "warning",
+                  "error"
+                ]
+              },
+              "text": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "diagnostics": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/diagnostic"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "recoveryPointId": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{7,64}$"
+    },
+    "recoveryPoint": {
+      "type": "object",
+      "required": [
+        "id",
+        "label",
+        "actor",
+        "taskId",
+        "createdAt"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "actor": {
+          "type": "string",
+          "enum": [
+            "ui",
+            "mcp",
+            "headless",
+            "legacy_ui",
+            "system"
+          ]
+        },
+        "taskId": {
+          "type": "string"
+        },
+        "createdAt": {
+          "$ref": "#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "workspaceChange": {
+      "type": "object",
+      "required": [
+        "type",
+        "path"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "add",
+            "modify",
+            "delete",
+            "rename",
+            "copy"
+          ]
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "historyComparison": {
+      "type": "object",
+      "required": [
+        "fromRecoveryPointId",
+        "toRecoveryPointId",
+        "baseRevision",
+        "changes"
+      ],
+      "properties": {
+        "fromRecoveryPointId": {
+          "$ref": "#/$defs/recoveryPointId"
+        },
+        "toRecoveryPointId": {
+          "$ref": "#/$defs/recoveryPointId"
+        },
+        "baseRevision": {
+          "$ref": "#/$defs/revision"
+        },
+        "changes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/workspaceChange"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "operationApproval": {
+      "type": "object",
+      "required": [
+        "id",
+        "operation",
+        "title",
+        "requestedBy",
+        "requestedAt",
+        "risk",
+        "affectedPaths",
+        "canApprove",
+        "policyCode"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "operation": {
+          "type": "string",
+          "enum": [
+            "delete_workspace",
+            "overwrite_workspace",
+            "export_credentials",
+            "external_publish",
+            "enable_java_plugin",
+            "update_java_plugin",
+            "relax_mcp_binding"
+          ]
+        },
+        "title": {
+          "$ref": "#/$defs/localizedText"
+        },
+        "requestedBy": {
+          "type": "string",
+          "enum": [
+            "ui",
+            "mcp",
+            "headless",
+            "legacy_ui",
+            "system"
+          ]
+        },
+        "requestedAt": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "risk": {
+          "type": "string",
+          "enum": [
+            "high",
+            "critical"
+          ]
+        },
+        "affectedPaths": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "canApprove": {
+          "type": "boolean"
+        },
+        "policyCode": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]{2,127}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "operationApprovalListProjection": {
+      "type": "object",
+      "required": [
+        "items"
+      ],
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/operationApproval"
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

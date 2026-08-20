@@ -1,0 +1,222 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ui-core:1.0:query-result",
+  "title": "UI-Core query result v1.0",
+  "type": "object",
+  "required": [
+    "messageType",
+    "schemaVersion",
+    "requestId",
+    "workspaceId",
+    "operation",
+    "status",
+    "revision",
+    "data",
+    "diagnostics"
+  ],
+  "properties": {
+    "messageType": {
+      "const": "query_result"
+    },
+    "schemaVersion": {
+      "const": "1.0"
+    },
+    "requestId": {
+      "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+    },
+    "workspaceId": {
+      "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+    },
+    "operation": {
+      "type": "string",
+      "enum": [
+        "get_workbench",
+        "list_mod_elements",
+        "get_mod_element_editor",
+        "preview_mod_element_change",
+        "get_task",
+        "get_history",
+        "get_diff",
+        "list_operation_approvals"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "succeeded",
+        "rejected",
+        "failed"
+      ]
+    },
+    "revision": {
+      "$ref": "urn:ui-core:1.0:common#/$defs/revision"
+    },
+    "data": {},
+    "diagnostics": {
+      "type": "array",
+      "items": {
+        "$ref": "urn:ui-core:1.0:common#/$defs/diagnostic"
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "succeeded"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "else": {
+        "properties": {
+          "data": {
+            "type": "null"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "get_workbench"
+          },
+          "status": {
+            "const": "succeeded"
+          }
+        },
+        "required": [
+          "operation",
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "data": {
+            "$ref": "urn:ui-core:1.0:common#/$defs/workbenchProjection"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "list_mod_elements"
+          },
+          "status": {
+            "const": "succeeded"
+          }
+        },
+        "required": [
+          "operation",
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "data": {
+            "$ref": "urn:ui-core:1.0:common#/$defs/modElementListProjection"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "get_mod_element_editor"
+          },
+          "status": {
+            "const": "succeeded"
+          }
+        },
+        "required": [
+          "operation",
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "data": {
+            "$ref": "urn:ui-core:1.0:common#/$defs/modElementEditorProjection"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "get_task"
+          },
+          "status": {
+            "const": "succeeded"
+          }
+        },
+        "required": [
+          "operation",
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "data": {
+            "$ref": "urn:ui-core:1.0:common#/$defs/taskProjection"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "get_diff"
+          },
+          "status": {
+            "const": "succeeded"
+          }
+        },
+        "required": [
+          "operation",
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "data": {
+            "$ref": "urn:ui-core:1.0:common#/$defs/historyComparison"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "list_operation_approvals"
+          },
+          "status": {
+            "const": "succeeded"
+          }
+        },
+        "required": [
+          "operation",
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "data": {
+            "$ref": "urn:ui-core:1.0:common#/$defs/operationApprovalListProjection"
+          }
+        }
+      }
+    }
+  ],
+  "additionalProperties": false
+}

@@ -1,0 +1,11 @@
+// Probe-only. Official SHA-1 still validated. Mojang resources.download.minecraft.net
+// resets connections in this environment; BMCLAPI is the same fallback used for 1.21.1.
+gradle.projectsLoaded {
+	rootProject.allprojects { project ->
+		project.tasks.matching { it.name.toLowerCase().contains('downloadassets') }.configureEach { task ->
+			if (task.hasProperty('assetRepository')) {
+				task.assetRepository.set('https://bmclapi2.bangbang93.com/assets/')
+			}
+		}
+	}
+}

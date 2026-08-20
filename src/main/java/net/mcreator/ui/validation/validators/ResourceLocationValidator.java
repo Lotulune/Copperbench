@@ -1,0 +1,63 @@
+/*
+ * MCreator (https://mcreator.net/)
+ * Copyright (C) 2020 Pylo and contributors
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+package net.mcreator.ui.validation.validators;
+
+import net.mcreator.ui.init.L10N;
+import net.mcreator.ui.validation.ValidationResult;
+import net.mcreator.ui.validation.component.VComboBox;
+import net.mcreator.ui.validation.component.VTextField;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Arrays;
+
+public class ResourceLocationValidator<T> extends RegistryNameValidator {
+
+	public ResourceLocationValidator(String name, VTextField holder, boolean allowNamespace) {
+		super(holder, name);
+
+		if (allowNamespace) {
+			setValidChars(Arrays.asList('_', '/', '-', ':'));
+		} else {
+			setValidChars(Arrays.asList('_', '/', '-'));
+		}
+	}
+
+	public ResourceLocationValidator(String name, VComboBox<T> holder, boolean allowNamespace) {
+		super(holder, name);
+
+		if (allowNamespace) {
+			setValidChars(Arrays.asList('_', '/', '-', ':'));
+		} else {
+			setValidChars(Arrays.asList('_', '/', '-'));
+		}
+	}
+
+	@Override public ValidationResult validate() {
+		if (this.getText().endsWith(":"))
+			return new ValidationResult(ValidationResult.Type.ERROR,
+					L10N.t("validators.registry_name.invalid2", this.name));
+
+		if (StringUtils.countMatches(this.getText(), ':') > 1)
+			return new ValidationResult(ValidationResult.Type.ERROR,
+					L10N.t("validators.registry_name.invalid3", this.name));
+
+		return super.validate();
+	}
+
+}

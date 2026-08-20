@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Copperbench · 方向 C：极简命令台 (Vibe Forge)</title>
+  <style>
+    :root, [data-theme="dark"] {
+      --bg-base: #080a0d;
+      --bg-surface: #0f1318;
+      --bg-subtle: #161b22;
+      --border-color: #21262d;
+      --border-focus: #38bdf8;
+      --text-main: #f0f6fc;
+      --text-muted: #8b949e;
+      --text-sub: #484f58;
+      --accent-cyan: #38bdf8;
+      --accent-cyan-dim: rgba(56, 189, 248, 0.12);
+      --accent-amber: #f59e0b;
+      --accent-emerald: #10b981;
+      --accent-rose: #f43f5e;
+      --copilot-bg: linear-gradient(90deg, #101722 0%, #0f1318 100%);
+      --row-hover-bg: #11161d;
+      --scenario-bg: #121822;
+      --radius-sm: 4px;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+
+    [data-theme="light"] {
+      --bg-base: #f8fafc;
+      --bg-surface: #ffffff;
+      --bg-subtle: #f1f5f9;
+      --border-color: #e2e8f0;
+      --border-focus: #0284c7;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --text-sub: #94a3b8;
+      --accent-cyan: #0284c7;
+      --accent-cyan-dim: rgba(2, 132, 199, 0.1);
+      --accent-amber: #b45309;
+      --accent-emerald: #059669;
+      --accent-rose: #e11d48;
+      --copilot-bg: linear-gradient(90deg, #f0f9ff 0%, #ffffff 100%);
+      --row-hover-bg: #f8fafc;
+      --scenario-bg: #ffffff;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-family);
+      background: var(--bg-base);
+      color: var(--text-main);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      user-select: none;
+      transition: background-color 0.2s, color 0.2s;
+    }
+
+    /* 顶层极简命令条 */
+    .command-header {
+      height: 48px;
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+    }
+    .cmd-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .cmd-logo {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--accent-cyan);
+      letter-spacing: 0.5px;
+    }
+    .cmd-input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .cmd-search-bar {
+      background: var(--bg-base);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      color: var(--text-main);
+      padding: 6px 10px 6px 30px;
+      font-size: 12px;
+      width: 320px;
+      outline: none;
+      transition: all 0.2s;
+    }
+    .cmd-search-bar:focus {
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 0 2px var(--accent-cyan-dim);
+      width: 400px;
+    }
+    .cmd-icon {
+      position: absolute;
+      left: 10px;
+      font-size: 12px;
+      color: var(--text-sub);
+    }
+    .cmd-shortcut {
+      position: absolute;
+      right: 8px;
+      font-size: 10px;
+      background: var(--bg-subtle);
+      color: var(--text-sub);
+      padding: 2px 5px;
+      border-radius: 3px;
+      border: 1px solid var(--border-color);
+    }
+
+    .cmd-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .btn-minimal {
+      background: transparent;
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      font-size: 12px;
+      padding: 5px 12px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+    .btn-minimal:hover {
+      background: var(--bg-subtle);
+      color: var(--text-main);
+      border-color: var(--text-sub);
+    }
+    .btn-minimal.primary {
+      background: var(--accent-cyan);
+      color: #000;
+      font-weight: 600;
+      border-color: var(--accent-cyan);
+    }
+
+    /* 主体单焦点流 */
+    .forge-container {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* 极窄侧轨 */
+    .mini-rail {
+      width: 48px;
+      background: var(--bg-surface);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px 0;
+      gap: 16px;
+    }
+    .rail-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 16px;
+      transition: all 0.15s;
+    }
+    .rail-icon:hover { background: var(--bg-subtle); color: var(--text-main); }
+    .rail-icon.active { background: var(--accent-cyan-dim); color: var(--accent-cyan); }
+
+    /* 流式聚焦区 */
+    .focus-flow {
+      flex: 1;
+      padding: 32px 48px;
+      overflow-y: auto;
+      max-width: 960px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .project-header-flow {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 16px;
+    }
+    .flow-title h2 {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+    .flow-meta {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* 极简流线列表 */
+    .stream-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .stream-row {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .stream-row:hover {
+      border-color: var(--accent-cyan);
+      background: var(--row-hover-bg);
+    }
+    .stream-row.selected {
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 0 1px var(--accent-cyan);
+    }
+    .row-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .row-icon {
+      font-size: 16px;
+      width: 28px;
+      height: 28px;
+      background: var(--bg-subtle);
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .row-info .title {
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .row-info .sub {
+      font-size: 11px;
+      color: var(--text-sub);
+    }
+    .row-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* AI / MCP 伴随浮窗 (AI Copilot Strip) */
+    .copilot-strip {
+      background: var(--copilot-bg);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      border-radius: var(--radius-md);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+    }
+    .copilot-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--accent-cyan);
+      font-weight: 500;
+    }
+
+    /* 场景切换条 */
+    .scenario-c-bar {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--scenario-bg);
+      border: 1px solid var(--accent-cyan);
+      border-radius: 20px;
+      padding: 6px 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      z-index: 100;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    }
+    .scenario-select {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 12px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .theme-toggle-btn {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      color: var(--text-muted);
+      padding: 5px 10px;
+      font-size: 11px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s;
+    }
+    .theme-toggle-btn:hover {
+      background: var(--bg-subtle);
+      color: var(--text-main);
+    }
+  </style>
+</head>
+<body data-theme="dark">
+
+  <!-- 顶层命令栏 -->
+  <header class="command-header">
+    <div class="cmd-left">
+      <div class="cmd-logo">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        <span>VIBE FORGE</span>
+      </div>
+      <div class="cmd-input-wrapper">
+        <span class="cmd-icon">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </span>
+        <input type="text" class="cmd-search-bar" placeholder="键入指令或搜索图元 (例如: build, new block)..." />
+        <span class="cmd-shortcut">Ctrl+K</span>
+      </div>
+    </div>
+
+    <div class="cmd-right">
+      <button class="theme-toggle-btn" id="c-theme-btn" onclick="toggleTheme()">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <span id="c-theme-text">亮色</span>
+      </button>
+      <button class="btn-minimal" onclick="mockCore.triggerCreateElement()">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span>新建</span>
+      </button>
+      <button class="btn-minimal primary" onclick="mockCore.triggerBuild()">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        <span>构建 (Build)</span>
+      </button>
+      <span style="font-size: 11px; color: var(--text-sub);">方向 C · 极简命令台</span>
+    </div>
+  </header>
+
+  <div class="forge-container">
+    <!-- 极窄微型侧轨 -->
+    <aside class="mini-rail">
+      <div class="rail-icon active" title="工作台">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      </div>
+      <div class="rail-icon" title="资产">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+      </div>
+      <div class="rail-icon" title="历史">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </div>
+      <div class="rail-icon" title="设置">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </div>
+    </aside>
+
+    <!-- 单焦点流式任务区 -->
+    <main class="focus-flow">
+      <div class="project-header-flow">
+        <div class="flow-title">
+          <h2 id="c-title">Copper Trails</h2>
+          <div class="flow-meta">
+            <span id="c-loader" style="color: var(--accent-cyan);">Fabric 1.21.1</span>
+            <span>•</span>
+            <span id="c-rev">Rev: 42</span>
+            <span>•</span>
+            <span style="color: var(--accent-emerald); display: inline-flex; align-items: center; gap: 4px;">
+              <span style="width: 5px; height: 5px; border-radius: 50%; background: var(--accent-emerald);"></span>
+              核心就绪
+            </span>
+          </div>
+        </div>
+        <button class="btn-minimal" onclick="mockCore.loadScenario('external-process-exited')">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          <span>运行客户端</span>
+        </button>
+      </div>
+
+      <!-- AI / MCP 伴随浮条 -->
+      <div class="copilot-strip">
+        <div class="copilot-status">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          <span>MCP 活跃会话</span>
+          <span style="color: var(--text-muted); font-size: 11px;">| 权限: Workspace | 快照已就绪</span>
+        </div>
+        <span style="color: var(--text-sub); font-size: 11px; font-family: monospace;">127.0.0.1:42100</span>
+      </div>
+
+      <!-- 流线型元素行 -->
+      <div class="stream-list" id="stream-container">
+        <!-- 动态渲染 -->
+      </div>
+    </main>
+  </div>
+
+  <!-- 场景切换工具条 -->
+  <div class="scenario-c-bar">
+    <span style="font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">测试场景:</span>
+    <select class="scenario-select" id="c-scenario-select" onchange="mockCore.loadScenario(this.value)">
+      <option value="ready">1. 就绪状态 (Ready)</option>
+      <option value="empty-workspace">2. 空工作区 (Empty)</option>
+      <option value="build-running">3. 构建进行中 (Build Running)</option>
+      <option value="validation-failed">4. 校验失败告警 (Validation Failed)</option>
+      <option value="permission-denied">5. 权限不足拦截 (Permission Denied)</option>
+      <option value="revision-conflict">6. 版本修订冲突 (Revision Conflict)</option>
+      <option value="partial-capability">7. 差异字段保留 (Partial Capability)</option>
+      <option value="offline">8. 本地离线模式 (Offline)</option>
+      <option value="external-process-exited">9. 客户端崩溃 (Process Exit)</option>
+      <option value="bridge-recovery">10. 渲染恢复 (Bridge Recovery)</option>
+      <option value="loading-workbench">11. 加载中骨架 (Loading)</option>
+      <option value="element-created">12. 新增元素成功 (Element Created)</option>
+    </select>
+  </div>
+
+  <script src="./mock-core.js"></script>
+  <script>
+    const svgIcons = {
+      block: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>`,
+      item: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,
+      recipe: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`,
+      procedure: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`
+    };
+
+    function renderUI(state) {
+      document.getElementById('c-scenario-select').value = state.scenarioId;
+
+      if (state.workspace) {
+        document.getElementById('c-title').textContent = state.workspace.name;
+        document.getElementById('c-loader').textContent = state.workspace.generator.displayName;
+        document.getElementById('c-rev').textContent = `Rev: ${state.workspace.revision}`;
+      }
+
+      const list = document.getElementById('stream-container');
+      list.innerHTML = '';
+
+      if (state.elements.length === 0) {
+        list.innerHTML = `
+          <div style="padding: 36px; text-align: center; color: var(--text-muted); border: 1px dashed var(--border-color); border-radius: var(--radius-md);">
+            <div style="font-size: 13px; font-weight: 600; color: var(--text-main);">无模组图元</div>
+            <div style="font-size: 12px; margin: 4px 0 14px; color: var(--text-sub);">键入指令或使用下方按钮添加图元。</div>
+            <button class="btn-minimal primary" style="margin: 0 auto;" onclick="mockCore.triggerCreateElement()">＋ 新建图元</button>
+          </div>
+        `;
+      } else {
+        state.elements.forEach(el => {
+          const row = document.createElement('div');
+          row.className = 'stream-row';
+          const icon = svgIcons[el.type] || svgIcons.block;
+
+          row.innerHTML = `
+            <div class="row-left">
+              <div class="row-icon">${icon}</div>
+              <div class="row-info">
+                <div class="title">${el.displayName}</div>
+                <div class="sub">${el.name} · ${el.ownership}</div>
+              </div>
+            </div>
+            <div class="row-right">
+              <span style="color: ${el.state === 'valid' ? 'var(--accent-emerald)' : 'var(--accent-amber)'}; font-weight: 500;">${el.state === 'valid' ? '● 有效' : '◐ 草稿'}</span>
+              <span>${el.type}</span>
+            </div>
+          `;
+          list.appendChild(row);
+        });
+      }
+    }
+
+    // 主题切换
+    function setTheme(theme) {
+      document.body.setAttribute('data-theme', theme);
+      const text = document.getElementById('c-theme-text');
+      if (text) {
+        text.textContent = theme === 'light' ? '暗色' : '亮色';
+      }
+    }
+
+    function toggleTheme() {
+      const current = document.body.getAttribute('data-theme') || 'dark';
+      const next = current === 'dark' ? 'light' : 'dark';
+      setTheme(next);
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: 'THEME_CHANGED', theme: next }, '*');
+      }
+    }
+
+    // 接收父级 iframe 消息同步主题
+    window.addEventListener('message', (e) => {
+      if (e.data && e.data.type === 'SET_THEME') {
+        setTheme(e.data.theme);
+      }
+    });
+
+    mockCore.subscribe(renderUI);
+    mockCore.loadScenario("ready");
+  </script>
+</body>
+</html>

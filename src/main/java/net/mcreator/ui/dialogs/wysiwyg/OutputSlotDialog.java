@@ -1,0 +1,176 @@
+/*
+ * MCreator (https://mcreator.net/)
+ * Copyright (C) 2020 Pylo and contributors
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+package net.mcreator.ui.dialogs.wysiwyg;
+
+import net.mcreator.blockly.data.Dependency;
+import net.mcreator.element.parts.gui.GUIComponent;
+import net.mcreator.element.parts.gui.OutputSlot;
+import net.mcreator.element.parts.gui.Slot;
+import net.mcreator.ui.component.JColor;
+import net.mcreator.ui.component.util.PanelUtils;
+import net.mcreator.ui.help.IHelpContext;
+import net.mcreator.ui.init.L10N;
+import net.mcreator.ui.procedure.AbstractProcedureSelector;
+import net.mcreator.ui.procedure.LogicProcedureSelector;
+import net.mcreator.ui.procedure.ProcedureSelector;
+import net.mcreator.ui.validation.ValidationResult;
+import net.mcreator.ui.validation.component.VTextField;
+import net.mcreator.ui.wysiwyg.WYSIWYGEditor;
+
+import javax.annotation.Nullable;
+import javax.swing.*;
+import java.awt.*;
+
+public class OutputSlotDialog extends AbstractWYSIWYGDialog<OutputSlot> {
+
+	public OutputSlotDialog(WYSIWYGEditor editor, @Nullable OutputSlot slot) {
+		super(editor, slot);
+		setModal(true);
+		setSize(860, 360);
+		setLocationRelativeTo(editor.mcreator);
+
+		JPanel options = new JPanel();
+		options.setLayout(new BoxLayout(options, BoxLayout.PAGE_AXIS));
+
+		VTextField slotID = new VTextField(20);
+		slotID.setPreferredSize(new Dimension(45, 28));
+		slotID.enableRealtimeValidation();
+		slotID.setValidator(() -> {
+			try {
+				int slotIDnum = Integer.parseInt(slotID.getText().trim());
+				for (int i = 0; i < editor.list.getModel().getSize(); i++) {
+					GUIComponent component = editor.list.getModel().getElementAt(i);
+					if (slot != null && component instanceof Slot
+							&& ((Slot) component).id == slot.id) // skip current element if edit mode
+						continue;
+					if (component instanceof Slot slotOther && slotOther.id == slotIDnum)
+						return new ValidationResult(ValidationResult.Type.ERROR,
+								L10N.t("dialog.gui.slot_id_already_used"));
+				}
+			} catch (Exception exc) {
+				return new ValidationResult(ValidationResult.Type.ERROR, L10N.t("dialog.gui.slot_id_must_be_number"));
+			}
+			return ValidationResult.PASSED;
+		});
+		slotID.setText("0");
+		options.add(PanelUtils.join(FlowLayout.LEFT, L10N.label("dialog.gui.slot_id"), slotID));
+
+		final JColor color = new JColor(editor.mcreator, false, false);
+		options.add(PanelUtils.join(FlowLayout.LEFT, L10N.label("dialog.gui.slot_custom_color"), color));
+
+		JCheckBox dropItemsWhenNotBound = L10N.checkbox("dialog.gui.slot_drop_item_when_gui_closed");
+		options.add(PanelUtils.join(FlowLayout.LEFT, dropItemsWhenNotBound));
+		dropItemsWhenNotBound.setSelected(true);
+
+		AbstractProcedureSelector.ReloadContext context = AbstractProcedureSelector.ReloadContext.create(
+				editor.mcreator.getWorkspace());
+
+		LogicProcedureSelector disablePickup = new LogicProcedureSelector(
+				IHelpContext.NONE.withEntry("gui/slot_pickup_condition"), editor.mcreator,
+				L10N.t("dialog.gui.disable_pickup"), ProcedureSelector.Side.BOTH, false,
+				L10N.checkbox("condition.common.disable"), 0,
+				Dependency.fromString("x:number/y:number/z:number/world:world/entity:entity/slot:number"));
+		disablePickup.refreshList(context);
+
+		options.add(PanelUtils.join(FlowLayout.LEFT, disablePickup));
+
+		ProcedureSelector eh = new ProcedureSelector(IHelpContext.NONE.withEntry("gui/when_slot_changed"),
+				editor.mcreator, L10N.t("dialog.gui.slot_event_slot_content_changes"), ProcedureSelector.Side.BOTH,
+				false, Dependency.fromString("x:number/y:number/z:number/world:world/entity:entity/slot:number"));
+		eh.refreshList(context);
+
+		ProcedureSelector eh2 = new ProcedureSelector(IHelpContext.NONE.withEntry("gui/when_slot_item_taken"),
+				editor.mcreator, L10N.t("dialog.gui.slot_event_item_taken_from_slot"), ProcedureSelector.Side.BOTH,
+				false, Dependency.fromString(
+				"x:number/y:number/z:number/world:world/entity:entity/slot:number/amount:number"));
+		eh2.refreshList(context);
+
+		ProcedureSelector eh3 = new ProcedureSelector(IHelpContext.NONE.withEntry("gui/when_transferred_from_slot"),
+				editor.mcreator, L10N.t("dialog.gui.slot_event_transferred_from_slot"), ProcedureSelector.Side.BOTH,
+				false, Dependency.fromString(
+				"x:number/y:number/z:number/world:world/entity:entity/slot:number/amount:number"));
+		eh3.refreshList(context);
+
+		add("Center", new JScrollPane(PanelUtils.centerInPanel(PanelUtils.gridElements(1, 3, 5, 5, eh, eh2, eh3))));
+
+		add("North", PanelUtils.join(FlowLayout.LEFT, options));
+
+		setTitle(L10N.t("dialog.gui.slot_output_editor_title"));
+		JButton ok = L10N.button("dialog.gui.save_slot");
+		JButton cancel = new JButton(UIManager.getString("OptionPane.cancelButtonText"));
+		add("South", PanelUtils.join(ok, cancel));
+
+		getRootPane().setDefaultButton(ok);
+
+		if (slot != null) {
+			ok.setText(L10N.t("dialog.common.save_changes"));
+			slotID.setText(String.valueOf(slot.id));
+			color.setColor(slot.color);
+			eh.setSelectedProcedure(slot.onSlotChanged);
+			eh2.setSelectedProcedure(slot.onTakenFromSlot);
+			eh3.setSelectedProcedure(slot.onStackTransfer);
+			disablePickup.setSelectedProcedure(slot.disablePickup);
+			dropItemsWhenNotBound.setSelected(slot.dropItemsWhenNotBound);
+		} else {
+			int freeslotid = -1;
+			for (int i = 0; i < editor.components.size(); i++) {
+				GUIComponent component = editor.components.get(i);
+				if (component instanceof Slot) {
+					int slotid = ((Slot) component).id;
+					if (slotid > freeslotid)
+						freeslotid = slotid;
+				}
+			}
+			slotID.setText("" + ++freeslotid);
+		}
+
+		cancel.addActionListener(event -> dispose());
+		ok.addActionListener(event -> {
+			if (slotID.getValidationStatus().type() != ValidationResult.Type.ERROR) {
+				dispose();
+				int slotIDnum = Integer.parseInt(slotID.getText().trim());
+				if (slot == null) {
+					editor.guiType.setSelectedIndex(1);
+
+					OutputSlot component = new OutputSlot(slotIDnum, 0, 0,
+							color.getColor().equals(Color.white) ? null : color.getColor(),
+							disablePickup.getSelectedProcedure(), dropItemsWhenNotBound.isSelected(),
+							eh.getSelectedProcedure(), eh2.getSelectedProcedure(), eh3.getSelectedProcedure());
+
+					setEditingComponent(component);
+					editor.editor.addComponent(component);
+					editor.list.setSelectedValue(component, true);
+					editor.editor.moveMode();
+				} else {
+					int idx = editor.components.indexOf(slot);
+					editor.components.remove(slot);
+					OutputSlot slotNew = new OutputSlot(slotIDnum, slot.getX(), slot.getY(),
+							color.getColor().equals(Color.white) ? null : color.getColor(),
+							disablePickup.getSelectedProcedure(), dropItemsWhenNotBound.isSelected(),
+							eh.getSelectedProcedure(), eh2.getSelectedProcedure(), eh3.getSelectedProcedure());
+					editor.components.add(idx, slotNew);
+					setEditingComponent(slotNew);
+				}
+			}
+		});
+
+		setVisible(true);
+	}
+
+}

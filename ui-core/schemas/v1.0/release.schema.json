@@ -1,0 +1,291 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ui-core:1.0:release",
+  "title": "UI-Core release notes v1.0",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "product",
+    "platform",
+    "privacy",
+    "packaging",
+    "bundledPlugins",
+    "featureCoverage",
+    "developmentSbom",
+    "developmentFocus",
+    "versionTracks",
+    "claims",
+    "elementCoverage",
+    "upstreamTools",
+    "knownLimitations",
+    "source",
+    "g7"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0"
+    },
+    "product": {
+      "type": "object",
+      "required": ["name", "version", "id", "publisher", "license"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "version": { "type": "string" },
+        "id": { "type": "string" },
+        "publisher": { "type": "string" },
+        "license": { "type": "string" },
+        "upstreamCore": { "type": "string" }
+      }
+    },
+    "platform": {
+      "type": "object",
+      "required": ["os", "arch", "minimumOs", "offlineFirst"],
+      "additionalProperties": false,
+      "properties": {
+        "os": { "const": "windows" },
+        "arch": { "const": "x64" },
+        "minimumOs": { "type": "string" },
+        "offlineFirst": { "type": "boolean" }
+      }
+    },
+    "privacy": {
+      "type": "object",
+      "required": [
+        "accountsRequired",
+        "defaultTelemetry",
+        "implicitNetworkServices",
+        "cdnFrontend"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "accountsRequired": { "type": "boolean" },
+        "defaultTelemetry": { "type": "boolean" },
+        "implicitNetworkServices": { "type": "boolean" },
+        "cdnFrontend": { "type": "boolean" }
+      }
+    },
+    "packaging": {
+      "type": "object",
+      "required": [
+        "executable",
+        "bundledJdk",
+        "jcefBundledWithJdk",
+        "pluginsDirectory",
+        "licenseDirectory",
+        "requiredEntries"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "executable": { "type": "string" },
+        "bundledJdk": { "type": "string" },
+        "jcefBundledWithJdk": { "type": "boolean" },
+        "pluginsDirectory": { "type": "string" },
+        "licenseDirectory": { "type": "string" },
+        "requiredEntries": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "bundledPlugins": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["pluginId", "packageName", "level", "route", "firstParty"],
+        "additionalProperties": false,
+        "properties": {
+          "pluginId": { "type": "string" },
+          "packageName": { "type": "string" },
+          "level": { "type": "string", "enum": ["A", "B", "C", "X"] },
+          "route": { "type": "string" },
+          "firstParty": { "type": "boolean" }
+        }
+      }
+    },
+    "featureCoverage": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "area", "surface", "notes"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string" },
+          "area": { "type": "string" },
+          "surface": {
+            "type": "string",
+            "enum": [
+              "new_ui",
+              "legacy_window",
+              "headless_mcp",
+              "unsupported",
+              "not_applicable",
+              "deferred"
+            ]
+          },
+          "notes": { "type": "string" }
+        }
+      }
+    },
+    "developmentSbom": {
+      "type": "object",
+      "required": ["schemaVersion", "kind", "productId", "productVersion", "components"],
+      "additionalProperties": false,
+      "properties": {
+        "schemaVersion": { "const": "1.0" },
+        "kind": { "const": "development-inventory" },
+        "productId": { "type": "string" },
+        "productVersion": { "type": "string" },
+        "components": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["name", "version", "type", "license", "path"],
+            "additionalProperties": false,
+            "properties": {
+              "name": { "type": "string" },
+              "version": { "type": "string" },
+              "type": { "type": "string" },
+              "license": { "type": "string" },
+              "path": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "developmentFocus": {
+      "type": "object",
+      "required": ["stage", "reason", "deferred"],
+      "additionalProperties": false,
+      "properties": {
+        "stage": { "type": "string" },
+        "reason": { "type": "string" },
+        "deferred": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "versionTracks": {
+      "$ref": "urn:ui-core:1.0:tracks"
+    },
+    "claims": {
+      "type": "object",
+      "required": ["goldenCompileClaimed", "generateReadyNotGolden"],
+      "additionalProperties": false,
+      "properties": {
+        "goldenCompileClaimed": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "generateReadyNotGolden": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "elementCoverage": {
+      "type": "object",
+      "required": [
+        "schemaVersion",
+        "firstPartySlice",
+        "unsupportedInNewUi",
+        "bedrockAddonNotApplicable",
+        "appliesToGenerators",
+        "notes"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "schemaVersion": { "const": "1.0" },
+        "firstPartySlice": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "unsupportedInNewUi": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "bedrockAddonNotApplicable": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "appliesToGenerators": { "type": "string" },
+        "notes": { "type": "string" }
+      }
+    },
+    "upstreamTools": {
+      "type": "object",
+      "required": ["schemaVersion", "notes", "tools"],
+      "additionalProperties": false,
+      "properties": {
+        "schemaVersion": { "const": "1.0" },
+        "notes": { "type": "string" },
+        "tools": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["id", "upstream", "surface", "notes"],
+            "additionalProperties": false,
+            "properties": {
+              "id": { "type": "string" },
+              "upstream": { "type": "string" },
+              "surface": {
+                "type": "string",
+                "enum": ["new_ui", "legacy_window", "unsupported", "not_applicable"]
+              },
+              "notes": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "knownLimitations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["code", "message"],
+        "additionalProperties": false,
+        "properties": {
+          "code": { "type": "string" },
+          "message": { "type": "string" }
+        }
+      }
+    },
+    "source": {
+      "type": "object",
+      "required": ["license", "notices", "changes", "sourceDistribution"],
+      "additionalProperties": false,
+      "properties": {
+        "license": { "type": "string" },
+        "notices": { "type": "string" },
+        "changes": { "type": "string" },
+        "sourceDistribution": { "type": "string" },
+        "baselineLock": { "type": "string" }
+      }
+    },
+    "g7": {
+      "type": "object",
+      "required": ["status", "automatedChecks", "pendingMachineEvidence"],
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["in_progress", "passed", "blocked"]
+        },
+        "automatedChecks": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "pendingMachineEvidence": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

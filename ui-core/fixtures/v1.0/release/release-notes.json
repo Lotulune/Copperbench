@@ -1,0 +1,605 @@
+{
+  "schemaVersion": "1.0",
+  "product": {
+    "name": "Copperbench",
+    "version": "0.1.0",
+    "id": "dev.copperbench.studio",
+    "publisher": "Copperbench Contributors",
+    "license": "GPL-3.0",
+    "upstreamCore": "MCreator"
+  },
+  "platform": {
+    "os": "windows",
+    "arch": "x64",
+    "minimumOs": "Windows 11",
+    "offlineFirst": true
+  },
+  "privacy": {
+    "accountsRequired": false,
+    "defaultTelemetry": false,
+    "implicitNetworkServices": false,
+    "cdnFrontend": false
+  },
+  "packaging": {
+    "executable": "copperbench.exe",
+    "bundledJdk": "jdk/jbr25_win_64",
+    "jcefBundledWithJdk": true,
+    "pluginsDirectory": "plugins",
+    "licenseDirectory": "license",
+    "requiredEntries": [
+      "copperbench.exe",
+      "LICENSE.txt",
+      "jdk/bin/java.exe",
+      "jdk/bin/jcef.dll",
+      "lib/copperbench.jar",
+      "plugins"
+    ]
+  },
+  "bundledPlugins": [
+    {
+      "pluginId": "core",
+      "packageName": "mcreator-core",
+      "level": "A",
+      "route": "RESOURCE_PIPELINE",
+      "firstParty": true
+    },
+    {
+      "pluginId": "generator-1.21.1",
+      "packageName": "generator-1.21.1",
+      "level": "A",
+      "route": "RESOURCE_PIPELINE",
+      "firstParty": true
+    },
+    {
+      "pluginId": "generator-26.1.x",
+      "packageName": "generator-26.1.x",
+      "level": "A",
+      "route": "RESOURCE_PIPELINE",
+      "firstParty": true
+    },
+    {
+      "pluginId": "generator-addon-26.1x",
+      "packageName": "generator-addon-26.1x",
+      "level": "A",
+      "route": "RESOURCE_PIPELINE",
+      "firstParty": true
+    },
+    {
+      "pluginId": "generator-fabric-26.1.2",
+      "packageName": "generator-fabric-26.1.2",
+      "level": "A",
+      "route": "RESOURCE_PIPELINE",
+      "firstParty": true
+    },
+    {
+      "pluginId": "localization",
+      "packageName": "mcreator-localization",
+      "level": "A",
+      "route": "RESOURCE_PIPELINE",
+      "firstParty": true
+    },
+    {
+      "pluginId": "mcreator-link",
+      "packageName": "mcreator-link",
+      "level": "A",
+      "route": "RESOURCE_PIPELINE",
+      "firstParty": true
+    },
+    {
+      "pluginId": "themes",
+      "packageName": "mcreator-themes",
+      "level": "A",
+      "route": "RESOURCE_PIPELINE",
+      "firstParty": true
+    }
+  ],
+  "featureCoverage": [
+    {
+      "id": "workspace_lifecycle",
+      "area": "T01",
+      "surface": "new_ui",
+      "notes": "Create, open, and import upstream workspaces through the shared application service."
+    },
+    {
+      "id": "local_history",
+      "area": "T02",
+      "surface": "new_ui",
+      "notes": "Local recovery points and restore. Existing Git remotes are not rewritten."
+    },
+    {
+      "id": "slice_elements",
+      "area": "T03",
+      "surface": "new_ui",
+      "notes": "First-party slice is block, item, recipe, and procedure only."
+    },
+    {
+      "id": "other_mod_elements",
+      "area": "T03",
+      "surface": "unsupported",
+      "notes": "Living entities and other upstream types are outside the first-party slice. See elementCoverage: imported types stay read-only; create/update are rejected."
+    },
+    {
+      "id": "assets_blockbench",
+      "area": "T04",
+      "surface": "new_ui",
+      "notes": "Asset graph and Blockbench round trip exist. Fabric 1.21.1 runClient loaded file/copper_ready_pack.zip in ResourceManager."
+    },
+    {
+      "id": "mcp_automation",
+      "area": "T05",
+      "surface": "headless_mcp",
+      "notes": "First-party local MCP with read_only, workspace, and full_access profiles."
+    },
+    {
+      "id": "generate_source",
+      "area": "T06",
+      "surface": "new_ui",
+      "notes": "First-party Fabric/NeoForge generate for all four tracks."
+    },
+    {
+      "id": "managed_build",
+      "area": "T07",
+      "surface": "new_ui",
+      "notes": "Gradle build tasks exist. Offline cached 1.21.1 builds exist. Fabric and NeoForge 26.2, 26.1.2, and 1.20.1 compile probes produced jars."
+    },
+    {
+      "id": "run_client",
+      "area": "T08",
+      "surface": "new_ui",
+      "notes": "runClient evidence exists for Fabric/NeoForge 26.2, 26.1.2, 1.21.1, and 1.20.1."
+    },
+    {
+      "id": "diagnostics",
+      "area": "T09",
+      "surface": "new_ui",
+      "notes": "Structured diagnostics and reason codes are shared by UI, MCP, and headless."
+    },
+    {
+      "id": "loader_migration",
+      "area": "T10",
+      "surface": "new_ui",
+      "notes": "Copy-only same-version Fabric↔NeoForge migration. Source trees stay unchanged."
+    },
+    {
+      "id": "resource_pack_export",
+      "area": "T10",
+      "surface": "new_ui",
+      "notes": "Publish batches export ZIP and prepare run/resourcepacks without auto-launching. Fabric 1.21.1 ResourceManager listed file/copper_ready_pack.zip."
+    },
+    {
+      "id": "window_chrome_jcef",
+      "area": "U4",
+      "surface": "new_ui",
+      "notes": "Playwright help/About/DPI/hit-test is 100/100. Real JCEF product-shell reported React chrome regions, native HTMAXBUTTON=9 Snap hit-test, and WM_DPICHANGED 144 (DPR 1.5)."
+    },
+    {
+      "id": "java_plugins",
+      "area": "plugins",
+      "surface": "legacy_window",
+      "notes": "Java plugins are opt-in full trust. Swing UI plugins stay in a legacy window. list_installed_plugins returns the live first-party and user plugin inventory without loading Java."
+    },
+    {
+      "id": "remote_mcp",
+      "area": "excluded",
+      "surface": "not_applicable",
+      "notes": "Remote MCP is out of first-release scope."
+    },
+    {
+      "id": "linux_macos",
+      "area": "excluded",
+      "surface": "not_applicable",
+      "notes": "Linux and macOS installers are out of first-release scope."
+    },
+    {
+      "id": "windows_10",
+      "area": "excluded",
+      "surface": "not_applicable",
+      "notes": "Windows 10 is out of first-release scope. The supported desktop is Windows 11 x64."
+    },
+    {
+      "id": "accounts_cloud",
+      "area": "excluded",
+      "surface": "not_applicable",
+      "notes": "Accounts, cloud sync, and vendor chat are out of first-release scope."
+    },
+    {
+      "id": "code_signing",
+      "area": "release",
+      "surface": "not_applicable",
+      "notes": "Unsigned GitHub Releases are the first public distribution. Authenticode is optional and not a release gate. jsign 7.4 stays wired."
+    },
+    {
+      "id": "clean_machine_install",
+      "area": "release",
+      "surface": "new_ui",
+      "notes": "Windows 11 Hyper-V guest silent install/upgrade/uninstall preserved workspace and .copperbench. Guest copperbench.exe stay-alive is not claimed."
+    }
+  ],
+  "developmentSbom": {
+    "schemaVersion": "1.0",
+    "kind": "development-inventory",
+    "productId": "dev.copperbench.studio",
+    "productVersion": "0.1.0",
+    "components": [
+      {
+        "name": "Copperbench",
+        "version": "0.1.0",
+        "type": "application",
+        "license": "GPL-3.0",
+        "path": "."
+      },
+      {
+        "name": "JetBrains Runtime JCEF",
+        "version": "25",
+        "type": "runtime",
+        "license": "GPL-2.0-with-classpath-exception",
+        "path": "jdk/jbr25_win_64"
+      },
+      {
+        "name": "Bundled JDK 21",
+        "version": "21",
+        "type": "runtime",
+        "license": "GPL-2.0-with-classpath-exception",
+        "path": "jdk/jdk21_win_64"
+      },
+      {
+        "name": "core",
+        "version": "0.1.0",
+        "type": "plugin",
+        "license": "GPL-3.0",
+        "path": "plugins/mcreator-core"
+      },
+      {
+        "name": "generator-1.21.1",
+        "version": "0.1.0",
+        "type": "plugin",
+        "license": "GPL-3.0",
+        "path": "plugins/generator-1.21.1"
+      },
+      {
+        "name": "generator-26.1.x",
+        "version": "0.1.0",
+        "type": "plugin",
+        "license": "GPL-3.0",
+        "path": "plugins/generator-26.1.x"
+      },
+      {
+        "name": "generator-addon-26.1x",
+        "version": "0.1.0",
+        "type": "plugin",
+        "license": "GPL-3.0",
+        "path": "plugins/generator-addon-26.1x"
+      },
+      {
+        "name": "generator-fabric-26.1.2",
+        "version": "0.1.0",
+        "type": "plugin",
+        "license": "GPL-3.0",
+        "path": "plugins/generator-fabric-26.1.2"
+      },
+      {
+        "name": "localization",
+        "version": "0.1.0",
+        "type": "plugin",
+        "license": "GPL-3.0",
+        "path": "plugins/mcreator-localization"
+      },
+      {
+        "name": "mcreator-link",
+        "version": "0.1.0",
+        "type": "plugin",
+        "license": "GPL-3.0",
+        "path": "plugins/mcreator-link"
+      },
+      {
+        "name": "themes",
+        "version": "0.1.0",
+        "type": "plugin",
+        "license": "GPL-3.0",
+        "path": "plugins/mcreator-themes"
+      },
+      {
+        "name": "commons-io",
+        "version": "2.22.0",
+        "type": "library",
+        "license": "Apache-2.0",
+        "path": "license/Apache Commons License.txt"
+      },
+      {
+        "name": "commons-lang3",
+        "version": "3.20.0",
+        "type": "library",
+        "license": "Apache-2.0",
+        "path": "license/Apache Commons License.txt"
+      },
+      {
+        "name": "log4j-core",
+        "version": "2.26.1",
+        "type": "library",
+        "license": "Apache-2.0",
+        "path": "license/Apache Log4j License.txt"
+      },
+      {
+        "name": "freemarker",
+        "version": "2.3.34",
+        "type": "library",
+        "license": "Apache-2.0",
+        "path": "license/FreeMarker License.txt"
+      },
+      {
+        "name": "gson",
+        "version": "2.14.0",
+        "type": "library",
+        "license": "Apache-2.0",
+        "path": "license/Gson License.txt"
+      },
+      {
+        "name": "guava",
+        "version": "33.6.0-jre",
+        "type": "library",
+        "license": "Apache-2.0",
+        "path": "license/Guava License.txt"
+      },
+      {
+        "name": "jgit",
+        "version": "7.7.0.202606012155-r",
+        "type": "library",
+        "license": "BSD-3-Clause",
+        "path": "license/JGit License.txt"
+      },
+      {
+        "name": "flatlaf",
+        "version": "3.7.1",
+        "type": "library",
+        "license": "Apache-2.0",
+        "path": "license/FlatLaf License.txt"
+      },
+      {
+        "name": "mcp",
+        "version": "2.0.0",
+        "type": "library",
+        "license": "MIT",
+        "path": "license/"
+      },
+      {
+        "name": "jna",
+        "version": "5.19.1",
+        "type": "library",
+        "license": "Apache-2.0 / LGPL-2.1",
+        "path": "license/JNA License.txt"
+      }
+    ]
+  },
+  "developmentFocus": {
+    "stage": "github_public_fork",
+    "reason": "Public identity is Copperbench. Distribution is an unsigned GPL GitHub fork with no product website. Authenticode is out of first-release scope. G7 is not passed: Hyper-V guest GUI stay-alive is not claimed.",
+    "deferred": []
+  },
+  "versionTracks": {
+    "schemaVersion": "1.0",
+    "latestMinecraftVersion": "26.2",
+    "previousMinecraftVersion": "26.1",
+    "tracks": [
+      {
+        "id": "latest_stable",
+        "minecraftVersion": "26.2",
+        "displayName": "Latest stable (Minecraft 26.2)",
+        "dynamic": true,
+        "loaders": [
+          {
+            "loader": "fabric",
+            "generatorId": "fabric-26.2",
+            "minecraftVersion": "26.2",
+            "status": "supported",
+            "pluginId": null,
+            "reasonCode": "TRACK_SUPPORTED",
+            "notes": "Latest stable Minecraft 26.2. First-party Fabric vertical slice with compile and runClient evidence (unobfuscated Loom 1.17.19)."
+          },
+          {
+            "loader": "neoforge",
+            "generatorId": "neoforge-26.2",
+            "minecraftVersion": "26.2",
+            "status": "supported",
+            "pluginId": null,
+            "reasonCode": "TRACK_SUPPORTED",
+            "notes": "Latest stable Minecraft 26.2. First-party NeoForge vertical slice with compile and runClient evidence (NeoForge 26.2.0.63)."
+          }
+        ]
+      },
+      {
+        "id": "previous_stable",
+        "minecraftVersion": "26.1",
+        "displayName": "Previous stable (Minecraft 26.1)",
+        "dynamic": true,
+        "loaders": [
+          {
+            "loader": "fabric",
+            "generatorId": "fabric-26.1.2",
+            "minecraftVersion": "26.1",
+            "status": "supported",
+            "pluginId": "generator-fabric-26.1.2",
+            "reasonCode": "TRACK_SUPPORTED",
+            "notes": "Previous stable Minecraft 26.1.2. First-party Fabric vertical slice with compile and runClient evidence (unobfuscated Loom, Fabric API 0.155.2+26.1.2)."
+          },
+          {
+            "loader": "neoforge",
+            "generatorId": "neoforge-26.1.2",
+            "minecraftVersion": "26.1",
+            "status": "supported",
+            "pluginId": "generator-26.1.x",
+            "reasonCode": "TRACK_SUPPORTED",
+            "notes": "Previous stable Minecraft 26.1.2. First-party NeoForge vertical slice with compile and runClient evidence (NeoForge 26.1.2.95)."
+          }
+        ]
+      },
+      {
+        "id": "minecraft_1_21_1",
+        "minecraftVersion": "1.21.1",
+        "displayName": "Minecraft 1.21.1 (maintenance)",
+        "dynamic": false,
+        "loaders": [
+          {
+            "loader": "fabric",
+            "generatorId": "fabric-1.21.1",
+            "minecraftVersion": "1.21.1",
+            "status": "supported",
+            "pluginId": null,
+            "reasonCode": "TRACK_SUPPORTED",
+            "notes": "Maintenance track. Copperbench-owned Fabric 1.21.1 vertical slice with golden build and runClient evidence."
+          },
+          {
+            "loader": "neoforge",
+            "generatorId": "neoforge-1.21.1",
+            "minecraftVersion": "1.21.1",
+            "status": "supported",
+            "pluginId": "generator-1.21.1",
+            "reasonCode": "TRACK_SUPPORTED",
+            "notes": "Maintenance track. Copperbench-owned NeoForge 1.21.1 vertical slice with golden build and runClient evidence."
+          }
+        ]
+      },
+      {
+        "id": "minecraft_1_20_1",
+        "minecraftVersion": "1.20.1",
+        "displayName": "Minecraft 1.20.1 (maintenance)",
+        "dynamic": false,
+        "loaders": [
+          {
+            "loader": "fabric",
+            "generatorId": "fabric-1.20.1",
+            "minecraftVersion": "1.20.1",
+            "status": "supported",
+            "pluginId": null,
+            "reasonCode": "TRACK_SUPPORTED",
+            "notes": "Maintenance track. Copperbench-owned Fabric 1.20.1 vertical slice with compile and runClient evidence (Gradle 8.8 + loom 1.7.4)."
+          },
+          {
+            "loader": "neoforge",
+            "generatorId": "neoforge-1.20.1",
+            "minecraftVersion": "1.20.1",
+            "status": "supported",
+            "pluginId": null,
+            "reasonCode": "TRACK_SUPPORTED",
+            "notes": "Maintenance track. Copperbench-owned NeoForge 1.20.1 vertical slice with compile and runClient evidence (NeoForged Forge 1.20.1-47.1.106 + userdev 7.0.165)."
+          }
+        ]
+      }
+    ]
+  },
+  "claims": {
+    "goldenCompileClaimed": [
+      "fabric-26.2",
+      "neoforge-26.2",
+      "fabric-26.1.2",
+      "neoforge-26.1.2",
+      "fabric-1.21.1",
+      "neoforge-1.21.1",
+      "fabric-1.20.1",
+      "neoforge-1.20.1"
+    ],
+    "generateReadyNotGolden": []
+  },
+  "elementCoverage": {
+    "schemaVersion": "1.0",
+    "firstPartySlice": ["block", "item", "recipe", "procedure"],
+    "unsupportedInNewUi": [
+      "achievement", "armor", "armortrim", "attribute", "bannerpattern", "biome", "code", "command",
+      "damagetype", "dimension", "enchantment", "feature", "fluid", "function", "gamerule", "gui",
+      "itemextension", "keybind", "livingentity", "loottable", "overlay", "painting", "particle",
+      "plant", "potion", "potioneffect", "projectile", "specialentity", "structure", "tab", "tool",
+      "villagerprofession", "villagertrade"
+    ],
+    "bedrockAddonNotApplicable": ["bebiome", "beblock", "beentity", "beitem", "bescript"],
+    "appliesToGenerators": "all eight first-party Fabric and NeoForge generators",
+    "notes": "Create and update in the new UI, MCP, and headless accept only the first-party slice. Imported upstream types are preserved and listed, but the editor is read-only and updates are rejected."
+  },
+  "upstreamTools": {
+    "schemaVersion": "1.0",
+    "notes": "Upstream Swing tools are either in the new UI, opened through the legacy plugin window, explicitly unsupported, or out of first-release scope. The legacy window is not a visual or accessibility promise.",
+    "tools": [
+      {"id": "workspace_open_create_import", "upstream": "File/Open, New, Import workspace", "surface": "new_ui", "notes": "Shared application service. Import copies to a sibling directory and preserves unknown fields."},
+      {"id": "mod_elements_first_party", "upstream": "Workspace/Mod elements for block, item, recipe, procedure", "surface": "new_ui", "notes": "First-party slice only. See elementCoverage."},
+      {"id": "mod_elements_other", "upstream": "Living entity, GUI, plant, dimension, and other element editors", "surface": "unsupported", "notes": "Imported definitions are preserved and listed read-only. Create/update in the new UI are rejected."},
+      {"id": "assets_blockbench", "upstream": "Resources/3D models and animations via Blockbench", "surface": "new_ui", "notes": "Asset graph, leases, and the Blockbench process bridge. The editor is not embedded."},
+      {"id": "resource_pack_workspace", "upstream": "Resource pack maker and ZIP export", "surface": "new_ui", "notes": "Deterministic ZIP, publish batches, and prepare_resource_pack_client. Fabric 1.21.1 ResourceManager load is claimed."},
+      {"id": "textures_sounds_structures", "upstream": "Resources/Textures, Sounds, Structures, Screenshots", "surface": "legacy_window", "notes": "Native texture/sound/structure browsers stay in the legacy Swing window. Blockbench is the first-party model path."},
+      {"id": "image_armor_animation_makers", "upstream": "Tools/Image editor, Armor texture, Animated texture", "surface": "legacy_window", "notes": "Built-in image and armor makers remain Swing. They are not in the React shell."},
+      {"id": "tags_variables_localization", "upstream": "Workspace/Tags, Variables, Localization", "surface": "legacy_window", "notes": "No first-party React editors. Open the legacy window. Language JSON assets can still be indexed."},
+      {"id": "code_ide_and_file_browser", "upstream": "Code editor, workspace file browser, reformat/save", "surface": "legacy_window", "notes": "Hand-written source is an advanced exit, not a first-party React IDE."},
+      {"id": "pack_makers", "upstream": "Tools/Material, Ore, Tool, Armor, Wood pack makers", "surface": "legacy_window", "notes": "Wizard pack makers stay in Swing. They are not first-party MCP commands."},
+      {"id": "vanilla_data_lists", "upstream": "Tools/Entity IDs, item/block list, particles, sounds, loot tables", "surface": "legacy_window", "notes": "Read-only vanilla data browsers remain in the legacy window."},
+      {"id": "generate_build_run_client", "upstream": "Build, run client, regenerate code, export JAR", "surface": "new_ui", "notes": "Shared tasks. runClient evidence exists for all eight first-party generators."},
+      {"id": "run_server_debug_client", "upstream": "Run server, debug client, arbitrary Gradle task", "surface": "unsupported", "notes": "Not a first-party command. Do not treat the Gradle console extras as supported."},
+      {"id": "workspace_settings_tab_order", "upstream": "Workspace settings, creative tab item order", "surface": "legacy_window", "notes": "Full generator/settings dialogs remain Swing."},
+      {"id": "preferences", "upstream": "Preferences dialog", "surface": "legacy_window", "notes": "Privacy defaults are product-owned. The full preference tree stays in Swing."},
+      {"id": "local_history", "upstream": "Local history panel", "surface": "new_ui", "notes": "Recovery points and restore through the shared history service. Git remotes are not rewritten."},
+      {"id": "plugin_manager", "upstream": "Plugins panel", "surface": "new_ui", "notes": "list_installed_plugins is first-party. Swing UI plugins still open in the legacy window. Java plugins stay opt-in."},
+      {"id": "website_community_publish_donate", "upstream": "Help/Website, community, publish, donate", "surface": "not_applicable", "notes": "No product accounts, store, or implicit network services."},
+      {"id": "check_for_updates", "upstream": "Help/Check for updates and plugin updates", "surface": "not_applicable", "notes": "Implicit network services are disabled. Update checks are not first-release behavior."}
+    ]
+  },
+  "knownLimitations": [
+    {
+      "code": "WINDOWS_10_NOT_SUPPORTED",
+      "message": "Windows 10 is not a supported platform. First release targets Windows 11 x64 only."
+    },
+    {
+      "code": "HYPERV_GUEST_GUI_START_NOT_CLAIMED",
+      "message": "The Windows 11 Hyper-V guest completed silent install, upgrade, and uninstall with the NIC disconnected. copperbench.exe did not remain running for 10 seconds, so guest GUI stay-alive is not claimed."
+    },
+    {
+      "code": "CODE_SIGNING_UNSIGNED_GITHUB",
+      "message": "First public binaries are unsigned GitHub Releases. jsign 7.4 remains wired if Authenticode secrets are added later; SmartScreen may warn. This is policy, not a pending certificate."
+    },
+    {
+      "code": "PUBLIC_DISTRIBUTION_GITHUB_ONLY",
+      "message": "Copperbench is the public product name. There is no product domain, store listing, or trademark campaign. Support is the public GitHub repository. Product ID dev.copperbench.studio is a reverse-DNS identifier, not a live website."
+    },
+    {
+      "code": "RESOURCE_PACK_PREPARE_DOES_NOT_AUTO_LAUNCH",
+      "message": "prepare_resource_pack_client writes run/resourcepacks and options.txt and does not launch Minecraft. Fabric 1.21.1 runClient listed file/copper_ready_pack.zip in ResourceManager."
+    },
+    {
+      "code": "THIRD_PARTY_PLUGIN_NOT_UNIVERSALLY_SUPPORTED",
+      "message": "Third-party plugins are classified A/B/C/X. Unsupported plugins are not claimed as supported."
+    },
+    {
+      "code": "OFFLINE_BUILD_GRADLE_MODE_ONLY",
+      "message": "The cached-dependency build uses Gradle --offline after a cache-warm, not an OS-level network disconnect."
+    },
+    {
+      "code": "OFFLINE_BUILD_ONLY_1211",
+      "message": "The official Stage 8 cached-dependency --offline claim remains Fabric and NeoForge 1.21.1. 26.x probes recorded their own cache-warm/--offline jars separately."
+    }
+  ],
+  "source": {
+    "license": "LICENSE.txt",
+    "notices": "compliance/THIRD_PARTY_NOTICES.md",
+    "changes": "CHANGES-FROM-UPSTREAM.md",
+    "sourceDistribution": "compliance/SOURCE_DISTRIBUTION.md",
+    "baselineLock": "compliance/baseline.lock.json"
+  },
+  "g7": {
+    "status": "in_progress",
+    "automatedChecks": [
+      "release_manifest",
+      "privacy_defaults",
+      "installer_default_keep_user_data",
+      "source_distribution_files",
+      "windows_export_recipe",
+      "bundled_plugin_inventory",
+      "installed_plugin_inventory",
+      "windows11_silent_install_upgrade_uninstall",
+      "windows11_hyperv_guest_install_upgrade_uninstall",
+      "offline_cached_dependency_build",
+      "hyperv_readiness_probe",
+      "vmware_readiness_probe",
+      "code_signing_readiness_probe",
+      "jcef_snap_dpi_smoke",
+      "resource_pack_1211_client_load",
+      "feature_coverage_audit",
+      "development_sbom"
+    ],
+    "pendingMachineEvidence": []
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "preview-track-compile-probe",
+  "generatorId": "neoforge-26.2",
+  "minecraftVersion": "26.2",
+  "neoForgeVersion": "26.2.0.63",
+  "moddevVersion": "2.0.141",
+  "javaRelease": 25,
+  "jdk": "D:\\AICoding\\Minecraft_ModCreator\\jdk\\jbr25_win_64",
+  "gradleUserHome": "C:\\Users\\Administrator\\.gradle",
+  "osNetworkDisconnected": false,
+  "cacheWarm": {
+    "completed": true,
+    "timedOut": false,
+    "exitCode": 0,
+    "offline": false
+  },
+  "offline": {
+    "completed": true,
+    "timedOut": false,
+    "exitCode": 0,
+    "offline": true
+  },
+  "generateSucceeded": true,
+  "jarPresent": true,
+  "compileSucceeded": true,
+  "goldenClaimed": false,
+  "catalogStatus": "PREVIEW",
+  "catalogReasonCode": "TRACK_GENERATE_READY",
+  "catalogGeneratable": false,
+  "diagnostics": [],
+  "logFile": "evidence/stage-8/2026-08-20/neoforge-262-compile.log",
+  "completedAt": "2026-08-19T23:29:30.771463Z",
+  "durationSeconds": 288.04
+}

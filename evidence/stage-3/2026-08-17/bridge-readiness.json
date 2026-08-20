@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "stage": 3,
+  "recordedAt": "2026-08-17T12:30:00+08:00",
+  "status": "bridge-ready-with-client-smoke-blocked",
+  "uiCore": {
+    "frozenVersion": "1.0",
+    "testsPassed": 10,
+    "legacyVersionRetained": "0.1"
+  },
+  "java": {
+    "productTestsPassed": 42,
+    "heavyTestsSkippedByDefault": 2,
+    "jcefEndpointContract": "passed"
+  },
+  "ui": {
+    "productionBuild": "passed",
+    "playwrightPassed": 54
+  },
+  "fabric1211": {
+    "generator": "passed",
+    "realGradleBuild": "passed",
+    "restoreAndRebuild": "passed",
+    "runClient": "blocked",
+    "runClientBlocker": "Loom downloadAssets exceeded both 10 and 20 minute managed timeouts before Minecraft startup"
+  },
+  "jcefBindingEnabled": false
+}

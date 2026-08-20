@@ -1,0 +1,302 @@
+import org.apache.tools.ant.taskdefs.condition.Os
+
+import java.text.SimpleDateFormat
+
+plugins {
+    id "java"
+    id "idea"
+    id "de.undercouch.download" version "5.7.0"
+    id 'edu.sc.seis.launch4j' version '4.0.0'
+    id 'org.jetbrains.gradle.plugin.idea-ext' version '1.4.1'
+}
+
+repositories {
+    mavenCentral()
+    maven { url = "https://repo.gradle.org/gradle/libs-releases" } // for gradle-tooling-api
+    flatDir { dirs 'lib' }
+}
+
+project.ext.mcreatorconf = new Properties()
+file('src/main/resources/mcreator.conf').withInputStream { project.mcreatorconf.load(it) }
+project.ext.productName = project.mcreatorconf.getProperty('product.name')
+project.ext.productVersion = project.mcreatorconf.getProperty('product.version')
+project.ext.productId = project.mcreatorconf.getProperty('product.id')
+project.ext.productPublisher = project.mcreatorconf.getProperty('product.publisher')
+
+group = 'dev.copperbench'
+version = project.productVersion
+project.ext.builddate = project.hasProperty('builddate') ? project.getProperty('builddate') : new SimpleDateFormat("wwuHH", Locale.GERMANY).format(new Date())
+project.ext.snapshot = project.hasProperty('snapshot') ? Boolean.parseBoolean((String) project.getProperty('snapshot')) : false
+
+compileJava.options.encoding = 'UTF-8'
+tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }
+
+def npmExecutable = Os.isFamily(Os.FAMILY_WINDOWS) ? 'npm.cmd' : 'npm'
+
+tasks.register('buildUiShell', Exec) {
+    group = 'build'
+    description = 'Builds the offline React product shell for the JCEF classpath scheme.'
+    workingDir file('ui-shell')
+    commandLine npmExecutable, 'run', 'build'
+    inputs.files(fileTree('ui-shell') {
+        exclude 'dist/**', 'node_modules/**', 'test-results/**', 'playwright-report/**'
+    })
+    inputs.dir 'ui-core/fixtures/v1.0'
+    outputs.dir 'ui-shell/dist'
+}
+
+processResources {
+    dependsOn buildUiShell
+    exclude 'net/mcreator/ui/res/pylo.svg'
+    from('ui-shell/dist') {
+        into 'copperbench/ui'
+    }
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+idea {
+    module {
+        inheritOutputDirs = true
+
+        // define exclude dirs
+        excludeDirs += file(".gradle")
+        excludeDirs += file(".idea")
+        excludeDirs += file("build")
+        excludeDirs += file("gradle")
+        excludeDirs += file("jdk")
+        excludeDirs += file("license")
+        excludeDirs += file("logs")
+
+        // additional source dirs
+        sourceDirs += file("plugins/mcreator-core/blockly/js")
+    }
+}
+
+configurations {
+    testImplementation.extendsFrom compileOnly
+
+    provided
+    compileOnly.extendsFrom provided
+    runtimeOnly.extendsFrom provided
+
+    export.extendsFrom implementation
+    export.canBeResolved = true
+
+    win64
+    macX64
+    macAarch64
+    linux64
+
+    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+        implementation.extendsFrom win64
+    } else if (Os.isFamily(Os.FAMILY_MAC)) {
+        if (System.getProperty("os.arch").contains("aarch64")) {
+            implementation.extendsFrom macAarch64
+        } else {
+            implementation.extendsFrom macX64
+        }
+    } else if (Os.isFamily(Os.FAMILY_UNIX)) {
+        implementation.extendsFrom linux64
+    }
+}
+
+configurations.win64.attributes {
+    attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+    attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, objects.named(OperatingSystemFamily, OperatingSystemFamily.WINDOWS))
+    attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, objects.named(MachineArchitecture, MachineArchitecture.X86_64))
+}
+
+configurations.macX64.attributes {
+    attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+    attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, objects.named(OperatingSystemFamily, OperatingSystemFamily.MACOS))
+    attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, objects.named(MachineArchitecture, MachineArchitecture.X86_64))
+}
+
+configurations.macAarch64.attributes {
+    attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+    attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, objects.named(OperatingSystemFamily, OperatingSystemFamily.MACOS))
+    attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, objects.named(MachineArchitecture, MachineArchitecture.ARM64))
+}
+
+configurations.linux64.attributes {
+    attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+    attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, objects.named(OperatingSystemFamily, OperatingSystemFamily.LINUX))
+    attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, objects.named(MachineArchitecture, MachineArchitecture.X86_64))
+}
+
+dependencies {
+    // from lib folder
+    implementation fileTree(dir: 'lib', include: ['*.jar'])
+
+    // from maven
+    implementation "commons-io:commons-io:2.22.0"
+    implementation "org.apache.commons:commons-lang3:3.20.0"
+    implementation "org.apache.commons:commons-text:1.15.0"
+    implementation "org.apache.logging.log4j:log4j-core:2.26.1"
+    implementation "org.freemarker:freemarker:2.3.34"
+    implementation("com.google.code.gson:gson:2.14.0") {
+        dep -> dep.exclude group: 'com.google.errorprone', module: 'error_prone_annotations'
+    }
+    implementation "com.github.sps.junidecode:junidecode:0.3"
+    implementation "org.jboss.forge.roaster:roaster-api:2.31.1.Final"
+    implementation "org.jboss.forge.roaster:roaster-jdt:2.31.1.Final"
+    implementation "org.snakeyaml:snakeyaml-engine:3.0.1"
+    implementation "org.reflections:reflections:0.10.2"
+    implementation "com.google.guava:guava:33.6.0-jre"
+    implementation "de.javagl:obj:0.4.0"
+    implementation "com.univocity:univocity-parsers:2.9.1"
+    implementation "org.slf4j:slf4j-nop:2.0.18"
+    implementation "org.gradle:gradle-tooling-api:9.6.1"
+    implementation "net.java.balloontip:balloontip:1.2.4.1"
+    implementation "com.atlassian.commonmark:commonmark:0.17.0"
+    implementation "com.atlassian.commonmark:commonmark-ext-autolink:0.17.0"
+    implementation "com.atlassian.commonmark:commonmark-ext-gfm-tables:0.17.0"
+    implementation "com.fifesoft:rsyntaxtextarea:3.6.3"
+    implementation "com.fifesoft:autocomplete:3.3.3"
+    implementation("com.fifesoft:languagesupport:3.4.1") {
+        dep -> dep.exclude group: 'org.mozilla', module: 'rhino-all'
+    }
+    implementation 'io.beautifier:js-beautify:1.15.4.1'
+    implementation 'io.github.furrrlo:unique4j:2.1.0'
+    implementation 'io.github.furrrlo:unique4j-unix-socket-channel:2.1.0'
+    implementation 'org.eclipse.jgit:org.eclipse.jgit:7.7.0.202606012155-r'
+    implementation 'io.modelcontextprotocol.sdk:mcp:2.0.0'
+    implementation 'org.apache.tomcat.embed:tomcat-embed-core:11.0.2'
+    implementation "net.java.dev.jna:jna:5.19.1" // needed by discord-rpc.jar
+
+    implementation "com.github.weisj:jsvg:2.1.0"
+    implementation "com.formdev:flatlaf:3.7.1:no-natives"
+    implementation("com.formdev:flatlaf-extras:3.7.1") {
+        dep -> exclude group: 'com.formdev', module: 'flatlaf'
+    }
+    win64 "com.formdev:flatlaf:3.7.1:windows-x86_64@dll"
+    macX64 "com.formdev:flatlaf:3.7.1:macos-x86_64@dylib"
+    macAarch64 "com.formdev:flatlaf:3.7.1:macos-arm64@dylib"
+    linux64 "com.formdev:flatlaf:3.7.1:linux-x86_64@so"
+
+    // test dependencies
+    testImplementation platform("org.junit:junit-bom:6.1.2")
+    testImplementation "org.junit.jupiter:junit-jupiter"
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+    testRuntimeOnly "com.formdev:flatlaf:3.7.1"
+}
+
+test {
+    useJUnitPlatform()
+	systemProperty 'copperbench.stage3.fabricBuild',
+		System.getProperty('copperbench.stage3.fabricBuild', 'false')
+	systemProperty 'copperbench.stage3.fabricRunClient',
+		System.getProperty('copperbench.stage3.fabricRunClient', 'false')
+	systemProperty 'copperbench.stage4.jcefSmoke',
+		System.getProperty('copperbench.stage4.jcefSmoke', 'false')
+	systemProperty 'copperbench.stage4.windowSmoke',
+		System.getProperty('copperbench.stage4.windowSmoke', 'false')
+	systemProperty 'copperbench.stage5.neoforgeBuild',
+		System.getProperty('copperbench.stage5.neoforgeBuild', 'false')
+	systemProperty 'copperbench.stage5.neoforgeRunClient',
+		System.getProperty('copperbench.stage5.neoforgeRunClient', 'false')
+	systemProperty 'copperbench.stage8.offlineBuild',
+		System.getProperty('copperbench.stage8.offlineBuild', 'false')
+	systemProperty 'copperbench.fabric262Compile',
+		System.getProperty('copperbench.fabric262Compile', 'false')
+	systemProperty 'copperbench.fabric1201Compile',
+		System.getProperty('copperbench.fabric1201Compile', 'false')
+	systemProperty 'copperbench.fabric1201RunClient',
+		System.getProperty('copperbench.fabric1201RunClient', 'false')
+	systemProperty 'copperbench.neoforge1201Compile',
+		System.getProperty('copperbench.neoforge1201Compile', 'false')
+	systemProperty 'copperbench.neoforge1201RunClient',
+		System.getProperty('copperbench.neoforge1201RunClient', 'false')
+	systemProperty 'copperbench.fabric261Compile',
+		System.getProperty('copperbench.fabric261Compile', 'false')
+	systemProperty 'copperbench.neoforge261Compile',
+		System.getProperty('copperbench.neoforge261Compile', 'false')
+	systemProperty 'copperbench.neoforge262Compile',
+		System.getProperty('copperbench.neoforge262Compile', 'false')
+	systemProperty 'copperbench.fabric261RunClient',
+		System.getProperty('copperbench.fabric261RunClient', 'false')
+	systemProperty 'copperbench.fabric262RunClient',
+		System.getProperty('copperbench.fabric262RunClient', 'false')
+	systemProperty 'copperbench.neoforge261RunClient',
+		System.getProperty('copperbench.neoforge261RunClient', 'false')
+	systemProperty 'copperbench.neoforge262RunClient',
+		System.getProperty('copperbench.neoforge262RunClient', 'false')
+	systemProperty 'copperbench.stage8.jcefSnapDpi',
+		System.getProperty('copperbench.stage8.jcefSnapDpi', 'false')
+	systemProperty 'copperbench.resourcePack1211Client',
+		System.getProperty('copperbench.resourcePack1211Client', 'false')
+
+    jvmArgs '--add-opens', 'java.base/java.lang=ALL-UNNAMED', '--enable-native-access', 'ALL-UNNAMED,jcef'
+
+    // default max heap is VM RAM / 4, which may be too low on low RAM VMs
+    maxHeapSize = "4096m"
+
+    testLogging {
+        // https://stackoverflow.com/a/48709645/1627085
+        events "passed", "skipped", "failed"
+        showStandardStreams = true
+
+        showCauses = true
+        showStackTraces = true
+        showExceptions = true
+        exceptionFormat = "full"
+
+        debug {
+            events "started", "failed", "passed", "skipped", "standard_error", "standard_out"
+            exceptionFormat = "full"
+        }
+        info.events = debug.events
+        info.exceptionFormat = debug.exceptionFormat
+    }
+}
+
+javadoc {
+    source = sourceSets.main.allJava
+    classpath = configurations.runtimeClasspath
+
+    options.addStringOption('Xdoclint:none', '-quiet')
+
+    options.tags = [
+        'apiNote:a:API note:',
+        'implNote:a:Implementation note:'
+    ]
+}
+
+tasks.register('runMCreator', JavaExec.class) {
+    dependsOn jar
+
+    jvmArgs '--add-opens', 'java.base/java.lang=ALL-UNNAMED', '--enable-native-access', 'ALL-UNNAMED,jcef'
+    systemProperty 'copperbench.productShell', 'true'
+
+    classpath += sourceSets.main.runtimeClasspath
+
+    mainClass.set("net.mcreator.Launcher")
+}
+
+tasks.register('runProductShell', JavaExec.class) {
+    group = 'application'
+    description = 'Runs MCreator with the Copperbench JCEF product shell enabled for opened workspaces.'
+    dependsOn jar
+
+    jvmArgs '--add-opens', 'java.base/java.lang=ALL-UNNAMED', '--enable-native-access', 'ALL-UNNAMED,jcef'
+    systemProperty 'copperbench.productShell', 'true'
+
+    classpath += sourceSets.main.runtimeClasspath
+    mainClass.set('net.mcreator.Launcher')
+}
+
+tasks.register('runMcpConformanceServer', JavaExec.class) {
+    group = 'verification'
+    description = 'Starts the test-source MCP server used by the official conformance CLI.'
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass.set('dev.copperbench.mcp.McpConformanceServerMain')
+}
+
+apply from: 'platform/setup.gradle'
+apply from: 'platform/export.gradle'

@@ -1,0 +1,49 @@
+name: Bug report
+description: Report a Copperbench bug (search for duplicates first)
+type: bug
+body:
+  - type: checkboxes
+    attributes:
+      label: Checks
+      options:
+        - label: I searched existing issues in this Copperbench repository
+          required: true
+        - label: This is about Copperbench, not the official MCreator distribution
+          required: true
+  - type: textarea
+    attributes:
+      label: Issue description
+      description: What went wrong?
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: How to reproduce
+      placeholder: |
+        Step 1: ...
+        Step 2: ...
+    validations:
+      required: true
+  - type: dropdown
+    attributes:
+      label: Operating system
+      options:
+        - Windows 11 x64
+        - Other (unsupported)
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Details
+      placeholder: |
+        Copperbench version: 0.1.0
+        Generator: fabric-1.21.1 / ...
+        Windows build: 22000+
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Logs
+      description: Paste full text logs, or link a gist. Screenshots of logs are not enough.
+    validations:
+      required: false

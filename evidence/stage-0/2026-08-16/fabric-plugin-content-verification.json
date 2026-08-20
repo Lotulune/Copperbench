@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "sourceArtifact": "evidence/stage-0/2026-08-16/artifacts/generator-fabric-26.1.2-2026.2.zip",
+  "sourceArchiveSha256": "dcee1b6550cebf72e9f8657f1ffca1c6b48563da9caadd2b1a786af58593dd41",
+  "packagedArtifact": "build/plugins/generator-fabric-26.1.2.zip",
+  "packagedArchiveSha256": "de87cabb2b67722e792218b8302afb101336bf62a4ed0247983ed4c5a58ad806",
+  "entryCount": 704,
+  "sourceContentTreeSha256": "24d41930b994da61ba2bb944e4681aa7195550dee2c851617eff0e10d7b27d33",
+  "packagedContentTreeSha256": "24d41930b994da61ba2bb944e4681aa7195550dee2c851617eff0e10d7b27d33",
+  "contentIdentical": true
+}

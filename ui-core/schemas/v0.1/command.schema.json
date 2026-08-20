@@ -1,0 +1,406 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ui-core:0.1:command",
+  "title": "UI-Core command v0.1",
+  "type": "object",
+  "required": [
+    "messageType",
+    "schemaVersion",
+    "requestId",
+    "workspaceId",
+    "expectedRevision",
+    "operation",
+    "payload"
+  ],
+  "properties": {
+    "messageType": {
+      "const": "command"
+    },
+    "schemaVersion": {
+      "const": "0.1"
+    },
+    "requestId": {
+      "$ref": "urn:ui-core:0.1:common#/$defs/uuid"
+    },
+    "workspaceId": {
+      "$ref": "urn:ui-core:0.1:common#/$defs/uuid"
+    },
+    "expectedRevision": {
+      "$ref": "urn:ui-core:0.1:common#/$defs/revision"
+    },
+    "operation": {
+      "type": "string",
+      "enum": [
+        "create_mod_element",
+        "update_mod_element",
+        "delete_mod_element",
+        "validate_workspace",
+        "generate_workspace",
+        "build_workspace",
+        "export_workspace",
+        "run_client",
+        "cancel_task",
+        "create_recovery_point",
+        "restore_recovery_point",
+        "resolve_operation_approval"
+      ]
+    },
+    "payload": {
+      "type": "object"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "create_mod_element"
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/createModElementPayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "update_mod_element"
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/updateModElementPayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "delete_mod_element"
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/deleteModElementPayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "enum": [
+              "validate_workspace",
+              "generate_workspace",
+              "build_workspace",
+              "export_workspace",
+              "run_client"
+            ]
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/workspaceTaskPayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "cancel_task"
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/cancelTaskPayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "create_recovery_point"
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/createRecoveryPointPayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "restore_recovery_point"
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/restoreRecoveryPointPayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "resolve_operation_approval"
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/resolveApprovalPayload"
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "createModElementPayload": {
+      "type": "object",
+      "required": [
+        "clientMutationId",
+        "elementType",
+        "name",
+        "initialValues"
+      ],
+      "properties": {
+        "clientMutationId": {
+          "$ref": "urn:ui-core:0.1:common#/$defs/uuid"
+        },
+        "elementType": {
+          "$ref": "urn:ui-core:0.1:common#/$defs/modElementType"
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        },
+        "initialValues": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    },
+    "fieldChange": {
+      "type": "object",
+      "required": [
+        "path",
+        "value"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "pattern": "^/"
+        },
+        "value": {}
+      },
+      "additionalProperties": false
+    },
+    "updateModElementPayload": {
+      "type": "object",
+      "required": [
+        "clientMutationId",
+        "elementId",
+        "changes"
+      ],
+      "properties": {
+        "clientMutationId": {
+          "$ref": "urn:ui-core:0.1:common#/$defs/uuid"
+        },
+        "elementId": {
+          "$ref": "urn:ui-core:0.1:common#/$defs/uuid"
+        },
+        "changes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/fieldChange"
+          },
+          "minItems": 1,
+          "maxItems": 200
+        }
+      },
+      "additionalProperties": false
+    },
+    "deleteModElementPayload": {
+      "type": "object",
+      "required": [
+        "clientMutationId",
+        "elementId"
+      ],
+      "properties": {
+        "clientMutationId": {
+          "$ref": "urn:ui-core:0.1:common#/$defs/uuid"
+        },
+        "elementId": {
+          "$ref": "urn:ui-core:0.1:common#/$defs/uuid"
+        }
+      },
+      "additionalProperties": false
+    },
+    "workspaceTaskPayload": {
+      "type": "object",
+      "required": [
+        "clientMutationId",
+        "scope"
+      ],
+      "properties": {
+        "clientMutationId": {
+          "$ref": "urn:ui-core:0.1:common#/$defs/uuid"
+        },
+        "scope": {
+          "type": "string",
+          "enum": [
+            "workspace",
+            "selection"
+          ]
+        },
+        "output": {
+          "type": "string",
+          "minLength": 1
+        },
+        "elementIds": {
+          "type": "array",
+          "items": {
+            "$ref": "urn:ui-core:0.1:common#/$defs/uuid"
+          },
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "cancelTaskPayload": {
+      "type": "object",
+      "required": [
+        "clientMutationId",
+        "taskId"
+      ],
+      "properties": {
+        "clientMutationId": {
+          "$ref": "urn:ui-core:0.1:common#/$defs/uuid"
+        },
+        "taskId": {
+          "$ref": "urn:ui-core:0.1:common#/$defs/uuid"
+        }
+      },
+      "additionalProperties": false
+    },
+    "createRecoveryPointPayload": {
+      "type": "object",
+      "required": [
+        "clientMutationId",
+        "label"
+      ],
+      "properties": {
+        "clientMutationId": {
+          "$ref": "urn:ui-core:0.1:common#/$defs/uuid"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        }
+      },
+      "additionalProperties": false
+    },
+    "restoreRecoveryPointPayload": {
+      "type": "object",
+      "required": [
+        "clientMutationId",
+        "recoveryPointId",
+        "userApproved"
+      ],
+      "properties": {
+        "clientMutationId": {
+          "$ref": "urn:ui-core:0.1:common#/$defs/uuid"
+        },
+        "recoveryPointId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "userApproved": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "resolveApprovalPayload": {
+      "type": "object",
+      "required": [
+        "clientMutationId",
+        "approvalId",
+        "decision"
+      ],
+      "properties": {
+        "clientMutationId": {
+          "$ref": "urn:ui-core:0.1:common#/$defs/uuid"
+        },
+        "approvalId": {
+          "$ref": "urn:ui-core:0.1:common#/$defs/uuid"
+        },
+        "decision": {
+          "type": "string",
+          "enum": [
+            "approve",
+            "deny"
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,16 @@
+[
+  {
+    "id": "tools-call-audio",
+    "name": "ToolsCallAudio",
+    "description": "Tool returns audio content",
+    "status": "FAILURE",
+    "timestamp": "2026-08-16T23:52:01.831Z",
+    "errorMessage": "Failed: MCP error -32602: Unknown tool: invalid_tool_name",
+    "specReferences": [
+      {
+        "id": "MCP-Tools-Call",
+        "url": "https://modelcontextprotocol.io/specification/2025-06-18/server/tools#calling-tools"
+      }
+    ]
+  }
+]

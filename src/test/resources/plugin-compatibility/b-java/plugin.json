@@ -1,0 +1,11 @@
+{
+  "id": "fixture-b-java",
+  "weight": 0,
+  "javaplugin": "fixtures.LogicPlugin",
+  "info": {
+    "name": "Fixture B Java",
+    "version": "1.0.0",
+    "description": "Java logic compatibility fixture",
+    "author": "Copperbench"
+  }
+}

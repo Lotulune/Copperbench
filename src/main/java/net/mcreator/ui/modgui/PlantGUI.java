@@ -1,0 +1,1204 @@
+/*
+ * MCreator (https://mcreator.net/)
+ * Copyright (C) 2012-2020, Pylo
+ * Copyright (C) 2020-2023, Pylo, opensource contributors
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+package net.mcreator.ui.modgui;
+
+import net.mcreator.blockly.data.Dependency;
+import net.mcreator.element.parts.*;
+import net.mcreator.element.types.Plant;
+import net.mcreator.element.types.interfaces.IBlockWithBoundingBox;
+import net.mcreator.minecraft.DataListEntry;
+import net.mcreator.minecraft.DataListLoader;
+import net.mcreator.minecraft.ElementUtil;
+import net.mcreator.ui.MCreator;
+import net.mcreator.ui.MCreatorApplication;
+import net.mcreator.ui.component.*;
+import net.mcreator.ui.component.util.ComboBoxUtil;
+import net.mcreator.ui.component.util.ComponentUtils;
+import net.mcreator.ui.component.util.PanelUtils;
+import net.mcreator.ui.dialogs.TypedTextureSelectorDialog;
+import net.mcreator.ui.help.HelpUtils;
+import net.mcreator.ui.init.L10N;
+import net.mcreator.ui.init.UIRES;
+import net.mcreator.ui.laf.renderer.ModelComboBoxRenderer;
+import net.mcreator.ui.minecraft.*;
+import net.mcreator.ui.minecraft.boundingboxes.JBoundingBoxList;
+import net.mcreator.ui.modgui.util.ComponentFromAnnotation;
+import net.mcreator.ui.procedure.AbstractProcedureSelector;
+import net.mcreator.ui.procedure.ProcedureSelector;
+import net.mcreator.ui.procedure.StringListProcedureSelector;
+import net.mcreator.ui.validation.AggregatedValidationResult;
+import net.mcreator.ui.validation.ValidationGroup;
+import net.mcreator.ui.validation.component.VTextField;
+import net.mcreator.ui.validation.validators.ItemListFieldSingleTagValidator;
+import net.mcreator.ui.workspace.resources.TextureType;
+import net.mcreator.util.ListUtils;
+import net.mcreator.util.StringUtils;
+import net.mcreator.workspace.elements.ModElement;
+import net.mcreator.workspace.elements.VariableTypeLoader;
+import net.mcreator.workspace.resources.Model;
+
+import javax.annotation.Nullable;
+import javax.swing.*;
+import java.awt.*;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+public class PlantGUI extends ModElementGUI<Plant> {
+
+	private TextureSelectionButton texture;
+	private TextureSelectionButton textureBottom;
+	private JComponent textureContainer;
+	private JComponent textureBottomContainer;
+
+	private TextureSelectionButton itemTexture;
+	private TextureSelectionButton particleTexture;
+
+	private final JCheckBox customBoundingBox = L10N.checkbox("elementgui.common.enable");
+	private final JCheckBox disableOffset = L10N.checkbox("elementgui.common.enable");
+	private JBoundingBoxList boundingBoxList;
+
+	private final JSpinner hardness = ComponentFromAnnotation.spinner(Plant.class, "hardness");
+	private final JSpinner luminance = ComponentFromAnnotation.spinner(Plant.class, "luminance");
+	private final JSpinner resistance = ComponentFromAnnotation.spinner(Plant.class, "resistance");
+	private final JSpinner frequencyOnChunks = ComponentFromAnnotation.spinner(Plant.class, "frequencyOnChunks");
+	private final JSpinner dropAmount = ComponentFromAnnotation.spinner(Plant.class, "dropAmount");
+	private final JMinMaxSpinner xpAmount = ComponentFromAnnotation.minMaxSpinner(Plant.class, "xpAmountMin",
+			"xpAmountMax").allowEqualValues();
+
+	private final JCheckBox useLootTableForDrops = L10N.checkbox("elementgui.common.use_table_loot_drops");
+	private final JCheckBox unbreakable = L10N.checkbox("elementgui.common.enable");
+	private final JCheckBox forceTicking = L10N.checkbox("elementgui.common.enable");
+	private final JCheckBox hasTileEntity = L10N.checkbox("elementgui.common.enable");
+	private final JCheckBox emissiveRendering = L10N.checkbox("elementgui.common.enable");
+	private final JCheckBox isSolid = L10N.checkbox("elementgui.common.enable");
+	private final JCheckBox isWaterloggable = L10N.checkbox("elementgui.common.enable");
+
+	private final VTextField name = new VTextField(18).requireValue("elementgui.plant.error_plant_needs_name")
+			.enableRealtimeValidation();
+
+	private StringListProcedureSelector specialInformation;
+
+	private final DataListComboBox soundOnStep = new DataListComboBox(mcreator);
+	private final JRadioButton defaultSoundType = L10N.radiobutton("elementgui.common.default_sound_type");
+	private final JRadioButton customSoundType = L10N.radiobutton("elementgui.common.custom_sound_type");
+	private final SoundSelector breakSound = new SoundSelector(mcreator).requireValue(
+			"elementgui.block.error_block_needs_break_sound");
+	private final SoundSelector stepSound = new SoundSelector(mcreator).requireValue(
+			"elementgui.block.error_block_needs_step_sound");
+	private final SoundSelector placeSound = new SoundSelector(mcreator).requireValue(
+			"elementgui.block.error_block_needs_place_sound");
+	private final SoundSelector hitSound = new SoundSelector(mcreator).requireValue(
+			"elementgui.block.error_block_needs_hit_sound");
+	private final SoundSelector fallSound = new SoundSelector(mcreator).requireValue(
+			"elementgui.block.error_block_needs_fall_sound");
+
+	private final JCheckBox isReplaceable = L10N.checkbox("elementgui.plant.is_replaceable");
+	private final DataListComboBox colorOnMap = new DataListComboBox(mcreator,
+			DataListLoader.loadDataList("mapcolors"));
+	private final MCItemHolder creativePickItem = new MCItemHolder(mcreator, ElementUtil::loadBlocksAndItems);
+
+	private final MCItemHolder customDrop = new MCItemHolder(mcreator, ElementUtil::loadBlocksAndItems);
+
+	private final JComboBox<String> plantType = ComponentFromAnnotation.options(Plant.class, "plantType");
+	private final CardLayout plantTypesLayout = new CardLayout();
+	private final JPanel plantTypesCardPanel = new JPanel(plantTypesLayout);
+	private final JLabel plantTypeIndicator = new JLabel();
+
+	private static final Model cross = new Model.BuiltInModel("Cross model");
+	private static final Model crop = new Model.BuiltInModel("Crop model");
+	private final JComboBox<String> growapableSpawnType = new JComboBox<>();
+	private final JSpinner growapableMaxHeight = ComponentFromAnnotation.spinner(Plant.class, "growapableMaxHeight");
+
+	private final JComboBox<String> suspiciousStewEffect = new JComboBox<>();
+	private final JSpinner suspiciousStewDuration = ComponentFromAnnotation.spinner(Plant.class,
+			"suspiciousStewDuration");
+
+	private final JCheckBox hasBlockItem = L10N.checkbox("elementgui.common.enable");
+	private final JSpinner maxStackSize = ComponentFromAnnotation.spinner(Plant.class, "maxStackSize");
+	private final TranslatedComboBox rarity = ComponentFromAnnotation.translatedOptions(Plant.class, "rarity",
+			"elementgui.common.rarity_");
+	private final JCheckBox immuneToFire = L10N.checkbox("elementgui.common.enable");
+	private final TabListField creativeTabs = new TabListField(mcreator);
+
+	// Sapling properties
+	private final JSpinner secondaryTreeChance = ComponentFromAnnotation.spinner(Plant.class, "secondaryTreeChance");
+	private final SingleConfiguredFeatureField[] trees = new SingleConfiguredFeatureField[] {
+			new SingleConfiguredFeatureField(mcreator), new SingleConfiguredFeatureField(mcreator) };
+	private final SingleConfiguredFeatureField[] flowerTrees = new SingleConfiguredFeatureField[] {
+			new SingleConfiguredFeatureField(mcreator), new SingleConfiguredFeatureField(mcreator) };
+	private final SingleConfiguredFeatureField[] megaTrees = new SingleConfiguredFeatureField[] {
+			new SingleConfiguredFeatureField(mcreator), new SingleConfiguredFeatureField(mcreator) };
+
+	private final SearchableComboBox<Model> renderType = new SearchableComboBox<>(new Model[] { cross, crop });
+
+	private final JComboBox<String> offsetType = ComponentFromAnnotation.options(Plant.class, "offsetType");
+	private final SearchableComboBox<String> aiPathNodeType = new SearchableComboBox<>();
+	private final MCItemHolder strippingResult = new MCItemHolder(mcreator, ElementUtil::loadBlocks);
+
+	private final JComboBox<String> tintType = ComponentFromAnnotation.options(Plant.class, "tintType");
+	private final JCheckBox isItemTinted = L10N.checkbox("elementgui.common.enable");
+
+	private final JCheckBox isBonemealable = L10N.checkbox("elementgui.common.enable");
+
+	private MCItemListField canBePlacedOn;
+
+	private ProcedureSelector onBlockAdded;
+	private ProcedureSelector onNeighbourBlockChanges;
+	private ProcedureSelector onTickUpdate;
+	private ProcedureSelector onRandomUpdateEvent;
+	private ProcedureSelector onDestroyedByPlayer;
+	private ProcedureSelector onDestroyedByExplosion;
+	private ProcedureSelector onStartToDestroy;
+	private ProcedureSelector onEntityCollides;
+	private ProcedureSelector onBlockPlacedBy;
+	private ProcedureSelector onRightClicked;
+	private ProcedureSelector onEntityWalksOn;
+	private ProcedureSelector onHitByProjectile;
+	private ProcedureSelector onBonemealSuccess;
+	private ProcedureSelector onEntityFallsOn;
+
+	private ProcedureSelector placingCondition;
+	private ProcedureSelector isBonemealTargetCondition;
+	private ProcedureSelector bonemealSuccessCondition;
+
+	private final JCheckBox generateFeature = L10N.checkbox("elementgui.common.enable");
+	private BiomeListField restrictionBiomes;
+	private final JSpinner patchSize = ComponentFromAnnotation.spinner(Plant.class, "patchSize");
+	private final JCheckBox generateAtAnyHeight = L10N.checkbox("elementgui.common.enable");
+	private final JComboBox<String> generationType = ComponentFromAnnotation.options(Plant.class, "generationType");
+
+	private final ValidationGroup page3group = new ValidationGroup();
+
+	private final JCheckBox ignitedByLava = L10N.checkbox("elementgui.common.enable");
+	private final JSpinner flammability = ComponentFromAnnotation.spinner(Plant.class, "flammability");
+	private final JSpinner fireSpreadSpeed = ComponentFromAnnotation.spinner(Plant.class, "fireSpreadSpeed");
+	private final JSpinner speedFactor = ComponentFromAnnotation.spinner(Plant.class, "speedFactor");
+	private final JSpinner jumpFactor = ComponentFromAnnotation.spinner(Plant.class, "jumpFactor");
+
+	public PlantGUI(MCreator mcreator, ModElement modElement, boolean editingMode) {
+		super(mcreator, modElement, editingMode);
+		this.initGUI();
+		super.finalizeGUI();
+	}
+
+	@Override protected void initGUI() {
+		restrictionBiomes = new BiomeListField(mcreator, true);
+		restrictionBiomes.setValidator(new ItemListFieldSingleTagValidator(restrictionBiomes));
+
+		canBePlacedOn = new MCItemListField(mcreator, ElementUtil::loadBlocksAndTags, false, true);
+
+		boundingBoxList = new JBoundingBoxList(mcreator, this, renderType::getSelectedItem);
+		renderType.addActionListener(_ -> boundingBoxList.modelChanged());
+
+		generateFeature.setOpaque(false);
+
+		suspiciousStewEffect.setPrototypeDisplayValue("XXXXXXXXXXXXXXXXXX");
+
+		onBlockAdded = new ProcedureSelector(this.withEntry("block/when_added"), mcreator,
+				L10N.t("elementgui.plant.event_on_added"), Dependency.fromString(
+				"x:number/y:number/z:number/world:world/blockstate:blockstate/oldState:blockstate/moving:logic"));
+		onNeighbourBlockChanges = new ProcedureSelector(this.withEntry("block/when_neighbour_changes"), mcreator,
+				L10N.t("elementgui.common.event_on_neighbour_block_changes"),
+				Dependency.fromString("x:number/y:number/z:number/world:world/blockstate:blockstate"));
+		onTickUpdate = new ProcedureSelector(this.withEntry("block/update_tick"), mcreator,
+				L10N.t("elementgui.common.event_on_update_tick"),
+				Dependency.fromString("x:number/y:number/z:number/world:world/blockstate:blockstate"));
+		onRandomUpdateEvent = new ProcedureSelector(this.withEntry("block/display_tick_update"), mcreator,
+				L10N.t("elementgui.common.event_on_random_update"), ProcedureSelector.Side.CLIENT,
+				Dependency.fromString("x:number/y:number/z:number/world:world/entity:entity/blockstate:blockstate"));
+		onDestroyedByPlayer = new ProcedureSelector(this.withEntry("block/when_destroyed_player"), mcreator,
+				L10N.t("elementgui.plant.event_on_destroyed_by_player"),
+				Dependency.fromString("x:number/y:number/z:number/world:world/entity:entity/blockstate:blockstate"));
+		onDestroyedByExplosion = new ProcedureSelector(this.withEntry("block/when_destroyed_explosion"), mcreator,
+				L10N.t("elementgui.plant.event_on_destroyed_by_explosion"), ProcedureSelector.Side.SERVER,
+				Dependency.fromString("x:number/y:number/z:number/world:world"));
+		onStartToDestroy = new ProcedureSelector(this.withEntry("block/when_destroy_start"), mcreator,
+				L10N.t("elementgui.plant.event_on_start_to_destroy"),
+				Dependency.fromString("x:number/y:number/z:number/world:world/entity:entity/blockstate:blockstate"));
+		onEntityCollides = new ProcedureSelector(this.withEntry("block/when_entity_collides"), mcreator,
+				L10N.t("elementgui.plant.event_on_entity_collides"),
+				Dependency.fromString("x:number/y:number/z:number/world:world/entity:entity/blockstate:blockstate"));
+		onBlockPlacedBy = new ProcedureSelector(this.withEntry("block/when_block_placed_by"), mcreator,
+				L10N.t("elementgui.common.event_on_block_placed_by"), Dependency.fromString(
+				"x:number/y:number/z:number/world:world/entity:entity/itemstack:itemstack/blockstate:blockstate"));
+		onRightClicked = new ProcedureSelector(this.withEntry("block/when_right_clicked"), mcreator,
+				L10N.t("elementgui.plant.event_on_right_clicked"), VariableTypeLoader.BuiltInTypes.ACTIONRESULTTYPE,
+				Dependency.fromString(
+						"x:number/y:number/z:number/world:world/entity:entity/direction:direction/blockstate:blockstate/hitX:number/hitY:number/hitZ:number")).makeReturnValueOptional();
+		onEntityWalksOn = new ProcedureSelector(this.withEntry("block/when_entity_walks_on"), mcreator,
+				L10N.t("elementgui.block.event_on_entity_walks_on"),
+				Dependency.fromString("x:number/y:number/z:number/world:world/entity:entity/blockstate:blockstate"));
+		onEntityFallsOn = new ProcedureSelector(this.withEntry("common/when_entity_falls_on"), mcreator,
+				L10N.t("elementgui.common.event_on_entity_falls_on"), Dependency.fromString(
+				"x:number/y:number/z:number/world:world/entity:entity/blockstate:blockstate/distance:number"));
+		onHitByProjectile = new ProcedureSelector(this.withEntry("block/on_hit_by_projectile"), mcreator,
+				L10N.t("elementgui.common.event_on_block_hit_by_projectile"), Dependency.fromString(
+				"x:number/y:number/z:number/world:world/entity:entity/direction:direction/blockstate:blockstate/hitX:number/hitY:number/hitZ:number"));
+		onBonemealSuccess = new ProcedureSelector(this.withEntry("block/on_bonemeal_success"), mcreator,
+				L10N.t("elementgui.common.event_on_bonemeal_success"), ProcedureSelector.Side.SERVER,
+				Dependency.fromString("x:number/y:number/z:number/world:world/blockstate:blockstate")).makeInline();
+
+		specialInformation = new StringListProcedureSelector(this.withEntry("block/special_information"), mcreator,
+				L10N.t("elementgui.common.special_information"), AbstractProcedureSelector.Side.CLIENT,
+				new JStringListField(mcreator, null), 0,
+				Dependency.fromString("x:number/y:number/z:number/entity:entity/world:world/itemstack:itemstack"));
+
+		placingCondition = new ProcedureSelector(this.withEntry("plant/placing_condition"), mcreator,
+				L10N.t("elementgui.plant.condition_additional_placing"), VariableTypeLoader.BuiltInTypes.LOGIC,
+				Dependency.fromString("x:number/y:number/z:number/world:world/blockstate:blockstate")).setDefaultName(
+				L10N.t("condition.common.no_additional")).makeInline();
+		isBonemealTargetCondition = new ProcedureSelector(this.withEntry("block/bonemeal_target_condition"), mcreator,
+				L10N.t("elementgui.common.event_is_bonemeal_target"), VariableTypeLoader.BuiltInTypes.LOGIC,
+				Dependency.fromString(
+						"x:number/y:number/z:number/world:world/blockstate:blockstate/clientSide:logic")).makeInline();
+		bonemealSuccessCondition = new ProcedureSelector(this.withEntry("block/bonemeal_success_condition"), mcreator,
+				L10N.t("elementgui.common.event_bonemeal_success_condition"), ProcedureSelector.Side.SERVER, true,
+				VariableTypeLoader.BuiltInTypes.LOGIC,
+				Dependency.fromString("x:number/y:number/z:number/world:world/blockstate:blockstate")).makeInline();
+
+		ComponentUtils.deriveFont(tintType, 16);
+		ComponentUtils.deriveFont(offsetType, 16);
+		ComponentUtils.deriveFont(growapableSpawnType, 16);
+
+		JPanel pane2 = new JPanel(new BorderLayout(10, 10));
+		JPanel pane3 = new JPanel(new BorderLayout(10, 10));
+		JPanel pane4 = new JPanel(new BorderLayout(2, 2));
+		JPanel pane5 = new JPanel(new BorderLayout(10, 10));
+		JPanel bbPane = new JPanel(new BorderLayout(10, 10));
+
+		texture = new TextureSelectionButton(
+				new TypedTextureSelectorDialog(mcreator, TextureType.BLOCK)).requireValue();
+		textureBottom = new TextureSelectionButton(new TypedTextureSelectorDialog(mcreator, TextureType.BLOCK));
+		texture.setOpaque(false);
+		textureBottom.setOpaque(false);
+		textureContainer = ComponentUtils.squareAndBorder(texture, new Color(125, 255, 174),
+				L10N.t("elementgui.plant.texture_place_texture"));
+		textureBottomContainer = ComponentUtils.squareAndBorder(textureBottom,
+				L10N.t("elementgui.plant.texture_place_bottom"));
+		textureBottomContainer.setOpaque(false);
+
+		itemTexture = new TextureSelectionButton(new TypedTextureSelectorDialog(mcreator, TextureType.ITEM), 32);
+		itemTexture.setOpaque(false);
+		particleTexture = new TextureSelectionButton(new TypedTextureSelectorDialog(mcreator, TextureType.BLOCK), 32);
+		particleTexture.setOpaque(false);
+
+		isItemTinted.setOpaque(false);
+
+		JPanel rent = new JPanel(new GridLayout(6, 2, 2, 2));
+		rent.setOpaque(false);
+
+		rent.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/model"),
+				L10N.label("elementgui.plant.block_model")));
+		rent.add(renderType);
+
+		rent.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/item_texture"),
+				L10N.label("elementgui.plant.item_texture")));
+		rent.add(PanelUtils.centerInPanel(itemTexture));
+
+		rent.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/particle_texture"),
+				L10N.label("elementgui.plant.particle_texture")));
+		rent.add(PanelUtils.centerInPanel(particleTexture));
+
+		rent.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/tint_type"),
+				L10N.label("elementgui.common.tint_type")));
+		rent.add(tintType);
+		rent.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/is_item_tinted"),
+				L10N.label("elementgui.plant.is_item_tinted")));
+		rent.add(isItemTinted);
+
+		rent.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/offset_type"),
+				L10N.label("elementgui.common.offset_type")));
+		rent.add(offsetType);
+
+		renderType.setFont(renderType.getFont().deriveFont(16.0f));
+		renderType.setPreferredSize(new Dimension(350, 42));
+		renderType.setRenderer(new ModelComboBoxRenderer());
+
+		JPanel texturesAndRent = new JPanel(new BorderLayout(0, 0));
+		texturesAndRent.setOpaque(false);
+
+		JComponent texturesPan = PanelUtils.totalCenterInPanel(
+				PanelUtils.gridElements(2, 1, textureContainer, textureBottomContainer));
+		texturesPan.setBorder(BorderFactory.createEmptyBorder(0, 50, 0, 50));
+		texturesAndRent.add("Center", texturesPan);
+
+		texturesAndRent.add("East", PanelUtils.centerAndSouthElement(rent, specialInformation, 2, 2));
+
+		ComponentUtils.makeSection(texturesAndRent, L10N.t("elementgui.plant.textures_and_model"));
+
+		JPanel sbbp2 = new JPanel(new BorderLayout(5, 5));
+
+		sbbp2.setOpaque(false);
+
+		emissiveRendering.setOpaque(false);
+		isWaterloggable.setOpaque(false);
+
+		isReplaceable.setOpaque(false);
+		isBonemealable.setOpaque(false);
+
+		plantTypesCardPanel.setOpaque(false);
+
+		JPanel plantTypeSelector = new JPanel(new BorderLayout(5, 5));
+		ComponentUtils.makeSection(plantTypeSelector, L10N.t("elementgui.plant.plant_types"));
+
+		JPanel plantTypePanel = new JPanel(new GridLayout(1, 2, 15, 2));
+		plantTypePanel.setOpaque(false);
+		plantTypePanel.add(HelpUtils.wrapWithHelpButton(this.withEntry("plant/plant_type"),
+				L10N.label("elementgui.plant.plant_type")));
+		plantTypePanel.add(plantType);
+
+		plantType.setRenderer(new PlantTypeListRenderer());
+
+		plantTypeIndicator.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 20));
+
+		plantTypeSelector.add("Center", PanelUtils.northAndCenterElement(plantTypePanel, plantTypesCardPanel, 2, 2));
+		plantTypeSelector.add("East", PanelUtils.pullElementUp(plantTypeIndicator));
+		plantTypeSelector.setOpaque(false);
+
+		// Panel for static plants
+		JPanel staticPlantCard = new JPanel(new BorderLayout(15, 5));
+
+		JPanel staticPlantProperties = new JPanel(new GridLayout(2, 2, 15, 2));
+		staticPlantProperties.setOpaque(false);
+		staticPlantProperties.add(HelpUtils.wrapWithHelpButton(this.withEntry("plant/suspicious_stew_effect"),
+				L10N.label("elementgui.plant.suspicious_stew_effect")));
+		staticPlantProperties.add(suspiciousStewEffect);
+		staticPlantProperties.add(HelpUtils.wrapWithHelpButton(this.withEntry("plant/suspicious_stew_duration"),
+				L10N.label("elementgui.plant.suspicious_stew_duration")));
+		staticPlantProperties.add(suspiciousStewDuration);
+
+		staticPlantCard.add("Center", PanelUtils.pullElementUp(staticPlantProperties));
+		staticPlantCard.setOpaque(false);
+
+		// Panel for sugar cane-like plants
+		JPanel growablePlantCard = new JPanel(new BorderLayout(15, 5));
+		growablePlantCard.add("Center", PanelUtils.pullElementUp(PanelUtils.gridElements(1, 2, 15, 2,
+				HelpUtils.wrapWithHelpButton(this.withEntry("plant/max_height"),
+						L10N.label("elementgui.plant.max_height")), growapableMaxHeight)));
+		growablePlantCard.setOpaque(false);
+
+		// Panel for double plants
+		JPanel doublePlantCard = new JPanel(new BorderLayout(15, 5));
+		doublePlantCard.setOpaque(false);
+
+		// Panel for saplings
+		JPanel saplingCard = new JPanel(new BorderLayout(15, 5));
+
+		JPanel saplingProperties = new JPanel(new GridLayout(5, 3, 2, 2));
+		saplingProperties.setOpaque(false);
+
+		saplingProperties.add(new JLabel());
+		saplingProperties.add(L10N.label("elementgui.plant.primary_trees"));
+		saplingProperties.add(L10N.label("elementgui.plant.secondary_trees"));
+
+		saplingProperties.add(
+				HelpUtils.wrapWithHelpButton(this.withEntry("plant/trees"), L10N.label("elementgui.plant.trees")));
+		saplingProperties.add(trees[0]);
+		saplingProperties.add(trees[1]);
+
+		saplingProperties.add(HelpUtils.wrapWithHelpButton(this.withEntry("plant/flower_trees"),
+				L10N.label("elementgui.plant.flower_trees")));
+		saplingProperties.add(flowerTrees[0]);
+		saplingProperties.add(flowerTrees[1]);
+
+		saplingProperties.add(HelpUtils.wrapWithHelpButton(this.withEntry("plant/mega_trees"),
+				L10N.label("elementgui.plant.mega_trees")));
+		saplingProperties.add(megaTrees[0]);
+		saplingProperties.add(megaTrees[1]);
+
+		saplingProperties.add(HelpUtils.wrapWithHelpButton(this.withEntry("plant/secondary_tree_chance"),
+				L10N.label("elementgui.plant.secondary_tree_chance")));
+		saplingProperties.add(new JLabel());
+		saplingProperties.add(secondaryTreeChance);
+
+		saplingProperties.setBorder(BorderFactory.createEmptyBorder(2, 0, 0, 0));
+
+		for (int i = 0; i < 2; i++) {
+			trees[i].setPreferredSize(new Dimension(280, -1));
+			flowerTrees[i].setPreferredSize(new Dimension(280, -1));
+			megaTrees[i].setPreferredSize(new Dimension(280, -1));
+			megaTrees[i].addEntrySelectedListener(_ -> updateWaterloggableSetting());
+		}
+
+		saplingCard.add("Center", PanelUtils.pullElementUp(saplingProperties));
+		saplingCard.setOpaque(false);
+
+		plantTypesCardPanel.add(staticPlantCard, "normal");
+		plantTypesCardPanel.add(growablePlantCard, "growapable");
+		plantTypesCardPanel.add(doublePlantCard, "double");
+		plantTypesCardPanel.add(saplingCard, "sapling");
+
+		plantType.addActionListener(_ -> updatePlantType());
+
+		sbbp2.add("North", PanelUtils.centerInPanel(plantTypeSelector));
+		sbbp2.add("Center", texturesAndRent);
+
+		pane2.setOpaque(false);
+		pane2.add("Center", PanelUtils.totalCenterInPanel(sbbp2));
+
+		JPanel northPanel = new JPanel(new GridLayout(3, 2, 10, 2));
+		northPanel.setOpaque(false);
+
+		northPanel.add(HelpUtils.wrapWithHelpButton(this.withEntry("plant/custom_bounding_box"),
+				L10N.label("elementgui.common.custom_bounding_box")));
+		northPanel.add(customBoundingBox);
+		northPanel.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/disable_offset"),
+				L10N.label("elementgui.common.disable_offset")));
+		northPanel.add(disableOffset);
+		northPanel.add(HelpUtils.wrapWithHelpButton(this.withEntry("plant/is_solid"),
+				L10N.label("elementgui.plant.is_solid")));
+		northPanel.add(isSolid);
+
+		customBoundingBox.setOpaque(false);
+		disableOffset.setOpaque(false);
+		isSolid.setOpaque(false);
+
+		bbPane.add(PanelUtils.northAndCenterElement(PanelUtils.join(FlowLayout.LEFT, northPanel), boundingBoxList));
+		bbPane.setOpaque(false);
+
+		bbPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+		customBoundingBox.addActionListener(_ -> {
+			disableOffset.setEnabled(customBoundingBox.isSelected());
+			if (!customBoundingBox.isSelected()) {
+				disableOffset.setSelected(false);
+			}
+			boundingBoxList.setEnabled(customBoundingBox.isSelected());
+		});
+
+		if (!isEditingMode()) { // Add first bounding box, disable custom bounding box options
+			boundingBoxList.setEntries(Collections.singletonList(new IBlockWithBoundingBox.BoxEntry()));
+			disableOffset.setEnabled(false);
+			boundingBoxList.setEnabled(false);
+		}
+
+		JPanel selp = new JPanel(new GridLayout(8, 2, 5, 2));
+		ComponentUtils.makeSection(selp, L10N.t("elementgui.common.properties_general"));
+		selp.setOpaque(false);
+
+		JPanel selp2 = new JPanel(new GridLayout(5, 2, 5, 2));
+		ComponentUtils.makeSection(selp2, L10N.t("elementgui.common.properties_dropping"));
+		selp2.setOpaque(false);
+
+		JPanel soundProperties = new JPanel(new GridLayout(7, 2, 0, 2));
+		ComponentUtils.makeSection(soundProperties, L10N.t("elementgui.common.properties_sound"));
+		soundProperties.setOpaque(false);
+
+		useLootTableForDrops.setOpaque(false);
+		unbreakable.setOpaque(false);
+		hardness.setOpaque(false);
+		resistance.setOpaque(false);
+		dropAmount.setOpaque(false);
+		hasBlockItem.setOpaque(false);
+		hasBlockItem.setSelected(true);
+		hasBlockItem.addActionListener(_ -> updateBlockItemSettings());
+		immuneToFire.setOpaque(false);
+
+		ComponentUtils.deriveFont(name, 16);
+
+		selp.add(HelpUtils.wrapWithHelpButton(this.withEntry("common/gui_name"),
+				L10N.label("elementgui.common.name_in_gui")));
+		selp.add(name);
+
+		selp.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/hardness"),
+				L10N.label("elementgui.common.hardness")));
+		selp.add(hardness);
+
+		selp.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/resistance"),
+				L10N.label("elementgui.common.resistance")));
+		selp.add(resistance);
+
+		selp.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/unbreakable"),
+				L10N.label("elementgui.plant.is_unbreakable")));
+		selp.add(unbreakable);
+
+		unbreakable.addActionListener(_ -> refreshUnbreakableProperties());
+
+		selp.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/luminance"),
+				L10N.label("elementgui.common.luminance")));
+		selp.add(luminance);
+
+		selp.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/emissive_rendering"),
+				L10N.label("elementgui.common.emissive_rendering")));
+		selp.add(emissiveRendering);
+
+		selp.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/replaceable"),
+				L10N.label("elementgui.plant.plant_is_replaceable")));
+		selp.add(isReplaceable);
+
+		selp.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/is_waterloggable"),
+				L10N.label("elementgui.plant.is_waterloggable")));
+		selp.add(isWaterloggable);
+
+		selp2.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/custom_drop"),
+				L10N.label("elementgui.common.custom_drop")));
+		selp2.add(PanelUtils.join(FlowLayout.LEFT, customDrop));
+
+		selp2.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/drop_amount"),
+				L10N.label("elementgui.common.drop_amount")));
+		selp2.add(dropAmount);
+
+		selp2.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/xp_amount"),
+				L10N.label("elementgui.common.xp_amount")));
+		selp2.add(xpAmount);
+
+		selp2.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/use_loot_table_for_drops"),
+				L10N.label("elementgui.common.use_loot_table_for_drop")));
+		selp2.add(useLootTableForDrops);
+
+		selp2.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/creative_pick_item"),
+				L10N.label("elementgui.common.creative_pick_item")));
+		selp2.add(PanelUtils.join(FlowLayout.LEFT, creativePickItem));
+
+		ButtonGroup bg2 = new ButtonGroup();
+		bg2.add(defaultSoundType);
+		bg2.add(customSoundType);
+		defaultSoundType.setSelected(true);
+		defaultSoundType.setOpaque(false);
+		customSoundType.setOpaque(false);
+
+		defaultSoundType.addActionListener(_ -> updateSoundType());
+		customSoundType.addActionListener(_ -> updateSoundType());
+
+		soundProperties.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/block_sound"), defaultSoundType));
+		soundProperties.add(soundOnStep);
+
+		soundProperties.add(PanelUtils.join(FlowLayout.LEFT, customSoundType));
+		soundProperties.add(new JEmptyBox());
+
+		soundProperties.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/break_sound"),
+				L10N.label("elementgui.common.soundtypes.break_sound")));
+		soundProperties.add(breakSound);
+
+		soundProperties.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/step_sound"),
+				L10N.label("elementgui.common.soundtypes.step_sound")));
+		soundProperties.add(stepSound);
+
+		soundProperties.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/place_sound"),
+				L10N.label("elementgui.common.soundtypes.place_sound")));
+		soundProperties.add(placeSound);
+
+		soundProperties.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/hit_sound"),
+				L10N.label("elementgui.common.soundtypes.hit_sound")));
+		soundProperties.add(hitSound);
+
+		soundProperties.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/fall_sound"),
+				L10N.label("elementgui.common.soundtypes.fall_sound")));
+		soundProperties.add(fallSound);
+
+		useLootTableForDrops.addActionListener(_ -> {
+			customDrop.setEnabled(!useLootTableForDrops.isSelected());
+			dropAmount.setEnabled(!useLootTableForDrops.isSelected());
+		});
+
+		JPanel blockItemSettings = new JPanel(new GridLayout(5, 2, 0, 2));
+		blockItemSettings.setOpaque(false);
+
+		blockItemSettings.add(HelpUtils.wrapWithHelpButton(this.withEntry("common/has_block_item"),
+				L10N.label("elementgui.block.has_block_item")));
+		blockItemSettings.add(hasBlockItem);
+
+		blockItemSettings.add(HelpUtils.wrapWithHelpButton(this.withEntry("item/stack_size"),
+				L10N.label("elementgui.common.max_stack_size")));
+		blockItemSettings.add(maxStackSize);
+
+		blockItemSettings.add(
+				HelpUtils.wrapWithHelpButton(this.withEntry("item/rarity"), L10N.label("elementgui.common.rarity")));
+		blockItemSettings.add(rarity);
+
+		blockItemSettings.add(HelpUtils.wrapWithHelpButton(this.withEntry("item/immune_to_fire"),
+				L10N.label("elementgui.item.is_immune_to_fire")));
+		blockItemSettings.add(immuneToFire);
+
+		blockItemSettings.add(HelpUtils.wrapWithHelpButton(this.withEntry("common/creative_tabs"),
+				L10N.label("elementgui.common.creative_tabs")));
+		blockItemSettings.add(creativeTabs);
+
+		ComponentUtils.makeSection(blockItemSettings, L10N.t("elementgui.block.properties_block_item"));
+
+		pane3.add("Center", PanelUtils.totalCenterInPanel(PanelUtils.westAndEastElement(
+				PanelUtils.pullElementUp(PanelUtils.northAndCenterElement(selp, blockItemSettings)),
+				PanelUtils.pullElementUp(PanelUtils.centerAndSouthElement(selp2, soundProperties)))));
+		pane3.setOpaque(false);
+
+		JPanel advancedProperties = new JPanel(new GridLayout(9, 2, 10, 2));
+		advancedProperties.setOpaque(false);
+
+		forceTicking.setOpaque(false);
+		hasTileEntity.setOpaque(false);
+		ignitedByLava.setOpaque(false);
+
+		advancedProperties.add(HelpUtils.wrapWithHelpButton(this.withEntry("plant/has_tile_entity"),
+				L10N.label("elementgui.plant.has_tile_entity")));
+		advancedProperties.add(hasTileEntity);
+
+		advancedProperties.add(HelpUtils.wrapWithHelpButton(this.withEntry("plant/force_ticking"),
+				L10N.label("elementgui.plant.force_ticking")));
+		advancedProperties.add(forceTicking);
+
+		advancedProperties.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/color_on_map"),
+				L10N.label("elementgui.plant.color_on_map")));
+		advancedProperties.add(colorOnMap);
+
+		advancedProperties.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/jump_factor"),
+				L10N.label("elementgui.block.jump_factor")));
+		advancedProperties.add(jumpFactor);
+
+		advancedProperties.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/speed_factor"),
+				L10N.label("elementgui.block.speed_factor")));
+		advancedProperties.add(speedFactor);
+
+		advancedProperties.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/ai_path_node_type"),
+				L10N.label("elementgui.common.ai_path_node_type")));
+		advancedProperties.add(aiPathNodeType);
+
+		advancedProperties.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/stripping_result"),
+				L10N.label("elementgui.block.stripping_result")));
+		advancedProperties.add(PanelUtils.centerInPanel(strippingResult));
+
+		advancedProperties.add(
+				HelpUtils.wrapWithHelpButton(this.withEntry("plant/type"), L10N.label("elementgui.plant.type")));
+		advancedProperties.add(growapableSpawnType);
+
+		advancedProperties.add(HelpUtils.wrapWithHelpButton(this.withEntry("plant/can_be_placed_on"),
+				L10N.label("elementgui.plant.can_be_placed_on")));
+		advancedProperties.add(canBePlacedOn);
+
+		JComponent plocb = PanelUtils.northAndCenterElement(advancedProperties, placingCondition, 2, 2);
+		ComponentUtils.makeSection(plocb, L10N.t("elementgui.plant.properties_advanced_plant"));
+		plocb.setOpaque(false);
+
+		JPanel bonemealPanel = new JPanel(new GridLayout(1, 2, 0, 2));
+		bonemealPanel.setOpaque(false);
+
+		bonemealPanel.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/is_bonemealable"),
+				L10N.label("elementgui.common.is_bonemealable")));
+		bonemealPanel.add(isBonemealable);
+
+		JPanel bonemealEvents = new JPanel(new GridLayout(3, 1, 0, 2));
+		bonemealEvents.setOpaque(false);
+
+		bonemealEvents.add(isBonemealTargetCondition);
+		bonemealEvents.add(bonemealSuccessCondition);
+		bonemealEvents.add(onBonemealSuccess);
+
+		isBonemealable.addActionListener(_ -> refreshBonemealProperties());
+		refreshBonemealProperties();
+
+		JComponent bonemealMerger = PanelUtils.northAndCenterElement(bonemealPanel, bonemealEvents, 2, 2);
+		ComponentUtils.makeSection(bonemealMerger, L10N.t("elementgui.common.properties_bonemeal"));
+
+		JPanel flammabilityProperties = new JPanel(new GridLayout(3, 2, 0, 2));
+		flammabilityProperties.setOpaque(false);
+
+		flammabilityProperties.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/ignited_by_lava"),
+				L10N.label("elementgui.block.ignited_by_lava")));
+		flammabilityProperties.add(ignitedByLava);
+
+		flammabilityProperties.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/flammability"),
+				L10N.label("elementgui.plant.flammability")));
+		flammabilityProperties.add(flammability);
+
+		flammabilityProperties.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/fire_spread_speed"),
+				L10N.label("elementgui.common.fire_spread_speed")));
+		flammabilityProperties.add(fireSpreadSpeed);
+
+		ComponentUtils.makeSection(flammabilityProperties, L10N.t("elementgui.common.properties_flammability"));
+
+		pane5.add("Center", PanelUtils.totalCenterInPanel(PanelUtils.westAndEastElement(plocb,
+				PanelUtils.pullElementUp(PanelUtils.column(bonemealMerger, flammabilityProperties)))));
+		pane5.setOpaque(false);
+
+		JPanel events = new JPanel(new GridLayout(4, 4, 5, 5));
+		events.setOpaque(false);
+		events.add(onRightClicked);
+		events.add(onBlockAdded);
+		events.add(onNeighbourBlockChanges);
+		events.add(onTickUpdate);
+		events.add(onDestroyedByPlayer);
+		events.add(onDestroyedByExplosion);
+		events.add(onStartToDestroy);
+		events.add(onEntityCollides);
+		events.add(onBlockPlacedBy);
+		events.add(onRandomUpdateEvent);
+		events.add(onEntityWalksOn);
+		events.add(onHitByProjectile);
+		events.add(onEntityFallsOn);
+		events.add(new JEmptyBox());
+		events.add(new JEmptyBox());
+		events.add(new JEmptyBox());
+
+		JPanel spawning = new JPanel(new GridLayout(6, 2, 5, 2));
+		spawning.setOpaque(false);
+		generateAtAnyHeight.setOpaque(false);
+
+		spawning.add(HelpUtils.wrapWithHelpButton(this.withEntry("common/generate_feature"),
+				L10N.label("elementgui.plant.generate_feature")));
+		spawning.add(generateFeature);
+
+		generateFeature.addActionListener(_ -> refreshSpawnProperties());
+		refreshSpawnProperties();
+
+		spawning.add(HelpUtils.wrapWithHelpButton(this.withEntry("plant/gen_chunk_count"),
+				L10N.label("elementgui.plant.gen_chunk_count")));
+		spawning.add(frequencyOnChunks);
+
+		spawning.add(HelpUtils.wrapWithHelpButton(this.withEntry("plant/patch_size"),
+				L10N.label("elementgui.plant.patch_size")));
+		spawning.add(patchSize);
+
+		spawning.add(HelpUtils.wrapWithHelpButton(this.withEntry("plant/generate_at_any_height"),
+				L10N.label("elementgui.plant.generate_at_any_height")));
+		spawning.add(generateAtAnyHeight);
+
+		spawning.add(HelpUtils.wrapWithHelpButton(this.withEntry("plant/generation_type"),
+				L10N.label("elementgui.plant.generation_type")));
+		spawning.add(generationType);
+
+		spawning.add(HelpUtils.wrapWithHelpButton(this.withEntry("common/restrict_to_biomes"),
+				L10N.label("elementgui.common.restrict_to_biomes")));
+		spawning.add(restrictionBiomes);
+
+		pane4.add("Center", PanelUtils.totalCenterInPanel(spawning));
+
+		pane4.setOpaque(false);
+
+		page3group.addValidationElement(name);
+		page3group.addValidationElement(breakSound.getVTextField());
+		page3group.addValidationElement(stepSound.getVTextField());
+		page3group.addValidationElement(placeSound.getVTextField());
+		page3group.addValidationElement(hitSound.getVTextField());
+		page3group.addValidationElement(fallSound.getVTextField());
+
+		addPage(L10N.t("elementgui.plant.page_visual_and_type"), pane2).validate(texture)
+				.lazyValidate(this::validateSaplingTrees);
+		addPage(L10N.t("elementgui.common.page_bounding_boxes"), bbPane);
+		addPage(L10N.t("elementgui.common.page_properties"), pane3).validate(page3group);
+		addPage(L10N.t("elementgui.common.page_advanced_properties"), pane5);
+		addPage(L10N.t("elementgui.common.page_triggers"), PanelUtils.totalCenterInPanel(events));
+		addPage(L10N.t("elementgui.common.page_generation"), PanelUtils.totalCenterInPanel(pane4)).validate(
+				restrictionBiomes);
+
+		if (!isEditingMode()) {
+			creativeTabs.setListElements(List.of(new TabEntry(mcreator.getWorkspace(), "DECORATIONS")));
+
+			String readableNameFromModElement = StringUtils.machineToReadableName(modElement.getName());
+			name.setText(readableNameFromModElement);
+		}
+
+		updateSoundType();
+		updatePlantType();
+	}
+
+	private void updatePlantType() {
+		refreshBonemealProperties(); // disable settings if sapling is selected
+		updateWaterloggableSetting(); // disable waterlogging if sapling with mega trees is selected
+
+		if ("double".equals(plantType.getSelectedItem())) {
+			textureBottomContainer.setVisible(true);
+			ComponentUtils.updateBorderTitle(textureContainer, L10N.t("elementgui.plant.texture_place_top_main"));
+			renderType.setSelectedItem(cross);
+			renderType.setEnabled(false);
+		} else {
+			textureBottomContainer.setVisible(false);
+			ComponentUtils.updateBorderTitle(textureContainer, L10N.t("elementgui.plant.texture_place_texture"));
+			renderType.setEnabled(true);
+		}
+
+		if (!isEditingMode()) {
+			if ("growapable".equals(plantType.getSelectedItem()) || "sapling".equals(plantType.getSelectedItem())) {
+				offsetType.setSelectedItem("NONE");
+			} else {
+				offsetType.setSelectedItem("XZ");
+			}
+		}
+
+		plantTypesLayout.show(plantTypesCardPanel, (String) plantType.getSelectedItem());
+		plantTypeIndicator.setIcon(UIRES.get(
+				"plant_" + plantType.getSelectedItem().toString().replace("growapable", "growable")
+						.replace("sapling", "normal")));
+
+		for (Component comp : plantTypesCardPanel.getComponents()) {
+			if (comp.isVisible()) {
+				plantTypesCardPanel.setPreferredSize(comp.getPreferredSize());
+			}
+		}
+	}
+
+	private void updateSoundType() {
+		breakSound.setEnabled(customSoundType.isSelected());
+		stepSound.setEnabled(customSoundType.isSelected());
+		placeSound.setEnabled(customSoundType.isSelected());
+		hitSound.setEnabled(customSoundType.isSelected());
+		fallSound.setEnabled(customSoundType.isSelected());
+		soundOnStep.setEnabled(!customSoundType.isSelected());
+	}
+
+	private void refreshBonemealProperties() {
+		boolean isSapling = "sapling".equals(plantType.getSelectedItem());
+		isBonemealable.setEnabled(!isSapling);
+		isBonemealTargetCondition.setEnabled(isBonemealable.isSelected() && !isSapling);
+		bonemealSuccessCondition.setEnabled(isBonemealable.isSelected() && !isSapling);
+		onBonemealSuccess.setEnabled(isBonemealable.isSelected() && !isSapling);
+	}
+
+	private void updateWaterloggableSetting() {
+		boolean canBeWaterlogged =
+				!"sapling".equals(plantType.getSelectedItem()) || (megaTrees[0].isEmpty() && megaTrees[1].isEmpty());
+		isWaterloggable.setEnabled(canBeWaterlogged);
+		if (!canBeWaterlogged)
+			isWaterloggable.setSelected(false);
+	}
+
+	private AggregatedValidationResult validateSaplingTrees() {
+		if (!"sapling".equals(plantType.getSelectedItem()))
+			return new AggregatedValidationResult.PASS();
+
+		for (int i = 0; i < 2; i++) {
+			if ((trees[i].getEntry() != null) || (flowerTrees[i].getEntry() != null) || (megaTrees[i].getEntry()
+					!= null)) {
+				return new AggregatedValidationResult.PASS();
+			}
+		}
+
+		return new AggregatedValidationResult.FAIL(L10N.t("elementgui.plant.error_sapling_needs_tree"));
+	}
+
+	private void updateBlockItemSettings() {
+		itemTexture.setEnabled(hasBlockItem.isSelected());
+		isItemTinted.setEnabled(hasBlockItem.isSelected());
+		maxStackSize.setEnabled(hasBlockItem.isSelected());
+		rarity.setEnabled(hasBlockItem.isSelected());
+		immuneToFire.setEnabled(hasBlockItem.isSelected());
+		creativeTabs.setEnabled(hasBlockItem.isSelected());
+	}
+
+	private void refreshUnbreakableProperties() {
+		boolean isUnbreakable = unbreakable.isSelected();
+
+		hardness.setEnabled(!isUnbreakable);
+		resistance.setEnabled(!isUnbreakable);
+	}
+
+	private void refreshSpawnProperties() {
+		boolean canSpawn = generateFeature.isSelected();
+
+		frequencyOnChunks.setEnabled(canSpawn);
+		restrictionBiomes.setEnabled(canSpawn);
+		patchSize.setEnabled(canSpawn);
+		generateAtAnyHeight.setEnabled(canSpawn);
+		generationType.setEnabled(canSpawn);
+	}
+
+	@Override public void reloadDataLists() {
+		super.reloadDataLists();
+
+		AbstractProcedureSelector.ReloadContext context = AbstractProcedureSelector.ReloadContext.create(
+				mcreator.getWorkspace());
+
+		onBlockAdded.refreshListKeepSelected(context);
+		onNeighbourBlockChanges.refreshListKeepSelected(context);
+		onTickUpdate.refreshListKeepSelected(context);
+		onRandomUpdateEvent.refreshListKeepSelected(context);
+		onDestroyedByPlayer.refreshListKeepSelected(context);
+		onDestroyedByExplosion.refreshListKeepSelected(context);
+		onStartToDestroy.refreshListKeepSelected(context);
+		onEntityCollides.refreshListKeepSelected(context);
+		onBlockPlacedBy.refreshListKeepSelected(context);
+		onRightClicked.refreshListKeepSelected(context);
+		onEntityWalksOn.refreshListKeepSelected(context);
+		onHitByProjectile.refreshListKeepSelected(context);
+		onBonemealSuccess.refreshListKeepSelected(context);
+		onEntityFallsOn.refreshListKeepSelected(context);
+
+		specialInformation.refreshListKeepSelected(context);
+		placingCondition.refreshListKeepSelected(context);
+		isBonemealTargetCondition.refreshListKeepSelected(context);
+		bonemealSuccessCondition.refreshListKeepSelected(context);
+
+		ComboBoxUtil.updateComboBoxContents(soundOnStep, DataListLoader.loadDataList("stepsounds"),
+				new DataListEntry.Dummy("PLANT"));
+
+		ComboBoxUtil.updateComboBoxContents(growapableSpawnType,
+				Arrays.asList(ElementUtil.getDataListAsStringArray("planttypes")), "Plains");
+
+		ComboBoxUtil.updateComboBoxContents(renderType, ListUtils.merge(Arrays.asList(cross, crop),
+				Model.getModelsWithTextureMaps(mcreator.getWorkspace()).stream()
+						.filter(el -> el.getType() == Model.Type.JSON || el.getType() == Model.Type.OBJ)
+						.collect(Collectors.toList())));
+
+		ComboBoxUtil.updateComboBoxContents(aiPathNodeType,
+				Arrays.asList(ElementUtil.getDataListAsStringArray("pathnodetypes")), "DEFAULT");
+
+		ComboBoxUtil.updateComboBoxContents(suspiciousStewEffect,
+				ElementUtil.loadAllPotionEffects(mcreator.getWorkspace()).stream().map(DataListEntry::getName)
+						.collect(Collectors.toList()), "SPEED");
+	}
+
+	@Override public void openInEditingMode(Plant plant) {
+		itemTexture.setTexture(plant.itemTexture);
+		particleTexture.setTexture(plant.particleTexture);
+		texture.setTexture(plant.texture);
+		name.setText(plant.name);
+		hardness.setValue(plant.hardness);
+		resistance.setValue(plant.resistance);
+		soundOnStep.setSelectedItem(plant.soundOnStep);
+		breakSound.setSound(plant.breakSound);
+		stepSound.setSound(plant.stepSound);
+		placeSound.setSound(plant.placeSound);
+		fallSound.setSound(plant.fallSound);
+		defaultSoundType.setSelected(!plant.isCustomSoundType);
+		customSoundType.setSelected(plant.isCustomSoundType);
+		hitSound.setSound(plant.hitSound);
+		luminance.setValue(plant.luminance);
+		unbreakable.setSelected(plant.unbreakable);
+		forceTicking.setSelected(plant.forceTicking);
+		hasTileEntity.setSelected(plant.hasTileEntity);
+		frequencyOnChunks.setValue(plant.frequencyOnChunks);
+		emissiveRendering.setSelected(plant.emissiveRendering);
+		isSolid.setSelected(plant.isSolid);
+		isWaterloggable.setSelected(plant.isWaterloggable);
+		hasBlockItem.setSelected(plant.hasBlockItem);
+		maxStackSize.setValue(plant.maxStackSize);
+		rarity.setSelectedItem(plant.rarity);
+		immuneToFire.setSelected(plant.immuneToFire);
+		useLootTableForDrops.setSelected(plant.useLootTableForDrops);
+		customDrop.setBlock(plant.customDrop);
+		dropAmount.setValue(plant.dropAmount);
+		xpAmount.setMinValue(plant.xpAmountMin);
+		xpAmount.setMaxValue(plant.xpAmountMax);
+		creativeTabs.setListElements(plant.creativeTabs);
+		onBlockAdded.setSelectedProcedure(plant.onBlockAdded);
+		onNeighbourBlockChanges.setSelectedProcedure(plant.onNeighbourBlockChanges);
+		onTickUpdate.setSelectedProcedure(plant.onTickUpdate);
+		onRandomUpdateEvent.setSelectedProcedure(plant.onRandomUpdateEvent);
+		onDestroyedByPlayer.setSelectedProcedure(plant.onDestroyedByPlayer);
+		onDestroyedByExplosion.setSelectedProcedure(plant.onDestroyedByExplosion);
+		onStartToDestroy.setSelectedProcedure(plant.onStartToDestroy);
+		onEntityCollides.setSelectedProcedure(plant.onEntityCollides);
+		onBlockPlacedBy.setSelectedProcedure(plant.onBlockPlacedBy);
+		onRightClicked.setSelectedProcedure(plant.onRightClicked);
+		onEntityWalksOn.setSelectedProcedure(plant.onEntityWalksOn);
+		onEntityFallsOn.setSelectedProcedure(plant.onEntityFallsOn);
+		onHitByProjectile.setSelectedProcedure(plant.onHitByProjectile);
+		specialInformation.setSelectedProcedure(plant.specialInformation);
+		generateFeature.setSelected(plant.generateFeature);
+		restrictionBiomes.setListElements(plant.restrictionBiomes);
+		canBePlacedOn.setListElements(plant.canBePlacedOn);
+		isReplaceable.setSelected(plant.isReplaceable);
+		colorOnMap.setSelectedItem(plant.colorOnMap);
+		offsetType.setSelectedItem(plant.offsetType);
+		aiPathNodeType.setSelectedItem(plant.aiPathNodeType.getUnmappedValue());
+		strippingResult.setBlock(plant.strippingResult);
+		creativePickItem.setBlock(plant.creativePickItem);
+		ignitedByLava.setSelected(plant.ignitedByLava);
+		flammability.setValue(plant.flammability);
+		fireSpreadSpeed.setValue(plant.fireSpreadSpeed);
+		jumpFactor.setValue(plant.jumpFactor);
+		speedFactor.setValue(plant.speedFactor);
+		patchSize.setValue(plant.patchSize);
+		generateAtAnyHeight.setSelected(plant.generateAtAnyHeight);
+		isBonemealable.setSelected(plant.isBonemealable);
+		isBonemealTargetCondition.setSelectedProcedure(plant.isBonemealTargetCondition);
+		bonemealSuccessCondition.setSelectedProcedure(plant.bonemealSuccessCondition);
+		onBonemealSuccess.setSelectedProcedure(plant.onBonemealSuccess);
+
+		placingCondition.setSelectedProcedure(plant.placingCondition);
+
+		customBoundingBox.setSelected(plant.customBoundingBox);
+		disableOffset.setSelected(plant.disableOffset);
+		boundingBoxList.setEntries(plant.boundingBoxes);
+
+		Model model = plant.getItemModel();
+		if (model != null)
+			renderType.setSelectedItem(model);
+
+		plantType.setSelectedItem(plant.plantType);
+
+		growapableSpawnType.setSelectedItem(plant.growapableSpawnType.getUnmappedValue());
+		generationType.setSelectedItem(plant.generationType);
+
+		// Plant type specific fields
+		switch (plant.plantType) {
+		case "normal" -> {
+			suspiciousStewEffect.setSelectedItem(plant.suspiciousStewEffect.getUnmappedValue());
+			suspiciousStewDuration.setValue(plant.suspiciousStewDuration);
+		}
+		case "double" -> textureBottom.setTexture(plant.textureBottom);
+		case "growapable" -> growapableMaxHeight.setValue(plant.growapableMaxHeight);
+		case "sapling" -> {
+			secondaryTreeChance.setValue(plant.secondaryTreeChance);
+			for (int i = 0; i < 2; i++) {
+				trees[i].setEntry(plant.trees[i]);
+				flowerTrees[i].setEntry(plant.flowerTrees[i]);
+				megaTrees[i].setEntry(plant.megaTrees[i]);
+			}
+		}
+		}
+
+		tintType.setSelectedItem(plant.tintType);
+		isItemTinted.setSelected(plant.isItemTinted);
+
+		customDrop.setEnabled(!useLootTableForDrops.isSelected());
+		dropAmount.setEnabled(!useLootTableForDrops.isSelected());
+		disableOffset.setEnabled(customBoundingBox.isSelected());
+		boundingBoxList.setEnabled(customBoundingBox.isSelected());
+
+		updatePlantType();
+		updateSoundType();
+		updateBlockItemSettings();
+		refreshUnbreakableProperties();
+		refreshSpawnProperties();
+	}
+
+	@Override public Plant getElementFromGUI() {
+		Plant plant = new Plant(modElement);
+		plant.name = name.getText();
+		plant.creativeTabs = creativeTabs.getListElements();
+		plant.texture = texture.getTextureHolder();
+		plant.itemTexture = itemTexture.getTextureHolder();
+		plant.particleTexture = particleTexture.getTextureHolder();
+		plant.tintType = (String) tintType.getSelectedItem();
+		plant.isItemTinted = isItemTinted.isSelected();
+		plant.plantType = (String) plantType.getSelectedItem();
+
+		// Plant type specific fields
+		switch (Objects.requireNonNull((String) plantType.getSelectedItem())) {
+		case "normal" -> {
+			plant.suspiciousStewEffect = new EffectEntry(modElement.getWorkspace(),
+					(String) suspiciousStewEffect.getSelectedItem());
+			plant.suspiciousStewDuration = (int) suspiciousStewDuration.getValue();
+		}
+		case "double" -> plant.textureBottom = textureBottom.getTextureHolder();
+		case "growapable" -> plant.growapableMaxHeight = (int) growapableMaxHeight.getValue();
+		case "sapling" -> {
+			plant.secondaryTreeChance = (double) secondaryTreeChance.getValue();
+			for (int i = 0; i < 2; i++) {
+				plant.trees[i] = trees[i].getEntry();
+				plant.flowerTrees[i] = flowerTrees[i].getEntry();
+				plant.megaTrees[i] = megaTrees[i].getEntry();
+			}
+		}
+		}
+
+		plant.growapableSpawnType = new GrowapableSpawnType(modElement.getWorkspace(),
+				(String) growapableSpawnType.getSelectedItem());
+		plant.hardness = (double) hardness.getValue();
+		plant.resistance = (double) resistance.getValue();
+		plant.luminance = (int) luminance.getValue();
+		plant.unbreakable = unbreakable.isSelected();
+		plant.forceTicking = forceTicking.isSelected();
+		plant.hasTileEntity = hasTileEntity.isSelected();
+		plant.isCustomSoundType = customSoundType.isSelected();
+		plant.soundOnStep = new StepSound(mcreator.getWorkspace(), soundOnStep.getSelectedItem());
+		plant.breakSound = breakSound.getSound();
+		plant.stepSound = stepSound.getSound();
+		plant.placeSound = placeSound.getSound();
+		plant.hitSound = hitSound.getSound();
+		plant.fallSound = fallSound.getSound();
+		plant.useLootTableForDrops = useLootTableForDrops.isSelected();
+		plant.customDrop = customDrop.getBlock();
+		plant.dropAmount = (int) dropAmount.getValue();
+		plant.xpAmountMin = xpAmount.getIntMinValue();
+		plant.xpAmountMax = xpAmount.getIntMaxValue();
+		plant.frequencyOnChunks = (int) frequencyOnChunks.getValue();
+		plant.onBlockAdded = onBlockAdded.getSelectedProcedure();
+		plant.onNeighbourBlockChanges = onNeighbourBlockChanges.getSelectedProcedure();
+		plant.onTickUpdate = onTickUpdate.getSelectedProcedure();
+		plant.onRandomUpdateEvent = onRandomUpdateEvent.getSelectedProcedure();
+		plant.onDestroyedByPlayer = onDestroyedByPlayer.getSelectedProcedure();
+		plant.onDestroyedByExplosion = onDestroyedByExplosion.getSelectedProcedure();
+		plant.onStartToDestroy = onStartToDestroy.getSelectedProcedure();
+		plant.onEntityCollides = onEntityCollides.getSelectedProcedure();
+		plant.onBlockPlacedBy = onBlockPlacedBy.getSelectedProcedure();
+		plant.onRightClicked = onRightClicked.getSelectedProcedure();
+		plant.onEntityWalksOn = onEntityWalksOn.getSelectedProcedure();
+		plant.onEntityFallsOn = onEntityFallsOn.getSelectedProcedure();
+		plant.onHitByProjectile = onHitByProjectile.getSelectedProcedure();
+		plant.specialInformation = specialInformation.getSelectedProcedure();
+		plant.generateFeature = generateFeature.isSelected();
+		plant.restrictionBiomes = restrictionBiomes.getListElements();
+		plant.patchSize = (int) patchSize.getValue();
+		plant.generateAtAnyHeight = generateAtAnyHeight.isSelected();
+		plant.generationType = (String) generationType.getSelectedItem();
+		plant.canBePlacedOn = canBePlacedOn.getListElements();
+		plant.isReplaceable = isReplaceable.isSelected();
+		plant.colorOnMap = new MapColor(modElement.getWorkspace(), colorOnMap.getSelectedItem());
+		plant.offsetType = (String) offsetType.getSelectedItem();
+		plant.aiPathNodeType = new AIPathNodeType(modElement.getWorkspace(), aiPathNodeType.getSelectedItem());
+		plant.strippingResult = strippingResult.getBlock();
+		plant.creativePickItem = creativePickItem.getBlock();
+		plant.ignitedByLava = ignitedByLava.isSelected();
+		plant.flammability = (int) flammability.getValue();
+		plant.fireSpreadSpeed = (int) fireSpreadSpeed.getValue();
+		plant.speedFactor = (double) speedFactor.getValue();
+		plant.jumpFactor = (double) jumpFactor.getValue();
+		plant.placingCondition = placingCondition.getSelectedProcedure();
+		plant.emissiveRendering = emissiveRendering.isSelected();
+		plant.isSolid = isSolid.isSelected();
+		plant.isWaterloggable = isWaterloggable.isSelected();
+		plant.hasBlockItem = hasBlockItem.isSelected();
+		plant.maxStackSize = (int) maxStackSize.getValue();
+		plant.rarity = rarity.getSelectedItem();
+		plant.immuneToFire = immuneToFire.isSelected();
+		plant.isBonemealable = isBonemealable.isSelected();
+		plant.isBonemealTargetCondition = isBonemealTargetCondition.getSelectedProcedure();
+		plant.bonemealSuccessCondition = bonemealSuccessCondition.getSelectedProcedure();
+		plant.onBonemealSuccess = onBonemealSuccess.getSelectedProcedure();
+
+		plant.customBoundingBox = customBoundingBox.isSelected();
+		plant.disableOffset = disableOffset.isSelected();
+		plant.boundingBoxes = boundingBoxList.getEntries();
+
+		Model model = Objects.requireNonNull(renderType.getSelectedItem());
+		plant.renderType = 12;
+		if (model.getType() == Model.Type.JSON)
+			plant.renderType = 2;
+		else if (model.getType() == Model.Type.OBJ)
+			plant.renderType = 3;
+		else if (model.equals(cross))
+			plant.renderType = "No tint".equals(tintType.getSelectedItem()) ? 12 : 120;
+		else if (model.equals(crop))
+			plant.renderType = 13;
+		plant.customModelName = model.getReadableName();
+
+		return plant;
+	}
+
+	@Override public @Nullable URI contextURL() throws URISyntaxException {
+		return new URI(MCreatorApplication.SERVER_DOMAIN + "/wiki/how-make-plant");
+	}
+
+	private static class PlantTypeListRenderer extends DefaultListCellRenderer {
+		@Override
+		public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected,
+				boolean cellHasFocus) {
+			var label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+			label.setText(L10N.t("elementgui.plant.plant_types." + value));
+			return label;
+		}
+	}
+
+}

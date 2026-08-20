@@ -1,0 +1,43 @@
+{
+  "gate": "G1",
+  "status": "passed",
+  "verifiedAt": "2026-08-17T06:11:36+08:00",
+  "platform": "Windows 11 x64",
+  "javaRuntime": "bundled jdk/jbr25_win_64",
+  "verificationScript": "scripts/verify-stage-1.ps1",
+  "results": {
+    "java": {
+      "status": "passed",
+      "tests": 24,
+      "suites": [
+        "dev.copperbench.ProductIdentityTest",
+        "dev.copperbench.core.PluginCompatibilityClassifierTest",
+        "dev.copperbench.core.SchemaNegotiatorTest",
+        "dev.copperbench.core.WorkspaceApplicationServiceTest",
+        "dev.copperbench.core.WorkspacePersistenceFoundationTest",
+        "net.mcreator.workspace.WorkspacePersistenceCompatibilityTest"
+      ]
+    },
+    "uiCore": {
+      "status": "passed",
+      "tests": 5,
+      "schemaVersion": "0.1"
+    }
+  },
+  "claims": {
+    "legacyMcpHeadlessEquivalent": true,
+    "singleWriterLease": true,
+    "revisionConflict": true,
+    "transactionRollback": true,
+    "pluginObserverRollback": true,
+    "upstreamGoldenUnknownFieldsPreserved": true,
+    "pluginABCClassification": true,
+    "fixturesSchemaValid": true
+  },
+  "scopeBoundaries": [
+    "The upstream-backed stage 1 CRUD slice is Procedure; additional element-specific mappings expand in stage 3.",
+    "MCP transport, authentication and token policy remain stage 2 work.",
+    "The real Generator/Gradle managed-process gateway remains stage 2-3 work.",
+    "The full generator compile matrix belongs to G2 and is not claimed by this result."
+  ]
+}

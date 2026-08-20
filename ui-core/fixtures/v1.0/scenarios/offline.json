@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "1.0",
+  "scenarioId": "offline",
+  "extendsScenarioId": "ready",
+  "title": { "key": "scenario.offline", "fallback": "Offline workspace", "args": {} },
+  "description": "The local core remains available while external network access is offline.",
+  "viewportState": "degraded",
+  "initialMessages": [
+    {
+      "messageType": "event",
+      "schemaVersion": "1.0",
+      "eventId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb2",
+      "workspaceId": "11111111-1111-4111-8111-111111111111",
+      "revision": 42,
+      "sequence": 102,
+      "occurredAt": "2026-08-16T06:30:00Z",
+      "event": "connectivity_changed",
+      "causedByRequestId": null,
+      "payload": { "core": "connected", "network": "offline", "bridge": "ready" }
+    }
+  ],
+  "timeline": [],
+  "expectedUi": {
+    "announcement": "network_offline",
+    "primaryAction": null,
+    "focusTarget": "[data-testid=offline-status]"
+  }
+}

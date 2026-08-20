@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Copperbench · 方向 B：方块沉浸流 (Blockcraft Canvas)</title>
+  <style>
+    :root, [data-theme="dark"] {
+      --bg-base: #111418;
+      --bg-surface: #181d24;
+      --bg-card: #1f2630;
+      --bg-card-hover: #262f3d;
+      --border-color: #2b3543;
+      --border-focus: #10b981;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --text-sub: #64748b;
+      --accent-mc-green: #10b981;
+      --accent-mc-emerald: #059669;
+      --accent-redstone: #ef4444;
+      --accent-copper: #f59e0b;
+      --accent-lapis: #3b82f6;
+      --header-bg: #0d1014;
+      --pill-bg: #151a21;
+      --hero-bg: linear-gradient(135deg, #1b232e 0%, #151c24 100%);
+      --preview-box-bg: #13171d;
+      --card-selected-bg: #1b252f;
+      --fab-bg: #182029;
+      --chip-bg: rgba(255,255,255,0.06);
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+
+    [data-theme="light"] {
+      --bg-base: #f1f5f9;
+      --bg-surface: #ffffff;
+      --bg-card: #ffffff;
+      --bg-card-hover: #f8fafc;
+      --border-color: #cbd5e1;
+      --border-focus: #059669;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --text-sub: #64748b;
+      --accent-mc-green: #059669;
+      --accent-mc-emerald: #047857;
+      --accent-redstone: #dc2626;
+      --accent-copper: #b45309;
+      --accent-lapis: #2563eb;
+      --header-bg: #e2e8f0;
+      --pill-bg: #cbd5e1;
+      --hero-bg: linear-gradient(135deg, #ffffff 0%, #eef2f6 100%);
+      --preview-box-bg: #e2e8f0;
+      --card-selected-bg: #ecfdf5;
+      --fab-bg: #ffffff;
+      --chip-bg: rgba(0,0,0,0.06);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-family);
+      background: var(--bg-base);
+      color: var(--text-main);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      user-select: none;
+      transition: background-color 0.2s, color 0.2s;
+    }
+
+    /* 顶部流线型标题栏 + 大药丸导航 */
+    .top-header {
+      background: var(--header-bg);
+      border-bottom: 1px solid var(--border-color);
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 52px;
+    }
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--accent-copper);
+      background: rgba(245, 158, 11, 0.12);
+      padding: 5px 12px;
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+    .pill-tabs {
+      display: flex;
+      align-items: center;
+      background: var(--pill-bg);
+      padding: 3px;
+      border-radius: 20px;
+      border: 1px solid var(--border-color);
+    }
+    .pill-tab {
+      padding: 5px 14px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-muted);
+      border-radius: 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .pill-tab:hover { color: var(--text-main); }
+    .pill-tab.active { background: var(--accent-mc-emerald); color: #fff; font-weight: 600; box-shadow: 0 2px 8px rgba(16,185,129,0.3); }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .meta-tag {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+    }
+
+    .theme-toggle-btn {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      color: var(--text-muted);
+      padding: 4px 10px;
+      font-size: 11px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s;
+    }
+    .theme-toggle-btn:hover {
+      background: var(--bg-card-hover);
+      color: var(--text-main);
+    }
+
+    /* 主画布 */
+    .canvas-layout {
+      flex: 1;
+      display: flex;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .main-viewport {
+      flex: 1;
+      padding: 24px 32px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* 顶部英雄横幅 */
+    .hero-banner {
+      background: var(--hero-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    }
+    .hero-info h1 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .hero-info p {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* 方块图元网格 (Blockcraft Grid) */
+    .grid-section-title {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-sub);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .blockcraft-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+    }
+
+    .voxel-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      position: relative;
+      overflow: hidden;
+    }
+    .voxel-card::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 3px;
+      background: transparent;
+      transition: background 0.2s;
+    }
+    .voxel-card:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--accent-mc-green);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    }
+    .voxel-card.selected {
+      border-color: var(--accent-mc-green);
+      background: var(--card-selected-bg);
+    }
+    .voxel-card.selected::before {
+      background: var(--accent-mc-green);
+    }
+
+    .voxel-preview-box {
+      height: 100px;
+      background: var(--preview-box-bg);
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(128,128,128,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 42px;
+      position: relative;
+      box-shadow: inset 0 2px 6px rgba(0,0,0,0.15);
+    }
+    .voxel-meta-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .voxel-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+    .voxel-id {
+      font-size: 11px;
+      color: var(--text-sub);
+    }
+    .voxel-chips {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+    }
+    .chip {
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: var(--chip-bg);
+      color: var(--text-muted);
+    }
+    .chip.green { color: var(--accent-mc-green); background: rgba(16,185,129,0.15); }
+    .chip.amber { color: var(--accent-copper); background: rgba(245,158,11,0.15); }
+
+    /* 悬浮操作胶囊 (Floating Action Bar) */
+    .fab-capsule {
+      position: fixed;
+      bottom: 28px;
+      right: 36px;
+      background: var(--fab-bg);
+      border: 1px solid var(--accent-mc-green);
+      border-radius: 30px;
+      padding: 6px 12px;
+      box-shadow: 0 12px 32px rgba(0,0,0,0.25);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      z-index: 100;
+    }
+    .fab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-main);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 8px 14px;
+      border-radius: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.15s;
+    }
+    .fab-btn:hover { background: rgba(128,128,128,0.12); }
+    .fab-btn.primary { background: var(--accent-mc-green); color: #fff; }
+    .fab-btn.primary:hover { background: var(--accent-mc-emerald); }
+
+    /* 右侧抽屉检查器 (Drawer Inspector) */
+    .drawer-inspector {
+      width: 380px;
+      background: var(--bg-surface);
+      border-left: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .drawer-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .drawer-content {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .control-row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .control-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+    }
+    .control-input {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      color: var(--text-main);
+      padding: 10px 12px;
+      font-size: 13px;
+      outline: none;
+    }
+    .control-input:focus { border-color: var(--accent-mc-green); }
+    .control-input.error { border-color: var(--accent-redstone); }
+
+    /* 场景切换条 */
+    .scenario-float-bar {
+      position: fixed;
+      bottom: 28px;
+      left: 36px;
+      background: var(--fab-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 30px;
+      padding: 6px 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      z-index: 100;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    }
+    .scenario-select {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      font-size: 12px;
+      padding: 5px 10px;
+      border-radius: 16px;
+      outline: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body data-theme="dark">
+
+  <!-- 顶部标题栏与大药丸导航 -->
+  <header class="top-header">
+    <div class="header-left">
+      <div class="brand-logo">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+        <span>Copperbench</span>
+      </div>
+      <div class="pill-tabs">
+        <div class="pill-tab active">模组图元</div>
+        <div class="pill-tab">合成配方</div>
+        <div class="pill-tab">Blockbench 资产</div>
+        <div class="pill-tab">版本快照</div>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <button class="theme-toggle-btn" id="b-theme-btn" onclick="toggleTheme()">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <span id="b-theme-text">亮色</span>
+      </button>
+      <span class="meta-tag" id="tag-loader">Fabric 1.21.1</span>
+      <span class="meta-tag" id="tag-rev">Rev: 42</span>
+      <span style="font-size: 11px; color: var(--text-sub);">方向 B · 方块沉浸流</span>
+    </div>
+  </header>
+
+  <!-- 主画布 -->
+  <div class="canvas-layout">
+    <main class="main-viewport">
+      <!-- 英雄概览卡片 -->
+      <section class="hero-banner">
+        <div class="hero-info">
+          <h1 id="hero-title">Copper Trails 模组项目</h1>
+          <p id="hero-desc">Fabric 1.21.1 · 本地 JGit 保护中 · 4 个模组图元正常加载</p>
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <button class="fab-btn primary" onclick="mockCore.triggerBuild()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            <span>立即构建</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- 方块图元大看板 -->
+      <div class="grid-section-title">
+        <span>模组图元 (Mod Elements)</span>
+        <span style="font-size: 11px; color: var(--text-muted);" id="element-stats">4 项已同步</span>
+      </div>
+
+      <div class="blockcraft-grid" id="grid-container">
+        <!-- 动态卡片 -->
+      </div>
+    </main>
+
+    <!-- 右侧沉浸属性抽屉 -->
+    <aside class="drawer-inspector">
+      <div class="drawer-header">
+        <span id="drawer-title">图元属性检查</span>
+        <span style="font-size: 11px; color: var(--accent-mc-green);">Fabric 生效</span>
+      </div>
+
+      <div class="drawer-content">
+        <div class="voxel-preview-box" id="drawer-voxel-icon">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent-copper);"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+        </div>
+
+        <div class="control-row">
+          <label class="control-label">方块显示名称</label>
+          <input type="text" class="control-input" value="Copper Lamp (铜灯)" />
+        </div>
+
+        <div class="control-row">
+          <label class="control-label">
+            <span>硬度参数 (Hardness)</span>
+            <span style="color: var(--text-sub);">范围 0..100</span>
+          </label>
+          <input type="number" class="control-input" id="inp-hardness" value="3.5" step="0.5" />
+          <div id="msg-hardness-err" style="display: none; font-size: 11px; color: var(--accent-redstone); margin-top: 4px;">硬度超出有效范围 [0..100]！</div>
+        </div>
+
+        <div class="control-row">
+          <label class="control-label">
+            <span>NeoForge 专属属性</span>
+            <span style="font-size: 10px; color: var(--accent-copper);">Fabric只读保留</span>
+          </label>
+          <input type="number" class="control-input" value="5" readonly style="opacity: 0.5;" />
+          <p style="font-size: 11px; color: var(--text-sub); margin-top: 4px;">该参数在 NeoForge 加载器下有效，已在当前工作区安全保留原值。</p>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- 悬浮操作胶囊 -->
+  <div class="fab-capsule">
+    <button class="fab-btn" onclick="mockCore.triggerCreateElement()">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      <span>新建图元</span>
+    </button>
+    <button class="fab-btn" onclick="mockCore.loadScenario('external-process-exited')">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      <span>测试客户端</span>
+    </button>
+    <button class="fab-btn primary" onclick="mockCore.triggerBuild()">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      <span>一键构建</span>
+    </button>
+  </div>
+
+  <!-- 场景切换工具条 -->
+  <div class="scenario-float-bar">
+    <span style="font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">测试场景:</span>
+    <select class="scenario-select" id="b-scenario-select" onchange="mockCore.loadScenario(this.value)">
+      <option value="ready">1. 就绪状态 (Ready)</option>
+      <option value="empty-workspace">2. 空工作区 (Empty)</option>
+      <option value="build-running">3. 构建进行中 (Build Running)</option>
+      <option value="validation-failed">4. 校验失败告警 (Validation Failed)</option>
+      <option value="permission-denied">5. 权限不足拦截 (Permission Denied)</option>
+      <option value="revision-conflict">6. 版本修订冲突 (Revision Conflict)</option>
+      <option value="partial-capability">7. 差异字段保留 (Partial Capability)</option>
+      <option value="offline">8. 本地离线模式 (Offline)</option>
+      <option value="external-process-exited">9. 客户端崩溃 (Process Exit)</option>
+      <option value="bridge-recovery">10. 渲染恢复 (Bridge Recovery)</option>
+      <option value="loading-workbench">11. 加载中骨架 (Loading)</option>
+      <option value="element-created">12. 新增元素成功 (Element Created)</option>
+    </select>
+  </div>
+
+  <script src="./mock-core.js"></script>
+  <script>
+    let selectedId = "22222222-2222-4222-8222-222222222221";
+
+    const svgIcons = {
+      block: `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>`,
+      item: `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,
+      recipe: `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`,
+      procedure: `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`,
+      empty: `<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>`
+    };
+
+    function renderUI(state) {
+      document.getElementById('b-scenario-select').value = state.scenarioId;
+
+      if (state.workspace) {
+        document.getElementById('hero-title').textContent = `${state.workspace.name} 模组项目`;
+        document.getElementById('tag-loader').textContent = state.workspace.generator.displayName;
+        document.getElementById('tag-rev').textContent = `Rev: ${state.workspace.revision}`;
+      }
+
+      const grid = document.getElementById('grid-container');
+      grid.innerHTML = '';
+
+      if (state.elements.length === 0) {
+        grid.innerHTML = `
+          <div style="grid-column: 1/-1; padding: 60px; text-align: center; color: var(--text-muted);">
+            <div style="margin-bottom: 12px; opacity: 0.6; color: var(--accent-copper);">${svgIcons.empty}</div>
+            <div style="font-size: 15px; font-weight: 600; color: var(--text-main);">当前工作区空空如也</div>
+            <div style="font-size: 12px; margin: 6px 0 16px;">开始创作您的第一个方块、物品或配方。</div>
+            <button class="fab-btn primary" style="margin: 0 auto;" onclick="mockCore.triggerCreateElement()">＋ 创建第一个方块</button>
+          </div>
+        `;
+      } else {
+        state.elements.forEach(el => {
+          const card = document.createElement('div');
+          card.className = `voxel-card ${el.id === selectedId ? 'selected' : ''}`;
+          card.onclick = () => { selectedId = el.id; renderUI(mockCore.state); };
+
+          const icon = svgIcons[el.type] || svgIcons.block;
+
+          card.innerHTML = `
+            <div class="voxel-preview-box">${icon}</div>
+            <div class="voxel-meta-row">
+              <div class="voxel-name">${el.displayName}</div>
+              <div class="voxel-id">${el.name}</div>
+            </div>
+            <div class="voxel-chips">
+              <span class="chip ${el.state === 'valid' ? 'green' : 'amber'}">${el.state === 'valid' ? '● 校验正常' : '◐ 草稿'}</span>
+              <span class="chip">${el.type}</span>
+              <span class="chip">${el.ownership}</span>
+            </div>
+          `;
+          grid.appendChild(card);
+        });
+      }
+
+      // 诊断高亮
+      const inp = document.getElementById('inp-hardness');
+      const err = document.getElementById('msg-hardness-err');
+      if (state.diagnostics.some(d => d.code === 'FIELD_VALUE_OUT_OF_RANGE')) {
+        inp.classList.add('error');
+        err.style.display = 'block';
+      } else {
+        inp.classList.remove('error');
+        err.style.display = 'none';
+      }
+    }
+
+    // 主题切换
+    function setTheme(theme) {
+      document.body.setAttribute('data-theme', theme);
+      const text = document.getElementById('b-theme-text');
+      if (text) {
+        text.textContent = theme === 'light' ? '暗色' : '亮色';
+      }
+    }
+
+    function toggleTheme() {
+      const current = document.body.getAttribute('data-theme') || 'dark';
+      const next = current === 'dark' ? 'light' : 'dark';
+      setTheme(next);
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: 'THEME_CHANGED', theme: next }, '*');
+      }
+    }
+
+    // 接收父级 iframe 消息同步主题
+    window.addEventListener('message', (e) => {
+      if (e.data && e.data.type === 'SET_THEME') {
+        setTheme(e.data.theme);
+      }
+    });
+
+    mockCore.subscribe(renderUI);
+    mockCore.loadScenario("ready");
+  </script>
+</body>
+</html>

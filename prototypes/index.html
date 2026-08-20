@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Copperbench · U0 三套原型与信息架构评审中心</title>
+  <style>
+    :root, [data-theme="dark"] {
+      --bg-base: #0e1117;
+      --bg-surface: #151921;
+      --bg-panel: #1b212b;
+      --border-subtle: #262e3b;
+      --border-focus: #c2783f;
+      --text-main: #edf2f7;
+      --text-muted: #94a0b2;
+      --text-sub: #5f6b7c;
+      --accent-copper: #c2783f;
+      --accent-copper-hover: #d48a4f;
+      --accent-emerald: #10b981;
+      --accent-cyan: #38bdf8;
+      --header-bg: #11141b;
+      --toolbar-bg: #141820;
+      --preview-bg: #090c10;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+
+    [data-theme="light"] {
+      --bg-base: #f5f7fa;
+      --bg-surface: #ffffff;
+      --bg-panel: #f0f3f7;
+      --border-subtle: #dbe0e7;
+      --border-focus: #9e531e;
+      --text-main: #1f2328;
+      --text-muted: #57606a;
+      --text-sub: #8c959f;
+      --accent-copper: #9e531e;
+      --accent-copper-hover: #874415;
+      --accent-emerald: #059669;
+      --accent-cyan: #0284c7;
+      --header-bg: #eef2f6;
+      --toolbar-bg: #f8fafc;
+      --preview-bg: #eef2f6;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-family);
+      background: var(--bg-base);
+      color: var(--text-main);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: background-color 0.2s, color 0.2s;
+    }
+
+    /* 顶栏 */
+    .hub-header {
+      height: 56px;
+      background: var(--header-bg);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      flex-shrink: 0;
+    }
+    .hub-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--accent-copper);
+    }
+    .hub-badge {
+      font-size: 11px;
+      font-weight: 500;
+      background: rgba(194, 120, 63, 0.12);
+      border: 1px solid rgba(194, 120, 63, 0.25);
+      padding: 2px 8px;
+      border-radius: 10px;
+      color: var(--accent-copper);
+    }
+
+    /* 方向切换标签 */
+    .direction-tabs {
+      display: flex;
+      align-items: center;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 24px;
+      padding: 4px;
+    }
+    .dir-tab {
+      padding: 6px 16px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      border-radius: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .dir-tab:hover { color: var(--text-main); }
+    .dir-tab.active {
+      background: var(--accent-copper);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(194, 120, 63, 0.3);
+    }
+    .dir-tab.tab-b.active {
+      background: var(--accent-emerald);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+    }
+    .dir-tab.tab-c.active {
+      background: var(--accent-cyan);
+      color: #000;
+      box-shadow: 0 2px 8px rgba(56, 189, 248, 0.3);
+    }
+
+    .hub-tools {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .tool-btn {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      font-size: 12px;
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+    .tool-btn:hover { background: var(--bg-panel); color: var(--text-main); border-color: var(--accent-copper); }
+
+    /* 主视区（左侧原型预览 + 右侧架构与对比说明） */
+    .hub-body {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* 原型交互容器 */
+    .preview-frame-container {
+      flex: 1;
+      background: var(--preview-bg);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+    .preview-toolbar {
+      height: 36px;
+      background: var(--toolbar-bg);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .viewport-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .vp-btn {
+      background: transparent;
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .vp-btn.active {
+      background: var(--bg-panel);
+      color: var(--accent-copper);
+      border-color: var(--accent-copper);
+    }
+
+    .iframe-wrapper {
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    /* 右侧对比与决策面板 */
+    .hub-sidebar {
+      width: 380px;
+      background: var(--bg-surface);
+      border-left: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+    .panel-section {
+      padding: 20px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .section-title {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--accent-copper);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .spec-card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      font-size: 12px;
+      line-height: 1.6;
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .spec-card strong { color: var(--text-main); }
+
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+      margin-top: 10px;
+    }
+    .comparison-table th, .comparison-table td {
+      border: 1px solid var(--border-subtle);
+      padding: 8px;
+      text-align: left;
+    }
+    .comparison-table th { background: var(--bg-panel); color: var(--text-main); }
+    .comparison-table tr:nth-child(even) { background: rgba(255,255,255,0.02); }
+
+    .doc-link-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      color: var(--text-main);
+      font-size: 12px;
+      text-decoration: none;
+      margin-bottom: 8px;
+      transition: all 0.15s;
+    }
+    .doc-link-item:hover {
+      border-color: var(--accent-copper);
+      background: #1f2733;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 顶栏 -->
+  <header class="hub-header">
+    <div class="hub-brand">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+      <span>Copperbench</span>
+      <span class="hub-badge">U0 架构评审</span>
+    </div>
+
+    <!-- 三套方向切换 -->
+    <div class="direction-tabs">
+      <div class="dir-tab active" onclick="switchDirection('a', this)">
+        <span>方向 A · 专注工坊流</span>
+      </div>
+      <div class="dir-tab tab-b" onclick="switchDirection('b', this)">
+        <span>方向 B · 方块沉浸流</span>
+      </div>
+      <div class="dir-tab tab-c" onclick="switchDirection('c', this)">
+        <span>方向 C · 极简命令台</span>
+      </div>
+    </div>
+
+    <div class="hub-tools">
+      <button class="tool-btn" id="hub-theme-btn" onclick="toggleHubTheme()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <span id="hub-theme-text">亮色模式</span>
+      </button>
+      <a href="../docs/architecture/creator-task-map.md" class="tool-btn" target="_blank">任务地图</a>
+      <a href="../docs/architecture/information-architecture.md" class="tool-btn" target="_blank">信息架构规范</a>
+    </div>
+  </header>
+
+  <!-- 主体对比与交互区 -->
+  <div class="hub-body">
+    <!-- 原型预览 -->
+    <div class="preview-frame-container">
+      <div class="preview-toolbar">
+        <span id="current-dir-label">当前运行：方向 A · 专注工坊流 (Copper Studio) · 独立无真实文件系统沙箱</span>
+        <div class="viewport-controls">
+          <span style="font-size: 11px;">视口模拟:</span>
+          <button class="vp-btn active" onclick="resizeViewport('100%', this)">自适应全宽</button>
+          <button class="vp-btn" onclick="resizeViewport('1366px', this)">1366×768</button>
+          <button class="vp-btn" onclick="resizeViewport('1920px', this)">1080p</button>
+        </div>
+      </div>
+      <iframe id="prototype-frame" class="iframe-wrapper" src="./direction-a.html" onload="syncThemeToFrame()"></iframe>
+    </div>
+
+    <!-- 右侧设计决策与场景指引面板 -->
+    <aside class="hub-sidebar">
+      <!-- 方案解析 -->
+      <div class="panel-section">
+        <div class="section-title">
+          <span id="panel-title">方案 A 设计解析</span>
+          <span style="font-size: 10px; color: var(--text-sub);">UI/UX Pro Max</span>
+        </div>
+        <div class="spec-card" id="panel-spec">
+          <div><strong>设计哲学</strong>：工业精密工作台（Dark Iron & Copper），三栏经典 IDE 工坊结构。</div>
+          <div><strong>信息骨架</strong>：左侧导航树 + 中间高密度网格 + 右侧上下文检查器 + 底部任务抽屉。</div>
+          <div><strong>适用创作者</strong>：追求高密度多任务操作、熟悉专业工具的进阶模组作者。</div>
+        </div>
+      </div>
+
+      <!-- 三方向横向对比表 -->
+      <div class="panel-section">
+        <div class="section-title">三套原型横向对比矩阵</div>
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>维度</th>
+              <th>方向 A (工坊)</th>
+              <th>方向 B (沉浸)</th>
+              <th>方向 C (命令)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>视觉基调</td>
+              <td>拉丝赤铜/深板岩</td>
+              <td>黑曜石/翡翠绿</td>
+              <td>暗夜极简/冰青</td>
+            </tr>
+            <tr>
+              <td>核心心智</td>
+              <td>三栏工坊 IDE</td>
+              <td>方块沉浸看板</td>
+              <td>Command / 流式</td>
+            </tr>
+            <tr>
+              <td>信息密度</td>
+              <td>极高 (常驻检查)</td>
+              <td>高 (侧滑抽屉)</td>
+              <td>中 (单焦点流)</td>
+            </tr>
+            <tr>
+              <td>AI/MCP 呈现</td>
+              <td>底栏权限状态</td>
+              <td>独立快照状态</td>
+              <td>伴随状态浮条</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 交付文档快速导航 -->
+      <div class="panel-section">
+        <div class="section-title">U0 交付文档索引</div>
+        <a href="../docs/architecture/creator-task-map.md" class="doc-link-item" target="_blank">
+          <span>创作者任务地图 (Creator Task Map)</span>
+          <span style="color: var(--text-sub);">→</span>
+        </a>
+        <a href="../docs/architecture/information-architecture.md" class="doc-link-item" target="_blank">
+          <span>信息架构与自适应工作台规范 (IA Spec)</span>
+          <span style="color: var(--text-sub);">→</span>
+        </a>
+        <a href="../PRD.md" class="doc-link-item" target="_blank">
+          <span>产品需求文档基线 (PRD.md)</span>
+          <span style="color: var(--text-sub);">→</span>
+        </a>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    let currentTheme = 'dark';
+
+    const dirDetails = {
+      'a': {
+        name: '方向 A · 专注工坊流 (Copper Studio)',
+        spec: `
+          <div><strong>设计哲学</strong>：工业精密工作台（Dark Iron & Copper），三栏经典 IDE 工坊结构。</div>
+          <div><strong>信息骨架</strong>：左侧导航树 + 中间高密度网格 + 右侧上下文检查器 + 底部任务抽屉。</div>
+          <div><strong>适用创作者</strong>：追求高密度多任务操作、熟悉专业工具的进阶模组作者。</div>
+        `,
+        src: './direction-a.html'
+      },
+      'b': {
+        name: '方向 B · 方块沉浸流 (Blockcraft Canvas)',
+        spec: `
+          <div><strong>设计哲学</strong>：Minecraft 原生方块沉浸感（Deep Bedrock & Obsidian），大号 3D 图元卡片流。</div>
+          <div><strong>信息骨架</strong>：顶部大药丸导航 + 方块看板网格 + 悬浮胶囊动作条 + 右侧平滑抽屉。</div>
+          <div><strong>适用创作者</strong>：追求直观视觉反馈、重视 Minecraft 原生氛围与直观图元关系的创作者。</div>
+        `,
+        src: './direction-b.html'
+      },
+      'c': {
+        name: '方向 C · 极简命令台 (Vibe Forge)',
+        spec: `
+          <div><strong>设计哲学</strong>：Command-Bar 优先的极简流线型控制台 (Linear / Raycast 质感)，极窄图标轨。</div>
+          <div><strong>信息骨架</strong>：全局快捷命令中心 (Ctrl+K) + 单焦点流式任务区 + AI/MCP 伴随状态。</div>
+          <div><strong>适用创作者</strong>：追求极低视觉杂音、以键盘和自然语言/AI 协作为核心的现代化创作者。</div>
+        `,
+        src: './direction-c.html'
+      }
+    };
+
+    function switchDirection(dir, el) {
+      document.querySelectorAll('.dir-tab').forEach(t => t.classList.remove('active'));
+      el.classList.add('active');
+
+      const info = dirDetails[dir];
+      document.getElementById('current-dir-label').textContent = `当前运行：${info.name} · 独立无真实文件系统沙箱`;
+      document.getElementById('panel-title').textContent = `${info.name} 设计解析`;
+      document.getElementById('panel-spec').innerHTML = info.spec;
+      document.getElementById('prototype-frame').src = info.src;
+    }
+
+    function resizeViewport(width, btn) {
+      document.querySelectorAll('.vp-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const frame = document.getElementById('prototype-frame');
+      if (width === '100%') {
+        frame.style.width = '100%';
+        frame.style.margin = '0';
+      } else {
+        frame.style.width = width;
+        frame.style.margin = '0 auto';
+      }
+    }
+
+    function setHubTheme(theme) {
+      currentTheme = theme;
+      document.body.setAttribute('data-theme', theme);
+      const text = document.getElementById('hub-theme-text');
+      if (text) {
+        text.textContent = theme === 'light' ? '暗色模式' : '亮色模式';
+      }
+      syncThemeToFrame();
+    }
+
+    function toggleHubTheme() {
+      const next = currentTheme === 'dark' ? 'light' : 'dark';
+      setHubTheme(next);
+    }
+
+    function syncThemeToFrame() {
+      const frame = document.getElementById('prototype-frame');
+      if (frame && frame.contentWindow) {
+        frame.contentWindow.postMessage({ type: 'SET_THEME', theme: currentTheme }, '*');
+      }
+    }
+
+    // 监听子 iframe 主题切换通知
+    window.addEventListener('message', (e) => {
+      if (e.data && e.data.type === 'THEME_CHANGED') {
+        setHubTheme(e.data.theme);
+      }
+    });
+  </script>
+</body>
+</html>

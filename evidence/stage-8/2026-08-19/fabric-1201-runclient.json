@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "preview-track-runclient-probe",
+  "generatorId": "fabric-1.20.1",
+  "minecraftVersion": "1.20.1",
+  "readyMarker": "COPPERBENCH_STAGE7_FABRIC1201_READY",
+  "jdk": "D:\\AICoding\\Minecraft_ModCreator\\jdk\\jdk21_win_64",
+  "osNetworkDisconnected": false,
+  "runClient": {
+    "completed": true,
+    "timedOut": false,
+    "exitCode": 0,
+    "readinessMarkerSeen": true
+  },
+  "generateSucceeded": true,
+  "runClientSucceeded": true,
+  "goldenClaimed": false,
+  "catalogStatus": "PREVIEW",
+  "catalogReasonCode": "TRACK_GENERATE_READY",
+  "catalogGeneratable": false,
+  "diagnostics": [
+    "- fabric-crash-report-info-v1 0.2.19+1802ada577",
+    "[19:54:52] [Render thread/INFO] (Minecraft) [STDERR]: [LWJGL] [ThreadLocalUtil] Unsupported JNI version detected, this may result in a crash. Please inform LWJGL developers."
+  ],
+  "logFile": "evidence/stage-8/2026-08-19/fabric-1201-runclient.log",
+  "completedAt": "2026-08-19T11:54:53.823126900Z",
+  "durationSeconds": 154.2
+}

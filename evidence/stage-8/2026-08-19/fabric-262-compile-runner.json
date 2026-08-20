@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "preview-track-compile-probe-runner",
+  "generatorId": "fabric-26.2",
+  "probeRan": true,
+  "compileSucceeded": false,
+  "goldenClaimed": false,
+  "catalogStatus": "PREVIEW",
+  "catalogReasonCode": "TRACK_GENERATE_READY",
+  "probeEvidence": "D:\\AICoding\\Minecraft_ModCreator\\evidence\\stage-8\\2026-08-19\\fabric-262-compile.json",
+  "completedAt": "2026-08-19T18:21:22.2300226+08:00",
+  "durationSeconds": 246.15
+}

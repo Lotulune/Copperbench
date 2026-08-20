@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "preview-track-compile-probe",
+  "generatorId": "fabric-26.2",
+  "minecraftVersion": "26.2",
+  "loaderVersion": "0.19.3",
+  "loomVersion": "1.17.19",
+  "fabricApiVersion": "0.158.0+26.2",
+  "javaRelease": 25,
+  "jdk": "D:\\AICoding\\Minecraft_ModCreator\\jdk\\jbr25_win_64",
+  "gradleUserHome": "C:\\Users\\Administrator\\.gradle",
+  "osNetworkDisconnected": false,
+  "cacheWarm": {
+    "completed": true,
+    "timedOut": false,
+    "exitCode": 1,
+    "offline": false
+  },
+  "generateSucceeded": true,
+  "jarPresent": false,
+  "compileSucceeded": false,
+  "goldenClaimed": false,
+  "catalogStatus": "PREVIEW",
+  "catalogReasonCode": "TRACK_GENERATE_READY",
+  "catalogGeneratable": false,
+  "rootCause": "Minecraft 26.2 version JSON has client and server jars only; client_mappings and server_mappings are absent, so loom.officialMojangMappings() cannot configure the project.",
+  "diagnostics": [
+    "FAILURE: Build failed with an exception.",
+    "* What went wrong:",
+    "Failed to setup Minecraft, java.lang.RuntimeException: Failed to find official mojang mappings for 26.2"
+  ],
+  "logFile": "evidence/stage-8/2026-08-19/fabric-262-compile.log",
+  "completedAt": "2026-08-19T10:21:21.856736400Z",
+  "durationSeconds": 237.49
+}

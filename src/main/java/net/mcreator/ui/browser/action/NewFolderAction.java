@@ -1,0 +1,72 @@
+/*
+ * MCreator (https://mcreator.net/)
+ * Copyright (C) 2020 Pylo and contributors
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+package net.mcreator.ui.browser.action;
+
+import net.mcreator.ui.MCreator;
+import net.mcreator.ui.action.ActionRegistry;
+import net.mcreator.ui.action.BasicAction;
+import net.mcreator.ui.init.L10N;
+import net.mcreator.ui.init.UIRES;
+import net.mcreator.ui.validation.Validator;
+import net.mcreator.ui.validation.component.VTextField;
+import net.mcreator.ui.validation.optionpane.OptionPaneValidator;
+import net.mcreator.ui.validation.optionpane.VOptionPane;
+import net.mcreator.ui.validation.validators.RegistryNameValidator;
+
+import javax.annotation.Nullable;
+import javax.swing.*;
+import java.io.File;
+
+public class NewFolderAction extends BasicAction {
+
+	public NewFolderAction(ActionRegistry actionRegistry) {
+		super(actionRegistry, L10N.t("action.browser.new_folder"), _ -> {
+			File workingDir = actionRegistry.getMCreator().getProjectBrowser().getCurrentSelectedDirectory();
+			if (workingDir != null) {
+				File folderToMake = openCreateFolderDialog(actionRegistry.getMCreator(), workingDir);
+				if (folderToMake != null) {
+					folderToMake.mkdirs();
+					actionRegistry.getMCreator().getProjectBrowser().reloadTree();
+				}
+			}
+		});
+		setIcon(UIRES.get("16px.directory"));
+	}
+
+	@Nullable public static File openCreateFolderDialog(MCreator mcreator, File parentFolder) {
+		String foldername = VOptionPane.showInputDialog(mcreator,
+				L10N.t("workspace_file_browser.new_folder_name.folder_name"),
+				L10N.t("workspace_file_browser.new_folder_name.folder_name.title"), null,
+				new OptionPaneValidator.Cached() {
+					@Override public Validator createValidator(JComponent component) {
+						return new RegistryNameValidator((VTextField) component,
+								L10N.t("workspace_file_browser.new_folder_name.folder"));
+					}
+				});
+		if (foldername != null) {
+			if (parentFolder.isDirectory()) {
+				File newFolder = new File(parentFolder, foldername);
+				newFolder.mkdirs();
+				return newFolder;
+			}
+		}
+		return null;
+	}
+
+}

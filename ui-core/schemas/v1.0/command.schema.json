@@ -1,0 +1,592 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ui-core:1.0:command",
+  "title": "UI-Core command v1.0",
+  "type": "object",
+  "required": [
+    "messageType",
+    "schemaVersion",
+    "requestId",
+    "workspaceId",
+    "expectedRevision",
+    "operation",
+    "payload"
+  ],
+  "properties": {
+    "messageType": {
+      "const": "command"
+    },
+    "schemaVersion": {
+      "const": "1.0"
+    },
+    "requestId": {
+      "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+    },
+    "workspaceId": {
+      "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+    },
+    "expectedRevision": {
+      "$ref": "urn:ui-core:1.0:common#/$defs/revision"
+    },
+    "operation": {
+      "type": "string",
+      "enum": [
+        "create_mod_element",
+        "update_mod_element",
+        "delete_mod_element",
+        "validate_workspace",
+        "generate_workspace",
+        "build_workspace",
+        "export_workspace",
+        "run_client",
+        "cancel_task",
+        "create_recovery_point",
+        "restore_recovery_point",
+        "resolve_operation_approval",
+        "execute_loader_migration",
+        "import_upstream_workspace",
+        "create_publish_batch",
+        "prepare_resource_pack_client"
+      ]
+    },
+    "payload": {
+      "type": "object"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "create_mod_element"
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/createModElementPayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "update_mod_element"
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/updateModElementPayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "delete_mod_element"
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/deleteModElementPayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "enum": [
+              "validate_workspace",
+              "generate_workspace",
+              "build_workspace",
+              "export_workspace",
+              "run_client"
+            ]
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/workspaceTaskPayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "cancel_task"
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/cancelTaskPayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "create_recovery_point"
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/createRecoveryPointPayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "restore_recovery_point"
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/restoreRecoveryPointPayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "resolve_operation_approval"
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/resolveApprovalPayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "execute_loader_migration"
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/executeLoaderMigrationPayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "import_upstream_workspace"
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/importUpstreamWorkspacePayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "create_publish_batch"
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/createPublishBatchPayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "prepare_resource_pack_client"
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/prepareResourcePackClientPayload"
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "createModElementPayload": {
+      "type": "object",
+      "required": [
+        "clientMutationId",
+        "elementType",
+        "name",
+        "initialValues"
+      ],
+      "properties": {
+        "clientMutationId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+        },
+        "elementType": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/modElementType"
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        },
+        "initialValues": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    },
+    "fieldChange": {
+      "type": "object",
+      "required": [
+        "path",
+        "value"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "pattern": "^/"
+        },
+        "value": {}
+      },
+      "additionalProperties": false
+    },
+    "updateModElementPayload": {
+      "type": "object",
+      "required": [
+        "clientMutationId",
+        "elementId",
+        "changes"
+      ],
+      "properties": {
+        "clientMutationId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+        },
+        "elementId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+        },
+        "changes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/fieldChange"
+          },
+          "minItems": 1,
+          "maxItems": 200
+        }
+      },
+      "additionalProperties": false
+    },
+    "deleteModElementPayload": {
+      "type": "object",
+      "required": [
+        "clientMutationId",
+        "elementId"
+      ],
+      "properties": {
+        "clientMutationId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+        },
+        "elementId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+        }
+      },
+      "additionalProperties": false
+    },
+    "workspaceTaskPayload": {
+      "type": "object",
+      "required": [
+        "clientMutationId",
+        "scope"
+      ],
+      "properties": {
+        "clientMutationId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+        },
+        "scope": {
+          "type": "string",
+          "enum": [
+            "workspace",
+            "selection"
+          ]
+        },
+        "output": {
+          "type": "string",
+          "minLength": 1
+        },
+        "elementIds": {
+          "type": "array",
+          "items": {
+            "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+          },
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "cancelTaskPayload": {
+      "type": "object",
+      "required": [
+        "clientMutationId",
+        "taskId"
+      ],
+      "properties": {
+        "clientMutationId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+        },
+        "taskId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+        }
+      },
+      "additionalProperties": false
+    },
+    "createRecoveryPointPayload": {
+      "type": "object",
+      "required": [
+        "clientMutationId",
+        "label"
+      ],
+      "properties": {
+        "clientMutationId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        }
+      },
+      "additionalProperties": false
+    },
+    "restoreRecoveryPointPayload": {
+      "type": "object",
+      "required": [
+        "clientMutationId",
+        "recoveryPointId",
+        "userApproved"
+      ],
+      "properties": {
+        "clientMutationId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+        },
+        "recoveryPointId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "userApproved": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "resolveApprovalPayload": {
+      "type": "object",
+      "required": [
+        "clientMutationId",
+        "approvalId",
+        "decision"
+      ],
+      "properties": {
+        "clientMutationId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+        },
+        "approvalId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+        },
+        "decision": {
+          "type": "string",
+          "enum": [
+            "approve",
+            "deny"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "executeLoaderMigrationPayload": {
+      "type": "object",
+      "required": [
+        "clientMutationId",
+        "targetGeneratorId",
+        "outputName",
+        "userApproved"
+      ],
+      "properties": {
+        "clientMutationId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+        },
+        "targetGeneratorId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "outputName": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_-]{0,63}$"
+        },
+        "userApproved": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "importUpstreamWorkspacePayload": {
+      "type": "object",
+      "required": [
+        "clientMutationId",
+        "sourceWorkspacePath",
+        "outputName",
+        "userApproved"
+      ],
+      "properties": {
+        "clientMutationId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+        },
+        "sourceWorkspacePath": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "outputName": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_-]{0,63}$"
+        },
+        "userApproved": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "createPublishBatchPayload": {
+      "type": "object",
+      "required": [
+        "clientMutationId",
+        "name",
+        "sourceDirectory",
+        "output"
+      ],
+      "properties": {
+        "clientMutationId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_-]{0,63}$"
+        },
+        "sourceDirectory": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 260
+        },
+        "output": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 260
+        }
+      },
+      "additionalProperties": false
+    },
+    "prepareResourcePackClientPayload": {
+      "type": "object",
+      "required": [
+        "clientMutationId",
+        "sourceDirectory",
+        "zipFileName"
+      ],
+      "properties": {
+        "clientMutationId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+        },
+        "sourceDirectory": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 260
+        },
+        "zipFileName": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9._-]{1,80}\\.zip$"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

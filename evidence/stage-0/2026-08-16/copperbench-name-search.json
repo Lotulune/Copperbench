@@ -1,0 +1,136 @@
+{
+  "ok": true,
+  "error_type": "",
+  "error": "",
+  "session_id": "411fcaac5ce4",
+  "query": "\"Copperbench Studio\" software OR app OR mod creator; identify exact-name collisions and official domains",
+  "platform": "",
+  "model": "grok-4.20-multi-agent-0309",
+  "primary_api_mode": "chat-completions",
+  "content": "**No prominent \"Copperbench Studio\" identified.**\n\n### Primary Finding\n\"Copperbench Studio\" (exact phrase, one word) does **not** match any well-known software, mobile/desktop app, game development studio, Minecraft/Steam mod team, asset creator, or publisher in available knowledge (training data through 2023 with no notable emergence flagged for 2024–2026).\n\n- It is likely either:\n  - A very small/indie solo developer or micro-studio using it as a brand/pseudonym.\n  - A new entrant post-2023.\n  - A private/internal project name.\n  - A username/handle on a niche platform (e.g., itch.io, GitHub, Modrinth, CurseForge, or a Chinese developer portal, given the query’s CST timezone).\n\nNo specific creator name (individual or team) is associated with it in public records.\n\n### Exact-Name Collisions\n**Exact \"Copperbench Studio\" collisions: None found** in software, games, mods, or major digital creative fields.\n\n**Near-exact or partial collisions** (\"Copper Bench\" or \"Copperbench\"):\n- **Physical/furniture businesses**: Multiple small companies or artisans use \"Copper Bench\" for metalwork, furniture design, interior studios, or home décor (common in US, UK, Australia, and Canada). Examples include local bars, cafés, or event venues named \"The Copper Bench.\"\n- **Other minor uses**: Occasional branding in artisanal goods, woodworking, or hospitality. No significant overlap with software, benchmarking tools, or game development.\n- No major trademark conflicts noted in tech/gaming spaces. \"Copper\" + \"bench/benchmark\" occasionally appears in hardware testing contexts, but not as this exact studio name.\n\nThe name appears relatively clean for digital use, with low collision risk in software/mod/app contexts.\n\n### Official Domains\nNo confirmed official domains or websites are associated with a \"Copperbench Studio\" software/app/mod creator.\n\n**Domains worth checking (recommend real-time WHOIS lookup)**:\n- `copperbench.studio`\n- `copperbenchstudio.com`\n- `copperbench.com`\n- `copperbench.dev` or country-code variants\n\nIf a project exists, it most likely uses one of the above, a GitHub Pages/itch.io subdomain, or publishes directly through mod platforms without a dedicated site.\n\n### Recommendations for Further Verification\n1. **Exact-phrase search**: Google `\"Copperbench Studio\"` combined with `(mod OR minecraft OR \"resource pack\" OR app OR software OR unity OR unreal)`.\n2. **Platforms**: Check Modrinth, CurseForge, itch.io, GitHub organizations/users, Google Play, and Apple App Store for publisher/creator pages.\n3. **Domain & ownership**: Use WHOIS, archive.org, and trademark databases (USPTO, EUIPO, or Chinese equivalents).\n4. **Red flags**: If you encountered this name via a download link, mod page, or app, share the specific URL, creator handle, or screenshot for targeted legitimacy check (e.g., registration date of domain, upload history, community feedback).\n\n**Confidence**:\n\nThe name is unusually specific and yields no major public footprint, suggesting it is either brand-new, extremely niche, or not widely distributed. Provide more context (e.g., where you saw the name) for deeper investigation.",
+  "sources": [
+    {
+      "url": "https://www.blockbench.net",
+      "provider": "tavily",
+      "title": "Blockbench",
+      "description": ".2333h-12.7v4.2333h-4.2333v12.7h4.2333v4.2333h12.7zm-12.7-8.4667v-6.35h12.7v12.7h-12.7zm25.4%202.1167v-8.4667h12.7v16.933h4.2333v-16.933h-4.2333v-4.2333h-16.933v21.167h4.2333zm42.333%206.35v-2.1167h-16.933v-4.2333h16.933v-8.4667h-4.2333v-4.2333h-12.7v4.2333h-4.2333v12.7h4.2333v4.2333h16.933zm-16.933-12.7v-2.1167h12.7v4.2333h-12.7z'%20fill='%23fb3621'/%3e%3cpath%20d='m-9.8927%20227.9v-2.1167h-4.2333v-4.2333h4.2333v4.2333h16.933v4.2333h-16.933zm25.4%200v-2.1167h-4.2333v-4.2333h4.2333v-4.2333h12.7v4.2333h-12.7v4.2333h16.933v4.2333h-16.933zm21.167%200v-2.1167h4.2333v4.2333h-4.2333zm16.933%200v-2.1167h4.2333v4.2333h-4.2333zm12.7%200v-2.1167h-4.2333v-4.2333h4.2333v-4.2333h16.933v4.2333h-16.933v4.2333h16.933v4.2333h-16.933zm21.167%200v-2.1167h4.2333v4.2333h-4.2333zm16.933%200v-2.1167h4.2333v4 [...] .1167h4.2333v4.2333h-4.2333zm16.933%200v-2.1167h4.2333v4.2333h-4.2333zm12.7%200v-2.1167h-4.2333v-4.2333h4.2333v4.2333h12.7v-4.2333h4.2333v4.2333h-4.2333v4.2333h-12.7zm25.4%200v-2.1167h-4.2333v-4.2333h4.2333v4.2333h16.933v4.2333h-16.933zm25.4%200v-2.1167h-4.2333v-4.2333h4.2333v-4.2333h16.933v4.2333h-16.933v4.2333h16.933v4.2333h-16.933zm33.867%200v-2.1167h-4.2333v-4.2333h4.2333v4.2333h12.7v-4.2333h4.2333v4.2333h-4.2333v4.2333h-12.7zm21.167%200v-2.1167h4.2333v4.2333h-4.2333zm16.933%200v-2.1167h4.2333v4.2333h-4.2333zm12.7%200v-2.1167h-4.2333v-4.2333h4.2333v-4.2333h16.933v4.2333h-16.933v4.2333h16.933v4.2333h-16.933zm-254-8.4667v-2.1167h4.2333v4.2333h-4.2333zm46.567%200v-2.1167h4.2333v4.2333h-4.2333zm50.8%200v-2.1167h4.2333v4.2333h-4.2333zm55.033-4.2333v-2.1167h-8.4667v-4.2333h8.4667v4.2333h4 [...] .2333h-12.7v4.2333h-4.2333v12.7h4.2333v4.2333h16.933zm-16.933-12.7v-2.1167h12.7v4.2333h-12.7zm25.4%206.35v-8.4667h4.2333v8.4667h4.2333v-8.4667h4.2333v16.933h4.2333v-16.933h-4.2333v-4.2333h-4.2333v4.2333h-4.2333v-4.2333h-8.4667v21.167h4.2333zm38.1%206.35v-2.1167h4.2333v-12.7h-4.2333v-4.2333h-12.7v4.2333h-4.2333v12.7h4.2333v4.2333h12.7zm-12.7-8.4667v-6.35h12.7v12.7h-12.7zm42.333-4.2333v-14.817h-4.2333v12.7h-4.2333v-4.2333h-8.4667v4.2333h-4.2333v12.7h4.2333v4.2333h16.933zm-16.933%204.2333v-6.35h8.4667v4.2333h4.2333v8.4667h-12.7zm42.333%208.4667v-2.1167h-16.933v-4.2333h16.933v-8.4667h-4.2333v-4.2333h-12.7v4.2333h-4.2333v12.7h4.2333v4.2333h16.933zm-16.933-12.7v-2.1167h12.7v4.2333h-12.7zm46.567%2012.7v-2.1167h4.2333v-12.7h-4.2333v-4.2333h-12.7v4.2333h-4.2333v12.7h4.2333v4.2333h12.7zm-12.7-8"
+    }
+  ],
+  "sources_count": 1,
+  "primary_sources": [],
+  "primary_sources_count": 0,
+  "extra_sources": [
+    {
+      "url": "https://www.blockbench.net",
+      "provider": "tavily",
+      "title": "Blockbench",
+      "description": ".2333h-12.7v4.2333h-4.2333v12.7h4.2333v4.2333h12.7zm-12.7-8.4667v-6.35h12.7v12.7h-12.7zm25.4%202.1167v-8.4667h12.7v16.933h4.2333v-16.933h-4.2333v-4.2333h-16.933v21.167h4.2333zm42.333%206.35v-2.1167h-16.933v-4.2333h16.933v-8.4667h-4.2333v-4.2333h-12.7v4.2333h-4.2333v12.7h4.2333v4.2333h16.933zm-16.933-12.7v-2.1167h12.7v4.2333h-12.7z'%20fill='%23fb3621'/%3e%3cpath%20d='m-9.8927%20227.9v-2.1167h-4.2333v-4.2333h4.2333v4.2333h16.933v4.2333h-16.933zm25.4%200v-2.1167h-4.2333v-4.2333h4.2333v-4.2333h12.7v4.2333h-12.7v4.2333h16.933v4.2333h-16.933zm21.167%200v-2.1167h4.2333v4.2333h-4.2333zm16.933%200v-2.1167h4.2333v4.2333h-4.2333zm12.7%200v-2.1167h-4.2333v-4.2333h4.2333v-4.2333h16.933v4.2333h-16.933v4.2333h16.933v4.2333h-16.933zm21.167%200v-2.1167h4.2333v4.2333h-4.2333zm16.933%200v-2.1167h4.2333v4 [...] .1167h4.2333v4.2333h-4.2333zm16.933%200v-2.1167h4.2333v4.2333h-4.2333zm12.7%200v-2.1167h-4.2333v-4.2333h4.2333v4.2333h12.7v-4.2333h4.2333v4.2333h-4.2333v4.2333h-12.7zm25.4%200v-2.1167h-4.2333v-4.2333h4.2333v4.2333h16.933v4.2333h-16.933zm25.4%200v-2.1167h-4.2333v-4.2333h4.2333v-4.2333h16.933v4.2333h-16.933v4.2333h16.933v4.2333h-16.933zm33.867%200v-2.1167h-4.2333v-4.2333h4.2333v4.2333h12.7v-4.2333h4.2333v4.2333h-4.2333v4.2333h-12.7zm21.167%200v-2.1167h4.2333v4.2333h-4.2333zm16.933%200v-2.1167h4.2333v4.2333h-4.2333zm12.7%200v-2.1167h-4.2333v-4.2333h4.2333v-4.2333h16.933v4.2333h-16.933v4.2333h16.933v4.2333h-16.933zm-254-8.4667v-2.1167h4.2333v4.2333h-4.2333zm46.567%200v-2.1167h4.2333v4.2333h-4.2333zm50.8%200v-2.1167h4.2333v4.2333h-4.2333zm55.033-4.2333v-2.1167h-8.4667v-4.2333h8.4667v4.2333h4 [...] .2333h-12.7v4.2333h-4.2333v12.7h4.2333v4.2333h16.933zm-16.933-12.7v-2.1167h12.7v4.2333h-12.7zm25.4%206.35v-8.4667h4.2333v8.4667h4.2333v-8.4667h4.2333v16.933h4.2333v-16.933h-4.2333v-4.2333h-4.2333v4.2333h-4.2333v-4.2333h-8.4667v21.167h4.2333zm38.1%206.35v-2.1167h4.2333v-12.7h-4.2333v-4.2333h-12.7v4.2333h-4.2333v12.7h4.2333v4.2333h12.7zm-12.7-8.4667v-6.35h12.7v12.7h-12.7zm42.333-4.2333v-14.817h-4.2333v12.7h-4.2333v-4.2333h-8.4667v4.2333h-4.2333v12.7h4.2333v4.2333h16.933zm-16.933%204.2333v-6.35h8.4667v4.2333h4.2333v8.4667h-12.7zm42.333%208.4667v-2.1167h-16.933v-4.2333h16.933v-8.4667h-4.2333v-4.2333h-12.7v4.2333h-4.2333v12.7h4.2333v4.2333h16.933zm-16.933-12.7v-2.1167h12.7v4.2333h-12.7zm46.567%2012.7v-2.1167h4.2333v-12.7h-4.2333v-4.2333h-12.7v4.2333h-4.2333v12.7h4.2333v4.2333h12.7zm-12.7-8"
+    }
+  ],
+  "extra_sources_count": 1,
+  "source_warning": "extra_sources are retrieved in parallel and are not automatically used to verify generated content; use fetch on key URLs for claim-level evidence.",
+  "routing_decision": {
+    "docs_intent": false,
+    "zh_current_intent": false,
+    "web_current_intent": false,
+    "fetch_intent": false,
+    "supplemental_paths": [
+      "web_search"
+    ],
+    "validation_level": "strict",
+    "fallback_mode": "auto",
+    "providers": "auto",
+    "main_search_chain": [
+      "openai-compatible"
+    ],
+    "openai_compatible_stream": true
+  },
+  "providers_used": [
+    "OpenAI-compatible",
+    "tavily"
+  ],
+  "provider_attempts": [
+    {
+      "capability": "main_search",
+      "provider": "OpenAI-compatible",
+      "status": "ok",
+      "error_type": "",
+      "error": "",
+      "elapsed_ms": 38363.55,
+      "result_count": 1
+    },
+    {
+      "capability": "web_search",
+      "provider": "tavily",
+      "status": "ok",
+      "error_type": "",
+      "error": "",
+      "elapsed_ms": 44661.01,
+      "result_count": 1
+    },
+    {
+      "capability": "web_search",
+      "provider": "tavily",
+      "status": "ok",
+      "error_type": "",
+      "error": "",
+      "elapsed_ms": 5606.07,
+      "result_count": 1
+    }
+  ],
+  "fallback_used": true,
+  "validation_level": "strict",
+  "minimum_profile_ok": true,
+  "capability_status": {
+    "main_search": {
+      "configured": [
+        "openai-compatible"
+      ],
+      "fallback_chain": [
+        "xai-responses",
+        "openai-compatible"
+      ],
+      "ok": true
+    },
+    "web_search": {
+      "configured": [
+        "tavily"
+      ],
+      "fallback_chain": [
+        "zhipu",
+        "tavily",
+        "firecrawl"
+      ],
+      "ok": true
+    },
+    "docs_search": {
+      "configured": [
+        "context7"
+      ],
+      "fallback_chain": [
+        "context7",
+        "exa"
+      ],
+      "ok": true
+    },
+    "web_fetch": {
+      "configured": [
+        "tavily"
+      ],
+      "fallback_chain": [
+        "tavily",
+        "firecrawl"
+      ],
+      "ok": true
+    },
+    "vertical_search": {
+      "configured": [],
+      "fallback_chain": [
+        "anysearch"
+      ],
+      "experimental": true,
+      "ok": false
+    }
+  },
+  "elapsed_ms": 50267.62
+}

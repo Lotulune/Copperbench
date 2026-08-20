@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Copperbench · 方向 A：专注工坊流 (Copper Studio)</title>
+  <style>
+    :root, [data-theme="dark"] {
+      --bg-base: #0c0e12;
+      --bg-surface: #12151b;
+      --bg-panel: #181d24;
+      --bg-input: #0e1116;
+      --bg-card: #151921;
+      --bg-card-hover: #1b202a;
+      --border-subtle: #202632;
+      --border-focus: #c87a3e;
+      --text-main: #f1f4f8;
+      --text-muted: #8c97a8;
+      --text-sub: #505967;
+      --accent-copper: #c87a3e;
+      --accent-copper-hover: #d98a4e;
+      --accent-copper-dim: rgba(200, 122, 62, 0.08);
+      --badge-green: #3fb950;
+      --badge-green-bg: rgba(63, 185, 80, 0.08);
+      --badge-amber: #d29922;
+      --badge-amber-bg: rgba(210, 153, 34, 0.08);
+      --badge-red: #f85149;
+      --badge-red-bg: rgba(248, 81, 73, 0.08);
+      --badge-blue: #79b8ff;
+      --badge-blue-bg: rgba(88, 166, 255, 0.08);
+      --badge-blue-border: rgba(88, 166, 255, 0.2);
+      --titlebar-bg: #101318;
+      --footer-bg: #101318;
+      --drawer-bg: #0e1116;
+      --modal-footer-bg: #12151b;
+      --card-selected-bg: #1a1e27;
+      --card-selected-border: rgba(200, 122, 62, 0.4);
+      --scenario-bar-bg: rgba(18, 22, 29, 0.92);
+      --btn-primary-bg: #c87a3e;
+      --btn-primary-hover: #d4874b;
+      --btn-primary-text: #ffffff;
+      --radius-xs: 3px;
+      --radius-sm: 5px;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI", Roboto, sans-serif;
+    }
+
+    [data-theme="light"] {
+      --bg-base: #f8fafc;
+      --bg-surface: #ffffff;
+      --bg-panel: #f1f5f9;
+      --bg-input: #ffffff;
+      --bg-card: #ffffff;
+      --bg-card-hover: #f8fafc;
+      --border-subtle: #e2e8f0;
+      --border-focus: #9a4c17;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --text-sub: #94a3b8;
+      --accent-copper: #9a4c17;
+      --accent-copper-hover: #833e11;
+      --accent-copper-dim: rgba(154, 76, 23, 0.06);
+      --badge-green: #1a7f37;
+      --badge-green-bg: #dafbe1;
+      --badge-amber: #9a6700;
+      --badge-amber-bg: #fff8c5;
+      --badge-red: #cf222e;
+      --badge-red-bg: #ffebe9;
+      --badge-blue: #0969da;
+      --badge-blue-bg: #ddf4ff;
+      --badge-blue-border: #b6e3ff;
+      --titlebar-bg: #f1f5f9;
+      --footer-bg: #f1f5f9;
+      --drawer-bg: #ffffff;
+      --modal-footer-bg: #f8fafc;
+      --card-selected-bg: #fffcf8;
+      --card-selected-border: rgba(154, 76, 23, 0.35);
+      --scenario-bar-bg: rgba(255, 255, 255, 0.94);
+      --btn-primary-bg: #9a4c17;
+      --btn-primary-hover: #833e11;
+      --btn-primary-text: #ffffff;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-family);
+      background: var(--bg-base);
+      color: var(--text-main);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      user-select: none;
+      letter-spacing: -0.01em;
+      transition: background-color 0.15s, color 0.15s;
+    }
+
+    /* 自定义无边框标题栏 */
+    .titlebar {
+      height: 38px;
+      background: var(--titlebar-bg);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      -webkit-app-region: drag;
+    }
+    .titlebar-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      -webkit-app-region: no-drag;
+    }
+    .brand-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 600;
+      font-size: 12px;
+      color: var(--accent-copper);
+      background: var(--accent-copper-dim);
+      padding: 3px 8px;
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(200, 122, 62, 0.2);
+    }
+    .ws-name {
+      font-size: 13px;
+      color: var(--text-main);
+      font-weight: 600;
+    }
+    .loader-badge {
+      font-size: 11px;
+      font-weight: 500;
+      background: var(--badge-blue-bg);
+      color: var(--badge-blue);
+      border: 1px solid var(--badge-blue-border);
+      padding: 2px 7px;
+      border-radius: 10px;
+    }
+    .rev-badge {
+      font-size: 11px;
+      color: var(--text-sub);
+    }
+
+    .titlebar-center {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      -webkit-app-region: no-drag;
+    }
+    .action-btn-group {
+      display: flex;
+      align-items: center;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+    }
+    .tb-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 12px;
+      padding: 5px 11px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s;
+    }
+    .tb-btn:hover { background: var(--bg-panel); color: var(--text-main); }
+    .tb-btn.primary {
+      background: var(--btn-primary-bg);
+      color: var(--btn-primary-text);
+      font-weight: 500;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.12);
+    }
+    .tb-btn.primary:hover { background: var(--btn-primary-hover); }
+
+    .titlebar-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      -webkit-app-region: no-drag;
+    }
+    .win-controls {
+      display: flex;
+      align-items: center;
+      margin-left: 4px;
+    }
+    .win-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-sub);
+      width: 28px;
+      height: 26px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 12px;
+      border-radius: var(--radius-xs);
+    }
+    .win-btn:hover { background: var(--bg-panel); color: var(--text-main); }
+    .win-btn.close:hover { background: var(--badge-red); color: #fff; }
+
+    /* 主体布局 (三栏) */
+    .app-main {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* 左侧工坊导航树 */
+    .sidebar-left {
+      width: 210px;
+      background: var(--bg-surface);
+      border-right: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+    }
+    .sidebar-section {
+      padding: 12px 8px 4px;
+    }
+    .sidebar-title {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: var(--text-sub);
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
+      padding-left: 8px;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 8px;
+      border-radius: var(--radius-sm);
+      color: var(--text-muted);
+      font-size: 12px;
+      cursor: pointer;
+      margin-bottom: 2px;
+      transition: all 0.12s;
+    }
+    .nav-item:hover { background: var(--bg-panel); color: var(--text-main); }
+    .nav-item.active { background: var(--accent-copper-dim); color: var(--accent-copper); font-weight: 600; }
+    .nav-count {
+      font-size: 10px;
+      background: var(--bg-panel);
+      padding: 1px 5px;
+      border-radius: 6px;
+      color: var(--text-sub);
+    }
+
+    /* 中间工作区画布 */
+    .canvas-center {
+      flex: 1;
+      background: var(--bg-base);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .canvas-header {
+      padding: 8px 16px;
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .canvas-tools {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .search-box-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .search-icon {
+      position: absolute;
+      left: 8px;
+      color: var(--text-sub);
+      pointer-events: none;
+      display: flex;
+    }
+    .search-box {
+      background: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      color: var(--text-main);
+      padding: 5px 10px 5px 28px;
+      font-size: 12px;
+      width: 200px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .search-box:focus { border-color: var(--border-focus); }
+
+    .elements-grid {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      grid-auto-rows: max-content;
+      gap: 10px;
+    }
+    .element-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      cursor: pointer;
+      transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      position: relative;
+    }
+    .element-card:hover {
+      border-color: rgba(200, 122, 62, 0.3);
+      background: var(--bg-card-hover);
+    }
+    .element-card.selected {
+      border-color: var(--card-selected-border);
+      background: var(--card-selected-bg);
+      box-shadow: 0 0 0 1px var(--card-selected-border);
+    }
+    .el-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .el-icon {
+      width: 32px;
+      height: 32px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent-copper);
+      flex-shrink: 0;
+    }
+    .el-info {
+      flex: 1;
+      overflow: hidden;
+    }
+    .el-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-main);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .el-type {
+      font-size: 11px;
+      color: var(--text-sub);
+      margin-top: 1px;
+    }
+    .el-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      padding-top: 6px;
+      border-top: 1px solid var(--border-subtle);
+    }
+    .tag-valid { color: var(--badge-green); font-weight: 500; display: flex; align-items: center; gap: 4px; }
+    .tag-draft { color: var(--badge-amber); font-weight: 500; display: flex; align-items: center; gap: 4px; }
+
+    /* 空工作区状态 */
+    .empty-state {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 40px;
+      color: var(--text-muted);
+    }
+    .empty-icon { margin-bottom: 14px; opacity: 0.6; color: var(--accent-copper); }
+    .empty-title { font-size: 16px; font-weight: 600; color: var(--text-main); margin-bottom: 6px; }
+    .empty-desc { font-size: 12px; color: var(--text-sub); max-width: 340px; margin-bottom: 18px; line-height: 1.5; }
+
+    /* 右侧属性检查器 */
+    .sidebar-right {
+      width: 300px;
+      background: var(--bg-surface);
+      border-left: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+    }
+    .inspector-header {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border-subtle);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .inspector-body {
+      flex: 1;
+      padding: 14px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .form-label {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .form-input {
+      background: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      color: var(--text-main);
+      padding: 6px 9px;
+      font-size: 12px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .form-input:focus { border-color: var(--border-focus); }
+    .form-input.has-error { border-color: var(--badge-red); background: rgba(248,81,73,0.05); }
+    .field-error-msg {
+      font-size: 11px;
+      color: var(--badge-red);
+      margin-top: 2px;
+    }
+    .field-help-msg {
+      font-size: 11px;
+      color: var(--text-sub);
+      line-height: 1.4;
+    }
+    .loader-preserve-tag {
+      font-size: 10px;
+      background: var(--badge-amber-bg);
+      color: var(--badge-amber);
+      padding: 1px 4px;
+      border-radius: 3px;
+    }
+
+    /* 底部状态与任务栏 */
+    .status-bar {
+      height: 28px;
+      background: var(--footer-bg);
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      font-size: 11px;
+      color: var(--text-sub);
+    }
+    .status-left, .status-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+    }
+    .status-item:hover { color: var(--text-main); }
+    .dot-indicator {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--badge-green);
+    }
+    .dot-indicator.offline { background: var(--badge-amber); }
+    .dot-indicator.error { background: var(--badge-red); }
+
+    /* 受管任务日志抽屉 */
+    .task-drawer {
+      height: 130px;
+      background: var(--drawer-bg);
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .task-drawer-header {
+      height: 26px;
+      padding: 0 12px;
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+    }
+    .task-logs {
+      flex: 1;
+      padding: 8px 12px;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: 11px;
+      color: var(--text-muted);
+      overflow-y: auto;
+      line-height: 1.5;
+    }
+
+    /* 浮动场景测试栏 */
+    .scenario-picker-bar {
+      position: fixed;
+      bottom: 38px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--scenario-bar-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border-subtle);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+      border-radius: 20px;
+      padding: 4px 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      z-index: 999;
+    }
+    .scenario-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .scenario-select {
+      background: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      font-size: 11px;
+      padding: 3px 6px;
+      border-radius: var(--radius-sm);
+      outline: none;
+      cursor: pointer;
+    }
+
+    /* 模态对话框 */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-card {
+      width: 440px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .modal-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border-subtle);
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .modal-header.danger { color: var(--badge-red); }
+    .modal-header.warning { color: var(--badge-amber); }
+    .modal-body {
+      padding: 16px;
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+    .modal-footer {
+      padding: 10px 16px;
+      background: var(--modal-footer-bg);
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .theme-toggle-btn {
+      background: transparent;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      color: var(--text-muted);
+      padding: 3px 8px;
+      font-size: 11px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s;
+    }
+    .theme-toggle-btn:hover {
+      background: var(--bg-panel);
+      color: var(--text-main);
+    }
+  </style>
+</head>
+<body data-theme="dark">
+
+  <!-- 自定义无边框标题栏 -->
+  <header class="titlebar">
+    <div class="titlebar-left">
+      <div class="brand-pill">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+        <span>Copperbench</span>
+      </div>
+      <div class="ws-name" id="wb-title">Copper Trails</div>
+      <span class="loader-badge" id="wb-loader">Fabric 1.21.1</span>
+      <span class="rev-badge" id="wb-rev">Rev: 42</span>
+    </div>
+
+    <div class="titlebar-center">
+      <div class="action-btn-group">
+        <button class="tb-btn" onclick="mockCore.triggerCreateElement()">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span>新建元素</span>
+        </button>
+        <button class="tb-btn primary" onclick="mockCore.triggerBuild()">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          <span>构建工作区</span>
+        </button>
+        <button class="tb-btn" onclick="mockCore.loadScenario('external-process-exited')">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          <span>测试客户端</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="titlebar-right">
+      <button class="theme-toggle-btn" id="theme-btn" onclick="toggleTheme()">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <span id="theme-text">亮色</span>
+      </button>
+      <span style="font-size: 11px; color: var(--text-sub);">方向 A · 专注工坊流</span>
+      <div class="win-controls">
+        <button class="win-btn">─</button>
+        <button class="win-btn">□</button>
+        <button class="win-btn close">✕</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 主体工作区 -->
+  <main class="app-main">
+    <!-- 左侧导航树 -->
+    <aside class="sidebar-left">
+      <div class="sidebar-section">
+        <div class="sidebar-title">创作目录 (Mod Elements)</div>
+        <div class="nav-item active" onclick="filterType('all')">
+          <span>全部元素</span>
+          <span class="nav-count" id="count-all">4</span>
+        </div>
+        <div class="nav-item" onclick="filterType('block')">
+          <span>方块 (Blocks)</span>
+          <span class="nav-count" id="count-block">1</span>
+        </div>
+        <div class="nav-item" onclick="filterType('item')">
+          <span>物品 (Items)</span>
+          <span class="nav-count" id="count-item">1</span>
+        </div>
+        <div class="nav-item" onclick="filterType('recipe')">
+          <span>合成配方 (Recipes)</span>
+          <span class="nav-count" id="count-recipe">1</span>
+        </div>
+        <div class="nav-item" onclick="filterType('procedure')">
+          <span>逻辑过程 (Procedures)</span>
+          <span class="nav-count" id="count-procedure">1</span>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">系统与扩展</div>
+        <div class="nav-item"><span>资产 & Blockbench</span></div>
+        <div class="nav-item"><span>版本快照 (JGit)</span></div>
+        <div class="nav-item"><span>AI/MCP 权限审计</span></div>
+      </div>
+    </aside>
+
+    <!-- 中间画布 -->
+    <section class="canvas-center">
+      <div class="canvas-header">
+        <div class="canvas-tools">
+          <div class="search-box-wrapper">
+            <span class="search-icon">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </span>
+            <input type="text" class="search-box" placeholder="搜索图元 (Ctrl+F)..." />
+          </div>
+          <button class="tb-btn" style="background: var(--bg-card); border: 1px solid var(--border-subtle);" onclick="mockCore.triggerCreateElement()">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span>新建</span>
+          </button>
+        </div>
+        <div style="font-size: 11px; color: var(--text-sub);" id="canvas-status-desc">就绪 · 共 4 个图元</div>
+      </div>
+
+      <!-- 元素卡片网格 -->
+      <div class="elements-grid" id="elements-container">
+        <!-- 由 JavaScript 动态渲染 -->
+      </div>
+    </section>
+
+    <!-- 右侧属性检查器 -->
+    <aside class="sidebar-right">
+      <div class="inspector-header">
+        <span>属性检查器 (Inspector)</span>
+        <span style="font-size: 11px; color: var(--badge-blue);" id="inspector-element-type">方块 (Block)</span>
+      </div>
+
+      <div class="inspector-body" id="inspector-fields">
+        <div class="form-group">
+          <label class="form-label">标识符 (Identifier)</label>
+          <input type="text" class="form-input" value="copper_lamp" readonly style="font-family: monospace; opacity: 0.8;" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">显示名称 (Display Name)</label>
+          <input type="text" class="form-input" value="Copper Lamp (铜灯)" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">
+            <span>硬度 (Hardness)</span>
+            <span style="color: var(--text-sub);">[0..100]</span>
+          </label>
+          <input type="number" id="field-hardness" class="form-input" value="3.5" step="0.5" />
+          <div class="field-error-msg" id="err-hardness" style="display: none;">硬度必须介于 0 到 100 之间。</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">
+            <span>火焰蔓延速率</span>
+            <span class="loader-preserve-tag">NeoForge 专属</span>
+          </label>
+          <input type="number" class="form-input" value="5" readonly style="opacity: 0.5;" />
+          <div class="field-help-msg">此值为 NeoForge 专属字段，在 Fabric 生成器下保留原值但不可编辑。</div>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <!-- 活动构建任务/日志抽屉 (构建进行时展开) -->
+  <div class="task-drawer" id="task-drawer" style="display: none;">
+    <div class="task-drawer-header">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="font-weight: 600; color: var(--accent-copper);" id="drawer-task-title">构建任务 (Running)</span>
+        <span style="color: var(--text-sub);" id="drawer-task-stage">正在编译 Java 源码...</span>
+      </div>
+      <button class="tb-btn" style="padding: 2px 8px; font-size: 11px;" onclick="mockCore.loadScenario('ready')">取消构建</button>
+    </div>
+    <div class="task-logs" id="task-logs-content">
+      [Gradle] :compileJava UP-TO-DATE<br/>
+      [Fabric] Generated 4 mod elements successfully into .fabric/sources.<br/>
+      [Jar] Building mod artifact: CopperTrails-1.21.1-0.1.0.jar
+    </div>
+  </div>
+
+  <!-- 底部状态栏 -->
+  <footer class="status-bar">
+    <div class="status-left">
+      <div class="status-item">
+        <span class="dot-indicator" id="conn-dot"></span>
+        <span id="conn-text">本地 Core: 已连接 · 在线</span>
+      </div>
+      <div class="status-item" id="diag-summary">
+        <span>0 错误 · 0 警告</span>
+      </div>
+    </div>
+    <div class="status-right">
+      <div class="status-item" style="color: var(--accent-copper);" id="perm-badge" onclick="mockCore.loadScenario('permission-denied')">
+        <span>MCP 权限: Workspace</span>
+      </div>
+      <div class="status-item">
+        <span>Revision 42 · 写入锁正常</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- 冲突 / 权限 / 恢复 模态弹窗 -->
+  <div class="modal-overlay" id="generic-modal">
+    <div class="modal-card">
+      <div class="modal-header warning" id="modal-title">模态标题</div>
+      <div class="modal-body" id="modal-desc">模态描述文本</div>
+      <div class="modal-footer" id="modal-actions">
+        <button class="tb-btn primary" onclick="closeModal()">确认</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 场景切换工具条 -->
+  <div class="scenario-picker-bar">
+    <span class="scenario-label">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+      <span>测试场景</span>
+    </span>
+    <select class="scenario-select" id="scenario-selector" onchange="mockCore.loadScenario(this.value)">
+      <option value="ready">1. 就绪状态 (Ready)</option>
+      <option value="empty-workspace">2. 空工作区 (Empty)</option>
+      <option value="build-running">3. 构建进行中 (Build Running)</option>
+      <option value="validation-failed">4. 校验失败告警 (Validation Failed)</option>
+      <option value="permission-denied">5. 权限不足拦截 (Permission Denied)</option>
+      <option value="revision-conflict">6. 版本修订冲突 (Revision Conflict)</option>
+      <option value="partial-capability">7. 差异字段保留 (Partial Capability)</option>
+      <option value="offline">8. 本地离线模式 (Offline)</option>
+      <option value="external-process-exited">9. 客户端崩溃 (Process Exit)</option>
+      <option value="bridge-recovery">10. 渲染恢复 (Bridge Recovery)</option>
+      <option value="loading-workbench">11. 加载中骨架 (Loading)</option>
+      <option value="element-created">12. 新增元素成功 (Element Created)</option>
+    </select>
+  </div>
+
+  <script src="./mock-core.js"></script>
+  <script>
+    let selectedElementId = "22222222-2222-4222-8222-222222222221";
+
+    // 干净利落的矢量图标
+    const svgIcons = {
+      block: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>`,
+      item: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,
+      recipe: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`,
+      procedure: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`,
+      empty: `<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>`
+    };
+
+    function renderUI(state) {
+      document.getElementById('scenario-selector').value = state.scenarioId;
+
+      // 工作区元数据
+      if (state.workspace) {
+        document.getElementById('wb-title').textContent = state.workspace.name;
+        document.getElementById('wb-loader').textContent = state.workspace.generator.displayName;
+        document.getElementById('wb-rev').textContent = `Rev: ${state.workspace.revision}`;
+      }
+
+      // 统计计数
+      if (state.elementCounts) {
+        document.getElementById('count-all').textContent = state.elementCounts.total;
+        document.getElementById('count-block').textContent = state.elements.filter(e => e.type === 'block').length;
+        document.getElementById('count-item').textContent = state.elements.filter(e => e.type === 'item').length;
+        document.getElementById('count-recipe').textContent = state.elements.filter(e => e.type === 'recipe').length;
+        document.getElementById('count-procedure').textContent = state.elements.filter(e => e.type === 'procedure').length;
+      }
+
+      // 渲染元素网格
+      const container = document.getElementById('elements-container');
+      container.innerHTML = '';
+
+      if (state.elements.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">${svgIcons.empty}</div>
+            <div class="empty-title">工作区尚无任何图元</div>
+            <div class="empty-desc">点击下方按钮快速创建您的第一个方块、物品或配方。</div>
+            <button class="tb-btn primary" onclick="mockCore.triggerCreateElement()">＋ 创建第一个图元</button>
+          </div>
+        `;
+      } else {
+        state.elements.forEach(el => {
+          const card = document.createElement('div');
+          card.className = `element-card ${el.id === selectedElementId ? 'selected' : ''}`;
+          card.onclick = () => selectElement(el.id);
+
+          const icon = svgIcons[el.type] || svgIcons.block;
+          const stateTag = el.state === 'valid' 
+            ? '<span class="tag-valid"><span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--badge-green);"></span> 校验通过</span>' 
+            : '<span class="tag-draft"><span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--badge-amber);"></span> 草稿</span>';
+
+          card.innerHTML = `
+            <div class="el-header">
+              <div class="el-icon">${icon}</div>
+              <div class="el-info">
+                <div class="el-title">${el.displayName}</div>
+                <div class="el-type">${el.name} · ${el.type}</div>
+              </div>
+            </div>
+            <div class="el-footer">
+              ${stateTag}
+              <span style="color: var(--text-sub);">${el.ownership}</span>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      }
+
+      // 任务抽屉
+      const drawer = document.getElementById('task-drawer');
+      if (state.activeTasks && state.activeTasks.length > 0 && state.activeTasks[0].state === 'running') {
+        drawer.style.display = 'flex';
+        const t = state.activeTasks[0];
+        document.getElementById('drawer-task-title').textContent = `构建任务 (${Math.round(t.progress * 100)}%)`;
+        document.getElementById('drawer-task-stage').textContent = t.stage.fallback;
+      } else {
+        drawer.style.display = 'none';
+      }
+
+      // 诊断与错误高亮
+      const hardnessInput = document.getElementById('field-hardness');
+      const hardnessErr = document.getElementById('err-hardness');
+      const hasHardnessError = state.diagnostics.some(d => d.code === 'FIELD_VALUE_OUT_OF_RANGE');
+      if (hasHardnessError) {
+        hardnessInput.classList.add('has-error');
+        hardnessErr.style.display = 'block';
+      } else {
+        hardnessInput.classList.remove('has-error');
+        hardnessErr.style.display = 'none';
+      }
+
+      // 状态栏
+      const connDot = document.getElementById('conn-dot');
+      const connText = document.getElementById('conn-text');
+      if (state.connection.network === 'offline') {
+        connDot.className = 'dot-indicator offline';
+        connText.textContent = '本地 Core: 离线模式';
+      } else {
+        connDot.className = 'dot-indicator';
+        connText.textContent = '本地 Core: 已连接 · 在线';
+      }
+
+      const permBadge = document.getElementById('perm-badge');
+      permBadge.textContent = `MCP 权限: ${state.permission.profile === 'workspace' ? 'Workspace' : 'Read Only'}`;
+
+      // 弹窗处理
+      const modal = document.getElementById('generic-modal');
+      const modalTitle = document.getElementById('modal-title');
+      const modalDesc = document.getElementById('modal-desc');
+      const modalActions = document.getElementById('modal-actions');
+
+      if (state.conflict) {
+        modal.classList.add('active');
+        modalTitle.className = 'modal-header warning';
+        modalTitle.innerHTML = `<span>检测到版本修订冲突 (Revision Conflict)</span>`;
+        modalDesc.innerHTML = `外部 MCP 会话已将工作区更新至 <b>Revision ${state.conflict.actualRevision}</b>。<br/>您当前的修改基于旧版本 (Revision ${state.conflict.expectedRevision})，已被安全隔离保护。`;
+        modalActions.innerHTML = `
+          <button class="tb-btn primary" onclick="mockCore.resolveConflict(); closeModal();">载入最新修改并合并</button>
+        `;
+      } else if (state.denial) {
+        modal.classList.add('active');
+        modalTitle.className = 'modal-header warning';
+        modalTitle.innerHTML = `<span>MCP 权限不足拦截</span>`;
+        modalDesc.innerHTML = `当前会话处于 <b>只读模式 (${state.denial.currentProfile})</b>，无法执行模组构建。<br/>是否立即申请提升至 <b>工作区权限 (${state.denial.requiredProfile})</b>？`;
+        modalActions.innerHTML = `
+          <button class="tb-btn" onclick="closeModal()">取消</button>
+          <button class="tb-btn primary" onclick="mockCore.requestWorkspacePermission(); closeModal();">申请提升权限</button>
+        `;
+      } else if (state.scenarioId === 'external-process-exited') {
+        modal.classList.add('active');
+        modalTitle.className = 'modal-header danger';
+        modalTitle.innerHTML = `<span>Minecraft 测试客户端异常退出</span>`;
+        modalDesc.innerHTML = `外部 Minecraft 客户端崩溃退出 (Exit Code: 1)。<br/>已自动捕获 crash-report 诊断信息。`;
+        modalActions.innerHTML = `
+          <button class="tb-btn" onclick="closeModal()">关闭</button>
+          <button class="tb-btn primary" onclick="alert('正在打开 crash-reports/crash-2026-08-16.log'); closeModal();">查看崩溃日志</button>
+        `;
+      } else if (state.recovery) {
+        modal.classList.add('active');
+        modalTitle.className = 'modal-header danger';
+        modalTitle.innerHTML = `<span>JCEF 渲染通道异常恢复</span>`;
+        modalDesc.innerHTML = `渲染进程握手已重建。工作区已安全对齐至最后已提交状态 <b>(Revision ${state.recovery.lastCommittedRevision})</b>。`;
+        modalActions.innerHTML = `
+          <button class="tb-btn primary" onclick="mockCore.recoverBridge(); closeModal();">完成恢复并刷新</button>
+        `;
+      } else {
+        modal.classList.remove('active');
+      }
+    }
+
+    function selectElement(id) {
+      selectedElementId = id;
+      mockCore.notify();
+    }
+
+    function closeModal() {
+      document.getElementById('generic-modal').classList.remove('active');
+    }
+
+    function filterType(type) {
+      const items = document.querySelectorAll('.nav-item');
+      items.forEach(i => i.classList.remove('active'));
+      event.currentTarget.classList.add('active');
+    }
+
+    // 主题切换
+    function setTheme(theme) {
+      document.body.setAttribute('data-theme', theme);
+      const text = document.getElementById('theme-text');
+      if (text) {
+        text.textContent = theme === 'light' ? '暗色' : '亮色';
+      }
+    }
+
+    function toggleTheme() {
+      const current = document.body.getAttribute('data-theme') || 'dark';
+      const next = current === 'dark' ? 'light' : 'dark';
+      setTheme(next);
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: 'THEME_CHANGED', theme: next }, '*');
+      }
+    }
+
+    window.addEventListener('message', (e) => {
+      if (e.data && e.data.type === 'SET_THEME') {
+        setTheme(e.data.theme);
+      }
+    });
+
+    mockCore.subscribe(renderUI);
+    mockCore.loadScenario("ready");
+  </script>
+</body>
+</html>

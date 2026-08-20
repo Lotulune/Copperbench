@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "preview-track-runclient-probe",
+  "generatorId": "fabric-26.1.2",
+  "minecraftVersion": "26.1.2",
+  "readyMarker": "COPPERBENCH_STAGE7_FABRIC261_READY",
+  "jdk": "D:\\AICoding\\Minecraft_ModCreator\\jdk\\jbr25_win_64",
+  "osNetworkDisconnected": false,
+  "runClient": {
+    "completed": true,
+    "timedOut": false,
+    "exitCode": 0,
+    "readinessMarkerSeen": true
+  },
+  "generateSucceeded": true,
+  "runClientSucceeded": true,
+  "goldenClaimed": false,
+  "catalogStatus": "PREVIEW",
+  "catalogReasonCode": "TRACK_GENERATE_READY",
+  "catalogGeneratable": false,
+  "diagnostics": [
+    "- fabric-crash-report-info-v1 1.0.3+9f78a5a84c"
+  ],
+  "logFile": "evidence/stage-8/2026-08-20/fabric-261-runclient.log",
+  "completedAt": "2026-08-19T23:38:25.617643200Z",
+  "durationSeconds": 37.46
+}

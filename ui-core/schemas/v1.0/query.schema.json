@@ -1,0 +1,394 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ui-core:1.0:query",
+  "title": "UI-Core query v1.0",
+  "type": "object",
+  "required": [
+    "messageType",
+    "schemaVersion",
+    "requestId",
+    "workspaceId",
+    "operation",
+    "payload"
+  ],
+  "properties": {
+    "messageType": {
+      "const": "query"
+    },
+    "schemaVersion": {
+      "const": "1.0"
+    },
+    "requestId": {
+      "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+    },
+    "workspaceId": {
+      "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+    },
+    "operation": {
+      "type": "string",
+      "enum": [
+        "get_workbench",
+        "list_mod_elements",
+        "get_mod_element_editor",
+        "preview_mod_element_change",
+        "get_task",
+        "get_history",
+        "get_diff",
+        "list_operation_approvals",
+        "get_version_tracks",
+        "get_release_notes",
+        "preview_loader_migration",
+        "preview_upstream_import",
+        "list_publish_batches",
+        "list_installed_plugins",
+        "get_element_coverage",
+        "get_upstream_tools"
+      ]
+    },
+    "payload": {
+      "type": "object"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "get_workbench"
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/emptyPayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "list_mod_elements"
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/listPayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "get_mod_element_editor"
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/elementPayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "preview_mod_element_change"
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/previewPayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "get_task"
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/taskPayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "enum": [
+              "get_history",
+              "list_operation_approvals",
+              "get_version_tracks",
+              "get_release_notes",
+              "list_publish_batches",
+              "list_installed_plugins",
+              "get_element_coverage",
+              "get_upstream_tools"
+            ]
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/emptyPayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "get_diff"
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/historyComparisonPayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "preview_loader_migration"
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/previewLoaderMigrationPayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "preview_upstream_import"
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/previewUpstreamImportPayload"
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "emptyPayload": {
+      "type": "object",
+      "maxProperties": 0,
+      "additionalProperties": false
+    },
+    "listPayload": {
+      "type": "object",
+      "required": [
+        "page",
+        "pageSize",
+        "search",
+        "types",
+        "states"
+      ],
+      "properties": {
+        "page": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "pageSize": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 200
+        },
+        "search": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "types": {
+          "type": "array",
+          "items": {
+            "$ref": "urn:ui-core:1.0:common#/$defs/modElementType"
+          },
+          "uniqueItems": true
+        },
+        "states": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "valid",
+              "invalid",
+              "draft",
+              "unsupported"
+            ]
+          },
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "elementPayload": {
+      "type": "object",
+      "required": [
+        "elementId"
+      ],
+      "properties": {
+        "elementId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+        }
+      },
+      "additionalProperties": false
+    },
+    "previewPayload": {
+      "type": "object",
+      "required": [
+        "elementId",
+        "changes"
+      ],
+      "properties": {
+        "elementId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+        },
+        "changes": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 200,
+          "items": {
+            "type": "object",
+            "required": [
+              "path",
+              "value"
+            ],
+            "properties": {
+              "path": {
+                "type": "string",
+                "pattern": "^/"
+              },
+              "value": {}
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "taskPayload": {
+      "type": "object",
+      "required": [
+        "taskId",
+        "afterLogSequence"
+      ],
+      "properties": {
+        "taskId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+        },
+        "afterLogSequence": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "historyComparisonPayload": {
+      "type": "object",
+      "required": [
+        "fromRecoveryPointId",
+        "toRecoveryPointId"
+      ],
+      "properties": {
+        "fromRecoveryPointId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/recoveryPointId"
+        },
+        "toRecoveryPointId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/recoveryPointId"
+        }
+      },
+      "additionalProperties": false
+    },
+    "previewLoaderMigrationPayload": {
+      "type": "object",
+      "required": [
+        "targetGeneratorId"
+      ],
+      "properties": {
+        "targetGeneratorId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        }
+      },
+      "additionalProperties": false
+    },
+    "previewUpstreamImportPayload": {
+      "type": "object",
+      "required": [
+        "sourceWorkspacePath"
+      ],
+      "properties": {
+        "sourceWorkspacePath": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

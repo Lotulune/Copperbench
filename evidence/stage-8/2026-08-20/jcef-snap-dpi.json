@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "jcef-snap-dpi-smoke",
+  "reactShellLoaded": true,
+  "chromeRegionsReported": true,
+  "regionCount": 8,
+  "topLeftHit": 13,
+  "maximizeHit": 9,
+  "captionHit": 2,
+  "dpiAfterChange": 1.5,
+  "customFrame": true,
+  "passed": true,
+  "completedAt": "2026-08-20T00:23:43.208635300Z"
+}

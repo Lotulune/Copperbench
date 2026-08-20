@@ -1,0 +1,22 @@
+{
+  "tool": "@modelcontextprotocol/conformance",
+  "toolVersion": "0.1.16",
+  "specVersion": "2025-11-25",
+  "transport": "Streamable HTTP through a loopback test proxy that injects the production-required short-lived workspace credentials",
+  "applicableScenarios": {
+    "server-initialize": { "checks": 1, "failures": 0 },
+    "logging-set-level": { "checks": 1, "failures": 0 },
+    "ping": { "checks": 1, "failures": 0 },
+    "tools-list": { "checks": 1, "failures": 0 },
+    "server-sse-multiple-streams": { "checks": 2, "failures": 0 },
+    "dns-rebinding-protection": { "checks": 2, "failures": 0 }
+  },
+  "applicableChecks": 8,
+  "applicableFailures": 0,
+  "activeSuiteExploration": {
+    "checksPassed": 8,
+    "checksFailed": 24,
+    "explanation": "The active suite invokes conformance-only completion, rich-content tool, resource, prompt, sampling and elicitation fixtures even though Copperbench does not advertise those optional capabilities. Raw reports are retained under mcp-conformance/."
+  },
+  "windowsCliExitIssue": "Conformance CLI 0.1.16 can assert UV_HANDLE_CLOSING after writing a successful single-scenario report; checks.json is authoritative."
+}

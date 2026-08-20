@@ -1,0 +1,284 @@
+/*
+ * MCreator (https://mcreator.net/)
+ * Copyright (C) 2020 Pylo and contributors
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+package net.mcreator.workspace;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.Strictness;
+import dev.copperbench.core.workspace.UnknownFieldPreservingJsonMerge;
+import dev.copperbench.core.workspace.ProductMetadataManager;
+import dev.copperbench.core.workspace.UnknownFieldPreservingJsonStore;
+import dev.copperbench.core.workspace.WorkspaceFileLease;
+import dev.copperbench.core.workspace.WorkspaceWriteLockedException;
+import net.mcreator.io.FileIO;
+import net.mcreator.plugin.MCREvent;
+import net.mcreator.plugin.events.workspace.WorkspaceSavedEvent;
+import net.mcreator.preferences.PreferencesManager;
+import net.mcreator.workspace.elements.ModElement;
+import net.mcreator.workspace.elements.ModElementManager;
+import net.mcreator.workspace.elements.SoundElement;
+import net.mcreator.workspace.elements.TagElement;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import javax.annotation.Nonnull;
+import java.io.Closeable;
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+
+public final class WorkspaceFileManager implements Closeable {
+
+	private final Logger LOG;
+
+	public static final Gson gson = workspaceGsonBuilder().create();
+	private static final Gson mergeShapeGson = workspaceGsonBuilder().serializeNulls().create();
+
+	private static GsonBuilder workspaceGsonBuilder() {
+		return new GsonBuilder().setStrictness(Strictness.LENIENT).setPrettyPrinting()
+			.registerTypeAdapter(SoundElement.class, new SoundElement.SoundElementDeserializer())
+			.registerTypeAdapter(TagElement.class, new TagElement.TagElementDeserializer())
+			.registerTypeAdapter(ModElement.class, new ModElement.ModElementDeserializer());
+	}
+
+	private DataSavedListener dataSavedListener;
+
+	private final ScheduledExecutorService dataSaveExecutor;
+	private ScheduledFuture<?> lastSchedule;
+
+	private final File workspaceFile;
+	private final Workspace workspace;
+	private final WorkspaceFolderManager folderManager;
+	private final ModElementManager modElementManager;
+	private final WorkspaceFileLease writeLease;
+
+	WorkspaceFileManager(@Nonnull File workspaceFile, @Nonnull Workspace workspace) {
+		this.workspaceFile = workspaceFile;
+		this.workspace = workspace;
+		this.LOG = LogManager.getLogger("Workspace File Manager/" + workspace.toString().toUpperCase());
+
+		this.folderManager = new WorkspaceFolderManager(workspaceFile, workspace);
+		this.modElementManager = new ModElementManager(workspace);
+
+		this.dataSaveExecutor = Executors.newScheduledThreadPool(1, runnable -> {
+			Thread thread = new Thread(runnable);
+			thread.setName("Workspace-File-Manager" );
+			thread.setUncaughtExceptionHandler((t, e) -> LOG.error(e));
+			return thread;
+		});
+
+		long autosaveInterval = PreferencesManager.PREFERENCES.backups.workspaceAutosaveInterval.get();
+		File workspaceDirectory = Objects.requireNonNull(workspaceFile.getAbsoluteFile().getParentFile(),
+				"Workspace file must have a parent directory");
+		try {
+			this.writeLease = WorkspaceFileLease.tryAcquire(workspaceDirectory.toPath())
+					.orElseThrow(() -> new WorkspaceWriteLockedException(workspaceDirectory.toPath()));
+		} catch (java.io.IOException exception) {
+			dataSaveExecutor.shutdownNow();
+			throw new WorkspaceWriteLockedException(workspaceDirectory.toPath(), exception);
+		} catch (WorkspaceWriteLockedException exception) {
+			dataSaveExecutor.shutdownNow();
+			throw exception;
+		}
+
+		try {
+			lastSchedule = dataSaveExecutor.schedule(new SaveTask(this), autosaveInterval, TimeUnit.SECONDS);
+		} catch (RuntimeException exception) {
+			dataSaveExecutor.shutdownNow();
+			releaseWriteLease();
+			throw exception;
+		}
+	}
+
+	public File getWorkspaceFile() {
+		return workspaceFile;
+	}
+
+	WorkspaceFolderManager getFolderManager() {
+		return folderManager;
+	}
+
+	public ModElementManager getModElementManager() {
+		return modElementManager;
+	}
+
+	public ProductMetadataManager.Metadata loadOrCreateProductMetadata(UUID workspaceId) throws java.io.IOException {
+		return new ProductMetadataManager(new UnknownFieldPreservingJsonStore())
+				.loadOrCreate(workspaceFile.toPath(), workspaceId, writeLease);
+	}
+
+	public ProductMetadataManager.Metadata loadOrCreateProductMetadata(java.util.function.Supplier<UUID> workspaceIds)
+			throws java.io.IOException {
+		return new ProductMetadataManager(new UnknownFieldPreservingJsonStore())
+				.loadOrCreate(workspaceFile.toPath(), workspaceIds, writeLease);
+	}
+
+	public ProductMetadataManager.Metadata advanceProductRevision(UUID workspaceId, long expectedRevision)
+			throws java.io.IOException {
+		return new ProductMetadataManager(new UnknownFieldPreservingJsonStore())
+				.advanceRevision(workspaceFile.toPath(), workspaceId, expectedRevision, writeLease);
+	}
+
+	@Override public void close() {
+		lastSchedule.cancel(true); // we stop autosaving for this workspace after it is done
+		dataSaveExecutor.shutdown(); // prevent new tasks from being scheduled
+		try {
+			saveWorkspaceDirectlyAndWait(); // and then save workspace to FS
+		} finally {
+			releaseWriteLease();
+		}
+	}
+
+	void abortOpen() {
+		if (lastSchedule != null)
+			lastSchedule.cancel(true);
+		dataSaveExecutor.shutdownNow();
+		releaseWriteLease();
+	}
+
+	private void releaseWriteLease() {
+		try {
+			writeLease.close();
+		} catch (java.io.IOException exception) {
+			LOG.error("Failed to release workspace writer lease", exception);
+		}
+	}
+
+	public void saveWorkspaceDirectlyAndWait() {
+		LOG.info("Saving the workspace by direct request" );
+
+		// set changed flag so the saving happens in all cases (this is a direct save request)
+		workspace.markDirty();
+
+		// we need to cancel currently scheduled save, so that another save in scheduler thread
+		// does not happen while we are saving in this method
+		if (lastSchedule != null)
+			lastSchedule.cancel(true); // we allow interruption of existing task as we will save all again nonetheless
+
+		new SaveTask(this).run(); // this run will save the workspace and schedule new save task too
+	}
+
+	private synchronized void saveWorkspaceIfChanged() {
+		MCREvent.event(new WorkspaceSavedEvent.CalledSavingMethod(workspace));
+
+		if (!workspace.isDirty()) // if the workspace file was not changed, we do not perform save
+			return;
+
+		String workspacestring;
+		try {
+			workspacestring = UnknownFieldPreservingJsonMerge.mergeExistingFile(workspaceFile.toPath(),
+					gson.toJson(workspace), mergeShapeGson.toJson(workspace), gson);
+		} catch (Exception exception) {
+			LOG.error("Refusing to overwrite workspace because its existing JSON could not be preserved", exception);
+			throw new IllegalStateException("Existing workspace JSON could not be preserved", exception);
+		}
+		if (!workspacestring.isEmpty()) {
+			MCREvent.event(new WorkspaceSavedEvent.BeforeSaving(workspace));
+
+			// first we back up workspace file
+			rotateWorkspaceFileBackup();
+
+			// We do an "atomic" write to the FS
+			File outFile = workspaceFile;
+			File tmpFile = new File(folderManager.getWorkspaceFolder(), workspaceFile.getName() + ".lock" );
+			FileIO.writeStringToFile(workspacestring, tmpFile);
+			try {
+				Files.move(tmpFile.toPath(), outFile.toPath(), StandardCopyOption.ATOMIC_MOVE);
+			} catch (Exception e) {
+				LOG.info("Failed to do atomic move, trying normal move!", e);
+				try {
+					Files.move(tmpFile.toPath(), outFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+				} catch (Exception e1) {
+					LOG.error("Falling back to normal write (non atomic, without move!)", e1);
+					FileIO.writeStringToFile(workspacestring, outFile);
+					tmpFile.delete(); // we delete the tmp file if it was not moved
+				}
+			}
+
+			workspace.markClean(); // once the data is saved,
+			// we mark workspace as not changed as the current version is on the FS
+
+			if (dataSavedListener != null)
+				dataSavedListener.dataSaved();
+
+			MCREvent.event(new WorkspaceSavedEvent.AfterSaving(workspace));
+
+			LOG.debug("Workspace stored on the FS" );
+		} else {
+			LOG.error("Skipping workspace save. Workspace is defined but we failed to serialize it!" );
+		}
+	}
+
+	private void rotateWorkspaceFileBackup() {
+		int numberOfBackupsExcludingCurrent = PreferencesManager.PREFERENCES.backups.numberOfBackupsToStore.get() - 1;
+		File[] existingBackupsArray = folderManager.getWorkspaceBackupsCacheDir().listFiles();
+
+		if (existingBackupsArray != null && existingBackupsArray.length > 0) { // we already have some backups
+			List<File> existingBackups = new ArrayList<>(Arrays.asList(existingBackupsArray));
+			existingBackups.sort(Comparator.comparingLong(File::lastModified));
+			Collections.reverse(existingBackups);
+			long lastBackupTime = existingBackups.getFirst().lastModified();
+			if ((System.currentTimeMillis() - lastBackupTime) / (1000 * 60)
+					> PreferencesManager.PREFERENCES.backups.automatedBackupInterval.get()) {  // check if we have surpassed backup interval
+				if (existingBackupsArray.length
+						> numberOfBackupsExcludingCurrent) // only delete old ones if we have more than threshold of backups
+					existingBackups.stream().skip(numberOfBackupsExcludingCurrent).forEach(File::delete);
+				createNewWorkspaceFileBackup();
+			}
+		} else { // we don't have any backup yet
+			createNewWorkspaceFileBackup();
+		}
+	}
+
+	private void createNewWorkspaceFileBackup() {
+		// if workspace file exists, so we can back it up, we back it up
+		if (workspaceFile.isFile()) {
+			File backupFile = new File(folderManager.getWorkspaceBackupsCacheDir(),
+					workspaceFile.getName() + "-backup_" + new SimpleDateFormat("yyyyMMdd_HHmmss" ).format(new Date()));
+			FileIO.copyFile(workspaceFile, backupFile);
+		}
+	}
+
+	public void setDataSavedListener(DataSavedListener listener) {
+		dataSavedListener = listener;
+	}
+
+	public interface DataSavedListener {
+		void dataSaved();
+	}
+
+	private record SaveTask(WorkspaceFileManager fileManager) implements Runnable {
+
+		@Override public void run() {
+			fileManager.saveWorkspaceIfChanged();
+
+			if (!fileManager.dataSaveExecutor.isShutdown())
+				fileManager.lastSchedule = fileManager.dataSaveExecutor.schedule(new SaveTask(fileManager),
+						PreferencesManager.PREFERENCES.backups.workspaceAutosaveInterval.get(), TimeUnit.SECONDS);
+		}
+
+	}
+
+}

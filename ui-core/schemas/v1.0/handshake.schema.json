@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ui-core:1.0:handshake",
+  "title": "UI-Core schema handshake",
+  "type": "object",
+  "required": ["messageType", "requestId", "supportedSchemaVersions", "client"],
+  "properties": {
+    "messageType": { "const": "handshake" },
+    "requestId": { "$ref": "urn:ui-core:1.0:common#/$defs/uuid" },
+    "supportedSchemaVersions": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+$" },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "client": {
+      "type": "object",
+      "required": ["id", "version"],
+      "properties": {
+        "id": { "$ref": "urn:ui-core:1.0:common#/$defs/identifier" },
+        "version": { "type": "string", "minLength": 1, "maxLength": 80 }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

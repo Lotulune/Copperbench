@@ -1,0 +1,18 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "windows11-silent-install-upgrade-uninstall",
+  "machine": "RIMURU",
+  "os": "Microsoft Windows NT 10.0.26100.0",
+  "admin": true,
+  "installer": "D:\\AICoding\\Minecraft_ModCreator\\build\\export\\Copperbench 0.1.0 Windows 64bit.exe",
+  "installDir": "D:\\AICoding\\Minecraft_ModCreator\\build\\g7-rehearsal\\install",
+  "workspaceFile": "D:\\AICoding\\Minecraft_ModCreator\\build\\g7-rehearsal\\workspace\\workspace.mcreator",
+  "workspaceHashBefore": "C5FAE18D95481E6007130F6E6FBA69DD07B715CE1F3A4859E40F1E5D22524F54",
+  "passed": true,
+  "workspaceHashAfter": "C5FAE18D95481E6007130F6E6FBA69DD07B715CE1F3A4859E40F1E5D22524F54",
+  "upgradePreservedWorkspace": true,
+  "uninstallPreservedWorkspace": true,
+  "uninstallPreservedUserFolder": true,
+  "completedAt": "2026-08-19T13:58:08.5353534+08:00",
+  "durationSeconds": 63.45
+}

@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "official-mapping-availability",
+  "checkedAt": "2026-08-19T18:30:00+08:00",
+  "sources": {
+    "mojangManifest": "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json",
+    "latestRelease": "26.2",
+    "version26_2": "https://piston-meta.mojang.com/v1/packages/c75d82e7fa6eca5a043dab0c6cf77cb8317644f4/26.2.json",
+    "fabricYarn": "https://meta.fabricmc.net/v2/versions/yarn/26.2"
+  },
+  "versions": {
+    "26.2": {
+      "downloadKeys": ["client", "server"],
+      "officialMappings": false
+    },
+    "26.1": {
+      "downloadKeys": ["client", "server"],
+      "officialMappings": false
+    },
+    "1.21.1": {
+      "downloadKeys": ["client", "client_mappings", "server", "server_mappings"],
+      "officialMappings": true
+    },
+    "1.20.1": {
+      "downloadKeys": ["client", "client_mappings", "server", "server_mappings"],
+      "officialMappings": true
+    }
+  },
+  "yarn26_2Listed": false,
+  "conclusion": "26.2/26.1 lack official mappings. 1.21.1 and 1.20.1 publish client_mappings/server_mappings. Fabric 1.20.1 compile is still blocked by fabric-loom 1.7.4 vs Gradle 9.6.0."
+}

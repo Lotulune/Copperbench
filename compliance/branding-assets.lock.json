@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 1,
+  "product": "Copperbench",
+  "generatedBy": "scripts/stage0/New-CopperbenchBrandAssets.py",
+  "assets": [
+    {
+      "path": "src/main/resources/net/mcreator/ui/res/fallback.png",
+      "upstreamSha256": "2524b59be1aa26ed4c1618635f389240522ca74d09f3b688334290fb297cc479",
+      "replacementSha256": "f9598a27648d219c2486461984336d268fe18d0b3d729bb6c480e325b52ea451"
+    },
+    {
+      "path": "src/main/resources/net/mcreator/ui/res/icon_eap.ico",
+      "upstreamSha256": "ab04be6b38144477b8809dc8938dd7bcf98c878190153716aacca8809422ebd8",
+      "replacementSha256": "40ef908c710768475239bcfbc4da00ea8fb0c996d4e21ea7c13b566e4d2d677b"
+    },
+    {
+      "path": "src/main/resources/net/mcreator/ui/res/icon_eap.png",
+      "upstreamSha256": "3ec0f3f65ed0a4bed493b855c64a9fdf36ab9541cb8a70b0c9d7b5974d75afb1",
+      "replacementSha256": "f9598a27648d219c2486461984336d268fe18d0b3d729bb6c480e325b52ea451"
+    },
+    {
+      "path": "src/main/resources/net/mcreator/ui/res/icon_eap.svg",
+      "upstreamSha256": "375b17f3a643600650ee80f8a5618db8803996c4aacd25a90301c048e5437bd0",
+      "replacementSha256": "0955c0636dc17017d1147a35262c076ee2630e0a9d2882f9da874b42d76a2592"
+    },
+    {
+      "path": "src/main/resources/net/mcreator/ui/res/icon.ico",
+      "upstreamSha256": "3d65d3e0cecc3e11d43c060f8da48a143b38d491cb1faf2df8516f3a5b1eeaee",
+      "replacementSha256": "40ef908c710768475239bcfbc4da00ea8fb0c996d4e21ea7c13b566e4d2d677b"
+    },
+    {
+      "path": "src/main/resources/net/mcreator/ui/res/icon.png",
+      "upstreamSha256": "beb0723797d39aadc1a0c0526ee004bda9ec453bc90f43cb080a44f13308dce7",
+      "replacementSha256": "f9598a27648d219c2486461984336d268fe18d0b3d729bb6c480e325b52ea451"
+    },
+    {
+      "path": "src/main/resources/net/mcreator/ui/res/icon.svg",
+      "upstreamSha256": "c7f36b45ba76f12296e3c41cac1ba1f0e2b375fcf04556d8377e72e208834a2e",
+      "replacementSha256": "0955c0636dc17017d1147a35262c076ee2630e0a9d2882f9da874b42d76a2592"
+    },
+    {
+      "path": "src/main/resources/net/mcreator/ui/res/logo.svg",
+      "upstreamSha256": "4b1ed994c6ca11ead475bd52f39ede7f0569895093477ca8b5a88cafc5d5ed36",
+      "replacementSha256": "e83b4e567d844eb45588b3843103e9ef5f7cdf9fa6d02c834483baeef8ba00ae"
+    },
+    {
+      "path": "src/main/resources/net/mcreator/ui/res/pylo.svg",
+      "upstreamSha256": "de272909d40ee8e6735e5832f0cce7ae67c98d7fa640cb4daafa6659d8578e2e",
+      "replacementSha256": "88632a76ae11e0768431b7e12656b7c0d1a63e4889bd594bae193c63e2c080f4"
+    },
+    {
+      "path": "src/main/resources/net/mcreator/ui/res/splash.png",
+      "upstreamSha256": "a0bc7a8a4d28061b5d5090de6f80c40312f884faf95cb4e1a6aa59127ee4aa48",
+      "replacementSha256": "5afa97e4dacd1174497b01e7e9086072c9514a34b31010bfe2a33b5b2202e03a"
+    },
+    {
+      "path": "platform/windows/installer/installer.bmp",
+      "upstreamSha256": "e51cee6127492ffb4f0a54cac7b3bffb9670c618962cdfa5a71f0c7720b17cc0",
+      "replacementSha256": "470cc9b5921131136d60fb458a24b5a712d9159ffba6fdd52030b9214038684a"
+    },
+    {
+      "path": "platform/windows/installer/installer_side.bmp",
+      "upstreamSha256": "947f67d9b686e9170d6796a4bf1754ea8222624ccc521747060c261ce98b159f",
+      "replacementSha256": "5e24bf27993d9bc2ced7affcf0cb61e97e1b6c9345e37b15d0c24a27948abc65"
+    },
+    {
+      "path": "platform/windows/installer/installer.ico",
+      "upstreamSha256": "6b8c934af25be79905a6f49224c93acbafd3c8ba7885d1b18440431ee2b4926b",
+      "replacementSha256": "0d4e95f9da99b064aabd87c5524dbb5b885239186aca27aab183873762c7dd70"
+    },
+    {
+      "path": "platform/windows/installer/uninstaller.ico",
+      "upstreamSha256": "3a535a39722603eba06eeebf90b308f2081a3929fa1b6a815112f4952231a63a",
+      "replacementSha256": "0d4e95f9da99b064aabd87c5524dbb5b885239186aca27aab183873762c7dd70"
+    },
+    {
+      "path": "platform/windows/msix/Square150x150Logo.png",
+      "upstreamSha256": "ea0235e6ed3d8c882ee4309e3cd6e188e012e6fb5fdb72bc93b4e10e713d66b0",
+      "replacementSha256": "58851c63609abe80566093702d7a8c69b9d2b04a677927c9a51665c0f70e1f66"
+    },
+    {
+      "path": "platform/windows/msix/Square44x44Logo.png",
+      "upstreamSha256": "6dec6f8e6e015e0c9bf2c0ae1189b1ae22d6f47b42cc3e589983f58d8c225ddb",
+      "replacementSha256": "a1fe949e6bcf9c16abe654783a8b4ff1dc5f488368302e1979c46b6f05ca6434"
+    },
+    {
+      "path": "platform/windows/msix/StoreLogo.png",
+      "upstreamSha256": "f30a19a17b84a9f6502bc5556271847e7b8a8071ff470d4c0931034c237158c1",
+      "replacementSha256": "2970eecff10a3cc38b820f3a3dc572b08188707391dec0a85903f7e527423422"
+    },
+    {
+      "path": "platform/mac/diskimage.png",
+      "upstreamSha256": "ce3093ff4165773fe17c8b0ff3cc31af8ef799216b49a6cc07e0e8688cf20abd",
+      "replacementSha256": "b07a79e95948063e0c22eb26cadf846db218116cdc94d7a7e22643098e88d7da"
+    },
+    {
+      "path": "platform/mac/mcreator.icns",
+      "upstreamSha256": "22ef682b745767c5a53a29372f8852816fd086c3f36bd3738aa867f52f4b6896",
+      "replacementSha256": "89e69b8e53d4fec4e393530d154b28f5d82110ee69a02ea3e72369a7490c8680"
+    },
+    {
+      "path": "platform/mac/mcreator_eap.icns",
+      "upstreamSha256": "2dd117b52335dbe8a4c59d629a4b67ca51cfec6fc47fcaf5f02e66e308a65a7b",
+      "replacementSha256": "89e69b8e53d4fec4e393530d154b28f5d82110ee69a02ea3e72369a7490c8680"
+    },
+    {
+      "path": "platform/mac/mcreatorapp.icns",
+      "upstreamSha256": "b84a49a89a853090fb6f81a0ffa8baeff908f0dd68f2038b67919d61ffe37a4c",
+      "replacementSha256": "89e69b8e53d4fec4e393530d154b28f5d82110ee69a02ea3e72369a7490c8680"
+    },
+    {
+      "path": "platform/mac/mcreatorapp_eap.icns",
+      "upstreamSha256": "f99159e40e75191626cea570a3190f75d34c6868643dc0dcd0388025eea4e12b",
+      "replacementSha256": "89e69b8e53d4fec4e393530d154b28f5d82110ee69a02ea3e72369a7490c8680"
+    },
+    {
+      "path": "platform/mac/volume.icns",
+      "upstreamSha256": "7e671f46149a22b69ffc8ca0d0d305af018e6cd7e0e17de507f31bb8b7824227",
+      "replacementSha256": "89e69b8e53d4fec4e393530d154b28f5d82110ee69a02ea3e72369a7490c8680"
+    }
+  ],
+  "sourceAsset": "assets/branding/copperbench-icon-source.png",
+  "sourceSha256": "8667e93934d9d6a9f641e15d7e183655f3a9de6201fc969a420984a96f454688",
+  "derivation": "Deterministic crop, resize, and composition with Pillow; no generative edits"
+}

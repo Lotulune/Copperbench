@@ -1,0 +1,450 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ui-core:1.0:command-result",
+  "title": "UI-Core command result v1.0",
+  "type": "object",
+  "required": [
+    "messageType",
+    "schemaVersion",
+    "requestId",
+    "workspaceId",
+    "operation",
+    "status",
+    "newRevision",
+    "recoveryPointId",
+    "task",
+    "data",
+    "diagnostics",
+    "conflict",
+    "denial"
+  ],
+  "properties": {
+    "messageType": {
+      "const": "command_result"
+    },
+    "schemaVersion": {
+      "const": "1.0"
+    },
+    "requestId": {
+      "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+    },
+    "workspaceId": {
+      "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+    },
+    "operation": {
+      "type": "string",
+      "enum": [
+        "create_mod_element",
+        "update_mod_element",
+        "delete_mod_element",
+        "validate_workspace",
+        "generate_workspace",
+        "build_workspace",
+        "export_workspace",
+        "run_client",
+        "cancel_task",
+        "create_recovery_point",
+        "restore_recovery_point",
+        "resolve_operation_approval"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "committed",
+        "accepted",
+        "completed",
+        "rejected",
+        "failed",
+        "cancelled"
+      ]
+    },
+    "newRevision": {
+      "$ref": "urn:ui-core:1.0:common#/$defs/revision"
+    },
+    "recoveryPointId": {
+      "oneOf": [
+        {
+          "$ref": "urn:ui-core:1.0:common#/$defs/recoveryPointId"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "task": {
+      "oneOf": [
+        {
+          "$ref": "urn:ui-core:1.0:common#/$defs/taskSummary"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "data": {
+      "oneOf": [
+        {
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "diagnostics": {
+      "type": "array",
+      "items": {
+        "$ref": "urn:ui-core:1.0:common#/$defs/diagnostic"
+      }
+    },
+    "conflict": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/revisionConflict"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "denial": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/permissionDenial"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "enum": [
+              "create_mod_element",
+              "update_mod_element"
+            ]
+          },
+          "status": {
+            "const": "committed"
+          }
+        },
+        "required": [
+          "operation",
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "data": {
+            "$ref": "#/$defs/elementResult"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "delete_mod_element"
+          },
+          "status": {
+            "const": "committed"
+          }
+        },
+        "required": [
+          "operation",
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "data": {
+            "$ref": "#/$defs/deleteResult"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "accepted"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "task": {
+            "$ref": "urn:ui-core:1.0:common#/$defs/taskSummary"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "conflict": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "conflict"
+        ]
+      },
+      "then": {
+        "properties": {
+          "status": {
+            "const": "rejected"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "denial": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "denial"
+        ]
+      },
+      "then": {
+        "properties": {
+          "status": {
+            "const": "rejected"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "create_recovery_point"
+          },
+          "status": {
+            "const": "committed"
+          }
+        },
+        "required": [
+          "operation",
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "data": {
+            "$ref": "#/$defs/recoveryPointResult"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "restore_recovery_point"
+          },
+          "status": {
+            "const": "committed"
+          }
+        },
+        "required": [
+          "operation",
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "data": {
+            "$ref": "#/$defs/restoreResult"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "resolve_operation_approval"
+          },
+          "status": {
+            "const": "completed"
+          }
+        },
+        "required": [
+          "operation",
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "data": {
+            "$ref": "#/$defs/approvalDecisionResult"
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "elementResult": {
+      "type": "object",
+      "required": [
+        "element"
+      ],
+      "properties": {
+        "element": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/modElementSummary"
+        }
+      },
+      "additionalProperties": false
+    },
+    "deleteResult": {
+      "type": "object",
+      "required": [
+        "elementId"
+      ],
+      "properties": {
+        "elementId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+        }
+      },
+      "additionalProperties": false
+    },
+    "revisionConflict": {
+      "type": "object",
+      "required": [
+        "expectedRevision",
+        "actualRevision",
+        "changedPaths"
+      ],
+      "properties": {
+        "expectedRevision": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/revision"
+        },
+        "actualRevision": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/revision"
+        },
+        "changedPaths": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^/"
+          },
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "permissionDenial": {
+      "type": "object",
+      "required": [
+        "currentProfile",
+        "requiredProfile",
+        "approvalRequired",
+        "protectedOperation"
+      ],
+      "properties": {
+        "currentProfile": {
+          "type": "string",
+          "enum": [
+            "read_only",
+            "workspace",
+            "full_access"
+          ]
+        },
+        "requiredProfile": {
+          "type": "string",
+          "enum": [
+            "read_only",
+            "workspace",
+            "full_access"
+          ]
+        },
+        "approvalRequired": {
+          "type": "boolean"
+        },
+        "protectedOperation": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "recoveryPointResult": {
+      "type": "object",
+      "required": [
+        "recoveryPoint"
+      ],
+      "properties": {
+        "recoveryPoint": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/recoveryPoint"
+        }
+      },
+      "additionalProperties": false
+    },
+    "restoreResult": {
+      "type": "object",
+      "required": [
+        "recoveryPointId",
+        "actor",
+        "changedPaths"
+      ],
+      "properties": {
+        "recoveryPointId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "actor": {
+          "type": "string",
+          "enum": [
+            "ui",
+            "mcp",
+            "headless",
+            "legacy_ui",
+            "system"
+          ]
+        },
+        "changedPaths": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "approvalDecisionResult": {
+      "type": "object",
+      "required": [
+        "approvalId",
+        "decision"
+      ],
+      "properties": {
+        "approvalId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+        },
+        "decision": {
+          "type": "string",
+          "enum": [
+            "approve",
+            "deny"
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

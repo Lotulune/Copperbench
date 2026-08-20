@@ -1,0 +1,141 @@
+{
+  "schemaVersion": 2,
+  "gate": "G0",
+  "status": "conditionally_passed",
+  "localImplementationComplete": true,
+  "recordedAt": "2026-08-17T02:53:39.3203592+08:00",
+  "environment": {
+    "os": "Microsoft Windows 11 专业版",
+    "version": "10.0.26100",
+    "architecture": "64 位",
+    "java": "25.0.3",
+    "jvm": "JBR-25.0.3+1-329.124-jcef",
+    "gradle": "9.6.0",
+    "cache": "isolated-stage-0-cache"
+  },
+  "identity": {
+    "product": "Copperbench",
+    "status": "provisional-development-name",
+    "productId": "dev.copperbench.studio",
+    "javaNamespace": "dev.copperbench",
+    "publisher": "Copperbench Contributors"
+  },
+  "sources": {
+    "mcreatorTag": "2026.2.33518",
+    "mcreatorCommit": "361429609b772039a3eb9ab81662c25b225f1d0d",
+    "fabricTag": "26.1.2-2026.2-2.8",
+    "fabricCommit": "abfe19329126b679a26baafe5cade5a75d455528"
+  },
+  "checks": [
+    {
+      "id": "source_refs",
+      "status": "passed"
+    },
+    {
+      "id": "license_snapshots",
+      "status": "passed",
+      "files": 32
+    },
+    {
+      "id": "upstream_sync_rollback_drill",
+      "status": "passed",
+      "commits": 6,
+      "changedFiles": 47
+    },
+    {
+      "id": "product_source_imported",
+      "status": "passed"
+    },
+    {
+      "id": "provisional_product_identity",
+      "status": "passed"
+    },
+    {
+      "id": "protected_brand_assets",
+      "status": "passed",
+      "assetsChecked": 23
+    },
+    {
+      "id": "implicit_network_services_default",
+      "status": "passed",
+      "enabled": false
+    },
+    {
+      "id": "clean_compile_and_unit_tests",
+      "status": "passed",
+      "testsPassed": 6,
+      "durationSeconds": 25.602
+    },
+    {
+      "id": "ui_integration_tests",
+      "status": "passed",
+      "testsPassed": 29,
+      "durationSeconds": 96.171
+    },
+    {
+      "id": "windows_11_packaged_startup",
+      "status": "passed",
+      "windowTitle": "Copperbench 0.1.0"
+    },
+    {
+      "id": "windows_zip",
+      "status": "passed"
+    },
+    {
+      "id": "windows_installer",
+      "status": "passed",
+      "signature": "NotSigned"
+    },
+    {
+      "id": "windows_msix",
+      "status": "passed",
+      "signature": "NotSigned"
+    },
+    {
+      "id": "jbr_runtime_lock",
+      "status": "passed",
+      "files": 551,
+      "treeSha256": "01412c80bb06dd91726321cc59cdb13bb7cfebf3362ebdff3ae2169f6b626d69"
+    },
+    {
+      "id": "fabric_generator_reproducible_content",
+      "status": "passed",
+      "entries": 704,
+      "treeSha256": "24d41930b994da61ba2bb944e4681aa7195550dee2c851617eff0e10d7b27d33"
+    },
+    {
+      "id": "dependency_report",
+      "status": "passed",
+      "evidence": "copperbench-dependencies-export.log"
+    },
+    {
+      "id": "windows_10_clean_build_and_startup",
+      "status": "not_run",
+      "reason": "No Windows 10 runner is available in this workspace"
+    },
+    {
+      "id": "product_git_branches",
+      "status": "not_created",
+      "reason": "Repository initialization and commits require explicit user authorization"
+    },
+    {
+      "id": "code_signing",
+      "status": "deferred_to_g7",
+      "reason": "No signing identity or certificate was provided"
+    }
+  ],
+  "diagnostics": [
+    {
+      "id": "full_upstream_test_with_fabric",
+      "status": "outside_g0_failed",
+      "reason": "Legacy workspace conversion fixtures contain procedure blocks unsupported by the Fabric generator; generator Gradle sync also stalled in dependency resolution",
+      "owner": "G1/G2 compatibility matrix",
+      "evidence": "copperbench-windows-11-clean-test.log"
+    }
+  ],
+  "artifacts": "evidence/stage-0/2026-08-16/product-artifacts.lock.json",
+  "remainingConditions": [
+    "Run the same clean build, packaged startup, and installer smoke checks on Windows 10 x64",
+    "Initialize the product Git repository and create the documented branch topology after explicit authorization"
+  ]
+}

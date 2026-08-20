@@ -1,0 +1,58 @@
+{
+  "$schema": "./baseline-lock.schema.json",
+  "baselineVersion": 1,
+  "capturedAt": "2026-08-16T15:38:58+08:00",
+  "sources": {
+    "mcreator": {
+      "repository": "https://github.com/MCreator/MCreator.git",
+      "releasePage": "https://github.com/MCreator/MCreator/releases/tag/2026.2.33518",
+      "tag": "2026.2.33518",
+      "commit": "361429609b772039a3eb9ab81662c25b225f1d0d",
+      "commitDate": "2026-08-14T20:00:19+02:00",
+      "license": "GPL-3.0 with upstream Section 7 permissions and trademark terms",
+      "licenseFile": "LICENSE.txt",
+      "files": {
+        "LICENSE.txt": "77f0599ce0b19210a9c4ecad21f6634499d3129c9465ab65849aa5a9dfcf81ac",
+        "build.gradle": "dbaabdee2965643eb3772a63a3b4f79def82c70c62d574d6b8c9c7d1f6d682ed",
+        "gradle/wrapper/gradle-wrapper.jar": "497c8c2a7e5031f6aa847f88104aa80a93532ec32ee17bdb8d1d2f67a194a9c7",
+        "gradle/wrapper/gradle-wrapper.properties": "e74d4f107d2feab989b9a041a02e2d2b85567ff48415c9c7add5ecc19abd19f9",
+        "src/main/resources/mcreator.conf": "fb5ce50464bf13405b3c0d042ecee890540b4072219ec28133dcf393a31bd5d7"
+      }
+    },
+    "fabricGenerator": {
+      "repository": "https://github.com/Goldorion/Fabric-Generator-MCreator.git",
+      "tag": "26.1.2-2026.2-2.8",
+      "commit": "abfe19329126b679a26baafe5cade5a75d455528",
+      "commitDate": "2026-08-15T20:35:38-04:00",
+      "mcreatorVersion": "2026.2",
+      "minecraftVersion": "26.1.2",
+      "license": "GPL-3.0 with copied upstream Section 7 permissions and trademark terms",
+      "licenseFile": "LICENSE",
+      "files": {
+        "LICENSE": "84771a42604a9b025460094c46fd64768e319b557b7dffdaf80a0137a9f2f243",
+        "src/main/resources/LICENSE": "84771a42604a9b025460094c46fd64768e319b557b7dffdaf80a0137a9f2f243",
+        "build.gradle": "9b0c3080f539ea44ef5211768baebfe7c3a397df75b1a4365a4ae9dc43dddd0c",
+        "gradle/wrapper/gradle-wrapper.jar": "497c8c2a7e5031f6aa847f88104aa80a93532ec32ee17bdb8d1d2f67a194a9c7",
+        "gradle/wrapper/gradle-wrapper.properties": "e0a965f2b4922f9bd052443cf2edf22a9afddca055e7ddd669438bdea20a0adf",
+        "src/main/resources/plugin.json": "41232ad9f859c163d64c729ea817a153b57e7e995f14ea762316509101cef1c1"
+      }
+    }
+  },
+  "toolchain": {
+    "java": "25",
+    "observedJava": "25.0.3",
+    "observedJvm": "JBR-25.0.3+1-329.124-jcef",
+    "mcreatorGradle": "9.6.0",
+    "fabricGeneratorGradle": "9.7.0",
+    "windowsRuntime": "jbrsdk_jcef-25.0.3-windows-x64-b329.124",
+    "targetOs": "Windows 11 x64"
+  },
+  "productIdentity": {
+    "workingTitle": "Minecraft Mod Creator",
+    "distributionBrand": "Copperbench",
+    "applicationId": "dev.copperbench.studio",
+    "javaNamespace": "dev.copperbench",
+    "publisher": "Copperbench Contributors",
+    "status": "provisional_development_identity_locked"
+  }
+}

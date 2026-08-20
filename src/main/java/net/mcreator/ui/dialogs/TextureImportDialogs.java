@@ -1,0 +1,182 @@
+/*
+ * MCreator (https://mcreator.net/)
+ * Copyright (C) 2020 Pylo and contributors
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+package net.mcreator.ui.dialogs;
+
+import net.mcreator.io.FileIO;
+import net.mcreator.minecraft.RegistryNameFixer;
+import net.mcreator.ui.MCreator;
+import net.mcreator.ui.dialogs.file.ExtensionFilter;
+import net.mcreator.ui.dialogs.file.FileChooserType;
+import net.mcreator.ui.dialogs.file.FileDialogs;
+import net.mcreator.ui.init.L10N;
+import net.mcreator.ui.modgui.ModElementGUI;
+import net.mcreator.ui.workspace.resources.TextureType;
+import net.mcreator.util.FilenameUtilsPatched;
+
+import javax.annotation.Nullable;
+import javax.swing.*;
+import java.awt.*;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
+import java.util.concurrent.atomic.AtomicReference;
+
+public class TextureImportDialogs {
+
+	/**
+	 * <p>This method opens a dialog to select the texture type to use for the provided texture file.</p>
+	 *
+	 * @param mcreator <p>The instance of {@link MCreator} to use</p>
+	 * @param file     <p>The texture file to import</p>
+	 * @param message  <p>The message to display on the option dialog</p>
+	 * @return <p>The saved file</p>
+	 */
+	@Nullable public static File importSingleTexture(final MCreator mcreator, File file, String message) {
+		TextureType[] options = TextureType.getSupportedTypes(mcreator.getWorkspace(), false);
+		int n = JOptionPane.showOptionDialog(mcreator, message, L10N.t("dialog.textures_import.texture_type"),
+				JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, null);
+		if (n >= 0) {
+			return saveTextures(mcreator, options[n], new File[] { file }).getFirst();
+		}
+		return null;
+	}
+
+	public static void importArmor(final MCreator mcreator) {
+		AtomicReference<File> f1 = new AtomicReference<>(null);
+		AtomicReference<File> f2 = new AtomicReference<>(null);
+
+		JPanel dialogContent = new JPanel(new GridLayout(3, 2, 20, 2));
+		JButton p1 = new JButton("...");
+		JButton p2 = new JButton("...");
+
+		dialogContent.add(L10N.label("dialog.textures_import.armor_needs_two_files"));
+		dialogContent.add(L10N.label("dialog.textures_import.armor_layers"));
+		dialogContent.add(L10N.label("dialog.textures_import.armor_part_one"));
+		dialogContent.add(p1);
+		dialogContent.add(L10N.label("dialog.textures_import.armor_part_two"));
+		dialogContent.add(p2);
+
+		p1.addActionListener(event -> {
+			File[] f1a = FileDialogs.getFileChooserDialog(mcreator, FileChooserType.OPEN, false, null,
+					new ExtensionFilter("Armor layer 1 texture files (*_layer_1.png)", "*.png"));
+			if (f1a != null && f1a.length > 0) {
+				String name = f1a[0].getName().toLowerCase(Locale.ENGLISH);
+				if (name.endsWith("_layer_1.png") && !name.equals("_layer_1.png")) {
+					f1.set(f1a[0]);
+					p1.setText(FilenameUtilsPatched.removeExtension(name));
+				} else {
+					JOptionPane.showMessageDialog(mcreator, L10N.t("dialog.textures_import.armor_name_error"),
+							L10N.t("dialog.textures_import.error_texture_import_title"), JOptionPane.ERROR_MESSAGE);
+				}
+			}
+		});
+
+		p2.addActionListener(event -> {
+			File[] f2a = FileDialogs.getFileChooserDialog(mcreator, FileChooserType.OPEN, false, null,
+					new ExtensionFilter("Armor layer 2 texture files (*_layer_2.png)", "*.png"));
+			if (f2a != null && f2a.length > 0) {
+				String name = f2a[0].getName().toLowerCase(Locale.ENGLISH);
+				if (name.endsWith("_layer_2.png") && !name.equals("_layer_2.png")) {
+					f2.set(f2a[0]);
+					p2.setText(FilenameUtilsPatched.removeExtension(name));
+				} else {
+					JOptionPane.showMessageDialog(mcreator, L10N.t("dialog.textures_import.armor_name_error"),
+							L10N.t("dialog.textures_import.error_texture_import_title"), JOptionPane.ERROR_MESSAGE);
+				}
+			}
+		});
+
+		int ret = JOptionPane.showConfirmDialog(mcreator, dialogContent,
+				L10N.t("dialog.textures_import.import_armor_texture"), JOptionPane.OK_CANCEL_OPTION,
+				JOptionPane.PLAIN_MESSAGE, null);
+		if (ret == JOptionPane.OK_OPTION)
+			if (f1.get() == null || f2.get() == null) {
+				JOptionPane.showMessageDialog(mcreator,
+						L10N.t("dialog.textures_import.error_both_texture_files_not_selected"), null,
+						JOptionPane.ERROR_MESSAGE);
+			} else {
+				String namec = RegistryNameFixer.fix(FilenameUtilsPatched.removeExtension(
+						f1.get().getName().toLowerCase(Locale.ENGLISH).replace("layer_1", "")));
+				if (namec.endsWith("_"))
+					namec = namec.substring(0, namec.length() - 1);
+				if (namec.isBlank()) {
+					Toolkit.getDefaultToolkit().beep();
+					return;
+				}
+				File[] armor = mcreator.getFolderManager().getArmorTextureFilesForName(namec);
+				FileIO.copyFile(f1.get(), armor[0]);
+				FileIO.copyFile(f2.get(), armor[1]);
+
+				mcreator.reloadWorkspaceTabContents();
+				if (mcreator.getTabs().getCurrentTab().getContent() instanceof ModElementGUI<?> modElementGUI)
+					modElementGUI.reloadDataLists();
+			}
+	}
+
+	/**
+	 * <p>This method will open a file dialog to let the user select textures to import. Those textures then be saved as the provided {@link TextureType}.</p>
+	 *
+	 * @param mcreator <p>The instance of {@link MCreator} to use</p>
+	 * @param type     <p>The texture type to use when importing texture files</p>
+	 */
+	public static void importMultipleTextures(MCreator mcreator, TextureType type) {
+		File[] files = FileDialogs.getMultiOpenDialog(mcreator, new String[] { ".png" });
+		if (files != null)
+			saveTextures(mcreator, type, files);
+	}
+
+	/**
+	 * <p>This is a general method to import a group of textures. It executes everything needed to save textures in the appropriate folder
+	 * depending on the {@link TextureType}.</p>
+	 *
+	 * @param mcreator <p>The instance of {@link MCreator} to use</p>
+	 * @param type     <p>The texture type to use when saving texture files</p>
+	 * @param textures <p>Textures file to import</p>
+	 * @return <p>A list of saved files</p>
+	 */
+	public static List<File> saveTextures(MCreator mcreator, TextureType type, File[] textures) {
+		List<File> savedFiles = new ArrayList<>();
+		Arrays.stream(textures).forEach(textureFile -> {
+			String namec = RegistryNameFixer.fix(FilenameUtilsPatched.removeExtension(textureFile.getName()));
+			File file = mcreator.getFolderManager().getTextureFile(namec, type);
+			while (file.isFile()) {
+				String name = JOptionPane.showInputDialog(mcreator,
+						L10N.t("dialog.textures_import.error_texture_already_exists", namec),
+						L10N.t("dialog.textures_import.error_texture_import_title"), JOptionPane.WARNING_MESSAGE);
+				if (name != null) {
+					namec = RegistryNameFixer.fix(FilenameUtilsPatched.removeExtension(name));
+					file = mcreator.getFolderManager().getTextureFile(namec, type);
+				} else {
+					return;
+				}
+			}
+			savedFiles.add(file);
+			FileIO.copyFile(textureFile, file);
+		});
+
+		mcreator.reloadWorkspaceTabContents();
+		if (mcreator.getTabs().getCurrentTab().getContent() instanceof ModElementGUI<?> modElementGUI)
+			modElementGUI.reloadDataLists();
+
+		return savedFiles;
+	}
+
+}

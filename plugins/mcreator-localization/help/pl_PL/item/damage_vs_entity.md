@@ -1,0 +1,1 @@
+Ten parametr określa, ile obrażeń zadaje Twój przedmiot przeciwko bytom.

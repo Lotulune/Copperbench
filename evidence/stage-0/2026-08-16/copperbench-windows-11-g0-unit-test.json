@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "startedAt": "2026-08-17T02:44:49.7490504+08:00",
+  "completedAt": "2026-08-17T02:45:15.3512768+08:00",
+  "durationSeconds": 25.602,
+  "sourcePath": "D:\\AICoding\\Minecraft_ModCreator",
+  "jdkHome": "C:\\Program Files\\JetBrains\\IntelliJ IDEA 2026.1.4\\jbr",
+  "gradleUserHome": "C:\\tmp\\gradle-g0-copperbench-product-20260816",
+  "tasks": [
+    "clean",
+    "test",
+    "--tests",
+    "dev.copperbench.*",
+    "--tests",
+    "net.mcreator.unit.*"
+  ],
+  "exitCode": 0,
+  "passed": true,
+  "logPath": "D:\\AICoding\\Minecraft_ModCreator\\evidence\\stage-0\\2026-08-16\\copperbench-windows-11-g0-unit-test.log"
+}

@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "0.1",
+  "scenarioId": "schema-incompatible",
+  "extendsScenarioId": null,
+  "title": { "key": "scenario.schema_incompatible", "fallback": "Incompatible UI-Core schema", "args": {} },
+  "description": "The UI and Java Core fail startup negotiation without falling back to untyped JSON.",
+  "viewportState": "error",
+  "initialMessages": [
+    {
+      "messageType": "handshake",
+      "requestId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa21",
+      "supportedSchemaVersions": ["1.0"],
+      "client": { "id": "product_shell", "version": "0.1.0" }
+    },
+    {
+      "messageType": "handshake_result",
+      "requestId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa21",
+      "status": "incompatible",
+      "selectedSchemaVersion": null,
+      "coreSchemaVersions": ["0.1"],
+      "diagnostics": [
+        {
+          "code": "UI_CORE_SCHEMA_INCOMPATIBLE",
+          "severity": "error",
+          "message": {
+            "key": "diagnostic.ui_core_schema_incompatible",
+            "fallback": "The UI and Java Core do not support a common schema version.",
+            "args": { "ui": "1.0", "core": "0.1" }
+          },
+          "path": null,
+          "elementId": null,
+          "recoverable": false,
+          "actions": []
+        }
+      ]
+    }
+  ],
+  "timeline": [],
+  "expectedUi": {
+    "announcement": "UI_CORE_SCHEMA_INCOMPATIBLE",
+    "primaryAction": null,
+    "focusTarget": "[data-testid=schema-incompatible]"
+  }
+}

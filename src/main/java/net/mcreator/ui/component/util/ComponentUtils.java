@@ -1,0 +1,121 @@
+/*
+ * MCreator (https://mcreator.net/)
+ * Copyright (C) 2020 Pylo and contributors
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+package net.mcreator.ui.component.util;
+
+import net.mcreator.ui.init.L10N;
+import net.mcreator.ui.init.UIRES;
+import net.mcreator.ui.laf.themes.Theme;
+import net.mcreator.util.DesktopUtils;
+
+import javax.annotation.Nullable;
+import javax.swing.*;
+import javax.swing.border.TitledBorder;
+import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+
+public class ComponentUtils {
+
+	public static <T extends JComponent> T applyPadding(T what, int margin, boolean top, boolean left, boolean bottom,
+			boolean right) {
+		what.setBorder(BorderFactory.createEmptyBorder(top ? margin : 0, left ? margin : 0, bottom ? margin : 0,
+				right ? margin : 0));
+		return what;
+	}
+
+	public static <T extends JComponent> T setForeground(T component, Color color) {
+		component.setForeground(color);
+		return component;
+	}
+
+	public static <T extends JComponent> T deriveFont(T component, float param) {
+		Font font = component.getFont();
+		if (font == null)
+			font = Theme.current().getFont();
+		component.setFont(font.deriveFont(param));
+		return component;
+	}
+
+	public static JComponent bigCenteredText(String translationKey) {
+		return bigCenteredText(translationKey, null);
+	}
+
+	public static JComponent bigCenteredText(String translationKey, @Nullable Icon icon) {
+		JLabel loading = L10N.label(translationKey);
+		loading.setIconTextGap(5);
+		loading.setFont(loading.getFont().deriveFont(16f));
+		loading.setForeground(Theme.current().getAltForegroundColor());
+		loading.setIcon(icon);
+		return PanelUtils.totalCenterInPanel(loading);
+	}
+
+	public static Component wrapWithInfoButton(Component ca, String url) {
+		JPanel pan = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+		pan.setOpaque(false);
+		JLabel lab = new JLabel(UIRES.get("16px.info"));
+		lab.setCursor(new Cursor(Cursor.HAND_CURSOR));
+		lab.setToolTipText("More info");
+		lab.addMouseListener(new MouseAdapter() {
+			@Override public void mouseClicked(MouseEvent e) {
+				DesktopUtils.browseSafe(url);
+			}
+		});
+		pan.add(ca);
+		pan.add(lab);
+		return pan;
+	}
+
+	public static void makeSection(JComponent input, String title) {
+		input.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(1, 2, 1, 2),
+				BorderFactory.createTitledBorder(
+						BorderFactory.createMatteBorder(4, 1, 1, 1, Theme.current().getAltBackgroundColor()), title,
+						TitledBorder.LEADING, TitledBorder.DEFAULT_POSITION, null,
+						Theme.current().getAltForegroundColor())));
+	}
+
+	public static void borderWrap(JComponent input) {
+		input.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2),
+				BorderFactory.createCompoundBorder(
+						BorderFactory.createLineBorder(Theme.current().getAltBackgroundColor(), 1),
+						BorderFactory.createEmptyBorder(2, 2, 2, 2))));
+	}
+
+	public static JPanel squareAndBorder(Component gor, Color color, String text) {
+		JPanel p = new JPanel();
+		p.add(gor);
+		p.setOpaque(false);
+		p.setPreferredSize(new Dimension(94, 94));
+		p.setBorder(BorderFactory.createTitledBorder(
+				BorderFactory.createLineBorder(Theme.current().getAltForegroundColor(), 1), text, TitledBorder.LEADING,
+				TitledBorder.BOTTOM, null, color));
+		return p;
+	}
+
+	public static JPanel squareAndBorder(Component gor, String text) {
+		return squareAndBorder(gor, Theme.current().getForegroundColor(), text);
+	}
+
+	public static void updateBorderTitle(JComponent toUpdate, String text) {
+		if (toUpdate.getBorder() instanceof TitledBorder titledBorder) {
+			titledBorder.setTitle(text);
+			toUpdate.repaint();
+		}
+	}
+
+}

@@ -1,0 +1,148 @@
+{
+  "ok": true,
+  "error_type": "",
+  "error": "",
+  "session_id": "1d530da0ef97",
+  "query": "site:github.com/Goldorion/Fabric-Generator-MCreator Fabric 1.21.1 MCreator branch tag",
+  "platform": "",
+  "model": "grok-4.20-multi-agent-0309",
+  "primary_api_mode": "chat-completions",
+  "content": "**Answer:** The correct branch is **`1.21.1`**.\n\n### Repository Details\n- **Repo**: [Goldorion/Fabric-Generator-MCreator](https://github.com/Goldorion/Fabric-Generator-MCreator)\n- **Branch for Fabric 1.21.1**: `1.21.1`\n- **Type**: Branch (not a tag)\n\n### How to Use It\n\n**In MCreator (recommended method):**\n1. Go to **Preferences → Generators**\n2. Add a custom generator\n3. Enter:\n   - Repository URL: `https://github.com/Goldorion/Fabric-Generator-MCreator`\n   - **Branch**: `1.21.1`\n4. Apply and restart MCreator\n\n**Via Git:**\n```bash\ngit clone https://github.com/Goldorion/Fabric-Generator-MCreator.git\ncd Fabric-Generator-MCreator\ngit checkout 1.21.1\n```\n\n### Additional Notes\n\n- This repository follows a consistent naming pattern where each supported Minecraft version has its own branch (e.g. `1.20.1`, `1.21`, `1.21.1`).\n- There is usually no separate `fabric-1.21.1` branch — the version number itself is the standard.\n- As of 2026, `1.21.1` is an older version. Newer Minecraft versions will have their own branches (1.21.5+, 1.22+, etc.).\n- The `main` (or `master`) branch is typically used for development of the next version.\n\nWould you like instructions on how to build the generator locally or information about the Forge equivalent?",
+  "sources": [
+    {
+      "url": "https://github.com/Goldorion/Fabric-Generator-MCreator/actions/runs/23690716007/workflow",
+      "provider": "tavily",
+      "title": "More changes · Goldorion/Fabric-Generator-MCreator@4fc173e  · GitHub",
+      "description": "|  |  |\n --- |\n|  | name: Build and test |\n|  |  |\n|  | permissions: |\n|  | checks: write |\n|  |  |\n|  | on: |\n|  | push: |\n|  | branches: |\n|  | - \"\\\\\" |\n|  | pull\\_request: |\n|  | branches: |\n|  | - \"\\\\\" |\n|  |  |\n|  | jobs: |\n|  | build: |\n|  | name: Build and Test |\n|  | runs-on: ubuntu-latest |\n|  | steps: |\n|  | - name: Checkout Repository |\n|  | uses: actions/checkout@v6 |\n|  | - name: Checkout MCreator repository |\n|  | uses: actions/checkout@v6 |\n|  | with: |\n|  | repository: MCreator/MCreator |\n|  | ref: master # The branch name (can also be the tag). This will be the branch on which the tests will be run |\n|  | path: mcreator |\n|  | - name: Set up JDK 21 |\n|  | uses: actions/setup-java@v5 |\n|  | with: |\n|  | java-version: '21.0.10' |\n|  | distribution: 'jetbrains' | [...] |  | distribution: 'jetbrains' |\n|  | java-package: 'jdk+jcef' |\n|  | - name: Setup Gradle |\n|  | uses: gradle/actions/setup-gradle@v4 |\n|  | - name: Cache Gradle Packages |\n|  | uses: actions/cache@v4 |\n|  | with: |\n|  | path: | |\n|  | ~/.gradle/caches |\n|  | ~/.gradle/wrapper |\n|  | ~/.mcreator/gradle/caches/ |\n|  | ~/.mcreator/gradle/wrapper/ |\n|  | key: ${{ runner.os }}-gradle-${{ hashFiles('\\\\/\\.gradle\\', '\\\\/gradle-wrapper.properties') }} |\n|  | restore-keys: | |\n|  | ${{ runner.os }}-gradle- |\n|  | - name: Build and Test Using Gradle |\n|  | run: xvfb-run -a gradle --no-build-cache clean test --project-prop mcreator\\_path=${{ github.workspace }}/mcreator |\n|  | - name: Test Javadoc Generation |\n|  | run: gradle javadoc |\n|  | - name: Publish Test Report | [...] |  | - name: Publish Test Report |\n|  | uses: mikepenz/action-junit-report@9379f0ccddcab154835d4e2487555ee79614fe95 |\n|  | if: always() # always run even if the previous step fails |\n|  | with: |\n|  | include\\_passed: true |\n|  | detailed\\_summary: true |\n|  | report\\_paths: '\\\\/build/test-results/test/TEST-\\.xml' |\n|  | - name: Prepare Gradle Cache |\n|  | run: | |\n|  | rm -f ~/.mcreator/gradle/caches/modules-2/modules-2.lock |\n|  | rm -fr ~/.mcreator/gradle/caches/\\/plugin-resolution/ |\n|  | rm -f ~/.mcreator/gradle/caches/minecraft/deobfedDeps/providedDummy.jar |\n|  | rm -f ~/.mcreator/gradle/caches/minecraft/deobfedDeps/compileDummy.jar |\n|  | rm -f ~/.gradle/caches/modules-2/modules-2.lock |\n|  | rm -f ~/.gradle/caches/modules-2/gc.properties |"
+    },
+    {
+      "url": "https://github.com/Goldorion/Fabric-Generator-MCreator",
+      "provider": "tavily",
+      "title": "GitHub - Goldorion/Fabric-Generator-MCreator: A Fabric Generator plugin for MCreator · GitHub",
+      "description": "## About\n\nA Fabric Generator plugin for MCreator\n\n### Topics\n\n### Resources\n\n### Stars\n\n### Watchers\n\n### Forks\n\n## Releases\n\n## Sponsor this project\n\n## Packages\n\n## Contributors\n\n## Languages\n\n## Footer\n\n### Footer navigation [...] ## Folders and files\n\n| Name | | Name | Last commit message | Last commit date |\n ---  --- \n| Latest commit   History1,607 Commits   1,607 Commits | | |\n| .github | | .github |  |  |\n| .idea | | .idea |  |  |\n| gradle/wrapper | | gradle/wrapper |  |  |\n| src/main/resources | | src/main/resources |  |  |\n| .gitattributes | | .gitattributes |  |  |\n| .gitignore | | .gitignore |  |  |\n| CHANGELOG.md | | CHANGELOG.md |  |  |\n| LICENSE | | LICENSE |  |  |\n| README.md | | README.md |  |  |\n| build.gradle | | build.gradle |  |  |\n| gradle.properties | | gradle.properties |  |  |\n| gradlew | | gradlew |  |  |\n| gradlew.bat | | gradlew.bat |  |  |\n| settings.gradle | | settings.gradle |  |  |\n| update.json | | update.json |  |  |\n| View all files | | |\n\n## Latest commit\n\n## History [...] ## Navigation Menu\n\n### Uh oh!\n\nThere was an error while loading. Please reload this page.\n\nThere was an error while loading. Please reload this page.\n\n## Folders and files"
+    }
+  ],
+  "sources_count": 2,
+  "primary_sources": [],
+  "primary_sources_count": 0,
+  "extra_sources": [
+    {
+      "url": "https://github.com/Goldorion/Fabric-Generator-MCreator/actions/runs/23690716007/workflow",
+      "provider": "tavily",
+      "title": "More changes · Goldorion/Fabric-Generator-MCreator@4fc173e  · GitHub",
+      "description": "|  |  |\n --- |\n|  | name: Build and test |\n|  |  |\n|  | permissions: |\n|  | checks: write |\n|  |  |\n|  | on: |\n|  | push: |\n|  | branches: |\n|  | - \"\\\\\" |\n|  | pull\\_request: |\n|  | branches: |\n|  | - \"\\\\\" |\n|  |  |\n|  | jobs: |\n|  | build: |\n|  | name: Build and Test |\n|  | runs-on: ubuntu-latest |\n|  | steps: |\n|  | - name: Checkout Repository |\n|  | uses: actions/checkout@v6 |\n|  | - name: Checkout MCreator repository |\n|  | uses: actions/checkout@v6 |\n|  | with: |\n|  | repository: MCreator/MCreator |\n|  | ref: master # The branch name (can also be the tag). This will be the branch on which the tests will be run |\n|  | path: mcreator |\n|  | - name: Set up JDK 21 |\n|  | uses: actions/setup-java@v5 |\n|  | with: |\n|  | java-version: '21.0.10' |\n|  | distribution: 'jetbrains' | [...] |  | distribution: 'jetbrains' |\n|  | java-package: 'jdk+jcef' |\n|  | - name: Setup Gradle |\n|  | uses: gradle/actions/setup-gradle@v4 |\n|  | - name: Cache Gradle Packages |\n|  | uses: actions/cache@v4 |\n|  | with: |\n|  | path: | |\n|  | ~/.gradle/caches |\n|  | ~/.gradle/wrapper |\n|  | ~/.mcreator/gradle/caches/ |\n|  | ~/.mcreator/gradle/wrapper/ |\n|  | key: ${{ runner.os }}-gradle-${{ hashFiles('\\\\/\\.gradle\\', '\\\\/gradle-wrapper.properties') }} |\n|  | restore-keys: | |\n|  | ${{ runner.os }}-gradle- |\n|  | - name: Build and Test Using Gradle |\n|  | run: xvfb-run -a gradle --no-build-cache clean test --project-prop mcreator\\_path=${{ github.workspace }}/mcreator |\n|  | - name: Test Javadoc Generation |\n|  | run: gradle javadoc |\n|  | - name: Publish Test Report | [...] |  | - name: Publish Test Report |\n|  | uses: mikepenz/action-junit-report@9379f0ccddcab154835d4e2487555ee79614fe95 |\n|  | if: always() # always run even if the previous step fails |\n|  | with: |\n|  | include\\_passed: true |\n|  | detailed\\_summary: true |\n|  | report\\_paths: '\\\\/build/test-results/test/TEST-\\.xml' |\n|  | - name: Prepare Gradle Cache |\n|  | run: | |\n|  | rm -f ~/.mcreator/gradle/caches/modules-2/modules-2.lock |\n|  | rm -fr ~/.mcreator/gradle/caches/\\/plugin-resolution/ |\n|  | rm -f ~/.mcreator/gradle/caches/minecraft/deobfedDeps/providedDummy.jar |\n|  | rm -f ~/.mcreator/gradle/caches/minecraft/deobfedDeps/compileDummy.jar |\n|  | rm -f ~/.gradle/caches/modules-2/modules-2.lock |\n|  | rm -f ~/.gradle/caches/modules-2/gc.properties |"
+    },
+    {
+      "url": "https://github.com/Goldorion/Fabric-Generator-MCreator",
+      "provider": "tavily",
+      "title": "GitHub - Goldorion/Fabric-Generator-MCreator: A Fabric Generator plugin for MCreator · GitHub",
+      "description": "## About\n\nA Fabric Generator plugin for MCreator\n\n### Topics\n\n### Resources\n\n### Stars\n\n### Watchers\n\n### Forks\n\n## Releases\n\n## Sponsor this project\n\n## Packages\n\n## Contributors\n\n## Languages\n\n## Footer\n\n### Footer navigation [...] ## Folders and files\n\n| Name | | Name | Last commit message | Last commit date |\n ---  --- \n| Latest commit   History1,607 Commits   1,607 Commits | | |\n| .github | | .github |  |  |\n| .idea | | .idea |  |  |\n| gradle/wrapper | | gradle/wrapper |  |  |\n| src/main/resources | | src/main/resources |  |  |\n| .gitattributes | | .gitattributes |  |  |\n| .gitignore | | .gitignore |  |  |\n| CHANGELOG.md | | CHANGELOG.md |  |  |\n| LICENSE | | LICENSE |  |  |\n| README.md | | README.md |  |  |\n| build.gradle | | build.gradle |  |  |\n| gradle.properties | | gradle.properties |  |  |\n| gradlew | | gradlew |  |  |\n| gradlew.bat | | gradlew.bat |  |  |\n| settings.gradle | | settings.gradle |  |  |\n| update.json | | update.json |  |  |\n| View all files | | |\n\n## Latest commit\n\n## History [...] ## Navigation Menu\n\n### Uh oh!\n\nThere was an error while loading. Please reload this page.\n\nThere was an error while loading. Please reload this page.\n\n## Folders and files"
+    }
+  ],
+  "extra_sources_count": 2,
+  "source_warning": "extra_sources are retrieved in parallel and are not automatically used to verify generated content; use fetch on key URLs for claim-level evidence.",
+  "routing_decision": {
+    "docs_intent": false,
+    "zh_current_intent": false,
+    "web_current_intent": false,
+    "fetch_intent": false,
+    "supplemental_paths": [
+      "web_search"
+    ],
+    "validation_level": "strict",
+    "fallback_mode": "auto",
+    "providers": "auto",
+    "main_search_chain": [
+      "openai-compatible"
+    ],
+    "openai_compatible_stream": true
+  },
+  "providers_used": [
+    "OpenAI-compatible",
+    "tavily"
+  ],
+  "provider_attempts": [
+    {
+      "capability": "main_search",
+      "provider": "OpenAI-compatible",
+      "status": "ok",
+      "error_type": "",
+      "error": "",
+      "elapsed_ms": 30477.92,
+      "result_count": 1
+    },
+    {
+      "capability": "web_search",
+      "provider": "tavily",
+      "status": "ok",
+      "error_type": "",
+      "error": "",
+      "elapsed_ms": 35904.38,
+      "result_count": 2
+    },
+    {
+      "capability": "web_search",
+      "provider": "tavily",
+      "status": "ok",
+      "error_type": "",
+      "error": "",
+      "elapsed_ms": 2421.17,
+      "result_count": 2
+    }
+  ],
+  "fallback_used": true,
+  "validation_level": "strict",
+  "minimum_profile_ok": true,
+  "capability_status": {
+    "main_search": {
+      "configured": [
+        "openai-compatible"
+      ],
+      "fallback_chain": [
+        "xai-responses",
+        "openai-compatible"
+      ],
+      "ok": true
+    },
+    "web_search": {
+      "configured": [
+        "tavily"
+      ],
+      "fallback_chain": [
+        "zhipu",
+        "tavily",
+        "firecrawl"
+      ],
+      "ok": true
+    },
+    "docs_search": {
+      "configured": [
+        "context7"
+      ],
+      "fallback_chain": [
+        "context7",
+        "exa"
+      ],
+      "ok": true
+    },
+    "web_fetch": {
+      "configured": [
+        "tavily"
+      ],
+      "fallback_chain": [
+        "tavily",
+        "firecrawl"
+      ],
+      "ok": true
+    },
+    "vertical_search": {
+      "configured": [],
+      "fallback_chain": [
+        "anysearch"
+      ],
+      "experimental": true,
+      "ok": false
+    }
+  },
+  "elapsed_ms": 38326.89
+}

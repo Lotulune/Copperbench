@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "1.0",
+  "scenarioId": "approval-required",
+  "extendsScenarioId": "ready",
+  "title": { "key": "scenario.approval_required", "fallback": "Approval required", "args": {} },
+  "description": "Protected automation operations are waiting for an explicit user decision.",
+  "viewportState": "ready",
+  "initialMessages": [
+    {
+      "messageType": "query_result",
+      "schemaVersion": "1.0",
+      "requestId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa43",
+      "workspaceId": "11111111-1111-4111-8111-111111111111",
+      "operation": "list_operation_approvals",
+      "status": "succeeded",
+      "revision": 42,
+      "data": {
+        "items": [
+          {
+            "id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa44",
+            "operation": "external_publish",
+            "title": { "key": "approval.external_publish", "fallback": "Publish build to external service", "args": {} },
+            "requestedBy": "mcp",
+            "requestedAt": "2026-08-17T02:18:00Z",
+            "risk": "high",
+            "affectedPaths": ["build/libs/copper-trails-0.1.0.jar"],
+            "canApprove": true,
+            "policyCode": "EXPLICIT_USER_CONFIRMATION_REQUIRED"
+          },
+          {
+            "id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa45",
+            "operation": "enable_java_plugin",
+            "title": { "key": "approval.enable_java_plugin", "fallback": "Enable Java plugin: World Toolkit", "args": {} },
+            "requestedBy": "mcp",
+            "requestedAt": "2026-08-17T02:16:00Z",
+            "risk": "critical",
+            "affectedPaths": ["plugins/world-toolkit.jar"],
+            "canApprove": false,
+            "policyCode": "AI_CANNOT_ENABLE_JAVA_PLUGIN"
+          }
+        ]
+      },
+      "diagnostics": []
+    }
+  ],
+  "timeline": [],
+  "expectedUi": {
+    "announcement": "EXPLICIT_USER_CONFIRMATION_REQUIRED",
+    "primaryAction": "review_operation_approval",
+    "focusTarget": "[data-testid=approval-queue]"
+  }
+}

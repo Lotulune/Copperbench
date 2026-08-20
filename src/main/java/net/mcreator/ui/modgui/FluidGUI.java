@@ -1,0 +1,605 @@
+/*
+ * MCreator (https://mcreator.net/)
+ * Copyright (C) 2020 Pylo and contributors
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+package net.mcreator.ui.modgui;
+
+import net.mcreator.blockly.data.Dependency;
+import net.mcreator.element.parts.MapColor;
+import net.mcreator.element.parts.ParticleEntry;
+import net.mcreator.element.types.Fluid;
+import net.mcreator.minecraft.DataListLoader;
+import net.mcreator.minecraft.ElementUtil;
+import net.mcreator.ui.MCreator;
+import net.mcreator.ui.MCreatorApplication;
+import net.mcreator.ui.component.JColor;
+import net.mcreator.ui.component.JEmptyBox;
+import net.mcreator.ui.component.JStringListField;
+import net.mcreator.ui.component.TranslatedComboBox;
+import net.mcreator.ui.component.util.ComboBoxUtil;
+import net.mcreator.ui.component.util.ComponentUtils;
+import net.mcreator.ui.component.util.PanelUtils;
+import net.mcreator.ui.dialogs.TypedTextureSelectorDialog;
+import net.mcreator.ui.help.HelpUtils;
+import net.mcreator.ui.init.L10N;
+import net.mcreator.ui.laf.renderer.ItemTexturesComboBoxRenderer;
+import net.mcreator.ui.minecraft.DataListComboBox;
+import net.mcreator.ui.minecraft.SoundSelector;
+import net.mcreator.ui.minecraft.TabListField;
+import net.mcreator.ui.minecraft.TextureSelectionButton;
+import net.mcreator.ui.modgui.util.ComponentFromAnnotation;
+import net.mcreator.ui.procedure.AbstractProcedureSelector;
+import net.mcreator.ui.procedure.NumberProcedureSelector;
+import net.mcreator.ui.procedure.ProcedureSelector;
+import net.mcreator.ui.procedure.StringListProcedureSelector;
+import net.mcreator.ui.validation.ValidationGroup;
+import net.mcreator.ui.validation.component.VTextField;
+import net.mcreator.ui.workspace.resources.TextureType;
+import net.mcreator.util.StringUtils;
+import net.mcreator.workspace.elements.ModElement;
+import net.mcreator.workspace.elements.VariableTypeLoader;
+
+import javax.annotation.Nullable;
+import javax.swing.*;
+import java.awt.*;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Objects;
+
+public class FluidGUI extends ModElementGUI<Fluid> {
+
+	private TextureSelectionButton textureStill;
+	private TextureSelectionButton textureFlowing;
+
+	private TextureSelectionButton textureRenderOverlay;
+	private final JCheckBox hasFog = L10N.checkbox("elementgui.common.enable");
+	private final JColor fogColor = new JColor(mcreator, true, false);
+	private NumberProcedureSelector fogStartDistance;
+	private NumberProcedureSelector fogEndDistance;
+
+	private final VTextField name = new VTextField(18).requireValue("elementgui.fluid.error_fluid_needs_name")
+			.enableRealtimeValidation();
+	private final JCheckBox canMultiply = L10N.checkbox("elementgui.common.enable");
+	private final JSpinner flowRate = ComponentFromAnnotation.spinner(Fluid.class, "flowRate");
+	private final JSpinner levelDecrease = ComponentFromAnnotation.spinner(Fluid.class, "levelDecrease");
+	private final JSpinner slopeFindDistance = ComponentFromAnnotation.spinner(Fluid.class, "slopeFindDistance");
+	private final JCheckBox spawnParticles = L10N.checkbox("elementgui.common.enable");
+	private final DataListComboBox dripParticle = new DataListComboBox(mcreator);
+	private final JSpinner flowStrength = ComponentFromAnnotation.spinner(Fluid.class, "flowStrength");
+	private final JComboBox<String> tintType = ComponentFromAnnotation.options(Fluid.class, "tintType");
+
+	private final JSpinner luminosity = ComponentFromAnnotation.spinner(Fluid.class, "luminosity");
+	private final JSpinner density = ComponentFromAnnotation.spinner(Fluid.class, "density");
+	private final JSpinner viscosity = ComponentFromAnnotation.spinner(Fluid.class, "viscosity");
+	private final JSpinner temperature = ComponentFromAnnotation.spinner(Fluid.class, "temperature");
+
+	private final JCheckBox generateBucket = L10N.checkbox("elementgui.common.enable");
+	private final VTextField bucketName = new VTextField(18).requireValue("elementgui.fluid.error_bucket_needs_name")
+			.enableRealtimeValidation();
+	private TextureSelectionButton textureBucket;
+	private final TabListField creativeTabs = new TabListField(mcreator);
+	private final SoundSelector emptySound = new SoundSelector(mcreator);
+	private final TranslatedComboBox rarity = ComponentFromAnnotation.translatedOptions(Fluid.class, "rarity",
+			"elementgui.common.rarity_");
+	private StringListProcedureSelector specialInformation;
+
+	private final JComboBox<String> fluidtype = new JComboBox<>(new String[] { "WATER", "LAVA" });
+
+	private final JSpinner resistance = ComponentFromAnnotation.spinner(Fluid.class, "resistance");
+	private final JSpinner luminance = ComponentFromAnnotation.spinner(Fluid.class, "luminance");
+	private final JSpinner lightOpacity = ComponentFromAnnotation.spinner(Fluid.class, "lightOpacity");
+	private final JCheckBox emissiveRendering = L10N.checkbox("elementgui.common.enable");
+	private final JSpinner tickRate = ComponentFromAnnotation.spinner(Fluid.class, "tickRate");
+	private final JCheckBox ignitedByLava = L10N.checkbox("elementgui.common.enable");
+	private final JSpinner flammability = ComponentFromAnnotation.spinner(Fluid.class, "flammability");
+	private final JSpinner fireSpreadSpeed = ComponentFromAnnotation.spinner(Fluid.class, "fireSpreadSpeed");
+	private final DataListComboBox colorOnMap = new DataListComboBox(mcreator,
+			DataListLoader.loadDataList("mapcolors"));
+
+	private ProcedureSelector onBlockAdded;
+	private ProcedureSelector onNeighbourChanges;
+	private ProcedureSelector onTickUpdate;
+	private ProcedureSelector onEntityCollides;
+	private ProcedureSelector onRandomUpdateEvent;
+	private ProcedureSelector onDestroyedByExplosion;
+	private ProcedureSelector flowCondition;
+	private ProcedureSelector beforeReplacingBlock;
+
+	private final ValidationGroup texturesValidationGroup = new ValidationGroup();
+	private final ValidationGroup page1group = new ValidationGroup();
+
+	public FluidGUI(MCreator mcreator, ModElement modElement, boolean editingMode) {
+		super(mcreator, modElement, editingMode);
+		this.initGUI();
+		super.finalizeGUI();
+	}
+
+	@Override protected void initGUI() {
+		fogStartDistance = new NumberProcedureSelector(this.withEntry("fluid/fog_start_distance"), mcreator,
+				L10N.t("elementgui.fluid.fog_start_distance"), AbstractProcedureSelector.Side.CLIENT,
+				new JSpinner(new SpinnerNumberModel(0, -1024, 1024, 0.01)), 180, Dependency.fromString(
+				"world:world/entity:entity/nearDistance:number/farDistance:number/renderDistance:number"));
+		fogEndDistance = new NumberProcedureSelector(this.withEntry("fluid/fog_end_distance"), mcreator,
+				L10N.t("elementgui.fluid.fog_end_distance"), AbstractProcedureSelector.Side.CLIENT,
+				new JSpinner(new SpinnerNumberModel(48, -1024, 1024, 0.01)), 180, Dependency.fromString(
+				"world:world/entity:entity/nearDistance:number/farDistance:number/renderDistance:number"));
+
+		onBlockAdded = new ProcedureSelector(this.withEntry("block/when_added"), mcreator,
+				L10N.t("elementgui.fluid.when_added"),
+				Dependency.fromString("x:number/y:number/z:number/world:world/blockstate:blockstate"));
+		onNeighbourChanges = new ProcedureSelector(this.withEntry("block/when_neighbour_changes"), mcreator,
+				L10N.t("elementgui.common.event_on_neighbour_block_changes"),
+				Dependency.fromString("x:number/y:number/z:number/world:world/blockstate:blockstate"));
+		onTickUpdate = new ProcedureSelector(this.withEntry("block/update_tick"), mcreator,
+				L10N.t("elementgui.common.event_on_update_tick"),
+				Dependency.fromString("x:number/y:number/z:number/world:world/blockstate:blockstate"));
+		onEntityCollides = new ProcedureSelector(this.withEntry("block/when_entity_collides"), mcreator,
+				L10N.t("elementgui.fluid.when_entity_collides"),
+				Dependency.fromString("x:number/y:number/z:number/world:world/entity:entity/blockstate:blockstate"));
+		onRandomUpdateEvent = new ProcedureSelector(this.withEntry("block/display_tick_update"), mcreator,
+				L10N.t("elementgui.common.event_on_random_update"), ProcedureSelector.Side.CLIENT,
+				Dependency.fromString("x:number/y:number/z:number/world:world/entity:entity/blockstate:blockstate"));
+		onDestroyedByExplosion = new ProcedureSelector(this.withEntry("block/when_destroyed_explosion"), mcreator,
+				L10N.t("elementgui.block.event_on_block_destroyed_by_explosion"), ProcedureSelector.Side.SERVER,
+				Dependency.fromString("x:number/y:number/z:number/world:world"));
+		flowCondition = new ProcedureSelector(this.withEntry("fluid/flow_condition"), mcreator,
+				L10N.t("elementgui.fluid.event_flow_condition"), VariableTypeLoader.BuiltInTypes.LOGIC,
+				Dependency.fromString(
+						"x:number/y:number/z:number/world:world/direction:direction/blockstate:blockstate/intostate:blockstate")).setDefaultName(
+				L10N.t("condition.common.no_additional")).makeInline();
+		beforeReplacingBlock = new ProcedureSelector(this.withEntry("fluid/before_replacing_block"), mcreator,
+				L10N.t("elementgui.fluid.event_before_replacing_block"),
+				Dependency.fromString("x:number/y:number/z:number/world:world/blockstate:blockstate"));
+
+		specialInformation = new StringListProcedureSelector(this.withEntry("item/special_information"), mcreator,
+				L10N.t("elementgui.common.special_information"), AbstractProcedureSelector.Side.CLIENT,
+				new JStringListField(mcreator, null), 0,
+				Dependency.fromString("x:number/y:number/z:number/entity:entity/world:world/itemstack:itemstack"));
+
+		fluidtype.setRenderer(new ItemTexturesComboBoxRenderer());
+
+		JPanel visualsPage = new JPanel(new BorderLayout(10, 10));
+		visualsPage.setOpaque(false);
+
+		JPanel mainTextures = new JPanel(new FlowLayout(FlowLayout.CENTER));
+		mainTextures.setOpaque(false);
+
+		textureStill = new TextureSelectionButton(
+				new TypedTextureSelectorDialog(mcreator, TextureType.BLOCK)).requireValue(
+				"elementgui.fluid.error_fluid_needs_still_texture");
+		textureStill.setOpaque(false);
+		textureFlowing = new TextureSelectionButton(
+				new TypedTextureSelectorDialog(mcreator, TextureType.BLOCK)).requireValue(
+				"elementgui.fluid.error_fluid_needs_flowing_texture");
+		textureFlowing.setOpaque(false);
+
+		mainTextures.add(ComponentUtils.squareAndBorder(textureStill, L10N.t("elementgui.fluid.texture_still")));
+		mainTextures.add(ComponentUtils.squareAndBorder(textureFlowing, L10N.t("elementgui.fluid.texture_flowing")));
+
+		textureRenderOverlay = new TextureSelectionButton(new TypedTextureSelectorDialog(mcreator, TextureType.OTHER),
+				32);
+		textureRenderOverlay.setOpaque(false);
+
+		JPanel visualSettings = new JPanel(new GridLayout(3, 2, 5, 2));
+		visualSettings.setOpaque(false);
+
+		hasFog.setOpaque(false);
+
+		visualSettings.add(HelpUtils.wrapWithHelpButton(this.withEntry("fluid/render_overlay_texture"),
+				L10N.label("elementgui.fluid.texture_render_overlay")));
+		visualSettings.add(PanelUtils.centerInPanel(textureRenderOverlay));
+
+		visualSettings.add(
+				HelpUtils.wrapWithHelpButton(this.withEntry("fluid/has_fog"), L10N.label("elementgui.fluid.has_fog")));
+		visualSettings.add(hasFog);
+
+		visualSettings.add(HelpUtils.wrapWithHelpButton(this.withEntry("fluid/fog_color"),
+				L10N.label("elementgui.fluid.fog_color")));
+		visualSettings.add(fogColor);
+
+		JPanel fogProcedures = new JPanel(new GridLayout(2, 1, 2, 2));
+		fogProcedures.setOpaque(false);
+
+		fogProcedures.add(fogStartDistance);
+		fogProcedures.add(fogEndDistance);
+
+		hasFog.addActionListener(_ -> refreshFogSettings());
+		refreshFogSettings();
+
+		JComponent visualMerger = PanelUtils.northAndCenterElement(visualSettings, fogProcedures, 2, 2);
+		ComponentUtils.makeSection(visualMerger, L10N.t("elementgui.fluid.visual_settings"));
+
+		visualsPage.add(PanelUtils.totalCenterInPanel(PanelUtils.northAndCenterElement(mainTextures, visualMerger)));
+
+		JPanel pane3 = new JPanel(new BorderLayout(10, 10));
+		pane3.setOpaque(false);
+
+		JPanel destal = new JPanel(new GridLayout(10, 2, 5, 2));
+		destal.setOpaque(false);
+
+		canMultiply.setOpaque(false);
+		flowRate.setOpaque(false);
+		levelDecrease.setOpaque(false);
+		slopeFindDistance.setOpaque(false);
+		spawnParticles.setOpaque(false);
+		flowStrength.setOpaque(false);
+
+		ComponentUtils.deriveFont(name, 16);
+		ComponentUtils.deriveFont(bucketName, 16);
+
+		destal.add(HelpUtils.wrapWithHelpButton(this.withEntry("common/gui_name"),
+				L10N.label("elementgui.common.name_in_gui")));
+		destal.add(name);
+
+		destal.add(HelpUtils.wrapWithHelpButton(this.withEntry("fluid/type"), L10N.label("elementgui.fluid.type")));
+		destal.add(fluidtype);
+
+		destal.add(HelpUtils.wrapWithHelpButton(this.withEntry("fluid/flow_rate"),
+				L10N.label("elementgui.fluid.flow_rate")));
+		destal.add(flowRate);
+
+		destal.add(HelpUtils.wrapWithHelpButton(this.withEntry("fluid/flow_strength"),
+				L10N.label("elementgui.fluid.flow_strength")));
+		destal.add(flowStrength);
+
+		destal.add(HelpUtils.wrapWithHelpButton(this.withEntry("fluid/level_decrease"),
+				L10N.label("elementgui.fluid.level_decrease")));
+		destal.add(levelDecrease);
+
+		destal.add(HelpUtils.wrapWithHelpButton(this.withEntry("fluid/slope_find_distance"),
+				L10N.label("elementgui.fluid.slope_find_distance")));
+		destal.add(slopeFindDistance);
+
+		destal.add(HelpUtils.wrapWithHelpButton(this.withEntry("fluid/can_multiply"),
+				L10N.label("elementgui.fluid.can_multiply")));
+		destal.add(canMultiply);
+
+		destal.add(HelpUtils.wrapWithHelpButton(this.withEntry("fluid/spawn_drip_particles"),
+				L10N.label("elementgui.fluid.spawn_particles")));
+		destal.add(spawnParticles);
+
+		spawnParticles.addActionListener(_ -> refreshDripSettings());
+		refreshDripSettings();
+
+		destal.add(HelpUtils.wrapWithHelpButton(this.withEntry("fluid/drip_particle"),
+				L10N.label("elementgui.fluid.drip_particle")));
+		destal.add(dripParticle);
+
+		destal.add(HelpUtils.wrapWithHelpButton(this.withEntry("fluid/tint_type"),
+				L10N.label("elementgui.fluid.tint_type")));
+		destal.add(tintType);
+
+		JPanel bucketProperties = new JPanel(new GridLayout(6, 2, 5, 2));
+		bucketProperties.setOpaque(false);
+
+		textureBucket = new TextureSelectionButton(new TypedTextureSelectorDialog(mcreator, TextureType.ITEM), 32);
+		generateBucket.setOpaque(false);
+		textureBucket.setOpaque(false);
+
+		bucketProperties.add(HelpUtils.wrapWithHelpButton(this.withEntry("fluid/enable_bucket"),
+				L10N.label("elementgui.fluid.generate_bucket_label")));
+		bucketProperties.add(PanelUtils.centerInPanel(generateBucket));
+
+		bucketProperties.add(HelpUtils.wrapWithHelpButton(this.withEntry("common/gui_name"),
+				L10N.label("elementgui.fluid.bucket_name_in_gui")));
+		bucketProperties.add(bucketName);
+
+		bucketProperties.add(HelpUtils.wrapWithHelpButton(this.withEntry("fluid/bucket_texture"),
+				L10N.label("elementgui.fluid.bucket_texture")));
+		bucketProperties.add(PanelUtils.centerInPanel(textureBucket));
+
+		bucketProperties.add(HelpUtils.wrapWithHelpButton(this.withEntry("common/creative_tabs"),
+				L10N.label("elementgui.common.creative_tabs")));
+		bucketProperties.add(creativeTabs);
+
+		bucketProperties.add(HelpUtils.wrapWithHelpButton(this.withEntry("fluid/empty_sound"),
+				L10N.label("elementgui.fluid.empty_sound")));
+		bucketProperties.add(emptySound);
+
+		bucketProperties.add(
+				HelpUtils.wrapWithHelpButton(this.withEntry("item/rarity"), L10N.label("elementgui.common.rarity")));
+		bucketProperties.add(rarity);
+
+		JPanel bcProp = new JPanel(new BorderLayout(5, 2));
+		bcProp.setOpaque(false);
+		bcProp.add("Center", bucketProperties);
+		bcProp.add("South", specialInformation);
+
+		generateBucket.setSelected(true);
+
+		generateBucket.addActionListener(_ -> {
+			bucketName.setEnabled(generateBucket.isSelected());
+			textureBucket.setEnabled(generateBucket.isSelected());
+			creativeTabs.setEnabled(generateBucket.isSelected());
+			emptySound.setEnabled(generateBucket.isSelected());
+			rarity.setEnabled(generateBucket.isSelected());
+			specialInformation.setEnabled(generateBucket.isSelected());
+		});
+
+		ComponentUtils.makeSection(bcProp, L10N.t("elementgui.fluid.bucket_properties"));
+
+		JComponent destala = PanelUtils.northAndCenterElement(destal,
+				PanelUtils.westAndCenterElement(new JEmptyBox(4, 4), flowCondition), 0, 2);
+
+		ComponentUtils.makeSection(destala, L10N.t("elementgui.fluid.fluid_properties"));
+
+		JComponent fluidBucketProperties = PanelUtils.westAndEastElement(destala, PanelUtils.pullElementUp(bcProp));
+		fluidBucketProperties.setOpaque(false);
+		pane3.add(PanelUtils.totalCenterInPanel(fluidBucketProperties));
+
+		JPanel pane2 = new JPanel(new BorderLayout(10, 10));
+		JPanel pane4 = new JPanel(new BorderLayout(10, 10));
+
+		JPanel blockProperties = new JPanel(new GridLayout(9, 2, 20, 2));
+		blockProperties.setOpaque(false);
+
+		resistance.setOpaque(false);
+		luminance.setOpaque(false);
+		lightOpacity.setOpaque(false);
+		emissiveRendering.setOpaque(false);
+		tickRate.setOpaque(false);
+		ignitedByLava.setOpaque(false);
+		flammability.setOpaque(false);
+		fireSpreadSpeed.setOpaque(false);
+
+		blockProperties.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/resistance"),
+				L10N.label("elementgui.common.resistance")));
+		blockProperties.add(resistance);
+
+		blockProperties.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/luminance"),
+				L10N.label("elementgui.common.luminance")));
+		blockProperties.add(luminance);
+
+		blockProperties.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/light_opacity"),
+				L10N.label("elementgui.common.light_opacity")));
+		blockProperties.add(lightOpacity);
+
+		blockProperties.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/tick_rate"),
+				L10N.label("elementgui.common.tick_rate")));
+		blockProperties.add(tickRate);
+
+		blockProperties.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/ignited_by_lava"),
+				L10N.label("elementgui.block.ignited_by_lava")));
+		blockProperties.add(ignitedByLava);
+
+		blockProperties.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/flammability"),
+				L10N.label("elementgui.block.flammability")));
+		blockProperties.add(flammability);
+
+		blockProperties.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/fire_spread_speed"),
+				L10N.label("elementgui.common.fire_spread_speed")));
+		blockProperties.add(fireSpreadSpeed);
+
+		blockProperties.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/color_on_map"),
+				L10N.label("elementgui.block.color_on_map")));
+		blockProperties.add(colorOnMap);
+
+		blockProperties.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/emissive_rendering"),
+				L10N.label("elementgui.common.emissive_rendering")));
+		blockProperties.add(emissiveRendering);
+
+		ComponentUtils.makeSection(blockProperties, L10N.t("elementgui.fluid.block_properties"));
+
+		JPanel forgeProperties = new JPanel(new GridLayout(4, 2, 20, 2));
+		forgeProperties.setOpaque(false);
+
+		forgeProperties.add(HelpUtils.wrapWithHelpButton(this.withEntry("fluid/luminosity"),
+				L10N.label("elementgui.fluid.luminosity")));
+		forgeProperties.add(luminosity);
+
+		forgeProperties.add(
+				HelpUtils.wrapWithHelpButton(this.withEntry("fluid/density"), L10N.label("elementgui.fluid.density")));
+		forgeProperties.add(density);
+
+		forgeProperties.add(HelpUtils.wrapWithHelpButton(this.withEntry("fluid/viscosity"),
+				L10N.label("elementgui.fluid.viscosity")));
+		forgeProperties.add(viscosity);
+
+		forgeProperties.add(HelpUtils.wrapWithHelpButton(this.withEntry("fluid/temperature"),
+				L10N.label("elementgui.fluid.temperature")));
+		forgeProperties.add(temperature);
+
+		ComponentUtils.makeSection(forgeProperties, L10N.t("elementgui.fluid.modded_properties"));
+
+		JComponent properties = PanelUtils.westAndEastElement(blockProperties,
+				PanelUtils.pullElementUp(forgeProperties));
+		properties.setOpaque(false);
+
+		pane2.setOpaque(false);
+		pane2.add("Center", PanelUtils.totalCenterInPanel(properties));
+
+		JPanel events = new JPanel(new GridLayout(3, 3, 5, 5));
+		events.setOpaque(false);
+		events.add(onBlockAdded);
+		events.add(onNeighbourChanges);
+		events.add(onTickUpdate);
+		events.add(onEntityCollides);
+		events.add(onRandomUpdateEvent);
+		events.add(onDestroyedByExplosion);
+		events.add(beforeReplacingBlock);
+		events.add(new JLabel());
+		events.add(new JLabel());
+		pane4.add("Center", PanelUtils.totalCenterInPanel(events));
+		pane4.setOpaque(false);
+
+		texturesValidationGroup.addValidationElement(textureStill);
+		texturesValidationGroup.addValidationElement(textureFlowing);
+
+		page1group.addValidationElement(name);
+		page1group.addValidationElement(bucketName);
+
+		addPage(L10N.t("elementgui.common.page_visual"), visualsPage).validate(texturesValidationGroup);
+		addPage(L10N.t("elementgui.common.page_properties"), pane3).validate(page1group);
+		addPage(L10N.t("elementgui.common.page_advanced_properties"), pane2);
+		addPage(L10N.t("elementgui.common.page_triggers"), pane4);
+
+		if (!isEditingMode()) {
+			String readableNameFromModElement = StringUtils.machineToReadableName(modElement.getName());
+			name.setText(readableNameFromModElement);
+			bucketName.setText(readableNameFromModElement + " Bucket");
+		}
+	}
+
+	private void refreshFogSettings() {
+		boolean hasFogSelected = hasFog.isSelected();
+
+		fogColor.setEnabled(hasFogSelected);
+		fogStartDistance.setEnabled(hasFogSelected);
+		fogEndDistance.setEnabled(hasFogSelected);
+	}
+
+	private void refreshDripSettings() {
+		dripParticle.setEnabled(spawnParticles.isSelected());
+	}
+
+	@Override public void reloadDataLists() {
+		super.reloadDataLists();
+
+		AbstractProcedureSelector.ReloadContext context = AbstractProcedureSelector.ReloadContext.create(
+				mcreator.getWorkspace());
+
+		onBlockAdded.refreshListKeepSelected(context);
+		onNeighbourChanges.refreshListKeepSelected(context);
+		onTickUpdate.refreshListKeepSelected(context);
+		onEntityCollides.refreshListKeepSelected(context);
+		onRandomUpdateEvent.refreshListKeepSelected(context);
+		onDestroyedByExplosion.refreshListKeepSelected(context);
+		flowCondition.refreshListKeepSelected(context);
+		beforeReplacingBlock.refreshListKeepSelected(context);
+		specialInformation.refreshListKeepSelected(context);
+
+		fogStartDistance.refreshListKeepSelected(context);
+		fogEndDistance.refreshListKeepSelected(context);
+
+		ComboBoxUtil.updateComboBoxContents(dripParticle, ElementUtil.loadAllParticles(mcreator.getWorkspace()));
+	}
+
+	@Override public void openInEditingMode(Fluid fluid) {
+		textureStill.setTexture(fluid.textureStill);
+		textureFlowing.setTexture(fluid.textureFlowing);
+		textureRenderOverlay.setTexture(fluid.textureRenderOverlay);
+		hasFog.setSelected(fluid.hasFog);
+		fogColor.setColor(fluid.fogColor);
+		fogStartDistance.setSelectedProcedure(fluid.fogStartDistance);
+		fogEndDistance.setSelectedProcedure(fluid.fogEndDistance);
+		name.setText(fluid.name);
+		bucketName.setText(fluid.bucketName);
+		canMultiply.setSelected(fluid.canMultiply);
+		flowRate.setValue(fluid.flowRate);
+		levelDecrease.setValue(fluid.levelDecrease);
+		slopeFindDistance.setValue(fluid.slopeFindDistance);
+		spawnParticles.setSelected(fluid.spawnParticles);
+		dripParticle.setSelectedItem(fluid.dripParticle);
+		tintType.setSelectedItem(fluid.tintType);
+		flowStrength.setValue(fluid.flowStrength);
+		luminosity.setValue(fluid.luminosity);
+		density.setValue(fluid.density);
+		viscosity.setValue(fluid.viscosity);
+		temperature.setValue(fluid.temperature);
+		generateBucket.setSelected(fluid.generateBucket);
+		textureBucket.setTexture(fluid.textureBucket);
+		emptySound.setSound(fluid.emptySound);
+		rarity.setSelectedItem(fluid.rarity);
+		resistance.setValue(fluid.resistance);
+		luminance.setValue(fluid.luminance);
+		lightOpacity.setValue(fluid.lightOpacity);
+		emissiveRendering.setSelected(fluid.emissiveRendering);
+		tickRate.setValue(fluid.tickRate);
+		ignitedByLava.setSelected(fluid.ignitedByLava);
+		flammability.setValue(fluid.flammability);
+		fireSpreadSpeed.setValue(fluid.fireSpreadSpeed);
+		colorOnMap.setSelectedItem(fluid.colorOnMap);
+		onBlockAdded.setSelectedProcedure(fluid.onBlockAdded);
+		onNeighbourChanges.setSelectedProcedure(fluid.onNeighbourChanges);
+		onTickUpdate.setSelectedProcedure(fluid.onTickUpdate);
+		onEntityCollides.setSelectedProcedure(fluid.onEntityCollides);
+		onRandomUpdateEvent.setSelectedProcedure(fluid.onRandomUpdateEvent);
+		onDestroyedByExplosion.setSelectedProcedure(fluid.onDestroyedByExplosion);
+		flowCondition.setSelectedProcedure(fluid.flowCondition);
+		beforeReplacingBlock.setSelectedProcedure(fluid.beforeReplacingBlock);
+		fluidtype.setSelectedItem(fluid.type);
+		specialInformation.setSelectedProcedure(fluid.specialInformation);
+
+		creativeTabs.setListElements(fluid.creativeTabs);
+
+		bucketName.setEnabled(generateBucket.isSelected());
+		textureBucket.setEnabled(generateBucket.isSelected());
+		creativeTabs.setEnabled(generateBucket.isSelected());
+		emptySound.setEnabled(generateBucket.isSelected());
+		rarity.setEnabled(generateBucket.isSelected());
+		specialInformation.setEnabled(generateBucket.isSelected());
+
+		refreshFogSettings();
+		refreshDripSettings();
+	}
+
+	@Override public Fluid getElementFromGUI() {
+		Fluid fluid = new Fluid(modElement);
+		fluid.name = name.getText();
+		fluid.bucketName = bucketName.getText();
+		fluid.textureFlowing = textureFlowing.getTextureHolder();
+		fluid.textureStill = textureStill.getTextureHolder();
+		fluid.textureRenderOverlay = textureRenderOverlay.getTextureHolder();
+		fluid.hasFog = hasFog.isSelected();
+		fluid.fogColor = fogColor.getColor();
+		fluid.fogStartDistance = fogStartDistance.getSelectedProcedure();
+		fluid.fogEndDistance = fogEndDistance.getSelectedProcedure();
+		fluid.canMultiply = canMultiply.isSelected();
+		fluid.flowRate = (int) flowRate.getValue();
+		fluid.levelDecrease = (int) levelDecrease.getValue();
+		fluid.slopeFindDistance = (int) slopeFindDistance.getValue();
+		fluid.spawnParticles = spawnParticles.isSelected();
+		fluid.dripParticle = new ParticleEntry(mcreator.getWorkspace(), dripParticle.getSelectedItem());
+		fluid.tintType = (String) tintType.getSelectedItem();
+		fluid.flowStrength = (double) flowStrength.getValue();
+		fluid.luminosity = (int) luminosity.getValue();
+		fluid.density = (int) density.getValue();
+		fluid.viscosity = (int) viscosity.getValue();
+		fluid.temperature = (int) temperature.getValue();
+		fluid.generateBucket = generateBucket.isSelected();
+		fluid.textureBucket = textureBucket.getTextureHolder();
+		fluid.emptySound = emptySound.getSound();
+		fluid.rarity = rarity.getSelectedItem();
+		fluid.resistance = (double) resistance.getValue();
+		fluid.luminance = (int) luminance.getValue();
+		fluid.lightOpacity = (int) lightOpacity.getValue();
+		fluid.emissiveRendering = emissiveRendering.isSelected();
+		fluid.tickRate = (int) tickRate.getValue();
+		fluid.ignitedByLava = ignitedByLava.isSelected();
+		fluid.flammability = (int) flammability.getValue();
+		fluid.fireSpreadSpeed = (int) fireSpreadSpeed.getValue();
+		fluid.colorOnMap = new MapColor(modElement.getWorkspace(), colorOnMap.getSelectedItem());
+		fluid.onBlockAdded = onBlockAdded.getSelectedProcedure();
+		fluid.onNeighbourChanges = onNeighbourChanges.getSelectedProcedure();
+		fluid.onTickUpdate = onTickUpdate.getSelectedProcedure();
+		fluid.onEntityCollides = onEntityCollides.getSelectedProcedure();
+		fluid.onRandomUpdateEvent = onRandomUpdateEvent.getSelectedProcedure();
+		fluid.onDestroyedByExplosion = onDestroyedByExplosion.getSelectedProcedure();
+		fluid.flowCondition = flowCondition.getSelectedProcedure();
+		fluid.beforeReplacingBlock = beforeReplacingBlock.getSelectedProcedure();
+		fluid.type = (String) Objects.requireNonNull(fluidtype.getSelectedItem());
+		fluid.specialInformation = specialInformation.getSelectedProcedure();
+
+		fluid.creativeTabs = creativeTabs.getListElements();
+		return fluid;
+	}
+
+	@Override public @Nullable URI contextURL() throws URISyntaxException {
+		return new URI(MCreatorApplication.SERVER_DOMAIN + "/wiki/how-make-fluid");
+	}
+
+}

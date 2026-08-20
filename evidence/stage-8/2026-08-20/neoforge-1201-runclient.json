@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "preview-track-runclient-probe",
+  "generatorId": "neoforge-1.20.1",
+  "minecraftVersion": "1.20.1",
+  "neoForgeVersion": "47.1.106",
+  "readyMarker": "COPPERBENCH_STAGE7_NEOFORGE1201_READY",
+  "jdk": "D:\\AICoding\\Minecraft_ModCreator\\jdk\\jdk21_win_64",
+  "osNetworkDisconnected": false,
+  "runClient": {
+    "completed": true,
+    "timedOut": false,
+    "exitCode": 0,
+    "readinessMarkerSeen": true
+  },
+  "generateSucceeded": true,
+  "runClientSucceeded": true,
+  "goldenClaimed": false,
+  "catalogStatus": "PREVIEW",
+  "catalogReasonCode": "TRACK_GENERATE_READY",
+  "catalogGeneratable": false,
+  "diagnostics": [
+    "Failed to load forge logo"
+  ],
+  "logFile": "evidence/stage-8/2026-08-20/neoforge-1201-runclient.log",
+  "completedAt": "2026-08-19T22:40:02.812919700Z",
+  "durationSeconds": 821.63
+}
