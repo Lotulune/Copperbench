@@ -1,0 +1,1 @@
+(itemstack -> itemstack.is(TagKey.create(Registries.ITEM, new ResourceLocation("${field$tag?lower_case}"))))

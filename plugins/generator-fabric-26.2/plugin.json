@@ -1,0 +1,12 @@
+{
+  "id": "generator-fabric-26.2",
+  "weight": 12,
+  "supportedversions": [2026002, 202600299999],
+  "info": {
+    "name": "Minecraft Fabric 26.2 Generator",
+    "version": "0.1.0",
+    "description": "Copperbench retarget of the bundled Goldorion Fabric 26.1.2 generator to Minecraft 26.2",
+    "author": "Copperbench contributors",
+    "credits": "Based on Fabric-Generator-MCreator by Goldorion, NerdyPuzzle and Spectrall"
+  }
+}

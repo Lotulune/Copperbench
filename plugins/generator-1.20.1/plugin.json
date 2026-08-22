@@ -1,0 +1,11 @@
+{
+  "id": "generator-1.20.1",
+  "weight": 10,
+  "supportedversions": [2026002, 202600299999],
+  "info": {
+    "name": "Minecraft 1.20.1 Java Edition generators (Fabric and NeoForge)",
+    "version": "0.1.0",
+    "description": "Copperbench retarget of 1.21.1 generators to Minecraft 1.20.1",
+    "author": "Copperbench contributors"
+  }
+}

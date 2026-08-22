@@ -1,0 +1,11 @@
+{
+  "id": "generator-26.2",
+  "weight": 13,
+  "supportedversions": [2026002, 202600299999],
+  "info": {
+    "name": "Minecraft 26.2 Java Edition generator",
+    "version": "0.1.0",
+    "description": "Copperbench retarget of the bundled NeoForge 26.1.2 generator to Minecraft 26.2",
+    "author": "Copperbench contributors"
+  }
+}
