@@ -30,6 +30,9 @@ import {
   PreviewLoaderMigrationPayload,
   PreviewUpstreamImportPayload,
   VersionTracksProjection,
+  NewWorkspaceGeneratorCatalog,
+  CreateWorkspacePayload,
+  CommandResultData,
   LoaderMigrationPreview,
   UpstreamImportPreview,
   MigrationReport,
@@ -39,7 +42,8 @@ import {
   ClientLoadPreparation,
   InstalledPluginInventory,
   ElementCoverage,
-  UpstreamToolCatalogProjection
+  UpstreamToolCatalogProjection,
+  Diagnostic
 } from '../types/contract';
 import {
   BridgeState,
@@ -988,6 +992,127 @@ export class MockCoreBridge implements CoreBridge {
         return result;
       }
 
+      case 'create_workspace': {
+        const payload = command.payload as unknown as CreateWorkspacePayload;
+        const diagnostics: Diagnostic[] = [];
+        if (!payload.userApproved) {
+          diagnostics.push({
+            code: 'USER_APPROVAL_REQUIRED',
+            severity: 'error',
+            message: {
+              key: 'diagnostic.user_approval_required',
+              fallback: '创建工作区会写入新文件夹，需要用户确认。'
+            },
+            path: null,
+            recoverable: true,
+            actions: []
+          });
+        } else {
+          const MOD_ID = /^[a-z][a-z0-9_]{1,31}$/;
+          const MOD_NAME = /^\S.{0,63}$/;
+          const PACKAGE_NAME = /^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$/;
+          if (!MOD_NAME.test(payload.modName)) {
+            diagnostics.push({
+              code: 'MOD_NAME_INVALID',
+              severity: 'error',
+              message: { key: 'diagnostic.mod_name_invalid', fallback: '模组名称无效。' },
+              path: '/modName',
+              recoverable: true,
+              actions: []
+            });
+          }
+          if (!MOD_ID.test(payload.modId)) {
+            diagnostics.push({
+              code: 'MOD_ID_INVALID',
+              severity: 'error',
+              message: { key: 'diagnostic.mod_id_invalid', fallback: '模组 ID 必须为 2-32 位小写字母、数字或下划线。' },
+              path: '/modId',
+              recoverable: true,
+              actions: []
+            });
+          }
+          const packageName = payload.packageName || `net.mcreator.${payload.modId.replaceAll(/[^a-z0-9_]/g, '')}`;
+          if (!PACKAGE_NAME.test(packageName)) {
+            diagnostics.push({
+              code: 'PACKAGE_NAME_INVALID',
+              severity: 'error',
+              message: { key: 'diagnostic.package_name_invalid', fallback: 'Java 包名无效。' },
+              path: '/packageName',
+              recoverable: true,
+              actions: []
+            });
+          }
+          if (!payload.workspaceFolderPath || payload.workspaceFolderPath.trim().length === 0) {
+            diagnostics.push({
+              code: 'WORKSPACE_FOLDER_REQUIRED',
+              severity: 'error',
+              message: { key: 'diagnostic.workspace_folder_required', fallback: '必须提供工作区文件夹路径。' },
+              path: '/workspaceFolderPath',
+              recoverable: true,
+              actions: []
+            });
+          }
+        }
+        if (diagnostics.length > 0) {
+          const result: CommandResult = {
+            messageType: 'command_result',
+            schemaVersion: '1.0',
+            requestId: command.requestId,
+            workspaceId,
+            operation: 'create_workspace',
+            status: 'rejected',
+            newRevision: currentRevision,
+            recoveryPointId: null,
+            task: null,
+            data: null,
+            conflict: null,
+            denial: null,
+            diagnostics
+          };
+          this.state.diagnostics = [...diagnostics];
+          this.notifyState();
+          return result;
+        }
+
+        const workspaceFile = `${payload.workspaceFolderPath.replace(/[/\\]+$/, '')}/${payload.modId}.mcreator`
+          .replace(/\\/g, '/');
+        const created: CommandResultData = {
+          workspaceFile,
+          generatorId: payload.generatorId,
+          modId: payload.modId
+        };
+        const ev: CoreEvent = {
+          messageType: 'event',
+          schemaVersion: '1.0',
+          eventId: generateUUID(),
+          workspaceId,
+          revision: currentRevision,
+          sequence: ++this.sequenceCounter,
+          occurredAt: new Date().toISOString(),
+          event: 'workspace_created',
+          causedByRequestId: command.requestId,
+          payload: { workspaceFile, generatorId: payload.generatorId, modId: payload.modId }
+        };
+        this.notifyEvent(ev);
+        const result: CommandResult = {
+          messageType: 'command_result',
+          schemaVersion: '1.0',
+          requestId: command.requestId,
+          workspaceId,
+          operation: 'create_workspace',
+          status: 'committed',
+          newRevision: currentRevision,
+          recoveryPointId: null,
+          task: null,
+          data: created,
+          conflict: null,
+          denial: null,
+          diagnostics: []
+        };
+        this.notifyState();
+        return result;
+      }
+
       case 'execute_loader_migration': {
         const payload = command.payload as unknown as ExecuteLoaderMigrationPayload;
         if (!payload.userApproved) {
@@ -1500,6 +1625,22 @@ export class MockCoreBridge implements CoreBridge {
             generatable: true
           }
         } satisfies VersionTracksProjection;
+        break;
+      case 'list_new_workspace_generators':
+        data = {
+          schemaVersion: '1.0',
+          generators: [
+            { generatorId: 'fabric-26.2', loader: 'fabric', minecraftVersion: '26.2', trackId: 'latest_stable', displayName: 'Fabric 26.2', dynamic: true, available: true, workspaceGeneratorName: 'fabric-26.2' },
+            { generatorId: 'neoforge-26.2', loader: 'neoforge', minecraftVersion: '26.2', trackId: 'latest_stable', displayName: 'NeoForge 26.2', dynamic: true, available: true, workspaceGeneratorName: 'neoforge-26.2' },
+            { generatorId: 'fabric-26.1.2', loader: 'fabric', minecraftVersion: '26.1.2', trackId: 'previous_stable', displayName: 'Fabric 26.1.2', dynamic: true, available: true, workspaceGeneratorName: 'fabric-26.1.2' },
+            { generatorId: 'neoforge-26.1.2', loader: 'neoforge', minecraftVersion: '26.1.2', trackId: 'previous_stable', displayName: 'NeoForge 26.1.2', dynamic: true, available: true, workspaceGeneratorName: 'neoforge-26.1.2' },
+            { generatorId: 'fabric-1.21.1', loader: 'fabric', minecraftVersion: '1.21.1', trackId: 'minecraft_1_21_1', displayName: 'Fabric 1.21.1', dynamic: false, available: true, workspaceGeneratorName: 'fabric-1.21.1' },
+            { generatorId: 'neoforge-1.21.1', loader: 'neoforge', minecraftVersion: '1.21.1', trackId: 'minecraft_1_21_1', displayName: 'NeoForge 1.21.1', dynamic: false, available: true, workspaceGeneratorName: 'neoforge-1.21.1' },
+            { generatorId: 'fabric-1.20.1', loader: 'fabric', minecraftVersion: '1.20.1', trackId: 'minecraft_1_20_1', displayName: 'Fabric 1.20.1', dynamic: false, available: true, workspaceGeneratorName: 'fabric-1.20.1' },
+            { generatorId: 'neoforge-1.20.1', loader: 'neoforge', minecraftVersion: '1.20.1', trackId: 'minecraft_1_20_1', displayName: 'NeoForge 1.20.1', dynamic: false, available: true, workspaceGeneratorName: 'neoforge-1.20.1' }
+          ],
+          suggestedWorkspaceFoldersRoot: 'C:\\Users\\example\\MCreatorWorkspaces'
+        } satisfies NewWorkspaceGeneratorCatalog;
         break;
       case 'get_release_notes':
         data = releaseNotesData;

@@ -1740,6 +1740,11 @@ input:disabled, select:disabled, textarea:disabled {
   to { transform: rotate(360deg); }
 }
 
+/* Generic rotating-icon utility (used by loading states in the new-workspace view) */
+.spin {
+  animation: spin 1.2s linear infinite;
+}
+
 @media (max-width: 1150px) {
   .asset-browser-body {
     grid-template-columns: 160px minmax(300px, 1fr) minmax(260px, 300px);

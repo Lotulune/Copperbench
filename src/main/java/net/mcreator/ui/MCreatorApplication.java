@@ -20,6 +20,8 @@ package net.mcreator.ui;
 
 import dev.copperbench.ProductIdentity;
 import dev.copperbench.net.OfflineWebAPI;
+import dev.copperbench.gradle.GradleDistributionPool;
+import dev.copperbench.network.ChinaMirrorService;
 import net.mcreator.Launcher;
 import net.mcreator.blockly.data.BlocklyLoader;
 import net.mcreator.element.ModElementTypeLoader;
@@ -42,6 +44,7 @@ import net.mcreator.ui.chromium.CefUtils;
 import net.mcreator.ui.chromium.WebView;
 import net.mcreator.ui.component.util.DiscordClient;
 import net.mcreator.ui.component.util.ThreadUtil;
+import net.mcreator.ui.dialogs.ChinaNetworkSetupDialog;
 import net.mcreator.ui.dialogs.preferences.PreferencesDialog;
 import net.mcreator.ui.help.HelpLoader;
 import net.mcreator.ui.init.*;
@@ -239,6 +242,9 @@ public final class MCreatorApplication {
 
 				// Make sure splash screen is closed on the swing thread before we continue
 				splashScreen.dispose();
+				ChinaNetworkSetupDialog.promptIfNeeded(workspaceSelector);
+				ChinaMirrorService.syncUserHome();
+				GradleDistributionPool.seedPackagedDistributions();
 			});
 
 			SwingUtilities.invokeLater(() -> {

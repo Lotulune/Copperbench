@@ -413,10 +413,10 @@ export const TracksAndMigrationView: React.FC = () => {
                   <option value="neoforge-1.21.1">NeoForge 1.21.1 (维护轨，正式支持)</option>
                   <option value="neoforge-1.20.1">NeoForge 1.20.1 (维护轨，正式支持)</option>
                   <option value="fabric-1.20.1">Fabric 1.20.1 (维护轨，正式支持)</option>
-                  <option value="fabric-26.1.2">Fabric 26.1.2 (前一稳定，技术预览)</option>
-                  <option value="neoforge-26.1.2">NeoForge 26.1.2 (前一稳定，技术预览)</option>
-                  <option value="fabric-26.2">Fabric 26.2 (最新稳定，可生成)</option>
-                  <option value="neoforge-26.2">NeoForge 26.2 (最新稳定，可生成)</option>
+                  <option value="fabric-26.1.2">Fabric 26.1.2 (前一稳定)</option>
+                  <option value="neoforge-26.1.2">NeoForge 26.1.2 (前一稳定)</option>
+                  <option value="fabric-26.2">Fabric 26.2 (最新稳定，新建工作区可选)</option>
+                  <option value="neoforge-26.2">NeoForge 26.2 (最新稳定，纵向切片)</option>
                 </select>
               </label>
 

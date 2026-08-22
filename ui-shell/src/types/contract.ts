@@ -260,6 +260,17 @@ export interface OperationApprovalListProjection {
  * Command Payloads
  * ========================================================================= */
 
+export interface CreateWorkspacePayload {
+  clientMutationId: UUID;
+  generatorId: string;
+  modName: string;
+  modId: string;
+  packageName?: string;
+  workspaceFolderPath: string;
+  version?: string;
+  userApproved: boolean;
+}
+
 export interface CreateModElementPayload {
   clientMutationId: UUID;
   elementType: ModElementType;
@@ -339,6 +350,7 @@ export interface PrepareResourcePackClientPayload {
 }
 
 export type CommandOperation =
+  | 'create_workspace'
   | 'create_mod_element'
   | 'update_mod_element'
   | 'delete_mod_element'
@@ -416,6 +428,9 @@ export interface CommandResultData {
   optionsRelativePath?: string;
   readyForClient?: boolean;
   clientLaunched?: boolean;
+  workspaceFile?: string;
+  generatorId?: string;
+  modId?: string;
 }
 
 export interface CommandResult {
@@ -440,6 +455,7 @@ export interface CommandResult {
 
 export type QueryOperation =
   | 'get_workbench'
+  | 'list_new_workspace_generators'
   | 'list_mod_elements'
   | 'get_mod_element_editor'
   | 'preview_mod_element_change'
@@ -547,6 +563,23 @@ export interface VersionTracksProjection {
   currentWorkspace?: CurrentWorkspaceTrackOverlay;
 }
 
+export interface NewWorkspaceGenerator {
+  generatorId: string;
+  loader: LoaderType;
+  minecraftVersion: string;
+  trackId: TrackId;
+  displayName: string;
+  dynamic: boolean;
+  available: boolean;
+  workspaceGeneratorName: string;
+}
+
+export interface NewWorkspaceGeneratorCatalog {
+  schemaVersion: '1.0';
+  generators: NewWorkspaceGenerator[];
+  suggestedWorkspaceFoldersRoot: string;
+}
+
 export type MigrationDisposition = 'supported' | 'substitute' | 'lost' | 'blocked' | 'manual';
 
 export interface MigrationItem {
@@ -647,6 +680,7 @@ export type EventType =
   | 'bridge_recovery_required'
   | 'recovery_point_created'
   | 'workspace_restored'
+  | 'workspace_created'
   | 'loader_migration_executed'
   | 'upstream_workspace_imported'
   | 'publish_batch_created'
@@ -755,6 +789,15 @@ export type WorkspaceRestoredEvent = BaseEvent<
   }
 >;
 
+export type WorkspaceCreatedEvent = BaseEvent<
+  'workspace_created',
+  {
+    workspaceFile: string;
+    generatorId: string;
+    modId: string;
+  }
+>;
+
 export type LoaderMigrationExecutedEvent = BaseEvent<
   'loader_migration_executed',
   CopyResultPayload
@@ -788,6 +831,7 @@ export type CoreEvent =
   | BridgeRecoveryRequiredEvent
   | RecoveryPointCreatedEvent
   | WorkspaceRestoredEvent
+  | WorkspaceCreatedEvent
   | LoaderMigrationExecutedEvent
   | UpstreamWorkspaceImportedEvent
   | PublishBatchCreatedEvent

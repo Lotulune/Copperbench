@@ -26,6 +26,7 @@ public final class UiCore {
 	}
 
 	public enum Operation {
+		@SerializedName("create_workspace") CREATE_WORKSPACE,
 		@SerializedName("create_mod_element") CREATE_MOD_ELEMENT,
 		@SerializedName("update_mod_element") UPDATE_MOD_ELEMENT,
 		@SerializedName("delete_mod_element") DELETE_MOD_ELEMENT,
@@ -42,6 +43,7 @@ public final class UiCore {
 		@SerializedName("create_publish_batch") CREATE_PUBLISH_BATCH,
 		@SerializedName("prepare_resource_pack_client") PREPARE_RESOURCE_PACK_CLIENT,
 		@SerializedName("get_workbench") GET_WORKBENCH,
+		@SerializedName("list_new_workspace_generators") LIST_NEW_WORKSPACE_GENERATORS,
 		@SerializedName("list_mod_elements") LIST_MOD_ELEMENTS,
 		@SerializedName("get_mod_element_editor") GET_MOD_ELEMENT_EDITOR,
 		@SerializedName("preview_mod_element_change") PREVIEW_MOD_ELEMENT_CHANGE,

@@ -18,6 +18,7 @@
 
 package net.mcreator.ui.action.impl.gradle;
 
+import dev.copperbench.network.ChinaMirrorService;
 import net.mcreator.gradle.GradleDaemonUtils;
 import net.mcreator.io.FileIO;
 import net.mcreator.io.UserFolderManager;
@@ -76,6 +77,7 @@ public class ClearAllGradleCachesAction extends GradleAction {
 				FileIO.deleteDir(UserFolderManager.getGradleHome());
 			else
 				FileIO.deleteDir(new File(UserFolderManager.getGradleHome(), "caches"));
+			ChinaMirrorService.syncUserHome();
 
 			p2.markStateOk();
 

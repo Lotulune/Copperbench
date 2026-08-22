@@ -33,6 +33,6 @@ class OfflineLocalOperationsTest {
 		assertTrue(Files.isRegularFile(workspace.resolve("gradlew.bat")));
 		assertTrue(Files.isRegularFile(workspace.resolve("gradle/wrapper/gradle-wrapper.jar")));
 		assertTrue(Files.readString(workspace.resolve("gradle/wrapper/gradle-wrapper.properties"))
-				.contains("gradle-9.6.0-bin.zip"));
+				.contains("gradle-9.7.0-bin.zip"));
 	}
 }

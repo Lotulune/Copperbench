@@ -31,6 +31,7 @@
       "type": "string",
       "enum": [
         "get_workbench",
+        "list_new_workspace_generators",
         "list_mod_elements",
         "get_mod_element_editor",
         "preview_mod_element_change",

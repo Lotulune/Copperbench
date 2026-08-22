@@ -16,6 +16,7 @@ import dev.copperbench.bridge.JcefBlockbenchBridgeTransport;
 import dev.copperbench.bridge.JcefCoreBridgeTransport;
 import dev.copperbench.bridge.JcefLegacyPluginBridgeTransport;
 import dev.copperbench.bridge.JcefWindowBridgeTransport;
+import dev.copperbench.bridge.JcefWorkspaceOpenBridgeTransport;
 import dev.copperbench.core.workspace.mcreator.MCreatorWorkspaceSession;
 import dev.copperbench.generator.LoaderRoutingWorkspaceTaskGateway;
 import dev.copperbench.window.WindowsWindowChromeController;
@@ -24,6 +25,7 @@ import net.mcreator.workspace.Workspace;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Clock;
@@ -41,7 +43,8 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 	private final AtomicBoolean closed = new AtomicBoolean(false);
 
 	private CopperbenchProductShell(JFrame owner, Workspace workspace, Path distributionRoot, Runnable closeAction,
-			Runnable openLegacyPluginWindow, WindowsWindowChromeController windowChromeController)
+			Runnable openLegacyPluginWindow, Consumer<File> openWorkspaceAction,
+			WindowsWindowChromeController windowChromeController)
 			throws IOException {
 		setLayout(new BorderLayout());
 		setMinimumSize(new Dimension(500, 600));
@@ -56,7 +59,7 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 		try {
 			createdBrowserHost = new RecoverableBrowserHost(
 					() -> createBrowser(createdSession, owner, closeAction, openLegacyPluginWindow,
-							windowChromeController, workspaceRoot), closeAction);
+							openWorkspaceAction, windowChromeController, workspaceRoot), closeAction);
 		} catch (RuntimeException exception) {
 			createdSession.close();
 			throw exception;
@@ -67,11 +70,12 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 	}
 
 	public static CopperbenchProductShell open(JFrame owner, Workspace workspace, Runnable closeAction,
-			Runnable openLegacyPluginWindow, WindowsWindowChromeController windowChromeController)
+			Runnable openLegacyPluginWindow, Consumer<File> openWorkspaceAction,
+			WindowsWindowChromeController windowChromeController)
 			throws IOException {
 		Path distributionRoot = Path.of(System.getProperty("user.dir")).toAbsolutePath().normalize();
 		return new CopperbenchProductShell(owner, workspace, distributionRoot, closeAction, openLegacyPluginWindow,
-				windowChromeController);
+				openWorkspaceAction, windowChromeController);
 	}
 
 	public void forceLoad() {
@@ -90,13 +94,14 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 	}
 
 	private static RecoverableBrowserHost.BrowserHandle createBrowser(MCreatorWorkspaceSession session, JFrame owner,
-			Runnable closeAction, Runnable openLegacyPluginWindow,
+			Runnable closeAction, Runnable openLegacyPluginWindow, Consumer<File> openWorkspaceAction,
 			WindowsWindowChromeController windowChromeController, Path workspaceRoot) {
 		WebView webView = new WebView(UI_URL);
 		JcefCoreBridgeTransport coreTransport = null;
 		JcefWindowBridgeTransport windowTransport = null;
 		JcefLegacyPluginBridgeTransport legacyPluginTransport = null;
 		JcefBlockbenchBridgeTransport blockbenchTransport = null;
+		JcefWorkspaceOpenBridgeTransport workspaceOpenTransport = null;
 		try {
 			coreTransport = webView.attachCoreBridge(session.workspaceId(), session.uiEntry());
 			windowTransport = windowChromeController != null
@@ -104,6 +109,9 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 							windowChromeController::isUsingCustomFrame)
 					: JcefWindowBridgeTransport.attach(webView, owner, closeAction);
 			legacyPluginTransport = JcefLegacyPluginBridgeTransport.attach(webView, openLegacyPluginWindow);
+			workspaceOpenTransport = openWorkspaceAction != null
+					? JcefWorkspaceOpenBridgeTransport.attach(webView, openWorkspaceAction)
+					: null;
 			blockbenchTransport = JcefBlockbenchBridgeTransport.attach(webView,
 					new BlockbenchProcessService(new AssetWorkspaceService(workspaceRoot),
 							BlockbenchExecutableLocator.locate()));
@@ -111,6 +119,7 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 			JcefWindowBridgeTransport attachedWindow = windowTransport;
 			JcefLegacyPluginBridgeTransport attachedLegacyPlugin = legacyPluginTransport;
 			JcefBlockbenchBridgeTransport attachedBlockbench = blockbenchTransport;
+			JcefWorkspaceOpenBridgeTransport attachedWorkspaceOpen = workspaceOpenTransport;
 			return new RecoverableBrowserHost.BrowserHandle() {
 				@Override public Component component() {
 					return webView;
@@ -135,6 +144,8 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 
 				@Override public void close() {
 					attachedBlockbench.close();
+					if (attachedWorkspaceOpen != null)
+						attachedWorkspaceOpen.close();
 					attachedLegacyPlugin.close();
 					attachedWindow.close();
 					attachedCore.close();
@@ -144,6 +155,8 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 		} catch (RuntimeException exception) {
 			if (blockbenchTransport != null)
 				blockbenchTransport.close();
+			if (workspaceOpenTransport != null)
+				workspaceOpenTransport.close();
 			if (legacyPluginTransport != null)
 				legacyPluginTransport.close();
 			if (windowTransport != null)

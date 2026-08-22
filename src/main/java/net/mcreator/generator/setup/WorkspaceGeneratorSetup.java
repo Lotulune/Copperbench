@@ -18,6 +18,8 @@
 
 package net.mcreator.generator.setup;
 
+import dev.copperbench.gradle.GradleDistributionPool;
+import dev.copperbench.network.ChinaMirrorService;
 import freemarker.template.Template;
 import net.mcreator.generator.Generator;
 import net.mcreator.generator.GeneratorConfiguration;
@@ -160,6 +162,8 @@ public class WorkspaceGeneratorSetup {
 				LOG.error("Failed to copy workspace base file", e);
 			}
 		}
+		ChinaMirrorService.applyToWorkspace(workspace);
+		GradleDistributionPool.seedForWorkspace(workspace);
 	}
 
 	public static boolean shouldSetupBeRan(Generator generator) {

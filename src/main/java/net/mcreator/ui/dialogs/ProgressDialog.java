@@ -105,7 +105,7 @@ public class ProgressDialog extends MCreatorDialog {
 			}
 		});
 
-		setSize(450, 280);
+		setSize(520, 320);
 		setLocationRelativeTo(w);
 	}
 
@@ -139,12 +139,18 @@ public class ProgressDialog extends MCreatorDialog {
 
 		private Status status;
 		private int percent;
+		@Nullable private String detail;
 
 		@Nullable private ProgressDialog progressDialog;
 
 		public ProgressUnit(String name) {
 			this.name = name;
 			status = Status.LOADING;
+		}
+
+		public void setDetail(@Nullable String detail) {
+			this.detail = detail;
+			repaintUnit();
 		}
 
 		public void markStateOk() {
@@ -181,14 +187,15 @@ public class ProgressDialog extends MCreatorDialog {
 
 		public void setPercent(int percent) {
 			this.percent = percent;
+			repaintUnit();
+			if (progressDialog != null && progressDialog.mcreator != null)
+				progressDialog.mcreator.getApplication().getTaskbarIntegration()
+						.setProgressState(progressDialog.mcreator, percent);
+		}
 
-			if (progressDialog != null) {
+		private void repaintUnit() {
+			if (progressDialog != null)
 				ThreadUtil.runOnSwingThread(() -> progressDialog.progressUnits.repaint());
-
-				if (progressDialog.mcreator != null)
-					progressDialog.mcreator.getApplication().getTaskbarIntegration()
-							.setProgressState(progressDialog.mcreator, percent);
-			}
 		}
 
 		enum Status {
@@ -215,8 +222,16 @@ public class ProgressDialog extends MCreatorDialog {
 			JPanel stap = new JPanel(new BorderLayout(2, 0));
 			stap.setOpaque(false);
 
-			JLabel status = new JLabel();
-			status.setText(ma.name);
+			JPanel labels = new JPanel();
+			labels.setOpaque(false);
+			labels.setLayout(new BoxLayout(labels, BoxLayout.Y_AXIS));
+			JLabel status = new JLabel(ma.name);
+			labels.add(status);
+			if (ma.detail != null && !ma.detail.isBlank()) {
+				JLabel detail = new JLabel(ma.detail);
+				detail.setForeground(Theme.current().getAltForegroundColor());
+				labels.add(detail);
+			}
 
 			switch (ma.status) {
 			case LOADING -> {
@@ -226,17 +241,22 @@ public class ProgressDialog extends MCreatorDialog {
 				stap.add("East", PanelUtils.centerInPanel(status2));
 
 				JProgressBar bar = new JProgressBar(0, 100);
-				bar.setValue(ma.percent);
-				if (bar.getValue() > 0)
-					stap.add("West", PanelUtils.totalCenterInPanel(bar));
+				bar.setValue(Math.max(0, ma.percent));
+				bar.setIndeterminate(ma.percent <= 0);
+				bar.setStringPainted(ma.percent > 0);
+				if (ma.percent > 0)
+					bar.setString(ma.percent + "%");
+				bar.setPreferredSize(new Dimension(120, 14));
+				stap.add("West", PanelUtils.totalCenterInPanel(bar));
 			}
 			case COMPLETE -> stap.add("East", PanelUtils.centerInPanel(new JLabel(complete)));
 			case ERROR -> stap.add("East", PanelUtils.centerInPanel(new JLabel(remove)));
 			case WARNING -> stap.add("East", PanelUtils.centerInPanel(new JLabel(warning)));
 			}
 
-			add("West", status);
+			add("West", labels);
 			add("East", stap);
+			setBorder(BorderFactory.createEmptyBorder(4, 0, 4, 0));
 			return this;
 		}
 	}

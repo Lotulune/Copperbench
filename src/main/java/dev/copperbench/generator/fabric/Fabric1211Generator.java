@@ -59,10 +59,10 @@ public final class Fabric1211Generator {
 
 		/**
 		 * Loom 1.7.4 ships with Gradle 8.8 (fabric-loom 1.7 branch wrapper).
-		 * Newer tracks keep the product Gradle 9.6.0 wrapper.
+		 * Newer tracks share Gradle 9.7.0 with the New Workspace generator plugins.
 		 */
 		public String gradleWrapperZip() {
-			return javaRelease <= 17 ? "gradle-8.8-bin.zip" : "gradle-9.6.0-bin.zip";
+			return javaRelease <= 17 ? "gradle-8.8-bin.zip" : "gradle-9.7.0-bin.zip";
 		}
 	}
 

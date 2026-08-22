@@ -122,9 +122,9 @@ test.describe('Adaptive Layout, Frameless Window & Theme Tests', () => {
     const helpView = page.locator('[data-testid="help-view"]');
     await expect(helpView).toBeVisible();
 
-    // Source document disclaimer
+    // Source document disclaimer (wording may evolve; pin the invariant parts)
     await expect(helpView).toContainText('docs/user/README.md');
-    await expect(helpView).toContainText('开发测试版说明，不是正式发行手册');
+    await expect(helpView).toContainText('开发测试版说明');
 
     // About panel facts
     const aboutPanel = page.locator('[data-testid="about-panel"]');

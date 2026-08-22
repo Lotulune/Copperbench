@@ -18,6 +18,7 @@
 
 package net.mcreator.ui.dialogs.preferences;
 
+import dev.copperbench.network.ChinaMirrorService;
 import net.mcreator.blockly.data.BlocklyLoader;
 import net.mcreator.plugin.MCREvent;
 import net.mcreator.plugin.events.ui.PreferencesDialogEvent;
@@ -260,6 +261,7 @@ public class PreferencesDialog extends MCreatorDialog {
 				entry.setValueFromComponent(entries.get(entry));
 		}));
 		PreferencesManager.savePreferences();
+		ChinaMirrorService.syncUserHome();
 	}
 
 	private JComponent generateEntryComponent(PreferencesEntry<?> entry, JPanel placeInside) {

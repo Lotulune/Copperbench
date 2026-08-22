@@ -15,7 +15,7 @@
 - Result 总是携带当前/新修订号与结构化诊断。
 - Event 只描述已发生事实，不可作为命令重放。
 - UI 只能使用 `capabilities`、`permission` 和 `diagnostics` 的 core 判定，不能自行复制业务规则。
-- 所有路径字段都是领域 JSON Pointer 或不透明标识，不是本机文件路径。
+- 所有路径字段都是领域 JSON Pointer 或不透明标识，不是本机文件路径。例外：引导期命令（`import_upstream_workspace` 的 `sourceWorkspacePath`、`create_workspace` 的 `workspaceFolderPath`）携带用户显式确认（`userApproved`）后的本机工作区路径，域校验会限制其位于建议的工作区根目录之下。
 
 ## 验证
 

@@ -89,11 +89,11 @@ public final class VersionTrackCatalog {
 
 	public static VersionTrackCatalog official() {
 		LoaderStatus fabricLatest = new LoaderStatus(LoaderId.FABRIC, "fabric-26.2", LATEST_MINECRAFT,
-				SupportStatus.SUPPORTED, null, "TRACK_SUPPORTED",
-				"Latest stable Minecraft 26.2. First-party Fabric vertical slice with compile and runClient evidence (unobfuscated Loom 1.17.19).");
+				SupportStatus.SUPPORTED, "generator-fabric-26.2", "TRACK_SUPPORTED",
+				"Latest stable Minecraft 26.2. New Workspace generator retargeted from Goldorion Fabric 26.1.2 templates (Fabric API 0.158.0+26.2). First-party vertical slice also has compile and runClient evidence.");
 		LoaderStatus neoForgeLatest = new LoaderStatus(LoaderId.NEOFORGE, "neoforge-26.2", LATEST_MINECRAFT,
-				SupportStatus.SUPPORTED, null, "TRACK_SUPPORTED",
-				"Latest stable Minecraft 26.2. First-party NeoForge vertical slice with compile and runClient evidence (NeoForge 26.2.0.63).");
+				SupportStatus.SUPPORTED, "generator-26.2", "TRACK_SUPPORTED",
+				"Latest stable Minecraft 26.2. New Workspace generator retargeted from NeoForge 26.1.2 templates (NeoForge 26.2.0.63). First-party vertical slice also has compile and runClient evidence.");
 		LoaderStatus fabricPrevious = new LoaderStatus(LoaderId.FABRIC, "fabric-26.1.2", PREVIOUS_MINECRAFT,
 				SupportStatus.SUPPORTED, "generator-fabric-26.1.2", "TRACK_SUPPORTED",
 				"Previous stable Minecraft 26.1.2. First-party Fabric vertical slice with compile and runClient evidence (unobfuscated Loom, Fabric API 0.155.2+26.1.2).");
@@ -101,17 +101,17 @@ public final class VersionTrackCatalog {
 				SupportStatus.SUPPORTED, "generator-26.1.x", "TRACK_SUPPORTED",
 				"Previous stable Minecraft 26.1.2. First-party NeoForge vertical slice with compile and runClient evidence (NeoForge 26.1.2.95).");
 		LoaderStatus fabric1211 = new LoaderStatus(LoaderId.FABRIC, "fabric-1.21.1", FIXED_1211,
-				SupportStatus.SUPPORTED, null, "TRACK_SUPPORTED",
-				"Maintenance track. Copperbench-owned Fabric 1.21.1 vertical slice with golden build and runClient evidence.");
+				SupportStatus.SUPPORTED, "generator-1.21.1", "TRACK_SUPPORTED",
+				"Maintenance track. New Workspace generator retargeted from Goldorion Fabric 26.1.2 templates to ResourceLocation/Java 21. First-party vertical slice has golden build and runClient evidence.");
 		LoaderStatus neoForge1211 = new LoaderStatus(LoaderId.NEOFORGE, "neoforge-1.21.1", FIXED_1211,
 				SupportStatus.SUPPORTED, "generator-1.21.1", "TRACK_SUPPORTED",
 				"Maintenance track. Copperbench-owned NeoForge 1.21.1 vertical slice with golden build and runClient evidence.");
 		LoaderStatus fabric1201 = new LoaderStatus(LoaderId.FABRIC, "fabric-1.20.1", FIXED_1201,
-				SupportStatus.SUPPORTED, null, "TRACK_SUPPORTED",
-				"Maintenance track. Copperbench-owned Fabric 1.20.1 vertical slice with compile and runClient evidence (Gradle 8.8 + loom 1.7.4).");
+				SupportStatus.SUPPORTED, "generator-1.20.1", "TRACK_SUPPORTED",
+				"Maintenance track. New Workspace generator retargeted to Java 17, Gradle 8.8 and loom 1.7.4. First-party vertical slice has compile and runClient evidence.");
 		LoaderStatus neoForge1201 = new LoaderStatus(LoaderId.NEOFORGE, "neoforge-1.20.1", FIXED_1201,
-				SupportStatus.SUPPORTED, null, "TRACK_SUPPORTED",
-				"Maintenance track. Copperbench-owned NeoForge 1.20.1 vertical slice with compile and runClient evidence (NeoForged Forge 1.20.1-47.1.106 + userdev 7.0.165).");
+				SupportStatus.SUPPORTED, "generator-1.20.1", "TRACK_SUPPORTED",
+				"Maintenance track. New Workspace generator retargeted to Forge 1.20.1-47.1.106 and userdev 7.0.165. First-party vertical slice has compile and runClient evidence.");
 		return new VersionTrackCatalog(List.of(
 				new Track(TrackId.LATEST_STABLE, LATEST_MINECRAFT, "Latest stable (Minecraft 26.2)", true,
 						List.of(fabricLatest, neoForgeLatest)),

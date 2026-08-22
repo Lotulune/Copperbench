@@ -14,7 +14,8 @@ import {
   UpstreamImportPreview,
   PublishBatchListProjection,
   InstalledPluginInventory,
-  UpstreamToolCatalogProjection
+  UpstreamToolCatalogProjection,
+  NewWorkspaceGeneratorCatalog
 } from '../types/contract';
 import {
   coreBridge,
@@ -25,7 +26,7 @@ import {
 import { windowBridge } from '../bridge/windowBridge';
 import { t } from '../i18n';
 
-export type NavView = 'hub' | 'elements' | 'assets' | 'history' | 'ai' | 'plugins' | 'tracks' | 'help';
+export type NavView = 'hub' | 'elements' | 'assets' | 'history' | 'ai' | 'plugins' | 'tracks' | 'new-workspace' | 'help';
 
 interface WorkbenchContextType {
   state: BridgeState;
@@ -72,6 +73,16 @@ interface WorkbenchContextType {
   getUpstreamTools: () => Promise<UpstreamToolCatalogProjection | null>;
   createPublishBatch: (name: string, sourceDirectory: string, output: string) => Promise<CommandResult>;
   prepareResourcePackClient: (sourceDirectory: string, zipFileName: string) => Promise<CommandResult>;
+  listNewWorkspaceGenerators: () => Promise<NewWorkspaceGeneratorCatalog | null>;
+  createWorkspace: (form: {
+    generatorId: string;
+    modName: string;
+    modId: string;
+    packageName?: string;
+    workspaceFolderPath: string;
+    version?: string;
+    userApproved: boolean;
+  }) => Promise<CommandResult>;
   elevatePermission: (profile: PermissionProfile) => void;
   reconcileRecovery: () => void;
   runDiagnosticAction: (action: ActionHint, diagnostic: Diagnostic) => void;
@@ -573,6 +584,50 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     [state.workbench]
   );
 
+  const listNewWorkspaceGenerators = useCallback(
+    async (): Promise<NewWorkspaceGeneratorCatalog | null> => {
+      const workspaceId = state.workbench?.workspace.id || generateUUID();
+      const res = await coreBridge.sendQuery<NewWorkspaceGeneratorCatalog>({
+        messageType: 'query',
+        schemaVersion: '1.0',
+        requestId: generateUUID(),
+        workspaceId,
+        operation: 'list_new_workspace_generators',
+        payload: {}
+      });
+      return (res.data as NewWorkspaceGeneratorCatalog | null) ?? null;
+    },
+    [state.workbench]
+  );
+
+  const createWorkspace = useCallback(
+    async (form: {
+      generatorId: string;
+      modName: string;
+      modId: string;
+      packageName?: string;
+      workspaceFolderPath: string;
+      version?: string;
+      userApproved: boolean;
+    }): Promise<CommandResult> => {
+      const workspaceId = state.workbench?.workspace.id || generateUUID();
+      const revision = state.workbench?.workspace.revision ?? 0;
+      return coreBridge.sendCommand({
+        messageType: 'command',
+        schemaVersion: '1.0',
+        requestId: generateUUID(),
+        workspaceId,
+        expectedRevision: revision,
+        operation: 'create_workspace',
+        payload: {
+          clientMutationId: generateUUID(),
+          ...form
+        }
+      });
+    },
+    [state.workbench]
+  );
+
   const elevatePermission = useCallback((profile: PermissionProfile) => {
     coreBridge.elevatePermission?.(profile);
   }, []);
@@ -654,6 +709,8 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       getUpstreamTools,
       createPublishBatch,
       prepareResourcePackClient,
+      listNewWorkspaceGenerators,
+      createWorkspace,
       elevatePermission,
       reconcileRecovery,
       runDiagnosticAction
@@ -695,6 +752,8 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       getUpstreamTools,
       createPublishBatch,
       prepareResourcePackClient,
+      listNewWorkspaceGenerators,
+      createWorkspace,
       elevatePermission,
       reconcileRecovery,
       runDiagnosticAction

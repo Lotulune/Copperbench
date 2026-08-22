@@ -34,6 +34,7 @@
     "operation": {
       "type": "string",
       "enum": [
+        "create_workspace",
         "create_mod_element",
         "update_mod_element",
         "delete_mod_element",
@@ -120,6 +121,29 @@
     }
   },
   "allOf": [
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "create_workspace"
+          },
+          "status": {
+            "const": "committed"
+          }
+        },
+        "required": [
+          "operation",
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "data": {
+            "$ref": "#/$defs/workspaceCreatedResult"
+          }
+        }
+      }
+    },
     {
       "if": {
         "properties": {
@@ -297,6 +321,29 @@
     }
   ],
   "$defs": {
+    "workspaceCreatedResult": {
+      "type": "object",
+      "required": [
+        "workspaceFile",
+        "generatorId",
+        "modId"
+      ],
+      "properties": {
+        "workspaceFile": {
+          "type": "string",
+          "minLength": 1
+        },
+        "generatorId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "modId": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
     "elementResult": {
       "type": "object",
       "required": [

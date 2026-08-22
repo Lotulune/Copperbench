@@ -1,0 +1,51 @@
+// Copperbench mainland-China mirrors.
+// Rewrites Maven Central, Plugin Portal, Google, JCenter, and Minecraft libraries.
+// Fabric and NeoForge specialised repositories stay on their original URLs.
+
+def mirrors = [
+        'https://repo.maven.apache.org/maven2'   : 'https://maven.aliyun.com/repository/central',
+        'http://repo.maven.apache.org/maven2'    : 'https://maven.aliyun.com/repository/central',
+        'https://repo1.maven.org/maven2'         : 'https://maven.aliyun.com/repository/central',
+        'http://repo1.maven.org/maven2'          : 'https://maven.aliyun.com/repository/central',
+        'https://plugins.gradle.org/m2'          : 'https://maven.aliyun.com/repository/gradle-plugin',
+        'https://dl.google.com/dl/android/maven2': 'https://maven.aliyun.com/repository/google',
+        'https://maven.google.com'               : 'https://maven.aliyun.com/repository/google',
+        'https://jcenter.bintray.com'            : 'https://maven.aliyun.com/repository/public',
+        'https://libraries.minecraft.net'        : 'https://bmclapi2.bangbang93.com/maven',
+        'http://libraries.minecraft.net'         : 'https://bmclapi2.bangbang93.com/maven'
+]
+
+def normalize = { String url -> url == null ? '' : url.replaceAll(/\/+$/, '') }
+def rewrite = { repo ->
+    if (!(repo instanceof MavenArtifactRepository)) return
+    def current = normalize(repo.url?.toString())
+    if (!current) return
+    mirrors.each { from, to ->
+        def source = normalize(from)
+        if (current == source || current.startsWith(source + '/')) repo.setUrl(to)
+    }
+}
+def hook = { repositories ->
+    repositories.withType(MavenArtifactRepository).configureEach { repo -> rewrite(repo) }
+    repositories.whenObjectAdded { repo -> rewrite(repo) }
+}
+
+beforeSettings { settings ->
+    settings.pluginManagement {
+        repositories {
+            maven { name = 'AliyunPublic'; url = 'https://maven.aliyun.com/repository/public' }
+            maven { name = 'AliyunGradlePlugin'; url = 'https://maven.aliyun.com/repository/gradle-plugin' }
+            maven { name = 'AliyunGoogle'; url = 'https://maven.aliyun.com/repository/google' }
+        }
+    }
+}
+
+settingsEvaluated { settings ->
+    hook(settings.pluginManagement.repositories)
+    hook(settings.dependencyResolutionManagement.repositories)
+}
+
+allprojects { project ->
+    project.buildscript { hook(repositories) }
+    hook(project.repositories)
+}

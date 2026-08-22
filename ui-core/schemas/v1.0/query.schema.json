@@ -28,6 +28,7 @@
       "type": "string",
       "enum": [
         "get_workbench",
+        "list_new_workspace_generators",
         "list_mod_elements",
         "get_mod_element_editor",
         "preview_mod_element_change",
@@ -55,6 +56,25 @@
         "properties": {
           "operation": {
             "const": "get_workbench"
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/emptyPayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "list_new_workspace_generators"
           }
         },
         "required": [

@@ -31,6 +31,7 @@
     "operation": {
       "type": "string",
       "enum": [
+        "create_workspace",
         "create_mod_element",
         "update_mod_element",
         "delete_mod_element",
@@ -54,6 +55,25 @@
     }
   },
   "allOf": [
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "create_workspace"
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/createWorkspacePayload"
+          }
+        }
+      }
+    },
     {
       "if": {
         "properties": {
@@ -290,6 +310,54 @@
     }
   ],
   "$defs": {
+    "createWorkspacePayload": {
+      "type": "object",
+      "required": [
+        "clientMutationId",
+        "generatorId",
+        "modName",
+        "modId",
+        "workspaceFolderPath",
+        "userApproved"
+      ],
+      "properties": {
+        "clientMutationId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+        },
+        "generatorId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "modName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "modId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{1,31}$"
+        },
+        "packageName": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+          "maxLength": 200
+        },
+        "workspaceFolderPath": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "version": {
+          "type": "string",
+          "maxLength": 32
+        },
+        "userApproved": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
     "createModElementPayload": {
       "type": "object",
       "required": [

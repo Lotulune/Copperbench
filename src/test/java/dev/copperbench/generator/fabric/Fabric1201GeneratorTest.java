@@ -37,7 +37,7 @@ class Fabric1201GeneratorTest {
 		assertTrue(Files.readString(output.resolve("gradle/wrapper/gradle-wrapper.properties"))
 				.contains("gradle-8.8-bin.zip"));
 		assertFalse(Files.readString(output.resolve("gradle/wrapper/gradle-wrapper.properties"))
-				.contains("gradle-9.6.0-bin.zip"));
+				.contains("gradle-9.7.0-bin.zip"));
 		assertTrue(Files.readString(output.resolve(".copperbench/generator-lock.json")).contains("gradle-8.8-bin.zip"));
 		String mod = Files.readString(output.resolve("src/main/java/dev/coppertrails/CopperTrailsMod.java"));
 		assertTrue(mod.contains("COPPERBENCH_STAGE7_FABRIC1201_READY"));

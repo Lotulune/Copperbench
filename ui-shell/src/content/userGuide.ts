@@ -15,7 +15,7 @@ export interface UserGuideSection {
     readonly headers: readonly string[];
     readonly rows: readonly (readonly string[])[];
   };
-  readonly linkView?: 'tracks' | 'elements' | 'history' | 'ai' | 'assets' | 'plugins';
+  readonly linkView?: 'tracks' | 'elements' | 'history' | 'ai' | 'assets' | 'plugins' | 'new-workspace';
   readonly linkLabel?: string;
 }
 
@@ -128,15 +128,18 @@ export const USER_GUIDE_SECTIONS: readonly UserGuideSection[] = [
     content: [
       '一个工作区同一时间只有一个活动生成器（Fabric 或 NeoForge 的某一个版本）。',
       '创建、打开、从官方 MCreator 迁入都走同一套 Java 服务。迁入会复制到新目录，并保留未知字段。',
+      '「新建工作区」在产品外壳原生完成：四轨 × Fabric/NeoForge 生成器选择、mod 名称/ID/包名/文件夹表单、确认门后提交 create_workspace 命令。当前 MCP 与 headless 还不能创建工作区。',
       '工作区文件扩展名仍是 .mcreator，以便兼容上游插件。用户设置在 %USERPROFILE%\\.copperbench。'
-    ]
+    ],
+    linkView: 'new-workspace',
+    linkLabel: '打开新建工作区表单'
   },
   {
     id: 'version-tracks',
     title: '版本轨道 (Version Tracks)',
     content: [
-      '四轨并进矩阵：新项目优先用 Fabric 1.21.1。',
-      '正式支持：Fabric/NeoForge 26.2、26.1.2、1.21.1 与 1.20.1。新项目优先用 Fabric 1.21.1。'
+      '四轨并进矩阵：第一方纵向切片覆盖 Fabric/NeoForge 的 26.2、26.1.2、1.21.1 与 1.20.1（编译 + runClient）。',
+      '可视化「新建工作区」生成器插件：Fabric 与 NeoForge 均有 26.2、26.1.2、1.21.1、1.20.1，产品外壳已原生接入。插件空工作区 Gradle 黄金编译尚未宣称，不能用第一方切片的 compile / runClient 证据替代。'
     ],
     table: {
       headers: ['轨道', '状态', '原因代码 / 说明'],
@@ -217,6 +220,18 @@ export const USER_GUIDE_SECTIONS: readonly UserGuideSection[] = [
     ],
     linkView: 'plugins',
     linkLabel: '查看插件兼容中心'
+  },
+  {
+    id: 'china-network',
+    title: '国内网络 (China Network)',
+    content: [
+      '首次启动会询问你是否在中国大陆。',
+      '选“是”后，Copperbench 会把 Gradle 发行版改到华为云镜像，把 Maven Central / Plugin Portal 改到阿里云镜像，并把 Minecraft 库改到 BMCLAPI。',
+      '这些文件写在 %USERPROFILE%\\.copperbench\\gradle，不是系统全局 .gradle。该目录是所有工作区共用的 Gradle 用户主目录。',
+      'Fabric Maven 与 NeoForge 专用仓库仍走官方地址。安装包若带了 gradle-dists，启动时会预填到这个目录。',
+      '之后可在偏好设置的 Gradle 页开关「使用中国大陆软件源」。',
+      '若创建工作区时卡在 services.gradle.org，失败对话框也可以直接配置国内源并重试。'
+    ]
   },
   {
     id: 'install-uninstall',

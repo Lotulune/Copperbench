@@ -23,7 +23,7 @@ class BundledPluginInventoryTest {
 	private final PluginCompatibilityClassifier classifier = new PluginCompatibilityClassifier();
 
 	@Test void firstPartyPluginsMatchSourceTreesAndClassifier() throws Exception {
-		assertEquals(8, BundledPluginInventory.FIRST_PARTY.size());
+		assertEquals(11, BundledPluginInventory.FIRST_PARTY.size());
 		for (var plugin : BundledPluginInventory.FIRST_PARTY) {
 			Path root = Path.of("plugins", plugin.packageName());
 			assertTrue(Files.isDirectory(root), plugin.packageName());

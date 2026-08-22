@@ -43,7 +43,7 @@ class NeoForge1211GeneratorTest {
 		assertTrue(Files.readString(output.resolve("settings.gradle"))
 				.contains("org.gradle.toolchains.foojay-resolver-convention"));
 		assertTrue(Files.readString(output.resolve("gradle/wrapper/gradle-wrapper.properties"))
-				.contains("mirrors.huaweicloud.com/gradle/gradle-9.6.0-bin.zip"));
+				.contains("mirrors.huaweicloud.com/gradle/gradle-9.7.0-bin.zip"));
 		assertTrue(Files.readString(output.resolve("src/main/java/dev/coppertrails/CopperTrailsMod.java"))
 				.contains("COPPERBENCH_STAGE5_NEOFORGE_READY"));
 		assertTrue(Files.size(output.resolve(

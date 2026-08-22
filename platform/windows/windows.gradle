@@ -50,6 +50,24 @@ tasks.register('exportWin64', Copy.class) {
     into('license') { from 'license' }
     into('user') { from file('docs/user/README.md') }
     into('jdk') { from 'jdk/jbr25_win_64' }
+    def gradleDistSources = [
+            file("${System.getProperty('user.home')}/.copperbench/gradle/wrapper/dists"),
+            file("${System.getProperty('user.home')}/.gradle/wrapper/dists")
+    ]
+    def wantedGradleDists = ['gradle-9.7.0-bin', 'gradle-9.6.1-bin', 'gradle-8.8-bin']
+    wantedGradleDists.each { distName ->
+        def source = gradleDistSources.find { candidate -> new File(candidate, distName).directory }
+        if (source != null) {
+            into("gradle-dists/${distName}") {
+                from new File(source, distName)
+                include '**/gradle-*/**'
+                include '**/*.ok'
+                exclude '**/*.lck'
+                exclude '**/*.part'
+                includeEmptyDirs = false
+            }
+        }
+    }
 
     doLast {
         signFile(file('build/export/win64/copperbench.exe'))

@@ -8,6 +8,7 @@ import { AssetsView, PluginsView } from './components/SecondaryViews';
 import { HistoryView } from './components/HistoryView';
 import { AIControlView } from './components/AIControlView';
 import { TracksAndMigrationView } from './components/TracksAndMigrationView';
+import { NewWorkspaceView } from './components/NewWorkspaceView';
 import { HelpView } from './components/HelpView';
 import { TaskDrawer } from './components/TaskDrawer';
 import { StatusFooter } from './components/StatusFooter';
@@ -39,6 +40,7 @@ const ShellContent: React.FC = () => {
           {activeView === 'hub' && <WorkspaceHub />}
           {activeView === 'elements' && <ModElementsWorkbench />}
           {activeView === 'tracks' && <TracksAndMigrationView />}
+          {activeView === 'new-workspace' && <NewWorkspaceView />}
           {activeView === 'assets' && <AssetsView />}
           {activeView === 'history' && <HistoryView />}
           {activeView === 'ai' && <AIControlView />}

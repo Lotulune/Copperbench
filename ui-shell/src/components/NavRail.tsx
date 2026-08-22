@@ -8,6 +8,7 @@ import {
   Plug,
   Sparkles,
   Compass,
+  Layers,
   HelpCircle
 } from 'lucide-react';
 import { useWorkbench, NavView } from '../context/WorkbenchContext';
@@ -27,6 +28,7 @@ export const NavRail: React.FC = () => {
     { id: 'hub', label: '总览', icon: LayoutDashboard },
     { id: 'elements', label: '模组元素', icon: Box, badge: elementCount, badgeType: 'copper' },
     { id: 'tracks', label: '版本与迁移', icon: Compass, badge: '4轨', badgeType: 'copper' },
+    { id: 'new-workspace', label: '新建工作区', icon: Layers, badge: '4×2', badgeType: 'blue' },
     { id: 'assets', label: '资产与模型', icon: Palette, badge: 'Stage 6', badgeType: 'blue' },
     { id: 'history', label: '本地历史', icon: GitBranch, badge: 'JGit', badgeType: 'blue' },
     { id: 'ai', label: 'AI 与 MCP', icon: Bot, badge: permission === 'workspace' ? 'WS' : permission === 'full_access' ? 'FULL' : 'RO', badgeType: 'green' },

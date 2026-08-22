@@ -18,6 +18,8 @@
 
 package net.mcreator.gradle;
 
+import dev.copperbench.gradle.GradleDistributionPool;
+import dev.copperbench.network.ChinaMirrorService;
 import net.mcreator.generator.GeneratorConfiguration;
 import net.mcreator.generator.GeneratorFlavor;
 import net.mcreator.io.FileIO;
@@ -39,6 +41,8 @@ public class GradleUtils {
 	private static final Logger LOG = LogManager.getLogger(GradleUtils.class);
 
 	public static ProjectConnection getGradleProjectConnection(Workspace workspace) {
+		ChinaMirrorService.applyToWorkspace(workspace);
+		GradleDistributionPool.seedForWorkspace(workspace);
 		updateMCreatorBuildFile(workspace); // update mcreator.gradle file if needed
 		workspace.getGenerator().notifyDaemonsAboutChangedPaths(); // notify gradle daemons about changed paths
 		return workspace.getGenerator().getGradleProjectConnection();

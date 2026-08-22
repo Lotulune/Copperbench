@@ -14,18 +14,18 @@
           "generatorId": "fabric-26.2",
           "minecraftVersion": "26.2",
           "status": "supported",
-          "pluginId": null,
+          "pluginId": "generator-fabric-26.2",
           "reasonCode": "TRACK_SUPPORTED",
-          "notes": "Latest stable Minecraft 26.2. First-party Fabric vertical slice with compile and runClient evidence (unobfuscated Loom 1.17.19)."
+          "notes": "Latest stable Minecraft 26.2. New Workspace generator retargeted from Goldorion Fabric 26.1.2 templates (Fabric API 0.158.0+26.2). First-party vertical slice also has compile and runClient evidence."
         },
         {
           "loader": "neoforge",
           "generatorId": "neoforge-26.2",
           "minecraftVersion": "26.2",
           "status": "supported",
-          "pluginId": null,
+          "pluginId": "generator-26.2",
           "reasonCode": "TRACK_SUPPORTED",
-          "notes": "Latest stable Minecraft 26.2. First-party NeoForge vertical slice with compile and runClient evidence (NeoForge 26.2.0.63)."
+          "notes": "Latest stable Minecraft 26.2. New Workspace generator retargeted from NeoForge 26.1.2 templates (NeoForge 26.2.0.63). First-party vertical slice also has compile and runClient evidence."
         }
       ]
     },
@@ -66,9 +66,9 @@
           "generatorId": "fabric-1.21.1",
           "minecraftVersion": "1.21.1",
           "status": "supported",
-          "pluginId": null,
+          "pluginId": "generator-1.21.1",
           "reasonCode": "TRACK_SUPPORTED",
-          "notes": "Maintenance track. Copperbench-owned Fabric 1.21.1 vertical slice with golden build and runClient evidence."
+          "notes": "Maintenance track. New Workspace generator retargeted from Goldorion Fabric 26.1.2 templates to ResourceLocation/Java 21. First-party vertical slice has golden build and runClient evidence."
         },
         {
           "loader": "neoforge",
@@ -92,18 +92,18 @@
           "generatorId": "fabric-1.20.1",
           "minecraftVersion": "1.20.1",
           "status": "supported",
-          "pluginId": null,
+          "pluginId": "generator-1.20.1",
           "reasonCode": "TRACK_SUPPORTED",
-          "notes": "Maintenance track. Copperbench-owned Fabric 1.20.1 vertical slice with compile and runClient evidence (Gradle 8.8 + loom 1.7.4)."
+          "notes": "Maintenance track. New Workspace generator retargeted to Java 17, Gradle 8.8 and loom 1.7.4. First-party vertical slice has compile and runClient evidence."
         },
         {
           "loader": "neoforge",
           "generatorId": "neoforge-1.20.1",
           "minecraftVersion": "1.20.1",
           "status": "supported",
-          "pluginId": null,
+          "pluginId": "generator-1.20.1",
           "reasonCode": "TRACK_SUPPORTED",
-          "notes": "Maintenance track. Copperbench-owned NeoForge 1.20.1 vertical slice with compile and runClient evidence (NeoForged Forge 1.20.1-47.1.106 + userdev 7.0.165)."
+          "notes": "Maintenance track. New Workspace generator retargeted to Forge 1.20.1-47.1.106 and userdev 7.0.165. First-party vertical slice has compile and runClient evidence."
         }
       ]
     }

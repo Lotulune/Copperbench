@@ -80,5 +80,18 @@ export const zh: Record<string, string> = {
   'diagnostic.migration_confirmation_required': '用户必须确认迁移差异后方可执行。',
   'diagnostic.migration_incomplete': '该目标加载器处于技术预览或未完全支持状态，尚未完成自动迁移。',
   'diagnostic.user_approval_required': '迁入上游工作区将创建新副本，需要用户显式确认。',
-  'diagnostic.permission_denied': '迁入上游工作区需要桌面 Full Access 权限。'
+  'diagnostic.permission_denied': '迁入上游工作区需要桌面 Full Access 权限。',
+
+  /* ---- 新建工作区诊断 (diagnostic.*) ---- */
+  'diagnostic.user_approval_required_workspace': '创建工作区会写入新文件夹，需要用户确认。',
+  'diagnostic.mod_name_invalid': '模组名称不能为空，且不能超过 64 个字符。',
+  'diagnostic.mod_id_invalid': '模组 ID 必须为 2-32 位小写字母、数字或下划线，且以小写字母开头。',
+  'diagnostic.package_name_invalid': 'Java 包名无效，须为小写段以点号分隔（例如 net.example.mymod）。',
+  'diagnostic.workspace_folder_required': '必须提供工作区文件夹路径。',
+  'diagnostic.workspace_folder_outside_root': '工作区文件夹必须位于建议的工作区根目录之下。',
+  'diagnostic.workspace_folder_not_empty': '目标文件夹已存在且不为空，请选择一个空文件夹。',
+  'diagnostic.unsupported_generator': '所选生成器不在第一方支持列表中。',
+  'diagnostic.generator_not_installed': '所选生成器插件未安装或未加载。',
+  'diagnostic.workspace_create_failed': '工作区文件写入失败，请检查磁盘权限与路径。',
+  'diagnostic.bridge_transport_failed': '与 Java Core 的通信失败，工作区未创建。'
 };

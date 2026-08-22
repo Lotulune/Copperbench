@@ -47,7 +47,7 @@ class Fabric1211GeneratorTest {
 		assertTrue(gradle.contains("modImplementation \"net.fabricmc:fabric-loader"));
 		assertFalse(gradle.contains("implementation \"net.fabricmc:fabric-loader"));
 		assertTrue(Files.readString(output.resolve("gradle/wrapper/gradle-wrapper.properties"))
-				.contains("mirrors.huaweicloud.com/gradle/gradle-9.6.0-bin.zip"));
+				.contains("mirrors.huaweicloud.com/gradle/gradle-9.7.0-bin.zip"));
 		String mod = Files.readString(output.resolve("src/main/java/dev/coppertrails/CopperTrailsMod.java"));
 		assertTrue(mod.contains("COPPERBENCH_STAGE3_READY"));
 		String language = Files.readString(

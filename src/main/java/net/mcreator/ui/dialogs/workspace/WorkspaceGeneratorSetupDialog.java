@@ -18,6 +18,7 @@
 
 package net.mcreator.ui.dialogs.workspace;
 
+import dev.copperbench.network.ChinaMirrorService;
 import net.mcreator.generator.setup.WorkspaceGeneratorSetup;
 import net.mcreator.gradle.GradleDaemonUtils;
 import net.mcreator.gradle.GradleResultCode;
@@ -35,6 +36,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class WorkspaceGeneratorSetupDialog {
 
@@ -76,6 +79,7 @@ public class WorkspaceGeneratorSetupDialog {
 			m.getGradleConsole().exec(GradleConsole.GRADLE_SYNC_TASK, taskResult -> {
 				m.getGradleConsole().setGradleSetupTaskRunningFlag(false);
 				if (taskResult == GradleResultCode.STATUS_OK) {
+					p2.setDetail(null);
 					p2.markStateOk();
 
 					finalizeTheSetup(m, dial);
@@ -84,6 +88,9 @@ public class WorkspaceGeneratorSetupDialog {
 					showSetupFailedMessage(dial, m, null);
 				}
 
+			}, snapshot -> {
+				p2.setDetail(L10N.t("dialog.setup_workspace.step.download_progress", snapshot.label()));
+				p2.setPercent(snapshot.percent());
 			});
 		}, "GeneratorSetup");
 		t.start();
@@ -134,21 +141,32 @@ public class WorkspaceGeneratorSetupDialog {
 	private static void showSetupFailedMessage(ProgressDialog dial, MCreator m, String s) {
 		dial.hideDialog();
 
-		Object[] options = { L10N.t("dialog.setup_workspace.step.workspace_setup_rerun"),
-				L10N.t("dialog.setup_workspace.step.workspace_setup_openpref"),
-				L10N.t("dialog.setup_workspace.step.workspace_setup_copyclipboard"),
-				L10N.t("dialog.setup_workspace.step.workspace_setup_close") };
+		boolean offerChinaMirrors = !ChinaMirrorService.isEnabled();
+		List<Object> optionList = new ArrayList<>();
+		if (offerChinaMirrors)
+			optionList.add(L10N.t("dialog.setup_workspace.step.workspace_setup_china_mirrors"));
+		optionList.add(L10N.t("dialog.setup_workspace.step.workspace_setup_rerun"));
+		optionList.add(L10N.t("dialog.setup_workspace.step.workspace_setup_openpref"));
+		optionList.add(L10N.t("dialog.setup_workspace.step.workspace_setup_copyclipboard"));
+		optionList.add(L10N.t("dialog.setup_workspace.step.workspace_setup_close"));
+		Object[] options = optionList.toArray();
+		String extra = offerChinaMirrors ? L10N.t("dialog.setup_workspace.step.workspace_setup_fail_china_hint") : "";
 		int action = JOptionPane.showOptionDialog(m,
-				L10N.t("dialog.setup_workspace.step.workspace_setup_fail") + (s != null ?
+				L10N.t("dialog.setup_workspace.step.workspace_setup_fail") + extra + (s != null ?
 						L10N.t("dialog.setup_workspace.step.workspace_setup_fail_additionalinfo") + s :
 						"") + "<br><br>", L10N.t("dialog.setup_workspace.step.workspace_setup_fail_title"),
 				JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.ERROR_MESSAGE, null, options, options[0]);
-		if (action == 0) {
+		int offset = offerChinaMirrors ? 1 : 0;
+		if (offerChinaMirrors && action == 0) {
+			ChinaMirrorService.rememberChoice(true);
+			ChinaMirrorService.applyToWorkspace(m.getWorkspace());
 			runSetup(m, false);
-		} else if (action == 1) {
+		} else if (action == offset) {
+			runSetup(m, false);
+		} else if (action == offset + 1) {
 			new PreferencesDialog(m);
 			runSetup(m, false);
-		} else if (action == 2) {
+		} else if (action == offset + 2) {
 			StringSelection stringSelection = new StringSelection(m.getGradleConsole().getConsoleText());
 			Toolkit.getDefaultToolkit().getSystemClipboard().setContents(stringSelection, null);
 			m.closeThisMCreator(true);

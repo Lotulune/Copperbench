@@ -19,9 +19,11 @@
 package net.mcreator.ui.gradle;
 
 import com.sun.management.OperatingSystemMXBean;
+import dev.copperbench.gradle.GradleDownloadProgress;
 import net.mcreator.Launcher;
 import net.mcreator.gradle.*;
 import net.mcreator.io.OutputStreamEventHandler;
+import net.mcreator.io.UserFolderManager;
 import net.mcreator.java.ClassFinder;
 import net.mcreator.java.DeclarationFinder;
 import net.mcreator.java.ProjectJarManager;
@@ -53,6 +55,11 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.gradle.tooling.*;
+import org.gradle.tooling.events.OperationType;
+import org.gradle.tooling.events.StatusEvent;
+import org.gradle.tooling.events.download.FileDownloadFinishEvent;
+import org.gradle.tooling.events.download.FileDownloadOperationDescriptor;
+import org.gradle.tooling.events.download.FileDownloadStartEvent;
 
 import javax.annotation.Nullable;
 import javax.management.remote.JMXConnector;
@@ -79,6 +86,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class GradleConsole extends JPanel implements ISearchable {
@@ -351,20 +359,26 @@ public class GradleConsole extends JPanel implements ISearchable {
 	}
 
 	public void exec(String command) {
-		execImpl(command, null, null, null);
+		execImpl(command, null, null, null, null);
 	}
 
 	public void exec(String command, @Nullable GradleTaskFinishedListener taskSpecificListener) {
-		execImpl(command, taskSpecificListener, null, null);
+		execImpl(command, taskSpecificListener, null, null, null);
+	}
+
+	public void exec(String command, @Nullable GradleTaskFinishedListener taskSpecificListener,
+			@Nullable Consumer<GradleDownloadProgress.Snapshot> downloadProgress) {
+		execImpl(command, taskSpecificListener, null, null, downloadProgress);
 	}
 
 	public void exec(String command, @Nullable JVMDebugClient jvmDebugClient) {
-		execImpl(command, null, null, jvmDebugClient);
+		execImpl(command, null, null, jvmDebugClient, null);
 	}
 
 	@SuppressWarnings("unchecked")
 	private void execImpl(String command, @Nullable GradleTaskFinishedListener taskSpecificListener,
-			@Nullable ProgressListener progressListener, @Nullable JVMDebugClient optionalDebugClient) {
+			@Nullable ProgressListener progressListener, @Nullable JVMDebugClient optionalDebugClient,
+			@Nullable Consumer<GradleDownloadProgress.Snapshot> downloadProgress) {
 		status = RUNNING;
 
 		LOG.info("Executing Gradle task: {}", command);
@@ -430,7 +444,32 @@ public class GradleConsole extends JPanel implements ISearchable {
 			PreferencesManager.PREFERENCES.gradle.offline.set(false);
 		}
 
-		var projectConnection = GradleUtils.getGradleProjectConnection(ref.getWorkspace());
+		GradleDownloadProgress.Tracker downloadTracker = new GradleDownloadProgress.Tracker();
+		long[] lastDownloadEmit = { 0L };
+		Consumer<GradleDownloadProgress.Snapshot> emitDownload = snapshot -> {
+			if (snapshot == null || snapshot.label().isBlank())
+				return;
+			long now = System.nanoTime();
+			if (now - lastDownloadEmit[0] < 200_000_000L && snapshot.percent() < 100)
+				return;
+			lastDownloadEmit[0] = now;
+			ref.getStatusBar().setGradleMessage(snapshot.label());
+			if (downloadProgress != null)
+				downloadProgress.accept(snapshot);
+		};
+
+		AutoCloseable distributionWatch = GradleDownloadProgress.watchPartialArchives(
+				UserFolderManager.getGradleHome().toPath(), downloadTracker, emitDownload);
+		ProjectConnection projectConnection;
+		try {
+			projectConnection = GradleUtils.getGradleProjectConnection(ref.getWorkspace());
+		} finally {
+			try {
+				distributionWatch.close();
+			} catch (Exception e) {
+				LOG.warn("Gradle distribution progress watch failed to stop", e);
+			}
+		}
 
 		ConfigurableLauncher<?> task;
 		if (isGradleSync) {
@@ -598,8 +637,34 @@ public class GradleConsole extends JPanel implements ISearchable {
 			}
 		})));
 
-		task.addProgressListener(
-				(ProgressListener) event -> ref.getStatusBar().setGradleMessage(event.getDescription()));
+		task.addProgressListener((ProgressListener) event -> {
+			String description = event.getDescription();
+			ref.getStatusBar().setGradleMessage(description);
+			String downloadName = downloadFileNameFromDescription(description);
+			if (downloadName != null) {
+				downloadTracker.start(downloadName, -1);
+				emitDownload.accept(downloadTracker.snapshot());
+			}
+		});
+
+		task.addProgressListener(event -> {
+			if (event instanceof FileDownloadStartEvent start) {
+				downloadTracker.start(GradleDownloadProgress.fileNameFromUri(start.getDescriptor().getUri()), -1);
+				emitDownload.accept(downloadTracker.snapshot());
+			} else if (event instanceof FileDownloadFinishEvent finish) {
+				downloadTracker.finish(GradleDownloadProgress.fileNameFromUri(finish.getDescriptor().getUri()),
+						finish.getResult() != null ? finish.getResult().getBytesDownloaded() : 0);
+				emitDownload.accept(downloadTracker.snapshot());
+			} else if (event instanceof StatusEvent status) {
+				String name = status.getDescriptor() instanceof FileDownloadOperationDescriptor file ?
+						GradleDownloadProgress.fileNameFromUri(file.getUri()) :
+						GradleDownloadProgress.fileNameFromUrl(status.getDisplayName());
+				if (name != null && !name.isBlank()) {
+					downloadTracker.progress(name, status.getProgress(), status.getTotal());
+					emitDownload.accept(downloadTracker.snapshot());
+				}
+			}
+		}, OperationType.FILE_DOWNLOAD, OperationType.GENERIC);
 
 		if (progressListener != null) {
 			task.addProgressListener(progressListener);
@@ -631,7 +696,8 @@ public class GradleConsole extends JPanel implements ISearchable {
 								LOG.warn("Gradle task suggested re-run. Attempting re-running task: {}", command);
 
 								// Re-run the same command with the same listener
-								execImpl(command, taskSpecificListener, progressListener, debugClient);
+								execImpl(command, taskSpecificListener, progressListener, debugClient,
+										downloadProgress);
 
 								return;
 							}
@@ -646,7 +712,8 @@ public class GradleConsole extends JPanel implements ISearchable {
 								PreferencesManager.PREFERENCES.gradle.enablePerformanceMonitor.set(false);
 
 								// Re-run the same command with the same listener
-								execImpl(command, taskSpecificListener, progressListener, debugClient);
+								execImpl(command, taskSpecificListener, progressListener, debugClient,
+										downloadProgress);
 
 								return;
 							}
@@ -781,6 +848,21 @@ public class GradleConsole extends JPanel implements ISearchable {
 			BuildActionExecuter<?> buildLauncher = (BuildActionExecuter<?>) task;
 			((BuildActionExecuter<Void>) buildLauncher).run(resultHandler);
 		}
+	}
+
+	@Nullable private static String downloadFileNameFromDescription(@Nullable String description) {
+		if (description == null)
+			return null;
+		String trimmed = description.trim();
+		if (!trimmed.regionMatches(true, 0, "download", 0, 8))
+			return null;
+		int http = trimmed.indexOf("http");
+		String url = http >= 0 ? trimmed.substring(http) : trimmed;
+		int space = url.indexOf(' ');
+		if (space > 0)
+			url = url.substring(0, space);
+		String name = GradleDownloadProgress.fileNameFromUrl(url);
+		return name.isBlank() ? null : name;
 	}
 
 	public int getStatus() {

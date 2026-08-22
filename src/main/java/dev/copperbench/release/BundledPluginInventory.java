@@ -22,10 +22,13 @@ public final class BundledPluginInventory {
 
 	public static final List<PluginRecord> FIRST_PARTY = List.of(
 			new PluginRecord("core", "mcreator-core", "A", "RESOURCE_PIPELINE"),
+			new PluginRecord("generator-1.20.1", "generator-1.20.1", "A", "RESOURCE_PIPELINE"),
 			new PluginRecord("generator-1.21.1", "generator-1.21.1", "A", "RESOURCE_PIPELINE"),
 			new PluginRecord("generator-26.1.x", "generator-26.1.x", "A", "RESOURCE_PIPELINE"),
+			new PluginRecord("generator-26.2", "generator-26.2", "A", "RESOURCE_PIPELINE"),
 			new PluginRecord("generator-addon-26.1x", "generator-addon-26.1x", "A", "RESOURCE_PIPELINE"),
 			new PluginRecord("generator-fabric-26.1.2", "generator-fabric-26.1.2", "A", "RESOURCE_PIPELINE"),
+			new PluginRecord("generator-fabric-26.2", "generator-fabric-26.2", "A", "RESOURCE_PIPELINE"),
 			new PluginRecord("localization", "mcreator-localization", "A", "RESOURCE_PIPELINE"),
 			new PluginRecord("mcreator-link", "mcreator-link", "A", "RESOURCE_PIPELINE"),
 			new PluginRecord("themes", "mcreator-themes", "A", "RESOURCE_PIPELINE"));

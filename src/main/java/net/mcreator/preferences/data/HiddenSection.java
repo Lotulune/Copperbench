@@ -37,6 +37,7 @@ public class HiddenSection extends PreferencesSection {
 	public final StringEntry uiTheme;
 	public final BooleanEntry enableJavaPlugins;
 	public final StringEntry lastWebsiteNewsRead;
+	public final BooleanEntry chinaMirrorsPrompted;
 
 	HiddenSection(String preferencesIdentifier) {
 		super(preferencesIdentifier);
@@ -58,6 +59,7 @@ public class HiddenSection extends PreferencesSection {
 		uiTheme = addEntry(new StringEntry("uiTheme", "default_dark"));
 		enableJavaPlugins = addEntry(new BooleanEntry("enableJavaPlugins", false));
 		lastWebsiteNewsRead = addEntry(new StringEntry("lastWebsiteNewsRead", ""));
+		chinaMirrorsPrompted = addEntry(new BooleanEntry("chinaMirrorsPrompted", false));
 	}
 
 	@Override public boolean isVisible() {

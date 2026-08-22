@@ -174,7 +174,7 @@ public abstract class MCreator extends MCreatorFrame {
 				productShell = CopperbenchProductShell.open(this, workspace, () -> closeThisMCreator(false), () -> {
 					menuBar.refreshMenuBar();
 					candidateLegacyWindow.open();
-				}, windowChromeController);
+				}, workspaceFile -> getApplication().openWorkspaceInMCreator(workspaceFile), windowChromeController);
 				setMainContent(productShell);
 				legacyPluginWindow = candidateLegacyWindow;
 				toolBar.setVisible(false);

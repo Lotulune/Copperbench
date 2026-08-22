@@ -37,6 +37,7 @@ public class GradleSection extends PreferencesSection {
 	public final BooleanEntry enablePerformanceMonitor;
 	public final IntegerEntry xmx;
 	public final BooleanEntry offline;
+	public final BooleanEntry useChinaMirrors;
 
 	GradleSection(String preferencesIdentifier) {
 		super(preferencesIdentifier);
@@ -46,6 +47,7 @@ public class GradleSection extends PreferencesSection {
 		enablePerformanceMonitor = addEntry(new BooleanEntry("enablePerformanceMonitor", true));
 		xmx = addEntry(new IntegerEntry("Xmx", Math.min(3072, MAX_RAM), 128, MAX_RAM));
 		offline = addEntry(new BooleanEntry("offline", false));
+		useChinaMirrors = addEntry(new BooleanEntry("useChinaMirrors", false));
 	}
 
 	@Override public String getSectionKey() {

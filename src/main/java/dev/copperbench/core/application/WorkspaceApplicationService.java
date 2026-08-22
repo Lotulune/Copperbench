@@ -19,6 +19,7 @@ import dev.copperbench.core.contract.UiCore.RequestContext;
 import dev.copperbench.core.workspace.RevisionedWorkspaceStore;
 import dev.copperbench.core.workspace.RevisionedWorkspaceStore.Decision;
 import dev.copperbench.core.workspace.RevisionedWorkspaceStore.TransactionResult;
+import dev.copperbench.core.workspace.WorkspaceCreationService;
 import dev.copperbench.assets.AssetPublishBatchService;
 import dev.copperbench.assets.AssetPathViolationException;
 import dev.copperbench.assets.AssetWorkspaceService;
@@ -75,6 +76,7 @@ public final class WorkspaceApplicationService {
 	private final Clock clock;
 	private final Supplier<UUID> ids;
 	private final InstalledPluginInventoryService installedPlugins;
+	private final WorkspaceCreationService workspaceCreation;
 
 	public WorkspaceApplicationService(RevisionedWorkspaceStore store, WorkspaceTaskGateway tasks, Clock clock,
 			Supplier<UUID> ids) {
@@ -108,6 +110,7 @@ public final class WorkspaceApplicationService {
 		this.clock = clock;
 		this.ids = ids;
 		this.installedPlugins = InstalledPluginInventoryService.productDefault();
+		this.workspaceCreation = new WorkspaceCreationService(this.tracks);
 	}
 
 	public CommandOutcome execute(Command command, RequestContext context) {
@@ -116,6 +119,7 @@ public final class WorkspaceApplicationService {
 			return denied(command, context.permission(), PermissionProfile.WORKSPACE);
 
 		return switch (command.operation()) {
+			case CREATE_WORKSPACE -> createWorkspace(command, context);
 			case CREATE_MOD_ELEMENT -> create(command, context);
 			case UPDATE_MOD_ELEMENT -> update(command, context);
 			case DELETE_MOD_ELEMENT -> delete(command, context);
@@ -140,6 +144,7 @@ public final class WorkspaceApplicationService {
 		try {
 			return switch (query.operation()) {
 				case GET_WORKBENCH -> querySuccess(query, state.revision(), workbench(state, context));
+				case LIST_NEW_WORKSPACE_GENERATORS -> querySuccess(query, state.revision(), newWorkspaceGenerators());
 				case LIST_MOD_ELEMENTS -> querySuccess(query, state.revision(), elementList(state, query.payload()));
 				case GET_MOD_ELEMENT_EDITOR -> editor(query, state, context);
 				case PREVIEW_MOD_ELEMENT_CHANGE -> preview(query, state);
@@ -160,6 +165,57 @@ public final class WorkspaceApplicationService {
 		} catch (RuntimeException exception) {
 			return queryFailure(query, state.revision(), invalidPayload(exception.getMessage()));
 		}
+	}
+
+	private CommandOutcome createWorkspace(Command command, RequestContext context) {
+		if (!approved(command))
+			return approvalRequired(command, context, "Creating a workspace writes a new folder and requires confirmation.");
+		String generatorId;
+		String modName;
+		String modId;
+		String packageName;
+		String workspaceFolderPath;
+		try {
+			generatorId = requiredString(command.payload(), "generatorId");
+			modName = requiredString(command.payload(), "modName");
+			modId = requiredString(command.payload(), "modId");
+			packageName = optionalString(command.payload(), "packageName");
+			workspaceFolderPath = requiredString(command.payload(), "workspaceFolderPath");
+		} catch (RuntimeException exception) {
+			return failed(command, currentRevision(command.workspaceId()), invalidPayload(exception.getMessage()));
+		}
+		if (packageName == null || packageName.isBlank())
+			packageName = "net.mcreator." + modId.replaceAll("[^a-z0-9_]", "");
+		String version = optionalString(command.payload(), "version");
+		WorkspaceCreationService.CreationResult created;
+		try {
+			created = workspaceCreation.create(generatorId, modName, modId, packageName, workspaceFolderPath, version);
+		} catch (RuntimeException exception) {
+			return failed(command, currentRevision(command.workspaceId()), diagnostic("WORKSPACE_CREATE_FAILED",
+					"diagnostic.workspace_create_failed", "The workspace could not be created.", "/workspaceFolderPath",
+					null));
+		}
+		if (!created.complete()) {
+			List<Diagnostic> diagnostics = new ArrayList<>();
+			for (String code : created.diagnostics())
+				diagnostics.add(diagnostic(code, "diagnostic." + code.toLowerCase(Locale.ROOT).replace('_', '.'),
+						"The new workspace form is invalid: " + code + ".", null, null));
+			return new CommandOutcome(result(command, "rejected", currentRevision(command.workspaceId()),
+					JsonNull.INSTANCE, JsonNull.INSTANCE, diagnostics, JsonNull.INSTANCE, JsonNull.INSTANCE),
+					List.of());
+		}
+		TransactionResult<Long> coordinated = store.coordinate(command.workspaceId(), command.expectedRevision(),
+				WorkspaceState::nextEventSequence);
+		CommandOutcome conflict = checkFailure(command, coordinated);
+		if (conflict != null)
+			return conflict;
+		JsonObject payload = new JsonObject();
+		payload.addProperty("workspaceFile", created.workspaceFile());
+		payload.addProperty("generatorId", created.generatorId());
+		payload.addProperty("modId", modId);
+		Event event = event(command, coordinated.revision(), coordinated.value(), "workspace_created", payload);
+		return new CommandOutcome(result(command, "committed", coordinated.revision(), JsonNull.INSTANCE,
+				payload.deepCopy(), List.of(), JsonNull.INSTANCE, JsonNull.INSTANCE), List.of(event));
 	}
 
 	private CommandOutcome create(Command command, RequestContext context) {
@@ -631,6 +687,10 @@ public final class WorkspaceApplicationService {
 			return queryFailure(query, state.revision(), diagnostic("PUBLISH_BATCH_FAILED",
 					"diagnostic.publish_batch_failed", "Publish batches could not be listed.", null, null));
 		}
+	}
+
+	private JsonObject newWorkspaceGenerators() {
+		return workspaceCreation.toProjection();
 	}
 
 	private JsonObject versionTracks(WorkspaceState state) {
@@ -1151,6 +1211,12 @@ public final class WorkspaceApplicationService {
 	private static String requiredString(JsonObject object, String property) {
 		if (object == null || !object.has(property) || !object.get(property).isJsonPrimitive())
 			throw new IllegalArgumentException("Missing string property " + property);
+		return object.get(property).getAsString();
+	}
+
+	private static String optionalString(JsonObject object, String property) {
+		if (object == null || !object.has(property) || !object.get(property).isJsonPrimitive())
+			return null;
 		return object.get(property).getAsString();
 	}
 
