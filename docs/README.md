@@ -1,12 +1,13 @@
 # 项目文档导航
 
-产品开发默认只读取根目录的 [PRD](../PRD.md)。本目录保存 ADR、调研、架构细节和阶段证据，只有专项任务需要按 PRD 链接继续读取。
+已关闭能力读根目录 [PRD](../PRD.md)。阶段 8 剩余工作读 [PRD-NEXT.md](../PRD-NEXT.md)。本目录保存 ADR、调研、架构细节和阶段证据，只有专项任务需要按 PRD 链接继续读取。
 
 ## 从这里开始
 
-1. 先阅读根目录的 [PRD](../PRD.md)。
-2. 只有遇到专项问题时，才从本页选择对应附件。
+1. 已关闭能力：根目录 [PRD](../PRD.md)。
+2. 阶段 8 收口与未实现项：根目录 [PRD-NEXT.md](../PRD-NEXT.md)；状态索引 [剩余完善清单](./remaining-work.md)。
 3. 术语存在歧义时查询 [领域词汇表](../CONTEXT.md)。
+4. 只有遇到专项问题时，才从本页选择对应附件。
 
 ## 决策记录
 
@@ -24,6 +25,7 @@
 - [ADR 0012：内置并维护 Fabric 生成器](./adr/0012-bundle-and-own-the-fabric-generator.md)
 - [ADR 0013：基于 MCreator 稳定标签发布](./adr/0013-release-from-upstream-stable-tags.md)
 - [ADR 0014：Windows 首发与离线优先](./adr/0014-target-windows-and-operate-offline-first.md)
+- [ADR 0015：GitHub 未签名 GPL 衍生版](./adr/0015-github-unsigned-gpl-fork.md)
 
 ## 专项设计
 
@@ -35,6 +37,8 @@
 - [阶段 3 桥接集成准备](./handoffs/stage-3-bridge-readiness.md)
 - [阶段 3 G2/G3 验证记录](./testing/stage-3-g2-g3-2026-08-17.md)
 - [阶段与发布门禁](./testing/release-gates.md)
+- [阶段 8 收口需求](../PRD-NEXT.md)
+- [剩余完善清单](./remaining-work.md)
 - [UI 重写交接简报](./handoffs/ui-rewrite-brief.md)
 - [zcode UI-Core v0.1 交接](./handoffs/zcode-ui-core-v0.1.md)
 - [阶段 0 基线执行记录](./testing/stage-0-baseline-2026-08-16.md)
@@ -49,4 +53,4 @@
 
 ## 执行前确认
 
-[执行期未决事项](./open-decisions.md)仅记录必须基于原型、固定提交或实际兼容测试才能确定的内容。已由 ADR 固化的决策不得在任务实现中被隐式改写。
+[执行期未决事项](./open-decisions.md)仅记录必须基于原型、固定提交或实际兼容测试才能确定的内容。已由 ADR 固化的决策不得在任务实现中被隐式改写。阶段 8 剩余实现以 [PRD-NEXT.md](../PRD-NEXT.md) 为准，不要只改聊天结论。

@@ -1,7 +1,7 @@
 # 创作者任务地图（Creator Task Map）
 
-> 状态：U0 已关闭（方向 A 已由产品壳落地）  
-> 对应需求：`NFR-UI-01`、`NFR-UI-02`、`FR-WS-01~06`、`FR-MOD-01~06`、`FR-BUILD-01~06`、`FR-LOAD-01~07`、`FR-ASSET-01~07`、`FR-HIST-01~05`、`FR-MCP-01~08`  
+> 状态：U0 已关闭（方向 A 已由产品壳落地）。阶段 8 收口缺口见 [`PRD-NEXT.md`](../../PRD-NEXT.md)。  
+> 对应需求：`NFR-UI-01`、`NFR-UI-02`、`FR-WS-01~06`、`FR-MOD-01~06`、`FR-BUILD-01~06`、`FR-LOAD-01~07`、`FR-ASSET-01~07`、`FR-HIST-01~05`、`FR-MCP-01~08`、`FR-CLOSE-01~08`  
 > 目标角色：个人 Minecraft 模组创作者（理解方块、物品、配方等游戏概念，不要求掌握 Java/Gradle/Git）
 
 ---
@@ -50,11 +50,13 @@ flowchart LR
 - **触发条件**：启动 Copperbench、点击“新建工作区”或“打开/迁入”。
 - **交互路径**：
   1. 填写模组名称（如 `Copper Trails`）、Mod ID、主包名。
-  2. 选择**活动生成器（Active Generator）**：优先推荐 `Fabric 1.21.1`，或选择 `NeoForge 1.21.1`、资源包模式。
+  2. 选择**活动生成器（Active Generator）**：优先推荐 `Fabric 1.21.1`，或四轨中的其它 Fabric / NeoForge。独立资源包工作区进入新产品外壳是 [PRD-NEXT](../../PRD-NEXT.md) `FR-CLOSE-06`，尚未宣称。
   3. 迁入上游 MCreator 工作区时，系统自动生成**迁入报告（Migration Report）**并做前置快照，标记未知字段保留策略。
 - **底层契约**：
-  - 发送 `Command: create_workspace` 或 `open_workspace`
+  - 发送 `Command: create_workspace`（需 `userApproved`）；打开已有工作区由宿主校验 `.mcreator` 后执行，不是单独的 `open_workspace` 命令
   - 返回 `Query: get_workbench`（状态 `ready` / `loading`）
+  - `Query: list_new_workspace_generators` 返回四轨 × Fabric / NeoForge 生成器目录与建议工作区根目录（产品外壳视图已接；MCP / headless 见 `FR-CLOSE-03`）
+  - `create_workspace` 校验通过且用户确认后应写入 `.mcreator`；成功落盘自动测试与三入口一致见 `FR-CLOSE-02` / `FR-CLOSE-03`
 - **异常与分支**：
   - 若已存在同名冲突或被外部占用 -> 返回 `LOCKED_ELSEWHERE` 诊断与解锁指引。
   - 上游包含未识别字段 -> 标记 `compatibility.unknownDataPreserved: true`，绝不静默删除。

@@ -8,6 +8,8 @@ Immutable source records are in [`UPSTREAM.md`](UPSTREAM.md) and [`compliance/ba
 
 ## Development
 
+Closed capabilities are specified in [`PRD.md`](PRD.md). Remaining first-release work is [`PRD-NEXT.md`](PRD-NEXT.md). Domain terms are in [`CONTEXT.md`](CONTEXT.md).
+
 Copperbench uses Gradle for building and packaging. The stage 0 gate runs scoped product/unit tests, UI integration tests, `exportWindowsZip`, `buildInstallerWin64`, and `buildMsixWin64` from a Java 25 environment; exact commands and evidence paths are in [`docs/build/windows-clean-build.md`](docs/build/windows-clean-build.md).
 
 Windows packages include JetBrains Runtime with JCEF `25.0.3+1-b329.124`. Automatic news, update, analytics, and Discord connections are disabled.

@@ -1,21 +1,22 @@
 # Minecraft Mod Creator 产品需求文档
 
-> 状态：需求基线 v1  
-> 更新日期：2026-08-17  
+> 状态：需求基线 v1（阶段 0–7 已关闭；阶段 8 收口见 [PRD-NEXT.md](./PRD-NEXT.md)）  
+> 更新日期：2026-08-22  
 > 首发平台：Windows 11 x64（Windows 10 不支持）  
 > 开源许可：GPL-3.0，保留并兼容 MCreator 插件生态  
-> 当前阶段：阶段 0–7 领域门禁已按证据关闭。阶段 8 进行中：G7 未通过（Hyper-V 客机 GUI 常驻未宣称）。公开身份与分发已定为 Copperbench GitHub 未签名 GPL 衍生版；不部署产品网站、不购买 Authenticode。Windows 10 已移出支持范围。  
+> 当前阶段：阶段 0–7 领域门禁已按证据关闭。阶段 8 进行中：G7 未通过（Hyper-V 客机 GUI 常驻未宣称）。剩余未实现项以 [PRD-NEXT.md](./PRD-NEXT.md) 为需求入口，须一次交付。公开身份与分发已定为 Copperbench GitHub 未签名 GPL 衍生版；不部署产品网站、不购买 Authenticode。Windows 10 已移出支持范围。  
 > 名称说明：`Copperbench` 是公开产品名；`Minecraft Mod Creator` 仅为 PRD 工作标题
 
 ## 0. AI 阅读协议
 
-本文件是产品需求的唯一默认入口，也是规划、实现和验收时的需求基线。
+本文件是**已关闭能力**的需求基线。阶段 8 剩余工作不以本文件当待办清单。
 
-- 接到普通开发任务时，只需先读本文件和实际源码，不需要遍历 `docs/`。
-- 本文件与旧文档表述冲突时，以本文件为准；代码行为仍须以实际源码和测试为证据。
+- 接到阶段 8 收口或「还没做完」类任务时，先读 [PRD-NEXT.md](./PRD-NEXT.md) 和实际源码。
+- 接到已关闭能力的缺陷修复时，读本文件对应 `FR-*` / `NFR-*` 与源码。
+- 本文件与 [PRD-NEXT.md](./PRD-NEXT.md) 冲突时，以 PRD-NEXT 的收口范围为准；二者都与代码冲突时，以源码和测试为证据。
 - 只有任务涉及许可、UI-Core 协议、插件兼容、MCP 安全或调研出处时，才读取文末“专项附件”。
-- 不得自行扩大首期范围。新平台、远程 MCP、自有云或内置 AI 对话等需求必须先更新 PRD，并在必要时新增 ADR。
-- 每个实现任务必须说明对应需求编号，例如 `FR-AREA-NN` 或 `NFR-AREA-NN`。
+- 不得自行扩大首期范围。新平台、远程 MCP、自有云、内置 AI 对话、约 30 类只读元素迁入可写，必须先更新 PRD-NEXT 或新增 ADR。
+- 每个实现任务必须说明对应需求编号：已关闭能力用 `FR-AREA-NN`，收口工作用 `FR-CLOSE-NN`。
 
 ## 1. 产品概述
 
@@ -242,9 +243,9 @@ UI 设计与 React 实现由 `zcodeglm5.3` 负责；核心团队负责领域合�
 | 5 NeoForge 对齐 | NeoForge 1.21.1 通用功能、加载器差异矩阵 | 双加载器构建运行，诊断一致 |
 | 6 资产与资源包 | 资产图、Blockbench 桥、资源包继承与 ZIP 导出 | 往返不丢引用，越权路径被拒绝 |
 | 7 四轨与迁移 | 四版本双加载器矩阵、上游迁入、复制式加载器迁移 | 全矩阵构建，源工作区不被修改，迁移报告完整 |
-| 8 Windows 发布 | 安装升级、离线、性能、安全、Beta、GPL 源码发布 | 全部门禁通过且无 GA 阻断项 |
+| 8 Windows 发布 | 安装升级、离线、性能、安全、Beta、GPL 源码发布 | 全部门禁通过且无 GA 阻断项。剩余缺口见 [PRD-NEXT.md](./PRD-NEXT.md) |
 
-UI 与核心并行：阶段 1 做信息架构和三方向原型，阶段 2–3 做设计系统与模拟合同，阶段 4 正式接入，阶段 5–7 扩展覆盖，阶段 8 做视觉和窗口硬化。
+UI 与核心并行：阶段 1 做信息架构和三方向原型，阶段 2–3 做设计系统与模拟合同，阶段 4 正式接入，阶段 5–7 扩展覆盖，阶段 8 做视觉和窗口硬化。阶段 8 未退出前的实现任务走 PRD-NEXT，不要把「第一方切片 compile」写成「工作区生成器插件黄金编译」。
 
 ## 10. 发布门禁
 
@@ -296,6 +297,7 @@ UI 与核心并行：阶段 1 做信息架构和三方向原型，阶段 2–3 �
 | 发布时“最新/前一稳定版”的具体 Minecraft 版本 | 已关闭：见 `VersionTrackCatalog` |
 | 首个正式版完整 Mod Element 覆盖清单 | 已关闭：第一方切片 block / item / recipe / procedure |
 | 上游高级功能的新 UI、旧版窗口或不支持分类 | 已关闭：见 `UpstreamToolCatalog` |
+| 新产品外壳「新建工作区」主路径 | 源码已落地（2026-08-22）。落盘测试、MCP/headless、插件空工程编译仍属 [PRD-NEXT.md](./PRD-NEXT.md)，不是新的产品决策 |
 
 阶段 0 已固定 MCreator `2026.2.33518`（`361429609b772039a3eb9ab81662c25b225f1d0d`）与 Fabric Generator `26.1.2-2026.2-2.8`（`abfe19329126b679a26baafe5cade5a75d455528`），证据见 `UPSTREAM.md` 与 `compliance/baseline.lock.json`。
 
@@ -305,6 +307,8 @@ UI 与核心并行：阶段 1 做信息架构和三方向原型，阶段 2–3 �
 
 普通任务无需读取这些附件。仅在对应专项工作开始时使用：
 
+- 阶段 8 收口需求：[下一步 PRD](./PRD-NEXT.md)
+- 剩余工作状态索引：[剩余完善清单](./docs/remaining-work.md)
 - 系统模块边界：[系统架构总览](./docs/architecture/system-overview.md)
 - JCEF/React 合同：[UI 与 Java Core 合同](./docs/architecture/ui-core-contract.md)
 - zcode Schema 与模拟数据：[UI-Core v0.1 交接](./docs/handoffs/zcode-ui-core-v0.1.md)

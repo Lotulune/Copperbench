@@ -32,6 +32,14 @@ _避免使用_：可选加载器、遗留加载器
 当前工作区唯一选定的加载器及 Minecraft 版本代码生成器。一个工作区同一时刻只有一个活动生成器。
 _避免使用_：双加载器工作区、同时生成
 
+**Workspace Generator Plugin（工作区生成器插件）**：
+带 `generator.yaml`、出现在「新建工作区」流程里的完整可视化生成器。不是 MCP / 产品外壳里的第一方纵向切片。
+_避免使用_：版本轨道目录、纵向切片、下拉框生成器
+
+**First-party Vertical Slice（第一方纵向切片）**：
+产品自有的有界生成器（方块、物品、配方、Procedure），供 MCP、产品外壳和工作区任务使用。切片的编译和 runClient 证据不等于工作区生成器插件的空工程黄金编译。
+_避免使用_：完整可视化生成器、已覆盖全部模组元素
+
 **Loader Migration（加载器迁移）**：
 将工作区从一个加载器目标转换到另一个加载器目标的显式操作。它不是一次同时生成 Fabric 和 NeoForge 两套产物。
 _避免使用_：自动兼容、双向同步
@@ -103,3 +111,7 @@ _避免使用_：后台线程、无限加载
 **Legacy Plugin Surface（旧版插件界面）**：
 在独立兼容窗口中承载原版 Java 插件所提供 Swing 界面的隔离区域。
 _避免使用_：原生插件页面、完整 UI 兼容
+
+**China Package Mirror（国内源）**：
+面向中国大陆网络的 Gradle 发行版与 Maven 仓库镜像配置。启用后把 Gradle wrapper 下载改到华为云，把 Maven Central / Plugin Portal 改到阿里云，并把 `libraries.minecraft.net` 改到 BMCLAPI Maven。不是系统代理。Fabric Maven 与 NeoForge 专用仓库仍走官方地址。
+_避免使用_：代理、VPN、全局镜像

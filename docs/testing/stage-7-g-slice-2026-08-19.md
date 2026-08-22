@@ -1,5 +1,7 @@
 # 阶段 7 G 切片验证记录（2026-08-19）
 
+> 这是 2026-08-19 当天的证据快照。第一方切片后来已升为八生成器 `TRACK_SUPPORTED`（见 `VersionTrackCatalog`）。工作区生成器插件空工程黄金编译仍未宣称，见 [PRD-NEXT.md](../../PRD-NEXT.md)。不要把本页的 `preview` / `TRACK_GENERATE_READY` 当成当前产品状态。
+
 - 结论：G6 通过；G2 按轨道诚实关闭（1.21.1 黄金构建已有；26.2 / 26.1 / 1.20.1 第一方生成已有）。preview 轨与迁移副本 Gradle 编译仍是可选门禁。
 - 环境：Windows 11 x64，仓库内置 JBR 25。
 - 复现：`pwsh -NoProfile -File .\scripts\verify-stage-7.ps1`

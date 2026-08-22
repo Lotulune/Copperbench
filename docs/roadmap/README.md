@@ -14,7 +14,7 @@
 | 5 | [NeoForge 通用能力对齐](./stage-5-neoforge-parity.md) | 同一通用元素在两个加载器工作 | 3、4 |
 | 6 | [资产、资源包与 Blockbench](./stage-6-assets-resource-pack-blockbench.md) | 资产往返、引用治理和资源包工作流 | 4、5 |
 | 7 | [版本轨道与加载器迁移](./stage-7-version-tracks-and-migration.md) | 四条版本轨道和复制式迁移 | 5、6 |
-| 8 | [Windows Beta 与正式发布](./stage-8-windows-beta-ga.md) | 通过全部门禁的公开 GPL Windows 产品 | 0-7 |
+| 8 | [Windows Beta 与正式发布](./stage-8-windows-beta-ga.md) | 通过全部门禁的公开 GPL Windows 产品。剩余收口见 [`PRD-NEXT.md`](../../PRD-NEXT.md) | 0-7 |
 
 ## UI 并行工作流
 
@@ -28,7 +28,7 @@ UI 不需要等待阶段 3 才开始，但不得提前绑定未稳定的核心�
 | U3 覆盖扩展 | 阶段 5-7 | NeoForge、资产、资源包、迁移、插件兼容界面 |
 | U4 发行硬化 | 阶段 8 | 帮助/About 与 DPI/命中区 Playwright 100/100；JCEF 实机 Snap/DPI 已宣称（HTMAXBUTTON=9，WM_DPICHANGED 144） |
 
-截至 2026-08-19，U0–U2 与 G4 自动化完成。阶段 7 G 切片已落地；U3 交接见 [`u3-stage-7-ui-brief.md`](../handoffs/u3-stage-7-ui-brief.md)。阶段 8 G7 自动化切片见 [`stage-8-g7-2026-08-19.md`](../testing/stage-8-g7-2026-08-19.md)。
+截至 2026-08-22：U0–U2 与 G4 自动化完成。阶段 7 G 切片已落地；U3 交接见 [`u3-stage-7-ui-brief.md`](../handoffs/u3-stage-7-ui-brief.md)。阶段 8 G7 自动化切片见 [`stage-8-g7-2026-08-19.md`](../testing/stage-8-g7-2026-08-19.md)。新产品外壳「新建工作区」主路径已在源码落地，但落盘证据、三入口、插件空工程编译和发行包对齐仍属阶段 8 收口（[`PRD-NEXT.md`](../../PRD-NEXT.md)）。G7 未通过。
 
 ## 首个正式版本定义
 

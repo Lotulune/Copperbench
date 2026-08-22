@@ -1,5 +1,7 @@
 # U4 交接：帮助/About 与发行硬化
 
+> 历史交接。版本轨道表那条（26.2 / 26.1 / 1.20.1 为预览）已被 `VersionTrackCatalog` 的 `TRACK_SUPPORTED` 取代。当前帮助文案与收口需求见 `ui-shell/src/content/userGuide.ts`、`docs/user/README.md`、[PRD-NEXT.md](../../PRD-NEXT.md)。
+
 - 负责人：agy / Gemini 3.7 Flash
 - 核心合同：UI-Core `1.0`（不要升主版本）
 - 日期：2026-08-19
