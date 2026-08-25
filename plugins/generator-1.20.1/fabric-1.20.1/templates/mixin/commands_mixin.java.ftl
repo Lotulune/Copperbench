@@ -20,10 +20,10 @@ package ${package}.mixin;
 
 @Mixin(Commands.class)
 public abstract class CommandsMixin {
-	@Inject(method = "performCommand(Lcom/mojang/brigadier/ParseResults;Ljava/lang/String;)V", at = @At("HEAD"), cancellable = true)
-	public void performCommand(ParseResults<CommandSourceStack> parseResults, String string, CallbackInfo ci) {
+	@Inject(method = "performCommand(Lcom/mojang/brigadier/ParseResults;Ljava/lang/String;)I", at = @At("HEAD"), cancellable = true)
+	public void performCommand(ParseResults<CommandSourceStack> parseResults, String string, CallbackInfoReturnable<Integer> cir) {
 		if (!MiscEvents.COMMAND_EXECUTE.invoker().onCommandExecuted(parseResults))
-			ci.cancel();
+			cir.setReturnValue(0);
 	}
 }
 <#-- @formatter:on -->
