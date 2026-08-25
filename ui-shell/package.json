@@ -5,11 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "check:i18n": "node scripts/check-i18n.mjs",
+    "build": "npm run check:i18n && tsc && vite build",
     "preview": "vite preview",
     "test:e2e": "playwright test"
   },
   "dependencies": {
+    "blockly": "^13.2.1",
     "lucide-react": "^1.16.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"

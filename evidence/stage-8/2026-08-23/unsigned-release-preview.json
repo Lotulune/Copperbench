@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "unsigned-github-release-preview",
+  "published": false,
+  "passed": true,
+  "installDir": "D:\\Copperbench-ReleasePreview-2026-08-23",
+  "installerSignature": "NotSigned",
+  "exeSignature": "NotSigned",
+  "productShellEmbedded": true,
+  "silentInstallExit": 0,
+  "processAliveAfterLaunchSeconds": true,
+  "launchSeconds": 25,
+  "windowTitles": [],
+  "screenshot": null,
+  "hashes": [
+    {
+      "id": "installer",
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\build\\export\\Copperbench 0.1.0 Windows 64bit.exe",
+      "bytes": 603509507,
+      "sha256": "ad559d47a5a8af7a19b5fbf97e615b3157c079bc615dfd7b74a958647654f908",
+      "lastWriteTime": "2026-08-23T14:16:37.3043347+08:00"
+    },
+    {
+      "id": "zip",
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\build\\export\\Copperbench 0.1.0 Windows 64bit.zip",
+      "bytes": 774950019,
+      "sha256": "93908e9b4e1660fd1f2ba7111414eb6639b7b67cd945ea9cdda4036d0ae8c289",
+      "lastWriteTime": "2026-08-23T14:17:47.4250353+08:00"
+    },
+    {
+      "id": "portableExe",
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\build\\export\\win64\\copperbench.exe",
+      "bytes": 6526227,
+      "sha256": "7c514117d6929239b226490b87ecb4fd4888c2eaeee59f1f5f8625e79ff1f81f",
+      "lastWriteTime": "2026-08-23T14:18:48.9483755+08:00"
+    }
+  ],
+  "notes": "D:\\AICoding\\Minecraft_ModCreator\\build\\export\\unsigned-preview\\NOTES.txt",
+  "gitHead": "02c221870cf0d801724b2d3be30471be5187cce4",
+  "completedAt": "2026-08-23T14:33:45.6010926+08:00"
+}

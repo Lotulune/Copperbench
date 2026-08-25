@@ -55,7 +55,7 @@ flowchart LR
 - **底层契约**：
   - 发送 `Command: create_workspace`（需 `userApproved`）；打开已有工作区由宿主校验 `.mcreator` 后执行，不是单独的 `open_workspace` 命令
   - 返回 `Query: get_workbench`（状态 `ready` / `loading`）
-  - `Query: list_new_workspace_generators` 返回四轨 × Fabric / NeoForge 生成器目录与建议工作区根目录（产品外壳视图已接；MCP / headless 见 `FR-CLOSE-03`）
+  - `Query: list_new_workspace_generators` 返回四轨 × Fabric / NeoForge 以及独立 `resourcepack-1.21.1` 生成器目录与建议工作区根目录（产品外壳、MCP、headless 三入口共用 Core）
   - `create_workspace` 校验通过且用户确认后应写入 `.mcreator`；成功落盘自动测试与三入口一致见 `FR-CLOSE-02` / `FR-CLOSE-03`
 - **异常与分支**：
   - 若已存在同名冲突或被外部占用 -> 返回 `LOCKED_ELSEWHERE` 诊断与解锁指引。

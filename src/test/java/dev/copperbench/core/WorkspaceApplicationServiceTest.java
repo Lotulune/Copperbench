@@ -9,6 +9,7 @@ import dev.copperbench.core.application.LegacyWorkspaceEntryAdapter;
 import dev.copperbench.core.application.McpWorkspaceEntryAdapter;
 import dev.copperbench.core.application.WorkspaceApplicationService;
 import dev.copperbench.core.application.WorkspaceTaskGateway;
+import dev.copperbench.core.application.WorkspaceMutationGateway;
 import dev.copperbench.core.contract.UiCore;
 import dev.copperbench.core.contract.UiCore.Actor;
 import dev.copperbench.core.contract.UiCore.Command;
@@ -20,7 +21,10 @@ import dev.copperbench.core.contract.UiCore.RequestContext;
 import dev.copperbench.core.workspace.RevisionedWorkspaceStore;
 import dev.copperbench.core.workspace.WorkspaceState;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -38,6 +42,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -112,10 +117,70 @@ class WorkspaceApplicationServiceTest {
 				new RequestContext(Actor.HEADLESS, PermissionProfile.WORKSPACE));
 
 		assertEquals("rejected", outcome.result().status());
-		assertEquals("WORKSPACE_PERSISTENCE_FAILED", outcome.result().diagnostics().getFirst().code());
+		var diagnostic = outcome.result().diagnostics().getFirst();
+		assertEquals("WORKSPACE_PERSISTENCE_FAILED", diagnostic.code());
+		assertDoesNotThrow(() -> UUID.fromString(diagnostic.message().args().get("failureId").getAsString()));
+		assertFalse(diagnostic.message().fallback().contains("simulated persistence failure"));
+		assertEquals("open_logs", diagnostic.actions().getFirst().kind());
+		assertEquals(diagnostic.message().args().get("failureId").getAsString(),
+				diagnostic.actions().getFirst().target());
 		assertEquals(0, store.read(WORKSPACE_ID).orElseThrow().revision());
 		assertTrue(store.read(WORKSPACE_ID).orElseThrow().elements().isEmpty());
 		assertTrue(outcome.events().isEmpty());
+	}
+
+	@Test void datagenPublicationRollsBackStagedFilesWhenWorkspaceMetadataPersistenceFails() {
+		RevisionedWorkspaceStore store = registeredStore();
+		SequentialIds ids = new SequentialIds();
+		DatagenTaskGateway tasks = new DatagenTaskGateway();
+		WorkspaceMutationGateway failingPersistence = new WorkspaceMutationGateway() {
+			@Override public void persist(WorkspaceState before, WorkspaceState after, Operation operation,
+					WorkspaceState.Element affectedElement) {
+			}
+
+			@Override public void persistWorkspaceData(WorkspaceState before, WorkspaceState after,
+					Operation operation) {
+				throw new IllegalStateException("simulated datagen metadata failure");
+			}
+		};
+		WorkspaceApplicationService service = new WorkspaceApplicationService(store, tasks, failingPersistence,
+				CLOCK, ids);
+		JsonObject payload = new JsonObject();
+		payload.addProperty("clientMutationId", uuid(18).toString());
+		payload.addProperty("taskId", DatagenTaskGateway.TASK_ID.toString());
+		payload.addProperty("manifestHash", "a".repeat(64));
+
+		CommandOutcome outcome = service.execute(Command.of(uuid(19), WORKSPACE_ID, 0,
+				Operation.PUBLISH_DATAGEN_OUTPUT, payload),
+				new RequestContext(Actor.UI, PermissionProfile.WORKSPACE));
+
+		assertEquals("rejected", outcome.result().status());
+		assertEquals("WORKSPACE_PERSISTENCE_FAILED", outcome.result().diagnostics().getFirst().code());
+		assertTrue(tasks.published);
+		assertTrue(tasks.rolledBack);
+		assertFalse(tasks.completed);
+		assertEquals(0, store.read(WORKSPACE_ID).orElseThrow().revision());
+	}
+
+	@Test void staleWorkspaceCreationDoesNotWriteToDisk(@TempDir Path temporaryDirectory) {
+		Fixture fixture = fixture();
+		Path target = temporaryDirectory.resolve("must-not-be-created");
+		JsonObject payload = new JsonObject();
+		payload.addProperty("clientMutationId", uuid(16).toString());
+		payload.addProperty("generatorId", "fabric-1.21.1");
+		payload.addProperty("modName", "Stale Workspace");
+		payload.addProperty("modId", "stale_workspace");
+		payload.addProperty("packageName", "dev.copperbench.stale");
+		payload.addProperty("workspaceFolderPath", target.toString());
+		payload.addProperty("userApproved", true);
+
+		CommandOutcome outcome = fixture.service.execute(
+				Command.of(uuid(17), WORKSPACE_ID, 1, Operation.CREATE_WORKSPACE, payload),
+				new RequestContext(Actor.UI, PermissionProfile.WORKSPACE));
+
+		assertEquals("rejected", outcome.result().status());
+		assertEquals("WORKSPACE_REVISION_CONFLICT", outcome.result().diagnostics().getFirst().code());
+		assertFalse(Files.exists(target));
 	}
 
 	@Test void rejectedFieldUpdateLeavesRevisionAndValuesUntouched() {
@@ -139,7 +204,10 @@ class WorkspaceApplicationServiceTest {
 				new RequestContext(Actor.MCP, PermissionProfile.WORKSPACE));
 
 		assertEquals("rejected", outcome.result().status());
-		assertEquals("FIELD_VALUE_OUT_OF_RANGE", outcome.result().diagnostics().getFirst().code());
+		var diagnostic = outcome.result().diagnostics().getFirst();
+		assertEquals("FIELD_VALUE_OUT_OF_RANGE", diagnostic.code());
+		assertEquals(0, diagnostic.message().args().get("min").getAsInt());
+		assertEquals(100, diagnostic.message().args().get("max").getAsInt());
 		WorkspaceState state = fixture.store.read(WORKSPACE_ID).orElseThrow();
 		assertEquals(1, state.revision());
 		assertTrue(!state.element(elementId).values().has("fields"));
@@ -311,6 +379,49 @@ class WorkspaceApplicationServiceTest {
 
 		@Override public Optional<JsonObject> cancel(UUID workspaceId, UUID taskId) {
 			return delegate.cancel(workspaceId, taskId);
+		}
+	}
+
+	private static final class DatagenTaskGateway implements WorkspaceTaskGateway {
+		private static final UUID TASK_ID = UUID.fromString("00000000-0000-4000-8000-000000000099");
+		private boolean published;
+		private boolean rolledBack;
+		private boolean completed;
+
+		@Override public JsonObject start(UUID workspaceId, Operation operation, JsonObject payload) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override public Optional<JsonObject> find(UUID workspaceId, UUID taskId) {
+			return Optional.empty();
+		}
+
+		@Override public List<JsonObject> active(UUID workspaceId) {
+			return List.of();
+		}
+
+		@Override public Optional<JsonObject> cancel(UUID workspaceId, UUID taskId) {
+			return Optional.empty();
+		}
+
+		@Override public JsonObject publishDatagen(UUID workspaceId, UUID taskId, JsonObject payload) {
+			assertEquals(TASK_ID, taskId);
+			published = true;
+			JsonObject data = new JsonObject();
+			data.addProperty("taskId", taskId.toString());
+			data.addProperty("manifestHash", "a".repeat(64));
+			var changed = new JsonArray();
+			changed.add("src/generated/resources/data/copper_trails/generated.json");
+			data.add("changedPaths", changed);
+			return data;
+		}
+
+		@Override public void completeDatagenPublish(UUID workspaceId, UUID taskId) {
+			completed = true;
+		}
+
+		@Override public void rollbackDatagenPublish(UUID workspaceId, UUID taskId) {
+			rolledBack = true;
 		}
 	}
 }

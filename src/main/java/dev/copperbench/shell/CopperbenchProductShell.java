@@ -14,6 +14,7 @@ import dev.copperbench.assets.BlockbenchExecutableLocator;
 import dev.copperbench.assets.BlockbenchProcessService;
 import dev.copperbench.bridge.JcefBlockbenchBridgeTransport;
 import dev.copperbench.bridge.JcefCoreBridgeTransport;
+import dev.copperbench.bridge.JcefDiagnosticsBridgeTransport;
 import dev.copperbench.bridge.JcefLegacyPluginBridgeTransport;
 import dev.copperbench.bridge.JcefWindowBridgeTransport;
 import dev.copperbench.bridge.JcefWorkspaceOpenBridgeTransport;
@@ -102,6 +103,7 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 		JcefLegacyPluginBridgeTransport legacyPluginTransport = null;
 		JcefBlockbenchBridgeTransport blockbenchTransport = null;
 		JcefWorkspaceOpenBridgeTransport workspaceOpenTransport = null;
+		JcefDiagnosticsBridgeTransport diagnosticsTransport = null;
 		try {
 			coreTransport = webView.attachCoreBridge(session.workspaceId(), session.uiEntry());
 			windowTransport = windowChromeController != null
@@ -112,6 +114,7 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 			workspaceOpenTransport = openWorkspaceAction != null
 					? JcefWorkspaceOpenBridgeTransport.attach(webView, openWorkspaceAction)
 					: null;
+			diagnosticsTransport = JcefDiagnosticsBridgeTransport.attach(webView);
 			blockbenchTransport = JcefBlockbenchBridgeTransport.attach(webView,
 					new BlockbenchProcessService(new AssetWorkspaceService(workspaceRoot),
 							BlockbenchExecutableLocator.locate()));
@@ -120,6 +123,7 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 			JcefLegacyPluginBridgeTransport attachedLegacyPlugin = legacyPluginTransport;
 			JcefBlockbenchBridgeTransport attachedBlockbench = blockbenchTransport;
 			JcefWorkspaceOpenBridgeTransport attachedWorkspaceOpen = workspaceOpenTransport;
+			JcefDiagnosticsBridgeTransport attachedDiagnostics = diagnosticsTransport;
 			return new RecoverableBrowserHost.BrowserHandle() {
 				@Override public Component component() {
 					return webView;
@@ -144,6 +148,7 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 
 				@Override public void close() {
 					attachedBlockbench.close();
+					attachedDiagnostics.close();
 					if (attachedWorkspaceOpen != null)
 						attachedWorkspaceOpen.close();
 					attachedLegacyPlugin.close();
@@ -155,6 +160,8 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 		} catch (RuntimeException exception) {
 			if (blockbenchTransport != null)
 				blockbenchTransport.close();
+			if (diagnosticsTransport != null)
+				diagnosticsTransport.close();
 			if (workspaceOpenTransport != null)
 				workspaceOpenTransport.close();
 			if (legacyPluginTransport != null)

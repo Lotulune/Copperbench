@@ -14,6 +14,7 @@ import com.google.gson.JsonObject;
 import dev.copperbench.tracks.VersionTrackCatalog;
 import net.mcreator.generator.Generator;
 import net.mcreator.generator.GeneratorConfiguration;
+import net.mcreator.generator.setup.WorkspaceGeneratorSetup;
 import net.mcreator.workspace.Workspace;
 import net.mcreator.workspace.settings.WorkspaceSettings;
 import net.mcreator.workspace.WorkspaceFolderManager;
@@ -39,6 +40,8 @@ import java.util.regex.Pattern;
  * produce identical workspace files.
  */
 public final class WorkspaceCreationService {
+
+	public static final String RESOURCE_PACK_GENERATOR_ID = "resourcepack-1.21.1";
 
 	/** Result of a creation attempt; diagnostics are stable codes, never Java exception text. */
 	public record CreationResult(boolean complete, String workspaceFile, String generatorId,
@@ -80,6 +83,7 @@ public final class WorkspaceCreationService {
 				byId.put(loader.generatorId(), item);
 			}
 		}
+		addResourcePackGenerator(byId);
 		return List.copyOf(byId.values());
 	}
 
@@ -102,7 +106,7 @@ public final class WorkspaceCreationService {
 			return new CreationResult(false, null, generatorId, List.of("WORKSPACE_FOLDER_NOT_EMPTY"));
 
 		VersionTrackCatalog.CapabilityDecision decision = catalog.decision(generatorId);
-		if (!decision.generatable())
+		if (!isResourcePackGenerator(generatorId) && !decision.generatable())
 			return new CreationResult(false, null, generatorId, List.of("UNSUPPORTED_GENERATOR"));
 
 		GeneratorConfiguration configuration = generatorConfiguration(generatorId);
@@ -113,26 +117,101 @@ public final class WorkspaceCreationService {
 		settings.setModName(modName);
 		settings.setVersion(version == null || version.isBlank() ? "1.0.0" : version);
 		settings.setCurrentGenerator(configuration.getGeneratorName());
-		settings.setModElementsPackage(packageName);
+		if (packageName != null && !packageName.isBlank())
+			settings.setModElementsPackage(packageName);
 
 		File workspaceFile = workspaceFolder.resolve(modId + ".mcreator").toFile();
+		boolean preserveWorkspaceFolder = Files.exists(workspaceFolder);
 		try (Workspace workspace = Workspace.createWorkspace(workspaceFile, settings)) {
+			try {
+				WorkspaceGeneratorSetup.setupWorkspaceBaseOrThrow(workspace);
+			} catch (RuntimeException exception) {
+				throw new WorkspaceSkeletonSetupException(exception);
+			}
+			if (isResourcePackGenerator(generatorId))
+				setupResourcePackWorkspace(workspace, workspaceFolder);
 			return new CreationResult(true, workspaceFile.getAbsolutePath(), generatorId, List.of());
+		} catch (WorkspaceSkeletonSetupException exception) {
+			return failedCreation(generatorId, workspaceFolder, preserveWorkspaceFolder,
+					"WORKSPACE_SKELETON_SETUP_FAILED");
 		} catch (RuntimeException exception) {
-			return new CreationResult(false, null, generatorId, List.of("WORKSPACE_CREATE_FAILED"));
+			return failedCreation(generatorId, workspaceFolder, preserveWorkspaceFolder, "WORKSPACE_CREATE_FAILED");
+		}
+	}
+
+	private static CreationResult failedCreation(String generatorId, Path workspaceFolder,
+			boolean preserveWorkspaceFolder, String diagnostic) {
+		List<String> diagnostics = new ArrayList<>();
+		diagnostics.add(diagnostic);
+		try {
+			cleanupPartialWorkspace(workspaceFolder, preserveWorkspaceFolder);
+		} catch (IOException exception) {
+			diagnostics.add("WORKSPACE_CLEANUP_FAILED");
+		}
+		return new CreationResult(false, null, generatorId, List.copyOf(diagnostics));
+	}
+
+	private static void cleanupPartialWorkspace(Path workspaceFolder, boolean preserveWorkspaceFolder)
+			throws IOException {
+		Path normalized = workspaceFolder.toAbsolutePath().normalize();
+		if (!Files.exists(normalized)) return;
+		try (var paths = Files.walk(normalized)) {
+			for (Path path : paths.sorted(java.util.Comparator.reverseOrder()).toList()) {
+				if (preserveWorkspaceFolder && path.equals(normalized)) continue;
+				Files.deleteIfExists(path);
+			}
+		}
+	}
+
+	private void addResourcePackGenerator(Map<String, JsonObject> byId) {
+		GeneratorConfiguration configuration = generatorConfiguration(RESOURCE_PACK_GENERATOR_ID);
+		JsonObject item = new JsonObject();
+		item.addProperty("generatorId", RESOURCE_PACK_GENERATOR_ID);
+		item.addProperty("loader", "resource_pack");
+		item.addProperty("minecraftVersion", "1.21.1");
+		item.addProperty("trackId", "resource_pack");
+		item.addProperty("displayName", "Resource Pack 1.21.1");
+		item.addProperty("dynamic", false);
+		item.addProperty("available", configuration != null);
+		item.addProperty("workspaceGeneratorName",
+				configuration == null ? RESOURCE_PACK_GENERATOR_ID : configuration.getGeneratorName());
+		byId.put(RESOURCE_PACK_GENERATOR_ID, item);
+	}
+
+	private static boolean isResourcePackGenerator(String generatorId) {
+		return RESOURCE_PACK_GENERATOR_ID.equals(generatorId);
+	}
+
+	private static void setupResourcePackWorkspace(Workspace workspace, Path workspaceFolder) {
+		if (!workspace.getGenerator().generateBase())
+			throw new WorkspaceSkeletonSetupException();
+		workspace.getGenerator().runResourceSetupTasks();
+		if (!Files.isRegularFile(workspaceFolder.resolve("src/main/pack.mcmeta"))
+				|| !Files.isRegularFile(workspaceFolder.resolve("src/main/pack.png")))
+			throw new WorkspaceSkeletonSetupException();
+	}
+
+	private static final class WorkspaceSkeletonSetupException extends RuntimeException {
+		private static final long serialVersionUID = 1L;
+
+		private WorkspaceSkeletonSetupException() {
+		}
+
+		private WorkspaceSkeletonSetupException(Throwable cause) {
+			super(cause);
 		}
 	}
 
 	private List<String> validate(String generatorId, String modName, String modId, String packageName,
 			String workspaceFolderPath) {
 		List<String> diagnostics = new ArrayList<>();
-		if (!catalog.firstPartyGenerator(generatorId))
+		if (!isResourcePackGenerator(generatorId) && !catalog.firstPartyGenerator(generatorId))
 			diagnostics.add("UNSUPPORTED_GENERATOR");
 		if (!MOD_NAME.matcher(modName).matches())
 			diagnostics.add("MOD_NAME_INVALID");
 		if (!MOD_ID.matcher(modId).matches())
 			diagnostics.add("MOD_ID_INVALID");
-		if (packageName == null || !PACKAGE_NAME.matcher(packageName).matches())
+		if (!isResourcePackGenerator(generatorId) && (packageName == null || !PACKAGE_NAME.matcher(packageName).matches()))
 			diagnostics.add("PACKAGE_NAME_INVALID");
 		if (workspaceFolderPath == null || workspaceFolderPath.isBlank())
 			diagnostics.add("WORKSPACE_FOLDER_REQUIRED");

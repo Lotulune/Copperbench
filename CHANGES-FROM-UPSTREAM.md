@@ -31,7 +31,7 @@ This distribution is based on MCreator `2026.2.33518` at commit `361429609b77203
 - Public Git history starts from this Copperbench tree. It is an independent GPL derivative of MCreator, not an official Pylo distribution.
 - Legacy workspace conversion fixtures with the Fabric generator and the full generator Gradle matrix are tracked for G1/G2 rather than the G0 build gate.
 - Public identity is Copperbench. First public distribution is unsigned GitHub Releases with no product website, store listing, or Authenticode (ADR-0015). Product ID `dev.copperbench.studio` is a reverse-DNS identifier, not a live website.
-- G7 remains `in_progress`: Windows 11 Hyper-V guest silent install/upgrade/uninstall is claimed; guest GUI stay-alive is not.
+- G7 is closed as passed: the Windows 11 Hyper-V guest completed silent install/upgrade/uninstall with the NIC disconnected, preserved workspace/user data, and kept the guest GUI process alive through the 10-second check. Evidence: `evidence/stage-8/2026-08-23/hyperv-g7-guest-checks.json`.
 
 ## Stage 3 Fabric 1.21.1 vertical slice
 
@@ -62,12 +62,12 @@ This distribution is based on MCreator `2026.2.33518` at commit `361429609b77203
 
 ## Stage 8 G7 automation slice
 
-- Added a machine-readable release manifest (`get_release_notes` / `headless release`) with the four-track matrix, honest golden vs generate-ready claims, known limitations, and G7 in-progress status.
+- Added a machine-readable release manifest (`get_release_notes` / `headless release`) with the four-track matrix, honest golden vs generate-ready claims, known limitations, and the final machine-verified G7 status.
 - NSIS uninstall now defaults to keeping `$PROFILE\.copperbench` in both UI and silent/upgrade paths, and no longer deletes the upstream `.mcreator` folder. User-chosen workspace directories are never removed.
 - Release notes now include the Windows export layout contract and the first-party plugin compatibility inventory. Existing `build/export/win64` is checked when present.
 - Added a Windows 11 silent install/upgrade/uninstall rehearsal against an isolated directory. It refuses to run if a real Copperbench uninstall key exists, preserves a planted workspace and `.copperbench` entries, and writes evidence under `evidence/stage-8/`.
 - Added Fabric and NeoForge 1.21.1 cache-warm then Gradle `--offline` build gates. This is software offline mode after dependencies are cached, not an OS network disconnect.
-- Clean Windows 11 G7 install/upgrade/uninstall ran in a Hyper-V guest (`Copperbench-G7`) with the NIC disconnected. Workspace and `.copperbench` survived uninstall. Guest `copperbench.exe` stay-alive is not claimed. Evidence: `evidence/stage-8/2026-08-20/hyperv-g7-guest-checks.json`.
+- Clean Windows 11 G7 install/upgrade/uninstall ran in a Hyper-V guest (`Copperbench-G7`) with the NIC disconnected. Workspace and `.copperbench` survived uninstall. The final 2026-08-23 rerun also kept `copperbench.exe` alive through the 10-second guest check. Evidence: `evidence/stage-8/2026-08-23/hyperv-g7-guest-checks.json`.
 - `list_installed_plugins` (UI / MCP / `headless plugins`) returns the live first-party and user plugin inventory with A/B/C/X classification and does not load Java.
 - First-party mod-element slice is machine-readable (`elementCoverage` / `get_element_coverage` / `headless elements`): block, item, recipe, procedure on all eight generators. Imported upstream types are listed read-only; updates are rejected.
 - Upstream MCreator tools are mapped in `upstreamTools` / `get_upstream_tools` / `headless upstream-tools` onto new UI, legacy window, unsupported, or out of scope. The legacy window is not a visual promise.

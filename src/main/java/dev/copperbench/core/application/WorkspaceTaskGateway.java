@@ -25,4 +25,18 @@ public interface WorkspaceTaskGateway {
 	default List<JsonObject> diagnostics(UUID workspaceId, UUID taskId) {
 		return List.of();
 	}
+
+	default Optional<JsonObject> previewDatagen(UUID workspaceId, UUID taskId) {
+		return Optional.empty();
+	}
+
+	default JsonObject publishDatagen(UUID workspaceId, UUID taskId, JsonObject payload) {
+		throw new UnsupportedOperationException("Datagen publishing is not available");
+	}
+
+	default void completeDatagenPublish(UUID workspaceId, UUID taskId) {
+	}
+
+	default void rollbackDatagenPublish(UUID workspaceId, UUID taskId) {
+	}
 }

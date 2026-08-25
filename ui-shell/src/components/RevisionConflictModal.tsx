@@ -21,7 +21,10 @@ export const RevisionConflictModal: React.FC = () => {
 
   const handleCreateCopy = () => {
     setIsConflictModalOpen(false);
-    alert('Local changes have been cloned into a local draft element copy.');
+    alert(t({
+      key: 'notice.conflict_draft_cloned',
+      fallback: 'Local changes have been cloned into a local draft element copy.'
+    }));
   };
 
   const handleDiscard = () => {

@@ -35,6 +35,9 @@ public final class InMemoryWorkspaceTaskGateway implements WorkspaceTaskGateway 
 			case BUILD_WORKSPACE -> "build";
 			case EXPORT_WORKSPACE -> "export";
 			case RUN_CLIENT -> "run_client";
+			case RUN_SERVER -> "run_server";
+			case RUN_DATAGEN -> "run_datagen";
+			case RUN_GAMETEST -> "run_gametest";
 			default -> throw new IllegalArgumentException("Operation does not start a task: " + operation);
 		});
 		task.addProperty("state", "running");

@@ -40,7 +40,7 @@
   "depends": {
 	"fabricloader": ">=0.19.3",
 	"minecraft": "~${generator.getGeneratorMinecraftVersion()}",
-	"java": ">=25",
+	"java": ">=21",
 	"fabric-api": "*"<#if settings.getRequiredMods()?has_content>,</#if>
 	<#list settings.getRequiredMods() as e>
 	"${e}": "${(settings.getVersionRange(e) == '[0,)')?then('*', settings.getVersionRange(e))}"<#sep>,

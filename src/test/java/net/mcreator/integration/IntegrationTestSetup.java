@@ -223,7 +223,9 @@ public class IntegrationTestSetup implements BeforeAllCallback, AfterEachCallbac
 		}
 
 		@Override public void append(LogEvent event) {
-			if (event.getLevel().isMoreSpecificThan(Level.WARN)) {
+			boolean structuredOperationFailure = event.getMarker() != null
+					&& event.getMarker().isInstanceOf("COPPERBENCH_OPERATION_FAILURE");
+			if (event.getLevel().isMoreSpecificThan(Level.WARN) && !structuredOperationFailure) {
 				failTests();
 			}
 		}

@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "hyperv-clean-windows-g7-readiness",
+  "planned": true,
+  "createsVirtualMachine": false,
+  "featureName": "Microsoft-Hyper-V-All",
+  "featureState": "Enabled",
+  "featureError": null,
+  "getVmAvailable": true,
+  "existingVmNames": [
+    "Copperbench-G7"
+  ],
+  "windowsIsoCandidates": [
+    "C:\\Users\\Administrator\\Downloads\\Win11_25H2_Chinese_Simplified_x64_v2.iso"
+  ],
+  "readyToCreateCleanVm": true,
+  "rebootRequiredForHyperV": false,
+  "cbsRebootPending": false,
+  "nextHostStep": "Run scripts/New-G7HyperVGuest.ps1 -IsoPath <windows.iso> then Invoke-G7HyperVGuestChecks.ps1."
+}

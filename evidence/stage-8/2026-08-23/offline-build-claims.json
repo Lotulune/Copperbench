@@ -1,0 +1,34 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "offline-build-claim-alignment",
+  "requirement": "FR-CLOSE-07",
+  "completedAt": "2026-08-23",
+  "mode": "gradle --offline after cache warm",
+  "osNetworkDisconnected": false,
+  "offlineBuildClaimed": [
+    "fabric-26.2",
+    "neoforge-26.2",
+    "fabric-26.1.2",
+    "neoforge-26.1.2",
+    "fabric-1.21.1",
+    "neoforge-1.21.1",
+    "fabric-1.20.1"
+  ],
+  "excluded": [
+    {
+      "generatorId": "neoforge-1.20.1",
+      "offlineExitCode": 1,
+      "evidence": "evidence/stage-8/2026-08-19/neoforge-1201-compile.json"
+    }
+  ],
+  "evidence": [
+    "evidence/stage-8/2026-08-23/offline-cached-build.json",
+    "evidence/stage-8/2026-08-19/fabric-1201-compile.json",
+    "evidence/stage-8/2026-08-20/fabric-261-compile.json",
+    "evidence/stage-8/2026-08-20/fabric-262-compile.json",
+    "evidence/stage-8/2026-08-20/neoforge-261-compile.json",
+    "evidence/stage-8/2026-08-20/neoforge-262-compile.json"
+  ],
+  "releaseManifestClaim": "claims.offlineBuildClaimed",
+  "knownLimitation": "OFFLINE_BUILD_NEOFORGE_1201_NOT_CLAIMED"
+}

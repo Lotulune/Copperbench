@@ -141,6 +141,18 @@ public final class WorkspaceFileManager implements Closeable {
 				.advanceRevision(workspaceFile.toPath(), workspaceId, expectedRevision, writeLease);
 	}
 
+	public ProductMetadataManager.Metadata advanceProductRevision(UUID workspaceId, long expectedRevision,
+			com.google.gson.JsonObject registries) throws java.io.IOException {
+		return new ProductMetadataManager(new UnknownFieldPreservingJsonStore())
+				.advanceRevision(workspaceFile.toPath(), workspaceId, expectedRevision, registries, writeLease);
+	}
+
+	public ProductMetadataManager.Metadata synchronizeProductRevision(UUID workspaceId, long revision)
+			throws java.io.IOException {
+		return new ProductMetadataManager(new UnknownFieldPreservingJsonStore())
+				.synchronizeRevision(workspaceFile.toPath(), workspaceId, revision, writeLease);
+	}
+
 	@Override public void close() {
 		lastSchedule.cancel(true); // we stop autosaving for this workspace after it is done
 		dataSaveExecutor.shutdown(); // prevent new tasks from being scheduled

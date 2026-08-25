@@ -23,14 +23,35 @@ import net.mcreator.io.OutputStreamEventHandler;
 import net.mcreator.workspace.Workspace;
 import org.apache.logging.log4j.Logger;
 import org.gradle.tooling.BuildLauncher;
+import org.gradle.tooling.BuildCancelledException;
+import org.gradle.tooling.CancellationTokenSource;
 import org.gradle.tooling.GradleConnectionException;
+import org.gradle.tooling.GradleConnector;
+
+import java.time.Duration;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class GTBuild {
 
 	public static void runTest(Logger LOG, String generatorName, Workspace workspace)
 			throws GradleConnectionException, IllegalStateException {
+		runTest(LOG, generatorName, workspace, Duration.ofMinutes(20));
+	}
+
+	public static void runTest(Logger LOG, String generatorName, Workspace workspace, Duration timeout)
+			throws GradleConnectionException, IllegalStateException {
 		BuildLauncher buildLauncher = GradleUtils.getGradleTaskLauncher(workspace.getGeneratorConfiguration(),
 				GradleUtils.getGradleProjectConnection(workspace), "build");
+		CancellationTokenSource cancellationSource = GradleConnector.newCancellationTokenSource();
+		buildLauncher.withCancellationToken(cancellationSource.token());
+		AtomicBoolean timedOut = new AtomicBoolean(false);
+		var timeoutExecutor = Executors.newSingleThreadScheduledExecutor();
+		var timeoutTask = timeoutExecutor.schedule(() -> {
+			timedOut.set(true);
+			cancellationSource.cancel();
+		}, timeout.toMillis(), TimeUnit.MILLISECONDS);
 
 		StringBuilder sb = new StringBuilder();
 
@@ -43,9 +64,16 @@ public class GTBuild {
 			if (sb.toString().contains(": warning:") || sb.toString().contains(": error: ")) {
 				LOG.warn("Gradle build for {} generator produced log:\n{}", generatorName, sb);
 			}
+		} catch (BuildCancelledException exception) {
+			if (timedOut.get())
+				throw new IllegalStateException(generatorName + " build timed out after " + timeout, exception);
+			throw exception;
 		} catch (GradleConnectionException | IllegalStateException e) {
 			LOG.error("Gradle build failed for {} generator with log:\n{}", generatorName, sb, e);
 			throw e;
+		} finally {
+			timeoutTask.cancel(false);
+			timeoutExecutor.shutdownNow();
 		}
 
 		LOG.info("[{}] Gradle build OK", generatorName);

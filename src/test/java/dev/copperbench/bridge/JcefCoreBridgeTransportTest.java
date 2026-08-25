@@ -25,6 +25,7 @@ import dev.copperbench.core.contract.UiCore.RequestContext;
 import dev.copperbench.core.workspace.RevisionedWorkspaceStore;
 import dev.copperbench.core.workspace.WorkspaceState;
 import org.cef.callback.CefQueryCallback;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -48,6 +49,11 @@ class JcefCoreBridgeTransportTest {
 	private List<String> dispatchedScripts;
 	private JcefCoreBridgeTransport transport;
 	private Supplier<UUID> idSupplier;
+
+	@BeforeAll
+	static void configureLogDirectory() {
+		System.setProperty("log_directory", System.getProperty("java.io.tmpdir"));
+	}
 
 	@BeforeEach
 	void setUp() {

@@ -21,7 +21,8 @@
         "category": { "type": "string", "enum": ["MODEL", "TEXTURE", "ANIMATION", "LANGUAGE", "SOUND", "RESOURCE_PACK", "BLOCKSTATE", "OTHER"] },
         "size": { "type": "integer", "minimum": 0 },
         "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
-        "mediaType": { "type": "string", "minLength": 1 }
+        "mediaType": { "type": "string", "minLength": 1 },
+        "updatedAt": { "type": "string", "format": "date-time" }
       },
       "additionalProperties": false
     },

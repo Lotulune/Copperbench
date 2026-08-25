@@ -6,7 +6,7 @@ test.describe('New Workspace (product shell native flow)', () => {
     await page.waitForSelector('[data-testid="app-shell"]');
   });
 
-  test('renders the 4-track x 2-loader generator catalog with a default selection', async ({ page }) => {
+  test('renders the four-track mod catalog and the standalone resource-pack generator', async ({ page }) => {
     await page.click('[data-testid="nav-new-workspace"]');
     await expect(page.locator('[data-testid="new-workspace-view"]')).toBeVisible();
 
@@ -19,9 +19,11 @@ test.describe('New Workspace (product shell native flow)', () => {
     await expect(page.locator('[data-testid="generator-option-neoforge-26.2"]')).toBeVisible();
     await expect(page.locator('[data-testid="generator-option-fabric-1.21.1"]')).toBeVisible();
     await expect(page.locator('[data-testid="generator-option-neoforge-1.20.1"]')).toBeVisible();
+    await expect(page.locator('[data-testid="generator-track-resource_pack"]')).toBeVisible();
+    await expect(page.locator('[data-testid="generator-option-resourcepack-1.21.1"]')).toBeVisible();
 
-    // Default selection is the recommended 1.21.1 maintenance track
-    await expect(page.locator('[data-testid="selected-generator-info"]')).toContainText('fabric-1.21.1');
+    // Default selection follows the first available generator in the Core catalog.
+    await expect(page.locator('[data-testid="selected-generator-info"]')).toContainText('fabric-26.2');
 
     // Suggested workspace folders root is surfaced from the catalog
     await expect(page.getByText('MCreatorWorkspaces').first()).toBeVisible();
@@ -31,6 +33,15 @@ test.describe('New Workspace (product shell native flow)', () => {
     await page.click('[data-testid="nav-new-workspace"]');
     await page.click('[data-testid="generator-option-neoforge-26.2"]');
     await expect(page.locator('[data-testid="selected-generator-info"]')).toContainText('neoforge-26.2');
+  });
+
+  test('resource-pack selection uses pack terminology and does not require a Java package', async ({ page }) => {
+    await page.click('[data-testid="nav-new-workspace"]');
+    await page.click('[data-testid="generator-option-resourcepack-1.21.1"]');
+    await expect(page.locator('[data-testid="selected-generator-info"]')).toContainText('resourcepack-1.21.1');
+    await expect(page.getByText('资源包名称')).toBeVisible();
+    await expect(page.getByText('资源包 ID（命名空间）')).toBeVisible();
+    await expect(page.locator('[data-testid="new-workspace-package-input"]')).toHaveCount(0);
   });
 
   test('mod id drives package autofill and the suggested folder path', async ({ page }) => {
@@ -78,5 +89,10 @@ test.describe('New Workspace (product shell native flow)', () => {
 
     await expect(page.locator('[data-testid="workspace-rejected-banner"]')).toBeVisible();
     await expect(page.locator('[data-testid="workspace-rejected-banner"]')).toContainText('MOD_ID_INVALID');
+    await expect(page.locator('[data-testid="workspace-rejected-banner"]')).toBeFocused();
+    await expect(page.locator('[data-testid="new-workspace-mod-id-input"]')).toHaveAttribute('aria-invalid', 'true');
+    await expect(page.locator('#new-workspace-mod-id-error')).toContainText('模组 ID 必须为');
+    await page.locator('[data-testid="workspace-rejected-banner"] a[href="#new-workspace-mod-id"]').click();
+    await expect(page.locator('[data-testid="new-workspace-mod-id-input"]')).toBeFocused();
   });
 });

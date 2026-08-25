@@ -230,8 +230,13 @@ test {
 		System.getProperty('copperbench.stage8.jcefSnapDpi', 'false')
 	systemProperty 'copperbench.resourcePack1211Client',
 		System.getProperty('copperbench.resourcePack1211Client', 'false')
+	systemProperty 'copperbench.stage8.workspaceGeneratorBuild',
+		System.getProperty('copperbench.stage8.workspaceGeneratorBuild', 'false')
+	systemProperty 'copperbench.stage8.workspaceGeneratorId',
+		System.getProperty('copperbench.stage8.workspaceGeneratorId', '')
 
-    jvmArgs '--add-opens', 'java.base/java.lang=ALL-UNNAMED', '--enable-native-access', 'ALL-UNNAMED,jcef'
+    jvmArgs '--add-opens', 'java.base/java.lang=ALL-UNNAMED', '--add-opens', 'java.base/java.io=ALL-UNNAMED',
+            '--enable-native-access', 'ALL-UNNAMED,jcef'
 
     // default max heap is VM RAM / 4, which may be too low on low RAM VMs
     maxHeapSize = "4096m"

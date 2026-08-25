@@ -26,6 +26,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -37,6 +38,10 @@ import java.util.zip.ZipOutputStream;
 public class ZipIO {
 
 	private static final Logger LOG = LogManager.getLogger("ZipIO");
+	private static final int MAX_EXTRACTED_ENTRIES = 100_000;
+	private static final long MAX_EXTRACTED_ENTRY_BYTES = 1L << 30;
+	private static final long MAX_EXTRACTED_TOTAL_BYTES = 8L << 30;
+	private static final long MAX_COMPRESSION_RATIO = 1_000;
 
 	public static ZipFile openZipFile(File zipFile) throws IOException {
 		try {
@@ -46,22 +51,103 @@ public class ZipIO {
 		}
 	}
 
-	public static void unzip(String strZipFile, String dst) {
-		Path extractFolder = new File(dst).toPath();
-		try (ZipFile zipFile = openZipFile(new File(strZipFile))) {
+	public static void unzip(String strZipFile, String dst) throws IOException {
+		Path destination = new File(dst).toPath().toAbsolutePath().normalize();
+		Path parent = destination.getParent();
+		if (parent == null)
+			throw new IOException("Archive destination has no parent directory: " + destination);
+		Files.createDirectories(parent);
+		if (Files.exists(destination) && (!Files.isDirectory(destination) || !isDirectoryEmpty(destination)))
+			throw new IOException("Archive destination must be an empty directory: " + destination);
+
+		Path staging = Files.createTempDirectory(parent, ".mcreator-unzip-");
+		boolean published = false;
+		try {
+			extractToStaging(new File(strZipFile), staging);
+			if (Files.exists(destination))
+				Files.delete(destination);
+			try {
+				Files.move(staging, destination, StandardCopyOption.ATOMIC_MOVE);
+			} catch (java.nio.file.AtomicMoveNotSupportedException ignored) {
+				Files.move(staging, destination);
+			}
+			published = true;
+		} finally {
+			if (!published)
+				deleteTree(staging);
+		}
+	}
+
+	private static void extractToStaging(File archive, Path staging) throws IOException {
+		long totalBytes = 0;
+		int entryCount = 0;
+		try (ZipFile zipFile = openZipFile(archive)) {
 			Enumeration<? extends ZipEntry> entries = zipFile.entries();
 			while (entries.hasMoreElements()) {
 				ZipEntry entry = entries.nextElement();
-				Path toPath = extractFolder.resolve(entry.getName());
+				if (++entryCount > MAX_EXTRACTED_ENTRIES)
+					throw new IOException("Archive contains too many entries");
+				Path target = safeExtractionTarget(staging, entry.getName());
+				validateDeclaredSize(entry);
 				if (entry.isDirectory()) {
-					toPath.toFile().mkdirs();
-				} else {
-					toPath.toFile().getParentFile().mkdirs();
-					Files.copy(zipFile.getInputStream(entry), toPath, StandardCopyOption.REPLACE_EXISTING);
+					Files.createDirectories(target);
+					continue;
+				}
+				Files.createDirectories(target.getParent());
+				long entryBytes = 0;
+				try (InputStream input = zipFile.getInputStream(entry);
+						OutputStream output = Files.newOutputStream(target, StandardOpenOption.CREATE_NEW)) {
+					byte[] buffer = new byte[8192];
+					int read;
+					while ((read = input.read(buffer)) != -1) {
+						entryBytes += read;
+						totalBytes += read;
+						if (entryBytes > MAX_EXTRACTED_ENTRY_BYTES || totalBytes > MAX_EXTRACTED_TOTAL_BYTES)
+							throw new IOException("Archive exceeds the extraction size limit");
+						output.write(buffer, 0, read);
+					}
 				}
 			}
-		} catch (IOException e) {
-			reportError("Unzip file", strZipFile, e);
+		}
+	}
+
+	private static Path safeExtractionTarget(Path staging, String entryName) throws IOException {
+		if (entryName == null || entryName.isBlank())
+			throw new IOException("Archive contains an empty entry name");
+		Path target = staging.resolve(entryName).normalize();
+		if (!target.startsWith(staging))
+			throw new IOException("Archive entry escapes the destination: " + entryName);
+		return target;
+	}
+
+	private static void validateDeclaredSize(ZipEntry entry) throws IOException {
+		long size = entry.getSize();
+		long compressedSize = entry.getCompressedSize();
+		if (size > MAX_EXTRACTED_ENTRY_BYTES)
+			throw new IOException("Archive entry is too large: " + entry.getName());
+		if (size > 0 && compressedSize > 0 && size / compressedSize > MAX_COMPRESSION_RATIO)
+			throw new IOException("Archive entry has an unsafe compression ratio: " + entry.getName());
+	}
+
+	private static boolean isDirectoryEmpty(Path directory) throws IOException {
+		try (var entries = Files.newDirectoryStream(directory)) {
+			return !entries.iterator().hasNext();
+		}
+	}
+
+	private static void deleteTree(Path root) {
+		if (!Files.exists(root))
+			return;
+		try (var paths = Files.walk(root)) {
+			paths.sorted(Comparator.reverseOrder()).forEach(path -> {
+				try {
+					Files.deleteIfExists(path);
+				} catch (IOException exception) {
+					LOG.warn("Could not remove failed archive extraction path {}", path, exception);
+				}
+			});
+		} catch (IOException exception) {
+			LOG.warn("Could not clean failed archive extraction directory {}", root, exception);
 		}
 	}
 

@@ -33,7 +33,7 @@ public final class FeatureCoverageCatalog {
 			new Item("local_history", "T02", Surface.NEW_UI,
 					"Local recovery points and restore. Existing Git remotes are not rewritten."),
 			new Item("slice_elements", "T03", Surface.NEW_UI,
-					"First-party slice is block, item, recipe, and procedure only."),
+					"First-party editing covers block, item, recipe, procedure, function, loot table, and advancement. The final three remain Stage 9 development-preview CRUD until the eight-generator golden gate passes."),
 			new Item("other_mod_elements", "T03", Surface.UNSUPPORTED,
 					"Living entities and other upstream types are outside the first-party slice. See elementCoverage: imported types stay read-only; create/update are rejected."),
 			new Item("assets_blockbench", "T04", Surface.NEW_UI,
@@ -41,9 +41,9 @@ public final class FeatureCoverageCatalog {
 			new Item("mcp_automation", "T05", Surface.HEADLESS_MCP,
 					"First-party local MCP with read_only, workspace, and full_access profiles."),
 			new Item("generate_source", "T06", Surface.NEW_UI,
-					"First-party Fabric/NeoForge generate for all four tracks."),
+					"The Stage 8 block/item/recipe/procedure slice has all-track evidence. Stage 9 data elements still require the separate eight-generator golden gate."),
 			new Item("managed_build", "T07", Surface.NEW_UI,
-					"Gradle build tasks exist. Offline cached 1.21.1 builds exist. Fabric and NeoForge 26.2, 26.1.2, and 1.20.1 compile probes produced jars."),
+					"Managed build, server, datagen, and GameTest tasks exist. Datagen publishes only after staged diff confirmation. All-track Stage 9 server readiness remains pending."),
 			new Item("run_client", "T08", Surface.NEW_UI,
 					"runClient evidence exists for Fabric/NeoForge 26.2, 26.1.2, 1.21.1, and 1.20.1."),
 			new Item("diagnostics", "T09", Surface.NEW_UI,
@@ -66,7 +66,7 @@ public final class FeatureCoverageCatalog {
 			new Item("code_signing", "release", Surface.NOT_APPLICABLE,
 					"Unsigned GitHub Releases are the first public distribution. Authenticode is optional and not a release gate. jsign 7.4 stays wired."),
 			new Item("clean_machine_install", "release", Surface.NEW_UI,
-					"Windows 11 Hyper-V guest silent install/upgrade/uninstall preserved workspace and .copperbench. Guest copperbench.exe stay-alive is not claimed."));
+					"Windows 11 Hyper-V guest silent install/upgrade/uninstall preserved workspace and .copperbench. With the NIC disconnected, copperbench.exe remained running through the 10-second guest check."));
 
 	private FeatureCoverageCatalog() {
 	}

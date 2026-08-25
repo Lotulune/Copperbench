@@ -1,5 +1,5 @@
 name: NeoForge for @minecraft (@buildfileversion)
-status: stable
+status: experimental
 buildfileversion: 26.2.0.63
 
 import:

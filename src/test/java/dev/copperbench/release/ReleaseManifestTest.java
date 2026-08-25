@@ -31,7 +31,10 @@ class ReleaseManifestTest {
 		assertEquals(fixture, actual);
 		assertEquals(VersionTrackCatalog.official().toProjection(), actual.getAsJsonObject("versionTracks"));
 		assertFalse(actual.getAsJsonObject("privacy").get("implicitNetworkServices").getAsBoolean());
-		assertEquals("in_progress", actual.getAsJsonObject("g7").get("status").getAsString());
+		assertEquals("passed", actual.getAsJsonObject("g7").get("status").getAsString());
+		String automatedChecks = actual.getAsJsonObject("g7").getAsJsonArray("automatedChecks").toString();
+		assertTrue(automatedChecks.contains("windows11_hyperv_guest_install_upgrade_uninstall"));
+		assertFalse(automatedChecks.contains("vmware_readiness_probe"));
 		JsonArray golden = actual.getAsJsonObject("claims").getAsJsonArray("goldenCompileClaimed");
 		assertEquals("fabric-26.2", golden.get(0).getAsString());
 		assertEquals("neoforge-26.2", golden.get(1).getAsString());
@@ -43,12 +46,23 @@ class ReleaseManifestTest {
 		assertEquals("neoforge-1.20.1", golden.get(7).getAsString());
 		assertEquals(8, golden.size());
 		assertEquals(0, actual.getAsJsonObject("claims").getAsJsonArray("generateReadyNotGolden").size());
+		JsonArray offline = actual.getAsJsonObject("claims").getAsJsonArray("offlineBuildClaimed");
+		assertEquals(7, offline.size());
+		assertEquals("fabric-26.2", offline.get(0).getAsString());
+		assertEquals("neoforge-26.2", offline.get(1).getAsString());
+		assertEquals("fabric-26.1.2", offline.get(2).getAsString());
+		assertEquals("neoforge-26.1.2", offline.get(3).getAsString());
+		assertEquals("fabric-1.21.1", offline.get(4).getAsString());
+		assertEquals("neoforge-1.21.1", offline.get(5).getAsString());
+		assertEquals("fabric-1.20.1", offline.get(6).getAsString());
+		assertFalse(offline.toString().contains("neoforge-1.20.1"));
 		assertFalse(actual.getAsJsonArray("knownLimitations").toString()
 				.contains("FABRIC_262_COMPILE_PREVIEW_NOT_GOLDEN"));
 		assertFalse(actual.getAsJsonArray("knownLimitations").toString()
 				.contains("NEOFORGE_1201_COMPILE_PROBE_NOT_GOLDEN"));
 		String limits = actual.getAsJsonArray("knownLimitations").toString();
-		assertTrue(limits.contains("HYPERV_GUEST_GUI_START_NOT_CLAIMED"));
+		assertFalse(limits.contains("HYPERV_GUEST_GUI_START_NOT_CLAIMED"));
+		assertTrue(limits.contains("OFFLINE_BUILD_NEOFORGE_1201_NOT_CLAIMED"));
 		assertTrue(limits.contains("RESOURCE_PACK_PREPARE_DOES_NOT_AUTO_LAUNCH"));
 		assertFalse(limits.contains("CLEAN_WINDOWS_HYPERV_GUEST_PENDING"));
 		assertFalse(limits.contains("CLEAN_WIN11_EXTERNAL_MACHINE_PENDING"));
@@ -75,7 +89,8 @@ class ReleaseManifestTest {
 		assertFalse(limits.contains("WINDOWS_10_MACHINE_RETEST_PENDING"));
 		assertTrue(coverage.contains("windows_10"));
 		JsonObject elements = actual.getAsJsonObject("elementCoverage");
-		assertEquals(4, elements.getAsJsonArray("firstPartySlice").size());
+		assertEquals(7, elements.getAsJsonArray("firstPartySlice").size());
+		assertTrue(elements.getAsJsonArray("firstPartySlice").toString().contains("function"));
 		assertTrue(elements.getAsJsonArray("unsupportedInNewUi").toString().contains("livingentity"));
 		assertEquals(19, actual.getAsJsonObject("upstreamTools").getAsJsonArray("tools").size());
 	}

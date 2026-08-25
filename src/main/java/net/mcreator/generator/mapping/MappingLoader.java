@@ -83,7 +83,10 @@ public class MappingLoader {
 
 		mappings.forEach((name, mapping) -> {
 			Set<?> mappingKeys = mapping.keySet();
+			Set<?> unsupported = mapping.get("_unsupported") instanceof Collection<?> values ? Set.copyOf(values)
+					: Set.of();
 			DataListLoader.loadDataList(name).stream().filter(entry -> mappingKeys.contains(entry.getName()))
+					.filter(entry -> !unsupported.contains(entry.getName()))
 					.forEach(dataListEntry -> dataListEntry.addSupportedGenerator(generatorConfiguration));
 		});
 	}

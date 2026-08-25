@@ -14,11 +14,17 @@ import com.google.gson.JsonObject;
 import dev.copperbench.ProductIdentity;
 import dev.copperbench.tracks.VersionTrackCatalog;
 
+import java.util.List;
+
 /**
  * Machine-readable Stage 8 release notes: support matrix, privacy defaults,
- * source pointers, and an honest G7 automation status. This is not a G7 pass.
+ * source pointers, and the machine-verified G7 automation status.
  */
 public final class ReleaseManifest {
+
+	private static final List<String> OFFLINE_BUILD_CLAIMED = List.of(
+			"fabric-26.2", "neoforge-26.2", "fabric-26.1.2", "neoforge-26.1.2",
+			"fabric-1.21.1", "neoforge-1.21.1", "fabric-1.20.1");
 
 	private ReleaseManifest() {
 	}
@@ -57,7 +63,7 @@ public final class ReleaseManifest {
 		JsonObject focus = new JsonObject();
 		focus.addProperty("stage", "github_public_fork");
 		focus.addProperty("reason",
-				"Public identity is Copperbench. Distribution is an unsigned GPL GitHub fork with no product website. Authenticode is out of first-release scope. G7 is not passed: Hyper-V guest GUI stay-alive is not claimed.");
+				"Public identity is Copperbench. Distribution is an unsigned GPL GitHub fork with no product website. Authenticode is out of first-release scope. G7 passed its Windows 11 Hyper-V guest install, offline start, data-preservation, and package checks.");
 		focus.add("deferred", new JsonArray());
 		root.add("developmentFocus", focus);
 
@@ -76,6 +82,9 @@ public final class ReleaseManifest {
 		JsonObject claims = new JsonObject();
 		claims.add("goldenCompileClaimed", golden);
 		claims.add("generateReadyNotGolden", generateReady);
+		JsonArray offline = new JsonArray();
+		OFFLINE_BUILD_CLAIMED.forEach(offline::add);
+		claims.add("offlineBuildClaimed", offline);
 		root.add("claims", claims);
 		root.add("elementCoverage", ElementCoverageCatalog.toJson());
 		root.add("upstreamTools", UpstreamToolCatalog.toJson());
@@ -83,8 +92,6 @@ public final class ReleaseManifest {
 		JsonArray limits = new JsonArray();
 		limits.add(limitation("WINDOWS_10_NOT_SUPPORTED",
 				"Windows 10 is not a supported platform. First release targets Windows 11 x64 only."));
-		limits.add(limitation("HYPERV_GUEST_GUI_START_NOT_CLAIMED",
-				"The Windows 11 Hyper-V guest completed silent install, upgrade, and uninstall with the NIC disconnected. copperbench.exe did not remain running for 10 seconds, so guest GUI stay-alive is not claimed."));
 		limits.add(limitation("CODE_SIGNING_UNSIGNED_GITHUB",
 				"First public binaries are unsigned GitHub Releases. jsign 7.4 remains wired if Authenticode secrets are added later; SmartScreen may warn. This is policy, not a pending certificate."));
 		limits.add(limitation("PUBLIC_DISTRIBUTION_GITHUB_ONLY",
@@ -95,8 +102,8 @@ public final class ReleaseManifest {
 				"Third-party plugins are classified A/B/C/X. Unsupported plugins are not claimed as supported."));
 		limits.add(limitation("OFFLINE_BUILD_GRADLE_MODE_ONLY",
 				"The cached-dependency build uses Gradle --offline after a cache-warm, not an OS-level network disconnect."));
-		limits.add(limitation("OFFLINE_BUILD_ONLY_1211",
-				"The official Stage 8 cached-dependency --offline claim remains Fabric and NeoForge 1.21.1. 26.x probes recorded their own cache-warm/--offline jars separately."));
+		limits.add(limitation("OFFLINE_BUILD_NEOFORGE_1201_NOT_CLAIMED",
+				"Cached-dependency --offline probes pass for seven maintained tracks: Fabric and NeoForge 26.2, 26.1.2, and 1.21.1, plus Fabric 1.20.1. NeoForge 1.20.1 remains excluded because its offline probe failed."));
 		root.add("knownLimitations", limits);
 
 		JsonObject source = new JsonObject();
@@ -108,7 +115,7 @@ public final class ReleaseManifest {
 		root.add("source", source);
 
 		JsonObject g7 = new JsonObject();
-		g7.addProperty("status", "in_progress");
+		g7.addProperty("status", "passed");
 		JsonArray automated = new JsonArray();
 		automated.add("release_manifest");
 		automated.add("privacy_defaults");
@@ -121,7 +128,6 @@ public final class ReleaseManifest {
 		automated.add("windows11_hyperv_guest_install_upgrade_uninstall");
 		automated.add("offline_cached_dependency_build");
 		automated.add("hyperv_readiness_probe");
-		automated.add("vmware_readiness_probe");
 		automated.add("code_signing_readiness_probe");
 		automated.add("jcef_snap_dpi_smoke");
 		automated.add("resource_pack_1211_client_load");

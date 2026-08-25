@@ -113,7 +113,7 @@ public class ModElement implements Serializable, IWorkspaceProvider, IGeneratorP
 	public void reinit(Workspace workspace) {
 		this.workspace = workspace;
 
-		if (type == null || this.getType() == ModElementType.UNKNOWN) {
+		if (type == null || this.getType().equals(ModElementType.UNKNOWN)) {
 			return;
 		}
 
@@ -217,7 +217,7 @@ public class ModElement implements Serializable, IWorkspaceProvider, IGeneratorP
 	}
 
 	public void setCodeLock(boolean codeLock) {
-		if (this.getType() == ModElementType.CODE && !codeLock)
+		if (this.getType().equals(ModElementType.CODE) && !codeLock)
 			return;
 		this.locked_code = codeLock;
 	}

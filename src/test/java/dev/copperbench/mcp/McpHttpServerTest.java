@@ -23,6 +23,7 @@ import dev.copperbench.core.workspace.RevisionedWorkspaceStore;
 import dev.copperbench.core.workspace.WorkspaceState;
 import dev.copperbench.history.JGitLocalHistoryService;
 import dev.copperbench.history.LocalHistoryService;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -50,6 +51,10 @@ class McpHttpServerTest {
 
 	private static final UUID WORKSPACE_ID = UUID.fromString("00000000-0000-4000-8000-000000000030");
 	private static final Clock CLOCK = Clock.fixed(Instant.parse("2026-08-17T00:00:00Z"), ZoneOffset.UTC);
+
+	@BeforeAll static void configureLogDirectory() {
+		System.setProperty("log_directory", System.getProperty("java.io.tmpdir"));
+	}
 
 	@TempDir Path workspace;
 
@@ -93,13 +98,26 @@ class McpHttpServerTest {
 					token.value(), sessionId, "http://localhost:5173");
 			assertEquals(200, tools.statusCode());
 			assertTrue(tools.body().contains("get_workspace"));
+			assertTrue(tools.body().contains("list_new_workspace_generators"));
+			assertTrue(tools.body().contains("create_workspace"));
 			assertTrue(tools.body().contains("preview_mod_element_change"));
+			assertTrue(tools.body().contains("get_procedure"));
+			assertTrue(tools.body().contains("preview_procedure_change"));
+			assertTrue(tools.body().contains("update_procedure"));
+			assertTrue(tools.body().contains("get_workspace_references"));
+			assertTrue(tools.body().contains("list_workspace_registries"));
+			assertTrue(tools.body().contains("preview_registry_rename"));
+			assertTrue(tools.body().contains("create_registry_entry"));
+			assertTrue(tools.body().contains("rename_registry_entry"));
 			assertTrue(tools.body().contains("create_mod_element"));
 			assertTrue(tools.body().contains("update_mod_element"));
 			assertTrue(tools.body().contains("delete_mod_element"));
 			assertTrue(tools.body().contains("generate_workspace"));
 			assertTrue(tools.body().contains("build_workspace"));
 			assertTrue(tools.body().contains("run_client"));
+			assertTrue(tools.body().contains("run_datagen"));
+			assertTrue(tools.body().contains("preview_datagen_output"));
+			assertTrue(tools.body().contains("publish_datagen_output"));
 			assertTrue(tools.body().contains("get_task"));
 			assertTrue(tools.body().contains("list_assets"));
 			assertTrue(tools.body().contains("inspect_asset_references"));
@@ -109,6 +127,24 @@ class McpHttpServerTest {
 					token.value(), sessionId, "http://localhost:5173");
 			assertEquals(200, workspaceResult.statusCode());
 			assertTrue(workspaceResult.body().contains("Copper Trails"));
+
+			HttpResponse<String> generatorsResult = post(endpoint,
+					"{\"jsonrpc\":\"2.0\",\"id\":33,\"method\":\"tools/call\",\"params\":{\"name\":\"list_new_workspace_generators\",\"arguments\":{}}}",
+					token.value(), sessionId, "http://localhost:5173");
+			JsonObject generators = toolResult(generatorsResult);
+			assertEquals("succeeded", generators.get("status").getAsString());
+			assertEquals(9, generators.getAsJsonObject("data").getAsJsonArray("generators").size());
+			assertTrue(generators.getAsJsonObject("data").getAsJsonArray("generators").toString()
+					.contains("resourcepack-1.21.1"));
+
+			HttpResponse<String> unapprovedCreate = post(endpoint,
+					"""
+					{"jsonrpc":"2.0","id":34,"method":"tools/call","params":{"name":"create_workspace","arguments":{"generatorId":"fabric-1.21.1","modName":"Copper Trails","modId":"copper_trails","workspaceFolderPath":"workspace/copper_trails","userApproved":false,"expectedRevision":0}}}
+					""",
+					token.value(), sessionId, "http://localhost:5173");
+			JsonObject unapproved = toolResult(unapprovedCreate);
+			assertEquals("rejected", unapproved.get("status").getAsString());
+			assertTrue(unapproved.getAsJsonArray("diagnostics").toString().contains("USER_APPROVAL_REQUIRED"));
 
 			HttpResponse<String> assetsResult = post(endpoint,
 					"{\"jsonrpc\":\"2.0\",\"id\":31,\"method\":\"tools/call\",\"params\":{\"name\":\"list_assets\",\"arguments\":{\"category\":\"MODEL\"}}}",

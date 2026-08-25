@@ -128,7 +128,7 @@ export const USER_GUIDE_SECTIONS: readonly UserGuideSection[] = [
     content: [
       '一个工作区同一时间只有一个活动生成器（Fabric 或 NeoForge 的某一个版本）。',
       '创建、打开、从官方 MCreator 迁入都走同一套 Java 服务。迁入会复制到新目录，并保留未知字段。',
-      '「新建工作区」在产品外壳原生完成：四轨 × Fabric/NeoForge 生成器选择、mod 名称/ID/包名/文件夹表单、确认门后提交 create_workspace 命令。当前 MCP 与 headless 还不能创建工作区。',
+      '「新建工作区」在产品外壳原生完成：四轨 × Fabric/NeoForge 生成器选择、mod 名称/ID/包名/文件夹表单、确认门后提交 create_workspace 命令。MCP 与 headless 也可查询生成器并提交创建命令，但必须显式提供用户批准事实。',
       '工作区文件扩展名仍是 .mcreator，以便兼容上游插件。用户设置在 %USERPROFILE%\\.copperbench。'
     ],
     linkView: 'new-workspace',
@@ -138,8 +138,8 @@ export const USER_GUIDE_SECTIONS: readonly UserGuideSection[] = [
     id: 'version-tracks',
     title: '版本轨道 (Version Tracks)',
     content: [
-      '四轨并进矩阵：第一方纵向切片覆盖 Fabric/NeoForge 的 26.2、26.1.2、1.21.1 与 1.20.1（编译 + runClient）。',
-      '可视化「新建工作区」生成器插件：Fabric 与 NeoForge 均有 26.2、26.1.2、1.21.1、1.20.1，产品外壳已原生接入。插件空工作区 Gradle 黄金编译尚未宣称，不能用第一方切片的 compile / runClient 证据替代。'
+      '版本轨道矩阵：第一方纵向切片的 Fabric / NeoForge 支持范围、编译证据与 runClient 状态均从 UI-Core 实时投影。',
+      '可视化「新建工作区」只展示 Core 当前提供的生成器插件与可用状态，不在界面中维护独立版本清单。插件空工作区 Gradle 黄金编译尚未宣称，不能用第一方切片的 compile / runClient 证据替代。'
     ],
     table: {
       headers: ['轨道', '状态', '原因代码 / 说明'],
@@ -190,7 +190,7 @@ export const USER_GUIDE_SECTIONS: readonly UserGuideSection[] = [
     content: [
       '模型和纹理可以往返 Blockbench。',
       '资源包可以导出 ZIP，并准备到 run/resourcepacks。',
-      '产品不会自动启动 Minecraft。Fabric 1.21.1 测试客户端已验证 ResourceManager 会加载该包。'
+      '产品不会自动启动 Minecraft。资源包是否可由测试客户端加载，以当前生成器轨道的验证状态为准。'
     ],
     linkView: 'assets',
     linkLabel: '打开资产与 Blockbench 集成'

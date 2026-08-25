@@ -117,7 +117,7 @@ public class TestWorkspaceDataProvider {
 			boolean uiTest, Random random) {
 		List<GeneratableElement> generatableElements = new ArrayList<>();
 
-		if (type == ModElementType.RECIPE) {
+		if (type.equals(ModElementType.RECIPE)) {
 			generatableElements.add(getRecipeExample(me(workspace, type, "1"), "Crafting", random, true));
 			generatableElements.add(getRecipeExample(me(workspace, type, "2"), "Crafting", random, false));
 			generatableElements.add(getRecipeExample(me(workspace, type, "3"), "Smelting", random, true));
@@ -127,7 +127,7 @@ public class TestWorkspaceDataProvider {
 			generatableElements.add(getRecipeExample(me(workspace, type, "7"), "Campfire cooking", random, true));
 			generatableElements.add(getRecipeExample(me(workspace, type, "8"), "Smithing", random, true));
 			generatableElements.add(getRecipeExample(me(workspace, type, "9"), "Brewing", random, true));
-		} else if (type == ModElementType.TOOL) {
+		} else if (type.equals(ModElementType.TOOL)) {
 			generatableElements.add(getToolExample(me(workspace, type, "1"), "Pickaxe", random, false, false));
 			generatableElements.add(getToolExample(me(workspace, type, "2"), "Pickaxe", random, true, false));
 			generatableElements.add(getToolExample(me(workspace, type, "3"), "Pickaxe", random, false, true));
@@ -141,7 +141,7 @@ public class TestWorkspaceDataProvider {
 			generatableElements.add(getToolExample(me(workspace, type, "11"), "Shears", random, true, false));
 			generatableElements.add(getToolExample(me(workspace, type, "12"), "Fishing rod", random, true, false));
 			generatableElements.add(getToolExample(me(workspace, type, "13"), "Shield", random, true, false));
-		} else if (type == ModElementType.BLOCK) {
+		} else if (type.equals(ModElementType.BLOCK)) {
 			generatableElements.add(getBlockExample(me(workspace, type, "1"), random, true, true, 0, null));
 			generatableElements.add(getBlockExample(me(workspace, type, "2"), random, true, false, 1, null));
 			generatableElements.add(getBlockExample(me(workspace, type, "3"), random, false, true, 2, null));
@@ -158,17 +158,17 @@ public class TestWorkspaceDataProvider {
 							getBlockExample(me(workspace, type, "" + ++idx), random, true, false, 1, blockBase));
 				}
 			}
-		} else if (type == ModElementType.TAB || type == ModElementType.VILLAGERPROFESSION
-				|| type == ModElementType.GAMERULE || type == ModElementType.BANNERPATTERN
-				|| type == ModElementType.DAMAGETYPE) {
+		} else if (type.equals(ModElementType.TAB) || type.equals(ModElementType.VILLAGERPROFESSION)
+				|| type.equals(ModElementType.GAMERULE) || type.equals(ModElementType.BANNERPATTERN)
+				|| type.equals(ModElementType.DAMAGETYPE)) {
 			generatableElements.add(getExampleFor(me(workspace, type, "1"), uiTest, random, true, true, 0));
 			generatableElements.add(getExampleFor(me(workspace, type, "2"), uiTest, random, false, false, 1));
-		} else if (type == ModElementType.COMMAND) {
+		} else if (type.equals(ModElementType.COMMAND)) {
 			generatableElements.add(getCommandExample(me(workspace, type, "1"), "STANDARD", random));
 			generatableElements.add(getCommandExample(me(workspace, type, "2"), "SINGLEPLAYER_ONLY", random));
 			generatableElements.add(getCommandExample(me(workspace, type, "3"), "MULTIPLAYER_ONLY", random));
 			generatableElements.add(getCommandExample(me(workspace, type, "4"), "CLIENTSIDE", random));
-		} else if (type == ModElementType.SPECIALENTITY) {
+		} else if (type.equals(ModElementType.SPECIALENTITY)) {
 			generatableElements.add(getSpecialEntityExample(me(workspace, type, "1"), random, "Boat", false));
 			generatableElements.add(getSpecialEntityExample(me(workspace, type, "2"), random, "Boat", true));
 			generatableElements.add(getSpecialEntityExample(me(workspace, type, "3"), random, "ChestBoat", false));
@@ -177,15 +177,16 @@ public class TestWorkspaceDataProvider {
 			generatableElements.add(getSpecialEntityExample(me(workspace, type, "6"), random, "Raft", true));
 			generatableElements.add(getSpecialEntityExample(me(workspace, type, "7"), random, "ChestRaft", false));
 			generatableElements.add(getSpecialEntityExample(me(workspace, type, "8"), random, "ChestRaft", true));
-		} else if (type == ModElementType.FUNCTION || type == ModElementType.PAINTING
-				|| type == ModElementType.PROCEDURE || type == ModElementType.FEATURE || type == ModElementType.CODE) {
+		} else if (type.equals(ModElementType.FUNCTION) || type.equals(ModElementType.PAINTING)
+				|| type.equals(ModElementType.PROCEDURE) || type.equals(ModElementType.FEATURE)
+				|| type.equals(ModElementType.CODE)) {
 			generatableElements.add(
 					getExampleFor(new ModElement(workspace, "Example" + type.getRegistryName(), type), uiTest, random,
 							true, true, 0));
-		} else if (type == ModElementType.ADVANCEMENT || type == ModElementType.ITEMEXTENSION
-				|| type == ModElementType.STRUCTURE || type == ModElementType.BEITEM || type == ModElementType.BEBLOCK
-				|| type == ModElementType.BESCRIPT || type == ModElementType.BEBIOME
-				|| type == ModElementType.BEENTITY) {
+		} else if (type.equals(ModElementType.ADVANCEMENT) || type.equals(ModElementType.ITEMEXTENSION)
+				|| type.equals(ModElementType.STRUCTURE) || type.equals(ModElementType.BEITEM)
+				|| type.equals(ModElementType.BEBLOCK) || type.equals(ModElementType.BESCRIPT)
+				|| type.equals(ModElementType.BEBIOME) || type.equals(ModElementType.BEENTITY)) {
 			generatableElements.add(getExampleFor(me(workspace, type, "1"), uiTest, random, true, true, 0));
 			generatableElements.add(getExampleFor(me(workspace, type, "2"), uiTest, random, true, false, 1));
 			generatableElements.add(getExampleFor(me(workspace, type, "3"), uiTest, random, false, true, 2));

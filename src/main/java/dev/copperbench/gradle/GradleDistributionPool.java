@@ -79,6 +79,10 @@ public final class GradleDistributionPool {
 	}
 
 	public static boolean seedForWorkspace(Path workspaceFolder, Path gradleHome) {
+		return seedForWorkspace(workspaceFolder, gradleHome, extraSearchRoots());
+	}
+
+	static boolean seedForWorkspace(Path workspaceFolder, Path gradleHome, List<Path> extraRoots) {
 		Path wrapper = workspaceFolder.resolve("gradle").resolve("wrapper").resolve("gradle-wrapper.properties");
 		if (!Files.isRegularFile(wrapper))
 			return false;
@@ -90,7 +94,7 @@ public final class GradleDistributionPool {
 			String url = properties.getProperty("distributionUrl");
 			if (url == null || url.isBlank())
 				return false;
-			return seedDistributionUrl(unescapeDistributionUrl(url), gradleHome, extraSearchRoots());
+			return seedDistributionUrl(unescapeDistributionUrl(url), gradleHome, extraRoots);
 		} catch (IOException e) {
 			LOG.warn("Failed to seed Gradle distribution for {}", workspaceFolder, e);
 			return false;

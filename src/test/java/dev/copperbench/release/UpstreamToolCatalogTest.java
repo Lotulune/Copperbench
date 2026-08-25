@@ -28,15 +28,15 @@ class UpstreamToolCatalogTest {
 	private static final UUID WORKSPACE_ID = UUID.fromString("11111111-1111-4111-8111-111111111150");
 	private static final Clock CLOCK = Clock.fixed(Instant.parse("2026-08-20T12:00:00Z"), ZoneOffset.UTC);
 
-	@Test void catalogRoutesTagsAndPackMakersToLegacyAndRejectsRemoteUpdates() {
+	@Test void catalogRoutesCreatorDataAndManagedValidationToTheNewUi() {
 		JsonObject json = UpstreamToolCatalog.toJson();
 		JsonArray tools = json.getAsJsonArray("tools");
 		assertEquals(19, tools.size());
-		assertEquals("legacy_window", surface(tools, "tags_variables_localization"));
+		assertEquals("new_ui", surface(tools, "tags_variables_localization"));
 		assertEquals("legacy_window", surface(tools, "pack_makers"));
 		assertEquals("new_ui", surface(tools, "mod_elements_first_party"));
 		assertEquals("unsupported", surface(tools, "mod_elements_other"));
-		assertEquals("unsupported", surface(tools, "run_server_debug_client"));
+		assertEquals("new_ui", surface(tools, "run_server_debug_client"));
 		assertEquals("not_applicable", surface(tools, "check_for_updates"));
 	}
 

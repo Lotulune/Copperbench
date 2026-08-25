@@ -1,0 +1,85 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "unsigned-release-package-alignment",
+  "requirements": [
+    "FR-CLOSE-01",
+    "FR-CLOSE-08"
+  ],
+  "completedAt": "2026-08-23",
+  "exportTask": "gradlew.bat exportWindows --no-daemon",
+  "exportedFrom": {
+    "gitHead": "02c221870cf0d801724b2d3be30471be5187cce4",
+    "worktreeChangesPresent": true
+  },
+  "artifacts": [
+    {
+      "id": "installer",
+      "path": "build/export/Copperbench 0.1.0 Windows 64bit.exe",
+      "bytes": 603509507,
+      "sha256": "ad559d47a5a8af7a19b5fbf97e615b3157c079bc615dfd7b74a958647654f908",
+      "signature": "NotSigned"
+    },
+    {
+      "id": "windowsZip",
+      "path": "build/export/Copperbench 0.1.0 Windows 64bit.zip",
+      "bytes": 774950019,
+      "sha256": "93908e9b4e1660fd1f2ba7111414eb6639b7b67cd945ea9cdda4036d0ae8c289"
+    },
+    {
+      "id": "portableExe",
+      "path": "build/export/win64/copperbench.exe",
+      "bytes": 6526227,
+      "sha256": "7c514117d6929239b226490b87ecb4fd4888c2eaeee59f1f5f8625e79ff1f81f",
+      "signature": "NotSigned"
+    }
+  ],
+  "layout": {
+    "status": "passed",
+    "missingRequiredEntries": [],
+    "sourceUserReadmeSha256": "44e5860ced0108b20c808d939ebbeec134634622d4309493d69996330ef2477a",
+    "exportedUserReadmeSha256": "44e5860ced0108b20c808d939ebbeec134634622d4309493d69996330ef2477a"
+  },
+  "plugins": {
+    "status": "passed",
+    "sourceInventoryCount": 11,
+    "exportedZipCount": 11,
+    "sourceAndExportNamesMatch": true,
+    "names": [
+      "mcreator-core",
+      "generator-1.20.1",
+      "generator-1.21.1",
+      "generator-26.1.x",
+      "generator-26.2",
+      "generator-addon-26.1x",
+      "generator-fabric-26.1.2",
+      "generator-fabric-26.2",
+      "mcreator-localization",
+      "mcreator-link",
+      "mcreator-themes"
+    ]
+  },
+  "unsignedPreview": {
+    "status": "passed",
+    "evidence": "evidence/stage-8/2026-08-23/unsigned-release-preview.json",
+    "isolatedInstallDir": "D:\\Copperbench-ReleasePreview-2026-08-23",
+    "existingInstallTouched": false
+  },
+  "stage8Verification": {
+    "functionalAndSchemaChecks": "passed",
+    "offlineChecks": "passed",
+    "installRehearsal": "passed",
+    "existingInstall": "D:\\Copperbench-ReleasePreview",
+    "authorization": "user_confirmed_existing_install_replacement",
+    "evidence": "evidence/stage-8/2026-08-23/windows11-install-rehearsal.json",
+    "workspaceAndUserDataPreserved": true,
+    "existingRegistrationRemoved": true,
+    "oldInstallDirectoryStillPresentUnregistered": true
+  },
+  "g7": {
+    "status": "passed",
+    "hypervGuestInstallLifecycle": "passed",
+    "hypervGuestGuiStayAliveClaimed": true,
+    "hypervEvidence": "evidence/stage-8/2026-08-23/hyperv-g7-guest-checks.json",
+    "vmware": "non_gating"
+  }
+}

@@ -7,12 +7,13 @@ import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.HexFormat;
 import java.util.Objects;
 
 /** Immutable, wire-safe identity and metadata for one workspace asset. */
 public record AssetDescriptor(String id, String relativePath, AssetCategory category, long size, String sha256,
-		String mediaType) {
+		String mediaType, Instant updatedAt) {
 
 	public AssetDescriptor {
 		Objects.requireNonNull(id, "id");
@@ -20,6 +21,7 @@ public record AssetDescriptor(String id, String relativePath, AssetCategory cate
 		Objects.requireNonNull(category, "category");
 		Objects.requireNonNull(sha256, "sha256");
 		Objects.requireNonNull(mediaType, "mediaType");
+		Objects.requireNonNull(updatedAt, "updatedAt");
 		if (!relativePath.equals(normalize(relativePath)) || relativePath.startsWith("/")
 				|| Path.of(relativePath).isAbsolute() || Path.of(relativePath).startsWith(".."))
 			throw new IllegalArgumentException("relativePath must be normalized and workspace-relative");
@@ -40,7 +42,7 @@ public record AssetDescriptor(String id, String relativePath, AssetCategory cate
 		String hash = sha256(realFile);
 		return new AssetDescriptor("asset:" + digest(relativePath.getBytes(StandardCharsets.UTF_8)), relativePath,
 				AssetCategory.fromRelativePath(relativePath),
-				Files.size(realFile), hash, mediaType(realFile));
+				Files.size(realFile), hash, mediaType(realFile), Files.getLastModifiedTime(realFile).toInstant());
 	}
 
 	private static String normalize(String path) {

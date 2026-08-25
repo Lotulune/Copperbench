@@ -38,15 +38,28 @@
         "create_mod_element",
         "update_mod_element",
         "delete_mod_element",
+        "update_procedure",
+        "create_registry_entry",
+        "update_registry_entry",
+        "delete_registry_entry",
+        "rename_registry_entry",
         "validate_workspace",
         "generate_workspace",
         "build_workspace",
         "export_workspace",
         "run_client",
+        "run_server",
+        "run_datagen",
+        "publish_datagen_output",
+        "run_gametest",
         "cancel_task",
         "create_recovery_point",
         "restore_recovery_point",
-        "resolve_operation_approval"
+        "resolve_operation_approval",
+        "execute_loader_migration",
+        "import_upstream_workspace",
+        "create_publish_batch",
+        "prepare_resource_pack_client"
       ]
     },
     "status": {
@@ -150,7 +163,8 @@
           "operation": {
             "enum": [
               "create_mod_element",
-              "update_mod_element"
+              "update_mod_element",
+              "update_procedure"
             ]
           },
           "status": {

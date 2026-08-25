@@ -1,7 +1,7 @@
 {
   "id": "fixture-c-swing",
   "weight": 0,
-  "supportedversions": [2026001],
+  "supportedversions": [2026002],
   "javaplugin": "fixtures.SwingPlugin",
   "info": {
     "name": "Fixture C Swing",

@@ -137,7 +137,7 @@ import static org.junit.jupiter.api.Assertions.*;
 			throws Exception {
 		for (ModElementType<?> modElementType : modElementTypesToTest) {
 
-			if (modElementType == ModElementType.CODE)
+			if (modElementType.equals(ModElementType.CODE))
 				continue; // does not have regular handling, so skip it
 
 			List<GeneratableElement> generatableElements = TestWorkspaceDataProvider.getModElementExamplesFor(

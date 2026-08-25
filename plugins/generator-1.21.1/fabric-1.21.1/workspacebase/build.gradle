@@ -1,5 +1,5 @@
 plugins {
-    id 'net.fabricmc.fabric-loom' version '1.17-SNAPSHOT'
+    id 'net.fabricmc.fabric-loom-remap' version '1.17.19'
 }
 
 version = '1.0'
@@ -12,10 +12,11 @@ loom {
 
 dependencies {
     minecraft "com.mojang:minecraft:${generator.getGeneratorMinecraftVersion()}"
-    implementation "net.fabricmc:fabric-loader:0.19.3"
+    mappings loom.officialMojangMappings()
+    modImplementation "net.fabricmc:fabric-loader:0.19.3"
 
     // Fabric API
-    implementation "net.fabricmc.fabric-api:fabric-api:${generator.getGeneratorBuildFileVersion()}+${generator.getGeneratorMinecraftVersion()}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${generator.getGeneratorBuildFileVersion()}+${generator.getGeneratorMinecraftVersion()}"
 }
 
 // We need to do this because MCreator doesn't allow to split armor textures in multiple folders

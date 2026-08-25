@@ -136,6 +136,11 @@ export const WorkspaceHub: React.FC = () => {
                 <AlertTriangle size={14} color="var(--badge-red)" style={{ flexShrink: 0, marginTop: '2px' }} />
                 <div style={{ fontSize: '12px', color: 'var(--text-main)', lineHeight: 1.5 }}>
                   {t(diagnostic.message)}
+                  {diagnostic.message.args?.failureId != null && (
+                    <code style={{ marginLeft: '8px', fontSize: '10px', color: 'var(--text-sub)' }}>
+                      错误编号：{String(diagnostic.message.args.failureId)}
+                    </code>
+                  )}
                 </div>
               </div>
               {diagnostic.actions.length > 0 && (
@@ -174,7 +179,7 @@ export const WorkspaceHub: React.FC = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <h1 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-main)' }}>
-              {workspace?.name || 'Minecraft Mod Workspace'}
+              {workspace?.name || t({ key: 'workspace.default_name', fallback: 'Minecraft Mod Workspace' })}
             </h1>
             <span className="badge badge-copper">修订 {workspace?.revision ?? 0}</span>
             <button
@@ -185,7 +190,7 @@ export const WorkspaceHub: React.FC = () => {
               style={{ cursor: 'pointer', border: '1px solid rgba(88, 166, 255, 0.3)' }}
               title="查看版本轨道与迁移矩阵"
             >
-              {workspace?.generator?.displayName || 'Fabric 1.21.1'}
+              {workspace?.generator?.displayName || '生成器信息不可用'}
             </button>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '12px', color: 'var(--text-muted)' }}>
@@ -241,7 +246,11 @@ export const WorkspaceHub: React.FC = () => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span style={{ fontWeight: 600, fontSize: '13px', color: 'var(--text-main)' }}>
-                  Task: {activeTasks[0].kind.toUpperCase()}
+                  {t({
+                    key: 'task.kind_label',
+                    fallback: 'Task: {kind}',
+                    args: { kind: activeTasks[0].kind.toUpperCase() }
+                  })}
                 </span>
                 <span className="badge badge-amber" style={{ fontSize: '10px' }}>
                   {t(activeTasks[0].stage)}
@@ -418,7 +427,8 @@ export const WorkspaceHub: React.FC = () => {
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {recentElements.map((elem) => (
-              <div
+              <button
+                type="button"
                 key={elem.id}
                 data-element-id={elem.id}
                 onClick={() => {
@@ -434,6 +444,8 @@ export const WorkspaceHub: React.FC = () => {
                   border: '1px solid var(--border-subtle)',
                   borderRadius: 'var(--radius-md)',
                   cursor: 'pointer',
+                  width: '100%',
+                  textAlign: 'left',
                   transition: 'all 0.15s ease'
                 }}
                 onMouseEnter={(e) => {
@@ -479,7 +491,7 @@ export const WorkspaceHub: React.FC = () => {
                     {elem.type.toUpperCase()}
                   </span>
                 </div>
-              </div>
+              </button>
             ))}
           </div>
         )}

@@ -121,12 +121,15 @@ import java.util.function.Consumer;
 		cache.remove(element);
 
 		// first we ask generator to remove all related files
-		if (element.getType() != ModElementType.UNKNOWN) {
+		if (!element.getType().equals(ModElementType.UNKNOWN)) {
 			GeneratableElement generatableElement = element.getGeneratableElement();
-			if (generatableElement != null && workspace.getGenerator() != null)
+			if (generatableElement == null) {
+				LOG.warn("Failed to load the definition while removing element {}", element);
+			} else if (workspace.getGenerator() != null) {
 				workspace.getGenerator().removeElementFilesAndWorkspaceLinks(generatableElement);
-			else
-				LOG.warn("Failed to remove element files for element {}", element);
+			} else {
+				LOG.debug("Skipping generated-file cleanup for element {} because no generator is loaded", element);
+			}
 		}
 
 		// remove any potential references to this mod element in tags
@@ -143,7 +146,7 @@ import java.util.function.Consumer;
 		if (modElementsInConversion.contains(element))
 			return new GeneratableElement.Unknown(element);
 
-		if (element.getType() == ModElementType.CODE) {
+		if (element.getType().equals(ModElementType.CODE)) {
 			return new CustomElement(element);
 		}
 
@@ -171,7 +174,7 @@ import java.util.function.Consumer;
 		String importJSON = FileIO.readFileToString(genFile);
 
 		GeneratableElement generatableElement = fromJSONtoGeneratableElementOrNull(importJSON, element);
-		if (generatableElement != null && element.getType() != ModElementType.UNKNOWN) {
+		if (generatableElement != null && !element.getType().equals(ModElementType.UNKNOWN)) {
 
 			// Store the mod element in case the conversion was applied
 			if (generatableElement.wasConversionApplied())

@@ -200,6 +200,7 @@ test.describe('JCEF Bridge & Host Transport Integration', () => {
               schemaVersion: '1.0',
               requestId: envelope.requestId,
               workspaceId,
+              operation: envelope.operation,
               status: 'committed',
               newRevision: 42,
               task: {
@@ -222,6 +223,7 @@ test.describe('JCEF Bridge & Host Transport Integration', () => {
             schemaVersion: '1.0',
             requestId: envelope.requestId,
             workspaceId,
+            operation: envelope.operation,
             status: 'committed',
             newRevision: 43,
             diagnostics: []
@@ -370,6 +372,33 @@ test.describe('JCEF Bridge & Host Transport Integration', () => {
     // Check that status footer reflects the update
     await expect(page.locator('[data-testid="status-footer"]')).toBeVisible();
     await expect(page.getByText('Native event delivered safely').first()).toBeVisible();
+
+    await page.evaluate(() => {
+      const eventJson = JSON.stringify({
+        messageType: 'event',
+        schemaVersion: '1.0',
+        sequence: 2002,
+        revision: 100,
+        workspaceId: '11111111-1111-4111-8111-111111111111',
+        event: 'mod_element_created',
+        payload: {
+          element: {
+            id: '22222222-2222-4222-8222-222222222299',
+            type: 'block',
+            name: 'event_lantern',
+            displayName: 'Event Lantern',
+            state: 'valid',
+            ownership: 'generated',
+            updatedAt: '2026-08-24T03:00:00Z',
+            diagnostics: { error: 0, warning: 0, info: 0 }
+          }
+        }
+      });
+      window.__COPPERBENCH_EMIT_EVENT__?.(eventJson);
+    });
+
+    await expect(page.getByText('Event Lantern').first()).toBeVisible();
+    await expect(page.locator('[data-testid="nav-elements"]')).toContainText('1');
   });
 
   test('detects window.cefQuery and __COPPERBENCH_WORKSPACE_ID__ for query routing and error handling', async ({ page }) => {

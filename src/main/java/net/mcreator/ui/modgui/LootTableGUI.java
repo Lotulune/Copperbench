@@ -100,7 +100,7 @@ public class LootTableGUI extends ModElementGUI<LootTable> {
 			for (ModElement me : mcreator.getWorkspace().getModElements()) {
 				if (me.getBaseTypesProvided().contains(BaseType.BLOCK)) {
 					name.addItem("blocks/" + me.getRegistryName());
-				} else if (me.getType() == ModElementType.LIVINGENTITY) {
+				} else if (me.getType().equals(ModElementType.LIVINGENTITY)) {
 					name.addItem("entities/" + me.getRegistryName());
 				}
 			}

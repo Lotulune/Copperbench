@@ -29,9 +29,16 @@
       "enum": [
         "get_workbench",
         "list_new_workspace_generators",
+        "list_assets",
         "list_mod_elements",
         "get_mod_element_editor",
         "preview_mod_element_change",
+        "get_procedure_editor",
+        "preview_procedure_change",
+        "get_workspace_references",
+        "list_workspace_registries",
+        "preview_registry_rename",
+        "preview_datagen_output",
         "get_task",
         "get_history",
         "get_diff",
@@ -51,6 +58,15 @@
     }
   },
   "allOf": [
+    {
+      "if": {
+        "properties": {"operation": {"const": "preview_datagen_output"}},
+        "required": ["operation"]
+      },
+      "then": {
+        "properties": {"payload": {"$ref": "#/$defs/datagenTaskPayload"}}
+      }
+    },
     {
       "if": {
         "properties": {
@@ -74,7 +90,113 @@
       "if": {
         "properties": {
           "operation": {
+            "const": "list_workspace_registries"
+          }
+        },
+        "required": ["operation"]
+      },
+      "then": {
+        "properties": {
+          "payload": {"$ref": "#/$defs/registryListPayload"}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "preview_registry_rename"
+          }
+        },
+        "required": ["operation"]
+      },
+      "then": {
+        "properties": {
+          "payload": {"$ref": "#/$defs/registryRenamePayload"}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "get_procedure_editor"
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/elementPayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "preview_procedure_change"
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/procedurePreviewPayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "get_workspace_references"
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/referencePayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
             "const": "list_new_workspace_generators"
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/emptyPayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "list_assets"
           }
         },
         "required": [
@@ -362,6 +484,61 @@
           "type": "integer",
           "minimum": 0
         }
+      },
+      "additionalProperties": false
+    },
+    "datagenTaskPayload": {
+      "type": "object",
+      "required": ["taskId"],
+      "properties": {
+        "taskId": {"$ref": "urn:ui-core:1.0:common#/$defs/uuid"}
+      },
+      "additionalProperties": false
+    },
+    "procedurePreviewPayload": {
+      "type": "object",
+      "required": [
+        "elementId",
+        "edits"
+      ],
+      "properties": {
+        "elementId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+        },
+        "edits": {
+          "type": "array",
+          "items": {
+            "$ref": "urn:ui-core:1.0:command#/$defs/procedureEdit"
+          },
+          "minItems": 1,
+          "maxItems": 2000
+        }
+      },
+      "additionalProperties": false
+    },
+    "referencePayload": {
+      "type": "object",
+      "properties": {
+        "target": {
+          "type": "string",
+          "maxLength": 256
+        }
+      },
+      "additionalProperties": false
+    },
+    "registryListPayload": {
+      "type": "object",
+      "properties": {
+        "registry": {"type": "string", "enum": ["variables", "tags", "languageKeys"]}
+      },
+      "additionalProperties": false
+    },
+    "registryRenamePayload": {
+      "type": "object",
+      "required": ["entryId", "newName"],
+      "properties": {
+        "entryId": {"$ref": "urn:ui-core:1.0:common#/$defs/uuid"},
+        "newName": {"type": "string", "minLength": 1, "maxLength": 256}
       },
       "additionalProperties": false
     },

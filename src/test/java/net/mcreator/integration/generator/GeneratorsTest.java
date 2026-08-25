@@ -33,6 +33,7 @@ import net.mcreator.integration.IntegrationTestSetup;
 import net.mcreator.integration.TestWorkspaceDataProvider;
 import net.mcreator.io.FileIO;
 import net.mcreator.plugin.PluginLoader;
+import net.mcreator.preferences.PreferencesManager;
 import net.mcreator.ui.MCreator;
 import net.mcreator.ui.dialogs.tools.MaterialPackMakerTool;
 import net.mcreator.ui.dialogs.tools.WoodPackMakerTool;
@@ -46,7 +47,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.DynamicContainer;
 import org.junit.jupiter.api.DynamicTest;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.TestFactory;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.awt.*;
@@ -54,21 +57,38 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
-@ExtendWith(IntegrationTestSetup.class) public class GeneratorsTest {
+@ExtendWith(IntegrationTestSetup.class) @TestInstance(TestInstance.Lifecycle.PER_CLASS) public class GeneratorsTest {
 
 	private static final Logger LOG = LogManager.getLogger("Generator Test");
+	private static final String PROFILE_PROPERTY = "copperbench.generatorIntegrationProfile";
+	private static final String PROFILE_ENVIRONMENT = "MCREATOR_GENERATOR_INTEGRATION_PROFILE";
+	private static final Duration SETUP_TIMEOUT = timeout("copperbench.generatorSetupTimeoutMinutes", 10);
+	private static final Duration TASK_TIMEOUT = timeout("copperbench.generatorTaskTimeoutMinutes", 20);
+	private Boolean previousOffline;
 
 	public @TestFactory Stream<DynamicContainer> testGenerators() {
+		GeneratorIntegrationProfile profile = GeneratorIntegrationProfile.current();
+		LOG.info("Generator integration profile: {}", profile.id);
+		if (profile == GeneratorIntegrationProfile.LOCAL) {
+			return Stream.of(DynamicContainer.dynamicContainer("Generator integration profile: local",
+					Stream.of(DynamicTest.dynamicTest("External Gradle integration is explicitly disabled", () ->
+							assumeTrue(false, "Use -D" + PROFILE_PROPERTY + "=offline or external to run it")))));
+		}
+		previousOffline = PreferencesManager.PREFERENCES.gradle.offline.get();
+		PreferencesManager.PREFERENCES.gradle.offline.set(profile == GeneratorIntegrationProfile.OFFLINE);
 		long rgenseed = System.currentTimeMillis();
 		Random random = new Random(rgenseed);
 		LOG.info("Random number generator seed: {}", rgenseed);
@@ -94,7 +114,7 @@ import static org.junit.jupiter.api.Assertions.*;
 			}
 		}).toList();
 
-		LOG.info("Generators found: {}", fileNamesSorted);
+		LOG.info("Generators selected for {} profile: {}", profile.id, fileNamesSorted);
 
 		return fileNamesSorted.stream()
 				.map(generatorFile -> Generator.GENERATOR_CACHE.get(generatorFile.replace("/generator.yaml", "")))
@@ -107,6 +127,8 @@ import static org.junit.jupiter.api.Assertions.*;
 					AtomicReference<MCreator> mcreator = new AtomicReference<>();
 
 					tests.add(DynamicTest.dynamicTest(generator + " - Workspace setup", () -> {
+						LOG.info("[{}] Starting workspace setup (profile={}, timeout={})", generator, profile.id,
+								SETUP_TIMEOUT);
 						// create temporary directory
 						File workspaceDir = Files.createTempDirectory("mcreator_test_workspace").toFile();
 
@@ -117,23 +139,27 @@ import static org.junit.jupiter.api.Assertions.*;
 						WorkspaceGeneratorSetup.setupWorkspaceBase(workspace.get());
 
 						CountDownLatch latch = new CountDownLatch(1);
+						AtomicReference<GradleResultCode> setupResult = new AtomicReference<>();
 						mcreator.set(MCreator.create(null, workspace.get()));
 						mcreator.get().getGradleConsole().exec(GradleConsole.GRADLE_SYNC_TASK, taskResult -> {
-							if (taskResult == GradleResultCode.STATUS_OK) {
-								workspace.get().getGenerator().reloadGradleCaches();
-								latch.countDown();
-							} else {
-								latch.countDown();
-								fail("Gradle MDK setup failed!");
-							}
+							setupResult.set(taskResult);
+							latch.countDown();
 						});
-						latch.await();
+						if (!latch.await(SETUP_TIMEOUT.toMillis(), TimeUnit.MILLISECONDS)) {
+							mcreator.get().getGradleConsole().cancelTask();
+							fail(generator + " Gradle setup timed out after " + SETUP_TIMEOUT + " (profile="
+									+ profile.id + ")");
+						}
+						assertEquals(GradleResultCode.STATUS_OK, setupResult.get(),
+								generator + " Gradle MDK setup failed (profile=" + profile.id + ")");
+						workspace.get().getGenerator().reloadGradleCaches();
 
 						// Attach a blank file watcher to also test its operation
 						workspace.get().getGenerator().getFileWatcher()
 								.watchFolder(GeneratorUtils.getResourceRoot(workspace.get(), generatorConfiguration));
 						workspace.get().getGenerator().getFileWatcher().addListener(changedFiles -> {
 						});
+						LOG.info("[{}] Workspace setup completed (profile={})", generator, profile.id);
 					}));
 
 					if (generatorConfiguration.getSpecificRoot("vanilla_block_textures_dir") != null) {
@@ -245,13 +271,13 @@ import static org.junit.jupiter.api.Assertions.*;
 
 						// Verify Java files
 						tests.add(DynamicTest.dynamicTest(generator + " - Testing workspace build with mod elements",
-								() -> GTBuild.runTest(LOG, generator, workspace.get())));
+								() -> GTBuild.runTest(LOG, generator, workspace.get(), TASK_TIMEOUT)));
 
 						// We only run server tests if we are not in GitHub Actions (their workers are too slow for this)
 						if (generatorConfiguration.getGradleTaskFor("run_server") != null
 								&& !TestUtil.isRunningInGitHubActions()) {
 							tests.add(DynamicTest.dynamicTest(generator + " - Testing server run",
-									() -> GTServerRun.runTest(LOG, generator, workspace.get())));
+									() -> GTServerRun.runTest(LOG, generator, workspace.get(), TASK_TIMEOUT)));
 						}
 					}
 
@@ -261,8 +287,40 @@ import static org.junit.jupiter.api.Assertions.*;
 						FileIO.deleteDir(workspace.get().getWorkspaceFolder());
 					}));
 
-					return DynamicContainer.dynamicContainer("Test generator: " + generator, tests);
+					LOG.info("[{}] Registered {} reported phases (profile={})", generator, tests.size(), profile.id);
+					return DynamicContainer.dynamicContainer("Test generator: " + generator + " [" + profile.id + "]", tests);
 				});
+	}
+
+	@AfterAll void restoreOfflinePreference() {
+		if (previousOffline != null) PreferencesManager.PREFERENCES.gradle.offline.set(previousOffline);
+	}
+
+	private static Duration timeout(String property, long defaultMinutes) {
+		long minutes = Long.getLong(property, defaultMinutes);
+		if (minutes <= 0) throw new IllegalArgumentException(property + " must be greater than zero");
+		return Duration.ofMinutes(minutes);
+	}
+
+	private enum GeneratorIntegrationProfile {
+		LOCAL("local"), OFFLINE("offline"), EXTERNAL("external");
+
+		private final String id;
+
+		GeneratorIntegrationProfile(String id) {
+			this.id = id;
+		}
+
+		private static GeneratorIntegrationProfile current() {
+			String configured = System.getProperty(PROFILE_PROPERTY);
+			if (configured == null || configured.isBlank()) configured = System.getenv(PROFILE_ENVIRONMENT);
+			if (configured == null || configured.isBlank()) return LOCAL;
+			String requested = configured;
+			String normalized = requested.trim().toLowerCase(Locale.ROOT);
+			return Arrays.stream(values()).filter(profile -> profile.id.equals(normalized)).findFirst()
+					.orElseThrow(() -> new IllegalArgumentException("Unsupported generator integration profile: "
+							+ requested + ". Expected local, offline, or external."));
+		}
 	}
 
 	private void verifyGeneratedJSON(Workspace workspace) throws IOException {

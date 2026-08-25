@@ -10,6 +10,7 @@ import java.nio.file.Path;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -119,5 +120,32 @@ class AssetWorkspaceServiceTest {
 		assertEquals(List.of("assets/copperbench/models/block/cube_all.json",
 				"assets/copperbench/textures/block/copper_lamp.png"),
 				outgoing.stream().map(AssetReference::targetPath).sorted().toList());
+	}
+
+	@Test
+	void resolvesGeneratedResourceRootsAndIgnoresBuildAndSourceTrees() throws IOException {
+		Path model = workspace.resolve("src/main/resources/assets/copperbench/models/block/generated.json");
+		Path texture = workspace.resolve("src/main/resources/assets/copperbench/textures/block/generated.png");
+		Path buildDocument = workspace.resolve("build/generated/broken.json");
+		Path javaSource = workspace.resolve("src/main/java/dev/copperbench/Generated.java");
+		Files.createDirectories(model.getParent());
+		Files.createDirectories(texture.getParent());
+		Files.createDirectories(buildDocument.getParent());
+		Files.createDirectories(javaSource.getParent());
+		Files.writeString(model, "{\"textures\":{\"all\":\"copperbench:block/generated\"}}");
+		Files.write(texture, new byte[] { 5, 6, 7 });
+		Files.writeString(buildDocument, "{broken");
+		Files.writeString(javaSource, "class Generated {}");
+
+		AssetReferenceGraph graph = new AssetWorkspaceService(workspace).referenceGraph();
+
+		assertTrue(graph.assets().stream().anyMatch(asset -> asset.relativePath().equals(
+				"src/main/resources/assets/copperbench/models/block/generated.json")
+				&& asset.updatedAt() != null));
+		assertTrue(graph.references().stream().anyMatch(reference -> reference.targetPath().equals(
+				"src/main/resources/assets/copperbench/textures/block/generated.png")));
+		assertFalse(graph.assets().stream().anyMatch(asset -> asset.relativePath().startsWith("build/")
+				|| asset.relativePath().startsWith("src/main/java/")));
+		assertFalse(graph.diagnostics().stream().anyMatch(diagnostic -> diagnostic.sourcePath().startsWith("build/")));
 	}
 }

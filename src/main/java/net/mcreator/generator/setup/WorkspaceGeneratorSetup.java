@@ -138,12 +138,25 @@ public class WorkspaceGeneratorSetup {
 	}
 
 	public static void setupWorkspaceBase(Workspace workspace) {
+		setupWorkspaceBase(workspace, false);
+	}
+
+	public static void setupWorkspaceBaseOrThrow(Workspace workspace) {
+		setupWorkspaceBase(workspace, true);
+	}
+
+	private static void setupWorkspaceBase(Workspace workspace, boolean failOnCopyError) {
 		Set<String> fileNames = PluginLoader.INSTANCE.getResourcesInPackage(
 				workspace.getGenerator().getGeneratorName() + ".workspacebase");
+		if (failOnCopyError && fileNames.isEmpty())
+			throw new IllegalStateException("Workspace base has no files for "
+					+ workspace.getGenerator().getGeneratorName());
 		for (String file : fileNames) {
-			try {
-				InputStream stream = PluginLoader.INSTANCE.getResourceAsStream(file);
-				if (stream != null) {
+			try (InputStream stream = PluginLoader.INSTANCE.getResourceAsStream(file)) {
+				if (stream == null) {
+					if (failOnCopyError)
+						throw new IOException("Workspace base resource is missing: " + file);
+				} else {
 					File outFile = new File(workspace.getWorkspaceFolder(),
 							file.replace(workspace.getGenerator().getGeneratorName() + "/workspacebase", ""));
 					if (file.endsWith(".gradle") || file.endsWith(".properties") || file.endsWith(".txt")) {
@@ -156,9 +169,10 @@ public class WorkspaceGeneratorSetup {
 					} else {
 						FileUtils.copyInputStreamToFile(stream, outFile);
 					}
-					stream.close();
 				}
 			} catch (Exception e) {
+				if (failOnCopyError)
+					throw new IllegalStateException("Failed to copy workspace base file: " + file, e);
 				LOG.error("Failed to copy workspace base file", e);
 			}
 		}

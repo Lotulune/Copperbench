@@ -665,7 +665,7 @@ public class ProcedureGUI extends ModElementGUI<net.mcreator.element.types.Proce
 				mcreator.getGenerator().generateElement(element.getGeneratableElement());
 
 				// Procedure may call other procedures that also need updating
-				if (element.getType() == ModElementType.PROCEDURE) {
+				if (element.getType().equals(ModElementType.PROCEDURE)) {
 					regenerateProcedureCallers(element, recursionLock);
 				}
 			}

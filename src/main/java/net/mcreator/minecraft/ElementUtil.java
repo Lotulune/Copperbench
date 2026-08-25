@@ -298,12 +298,12 @@ public class ElementUtil {
 		put("attributes", workspace -> getCustomElementsOfType(workspace, ModElementType.ATTRIBUTE));
 		put("damagesources", workspace -> getCustomElementsOfType(workspace, ModElementType.DAMAGETYPE));
 		put("gamerules_boolean", workspace -> getCustomElements(workspace, modelement -> {
-			if (modelement.getType() == ModElementType.GAMERULE)
+			if (modelement.getType().equals(ModElementType.GAMERULE))
 				return VariableTypeLoader.BuiltInTypes.LOGIC.getName().equals(modelement.getMetadata("type"));
 			return false;
 		}));
 		put("gamerules_number", workspace -> getCustomElements(workspace, modelement -> {
-			if (modelement.getType() == ModElementType.GAMERULE)
+			if (modelement.getType().equals(ModElementType.GAMERULE))
 				return VariableTypeLoader.BuiltInTypes.NUMBER.getName().equals(modelement.getMetadata("type"));
 			return false;
 		}));

@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "workspace-generator-golden-build",
+  "requirement": "FR-CLOSE-04",
+  "completedAt": "2026-08-23",
+  "testClass": "dev.copperbench.generator.workspace.NewWorkspaceGeneratorGoldenBuildTest",
+  "command": "gradlew.bat test --tests dev.copperbench.generator.workspace.NewWorkspaceGeneratorGoldenBuildTest -Dcopperbench.stage8.workspaceGeneratorBuild=true",
+  "scope": "empty workspace with no mod elements",
+  "allPassed": true,
+  "generators": [
+    {
+      "id": "fabric-26.2",
+      "status": "passed",
+      "log": "build/stage8-workspace-generator-logs/fabric-26.2.log"
+    },
+    {
+      "id": "neoforge-26.2",
+      "status": "passed",
+      "log": "build/stage8-workspace-generator-logs/neoforge-26.2.log"
+    },
+    {
+      "id": "fabric-26.1.2",
+      "status": "passed",
+      "log": "build/stage8-workspace-generator-logs/fabric-26.1.2.log"
+    },
+    {
+      "id": "neoforge-26.1.2",
+      "status": "passed",
+      "log": "build/stage8-workspace-generator-logs/neoforge-26.1.2.log"
+    },
+    {
+      "id": "fabric-1.21.1",
+      "status": "passed",
+      "log": "build/stage8-workspace-generator-logs/fabric-1.21.1.log"
+    },
+    {
+      "id": "neoforge-1.21.1",
+      "status": "passed",
+      "log": "build/stage8-workspace-generator-logs/neoforge-1.21.1.log"
+    },
+    {
+      "id": "fabric-1.20.1",
+      "status": "passed",
+      "log": "build/stage8-workspace-generator-logs/fabric-1.20.1.log"
+    },
+    {
+      "id": "neoforge-1.20.1",
+      "status": "passed",
+      "log": "build/stage8-workspace-generator-logs/neoforge-1.20.1.log"
+    }
+  ]
+}

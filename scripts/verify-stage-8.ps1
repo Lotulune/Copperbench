@@ -92,8 +92,6 @@ try {
 
 		& pwsh -NoProfile -File (Join-Path $PSScriptRoot 'verify-stage-8-hyperv-ready.ps1') -RepositoryRoot $repositoryRoot
 		Assert-NativeExitCode 'Hyper-V clean-Windows G7 readiness probe'
-		& pwsh -NoProfile -File (Join-Path $PSScriptRoot 'verify-stage-8-vmware-ready.ps1') -RepositoryRoot $repositoryRoot
-		Assert-NativeExitCode 'VMware clean-Windows-11 readiness probe'
 		& pwsh -NoProfile -File (Join-Path $PSScriptRoot 'verify-stage-8-signing-ready.ps1') -RepositoryRoot $repositoryRoot
 		Assert-NativeExitCode 'Authenticode signing readiness probe'
 

@@ -18,15 +18,17 @@ import java.util.Set;
 /**
  * Honest first-release mod-element matrix. Bundled generator plugins still
  * contain upstream templates; the new UI/MCP/headless first-party slice is
- * block, item, recipe, and procedure on every Java generator.
+ * block, item, recipe, procedure, function, loot table, and advancement. The
+ * Stage 9 generator matrix remains a separate release gate.
  */
 public final class ElementCoverageCatalog {
 
-	public static final List<String> FIRST_PARTY_SLICE = List.of("block", "item", "recipe", "procedure");
+	public static final List<String> FIRST_PARTY_SLICE = List.of("block", "item", "recipe", "procedure", "function",
+			"loottable", "achievement");
 
-	public static final List<String> UNSUPPORTED_IN_NEW_UI = List.of("achievement", "armor", "armortrim", "attribute",
+	public static final List<String> UNSUPPORTED_IN_NEW_UI = List.of("armor", "armortrim", "attribute",
 			"bannerpattern", "biome", "code", "command", "damagetype", "dimension", "enchantment", "feature", "fluid",
-			"function", "gamerule", "gui", "itemextension", "keybind", "livingentity", "loottable", "overlay",
+			"gamerule", "gui", "itemextension", "keybind", "livingentity", "overlay",
 			"painting", "particle", "plant", "potion", "potioneffect", "projectile", "specialentity", "structure",
 			"tab", "tool", "villagerprofession", "villagertrade");
 
@@ -48,9 +50,10 @@ public final class ElementCoverageCatalog {
 		root.add("firstPartySlice", strings(FIRST_PARTY_SLICE));
 		root.add("unsupportedInNewUi", strings(UNSUPPORTED_IN_NEW_UI));
 		root.add("bedrockAddonNotApplicable", strings(BEDROCK_ADDON_NOT_APPLICABLE));
-		root.addProperty("appliesToGenerators", "all eight first-party Fabric and NeoForge generators");
+		root.addProperty("appliesToGenerators",
+				"shared Java application service; generator-specific Stage 9 validation pending");
 		root.addProperty("notes",
-				"Create and update in the new UI, MCP, and headless accept only the first-party slice. Imported upstream types are preserved and listed, but the editor is read-only and updates are rejected.");
+				"Create and update in the new UI, MCP, and headless accept only the first-party slice. Function, loot table, and advancement are Stage 9 development-preview CRUD until the eight-generator golden gate passes. Imported upstream types are preserved and listed, but the editor is read-only and updates are rejected.");
 		return root;
 	}
 

@@ -518,7 +518,7 @@ public class BEScriptGUI extends ModElementGUI<BEScript>
 
 	private void fixScriptReferences(ModElement beScript, String triggerTypeBeforeEdit) {
 		for (ModElement element : ReferencesFinder.searchModElementUsages(mcreator.getWorkspace(), beScript)) {
-			if (triggerTypeBeforeEdit.equals("block") && element.getType() == ModElementType.BEBLOCK) {
+			if (triggerTypeBeforeEdit.equals("block") && element.getType().equals(ModElementType.BEBLOCK)) {
 				if (element.getGeneratableElement() instanceof BEBlock beBlock) {
 					beBlock.localScripts.remove(beScript.getName());
 					LOG.info("Regenerating BEBlock {} because it referenced script {}", element.getName(),
@@ -526,7 +526,7 @@ public class BEScriptGUI extends ModElementGUI<BEScript>
 					mcreator.getGenerator().generateElement(element.getGeneratableElement());
 					mcreator.getWorkspace().getModElementManager().storeModElement(beBlock);
 				}
-			} else if (triggerTypeBeforeEdit.equals("item") && element.getType() == ModElementType.BEITEM) {
+			} else if (triggerTypeBeforeEdit.equals("item") && element.getType().equals(ModElementType.BEITEM)) {
 				if (element.getGeneratableElement() instanceof BEItem beItem) {
 					beItem.localScripts.remove(beScript.getName());
 					LOG.info("Regenerating BEItem {} because it referenced script {}", element.getName(),

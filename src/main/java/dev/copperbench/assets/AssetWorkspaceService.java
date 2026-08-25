@@ -46,10 +46,10 @@ public final class AssetWorkspaceService {
 		return root;
 	}
 
-	/** Lists all regular files in deterministic workspace-relative path order. */
+	/** Lists supported files from known asset roots in deterministic workspace-relative path order. */
 	public List<AssetDescriptor> list() {
 		try (Stream<Path> paths = Files.walk(root)) {
-			return paths.filter(Files::isRegularFile).filter(path -> !isInternalPath(path)).map(this::descriptor)
+			return paths.filter(Files::isRegularFile).filter(this::isAssetPath).map(this::descriptor)
 					.sorted(Comparator.comparing(AssetDescriptor::relativePath))
 					.toList();
 		} catch (IOException exception) {
@@ -57,9 +57,13 @@ public final class AssetWorkspaceService {
 		}
 	}
 
-	private boolean isInternalPath(Path path) {
-		Path relative = root.relativize(path);
-		return relative.getNameCount() > 0 && relative.getName(0).toString().equals(".copperbench");
+	private boolean isAssetPath(Path path) {
+		String relative = root.relativize(path).toString().replace('\\', '/');
+		return relative.startsWith("assets/") || relative.startsWith("models/")
+				|| relative.startsWith("resourcepacks/") || relative.startsWith("src/main/resources/assets/")
+				|| relative.startsWith("src/main/assets/") || relative.equals("pack.mcmeta")
+				|| relative.equals("pack.png") || relative.equals("src/main/pack.mcmeta")
+				|| relative.equals("src/main/pack.png");
 	}
 
 	/** Alias used by query adapters that expose the catalog as an asset collection. */
@@ -248,6 +252,9 @@ public final class AssetWorkspaceService {
 				candidate = expectedPrefix + candidate;
 			candidate = "assets/" + namespace + "/" + candidate;
 		}
+		String resourceRoot = resourceRoot(sourcePath);
+		if (!resourceRoot.isEmpty() && candidate.startsWith("assets/"))
+			candidate = resourceRoot + candidate;
 		String lower = candidate.toLowerCase(Locale.ROOT);
 		if (!hasExtension(lower)) {
 			if (lower.contains("/textures/")) candidate += ".png";
@@ -262,7 +269,21 @@ public final class AssetWorkspaceService {
 
 	private static String namespace(String sourcePath) {
 		String[] parts = sourcePath.split("/");
-		return parts.length >= 2 && parts[0].equals("assets") ? parts[1] : "minecraft";
+		for (int index = 0; index + 1 < parts.length; index++) {
+			if (parts[index].equals("assets")) return parts[index + 1];
+		}
+		return "minecraft";
+	}
+
+	private static String resourceRoot(String sourcePath) {
+		String[] parts = sourcePath.split("/");
+		for (int index = 0; index < parts.length; index++) {
+			if (parts[index].equals("assets")) {
+				if (index == 0) return "";
+				return String.join("/", java.util.Arrays.copyOfRange(parts, 0, index)) + "/";
+			}
+		}
+		return "";
 	}
 
 	private static boolean hasExtension(String value) {

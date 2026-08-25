@@ -35,11 +35,20 @@
         "create_mod_element",
         "update_mod_element",
         "delete_mod_element",
+        "update_procedure",
+        "create_registry_entry",
+        "update_registry_entry",
+        "delete_registry_entry",
+        "rename_registry_entry",
         "validate_workspace",
         "generate_workspace",
         "build_workspace",
         "export_workspace",
         "run_client",
+        "run_server",
+        "run_datagen",
+        "publish_datagen_output",
+        "run_gametest",
         "cancel_task",
         "create_recovery_point",
         "restore_recovery_point",
@@ -57,6 +66,15 @@
   "allOf": [
     {
       "if": {
+        "properties": {"operation": {"const": "publish_datagen_output"}},
+        "required": ["operation"]
+      },
+      "then": {
+        "properties": {"payload": {"$ref": "#/$defs/publishDatagenPayload"}}
+      }
+    },
+    {
+      "if": {
         "properties": {
           "operation": {
             "const": "create_workspace"
@@ -70,6 +88,49 @@
         "properties": {
           "payload": {
             "$ref": "#/$defs/createWorkspacePayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "enum": [
+              "create_registry_entry",
+              "update_registry_entry",
+              "delete_registry_entry",
+              "rename_registry_entry"
+            ]
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/registryMutationPayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "update_procedure"
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/updateProcedurePayload"
           }
         }
       }
@@ -141,6 +202,8 @@
               "build_workspace",
               "export_workspace",
               "run_client"
+              ,"run_datagen"
+              ,"run_gametest"
             ]
           }
         },
@@ -154,6 +217,15 @@
             "$ref": "#/$defs/workspaceTaskPayload"
           }
         }
+      }
+    },
+    {
+      "if": {
+        "properties": {"operation": {"const": "run_server"}},
+        "required": ["operation"]
+      },
+      "then": {
+        "properties": {"payload": {"$ref": "#/$defs/serverTaskPayload"}}
       }
     },
     {
@@ -439,6 +511,127 @@
       },
       "additionalProperties": false
     },
+    "procedureEdit": {
+      "type": "object",
+      "required": [
+        "operation"
+      ],
+      "properties": {
+        "operation": {
+          "type": "string",
+          "enum": [
+            "add_node",
+            "update_node",
+            "move_node",
+            "delete_node",
+            "connect",
+            "disconnect",
+            "set_trigger"
+          ]
+        },
+        "nodeId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+        },
+        "sourceNodeId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+        },
+        "targetNodeId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+        },
+        "port": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "trigger": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "x": {
+          "type": "number"
+        },
+        "y": {
+          "type": "number"
+        },
+        "fields": {
+          "type": "object"
+        },
+        "node": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/procedureNode"
+        }
+      },
+      "additionalProperties": false
+    },
+    "updateProcedurePayload": {
+      "type": "object",
+      "required": [
+        "clientMutationId",
+        "elementId",
+        "edits"
+      ],
+      "properties": {
+        "clientMutationId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+        },
+        "elementId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+        },
+        "edits": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/procedureEdit"
+          },
+          "minItems": 1,
+          "maxItems": 2000
+        }
+      },
+      "additionalProperties": false
+    },
+    "registryMutationPayload": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["clientMutationId", "registry", "entry"],
+          "properties": {
+            "clientMutationId": {"$ref": "urn:ui-core:1.0:common#/$defs/uuid"},
+            "registry": {"type": "string", "enum": ["variables", "tags", "languageKeys"]},
+            "entry": {"type": "object"}
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["clientMutationId", "entryId", "changes"],
+          "properties": {
+            "clientMutationId": {"$ref": "urn:ui-core:1.0:common#/$defs/uuid"},
+            "entryId": {"$ref": "urn:ui-core:1.0:common#/$defs/uuid"},
+            "changes": {"type": "array", "minItems": 1, "maxItems": 200, "items": {"type": "object"}}
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["clientMutationId", "entryId"],
+          "properties": {
+            "clientMutationId": {"$ref": "urn:ui-core:1.0:common#/$defs/uuid"},
+            "entryId": {"$ref": "urn:ui-core:1.0:common#/$defs/uuid"},
+            "force": {"type": "boolean"}
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["clientMutationId", "entryId", "newName"],
+          "properties": {
+            "clientMutationId": {"$ref": "urn:ui-core:1.0:common#/$defs/uuid"},
+            "entryId": {"$ref": "urn:ui-core:1.0:common#/$defs/uuid"},
+            "newName": {"type": "string", "minLength": 1, "maxLength": 256}
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
     "workspaceTaskPayload": {
       "type": "object",
       "required": [
@@ -467,6 +660,26 @@
           },
           "uniqueItems": true
         }
+      },
+      "additionalProperties": false
+    },
+    "publishDatagenPayload": {
+      "type": "object",
+      "required": ["clientMutationId", "taskId", "manifestHash"],
+      "properties": {
+        "clientMutationId": {"$ref": "urn:ui-core:1.0:common#/$defs/uuid"},
+        "taskId": {"$ref": "urn:ui-core:1.0:common#/$defs/uuid"},
+        "manifestHash": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      },
+      "additionalProperties": false
+    },
+    "serverTaskPayload": {
+      "type": "object",
+      "required": ["clientMutationId", "scope", "userApproved"],
+      "properties": {
+        "clientMutationId": {"$ref": "urn:ui-core:1.0:common#/$defs/uuid"},
+        "scope": {"const": "workspace"},
+        "userApproved": {"type": "boolean"}
       },
       "additionalProperties": false
     },

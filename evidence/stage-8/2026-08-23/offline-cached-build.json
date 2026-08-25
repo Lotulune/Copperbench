@@ -1,0 +1,15 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "offline-cached-dependency-build",
+  "loaders": [
+    "fabric-1.21.1",
+    "neoforge-1.21.1"
+  ],
+  "gradleUserHome": "C:\\Users\\Administrator\\.gradle",
+  "jdk21": "D:\\AICoding\\Minecraft_ModCreator\\jdk\\jdk21_win_64",
+  "mode": "gradle --offline",
+  "osNetworkDisconnected": false,
+  "passed": true,
+  "completedAt": "2026-08-23T14:49:24.7333031+08:00",
+  "durationSeconds": 88.23
+}

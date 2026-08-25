@@ -6,6 +6,7 @@ import type {
   HistoryProjection,
   ModElementEditorProjection,
   ModElementListProjection,
+  ModElementSummary,
   OperationApprovalListProjection,
   Query,
   QueryResult,
@@ -117,6 +118,7 @@ export class JcefCoreBridge implements CoreBridge {
   private readonly stateListeners = new Set<StateListener>();
   private readonly hostUnsubscribe: () => void;
   private readonly taskPollers = new Map<string, ReturnType<typeof setTimeout>>();
+  private lastEventSequence = 0;
   private disposed = false;
   private state = initialState();
 
@@ -154,6 +156,16 @@ export class JcefCoreBridge implements CoreBridge {
     this.applyCommandResult(result);
     this.notify();
     if (result.task?.id && result.task.state === 'running') this.pollTask(result.task.id);
+    if (
+      result.status === 'committed' &&
+      ['create_mod_element', 'update_mod_element', 'delete_mod_element', 'restore_recovery_point'].includes(
+        result.operation
+      )
+    ) {
+      await this.refreshInitialProjection().catch((error) => {
+        console.warn('[Copperbench Bridge] Projection refresh after command failed:', error);
+      });
+    }
     return result;
   }
 
@@ -187,16 +199,70 @@ export class JcefCoreBridge implements CoreBridge {
       workspaceId: this.host.workspaceId
     };
     await this.sendQuery({ ...base, requestId: safeRandomUUID(), operation: 'get_workbench', payload: {} });
-    await this.sendQuery({
-      ...base,
-      requestId: safeRandomUUID(),
-      operation: 'list_mod_elements',
-      payload: { search: '', types: [], states: [], page: 1, pageSize: 200 }
-    });
+    await this.refreshElements(base);
+    try {
+      await this.sendQuery({ ...base, requestId: safeRandomUUID(), operation: 'get_history', payload: {} });
+    } catch (error) {
+      console.warn('[Copperbench Bridge] History projection is unavailable:', error);
+    }
+  }
+
+  private async refreshElements(base: {
+    messageType: 'query';
+    schemaVersion: '1.0';
+    workspaceId: string;
+  }): Promise<void> {
+    const pageSize = 200;
+    const items: ModElementSummary[] = [];
+    let page = 1;
+    let total = 0;
+    do {
+      const query: Query = {
+        ...base,
+        requestId: safeRandomUUID(),
+        operation: 'list_mod_elements',
+        payload: { search: '', types: [], states: [], page, pageSize }
+      };
+      const result = await this.invoke<QueryResult<ModElementListProjection>>(query);
+      if (result.status !== 'succeeded' || !result.data) {
+        this.state.diagnostics = [...result.diagnostics];
+        this.notify();
+        return;
+      }
+      if (this.isStaleRevision(result.revision)) return;
+      items.push(...result.data.items);
+      total = result.data.total;
+      page += 1;
+    } while (items.length < total);
+    this.state.elements = items;
+    this.synchronizeElementProjection();
+    this.notify();
   }
 
   private async invoke<T>(envelope: unknown): Promise<T> {
-    return this.parse<T>(await this.host.invoke(JSON.stringify(envelope)));
+    const request = envelope as Record<string, unknown>;
+    const response = this.parse<Record<string, unknown>>(await this.host.invoke(JSON.stringify(envelope)));
+    const expectedMessageType =
+      request.messageType === 'handshake'
+        ? 'handshake_result'
+        : request.messageType === 'command'
+          ? 'command_result'
+          : request.messageType === 'query'
+            ? 'query_result'
+            : null;
+    if (expectedMessageType && response.messageType !== expectedMessageType) {
+      throw new Error(`JCEF bridge returned ${String(response.messageType)} for ${String(request.messageType)}`);
+    }
+    if (response.requestId !== request.requestId) {
+      throw new Error('JCEF bridge response requestId does not match the request');
+    }
+    if (request.workspaceId && response.workspaceId !== request.workspaceId) {
+      throw new Error('JCEF bridge response workspaceId does not match the request');
+    }
+    if (request.operation && response.operation !== request.operation) {
+      throw new Error('JCEF bridge response operation does not match the request');
+    }
+    return response as T;
   }
 
   private parse<T>(raw: string): T {
@@ -211,6 +277,12 @@ export class JcefCoreBridge implements CoreBridge {
       this.state.viewportState = result.conflict ? 'conflict' : result.denial ? 'permission_denied' : 'error';
     }
     if (result.task) this.state.tasks[result.task.id] = result.task;
+    if (this.state.workbench) {
+      this.state.workbench.workspace.revision = Math.max(
+        this.state.workbench.workspace.revision,
+        result.newRevision
+      );
+    }
   }
 
   private applyQueryResult(result: QueryResult): void {
@@ -218,6 +290,7 @@ export class JcefCoreBridge implements CoreBridge {
       this.state.diagnostics = [...result.diagnostics];
       return;
     }
+    if (this.isStaleRevision(result.revision)) return;
     switch (result.operation) {
       case 'get_workbench':
         this.state.workbench = result.data as WorkbenchProjection;
@@ -253,20 +326,116 @@ export class JcefCoreBridge implements CoreBridge {
   }
 
   private processEvent(event: CoreEvent): void {
-    if (event.event === 'task_started' || event.event === 'task_progressed' || event.event === 'task_completed') {
-      this.state.tasks[event.payload.task.id] = event.payload.task;
-    } else if (event.event === 'task_log_appended') {
-      const current = this.state.taskLogs[event.payload.taskId] ?? [];
-      this.state.taskLogs[event.payload.taskId] = [...current, ...event.payload.entries];
-    } else if (event.event === 'diagnostics_changed') {
-      this.state.diagnostics = [...event.payload.diagnostics];
-    } else if (event.event === 'bridge_recovery_required') {
-      this.state.viewportState = 'recovery';
-      this.state.recoveryState = event.payload;
+    if (
+      event.messageType !== 'event' ||
+      event.workspaceId !== this.host.workspaceId ||
+      !Number.isSafeInteger(event.sequence) ||
+      event.sequence <= this.lastEventSequence
+    ) {
+      return;
     }
-    if (this.state.workbench) this.state.workbench.workspace.revision = event.revision;
+    this.lastEventSequence = event.sequence;
+
+    switch (event.event) {
+      case 'mod_element_created':
+      case 'mod_element_updated':
+      case 'procedure_updated':
+        this.upsertElement(event.payload.element);
+        break;
+      case 'registry_updated':
+		case 'datagen_published':
+        break;
+      case 'mod_element_deleted':
+        this.state.elements = this.state.elements.filter((element) => element.id !== event.payload.elementId);
+        delete this.state.elementEditors[event.payload.elementId];
+        this.synchronizeElementProjection();
+        break;
+      case 'task_started':
+      case 'task_progressed':
+      case 'task_completed':
+        this.state.tasks[event.payload.task.id] = event.payload.task;
+        this.synchronizeActiveTask(event.payload.task);
+        break;
+      case 'task_log_appended': {
+        const current = this.state.taskLogs[event.payload.taskId] ?? [];
+        this.state.taskLogs[event.payload.taskId] = [...current, ...event.payload.entries];
+        break;
+      }
+      case 'diagnostics_changed':
+        this.state.diagnostics = [...event.payload.diagnostics];
+        break;
+      case 'connectivity_changed':
+        if (this.state.workbench) this.state.workbench.connection = event.payload;
+        break;
+      case 'capabilities_changed':
+        if (this.state.workbench) this.state.workbench.capabilities = [...event.payload.capabilities];
+        break;
+      case 'recovery_point_created':
+        this.state.recoveryPoints = [
+          event.payload.recoveryPoint,
+          ...this.state.recoveryPoints.filter((point) => point.id !== event.payload.recoveryPoint.id)
+        ];
+        this.state.currentRecoveryPointId = event.payload.recoveryPoint.id;
+        break;
+      case 'bridge_recovery_required':
+        this.state.viewportState = 'recovery';
+        this.state.recoveryState = event.payload;
+        break;
+      case 'workspace_restored':
+      case 'workspace_created':
+      case 'loader_migration_executed':
+      case 'upstream_workspace_imported':
+        void this.refreshInitialProjection().catch((error) => {
+          console.warn('[Copperbench Bridge] Projection refresh after event failed:', error);
+        });
+        break;
+    }
+    if (this.state.workbench) {
+      this.state.workbench.workspace.revision = Math.max(
+        this.state.workbench.workspace.revision,
+        event.revision
+      );
+    }
     this.eventListeners.forEach((listener) => listener(event));
     this.notify();
+  }
+
+  private upsertElement(element: ModElementSummary): void {
+    const index = this.state.elements.findIndex((candidate) => candidate.id === element.id);
+    if (index < 0) {
+      this.state.elements = [element, ...this.state.elements];
+    } else {
+      this.state.elements = this.state.elements.map((candidate) =>
+        candidate.id === element.id ? element : candidate
+      );
+    }
+    this.synchronizeElementProjection();
+  }
+
+  private synchronizeElementProjection(): void {
+    if (!this.state.workbench) return;
+    const elements = this.state.elements;
+    this.state.workbench.elementCounts = {
+      total: elements.length,
+      valid: elements.filter((element) => element.state === 'valid').length,
+      invalid: elements.filter((element) => element.state === 'invalid').length,
+      draft: elements.filter((element) => element.state === 'draft').length,
+      unsupported: elements.filter((element) => element.state === 'unsupported').length
+    };
+    this.state.workbench.recentElements = [...elements]
+      .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt))
+      .slice(0, 5);
+  }
+
+  private synchronizeActiveTask(task: WorkbenchProjection['activeTasks'][number]): void {
+    if (!this.state.workbench) return;
+    const activeTasks = this.state.workbench.activeTasks.filter((candidate) => candidate.id !== task.id);
+    if (task.state === 'queued' || task.state === 'running') activeTasks.unshift(task);
+    this.state.workbench.activeTasks = activeTasks;
+  }
+
+  private isStaleRevision(revision: number): boolean {
+    return Boolean(this.state.workbench && revision < this.state.workbench.workspace.revision);
   }
 
   private pollTask(taskId: string): void {

@@ -66,7 +66,7 @@ public final class LoaderMigrationRebuildService {
 					"No first-party rebuild generator is registered for " + targetGeneratorId);
 		} catch (Exception exception) {
 			return RebuildResult.failed(targetGeneratorId, "MIGRATION_REBUILD_FAILED",
-					exception.getMessage() == null ? "Target generation failed." : exception.getMessage());
+					exception.getMessage() == null ? "Target generation failed." : exception.getMessage(), exception);
 		}
 	}
 
@@ -108,22 +108,26 @@ public final class LoaderMigrationRebuildService {
 	}
 
 	public record RebuildResult(String status, String generatorId, String modId, String reasonCode, String message,
-			List<String> generatedPaths) {
+			List<String> generatedPaths, Throwable cause) {
 		public RebuildResult {
 			generatedPaths = generatedPaths == null ? List.of() : List.copyOf(generatedPaths);
 		}
 
 		static RebuildResult generated(String generatorId, String modId, List<String> generatedPaths) {
 			return new RebuildResult("generated", generatorId, modId, "MIGRATION_REBUILT",
-					"The target copy was generated with the destination generator.", generatedPaths);
+					"The target copy was generated with the destination generator.", generatedPaths, null);
 		}
 
 		static RebuildResult skipped(String generatorId, String reasonCode, String message) {
-			return new RebuildResult("skipped", generatorId, "", reasonCode, message, List.of());
+			return new RebuildResult("skipped", generatorId, "", reasonCode, message, List.of(), null);
 		}
 
 		static RebuildResult failed(String generatorId, String reasonCode, String message) {
-			return new RebuildResult("failed", generatorId, "", reasonCode, message, List.of());
+			return failed(generatorId, reasonCode, message, null);
+		}
+
+		static RebuildResult failed(String generatorId, String reasonCode, String message, Throwable cause) {
+			return new RebuildResult("failed", generatorId, "", reasonCode, message, List.of(), cause);
 		}
 
 		public boolean generated() {
@@ -136,7 +140,9 @@ public final class LoaderMigrationRebuildService {
 			json.addProperty("generatorId", generatorId);
 			json.addProperty("modId", modId);
 			json.addProperty("reasonCode", reasonCode);
-			json.addProperty("message", message);
+			json.addProperty("message", "failed".equals(status)
+					? "Target generation failed. See the diagnostic and application logs."
+					: message);
 			JsonArray paths = new JsonArray();
 			generatedPaths.forEach(paths::add);
 			json.add("generatedPaths", paths);

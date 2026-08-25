@@ -64,6 +64,21 @@ final class McpToolCatalog {
 		List<McpServerFeatures.SyncToolSpecification> tools = new ArrayList<>();
 		tools.add(queryTool("get_workspace", "Read workspace state", Operation.GET_WORKBENCH, EMPTY_SCHEMA,
 				arguments -> new JsonObject()));
+		tools.add(queryTool("list_new_workspace_generators", "List generators available for new workspaces",
+				Operation.LIST_NEW_WORKSPACE_GENERATORS, EMPTY_SCHEMA, arguments -> new JsonObject()));
+		tools.add(commandTool("create_workspace", "Create a new workspace after explicit user approval",
+				Operation.CREATE_WORKSPACE,
+				requiredSchema(Map.of("generatorId", Map.of("type", "string", "minLength", 1),
+						"modName", Map.of("type", "string", "minLength", 1),
+						"modId", Map.of("type", "string", "minLength", 1),
+						"packageName", Map.of("type", "string"),
+						"workspaceFolderPath", Map.of("type", "string", "minLength", 1),
+						"version", Map.of("type", "string"),
+						"userApproved", Map.of("type", "boolean"),
+						"expectedRevision", Map.of("type", "integer", "minimum", 0)),
+						List.of("generatorId", "modName", "modId", "workspaceFolderPath", "userApproved",
+								"expectedRevision")),
+				McpToolCatalog::mutationPayload));
 		tools.add(queryTool("list_mod_elements", "List mod elements", Operation.LIST_MOD_ELEMENTS,
 				Map.of("type", "object", "properties", Map.of("search", Map.of("type", "string"))), arguments -> {
 					JsonObject payload = GSON.toJsonTree(arguments).getAsJsonObject();
@@ -79,6 +94,27 @@ final class McpToolCatalog {
 		tools.add(queryTool("preview_mod_element_change", "Preview validated element changes without committing",
 				Operation.PREVIEW_MOD_ELEMENT_CHANGE, elementSchema(true),
 				arguments -> GSON.toJsonTree(arguments).getAsJsonObject()));
+		tools.add(queryTool("get_procedure", "Read a Procedure as structured IR",
+				Operation.GET_PROCEDURE_EDITOR, elementSchema(false),
+				arguments -> GSON.toJsonTree(arguments).getAsJsonObject()));
+		tools.add(queryTool("preview_procedure_change", "Preview structured Procedure graph edits",
+				Operation.PREVIEW_PROCEDURE_CHANGE, procedureSchema(false),
+				arguments -> GSON.toJsonTree(arguments).getAsJsonObject()));
+		tools.add(queryTool("get_workspace_references", "Read the structured workspace reference graph",
+				Operation.GET_WORKSPACE_REFERENCES,
+				Map.of("type", "object", "properties", Map.of("target", Map.of("type", "string")),
+						"additionalProperties", false),
+				arguments -> GSON.toJsonTree(arguments).getAsJsonObject()));
+		tools.add(queryTool("list_workspace_registries", "List variables, tags, and language keys with stable IDs",
+				Operation.LIST_WORKSPACE_REGISTRIES,
+				Map.of("type", "object", "properties", Map.of("registry", Map.of("type", "string", "enum",
+						List.of("variables", "tags", "languageKeys"))), "additionalProperties", false),
+				arguments -> GSON.toJsonTree(arguments).getAsJsonObject()));
+		tools.add(queryTool("preview_registry_rename", "Preview reference-aware registry rename impact",
+				Operation.PREVIEW_REGISTRY_RENAME,
+				requiredSchema(Map.of("entryId", Map.of("type", "string", "format", "uuid"), "newName",
+						Map.of("type", "string", "minLength", 1)), List.of("entryId", "newName")),
+				arguments -> GSON.toJsonTree(arguments).getAsJsonObject()));
 		tools.add(commandTool("create_mod_element", "Create a mod element", Operation.CREATE_MOD_ELEMENT,
 				requiredSchema(Map.of("elementType", Map.of("type", "string"), "name", Map.of("type", "string"),
 						"initialValues", Map.of("type", "object"), "expectedRevision",
@@ -90,6 +126,31 @@ final class McpToolCatalog {
 						Map.of("type", "array", "items", Map.of("type", "object"), "minItems", 1),
 						"expectedRevision", Map.of("type", "integer", "minimum", 0)),
 						List.of("elementId", "changes", "expectedRevision")), McpToolCatalog::mutationPayload));
+		tools.add(commandTool("update_procedure", "Commit structured Procedure graph edits",
+				Operation.UPDATE_PROCEDURE, procedureSchema(true), McpToolCatalog::mutationPayload));
+		tools.add(commandTool("create_registry_entry", "Create a variable, tag, or language key",
+				Operation.CREATE_REGISTRY_ENTRY,
+				requiredSchema(Map.of("registry", Map.of("type", "string", "enum",
+						List.of("variables", "tags", "languageKeys")), "entry", Map.of("type", "object"),
+						"expectedRevision", Map.of("type", "integer", "minimum", 0)),
+						List.of("registry", "entry", "expectedRevision")), McpToolCatalog::mutationPayload));
+		tools.add(commandTool("update_registry_entry", "Update registry entry fields without changing its stable ID",
+				Operation.UPDATE_REGISTRY_ENTRY,
+				requiredSchema(Map.of("entryId", Map.of("type", "string", "format", "uuid"), "changes",
+						Map.of("type", "array", "items", Map.of("type", "object"), "minItems", 1),
+						"expectedRevision", Map.of("type", "integer", "minimum", 0)),
+						List.of("entryId", "changes", "expectedRevision")), McpToolCatalog::mutationPayload));
+		tools.add(commandTool("delete_registry_entry", "Delete an unreferenced registry entry",
+				Operation.DELETE_REGISTRY_ENTRY,
+				requiredSchema(Map.of("entryId", Map.of("type", "string", "format", "uuid"), "force",
+						Map.of("type", "boolean"), "expectedRevision", Map.of("type", "integer", "minimum", 0)),
+						List.of("entryId", "expectedRevision")), McpToolCatalog::mutationPayload));
+		tools.add(commandTool("rename_registry_entry", "Rename a registry entry and update structured references",
+				Operation.RENAME_REGISTRY_ENTRY,
+				requiredSchema(Map.of("entryId", Map.of("type", "string", "format", "uuid"), "newName",
+						Map.of("type", "string", "minLength", 1), "expectedRevision",
+						Map.of("type", "integer", "minimum", 0)),
+						List.of("entryId", "newName", "expectedRevision")), McpToolCatalog::mutationPayload));
 		tools.add(commandTool("delete_mod_element", "Delete a mod element", Operation.DELETE_MOD_ELEMENT,
 				requiredSchema(Map.of("elementId", Map.of("type", "string", "format", "uuid"),
 						"expectedRevision", Map.of("type", "integer", "minimum", 0)),
@@ -106,6 +167,31 @@ final class McpToolCatalog {
 				McpToolCatalog::workspaceArgumentsPayload));
 		tools.add(commandTool("run_client", "Run the Fabric client smoke test", Operation.RUN_CLIENT,
 				revisionSchema(), McpToolCatalog::workspacePayload));
+		tools.add(commandTool("run_server", "Run an isolated dedicated server after desktop EULA approval",
+				Operation.RUN_SERVER,
+				requiredSchema(Map.of("expectedRevision", Map.of("type", "integer", "minimum", 0),
+						"userApproved", Map.of("type", "boolean")), List.of("expectedRevision", "userApproved")),
+				arguments -> {
+					JsonObject payload = mutationPayload(arguments);
+					payload.addProperty("scope", "workspace");
+					return payload;
+				}));
+		tools.add(commandTool("run_datagen", "Run data generation in an isolated staging workspace",
+				Operation.RUN_DATAGEN, revisionSchema(), McpToolCatalog::workspacePayload));
+		tools.add(queryTool("preview_datagen_output", "Preview staged datagen files before workspace publication",
+				Operation.PREVIEW_DATAGEN_OUTPUT,
+				requiredSchema(Map.of("taskId", Map.of("type", "string", "format", "uuid")), List.of("taskId")),
+				arguments -> GSON.toJsonTree(arguments).getAsJsonObject()));
+		tools.add(commandTool("publish_datagen_output",
+				"Publish an unchanged staged datagen manifest into the workspace with rollback protection",
+				Operation.PUBLISH_DATAGEN_OUTPUT,
+				requiredSchema(Map.of("taskId", Map.of("type", "string", "format", "uuid"), "manifestHash",
+						Map.of("type", "string", "pattern", "^[a-f0-9]{64}$"), "expectedRevision",
+						Map.of("type", "integer", "minimum", 0)),
+						List.of("taskId", "manifestHash", "expectedRevision")),
+				McpToolCatalog::mutationPayload));
+		tools.add(commandTool("run_gametest", "Run existing GameTests and collect their task logs",
+				Operation.RUN_GAMETEST, revisionSchema(), McpToolCatalog::workspacePayload));
 		tools.add(queryTool("get_task", "Read task state, logs and diagnostics", Operation.GET_TASK,
 				requiredSchema(Map.of("taskId", Map.of("type", "string", "format", "uuid")), List.of("taskId")),
 				arguments -> GSON.toJsonTree(arguments).getAsJsonObject()));
@@ -348,6 +434,18 @@ final class McpToolCatalog {
 				: Map.of("elementId", Map.of("type", "string", "format", "uuid"));
 		return Map.of("type", "object", "properties", properties, "required",
 				changes ? List.of("elementId", "changes") : List.of("elementId"));
+	}
+
+	private static Map<String, Object> procedureSchema(boolean command) {
+		Map<String, Object> properties = command
+				? Map.of("elementId", Map.of("type", "string", "format", "uuid"), "edits",
+						Map.of("type", "array", "items", Map.of("type", "object"), "minItems", 1),
+						"expectedRevision", Map.of("type", "integer", "minimum", 0))
+				: Map.of("elementId", Map.of("type", "string", "format", "uuid"), "edits",
+						Map.of("type", "array", "items", Map.of("type", "object"), "minItems", 1));
+		return Map.of("type", "object", "properties", properties, "required",
+				command ? List.of("elementId", "edits", "expectedRevision") : List.of("elementId", "edits"),
+				"additionalProperties", false);
 	}
 
 	private static final class AuditUnavailableException extends RuntimeException {

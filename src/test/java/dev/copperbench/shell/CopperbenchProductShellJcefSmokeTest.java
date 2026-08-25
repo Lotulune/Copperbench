@@ -9,9 +9,11 @@
 
 package dev.copperbench.shell;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import dev.copperbench.bridge.JcefCoreBridgeTransport;
 import dev.copperbench.bridge.JcefLegacyPluginBridgeTransport;
+import dev.copperbench.bridge.JcefWorkspaceOpenBridgeTransport;
 import dev.copperbench.core.application.InMemoryWorkspaceTaskGateway;
 import dev.copperbench.core.application.WorkspaceApplicationService;
 import dev.copperbench.core.application.WorkspaceEntryAdapter;
@@ -41,6 +43,7 @@ import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import javax.swing.*;
 import java.awt.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Clock;
 import java.time.Instant;
@@ -61,6 +64,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CopperbenchProductShellJcefSmokeTest {
 
 	private static final UUID WORKSPACE_ID = UUID.fromString("11111111-1111-4111-8111-111111111141");
+	private static final Gson JSON = new Gson();
 
 	@BeforeAll static void initializePreferences() throws Exception {
 		LoggingSystem.init();
@@ -129,6 +133,53 @@ class CopperbenchProductShellJcefSmokeTest {
 					"document.querySelector('[data-testid=open-legacy-plugin-window]').click()");
 			assertTrue(legacyWindowRequested.await(5, TimeUnit.SECONDS),
 					"Legacy plugin action did not reach the Java host");
+		}
+	}
+
+	@Order(3)
+	@Test void workspaceOpenBridgeRejectsMissingFilesAndAcceptsPersistedMcreatorFiles() throws Exception {
+		Path temporaryRoot = Files.createTempDirectory("copperbench-workspace-open-");
+		Path existingWorkspace = temporaryRoot.resolve("created.mcreator");
+		Files.writeString(existingWorkspace, "{}");
+		Path missingWorkspace = temporaryRoot.resolve("missing.mcreator");
+		AtomicReference<Path> openedWorkspace = new AtomicReference<>();
+		CountDownLatch opened = new CountDownLatch(1);
+		try (WebView webView = new WebView("about:blank");
+				JcefWorkspaceOpenBridgeTransport ignored = JcefWorkspaceOpenBridgeTransport.attach(webView, file -> {
+					openedWorkspace.set(file.toPath());
+					opened.countDown();
+				})) {
+			CountDownLatch loaded = new CountDownLatch(1);
+			webView.addLoadListener(loaded::countDown);
+			webView.forceLoad();
+			assertTrue(loaded.await(30, TimeUnit.SECONDS), "Workspace open bridge page did not load");
+			await(() -> "true".equals(webView.executeScript(
+					"window.__COPPERBENCH_WORKSPACE_OPEN_HOST__?.available === true",
+					WebView.JSExecutionType.RETURN_VALUE)), 30,
+					"Workspace open bridge did not install its native host");
+
+			webView.executeScriptAsync("""
+					window.__COPPERBENCH_WORKSPACE_OPEN_RESULT__ = 'pending';
+					window.__COPPERBENCH_WORKSPACE_OPEN_HOST__.open(%s)
+						.then(function() { window.__COPPERBENCH_WORKSPACE_OPEN_RESULT__ = 'accepted'; })
+						.catch(function() { window.__COPPERBENCH_WORKSPACE_OPEN_RESULT__ = 'rejected'; });
+					""".formatted(JSON.toJson(missingWorkspace.toString())));
+			await(() -> "rejected".equals(webView.executeScript(
+					"window.__COPPERBENCH_WORKSPACE_OPEN_RESULT__",
+					WebView.JSExecutionType.RETURN_VALUE)), 10,
+					"Workspace open bridge accepted a missing workspace file");
+
+			webView.executeScriptAsync("""
+					window.__COPPERBENCH_WORKSPACE_OPEN_RESULT__ = 'pending';
+					window.__COPPERBENCH_WORKSPACE_OPEN_HOST__.open(%s)
+						.then(function() { window.__COPPERBENCH_WORKSPACE_OPEN_RESULT__ = 'accepted'; })
+						.catch(function() { window.__COPPERBENCH_WORKSPACE_OPEN_RESULT__ = 'rejected'; });
+					""".formatted(JSON.toJson(existingWorkspace.toString())));
+			assertTrue(opened.await(10, TimeUnit.SECONDS), "Workspace open bridge did not invoke the host action");
+			assertEquals(existingWorkspace.toAbsolutePath(), openedWorkspace.get().toAbsolutePath());
+		} finally {
+			Files.deleteIfExists(existingWorkspace);
+			Files.deleteIfExists(temporaryRoot);
 		}
 	}
 

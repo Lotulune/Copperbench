@@ -22,13 +22,16 @@ import java.util.UUID;
 /** Projects an opened upstream workspace into the application service's transaction state. */
 public final class MCreatorWorkspaceStateMapper {
 
+	private static final String RESOURCE_PACK_GENERATOR_ID = "resourcepack-1.21.1";
+
 	public WorkspaceState map(Workspace workspace, ProductMetadataManager.Metadata metadata) throws IOException {
 		JsonObject document = JsonParser.parseString(Files.readString(
 				workspace.getFileManager().getWorkspaceFile().toPath())).getAsJsonObject();
+		MCreatorWorkspaceRegistryMapper.projectIntoDocument(workspace, metadata.workspaceId(), document);
 		List<Element> elements = new ArrayList<>();
 		for (ModElement element : workspace.getModElements())
 			elements.add(projectElement(workspace, metadata.workspaceId(), element));
-		return new WorkspaceState(metadata.workspaceId(), workspace.getWorkspaceSettings().getModName(), "mod",
+		return new WorkspaceState(metadata.workspaceId(), workspace.getWorkspaceSettings().getModName(), kind(workspace),
 				metadata.revision(), workspace.isDirty(), generator(workspace), document, elements);
 	}
 
@@ -56,6 +59,8 @@ public final class MCreatorWorkspaceStateMapper {
 
 	private JsonObject generator(Workspace workspace) {
 		String id = workspace.getWorkspaceSettings().getCurrentGenerator();
+		if (RESOURCE_PACK_GENERATOR_ID.equals(id))
+			return resourcePackGenerator(id, workspace);
 		int separator = id.indexOf('-');
 		String loader = separator > 0 ? id.substring(0, separator) : id;
 		String minecraftVersion = separator > 0 ? id.substring(separator + 1) : "unknown";
@@ -65,6 +70,21 @@ public final class MCreatorWorkspaceStateMapper {
 		generator.addProperty("minecraftVersion", minecraftVersion);
 		generator.addProperty("displayName", loader.substring(0, 1).toUpperCase(Locale.ROOT) + loader.substring(1)
 				+ " " + minecraftVersion);
+		generator.addProperty("state", workspace.getGeneratorConfiguration() == null ? "missing" : "ready");
+		return generator;
+	}
+
+	private String kind(Workspace workspace) {
+		return RESOURCE_PACK_GENERATOR_ID.equals(workspace.getWorkspaceSettings().getCurrentGenerator())
+				? "resource_pack" : "mod";
+	}
+
+	private JsonObject resourcePackGenerator(String id, Workspace workspace) {
+		JsonObject generator = new JsonObject();
+		generator.addProperty("id", id);
+		generator.addProperty("loader", "resource_pack");
+		generator.addProperty("minecraftVersion", "1.21.1");
+		generator.addProperty("displayName", "Resource Pack 1.21.1");
 		generator.addProperty("state", workspace.getGeneratorConfiguration() == null ? "missing" : "ready");
 		return generator;
 	}

@@ -202,6 +202,85 @@
       },
       "additionalProperties": false
     },
+    "newWorkspaceGenerator": {
+      "type": "object",
+      "required": [
+        "generatorId",
+        "loader",
+        "minecraftVersion",
+        "trackId",
+        "displayName",
+        "dynamic",
+        "available",
+        "workspaceGeneratorName"
+      ],
+      "properties": {
+        "generatorId": {
+          "$ref": "#/$defs/identifier"
+        },
+        "loader": {
+          "type": "string",
+          "enum": [
+            "fabric",
+            "neoforge",
+            "resource_pack"
+          ]
+        },
+        "minecraftVersion": {
+          "type": "string",
+          "minLength": 1
+        },
+        "trackId": {
+          "type": "string",
+          "enum": [
+            "latest_stable",
+            "previous_stable",
+            "minecraft_1_21_1",
+            "minecraft_1_20_1",
+            "resource_pack"
+          ]
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dynamic": {
+          "type": "boolean"
+        },
+        "available": {
+          "type": "boolean"
+        },
+        "workspaceGeneratorName": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "newWorkspaceGeneratorCatalog": {
+      "type": "object",
+      "required": [
+        "schemaVersion",
+        "generators",
+        "suggestedWorkspaceFoldersRoot"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": "1.0"
+        },
+        "generators": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/newWorkspaceGenerator"
+          }
+        },
+        "suggestedWorkspaceFoldersRoot": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
     "workspaceLock": {
       "type": "object",
       "required": [
@@ -399,13 +478,143 @@
       },
       "additionalProperties": false
     },
+    "procedureNode": {
+      "type": "object",
+      "required": [
+        "id",
+        "type",
+        "kind",
+        "x",
+        "y",
+        "fields",
+        "inputs",
+        "next",
+        "unknown"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "type": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "statement",
+            "value"
+          ]
+        },
+        "x": {
+          "type": "number"
+        },
+        "y": {
+          "type": "number"
+        },
+        "fields": {
+          "type": "object"
+        },
+        "inputs": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/uuid"
+          }
+        },
+        "next": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/uuid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "unknown": {
+          "type": "boolean"
+        },
+        "rawPayload": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "procedureDependency": {
+      "type": "object",
+      "required": [
+        "id",
+        "kind",
+        "name",
+        "dataType",
+        "target"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "dataType": {
+          "type": "string"
+        },
+        "target": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "procedureIr": {
+      "type": "object",
+      "required": [
+        "schemaVersion",
+        "trigger",
+        "nodes",
+        "dependencies",
+        "unknownRoot"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": "1.0"
+        },
+        "trigger": {
+          "type": "string",
+          "minLength": 1
+        },
+        "nodes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/procedureNode"
+          },
+          "maxItems": 5000
+        },
+        "dependencies": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/procedureDependency"
+          }
+        },
+        "unknownRoot": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    },
     "modElementType": {
       "type": "string",
       "enum": [
         "block",
         "item",
         "recipe",
-        "procedure"
+        "procedure",
+        "function",
+        "loottable",
+        "achievement"
       ]
     },
     "modElementSummary": {
@@ -486,6 +695,9 @@
             "build",
             "export",
             "run_client",
+            "run_server",
+            "run_datagen",
+            "run_gametest",
             "import"
           ]
         },
@@ -719,6 +931,7 @@
           "enum": [
             "text",
             "textarea",
+            "json",
             "number",
             "toggle",
             "select",

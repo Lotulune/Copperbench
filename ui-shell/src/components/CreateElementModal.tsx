@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Plus, Box, Compass, Scroll, Terminal } from 'lucide-react';
+import { X, Plus, Box, Compass, Scroll, Terminal, FileCode2, Gift, Trophy } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
 import { ModElementType } from '../types/contract';
 import { useDialogA11y } from '../hooks/useDialogA11y';
@@ -58,7 +58,7 @@ export const CreateElementModal: React.FC = () => {
           <div style={{ fontWeight: 700, fontSize: '14px', color: 'var(--text-main)' }}>
             创建模组元素
           </div>
-          <button onClick={() => setIsCreateModalOpen(false)} style={{ color: 'var(--text-muted)' }}>
+          <button type="button" aria-label="关闭创建元素对话框" onClick={() => setIsCreateModalOpen(false)} style={{ color: 'var(--text-muted)' }}>
             <X size={16} />
           </button>
         </div>
@@ -81,7 +81,10 @@ export const CreateElementModal: React.FC = () => {
                   { type: 'block', label: '方块', icon: Box },
                   { type: 'item', label: '物品', icon: Compass },
                   { type: 'recipe', label: '配方', icon: Scroll },
-                  { type: 'procedure', label: '过程', icon: Terminal }
+                  { type: 'procedure', label: '过程', icon: Terminal },
+                  { type: 'function', label: '函数', icon: FileCode2 },
+                  { type: 'loottable', label: '战利品表', icon: Gift },
+                  { type: 'achievement', label: '进度', icon: Trophy }
                 ].map((item) => {
                   const Icon = item.icon;
                   const isSel = elementType === item.type;
@@ -90,6 +93,7 @@ export const CreateElementModal: React.FC = () => {
                       key={item.type}
                       type="button"
                       onClick={() => setElementType(item.type as ModElementType)}
+                      aria-pressed={isSel}
                       style={{
                         padding: '10px',
                         background: isSel ? 'var(--accent-copper-dim)' : 'var(--bg-panel)',
@@ -113,10 +117,11 @@ export const CreateElementModal: React.FC = () => {
 
             {/* Name Identifier */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)' }}>
+              <label htmlFor="create-element-name" style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)' }}>
                 标识符（内部 ID）
               </label>
               <input
+                id="create-element-name"
                 type="text"
                 placeholder="例如 copper_lamp、trail_lantern"
                 value={name}

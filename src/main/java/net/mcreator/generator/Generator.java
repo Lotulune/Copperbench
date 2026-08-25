@@ -241,7 +241,7 @@ public class Generator implements IGenerator, Closeable {
 		Map<?, ?> map = generatorConfiguration.getDefinitionsProvider()
 				.getModElementDefinition(element.getModElement().getType()); // config map
 		if (map == null) {
-			if (element.getModElement().getType() != ModElementType.UNKNOWN) // silently skip unknown elements
+			if (!element.getModElement().getType().equals(ModElementType.UNKNOWN)) // silently skip unknown elements
 				LOG.warn("Failed to load element definition for mod element type {}",
 						element.getModElement().getType().getRegistryName());
 			return new ArrayList<>();
@@ -308,7 +308,7 @@ public class Generator implements IGenerator, Closeable {
 		Map<?, ?> map = generatorConfiguration.getDefinitionsProvider()
 				.getModElementDefinition(element.getModElement().getType()); // config map
 		if (map == null) {
-			if (element.getModElement().getType() != ModElementType.UNKNOWN) // silently skip unknown elements
+			if (!element.getModElement().getType().equals(ModElementType.UNKNOWN)) // silently skip unknown elements
 				LOG.warn("Failed to load element definition for mod element type {}",
 						element.getModElement().getType().getRegistryName());
 			return new ArrayList<>();
@@ -331,8 +331,8 @@ public class Generator implements IGenerator, Closeable {
 
 		// if mod element type definition exists, also delete workspace links/references
 		if (map == null) { // if not, log a notice if needed
-			if (generatableElement.getModElement().getType()
-					!= ModElementType.UNKNOWN) // silently skip unknown elements
+			if (!generatableElement.getModElement().getType()
+					.equals(ModElementType.UNKNOWN)) // silently skip unknown elements
 				LOG.debug("Definition for {} does not exist in the current generator; some references may persist",
 						generatableElement.getModElement().getType().getRegistryName());
 			return;
@@ -361,7 +361,7 @@ public class Generator implements IGenerator, Closeable {
 			List<GeneratorTemplate> globalTemplatesList = getGlobalTemplatesListForModElementType(type, templateID);
 
 			List<GeneratableElement> filteredGeneratableElements = generatableElements.stream()
-					.filter(e -> e.getModElement().getType() == type).toList();
+					.filter(e -> e.getModElement().getType().equals(type)).toList();
 
 			if (!filteredGeneratableElements.isEmpty()) {
 				globalTemplatesList.forEach(
@@ -462,8 +462,8 @@ public class Generator implements IGenerator, Closeable {
 				.getModElementDefinition(generatableElement.getModElement().getType());
 
 		if (map == null) {
-			if (generatableElement.getModElement().getType()
-					!= ModElementType.UNKNOWN) // silently skip unknown elements
+			if (!generatableElement.getModElement().getType()
+					.equals(ModElementType.UNKNOWN)) // silently skip unknown elements
 				LOG.info("Failed to load element definition for mod element type {}",
 						generatableElement.getModElement().getType().getRegistryName());
 			return new ArrayList<>();

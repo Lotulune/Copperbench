@@ -1,6 +1,9 @@
 <#-- @formatter:off -->
 package ${package};
 
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.common.NeoForge;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -65,6 +68,7 @@ import org.apache.logging.log4j.Logger;
 		networkingRegistered = true;
 	}
 
+	<#if w.hasElementsOfType("procedure")>
 	<#-- Wait procedure block support below -->
 	private static final Queue<IntObjectPair<Runnable>> workToBeScheduled = new ConcurrentLinkedQueue<>();
 	private static final PriorityQueue<TickTask> workQueue = new PriorityQueue<>(Comparator.comparingInt(TickTask::getTick));
@@ -86,6 +90,7 @@ import org.apache.logging.log4j.Logger;
 			workQueue.poll().run();
 		}
 	}
+	</#if>
 
 }
 <#-- @formatter:on -->

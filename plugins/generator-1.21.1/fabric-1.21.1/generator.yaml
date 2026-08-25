@@ -1,5 +1,5 @@
 name: Fabric for @minecraft (@buildfileversion)
-status: lts
+status: experimental
 buildfileversion: 0.116.15
 subversion: 5
 

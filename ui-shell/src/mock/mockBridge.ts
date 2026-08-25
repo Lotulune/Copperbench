@@ -43,7 +43,14 @@ import {
   InstalledPluginInventory,
   ElementCoverage,
   UpstreamToolCatalogProjection,
-  Diagnostic
+  Diagnostic,
+  ProcedureEditorProjection,
+  ProcedureIr,
+  ProcedureNode,
+  RegistryEntry,
+  WorkspaceReferenceProjection,
+  WorkspaceRegistriesProjection,
+  DatagenPreview
 } from '../types/contract';
 import {
   BridgeState,
@@ -52,6 +59,7 @@ import {
   HandshakeResult
 } from '../bridge/CoreBridge';
 import { SCENARIOS } from './scenarios';
+import { ASSET_FIXTURES } from './assetFixtures';
 import versionTracksData from '../../../ui-core/fixtures/v1.0/tracks/version-tracks.json';
 import releaseNotesData from '../../../ui-core/fixtures/v1.0/release/release-notes.json';
 
@@ -66,6 +74,58 @@ function generateUUID(): UUID {
     const v = c === 'x' ? r : (r & 0x3) | 0x8;
     return v.toString(16);
   });
+}
+
+function mockAssetProjection() {
+  return {
+    schemaVersion: '1.0' as const,
+    assets: ASSET_FIXTURES.map((asset) => ({
+      id: asset.id,
+      relativePath: asset.path,
+      category: asset.category.toUpperCase() as 'MODEL' | 'TEXTURE' | 'ANIMATION' | 'LANGUAGE' | 'SOUND' | 'RESOURCE_PACK',
+      size: asset.sizeBytes,
+      sha256: '0000000000000000000000000000000000000000000000000000000000000000',
+      mediaType: asset.format === 'PNG' ? 'image/png' : asset.format === 'OGG' ? 'audio/ogg' : 'application/octet-stream',
+      updatedAt: asset.updatedAt
+    })),
+    references: [],
+    diagnostics: []
+  };
+}
+
+function initialMockRegistries(): NonNullable<WorkspaceRegistriesProjection['registries']> {
+  return {
+    variables: [
+      {
+        id: '7a4be662-5208-4cc7-8984-c08ae63a447a',
+        kind: 'variable',
+        name: 'player_energy',
+        dataType: 'number',
+        scope: 'player_persistent',
+        support: { state: 'supported', reasonCode: 'REGISTRY_ENTRY_SUPPORTED' }
+      }
+    ],
+    tags: [
+      {
+        id: '27489572-df19-4962-b19f-e764a355817d',
+        kind: 'tag',
+        name: 'forgeable_ores',
+        namespace: 'copperbench',
+        category: 'items',
+        members: ['minecraft:iron_ore'],
+        support: { state: 'supported', reasonCode: 'REGISTRY_ENTRY_SUPPORTED' }
+      }
+    ],
+    languageKeys: [
+      {
+        id: '36e344a2-84c4-4d22-a41d-124c273f16f5',
+        kind: 'language_key',
+        key: 'item.copperbench.ruby',
+        translations: { 'zh_cn': '红宝石', 'en_us': 'Ruby' },
+        support: { state: 'supported', reasonCode: 'REGISTRY_ENTRY_SUPPORTED' }
+      }
+    ]
+  };
 }
 
 export class MockCoreBridge implements CoreBridge {
@@ -141,8 +201,11 @@ export class MockCoreBridge implements CoreBridge {
 
   private eventListeners = new Set<EventListener>();
   private stateListeners = new Set<StateListener>();
+  private publishedDatagenTasks = new Set<UUID>();
   private timelineTimers: ReturnType<typeof setTimeout>[] = [];
   private sequenceCounter = 100;
+  private procedureIrs = new Map<UUID, ProcedureIr>();
+  private mockRegistries = initialMockRegistries();
 
   constructor() {
     this.loadScenario('ready');
@@ -184,6 +247,8 @@ export class MockCoreBridge implements CoreBridge {
     // leak across switches (tasks, editors and diagnostics included).
     this.state = this.initial();
     this.sequenceCounter = 100;
+    this.procedureIrs.clear();
+    this.mockRegistries = initialMockRegistries();
 
     // If extends, load base scenario first
     if (scenario.extendsScenarioId && SCENARIOS[scenario.extendsScenarioId]) {
@@ -366,6 +431,16 @@ export class MockCoreBridge implements CoreBridge {
         this.updateWorkbenchCounts();
         break;
       }
+      case 'procedure_updated': {
+        const elem = ev.payload.element;
+        this.state.elements = this.state.elements.map((e) =>
+          e.id === elem.id ? elem : e
+        );
+        this.updateWorkbenchCounts();
+        break;
+      }
+      case 'registry_updated':
+        break;
       case 'mod_element_deleted': {
         this.state.elements = this.state.elements.filter(
           (e) => e.id !== ev.payload.elementId
@@ -431,6 +506,158 @@ export class MockCoreBridge implements CoreBridge {
 
     this.state.workbench.elementCounts = { total, valid, draft, invalid, unsupported };
     this.state.workbench.recentElements = this.state.elements.slice(0, 5);
+  }
+
+  private getMockProcedure(elementId: UUID): ProcedureIr {
+    const existing = this.procedureIrs.get(elementId);
+    if (existing) return existing;
+    const created: ProcedureIr = {
+      schemaVersion: '1.0',
+      trigger: 'no_ext_trigger',
+      nodes: [
+        {
+          id: generateUUID(),
+          type: 'event_trigger',
+          kind: 'statement',
+          x: 48,
+          y: 48,
+          fields: { trigger: 'no_ext_trigger' },
+          inputs: {},
+          next: null,
+          unknown: false
+        }
+      ],
+      dependencies: []
+    };
+    this.procedureIrs.set(elementId, created);
+    return created;
+  }
+
+  private applyMockProcedureEdits(elementId: UUID, edits: Array<Record<string, unknown>>): ProcedureIr {
+    const current = this.getMockProcedure(elementId);
+    let trigger = current.trigger;
+    let nodes = current.nodes.map((node) => ({
+      ...node,
+      fields: { ...node.fields },
+      inputs: { ...node.inputs }
+    }));
+    for (const edit of edits) {
+      const operation = String(edit.operation ?? '');
+      if (operation === 'add_node' && edit.node) {
+        nodes.push(edit.node as ProcedureNode);
+      } else if (operation === 'update_node') {
+        nodes = nodes.map((node) => node.id === edit.nodeId ? {
+          ...node,
+          fields: edit.fields ? { ...node.fields, ...(edit.fields as ProcedureNode['fields']) } : node.fields,
+          x: typeof edit.x === 'number' ? edit.x : node.x,
+          y: typeof edit.y === 'number' ? edit.y : node.y
+        } : node);
+      } else if (operation === 'move_node') {
+        nodes = nodes.map((node) => node.id === edit.nodeId ? {
+          ...node,
+          x: Number(edit.x),
+          y: Number(edit.y)
+        } : node);
+      } else if (operation === 'delete_node') {
+        nodes = nodes
+          .filter((node) => node.id !== edit.nodeId)
+          .map((node) => ({
+            ...node,
+            inputs: Object.fromEntries(Object.entries(node.inputs).filter(([, id]) => id !== edit.nodeId)),
+            next: node.next === edit.nodeId ? null : node.next
+          }));
+      } else if (operation === 'connect') {
+        nodes = nodes.map((node) => {
+          if (node.id !== edit.sourceNodeId) return node;
+          const port = String(edit.port);
+          if (port === 'next') return { ...node, next: String(edit.targetNodeId) };
+          return { ...node, inputs: { ...node.inputs, [port]: String(edit.targetNodeId) } };
+        });
+      } else if (operation === 'disconnect') {
+        nodes = nodes.map((node) => {
+          if (node.id !== edit.sourceNodeId) return node;
+          const port = String(edit.port);
+          if (port === 'next') return { ...node, next: null };
+          const inputs = { ...node.inputs };
+          delete inputs[port];
+          return { ...node, inputs };
+        });
+      } else if (operation === 'set_trigger') {
+        trigger = String(edit.trigger);
+      }
+    }
+    const result: ProcedureIr = { ...current, trigger, nodes };
+    this.procedureIrs.set(elementId, result);
+    return result;
+  }
+
+  private mockReferences(target = ''): WorkspaceReferenceProjection {
+    const nodes = [
+      ...this.state.elements.map((element) => ({
+        id: element.id,
+        kind: 'element',
+        type: element.type,
+        name: element.name,
+        displayName: element.displayName
+      })),
+      ...Object.entries(this.mockRegistries ?? {}).flatMap(([type, entries]) =>
+        entries.map((entry) => ({
+          id: entry.id,
+          kind: 'registry',
+          type,
+          name: entry.key ?? entry.name ?? '',
+          displayName: entry.key ?? entry.name ?? ''
+        })))
+    ];
+    const edges: Array<Record<string, unknown>> = [];
+    return {
+      revision: this.state.workbench?.workspace.revision ?? 42,
+      nodes,
+      edges: target ? edges.filter((edge) => edge.target === target || edge.targetId === target) : edges,
+      diagnostics: [],
+      stats: { indexedElements: this.state.elements.length, edgeCount: edges.length, incremental: true }
+    };
+  }
+
+  private mockProcedureProjection(elementId: UUID): ProcedureEditorProjection | null {
+    const element = this.state.elements.find((candidate) => candidate.id === elementId);
+    if (!element) return null;
+    const ir = this.getMockProcedure(elementId);
+    return {
+      element,
+      baseRevision: this.state.workbench?.workspace.revision ?? 42,
+      readOnly: this.state.workbench?.permission.profile === 'read_only',
+      ir,
+      nodeCatalog: [
+        ['controls_if', 'control', '条件', 'statement'],
+        ['controls_repeat_ext', 'control', '重复循环', 'statement'],
+        ['controls_while', 'control', '条件循环', 'statement'],
+        ['math_number', 'value', '数值', 'number'],
+        ['math_binary_ops', 'value', '数值运算', 'number'],
+        ['text', 'value', '文本', 'string'],
+        ['logic_boolean', 'value', '布尔值', 'logic'],
+        ['logic_binary_ops', 'value', '布尔运算', 'logic'],
+        ['variables_get_number', 'variable', '读取变量', 'number'],
+        ['variables_set_number', 'variable', '设置变量', 'statement'],
+        ['entity_from_deps', 'context', '上下文实体', 'entity'],
+        ['coord_x', 'context', '上下文 X', 'number'],
+        ['coord_y', 'context', '上下文 Y', 'number'],
+        ['coord_z', 'context', '上下文 Z', 'number'],
+        ['mcitem_all', 'context', '物品引用', 'itemstack'],
+        ['call_procedure', 'procedure', '调用 Procedure', 'statement'],
+        ['return_number', 'procedure', '返回数值', 'statement']
+      ].map(([type, category, label, output]) => ({
+        type,
+        category,
+        label: { key: `procedure.node.${type}`, fallback: label },
+        output,
+        availability: 'available' as const,
+        reasonCode: null
+      })),
+      sourcePreview: `// Read-only Procedure IR preview\ntrigger ${ir.trigger}\n${ir.nodes.map((node) => `${node.type} ${node.id}`).join('\n')}`,
+      sourceOwnership: 'generated',
+      references: this.mockReferences(elementId)
+    };
   }
 
   /* =========================================================================
@@ -695,6 +922,97 @@ export class MockCoreBridge implements CoreBridge {
         return result;
       }
 
+      case 'update_procedure': {
+        const payload = command.payload as unknown as {
+          elementId: UUID;
+          edits: Array<Record<string, unknown>>;
+        };
+        this.applyMockProcedureEdits(payload.elementId, payload.edits);
+        const current = this.state.elements.find((element) => element.id === payload.elementId);
+        if (!current) throw new Error(`Procedure element not found: ${payload.elementId}`);
+        const updated: ModElementSummary = {
+          ...current,
+          state: 'valid',
+          updatedAt: new Date().toISOString()
+        };
+        this.state.elements = this.state.elements.map((element) =>
+          element.id === updated.id ? updated : element
+        );
+        if (this.state.workbench) this.state.workbench.workspace.revision = newRevision;
+        this.updateWorkbenchCounts();
+        const result: CommandResult = {
+          messageType: 'command_result', schemaVersion: '1.0', requestId: command.requestId,
+          workspaceId, operation: 'update_procedure', status: 'committed', newRevision,
+          recoveryPointId: `rec-${generateUUID().slice(0, 8)}`, task: null,
+          data: { element: updated }, conflict: null, denial: null, diagnostics: []
+        };
+        const event: CoreEvent = {
+          messageType: 'event', schemaVersion: '1.0', eventId: generateUUID(), workspaceId,
+          revision: newRevision, sequence: ++this.sequenceCounter, occurredAt: new Date().toISOString(),
+          event: 'procedure_updated', causedByRequestId: command.requestId, payload: { element: updated }
+        };
+        this.notifyEvent(event);
+        this.notifyState();
+        return result;
+      }
+
+      case 'create_registry_entry':
+      case 'rename_registry_entry':
+      case 'delete_registry_entry': {
+        const payload = command.payload as unknown as {
+          registry?: keyof NonNullable<WorkspaceRegistriesProjection['registries']>;
+          entry?: Partial<RegistryEntry>;
+          entryId?: UUID;
+          newName?: string;
+        };
+        let data: CommandResult['data'] = null;
+        if (command.operation === 'create_registry_entry') {
+          const registry = payload.registry;
+          if (!registry || !payload.entry) throw new Error('Registry and entry are required.');
+          const kind = registry === 'variables' ? 'variable' : registry === 'tags' ? 'tag' : 'language_key';
+          const entry = {
+            ...payload.entry,
+            id: generateUUID(),
+            kind,
+            support: { state: 'supported', reasonCode: 'REGISTRY_ENTRY_SUPPORTED' }
+          } as RegistryEntry;
+          this.mockRegistries[registry].push(entry);
+          data = { entry };
+        } else {
+          const location = Object.entries(this.mockRegistries).find(([, entries]) =>
+            entries.some((entry) => entry.id === payload.entryId)
+          );
+          if (!location) throw new Error(`Registry entry not found: ${payload.entryId}`);
+          const [registry, entries] = location as [keyof typeof this.mockRegistries, RegistryEntry[]];
+          const entry = entries.find((candidate) => candidate.id === payload.entryId)!;
+          if (command.operation === 'rename_registry_entry') {
+            const oldName = entry.key ?? entry.name ?? '';
+            if (registry === 'languageKeys') entry.key = payload.newName ?? entry.key;
+            else entry.name = payload.newName ?? entry.name;
+            data = { entry, oldName, changedElementIds: [] };
+          } else {
+            this.mockRegistries[registry] = entries.filter((candidate) => candidate.id !== payload.entryId);
+            data = { entryId: payload.entryId, references: this.mockReferences(payload.entryId) };
+          }
+        }
+        if (this.state.workbench) this.state.workbench.workspace.revision = newRevision;
+        const result: CommandResult = {
+          messageType: 'command_result', schemaVersion: '1.0', requestId: command.requestId,
+          workspaceId, operation: command.operation, status: 'committed', newRevision,
+          recoveryPointId: command.operation === 'create_registry_entry' ? null : `rec-${generateUUID().slice(0, 8)}`,
+          task: null, data, conflict: null, denial: null, diagnostics: []
+        };
+        const event: CoreEvent = {
+          messageType: 'event', schemaVersion: '1.0', eventId: generateUUID(), workspaceId,
+          revision: newRevision, sequence: ++this.sequenceCounter, occurredAt: new Date().toISOString(),
+          event: 'registry_updated', causedByRequestId: command.requestId,
+          payload: (data ?? {}) as Record<string, unknown>
+        };
+        this.notifyEvent(event);
+        this.notifyState();
+        return result;
+      }
+
       case 'delete_mod_element': {
         const payload = command.payload as unknown as DeleteModElementPayload;
         const target = this.state.elements.find((e) => e.id === payload.elementId);
@@ -743,9 +1061,20 @@ export class MockCoreBridge implements CoreBridge {
       case 'build_workspace':
       case 'generate_workspace':
       case 'export_workspace':
-      case 'validate_workspace': {
+	  case 'validate_workspace':
+	  case 'run_client':
+	  case 'run_server':
+	  case 'run_datagen':
+      case 'run_gametest': {
 		const taskId = generateUUID();
-		const kind = command.operation === 'build_workspace' ? 'build' : command.operation === 'generate_workspace' ? 'generate' : command.operation === 'export_workspace' ? 'export' : 'validate';
+		const kind: TaskSummary['kind'] = command.operation === 'build_workspace' ? 'build'
+          : command.operation === 'generate_workspace' ? 'generate'
+          : command.operation === 'export_workspace' ? 'export'
+          : command.operation === 'run_client' ? 'run_client'
+          : command.operation === 'run_server' ? 'run_server'
+          : command.operation === 'run_datagen' ? 'run_datagen'
+          : command.operation === 'run_gametest' ? 'run_gametest'
+          : 'validate';
         const task: TaskSummary = {
           id: taskId,
           kind,
@@ -857,6 +1186,55 @@ export class MockCoreBridge implements CoreBridge {
         }, 1600);
 
         this.timelineTimers.push(t1, t2);
+        return result;
+      }
+
+      case 'publish_datagen_output': {
+        const payload = command.payload as unknown as { taskId: UUID; manifestHash: string };
+        const task = this.state.tasks[payload.taskId];
+        const manifestHash = 'a'.repeat(64);
+        if (!task || task.kind !== 'run_datagen' || task.state !== 'succeeded'
+          || payload.manifestHash !== manifestHash || this.publishedDatagenTasks.has(payload.taskId)) {
+          return {
+            messageType: 'command_result', schemaVersion: '1.0', requestId: command.requestId, workspaceId,
+            operation: 'publish_datagen_output', status: 'rejected', newRevision: currentRevision,
+            recoveryPointId: null, task: null, data: null, conflict: null, denial: null,
+            diagnostics: [{
+              code: 'DATAGEN_PUBLISH_FAILED', severity: 'error',
+              message: { key: 'diagnostic.datagen_publish_failed', fallback: 'Staged datagen output could not be published.' },
+              path: '/taskId', recoverable: true, actions: []
+            }]
+          };
+        }
+        this.publishedDatagenTasks.add(payload.taskId);
+        if (this.state.workbench) this.state.workbench.workspace.revision = newRevision;
+        const preview: DatagenPreview = {
+          taskId: payload.taskId,
+          sourceRevision: currentRevision,
+          currentRevision: newRevision,
+          manifestHash,
+          files: [{
+            path: 'src/generated/resources/data/copper_trails/loot_tables/blocks/copper_marker.json',
+            status: 'add', size: 284, sha256: 'b'.repeat(64)
+          }],
+          changeCount: 1,
+          stale: false,
+          published: true,
+          canPublish: false,
+          changedPaths: ['src/generated/resources/data/copper_trails/loot_tables/blocks/copper_marker.json']
+        };
+        const result: CommandResult = {
+          messageType: 'command_result', schemaVersion: '1.0', requestId: command.requestId, workspaceId,
+          operation: 'publish_datagen_output', status: 'committed', newRevision,
+          recoveryPointId: `rec-${generateUUID().slice(0, 8)}`, task: null, data: preview,
+          conflict: null, denial: null, diagnostics: []
+        };
+        this.notifyEvent({
+          messageType: 'event', schemaVersion: '1.0', eventId: generateUUID(), workspaceId,
+          revision: newRevision, sequence: ++this.sequenceCounter, occurredAt: new Date().toISOString(),
+          event: 'datagen_published', causedByRequestId: command.requestId, payload: preview
+        });
+        this.notifyState();
         return result;
       }
 
@@ -1606,8 +1984,83 @@ export class MockCoreBridge implements CoreBridge {
           page: 1,
           pageSize: 50,
           total: this.state.elements.length,
-          availableTypes: ['block', 'item', 'recipe', 'procedure']
+          availableTypes: ['block', 'item', 'recipe', 'procedure', 'function', 'loottable', 'achievement']
         };
+        break;
+      case 'get_procedure_editor': {
+        const elementId = (query.payload as { elementId?: UUID })?.elementId;
+        data = elementId ? this.mockProcedureProjection(elementId) : null;
+        break;
+      }
+      case 'preview_procedure_change': {
+        const payload = query.payload as { elementId?: UUID; edits?: Array<Record<string, unknown>> };
+        if (!payload.elementId) {
+          data = null;
+          break;
+        }
+        const original = this.getMockProcedure(payload.elementId);
+        const candidate = this.applyMockProcedureEdits(payload.elementId, payload.edits ?? []);
+        this.procedureIrs.set(payload.elementId, original);
+        data = {
+          elementId: payload.elementId,
+          baseRevision: revision,
+          canSaveDraft: true,
+          canGenerate: true,
+          candidateIr: candidate,
+          sourcePreview: `// Read-only Procedure IR preview\ntrigger ${candidate.trigger}`,
+          diagnostics: [],
+          changedPaths: [`/elements/${payload.elementId}/procedureIr`, `/elements/${payload.elementId}/procedurexml`]
+        };
+        break;
+      }
+      case 'get_workspace_references': {
+        const target = (query.payload as { target?: string })?.target ?? '';
+        data = this.mockReferences(target);
+        break;
+      }
+      case 'list_workspace_registries': {
+        const languages = new Set<string>();
+        this.mockRegistries.languageKeys.forEach((entry) =>
+          Object.keys(entry.translations ?? {}).forEach((language) => languages.add(language))
+        );
+        let missingTranslationCount = 0;
+        this.mockRegistries.languageKeys.forEach((entry) =>
+          languages.forEach((language) => {
+            if (!String(entry.translations?.[language] ?? '').trim()) missingTranslationCount++;
+          })
+        );
+        data = {
+          registries: this.mockRegistries,
+          languageStats: {
+            keyCount: this.mockRegistries.languageKeys.length,
+            languageCount: languages.size,
+            missingTranslationCount,
+            duplicateKeyCount: 0
+          },
+          stableIds: true,
+          referenceAwareRename: true
+        } satisfies WorkspaceRegistriesProjection;
+        break;
+      }
+      case 'preview_registry_rename': {
+        const payload = query.payload as { entryId?: UUID; newName?: string };
+        const location = Object.entries(this.mockRegistries).find(([, entries]) =>
+          entries.some((entry) => entry.id === payload.entryId)
+        );
+        const entry = location?.[1].find((candidate) => candidate.id === payload.entryId);
+        data = entry ? {
+          entryId: entry.id,
+          registry: location?.[0],
+          oldName: entry.key ?? entry.name,
+          newName: payload.newName,
+          references: this.mockReferences(entry.id),
+          impactedElementCount: 0,
+          canApply: true
+        } : null;
+        break;
+      }
+      case 'list_assets':
+        data = mockAssetProjection();
         break;
       case 'get_version_tracks':
         data = {
@@ -1637,7 +2090,8 @@ export class MockCoreBridge implements CoreBridge {
             { generatorId: 'fabric-1.21.1', loader: 'fabric', minecraftVersion: '1.21.1', trackId: 'minecraft_1_21_1', displayName: 'Fabric 1.21.1', dynamic: false, available: true, workspaceGeneratorName: 'fabric-1.21.1' },
             { generatorId: 'neoforge-1.21.1', loader: 'neoforge', minecraftVersion: '1.21.1', trackId: 'minecraft_1_21_1', displayName: 'NeoForge 1.21.1', dynamic: false, available: true, workspaceGeneratorName: 'neoforge-1.21.1' },
             { generatorId: 'fabric-1.20.1', loader: 'fabric', minecraftVersion: '1.20.1', trackId: 'minecraft_1_20_1', displayName: 'Fabric 1.20.1', dynamic: false, available: true, workspaceGeneratorName: 'fabric-1.20.1' },
-            { generatorId: 'neoforge-1.20.1', loader: 'neoforge', minecraftVersion: '1.20.1', trackId: 'minecraft_1_20_1', displayName: 'NeoForge 1.20.1', dynamic: false, available: true, workspaceGeneratorName: 'neoforge-1.20.1' }
+            { generatorId: 'neoforge-1.20.1', loader: 'neoforge', minecraftVersion: '1.20.1', trackId: 'minecraft_1_20_1', displayName: 'NeoForge 1.20.1', dynamic: false, available: true, workspaceGeneratorName: 'neoforge-1.20.1' },
+            { generatorId: 'resourcepack-1.21.1', loader: 'resource_pack', minecraftVersion: '1.21.1', trackId: 'resource_pack', displayName: 'Resource Pack 1.21.1', dynamic: false, available: true, workspaceGeneratorName: 'resourcepack-1.21.1' }
           ],
           suggestedWorkspaceFoldersRoot: 'C:\\Users\\example\\MCreatorWorkspaces'
         } satisfies NewWorkspaceGeneratorCatalog;
@@ -2020,6 +2474,28 @@ export class MockCoreBridge implements CoreBridge {
           logs: taskId ? this.state.taskLogs[taskId] || [] : [],
           diagnostics: []
         };
+        break;
+      }
+      case 'preview_datagen_output': {
+        const taskId = (query.payload as { taskId?: UUID })?.taskId ?? '';
+        const task = this.state.tasks[taskId];
+        const published = this.publishedDatagenTasks.has(taskId);
+        data = task && task.kind === 'run_datagen' && task.state === 'succeeded' ? {
+          taskId,
+          sourceRevision: revision,
+          currentRevision: revision,
+          manifestHash: 'a'.repeat(64),
+          files: [{
+            path: 'src/generated/resources/data/copper_trails/loot_tables/blocks/copper_marker.json',
+            status: published ? 'unchanged' : 'add',
+            size: 284,
+            sha256: 'b'.repeat(64)
+          }],
+          changeCount: published ? 0 : 1,
+          stale: false,
+          published,
+          canPublish: !published
+        } satisfies DatagenPreview : null;
         break;
       }
       case 'get_history':

@@ -1,5 +1,6 @@
 import { MockCoreBridge } from '../mock/mockBridge';
 import type { CoreBridge } from './CoreBridge';
+import { UnavailableCoreBridge } from './UnavailableCoreBridge';
 import {
   JcefCoreBridge,
   type JcefHostTransport,
@@ -72,15 +73,15 @@ export function isNativeHostPresent(): boolean {
 }
 
 /**
- * Creates the active bridge instance: selects JcefCoreBridge if native host is present,
- * or MockCoreBridge for browser development and Playwright e2e tests.
+ * Creates the active bridge instance. Mock data is restricted to development builds;
+ * production fails closed when the native host is missing.
  */
 export function createCoreBridge(explicitHost?: JcefHostTransport): CoreBridge {
   const host = explicitHost ?? getNativeHostTransport();
   if (host) {
     return new JcefCoreBridge(host);
   }
-  return new MockCoreBridge();
+  return import.meta.env.DEV ? new MockCoreBridge() : new UnavailableCoreBridge();
 }
 
 /**

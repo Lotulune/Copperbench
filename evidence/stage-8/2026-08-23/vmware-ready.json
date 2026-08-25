@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "vmware-clean-windows11-readiness",
+  "planned": true,
+  "createsVirtualMachine": false,
+  "hypervisor": "VMware",
+  "vmrunOnPath": false,
+  "foundInstallPaths": [],
+  "readyToCreateCleanVm": false,
+  "nextHostStep": "Finish installing VMware Workstation/Player, then create a stock Windows 11 VM with no developer tools and only the Copperbench installer."
+}

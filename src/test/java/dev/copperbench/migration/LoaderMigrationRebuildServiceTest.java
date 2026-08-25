@@ -25,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class LoaderMigrationRebuildServiceTest {
@@ -96,6 +97,17 @@ class LoaderMigrationRebuildServiceTest {
 		assertFalse(rebuild.generated());
 		assertEquals("skipped", rebuild.status());
 		assertEquals("VERSION_TRACK_NOT_REBUILDABLE", rebuild.reasonCode());
+	}
+
+	@Test void failedRebuildProjectionDoesNotExposeCauseDetails() {
+		IllegalStateException cause = new IllegalStateException("sensitive path and implementation detail");
+		var rebuild = LoaderMigrationRebuildService.RebuildResult.failed("neoforge-1.21.1",
+				"MIGRATION_REBUILD_FAILED", cause.getMessage(), cause);
+
+		assertSame(cause, rebuild.cause());
+		assertEquals("Target generation failed. See the diagnostic and application logs.",
+				rebuild.toJson().get("message").getAsString());
+		assertFalse(rebuild.toJson().toString().contains(cause.getMessage()));
 	}
 
 	@Test @EnabledIfSystemProperty(named = "copperbench.stage7.migrationBuild", matches = "true")

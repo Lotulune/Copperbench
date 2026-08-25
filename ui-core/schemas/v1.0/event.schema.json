@@ -45,6 +45,9 @@
         "mod_element_created",
         "mod_element_updated",
         "mod_element_deleted",
+        "procedure_updated",
+        "registry_updated",
+        "datagen_published",
         "diagnostics_changed",
         "task_started",
         "task_progressed",
@@ -55,6 +58,7 @@
         "bridge_recovery_required",
         "recovery_point_created",
         "workspace_restored",
+        "workspace_created",
         "loader_migration_executed",
         "upstream_workspace_imported",
         "publish_batch_created",
@@ -120,7 +124,8 @@
           "event": {
             "enum": [
               "mod_element_created",
-              "mod_element_updated"
+              "mod_element_updated",
+              "procedure_updated"
             ]
           }
         },

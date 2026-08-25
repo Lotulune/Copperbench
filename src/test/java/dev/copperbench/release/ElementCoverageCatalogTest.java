@@ -34,11 +34,14 @@ class ElementCoverageCatalogTest {
 	@Test void firstPartySliceExcludesLivingEntitiesAndBedrockAddonTypes() {
 		assertTrue(ElementCoverageCatalog.isFirstParty("block"));
 		assertTrue(ElementCoverageCatalog.isFirstParty("procedure"));
+		assertTrue(ElementCoverageCatalog.isFirstParty("function"));
+		assertTrue(ElementCoverageCatalog.isFirstParty("loottable"));
+		assertTrue(ElementCoverageCatalog.isFirstParty("achievement"));
 		assertFalse(ElementCoverageCatalog.isFirstParty("livingentity"));
 		assertFalse(ElementCoverageCatalog.isFirstParty("gui"));
 		assertFalse(ElementCoverageCatalog.isFirstParty("beblock"));
 		JsonObject json = ElementCoverageCatalog.toJson();
-		assertEquals(4, json.getAsJsonArray("firstPartySlice").size());
+		assertEquals(7, json.getAsJsonArray("firstPartySlice").size());
 		assertTrue(json.getAsJsonArray("unsupportedInNewUi").toString().contains("livingentity"));
 		assertTrue(json.getAsJsonArray("bedrockAddonNotApplicable").toString().contains("beentity"));
 	}

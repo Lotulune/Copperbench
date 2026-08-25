@@ -1,6 +1,9 @@
 <#-- @formatter:off -->
 package ${package};
 
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.common.Mod;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -14,7 +17,7 @@ import org.apache.logging.log4j.Logger;
 		// Start of user code block mod constructor
 		// End of user code block mod constructor
 
-		NeoForge.EVENT_BUS.register(this);
+		MinecraftForge.EVENT_BUS.register(this);
 
 		modEventBus.addListener(this::registerNetworking);
 
@@ -65,6 +68,7 @@ import org.apache.logging.log4j.Logger;
 		networkingRegistered = true;
 	}
 
+	<#if w.hasElementsOfType("procedure")>
 	<#-- Wait procedure block support below -->
 	private static final Queue<IntObjectPair<Runnable>> workToBeScheduled = new ConcurrentLinkedQueue<>();
 	private static final PriorityQueue<TickTask> workQueue = new PriorityQueue<>(Comparator.comparingInt(TickTask::getTick));
@@ -86,6 +90,7 @@ import org.apache.logging.log4j.Logger;
 			workQueue.poll().run();
 		}
 	}
+	</#if>
 
 }
 <#-- @formatter:on -->

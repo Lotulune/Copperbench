@@ -1,12 +1,32 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { readFile } from 'node:fs/promises';
 import { createValidator, validateAll } from '../scripts/validate.mjs';
+
+async function schema(name) {
+  return JSON.parse(await readFile(new URL(`../schemas/v1.0/${name}.schema.json`, import.meta.url), 'utf8'));
+}
 
 test('all UI-Core schemas compile and all mock scenarios validate', async () => {
   const result = await validateAll();
   assert.ok(result.schemaCount >= 9);
   assert.ok(result.fixtureCount >= 13);
   assert.deepEqual(result.failures, []);
+});
+
+test('command and query result operation sets match their request envelopes', async () => {
+  const command = await schema('command');
+  const commandResult = await schema('command-result');
+  const query = await schema('query');
+  const queryResult = await schema('query-result');
+
+  assert.deepEqual(commandResult.properties.operation.enum, command.properties.operation.enum);
+  assert.deepEqual(queryResult.properties.operation.enum, query.properties.operation.enum);
+});
+
+test('canonical events include the workspace lifecycle emitted by Java Core', async () => {
+  const event = await schema('event');
+  assert.ok(event.properties.event.enum.includes('workspace_created'));
 });
 
 test('version track matrix fixture validates against the canonical tracks schema', async () => {

@@ -15,6 +15,7 @@
 | 6 | [资产、资源包与 Blockbench](./stage-6-assets-resource-pack-blockbench.md) | 资产往返、引用治理和资源包工作流 | 4、5 |
 | 7 | [版本轨道与加载器迁移](./stage-7-version-tracks-and-migration.md) | 四条版本轨道和复制式迁移 | 5、6 |
 | 8 | [Windows Beta 与正式发布](./stage-8-windows-beta-ga.md) | 通过全部门禁的公开 GPL Windows 产品。剩余收口见 [`PRD-NEXT.md`](../../PRD-NEXT.md) | 0-7 |
+| 9 | [可视化逻辑与创作者核心](../../PRD-STAGE-9.md) | Procedure、工作区数据、数据驱动元素和服务端验证闭环 | 8 |
 
 ## UI 并行工作流
 
@@ -28,7 +29,7 @@ UI 不需要等待阶段 3 才开始，但不得提前绑定未稳定的核心�
 | U3 覆盖扩展 | 阶段 5-7 | NeoForge、资产、资源包、迁移、插件兼容界面 |
 | U4 发行硬化 | 阶段 8 | 帮助/About 与 DPI/命中区 Playwright 100/100；JCEF 实机 Snap/DPI 已宣称（HTMAXBUTTON=9，WM_DPICHANGED 144） |
 
-截至 2026-08-22：U0–U2 与 G4 自动化完成。阶段 7 G 切片已落地；U3 交接见 [`u3-stage-7-ui-brief.md`](../handoffs/u3-stage-7-ui-brief.md)。阶段 8 G7 自动化切片见 [`stage-8-g7-2026-08-19.md`](../testing/stage-8-g7-2026-08-19.md)。新产品外壳「新建工作区」主路径已在源码落地，但落盘证据、三入口、插件空工程编译和发行包对齐仍属阶段 8 收口（[`PRD-NEXT.md`](../../PRD-NEXT.md)）。G7 未通过。
+截至 2026-08-25：U0–U2 与 G4 自动化完成。阶段 7 G 切片已落地；U3 交接见 [`u3-stage-7-ui-brief.md`](../handoffs/u3-stage-7-ui-brief.md)。阶段 8 的新建工作区落盘/三入口、八插件空工程、资产页、资源包工作区、离线宣称、当前 Windows 预览包导出、授权后的安装演练和 Hyper-V G7 最终复验均有证据；发布记录见 [`stage-8-release-preview-2026-08-23.md`](../testing/stage-8-release-preview-2026-08-23.md)。G7 已通过，VMware 不属于门禁。阶段 9 的创作者核心闭环正在实施，当前证据见 [`stage-9-creator-core-2026-08-25.md`](../testing/stage-9-creator-core-2026-08-25.md)；未通过 G9.5 前不进入正式支持声明。
 
 ## 首个正式版本定义
 

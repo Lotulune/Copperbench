@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "windows-authenticode-readiness",
+  "jsignPresent": true,
+  "certificateChainPresent": false,
+  "signingEnvironmentConfigured": false,
+  "environmentFlags": {
+    "WIN_CERT_KEYSTORE": false,
+    "WIN_CERT_STOREPASS": false,
+    "WIN_CERT_KEYNAME": false
+  },
+  "exportExecutableSignature": "NotSigned",
+  "installerSignature": "NotSigned",
+  "signed": false,
+  "readyToSign": false,
+  "nextHostStep": "Unsigned GitHub Releases are the intended first public distribution (ADR-0015). Authenticode is optional: set WIN_CERT_KEYSTORE, WIN_CERT_STOREPASS, WIN_CERT_KEYNAME, and codesign-chain.pem if you later want jsign 7.4 to sign."
+}

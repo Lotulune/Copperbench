@@ -84,7 +84,20 @@ public final class RevisionedWorkspaceStore {
 	}
 
 	/** Outcome of a state replacement: committed revision plus the event sequence to use. */
-	public record Replacement(long revision, long sequence) {
+	public record Replacement(long revision, long sequence, java.util.Set<String> changedPaths) {
+		public Replacement {
+			changedPaths = java.util.Set.copyOf(changedPaths);
+		}
+	}
+
+	public record Restoration(WorkspaceState state, java.util.Set<String> changedPaths) {
+		public Restoration {
+			changedPaths = java.util.Set.copyOf(changedPaths);
+		}
+	}
+
+	@FunctionalInterface public interface RestorationOperation {
+		Restoration restore(long newRevision) throws Exception;
 	}
 
 	/**
@@ -111,11 +124,44 @@ public final class RevisionedWorkspaceStore {
 				}
 			long sequence = entry.state.nextEventSequence();
 			WorkspaceState next = restored.copy();
+			next.ensureEventSequenceAtLeast(sequence);
 			next.committed(actualRevision + 1);
 			entry.state = next;
 			entry.changedPaths.put(actualRevision + 1, List.copyOf(changedPaths));
-			return TransactionResult.committed(actualRevision + 1, new Replacement(actualRevision + 1, sequence));
+			return TransactionResult.committed(actualRevision + 1,
+					new Replacement(actualRevision + 1, sequence, changedPaths));
 			}
+	}
+
+	/** Runs an out-of-band restore while holding the same workspace lock used by content mutations. */
+	public TransactionResult<Replacement> restore(UUID workspaceId, long expectedRevision,
+			RestorationOperation operation) throws Exception {
+		Entry entry;
+		synchronized (this) {
+			entry = workspaces.get(workspaceId);
+		}
+		if (entry == null)
+			return TransactionResult.notFound();
+		synchronized (entry) {
+			long actualRevision = entry.state.revision();
+			if (expectedRevision != actualRevision) {
+				LinkedHashSet<String> changed = new LinkedHashSet<>();
+				entry.changedPaths.entrySet().stream().filter(item -> item.getKey() > expectedRevision)
+						.forEach(item -> changed.addAll(item.getValue()));
+				return TransactionResult.conflict(actualRevision, List.copyOf(changed));
+			}
+
+			long newRevision = actualRevision + 1;
+			long sequence = entry.state.nextEventSequence();
+			Restoration restoration = operation.restore(newRevision);
+			WorkspaceState next = restoration.state().copy();
+			next.ensureEventSequenceAtLeast(sequence);
+			next.committed(newRevision);
+			entry.state = next;
+			entry.changedPaths.put(newRevision, List.copyOf(restoration.changedPaths()));
+			return TransactionResult.committed(newRevision,
+					new Replacement(newRevision, sequence, restoration.changedPaths()));
+		}
 	}
 
 	public record Decision<T>(boolean commit, T value, List<String> changedPaths) {

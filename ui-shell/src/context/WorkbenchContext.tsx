@@ -15,7 +15,15 @@ import {
   PublishBatchListProjection,
   InstalledPluginInventory,
   UpstreamToolCatalogProjection,
-  NewWorkspaceGeneratorCatalog
+  NewWorkspaceGeneratorCatalog,
+  AssetProjection,
+  ProcedureEditorProjection,
+  ProcedureEdit,
+  WorkspaceRegistriesProjection,
+  RegistryEntry,
+  RegistryRenamePreview,
+  WorkspaceReferenceProjection,
+  DatagenPreview
 } from '../types/contract';
 import {
   coreBridge,
@@ -24,9 +32,10 @@ import {
   UI_CLIENT_IDENTITY
 } from '../bridge';
 import { windowBridge } from '../bridge/windowBridge';
+import { diagnosticsBridge } from '../bridge/diagnosticsBridge';
 import { t } from '../i18n';
 
-export type NavView = 'hub' | 'elements' | 'assets' | 'history' | 'ai' | 'plugins' | 'tracks' | 'new-workspace' | 'help';
+export type NavView = 'hub' | 'elements' | 'data' | 'assets' | 'history' | 'ai' | 'plugins' | 'tracks' | 'new-workspace' | 'help';
 
 interface WorkbenchContextType {
   state: BridgeState;
@@ -54,11 +63,24 @@ interface WorkbenchContextType {
   // Bridge Actions
   loadScenario: (scenarioId: string) => void;
   getModElementEditor: (elementId: UUID) => Promise<ModElementEditorProjection | null>;
+  getProcedureEditor: (elementId: UUID) => Promise<ProcedureEditorProjection | null>;
+  updateProcedure: (elementId: UUID, edits: ProcedureEdit[]) => Promise<CommandResult>;
+  listWorkspaceRegistries: () => Promise<WorkspaceRegistriesProjection | null>;
+  getWorkspaceReferences: (target?: string) => Promise<WorkspaceReferenceProjection | null>;
+  createRegistryEntry: (registry: 'variables' | 'tags' | 'languageKeys', entry: Partial<RegistryEntry>) => Promise<CommandResult>;
+  previewRegistryRename: (entryId: UUID, newName: string) => Promise<RegistryRenamePreview | null>;
+  renameRegistryEntry: (entryId: UUID, newName: string) => Promise<CommandResult>;
+  deleteRegistryEntry: (entryId: UUID) => Promise<CommandResult>;
   createModElement: (type: ModElementType, name: string) => Promise<CommandResult>;
   updateModElement: (elementId: UUID, changes: FieldChange[]) => Promise<CommandResult>;
   deleteModElement: (elementId: UUID) => Promise<CommandResult>;
   buildWorkspace: () => Promise<CommandResult>;
   runClient: () => Promise<CommandResult>;
+  runServer: (userApproved: boolean) => Promise<CommandResult>;
+  runDatagen: () => Promise<CommandResult>;
+  previewDatagenOutput: (taskId: UUID) => Promise<DatagenPreview | null>;
+  publishDatagenOutput: (taskId: UUID, manifestHash: string) => Promise<CommandResult>;
+  runGameTest: () => Promise<CommandResult>;
   cancelTask: (taskId: UUID) => Promise<CommandResult>;
   createRecoveryPoint: (label: string) => Promise<CommandResult>;
   restoreRecoveryPoint: (recoveryPointId: string) => Promise<CommandResult>;
@@ -73,6 +95,7 @@ interface WorkbenchContextType {
   getUpstreamTools: () => Promise<UpstreamToolCatalogProjection | null>;
   createPublishBatch: (name: string, sourceDirectory: string, output: string) => Promise<CommandResult>;
   prepareResourcePackClient: (sourceDirectory: string, zipFileName: string) => Promise<CommandResult>;
+  listAssets: () => Promise<AssetProjection | null>;
   listNewWorkspaceGenerators: () => Promise<NewWorkspaceGeneratorCatalog | null>;
   createWorkspace: (form: {
     generatorId: string;
@@ -140,13 +163,37 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   // startup error instead of falling back to untyped JSON.
   useEffect(() => {
     const run = async () => {
-      await coreBridge.negotiateHandshake({
-        messageType: 'handshake',
-        requestId: generateUUID(),
-        supportedSchemaVersions: [...UI_SUPPORTED_SCHEMA_VERSIONS],
-        client: { ...UI_CLIENT_IDENTITY }
-      });
-      setState({ ...coreBridge.getState() });
+      try {
+        await coreBridge.negotiateHandshake({
+          messageType: 'handshake',
+          requestId: generateUUID(),
+          supportedSchemaVersions: [...UI_SUPPORTED_SCHEMA_VERSIONS],
+          client: { ...UI_CLIENT_IDENTITY }
+        });
+        setState({ ...coreBridge.getState() });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        setState((current) => ({
+          ...current,
+          viewportState: 'error',
+          diagnostics: current.diagnostics.some((diagnostic) => diagnostic.code === 'UI_CORE_STARTUP_FAILED')
+            ? current.diagnostics
+            : [
+                ...current.diagnostics,
+                {
+                  code: 'UI_CORE_STARTUP_FAILED',
+                  severity: 'error',
+                  message: {
+                    key: 'diagnostic.ui_core_startup_failed',
+                    fallback: message
+                  },
+                  path: null,
+                  recoverable: false,
+                  actions: []
+                }
+              ]
+        }));
+      }
     };
     void run();
   }, []);
@@ -225,6 +272,85 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     },
     [state.workbench]
   );
+
+  const getProcedureEditor = useCallback(async (elementId: UUID): Promise<ProcedureEditorProjection | null> => {
+    const res = await coreBridge.sendQuery<ProcedureEditorProjection>({
+      messageType: 'query',
+      schemaVersion: '1.0',
+      requestId: generateUUID(),
+      workspaceId: state.workbench?.workspace.id ?? '',
+      operation: 'get_procedure_editor',
+      payload: { elementId }
+    });
+    return res.data ? { ...res.data, diagnostics: res.diagnostics } : null;
+  }, [state.workbench]);
+
+  const updateProcedure = useCallback(async (elementId: UUID, edits: ProcedureEdit[]): Promise<CommandResult> => {
+    const workspaceId = state.workbench?.workspace.id || generateUUID();
+    return coreBridge.sendCommand({
+      messageType: 'command',
+      schemaVersion: '1.0',
+      requestId: generateUUID(),
+      workspaceId,
+      expectedRevision: state.workbench?.workspace.revision ?? 0,
+      operation: 'update_procedure',
+      payload: { clientMutationId: generateUUID(), elementId, edits }
+    });
+  }, [state.workbench]);
+
+  const listWorkspaceRegistries = useCallback(async (): Promise<WorkspaceRegistriesProjection | null> => {
+    const res = await coreBridge.sendQuery<WorkspaceRegistriesProjection>({
+      messageType: 'query', schemaVersion: '1.0', requestId: generateUUID(),
+      workspaceId: state.workbench?.workspace.id ?? '', operation: 'list_workspace_registries', payload: {}
+    });
+    return res.data ?? null;
+  }, [state.workbench]);
+
+  const getWorkspaceReferences = useCallback(async (target?: string): Promise<WorkspaceReferenceProjection | null> => {
+    const res = await coreBridge.sendQuery<WorkspaceReferenceProjection>({
+      messageType: 'query', schemaVersion: '1.0', requestId: generateUUID(),
+      workspaceId: state.workbench?.workspace.id ?? '', operation: 'get_workspace_references',
+      payload: target ? { target } : {}
+    });
+    return res.data ?? null;
+  }, [state.workbench]);
+
+  const createRegistryEntry = useCallback(async (
+    registry: 'variables' | 'tags' | 'languageKeys', entry: Partial<RegistryEntry>
+  ): Promise<CommandResult> => coreBridge.sendCommand({
+    messageType: 'command', schemaVersion: '1.0', requestId: generateUUID(),
+    workspaceId: state.workbench?.workspace.id || generateUUID(),
+    expectedRevision: state.workbench?.workspace.revision ?? 0,
+    operation: 'create_registry_entry',
+    payload: { clientMutationId: generateUUID(), registry, entry }
+  }), [state.workbench]);
+
+  const previewRegistryRename = useCallback(async (entryId: UUID, newName: string): Promise<RegistryRenamePreview | null> => {
+    const res = await coreBridge.sendQuery<RegistryRenamePreview>({
+      messageType: 'query', schemaVersion: '1.0', requestId: generateUUID(),
+      workspaceId: state.workbench?.workspace.id ?? '', operation: 'preview_registry_rename',
+      payload: { entryId, newName }
+    });
+    return res.data ?? null;
+  }, [state.workbench]);
+
+  const renameRegistryEntry = useCallback(async (entryId: UUID, newName: string): Promise<CommandResult> =>
+    coreBridge.sendCommand({
+      messageType: 'command', schemaVersion: '1.0', requestId: generateUUID(),
+      workspaceId: state.workbench?.workspace.id || generateUUID(),
+      expectedRevision: state.workbench?.workspace.revision ?? 0,
+      operation: 'rename_registry_entry',
+      payload: { clientMutationId: generateUUID(), entryId, newName }
+    }), [state.workbench]);
+
+  const deleteRegistryEntry = useCallback(async (entryId: UUID): Promise<CommandResult> =>
+    coreBridge.sendCommand({
+      messageType: 'command', schemaVersion: '1.0', requestId: generateUUID(),
+      workspaceId: state.workbench?.workspace.id || generateUUID(),
+      expectedRevision: state.workbench?.workspace.revision ?? 0,
+      operation: 'delete_registry_entry',
+      payload: { clientMutationId: generateUUID(), entryId }
+    }), [state.workbench]);
 
   const createModElement = useCallback(
     async (type: ModElementType, name: string): Promise<CommandResult> => {
@@ -341,6 +467,66 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
     return res;
   }, [state.workbench]);
+
+  const runWorkspaceTask = useCallback(async (
+    operation: 'run_server' | 'run_datagen' | 'run_gametest',
+    userApproved?: boolean
+  ): Promise<CommandResult> => {
+    const workspaceId = state.workbench?.workspace.id || generateUUID();
+    const revision = state.workbench?.workspace.revision ?? 0;
+    const res = await coreBridge.sendCommand({
+      messageType: 'command',
+      schemaVersion: '1.0',
+      requestId: generateUUID(),
+      workspaceId,
+      expectedRevision: revision,
+      operation,
+      payload: {
+        clientMutationId: generateUUID(),
+        scope: 'workspace',
+        ...(operation === 'run_server' ? { userApproved: userApproved === true } : {})
+      }
+    });
+    if (res.task?.id) {
+      setActiveTaskId(res.task.id);
+      setIsTaskDrawerOpen(true);
+    }
+    return res;
+  }, [state.workbench]);
+
+  const runServer = useCallback((userApproved: boolean) => runWorkspaceTask('run_server', userApproved),
+    [runWorkspaceTask]);
+  const runDatagen = useCallback(() => runWorkspaceTask('run_datagen'), [runWorkspaceTask]);
+  const runGameTest = useCallback(() => runWorkspaceTask('run_gametest'), [runWorkspaceTask]);
+
+  const previewDatagenOutput = useCallback(async (taskId: UUID): Promise<DatagenPreview | null> => {
+    const res = await coreBridge.sendQuery<DatagenPreview>({
+      messageType: 'query',
+      schemaVersion: '1.0',
+      requestId: generateUUID(),
+      workspaceId: state.workbench?.workspace.id || generateUUID(),
+      operation: 'preview_datagen_output',
+      payload: { taskId }
+    });
+    return res.status === 'succeeded' ? res.data : null;
+  }, [state.workbench]);
+
+  const publishDatagenOutput = useCallback(async (
+    taskId: UUID,
+    manifestHash: string
+  ): Promise<CommandResult> => coreBridge.sendCommand({
+    messageType: 'command',
+    schemaVersion: '1.0',
+    requestId: generateUUID(),
+    workspaceId: state.workbench?.workspace.id || generateUUID(),
+    expectedRevision: state.workbench?.workspace.revision ?? 0,
+    operation: 'publish_datagen_output',
+    payload: {
+      clientMutationId: generateUUID(),
+      taskId,
+      manifestHash
+    }
+  }), [state.workbench]);
 
   const cancelTask = useCallback(
     async (taskId: UUID): Promise<CommandResult> => {
@@ -541,6 +727,19 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     return (res.data as PublishBatchListProjection | null) ?? null;
   }, [state.workbench]);
 
+  const listAssets = useCallback(async (): Promise<AssetProjection | null> => {
+    const workspaceId = state.workbench?.workspace.id || generateUUID();
+    const res = await coreBridge.sendQuery<AssetProjection>({
+      messageType: 'query',
+      schemaVersion: '1.0',
+      requestId: generateUUID(),
+      workspaceId,
+      operation: 'list_assets',
+      payload: {}
+    });
+    return (res.data as AssetProjection | null) ?? null;
+  }, [state.workbench]);
+
   const createPublishBatch = useCallback(
     async (name: string, sourceDirectory: string, output: string): Promise<CommandResult> => {
       const workspaceId = state.workbench?.workspace.id || generateUUID();
@@ -592,10 +791,14 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         schemaVersion: '1.0',
         requestId: generateUUID(),
         workspaceId,
-        operation: 'list_new_workspace_generators',
-        payload: {}
-      });
-      return (res.data as NewWorkspaceGeneratorCatalog | null) ?? null;
+      operation: 'list_new_workspace_generators',
+      payload: {}
+    });
+    if (res.status !== 'succeeded' || !res.data) {
+      const diagnostic = res.diagnostics[0];
+      throw new Error(diagnostic ? t(diagnostic.message) : '生成器目录无法加载。');
+    }
+    return res.data as NewWorkspaceGeneratorCatalog;
     },
     [state.workbench]
   );
@@ -643,9 +846,17 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           elevatePermission((action.target as PermissionProfile) || 'workspace');
           break;
         case 'open_logs':
-          if (action.target) {
+          if (action.target && state.tasks[action.target]) {
             setActiveTaskId(action.target);
             setIsTaskDrawerOpen(true);
+          } else {
+            const failureId = action.target ?? String(diagnostic.message.args?.failureId ?? '');
+            void diagnosticsBridge.openLogs(failureId)
+              .then(() => setAnnouncement(`已打开应用日志，请搜索错误编号 ${failureId}`))
+              .catch(() => {
+                if (failureId && navigator.clipboard) void navigator.clipboard.writeText(failureId);
+                setAnnouncement(`无法在当前宿主中打开应用日志，错误编号 ${failureId} 已复制`);
+              });
           }
           break;
         case 'open_field':
@@ -662,7 +873,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           break;
       }
     },
-    [elevatePermission]
+    [elevatePermission, state.tasks]
   );
 
   const value = useMemo(
@@ -690,11 +901,24 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       announcement,
       loadScenario,
       getModElementEditor,
+      getProcedureEditor,
+      updateProcedure,
+      listWorkspaceRegistries,
+      getWorkspaceReferences,
+      createRegistryEntry,
+      previewRegistryRename,
+      renameRegistryEntry,
+      deleteRegistryEntry,
       createModElement,
       updateModElement,
       deleteModElement,
       buildWorkspace,
       runClient,
+      runServer,
+      runDatagen,
+      previewDatagenOutput,
+      publishDatagenOutput,
+      runGameTest,
       cancelTask,
       createRecoveryPoint,
       restoreRecoveryPoint,
@@ -709,6 +933,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       getUpstreamTools,
       createPublishBatch,
       prepareResourcePackClient,
+      listAssets,
       listNewWorkspaceGenerators,
       createWorkspace,
       elevatePermission,
@@ -733,11 +958,24 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       announcement,
       loadScenario,
       getModElementEditor,
+      getProcedureEditor,
+      updateProcedure,
+      listWorkspaceRegistries,
+      getWorkspaceReferences,
+      createRegistryEntry,
+      previewRegistryRename,
+      renameRegistryEntry,
+      deleteRegistryEntry,
       createModElement,
       updateModElement,
       deleteModElement,
       buildWorkspace,
       runClient,
+      runServer,
+      runDatagen,
+      previewDatagenOutput,
+      publishDatagenOutput,
+      runGameTest,
       cancelTask,
       createRecoveryPoint,
       restoreRecoveryPoint,
@@ -752,6 +990,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       getUpstreamTools,
       createPublishBatch,
       prepareResourcePackClient,
+      listAssets,
       listNewWorkspaceGenerators,
       createWorkspace,
       elevatePermission,

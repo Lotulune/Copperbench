@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "resource-pack-workspace",
+  "requirement": "FR-CLOSE-06",
+  "completedAt": "2026-08-23",
+  "generatorId": "resourcepack-1.21.1",
+  "minecraftVersion": "1.21.1",
+  "listNewWorkspaceGenerators": "passed",
+  "workspaceCreation": {
+    "status": "passed",
+    "artifacts": [
+      ".mcreator",
+      "build.gradle",
+      "settings.gradle",
+      "packloader/build.gradle",
+      "src/main/pack.mcmeta",
+      "src/main/pack.png"
+    ]
+  },
+  "workspaceStateProjection": {
+    "status": "passed",
+    "kind": "resource_pack",
+    "loader": "resource_pack"
+  },
+  "zipExport": {
+    "status": "passed",
+    "source": "src/main",
+    "contains": [
+      "pack.mcmeta",
+      "pack.png"
+    ]
+  },
+  "taskGatewayExport": {
+    "status": "passed",
+    "artifact": "build/export/export.zip"
+  },
+  "prepareResourcePackClient": {
+    "status": "passed",
+    "clientLaunched": false
+  },
+  "verification": {
+    "javaTests": "passed",
+    "uiBuild": "passed",
+    "playwrightNewWorkspace": "12/12 passed"
+  },
+  "testClasses": [
+    "dev.copperbench.core.workspace.WorkspaceCreationServiceTest",
+    "dev.copperbench.core.workspace.mcreator.MCreatorWorkspaceStateMapperTest",
+    "dev.copperbench.generator.resourcepack.ResourcePackWorkspaceTaskGatewayTest",
+    "dev.copperbench.assets.ResourcePackClientLoadServiceTest"
+  ]
+}

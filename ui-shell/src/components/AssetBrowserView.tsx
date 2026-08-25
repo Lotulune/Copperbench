@@ -1,4 +1,4 @@
-import React, { useDeferredValue, useMemo, useState } from 'react';
+import React, { useDeferredValue, useEffect, useMemo, useState } from 'react';
 import {
   AlertCircle, AlertTriangle, Box, CheckCircle2, CircleDashed,
   Copy, CornerDownRight, FileJson, FileText,
@@ -7,7 +7,7 @@ import {
   SlidersHorizontal, Sparkles, Tag, Upload, XCircle
 } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
-import { ASSET_FIXTURES, AssetCategory, AssetRecord, AssetValidationStatus } from '../mock/assetFixtures';
+import { assetRecordsFromProjection, AssetCategory, AssetRecord, AssetValidationStatus } from '../types/assets';
 import { blockbenchBridge } from '../bridge/blockbenchBridge';
 
 type BrowserMode = 'ready' | 'empty' | 'loading' | 'error';
@@ -28,7 +28,9 @@ const CATEGORY_ITEMS: readonly CategoryConfig[] = [
   { id: 'animation', label: '动作骨骼', icon: Sparkles, description: '关键帧与动画驱动' },
   { id: 'language', label: '语言包', icon: FileText, description: '多语言翻译映射' },
   { id: 'sound', label: '声音音效', icon: Music, description: '事件音频与音效剪辑' },
-  { id: 'resource_pack', label: '资源包', icon: PackageOpen, description: '独立导出与打包' }
+  { id: 'resource_pack', label: '资源包', icon: PackageOpen, description: '独立导出与打包' },
+  { id: 'blockstate', label: '方块状态', icon: FileJson, description: '方块模型状态映射' },
+  { id: 'other', label: '其他', icon: FileJson, description: '工作区中的其他受支持文件' }
 ];
 
 function modeForScenario(scenarioId: string): BrowserMode {
@@ -59,7 +61,8 @@ function statusClass(status: AssetValidationStatus) {
   return status === 'ready' ? 'green' : status === 'warning' ? 'amber' : status === 'error' ? 'red' : 'blue';
 }
 
-function formatDate(value: string) {
+function formatDate(value?: string) {
+  if (!value) return '未提供';
   return new Intl.DateTimeFormat('zh-CN', {
     month: '2-digit',
     day: '2-digit',
@@ -70,22 +73,63 @@ function formatDate(value: string) {
 }
 
 export const AssetBrowserView: React.FC = () => {
-  const { state } = useWorkbench();
+  const { state, listAssets } = useWorkbench();
+  const [assets, setAssets] = useState<AssetRecord[]>([]);
+  const [assetLoadState, setAssetLoadState] = useState<'loading' | 'ready' | 'error'>('loading');
+  const [reloadToken, setReloadToken] = useState(0);
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState<CategoryFilter>('all');
   const [sort, setSort] = useState<SortField>('updated');
-  const [selectedId, setSelectedId] = useState(ASSET_FIXTURES[0]?.id ?? '');
+  const [selectedId, setSelectedId] = useState('');
   const [modeOverride, setModeOverride] = useState<BrowserMode | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [openingBlockbench, setOpeningBlockbench] = useState(false);
   const [copiedId, setCopiedId] = useState(false);
 
-  const mode = modeOverride ?? modeForScenario(state.currentScenarioId);
+  const scenarioMode = modeForScenario(state.currentScenarioId);
+  const mode = modeOverride ?? (state.currentScenarioId !== 'native'
+    ? scenarioMode
+    : assetLoadState === 'loading' ? 'loading' : assetLoadState === 'error' ? 'error' : assets.length === 0 ? 'empty' : 'ready');
   const deferredQuery = useDeferredValue(query);
+
+  useEffect(() => {
+    setModeOverride(null);
+    if (state.currentScenarioId !== 'native' && scenarioMode !== 'ready') {
+      setAssets([]);
+      setAssetLoadState(scenarioMode === 'error' ? 'error' : scenarioMode === 'loading' ? 'loading' : 'ready');
+      return;
+    }
+
+    let active = true;
+    setAssetLoadState('loading');
+    void listAssets().then((projection) => {
+      if (!active) return;
+      if (!projection) {
+        setAssets([]);
+        setAssetLoadState('error');
+        return;
+      }
+      setAssets(assetRecordsFromProjection(projection));
+      setAssetLoadState('ready');
+    }).catch(() => {
+      if (!active) return;
+      setAssets([]);
+      setAssetLoadState('error');
+    });
+    return () => {
+      active = false;
+    };
+  }, [listAssets, reloadToken, scenarioMode, state.currentScenarioId]);
+
+  useEffect(() => {
+    if (!selectedId || !assets.some((asset) => asset.id === selectedId)) {
+      setSelectedId(assets[0]?.id ?? '');
+    }
+  }, [assets, selectedId]);
 
   const filteredAssets = useMemo(() => {
     const normalized = deferredQuery.trim().toLocaleLowerCase();
-    return ASSET_FIXTURES
+    return assets
       .filter((asset) => category === 'all' || asset.category === category)
       .filter((asset) => {
         if (!normalized) return true;
@@ -95,22 +139,22 @@ export const AssetBrowserView: React.FC = () => {
       .sort((a, b) => {
         if (sort === 'name') return a.name.localeCompare(b.name);
         if (sort === 'references') return b.references.length - a.references.length;
-        if (sort === 'size') return parseFloat(b.size) - parseFloat(a.size);
-        return b.updatedAt.localeCompare(a.updatedAt);
+        if (sort === 'size') return b.sizeBytes - a.sizeBytes;
+        return (b.updatedAt ?? '').localeCompare(a.updatedAt ?? '');
       });
-  }, [category, deferredQuery, sort]);
+  }, [assets, category, deferredQuery, sort]);
 
   const selectedAsset = useMemo(() => {
     return filteredAssets.find((asset) => asset.id === selectedId) ?? filteredAssets[0] ?? null;
   }, [filteredAssets, selectedId]);
 
   const categoryCounts = useMemo(() => {
-    const counts: Record<string, number> = { all: ASSET_FIXTURES.length };
-    for (const asset of ASSET_FIXTURES) {
+    const counts: Record<string, number> = { all: assets.length };
+    for (const asset of assets) {
       counts[asset.category] = (counts[asset.category] ?? 0) + 1;
     }
     return counts;
-  }, []);
+  }, [assets]);
 
   const copyStableId = (id: string) => {
     navigator.clipboard?.writeText(id).catch(() => {});
@@ -145,7 +189,10 @@ export const AssetBrowserView: React.FC = () => {
     return <AssetStateView mode="loading" query={query} setQuery={setQuery} />;
   }
   if (mode === 'error') {
-    return <AssetStateView mode="error" query={query} setQuery={setQuery} onRetry={() => setModeOverride('ready')} />;
+    return <AssetStateView mode="error" query={query} setQuery={setQuery} onRetry={() => {
+      setModeOverride(null);
+      setReloadToken((token) => token + 1);
+    }} />;
   }
   if (mode === 'empty') {
     return <AssetStateView mode="empty" query={query} setQuery={setQuery} onRetry={importAsset} />;
@@ -156,7 +203,7 @@ export const AssetBrowserView: React.FC = () => {
       <AssetHeader
         query={query}
         setQuery={setQuery}
-        totalAssets={ASSET_FIXTURES.length}
+        totalAssets={assets.length}
         filteredCount={filteredAssets.length}
       />
 
@@ -182,7 +229,7 @@ export const AssetBrowserView: React.FC = () => {
                   data-testid={`asset-category-${item.id}`}
                   onClick={() => {
                     setCategory(item.id);
-                    const firstInCat = ASSET_FIXTURES.find(a => item.id === 'all' || a.category === item.id);
+                    const firstInCat = assets.find(a => item.id === 'all' || a.category === item.id);
                     if (firstInCat) setSelectedId(firstInCat.id);
                   }}
                   title={item.description}
@@ -586,9 +633,9 @@ const AssetDetails: React.FC<{
         </div>
 
         {asset.references.length === 0 ? (
-          <div className="asset-reference-empty">暂无外部引用关系。</div>
+          <div className="asset-reference-empty">暂无入站引用关系。</div>
         ) : (
-          <ul className="asset-reference-list" aria-label="引用该资产的目标">
+          <ul className="asset-reference-list" aria-label="引用该资产的来源">
             {asset.references.map((reference) => (
               <li key={reference} className="asset-reference-item">
                 <CornerDownRight size={11} className="asset-ref-arrow" aria-hidden="true" />
@@ -642,4 +689,3 @@ const AssetDetails: React.FC<{
     </aside>
   );
 };
-

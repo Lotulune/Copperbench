@@ -54,13 +54,13 @@ class GradleDistributionPoolTest {
 				distributionUrl=https\\://mirrors.huaweicloud.com/gradle/gradle-9.7.0-bin.zip
 				""", StandardCharsets.UTF_8);
 
-		assertTrue(GradleDistributionPool.seedForWorkspace(workspace, gradleHome));
+		assertTrue(GradleDistributionPool.seedForWorkspace(workspace, gradleHome, List.of()));
 		String hash = GradleDistributionPool.hashDistributionUrl(
 				"https://mirrors.huaweicloud.com/gradle/gradle-9.7.0-bin.zip");
 		Path seeded = gradleHome.resolve("wrapper/dists/gradle-9.7.0-bin").resolve(hash);
 		assertTrue(GradleDistributionPool.isReadyInstall(seeded, "9.7.0"));
 		assertTrue(Files.isRegularFile(seeded.resolve("gradle-9.7.0-bin.zip.ok")));
-		assertFalse(GradleDistributionPool.seedForWorkspace(workspace, gradleHome));
+		assertFalse(GradleDistributionPool.seedForWorkspace(workspace, gradleHome, List.of()));
 	}
 
 	@Test void doesNothingWhenNoInstallExists(@TempDir Path temp) throws Exception {
@@ -69,7 +69,7 @@ class GradleDistributionPoolTest {
 		Files.createDirectories(wrapper.getParent());
 		Files.writeString(wrapper, "distributionUrl=https\\://services.gradle.org/distributions/gradle-9.7.0-bin.zip\n",
 				StandardCharsets.UTF_8);
-		assertFalse(GradleDistributionPool.seedForWorkspace(workspace, temp.resolve("empty-home")));
+		assertFalse(GradleDistributionPool.seedForWorkspace(workspace, temp.resolve("empty-home"), List.of()));
 		assertTrue(GradleDistributionPool.findReadyInstall("9.7.0", temp.resolve("empty-home"), List.of()).isEmpty());
 	}
 

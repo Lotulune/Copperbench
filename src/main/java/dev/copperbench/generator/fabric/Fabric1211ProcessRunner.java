@@ -84,13 +84,13 @@ import java.util.function.Consumer;
 			});
 
 			Instant deadline = Instant.now().plus(timeout);
-			boolean clientRun = arguments.contains("runClient");
+			boolean managedGameRun = isClientRun(arguments) || isServerRun(arguments);
 			while (process.isAlive() && Instant.now().isBefore(deadline)) {
 				if (Thread.currentThread().isInterrupted()) {
 					destroy(process);
 					throw new InterruptedException("Fabric process was cancelled");
 				}
-				if (clientRun && marker.get()) {
+				if (managedGameRun && marker.get()) {
 					destroy(process);
 					reader.join(Duration.ofSeconds(10));
 					return new ProcessResult(0, true);
@@ -121,5 +121,13 @@ import java.util.function.Consumer;
 				process.destroyForcibly();
 			}
 		}
+	}
+
+	static boolean isClientRun(List<String> arguments) {
+		return arguments.stream().anyMatch(argument -> argument.equals("runClient") || argument.endsWith(":runClient"));
+	}
+
+	static boolean isServerRun(List<String> arguments) {
+		return arguments.stream().anyMatch(argument -> argument.equals("runServer") || argument.endsWith(":runServer"));
 	}
 }

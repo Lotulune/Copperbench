@@ -16,13 +16,20 @@ import dev.copperbench.core.application.WorkspaceTaskGateway;
 import dev.copperbench.core.contract.UiCore.Operation;
 import dev.copperbench.core.workspace.RevisionedWorkspaceStore;
 import dev.copperbench.core.workspace.WorkspaceState;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.time.Clock;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -39,6 +46,7 @@ import java.util.zip.ZipOutputStream;
 
 /** Runs loader-specific generation and Gradle tasks outside the workspace revision lock. */
 public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, AutoCloseable {
+	private static final Logger LOG = LogManager.getLogger(GradleWorkspaceTaskGateway.class);
 
 	private final RevisionedWorkspaceStore store;
 	private final Function<UUID, Path> workspaceRoots;
@@ -76,7 +84,20 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 
 	private void execute(UUID workspaceId, WorkspaceState state, Operation operation, JsonObject payload, Job job) {
 		try {
-			Path root = workspaceRoots.apply(workspaceId);
+			Path root = workspaceRoots.apply(workspaceId).toAbsolutePath().normalize();
+			Path executionRoot = isolated(operation)
+					? root.resolve(".copperbench/task-runs").resolve(taskKind(operation))
+							.resolve(job.id().toString()).resolve("workspace").normalize()
+					: root;
+			job.executionRoot = executionRoot;
+			job.sourceRevision = state.revision();
+			if (isolated(operation)) {
+				if (!executionRoot.startsWith(root.toAbsolutePath().normalize()))
+					throw new IllegalStateException("Isolated task path escaped the workspace");
+				Files.createDirectories(executionRoot);
+				job.log("info", "Using isolated task directory "
+						+ root.relativize(executionRoot).toString().replace('\\', '/'));
+			}
 			var validation = backend.validate(state);
 			if (!validation.isEmpty()) {
 				job.failValidation(validation);
@@ -87,36 +108,56 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 				job.succeed("task.validate.completed", backend.displayName() + " validation completed");
 				return;
 			}
-			var result = backend.generate(root, state);
+			var result = backend.generate(executionRoot, state);
 			job.log("info", backend.displayName() + " generation completed: " + result.generatedPaths().size()
 					+ " files");
 			if (operation == Operation.BUILD_WORKSPACE || operation == Operation.EXPORT_WORKSPACE) {
-				var process = processes.run(root, List.of("build"), Duration.ofMinutes(15),
+				var process = processes.run(executionRoot, backend.gradleArguments(operation), Duration.ofMinutes(15),
 						line -> job.log("info", line));
 				if (process.exitCode() != 0)
 					throw new IllegalStateException(backend.displayName() + " build exited " + process.exitCode());
-				if (!Files.isDirectory(root.resolve("build/libs")))
-					throw new IllegalStateException(backend.displayName() + " build did not produce build/libs");
+				if (!backend.buildOutputAvailable(executionRoot))
+					throw new IllegalStateException(backend.displayName() + " build did not produce its export artifact");
 				if (operation == Operation.EXPORT_WORKSPACE) {
-					Path exported = export(root, payload);
+					Path exported = backend.export(executionRoot, payload);
 					job.log("info", "Exported " + backend.displayName() + " artifact to "
-							+ root.relativize(exported).toString().replace('\\', '/'));
+							+ executionRoot.relativize(exported).toString().replace('\\', '/'));
 				}
 			} else if (operation == Operation.RUN_CLIENT) {
-				var process = processes.run(root, List.of("runClient"), Duration.ofMinutes(20),
+				var process = processes.run(executionRoot, backend.gradleArguments(operation), Duration.ofMinutes(20),
 						line -> job.log("info", line));
 				if (process.exitCode() != 0 || !process.readinessMarkerSeen())
 					throw new IllegalStateException(backend.displayName() + " client did not reach the readiness marker");
+			} else if (operation == Operation.RUN_SERVER) {
+				if (!payload.has("eulaAccepted") || !payload.get("eulaAccepted").getAsBoolean())
+					throw new IllegalArgumentException("Dedicated server EULA confirmation is required");
+				Path eula = executionRoot.resolve("run/eula.txt");
+				Files.createDirectories(eula.getParent());
+				Files.writeString(eula, "eula=true\n", StandardCharsets.UTF_8);
+				var process = processes.run(executionRoot, backend.gradleArguments(operation), Duration.ofMinutes(20),
+						line -> job.log("info", line));
+				if (process.exitCode() != 0 || !process.readinessMarkerSeen())
+					throw new IllegalStateException(backend.displayName() + " server did not reach the readiness marker");
+			} else if (operation == Operation.RUN_DATAGEN || operation == Operation.RUN_GAMETEST) {
+				var process = processes.run(executionRoot, backend.gradleArguments(operation), Duration.ofMinutes(20),
+						line -> job.log("info", line));
+				if (process.exitCode() != 0)
+					throw new IllegalStateException(backend.displayName() + " " + taskKind(operation)
+							+ " exited " + process.exitCode());
+				if (operation == Operation.RUN_DATAGEN) writeDatagenManifest(executionRoot, state, result, job);
 			}
 			job.succeed("task." + taskKind(operation) + ".completed",
 					backend.displayName() + " " + taskKind(operation) + " completed");
 		} catch (Exception exception) {
+			String failureId = UUID.randomUUID().toString();
+			LOG.error("Workspace task failure {} (backend={}, operation={}, workspaceId={})", failureId,
+					backend.displayName(), operation, workspaceId, exception);
 			job.fail(backend.diagnosticPrefix() + "_" + taskKind(operation).toUpperCase(Locale.ROOT) + "_FAILED",
-					exception.getMessage() == null ? exception.toString() : exception.getMessage());
+					failureId, taskKind(operation));
 		}
 	}
 
-	private static Path export(Path root, JsonObject payload) throws Exception {
+	static Path exportJar(Path root, JsonObject payload) throws Exception {
 		if (!payload.has("output") || !payload.get("output").isJsonPrimitive()
 				|| payload.get("output").getAsString().isBlank())
 			throw new IllegalArgumentException("Export output is required");
@@ -179,6 +220,194 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 		return job == null ? List.of() : job.diagnostics();
 	}
 
+	@Override public Optional<JsonObject> previewDatagen(UUID workspaceId, UUID taskId) {
+		Job job = job(workspaceId, taskId);
+		if (job == null || job.operation() != Operation.RUN_DATAGEN) return Optional.empty();
+		synchronized (job) {
+			try {
+				return Optional.of(datagenPreview(workspaceId, job));
+			} catch (Exception exception) {
+				throw new IllegalStateException("Could not preview staged datagen output", exception);
+			}
+		}
+	}
+
+	@Override public JsonObject publishDatagen(UUID workspaceId, UUID taskId, JsonObject payload) {
+		Job job = job(workspaceId, taskId);
+		if (job == null || job.operation() != Operation.RUN_DATAGEN)
+			throw new IllegalArgumentException("Datagen task not found: " + taskId);
+		synchronized (job) {
+			try {
+				JsonObject preview = datagenPreview(workspaceId, job);
+				String expectedHash = payload.has("manifestHash") ? payload.get("manifestHash").getAsString() : "";
+				if (!preview.get("manifestHash").getAsString().equals(expectedHash))
+					throw new IllegalArgumentException("Datagen preview hash is stale");
+				if (!preview.get("canPublish").getAsBoolean())
+					throw new IllegalStateException("Staged datagen output cannot be published");
+				if (job.publishSession != null || job.published)
+					throw new IllegalStateException("Datagen output was already published");
+				Path root = workspaceRoots.apply(workspaceId).toAbsolutePath().normalize();
+				Path backupRoot = job.executionRoot.getParent().resolve("publish-backup").normalize();
+				if (!backupRoot.startsWith(root.resolve(".copperbench/task-runs").normalize()))
+					throw new IllegalStateException("Datagen backup path escaped task storage");
+				Files.createDirectories(backupRoot);
+				List<FileBackup> backups = new ArrayList<>();
+				job.publishSession = new PublishSession(backupRoot, backups);
+				JsonArray changedPaths = new JsonArray();
+				for (var raw : preview.getAsJsonArray("files")) {
+					JsonObject item = raw.getAsJsonObject();
+					if (item.get("status").getAsString().equals("unchanged")) continue;
+					String relative = item.get("path").getAsString();
+					Path source = resolveInside(job.executionRoot, relative);
+					Path destination = resolveInside(root, relative);
+					Path backup = resolveInside(backupRoot, relative);
+					boolean existed = Files.isRegularFile(destination);
+					if (existed) {
+						Files.createDirectories(backup.getParent());
+						Files.copy(destination, backup, StandardCopyOption.REPLACE_EXISTING);
+					}
+					backups.add(new FileBackup(destination, backup, existed));
+					Files.createDirectories(destination.getParent());
+					Path prepared = destination.resolveSibling(destination.getFileName() + ".copperbench-" + taskId + ".tmp");
+					try {
+						Files.copy(source, prepared, StandardCopyOption.REPLACE_EXISTING);
+						try {
+							Files.move(prepared, destination, StandardCopyOption.ATOMIC_MOVE,
+									StandardCopyOption.REPLACE_EXISTING);
+						} catch (AtomicMoveNotSupportedException ignored) {
+							Files.move(prepared, destination, StandardCopyOption.REPLACE_EXISTING);
+						}
+					} finally {
+						Files.deleteIfExists(prepared);
+					}
+					changedPaths.add(relative);
+				}
+				job.published = true;
+				JsonObject result = preview.deepCopy();
+				result.add("changedPaths", changedPaths);
+				result.addProperty("published", true);
+				return result;
+			} catch (Exception exception) {
+				rollbackPublish(job);
+				throw new IllegalStateException("Could not publish staged datagen output", exception);
+			}
+		}
+	}
+
+	@Override public void completeDatagenPublish(UUID workspaceId, UUID taskId) {
+		Job job = job(workspaceId, taskId);
+		if (job == null) return;
+		synchronized (job) {
+			if (job.publishSession == null) return;
+			deleteTree(job.publishSession.backupRoot(), job.executionRoot.getParent());
+			job.publishSession = null;
+		}
+	}
+
+	@Override public void rollbackDatagenPublish(UUID workspaceId, UUID taskId) {
+		Job job = job(workspaceId, taskId);
+		if (job == null) return;
+		synchronized (job) {
+			rollbackPublish(job);
+		}
+	}
+
+	private JsonObject datagenPreview(UUID workspaceId, Job job) throws Exception {
+		if (job.executionRoot == null || !job.task().get("state").getAsString().equals("succeeded"))
+			throw new IllegalStateException("Datagen task has not completed successfully");
+		Path manifestPath = job.executionRoot.getParent().resolve("datagen-manifest.json");
+		if (!Files.isRegularFile(manifestPath)) throw new IllegalStateException("Datagen manifest is missing");
+		JsonObject manifest = com.google.gson.JsonParser.parseString(Files.readString(manifestPath)).getAsJsonObject();
+		Path root = workspaceRoots.apply(workspaceId).toAbsolutePath().normalize();
+		MessageDigest manifestDigest = MessageDigest.getInstance("SHA-256");
+		JsonArray files = new JsonArray();
+		int changes = 0;
+		for (var raw : manifest.getAsJsonArray("files")) {
+			String relative = raw.getAsString().replace('\\', '/');
+			if (!publishableDatagenPath(relative)) continue;
+			Path source = resolveInside(job.executionRoot, relative);
+			if (!Files.isRegularFile(source)) continue;
+			Path destination = resolveInside(root, relative);
+			byte[] bytes = Files.readAllBytes(source);
+			manifestDigest.update(relative.getBytes(StandardCharsets.UTF_8));
+			manifestDigest.update((byte) 0);
+			manifestDigest.update(MessageDigest.getInstance("SHA-256").digest(bytes));
+			String status = !Files.isRegularFile(destination) ? "add"
+					: Files.mismatch(source, destination) < 0 ? "unchanged" : "modify";
+			if (!status.equals("unchanged")) changes++;
+			JsonObject item = new JsonObject();
+			item.addProperty("path", relative);
+			item.addProperty("status", status);
+			item.addProperty("size", bytes.length);
+			item.addProperty("sha256", sha256(bytes));
+			files.add(item);
+		}
+		long currentRevision = store.read(workspaceId).map(WorkspaceState::revision).orElse(-1L);
+		JsonObject preview = new JsonObject();
+		preview.addProperty("taskId", job.id().toString());
+		preview.addProperty("sourceRevision", job.sourceRevision);
+		preview.addProperty("currentRevision", currentRevision);
+		preview.addProperty("manifestHash", HexFormat.of().formatHex(manifestDigest.digest()));
+		preview.add("files", files);
+		preview.addProperty("changeCount", changes);
+		preview.addProperty("stale", currentRevision != job.sourceRevision);
+		preview.addProperty("published", job.published);
+		preview.addProperty("canPublish", changes > 0 && currentRevision == job.sourceRevision && !job.published);
+		return preview;
+	}
+
+	private static boolean publishableDatagenPath(String relative) {
+		return relative.startsWith("src/generated/") || relative.startsWith("src/main/generated/");
+	}
+
+	private static Path resolveInside(Path root, String relative) {
+		Path normalizedRoot = root.toAbsolutePath().normalize();
+		Path result = normalizedRoot.resolve(relative).normalize();
+		if (!result.startsWith(normalizedRoot)) throw new IllegalArgumentException("Path escapes root: " + relative);
+		return result;
+	}
+
+	private static String sha256(byte[] bytes) throws Exception {
+		return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(bytes));
+	}
+
+	private static void rollbackPublish(Job job) {
+		PublishSession session = job.publishSession;
+		if (session == null) return;
+		for (int index = session.files().size() - 1; index >= 0; index--) {
+			FileBackup backup = session.files().get(index);
+			try {
+				if (backup.existed()) {
+					Files.createDirectories(backup.destination().getParent());
+					Files.copy(backup.backup(), backup.destination(), StandardCopyOption.REPLACE_EXISTING);
+				} else Files.deleteIfExists(backup.destination());
+			} catch (Exception exception) {
+				LOG.error("Could not roll back datagen output {}", backup.destination(), exception);
+			}
+		}
+		deleteTree(session.backupRoot(), job.executionRoot.getParent());
+		job.publishSession = null;
+		job.published = false;
+	}
+
+	private static void deleteTree(Path target, Path boundary) {
+		try {
+			Path normalizedTarget = target.toAbsolutePath().normalize();
+			Path normalizedBoundary = boundary.toAbsolutePath().normalize();
+			if (!normalizedTarget.startsWith(normalizedBoundary) || normalizedTarget.equals(normalizedBoundary)) return;
+			if (!Files.exists(normalizedTarget)) return;
+			try (var paths = Files.walk(normalizedTarget)) {
+				paths.sorted(Comparator.reverseOrder()).forEach(path -> {
+					try { Files.deleteIfExists(path); } catch (Exception exception) {
+						LOG.warn("Could not clean datagen publish backup {}", path, exception);
+					}
+				});
+			}
+		} catch (Exception exception) {
+			LOG.warn("Could not clean datagen publish backup {}", target, exception);
+		}
+	}
+
 	private Job job(UUID workspaceId, UUID taskId) {
 		return jobs.getOrDefault(workspaceId, Map.of()).get(taskId);
 	}
@@ -190,8 +419,10 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 		task.addProperty("state", "running");
 		task.addProperty("cancellable", true);
 		task.addProperty("progress", 0);
+		JsonObject args = new JsonObject();
+		args.addProperty("backend", backend.displayName());
 		task.add("stage", localized("task." + taskKind(operation) + ".started",
-				"Starting " + backend.displayName() + " " + taskKind(operation)));
+				"Starting " + backend.displayName() + " " + taskKind(operation), args));
 		task.addProperty("startedAt", clock.instant().toString());
 		task.add("completedAt", JsonNull.INSTANCE);
 		task.add("diagnostics", counts(0));
@@ -201,7 +432,13 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 	private static boolean isTask(Operation operation) {
 		return operation == Operation.VALIDATE_WORKSPACE || operation == Operation.GENERATE_WORKSPACE
 				|| operation == Operation.BUILD_WORKSPACE || operation == Operation.EXPORT_WORKSPACE
-				|| operation == Operation.RUN_CLIENT;
+				|| operation == Operation.RUN_CLIENT || operation == Operation.RUN_SERVER
+				|| operation == Operation.RUN_DATAGEN || operation == Operation.RUN_GAMETEST;
+	}
+
+	private static boolean isolated(Operation operation) {
+		return operation == Operation.RUN_SERVER || operation == Operation.RUN_DATAGEN
+				|| operation == Operation.RUN_GAMETEST;
 	}
 
 	private static String taskKind(Operation operation) {
@@ -211,15 +448,42 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 			case BUILD_WORKSPACE -> "build";
 			case EXPORT_WORKSPACE -> "export";
 			case RUN_CLIENT -> "run_client";
+			case RUN_SERVER -> "run_server";
+			case RUN_DATAGEN -> "run_datagen";
+			case RUN_GAMETEST -> "run_gametest";
 			default -> throw new IllegalArgumentException("Operation is not a Gradle task: " + operation);
 		};
 	}
 
+	private static void writeDatagenManifest(Path executionRoot, WorkspaceState state,
+			GradleWorkspaceBackend.GenerationResult generation, Job job) throws Exception {
+		JsonObject manifest = new JsonObject();
+		manifest.addProperty("schemaVersion", "1.0");
+		manifest.addProperty("workspaceId", state.id().toString());
+		manifest.addProperty("workspaceRevision", state.revision());
+		manifest.addProperty("generatorId", generation.generatorId());
+		JsonArray files = new JsonArray();
+		try (var paths = Files.walk(executionRoot)) {
+			paths.filter(Files::isRegularFile).map(executionRoot::relativize)
+					.map(path -> path.toString().replace('\\', '/'))
+					.filter(path -> path.contains("generated") || path.startsWith("src/main/resources/data/"))
+					.sorted().forEach(files::add);
+		}
+		manifest.add("files", files);
+		Path target = executionRoot.getParent().resolve("datagen-manifest.json");
+		Files.writeString(target, manifest.toString(), StandardCharsets.UTF_8);
+		job.log("info", "Datagen staged " + files.size() + " files; manifest: " + target.getFileName());
+	}
+
 	private static JsonObject localized(String key, String fallback) {
+		return localized(key, fallback, new JsonObject());
+	}
+
+	private static JsonObject localized(String key, String fallback, JsonObject args) {
 		JsonObject value = new JsonObject();
 		value.addProperty("key", key);
 		value.addProperty("fallback", fallback);
-		value.add("args", new JsonObject());
+		value.add("args", args == null ? new JsonObject() : args.deepCopy());
 		return value;
 	}
 
@@ -235,11 +499,21 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 		executor.shutdownNow();
 	}
 
+	private record FileBackup(Path destination, Path backup, boolean existed) {
+	}
+
+	private record PublishSession(Path backupRoot, List<FileBackup> files) {
+	}
+
 	private final class Job {
 		private final JsonObject summary;
 		private final List<JsonObject> logEntries = new ArrayList<>();
 		private final List<JsonObject> diagnosticEntries = new ArrayList<>();
 		private Future<?> future;
+		private Path executionRoot;
+		private long sourceRevision;
+		private PublishSession publishSession;
+		private boolean published;
 
 		private Job(JsonObject summary) {
 			this.summary = summary;
@@ -247,6 +521,24 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 
 		private synchronized JsonObject task() {
 			return summary.deepCopy();
+		}
+
+		private UUID id() {
+			return UUID.fromString(summary.get("id").getAsString());
+		}
+
+		private Operation operation() {
+			return switch (summary.get("kind").getAsString()) {
+				case "run_datagen" -> Operation.RUN_DATAGEN;
+				case "run_server" -> Operation.RUN_SERVER;
+				case "run_gametest" -> Operation.RUN_GAMETEST;
+				case "run_client" -> Operation.RUN_CLIENT;
+				case "validate" -> Operation.VALIDATE_WORKSPACE;
+				case "generate" -> Operation.GENERATE_WORKSPACE;
+				case "build" -> Operation.BUILD_WORKSPACE;
+				case "export" -> Operation.EXPORT_WORKSPACE;
+				default -> throw new IllegalStateException("Unknown task kind");
+			};
 		}
 
 		private synchronized List<JsonObject> logs() {
@@ -267,20 +559,49 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 		}
 
 		private synchronized void succeed(String key, String stage) {
+			if (!isRunning()) return;
+			JsonObject args = new JsonObject();
+			args.addProperty("backend", backend.displayName());
 			summary.addProperty("state", "succeeded");
 			summary.addProperty("cancellable", false);
 			summary.addProperty("progress", 1);
-			summary.add("stage", localized(key, stage));
+			summary.add("stage", localized(key, stage, args));
 			summary.addProperty("completedAt", clock.instant().toString());
 		}
 
-		private synchronized void fail(String code, String message) {
-			log("error", message);
-			addDiagnostic(code, message, null, null);
+		private synchronized void fail(String code, String failureId, String taskKind) {
+			if (!isRunning()) return;
+			log("error", "Task failed. Error ID: " + failureId);
+			addFailureDiagnostic(code, failureId, taskKind);
 			completeFailure();
 		}
 
+		private void addFailureDiagnostic(String code, String failureId, String taskKind) {
+			JsonObject args = new JsonObject();
+			args.addProperty("backend", backend.displayName());
+			args.addProperty("task", taskKind);
+			args.addProperty("failureId", failureId);
+			JsonObject diagnostic = new JsonObject();
+			diagnostic.addProperty("code", code);
+			diagnostic.addProperty("severity", "error");
+			diagnostic.add("message", localized("diagnostic.workspace_task_failed",
+					"The {backend} {task} task failed.", args));
+			diagnostic.add("path", JsonNull.INSTANCE);
+			diagnostic.add("elementId", JsonNull.INSTANCE);
+			diagnostic.addProperty("recoverable", true);
+			JsonObject action = new JsonObject();
+			action.addProperty("id", "open_logs");
+			action.add("label", localized("action.open_logs", "View logs"));
+			action.addProperty("kind", "open_logs");
+			action.addProperty("target", failureId);
+			JsonArray actions = new JsonArray();
+			actions.add(action);
+			diagnostic.add("actions", actions);
+			diagnosticEntries.add(diagnostic);
+		}
+
 		private synchronized void failValidation(List<GradleWorkspaceBackend.ValidationIssue> issues) {
+			if (!isRunning()) return;
 			for (var issue : issues) {
 				log("error", issue.message());
 				addDiagnostic(issue.code(), issue.message(), issue.path(), issue.elementId());
@@ -302,16 +623,18 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 		}
 
 		private void completeFailure() {
+			JsonObject args = new JsonObject();
+			args.addProperty("backend", backend.displayName());
 			summary.addProperty("state", "failed");
 			summary.addProperty("cancellable", false);
 			summary.addProperty("progress", 1);
-			summary.add("stage", localized("task.failed", backend.displayName() + " task failed"));
+			summary.add("stage", localized("task.failed", backend.displayName() + " task failed", args));
 			summary.addProperty("completedAt", clock.instant().toString());
 			summary.add("diagnostics", counts(diagnosticEntries.size()));
 		}
 
 		private synchronized void cancel() {
-			if (!summary.get("state").getAsString().equals("running")) return;
+			if (!isRunning()) return;
 			if (future != null) future.cancel(true);
 			summary.addProperty("state", "cancelled");
 			summary.addProperty("cancellable", false);
@@ -319,6 +642,10 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 			summary.add("stage", localized("task.cancelled", "Task cancelled"));
 			summary.addProperty("completedAt", clock.instant().toString());
 			log("warning", backend.displayName() + " task cancelled");
+		}
+
+		private boolean isRunning() {
+			return summary.get("state").getAsString().equals("running");
 		}
 	}
 }

@@ -188,7 +188,7 @@ import java.util.*;
 			String tab = entry.getKey();
 			if (tab.startsWith(NameMapper.MCREATOR_PREFIX)) {
 				ModElement tabME = workspace.getModElementByName(tab.replace(NameMapper.MCREATOR_PREFIX, ""));
-				if (tabME == null || tabME.getType() != ModElementType.TAB)
+				if (tabME == null || !tabME.getType().equals(ModElementType.TAB))
 					continue; // Might be a stale entry we didn't remove previously (#5174)
 			}
 			for (String element : entry.getValue()) {

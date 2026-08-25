@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "g7-final",
+  "requirement": "FR-CLOSE-08",
+  "completedAt": "2026-08-23",
+  "status": "passed",
+  "hyperv": {
+    "evidence": "evidence/stage-8/2026-08-23/hyperv-g7-guest-checks.json",
+    "passed": true,
+    "networkDisconnected": true,
+    "processStartedWhileDisconnected": true,
+    "silentInstall": true,
+    "silentUpgrade": true,
+    "silentUninstall": true,
+    "workspacePreserved": true,
+    "userFolderPreserved": true,
+    "networkRestored": true
+  },
+  "vmware": {
+    "required": false,
+    "gating": false
+  },
+  "remainingG7Blockers": []
+}

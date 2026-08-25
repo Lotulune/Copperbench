@@ -254,7 +254,7 @@ export const HelpView: React.FC = () => {
         </div>
 
         <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0, lineHeight: 1.5 }}>
-          版本轨道状态与 UI-Core 严格一致：新项目优先用 <strong>Fabric 1.21.1</strong>。四轨 Fabric/NeoForge（26.2、26.1.2、1.21.1、1.20.1）均为正式支持（<code>TRACK_SUPPORTED</code>，含编译与 runClient）。仅支持 Windows 11 x64。
+          版本轨道状态与 UI-Core 严格一致：新项目应优先选择目录中标记为正式支持的最新稳定轨。实际 Fabric / NeoForge 版本以“版本轨道”与“新建工作区”页面的 Core 投影为准。仅支持 Windows 11 x64。
         </p>
 
         <div style={{ overflowX: 'auto' }}>

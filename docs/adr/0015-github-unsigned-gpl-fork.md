@@ -19,7 +19,7 @@ jsign 7.4 仍留在 Windows 导出配方中。以后若提供 `WIN_CERT_*` 与 `
 
 ## 后果
 
-- G7 不因本决定变为 `passed`。Hyper-V 客户机 GUI 常驻仍未宣称。
+- 本决定不改变 G7 的门禁范围；G7 当前已根据 2026-08-23 Hyper-V 客户机证据收口为 `passed`。
 - 发布说明以 `PUBLIC_DISTRIBUTION_GITHUB_ONLY` 和 `CODE_SIGNING_UNSIGNED_GITHUB` 记录政策，不再把品牌/域名/证书列为待补机器证据。
 - 公开仓库是 <https://github.com/Lotulune/Copperbench>。以后若更换托管地址，必须同步 README、BRANDING 与本 ADR。
 - 若以后要做商店上架、独立网站或付费签名，必须新增 ADR 并重开对应门禁。

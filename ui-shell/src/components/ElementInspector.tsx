@@ -29,6 +29,11 @@ function fieldTestSuffix(path: string): string {
   return path.split('/').filter(Boolean).pop() ?? 'field';
 }
 
+function fieldControlId(path: string): string {
+  const suffix = path.split('/').filter(Boolean).join('-').replace(/[^a-z0-9_-]/gi, '-');
+  return `element-field-${suffix || 'field'}`;
+}
+
 function loaderExtensionName(path: string): string | null {
   const match = /^\/loaderExtensions\/([a-z0-9]+)\//i.exec(path);
   if (!match) return null;
@@ -53,17 +58,21 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
     setEditor(null);
     setValues({});
     setLocalErrors([]);
-    getEditorRef.current(element.id).then((projection) => {
-      if (cancelled || !projection) return;
-      setEditor(projection);
-      setValues(
-        Object.fromEntries(
-          projection.sections.flatMap((section) =>
-            section.fields.map((field) => [field.path, field.value])
+    getEditorRef.current(element.id)
+      .then((projection) => {
+        if (cancelled || !projection) return;
+        setEditor(projection);
+        setValues(
+          Object.fromEntries(
+            projection.sections.flatMap((section) =>
+              section.fields.map((field) => [field.path, field.value])
+            )
           )
-        )
-      );
-    });
+        );
+      })
+      .catch(() => {
+        if (!cancelled) setLocalErrors(['无法加载元素编辑器，请重试。']);
+      });
     return () => {
       cancelled = true;
     };
@@ -81,12 +90,31 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
     setSaveSuccess(false);
     setLocalErrors([]);
 
-    const changes: FieldChange[] = editor.sections
-      .flatMap((section) => section.fields)
-      .filter((field) => !field.readOnly)
-      .map((field) => ({ path: field.path, value: values[field.path] }));
+    let changes: FieldChange[];
+    try {
+      changes = editor.sections
+        .flatMap((section) => section.fields)
+        .filter((field) => !field.readOnly)
+        .map((field) => ({
+          path: field.path,
+          value: field.control === 'json' && typeof values[field.path] === 'string'
+            ? JSON.parse(values[field.path] as string)
+            : values[field.path]
+        }));
+    } catch {
+      setLocalErrors(['JSON 字段格式无效；请修正括号、引号或逗号后再保存。']);
+      setIsSaving(false);
+      return;
+    }
 
-    const result = await updateModElement(element.id, changes);
+    let result;
+    try {
+      result = await updateModElement(element.id, changes);
+    } catch {
+      setLocalErrors(['保存失败，工作区未发生更改。']);
+      setIsSaving(false);
+      return;
+    }
     setIsSaving(false);
 
     if (result.status === 'committed') {
@@ -95,15 +123,19 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
       // Refresh the projection, but keep the values the user just committed
       // so the mock (which does not persist field edits) does not visually
       // revert them.
-      const refreshed = await getEditorRef.current(element.id);
-      if (refreshed) {
-        const projected = Object.fromEntries(
-          refreshed.sections.flatMap((section) =>
-            section.fields.map((field) => [field.path, field.value])
-          )
-        );
-        setEditor(refreshed);
-        setValues((prev) => ({ ...projected, ...prev }));
+      try {
+        const refreshed = await getEditorRef.current(element.id);
+        if (refreshed) {
+          const projected = Object.fromEntries(
+            refreshed.sections.flatMap((section) =>
+              section.fields.map((field) => [field.path, field.value])
+            )
+          );
+          setEditor(refreshed);
+          setValues((prev) => ({ ...projected, ...prev }));
+        }
+      } catch {
+        setLocalErrors(['元素已保存，但无法刷新编辑器投影。']);
       }
     } else if (result.diagnostics.length > 0) {
       setLocalErrors(result.diagnostics.map((d) => t(d.message)));
@@ -112,8 +144,13 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
 
   const handleDelete = async () => {
     if (window.confirm(`确定要删除「${element.displayName}」吗？`)) {
-      await deleteModElement(element.id);
-      onClose();
+      try {
+        const result = await deleteModElement(element.id);
+        if (result.status === 'committed') onClose();
+        else setLocalErrors(result.diagnostics.map((diagnostic) => t(diagnostic.message)));
+      } catch {
+        setLocalErrors(['删除失败，元素未被移除。']);
+      }
     }
   };
 
@@ -130,11 +167,13 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
     const value = values[field.path];
     const disabled = field.readOnly;
     const commonStyle = disabled ? { background: 'var(--bg-hover)' } : {};
+    const controlId = fieldControlId(field.path);
 
     switch (field.control) {
       case 'number':
         return (
           <input
+            id={controlId}
             type="number"
             value={value === undefined || value === null ? '' : String(value)}
             min={field.constraints?.min}
@@ -152,6 +191,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
       case 'toggle':
         return (
           <label
+            htmlFor={controlId}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -162,6 +202,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
             }}
           >
             <input
+              id={controlId}
               type="checkbox"
               checked={Boolean(value)}
               disabled={disabled}
@@ -175,6 +216,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
       case 'select':
         return (
           <select
+            id={controlId}
             value={value === undefined || value === null ? '' : String(value)}
             disabled={disabled}
             onChange={(e) => setValues((prev) => ({ ...prev, [field.path]: e.target.value }))}
@@ -190,12 +232,16 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
           </select>
         );
       case 'textarea':
+      case 'json':
         return (
           <textarea
-            value={value === undefined || value === null ? '' : String(value)}
+            id={controlId}
+            value={value === undefined || value === null ? ''
+              : field.control === 'json' && typeof value !== 'string' ? JSON.stringify(value, null, 2)
+              : String(value)}
             disabled={disabled}
             readOnly={disabled}
-            rows={3}
+            rows={field.control === 'json' ? 8 : 5}
             onChange={(e) => setValues((prev) => ({ ...prev, [field.path]: e.target.value }))}
             style={commonStyle}
             data-testid={`field-${fieldTestSuffix(field.path)}`}
@@ -214,6 +260,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
               />
             )}
             <input
+              id={controlId}
               type="text"
               value={value === undefined || value === null ? '' : String(value)}
               disabled={disabled}
@@ -286,6 +333,8 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
         </div>
 
         <button
+          type="button"
+          aria-label="关闭元素检查器"
           onClick={onClose}
           style={{ padding: '4px', borderRadius: 'var(--radius-xs)', color: 'var(--text-muted)' }}
           title="关闭检查器"
@@ -360,6 +409,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
                 const fieldDiagnostic = diagnosticByPath.get(field.path);
                 const extensionName = loaderExtensionName(field.path);
                 const isLoaderExtension = field.readOnly && extensionName !== null;
+                const controlId = fieldControlId(field.path);
 
                 const controlBlock = (
                   <>
@@ -411,7 +461,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
                       </div>
 
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)' }}>
+                        <label htmlFor={controlId} style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)' }}>
                           {t(field.label)}
                         </label>
                         {controlBlock}
@@ -440,7 +490,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
                       opacity: field.readOnly ? 0.8 : 1
                     }}
                   >
-                    <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)' }}>
+                    <label htmlFor={controlId} style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)' }}>
                       {t(field.label)}
                       {field.required && <span style={{ color: 'var(--badge-red)' }}> *</span>}
                       {field.readOnly && (

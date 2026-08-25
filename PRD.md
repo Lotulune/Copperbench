@@ -4,7 +4,7 @@
 > 更新日期：2026-08-22  
 > 首发平台：Windows 11 x64（Windows 10 不支持）  
 > 开源许可：GPL-3.0，保留并兼容 MCreator 插件生态  
-> 当前阶段：阶段 0–7 领域门禁已按证据关闭。阶段 8 进行中：G7 未通过（Hyper-V 客机 GUI 常驻未宣称）。剩余未实现项以 [PRD-NEXT.md](./PRD-NEXT.md) 为需求入口，须一次交付。公开身份与分发已定为 Copperbench GitHub 未签名 GPL 衍生版；不部署产品网站、不购买 Authenticode。Windows 10 已移出支持范围。  
+> 当前阶段：阶段 0–7 领域门禁已按证据关闭。阶段 8 收口项已完成，G7 已通过 Hyper-V Win11 客机最终复验。公开身份与分发已定为 Copperbench GitHub 未签名 GPL 衍生版；不部署产品网站、不购买 Authenticode。Windows 10 已移出支持范围。
 > 名称说明：`Copperbench` 是公开产品名；`Minecraft Mod Creator` 仅为 PRD 工作标题
 
 ## 0. AI 阅读协议

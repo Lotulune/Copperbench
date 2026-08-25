@@ -93,7 +93,7 @@ export interface CapabilityDecision {
   affectedPaths: string[];
 }
 
-export type ModElementType = 'block' | 'item' | 'recipe' | 'procedure';
+export type ModElementType = 'block' | 'item' | 'recipe' | 'procedure' | 'function' | 'loottable' | 'achievement';
 
 export interface ModElementSummary {
   id: UUID;
@@ -109,7 +109,7 @@ export interface ModElementSummary {
 
 export interface TaskSummary {
   id: UUID;
-  kind: 'validate' | 'generate' | 'build' | 'export' | 'run_client' | 'import';
+  kind: 'validate' | 'generate' | 'build' | 'export' | 'run_client' | 'run_server' | 'run_datagen' | 'run_gametest' | 'import';
   state: 'queued' | 'running' | 'succeeded' | 'failed' | 'cancelled';
   cancellable: boolean;
   progress: number | null;
@@ -145,6 +145,110 @@ export interface ModElementListProjection {
   availableTypes: ModElementType[];
 }
 
+export interface ProcedureNode {
+  id: UUID;
+  type: string;
+  kind: 'statement' | 'value';
+  x: number;
+  y: number;
+  fields: Record<string, string | number | boolean>;
+  inputs: Record<string, UUID>;
+  next: UUID | null;
+  unknown: boolean;
+  rawPayload?: string;
+}
+
+export interface ProcedureDependency {
+  id: UUID;
+  kind: 'variable' | 'procedure' | 'context' | string;
+  name: string;
+  dataType: string;
+  target: string;
+}
+
+export interface ProcedureIr {
+  schemaVersion: '1.0';
+  trigger: string;
+  nodes: ProcedureNode[];
+  dependencies: ProcedureDependency[];
+  unknownRoot?: Record<string, unknown>;
+}
+
+export interface ProcedureNodeCatalogItem {
+  type: string;
+  category: string;
+  label: LocalizedText;
+  output: string;
+  availability: 'available' | 'unavailable';
+  reasonCode?: string | null;
+}
+
+export interface ProcedureEditorProjection {
+  element: ModElementSummary;
+  baseRevision: Revision;
+  readOnly: boolean;
+  ir: ProcedureIr;
+  nodeCatalog: ProcedureNodeCatalogItem[];
+  sourcePreview: string;
+  sourceOwnership: 'generated' | 'manual' | 'mixed';
+  references: WorkspaceReferenceProjection;
+  diagnostics?: Diagnostic[];
+}
+
+export type ProcedureEdit = Record<string, unknown> & { operation: string };
+
+export interface WorkspaceReferenceProjection {
+  revision: Revision;
+  nodes: Array<Record<string, unknown>>;
+  edges: Array<Record<string, unknown>>;
+  diagnostics: Diagnostic[];
+  stats: { indexedElements: number; edgeCount: number; incremental: boolean };
+}
+
+export interface RegistryEntry {
+  id: UUID;
+  kind: 'variable' | 'tag' | 'language_key';
+  name?: string;
+  key?: string;
+  dataType?: string;
+  scope?: string;
+  namespace?: string;
+  category?: string;
+  value?: unknown;
+  members?: string[];
+  translations?: Record<string, string>;
+  support?: { state: string; reasonCode: string };
+}
+
+export interface WorkspaceRegistriesProjection {
+  registries?: {
+    variables: RegistryEntry[];
+    tags: RegistryEntry[];
+    languageKeys: RegistryEntry[];
+  };
+  variables?: RegistryEntry[];
+  tags?: RegistryEntry[];
+  languageKeys?: RegistryEntry[];
+  languageStats: {
+    keyCount: number;
+    languageCount: number;
+    missingTranslationCount: number;
+    duplicateKeyCount: number;
+  };
+  stableIds: boolean;
+  referenceAwareRename: boolean;
+}
+
+export interface RegistryRenamePreview {
+  entryId: UUID;
+  registry: 'variables' | 'tags' | 'languageKeys';
+  oldName: string;
+  newName: string;
+  references: WorkspaceReferenceProjection;
+  impactedElementCount: number;
+  canApply: boolean;
+}
+
 export interface FieldOption {
   value: string | number | boolean;
   label: LocalizedText;
@@ -159,6 +263,7 @@ export interface EditorField {
   control:
     | 'text'
     | 'textarea'
+    | 'json'
     | 'number'
     | 'toggle'
     | 'select'
@@ -305,6 +410,32 @@ export interface CancelTaskPayload {
   taskId: UUID;
 }
 
+export interface DatagenFilePreview {
+  path: string;
+  status: 'add' | 'modify' | 'unchanged';
+  size: number;
+  sha256: string;
+}
+
+export interface DatagenPreview {
+  taskId: UUID;
+  sourceRevision: Revision;
+  currentRevision: Revision;
+  manifestHash: string;
+  files: DatagenFilePreview[];
+  changeCount: number;
+  stale: boolean;
+  published: boolean;
+  canPublish: boolean;
+  changedPaths?: string[];
+}
+
+export interface PublishDatagenPayload {
+  clientMutationId: UUID;
+  taskId: UUID;
+  manifestHash: string;
+}
+
 export interface CreateRecoveryPointPayload {
   clientMutationId: UUID;
   label: string;
@@ -354,11 +485,20 @@ export type CommandOperation =
   | 'create_mod_element'
   | 'update_mod_element'
   | 'delete_mod_element'
+  | 'update_procedure'
+  | 'create_registry_entry'
+  | 'update_registry_entry'
+  | 'delete_registry_entry'
+  | 'rename_registry_entry'
   | 'validate_workspace'
   | 'generate_workspace'
   | 'build_workspace'
   | 'export_workspace'
   | 'run_client'
+  | 'run_server'
+  | 'run_datagen'
+	| 'publish_datagen_output'
+  | 'run_gametest'
   | 'cancel_task'
   | 'create_recovery_point'
   | 'restore_recovery_point'
@@ -406,6 +546,11 @@ export interface PermissionDenial {
 export interface CommandResultData {
   element?: ModElementSummary;
   elementId?: UUID;
+  entry?: RegistryEntry;
+  entryId?: UUID;
+  oldName?: string;
+  changedElementIds?: UUID[];
+  references?: WorkspaceReferenceProjection;
   recoveryPoint?: RecoveryPoint;
   recoveryPointId?: string;
   changedPaths?: string[];
@@ -431,6 +576,15 @@ export interface CommandResultData {
   workspaceFile?: string;
   generatorId?: string;
   modId?: string;
+  taskId?: UUID;
+  sourceRevision?: Revision;
+  currentRevision?: Revision;
+  manifestHash?: string;
+  files?: DatagenFilePreview[];
+  changeCount?: number;
+  stale?: boolean;
+  published?: boolean;
+  canPublish?: boolean;
 }
 
 export interface CommandResult {
@@ -456,9 +610,16 @@ export interface CommandResult {
 export type QueryOperation =
   | 'get_workbench'
   | 'list_new_workspace_generators'
+  | 'list_assets'
   | 'list_mod_elements'
   | 'get_mod_element_editor'
   | 'preview_mod_element_change'
+  | 'get_procedure_editor'
+  | 'preview_procedure_change'
+  | 'get_workspace_references'
+  | 'list_workspace_registries'
+  | 'preview_registry_rename'
+	| 'preview_datagen_output'
   | 'get_task'
   | 'get_history'
   | 'get_diff'
@@ -527,8 +688,13 @@ export interface PreviewUpstreamImportPayload {
  * ========================================================================= */
 
 export type TrackStatus = 'supported' | 'preview' | 'unavailable' | 'coincides';
-export type TrackId = 'latest_stable' | 'previous_stable' | 'minecraft_1_21_1' | 'minecraft_1_20_1';
-export type LoaderType = 'fabric' | 'neoforge';
+export type TrackId =
+  | 'latest_stable'
+  | 'previous_stable'
+  | 'minecraft_1_21_1'
+  | 'minecraft_1_20_1'
+  | 'resource_pack';
+export type LoaderType = 'fabric' | 'neoforge' | 'resource_pack';
 
 export interface TrackLoader {
   loader: LoaderType;
@@ -578,6 +744,49 @@ export interface NewWorkspaceGeneratorCatalog {
   schemaVersion: '1.0';
   generators: NewWorkspaceGenerator[];
   suggestedWorkspaceFoldersRoot: string;
+}
+
+export type AssetProjectionCategory =
+  | 'MODEL'
+  | 'TEXTURE'
+  | 'ANIMATION'
+  | 'LANGUAGE'
+  | 'SOUND'
+  | 'RESOURCE_PACK'
+  | 'BLOCKSTATE'
+  | 'OTHER';
+
+export interface AssetProjectionAsset {
+  id: string;
+  relativePath: string;
+  category: AssetProjectionCategory;
+  size: number;
+  sha256: string;
+  mediaType: string;
+  updatedAt?: string;
+}
+
+export interface AssetProjectionReference {
+  sourceAssetId: string;
+  sourcePath: string;
+  targetPath: string;
+  targetAssetId: string;
+  kind: 'RESOURCE_ID' | 'JSON_STRING';
+}
+
+export interface AssetProjectionDiagnostic {
+  code: 'INVALID_ASSET_DOCUMENT' | 'REFERENCE_PATH_ESCAPE' | 'MISSING_ASSET_REFERENCE';
+  severity: 'INFO' | 'WARNING' | 'ERROR';
+  sourcePath: string;
+  targetPath: string | null;
+  message: string;
+}
+
+export interface AssetProjection {
+  schemaVersion: '1.0';
+  assets: AssetProjectionAsset[];
+  references: AssetProjectionReference[];
+  diagnostics: AssetProjectionDiagnostic[];
 }
 
 export type MigrationDisposition = 'supported' | 'substitute' | 'lost' | 'blocked' | 'manual';
@@ -670,6 +879,9 @@ export type EventType =
   | 'mod_element_created'
   | 'mod_element_updated'
   | 'mod_element_deleted'
+  | 'procedure_updated'
+  | 'registry_updated'
+	| 'datagen_published'
   | 'diagnostics_changed'
   | 'task_started'
   | 'task_progressed'
@@ -719,6 +931,23 @@ export type ModElementUpdatedEvent = BaseEvent<
   {
     element: ModElementSummary;
   }
+>;
+
+export type ProcedureUpdatedEvent = BaseEvent<
+  'procedure_updated',
+  {
+    element: ModElementSummary;
+  }
+>;
+
+export type RegistryUpdatedEvent = BaseEvent<
+  'registry_updated',
+  Record<string, unknown>
+>;
+
+export type DatagenPublishedEvent = BaseEvent<
+  'datagen_published',
+  DatagenPreview
 >;
 
 export type ModElementDeletedEvent = BaseEvent<
@@ -822,6 +1051,9 @@ export type CoreEvent =
   | RevisionAdvancedEvent
   | ModElementCreatedEvent
   | ModElementUpdatedEvent
+  | ProcedureUpdatedEvent
+  | RegistryUpdatedEvent
+	| DatagenPublishedEvent
   | ModElementDeletedEvent
   | DiagnosticsChangedEvent
   | TaskEvent

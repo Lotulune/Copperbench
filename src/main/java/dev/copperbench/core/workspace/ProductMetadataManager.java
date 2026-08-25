@@ -36,6 +36,11 @@ public final class ProductMetadataManager {
 
 	public Metadata advanceRevision(Path workspaceFile, UUID workspaceId, long expectedRevision,
 			WorkspaceFileLease lease) throws IOException {
+		return advanceRevision(workspaceFile, workspaceId, expectedRevision, null, lease);
+	}
+
+	public Metadata advanceRevision(Path workspaceFile, UUID workspaceId, long expectedRevision,
+			JsonObject registries, WorkspaceFileLease lease) throws IOException {
 		lease.requireValidFor(workspaceFile);
 		JsonObject document = documents.updateProductMetadata(workspaceFile, metadata -> {
 			JsonObject migrated = migrate(metadata, () -> workspaceId);
@@ -44,7 +49,22 @@ public final class ProductMetadataManager {
 				throw new IllegalStateException("Workspace ID does not match product metadata");
 			if (current.revision() != expectedRevision)
 				throw new RevisionConflictException(expectedRevision, current.revision());
+			if (registries != null) migrated.add("registries", registries.deepCopy());
 			migrated.addProperty("revision", current.revision() + 1);
+			return migrated;
+		});
+		return parse(document.getAsJsonObject(UnknownFieldPreservingJsonStore.PRODUCT_NAMESPACE));
+	}
+
+	public Metadata synchronizeRevision(Path workspaceFile, UUID workspaceId, long revision,
+			WorkspaceFileLease lease) throws IOException {
+		lease.requireValidFor(workspaceFile);
+		JsonObject document = documents.updateProductMetadata(workspaceFile, metadata -> {
+			JsonObject migrated = migrate(metadata, () -> workspaceId);
+			Metadata current = parse(migrated);
+			if (!current.workspaceId().equals(workspaceId))
+				throw new IllegalStateException("Workspace ID does not match product metadata");
+			migrated.addProperty("revision", revision);
 			return migrated;
 		});
 		return parse(document.getAsJsonObject(UnknownFieldPreservingJsonStore.PRODUCT_NAMESPACE));

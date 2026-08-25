@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Layers,
   ShieldCheck,
@@ -6,22 +6,53 @@ import {
   CheckCircle2,
   Loader2,
   Info,
-  FolderOpen
+  FolderOpen,
+  RefreshCw
 } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
 import { workspaceOpenBridge } from '../bridge/workspaceOpenBridge';
+import { diagnosticsBridge } from '../bridge/diagnosticsBridge';
 import {
   NewWorkspaceGeneratorCatalog,
   NewWorkspaceGenerator,
-  CommandResult
+  CommandResult,
+  Diagnostic
 } from '../types/contract';
 import { t } from '../i18n';
+
+type WorkspaceFormField = 'generatorId' | 'modName' | 'modId' | 'packageName' | 'workspaceFolderPath';
+
+const FIELD_BY_DIAGNOSTIC: Record<string, WorkspaceFormField> = {
+  UNSUPPORTED_GENERATOR: 'generatorId',
+  GENERATOR_NOT_INSTALLED: 'generatorId',
+  MOD_NAME_INVALID: 'modName',
+  MOD_ID_INVALID: 'modId',
+  PACKAGE_NAME_INVALID: 'packageName',
+  WORKSPACE_FOLDER_REQUIRED: 'workspaceFolderPath',
+  WORKSPACE_FOLDER_OUTSIDE_ROOT: 'workspaceFolderPath',
+  WORKSPACE_FOLDER_NOT_EMPTY: 'workspaceFolderPath',
+  WORKSPACE_CREATE_FAILED: 'workspaceFolderPath'
+};
+
+const FIELD_ELEMENT_ID: Record<WorkspaceFormField, string> = {
+  generatorId: 'new-workspace-generator-group',
+  modName: 'new-workspace-mod-name',
+  modId: 'new-workspace-mod-id',
+  packageName: 'new-workspace-package-name',
+  workspaceFolderPath: 'new-workspace-folder'
+};
+
+const diagnosticField = (diagnostic: Diagnostic): WorkspaceFormField | null => {
+  const path = diagnostic.path?.replace(/^\//, '');
+  if (path && path in FIELD_ELEMENT_ID) return path as WorkspaceFormField;
+  return FIELD_BY_DIAGNOSTIC[diagnostic.code] ?? null;
+};
 
 /**
  * 产品外壳原生「新建工作区」视图（替代跳回旧版 Swing NewWorkspaceDialog）。
  *
  * 合同约束：
- * - 生成器清单来自 list_new_workspace_generators 查询（四轨 × Fabric/NeoForge），
+ * - 生成器清单来自 list_new_workspace_generators 查询（四轨 × Fabric/NeoForge + 独立资源包），
  *   UI 不根据加载器名称自行推导可用能力。
  * - 提交走 create_workspace 命令（需要 userApproved 确认门）。
  * - 诊断展示 Core 返回的稳定代码，不在 UI 重新实现域校验。
@@ -31,6 +62,7 @@ export const NewWorkspaceView: React.FC = () => {
 
   const [catalog, setCatalog] = useState<NewWorkspaceGeneratorCatalog | null>(null);
   const [catalogError, setCatalogError] = useState<string | null>(null);
+  const [catalogReloadToken, setCatalogReloadToken] = useState(0);
 
   const [generatorId, setGeneratorId] = useState<string>('');
   const [modName, setModName] = useState('');
@@ -43,29 +75,34 @@ export const NewWorkspaceView: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<CommandResult | null>(null);
   const [openError, setOpenError] = useState<string | null>(null);
+  const [diagnosticActionError, setDiagnosticActionError] = useState<string | null>(null);
+  const errorSummaryRef = useRef<HTMLDivElement>(null);
 
   // 读取生成器目录（挂载时）
   useEffect(() => {
     let cancelled = false;
+    setCatalog(null);
+    setCatalogError(null);
     void listNewWorkspaceGenerators()
       .then((data) => {
         if (cancelled) return;
+        if (!data) {
+          setCatalogError('生成器目录返回了空结果。');
+          return;
+        }
         setCatalog(data);
         if (data && data.generators.length > 0) {
-          // 默认选中维护轨 1.21.1 Fabric（与帮助文档的推荐首选一致）
-          const preferred =
-            data.generators.find((g) => g.generatorId === 'fabric-1.21.1') ?? data.generators[0];
+          const preferred = data.generators.find((g) => g.available) ?? data.generators[0];
           setGeneratorId(preferred.generatorId);
         }
       })
-      .catch((error: unknown) => {
-        if (!cancelled)
-          setCatalogError(error instanceof Error ? error.message : '生成器目录无法加载');
+      .catch(() => {
+        if (!cancelled) setCatalogError('生成器目录无法加载。');
       });
     return () => {
       cancelled = true;
     };
-  }, [listNewWorkspaceGenerators]);
+  }, [catalogReloadToken, listNewWorkspaceGenerators]);
 
   // 包名自动补全：未手动修改时跟随 modId（net.mcreator.<modid>，与 Swing 对话框一致）
   useEffect(() => {
@@ -78,22 +115,23 @@ export const NewWorkspaceView: React.FC = () => {
     () => catalog?.generators.find((g) => g.generatorId === generatorId) ?? null,
     [catalog, generatorId]
   );
+  const isResourcePack = selectedGenerator?.loader === 'resource_pack';
 
   // 按 track 分组渲染（目录按 track 顺序返回）
   const groupedByTrack = useMemo(() => {
     if (!catalog) return [];
-    const trackOrder: { id: string; label: string }[] = [
-      { id: 'latest_stable', label: '最新稳定轨' },
-      { id: 'previous_stable', label: '前一稳定轨' },
-      { id: 'minecraft_1_21_1', label: '维护轨 1.21.1' },
-      { id: 'minecraft_1_20_1', label: '维护轨 1.20.1' }
-    ];
-    return trackOrder
-      .map((track) => ({
-        ...track,
-        generators: catalog.generators.filter((g) => g.trackId === track.id)
-      }))
-      .filter((track) => track.generators.length > 0);
+    return [...new Set(catalog.generators.map((generator) => generator.trackId))].map((id) => {
+      const generators = catalog.generators.filter((generator) => generator.trackId === id);
+      const minecraftVersion = generators[0]?.minecraftVersion;
+      const label = id === 'latest_stable'
+        ? `最新稳定轨 · Minecraft ${minecraftVersion}`
+        : id === 'previous_stable'
+          ? `前一稳定轨 · Minecraft ${minecraftVersion}`
+          : id === 'resource_pack'
+            ? `独立资源包 · Minecraft ${minecraftVersion}`
+            : `维护轨 · Minecraft ${minecraftVersion}`;
+      return { id, label, generators };
+    });
   }, [catalog]);
 
   // 建议的完整工作区文件夹路径（跟随 modId）
@@ -105,7 +143,8 @@ export const NewWorkspaceView: React.FC = () => {
 
   const effectiveFolder = workspaceFolder.trim() || suggestedFolder || '';
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (event?: React.FormEvent<HTMLFormElement>) => {
+    event?.preventDefault();
     if (!generatorId || !userApproved) return;
     setSubmitting(true);
     setResult(null);
@@ -131,7 +170,7 @@ export const NewWorkspaceView: React.FC = () => {
           );
         }
       }
-    } catch (error: unknown) {
+    } catch {
       setResult({
         messageType: 'command_result',
         schemaVersion: '1.0',
@@ -149,8 +188,7 @@ export const NewWorkspaceView: React.FC = () => {
             severity: 'error',
             message: {
               key: 'diagnostic.bridge_transport_failed',
-              fallback:
-                error instanceof Error ? error.message : '与 Java Core 的通信失败，工作区未创建。'
+              fallback: '与 Java Core 的通信失败，工作区未创建。'
             },
             path: null,
             elementId: null,
@@ -168,13 +206,42 @@ export const NewWorkspaceView: React.FC = () => {
 
   const created = result?.status === 'committed';
   const rejected = result?.status === 'rejected' || result?.status === 'failed';
+  const fieldDiagnostics = useMemo(() => {
+    const byField = new Map<WorkspaceFormField, Diagnostic[]>();
+    for (const diagnostic of result?.diagnostics ?? []) {
+      const field = diagnosticField(diagnostic);
+      if (!field) continue;
+      byField.set(field, [...(byField.get(field) ?? []), diagnostic]);
+    }
+    return byField;
+  }, [result]);
+  const fieldError = (field: WorkspaceFormField) => fieldDiagnostics.get(field)?.[0] ?? null;
+
+  const openFailureLogs = async (diagnostic: Diagnostic) => {
+    const failureId = String(diagnostic.message.args?.failureId ?? '');
+    try {
+      await diagnosticsBridge.openLogs(failureId);
+      setDiagnosticActionError(null);
+    } catch {
+      if (failureId && navigator.clipboard) void navigator.clipboard.writeText(failureId);
+      setDiagnosticActionError(`当前宿主无法打开应用日志，错误编号 ${failureId} 已复制。`);
+    }
+  };
+
+  useEffect(() => {
+    if (!rejected) return;
+    const animationFrame = window.requestAnimationFrame(() => errorSummaryRef.current?.focus());
+    return () => window.cancelAnimationFrame(animationFrame);
+  }, [rejected, result]);
+
   const canSubmit = generatorId !== '' && modName.trim() !== '' && modId.trim() !== '' &&
     effectiveFolder !== '' && userApproved && !submitting;
 
   return (
-    <div
+    <form
       className="new-workspace-view animate-fade-in"
       data-testid="new-workspace-view"
+      onSubmit={(event) => void handleSubmit(event)}
       style={{ flex: 1, padding: '24px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '20px' }}
     >
       {/* Header */}
@@ -185,7 +252,7 @@ export const NewWorkspaceView: React.FC = () => {
         <div>
           <h2 style={{ fontSize: '18px', fontWeight: 700, margin: 0 }}>新建工作区</h2>
           <p style={{ fontSize: '12px', color: 'var(--text-sub)', margin: '4px 0 0 0' }}>
-            四轨 Fabric / NeoForge 生成器 · 创建后写入 .mcreator 工作区文件并在新窗口打开
+            四轨 Fabric / NeoForge 与独立资源包生成器 · 创建后写入 .mcreator 工作区文件并在新窗口打开
           </p>
         </div>
       </div>
@@ -221,32 +288,98 @@ export const NewWorkspaceView: React.FC = () => {
       {/* 驳回 / 失败诊断横幅 */}
       {rejected && result && (
         <div
+          ref={errorSummaryRef}
           data-testid="workspace-rejected-banner"
           role="alert"
+          tabIndex={-1}
+          aria-labelledby="workspace-error-summary-title"
           style={{ background: 'var(--badge-red-bg)', border: '1px solid rgba(248, 81, 73, 0.4)', borderRadius: 'var(--radius-md)', padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: '8px' }}
         >
+          <strong id="workspace-error-summary-title" style={{ fontSize: '13px', color: 'var(--text-main)' }}>
+            工作区未创建，请修正以下问题
+          </strong>
           {result.diagnostics.map((d) => (
             <div key={d.code} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
               <AlertTriangle size={14} color="var(--badge-red)" style={{ flexShrink: 0, marginTop: '2px' }} />
               <div style={{ fontSize: '12px', color: 'var(--text-main)', lineHeight: 1.5 }}>
-                {t(d.message)}
+                {diagnosticField(d) ? (
+                  <a
+                    href={`#${FIELD_ELEMENT_ID[diagnosticField(d)!]}`}
+                    onClick={(event) => {
+                      event.preventDefault();
+                      document.getElementById(FIELD_ELEMENT_ID[diagnosticField(d)!])?.focus();
+                    }}
+                    style={{ color: 'inherit' }}
+                  >
+                    {t(d.message)}
+                  </a>
+                ) : t(d.message)}
                 <code style={{ marginLeft: '8px', fontSize: '10px', color: 'var(--text-sub)' }}>{d.code}</code>
+                {d.message.args?.failureId != null && (
+                  <code style={{ marginLeft: '8px', fontSize: '10px', color: 'var(--text-sub)' }}>
+                    错误编号：{String(d.message.args.failureId)}
+                  </code>
+                )}
+                {d.actions.filter((action) => action.kind === 'open_logs').map((action) => (
+                  <button
+                    key={action.id}
+                    type="button"
+                    className="btn-secondary"
+                    onClick={() => void openFailureLogs(d)}
+                    style={{ marginLeft: '8px', fontSize: '10px', padding: '2px 8px' }}
+                  >
+                    {t(action.label)}
+                  </button>
+                ))}
               </div>
             </div>
           ))}
+          {result.diagnostics.some((diagnostic) => diagnostic.recoverable && !diagnosticField(diagnostic)) && (
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => void handleSubmit()}
+              disabled={submitting}
+              style={{ alignSelf: 'flex-start', marginTop: '4px', fontSize: '11px', padding: '4px 10px' }}
+            >
+              <RefreshCw size={12} aria-hidden="true" />
+              重新尝试
+            </button>
+          )}
+          {diagnosticActionError && (
+            <span role="alert" style={{ fontSize: '11px', color: 'var(--badge-red)' }}>
+              {diagnosticActionError}
+            </span>
+          )}
         </div>
       )}
 
       {/* 目录加载失败 */}
       {catalogError && (
-        <div role="alert" style={{ background: 'var(--badge-red-bg)', border: '1px solid rgba(248, 81, 73, 0.4)', borderRadius: 'var(--radius-md)', padding: '12px 16px', fontSize: '12px', color: 'var(--badge-red)' }}>
-          {catalogError}
+        <div role="alert" style={{ background: 'var(--badge-red-bg)', border: '1px solid rgba(248, 81, 73, 0.4)', borderRadius: 'var(--radius-md)', padding: '12px 16px', fontSize: '12px', color: 'var(--badge-red)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+          <span>{catalogError}</span>
+          <button
+            type="button"
+            className="btn-secondary"
+            onClick={() => setCatalogReloadToken((token) => token + 1)}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}
+          >
+            <RefreshCw size={12} aria-hidden="true" />
+            重试
+          </button>
         </div>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(320px, 1fr) minmax(320px, 1fr)', gap: '20px', alignItems: 'start' }}>
+      <div className="new-workspace-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(320px, 1fr) minmax(320px, 1fr)', gap: '20px', alignItems: 'start' }}>
         {/* 左列：生成器选择 */}
-        <div data-testid="generator-catalog" style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+        <div
+          id={FIELD_ELEMENT_ID.generatorId}
+          data-testid="generator-catalog"
+          tabIndex={-1}
+          aria-invalid={fieldError('generatorId') ? true : undefined}
+          aria-describedby={fieldError('generatorId') ? 'new-workspace-generator-error' : undefined}
+          style={{ background: 'var(--bg-panel)', border: fieldError('generatorId') ? '1px solid var(--badge-red)' : '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}
+        >
           <h3 style={{ fontSize: '14px', fontWeight: 700, margin: 0 }}>选择生成器</h3>
 
           {!catalog && !catalogError && (
@@ -271,6 +404,7 @@ export const NewWorkspaceView: React.FC = () => {
                       data-testid={`generator-option-${g.generatorId}`}
                       disabled={!g.available}
                       onClick={() => setGeneratorId(g.generatorId)}
+                      aria-pressed={isSel}
                       title={g.available ? g.workspaceGeneratorName : '生成器插件未安装或未加载'}
                       style={{
                         padding: '10px 12px',
@@ -288,8 +422,8 @@ export const NewWorkspaceView: React.FC = () => {
                         textAlign: 'left'
                       }}
                     >
-                      <span style={{ fontSize: '12px', textTransform: 'capitalize' }}>
-                        {g.loader} {g.minecraftVersion}
+                      <span style={{ fontSize: '12px' }}>
+                        {g.loader === 'resource_pack' ? '资源包' : g.loader === 'neoforge' ? 'NeoForge' : 'Fabric'} {g.minecraftVersion}
                       </span>
                       <span style={{ fontSize: '10px', color: 'var(--text-sub)' }}>
                         {g.available ? g.generatorId : `${g.generatorId} · 未安装`}
@@ -308,6 +442,11 @@ export const NewWorkspaceView: React.FC = () => {
               {selectedGenerator.dynamic && <span className="badge badge-copper" style={{ fontSize: '9px' }}>动态轨</span>}
             </div>
           )}
+          {fieldError('generatorId') && (
+            <span id="new-workspace-generator-error" role="alert" style={{ fontSize: '11px', color: 'var(--badge-red)' }}>
+              {t(fieldError('generatorId')!.message)}
+            </span>
+          )}
         </div>
 
         {/* 右列：表单 */}
@@ -315,62 +454,91 @@ export const NewWorkspaceView: React.FC = () => {
           <h3 style={{ fontSize: '14px', fontWeight: 700, margin: 0 }}>工作区信息</h3>
 
           <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px', fontWeight: 600 }}>
-            模组名称
+            {isResourcePack ? '资源包名称' : '模组名称'}
             <input
+              id={FIELD_ELEMENT_ID.modName}
               type="text"
               data-testid="new-workspace-mod-name-input"
               value={modName}
               onChange={(e) => setModName(e.target.value)}
               placeholder="例如 Copper Trails"
               maxLength={64}
-              style={{ padding: '8px 10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', background: 'var(--bg-canvas)', color: 'var(--text-main)', fontSize: '12px' }}
+              aria-invalid={fieldError('modName') ? true : undefined}
+              aria-describedby={fieldError('modName') ? 'new-workspace-mod-name-error' : undefined}
+              style={{ padding: '8px 10px', borderRadius: 'var(--radius-sm)', border: fieldError('modName') ? '1px solid var(--badge-red)' : '1px solid var(--border-subtle)', background: 'var(--bg-canvas)', color: 'var(--text-main)', fontSize: '12px' }}
             />
+            {fieldError('modName') && (
+              <span id="new-workspace-mod-name-error" role="alert" style={{ fontSize: '11px', color: 'var(--badge-red)' }}>
+                {t(fieldError('modName')!.message)}
+              </span>
+            )}
           </label>
 
           <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px', fontWeight: 600 }}>
-            模组 ID（modid）
+            {isResourcePack ? '资源包 ID（命名空间）' : '模组 ID（modid）'}
             <input
+              id={FIELD_ELEMENT_ID.modId}
               type="text"
               data-testid="new-workspace-mod-id-input"
               value={modId}
               onChange={(e) => setModId(e.target.value.toLowerCase())}
               placeholder="例如 copper_trails"
               maxLength={32}
-              style={{ padding: '8px 10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', background: 'var(--bg-canvas)', color: 'var(--text-main)', fontSize: '12px' }}
+              aria-invalid={fieldError('modId') ? true : undefined}
+              aria-describedby={`new-workspace-mod-id-help${fieldError('modId') ? ' new-workspace-mod-id-error' : ''}`}
+              style={{ padding: '8px 10px', borderRadius: 'var(--radius-sm)', border: fieldError('modId') ? '1px solid var(--badge-red)' : '1px solid var(--border-subtle)', background: 'var(--bg-canvas)', color: 'var(--text-main)', fontSize: '12px' }}
             />
-            <span style={{ fontSize: '10px', color: 'var(--text-sub)' }}>
-              2-32 位小写字母、数字或下划线，用作工作区文件名与 mod ID。
+            <span id="new-workspace-mod-id-help" style={{ fontSize: '10px', color: 'var(--text-sub)' }}>
+              2-32 位小写字母、数字或下划线，用作工作区文件名与 {isResourcePack ? '资源包命名空间' : 'mod ID'}。
             </span>
+            {fieldError('modId') && (
+              <span id="new-workspace-mod-id-error" role="alert" style={{ fontSize: '11px', color: 'var(--badge-red)' }}>
+                {t(fieldError('modId')!.message)}
+              </span>
+            )}
           </label>
 
-          <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px', fontWeight: 600 }}>
-            Java 包名
-            <input
-              type="text"
-              data-testid="new-workspace-package-input"
-              value={packageName}
-              onChange={(e) => {
-                setPackageTouched(true);
-                setPackageName(e.target.value);
-              }}
-              placeholder={`net.mcreator.${modId || 'mymod'}`}
-              style={{ padding: '8px 10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', background: 'var(--bg-canvas)', color: 'var(--text-main)', fontSize: '12px' }}
-            />
-            <span style={{ fontSize: '10px', color: 'var(--text-sub)' }}>
-              留空时自动使用 net.mcreator.&lt;modid&gt;（与旧版对话框一致）。
-            </span>
-          </label>
+          {!isResourcePack && (
+            <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px', fontWeight: 600 }}>
+              Java 包名
+              <input
+                id={FIELD_ELEMENT_ID.packageName}
+                type="text"
+                data-testid="new-workspace-package-input"
+                value={packageName}
+                onChange={(e) => {
+                  setPackageTouched(true);
+                  setPackageName(e.target.value);
+                }}
+                placeholder={`net.mcreator.${modId || 'mymod'}`}
+                aria-invalid={fieldError('packageName') ? true : undefined}
+                aria-describedby={`new-workspace-package-help${fieldError('packageName') ? ' new-workspace-package-error' : ''}`}
+                style={{ padding: '8px 10px', borderRadius: 'var(--radius-sm)', border: fieldError('packageName') ? '1px solid var(--badge-red)' : '1px solid var(--border-subtle)', background: 'var(--bg-canvas)', color: 'var(--text-main)', fontSize: '12px' }}
+              />
+              <span id="new-workspace-package-help" style={{ fontSize: '10px', color: 'var(--text-sub)' }}>
+                留空时自动使用 net.mcreator.&lt;modid&gt;（与旧版对话框一致）。
+              </span>
+              {fieldError('packageName') && (
+                <span id="new-workspace-package-error" role="alert" style={{ fontSize: '11px', color: 'var(--badge-red)' }}>
+                  {t(fieldError('packageName')!.message)}
+                </span>
+              )}
+            </label>
+          )}
 
           <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px', fontWeight: 600 }}>
             工作区文件夹
             <div style={{ display: 'flex', gap: '8px' }}>
               <input
+                id={FIELD_ELEMENT_ID.workspaceFolderPath}
                 type="text"
                 data-testid="new-workspace-folder-input"
                 value={workspaceFolder}
                 onChange={(e) => setWorkspaceFolder(e.target.value)}
                 placeholder={suggestedFolder ?? (catalog?.suggestedWorkspaceFoldersRoot ?? 'C:\\Users\\you\\MCreatorWorkspaces')}
-                style={{ flex: 1, padding: '8px 10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', background: 'var(--bg-canvas)', color: 'var(--text-main)', fontSize: '12px' }}
+                aria-invalid={fieldError('workspaceFolderPath') ? true : undefined}
+                aria-describedby={`new-workspace-folder-help${fieldError('workspaceFolderPath') ? ' new-workspace-folder-error' : ''}`}
+                style={{ flex: 1, padding: '8px 10px', borderRadius: 'var(--radius-sm)', border: fieldError('workspaceFolderPath') ? '1px solid var(--badge-red)' : '1px solid var(--border-subtle)', background: 'var(--bg-canvas)', color: 'var(--text-main)', fontSize: '12px' }}
               />
               <button
                 type="button"
@@ -384,11 +552,16 @@ export const NewWorkspaceView: React.FC = () => {
                 浏览…
               </button>
             </div>
-            <span style={{ fontSize: '10px', color: 'var(--text-sub)' }}>
+            <span id="new-workspace-folder-help" style={{ fontSize: '10px', color: 'var(--text-sub)' }}>
               {catalog ? (
                 <>必须位于建议根目录之下：<code>{catalog.suggestedWorkspaceFoldersRoot}</code>{suggestedFolder && <>（默认 <code>{suggestedFolder}</code>）</>}</>
               ) : '必须位于建议的工作区根目录之下。'}
             </span>
+            {fieldError('workspaceFolderPath') && (
+              <span id="new-workspace-folder-error" role="alert" style={{ fontSize: '11px', color: 'var(--badge-red)' }}>
+                {t(fieldError('workspaceFolderPath')!.message)}
+              </span>
+            )}
           </label>
 
           <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px', fontWeight: 600 }}>
@@ -426,11 +599,10 @@ export const NewWorkspaceView: React.FC = () => {
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <button
-            type="button"
+            type="submit"
             className="btn-primary"
             data-testid="create-workspace-submit-btn"
             disabled={!canSubmit}
-            onClick={() => void handleSubmit()}
             style={{ fontSize: '12px', padding: '6px 16px', display: 'flex', alignItems: 'center', gap: '6px' }}
           >
             {submitting ? <Loader2 size={13} className="spin" /> : <Layers size={13} />}
@@ -443,6 +615,6 @@ export const NewWorkspaceView: React.FC = () => {
           )}
         </div>
       </div>
-    </div>
+    </form>
   );
 };

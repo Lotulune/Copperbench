@@ -12,6 +12,7 @@ import java.util.UUID;
 
 /** Transaction-owned workspace state. Instances returned by stores are defensive copies. */
 public final class WorkspaceState {
+	private static final String PRODUCT_NAMESPACE = "dev.copperbench";
 
 	private final UUID id;
 	private final String name;
@@ -61,6 +62,36 @@ public final class WorkspaceState {
 	public JsonObject generator() { return generator.deepCopy(); }
 	public JsonObject upstreamDocument() { return upstreamDocument.deepCopy(); }
 
+	public JsonObject registries() {
+		JsonObject product = upstreamDocument.has(PRODUCT_NAMESPACE)
+				&& upstreamDocument.get(PRODUCT_NAMESPACE).isJsonObject()
+				? upstreamDocument.getAsJsonObject(PRODUCT_NAMESPACE) : new JsonObject();
+		JsonObject registries = product.has("registries") && product.get("registries").isJsonObject()
+				? product.getAsJsonObject("registries").deepCopy() : new JsonObject();
+		ensureRegistryArray(registries, "variables");
+		ensureRegistryArray(registries, "tags");
+		ensureRegistryArray(registries, "languageKeys");
+		return registries;
+	}
+
+	public void replaceRegistries(JsonObject registries) {
+		JsonObject product = upstreamDocument.has(PRODUCT_NAMESPACE)
+				&& upstreamDocument.get(PRODUCT_NAMESPACE).isJsonObject()
+				? upstreamDocument.getAsJsonObject(PRODUCT_NAMESPACE).deepCopy() : new JsonObject();
+		JsonObject normalized = registries == null ? new JsonObject() : registries.deepCopy();
+		ensureRegistryArray(normalized, "variables");
+		ensureRegistryArray(normalized, "tags");
+		ensureRegistryArray(normalized, "languageKeys");
+		product.add("registries", normalized);
+		upstreamDocument.add(PRODUCT_NAMESPACE, product);
+		dirty = true;
+	}
+
+	private static void ensureRegistryArray(JsonObject registries, String name) {
+		if (!registries.has(name) || !registries.get(name).isJsonArray())
+			registries.add(name, new com.google.gson.JsonArray());
+	}
+
 	public List<Element> elements() {
 		return elements.values().stream().map(Element::copy).toList();
 	}
@@ -102,6 +133,10 @@ public final class WorkspaceState {
 
 	void committed(long newRevision) {
 		revision = newRevision;
+	}
+
+	void ensureEventSequenceAtLeast(long sequence) {
+		eventSequence = Math.max(eventSequence, sequence);
 	}
 
 	public long nextEventSequence() {

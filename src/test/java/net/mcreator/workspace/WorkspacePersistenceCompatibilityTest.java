@@ -12,20 +12,13 @@ import dev.copperbench.core.contract.UiCore.PermissionProfile;
 import dev.copperbench.core.workspace.UnknownFieldPreservingJsonStore;
 import dev.copperbench.core.workspace.RevisionedWorkspaceStore;
 import dev.copperbench.core.workspace.mcreator.MCreatorWorkspaceSession;
-import net.mcreator.Launcher;
+import dev.copperbench.testing.McreatorTestRuntime;
 import net.mcreator.element.ModElementType;
-import net.mcreator.element.ModElementTypeLoader;
 import net.mcreator.element.types.Function;
 import net.mcreator.generator.Generator;
-import net.mcreator.preferences.PreferencesManager;
-import net.mcreator.preferences.data.PreferencesData;
-import net.mcreator.plugin.PluginLoader;
 import net.mcreator.io.zip.ZipIO;
 import net.mcreator.workspace.elements.ModElement;
-import net.mcreator.workspace.elements.VariableTypeLoader;
 import net.mcreator.workspace.settings.WorkspaceSettings;
-import net.mcreator.util.MCreatorVersionNumber;
-import net.mcreator.ui.init.L10N;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -34,7 +27,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Clock;
-import java.util.Properties;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
@@ -42,6 +34,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -50,16 +43,7 @@ class WorkspacePersistenceCompatibilityTest {
 	@TempDir Path temporaryDirectory;
 
 	@BeforeAll static void initializeUpstreamRuntimeMinimum() throws Exception {
-		System.setProperty("log_directory", System.getProperty("java.io.tmpdir"));
-		PreferencesManager.PREFERENCES = new PreferencesData();
-		Properties configuration = new Properties();
-		configuration.load(Launcher.class.getResourceAsStream("/mcreator.conf"));
-		Launcher.version = new MCreatorVersionNumber(configuration);
-		PluginLoader.initInstance();
-		L10N.initTranslations();
-		VariableTypeLoader.loadVariableTypes();
-		ModElementTypeLoader.loadModElements();
-		PreferencesManager.PREFERENCES.backups.enableLocalHistory.set(false);
+		McreatorTestRuntime.ensureInitialized();
 	}
 
 	@Test void sessionTaskFactoryReceivesTheRegisteredWorkspaceStore() throws Exception {
@@ -205,7 +189,7 @@ class WorkspacePersistenceCompatibilityTest {
 			updatePayload.add("changes", changes);
 			var updated = headless.execute(Command.of(uuid(4), workspaceId, 1,
 					Operation.UPDATE_MOD_ELEMENT, updatePayload));
-			assertEquals("committed", updated.result().status());
+			assertEquals("committed", updated.result().status(), updated.result().diagnostics().toString());
 			Path definition = temporaryDirectory.resolve("elements/session_procedure.mod.json");
 			assertTrue(Files.readString(definition).contains("no_ext_trigger_updated"));
 
@@ -229,6 +213,80 @@ class WorkspacePersistenceCompatibilityTest {
 					workspace.getFileManager().getWorkspaceFile().toPath());
 			assertEquals(3, root.getAsJsonObject(UnknownFieldPreservingJsonStore.PRODUCT_NAMESPACE)
 					.get("revision").getAsLong());
+		} finally {
+			workspace.close();
+		}
+	}
+
+	@Test void upstreamBackedSessionPersistsEveryFirstPartyElementType() throws Exception {
+		WorkspaceSettings settings = new WorkspaceSettings("first_party_slice_test");
+		settings.setModName("First Party Slice Test");
+		settings.setCurrentGenerator("neoforge-1.21.8");
+		Workspace workspace = Workspace.createWorkspace(
+				temporaryDirectory.resolve("first_party_slice_test.mcreator").toFile(), settings);
+		UUID workspaceId = UUID.fromString("11111111-1111-4111-8111-111111111180");
+		AtomicLong sequence = new AtomicLong(1000);
+		java.util.function.Supplier<UUID> ids = () -> uuid(sequence.incrementAndGet());
+		try {
+			MCreatorWorkspaceSession session = MCreatorWorkspaceSession.attach(workspace, workspaceId,
+					new InMemoryWorkspaceTaskGateway(Clock.systemUTC(), ids), Clock.systemUTC(), ids);
+			var entry = session.headlessEntry(PermissionProfile.WORKSPACE);
+			List<String> types = List.of("block", "item", "recipe", "procedure");
+			List<ModElementType<?>> upstreamTypes = List.of(ModElementType.BLOCK, ModElementType.ITEM,
+					ModElementType.RECIPE, ModElementType.PROCEDURE);
+			long revision = 0;
+			for (int index = 0; index < types.size(); index++) {
+				String type = types.get(index);
+				String name = "session_" + type;
+				JsonObject createPayload = new JsonObject();
+				createPayload.addProperty("clientMutationId", ids.get().toString());
+				createPayload.addProperty("elementType", type);
+				createPayload.addProperty("name", name);
+				JsonObject values = new JsonObject();
+				values.addProperty("source", "compatibility-test");
+				if (type.equals("procedure")) values.addProperty("procedurexml", emptyProcedureXml("no_ext_trigger"));
+				createPayload.add("initialValues", values);
+
+				var created = entry.execute(Command.of(ids.get(), workspaceId, revision,
+						Operation.CREATE_MOD_ELEMENT, createPayload));
+				assertEquals("committed", created.result().status());
+				revision++;
+				String elementId = created.result().data().getAsJsonObject().getAsJsonObject("element")
+						.get("id").getAsString();
+				ModElement upstream = workspace.getModElementByName(name);
+				assertNotNull(upstream);
+				assertEquals(upstreamTypes.get(index), upstream.getType());
+				assertNotNull(upstream.getGeneratableElement());
+				assertTrue(Files.isRegularFile(temporaryDirectory.resolve("elements/" + name + ".mod.json")));
+
+				JsonObject updatePayload = new JsonObject();
+				updatePayload.addProperty("clientMutationId", ids.get().toString());
+				updatePayload.addProperty("elementId", elementId);
+				JsonObject change = new JsonObject();
+				change.addProperty("path", type.equals("procedure") ? "/procedurexml" : "/customFlag");
+				change.addProperty("value", type.equals("procedure")
+						? emptyProcedureXml("no_ext_trigger_updated") : "updated");
+				com.google.gson.JsonArray changes = new com.google.gson.JsonArray();
+				changes.add(change);
+				updatePayload.add("changes", changes);
+				var updated = entry.execute(Command.of(ids.get(), workspaceId, revision,
+						Operation.UPDATE_MOD_ELEMENT, updatePayload));
+				assertEquals("committed", updated.result().status(), updated.result().diagnostics().toString());
+				revision++;
+				assertTrue(WorkspaceFileManager.gson.toJson(
+						upstream.getMetadata(dev.copperbench.core.workspace.mcreator.MCreatorWorkspaceMutationGateway
+								.ELEMENT_VALUES_METADATA)).contains(type.equals("procedure")
+								? "no_ext_trigger_updated" : "customFlag"));
+			}
+			assertEquals(8, revision);
+
+			workspace.reloadFromFileSystem();
+			for (int index = 0; index < types.size(); index++) {
+				ModElement reloaded = workspace.getModElementByName("session_" + types.get(index));
+				assertNotNull(reloaded);
+				assertEquals(upstreamTypes.get(index), reloaded.getType());
+				assertNotNull(reloaded.getGeneratableElement());
+			}
 		} finally {
 			workspace.close();
 		}

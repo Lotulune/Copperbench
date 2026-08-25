@@ -174,7 +174,7 @@
     },
     "claims": {
       "type": "object",
-      "required": ["goldenCompileClaimed", "generateReadyNotGolden"],
+      "required": ["goldenCompileClaimed", "generateReadyNotGolden", "offlineBuildClaimed"],
       "additionalProperties": false,
       "properties": {
         "goldenCompileClaimed": {
@@ -182,6 +182,10 @@
           "items": { "type": "string" }
         },
         "generateReadyNotGolden": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "offlineBuildClaimed": {
           "type": "array",
           "items": { "type": "string" }
         }

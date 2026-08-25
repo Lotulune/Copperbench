@@ -39,6 +39,7 @@ import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.lang.reflect.Type;
 import java.util.List;
@@ -117,13 +118,29 @@ public abstract class GeneratableElement {
 
 		static {
 			GsonBuilder gsonBuilder = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting()
-					.setStrictness(Strictness.LENIENT);
+					.setStrictness(Strictness.LENIENT).registerTypeAdapter(Color.class, new ColorGsonAdapter());
 
 			RetvalProcedure.GSON_ADAPTERS.forEach(gsonBuilder::registerTypeAdapter);
 			gsonBuilder.registerTypeHierarchyAdapter(MappableElement.class, new MappableElement.GSONAdapter());
 			gsonBuilder.registerTypeAdapter(StateMap.class, new StateMap.GSONAdapter());
 
 			gson = gsonBuilder.create();
+		}
+
+		private static final class ColorGsonAdapter implements JsonSerializer<Color>, JsonDeserializer<Color> {
+			@Override public JsonElement serialize(Color color, Type type, JsonSerializationContext context) {
+				JsonObject value = new JsonObject();
+				value.addProperty("value", color.getRGB());
+				value.addProperty("falpha", 0.0f);
+				return value;
+			}
+
+			@Override public Color deserialize(JsonElement json, Type type, JsonDeserializationContext context)
+					throws JsonParseException {
+				if (json == null || json.isJsonNull()) return null;
+				int value = json.isJsonObject() ? json.getAsJsonObject().get("value").getAsInt() : json.getAsInt();
+				return new Color(value, true);
+			}
 		}
 
 		@Nonnull private final Workspace workspace;

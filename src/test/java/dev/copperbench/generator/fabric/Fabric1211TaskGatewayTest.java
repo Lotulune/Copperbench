@@ -30,7 +30,10 @@ import java.time.ZoneOffset;
 import java.util.UUID;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -102,6 +105,91 @@ class Fabric1211TaskGatewayTest {
 		}
 	}
 
+	@Test void serverRequiresDesktopEulaApprovalAndDatagenStaysInTaskStaging() throws Exception {
+		RevisionedWorkspaceStore store = new RevisionedWorkspaceStore();
+		store.register(Fabric1211GoldenWorkspace.create());
+		AtomicLong sequence = new AtomicLong(650);
+		AtomicInteger invocations = new AtomicInteger();
+		Supplier<UUID> ids = () -> UUID.fromString("00000000-0000-4000-8000-" +
+				String.format("%012d", sequence.getAndIncrement()));
+		Fabric1211ProcessRunner runner = (root, arguments, timeout, output) -> {
+			invocations.incrementAndGet();
+			assertTrue(root.toString().replace('\\', '/').contains(".copperbench/task-runs/"));
+			if (arguments.equals(List.of("runServer"))) {
+				assertEquals("eula=true\n", Files.readString(root.resolve("run/eula.txt")));
+				output.accept("COPPERBENCH_STAGE3_READY dedicated server");
+				return new Fabric1211ProcessRunner.ProcessResult(0, true);
+			}
+			assertEquals(List.of("runDatagen"), arguments);
+			Path generated = root.resolve("src/generated/resources/data/copper_trails/generated.json");
+			Files.createDirectories(generated.getParent());
+			Files.writeString(generated, "{}");
+			return new Fabric1211ProcessRunner.ProcessResult(0, false);
+		};
+		try (Fabric1211WorkspaceTaskGateway tasks = new Fabric1211WorkspaceTaskGateway(store,
+				ignored -> generatedWorkspace, Path.of(".").toAbsolutePath().normalize(), CLOCK, ids, runner)) {
+			WorkspaceApplicationService service = new WorkspaceApplicationService(store, tasks, CLOCK, ids);
+			JsonObject unapprovedPayload = new JsonObject();
+			unapprovedPayload.addProperty("clientMutationId", ids.get().toString());
+			unapprovedPayload.addProperty("scope", "workspace");
+			unapprovedPayload.addProperty("userApproved", false);
+			var unapproved = service.execute(Command.of(ids.get(), WORKSPACE_ID, 4, Operation.RUN_SERVER,
+					unapprovedPayload), UI);
+			assertEquals("rejected", unapproved.result().status());
+			assertEquals(0, invocations.get());
+
+			JsonObject approvedPayload = unapprovedPayload.deepCopy();
+			approvedPayload.addProperty("userApproved", true);
+			var approved = service.execute(Command.of(ids.get(), WORKSPACE_ID, 4, Operation.RUN_SERVER,
+					approvedPayload), UI);
+			assertEquals("accepted", approved.result().status());
+			UUID serverTask = UUID.fromString(approved.result().task().getAsJsonObject().get("id").getAsString());
+			assertEquals("succeeded", awaitTask(service, serverTask).getAsJsonObject("task").get("state").getAsString());
+
+			JsonObject datagen = startAndAwait(service, ids, Operation.RUN_DATAGEN);
+			assertEquals("succeeded", datagen.getAsJsonObject("task").get("state").getAsString());
+			UUID datagenTask = UUID.fromString(datagen.getAsJsonObject("task").get("id").getAsString());
+			assertEquals(2, invocations.get());
+			assertFalse(Files.exists(generatedWorkspace.resolve("run/eula.txt")));
+			assertFalse(Files.exists(generatedWorkspace.resolve("src/generated")));
+			try (var manifests = Files.walk(generatedWorkspace.resolve(".copperbench/task-runs/run_datagen"))) {
+				assertTrue(manifests.anyMatch(path -> path.getFileName().toString().equals("datagen-manifest.json")));
+			}
+			assertEquals(4, store.read(WORKSPACE_ID).orElseThrow().revision());
+
+			JsonObject previewPayload = new JsonObject();
+			previewPayload.addProperty("taskId", datagenTask.toString());
+			JsonObject preview = service.query(Query.of(ids.get(), WORKSPACE_ID,
+					Operation.PREVIEW_DATAGEN_OUTPUT, previewPayload), UI).data().getAsJsonObject();
+			assertEquals(1, preview.get("changeCount").getAsInt());
+			assertTrue(preview.get("canPublish").getAsBoolean());
+			assertEquals("add", preview.getAsJsonArray("files").get(0).getAsJsonObject().get("status").getAsString());
+
+			JsonObject stalePublish = new JsonObject();
+			stalePublish.addProperty("clientMutationId", ids.get().toString());
+			stalePublish.addProperty("taskId", datagenTask.toString());
+			stalePublish.addProperty("manifestHash", "0".repeat(64));
+			var rejected = service.execute(Command.of(ids.get(), WORKSPACE_ID, 4,
+					Operation.PUBLISH_DATAGEN_OUTPUT, stalePublish), UI);
+			assertEquals("rejected", rejected.result().status());
+			assertFalse(Files.exists(generatedWorkspace.resolve("src/generated")));
+			assertEquals(4, store.read(WORKSPACE_ID).orElseThrow().revision());
+
+			JsonObject publish = stalePublish.deepCopy();
+			publish.addProperty("clientMutationId", ids.get().toString());
+			publish.addProperty("manifestHash", preview.get("manifestHash").getAsString());
+			var committed = service.execute(Command.of(ids.get(), WORKSPACE_ID, 4,
+					Operation.PUBLISH_DATAGEN_OUTPUT, publish), UI);
+			assertEquals("committed", committed.result().status());
+			assertEquals(5, committed.result().newRevision());
+			assertEquals(5, store.read(WORKSPACE_ID).orElseThrow().revision());
+			assertTrue(Files.isRegularFile(generatedWorkspace.resolve(
+					"src/generated/resources/data/copper_trails/generated.json")));
+			assertEquals(1, committed.result().data().getAsJsonObject()
+					.getAsJsonArray("changedPaths").size());
+		}
+	}
+
 	@Test void validationReportsElementDiagnosticsWithoutGeneratingFiles() throws Exception {
 		RevisionedWorkspaceStore store = new RevisionedWorkspaceStore();
 		var valid = Fabric1211GoldenWorkspace.create();
@@ -124,6 +212,47 @@ class Fabric1211TaskGatewayTest {
 			assertEquals("failed", projection.getAsJsonObject("task").get("state").getAsString());
 			assertTrue(projection.getAsJsonArray("diagnostics").toString().contains("FABRIC_ITEM_STACK_INVALID"));
 			assertFalse(Files.exists(generatedWorkspace.resolve("build.gradle")));
+		}
+	}
+
+	@Test void cancellationCannotBeOverwrittenByTheInterruptedWorker() throws Exception {
+		RevisionedWorkspaceStore store = new RevisionedWorkspaceStore();
+		store.register(Fabric1211GoldenWorkspace.create());
+		AtomicLong sequence = new AtomicLong(750);
+		Supplier<UUID> ids = () -> UUID.fromString("00000000-0000-4000-8000-" +
+				String.format("%012d", sequence.getAndIncrement()));
+		CountDownLatch started = new CountDownLatch(1);
+		CountDownLatch exited = new CountDownLatch(1);
+		Fabric1211ProcessRunner runner = (root, arguments, timeout, output) -> {
+			started.countDown();
+			try {
+				new CountDownLatch(1).await();
+				return new Fabric1211ProcessRunner.ProcessResult(0, false);
+			} finally {
+				exited.countDown();
+			}
+		};
+		try (Fabric1211WorkspaceTaskGateway tasks = new Fabric1211WorkspaceTaskGateway(store,
+				ignored -> generatedWorkspace, Path.of(".").toAbsolutePath().normalize(), CLOCK, ids, runner)) {
+			WorkspaceApplicationService service = new WorkspaceApplicationService(store, tasks, CLOCK, ids);
+			JsonObject payload = new JsonObject();
+			payload.addProperty("clientMutationId", ids.get().toString());
+			payload.addProperty("scope", "workspace");
+			var accepted = service.execute(Command.of(ids.get(), WORKSPACE_ID, 4, Operation.BUILD_WORKSPACE, payload), UI);
+			UUID taskId = UUID.fromString(accepted.result().task().getAsJsonObject().get("id").getAsString());
+			assertTrue(started.await(10, TimeUnit.SECONDS));
+
+			JsonObject cancelPayload = new JsonObject();
+			cancelPayload.addProperty("clientMutationId", ids.get().toString());
+			cancelPayload.addProperty("taskId", taskId.toString());
+			var cancelled = service.execute(
+					Command.of(ids.get(), WORKSPACE_ID, 4, Operation.CANCEL_TASK, cancelPayload), UI);
+
+			assertEquals("cancelled", cancelled.result().status());
+			assertTrue(exited.await(2, TimeUnit.SECONDS));
+			JsonObject projection = task(service, taskId);
+			assertEquals("cancelled", projection.getAsJsonObject("task").get("state").getAsString());
+			assertTrue(projection.getAsJsonArray("diagnostics").isEmpty());
 		}
 	}
 
@@ -184,5 +313,12 @@ class Fabric1211TaskGatewayTest {
 			Thread.sleep(25);
 		}
 		throw new AssertionError("Fabric generation task did not finish");
+	}
+
+	private static JsonObject task(WorkspaceApplicationService service, UUID taskId) {
+		JsonObject payload = new JsonObject();
+		payload.addProperty("taskId", taskId.toString());
+		return service.query(Query.of(UUID.randomUUID(), WORKSPACE_ID, Operation.GET_TASK, payload), UI)
+				.data().getAsJsonObject();
 	}
 }

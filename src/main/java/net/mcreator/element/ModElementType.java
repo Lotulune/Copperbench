@@ -71,11 +71,11 @@ public class ModElementType<GE extends GeneratableElement> {
 	}
 
 	public String getPluralName() {
-		if (this == LIVINGENTITY)
+		if (this.equals(LIVINGENTITY))
 			return "livingentities";
-		else if (this == SPECIALENTITY)
+		else if (this.equals(SPECIALENTITY))
 			return "specialentities";
-		else if (this == BEENTITY)
+		else if (this.equals(BEENTITY))
 			return "beentities";
 
 		return registryName.toLowerCase(Locale.ENGLISH) + "s";

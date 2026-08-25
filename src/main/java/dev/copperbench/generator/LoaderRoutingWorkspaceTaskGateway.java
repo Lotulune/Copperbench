@@ -17,6 +17,7 @@ import dev.copperbench.generator.fabric.Fabric1211Generator;
 import dev.copperbench.generator.fabric.Fabric1211WorkspaceTaskGateway;
 import dev.copperbench.generator.neoforge.NeoForge1211Generator;
 import dev.copperbench.generator.neoforge.NeoForge1211WorkspaceTaskGateway;
+import dev.copperbench.generator.resourcepack.ResourcePackWorkspaceTaskGateway;
 import dev.copperbench.tracks.VersionTrackCatalog;
 
 import java.nio.file.Path;
@@ -40,6 +41,7 @@ public final class LoaderRoutingWorkspaceTaskGateway implements WorkspaceTaskGat
 	private final NeoForge1211WorkspaceTaskGateway neoForge261;
 	private final NeoForge1211WorkspaceTaskGateway neoForge262;
 	private final NeoForge1211WorkspaceTaskGateway neoForge1201;
+	private final ResourcePackWorkspaceTaskGateway resourcePack;
 	private final VersionTrackCatalog tracks = VersionTrackCatalog.official();
 
 	public LoaderRoutingWorkspaceTaskGateway(RevisionedWorkspaceStore store, Function<UUID, Path> workspaceRoots,
@@ -59,6 +61,7 @@ public final class LoaderRoutingWorkspaceTaskGateway implements WorkspaceTaskGat
 				NeoForge1211Generator.Profile.NEOFORGE_262);
 		this.neoForge1201 = new NeoForge1211WorkspaceTaskGateway(store, workspaceRoots, distributionRoot, clock, ids,
 				NeoForge1211Generator.Profile.NEOFORGE_1201);
+		this.resourcePack = new ResourcePackWorkspaceTaskGateway(store, workspaceRoots, distributionRoot, clock, ids);
 	}
 
 	@Override public JsonObject start(UUID workspaceId, Operation operation, JsonObject payload) {
@@ -74,6 +77,7 @@ public final class LoaderRoutingWorkspaceTaskGateway implements WorkspaceTaskGat
 			case "neoforge-26.1.2" -> neoForge261.start(workspaceId, operation, payload);
 			case "neoforge-26.2" -> neoForge262.start(workspaceId, operation, payload);
 			case "neoforge-1.20.1" -> neoForge1201.start(workspaceId, operation, payload);
+			case ResourcePackWorkspaceTaskGateway.GENERATOR_ID -> resourcePack.start(workspaceId, operation, payload);
 			default -> {
 				var decision = tracks.decision(generatorId);
 				throw new IllegalArgumentException(decision.reasonCode() + ": " + decision.message());
@@ -85,7 +89,8 @@ public final class LoaderRoutingWorkspaceTaskGateway implements WorkspaceTaskGat
 		return fabric.find(workspaceId, taskId).or(() -> fabric261.find(workspaceId, taskId))
 				.or(() -> fabric262.find(workspaceId, taskId)).or(() -> fabric1201.find(workspaceId, taskId))
 				.or(() -> neoForge.find(workspaceId, taskId)).or(() -> neoForge261.find(workspaceId, taskId))
-				.or(() -> neoForge262.find(workspaceId, taskId)).or(() -> neoForge1201.find(workspaceId, taskId));
+				.or(() -> neoForge262.find(workspaceId, taskId)).or(() -> neoForge1201.find(workspaceId, taskId))
+				.or(() -> resourcePack.find(workspaceId, taskId));
 	}
 
 	@Override public List<JsonObject> active(UUID workspaceId) {
@@ -97,6 +102,7 @@ public final class LoaderRoutingWorkspaceTaskGateway implements WorkspaceTaskGat
 		tasks.addAll(neoForge261.active(workspaceId));
 		tasks.addAll(neoForge262.active(workspaceId));
 		tasks.addAll(neoForge1201.active(workspaceId));
+		tasks.addAll(resourcePack.active(workspaceId));
 		return List.copyOf(tasks);
 	}
 
@@ -108,7 +114,8 @@ public final class LoaderRoutingWorkspaceTaskGateway implements WorkspaceTaskGat
 		if (neoForge.find(workspaceId, taskId).isPresent()) return neoForge.cancel(workspaceId, taskId);
 		if (neoForge261.find(workspaceId, taskId).isPresent()) return neoForge261.cancel(workspaceId, taskId);
 		if (neoForge262.find(workspaceId, taskId).isPresent()) return neoForge262.cancel(workspaceId, taskId);
-		return neoForge1201.cancel(workspaceId, taskId);
+		if (neoForge1201.find(workspaceId, taskId).isPresent()) return neoForge1201.cancel(workspaceId, taskId);
+		return resourcePack.cancel(workspaceId, taskId);
 	}
 
 	@Override public List<JsonObject> logs(UUID workspaceId, UUID taskId) {
@@ -119,18 +126,41 @@ public final class LoaderRoutingWorkspaceTaskGateway implements WorkspaceTaskGat
 		if (neoForge.find(workspaceId, taskId).isPresent()) return neoForge.logs(workspaceId, taskId);
 		if (neoForge261.find(workspaceId, taskId).isPresent()) return neoForge261.logs(workspaceId, taskId);
 		if (neoForge262.find(workspaceId, taskId).isPresent()) return neoForge262.logs(workspaceId, taskId);
-		return neoForge1201.logs(workspaceId, taskId);
+		if (neoForge1201.find(workspaceId, taskId).isPresent()) return neoForge1201.logs(workspaceId, taskId);
+		return resourcePack.logs(workspaceId, taskId);
 	}
 
 	@Override public List<JsonObject> diagnostics(UUID workspaceId, UUID taskId) {
-		if (fabric.find(workspaceId, taskId).isPresent()) return fabric.diagnostics(workspaceId, taskId);
-		if (fabric261.find(workspaceId, taskId).isPresent()) return fabric261.diagnostics(workspaceId, taskId);
-		if (fabric262.find(workspaceId, taskId).isPresent()) return fabric262.diagnostics(workspaceId, taskId);
-		if (fabric1201.find(workspaceId, taskId).isPresent()) return fabric1201.diagnostics(workspaceId, taskId);
-		if (neoForge.find(workspaceId, taskId).isPresent()) return neoForge.diagnostics(workspaceId, taskId);
-		if (neoForge261.find(workspaceId, taskId).isPresent()) return neoForge261.diagnostics(workspaceId, taskId);
-		if (neoForge262.find(workspaceId, taskId).isPresent()) return neoForge262.diagnostics(workspaceId, taskId);
-		return neoForge1201.diagnostics(workspaceId, taskId);
+		WorkspaceTaskGateway owner = owner(workspaceId, taskId);
+		return owner == null ? List.of() : owner.diagnostics(workspaceId, taskId);
+	}
+
+	@Override public Optional<JsonObject> previewDatagen(UUID workspaceId, UUID taskId) {
+		WorkspaceTaskGateway owner = owner(workspaceId, taskId);
+		return owner == null ? Optional.empty() : owner.previewDatagen(workspaceId, taskId);
+	}
+
+	@Override public JsonObject publishDatagen(UUID workspaceId, UUID taskId, JsonObject payload) {
+		WorkspaceTaskGateway owner = owner(workspaceId, taskId);
+		if (owner == null) throw new IllegalArgumentException("Task not found: " + taskId);
+		return owner.publishDatagen(workspaceId, taskId, payload);
+	}
+
+	@Override public void completeDatagenPublish(UUID workspaceId, UUID taskId) {
+		WorkspaceTaskGateway owner = owner(workspaceId, taskId);
+		if (owner != null) owner.completeDatagenPublish(workspaceId, taskId);
+	}
+
+	@Override public void rollbackDatagenPublish(UUID workspaceId, UUID taskId) {
+		WorkspaceTaskGateway owner = owner(workspaceId, taskId);
+		if (owner != null) owner.rollbackDatagenPublish(workspaceId, taskId);
+	}
+
+	private WorkspaceTaskGateway owner(UUID workspaceId, UUID taskId) {
+		for (WorkspaceTaskGateway candidate : List.of(fabric, fabric261, fabric262, fabric1201, neoForge,
+				neoForge261, neoForge262, neoForge1201, resourcePack))
+			if (candidate.find(workspaceId, taskId).isPresent()) return candidate;
+		return null;
 	}
 
 	@Override public void close() {
@@ -142,5 +172,6 @@ public final class LoaderRoutingWorkspaceTaskGateway implements WorkspaceTaskGat
 		neoForge261.close();
 		neoForge262.close();
 		neoForge1201.close();
+		resourcePack.close();
 	}
 }

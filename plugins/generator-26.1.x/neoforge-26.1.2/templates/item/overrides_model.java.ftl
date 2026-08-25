@@ -77,7 +77,7 @@ package ${package}.client.renderer.item;
 		);
 
 		@Override public boolean test(ItemStack itemStack, @Nullable ClientLevel level, @Nullable LivingEntity entity, int seed, ItemDisplayContext displayContext) {
-			return property.get(itemStack, level, entity, seed, displayContext) || !value;
+			return property.get(itemStack, level, entity, seed, displayContext) == value;
 		}
 	}
 

@@ -28,6 +28,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nullable;
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -80,6 +81,11 @@ public class NameMapper {
 
 		if (origName.startsWith(EXTERNAL_PREFIX)) {
 			return origName.replace(EXTERNAL_PREFIX, "");
+		}
+
+		if (mapping.get("_unsupported") instanceof Collection<?> unsupported && unsupported.contains(origName)) {
+			throw new IllegalArgumentException(
+					"Mapping " + mappingSource + " does not support value " + origName + " for this generator");
 		}
 
 		Object skip_prefixes = mapping.get("_bypass_prefix");

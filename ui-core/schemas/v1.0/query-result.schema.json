@@ -32,13 +32,28 @@
       "enum": [
         "get_workbench",
         "list_new_workspace_generators",
+        "list_assets",
         "list_mod_elements",
         "get_mod_element_editor",
         "preview_mod_element_change",
+        "get_procedure_editor",
+        "preview_procedure_change",
+        "get_workspace_references",
+        "list_workspace_registries",
+        "preview_registry_rename",
+        "preview_datagen_output",
         "get_task",
         "get_history",
         "get_diff",
-        "list_operation_approvals"
+        "list_operation_approvals",
+        "get_version_tracks",
+        "get_release_notes",
+        "preview_loader_migration",
+        "preview_upstream_import",
+        "list_publish_batches",
+        "list_installed_plugins",
+        "get_element_coverage",
+        "get_upstream_tools"
       ]
     },
     "status": {
@@ -61,6 +76,29 @@
     }
   },
   "allOf": [
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "list_new_workspace_generators"
+          },
+          "status": {
+            "const": "succeeded"
+          }
+        },
+        "required": [
+          "operation",
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "data": {
+            "$ref": "urn:ui-core:1.0:common#/$defs/newWorkspaceGeneratorCatalog"
+          }
+        }
+      }
+    },
     {
       "if": {
         "properties": {
@@ -122,6 +160,29 @@
         "properties": {
           "data": {
             "$ref": "urn:ui-core:1.0:common#/$defs/modElementListProjection"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "list_assets"
+          },
+          "status": {
+            "const": "succeeded"
+          }
+        },
+        "required": [
+          "operation",
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "data": {
+            "$ref": "urn:ui-core:1.0:asset"
           }
         }
       }

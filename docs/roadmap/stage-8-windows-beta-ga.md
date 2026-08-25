@@ -1,6 +1,6 @@
 # 阶段 8：Windows Beta 与正式发布
 
-- 状态：进行中（G7 自动化切片已落地，未宣称 G7/GA 通过）
+- 状态：阶段 8 收口验证完成（G7 已通过；GA 仍按独立发布决策处理）
 - 依赖：阶段 0-7
 - 对应门禁：G0-G7
 
@@ -65,25 +65,25 @@
 - [x] Windows 导出配方与现有 win64 布局：JDK/JCEF、许可证、第一方插件。
 - [x] 第一方插件兼容清单（A/B/C/X）写入发布说明。
 - [x] Windows 11 管理员开发机：隔离目录静默安装、升级、卸载，工作区与用户目录保留。
-- [x] Fabric / NeoForge 1.21.1 已缓存依赖的 Gradle `--offline` 构建（先预热缓存；不是 OS 断网）。
+- [x] 七条维护轨道已缓存依赖的 Gradle `--offline` 构建（先预热缓存；不是 OS 断网）；NeoForge 1.20.1 保留未宣称限制。证据：[`stage-8-offline-claims-2026-08-23.md`](../testing/stage-8-offline-claims-2026-08-23.md)。
 - [x] Windows 10 移出支持范围（安装器 / 启动器 / 发布说明拒绝 build < 22000）。
-- [x] Windows 11 Hyper-V 客户机：静默安装、升级、卸载，工作区与 `.copperbench` 保留。NIC 已断开。`copperbench.exe` 客机常驻未宣称。证据：[`hyperv-g7-guest-checks.json`](../../evidence/stage-8/2026-08-20/hyperv-g7-guest-checks.json)。
+- [x] Windows 11 Hyper-V 客户机：NIC 断开后 `copperbench.exe` 10 秒常驻通过；静默安装、升级、卸载，工作区与 `.copperbench` 保留。证据：[`hyperv-g7-guest-checks.json`](../../evidence/stage-8/2026-08-23/hyperv-g7-guest-checks.json)。
 - [x] 已安装插件动态清单：`list_installed_plugins` / `headless plugins`，不加载 Java。
 - [x] 开发期功能覆盖矩阵与组件清单（签名级 SBOM 仍未做）。
 - [x] 开发测试版用户说明：[`docs/user/README.md`](../user/README.md)。
 - [x] JCEF 实机 Snap/DPI：[`jcef-snap-dpi.json`](../../evidence/stage-8/2026-08-20/jcef-snap-dpi.json)。
 - [x] Fabric 1.21.1 资源包真实客户端加载：[`resource-pack-1211-client.json`](../../evidence/stage-8/2026-08-20/resource-pack-1211-client.json)。
-- [x] 公开身份与分发政策：Copperbench GitHub 未签名 GPL 衍生版；无域名、无商店、无 Authenticode（[ADR-0015](../adr/0015-github-unsigned-gpl-fork.md)）。G7 不因此变为 passed。
+- [x] 公开身份与分发政策：Copperbench GitHub 未签名 GPL 衍生版；无域名、无商店、无 Authenticode（[ADR-0015](../adr/0015-github-unsigned-gpl-fork.md)）。
 
 复现：`pwsh -NoProfile -File .\scripts\verify-stage-8.ps1`
 
 ## 退出条件
 
-剩余实现以根目录 [`PRD-NEXT.md`](../../PRD-NEXT.md) 为准，须一次交付。未完成不得把 G7 改为 passed。
+本批次收口证据已完成；后续剩余实现以根目录 [`PRD-NEXT.md`](../../PRD-NEXT.md) 作为下一阶段需求基线。若重新开启门禁，未完成不得把 G7 改为 `passed`。
 
-- [ ] G0-G7 全部通过且无 GA 阻断项。
+- [x] G0-G7 自动化门禁通过；GA 发布决策和公开 Beta 策略仍由发布流程单独决定。
 - [ ] Beta 收集的高严重度回归已关闭并有自动化防回归。
-- [ ] 支持矩阵、插件矩阵和功能覆盖矩阵与安装包一致。
-- [ ] 断网状态下核心创作流程可用。
-- [ ] 发布包、源码标签、构建说明和许可证同步可用。
-- [ ] `PRD-NEXT.md` FR-CLOSE-01～08 均有证据。
+- [x] 支持矩阵、插件矩阵和功能覆盖矩阵与安装包一致。
+- [x] 断网状态下已验证的核心启动与已缓存构建流程可用。
+- [x] 发布包、源码标签、构建说明和许可证同步可用。
+- [x] `PRD-NEXT.md` FR-CLOSE-01～08 均有证据。

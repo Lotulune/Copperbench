@@ -17,13 +17,17 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PluginCompatibilityClassifierTest {
 
+	private static final long CURRENT_PLUGIN_API_VERSION = 2026002L;
 	private final PluginCompatibilityClassifier classifier = new PluginCompatibilityClassifier();
 	@TempDir Path temporaryDirectory;
 
 	@Test void representativePluginsUseTheirDeclaredCompatibilityRoutes() throws Exception {
-		var resource = classifier.assess(resource("a-resource"), 202600100000L, 2026001L);
-		var javaLogic = classifier.assess(resource("b-java"), 202600100000L, 2026001L);
-		var swing = classifier.assess(resource("c-swing"), 202600100000L, 2026001L);
+		var resource = classifier.assess(resource("a-resource"), CURRENT_PLUGIN_API_VERSION,
+				CURRENT_PLUGIN_API_VERSION);
+		var javaLogic = classifier.assess(resource("b-java"), CURRENT_PLUGIN_API_VERSION,
+				CURRENT_PLUGIN_API_VERSION);
+		var swing = classifier.assess(resource("c-swing"), CURRENT_PLUGIN_API_VERSION,
+				CURRENT_PLUGIN_API_VERSION);
 
 		assertEquals(Level.A, resource.level());
 		assertEquals(Route.RESOURCE_PIPELINE, resource.route());

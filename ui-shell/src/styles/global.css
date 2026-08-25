@@ -13,7 +13,7 @@ html, body {
   font-family: var(--font-sans);
   background: var(--bg-base);
   color: var(--text-main);
-  user-select: none;
+  user-select: text;
   -webkit-font-smoothing: antialiased;
   letter-spacing: 0;
   font-size: 13px;
@@ -26,6 +26,12 @@ html, body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+
+button,
+[role='button'],
+.badge {
+  user-select: none;
 }
 
 /* Custom Scrollbar */
@@ -236,6 +242,31 @@ html, body {
 
   .titlebar-action-label {
     display: none;
+  }
+
+  .nav-rail {
+    width: 56px !important;
+    padding: 8px 6px !important;
+  }
+
+  .nav-section-label,
+  .nav-item-label,
+  .nav-item-badge,
+  .nav-bottom-info {
+    display: none !important;
+  }
+
+  .nav-rail button {
+    justify-content: center !important;
+    padding: 8px !important;
+  }
+
+  .nav-item-content {
+    justify-content: center;
+  }
+
+  .new-workspace-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
   }
 
   .titlebar-window-controls {
@@ -1763,3 +1794,456 @@ input:disabled, select:disabled, textarea:disabled {
   }
 }
 
+/* Stage 9: Procedure workbench */
+.procedure-workbench,
+.creator-data-view {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg-base);
+}
+
+.procedure-route-loading {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  color: var(--text-muted);
+  background: var(--bg-base);
+}
+
+.procedure-toolbar,
+.creator-data-header,
+.registry-toolbar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+}
+
+.procedure-icon-button,
+.registry-row-actions button,
+.registry-rename-input button,
+.creator-data-message button {
+  width: 30px;
+  height: 30px;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 30px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  background: var(--bg-panel);
+}
+
+.procedure-icon-button:hover,
+.registry-row-actions button:hover,
+.registry-rename-input button:hover,
+.creator-data-message button:hover {
+  color: var(--text-main);
+  border-color: var(--border-active);
+  background: var(--bg-hover);
+}
+
+.procedure-title {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.procedure-title strong {
+  overflow: hidden;
+  color: var(--text-main);
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.procedure-title span,
+.registry-toolbar > div span,
+.creator-data-header p {
+  color: var(--text-sub);
+  font-size: 10px;
+}
+
+.procedure-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.procedure-save {
+  height: 30px;
+  min-height: 30px;
+  padding: 4px 10px;
+}
+
+.procedure-message,
+.creator-data-message {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 6px 14px;
+  border-bottom: 1px solid rgba(88, 166, 255, 0.22);
+  color: var(--badge-blue);
+  background: var(--badge-blue-bg);
+  font-size: 11px;
+}
+
+.procedure-body {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 210px minmax(320px, 1fr) minmax(260px, 310px);
+  overflow: hidden;
+}
+
+.procedure-palette,
+.procedure-inspector {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg-surface);
+}
+
+.procedure-palette { border-right: 1px solid var(--border-subtle); }
+.procedure-inspector { border-left: 1px solid var(--border-subtle); }
+
+.procedure-search {
+  position: relative;
+  flex: 0 0 auto;
+  padding: 10px;
+}
+
+.procedure-search svg {
+  position: absolute;
+  left: 19px;
+  top: 19px;
+  color: var(--text-sub);
+  pointer-events: none;
+}
+
+.procedure-search input {
+  width: 100%;
+  padding-left: 29px;
+}
+
+.procedure-node-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 8px 10px;
+}
+
+.procedure-node-button {
+  width: 100%;
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  padding: 6px 8px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  background: transparent;
+  text-align: left;
+}
+
+.procedure-node-button:hover:not(:disabled) {
+  color: var(--text-main);
+  border-color: var(--border-subtle);
+  background: var(--bg-hover);
+}
+
+.procedure-node-button > span {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.procedure-node-button strong {
+  overflow: hidden;
+  color: inherit;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.procedure-node-button small {
+  color: var(--text-sub);
+  font-size: 9px;
+}
+
+.procedure-canvas-wrap {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: #20242b;
+}
+
+[data-theme='light'] .procedure-canvas-wrap { background: #e9edf2; }
+
+.procedure-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.procedure-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--text-muted);
+  background: var(--bg-base);
+}
+
+.procedure-tabs,
+.creator-data-tabs {
+  flex: 0 0 auto;
+  display: flex;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-panel);
+}
+
+.procedure-tabs button {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px 3px;
+  border-bottom: 2px solid transparent;
+  color: var(--text-sub);
+  font-size: 10px;
+}
+
+.procedure-tabs button[aria-selected='true'] {
+  border-bottom-color: var(--accent-copper);
+  color: var(--accent-copper);
+  background: var(--accent-copper-dim);
+}
+
+.procedure-panel-content {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 10px;
+}
+
+.procedure-panel-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  color: var(--text-sub);
+  font-size: 10px;
+}
+
+.procedure-panel-content pre {
+  min-width: max-content;
+  color: var(--text-muted);
+  font: 10px/1.6 var(--font-mono);
+  white-space: pre;
+}
+
+.procedure-list-content {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.procedure-diagnostic,
+.procedure-reference {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 8px;
+  border-left: 2px solid var(--badge-amber);
+  background: var(--bg-panel);
+}
+
+.procedure-diagnostic.error { border-left-color: var(--badge-red); }
+.procedure-diagnostic code,
+.procedure-reference code { overflow-wrap: anywhere; color: var(--text-sub); font-size: 9px; }
+
+/* Stage 9: workspace registries and references */
+.creator-data-header {
+  justify-content: space-between;
+  min-height: 62px;
+  padding: 10px 18px;
+}
+
+.creator-data-header h1 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-main);
+  font-size: 15px;
+}
+
+.creator-data-tabs {
+  min-height: 42px;
+  padding-left: 12px;
+}
+
+.creator-data-tabs button {
+  min-width: 105px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 7px 12px;
+  border-bottom: 2px solid transparent;
+  color: var(--text-muted);
+}
+
+.creator-data-tabs button[aria-current='page'] {
+  border-bottom-color: var(--accent-copper);
+  color: var(--text-main);
+  background: var(--accent-copper-dim);
+}
+
+.creator-data-message { justify-content: space-between; }
+.creator-data-message button { width: 24px; height: 24px; flex-basis: 24px; }
+
+.registry-toolbar {
+  justify-content: space-between;
+  min-height: 50px;
+  background: var(--bg-base);
+}
+
+.registry-toolbar > div {
+  display: flex;
+  flex-direction: column;
+}
+
+.registry-create-band,
+.registry-confirmation {
+  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(140px, 1fr)) auto;
+  align-items: end;
+  gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-panel);
+}
+
+.registry-create-band label {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  color: var(--text-sub);
+  font-size: 10px;
+}
+
+.registry-create-actions { display: flex; gap: 6px; }
+
+.registry-confirmation {
+  grid-template-columns: minmax(260px, 1fr) auto auto;
+  align-items: center;
+  border-left: 3px solid var(--badge-amber);
+}
+
+.registry-confirmation > div { display: flex; flex-direction: column; gap: 2px; }
+.registry-confirmation strong { color: var(--text-main); font-size: 12px; }
+.registry-confirmation span { color: var(--text-muted); font-size: 10px; }
+
+.creator-data-content {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 0 14px 14px;
+}
+
+.registry-table {
+  width: 100%;
+  border-collapse: collapse;
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.registry-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border-active);
+  color: var(--text-sub);
+  background: var(--bg-panel);
+  text-align: left;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.registry-table td {
+  max-width: 420px;
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--border-subtle);
+  vertical-align: middle;
+}
+
+.registry-table tbody tr:hover { background: var(--bg-hover); }
+.registry-table td:first-child { min-width: 240px; }
+.registry-table td:first-child > strong { display: block; color: var(--text-main); font-size: 12px; }
+.registry-table td:first-child > code { display: block; margin-top: 2px; color: var(--text-sub); font-size: 9px; }
+.registry-table td:last-child { width: 76px; }
+
+.registry-row-actions,
+.registry-rename-input {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.registry-rename-input { justify-content: flex-start; }
+.registry-rename-input input { width: min(220px, 100%); }
+.registry-row-actions .danger:hover { color: var(--badge-red); border-color: rgba(248, 81, 73, 0.4); }
+.registry-empty { height: 150px; color: var(--text-sub); text-align: center; }
+
+.reference-summary,
+.language-stats {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  min-height: 38px;
+  padding: 8px 10px;
+  color: var(--text-muted);
+  font-size: 10px;
+}
+
+.language-stats {
+  flex: 0 0 auto;
+  border-top: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+}
+
+.language-stats .warning { color: var(--badge-amber); }
+.language-stats .error { color: var(--badge-red); }
+
+@media (max-width: 1120px) {
+  .procedure-body { grid-template-columns: 180px minmax(300px, 1fr) 260px; }
+  .procedure-tabs svg { display: none; }
+  .registry-create-band { grid-template-columns: repeat(2, minmax(140px, 1fr)); }
+}

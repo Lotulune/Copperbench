@@ -152,7 +152,7 @@ public class WorkspaceUtils {
 				progressUnit.setPercent((int) (i / (float) modstoload * 100));
 			i++;
 
-			if (mod.getType() == ModElementType.UNKNOWN)
+			if (mod.getType().equals(ModElementType.UNKNOWN))
 				continue; // skip unknown MEs as we don't know what we can remove from them
 
 			GeneratableElement generatableElement = mod.getGeneratableElement();

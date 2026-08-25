@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Bot, Check, ChevronRight, LockKeyhole, ShieldAlert, ShieldCheck, X } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
 import { useDialogA11y } from '../hooks/useDialogA11y';
+import { t } from '../i18n';
 import type { OperationApproval, PermissionProfile } from '../types/contract';
 
 const profiles: { id: PermissionProfile; title: string; desc: string }[] = [
@@ -21,7 +22,7 @@ export const AIControlView: React.FC = () => {
     if (!selected) return;
     const result = await resolveOperationApproval(selected.id, decision);
     if (result.status === 'completed') {
-      setStatus(decision === 'approve' ? `已批准“${selected.title.fallback}”` : `已拒绝“${selected.title.fallback}”`);
+      setStatus(decision === 'approve' ? `已批准“${t(selected.title)}”` : `已拒绝“${t(selected.title)}”`);
       setSelected(null);
     }
   };
@@ -84,7 +85,7 @@ export const AIControlView: React.FC = () => {
                   {approval.canApprove ? <ShieldAlert size={17} /> : <LockKeyhole size={17} />}
                 </div>
                 <div className="approval-copy">
-                  <strong>{approval.title.fallback}</strong>
+                  <strong>{t(approval.title)}</strong>
                   <span>{approval.requestedBy.toUpperCase()} · {approval.affectedPaths[0]}</span>
                   {!approval.canApprove && (
                     <span className="approval-blocked" data-testid="approval-blocked">AI 无权批准，必须在插件中心由用户操作</span>
@@ -95,7 +96,7 @@ export const AIControlView: React.FC = () => {
                     className="icon-button"
                     type="button"
                     data-testid="review-approval"
-                    aria-label={`审查 ${approval.title.fallback}`}
+                    aria-label={`审查 ${t(approval.title)}`}
                     onClick={() => setSelected(approval)}
                   >
                     <ChevronRight size={16} />
@@ -134,7 +135,7 @@ export const AIControlView: React.FC = () => {
               </button>
             </div>
             <div className="modal-body">
-              <strong>{selected.title.fallback}</strong>
+              <strong>{t(selected.title)}</strong>
               <dl className="approval-details">
                 <div><dt>请求方</dt><dd>{selected.requestedBy.toUpperCase()}</dd></div>
                 <div><dt>风险</dt><dd>{selected.risk === 'critical' ? '严重' : '高'}</dd></div>

@@ -889,7 +889,7 @@ import java.util.regex.Pattern;
 
 		// Only show the dialog if current selection contains lockable elements
 		if (selectedElements.stream()
-				.anyMatch(i -> i instanceof ModElement me && !(me.getType() == ModElementType.CODE))) {
+				.anyMatch(i -> i instanceof ModElement me && !me.getType().equals(ModElementType.CODE))) {
 			Object[] options = { L10N.t("workspace.elements.lock_modelement_lock_unlock"),
 					UIManager.getString("OptionPane.cancelButtonText") };
 			int n = JOptionPane.showOptionDialog(mcreator, L10N.t("workspace.elements.lock_modelement_message"),
@@ -1008,7 +1008,7 @@ import java.util.regex.Pattern;
 					mcreator.getModElementManager().storeModElementPicture(generatableElementDuplicate);
 					mcreator.getModElementManager().storeModElement(generatableElementDuplicate);
 
-					if (mu.getType() == ModElementType.CODE || mu.isCodeLocked()) {
+					if (mu.getType().equals(ModElementType.CODE) || mu.isCodeLocked()) {
 						List<GeneratorTemplate> originalFiles = mcreator.getGenerator()
 								.getModElementGeneratorTemplatesList(generatableElementOriginal);
 						List<GeneratorTemplate> duplicateFiles = mcreator.getGenerator()
@@ -1363,14 +1363,14 @@ import java.util.regex.Pattern;
 
 			final Predicate<ModElement> conditionMetFilters = item -> {
 				for (ModElementType<?> excludeType : excludedMetfilters)
-					if (item.getType() == excludeType)
+					if (item.getType().equals(excludeType))
 						return false;
 
 				if (metfilters.isEmpty())
 					return true;
 
 				for (ModElementType<?> type : metfilters)
-					if (item.getType() == type)
+					if (item.getType().equals(type))
 						return true;
 				return false;
 			};

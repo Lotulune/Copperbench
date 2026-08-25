@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.util.zip.ZipFile;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -26,6 +27,7 @@ class ResourcePackClientLoadServiceTest {
 		var prepared = service.prepare("resource-pack", "copper.zip");
 		assertEquals(34, prepared.packFormat());
 		assertTrue(prepared.readyForClient());
+		assertFalse(prepared.toJson().get("clientLaunched").getAsBoolean());
 		assertTrue(Files.isRegularFile(temp.resolve("run/resourcepacks/copper.zip")));
 		assertTrue(Files.readString(temp.resolve("run/options.txt")).contains("file/copper.zip"));
 		try (ZipFile zip = new ZipFile(temp.resolve("run/resourcepacks/copper.zip").toFile())) {

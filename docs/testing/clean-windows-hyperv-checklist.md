@@ -32,7 +32,7 @@ pwsh -NoProfile -File .\scripts\Invoke-G7HyperVGuestChecks.ps1 `
 
 脚本会：静默安装 → 种工作区与 `.copperbench` 标记 → 静默升级 → 断网后启动 `copperbench.exe` → 静默卸载（默认保留用户目录）→ 确认工作区与用户标记仍在 → 写 `evidence/stage-8/<date>/hyperv-g7-guest-checks.json`。
 
-2026-08-20：`hyperv-g7-guest-checks.json` 为 `passed=true`。已宣称静默安装/升级/卸载与用户数据保留。客机 `copperbench.exe` 常驻未宣称。
+2026-08-23：最新 `hyperv-g7-guest-checks.json` 为 `passed=true` 且 `processStartedWhileDisconnected=true`。已宣称断网状态下客机 `copperbench.exe` 10 秒常驻，以及静默安装/升级/卸载与用户数据保留。
 
 ## 不要宣称
 

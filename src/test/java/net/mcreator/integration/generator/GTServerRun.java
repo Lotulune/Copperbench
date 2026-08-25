@@ -27,6 +27,11 @@ import net.mcreator.workspace.Workspace;
 import org.apache.logging.log4j.Logger;
 import org.gradle.tooling.*;
 
+import java.time.Duration;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 public class GTServerRun {
 
 	private static void appendToStringBuilder(Logger LOG, StringBuilder sb, String s,
@@ -48,6 +53,10 @@ public class GTServerRun {
 	}
 
 	public static void runTest(Logger LOG, String generatorName, Workspace workspace) throws Exception {
+		runTest(LOG, generatorName, workspace, Duration.ofMinutes(20));
+	}
+
+	public static void runTest(Logger LOG, String generatorName, Workspace workspace, Duration timeout) throws Exception {
 		BuildLauncher buildLauncher = GradleUtils.getGradleTaskLauncher(workspace.getGeneratorConfiguration(),
 				GradleUtils.getGradleProjectConnection(workspace),
 				workspace.getGeneratorConfiguration().getGradleTaskFor("run_server"));
@@ -57,6 +66,12 @@ public class GTServerRun {
 		CancellationTokenSource cancellationSource = GradleConnector.newCancellationTokenSource();
 		CancellationToken token = cancellationSource.token();
 		buildLauncher.withCancellationToken(token);
+		AtomicBoolean timedOut = new AtomicBoolean(false);
+		var timeoutExecutor = Executors.newSingleThreadScheduledExecutor();
+		var timeoutTask = timeoutExecutor.schedule(() -> {
+			timedOut.set(true);
+			cancellationSource.cancel();
+		}, timeout.toMillis(), TimeUnit.MILLISECONDS);
 
 		buildLauncher.setStandardError(
 				new OutputStreamEventHandler(line -> appendToStringBuilder(LOG, sb, line, cancellationSource)));
@@ -74,11 +89,16 @@ public class GTServerRun {
 				throw new Exception("Server run failed with error");
 			}
 		} catch (BuildCancelledException e) {
+			if (timedOut.get())
+				throw new IllegalStateException(generatorName + " server run timed out after " + timeout, e);
 			if (didRunFail(sb.toString()))
 				throw new Exception("Server run failed with error");
 		} catch (Exception e) {
 			LOG.error("Server run failed for {} generator with log:\n{}", generatorName, sb, e);
 			throw e;
+		} finally {
+			timeoutTask.cancel(false);
+			timeoutExecutor.shutdownNow();
 		}
 
 		LOG.info("[{}] Gradle server run OK", generatorName);

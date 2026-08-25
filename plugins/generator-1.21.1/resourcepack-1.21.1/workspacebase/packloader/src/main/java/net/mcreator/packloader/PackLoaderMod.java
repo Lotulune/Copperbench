@@ -56,6 +56,7 @@ import java.util.List;
 				Minecraft.getInstance().getResourcePackRepository().setSelected(selectedPacks);
 				Minecraft.getInstance().options.updateResourcePacks(Minecraft.getInstance().getResourcePackRepository());
 			}
+			System.out.println("COPPERBENCH_RESOURCE_PACK_READY");
 		}
 	}
 

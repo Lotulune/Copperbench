@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "hyperv-g7-guest-checks",
+  "vmName": "Copperbench-G7",
+  "installerPath": "D:\\AICoding\\Minecraft_ModCreator\\build\\export\\Copperbench 0.1.0 Windows 64bit.exe",
+  "passed": true,
+  "createsClaim": true,
+  "silentInstall": true,
+  "silentUpgrade": true,
+  "workspacePreservedAfterUpgrade": true,
+  "processStartedWhileDisconnected": true,
+  "silentUninstall": true,
+  "uninstallPreservedWorkspace": true,
+  "uninstallPreservedUserFolder": true,
+  "vmState": "Running",
+  "networkDisconnected": true,
+  "installerCopied": true,
+  "guest": {
+    "installExit": 0,
+    "upgradeExit": 0,
+    "uninstallExit": 0,
+    "workspacePreserved": true,
+    "userFolderPreserved": true,
+    "processStarted": true,
+    "PSComputerName": "Copperbench-G7",
+    "RunspaceId": "e92c60bd-8a09-46e3-b179-bfec33cd5709",
+    "PSShowComputerName": true
+  },
+  "completedAt": "2026-08-23T13:48:46.4211961+08:00",
+  "durationSeconds": 231.04
+}

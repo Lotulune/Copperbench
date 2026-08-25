@@ -138,6 +138,8 @@ class HistoryContractTest {
 		assertTrue(after.elements().isEmpty());
 
 		// Restoring again with the stale revision produces a structured conflict.
+		Files.writeString(workspaceDirectory.resolve("workspace.mcreator"),
+				"{\"revision\":2,\"afterRestoreLocalChange\":true}");
 		JsonObject stale = new JsonObject();
 		stale.addProperty("recoveryPointId", pointId);
 		stale.addProperty("userApproved", true);
@@ -145,6 +147,15 @@ class HistoryContractTest {
 				Command.of(uuid(32), WORKSPACE_ID, 1, Operation.RESTORE_RECOVERY_POINT, stale), UI);
 		assertEquals("rejected", conflict.result().status());
 		assertTrue(conflict.result().conflict().isJsonObject());
+		assertEquals("{\"revision\":2,\"afterRestoreLocalChange\":true}",
+				Files.readString(workspaceDirectory.resolve("workspace.mcreator")));
+
+		JsonObject pointPayload = new JsonObject();
+		pointPayload.addProperty("label", "After restore");
+		CommandOutcome nextEvent = fixture.service.execute(
+				Command.of(uuid(33), WORKSPACE_ID, 2, Operation.CREATE_RECOVERY_POINT, pointPayload), UI);
+		assertEquals("committed", nextEvent.result().status());
+		assertTrue(nextEvent.events().get(0).sequence() > outcome.events().get(0).sequence());
 	}
 
 	@Test void readOnlySessionsCannotCreateRecoveryPoints() throws Exception {

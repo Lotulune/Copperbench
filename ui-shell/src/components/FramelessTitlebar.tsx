@@ -10,7 +10,10 @@ import {
   X,
   Layers,
   Sparkles,
-  ShieldCheck
+  ShieldCheck,
+  Server,
+  DatabaseZap,
+  TestTube2
 } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
 import {
@@ -39,7 +42,10 @@ export const FramelessTitlebar: React.FC = () => {
     systemFrameFallback,
     toggleSystemFrameFallback,
     buildWorkspace,
-    runClient
+    runClient,
+    runServer,
+    runDatagen,
+    runGameTest
   } = useWorkbench();
 
   const workspace = state.workbench?.workspace;
@@ -133,13 +139,13 @@ export const FramelessTitlebar: React.FC = () => {
         {workspace && (
           <div
             className="titlebar-workspace"
-            title={`${workspace.name}, revision ${workspace.revision}${generator ? `, ${generator.displayName}` : ''}`}
+            title={`${workspace.name}，修订 ${workspace.revision}${generator ? `，${generator.displayName}` : ''}`}
             data-testid="titlebar-workspace"
           >
             <Layers size={12} color="var(--text-muted)" aria-hidden="true" />
             <span className="titlebar-workspace-name">{workspace.name}</span>
             <span className="badge badge-copper titlebar-revision">
-              Rev {workspace.revision}
+              修订 {workspace.revision}
             </span>
             {generator && (
               <span className="badge badge-blue titlebar-generator">
@@ -156,7 +162,7 @@ export const FramelessTitlebar: React.FC = () => {
           type="button"
           className="btn-primary titlebar-action"
           onClick={() => buildWorkspace()}
-          title="构建工作区（Fabric 1.21.1）"
+          title={`构建工作区${generator ? `（${generator.displayName}）` : ''}`}
           data-testid="titlebar-build-btn"
           data-window-chrome-kind="client"
           data-window-chrome-id="build"
@@ -176,6 +182,43 @@ export const FramelessTitlebar: React.FC = () => {
         >
           <Play size={13} aria-hidden="true" />
           <span className="titlebar-action-label">测试客户端</span>
+        </button>
+
+        <button
+          type="button"
+          className="btn-secondary titlebar-tool"
+          onClick={() => {
+            const accepted = window.confirm('仅在隔离测试目录启动专用服务端。确认接受 Minecraft EULA 并继续？');
+            if (accepted) void runServer(true);
+          }}
+          title="运行隔离专用服务端"
+          aria-label="运行隔离专用服务端"
+          data-window-chrome-kind="client"
+          data-window-chrome-id="run-server"
+        >
+          <Server size={13} aria-hidden="true" />
+        </button>
+        <button
+          type="button"
+          className="btn-secondary titlebar-tool"
+          onClick={() => void runDatagen()}
+          title="在暂存区运行数据生成"
+          aria-label="在暂存区运行数据生成"
+          data-window-chrome-kind="client"
+          data-window-chrome-id="run-datagen"
+        >
+          <DatabaseZap size={13} aria-hidden="true" />
+        </button>
+        <button
+          type="button"
+          className="btn-secondary titlebar-tool"
+          onClick={() => void runGameTest()}
+          title="运行已有 GameTest"
+          aria-label="运行已有 GameTest"
+          data-window-chrome-kind="client"
+          data-window-chrome-id="run-gametest"
+        >
+          <TestTube2 size={13} aria-hidden="true" />
         </button>
       </div>
 

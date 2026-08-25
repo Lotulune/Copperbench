@@ -79,7 +79,16 @@ public class ShareableZIPManager {
 					L10N.t("dialog.workspace.import_from_zip.extracting"));
 			dial.addProgressUnit(p1);
 
-			ZipIO.unzip(file.getAbsolutePath(), workspaceDir.getAbsolutePath());
+			try {
+				ZipIO.unzip(file.getAbsolutePath(), workspaceDir.getAbsolutePath());
+			} catch (IOException exception) {
+				LOG.error("Failed to import workspace archive", exception);
+				p1.markStateError();
+				JOptionPane.showMessageDialog(dial, L10N.t("dialog.workspace.import_from_zip.failed_message"),
+						L10N.t("dialog.workspace.import_from_zip.failed_title"), JOptionPane.ERROR_MESSAGE);
+				dial.hideDialog();
+				return;
+			}
 
 			retval.set(WorkspaceUtils.getWorkspaceFileForWorkspaceFolder(workspaceDir));
 
@@ -114,7 +123,7 @@ public class ShareableZIPManager {
 					// warnings because we are trying to load ME that is already stored in GeneratableElement cache
 					// as a different mod element type
 					ModElement check = workspace.getModElementByName(mod.getName());
-					if (check != null && check.getType() == mod.getType()) {
+					if (check != null && check.getType().equals(mod.getType())) {
 						GeneratableElement generatableElement = mod.getGeneratableElement();
 						if (generatableElement != null) {
 							// save custom mod element picture if it has one

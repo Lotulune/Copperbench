@@ -7,11 +7,19 @@ import {
   Search,
   LayoutGrid,
   List as ListIcon,
-  Plus
+  Plus,
+  FileCode2,
+  Gift,
+  Trophy
 } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
 import { ModElementType } from '../types/contract';
 import { ElementInspector } from './ElementInspector';
+import { t } from '../i18n';
+
+const ProcedureWorkbench = React.lazy(() => import('./ProcedureWorkbench').then((module) => ({
+  default: module.ProcedureWorkbench
+})));
 
 export const ModElementsWorkbench: React.FC = () => {
   const {
@@ -48,10 +56,24 @@ export const ModElementsWorkbench: React.FC = () => {
         return <Scroll size={18} />;
       case 'procedure':
         return <Terminal size={18} />;
+      case 'function':
+        return <FileCode2 size={18} />;
+      case 'loottable':
+        return <Gift size={18} />;
+      case 'achievement':
+        return <Trophy size={18} />;
       default:
         return <Box size={18} />;
     }
   };
+
+  if (selectedElement?.type === 'procedure') {
+    return (
+      <React.Suspense fallback={<div className="procedure-route-loading">正在加载 Procedure 编辑器…</div>}>
+        <ProcedureWorkbench element={selectedElement} onClose={() => setSelectedElementId(null)} />
+      </React.Suspense>
+    );
+  }
 
   return (
     <div
@@ -96,7 +118,7 @@ export const ModElementsWorkbench: React.FC = () => {
               />
               <input
                 type="text"
-                placeholder="Filter elements..."
+                placeholder={t({ key: 'placeholder.filter_elements', fallback: 'Filter elements...' })}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 style={{ paddingLeft: '30px', width: '100%' }}
@@ -106,10 +128,11 @@ export const ModElementsWorkbench: React.FC = () => {
 
             {/* Type Selector Pills */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'var(--bg-panel)', padding: '3px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
-              {(['all', 'block', 'item', 'recipe', 'procedure'] as const).map((type) => (
+              {(['all', 'block', 'item', 'recipe', 'procedure', 'function', 'loottable', 'achievement'] as const).map((type) => (
                 <button
                   key={type}
                   onClick={() => setSelectedType(type)}
+                  aria-pressed={selectedType === type}
                   style={{
                     padding: '3px 8px',
                     fontSize: '11px',
@@ -119,7 +142,7 @@ export const ModElementsWorkbench: React.FC = () => {
                     color: selectedType === type ? '#ffffff' : 'var(--text-muted)'
                   }}
                 >
-                  {type === 'all' ? '全部' : { block: '方块', item: '物品', recipe: '配方', procedure: '过程' }[type]}
+                  {type === 'all' ? '全部' : { block: '方块', item: '物品', recipe: '配方', procedure: '过程', function: '函数', loottable: '战利品表', achievement: '进度' }[type]}
                 </button>
               ))}
             </div>
@@ -130,6 +153,7 @@ export const ModElementsWorkbench: React.FC = () => {
                 <button
                   key={st}
                   onClick={() => setSelectedState(st)}
+                  aria-pressed={selectedState === st}
                   style={{
                     padding: '3px 8px',
                     fontSize: '11px',
@@ -150,6 +174,8 @@ export const ModElementsWorkbench: React.FC = () => {
             <div style={{ display: 'flex', alignItems: 'center', background: 'var(--bg-panel)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', padding: '2px' }}>
               <button
                 onClick={() => setViewMode('grid')}
+                aria-pressed={viewMode === 'grid'}
+                aria-label="卡片网格视图"
                 style={{
                   padding: '4px 6px',
                   borderRadius: 'var(--radius-xs)',
@@ -162,6 +188,8 @@ export const ModElementsWorkbench: React.FC = () => {
               </button>
               <button
                 onClick={() => setViewMode('table')}
+                aria-pressed={viewMode === 'table'}
+                aria-label="紧凑表格视图"
                 style={{
                   padding: '4px 6px',
                   borderRadius: 'var(--radius-xs)',
@@ -204,7 +232,7 @@ export const ModElementsWorkbench: React.FC = () => {
                 没有匹配的模组元素
               </div>
               <div style={{ fontSize: '12px', color: 'var(--text-sub)' }}>
-                创建一个新的方块、物品、配方或过程开始创作。
+                创建方块、物品、配方、过程或数据驱动元素开始创作。
               </div>
               <button
                 className="btn-primary"
@@ -220,10 +248,12 @@ export const ModElementsWorkbench: React.FC = () => {
               {filteredElements.map((elem) => {
                 const isSelected = selectedElementId === elem.id;
                 return (
-                  <div
+                  <button
+                    type="button"
                     key={elem.id}
                     data-element-id={elem.id}
                     onClick={() => setSelectedElementId(elem.id)}
+                    aria-pressed={isSelected}
                     style={{
                       background: isSelected ? 'var(--bg-panel)' : 'var(--bg-surface)',
                       border: isSelected
@@ -232,6 +262,8 @@ export const ModElementsWorkbench: React.FC = () => {
                       borderRadius: 'var(--radius-md)',
                       padding: '16px',
                       cursor: 'pointer',
+                      width: '100%',
+                      textAlign: 'left',
                       display: 'flex',
                       flexDirection: 'column',
                       gap: '12px',
@@ -297,7 +329,7 @@ export const ModElementsWorkbench: React.FC = () => {
                       <span>{elem.ownership.toUpperCase()}</span>
                       <span>{elem.type.toUpperCase()}</span>
                     </div>
-                  </div>
+                  </button>
                 );
               })}
             </div>
@@ -328,6 +360,14 @@ export const ModElementsWorkbench: React.FC = () => {
                         key={elem.id}
                         data-element-id={elem.id}
                         onClick={() => setSelectedElementId(elem.id)}
+                        tabIndex={0}
+                        aria-selected={isSelected}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            setSelectedElementId(elem.id);
+                          }
+                        }}
                         style={{
                           borderBottom: '1px solid var(--border-subtle)',
                           background: isSelected ? 'var(--accent-copper-dim)' : 'transparent',

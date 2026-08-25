@@ -131,7 +131,7 @@
       "id": "slice_elements",
       "area": "T03",
       "surface": "new_ui",
-      "notes": "First-party slice is block, item, recipe, and procedure only."
+      "notes": "First-party editing covers block, item, recipe, procedure, function, loot table, and advancement. The final three remain Stage 9 development-preview CRUD until the eight-generator golden gate passes."
     },
     {
       "id": "other_mod_elements",
@@ -155,13 +155,13 @@
       "id": "generate_source",
       "area": "T06",
       "surface": "new_ui",
-      "notes": "First-party Fabric/NeoForge generate for all four tracks."
+      "notes": "The Stage 8 block/item/recipe/procedure slice has all-track evidence. Stage 9 data elements still require the separate eight-generator golden gate."
     },
     {
       "id": "managed_build",
       "area": "T07",
       "surface": "new_ui",
-      "notes": "Gradle build tasks exist. Offline cached 1.21.1 builds exist. Fabric and NeoForge 26.2, 26.1.2, and 1.20.1 compile probes produced jars."
+      "notes": "Managed build, server, datagen, and GameTest tasks exist. Datagen publishes only after staged diff confirmation. All-track Stage 9 server readiness remains pending."
     },
     {
       "id": "run_client",
@@ -233,7 +233,7 @@
       "id": "clean_machine_install",
       "area": "release",
       "surface": "new_ui",
-      "notes": "Windows 11 Hyper-V guest silent install/upgrade/uninstall preserved workspace and .copperbench. Guest copperbench.exe stay-alive is not claimed."
+      "notes": "Windows 11 Hyper-V guest silent install/upgrade/uninstall preserved workspace and .copperbench. With the NIC disconnected, copperbench.exe remained running through the 10-second guest check."
     }
   ],
   "developmentSbom": {
@@ -414,7 +414,7 @@
   },
   "developmentFocus": {
     "stage": "github_public_fork",
-    "reason": "Public identity is Copperbench. Distribution is an unsigned GPL GitHub fork with no product website. Authenticode is out of first-release scope. G7 is not passed: Hyper-V guest GUI stay-alive is not claimed.",
+    "reason": "Public identity is Copperbench. Distribution is an unsigned GPL GitHub fork with no product website. Authenticode is out of first-release scope. G7 passed its Windows 11 Hyper-V guest install, offline start, data-preservation, and package checks.",
     "deferred": []
   },
   "versionTracks": {
@@ -539,39 +539,48 @@
       "fabric-1.20.1",
       "neoforge-1.20.1"
     ],
-    "generateReadyNotGolden": []
+    "generateReadyNotGolden": [],
+    "offlineBuildClaimed": [
+      "fabric-26.2",
+      "neoforge-26.2",
+      "fabric-26.1.2",
+      "neoforge-26.1.2",
+      "fabric-1.21.1",
+      "neoforge-1.21.1",
+      "fabric-1.20.1"
+    ]
   },
   "elementCoverage": {
     "schemaVersion": "1.0",
-    "firstPartySlice": ["block", "item", "recipe", "procedure"],
+    "firstPartySlice": ["block", "item", "recipe", "procedure", "function", "loottable", "achievement"],
     "unsupportedInNewUi": [
-      "achievement", "armor", "armortrim", "attribute", "bannerpattern", "biome", "code", "command",
-      "damagetype", "dimension", "enchantment", "feature", "fluid", "function", "gamerule", "gui",
-      "itemextension", "keybind", "livingentity", "loottable", "overlay", "painting", "particle",
+      "armor", "armortrim", "attribute", "bannerpattern", "biome", "code", "command", "damagetype",
+      "dimension", "enchantment", "feature", "fluid", "gamerule", "gui", "itemextension", "keybind",
+      "livingentity", "overlay", "painting", "particle",
       "plant", "potion", "potioneffect", "projectile", "specialentity", "structure", "tab", "tool",
       "villagerprofession", "villagertrade"
     ],
     "bedrockAddonNotApplicable": ["bebiome", "beblock", "beentity", "beitem", "bescript"],
-    "appliesToGenerators": "all eight first-party Fabric and NeoForge generators",
-    "notes": "Create and update in the new UI, MCP, and headless accept only the first-party slice. Imported upstream types are preserved and listed, but the editor is read-only and updates are rejected."
+    "appliesToGenerators": "shared Java application service; generator-specific Stage 9 validation pending",
+    "notes": "Create and update in the new UI, MCP, and headless accept only the first-party slice. Function, loot table, and advancement are Stage 9 development-preview CRUD until the eight-generator golden gate passes. Imported upstream types are preserved and listed, but the editor is read-only and updates are rejected."
   },
   "upstreamTools": {
     "schemaVersion": "1.0",
     "notes": "Upstream Swing tools are either in the new UI, opened through the legacy plugin window, explicitly unsupported, or out of first-release scope. The legacy window is not a visual or accessibility promise.",
     "tools": [
       {"id": "workspace_open_create_import", "upstream": "File/Open, New, Import workspace", "surface": "new_ui", "notes": "Shared application service. Import copies to a sibling directory and preserves unknown fields."},
-      {"id": "mod_elements_first_party", "upstream": "Workspace/Mod elements for block, item, recipe, procedure", "surface": "new_ui", "notes": "First-party slice only. See elementCoverage."},
+      {"id": "mod_elements_first_party", "upstream": "Workspace/Mod elements for block, item, recipe, procedure, function, loot table, advancement", "surface": "new_ui", "notes": "Seven first-party editable types. The three Stage 9 data types remain development preview until their generator gate passes."},
       {"id": "mod_elements_other", "upstream": "Living entity, GUI, plant, dimension, and other element editors", "surface": "unsupported", "notes": "Imported definitions are preserved and listed read-only. Create/update in the new UI are rejected."},
       {"id": "assets_blockbench", "upstream": "Resources/3D models and animations via Blockbench", "surface": "new_ui", "notes": "Asset graph, leases, and the Blockbench process bridge. The editor is not embedded."},
       {"id": "resource_pack_workspace", "upstream": "Resource pack maker and ZIP export", "surface": "new_ui", "notes": "Deterministic ZIP, publish batches, and prepare_resource_pack_client. Fabric 1.21.1 ResourceManager load is claimed."},
       {"id": "textures_sounds_structures", "upstream": "Resources/Textures, Sounds, Structures, Screenshots", "surface": "legacy_window", "notes": "Native texture/sound/structure browsers stay in the legacy Swing window. Blockbench is the first-party model path."},
       {"id": "image_armor_animation_makers", "upstream": "Tools/Image editor, Armor texture, Animated texture", "surface": "legacy_window", "notes": "Built-in image and armor makers remain Swing. They are not in the React shell."},
-      {"id": "tags_variables_localization", "upstream": "Workspace/Tags, Variables, Localization", "surface": "legacy_window", "notes": "No first-party React editors. Open the legacy window. Language JSON assets can still be indexed."},
+      {"id": "tags_variables_localization", "upstream": "Workspace/Tags, Variables, Localization", "surface": "new_ui", "notes": "The Creator Data view provides stable-ID CRUD, reference counts, and rename impact previews. Language CSV/JSON import and export remain pending."},
       {"id": "code_ide_and_file_browser", "upstream": "Code editor, workspace file browser, reformat/save", "surface": "legacy_window", "notes": "Hand-written source is an advanced exit, not a first-party React IDE."},
       {"id": "pack_makers", "upstream": "Tools/Material, Ore, Tool, Armor, Wood pack makers", "surface": "legacy_window", "notes": "Wizard pack makers stay in Swing. They are not first-party MCP commands."},
       {"id": "vanilla_data_lists", "upstream": "Tools/Entity IDs, item/block list, particles, sounds, loot tables", "surface": "legacy_window", "notes": "Read-only vanilla data browsers remain in the legacy window."},
       {"id": "generate_build_run_client", "upstream": "Build, run client, regenerate code, export JAR", "surface": "new_ui", "notes": "Shared tasks. runClient evidence exists for all eight first-party generators."},
-      {"id": "run_server_debug_client", "upstream": "Run server, debug client, arbitrary Gradle task", "surface": "unsupported", "notes": "Not a first-party command. Do not treat the Gradle console extras as supported."},
+      {"id": "run_server_debug_client", "upstream": "Run server, datagen, and existing GameTest", "surface": "new_ui", "notes": "Managed development-preview tasks use isolated run directories. Debug client and arbitrary Gradle task execution are not first-party commands."},
       {"id": "workspace_settings_tab_order", "upstream": "Workspace settings, creative tab item order", "surface": "legacy_window", "notes": "Full generator/settings dialogs remain Swing."},
       {"id": "preferences", "upstream": "Preferences dialog", "surface": "legacy_window", "notes": "Privacy defaults are product-owned. The full preference tree stays in Swing."},
       {"id": "local_history", "upstream": "Local history panel", "surface": "new_ui", "notes": "Recovery points and restore through the shared history service. Git remotes are not rewritten."},
@@ -584,10 +593,6 @@
     {
       "code": "WINDOWS_10_NOT_SUPPORTED",
       "message": "Windows 10 is not a supported platform. First release targets Windows 11 x64 only."
-    },
-    {
-      "code": "HYPERV_GUEST_GUI_START_NOT_CLAIMED",
-      "message": "The Windows 11 Hyper-V guest completed silent install, upgrade, and uninstall with the NIC disconnected. copperbench.exe did not remain running for 10 seconds, so guest GUI stay-alive is not claimed."
     },
     {
       "code": "CODE_SIGNING_UNSIGNED_GITHUB",
@@ -610,8 +615,8 @@
       "message": "The cached-dependency build uses Gradle --offline after a cache-warm, not an OS-level network disconnect."
     },
     {
-      "code": "OFFLINE_BUILD_ONLY_1211",
-      "message": "The official Stage 8 cached-dependency --offline claim remains Fabric and NeoForge 1.21.1. 26.x probes recorded their own cache-warm/--offline jars separately."
+      "code": "OFFLINE_BUILD_NEOFORGE_1201_NOT_CLAIMED",
+      "message": "Cached-dependency --offline probes pass for seven maintained tracks: Fabric and NeoForge 26.2, 26.1.2, and 1.21.1, plus Fabric 1.20.1. NeoForge 1.20.1 remains excluded because its offline probe failed."
     }
   ],
   "source": {
@@ -622,7 +627,7 @@
     "baselineLock": "compliance/baseline.lock.json"
   },
   "g7": {
-    "status": "in_progress",
+    "status": "passed",
     "automatedChecks": [
       "release_manifest",
       "privacy_defaults",
@@ -635,7 +640,6 @@
       "windows11_hyperv_guest_install_upgrade_uninstall",
       "offline_cached_dependency_build",
       "hyperv_readiness_probe",
-      "vmware_readiness_probe",
       "code_signing_readiness_probe",
       "jcef_snap_dpi_smoke",
       "resource_pack_1211_client_load",

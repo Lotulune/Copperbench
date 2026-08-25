@@ -9,6 +9,7 @@ import {
   Sparkles,
   Compass,
   Layers,
+  Database,
   HelpCircle
 } from 'lucide-react';
 import { useWorkbench, NavView } from '../context/WorkbenchContext';
@@ -27,6 +28,7 @@ export const NavRail: React.FC = () => {
   }[] = [
     { id: 'hub', label: '总览', icon: LayoutDashboard },
     { id: 'elements', label: '模组元素', icon: Box, badge: elementCount, badgeType: 'copper' },
+    { id: 'data', label: '变量与数据', icon: Database, badge: '引用', badgeType: 'green' },
     { id: 'tracks', label: '版本与迁移', icon: Compass, badge: '4轨', badgeType: 'copper' },
     { id: 'new-workspace', label: '新建工作区', icon: Layers, badge: '4×2', badgeType: 'blue' },
     { id: 'assets', label: '资产与模型', icon: Palette, badge: 'Stage 6', badgeType: 'blue' },
@@ -54,6 +56,7 @@ export const NavRail: React.FC = () => {
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
         <div
+          className="nav-section-label"
           style={{
             padding: '4px 10px 10px 10px',
             fontSize: '11px',
@@ -72,7 +75,9 @@ export const NavRail: React.FC = () => {
           return (
             <button
               key={item.id}
+              type="button"
               onClick={() => setActiveView(item.id)}
+              aria-current={isActive ? 'page' : undefined}
               data-testid={`nav-${item.id}`}
               style={{
                 display: 'flex',
@@ -88,14 +93,14 @@ export const NavRail: React.FC = () => {
                 transition: 'all 0.15s ease'
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div className="nav-item-content" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <Icon size={16} />
-                <span style={{ fontSize: '12px' }}>{item.label}</span>
+                <span className="nav-item-label" style={{ fontSize: '12px' }}>{item.label}</span>
               </div>
 
               {item.badge !== undefined && (
                 <span
-                  className={`badge badge-${item.badgeType || 'copper'}`}
+                  className={`nav-item-badge badge badge-${item.badgeType || 'copper'}`}
                   style={{ fontSize: '10px', padding: '1px 6px' }}
                 >
                   {item.badge}
@@ -108,6 +113,7 @@ export const NavRail: React.FC = () => {
 
       {/* Bottom Info Card */}
       <div
+        className="nav-bottom-info"
         style={{
           background: 'var(--bg-panel)',
           border: '1px solid var(--border-subtle)',

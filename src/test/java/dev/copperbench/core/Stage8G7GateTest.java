@@ -40,7 +40,7 @@ class Stage8G7GateTest {
 	private static final UUID WORKSPACE_ID = UUID.fromString("11111111-1111-4111-8111-111111111111");
 	private static final Clock CLOCK = Clock.fixed(Instant.parse("2026-08-19T18:00:00Z"), ZoneOffset.UTC);
 
-	@Test void releaseNotesQuerySharesTheOfficialManifestWithoutClaimingG7Passed() {
+	@Test void releaseNotesQuerySharesTheOfficialManifestWithMachineVerifiedG7() {
 		assertFalse(ProductIdentity.IMPLICIT_NETWORK_SERVICES_ENABLED);
 		WorkspaceApplicationService service = service();
 		var result = service.query(Query.of(uuid(1), WORKSPACE_ID, Operation.GET_RELEASE_NOTES, new JsonObject()),
@@ -48,9 +48,10 @@ class Stage8G7GateTest {
 		assertEquals("succeeded", result.status());
 		JsonObject data = result.data().getAsJsonObject();
 		assertEquals(ReleaseManifest.official(), data);
-		assertEquals("in_progress", data.getAsJsonObject("g7").get("status").getAsString());
+		assertEquals("passed", data.getAsJsonObject("g7").get("status").getAsString());
 		assertFalse(data.getAsJsonObject("privacy").get("accountsRequired").getAsBoolean());
 		assertEquals(8, data.getAsJsonObject("claims").getAsJsonArray("goldenCompileClaimed").size());
+		assertEquals(7, data.getAsJsonObject("claims").getAsJsonArray("offlineBuildClaimed").size());
 	}
 
 	@Test void listInstalledPluginsReturnsFirstPartyInventoryWithoutLoadingJava() {

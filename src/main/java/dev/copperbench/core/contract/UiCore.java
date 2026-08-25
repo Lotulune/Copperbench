@@ -30,11 +30,20 @@ public final class UiCore {
 		@SerializedName("create_mod_element") CREATE_MOD_ELEMENT,
 		@SerializedName("update_mod_element") UPDATE_MOD_ELEMENT,
 		@SerializedName("delete_mod_element") DELETE_MOD_ELEMENT,
+		@SerializedName("update_procedure") UPDATE_PROCEDURE,
+		@SerializedName("create_registry_entry") CREATE_REGISTRY_ENTRY,
+		@SerializedName("update_registry_entry") UPDATE_REGISTRY_ENTRY,
+		@SerializedName("delete_registry_entry") DELETE_REGISTRY_ENTRY,
+		@SerializedName("rename_registry_entry") RENAME_REGISTRY_ENTRY,
 		@SerializedName("validate_workspace") VALIDATE_WORKSPACE,
 		@SerializedName("generate_workspace") GENERATE_WORKSPACE,
 		@SerializedName("build_workspace") BUILD_WORKSPACE,
 		@SerializedName("export_workspace") EXPORT_WORKSPACE,
 		@SerializedName("run_client") RUN_CLIENT,
+		@SerializedName("run_server") RUN_SERVER,
+		@SerializedName("run_datagen") RUN_DATAGEN,
+		@SerializedName("publish_datagen_output") PUBLISH_DATAGEN_OUTPUT,
+		@SerializedName("run_gametest") RUN_GAMETEST,
 		@SerializedName("cancel_task") CANCEL_TASK,
 		@SerializedName("create_recovery_point") CREATE_RECOVERY_POINT,
 		@SerializedName("restore_recovery_point") RESTORE_RECOVERY_POINT,
@@ -44,10 +53,17 @@ public final class UiCore {
 		@SerializedName("prepare_resource_pack_client") PREPARE_RESOURCE_PACK_CLIENT,
 		@SerializedName("get_workbench") GET_WORKBENCH,
 		@SerializedName("list_new_workspace_generators") LIST_NEW_WORKSPACE_GENERATORS,
+		@SerializedName("list_assets") LIST_ASSETS,
 		@SerializedName("list_mod_elements") LIST_MOD_ELEMENTS,
 		@SerializedName("get_mod_element_editor") GET_MOD_ELEMENT_EDITOR,
 		@SerializedName("preview_mod_element_change") PREVIEW_MOD_ELEMENT_CHANGE,
+		@SerializedName("get_procedure_editor") GET_PROCEDURE_EDITOR,
+		@SerializedName("preview_procedure_change") PREVIEW_PROCEDURE_CHANGE,
+		@SerializedName("get_workspace_references") GET_WORKSPACE_REFERENCES,
+		@SerializedName("list_workspace_registries") LIST_WORKSPACE_REGISTRIES,
+		@SerializedName("preview_registry_rename") PREVIEW_REGISTRY_RENAME,
 		@SerializedName("get_task") GET_TASK,
+		@SerializedName("preview_datagen_output") PREVIEW_DATAGEN_OUTPUT,
 		@SerializedName("get_history") GET_HISTORY,
 		@SerializedName("get_diff") GET_DIFF,
 		@SerializedName("list_operation_approvals") LIST_OPERATION_APPROVALS,
@@ -92,6 +108,10 @@ public final class UiCore {
 		public static LocalizedText of(String key, String fallback) {
 			return new LocalizedText(key, fallback, new JsonObject());
 		}
+
+		public static LocalizedText of(String key, String fallback, JsonObject args) {
+			return new LocalizedText(key, fallback, args);
+		}
 	}
 
 	public record ActionHint(String id, LocalizedText label, String kind, String target) {
@@ -106,6 +126,12 @@ public final class UiCore {
 		public static Diagnostic error(String code, String messageKey, String fallback, String path, UUID elementId) {
 			return new Diagnostic(code, Severity.ERROR, LocalizedText.of(messageKey, fallback), path, elementId, true,
 					List.of());
+		}
+
+		public static Diagnostic error(String code, String messageKey, String fallback, JsonObject args, String path,
+				UUID elementId) {
+			return new Diagnostic(code, Severity.ERROR, LocalizedText.of(messageKey, fallback, args), path, elementId,
+					true, List.of());
 		}
 	}
 

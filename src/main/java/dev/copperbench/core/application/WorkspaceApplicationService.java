@@ -6,11 +6,13 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import dev.copperbench.core.contract.UiCore;
+import dev.copperbench.core.contract.UiCore.ActionHint;
 import dev.copperbench.core.contract.UiCore.Command;
 import dev.copperbench.core.contract.UiCore.CommandOutcome;
 import dev.copperbench.core.contract.UiCore.CommandResult;
 import dev.copperbench.core.contract.UiCore.Diagnostic;
 import dev.copperbench.core.contract.UiCore.Event;
+import dev.copperbench.core.contract.UiCore.LocalizedText;
 import dev.copperbench.core.contract.UiCore.Operation;
 import dev.copperbench.core.contract.UiCore.PermissionProfile;
 import dev.copperbench.core.contract.UiCore.Query;
@@ -21,7 +23,11 @@ import dev.copperbench.core.workspace.RevisionedWorkspaceStore.Decision;
 import dev.copperbench.core.workspace.RevisionedWorkspaceStore.TransactionResult;
 import dev.copperbench.core.workspace.WorkspaceCreationService;
 import dev.copperbench.assets.AssetPublishBatchService;
+import dev.copperbench.assets.AssetDescriptor;
+import dev.copperbench.assets.AssetDiagnostic;
 import dev.copperbench.assets.AssetPathViolationException;
+import dev.copperbench.assets.AssetReference;
+import dev.copperbench.assets.AssetReferenceGraph;
 import dev.copperbench.assets.AssetWorkspaceService;
 import dev.copperbench.assets.ResourcePackClientLoadService;
 import dev.copperbench.assets.ResourcePackExportService;
@@ -41,7 +47,14 @@ import dev.copperbench.core.plugin.InstalledPluginInventoryService;
 import dev.copperbench.release.ElementCoverageCatalog;
 import dev.copperbench.release.ReleaseManifest;
 import dev.copperbench.release.UpstreamToolCatalog;
+import dev.copperbench.procedure.ProcedureIr;
+import dev.copperbench.procedure.ProcedureIrCodec;
+import dev.copperbench.references.WorkspaceReferenceIndex;
 import dev.copperbench.tracks.VersionTrackCatalog;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.Marker;
+import org.apache.logging.log4j.MarkerManager;
 
 import java.nio.file.Path;
 import java.time.Clock;
@@ -60,8 +73,16 @@ import java.util.regex.Pattern;
 public final class WorkspaceApplicationService {
 
 	private static final Gson GSON = new Gson();
+	private static final Logger LOG = LogManager.getLogger(WorkspaceApplicationService.class);
+	private static final Marker OPERATION_FAILURE = MarkerManager.getMarker("COPPERBENCH_OPERATION_FAILURE");
 	private static final Pattern ELEMENT_NAME = Pattern.compile("^[a-z][a-z0-9_]{0,63}$");
-	private static final Set<String> ELEMENT_TYPES = Set.of("block", "item", "recipe", "procedure");
+	private static final Pattern VARIABLE_NAME = Pattern.compile("^[A-Za-z_][A-Za-z0-9_]{0,63}$");
+	private static final Pattern RESOURCE_PATH = Pattern.compile("^[a-z0-9_./-]+$");
+	private static final Pattern LANGUAGE_KEY = Pattern.compile("^[a-z0-9_.-]+$");
+	private static final Set<String> REGISTRY_NAMES = Set.of("variables", "tags", "languageKeys");
+	private static final Set<String> ELEMENT_TYPES = Set.of("block", "item", "recipe", "procedure", "function",
+			"loottable", "achievement");
+	private static final ProcedureIrCodec PROCEDURES = new ProcedureIrCodec();
 
 	private final RevisionedWorkspaceStore store;
 	private final WorkspaceTaskGateway tasks;
@@ -77,6 +98,7 @@ public final class WorkspaceApplicationService {
 	private final Supplier<UUID> ids;
 	private final InstalledPluginInventoryService installedPlugins;
 	private final WorkspaceCreationService workspaceCreation;
+	private final WorkspaceReferenceIndex references = new WorkspaceReferenceIndex();
 
 	public WorkspaceApplicationService(RevisionedWorkspaceStore store, WorkspaceTaskGateway tasks, Clock clock,
 			Supplier<UUID> ids) {
@@ -123,8 +145,14 @@ public final class WorkspaceApplicationService {
 			case CREATE_MOD_ELEMENT -> create(command, context);
 			case UPDATE_MOD_ELEMENT -> update(command, context);
 			case DELETE_MOD_ELEMENT -> delete(command, context);
-			case VALIDATE_WORKSPACE, GENERATE_WORKSPACE, BUILD_WORKSPACE, EXPORT_WORKSPACE, RUN_CLIENT ->
+			case UPDATE_PROCEDURE -> updateProcedure(command, context);
+			case CREATE_REGISTRY_ENTRY, UPDATE_REGISTRY_ENTRY, DELETE_REGISTRY_ENTRY, RENAME_REGISTRY_ENTRY ->
+					mutateRegistry(command, context);
+			case VALIDATE_WORKSPACE, GENERATE_WORKSPACE, BUILD_WORKSPACE, EXPORT_WORKSPACE, RUN_CLIENT, RUN_DATAGEN,
+					RUN_GAMETEST ->
 					startTask(command);
+			case RUN_SERVER -> runServer(command, context);
+			case PUBLISH_DATAGEN_OUTPUT -> publishDatagenOutput(command, context);
 			case CANCEL_TASK -> cancelTask(command);
 			case CREATE_RECOVERY_POINT -> createRecoveryPoint(command, context);
 			case RESTORE_RECOVERY_POINT -> restoreRecoveryPoint(command, context);
@@ -145,10 +173,17 @@ public final class WorkspaceApplicationService {
 			return switch (query.operation()) {
 				case GET_WORKBENCH -> querySuccess(query, state.revision(), workbench(state, context));
 				case LIST_NEW_WORKSPACE_GENERATORS -> querySuccess(query, state.revision(), newWorkspaceGenerators());
+				case LIST_ASSETS -> listAssets(query, state);
 				case LIST_MOD_ELEMENTS -> querySuccess(query, state.revision(), elementList(state, query.payload()));
 				case GET_MOD_ELEMENT_EDITOR -> editor(query, state, context);
 				case PREVIEW_MOD_ELEMENT_CHANGE -> preview(query, state);
+				case GET_PROCEDURE_EDITOR -> procedureEditor(query, state, context);
+				case PREVIEW_PROCEDURE_CHANGE -> previewProcedure(query, state);
+				case GET_WORKSPACE_REFERENCES -> workspaceReferences(query, state);
+				case LIST_WORKSPACE_REGISTRIES -> listRegistries(query, state);
+				case PREVIEW_REGISTRY_RENAME -> previewRegistryRename(query, state);
 				case GET_TASK -> task(query, state);
+				case PREVIEW_DATAGEN_OUTPUT -> previewDatagenOutput(query, state);
 				case GET_HISTORY -> historyList(query, state);
 				case GET_DIFF -> historyDiff(query, state);
 				case GET_VERSION_TRACKS -> querySuccess(query, state.revision(), versionTracks(state));
@@ -167,8 +202,66 @@ public final class WorkspaceApplicationService {
 		}
 	}
 
+	private QueryResult listAssets(Query query, WorkspaceState state) {
+		Path root = workspaceRoot(query.workspaceId());
+		if (root == null)
+			return queryFailure(query, state.revision(), diagnostic("ASSET_WORKSPACE_ROOT_UNAVAILABLE",
+					"diagnostic.asset_workspace_root_unavailable",
+					"The workspace root is not available for asset indexing.", null, null));
+		try {
+			AssetReferenceGraph graph = new AssetWorkspaceService(root).referenceGraph();
+			JsonObject projection = new JsonObject();
+			projection.addProperty("schemaVersion", UiCore.SCHEMA_VERSION);
+			projection.add("assets", GSON.toJsonTree(graph.assets().stream().map(WorkspaceApplicationService::asset).toList()));
+			projection.add("references", GSON.toJsonTree(graph.references().stream()
+					.map(WorkspaceApplicationService::assetReference).toList()));
+			projection.add("diagnostics", GSON.toJsonTree(graph.diagnostics().stream()
+					.map(WorkspaceApplicationService::assetDiagnostic).toList()));
+			return querySuccess(query, state.revision(), projection);
+		} catch (RuntimeException exception) {
+			return queryFailure(query, state.revision(), failureDiagnostic(query, "ASSET_QUERY_FAILED",
+					"diagnostic.asset_query_failed", "The workspace asset index could not be read.", null, null,
+					exception));
+		}
+	}
+
+	private static JsonObject asset(AssetDescriptor descriptor) {
+		JsonObject value = new JsonObject();
+		value.addProperty("id", descriptor.id());
+		value.addProperty("relativePath", descriptor.relativePath());
+		value.addProperty("category", descriptor.category().name());
+		value.addProperty("size", descriptor.size());
+		value.addProperty("sha256", descriptor.sha256());
+		value.addProperty("mediaType", descriptor.mediaType());
+		value.addProperty("updatedAt", descriptor.updatedAt().toString());
+		return value;
+	}
+
+	private static JsonObject assetReference(AssetReference reference) {
+		JsonObject value = new JsonObject();
+		value.addProperty("sourceAssetId", reference.sourceAssetId());
+		value.addProperty("sourcePath", reference.sourcePath());
+		value.addProperty("targetPath", reference.targetPath());
+		value.addProperty("targetAssetId", reference.targetAssetId());
+		value.addProperty("kind", reference.kind().name());
+		return value;
+	}
+
+	private static JsonObject assetDiagnostic(AssetDiagnostic diagnostic) {
+		JsonObject value = new JsonObject();
+		value.addProperty("code", diagnostic.code());
+		value.addProperty("severity", diagnostic.severity().name());
+		value.addProperty("sourcePath", diagnostic.sourcePath());
+		if (diagnostic.targetPath() == null)
+			value.add("targetPath", JsonNull.INSTANCE);
+		else
+			value.addProperty("targetPath", diagnostic.targetPath());
+		value.addProperty("message", diagnostic.message());
+		return value;
+	}
+
 	private CommandOutcome createWorkspace(Command command, RequestContext context) {
-		if (!approved(command))
+		if (!approved(command, context))
 			return approvalRequired(command, context, "Creating a workspace writes a new folder and requires confirmation.");
 		String generatorId;
 		String modName;
@@ -187,35 +280,66 @@ public final class WorkspaceApplicationService {
 		if (packageName == null || packageName.isBlank())
 			packageName = "net.mcreator." + modId.replaceAll("[^a-z0-9_]", "");
 		String version = optionalString(command.payload(), "version");
-		WorkspaceCreationService.CreationResult created;
+		String effectivePackageName = packageName;
+		TransactionResult<WorkspaceCreationMutation> coordinated;
 		try {
-			created = workspaceCreation.create(generatorId, modName, modId, packageName, workspaceFolderPath, version);
+			coordinated = store.coordinate(command.workspaceId(), command.expectedRevision(), state -> {
+				WorkspaceCreationService.CreationResult created = workspaceCreation.create(generatorId, modName, modId,
+						effectivePackageName, workspaceFolderPath, version);
+				return new WorkspaceCreationMutation(created, created.complete() ? state.nextEventSequence() : 0);
+			});
 		} catch (RuntimeException exception) {
-			return failed(command, currentRevision(command.workspaceId()), diagnostic("WORKSPACE_CREATE_FAILED",
+			return failed(command, currentRevision(command.workspaceId()), failureDiagnostic(command,
+					"WORKSPACE_CREATE_FAILED",
 					"diagnostic.workspace_create_failed", "The workspace could not be created.", "/workspaceFolderPath",
-					null));
+					null, exception));
 		}
+		CommandOutcome conflict = checkFailure(command, coordinated);
+		if (conflict != null)
+			return conflict;
+		WorkspaceCreationService.CreationResult created = coordinated.value().creation();
 		if (!created.complete()) {
 			List<Diagnostic> diagnostics = new ArrayList<>();
 			for (String code : created.diagnostics())
-				diagnostics.add(diagnostic(code, "diagnostic." + code.toLowerCase(Locale.ROOT).replace('_', '.'),
-						"The new workspace form is invalid: " + code + ".", null, null));
+				diagnostics.add(diagnostic(code, "diagnostic." + code.toLowerCase(Locale.ROOT),
+						workspaceCreationFallback(code), workspaceCreationPath(code), null));
 			return new CommandOutcome(result(command, "rejected", currentRevision(command.workspaceId()),
 					JsonNull.INSTANCE, JsonNull.INSTANCE, diagnostics, JsonNull.INSTANCE, JsonNull.INSTANCE),
 					List.of());
 		}
-		TransactionResult<Long> coordinated = store.coordinate(command.workspaceId(), command.expectedRevision(),
-				WorkspaceState::nextEventSequence);
-		CommandOutcome conflict = checkFailure(command, coordinated);
-		if (conflict != null)
-			return conflict;
 		JsonObject payload = new JsonObject();
 		payload.addProperty("workspaceFile", created.workspaceFile());
 		payload.addProperty("generatorId", created.generatorId());
 		payload.addProperty("modId", modId);
-		Event event = event(command, coordinated.revision(), coordinated.value(), "workspace_created", payload);
+		Event event = event(command, coordinated.revision(), coordinated.value().sequence(), "workspace_created", payload);
 		return new CommandOutcome(result(command, "committed", coordinated.revision(), JsonNull.INSTANCE,
 				payload.deepCopy(), List.of(), JsonNull.INSTANCE, JsonNull.INSTANCE), List.of(event));
+	}
+
+	private static String workspaceCreationFallback(String code) {
+		return switch (code) {
+			case "UNSUPPORTED_GENERATOR" -> "The selected generator is not supported.";
+			case "GENERATOR_NOT_INSTALLED" -> "The selected generator plugin is not installed.";
+			case "MOD_NAME_INVALID" -> "The mod name is invalid.";
+			case "MOD_ID_INVALID" -> "The mod ID is invalid.";
+			case "PACKAGE_NAME_INVALID" -> "The Java package name is invalid.";
+			case "WORKSPACE_FOLDER_REQUIRED" -> "A workspace folder is required.";
+			case "WORKSPACE_FOLDER_OUTSIDE_ROOT" -> "The workspace folder is outside the allowed root.";
+			case "WORKSPACE_FOLDER_NOT_EMPTY" -> "The workspace folder is not empty.";
+			default -> "The new workspace form is invalid: " + code + ".";
+		};
+	}
+
+	private static String workspaceCreationPath(String code) {
+		return switch (code) {
+			case "UNSUPPORTED_GENERATOR", "GENERATOR_NOT_INSTALLED" -> "/generatorId";
+			case "MOD_NAME_INVALID" -> "/modName";
+			case "MOD_ID_INVALID" -> "/modId";
+			case "PACKAGE_NAME_INVALID" -> "/packageName";
+			case "WORKSPACE_FOLDER_REQUIRED", "WORKSPACE_FOLDER_OUTSIDE_ROOT", "WORKSPACE_FOLDER_NOT_EMPTY" ->
+					"/workspaceFolderPath";
+			default -> null;
+		};
 	}
 
 	private CommandOutcome create(Command command, RequestContext context) {
@@ -233,11 +357,12 @@ public final class WorkspaceApplicationService {
 		if (!ELEMENT_TYPES.contains(type) || !ELEMENT_NAME.matcher(name).matches())
 			return failed(command, currentRevision(command.workspaceId()), diagnostic("MOD_ELEMENT_INVALID_IDENTITY",
 					"diagnostic.mod_element_invalid_identity", "Element type or name is invalid.", "/name", null));
+		JsonObject normalizedValues = defaultElementValues(type, name, initialValues);
 		RecoveryPoint recoveryPoint;
 		try {
 			recoveryPoint = automationRecoveryPoint(command, context);
 		} catch (LocalHistoryException exception) {
-			return automationRecoveryFailed(command);
+			return automationRecoveryFailed(command, exception);
 		}
 
 		TransactionResult<Mutation> transaction = store.transact(command.workspaceId(), command.expectedRevision(), state -> {
@@ -246,12 +371,12 @@ public final class WorkspaceApplicationService {
 				return Decision.abort(Mutation.rejected(diagnostic("MOD_ELEMENT_NAME_CONFLICT",
 						"diagnostic.mod_element_name_conflict", "An element with this name already exists.", "/name", null)));
 			UUID elementId = ids.get();
-			String displayName = initialValues.has("displayName") ? initialValues.get("displayName").getAsString()
+			String displayName = normalizedValues.has("displayName") ? normalizedValues.get("displayName").getAsString()
 					: displayName(name);
 			Element element = new Element(elementId, type, name, displayName, "draft", "generated", clock.instant(),
-					initialValues);
+					normalizedValues);
 			state.addElement(element);
-			Diagnostic persistenceFailure = persist(before, state, command.operation(), element);
+			Diagnostic persistenceFailure = persist(before, state, command, element);
 			if (persistenceFailure != null)
 				return Decision.abort(Mutation.rejected(persistenceFailure));
 			return Decision.commit(Mutation.success(element, state.nextEventSequence()), List.of(elementPath(elementId)));
@@ -274,7 +399,7 @@ public final class WorkspaceApplicationService {
 		try {
 			recoveryPoint = automationRecoveryPoint(command, context);
 		} catch (LocalHistoryException exception) {
-			return automationRecoveryFailed(command);
+			return automationRecoveryFailed(command, exception);
 		}
 
 		TransactionResult<Mutation> transaction = store.transact(command.workspaceId(), command.expectedRevision(), state -> {
@@ -306,12 +431,70 @@ public final class WorkspaceApplicationService {
 			Element updated = new Element(existing.id(), existing.type(), existing.name(), existing.displayName(),
 					"valid", existing.ownership(), clock.instant(), values);
 			state.replaceElement(updated);
-			Diagnostic persistenceFailure = persist(before, state, command.operation(), updated);
+			Diagnostic persistenceFailure = persist(before, state, command, updated);
 			if (persistenceFailure != null)
 				return Decision.abort(Mutation.rejected(persistenceFailure));
 			return Decision.commit(Mutation.success(updated, state.nextEventSequence()), changedPaths);
 		});
 		return mutationOutcome(command, context, transaction, "mod_element_updated", recoveryPoint);
+	}
+
+	private CommandOutcome updateProcedure(Command command, RequestContext context) {
+		UUID elementId;
+		JsonArray edits;
+		try {
+			elementId = UUID.fromString(requiredString(command.payload(), "elementId"));
+			edits = command.payload().getAsJsonArray("edits").deepCopy();
+			if (edits.isEmpty()) throw new IllegalArgumentException("edits must not be empty");
+		} catch (RuntimeException exception) {
+			return failed(command, currentRevision(command.workspaceId()), invalidPayload(exception.getMessage()));
+		}
+		RecoveryPoint recoveryPoint;
+		try {
+			recoveryPoint = procedureRecoveryPoint(command, context, edits.size());
+		} catch (LocalHistoryException exception) {
+			return automationRecoveryFailed(command, exception);
+		}
+
+		TransactionResult<Mutation> transaction = store.transact(command.workspaceId(), command.expectedRevision(), state -> {
+			WorkspaceState before = state.copy();
+			Element existing = state.element(elementId);
+			if (existing == null) return Decision.abort(Mutation.rejected(elementNotFound(elementId)));
+			if (!existing.type().equals("procedure"))
+				return Decision.abort(Mutation.rejected(diagnostic("PROCEDURE_ELEMENT_REQUIRED",
+						"diagnostic.procedure_element_required", "The requested element is not a Procedure.",
+						"/elementId", elementId)));
+			ProcedureIr candidate;
+			try {
+				candidate = PROCEDURES.applyEdits(PROCEDURES.read(existing.values(), elementId), edits);
+			} catch (RuntimeException exception) {
+				return Decision.abort(Mutation.rejected(invalidPayload(exception.getMessage())));
+			}
+			List<ProcedureIr.ValidationIssue> issues = PROCEDURES.validate(candidate);
+			JsonObject values = existing.values().deepCopy();
+			values.add("procedureIr", PROCEDURES.toJson(candidate));
+			values.addProperty("procedurexml", PROCEDURES.toBlocklyXml(candidate));
+			Element updated = new Element(existing.id(), existing.type(), existing.name(), existing.displayName(),
+					issues.stream().anyMatch(ProcedureIr.ValidationIssue::error) ? "invalid" : "valid",
+					existing.ownership(), clock.instant(), values);
+			state.replaceElement(updated);
+			Diagnostic persistenceFailure = persist(before, state, command, updated);
+			if (persistenceFailure != null) return Decision.abort(Mutation.rejected(persistenceFailure));
+			return Decision.commit(Mutation.success(updated, state.nextEventSequence()),
+					List.of(elementPath(elementId) + "/procedureIr", elementPath(elementId) + "/procedurexml"));
+		});
+		return mutationOutcome(command, context, transaction, "procedure_updated", recoveryPoint);
+	}
+
+	private RecoveryPoint procedureRecoveryPoint(Command command, RequestContext context, int editCount)
+			throws LocalHistoryException {
+		RecoveryPoint automated = automationRecoveryPoint(command, context);
+		if (automated != null || history == null || editCount < 10) return automated;
+		WorkspaceState current = store.read(command.workspaceId()).orElse(null);
+		if (current == null || current.revision() != command.expectedRevision()) return null;
+		String taskId = command.payload().has("clientMutationId")
+				? command.payload().get("clientMutationId").getAsString() : command.requestId().toString();
+		return history.createRecoveryPoint(new RecoveryPointRequest("Before large Procedure edit", context.actor(), taskId));
 	}
 
 	private CommandOutcome delete(Command command, RequestContext context) {
@@ -325,7 +508,7 @@ public final class WorkspaceApplicationService {
 		try {
 			recoveryPoint = automationRecoveryPoint(command, context);
 		} catch (LocalHistoryException exception) {
-			return automationRecoveryFailed(command);
+			return automationRecoveryFailed(command, exception);
 		}
 
 		TransactionResult<Mutation> transaction = store.transact(command.workspaceId(), command.expectedRevision(), state -> {
@@ -333,7 +516,7 @@ public final class WorkspaceApplicationService {
 			Element removed = state.removeElement(elementId);
 			if (removed == null)
 				return Decision.abort(Mutation.rejected(elementNotFound(elementId)));
-			Diagnostic persistenceFailure = persist(before, state, command.operation(), removed);
+			Diagnostic persistenceFailure = persist(before, state, command, removed);
 			if (persistenceFailure != null)
 				return Decision.abort(Mutation.rejected(persistenceFailure));
 			return Decision.commit(Mutation.success(removed, state.nextEventSequence()), List.of(elementPath(elementId)));
@@ -352,19 +535,19 @@ public final class WorkspaceApplicationService {
 				"Before MCP " + command.operation().name().toLowerCase(Locale.ROOT), context.actor(), taskId));
 	}
 
-	private CommandOutcome automationRecoveryFailed(Command command) {
-		return failed(command, currentRevision(command.workspaceId()), diagnostic("RECOVERY_POINT_FAILED",
+	private CommandOutcome automationRecoveryFailed(Command command, Throwable cause) {
+		return failed(command, currentRevision(command.workspaceId()), failureDiagnostic(command, "RECOVERY_POINT_FAILED",
 				"diagnostic.recovery_point_failed",
-				"The required recovery point could not be created; the workspace was not changed.", null, null));
+				"The required recovery point could not be created; the workspace was not changed.", null, null, cause));
 	}
 
-	private Diagnostic persist(WorkspaceState before, WorkspaceState after, Operation operation, Element element) {
+	private Diagnostic persist(WorkspaceState before, WorkspaceState after, Command command, Element element) {
 		try {
-			mutations.persist(before, after, operation, element);
+			mutations.persist(before, after, command.operation(), element);
 			return null;
 		} catch (Exception exception) {
-			return diagnostic("WORKSPACE_PERSISTENCE_FAILED", "diagnostic.workspace_persistence_failed",
-					"The workspace change could not be stored and was rolled back.", null, null);
+			return failureDiagnostic(command, "WORKSPACE_PERSISTENCE_FAILED", "diagnostic.workspace_persistence_failed",
+					"The workspace change could not be stored and was rolled back.", null, null, exception);
 		}
 	}
 
@@ -375,8 +558,8 @@ public final class WorkspaceApplicationService {
 					new TaskMutation(tasks.start(command.workspaceId(), command.operation(), command.payload()),
 							state.nextEventSequence()));
 		} catch (RuntimeException exception) {
-			return failed(command, currentRevision(command.workspaceId()), diagnostic("TASK_START_FAILED",
-					"diagnostic.task_start_failed", "The requested task could not be started.", null, null));
+			return failed(command, currentRevision(command.workspaceId()), failureDiagnostic(command, "TASK_START_FAILED",
+					"diagnostic.task_start_failed", "The requested task could not be started.", null, null, exception));
 		}
 		CommandOutcome rejected = checkFailure(command, check);
 		if (rejected != null)
@@ -404,8 +587,9 @@ public final class WorkspaceApplicationService {
 				return new TaskMutation(task, task == null ? 0 : state.nextEventSequence());
 			});
 		} catch (RuntimeException exception) {
-			return failed(command, currentRevision(command.workspaceId()), diagnostic("TASK_CANCEL_FAILED",
-					"diagnostic.task_cancel_failed", "The requested task could not be cancelled.", "/taskId", null));
+			return failed(command, currentRevision(command.workspaceId()), failureDiagnostic(command, "TASK_CANCEL_FAILED",
+					"diagnostic.task_cancel_failed", "The requested task could not be cancelled.", "/taskId", null,
+					exception));
 		}
 		CommandOutcome rejected = checkFailure(command, check);
 		if (rejected != null)
@@ -421,7 +605,9 @@ public final class WorkspaceApplicationService {
 			return new CommandOutcome(result(command, "cancelled", check.revision(), task, JsonNull.INSTANCE,
 					List.of(), JsonNull.INSTANCE, JsonNull.INSTANCE), List.of(event));
 		} catch (RuntimeException exception) {
-			return failed(command, check.revision(), invalidPayload(exception.getMessage()));
+			return failed(command, check.revision(), failureDiagnostic(command, "TASK_CANCEL_FAILED",
+					"diagnostic.task_cancel_failed", "The requested task could not be cancelled.", "/taskId", null,
+					exception));
 		}
 	}
 
@@ -439,7 +625,9 @@ public final class WorkspaceApplicationService {
 			coordinated = store.coordinate(command.workspaceId(), command.expectedRevision(),
 					state -> state.nextEventSequence());
 		} catch (RuntimeException exception) {
-			return failed(command, currentRevision(command.workspaceId()), invalidPayload(exception.getMessage()));
+			return failed(command, currentRevision(command.workspaceId()), failureDiagnostic(command,
+					"RECOVERY_POINT_FAILED", "diagnostic.recovery_point_failed",
+					"The recovery point could not be created.", null, null, exception));
 		}
 		CommandOutcome conflict = checkFailure(command, coordinated);
 		if (conflict != null)
@@ -448,8 +636,9 @@ public final class WorkspaceApplicationService {
 		try {
 			point = history.createRecoveryPoint(new RecoveryPointRequest(label, context.actor(), ""));
 		} catch (LocalHistoryException | RuntimeException exception) {
-			return failed(command, coordinated.revision(), diagnostic("RECOVERY_POINT_FAILED",
-					"diagnostic.recovery_point_failed", "The recovery point could not be created.", null, null));
+			return failed(command, coordinated.revision(), failureDiagnostic(command, "RECOVERY_POINT_FAILED",
+					"diagnostic.recovery_point_failed", "The recovery point could not be created.", null, null,
+					exception));
 		}
 		JsonObject payload = new JsonObject();
 		payload.add("recoveryPoint", recoveryPoint(point));
@@ -469,10 +658,7 @@ public final class WorkspaceApplicationService {
 		} catch (RuntimeException exception) {
 			return failed(command, currentRevision(command.workspaceId()), invalidPayload(exception.getMessage()));
 		}
-		boolean approved = command.payload().has("userApproved") && command.payload().get("userApproved").isJsonPrimitive()
-				&& command.payload().getAsJsonPrimitive("userApproved").isBoolean()
-				&& command.payload().getAsJsonPrimitive("userApproved").getAsBoolean();
-		if (!approved) {
+		if (!approved(command, context)) {
 			JsonObject denial = new JsonObject();
 			denial.addProperty("currentProfile", wire(context.permission()));
 			denial.addProperty("requiredProfile", wire(context.permission()));
@@ -484,17 +670,36 @@ public final class WorkspaceApplicationService {
 			return new CommandOutcome(result(command, "rejected", currentRevision(command.workspaceId()),
 					JsonNull.INSTANCE, JsonNull.INSTANCE, List.of(diagnostic), JsonNull.INSTANCE, denial), List.of());
 		}
-		RestoreResult restored;
-		WorkspaceState reloaded;
+		TransactionResult<RevisionedWorkspaceStore.Replacement> transaction;
 		try {
-			restored = history.restore(pointId);
-			reloaded = reloader.reload(command.workspaceId());
+			transaction = store.restore(command.workspaceId(), command.expectedRevision(), newRevision -> {
+				RecoveryPoint safetyPoint = history.createRecoveryPoint(new RecoveryPointRequest(
+						"Before restoring " + pointId, context.actor(), ""));
+				boolean restoreStarted = false;
+				try {
+					restoreStarted = true;
+					RestoreResult restored = history.restore(pointId);
+					WorkspaceState reloaded = reloader.reload(command.workspaceId());
+					mutations.persistRestoredRevision(reloaded, newRevision);
+					return new RevisionedWorkspaceStore.Restoration(reloaded, restored.changedPaths());
+				} catch (Exception exception) {
+					if (restoreStarted) {
+						try {
+							history.restore(safetyPoint.id());
+							WorkspaceState rolledBack = reloader.reload(command.workspaceId());
+							mutations.persistRestoredRevision(rolledBack, command.expectedRevision());
+						} catch (Exception rollbackFailure) {
+							exception.addSuppressed(rollbackFailure);
+						}
+					}
+					throw exception;
+				}
+			});
 		} catch (Exception exception) {
-			return failed(command, currentRevision(command.workspaceId()), diagnostic("RECOVERY_POINT_RESTORE_FAILED",
-					"diagnostic.recovery_point_restore_failed", "The workspace could not be restored.", null, null));
+			return failed(command, currentRevision(command.workspaceId()), failureDiagnostic(command,
+					"RECOVERY_POINT_RESTORE_FAILED", "diagnostic.recovery_point_restore_failed",
+					"The workspace could not be restored.", null, null, exception));
 		}
-		TransactionResult<RevisionedWorkspaceStore.Replacement> transaction = store.replace(command.workspaceId(),
-				command.expectedRevision(), reloaded, restored.changedPaths());
 		CommandOutcome conflict = checkFailure(command, transaction);
 		if (conflict != null)
 			return conflict;
@@ -502,7 +707,7 @@ public final class WorkspaceApplicationService {
 		payload.addProperty("recoveryPointId", pointId);
 		payload.addProperty("actor", wire(context.actor()));
 		JsonArray paths = new JsonArray();
-		restored.changedPaths().forEach(paths::add);
+		transaction.value().changedPaths().forEach(paths::add);
 		payload.add("changedPaths", paths);
 		Event event = event(command, transaction.revision(), transaction.value().sequence(), "workspace_restored",
 				payload);
@@ -513,7 +718,7 @@ public final class WorkspaceApplicationService {
 	}
 
 	private CommandOutcome executeLoaderMigration(Command command, RequestContext context) {
-		if (!approved(command))
+		if (!approved(command, context))
 			return approvalRequired(command, context, "Migrating a loader creates a workspace copy and requires confirmation.");
 		String targetGeneratorId;
 		String outputName;
@@ -531,8 +736,9 @@ public final class WorkspaceApplicationService {
 		try {
 			targetRoot = siblingOutput(command.workspaceId(), outputName);
 		} catch (RuntimeException exception) {
-			return failed(command, source.revision(), diagnostic("WORKSPACE_ROOT_UNAVAILABLE",
-					"diagnostic.workspace_root_unavailable", exception.getMessage(), null, null));
+			return failed(command, source.revision(), failureDiagnostic(command, "WORKSPACE_ROOT_UNAVAILABLE",
+					"diagnostic.workspace_root_unavailable", "The workspace root is not available.", null, null,
+					exception));
 		}
 		try {
 			TransactionResult<Long> coordinated = store.coordinate(command.workspaceId(), command.expectedRevision(),
@@ -547,16 +753,16 @@ public final class WorkspaceApplicationService {
 			return copyOutcome(command, coordinated.revision(), coordinated.value(), "loader_migration_executed",
 					report, rebuild);
 		} catch (Exception exception) {
-			return failed(command, source.revision(), diagnostic("LOADER_MIGRATION_FAILED",
+			return failed(command, source.revision(), failureDiagnostic(command, "LOADER_MIGRATION_FAILED",
 					"diagnostic.loader_migration_failed",
-					"The loader migration could not create a target copy.", null, null));
+					"The loader migration could not create a target copy.", null, null, exception));
 		}
 	}
 
 	private CommandOutcome importUpstreamWorkspace(Command command, RequestContext context) {
 		if (context.permission() != PermissionProfile.FULL_ACCESS)
 			return denied(command, context.permission(), PermissionProfile.FULL_ACCESS);
-		if (!approved(command))
+		if (!approved(command, context))
 			return approvalRequired(command, context, "Importing an upstream workspace copies it and requires confirmation.");
 		String sourcePath;
 		String outputName;
@@ -570,8 +776,9 @@ public final class WorkspaceApplicationService {
 		try {
 			targetRoot = siblingOutput(command.workspaceId(), outputName);
 		} catch (RuntimeException exception) {
-			return failed(command, currentRevision(command.workspaceId()), diagnostic("WORKSPACE_ROOT_UNAVAILABLE",
-					"diagnostic.workspace_root_unavailable", exception.getMessage(), null, null));
+			return failed(command, currentRevision(command.workspaceId()), failureDiagnostic(command,
+					"WORKSPACE_ROOT_UNAVAILABLE", "diagnostic.workspace_root_unavailable",
+					"The workspace root is not available.", null, null, exception));
 		}
 		try {
 			TransactionResult<Long> coordinated = store.coordinate(command.workspaceId(), command.expectedRevision(),
@@ -583,9 +790,10 @@ public final class WorkspaceApplicationService {
 			return copyOutcome(command, coordinated.revision(), coordinated.value(), "upstream_workspace_imported",
 					report);
 		} catch (Exception exception) {
-			return failed(command, currentRevision(command.workspaceId()), diagnostic("UPSTREAM_IMPORT_FAILED",
+			return failed(command, currentRevision(command.workspaceId()), failureDiagnostic(command,
+					"UPSTREAM_IMPORT_FAILED",
 					"diagnostic.upstream_import_failed",
-					"The upstream workspace could not be copied.", null, null));
+					"The upstream workspace could not be copied.", null, null, exception));
 		}
 	}
 
@@ -615,12 +823,14 @@ public final class WorkspaceApplicationService {
 			return new CommandOutcome(result(command, "committed", coordinated.revision(), JsonNull.INSTANCE,
 					payload.deepCopy(), List.of(), JsonNull.INSTANCE, JsonNull.INSTANCE), List.of(event));
 		} catch (AssetPathViolationException | LocalHistoryException exception) {
-			return failed(command, currentRevision(command.workspaceId()), diagnostic("PUBLISH_BATCH_FAILED",
-					"diagnostic.publish_batch_failed", exception.getMessage(), null, null));
+			return failed(command, currentRevision(command.workspaceId()), failureDiagnostic(command,
+					"PUBLISH_BATCH_FAILED", "diagnostic.publish_batch_failed",
+					"The publish batch could not be created.", null, null, exception));
 		} catch (RuntimeException exception) {
-			return failed(command, currentRevision(command.workspaceId()), diagnostic("WORKSPACE_ROOT_UNAVAILABLE",
+			return failed(command, currentRevision(command.workspaceId()), failureDiagnostic(command,
+					"WORKSPACE_ROOT_UNAVAILABLE",
 					"diagnostic.workspace_root_unavailable", "The workspace root is not available for asset export.",
-					null, null));
+					null, null, exception));
 		}
 	}
 
@@ -647,12 +857,14 @@ public final class WorkspaceApplicationService {
 			return new CommandOutcome(result(command, "committed", coordinated.revision(), JsonNull.INSTANCE,
 					payload.deepCopy(), List.of(), JsonNull.INSTANCE, JsonNull.INSTANCE), List.of(event));
 		} catch (AssetPathViolationException exception) {
-			return failed(command, currentRevision(command.workspaceId()), diagnostic("RESOURCE_PACK_CLIENT_FAILED",
-					"diagnostic.resource_pack_client_failed", exception.getMessage(), null, null));
+			return failed(command, currentRevision(command.workspaceId()), failureDiagnostic(command,
+					"RESOURCE_PACK_CLIENT_FAILED", "diagnostic.resource_pack_client_failed",
+					"The resource pack test client could not be prepared.", null, null, exception));
 		} catch (RuntimeException exception) {
-			return failed(command, currentRevision(command.workspaceId()), diagnostic("WORKSPACE_ROOT_UNAVAILABLE",
+			return failed(command, currentRevision(command.workspaceId()), failureDiagnostic(command,
+					"WORKSPACE_ROOT_UNAVAILABLE",
 					"diagnostic.workspace_root_unavailable", "The workspace root is not available for resource packs.",
-					null, null));
+					null, null, exception));
 		}
 	}
 
@@ -670,9 +882,9 @@ public final class WorkspaceApplicationService {
 			String sourcePath = requiredString(query.payload(), "sourceWorkspacePath");
 			return querySuccess(query, state.revision(), imports.preview(Path.of(sourcePath)).toJson());
 		} catch (Exception exception) {
-			return queryFailure(query, state.revision(), diagnostic("UPSTREAM_IMPORT_FAILED",
+			return queryFailure(query, state.revision(), failureDiagnostic(query, "UPSTREAM_IMPORT_FAILED",
 					"diagnostic.upstream_import_failed",
-					"The upstream workspace could not be read.", "/sourceWorkspacePath", null));
+					"The upstream workspace could not be read.", "/sourceWorkspacePath", null, exception));
 		}
 	}
 
@@ -684,8 +896,8 @@ public final class WorkspaceApplicationService {
 			projection.add("items", items);
 			return querySuccess(query, state.revision(), projection);
 		} catch (RuntimeException exception) {
-			return queryFailure(query, state.revision(), diagnostic("PUBLISH_BATCH_FAILED",
-					"diagnostic.publish_batch_failed", "Publish batches could not be listed.", null, null));
+			return queryFailure(query, state.revision(), failureDiagnostic(query, "PUBLISH_BATCH_FAILED",
+					"diagnostic.publish_batch_failed", "Publish batches could not be listed.", null, null, exception));
 		}
 	}
 
@@ -724,9 +936,13 @@ public final class WorkspaceApplicationService {
 		if (!report.complete())
 			diagnostics.add(diagnostic("MIGRATION_INCOMPLETE", "diagnostic.migration_incomplete",
 					"The copy was created or previewed but is not a complete supported migration.", null, null));
-		if (rebuild != null && "failed".equals(rebuild.status()))
-			diagnostics.add(diagnostic("MIGRATION_REBUILD_FAILED", "diagnostic.migration_rebuild_failed",
-					rebuild.message(), null, null));
+		if (rebuild != null && "failed".equals(rebuild.status())) {
+			Throwable cause = rebuild.cause() != null ? rebuild.cause()
+					: new IllegalStateException(rebuild.reasonCode() + ": " + rebuild.message());
+			diagnostics.add(failureDiagnostic(command, "MIGRATION_REBUILD_FAILED",
+					"diagnostic.migration_rebuild_failed",
+					"The migration target copy was created, but it could not be rebuilt.", null, null, cause));
+		}
 		if (!report.complete() && report.targetDirectory() == null)
 			return new CommandOutcome(result(command, status, revision, JsonNull.INSTANCE, payload, diagnostics,
 					JsonNull.INSTANCE, JsonNull.INSTANCE), List.of());
@@ -746,8 +962,10 @@ public final class WorkspaceApplicationService {
 				JsonNull.INSTANCE, JsonNull.INSTANCE, List.of(diagnostic), JsonNull.INSTANCE, denial), List.of());
 	}
 
-	private static boolean approved(Command command) {
-		return command.payload().has("userApproved") && command.payload().get("userApproved").isJsonPrimitive()
+	private static boolean approved(Command command, RequestContext context) {
+		boolean trustedActor = context.actor() == UiCore.Actor.UI || context.actor() == UiCore.Actor.LEGACY_UI;
+		return trustedActor && command.payload().has("userApproved")
+				&& command.payload().get("userApproved").isJsonPrimitive()
 				&& command.payload().getAsJsonPrimitive("userApproved").isBoolean()
 				&& command.payload().getAsJsonPrimitive("userApproved").getAsBoolean();
 	}
@@ -801,8 +1019,8 @@ public final class WorkspaceApplicationService {
 			projection.add("recoveryPoints", items);
 			return querySuccess(query, state.revision(), projection);
 		} catch (LocalHistoryException exception) {
-			return queryFailure(query, state.revision(), diagnostic("HISTORY_READ_FAILED",
-					"diagnostic.history_read_failed", "Local history could not be read.", null, null));
+			return queryFailure(query, state.revision(), failureDiagnostic(query, "HISTORY_READ_FAILED",
+					"diagnostic.history_read_failed", "Local history could not be read.", null, null, exception));
 		}
 	}
 
@@ -833,8 +1051,9 @@ public final class WorkspaceApplicationService {
 			projection.add("changes", items);
 			return querySuccess(query, state.revision(), projection);
 		} catch (LocalHistoryException exception) {
-			return queryFailure(query, state.revision(), diagnostic("HISTORY_DIFF_FAILED",
-					"diagnostic.history_diff_failed", "The two recovery points could not be compared.", null, null));
+			return queryFailure(query, state.revision(), failureDiagnostic(query, "HISTORY_DIFF_FAILED",
+					"diagnostic.history_diff_failed", "The two recovery points could not be compared.", null, null,
+					exception));
 		}
 	}
 
@@ -963,7 +1182,7 @@ public final class WorkspaceApplicationService {
 		result.addProperty("pageSize", pageSize);
 		result.addProperty("total", filtered.size());
 		JsonArray availableTypes = new JsonArray();
-		List.of("block", "item", "recipe", "procedure").forEach(availableTypes::add);
+		ElementCoverageCatalog.FIRST_PARTY_SLICE.forEach(availableTypes::add);
 		result.add("availableTypes", availableTypes);
 		return result;
 	}
@@ -1029,6 +1248,419 @@ public final class WorkspaceApplicationService {
 		return querySuccess(query, state.revision(), projection);
 	}
 
+	private QueryResult previewDatagenOutput(Query query, WorkspaceState state) {
+		UUID taskId = UUID.fromString(requiredString(query.payload(), "taskId"));
+		JsonObject preview = tasks.previewDatagen(query.workspaceId(), taskId).orElse(null);
+		if (preview == null)
+			return queryFailure(query, state.revision(), diagnostic("DATAGEN_STAGING_NOT_FOUND",
+					"diagnostic.datagen_staging_not_found", "The staged datagen output does not exist.",
+					"/taskId", null));
+		return querySuccess(query, state.revision(), preview);
+	}
+
+	private CommandOutcome publishDatagenOutput(Command command, RequestContext context) {
+		UUID taskId;
+		try {
+			taskId = UUID.fromString(requiredString(command.payload(), "taskId"));
+			requiredString(command.payload(), "manifestHash");
+		} catch (RuntimeException exception) {
+			return failed(command, currentRevision(command.workspaceId()), invalidPayload(exception.getMessage()));
+		}
+		RecoveryPoint recoveryPoint;
+		try {
+			recoveryPoint = datagenRecoveryPoint(command, context, taskId);
+		} catch (LocalHistoryException exception) {
+			return automationRecoveryFailed(command, exception);
+		}
+		TransactionResult<DatagenMutation> transaction = store.transact(command.workspaceId(),
+				command.expectedRevision(), state -> {
+			WorkspaceState before = state.copy();
+			JsonObject data;
+			try {
+				data = tasks.publishDatagen(command.workspaceId(), taskId, command.payload());
+			} catch (RuntimeException exception) {
+				return Decision.abort(DatagenMutation.rejected(failureDiagnostic(command,
+						"DATAGEN_PUBLISH_FAILED", "diagnostic.datagen_publish_failed",
+						"The staged datagen output could not be published.", "/taskId", null, exception)));
+			}
+			JsonArray changed = data.has("changedPaths") ? data.getAsJsonArray("changedPaths") : new JsonArray();
+			if (changed.isEmpty()) {
+				tasks.rollbackDatagenPublish(command.workspaceId(), taskId);
+				return Decision.abort(DatagenMutation.rejected(diagnostic("DATAGEN_NO_CHANGES",
+						"diagnostic.datagen_no_changes", "The staged datagen output has no changes to publish.",
+						"/taskId", null)));
+			}
+			Diagnostic persistenceFailure = persistWorkspaceData(before, state, command);
+			if (persistenceFailure != null) {
+				tasks.rollbackDatagenPublish(command.workspaceId(), taskId);
+				return Decision.abort(DatagenMutation.rejected(persistenceFailure));
+			}
+			List<String> paths = new ArrayList<>();
+			changed.forEach(raw -> paths.add("/" + raw.getAsString()));
+			return Decision.commit(DatagenMutation.success(data, state.nextEventSequence()), paths);
+		});
+		CommandOutcome rejected = checkFailure(command, transaction);
+		if (rejected != null) return rejected;
+		DatagenMutation mutation = transaction.value();
+		if (transaction.status() == TransactionResult.Status.ABORTED)
+			return failed(command, transaction.revision(), mutation.diagnostic());
+		tasks.completeDatagenPublish(command.workspaceId(), taskId);
+		Event event = event(command, transaction.revision(), mutation.sequence(), "datagen_published",
+				mutation.data().deepCopy());
+		return new CommandOutcome(result(command, "committed", transaction.revision(), recoveryPoint,
+				JsonNull.INSTANCE, mutation.data(), List.of(), JsonNull.INSTANCE, JsonNull.INSTANCE), List.of(event));
+	}
+
+	private RecoveryPoint datagenRecoveryPoint(Command command, RequestContext context, UUID taskId)
+			throws LocalHistoryException {
+		if (history == null) return null;
+		WorkspaceState current = store.read(command.workspaceId()).orElse(null);
+		if (current == null || current.revision() != command.expectedRevision()) return null;
+		return history.createRecoveryPoint(new RecoveryPointRequest("Before datagen publish", context.actor(),
+				taskId.toString()));
+	}
+
+	private CommandOutcome runServer(Command command, RequestContext context) {
+		if (!approved(command, context))
+			return approvalRequired(command, context,
+					"Starting a dedicated test server requires explicit desktop EULA confirmation.");
+		JsonObject payload = command.payload().deepCopy();
+		payload.addProperty("eulaAccepted", true);
+		Command approved = Command.of(command.requestId(), command.workspaceId(), command.expectedRevision(),
+				command.operation(), payload);
+		return startTask(approved);
+	}
+
+	private CommandOutcome registryMutationOutcome(Command command, TransactionResult<RegistryMutation> transaction,
+			RecoveryPoint recoveryPoint) {
+		CommandOutcome rejected = checkFailure(command, transaction);
+		if (rejected != null) return rejected;
+		RegistryMutation mutation = transaction.value();
+		if (transaction.status() == TransactionResult.Status.ABORTED)
+			return failed(command, transaction.revision(), mutation.diagnostic());
+		JsonObject eventPayload = mutation.data().deepCopy();
+		Event event = event(command, transaction.revision(), mutation.sequence(), "registry_updated", eventPayload);
+		return new CommandOutcome(result(command, "committed", transaction.revision(), recoveryPoint,
+				JsonNull.INSTANCE, mutation.data(), List.of(), JsonNull.INSTANCE, JsonNull.INSTANCE), List.of(event));
+	}
+
+	private RecoveryPoint registryRecoveryPoint(Command command, RequestContext context) throws LocalHistoryException {
+		RecoveryPoint automated = automationRecoveryPoint(command, context);
+		if (automated != null || history == null || (command.operation() != Operation.RENAME_REGISTRY_ENTRY
+				&& command.operation() != Operation.DELETE_REGISTRY_ENTRY)) return automated;
+		WorkspaceState current = store.read(command.workspaceId()).orElse(null);
+		if (current == null || current.revision() != command.expectedRevision()) return null;
+		String taskId = command.payload().has("clientMutationId")
+				? command.payload().get("clientMutationId").getAsString() : command.requestId().toString();
+		return history.createRecoveryPoint(new RecoveryPointRequest("Before registry mutation", context.actor(), taskId));
+	}
+
+	private Diagnostic persistWorkspaceData(WorkspaceState before, WorkspaceState after, Command command) {
+		try {
+			mutations.persistWorkspaceData(before, after, command.operation());
+			return null;
+		} catch (Exception exception) {
+			return failureDiagnostic(command, "WORKSPACE_PERSISTENCE_FAILED", "diagnostic.workspace_persistence_failed",
+					"The structured workspace change could not be stored and was rolled back.", null, null, exception);
+		}
+	}
+
+	private QueryResult procedureEditor(Query query, WorkspaceState state, RequestContext context) {
+		UUID elementId = UUID.fromString(requiredString(query.payload(), "elementId"));
+		Element element = state.element(elementId);
+		if (element == null) return queryFailure(query, state.revision(), elementNotFound(elementId));
+		if (!element.type().equals("procedure"))
+			return queryFailure(query, state.revision(), diagnostic("PROCEDURE_ELEMENT_REQUIRED",
+					"diagnostic.procedure_element_required", "The requested element is not a Procedure.",
+					"/elementId", elementId));
+		ProcedureIr ir;
+		try {
+			ir = PROCEDURES.read(element.values(), elementId);
+		} catch (RuntimeException exception) {
+			return queryFailure(query, state.revision(), diagnostic("PROCEDURE_IR_INVALID",
+					"diagnostic.procedure_ir_invalid", "The Procedure graph could not be parsed.",
+					elementPath(elementId) + "/procedurexml", elementId));
+		}
+		JsonObject projection = procedureProjection(state, element, ir, context);
+		List<Diagnostic> diagnostics = procedureDiagnostics(elementId, PROCEDURES.validate(ir));
+		return new QueryResult("query_result", UiCore.SCHEMA_VERSION, query.requestId(), query.workspaceId(),
+				query.operation(), "succeeded", state.revision(), projection, diagnostics);
+	}
+
+	private QueryResult previewProcedure(Query query, WorkspaceState state) {
+		UUID elementId = UUID.fromString(requiredString(query.payload(), "elementId"));
+		Element element = state.element(elementId);
+		if (element == null) return queryFailure(query, state.revision(), elementNotFound(elementId));
+		if (!element.type().equals("procedure"))
+			return queryFailure(query, state.revision(), diagnostic("PROCEDURE_ELEMENT_REQUIRED",
+					"diagnostic.procedure_element_required", "The requested element is not a Procedure.",
+					"/elementId", elementId));
+		JsonArray edits = query.payload().getAsJsonArray("edits");
+		if (edits == null || edits.isEmpty())
+			return queryFailure(query, state.revision(), invalidPayload("edits must not be empty"));
+		ProcedureIr current = PROCEDURES.read(element.values(), elementId);
+		ProcedureIr candidate = PROCEDURES.applyEdits(current, edits);
+		List<ProcedureIr.ValidationIssue> issues = PROCEDURES.validate(candidate);
+		JsonObject projection = new JsonObject();
+		projection.addProperty("elementId", elementId.toString());
+		projection.addProperty("baseRevision", state.revision());
+		projection.addProperty("canSaveDraft", true);
+		projection.addProperty("canGenerate", issues.stream().noneMatch(ProcedureIr.ValidationIssue::error));
+		projection.add("candidateIr", PROCEDURES.toJson(candidate));
+		projection.addProperty("sourcePreview", PROCEDURES.sourcePreview(candidate));
+		projection.add("diagnostics", GSON.toJsonTree(procedureDiagnostics(elementId, issues)));
+		JsonArray changedPaths = new JsonArray();
+		changedPaths.add(elementPath(elementId) + "/procedureIr");
+		changedPaths.add(elementPath(elementId) + "/procedurexml");
+		projection.add("changedPaths", changedPaths);
+		return querySuccess(query, state.revision(), projection);
+	}
+
+	private QueryResult workspaceReferences(Query query, WorkspaceState state) {
+		String target = query.payload().has("target") && query.payload().get("target").isJsonPrimitive()
+				? query.payload().get("target").getAsString() : "";
+		return querySuccess(query, state.revision(), references.projection(state, target));
+	}
+
+	private QueryResult listRegistries(Query query, WorkspaceState state) {
+		String selected = query.payload().has("registry") && query.payload().get("registry").isJsonPrimitive()
+				? query.payload().get("registry").getAsString() : "";
+		if (!selected.isBlank() && !REGISTRY_NAMES.contains(selected))
+			return queryFailure(query, state.revision(), invalidPayload("Unsupported registry: " + selected));
+		JsonObject data = new JsonObject();
+		JsonObject registries = state.registries();
+		if (selected.isBlank()) data.add("registries", registries);
+		else data.add(selected, registries.getAsJsonArray(selected));
+		data.add("languageStats", languageStats(registries.getAsJsonArray("languageKeys")));
+		data.addProperty("stableIds", true);
+		data.addProperty("referenceAwareRename", true);
+		return querySuccess(query, state.revision(), data);
+	}
+
+	private QueryResult previewRegistryRename(Query query, WorkspaceState state) {
+		UUID entryId = UUID.fromString(requiredString(query.payload(), "entryId"));
+		String newName = requiredString(query.payload(), "newName");
+		RegistryLocation location = findRegistryEntry(state.registries(), entryId);
+		if (location == null)
+			return queryFailure(query, state.revision(), registryEntryNotFound(entryId));
+		Diagnostic validation = validateRegistryName(location.registry(), location.entry(), newName,
+				state.registries(), entryId);
+		if (validation != null) return queryFailure(query, state.revision(), validation);
+		JsonObject data = new JsonObject();
+		data.addProperty("entryId", entryId.toString());
+		data.addProperty("registry", location.registry());
+		data.addProperty("oldName", registryName(location.registry(), location.entry()));
+		data.addProperty("newName", newName);
+		JsonObject impacted = references.projection(state, entryId.toString());
+		data.add("references", impacted);
+		data.addProperty("impactedElementCount", distinctReferenceSources(impacted));
+		data.addProperty("canApply", true);
+		return querySuccess(query, state.revision(), data);
+	}
+
+	private CommandOutcome mutateRegistry(Command command, RequestContext context) {
+		RecoveryPoint recoveryPoint;
+		try {
+			recoveryPoint = registryRecoveryPoint(command, context);
+		} catch (LocalHistoryException exception) {
+			return automationRecoveryFailed(command, exception);
+		}
+		TransactionResult<RegistryMutation> transaction = store.transact(command.workspaceId(),
+				command.expectedRevision(), state -> {
+			WorkspaceState before = state.copy();
+			JsonObject registries = state.registries();
+			RegistryEdit edit;
+			try {
+				edit = switch (command.operation()) {
+					case CREATE_REGISTRY_ENTRY -> createRegistryEntry(command.payload(), registries);
+					case UPDATE_REGISTRY_ENTRY -> updateRegistryEntry(command.payload(), registries);
+					case DELETE_REGISTRY_ENTRY -> deleteRegistryEntry(command.payload(), registries, state);
+					case RENAME_REGISTRY_ENTRY -> renameRegistryEntry(command.payload(), registries, state);
+					default -> throw new IllegalArgumentException("Unsupported registry mutation");
+				};
+			} catch (RegistryValidationException exception) {
+				return Decision.abort(RegistryMutation.rejected(exception.diagnostic()));
+			} catch (RuntimeException exception) {
+				return Decision.abort(RegistryMutation.rejected(invalidPayload(exception.getMessage())));
+			}
+			state.replaceRegistries(registries);
+			Diagnostic persistenceFailure = persistWorkspaceData(before, state, command);
+			if (persistenceFailure != null)
+				return Decision.abort(RegistryMutation.rejected(persistenceFailure));
+			return Decision.commit(RegistryMutation.success(edit.entry(), state.nextEventSequence(), edit.data()),
+					edit.changedPaths());
+		});
+		return registryMutationOutcome(command, transaction, recoveryPoint);
+	}
+
+	private RegistryEdit createRegistryEntry(JsonObject payload, JsonObject registries) {
+		String registry = requiredRegistry(payload);
+		if (!payload.has("entry") || !payload.get("entry").isJsonObject())
+			throw new IllegalArgumentException("entry is required");
+		JsonObject entry = payload.getAsJsonObject("entry").deepCopy();
+		UUID entryId = ids.get();
+		entry.addProperty("id", entryId.toString());
+		entry.addProperty("kind", registryKind(registry));
+		String name = registryName(registry, entry);
+		Diagnostic validation = validateRegistryName(registry, entry, name, registries, null);
+		if (validation != null) throw new RegistryValidationException(validation);
+		if (registry.equals("variables")) {
+			if (!entry.has("dataType")) entry.addProperty("dataType", "number");
+			if (!entry.has("scope")) entry.addProperty("scope", "global");
+		} else if (registry.equals("tags")) {
+			if (!entry.has("namespace")) entry.addProperty("namespace", "mod");
+			if (!entry.has("category")) entry.addProperty("category", "items");
+			if (!entry.has("members")) entry.add("members", new JsonArray());
+		} else if (!entry.has("translations")) entry.add("translations", new JsonObject());
+		entry.add("support", registrySupport("supported", "REGISTRY_ENTRY_SUPPORTED"));
+		registries.getAsJsonArray(registry).add(entry);
+		JsonObject data = new JsonObject();
+		data.add("entry", entry.deepCopy());
+		return new RegistryEdit(entry, data, List.of("/registries/" + registry + "/" + entryId));
+	}
+
+	private RegistryEdit updateRegistryEntry(JsonObject payload, JsonObject registries) {
+		UUID entryId = UUID.fromString(requiredString(payload, "entryId"));
+		RegistryLocation location = findRegistryEntry(registries, entryId);
+		if (location == null) throw new RegistryValidationException(registryEntryNotFound(entryId));
+		JsonArray changes = payload.has("changes") && payload.get("changes").isJsonArray()
+				? payload.getAsJsonArray("changes") : new JsonArray();
+		if (changes.isEmpty()) throw new IllegalArgumentException("changes must not be empty");
+		JsonObject entry = location.entry().deepCopy();
+		for (JsonElement raw : changes) {
+			JsonObject change = raw.getAsJsonObject();
+			String path = requiredString(change, "path");
+			if (path.equals("/id") || path.equals("/kind"))
+				throw new IllegalArgumentException("Stable registry identity fields cannot be changed");
+			JsonPointerPatch.set(entry, path, change.has("value") ? change.get("value") : JsonNull.INSTANCE);
+		}
+		String name = registryName(location.registry(), entry);
+		Diagnostic validation = validateRegistryName(location.registry(), entry, name, registries, entryId);
+		if (validation != null) throw new RegistryValidationException(validation);
+		location.entries().set(location.index(), entry);
+		JsonObject data = new JsonObject();
+		data.add("entry", entry.deepCopy());
+		return new RegistryEdit(entry, data, List.of("/registries/" + location.registry() + "/" + entryId));
+	}
+
+	private RegistryEdit deleteRegistryEntry(JsonObject payload, JsonObject registries, WorkspaceState state) {
+		UUID entryId = UUID.fromString(requiredString(payload, "entryId"));
+		RegistryLocation location = findRegistryEntry(registries, entryId);
+		if (location == null) throw new RegistryValidationException(registryEntryNotFound(entryId));
+		JsonObject impacted = references.projection(state, entryId.toString());
+		boolean force = payload.has("force") && payload.get("force").getAsBoolean();
+		if (impacted.getAsJsonArray("edges").size() > 0 && !force)
+			throw new RegistryValidationException(diagnostic("REGISTRY_ENTRY_IN_USE",
+					"diagnostic.registry_entry_in_use", "The registry entry is still referenced.",
+					"/entryId", null));
+		JsonObject removed = location.entry().deepCopy();
+		location.entries().remove(location.index());
+		JsonObject data = new JsonObject();
+		data.addProperty("entryId", entryId.toString());
+		data.add("references", impacted);
+		return new RegistryEdit(removed, data, List.of("/registries/" + location.registry() + "/" + entryId));
+	}
+
+	private RegistryEdit renameRegistryEntry(JsonObject payload, JsonObject registries, WorkspaceState state) {
+		UUID entryId = UUID.fromString(requiredString(payload, "entryId"));
+		String newName = requiredString(payload, "newName");
+		RegistryLocation location = findRegistryEntry(registries, entryId);
+		if (location == null) throw new RegistryValidationException(registryEntryNotFound(entryId));
+		Diagnostic validation = validateRegistryName(location.registry(), location.entry(), newName, registries, entryId);
+		if (validation != null) throw new RegistryValidationException(validation);
+		String oldName = registryName(location.registry(), location.entry());
+		JsonObject renamed = location.entry().deepCopy();
+		renamed.addProperty(location.registry().equals("languageKeys") ? "key" : "name", newName);
+		location.entries().set(location.index(), renamed);
+		JsonArray changedElements = new JsonArray();
+		for (Element element : state.elements()) {
+			JsonObject values = element.values().deepCopy();
+			if (!rewriteRegistryReferences(values, location.registry(), entryId.toString(), oldName, newName, ""))
+				continue;
+			if (element.type().equals("procedure") && values.has("procedureIr"))
+				values.addProperty("procedurexml", PROCEDURES.toBlocklyXml(PROCEDURES.read(values, element.id())));
+			state.replaceElement(new Element(element.id(), element.type(), element.name(), element.displayName(),
+					element.state(), element.ownership(), clock.instant(), values));
+			changedElements.add(element.id().toString());
+		}
+		JsonObject data = new JsonObject();
+		data.add("entry", renamed.deepCopy());
+		data.addProperty("oldName", oldName);
+		data.add("changedElementIds", changedElements);
+		List<String> paths = new ArrayList<>();
+		paths.add("/registries/" + location.registry() + "/" + entryId);
+		changedElements.forEach(raw -> paths.add(elementPath(UUID.fromString(raw.getAsString()))));
+		return new RegistryEdit(renamed, data, List.copyOf(paths));
+	}
+
+	private JsonObject procedureProjection(WorkspaceState state, Element element, ProcedureIr ir,
+			RequestContext context) {
+		JsonObject projection = new JsonObject();
+		projection.add("element", elementSummary(element));
+		projection.addProperty("baseRevision", state.revision());
+		projection.addProperty("readOnly", context.permission() == PermissionProfile.READ_ONLY);
+		projection.add("ir", PROCEDURES.toJson(ir));
+		projection.add("nodeCatalog", procedureNodeCatalog(state));
+		projection.addProperty("sourcePreview", PROCEDURES.sourcePreview(ir));
+		projection.addProperty("sourceOwnership", "generated");
+		projection.add("references", references.projection(state, element.id().toString()));
+		return projection;
+	}
+
+	private JsonArray procedureNodeCatalog(WorkspaceState state) {
+		JsonArray catalog = new JsonArray();
+		procedureNode(catalog, "controls_if", "control", "条件", "statement", true, null);
+		procedureNode(catalog, "controls_repeat_ext", "control", "重复循环", "statement", true, null);
+		procedureNode(catalog, "controls_while", "control", "条件循环", "statement", true, null);
+		procedureNode(catalog, "math_number", "value", "数值", "number", true, null);
+		procedureNode(catalog, "math_binary_ops", "value", "数值运算", "number", true, null);
+		procedureNode(catalog, "text", "value", "文本", "string", true, null);
+		procedureNode(catalog, "logic_boolean", "value", "布尔值", "logic", true, null);
+		procedureNode(catalog, "logic_binary_ops", "value", "布尔运算", "logic", true, null);
+		procedureNode(catalog, "variables_get_number", "variable", "读取变量", "number", true, null);
+		procedureNode(catalog, "variables_set_number", "variable", "设置变量", "statement", true, null);
+		procedureNode(catalog, "entity_from_deps", "context", "上下文实体", "entity", true, null);
+		procedureNode(catalog, "coord_x", "context", "上下文 X", "number", true, null);
+		procedureNode(catalog, "coord_y", "context", "上下文 Y", "number", true, null);
+		procedureNode(catalog, "coord_z", "context", "上下文 Z", "number", true, null);
+		procedureNode(catalog, "mcitem_all", "context", "物品引用", "itemstack", true, null);
+		procedureNode(catalog, "call_procedure", "procedure", "调用 Procedure", "statement", true, null);
+		boolean javaGenerator = !state.generator().has("loader")
+				|| !state.generator().get("loader").getAsString().equals("resource_pack");
+		procedureNode(catalog, "return_number", "procedure", "返回数值", "statement", javaGenerator,
+				javaGenerator ? null : "PROCEDURE_RETURN_UNSUPPORTED");
+		return catalog;
+	}
+
+	private void procedureNode(JsonArray target, String type, String category, String label, String output,
+			boolean available, String reasonCode) {
+		JsonObject node = new JsonObject();
+		node.addProperty("type", type);
+		node.addProperty("category", category);
+		node.add("label", localized("procedure.node." + type, label));
+		node.addProperty("output", output);
+		node.addProperty("availability", available ? "available" : "unavailable");
+		if (reasonCode == null) node.add("reasonCode", JsonNull.INSTANCE); else node.addProperty("reasonCode", reasonCode);
+		target.add(node);
+	}
+
+	private List<Diagnostic> procedureDiagnostics(UUID elementId, List<ProcedureIr.ValidationIssue> issues) {
+		List<Diagnostic> diagnostics = new ArrayList<>();
+		for (ProcedureIr.ValidationIssue issue : issues) {
+			String path = elementPath(elementId) + "/procedureIr";
+			if (issue.nodeId() != null) path += "/nodes/" + issue.nodeId();
+			if (issue.port() != null) path += "/ports/" + issue.port();
+			JsonObject args = new JsonObject();
+			if (issue.nodeId() != null) args.addProperty("nodeId", issue.nodeId().toString());
+			if (issue.port() != null) args.addProperty("port", issue.port());
+			diagnostics.add(new Diagnostic(issue.code(), issue.error() ? UiCore.Severity.ERROR : UiCore.Severity.WARNING,
+					LocalizedText.of("diagnostic." + issue.code().toLowerCase(Locale.ROOT), issue.message(), args),
+					path, elementId, true, List.of(new ActionHint("open_procedure_node",
+							LocalizedText.of("action.open_procedure_node", "Locate node"), "open_field", path))));
+		}
+		return List.copyOf(diagnostics);
+	}
+
 	private QueryResult task(Query query, WorkspaceState state) {
 		UUID taskId = UUID.fromString(requiredString(query.payload(), "taskId"));
 		JsonObject task = tasks.find(state.id(), taskId).orElse(null);
@@ -1048,7 +1680,7 @@ public final class WorkspaceApplicationService {
 			String path = base + "/" + key.replace("~", "~0").replace("/", "~1");
 			if (value.isJsonObject())
 				flattenFields(value.getAsJsonObject(), path, target, readOnly);
-			else if (!value.isJsonArray())
+			else
 				target.add(editorField(path, displayName(key), value, readOnly));
 		}
 	}
@@ -1057,8 +1689,15 @@ public final class WorkspaceApplicationService {
 		JsonObject field = new JsonObject();
 		field.addProperty("path", path);
 		field.add("label", localized("field." + path.substring(path.lastIndexOf('/') + 1), label));
-		String control = value instanceof JsonElement element && element.isJsonPrimitive()
-				&& element.getAsJsonPrimitive().isBoolean() ? "toggle" : "text";
+		String fieldName = path.substring(path.lastIndexOf('/') + 1);
+		String control = value instanceof JsonElement element && element.isJsonArray() ? "json" : "text";
+		if (fieldName.equals("code") || fieldName.equals("description") || fieldName.equals("triggerxml"))
+			control = "textarea";
+		if (fieldName.equals("icon")) control = "resource_reference";
+		if (fieldName.equals("parent") || fieldName.equals("rewardFunction")) control = "procedure_reference";
+		if (fieldName.equals("type") || fieldName.equals("frame")) control = "select";
+		if (value instanceof JsonElement element && element.isJsonPrimitive()
+				&& element.getAsJsonPrimitive().isBoolean()) control = "toggle";
 		if (value instanceof JsonElement element && element.isJsonPrimitive()
 				&& element.getAsJsonPrimitive().isNumber())
 			control = "number";
@@ -1069,9 +1708,29 @@ public final class WorkspaceApplicationService {
 			field.add("value", element.deepCopy());
 		else
 			field.addProperty("value", String.valueOf(value));
-		field.add("options", new JsonArray());
+		JsonArray options = new JsonArray();
+		if (fieldName.equals("frame")) {
+			options.add(fieldOption("task", "Task"));
+			options.add(fieldOption("goal", "Goal"));
+			options.add(fieldOption("challenge", "Challenge"));
+		} else if (fieldName.equals("type")) {
+			for (String option : List.of("Generic", "Block", "Entity", "Chest", "Fishing", "Advancement reward",
+					"Gift", "Archaeology")) options.add(fieldOption(option, option));
+		}
+		field.add("options", options);
 		field.add("diagnostics", new JsonArray());
 		return field;
+	}
+
+	private JsonObject fieldOption(String value, String label) {
+		JsonObject option = new JsonObject();
+		option.addProperty("value", value);
+		JsonObject args = new JsonObject();
+		args.addProperty("label", label);
+		option.add("label", localized("field.option", label, args));
+		option.addProperty("disabled", false);
+		option.add("reason", JsonNull.INSTANCE);
+		return option;
 	}
 
 	private JsonArray capabilities(RequestContext context) {
@@ -1126,16 +1785,54 @@ public final class WorkspaceApplicationService {
 		return counts;
 	}
 
+	private JsonObject defaultElementValues(String type, String name, JsonObject supplied) {
+		JsonObject values = supplied.deepCopy();
+		if (!values.has("displayName")) values.addProperty("displayName", displayName(name));
+		switch (type) {
+			case "function" -> {
+				if (!values.has("name")) values.addProperty("name", name);
+				if (!values.has("namespace")) values.addProperty("namespace", "mod");
+				if (!values.has("code") && !values.has("commands"))
+					values.addProperty("code", "# New Copperbench function\n");
+			}
+			case "loottable" -> {
+				if (!values.has("name")) values.addProperty("name", name);
+				if (!values.has("namespace")) values.addProperty("namespace", "mod");
+				if (!values.has("type")) values.addProperty("type", "Generic");
+				if (!values.has("pools")) values.add("pools", new JsonArray());
+			}
+			case "achievement" -> {
+				if (!values.has("title")) values.addProperty("title", displayName(name));
+				if (!values.has("description")) values.addProperty("description", "");
+				if (!values.has("icon")) values.addProperty("icon", "Blocks.STONE");
+				if (!values.has("frame")) values.addProperty("frame", "task");
+				if (!values.has("parent")) values.addProperty("parent", "ROOT");
+				if (!values.has("showPopup")) values.addProperty("showPopup", true);
+				if (!values.has("announceToChat")) values.addProperty("announceToChat", true);
+				if (!values.has("rewardXP")) values.addProperty("rewardXP", 0);
+				if (!values.has("rewardLoot")) values.add("rewardLoot", new JsonArray());
+				if (!values.has("rewardRecipes")) values.add("rewardRecipes", new JsonArray());
+			}
+			default -> {
+			}
+		}
+		return values;
+	}
+
 	private Diagnostic validateElementValues(UUID elementId, JsonObject values) {
 		if (values.has("fields") && values.get("fields").isJsonObject()) {
 			JsonObject fields = values.getAsJsonObject("fields");
 			if (fields.has("hardness") && fields.get("hardness").isJsonPrimitive()
 					&& fields.getAsJsonPrimitive("hardness").isNumber()) {
 				double hardness = fields.get("hardness").getAsDouble();
-				if (hardness < 0 || hardness > 100)
+				if (hardness < 0 || hardness > 100) {
+					JsonObject args = new JsonObject();
+					args.addProperty("min", 0);
+					args.addProperty("max", 100);
 					return diagnostic("FIELD_VALUE_OUT_OF_RANGE", "diagnostic.field_value_out_of_range",
-							"Hardness must be between 0 and 100.", elementPath(elementId) + "/fields/hardness",
-							elementId);
+							"Hardness must be between {min} and {max}.", args,
+							elementPath(elementId) + "/fields/hardness", elementId);
+				}
 			}
 		}
 		return null;
@@ -1197,11 +1894,180 @@ public final class WorkspaceApplicationService {
 
 	private Diagnostic invalidPayload(String detail) {
 		return diagnostic("COMMAND_PAYLOAD_INVALID", "diagnostic.command_payload_invalid",
-				"The command payload is invalid" + (detail == null ? "." : ": " + detail), null, null);
+				"The command payload is invalid.", null, null);
 	}
 
 	private Diagnostic diagnostic(String code, String key, String fallback, String path, UUID elementId) {
 		return Diagnostic.error(code, key, fallback, path, elementId);
+	}
+
+	private Diagnostic diagnostic(String code, String key, String fallback, JsonObject args, String path,
+			UUID elementId) {
+		return Diagnostic.error(code, key, fallback, args, path, elementId);
+	}
+
+	private Diagnostic failureDiagnostic(Command command, String code, String key, String fallback, String path,
+			UUID elementId, Throwable cause) {
+		return failureDiagnostic(command.requestId(), command.workspaceId(), code, key, fallback, path, elementId,
+				cause);
+	}
+
+	private Diagnostic failureDiagnostic(Query query, String code, String key, String fallback, String path,
+			UUID elementId, Throwable cause) {
+		return failureDiagnostic(query.requestId(), query.workspaceId(), code, key, fallback, path, elementId, cause);
+	}
+
+	private Diagnostic failureDiagnostic(UUID requestId, UUID workspaceId, String code, String key, String fallback,
+			String path, UUID elementId, Throwable cause) {
+		String failureId = UUID.randomUUID().toString();
+		LOG.error(OPERATION_FAILURE, "Copperbench failure {} (code={}, requestId={}, workspaceId={})", failureId, code, requestId,
+				workspaceId, cause);
+		JsonObject args = new JsonObject();
+		args.addProperty("failureId", failureId);
+		ActionHint openLogs = new ActionHint("open_logs", LocalizedText.of("action.open_logs", "View logs"),
+				"open_logs", failureId);
+		return new Diagnostic(code, UiCore.Severity.ERROR, LocalizedText.of(key, fallback, args), path, elementId,
+				true, List.of(openLogs));
+	}
+
+	private String requiredRegistry(JsonObject payload) {
+		String registry = requiredString(payload, "registry");
+		if (!REGISTRY_NAMES.contains(registry)) throw new IllegalArgumentException("Unsupported registry: " + registry);
+		return registry;
+	}
+
+	private RegistryLocation findRegistryEntry(JsonObject registries, UUID entryId) {
+		for (String registry : REGISTRY_NAMES) {
+			JsonArray entries = registries.getAsJsonArray(registry);
+			for (int index = 0; index < entries.size(); index++) {
+				JsonObject entry = entries.get(index).getAsJsonObject();
+				if (entry.has("id") && entryId.toString().equals(entry.get("id").getAsString()))
+					return new RegistryLocation(registry, entries, index, entry);
+			}
+		}
+		return null;
+	}
+
+	private Diagnostic validateRegistryName(String registry, JsonObject entry, String name, JsonObject registries,
+			UUID ignoredId) {
+		boolean valid = switch (registry) {
+			case "variables" -> VARIABLE_NAME.matcher(name).matches();
+			case "tags" -> RESOURCE_PATH.matcher(name).matches()
+					&& RESOURCE_PATH.matcher(entry.has("namespace") ? entry.get("namespace").getAsString() : "mod").matches();
+			case "languageKeys" -> LANGUAGE_KEY.matcher(name).matches();
+			default -> false;
+		};
+		if (!valid) return diagnostic("REGISTRY_ENTRY_NAME_INVALID", "diagnostic.registry_entry_name_invalid",
+				"The registry entry name is invalid.", "/newName", null);
+		for (JsonElement raw : registries.getAsJsonArray(registry)) {
+			JsonObject candidate = raw.getAsJsonObject();
+			if (ignoredId != null && candidate.has("id") && ignoredId.toString().equals(candidate.get("id").getAsString()))
+				continue;
+			if (!registryName(registry, candidate).equals(name)) continue;
+			if (!registry.equals("tags") || (string(candidate, "namespace", "mod")
+					.equals(string(entry, "namespace", "mod")) && string(candidate, "category", "items")
+					.equals(string(entry, "category", "items"))))
+				return diagnostic("REGISTRY_ENTRY_NAME_CONFLICT", "diagnostic.registry_entry_name_conflict",
+						"A registry entry with this name already exists.", "/newName", null);
+		}
+		return null;
+	}
+
+	private Diagnostic registryEntryNotFound(UUID entryId) {
+		return diagnostic("REGISTRY_ENTRY_NOT_FOUND", "diagnostic.registry_entry_not_found",
+				"The requested registry entry does not exist.", "/registries/" + entryId, null);
+	}
+
+	private static String registryName(String registry, JsonObject entry) {
+		return requiredString(entry, registry.equals("languageKeys") ? "key" : "name");
+	}
+
+	private static String registryKind(String registry) {
+		return switch (registry) {
+			case "variables" -> "variable";
+			case "tags" -> "tag";
+			case "languageKeys" -> "language_key";
+			default -> throw new IllegalArgumentException("Unsupported registry: " + registry);
+		};
+	}
+
+	private static JsonObject registrySupport(String state, String reasonCode) {
+		JsonObject support = new JsonObject();
+		support.addProperty("state", state);
+		support.addProperty("reasonCode", reasonCode);
+		return support;
+	}
+
+	private static JsonObject languageStats(JsonArray entries) {
+		Set<String> languages = new HashSet<>();
+		Set<String> keys = new HashSet<>();
+		int duplicates = 0;
+		for (JsonElement raw : entries) {
+			JsonObject entry = raw.getAsJsonObject();
+			if (!keys.add(string(entry, "key", ""))) duplicates++;
+			if (entry.has("translations") && entry.get("translations").isJsonObject())
+				languages.addAll(entry.getAsJsonObject("translations").keySet());
+		}
+		int missing = 0;
+		for (JsonElement raw : entries) {
+			JsonObject translations = raw.getAsJsonObject().has("translations")
+					&& raw.getAsJsonObject().get("translations").isJsonObject()
+					? raw.getAsJsonObject().getAsJsonObject("translations") : new JsonObject();
+			for (String language : languages)
+				if (!translations.has(language) || translations.get(language).getAsString().isBlank()) missing++;
+		}
+		JsonObject stats = new JsonObject();
+		stats.addProperty("keyCount", entries.size());
+		stats.addProperty("languageCount", languages.size());
+		stats.addProperty("missingTranslationCount", missing);
+		stats.addProperty("duplicateKeyCount", duplicates);
+		return stats;
+	}
+
+	private static int distinctReferenceSources(JsonObject projection) {
+		Set<String> sources = new HashSet<>();
+		projection.getAsJsonArray("edges").forEach(raw -> sources.add(raw.getAsJsonObject().get("sourceId").getAsString()));
+		return sources.size();
+	}
+
+	private boolean rewriteRegistryReferences(JsonElement value, String registry, String entryId, String oldName,
+			String newName, String path) {
+		boolean changed = false;
+		if (value == null || value.isJsonNull()) return false;
+		if (value.isJsonObject()) {
+			JsonObject object = value.getAsJsonObject();
+			for (String key : List.copyOf(object.keySet())) {
+				JsonElement child = object.get(key);
+				String childPath = path + "/" + key;
+				if (child.isJsonPrimitive() && child.getAsJsonPrimitive().isString()
+						&& child.getAsString().equals(oldName) && registryReferenceField(registry, key, path)) {
+					object.addProperty(key, newName);
+					changed = true;
+				} else changed |= rewriteRegistryReferences(child, registry, entryId, oldName, newName, childPath);
+			}
+		} else if (value.isJsonArray()) {
+			JsonArray array = value.getAsJsonArray();
+			for (int index = 0; index < array.size(); index++)
+				changed |= rewriteRegistryReferences(array.get(index), registry, entryId, oldName, newName,
+						path + "/" + index);
+		}
+		return changed;
+	}
+
+	private static boolean registryReferenceField(String registry, String key, String parentPath) {
+		String normalized = key.toLowerCase(Locale.ROOT);
+		return switch (registry) {
+			case "variables" -> normalized.contains("variable") || normalized.equals("var")
+					|| normalized.equals("name") && parentPath.contains("/procedureIr/dependencies");
+			case "tags" -> normalized.contains("tag");
+			case "languageKeys" -> normalized.contains("language") || normalized.contains("translation");
+			default -> false;
+		};
+	}
+
+	private static String string(JsonObject object, String key, String fallback) {
+		return object != null && object.has(key) && object.get(key).isJsonPrimitive()
+				? object.get(key).getAsString() : fallback;
 	}
 
 	private long currentRevision(UUID workspaceId) {
@@ -1247,10 +2113,14 @@ public final class WorkspaceApplicationService {
 	}
 
 	private static JsonObject localized(String key, String fallback) {
+		return localized(key, fallback, new JsonObject());
+	}
+
+	private static JsonObject localized(String key, String fallback, JsonObject args) {
 		JsonObject value = new JsonObject();
 		value.addProperty("key", key);
 		value.addProperty("fallback", fallback);
-		value.add("args", new JsonObject());
+		value.add("args", args == null ? new JsonObject() : args.deepCopy());
 		return value;
 	}
 
@@ -1297,5 +2167,45 @@ public final class WorkspaceApplicationService {
 	}
 
 	private record TaskMutation(JsonObject task, long sequence) {
+	}
+
+	private record RegistryLocation(String registry, JsonArray entries, int index, JsonObject entry) {
+	}
+
+	private record RegistryEdit(JsonObject entry, JsonObject data, List<String> changedPaths) {
+	}
+
+	private record RegistryMutation(JsonObject entry, long sequence, JsonObject data, Diagnostic diagnostic) {
+		private static RegistryMutation success(JsonObject entry, long sequence, JsonObject data) {
+			return new RegistryMutation(entry.deepCopy(), sequence, data.deepCopy(), null);
+		}
+
+		private static RegistryMutation rejected(Diagnostic diagnostic) {
+			return new RegistryMutation(null, 0, null, diagnostic);
+		}
+	}
+
+	private record DatagenMutation(JsonObject data, long sequence, Diagnostic diagnostic) {
+		private static DatagenMutation success(JsonObject data, long sequence) {
+			return new DatagenMutation(data.deepCopy(), sequence, null);
+		}
+
+		private static DatagenMutation rejected(Diagnostic diagnostic) {
+			return new DatagenMutation(null, 0, diagnostic);
+		}
+	}
+
+	private static final class RegistryValidationException extends RuntimeException {
+		private final Diagnostic diagnostic;
+
+		private RegistryValidationException(Diagnostic diagnostic) {
+			super(diagnostic.code());
+			this.diagnostic = diagnostic;
+		}
+
+		private Diagnostic diagnostic() { return diagnostic; }
+	}
+
+	private record WorkspaceCreationMutation(WorkspaceCreationService.CreationResult creation, long sequence) {
 	}
 }

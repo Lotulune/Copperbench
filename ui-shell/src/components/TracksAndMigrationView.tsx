@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Compass,
   ShieldCheck,
@@ -11,6 +11,7 @@ import {
   Lock
 } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
+import { t } from '../i18n';
 import {
   VersionTracksProjection,
   VersionTrack,
@@ -41,7 +42,8 @@ export const TracksAndMigrationView: React.FC = () => {
     listPublishBatches,
     createPublishBatch,
     prepareResourcePackClient,
-    elevatePermission
+    elevatePermission,
+    runDiagnosticAction
   } = useWorkbench();
 
   const [activeTab, setActiveTab] = useState<U3Tab>('matrix');
@@ -50,8 +52,8 @@ export const TracksAndMigrationView: React.FC = () => {
   const [tracksData, setTracksData] = useState<VersionTracksProjection | null>(state.versionTracks);
 
   // Migration state
-  const [targetGeneratorId, setTargetGeneratorId] = useState<string>('neoforge-1.21.1');
-  const [migrationOutputName, setMigrationOutputName] = useState<string>('workspace_neoforge_1_21_1');
+  const [targetGeneratorId, setTargetGeneratorId] = useState<string>('');
+  const [migrationOutputName, setMigrationOutputName] = useState<string>('workspace_migrated_copy');
   const [migrationPreview, setMigrationPreview] = useState<MigrationReport | null>(null);
   const [migrationLoading, setMigrationLoading] = useState(false);
   const [migrationConfirmed, setMigrationConfirmed] = useState(false);
@@ -73,6 +75,58 @@ export const TracksAndMigrationView: React.FC = () => {
   const [newBatchOutput, setNewBatchOutput] = useState('build/distributions/copperbench-assets-1.0.0.zip');
   const [clientPreparationNotice, setClientPreparationNotice] = useState<string | null>(null);
 
+  const renderActionableDiagnostics = (result: CommandResult | null, testId: string) => {
+    const diagnostics = result?.diagnostics.filter((diagnostic) =>
+      diagnostic.actions.length > 0 || diagnostic.message.args?.failureId != null) ?? [];
+    if (diagnostics.length === 0) return null;
+    return (
+      <div
+        role="alert"
+        data-testid={testId}
+        style={{
+          background: 'var(--badge-red-bg)',
+          border: '1px solid rgba(248, 81, 73, 0.4)',
+          borderRadius: 'var(--radius-md)',
+          padding: '14px 18px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '10px'
+        }}
+      >
+        {diagnostics.map((diagnostic) => (
+          <div key={diagnostic.code} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+            <AlertTriangle size={20} color="var(--badge-red)" aria-hidden="true" style={{ flexShrink: 0 }} />
+            <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: '7px' }}>
+              <div style={{ fontSize: '12px', color: 'var(--text-main)', lineHeight: 1.5 }}>
+                {t(diagnostic.message)}
+                {diagnostic.message.args?.failureId != null && (
+                  <code style={{ marginLeft: '8px', fontSize: '10px', color: 'var(--text-sub)', overflowWrap: 'anywhere' }}>
+                    错误编号：{String(diagnostic.message.args.failureId)}
+                  </code>
+                )}
+              </div>
+              {diagnostic.actions.length > 0 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  {diagnostic.actions.map((action) => (
+                    <button
+                      key={action.id}
+                      type="button"
+                      className="btn-primary"
+                      style={{ fontSize: '11px', padding: '4px 10px' }}
+                      onClick={() => runDiagnosticAction(action, diagnostic)}
+                    >
+                      {t(action.label)}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   // Load version tracks on mount
   useEffect(() => {
     let isMounted = true;
@@ -87,6 +141,32 @@ export const TracksAndMigrationView: React.FC = () => {
       isMounted = false;
     };
   }, [getVersionTracks]);
+
+  const currentGeneratorId = tracksData?.currentWorkspace?.generator?.id
+    ?? state.workbench?.workspace.generator.id;
+  const migrationTargets = useMemo(() => {
+    const targets = new Map<string, { loader: TrackLoader; track: VersionTrack }>();
+    for (const track of tracksData?.tracks ?? []) {
+      for (const loader of track.loaders) {
+        if (loader.loader === 'resource_pack' || loader.status === 'unavailable'
+          || loader.generatorId === currentGeneratorId) continue;
+        targets.set(loader.generatorId, { loader, track });
+      }
+    }
+    return [...targets.values()];
+  }, [currentGeneratorId, tracksData]);
+
+  useEffect(() => {
+    if (migrationTargets.length === 0 || migrationTargets.some(({ loader }) => loader.generatorId === targetGeneratorId)) {
+      return;
+    }
+    const currentVersion = tracksData?.currentWorkspace?.generator.minecraftVersion
+      ?? state.workbench?.workspace.generator.minecraftVersion;
+    const preferred = migrationTargets.find(({ loader }) => loader.minecraftVersion === currentVersion)
+      ?? migrationTargets[0];
+    setTargetGeneratorId(preferred.loader.generatorId);
+    setMigrationOutputName(sanitizeOutputName(`workspace_${preferred.loader.generatorId}`));
+  }, [migrationTargets, state.workbench?.workspace.generator.minecraftVersion, targetGeneratorId, tracksData]);
 
   // Load publish batches on tab switch or mount
   useEffect(() => {
@@ -213,8 +293,7 @@ export const TracksAndMigrationView: React.FC = () => {
   };
 
   const isCurrentGenerator = (loader: TrackLoader) => {
-    const current = tracksData?.currentWorkspace?.generator?.id ?? state.workbench?.workspace.generator.id;
-    return current === loader.generatorId;
+    return currentGeneratorId === loader.generatorId;
   };
 
   return (
@@ -282,11 +361,14 @@ export const TracksAndMigrationView: React.FC = () => {
               <Info size={16} color="var(--accent-copper)" />
               <span>当前工作区所用生成器：</span>
               <code style={{ background: 'var(--bg-canvas)', padding: '2px 8px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', fontWeight: 600 }}>
-                {tracksData?.currentWorkspace?.generator?.displayName ?? state.workbench?.workspace.generator.displayName ?? 'Fabric 1.21.1'} ({tracksData?.currentWorkspace?.generator?.id ?? state.workbench?.workspace.generator.id ?? 'fabric-1.21.1'})
+                {tracksData?.currentWorkspace?.generator?.displayName ?? state.workbench?.workspace.generator.displayName ?? '生成器信息不可用'}
+                {' '}({tracksData?.currentWorkspace?.generator?.id ?? state.workbench?.workspace.generator.id ?? 'unknown'})
               </code>
             </div>
             <div style={{ fontSize: '12px', color: 'var(--text-sub)' }}>
-              四轨并进策略：最新稳定轨 (26.1) · 上一代稳定轨 (1.21.1) · 定点轨
+              {tracksData
+                ? `版本策略：最新稳定轨 ${tracksData.latestMinecraftVersion} · 前一稳定轨 ${tracksData.previousMinecraftVersion} · 维护轨`
+                : '正在读取版本轨道策略…'}
             </div>
           </div>
 
@@ -410,13 +492,14 @@ export const TracksAndMigrationView: React.FC = () => {
                   }}
                   style={{ padding: '8px 10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', background: 'var(--bg-canvas)', color: 'var(--text-main)', fontSize: '12px' }}
                 >
-                  <option value="neoforge-1.21.1">NeoForge 1.21.1 (维护轨，正式支持)</option>
-                  <option value="neoforge-1.20.1">NeoForge 1.20.1 (维护轨，正式支持)</option>
-                  <option value="fabric-1.20.1">Fabric 1.20.1 (维护轨，正式支持)</option>
-                  <option value="fabric-26.1.2">Fabric 26.1.2 (前一稳定)</option>
-                  <option value="neoforge-26.1.2">NeoForge 26.1.2 (前一稳定)</option>
-                  <option value="fabric-26.2">Fabric 26.2 (最新稳定，新建工作区可选)</option>
-                  <option value="neoforge-26.2">NeoForge 26.2 (最新稳定，纵向切片)</option>
+                  {migrationTargets.map(({ loader, track }) => (
+                    <option key={loader.generatorId} value={loader.generatorId}>
+                      {loader.loader === 'neoforge' ? 'NeoForge' : 'Fabric'} {loader.minecraftVersion}
+                      {' · '}{track.id === 'latest_stable' ? '最新稳定轨' : track.id === 'previous_stable' ? '前一稳定轨' : '维护轨'}
+                      {' · '}{loader.status === 'supported' ? '正式支持' : loader.status === 'preview' ? '技术预览' : '并轨共用'}
+                    </option>
+                  ))}
+                  {migrationTargets.length === 0 && <option value="">没有可用的迁移目标</option>}
                 </select>
               </label>
 
@@ -427,7 +510,7 @@ export const TracksAndMigrationView: React.FC = () => {
                   data-testid="migration-output-name-input"
                   value={migrationOutputName}
                   onChange={(e) => setMigrationOutputName(e.target.value)}
-                  placeholder="workspace_neoforge_1_21_1"
+                  placeholder={targetGeneratorId ? sanitizeOutputName(`workspace_${targetGeneratorId}`) : 'workspace_migrated_copy'}
                   style={{ padding: '8px 10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', background: 'var(--bg-canvas)', color: 'var(--text-main)', fontSize: '12px' }}
                 />
               </label>
@@ -439,7 +522,7 @@ export const TracksAndMigrationView: React.FC = () => {
                 className="btn-secondary"
                 data-testid="preview-migration-btn"
                 onClick={() => void handlePreviewMigration()}
-                disabled={migrationLoading}
+                disabled={migrationLoading || !targetGeneratorId}
                 style={{ fontSize: '12px', padding: '6px 14px' }}
               >
                 {migrationLoading ? '正在分析差异…' : '分析跨加载器迁移差异'}
@@ -548,6 +631,8 @@ export const TracksAndMigrationView: React.FC = () => {
           )}
 
           {/* Migration Success Result Banner */}
+          {renderActionableDiagnostics(migrationResult, 'migration-diagnostics-banner')}
+
           {migrationResult && migrationResult.status === 'committed' && migrationResult.data?.complete && (
             <div data-testid="migration-success-banner" style={{ background: 'var(--badge-green-bg)', border: '1px solid rgba(63, 185, 80, 0.4)', borderRadius: 'var(--radius-md)', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: '12px' }}>
               <CheckCircle2 size={20} color="var(--badge-green)" />
@@ -708,6 +793,8 @@ export const TracksAndMigrationView: React.FC = () => {
           )}
 
           {/* Upstream Denial Banner */}
+          {renderActionableDiagnostics(upstreamResult, 'upstream-diagnostics-banner')}
+
           {upstreamResult && upstreamResult.status === 'rejected' && upstreamResult.denial && (
             <div data-testid="upstream-denial-banner" style={{ background: 'var(--badge-red-bg)', border: '1px solid rgba(248, 81, 73, 0.4)', borderRadius: 'var(--radius-md)', padding: '14px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
