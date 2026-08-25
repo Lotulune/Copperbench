@@ -11,7 +11,7 @@
 | 项 | 状态 | 下一证据 |
 | --- | --- | --- |
 | 机器状态源 | 已通过 | `product-status.json`、Schema 与漂移校验在 main/PR 持续通过 |
-| main 分支保护 | 已验证 | 三项必需检查、严格更新和管理员保护已生效；PR #1～#4 留有全绿记录 |
+| main 分支保护 | 已验证 | 三项必需检查、严格更新和管理员保护已生效；PR #1～#5 留有全绿记录 |
 | Javadoc Pages | 已验证 | <https://lotulune.github.io/Copperbench/> 返回 200 |
 | production 审批 | 已配置必需审阅者 | Preview 2 在批准前保持等待，并留下部署记录 |
 | Nightly | 已取得最终候选全绿证据 | [运行 32904372190](https://github.com/Lotulune/Copperbench/actions/runs/32904372190) 在 `fe4b0f30` 的产品回归与八生成器矩阵全部通过 |
