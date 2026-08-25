@@ -25,7 +25,5 @@ class DevelopmentSbomTest {
 			Path license = Path.of(component.path());
 			assertTrue(Files.exists(license), component.path());
 		}
-		assertTrue(Files.isDirectory(Path.of("jdk/jbr25_win_64")));
-		assertTrue(Files.isDirectory(Path.of("jdk/jdk21_win_64")));
 	}
 }

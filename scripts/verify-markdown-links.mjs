@@ -1,9 +1,16 @@
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
-import { dirname, extname, join, normalize, resolve } from 'node:path';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { dirname, extname, join, normalize, resolve, sep } from 'node:path';
+import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const ignoredDirectories = new Set(['.git', '.gradle', '.tmp', 'build', 'node_modules', 'test-results']);
+const trackedPathList = execFileSync('git', ['ls-files', '-z'], {
+  cwd: repositoryRoot,
+  encoding: 'utf8',
+  maxBuffer: 16 * 1024 * 1024,
+}).split('\0').filter(Boolean).map((path) => normalize(resolve(repositoryRoot, path)));
+const trackedPaths = new Set(trackedPathList);
 
 function markdownFiles(directory) {
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
@@ -40,7 +47,11 @@ for (const file of markdownFiles(repositoryRoot)) {
       continue;
     }
     const resolved = normalize(resolve(dirname(file), decoded));
-    if (!resolved.startsWith(repositoryRoot) || !existsSync(resolved)) {
+    const insideRepository = resolved === repositoryRoot || resolved.startsWith(`${repositoryRoot}${sep}`);
+    const tracked = trackedPaths.has(resolved)
+      || (existsSync(resolved) && statSync(resolved).isDirectory()
+        && trackedPathList.some((path) => path.startsWith(`${resolved}${sep}`)));
+    if (!insideRepository || !existsSync(resolved) || !tracked) {
       failures.push(`${file}: missing local target ${target}`);
     }
   }

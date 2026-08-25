@@ -10,7 +10,7 @@
 | --- | --- | --- |
 | Playwright U4 | 帮助/About、DPI、命中区、崩溃恢复 100/100 | `npx playwright test`（ui-shell） |
 | JCEF 实机 Snap/DPI | 真实产品壳 JCEF 窗口：React 上报 8 个 chrome 区域；`HTTOPLEFT=13`；最大化区 `HTMAXBUTTON=9`；向 HWND 发送 `WM_DPICHANGED` 144 后 DPR=1.5 | [`jcef-snap-dpi.json`](../../evidence/stage-8/2026-08-20/jcef-snap-dpi.json)；`pwsh -NoProfile -File .\scripts\verify-stage-8-jcef-snap-dpi.ps1` |
-| 资源包真实客户端加载 | `prepare_resource_pack_client` 仍不自动启动游戏。独立 Fabric 1.21.1 `runClient` 探测看到 `COPPERBENCH_STAGE3_READY`，且 `Reloading ResourceManager:` 列出 `file/copper_ready_pack.zip` | [`resource-pack-1211-client.json`](../../evidence/stage-8/2026-08-20/resource-pack-1211-client.json)；日志同行见 [`resource-pack-1211-client.log`](../../evidence/stage-8/2026-08-20/resource-pack-1211-client.log)；`pwsh -NoProfile -File .\scripts\verify-resource-pack-1211-client.ps1` |
+| 资源包真实客户端加载 | `prepare_resource_pack_client` 仍不自动启动游戏。独立 Fabric 1.21.1 `runClient` 探测看到 `COPPERBENCH_STAGE3_READY`，且 `Reloading ResourceManager:` 列出 `file/copper_ready_pack.zip` | [`resource-pack-1211-client.json`](../../evidence/stage-8/2026-08-20/resource-pack-1211-client.json)；原始日志 `resource-pack-1211-client.log` 由探测脚本本地生成且不入库；`pwsh -NoProfile -File .\scripts\verify-resource-pack-1211-client.ps1` |
 
 未宣称：物理显示器热插拔 / 用户拖到 Snap 弹出菜单的桌面走查。DPI 证据是对真实 JCEF HWND 发送 `WM_DPICHANGED`，不是换显示器。
 

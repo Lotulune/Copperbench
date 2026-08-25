@@ -19,7 +19,9 @@ class SupportedPlatformTest {
 
 	@Test void buildOverrideRefusesWindows10AndAllowsWindows11() {
 		String previous = System.getProperty("copperbench.windows.build");
+		String previousOs = System.getProperty("os.name");
 		try {
+			System.setProperty("os.name", "Windows 11");
 			System.setProperty("copperbench.windows.build", "19045");
 			assertFalse(SupportedPlatform.currentHostSupported());
 			System.setProperty("copperbench.windows.build", "26100");
@@ -29,6 +31,7 @@ class SupportedPlatformTest {
 				System.clearProperty("copperbench.windows.build");
 			else
 				System.setProperty("copperbench.windows.build", previous);
+			System.setProperty("os.name", previousOs);
 		}
 	}
 }

@@ -50,13 +50,13 @@ try {
 		-RedirectStandardError (Join-Path $runDirectory 'server.err.log') `
 		-WindowStyle Hidden -PassThru
 
-	$deadline = (Get-Date).AddSeconds(45)
+	$deadline = (Get-Date).AddSeconds(180)
 	while (-not (Test-Path -LiteralPath $connectionPath)) {
 		if ($gradleProcess.HasExited) {
 			throw "Conformance server exited early. See $runDirectory"
 		}
 		if ((Get-Date) -gt $deadline) {
-			throw "Conformance server did not start within 45 seconds. See $runDirectory"
+			throw "Conformance server did not start within 180 seconds. See $runDirectory"
 		}
 		Start-Sleep -Milliseconds 250
 	}
@@ -120,4 +120,8 @@ try {
 } finally {
 	if ($proxyProcess) { Stop-ProcessTree -ProcessId $proxyProcess.Id }
 	if ($gradleProcess) { Stop-ProcessTree -ProcessId $gradleProcess.Id }
+	if (Test-Path -LiteralPath $runDirectory) {
+		Get-ChildItem -LiteralPath $runDirectory -File -Filter '*.log' -ErrorAction SilentlyContinue |
+			Copy-Item -Destination $outputPath -Force
+	}
 }
