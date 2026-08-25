@@ -17,7 +17,7 @@
 | 维护 1.21.1 | 正式支持，有黄金构建 / runClient |
 | 维护 1.20.1 | Fabric / NeoForge 正式支持（编译 + runClient）。NeoForge 钉选 `1.20.1-47.1.106` |
 
-「新建工作区」列出已安装的生成器插件。Fabric 与 NeoForge 均有 26.2、26.1.2、1.21.1、1.20.1，并提供独立 `resourcepack-1.21.1` 资源包生成器。产品外壳有自己的「新建工作区」视图（导航栏「新建工作区」）：选择生成器、填写模组名 / ID / 包名 / 文件夹，校验通过并确认后创建，随后在新窗口打开；选择资源包时不需要 Java 包名。MCP 与 headless 也可列出生成器并提交创建命令，但必须显式提供用户批准事实。旧版 Swing 对话框仍保留可回退。阶段 8 第一方纵向切片（方块、物品、配方、Procedure）四轨均有编译 + runClient 证据；阶段 9 又将 Function、Loot Table、Advancement 纳入第一方 CRUD，但其八生成器黄金编译仍属于待关闭门禁。八个工作区生成器插件空工作区有独立 Gradle 黄金编译证据。资源包工作区可导出 ZIP；`prepare_resource_pack_client` 只准备测试客户端文件，不自动启动 Minecraft。尚未宣称每一个模组元素类型都能生成可编译代码。阶段 9 需求见 [PRD-STAGE-9.md](../../PRD-STAGE-9.md)，状态见 [剩余完善清单](../remaining-work.md)。你正在用的发行预览包可能落后于源码。
+「新建工作区」列出已安装的生成器插件。Fabric 与 NeoForge 均有 26.2、26.1.2、1.21.1、1.20.1，并提供独立 `resourcepack-1.21.1` 资源包生成器。产品外壳有自己的「新建工作区」视图（导航栏「新建工作区」）：选择生成器、填写模组名 / ID / 包名 / 文件夹，校验通过并确认后创建，随后在新窗口打开；选择资源包时不需要 Java 包名。MCP 与 headless 也可列出生成器并提交创建命令，但必须显式提供用户批准事实。旧版 Swing 对话框仍保留可回退。阶段 8 第一方纵向切片（方块、物品、配方、Procedure）四轨均有编译 + runClient 证据；阶段 9 又将 Function、Loot Table、Advancement 纳入第一方 CRUD，其八生成器黄金生成与编译已 8/8 通过，但专用编辑器、服务端、性能、真实 JCEF/可访问性和干净 Windows 11 门禁仍未关闭。八个工作区生成器插件空工作区有独立 Gradle 黄金编译证据。资源包工作区可导出 ZIP；`prepare_resource_pack_client` 只准备测试客户端文件，不自动启动 Minecraft。尚未宣称每一个模组元素类型都能生成可编译代码。阶段 9 需求见 [PRD-STAGE-9.md](../../PRD-STAGE-9.md)，状态见 [剩余完善清单](../remaining-work.md)。你正在用的发行预览包可能落后于源码。
 
 ## 模组元素
 

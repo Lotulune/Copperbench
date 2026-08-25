@@ -3,7 +3,7 @@
   "schemaVersion": "1.0",
   "snapshot": {
     "date": "2026-08-26",
-    "lastVerifiedCommit": "9c37595b7f0e7ebd4f1e3a7fae9e7e5b67f9d39f",
+    "lastVerifiedCommit": "f801a81fb53def0d12ce21e9bd0559a9bf8ebb9c",
     "policy": "Only code, automated checks, and evidence tied to a commit can promote a gate."
   },
   "product": {
@@ -32,12 +32,14 @@
     },
     "fastCi": {
       "status": "passed",
-      "run": "https://github.com/Lotulune/Copperbench/actions/runs/32839587007",
+      "run": "https://github.com/Lotulune/Copperbench/actions/runs/32901419654",
       "latestAttempt": {
-        "status": "failed",
-        "run": "https://github.com/Lotulune/Copperbench/actions/runs/32884305565",
-        "reason": "Release schema omitted source.additionalTerms; fixed by the branch-protection smoke PR."
+        "status": "passed",
+        "run": "https://github.com/Lotulune/Copperbench/actions/runs/32901419654",
+        "reason": "The protected merge run passed all three required checks after the UI window timeout was raised to the stable default."
       },
+      "consecutiveGreenMainRuns": 1,
+      "consecutiveGreenTarget": 3,
       "requiredChecks": [
         "Java tests and Javadoc",
         "UI contract, build, and smoke tests",
@@ -45,8 +47,12 @@
       ]
     },
     "nightly": {
-      "status": "ready-for-first-run",
-      "workflow": ".github/workflows/nightly.yml"
+      "status": "passed",
+      "workflow": ".github/workflows/nightly.yml",
+      "run": "https://github.com/Lotulune/Copperbench/actions/runs/32898153354",
+      "sourceCommit": "c34bed3bc3293a6bd9e592625b844332cc2c1381",
+      "productRegression": "passed",
+      "generatorGolden": "8/8 passed"
     },
     "repositoryGovernance": {
       "licenseDetection": "GPL-3.0",
@@ -70,14 +76,14 @@
     }
   },
   "generators": [
-    {"id": "fabric-26.2", "loader": "fabric", "minecraft": "26.2", "workspace": "supported", "stage9": "unverified"},
-    {"id": "neoforge-26.2", "loader": "neoforge", "minecraft": "26.2", "workspace": "supported", "stage9": "unverified"},
-    {"id": "fabric-26.1.2", "loader": "fabric", "minecraft": "26.1.2", "workspace": "supported", "stage9": "unverified"},
-    {"id": "neoforge-26.1.2", "loader": "neoforge", "minecraft": "26.1.2", "workspace": "supported", "stage9": "unverified"},
-    {"id": "fabric-1.21.1", "loader": "fabric", "minecraft": "1.21.1", "workspace": "supported", "stage9": "unverified"},
-    {"id": "neoforge-1.21.1", "loader": "neoforge", "minecraft": "1.21.1", "workspace": "supported", "stage9": "unverified"},
-    {"id": "fabric-1.20.1", "loader": "fabric", "minecraft": "1.20.1", "workspace": "supported", "stage9": "unverified"},
-    {"id": "neoforge-1.20.1", "loader": "neoforge", "minecraft": "1.20.1", "workspace": "supported", "stage9": "unverified"}
+    {"id": "fabric-26.2", "loader": "fabric", "minecraft": "26.2", "workspace": "supported", "stage9": "golden-passed"},
+    {"id": "neoforge-26.2", "loader": "neoforge", "minecraft": "26.2", "workspace": "supported", "stage9": "golden-passed"},
+    {"id": "fabric-26.1.2", "loader": "fabric", "minecraft": "26.1.2", "workspace": "supported", "stage9": "golden-passed"},
+    {"id": "neoforge-26.1.2", "loader": "neoforge", "minecraft": "26.1.2", "workspace": "supported", "stage9": "golden-passed"},
+    {"id": "fabric-1.21.1", "loader": "fabric", "minecraft": "1.21.1", "workspace": "supported", "stage9": "golden-passed"},
+    {"id": "neoforge-1.21.1", "loader": "neoforge", "minecraft": "1.21.1", "workspace": "supported", "stage9": "golden-passed"},
+    {"id": "fabric-1.20.1", "loader": "fabric", "minecraft": "1.20.1", "workspace": "supported", "stage9": "golden-passed"},
+    {"id": "neoforge-1.20.1", "loader": "neoforge", "minecraft": "1.20.1", "workspace": "supported", "stage9": "golden-passed"}
   ],
   "elements": {
     "supported": ["block", "item", "recipe"],
@@ -100,14 +106,14 @@
   },
   "gates": [
     {"id": "release-pipeline", "status": "passed", "betaBlocking": false, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/32838065932"]},
-    {"id": "fast-ci", "status": "passed", "betaBlocking": false, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/32839587007"]},
-    {"id": "product-status-source", "status": "in-progress", "betaBlocking": true, "evidence": ["product-status.json", "schemas/product-status.schema.json", "scripts/verify-product-status.mjs"]},
-    {"id": "repository-governance", "status": "in-progress", "betaBlocking": false, "evidence": ["docs/testing/repository-governance-2026-08-26.md"]},
+    {"id": "fast-ci", "status": "passed", "betaBlocking": false, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/32901419654"]},
+    {"id": "product-status-source", "status": "passed", "betaBlocking": true, "evidence": ["product-status.json", "schemas/product-status.schema.json", "scripts/verify-product-status.mjs"]},
+    {"id": "repository-governance", "status": "passed", "betaBlocking": false, "evidence": ["docs/testing/repository-governance-2026-08-26.md"]},
     {"id": "three-data-editors", "status": "blocked", "betaBlocking": true, "evidence": []},
     {"id": "language-tools", "status": "blocked", "betaBlocking": true, "evidence": []},
     {"id": "procedure-500", "status": "blocked", "betaBlocking": true, "evidence": []},
     {"id": "workspace-2000-10000", "status": "blocked", "betaBlocking": true, "evidence": []},
-    {"id": "stage9-eight-generator-golden", "status": "blocked", "betaBlocking": true, "evidence": []},
+    {"id": "stage9-eight-generator-golden", "status": "passed", "betaBlocking": true, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/32898153354", "docs/testing/stage-9-generator-golden-2026-08-26.md"]},
     {"id": "server-readiness-matrix", "status": "blocked", "betaBlocking": true, "evidence": []},
     {"id": "real-jcef-accessibility", "status": "blocked", "betaBlocking": true, "evidence": []},
     {"id": "clean-windows-11-stage9", "status": "blocked", "betaBlocking": true, "evidence": []},
@@ -121,7 +127,7 @@
   },
   "knownLimitations": [
     "Windows packages are not Authenticode signed.",
-    "Stage 9 data elements remain preview until the eight-generator golden gate passes.",
+    "Stage 9 data elements remain preview until the dedicated editors, large-workspace, server, JCEF/accessibility, and clean Windows 11 gates pass.",
     "The Stage 9 server matrix, real JCEF accessibility pass, and clean Windows 11 VM pass are not complete.",
     "Public Beta is blocked until every betaBlocking gate is passed."
   ]

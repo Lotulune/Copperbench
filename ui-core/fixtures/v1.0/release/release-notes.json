@@ -132,7 +132,7 @@
       "id": "slice_elements",
       "area": "T03",
       "surface": "new_ui",
-      "notes": "First-party editing covers block, item, recipe, procedure, function, loot table, and advancement. The final three remain Stage 9 development-preview CRUD until the eight-generator golden gate passes."
+      "notes": "First-party editing covers block, item, recipe, procedure, function, loot table, and advancement. The final three passed the eight-generator golden build but remain Stage 9 development preview until their editor and remaining product gates pass."
     },
     {
       "id": "other_mod_elements",
@@ -156,7 +156,7 @@
       "id": "generate_source",
       "area": "T06",
       "surface": "new_ui",
-      "notes": "The Stage 8 block/item/recipe/procedure slice has all-track evidence. Stage 9 data elements still require the separate eight-generator golden gate."
+      "notes": "The Stage 8 block/item/recipe/procedure slice has all-track evidence. Stage 9 function/loot table/advancement generation and compilation passed all eight generators."
     },
     {
       "id": "managed_build",
@@ -562,8 +562,8 @@
       "villagerprofession", "villagertrade"
     ],
     "bedrockAddonNotApplicable": ["bebiome", "beblock", "beentity", "beitem", "bescript"],
-    "appliesToGenerators": "shared Java application service; generator-specific Stage 9 validation pending",
-    "notes": "Create and update in the new UI, MCP, and headless accept only the first-party slice. Function, loot table, and advancement are Stage 9 development-preview CRUD until the eight-generator golden gate passes. Imported upstream types are preserved and listed, but the editor is read-only and updates are rejected."
+    "appliesToGenerators": "shared Java application service; Stage 9 golden generation passed all eight generators",
+    "notes": "Create and update in the new UI, MCP, and headless accept only the first-party slice. Function, loot table, and advancement passed the eight-generator golden build but remain Stage 9 development preview until the dedicated editor and remaining product gates pass. Imported upstream types are preserved and listed, but the editor is read-only and updates are rejected."
   },
   "upstreamTools": {
     "schemaVersion": "1.0",

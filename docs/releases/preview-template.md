@@ -12,7 +12,7 @@ Windows SmartScreen 可能因未签名而显示警告。请先校验 SHA-256，�
 
 - Windows 11 x64；Fabric / NeoForge 26.2、26.1.2、1.21.1、1.20.1。
 - Block、Item、Recipe 为已验证第一方创作切片。
-- Procedure、Function、Loot Table、Advancement、服务端、datagen 和 GameTest 为 Stage 9 开发预览，相关性能、生成器、服务端、JCEF 和可访问性门禁尚未关闭。
+- Procedure、Function、Loot Table、Advancement、服务端、datagen 和 GameTest 为 Stage 9 开发预览。Function/Loot Table/Advancement 的八生成器黄金编译已通过；专用编辑器、性能、服务端、JCEF/可访问性和干净 Windows 11 门禁尚未关闭。
 - 其他迁入的上游元素类型多数只读，可回退到旧版编辑器。
 
 ## 已知限制
