@@ -19,24 +19,25 @@
   },
   "delivery": {
     "latestPublicRelease": {
-      "tag": "v0.1.0-preview.1",
-      "sourceCommit": "b1225ec3903990cc03da9a0459c8dbac358a1e84",
-      "matchesSnapshotMain": false,
-      "status": "superseded-candidate"
+      "tag": "v0.1.0-preview.2",
+      "sourceCommit": "c629315b18e11692956dd651e9f31fa6c60ccfaa",
+      "matchesSnapshotMain": true,
+      "status": "public-prerelease",
+      "releaseWorkflowRun": "https://github.com/Lotulune/Copperbench/actions/runs/32909134939"
     },
     "nextRelease": {
-      "tag": "v0.1.0-preview.2",
-      "status": "planned",
+      "tag": "v0.1.0-beta.1",
+      "status": "blocked-by-stage9-and-external-trial",
       "requiresLatestGreenMain": true,
       "signedTagRequired": true
     },
     "fastCi": {
       "status": "passed",
-      "run": "https://github.com/Lotulune/Copperbench/actions/runs/32905419136",
+      "run": "https://github.com/Lotulune/Copperbench/actions/runs/32908621645",
       "latestAttempt": {
         "status": "passed",
-        "run": "https://github.com/Lotulune/Copperbench/actions/runs/32905419136",
-        "reason": "Three independent main runs passed all three required checks after the UI window timeout was raised to the stable default."
+        "run": "https://github.com/Lotulune/Copperbench/actions/runs/32908621645",
+        "reason": "The release-source main run passed all three required checks; three independent runs on the code baseline were already green."
       },
       "runs": [
         "https://github.com/Lotulune/Copperbench/actions/runs/32904346297",
@@ -132,6 +133,7 @@
   },
   "knownLimitations": [
     "Windows packages are not Authenticode signed.",
+    "The preview.2 Git Tag contains an SSH signature; GitHub reports unknown_key until the public signing key is registered.",
     "Stage 9 data elements remain preview until the dedicated editors, large-workspace, server, JCEF/accessibility, and clean Windows 11 gates pass.",
     "The Stage 9 server matrix, real JCEF accessibility pass, and clean Windows 11 VM pass are not complete.",
     "Public Beta is blocked until every betaBlocking gate is passed."
