@@ -8,8 +8,8 @@ accessibility, or clean Windows 11 gates.
 ## Fixed evidence
 
 - Workflow: `Nightly product gates`
-- Run: <https://github.com/Lotulune/Copperbench/actions/runs/32898153354>
-- Source commit: `c34bed3bc3293a6bd9e592625b844332cc2c1381`
+- Run: <https://github.com/Lotulune/Copperbench/actions/runs/32904372190>
+- Source commit: `fe4b0f308e7aa9f5747dbb8faa11a1a7c8879387`
 - Conclusion: product regression passed; generator matrix passed 8/8
 - Build policy: Gradle Wrapper with `--no-build-cache`; matrix `fail-fast: false`
 

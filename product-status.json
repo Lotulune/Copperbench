@@ -3,7 +3,7 @@
   "schemaVersion": "1.0",
   "snapshot": {
     "date": "2026-08-26",
-    "lastVerifiedCommit": "f801a81fb53def0d12ce21e9bd0559a9bf8ebb9c",
+    "lastVerifiedCommit": "fe4b0f308e7aa9f5747dbb8faa11a1a7c8879387",
     "policy": "Only code, automated checks, and evidence tied to a commit can promote a gate."
   },
   "product": {
@@ -32,13 +32,18 @@
     },
     "fastCi": {
       "status": "passed",
-      "run": "https://github.com/Lotulune/Copperbench/actions/runs/32901419654",
+      "run": "https://github.com/Lotulune/Copperbench/actions/runs/32905419136",
       "latestAttempt": {
         "status": "passed",
-        "run": "https://github.com/Lotulune/Copperbench/actions/runs/32901419654",
-        "reason": "The protected merge run passed all three required checks after the UI window timeout was raised to the stable default."
+        "run": "https://github.com/Lotulune/Copperbench/actions/runs/32905419136",
+        "reason": "Three independent main runs passed all three required checks after the UI window timeout was raised to the stable default."
       },
-      "consecutiveGreenMainRuns": 1,
+      "runs": [
+        "https://github.com/Lotulune/Copperbench/actions/runs/32904346297",
+        "https://github.com/Lotulune/Copperbench/actions/runs/32904844692",
+        "https://github.com/Lotulune/Copperbench/actions/runs/32905419136"
+      ],
+      "consecutiveGreenMainRuns": 3,
       "consecutiveGreenTarget": 3,
       "requiredChecks": [
         "Java tests and Javadoc",
@@ -49,8 +54,8 @@
     "nightly": {
       "status": "passed",
       "workflow": ".github/workflows/nightly.yml",
-      "run": "https://github.com/Lotulune/Copperbench/actions/runs/32898153354",
-      "sourceCommit": "c34bed3bc3293a6bd9e592625b844332cc2c1381",
+      "run": "https://github.com/Lotulune/Copperbench/actions/runs/32904372190",
+      "sourceCommit": "fe4b0f308e7aa9f5747dbb8faa11a1a7c8879387",
       "productRegression": "passed",
       "generatorGolden": "8/8 passed"
     },
@@ -106,14 +111,14 @@
   },
   "gates": [
     {"id": "release-pipeline", "status": "passed", "betaBlocking": false, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/32838065932"]},
-    {"id": "fast-ci", "status": "passed", "betaBlocking": false, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/32901419654"]},
+    {"id": "fast-ci", "status": "passed", "betaBlocking": false, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/32904346297", "https://github.com/Lotulune/Copperbench/actions/runs/32904844692", "https://github.com/Lotulune/Copperbench/actions/runs/32905419136"]},
     {"id": "product-status-source", "status": "passed", "betaBlocking": true, "evidence": ["product-status.json", "schemas/product-status.schema.json", "scripts/verify-product-status.mjs"]},
     {"id": "repository-governance", "status": "passed", "betaBlocking": false, "evidence": ["docs/testing/repository-governance-2026-08-26.md"]},
     {"id": "three-data-editors", "status": "blocked", "betaBlocking": true, "evidence": []},
     {"id": "language-tools", "status": "blocked", "betaBlocking": true, "evidence": []},
     {"id": "procedure-500", "status": "blocked", "betaBlocking": true, "evidence": []},
     {"id": "workspace-2000-10000", "status": "blocked", "betaBlocking": true, "evidence": []},
-    {"id": "stage9-eight-generator-golden", "status": "passed", "betaBlocking": true, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/32898153354", "docs/testing/stage-9-generator-golden-2026-08-26.md"]},
+    {"id": "stage9-eight-generator-golden", "status": "passed", "betaBlocking": true, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/32904372190", "docs/testing/stage-9-generator-golden-2026-08-26.md"]},
     {"id": "server-readiness-matrix", "status": "blocked", "betaBlocking": true, "evidence": []},
     {"id": "real-jcef-accessibility", "status": "blocked", "betaBlocking": true, "evidence": []},
     {"id": "clean-windows-11-stage9", "status": "blocked", "betaBlocking": true, "evidence": []},
