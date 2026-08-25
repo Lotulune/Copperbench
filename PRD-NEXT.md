@@ -22,11 +22,11 @@
 | --- | --- | --- |
 | Fast CI | `main@9c37595b` 的 Java/Javadoc、UI/Playwright、MCP 全绿 | 快速门禁可用，但尚缺真实 PR 记录和连续三次 main 记录 |
 | 公开 Release | `v0.1.0-preview.1` 已有 EXE/ZIP/MSIX/SBOM/哈希/元数据，源提交为 `b1225ec3` | 发布链路已证明，但公开包落后于当前 main |
-| 状态源 | 本变更新增版本化 `product-status.json`、Schema 和 CI 漂移校验 | 实施中，后续状态提升必须带证据 |
-| 重型门禁 | 本变更新增 Windows Nightly 全量回归、规模 smoke 和八生成器内容构建矩阵 | 首次 Nightly 尚未取得全绿证据 |
+| 状态源 | `product-status.json`、Schema 和 CI 漂移校验已进入 main；首次远端运行发现 Release Schema 漏项 | 本测试 PR 修复漏项，后续状态提升必须带证据 |
+| 重型门禁 | Windows Nightly 全量回归、规模 smoke 和八生成器内容构建矩阵已进入 main | 首次 Nightly 尚未取得全绿证据 |
 | Stage 9 | 三种专用编辑器、语言工具、500 节点、2,000/10,000 规模、八生成器、服务端、真实 JCEF/a11y、干净 VM 均未全部关闭 | `betaEligible=false`，不得称为 Beta |
-| 仓库治理 | Pages、main 保护、production 必需审阅者和真实测试 PR 尚待仓库设置闭环 | P0 阻断项 |
-| Dependency Submission | 仓库 Dependency Graph 未启用，原工作流无法成功 | 删除误导工作流，不再伪装为已修复 |
+| 仓库治理 | GitHub 已识别 GPLv3；Pages、main 三项必需检查和 production 必需审阅者已配置 | 本分支作为首个受保护测试 PR，合并前仍为实施中 |
+| Dependency Submission | 仓库 Dependency Graph 未启用，原工作流无法成功 | 误导工作流已从 main 删除 |
 
 ## 1. 背景与问题
 

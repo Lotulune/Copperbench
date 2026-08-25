@@ -265,6 +265,7 @@
       "additionalProperties": false,
       "properties": {
         "license": { "type": "string" },
+        "additionalTerms": { "type": "string" },
         "notices": { "type": "string" },
         "changes": { "type": "string" },
         "sourceDistribution": { "type": "string" },
