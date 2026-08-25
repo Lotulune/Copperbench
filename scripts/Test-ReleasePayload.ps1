@@ -15,7 +15,7 @@ foreach ($extension in $requiredExtensions) {
 	}
 	if ($binary.Length -eq 0) { throw "Release binary $($binary.Name) is empty" }
 }
-foreach ($requiredName in 'SHA256SUMS.txt', 'RELEASE-METADATA.json', 'copperbench.spdx.json', 'LICENSE.txt', 'THIRD_PARTY_NOTICES.md') {
+foreach ($requiredName in 'SHA256SUMS.txt', 'RELEASE-METADATA.json', 'copperbench.spdx.json', 'product-status.json', 'LICENSE.txt', 'LICENSE-ADDITIONAL-TERMS.md', 'THIRD_PARTY_NOTICES.md') {
 	if (-not ($files | Where-Object Name -EQ $requiredName)) {
 		throw "Release payload is missing $requiredName"
 	}

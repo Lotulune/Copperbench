@@ -108,7 +108,8 @@ public class AboutAction extends BasicAction {
 		licenseText.setFont(Theme.current().getConsoleFont());
 		ComponentUtils.deriveFont(licenseText, 12);
 		licenseText.setWrapStyleWord(true);
-		licenseText.setText(FileIO.readFileToString(new File("./LICENSE.txt")));
+		licenseText.setText(FileIO.readFileToString(new File("./LICENSE.txt"))
+				+ "\n\n" + FileIO.readFileToString(new File("./LICENSE-ADDITIONAL-TERMS.md")));
 		gradlesp.setPreferredSize(new Dimension(570, 570));
 		gradlesp.getHorizontalScrollBar().setValue(0);
 		gradlesp.getVerticalScrollBar().setValue(0);

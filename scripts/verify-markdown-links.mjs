@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const ignoredDirectories = new Set(['.git', '.gradle', '.tmp', 'build', 'node_modules', 'test-results']);
-const trackedPathList = execFileSync('git', ['ls-files', '-z'], {
+const trackedPathList = execFileSync('git', ['ls-files', '--cached', '--others', '--exclude-standard', '-z'], {
   cwd: repositoryRoot,
   encoding: 'utf8',
   maxBuffer: 16 * 1024 * 1024,

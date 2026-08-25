@@ -46,12 +46,12 @@ public final class DevelopmentSbom {
 		root.addProperty("productId", ProductIdentity.ID);
 		root.addProperty("productVersion", ProductIdentity.VERSION);
 		JsonArray components = new JsonArray();
-		add(components, ProductIdentity.NAME, ProductIdentity.VERSION, "application", "GPL-3.0", ".");
+		add(components, ProductIdentity.NAME, ProductIdentity.VERSION, "application", "GPL-3.0-only", ".");
 		add(components, "JetBrains Runtime JCEF", "25", "runtime", "GPL-2.0-with-classpath-exception",
 				"jdk/jbr25_win_64");
 		add(components, "Bundled JDK 21", "21", "runtime", "GPL-2.0-with-classpath-exception", "jdk/jdk21_win_64");
 		for (var plugin : BundledPluginInventory.FIRST_PARTY)
-			add(components, plugin.pluginId(), ProductIdentity.VERSION, "plugin", "GPL-3.0",
+			add(components, plugin.pluginId(), ProductIdentity.VERSION, "plugin", "GPL-3.0-only",
 					"plugins/" + plugin.packageName());
 		for (Component component : DIRECT)
 			add(components, component.name(), component.version(), component.type(), component.license(),

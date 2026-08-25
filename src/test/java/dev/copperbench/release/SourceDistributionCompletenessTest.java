@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class SourceDistributionCompletenessTest {
 
 	@Test void requiredLicenseAndSourceFilesExist() {
-		for (String path : List.of("LICENSE.txt", "CHANGES-FROM-UPSTREAM.md", "UPSTREAM.md",
+		for (String path : List.of("LICENSE.txt", "LICENSE-ADDITIONAL-TERMS.md", "CHANGES-FROM-UPSTREAM.md", "UPSTREAM.md",
 				"compliance/SOURCE_DISTRIBUTION.md", "compliance/THIRD_PARTY_NOTICES.md",
 				"compliance/baseline.lock.json", "compliance/BRANDING.md")) {
 			assertTrue(Files.isRegularFile(Path.of(path)), path);

@@ -1,6 +1,6 @@
 # Copperbench
 
-Copperbench is a Windows 11 desktop Minecraft mod-creation workbench. It is an independent GPL-3.0 derivative of MCreator, with the Fabric generator included as a built-in plugin.
+Copperbench is a Windows 11 desktop Minecraft mod-creation workbench. It is an independent `GPL-3.0-only` derivative of MCreator, with the Fabric generator included as a built-in plugin.
 
 Public distribution is the GitHub repository [Lotulune/Copperbench](https://github.com/Lotulune/Copperbench) and unsigned GitHub Releases. There is no product website, app-store listing, or Authenticode-signed installer. Windows SmartScreen may warn on the unsigned binaries. The product ID `dev.copperbench.studio` is a reverse-DNS identifier, not a live website.
 
@@ -39,7 +39,7 @@ Big thanks to [all the people](https://github.com/MCreator/MCreator/graphs/contr
 
 ## License and trademark
 
-MCreator is licensed under the GPL-3.0 license (with exceptions implemented as specified in section 7 of GPL-3.0) if not otherwise stated in source files or other files of this project. Copyright 2020 Pylo and [contributors](https://github.com/MCreator/MCreator/graphs/contributors).
+The repository uses the SPDX identifier `GPL-3.0-only`. The standard license text is in [`LICENSE.txt`](./LICENSE.txt); inherited Section 7 permissions, template permissions, trademark terms, and mappings notices are retained in [`LICENSE-ADDITIONAL-TERMS.md`](./LICENSE-ADDITIONAL-TERMS.md). Copyright 2020 Pylo and [contributors](https://github.com/MCreator/MCreator/graphs/contributors).
 
 MCreator is a trademark of Pylo. Custom distributions of this software may not include Pylo or MCreator trademark (trademark name and logo) to not confuse the software with the official distribution of MCreator project.
 

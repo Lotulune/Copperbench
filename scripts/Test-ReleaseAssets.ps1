@@ -9,7 +9,7 @@ $release = gh release view $Tag --json isDraft,assets | ConvertFrom-Json
 if ($LASTEXITCODE -ne 0) { throw "Unable to inspect draft release $Tag" }
 if (-not $release.isDraft) { throw "Release $Tag must remain a draft until asset verification succeeds" }
 $names = @($release.assets | ForEach-Object name)
-foreach ($pattern in '\.exe$', '\.zip$', '\.msix$', '^SHA256SUMS\.txt$', '^RELEASE-METADATA\.json$', '^copperbench\.spdx\.json$') {
+foreach ($pattern in '\.exe$', '\.zip$', '\.msix$', '^SHA256SUMS\.txt$', '^RELEASE-METADATA\.json$', '^copperbench\.spdx\.json$', '^product-status\.json$', '^LICENSE\.txt$', '^LICENSE-ADDITIONAL-TERMS\.md$', '^THIRD_PARTY_NOTICES\.md$') {
 	if (-not ($names | Where-Object { $_ -match $pattern })) {
 		throw "Draft release $Tag has no asset matching $pattern"
 	}

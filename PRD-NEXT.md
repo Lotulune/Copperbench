@@ -1,10 +1,10 @@
 # Copperbench 下一步 PRD：阶段 10 可信预览发布与 Stage 9 收口
 
-> 状态：待执行<br>
-> 版本：v1.0<br>
+> 状态：实施中（可信 Preview 已建立，Beta 门禁未关闭）<br>
+> 版本：v1.1<br>
 > 更新日期：2026-08-25<br>
 > 前置基线：[PRD.md](./PRD.md)、[PRD-STAGE-9.md](./PRD-STAGE-9.md)<br>
-> 目标发布：`v0.1.0-preview.1`（若版本号调整，必须同步 `product.version`）
+> 当前公开发布：`v0.1.0-preview.1`；目标发布：`v0.1.0-preview.2`
 
 ## 0. 阅读与执行协议
 
@@ -14,15 +14,29 @@
 - 关闭需求必须同时满足实现、自动验证、用户文档和可追溯证据，不接受只修改状态文字。
 - 本阶段冻结新模组元素类型，先建立“提交 → CI → 产物 → Release → 用户反馈”的可信闭环。
 
+### 0.1 实施快照（2026-08-25）
+
+机器可读事实入口为 [`product-status.json`](./product-status.json)，本节只解释执行状态。
+
+| 项目 | 当前事实 | 结论 |
+| --- | --- | --- |
+| Fast CI | `main@9c37595b` 的 Java/Javadoc、UI/Playwright、MCP 全绿 | 快速门禁可用，但尚缺真实 PR 记录和连续三次 main 记录 |
+| 公开 Release | `v0.1.0-preview.1` 已有 EXE/ZIP/MSIX/SBOM/哈希/元数据，源提交为 `b1225ec3` | 发布链路已证明，但公开包落后于当前 main |
+| 状态源 | 本变更新增版本化 `product-status.json`、Schema 和 CI 漂移校验 | 实施中，后续状态提升必须带证据 |
+| 重型门禁 | 本变更新增 Windows Nightly 全量回归、规模 smoke 和八生成器内容构建矩阵 | 首次 Nightly 尚未取得全绿证据 |
+| Stage 9 | 三种专用编辑器、语言工具、500 节点、2,000/10,000 规模、八生成器、服务端、真实 JCEF/a11y、干净 VM 均未全部关闭 | `betaEligible=false`，不得称为 Beta |
+| 仓库治理 | Pages、main 保护、production 必需审阅者和真实测试 PR 尚待仓库设置闭环 | P0 阻断项 |
+| Dependency Submission | 仓库 Dependency Graph 未启用，原工作流无法成功 | 删除误导工作流，不再伪装为已修复 |
+
 ## 1. 背景与问题
 
 阶段 8 已完成八套生成器空工程构建、Windows 打包和 G7 演练；阶段 9 已实现 Procedure IR、Blockly、注册表、Function/Loot Table/Advancement CRUD、服务端、datagen 和 GameTest 的开发预览。
 
 截至 2026-08-25，代码能力仍高于公共交付能力，主要差距是：
 
-1. 公共 Release 没有与当前源码一致的可下载二进制。
-2. 新 CI/发布工作流虽已在仓库侧修复，但尚未由 GitHub `main` 和真实 Tag 独立跑绿。
-3. 功能状态分散在多份文档和 Java 清单中，存在漂移风险。
+1. 公共 Release 已可下载，但 `v0.1.0-preview.1` 没有指向当前 `main`。
+2. 快速 CI 与真实 Tag 发布已跑绿，但分支保护、测试 PR、Nightly 和人工发布审批尚未闭环。
+3. 功能状态此前分散在多份文档和 Java 清单中，存在漂移风险。
 4. Stage 9 的大型工作区、八生成器黄金编译、服务端 readiness 和真实 JCEF 门禁未全部关闭。
 5. MCP 缺少大型项目分页、SDK 示例、批量原子计划和任务事件。
 
@@ -105,7 +119,7 @@
 - Markdown 本地链接；
 - 产品身份、许可证与品牌相关测试。
 
-生成器黄金构建、Minecraft 启动和 Windows JCEF 实机矩阵进入 nightly 或人工门禁，不阻塞每个轻量 PR。
+生成器黄金构建进入 nightly；Minecraft 服务端、真实 JCEF、可访问性和干净 Windows 11 VM 进入具备对应环境的人工/自托管门禁，不阻塞每个轻量 PR，也不得因无法在托管 Runner 运行而标记通过。
 
 #### FR-CI-03 可诊断失败
 
@@ -158,13 +172,13 @@
 
 #### FR-REL-06 首个可信预览
 
-废弃或修正不完整的 `v0.1.0` 草稿，发布 `v0.1.0-preview.1` 或经决策更新的等价 Tag。发布后由非维护者从 Release 页面完成下载、校验、安装、启动和卸载数据保留复验。
+删除不完整的 `v0.1.0` 草稿。`v0.1.0-preview.1` 已证明发布链路；下一次必须从最新、连续全绿且包含真实 PR 记录的 `main` 提交创建签名 Tag `v0.1.0-preview.2`。发布后由非维护者从 Release 页面完成下载、校验、安装、启动和卸载数据保留复验。
 
 ### 5.3 单一机器可读状态源
 
 #### FR-STATUS-01 状态模型
 
-新增版本化 `product-status.json`，至少包含：
+版本化 `product-status.json` 是状态事实入口，至少包含：
 
 - 产品版本、阶段和目标平台；
 - 版本轨道与生成器支持状态；

@@ -1,18 +1,31 @@
 # 剩余完善清单
 
-本页是**状态索引**，不是需求基线。阶段 8 历史见 [阶段 8 路线](./roadmap/stage-8-windows-beta-ga.md)，阶段 9 历史边界见 [PRD-STAGE-9.md](../PRD-STAGE-9.md)，当前阶段 10 的唯一需求入口是 [PRD-NEXT.md](../PRD-NEXT.md)。排除项见 [open-decisions.md](./open-decisions.md) 与 [ADR-0015](./adr/0015-github-unsigned-gpl-fork.md)。
+本页是**状态索引**，不是需求基线。机器可读状态以 [`product-status.json`](../product-status.json) 为准；阶段 8 历史见 [阶段 8 路线](./roadmap/stage-8-windows-beta-ga.md)，阶段 9 历史边界见 [PRD-STAGE-9.md](../PRD-STAGE-9.md)，阶段 10 需求入口是 [PRD-NEXT.md](../PRD-NEXT.md)。
 
 ## 当前状态
 
-阶段 8 收口需求 `FR-CLOSE-01`～`FR-CLOSE-08` 均已完成。G7 已通过 Hyper-V Win11 客机的断网启动、安装生命周期、数据保留和当前包验证。阶段 9 创作者核心闭环已经可运行，但 G9.2～G9.5 的性能、八生成器、全轨服务端和干净虚拟机门禁尚未全部关闭；这些缺口已纳入阶段 10。
+阶段 8 收口需求 `FR-CLOSE-01`～`FR-CLOSE-08` 均已完成。`v0.1.0-preview.1` 已公开并包含完整 Windows 三包、SBOM、哈希和源元数据，但它基于 `b1225ec3`，落后于当前已验证 main `9c37595b`。快速 CI 已真实全绿；Nightly、分支保护、Pages、production 审批、测试 PR 与 Preview 2 仍在实施。Stage 9 创作者核心闭环可运行，但 Beta 所需的实质门禁均未全部关闭。
+
+## 当前交付阻断项
+
+| 项 | 状态 | 下一证据 |
+| --- | --- | --- |
+| 机器状态源 | 实施中 | `product-status.json` 校验在 main/PR 通过 |
+| main 分支保护 | 待配置 | 三个必需检查和真实 PR 合并记录 |
+| Javadoc Pages | 工作流已绿、站点未启用 | 仓库 `has_pages=true` 且公开 URL 可访问 |
+| production 审批 | Environment 存在但无审阅者 | Tag 发布在人工批准前保持等待 |
+| Nightly | 工作流已进入本次变更 | 全量回归和八生成器矩阵首次运行结论 |
+| Dependency Submission | 移除 | Dependency Graph 关闭时不保留必失败工作流 |
+| Preview 2 | 待发布 | 签名 Tag 指向最新全绿 main，资产校验通过 |
+| 外部试用 | 0/5 有可审计记录 | 五名非核心开发者匿名任务结果 |
 
 ## 阶段 9 状态摘要
 
 | 项 | 当前状态 | 证据/备注 |
 | --- | --- | --- |
-| Procedure 领域模型与编辑器 | 核心路径完成 | 结构化 IR、未知块保留、Blockly 工作台、预览/保存与引用索引已有自动化覆盖 |
-| 变量 / 标签 / 语言 | 基础闭环完成 | 稳定 ID、CRUD、重命名影响预览与引用计数已接 UI/MCP/headless；语言导入导出待补 |
-| Function / Loot Table / Advancement | 第一方 CRUD 完成 | 可真实写回上游工作区；专用编辑器深度和 8 生成器黄金编译待补 |
+| Procedure 领域模型与编辑器 | 开发预览 | 结构化 IR、未知块保留、Blockly 工作台、预览/保存与引用索引已有自动化覆盖；500 节点交互门禁未关 |
+| 变量 / 标签 / 语言 | 开发预览 | 稳定 ID、CRUD、重命名影响预览与引用计数已接 UI/MCP/headless；语言导入导出、回退和诊断待补 |
+| Function / Loot Table / Advancement | 开发预览 | 可真实写回上游工作区；专用编辑器深度和 Stage 9 八生成器黄金编译待补 |
 | 服务端 / datagen / GameTest | 核心路径完成 | 受管任务、日志和隔离目录已接入；datagen 支持暂存差异、确认发布与事务回滚 |
 | 发布门禁 | 未关闭 | 500 节点与 10,000 引用性能、全轨 readiness、真实 JCEF、Windows 11 干净 VM 仍需证据 |
 
@@ -56,7 +69,7 @@
 - 为语言注册表增加 CSV/JSON 导入导出、主/回退语言和缺失/重复键报告。
 - 执行 500 节点 Procedure 与 2,000 元素/10,000 引用 P95 性能门禁，并完成键盘和可访问性审计。
 - 在 Fabric/NeoForge 的 26.2、26.1.2、1.21.1、1.20.1 上执行阶段 9 黄金生成器编译与专用服务端 readiness/故障夹具。
-- 在可用的真实 JCEF 宿主和 Windows 11 干净虚拟机完成 G9.0/G9.5；CI/发行入口已在仓库侧重建，仍需 GitHub `main` 与真实 Tag 独立跑绿。
+- 在可用的真实 JCEF 宿主和 Windows 11 干净虚拟机完成 G9.0/G9.5；快速 CI 和 Preview 1 已真实跑绿，但它们不能替代 Stage 9 的产品门禁。
 
 ## 首发范围外（除非新 ADR）
 

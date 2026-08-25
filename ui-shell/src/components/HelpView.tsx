@@ -214,7 +214,7 @@ export const HelpView: React.FC = () => {
         >
           <ShieldAlert size={16} color="var(--badge-amber)" style={{ flexShrink: 0, marginTop: '2px' }} aria-hidden="true" />
           <div style={{ lineHeight: 1.5 }}>
-            <strong>版本事实声明：</strong> Copperbench 0.1.0 采用 GPL-3.0 协议开源，独立衍生自 MCreator 2026.2.33518。当前为开发测试版（未生产签名，GitHub 分发政策如此），UI 仅通过 UI-Core 1.0 协议与 Java 领域服务交互，不直接访问本机文件系统。
+            <strong>版本事实声明：</strong> Copperbench 0.1.0 采用 GPL-3.0-only 协议开源，独立衍生自 MCreator 2026.2.33518。当前为开发测试版（未生产签名，GitHub 分发政策如此），UI 仅通过 UI-Core 1.0 协议与 Java 领域服务交互，不直接访问本机文件系统。
           </div>
         </div>
       </section>

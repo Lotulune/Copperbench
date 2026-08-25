@@ -97,6 +97,8 @@ jobs:
       - name: Run fast product-shell smoke tests
         working-directory: ui-shell
         run: npx playwright test e2e/scenarios.spec.ts e2e/new-workspace.spec.ts --project=chromium
+      - name: Validate product status
+        run: node scripts/verify-product-status.mjs
       - name: Check repository Markdown links
         run: node scripts/verify-markdown-links.mjs
       - name: Upload Playwright diagnostics

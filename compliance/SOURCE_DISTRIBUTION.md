@@ -5,7 +5,7 @@
 1. 发布不可变源码 tag，并记录所基于的 MCreator/Fabric Generator tag 与提交。
 2. 提供构建、测试、打包脚本以及 Gradle wrapper；不得只发布修改补丁。
 3. 提供生成该二进制所需的产品源文件、内置插件/生成器源码、UI 源码和 bridge Schema。
-4. 原样保留 MCreator `LICENSE.txt`、Section 7 条款、第三方 `license/` 目录、Fabric Generator 许可证和作者归属。
+4. 提供标准 GPLv3 正文 `LICENSE.txt`，并原样保留 `LICENSE-ADDITIONAL-TERMS.md` 中的 Section 7/模板附加许可、第三方 `license/` 目录、Fabric Generator 许可证和作者归属。
 5. 在 GitHub Releases（或同版本源码 tag）和应用“关于/许可证”入口提供源码获取方式、无担保声明和修改说明。不部署独立产品网站。
 6. 不重新分发完整且未修改的官方 Minecraft mappings；依赖获取步骤必须遵守上游许可。
 7. SBOM、依赖锁文件、源提交和构建证据与二进制使用同一发行版本号。

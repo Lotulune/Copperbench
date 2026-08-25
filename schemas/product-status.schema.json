@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Lotulune/Copperbench/schemas/product-status.schema.json",
+  "title": "Copperbench product status",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "snapshot", "product", "delivery", "generators", "elements", "gates", "mcp", "knownLimitations"],
+  "properties": {
+    "$schema": {"type": "string"},
+    "schemaVersion": {"const": "1.0"},
+    "snapshot": {
+      "type": "object",
+      "required": ["date", "lastVerifiedCommit", "policy"],
+      "properties": {
+        "date": {"type": "string", "format": "date"},
+        "lastVerifiedCommit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "policy": {"type": "string", "minLength": 1}
+      }
+    },
+    "product": {
+      "type": "object",
+      "required": ["id", "name", "version", "stage", "channel", "targetPlatforms", "license", "additionalTerms", "betaEligible"],
+      "properties": {
+        "id": {"const": "dev.copperbench.studio"},
+        "name": {"const": "Copperbench"},
+        "version": {"type": "string"},
+        "stage": {"type": "integer", "minimum": 10},
+        "channel": {"enum": ["preview", "beta", "stable"]},
+        "targetPlatforms": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+        "license": {"const": "GPL-3.0-only"},
+        "additionalTerms": {"const": "LICENSE-ADDITIONAL-TERMS.md"},
+        "betaEligible": {"type": "boolean"}
+      }
+    },
+    "delivery": {"type": "object"},
+    "generators": {"type": "array", "minItems": 8, "maxItems": 8, "items": {"type": "object"}},
+    "elements": {
+      "type": "object",
+      "required": ["supported", "preview", "readOnly", "legacyOnly", "notApplicable"],
+      "properties": {
+        "supported": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "preview": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "readOnly": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "legacyOnly": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "notApplicable": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
+      }
+    },
+    "gates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "status", "betaBlocking", "evidence"],
+        "properties": {
+          "id": {"type": "string"},
+          "status": {"enum": ["passed", "in-progress", "blocked", "unverified", "not-applicable"]},
+          "betaBlocking": {"type": "boolean"},
+          "evidence": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    },
+    "mcp": {"type": "object"},
+    "knownLimitations": {"type": "array", "items": {"type": "string"}, "minItems": 1}
+  }
+}

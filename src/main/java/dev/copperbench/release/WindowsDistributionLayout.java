@@ -20,8 +20,8 @@ import java.util.List;
 /** Expected Windows x64 export layout. Does not claim an install/upgrade machine test. */
 public final class WindowsDistributionLayout {
 
-	public static final List<String> REQUIRED_ENTRIES = List.of("copperbench.exe", "LICENSE.txt", "jdk/bin/java.exe",
-			"jdk/bin/jcef.dll", "lib/copperbench.jar", "plugins");
+	public static final List<String> REQUIRED_ENTRIES = List.of("copperbench.exe", "LICENSE.txt",
+			"LICENSE-ADDITIONAL-TERMS.md", "jdk/bin/java.exe", "jdk/bin/jcef.dll", "lib/copperbench.jar", "plugins");
 
 	private WindowsDistributionLayout() {
 	}

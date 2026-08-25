@@ -39,6 +39,7 @@ tasks.register('exportWin64', Copy.class) {
     into 'build/export/win64'
     into('') {
         from file('LICENSE.txt')
+        from file('LICENSE-ADDITIONAL-TERMS.md')
         from file('build/launch4j/copperbench.exe')
     }
     into('lib') {

@@ -87,7 +87,7 @@ jobs:
           Get-ChildItem build/export -File |
             Where-Object Extension -In '.exe', '.zip', '.msix' |
             Copy-Item -Destination build/release
-          Copy-Item LICENSE.txt, compliance/THIRD_PARTY_NOTICES.md -Destination build/release
+          Copy-Item LICENSE.txt, LICENSE-ADDITIONAL-TERMS.md, product-status.json, compliance/THIRD_PARTY_NOTICES.md -Destination build/release
       - name: Generate SPDX SBOM
         uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
         with:

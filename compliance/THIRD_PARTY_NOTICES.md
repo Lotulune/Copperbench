@@ -5,7 +5,7 @@
 - 来源：<https://github.com/MCreator/MCreator>
 - 固定 tag：`2026.2.33518`
 - 固定提交：`361429609b772039a3eb9ab81662c25b225f1d0d`
-- 许可：GPL-3.0；包含上游 `LICENSE.txt` 中的 Section 7 额外许可、模板例外与商标条款。
+- 基础许可：`GPL-3.0-only`。标准正文位于根目录 `LICENSE.txt`；上游 Section 7 额外许可、模板例外、商标与 mappings 通知位于 `LICENSE-ADDITIONAL-TERMS.md`。
 - 归属：Copyright 2020 Pylo and contributors。
 
 本产品是 MCreator 的独立衍生分支，不受 Pylo、MCreator、Mojang 或 Microsoft 官方认可。发行包不得包含 Pylo/MCreator 商标名称或 Logo，但应在“关于/许可证”中说明派生来源。

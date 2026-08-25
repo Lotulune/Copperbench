@@ -1,0 +1,102 @@
+{
+  "$schema": "./schemas/product-status.schema.json",
+  "schemaVersion": "1.0",
+  "snapshot": {
+    "date": "2026-08-25",
+    "lastVerifiedCommit": "9c37595b7f0e7ebd4f1e3a7fae9e7e5b67f9d39f",
+    "policy": "Only code, automated checks, and evidence tied to a commit can promote a gate."
+  },
+  "product": {
+    "id": "dev.copperbench.studio",
+    "name": "Copperbench",
+    "version": "0.1.0",
+    "stage": 10,
+    "channel": "preview",
+    "targetPlatforms": ["windows-11-x64"],
+    "license": "GPL-3.0-only",
+    "additionalTerms": "LICENSE-ADDITIONAL-TERMS.md",
+    "betaEligible": false
+  },
+  "delivery": {
+    "latestPublicRelease": {
+      "tag": "v0.1.0-preview.1",
+      "sourceCommit": "b1225ec3903990cc03da9a0459c8dbac358a1e84",
+      "matchesSnapshotMain": false,
+      "status": "superseded-candidate"
+    },
+    "nextRelease": {
+      "tag": "v0.1.0-preview.2",
+      "status": "planned",
+      "requiresLatestGreenMain": true,
+      "signedTagRequired": true
+    },
+    "fastCi": {
+      "status": "passed",
+      "run": "https://github.com/Lotulune/Copperbench/actions/runs/32839587007",
+      "requiredChecks": [
+        "Java tests and Javadoc",
+        "UI contract, build, and smoke tests",
+        "MCP conformance"
+      ]
+    },
+    "nightly": {
+      "status": "implementation-pending",
+      "workflow": ".github/workflows/nightly.yml"
+    }
+  },
+  "generators": [
+    {"id": "fabric-26.2", "loader": "fabric", "minecraft": "26.2", "workspace": "supported", "stage9": "unverified"},
+    {"id": "neoforge-26.2", "loader": "neoforge", "minecraft": "26.2", "workspace": "supported", "stage9": "unverified"},
+    {"id": "fabric-26.1.2", "loader": "fabric", "minecraft": "26.1.2", "workspace": "supported", "stage9": "unverified"},
+    {"id": "neoforge-26.1.2", "loader": "neoforge", "minecraft": "26.1.2", "workspace": "supported", "stage9": "unverified"},
+    {"id": "fabric-1.21.1", "loader": "fabric", "minecraft": "1.21.1", "workspace": "supported", "stage9": "unverified"},
+    {"id": "neoforge-1.21.1", "loader": "neoforge", "minecraft": "1.21.1", "workspace": "supported", "stage9": "unverified"},
+    {"id": "fabric-1.20.1", "loader": "fabric", "minecraft": "1.20.1", "workspace": "supported", "stage9": "unverified"},
+    {"id": "neoforge-1.20.1", "loader": "neoforge", "minecraft": "1.20.1", "workspace": "supported", "stage9": "unverified"}
+  ],
+  "elements": {
+    "supported": ["block", "item", "recipe"],
+    "preview": ["procedure", "function", "loottable", "achievement"],
+    "readOnly": [
+      "armor", "armortrim", "attribute", "bannerpattern", "biome", "code", "command",
+      "damagetype", "dimension", "enchantment", "feature", "fluid", "gamerule", "gui",
+      "itemextension", "keybind", "livingentity", "overlay", "painting", "particle", "plant",
+      "potion", "potioneffect", "projectile", "specialentity", "structure", "tab", "tool",
+      "villagerprofession", "villagertrade"
+    ],
+    "legacyOnly": [
+      "armor", "armortrim", "attribute", "bannerpattern", "biome", "code", "command",
+      "damagetype", "dimension", "enchantment", "feature", "fluid", "gamerule", "gui",
+      "itemextension", "keybind", "livingentity", "overlay", "painting", "particle", "plant",
+      "potion", "potioneffect", "projectile", "specialentity", "structure", "tab", "tool",
+      "villagerprofession", "villagertrade"
+    ],
+    "notApplicable": ["bebiome", "beblock", "beentity", "beitem", "bescript"]
+  },
+  "gates": [
+    {"id": "release-pipeline", "status": "passed", "betaBlocking": false, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/32838065932"]},
+    {"id": "fast-ci", "status": "passed", "betaBlocking": false, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/32839587007"]},
+    {"id": "product-status-source", "status": "in-progress", "betaBlocking": true, "evidence": ["product-status.json", "schemas/product-status.schema.json", "scripts/verify-product-status.mjs"]},
+    {"id": "three-data-editors", "status": "blocked", "betaBlocking": true, "evidence": []},
+    {"id": "language-tools", "status": "blocked", "betaBlocking": true, "evidence": []},
+    {"id": "procedure-500", "status": "blocked", "betaBlocking": true, "evidence": []},
+    {"id": "workspace-2000-10000", "status": "blocked", "betaBlocking": true, "evidence": []},
+    {"id": "stage9-eight-generator-golden", "status": "blocked", "betaBlocking": true, "evidence": []},
+    {"id": "server-readiness-matrix", "status": "blocked", "betaBlocking": true, "evidence": []},
+    {"id": "real-jcef-accessibility", "status": "blocked", "betaBlocking": true, "evidence": []},
+    {"id": "clean-windows-11-stage9", "status": "blocked", "betaBlocking": true, "evidence": []},
+    {"id": "five-external-testers", "status": "blocked", "betaBlocking": true, "evidence": []}
+  ],
+  "mcp": {
+    "transport": "streamable-http",
+    "specVersion": "2025-11-25",
+    "schemaVersion": "1.0",
+    "conformance": "passed"
+  },
+  "knownLimitations": [
+    "Windows packages are not Authenticode signed.",
+    "Stage 9 data elements remain preview until the eight-generator golden gate passes.",
+    "The Stage 9 server matrix, real JCEF accessibility pass, and clean Windows 11 VM pass are not complete.",
+    "Public Beta is blocked until every betaBlocking gate is passed."
+  ]
+}

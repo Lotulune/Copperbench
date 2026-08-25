@@ -41,7 +41,7 @@ export const USER_GUIDE_METADATA = {
   sourceNotice: '源文档是 docs/user/README.md。本说明为开发测试版说明，不是商店发行手册。产品名 Copperbench 是公开名称。公开分发走 GitHub，安装包未签名。',
   productName: 'Copperbench',
   version: '0.1.0',
-  license: 'GPL-3.0',
+  license: 'GPL-3.0-only',
   upstreamOrigin: 'MCreator 2026.2.33518',
   buildStatus: '开发测试版 (Development / Test Build)',
   signingStatus: '未生产签名 (Not Production-Signed)',
@@ -58,8 +58,8 @@ export const ABOUT_FACTS: readonly AboutFact[] = [
   },
   {
     label: '开源许可证',
-    value: 'GPL-3.0',
-    badge: 'GPL-3.0',
+    value: 'GPL-3.0-only',
+    badge: 'GPL-3.0-only',
     badgeType: 'green',
     description: '遵循 GNU 通用公共许可证第三版'
   },

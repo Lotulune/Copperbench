@@ -38,7 +38,7 @@ public final class ReleaseManifest {
 		product.addProperty("version", ProductIdentity.VERSION);
 		product.addProperty("id", ProductIdentity.ID);
 		product.addProperty("publisher", ProductIdentity.PUBLISHER);
-		product.addProperty("license", "GPL-3.0");
+		product.addProperty("license", "GPL-3.0-only");
 		product.addProperty("upstreamCore", ProductIdentity.UPSTREAM_NAME);
 		root.add("product", product);
 
@@ -108,6 +108,7 @@ public final class ReleaseManifest {
 
 		JsonObject source = new JsonObject();
 		source.addProperty("license", "LICENSE.txt");
+		source.addProperty("additionalTerms", "LICENSE-ADDITIONAL-TERMS.md");
 		source.addProperty("notices", "compliance/THIRD_PARTY_NOTICES.md");
 		source.addProperty("changes", "CHANGES-FROM-UPSTREAM.md");
 		source.addProperty("sourceDistribution", "compliance/SOURCE_DISTRIBUTION.md");

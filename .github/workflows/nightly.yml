@@ -1,0 +1,152 @@
+name: Nightly product gates
+
+on:
+  schedule:
+    - cron: "30 16 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  checks: write
+
+concurrency:
+  group: nightly-product-gates
+  cancel-in-progress: false
+
+jobs:
+  product-regression:
+    name: Nightly product regression
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+      - name: Set up JDK 25 with JCEF
+        uses: actions/setup-java@v6
+        with:
+          java-version: "25.0.2"
+          distribution: jetbrains
+          java-package: jdk+jcef
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            ui-core/package-lock.json
+            ui-shell/package-lock.json
+      - name: Install UI dependencies
+        shell: pwsh
+        run: |
+          npm ci --prefix ui-core
+          npm ci --prefix ui-shell
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+      - name: Run full Java, Javadoc, and scale regression
+        shell: pwsh
+        run: .\gradlew.bat --no-daemon --no-build-cache clean test javadoc '-Dcopperbench.stage9.scale=true'
+      - name: Run UI contract and production build
+        shell: pwsh
+        run: |
+          npm test --prefix ui-core
+          npm run build --prefix ui-shell
+      - name: Run full Playwright suite
+        working-directory: ui-shell
+        shell: pwsh
+        run: |
+          npx playwright install --with-deps chromium
+          npx playwright test --project=chromium
+      - name: Verify status, documentation, and MCP
+        shell: pwsh
+        run: |
+          node scripts/verify-product-status.mjs
+          node scripts/verify-markdown-links.mjs
+          pwsh -NoProfile -File ./scripts/verify-mcp-conformance.ps1 -OutputDirectory build/nightly-results/mcp
+      - name: Upload nightly regression evidence
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: nightly-product-regression
+          path: |
+            build/nightly-results/
+            build/reports/tests/
+            ui-shell/playwright-report/
+            ui-shell/test-results/
+          if-no-files-found: warn
+          retention-days: 30
+
+  stage9-generator-golden:
+    name: Stage 9 generator golden (${{ matrix.generator }})
+    runs-on: windows-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        generator:
+          - fabric-26.2
+          - neoforge-26.2
+          - fabric-26.1.2
+          - neoforge-26.1.2
+          - fabric-1.21.1
+          - neoforge-1.21.1
+          - fabric-1.20.1
+          - neoforge-1.20.1
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+      - name: Set up JDK 21
+        uses: actions/setup-java@v6
+        with:
+          java-version: "21"
+          distribution: temurin
+      - name: Record JDK 21 home
+        shell: pwsh
+        run: "Write-Output \"COPPERBENCH_JDK21_HOME=$env:JAVA_HOME\" >> $env:GITHUB_ENV"
+      - name: Set up JDK 25 with JCEF
+        uses: actions/setup-java@v6
+        with:
+          java-version: "25.0.2"
+          distribution: jetbrains
+          java-package: jdk+jcef
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Expose JDK 21 to legacy generators
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path jdk | Out-Null
+          New-Item -ItemType Junction -Path jdk/jdk21_win_64 -Target $env:COPPERBENCH_JDK21_HOME | Out-Null
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ui-shell/package-lock.json
+      - name: Install UI shell dependencies
+        working-directory: ui-shell
+        run: npm ci
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+      - name: Generate Stage 9 content and build workspace
+        shell: pwsh
+        env:
+          MCREATOR_TEST_GENERATORS: ${{ matrix.generator }}
+        run: >-
+          .\gradlew.bat --no-daemon --no-build-cache test
+          --tests net.mcreator.integration.generator.GeneratorsTest
+          '-Dcopperbench.generatorIntegrationProfile=external'
+          '-Dcopperbench.generatorSetupTimeoutMinutes=20'
+          '-Dcopperbench.generatorTaskTimeoutMinutes=30'
+      - name: Upload generator diagnostics
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: stage9-generator-${{ matrix.generator }}
+          path: |
+            build/test-results/test/
+            build/reports/tests/test/
+            logs/
+          if-no-files-found: warn
+          retention-days: 30

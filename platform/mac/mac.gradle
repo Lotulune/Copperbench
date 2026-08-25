@@ -21,6 +21,7 @@ tasks.register('exportMacX64', Copy.class) {
             line.replace('%mcreator%', (String) project.mcreatorconf.getProperty('mcreator')).replace('%build%', project.builddate.toString())
         }
         from file('LICENSE.txt')
+        from file('LICENSE-ADDITIONAL-TERMS.md')
     }
     into('Resources') {
         from file('platform/mac/' + appIcon) rename(appIcon, 'mcreatorapp.icns')
@@ -73,6 +74,7 @@ tasks.register('exportMacAarch64', Copy.class) {
             line.replace('%mcreator%', (String) project.mcreatorconf.getProperty('mcreator')).replace('%build%', project.builddate.toString())
         }
         from file('LICENSE.txt')
+        from file('LICENSE-ADDITIONAL-TERMS.md')
     }
     into('Resources') {
         from file('platform/mac/' + appIcon) rename(appIcon, 'mcreatorapp.icns')

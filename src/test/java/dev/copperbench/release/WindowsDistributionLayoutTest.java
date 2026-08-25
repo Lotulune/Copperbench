@@ -25,6 +25,7 @@ class WindowsDistributionLayoutTest {
 		assertTrue(gradle.contains("bundledJrePath = 'jdk'"));
 		assertTrue(gradle.contains("from 'jdk/jbr25_win_64'"));
 		assertTrue(gradle.contains("from file('LICENSE.txt')"));
+		assertTrue(gradle.contains("from file('LICENSE-ADDITIONAL-TERMS.md')"));
 		assertTrue(gradle.contains("into('plugins')"));
 		assertTrue(gradle.contains("into(\"gradle-dists/${distName}\")"));
 		assertTrue(gradle.contains("wantedGradleDists"));
