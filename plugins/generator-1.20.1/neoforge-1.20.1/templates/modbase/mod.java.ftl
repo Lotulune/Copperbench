@@ -19,7 +19,9 @@ import org.apache.logging.log4j.Logger;
 
 		MinecraftForge.EVENT_BUS.register(this);
 
+		<#if w.hasVariables() || w.hasElementsOfType("keybind") || w.hasElementsOfType("gui") || w.hasElementsOfType("procedure")>
 		modEventBus.addListener(this::registerNetworking);
+		</#if>
 
 		<@javacompress>
 		<#if w.hasSounds()>${JavaModName}Sounds.REGISTRY.register(modEventBus);</#if>
@@ -50,6 +52,7 @@ import org.apache.logging.log4j.Logger;
 	// Start of user code block mod methods
 	// End of user code block mod methods
 
+	<#if w.hasVariables() || w.hasElementsOfType("keybind") || w.hasElementsOfType("gui") || w.hasElementsOfType("procedure")>
 	<#-- Networking support below -->
 	private static boolean networkingRegistered = false;
 	private static final Map<CustomPacketPayload.Type<?>, NetworkMessage<?>> MESSAGES = new HashMap<>();
@@ -67,6 +70,7 @@ import org.apache.logging.log4j.Logger;
 		MESSAGES.forEach((id, networkMessage) -> registrar.playBidirectional(id, ((NetworkMessage) networkMessage).reader(), ((NetworkMessage) networkMessage).handler()));
 		networkingRegistered = true;
 	}
+	</#if>
 
 	<#if w.hasElementsOfType("procedure")>
 	<#-- Wait procedure block support below -->

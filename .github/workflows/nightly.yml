@@ -131,14 +131,11 @@ jobs:
         uses: gradle/actions/setup-gradle@v6
       - name: Generate Stage 9 content and build workspace
         shell: pwsh
-        env:
-          MCREATOR_TEST_GENERATORS: ${{ matrix.generator }}
         run: >-
           .\gradlew.bat --no-daemon --no-build-cache test
-          --tests net.mcreator.integration.generator.GeneratorsTest
-          '-Dcopperbench.generatorIntegrationProfile=external'
-          '-Dcopperbench.generatorSetupTimeoutMinutes=20'
-          '-Dcopperbench.generatorTaskTimeoutMinutes=30'
+          --tests dev.copperbench.generator.workspace.NewWorkspaceGeneratorGoldenBuildTest
+          '-Dcopperbench.stage9.workspaceGeneratorBuild=true'
+          '-Dcopperbench.stage9.workspaceGeneratorId=${{ matrix.generator }}'
       - name: Upload generator diagnostics
         uses: actions/upload-artifact@v7
         if: always()
@@ -147,6 +144,7 @@ jobs:
           path: |
             build/test-results/test/
             build/reports/tests/test/
+            build/stage9-workspace-generator-logs/
             logs/
           if-no-files-found: warn
           retention-days: 30
