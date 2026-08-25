@@ -46,7 +46,10 @@ jobs:
         uses: gradle/actions/setup-gradle@v6
       - name: Run full Java, Javadoc, and scale regression
         shell: pwsh
-        run: .\gradlew.bat --no-daemon --no-build-cache clean test javadoc '-Dcopperbench.stage9.scale=true'
+        run: >-
+          .\gradlew.bat --no-daemon --no-build-cache clean test javadoc
+          '-Dcopperbench.stage9.scale=true'
+          '-Dcopperbench.uiWindowTimeoutSeconds=20'
       - name: Run UI contract and production build
         shell: pwsh
         run: |
