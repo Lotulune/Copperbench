@@ -261,7 +261,7 @@
     },
     "source": {
       "type": "object",
-      "required": ["license", "additionalTerms", "notices", "changes", "sourceDistribution"],
+      "required": ["license", "notices", "changes", "sourceDistribution"],
       "additionalProperties": false,
       "properties": {
         "license": { "type": "string" },
