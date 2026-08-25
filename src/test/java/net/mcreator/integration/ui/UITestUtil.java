@@ -29,6 +29,7 @@ import net.mcreator.ui.validation.ValidationResult;
 
 import javax.swing.*;
 import java.awt.*;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -41,6 +42,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 public class UITestUtil {
+	private static final Duration WINDOW_OPEN_TIMEOUT = Duration.ofSeconds(
+			Math.max(1, Long.getLong("copperbench.uiWindowTimeoutSeconds", 6L)));
 
 	public static ModElementGUI<?> openModElementGUIFor(MCreator mcreator, GeneratableElement generatableElement)
 			throws Exception {
@@ -116,7 +119,7 @@ public class UITestUtil {
 			//noinspection BusyWait
 			Thread.sleep(50);
 
-			if (System.currentTimeMillis() - start > 6000)
+			if (System.currentTimeMillis() - start > WINDOW_OPEN_TIMEOUT.toMillis())
 				throw new TimeoutException();
 
 			if (throwableAtomic.get() != null)

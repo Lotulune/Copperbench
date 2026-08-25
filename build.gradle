@@ -246,6 +246,8 @@ test {
 		System.getProperty('copperbench.generatorSetupTimeoutMinutes', '10')
 	systemProperty 'copperbench.generatorTaskTimeoutMinutes',
 		System.getProperty('copperbench.generatorTaskTimeoutMinutes', '20')
+	systemProperty 'copperbench.uiWindowTimeoutSeconds',
+		System.getProperty('copperbench.uiWindowTimeoutSeconds', '6')
 
     jvmArgs '--add-opens', 'java.base/java.lang=ALL-UNNAMED', '--add-opens', 'java.base/java.io=ALL-UNNAMED',
             '--enable-native-access', 'ALL-UNNAMED,jcef'
