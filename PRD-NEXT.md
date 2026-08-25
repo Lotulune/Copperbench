@@ -20,10 +20,10 @@
 
 | 项目 | 当前事实 | 结论 |
 | --- | --- | --- |
-| Fast CI | 受保护 PR #1～#4 均取得真实全绿记录；`main@f801a81f` 的 Java/Javadoc、UI/Playwright、MCP 全绿 | PR 门禁已闭环；UI 等待上限修复后连续 main 记录为 1/3 |
+| Fast CI | 受保护 PR #1～#5 均取得真实全绿记录；`main@fe4b0f30` 连续三次 Java/Javadoc、UI/Playwright、MCP 全绿 | PR 门禁已闭环；连续 main 门禁 3/3 |
 | 公开 Release | `v0.1.0-preview.1` 已有 EXE/ZIP/MSIX/SBOM/哈希/元数据，源提交为 `b1225ec3` | 发布链路已证明，但公开包落后于当前 main |
 | 状态源 | `product-status.json`、Schema 和 CI 漂移校验已进入 main，并已修复首次远端运行暴露的 Release Schema 漏项 | 状态源门禁通过；后续状态提升仍必须带固定提交证据 |
-| 重型门禁 | Nightly `32898153354` 的全量回归、规模 smoke、完整 Playwright、MCP 与八生成器内容构建 8/8 全绿 | Nightly 门禁已建立并取得首份完整远端证据 |
+| 重型门禁 | Nightly `32904372190`（`main@fe4b0f30`）的全量回归、规模 smoke、完整 Playwright、MCP 与八生成器内容构建 8/8 全绿 | Nightly 门禁已建立并取得最终候选的完整远端证据 |
 | Stage 9 | Function、Loot Table、Advancement 的八生成器黄金编译已关闭；专用编辑器、语言工具、500 节点、2,000/10,000 规模、服务端、真实 JCEF/a11y、干净 VM 仍未关闭 | `betaEligible=false`，不得称为 Beta |
 | 仓库治理 | GitHub 已识别 GPLv3；Javadoc Pages 可访问；main 三项必需检查、受保护 PR 与 production 必需审阅者均已验证 | 仓库治理 P0 已闭环 |
 | Dependency Submission | 仓库 Dependency Graph 未启用，原工作流无法成功 | 误导工作流已从 main 删除 |

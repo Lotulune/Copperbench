@@ -4,19 +4,19 @@
 
 ## 当前状态
 
-阶段 8 收口需求 `FR-CLOSE-01`～`FR-CLOSE-08` 均已完成。`v0.1.0-preview.1` 已公开并包含完整 Windows 三包、SBOM、哈希和源元数据，但它基于 `b1225ec3`，落后于当前 main。GitHub 已正确识别 GPLv3，Javadoc Pages 可访问，main 保护、真实受保护 PR 与 production 审批均已验证。Nightly `32898153354` 的产品回归和 Stage 9 八生成器黄金编译 8/8 全绿。Preview 2 尚需最终候选 SHA 连续三绿、签名 Tag、生产审批和资产验证；Stage 9 仍有多个 Beta 阻断门禁。
+阶段 8 收口需求 `FR-CLOSE-01`～`FR-CLOSE-08` 均已完成。`v0.1.0-preview.1` 已公开并包含完整 Windows 三包、SBOM、哈希和源元数据，但它基于 `b1225ec3`，落后于当前 main。GitHub 已正确识别 GPLv3，Javadoc Pages 可访问，main 保护、真实受保护 PR 与 production 审批均已验证。Nightly `32904372190` 在 `fe4b0f30` 的产品回归和 Stage 9 八生成器黄金编译 8/8 全绿；同一 SHA 的快速 CI 已连续三次全绿。Preview 2 尚需签名 Tag、生产审批和资产验证；Stage 9 仍有多个 Beta 阻断门禁。
 
 ## 当前交付阻断项
 
 | 项 | 状态 | 下一证据 |
 | --- | --- | --- |
 | 机器状态源 | 已通过 | `product-status.json`、Schema 与漂移校验在 main/PR 持续通过 |
-| main 分支保护 | 已验证 | 三项必需检查、严格更新和管理员保护已生效；PR #1～#4 留有全绿记录 |
+| main 分支保护 | 已验证 | 三项必需检查、严格更新和管理员保护已生效；PR #1～#5 留有全绿记录 |
 | Javadoc Pages | 已验证 | <https://lotulune.github.io/Copperbench/> 返回 200 |
 | production 审批 | 已配置必需审阅者 | Preview 2 在批准前保持等待，并留下部署记录 |
-| Nightly | 已取得首份全绿证据 | [运行 32898153354](https://github.com/Lotulune/Copperbench/actions/runs/32898153354) 的产品回归与八生成器矩阵全部通过 |
+| Nightly | 已取得最终候选全绿证据 | [运行 32904372190](https://github.com/Lotulune/Copperbench/actions/runs/32904372190) 在 `fe4b0f30` 的产品回归与八生成器矩阵全部通过 |
 | Dependency Submission | 已移除 | Dependency Graph 关闭时不保留必失败工作流 |
-| Preview 2 | 待发布 | 最终候选 SHA 连续三绿后创建签名 Tag，经 production 审批并验证资产 |
+| Preview 2 | 待发布 | `fe4b0f30` 已连续三绿；下一步创建签名 Tag，经 production 审批并验证资产 |
 | 外部试用 | 0/5 有可审计记录 | 五名非核心开发者匿名任务结果 |
 
 ## 阶段 9 状态摘要
