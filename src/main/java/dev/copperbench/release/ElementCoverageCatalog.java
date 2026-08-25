@@ -19,7 +19,8 @@ import java.util.Set;
  * Honest first-release mod-element matrix. Bundled generator plugins still
  * contain upstream templates; the new UI/MCP/headless first-party slice is
  * block, item, recipe, procedure, function, loot table, and advancement. The
- * Stage 9 generator matrix remains a separate release gate.
+ * Stage 9 generator matrix has fixed evidence; the remaining product gates are
+ * tracked separately.
  */
 public final class ElementCoverageCatalog {
 
@@ -51,9 +52,9 @@ public final class ElementCoverageCatalog {
 		root.add("unsupportedInNewUi", strings(UNSUPPORTED_IN_NEW_UI));
 		root.add("bedrockAddonNotApplicable", strings(BEDROCK_ADDON_NOT_APPLICABLE));
 		root.addProperty("appliesToGenerators",
-				"shared Java application service; generator-specific Stage 9 validation pending");
+				"shared Java application service; Stage 9 golden generation passed all eight generators");
 		root.addProperty("notes",
-				"Create and update in the new UI, MCP, and headless accept only the first-party slice. Function, loot table, and advancement are Stage 9 development-preview CRUD until the eight-generator golden gate passes. Imported upstream types are preserved and listed, but the editor is read-only and updates are rejected.");
+				"Create and update in the new UI, MCP, and headless accept only the first-party slice. Function, loot table, and advancement passed the eight-generator golden build but remain Stage 9 development preview until the dedicated editor and remaining product gates pass. Imported upstream types are preserved and listed, but the editor is read-only and updates are rejected.");
 		return root;
 	}
 

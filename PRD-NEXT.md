@@ -1,8 +1,8 @@
 # Copperbench 下一步 PRD：阶段 10 可信预览发布与 Stage 9 收口
 
 > 状态：实施中（可信 Preview 已建立，Beta 门禁未关闭）<br>
-> 版本：v1.1<br>
-> 更新日期：2026-08-25<br>
+> 版本：v1.2<br>
+> 更新日期：2026-08-26<br>
 > 前置基线：[PRD.md](./PRD.md)、[PRD-STAGE-9.md](./PRD-STAGE-9.md)<br>
 > 当前公开发布：`v0.1.0-preview.1`；目标发布：`v0.1.0-preview.2`
 
@@ -14,18 +14,18 @@
 - 关闭需求必须同时满足实现、自动验证、用户文档和可追溯证据，不接受只修改状态文字。
 - 本阶段冻结新模组元素类型，先建立“提交 → CI → 产物 → Release → 用户反馈”的可信闭环。
 
-### 0.1 实施快照（2026-08-25）
+### 0.1 实施快照（2026-08-26）
 
 机器可读事实入口为 [`product-status.json`](./product-status.json)，本节只解释执行状态。
 
 | 项目 | 当前事实 | 结论 |
 | --- | --- | --- |
-| Fast CI | `main@9c37595b` 的 Java/Javadoc、UI/Playwright、MCP 全绿 | 快速门禁可用，但尚缺真实 PR 记录和连续三次 main 记录 |
+| Fast CI | 受保护 PR #1～#4 均取得真实全绿记录；`main@f801a81f` 的 Java/Javadoc、UI/Playwright、MCP 全绿 | PR 门禁已闭环；UI 等待上限修复后连续 main 记录为 1/3 |
 | 公开 Release | `v0.1.0-preview.1` 已有 EXE/ZIP/MSIX/SBOM/哈希/元数据，源提交为 `b1225ec3` | 发布链路已证明，但公开包落后于当前 main |
-| 状态源 | `product-status.json`、Schema 和 CI 漂移校验已进入 main；首次远端运行发现 Release Schema 漏项 | 本测试 PR 修复漏项，后续状态提升必须带证据 |
-| 重型门禁 | Windows Nightly 全量回归、规模 smoke 和八生成器内容构建矩阵已进入 main | 首次 Nightly 尚未取得全绿证据 |
-| Stage 9 | 三种专用编辑器、语言工具、500 节点、2,000/10,000 规模、八生成器、服务端、真实 JCEF/a11y、干净 VM 均未全部关闭 | `betaEligible=false`，不得称为 Beta |
-| 仓库治理 | GitHub 已识别 GPLv3；Pages、main 三项必需检查和 production 必需审阅者已配置 | 本分支作为首个受保护测试 PR，合并前仍为实施中 |
+| 状态源 | `product-status.json`、Schema 和 CI 漂移校验已进入 main，并已修复首次远端运行暴露的 Release Schema 漏项 | 状态源门禁通过；后续状态提升仍必须带固定提交证据 |
+| 重型门禁 | Nightly `32898153354` 的全量回归、规模 smoke、完整 Playwright、MCP 与八生成器内容构建 8/8 全绿 | Nightly 门禁已建立并取得首份完整远端证据 |
+| Stage 9 | Function、Loot Table、Advancement 的八生成器黄金编译已关闭；专用编辑器、语言工具、500 节点、2,000/10,000 规模、服务端、真实 JCEF/a11y、干净 VM 仍未关闭 | `betaEligible=false`，不得称为 Beta |
+| 仓库治理 | GitHub 已识别 GPLv3；Javadoc Pages 可访问；main 三项必需检查、受保护 PR 与 production 必需审阅者均已验证 | 仓库治理 P0 已闭环 |
 | Dependency Submission | 仓库 Dependency Graph 未启用，原工作流无法成功 | 误导工作流已从 main 删除 |
 
 ## 1. 背景与问题
@@ -34,10 +34,10 @@
 
 截至 2026-08-25，代码能力仍高于公共交付能力，主要差距是：
 
-1. 公共 Release 已可下载，但 `v0.1.0-preview.1` 没有指向当前 `main`。
-2. 快速 CI 与真实 Tag 发布已跑绿，但分支保护、测试 PR、Nightly 和人工发布审批尚未闭环。
-3. 功能状态此前分散在多份文档和 Java 清单中，存在漂移风险。
-4. Stage 9 的大型工作区、八生成器黄金编译、服务端 readiness 和真实 JCEF 门禁未全部关闭。
+1. 公共 Release 已可下载，但 `v0.1.0-preview.1` 没有指向当前 `main`；Preview 2 仍需最终连续三绿、签名 Tag 和生产审批。
+2. 快速 CI、分支保护、真实 PR、Nightly 和人工发布审批配置已闭环，但发布前仍需在最终候选 SHA 上保留完整记录。
+3. 机器状态源已建立；PRD、状态索引和发布说明仍必须在每次状态提升时同步更新。
+4. Stage 9 的大型工作区、专用编辑器、语言工具、服务端 readiness、真实 JCEF/a11y 和干净 Windows 11 门禁仍未关闭。
 5. MCP 缺少大型项目分页、SDK 示例、批量原子计划和任务事件。
 
 因此，本阶段的产品目标不是增加更多元素，而是把现有能力变成可下载、可验证、可解释、可反馈的高级 Alpha 预览版。

@@ -32,7 +32,7 @@ public final class UpstreamToolCatalog {
 					"Shared application service. Import copies to a sibling directory and preserves unknown fields."),
 			new Tool("mod_elements_first_party",
 					"Workspace/Mod elements for block, item, recipe, procedure, function, loot table, advancement",
-					Surface.NEW_UI, "Seven first-party editable types. The three Stage 9 data types remain development preview until their generator gate passes."),
+					Surface.NEW_UI, "Seven first-party editable types. The three Stage 9 data types passed the eight-generator golden build but remain development preview until their dedicated editors and remaining product gates pass."),
 			new Tool("mod_elements_other", "Living entity, GUI, plant, dimension, and other element editors",
 					Surface.UNSUPPORTED,
 					"Imported definitions are preserved and listed read-only. Create/update in the new UI are rejected."),

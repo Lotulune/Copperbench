@@ -13,6 +13,7 @@ It does not promote any Stage 9 product gate.
 | Stale draft | The incomplete `v0.1.0` draft Release was deleted; the Git tag was retained |
 
 The first run after landing the status source exposed a missing
-`source.additionalTerms` property in the frozen Release Schema. This branch is
-the protected-branch smoke PR that fixes the contract and must pass all three
-required checks before merge.
+`source.additionalTerms` property in the frozen Release Schema. Protected PR #1
+fixed that contract and passed all three required checks before merge. PRs #2,
+#3, and #4 subsequently passed the same protection while establishing the
+deterministic Nightly generator gate and stabilizing UI window checks.
