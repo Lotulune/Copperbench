@@ -6,7 +6,7 @@
 
 ## 0. 阅读与执行规则
 
-- 本文件是阶段 9 的唯一需求边界；已完成能力以 [PRD.md](./PRD.md) 和 [PRD-NEXT.md](./PRD-NEXT.md) 为准。
+- 本文件是阶段 9 的历史需求边界；阶段 0～8 已完成能力以 [PRD.md](./PRD.md) 和 [阶段 8 路线](./docs/roadmap/stage-8-windows-beta-ga.md) 为准，当前收口需求见 [PRD-NEXT.md](./PRD-NEXT.md)。
 - UI、MCP、headless 必须调用同一 Java 应用服务，不得各自直接改工作区文件。
 - 每项能力必须声明加载器、Minecraft 版本和生成器支持状态；不允许用错误映射静默降级。
 - 未通过对应门禁的能力只能标记为预览或不可用，不能进入正式支持矩阵。

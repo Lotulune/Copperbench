@@ -1,9 +1,23 @@
 name: Generate documentation
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - "src/main/java/**"
+      - "build.gradle"
+      - ".github/workflows/documentation.yml"
   schedule:
     - cron: "0 0 * * 1"
   workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: javadoc-publish
+  cancel-in-progress: true
 
 jobs:
   publish:
@@ -12,7 +26,7 @@ jobs:
       - uses: actions/checkout@v7
         name: Checkout Repository
       - name: Set up JDK 25
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           java-version: '25.0.2'
           distribution: 'jetbrains'
@@ -22,7 +36,7 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
       - name: Generate Javadoc
-        run: gradle javadoc
+        run: ./gradlew --no-daemon javadoc
       - name: Deploy Javadoc
         uses: JamesIves/github-pages-deploy-action@65b5dfd4f5bcd3a7403bbc2959c144256167464e
         with:

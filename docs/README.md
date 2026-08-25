@@ -1,11 +1,11 @@
 # 项目文档导航
 
-已关闭能力读根目录 [PRD](../PRD.md)。阶段 8 剩余工作读 [PRD-NEXT.md](../PRD-NEXT.md)。本目录保存 ADR、调研、架构细节和阶段证据，只有专项任务需要按 PRD 链接继续读取。
+已关闭能力读根目录 [PRD](../PRD.md)。下一阶段交付读 [PRD-NEXT.md](../PRD-NEXT.md)。本目录保存开发、用户、AI、ADR、架构和阶段证据。
 
 ## 从这里开始
 
 1. 已关闭能力：根目录 [PRD](../PRD.md)。
-2. 阶段 8 收口与未实现项：根目录 [PRD-NEXT.md](../PRD-NEXT.md)；状态索引 [剩余完善清单](./remaining-work.md)。
+2. 下一阶段可信预览发布：根目录 [PRD-NEXT.md](../PRD-NEXT.md)；历史状态索引 [剩余完善清单](./remaining-work.md)。
 3. 术语存在歧义时查询 [领域词汇表](../CONTEXT.md)。
 4. 只有遇到专项问题时，才从本页选择对应附件。
 
@@ -37,12 +37,26 @@
 - [阶段 3 桥接集成准备](./handoffs/stage-3-bridge-readiness.md)
 - [阶段 3 G2/G3 验证记录](./testing/stage-3-g2-g3-2026-08-17.md)
 - [阶段与发布门禁](./testing/release-gates.md)
-- [阶段 8 收口需求](../PRD-NEXT.md)
+- [阶段 10 可信预览与 Stage 9 收口](../PRD-NEXT.md)
 - [剩余完善清单](./remaining-work.md)
 - [UI 重写交接简报](./handoffs/ui-rewrite-brief.md)
 - [zcode UI-Core v0.1 交接](./handoffs/zcode-ui-core-v0.1.md)
 - [阶段 0 基线执行记录](./testing/stage-0-baseline-2026-08-16.md)
 - [Windows 干净构建基线](./build/windows-clean-build.md)
+
+## 开发与发布
+
+- [开发环境](./build/development-setup.md)
+- [Windows 干净构建基线](./build/windows-clean-build.md)
+- [Windows 预览版发布流程](./build/release-process.md)
+- [预览版说明模板](./releases/preview-template.md)
+
+## 用户与 AI
+
+- [快速开始](./user/getting-started.md)
+- [开发测试版使用说明](./user/README.md)
+- [故障排查](./user/troubleshooting.md)
+- [MCP 接入快速开始](./ai/getting-started.md)
 
 ## 调研依据
 
@@ -53,4 +67,4 @@
 
 ## 执行前确认
 
-[执行期未决事项](./open-decisions.md)仅记录必须基于原型、固定提交或实际兼容测试才能确定的内容。已由 ADR 固化的决策不得在任务实现中被隐式改写。阶段 8 剩余实现以 [PRD-NEXT.md](../PRD-NEXT.md) 为准，不要只改聊天结论。
+[执行期未决事项](./open-decisions.md)仅记录必须基于原型、固定提交或实际兼容测试才能确定的内容。已由 ADR 固化的决策不得在任务实现中被隐式改写。下一阶段实现以 [PRD-NEXT.md](../PRD-NEXT.md) 为准。

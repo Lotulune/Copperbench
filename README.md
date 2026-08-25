@@ -4,13 +4,15 @@ Copperbench is a Windows 11 desktop Minecraft mod-creation workbench. It is an i
 
 Public distribution is the GitHub repository [Lotulune/Copperbench](https://github.com/Lotulune/Copperbench) and unsigned GitHub Releases. There is no product website, app-store listing, or Authenticode-signed installer. Windows SmartScreen may warn on the unsigned binaries. The product ID `dev.copperbench.studio` is a reverse-DNS identifier, not a live website.
 
-Immutable source records are in [`UPSTREAM.md`](UPSTREAM.md) and [`compliance/baseline.lock.json`](compliance/baseline.lock.json). Build instructions are in [`docs/build/windows-clean-build.md`](docs/build/windows-clean-build.md).
+Immutable source records are in [`UPSTREAM.md`](UPSTREAM.md) and [`compliance/baseline.lock.json`](compliance/baseline.lock.json). Start with the [development setup](docs/build/development-setup.md) or the [Windows clean-build baseline](docs/build/windows-clean-build.md).
 
 ## Development
 
-Closed capabilities are specified in [`PRD.md`](PRD.md). Remaining first-release work is [`PRD-NEXT.md`](PRD-NEXT.md). Domain terms are in [`CONTEXT.md`](CONTEXT.md).
+Closed capabilities are specified in [`PRD.md`](PRD.md). The next delivery is the [trusted preview and Stage 9 closure](PRD-NEXT.md). Domain terms are in [`CONTEXT.md`](CONTEXT.md).
 
-Copperbench uses Gradle for building and packaging. The stage 0 gate runs scoped product/unit tests, UI integration tests, `exportWindowsZip`, `buildInstallerWin64`, and `buildMsixWin64` from a Java 25 environment; exact commands and evidence paths are in [`docs/build/windows-clean-build.md`](docs/build/windows-clean-build.md).
+Copperbench uses the checked-in Gradle Wrapper for building and packaging. CI covers Java, UI-Core schemas, the React shell, fast Playwright scenarios, MCP conformance, Javadoc, and local Markdown links. Packaging and publication rules are in the [Windows release process](docs/build/release-process.md).
+
+User documentation starts with [Getting Started](docs/user/getting-started.md) and [Troubleshooting](docs/user/troubleshooting.md). Local AI integrations start with the [MCP guide](docs/ai/getting-started.md).
 
 Windows packages include JetBrains Runtime with JCEF `25.0.3+1-b329.124`. Automatic news, update, analytics, and Discord connections are disabled.
 

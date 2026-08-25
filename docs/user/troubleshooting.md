@@ -1,0 +1,32 @@
+# Copperbench 故障排查
+
+## SmartScreen 阻止启动
+
+公开预览版当前未签名。先确认文件来自项目 GitHub Release，并用 `Get-FileHash -Algorithm SHA256` 与 `SHA256SUMS.txt` 对照。哈希不一致时立即删除文件，不要继续运行。
+
+## Windows 10 无法安装
+
+这是预期限制。当前安装器和产品只支持 Windows 11 build 22000 及以上。
+
+## 卡在 Gradle 或 Maven 下载
+
+- 首次启动时可选择中国大陆镜像。
+- 设置保存在 `%USERPROFILE%\.copperbench\gradle`，不会改写系统 `.gradle`。
+- Fabric Maven 与 NeoForge 专用仓库仍使用官方地址，镜像不能覆盖所有依赖。
+- 检查代理、防火墙、杀毒软件和磁盘空间后重试。
+
+Gradle `--offline` 只表示使用已缓存依赖，不等于首次构建可以在操作系统断网时完成。
+
+## 产品外壳空白或 JCEF 启动失败
+
+确认使用发布包自带的 JDK/JCEF，不要删除 `jdk/` 或 `lib/`。将整个 ZIP 完整解压到可写目录，避免直接在压缩包内运行。仍失败时保留 `%USERPROFILE%\.copperbench` 下的日志，但分享前删除用户名、工作区路径和令牌。
+
+## 工作区无法打开或构建
+
+先创建恢复点，再检查当前生成器和 Minecraft 版本。迁入类型若标为“只读”，请使用旧版编辑器入口，不要直接修改 `.mcreator` JSON。构建失败时记录首个结构化诊断和对应任务日志，而不是只截取最后一行堆栈。
+
+## MCP 客户端无法连接
+
+MCP 只监听 `127.0.0.1`。确认 Copperbench 已启动、客户端使用当前工作区令牌、端口未被占用，并且权限档位允许目标操作。不要把令牌粘贴到 Issue、聊天或构建日志。
+
+提交问题前阅读 [Issue 模板](../../.github/ISSUE_TEMPLATE/bug_report.yml)，附上版本、提交号、复现步骤和脱敏日志。

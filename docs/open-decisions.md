@@ -2,7 +2,7 @@
 
 执行期未决事项已收到 [剩余完善清单](./remaining-work.md)。关闭方式是落地实现、补充 ADR 或阶段记录，而不是只在聊天中口头决定。
 
-阶段 8 收口项已按 `PRD-NEXT.md` 完成；G7 已通过 Hyper-V Win11 客机最终复验。VMware 不属于 G7 必需门禁。四轨 Fabric / NeoForge 及 `resourcepack-1.21.1` 生成器已经在源码里。
+阶段 8 收口项已完成，历史见 [阶段 8 路线](./roadmap/stage-8-windows-beta-ga.md)；G7 已通过 Hyper-V Win11 客机最终复验。VMware 不属于 G7 必需门禁。四轨 Fabric / NeoForge 及 `resourcepack-1.21.1` 生成器已经在源码里。当前需求见 [PRD-NEXT.md](../PRD-NEXT.md)。
 
 远程 MCP、自有云账户、Linux/macOS 正式支持、内置模型厂商聊天、产品网站、付费 Authenticode 不属于当前未决事项；它们已经明确排除在首个公开 GitHub 衍生版之外，后续若重启必须新增 ADR。
 

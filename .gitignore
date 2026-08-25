@@ -6,6 +6,8 @@ ui-core/coverage/
 .gradle/
 build/
 **/build/
+!docs/build/
+!docs/build/*.md
 **/.idea/workspace.xml
 **/.idea/tasks.xml
 **/.idea/uiDesigner.xml

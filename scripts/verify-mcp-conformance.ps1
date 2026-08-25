@@ -5,7 +5,14 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $repositoryRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
-$javaHome = (Resolve-Path (Join-Path $repositoryRoot 'jdk\jbr25_win_64')).Path
+$bundledJavaHome = Join-Path $repositoryRoot 'jdk\jbr25_win_64'
+$javaHome = if (Test-Path -LiteralPath (Join-Path $bundledJavaHome 'bin\java.exe')) {
+	(Resolve-Path $bundledJavaHome).Path
+} elseif ($env:JAVA_HOME -and (Test-Path -LiteralPath (Join-Path $env:JAVA_HOME 'bin\java.exe'))) {
+	(Resolve-Path $env:JAVA_HOME).Path
+} else {
+	throw 'JDK 25 was not found in jdk\jbr25_win_64 or JAVA_HOME'
+}
 $runDirectory = Join-Path $repositoryRoot ("build\mcp-conformance-" + [Guid]::NewGuid().ToString('N'))
 $connectionPath = Join-Path $runDirectory 'connection.json'
 $outputPath = if ([IO.Path]::IsPathRooted($OutputDirectory)) {

@@ -14,7 +14,7 @@
 | 5 | [NeoForge 通用能力对齐](./stage-5-neoforge-parity.md) | 同一通用元素在两个加载器工作 | 3、4 |
 | 6 | [资产、资源包与 Blockbench](./stage-6-assets-resource-pack-blockbench.md) | 资产往返、引用治理和资源包工作流 | 4、5 |
 | 7 | [版本轨道与加载器迁移](./stage-7-version-tracks-and-migration.md) | 四条版本轨道和复制式迁移 | 5、6 |
-| 8 | [Windows Beta 与正式发布](./stage-8-windows-beta-ga.md) | 通过全部门禁的公开 GPL Windows 产品。剩余收口见 [`PRD-NEXT.md`](../../PRD-NEXT.md) | 0-7 |
+| 8 | [Windows Beta 与正式发布](./stage-8-windows-beta-ga.md) | 阶段 8 已收口；后续可信预览见 [`PRD-NEXT.md`](../../PRD-NEXT.md) | 0-7 |
 | 9 | [可视化逻辑与创作者核心](../../PRD-STAGE-9.md) | Procedure、工作区数据、数据驱动元素和服务端验证闭环 | 8 |
 
 ## UI 并行工作流
