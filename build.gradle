@@ -240,6 +240,12 @@ test {
 		System.getProperty('copperbench.stage9.workspaceGeneratorBuild', 'false')
 	systemProperty 'copperbench.stage9.workspaceGeneratorId',
 		System.getProperty('copperbench.stage9.workspaceGeneratorId', '')
+	systemProperty 'copperbench.generatorIntegrationProfile',
+		System.getProperty('copperbench.generatorIntegrationProfile', 'local')
+	systemProperty 'copperbench.generatorSetupTimeoutMinutes',
+		System.getProperty('copperbench.generatorSetupTimeoutMinutes', '10')
+	systemProperty 'copperbench.generatorTaskTimeoutMinutes',
+		System.getProperty('copperbench.generatorTaskTimeoutMinutes', '20')
 
     jvmArgs '--add-opens', 'java.base/java.lang=ALL-UNNAMED', '--add-opens', 'java.base/java.io=ALL-UNNAMED',
             '--enable-native-access', 'ALL-UNNAMED,jcef'
