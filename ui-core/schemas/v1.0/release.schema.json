@@ -261,10 +261,11 @@
     },
     "source": {
       "type": "object",
-      "required": ["license", "notices", "changes", "sourceDistribution"],
+      "required": ["license", "additionalTerms", "notices", "changes", "sourceDistribution"],
       "additionalProperties": false,
       "properties": {
         "license": { "type": "string" },
+        "additionalTerms": { "type": "string" },
         "notices": { "type": "string" },
         "changes": { "type": "string" },
         "sourceDistribution": { "type": "string" },

@@ -2,7 +2,7 @@
   "$schema": "./schemas/product-status.schema.json",
   "schemaVersion": "1.0",
   "snapshot": {
-    "date": "2026-08-25",
+    "date": "2026-08-26",
     "lastVerifiedCommit": "9c37595b7f0e7ebd4f1e3a7fae9e7e5b67f9d39f",
     "policy": "Only code, automated checks, and evidence tied to a commit can promote a gate."
   },
@@ -33,6 +33,11 @@
     "fastCi": {
       "status": "passed",
       "run": "https://github.com/Lotulune/Copperbench/actions/runs/32839587007",
+      "latestAttempt": {
+        "status": "failed",
+        "run": "https://github.com/Lotulune/Copperbench/actions/runs/32884305565",
+        "reason": "Release schema omitted source.additionalTerms; fixed by the branch-protection smoke PR."
+      },
       "requiredChecks": [
         "Java tests and Javadoc",
         "UI contract, build, and smoke tests",
@@ -40,8 +45,28 @@
       ]
     },
     "nightly": {
-      "status": "implementation-pending",
+      "status": "ready-for-first-run",
       "workflow": ".github/workflows/nightly.yml"
+    },
+    "repositoryGovernance": {
+      "licenseDetection": "GPL-3.0",
+      "pages": {
+        "enabled": true,
+        "url": "https://lotulune.github.io/Copperbench/",
+        "source": "javadoc:/"
+      },
+      "mainProtection": {
+        "enabled": true,
+        "strict": true,
+        "requiredChecks": [
+          "Java tests and Javadoc",
+          "UI contract, build, and smoke tests",
+          "MCP conformance"
+        ]
+      },
+      "productionRequiredReviewer": true,
+      "staleV010DraftDeleted": true,
+      "evidence": "docs/testing/repository-governance-2026-08-26.md"
     }
   },
   "generators": [
@@ -77,6 +102,7 @@
     {"id": "release-pipeline", "status": "passed", "betaBlocking": false, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/32838065932"]},
     {"id": "fast-ci", "status": "passed", "betaBlocking": false, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/32839587007"]},
     {"id": "product-status-source", "status": "in-progress", "betaBlocking": true, "evidence": ["product-status.json", "schemas/product-status.schema.json", "scripts/verify-product-status.mjs"]},
+    {"id": "repository-governance", "status": "in-progress", "betaBlocking": false, "evidence": ["docs/testing/repository-governance-2026-08-26.md"]},
     {"id": "three-data-editors", "status": "blocked", "betaBlocking": true, "evidence": []},
     {"id": "language-tools", "status": "blocked", "betaBlocking": true, "evidence": []},
     {"id": "procedure-500", "status": "blocked", "betaBlocking": true, "evidence": []},

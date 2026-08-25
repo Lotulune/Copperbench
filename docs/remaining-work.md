@@ -4,18 +4,18 @@
 
 ## 当前状态
 
-阶段 8 收口需求 `FR-CLOSE-01`～`FR-CLOSE-08` 均已完成。`v0.1.0-preview.1` 已公开并包含完整 Windows 三包、SBOM、哈希和源元数据，但它基于 `b1225ec3`，落后于当前已验证 main `9c37595b`。快速 CI 已真实全绿；Nightly、分支保护、Pages、production 审批、测试 PR 与 Preview 2 仍在实施。Stage 9 创作者核心闭环可运行，但 Beta 所需的实质门禁均未全部关闭。
+阶段 8 收口需求 `FR-CLOSE-01`～`FR-CLOSE-08` 均已完成。`v0.1.0-preview.1` 已公开并包含完整 Windows 三包、SBOM、哈希和源元数据，但它基于 `b1225ec3`，落后于当前 main。GitHub 已正确识别 GPLv3，Pages、main 保护与 production 审批已配置；首个受保护测试 PR、首次 Nightly 和 Preview 2 仍在实施。Stage 9 创作者核心闭环可运行，但 Beta 所需的实质门禁均未全部关闭。
 
 ## 当前交付阻断项
 
 | 项 | 状态 | 下一证据 |
 | --- | --- | --- |
 | 机器状态源 | 实施中 | `product-status.json` 校验在 main/PR 通过 |
-| main 分支保护 | 待配置 | 三个必需检查和真实 PR 合并记录 |
-| Javadoc Pages | 工作流已绿、站点未启用 | 仓库 `has_pages=true` 且公开 URL 可访问 |
-| production 审批 | Environment 存在但无审阅者 | Tag 发布在人工批准前保持等待 |
-| Nightly | 工作流已进入本次变更 | 全量回归和八生成器矩阵首次运行结论 |
-| Dependency Submission | 移除 | Dependency Graph 关闭时不保留必失败工作流 |
+| main 分支保护 | 已配置 | 本测试 PR 的三个必需检查全部通过并合并 |
+| Javadoc Pages | 已启用 `javadoc:/` | 公开 URL 构建完成并可访问 |
+| production 审批 | 已配置必需审阅者 | Preview 2 在批准前保持等待，并留下部署记录 |
+| Nightly | 工作流已进入 main | 全量回归和八生成器矩阵首次运行结论 |
+| Dependency Submission | 已移除 | Dependency Graph 关闭时不保留必失败工作流 |
 | Preview 2 | 待发布 | 签名 Tag 指向最新全绿 main，资产校验通过 |
 | 外部试用 | 0/5 有可审计记录 | 五名非核心开发者匿名任务结果 |
 
