@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.junit.jupiter.api.Test;
 
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -68,6 +69,24 @@ class ProcedureIrCodecTest {
 		assertTrue(codec.validate(dangling).stream()
 				.anyMatch(issue -> issue.code().equals("PROCEDURE_DANGLING_CONTROL_FLOW")));
 		assertFalse(codec.sourcePreview(base).isBlank());
+	}
+
+	@Test void parsesDeepButBoundedBlocklyControlFlow() {
+		StringBuilder xml = new StringBuilder("<xml xmlns=\"https://developers.google.com/blockly/xml\">"
+				+ "<block type=\"event_trigger\" id=\"" + TRIGGER_ID + "\">");
+		for (int index = 0; index < 128; index++) {
+			UUID id = UUID.nameUUIDFromBytes(("deep-procedure-" + index).getBytes(StandardCharsets.UTF_8));
+			xml.append("<next><block type=\"text_print\" id=\"").append(id).append("\">");
+		}
+		xml.append("</block></next>".repeat(128)).append("</block></xml>");
+
+		ProcedureIr parsed = new ProcedureIrCodec().fromBlocklyXml(xml.toString(), ELEMENT_ID);
+		ProcedureIr.Node trigger = parsed.nodes().stream().filter(node -> node.type().equals("event_trigger"))
+				.findFirst().orElseThrow();
+
+		assertEquals(129, parsed.nodes().size());
+		assertTrue(parsed.nodeIndex().containsKey(trigger.next()));
+		assertTrue(new ProcedureIrCodec().validate(parsed).isEmpty());
 	}
 
 	private static JsonObject addNode(UUID id, String type) {
