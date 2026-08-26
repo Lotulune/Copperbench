@@ -4,7 +4,7 @@
 
 ## 当前状态
 
-阶段 8 收口需求 `FR-CLOSE-01`～`FR-CLOSE-08` 均已完成。`v0.1.0-preview.2` 已公开并验证完整 Windows 三包、SBOM、哈希、源元数据和生产审批；本 PR 冻结为 `v0.1.0-preview.3` 发布源，Tag、`RELEASE-METADATA.json` 与发布时的最新 `main` HEAD 必须完全一致。GitHub 已正确识别 GPLv3，Javadoc Pages 可访问，main 保护、真实受保护 PR 与 production 审批均已验证。Nightly `32904372190` 在 `fe4b0f30` 的产品回归和 Stage 9 八生成器黄金编译 8/8 全绿；同一代码基线的快速 CI 已连续三次全绿。Stage 9 仍有多个 Beta 阻断门禁，外部试用为 0/5。
+阶段 8 收口需求 `FR-CLOSE-01`～`FR-CLOSE-08` 均已完成。`v0.1.0-preview.2` 已公开并验证完整 Windows 三包、SBOM、哈希、源元数据和生产审批；`v0.1.0-preview.3` 是历史冻结发布源，后续 main 提交已使其不再等于当前 HEAD。GitHub 已正确识别 GPLv3，Javadoc Pages 可访问，main 保护、真实受保护 PR 与 production 审批均已验证。Nightly `32956081891` 在 `6fa8e942` 上的八生成器黄金编译 8/8 通过；产品回归另有一条 JCEF bridge E2E 时序失败，修复已进入后续 UI 分支。Stage 9 仍有多个 Beta 阻断门禁，外部试用为 0/5。
 
 ## 当前交付阻断项
 
@@ -26,7 +26,7 @@
 | --- | --- | --- |
 | Procedure 领域模型与编辑器 | 开发预览 | 结构化 IR、未知块保留、Blockly 工作台、预览/保存与引用索引已有自动化覆盖；500 节点交互门禁未关 |
 | 变量 / 标签 / 语言 | 开发预览 | 稳定 ID、CRUD、重命名影响预览与引用计数已接 UI/MCP/headless；语言导入导出、回退和诊断待补 |
-| Function / Loot Table / Advancement | 开发预览 | 可真实写回上游工作区；八生成器黄金编译已 8/8 通过，专用编辑器深度仍待补 |
+| Function / Loot Table / Advancement | UI 已补齐，仍为开发预览 | 专用编辑器、保存和代表性字段编辑在两个 viewport 的 16/16 E2E 中通过；八生成器黄金编译已 8/8 通过，真实 JCEF 主路径仍待补 |
 | 服务端 / datagen / GameTest | 核心路径完成 | 受管任务、日志和隔离目录已接入；datagen 支持暂存差异、确认发布与事务回滚 |
 | 发布门禁 | 未关闭 | 500 节点与 10,000 引用性能、全轨 readiness、真实 JCEF、Windows 11 干净 VM 仍需证据 |
 
@@ -66,8 +66,8 @@
 
 ## 阶段 9 剩余实现与验证
 
-- 为 Function 增加命令级诊断与函数标签编辑，为 Loot Table 增加池/条目/条件/函数的专用结构化编辑，为 Advancement 增加 criteria 与父级循环防护。
-- 为语言注册表增加 CSV/JSON 导入导出、主/回退语言和缺失/重复键报告。
+- Function、Loot Table、Advancement 专用编辑器和语言 CSV/JSON 工具已实现；证据见 [Stage 9 UI 门禁记录](./testing/stage-9-ui-gates-2026-08-26.md)。
+- 仍需把语言回退策略接入真实 Core 数据，并完成完整缺失/重复键治理验收。
 - 执行 500 节点 Procedure 与 2,000 元素/10,000 引用 P95 性能门禁，并完成键盘和可访问性审计。
 - 八套 Fabric/NeoForge 的 Stage 9 黄金生成器编译已通过；下一步补齐同轨专用服务端 readiness、datagen/GameTest 适用矩阵与故障夹具。
 - 在可用的真实 JCEF 宿主和 Windows 11 干净虚拟机完成 G9.0/G9.5；快速 CI 和 Preview 1 已真实跑绿，但它们不能替代 Stage 9 的产品门禁。

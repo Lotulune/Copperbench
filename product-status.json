@@ -58,11 +58,11 @@
       ]
     },
     "nightly": {
-      "status": "passed",
+      "status": "failed",
       "workflow": ".github/workflows/nightly.yml",
-      "run": "https://github.com/Lotulune/Copperbench/actions/runs/32904372190",
-      "sourceCommit": "fe4b0f308e7aa9f5747dbb8faa11a1a7c8879387",
-      "productRegression": "passed",
+      "run": "https://github.com/Lotulune/Copperbench/actions/runs/32956081891",
+      "sourceCommit": "6fa8e942e636c7e4cb7c3a003cc5d6b8b85f4b92",
+      "productRegression": "failed-jcef-bridge-timing",
       "generatorGolden": "8/8 passed"
     },
     "repositoryGovernance": {
@@ -120,11 +120,11 @@
     {"id": "fast-ci", "status": "passed", "betaBlocking": false, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/32904346297", "https://github.com/Lotulune/Copperbench/actions/runs/32904844692", "https://github.com/Lotulune/Copperbench/actions/runs/32905419136"]},
     {"id": "product-status-source", "status": "passed", "betaBlocking": true, "evidence": ["product-status.json", "schemas/product-status.schema.json", "scripts/verify-product-status.mjs"]},
     {"id": "repository-governance", "status": "passed", "betaBlocking": false, "evidence": ["docs/testing/repository-governance-2026-08-26.md"]},
-    {"id": "three-data-editors", "status": "blocked", "betaBlocking": true, "evidence": []},
-    {"id": "language-tools", "status": "blocked", "betaBlocking": true, "evidence": []},
+    {"id": "three-data-editors", "status": "passed", "betaBlocking": true, "evidence": ["docs/testing/stage-9-ui-gates-2026-08-26.md", "ui-shell/e2e/stage9-creator-core.spec.ts"]},
+    {"id": "language-tools", "status": "passed", "betaBlocking": true, "evidence": ["docs/testing/stage-9-ui-gates-2026-08-26.md", "ui-shell/e2e/stage9-creator-core.spec.ts"]},
     {"id": "procedure-500", "status": "blocked", "betaBlocking": true, "evidence": []},
     {"id": "workspace-2000-10000", "status": "blocked", "betaBlocking": true, "evidence": []},
-    {"id": "stage9-eight-generator-golden", "status": "passed", "betaBlocking": true, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/32904372190", "docs/testing/stage-9-generator-golden-2026-08-26.md"]},
+    {"id": "stage9-eight-generator-golden", "status": "passed", "betaBlocking": true, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/32956081891", "docs/testing/stage-9-generator-golden-2026-08-26-r2.md"]},
     {"id": "server-readiness-matrix", "status": "blocked", "betaBlocking": true, "evidence": []},
     {"id": "real-jcef-accessibility", "status": "blocked", "betaBlocking": true, "evidence": []},
     {"id": "clean-windows-11-stage9", "status": "blocked", "betaBlocking": true, "evidence": []},

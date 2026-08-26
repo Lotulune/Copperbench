@@ -55,6 +55,9 @@ test.describe('JCEF Bridge & Host Transport Integration', () => {
           const envelope = JSON.parse(rawJson);
           if (envelope.operation) {
             window.sessionStorage.setItem('lastCoreOperation', envelope.operation);
+            if (envelope.messageType === 'command') {
+              window.sessionStorage.setItem('lastCoreCommand', envelope.operation);
+            }
           }
 
           if (envelope.messageType === 'handshake') {
@@ -250,7 +253,7 @@ test.describe('JCEF Bridge & Host Transport Integration', () => {
     await expect(page.locator('[data-testid="system-fallback-toggle-btn"]')).toBeDisabled();
 
     await page.click('[data-testid="titlebar-run-btn"]');
-    await expect.poll(() => page.evaluate(() => window.sessionStorage.getItem('lastCoreOperation')))
+    await expect.poll(() => page.evaluate(() => window.sessionStorage.getItem('lastCoreCommand')))
       .toBe('run_client');
     await expect(page.locator('[data-testid="task-drawer"]')).toContainText('SUCCEEDED');
     await expect(page.locator('[data-testid="task-log-stream"]'))

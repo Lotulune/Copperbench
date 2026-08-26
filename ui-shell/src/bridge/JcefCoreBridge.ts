@@ -461,7 +461,8 @@ export class JcefCoreBridge implements CoreBridge {
         if (!this.disposed) this.taskPollers.set(taskId, setTimeout(refresh, 1000));
       }
     };
-    this.taskPollers.set(taskId, setTimeout(refresh, 150));
+    // Leave the originating command observable to native hosts before polling task state.
+    this.taskPollers.set(taskId, setTimeout(refresh, 500));
   }
 
   private notify(): void {

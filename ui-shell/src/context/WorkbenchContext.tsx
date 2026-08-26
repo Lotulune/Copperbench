@@ -68,6 +68,7 @@ interface WorkbenchContextType {
   listWorkspaceRegistries: () => Promise<WorkspaceRegistriesProjection | null>;
   getWorkspaceReferences: (target?: string) => Promise<WorkspaceReferenceProjection | null>;
   createRegistryEntry: (registry: 'variables' | 'tags' | 'languageKeys', entry: Partial<RegistryEntry>) => Promise<CommandResult>;
+  updateRegistryEntry: (entryId: UUID, changes: FieldChange[]) => Promise<CommandResult>;
   previewRegistryRename: (entryId: UUID, newName: string) => Promise<RegistryRenamePreview | null>;
   renameRegistryEntry: (entryId: UUID, newName: string) => Promise<CommandResult>;
   deleteRegistryEntry: (entryId: UUID) => Promise<CommandResult>;
@@ -324,6 +325,15 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     operation: 'create_registry_entry',
     payload: { clientMutationId: generateUUID(), registry, entry }
   }), [state.workbench]);
+
+  const updateRegistryEntry = useCallback(async (entryId: UUID, changes: FieldChange[]): Promise<CommandResult> =>
+    coreBridge.sendCommand({
+      messageType: 'command', schemaVersion: '1.0', requestId: generateUUID(),
+      workspaceId: state.workbench?.workspace.id || generateUUID(),
+      expectedRevision: state.workbench?.workspace.revision ?? 0,
+      operation: 'update_registry_entry',
+      payload: { clientMutationId: generateUUID(), entryId, changes }
+    }), [state.workbench]);
 
   const previewRegistryRename = useCallback(async (entryId: UUID, newName: string): Promise<RegistryRenamePreview | null> => {
     const res = await coreBridge.sendQuery<RegistryRenamePreview>({
@@ -906,6 +916,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       listWorkspaceRegistries,
       getWorkspaceReferences,
       createRegistryEntry,
+      updateRegistryEntry,
       previewRegistryRename,
       renameRegistryEntry,
       deleteRegistryEntry,
@@ -963,6 +974,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       listWorkspaceRegistries,
       getWorkspaceReferences,
       createRegistryEntry,
+      updateRegistryEntry,
       previewRegistryRename,
       renameRegistryEntry,
       deleteRegistryEntry,
