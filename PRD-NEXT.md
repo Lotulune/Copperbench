@@ -4,7 +4,7 @@
 > 版本：v1.2<br>
 > 更新日期：2026-08-26<br>
 > 前置基线：[PRD.md](./PRD.md)、[PRD-STAGE-9.md](./PRD-STAGE-9.md)<br>
-> 当前公开发布：`v0.1.0-preview.1`；目标发布：`v0.1.0-preview.2`
+> 当前公开发布：`v0.1.0-preview.2`；下一目标：Public Beta 候选（Stage 9、AI Developer Kit 和外部试用收口后）
 
 ## 0. 阅读与执行协议
 
@@ -21,7 +21,7 @@
 | 项目 | 当前事实 | 结论 |
 | --- | --- | --- |
 | Fast CI | 受保护 PR #1～#5 均取得真实全绿记录；`main@fe4b0f30` 连续三次 Java/Javadoc、UI/Playwright、MCP 全绿 | PR 门禁已闭环；连续 main 门禁 3/3 |
-| 公开 Release | `v0.1.0-preview.1` 已有 EXE/ZIP/MSIX/SBOM/哈希/元数据，源提交为 `b1225ec3` | 发布链路已证明，但公开包落后于当前 main |
+| 公开 Release | `v0.1.0-preview.2` 已公开，包含 EXE/ZIP/MSIX/SBOM/哈希/元数据，源提交为 `c629315b` | Preview 2 发布闭环；Windows 包仍未 Authenticode 签名 |
 | 状态源 | `product-status.json`、Schema 和 CI 漂移校验已进入 main，并已修复首次远端运行暴露的 Release Schema 漏项 | 状态源门禁通过；后续状态提升仍必须带固定提交证据 |
 | 重型门禁 | Nightly `32904372190`（`main@fe4b0f30`）的全量回归、规模 smoke、完整 Playwright、MCP 与八生成器内容构建 8/8 全绿 | Nightly 门禁已建立并取得最终候选的完整远端证据 |
 | Stage 9 | Function、Loot Table、Advancement 的八生成器黄金编译已关闭；专用编辑器、语言工具、500 节点、2,000/10,000 规模、服务端、真实 JCEF/a11y、干净 VM 仍未关闭 | `betaEligible=false`，不得称为 Beta |
