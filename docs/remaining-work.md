@@ -4,7 +4,7 @@
 
 ## 当前状态
 
-阶段 8 收口需求 `FR-CLOSE-01`～`FR-CLOSE-08` 均已完成。`v0.1.0-preview.2` 已公开并包含完整 Windows 三包、SBOM、哈希、源元数据和生产审批记录，发布源提交为 `c629315b`。GitHub 已正确识别 GPLv3，Javadoc Pages 可访问，main 保护、真实受保护 PR 与 production 审批均已验证。Nightly `32904372190` 在 `fe4b0f30` 的产品回归和 Stage 9 八生成器黄金编译 8/8 全绿；同一代码基线的快速 CI 已连续三次全绿。Stage 9 仍有多个 Beta 阻断门禁，外部试用为 0/5。
+阶段 8 收口需求 `FR-CLOSE-01`～`FR-CLOSE-08` 均已完成。`v0.1.0-preview.2` 已公开并验证完整 Windows 三包、SBOM、哈希、源元数据和生产审批；本 PR 冻结为 `v0.1.0-preview.3` 发布源，Tag、`RELEASE-METADATA.json` 与发布时的最新 `main` HEAD 必须完全一致。GitHub 已正确识别 GPLv3，Javadoc Pages 可访问，main 保护、真实受保护 PR 与 production 审批均已验证。Nightly `32904372190` 在 `fe4b0f30` 的产品回归和 Stage 9 八生成器黄金编译 8/8 全绿；同一代码基线的快速 CI 已连续三次全绿。Stage 9 仍有多个 Beta 阻断门禁，外部试用为 0/5。
 
 ## 当前交付阻断项
 
@@ -17,6 +17,7 @@
 | Nightly | 已取得最终候选全绿证据 | [运行 32904372190](https://github.com/Lotulune/Copperbench/actions/runs/32904372190) 在 `fe4b0f30` 的产品回归与八生成器矩阵全部通过 |
 | Dependency Submission | 已移除 | Dependency Graph 关闭时不保留必失败工作流 |
 | Preview 2 | 已公开 | `v0.1.0-preview.2` 的 Tag、生产审批、三包、SBOM、哈希和资产验证已完成 |
+| Preview 3 | 本次发布源 | 从本 PR 合并后的最新 `main` HEAD 创建签名 Tag；公开状态以 GitHub Tag API 和 Release 元数据为准 |
 | 外部试用 | 0/5 有可审计记录 | 五名非核心开发者匿名任务结果 |
 
 ## 阶段 9 状态摘要

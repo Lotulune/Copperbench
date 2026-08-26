@@ -3,7 +3,7 @@
   "schemaVersion": "1.0",
   "snapshot": {
     "date": "2026-08-26",
-    "lastVerifiedCommit": "c629315b18e11692956dd651e9f31fa6c60ccfaa",
+    "lastVerifiedCommit": "88b07aad65f3c714f812a3b81f1c30d486ae7dbd",
     "policy": "Only code, automated checks, and evidence tied to a commit can promote a gate."
   },
   "product": {
@@ -18,18 +18,23 @@
     "betaEligible": false
   },
   "delivery": {
-    "latestPublicRelease": {
+    "publishedBaseline": {
       "tag": "v0.1.0-preview.2",
       "sourceCommit": "c629315b18e11692956dd651e9f31fa6c60ccfaa",
-      "matchesSnapshotMain": true,
       "status": "public-prerelease",
       "releaseWorkflowRun": "https://github.com/Lotulune/Copperbench/actions/runs/32909134939"
     },
-    "nextRelease": {
+    "releaseContract": {
+      "tag": "v0.1.0-preview.3",
+      "purpose": "exact-main-head-follow-up",
+      "sourcePolicy": "The signed tag, RELEASE-METADATA.json sourceCommit, and main HEAD must resolve to the same commit at publication.",
+      "signedTagRequired": true,
+      "productionApprovalRequired": true,
+      "publicStateSource": "https://api.github.com/repos/Lotulune/Copperbench/releases/tags/v0.1.0-preview.3"
+    },
+    "betaRelease": {
       "tag": "v0.1.0-beta.1",
-      "status": "blocked-by-stage9-and-external-trial",
-      "requiresLatestGreenMain": true,
-      "signedTagRequired": true
+      "status": "blocked-by-stage9-and-external-trial"
     },
     "fastCi": {
       "status": "passed",
@@ -133,7 +138,7 @@
   },
   "knownLimitations": [
     "Windows packages are not Authenticode signed.",
-    "The preview.2 Git Tag contains an SSH signature; GitHub reports unknown_key until the public signing key is registered.",
+    "Release Git Tags contain SSH signatures; GitHub reports unknown_key until the public signing key is registered.",
     "Stage 9 data elements remain preview until the dedicated editors, large-workspace, server, JCEF/accessibility, and clean Windows 11 gates pass.",
     "The Stage 9 server matrix, real JCEF accessibility pass, and clean Windows 11 VM pass are not complete.",
     "Public Beta is blocked until every betaBlocking gate is passed."
