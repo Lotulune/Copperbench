@@ -4,7 +4,7 @@
 > 版本：v1.2<br>
 > 更新日期：2026-08-26<br>
 > 前置基线：[PRD.md](./PRD.md)、[PRD-STAGE-9.md](./PRD-STAGE-9.md)<br>
-> 当前公开发布：`v0.1.0-preview.2`；下一目标：Public Beta 候选（Stage 9、AI Developer Kit 和外部试用收口后）
+> 已验证公开基线：`v0.1.0-preview.2`；本次发布源：`v0.1.0-preview.3`；Public Beta 仍由 Stage 9、AI Developer Kit 和外部试用门禁阻断
 
 ## 0. 阅读与执行协议
 
@@ -21,7 +21,7 @@
 | 项目 | 当前事实 | 结论 |
 | --- | --- | --- |
 | Fast CI | 受保护 PR #1～#5 均取得真实全绿记录；`main@fe4b0f30` 连续三次 Java/Javadoc、UI/Playwright、MCP 全绿 | PR 门禁已闭环；连续 main 门禁 3/3 |
-| 公开 Release | `v0.1.0-preview.2` 已公开，包含 EXE/ZIP/MSIX/SBOM/哈希/元数据，源提交为 `c629315b` | Preview 2 发布闭环；Windows 包仍未 Authenticode 签名 |
+| 公开 Release | `v0.1.0-preview.2` 已完成公开验证；本 PR 冻结为 `v0.1.0-preview.3` 发布源，公开状态由 Tag API 与 `RELEASE-METADATA.json` 实时判定 | Preview 3 必须与合并后的最新 `main` HEAD 完全一致；Windows 包仍未 Authenticode 签名 |
 | 状态源 | `product-status.json`、Schema 和 CI 漂移校验已进入 main，并已修复首次远端运行暴露的 Release Schema 漏项 | 状态源门禁通过；后续状态提升仍必须带固定提交证据 |
 | 重型门禁 | Nightly `32904372190`（`main@fe4b0f30`）的全量回归、规模 smoke、完整 Playwright、MCP 与八生成器内容构建 8/8 全绿 | Nightly 门禁已建立并取得最终候选的完整远端证据 |
 | Stage 9 | Function、Loot Table、Advancement 的八生成器黄金编译已关闭；专用编辑器、语言工具、500 节点、2,000/10,000 规模、服务端、真实 JCEF/a11y、干净 VM 仍未关闭 | `betaEligible=false`，不得称为 Beta |
@@ -34,8 +34,8 @@
 
 截至 2026-08-25，代码能力仍高于公共交付能力，主要差距是：
 
-1. 公共 Release 已可下载，但 `v0.1.0-preview.1` 没有指向当前 `main`；Preview 2 仍需最终连续三绿、签名 Tag 和生产审批。
-2. 快速 CI、分支保护、真实 PR、Nightly 和人工发布审批配置已闭环，但发布前仍需在最终候选 SHA 上保留完整记录。
+1. `v0.1.0-preview.2` 已证明完整发布链路，但发布后的状态同步提交使公开 Tag 不再等于最新 `main`；Preview 3 用一次冻结提交恢复严格一致性。
+2. 快速 CI、分支保护、真实 PR、Nightly 和人工发布审批配置已闭环；Preview 3 必须在最终合并 SHA 上保留检查、签名 Tag 和生产审批记录。
 3. 机器状态源已建立；PRD、状态索引和发布说明仍必须在每次状态提升时同步更新。
 4. Stage 9 的大型工作区、专用编辑器、语言工具、服务端 readiness、真实 JCEF/a11y 和干净 Windows 11 门禁仍未关闭。
 5. MCP 缺少大型项目分页、SDK 示例、批量原子计划和任务事件。
@@ -172,7 +172,7 @@
 
 #### FR-REL-06 首个可信预览
 
-删除不完整的 `v0.1.0` 草稿。`v0.1.0-preview.1` 已证明发布链路；下一次必须从最新、连续全绿且包含真实 PR 记录的 `main` 提交创建签名 Tag `v0.1.0-preview.2`。发布后由非维护者从 Release 页面完成下载、校验、安装、启动和卸载数据保留复验。
+不完整的 `v0.1.0` 草稿已删除。`v0.1.0-preview.1` 已证明基础链路，`v0.1.0-preview.2` 已证明三包、SBOM、生产审批和公开验证；`v0.1.0-preview.3` 必须从本发布源 PR 合并后的最新全绿 `main` HEAD 创建签名 Tag，且发布后不再追加仅用于追赶 Release 的状态提交。随后由非维护者从 Release 页面完成下载、校验、安装、启动和卸载数据保留复验。
 
 ### 5.3 单一机器可读状态源
 

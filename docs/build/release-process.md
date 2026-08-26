@@ -6,7 +6,7 @@ Copperbench 当前只发布未签名的 Windows 11 x64 预览包。Linux、macOS
 
 1. `main` 的 `Build and test`、`Generate documentation` 全部通过。
 2. `product.version`、发布说明和目标 Tag 一致。
-3. Tag 指向干净、已推送的提交，格式为 `vX.Y.Z` 或 `vX.Y.Z-preview.N`。
+3. Tag 是由 `.github/release-signers` 中允许签名者签署的 annotated Tag，指向干净、已推送且等于最新 `main` HEAD 的提交，格式为 `vX.Y.Z` 或 `vX.Y.Z-preview.N`。
 4. Stage 9 未关闭门禁仍明确标为开发预览，不能写成正式支持。
 5. GitHub `production` Environment 建议配置必需审阅者。
 
@@ -15,7 +15,7 @@ Copperbench 当前只发布未签名的 Windows 11 x64 预览包。Linux、macOS
 - 推送 `v*` Tag 会执行发布流程。
 - 也可手动运行 `Build Windows release`，填写一个已存在的 Tag；`publish=false` 只生成工作流产物，`publish=true` 才创建 GitHub prerelease。
 
-工作流会从 Tag 重新检出源码并执行 `scripts/verify-release-source.ps1`。Tag 不匹配 `HEAD`、版本不一致或工作树不干净时立即失败。
+工作流会从 Tag 重新检出源码，通过 GitHub API 解析最新 `main`，并执行 `scripts/verify-release-source.ps1`。Tag 未通过允许签名者验签、不匹配 `HEAD`/最新 `main`、版本不一致或工作树不干净时立即失败；上传草稿前会再次确认 Tag 仍等于最新 `main`。
 
 ## 产物与顺序
 
