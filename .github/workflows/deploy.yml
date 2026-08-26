@@ -45,7 +45,12 @@ jobs:
           persist-credentials: false
       - name: Verify tag and clean source
         shell: pwsh
-        run: pwsh -NoProfile -File ./scripts/verify-release-source.ps1 -Tag $env:RELEASE_TAG
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $mainCommit = (gh api "repos/$env:GITHUB_REPOSITORY/commits/main" --jq .sha).Trim()
+          if ($LASTEXITCODE -ne 0) { throw "Unable to resolve the latest main commit" }
+          pwsh -NoProfile -File ./scripts/verify-release-source.ps1 -Tag $env:RELEASE_TAG -ExpectedMainCommit $mainCommit
       - name: Set up JDK 25 with JCEF
         uses: actions/setup-java@v6
         with:
@@ -121,6 +126,11 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          $mainCommit = (gh api "repos/$env:GITHUB_REPOSITORY/commits/main" --jq .sha).Trim()
+          $tagCommit = (git rev-parse "$env:RELEASE_TAG^{commit}").Trim()
+          if ($LASTEXITCODE -ne 0 -or $tagCommit -ne $mainCommit) {
+            throw "Release tag $env:RELEASE_TAG no longer matches latest main $mainCommit"
+          }
           $existing = gh release view $env:RELEASE_TAG --json isDraft 2>$null
           if ($LASTEXITCODE -eq 0) {
             $release = $existing | ConvertFrom-Json
