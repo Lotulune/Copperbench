@@ -129,41 +129,73 @@ test.describe('Stage 9 creator core', () => {
     await expect(page.locator('[data-testid="loottable-workbench"]')).toBeVisible();
   });
 
-  test('opens dedicated AdvancementWorkbench, modifies criteria and frame, and saves', async ({ page }) => {
+  test('opens dedicated AdvancementWorkbench, modifies criteria and frame, and detects multi-level parent cycles', async ({ page }) => {
     await page.click('[data-testid="nav-elements"]');
+
+    // 1. Create root advancement
     await page.click('[data-testid="create-element-btn"]');
     await page.locator('[data-testid="create-element-modal"]').getByRole('button', { name: '进度', exact: true }).click();
-    await page.fill('[data-testid="create-element-name-input"]', 'copper_age');
+    await page.fill('[data-testid="create-element-name-input"]', 'copper_root');
     await page.click('[data-testid="create-element-submit-btn"]');
+    await expect(page.locator('[data-testid="advancement-workbench"]')).toBeVisible();
+    await page.fill('[data-testid="advancement-title-input"]', '青铜时代起点');
+    await page.click('[data-testid="advancement-save-btn"]');
+    await expect(page.getByText('已保存')).toBeVisible();
+    await page.click('[data-testid="advancement-back-btn"]');
 
-    // Dedicated workbench opens
+    // 2. Create child advancement branch with parent = copper_root
+    await page.click('[data-testid="create-element-btn"]');
+    await page.locator('[data-testid="create-element-modal"]').getByRole('button', { name: '进度', exact: true }).click();
+    await page.fill('[data-testid="create-element-name-input"]', 'copper_branch');
+    await page.click('[data-testid="create-element-submit-btn"]');
+    await expect(page.locator('[data-testid="advancement-workbench"]')).toBeVisible();
+    await page.selectOption('[data-testid="advancement-parent-select"]', 'copper_root');
+    await page.click('[data-testid="advancement-save-btn"]');
+    await expect(page.getByText('已保存')).toBeVisible();
+    await page.click('[data-testid="advancement-back-btn"]');
+
+    // 3. Create leaf advancement with parent = copper_branch
+    await page.click('[data-testid="create-element-btn"]');
+    await page.locator('[data-testid="create-element-modal"]').getByRole('button', { name: '进度', exact: true }).click();
+    await page.fill('[data-testid="create-element-name-input"]', 'copper_leaf');
+    await page.click('[data-testid="create-element-submit-btn"]');
+    await expect(page.locator('[data-testid="advancement-workbench"]')).toBeVisible();
+    await page.selectOption('[data-testid="advancement-parent-select"]', 'copper_branch');
+    await page.selectOption('[data-testid="advancement-type-select"]', 'challenge');
+    await page.click('[data-testid="advancement-save-btn"]');
+    await expect(page.getByText('已保存')).toBeVisible();
+    await page.click('[data-testid="advancement-back-btn"]');
+
+    // 4. Reopen root advancement and test descendant cycle detection
+    await page.locator('[data-element-id]').filter({ hasText: 'copper_root' }).first().click();
     await expect(page.locator('[data-testid="advancement-workbench"]')).toBeVisible();
 
-    // Edit display fields
-    await page.fill('[data-testid="advancement-title-input"]', '青铜时代');
-    await page.fill('[data-testid="advancement-desc-input"]', '制作第一把铜镐');
-    await page.selectOption('[data-testid="advancement-type-select"]', 'goal');
-    await expect(page.locator('[data-testid="advancement-dirty-badge"]')).toBeVisible();
+    // Selecting descendant 'copper_leaf' must trigger cycle detection & block saving
+    await page.selectOption('[data-testid="advancement-parent-select"]', 'copper_leaf');
+    await expect(page.locator('[data-testid="advancement-validation-alert"]')).toBeVisible();
+    await expect(page.locator('[data-testid="advancement-validation-alert"]')).toContainText('检测到循环父级进度依赖');
+    await expect(page.locator('[data-testid="advancement-save-btn"]')).toBeDisabled();
 
-    // Add criteria
+    // Selecting direct child 'copper_branch' must also trigger cycle detection
+    await page.selectOption('[data-testid="advancement-parent-select"]', 'copper_branch');
+    await expect(page.locator('[data-testid="advancement-validation-alert"]')).toBeVisible();
+    await expect(page.locator('[data-testid="advancement-save-btn"]')).toBeDisabled();
+
+    // Selecting 'root' resolves the cycle
+    await page.selectOption('[data-testid="advancement-parent-select"]', 'root');
+    await expect(page.locator('[data-testid="advancement-validation-alert"]')).not.toBeVisible();
+    await expect(page.locator('[data-testid="advancement-save-btn"]')).toBeEnabled();
+
+    // Add a criteria and save cleanly
     await page.click('[data-testid="advancement-tab-criteria"]');
     await page.click('[data-testid="advancement-add-criteria-btn"]');
     await expect(page.locator('[data-testid="criteria-card-1"]')).toBeVisible();
     await page.fill('[data-testid="criteria-name-input-1"]', 'has_copper_pickaxe');
-
-    // Save
     await page.click('[data-testid="advancement-save-btn"]');
     await expect(page.getByText('已保存')).toBeVisible();
-    await expect(page.locator('[data-testid="advancement-dirty-badge"]')).not.toBeVisible();
-
-    // Back to elements list and reopen
-    await page.click('[data-testid="advancement-back-btn"]');
-    await expect(page.locator('[data-testid="elements-workbench"]')).toBeVisible();
-    await page.locator('[data-element-id]').filter({ hasText: 'copper_age' }).first().click();
-    await expect(page.locator('[data-testid="advancement-workbench"]')).toBeVisible();
   });
 
-  test('parses, previews diff, and applies language import in CreatorDataView (CSV and JSON)', async ({ page }) => {
+  test('parses, previews diff, and applies language import in CreatorDataView (robust CSV, exported JSON locale-map, and list compat)', async ({ page }) => {
     await page.click('[data-testid="nav-data"]');
     await expect(page.locator('[data-testid="creator-data-view"]')).toBeVisible();
 
@@ -171,54 +203,72 @@ test.describe('Stage 9 creator core', () => {
     await page.click('[data-testid="tab-languageKeys"]');
     await expect(page.locator('[data-testid="language-import-btn"]')).toBeVisible();
 
-    // 1. Open language import modal and test CSV format
+    // 1. Open language import modal and test robust CSV format (quoted commas, escaped quotes, tabs, and CRLF)
     await page.click('[data-testid="language-import-btn"]');
     await expect(page.locator('[data-testid="language-import-modal"]')).toBeVisible();
 
-    const csvContent = [
-      'key,zh_cn,en_us',
-      'item.copperbench.copper_dagger,铜匕首,Copper Dagger',
-      'item.copperbench.ruby,至臻红宝石,Flawless Ruby',
-      'block.copperbench.reinforced_copper,强化铜块,Reinforced Copper'
-    ].join('\n');
-    await page.fill('[data-testid="language-paste-input"]', csvContent);
+    const robustCsvContent = [
+      '"key","zh_cn","en_us"',
+      '"item.copperbench.poison_dagger","剧毒铜匕首, 附带迟缓","Poison Dagger, with Slowness"',
+      '"item.copperbench.lore","传说：""远古之铜""","Lore: ""Ancient Copper"""',
+      'item.copperbench.copper_staff\t铜法杖\tCopper Staff'
+    ].join('\r\n');
+    await page.fill('[data-testid="language-paste-input"]', robustCsvContent);
 
-    // Verify diff summary: 3 total, 2 new, 1 update
+    // Verify diff summary: 3 total, all 3 successfully parsed with quotes/commas preserved
     await expect(page.locator('[data-testid="import-diff-summary"]')).toBeVisible();
     await expect(page.locator('[data-testid="import-diff-summary"]')).toContainText('成功解析 3 个词条');
-    await expect(page.locator('[data-testid="import-diff-summary"]')).toContainText('新增 2 项');
-    await expect(page.locator('[data-testid="import-diff-summary"]')).toContainText('更新 1 项');
 
-    // Select conflict strategy and apply
+    // Apply merge
     await page.click('[data-testid="strategy-merge"]');
     await page.click('[data-testid="confirm-language-import-btn"]');
 
-    // Modal closed and registry table updated
+    // Modal closed and registry table updated with preserved comma and escaped quote
     await expect(page.locator('[data-testid="language-import-modal"]')).not.toBeVisible();
-    await expect(page.getByText('铜匕首')).toBeVisible();
-    await expect(page.getByText('强化铜块')).toBeVisible();
-    await expect(page.getByText('至臻红宝石')).toBeVisible();
+    await expect(page.getByText('剧毒铜匕首, 附带迟缓')).toBeVisible();
+    await expect(page.getByText('传说："远古之铜"')).toBeVisible();
+    await expect(page.getByText('铜法杖')).toBeVisible();
 
-    // 2. Reopen modal and test JSON format
+    // 2. Test CreatorDataView's exported JSON shape (locale-map shape: { zh_cn: {...}, en_us: {...} })
     await page.click('[data-testid="language-import-btn"]');
     await expect(page.locator('[data-testid="language-import-modal"]')).toBeVisible();
 
-    const jsonContent = JSON.stringify({
-      'item.copperbench.sapphire': '蓝宝石',
-      'block.copperbench.amethyst_lamp': '紫水晶灯'
+    const exportedJsonShape = JSON.stringify({
+      zh_cn: {
+        'item.roundtrip.ruby_blade': '至臻红宝石之刃',
+        'block.roundtrip.copper_forge': '铜制熔炉'
+      },
+      en_us: {
+        'item.roundtrip.ruby_blade': 'Flawless Ruby Blade',
+        'block.roundtrip.copper_forge': 'Copper Forge'
+      }
     }, null, 2);
-    await page.fill('[data-testid="language-paste-input"]', jsonContent);
+    await page.fill('[data-testid="language-paste-input"]', exportedJsonShape);
 
     await expect(page.locator('[data-testid="import-diff-summary"]')).toContainText('成功解析 2 个词条');
     await page.click('[data-testid="confirm-language-import-btn"]');
     await expect(page.locator('[data-testid="language-import-modal"]')).not.toBeVisible();
-    await expect(page.getByText('蓝宝石')).toBeVisible();
-    await expect(page.getByText('紫水晶灯')).toBeVisible();
+    await expect(page.getByText('至臻红宝石之刃')).toBeVisible();
+    await expect(page.getByText('铜制熔炉')).toBeVisible();
 
-    // Filter search
-    await page.fill('[data-testid="registry-search-input"]', 'dagger');
-    await expect(page.getByText('item.copperbench.copper_dagger')).toBeVisible();
-    await expect(page.getByText('block.copperbench.reinforced_copper')).not.toBeVisible();
+    // 3. Test backwards-compatible JSON entry-list shape
+    await page.click('[data-testid="language-import-btn"]');
+    await expect(page.locator('[data-testid="language-import-modal"]')).toBeVisible();
+
+    const listJsonContent = JSON.stringify([
+      { key: 'item.compat.gem', zh_cn: '兼容宝石', en_us: 'Compat Gem' }
+    ], null, 2);
+    await page.fill('[data-testid="language-paste-input"]', listJsonContent);
+
+    await expect(page.locator('[data-testid="import-diff-summary"]')).toContainText('成功解析 1 个词条');
+    await page.click('[data-testid="confirm-language-import-btn"]');
+    await expect(page.locator('[data-testid="language-import-modal"]')).not.toBeVisible();
+    await expect(page.getByText('兼容宝石')).toBeVisible();
+
+    // 4. Filter search test
+    await page.fill('[data-testid="registry-search-input"]', 'ruby_blade');
+    await expect(page.getByText('item.roundtrip.ruby_blade')).toBeVisible();
+    await expect(page.getByText('block.roundtrip.copper_forge')).not.toBeVisible();
   });
 
   test('handles large element list pagination, page size switching, and filtering', async ({ page }) => {

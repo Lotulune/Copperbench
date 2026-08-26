@@ -23,6 +23,292 @@ interface LanguageImportModalProps {
   onImport: (entries: ParsedLanguageEntry[], mode: ImportConflictMode) => Promise<void>;
 }
 
+/**
+ * Robust CSV/TSV parser supporting:
+ * - Quoted fields with commas, tabs, and newlines
+ * - Escaped quotes ("" and \")
+ * - Tab delimiters
+ * - CRLF, LF, and CR newlines
+ * - Simple unquoted CSV/TSV
+ */
+export function parseCsvRows(input: string): string[][] {
+  const rows: string[][] = [];
+  let currentRow: string[] = [];
+  let currentField = '';
+  let inQuotes = false;
+  let quoteChar = '"';
+  let i = 0;
+  const len = input.length;
+
+  while (i < len) {
+    const char = input[i];
+
+    if (!inQuotes) {
+      if ((char === '"' || char === "'") && currentField.trim() === '') {
+        inQuotes = true;
+        quoteChar = char;
+        currentField = '';
+        i++;
+      } else if (char === ',' || char === '\t') {
+        currentRow.push(currentField.trim());
+        currentField = '';
+        i++;
+      } else if (char === '\r') {
+        if (i + 1 < len && input[i + 1] === '\n') {
+          i++;
+        }
+        currentRow.push(currentField.trim());
+        currentField = '';
+        if (currentRow.some((f) => f.length > 0)) {
+          rows.push(currentRow);
+        }
+        currentRow = [];
+        i++;
+      } else if (char === '\n') {
+        currentRow.push(currentField.trim());
+        currentField = '';
+        if (currentRow.some((f) => f.length > 0)) {
+          rows.push(currentRow);
+        }
+        currentRow = [];
+        i++;
+      } else {
+        currentField += char;
+        i++;
+      }
+    } else {
+      // Inside quotes
+      if (char === quoteChar) {
+        if (i + 1 < len && input[i + 1] === quoteChar) {
+          // Escaped quote: "" or ''
+          currentField += quoteChar;
+          i += 2;
+        } else {
+          // Closing quote
+          inQuotes = false;
+          i++;
+        }
+      } else if (char === '\\' && i + 1 < len && (input[i + 1] === quoteChar || input[i + 1] === '\\')) {
+        // Escaped quote: \" or \\
+        currentField += input[i + 1];
+        i += 2;
+      } else {
+        currentField += char;
+        i++;
+      }
+    }
+  }
+
+  // Push remaining field & row
+  currentRow.push(currentField.trim());
+  if (currentRow.some((f) => f.length > 0)) {
+    rows.push(currentRow);
+  }
+
+  return rows;
+}
+
+export function parseCsvLanguageEntries(input: string): { entries: ParsedLanguageEntry[]; errors: string[] } {
+  const rows = parseCsvRows(input);
+  const entries: ParsedLanguageEntry[] = [];
+  const errors: string[] = [];
+
+  let startIndex = 0;
+  if (rows.length > 0) {
+    const firstRow = rows[0].map((c) => c.toLowerCase());
+    if (
+      firstRow.some(
+        (c) =>
+          c === 'key' ||
+          c === '键' ||
+          c === 'id' ||
+          c === 'translations' ||
+          c === 'zh_cn' ||
+          c === 'en_us'
+      )
+    ) {
+      startIndex = 1;
+    }
+  }
+
+  for (let i = startIndex; i < rows.length; i++) {
+    const parts = rows[i];
+    if (parts.length >= 1 && parts[0]) {
+      const key = parts[0];
+      const zh = parts[1] ?? '';
+      const en = parts[2] ?? parts[1] ?? '';
+      entries.push({
+        key,
+        zh_cn: zh,
+        en_us: en
+      });
+    } else if (parts.length > 0 && parts.some((p) => p.length > 0)) {
+      errors.push(`第 ${i + 1} 行不是有效的 CSV 格式。`);
+    }
+  }
+
+  return { entries, errors };
+}
+
+export function parseJsonLanguageEntries(parsed: unknown): { entries: ParsedLanguageEntry[]; errors: string[] } {
+  const entries: ParsedLanguageEntry[] = [];
+  const errors: string[] = [];
+
+  if (Array.isArray(parsed)) {
+    parsed.forEach((item, idx) => {
+      if (typeof item === 'object' && item !== null) {
+        const itemObj = item as Record<string, unknown>;
+        const key = String(itemObj.key ?? itemObj.name ?? itemObj.id ?? '').trim();
+        if (key) {
+          const trans =
+            typeof itemObj.translations === 'object' && itemObj.translations !== null
+              ? (itemObj.translations as Record<string, unknown>)
+              : itemObj;
+          const zh = String(
+            trans.zh_cn ?? trans['zh-CN'] ?? trans.zh_CN ?? trans.zh ?? trans.translation ?? ''
+          );
+          const en = String(trans.en_us ?? trans['en-US'] ?? trans.en_US ?? trans.en ?? '');
+          entries.push({
+            key,
+            zh_cn: zh,
+            en_us: en || zh
+          });
+        } else {
+          errors.push(`第 ${idx + 1} 个 JSON 项缺少有效的 key 字段。`);
+        }
+      } else {
+        errors.push(`第 ${idx + 1} 个 JSON 项不是有效对象。`);
+      }
+    });
+    return { entries, errors };
+  }
+
+  if (typeof parsed === 'object' && parsed !== null) {
+    const obj = parsed as Record<string, unknown>;
+    const topKeys = Object.keys(obj);
+
+    // Detect if this is a Locale-Map shape (e.g. exported by CreatorDataView):
+    // e.g. { "zh_cn": { "item.ruby": "红宝石" }, "en_us": { "item.ruby": "Ruby" } }
+    const isLikelyLocaleMap =
+      topKeys.length > 0 &&
+      topKeys.every((k) => {
+        const val = obj[k];
+        return typeof val === 'object' && val !== null && !Array.isArray(val);
+      }) &&
+      topKeys.some((k) => {
+        const lower = k.toLowerCase().replace('-', '_');
+        return (
+          lower === 'zh_cn' ||
+          lower === 'en_us' ||
+          lower === 'zh' ||
+          lower === 'en' ||
+          /^[a-z]{2}(_[a-z0-9]+)?$/i.test(lower)
+        );
+      }) &&
+      !topKeys.some((k) => k.includes('.') || k.includes(':'));
+
+    if (isLikelyLocaleMap) {
+      const keyMap = new Map<string, { zh_cn: string; en_us: string }>();
+
+      for (const [localeKey, val] of Object.entries(obj)) {
+        if (typeof val === 'object' && val !== null && !Array.isArray(val)) {
+          const lowerLoc = localeKey.toLowerCase().replace('-', '_');
+          const isZh = lowerLoc.startsWith('zh');
+          const isEn = lowerLoc.startsWith('en');
+
+          for (const [k, text] of Object.entries(val as Record<string, unknown>)) {
+            const trimmedKey = k.trim();
+            if (!trimmedKey) continue;
+            const strVal = typeof text === 'string' ? text : String(text ?? '');
+
+            let current = keyMap.get(trimmedKey);
+            if (!current) {
+              current = { zh_cn: '', en_us: '' };
+              keyMap.set(trimmedKey, current);
+            }
+
+            if (isZh) {
+              current.zh_cn = strVal;
+            } else if (isEn) {
+              current.en_us = strVal;
+            } else {
+              if (!current.zh_cn) current.zh_cn = strVal;
+              if (!current.en_us) current.en_us = strVal;
+            }
+          }
+        }
+      }
+
+      for (const [key, trans] of keyMap.entries()) {
+        entries.push({
+          key,
+          zh_cn: trans.zh_cn || trans.en_us,
+          en_us: trans.en_us || trans.zh_cn
+        });
+      }
+
+      return { entries, errors };
+    }
+
+    // Otherwise, top-level keys are translation keys:
+    // e.g. { "item.ruby": "红宝石" } or { "item.ruby": { zh_cn: "红宝石", en_us: "Ruby" } }
+    for (const [key, val] of Object.entries(obj)) {
+      const trimmedKey = key.trim();
+      if (!trimmedKey) continue;
+
+      if (typeof val === 'string') {
+        entries.push({
+          key: trimmedKey,
+          zh_cn: val,
+          en_us: val
+        });
+      } else if (typeof val === 'object' && val !== null && !Array.isArray(val)) {
+        const valObj = val as Record<string, unknown>;
+        const trans =
+          typeof valObj.translations === 'object' && valObj.translations !== null
+            ? (valObj.translations as Record<string, unknown>)
+            : valObj;
+        const zh = String(
+          trans.zh_cn ?? trans['zh-CN'] ?? trans.zh_CN ?? trans.zh ?? trans.translation ?? ''
+        );
+        const en = String(trans.en_us ?? trans['en-US'] ?? trans.en_US ?? trans.en ?? '');
+        entries.push({
+          key: trimmedKey,
+          zh_cn: zh,
+          en_us: en || zh
+        });
+      } else {
+        errors.push(`键 "${trimmedKey}" 的值不是有效的文本或翻译对象。`);
+      }
+    }
+
+    return { entries, errors };
+  }
+
+  errors.push('JSON 必须是对象或数组。');
+  return { entries, errors };
+}
+
+export function parseLanguageText(rawText: string): { entries: ParsedLanguageEntry[]; errors: string[] } {
+  if (!rawText.trim()) {
+    return { entries: [], errors: [] };
+  }
+  const trimmed = rawText.trim();
+  if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      return parseJsonLanguageEntries(parsed);
+    } catch (err) {
+      return {
+        entries: [],
+        errors: [`JSON 解析错误: ${err instanceof Error ? err.message : String(err)}`]
+      };
+    }
+  } else {
+    return parseCsvLanguageEntries(trimmed);
+  }
+}
+
 export const LanguageImportModal: React.FC<LanguageImportModalProps> = ({
   isOpen,
   onClose,
@@ -42,71 +328,7 @@ export const LanguageImportModal: React.FC<LanguageImportModalProps> = ({
       return { entries: [], errors: [], newCount: 0, updateCount: 0 };
     }
 
-    const trimmed = rawText.trim();
-    const entries: ParsedLanguageEntry[] = [];
-    const errors: string[] = [];
-
-    if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
-      // JSON format
-      try {
-        const parsed = JSON.parse(trimmed);
-        if (Array.isArray(parsed)) {
-          parsed.forEach((item, idx) => {
-            if (typeof item === 'object' && item !== null && typeof item.key === 'string') {
-              entries.push({
-                key: item.key.trim(),
-                zh_cn: String(item.zh_cn ?? item['zh-CN'] ?? item.translation ?? ''),
-                en_us: String(item.en_us ?? item['en-US'] ?? (item as Record<string, unknown>)['en'] ?? '')
-              });
-            } else {
-              errors.push(`第 ${idx + 1} 个 JSON 项缺少有效的 key 字段。`);
-            }
-          });
-        } else if (typeof parsed === 'object' && parsed !== null) {
-          Object.entries(parsed).forEach(([key, val]) => {
-            if (typeof val === 'string') {
-              // Assume zh_cn or key-value map
-              entries.push({
-                key: key.trim(),
-                zh_cn: val,
-                en_us: val
-              });
-            } else if (typeof val === 'object' && val !== null) {
-              const valObj = val as Record<string, unknown>;
-              entries.push({
-                key: key.trim(),
-                zh_cn: String(valObj.zh_cn ?? valObj['zh-CN'] ?? ''),
-                en_us: String(valObj.en_us ?? valObj['en-US'] ?? '')
-              });
-            }
-          });
-        }
-      } catch (err) {
-        errors.push(`JSON 解析错误: ${err instanceof Error ? err.message : String(err)}`);
-      }
-    } else {
-      // CSV format
-      const lines = trimmed.split(/\r?\n/).filter((l) => l.trim().length > 0);
-      let startIndex = 0;
-      if (lines[0] && (lines[0].toLowerCase().includes('key') || lines[0].toLowerCase().includes('键'))) {
-        startIndex = 1; // skip header
-      }
-
-      for (let i = startIndex; i < lines.length; i++) {
-        const line = lines[i];
-        // Split by comma or tab (respecting simple quotes)
-        const parts = line.split(/[,\t]/).map((p) => p.trim().replace(/^["']|["']$/g, ''));
-        if (parts.length >= 1 && parts[0]) {
-          entries.push({
-            key: parts[0],
-            zh_cn: parts[1] || '',
-            en_us: parts[2] || parts[1] || ''
-          });
-        } else {
-          errors.push(`第 ${i + 1} 行不是有效的 CSV 格式。`);
-        }
-      }
-    }
+    const { entries, errors } = parseLanguageText(rawText);
 
     let newCount = 0;
     let updateCount = 0;

@@ -884,6 +884,17 @@ export class MockCoreBridge implements CoreBridge {
           return e;
         });
 
+        if (this.state.elementEditors[payload.elementId]) {
+          const editor = this.state.elementEditors[payload.elementId];
+          const allFields = editor.sections.flatMap((s) => s.fields);
+          for (const change of payload.changes || []) {
+            const field = allFields.find((f) => f.path === change.path);
+            if (field) {
+              field.value = change.value;
+            }
+          }
+        }
+
         if (this.state.workbench) {
           this.state.workbench.workspace.revision = newRevision;
         }

@@ -16,7 +16,7 @@ import {
   Eye
 } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
-import { ModElementSummary, FieldChange } from '../types/contract';
+import { ModElementSummary, FieldChange, ModElementEditorProjection } from '../types/contract';
 import { t } from '../i18n';
 
 interface AdvancementWorkbenchProps {
@@ -51,6 +51,136 @@ const BACKGROUND_PRESETS = [
   { value: 'textures/gui/advancements/backgrounds/end.png', label: '末地纹理 (End)' },
   { value: 'textures/gui/advancements/backgrounds/stone.png', label: '平滑石头 (Stone)' }
 ];
+
+/**
+ * Detects cyclic advancement dependencies.
+ * Traverses parent chain upward and descendant tree downward to reject:
+ * 1. Direct self reference (candidateParent === currentId || candidateParent === currentName)
+ * 2. Any ancestor loop (traversing candidateParent's parent chain leads to currentId or currentName)
+ * 3. Any descendant parent (candidateParent is a direct or indirect child of current element)
+ */
+export function detectAdvancementCycle(
+  currentId: string,
+  currentName: string,
+  candidateParent: string,
+  allAdvancements: ModElementSummary[],
+  elementEditors: Record<string, ModElementEditorProjection>
+): boolean {
+  if (!candidateParent || candidateParent === 'root') {
+    return false;
+  }
+
+  // 1. Direct self-reference
+  if (candidateParent === currentId || candidateParent === currentName) {
+    return true;
+  }
+
+  // Helper to extract parent identifier from an advancement
+  const getParentFor = (adv: ModElementSummary): string | null => {
+    const advAny = adv as unknown as Record<string, unknown>;
+    if (typeof advAny.parent === 'string' && advAny.parent) return advAny.parent;
+    if (typeof (advAny.fields as Record<string, unknown>)?.parent === 'string') {
+      return (advAny.fields as Record<string, unknown>).parent as string;
+    }
+    if (typeof (advAny.data as Record<string, unknown>)?.parent === 'string') {
+      return (advAny.data as Record<string, unknown>).parent as string;
+    }
+
+    const editor = elementEditors[adv.id];
+    if (editor?.sections) {
+      const allFields = editor.sections.flatMap((s) => s.fields || []);
+      const parentField = allFields.find(
+        (f) => f.path === '/fields/parent' || f.path === 'parent' || f.path.endsWith('/parent')
+      );
+      if (parentField && typeof parentField.value === 'string' && parentField.value) {
+        return parentField.value;
+      }
+    }
+    return null;
+  };
+
+  // Build name <-> id mappings and parent lookup
+  const parentMap = new Map<string, string>();
+  const idToName = new Map<string, string>();
+  const nameToId = new Map<string, string>();
+
+  idToName.set(currentId, currentName);
+  nameToId.set(currentName, currentId);
+
+  allAdvancements.forEach((adv) => {
+    idToName.set(adv.id, adv.name);
+    nameToId.set(adv.name, adv.id);
+    const p = getParentFor(adv);
+    if (p && p !== 'root') {
+      parentMap.set(adv.name, p);
+      parentMap.set(adv.id, p);
+    }
+  });
+
+  // 2. Upward traversal from candidateParent:
+  // If candidateParent's ancestry leads to currentId or currentName, it's a cycle!
+  let currentAncestor: string | undefined = candidateParent;
+  const visited = new Set<string>();
+
+  while (currentAncestor && currentAncestor !== 'root') {
+    if (currentAncestor === currentId || currentAncestor === currentName) {
+      return true;
+    }
+    if (visited.has(currentAncestor)) {
+      break;
+    }
+    visited.add(currentAncestor);
+
+    const nextParent: string | undefined =
+      parentMap.get(currentAncestor) ??
+      (nameToId.has(currentAncestor) ? parentMap.get(nameToId.get(currentAncestor)!) : undefined) ??
+      (idToName.has(currentAncestor) ? parentMap.get(idToName.get(currentAncestor)!) : undefined);
+
+    currentAncestor = nextParent;
+  }
+
+  // 3. Descendant traversal (downward from current element):
+  // If candidateParent is anywhere in the descendant tree of current element, it's a cycle!
+  const descendants = new Set<string>();
+  let addedAny = true;
+
+  allAdvancements.forEach((adv) => {
+    const p = getParentFor(adv);
+    if (p === currentId || p === currentName) {
+      descendants.add(adv.id);
+      descendants.add(adv.name);
+    }
+  });
+
+  while (addedAny) {
+    addedAny = false;
+    allAdvancements.forEach((adv) => {
+      if (!descendants.has(adv.id)) {
+        const p = getParentFor(adv);
+        if (
+          p &&
+          (descendants.has(p) ||
+            (nameToId.has(p) && descendants.has(nameToId.get(p)!)) ||
+            (idToName.has(p) && descendants.has(idToName.get(p)!)))
+        ) {
+          descendants.add(adv.id);
+          descendants.add(adv.name);
+          addedAny = true;
+        }
+      }
+    });
+  }
+
+  if (
+    descendants.has(candidateParent) ||
+    (nameToId.has(candidateParent) && descendants.has(nameToId.get(candidateParent)!)) ||
+    (idToName.has(candidateParent) && descendants.has(idToName.get(candidateParent)!))
+  ) {
+    return true;
+  }
+
+  return false;
+}
 
 export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ element, onClose }) => {
   const { updateModElement, getModElementEditor, state } = useWorkbench();
@@ -133,6 +263,16 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
     };
   }, [element.id, getModElementEditor]);
 
+  // Prefetch workspace advancements editors so parent relationships are readily accessible
+  useEffect(() => {
+    const achievements = state.elements.filter((e) => e.type === 'achievement');
+    achievements.forEach((adv) => {
+      if (!state.elementEditors[adv.id]) {
+        void getModElementEditor(adv.id);
+      }
+    });
+  }, [state.elements, state.elementEditors, getModElementEditor]);
+
   // Available advancements in workspace
   const workspaceAdvancements = useMemo(() => {
     return state.elements.filter((e) => e.type === 'achievement' && e.id !== element.id);
@@ -140,11 +280,14 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
 
   // Cycle Protection: check if setting candidate as parent creates a circular dependency
   const isParentCycle = useMemo(() => {
-    if (parent === 'root' || !parent) return false;
-    if (parent === element.name || parent === element.id) return true;
-    // In a graph of advancements, if any element has element as ancestor, cycle is detected
-    return false;
-  }, [parent, element.name, element.id]);
+    return detectAdvancementCycle(
+      element.id,
+      element.name,
+      parent,
+      state.elements.filter((e) => e.type === 'achievement'),
+      state.elementEditors
+    );
+  }, [parent, element.id, element.name, state.elements, state.elementEditors]);
 
   // Validation rules
   const diagnostics = useMemo(() => {
@@ -164,7 +307,7 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
       }
     });
     if (isParentCycle) {
-      diags.push('检测到循环父级进度依赖，不能将自身设为父级。');
+      diags.push('检测到循环父级进度依赖，不能将自身或其子级设为父级。');
     }
     return diags;
   }, [achievementName, achievementIcon, criteria, isParentCycle]);
