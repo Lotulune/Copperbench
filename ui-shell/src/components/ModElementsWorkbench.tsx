@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Box,
   Compass,
@@ -10,7 +10,10 @@ import {
   Plus,
   FileCode2,
   Gift,
-  Trophy
+  Trophy,
+  ChevronLeft,
+  ChevronRight,
+  ArrowUpDown
 } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
 import { ModElementType } from '../types/contract';
@@ -20,6 +23,20 @@ import { t } from '../i18n';
 const ProcedureWorkbench = React.lazy(() => import('./ProcedureWorkbench').then((module) => ({
   default: module.ProcedureWorkbench
 })));
+
+const FunctionWorkbench = React.lazy(() => import('./FunctionWorkbench').then((module) => ({
+  default: module.FunctionWorkbench
+})));
+
+const LootTableWorkbench = React.lazy(() => import('./LootTableWorkbench').then((module) => ({
+  default: module.LootTableWorkbench
+})));
+
+const AdvancementWorkbench = React.lazy(() => import('./AdvancementWorkbench').then((module) => ({
+  default: module.AdvancementWorkbench
+})));
+
+type SortOption = 'updated_desc' | 'updated_asc' | 'name_asc' | 'name_desc' | 'type_asc';
 
 export const ModElementsWorkbench: React.FC = () => {
   const {
@@ -34,9 +51,17 @@ export const ModElementsWorkbench: React.FC = () => {
   const [selectedType, setSelectedType] = useState<ModElementType | 'all'>('all');
   const [selectedState, setSelectedState] = useState<'all' | 'valid' | 'draft' | 'invalid'>('all');
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
+  const [sortBy, setSortBy] = useState<SortOption>('updated_desc');
+  const [pageSize, setPageSize] = useState<number>(24);
+  const [currentPage, setCurrentPage] = useState<number>(1);
 
-  const filteredElements = useMemo(() => {
-    return state.elements.filter((elem) => {
+  // Reset to page 1 whenever filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedType, selectedState, sortBy, pageSize]);
+
+  const filteredAndSortedElements = useMemo(() => {
+    let list = state.elements.filter((elem) => {
       const matchSearch =
         elem.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         elem.displayName.toLowerCase().includes(searchQuery.toLowerCase());
@@ -44,7 +69,32 @@ export const ModElementsWorkbench: React.FC = () => {
       const matchState = selectedState === 'all' || elem.state === selectedState;
       return matchSearch && matchType && matchState;
     });
-  }, [state.elements, searchQuery, selectedType, selectedState]);
+
+    list.sort((a, b) => {
+      switch (sortBy) {
+        case 'updated_desc':
+          return (b.updatedAt || '').localeCompare(a.updatedAt || '');
+        case 'updated_asc':
+          return (a.updatedAt || '').localeCompare(b.updatedAt || '');
+        case 'name_asc':
+          return a.displayName.localeCompare(b.displayName);
+        case 'name_desc':
+          return b.displayName.localeCompare(a.displayName);
+        case 'type_asc':
+          return a.type.localeCompare(b.type);
+        default:
+          return 0;
+      }
+    });
+
+    return list;
+  }, [state.elements, searchQuery, selectedType, selectedState, sortBy]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredAndSortedElements.length / pageSize));
+  const paginatedElements = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredAndSortedElements.slice(start, start + pageSize);
+  }, [filteredAndSortedElements, currentPage, pageSize]);
 
   const getTypeIcon = (type: string) => {
     switch (type) {
@@ -67,10 +117,35 @@ export const ModElementsWorkbench: React.FC = () => {
     }
   };
 
+  // Dedicated full-screen workbenches for complex data-driven elements
   if (selectedElement?.type === 'procedure') {
     return (
       <React.Suspense fallback={<div className="procedure-route-loading">正在加载 Procedure 编辑器…</div>}>
         <ProcedureWorkbench element={selectedElement} onClose={() => setSelectedElementId(null)} />
+      </React.Suspense>
+    );
+  }
+
+  if (selectedElement?.type === 'function') {
+    return (
+      <React.Suspense fallback={<div className="procedure-route-loading">正在加载 Function 编辑器…</div>}>
+        <FunctionWorkbench element={selectedElement} onClose={() => setSelectedElementId(null)} />
+      </React.Suspense>
+    );
+  }
+
+  if (selectedElement?.type === 'loottable') {
+    return (
+      <React.Suspense fallback={<div className="procedure-route-loading">正在加载 Loot Table 编辑器…</div>}>
+        <LootTableWorkbench element={selectedElement} onClose={() => setSelectedElementId(null)} />
+      </React.Suspense>
+    );
+  }
+
+  if (selectedElement?.type === 'achievement') {
+    return (
+      <React.Suspense fallback={<div className="procedure-route-loading">正在加载 Advancement 编辑器…</div>}>
+        <AdvancementWorkbench element={selectedElement} onClose={() => setSelectedElementId(null)} />
       </React.Suspense>
     );
   }
@@ -99,19 +174,19 @@ export const ModElementsWorkbench: React.FC = () => {
         {/* Filter & Action Toolbar */}
         <div
           style={{
-            padding: '14px 20px',
+            padding: '12px 18px',
             background: 'var(--bg-surface)',
             borderBottom: '1px solid var(--border-subtle)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            gap: '16px',
+            gap: '12px',
             flexWrap: 'wrap'
           }}
         >
           {/* Search & Type Filters */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1 }}>
-            <div style={{ position: 'relative', width: '220px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, flexWrap: 'wrap' }}>
+            <div style={{ position: 'relative', width: '200px' }}>
               <Search
                 size={14}
                 style={{ position: 'absolute', left: '10px', top: '9px', color: 'var(--text-sub)' }}
@@ -121,18 +196,19 @@ export const ModElementsWorkbench: React.FC = () => {
                 placeholder={t({ key: 'placeholder.filter_elements', fallback: 'Filter elements...' })}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                style={{ paddingLeft: '30px', width: '100%' }}
+                style={{ paddingLeft: '30px', width: '100%', fontSize: '11px' }}
                 data-testid="elements-search-input"
               />
             </div>
 
             {/* Type Selector Pills */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'var(--bg-panel)', padding: '3px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '2px', background: 'var(--bg-panel)', padding: '2px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', flexWrap: 'wrap' }}>
               {(['all', 'block', 'item', 'recipe', 'procedure', 'function', 'loottable', 'achievement'] as const).map((type) => (
                 <button
                   key={type}
                   onClick={() => setSelectedType(type)}
                   aria-pressed={selectedType === type}
+                  data-testid={`filter-type-${type}`}
                   style={{
                     padding: '3px 8px',
                     fontSize: '11px',
@@ -166,6 +242,23 @@ export const ModElementsWorkbench: React.FC = () => {
                   {st === 'all' ? '全部状态' : st === 'valid' ? '有效' : '草稿'}
                 </button>
               ))}
+            </div>
+
+            {/* Sort Dropdown */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <ArrowUpDown size={13} color="var(--text-sub)" />
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as SortOption)}
+                data-testid="elements-sort-select"
+                style={{ padding: '3px 6px', fontSize: '11px' }}
+              >
+                <option value="updated_desc">最新更新</option>
+                <option value="updated_asc">最早更新</option>
+                <option value="name_asc">名称 (A-Z)</option>
+                <option value="name_desc">名称 (Z-A)</option>
+                <option value="type_asc">类型</option>
+              </select>
             </div>
           </div>
 
@@ -215,7 +308,7 @@ export const ModElementsWorkbench: React.FC = () => {
 
         {/* Elements View Area */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '16px' }}>
-          {filteredElements.length === 0 ? (
+          {filteredAndSortedElements.length === 0 ? (
             <div
               style={{
                 display: 'flex',
@@ -245,7 +338,7 @@ export const ModElementsWorkbench: React.FC = () => {
             </div>
           ) : viewMode === 'grid' ? (
             <div className="elements-grid">
-              {filteredElements.map((elem) => {
+              {paginatedElements.map((elem) => {
                 const isSelected = selectedElementId === elem.id;
                 return (
                   <button
@@ -284,11 +377,25 @@ export const ModElementsWorkbench: React.FC = () => {
                           width: '36px',
                           height: '36px',
                           borderRadius: 'var(--radius-sm)',
-                          background: elem.type === 'block' ? 'var(--accent-copper-dim)' : 'var(--badge-blue-bg)',
+                          background:
+                            elem.type === 'block'
+                              ? 'var(--accent-copper-dim)'
+                              : elem.type === 'function'
+                              ? 'var(--badge-blue-bg)'
+                              : elem.type === 'achievement'
+                              ? 'var(--badge-amber-bg)'
+                              : 'var(--bg-panel)',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          color: elem.type === 'block' ? 'var(--accent-copper)' : 'var(--badge-blue)'
+                          color:
+                            elem.type === 'block'
+                              ? 'var(--accent-copper)'
+                              : elem.type === 'function'
+                              ? 'var(--badge-blue)'
+                              : elem.type === 'achievement'
+                              ? 'var(--badge-amber)'
+                              : 'var(--text-main)'
                         }}
                       >
                         {getTypeIcon(elem.type)}
@@ -327,7 +434,7 @@ export const ModElementsWorkbench: React.FC = () => {
                       }}
                     >
                       <span>{elem.ownership.toUpperCase()}</span>
-                      <span>{elem.type.toUpperCase()}</span>
+                      <span className="badge badge-copper">{elem.type.toUpperCase()}</span>
                     </div>
                   </button>
                 );
@@ -353,7 +460,7 @@ export const ModElementsWorkbench: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredElements.map((elem) => {
+                  {paginatedElements.map((elem) => {
                     const isSelected = selectedElementId === elem.id;
                     return (
                       <tr
@@ -399,9 +506,74 @@ export const ModElementsWorkbench: React.FC = () => {
             </div>
           )}
         </div>
+
+        {/* Large Workspace Pagination Controls */}
+        {totalPages > 1 && (
+          <footer
+            data-testid="elements-pagination"
+            style={{
+              padding: '10px 18px',
+              background: 'var(--bg-surface)',
+              borderTop: '1px solid var(--border-subtle)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              fontSize: '11px',
+              color: 'var(--text-sub)'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <span>
+                显示第 {(currentPage - 1) * pageSize + 1} - {Math.min(currentPage * pageSize, filteredAndSortedElements.length)} 项，共 {filteredAndSortedElements.length} 个元素
+              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span>每页：</span>
+                <select
+                  value={pageSize}
+                  onChange={(e) => setPageSize(parseInt(e.target.value) || 24)}
+                  data-testid="elements-page-size-select"
+                  style={{ padding: '2px 6px', fontSize: '11px' }}
+                >
+                  <option value={24}>24 项</option>
+                  <option value={48}>48 项</option>
+                  <option value={96}>96 项</option>
+                  <option value={200}>200 项</option>
+                </select>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage <= 1}
+                data-testid="elements-prev-page-btn"
+                style={{ padding: '3px 8px' }}
+              >
+                <ChevronLeft size={13} />
+                <span>上一页</span>
+              </button>
+              <span style={{ fontWeight: 600, color: 'var(--text-main)', padding: '0 4px' }}>
+                {currentPage} / {totalPages}
+              </span>
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage >= totalPages}
+                data-testid="elements-next-page-btn"
+                style={{ padding: '3px 8px' }}
+              >
+                <span>下一页</span>
+                <ChevronRight size={13} />
+              </button>
+            </div>
+          </footer>
+        )}
       </div>
 
-      {/* Right: Contextual Inspector */}
+      {/* Right: Contextual Inspector (for non-procedure/function/loottable/achievement elements like blocks, items, recipes) */}
       {selectedElement && (
         <ElementInspector
           element={selectedElement}

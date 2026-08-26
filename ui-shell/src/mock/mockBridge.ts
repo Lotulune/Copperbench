@@ -50,7 +50,8 @@ import {
   RegistryEntry,
   WorkspaceReferenceProjection,
   WorkspaceRegistriesProjection,
-  DatagenPreview
+  DatagenPreview,
+  FieldChange
 } from '../types/contract';
 import {
   BridgeState,
@@ -957,6 +958,7 @@ export class MockCoreBridge implements CoreBridge {
       }
 
       case 'create_registry_entry':
+      case 'update_registry_entry':
       case 'rename_registry_entry':
       case 'delete_registry_entry': {
         const payload = command.payload as unknown as {
@@ -964,6 +966,7 @@ export class MockCoreBridge implements CoreBridge {
           entry?: Partial<RegistryEntry>;
           entryId?: UUID;
           newName?: string;
+          changes?: FieldChange[];
         };
         let data: CommandResult['data'] = null;
         if (command.operation === 'create_registry_entry') {
@@ -985,7 +988,14 @@ export class MockCoreBridge implements CoreBridge {
           if (!location) throw new Error(`Registry entry not found: ${payload.entryId}`);
           const [registry, entries] = location as [keyof typeof this.mockRegistries, RegistryEntry[]];
           const entry = entries.find((candidate) => candidate.id === payload.entryId)!;
-          if (command.operation === 'rename_registry_entry') {
+          if (command.operation === 'update_registry_entry') {
+            for (const change of payload.changes ?? []) {
+              if (change.path === '/translations' && change.value && typeof change.value === 'object') {
+                entry.translations = { ...(change.value as Record<string, string>) };
+              }
+            }
+            data = { entry };
+          } else if (command.operation === 'rename_registry_entry') {
             const oldName = entry.key ?? entry.name ?? '';
             if (registry === 'languageKeys') entry.key = payload.newName ?? entry.key;
             else entry.name = payload.newName ?? entry.name;
@@ -2030,7 +2040,14 @@ export class MockCoreBridge implements CoreBridge {
           })
         );
         data = {
-          registries: this.mockRegistries,
+          registries: {
+            variables: [...this.mockRegistries.variables],
+            tags: [...this.mockRegistries.tags],
+            languageKeys: [...this.mockRegistries.languageKeys]
+          },
+          variables: [...this.mockRegistries.variables],
+          tags: [...this.mockRegistries.tags],
+          languageKeys: [...this.mockRegistries.languageKeys],
           languageStats: {
             keyCount: this.mockRegistries.languageKeys.length,
             languageCount: languages.size,
@@ -2359,105 +2376,401 @@ export class MockCoreBridge implements CoreBridge {
           // the EditorField contract (control kinds, constraints, readOnly
           // loader extensions) so the UI renders purely schema-driven.
           const elem = this.state.elements.find((e) => e.id === elemId) || this.state.elements[0];
-          const editor: ModElementEditorProjection = {
-            element: elem,
-            sections: [
-              {
-                id: 'block.general',
-                title: { key: 'editor.general', fallback: 'General Attributes (通用属性)' },
-                fields: [
-                  {
-                    path: '/fields/name',
-                    label: { key: 'field.name', fallback: 'Identifier Name (内部标识符)' },
-                    control: 'text',
-                    required: true,
-                    readOnly: false,
-                    value: elem?.name ?? 'custom_block',
-                    options: [],
-                    diagnostics: []
-                  },
-                  {
-                    path: '/fields/displayName',
-                    label: { key: 'field.displayName', fallback: 'Display Name (显示名称)' },
-                    control: 'text',
-                    required: true,
-                    readOnly: false,
-                    value: elem?.displayName ?? 'Custom Block',
-                    options: [],
-                    diagnostics: []
-                  }
-                ]
-              },
-              {
-                id: 'block.behavior',
-                title: { key: 'editor.behavior', fallback: 'Physical & Mining (物理挖掘特性)' },
-                fields: [
-                  {
-                    path: '/fields/hardness',
-                    label: { key: 'field.hardness', fallback: 'Hardness (硬度)' },
-                    control: 'number',
-                    required: true,
-                    readOnly: false,
-                    value: 2.0,
-                    options: [],
-                    constraints: { min: 0, max: 100, step: 0.5 },
-                    diagnostics: []
-                  },
-                  {
-                    path: '/fields/material',
-                    label: { key: 'field.material', fallback: 'Material (材质)' },
-                    control: 'select',
-                    required: true,
-                    readOnly: false,
-                    value: 'stone',
-                    options: [
-                      { value: 'wood', label: { key: 'material.wood', fallback: 'Wood (木材)' }, disabled: false },
-                      { value: 'stone', label: { key: 'material.stone', fallback: 'Stone (石材)' }, disabled: false },
-                      { value: 'metal', label: { key: 'material.metal', fallback: 'Metal (金属)' }, disabled: false }
-                    ],
-                    diagnostics: []
-                  },
-                  {
-                    path: '/fields/flammable',
-                    label: { key: 'field.flammable', fallback: 'Flammable (可燃)' },
-                    control: 'toggle',
-                    required: false,
-                    readOnly: false,
-                    value: false,
-                    options: [],
-                    diagnostics: []
-                  },
-                  {
-                    path: '/loaderExtensions/neoforge/fireSpreadSpeed',
-                    label: { key: 'field.fire_spread_speed', fallback: 'Fire Spread Speed (火焰蔓延速度)' },
-                    help: {
-                      key: 'field.loader_specific_preserved',
-                      fallback: 'This NeoForge field is preserved but unavailable while Fabric is active.'
+          let editor: ModElementEditorProjection;
+
+          if (elem?.type === 'function') {
+            editor = {
+              element: elem,
+              sections: [
+                {
+                  id: 'function.general',
+                  title: { key: 'editor.general', fallback: 'Function Attributes' },
+                  fields: [
+                    {
+                      path: '/fields/name',
+                      label: { key: 'field.name', fallback: 'Identifier Name' },
+                      control: 'text',
+                      required: true,
+                      readOnly: false,
+                      value: elem.name,
+                      options: [],
+                      diagnostics: []
                     },
-                    control: 'number',
-                    required: false,
-                    readOnly: true,
-                    value: 5,
-                    options: [],
-                    constraints: { min: 0, max: 100, step: 1 },
-                    diagnostics: []
-                  }
-                ]
-              }
-            ],
-            capabilities: [
-              {
-                id: 'block.fire_spread_speed',
-                availability: 'unavailable',
-                reasonCode: 'ACTIVE_LOADER_UNSUPPORTED_FIELD',
-                message: {
-                  key: 'capability.active_loader_unsupported_field',
-                  fallback: 'This NeoForge field is preserved but not editable while Fabric is active.',
-                  args: { loader: 'fabric' }
+                    {
+                      path: '/fields/displayName',
+                      label: { key: 'field.displayName', fallback: 'Display Name' },
+                      control: 'text',
+                      required: true,
+                      readOnly: false,
+                      value: elem.displayName,
+                      options: [],
+                      diagnostics: []
+                    },
+                    {
+                      path: '/fields/namespace',
+                      label: { key: 'field.name', fallback: 'Namespace' },
+                      control: 'text',
+                      required: true,
+                      readOnly: false,
+                      value: 'copperbench',
+                      options: [],
+                      diagnostics: []
+                    },
+                    {
+                      path: '/fields/code',
+                      label: { key: 'field.name', fallback: 'Commands' },
+                      control: 'textarea',
+                      required: false,
+                      readOnly: false,
+                      value: '# 函数: 初始化事件\ntellraw @a {"text":"[Copperbench] 函数已触发","color":"aqua"}\nparticle minecraft:totem_of_undying ~ ~1 ~ 0.5 0.5 0.5 0.2 30\n',
+                      options: [],
+                      diagnostics: []
+                    },
+                    {
+                      path: '/fields/tags',
+                      label: { key: 'field.name', fallback: 'Tags' },
+                      control: 'text',
+                      required: false,
+                      readOnly: false,
+                      value: ['minecraft:load'],
+                      options: [],
+                      diagnostics: []
+                    }
+                  ]
+                }
+              ],
+              capabilities: []
+            };
+          } else if (elem?.type === 'loottable') {
+            editor = {
+              element: elem,
+              sections: [
+                {
+                  id: 'loottable.general',
+                  title: { key: 'editor.general', fallback: 'Loot Table Attributes' },
+                  fields: [
+                    {
+                      path: '/fields/name',
+                      label: { key: 'field.name', fallback: 'Identifier Name' },
+                      control: 'text',
+                      required: true,
+                      readOnly: false,
+                      value: elem.name,
+                      options: [],
+                      diagnostics: []
+                    },
+                    {
+                      path: '/fields/displayName',
+                      label: { key: 'field.displayName', fallback: 'Display Name' },
+                      control: 'text',
+                      required: true,
+                      readOnly: false,
+                      value: elem.displayName,
+                      options: [],
+                      diagnostics: []
+                    },
+                    {
+                      path: '/fields/type',
+                      label: { key: 'field.material', fallback: 'Type' },
+                      control: 'select',
+                      required: true,
+                      readOnly: false,
+                      value: 'Block',
+                      options: [
+                        { value: 'Block', label: { key: 'field.option', fallback: 'Block' }, disabled: false },
+                        { value: 'Entity', label: { key: 'field.option', fallback: 'Entity' }, disabled: false },
+                        { value: 'Chest', label: { key: 'field.option', fallback: 'Chest' }, disabled: false },
+                        { value: 'Generic', label: { key: 'field.option', fallback: 'Generic' }, disabled: false }
+                      ],
+                      diagnostics: []
+                    },
+                    {
+                      path: '/fields/pools',
+                      label: { key: 'field.name', fallback: 'Pools' },
+                      control: 'text',
+                      required: false,
+                      readOnly: false,
+                      value: [
+                        {
+                          id: 'pool_1',
+                          name: '主掉落池',
+                          minrolls: 1,
+                          maxrolls: 1,
+                          hasbonusrolls: false,
+                          minbonusrolls: 0,
+                          maxbonusrolls: 0,
+                          conditions: [{ type: 'minecraft:survives_explosion' }],
+                          entries: [
+                            {
+                              id: 'entry_1',
+                              type: 'item',
+                              item: 'minecraft:copper_ingot',
+                              weight: 1,
+                              minCount: 1,
+                              maxCount: 2,
+                              minEnchantmentLevel: 0,
+                              maxEnchantmentLevel: 0,
+                              affectedByFortune: true,
+                              explosionDecay: true,
+                              silkTouchMode: 0
+                            }
+                          ]
+                        }
+                      ],
+                      options: [],
+                      diagnostics: []
+                    }
+                  ]
+                }
+              ],
+              capabilities: []
+            };
+          } else if (elem?.type === 'achievement') {
+            editor = {
+              element: elem,
+              sections: [
+                {
+                  id: 'achievement.general',
+                  title: { key: 'editor.general', fallback: 'Advancement Settings' },
+                  fields: [
+                    {
+                      path: '/fields/name',
+                      label: { key: 'field.name', fallback: 'Identifier Name' },
+                      control: 'text',
+                      required: true,
+                      readOnly: false,
+                      value: elem.name,
+                      options: [],
+                      diagnostics: []
+                    },
+                    {
+                      path: '/fields/displayName',
+                      label: { key: 'field.displayName', fallback: 'Display Name' },
+                      control: 'text',
+                      required: true,
+                      readOnly: false,
+                      value: elem.displayName,
+                      options: [],
+                      diagnostics: []
+                    },
+                    {
+                      path: '/fields/achievementName',
+                      label: { key: 'field.displayName', fallback: 'Title' },
+                      control: 'text',
+                      required: true,
+                      readOnly: false,
+                      value: elem.displayName,
+                      options: [],
+                      diagnostics: []
+                    },
+                    {
+                      path: '/fields/achievementDescription',
+                      label: { key: 'field.displayName', fallback: 'Description' },
+                      control: 'text',
+                      required: false,
+                      readOnly: false,
+                      value: '探索未知领域并制作你的第一个铜制工具。',
+                      options: [],
+                      diagnostics: []
+                    },
+                    {
+                      path: '/fields/achievementIcon',
+                      label: { key: 'field.displayName', fallback: 'Icon' },
+                      control: 'text',
+                      required: true,
+                      readOnly: false,
+                      value: 'minecraft:diamond',
+                      options: [],
+                      diagnostics: []
+                    },
+                    {
+                      path: '/fields/achievementType',
+                      label: { key: 'field.material', fallback: 'Frame' },
+                      control: 'select',
+                      required: true,
+                      readOnly: false,
+                      value: 'task',
+                      options: [
+                        { value: 'task', label: { key: 'field.option', fallback: 'Task' }, disabled: false },
+                        { value: 'goal', label: { key: 'field.option', fallback: 'Goal' }, disabled: false },
+                        { value: 'challenge', label: { key: 'field.option', fallback: 'Challenge' }, disabled: false }
+                      ],
+                      diagnostics: []
+                    },
+                    {
+                      path: '/fields/parent',
+                      label: { key: 'field.displayName', fallback: 'Parent' },
+                      control: 'text',
+                      required: false,
+                      readOnly: false,
+                      value: 'root',
+                      options: [],
+                      diagnostics: []
+                    },
+                    {
+                      path: '/fields/showPopup',
+                      label: { key: 'field.flammable', fallback: 'Show Popup' },
+                      control: 'toggle',
+                      required: false,
+                      readOnly: false,
+                      value: true,
+                      options: [],
+                      diagnostics: []
+                    },
+                    {
+                      path: '/fields/announceToChat',
+                      label: { key: 'field.flammable', fallback: 'Announce Chat' },
+                      control: 'toggle',
+                      required: false,
+                      readOnly: false,
+                      value: true,
+                      options: [],
+                      diagnostics: []
+                    },
+                    {
+                      path: '/fields/hideIfNotCompleted',
+                      label: { key: 'field.flammable', fallback: 'Hide' },
+                      control: 'toggle',
+                      required: false,
+                      readOnly: false,
+                      value: false,
+                      options: [],
+                      diagnostics: []
+                    },
+                    {
+                      path: '/fields/rewardXP',
+                      label: { key: 'field.hardness', fallback: 'Reward XP' },
+                      control: 'number',
+                      required: false,
+                      readOnly: false,
+                      value: 50,
+                      options: [],
+                      constraints: { min: 0, max: 64000, step: 10 },
+                      diagnostics: []
+                    },
+                    {
+                      path: '/fields/criteria',
+                      label: { key: 'field.name', fallback: 'Criteria' },
+                      control: 'text',
+                      required: false,
+                      readOnly: false,
+                      value: [
+                        {
+                          id: 'crit_1',
+                          name: 'has_copper_item',
+                          trigger: 'minecraft:inventory_changed',
+                          item: 'minecraft:copper_ingot'
+                        }
+                      ],
+                      options: [],
+                      diagnostics: []
+                    }
+                  ]
+                }
+              ],
+              capabilities: []
+            };
+          } else {
+            editor = {
+              element: elem,
+              sections: [
+                {
+                  id: 'block.general',
+                  title: { key: 'editor.general', fallback: 'General Attributes (通用属性)' },
+                  fields: [
+                    {
+                      path: '/fields/name',
+                      label: { key: 'field.name', fallback: 'Identifier Name (内部标识符)' },
+                      control: 'text',
+                      required: true,
+                      readOnly: false,
+                      value: elem?.name ?? 'custom_block',
+                      options: [],
+                      diagnostics: []
+                    },
+                    {
+                      path: '/fields/displayName',
+                      label: { key: 'field.displayName', fallback: 'Display Name (显示名称)' },
+                      control: 'text',
+                      required: true,
+                      readOnly: false,
+                      value: elem?.displayName ?? 'Custom Block',
+                      options: [],
+                      diagnostics: []
+                    }
+                  ]
                 },
-                affectedPaths: ['/loaderExtensions/neoforge/fireSpreadSpeed']
-              }
-            ]
+                {
+                  id: 'block.behavior',
+                  title: { key: 'editor.behavior', fallback: 'Physical & Mining (物理挖掘特性)' },
+                  fields: [
+                    {
+                      path: '/fields/hardness',
+                      label: { key: 'field.hardness', fallback: 'Hardness (硬度)' },
+                      control: 'number',
+                      required: true,
+                      readOnly: false,
+                      value: 2.0,
+                      options: [],
+                      constraints: { min: 0, max: 100, step: 0.5 },
+                      diagnostics: []
+                    },
+                    {
+                      path: '/fields/material',
+                      label: { key: 'field.material', fallback: 'Material (材质)' },
+                      control: 'select',
+                      required: true,
+                      readOnly: false,
+                      value: 'stone',
+                      options: [
+                        { value: 'wood', label: { key: 'material.wood', fallback: 'Wood (木材)' }, disabled: false },
+                        { value: 'stone', label: { key: 'material.stone', fallback: 'Stone (石材)' }, disabled: false },
+                        { value: 'metal', label: { key: 'material.metal', fallback: 'Metal (金属)' }, disabled: false }
+                      ],
+                      diagnostics: []
+                    },
+                    {
+                      path: '/fields/flammable',
+                      label: { key: 'field.flammable', fallback: 'Flammable (可燃)' },
+                      control: 'toggle',
+                      required: false,
+                      readOnly: false,
+                      value: false,
+                      options: [],
+                      diagnostics: []
+                    },
+                    {
+                      path: '/loaderExtensions/neoforge/fireSpreadSpeed',
+                      label: { key: 'field.fire_spread_speed', fallback: 'Fire Spread Speed (火焰蔓延速度)' },
+                      help: {
+                        key: 'field.loader_specific_preserved',
+                        fallback: 'This NeoForge field is preserved but unavailable while Fabric is active.'
+                      },
+                      control: 'number',
+                      required: false,
+                      readOnly: true,
+                      value: 5,
+                      options: [],
+                      constraints: { min: 0, max: 100, step: 1 },
+                      diagnostics: []
+                    }
+                  ]
+                }
+              ],
+              capabilities: [
+                {
+                  id: 'block.fire_spread_speed',
+                  availability: 'unavailable',
+                  reasonCode: 'ACTIVE_LOADER_UNSUPPORTED_FIELD',
+                  message: {
+                    key: 'capability.active_loader_unsupported_field',
+                    fallback: 'This NeoForge field is preserved but not editable while Fabric is active.',
+                    args: { loader: 'fabric' }
+                  },
+                  affectedPaths: ['/loaderExtensions/neoforge/fireSpreadSpeed']
+                }
+              ]
+            };
           };
           if (elem) {
             this.state.elementEditors[elem.id] = editor;
@@ -2551,4 +2864,3 @@ export class MockCoreBridge implements CoreBridge {
     this.notifyState();
   }
 }
-
