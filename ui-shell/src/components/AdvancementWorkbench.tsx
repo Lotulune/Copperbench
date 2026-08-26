@@ -90,7 +90,7 @@ export function detectAdvancementCycle(
     if (editor?.sections) {
       const allFields = editor.sections.flatMap((s) => s.fields || []);
       const parentField = allFields.find(
-        (f) => f.path === '/fields/parent' || f.path === 'parent' || f.path.endsWith('/parent')
+        (f) => f.path === '/parent' || f.path === '/fields/parent' || f.path === 'parent' || f.path.endsWith('/parent')
       );
       if (parentField && typeof parentField.value === 'string' && parentField.value) {
         return parentField.value;
@@ -223,20 +223,21 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
     getModElementEditor(element.id).then((projection) => {
       if (cancelled || !projection) return;
       const allFields = projection.sections.flatMap((s) => s.fields);
-      const nameField = allFields.find((f) => f.path === '/fields/achievementName');
-      const descField = allFields.find((f) => f.path === '/fields/achievementDescription');
-      const iconField = allFields.find((f) => f.path === '/fields/achievementIcon');
-      const typeField = allFields.find((f) => f.path === '/fields/achievementType');
-      const parentField = allFields.find((f) => f.path === '/fields/parent');
-      const bgField = allFields.find((f) => f.path === '/fields/background');
-      const popupField = allFields.find((f) => f.path === '/fields/showPopup');
-      const chatField = allFields.find((f) => f.path === '/fields/announceToChat');
-      const hideField = allFields.find((f) => f.path === '/fields/hideIfNotCompleted');
-      const xpField = allFields.find((f) => f.path === '/fields/rewardXP');
-      const lootField = allFields.find((f) => f.path === '/fields/rewardLoot');
-      const recipesField = allFields.find((f) => f.path === '/fields/rewardRecipes');
-      const functionField = allFields.find((f) => f.path === '/fields/rewardFunction');
-      const criteriaField = allFields.find((f) => f.path === '/fields/criteria');
+      const nameField = allFields.find((f) => f.path === '/title' || f.path === '/fields/title' || f.path === '/fields/achievementName');
+      const descField = allFields.find((f) => f.path === '/description' || f.path === '/fields/description' || f.path === '/fields/achievementDescription');
+      const iconField = allFields.find((f) => f.path === '/icon' || f.path === '/fields/icon' || f.path === '/fields/achievementIcon');
+      const typeField = allFields.find((f) => f.path === '/frame' || f.path === '/fields/frame' || f.path === '/fields/achievementType');
+      const parentField = allFields.find((f) => f.path === '/parent' || f.path === '/fields/parent');
+      const bgField = allFields.find((f) => f.path === '/background' || f.path === '/fields/background');
+      const popupField = allFields.find((f) => f.path === '/showPopup' || f.path === '/fields/showPopup');
+      const chatField = allFields.find((f) => f.path === '/announceToChat' || f.path === '/fields/announceToChat');
+      const hideField = allFields.find((f) => f.path === '/hideIfNotCompleted' || f.path === '/fields/hideIfNotCompleted');
+      const disableDisplayField = allFields.find((f) => f.path === '/disableDisplay' || f.path === '/fields/disableDisplay');
+      const xpField = allFields.find((f) => f.path === '/rewardXP' || f.path === '/fields/rewardXP');
+      const lootField = allFields.find((f) => f.path === '/rewardLoot' || f.path === '/fields/rewardLoot');
+      const recipesField = allFields.find((f) => f.path === '/rewardRecipes' || f.path === '/fields/rewardRecipes');
+      const functionField = allFields.find((f) => f.path === '/rewardFunction' || f.path === '/fields/rewardFunction');
+      const criteriaField = allFields.find((f) => f.path === '/criteria' || f.path === '/fields/criteria' || f.path === '/triggerxml' || f.path === '/fields/triggerxml');
 
       if (nameField && typeof nameField.value === 'string') setAchievementName(nameField.value);
       if (descField && typeof descField.value === 'string') setAchievementDescription(descField.value);
@@ -247,6 +248,7 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
       if (popupField && typeof popupField.value === 'boolean') setShowPopup(popupField.value);
       if (chatField && typeof chatField.value === 'boolean') setAnnounceToChat(chatField.value);
       if (hideField && typeof hideField.value === 'boolean') setHideIfNotCompleted(hideField.value);
+      if (disableDisplayField && typeof disableDisplayField.value === 'boolean') setDisableDisplay(disableDisplayField.value);
       if (xpField && typeof xpField.value === 'number') setRewardXP(xpField.value);
       if (lootField && Array.isArray(lootField.value)) setRewardLoot(lootField.value as string[]);
       if (recipesField && Array.isArray(recipesField.value)) setRewardRecipes(recipesField.value as string[]);
@@ -358,21 +360,21 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
     setSaveSuccess(false);
 
     const changes: FieldChange[] = [
-      { path: '/fields/achievementName', value: achievementName },
-      { path: '/fields/achievementDescription', value: achievementDescription },
-      { path: '/fields/achievementIcon', value: achievementIcon },
-      { path: '/fields/achievementType', value: achievementType },
-      { path: '/fields/background', value: background },
-      { path: '/fields/parent', value: parent },
-      { path: '/fields/showPopup', value: showPopup },
-      { path: '/fields/announceToChat', value: announceToChat },
-      { path: '/fields/hideIfNotCompleted', value: hideIfNotCompleted },
-      { path: '/fields/disableDisplay', value: disableDisplay },
-      { path: '/fields/rewardXP', value: rewardXP },
-      { path: '/fields/rewardLoot', value: rewardLoot },
-      { path: '/fields/rewardRecipes', value: rewardRecipes },
-      { path: '/fields/rewardFunction', value: rewardFunction },
-      { path: '/fields/criteria', value: criteria }
+      { path: '/title', value: achievementName },
+      { path: '/description', value: achievementDescription },
+      { path: '/icon', value: achievementIcon },
+      { path: '/frame', value: achievementType },
+      { path: '/background', value: background },
+      { path: '/parent', value: parent },
+      { path: '/showPopup', value: showPopup },
+      { path: '/announceToChat', value: announceToChat },
+      { path: '/hideIfNotCompleted', value: hideIfNotCompleted },
+      { path: '/disableDisplay', value: disableDisplay },
+      { path: '/rewardXP', value: rewardXP },
+      { path: '/rewardLoot', value: rewardLoot },
+      { path: '/rewardRecipes', value: rewardRecipes },
+      { path: '/rewardFunction', value: rewardFunction },
+      { path: '/criteria', value: criteria }
     ];
 
     try {

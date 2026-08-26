@@ -3,7 +3,7 @@
   "schemaVersion": "1.0",
   "snapshot": {
     "date": "2026-08-26",
-    "lastVerifiedCommit": "88b07aad65f3c714f812a3b81f1c30d486ae7dbd",
+    "lastVerifiedCommit": "d622676f67a70255ac9fa32a8e9048705569d05c",
     "policy": "Only code, automated checks, and evidence tied to a commit can promote a gate."
   },
   "product": {
@@ -58,11 +58,11 @@
       ]
     },
     "nightly": {
-      "status": "failed",
+      "status": "passed",
       "workflow": ".github/workflows/nightly.yml",
-      "run": "https://github.com/Lotulune/Copperbench/actions/runs/32956081891",
-      "sourceCommit": "6fa8e942e636c7e4cb7c3a003cc5d6b8b85f4b92",
-      "productRegression": "failed-jcef-bridge-timing",
+      "run": "https://github.com/Lotulune/Copperbench/actions/runs/32970451959",
+      "sourceCommit": "d622676f67a70255ac9fa32a8e9048705569d05c",
+      "productRegression": "passed",
       "generatorGolden": "8/8 passed"
     },
     "repositoryGovernance": {
@@ -124,7 +124,7 @@
     {"id": "language-tools", "status": "passed", "betaBlocking": true, "evidence": ["docs/testing/stage-9-ui-gates-2026-08-26.md", "ui-shell/e2e/stage9-creator-core.spec.ts"]},
     {"id": "procedure-500", "status": "blocked", "betaBlocking": true, "evidence": []},
     {"id": "workspace-2000-10000", "status": "blocked", "betaBlocking": true, "evidence": []},
-    {"id": "stage9-eight-generator-golden", "status": "passed", "betaBlocking": true, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/32956081891", "docs/testing/stage-9-generator-golden-2026-08-26-r2.md"]},
+    {"id": "stage9-eight-generator-golden", "status": "passed", "betaBlocking": true, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/32970451959", "docs/testing/stage-9-generator-golden-2026-08-26-r2.md"]},
     {"id": "server-readiness-matrix", "status": "blocked", "betaBlocking": true, "evidence": []},
     {"id": "real-jcef-accessibility", "status": "blocked", "betaBlocking": true, "evidence": []},
     {"id": "clean-windows-11-stage9", "status": "blocked", "betaBlocking": true, "evidence": []},

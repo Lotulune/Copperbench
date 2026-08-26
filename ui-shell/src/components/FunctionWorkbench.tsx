@@ -88,9 +88,9 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
     getModElementEditor(element.id).then((projection) => {
       if (cancelled || !projection) return;
       const allFields = projection.sections.flatMap((s) => s.fields);
-      const codeField = allFields.find((f) => f.path === '/fields/code');
-      const tagsField = allFields.find((f) => f.path === '/fields/tags');
-      const nsField = allFields.find((f) => f.path === '/fields/namespace');
+      const codeField = allFields.find((f) => f.path === '/code' || f.path === '/fields/code');
+      const tagsField = allFields.find((f) => f.path === '/tags' || f.path === '/fields/tags');
+      const nsField = allFields.find((f) => f.path === '/namespace' || f.path === '/fields/namespace');
 
       if (codeField && typeof codeField.value === 'string') {
         setCode(codeField.value);
@@ -195,9 +195,9 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
     setSaveSuccess(false);
 
     const changes: FieldChange[] = [
-      { path: '/fields/code', value: code },
-      { path: '/fields/tags', value: tags },
-      { path: '/fields/namespace', value: namespace }
+      { path: '/code', value: code },
+      { path: '/tags', value: tags },
+      { path: '/namespace', value: namespace }
     ];
 
     try {

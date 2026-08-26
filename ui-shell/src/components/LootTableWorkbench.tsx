@@ -124,14 +124,25 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
     getModElementEditor(element.id).then((projection) => {
       if (cancelled || !projection) return;
       const allFields = projection.sections.flatMap((s) => s.fields);
-      const typeField = allFields.find((f) => f.path === '/fields/type');
-      const poolsField = allFields.find((f) => f.path === '/fields/pools');
+      const typeField = allFields.find((f) => f.path === '/type' || f.path === '/fields/type');
+      const poolsField = allFields.find((f) => f.path === '/pools' || f.path === '/fields/pools');
 
       if (typeField && typeof typeField.value === 'string') {
         setLootType(typeField.value);
       }
       if (poolsField && Array.isArray(poolsField.value) && poolsField.value.length > 0) {
-        setPools(poolsField.value as LootPool[]);
+        const normalized = (poolsField.value as Array<Record<string, unknown>>).map((p, idx) => ({
+          id: typeof p.id === 'string' ? p.id : `pool_${idx + 1}`,
+          name: typeof p.name === 'string' ? p.name : `战利品池 ${idx + 1}`,
+          minrolls: typeof p.minrolls === 'number' ? p.minrolls : (typeof p.minRolls === 'number' ? p.minRolls : 1),
+          maxrolls: typeof p.maxrolls === 'number' ? p.maxrolls : (typeof p.maxRolls === 'number' ? p.maxRolls : 1),
+          hasbonusrolls: typeof p.hasbonusrolls === 'boolean' ? p.hasbonusrolls : (typeof p.hasBonusRolls === 'boolean' ? p.hasBonusRolls : false),
+          minbonusrolls: typeof p.minbonusrolls === 'number' ? p.minbonusrolls : (typeof p.minBonusRolls === 'number' ? p.minBonusRolls : 0),
+          maxbonusrolls: typeof p.maxbonusrolls === 'number' ? p.maxbonusrolls : (typeof p.maxBonusRolls === 'number' ? p.maxBonusRolls : 0),
+          conditions: Array.isArray(p.conditions) ? (p.conditions as Array<{ type: string; chance?: number }>) : [],
+          entries: Array.isArray(p.entries) ? (p.entries as LootEntry[]) : []
+        }));
+        setPools(normalized as LootPool[]);
       }
       setIsDirty(false);
     }).catch(() => {
@@ -357,9 +368,23 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
     setMessage(null);
     setSaveSuccess(false);
 
+    const payloadPools = pools.map((p) => ({
+      ...p,
+      minRolls: p.minrolls,
+      minrolls: p.minrolls,
+      maxRolls: p.maxrolls,
+      maxrolls: p.maxrolls,
+      hasBonusRolls: p.hasbonusrolls,
+      hasbonusrolls: p.hasbonusrolls,
+      minBonusRolls: p.minbonusrolls,
+      minbonusrolls: p.minbonusrolls,
+      maxBonusRolls: p.maxbonusrolls,
+      maxbonusrolls: p.maxbonusrolls
+    }));
+
     const changes: FieldChange[] = [
-      { path: '/fields/type', value: lootType },
-      { path: '/fields/pools', value: pools }
+      { path: '/type', value: lootType },
+      { path: '/pools', value: payloadPools }
     ];
 
     try {
