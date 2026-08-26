@@ -38,7 +38,7 @@ class ProcedureIrScaleGateTest {
 		for (int index = 0; index < NODE_COUNT; index++) {
 			UUID id = UUID.nameUUIDFromBytes(("stage9-procedure-node-" + index).getBytes(StandardCharsets.UTF_8));
 			JsonObject fields = new JsonObject();
-			if (index > 0) fields.addProperty("value", index - 1);
+			if (index > 0) fields.addProperty("value", index);
 			nodes.add(new Node(id, index == 0 ? "event_trigger" : "math_number",
 				index == 0 ? "statement" : "value", index * 12, 40, fields, Map.of(), null, false, ""));
 		}
@@ -74,7 +74,7 @@ class ProcedureIrScaleGateTest {
 		Node xmlTrigger = xmlRoundTrip.nodes().stream().filter(node -> node.type().equals("event_trigger")).findFirst()
 				.orElseThrow();
 		Node xmlFirstValue = xmlRoundTrip.nodes().stream()
-				.filter(node -> node.fields().has("value") && node.fields().get("value").getAsString().equals("0"))
+				.filter(node -> node.fields().has("value") && node.fields().get("value").getAsString().equals("1"))
 				.findFirst().orElseThrow();
 		Node xmlLastValue = xmlRoundTrip.nodes().stream()
 				.filter(node -> node.fields().has("value") && node.fields().get("value").getAsString().equals("499"))
