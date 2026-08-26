@@ -35,16 +35,21 @@ class ProcedureIrScaleGateTest {
 	@Test void validatesAndRoundTripsFiveHundredNodeProcedure() throws Exception {
 		ProcedureIrCodec codec = new ProcedureIrCodec();
 		List<Node> nodes = new ArrayList<>(NODE_COUNT);
-		UUID previous = null;
 		for (int index = 0; index < NODE_COUNT; index++) {
 			UUID id = UUID.nameUUIDFromBytes(("stage9-procedure-node-" + index).getBytes(StandardCharsets.UTF_8));
 			JsonObject fields = new JsonObject();
 			fields.addProperty("value", index);
-			nodes.add(new Node(id, index == 0 ? "event_trigger" : "math_number", "value", index * 12, 40,
-				fields, Map.of(), previous, false, ""));
-			previous = id;
+			nodes.add(new Node(id, index == 0 ? "event_trigger" : "math_number",
+				index == 0 ? "statement" : "value", index * 12, 40, fields, Map.of(), null, false, ""));
 		}
-		ProcedureIr original = new ProcedureIr(ProcedureIr.SCHEMA_VERSION, "no_ext_trigger", nodes, List.of(),
+		List<Node> forwardNodes = new ArrayList<>(NODE_COUNT);
+		for (int index = 0; index < NODE_COUNT; index++) {
+			Node node = nodes.get(index);
+			UUID next = index + 1 < NODE_COUNT ? nodes.get(index + 1).id() : null;
+			forwardNodes.add(new Node(node.id(), node.type(), node.kind(), node.x(), node.y(), node.fields(), node.inputs(),
+					next, node.unknown(), node.rawPayload()));
+		}
+		ProcedureIr original = new ProcedureIr(ProcedureIr.SCHEMA_VERSION, "no_ext_trigger", forwardNodes, List.of(),
 				new JsonObject());
 
 		long validationStart = System.nanoTime();
@@ -66,6 +71,19 @@ class ProcedureIrScaleGateTest {
 		assertTrue(codec.validate(jsonRoundTrip).isEmpty());
 		assertTrue(codec.validate(xmlRoundTrip).isEmpty());
 		assertTrue(jsonRoundTrip.nodes().get(NODE_COUNT - 1).fields().get("value").getAsInt() == NODE_COUNT - 1);
+		Node xmlTrigger = xmlRoundTrip.nodes().stream().filter(node -> node.type().equals("event_trigger")).findFirst()
+				.orElseThrow();
+		Node xmlFirstValue = xmlRoundTrip.nodes().stream()
+				.filter(node -> node.fields().has("value") && node.fields().get("value").getAsString().equals("0"))
+				.findFirst().orElseThrow();
+		Node xmlLastValue = xmlRoundTrip.nodes().stream()
+				.filter(node -> node.fields().has("value") && node.fields().get("value").getAsString().equals("499"))
+				.findFirst().orElseThrow();
+		assertEquals("no_ext_trigger", xmlRoundTrip.trigger());
+		assertEquals(40, xmlTrigger.y());
+		assertEquals(nodes.get(1).id(), xmlTrigger.next());
+		assertEquals(12, xmlFirstValue.x());
+		assertEquals(null, xmlLastValue.next());
 		assertTrue(validationMillis < 5_000, "Procedure validation exceeded the nightly smoke threshold");
 		assertTrue(jsonRoundTripMillis < 5_000, "Procedure JSON round-trip exceeded the nightly smoke threshold");
 		assertTrue(xmlRoundTripMillis < 10_000, "Procedure Blockly XML round-trip exceeded the nightly smoke threshold");
