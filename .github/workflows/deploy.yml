@@ -154,4 +154,11 @@ jobs:
         shell: pwsh
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release edit $env:RELEASE_TAG --draft=false --prerelease
+        run: |
+          $mainCommit = (gh api "repos/$env:GITHUB_REPOSITORY/commits/main" --jq .sha).Trim()
+          $tagCommit = (git rev-parse "$env:RELEASE_TAG^{commit}").Trim()
+          $metadataCommit = (Get-Content -LiteralPath build/release/RELEASE-METADATA.json -Raw | ConvertFrom-Json).commit
+          if ($LASTEXITCODE -ne 0 -or $tagCommit -ne $mainCommit -or $metadataCommit -ne $mainCommit) {
+            throw "Release source changed before publication: main=$mainCommit tag=$tagCommit metadata=$metadataCommit"
+          }
+          gh release edit $env:RELEASE_TAG --draft=false --prerelease
