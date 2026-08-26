@@ -125,6 +125,27 @@ class WorkspaceElementListCursorTest {
 				"LIST_CURSOR_STALE".equals(diagnostic.code())));
 	}
 
+	@Test void cursorRejectsDistinctQueriesThatCollideUnderJavaStringHashCode() {
+		WorkspaceApplicationService service = service();
+		RequestContext context = new RequestContext(Actor.HEADLESS, PermissionProfile.WORKSPACE);
+
+		JsonObject firstPayload = cursorPayload(null, "", "state", List.of("id", "name", "type", "updatedAt"));
+		firstPayload.addProperty("limit", 10);
+		var first = service.query(Query.of(uuid(21_100), WORKSPACE_ID, Operation.LIST_MOD_ELEMENTS, firstPayload),
+				context);
+		assertEquals("succeeded", first.status());
+		String cursor = first.data().getAsJsonObject().get("nextCursor").getAsString();
+
+		JsonObject collidingPayload = cursorPayload(cursor, "", "-displayName",
+				List.of("firstParty", "id", "state", "updatedAt"));
+		collidingPayload.addProperty("limit", 101);
+		var rejected = service.query(Query.of(uuid(21_101), WORKSPACE_ID, Operation.LIST_MOD_ELEMENTS,
+				collidingPayload), context);
+		assertEquals("rejected", rejected.status());
+		assertTrue(rejected.diagnostics().stream().anyMatch(diagnostic ->
+				"LIST_CURSOR_INVALID".equals(diagnostic.code())));
+	}
+
 	@Test void cursorFilterSupportsTypeSelection() {
 		WorkspaceApplicationService service = service();
 		RequestContext context = new RequestContext(Actor.HEADLESS, PermissionProfile.WORKSPACE);

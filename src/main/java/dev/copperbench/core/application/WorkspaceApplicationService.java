@@ -1417,8 +1417,18 @@ public final class WorkspaceApplicationService {
 	}
 
 	private static String encodeListCursor(long revision, int offset, String querySignature) {
-		String raw = "v1:" + revision + ":" + offset + ":" + Integer.toUnsignedString(querySignature.hashCode());
+		String raw = "v1:" + revision + ":" + offset + ":" + listCursorSignatureDigest(querySignature);
 		return Base64.getUrlEncoder().withoutPadding().encodeToString(raw.getBytes(StandardCharsets.UTF_8));
+	}
+
+	private static String listCursorSignatureDigest(String querySignature) {
+		try {
+			byte[] digest = java.security.MessageDigest.getInstance("SHA-256")
+					.digest(querySignature.getBytes(StandardCharsets.UTF_8));
+			return Base64.getUrlEncoder().withoutPadding().encodeToString(digest);
+		} catch (java.security.NoSuchAlgorithmException exception) {
+			throw new IllegalStateException("SHA-256 is required for list cursor validation.", exception);
+		}
 	}
 
 	private static int decodeListCursor(String cursor, long revision, String querySignature) {
@@ -1429,10 +1439,10 @@ public final class WorkspaceApplicationService {
 				throw ListCursorException.invalid("The list cursor format is invalid.");
 			long cursorRevision = Long.parseLong(parts[1]);
 			int offset = Integer.parseInt(parts[2]);
-			String expectedQueryHash = Integer.toUnsignedString(querySignature.hashCode());
+			String expectedQueryDigest = listCursorSignatureDigest(querySignature);
 			if (cursorRevision != revision)
 				throw ListCursorException.stale("The list cursor belongs to an older workspace revision.");
-			if (!expectedQueryHash.equals(parts[3]))
+			if (!expectedQueryDigest.equals(parts[3]))
 				throw ListCursorException.invalid("The list cursor does not match the current query.");
 			if (offset < 0) throw ListCursorException.invalid("The list cursor offset is invalid.");
 			return offset;
