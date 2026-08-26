@@ -71,6 +71,40 @@
       "if": {
         "properties": {
           "operation": {
+            "const": "get_history"
+          }
+        },
+        "required": ["operation"]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/recoveryPointListPayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "list_publish_batches"
+          }
+        },
+        "required": ["operation"]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/publishBatchListPayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
             "const": "get_workbench"
           }
         },
@@ -292,11 +326,9 @@
         "properties": {
           "operation": {
             "enum": [
-              "get_history",
               "list_operation_approvals",
               "get_version_tracks",
               "get_release_notes",
-              "list_publish_batches",
               "list_installed_plugins",
               "get_element_coverage",
               "get_upstream_tools"
@@ -379,24 +411,162 @@
       "maxProperties": 0,
       "additionalProperties": false
     },
+    "recoveryPointListPayload": {
+      "type": "object",
+      "properties": {
+        "cursor": {"type": "string", "maxLength": 512},
+        "limit": {"type": "integer", "minimum": 1, "maximum": 200},
+        "sort": {
+          "type": "string",
+          "enum": ["createdAt", "-createdAt", "label", "-label", "actor", "-actor"]
+        },
+        "filter": {
+          "type": "object",
+          "properties": {
+            "search": {"type": "string", "maxLength": 200},
+            "actor": {"type": "string", "enum": ["ui", "mcp", "headless", "legacy_ui", "system"]}
+          },
+          "additionalProperties": false
+        },
+        "fields": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "enum": ["id", "label", "actor", "taskId", "createdAt"]}
+        }
+      },
+      "additionalProperties": false
+    },
+    "publishBatchListPayload": {
+      "type": "object",
+      "properties": {
+        "cursor": {"type": "string", "maxLength": 512},
+        "limit": {"type": "integer", "minimum": 1, "maximum": 200},
+        "sort": {
+          "type": "string",
+          "enum": ["createdAt", "-createdAt", "name", "-name", "assetCount", "-assetCount"]
+        },
+        "filter": {
+          "type": "object",
+          "properties": {
+            "search": {"type": "string", "maxLength": 200}
+          },
+          "additionalProperties": false
+        },
+        "fields": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": ["id", "name", "sourceDirectory", "outputPath", "sha256", "assetCount", "createdAt", "assets"]
+          }
+        }
+      },
+      "additionalProperties": false
+    },
     "listPayload": {
       "type": "object",
-      "required": [
-        "page",
-        "pageSize",
-        "search",
-        "types",
-        "states"
+      "anyOf": [
+        {
+          "properties": {
+            "page": {},
+            "pageSize": {},
+            "search": {},
+            "types": {},
+            "states": {}
+          },
+          "required": ["page", "pageSize", "search", "types", "states"]
+        },
+        {
+          "properties": {
+            "limit": {}
+          },
+          "required": ["limit"]
+        }
       ],
       "properties": {
         "page": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "deprecated": true
         },
         "pageSize": {
           "type": "integer",
           "minimum": 1,
+          "maximum": 200,
+          "deprecated": true
+        },
+        "cursor": {
+          "type": "string",
+          "maxLength": 512
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
           "maximum": 200
+        },
+        "sort": {
+          "type": "string",
+          "enum": [
+            "name",
+            "-name",
+            "displayName",
+            "-displayName",
+            "type",
+            "-type",
+            "state",
+            "-state",
+            "updatedAt",
+            "-updatedAt"
+          ]
+        },
+        "filter": {
+          "type": "object",
+          "properties": {
+            "search": {
+              "type": "string",
+              "maxLength": 200
+            },
+            "types": {
+              "type": "array",
+              "items": {
+                "$ref": "urn:ui-core:1.0:common#/$defs/modElementListType"
+              },
+              "uniqueItems": true
+            },
+            "states": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["valid", "invalid", "draft", "unsupported"]
+              },
+              "uniqueItems": true
+            },
+            "firstParty": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        },
+        "fields": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "id",
+              "type",
+              "name",
+              "displayName",
+              "state",
+              "ownership",
+              "updatedAt",
+              "firstParty",
+              "diagnostics"
+            ]
+          }
         },
         "search": {
           "type": "string",
@@ -405,7 +575,7 @@
         "types": {
           "type": "array",
           "items": {
-            "$ref": "urn:ui-core:1.0:common#/$defs/modElementType"
+            "$ref": "urn:ui-core:1.0:common#/$defs/modElementListType"
           },
           "uniqueItems": true
         },
@@ -529,7 +699,36 @@
     "registryListPayload": {
       "type": "object",
       "properties": {
-        "registry": {"type": "string", "enum": ["variables", "tags", "languageKeys"]}
+        "registry": {"type": "string", "enum": ["variables", "tags", "languageKeys"]},
+        "cursor": {"type": "string", "maxLength": 512},
+        "limit": {"type": "integer", "minimum": 1, "maximum": 200},
+        "sort": {"type": "string", "enum": ["name", "-name", "kind", "-kind", "id", "-id"]},
+        "filter": {
+          "type": "object",
+          "properties": {
+            "search": {"type": "string", "maxLength": 200}
+          },
+          "additionalProperties": false
+        },
+        "fields": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "id", "kind", "name", "key", "dataType", "scope", "namespace", "category",
+              "value", "members", "translations", "support"
+            ]
+          }
+        }
+      },
+      "dependentRequired": {
+        "cursor": ["registry"],
+        "limit": ["registry"],
+        "sort": ["registry"],
+        "filter": ["registry"],
+        "fields": ["registry"]
       },
       "additionalProperties": false
     },

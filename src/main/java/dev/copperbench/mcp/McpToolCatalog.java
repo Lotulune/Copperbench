@@ -11,7 +11,6 @@ package dev.copperbench.mcp;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import dev.copperbench.automation.audit.AuditRecord;
 import dev.copperbench.automation.audit.JsonLineAuditLog;
@@ -80,13 +79,22 @@ final class McpToolCatalog {
 								"expectedRevision")),
 				McpToolCatalog::mutationPayload));
 		tools.add(queryTool("list_mod_elements", "List mod elements", Operation.LIST_MOD_ELEMENTS,
-				Map.of("type", "object", "properties", Map.of("search", Map.of("type", "string"))), arguments -> {
+				Map.of("type", "object", "properties", Map.of(
+						"search", Map.of("type", "string"),
+						"cursor", Map.of("type", "string"),
+						"limit", Map.of("type", "integer", "minimum", 1, "maximum", 200),
+						"sort", Map.of("type", "string", "enum", List.of("name", "-name", "displayName",
+								"-displayName", "type", "-type", "state", "-state", "updatedAt", "-updatedAt")),
+						"filter", Map.of("type", "object", "properties", Map.of(
+								"search", Map.of("type", "string"),
+								"types", Map.of("type", "array", "items", Map.of("type", "string")),
+								"states", Map.of("type", "array", "items", Map.of("type", "string")),
+								"firstParty", Map.of("type", "boolean")), "additionalProperties", false),
+						"fields", Map.of("type", "array", "items", Map.of("type", "string"), "uniqueItems", true))), arguments -> {
 					JsonObject payload = GSON.toJsonTree(arguments).getAsJsonObject();
-					payload.addProperty("page", 1);
-					payload.addProperty("pageSize", 200);
-					if (!payload.has("search")) payload.addProperty("search", "");
-					payload.add("types", new JsonArray());
-					payload.add("states", new JsonArray());
+					if (!payload.has("limit")) payload.addProperty("limit", 200);
+					if (!payload.has("sort")) payload.addProperty("sort", "name");
+					if (!payload.has("filter")) payload.add("filter", new JsonObject());
 					return payload;
 				}));
 		tools.add(queryTool("read_mod_element", "Read a mod element", Operation.GET_MOD_ELEMENT_EDITOR,
@@ -107,9 +115,23 @@ final class McpToolCatalog {
 				arguments -> GSON.toJsonTree(arguments).getAsJsonObject()));
 		tools.add(queryTool("list_workspace_registries", "List variables, tags, and language keys with stable IDs",
 				Operation.LIST_WORKSPACE_REGISTRIES,
-				Map.of("type", "object", "properties", Map.of("registry", Map.of("type", "string", "enum",
-						List.of("variables", "tags", "languageKeys"))), "additionalProperties", false),
-				arguments -> GSON.toJsonTree(arguments).getAsJsonObject()));
+				Map.of("type", "object", "properties", Map.of(
+						"registry", Map.of("type", "string", "enum", List.of("variables", "tags", "languageKeys")),
+						"cursor", Map.of("type", "string"),
+						"limit", Map.of("type", "integer", "minimum", 1, "maximum", 200),
+						"sort", Map.of("type", "string", "enum", List.of("name", "-name", "kind", "-kind", "id", "-id")),
+						"filter", Map.of("type", "object", "properties", Map.of(
+								"search", Map.of("type", "string")), "additionalProperties", false),
+						"fields", Map.of("type", "array", "items", Map.of("type", "string"), "uniqueItems", true)),
+						"additionalProperties", false), arguments -> {
+					JsonObject payload = GSON.toJsonTree(arguments).getAsJsonObject();
+					if (payload.has("registry")) {
+						if (!payload.has("limit")) payload.addProperty("limit", 200);
+						if (!payload.has("sort")) payload.addProperty("sort", "name");
+						if (!payload.has("filter")) payload.add("filter", new JsonObject());
+					}
+					return payload;
+				}));
 		tools.add(queryTool("preview_registry_rename", "Preview reference-aware registry rename impact",
 				Operation.PREVIEW_REGISTRY_RENAME,
 				requiredSchema(Map.of("entryId", Map.of("type", "string", "format", "uuid"), "newName",
@@ -223,7 +245,23 @@ final class McpToolCatalog {
 					}
 					}).build());
 		tools.add(queryTool("list_recovery_points", "List local history recovery points", Operation.GET_HISTORY,
-				EMPTY_SCHEMA, arguments -> new JsonObject()));
+				Map.of("type", "object", "properties", Map.of(
+						"cursor", Map.of("type", "string"),
+						"limit", Map.of("type", "integer", "minimum", 1, "maximum", 200),
+						"sort", Map.of("type", "string", "enum", List.of("createdAt", "-createdAt", "label",
+								"-label", "actor", "-actor")),
+						"filter", Map.of("type", "object", "properties", Map.of(
+								"search", Map.of("type", "string"),
+								"actor", Map.of("type", "string", "enum", List.of("ui", "mcp", "headless",
+										"legacy_ui", "system"))), "additionalProperties", false),
+						"fields", Map.of("type", "array", "items", Map.of("type", "string"), "uniqueItems", true))),
+				arguments -> {
+					JsonObject payload = GSON.toJsonTree(arguments).getAsJsonObject();
+					if (!payload.has("limit")) payload.addProperty("limit", 200);
+					if (!payload.has("sort")) payload.addProperty("sort", "-createdAt");
+					if (!payload.has("filter")) payload.add("filter", new JsonObject());
+					return payload;
+				}));
 		tools.add(queryTool("get_version_tracks", "Read the four-track Fabric/NeoForge support matrix",
 				Operation.GET_VERSION_TRACKS, EMPTY_SCHEMA, arguments -> new JsonObject()));
 		tools.add(queryTool("get_release_notes", "Read Stage 8 release notes, support matrix, and G7 status",
@@ -262,7 +300,21 @@ final class McpToolCatalog {
 						List.of("sourceWorkspacePath", "outputName", "userApproved", "expectedRevision")),
 				McpToolCatalog::mutationPayload));
 		tools.add(queryTool("list_publish_batches", "List asset publish batches", Operation.LIST_PUBLISH_BATCHES,
-				EMPTY_SCHEMA, arguments -> new JsonObject()));
+				Map.of("type", "object", "properties", Map.of(
+						"cursor", Map.of("type", "string"),
+						"limit", Map.of("type", "integer", "minimum", 1, "maximum", 200),
+						"sort", Map.of("type", "string", "enum", List.of("createdAt", "-createdAt", "name",
+								"-name", "assetCount", "-assetCount")),
+						"filter", Map.of("type", "object", "properties", Map.of(
+								"search", Map.of("type", "string")), "additionalProperties", false),
+						"fields", Map.of("type", "array", "items", Map.of("type", "string"), "uniqueItems", true))),
+				arguments -> {
+					JsonObject payload = GSON.toJsonTree(arguments).getAsJsonObject();
+					if (!payload.has("limit")) payload.addProperty("limit", 200);
+					if (!payload.has("sort")) payload.addProperty("sort", "-createdAt");
+					if (!payload.has("filter")) payload.add("filter", new JsonObject());
+					return payload;
+				}));
 		tools.add(commandTool("create_publish_batch", "Create a hashed resource-pack publish batch",
 				Operation.CREATE_PUBLISH_BATCH,
 				requiredSchema(Map.of("name", Map.of("type", "string"), "sourceDirectory", Map.of("type", "string"),

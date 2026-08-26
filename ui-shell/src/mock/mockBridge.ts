@@ -2015,6 +2015,7 @@ export class MockCoreBridge implements CoreBridge {
           page: 1,
           pageSize: 50,
           total: this.state.elements.length,
+          nextCursor: null,
           availableTypes: ['block', 'item', 'recipe', 'procedure', 'function', 'loottable', 'achievement']
         };
         break;

@@ -4,8 +4,8 @@ This record closes only `FR-S9-03`: Function, Loot Table, and Advancement
 generation plus Gradle compilation across the eight workspace generators.
 
 - Workflow: `Nightly product gates`
-- Run: <https://github.com/Lotulune/Copperbench/actions/runs/32970451959>
-- Source commit: `d622676f67a70255ac9fa32a8e9048705569d05c`
+- Run: <https://github.com/Lotulune/Copperbench/actions/runs/32975827948>
+- Source commit: `815bb5636df4d345e1a5de56599886168071da08`
 - Matrix result: 8/8 generator jobs passed
 - Product regression result: passed, including the 500-node Procedure scale
   smoke and full Playwright suite.

@@ -56,9 +56,11 @@ import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.Marker;
 import org.apache.logging.log4j.MarkerManager;
 
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.time.Clock;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -197,6 +199,9 @@ public final class WorkspaceApplicationService {
 				default -> queryFailure(query, state.revision(), diagnostic("UNSUPPORTED_OPERATION",
 						"diagnostic.unsupported_operation", "The requested operation is not supported.", null, null));
 			};
+		} catch (ListCursorException exception) {
+			return queryFailure(query, state.revision(), diagnostic(exception.code(),
+					"diagnostic.list_cursor_invalid", exception.getMessage(), null, null));
 		} catch (RuntimeException exception) {
 			return queryFailure(query, state.revision(), invalidPayload(exception.getMessage()));
 		}
@@ -890,11 +895,43 @@ public final class WorkspaceApplicationService {
 
 	private QueryResult listPublishBatches(Query query, WorkspaceState state) {
 		try {
-			JsonObject projection = new JsonObject();
+			List<AssetPublishBatchService.PublishBatch> batches = publishBatches(state.id()).list();
+			JsonObject payload = query.payload();
+			if (!cursorListRequested(payload)) {
+				JsonObject projection = new JsonObject();
+				JsonArray items = new JsonArray();
+				batches.forEach(batch -> items.add(batch.toJson()));
+				projection.add("items", items);
+				return querySuccess(query, state.revision(), projection);
+			}
+
+			int limit = listLimit(payload);
+			String sort = optionalString(payload, "sort");
+			if (sort == null || sort.isBlank()) sort = "-createdAt";
+			JsonObject filter = payload.has("filter") && payload.get("filter").isJsonObject()
+					? payload.getAsJsonObject("filter") : null;
+			String search = filter != null && filter.has("search")
+					? requiredString(filter, "search").toLowerCase(Locale.ROOT) : "";
+			Set<String> fields = listFields(payload, Set.of("id", "name", "sourceDirectory", "outputPath", "sha256",
+					"assetCount", "createdAt", "assets"), "publish batch");
+			Comparator<AssetPublishBatchService.PublishBatch> comparator = publishBatchComparator(sort);
+			List<AssetPublishBatchService.PublishBatch> filtered = batches.stream()
+					.filter(batch -> search.isBlank() || batch.name().toLowerCase(Locale.ROOT).contains(search)
+							|| batch.sourceDirectory().toLowerCase(Locale.ROOT).contains(search)
+							|| batch.outputPath().toLowerCase(Locale.ROOT).contains(search))
+					.sorted(comparator).toList();
+			String dataset = batches.stream().map(batch -> batch.id().toString()).sorted()
+					.reduce((left, right) -> left + "," + right).orElse("");
+			String signature = "publish-batches|" + dataset + "|" + search + "|" + sort + "|"
+					+ listFieldSignature(fields) + "|" + limit;
+			int from = listCursorOffset(payload, state.revision(), signature, filtered.size());
+			int to = Math.min(from + limit, filtered.size());
 			JsonArray items = new JsonArray();
-			publishBatches(state.id()).list().forEach(batch -> items.add(batch.toJson()));
-			projection.add("items", items);
+			filtered.subList(from, to).forEach(batch -> items.add(projectListFields(batch.toJson(), fields)));
+			JsonObject projection = cursorListProjection(items, filtered.size(), limit, state.revision(), to, signature);
 			return querySuccess(query, state.revision(), projection);
+		} catch (ListCursorException exception) {
+			throw exception;
 		} catch (RuntimeException exception) {
 			return queryFailure(query, state.revision(), failureDiagnostic(query, "PUBLISH_BATCH_FAILED",
 					"diagnostic.publish_batch_failed", "Publish batches could not be listed.", null, null, exception));
@@ -1012,12 +1049,46 @@ public final class WorkspaceApplicationService {
 			return queryFailure(query, state.revision(), historyUnavailable());
 		try {
 			List<RecoveryPoint> points = history.listRecoveryPoints();
-			JsonObject projection = new JsonObject();
-			projection.addProperty("currentRevision", state.revision());
+			JsonObject payload = query.payload();
+			if (!cursorListRequested(payload)) {
+				JsonObject projection = new JsonObject();
+				projection.addProperty("currentRevision", state.revision());
+				JsonArray items = new JsonArray();
+				points.forEach(point -> items.add(recoveryPoint(point)));
+				projection.add("recoveryPoints", items);
+				return querySuccess(query, state.revision(), projection);
+			}
+
+			int limit = listLimit(payload);
+			String sort = optionalString(payload, "sort");
+			if (sort == null || sort.isBlank()) sort = "-createdAt";
+			JsonObject filter = payload.has("filter") && payload.get("filter").isJsonObject()
+					? payload.getAsJsonObject("filter") : null;
+			String search = filter != null && filter.has("search")
+					? requiredString(filter, "search").toLowerCase(Locale.ROOT) : "";
+			String actor = filter != null && filter.has("actor") ? requiredString(filter, "actor") : "";
+			Set<String> fields = listFields(payload, Set.of("id", "label", "actor", "taskId", "createdAt"),
+					"recovery point");
+			Comparator<RecoveryPoint> comparator = recoveryPointComparator(sort);
+			List<RecoveryPoint> filtered = points.stream()
+					.filter(point -> search.isBlank() || point.label().toLowerCase(Locale.ROOT).contains(search)
+							|| point.taskId().toLowerCase(Locale.ROOT).contains(search))
+					.filter(point -> actor.isBlank() || wire(point.actor()).equals(actor))
+					.sorted(comparator).toList();
+			String dataset = points.stream().map(RecoveryPoint::id).sorted()
+					.reduce((left, right) -> left + "," + right).orElse("");
+			String signature = "history|" + dataset + "|" + search + "|" + actor + "|" + sort + "|"
+					+ listFieldSignature(fields) + "|" + limit;
+			int from = listCursorOffset(payload, state.revision(), signature, filtered.size());
+			int to = Math.min(from + limit, filtered.size());
 			JsonArray items = new JsonArray();
-			points.forEach(point -> items.add(recoveryPoint(point)));
-			projection.add("recoveryPoints", items);
+			filtered.subList(from, to).forEach(point -> items.add(projectListFields(recoveryPoint(point), fields)));
+			JsonObject projection = cursorListProjection(items, filtered.size(), limit, state.revision(), to, signature);
+			projection.addProperty("currentRevision", state.revision());
+			projection.add("recoveryPoints", projection.remove("items"));
 			return querySuccess(query, state.revision(), projection);
+		} catch (ListCursorException exception) {
+			throw exception;
 		} catch (LocalHistoryException exception) {
 			return queryFailure(query, state.revision(), failureDiagnostic(query, "HISTORY_READ_FAILED",
 					"diagnostic.history_read_failed", "Local history could not be read.", null, null, exception));
@@ -1161,30 +1232,225 @@ public final class WorkspaceApplicationService {
 	}
 
 	private JsonObject elementList(WorkspaceState state, JsonObject payload) {
-		int page = requiredInt(payload, "page");
-		int pageSize = requiredInt(payload, "pageSize");
-		String search = requiredString(payload, "search").toLowerCase(Locale.ROOT);
-		Set<String> types = stringSet(payload.getAsJsonArray("types"));
-		Set<String> states = stringSet(payload.getAsJsonArray("states"));
+		int page = payload.has("page") ? requiredInt(payload, "page") : 1;
+		int pageSize = payload.has("limit") ? requiredInt(payload, "limit") : requiredInt(payload, "pageSize");
+		if (page < 1) throw new IllegalArgumentException("page must be at least 1");
+		if (pageSize < 1 || pageSize > 200) throw new IllegalArgumentException("page size must be between 1 and 200");
+		JsonObject filter = payload.has("filter") && payload.get("filter").isJsonObject()
+				? payload.getAsJsonObject("filter") : null;
+		String search = listSearch(payload, filter);
+		Set<String> types = listSet(payload, filter, "types");
+		Set<String> states = listSet(payload, filter, "states");
+		Boolean firstParty = listBoolean(filter, "firstParty");
+		String sort = optionalString(payload, "sort");
+		if (sort == null || sort.isBlank()) sort = "name";
+		Set<String> fields = listFields(payload);
+		String cursor = optionalString(payload, "cursor");
+		Comparator<Element> comparator = elementListComparator(sort);
 		List<Element> filtered = state.elements().stream()
 				.filter(element -> search.isBlank() || element.name().contains(search)
 						|| element.displayName().toLowerCase(Locale.ROOT).contains(search))
 				.filter(element -> types.isEmpty() || types.contains(element.type()))
 				.filter(element -> states.isEmpty() || states.contains(element.state()))
-				.sorted(Comparator.comparing(Element::name)).toList();
-		int from = Math.min((page - 1) * pageSize, filtered.size());
+				.filter(element -> firstParty == null || firstParty == ElementCoverageCatalog.isFirstParty(element.type()))
+				.sorted(comparator).toList();
+		String querySignature = elementListQuerySignature(search, types, states, firstParty, sort, fields, pageSize);
+		int from = cursor == null || cursor.isBlank()
+				? Math.min((page - 1) * pageSize, filtered.size())
+				: Math.min(decodeListCursor(cursor, state.revision(), querySignature), filtered.size());
 		int to = Math.min(from + pageSize, filtered.size());
 		JsonObject result = new JsonObject();
 		JsonArray items = new JsonArray();
-		filtered.subList(from, to).forEach(element -> items.add(elementSummary(element)));
+		filtered.subList(from, to).forEach(element -> items.add(elementListItem(element, fields)));
 		result.add("items", items);
-		result.addProperty("page", page);
+		result.addProperty("page", from / pageSize + 1);
 		result.addProperty("pageSize", pageSize);
 		result.addProperty("total", filtered.size());
+		if (to < filtered.size())
+			result.addProperty("nextCursor", encodeListCursor(state.revision(), to, querySignature));
+		else
+			result.add("nextCursor", JsonNull.INSTANCE);
 		JsonArray availableTypes = new JsonArray();
 		ElementCoverageCatalog.FIRST_PARTY_SLICE.forEach(availableTypes::add);
 		result.add("availableTypes", availableTypes);
 		return result;
+	}
+
+	private static String listSearch(JsonObject payload, JsonObject filter) {
+		String value = filter != null && filter.has("search") ? requiredString(filter, "search")
+				: optionalString(payload, "search");
+		return value == null ? "" : value.toLowerCase(Locale.ROOT);
+	}
+
+	private static Set<String> listSet(JsonObject payload, JsonObject filter, String property) {
+		JsonArray values = filter != null && filter.has(property) ? filter.getAsJsonArray(property)
+				: payload.has(property) ? payload.getAsJsonArray(property) : new JsonArray();
+		return stringSet(values);
+	}
+
+	private static Boolean listBoolean(JsonObject filter, String property) {
+		if (filter == null || !filter.has(property) || !filter.get(property).isJsonPrimitive()) return null;
+		return filter.get(property).getAsBoolean();
+	}
+
+	private static boolean cursorListRequested(JsonObject payload) {
+		return payload != null && (payload.has("cursor") || payload.has("limit") || payload.has("sort")
+				|| payload.has("filter") || payload.has("fields"));
+	}
+
+	private static int listLimit(JsonObject payload) {
+		int limit = payload.has("limit") ? requiredInt(payload, "limit") : 200;
+		if (limit < 1 || limit > 200) throw new IllegalArgumentException("list limit must be between 1 and 200");
+		return limit;
+	}
+
+	private static Set<String> listFields(JsonObject payload, Set<String> supported, String listName) {
+		if (!payload.has("fields")) return Set.of();
+		Set<String> fields = stringSet(payload.getAsJsonArray("fields"));
+		if (fields.isEmpty() || !supported.containsAll(fields))
+			throw new IllegalArgumentException("fields contains an unsupported " + listName + " field");
+		return fields;
+	}
+
+	private static String listFieldSignature(Set<String> fields) {
+		return fields.stream().sorted().reduce((left, right) -> left + "," + right).orElse("*");
+	}
+
+	private static JsonObject projectListFields(JsonObject value, Set<String> fields) {
+		if (fields.isEmpty()) return value;
+		JsonObject projected = new JsonObject();
+		fields.stream().sorted().forEach(field -> projected.add(field, value.get(field)));
+		return projected;
+	}
+
+	private static int listCursorOffset(JsonObject payload, long revision, String signature, int size) {
+		String cursor = optionalString(payload, "cursor");
+		return cursor == null || cursor.isBlank() ? 0 : Math.min(decodeListCursor(cursor, revision, signature), size);
+	}
+
+	private static JsonObject cursorListProjection(JsonArray items, int total, int limit, long revision, int to,
+			String signature) {
+		JsonObject projection = new JsonObject();
+		projection.add("items", items);
+		projection.addProperty("pageSize", limit);
+		projection.addProperty("total", total);
+		if (to < total) projection.addProperty("nextCursor", encodeListCursor(revision, to, signature));
+		else projection.add("nextCursor", JsonNull.INSTANCE);
+		return projection;
+	}
+
+	private static Comparator<JsonObject> registryEntryComparator(String registry, String sort) {
+		boolean descending = sort.startsWith("-");
+		String field = descending ? sort.substring(1) : sort;
+		Comparator<JsonObject> comparator = switch (field) {
+			case "name" -> Comparator.comparing(entry -> registryName(registry, entry), String.CASE_INSENSITIVE_ORDER);
+			case "kind" -> Comparator.comparing(entry -> string(entry, "kind", ""));
+			case "id" -> Comparator.comparing(entry -> string(entry, "id", ""));
+			default -> throw new IllegalArgumentException("Unsupported registry entry sort: " + sort);
+		};
+		if (descending) comparator = comparator.reversed();
+		return comparator.thenComparing(entry -> string(entry, "id", ""));
+	}
+
+	private static Comparator<RecoveryPoint> recoveryPointComparator(String sort) {
+		boolean descending = sort.startsWith("-");
+		String field = descending ? sort.substring(1) : sort;
+		Comparator<RecoveryPoint> comparator = switch (field) {
+			case "createdAt" -> Comparator.comparing(RecoveryPoint::createdAt);
+			case "label" -> Comparator.comparing(RecoveryPoint::label, String.CASE_INSENSITIVE_ORDER);
+			case "actor" -> Comparator.comparing(point -> wire(point.actor()));
+			default -> throw new IllegalArgumentException("Unsupported recovery point sort: " + sort);
+		};
+		if (descending) comparator = comparator.reversed();
+		return comparator.thenComparing(RecoveryPoint::id);
+	}
+
+	private static Comparator<AssetPublishBatchService.PublishBatch> publishBatchComparator(String sort) {
+		boolean descending = sort.startsWith("-");
+		String field = descending ? sort.substring(1) : sort;
+		Comparator<AssetPublishBatchService.PublishBatch> comparator = switch (field) {
+			case "createdAt" -> Comparator.comparing(AssetPublishBatchService.PublishBatch::createdAt);
+			case "name" -> Comparator.comparing(AssetPublishBatchService.PublishBatch::name,
+					String.CASE_INSENSITIVE_ORDER);
+			case "assetCount" -> Comparator.comparingInt(AssetPublishBatchService.PublishBatch::assetCount);
+			default -> throw new IllegalArgumentException("Unsupported publish batch sort: " + sort);
+		};
+		if (descending) comparator = comparator.reversed();
+		return comparator.thenComparing(batch -> batch.id().toString());
+	}
+
+	private static Set<String> listFields(JsonObject payload) {
+		return listFields(payload, Set.of("id", "type", "name", "displayName", "state", "ownership",
+				"updatedAt", "firstParty", "diagnostics"), "mod element summary");
+	}
+
+	private static Comparator<Element> elementListComparator(String sort) {
+		boolean descending = sort.startsWith("-");
+		String field = descending ? sort.substring(1) : sort;
+		Comparator<Element> primary = switch (field) {
+			case "name" -> Comparator.comparing(Element::name);
+			case "displayName" -> Comparator.comparing(Element::displayName, String.CASE_INSENSITIVE_ORDER);
+			case "type" -> Comparator.comparing(Element::type);
+			case "state" -> Comparator.comparing(Element::state);
+			case "updatedAt" -> Comparator.comparing(Element::updatedAt);
+			default -> throw new IllegalArgumentException("Unsupported list_mod_elements sort: " + sort);
+		};
+		if (descending) primary = primary.reversed();
+		return primary.thenComparing(element -> element.id().toString());
+	}
+
+	private JsonObject elementListItem(Element element, Set<String> fields) {
+		JsonObject summary = elementSummary(element);
+		if (fields.isEmpty()) return summary;
+		JsonObject projected = new JsonObject();
+		fields.stream().sorted().forEach(field -> projected.add(field, summary.get(field)));
+		return projected;
+	}
+
+	private static String elementListQuerySignature(String search, Set<String> types, Set<String> states,
+			Boolean firstParty, String sort, Set<String> fields, int pageSize) {
+		String typeKey = types.stream().sorted().reduce((left, right) -> left + "," + right).orElse("");
+		String stateKey = states.stream().sorted().reduce((left, right) -> left + "," + right).orElse("");
+		String fieldKey = fields.stream().sorted().reduce((left, right) -> left + "," + right).orElse("*");
+		return search + "|" + typeKey + "|" + stateKey + "|" + firstParty + "|" + sort + "|" + fieldKey
+				+ "|" + pageSize;
+	}
+
+	private static String encodeListCursor(long revision, int offset, String querySignature) {
+		String raw = "v1:" + revision + ":" + offset + ":" + listCursorSignatureDigest(querySignature);
+		return Base64.getUrlEncoder().withoutPadding().encodeToString(raw.getBytes(StandardCharsets.UTF_8));
+	}
+
+	private static String listCursorSignatureDigest(String querySignature) {
+		try {
+			byte[] digest = java.security.MessageDigest.getInstance("SHA-256")
+					.digest(querySignature.getBytes(StandardCharsets.UTF_8));
+			return Base64.getUrlEncoder().withoutPadding().encodeToString(digest);
+		} catch (java.security.NoSuchAlgorithmException exception) {
+			throw new IllegalStateException("SHA-256 is required for list cursor validation.", exception);
+		}
+	}
+
+	private static int decodeListCursor(String cursor, long revision, String querySignature) {
+		try {
+			String raw = new String(Base64.getUrlDecoder().decode(cursor), StandardCharsets.UTF_8);
+			String[] parts = raw.split(":", 4);
+			if (parts.length != 4 || !"v1".equals(parts[0]))
+				throw ListCursorException.invalid("The list cursor format is invalid.");
+			long cursorRevision = Long.parseLong(parts[1]);
+			int offset = Integer.parseInt(parts[2]);
+			String expectedQueryDigest = listCursorSignatureDigest(querySignature);
+			if (cursorRevision != revision)
+				throw ListCursorException.stale("The list cursor belongs to an older workspace revision.");
+			if (!expectedQueryDigest.equals(parts[3]))
+				throw ListCursorException.invalid("The list cursor does not match the current query.");
+			if (offset < 0) throw ListCursorException.invalid("The list cursor offset is invalid.");
+			return offset;
+		} catch (ListCursorException exception) {
+			throw exception;
+		} catch (IllegalArgumentException exception) {
+			throw ListCursorException.invalid("The list cursor could not be decoded.");
+		}
 	}
 
 	private QueryResult editor(Query query, WorkspaceState state, RequestContext context) {
@@ -1423,14 +1689,49 @@ public final class WorkspaceApplicationService {
 	}
 
 	private QueryResult listRegistries(Query query, WorkspaceState state) {
-		String selected = query.payload().has("registry") && query.payload().get("registry").isJsonPrimitive()
-				? query.payload().get("registry").getAsString() : "";
+		JsonObject payload = query.payload();
+		String selected = payload.has("registry") && payload.get("registry").isJsonPrimitive()
+				? payload.get("registry").getAsString() : "";
 		if (!selected.isBlank() && !REGISTRY_NAMES.contains(selected))
 			return queryFailure(query, state.revision(), invalidPayload("Unsupported registry: " + selected));
 		JsonObject data = new JsonObject();
 		JsonObject registries = state.registries();
-		if (selected.isBlank()) data.add("registries", registries);
-		else data.add(selected, registries.getAsJsonArray(selected));
+		if (!cursorListRequested(payload)) {
+			if (selected.isBlank()) data.add("registries", registries);
+			else data.add(selected, registries.getAsJsonArray(selected));
+			data.add("languageStats", languageStats(registries.getAsJsonArray("languageKeys")));
+			data.addProperty("stableIds", true);
+			data.addProperty("referenceAwareRename", true);
+			return querySuccess(query, state.revision(), data);
+		}
+
+		if (selected.isBlank())
+			return queryFailure(query, state.revision(), invalidPayload("registry is required for cursor pagination"));
+		int limit = listLimit(payload);
+		String sort = optionalString(payload, "sort");
+		if (sort == null || sort.isBlank()) sort = "name";
+		JsonObject filter = payload.has("filter") && payload.get("filter").isJsonObject()
+				? payload.getAsJsonObject("filter") : null;
+		String search = filter != null && filter.has("search")
+				? requiredString(filter, "search").toLowerCase(Locale.ROOT) : "";
+		Set<String> fields = listFields(payload, Set.of("id", "kind", "name", "key", "dataType", "scope",
+				"namespace", "category", "value", "members", "translations", "support"), "registry entry");
+		List<JsonObject> entries = new ArrayList<>();
+		registries.getAsJsonArray(selected).forEach(raw -> entries.add(raw.getAsJsonObject().deepCopy()));
+		Comparator<JsonObject> comparator = registryEntryComparator(selected, sort);
+		List<JsonObject> filtered = entries.stream()
+				.filter(entry -> search.isBlank() || registryName(selected, entry).toLowerCase(Locale.ROOT).contains(search))
+				.sorted(comparator).toList();
+		String dataset = entries.stream().map(entry -> string(entry, "id", "")).sorted()
+				.reduce((left, right) -> left + "," + right).orElse("");
+		String signature = "registry|" + selected + "|" + dataset + "|" + search + "|" + sort + "|"
+				+ listFieldSignature(fields) + "|" + limit;
+		int from = listCursorOffset(payload, state.revision(), signature, filtered.size());
+		int to = Math.min(from + limit, filtered.size());
+		JsonArray items = new JsonArray();
+		filtered.subList(from, to).forEach(entry -> items.add(projectListFields(entry, fields)));
+		data = cursorListProjection(items, filtered.size(), limit, state.revision(), to, signature);
+		data.addProperty("registry", selected);
 		data.add("languageStats", languageStats(registries.getAsJsonArray("languageKeys")));
 		data.addProperty("stableIds", true);
 		data.addProperty("referenceAwareRename", true);
@@ -2207,5 +2508,26 @@ public final class WorkspaceApplicationService {
 	}
 
 	private record WorkspaceCreationMutation(WorkspaceCreationService.CreationResult creation, long sequence) {
+	}
+
+	private static final class ListCursorException extends IllegalArgumentException {
+		private final String code;
+
+		private ListCursorException(String code, String message) {
+			super(message);
+			this.code = code;
+		}
+
+		private static ListCursorException invalid(String message) {
+			return new ListCursorException("LIST_CURSOR_INVALID", message);
+		}
+
+		private static ListCursorException stale(String message) {
+			return new ListCursorException("LIST_CURSOR_STALE", message);
+		}
+
+		private String code() {
+			return code;
+		}
 	}
 }
