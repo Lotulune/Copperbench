@@ -38,7 +38,7 @@ class ProcedureIrScaleGateTest {
 		for (int index = 0; index < NODE_COUNT; index++) {
 			UUID id = UUID.nameUUIDFromBytes(("stage9-procedure-node-" + index).getBytes(StandardCharsets.UTF_8));
 			JsonObject fields = new JsonObject();
-			fields.addProperty("value", index);
+			if (index > 0) fields.addProperty("value", index - 1);
 			nodes.add(new Node(id, index == 0 ? "event_trigger" : "math_number",
 				index == 0 ? "statement" : "value", index * 12, 40, fields, Map.of(), null, false, ""));
 		}
