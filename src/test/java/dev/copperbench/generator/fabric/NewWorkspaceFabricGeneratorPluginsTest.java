@@ -175,6 +175,17 @@ class NewWorkspaceFabricGeneratorPluginsTest {
 				.contains("gradle-8.8-bin.zip"));
 	}
 
+	@Test void workspaceGeneratorsAllowReliableDistributionDownloads() throws Exception {
+		try (var paths = Files.walk(Path.of("plugins"))) {
+			List<Path> wrappers = paths.filter(path -> path.getFileName().toString().equals("gradle-wrapper.properties"))
+					.filter(path -> path.toString().contains("workspacebase")).toList();
+			assertFalse(wrappers.isEmpty(), "No workspace generator Gradle wrappers were found");
+			for (Path wrapper : wrappers) {
+				assertTrue(Files.readString(wrapper).contains("networkTimeout=60000"), wrapper.toString());
+			}
+		}
+	}
+
 	@Test void fabricAlwaysGeneratesMixinAndEventInfrastructure() throws Exception {
 		for (Path yaml : List.of(
 				Path.of("plugins/generator-1.20.1/fabric-1.20.1/generator.yaml"),

@@ -43,6 +43,7 @@ import java.util.regex.Pattern;
 public final class ProcedureIrCodec {
 
 	private static final Gson GSON = new Gson();
+	private static final int MAX_BLOCKLY_XML_DEPTH = 2_048;
 	private static final String EMPTY_XML = "<xml xmlns=\"https://developers.google.com/blockly/xml\">"
 			+ "<block type=\"event_trigger\" deletable=\"false\" x=\"40\" y=\"40\">"
 			+ "<field name=\"trigger\">no_ext_trigger</field></block></xml>";
@@ -447,6 +448,7 @@ public final class ProcedureIrCodec {
 		factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
 		factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
 		factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+		factory.setAttribute("jdk.xml.maxElementDepth", Integer.toString(MAX_BLOCKLY_XML_DEPTH));
 		factory.setExpandEntityReferences(false);
 		return factory.newDocumentBuilder().parse(new InputSource(new StringReader(xml)));
 	}
