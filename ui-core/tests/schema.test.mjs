@@ -24,6 +24,111 @@ test('command and query result operation sets match their request envelopes', as
   assert.deepEqual(queryResult.properties.operation.enum, query.properties.operation.enum);
 });
 
+test('list_mod_elements accepts the unified cursor query contract and rejects unknown fields', async () => {
+  const { ajv } = await createValidator();
+  const validate = ajv.getSchema('urn:ui-core:1.0:query');
+  assert.ok(validate, 'query schema should be registered');
+  const query = {
+    messageType: 'query',
+    schemaVersion: '1.0',
+    requestId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa31',
+    workspaceId: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+    operation: 'list_mod_elements',
+    payload: {
+      cursor: 'opaque-cursor',
+      limit: 137,
+      sort: '-updatedAt',
+      filter: {
+        search: 'ore',
+        types: ['livingentity'],
+        states: ['valid'],
+        firstParty: true,
+      },
+      fields: ['id', 'name', 'updatedAt'],
+    },
+  };
+  assert.equal(validate(query), true, JSON.stringify(validate.errors));
+  query.payload.unexpected = true;
+  assert.equal(validate(query), false);
+});
+
+test('workspace registry, recovery point, and publish batch lists accept cursor contracts', async () => {
+  const { ajv } = await createValidator();
+  const validate = ajv.getSchema('urn:ui-core:1.0:query');
+  const base = {
+    messageType: 'query',
+    schemaVersion: '1.0',
+    workspaceId: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+  };
+
+  const registry = {
+    ...base,
+    requestId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa32',
+    operation: 'list_workspace_registries',
+    payload: {
+      registry: 'variables', limit: 50, sort: '-name', filter: { search: 'score' }, fields: ['id', 'name'],
+    },
+  };
+  assert.equal(validate(registry), true, JSON.stringify(validate.errors));
+
+  const recovery = {
+    ...base,
+    requestId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa33',
+    operation: 'get_history',
+    payload: {
+      limit: 50, sort: '-createdAt', filter: { actor: 'mcp' }, fields: ['id', 'label', 'createdAt'],
+    },
+  };
+  assert.equal(validate(recovery), true, JSON.stringify(validate.errors));
+
+  const batches = {
+    ...base,
+    requestId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa34',
+    operation: 'list_publish_batches',
+    payload: {
+      limit: 50, sort: '-assetCount', filter: { search: 'release' }, fields: ['id', 'name', 'assetCount'],
+    },
+  };
+  assert.equal(validate(batches), true, JSON.stringify(validate.errors));
+
+  registry.payload = { limit: 50 };
+  assert.equal(validate(registry), false, 'registry cursor mode must identify one registry');
+});
+
+test('list_mod_elements result accepts imported read-only upstream element types', async () => {
+  const { ajv } = await createValidator();
+  const validate = ajv.getSchema('urn:ui-core:1.0:query-result');
+  const result = {
+    messageType: 'query_result',
+    schemaVersion: '1.0',
+    requestId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa35',
+    workspaceId: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+    operation: 'list_mod_elements',
+    status: 'succeeded',
+    revision: 9,
+    data: {
+      items: [{
+        id: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
+        type: 'livingentity',
+        name: 'copper_golem',
+        displayName: 'Copper Golem',
+        state: 'valid',
+        ownership: 'generated',
+        updatedAt: '2026-08-26T12:00:00Z',
+        firstParty: false,
+        diagnostics: { error: 0, warning: 0, info: 0 },
+      }],
+      page: 1,
+      pageSize: 50,
+      total: 1,
+      nextCursor: null,
+      availableTypes: ['block', 'item', 'recipe', 'procedure', 'function', 'loottable', 'achievement'],
+    },
+    diagnostics: [],
+  };
+  assert.equal(validate(result), true, JSON.stringify(validate.errors));
+});
+
 test('canonical events include the workspace lifecycle emitted by Java Core', async () => {
   const event = await schema('event');
   assert.ok(event.properties.event.enum.includes('workspace_created'));

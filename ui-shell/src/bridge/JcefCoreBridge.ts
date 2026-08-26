@@ -214,14 +214,13 @@ export class JcefCoreBridge implements CoreBridge {
   }): Promise<void> {
     const pageSize = 200;
     const items: ModElementSummary[] = [];
-    let page = 1;
-    let total = 0;
+    let cursor: string | undefined;
     do {
       const query: Query = {
         ...base,
         requestId: safeRandomUUID(),
         operation: 'list_mod_elements',
-        payload: { search: '', types: [], states: [], page, pageSize }
+        payload: { search: '', types: [], states: [], limit: pageSize, ...(cursor ? { cursor } : {}) }
       };
       const result = await this.invoke<QueryResult<ModElementListProjection>>(query);
       if (result.status !== 'succeeded' || !result.data) {
@@ -231,9 +230,8 @@ export class JcefCoreBridge implements CoreBridge {
       }
       if (this.isStaleRevision(result.revision)) return;
       items.push(...result.data.items);
-      total = result.data.total;
-      page += 1;
-    } while (items.length < total);
+      cursor = result.data.nextCursor ?? undefined;
+    } while (cursor);
     this.state.elements = items;
     this.synchronizeElementProjection();
     this.notify();

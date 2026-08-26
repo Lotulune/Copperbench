@@ -47,6 +47,45 @@
       },
       "additionalProperties": false
     },
+    "modElementListItem": {
+      "type": "object",
+      "minProperties": 1,
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "type": {
+          "$ref": "#/$defs/modElementListType"
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "state": {
+          "type": "string",
+          "enum": ["valid", "invalid", "draft", "unsupported"]
+        },
+        "ownership": {
+          "type": "string",
+          "enum": ["generated", "manual", "mixed"]
+        },
+        "updatedAt": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "firstParty": {
+          "type": "boolean"
+        },
+        "diagnostics": {
+          "$ref": "#/$defs/diagnosticCounts"
+        }
+      },
+      "additionalProperties": false
+    },
     "actionHint": {
       "type": "object",
       "required": [
@@ -617,6 +656,12 @@
         "achievement"
       ]
     },
+    "modElementListType": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80,
+      "pattern": "^[A-Za-z0-9_-]+$"
+    },
     "modElementSummary": {
       "type": "object",
       "required": [
@@ -634,7 +679,7 @@
           "$ref": "#/$defs/uuid"
         },
         "type": {
-          "$ref": "#/$defs/modElementType"
+          "$ref": "#/$defs/modElementListType"
         },
         "name": {
           "type": "string",
@@ -664,6 +709,9 @@
         },
         "updatedAt": {
           "$ref": "#/$defs/timestamp"
+        },
+        "firstParty": {
+          "type": "boolean"
         },
         "diagnostics": {
           "$ref": "#/$defs/diagnosticCounts"
@@ -836,7 +884,7 @@
         "items": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/modElementSummary"
+            "$ref": "#/$defs/modElementListItem"
           }
         },
         "page": {
@@ -851,6 +899,10 @@
         "total": {
           "type": "integer",
           "minimum": 0
+        },
+        "nextCursor": {
+          "type": ["string", "null"],
+          "maxLength": 512
         },
         "availableTypes": {
           "type": "array",

@@ -15,6 +15,7 @@ export const zh: Record<string, string> = {
   'diagnostic.asset_query_failed': '无法读取工作区资源索引。',
   'diagnostic.asset_workspace_root_unavailable': '当前工作区根目录不可用，无法建立资源索引。',
   'diagnostic.command_payload_invalid': '命令参数无效，请检查输入后重试。',
+  'diagnostic.list_cursor_invalid': '列表分页游标无效或已过期，请重新读取列表后继续。',
   'diagnostic.element_type_outside_first_party_slice': '该元素类型尚未纳入第一方编辑范围，只能以只读方式查看。',
   'diagnostic.history_diff_failed': '无法比较所选的两个恢复点。',
   'diagnostic.history_read_failed': '无法读取本地历史记录。',

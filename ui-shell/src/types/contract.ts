@@ -142,6 +142,7 @@ export interface ModElementListProjection {
   page: number;
   pageSize: number;
   total: number;
+  nextCursor?: string | null;
   availableTypes: ModElementType[];
 }
 
@@ -229,6 +230,11 @@ export interface WorkspaceRegistriesProjection {
   variables?: RegistryEntry[];
   tags?: RegistryEntry[];
   languageKeys?: RegistryEntry[];
+  registry?: 'variables' | 'tags' | 'languageKeys';
+  items?: Array<Partial<RegistryEntry>>;
+  total?: number;
+  pageSize?: number;
+  nextCursor?: string | null;
   languageStats: {
     keyCount: number;
     languageCount: number;
@@ -322,6 +328,9 @@ export interface RecoveryPoint {
 export interface HistoryProjection {
   currentRevision: Revision;
   recoveryPoints: RecoveryPoint[];
+  total?: number;
+  pageSize?: number;
+  nextCursor?: string | null;
 }
 
 export interface WorkspaceChange {
@@ -830,6 +839,9 @@ export interface PublishBatch {
 
 export interface PublishBatchListProjection {
   items: PublishBatch[];
+  total?: number;
+  pageSize?: number;
+  nextCursor?: string | null;
 }
 
 export interface ClientLoadPreparation {
