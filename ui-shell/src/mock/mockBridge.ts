@@ -823,7 +823,7 @@ export class MockCoreBridge implements CoreBridge {
       case 'update_mod_element': {
         const payload = command.payload as unknown as UpdateModElementPayload;
         // Check for simulated validation error
-        const hardnessChange = payload.changes.find((c) => c.path === '/fields/hardness');
+        const hardnessChange = payload.changes.find((c) => c.path === '/hardness' || c.path === '/fields/hardness');
         if (
           hardnessChange &&
           typeof hardnessChange.value === 'number' &&
@@ -851,7 +851,7 @@ export class MockCoreBridge implements CoreBridge {
                   fallback: 'Hardness must be between 0 and 100.',
                   args: { min: 0, max: 100 }
                 },
-                path: '/fields/hardness',
+                path: hardnessChange.path,
                 elementId: payload.elementId,
                 recoverable: true,
                 actions: [
@@ -859,7 +859,7 @@ export class MockCoreBridge implements CoreBridge {
                     id: 'open_invalid_field',
                     label: { key: 'action.open_field', fallback: 'Locate Invalid Field' },
                     kind: 'open_field',
-                    target: '/fields/hardness'
+                    target: hardnessChange.path
                   }
                 ]
               }
@@ -888,7 +888,17 @@ export class MockCoreBridge implements CoreBridge {
           const editor = this.state.elementEditors[payload.elementId];
           const allFields = editor.sections.flatMap((s) => s.fields);
           for (const change of payload.changes || []) {
-            const field = allFields.find((f) => f.path === change.path);
+            const field = allFields.find(
+              (f) =>
+                f.path === change.path ||
+                f.path === `/fields${change.path}` ||
+                change.path === `/fields${f.path}` ||
+                f.path.replace('/fields', '') === change.path ||
+                (f.path === '/title' && (change.path === '/fields/achievementName' || change.path === '/fields/title')) ||
+                (f.path === '/description' && (change.path === '/fields/achievementDescription' || change.path === '/fields/description')) ||
+                (f.path === '/icon' && (change.path === '/fields/achievementIcon' || change.path === '/fields/icon')) ||
+                (f.path === '/frame' && (change.path === '/fields/achievementType' || change.path === '/fields/frame'))
+            );
             if (field) {
               field.value = change.value;
             }
@@ -2398,7 +2408,7 @@ export class MockCoreBridge implements CoreBridge {
                   title: { key: 'editor.general', fallback: 'Function Attributes' },
                   fields: [
                     {
-                      path: '/fields/name',
+                      path: '/name',
                       label: { key: 'field.name', fallback: 'Identifier Name' },
                       control: 'text',
                       required: true,
@@ -2408,7 +2418,7 @@ export class MockCoreBridge implements CoreBridge {
                       diagnostics: []
                     },
                     {
-                      path: '/fields/displayName',
+                      path: '/displayName',
                       label: { key: 'field.displayName', fallback: 'Display Name' },
                       control: 'text',
                       required: true,
@@ -2418,7 +2428,7 @@ export class MockCoreBridge implements CoreBridge {
                       diagnostics: []
                     },
                     {
-                      path: '/fields/namespace',
+                      path: '/namespace',
                       label: { key: 'field.name', fallback: 'Namespace' },
                       control: 'text',
                       required: true,
@@ -2428,7 +2438,7 @@ export class MockCoreBridge implements CoreBridge {
                       diagnostics: []
                     },
                     {
-                      path: '/fields/code',
+                      path: '/code',
                       label: { key: 'field.name', fallback: 'Commands' },
                       control: 'textarea',
                       required: false,
@@ -2438,7 +2448,7 @@ export class MockCoreBridge implements CoreBridge {
                       diagnostics: []
                     },
                     {
-                      path: '/fields/tags',
+                      path: '/tags',
                       label: { key: 'field.name', fallback: 'Tags' },
                       control: 'text',
                       required: false,
@@ -2461,7 +2471,7 @@ export class MockCoreBridge implements CoreBridge {
                   title: { key: 'editor.general', fallback: 'Loot Table Attributes' },
                   fields: [
                     {
-                      path: '/fields/name',
+                      path: '/name',
                       label: { key: 'field.name', fallback: 'Identifier Name' },
                       control: 'text',
                       required: true,
@@ -2471,7 +2481,7 @@ export class MockCoreBridge implements CoreBridge {
                       diagnostics: []
                     },
                     {
-                      path: '/fields/displayName',
+                      path: '/displayName',
                       label: { key: 'field.displayName', fallback: 'Display Name' },
                       control: 'text',
                       required: true,
@@ -2481,7 +2491,7 @@ export class MockCoreBridge implements CoreBridge {
                       diagnostics: []
                     },
                     {
-                      path: '/fields/type',
+                      path: '/type',
                       label: { key: 'field.material', fallback: 'Type' },
                       control: 'select',
                       required: true,
@@ -2496,9 +2506,9 @@ export class MockCoreBridge implements CoreBridge {
                       diagnostics: []
                     },
                     {
-                      path: '/fields/pools',
+                      path: '/pools',
                       label: { key: 'field.name', fallback: 'Pools' },
-                      control: 'text',
+                      control: 'json',
                       required: false,
                       readOnly: false,
                       value: [
@@ -2506,10 +2516,15 @@ export class MockCoreBridge implements CoreBridge {
                           id: 'pool_1',
                           name: '主掉落池',
                           minrolls: 1,
+                          minRolls: 1,
                           maxrolls: 1,
+                          maxRolls: 1,
                           hasbonusrolls: false,
+                          hasBonusRolls: false,
                           minbonusrolls: 0,
+                          minBonusRolls: 0,
                           maxbonusrolls: 0,
+                          maxBonusRolls: 0,
                           conditions: [{ type: 'minecraft:survives_explosion' }],
                           entries: [
                             {
@@ -2545,7 +2560,7 @@ export class MockCoreBridge implements CoreBridge {
                   title: { key: 'editor.general', fallback: 'Advancement Settings' },
                   fields: [
                     {
-                      path: '/fields/name',
+                      path: '/name',
                       label: { key: 'field.name', fallback: 'Identifier Name' },
                       control: 'text',
                       required: true,
@@ -2555,7 +2570,7 @@ export class MockCoreBridge implements CoreBridge {
                       diagnostics: []
                     },
                     {
-                      path: '/fields/displayName',
+                      path: '/displayName',
                       label: { key: 'field.displayName', fallback: 'Display Name' },
                       control: 'text',
                       required: true,
@@ -2565,7 +2580,7 @@ export class MockCoreBridge implements CoreBridge {
                       diagnostics: []
                     },
                     {
-                      path: '/fields/achievementName',
+                      path: '/title',
                       label: { key: 'field.displayName', fallback: 'Title' },
                       control: 'text',
                       required: true,
@@ -2575,9 +2590,9 @@ export class MockCoreBridge implements CoreBridge {
                       diagnostics: []
                     },
                     {
-                      path: '/fields/achievementDescription',
+                      path: '/description',
                       label: { key: 'field.displayName', fallback: 'Description' },
-                      control: 'text',
+                      control: 'textarea',
                       required: false,
                       readOnly: false,
                       value: '探索未知领域并制作你的第一个铜制工具。',
@@ -2585,9 +2600,9 @@ export class MockCoreBridge implements CoreBridge {
                       diagnostics: []
                     },
                     {
-                      path: '/fields/achievementIcon',
+                      path: '/icon',
                       label: { key: 'field.displayName', fallback: 'Icon' },
-                      control: 'text',
+                      control: 'resource_reference',
                       required: true,
                       readOnly: false,
                       value: 'minecraft:diamond',
@@ -2595,7 +2610,7 @@ export class MockCoreBridge implements CoreBridge {
                       diagnostics: []
                     },
                     {
-                      path: '/fields/achievementType',
+                      path: '/frame',
                       label: { key: 'field.material', fallback: 'Frame' },
                       control: 'select',
                       required: true,
@@ -2609,9 +2624,9 @@ export class MockCoreBridge implements CoreBridge {
                       diagnostics: []
                     },
                     {
-                      path: '/fields/parent',
+                      path: '/parent',
                       label: { key: 'field.displayName', fallback: 'Parent' },
-                      control: 'text',
+                      control: 'procedure_reference',
                       required: false,
                       readOnly: false,
                       value: 'root',
@@ -2619,7 +2634,7 @@ export class MockCoreBridge implements CoreBridge {
                       diagnostics: []
                     },
                     {
-                      path: '/fields/showPopup',
+                      path: '/showPopup',
                       label: { key: 'field.flammable', fallback: 'Show Popup' },
                       control: 'toggle',
                       required: false,
@@ -2629,7 +2644,7 @@ export class MockCoreBridge implements CoreBridge {
                       diagnostics: []
                     },
                     {
-                      path: '/fields/announceToChat',
+                      path: '/announceToChat',
                       label: { key: 'field.flammable', fallback: 'Announce Chat' },
                       control: 'toggle',
                       required: false,
@@ -2639,7 +2654,7 @@ export class MockCoreBridge implements CoreBridge {
                       diagnostics: []
                     },
                     {
-                      path: '/fields/hideIfNotCompleted',
+                      path: '/hideIfNotCompleted',
                       label: { key: 'field.flammable', fallback: 'Hide' },
                       control: 'toggle',
                       required: false,
@@ -2649,7 +2664,17 @@ export class MockCoreBridge implements CoreBridge {
                       diagnostics: []
                     },
                     {
-                      path: '/fields/rewardXP',
+                      path: '/disableDisplay',
+                      label: { key: 'field.flammable', fallback: 'Disable Display' },
+                      control: 'toggle',
+                      required: false,
+                      readOnly: false,
+                      value: false,
+                      options: [],
+                      diagnostics: []
+                    },
+                    {
+                      path: '/rewardXP',
                       label: { key: 'field.hardness', fallback: 'Reward XP' },
                       control: 'number',
                       required: false,
@@ -2660,9 +2685,39 @@ export class MockCoreBridge implements CoreBridge {
                       diagnostics: []
                     },
                     {
-                      path: '/fields/criteria',
+                      path: '/rewardLoot',
+                      label: { key: 'field.name', fallback: 'Reward Loot' },
+                      control: 'json',
+                      required: false,
+                      readOnly: false,
+                      value: [],
+                      options: [],
+                      diagnostics: []
+                    },
+                    {
+                      path: '/rewardRecipes',
+                      label: { key: 'field.name', fallback: 'Reward Recipes' },
+                      control: 'json',
+                      required: false,
+                      readOnly: false,
+                      value: [],
+                      options: [],
+                      diagnostics: []
+                    },
+                    {
+                      path: '/rewardFunction',
+                      label: { key: 'field.name', fallback: 'Reward Function' },
+                      control: 'procedure_reference',
+                      required: false,
+                      readOnly: false,
+                      value: '',
+                      options: [],
+                      diagnostics: []
+                    },
+                    {
+                      path: '/criteria',
                       label: { key: 'field.name', fallback: 'Criteria' },
-                      control: 'text',
+                      control: 'json',
                       required: false,
                       readOnly: false,
                       value: [

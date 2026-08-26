@@ -4,12 +4,11 @@ This record closes only `FR-S9-03`: Function, Loot Table, and Advancement
 generation plus Gradle compilation across the eight workspace generators.
 
 - Workflow: `Nightly product gates`
-- Run: <https://github.com/Lotulune/Copperbench/actions/runs/32956081891>
-- Source commit: `6fa8e942e636c7e4cb7c3a003cc5d6b8b85f4b92`
+- Run: <https://github.com/Lotulune/Copperbench/actions/runs/32970451959>
+- Source commit: `d622676f67a70255ac9fa32a8e9048705569d05c`
 - Matrix result: 8/8 generator jobs passed
-- Product regression result: the separate product-regression job had one
-  pre-existing JCEF bridge E2E timing failure; this does not invalidate the
-  independently successful generator matrix.
+- Product regression result: passed, including the 500-node Procedure scale
+  smoke and full Playwright suite.
 
 Each matrix job created and persisted a Function, Loot Table, and Advancement,
 generated the workspace, ran its generator-specific Gradle build, and required
