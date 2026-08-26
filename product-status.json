@@ -3,7 +3,7 @@
   "schemaVersion": "1.0",
   "snapshot": {
     "date": "2026-08-26",
-    "lastVerifiedCommit": "fe4b0f308e7aa9f5747dbb8faa11a1a7c8879387",
+    "lastVerifiedCommit": "c629315b18e11692956dd651e9f31fa6c60ccfaa",
     "policy": "Only code, automated checks, and evidence tied to a commit can promote a gate."
   },
   "product": {
