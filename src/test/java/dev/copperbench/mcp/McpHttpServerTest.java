@@ -119,6 +119,8 @@ class McpHttpServerTest {
 			assertTrue(tools.body().contains("preview_datagen_output"));
 			assertTrue(tools.body().contains("publish_datagen_output"));
 			assertTrue(tools.body().contains("get_task"));
+			assertTrue(tools.body().contains("cancel_task"));
+			assertTrue(tools.body().contains("restore_recovery_point"));
 			assertTrue(tools.body().contains("list_assets"));
 			assertTrue(tools.body().contains("inspect_asset_references"));
 
@@ -165,6 +167,14 @@ class McpHttpServerTest {
 			assertEquals("committed", recoveryPoint.get("status").getAsString());
 			assertEquals("create_recovery_point", recoveryPoint.get("operation").getAsString());
 			assertTrue(recoveryPoint.has("recoveryPointId"));
+			String recoveryPointId = recoveryPoint.get("recoveryPointId").getAsString();
+
+			HttpResponse<String> protectedRestoreResult = post(endpoint,
+					"{\"jsonrpc\":\"2.0\",\"id\":41,\"method\":\"tools/call\",\"params\":{\"name\":\"restore_recovery_point\",\"arguments\":{\"recoveryPointId\":\"" + recoveryPointId + "\",\"expectedRevision\":0}}}",
+					token.value(), sessionId, "http://localhost:5173");
+			JsonObject protectedRestore = toolResult(protectedRestoreResult);
+			assertEquals("rejected", protectedRestore.get("status").getAsString());
+			assertTrue(protectedRestore.getAsJsonArray("diagnostics").toString().contains("USER_APPROVAL_REQUIRED"));
 
 			HttpResponse<String> createdResult = post(endpoint,
 					"{\"jsonrpc\":\"2.0\",\"id\":5,\"method\":\"tools/call\",\"params\":{\"name\":\"create_mod_element\",\"arguments\":{\"elementType\":\"item\",\"name\":\"trail_marker\",\"initialValues\":{\"displayName\":\"Trail Marker\",\"fields\":{\"maxStackSize\":16}},\"expectedRevision\":0}}}",
@@ -182,10 +192,15 @@ class McpHttpServerTest {
 			String taskId = generated.getAsJsonObject("task").get("id").getAsString();
 
 			HttpResponse<String> taskResult = post(endpoint,
-					"{\"jsonrpc\":\"2.0\",\"id\":7,\"method\":\"tools/call\",\"params\":{\"name\":\"get_task\",\"arguments\":{\"taskId\":\"" + taskId + "\"}}}",
+					"{\"jsonrpc\":\"2.0\",\"id\":7,\"method\":\"tools/call\",\"params\":{\"name\":\"get_task\",\"arguments\":{\"taskId\":\"" + taskId + "\",\"afterLogSequence\":0}}}",
 					token.value(), sessionId, "http://localhost:5173");
 			assertEquals("running", toolResult(taskResult).getAsJsonObject("data")
 					.getAsJsonObject("task").get("state").getAsString());
+
+			HttpResponse<String> cancelledResult = post(endpoint,
+					"{\"jsonrpc\":\"2.0\",\"id\":8,\"method\":\"tools/call\",\"params\":{\"name\":\"cancel_task\",\"arguments\":{\"taskId\":\"" + taskId + "\",\"expectedRevision\":1}}}",
+					token.value(), sessionId, "http://localhost:5173");
+			assertEquals("cancelled", toolResult(cancelledResult).get("status").getAsString());
 			assertTrue(Files.readString(auditPath).contains("get_workspace"));
 			assertTrue(Files.readString(auditPath).contains("create_recovery_point"));
 			assertTrue(Files.readString(auditPath).contains("create_mod_element"));
@@ -286,7 +301,8 @@ class McpHttpServerTest {
 				String.format("%012d", sequence.getAndIncrement()));
 		WorkspaceApplicationService service = new WorkspaceApplicationService(store,
 				new InMemoryWorkspaceTaskGateway(CLOCK, ids),
-				dev.copperbench.core.application.WorkspaceMutationGateway.noOp(), history, null, CLOCK, ids);
+				dev.copperbench.core.application.WorkspaceMutationGateway.noOp(), history,
+				ignored -> store.read(WORKSPACE_ID).orElseThrow().copy(), CLOCK, ids);
 		return new McpWorkspaceEntryAdapter(service, PermissionProfile.WORKSPACE);
 	}
 }

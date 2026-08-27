@@ -18,6 +18,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -87,12 +88,30 @@ class ProcedureIrScaleGateTest {
 		assertTrue(validationMillis < 5_000, "Procedure validation exceeded the nightly smoke threshold");
 		assertTrue(jsonRoundTripMillis < 5_000, "Procedure JSON round-trip exceeded the nightly smoke threshold");
 		assertTrue(xmlRoundTripMillis < 10_000, "Procedure Blockly XML round-trip exceeded the nightly smoke threshold");
+		List<Long> jsonSamples = new ArrayList<>(20);
+		List<Long> xmlSamples = new ArrayList<>(20);
+		for (int sample = 0; sample < 20; sample++) {
+			long jsonSampleStart = System.nanoTime();
+			codec.fromJson(codec.toJson(original));
+			jsonSamples.add(elapsedMillis(jsonSampleStart));
+			long xmlSampleStart = System.nanoTime();
+			codec.fromBlocklyXml(codec.toBlocklyXml(original), ELEMENT_ID);
+			xmlSamples.add(elapsedMillis(xmlSampleStart));
+		}
+		Collections.sort(jsonSamples);
+		Collections.sort(xmlSamples);
+		long jsonP95Millis = jsonSamples.get((int) Math.ceil(jsonSamples.size() * 0.95) - 1);
+		long xmlP95Millis = xmlSamples.get((int) Math.ceil(xmlSamples.size() * 0.95) - 1);
+		assertTrue(jsonP95Millis < 300, "Procedure JSON round-trip P95 exceeded the Stage 9 target");
+		assertTrue(xmlP95Millis < 300, "Procedure XML round-trip P95 exceeded the Stage 9 target");
 
 		JsonObject evidence = new JsonObject();
 		evidence.addProperty("nodes", NODE_COUNT);
 		evidence.addProperty("validationMillis", validationMillis);
 		evidence.addProperty("jsonRoundTripMillis", jsonRoundTripMillis);
 		evidence.addProperty("xmlRoundTripMillis", xmlRoundTripMillis);
+		evidence.addProperty("jsonP95Millis", jsonP95Millis);
+		evidence.addProperty("xmlP95Millis", xmlP95Millis);
 		evidence.addProperty("scope", "Core IR/data-integrity baseline; does not close fixed-hardware UI P95 or JCEF gate");
 		evidence.addProperty("generatedAt", Instant.now().toString());
 		Path output = Path.of("build", "nightly-results", "stage9-procedure-scale.json");

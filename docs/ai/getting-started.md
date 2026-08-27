@@ -20,8 +20,13 @@
 4. 对写操作先调用对应 preview 工具，检查诊断和引用影响。
 5. 需要把多个内容写操作作为一个原子单元时，调用 `plan_workspace_changes`，再用 `preview_workspace_plan` 复核语义差异、权限和 revision；取得用户确认后调用 `apply_workspace_plan`。
 6. 单项写操作仍以最新 `expectedRevision` 提交。
-7. 运行校验或构建；长任务使用 `get_task` 查询状态和日志。
+7. 运行校验或构建；长任务使用 `get_task` 查询状态和日志，并把最近收到的日志序号作为 `afterLogSequence` 传回以增量恢复。
 8. 修订冲突时重新读取并重新生成计划，不要自动重试覆盖。
+
+JCEF 客户端会接收任务的 `task_progressed`、`task_log_appended`、
+`task_completed` 和失败诊断事件；页面重载时会重放 Core 保留的任务事件，
+如果发现序列缺口则自动刷新工作区和任务投影。MCP/Headless 客户端继续使用
+`get_task` 轮询作为兼容路径，直到任务事件订阅协议单独冻结。
 
 无界工作区列表统一使用 `cursor` / `limit` / `sort` / `filter` / `fields` / `nextCursor`，单页最多 200 项。当前覆盖 `list_mod_elements`、`list_recovery_points`、`list_publish_batches`，以及指定 `registry` 后的 `list_workspace_registries`；空 payload 的桌面 UI 旧投影仍保留。Cursor 绑定数据集和查询条件，workspace revision 变化返回 `LIST_CURSOR_STALE`，数据集或查询条件变化返回 `LIST_CURSOR_INVALID`。大型工作区集成必须遍历到 `nextCursor=null`。
 
@@ -38,4 +43,4 @@ pwsh -NoProfile -File .\scripts\verify-mcp-conformance.ps1 `
 
 脚本要求 JDK 25、Node.js 和 npm。结果写入指定目录，CI 同样保存该报告。工具 Schema 的基线测试位于 `ui-core/tests/schema.test.mjs`。
 
-FR-AI-02 已由 PR #14、合并后 main CI 和 `main@515c212c` 的 Nightly `32998281437` 正式关闭；`list_new_workspace_generators`、`list_installed_plugins` 等产品有界目录不进入这一分页门禁，`get_workspace_references` 属于图查询并由独立的 2,000/10,000 引用性能门禁约束。FR-AI-03 的 Workspace Plan 正在收口，稳定 TypeScript/Python SDK 和任务事件订阅仍未交付。完整能力见 [下一阶段 PRD](../../PRD-NEXT.md)，客户端仍应把当前协议视为 `0.x` 预览。
+FR-AI-02 已由 PR #14、合并后 main CI 和 `main@515c212c` 的 Nightly `32998281437` 正式关闭；`list_new_workspace_generators`、`list_installed_plugins` 等产品有界目录不进入这一分页门禁，`get_workspace_references` 属于图查询并由独立的 2,000/10,000 引用性能门禁约束。FR-AI-03 的 Workspace Plan 已由 PR #15 合入 `main@1f31b2b6`，protected PR CI `33044562447` 与 merged-main CI `33044983727` 已通过，仍待该提交的 Nightly 后才能提升为 `passed`。`sdk/typescript`、`sdk/python` 和 10 项 `sdk/evals` 已交付，本地真实 HTTP MCP live eval **10/10** 通过；FR-AI-05 仍待受保护远端 CI/merged-main 证据，FR-AI-04 仍缺完整 MCP 事件订阅协议与真实 JCEF 长任务重连验收。完整能力见 [下一阶段 PRD](../../PRD-NEXT.md)，客户端仍应把当前协议视为 `0.x` 预览。

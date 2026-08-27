@@ -305,7 +305,10 @@ export class JcefCoreBridge implements CoreBridge {
       case 'get_task': {
         const projection = result.data as TaskProjection;
         this.state.tasks[projection.task.id] = projection.task;
-        this.state.taskLogs[projection.task.id] = [...projection.logs];
+        const existing = this.state.taskLogs[projection.task.id] ?? [];
+        const bySequence = new Map(existing.map((entry) => [entry.sequence, entry]));
+        projection.logs.forEach((entry) => bySequence.set(entry.sequence, entry));
+        this.state.taskLogs[projection.task.id] = [...bySequence.values()].sort((left, right) => left.sequence - right.sequence);
         break;
       }
       case 'get_history': {
@@ -331,6 +334,13 @@ export class JcefCoreBridge implements CoreBridge {
       event.sequence <= this.lastEventSequence
     ) {
       return;
+    }
+    if (this.lastEventSequence > 0 && event.sequence > this.lastEventSequence + 1) {
+      // A page reconnect or a bounded native buffer may skip events; refresh
+      // projections before applying the first event after the gap.
+      void this.refreshInitialProjection().catch((error) => {
+        console.warn('[Copperbench Bridge] Event gap reconciliation failed:', error);
+      });
     }
     this.lastEventSequence = event.sequence;
 
@@ -442,13 +452,17 @@ export class JcefCoreBridge implements CoreBridge {
       this.taskPollers.delete(taskId);
       if (this.disposed) return;
       try {
+        const afterLogSequence = (this.state.taskLogs[taskId] ?? []).reduce(
+          (maximum, entry) => Math.max(maximum, entry.sequence),
+          0
+        );
         const result = await this.sendQuery<TaskProjection>({
           messageType: 'query',
           schemaVersion: '1.0',
           requestId: safeRandomUUID(),
           workspaceId: this.host.workspaceId,
           operation: 'get_task',
-          payload: { taskId }
+          payload: { taskId, afterLogSequence }
         });
         const task = (result.data as TaskProjection | null)?.task;
         if (!this.disposed && task?.state === 'running') {

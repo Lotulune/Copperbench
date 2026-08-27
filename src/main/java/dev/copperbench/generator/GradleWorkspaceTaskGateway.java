@@ -36,10 +36,12 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.function.Function;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -56,6 +58,7 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 	private final GradleProcessRunner processes;
 	private final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
 	private final Map<UUID, Map<UUID, Job>> jobs = new ConcurrentHashMap<>();
+	private final CopyOnWriteArrayList<Consumer<WorkspaceTaskGateway.TaskEvent>> taskEventListeners = new CopyOnWriteArrayList<>();
 
 	public GradleWorkspaceTaskGateway(RevisionedWorkspaceStore store, Function<UUID, Path> workspaceRoots,
 			GradleWorkspaceBackend backend, Clock clock, Supplier<UUID> ids, GradleProcessRunner processes) {
@@ -73,7 +76,7 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 		if (!isTask(operation))
 			throw new IllegalArgumentException(backend.displayName() + " task is not implemented yet: " + operation);
 		UUID taskId = ids.get();
-		Job job = new Job(task(taskId, operation));
+		Job job = new Job(workspaceId, task(taskId, operation));
 		jobs.computeIfAbsent(workspaceId, ignored -> new ConcurrentHashMap<>()).put(taskId, job);
 		job.log("info", "Starting " + backend.displayName() + " " + taskKind(operation)
 				+ " from revision " + state.revision());
@@ -98,6 +101,7 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 				job.log("info", "Using isolated task directory "
 						+ root.relativize(executionRoot).toString().replace('\\', '/'));
 			}
+			job.progress(0.15, "task." + taskKind(operation) + ".validating", "Validating workspace");
 			var validation = backend.validate(state);
 			if (!validation.isEmpty()) {
 				job.failValidation(validation);
@@ -108,10 +112,12 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 				job.succeed("task.validate.completed", backend.displayName() + " validation completed");
 				return;
 			}
+			job.progress(0.35, "task." + taskKind(operation) + ".generating", "Generating workspace sources");
 			var result = backend.generate(executionRoot, state);
 			job.log("info", backend.displayName() + " generation completed: " + result.generatedPaths().size()
 					+ " files");
 			if (operation == Operation.BUILD_WORKSPACE || operation == Operation.EXPORT_WORKSPACE) {
+				job.progress(0.55, "task." + taskKind(operation) + ".building", "Running Gradle build");
 				var process = processes.run(executionRoot, backend.gradleArguments(operation), Duration.ofMinutes(15),
 						line -> job.log("info", line));
 				if (process.exitCode() != 0)
@@ -124,11 +130,13 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 							+ executionRoot.relativize(exported).toString().replace('\\', '/'));
 				}
 			} else if (operation == Operation.RUN_CLIENT) {
+				job.progress(0.55, "task.run_client.starting", "Starting Minecraft client");
 				var process = processes.run(executionRoot, backend.gradleArguments(operation), Duration.ofMinutes(20),
 						line -> job.log("info", line));
 				if (process.exitCode() != 0 || !process.readinessMarkerSeen())
 					throw new IllegalStateException(backend.displayName() + " client did not reach the readiness marker");
 			} else if (operation == Operation.RUN_SERVER) {
+				job.progress(0.55, "task.run_server.starting", "Starting dedicated server");
 				if (!payload.has("eulaAccepted") || !payload.get("eulaAccepted").getAsBoolean())
 					throw new IllegalArgumentException("Dedicated server EULA confirmation is required");
 				Path eula = executionRoot.resolve("run/eula.txt");
@@ -139,6 +147,7 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 				if (process.exitCode() != 0 || !process.readinessMarkerSeen())
 					throw new IllegalStateException(backend.displayName() + " server did not reach the readiness marker");
 			} else if (operation == Operation.RUN_DATAGEN || operation == Operation.RUN_GAMETEST) {
+				job.progress(0.55, "task." + taskKind(operation) + ".running", "Running managed task");
 				var process = processes.run(executionRoot, backend.gradleArguments(operation), Duration.ofMinutes(20),
 						line -> job.log("info", line));
 				if (process.exitCode() != 0)
@@ -208,6 +217,21 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 		if (job == null) return Optional.empty();
 		job.cancel();
 		return Optional.of(job.task());
+	}
+
+	@Override public AutoCloseable subscribeTaskEvents(Consumer<WorkspaceTaskGateway.TaskEvent> listener) {
+		taskEventListeners.add(listener);
+		return () -> taskEventListeners.remove(listener);
+	}
+
+	private void publishTaskEvent(WorkspaceTaskGateway.TaskEvent event) {
+		for (Consumer<WorkspaceTaskGateway.TaskEvent> listener : taskEventListeners) {
+			try {
+				listener.accept(event);
+			} catch (RuntimeException exception) {
+				LOG.debug("Task event listener disconnected", exception);
+			}
+		}
 	}
 
 	@Override public List<JsonObject> logs(UUID workspaceId, UUID taskId) {
@@ -506,6 +530,7 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 	}
 
 	private final class Job {
+		private final UUID workspaceId;
 		private final JsonObject summary;
 		private final List<JsonObject> logEntries = new ArrayList<>();
 		private final List<JsonObject> diagnosticEntries = new ArrayList<>();
@@ -515,7 +540,8 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 		private PublishSession publishSession;
 		private boolean published;
 
-		private Job(JsonObject summary) {
+		private Job(UUID workspaceId, JsonObject summary) {
+			this.workspaceId = workspaceId;
 			this.summary = summary;
 		}
 
@@ -549,31 +575,72 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 			return diagnosticEntries.stream().map(JsonObject::deepCopy).toList();
 		}
 
-		private synchronized void log(String level, String text) {
-			JsonObject entry = new JsonObject();
-			entry.addProperty("sequence", logEntries.size() + 1L);
-			entry.addProperty("timestamp", clock.instant().toString());
-			entry.addProperty("level", level);
-			entry.addProperty("text", text);
-			logEntries.add(entry);
+		private void log(String level, String text) {
+			JsonObject entry;
+			WorkspaceTaskGateway.TaskEvent event;
+			synchronized (this) {
+				entry = new JsonObject();
+				entry.addProperty("sequence", logEntries.size() + 1L);
+				entry.addProperty("timestamp", clock.instant().toString());
+				entry.addProperty("level", level);
+				entry.addProperty("text", text);
+				logEntries.add(entry);
+				event = new WorkspaceTaskGateway.TaskEvent(workspaceId, id(), "task_log_appended", summary,
+						List.of(entry), List.of());
+			}
+			publishTaskEvent(event);
 		}
 
-		private synchronized void succeed(String key, String stage) {
-			if (!isRunning()) return;
-			JsonObject args = new JsonObject();
-			args.addProperty("backend", backend.displayName());
-			summary.addProperty("state", "succeeded");
-			summary.addProperty("cancellable", false);
-			summary.addProperty("progress", 1);
-			summary.add("stage", localized(key, stage, args));
-			summary.addProperty("completedAt", clock.instant().toString());
+		private void progress(double progress, String key, String stage) {
+			WorkspaceTaskGateway.TaskEvent event = null;
+			synchronized (this) {
+				if (!isRunning()) return;
+				JsonObject args = new JsonObject();
+				args.addProperty("backend", backend.displayName());
+				summary.addProperty("progress", Math.max(0, Math.min(1, progress)));
+				summary.add("stage", localized(key, stage, args));
+				event = new WorkspaceTaskGateway.TaskEvent(workspaceId, id(), "task_progressed", summary,
+						List.of(), List.of());
+			}
+			publishTaskEvent(event);
 		}
 
-		private synchronized void fail(String code, String failureId, String taskKind) {
-			if (!isRunning()) return;
+		private void succeed(String key, String stage) {
+			WorkspaceTaskGateway.TaskEvent event;
+			synchronized (this) {
+				if (!isRunning()) return;
+				JsonObject args = new JsonObject();
+				args.addProperty("backend", backend.displayName());
+				summary.addProperty("state", "succeeded");
+				summary.addProperty("cancellable", false);
+				summary.addProperty("progress", 1);
+				summary.add("stage", localized(key, stage, args));
+				summary.addProperty("completedAt", clock.instant().toString());
+				event = new WorkspaceTaskGateway.TaskEvent(workspaceId, id(), "task_completed", summary,
+						List.of(), List.of());
+			}
+			publishTaskEvent(event);
+		}
+
+		private void fail(String code, String failureId, String taskKind) {
+			synchronized (this) {
+				if (!isRunning()) return;
+			}
 			log("error", "Task failed. Error ID: " + failureId);
-			addFailureDiagnostic(code, failureId, taskKind);
-			completeFailure();
+			WorkspaceTaskGateway.TaskEvent diagnosticsEvent;
+			WorkspaceTaskGateway.TaskEvent completedEvent;
+			synchronized (this) {
+				if (!isRunning()) return;
+				addFailureDiagnostic(code, failureId, taskKind);
+				completeFailure();
+				List<JsonObject> diagnostics = diagnostics();
+				diagnosticsEvent = new WorkspaceTaskGateway.TaskEvent(workspaceId, id(), "diagnostics_changed", summary,
+						List.of(), diagnostics);
+				completedEvent = new WorkspaceTaskGateway.TaskEvent(workspaceId, id(), "task_completed", summary,
+						List.of(), diagnostics);
+			}
+			publishTaskEvent(diagnosticsEvent);
+			publishTaskEvent(completedEvent);
 		}
 
 		private void addFailureDiagnostic(String code, String failureId, String taskKind) {
@@ -600,13 +667,26 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 			diagnosticEntries.add(diagnostic);
 		}
 
-		private synchronized void failValidation(List<GradleWorkspaceBackend.ValidationIssue> issues) {
-			if (!isRunning()) return;
+		private void failValidation(List<GradleWorkspaceBackend.ValidationIssue> issues) {
 			for (var issue : issues) {
 				log("error", issue.message());
-				addDiagnostic(issue.code(), issue.message(), issue.path(), issue.elementId());
+				synchronized (this) {
+					if (isRunning()) addDiagnostic(issue.code(), issue.message(), issue.path(), issue.elementId());
+				}
 			}
-			completeFailure();
+			WorkspaceTaskGateway.TaskEvent diagnosticsEvent;
+			WorkspaceTaskGateway.TaskEvent completedEvent;
+			synchronized (this) {
+				if (!isRunning()) return;
+				completeFailure();
+				List<JsonObject> diagnostics = diagnostics();
+				diagnosticsEvent = new WorkspaceTaskGateway.TaskEvent(workspaceId, id(), "diagnostics_changed", summary,
+						List.of(), diagnostics);
+				completedEvent = new WorkspaceTaskGateway.TaskEvent(workspaceId, id(), "task_completed", summary,
+						List.of(), diagnostics);
+			}
+			publishTaskEvent(diagnosticsEvent);
+			publishTaskEvent(completedEvent);
 		}
 
 		private void addDiagnostic(String code, String message, String path, UUID elementId) {
@@ -633,15 +713,21 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 			summary.add("diagnostics", counts(diagnosticEntries.size()));
 		}
 
-		private synchronized void cancel() {
-			if (!isRunning()) return;
-			if (future != null) future.cancel(true);
-			summary.addProperty("state", "cancelled");
-			summary.addProperty("cancellable", false);
-			summary.addProperty("progress", 1);
-			summary.add("stage", localized("task.cancelled", "Task cancelled"));
-			summary.addProperty("completedAt", clock.instant().toString());
+		private void cancel() {
+			WorkspaceTaskGateway.TaskEvent event;
+			synchronized (this) {
+				if (!isRunning()) return;
+				if (future != null) future.cancel(true);
+				summary.addProperty("state", "cancelled");
+				summary.addProperty("cancellable", false);
+				summary.addProperty("progress", 1);
+				summary.add("stage", localized("task.cancelled", "Task cancelled"));
+				summary.addProperty("completedAt", clock.instant().toString());
+				event = new WorkspaceTaskGateway.TaskEvent(workspaceId, id(), "task_completed", summary,
+						List.of(), List.of());
+			}
 			log("warning", backend.displayName() + " task cancelled");
+			publishTaskEvent(event);
 		}
 
 		private boolean isRunning() {

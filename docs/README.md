@@ -57,6 +57,8 @@
 - [开发测试版使用说明](./user/README.md)
 - [故障排查](./user/troubleshooting.md)
 - [MCP 接入快速开始](./ai/getting-started.md)
+- [AI SDK 与评测](../sdk/README.md)
+- [AI 协议规则](../sdk/protocol.md)
 
 ## 调研依据
 

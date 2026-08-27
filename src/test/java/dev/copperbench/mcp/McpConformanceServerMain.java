@@ -43,9 +43,19 @@ public final class McpConformanceServerMain {
 	}
 
 	public static void main(String[] args) throws Exception {
-		if (args.length != 1)
-			throw new IllegalArgumentException("Expected one conformance run directory");
-		Path runDirectory = Path.of(args[0]).toAbsolutePath();
+		if (args.length < 1 || args.length > 2)
+			throw new IllegalArgumentException("Expected a run directory and optional permission profile");
+		String runDirectoryArgument = args[0];
+		String inlineProfile = "";
+		int profileSeparator = runDirectoryArgument.lastIndexOf(',');
+		if (args.length == 1 && profileSeparator > 1) {
+			inlineProfile = runDirectoryArgument.substring(profileSeparator + 1);
+			runDirectoryArgument = runDirectoryArgument.substring(0, profileSeparator);
+		}
+		Path runDirectory = Path.of(runDirectoryArgument).toAbsolutePath();
+		String requestedProfile = args.length == 2 ? args[1] : inlineProfile;
+		PermissionProfile permission = requestedProfile.equals("read_only")
+				? PermissionProfile.READ_ONLY : PermissionProfile.WORKSPACE;
 		Path workspace = runDirectory.resolve("workspace");
 		Path connectionFile = runDirectory.resolve("connection.json");
 		Files.createDirectories(workspace);
@@ -54,18 +64,19 @@ public final class McpConformanceServerMain {
 
 		Clock clock = Clock.systemUTC();
 		WorkspaceTokenService tokens = new WorkspaceTokenService(clock, Duration.ofMinutes(15));
-		var token = tokens.issue(WORKSPACE_ID, PermissionProfile.WORKSPACE);
+		var token = tokens.issue(WORKSPACE_ID, permission);
 		var history = JGitLocalHistoryService.open(workspace, clock);
 		var server = CopperbenchMcpServer.start(
-				new McpServerConfiguration(0, WORKSPACE_ID, PermissionProfile.WORKSPACE,
+				new McpServerConfiguration(0, WORKSPACE_ID, permission,
 						Set.of("http://localhost:61999", "http://127.0.0.1:61999"), clock),
-				tokens, adapter(clock, history),
+				tokens, adapter(clock, history, permission),
 				new JsonLineAuditLog(workspace.resolve(".copperbench/automation-audit.jsonl")));
 
 		JsonObject connection = new JsonObject();
 		connection.addProperty("port", server.address().getPort());
 		connection.addProperty("token", token.value());
 		connection.addProperty("workspaceId", WORKSPACE_ID.toString());
+		connection.addProperty("permissionProfile", permission == PermissionProfile.READ_ONLY ? "read_only" : "workspace");
 		Files.createDirectories(connectionFile.getParent());
 		Files.writeString(connectionFile, connection.toString(), StandardCharsets.UTF_8);
 
@@ -76,7 +87,8 @@ public final class McpConformanceServerMain {
 		new CountDownLatch(1).await();
 	}
 
-	private static McpWorkspaceEntryAdapter adapter(Clock clock, LocalHistoryService history) {
+	private static McpWorkspaceEntryAdapter adapter(Clock clock, LocalHistoryService history,
+			PermissionProfile permission) {
 		RevisionedWorkspaceStore store = new RevisionedWorkspaceStore();
 		JsonObject generator = new JsonObject();
 		generator.addProperty("id", "fabric-1.21.1");
@@ -90,7 +102,8 @@ public final class McpConformanceServerMain {
 		Supplier<UUID> ids = () -> UUID.fromString("00000000-0000-4000-8000-" +
 				String.format("%012d", sequence.getAndIncrement()));
 		var service = new WorkspaceApplicationService(store, new InMemoryWorkspaceTaskGateway(clock, ids),
-				WorkspaceMutationGateway.noOp(), history, null, clock, ids);
-		return new McpWorkspaceEntryAdapter(service, PermissionProfile.WORKSPACE);
+				WorkspaceMutationGateway.noOp(), history,
+				ignored -> store.read(WORKSPACE_ID).orElseThrow().copy(), clock, ids);
+		return new McpWorkspaceEntryAdapter(service, permission);
 	}
 }

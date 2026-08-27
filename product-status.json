@@ -38,11 +38,11 @@
     },
     "fastCi": {
       "status": "passed",
-      "run": "https://github.com/Lotulune/Copperbench/actions/runs/32997587858",
+      "run": "https://github.com/Lotulune/Copperbench/actions/runs/33044983727",
       "latestAttempt": {
         "status": "passed",
-        "run": "https://github.com/Lotulune/Copperbench/actions/runs/32997587858",
-        "reason": "main@515c212c passed Java/Javadoc, UI/Playwright smoke, and MCP conformance after PR #14 merged."
+        "run": "https://github.com/Lotulune/Copperbench/actions/runs/33044983727",
+        "reason": "main@1f31b2b6 passed Java/Javadoc, UI/Playwright smoke, and MCP conformance after PR #15 merged; exact merged-main Nightly evidence is still pending."
       },
       "runs": [
         "https://github.com/Lotulune/Copperbench/actions/runs/32904346297",
@@ -122,17 +122,17 @@
     {"id": "repository-governance", "status": "passed", "betaBlocking": false, "evidence": ["docs/testing/repository-governance-2026-08-26.md"]},
     {"id": "three-data-editors", "status": "passed", "betaBlocking": true, "evidence": ["docs/testing/stage-9-ui-gates-2026-08-26.md", "ui-shell/e2e/stage9-creator-core.spec.ts"]},
     {"id": "language-tools", "status": "passed", "betaBlocking": true, "evidence": ["docs/testing/stage-9-ui-gates-2026-08-26.md", "ui-shell/e2e/stage9-creator-core.spec.ts"]},
-    {"id": "procedure-500", "status": "blocked", "betaBlocking": true, "evidence": []},
-    {"id": "workspace-2000-10000", "status": "blocked", "betaBlocking": true, "evidence": []},
+    {"id": "procedure-500", "status": "blocked", "betaBlocking": true, "evidence": ["src/test/java/dev/copperbench/procedure/ProcedureIrScaleGateTest.java", "docs/testing/stage-9-scale-p95-baseline-2026-08-27.md"]},
+    {"id": "workspace-2000-10000", "status": "blocked", "betaBlocking": true, "evidence": ["src/test/java/dev/copperbench/references/WorkspaceReferenceIndexScaleTest.java", "docs/testing/stage-9-scale-p95-baseline-2026-08-27.md"]},
     {"id": "stage9-eight-generator-golden", "status": "passed", "betaBlocking": true, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/32998281437", "docs/testing/stage-9-generator-golden-2026-08-26-r2.md"]},
-    {"id": "server-readiness-matrix", "status": "blocked", "betaBlocking": true, "evidence": []},
-    {"id": "real-jcef-accessibility", "status": "blocked", "betaBlocking": true, "evidence": []},
+    {"id": "server-readiness-matrix", "status": "blocked", "betaBlocking": true, "evidence": ["src/test/java/dev/copperbench/generator/Stage9ServerReadinessContractTest.java", "src/test/java/dev/copperbench/generator/Stage9ManagedTaskMatrixTest.java", "docs/testing/stage-9-server-readiness-contract-2026-08-27.md", "docs/testing/stage-9-managed-task-matrix-2026-08-27.md"]},
+    {"id": "real-jcef-accessibility", "status": "blocked", "betaBlocking": true, "evidence": ["docs/testing/stage-9-accessibility-baseline-2026-08-27.md"]},
     {"id": "clean-windows-11-stage9", "status": "blocked", "betaBlocking": true, "evidence": []},
     {"id": "five-external-testers", "status": "blocked", "betaBlocking": true, "evidence": []},
     {"id": "ai-unbounded-list-contract", "status": "passed", "betaBlocking": true, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/32998281437", "docs/testing/stage-10-ai-cursor-2026-08-26.md"]},
-    {"id": "ai-workspace-plan", "status": "in-progress", "betaBlocking": true, "evidence": ["docs/testing/stage-10-ai-workspace-plan-2026-08-27.md"]},
-    {"id": "ai-task-events", "status": "blocked", "betaBlocking": true, "evidence": []},
-    {"id": "ai-sdk-evals", "status": "blocked", "betaBlocking": true, "evidence": []}
+    {"id": "ai-workspace-plan", "status": "in-progress", "betaBlocking": true, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/33044562447", "https://github.com/Lotulune/Copperbench/actions/runs/33044983727", "docs/testing/stage-10-ai-workspace-plan-2026-08-27.md"]},
+    {"id": "ai-task-events", "status": "blocked", "betaBlocking": true, "evidence": ["docs/testing/stage-10-ai-task-events-2026-08-27.md"]},
+    {"id": "ai-sdk-evals", "status": "in-progress", "betaBlocking": true, "evidence": ["sdk/typescript/copperbench.ts", "sdk/python/copperbench.py", "sdk/evals/manifest.json", "scripts/verify-ai-evals.mjs", "scripts/run-ai-live-evals.py", "scripts/verify-ai-live-evals.ps1", "docs/testing/stage-10-ai-sdk-live-evals-2026-08-27.md"]}
   ],
   "mcp": {
     "transport": "streamable-http",

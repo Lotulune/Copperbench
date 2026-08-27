@@ -20,6 +20,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -62,6 +63,14 @@ class WorkspaceReferenceIndexScaleTest {
 		long repeatStart = System.nanoTime();
 		JsonObject repeated = index.projection(state, "");
 		long repeatMillis = elapsedMillis(repeatStart);
+		List<Long> samples = new ArrayList<>(20);
+		for (int sample = 0; sample < 20; sample++) {
+			long start = System.nanoTime();
+			index.projection(state, "");
+			samples.add(elapsedMillis(start));
+		}
+		Collections.sort(samples);
+		long p95Millis = samples.get((int) Math.ceil(samples.size() * 0.95) - 1);
 
 		assertEquals(ELEMENT_COUNT, initial.getAsJsonArray("nodes").size());
 		assertEquals(ELEMENT_COUNT * REFERENCES_PER_ELEMENT, initial.getAsJsonArray("edges").size());
@@ -69,12 +78,14 @@ class WorkspaceReferenceIndexScaleTest {
 		assertEquals(initial.getAsJsonArray("edges").size(), repeated.getAsJsonArray("edges").size());
 		assertTrue(initialMillis < 10_000, "Initial reference projection exceeded the nightly smoke threshold");
 		assertTrue(repeatMillis < 5_000, "Repeat reference projection exceeded the nightly smoke threshold");
+		assertTrue(p95Millis < 300, "Reference projection P95 exceeded the Stage 9 target");
 
 		JsonObject result = new JsonObject();
 		result.addProperty("elements", ELEMENT_COUNT);
 		result.addProperty("references", ELEMENT_COUNT * REFERENCES_PER_ELEMENT);
 		result.addProperty("initialMillis", initialMillis);
 		result.addProperty("repeatMillis", repeatMillis);
+		result.addProperty("p95Millis", p95Millis);
 		result.addProperty("scope", "reference-index smoke; does not close the fixed-hardware UI P95 gate");
 		Path output = Path.of("build", "nightly-results", "stage9-reference-scale.json");
 		Files.createDirectories(output.getParent());

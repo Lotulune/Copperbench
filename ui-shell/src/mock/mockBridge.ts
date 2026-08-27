@@ -2848,10 +2848,12 @@ export class MockCoreBridge implements CoreBridge {
       }
       case 'get_task': {
         const taskId = (query.payload as { taskId?: UUID })?.taskId;
+        const afterLogSequence = (query.payload as { afterLogSequence?: number })?.afterLogSequence ?? 0;
         const task = taskId ? this.state.tasks[taskId] : Object.values(this.state.tasks)[0];
+        const logs = taskId ? this.state.taskLogs[taskId] || [] : [];
         data = {
           task,
-          logs: taskId ? this.state.taskLogs[taskId] || [] : [],
+          logs: logs.filter((entry) => entry.sequence > afterLogSequence),
           diagnostics: []
         };
         break;

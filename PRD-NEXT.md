@@ -25,7 +25,7 @@
 | 状态源 | `product-status.json`、Schema 和 CI 漂移校验已进入 main，并已修复首次远端运行暴露的 Release Schema 漏项 | 状态源门禁通过；后续状态提升仍必须带固定提交证据 |
 | 重型门禁 | Nightly `32998281437`（`main@515c212c`）的全量回归、规模 smoke、完整 Playwright、MCP 与八生成器内容构建 8/8 全绿 | FR-AI-02 的 merged-main Nightly 证据已闭环；独立固定硬件 P95 门禁仍保持 blocked |
 | Stage 9 | 八生成器黄金编译、三个专用编辑器和语言导入工具已有自动化证据；500 节点交互、2,000/10,000 规模 P95、服务端、真实 JCEF/a11y、干净 VM 和外部试用仍未关闭 | `betaEligible=false`，不得称为 Beta |
-| AI Developer Kit | PR #14 已统一无界工作区列表并通过 protected PR CI、`main@515c212c` CI 与 Nightly `32998281437`；当前开发主线进入原子 Workspace Plan | FR-AI-02 `passed`；FR-AI-03 实施中；FR-AI-04～05 仍未关闭 |
+| AI Developer Kit | PR #14 已关闭无界列表；PR #15 的原子 Workspace Plan 已合入 `main@1f31b2b6`，protected PR CI `33044562447` 与 merged-main CI `33044983727` 均通过，Nightly 仍待补 | FR-AI-02 `passed`；FR-AI-03 实现与快速远端 CI 已闭环但仍待 merged-main Nightly；FR-AI-04～05 仍未关闭 |
 | 仓库治理 | GitHub 已识别 GPLv3；Javadoc Pages 可访问；main 三项必需检查、受保护 PR 与 production 必需审阅者均已验证 | 仓库治理 P0 已闭环 |
 | Dependency Submission | 仓库 Dependency Graph 未启用，原工作流无法成功 | 误导工作流已从 main 删除 |
 
@@ -39,7 +39,7 @@
 2. 快速 CI、分支保护、真实 PR、Nightly 和人工发布审批配置已闭环；Preview 3 必须在最终合并 SHA 上保留检查、签名 Tag 和生产审批记录。
 3. 机器状态源已建立；PRD、状态索引和发布说明仍必须在每次状态提升时同步更新。
 4. Stage 9 的大型工作区、专用编辑器、语言工具、服务端 readiness、真实 JCEF/a11y 和干净 Windows 11 门禁仍未关闭。
-5. MCP 的大型列表 Cursor 已闭环；剩余主要缺口为原子 Workspace Plan 的远端闭环、长任务事件、SDK/eval 和外部试用。
+5. MCP 的大型列表 Cursor 已闭环；剩余主要缺口为原子 Workspace Plan 的远端闭环、长任务事件的完整订阅验收、SDK/eval 的 live 执行和外部试用。
 
 因此，本阶段的产品目标不是增加更多元素，而是把现有能力变成可下载、可验证、可解释、可反馈的高级 Alpha 预览版。
 
@@ -236,15 +236,19 @@ Function、Loot Table、Advancement 在八套 Fabric/NeoForge 生成器上运行
 
 提供 `plan_workspace_changes`、`preview_workspace_plan`、`apply_workspace_plan`，支持多操作顺序、统一 revision、幂等键、语义差异、权限评估、单恢复点和全量回滚。
 
-实施状态（2026-08-27）：开发中。首个内容计划切片覆盖元素 create/update/delete、Procedure 更新和 registry create/update/delete/rename；构建、运行、迁移、导入和外部发布保持在任务/审批边界外，不并入内容原子计划。
+实施状态（2026-08-27）：首个内容计划切片已由 PR #15 合入 `main@1f31b2b6`。protected PR CI `33044562447` 与 merged-main CI `33044983727` 均全绿；当前仍保持 `in-progress`，直到该合并提交取得 Nightly 证据并完成支持边界复核。切片覆盖元素 create/update/delete、Procedure 更新和 registry create/update/delete/rename；构建、运行、迁移、导入和外部发布保持在任务/审批边界外，不并入内容原子计划。
 
 #### FR-AI-04 长任务事件
 
 构建、客户端/服务端、datagen、GameTest 支持进度、日志、诊断、确认请求、取消和重连恢复；轮询接口继续兼容。
 
+实施状态（2026-08-27）：Core 任务事件发布、JCEF 重连重放和序列缺口恢复已实现首个切片；MCP/Headless 保持 `get_task` 轮询兼容，完整事件订阅协议和真实长任务重连验收仍待完成。
+
 #### FR-AI-05 SDK 与评测
 
 提供 TypeScript/Python 最小客户端和至少 10 个 AI eval，覆盖创建元素、Procedure 修改、重命名引用、构建修复、revision 冲突、越权拒绝、datagen 取消/发布和恢复。
+
+实施状态（2026-08-27）：`sdk/typescript`、`sdk/python`、`sdk/evals/manifest.json` 和最小示例已加入。10 项 manifest/覆盖校验通过，且本地 `verify-ai-live-evals.ps1` 已使用真实 loopback HTTP MCP 会话完成 **10/10** live eval（含独立 read-only 权限会话）。当前仍需 protected PR CI、merged-main/Nightly 固定提交证据后才能关闭 FR-AI-05。
 
 ### 5.6 外部试用与反馈
 

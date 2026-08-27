@@ -52,6 +52,7 @@ public final class JcefCoreBridgeTransport extends CefMessageRouterHandlerAdapte
 	@Nullable private WebView lifecycleWebView;
 	@Nullable private WebView.PageLoadListener loadStartListener;
 	@Nullable private Runnable closeListener;
+	@Nullable private AutoCloseable eventSubscription;
 
 	public JcefCoreBridgeTransport(UUID workspaceId, JcefBridgeEndpoint endpoint, Consumer<String> scriptEvaluator) {
 		this(workspaceId, endpoint, DEFAULT_QUERY_PREFIX, scriptEvaluator, null);
@@ -118,8 +119,16 @@ public final class JcefCoreBridgeTransport extends CefMessageRouterHandlerAdapte
 	}
 
 	private void installHost() {
-		if (!closed.get())
-			scriptEvaluator.accept(generateBootstrapScript(workspaceId, queryPrefix));
+		if (closed.get())
+			return;
+		scriptEvaluator.accept(generateBootstrapScript(workspaceId, queryPrefix));
+		if (eventSubscription != null) {
+			try {
+				eventSubscription.close();
+			} catch (Exception ignored) {
+			}
+		}
+		eventSubscription = endpoint.subscribeEvents(workspaceId, 0, this::dispatchEvent);
 	}
 
 	public void dispatchEvent(String eventJson) {
@@ -258,6 +267,13 @@ public final class JcefCoreBridgeTransport extends CefMessageRouterHandlerAdapte
 	@Override
 	public void close() {
 		if (closed.compareAndSet(false, true)) {
+			if (eventSubscription != null) {
+				try {
+					eventSubscription.close();
+				} catch (Exception ignored) {
+				}
+				eventSubscription = null;
+			}
 			if (lifecycleWebView != null) {
 				if (loadStartListener != null)
 					lifecycleWebView.removeLoadStartListener(loadStartListener);

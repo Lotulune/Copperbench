@@ -1,8 +1,10 @@
 # Stage 10 AI atomic Workspace Plan evidence - 2026-08-27
 
-This record covers the first implementation slice of `FR-AI-03`. The gate is
-still **in progress** until protected PR CI, merged-main CI/Nightly, and review
-of the supported operation boundary are complete.
+This record covers the first implementation slice of `FR-AI-03`. PR #15 has
+merged as `main@1f31b2b6`. Protected PR CI `33044562447` and merged-main CI
+`33044983727` both passed. The gate is still **in progress** until an exact
+merged-main Nightly record and review of the supported operation boundary are
+complete.
 
 ## Contract
 
@@ -95,10 +97,17 @@ pass with the three Workspace Plan tools present. The existing Windows libuv
 `UV_HANDLE_CLOSING` assertion noise is still printed by the conformance client,
 but no conformance scenario fails.
 
+## Remote evidence
+
+- PR #15 head `79fbfe00`: protected `Build and test` run `33044562447` passed.
+- Merge commit `1f31b2b6`: merged-main `Build and test` run `33044983727` passed.
+- Exact merged-main Nightly evidence for `1f31b2b6` is still pending.
+
 ## Remaining closure work
 
-- Obtain protected PR CI and address review findings.
-- Obtain merged-main CI and Nightly evidence before changing
+- Obtain Nightly evidence for the exact merged-main commit before changing
   `ai-workspace-plan` to `passed`.
+- Complete the supported operation-boundary review; keep external side effects
+  outside the atomic content plan unless a later ADR explicitly changes it.
 - Do not use this gate to close Stage 9 fixed-hardware performance, JCEF,
   server, clean-VM, or external-tester gates.

@@ -263,7 +263,7 @@ final class WorkspacePlanEngine {
 			return next;
 		};
 		WorkspaceApplicationService shadow = new WorkspaceApplicationService(shadowStore, tasks,
-				WorkspaceMutationGateway.noOp(), clock, plannedIdSupplier);
+				WorkspaceMutationGateway.noOp(), null, null, null, clock, plannedIdSupplier, false);
 		RequestContext simulationContext = new RequestContext(UiCore.Actor.HEADLESS, PermissionProfile.WORKSPACE);
 		for (JsonElement raw : operations) {
 			JsonObject item = raw.getAsJsonObject();

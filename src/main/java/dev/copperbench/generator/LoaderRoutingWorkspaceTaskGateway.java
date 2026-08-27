@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -116,6 +117,26 @@ public final class LoaderRoutingWorkspaceTaskGateway implements WorkspaceTaskGat
 		if (neoForge262.find(workspaceId, taskId).isPresent()) return neoForge262.cancel(workspaceId, taskId);
 		if (neoForge1201.find(workspaceId, taskId).isPresent()) return neoForge1201.cancel(workspaceId, taskId);
 		return resourcePack.cancel(workspaceId, taskId);
+	}
+
+	@Override public AutoCloseable subscribeTaskEvents(Consumer<TaskEvent> listener) {
+		List<AutoCloseable> subscriptions = List.of(
+				fabric.subscribeTaskEvents(listener), fabric261.subscribeTaskEvents(listener),
+				fabric262.subscribeTaskEvents(listener), fabric1201.subscribeTaskEvents(listener),
+				neoForge.subscribeTaskEvents(listener), neoForge261.subscribeTaskEvents(listener),
+				neoForge262.subscribeTaskEvents(listener), neoForge1201.subscribeTaskEvents(listener),
+				resourcePack.subscribeTaskEvents(listener));
+		return () -> {
+			Exception failure = null;
+			for (AutoCloseable subscription : subscriptions) {
+				try {
+					subscription.close();
+				} catch (Exception exception) {
+					if (failure == null) failure = exception; else failure.addSuppressed(exception);
+				}
+			}
+			if (failure != null) throw failure;
+		};
 	}
 
 	@Override public List<JsonObject> logs(UUID workspaceId, UUID taskId) {

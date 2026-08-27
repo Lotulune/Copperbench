@@ -177,7 +177,7 @@ public final class HeadlessCli {
 				"--name", "--pack", "--source-directory", "--generator-id", "--mod-name", "--mod-id",
 				"--package-name", "--workspace-folder", "--version", "--element-id", "--edits-json", "--registry",
 				"--entry-json", "--entry-id", "--changes-json", "--new-name", "--force", "--task-id",
-				"--manifest-hash");
+				"--manifest-hash", "--after-log-sequence");
 		for (String option : options.keySet()) {
 			if (!allowed.contains(option))
 				throw new IllegalArgumentException("Unknown option: " + option);
@@ -201,6 +201,8 @@ public final class HeadlessCli {
 			payload.addProperty("elementId", options.get("--element-id"));
 		if (options.containsKey("--task-id"))
 			payload.addProperty("taskId", options.get("--task-id"));
+		if (options.containsKey("--after-log-sequence"))
+			payload.addProperty("afterLogSequence", Long.parseLong(options.get("--after-log-sequence")));
 		if (options.containsKey("--manifest-hash"))
 			payload.addProperty("manifestHash", options.get("--manifest-hash"));
 		if (options.containsKey("--edits-json")) {
@@ -277,6 +279,8 @@ public final class HeadlessCli {
 		if (operation == Operation.PUBLISH_DATAGEN_OUTPUT
 				&& (!payload.has("taskId") || !payload.has("manifestHash")))
 			throw new IllegalArgumentException("publish-datagen requires --task-id and --manifest-hash");
+		if (operation == Operation.GET_TASK && !payload.has("afterLogSequence"))
+			payload.addProperty("afterLogSequence", 0);
 		return new ParsedCommand(operation, revision, payload, false, query);
 	}
 

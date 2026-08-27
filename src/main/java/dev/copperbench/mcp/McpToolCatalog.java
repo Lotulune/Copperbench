@@ -253,8 +253,14 @@ final class McpToolCatalog {
 		tools.add(commandTool("run_gametest", "Run existing GameTests and collect their task logs",
 				Operation.RUN_GAMETEST, revisionSchema(), McpToolCatalog::workspacePayload));
 		tools.add(queryTool("get_task", "Read task state, logs and diagnostics", Operation.GET_TASK,
-				requiredSchema(Map.of("taskId", Map.of("type", "string", "format", "uuid")), List.of("taskId")),
+				requiredSchema(Map.of("taskId", Map.of("type", "string", "format", "uuid"),
+						"afterLogSequence", Map.of("type", "integer", "minimum", 0)),
+						List.of("taskId", "afterLogSequence")),
 				arguments -> GSON.toJsonTree(arguments).getAsJsonObject()));
+		tools.add(commandTool("cancel_task", "Cancel a queued or running workspace task", Operation.CANCEL_TASK,
+				requiredSchema(Map.of("taskId", Map.of("type", "string", "format", "uuid"),
+						"expectedRevision", Map.of("type", "integer", "minimum", 0)),
+						List.of("taskId", "expectedRevision")), McpToolCatalog::mutationPayload));
 		tools.add(McpServerFeatures.SyncToolSpecification.builder()
 				.tool(Tool.builder("create_recovery_point", Map.of("type", "object", "properties",
 						Map.of("label", Map.of("type", "string", "minLength", 1),
@@ -282,6 +288,12 @@ final class McpToolCatalog {
 						return text("{\"code\":\"RECOVERY_POINT_FAILED\"}", true);
 					}
 					}).build());
+		tools.add(commandTool("restore_recovery_point",
+				"Request a protected recovery-point restore; MCP clients cannot self-approve the desktop confirmation",
+				Operation.RESTORE_RECOVERY_POINT,
+				requiredSchema(Map.of("recoveryPointId", Map.of("type", "string", "minLength", 1),
+						"expectedRevision", Map.of("type", "integer", "minimum", 0)),
+						List.of("recoveryPointId", "expectedRevision")), McpToolCatalog::mutationPayload));
 		tools.add(queryTool("list_recovery_points", "List local history recovery points", Operation.GET_HISTORY,
 				Map.of("type", "object", "properties", Map.of(
 						"cursor", Map.of("type", "string"),

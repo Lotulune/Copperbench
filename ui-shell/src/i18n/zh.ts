@@ -102,6 +102,8 @@ export const zh: Record<string, string> = {
   'task.run_server.started': '正在使用 {backend} 启动隔离测试服务端…',
   'task.run_datagen.started': '正在使用 {backend} 在暂存区生成数据…',
   'task.run_gametest.started': '正在使用 {backend} 运行 GameTest…',
+  'task.run_client.starting': '正在启动 Minecraft 测试客户端…',
+  'task.run_server.starting': '正在启动隔离测试服务端…',
   'task.validate.completed': '{backend} 校验完成',
   'task.generate.completed': '{backend} 生成完成',
   'task.build.completed': '{backend} 构建完成',

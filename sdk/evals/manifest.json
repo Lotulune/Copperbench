@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "1.0",
+  "suite": "copperbench-ai-core",
+  "minimumCases": 10,
+  "cases": [
+    {"id":"create-element","covers":["create elements"],"operation":"create_mod_element","expected":"committed"},
+    {"id":"procedure-edit","covers":["Procedure modification"],"operation":"update_procedure","expected":"committed"},
+    {"id":"rename-reference","covers":["rename references"],"operation":"rename_registry_entry","expected":"committed"},
+    {"id":"build-repair","covers":["build repair"],"operation":"build_workspace","expected":"accepted"},
+    {"id":"revision-conflict","covers":["revision conflicts"],"operation":"update_mod_element","expected":"rejected:WORKSPACE_REVISION_CONFLICT"},
+    {"id":"readonly-denial","covers":["unauthorized access rejection"],"operation":"create_mod_element","expected":"rejected:PERMISSION_DENIED"},
+    {"id":"datagen-cancel","covers":["datagen cancellation"],"operation":"cancel_task","expected":"cancelled"},
+    {"id":"datagen-publish","covers":["datagen preview and publish"],"operation":"publish_datagen_output","expected":"committed"},
+    {"id":"recovery-restore","covers":["recovery point restore"],"operation":"restore_recovery_point","expected":"rejected:USER_APPROVAL_REQUIRED"},
+    {"id":"task-reconnect","covers":["task event reconnect"],"operation":"get_task","expected":"running|succeeded|failed|cancelled"}
+  ]
+}
