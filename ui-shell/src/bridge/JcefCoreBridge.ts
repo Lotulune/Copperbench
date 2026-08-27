@@ -119,6 +119,8 @@ export class JcefCoreBridge implements CoreBridge {
   private readonly hostUnsubscribe: () => void;
   private readonly taskPollers = new Map<string, ReturnType<typeof setTimeout>>();
   private lastEventSequence = 0;
+  private projectionRefresh: Promise<void> | null = null;
+  private projectionRefreshRequested = false;
   private disposed = false;
   private state = initialState();
 
@@ -192,26 +194,67 @@ export class JcefCoreBridge implements CoreBridge {
     this.stateListeners.clear();
   }
 
-  private async refreshInitialProjection(): Promise<void> {
+  private refreshInitialProjection(): Promise<void> {
+    if (this.disposed) return Promise.resolve();
+    this.projectionRefreshRequested = true;
+    if (!this.projectionRefresh) {
+      this.projectionRefresh = this.drainProjectionRefreshes().finally(() => {
+        this.projectionRefresh = null;
+      });
+    }
+    return this.projectionRefresh;
+  }
+
+  private async drainProjectionRefreshes(): Promise<void> {
+    while (this.projectionRefreshRequested && !this.disposed) {
+      this.projectionRefreshRequested = false;
+      const baselineSequence = this.lastEventSequence;
+      const consistent = await this.refreshProjectionGeneration(baselineSequence);
+      if (!consistent && !this.disposed) this.projectionRefreshRequested = true;
+    }
+  }
+
+  private async refreshProjectionGeneration(baselineSequence: number): Promise<boolean> {
     const base = {
       messageType: 'query' as const,
       schemaVersion: '1.0' as const,
       workspaceId: this.host.workspaceId
     };
-    await this.sendQuery({ ...base, requestId: safeRandomUUID(), operation: 'get_workbench', payload: {} });
-    await this.refreshElements(base);
+    const workbench = await this.invoke<QueryResult<WorkbenchProjection>>({
+      ...base,
+      requestId: safeRandomUUID(),
+      operation: 'get_workbench',
+      payload: {}
+    });
+    if (!this.isProjectionGenerationCurrent(baselineSequence)) return false;
+    this.applyQueryResult(workbench);
+    this.notify();
+    if (workbench.status !== 'succeeded' || !workbench.data) return true;
+
+    const projectionRevision = workbench.revision;
+    if (!(await this.refreshElements(base, baselineSequence, projectionRevision))) return false;
     try {
-      await this.sendQuery({ ...base, requestId: safeRandomUUID(), operation: 'get_history', payload: {} });
+      const history = await this.invoke<QueryResult<HistoryProjection>>({
+        ...base,
+        requestId: safeRandomUUID(),
+        operation: 'get_history',
+        payload: {}
+      });
+      if (!this.isProjectionGenerationCurrent(baselineSequence)) return false;
+      if (history.status === 'succeeded' && history.data && history.revision !== projectionRevision) return false;
+      this.applyQueryResult(history);
+      this.notify();
     } catch (error) {
       console.warn('[Copperbench Bridge] History projection is unavailable:', error);
     }
+    return this.isProjectionGenerationCurrent(baselineSequence);
   }
 
   private async refreshElements(base: {
     messageType: 'query';
     schemaVersion: '1.0';
     workspaceId: string;
-  }): Promise<void> {
+  }, baselineSequence: number, projectionRevision: number): Promise<boolean> {
     const pageSize = 200;
     const items: ModElementSummary[] = [];
     let cursor: string | undefined;
@@ -223,18 +266,22 @@ export class JcefCoreBridge implements CoreBridge {
         payload: { search: '', types: [], states: [], limit: pageSize, ...(cursor ? { cursor } : {}) }
       };
       const result = await this.invoke<QueryResult<ModElementListProjection>>(query);
+      if (!this.isProjectionGenerationCurrent(baselineSequence)) return false;
       if (result.status !== 'succeeded' || !result.data) {
         this.state.diagnostics = [...result.diagnostics];
         this.notify();
-        return;
+        return true;
       }
-      if (this.isStaleRevision(result.revision)) return;
+      if (result.revision !== projectionRevision) return false;
+      if (this.isStaleRevision(result.revision)) return true;
       items.push(...result.data.items);
       cursor = result.data.nextCursor ?? undefined;
     } while (cursor);
+    if (!this.isProjectionGenerationCurrent(baselineSequence)) return false;
     this.state.elements = items;
     this.synchronizeElementProjection();
     this.notify();
+    return true;
   }
 
   private async invoke<T>(envelope: unknown): Promise<T> {
@@ -335,13 +382,7 @@ export class JcefCoreBridge implements CoreBridge {
     ) {
       return;
     }
-    if (this.lastEventSequence > 0 && event.sequence > this.lastEventSequence + 1) {
-      // A page reconnect or a bounded native buffer may skip events; refresh
-      // projections before applying the first event after the gap.
-      void this.refreshInitialProjection().catch((error) => {
-        console.warn('[Copperbench Bridge] Event gap reconciliation failed:', error);
-      });
-    }
+    const hasSequenceGap = event.sequence > this.lastEventSequence + 1;
     this.lastEventSequence = event.sequence;
 
     switch (event.event) {
@@ -366,7 +407,11 @@ export class JcefCoreBridge implements CoreBridge {
         break;
       case 'task_log_appended': {
         const current = this.state.taskLogs[event.payload.taskId] ?? [];
-        this.state.taskLogs[event.payload.taskId] = [...current, ...event.payload.entries];
+        const bySequence = new Map(current.map((entry) => [entry.sequence, entry]));
+        event.payload.entries.forEach((entry) => bySequence.set(entry.sequence, entry));
+        this.state.taskLogs[event.payload.taskId] = [...bySequence.values()].sort(
+          (left, right) => left.sequence - right.sequence
+        );
         break;
       }
       case 'diagnostics_changed':
@@ -406,6 +451,14 @@ export class JcefCoreBridge implements CoreBridge {
     }
     this.eventListeners.forEach((listener) => listener(event));
     this.notify();
+    if (hasSequenceGap) {
+      // Apply the newest known event first, then reconcile the missing interval.
+      // Refresh responses are sequence-generation guarded, so a delayed snapshot
+      // cannot overwrite an event that arrived after the refresh began.
+      void this.refreshInitialProjection().catch((error) => {
+        console.warn('[Copperbench Bridge] Event gap reconciliation failed:', error);
+      });
+    }
   }
 
   private upsertElement(element: ModElementSummary): void {
@@ -446,17 +499,22 @@ export class JcefCoreBridge implements CoreBridge {
     return Boolean(this.state.workbench && revision < this.state.workbench.workspace.revision);
   }
 
+  private isProjectionGenerationCurrent(baselineSequence: number): boolean {
+    return !this.disposed && this.lastEventSequence === baselineSequence;
+  }
+
   private pollTask(taskId: string): void {
     if (this.disposed || this.taskPollers.has(taskId)) return;
     const refresh = async () => {
       this.taskPollers.delete(taskId);
       if (this.disposed) return;
       try {
+        const baselineSequence = this.lastEventSequence;
         const afterLogSequence = (this.state.taskLogs[taskId] ?? []).reduce(
           (maximum, entry) => Math.max(maximum, entry.sequence),
           0
         );
-        const result = await this.sendQuery<TaskProjection>({
+        const result = await this.invoke<QueryResult<TaskProjection>>({
           messageType: 'query',
           schemaVersion: '1.0',
           requestId: safeRandomUUID(),
@@ -464,8 +522,18 @@ export class JcefCoreBridge implements CoreBridge {
           operation: 'get_task',
           payload: { taskId, afterLogSequence }
         });
+        if (this.disposed) return;
+        if (this.lastEventSequence !== baselineSequence) {
+          const currentTask = this.state.tasks[taskId];
+          if (currentTask?.state === 'queued' || currentTask?.state === 'running') {
+            this.taskPollers.set(taskId, setTimeout(refresh, 500));
+          }
+          return;
+        }
+        this.applyQueryResult(result);
+        this.notify();
         const task = (result.data as TaskProjection | null)?.task;
-        if (!this.disposed && task?.state === 'running') {
+        if (!this.disposed && (task?.state === 'queued' || task?.state === 'running')) {
           this.taskPollers.set(taskId, setTimeout(refresh, 500));
         }
       } catch (error) {

@@ -225,12 +225,16 @@ public final class WorkspaceApplicationService {
 		Deque<Event> history = taskEventHistory.computeIfAbsent(taskEvent.workspaceId(), ignored -> new ArrayDeque<>());
 		CopyOnWriteArrayList<Consumer<Event>> listeners = eventListeners.computeIfAbsent(taskEvent.workspaceId(),
 				ignored -> new CopyOnWriteArrayList<>());
+		List<Consumer<Event>> recipients;
 		synchronized (history) {
 			history.addLast(event);
 			while (history.size() > TASK_EVENT_HISTORY_LIMIT)
 				history.removeFirst();
+			// Snapshot live recipients while replay history is locked. A subscriber is
+			// therefore either in this live snapshot or replays this event, never both.
+			recipients = List.copyOf(listeners);
 		}
-		for (Consumer<Event> listener : listeners) {
+		for (Consumer<Event> listener : recipients) {
 			try {
 				listener.accept(event);
 			} catch (RuntimeException exception) {
