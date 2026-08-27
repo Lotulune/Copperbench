@@ -47,7 +47,6 @@ public final class ProcedureIrCodec {
 	private static final String EMPTY_XML = "<xml xmlns=\"https://developers.google.com/blockly/xml\">"
 			+ "<block type=\"event_trigger\" deletable=\"false\" x=\"40\" y=\"40\">"
 			+ "<field name=\"trigger\">no_ext_trigger</field></block></xml>";
-	private static final Pattern BLOCK_START = Pattern.compile("<block\\b[^>]*>", Pattern.CASE_INSENSITIVE);
 	private static final Pattern BLOCK_TOKEN = Pattern.compile("<block\\b[^>]*?/?>|</block\\s*>",
 			Pattern.CASE_INSENSITIVE);
 	private static final Pattern ATTRIBUTE = Pattern.compile("\\b(type|id)\\s*=\\s*([\"'])(.*?)\\2",
@@ -455,26 +454,42 @@ public final class ProcedureIrCodec {
 
 	private static Map<String, String> rawBlocks(String xml) {
 		Map<String, String> result = new HashMap<>();
-		Matcher starts = BLOCK_START.matcher(xml);
-		while (starts.find()) {
-			String opening = starts.group();
-			String type = attribute(opening, "type");
-			String id = attribute(opening, "id");
-			if (type.isBlank()) continue;
-			Matcher tokens = BLOCK_TOKEN.matcher(xml);
-			tokens.region(starts.start(), xml.length());
-			int depth = 0;
-			int end = -1;
-			while (tokens.find()) {
-				String token = tokens.group().toLowerCase(Locale.ROOT);
-				if (token.startsWith("</")) depth--;
-				else if (!token.endsWith("/>")) depth++;
-				if (depth == 0) { end = tokens.end(); break; }
+		Map<String, Integer> starts = new HashMap<>();
+		List<RawBlockFrame> stack = new ArrayList<>();
+		Matcher tokens = BLOCK_TOKEN.matcher(xml);
+		while (tokens.find()) {
+			String token = tokens.group();
+			String normalized = token.toLowerCase(Locale.ROOT);
+			if (normalized.startsWith("</")) {
+				if (stack.isEmpty()) continue;
+				RawBlockFrame frame = stack.remove(stack.size() - 1);
+				if (!frame.type().isBlank() && !KNOWN_TYPES.contains(frame.type()))
+					preserveEarliestRawBlock(result, starts, identity(frame.type(), frame.id()), xml, frame.start(),
+							tokens.end());
+				continue;
 			}
-			if (end > starts.start()) result.putIfAbsent(identity(type, id), xml.substring(starts.start(), end));
+			String type = attribute(token, "type");
+			String id = attribute(token, "id");
+			if (normalized.endsWith("/>")) {
+				if (!type.isBlank() && !KNOWN_TYPES.contains(type))
+					preserveEarliestRawBlock(result, starts, identity(type, id), xml, tokens.start(), tokens.end());
+			} else {
+				stack.add(new RawBlockFrame(type, id, tokens.start()));
+			}
 		}
 		return result;
 	}
+
+	private static void preserveEarliestRawBlock(Map<String, String> result, Map<String, Integer> starts,
+			String identity, String xml, int start, int end) {
+		Integer existingStart = starts.get(identity);
+		if (existingStart == null || start < existingStart) {
+			starts.put(identity, start);
+			result.put(identity, xml.substring(start, end));
+		}
+	}
+
+	private record RawBlockFrame(String type, String id, int start) { }
 
 	private static String attribute(String opening, String name) {
 		Matcher matcher = ATTRIBUTE.matcher(opening);
