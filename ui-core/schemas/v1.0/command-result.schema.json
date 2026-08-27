@@ -43,6 +43,7 @@
         "update_registry_entry",
         "delete_registry_entry",
         "rename_registry_entry",
+        "apply_workspace_plan",
         "validate_workspace",
         "generate_workspace",
         "build_workspace",

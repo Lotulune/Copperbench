@@ -40,6 +40,7 @@
         "update_registry_entry",
         "delete_registry_entry",
         "rename_registry_entry",
+        "apply_workspace_plan",
         "validate_workspace",
         "generate_workspace",
         "build_workspace",
@@ -64,6 +65,15 @@
     }
   },
   "allOf": [
+    {
+      "if": {
+        "properties": {"operation": {"const": "apply_workspace_plan"}},
+        "required": ["operation"]
+      },
+      "then": {
+        "properties": {"payload": {"$ref": "#/$defs/workspacePlanApplyPayload"}}
+      }
+    },
     {
       "if": {
         "properties": {"operation": {"const": "publish_datagen_output"}},
@@ -382,6 +392,15 @@
     }
   ],
   "$defs": {
+    "workspacePlanApplyPayload": {
+      "type": "object",
+      "required": ["clientMutationId", "plan"],
+      "properties": {
+        "clientMutationId": {"$ref": "urn:ui-core:1.0:common#/$defs/uuid"},
+        "plan": {"$ref": "urn:ui-core:1.0:query#/$defs/workspacePlan"}
+      },
+      "additionalProperties": false
+    },
     "createWorkspacePayload": {
       "type": "object",
       "required": [

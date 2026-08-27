@@ -1,5 +1,6 @@
 package net.mcreator.workspace;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import dev.copperbench.core.workspace.WorkspaceWriteLockedException;
@@ -9,6 +10,7 @@ import dev.copperbench.core.application.LegacyWorkspaceEntryAdapter;
 import dev.copperbench.core.contract.UiCore.Command;
 import dev.copperbench.core.contract.UiCore.Operation;
 import dev.copperbench.core.contract.UiCore.PermissionProfile;
+import dev.copperbench.core.contract.UiCore.Query;
 import dev.copperbench.core.workspace.UnknownFieldPreservingJsonStore;
 import dev.copperbench.core.workspace.RevisionedWorkspaceStore;
 import dev.copperbench.core.workspace.mcreator.MCreatorWorkspaceSession;
@@ -44,6 +46,108 @@ class WorkspacePersistenceCompatibilityTest {
 
 	@BeforeAll static void initializeUpstreamRuntimeMinimum() throws Exception {
 		McreatorTestRuntime.ensureInitialized();
+	}
+
+	private static JsonObject workspacePlanPayload(long revision, String idempotencyKey, JsonObject... steps) {
+		JsonObject payload = new JsonObject();
+		payload.addProperty("expectedRevision", revision);
+		payload.addProperty("idempotencyKey", idempotencyKey);
+		JsonArray operations = new JsonArray();
+		for (JsonObject step : steps) operations.add(step);
+		payload.add("operations", operations);
+		return payload;
+	}
+
+	private static JsonObject workspacePlanCreate(String type, String name) {
+		JsonObject payload = new JsonObject();
+		payload.addProperty("elementType", type);
+		payload.addProperty("name", name);
+		payload.add("initialValues", new JsonObject());
+		JsonObject step = new JsonObject();
+		step.addProperty("operation", "create_mod_element");
+		step.add("payload", payload);
+		return step;
+	}
+
+	@Test void upstreamBackedWorkspacePlanPersistsMultipleElementsUnderOneRevision() throws Exception {
+		WorkspaceSettings settings = new WorkspaceSettings("workspace_plan_persistence");
+		settings.setModName("Workspace Plan Persistence");
+		settings.setCurrentGenerator("neoforge-1.21.8");
+		Workspace workspace = Workspace.createWorkspace(
+				temporaryDirectory.resolve("workspace_plan_persistence.mcreator").toFile(), settings);
+		AtomicLong sequence = new AtomicLong(700);
+		java.util.function.Supplier<UUID> ids = () -> uuid(sequence.incrementAndGet());
+		try (MCreatorWorkspaceSession session = MCreatorWorkspaceSession.attach(workspace,
+				store -> new InMemoryWorkspaceTaskGateway(Clock.systemUTC(), ids), Clock.systemUTC(), ids)) {
+			var entry = session.mcpEntry(PermissionProfile.WORKSPACE);
+			JsonObject planPayload = workspacePlanPayload(0, "persist-two-elements",
+					workspacePlanCreate("item", "atomic_item"), workspacePlanCreate("block", "atomic_block"));
+			var planned = entry.query(Query.of(ids.get(), session.workspaceId(), Operation.PLAN_WORKSPACE_CHANGES,
+					planPayload));
+			assertEquals("succeeded", planned.status(), planned.diagnostics().toString());
+
+			JsonObject applyPayload = new JsonObject();
+			applyPayload.addProperty("clientMutationId", ids.get().toString());
+			applyPayload.add("plan", planned.data().deepCopy());
+			var applied = entry.execute(Command.of(ids.get(), session.workspaceId(), 0,
+					Operation.APPLY_WORKSPACE_PLAN, applyPayload));
+
+			assertEquals("committed", applied.result().status(), applied.result().diagnostics().toString());
+			assertEquals(1, applied.result().newRevision());
+			assertTrue(workspace.containsModElement("atomic_item"));
+			assertTrue(workspace.containsModElement("atomic_block"));
+			assertTrue(Files.isRegularFile(temporaryDirectory.resolve("elements/atomic_item.mod.json")));
+			assertTrue(Files.isRegularFile(temporaryDirectory.resolve("elements/atomic_block.mod.json")));
+			JsonObject root = new UnknownFieldPreservingJsonStore().read(
+					workspace.getFileManager().getWorkspaceFile().toPath());
+			assertEquals(1, root.getAsJsonObject(UnknownFieldPreservingJsonStore.PRODUCT_NAMESPACE)
+					.get("revision").getAsLong());
+			workspace.reloadFromFileSystem();
+			assertNotNull(workspace.getModElementByName("atomic_item"));
+			assertNotNull(workspace.getModElementByName("atomic_block"));
+		} finally {
+			workspace.close();
+		}
+	}
+
+	@Test void upstreamBackedWorkspacePlanRestoresAllFilesWhenFinalRevisionCommitConflicts() throws Exception {
+		WorkspaceSettings settings = new WorkspaceSettings("workspace_plan_rollback");
+		settings.setModName("Workspace Plan Rollback");
+		settings.setCurrentGenerator("neoforge-1.21.8");
+		Workspace workspace = Workspace.createWorkspace(
+				temporaryDirectory.resolve("workspace_plan_rollback.mcreator").toFile(), settings);
+		AtomicLong sequence = new AtomicLong(750);
+		java.util.function.Supplier<UUID> ids = () -> uuid(sequence.incrementAndGet());
+		try (MCreatorWorkspaceSession session = MCreatorWorkspaceSession.attach(workspace,
+				store -> new InMemoryWorkspaceTaskGateway(Clock.systemUTC(), ids), Clock.systemUTC(), ids)) {
+			var entry = session.mcpEntry(PermissionProfile.WORKSPACE);
+			JsonObject planPayload = workspacePlanPayload(0, "rollback-two-elements",
+					workspacePlanCreate("item", "rolled_back_item"),
+					workspacePlanCreate("block", "rolled_back_block"));
+			var planned = entry.query(Query.of(ids.get(), session.workspaceId(), Operation.PLAN_WORKSPACE_CHANGES,
+					planPayload));
+			assertEquals("succeeded", planned.status(), planned.diagnostics().toString());
+
+			workspace.getFileManager().advanceProductRevision(session.workspaceId(), 0);
+			JsonObject applyPayload = new JsonObject();
+			applyPayload.addProperty("clientMutationId", ids.get().toString());
+			applyPayload.add("plan", planned.data().deepCopy());
+			var applied = entry.execute(Command.of(ids.get(), session.workspaceId(), 0,
+					Operation.APPLY_WORKSPACE_PLAN, applyPayload));
+
+			assertEquals("rejected", applied.result().status());
+			assertEquals("WORKSPACE_PLAN_PERSISTENCE_FAILED", applied.result().diagnostics().getFirst().code());
+			assertFalse(workspace.containsModElement("rolled_back_item"));
+			assertFalse(workspace.containsModElement("rolled_back_block"));
+			assertFalse(Files.exists(temporaryDirectory.resolve("elements/rolled_back_item.mod.json")));
+			assertFalse(Files.exists(temporaryDirectory.resolve("elements/rolled_back_block.mod.json")));
+			JsonObject root = new UnknownFieldPreservingJsonStore().read(
+					workspace.getFileManager().getWorkspaceFile().toPath());
+			assertEquals(1, root.getAsJsonObject(UnknownFieldPreservingJsonStore.PRODUCT_NAMESPACE)
+					.get("revision").getAsLong());
+		} finally {
+			workspace.close();
+		}
 	}
 
 	@Test void sessionTaskFactoryReceivesTheRegisteredWorkspaceStore() throws Exception {

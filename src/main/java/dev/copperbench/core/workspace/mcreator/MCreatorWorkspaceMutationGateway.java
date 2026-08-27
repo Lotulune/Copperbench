@@ -68,7 +68,7 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 			switch (operation) {
 				case CREATE_MOD_ELEMENT -> create(affectedElement);
 				case UPDATE_MOD_ELEMENT, UPDATE_PROCEDURE -> update(existing, affectedElement);
-				case DELETE_MOD_ELEMENT -> delete(existing);
+				case DELETE_MOD_ELEMENT -> delete(existing, true);
 				default -> throw new IllegalArgumentException("Operation is not a content mutation: " + operation);
 			}
 			workspace.getFileManager().saveWorkspaceDirectlyAndWait();
@@ -84,6 +84,45 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 			}
 			throw exception;
 		}
+	}
+
+	@Override public void persistWorkspacePlan(WorkspaceState before, WorkspaceState after, List<Operation> operations)
+			throws Exception {
+		FileSnapshot snapshot = FileSnapshot.capturePlan(workspace, before, after, workspaceId);
+		try {
+			if (!before.registries().equals(after.registries()))
+				MCreatorWorkspaceRegistryMapper.synchronize(workspace, after.registries());
+
+			Map<UUID, Element> beforeElements = new LinkedHashMap<>();
+			for (Element element : before.elements()) beforeElements.put(element.id(), element);
+			Map<UUID, Element> afterElements = new LinkedHashMap<>();
+			for (Element element : after.elements()) afterElements.put(element.id(), element);
+
+			for (Element element : beforeElements.values())
+				if (!afterElements.containsKey(element.id())) delete(find(element.id()), false);
+			for (Element element : afterElements.values()) {
+				Element previous = beforeElements.get(element.id());
+				if (previous == null) create(element);
+				else if (!sameContent(previous, element)) update(find(element.id()), element);
+			}
+
+			workspace.getFileManager().saveWorkspaceDirectlyAndWait();
+			workspace.getFileManager().advanceProductRevision(before.id(), before.revision(), after.registries());
+		} catch (Exception exception) {
+			try {
+				snapshot.restore();
+				workspace.reloadFromFileSystem();
+			} catch (Exception rollbackFailure) {
+				exception.addSuppressed(rollbackFailure);
+			}
+			throw exception;
+		}
+	}
+
+	private static boolean sameContent(Element left, Element right) {
+		return left.type().equals(right.type()) && left.name().equals(right.name())
+				&& left.displayName().equals(right.displayName()) && left.state().equals(right.state())
+				&& left.ownership().equals(right.ownership()) && left.values().equals(right.values());
 	}
 
 	@Override public void persistRestoredRevision(WorkspaceState restored, long newRevision) throws Exception {
@@ -303,10 +342,11 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 		}
 	}
 
-	private void delete(ModElement modElement) {
+	private void delete(ModElement modElement, boolean checkpoint) {
 		if (modElement == null)
 			throw new IllegalStateException("Element is missing from upstream workspace");
-		workspace.getHistoryManager().importantCheckpoint("copperbench_before_delete", modElement.getName());
+		if (checkpoint)
+			workspace.getHistoryManager().importantCheckpoint("copperbench_before_delete", modElement.getName());
 		workspace.removeModElement(modElement);
 	}
 
@@ -369,6 +409,42 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 					capture(files, root, associated.toPath());
 			}
 			return new FileSnapshot(files);
+		}
+
+		private static FileSnapshot capturePlan(Workspace workspace, WorkspaceState before, WorkspaceState after,
+				UUID workspaceId) throws IOException {
+			Path root = workspace.getWorkspaceFolder().toPath().toAbsolutePath().normalize();
+			Map<Path, byte[]> files = new LinkedHashMap<>();
+			capture(files, root, workspace.getFileManager().getWorkspaceFile().toPath());
+			Map<UUID, Element> beforeElements = new LinkedHashMap<>();
+			for (Element element : before.elements()) beforeElements.put(element.id(), element);
+			Map<UUID, Element> afterElements = new LinkedHashMap<>();
+			for (Element element : after.elements()) afterElements.put(element.id(), element);
+
+			for (Element previous : beforeElements.values()) {
+				Element next = afterElements.get(previous.id());
+				if (next != null && sameContent(previous, next)) continue;
+				ModElement existing = find(workspace, workspaceId, previous.id());
+				capture(files, root, workspace.getFolderManager().getModElementsDir().toPath()
+						.resolve(previous.name() + ".mod.json"));
+				if (existing != null)
+					for (var associated : existing.getAssociatedFiles()) capture(files, root, associated.toPath());
+			}
+			for (Element next : afterElements.values()) {
+				if (beforeElements.containsKey(next.id())) continue;
+				capture(files, root, workspace.getFolderManager().getModElementsDir().toPath()
+						.resolve(next.name() + ".mod.json"));
+			}
+			return new FileSnapshot(files);
+		}
+
+		private static ModElement find(Workspace workspace, UUID workspaceId, UUID elementId) {
+			for (ModElement element : workspace.getModElements()) {
+				Object storedId = element.getMetadata(ELEMENT_ID_METADATA);
+				if (storedId != null && elementId.toString().equals(String.valueOf(storedId))) return element;
+				if (MCreatorWorkspaceStateMapper.elementId(workspaceId, element).equals(elementId)) return element;
+			}
+			return null;
 		}
 
 		private static void capture(Map<Path, byte[]> files, Path root, Path candidate) throws IOException {

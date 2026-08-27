@@ -100,6 +100,7 @@ public final class WorkspaceApplicationService {
 	private final Supplier<UUID> ids;
 	private final InstalledPluginInventoryService installedPlugins;
 	private final WorkspaceCreationService workspaceCreation;
+	private final WorkspacePlanEngine plans;
 	private final WorkspaceReferenceIndex references = new WorkspaceReferenceIndex();
 
 	public WorkspaceApplicationService(RevisionedWorkspaceStore store, WorkspaceTaskGateway tasks, Clock clock,
@@ -135,6 +136,7 @@ public final class WorkspaceApplicationService {
 		this.ids = ids;
 		this.installedPlugins = InstalledPluginInventoryService.productDefault();
 		this.workspaceCreation = new WorkspaceCreationService(this.tracks);
+		this.plans = new WorkspacePlanEngine(store, tasks, mutations, history, clock, ids);
 	}
 
 	public CommandOutcome execute(Command command, RequestContext context) {
@@ -162,6 +164,7 @@ public final class WorkspaceApplicationService {
 			case IMPORT_UPSTREAM_WORKSPACE -> importUpstreamWorkspace(command, context);
 			case CREATE_PUBLISH_BATCH -> createPublishBatch(command, context);
 			case PREPARE_RESOURCE_PACK_CLIENT -> prepareResourcePackClient(command, context);
+			case APPLY_WORKSPACE_PLAN -> plans.apply(command, context);
 			default -> failed(command, 0, diagnostic("UNSUPPORTED_OPERATION", "diagnostic.unsupported_operation",
 					"The requested operation is not supported.", null, null));
 		};
@@ -184,6 +187,8 @@ public final class WorkspaceApplicationService {
 				case GET_WORKSPACE_REFERENCES -> workspaceReferences(query, state);
 				case LIST_WORKSPACE_REGISTRIES -> listRegistries(query, state);
 				case PREVIEW_REGISTRY_RENAME -> previewRegistryRename(query, state);
+				case PLAN_WORKSPACE_CHANGES -> plans.plan(query, context);
+				case PREVIEW_WORKSPACE_PLAN -> plans.preview(query, context);
 				case GET_TASK -> task(query, state);
 				case PREVIEW_DATAGEN_OUTPUT -> previewDatagenOutput(query, state);
 				case GET_HISTORY -> historyList(query, state);

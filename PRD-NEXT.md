@@ -2,7 +2,7 @@
 
 > 状态：实施中（可信 Preview 已建立，Beta 门禁未关闭）<br>
 > 版本：v1.2<br>
-> 更新日期：2026-08-26<br>
+> 更新日期：2026-08-27<br>
 > 前置基线：[PRD.md](./PRD.md)、[PRD-STAGE-9.md](./PRD-STAGE-9.md)<br>
 > 已验证公开基线：`v0.1.0-preview.2`；本次发布源：`v0.1.0-preview.3`；Public Beta 仍由 Stage 9、AI Developer Kit 和外部试用门禁阻断
 
@@ -14,7 +14,7 @@
 - 关闭需求必须同时满足实现、自动验证、用户文档和可追溯证据，不接受只修改状态文字。
 - 本阶段冻结新模组元素类型，先建立“提交 → CI → 产物 → Release → 用户反馈”的可信闭环。
 
-### 0.1 实施快照（2026-08-26）
+### 0.1 实施快照（2026-08-27）
 
 机器可读事实入口为 [`product-status.json`](./product-status.json)，本节只解释执行状态。
 
@@ -23,9 +23,9 @@
 | Fast CI | 受保护 PR #1～#5 均取得真实全绿记录；`main@fe4b0f30` 连续三次 Java/Javadoc、UI/Playwright、MCP 全绿 | PR 门禁已闭环；连续 main 门禁 3/3 |
 | 公开 Release | `v0.1.0-preview.2` 已完成公开验证；本 PR 冻结为 `v0.1.0-preview.3` 发布源，公开状态由 Tag API 与 `RELEASE-METADATA.json` 实时判定 | Preview 3 必须与合并后的最新 `main` HEAD 完全一致；Windows 包仍未 Authenticode 签名 |
 | 状态源 | `product-status.json`、Schema 和 CI 漂移校验已进入 main，并已修复首次远端运行暴露的 Release Schema 漏项 | 状态源门禁通过；后续状态提升仍必须带固定提交证据 |
-| 重型门禁 | Nightly `32975827948`（`main@815bb563`）的全量回归、规模 smoke、完整 Playwright、MCP 与八生成器内容构建 8/8 全绿 | Nightly 门禁已建立并取得最新 main 的完整远端证据 |
+| 重型门禁 | Nightly `32998281437`（`main@515c212c`）的全量回归、规模 smoke、完整 Playwright、MCP 与八生成器内容构建 8/8 全绿 | FR-AI-02 的 merged-main Nightly 证据已闭环；独立固定硬件 P95 门禁仍保持 blocked |
 | Stage 9 | 八生成器黄金编译、三个专用编辑器和语言导入工具已有自动化证据；500 节点交互、2,000/10,000 规模 P95、服务端、真实 JCEF/a11y、干净 VM 和外部试用仍未关闭 | `betaEligible=false`，不得称为 Beta |
-| AI Developer Kit | 无界工作区列表已在本地统一 `cursor/limit/sort/filter/fields/nextCursor`：元素、单一 registry、恢复点和发布批次均有直接测试；2,000 元素遍历还会产出 Nightly 结构化证据 | FR-AI-02 本地实现完成，待合并后的远端 CI/Nightly 证明；FR-AI-03～05 仍未关闭 |
+| AI Developer Kit | PR #14 已统一无界工作区列表并通过 protected PR CI、`main@515c212c` CI 与 Nightly `32998281437`；当前开发主线进入原子 Workspace Plan | FR-AI-02 `passed`；FR-AI-03 实施中；FR-AI-04～05 仍未关闭 |
 | 仓库治理 | GitHub 已识别 GPLv3；Javadoc Pages 可访问；main 三项必需检查、受保护 PR 与 production 必需审阅者均已验证 | 仓库治理 P0 已闭环 |
 | Dependency Submission | 仓库 Dependency Graph 未启用，原工作流无法成功 | 误导工作流已从 main 删除 |
 
@@ -39,7 +39,7 @@
 2. 快速 CI、分支保护、真实 PR、Nightly 和人工发布审批配置已闭环；Preview 3 必须在最终合并 SHA 上保留检查、签名 Tag 和生产审批记录。
 3. 机器状态源已建立；PRD、状态索引和发布说明仍必须在每次状态提升时同步更新。
 4. Stage 9 的大型工作区、专用编辑器、语言工具、服务端 readiness、真实 JCEF/a11y 和干净 Windows 11 门禁仍未关闭。
-5. MCP 缺少大型项目分页、SDK 示例、批量原子计划和任务事件。
+5. MCP 的大型列表 Cursor 已闭环；剩余主要缺口为原子 Workspace Plan 的远端闭环、长任务事件、SDK/eval 和外部试用。
 
 因此，本阶段的产品目标不是增加更多元素，而是把现有能力变成可下载、可验证、可解释、可反馈的高级 Alpha 预览版。
 
@@ -230,9 +230,13 @@ Function、Loot Table、Advancement 在八套 Fabric/NeoForge 生成器上运行
 
 验收：2,000 元素完整遍历无遗漏、无重复；非法/过期 Cursor 返回稳定错误码。
 
+状态（2026-08-27）：`passed`。PR #14 合入 `main@515c212c`；合并后 CI run `32997587858` 与 Nightly `32998281437` 均全绿，Nightly 已上传 2,000 元素 Cursor 结构化证据。该结论不替代独立的 `workspace-2000-10000` 固定硬件 P95 Gate。
+
 #### FR-AI-03 原子工作区计划
 
 提供 `plan_workspace_changes`、`preview_workspace_plan`、`apply_workspace_plan`，支持多操作顺序、统一 revision、幂等键、语义差异、权限评估、单恢复点和全量回滚。
+
+实施状态（2026-08-27）：开发中。首个内容计划切片覆盖元素 create/update/delete、Procedure 更新和 registry create/update/delete/rename；构建、运行、迁移、导入和外部发布保持在任务/审批边界外，不并入内容原子计划。
 
 #### FR-AI-04 长任务事件
 
