@@ -2,9 +2,9 @@
 
 > 状态：实施中（可信 Preview 已建立，Beta 门禁未关闭）<br>
 > 版本：v1.2<br>
-> 更新日期：2026-08-27<br>
+> 更新日期：2026-08-28<br>
 > 前置基线：[PRD.md](./PRD.md)、[PRD-STAGE-9.md](./PRD-STAGE-9.md)<br>
-> 已验证公开基线：`v0.1.0-preview.2`；本次发布源：`v0.1.0-preview.3`；Public Beta 仍由 Stage 9、AI Developer Kit 和外部试用门禁阻断
+> 已验证公开基线：`v0.1.0-preview.2`；本次发布源：`v0.1.0-preview.3`；Public Beta 仍由 Stage 9 和外部试用门禁阻断
 
 ## 0. 阅读与执行协议
 
@@ -14,18 +14,18 @@
 - 关闭需求必须同时满足实现、自动验证、用户文档和可追溯证据，不接受只修改状态文字。
 - 本阶段冻结新模组元素类型，先建立“提交 → CI → 产物 → Release → 用户反馈”的可信闭环。
 
-### 0.1 实施快照（2026-08-27）
+### 0.1 实施快照（2026-08-28）
 
 机器可读事实入口为 [`product-status.json`](./product-status.json)，本节只解释执行状态。
 
 | 项目 | 当前事实 | 结论 |
 | --- | --- | --- |
-| Fast CI | 受保护 PR #1～#5 均取得真实全绿记录；`main@fe4b0f30` 连续三次 Java/Javadoc、UI/Playwright、MCP 全绿 | PR 门禁已闭环；连续 main 门禁 3/3 |
+| Fast CI | main 分支保护持续要求 Java/Javadoc、UI/Playwright 与 MCP；当前 `main@e8caf018` 的 merged-main run `33097229636` 全绿 | PR 门禁已闭环；机器状态源继续保留连续 main 门禁 3/3 |
 | 公开 Release | `v0.1.0-preview.2` 已完成公开验证；本 PR 冻结为 `v0.1.0-preview.3` 发布源，公开状态由 Tag API 与 `RELEASE-METADATA.json` 实时判定 | Preview 3 必须与合并后的最新 `main` HEAD 完全一致；Windows 包仍未 Authenticode 签名 |
 | 状态源 | `product-status.json`、Schema 和 CI 漂移校验已进入 main，并已修复首次远端运行暴露的 Release Schema 漏项 | 状态源门禁通过；后续状态提升仍必须带固定提交证据 |
-| 重型门禁 | Nightly `32998281437`（`main@515c212c`）的全量回归、规模 smoke、完整 Playwright、MCP 与八生成器内容构建 8/8 全绿 | FR-AI-02 的 merged-main Nightly 证据已闭环；独立固定硬件 P95 门禁仍保持 blocked |
+| 重型门禁 | Nightly `33098518016`（`main@e8caf018`）的全量 Java/Javadoc/scale 回归、完整 Playwright、MCP 与八生成器内容构建 8/8 全绿；native JCEF reconnect 1/1 实际执行通过 | FR-AI-02～05 的固定提交 Nightly 证据已闭环；独立固定硬件 P95、JCEF a11y、服务端、干净 VM 等 Stage 9 门禁仍保持 blocked |
 | Stage 9 | 八生成器黄金编译、三个专用编辑器和语言导入工具已有自动化证据；500 节点交互、2,000/10,000 规模 P95、服务端、真实 JCEF/a11y、干净 VM 和外部试用仍未关闭 | `betaEligible=false`，不得称为 Beta |
-| AI Developer Kit | PR #14 已关闭无界列表；PR #15 的 Workspace Plan、PR #16 的 Task Events/SDK、PR #17 的 Windows-native JCEF reconnect 验收均已合入；`main@3d11d605` 的 Build and test `33075579142` 全绿 | FR-AI-02 `passed`；FR-AI-03～05 现在主要等待一个记录明确 main SHA 的 Windows Nightly；FR-AI-04 的 native reconnect 已进入 main，不再缺 protected merge 证据 |
+| AI Developer Kit | PR #14～#17 的 Cursor、Workspace Plan、Task Events/SDK 与 Windows-native JCEF reconnect 均已合入；`main@e8caf018` 的 merged-main CI `33097229636` 与固定提交 Nightly `33098518016` 全绿 | FR-AI-02～05 均为 `passed`；MCP reconnect 继续冻结为 `get_task(afterLogSequence)`，不引入未版本化的自定义 push 方言 |
 | 仓库治理 | GitHub 已识别 GPLv3；Javadoc Pages 可访问；main 三项必需检查、受保护 PR 与 production 必需审阅者均已验证 | 仓库治理 P0 已闭环 |
 | Dependency Submission | 仓库 Dependency Graph 未启用，原工作流无法成功 | 误导工作流已从 main 删除 |
 
@@ -236,19 +236,19 @@ Function、Loot Table、Advancement 在八套 Fabric/NeoForge 生成器上运行
 
 提供 `plan_workspace_changes`、`preview_workspace_plan`、`apply_workspace_plan`，支持多操作顺序、统一 revision、幂等键、语义差异、权限评估、单恢复点和全量回滚。
 
-实施状态（2026-08-27）：首个内容计划切片已由 PR #15 合入 `main@1f31b2b6`，并继续存在于当前 `main@3d11d605`。protected PR CI `33044562447`、首次 merged-main CI `33044983727` 以及当前 main CI `33075579142` 均全绿；当前仍保持 `in-progress`，直到一个**记录明确 source SHA、且该 SHA 为 PR #15 merge 后代**的 Nightly 通过并完成支持边界复核。固定提交证据要求的是可追溯且包含实现的 main SHA，不要求重建已经过去的历史 branch-tip 瞬间。切片覆盖元素 create/update/delete、Procedure 更新和 registry create/update/delete/rename；构建、运行、迁移、导入和外部发布保持在任务/审批边界外，不并入内容原子计划。
+实施状态（2026-08-28）：**passed**。首个内容计划切片由 PR #15 合入 `main@1f31b2b6`；固定提交 Windows Nightly `33098518016` 已在明确 source `main@e8caf018` 上全绿，`WorkspacePlanEngineTest` 5/5 通过，完整 Java/Javadoc/规模回归、Playwright 与 MCP conformance 均通过。支持边界复核确认计划仅覆盖元素 create/update/delete、Procedure 更新和 registry create/update/delete/rename；构建、运行、迁移、导入、datagen 发布和其他外部副作用仍留在任务/审批边界外，不并入内容原子计划。该 Nightly 是 PR #15 merge 的 main 后代，满足固定提交可追溯要求。
 
 #### FR-AI-04 长任务事件
 
 构建、客户端/服务端、datagen、GameTest 支持进度、日志、诊断、确认请求、取消和重连恢复；轮询接口继续兼容。
 
-实施状态（2026-08-27）：PR #16 的 Task Events 与 PR #17 的 Windows-native reconnect 验收均已合入当前 `main@3d11d605`。PR #17 protected `Build and test` `33075057263` 与 merged-main `Build and test` `33075579142` 均全绿。Core 任务事件发布、JCEF 重连重放和序列缺口恢复已实现；`WorkspaceTaskEventTest` 使用实际异步 `GradleWorkspaceTaskGateway` 覆盖 progress/log、失败诊断、运行中取消与断线后 retained replay，并已修复取消后后台 exit 130 被误记为第二次 workspace failure 的日志噪声。`Stage10NativeJcefTaskReconnectTest` 在 Windows 上用真实 JCEF/Chromium + 实际异步 task gateway 验证在线日志、浏览器断开期间 retained log、第二个 native host 重放和取消完成事件，本地强制执行通过；该测试仅按 OS 限制、无需私有开关，因此 Windows Nightly 的全量 `test` 会自然执行。MCP/Headless 当前冻结的恢复路径仍是 `get_task(afterLogSequence)`；在没有明确版本边界前不引入自定义 push notification 方言。FR-AI-04 仍保持 `blocked`，现在只等待包含 PR #17 的固定提交 Windows Nightly 证据。
+实施状态（2026-08-28）：**passed**。PR #16 的 Task Events 与 PR #17 的 Windows-native reconnect 验收均已进入 `main@e8caf018`。固定提交 Windows Nightly `33098518016` 的 Java 报告为 341 tests / 0 failures；`WorkspaceTaskEventTest` 3/3 通过，Windows-only `Stage10NativeJcefTaskReconnectTest` 1/1 真实执行并通过，标准输出明确初始化 JCEF `137.0.17.1142.68de80bc86de497c8d0632ad0f8fe33625b33bff`、CEF `137.0.17` 与 Chromium `137.0.7151.104`。同一 Nightly 的完整 Playwright 与 MCP conformance 也通过。Core 事件、JCEF retained replay、取消与序列缺口恢复因此取得固定提交 native 证据。MCP/Headless 的冻结恢复路径继续保持 `get_task(afterLogSequence)`；在没有明确版本边界前不引入自定义 push notification 方言。
 
 #### FR-AI-05 SDK 与评测
 
 提供 TypeScript/Python 最小客户端和至少 10 个 AI eval，覆盖创建元素、Procedure 修改、重命名引用、构建修复、revision 冲突、越权拒绝、datagen 取消/发布和恢复。
 
-实施状态（2026-08-27）：`sdk/typescript`、`sdk/python`、`sdk/evals/manifest.json` 和最小示例已随 PR #16 合入，并继续存在于当前 `main@3d11d605`。10 项 manifest/覆盖校验通过，本地真实 loopback HTTP MCP live eval **10/10** 通过（含独立 read-only 权限会话），PR #16 protected CI `33071508349`、首次 merged-main CI `33071953778` 与当前 main CI `33075579142` 均全绿。FR-AI-05 现在只等待一个记录明确 main source SHA、且包含 PR #16 的 Nightly 固定提交证据后再评估关闭。
+实施状态（2026-08-28）：**passed**。`sdk/typescript`、`sdk/python`、`sdk/evals/manifest.json` 和最小示例已随 PR #16 合入；10 项 manifest/覆盖校验与真实 loopback HTTP MCP live eval **10/10** 均已通过（含独立 read-only 权限会话）。固定提交 Windows Nightly `33098518016` 在包含 PR #16 的 `main@e8caf018` 上完成全量 Java/Javadoc、Playwright、MCP conformance 与 8/8 generator golden，提供了缺失的 merged implementation Nightly 证据。Nightly 不被表述为重新执行 live-eval harness；10/10 仍由专用 HTTP MCP 评测记录证明。
 
 ### 5.6 外部试用与反馈
 
