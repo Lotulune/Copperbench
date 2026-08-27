@@ -47,6 +47,23 @@ class ProcedureIrCodecTest {
 		assertTrue(codec.toBlocklyXml(moved).contains(unknown));
 	}
 
+	@Test void keepsNestedUnknownBlocklyBlocksByteExactInsideKnownParents() {
+		String unknown = "<block type=\"plugin_future_statement\" id=\"" + UNKNOWN_ID
+				+ "\"><field name=\"opaque\">nested &amp; exact</field></block>";
+		String xml = "<xml xmlns=\"https://developers.google.com/blockly/xml\">"
+				+ "<block type=\"event_trigger\" id=\"" + TRIGGER_ID + "\">"
+				+ "<field name=\"trigger\">no_ext_trigger</field><next>" + unknown + "</next></block></xml>";
+		ProcedureIrCodec codec = new ProcedureIrCodec();
+
+		ProcedureIr parsed = codec.fromBlocklyXml(xml, ELEMENT_ID);
+		ProcedureIr.Node trigger = parsed.nodeIndex().get(TRIGGER_ID);
+		ProcedureIr.Node opaque = parsed.nodeIndex().get(UNKNOWN_ID);
+
+		assertEquals(UNKNOWN_ID, trigger.next());
+		assertEquals(unknown, opaque.rawPayload());
+		assertTrue(codec.toBlocklyXml(parsed).contains("<next>" + unknown + "</next>"));
+	}
+
 	@Test void reportsCyclesAndDanglingPortsAfterStructuredEdits() {
 		ProcedureIrCodec codec = new ProcedureIrCodec();
 		JsonObject values = new JsonObject();
