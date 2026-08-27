@@ -25,7 +25,7 @@
 | 状态源 | `product-status.json`、Schema 和 CI 漂移校验已进入 main，并已修复首次远端运行暴露的 Release Schema 漏项 | 状态源门禁通过；后续状态提升仍必须带固定提交证据 |
 | 重型门禁 | Nightly `32998281437`（`main@515c212c`）的全量回归、规模 smoke、完整 Playwright、MCP 与八生成器内容构建 8/8 全绿 | FR-AI-02 的 merged-main Nightly 证据已闭环；独立固定硬件 P95 门禁仍保持 blocked |
 | Stage 9 | 八生成器黄金编译、三个专用编辑器和语言导入工具已有自动化证据；500 节点交互、2,000/10,000 规模 P95、服务端、真实 JCEF/a11y、干净 VM 和外部试用仍未关闭 | `betaEligible=false`，不得称为 Beta |
-| AI Developer Kit | PR #14 已关闭无界列表；PR #15 的原子 Workspace Plan 已合入 `main@1f31b2b6`，protected PR CI `33044562447` 与 merged-main CI `33044983727` 均通过，Nightly 仍待补 | FR-AI-02 `passed`；FR-AI-03 实现与快速远端 CI 已闭环但仍待 merged-main Nightly；FR-AI-04～05 仍未关闭 |
+| AI Developer Kit | PR #14 已关闭无界列表；PR #15 的原子 Workspace Plan 已合入 `main@1f31b2b6`，protected PR CI `33044562447` 与 merged-main CI `33044983727` 均通过；PR #16 head `564b2ed4` 的 protected CI `33068820470` 也已全绿 | FR-AI-02 `passed`；FR-AI-03 仍待 exact Nightly；FR-AI-04 已补异步 task fixture 但仍待真实 native JCEF 与 merged-main/Nightly；FR-AI-05 仍待 merged-main/Nightly 固定提交证据 |
 | 仓库治理 | GitHub 已识别 GPLv3；Javadoc Pages 可访问；main 三项必需检查、受保护 PR 与 production 必需审阅者均已验证 | 仓库治理 P0 已闭环 |
 | Dependency Submission | 仓库 Dependency Graph 未启用，原工作流无法成功 | 误导工作流已从 main 删除 |
 
@@ -242,13 +242,13 @@ Function、Loot Table、Advancement 在八套 Fabric/NeoForge 生成器上运行
 
 构建、客户端/服务端、datagen、GameTest 支持进度、日志、诊断、确认请求、取消和重连恢复；轮询接口继续兼容。
 
-实施状态（2026-08-27）：Core 任务事件发布、JCEF 重连重放和序列缺口恢复已实现首个切片；MCP/Headless 保持 `get_task` 轮询兼容，完整事件订阅协议和真实长任务重连验收仍待完成。
+实施状态（2026-08-27）：Core 任务事件发布、JCEF 重连重放和序列缺口恢复已实现；`WorkspaceTaskEventTest` 已使用实际异步 `GradleWorkspaceTaskGateway` 覆盖 progress/log、失败诊断、运行中取消与断线后 retained replay，并修复取消后后台 exit 130 被误记为第二次 workspace failure 的日志噪声。PR #16 head `564b2ed4` 的 protected CI `33068820470` 已全绿。MCP/Headless 当前冻结的恢复路径仍是 `get_task(afterLogSequence)`；在没有明确版本边界前不引入自定义 push notification 方言。FR-AI-04 仍保持 `blocked`，直到真实 native JCEF 长任务 retention/reconnect 与 merged-main/Nightly 固定提交证据完成。
 
 #### FR-AI-05 SDK 与评测
 
 提供 TypeScript/Python 最小客户端和至少 10 个 AI eval，覆盖创建元素、Procedure 修改、重命名引用、构建修复、revision 冲突、越权拒绝、datagen 取消/发布和恢复。
 
-实施状态（2026-08-27）：`sdk/typescript`、`sdk/python`、`sdk/evals/manifest.json` 和最小示例已加入。10 项 manifest/覆盖校验通过，且本地 `verify-ai-live-evals.ps1` 已使用真实 loopback HTTP MCP 会话完成 **10/10** live eval（含独立 read-only 权限会话）。当前仍需 protected PR CI、merged-main/Nightly 固定提交证据后才能关闭 FR-AI-05。
+实施状态（2026-08-27）：`sdk/typescript`、`sdk/python`、`sdk/evals/manifest.json` 和最小示例已加入。10 项 manifest/覆盖校验通过，且本地 `verify-ai-live-evals.ps1` 已使用真实 loopback HTTP MCP 会话完成 **10/10** live eval（含独立 read-only 权限会话）；PR #16 head `564b2ed4` 的 protected CI `33068820470` 也已全绿。当前仍需 merged-main/Nightly 固定提交证据后才能关闭 FR-AI-05。
 
 ### 5.6 外部试用与反馈
 

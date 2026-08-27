@@ -1,7 +1,7 @@
 # Stage 10 AI SDK live eval evidence - 2026-08-27
 
-This record covers the local executable slice of `FR-AI-05`. The gate remains
-**in progress** until protected PR CI and merged-main evidence exist.
+This record covers the executable slice of `FR-AI-05`. The gate remains
+**in progress** until merged-main evidence exists.
 
 ## Harness
 
@@ -27,6 +27,10 @@ pwsh -NoProfile -File scripts/verify-ai-live-evals.ps1
 
 Result: **10/10 passed**.
 
+Protected PR #16 CI also passed on head `564b2ed4`: `Build and test` run
+`33068820470` completed successfully across Java/Javadoc, UI, MCP conformance,
+and the JUnit report job.
+
 Workspace-profile cases:
 
 1. create element;
@@ -44,6 +48,7 @@ Read-only-profile case:
 10. unauthorized create is rejected with `PERMISSION_DENIED`.
 
 The static manifest verifier also passes: 10 cases and 10 required coverage
-targets. This local evidence proves that the SDK/eval contract can execute over
-the real MCP HTTP boundary; it does not by itself satisfy protected PR CI,
-merged-main Nightly, real JCEF task-event subscription, or external-user gates.
+targets. Together with protected PR CI, this proves that the SDK/eval contract
+executes over the real MCP HTTP boundary on the reviewed PR head. It does not
+by itself satisfy merged-main/Nightly, real native JCEF task-event validation,
+or external-user gates.

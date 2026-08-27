@@ -131,8 +131,8 @@
     {"id": "five-external-testers", "status": "blocked", "betaBlocking": true, "evidence": []},
     {"id": "ai-unbounded-list-contract", "status": "passed", "betaBlocking": true, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/32998281437", "docs/testing/stage-10-ai-cursor-2026-08-26.md"]},
     {"id": "ai-workspace-plan", "status": "in-progress", "betaBlocking": true, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/33044562447", "https://github.com/Lotulune/Copperbench/actions/runs/33044983727", "docs/testing/stage-10-ai-workspace-plan-2026-08-27.md"]},
-    {"id": "ai-task-events", "status": "blocked", "betaBlocking": true, "evidence": ["docs/testing/stage-10-ai-task-events-2026-08-27.md"]},
-    {"id": "ai-sdk-evals", "status": "in-progress", "betaBlocking": true, "evidence": ["sdk/typescript/copperbench.ts", "sdk/python/copperbench.py", "sdk/evals/manifest.json", "scripts/verify-ai-evals.mjs", "scripts/run-ai-live-evals.py", "scripts/verify-ai-live-evals.ps1", "docs/testing/stage-10-ai-sdk-live-evals-2026-08-27.md"]}
+    {"id": "ai-task-events", "status": "blocked", "betaBlocking": true, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/33068820470", "docs/testing/stage-10-ai-task-events-2026-08-27.md", "src/test/java/dev/copperbench/core/application/WorkspaceTaskEventTest.java"]},
+    {"id": "ai-sdk-evals", "status": "in-progress", "betaBlocking": true, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/33068820470", "sdk/typescript/copperbench.ts", "sdk/python/copperbench.py", "sdk/evals/manifest.json", "scripts/verify-ai-evals.mjs", "scripts/run-ai-live-evals.py", "scripts/verify-ai-live-evals.ps1", "docs/testing/stage-10-ai-sdk-live-evals-2026-08-27.md"]}
   ],
   "mcp": {
     "transport": "streamable-http",

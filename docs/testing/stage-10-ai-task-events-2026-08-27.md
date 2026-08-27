@@ -1,7 +1,7 @@
 # Stage 10 AI task events implementation - 2026-08-27
 
-This record covers the first implementation slice of `FR-AI-04`. The gate
-remains **blocked** until protected PR CI, merged-main CI/Nightly, and a real
+This record covers the current implementation slice of `FR-AI-04`. The gate
+remains **blocked** until merged-main CI/Nightly and a real native JCEF
 long-running task reconnect trial are complete.
 
 ## Implemented
@@ -31,19 +31,31 @@ long-running task reconnect trial are complete.
   cursor contract.
 - Product status and local Markdown link checks passed.
 - With `JAVA_HOME` explicitly set to the repository-bundled
-  `jdk/jbr25_win_64`, `WorkspaceTaskEventTest` compiled and passed **2/2**:
-  retained task-event replay after reconnect and `afterLogSequence`
-  incremental polling both passed.
+  `jdk/jbr25_win_64`, `WorkspaceTaskEventTest` compiled and passed **3/3**:
+  retained task-event replay after reconnect, `afterLogSequence` incremental
+  polling, and the asynchronous Gradle task fixture all passed.
 - `McpHttpServerTest` passed after adding the MCP `cancel_task` and protected
   `restore_recovery_point` surfaces. The restore surface deliberately returns
   `USER_APPROVAL_REQUIRED` to MCP rather than allowing the client to
   self-assert desktop approval.
+- Protected PR #16 CI is green on head `564b2ed4`: `Build and test` run
+  `33068820470` completed successfully across Java/Javadoc, UI, MCP
+  conformance, and the JUnit report job.
+- `WorkspaceTaskEventTest` now also exercises the actual asynchronous
+  `GradleWorkspaceTaskGateway` with a controlled process boundary, covering
+  progress and log emission, failure diagnostics, cancellation while a task is
+  running, and retained replay after disconnect/reconnect.
+- That fixture exposed and closed a cancellation-noise bug: an interrupted
+  external task no longer emits a second synthetic workspace-failure log after
+  its task state has already committed to `cancelled`.
 
 ## Remaining closure work
 
-- Add a real asynchronous task fixture covering progress, log replay,
-  diagnostics, cancellation, and reconnect after a sequence gap.
-- Run protected PR CI and merged-main Nightly evidence, then review event
-  retention and reconnect behavior on a real JCEF host.
+- Merge only after review, then record exact merged-main CI/Nightly evidence.
+- Review event retention and reconnect behavior on a real native JCEF host
+  with a genuinely long-running managed task.
+- Decide whether MCP needs a frozen push-subscription surface beyond the
+  versioned `get_task(afterLogSequence)` reconnect contract; do not introduce a
+  custom notification dialect without an explicit protocol/version boundary.
 - Keep `ai-task-events` blocked in `product-status.json` until those records
   exist.

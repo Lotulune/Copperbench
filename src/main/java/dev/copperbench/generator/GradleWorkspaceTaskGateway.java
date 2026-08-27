@@ -158,6 +158,7 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 			job.succeed("task." + taskKind(operation) + ".completed",
 					backend.displayName() + " " + taskKind(operation) + " completed");
 		} catch (Exception exception) {
+			if (job.isCancelled()) return;
 			String failureId = UUID.randomUUID().toString();
 			LOG.error("Workspace task failure {} (backend={}, operation={}, workspaceId={})", failureId,
 					backend.displayName(), operation, workspaceId, exception);
@@ -732,6 +733,10 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 
 		private boolean isRunning() {
 			return summary.get("state").getAsString().equals("running");
+		}
+
+		private synchronized boolean isCancelled() {
+			return summary.get("state").getAsString().equals("cancelled");
 		}
 	}
 }

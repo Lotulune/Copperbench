@@ -4,7 +4,7 @@
 
 ## 当前状态
 
-阶段 8 收口需求 `FR-CLOSE-01`～`FR-CLOSE-08` 均已完成。`v0.1.0-preview.2` 已公开并验证完整 Windows 三包、SBOM、哈希、源元数据和生产审批；`v0.1.0-preview.3` 是历史冻结发布源，后续 main 提交已使其不再等于当前 HEAD。GitHub 已正确识别 GPLv3，Javadoc Pages 可访问，main 保护、真实受保护 PR 与 production 审批均已验证。Nightly `32998281437` 在 `515c212c` 上的产品回归、规模 smoke、完整 Playwright、MCP 与八生成器黄金编译均通过。PR #15 的 Workspace Plan 已合入 `main@1f31b2b6`，protected PR CI `33044562447` 与 merged-main CI `33044983727` 均通过，但该提交的 Nightly 证据尚未取得。Stage 9 仍有多个 Beta 阻断门禁，外部试用为 0/5。
+阶段 8 收口需求 `FR-CLOSE-01`～`FR-CLOSE-08` 均已完成。`v0.1.0-preview.2` 已公开并验证完整 Windows 三包、SBOM、哈希、源元数据和生产审批；`v0.1.0-preview.3` 是历史冻结发布源，后续 main 提交已使其不再等于当前 HEAD。GitHub 已正确识别 GPLv3，Javadoc Pages 可访问，main 保护、真实受保护 PR 与 production 审批均已验证。Nightly `32998281437` 在 `515c212c` 上的产品回归、规模 smoke、完整 Playwright、MCP 与八生成器黄金编译均通过。PR #15 的 Workspace Plan 已合入 `main@1f31b2b6`，protected PR CI `33044562447` 与 merged-main CI `33044983727` 均通过，但该提交的 Nightly 证据尚未取得。PR #16 head `564b2ed4` 的 protected `Build and test` run `33068820470` 也已全绿，FR-AI-04/05 仍需 merged-main/Nightly 与真实 native JCEF 等后续证据。Stage 9 仍有多个 Beta 阻断门禁，外部试用为 0/5。
 
 ## 当前交付阻断项
 
@@ -25,7 +25,7 @@
 | 项 | 当前状态 | 证据/备注 |
 | --- | --- | --- |
 | Procedure 领域模型与编辑器 | 开发预览 | 结构化 IR、未知块保留、Blockly 工作台、预览/保存与引用索引已有自动化覆盖；500 节点交互门禁未关 |
-| 变量 / 标签 / 语言 | 开发预览 | 稳定 ID、CRUD、重命名影响预览与引用计数已接 UI/MCP/headless；语言导入导出、回退和诊断待补 |
+| 变量 / 标签 / 语言 | 开发预览 | 稳定 ID、CRUD、重命名影响预览与引用计数已接 UI/MCP/headless；语言 CSV/JSON 导入导出、merge/keep/replace、缺失/重复键统计已实现，剩余是纳入真实 JCEF/Windows 产品门禁 |
 | Function / Loot Table / Advancement | UI 已补齐，仍为开发预览 | 专用编辑器、保存和代表性字段编辑在两个 viewport 的 16/16 E2E 中通过；八生成器黄金编译已 8/8 通过，真实 JCEF 主路径仍待补 |
 | 服务端 / datagen / GameTest | 核心路径完成 | 受管任务、日志和隔离目录已接入；datagen 支持暂存差异、确认发布与事务回滚 |
 | 发布门禁 | 未关闭 | 500 节点与 10,000 引用性能、全轨 readiness、真实 JCEF、Windows 11 干净 VM 仍需证据 |
