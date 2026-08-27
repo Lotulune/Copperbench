@@ -4,7 +4,7 @@
 
 ## 当前状态
 
-阶段 8 收口需求 `FR-CLOSE-01`～`FR-CLOSE-08` 均已完成。`v0.1.0-preview.2` 已公开并验证完整 Windows 三包、SBOM、哈希、源元数据和生产审批；`v0.1.0-preview.3` 是历史冻结发布源，后续 main 提交已使其不再等于当前 HEAD。GitHub 已正确识别 GPLv3，Javadoc Pages 可访问，main 保护、真实受保护 PR 与 production 审批均已验证。最近完整 Nightly `32998281437` 在 `515c212c` 上的产品回归、规模 smoke、完整 Playwright、MCP 与八生成器黄金编译均通过。PR #15 的 Workspace Plan 与 PR #16 的 Task Events/SDK 已进入当前 `main@a7304fb6`；merged-main `Build and test` `33071953778` 与 Javadoc publish `33071953877` 均全绿。FR-AI-04 的 Windows-native JCEF 长任务重连已在独立自动测试中本地通过，正在通过小 PR 固化；FR-AI-03～05 现在主要等待一个记录明确 main source SHA 且包含相应实现的 Nightly。Stage 9 仍有多个 Beta 阻断门禁，外部试用为 0/5。
+阶段 8 收口需求 `FR-CLOSE-01`～`FR-CLOSE-08` 均已完成。`v0.1.0-preview.2` 已公开并验证完整 Windows 三包、SBOM、哈希、源元数据和生产审批；`v0.1.0-preview.3` 是历史冻结发布源，后续 main 提交已使其不再等于当前 HEAD。GitHub 已正确识别 GPLv3，Javadoc Pages 可访问，main 保护、真实受保护 PR 与 production 审批均已验证。最近完整 Nightly `32998281437` 在 `515c212c` 上的产品回归、规模 smoke、完整 Playwright、MCP 与八生成器黄金编译均通过。PR #15 的 Workspace Plan、PR #16 的 Task Events/SDK 与 PR #17 的 Windows-native JCEF reconnect 验收均已进入当前 `main@3d11d605`；PR #17 protected `Build and test` `33075057263` 与 merged-main `Build and test` `33075579142` 均全绿。FR-AI-03～05 现在主要等待一个记录明确 main source SHA 且包含相应实现的 Windows Nightly。Stage 9 仍有多个 Beta 阻断门禁，外部试用为 0/5。
 
 ## 当前交付阻断项
 

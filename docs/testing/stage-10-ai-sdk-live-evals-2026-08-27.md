@@ -36,6 +36,9 @@ PR #16 merged as `main@a7304fb6`. Merged-main `Build and test` run
 `33071953778` passed Java/Javadoc, UI, MCP conformance, and the JUnit report
 job; Javadoc publish run `33071953877` also passed.
 
+The SDK/eval slice remains green on current descendant `main@3d11d605`:
+merged-main `Build and test` run `33075579142` passed after PR #17.
+
 Workspace-profile cases:
 
 1. create element;

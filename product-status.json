@@ -38,11 +38,11 @@
     },
     "fastCi": {
       "status": "passed",
-      "run": "https://github.com/Lotulune/Copperbench/actions/runs/33071953778",
+      "run": "https://github.com/Lotulune/Copperbench/actions/runs/33075579142",
       "latestAttempt": {
         "status": "passed",
-        "run": "https://github.com/Lotulune/Copperbench/actions/runs/33071953778",
-        "reason": "main@a7304fb6 passed Java/Javadoc, UI/Playwright smoke, MCP conformance, and JUnit reporting after PR #16 merged; the latest heavy Nightly remains main@515c212c."
+        "run": "https://github.com/Lotulune/Copperbench/actions/runs/33075579142",
+        "reason": "main@3d11d605 passed Java/Javadoc, UI/Playwright smoke, MCP conformance, and JUnit reporting after PR #17 merged; the latest heavy Nightly remains main@515c212c."
       },
       "runs": [
         "https://github.com/Lotulune/Copperbench/actions/runs/32904346297",
@@ -130,9 +130,9 @@
     {"id": "clean-windows-11-stage9", "status": "blocked", "betaBlocking": true, "evidence": []},
     {"id": "five-external-testers", "status": "blocked", "betaBlocking": true, "evidence": []},
     {"id": "ai-unbounded-list-contract", "status": "passed", "betaBlocking": true, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/32998281437", "docs/testing/stage-10-ai-cursor-2026-08-26.md"]},
-    {"id": "ai-workspace-plan", "status": "in-progress", "betaBlocking": true, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/33044562447", "https://github.com/Lotulune/Copperbench/actions/runs/33044983727", "https://github.com/Lotulune/Copperbench/actions/runs/33071953778", "docs/testing/stage-10-ai-workspace-plan-2026-08-27.md"]},
-    {"id": "ai-task-events", "status": "blocked", "betaBlocking": true, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/33071508349", "https://github.com/Lotulune/Copperbench/actions/runs/33071953778", "docs/testing/stage-10-ai-task-events-2026-08-27.md", "src/test/java/dev/copperbench/core/application/WorkspaceTaskEventTest.java", "src/test/java/dev/copperbench/shell/Stage10NativeJcefTaskReconnectTest.java"]},
-    {"id": "ai-sdk-evals", "status": "in-progress", "betaBlocking": true, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/33071508349", "https://github.com/Lotulune/Copperbench/actions/runs/33071953778", "sdk/typescript/copperbench.ts", "sdk/python/copperbench.py", "sdk/evals/manifest.json", "scripts/verify-ai-evals.mjs", "scripts/run-ai-live-evals.py", "scripts/verify-ai-live-evals.ps1", "docs/testing/stage-10-ai-sdk-live-evals-2026-08-27.md"]}
+    {"id": "ai-workspace-plan", "status": "in-progress", "betaBlocking": true, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/33044562447", "https://github.com/Lotulune/Copperbench/actions/runs/33044983727", "https://github.com/Lotulune/Copperbench/actions/runs/33075579142", "docs/testing/stage-10-ai-workspace-plan-2026-08-27.md"]},
+    {"id": "ai-task-events", "status": "blocked", "betaBlocking": true, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/33071508349", "https://github.com/Lotulune/Copperbench/actions/runs/33075057263", "https://github.com/Lotulune/Copperbench/actions/runs/33075579142", "docs/testing/stage-10-ai-task-events-2026-08-27.md", "src/test/java/dev/copperbench/core/application/WorkspaceTaskEventTest.java", "src/test/java/dev/copperbench/shell/Stage10NativeJcefTaskReconnectTest.java"]},
+    {"id": "ai-sdk-evals", "status": "in-progress", "betaBlocking": true, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/33071508349", "https://github.com/Lotulune/Copperbench/actions/runs/33075579142", "sdk/typescript/copperbench.ts", "sdk/python/copperbench.py", "sdk/evals/manifest.json", "scripts/verify-ai-evals.mjs", "scripts/run-ai-live-evals.py", "scripts/verify-ai-live-evals.ps1", "docs/testing/stage-10-ai-sdk-live-evals-2026-08-27.md"]}
   ],
   "mcp": {
     "transport": "streamable-http",

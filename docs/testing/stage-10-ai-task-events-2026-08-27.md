@@ -1,8 +1,8 @@
 # Stage 10 AI task events implementation - 2026-08-27
 
 This record covers the current implementation slice of `FR-AI-04`. The gate
-remains **blocked** until the Windows-native reconnect proof is merged and a
-fixed-commit Nightly records it on `main`.
+remains **blocked** only until a fixed-commit Windows Nightly records the merged
+native reconnect proof on `main`.
 
 ## Implemented
 
@@ -44,6 +44,10 @@ fixed-commit Nightly records it on `main`.
 - PR #16 subsequently merged as `main@a7304fb6`; merged-main `Build and test`
   run `33071953778` passed Java/Javadoc, UI, MCP conformance, and the JUnit
   report job. Javadoc publish run `33071953877` also passed.
+- PR #17 added the Windows-native reconnect acceptance test. Its protected
+  `Build and test` run `33075057263` passed, and PR #17 merged as
+  `main@3d11d605`; merged-main `Build and test` run `33075579142` passed
+  Java/Javadoc, UI, MCP conformance, and the JUnit report job.
 - `WorkspaceTaskEventTest` now also exercises the actual asynchronous
   `GradleWorkspaceTaskGateway` with a controlled process boundary, covering
   progress and log emission, failure diagnostics, cancellation while a task is
@@ -58,12 +62,10 @@ fixed-commit Nightly records it on `main`.
   browser transport, emits a task log while disconnected, then proves retained
   replay and cancelled-task completion through a second native JCEF host. The
   final forced local run passed in 58 seconds. Because the test is enabled by OS rather than
-  a private flag, the Windows Nightly full Java test suite will execute it once
-  this test is merged.
+  a private flag, the Windows Nightly full Java test suite will execute it.
 
 ## Remaining closure work
 
-- Land the Windows-native reconnect acceptance test through protected review.
 - Record a fixed-commit Windows Nightly on a `main` SHA that contains that test
   and the PR #16 task-event implementation.
 - Decide whether MCP needs a frozen push-subscription surface beyond the
