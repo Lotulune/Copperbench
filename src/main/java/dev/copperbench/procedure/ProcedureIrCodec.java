@@ -454,6 +454,7 @@ public final class ProcedureIrCodec {
 
 	private static Map<String, String> rawBlocks(String xml) {
 		Map<String, String> result = new HashMap<>();
+		Map<String, Integer> starts = new HashMap<>();
 		List<RawBlockFrame> stack = new ArrayList<>();
 		Matcher tokens = BLOCK_TOKEN.matcher(xml);
 		while (tokens.find()) {
@@ -463,19 +464,29 @@ public final class ProcedureIrCodec {
 				if (stack.isEmpty()) continue;
 				RawBlockFrame frame = stack.remove(stack.size() - 1);
 				if (!frame.type().isBlank() && !KNOWN_TYPES.contains(frame.type()))
-					result.putIfAbsent(identity(frame.type(), frame.id()), xml.substring(frame.start(), tokens.end()));
+					preserveEarliestRawBlock(result, starts, identity(frame.type(), frame.id()), xml, frame.start(),
+							tokens.end());
 				continue;
 			}
 			String type = attribute(token, "type");
 			String id = attribute(token, "id");
 			if (normalized.endsWith("/>")) {
 				if (!type.isBlank() && !KNOWN_TYPES.contains(type))
-					result.putIfAbsent(identity(type, id), xml.substring(tokens.start(), tokens.end()));
+					preserveEarliestRawBlock(result, starts, identity(type, id), xml, tokens.start(), tokens.end());
 			} else {
 				stack.add(new RawBlockFrame(type, id, tokens.start()));
 			}
 		}
 		return result;
+	}
+
+	private static void preserveEarliestRawBlock(Map<String, String> result, Map<String, Integer> starts,
+			String identity, String xml, int start, int end) {
+		Integer existingStart = starts.get(identity);
+		if (existingStart == null || start < existingStart) {
+			starts.put(identity, start);
+			result.put(identity, xml.substring(start, end));
+		}
 	}
 
 	private record RawBlockFrame(String type, String id, int start) { }

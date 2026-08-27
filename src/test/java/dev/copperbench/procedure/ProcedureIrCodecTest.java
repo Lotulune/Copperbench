@@ -64,6 +64,21 @@ class ProcedureIrCodecTest {
 		assertTrue(codec.toBlocklyXml(parsed).contains("<next>" + unknown + "</next>"));
 	}
 
+	@Test void preservesOuterUnknownPayloadWhenNestedBlocksShareAnIdentity() {
+		String inner = "<block type=\"plugin_duplicate\"><field name=\"opaque\">inner</field></block>";
+		String outer = "<block type=\"plugin_duplicate\"><field name=\"opaque\">outer</field>"
+				+ "<value name=\"nested\">" + inner + "</value></block>";
+		String xml = "<xml xmlns=\"https://developers.google.com/blockly/xml\">" + outer + "</xml>";
+		ProcedureIrCodec codec = new ProcedureIrCodec();
+
+		ProcedureIr parsed = codec.fromBlocklyXml(xml, ELEMENT_ID);
+		ProcedureIr.Node opaque = parsed.nodes().stream().filter(ProcedureIr.Node::unknown).findFirst().orElseThrow();
+
+		assertEquals(1, parsed.nodes().size(), "children of an unknown block must remain opaque");
+		assertEquals(outer, opaque.rawPayload());
+		assertTrue(codec.toBlocklyXml(parsed).contains(outer));
+	}
+
 	@Test void reportsCyclesAndDanglingPortsAfterStructuredEdits() {
 		ProcedureIrCodec codec = new ProcedureIrCodec();
 		JsonObject values = new JsonObject();
