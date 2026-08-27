@@ -101,8 +101,8 @@ but no conformance scenario fails.
 
 - PR #15 head `79fbfe00`: protected `Build and test` run `33044562447` passed.
 - Merge commit `1f31b2b6`: merged-main `Build and test` run `33044983727` passed.
-- Current descendant `main@a7304fb6`: `Build and test` run `33071953778`
-  passed, confirming the Workspace Plan slice remains green after PR #16.
+- Current descendant `main@3d11d605`: `Build and test` run `33075579142`
+  passed, confirming the Workspace Plan slice remains green after PR #17.
 - A fixed-commit Nightly on a current `main` descendant containing PR #15 is
   still pending. The evidence must record the tested SHA; it does not need to
   recreate the historical instant where `1f31b2b6` was the branch tip.
