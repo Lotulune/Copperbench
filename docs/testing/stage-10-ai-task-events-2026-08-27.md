@@ -1,8 +1,8 @@
 # Stage 10 AI task events implementation - 2026-08-27
 
-This record covers the current implementation slice of `FR-AI-04`. The gate
-remains **blocked** only until a fixed-commit Windows Nightly records the merged
-native reconnect proof on `main`.
+This record covers `FR-AI-04`. Fixed-commit Windows Nightly `33098518016` passed
+on `main@e8caf01891238469cbb99c403c7c304fa535e5f6` and recorded the merged
+native reconnect proof, so the gate is **passed**.
 
 ## Implemented
 
@@ -64,12 +64,23 @@ native reconnect proof on `main`.
   final forced local run passed in 58 seconds. Because the test is enabled by OS rather than
   a private flag, the Windows Nightly full Java test suite will execute it.
 
-## Remaining closure work
+## Fixed-commit Nightly closure
 
-- Record a fixed-commit Windows Nightly on a `main` SHA that contains that test
-  and the PR #16 task-event implementation.
-- Decide whether MCP needs a frozen push-subscription surface beyond the
-  versioned `get_task(afterLogSequence)` reconnect contract; do not introduce a
-  custom notification dialect without an explicit protocol/version boundary.
-- Keep `ai-task-events` blocked in `product-status.json` until those records
-  exist.
+- Nightly `33098518016` ran on exact source
+  `e8caf01891238469cbb99c403c7c304fa535e5f6`.
+- The aggregate Java report recorded 341 tests, 0 failures, and 30 ignored.
+- `WorkspaceTaskEventTest` passed 3/3.
+- `Stage10NativeJcefTaskReconnectTest` executed rather than skipping and passed
+  1/1. Its captured standard output initialized real JCEF
+  `137.0.17.1142.68de80bc86de497c8d0632ad0f8fe33625b33bff`, CEF `137.0.17`, and
+  Chromium `137.0.7151.104`.
+- The same product-regression job completed the full Chromium Playwright suite
+  and MCP conformance step successfully.
+- All eight Stage 9 generator golden jobs passed on the same source SHA.
+
+## Closure boundary
+
+`FR-AI-04` is closed with `get_task(afterLogSequence)` as the versioned
+MCP/Headless reconnect contract. A future push-subscription surface would be a
+separate protocol decision; this gate does not authorize an unversioned custom
+notification dialect.

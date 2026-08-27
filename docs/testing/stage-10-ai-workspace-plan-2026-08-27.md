@@ -1,10 +1,10 @@
 # Stage 10 AI atomic Workspace Plan evidence - 2026-08-27
 
-This record covers the first implementation slice of `FR-AI-03`. PR #15 has
-merged as `main@1f31b2b6`. Protected PR CI `33044562447` and merged-main CI
-`33044983727` both passed. The gate is still **in progress** until an exact
-merged-main Nightly record and review of the supported operation boundary are
-complete.
+This record covers `FR-AI-03`. PR #15 merged as `main@1f31b2b6`. Protected PR
+CI `33044562447` and merged-main CI `33044983727` passed, and fixed-commit
+Windows Nightly `33098518016` subsequently passed on descendant
+`main@e8caf01891238469cbb99c403c7c304fa535e5f6`. The supported-operation
+boundary review is complete, so the gate is **passed**.
 
 ## Contract
 
@@ -103,15 +103,17 @@ but no conformance scenario fails.
 - Merge commit `1f31b2b6`: merged-main `Build and test` run `33044983727` passed.
 - Current descendant `main@3d11d605`: `Build and test` run `33075579142`
   passed, confirming the Workspace Plan slice remains green after PR #17.
-- A fixed-commit Nightly on a current `main` descendant containing PR #15 is
-  still pending. The evidence must record the tested SHA; it does not need to
-  recreate the historical instant where `1f31b2b6` was the branch tip.
+- Current verified descendant `main@e8caf01891238469cbb99c403c7c304fa535e5f6`:
+  fixed-commit Windows Nightly `33098518016` passed the full Java/Javadoc/scale
+  regression, complete Playwright suite, MCP conformance, and 8/8 generator
+  golden matrix. `WorkspacePlanEngineTest` passed 5/5 in the Nightly report.
+- Operation-boundary review confirmed that build/run, migration/import,
+  datagen publication, asset/external publication, and other approval or
+  external side effects remain outside the atomic content-plan transaction.
 
-## Remaining closure work
+## Closure boundary
 
-- Obtain fixed-commit Nightly evidence for a `main` descendant containing PR #15
-  before changing `ai-workspace-plan` to `passed`.
-- Complete the supported operation-boundary review; keep external side effects
-  outside the atomic content plan unless a later ADR explicitly changes it.
-- Do not use this gate to close Stage 9 fixed-hardware performance, JCEF,
-  server, clean-VM, or external-tester gates.
+`FR-AI-03` is closed. This evidence does **not** close Stage 9 fixed-hardware
+performance, JCEF accessibility, server-readiness, clean-VM, or external-tester
+gates. External side effects remain outside the atomic content plan unless a
+later ADR explicitly changes that contract.

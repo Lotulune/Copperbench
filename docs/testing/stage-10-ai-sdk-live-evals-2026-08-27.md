@@ -1,8 +1,9 @@
 # Stage 10 AI SDK live eval evidence - 2026-08-27
 
-This record covers the executable slice of `FR-AI-05`. The gate remains
-**in progress** until a fixed-commit Nightly containing the merged SDK/eval
-implementation exists.
+This record covers the executable slice of `FR-AI-05`. Fixed-commit Windows
+Nightly `33098518016` passed on
+`main@e8caf01891238469cbb99c403c7c304fa535e5f6`, which contains the merged
+SDK/eval implementation, so the gate is **passed**.
 
 ## Harness
 
@@ -58,5 +59,13 @@ Read-only-profile case:
 The static manifest verifier also passes: 10 cases and 10 required coverage
 targets. Together with protected PR CI and merged-main fast CI, this proves
 that the SDK/eval contract executes over the real MCP HTTP boundary on reviewed
-code now present on `main`. It does not by itself satisfy the fixed-commit
-Nightly or external-user gates.
+code now present on `main`.
+
+Fixed-commit Nightly `33098518016` supplies the remaining merged-source
+evidence: on exact `main@e8caf01891238469cbb99c403c7c304fa535e5f6`, the full
+Java/Javadoc/scale regression, complete Chromium Playwright suite, MCP
+conformance step, and 8/8 generator golden matrix all passed. The Nightly is
+evidence that the reviewed SDK/eval implementation is present in a fully green
+product baseline; it is **not** represented as rerunning
+`verify-ai-live-evals.ps1`. The dedicated loopback HTTP MCP run above remains
+the 10/10 live-eval execution evidence.
