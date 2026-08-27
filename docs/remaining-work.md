@@ -4,7 +4,7 @@
 
 ## 当前状态
 
-阶段 8 收口需求 `FR-CLOSE-01`～`FR-CLOSE-08` 均已完成。`v0.1.0-preview.2` 已公开并验证完整 Windows 三包、SBOM、哈希、源元数据和生产审批；`v0.1.0-preview.3` 是历史冻结发布源，后续 main 提交已使其不再等于当前 HEAD。GitHub 已正确识别 GPLv3，Javadoc Pages 可访问，main 保护、真实受保护 PR 与 production 审批均已验证。Nightly `32998281437` 在 `515c212c` 上的产品回归、规模 smoke、完整 Playwright、MCP 与八生成器黄金编译均通过。PR #15 的 Workspace Plan 已合入 `main@1f31b2b6`，protected PR CI `33044562447` 与 merged-main CI `33044983727` 均通过，但该提交的 Nightly 证据尚未取得。PR #16 head `564b2ed4` 的 protected `Build and test` run `33068820470` 也已全绿，FR-AI-04/05 仍需 merged-main/Nightly 与真实 native JCEF 等后续证据。Stage 9 仍有多个 Beta 阻断门禁，外部试用为 0/5。
+阶段 8 收口需求 `FR-CLOSE-01`～`FR-CLOSE-08` 均已完成。`v0.1.0-preview.2` 已公开并验证完整 Windows 三包、SBOM、哈希、源元数据和生产审批；`v0.1.0-preview.3` 是历史冻结发布源，后续 main 提交已使其不再等于当前 HEAD。GitHub 已正确识别 GPLv3，Javadoc Pages 可访问，main 保护、真实受保护 PR 与 production 审批均已验证。最近完整 Nightly `32998281437` 在 `515c212c` 上的产品回归、规模 smoke、完整 Playwright、MCP 与八生成器黄金编译均通过。PR #15 的 Workspace Plan 与 PR #16 的 Task Events/SDK 已进入当前 `main@a7304fb6`；merged-main `Build and test` `33071953778` 与 Javadoc publish `33071953877` 均全绿。FR-AI-04 的 Windows-native JCEF 长任务重连已在独立自动测试中本地通过，正在通过小 PR 固化；FR-AI-03～05 现在主要等待一个记录明确 main source SHA 且包含相应实现的 Nightly。Stage 9 仍有多个 Beta 阻断门禁，外部试用为 0/5。
 
 ## 当前交付阻断项
 
@@ -14,7 +14,7 @@
 | main 分支保护 | 已验证 | 三项必需检查、严格更新和管理员保护已生效；PR #1～#5 留有全绿记录 |
 | Javadoc Pages | 已验证 | <https://lotulune.github.io/Copperbench/> 返回 200 |
 | production 审批 | 已验证 | Preview 2 在批准前保持等待；run `32909134939` 留下批准与部署记录后才公开 |
-| Nightly | 最近已验证重型基线为 `main@515c212c` | [运行 32998281437](https://github.com/Lotulune/Copperbench/actions/runs/32998281437) 的产品回归、规模 smoke、完整 Playwright、MCP 与八生成器矩阵全部通过；`main@1f31b2b6` 仍待新的 Nightly 证据 |
+| Nightly | 最近已验证重型基线为 `main@515c212c` | [运行 32998281437](https://github.com/Lotulune/Copperbench/actions/runs/32998281437) 的产品回归、规模 smoke、完整 Playwright、MCP 与八生成器矩阵全部通过；下一次合格证据必须记录一个明确的当前 main SHA，并包含 PR #15/#16 与 Windows-native task reconnect 测试，不要求复原历史 branch-tip SHA |
 | Dependency Submission | 已移除 | Dependency Graph 关闭时不保留必失败工作流 |
 | Preview 2 | 已公开 | `v0.1.0-preview.2` 的 Tag、生产审批、三包、SBOM、哈希和资产验证已完成 |
 | Preview 3 | 本次发布源 | 从本 PR 合并后的最新 `main` HEAD 创建签名 Tag；公开状态以 GitHub Tag API 和 Release 元数据为准 |

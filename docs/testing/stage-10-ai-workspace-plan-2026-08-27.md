@@ -86,7 +86,7 @@ gateway:
 Targeted MCreator persistence result: **2/2 passed**.
 
 UI-Core contract tests include explicit valid plan/preview/apply envelopes and
-unknown-field rejection. After adding the plan contract the suite is 19/19.
+unknown-field rejection. The current UI-Core schema suite is 20/20.
 
 The UI shell TypeScript/Vite production build and Chinese localization gate also
 pass; all referenced Chinese keys are translated.
@@ -101,12 +101,16 @@ but no conformance scenario fails.
 
 - PR #15 head `79fbfe00`: protected `Build and test` run `33044562447` passed.
 - Merge commit `1f31b2b6`: merged-main `Build and test` run `33044983727` passed.
-- Exact merged-main Nightly evidence for `1f31b2b6` is still pending.
+- Current descendant `main@a7304fb6`: `Build and test` run `33071953778`
+  passed, confirming the Workspace Plan slice remains green after PR #16.
+- A fixed-commit Nightly on a current `main` descendant containing PR #15 is
+  still pending. The evidence must record the tested SHA; it does not need to
+  recreate the historical instant where `1f31b2b6` was the branch tip.
 
 ## Remaining closure work
 
-- Obtain Nightly evidence for the exact merged-main commit before changing
-  `ai-workspace-plan` to `passed`.
+- Obtain fixed-commit Nightly evidence for a `main` descendant containing PR #15
+  before changing `ai-workspace-plan` to `passed`.
 - Complete the supported operation-boundary review; keep external side effects
   outside the atomic content plan unless a later ADR explicitly changes it.
 - Do not use this gate to close Stage 9 fixed-hardware performance, JCEF,
