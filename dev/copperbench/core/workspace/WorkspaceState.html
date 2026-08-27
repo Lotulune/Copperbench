@@ -74,6 +74,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#upstreamDocument()" tabindex="0">upstreamDocument()</a></li>
 <li><a href="#registries()" tabindex="0">registries()</a></li>
 <li><a href="#replaceRegistries(com.google.gson.JsonObject)" tabindex="0">replaceRegistries(JsonObject)</a></li>
+<li><a href="#replaceContentFrom(dev.copperbench.core.workspace.WorkspaceState)" tabindex="0">replaceContentFrom(WorkspaceState)</a></li>
 <li><a href="#elements()" tabindex="0">elements()</a></li>
 <li><a href="#element(java.util.UUID)" tabindex="0">element(UUID)</a></li>
 <li><a href="#addElement(dev.copperbench.core.workspace.WorkspaceState.Element)" tabindex="0">addElement(WorkspaceState.Element)</a></li>
@@ -193,20 +194,25 @@ loadScripts(document, 'script');</script>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#removeElement(java.util.UUID)" class="member-name-link">removeElement</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;elementId)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#replaceElement(dev.copperbench.core.workspace.WorkspaceState.Element)" class="member-name-link">replaceElement</a><wbr>(<a href="WorkspaceState.Element.html" title="class in dev.copperbench.core.workspace">WorkspaceState.Element</a>&nbsp;element)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#replaceContentFrom(dev.copperbench.core.workspace.WorkspaceState)" class="member-name-link">replaceContentFrom</a><wbr>(<a href="WorkspaceState.html" title="class in dev.copperbench.core.workspace">WorkspaceState</a>&nbsp;source)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Replaces mutable workspace content while preserving this instance's store-owned revision and event sequence.</div>
+</div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#replaceRegistries(com.google.gson.JsonObject)" class="member-name-link">replaceRegistries</a><wbr>(com.google.gson.JsonObject&nbsp;registries)</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#replaceElement(dev.copperbench.core.workspace.WorkspaceState.Element)" class="member-name-link">replaceElement</a><wbr>(<a href="WorkspaceState.Element.html" title="class in dev.copperbench.core.workspace">WorkspaceState.Element</a>&nbsp;element)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>long</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#revision()" class="member-name-link">revision</a>()</code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#replaceRegistries(com.google.gson.JsonObject)" class="member-name-link">replaceRegistries</a><wbr>(com.google.gson.JsonObject&nbsp;registries)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>com.google.gson.JsonObject</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#upstreamDocument()" class="member-name-link">upstreamDocument</a>()</code></div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>long</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#revision()" class="member-name-link">revision</a>()</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="WorkspaceState.html" title="class in dev.copperbench.core.workspace">WorkspaceState</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#withGenerator(com.google.gson.JsonObject)" class="member-name-link">withGenerator</a><wbr>(com.google.gson.JsonObject&nbsp;nextGenerator)</code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>com.google.gson.JsonObject</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#upstreamDocument()" class="member-name-link">upstreamDocument</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="WorkspaceState.html" title="class in dev.copperbench.core.workspace">WorkspaceState</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#withGenerator(com.google.gson.JsonObject)" class="member-name-link">withGenerator</a><wbr>(com.google.gson.JsonObject&nbsp;nextGenerator)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
 </div>
 </div>
 </div>
@@ -332,6 +338,15 @@ loadScripts(document, 'script');</script>
 <h3>replaceRegistries</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">replaceRegistries</span><wbr><span class="parameters">(com.google.gson.JsonObject&nbsp;registries)</span></div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="replaceContentFrom(dev.copperbench.core.workspace.WorkspaceState)">
+<h3>replaceContentFrom</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">replaceContentFrom</span><wbr><span class="parameters">(<a href="WorkspaceState.html" title="class in dev.copperbench.core.workspace">WorkspaceState</a>&nbsp;source)</span></div>
+<div class="block">Replaces mutable workspace content while preserving this instance's store-owned revision and event sequence.</div>
 </div>
 </section>
 </li>

@@ -58,6 +58,7 @@ loadScripts(document, 'script');</script>
 <ol class="toc-list">
 <li><a href="#persist(dev.copperbench.core.workspace.WorkspaceState,dev.copperbench.core.workspace.WorkspaceState,dev.copperbench.core.contract.UiCore.Operation,dev.copperbench.core.workspace.WorkspaceState.Element)" tabindex="0">persist(WorkspaceState, WorkspaceState, UiCore.Operation, WorkspaceState.Element)</a></li>
 <li><a href="#persistWorkspaceData(dev.copperbench.core.workspace.WorkspaceState,dev.copperbench.core.workspace.WorkspaceState,dev.copperbench.core.contract.UiCore.Operation)" tabindex="0">persistWorkspaceData(WorkspaceState, WorkspaceState, UiCore.Operation)</a></li>
+<li><a href="#persistWorkspacePlan(dev.copperbench.core.workspace.WorkspaceState,dev.copperbench.core.workspace.WorkspaceState,java.util.List)" tabindex="0">persistWorkspacePlan(WorkspaceState, WorkspaceState, List)</a></li>
 <li><a href="#persistRestoredRevision(dev.copperbench.core.workspace.WorkspaceState,long)" tabindex="0">persistRestoredRevision(WorkspaceState, long)</a></li>
 <li><a href="#noOp()" tabindex="0">noOp()</a></li>
 </ol>
@@ -120,6 +121,13 @@ loadScripts(document, 'script');</script>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
 <div class="block">Persists a workspace-level structured-data mutation such as variables, tags, or language keys.</div>
 </div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#persistWorkspacePlan(dev.copperbench.core.workspace.WorkspaceState,dev.copperbench.core.workspace.WorkspaceState,java.util.List)" class="member-name-link">persistWorkspacePlan</a><wbr>(<a href="../workspace/WorkspaceState.html" title="class in dev.copperbench.core.workspace">WorkspaceState</a>&nbsp;before,
+ <a href="../workspace/WorkspaceState.html" title="class in dev.copperbench.core.workspace">WorkspaceState</a>&nbsp;after,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="../contract/UiCore.Operation.html" title="enum class in dev.copperbench.core.contract">UiCore.Operation</a>&gt;&nbsp;operations)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="block">Persists a validated multi-operation plan as one durable workspace transaction.</div>
+</div>
 </div>
 </div>
 </div>
@@ -159,6 +167,22 @@ loadScripts(document, 'script');</script>
  <a href="../contract/UiCore.Operation.html" title="enum class in dev.copperbench.core.contract">UiCore.Operation</a>&nbsp;operation)</span>
                            throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Exception.html" title="class or interface in java.lang" class="external-link">Exception</a></span></div>
 <div class="block">Persists a workspace-level structured-data mutation such as variables, tags, or language keys.</div>
+<dl class="notes">
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Exception.html" title="class or interface in java.lang" class="external-link">Exception</a></code></dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="persistWorkspacePlan(dev.copperbench.core.workspace.WorkspaceState,dev.copperbench.core.workspace.WorkspaceState,java.util.List)">
+<h3>persistWorkspacePlan</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">default</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">persistWorkspacePlan</span><wbr><span class="parameters">(<a href="../workspace/WorkspaceState.html" title="class in dev.copperbench.core.workspace">WorkspaceState</a>&nbsp;before,
+ <a href="../workspace/WorkspaceState.html" title="class in dev.copperbench.core.workspace">WorkspaceState</a>&nbsp;after,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="../contract/UiCore.Operation.html" title="enum class in dev.copperbench.core.contract">UiCore.Operation</a>&gt;&nbsp;operations)</span>
+                           throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Exception.html" title="class or interface in java.lang" class="external-link">Exception</a></span></div>
+<div class="block">Persists a validated multi-operation plan as one durable workspace transaction.</div>
 <dl class="notes">
 <dt>Throws:</dt>
 <dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Exception.html" title="class or interface in java.lang" class="external-link">Exception</a></code></dd>
