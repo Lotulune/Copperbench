@@ -41,6 +41,8 @@
         "get_workspace_references",
         "list_workspace_registries",
         "preview_registry_rename",
+        "plan_workspace_changes",
+        "preview_workspace_plan",
         "preview_datagen_output",
         "get_task",
         "get_history",

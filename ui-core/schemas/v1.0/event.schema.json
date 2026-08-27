@@ -59,6 +59,7 @@
         "recovery_point_created",
         "workspace_restored",
         "workspace_created",
+        "workspace_plan_applied",
         "loader_migration_executed",
         "upstream_workspace_imported",
         "publish_batch_created",

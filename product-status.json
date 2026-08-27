@@ -2,8 +2,8 @@
   "$schema": "./schemas/product-status.schema.json",
   "schemaVersion": "1.0",
   "snapshot": {
-    "date": "2026-08-26",
-    "lastVerifiedCommit": "815bb5636df4d345e1a5de56599886168071da08",
+    "date": "2026-08-27",
+    "lastVerifiedCommit": "515c212cb4c026fe74a619bae2de670124020de4",
     "policy": "Only code, automated checks, and evidence tied to a commit can promote a gate."
   },
   "product": {
@@ -38,11 +38,11 @@
     },
     "fastCi": {
       "status": "passed",
-      "run": "https://github.com/Lotulune/Copperbench/actions/runs/32908621645",
+      "run": "https://github.com/Lotulune/Copperbench/actions/runs/32997587858",
       "latestAttempt": {
         "status": "passed",
-        "run": "https://github.com/Lotulune/Copperbench/actions/runs/32908621645",
-        "reason": "The release-source main run passed all three required checks; three independent runs on the code baseline were already green."
+        "run": "https://github.com/Lotulune/Copperbench/actions/runs/32997587858",
+        "reason": "main@515c212c passed Java/Javadoc, UI/Playwright smoke, and MCP conformance after PR #14 merged."
       },
       "runs": [
         "https://github.com/Lotulune/Copperbench/actions/runs/32904346297",
@@ -60,8 +60,8 @@
     "nightly": {
       "status": "passed",
       "workflow": ".github/workflows/nightly.yml",
-      "run": "https://github.com/Lotulune/Copperbench/actions/runs/32975827948",
-      "sourceCommit": "815bb5636df4d345e1a5de56599886168071da08",
+      "run": "https://github.com/Lotulune/Copperbench/actions/runs/32998281437",
+      "sourceCommit": "515c212cb4c026fe74a619bae2de670124020de4",
       "productRegression": "passed",
       "generatorGolden": "8/8 passed"
     },
@@ -124,11 +124,15 @@
     {"id": "language-tools", "status": "passed", "betaBlocking": true, "evidence": ["docs/testing/stage-9-ui-gates-2026-08-26.md", "ui-shell/e2e/stage9-creator-core.spec.ts"]},
     {"id": "procedure-500", "status": "blocked", "betaBlocking": true, "evidence": []},
     {"id": "workspace-2000-10000", "status": "blocked", "betaBlocking": true, "evidence": []},
-    {"id": "stage9-eight-generator-golden", "status": "passed", "betaBlocking": true, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/32975827948", "docs/testing/stage-9-generator-golden-2026-08-26-r2.md"]},
+    {"id": "stage9-eight-generator-golden", "status": "passed", "betaBlocking": true, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/32998281437", "docs/testing/stage-9-generator-golden-2026-08-26-r2.md"]},
     {"id": "server-readiness-matrix", "status": "blocked", "betaBlocking": true, "evidence": []},
     {"id": "real-jcef-accessibility", "status": "blocked", "betaBlocking": true, "evidence": []},
     {"id": "clean-windows-11-stage9", "status": "blocked", "betaBlocking": true, "evidence": []},
-    {"id": "five-external-testers", "status": "blocked", "betaBlocking": true, "evidence": []}
+    {"id": "five-external-testers", "status": "blocked", "betaBlocking": true, "evidence": []},
+    {"id": "ai-unbounded-list-contract", "status": "passed", "betaBlocking": true, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/32998281437", "docs/testing/stage-10-ai-cursor-2026-08-26.md"]},
+    {"id": "ai-workspace-plan", "status": "in-progress", "betaBlocking": true, "evidence": ["docs/testing/stage-10-ai-workspace-plan-2026-08-27.md"]},
+    {"id": "ai-task-events", "status": "blocked", "betaBlocking": true, "evidence": []},
+    {"id": "ai-sdk-evals", "status": "blocked", "betaBlocking": true, "evidence": []}
   ],
   "mcp": {
     "transport": "streamable-http",

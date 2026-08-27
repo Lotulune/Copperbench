@@ -87,6 +87,21 @@ public final class WorkspaceState {
 		dirty = true;
 	}
 
+	/** Replaces mutable workspace content while preserving this instance's store-owned revision and event sequence. */
+	public void replaceContentFrom(WorkspaceState source) {
+		Objects.requireNonNull(source, "source");
+		if (!id.equals(source.id))
+			throw new IllegalArgumentException("Workspace content can only be replaced from the same workspace");
+		for (String key : List.copyOf(upstreamDocument.keySet()))
+			upstreamDocument.remove(key);
+		for (var entry : source.upstreamDocument.entrySet())
+			upstreamDocument.add(entry.getKey(), entry.getValue().deepCopy());
+		elements.clear();
+		for (Element element : source.elements.values())
+			elements.put(element.id(), element.copy());
+		dirty = true;
+	}
+
 	private static void ensureRegistryArray(JsonObject registries, String name) {
 		if (!registries.has(name) || !registries.get(name).isJsonArray())
 			registries.add(name, new com.google.gson.JsonArray());

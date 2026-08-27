@@ -489,6 +489,60 @@ export interface PrepareResourcePackClientPayload {
   zipFileName: string;
 }
 
+export type WorkspacePlanOperation =
+  | 'create_mod_element'
+  | 'update_mod_element'
+  | 'delete_mod_element'
+  | 'update_procedure'
+  | 'create_registry_entry'
+  | 'update_registry_entry'
+  | 'delete_registry_entry'
+  | 'rename_registry_entry';
+
+export interface WorkspacePlanStep {
+  operation: WorkspacePlanOperation;
+  payload: Record<string, unknown>;
+  plannedId?: UUID;
+}
+
+export interface WorkspacePlanPermission {
+  currentProfile: PermissionProfile;
+  requiredProfile: 'workspace';
+  allowed: boolean;
+}
+
+export interface WorkspacePlan {
+  schemaVersion: '1.0';
+  workspaceId: UUID;
+  baseRevision: Revision;
+  idempotencyKey: string;
+  operations: WorkspacePlanStep[];
+  operationCount: number;
+  targetDigest: string;
+  semanticDiff: Record<string, unknown>[];
+  changedPaths: string[];
+  permission: WorkspacePlanPermission;
+  planId: string;
+  planToken: string;
+  currentRevision?: Revision;
+  alreadyApplied?: boolean;
+  wouldApply?: boolean;
+}
+
+export interface WorkspacePlanRequestPayload {
+  expectedRevision: Revision;
+  idempotencyKey: string;
+  operations: Array<Omit<WorkspacePlanStep, 'plannedId'>>;
+}
+
+export interface WorkspacePlanEnvelopePayload {
+  plan: WorkspacePlan;
+}
+
+export interface ApplyWorkspacePlanPayload extends WorkspacePlanEnvelopePayload {
+  clientMutationId: UUID;
+}
+
 export type CommandOperation =
   | 'create_workspace'
   | 'create_mod_element'
@@ -499,6 +553,7 @@ export type CommandOperation =
   | 'update_registry_entry'
   | 'delete_registry_entry'
   | 'rename_registry_entry'
+  | 'apply_workspace_plan'
   | 'validate_workspace'
   | 'generate_workspace'
   | 'build_workspace'
@@ -594,6 +649,12 @@ export interface CommandResultData {
   stale?: boolean;
   published?: boolean;
   canPublish?: boolean;
+  planId?: string;
+  idempotencyKey?: string;
+  operationCount?: number;
+  targetDigest?: string;
+  semanticDiff?: Record<string, unknown>[];
+  idempotentReplay?: boolean;
 }
 
 export interface CommandResult {
@@ -628,6 +689,8 @@ export type QueryOperation =
   | 'get_workspace_references'
   | 'list_workspace_registries'
   | 'preview_registry_rename'
+	| 'plan_workspace_changes'
+	| 'preview_workspace_plan'
 	| 'preview_datagen_output'
   | 'get_task'
   | 'get_history'
@@ -905,6 +968,7 @@ export type EventType =
   | 'recovery_point_created'
   | 'workspace_restored'
   | 'workspace_created'
+  | 'workspace_plan_applied'
   | 'loader_migration_executed'
   | 'upstream_workspace_imported'
   | 'publish_batch_created'
@@ -928,6 +992,19 @@ export type RevisionAdvancedEvent = BaseEvent<
   {
     changedPaths: string[];
     actor: 'ui' | 'mcp' | 'headless' | 'legacy_ui' | 'system';
+  }
+>;
+
+export type WorkspacePlanAppliedEvent = BaseEvent<
+  'workspace_plan_applied',
+  {
+    planId: string;
+    idempotencyKey: string;
+    operationCount: number;
+    targetDigest: string;
+    idempotentReplay: false;
+    semanticDiff: Record<string, unknown>[];
+    changedPaths: string[];
   }
 >;
 
@@ -1076,6 +1153,7 @@ export type CoreEvent =
   | RecoveryPointCreatedEvent
   | WorkspaceRestoredEvent
   | WorkspaceCreatedEvent
+  | WorkspacePlanAppliedEvent
   | LoaderMigrationExecutedEvent
   | UpstreamWorkspaceImportedEvent
   | PublishBatchCreatedEvent

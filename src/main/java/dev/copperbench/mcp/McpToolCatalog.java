@@ -50,6 +50,33 @@ final class McpToolCatalog {
 		this(workspaceId, adapter, audit, clock, null);
 	}
 
+	private static Map<String, Object> workspacePlanSchema() {
+		Map<String, Object> step = Map.of(
+				"type", "object",
+				"properties", Map.of(
+						"operation", Map.of("type", "string", "enum", List.of(
+								"create_mod_element", "update_mod_element", "delete_mod_element", "update_procedure",
+								"create_registry_entry", "update_registry_entry", "delete_registry_entry",
+								"rename_registry_entry")),
+						"payload", Map.of("type", "object")),
+				"required", List.of("operation", "payload"),
+				"additionalProperties", false);
+		return requiredSchema(Map.of(
+				"expectedRevision", Map.of("type", "integer", "minimum", 0),
+				"idempotencyKey", Map.of("type", "string", "minLength", 1, "maxLength", 128),
+				"operations", Map.of("type", "array", "items", step, "minItems", 1, "maxItems", 100)),
+				List.of("expectedRevision", "idempotencyKey", "operations"));
+	}
+
+	private static Map<String, Object> planEnvelopeSchema(boolean command) {
+		Map<String, Object> properties = command
+				? Map.of("plan", Map.of("type", "object"), "expectedRevision",
+						Map.of("type", "integer", "minimum", 0))
+				: Map.of("plan", Map.of("type", "object"));
+		return Map.of("type", "object", "properties", properties, "required",
+				command ? List.of("plan", "expectedRevision") : List.of("plan"), "additionalProperties", false);
+	}
+
 	McpToolCatalog(UUID workspaceId, McpWorkspaceEntryAdapter adapter, JsonLineAuditLog audit, Clock clock,
 			AssetWorkspaceService assets) {
 		this.workspaceId = workspaceId;
@@ -137,6 +164,17 @@ final class McpToolCatalog {
 				requiredSchema(Map.of("entryId", Map.of("type", "string", "format", "uuid"), "newName",
 						Map.of("type", "string", "minLength", 1)), List.of("entryId", "newName")),
 				arguments -> GSON.toJsonTree(arguments).getAsJsonObject()));
+		tools.add(queryTool("plan_workspace_changes",
+				"Plan an ordered set of workspace mutations against one base revision without changing the workspace",
+				Operation.PLAN_WORKSPACE_CHANGES, workspacePlanSchema(),
+				arguments -> GSON.toJsonTree(arguments).getAsJsonObject()));
+		tools.add(queryTool("preview_workspace_plan",
+				"Revalidate a workspace plan and return its semantic diff, permission assessment, and stale state",
+				Operation.PREVIEW_WORKSPACE_PLAN, planEnvelopeSchema(false),
+				arguments -> GSON.toJsonTree(arguments).getAsJsonObject()));
+		tools.add(commandTool("apply_workspace_plan",
+				"Apply a validated workspace plan as one revision with one recovery point and full rollback",
+				Operation.APPLY_WORKSPACE_PLAN, planEnvelopeSchema(true), McpToolCatalog::mutationPayload));
 		tools.add(commandTool("create_mod_element", "Create a mod element", Operation.CREATE_MOD_ELEMENT,
 				requiredSchema(Map.of("elementType", Map.of("type", "string"), "name", Map.of("type", "string"),
 						"initialValues", Map.of("type", "object"), "expectedRevision",

@@ -1,8 +1,9 @@
 # Stage 10 AI unified list evidence - 2026-08-26
 
-This record covers the local implementation of the unbounded-workspace-list
-portion of `FR-AI-02`. It does not claim remote Nightly proof, the full AI
-Developer Kit, or the fixed-hardware `workspace-2000-10000` P95 gate is closed.
+This record covers the implementation and remote closure evidence for the
+unbounded-workspace-list portion of `FR-AI-02`. It does not claim the full AI
+Developer Kit or the separate fixed-hardware `workspace-2000-10000` P95 gate is
+closed.
 
 ## Implemented
 
@@ -14,6 +15,10 @@ Developer Kit, or the fixed-hardware `workspace-2000-10000` P95 gate is closed.
   filter, and field projection.
 - Query-mismatched or malformed cursors return `LIST_CURSOR_INVALID`; cursors
   from an older workspace revision return `LIST_CURSOR_STALE`.
+- Cursor query binding uses a SHA-256 digest of the full normalized query
+  signature. PR #14 added a regression fixture with two valid queries that
+  intentionally collide under Java `String.hashCode()`; cross-query cursor reuse
+  is still rejected.
 - Field projection can request a strict subset of element summary fields.
 - The JCEF bridge now uses cursor traversal for full element refreshes.
 - MCP `list_mod_elements` exposes the unified list arguments.
@@ -32,9 +37,8 @@ once, validates projected fields and descending sort order, and verifies stable
 errors for changed queries and stale workspace revisions.
 
 The 2,000-element traversal writes `build/nightly-results/stage10-element-cursor.json`.
-The existing Nightly product-regression job already runs the full Java test suite
-and uploads `build/nightly-results/`, so this evidence will be retained on every
-remote Nightly run after the change is merged.
+The Nightly product-regression job runs the full Java test suite and uploads
+`build/nightly-results/`, retaining this evidence on the merged main commit.
 
 Validated locally with the repository JDK 25:
 
@@ -50,7 +54,8 @@ pagination/dataset invalidation.
 
 Additional validation:
 
-- `ui-core`: 18/18 schema and fixture tests passed, including explicit unified
+- `ui-core`: 18/18 schema and fixture tests passed at FR-AI-02 merge time,
+  including explicit unified
   request validation for elements, selected registries, recovery points, and
   publish batches, plus a list-result contract case for an imported read-only
   `livingentity`.
@@ -59,10 +64,21 @@ Additional validation:
 - MCP conformance script exited successfully; standard initialize, logging,
   ping, tools-list, multi-stream SSE, and DNS-rebinding scenarios all passed.
 
-## Remaining FR-AI-02 work
+## Remote closure
 
-- Merge this branch and obtain remote CI/Nightly evidence before promoting the
-  requirement from local implementation to passed.
+- PR #14 merged the list contract and the collision-hardening follow-up into
+  `main@515c212cb4c026fe74a619bae2de670124020de4`.
+- Protected PR CI passed Java/Javadoc, UI contract/build/smoke, and MCP
+  conformance on the final PR head.
+- Merged-main CI run `32997587858` passed all three required checks.
+- Scheduled Nightly run `32998281437` on the exact merged main commit passed the
+  product regression and all eight generator golden jobs; the
+  `nightly-product-regression` artifact was uploaded successfully.
+- With implementation, protected PR CI, merged-main CI, and merged-main Nightly
+  all present, `FR-AI-02` is passed as of 2026-08-27.
+
+## Separate follow-up gates
+
 - Keep bounded catalogs (`list_new_workspace_generators`, installed plugins)
   outside the unbounded-list gate unless their product constraints change.
 - Treat `get_workspace_references` as a graph/performance contract, not a list

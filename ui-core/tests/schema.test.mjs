@@ -95,6 +95,71 @@ test('workspace registry, recovery point, and publish batch lists accept cursor 
   assert.equal(validate(registry), false, 'registry cursor mode must identify one registry');
 });
 
+test('workspace plans validate ordered plan, preview, and apply envelopes', async () => {
+  const { ajv } = await createValidator();
+  const validateQuery = ajv.getSchema('urn:ui-core:1.0:query');
+  const validateCommand = ajv.getSchema('urn:ui-core:1.0:command');
+  const workspaceId = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+  const planRequest = {
+    messageType: 'query',
+    schemaVersion: '1.0',
+    requestId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa36',
+    workspaceId,
+    operation: 'plan_workspace_changes',
+    payload: {
+      expectedRevision: 9,
+      idempotencyKey: 'ai-plan-001',
+      operations: [{
+        operation: 'create_mod_element',
+        payload: { elementType: 'item', name: 'planned_item', initialValues: {} },
+      }],
+    },
+  };
+  assert.equal(validateQuery(planRequest), true, JSON.stringify(validateQuery.errors));
+
+  const plan = {
+    schemaVersion: '1.0',
+    workspaceId,
+    baseRevision: 9,
+    idempotencyKey: 'ai-plan-001',
+    operations: [{
+      operation: 'create_mod_element',
+      payload: { elementType: 'item', name: 'planned_item', initialValues: {} },
+      plannedId: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
+    }],
+    operationCount: 1,
+    targetDigest: 'a'.repeat(64),
+    semanticDiff: [{ kind: 'element_created', elementId: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc' }],
+    changedPaths: ['/elements/cccccccc-cccc-4ccc-8ccc-cccccccccccc'],
+    permission: { currentProfile: 'workspace', requiredProfile: 'workspace', allowed: true },
+    planId: 'b'.repeat(64),
+    planToken: 'c'.repeat(64),
+  };
+  const preview = {
+    ...planRequest,
+    requestId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa37',
+    operation: 'preview_workspace_plan',
+    payload: { plan },
+  };
+  assert.equal(validateQuery(preview), true, JSON.stringify(validateQuery.errors));
+
+  const apply = {
+    messageType: 'command',
+    schemaVersion: '1.0',
+    requestId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa38',
+    workspaceId,
+    expectedRevision: 9,
+    operation: 'apply_workspace_plan',
+    payload: {
+      clientMutationId: 'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
+      plan,
+    },
+  };
+  assert.equal(validateCommand(apply), true, JSON.stringify(validateCommand.errors));
+  apply.payload.unexpected = true;
+  assert.equal(validateCommand(apply), false, 'workspace plan apply should reject unknown payload fields');
+});
+
 test('list_mod_elements result accepts imported read-only upstream element types', async () => {
   const { ajv } = await createValidator();
   const validate = ajv.getSchema('urn:ui-core:1.0:query-result');
