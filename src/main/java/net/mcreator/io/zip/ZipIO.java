@@ -18,11 +18,14 @@
 
 package net.mcreator.io.zip;
 
+import net.mcreator.io.OS;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.*;
 import java.nio.charset.Charset;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -42,6 +45,8 @@ public class ZipIO {
 	private static final long MAX_EXTRACTED_ENTRY_BYTES = 1L << 30;
 	private static final long MAX_EXTRACTED_TOTAL_BYTES = 8L << 30;
 	private static final long MAX_COMPRESSION_RATIO = 1_000;
+	private static final int WINDOWS_PUBLISH_ATTEMPTS = 8;
+	private static final long WINDOWS_PUBLISH_RETRY_DELAY_MILLIS = 50;
 
 	public static ZipFile openZipFile(File zipFile) throws IOException {
 		try {
@@ -66,15 +71,39 @@ public class ZipIO {
 			extractToStaging(new File(strZipFile), staging);
 			if (Files.exists(destination))
 				Files.delete(destination);
-			try {
-				Files.move(staging, destination, StandardCopyOption.ATOMIC_MOVE);
-			} catch (java.nio.file.AtomicMoveNotSupportedException ignored) {
-				Files.move(staging, destination);
-			}
+			publishStaging(staging, destination);
 			published = true;
 		} finally {
 			if (!published)
 				deleteTree(staging);
+		}
+	}
+
+	static void publishStaging(Path staging, Path destination) throws IOException {
+		int attempts = OS.getOS() == OS.WINDOWS ? WINDOWS_PUBLISH_ATTEMPTS : 1;
+		for (int attempt = 1; attempt <= attempts; attempt++) {
+			try {
+				moveStaging(staging, destination);
+				return;
+			} catch (AccessDeniedException exception) {
+				if (attempt == attempts)
+					throw exception;
+				try {
+					Thread.sleep(WINDOWS_PUBLISH_RETRY_DELAY_MILLIS);
+				} catch (InterruptedException interrupted) {
+					Thread.currentThread().interrupt();
+					exception.addSuppressed(interrupted);
+					throw exception;
+				}
+			}
+		}
+	}
+
+	private static void moveStaging(Path staging, Path destination) throws IOException {
+		try {
+			Files.move(staging, destination, StandardCopyOption.ATOMIC_MOVE);
+		} catch (AtomicMoveNotSupportedException ignored) {
+			Files.move(staging, destination);
 		}
 	}
 
