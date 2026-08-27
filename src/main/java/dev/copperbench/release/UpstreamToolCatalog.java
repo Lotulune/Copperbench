@@ -46,7 +46,7 @@ public final class UpstreamToolCatalog {
 			new Tool("image_armor_animation_makers", "Tools/Image editor, Armor texture, Animated texture",
 					Surface.LEGACY_WINDOW, "Built-in image and armor makers remain Swing. They are not in the React shell."),
 			new Tool("tags_variables_localization", "Workspace/Tags, Variables, Localization", Surface.NEW_UI,
-					"The Creator Data view provides stable-ID CRUD, reference counts, and rename impact previews. Language CSV/JSON import and export remain pending."),
+					"The Creator Data view provides stable-ID CRUD, reference counts, rename impact previews, language CSV/JSON import/export, conflict modes, and missing/duplicate translation statistics."),
 			new Tool("code_ide_and_file_browser", "Code editor, workspace file browser, reformat/save",
 					Surface.LEGACY_WINDOW, "Hand-written source is an advanced exit, not a first-party React IDE."),
 			new Tool("pack_makers", "Tools/Material, Ore, Tool, Armor, Wood pack makers", Surface.LEGACY_WINDOW,

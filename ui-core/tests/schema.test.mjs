@@ -95,6 +95,27 @@ test('workspace registry, recovery point, and publish batch lists accept cursor 
   assert.equal(validate(registry), false, 'registry cursor mode must identify one registry');
 });
 
+test('get_task requires an incremental log cursor and rejects malformed cursors', async () => {
+  const { ajv } = await createValidator();
+  const validate = ajv.getSchema('urn:ui-core:1.0:query');
+  const query = {
+    messageType: 'query',
+    schemaVersion: '1.0',
+    requestId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa35',
+    workspaceId: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+    operation: 'get_task',
+    payload: {
+      taskId: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
+      afterLogSequence: 12,
+    },
+  };
+  assert.equal(validate(query), true, JSON.stringify(validate.errors));
+  delete query.payload.afterLogSequence;
+  assert.equal(validate(query), false, 'get_task must carry an incremental log cursor');
+  query.payload.afterLogSequence = -1;
+  assert.equal(validate(query), false, 'afterLogSequence must be non-negative');
+});
+
 test('workspace plans validate ordered plan, preview, and apply envelopes', async () => {
   const { ajv } = await createValidator();
   const validateQuery = ajv.getSchema('urn:ui-core:1.0:query');

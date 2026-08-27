@@ -31,6 +31,8 @@ debug.log
 # Local scratch, generated reports, empty Tomcat leftovers
 .tmp/
 test-results/
+**/__pycache__/
+*.pyc
 tomcat.0/
 ui-shell/dist/
 ui-shell/playwright-report/

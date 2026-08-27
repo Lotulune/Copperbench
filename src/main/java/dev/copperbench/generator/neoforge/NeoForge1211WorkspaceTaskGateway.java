@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /** NeoForge 1.21.1 adapter for the shared Gradle workspace task gateway. */
@@ -72,6 +73,10 @@ public final class NeoForge1211WorkspaceTaskGateway implements WorkspaceTaskGate
 
 	@Override public Optional<JsonObject> cancel(UUID workspaceId, UUID taskId) {
 		return delegate.cancel(workspaceId, taskId);
+	}
+
+	@Override public AutoCloseable subscribeTaskEvents(Consumer<TaskEvent> listener) {
+		return delegate.subscribeTaskEvents(listener);
 	}
 
 	@Override public List<JsonObject> logs(UUID workspaceId, UUID taskId) {

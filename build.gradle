@@ -276,7 +276,10 @@ test {
 
 javadoc {
     source = sourceSets.main.allJava
-    classpath = configurations.runtimeClasspath
+    // Javadoc resolves symbols from main sources, so use the same compile
+    // classpath as compileJava. This keeps API-facing dependency types
+    // available consistently across local and Linux CI environments.
+    classpath = sourceSets.main.compileClasspath
 
     options.addStringOption('Xdoclint:none', '-quiet')
 

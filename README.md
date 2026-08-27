@@ -12,7 +12,7 @@ Closed capabilities are specified in [`PRD.md`](PRD.md). The next delivery is th
 
 Copperbench uses the checked-in Gradle Wrapper for building and packaging. CI covers Java, UI-Core schemas, the React shell, fast Playwright scenarios, MCP conformance, Javadoc, and local Markdown links. Packaging and publication rules are in the [Windows release process](docs/build/release-process.md).
 
-User documentation starts with [Getting Started](docs/user/getting-started.md) and [Troubleshooting](docs/user/troubleshooting.md). Local AI integrations start with the [MCP guide](docs/ai/getting-started.md).
+User documentation starts with [Getting Started](docs/user/getting-started.md) and [Troubleshooting](docs/user/troubleshooting.md). Local AI integrations start with the [MCP guide](docs/ai/getting-started.md). Minimal TypeScript/Python clients and the AI evaluation coverage contract are in [SDK and evals](sdk/README.md).
 
 Windows packages include JetBrains Runtime with JCEF `25.0.3+1-b329.124`. Automatic news, update, analytics, and Discord connections are disabled.
 

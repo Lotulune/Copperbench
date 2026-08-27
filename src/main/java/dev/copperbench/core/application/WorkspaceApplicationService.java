@@ -60,13 +60,19 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.time.Clock;
 import java.util.ArrayList;
+import java.util.ArrayDeque;
 import java.util.Base64;
 import java.util.Comparator;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
@@ -84,6 +90,7 @@ public final class WorkspaceApplicationService {
 	private static final Set<String> REGISTRY_NAMES = Set.of("variables", "tags", "languageKeys");
 	private static final Set<String> ELEMENT_TYPES = Set.of("block", "item", "recipe", "procedure", "function",
 			"loottable", "achievement");
+	private static final int TASK_EVENT_HISTORY_LIMIT = 2048;
 	private static final ProcedureIrCodec PROCEDURES = new ProcedureIrCodec();
 
 	private final RevisionedWorkspaceStore store;
@@ -102,6 +109,8 @@ public final class WorkspaceApplicationService {
 	private final WorkspaceCreationService workspaceCreation;
 	private final WorkspacePlanEngine plans;
 	private final WorkspaceReferenceIndex references = new WorkspaceReferenceIndex();
+	private final Map<UUID, CopyOnWriteArrayList<Consumer<Event>>> eventListeners = new ConcurrentHashMap<>();
+	private final Map<UUID, Deque<Event>> taskEventHistory = new ConcurrentHashMap<>();
 
 	public WorkspaceApplicationService(RevisionedWorkspaceStore store, WorkspaceTaskGateway tasks, Clock clock,
 			Supplier<UUID> ids) {
@@ -122,6 +131,12 @@ public final class WorkspaceApplicationService {
 	public WorkspaceApplicationService(RevisionedWorkspaceStore store, WorkspaceTaskGateway tasks,
 			WorkspaceMutationGateway mutations, LocalHistoryService history, WorkspaceStateReloader reloader,
 			Function<UUID, Path> workspaceRoots, Clock clock, Supplier<UUID> ids) {
+		this(store, tasks, mutations, history, reloader, workspaceRoots, clock, ids, true);
+	}
+
+	WorkspaceApplicationService(RevisionedWorkspaceStore store, WorkspaceTaskGateway tasks,
+			WorkspaceMutationGateway mutations, LocalHistoryService history, WorkspaceStateReloader reloader,
+			Function<UUID, Path> workspaceRoots, Clock clock, Supplier<UUID> ids, boolean subscribeTaskEvents) {
 		this.store = store;
 		this.tasks = tasks;
 		this.mutations = mutations;
@@ -137,6 +152,95 @@ public final class WorkspaceApplicationService {
 		this.installedPlugins = InstalledPluginInventoryService.productDefault();
 		this.workspaceCreation = new WorkspaceCreationService(this.tracks);
 		this.plans = new WorkspacePlanEngine(store, tasks, mutations, history, clock, ids);
+		if (subscribeTaskEvents)
+			tasks.subscribeTaskEvents(this::publishTaskEvent);
+	}
+
+	/**
+	 * Subscribes to retained asynchronous task events. The returned handle is
+	 * idempotent and may be closed when a browser page or client disconnects.
+	 */
+	public AutoCloseable subscribeEvents(UUID workspaceId, long afterSequence, Consumer<Event> listener) {
+		if (afterSequence < 0)
+			throw new IllegalArgumentException("afterSequence must be non-negative");
+		if (listener == null)
+			throw new NullPointerException("listener");
+		if (store.read(workspaceId).isEmpty())
+			throw new IllegalArgumentException("Workspace not found: " + workspaceId);
+		CopyOnWriteArrayList<Consumer<Event>> listeners = eventListeners.computeIfAbsent(workspaceId,
+				ignored -> new CopyOnWriteArrayList<>());
+		Deque<Event> history = taskEventHistory.computeIfAbsent(workspaceId, ignored -> new ArrayDeque<>());
+		synchronized (history) {
+			listeners.add(listener);
+			try {
+				for (Event event : history)
+					if (event.sequence() > afterSequence)
+						listener.accept(event);
+			} catch (RuntimeException exception) {
+				listeners.remove(listener);
+				throw exception;
+			}
+		}
+		return () -> listeners.remove(listener);
+	}
+
+	private void publishTaskEvent(WorkspaceTaskGateway.TaskEvent taskEvent) {
+		JsonObject payload = new JsonObject();
+		switch (taskEvent.event()) {
+			case "task_progressed", "task_completed" -> {
+				if (taskEvent.task() == null)
+					return;
+				payload.add("task", taskEvent.task());
+			}
+			case "task_log_appended" -> {
+				payload.addProperty("taskId", taskEvent.taskId().toString());
+				payload.add("entries", GSON.toJsonTree(taskEvent.entries()));
+			}
+			case "diagnostics_changed" -> {
+				JsonObject counts = taskEvent.task() != null && taskEvent.task().has("diagnostics")
+						? taskEvent.task().getAsJsonObject("diagnostics") : counts();
+				payload.add("counts", counts.deepCopy());
+				payload.add("diagnostics", GSON.toJsonTree(taskEvent.diagnostics()));
+			}
+			default -> {
+				return;
+			}
+		}
+		WorkspaceState state = store.read(taskEvent.workspaceId()).orElse(null);
+		if (state == null)
+			return;
+		RevisionedWorkspaceStore.TransactionResult<Long> coordinated = null;
+		for (int attempt = 0; attempt < 3; attempt++) {
+			state = store.read(taskEvent.workspaceId()).orElse(null);
+			if (state == null)
+				return;
+			coordinated = store.coordinate(taskEvent.workspaceId(), state.revision(), WorkspaceState::nextEventSequence);
+			if (coordinated.status() == RevisionedWorkspaceStore.TransactionResult.Status.COORDINATED)
+				break;
+		}
+		if (coordinated == null || coordinated.status() != RevisionedWorkspaceStore.TransactionResult.Status.COORDINATED)
+			return;
+		Event event = new Event("event", UiCore.SCHEMA_VERSION, ids.get(), taskEvent.workspaceId(),
+				coordinated.revision(), coordinated.value(), clock.instant().toString(), taskEvent.event(), null, payload);
+		Deque<Event> history = taskEventHistory.computeIfAbsent(taskEvent.workspaceId(), ignored -> new ArrayDeque<>());
+		CopyOnWriteArrayList<Consumer<Event>> listeners = eventListeners.computeIfAbsent(taskEvent.workspaceId(),
+				ignored -> new CopyOnWriteArrayList<>());
+		List<Consumer<Event>> recipients;
+		synchronized (history) {
+			history.addLast(event);
+			while (history.size() > TASK_EVENT_HISTORY_LIMIT)
+				history.removeFirst();
+			// Snapshot live recipients while replay history is locked. A subscriber is
+			// therefore either in this live snapshot or replays this event, never both.
+			recipients = List.copyOf(listeners);
+		}
+		for (Consumer<Event> listener : recipients) {
+			try {
+				listener.accept(event);
+			} catch (RuntimeException exception) {
+				LOG.debug("Task event listener disconnected", exception);
+			}
+		}
 	}
 
 	public CommandOutcome execute(Command command, RequestContext context) {
@@ -1969,13 +2073,15 @@ public final class WorkspaceApplicationService {
 
 	private QueryResult task(Query query, WorkspaceState state) {
 		UUID taskId = UUID.fromString(requiredString(query.payload(), "taskId"));
+		long afterLogSequence = query.payload().has("afterLogSequence")
+				? requiredLong(query.payload(), "afterLogSequence") : 0;
 		JsonObject task = tasks.find(state.id(), taskId).orElse(null);
 		if (task == null)
 			return queryFailure(query, state.revision(), diagnostic("TASK_NOT_FOUND", "diagnostic.task_not_found",
 					"The requested task does not exist.", "/taskId", null));
 		JsonObject projection = new JsonObject();
 		projection.add("task", task);
-		projection.add("logs", GSON.toJsonTree(tasks.logs(state.id(), taskId)));
+		projection.add("logs", GSON.toJsonTree(tasks.logsAfter(state.id(), taskId, afterLogSequence)));
 		projection.add("diagnostics", GSON.toJsonTree(tasks.diagnostics(state.id(), taskId)));
 		return querySuccess(query, state.revision(), projection);
 	}
@@ -2420,6 +2526,14 @@ public final class WorkspaceApplicationService {
 
 	private static JsonObject localized(String key, String fallback) {
 		return localized(key, fallback, new JsonObject());
+	}
+
+	private static long requiredLong(JsonObject object, String property) {
+		if (object == null || !object.has(property) || !object.get(property).isJsonPrimitive())
+			throw new IllegalArgumentException("Missing integer property " + property);
+		long value = object.get(property).getAsLong();
+		if (value < 0) throw new IllegalArgumentException(property + " must not be negative");
+		return value;
 	}
 
 	private static JsonObject localized(String key, String fallback, JsonObject args) {

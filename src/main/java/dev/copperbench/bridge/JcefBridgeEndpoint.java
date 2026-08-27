@@ -47,6 +47,13 @@ public final class JcefBridgeEndpoint {
 		};
 	}
 
+	/** Registers a listener and replays retained asynchronous task events. */
+	public AutoCloseable subscribeEvents(java.util.UUID workspaceId, long afterSequence,
+			Consumer<String> listener) {
+		return adapter.subscribeEvents(workspaceId, afterSequence,
+				event -> listener.accept(UiCore.wireGson().toJson(event)));
+	}
+
 	private String handleCommand(JsonObject envelope) {
 		requireSchema(envelope);
 		var outcome = adapter.execute(UiCore.wireGson().fromJson(envelope, Command.class));
