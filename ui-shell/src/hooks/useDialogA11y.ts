@@ -17,16 +17,26 @@ const FOCUSABLE_SELECTOR =
 export function useDialogA11y(open: boolean, onRequestClose: (() => void) | null) {
   const ref = useRef<HTMLDivElement | null>(null);
   const closeRef = useRef<(() => void) | null>(null);
+  const previouslyFocusedRef = useRef<HTMLElement | null>(null);
 
   closeRef.current = onRequestClose;
+
+  // Capture the invoker during render, before React commits descendant
+  // autoFocus. Waiting until the effect runs can otherwise remember an input
+  // inside the dialog and leave focus on <body> after that input unmounts.
+  if (open && previouslyFocusedRef.current === null) {
+    previouslyFocusedRef.current =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
+  } else if (!open) {
+    previouslyFocusedRef.current = null;
+  }
 
   useEffect(() => {
     if (!open) return;
     const dialog = ref.current;
     if (!dialog) return;
 
-    const previouslyFocused =
-      document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const previouslyFocused = previouslyFocusedRef.current;
 
     if (!dialog.hasAttribute('tabindex')) {
       dialog.setAttribute('tabindex', '-1');

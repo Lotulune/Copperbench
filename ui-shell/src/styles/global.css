@@ -323,6 +323,7 @@ input, select, textarea {
   background: var(--bg-input);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
+  min-height: 32px;
   padding: 6px 10px;
   outline: none;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
@@ -498,6 +499,13 @@ input:disabled, select:disabled, textarea:disabled {
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+
+.modal-header > button {
+  min-width: 32px;
+  min-height: 32px;
+  display: inline-grid;
+  place-items: center;
 }
 
 .modal-body {

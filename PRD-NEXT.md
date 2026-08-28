@@ -20,12 +20,12 @@
 
 | 项目 | 当前事实 | 结论 |
 | --- | --- | --- |
-| Fast CI | main 分支保护持续要求 Java/Javadoc、UI/Playwright 与 MCP；当前 `main@e8caf018` 的 merged-main run `33097229636` 全绿 | PR 门禁已闭环；机器状态源继续保留连续 main 门禁 3/3 |
+| Fast CI | main 分支保护持续要求 Java/Javadoc、UI/Playwright 与 MCP；当前 `main@c566b4a6` 的 merged-main run `33105457191` 全绿 | PR 门禁已闭环；机器状态源继续保留连续 main 门禁 3/3 |
 | 公开 Release | `v0.1.0-preview.2` 已完成公开验证；本 PR 冻结为 `v0.1.0-preview.3` 发布源，公开状态由 Tag API 与 `RELEASE-METADATA.json` 实时判定 | Preview 3 必须与合并后的最新 `main` HEAD 完全一致；Windows 包仍未 Authenticode 签名 |
 | 状态源 | `product-status.json`、Schema 和 CI 漂移校验已进入 main，并已修复首次远端运行暴露的 Release Schema 漏项 | 状态源门禁通过；后续状态提升仍必须带固定提交证据 |
-| 重型门禁 | Nightly `33098518016`（`main@e8caf018`）的全量 Java/Javadoc/scale 回归、完整 Playwright、MCP 与八生成器内容构建 8/8 全绿；native JCEF reconnect 1/1 实际执行通过 | FR-AI-02～05 的固定提交 Nightly 证据已闭环；独立固定硬件 P95、JCEF a11y、服务端、干净 VM 等 Stage 9 门禁仍保持 blocked |
-| Stage 9 | 八生成器黄金编译、三个专用编辑器和语言导入工具已有自动化证据；500 节点交互、2,000/10,000 规模 P95、服务端、真实 JCEF/a11y、干净 VM 和外部试用仍未关闭 | `betaEligible=false`，不得称为 Beta |
-| AI Developer Kit | PR #14～#17 的 Cursor、Workspace Plan、Task Events/SDK 与 Windows-native JCEF reconnect 均已合入；`main@e8caf018` 的 merged-main CI `33097229636` 与固定提交 Nightly `33098518016` 全绿 | FR-AI-02～05 均为 `passed`；MCP reconnect 继续冻结为 `get_task(afterLogSequence)`，不引入未版本化的自定义 push 方言 |
+| 重型门禁 | Nightly `33131510421`（`main@c566b4a6`）的全量 Java/Javadoc/scale 回归、完整 Playwright、MCP 与八生成器内容构建 8/8 全绿；native JCEF reconnect 1/1 实际执行通过 | FR-AI-02～05 保持闭环；独立固定硬件 P95、JCEF 高 DPI/屏幕阅读器、服务端、干净 VM 等 Stage 9 门禁仍保持 blocked |
+| Stage 9 | 八生成器黄金编译、三个专用编辑器和语言导入工具已有自动化证据；本轮补入真实 Windows JCEF 对话框键盘/焦点/点击目标验收；500 节点交互、2,000/10,000 规模 P95、服务端、高 DPI/屏幕阅读器、干净 VM 和外部试用仍未关闭 | `betaEligible=false`，不得称为 Beta |
+| AI Developer Kit | PR #14～#17 的 Cursor、Workspace Plan、Task Events/SDK 与 Windows-native JCEF reconnect 均已合入；当前 `main@c566b4a6` 的 merged-main CI `33105457191` 与固定提交 Nightly `33131510421` 全绿 | FR-AI-02～05 均为 `passed`；MCP reconnect 继续冻结为 `get_task(afterLogSequence)`，不引入未版本化的自定义 push 方言 |
 | 仓库治理 | GitHub 已识别 GPLv3；Javadoc Pages 可访问；main 三项必需检查、受保护 PR 与 production 必需审阅者均已验证 | 仓库治理 P0 已闭环 |
 | Dependency Submission | 仓库 Dependency Graph 未启用，原工作流无法成功 | 误导工作流已从 main 删除 |
 

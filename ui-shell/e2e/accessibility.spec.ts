@@ -14,7 +14,9 @@ test.describe('Accessibility baseline (NFR-UI-08)', () => {
   });
 
   test('create modal moves focus in, traps Tab and closes on Escape', async ({ page }) => {
-    await page.click('[data-testid="empty-primary-action"]');
+    const trigger = page.locator('[data-testid="empty-primary-action"]');
+    await trigger.focus();
+    await trigger.click();
     const modal = page.locator('[data-testid="create-element-modal"]');
     await expect(modal).toBeVisible();
 
@@ -29,6 +31,7 @@ test.describe('Accessibility baseline (NFR-UI-08)', () => {
     // Escape closes and focus handling does not leave the page stuck
     await page.keyboard.press('Escape');
     await expect(modal).not.toBeVisible();
+    await expect(trigger).toBeFocused();
   });
 
   test('revision conflict dialog receives focus when it opens', async ({ page }) => {
@@ -103,6 +106,21 @@ test.describe('Accessibility baseline (NFR-UI-08)', () => {
     if (primaryBox) {
       expect(Math.round(primaryBox.width)).toBeGreaterThanOrEqual(32);
       expect(Math.round(primaryBox.height)).toBeGreaterThanOrEqual(32);
+    }
+
+    // Modal controls use the same minimum target contract. This specifically
+    // guards native-JCEF regressions where icon buttons or text inputs can be
+    // smaller than their Chromium harness counterparts.
+    await primaryBtn.click();
+    const modalControls = await page
+      .locator('[data-testid="create-element-modal"] button, [data-testid="create-element-modal"] input')
+      .all();
+    for (const control of modalControls) {
+      const box = await control.boundingBox();
+      if (box) {
+        expect(Math.round(box.width)).toBeGreaterThanOrEqual(32);
+        expect(Math.round(box.height)).toBeGreaterThanOrEqual(32);
+      }
     }
   });
 });
