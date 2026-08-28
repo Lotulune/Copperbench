@@ -7,7 +7,9 @@
 `Copperbench-G7` 客机上记录基线、静默安装当前 Windows 安装包并首次启动产品；随后由
 [`Invoke-G9CleanWindowsGuiGate.ps1`](../../scripts/Invoke-G9CleanWindowsGuiGate.ps1) 在同一客机的已安装产品上验证
 WorkspaceSelector、新建工作区、Generator setup 与 `-workspace` 冷启动。它们共同构成 Stage 9 G9.5 的**部分证据**，
-但尚未覆盖完整升级/断网/卸载与数据保留矩阵，因此不会把 `clean-windows-11-stage9` 从 `blocked` 提升为 `passed`。
+后续 2026-08-29 已补齐公开旧版升级、断网工作区启动与升级/卸载数据保留，见
+[G9.5 升级、断网与数据保留验证](./stage-9-g95-upgrade-offline-retention-2026-08-29.md)。
+`clean-windows-11-stage9` 仍不会提升为 `passed`，因为最终 Public Beta/RC 安装包尚未确定并重放完整矩阵。
 
 首次安装 smoke 的机器可读基线显示 Windows 11 专业版 build 26200，系统安装时间为本测试当天；PATH 中没有项目
 自带 JDK，且 `git`、`java`、`javac`、`gradle`、VS Code、IntelliJ、Visual Studio、Android Studio 均不可用。
@@ -23,8 +25,9 @@ Unique4j/loopback/address-in-use 等 IPC 失败信号。
 - 正常关闭 GUI 实例后，用同一原生启动器执行 `copperbench.exe -workspace <file>` 冷启动；
 - 冷启动直接进入目标工作区，不显示 `WorkspaceSelector`，并确认 Java 进程实际收到目标 `.mcreator` 路径。
 
-仍未由本记录证明的 G9.5 项目：从已安装旧版本执行升级、断网启动，以及升级/卸载后的工作区和用户数据保留；
-此外仍需在最终发布候选安装包上重放完整矩阵。上述项目仍是 Beta 阻断项。
+本记录本身不证明旧版本升级、断网启动和升级/卸载数据保留；这些子路径已由 2026-08-29 的
+[后续 G9.5 验证](./stage-9-g95-upgrade-offline-retention-2026-08-29.md) 独立关闭。两组记录组合后，G9.5 仍只剩最终
+Public Beta/RC 安装包的完整矩阵重放，未完成前仍是 Beta 阻断项。
 
 ## 自动化保护边界
 
@@ -105,4 +108,5 @@ CLI 冷启动使用：
 
 这组证据关闭的是“新装 Windows 11 客机首次安装/首次启动 + 真实 Windows GUI 创建 + generator setup + 原生启动器
 `-workspace` 冷启动”子路径；
-`product-status.json` 中 `clean-windows-11-stage9` 继续保持 `blocked`，直到完整 G9.5 干净虚拟机矩阵有独立证据。
+2026-08-29 的后续记录已补齐升级/断网/保留子路径。`product-status.json` 中 `clean-windows-11-stage9` 继续保持
+`blocked`，直到最终 Public Beta/RC 安装包重放完整 G9.5 矩阵。

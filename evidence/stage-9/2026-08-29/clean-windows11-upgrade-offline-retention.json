@@ -1,0 +1,189 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "stage9-clean-windows11-upgrade-offline-retention",
+  "vmName": "Copperbench-G7",
+  "previousRelease": "v0.1.0-preview.3",
+  "previousInstallerPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage9-g95\\Copperbench.0.1.0-preview.3.Windows.64bit.exe",
+  "previousInstallerSha256": "4c621c330e933422fca918c3c88ba87bec15eef937e6ed51cccc128a0a61bccf",
+  "currentInstallerPath": "D:\\AICoding\\Minecraft_ModCreator\\build\\export\\Copperbench 0.1.0 Windows 64bit.exe",
+  "currentInstallerSha256": "59c9a01252e2529490e597887dea994bb927ff01cd8264edc256e91369786eca",
+  "installDir": "C:\\Copperbench-G9",
+  "startedAt": "2026-08-29T01:24:42.4232140+08:00",
+  "passed": true,
+  "previousInstallerVerified": true,
+  "preflightCurrentUninstall": true,
+  "preflightCurrentUninstallPreservedWorkspace": true,
+  "preflightCurrentUninstallPreservedUserData": true,
+  "previousReleaseInstalled": true,
+  "oldToCurrentUpgrade": true,
+  "upgradeInstalledDifferentPayload": true,
+  "upgradePreservedWorkspace": true,
+  "upgradePreservedUserData": true,
+  "networkDisconnected": true,
+  "offlineProcessStarted": true,
+  "offlineProcessStable": true,
+  "offlineWorkspaceArgumentObserved": true,
+  "offlineMainWindowObserved": true,
+  "silentUninstall": true,
+  "uninstallPreservedWorkspace": true,
+  "uninstallPreservedUserData": true,
+  "restoredCurrentInstall": true,
+  "finalRcReplayRequired": true,
+  "gatePromotionReady": false,
+  "workspaceFile": "C:\\Users\\g7admin\\MCreatorWorkspaces\\guigatedelta\\guigatedelta.mcreator",
+  "baseline": {
+    "workspaceFileSha256": "68485e5f94c7c316545f6ed01d84c95e84e4f3fc06ee5798b2f1f1fa823372fc",
+    "workspaceMarker": "C:\\Users\\g7admin\\MCreatorWorkspaces\\guigatedelta\\g95-retention-g95-5d5a3fb90f32428e864c6d90c28fd9eb.txt",
+    "userMarker": "C:\\Users\\g7admin\\.copperbench\\g95-retention-g95-5d5a3fb90f32428e864c6d90c28fd9eb.txt",
+    "currentInstallPresent": true,
+    "currentUninstallPresent": true,
+    "PSComputerName": "Copperbench-G7",
+    "RunspaceId": "286c7c64-3837-4a65-b7fa-0fdbd94ac00e",
+    "PSShowComputerName": true
+  },
+  "preflightCurrentUninstallResult": {
+    "exitCode": 0,
+    "sessionDisconnected": false
+  },
+  "preflightRetention": {
+    "workspaceFilePresent": true,
+    "workspaceFileSha256": "68485e5f94c7c316545f6ed01d84c95e84e4f3fc06ee5798b2f1f1fa823372fc",
+    "workspaceMarkerPresent": true,
+    "workspaceMarkerMatches": true,
+    "userFolderPresent": true,
+    "userMarkerPresent": true,
+    "userMarkerMatches": true,
+    "PSComputerName": "Copperbench-G7",
+    "RunspaceId": "7a860ce8-5d21-4ad4-9df6-333b566a2b33",
+    "PSShowComputerName": true
+  },
+  "previousInstallResult": {
+    "exitCode": 0,
+    "sessionDisconnected": false
+  },
+  "previousPayload": {
+    "launcherPresent": true,
+    "jarPresent": true,
+    "jarSha256": "b2a70e2702cfa11553b174a8e78e020d73e6bb99a54cebd3722379fac5b7d00e",
+    "uninstallPresent": true,
+    "PSComputerName": "Copperbench-G7",
+    "RunspaceId": "56bc39d8-daf3-4232-b0bc-8026ec48ebdd",
+    "PSShowComputerName": true
+  },
+  "upgradeResult": {
+    "exitCode": 0,
+    "sessionDisconnected": false
+  },
+  "currentPayloadAfterUpgrade": {
+    "launcherPresent": true,
+    "jarPresent": true,
+    "jarSha256": "e7f89a3bc865eda237b599abc6521591d36926149905901ada59d66a49c8f27d",
+    "uninstallPresent": true,
+    "PSComputerName": "Copperbench-G7",
+    "RunspaceId": "a44dea82-3c0f-49cd-8ce5-80179c2b7046",
+    "PSShowComputerName": true
+  },
+  "afterUpgradeRetention": {
+    "workspaceFilePresent": true,
+    "workspaceFileSha256": "68485e5f94c7c316545f6ed01d84c95e84e4f3fc06ee5798b2f1f1fa823372fc",
+    "workspaceMarkerPresent": true,
+    "workspaceMarkerMatches": true,
+    "userFolderPresent": true,
+    "userMarkerPresent": true,
+    "userMarkerMatches": true,
+    "PSComputerName": "Copperbench-G7",
+    "RunspaceId": "a44dea82-3c0f-49cd-8ce5-80179c2b7046",
+    "PSShowComputerName": true
+  },
+  "offline": {
+    "processStarted": true,
+    "processStable": true,
+    "workspaceArgumentObserved": true,
+    "mainWindowObserved": true,
+    "javaProcessId": 1200,
+    "javaCommandLine": "\"C:\\Copperbench-G9\\jdk\\bin\\javaw.exe\" --add-opens=java.base/java.lang=ALL-UNNAMED --enable-native-access=ALL-UNNAMED,jcef -Dcopperbench.productShell=true -classpath \"C:\\Copperbench-G9\\copperbench.exe;.\\lib\\.;.\\lib\\..;.\\lib\\autocomplete-3.3.3.jar;.\\lib\\autolink-0.10.0.jar;.\\lib\\balloontip-1.2.4.1.jar;.\\lib\\blockly.jar;.\\lib\\commonmark-0.17.0.jar;.\\lib\\commonmark-ext-autolink-0.17.0.jar;.\\lib\\commonmark-ext-gfm-tables-0.17.0.jar;.\\lib\\commons-codec-1.22.0.jar;.\\lib\\commons-io-2.22.0.jar;.\\lib\\commons-lang3-3.20.0.jar;.\\lib\\commons-text-1.15.0.jar;.\\lib\\copperbench.jar;.\\lib\\discord-rpc.jar;.\\lib\\error_prone_annotations-2.47.0.jar;.\\lib\\failureaccess-1.0.3.jar;.\\lib\\flatlaf-3.7.1-no-natives.jar;.\\lib\\flatlaf-3.7.1-windows-x86_64.dll;.\\lib\\flatlaf-extras-3.7.1.jar;.\\lib\\freemarker-2.3.34.jar;.\\lib\\gradle-tooling-api-9.6.1.jar;.\\lib\\gson-2.14.0.jar;.\\lib\\guava-33.6.0-jre.jar;.\\lib\\itu-1.14.0.jar;.\\lib\\j2objc-annotations-3.1.jar;.\\lib\\jackson-annotations-2.20.jar;.\\lib\\jackson-core-3.0.3.jar;.\\lib\\jackson-databind-3.0.3.jar;.\\lib\\jackson-dataformat-yaml-3.0.3.jar;.\\lib\\JavaEWAH-1.2.3.jar;.\\lib\\javassist-3.28.0-GA.jar;.\\lib\\jna-5.19.1.jar;.\\lib\\jnbt.jar;.\\lib\\js-beautify-1.15.4.1.jar;.\\lib\\json-20250517.jar;.\\lib\\json-schema-validator-3.0.0.jar;.\\lib\\jspecify-1.0.0.jar;.\\lib\\jsr305-3.0.2.jar;.\\lib\\jsvg-2.1.0.jar;.\\lib\\junidecode-0.3.jar;.\\lib\\languagesupport-3.4.1.jar;.\\lib\\listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar;.\\lib\\log4j-api-2.26.1.jar;.\\lib\\log4j-core-2.26.1.jar;.\\lib\\mcp-2.0.0.jar;.\\lib\\mcp-core-2.0.0.jar;.\\lib\\mcp-json-jackson3-2.0.0.jar;.\\lib\\obj-0.4.0.jar;.\\lib\\org.eclipse.jgit-7.7.0.202606012155-r.jar;.\\lib\\reactive-streams-1.0.4.jar;.\\lib\\reactor-core-3.7.0.jar;.\\lib\\reflections-0.10.2.jar;.\\lib\\roaster-api-2.31.1.Final.jar;.\\lib\\roaster-jdt-2.31.1.Final.jar;.\\lib\\rsyntaxtextarea-3.6.3.jar;.\\lib\\slf4j-api-2.0.18.jar;.\\lib\\slf4j-nop-2.0.18.jar;.\\lib\\snakeyaml-engine-3.0.1.jar;.\\lib\\tomcat-annotations-api-11.0.2.jar;.\\lib\\tomcat-embed-core-11.0.2.jar;.\\lib\\unique4j-2.1.0.jar;.\\lib\\unique4j-unix-socket-channel-2.1.0.jar;.\\lib\\univocity-parsers-2.9.1.jar\" net.mcreator.Launcher -workspace \"C:\\Users\\g7admin\\MCreatorWorkspaces\\guigatedelta\\guigatedelta.mcreator\" ",
+    "mainWindowHandle": 327772,
+    "mainWindowTitle": "guigatedelta - Copperbench 0.1.0",
+    "interactiveSessionId": 1,
+    "observedWindows": [
+      {
+        "name": "guigatedelta - Copperbench 0.1.0",
+        "className": "SunAwtFrame",
+        "controlType": "ControlType.Pane",
+        "nativeWindowHandle": 327772,
+        "isOffscreen": false
+      }
+    ],
+    "completedAt": "2026-08-29T01:28:19.6683014+08:00",
+    "PSComputerName": "Copperbench-G7",
+    "RunspaceId": "a44dea82-3c0f-49cd-8ce5-80179c2b7046",
+    "PSShowComputerName": true
+  },
+  "afterOfflineRetention": {
+    "workspaceFilePresent": true,
+    "workspaceFileSha256": "68485e5f94c7c316545f6ed01d84c95e84e4f3fc06ee5798b2f1f1fa823372fc",
+    "workspaceMarkerPresent": true,
+    "workspaceMarkerMatches": true,
+    "userFolderPresent": true,
+    "userMarkerPresent": true,
+    "userMarkerMatches": true,
+    "PSComputerName": "Copperbench-G7",
+    "RunspaceId": "a44dea82-3c0f-49cd-8ce5-80179c2b7046",
+    "PSShowComputerName": true
+  },
+  "networkRestoredAfterOfflineCheck": true,
+  "uninstallResult": {
+    "exitCode": 0,
+    "sessionDisconnected": false
+  },
+  "afterUninstallRetention": {
+    "workspaceFilePresent": true,
+    "workspaceFileSha256": "68485e5f94c7c316545f6ed01d84c95e84e4f3fc06ee5798b2f1f1fa823372fc",
+    "workspaceMarkerPresent": true,
+    "workspaceMarkerMatches": true,
+    "userFolderPresent": true,
+    "userMarkerPresent": true,
+    "userMarkerMatches": true,
+    "PSComputerName": "Copperbench-G7",
+    "RunspaceId": "2b0cbe40-b9c2-41f3-9602-9415243a12ae",
+    "PSShowComputerName": true
+  },
+  "restoreInstallResult": {
+    "exitCode": 0,
+    "sessionDisconnected": false
+  },
+  "restoredPayload": {
+    "launcherPresent": true,
+    "jarPresent": true,
+    "jarSha256": "e7f89a3bc865eda237b599abc6521591d36926149905901ada59d66a49c8f27d",
+    "uninstallPresent": true,
+    "PSComputerName": "Copperbench-G7",
+    "RunspaceId": "cfa47939-a5e5-409b-adb6-7ffb6a47cbfd",
+    "PSShowComputerName": true
+  },
+  "finalRetention": {
+    "workspaceFilePresent": true,
+    "workspaceFileSha256": "68485e5f94c7c316545f6ed01d84c95e84e4f3fc06ee5798b2f1f1fa823372fc",
+    "workspaceMarkerPresent": true,
+    "workspaceMarkerMatches": true,
+    "userFolderPresent": true,
+    "userMarkerPresent": true,
+    "userMarkerMatches": true,
+    "PSComputerName": "Copperbench-G7",
+    "RunspaceId": "cfa47939-a5e5-409b-adb6-7ffb6a47cbfd",
+    "PSShowComputerName": true
+  },
+  "testMarkerCleanup": {
+    "removed": [
+      "C:\\Users\\g7admin\\MCreatorWorkspaces\\guigatedelta\\g95-retention-g95-5d5a3fb90f32428e864c6d90c28fd9eb.txt",
+      "C:\\Users\\g7admin\\.copperbench\\g95-retention-g95-5d5a3fb90f32428e864c6d90c28fd9eb.txt"
+    ],
+    "workspaceMarkerAbsent": true,
+    "userMarkerAbsent": true,
+    "PSComputerName": "Copperbench-G7",
+    "RunspaceId": "cfa47939-a5e5-409b-adb6-7ffb6a47cbfd",
+    "PSShowComputerName": true
+  },
+  "testMarkersRemoved": true,
+  "completedAt": "2026-08-29T01:30:02.2620613+08:00"
+}
