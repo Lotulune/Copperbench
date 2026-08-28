@@ -36,9 +36,10 @@
 7. 在 `g7admin` 的交互桌面会话中执行 `copperbench.exe -workspace <guigatedelta.mcreator>`；
 8. 使用 Windows UI Automation 按目标 Java PID、`SunAwtFrame`、工作区标题和非零 HWND 识别真实工作区窗口，
    并要求窗口出现后进程继续稳定存活；
-9. 恢复网络，静默卸载升级后的当前候选，验证工作区与 `.copperbench` 用户数据仍保留；
-10. 重新安装当前候选，把测试客机恢复到测试前的产品版本；
-11. 仅在 marker 内容仍等于本轮唯一 token 时删除测试 marker，避免污染后续人工验证。
+9. 断网启动结束后再次计算 `.mcreator` SHA-256，并要求它仍然等于步骤 1 记录的原始 baseline hash；后续卸载保留检查继续沿用这一原始 baseline，不允许把断网后可能变化的 hash 重新作为新基线；
+10. 恢复网络，静默卸载升级后的当前候选，验证工作区与 `.copperbench` 用户数据仍保留；
+11. 重新安装当前候选，把测试客机恢复到测试前的产品版本；
+12. 仅在 marker 内容仍等于本轮唯一 token 时删除测试 marker，避免污染后续人工验证。
 
 任何阶段失败都会保持 `passed=false`。脚本还会在 `finally` 中尽力恢复客机 NIC、重新安装当前候选，并只清理
 属于本轮的 marker；不会删除工作区目录。

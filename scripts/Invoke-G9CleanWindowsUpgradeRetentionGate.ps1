@@ -534,14 +534,9 @@ try {
 		Start-Sleep -Seconds 3
 	}
 	$afterOfflineRetention = Get-RetentionState -SessionRef ([ref]$session) -TargetWorkspaceFile $resolvedWorkspace -Token $retentionToken
-	if (-not $afterOfflineRetention.workspaceFilePresent -or
-			-not $afterOfflineRetention.workspaceMarkerPresent -or -not $afterOfflineRetention.workspaceMarkerMatches -or
-			-not $afterOfflineRetention.userFolderPresent -or -not $afterOfflineRetention.userMarkerPresent -or
-			-not $afterOfflineRetention.userMarkerMatches) {
-		throw 'Offline workspace launch removed retained workspace or user-data markers.'
-	}
+	Assert-RetentionState -State $afterOfflineRetention -ExpectedWorkspaceHash $baseline.workspaceFileSha256 -Label 'Offline workspace launch'
 	$result.afterOfflineRetention = $afterOfflineRetention
-	$preUninstallWorkspaceHash = $afterOfflineRetention.workspaceFileSha256
+	$preUninstallWorkspaceHash = $baseline.workspaceFileSha256
 
 	foreach ($adapter in $savedNetworkAdapters) {
 		if ($adapter.switchName) {
