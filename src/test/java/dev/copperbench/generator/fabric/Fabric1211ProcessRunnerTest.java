@@ -29,4 +29,28 @@ class Fabric1211ProcessRunnerTest {
 		assertTrue(Fabric1211ProcessRunner.isServerRun(List.of(":server:runServer")));
 		assertFalse(Fabric1211ProcessRunner.isServerRun(List.of("runDatagen")));
 	}
+
+	@Test void recognizesVanillaDedicatedServerReadinessLine() {
+		assertTrue(Fabric1211ProcessRunner.isMinecraftServerReadyLine(
+				"[Server thread/INFO]: Done (3.214s)! For help, type \"help\""));
+		assertFalse(Fabric1211ProcessRunner.isMinecraftServerReadyLine(
+				"[Server thread/INFO]: COPPERBENCH_STAGE7_FABRIC262_READY"));
+		assertFalse(Fabric1211ProcessRunner.isMinecraftServerReadyLine("Done loading data packs"));
+	}
+
+	@Test void recognizesImmediateDedicatedServerFatalLines() {
+		assertTrue(Fabric1211ProcessRunner.isMinecraftServerFatalLine(
+				"[Server thread/FATAL] [ne.mi.co.ForgeMod/]: Preparing crash report"));
+		assertTrue(Fabric1211ProcessRunner.isMinecraftServerFatalLine(
+				"Attempted to load class net/minecraft/client/server/LanServerPinger for invalid dist DEDICATED_SERVER"));
+		assertFalse(Fabric1211ProcessRunner.isMinecraftServerFatalLine(
+				"[Server thread/INFO]: Done (3.214s)! For help, type \"help\""));
+	}
+
+	@Test void profilesSelectBundledJdkCompatibleWithTheirGradleRuntime() {
+		assertTrue(Fabric1211Generator.Profile.FABRIC_1201.jdkRelativePath().endsWith("jdk21_win_64"));
+		assertTrue(Fabric1211Generator.Profile.FABRIC_1211.jdkRelativePath().endsWith("jdk21_win_64"));
+		assertTrue(Fabric1211Generator.Profile.FABRIC_261.jdkRelativePath().endsWith("jbr25_win_64"));
+		assertTrue(Fabric1211Generator.Profile.FABRIC_262.jdkRelativePath().endsWith("jbr25_win_64"));
+	}
 }

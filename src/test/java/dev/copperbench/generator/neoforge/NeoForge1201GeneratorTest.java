@@ -54,5 +54,9 @@ class NeoForge1201GeneratorTest {
 		assertTrue(mod.contains("net.minecraftforge.fml.common.Mod"));
 		assertTrue(Files.readString(output.resolve("src/main/java/dev/coppertrails/CopperTrailsMod.java"))
 				.contains("COPPERBENCH_STAGE7_NEOFORGE1201_READY"));
+		assertEquals(output.resolve("runs/server"), generator.serverRunDirectory(output));
+		generator.prepareServerRun(output);
+		String forgeServerConfig = Files.readString(output.resolve("runs/server/world/serverconfig/forge-server.toml"));
+		assertTrue(forgeServerConfig.contains("advertiseDedicatedServerToLan = false"));
 	}
 }

@@ -34,5 +34,9 @@ class NeoForge261GeneratorTest {
 		assertTrue(Files.readString(output.resolve("build.gradle")).contains("JavaLanguageVersion.of(25)"));
 		assertTrue(Files.readString(output.resolve("src/main/java/dev/coppertrails/CopperTrailsMod.java"))
 				.contains("COPPERBENCH_STAGE7_NEOFORGE261_READY"));
+		assertTrue(Files.readString(output.resolve("src/main/java/dev/coppertrails/init/ModBlocks.java"))
+				.contains("REGISTRY.registerBlock"));
+		assertTrue(Files.readString(output.resolve("src/main/java/dev/coppertrails/init/ModItems.java"))
+				.contains("REGISTRY.registerItem"));
 	}
 }

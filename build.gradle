@@ -240,6 +240,12 @@ test {
 		System.getProperty('copperbench.stage9.workspaceGeneratorBuild', 'false')
 	systemProperty 'copperbench.stage9.workspaceGeneratorId',
 		System.getProperty('copperbench.stage9.workspaceGeneratorId', '')
+	systemProperty 'copperbench.stage9.realServer',
+		System.getProperty('copperbench.stage9.realServer', 'false')
+	systemProperty 'copperbench.stage9.realServerGeneratorId',
+		System.getProperty('copperbench.stage9.realServerGeneratorId', '')
+	systemProperty 'copperbench.stage9.realServerReuseWorkspace',
+		System.getProperty('copperbench.stage9.realServerReuseWorkspace', 'false')
 	systemProperty 'copperbench.generatorIntegrationProfile',
 		System.getProperty('copperbench.generatorIntegrationProfile', 'local')
 	systemProperty 'copperbench.generatorSetupTimeoutMinutes',

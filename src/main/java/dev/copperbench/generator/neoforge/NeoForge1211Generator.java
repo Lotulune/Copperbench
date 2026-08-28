@@ -69,6 +69,10 @@ public final class NeoForge1211Generator implements GradleWorkspaceBackend {
 		}
 	}
 
+	private boolean usesRegistryAwareFactories() {
+		return profile.modernDeferred() && profile.javaRelease() >= 25;
+	}
+
 	private static final Gson JSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
 	private final Path distributionRoot;
@@ -91,6 +95,18 @@ public final class NeoForge1211Generator implements GradleWorkspaceBackend {
 
 	@Override public String diagnosticPrefix() {
 		return "NEOFORGE";
+	}
+
+	@Override public Path serverRunDirectory(Path targetRoot) {
+		return profile.modernDeferred() ? targetRoot.resolve("run") : targetRoot.resolve("runs/server");
+	}
+
+	@Override public void prepareServerRun(Path targetRoot) throws IOException {
+		if (profile.modernDeferred()) return;
+		Path forgeServerConfig = serverRunDirectory(targetRoot).resolve("world/serverconfig/forge-server.toml");
+		Files.createDirectories(forgeServerConfig.getParent());
+		Files.writeString(forgeServerConfig, "[server]\nadvertiseDedicatedServerToLan = false\n",
+				StandardCharsets.UTF_8);
 	}
 
 	@Override public List<ValidationIssue> validate(WorkspaceState workspace) {
@@ -276,12 +292,20 @@ public final class NeoForge1211Generator implements GradleWorkspaceBackend {
 		for (Element block : blocks) {
 			JsonObject fields = fields(block);
 			String type = profile.modernDeferred() ? "DeferredBlock<Block>" : "RegistryObject<Block>";
-			declarations.append("\tpublic static final ").append(type).append(" ").append(constantName(block.name()))
-					.append(" = REGISTRY.register(").append(javaString(block.name()))
-					.append(", () -> new Block(BlockBehaviour.Properties.of().strength(")
-					.append(number(fields, "hardness", 2.0)).append("f, ")
-					.append(number(fields, "resistance", 2.0)).append("f).lightLevel(state -> ")
-					.append(integer(fields, "luminance", 0)).append(")));\n");
+			declarations.append("\tpublic static final ").append(type).append(" ").append(constantName(block.name()));
+			if (usesRegistryAwareFactories()) {
+				declarations.append(" = REGISTRY.registerBlock(").append(javaString(block.name()))
+						.append(", properties -> new Block(properties.strength(")
+						.append(number(fields, "hardness", 2.0)).append("f, ")
+						.append(number(fields, "resistance", 2.0)).append("f).lightLevel(state -> ")
+						.append(integer(fields, "luminance", 0)).append(")));\n");
+			} else {
+				declarations.append(" = REGISTRY.register(").append(javaString(block.name()))
+						.append(", () -> new Block(BlockBehaviour.Properties.of().strength(")
+						.append(number(fields, "hardness", 2.0)).append("f, ")
+						.append(number(fields, "resistance", 2.0)).append("f).lightLevel(state -> ")
+						.append(integer(fields, "luminance", 0)).append(")));\n");
+			}
 		}
 		if (profile.modernDeferred()) {
 			write(root, "src/main/java/" + packagePath + "/init/ModBlocks.java", """
@@ -328,16 +352,30 @@ public final class NeoForge1211Generator implements GradleWorkspaceBackend {
 		StringBuilder declarations = new StringBuilder();
 		String itemType = profile.modernDeferred() ? "DeferredItem<Item>" : "RegistryObject<Item>";
 		for (Element block : blocks) {
-			declarations.append("\tpublic static final ").append(itemType).append(" ").append(constantName(block.name()))
-					.append(" = REGISTRY.register(").append(javaString(block.name())).append(", () -> new BlockItem(")
-					.append("ModBlocks.").append(constantName(block.name()))
-					.append(".get(), new Item.Properties()));\n");
+			String blockItemType = usesRegistryAwareFactories() ? "DeferredItem<BlockItem>" : itemType;
+			declarations.append("\tpublic static final ").append(blockItemType).append(" ")
+					.append(constantName(block.name()));
+			if (usesRegistryAwareFactories()) {
+				declarations.append(" = REGISTRY.registerItem(").append(javaString(block.name()))
+						.append(", properties -> new BlockItem(ModBlocks.").append(constantName(block.name()))
+						.append(".get(), properties));\n");
+			} else {
+				declarations.append(" = REGISTRY.register(").append(javaString(block.name()))
+						.append(", () -> new BlockItem(ModBlocks.").append(constantName(block.name()))
+						.append(".get(), new Item.Properties()));\n");
+			}
 		}
 		for (Element item : items) {
-			declarations.append("\tpublic static final ").append(itemType).append(" ").append(constantName(item.name()))
-					.append(" = REGISTRY.register(").append(javaString(item.name()))
-					.append(", () -> new Item(new Item.Properties().stacksTo(")
-					.append(integer(fields(item), "maxStackSize", 64)).append(")));\n");
+			declarations.append("\tpublic static final ").append(itemType).append(" ").append(constantName(item.name()));
+			if (usesRegistryAwareFactories()) {
+				declarations.append(" = REGISTRY.registerItem(").append(javaString(item.name()))
+						.append(", properties -> new Item(properties.stacksTo(")
+						.append(integer(fields(item), "maxStackSize", 64)).append(")));\n");
+			} else {
+				declarations.append(" = REGISTRY.register(").append(javaString(item.name()))
+						.append(", () -> new Item(new Item.Properties().stacksTo(")
+						.append(integer(fields(item), "maxStackSize", 64)).append(")));\n");
+			}
 		}
 		if (profile.modernDeferred()) {
 			write(root, "src/main/java/" + packagePath + "/init/ModItems.java", """

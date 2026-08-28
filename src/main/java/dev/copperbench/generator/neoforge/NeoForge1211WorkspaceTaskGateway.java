@@ -39,7 +39,8 @@ public final class NeoForge1211WorkspaceTaskGateway implements WorkspaceTaskGate
 	public NeoForge1211WorkspaceTaskGateway(RevisionedWorkspaceStore store, Function<UUID, Path> workspaceRoots,
 			Path distributionRoot, Clock clock, Supplier<UUID> ids, NeoForge1211Generator.Profile profile) {
 		this(store, workspaceRoots, distributionRoot, clock, ids, profile,
-				Fabric1211ProcessRunner.system(profile.readyMarker()));
+				Fabric1211ProcessRunner.system(profile.readyMarker(),
+						distributionRoot.resolve(profile.jdkRelativePath())));
 	}
 
 	public NeoForge1211WorkspaceTaskGateway(RevisionedWorkspaceStore store, Function<UUID, Path> workspaceRoots,

@@ -41,23 +41,7 @@ class Stage9ServerReadinessContractTest {
 	private static final RequestContext UI = new RequestContext(Actor.UI, PermissionProfile.WORKSPACE);
 
 	@Test void allEightJavaTracksRequireEulaAndReachReadiness(@TempDir Path root) throws Exception {
-		List<Track> tracks = List.of(
-				new Track("fabric-26.2", (store, ids, runner, target) -> new Fabric1211WorkspaceTaskGateway(store,
-						ignored -> target, Path.of("."), CLOCK, ids, Fabric1211Generator.Profile.FABRIC_262, runner)),
-				new Track("neoforge-26.2", (store, ids, runner, target) -> new NeoForge1211WorkspaceTaskGateway(store,
-						ignored -> target, Path.of("."), CLOCK, ids, NeoForge1211Generator.Profile.NEOFORGE_262, runner)),
-				new Track("fabric-26.1.2", (store, ids, runner, target) -> new Fabric1211WorkspaceTaskGateway(store,
-						ignored -> target, Path.of("."), CLOCK, ids, Fabric1211Generator.Profile.FABRIC_261, runner)),
-				new Track("neoforge-26.1.2", (store, ids, runner, target) -> new NeoForge1211WorkspaceTaskGateway(store,
-						ignored -> target, Path.of("."), CLOCK, ids, NeoForge1211Generator.Profile.NEOFORGE_261, runner)),
-				new Track("fabric-1.21.1", (store, ids, runner, target) -> new Fabric1211WorkspaceTaskGateway(store,
-						ignored -> target, Path.of("."), CLOCK, ids, Fabric1211Generator.Profile.FABRIC_1211, runner)),
-				new Track("neoforge-1.21.1", (store, ids, runner, target) -> new NeoForge1211WorkspaceTaskGateway(store,
-						ignored -> target, Path.of("."), CLOCK, ids, NeoForge1211Generator.Profile.NEOFORGE_1211, runner)),
-				new Track("fabric-1.20.1", (store, ids, runner, target) -> new Fabric1211WorkspaceTaskGateway(store,
-						ignored -> target, Path.of("."), CLOCK, ids, Fabric1211Generator.Profile.FABRIC_1201, runner)),
-				new Track("neoforge-1.20.1", (store, ids, runner, target) -> new NeoForge1211WorkspaceTaskGateway(store,
-						ignored -> target, Path.of("."), CLOCK, ids, NeoForge1211Generator.Profile.NEOFORGE_1201, runner)));
+		List<Track> tracks = tracks();
 
 		List<String> passed = new ArrayList<>();
 		for (Track track : tracks) {
@@ -67,7 +51,8 @@ class Stage9ServerReadinessContractTest {
 			AtomicLong ids = new AtomicLong(1000);
 			Fabric1211ProcessRunner runner = (workingDirectory, arguments, timeout, output) -> {
 				assertEquals(List.of("runServer"), arguments);
-				assertEquals("eula=true\n", Files.readString(workingDirectory.resolve("run/eula.txt")));
+				assertEquals("eula=true\n", Files.readString(workingDirectory.resolve(track.eulaPath)));
+				assertServerConfigPrepared(workingDirectory, track);
 				output.accept("COPPERBENCH_STAGE9_SERVER_READY " + track.generatorId);
 				return new Fabric1211ProcessRunner.ProcessResult(0, true);
 			};
@@ -77,14 +62,7 @@ class Stage9ServerReadinessContractTest {
 			try {
 				WorkspaceApplicationService service = new WorkspaceApplicationService(store, tasks, CLOCK,
 					() -> UUID.nameUUIDFromBytes((track.generatorId + "-service-" + ids.getAndIncrement()).getBytes()));
-				JsonObject payload = new JsonObject();
-				payload.addProperty("clientMutationId", UUID.randomUUID().toString());
-				payload.addProperty("scope", "workspace");
-				payload.addProperty("userApproved", true);
-				var accepted = service.execute(Command.of(UUID.randomUUID(), workspaceId, 0, Operation.RUN_SERVER, payload), UI);
-				assertEquals("accepted", accepted.result().status());
-				UUID taskId = UUID.fromString(accepted.result().task().getAsJsonObject().get("id").getAsString());
-				JsonObject projection = awaitTask(service, workspaceId, taskId);
+				JsonObject projection = runServerAndAwait(service, workspaceId);
 				assertEquals("succeeded", projection.getAsJsonObject("task").get("state").getAsString());
 				assertTrue(projection.getAsJsonArray("logs").toString().contains("COPPERBENCH_STAGE9_SERVER_READY"));
 				passed.add(track.generatorId);
@@ -93,6 +71,85 @@ class Stage9ServerReadinessContractTest {
 			}
 		}
 		assertEquals(8, passed.size());
+	}
+
+	@Test void allEightJavaTracksFailClosedOnServerTimeoutAndProcessFailure(@TempDir Path root) throws Exception {
+		for (Track track : tracks()) {
+			assertServerFailure(root.resolve("timeout"), track, new Fabric1211ProcessRunner.ProcessResult(124, false),
+					"SERVER_TIMEOUT " + track.generatorId);
+			assertServerFailure(root.resolve("exit"), track, new Fabric1211ProcessRunner.ProcessResult(1, true),
+					"COPPERBENCH_STAGE9_SERVER_READY before fatal exit " + track.generatorId);
+		}
+	}
+
+	private static void assertServerConfigPrepared(Path workingDirectory, Track track) throws Exception {
+		if (track.serverConfigPath == null) return;
+		assertTrue(Files.readString(workingDirectory.resolve(track.serverConfigPath))
+				.contains("advertiseDedicatedServerToLan = false"));
+	}
+
+	private static List<Track> tracks() {
+		return List.of(
+				new Track("fabric-26.2", "run/eula.txt", null, (store, ids, runner, target) -> new Fabric1211WorkspaceTaskGateway(store,
+						ignored -> target, Path.of("."), CLOCK, ids, Fabric1211Generator.Profile.FABRIC_262, runner)),
+				new Track("neoforge-26.2", "run/eula.txt", null, (store, ids, runner, target) -> new NeoForge1211WorkspaceTaskGateway(store,
+						ignored -> target, Path.of("."), CLOCK, ids, NeoForge1211Generator.Profile.NEOFORGE_262, runner)),
+				new Track("fabric-26.1.2", "run/eula.txt", null, (store, ids, runner, target) -> new Fabric1211WorkspaceTaskGateway(store,
+						ignored -> target, Path.of("."), CLOCK, ids, Fabric1211Generator.Profile.FABRIC_261, runner)),
+				new Track("neoforge-26.1.2", "run/eula.txt", null, (store, ids, runner, target) -> new NeoForge1211WorkspaceTaskGateway(store,
+						ignored -> target, Path.of("."), CLOCK, ids, NeoForge1211Generator.Profile.NEOFORGE_261, runner)),
+				new Track("fabric-1.21.1", "run/eula.txt", null, (store, ids, runner, target) -> new Fabric1211WorkspaceTaskGateway(store,
+						ignored -> target, Path.of("."), CLOCK, ids, Fabric1211Generator.Profile.FABRIC_1211, runner)),
+				new Track("neoforge-1.21.1", "run/eula.txt", null, (store, ids, runner, target) -> new NeoForge1211WorkspaceTaskGateway(store,
+						ignored -> target, Path.of("."), CLOCK, ids, NeoForge1211Generator.Profile.NEOFORGE_1211, runner)),
+				new Track("fabric-1.20.1", "run/eula.txt", null, (store, ids, runner, target) -> new Fabric1211WorkspaceTaskGateway(store,
+						ignored -> target, Path.of("."), CLOCK, ids, Fabric1211Generator.Profile.FABRIC_1201, runner)),
+				new Track("neoforge-1.20.1", "runs/server/eula.txt",
+						"runs/server/world/serverconfig/forge-server.toml",
+						(store, ids, runner, target) -> new NeoForge1211WorkspaceTaskGateway(store,
+						ignored -> target, Path.of("."), CLOCK, ids, NeoForge1211Generator.Profile.NEOFORGE_1201, runner)));
+	}
+
+	private static void assertServerFailure(Path root, Track track, Fabric1211ProcessRunner.ProcessResult result,
+			String emittedLog) throws Exception {
+		String scenario = result.exitCode() == 124 ? "timeout" : "exit";
+		UUID workspaceId = UUID.nameUUIDFromBytes((track.generatorId + "-" + scenario + "-workspace").getBytes());
+		RevisionedWorkspaceStore store = new RevisionedWorkspaceStore();
+		store.register(workspace(workspaceId, track.generatorId));
+		AtomicLong ids = new AtomicLong(2000);
+		Fabric1211ProcessRunner runner = (workingDirectory, arguments, timeout, output) -> {
+			assertEquals(List.of("runServer"), arguments);
+			assertEquals("eula=true\n", Files.readString(workingDirectory.resolve(track.eulaPath)));
+			assertServerConfigPrepared(workingDirectory, track);
+			output.accept(emittedLog);
+			return result;
+		};
+		Path target = root.resolve(track.generatorId);
+		WorkspaceTaskGateway tasks = track.factory.create(store,
+				() -> UUID.nameUUIDFromBytes((track.generatorId + "-" + scenario + "-" + ids.getAndIncrement()).getBytes()),
+				runner, target);
+		try {
+			WorkspaceApplicationService service = new WorkspaceApplicationService(store, tasks, CLOCK,
+					() -> UUID.nameUUIDFromBytes((track.generatorId + "-" + scenario + "-service-"
+							+ ids.getAndIncrement()).getBytes()));
+			JsonObject projection = runServerAndAwait(service, workspaceId);
+			assertEquals("failed", projection.getAsJsonObject("task").get("state").getAsString(),
+					track.generatorId + " must fail closed for " + scenario);
+			assertTrue(projection.getAsJsonArray("logs").toString().contains(emittedLog));
+		} finally {
+			((AutoCloseable) tasks).close();
+		}
+	}
+
+	private static JsonObject runServerAndAwait(WorkspaceApplicationService service, UUID workspaceId) throws Exception {
+		JsonObject payload = new JsonObject();
+		payload.addProperty("clientMutationId", UUID.randomUUID().toString());
+		payload.addProperty("scope", "workspace");
+		payload.addProperty("userApproved", true);
+		var accepted = service.execute(Command.of(UUID.randomUUID(), workspaceId, 0, Operation.RUN_SERVER, payload), UI);
+		assertEquals("accepted", accepted.result().status());
+		UUID taskId = UUID.fromString(accepted.result().task().getAsJsonObject().get("id").getAsString());
+		return awaitTask(service, workspaceId, taskId);
 	}
 
 	private static WorkspaceState workspace(UUID id, String generatorId) {
@@ -120,7 +177,7 @@ class Stage9ServerReadinessContractTest {
 		throw new AssertionError("Stage 9 server readiness task did not finish");
 	}
 
-	private record Track(String generatorId, Factory factory) { }
+	private record Track(String generatorId, String eulaPath, String serverConfigPath, Factory factory) { }
 
 	@FunctionalInterface
 	private interface Factory {

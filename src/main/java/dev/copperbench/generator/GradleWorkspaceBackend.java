@@ -40,6 +40,14 @@ public interface GradleWorkspaceBackend {
 		};
 	}
 
+	/** Directory used as the Minecraft dedicated-server game directory for this backend. */
+	default Path serverRunDirectory(Path targetRoot) {
+		return targetRoot.resolve("run");
+	}
+
+	default void prepareServerRun(Path targetRoot) throws Exception {
+	}
+
 	/** Checks the artifact shape produced by the generator's build task. */
 	default boolean buildOutputAvailable(Path targetRoot) {
 		return Files.isDirectory(targetRoot.resolve("build/libs"));
