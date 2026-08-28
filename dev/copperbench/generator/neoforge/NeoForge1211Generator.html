@@ -76,6 +76,8 @@ loadScripts(document, 'script');</script>
 <ol class="toc-list">
 <li><a href="#displayName()" tabindex="0">displayName()</a></li>
 <li><a href="#diagnosticPrefix()" tabindex="0">diagnosticPrefix()</a></li>
+<li><a href="#serverRunDirectory(java.nio.file.Path)" tabindex="0">serverRunDirectory(Path)</a></li>
+<li><a href="#prepareServerRun(java.nio.file.Path)" tabindex="0">prepareServerRun(Path)</a></li>
 <li><a href="#validate(dev.copperbench.core.workspace.WorkspaceState)" tabindex="0">validate(WorkspaceState)</a></li>
 <li><a href="#generate(java.nio.file.Path,dev.copperbench.core.workspace.WorkspaceState)" tabindex="0">generate(Path, WorkspaceState)</a></li>
 </ol>
@@ -187,6 +189,14 @@ implements <a href="../GradleWorkspaceBackend.html" title="interface in dev.copp
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#generate(java.nio.file.Path,dev.copperbench.core.workspace.WorkspaceState)" class="member-name-link">generate</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;targetRoot,
  <a href="../../core/workspace/WorkspaceState.html" title="class in dev.copperbench.core.workspace">WorkspaceState</a>&nbsp;workspace)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#prepareServerRun(java.nio.file.Path)" class="member-name-link">prepareServerRun</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;targetRoot)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#serverRunDirectory(java.nio.file.Path)" class="member-name-link">serverRunDirectory</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;targetRoot)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Directory used as the Minecraft dedicated-server game directory for this backend.</div>
+</div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a><wbr>&lt;<a href="../GradleWorkspaceBackend.ValidationIssue.html" title="class in dev.copperbench.generator">GradleWorkspaceBackend.ValidationIssue</a>&gt;</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#validate(dev.copperbench.core.workspace.WorkspaceState)" class="member-name-link">validate</a><wbr>(<a href="../../core/workspace/WorkspaceState.html" title="class in dev.copperbench.core.workspace">WorkspaceState</a>&nbsp;workspace)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
@@ -303,6 +313,35 @@ implements <a href="../GradleWorkspaceBackend.html" title="interface in dev.copp
 <dl class="notes">
 <dt>Specified by:</dt>
 <dd><code><a href="../GradleWorkspaceBackend.html#diagnosticPrefix()">diagnosticPrefix</a></code>&nbsp;in interface&nbsp;<code><a href="../GradleWorkspaceBackend.html" title="interface in dev.copperbench.generator">GradleWorkspaceBackend</a></code></dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="serverRunDirectory(java.nio.file.Path)">
+<h3>serverRunDirectory</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a></span>&nbsp;<span class="element-name">serverRunDirectory</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;targetRoot)</span></div>
+<div class="block"><span class="description-from-type-label">Description copied from interface:&nbsp;<code><a href="../GradleWorkspaceBackend.html#serverRunDirectory(java.nio.file.Path)">GradleWorkspaceBackend</a></code></span></div>
+<div class="block">Directory used as the Minecraft dedicated-server game directory for this backend.</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../GradleWorkspaceBackend.html#serverRunDirectory(java.nio.file.Path)">serverRunDirectory</a></code>&nbsp;in interface&nbsp;<code><a href="../GradleWorkspaceBackend.html" title="interface in dev.copperbench.generator">GradleWorkspaceBackend</a></code></dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="prepareServerRun(java.nio.file.Path)">
+<h3>prepareServerRun</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">prepareServerRun</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;targetRoot)</span>
+                      throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../GradleWorkspaceBackend.html#prepareServerRun(java.nio.file.Path)">prepareServerRun</a></code>&nbsp;in interface&nbsp;<code><a href="../GradleWorkspaceBackend.html" title="interface in dev.copperbench.generator">GradleWorkspaceBackend</a></code></dd>
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code></dd>
 </dl>
 </div>
 </section>
