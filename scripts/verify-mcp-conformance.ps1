@@ -30,6 +30,7 @@ $scenarios = @(
 )
 $gradleProcess = $null
 $proxyProcess = $null
+$npxCommand = (Get-Command 'npx.cmd' -ErrorAction Stop).Source
 
 function Stop-ProcessTree([int] $ProcessId) {
 	$children = Get-CimInstance Win32_Process -Filter "ParentProcessId = $ProcessId" -ErrorAction SilentlyContinue
@@ -37,6 +38,63 @@ function Stop-ProcessTree([int] $ProcessId) {
 		Stop-ProcessTree -ProcessId $child.ProcessId
 	}
 	Stop-Process -Id $ProcessId -Force -ErrorAction SilentlyContinue
+}
+
+function Invoke-ConformanceScenario([string] $Scenario) {
+	$stdoutPath = Join-Path $outputPath ("cli-$Scenario.out.log")
+	$stderrPath = Join-Path $outputPath ("cli-$Scenario.err.log")
+	$process = Start-Process -FilePath $npxCommand `
+		-ArgumentList @(
+			'--yes',
+			'@modelcontextprotocol/conformance@0.1.16',
+			'server',
+			'--url', 'http://127.0.0.1:61999/mcp',
+			'--scenario', $Scenario,
+			'--spec-version', '2025-11-25',
+			'--output-dir', $outputPath
+		) `
+		-WorkingDirectory $repositoryRoot `
+		-RedirectStandardOutput $stdoutPath `
+		-RedirectStandardError $stderrPath `
+		-WindowStyle Hidden -PassThru
+
+	try {
+		$deadline = (Get-Date).AddSeconds(60)
+		$reportDirectory = $null
+		$checksPath = $null
+		do {
+			$reportDirectory = Get-ChildItem -LiteralPath $outputPath -Directory |
+				Where-Object Name -Like "server-$Scenario-*" |
+				Sort-Object LastWriteTime -Descending |
+				Select-Object -First 1
+			if ($reportDirectory) {
+				$checksPath = Join-Path $reportDirectory.FullName 'checks.json'
+				if ((Test-Path -LiteralPath $checksPath) -and (Get-Item -LiteralPath $checksPath).Length -gt 0) {
+					break
+				}
+			}
+			if ($process.HasExited) {
+				throw "Conformance CLI exited before writing checks.json for $Scenario. See $stdoutPath and $stderrPath"
+			}
+			Start-Sleep -Milliseconds 200
+		} while ((Get-Date) -le $deadline)
+
+		if (-not $checksPath -or -not (Test-Path -LiteralPath $checksPath)) {
+			throw "Conformance scenario $Scenario did not write checks.json within 60 seconds"
+		}
+
+		# v0.1.16 can write a complete successful report and then hang or abort in
+		# libuv on Windows. The report is authoritative, so do not wait for the CLI
+		# process after checks.json is durable; reclaim its process tree instead.
+		if (-not $process.HasExited) {
+			Stop-ProcessTree -ProcessId $process.Id
+		}
+		return $checksPath
+	} finally {
+		if (-not $process.HasExited) {
+			Stop-ProcessTree -ProcessId $process.Id
+		}
+	}
 }
 
 try {
@@ -82,21 +140,8 @@ try {
 	$summary = @()
 	$totalChecks = 0
 	foreach ($scenario in $scenarios) {
-		& npx --yes '@modelcontextprotocol/conformance@0.1.16' server `
-			--url 'http://127.0.0.1:61999/mcp' `
-			--scenario $scenario `
-			--spec-version '2025-11-25' `
-			--output-dir $outputPath
-
-		# v0.1.16 can terminate with a libuv UV_HANDLE_CLOSING assertion on
-		# Windows after writing a successful report, so the report is the
-		# authority rather than the process exit code.
-		$reportDirectory = Get-ChildItem -LiteralPath $outputPath -Directory |
-			Where-Object Name -Like "server-$scenario-*" |
-			Sort-Object LastWriteTime -Descending |
-			Select-Object -First 1
-		if (-not $reportDirectory) { throw "No report was written for $scenario" }
-		$checks = Get-Content -Raw (Join-Path $reportDirectory.FullName 'checks.json') | ConvertFrom-Json
+		$checksPath = Invoke-ConformanceScenario -Scenario $scenario
+		$checks = Get-Content -Raw $checksPath | ConvertFrom-Json
 		$failures = @($checks | Where-Object status -ne 'SUCCESS')
 		if ($failures.Count -gt 0) {
 			throw "Conformance scenario $scenario has $($failures.Count) non-success checks"

@@ -24,3 +24,6 @@ The conditional fixtures were executed with
 These numbers are useful regression baselines only. They do **not** promote
 `procedure-500` or `workspace-2000-10000`, because those gates require the
 fixed-hardware UI/JCEF interaction path defined by FR-S9-01/02.
+
+That missing product-path evidence was completed on 2026-08-29. See
+[Stage 9 fixed-hardware native JCEF scale gate](./stage-9-native-jcef-scale-2026-08-29.md).

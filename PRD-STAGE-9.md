@@ -21,7 +21,7 @@
 | --- | --- | --- | --- |
 | M9.0 正确性基线 | 部分完成 | Schema 枚举回归、真实工作区持久化、恢复/修订与安全路径测试覆盖 | CI/发行入口需所有者授权；本环境真实 JCEF smoke 被跳过 |
 | M9.1 逻辑内核 | 已完成 | Procedure IR、未知节点保留、结构化预览/更新、引用索引及 UI/MCP/headless 合同已落地 | 扩展节点集随生成器能力继续演进 |
-| M9.2 创作工作台 | 核心路径完成 | Blockly 懒加载工作台、搜索、缩放、撤销/重做、自动布局、草稿校验；变量/标签/语言注册表可 CRUD 与重命名预览 | 500 节点性能门禁、正式键盘/a11y 审计、语言 CSV/JSON 导入导出 |
+| M9.2 创作工作台 | 核心路径与性能门禁完成 | Blockly 懒加载工作台、搜索、缩放、撤销/重做、自动布局、草稿校验；变量/标签/语言注册表可 CRUD 与重命名预览；500 节点与 2,000 元素/10,000 引用真实 JCEF 性能门禁已通过；语言 CSV/JSON 导入导出已交付 | 正式键盘/a11y 审计 |
 | M9.3 数据内容 | 基础 CRUD 完成 | `function`、`loottable`、`achievement` 已进入第一方 CRUD，并可真实写回 MCreator 工作区 | 专用结构化编辑深度、进度父级循环防护、8 生成器阶段 9 黄金编译 |
 | M9.4 运行闭环 | 已完成 | `run_server`、`run_datagen`、`run_gametest`；datagen 隔离暂存、差异预览、显式发布、失败回滚；8 条 Java 轨道真实 dedicated-server readiness 与故障/超时 fail-closed 已通过 | 持续在受保护 CI/Nightly 保持合同回归；真实服务器证据见 `docs/testing/stage-9-server-readiness-real-2026-08-29.md` |
 | M9.5 发布候选 | 候选矩阵已通过，待最终 RC 重放 | 干净 Windows 11 首次安装/启动、GUI 新建工作区、generator setup、`-workspace` 冷启动、公开旧版升级、断网启动和升级/卸载数据保留均有机器证据 | 在最终 Public Beta/RC 安装包上重放完整 G9.5 矩阵并挂回最终证据 |
