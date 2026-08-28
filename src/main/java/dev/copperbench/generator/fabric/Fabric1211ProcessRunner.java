@@ -117,7 +117,7 @@ import java.util.function.Consumer;
 				}
 				if (serverRun && ready) {
 					if (serverReadyAt == null) serverReadyAt = Instant.now();
-					if (Duration.between(serverReadyAt, Instant.now()).compareTo(SERVER_STABILITY_WINDOW) >= 0) {
+					if (stabilityWindowSatisfied(serverReadyAt, Instant.now())) {
 						destroy(process);
 						reader.join(Duration.ofSeconds(10));
 						return new ProcessResult(0, !serverFatal.get());
@@ -133,9 +133,11 @@ import java.util.function.Consumer;
 			}
 			reader.join(Duration.ofSeconds(10));
 			if (readFailure.get() != null) throw readFailure.get();
+			boolean stableServerExit = serverRun && stabilityWindowSatisfied(serverReadyAt, Instant.now());
 			return new ProcessResult(process.exitValue(),
 					clientRun ? marker.get()
-							: serverRun ? marker.get() && serverReady.get() && !serverFatal.get() : marker.get());
+							: serverRun ? stableServerExit && marker.get() && serverReady.get() && !serverFatal.get()
+									: marker.get());
 		}
 
 		private static void destroy(Process process) {
@@ -151,6 +153,11 @@ import java.util.function.Consumer;
 				process.descendants().forEach(ProcessHandle::destroyForcibly);
 				process.destroyForcibly();
 			}
+		}
+
+		static boolean stabilityWindowSatisfied(Instant serverReadyAt, Instant now) {
+			return serverReadyAt != null
+					&& Duration.between(serverReadyAt, now).compareTo(SERVER_STABILITY_WINDOW) >= 0;
 		}
 	}
 

@@ -11,6 +11,7 @@ package dev.copperbench.generator.fabric;
 
 import org.junit.jupiter.api.Test;
 
+import java.time.Instant;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -22,6 +23,16 @@ class Fabric1211ProcessRunnerTest {
 		assertTrue(Fabric1211ProcessRunner.isClientRun(List.of("runClient")));
 		assertTrue(Fabric1211ProcessRunner.isClientRun(List.of(":packloader:runClient")));
 		assertFalse(Fabric1211ProcessRunner.isClientRun(List.of("build")));
+	}
+
+	@Test void requiresTheFullServerStabilityWindow() {
+		Instant readyAt = Instant.parse("2026-08-29T00:00:00Z");
+		assertFalse(Fabric1211ProcessRunner.SystemProcessRunner.stabilityWindowSatisfied(
+				readyAt, readyAt.plusMillis(1999)));
+		assertTrue(Fabric1211ProcessRunner.SystemProcessRunner.stabilityWindowSatisfied(
+				readyAt, readyAt.plusSeconds(2)));
+		assertFalse(Fabric1211ProcessRunner.SystemProcessRunner.stabilityWindowSatisfied(
+				null, readyAt.plusSeconds(10)));
 	}
 
 	@Test void recognizesRootAndQualifiedRunServerTasks() {
