@@ -64,6 +64,10 @@ public final class Fabric1211Generator {
 		public String gradleWrapperZip() {
 			return javaRelease <= 17 ? "gradle-8.8-bin.zip" : "gradle-9.7.0-bin.zip";
 		}
+
+		public String jdkRelativePath() {
+			return javaRelease <= 21 ? "jdk/jdk21_win_64" : "jdk/jbr25_win_64";
+		}
 	}
 
 	private static final Pattern MOD_ID = Pattern.compile("^[a-z][a-z0-9_]{1,63}$");

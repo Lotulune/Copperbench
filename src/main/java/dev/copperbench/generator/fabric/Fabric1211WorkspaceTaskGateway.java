@@ -33,14 +33,14 @@ public final class Fabric1211WorkspaceTaskGateway implements WorkspaceTaskGatewa
 
 	public Fabric1211WorkspaceTaskGateway(RevisionedWorkspaceStore store, Function<UUID, Path> workspaceRoots,
 			Path distributionRoot, Clock clock, Supplier<UUID> ids) {
-		this(store, workspaceRoots, distributionRoot, clock, ids, Fabric1211Generator.Profile.FABRIC_1211,
-				Fabric1211ProcessRunner.system());
+		this(store, workspaceRoots, distributionRoot, clock, ids, Fabric1211Generator.Profile.FABRIC_1211);
 	}
 
 	public Fabric1211WorkspaceTaskGateway(RevisionedWorkspaceStore store, Function<UUID, Path> workspaceRoots,
 			Path distributionRoot, Clock clock, Supplier<UUID> ids, Fabric1211Generator.Profile profile) {
 		this(store, workspaceRoots, distributionRoot, clock, ids, profile,
-				Fabric1211ProcessRunner.system(profile.readyMarker()));
+				Fabric1211ProcessRunner.system(profile.readyMarker(),
+						distributionRoot.resolve(profile.jdkRelativePath())));
 	}
 
 	public Fabric1211WorkspaceTaskGateway(RevisionedWorkspaceStore store, Function<UUID, Path> workspaceRoots,

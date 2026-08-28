@@ -139,9 +139,13 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 				job.progress(0.55, "task.run_server.starting", "Starting dedicated server");
 				if (!payload.has("eulaAccepted") || !payload.get("eulaAccepted").getAsBoolean())
 					throw new IllegalArgumentException("Dedicated server EULA confirmation is required");
-				Path eula = executionRoot.resolve("run/eula.txt");
+				Path serverRunDirectory = backend.serverRunDirectory(executionRoot).toAbsolutePath().normalize();
+				if (!serverRunDirectory.startsWith(executionRoot.toAbsolutePath().normalize()))
+					throw new IllegalStateException("Server run directory escaped the workspace");
+				Path eula = serverRunDirectory.resolve("eula.txt");
 				Files.createDirectories(eula.getParent());
 				Files.writeString(eula, "eula=true\n", StandardCharsets.UTF_8);
+				backend.prepareServerRun(executionRoot);
 				var process = processes.run(executionRoot, backend.gradleArguments(operation), Duration.ofMinutes(20),
 						line -> job.log("info", line));
 				if (process.exitCode() != 0 || !process.readinessMarkerSeen())

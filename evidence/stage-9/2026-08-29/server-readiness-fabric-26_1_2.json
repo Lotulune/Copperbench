@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "stage9-real-server-readiness",
+  "generatorId": "fabric-26.1.2",
+  "loader": "fabric",
+  "minecraftVersion": "26.1.2",
+  "readyMarker": "COPPERBENCH_STAGE7_FABRIC261_READY",
+  "javaHome": "D:\\AICoding\\Minecraft_ModCreator\\jdk\\jbr25_win_64",
+  "workspaceReused": false,
+  "startedAt": "2026-08-28T21:30:39.820221800Z",
+  "generated": true,
+  "eulaAccepted": true,
+  "generatorMarkerSeen": true,
+  "minecraftReadySeen": true,
+  "serverFatalSeen": false,
+  "processExitCode": 0,
+  "readinessSatisfied": true,
+  "catalogStatus": "SUPPORTED",
+  "catalogReasonCode": "TRACK_SUPPORTED",
+  "catalogGeneratable": true,
+  "diagnostics": [
+    "\t- fabric-crash-report-info-v1 1.0.3+9f78a5a84c",
+    "[05:31:07] [main/ERROR] (Minecraft) Failed to load properties from file: server.properties"
+  ],
+  "logFile": "evidence/stage-9/2026-08-29/server-readiness-fabric-26_1_2.log",
+  "completedAt": "2026-08-28T21:31:15.942504400Z",
+  "durationSeconds": 36.12,
+  "passed": true
+}

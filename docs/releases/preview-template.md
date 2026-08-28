@@ -12,7 +12,7 @@ Windows SmartScreen 可能因未签名而显示警告。请先校验 SHA-256，�
 
 - Windows 11 x64；Fabric / NeoForge 26.2、26.1.2、1.21.1、1.20.1。
 - Block、Item、Recipe 为已验证第一方创作切片。
-- Procedure、Function、Loot Table、Advancement、服务端、datagen 和 GameTest 为 Stage 9 开发预览。Function/Loot Table/Advancement 的八生成器黄金编译已通过；专用编辑器、性能、服务端、JCEF/可访问性和干净 Windows 11 门禁尚未关闭。
+- Procedure、Function、Loot Table、Advancement、datagen 和 GameTest 仍属于 Stage 9 开发预览范围；Function/Loot Table/Advancement 的专用编辑器和八生成器黄金编译已通过。Fabric / NeoForge 26.2、26.1.2、1.21.1、1.20.1 的真实 dedicated-server readiness 已 8/8 通过。仍未关闭的发布门禁包括大工作区/Procedure 性能、真实 JCEF/可访问性、最终 Windows 11 RC 完整矩阵重放和外部测试者。
 - 其他迁入的上游元素类型多数只读，可回退到旧版编辑器。
 
 ## 已知限制
@@ -20,4 +20,4 @@ Windows SmartScreen 可能因未签名而显示警告。请先校验 SHA-256，�
 - 没有 Authenticode 签名。
 - 仅支持 Windows 11，不支持 Windows 10、Linux 和 macOS。
 - 首次构建需要联网下载依赖；Gradle `--offline` 只适用于已有缓存的受验证轨道。
-- MCP 列表仍有 200 项上限，SDK、Cursor 分页和批量原子计划尚未交付。
+- MCP/SDK 已提供游标分页与批量原子工作区计划；最终发布资格以随包 `product-status.json` 的 beta-blocking 门禁为准。
