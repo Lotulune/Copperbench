@@ -79,6 +79,73 @@ test.describe('Accessibility baseline (NFR-UI-08)', () => {
     await expect(recoveryView).not.toBeVisible();
   });
 
+  test('protected-operation dialog moves focus in, traps Tab and closes on Escape', async ({ page }) => {
+    await page.click('[data-testid="scenario-switcher-trigger"]');
+    await page.click('[data-testid="scenario-btn-approval-required"]');
+    await page.click('[data-testid="nav-ai"]');
+    await page.click('[data-testid="review-approval"]');
+
+    const dialog = page.locator('[data-testid="approval-dialog"]');
+    await expect(dialog).toBeVisible();
+    expect(await focusInside(page, '[data-testid="approval-dialog"]')).toBe(true);
+
+    await page.keyboard.press('Tab');
+    expect(await focusInside(page, '[data-testid="approval-dialog"]')).toBe(true);
+    await page.keyboard.press('Escape');
+    await expect(dialog).not.toBeVisible();
+  });
+
+  test('blocking schema dialog keeps focus contained until explicit recovery', async ({ page }) => {
+    await page.click('[data-testid="scenario-switcher-trigger"]');
+    await page.click('[data-testid="scenario-btn-schema-incompatible"]');
+
+    const overlay = page.locator('[data-testid="schema-incompatible"]');
+    const dialog = overlay.locator('[role="dialog"]');
+    await expect(dialog).toBeVisible();
+    expect(await focusInside(page, '[data-testid="schema-incompatible"]')).toBe(true);
+
+    await page.keyboard.press('Escape');
+    await expect(dialog).toBeVisible();
+    expect(await focusInside(page, '[data-testid="schema-incompatible"]')).toBe(true);
+
+    await dialog.getByRole('button', { name: /重置为兼容协议/ }).click();
+    await expect(overlay).not.toBeVisible();
+  });
+
+  test('resource-pack batch dialog supports focus trapping and Escape recovery', async ({ page }) => {
+    await page.click('[data-testid="nav-tracks"]');
+    await page.click('[data-testid="tab-publish-batches"]');
+    await page.click('[data-testid="new-batch-btn"]');
+
+    const overlay = page.locator('[data-testid="new-batch-modal"]');
+    const dialog = overlay.locator('[role="dialog"]');
+    await expect(dialog).toBeVisible();
+    expect(await focusInside(page, '[data-testid="new-batch-modal"]')).toBe(true);
+
+    await page.keyboard.press('Tab');
+    expect(await focusInside(page, '[data-testid="new-batch-modal"]')).toBe(true);
+    await page.keyboard.press('Escape');
+    await expect(overlay).not.toBeVisible();
+  });
+
+  test('datagen publish confirmation supports focus trapping and Escape recovery', async ({ page }) => {
+    await page.click('[data-testid="scenario-switcher-trigger"]');
+    await page.click('[data-testid="scenario-btn-ready"]');
+    await page.getByRole('button', { name: '在暂存区运行数据生成' }).click();
+    await expect(page.getByText('任务完成').first()).toBeVisible({ timeout: 5000 });
+    await page.getByRole('button', { name: '查看暂存差异' }).click();
+    await page.locator('[data-testid="datagen-publish-btn"]').click();
+
+    const dialog = page.locator('[data-testid="datagen-publish-dialog"]');
+    await expect(dialog).toBeVisible();
+    expect(await focusInside(page, '[data-testid="datagen-publish-dialog"]')).toBe(true);
+
+    await page.keyboard.press('Tab');
+    expect(await focusInside(page, '[data-testid="datagen-publish-dialog"]')).toBe(true);
+    await page.keyboard.press('Escape');
+    await expect(dialog).not.toBeVisible();
+  });
+
   test('interactive controls satisfy minimum hit target requirements (>= 32x32px)', async ({ page }) => {
     // Check titlebar interactive controls
     const titlebarButtons = await page.locator('[data-testid="frameless-titlebar"] button').all();

@@ -1,6 +1,7 @@
 import React from 'react';
 import { ShieldX, RotateCcw } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
+import { useDialogA11y } from '../hooks/useDialogA11y';
 import { t } from '../i18n';
 
 export const SchemaIncompatibleView: React.FC = () => {
@@ -8,6 +9,7 @@ export const SchemaIncompatibleView: React.FC = () => {
   const incompatDiagnostic = state.diagnostics.find(
     (d) => d.code === 'UI_CORE_SCHEMA_INCOMPATIBLE'
   );
+  const dialogRef = useDialogA11y(state.schemaIncompatible, null);
 
   if (!state.schemaIncompatible) return null;
 
@@ -17,11 +19,18 @@ export const SchemaIncompatibleView: React.FC = () => {
       data-testid="schema-incompatible"
       style={{ zIndex: 3000 }}
     >
-      <div className="modal-card animate-fade-in" style={{ width: '460px' }}>
+      <div
+        ref={dialogRef}
+        className="modal-card animate-fade-in"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="schema-incompatible-title"
+        style={{ width: '460px' }}
+      >
         <div className="modal-header" style={{ background: 'var(--badge-red-bg)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--badge-red)', fontWeight: 700 }}>
-            <ShieldX size={18} />
-            <span>UI-Core 协议不兼容</span>
+            <ShieldX size={18} aria-hidden="true" />
+            <span id="schema-incompatible-title">UI-Core 协议不兼容</span>
           </div>
         </div>
 

@@ -9,6 +9,7 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
+import { useDialogA11y } from '../hooks/useDialogA11y';
 import { t } from '../i18n';
 import type { DatagenPreview } from '../types/contract';
 
@@ -28,6 +29,7 @@ export const TaskDrawer: React.FC = () => {
   const [datagenBusy, setDatagenBusy] = useState(false);
   const [datagenError, setDatagenError] = useState<string | null>(null);
   const [confirmPublish, setConfirmPublish] = useState(false);
+  const publishDialogRef = useDialogA11y(confirmPublish, () => setConfirmPublish(false));
 
   // Active task and logs
   const activeTask = activeTaskId
@@ -302,6 +304,8 @@ export const TaskDrawer: React.FC = () => {
             role="dialog"
             aria-modal="true"
             aria-labelledby="datagen-publish-title"
+            data-testid="datagen-publish-dialog"
+            ref={publishDialogRef}
             onMouseDown={(event) => event.stopPropagation()}
             style={{
               width: 'min(440px, 100%)',

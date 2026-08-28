@@ -32,9 +32,24 @@ $env:Path = "$env:JAVA_HOME\bin;$env:Path"
 .\gradlew.bat --no-daemon test javadoc
 npm test --prefix ui-core
 npm run build --prefix ui-shell
-npx --prefix ui-shell playwright test e2e/scenarios.spec.ts e2e/new-workspace.spec.ts --project=chromium
+Push-Location ui-shell
+npx playwright test e2e/scenarios.spec.ts e2e/new-workspace.spec.ts
+Pop-Location
 node scripts/verify-markdown-links.mjs
 ```
+
+如果当前 Windows 终端由受限的宿主进程启动，Java NIO 可能无法创建
+Gradle daemon 所需的本地回环管道，并报 `Unable to establish loopback
+connection`。这不是 Maven/Gradle 镜像的网络错误。仓库提供了独立进程
+入口，将 Gradle 放到不继承宿主进程作业限制的 Windows 进程中运行：
+
+```powershell
+pwsh -NoProfile -File .\scripts\run-gradle-external.ps1 --offline help
+pwsh -NoProfile -File .\scripts\run-gradle-external.ps1 --no-daemon test --tests dev.copperbench.shell.Stage9NativeJcefAccessibilityTest
+```
+
+该入口使用仓库自带的 JBR 25，不修改系统代理、Winsock 或网络适配器；
+日志保存在 `.tmp\gradle-external\`。
 
 首次运行 Playwright 前需要安装 Chromium：
 

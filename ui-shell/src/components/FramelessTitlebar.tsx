@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import {
+  Cog,
   Hammer,
   Play,
   Sun,
@@ -41,6 +42,7 @@ export const FramelessTitlebar: React.FC = () => {
     toggleMaximize,
     systemFrameFallback,
     toggleSystemFrameFallback,
+    generateWorkspace,
     buildWorkspace,
     runClient,
     runServer,
@@ -158,6 +160,19 @@ export const FramelessTitlebar: React.FC = () => {
 
       {/* Middle: Fast Action Controls */}
       <div className="titlebar-actions">
+        <button
+          type="button"
+          className="btn-secondary titlebar-action"
+          onClick={() => generateWorkspace()}
+          title={`生成工作区源码${generator ? `（${generator.displayName}）` : ''}`}
+          data-testid="titlebar-generate-btn"
+          data-window-chrome-kind="client"
+          data-window-chrome-id="generate"
+        >
+          <Cog size={13} aria-hidden="true" />
+          <span className="titlebar-action-label">生成</span>
+        </button>
+
         <button
           type="button"
           className="btn-primary titlebar-action"

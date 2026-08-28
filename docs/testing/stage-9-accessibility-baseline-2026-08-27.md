@@ -52,7 +52,11 @@ It is written to
 artifact capture.
 
 The corresponding Chromium + compact-1366 accessibility regression suite is
-**10/10 passed** after adding focus-restore and modal-control hit-target checks.
+**18/18 passed** after adding focus-restore and modal-control hit-target checks.
+The expanded suite covers protected-operation approval, schema-incompatibility,
+resource-pack batch creation, and datagen publish confirmation dialogs. Those
+paths now share the same focus placement, Tab trap, and Escape policy as the
+creator and recovery dialogs; blocking dialogs remain explicit-action-only.
 
 This slice proves the production JCEF DOM/keyboard contract on Windows. It
 still does **not** claim a physical 125%/150%/200% display-scale pass, Windows
