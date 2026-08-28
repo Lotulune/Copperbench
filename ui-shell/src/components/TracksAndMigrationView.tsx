@@ -11,6 +11,7 @@ import {
   Lock
 } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
+import { useDialogA11y } from '../hooks/useDialogA11y';
 import { t } from '../i18n';
 import {
   VersionTracksProjection,
@@ -74,6 +75,7 @@ export const TracksAndMigrationView: React.FC = () => {
   const [newBatchSourceDir, setNewBatchSourceDir] = useState('src/main/resources');
   const [newBatchOutput, setNewBatchOutput] = useState('build/distributions/copperbench-assets-1.0.0.zip');
   const [clientPreparationNotice, setClientPreparationNotice] = useState<string | null>(null);
+  const newBatchDialogRef = useDialogA11y(isNewBatchModalOpen, () => setIsNewBatchModalOpen(false));
 
   const renderActionableDiagnostics = (result: CommandResult | null, testId: string) => {
     const diagnostics = result?.diagnostics.filter((diagnostic) =>
@@ -968,6 +970,10 @@ export const TracksAndMigrationView: React.FC = () => {
               }}
             >
               <div
+                ref={newBatchDialogRef}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="new-batch-title"
                 style={{
                   background: 'var(--bg-panel)',
                   border: '1px solid var(--border-subtle)',
@@ -980,7 +986,7 @@ export const TracksAndMigrationView: React.FC = () => {
                   gap: '16px'
                 }}
               >
-                <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0 }}>新建资源包发布批次</h3>
+                <h3 id="new-batch-title" style={{ fontSize: '16px', fontWeight: 700, margin: 0 }}>新建资源包发布批次</h3>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '12px', fontWeight: 600 }}>

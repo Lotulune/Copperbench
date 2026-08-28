@@ -1,0 +1,552 @@
+﻿{
+    "schemaVersion":  "1.0",
+    "kind":  "stage9-clean-windows11-gui-new-workspace",
+    "startedAt":  "2026-08-28T23:54:49.2799418+08:00",
+    "passed":  true,
+    "interactiveSessionId":  2,
+    "workspaceName":  "Guigatedelta",
+    "modid":  "guigatedelta",
+    "workspaceRoot":  "C:\\Users\\g7admin\\MCreatorWorkspaces",
+    "expectedWorkspaceFile":  "C:\\Users\\g7admin\\MCreatorWorkspaces\\guigatedelta\\guigatedelta.mcreator",
+    "selectorObserved":  true,
+    "dialogObserved":  true,
+    "dialogClosed":  true,
+    "derivedFieldsSettled":  true,
+    "workspaceCreated":  true,
+    "workspaceMainObserved":  true,
+    "generatorSetupObserved":  true,
+    "generatorSetupClosed":  true,
+    "cliWorkspaceObserved":  true,
+    "cliArgumentObserved":  true,
+    "cliSelectorObserved":  false,
+    "priorGeneratorSetupWaited":  false,
+    "testWorkspaceRecoveryPerformed":  true,
+    "screenshotCaptured":  true,
+    "startWindows":  [
+                         {
+                             "processId":  2448,
+                             "name":  "guigategamma - Copperbench 0.1.0",
+                             "className":  "SunAwtFrame",
+                             "controlType":  "ControlType.Pane",
+                             "isEnabled":  true,
+                             "isOffscreen":  false,
+                             "hasKeyboardFocus":  false,
+                             "nativeWindowHandle":  590646,
+                             "boundingRectangle":  {
+                                                       "left":  1,
+                                                       "top":  37,
+                                                       "width":  1022,
+                                                       "height":  647
+                                                   }
+                         }
+                     ],
+    "testWorkspaceRecoveryHandle":  590646,
+    "testWorkspaceRecoveryLauncher":  "C:\\Copperbench-G9\\copperbench.exe",
+    "afterTestWorkspaceRecoveryWindows":  [
+                                              {
+                                                  "processId":  1744,
+                                                  "name":  "Copperbench 0.1.0",
+                                                  "className":  "SunAwtFrame",
+                                                  "controlType":  "ControlType.Window",
+                                                  "isEnabled":  true,
+                                                  "isOffscreen":  false,
+                                                  "hasKeyboardFocus":  false,
+                                                  "nativeWindowHandle":  1835172,
+                                                  "boundingRectangle":  {
+                                                                            "left":  115,
+                                                                            "top":  130,
+                                                                            "width":  795,
+                                                                            "height":  460
+                                                                        }
+                                              },
+                                              {
+                                                  "processId":  1744,
+                                                  "name":  "Copperbench 0.1.0",
+                                                  "className":  "",
+                                                  "controlType":  "ControlType.TitleBar",
+                                                  "isEnabled":  true,
+                                                  "isOffscreen":  false,
+                                                  "hasKeyboardFocus":  false,
+                                                  "nativeWindowHandle":  0,
+                                                  "boundingRectangle":  {
+                                                                            "left":  123,
+                                                                            "top":  138,
+                                                                            "width":  779,
+                                                                            "height":  23
+                                                                        }
+                                              },
+                                              {
+                                                  "processId":  1744,
+                                                  "name":  "系统菜单栏",
+                                                  "className":  "",
+                                                  "controlType":  "ControlType.MenuBar",
+                                                  "isEnabled":  true,
+                                                  "isOffscreen":  false,
+                                                  "hasKeyboardFocus":  false,
+                                                  "nativeWindowHandle":  0,
+                                                  "boundingRectangle":  {
+                                                                            "left":  123,
+                                                                            "top":  138,
+                                                                            "width":  22,
+                                                                            "height":  22
+                                                                        }
+                                              },
+                                              {
+                                                  "processId":  1744,
+                                                  "name":  "系统",
+                                                  "className":  "",
+                                                  "controlType":  "ControlType.MenuItem",
+                                                  "isEnabled":  true,
+                                                  "isOffscreen":  false,
+                                                  "hasKeyboardFocus":  false,
+                                                  "nativeWindowHandle":  0,
+                                                  "boundingRectangle":  {
+                                                                            "left":  123,
+                                                                            "top":  138,
+                                                                            "width":  22,
+                                                                            "height":  22
+                                                                        }
+                                              },
+                                              {
+                                                  "processId":  1744,
+                                                  "name":  "最小化",
+                                                  "className":  "",
+                                                  "controlType":  "ControlType.Button",
+                                                  "isEnabled":  true,
+                                                  "isOffscreen":  true,
+                                                  "hasKeyboardFocus":  false,
+                                                  "nativeWindowHandle":  0,
+                                                  "boundingRectangle":  {
+                                                                            "left":  763,
+                                                                            "top":  108,
+                                                                            "width":  47,
+                                                                            "height":  24
+                                                                        }
+                                              },
+                                              {
+                                                  "processId":  1744,
+                                                  "name":  "最大化",
+                                                  "className":  "",
+                                                  "controlType":  "ControlType.Button",
+                                                  "isEnabled":  false,
+                                                  "isOffscreen":  true,
+                                                  "hasKeyboardFocus":  false,
+                                                  "nativeWindowHandle":  0,
+                                                  "boundingRectangle":  {
+                                                                            "left":  810,
+                                                                            "top":  108,
+                                                                            "width":  46,
+                                                                            "height":  24
+                                                                        }
+                                              },
+                                              {
+                                                  "processId":  1744,
+                                                  "name":  "关闭",
+                                                  "className":  "",
+                                                  "controlType":  "ControlType.Button",
+                                                  "isEnabled":  true,
+                                                  "isOffscreen":  true,
+                                                  "hasKeyboardFocus":  false,
+                                                  "nativeWindowHandle":  0,
+                                                  "boundingRectangle":  {
+                                                                            "left":  856,
+                                                                            "top":  108,
+                                                                            "width":  47,
+                                                                            "height":  24
+                                                                        }
+                                              }
+                                          ],
+    "normalizedWindows":  [
+                              {
+                                  "processId":  1744,
+                                  "name":  "Copperbench 0.1.0",
+                                  "className":  "SunAwtFrame",
+                                  "controlType":  "ControlType.Window",
+                                  "isEnabled":  true,
+                                  "isOffscreen":  false,
+                                  "hasKeyboardFocus":  false,
+                                  "nativeWindowHandle":  1835172,
+                                  "boundingRectangle":  {
+                                                            "left":  115,
+                                                            "top":  130,
+                                                            "width":  795,
+                                                            "height":  460
+                                                        }
+                              },
+                              {
+                                  "processId":  1744,
+                                  "name":  "Copperbench 0.1.0",
+                                  "className":  "",
+                                  "controlType":  "ControlType.TitleBar",
+                                  "isEnabled":  true,
+                                  "isOffscreen":  false,
+                                  "hasKeyboardFocus":  false,
+                                  "nativeWindowHandle":  0,
+                                  "boundingRectangle":  {
+                                                            "left":  123,
+                                                            "top":  138,
+                                                            "width":  779,
+                                                            "height":  23
+                                                        }
+                              },
+                              {
+                                  "processId":  1744,
+                                  "name":  "系统菜单栏",
+                                  "className":  "",
+                                  "controlType":  "ControlType.MenuBar",
+                                  "isEnabled":  true,
+                                  "isOffscreen":  false,
+                                  "hasKeyboardFocus":  false,
+                                  "nativeWindowHandle":  0,
+                                  "boundingRectangle":  {
+                                                            "left":  123,
+                                                            "top":  138,
+                                                            "width":  22,
+                                                            "height":  22
+                                                        }
+                              },
+                              {
+                                  "processId":  1744,
+                                  "name":  "系统",
+                                  "className":  "",
+                                  "controlType":  "ControlType.MenuItem",
+                                  "isEnabled":  true,
+                                  "isOffscreen":  false,
+                                  "hasKeyboardFocus":  false,
+                                  "nativeWindowHandle":  0,
+                                  "boundingRectangle":  {
+                                                            "left":  123,
+                                                            "top":  138,
+                                                            "width":  22,
+                                                            "height":  22
+                                                        }
+                              },
+                              {
+                                  "processId":  1744,
+                                  "name":  "最小化",
+                                  "className":  "",
+                                  "controlType":  "ControlType.Button",
+                                  "isEnabled":  true,
+                                  "isOffscreen":  true,
+                                  "hasKeyboardFocus":  false,
+                                  "nativeWindowHandle":  0,
+                                  "boundingRectangle":  {
+                                                            "left":  763,
+                                                            "top":  108,
+                                                            "width":  47,
+                                                            "height":  24
+                                                        }
+                              },
+                              {
+                                  "processId":  1744,
+                                  "name":  "最大化",
+                                  "className":  "",
+                                  "controlType":  "ControlType.Button",
+                                  "isEnabled":  false,
+                                  "isOffscreen":  true,
+                                  "hasKeyboardFocus":  false,
+                                  "nativeWindowHandle":  0,
+                                  "boundingRectangle":  {
+                                                            "left":  810,
+                                                            "top":  108,
+                                                            "width":  46,
+                                                            "height":  24
+                                                        }
+                              },
+                              {
+                                  "processId":  1744,
+                                  "name":  "关闭",
+                                  "className":  "",
+                                  "controlType":  "ControlType.Button",
+                                  "isEnabled":  true,
+                                  "isOffscreen":  true,
+                                  "hasKeyboardFocus":  false,
+                                  "nativeWindowHandle":  0,
+                                  "boundingRectangle":  {
+                                                            "left":  856,
+                                                            "top":  108,
+                                                            "width":  47,
+                                                            "height":  24
+                                                        }
+                              }
+                          ],
+    "selectorHandle":  1835172,
+    "selectorActivation":  {
+                               "targetHandle":  1835172,
+                               "targetProcessId":  1744,
+                               "targetThreadId":  7800,
+                               "currentThreadId":  9092,
+                               "foregroundBefore":  197036,
+                               "foregroundBeforeProcessId":  8520,
+                               "foregroundBeforeThreadId":  8692,
+                               "attachedForeground":  false,
+                               "attachForegroundError":  5,
+                               "attachedTarget":  true,
+                               "attachTargetError":  0,
+                               "setForegroundResult":  false,
+                               "setFocusResult":  1835172,
+                               "focusAfter":  1835172,
+                               "foregroundAfter":  197036,
+                               "verified":  false,
+                               "targetFocusVerified":  true
+                           },
+    "afterFirstEnterWindows":  [
+                                   {
+                                       "processId":  1744,
+                                       "name":  "Copperbench 0.1.0",
+                                       "className":  "SunAwtFrame",
+                                       "controlType":  "ControlType.Window",
+                                       "isEnabled":  false,
+                                       "isOffscreen":  false,
+                                       "hasKeyboardFocus":  false,
+                                       "nativeWindowHandle":  1835172,
+                                       "boundingRectangle":  {
+                                                                 "left":  115,
+                                                                 "top":  130,
+                                                                 "width":  795,
+                                                                 "height":  460
+                                                             }
+                                   },
+                                   {
+                                       "processId":  1744,
+                                       "name":  "",
+                                       "className":  "SunAwtDialog",
+                                       "controlType":  "ControlType.Window",
+                                       "isEnabled":  true,
+                                       "isOffscreen":  false,
+                                       "hasKeyboardFocus":  false,
+                                       "nativeWindowHandle":  721402,
+                                       "boundingRectangle":  {
+                                                                 "left":  89,
+                                                                 "top":  26,
+                                                                 "width":  848,
+                                                                 "height":  668
+                                                             }
+                                   },
+                                   {
+                                       "processId":  1744,
+                                       "name":  "",
+                                       "className":  "",
+                                       "controlType":  "ControlType.TitleBar",
+                                       "isEnabled":  true,
+                                       "isOffscreen":  false,
+                                       "hasKeyboardFocus":  false,
+                                       "nativeWindowHandle":  0,
+                                       "boundingRectangle":  {
+                                                                 "left":  97,
+                                                                 "top":  34,
+                                                                 "width":  832,
+                                                                 "height":  23
+                                                             }
+                                   },
+                                   {
+                                       "processId":  1744,
+                                       "name":  "系统菜单栏",
+                                       "className":  "",
+                                       "controlType":  "ControlType.MenuBar",
+                                       "isEnabled":  true,
+                                       "isOffscreen":  false,
+                                       "hasKeyboardFocus":  false,
+                                       "nativeWindowHandle":  0,
+                                       "boundingRectangle":  {
+                                                                 "left":  97,
+                                                                 "top":  34,
+                                                                 "width":  22,
+                                                                 "height":  22
+                                                             }
+                                   },
+                                   {
+                                       "processId":  1744,
+                                       "name":  "系统",
+                                       "className":  "",
+                                       "controlType":  "ControlType.MenuItem",
+                                       "isEnabled":  true,
+                                       "isOffscreen":  false,
+                                       "hasKeyboardFocus":  false,
+                                       "nativeWindowHandle":  0,
+                                       "boundingRectangle":  {
+                                                                 "left":  97,
+                                                                 "top":  34,
+                                                                 "width":  22,
+                                                                 "height":  22
+                                                             }
+                                   },
+                                   {
+                                       "processId":  1744,
+                                       "name":  "关闭",
+                                       "className":  "",
+                                       "controlType":  "ControlType.Button",
+                                       "isEnabled":  true,
+                                       "isOffscreen":  true,
+                                       "hasKeyboardFocus":  false,
+                                       "nativeWindowHandle":  0,
+                                       "boundingRectangle":  {
+                                                                 "left":  896,
+                                                                 "top":  4,
+                                                                 "width":  34,
+                                                                 "height":  24
+                                                             }
+                                   },
+                                   {
+                                       "processId":  1744,
+                                       "name":  "Copperbench 0.1.0",
+                                       "className":  "",
+                                       "controlType":  "ControlType.TitleBar",
+                                       "isEnabled":  false,
+                                       "isOffscreen":  false,
+                                       "hasKeyboardFocus":  false,
+                                       "nativeWindowHandle":  0,
+                                       "boundingRectangle":  {
+                                                                 "left":  123,
+                                                                 "top":  138,
+                                                                 "width":  779,
+                                                                 "height":  23
+                                                             }
+                                   },
+                                   {
+                                       "processId":  1744,
+                                       "name":  "系统菜单栏",
+                                       "className":  "",
+                                       "controlType":  "ControlType.MenuBar",
+                                       "isEnabled":  false,
+                                       "isOffscreen":  false,
+                                       "hasKeyboardFocus":  false,
+                                       "nativeWindowHandle":  0,
+                                       "boundingRectangle":  {
+                                                                 "left":  123,
+                                                                 "top":  138,
+                                                                 "width":  22,
+                                                                 "height":  22
+                                                             }
+                                   },
+                                   {
+                                       "processId":  1744,
+                                       "name":  "系统",
+                                       "className":  "",
+                                       "controlType":  "ControlType.MenuItem",
+                                       "isEnabled":  false,
+                                       "isOffscreen":  false,
+                                       "hasKeyboardFocus":  false,
+                                       "nativeWindowHandle":  0,
+                                       "boundingRectangle":  {
+                                                                 "left":  123,
+                                                                 "top":  138,
+                                                                 "width":  22,
+                                                                 "height":  22
+                                                             }
+                                   },
+                                   {
+                                       "processId":  1744,
+                                       "name":  "最小化",
+                                       "className":  "",
+                                       "controlType":  "ControlType.Button",
+                                       "isEnabled":  false,
+                                       "isOffscreen":  true,
+                                       "hasKeyboardFocus":  false,
+                                       "nativeWindowHandle":  0,
+                                       "boundingRectangle":  {
+                                                                 "left":  763,
+                                                                 "top":  108,
+                                                                 "width":  47,
+                                                                 "height":  24
+                                                             }
+                                   },
+                                   {
+                                       "processId":  1744,
+                                       "name":  "最大化",
+                                       "className":  "",
+                                       "controlType":  "ControlType.Button",
+                                       "isEnabled":  false,
+                                       "isOffscreen":  true,
+                                       "hasKeyboardFocus":  false,
+                                       "nativeWindowHandle":  0,
+                                       "boundingRectangle":  {
+                                                                 "left":  810,
+                                                                 "top":  108,
+                                                                 "width":  46,
+                                                                 "height":  24
+                                                             }
+                                   },
+                                   {
+                                       "processId":  1744,
+                                       "name":  "关闭",
+                                       "className":  "",
+                                       "controlType":  "ControlType.Button",
+                                       "isEnabled":  false,
+                                       "isOffscreen":  true,
+                                       "hasKeyboardFocus":  false,
+                                       "nativeWindowHandle":  0,
+                                       "boundingRectangle":  {
+                                                                 "left":  856,
+                                                                 "top":  108,
+                                                                 "width":  47,
+                                                                 "height":  24
+                                                             }
+                                   }
+                               ],
+    "dialogHandle":  721402,
+    "dialogActivationBeforeTyping":  {
+                                         "targetHandle":  721402,
+                                         "targetProcessId":  1744,
+                                         "targetThreadId":  7800,
+                                         "currentThreadId":  9092,
+                                         "foregroundBefore":  197036,
+                                         "foregroundBeforeProcessId":  8520,
+                                         "foregroundBeforeThreadId":  8692,
+                                         "attachedForeground":  false,
+                                         "attachForegroundError":  5,
+                                         "attachedTarget":  true,
+                                         "attachTargetError":  0,
+                                         "setForegroundResult":  false,
+                                         "setFocusResult":  721402,
+                                         "focusAfter":  721402,
+                                         "foregroundAfter":  197036,
+                                         "verified":  false,
+                                         "targetFocusVerified":  true
+                                     },
+    "dialogActivationBeforeCreate":  {
+                                         "targetHandle":  721402,
+                                         "targetProcessId":  1744,
+                                         "targetThreadId":  7800,
+                                         "currentThreadId":  9092,
+                                         "foregroundBefore":  197036,
+                                         "foregroundBeforeProcessId":  8520,
+                                         "foregroundBeforeThreadId":  8692,
+                                         "attachedForeground":  false,
+                                         "attachForegroundError":  5,
+                                         "attachedTarget":  true,
+                                         "attachTargetError":  0,
+                                         "setForegroundResult":  false,
+                                         "setFocusResult":  721402,
+                                         "focusAfter":  721402,
+                                         "foregroundAfter":  197036,
+                                         "verified":  false,
+                                         "targetFocusVerified":  true
+                                     },
+    "generatorSetupHandle":  656182,
+    "cliLauncherPath":  "C:\\Copperbench-G9\\copperbench.exe",
+    "cliClosedGuiHandle":  786938,
+    "cliWorkspaceHandle":  1508230,
+    "cliWorkspaceProcessId":  10016,
+    "cliJavaCommandLine":  "\"C:\\Copperbench-G9\\jdk\\bin\\javaw.exe\" --add-opens=java.base/java.lang=ALL-UNNAMED --enable-native-access=ALL-UNNAMED,jcef -Dcopperbench.productShell=true -classpath \"C:\\Copperbench-G9\\copperbench.exe;.\\lib\\.;.\\lib\\..;.\\lib\\autocomplete-3.3.3.jar;.\\lib\\autolink-0.10.0.jar;.\\lib\\balloontip-1.2.4.1.jar;.\\lib\\blockly.jar;.\\lib\\commonmark-0.17.0.jar;.\\lib\\commonmark-ext-autolink-0.17.0.jar;.\\lib\\commonmark-ext-gfm-tables-0.17.0.jar;.\\lib\\commons-codec-1.22.0.jar;.\\lib\\commons-io-2.22.0.jar;.\\lib\\commons-lang3-3.20.0.jar;.\\lib\\commons-text-1.15.0.jar;.\\lib\\copperbench.jar;.\\lib\\discord-rpc.jar;.\\lib\\error_prone_annotations-2.47.0.jar;.\\lib\\failureaccess-1.0.3.jar;.\\lib\\flatlaf-3.7.1-no-natives.jar;.\\lib\\flatlaf-3.7.1-windows-x86_64.dll;.\\lib\\flatlaf-extras-3.7.1.jar;.\\lib\\freemarker-2.3.34.jar;.\\lib\\gradle-tooling-api-9.6.1.jar;.\\lib\\gson-2.14.0.jar;.\\lib\\guava-33.6.0-jre.jar;.\\lib\\itu-1.14.0.jar;.\\lib\\j2objc-annotations-3.1.jar;.\\lib\\jackson-annotations-2.20.jar;.\\lib\\jackson-core-3.0.3.jar;.\\lib\\jackson-databind-3.0.3.jar;.\\lib\\jackson-dataformat-yaml-3.0.3.jar;.\\lib\\JavaEWAH-1.2.3.jar;.\\lib\\javassist-3.28.0-GA.jar;.\\lib\\jna-5.19.1.jar;.\\lib\\jnbt.jar;.\\lib\\js-beautify-1.15.4.1.jar;.\\lib\\json-20250517.jar;.\\lib\\json-schema-validator-3.0.0.jar;.\\lib\\jspecify-1.0.0.jar;.\\lib\\jsr305-3.0.2.jar;.\\lib\\jsvg-2.1.0.jar;.\\lib\\junidecode-0.3.jar;.\\lib\\languagesupport-3.4.1.jar;.\\lib\\listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar;.\\lib\\log4j-api-2.26.1.jar;.\\lib\\log4j-core-2.26.1.jar;.\\lib\\mcp-2.0.0.jar;.\\lib\\mcp-core-2.0.0.jar;.\\lib\\mcp-json-jackson3-2.0.0.jar;.\\lib\\obj-0.4.0.jar;.\\lib\\org.eclipse.jgit-7.7.0.202606012155-r.jar;.\\lib\\reactive-streams-1.0.4.jar;.\\lib\\reactor-core-3.7.0.jar;.\\lib\\reflections-0.10.2.jar;.\\lib\\roaster-api-2.31.1.Final.jar;.\\lib\\roaster-jdt-2.31.1.Final.jar;.\\lib\\rsyntaxtextarea-3.6.3.jar;.\\lib\\slf4j-api-2.0.18.jar;.\\lib\\slf4j-nop-2.0.18.jar;.\\lib\\snakeyaml-engine-3.0.1.jar;.\\lib\\tomcat-annotations-api-11.0.2.jar;.\\lib\\tomcat-embed-core-11.0.2.jar;.\\lib\\unique4j-2.1.0.jar;.\\lib\\unique4j-unix-socket-channel-2.1.0.jar;.\\lib\\univocity-parsers-2.9.1.jar\" net.mcreator.Launcher -workspace C:\\Users\\g7admin\\MCreatorWorkspaces\\guigatedelta\\guigatedelta.mcreator ",
+    "finalWindows":  [
+                         {
+                             "processId":  10016,
+                             "name":  "guigatedelta - Copperbench 0.1.0",
+                             "className":  "SunAwtFrame",
+                             "controlType":  "ControlType.Pane",
+                             "isEnabled":  true,
+                             "isOffscreen":  false,
+                             "hasKeyboardFocus":  false,
+                             "nativeWindowHandle":  1508230,
+                             "boundingRectangle":  {
+                                                       "left":  1,
+                                                       "top":  37,
+                                                       "width":  1022,
+                                                       "height":  647
+                                                   }
+                         }
+                     ],
+    "foregroundFinal":  197036,
+    "completedAt":  "2026-08-28T23:56:45.4989932+08:00"
+}

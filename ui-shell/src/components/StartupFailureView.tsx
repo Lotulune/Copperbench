@@ -1,18 +1,22 @@
 import React from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
+import { useDialogA11y } from '../hooks/useDialogA11y';
 import { t } from '../i18n';
 
 export const StartupFailureView: React.FC = () => {
   const { state } = useWorkbench();
   const diagnostic = state.diagnostics.find((item) => item.severity === 'error');
+  const isOpen = state.viewportState === 'error' && !state.schemaIncompatible && !state.workbench;
+  const dialogRef = useDialogA11y(isOpen, null);
 
-  if (state.viewportState !== 'error' || state.schemaIncompatible || state.workbench) return null;
+  if (!isOpen) return null;
 
   return (
     <div className="modal-overlay" data-testid="startup-failure" style={{ zIndex: 2900 }}>
       <div
         className="modal-card animate-fade-in"
+        ref={dialogRef}
         role="alertdialog"
         aria-modal="true"
         aria-labelledby="startup-failure-title"

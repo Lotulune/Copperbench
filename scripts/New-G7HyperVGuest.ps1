@@ -41,7 +41,10 @@ Get-VMIntegrationService -VMName $VmName | Where-Object { -not $_.Enabled } | Fo
 
 $defaultSwitch = Get-VMSwitch -Name 'Default Switch' -ErrorAction SilentlyContinue
 if ($defaultSwitch) {
-	Connect-VMNetworkAdapter -VMName $VmName -Name 'Network Adapter' -SwitchName 'Default Switch'
+	$networkAdapter = Get-VMNetworkAdapter -VMName $VmName | Select-Object -First 1
+	if ($networkAdapter) {
+		$networkAdapter | Connect-VMNetworkAdapter -SwitchName 'Default Switch'
+	}
 }
 
 $dvd = Get-VMDvdDrive -VMName $VmName -ErrorAction SilentlyContinue

@@ -75,6 +75,7 @@ interface WorkbenchContextType {
   createModElement: (type: ModElementType, name: string) => Promise<CommandResult>;
   updateModElement: (elementId: UUID, changes: FieldChange[]) => Promise<CommandResult>;
   deleteModElement: (elementId: UUID) => Promise<CommandResult>;
+  generateWorkspace: () => Promise<CommandResult>;
   buildWorkspace: () => Promise<CommandResult>;
   runClient: () => Promise<CommandResult>;
   runServer: (userApproved: boolean) => Promise<CommandResult>;
@@ -433,6 +434,28 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     },
     [state.workbench, selectedElementId]
   );
+
+  const generateWorkspace = useCallback(async (): Promise<CommandResult> => {
+    const workspaceId = state.workbench?.workspace.id || generateUUID();
+    const revision = state.workbench?.workspace.revision ?? 0;
+    const res = await coreBridge.sendCommand({
+      messageType: 'command',
+      schemaVersion: '1.0',
+      requestId: generateUUID(),
+      workspaceId,
+      expectedRevision: revision,
+      operation: 'generate_workspace',
+      payload: {
+        clientMutationId: generateUUID(),
+        scope: 'workspace'
+      }
+    });
+    if (res.task?.id) {
+      setActiveTaskId(res.task.id);
+      setIsTaskDrawerOpen(true);
+    }
+    return res;
+  }, [state.workbench]);
 
   const buildWorkspace = useCallback(async (): Promise<CommandResult> => {
     const workspaceId = state.workbench?.workspace.id || generateUUID();
@@ -923,6 +946,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       createModElement,
       updateModElement,
       deleteModElement,
+      generateWorkspace,
       buildWorkspace,
       runClient,
       runServer,
@@ -981,6 +1005,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       createModElement,
       updateModElement,
       deleteModElement,
+      generateWorkspace,
       buildWorkspace,
       runClient,
       runServer,

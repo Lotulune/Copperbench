@@ -70,7 +70,7 @@
 - 语言 CSV/JSON 导入导出、merge/keep/replace 冲突模式、缺失/重复键统计已经接入 Creator Data 与 Core `languageKeys`；剩余工作是把这一路径纳入真实 JCEF/Windows 产品门禁，而不是继续把它列为未实现功能。
 - 执行 500 节点 Procedure 与 2,000 元素/10,000 引用 P95 性能门禁，并完成键盘和可访问性审计。
 - 八套 Fabric/NeoForge 的 Stage 9 黄金生成器编译已通过；下一步补齐同轨专用服务端 readiness、datagen/GameTest 适用矩阵与故障夹具。
-- 生产 JCEF 对话框焦点、Tab trap、Escape 焦点恢复、polite live region 与 32px 点击目标已有 Windows-native 自动验收；剩余补物理 125%/150%/200% DPI、屏幕阅读器和完整人工键盘审计，并在 Windows 11 干净虚拟机完成 G9.0/G9.5。
+- 生产 JCEF 对话框焦点、Tab trap、Escape 焦点恢复、polite live region 与 32px 点击目标已有 Windows-native 自动验收；新装 Windows 11 客机的首次安装/首次启动，以及真实产品壳的 WorkspaceSelector → 新建工作区 → Generator setup → 原生启动器 `-workspace` 冷启动也已通过，见 [Stage 9 Windows GUI / CLI 产品路径验证](./testing/stage-9-clean-windows-gui-2026-08-28.md)。这只是 G9.5 部分证据；剩余补物理 125%/150%/200% DPI、屏幕阅读器和完整人工键盘审计，以及旧版本升级、断网启动、升级/卸载数据保留，并在最终发布候选安装包上重放完整矩阵。
 
 ## 首发范围外（除非新 ADR）
 

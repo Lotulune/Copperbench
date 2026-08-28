@@ -11,6 +11,14 @@ param(
 $ErrorActionPreference = 'Stop'
 Import-Module Hyper-V -ErrorAction Stop
 
+$guestComputerName = ($VmName -replace '[^A-Za-z0-9-]', '-').ToUpperInvariant()
+if ($guestComputerName.Length -gt 15) {
+	$guestComputerName = $guestComputerName.Substring(0, 15)
+}
+if (-not $guestComputerName) {
+	throw 'VmName must produce a non-empty Windows computer name.'
+}
+
 function New-IsoFromFolder {
 	param(
 		[Parameter(Mandatory = $true)][string]$SourceFolder,
@@ -61,7 +69,7 @@ if (Test-Path -LiteralPath $stage) {
 }
 New-Item -ItemType Directory -Force -Path $stage | Out-Null
 
-$passwordFile = Join-Path $VhdRoot 'g7admin.password.txt'
+$passwordFile = Join-Path $VhdRoot ($GuestUser + '.password.txt')
 if (Test-Path -LiteralPath $passwordFile) {
 	$plainPassword = (Get-Content -LiteralPath $passwordFile -Raw).Trim()
 } else {
@@ -113,7 +121,7 @@ $xml = @"
 	</settings>
 	<settings pass="specialize">
 		<component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
-			<ComputerName>COPPERBENCH-G7</ComputerName>
+			<ComputerName>$guestComputerName</ComputerName>
 			<TimeZone>China Standard Time</TimeZone>
 		</component>
 		<component name="Microsoft-Windows-Deployment" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
