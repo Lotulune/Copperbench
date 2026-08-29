@@ -125,6 +125,24 @@ internal sealed class ProbeResult
     [DataMember(Name = "rawElements")]
     public List<ProbeElement> RawElements = new List<ProbeElement>();
 
+    [DataMember(Name = "rendererDirectAttempted")]
+    public bool RendererDirectAttempted;
+
+    [DataMember(Name = "rendererDirectTargetHandle")]
+    public long RendererDirectTargetHandle;
+
+    [DataMember(Name = "rendererDirectElementCount")]
+    public int RendererDirectElementCount;
+
+    [DataMember(Name = "rendererDirectButtonCount")]
+    public int RendererDirectButtonCount;
+
+    [DataMember(Name = "rendererDirectElements")]
+    public List<ProbeElement> RendererDirectElements = new List<ProbeElement>();
+
+    [DataMember(Name = "rendererDirectError", EmitDefaultValue = false)]
+    public string RendererDirectError;
+
     [DataMember(Name = "narratorStarted")]
     public bool NarratorStarted;
 
@@ -375,6 +393,7 @@ internal static class Program
                 CaptureNativeWindows(new IntPtr(frameCurrent.NativeWindowHandle), result);
                 CaptureSessionChromiumWindows(result);
                 ActivateChromiumAccessibility(frameCurrent.ProcessId, wmGetObjectMode, result);
+                CaptureRendererDirectTree(frameCurrent.ProcessId, result);
 
                 var rawButtons = new List<ProbeButton>();
                 WalkRawTree(frame, rawButtons, result);
@@ -434,6 +453,101 @@ internal static class Program
             }
         }
         if (buttons.Count > result.Buttons.Count) result.Buttons = buttons;
+    }
+
+    private static void CaptureRendererDirectTree(int browserProcessId, ProbeResult result)
+    {
+        ProbeNativeWindow renderer = result.SessionChromiumWindows.FirstOrDefault(window =>
+            window.ProcessId == browserProcessId
+            && string.Equals(window.ClassName, "Chrome_RenderWidgetHostHWND", StringComparison.Ordinal));
+        if (renderer == null)
+            return;
+
+        result.RendererDirectAttempted = true;
+        result.RendererDirectTargetHandle = renderer.Handle;
+
+        try
+        {
+            AutomationElement root = AutomationElement.FromHandle(new IntPtr(renderer.Handle));
+            if (root == null)
+            {
+                result.RendererDirectError = "AutomationElement.FromHandle returned null";
+                return;
+            }
+
+            var elements = new List<ProbeElement>();
+            int elementCount;
+            int buttonCount;
+            WalkRawTreeSnapshot(root, elements, out elementCount, out buttonCount);
+            result.RendererDirectElementCount = elementCount;
+            result.RendererDirectButtonCount = buttonCount;
+            result.RendererDirectElements = elements;
+            result.RendererDirectError = null;
+        }
+        catch (ElementNotAvailableException error)
+        {
+            result.RendererDirectError = error.GetType().Name + ": " + error.Message;
+        }
+        catch (InvalidOperationException error)
+        {
+            result.RendererDirectError = error.GetType().Name + ": " + error.Message;
+        }
+        catch (ArgumentException error)
+        {
+            result.RendererDirectError = error.GetType().Name + ": " + error.Message;
+        }
+    }
+
+    private static void WalkRawTreeSnapshot(AutomationElement root, List<ProbeElement> elements,
+        out int elementCount, out int buttonCount)
+    {
+        const int maxNodes = 1000;
+        var walker = TreeWalker.RawViewWalker;
+        var stack = new Stack<AutomationElement>();
+        stack.Push(root);
+        elementCount = 0;
+        buttonCount = 0;
+
+        while (stack.Count > 0 && elementCount < maxNodes)
+        {
+            AutomationElement element = stack.Pop();
+            try
+            {
+                AutomationElement.AutomationElementInformation current = element.Current;
+                elementCount++;
+                if (elements.Count < 300)
+                {
+                    elements.Add(new ProbeElement
+                    {
+                        Name = current.Name ?? "",
+                        ClassName = current.ClassName ?? "",
+                        ControlType = current.ControlType.ProgrammaticName ?? "unknown",
+                        ProcessId = current.ProcessId,
+                        NativeWindowHandle = current.NativeWindowHandle
+                    });
+                }
+                if (current.ControlType == ControlType.Button)
+                    buttonCount++;
+
+                var children = new List<AutomationElement>();
+                AutomationElement child = walker.GetFirstChild(element);
+                while (child != null && children.Count < 500)
+                {
+                    children.Add(child);
+                    child = walker.GetNextSibling(child);
+                }
+                for (int index = children.Count - 1; index >= 0; index--)
+                    stack.Push(children[index]);
+            }
+            catch (ElementNotAvailableException)
+            {
+                // Chromium can replace accessibility nodes while rendering.
+            }
+            catch (InvalidOperationException)
+            {
+                // A provider can disappear while RawViewWalker is traversing it.
+            }
+        }
     }
 
     private static void WalkRawTree(AutomationElement root, List<ProbeButton> buttons, ProbeResult result)
