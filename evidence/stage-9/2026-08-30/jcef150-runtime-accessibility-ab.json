@@ -1,0 +1,50 @@
+{
+  "kind": "stage9-jcef150-runtime-accessibility-ab",
+  "generatedAt": "2026-08-30T07:11:01+08:00",
+  "baselineMain": "4aef3dc4316da497807e4af4d43c6cb61ec886a5",
+  "betaGatePassed": false,
+  "upgradeRecommendedForAccessibility": false,
+  "candidateRuntime": {
+    "artifact": "jbrsdk_jcef-25.0.4.1-windows-x64-b583.48.zip",
+    "sha256": "5BD74BFD267B1CD289D0252F08849509DA5EEE60504A39B71DC1C2D7A9E00C3A",
+    "java": "25.0.4.1",
+    "jbr": "25.0.4.1+1-b583.48-jcef",
+    "jcef": "150.0.14.1214.3f4e03e099488e0e2ae264041986a9a1e19536a7",
+    "cef": "150.0.14",
+    "chromium": "150.0.7871.129",
+    "jcefApi": "1.21",
+    "cefSourceCommit": "7c1aa68455db1f1fad159c2b83070ad318212b3d"
+  },
+  "hostNativeJcefTest": {
+    "test": "dev.copperbench.shell.Stage9NativeJcefAccessibilityTest",
+    "passed": true,
+    "explicitStateEnabledCallConfirmed": true,
+    "browserStructSize": 208,
+    "browserHostStructSize": 592,
+    "setAccessibilityStateOffset": 504,
+    "note": "Exact CEF 150 source diff adds SetAxViewportCollapse at the tail, so SetAccessibilityState remains at offset 504. The temporary bridge validated both native struct sizes before calling STATE_ENABLED."
+  },
+  "cleanGuestWithoutExplicitState": {
+    "vm": "Copperbench-G7",
+    "evidence": "evidence/stage-9/2026-08-30/clean-windows11-jcef150-uia-none.json",
+    "exeSha256": "BC8E21761FC7065B5ACD91DDD71A0D45A7FADAB829DC9C9792947DCDB4811351",
+    "jarSha256": "2BA0C5E83F6C22C4981004CD623C16E129ABD8B97443B37ADA35A637388E3C5D",
+    "rawElementCount": 9,
+    "rawButtonCount": 0,
+    "rendererDirectElementCount": 2,
+    "rendererDirectButtonCount": 0,
+    "rendererDirectClasses": ["Chrome_RenderWidgetHostHWND", "Document"]
+  },
+  "cleanGuestWithExplicitStateEnabled": {
+    "vm": "Copperbench-G7",
+    "evidence": "evidence/stage-9/2026-08-30/clean-windows11-jcef150-uia-state-enabled.json",
+    "exeSha256": "40970E5F3F57E6F3F278CF3D77401BBE4E42864140453C28144A31158B65ABEB",
+    "jarSha256": "BDDCA6D787D42FF77362CD230208710233B60E8F380EB5E6A0904EC6E11A17F7",
+    "rawElementCount": 9,
+    "rawButtonCount": 0,
+    "rendererDirectElementCount": 2,
+    "rendererDirectButtonCount": 0,
+    "rendererDirectClasses": ["Chrome_RenderWidgetHostHWND", "Document"]
+  },
+  "decision": "JCEF/CEF/Chromium 150 improves the Windows provider shell relative to the bundled CEF 137 runtime, but does not project the React DOM accessibility subtree into UIA, even after a validated native STATE_ENABLED call. Do not upgrade the product runtime to b583.48 solely to close this beta gate."
+}
