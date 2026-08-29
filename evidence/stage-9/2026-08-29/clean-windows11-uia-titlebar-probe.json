@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "stage9-clean-windows11-uia-titlebar-probe",
+  "vmName": "Copperbench-G7",
+  "installDir": "C:\\Copperbench-G9",
+  "passed": false,
+  "workspaceWindowObserved": true,
+  "narratorStarted": true,
+  "narratorRunningDuringProbe": true,
+  "visibleElementCount": 6,
+  "buttonCount": 0,
+  "matchedButtonCount": 0,
+  "controlTypeCounts": {
+    "ControlType.Pane": 5,
+    "ControlType.Document": 1
+  },
+  "nativeTree": [
+    "SunAwtFrame",
+    "SunAwtCanvas",
+    "CefBrowserWindow",
+    "Chrome_WidgetWin_1",
+    "Pane",
+    "Document"
+  ],
+  "result": "Narrator was running in the interactive Windows 11 session. Copperbench, CefBrowserWindow, Chrome_WidgetWin_1, and an empty Document provider were visible, but Chromium exposed no semantic descendants or button nodes through Windows UI Automation.",
+  "scope": "Read-only UI Automation probe after installing the WR build with Chromium complete renderer accessibility; no DPI, driver, registry, or user-data changes.",
+  "completedAt": "2026-08-29T14:55:13.0824672+08:00"
+}

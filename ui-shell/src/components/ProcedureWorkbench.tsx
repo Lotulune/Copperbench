@@ -9,6 +9,7 @@ import {
   CircleAlert,
   Code2,
   Link2,
+  ListTree,
   Redo2,
   Save,
   Search,
@@ -251,6 +252,10 @@ interface ProcedureWorkbenchProps {
   onClose: () => void;
 }
 
+type ProcedurePanel = 'source' | 'diagnostics' | 'references' | 'outline';
+
+const procedurePanels: ProcedurePanel[] = ['source', 'diagnostics', 'references', 'outline'];
+
 export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element, onClose }) => {
   const { getProcedureEditor, updateProcedure } = useWorkbench();
   const hostRef = useRef<HTMLDivElement | null>(null);
@@ -260,7 +265,7 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [search, setSearch] = useState('');
-  const [panel, setPanel] = useState<'source' | 'diagnostics' | 'references'>('source');
+  const [panel, setPanel] = useState<ProcedurePanel>('source');
   const [message, setMessage] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -390,6 +395,51 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
 
   const diagnostics: Diagnostic[] = projection?.diagnostics ?? projection?.references.diagnostics ?? [];
 
+  const focusPanel = (nextPanel: ProcedurePanel, tab: HTMLButtonElement) => {
+    setPanel(nextPanel);
+    const tabs = Array.from(tab.parentElement?.querySelectorAll<HTMLButtonElement>('[role="tab"]') ?? []);
+    tabs[procedurePanels.indexOf(nextPanel)]?.focus();
+  };
+
+  const handlePanelKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+    const currentIndex = procedurePanels.indexOf(panel);
+    let nextIndex = currentIndex;
+    if (event.key === 'ArrowRight' || event.key === 'ArrowDown') nextIndex = (currentIndex + 1) % procedurePanels.length;
+    else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') nextIndex = (currentIndex - 1 + procedurePanels.length) % procedurePanels.length;
+    else if (event.key === 'Home') nextIndex = 0;
+    else if (event.key === 'End') nextIndex = procedurePanels.length - 1;
+    else return;
+    event.preventDefault();
+    focusPanel(procedurePanels[nextIndex], event.currentTarget);
+  };
+
+  const nodeLabel = (node: ProcedureNode) => {
+    if (node.type === 'event_trigger') return '入口触发器';
+    const item = projection?.nodeCatalog.find((candidate) => candidate.type === node.type);
+    return item ? catalogLabel(item) : `未知节点 ${node.type}`;
+  };
+
+  const nodeAccessibleName = (node: ProcedureNode) => {
+    const fields = Object.entries(node.fields).map(([name, value]) => `${name} ${String(value)}`);
+    const ports = Object.entries(node.inputs).map(([name, target]) => `${name} 连接 ${connectedNodeLabel(target)}`);
+    ports.push(node.next ? `下一个连接 ${connectedNodeLabel(node.next)}` : '下一个未连接');
+    const output = node.kind === 'value' ? '输出端口' : '语句节点';
+    return [nodeLabel(node), node.type, output, ...fields, ...ports].join('，');
+  };
+
+  const connectedNodeLabel = (nodeId: string) => {
+    const target = projection?.ir.nodes.find((node) => node.id === nodeId);
+    return target ? `${nodeLabel(target)} (${target.type})` : `未知节点 ${nodeId}`;
+  };
+
+  const selectNode = (nodeId: string) => {
+    const workspace = workspaceRef.current;
+    const block = workspace?.getBlockById(nodeId);
+    if (!workspace || !block) return;
+    block.select();
+    workspace.centerOnBlock(nodeId);
+  };
+
   return (
     <section className="procedure-workbench" data-testid="procedure-workbench">
       <header className="procedure-toolbar">
@@ -441,18 +491,19 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
 
         <aside className="procedure-inspector">
           <div className="procedure-tabs" role="tablist" aria-label="Procedure 检查面板">
-            <button role="tab" aria-selected={panel === 'source'} onClick={() => setPanel('source')}><Code2 size={13} />源码</button>
-            <button role="tab" aria-selected={panel === 'diagnostics'} onClick={() => setPanel('diagnostics')}><CircleAlert size={13} />诊断</button>
-            <button role="tab" aria-selected={panel === 'references'} onClick={() => setPanel('references')}><Link2 size={13} />引用</button>
+            <button type="button" id="procedure-tab-source" role="tab" aria-controls="procedure-panel-source" aria-selected={panel === 'source'} tabIndex={panel === 'source' ? 0 : -1} onClick={() => setPanel('source')} onKeyDown={handlePanelKeyDown}><Code2 size={13} aria-hidden="true" />源码</button>
+            <button type="button" id="procedure-tab-diagnostics" role="tab" aria-controls="procedure-panel-diagnostics" aria-selected={panel === 'diagnostics'} tabIndex={panel === 'diagnostics' ? 0 : -1} onClick={() => setPanel('diagnostics')} onKeyDown={handlePanelKeyDown}><CircleAlert size={13} aria-hidden="true" />诊断</button>
+            <button type="button" id="procedure-tab-references" role="tab" aria-controls="procedure-panel-references" aria-selected={panel === 'references'} tabIndex={panel === 'references' ? 0 : -1} onClick={() => setPanel('references')} onKeyDown={handlePanelKeyDown}><Link2 size={13} aria-hidden="true" />引用</button>
+            <button type="button" id="procedure-tab-outline" role="tab" aria-controls="procedure-panel-outline" aria-selected={panel === 'outline'} tabIndex={panel === 'outline' ? 0 : -1} onClick={() => setPanel('outline')} onKeyDown={handlePanelKeyDown}><ListTree size={13} aria-hidden="true" />节点</button>
           </div>
           {panel === 'source' && (
-            <div className="procedure-panel-content">
+            <div id="procedure-panel-source" role="tabpanel" aria-labelledby="procedure-tab-source" className="procedure-panel-content">
               <div className="procedure-panel-meta"><span className="badge badge-green">{projection?.sourceOwnership ?? 'generated'}</span><span>只读</span></div>
               <pre>{projection?.sourcePreview ?? '//'}</pre>
             </div>
           )}
           {panel === 'diagnostics' && (
-            <div className="procedure-panel-content procedure-list-content">
+            <div id="procedure-panel-diagnostics" role="tabpanel" aria-labelledby="procedure-tab-diagnostics" className="procedure-panel-content procedure-list-content">
               {diagnostics.length === 0 ? <p>当前图没有诊断。</p> : diagnostics.map((diagnostic) => (
                 <div className={`procedure-diagnostic ${diagnostic.severity}`} key={`${diagnostic.code}-${diagnostic.path}`}>
                   <strong>{diagnostic.code}</strong><span>{t(diagnostic.message)}</span><code>{diagnostic.path}</code>
@@ -461,11 +512,31 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
             </div>
           )}
           {panel === 'references' && (
-            <div className="procedure-panel-content procedure-list-content">
+            <div id="procedure-panel-references" role="tabpanel" aria-labelledby="procedure-tab-references" className="procedure-panel-content procedure-list-content">
               <p>{projection?.references.stats.edgeCount ?? 0} 条引用 · 增量索引</p>
               {(projection?.references.edges ?? []).map((edge, index) => (
                 <div className="procedure-reference" key={String(edge.id ?? index)}><code>{String(edge.sourcePath ?? '')}</code><span>→ {String(edge.target ?? '')}</span></div>
               ))}
+            </div>
+          )}
+          {panel === 'outline' && (
+            <div id="procedure-panel-outline" role="tabpanel" aria-labelledby="procedure-tab-outline" className="procedure-panel-content procedure-list-content">
+              <ol className="procedure-node-outline" data-testid="procedure-node-outline" aria-label="Procedure 节点与端口">
+                {(projection?.ir.nodes ?? []).map((node) => (
+                  <li key={node.id}>
+                    <button type="button" onClick={() => selectNode(node.id)} aria-label={nodeAccessibleName(node)}>
+                      <span><strong>{nodeLabel(node)}</strong><code>{node.type}</code></span>
+                      <small>{node.kind === 'value' ? '输出' : '语句'} · {Object.keys(node.inputs).length + (node.next ? 1 : 0)} 个连接</small>
+                    </button>
+                    <dl>
+                      {Object.entries(node.inputs).map(([port, target]) => (
+                        <React.Fragment key={port}><dt>{port}</dt><dd>{connectedNodeLabel(target)}</dd></React.Fragment>
+                      ))}
+                      <dt>下一个</dt><dd>{node.next ? connectedNodeLabel(node.next) : '未连接'}</dd>
+                    </dl>
+                  </li>
+                ))}
+              </ol>
             </div>
           )}
         </aside>

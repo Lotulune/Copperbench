@@ -58,6 +58,21 @@ test.describe('Accessibility baseline (NFR-UI-08)', () => {
     await expect(announcer).toContainText('network_offline');
   });
 
+  test('task logs and diagnostics remain selectable assistive text', async ({ page }) => {
+    await page.locator('[data-testid="titlebar-build-btn"]').click();
+    const log = page.locator('[data-testid="task-log-stream"]');
+    await expect(log).toBeVisible();
+    await expect(log).toHaveAttribute('role', 'log');
+    await expect(log).toHaveCSS('user-select', 'text');
+
+    await page.locator('[data-testid="task-drawer-close"]').click();
+    await page.click('[data-testid="scenario-switcher-trigger"]');
+    await page.click('[data-testid="scenario-btn-permission-denied"]');
+    const diagnostics = page.locator('[data-testid="global-diagnostics-banner"]');
+    await expect(diagnostics).toBeVisible();
+    await expect(diagnostics).toHaveCSS('user-select', 'text');
+  });
+
   test('bridge recovery view is blocking and not dismissible via Escape', async ({ page }) => {
     await page.click('[data-testid="scenario-switcher-trigger"]');
     await page.click('[data-testid="scenario-btn-bridge-recovery"]');
@@ -188,6 +203,44 @@ test.describe('Accessibility baseline (NFR-UI-08)', () => {
         expect(Math.round(box.width)).toBeGreaterThanOrEqual(32);
         expect(Math.round(box.height)).toBeGreaterThanOrEqual(32);
       }
+    }
+  });
+
+  test('Procedure exposes keyboard-operable tabs and a readable node and port outline', async ({ page }) => {
+    await page.click('[data-testid="nav-elements"]');
+    await page.click('[data-testid="create-element-btn"]');
+    await page.locator('[data-testid="create-element-modal"]').getByRole('button', { name: '过程', exact: true }).click();
+    await page.fill('[data-testid="create-element-name-input"]', 'accessible_flow');
+    await page.click('[data-testid="create-element-submit-btn"]');
+
+    const workbench = page.locator('[data-testid="procedure-workbench"]');
+    await expect(workbench).toBeVisible();
+
+    const sourceTab = workbench.getByRole('tab', { name: '源码' });
+    await sourceTab.focus();
+    await page.keyboard.press('End');
+    const nodesTab = workbench.getByRole('tab', { name: '节点' });
+    await expect(nodesTab).toBeFocused();
+    await expect(nodesTab).toHaveAttribute('aria-selected', 'true');
+
+    const outline = page.locator('[data-testid="procedure-node-outline"]');
+    await expect(outline).toBeVisible();
+    await expect(outline.getByRole('button', { name: /入口触发器.*下一个/ })).toBeVisible();
+
+    await page.getByLabel('搜索 Procedure 节点').fill('数值');
+    await page.getByRole('button', { name: /^数值 value/ }).click();
+    await page.getByRole('button', { name: /保存/ }).click();
+    await expect(page.getByText(/已保存 1 项结构化变更/)).toBeVisible();
+    await nodesTab.click();
+    await expect(outline.getByRole('button', { name: /数值.*输出/ })).toBeVisible();
+
+    const controls = await workbench.locator('button:visible, input:visible').all();
+    for (const control of controls) {
+      const box = await control.boundingBox();
+      if (!box) continue;
+      expect(Math.round(box.width)).toBeGreaterThanOrEqual(32);
+      expect(Math.round(box.height)).toBeGreaterThanOrEqual(32);
+      await expect(control).not.toHaveAccessibleName('');
     }
   });
 });

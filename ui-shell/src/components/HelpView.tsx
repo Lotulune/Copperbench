@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   HelpCircle,
   Info,
@@ -14,9 +14,12 @@ import {
   ArrowRight,
   ShieldCheck,
   CheckCircle2,
-  AlertTriangle
+  AlertTriangle,
+  FileArchive,
+  LoaderCircle
 } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
+import { diagnosticsBridge } from '../bridge/diagnosticsBridge';
 import {
   USER_GUIDE_METADATA,
   ABOUT_FACTS,
@@ -27,6 +30,22 @@ import {
 
 export const HelpView: React.FC = () => {
   const { setActiveView } = useWorkbench();
+  const [includeWorkspaceFiles, setIncludeWorkspaceFiles] = useState(false);
+  const [exportingDiagnostics, setExportingDiagnostics] = useState(false);
+  const [diagnosticExportStatus, setDiagnosticExportStatus] = useState<string | null>(null);
+
+  const exportDiagnostics = async () => {
+    setExportingDiagnostics(true);
+    setDiagnosticExportStatus(null);
+    try {
+      const result = await diagnosticsBridge.exportBundle(includeWorkspaceFiles);
+      setDiagnosticExportStatus(`已导出 ${result.fileName}${result.includedWorkspaceFiles ? `，附加 ${result.reproductionFileCount} 个复现文件` : ''}。`);
+    } catch (error) {
+      setDiagnosticExportStatus(error instanceof Error ? error.message : '诊断包导出失败。');
+    } finally {
+      setExportingDiagnostics(false);
+    }
+  };
 
   const getSectionIcon = (id: string) => {
     switch (id) {
@@ -132,6 +151,51 @@ export const HelpView: React.FC = () => {
           </span>
         </div>
       </div>
+
+      <section
+        data-testid="diagnostic-support-panel"
+        aria-labelledby="diagnostic-support-heading"
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'minmax(0, 1fr) auto',
+          gap: '12px 20px',
+          alignItems: 'center',
+          padding: '16px 20px',
+          borderTop: '1px solid var(--border-subtle)',
+          borderBottom: '1px solid var(--border-subtle)',
+          background: 'var(--bg-surface)'
+        }}
+      >
+        <div style={{ minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <FileArchive size={18} color="var(--accent-copper)" aria-hidden="true" />
+            <h2 id="diagnostic-support-heading" style={{ margin: 0, fontSize: '15px' }}>诊断与反馈</h2>
+          </div>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '10px', fontSize: '12px', color: 'var(--text-muted)' }}>
+            <input
+              type="checkbox"
+              checked={includeWorkspaceFiles}
+              onChange={(event) => setIncludeWorkspaceFiles(event.target.checked)}
+              data-testid="diagnostic-include-workspace"
+            />
+            <span>附加最小复现文件（可能包含工作区源码与内容）</span>
+          </label>
+          <div role="status" aria-live="polite" data-testid="diagnostic-export-status" style={{ minHeight: '18px', marginTop: '6px', fontSize: '11px', color: 'var(--text-sub)' }}>
+            {diagnosticExportStatus}
+          </div>
+        </div>
+        <button
+          type="button"
+          className="btn-primary"
+          onClick={() => void exportDiagnostics()}
+          disabled={!diagnosticsBridge.available || exportingDiagnostics}
+          data-testid="diagnostic-export-btn"
+          title={diagnosticsBridge.available ? '将诊断包保存到本机并打开文件位置' : '仅桌面宿主可导出诊断包'}
+        >
+          {exportingDiagnostics ? <LoaderCircle className="spin" size={14} aria-hidden="true" /> : <FileArchive size={14} aria-hidden="true" />}
+          <span>{exportingDiagnostics ? '正在导出' : '导出脱敏诊断包'}</span>
+        </button>
+      </section>
 
       {/* About Panel Card */}
       <section

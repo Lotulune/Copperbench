@@ -24,7 +24,7 @@
 | 公开 Release | `v0.1.0-preview.2` 已完成公开验证；本 PR 冻结为 `v0.1.0-preview.3` 发布源，公开状态由 Tag API 与 `RELEASE-METADATA.json` 实时判定 | Preview 3 必须与合并后的最新 `main` HEAD 完全一致；Windows 包仍未 Authenticode 签名 |
 | 状态源 | `product-status.json`、Schema 和 CI 漂移校验已进入 main，并已修复首次远端运行暴露的 Release Schema 漏项 | 状态源门禁通过；后续状态提升仍必须带固定提交证据 |
 | 重型门禁 | Nightly `33131510421`（`main@c566b4a6`）的全量 Java/Javadoc/scale 回归、完整 Playwright、MCP 与八生成器内容构建 8/8 全绿；native JCEF reconnect 1/1 实际执行通过 | FR-AI-02～05 保持闭环；独立固定硬件 P95、JCEF 高 DPI/屏幕阅读器、服务端、干净 VM 等 Stage 9 门禁仍保持 blocked |
-| Stage 9 | 八生成器黄金编译、三个专用编辑器和语言导入工具已有自动化证据；本轮补入真实 Windows JCEF 对话框键盘/焦点/点击目标验收；500 节点交互、2,000/10,000 规模 P95、服务端、高 DPI/屏幕阅读器、干净 VM 和外部试用仍未关闭 | `betaEligible=false`，不得称为 Beta |
+| Stage 9 | 八生成器黄金编译、三个专用编辑器和语言导入工具已有自动化证据；Windows WR + Chromium 完整 AXMode 下的真实 JCEF 对话框键盘/焦点/语义/点击目标验收，以及宿主 `DPR=1.25` 路径已通过；物理 150%/175%/200% DPI、清洁客机 UIA provider、屏幕阅读器、干净 RC 矩阵和外部试用仍未关闭 | `betaEligible=false`，不得称为 Beta |
 | AI Developer Kit | PR #14～#17 的 Cursor、Workspace Plan、Task Events/SDK 与 Windows-native JCEF reconnect 均已合入；当前 `main@c566b4a6` 的 merged-main CI `33105457191` 与固定提交 Nightly `33131510421` 全绿 | FR-AI-02～05 均为 `passed`；MCP reconnect 继续冻结为 `get_task(afterLogSequence)`，不引入未版本化的自定义 push 方言 |
 | 仓库治理 | GitHub 已识别 GPLv3；Javadoc Pages 可访问；main 三项必需检查、受保护 PR 与 production 必需审阅者均已验证 | 仓库治理 P0 已闭环 |
 | Dependency Submission | 仓库 Dependency Graph 未启用，原工作流无法成功 | 误导工作流已从 main 删除 |
@@ -256,13 +256,19 @@ Function、Loot Table、Advancement 在八套 Fabric/NeoForge 生成器上运行
 
 提供脱敏环境摘要、日志、任务结果和可选最小复现导出。令牌、用户名和外部路径默认移除，用户确认后才附加文件。
 
+实施状态（2026-08-29）：本地候选已实现。帮助页可导出本地 ZIP；默认仅包含环境摘要、脱敏日志、工作区安全摘要、活动任务和结构化诊断。附加最小复现文件必须显式勾选，并受目录、扩展名、文件数、单文件和总大小边界限制。Java 服务/桥接测试与两个 viewport 的产品 UI 测试通过；待受保护 PR/CI 后形成固定提交证据。
+
 #### FR-BETA-02 Issue 分流
 
 Issue 模板必须收集版本、commit、生成器、元素类型、复现步骤、预期/实际结果和诊断码，并区分安装、工作区、生成器、UI、MCP 与文档问题。
 
+实施状态（2026-08-29）：本地 Issue 表单已补齐区域、版本/完整 commit、生成器、元素类型、预期/实际结果、诊断码/错误 ID 和诊断包入口；待受保护 PR/CI 后关闭。
+
 #### FR-BETA-03 外部试用任务
 
 至少 5 名非核心开发者完成：下载安装、校验、创建或迁入工作区、创建元素、构建、制造一次失败、查看诊断、创建恢复点并恢复。结果形成匿名汇总，不以口头反馈替代。
+
+实施状态（2026-08-29）：匿名证据 Schema、统一任务协议和机器验证器已就绪；当前仍为 0/5，门禁保持 blocked。五份记录必须来自同一候选 commit/安装包 SHA-256，全部任务通过且没有 P0/P1。
 
 ## 6. 非目标
 

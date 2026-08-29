@@ -82,10 +82,11 @@ public class CefUtils {
 
 		//noinspection IfStatementWithIdenticalBranches
 		if (OS.isWindows()) {
-			// On Windows, we can use WR or OS
-			// WR has less latency between input events and rendering due to direct render pipeline
-			// OSR starts up faster and has less glitching during visibility changes and supports cursor changes
-			return true; // use OSR at this time due to more benefits
+			// Chromium's native windowed renderer exposes its accessibility tree to
+			// Windows UI Automation. OSR only emits CefAccessibilityHandler events,
+			// which leaves Narrator and other platform assistive technology unable to
+			// discover the product shell without a custom UIA provider.
+			return false;
 		}
 
 		// On linux, we need to use OSR due to several focus and keyboard transfer issues with WR
@@ -125,6 +126,7 @@ public class CefUtils {
 			config.getAppArgsAsList().add("--disable-speech-api");
 			config.getAppArgsAsList().add("--mute-audio");
 			config.getAppArgsAsList().add("--disable-gaia-services");
+			addAccessibilityArguments(config.getAppArgsAsList());
 
 			Set<String> disabledFeatures = new HashSet<>();
 			// Get existing disabled features
@@ -242,6 +244,13 @@ public class CefUtils {
 		}
 
 		return cefApp;
+	}
+
+	static void addAccessibilityArguments(List<String> arguments) {
+		// The product shell must expose its Chromium accessibility tree even
+		// before Windows has attached a screen reader to the renderer.
+		if (!arguments.contains("--force-renderer-accessibility=complete"))
+			arguments.add("--force-renderer-accessibility=complete");
 	}
 
 	public static void close() {

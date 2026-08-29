@@ -127,6 +127,9 @@ public class WebView extends JPanel implements Closeable {
 		} else {
 			this.browser = this.client.createBrowser(url, CefRendering.DEFAULT, false);
 		}
+		if (!CefUtils.useOSR() && OS.isWindows()) {
+			enablePlatformAccessibility(this.browser);
+		}
 
 		this.router.addHandler(new CefMessageRouterHandlerAdapter() {
 			@Override
@@ -333,6 +336,42 @@ public class WebView extends JPanel implements Closeable {
 			css.append("* { cursor: default !important; }");
 
 		addLoadListener(() -> addCSSToDOM(css.toString()));
+	}
+
+	private static void enablePlatformAccessibility(CefBrowser targetBrowser) {
+		try {
+			Object host = targetBrowser;
+			try {
+				Method getHost = targetBrowser.getClass().getMethod("getHost");
+				host = getHost.invoke(targetBrowser);
+			} catch (NoSuchMethodException ignored) {
+				// Some JCEF Java bindings expose setAccessibilityState directly on CefBrowser.
+			}
+			for (Method method : host.getClass().getMethods()) {
+				if (!method.getName().equals("setAccessibilityState") || method.getParameterCount() != 1)
+					continue;
+				Class<?> stateType = method.getParameterTypes()[0];
+				Object enabledState = null;
+				if (stateType.isEnum()) {
+					for (Object candidate : stateType.getEnumConstants()) {
+						if (candidate.toString().equals("STATE_ENABLED") || candidate.toString().equals("ENABLED")) {
+							enabledState = candidate;
+							break;
+						}
+					}
+				} else if (stateType == int.class || stateType == Integer.class) {
+					enabledState = 1;
+				}
+				if (enabledState == null)
+					continue;
+				method.invoke(host, enabledState);
+				LOG.debug("Enabled native Chromium platform accessibility for windowed JCEF");
+				return;
+			}
+			LOG.debug("JCEF browser host does not expose setAccessibilityState; platform UIA may remain unavailable");
+		} catch (ReflectiveOperationException | RuntimeException error) {
+			LOG.debug("Failed to enable native Chromium platform accessibility", error);
+		}
 	}
 
 	private void handleRendererTermination(CefBrowser browser, CefRequestHandler.TerminationStatus status,
