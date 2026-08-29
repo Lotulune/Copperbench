@@ -1,0 +1,31 @@
+Stage 9 clean Windows JCEF UIA direct-renderer experiment
+Guest: Copperbench-G7
+Runtime: JCEF 137.0.17.1142.68de80bc86de497c8d0632ad0f8fe33625b33bff / CEF 137.0.17 / Chromium 137.0.7151.104
+
+Bounded experimental artifact hashes deployed together:
+- copperbench.exe SHA256: 276F819AF507E5EED75105FBB83BE87EEF85D3587AC2FD40C0EB3E23AD142893
+- lib/copperbench.jar SHA256: 87C7BEF58088D9F8D124EE6B8100C3BFF972107D3461D736F6F1A087B64DA409
+
+Relevant application log excerpt:
+2026-08-30-04:48:01 [Application-Loader/INFO] [net.mcreator.ui.chromium.WebView] Stage 9 CEF 137 diagnostic bridge requested; JCEF browser identifier=-1
+2026-08-30-04:48:01 [Application-Loader/INFO] [net.mcreator.ui.chromium.WebView] CEF 137 diagnostic bridge found no active browser IDs yet
+2026-08-30-04:48:07 [WebView-Callback-Thread/INFO] [net.mcreator.ui.chromium.WebView] Stage 9 CEF 137 diagnostic bridge requested; JCEF browser identifier=1
+2026-08-30-04:48:08 [WebView-Callback-Thread/INFO] [net.mcreator.ui.chromium.WebView] Enabled native Windows CEF accessibility for 1 active browser(s) via explicit CEF 137 diagnostic bridge
+2026-08-30-04:48:28 [AWT-EventQueue-0/INFO] [net.mcreator.ui.chromium.WebView] Stage 9 CEF 137 diagnostic bridge requested; JCEF browser identifier=-1
+2026-08-30-04:48:28 [AWT-EventQueue-0/INFO] [net.mcreator.ui.chromium.WebView] CEF 137 diagnostic bridge found no active browser IDs yet
+2026-08-30-04:48:39 [WebView-Callback-Thread/INFO] [net.mcreator.ui.chromium.WebView] Stage 9 CEF 137 diagnostic bridge requested; JCEF browser identifier=2
+2026-08-30-04:48:39 [WebView-Callback-Thread/INFO] [net.mcreator.ui.chromium.WebView] Enabled native Windows CEF accessibility for 1 active browser(s) via explicit CEF 137 diagnostic bridge
+
+The matching UI Automation result is:
+evidence/stage-9/2026-08-30/clean-windows11-jcef-uia-renderer-direct-cef137-enabled.json
+
+Despite successful STATE_ENABLED calls for the active CEF browsers, AutomationElement.FromHandle on the same-process hidden Chrome_RenderWidgetHostHWND still returned exactly one RawView node:
+- className: Chrome_RenderWidgetHostHWND
+- controlType: ControlType.Document
+- name: Chrome Legacy Window
+- rendererDirectElementCount: 1
+- rendererDirectButtonCount: 0
+
+After this experiment, the guest was restored to main@905af04f artifacts:
+- copperbench.exe SHA256: 10399A45EB9C26D8EE3E661202723E0E0A63C62E55785A35796562859BBE5FA4
+- lib/copperbench.jar SHA256: 2DCC59019644CEFCB23765CB6CA37A02AC67CB21BFAB77EBBFB4CD73CA481F86

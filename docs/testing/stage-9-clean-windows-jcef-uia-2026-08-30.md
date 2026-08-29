@@ -118,6 +118,54 @@ The probe keeps this activation synthetic and opt-in: its default
 The two diagnostic modes are retained only to make this eliminated hypothesis
 reproducible.
 
+## Direct renderer provider boundary confirmed
+
+The hidden same-process `Chrome_RenderWidgetHostHWND` was then inspected
+directly with `AutomationElement.FromHandle` instead of reaching Chromium only
+through the visible `SunAwtFrame` provider tree. This distinguishes a populated
+renderer provider that is merely detached from JCEF/AWT from a renderer HWND
+that never materializes the DOM UIA tree in the first place.
+
+The restored `main@905af04f` baseline produced exactly one node from the
+renderer HWND:
+
+- class `Chrome_RenderWidgetHostHWND`;
+- `ControlType.Document`;
+- name `Chrome Legacy Window`;
+- `rendererDirectElementCount=1`;
+- `rendererDirectButtonCount=0`.
+
+That result is recorded in
+[`clean-windows11-jcef-uia-renderer-direct-none.json`](../../evidence/stage-9/2026-08-30/clean-windows11-jcef-uia-renderer-direct-none.json).
+It rules out the hypothesis that a complete DOM provider already exists at the
+renderer HWND but is only disconnected from the AWT/JCEF parent tree.
+
+One final bounded CEF 137 experiment then removed the remaining ambiguity about
+automatic accessibility enablement. A temporary, version-locked C API bridge
+was packaged into both the Launch4j EXE and application JAR because the EXE is
+the first classpath entry. The bridge verified CEF `137.0.17`, validated the C
+struct sizes, and called `SetAccessibilityState(STATE_ENABLED)` through the CEF
+browser host. The application log confirms successful activation for browser
+IDs 1 and 2.
+
+Even after those successful calls, direct UIA inspection of the active hidden
+renderer HWND was unchanged: one `Chrome Legacy Window` Document node and zero
+buttons. The machine result and activation log are:
+
+- [`clean-windows11-jcef-uia-renderer-direct-cef137-enabled.json`](../../evidence/stage-9/2026-08-30/clean-windows11-jcef-uia-renderer-direct-cef137-enabled.json)
+- [`clean-windows11-jcef-uia-renderer-direct-cef137-enabled.log.txt`](../../evidence/stage-9/2026-08-30/clean-windows11-jcef-uia-renderer-direct-cef137-enabled.log.txt)
+
+The temporary ABI bridge was removed immediately after the experiment, and the
+guest EXE/JAR were restored byte-for-byte to the `main@905af04f` artifacts.
+
+This narrows the beta blocker further than the earlier JCEF-binding diagnosis.
+The missing subtree is not caused by a missing Java method, missing
+`WM_GETOBJECT` activation, or failure to attach an already-populated renderer
+provider to AWT. With the bundled CEF 137 runtime in JCEF's forced
+`CEF_RUNTIME_STYLE_ALLOY` windowed path, the Windows platform provider itself
+does not expose the DOM accessibility subtree from the renderer HWND after
+`STATE_ENABLED`.
+
 ## Decision
 
 Do **not** merge the experimental CEF-offset bridge or the extra Chromium
@@ -125,13 +173,16 @@ feature switches. They did not close the gate and the hard-coded CEF ABI
 offsets would create unnecessary maintenance and crash risk.
 
 Retain the improved clean-Windows probe and this failure evidence. Treat the
-missing Windows platform accessibility projection as a JCEF/CEF integration
-blocker requiring one of the following before Public Beta:
+missing Windows platform accessibility projection as a CEF 137 Alloy/JCEF
+runtime blocker requiring one of the following before Public Beta:
 
-1. a JCEF build/version that exposes the required CEF accessibility API and
-   demonstrates a populated Windows UIA subtree; or
-2. an upstream/native integration patch with maintainable bindings, followed
-   by the same clean-guest Narrator/UIA acceptance run.
+1. a newer JCEF/CEF runtime in which the windowed Alloy renderer exposes a
+   populated Windows UIA subtree under the same clean-guest probe; or
+2. an upstream CEF/Chromium fix for the Alloy Windows platform-provider path,
+   followed by the same clean-guest Narrator/UIA acceptance run; or
+3. a deliberate rendering-architecture change such as OSR plus a maintained
+   native accessibility-provider implementation, treated as a separate large
+   engineering project rather than a launch-flag workaround.
 
 Physical 150%/175%/200% DPI verification, screen-reader interoperability, and
 the complete manual keyboard audit remain required even after the provider
