@@ -10,7 +10,10 @@
 package dev.copperbench.shell;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import dev.copperbench.bridge.JcefCoreBridgeTransport;
 import dev.copperbench.core.application.InMemoryWorkspaceTaskGateway;
 import dev.copperbench.core.application.WorkspaceApplicationService;
@@ -48,6 +51,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Windows-native JCEF accessibility acceptance slice for the Stage 9 production shell. */
@@ -108,6 +112,14 @@ class Stage9NativeJcefAccessibilityTest {
 					"document.querySelector('[data-testid=app-shell]') !== null"
 							+ " && document.body.textContent.includes('JCEF 原生桥接')")), 30,
 					"Production shell did not bind the native JCEF UI-Core host");
+
+			AxTreeMetrics axTree = captureDevToolsAxTree(webView);
+			assertTrue(axTree.nodeCount >= 20,
+					"Renderer accessibility tree is unexpectedly small: " + axTree);
+			assertTrue(axTree.buttonCount >= 3,
+					"Renderer accessibility tree did not expose expected product-shell buttons: " + axTree);
+			assertTrue(axTree.namedButtonCount >= 3,
+					"Renderer accessibility tree buttons are missing accessible names: " + axTree);
 
 			assertEquals("true", js(webView,
 					"document.querySelector('[data-testid=global-announcer]')?.getAttribute('aria-live') === 'polite'"),
@@ -285,7 +297,7 @@ class Stage9NativeJcefAccessibilityTest {
 			assertEquals("true", procedureParts[3], "A visible Procedure control has no accessible name");
 
 			writeEvidence(viewportWidth, viewportHeight, devicePixelRatio, targetCount, minTargetWidth,
-					minTargetHeight, procedureTargetCount, procedureMinTargetWidth, procedureMinTargetHeight);
+					minTargetHeight, procedureTargetCount, procedureMinTargetWidth, procedureMinTargetHeight, axTree);
 		} finally {
 			if (windowRef[0] != null)
 				SwingUtilities.invokeAndWait(windowRef[0]::dispose);
@@ -315,9 +327,38 @@ class Stage9NativeJcefAccessibilityTest {
 				""".formatted(activeIndex, shift, expectedIndex);
 	}
 
+	private static AxTreeMetrics captureDevToolsAxTree(WebView webView) throws Exception {
+		var devTools = webView.getBrowser().getDevToolsClient();
+		assertNotNull(devTools, "Native JCEF browser did not expose a DevTools client");
+		String response = devTools.executeDevToolsMethod("Accessibility.getFullAXTree").get(10, TimeUnit.SECONDS);
+		JsonObject root = JsonParser.parseString(response).getAsJsonObject();
+		JsonArray nodes = root.getAsJsonArray("nodes");
+		assertNotNull(nodes, "Accessibility.getFullAXTree returned no nodes array: " + response);
+
+		int buttonCount = 0;
+		int namedButtonCount = 0;
+		for (JsonElement element : nodes) {
+			JsonObject node = element.getAsJsonObject();
+			if (!"button".equalsIgnoreCase(axValue(node, "role")))
+				continue;
+			buttonCount++;
+			if (!axValue(node, "name").isBlank())
+				namedButtonCount++;
+		}
+		return new AxTreeMetrics(nodes.size(), buttonCount, namedButtonCount);
+	}
+
+	private static String axValue(JsonObject node, String property) {
+		JsonObject value = node.has(property) && node.get(property).isJsonObject()
+				? node.getAsJsonObject(property) : null;
+		if (value == null || !value.has("value") || value.get("value").isJsonNull())
+			return "";
+		return value.get("value").getAsString();
+	}
+
 	private static void writeEvidence(double viewportWidth, double viewportHeight, double devicePixelRatio,
 			int targetCount, double minTargetWidth, double minTargetHeight, int procedureTargetCount,
-			double procedureMinTargetWidth, double procedureMinTargetHeight) throws Exception {
+			double procedureMinTargetWidth, double procedureMinTargetHeight, AxTreeMetrics axTree) throws Exception {
 		JsonObject evidence = new JsonObject();
 		evidence.addProperty("platform", "windows");
 		evidence.addProperty("host", "real-jcef-production-shell");
@@ -332,6 +373,10 @@ class Stage9NativeJcefAccessibilityTest {
 		evidence.addProperty("dialogEscapeAndFocusRestore", "passed");
 		evidence.addProperty("politeLiveRegionContract", "passed");
 		evidence.addProperty("rendererAccessibilityMode", "complete");
+		evidence.addProperty("rendererAxTreeNodeCount", axTree.nodeCount);
+		evidence.addProperty("rendererAxTreeButtonCount", axTree.buttonCount);
+		evidence.addProperty("rendererAxTreeNamedButtonCount", axTree.namedButtonCount);
+		evidence.addProperty("rendererAxTreeSource", "DevTools Accessibility.getFullAXTree");
 		evidence.addProperty("selectableTaskLogContract", "passed");
 		evidence.addProperty("procedureKeyboardTabs", "passed");
 		evidence.addProperty("procedureNodeAndPortSemantics", "passed");
@@ -367,6 +412,9 @@ class Stage9NativeJcefAccessibilityTest {
 		generator.addProperty("state", "ready");
 		return new WorkspaceState(WORKSPACE_ID, "Native JCEF Accessibility", "mod", 0, false, generator,
 				new JsonObject(), List.of());
+	}
+
+	private record AxTreeMetrics(int nodeCount, int buttonCount, int namedButtonCount) {
 	}
 
 	@FunctionalInterface
