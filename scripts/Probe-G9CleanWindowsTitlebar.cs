@@ -305,8 +305,10 @@ internal static class Program
     private static void RunProbe(string workspaceFile, string installDir, string wmGetObjectMode, ProbeResult result)
     {
         string launcher = Path.Combine(installDir, "copperbench.exe");
-        if (!File.Exists(launcher)) throw new FileNotFoundException("Copperbench launcher was not found.", launcher);
-        if (!File.Exists(workspaceFile)) throw new FileNotFoundException("Workspace was not found.", workspaceFile);
+        if (!File.Exists(launcher))
+            throw new FileNotFoundException("Copperbench launcher was not found: " + launcher, launcher);
+        if (!File.Exists(workspaceFile))
+            throw new FileNotFoundException("Workspace was not found: " + workspaceFile, workspaceFile);
 
         int sessionId = Process.GetCurrentProcess().SessionId;
         StopSessionProcesses("copperbench", sessionId);

@@ -166,6 +166,80 @@ provider to AWT. With the bundled CEF 137 runtime in JCEF's forced
 does not expose the DOM accessibility subtree from the renderer HWND after
 `STATE_ENABLED`.
 
+## JCEF / CEF 150 runtime A/B also remains blocked
+
+The next bounded experiment tested whether the provider defect had already
+been fixed upstream in a current JetBrains Runtime instead of adding more
+Chromium switches to Copperbench. The candidate was
+`jbrsdk_jcef-25.0.4.1-windows-x64-b583.48.zip` with SHA-256
+`5BD74BFD267B1CD289D0252F08849509DA5EEE60504A39B71DC1C2D7A9E00C3A`.
+It reports JBR `25.0.4.1+1-b583.48-jcef`, JCEF/CEF `150.0.14`, Chromium
+`150.0.7871.129`, and JCEF API `1.21`.
+
+Copperbench required a temporary source adaptation because JCEF 150 adds the
+new `CefResourceHandler.open/read/skip` callbacks. That candidate compiled and
+the existing `Stage9NativeJcefAccessibilityTest` passed under real JCEF 150,
+so the runtime could initialize the product shell and preserve the existing
+DOM/ARIA/keyboard contracts before the clean-guest comparison was attempted.
+
+The runtime was then deployed to an isolated
+`C:\Copperbench-G9-JCEF150` directory on the same clean Windows 11 guest. The
+original `C:\Copperbench-G9` installation and workspace were not overwritten.
+With Narrator running and no synthetic `WM_GETOBJECT`, the newer runtime did
+change the native provider shell:
+
+- the main RawView grew to 9 nodes;
+- `RootView` and `CefNativeContentsView` appeared;
+- the hidden renderer became a visible RawView node named
+  `Chrome Legacy Window` with class `Chrome_RenderWidgetHostHWND`;
+- direct `AutomationElement.FromHandle(rendererHwnd)` traversal grew from the
+  CEF 137 single node to two nodes (`Chrome_RenderWidgetHostHWND` plus the
+  unnamed `Document`).
+
+However, neither path exposed any DOM control:
+`rawButtonCount=0` and `rendererDirectButtonCount=0`. The raw result is
+[`clean-windows11-jcef150-uia-none.json`](../../evidence/stage-9/2026-08-30/clean-windows11-jcef150-uia-none.json).
+
+One final experiment removed the remaining ambiguity about automatic
+accessibility state on CEF 150. The exact CEF source for this runtime is commit
+`7c1aa68455db1f1fad159c2b83070ad318212b3d`. A temporary FFM bridge was locked
+to CEF/Chromium major 150 and validated the runtime C structures before making
+any call: `cef_browser_t=208` bytes and `cef_browser_host_t=592` bytes. Comparing
+the exact CEF 137 -> 150 interface shows that the extra 8 bytes are the new
+tail `SetAxViewportCollapse` function, so `SetAccessibilityState` remains at
+offset 504. The host-side real-JCEF test logged a successful native
+`STATE_ENABLED` call after those checks and still passed.
+
+The same bridge build and the same b583.48 runtime were then tested on the
+clean guest. To avoid relying on host-side logs or artifact-hash inference, the
+temporary bridge also wrote a guest-side marker only after the native call
+returned. Before this acceptance run the marker was deleted. During the run it
+was recreated with two records at `07:30:47` and `07:31:08 +08:00`, for browser
+IDs 1 and 2 respectively. Both records identify CEF/Chromium 150, the validated
+`208`/`592` byte structures, `SetAccessibilityState` offset `504`, state
+`STATE_ENABLED`, and the actual candidate runtime at
+`C:\Copperbench-G9-JCEF150\jdk`. Its SHA-256 is
+`0FB90F9D0D9A16E15AE2F5A3B7C2E3FC99810057D74E773526FA61AB2AFE3EC2`.
+
+The guest-side activation record is
+[`clean-windows11-jcef150-state-enabled-marker.jsonl`](../../evidence/stage-9/2026-08-30/clean-windows11-jcef150-state-enabled-marker.jsonl).
+The exact candidate used for that run had EXE SHA-256
+`3179CC590022268F43E6A9BA1D010AD65D439173CA12FD057343951002D8003B` and JAR
+SHA-256 `BCBC2A84C02853346982077A5D65BB10FAA9F610A2E5CFAF5966D5C27B7250FE`.
+
+Despite the independently confirmed guest-side native calls, the provider tree
+was unchanged from the JCEF 150 run without the explicit call: 9 RawView nodes,
+two direct renderer nodes, and zero buttons. The machine result is
+[`clean-windows11-jcef150-uia-state-enabled.json`](../../evidence/stage-9/2026-08-30/clean-windows11-jcef150-uia-state-enabled.json),
+with candidate hashes, runtime versions, ABI checks, and both results summarized
+in
+[`jcef150-runtime-accessibility-ab.json`](../../evidence/stage-9/2026-08-30/jcef150-runtime-accessibility-ab.json).
+
+The JCEF 150 source adaptation and temporary FFM bridge were removed after the
+experiment. The current product runtime therefore remains on its existing
+locked JBR/JCEF build: upgrading to b583.48 would add a runtime migration and
+API compatibility change without closing the Public Beta accessibility gate.
+
 ## Decision
 
 Do **not** merge the experimental CEF-offset bridge or the extra Chromium
@@ -177,7 +251,9 @@ missing Windows platform accessibility projection as a CEF 137 Alloy/JCEF
 runtime blocker requiring one of the following before Public Beta:
 
 1. a newer JCEF/CEF runtime in which the windowed Alloy renderer exposes a
-   populated Windows UIA subtree under the same clean-guest probe; or
+   populated Windows UIA subtree under the same clean-guest probe (the tested
+   JCEF/CEF `150.0.14` / Chromium `150.0.7871.129` candidate is **not** such a
+   runtime); or
 2. an upstream CEF/Chromium fix for the Alloy Windows platform-provider path,
    followed by the same clean-guest Narrator/UIA acceptance run; or
 3. a deliberate rendering-architecture change such as OSR plus a maintained
