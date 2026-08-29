@@ -479,13 +479,10 @@ internal static class Program
             int elementCount;
             int buttonCount;
             WalkRawTreeSnapshot(root, elements, out elementCount, out buttonCount);
-            if (elementCount > result.RendererDirectElementCount)
-            {
-                result.RendererDirectElementCount = elementCount;
-                result.RendererDirectButtonCount = buttonCount;
-                result.RendererDirectElements = elements;
-                result.RendererDirectError = null;
-            }
+            result.RendererDirectElementCount = elementCount;
+            result.RendererDirectButtonCount = buttonCount;
+            result.RendererDirectElements = elements;
+            result.RendererDirectError = null;
         }
         catch (ElementNotAvailableException error)
         {
