@@ -1,8 +1,7 @@
 # Stage 10 Beta diagnostics and issue routing - 2026-08-29
 
-This record covers the local implementation candidate for `FR-BETA-01` and
-`FR-BETA-02`. The gates remain `in-progress` until the implementation is tied
-to a reviewed commit and protected CI.
+This record covers `FR-BETA-01` and `FR-BETA-02`. Both gates are passed on
+fixed `main@92d1a8d0` with merged-main CI and Nightly evidence.
 
 ## Diagnostic bundle
 

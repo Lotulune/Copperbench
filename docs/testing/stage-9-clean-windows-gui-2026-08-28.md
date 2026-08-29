@@ -9,6 +9,8 @@
 WorkspaceSelector、新建工作区、Generator setup 与 `-workspace` 冷启动。它们共同构成 Stage 9 G9.5 的**部分证据**，
 后续 2026-08-29 已补齐公开旧版升级、断网工作区启动与升级/卸载数据保留，见
 [G9.5 升级、断网与数据保留验证](./stage-9-g95-upgrade-offline-retention-2026-08-29.md)。
+同一 GUI 创建工作区的生成物、Gradle `build`、jar 产出和交互式 `runClient` 后续也已在该客机通过，见
+[clean-Windows workspace lifecycle](./stage-9-clean-windows-workspace-lifecycle-2026-08-29.md)。
 `clean-windows-11-stage9` 仍不会提升为 `passed`，因为最终 Public Beta/RC 安装包尚未确定并重放完整矩阵。
 
 首次安装 smoke 的机器可读基线显示 Windows 11 专业版 build 26200，系统安装时间为本测试当天；PATH 中没有项目
@@ -105,6 +107,8 @@ CLI 冷启动使用：
 - [`evidence/stage-9/2026-08-28/clean-windows11-gui-new-workspace.png`](../../evidence/stage-9/2026-08-28/clean-windows11-gui-new-workspace.png)
 - [`scripts/Invoke-G9CleanWindowsGuestSmoke.ps1`](../../scripts/Invoke-G9CleanWindowsGuestSmoke.ps1)
 - [`scripts/Invoke-G9CleanWindowsGuiGate.ps1`](../../scripts/Invoke-G9CleanWindowsGuiGate.ps1)
+- [`scripts/Invoke-G9CleanWindowsWorkspaceLifecycleGate.ps1`](../../scripts/Invoke-G9CleanWindowsWorkspaceLifecycleGate.ps1)
+- [`evidence/stage-9/2026-08-29/clean-windows11-workspace-lifecycle.json`](../../evidence/stage-9/2026-08-29/clean-windows11-workspace-lifecycle.json)
 
 这组证据关闭的是“新装 Windows 11 客机首次安装/首次启动 + 真实 Windows GUI 创建 + generator setup + 原生启动器
 `-workspace` 冷启动”子路径；

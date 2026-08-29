@@ -2,9 +2,9 @@
 
 > 状态：实施中（可信 Preview 已建立，Beta 门禁未关闭）<br>
 > 版本：v1.2<br>
-> 更新日期：2026-08-28<br>
+> 更新日期：2026-08-29<br>
 > 前置基线：[PRD.md](./PRD.md)、[PRD-STAGE-9.md](./PRD-STAGE-9.md)<br>
-> 已验证公开基线：`v0.1.0-preview.2`；本次发布源：`v0.1.0-preview.3`；Public Beta 仍由 Stage 9 和外部试用门禁阻断
+> 已验证公开基线：`v0.1.0-preview.3`（`main@cc15d57a`）；后续公开版本必须使用新 Tag；Public Beta 仍由 Stage 9 和外部试用门禁阻断
 
 ## 0. 阅读与执行协议
 
@@ -20,12 +20,12 @@
 
 | 项目 | 当前事实 | 结论 |
 | --- | --- | --- |
-| Fast CI | main 分支保护持续要求 Java/Javadoc、UI/Playwright 与 MCP；当前 `main@c566b4a6` 的 merged-main run `33105457191` 全绿 | PR 门禁已闭环；机器状态源继续保留连续 main 门禁 3/3 |
-| 公开 Release | `v0.1.0-preview.2` 已完成公开验证；本 PR 冻结为 `v0.1.0-preview.3` 发布源，公开状态由 Tag API 与 `RELEASE-METADATA.json` 实时判定 | Preview 3 必须与合并后的最新 `main` HEAD 完全一致；Windows 包仍未 Authenticode 签名 |
+| Fast CI | main 分支保护持续要求 Java/Javadoc、UI/Playwright 与 MCP；当前 `main@92d1a8d0` 的 merged-main run `33253322549` 全绿 | PR 门禁已闭环；机器状态源继续保留连续 main 门禁 3/3 |
+| 公开 Release | `v0.1.0-preview.3` 已从 `main@cc15d57a` 公开，release run `32923503840` 成功；它现在是历史已发布基线而非未来发布源 | 后续公开版本必须使用新 Tag，并在发布时与对应最新全绿 `main` HEAD、`RELEASE-METADATA.json` 完全一致；Windows 包仍未 Authenticode 签名 |
 | 状态源 | `product-status.json`、Schema 和 CI 漂移校验已进入 main，并已修复首次远端运行暴露的 Release Schema 漏项 | 状态源门禁通过；后续状态提升仍必须带固定提交证据 |
-| 重型门禁 | Nightly `33131510421`（`main@c566b4a6`）的全量 Java/Javadoc/scale 回归、完整 Playwright、MCP 与八生成器内容构建 8/8 全绿；native JCEF reconnect 1/1 实际执行通过 | FR-AI-02～05 保持闭环；独立固定硬件 P95、JCEF 高 DPI/屏幕阅读器、服务端、干净 VM 等 Stage 9 门禁仍保持 blocked |
-| Stage 9 | 八生成器黄金编译、三个专用编辑器和语言导入工具已有自动化证据；Windows WR + Chromium 完整 AXMode 下的真实 JCEF 对话框键盘/焦点/语义/点击目标验收，以及宿主 `DPR=1.25` 路径已通过；物理 150%/175%/200% DPI、清洁客机 UIA provider、屏幕阅读器、干净 RC 矩阵和外部试用仍未关闭 | `betaEligible=false`，不得称为 Beta |
-| AI Developer Kit | PR #14～#17 的 Cursor、Workspace Plan、Task Events/SDK 与 Windows-native JCEF reconnect 均已合入；当前 `main@c566b4a6` 的 merged-main CI `33105457191` 与固定提交 Nightly `33131510421` 全绿 | FR-AI-02～05 均为 `passed`；MCP reconnect 继续冻结为 `get_task(afterLogSequence)`，不引入未版本化的自定义 push 方言 |
+| 重型门禁 | Nightly `33253594479`（`main@92d1a8d0`）的全量 Java/Javadoc/scale 回归、完整 Playwright、MCP、诊断包 native JCEF 验收与八生成器内容构建 8/8 全绿 | FR-AI-02～05、FR-BETA-01～02 保持闭环；独立清洁客机 UIA/屏幕阅读器、最终 RC 和外测等 Stage 9/Beta 门禁仍保持 blocked |
+| Stage 9 | 八生成器黄金编译、三个专用编辑器和语言导入工具已有自动化证据；新装 Windows 11 客机已完成真实产品 GUI 新建工作区/Generator setup，并在同一工作区补齐生成物核验、Gradle build、jar 产出与交互式 `runClient`；Windows WR + Chromium 完整 AXMode 与宿主 `DPR=1.25` 路径也已通过 | 仍缺物理 150%/175%/200% DPI、清洁客机 UIA provider、屏幕阅读器、最终 RC 矩阵和外部试用；`betaEligible=false` |
+| AI Developer Kit | PR #14～#17 的 Cursor、Workspace Plan、Task Events/SDK 与 Windows-native JCEF reconnect 均已合入；当前 `main@92d1a8d0` 的 merged-main CI `33253322549` 与固定提交 Nightly `33253594479` 全绿 | FR-AI-02～05 均为 `passed`；MCP reconnect 继续冻结为 `get_task(afterLogSequence)`，不引入未版本化的自定义 push 方言 |
 | 仓库治理 | GitHub 已识别 GPLv3；Javadoc Pages 可访问；main 三项必需检查、受保护 PR 与 production 必需审阅者均已验证 | 仓库治理 P0 已闭环 |
 | Dependency Submission | 仓库 Dependency Graph 未启用，原工作流无法成功 | 误导工作流已从 main 删除 |
 
@@ -173,7 +173,7 @@
 
 #### FR-REL-06 首个可信预览
 
-不完整的 `v0.1.0` 草稿已删除。`v0.1.0-preview.1` 已证明基础链路，`v0.1.0-preview.2` 已证明三包、SBOM、生产审批和公开验证；`v0.1.0-preview.3` 必须从本发布源 PR 合并后的最新全绿 `main` HEAD 创建签名 Tag，且发布后不再追加仅用于追赶 Release 的状态提交。随后由非维护者从 Release 页面完成下载、校验、安装、启动和卸载数据保留复验。
+不完整的 `v0.1.0` 草稿已删除。`v0.1.0-preview.1` 已证明基础链路，`v0.1.0-preview.2` 已证明三包、SBOM、生产审批和公开验证；`v0.1.0-preview.3` 已从当时最新全绿 `main@cc15d57a` 创建签名 Tag 并由 release run `32923503840` 公开。后续公开版本必须使用新 Tag，并继续要求 Tag、`RELEASE-METADATA.json` commit 与发布时目标 `main` HEAD 完全一致；不再通过发布后的追赶提交伪造一致性。
 
 ### 5.3 单一机器可读状态源
 
@@ -256,13 +256,13 @@ Function、Loot Table、Advancement 在八套 Fabric/NeoForge 生成器上运行
 
 提供脱敏环境摘要、日志、任务结果和可选最小复现导出。令牌、用户名和外部路径默认移除，用户确认后才附加文件。
 
-实施状态（2026-08-29）：本地候选已实现。帮助页可导出本地 ZIP；默认仅包含环境摘要、脱敏日志、工作区安全摘要、活动任务和结构化诊断。附加最小复现文件必须显式勾选，并受目录、扩展名、文件数、单文件和总大小边界限制。Java 服务/桥接测试与两个 viewport 的产品 UI 测试通过；待受保护 PR/CI 后形成固定提交证据。
+实施状态（2026-08-29）：已通过。帮助页可导出本地 ZIP；默认仅包含环境摘要、脱敏日志、工作区安全摘要、活动任务和结构化诊断。附加最小复现文件必须显式勾选，并受目录、扩展名、文件数、单文件和总大小边界限制。Java 服务、真实 JCEF、桥接、UI 和 Nightly 固定提交证据均通过。
 
 #### FR-BETA-02 Issue 分流
 
 Issue 模板必须收集版本、commit、生成器、元素类型、复现步骤、预期/实际结果和诊断码，并区分安装、工作区、生成器、UI、MCP 与文档问题。
 
-实施状态（2026-08-29）：本地 Issue 表单已补齐区域、版本/完整 commit、生成器、元素类型、预期/实际结果、诊断码/错误 ID 和诊断包入口；待受保护 PR/CI 后关闭。
+实施状态（2026-08-29）：已通过。Issue 表单已补齐区域、版本/完整 commit、生成器、元素类型、预期/实际结果、诊断码/错误 ID 和诊断包入口，并由合并后 Nightly 固定提交验证。
 
 #### FR-BETA-03 外部试用任务
 

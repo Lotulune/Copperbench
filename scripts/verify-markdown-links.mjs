@@ -16,7 +16,10 @@ function markdownFiles(directory) {
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
     if (entry.isDirectory() && ignoredDirectories.has(entry.name)) return [];
     const path = join(directory, entry.name);
-    if (entry.isDirectory()) return markdownFiles(path);
+    if (entry.isDirectory()) {
+      if (path !== repositoryRoot && existsSync(join(path, '.git'))) return [];
+      return markdownFiles(path);
+    }
     return extname(entry.name).toLowerCase() === '.md' ? [path] : [];
   });
 }
