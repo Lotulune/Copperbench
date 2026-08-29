@@ -37,6 +37,7 @@ class DiagnosticBundleServiceTest {
 		Files.writeString(workspace.resolve("example.mcreator"), "private workspace content");
 		JsonObject tasks = new JsonObject();
 		tasks.addProperty("externalPath", "D:\\mods\\private.gradle");
+		tasks.addProperty("unixPath", "/opt/projects/private.gradle");
 		var service = service(logs, workspace, tasks);
 
 		var result = service.export(UUID.fromString("11111111-1111-4111-8111-111111111111"), false);
@@ -53,6 +54,7 @@ class DiagnosticBundleServiceTest {
 			assertFalse(log.contains("C:\\Users"));
 			String task = new String(zip.getInputStream(zip.getEntry("tasks.json")).readAllBytes());
 			assertFalse(task.contains("D:\\mods"));
+			assertFalse(task.contains("/opt/projects"));
 		}
 	}
 
@@ -87,6 +89,21 @@ class DiagnosticBundleServiceTest {
 		assertFalse(first.path().equals(second.path()));
 		assertTrue(Files.isRegularFile(first.path()));
 		assertTrue(Files.isRegularFile(second.path()));
+	}
+
+	@Test void aggregateLogInputIsBounded() throws Exception {
+		Path logs = Files.createDirectories(root.resolve("logs"));
+		Path workspace = Files.createDirectories(root.resolve("workspace"));
+		for (int index = 0; index < 140; index++) {
+			Files.writeString(logs.resolve(String.format("rotated-%03d.log", index)), "log-" + index);
+		}
+
+		var result = service(logs, workspace, new JsonObject()).export(null, false);
+
+		try (ZipFile zip = new ZipFile(result.path().toFile())) {
+			long includedLogs = zip.stream().filter(entry -> entry.getName().startsWith("logs/")).count();
+			assertTrue(includedLogs <= 128);
+		}
 	}
 
 	private DiagnosticBundleService service(Path logs, Path workspace, JsonObject tasks) {

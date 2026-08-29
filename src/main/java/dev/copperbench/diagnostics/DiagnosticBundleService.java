@@ -43,10 +43,13 @@ public final class DiagnosticBundleService {
 	private static final DateTimeFormatter FILE_STAMP = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss")
 			.withLocale(Locale.ROOT).withZone(ZoneOffset.UTC);
 	private static final long MAX_LOG_BYTES = 5L * 1024 * 1024;
+	private static final long MAX_LOG_BYTES_TOTAL = 25L * 1024 * 1024;
+	private static final int MAX_LOG_FILES = 128;
 	private static final long MAX_REPRODUCTION_BYTES = 25L * 1024 * 1024;
 	private static final int MAX_REPRODUCTION_FILES = 128;
 	private static final Pattern WINDOWS_PATH = Pattern.compile("(?i)(?:[a-z]:\\\\|\\\\\\\\)[^\\r\\n\\t\\\"']+");
 	private static final Pattern UNIX_HOME = Pattern.compile("/(?:Users|home)/[^/\\s]+(?:/[^\\s\\\"']*)?");
+	private static final Pattern UNIX_ABSOLUTE_PATH = Pattern.compile("(?<![:A-Za-z0-9])/(?:[A-Za-z0-9._-]+/)+(?:[A-Za-z0-9._-]+)?");
 	private static final Set<String> REPRODUCTION_EXTENSIONS = Set.of(
 			".mcreator", ".mod.json", ".json", ".xml", ".gradle", ".properties", ".toml", ".java");
 	private static final Set<String> EXCLUDED_ROOTS = Set.of(".git", ".gradle", "build", "run", "logs");
@@ -115,14 +118,21 @@ public final class DiagnosticBundleService {
 
 	private void addLogs(List<BundleEntry> entries) throws IOException {
 		if (!Files.isDirectory(logRoot)) return;
+		long totalBytes = 0;
+		int fileCount = 0;
 		try (var paths = Files.list(logRoot)) {
 			for (Path path : paths.filter(candidate -> Files.isRegularFile(candidate, LinkOption.NOFOLLOW_LINKS))
 					.sorted().toList()) {
+				if (fileCount >= MAX_LOG_FILES || totalBytes >= MAX_LOG_BYTES_TOTAL) break;
 				if (Files.size(path) > MAX_LOG_BYTES) continue;
 				String name = path.getFileName().toString();
 				if (!name.endsWith(".log") && !name.endsWith(".txt")) continue;
+				long size = Files.size(path);
+				if (totalBytes + size > MAX_LOG_BYTES_TOTAL) break;
 				entries.add(new BundleEntry("logs/" + safeName(name),
 						redact(new String(Files.readAllBytes(path), StandardCharsets.UTF_8)).getBytes(StandardCharsets.UTF_8)));
+				totalBytes += size;
+				fileCount++;
 			}
 		}
 	}
@@ -177,7 +187,8 @@ public final class DiagnosticBundleService {
 		if (!userHome.isBlank()) result = result.replace(userHome, "%USERPROFILE%");
 		result = result.replace(workspaceRoot.toString(), "%WORKSPACE%");
 		result = WINDOWS_PATH.matcher(result).replaceAll("[PATH]");
-		return UNIX_HOME.matcher(result).replaceAll("[PATH]");
+		result = UNIX_HOME.matcher(result).replaceAll("[PATH]");
+		return UNIX_ABSOLUTE_PATH.matcher(result).replaceAll("[PATH]");
 	}
 
 	private static String safeName(String name) {
