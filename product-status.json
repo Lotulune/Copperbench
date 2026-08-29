@@ -2,8 +2,8 @@
   "$schema": "./schemas/product-status.schema.json",
   "schemaVersion": "1.0",
   "snapshot": {
-    "date": "2026-08-28",
-    "lastVerifiedCommit": "c566b4a64d09735bdc36a783020f81a37a489071",
+    "date": "2026-08-29",
+    "lastVerifiedCommit": "92d1a8d06df82c7bb8cfc22ad2fbf117e33e26e6",
     "policy": "Only code, automated checks, and evidence tied to a commit can promote a gate."
   },
   "product": {
@@ -38,11 +38,11 @@
     },
     "fastCi": {
       "status": "passed",
-      "run": "https://github.com/Lotulune/Copperbench/actions/runs/33105457191",
+      "run": "https://github.com/Lotulune/Copperbench/actions/runs/33253322549",
       "latestAttempt": {
         "status": "passed",
-        "run": "https://github.com/Lotulune/Copperbench/actions/runs/33105457191",
-        "reason": "main@c566b4a6 passed Java/Javadoc, UI/Playwright smoke, MCP conformance, and JUnit reporting after PR #21 merged; fixed-commit Nightly 33131510421 then passed the heavy Windows product gates on the same source SHA."
+        "run": "https://github.com/Lotulune/Copperbench/actions/runs/33253322549",
+        "reason": "main@92d1a8d0 passed Java/Javadoc, UI/Playwright smoke, MCP conformance, and JUnit reporting after PR #27 merged; fixed-commit Nightly 33253594479 then passed the heavy Windows product gates on the same source SHA."
       },
       "runs": [
         "https://github.com/Lotulune/Copperbench/actions/runs/32904346297",
@@ -60,8 +60,8 @@
     "nightly": {
       "status": "passed",
       "workflow": ".github/workflows/nightly.yml",
-      "run": "https://github.com/Lotulune/Copperbench/actions/runs/33131510421",
-      "sourceCommit": "c566b4a64d09735bdc36a783020f81a37a489071",
+      "run": "https://github.com/Lotulune/Copperbench/actions/runs/33253594479",
+      "sourceCommit": "92d1a8d06df82c7bb8cfc22ad2fbf117e33e26e6",
       "productRegression": "passed",
       "generatorGolden": "8/8 passed"
     },
@@ -128,8 +128,8 @@
     {"id": "server-readiness-matrix", "status": "passed", "betaBlocking": true, "evidence": ["src/test/java/dev/copperbench/generator/Stage9ServerReadinessContractTest.java", "src/test/java/dev/copperbench/generator/Stage9RealServerReadinessProbeTest.java", "docs/testing/stage-9-server-readiness-contract-2026-08-27.md", "docs/testing/stage-9-server-readiness-real-2026-08-29.md", "evidence/stage-9/2026-08-29/server-readiness-fabric-26_2.json", "evidence/stage-9/2026-08-29/server-readiness-neoforge-26_2.json", "evidence/stage-9/2026-08-29/server-readiness-fabric-26_1_2.json", "evidence/stage-9/2026-08-29/server-readiness-neoforge-26_1_2.json", "evidence/stage-9/2026-08-29/server-readiness-fabric-1_21_1.json", "evidence/stage-9/2026-08-29/server-readiness-neoforge-1_21_1.json", "evidence/stage-9/2026-08-29/server-readiness-fabric-1_20_1.json", "evidence/stage-9/2026-08-29/server-readiness-neoforge-1_20_1.json"]},
     {"id": "real-jcef-accessibility", "status": "blocked", "betaBlocking": true, "evidence": ["docs/testing/stage-9-accessibility-baseline-2026-08-27.md", "src/test/java/dev/copperbench/shell/Stage9NativeJcefAccessibilityTest.java", "evidence/stage-9/2026-08-29/native-jcef-accessibility.json", "evidence/stage-9/2026-08-29/clean-windows11-uia-titlebar-probe.json", "scripts/Probe-G9CleanWindowsTitlebar.cs", "scripts/Probe-G9CleanWindowsTitlebar.ps1"]},
     {"id": "clean-windows-11-stage9", "status": "blocked", "betaBlocking": true, "evidence": ["docs/testing/stage-9-clean-windows-gui-2026-08-28.md", "docs/testing/stage-9-g95-upgrade-offline-retention-2026-08-29.md", "scripts/Invoke-G9CleanWindowsGuestSmoke.ps1", "scripts/Invoke-G9CleanWindowsGuiGate.ps1", "scripts/Invoke-G9CleanWindowsUpgradeRetentionGate.ps1", "evidence/stage-9/2026-08-28/clean-windows11-product-shell.json", "evidence/stage-9/2026-08-28/clean-windows11-gui-new-workspace.json", "evidence/stage-9/2026-08-29/clean-windows11-upgrade-offline-retention.json"]},
-    {"id": "diagnostic-bundle", "status": "in-progress", "betaBlocking": true, "evidence": ["docs/testing/stage-10-beta-diagnostics-2026-08-29.md", "src/main/java/dev/copperbench/diagnostics/DiagnosticBundleService.java", "src/test/java/dev/copperbench/diagnostics/DiagnosticBundleServiceTest.java", "src/main/java/dev/copperbench/bridge/JcefDiagnosticsBridgeTransport.java", "src/test/java/dev/copperbench/shell/Stage10NativeJcefDiagnosticsBundleTest.java", "ui-shell/e2e/diagnostics.spec.ts"]},
-    {"id": "issue-routing", "status": "in-progress", "betaBlocking": true, "evidence": ["docs/testing/stage-10-beta-diagnostics-2026-08-29.md", ".github/ISSUE_TEMPLATE/bug_report.yml"]},
+    {"id": "diagnostic-bundle", "status": "passed", "betaBlocking": true, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/33253594479", "docs/testing/stage-10-beta-diagnostics-2026-08-29.md", "src/main/java/dev/copperbench/diagnostics/DiagnosticBundleService.java", "src/test/java/dev/copperbench/diagnostics/DiagnosticBundleServiceTest.java", "src/main/java/dev/copperbench/bridge/JcefDiagnosticsBridgeTransport.java", "src/test/java/dev/copperbench/shell/Stage10NativeJcefDiagnosticsBundleTest.java", "ui-shell/e2e/diagnostics.spec.ts"]},
+    {"id": "issue-routing", "status": "passed", "betaBlocking": true, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/33253594479", "docs/testing/stage-10-beta-diagnostics-2026-08-29.md", ".github/ISSUE_TEMPLATE/bug_report.yml"]},
     {"id": "five-external-testers", "status": "blocked", "betaBlocking": true, "evidence": ["docs/testing/stage-9-external-tester-protocol.md", "schemas/external-tester-evidence.schema.json", "scripts/verify-external-tester-evidence.mjs", "evidence/stage-9/external-testers/README.md"]},
     {"id": "ai-unbounded-list-contract", "status": "passed", "betaBlocking": true, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/32998281437", "docs/testing/stage-10-ai-cursor-2026-08-26.md"]},
     {"id": "ai-workspace-plan", "status": "passed", "betaBlocking": true, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/33044562447", "https://github.com/Lotulune/Copperbench/actions/runs/33044983727", "https://github.com/Lotulune/Copperbench/actions/runs/33098518016", "docs/testing/stage-10-ai-workspace-plan-2026-08-27.md"]},
