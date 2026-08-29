@@ -83,6 +83,41 @@ complete DOM/ARIA/keyboard contract in real JCEF, while the clean guest proves
 that the platform provider still does not project those DOM descendants into
 Windows UIA.
 
+## WM_GETOBJECT activation ruled out
+
+The hardened probe was extended to enumerate Chromium/CEF/D3D HWNDs across the
+entire interactive Windows session rather than only descendants of the
+Copperbench `SunAwtFrame`. This exposed a hidden
+`Chrome_RenderWidgetHostHWND` owned by the same Copperbench `javaw` process even
+though that HWND is not a child of the visible frame hierarchy. The UIA
+`Document` itself still reports `NativeWindowHandle=0`.
+
+Three runs from the same final probe implementation then compared explicit
+screen-reader activation behavior:
+
+| Probe mode | Hidden same-process renderer found | `WM_GETOBJECT` delivered | `rawButtonCount` |
+| --- | --- | --- | ---: |
+| `none` | yes | not attempted | 0 |
+| `chromium-test` (`wParam=OBJID_CLIENT`, `lParam=1`) | yes | yes | 0 |
+| `uia-v2` (`wParam=0`, `lParam=1`) | yes | yes | 0 |
+
+Both synthetic messages were delivered through `SendMessageTimeout` to the
+exact renderer HWND selected by the current Copperbench process ID. Neither
+changed the RawView tree or exposed any DOM button. This rules out the narrower
+hypothesis that the clean guest only failed because Chromium never received a
+Windows screen-reader detection / `WM_GETOBJECT` activation message.
+
+The raw machine results are:
+
+- [`clean-windows11-jcef-uia-wmgetobject-none.json`](../../evidence/stage-9/2026-08-30/clean-windows11-jcef-uia-wmgetobject-none.json)
+- [`clean-windows11-jcef-uia-wmgetobject-chromium-test.json`](../../evidence/stage-9/2026-08-30/clean-windows11-jcef-uia-wmgetobject-chromium-test.json)
+- [`clean-windows11-jcef-uia-wmgetobject-uia-v2.json`](../../evidence/stage-9/2026-08-30/clean-windows11-jcef-uia-wmgetobject-uia-v2.json)
+
+The probe keeps this activation synthetic and opt-in: its default
+`-WmGetObjectMode none` remains a pure observation of real Narrator behavior.
+The two diagnostic modes are retained only to make this eliminated hypothesis
+reproducible.
+
 ## Decision
 
 Do **not** merge the experimental CEF-offset bridge or the extra Chromium

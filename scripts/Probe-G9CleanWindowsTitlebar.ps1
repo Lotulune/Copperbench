@@ -5,7 +5,10 @@ param(
 	[string]$GuestUser = 'g7admin',
 	[string]$PasswordFile = 'D:\Hyper-V\G7\g7admin.password.txt',
 	[string]$WorkspaceFile = 'C:\Users\g7admin\MCreatorWorkspaces\guigatedelta\guigatedelta.mcreator',
-	[string]$InstallDir = 'C:\Copperbench-G9'
+	[string]$InstallDir = 'C:\Copperbench-G9',
+	[ValidateSet('none', 'chromium-test', 'uia-v2')]
+	[string]$WmGetObjectMode = 'none',
+	[string]$EvidenceOutputPath = ''
 )
 
 $ErrorActionPreference = 'Stop'
@@ -43,10 +46,10 @@ try {
 		Remove-Item -LiteralPath $ProbePath, $ResultPath -Force -ErrorAction SilentlyContinue
 	}
 	Copy-Item -LiteralPath $probePath -Destination $guestProbePath -ToSession $session -Force
-	Invoke-Command -Session $session -ArgumentList $taskName, $guestProbePath, $WorkspaceFile, $InstallDir, $guestResultPath, $GuestUser -ScriptBlock {
-		param($TaskName, $ProbePath, $Workspace, $Install, $ResultPath, $TargetUser)
+	Invoke-Command -Session $session -ArgumentList $taskName, $guestProbePath, $WorkspaceFile, $InstallDir, $guestResultPath, $GuestUser, $WmGetObjectMode -ScriptBlock {
+		param($TaskName, $ProbePath, $Workspace, $Install, $ResultPath, $TargetUser, $ActivationMode)
 		Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false -ErrorAction SilentlyContinue
-		$arguments = "--workspace `"$Workspace`" --install-dir `"$Install`" --result `"$ResultPath`""
+		$arguments = "--workspace `"$Workspace`" --install-dir `"$Install`" --result `"$ResultPath`" --wm-getobject-mode `"$ActivationMode`""
 		$action = New-ScheduledTaskAction -Execute $ProbePath -Argument $arguments
 		$principal = New-ScheduledTaskPrincipal -UserId $TargetUser -LogonType Interactive -RunLevel Highest
 		Register-ScheduledTask -TaskName $TaskName -Action $action -Principal $principal -Force | Out-Null
@@ -77,6 +80,26 @@ try {
 		}
 	} while (-not $result -and (Get-Date) -lt $deadline)
 	if (-not $result) { throw 'Titlebar probe timed out before producing readable JSON.' }
+	if (-not [string]::IsNullOrWhiteSpace($EvidenceOutputPath)) {
+		$repositoryPrefix = [IO.Path]::GetFullPath($RepositoryRoot).TrimEnd('\') + '\'
+		$requestedPath = if ([IO.Path]::IsPathRooted($EvidenceOutputPath)) {
+			[IO.Path]::GetFullPath($EvidenceOutputPath)
+		} else {
+			[IO.Path]::GetFullPath((Join-Path $RepositoryRoot $EvidenceOutputPath))
+		}
+		if (-not $requestedPath.StartsWith($repositoryPrefix, [StringComparison]::OrdinalIgnoreCase)) {
+			throw "EvidenceOutputPath must stay inside the repository: $requestedPath"
+		}
+		$rawGuestJson = Invoke-Command -Session $session -ArgumentList $guestResultPath -ScriptBlock {
+			param($Path)
+			[IO.File]::ReadAllText($Path)
+		}
+		$parent = Split-Path -Parent $requestedPath
+		if (-not [string]::IsNullOrWhiteSpace($parent)) {
+			New-Item -ItemType Directory -Force -Path $parent | Out-Null
+		}
+		[IO.File]::WriteAllText($requestedPath, [string]$rawGuestJson, [Text.UTF8Encoding]::new($false))
+	}
 	$result | ConvertTo-Json -Depth 6
 } finally {
 	Invoke-Command -Session $session -ArgumentList $taskName -ScriptBlock {
