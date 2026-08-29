@@ -38,13 +38,20 @@
   "cleanGuestWithExplicitStateEnabled": {
     "vm": "Copperbench-G7",
     "evidence": "evidence/stage-9/2026-08-30/clean-windows11-jcef150-uia-state-enabled.json",
-    "exeSha256": "40970E5F3F57E6F3F278CF3D77401BBE4E42864140453C28144A31158B65ABEB",
-    "jarSha256": "BDDCA6D787D42FF77362CD230208710233B60E8F380EB5E6A0904EC6E11A17F7",
+    "guestStateEnabledMarker": "evidence/stage-9/2026-08-30/clean-windows11-jcef150-state-enabled-marker.jsonl",
+    "guestStateEnabledMarkerSha256": "0FB90F9D0D9A16E15AE2F5A3B7C2E3FC99810057D74E773526FA61AB2AFE3EC2",
+    "guestStateEnabledCallConfirmed": true,
+    "exeSha256": "3179CC590022268F43E6A9BA1D010AD65D439173CA12FD057343951002D8003B",
+    "jarSha256": "BCBC2A84C02853346982077A5D65BB10FAA9F610A2E5CFAF5966D5C27B7250FE",
     "rawElementCount": 9,
     "rawButtonCount": 0,
     "rendererDirectElementCount": 2,
     "rendererDirectButtonCount": 0,
-    "rendererDirectClasses": ["Chrome_RenderWidgetHostHWND", "Document"]
+    "rendererDirectClasses": ["Chrome_RenderWidgetHostHWND", "Document"],
+    "markerCalls": [
+      {"completedAt": "2026-08-30T07:30:47.223117900+08:00", "browserId": 1, "state": "STATE_ENABLED", "javaHome": "C:\\Copperbench-G9-JCEF150\\jdk"},
+      {"completedAt": "2026-08-30T07:31:08.841711200+08:00", "browserId": 2, "state": "STATE_ENABLED", "javaHome": "C:\\Copperbench-G9-JCEF150\\jdk"}
+    ]
   },
   "decision": "JCEF/CEF/Chromium 150 improves the Windows provider shell relative to the bundled CEF 137 runtime, but does not project the React DOM accessibility subtree into UIA, even after a validated native STATE_ENABLED call. Do not upgrade the product runtime to b583.48 solely to close this beta gate."
 }

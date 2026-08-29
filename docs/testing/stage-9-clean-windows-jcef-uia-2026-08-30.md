@@ -211,9 +211,25 @@ offset 504. The host-side real-JCEF test logged a successful native
 `STATE_ENABLED` call after those checks and still passed.
 
 The same bridge build and the same b583.48 runtime were then tested on the
-clean guest. The provider tree was unchanged from the JCEF 150 run without the
-explicit call: 9 RawView nodes, two direct renderer nodes, and zero buttons.
-The machine result is
+clean guest. To avoid relying on host-side logs or artifact-hash inference, the
+temporary bridge also wrote a guest-side marker only after the native call
+returned. Before this acceptance run the marker was deleted. During the run it
+was recreated with two records at `07:30:47` and `07:31:08 +08:00`, for browser
+IDs 1 and 2 respectively. Both records identify CEF/Chromium 150, the validated
+`208`/`592` byte structures, `SetAccessibilityState` offset `504`, state
+`STATE_ENABLED`, and the actual candidate runtime at
+`C:\Copperbench-G9-JCEF150\jdk`. Its SHA-256 is
+`0FB90F9D0D9A16E15AE2F5A3B7C2E3FC99810057D74E773526FA61AB2AFE3EC2`.
+
+The guest-side activation record is
+[`clean-windows11-jcef150-state-enabled-marker.jsonl`](../../evidence/stage-9/2026-08-30/clean-windows11-jcef150-state-enabled-marker.jsonl).
+The exact candidate used for that run had EXE SHA-256
+`3179CC590022268F43E6A9BA1D010AD65D439173CA12FD057343951002D8003B` and JAR
+SHA-256 `BCBC2A84C02853346982077A5D65BB10FAA9F610A2E5CFAF5966D5C27B7250FE`.
+
+Despite the independently confirmed guest-side native calls, the provider tree
+was unchanged from the JCEF 150 run without the explicit call: 9 RawView nodes,
+two direct renderer nodes, and zero buttons. The machine result is
 [`clean-windows11-jcef150-uia-state-enabled.json`](../../evidence/stage-9/2026-08-30/clean-windows11-jcef150-uia-state-enabled.json),
 with candidate hashes, runtime versions, ABI checks, and both results summarized
 in
