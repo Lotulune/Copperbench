@@ -63,6 +63,9 @@ internal sealed class ProbeElement
 
     [DataMember(Name = "processId")]
     public int ProcessId;
+
+    [DataMember(Name = "nativeWindowHandle")]
+    public int NativeWindowHandle;
 }
 
 [DataContract]
@@ -95,6 +98,24 @@ internal sealed class ProbeResult
     [DataMember(Name = "nativeWindows")]
     public List<ProbeNativeWindow> NativeWindows = new List<ProbeNativeWindow>();
 
+    [DataMember(Name = "sessionChromiumWindows")]
+    public List<ProbeNativeWindow> SessionChromiumWindows = new List<ProbeNativeWindow>();
+
+    [DataMember(Name = "wmGetObjectAttempted")]
+    public bool WmGetObjectAttempted;
+
+    [DataMember(Name = "wmGetObjectMode")]
+    public string WmGetObjectMode = "none";
+
+    [DataMember(Name = "wmGetObjectTargetHandle")]
+    public long WmGetObjectTargetHandle;
+
+    [DataMember(Name = "wmGetObjectDelivered")]
+    public bool WmGetObjectDelivered;
+
+    [DataMember(Name = "wmGetObjectResult")]
+    public long WmGetObjectResult;
+
     [DataMember(Name = "rawButtonCount")]
     public int RawButtonCount;
 
@@ -123,6 +144,9 @@ internal static class Program
     private delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
 
     [DllImport("user32.dll")]
+    private static extern bool EnumWindows(EnumWindowsProc callback, IntPtr lParam);
+
+    [DllImport("user32.dll")]
     private static extern bool EnumChildWindows(IntPtr hWndParent, EnumWindowsProc callback, IntPtr lParam);
 
     [DllImport("user32.dll", CharSet = CharSet.Unicode)]
@@ -137,6 +161,13 @@ internal static class Program
     [DllImport("user32.dll", CharSet = CharSet.Unicode)]
     private static extern IntPtr GetProp(IntPtr hWnd, string name);
 
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern IntPtr SendMessageTimeout(IntPtr hWnd, uint message, IntPtr wParam, IntPtr lParam,
+        uint flags, uint timeout, out IntPtr result);
+
+    private const uint WM_GETOBJECT = 0x003D;
+    private const uint SMTO_ABORTIFHUNG = 0x0002;
+
     private static int Main(string[] args)
     {
         var result = new ProbeResult();
@@ -147,7 +178,11 @@ internal static class Program
             string workspaceFile = Required(options, "workspace");
             string installDir = Required(options, "install-dir");
             resultPath = Required(options, "result");
-            RunProbe(workspaceFile, installDir, result);
+            string wmGetObjectMode = Optional(options, "wm-getobject-mode", "none");
+            if (wmGetObjectMode != "none" && wmGetObjectMode != "chromium-test" && wmGetObjectMode != "uia-v2")
+                throw new ArgumentException("Unsupported --wm-getobject-mode: " + wmGetObjectMode);
+            result.WmGetObjectMode = wmGetObjectMode;
+            RunProbe(workspaceFile, installDir, wmGetObjectMode, result);
         }
         catch (Exception error)
         {
@@ -161,7 +196,95 @@ internal static class Program
         return result.Passed ? 0 : 1;
     }
 
-    private static void RunProbe(string workspaceFile, string installDir, ProbeResult result)
+    private static void ActivateChromiumAccessibility(int browserProcessId, string mode, ProbeResult result)
+    {
+        if (mode == "none" || result.WmGetObjectAttempted)
+            return;
+
+        ProbeNativeWindow renderer = result.SessionChromiumWindows.FirstOrDefault(window =>
+            window.ProcessId == browserProcessId
+            && string.Equals(window.ClassName, "Chrome_RenderWidgetHostHWND", StringComparison.Ordinal));
+        if (renderer == null)
+            return;
+
+        result.WmGetObjectAttempted = true;
+        result.WmGetObjectTargetHandle = renderer.Handle;
+
+        IntPtr wParam = mode == "chromium-test" ? new IntPtr(-4) : IntPtr.Zero;
+        IntPtr messageResult;
+        IntPtr delivered = SendMessageTimeout(new IntPtr(renderer.Handle), WM_GETOBJECT, wParam,
+            new IntPtr(1), SMTO_ABORTIFHUNG, 2000, out messageResult);
+        result.WmGetObjectDelivered = delivered != IntPtr.Zero;
+        result.WmGetObjectResult = messageResult.ToInt64();
+        Thread.Sleep(500);
+    }
+
+    private static void CaptureSessionChromiumWindows(ProbeResult result)
+    {
+        int sessionId = Process.GetCurrentProcess().SessionId;
+        var windows = new List<ProbeNativeWindow>();
+        var seen = new HashSet<long>();
+
+        EnumWindows(delegate(IntPtr topLevel, IntPtr ignored)
+        {
+            CaptureRelevantWindow(topLevel, sessionId, windows, seen);
+            EnumChildWindows(topLevel, delegate(IntPtr child, IntPtr childIgnored)
+            {
+                CaptureRelevantWindow(child, sessionId, windows, seen);
+                return windows.Count < 500;
+            }, IntPtr.Zero);
+            return windows.Count < 500;
+        }, IntPtr.Zero);
+
+        if (windows.Count > result.SessionChromiumWindows.Count)
+            result.SessionChromiumWindows = windows;
+    }
+
+    private static void CaptureRelevantWindow(IntPtr handle, int sessionId, List<ProbeNativeWindow> windows,
+        HashSet<long> seen)
+    {
+        long rawHandle = handle.ToInt64();
+        if (rawHandle == 0 || !seen.Add(rawHandle))
+            return;
+
+        var className = new StringBuilder(256);
+        GetClassName(handle, className, className.Capacity);
+        string name = className.ToString();
+        if (name.IndexOf("Chrome", StringComparison.OrdinalIgnoreCase) < 0
+            && name.IndexOf("Cef", StringComparison.OrdinalIgnoreCase) < 0
+            && name.IndexOf("D3D", StringComparison.OrdinalIgnoreCase) < 0)
+            return;
+
+        uint processId;
+        GetWindowThreadProcessId(handle, out processId);
+        try
+        {
+            using (Process process = Process.GetProcessById(unchecked((int)processId)))
+            {
+                if (process.SessionId != sessionId)
+                    return;
+            }
+        }
+        catch (ArgumentException)
+        {
+            return;
+        }
+        catch (InvalidOperationException)
+        {
+            return;
+        }
+
+        windows.Add(new ProbeNativeWindow
+        {
+            Handle = rawHandle,
+            ClassName = name,
+            ProcessId = unchecked((int)processId),
+            Visible = IsWindowVisible(handle),
+            Win32InputEventTarget = GetProp(handle, "Win32_InputEventTarget").ToInt64()
+        });
+    }
+
+    private static void RunProbe(string workspaceFile, string installDir, string wmGetObjectMode, ProbeResult result)
     {
         string launcher = Path.Combine(installDir, "copperbench.exe");
         if (!File.Exists(launcher)) throw new FileNotFoundException("Copperbench launcher was not found.", launcher);
@@ -200,7 +323,7 @@ internal static class Program
                     try
                     {
                         if (process.SessionId != sessionId) continue;
-                        InspectProcess(process.Id, result);
+                        InspectProcess(process.Id, wmGetObjectMode, result);
                     }
                     catch (InvalidOperationException)
                     {
@@ -226,7 +349,7 @@ internal static class Program
         }
     }
 
-    private static void InspectProcess(int processId, ProbeResult result)
+    private static void InspectProcess(int processId, string wmGetObjectMode, ProbeResult result)
     {
         var processCondition = new PropertyCondition(AutomationElement.ProcessIdProperty, processId);
         var frameCondition = new PropertyCondition(AutomationElement.ClassNameProperty, "SunAwtFrame");
@@ -250,6 +373,8 @@ internal static class Program
 
                 result.WorkspaceWindowObserved = true;
                 CaptureNativeWindows(new IntPtr(frameCurrent.NativeWindowHandle), result);
+                CaptureSessionChromiumWindows(result);
+                ActivateChromiumAccessibility(frameCurrent.ProcessId, wmGetObjectMode, result);
 
                 var rawButtons = new List<ProbeButton>();
                 WalkRawTree(frame, rawButtons, result);
@@ -289,7 +414,8 @@ internal static class Program
                                     Name = current.Name ?? "",
                                     ClassName = current.ClassName ?? "",
                                     ControlType = type,
-                                    ProcessId = current.ProcessId
+                                    ProcessId = current.ProcessId,
+                                    NativeWindowHandle = current.NativeWindowHandle
                                 });
                             }
                         }
@@ -331,7 +457,8 @@ internal static class Program
                         Name = current.Name ?? "",
                         ClassName = current.ClassName ?? "",
                         ControlType = current.ControlType.ProgrammaticName ?? "unknown",
-                        ProcessId = current.ProcessId
+                        ProcessId = current.ProcessId,
+                        NativeWindowHandle = current.NativeWindowHandle
                     });
                 }
                 if (current.ControlType == ControlType.Button && buttons.Count < 100)
@@ -454,6 +581,12 @@ internal static class Program
         if (!options.TryGetValue(key, out value) || string.IsNullOrWhiteSpace(value))
             throw new ArgumentException("Missing required argument --" + key + ".");
         return value;
+    }
+
+    private static string Optional(Dictionary<string, string> options, string key, string fallback)
+    {
+        string value;
+        return options.TryGetValue(key, out value) && !string.IsNullOrWhiteSpace(value) ? value : fallback;
     }
 
     private static void WriteResult(string path, ProbeResult result)
