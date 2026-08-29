@@ -59,8 +59,21 @@ try {
 		$result = Invoke-Command -Session $session -ArgumentList $guestResultPath -ScriptBlock {
 			param($Path)
 			if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) { return $null }
-			try { Get-Content -LiteralPath $Path -Raw | ConvertFrom-Json }
-			catch { $null }
+			try {
+				$stream = [IO.FileStream]::new($Path, [IO.FileMode]::Open, [IO.FileAccess]::Read,
+					[IO.FileShare]::ReadWrite)
+				try {
+					$reader = [IO.StreamReader]::new($stream, [Text.Encoding]::UTF8, $true, 4096, $true)
+					try { $json = $reader.ReadToEnd() }
+					finally { $reader.Dispose() }
+				} finally {
+					$stream.Dispose()
+				}
+				if ([string]::IsNullOrWhiteSpace($json)) { return $null }
+				$json | ConvertFrom-Json -ErrorAction Stop
+			} catch {
+				$null
+			}
 		}
 	} while (-not $result -and (Get-Date) -lt $deadline)
 	if (-not $result) { throw 'Titlebar probe timed out before producing readable JSON.' }

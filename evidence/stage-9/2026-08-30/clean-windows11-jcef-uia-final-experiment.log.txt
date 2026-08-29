@@ -1,0 +1,3 @@
+2026-08-30-03:07:14 [Application-Loader/DEBUG] [CEF] JCEF arguments: [--disable-extensions, --disable-default-apps, --disable-sync, --disable-speech-api, --mute-audio, --disable-gaia-services, --force-renderer-accessibility=complete, --enable-features=UiaProvider, --disable-features=TranslateUI,WebUSB,SpareRendererForSitePerProcess,WebBluetooth,WebSerial,MediaRouter,NewUsbBackend,SelectiveUIAEnablement,WebHID]
+2026-08-30-03:07:27 [WebView-Callback-Thread/INFO] [CEF] Enabled native Windows CEF accessibility for browser 1 via the CEF 137 C API bridge
+2026-08-30-03:08:07 [WebView-Callback-Thread/INFO] [CEF] Enabled native Windows CEF accessibility for browser 2 via the CEF 137 C API bridge

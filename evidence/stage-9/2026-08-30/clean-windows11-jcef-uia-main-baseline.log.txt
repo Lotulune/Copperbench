@@ -1,0 +1,1 @@
+2026-08-30-03:17:17 [Application-Loader/DEBUG] [CEF] JCEF arguments: [--disable-extensions, --disable-default-apps, --disable-sync, --disable-speech-api, --mute-audio, --disable-gaia-services, --force-renderer-accessibility=complete, --disable-features=TranslateUI,WebUSB,SpareRendererForSitePerProcess,WebBluetooth,WebSerial,MediaRouter,NewUsbBackend,WebHID]

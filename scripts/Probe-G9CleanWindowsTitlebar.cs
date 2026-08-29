@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Automation;
@@ -29,6 +31,25 @@ internal sealed class ProbeButton
 }
 
 [DataContract]
+internal sealed class ProbeNativeWindow
+{
+    [DataMember(Name = "handle")]
+    public long Handle;
+
+    [DataMember(Name = "className")]
+    public string ClassName = "";
+
+    [DataMember(Name = "processId")]
+    public int ProcessId;
+
+    [DataMember(Name = "visible")]
+    public bool Visible;
+
+    [DataMember(Name = "win32InputEventTarget")]
+    public long Win32InputEventTarget;
+}
+
+[DataContract]
 internal sealed class ProbeElement
 {
     [DataMember(Name = "name")]
@@ -39,6 +60,9 @@ internal sealed class ProbeElement
 
     [DataMember(Name = "controlType")]
     public string ControlType = "";
+
+    [DataMember(Name = "processId")]
+    public int ProcessId;
 }
 
 [DataContract]
@@ -68,6 +92,18 @@ internal sealed class ProbeResult
     [DataMember(Name = "elements")]
     public List<ProbeElement> Elements = new List<ProbeElement>();
 
+    [DataMember(Name = "nativeWindows")]
+    public List<ProbeNativeWindow> NativeWindows = new List<ProbeNativeWindow>();
+
+    [DataMember(Name = "rawButtonCount")]
+    public int RawButtonCount;
+
+    [DataMember(Name = "rawElementCount")]
+    public int RawElementCount;
+
+    [DataMember(Name = "rawElements")]
+    public List<ProbeElement> RawElements = new List<ProbeElement>();
+
     [DataMember(Name = "narratorStarted")]
     public bool NarratorStarted;
 
@@ -84,6 +120,22 @@ internal sealed class ProbeResult
 internal static class Program
 {
     private static readonly Regex RequiredButton = new Regex("生成|构建|测试客户端", RegexOptions.Compiled);
+    private delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
+
+    [DllImport("user32.dll")]
+    private static extern bool EnumChildWindows(IntPtr hWndParent, EnumWindowsProc callback, IntPtr lParam);
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    private static extern int GetClassName(IntPtr hWnd, StringBuilder className, int maxCount);
+
+    [DllImport("user32.dll")]
+    private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
+
+    [DllImport("user32.dll")]
+    private static extern bool IsWindowVisible(IntPtr hWnd);
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    private static extern IntPtr GetProp(IntPtr hWnd, string name);
 
     private static int Main(string[] args)
     {
@@ -176,21 +228,111 @@ internal static class Program
 
     private static void InspectProcess(int processId, ProbeResult result)
     {
-        var condition = new PropertyCondition(AutomationElement.ProcessIdProperty, processId);
-        AutomationElementCollection elements = AutomationElement.RootElement.FindAll(TreeScope.Descendants, condition);
+        var processCondition = new PropertyCondition(AutomationElement.ProcessIdProperty, processId);
+        var frameCondition = new PropertyCondition(AutomationElement.ClassNameProperty, "SunAwtFrame");
+        var topLevelCondition = new AndCondition(processCondition, frameCondition);
+        AutomationElementCollection frames = AutomationElement.RootElement.FindAll(TreeScope.Children, topLevelCondition);
         var buttons = new List<ProbeButton>();
         result.VisibleElementCount = 0;
         result.ControlTypeCounts.Clear();
         result.Elements.Clear();
-        foreach (AutomationElement element in elements)
+        result.RawButtonCount = 0;
+        result.RawElementCount = 0;
+        result.RawElements.Clear();
+        foreach (AutomationElement frame in frames)
         {
             try
             {
-                AutomationElement.AutomationElementInformation current = element.Current;
-                if (current.ClassName == "SunAwtFrame" && current.Name.Contains(" - Copperbench")
-                    && current.NativeWindowHandle != 0 && !current.IsOffscreen)
+                AutomationElement.AutomationElementInformation frameCurrent = frame.Current;
+                if (!frameCurrent.Name.Contains(" - Copperbench") || frameCurrent.NativeWindowHandle == 0
+                    || frameCurrent.IsOffscreen)
+                    continue;
+
+                result.WorkspaceWindowObserved = true;
+                CaptureNativeWindows(new IntPtr(frameCurrent.NativeWindowHandle), result);
+
+                var rawButtons = new List<ProbeButton>();
+                WalkRawTree(frame, rawButtons, result);
+                result.RawButtonCount = Math.Max(result.RawButtonCount, rawButtons.Count);
+                if (rawButtons.Count > buttons.Count)
+                    buttons = rawButtons;
+
+                var controlButtons = new List<ProbeButton>();
+                AutomationElementCollection elements = frame.FindAll(TreeScope.Subtree, Condition.TrueCondition);
+                foreach (AutomationElement element in elements)
                 {
-                    result.WorkspaceWindowObserved = true;
+                    try
+                    {
+                        AutomationElement.AutomationElementInformation current = element.Current;
+                        if (current.ControlType == ControlType.Button && controlButtons.Count < 100)
+                        {
+                            controlButtons.Add(new ProbeButton
+                            {
+                                Name = current.Name ?? "",
+                                ClassName = current.ClassName ?? "",
+                                AutomationId = current.AutomationId ?? "",
+                                Enabled = current.IsEnabled,
+                                Offscreen = current.IsOffscreen
+                            });
+                        }
+                        if (!current.IsOffscreen)
+                        {
+                            result.VisibleElementCount++;
+                            string type = current.ControlType.ProgrammaticName ?? "unknown";
+                            int count;
+                            result.ControlTypeCounts.TryGetValue(type, out count);
+                            result.ControlTypeCounts[type] = count + 1;
+                            if (result.Elements.Count < 200)
+                            {
+                                result.Elements.Add(new ProbeElement
+                                {
+                                    Name = current.Name ?? "",
+                                    ClassName = current.ClassName ?? "",
+                                    ControlType = type,
+                                    ProcessId = current.ProcessId
+                                });
+                            }
+                        }
+                    }
+                    catch (ElementNotAvailableException)
+                    {
+                        // Chromium can replace accessibility nodes while rendering.
+                    }
+                }
+                if (controlButtons.Count > buttons.Count)
+                    buttons = controlButtons;
+            }
+            catch (ElementNotAvailableException)
+            {
+                // The top-level frame can disappear while the tree is being read.
+            }
+        }
+        if (buttons.Count > result.Buttons.Count) result.Buttons = buttons;
+    }
+
+    private static void WalkRawTree(AutomationElement root, List<ProbeButton> buttons, ProbeResult result)
+    {
+        const int maxNodes = 1000;
+        var walker = TreeWalker.RawViewWalker;
+        var stack = new Stack<AutomationElement>();
+        stack.Push(root);
+
+        while (stack.Count > 0 && result.RawElementCount < maxNodes)
+        {
+            AutomationElement element = stack.Pop();
+            try
+            {
+                AutomationElement.AutomationElementInformation current = element.Current;
+                result.RawElementCount++;
+                if (result.RawElements.Count < 300)
+                {
+                    result.RawElements.Add(new ProbeElement
+                    {
+                        Name = current.Name ?? "",
+                        ClassName = current.ClassName ?? "",
+                        ControlType = current.ControlType.ProgrammaticName ?? "unknown",
+                        ProcessId = current.ProcessId
+                    });
                 }
                 if (current.ControlType == ControlType.Button && buttons.Count < 100)
                 {
@@ -203,30 +345,57 @@ internal static class Program
                         Offscreen = current.IsOffscreen
                     });
                 }
-                if (!current.IsOffscreen)
+
+                var children = new List<AutomationElement>();
+                AutomationElement child = walker.GetFirstChild(element);
+                while (child != null && children.Count < 500)
                 {
-                    result.VisibleElementCount++;
-                    string type = current.ControlType.ProgrammaticName ?? "unknown";
-                    int count;
-                    result.ControlTypeCounts.TryGetValue(type, out count);
-                    result.ControlTypeCounts[type] = count + 1;
-                    if (result.Elements.Count < 200)
-                    {
-                        result.Elements.Add(new ProbeElement
-                        {
-                            Name = current.Name ?? "",
-                            ClassName = current.ClassName ?? "",
-                            ControlType = type
-                        });
-                    }
+                    children.Add(child);
+                    child = walker.GetNextSibling(child);
                 }
+                for (int index = children.Count - 1; index >= 0; index--)
+                    stack.Push(children[index]);
             }
             catch (ElementNotAvailableException)
             {
                 // Chromium can replace accessibility nodes while rendering.
             }
+            catch (InvalidOperationException)
+            {
+                // A provider can disappear while RawViewWalker is traversing it.
+            }
         }
-        if (buttons.Count > result.Buttons.Count) result.Buttons = buttons;
+    }
+
+    private static void CaptureNativeWindows(IntPtr frameHandle, ProbeResult result)
+    {
+        var windows = new List<ProbeNativeWindow>();
+        AddNativeWindow(frameHandle, windows);
+        EnumChildWindows(frameHandle, delegate(IntPtr child, IntPtr ignored)
+        {
+            if (windows.Count < 200)
+                AddNativeWindow(child, windows);
+            return true;
+        }, IntPtr.Zero);
+
+        if (windows.Count > result.NativeWindows.Count)
+            result.NativeWindows = windows;
+    }
+
+    private static void AddNativeWindow(IntPtr handle, List<ProbeNativeWindow> windows)
+    {
+        var className = new StringBuilder(256);
+        GetClassName(handle, className, className.Capacity);
+        uint processId;
+        GetWindowThreadProcessId(handle, out processId);
+        windows.Add(new ProbeNativeWindow
+        {
+            Handle = handle.ToInt64(),
+            ClassName = className.ToString(),
+            ProcessId = unchecked((int)processId),
+            Visible = IsWindowVisible(handle),
+            Win32InputEventTarget = GetProp(handle, "Win32_InputEventTarget").ToInt64()
+        });
     }
 
     private static void StopSessionProcesses(string name, int sessionId)
