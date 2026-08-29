@@ -104,13 +104,18 @@ class Stage9NativeJcefScaleGateTest {
 				new InMemoryWorkspaceTaskGateway(clock, UUID::randomUUID), clock, UUID::randomUUID);
 		WorkspaceEntryAdapter adapter = new WorkspaceEntryAdapter(service,
 				new RequestContext(Actor.UI, PermissionProfile.WORKSPACE));
+		JFrame[] windowRef = new JFrame[1];
 
 		try (WebView webView = new WebView(CopperbenchProductShell.UI_URL);
 				JcefCoreBridgeTransport ignored = webView.attachCoreBridge(WORKSPACE_ID, adapter)) {
 			SwingUtilities.invokeAndWait(() -> {
-				webView.setPreferredSize(new Dimension(1440, 900));
-				webView.setSize(1440, 900);
-				webView.doLayout();
+				JFrame window = new JFrame("Copperbench native scale gate");
+				window.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+				window.setContentPane(webView);
+				window.setSize(1440, 900);
+				window.setLocationRelativeTo(null);
+				window.setVisible(true);
+				windowRef[0] = window;
 			});
 
 			CountDownLatch loaded = new CountDownLatch(1);
@@ -188,6 +193,9 @@ class Stage9NativeJcefScaleGateTest {
 			writeEvidence(viewport, elementFilterSamples, elementFilterP95, referenceRefreshSamples,
 					referenceRefreshP95, procedureOpenMillis, procedureSearchSamples, procedureSearchP95,
 					procedureEditMillis, procedureSaveMillis, procedureReopenMillis);
+		} finally {
+			if (windowRef[0] != null)
+				SwingUtilities.invokeAndWait(windowRef[0]::dispose);
 		}
 	}
 

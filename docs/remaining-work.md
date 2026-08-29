@@ -18,7 +18,9 @@
 | Dependency Submission | 已移除 | Dependency Graph 关闭时不保留必失败工作流 |
 | Preview 2 | 已公开 | `v0.1.0-preview.2` 的 Tag、生产审批、三包、SBOM、哈希和资产验证已完成 |
 | Preview 3 | 本次发布源 | 从本 PR 合并后的最新 `main` HEAD 创建签名 Tag；公开状态以 GitHub Tag API 和 Release 元数据为准 |
-| 外部试用 | 0/5 有可审计记录 | 五名非核心开发者匿名任务结果 |
+| 诊断包 | 本地候选完成，待固定提交 | 默认脱敏环境/日志/任务，复现文件显式授权；Java 服务 3/3、真实 JCEF 1/1、桥接与 UI 2/2 通过 |
+| Issue 分流 | 本地候选完成，待固定提交 | Issue 表单已覆盖 FR-BETA-02 的区域、版本、commit、生成器、元素、预期/实际和诊断码 |
+| 外部试用 | 0/5 有可审计记录 | 匿名 Schema、全任务协议和验证器已就绪；仍需五名非核心开发者对同一候选 commit/安装包提交结果 |
 
 ## 阶段 9 状态摘要
 
@@ -68,9 +70,9 @@
 
 - Function、Loot Table、Advancement 专用编辑器和语言 CSV/JSON 工具已实现；证据见 [Stage 9 UI 门禁记录](./testing/stage-9-ui-gates-2026-08-26.md)。
 - 语言 CSV/JSON 导入导出、merge/keep/replace 冲突模式、缺失/重复键统计已经接入 Creator Data 与 Core `languageKeys`；剩余工作是把这一路径纳入真实 JCEF/Windows 产品门禁，而不是继续把它列为未实现功能。
-- 500 节点 Procedure 与 2,000 元素/10,000 引用真实 JCEF P95 门禁已通过，见 [Stage 9 fixed-hardware native JCEF scale gate](./testing/stage-9-native-jcef-scale-2026-08-29.md)；剩余是物理高 DPI、屏幕阅读器和完整键盘可访问性审计。
+- 500 节点 Procedure 与 2,000 元素/10,000 引用真实 JCEF P95 门禁已通过，见 [Stage 9 fixed-hardware native JCEF scale gate](./testing/stage-9-native-jcef-scale-2026-08-29.md)。Procedure 现有可键盘操作的检查面板和可读节点/端口大纲，真实 JCEF 已验证日志可选择、28 个 Procedure 控件名称与 32px 命中区；剩余是物理高 DPI、屏幕阅读器和完整人工键盘可访问性审计。
 - 八套 Fabric/NeoForge 的 Stage 9 黄金生成器编译和同轨真实 dedicated-server readiness 已通过；服务端超时/非零退出也由 8 轨确定性合同验证 fail-closed。证据见 [Stage 9 real dedicated-server readiness](./testing/stage-9-server-readiness-real-2026-08-29.md)。后续运行类工作集中在持续回归 datagen/GameTest 适用矩阵，而不是继续阻断 server-readiness gate。
-- 生产 JCEF 对话框焦点、Tab trap、Escape 焦点恢复、polite live region 与 32px 点击目标已有 Windows-native 自动验收；新装 Windows 11 客机的首次安装/首次启动，以及真实产品壳的 WorkspaceSelector → 新建工作区 → Generator setup → 原生启动器 `-workspace` 冷启动也已通过，见 [Stage 9 Windows GUI / CLI 产品路径验证](./testing/stage-9-clean-windows-gui-2026-08-28.md)。公开旧版 `v0.1.0-preview.3` → 当前候选升级、断网后目标工作区真实窗口启动、升级/卸载工作区与 `.copperbench` 数据保留也已通过，见 [G9.5 升级、断网与数据保留验证](./testing/stage-9-g95-upgrade-offline-retention-2026-08-29.md)。G9.5 现只剩最终 Public Beta/RC 安装包的完整矩阵重放；物理 125%/150%/200% DPI、屏幕阅读器和完整人工键盘审计继续由独立的真实 JCEF/a11y 门禁阻断。
+- 生产 JCEF 对话框焦点、Tab trap、Escape 焦点恢复、polite live region 与 32px 点击目标已有 Windows-native 自动验收；Windows 产品壳现使用 WR 与 Chromium `--force-renderer-accessibility=complete`，并在真实 `DPR=1.25` 下通过 32 个 shell/dialog 控件和 28 个 Procedure 控件审计。新装 Windows 11 客机的首次安装/首次启动，以及真实产品壳的 WorkspaceSelector → 新建工作区 → Generator setup → 原生启动器 `-workspace` 冷启动也已通过，见 [Stage 9 Windows GUI / CLI 产品路径验证](./testing/stage-9-clean-windows-gui-2026-08-28.md)。公开旧版 `v0.1.0-preview.3` → 当前候选升级、断网后目标工作区真实窗口启动、升级/卸载工作区与 `.copperbench` 数据保留也已通过，见 [G9.5 升级、断网与数据保留验证](./testing/stage-9-g95-upgrade-offline-retention-2026-08-29.md)。G9.5 现只剩最终 Public Beta/RC 安装包的完整矩阵重放；物理 150%/175%/200% DPI、Windows 屏幕阅读器互操作性、完整人工键盘审计，以及清洁 Hyper-V 客机 UIA provider 的实际控件暴露仍由独立的真实 JCEF/a11y 门禁阻断。
 
 ## 首发范围外（除非新 ADR）
 

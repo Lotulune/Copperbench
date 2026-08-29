@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Lotulune/Copperbench/schemas/external-tester-evidence.schema.json",
+  "title": "Copperbench external tester evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "testerId", "nonCoreDeveloper", "testedAt", "source", "environment", "tasks", "issues", "privacyConfirmed", "result"],
+  "properties": {
+    "schemaVersion": { "const": "1.0" },
+    "testerId": { "type": "string", "pattern": "^tester-[0-9a-f]{8}$" },
+    "nonCoreDeveloper": { "const": true },
+    "testedAt": { "type": "string", "format": "date-time" },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "commit", "installerSha256", "packageType"],
+      "properties": {
+        "version": { "type": "string", "minLength": 1 },
+        "commit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "installerSha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "packageType": { "enum": ["exe", "zip", "msix"] }
+      }
+    },
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["windowsVersion", "windowsBuild", "architecture", "preinstalledDeveloperTools"],
+      "properties": {
+        "windowsVersion": { "type": "string", "minLength": 1 },
+        "windowsBuild": { "type": "string", "minLength": 1 },
+        "architecture": { "const": "x64" },
+        "preinstalledDeveloperTools": { "type": "array", "items": { "type": "string" }, "uniqueItems": true }
+      }
+    },
+    "tasks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["downloaded", "hashVerified", "installed", "workspaceCreatedOrImported", "elementCreated", "buildCompleted", "failureInduced", "diagnosticInspected", "recoveryPointCreated", "recoveryRestored", "uninstalled", "workspaceRetainedAfterUninstall"],
+      "properties": {
+        "downloaded": { "const": "passed" },
+        "hashVerified": { "const": "passed" },
+        "installed": { "const": "passed" },
+        "workspaceCreatedOrImported": { "const": "passed" },
+        "elementCreated": { "const": "passed" },
+        "buildCompleted": { "const": "passed" },
+        "failureInduced": { "const": "passed" },
+        "diagnosticInspected": { "const": "passed" },
+        "recoveryPointCreated": { "const": "passed" },
+        "recoveryRestored": { "const": "passed" },
+        "uninstalled": { "const": "passed" },
+        "workspaceRetainedAfterUninstall": { "const": "passed" }
+      }
+    },
+    "issues": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["severity", "area", "summary"],
+        "properties": {
+          "severity": { "enum": ["P0", "P1", "P2", "P3"] },
+          "area": { "enum": ["installation", "workspace", "generator", "ui", "accessibility", "mcp", "sdk", "documentation"] },
+          "summary": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "privacyConfirmed": { "const": true },
+    "result": { "const": "passed" }
+  }
+}

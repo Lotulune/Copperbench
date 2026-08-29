@@ -86,13 +86,18 @@ class Stage9NativeJcefAccessibilityTest {
 				new InMemoryWorkspaceTaskGateway(clock, UUID::randomUUID), clock, UUID::randomUUID);
 		WorkspaceEntryAdapter adapter = new WorkspaceEntryAdapter(service,
 				new RequestContext(Actor.UI, PermissionProfile.WORKSPACE));
+		JFrame[] windowRef = new JFrame[1];
 
 		try (WebView webView = new WebView(CopperbenchProductShell.UI_URL);
 				JcefCoreBridgeTransport ignored = webView.attachCoreBridge(WORKSPACE_ID, adapter)) {
 			SwingUtilities.invokeAndWait(() -> {
-				webView.setPreferredSize(new Dimension(1280, 800));
-				webView.setSize(1280, 800);
-				webView.doLayout();
+				JFrame window = new JFrame("Copperbench native accessibility");
+				window.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+				window.setContentPane(webView);
+				window.setSize(1280, 800);
+				window.setLocationRelativeTo(null);
+				window.setVisible(true);
+				windowRef[0] = window;
 			});
 
 			CountDownLatch loaded = new CountDownLatch(1);
@@ -178,8 +183,112 @@ class Stage9NativeJcefAccessibilityTest {
 					"document.activeElement?.matches('[data-testid=empty-primary-action]') === true")), 10,
 					"Closing the dialog did not restore focus to the native-shell invoker");
 
+			webView.executeScriptAsync("document.querySelector('[data-testid=titlebar-build-btn]')?.click()");
+			await(() -> "true".equals(js(webView,
+					"document.querySelector('[data-testid=task-log-stream]') !== null")), 10,
+					"Build command did not expose the task log in native JCEF");
+			assertEquals("true", js(webView, """
+					(function() {
+					    var log = document.querySelector('[data-testid=task-log-stream]');
+					    return log?.getAttribute('role') === 'log'
+					        && log.getAttribute('aria-live') === 'polite'
+					        && getComputedStyle(log).userSelect === 'text';
+					})()
+					"""), "Task logs must be announced and selectable in native JCEF");
+			webView.executeScriptAsync("document.querySelector('[data-testid=task-drawer-close]')?.click()");
+			await(() -> "true".equals(js(webView,
+					"document.querySelector('[data-testid=task-log-stream]') === null")), 10,
+					"Task log drawer did not close before the Procedure audit");
+
+			webView.executeScriptAsync("""
+					(function() {
+					    document.querySelector('[data-testid=empty-primary-action]')?.click();
+					})()
+					""");
+			await(() -> "true".equals(js(webView,
+					"document.querySelector('[data-testid=create-element-modal]') !== null")), 10,
+					"Create-element dialog did not reopen for the Procedure audit");
+			webView.executeScriptAsync("""
+					(function() {
+					    var modal = document.querySelector('[data-testid=create-element-modal]');
+					    var typeButton = Array.from(modal?.querySelectorAll('button') || [])
+					        .find(function(button) { return button.textContent?.trim() === '过程'; });
+					    typeButton?.click();
+					    var input = modal?.querySelector('[data-testid=create-element-name-input]');
+					    if (input) {
+					        var setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
+					        setter?.call(input, 'native_accessible_flow');
+					        input.dispatchEvent(new Event('input', { bubbles: true }));
+					    }
+					    modal?.querySelector('[data-testid=create-element-submit-btn]')?.click();
+					})()
+					""");
+			await(() -> "true".equals(js(webView,
+					"document.querySelector('[data-testid=procedure-workbench]') !== null")), 20,
+					"Procedure workbench did not open through the real JCEF/Core path");
+			webView.executeScriptAsync("""
+					(function() {
+					    var sourceTab = document.querySelector('#procedure-tab-source');
+					    sourceTab?.focus();
+					    sourceTab?.dispatchEvent(new KeyboardEvent('keydown', {
+					        key: 'End', bubbles: true, cancelable: true
+					    }));
+					})()
+					""");
+			await(() -> "true".equals(js(webView, """
+					(function() {
+					    var tab = document.querySelector('#procedure-tab-outline');
+					    return tab?.getAttribute('aria-selected') === 'true' && document.activeElement === tab;
+					})()
+					""")), 10, "Procedure tabs did not support End-key navigation in native JCEF");
+
+			assertEquals("true", js(webView, """
+					(function() {
+					    var canvas = document.querySelector('.procedure-canvas');
+					    var outline = document.querySelector('[data-testid=procedure-node-outline]');
+					    var nodes = Array.from(outline?.querySelectorAll('button') || []);
+					    return canvas?.getAttribute('aria-label') === 'Procedure 可视化画布'
+					        && outline?.getAttribute('aria-label') === 'Procedure 节点与端口'
+					        && nodes.length >= 1
+					        && nodes.every(function(node) {
+					            var name = node.getAttribute('aria-label') || '';
+					            return name.includes('入口触发器') && name.includes('event_trigger') && name.includes('下一个');
+					        });
+					})()
+					"""), "Procedure nodes and ports were not readable through native JCEF semantics");
+
+			String procedureMetrics = js(webView, """
+					(function() {
+					    var root = document.querySelector('[data-testid=procedure-workbench]');
+					    var controls = Array.from(root?.querySelectorAll('button, input') || []).filter(function(control) {
+					        var rect = control.getBoundingClientRect();
+					        var style = getComputedStyle(control);
+					        return rect.width > 0 && rect.height > 0 && style.visibility !== 'hidden' && style.display !== 'none';
+					    });
+					    var widths = controls.map(function(control) { return control.getBoundingClientRect().width; });
+					    var heights = controls.map(function(control) { return control.getBoundingClientRect().height; });
+					    var named = controls.every(function(control) {
+					        return Boolean((control.getAttribute('aria-label') || control.textContent || control.getAttribute('title')
+					            || control.getAttribute('placeholder') || '').trim());
+					    });
+					    return [controls.length, Math.min.apply(Math, widths), Math.min.apply(Math, heights), named].join(',');
+					})()
+					""");
+			String[] procedureParts = procedureMetrics.split(",");
+			assertEquals(4, procedureParts.length, "Native JCEF Procedure metrics were malformed: " + procedureMetrics);
+			int procedureTargetCount = Integer.parseInt(procedureParts[0]);
+			double procedureMinTargetWidth = Double.parseDouble(procedureParts[1]);
+			double procedureMinTargetHeight = Double.parseDouble(procedureParts[2]);
+			assertTrue(procedureTargetCount >= 10, "Too few Procedure controls were audited: " + procedureMetrics);
+			assertTrue(procedureMinTargetWidth >= 32 && procedureMinTargetHeight >= 32,
+					"A Procedure control is below the 32x32 CSS-pixel target: " + procedureMetrics);
+			assertEquals("true", procedureParts[3], "A visible Procedure control has no accessible name");
+
 			writeEvidence(viewportWidth, viewportHeight, devicePixelRatio, targetCount, minTargetWidth,
-					minTargetHeight);
+					minTargetHeight, procedureTargetCount, procedureMinTargetWidth, procedureMinTargetHeight);
+		} finally {
+			if (windowRef[0] != null)
+				SwingUtilities.invokeAndWait(windowRef[0]::dispose);
 		}
 	}
 
@@ -207,7 +316,8 @@ class Stage9NativeJcefAccessibilityTest {
 	}
 
 	private static void writeEvidence(double viewportWidth, double viewportHeight, double devicePixelRatio,
-			int targetCount, double minTargetWidth, double minTargetHeight) throws Exception {
+			int targetCount, double minTargetWidth, double minTargetHeight, int procedureTargetCount,
+			double procedureMinTargetWidth, double procedureMinTargetHeight) throws Exception {
 		JsonObject evidence = new JsonObject();
 		evidence.addProperty("platform", "windows");
 		evidence.addProperty("host", "real-jcef-production-shell");
@@ -221,6 +331,14 @@ class Stage9NativeJcefAccessibilityTest {
 		evidence.addProperty("dialogTabTrap", "passed");
 		evidence.addProperty("dialogEscapeAndFocusRestore", "passed");
 		evidence.addProperty("politeLiveRegionContract", "passed");
+		evidence.addProperty("rendererAccessibilityMode", "complete");
+		evidence.addProperty("selectableTaskLogContract", "passed");
+		evidence.addProperty("procedureKeyboardTabs", "passed");
+		evidence.addProperty("procedureNodeAndPortSemantics", "passed");
+		evidence.addProperty("procedureAccessibleNames", "passed");
+		evidence.addProperty("procedureAuditedVisibleTargetCount", procedureTargetCount);
+		evidence.addProperty("procedureMinimumTargetWidthCssPx", procedureMinTargetWidth);
+		evidence.addProperty("procedureMinimumTargetHeightCssPx", procedureMinTargetHeight);
 		evidence.addProperty("scope",
 				"Real Windows JCEF automation; does not close physical high-DPI or screen-reader audit.");
 		evidence.addProperty("generatedAt", Instant.now().toString());

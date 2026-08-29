@@ -19,9 +19,12 @@ import dev.copperbench.bridge.JcefLegacyPluginBridgeTransport;
 import dev.copperbench.bridge.JcefWindowBridgeTransport;
 import dev.copperbench.bridge.JcefWorkspaceOpenBridgeTransport;
 import dev.copperbench.core.workspace.mcreator.MCreatorWorkspaceSession;
+import dev.copperbench.core.contract.UiCore;
+import dev.copperbench.diagnostics.DiagnosticBundleService;
 import dev.copperbench.generator.LoaderRoutingWorkspaceTaskGateway;
 import dev.copperbench.window.WindowsWindowChromeController;
 import net.mcreator.ui.chromium.WebView;
+import net.mcreator.io.UserFolderManager;
 import net.mcreator.workspace.Workspace;
 
 import javax.swing.*;
@@ -30,6 +33,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Clock;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
@@ -114,7 +118,9 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 			workspaceOpenTransport = openWorkspaceAction != null
 					? JcefWorkspaceOpenBridgeTransport.attach(webView, openWorkspaceAction)
 					: null;
-			diagnosticsTransport = JcefDiagnosticsBridgeTransport.attach(webView);
+			diagnosticsTransport = JcefDiagnosticsBridgeTransport.attach(webView,
+					new DiagnosticBundleService(UserFolderManager.getFileFromUserFolder("diagnostics").toPath(),
+							logRoot(), workspaceRoot, () -> diagnosticSnapshot(session), Clock.systemUTC()));
 			blockbenchTransport = JcefBlockbenchBridgeTransport.attach(webView,
 					new BlockbenchProcessService(new AssetWorkspaceService(workspaceRoot),
 							BlockbenchExecutableLocator.locate()));
@@ -173,5 +179,34 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 			webView.close();
 			throw exception;
 		}
+	}
+
+	private static Path logRoot() {
+		String configured = System.getProperty("log_directory");
+		return configured == null || configured.isBlank()
+				? UserFolderManager.getFileFromUserFolder("logs").toPath()
+				: Path.of(configured).toAbsolutePath().normalize().resolve("logs");
+	}
+
+	private static com.google.gson.JsonObject diagnosticSnapshot(MCreatorWorkspaceSession session) {
+		var result = session.uiEntry().query(UiCore.Query.of(UUID.randomUUID(), session.workspaceId(),
+				UiCore.Operation.GET_WORKBENCH, new com.google.gson.JsonObject()));
+		com.google.gson.JsonObject snapshot = new com.google.gson.JsonObject();
+		if (result.data() != null && result.data().isJsonObject()) {
+			com.google.gson.JsonObject workbench = result.data().getAsJsonObject();
+			snapshot.add("activeTasks", Optional.ofNullable(workbench.get("activeTasks"))
+					.map(com.google.gson.JsonElement::deepCopy).orElseGet(com.google.gson.JsonArray::new));
+			snapshot.add("elementCounts", Optional.ofNullable(workbench.get("elementCounts"))
+					.map(com.google.gson.JsonElement::deepCopy).orElseGet(com.google.gson.JsonObject::new));
+			if (workbench.has("workspace") && workbench.get("workspace").isJsonObject()) {
+				com.google.gson.JsonObject workspace = workbench.getAsJsonObject("workspace");
+				com.google.gson.JsonObject safeWorkspace = new com.google.gson.JsonObject();
+				safeWorkspace.add("revision", workspace.get("revision").deepCopy());
+				safeWorkspace.add("generator", workspace.getAsJsonObject("generator").deepCopy());
+				snapshot.add("workspace", safeWorkspace);
+			}
+		}
+		snapshot.add("diagnostics", UiCore.wireGson().toJsonTree(result.diagnostics()));
+		return snapshot;
 	}
 }

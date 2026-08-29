@@ -10,6 +10,8 @@ class JcefDiagnosticsBridgeTransportTest {
 		String bootstrap = JcefDiagnosticsBridgeTransport.generateBootstrapScript();
 		assertTrue(bootstrap.contains("__COPPERBENCH_DIAGNOSTICS_HOST__"));
 		assertTrue(bootstrap.contains(JcefDiagnosticsBridgeTransport.QUERY_PREFIX));
-		assertTrue(bootstrap.contains("JSON.stringify({ failureId: failureId })"));
+		assertTrue(bootstrap.contains("operation: 'open_logs'"));
+		assertTrue(bootstrap.contains("exportBundle: function(includeWorkspaceFiles, failureId)"));
+		assertTrue(bootstrap.contains("operation: 'export_bundle'"));
 	}
 }

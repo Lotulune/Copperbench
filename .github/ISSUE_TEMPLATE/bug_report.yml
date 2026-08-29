@@ -16,6 +16,18 @@ body:
       description: What went wrong?
     validations:
       required: true
+  - type: dropdown
+    attributes:
+      label: Area
+      options:
+        - Installation or update
+        - Workspace
+        - Generator or build
+        - User interface or accessibility
+        - MCP, headless, or SDK
+        - Documentation
+    validations:
+      required: true
   - type: textarea
     attributes:
       label: How to reproduce
@@ -34,16 +46,44 @@ body:
       required: true
   - type: textarea
     attributes:
-      label: Details
+      label: Version and source commit
       placeholder: |
         Copperbench version: 0.1.0
-        Generator: fabric-1.21.1 / ...
+        Source commit: full 40-character SHA from release metadata
         Windows build: 22000+
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Generator
+      placeholder: fabric-1.21.1 / neoforge-26.2 / resource-pack
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Element type
+      placeholder: block / item / recipe / procedure / not applicable
     validations:
       required: true
   - type: textarea
     attributes:
-      label: Logs
-      description: Paste full text logs, or link a gist. Screenshots of logs are not enough.
+      label: Expected result
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Actual result
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Diagnostic code or error ID
+      description: Enter the structured diagnostic code and failure/error ID, or "none".
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Diagnostic bundle or logs
+      description: Attach the exported redacted diagnostic bundle, paste text logs, or link a gist. Review optional reproduction files before uploading.
     validations:
       required: false
