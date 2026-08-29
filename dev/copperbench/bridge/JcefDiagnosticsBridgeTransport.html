@@ -63,6 +63,8 @@ loadScripts(document, 'script');</script>
 <li><a href="#method-detail" tabindex="0">Method Details</a>
 <ol class="toc-list">
 <li><a href="#attach(net.mcreator.ui.chromium.WebView)" tabindex="0">attach(WebView)</a></li>
+<li><a href="#attach(net.mcreator.ui.chromium.WebView,dev.copperbench.diagnostics.DiagnosticBundleService)" tabindex="0">attach(WebView, DiagnosticBundleService)</a></li>
+<li><a href="#attach(net.mcreator.ui.chromium.WebView,dev.copperbench.diagnostics.DiagnosticBundleService,java.util.function.Consumer)" tabindex="0">attach(WebView, DiagnosticBundleService, Consumer)</a></li>
 <li><a href="#onQuery(org.cef.browser.CefBrowser,org.cef.browser.CefFrame,long,java.lang.String,boolean,org.cef.callback.CefQueryCallback)" tabindex="0">onQuery(CefBrowser, CefFrame, long, String, boolean, CefQueryCallback)</a></li>
 <li><a href="#onQueryCanceled(org.cef.browser.CefBrowser,org.cef.browser.CefFrame,long)" tabindex="0">onQueryCanceled(CefBrowser, CefFrame, long)</a></li>
 <li><a href="#generateBootstrapScript()" tabindex="0">generateBootstrapScript()</a></li>
@@ -93,7 +95,7 @@ loadScripts(document, 'script');</script>
 <div class="type-signature"><span class="modifiers">public final class </span><span class="element-name type-name-label">JcefDiagnosticsBridgeTransport</span>
 <span class="extends-implements">extends org.cef.handler.CefMessageRouterHandlerAdapter
 implements <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/Closeable.html" title="class or interface in java.io" class="external-link">Closeable</a></span></div>
-<div class="block">Opens the host application log for a structured diagnostic failure ID.</div>
+<div class="block">Opens logs and exports bounded, local-only diagnostic bundles.</div>
 </div>
 </section>
 <section class="summary">
@@ -126,6 +128,15 @@ implements <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base
 <div class="table-header col-last">Description</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="JcefDiagnosticsBridgeTransport.html" title="class in dev.copperbench.bridge">JcefDiagnosticsBridgeTransport</a></code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#attach(net.mcreator.ui.chromium.WebView)" class="member-name-link">attach</a><wbr>(<a href="../../../net/mcreator/ui/chromium/WebView.html" title="class in net.mcreator.ui.chromium">WebView</a>&nbsp;webView)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="JcefDiagnosticsBridgeTransport.html" title="class in dev.copperbench.bridge">JcefDiagnosticsBridgeTransport</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#attach(net.mcreator.ui.chromium.WebView,dev.copperbench.diagnostics.DiagnosticBundleService)" class="member-name-link">attach</a><wbr>(<a href="../../../net/mcreator/ui/chromium/WebView.html" title="class in net.mcreator.ui.chromium">WebView</a>&nbsp;webView,
+ <a href="../diagnostics/DiagnosticBundleService.html" title="class in dev.copperbench.diagnostics">DiagnosticBundleService</a>&nbsp;bundleService)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="JcefDiagnosticsBridgeTransport.html" title="class in dev.copperbench.bridge">JcefDiagnosticsBridgeTransport</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#attach(net.mcreator.ui.chromium.WebView,dev.copperbench.diagnostics.DiagnosticBundleService,java.util.function.Consumer)" class="member-name-link">attach</a><wbr>(<a href="../../../net/mcreator/ui/chromium/WebView.html" title="class in net.mcreator.ui.chromium">WebView</a>&nbsp;webView,
+ <a href="../diagnostics/DiagnosticBundleService.html" title="class in dev.copperbench.diagnostics">DiagnosticBundleService</a>&nbsp;bundleService,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/function/Consumer.html" title="class or interface in java.util.function" class="external-link">Consumer</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/File.html" title="class or interface in java.io" class="external-link">File</a>&gt;&nbsp;openBundleAction)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">&nbsp;</div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#close()" class="member-name-link">close</a>()</code></div>
@@ -198,6 +209,25 @@ implements <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base
 <h3>attach</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type"><a href="JcefDiagnosticsBridgeTransport.html" title="class in dev.copperbench.bridge">JcefDiagnosticsBridgeTransport</a></span>&nbsp;<span class="element-name">attach</span><wbr><span class="parameters">(<a href="../../../net/mcreator/ui/chromium/WebView.html" title="class in net.mcreator.ui.chromium">WebView</a>&nbsp;webView)</span></div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="attach(net.mcreator.ui.chromium.WebView,dev.copperbench.diagnostics.DiagnosticBundleService)">
+<h3>attach</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type"><a href="JcefDiagnosticsBridgeTransport.html" title="class in dev.copperbench.bridge">JcefDiagnosticsBridgeTransport</a></span>&nbsp;<span class="element-name">attach</span><wbr><span class="parameters">(<a href="../../../net/mcreator/ui/chromium/WebView.html" title="class in net.mcreator.ui.chromium">WebView</a>&nbsp;webView,
+ <a href="../diagnostics/DiagnosticBundleService.html" title="class in dev.copperbench.diagnostics">DiagnosticBundleService</a>&nbsp;bundleService)</span></div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="attach(net.mcreator.ui.chromium.WebView,dev.copperbench.diagnostics.DiagnosticBundleService,java.util.function.Consumer)">
+<h3>attach</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type"><a href="JcefDiagnosticsBridgeTransport.html" title="class in dev.copperbench.bridge">JcefDiagnosticsBridgeTransport</a></span>&nbsp;<span class="element-name">attach</span><wbr><span class="parameters">(<a href="../../../net/mcreator/ui/chromium/WebView.html" title="class in net.mcreator.ui.chromium">WebView</a>&nbsp;webView,
+ <a href="../diagnostics/DiagnosticBundleService.html" title="class in dev.copperbench.diagnostics">DiagnosticBundleService</a>&nbsp;bundleService,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/function/Consumer.html" title="class or interface in java.util.function" class="external-link">Consumer</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/File.html" title="class or interface in java.io" class="external-link">File</a>&gt;&nbsp;openBundleAction)</span></div>
 </div>
 </section>
 </li>

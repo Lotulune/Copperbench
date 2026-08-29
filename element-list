@@ -8,6 +8,7 @@ dev.copperbench.core.contract
 dev.copperbench.core.plugin
 dev.copperbench.core.workspace
 dev.copperbench.core.workspace.mcreator
+dev.copperbench.diagnostics
 dev.copperbench.generator
 dev.copperbench.generator.fabric
 dev.copperbench.generator.neoforge
