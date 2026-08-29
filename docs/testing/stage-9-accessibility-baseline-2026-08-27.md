@@ -84,6 +84,16 @@ reports `buttonCount=0`; this is retained as an unresolved platform/provider
 issue and does not qualify as screen-reader interoperability evidence. The
 probe does not modify guest DPI, drivers, registry, or user data.
 
+The 2026-08-30 follow-up hardened that probe to inspect cross-process and
+RawView descendants and then tested the relevant CEF/Chromium accessibility
+activation paths on the same clean guest. Even with Narrator running, native
+CEF complete accessibility successfully activated, Chromium's `UiaProvider`
+enabled, and selective UIA activation disabled, RawView stopped at
+`Chrome_RenderWidgetHostHWND -> Document` with `rawButtonCount=0`. The product
+experiments were therefore not retained. See
+[`stage-9-clean-windows-jcef-uia-2026-08-30.md`](./stage-9-clean-windows-jcef-uia-2026-08-30.md)
+for the binding-level blocker and exact machine evidence.
+
 This slice proves the production JCEF DOM/keyboard contract on Windows and the
 real 125% host-DPI path. It still does **not** claim a physical
 150%/175%/200% display-scale pass, Windows
