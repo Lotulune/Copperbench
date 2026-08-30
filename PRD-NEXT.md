@@ -1,10 +1,16 @@
 # Copperbench 下一步 PRD：阶段 10 可信预览发布与 Stage 9 收口
 
-> 状态：Beta 候选准备中（已排除三项可选门禁，尚未发布候选包）<br>
+> 状态：Public Beta 发布控制已就绪；`v0.1.0-preview.6` 已冻结为 exact-binary candidate，待 `v0.1.0-beta.1` 晋升。<br>
 > 版本：v1.2<br>
 > 更新日期：2026-08-31<br>
 > 前置基线：[PRD.md](./PRD.md)、[PRD-STAGE-9.md](./PRD-STAGE-9.md)<br>
-> 已验证公开基线：`v0.1.0-preview.3`（`main@cc15d57a`）；当前 Beta 合同已排除三项可选门禁，仍需新的签名 Preview 候选才能发布 Beta
+> 当前已验证发布候选：`v0.1.0-preview.6`（`main@f677e481`，release run `33330520467`）；四个 canonical 资产摘要已冻结，Beta exact-binary promotion 已具备条件。
+
+## 2026-08-31 Beta candidate freeze
+
+`v0.1.0-preview.6` 已从 `main@f677e481` 通过 release run `33330520467` 成功公开；draft asset verification 与最终 publish 均通过。`product-status.json` 已冻结该候选的 EXE/ZIP/MSIX/SBOM 四个 canonical SHA-256，当前所有 `betaBlocking=true` gate 均为 `passed`，因此 `betaEligible=true`。后续 `v0.1.0-beta.1` 必须按 exact-binary promotion 合同复用 Preview 6 的这四个字节，不允许重新构建。详见 [Preview 6 Beta candidate freeze](./docs/testing/beta-candidate-preview6-2026-08-31.md)。
+
+本版本仍明确排除真实 JCEF 无障碍审计、最终 clean-Windows RC replay 和五人外部试用；这些项目是 `not-applicable`/非 beta-blocking，不代表已经通过。
 
 ## 0. 阅读与执行协议
 
@@ -20,12 +26,12 @@
 
 | 项目 | 当前事实 | 结论 |
 | --- | --- | --- |
-| Fast CI | main 分支保护持续要求 Java/Javadoc、UI/Playwright 与 MCP；当前 `main@529c5a1a` 的 merged-main run `33320875746` 全绿，并覆盖签名 release-source、Beta scope exclusion 与 release signer 合同 | PR 门禁已闭环；机器状态源继续保留连续 main 门禁 3/3 |
-| 公开 Release | `v0.1.0-preview.3` 已从 `main@cc15d57a` 公开，release run `32923503840` 成功；它现在是历史已发布基线而非未来发布源 | 当前合同已排除 a11y、最终 RC 和外测三项；仍必须先冻结并公开新的签名 Preview 候选，Beta 原样晋级候选 EXE/ZIP/MSIX/SBOM，不能用重新构建的不同字节替代；Windows 包仍未 Authenticode 签名 |
+| Fast CI | main 分支保护持续要求 Java/Javadoc、UI/Playwright 与 MCP；当前 `main@f677e481` 的 merged-main run `33329612708` 全绿 | PR 门禁已闭环；机器状态源继续保留连续 main 门禁 3/3 |
+| 公开 Release | `v0.1.0-preview.6` 已从 `main@f677e481` 公开，release run `33330520467` 成功；draft asset verification 与 publish 均通过 | Preview 6 已冻结为 Beta candidate；`v0.1.0-beta.1` 必须 exact-binary promotion 候选 EXE/ZIP/MSIX/SBOM，不能用重新构建的不同字节替代；Windows 包仍未 Authenticode 签名 |
 | 状态源 | `product-status.json`、Schema 和 CI 漂移校验已进入 main，并已修复首次远端运行暴露的 Release Schema 漏项 | 状态源门禁通过；后续状态提升仍必须带固定提交证据 |
 | 重型门禁 | Nightly `33253594479`（`main@92d1a8d0`）的全量 Java/Javadoc/scale 回归、完整 Playwright、MCP、诊断包 native JCEF 验收与八生成器内容构建 8/8 全绿；后续发布合同变更也已通过主线 CI | FR-AI-02～05、FR-BETA-01～02 保持闭环；无障碍、最终 RC 和外部试用已按 Beta 合同移出当前范围 |
 | Stage 9 | 八生成器黄金编译、三个专用编辑器、语言工具、安装升级和离线工作区路径已有自动化/客机证据；Windows WR + Chromium 完整 AXMode 与 `DPR=1.25` 路径已通过 | 物理高 DPI、屏幕阅读器、最终 RC 矩阵和外部试用不纳入当前版本宣称，未来重新纳入时需新候选和新证据 |
-| AI Developer Kit | PR #14～#17 的 Cursor、Workspace Plan、Task Events/SDK 与 Windows-native JCEF reconnect 均已合入；当前 `main@529c5a1a` 的 merged-main CI `33320875746` 与固定产品基线 Nightly `33253594479` 全绿 | FR-AI-02～05 均为 `passed`；MCP reconnect 继续冻结为 `get_task(afterLogSequence)`，不引入未版本化的自定义 push 方言 |
+| AI Developer Kit | PR #14～#17 的 Cursor、Workspace Plan、Task Events/SDK 与 Windows-native JCEF reconnect 均已合入；当前 `main@f677e481` 的 merged-main CI `33329612708` 与固定产品基线 Nightly `33253594479` 全绿 | FR-AI-02～05 均为 `passed`；MCP reconnect 继续冻结为 `get_task(afterLogSequence)`，不引入未版本化的自定义 push 方言 |
 | 仓库治理 | GitHub 已识别 GPLv3；Javadoc Pages 可访问；main 三项必需检查、受保护 PR 与 production 必需审阅者均已验证 | 仓库治理 P0 已闭环 |
 | Dependency Submission | 仓库 Dependency Graph 未启用，原工作流无法成功 | 误导工作流已从 main 删除 |
 
@@ -300,7 +306,7 @@ Issue 模板必须收集版本、commit、生成器、元素类型、复现步�
 - 至少 5 名外部试用者完成全任务。
 - 所有高风险能力有固定提交证据；未验证项明确降级或移出宣称。
 
-当前版本尚未进入 Public Beta 候选，原因仅剩签名 Preview 候选和发布资产冻结；未验证的无障碍、最终 RC 和外部试用能力已从 Beta 宣称范围移除。
+当前版本已进入 Public Beta 发布控制阶段：签名 Preview 6 候选与四个发布资产摘要均已冻结，状态源 `betaEligible=true`；下一步仅剩在最终 release-control main 提交上签名 `v0.1.0-beta.1` 并按 exact-binary promotion 发布。未验证的无障碍、最终 RC 和外部试用能力继续从当前 Beta 宣称范围移除。
 
 ## 8. 风险与缓解
 
@@ -324,7 +330,7 @@ Issue 模板必须收集版本、commit、生成器、元素类型、复现步�
 
 ## 10. Definition of Done
 
-当前 Beta 候选准备在以下条件同时满足时完成：
+当前 Beta 发布控制以以下条件为准：
 
 1. 所有 FR 有对应代码、测试、文档和固定提交证据。
 2. `main` 分支保护要求 Java、Frontend、MCP conformance 三个检查。
