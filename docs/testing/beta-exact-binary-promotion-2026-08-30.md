@@ -88,6 +88,12 @@ release metadata and final payload hashes are produced, however,
 match the declared candidate hashes. A missing asset, changed byte, stale hash,
 or candidate mismatch fails before draft publication.
 
+After the payload is uploaded to the GitHub draft release,
+`scripts/Test-ReleaseAssets.ps1` reads the Release Asset API SHA-256 digest for
+every uploaded file and requires a one-to-one match with the local verified
+`build/release` payload. Missing, extra, incomplete, or byte-different remote
+assets therefore fail before the draft can be published.
+
 The final workflow provenance therefore records the assembly/promotion run for
 the Beta payload, while `binarySource` points to the signed Preview source and
 its original release/build provenance. The Beta release does not claim that the

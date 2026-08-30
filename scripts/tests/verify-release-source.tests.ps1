@@ -303,6 +303,8 @@ try {
 	}
 	& pwsh -NoProfile -File (Join-Path $PSScriptRoot 'New-ReleaseMetadata.tests.ps1')
 	if ($LASTEXITCODE -ne 0) { throw 'Beta exact-binary promotion tests failed' }
+	& pwsh -NoProfile -File (Join-Path $PSScriptRoot 'Test-ReleaseAssets.tests.ps1')
+	if ($LASTEXITCODE -ne 0) { throw 'Draft release asset digest tests failed' }
 	Write-Output 'Release source verification tests passed.'
 } finally {
 	if (Test-Path -LiteralPath $testRoot) {
