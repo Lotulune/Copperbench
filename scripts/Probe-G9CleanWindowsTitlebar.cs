@@ -10,6 +10,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Automation;
+using Accessibility;
 
 [DataContract]
 internal sealed class ProbeButton
@@ -28,6 +29,28 @@ internal sealed class ProbeButton
 
     [DataMember(Name = "offscreen")]
     public bool Offscreen;
+}
+
+[DataContract]
+internal sealed class ProbeMsaaElement
+{
+    [DataMember(Name = "name")]
+    public string Name = "";
+
+    [DataMember(Name = "role")]
+    public string Role = "";
+
+    [DataMember(Name = "roleValue")]
+    public int RoleValue;
+
+    [DataMember(Name = "state")]
+    public string State = "";
+
+    [DataMember(Name = "depth")]
+    public int Depth;
+
+    [DataMember(Name = "childId")]
+    public int ChildId;
 }
 
 [DataContract]
@@ -143,6 +166,33 @@ internal sealed class ProbeResult
     [DataMember(Name = "rendererDirectError", EmitDefaultValue = false)]
     public string RendererDirectError;
 
+    [DataMember(Name = "rendererMsaaAttempted")]
+    public bool RendererMsaaAttempted;
+
+    [DataMember(Name = "rendererMsaaTargetHandle")]
+    public long RendererMsaaTargetHandle;
+
+    [DataMember(Name = "rendererMsaaHresult")]
+    public int RendererMsaaHresult;
+
+    [DataMember(Name = "rendererMsaaElementCount")]
+    public int RendererMsaaElementCount;
+
+    [DataMember(Name = "rendererMsaaRootChildCount")]
+    public int RendererMsaaRootChildCount;
+
+    [DataMember(Name = "rendererMsaaButtonCount")]
+    public int RendererMsaaButtonCount;
+
+    [DataMember(Name = "rendererMsaaNamedButtonCount")]
+    public int RendererMsaaNamedButtonCount;
+
+    [DataMember(Name = "rendererMsaaElements")]
+    public List<ProbeMsaaElement> RendererMsaaElements = new List<ProbeMsaaElement>();
+
+    [DataMember(Name = "rendererMsaaError", EmitDefaultValue = false)]
+    public string RendererMsaaError;
+
     [DataMember(Name = "narratorStarted")]
     public bool NarratorStarted;
 
@@ -183,8 +233,14 @@ internal static class Program
     private static extern IntPtr SendMessageTimeout(IntPtr hWnd, uint message, IntPtr wParam, IntPtr lParam,
         uint flags, uint timeout, out IntPtr result);
 
+    [DllImport("oleacc.dll")]
+    private static extern int AccessibleObjectFromWindow(IntPtr hWnd, uint dwObjectId, ref Guid riid,
+        [MarshalAs(UnmanagedType.Interface)] out IAccessible accessibleObject);
+
     private const uint WM_GETOBJECT = 0x003D;
     private const uint SMTO_ABORTIFHUNG = 0x0002;
+    private const uint OBJID_CLIENT = 0xFFFFFFFC;
+    private const int ROLE_SYSTEM_PUSHBUTTON = 0x2B;
 
     private static int Main(string[] args)
     {
@@ -212,6 +268,185 @@ internal static class Program
             if (!string.IsNullOrWhiteSpace(resultPath)) WriteResult(resultPath, result);
         }
         return result.Passed ? 0 : 1;
+    }
+
+    private static void CaptureRendererMsaaTree(int browserProcessId, ProbeResult result)
+    {
+        ProbeNativeWindow renderer = result.SessionChromiumWindows.FirstOrDefault(window =>
+            window.ProcessId == browserProcessId
+            && string.Equals(window.ClassName, "Chrome_RenderWidgetHostHWND", StringComparison.Ordinal));
+        if (renderer == null)
+            return;
+
+        result.RendererMsaaAttempted = true;
+        result.RendererMsaaTargetHandle = renderer.Handle;
+
+        try
+        {
+            Guid iid = typeof(IAccessible).GUID;
+            IAccessible root;
+            int hresult = AccessibleObjectFromWindow(new IntPtr(renderer.Handle), OBJID_CLIENT, ref iid, out root);
+            result.RendererMsaaHresult = hresult;
+            if (hresult < 0 || root == null)
+            {
+                result.RendererMsaaError = "AccessibleObjectFromWindow failed with HRESULT 0x"
+                    + hresult.ToString("X8");
+                return;
+            }
+
+            int elementCount = 0;
+            int buttonCount = 0;
+            int namedButtonCount = 0;
+            var elements = new List<ProbeMsaaElement>();
+            try
+            {
+                result.RendererMsaaRootChildCount = root.accChildCount;
+            }
+            catch (COMException)
+            {
+                result.RendererMsaaRootChildCount = -1;
+            }
+            WalkMsaaTree(root, 0, 0, elements, ref elementCount, ref buttonCount, ref namedButtonCount);
+            result.RendererMsaaElementCount = elementCount;
+            result.RendererMsaaButtonCount = buttonCount;
+            result.RendererMsaaNamedButtonCount = namedButtonCount;
+            result.RendererMsaaElements = elements;
+            result.RendererMsaaError = null;
+        }
+        catch (COMException error)
+        {
+            result.RendererMsaaError = error.GetType().Name + ": " + error.Message;
+        }
+        catch (InvalidCastException error)
+        {
+            result.RendererMsaaError = error.GetType().Name + ": " + error.Message;
+        }
+    }
+
+    private static void WalkMsaaTree(IAccessible accessible, int childId, int depth,
+        List<ProbeMsaaElement> elements, ref int elementCount, ref int buttonCount, ref int namedButtonCount)
+    {
+        const int maxNodes = 1000;
+        const int maxDepth = 80;
+        if (accessible == null || elementCount >= maxNodes || depth > maxDepth)
+            return;
+
+        object variantChild = childId;
+        string name = SafeMsaaString(() => accessible.get_accName(variantChild));
+        object roleObject = SafeMsaaObject(() => accessible.get_accRole(variantChild));
+        object stateObject = SafeMsaaObject(() => accessible.get_accState(variantChild));
+        int roleValue = MsaaInt(roleObject);
+        elementCount++;
+        if (roleValue == ROLE_SYSTEM_PUSHBUTTON)
+        {
+            buttonCount++;
+            if (!string.IsNullOrWhiteSpace(name))
+                namedButtonCount++;
+        }
+        if (elements.Count < 300)
+        {
+            elements.Add(new ProbeMsaaElement
+            {
+                Name = name,
+                Role = roleObject == null ? "" : roleObject.ToString(),
+                RoleValue = roleValue,
+                State = stateObject == null ? "" : stateObject.ToString(),
+                Depth = depth,
+                ChildId = childId
+            });
+        }
+
+        if (childId != 0 || elementCount >= maxNodes)
+            return;
+
+        int childCount;
+        try
+        {
+            childCount = accessible.accChildCount;
+        }
+        catch (COMException)
+        {
+            return;
+        }
+
+        int cappedChildCount = Math.Min(childCount, 500);
+        for (int index = 1; index <= cappedChildCount && elementCount < maxNodes; index++)
+        {
+            object child = null;
+            try
+            {
+                child = accessible.get_accChild(index);
+            }
+            catch (COMException)
+            {
+            }
+
+            IAccessible childAccessible = child as IAccessible;
+            if (childAccessible != null)
+            {
+                WalkMsaaTree(childAccessible, 0, depth + 1, elements, ref elementCount, ref buttonCount,
+                    ref namedButtonCount);
+            }
+            else
+            {
+                WalkMsaaTree(accessible, index, depth + 1, elements, ref elementCount, ref buttonCount,
+                    ref namedButtonCount);
+            }
+        }
+    }
+
+    private static string SafeMsaaString(Func<string> getter)
+    {
+        try
+        {
+            return getter() ?? "";
+        }
+        catch (COMException)
+        {
+            return "";
+        }
+        catch (ArgumentException)
+        {
+            return "";
+        }
+    }
+
+    private static object SafeMsaaObject(Func<object> getter)
+    {
+        try
+        {
+            return getter();
+        }
+        catch (COMException)
+        {
+            return null;
+        }
+        catch (ArgumentException)
+        {
+            return null;
+        }
+    }
+
+    private static int MsaaInt(object value)
+    {
+        if (value == null)
+            return 0;
+        try
+        {
+            return Convert.ToInt32(value);
+        }
+        catch (FormatException)
+        {
+            return 0;
+        }
+        catch (InvalidCastException)
+        {
+            return 0;
+        }
+        catch (OverflowException)
+        {
+            return 0;
+        }
     }
 
     private static void ActivateChromiumAccessibility(int browserProcessId, string mode, ProbeResult result)
@@ -396,6 +631,7 @@ internal static class Program
                 CaptureSessionChromiumWindows(result);
                 ActivateChromiumAccessibility(frameCurrent.ProcessId, wmGetObjectMode, result);
                 CaptureRendererDirectTree(frameCurrent.ProcessId, result);
+                CaptureRendererMsaaTree(frameCurrent.ProcessId, result);
 
                 var rawButtons = new List<ProbeButton>();
                 WalkRawTree(frame, rawButtons, result);

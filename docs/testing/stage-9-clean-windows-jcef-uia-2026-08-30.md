@@ -201,6 +201,38 @@ the remaining defect is therefore in the browser-side manager/platform-provider
 projection or its fragment-root wiring, not in Copperbench's DOM semantics or
 renderer AX generation.
 
+## Direct MSAA provider confirms a root-only Windows platform tree
+
+The clean-guest probe now also queries the same hidden
+`Chrome_RenderWidgetHostHWND` through the legacy Windows accessibility API,
+independently of UI Automation. It calls
+`AccessibleObjectFromWindow(OBJID_CLIENT, IID_IAccessible)` and recursively
+walks the returned `IAccessible` tree while Narrator is running.
+
+The final same-guest result is
+[`clean-windows11-jcef-uia-msaa-direct.json`](../../evidence/stage-9/2026-08-30/clean-windows11-jcef-uia-msaa-direct.json):
+
+- `AccessibleObjectFromWindow` returned `HRESULT=0`;
+- the MSAA root exists and reports role `15` (`ROLE_SYSTEM_DOCUMENT`);
+- `accChildCount=0`;
+- the full MSAA traversal therefore contains exactly `1` element;
+- MSAA exposes `0` push buttons and `0` named push buttons;
+- the direct UIA traversal of the exact same renderer HWND also contains only
+  `1` `Document` node and `0` buttons.
+
+This is stronger than the earlier UIA-only result. The failure is not a defect
+specific to Chromium's UIA v2 projection: both UIA and MSAA successfully obtain
+the platform document root but both see a root with no descendants. At the same
+time, the real JCEF renderer returns `267` AX nodes and `26/26` named buttons via
+`Accessibility.getFullAXTree`.
+
+The remaining boundary is therefore the transfer/materialization of renderer
+AX descendants into Chromium's browser-process Windows platform accessibility
+tree (`BrowserAccessibilityManagerWin` / `BrowserAccessibilityWin`), before the
+platform-specific UIA or MSAA traversal layer. Fixing Copperbench ARIA, adding
+more Chromium accessibility switches, sending more `WM_GETOBJECT` variants, or
+changing only the UIA provider cannot close this gate.
+
 ## JCEF / CEF 150 runtime A/B also remains blocked
 
 The next bounded experiment tested whether the provider defect had already
