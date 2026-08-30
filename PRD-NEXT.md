@@ -1,7 +1,7 @@
-# Copperbench 下一步 PRD：阶段 10 可信预览发布与 Stage 9 收口
+# Copperbench 下一步 PRD：阶段 10 Public Beta 收口与阶段 11 全量 Mod Element 支持
 
-> 状态：Public Beta 已发布；`v0.1.0-beta.2` 已完成状态源修正与 exact-binary promotion<br>
-> 版本：v1.2<br>
+> 状态：Public Beta `v0.1.0-beta.2` 已发布并完成收口；下一功能版本进入 Stage 11，全量支持当前 30 种 read-only / legacy-only Java Mod Element<br>
+> 版本：v1.3<br>
 > 更新日期：2026-08-31<br>
 > 前置基线：[PRD.md](./PRD.md)、[PRD-STAGE-9.md](./PRD-STAGE-9.md)<br>
 > 当前公开 Beta：`v0.1.0-beta.2`（`main@8b063283`，release run `33334394466`）；随包 `product.channel=beta`，四个 canonical 资产与 `v0.1.0-preview.6` / Beta 1 完全同 size/SHA-256
@@ -47,9 +47,9 @@
 4. Stage 9 的大型工作区、专用编辑器、语言工具和服务端 readiness 已有固定证据；真实 JCEF/a11y、最终 clean-Windows RC 与外部试用已明确移出当前 Beta 宣称范围，保留为未来重新纳入时的证据项。
 5. MCP 的大型列表 Cursor、Workspace Plan、Task Events/reconnect 与 SDK/evals 均已闭环；当前不再以新增 AI 能力阻断 Beta 候选。
 
-因此，本阶段的产品目标不是增加更多元素，而是把现有能力变成可下载、可验证、可解释、可反馈的高级 Alpha 预览版。
+因此，阶段 10 的产品目标不是增加更多元素，而是把当时已有能力变成可下载、可验证、可解释、可反馈的 Public Beta 基线；阶段 10 已完成，后续产品范围由 7.4 的 Stage 11 全量元素计划接管。
 
-## 2. 目标与成功指标
+## 2. 阶段 10 目标与成功指标
 
 ### 2.1 产品目标
 
@@ -276,9 +276,9 @@ Issue 模板必须收集版本、commit、生成器、元素类型、复现步�
 
 实施状态（2026-08-30）：匿名证据 Schema、统一任务协议和机器验证器已就绪；根据当前收尾决策，外部试用不属于本版本 Preview-only 交付范围，因此不再作为本版本阻断项。未来重新开启 Beta 试用时，仍要求五名非核心开发者使用同一签名候选和同一 EXE SHA-256。
 
-## 6. 非目标
+## 6. 阶段 10 非目标（已完成的 Public Beta 基线）
 
-- 新增 Living Entity、GUI/Menu、Tool/Armor、Worldgen 等模组元素。
+- 阶段 10 Public Beta 不新增 Living Entity、GUI/Menu、Tool/Armor、Worldgen 等模组元素；该限制在阶段 10 收口后失效，Stage 11 下一功能版本将当前 30 种 read-only / legacy-only Java Mod Element 全部纳入 first-party 支持范围。
 - Linux/macOS、Windows 10、商店、账号、云同步和远程 MCP。
 - 购买 Authenticode 或宣称解决 SmartScreen。
 - 完整替代 IDE、上游全部 Swing 编辑器或全部插件。
@@ -307,6 +307,43 @@ Issue 模板必须收集版本、commit、生成器、元素类型、复现步�
 - 所有高风险能力有固定提交证据；未验证项明确降级或移出宣称。
 
 当前版本已经公开 `v0.1.0-beta.2`，状态源 channel 修正与 exact-binary promotion 均已验证。当前 Public Beta 发布链没有未完成的发布控制阻断；后续产品或构建变更若要再次发布，必须重新建立候选与相应证据。未验证的无障碍、最终 RC 和外部试用能力继续从当前 Beta 宣称范围移除。
+
+### 7.4 下一功能版本（Stage 11）：全量 Mod Element 一等支持
+
+**产品决策：下一功能版本必须把当前 30 种 `readOnly` / `legacyOnly` Java Mod Element 全部升级为 Copperbench first-party `supported`。** 开发过程允许分批落地，但下一功能版本不得在仍有这些类型停留于 `readOnly`、`legacyOnly`、`unsupportedInNewUi` 或“只能导入不能修改”的情况下宣称完成。
+
+本阶段覆盖以下 30 种类型：
+
+- 装备与物品扩展：`armor`、`armortrim`、`tool`、`itemextension`。
+- 注册表与玩法数据：`attribute`、`bannerpattern`、`command`、`damagetype`、`enchantment`、`gamerule`、`keybind`、`painting`、`particle`、`potion`、`potioneffect`、`tab`、`villagerprofession`、`villagertrade`。
+- 世界与内容生成：`biome`、`dimension`、`feature`、`fluid`、`plant`、`structure`。
+- 实体与界面：`livingentity`、`specialentity`、`projectile`、`gui`、`overlay`。
+- 高级代码元素：`code`。
+
+Bedrock Add-on 的 `bebiome`、`beblock`、`beentity`、`beitem`、`bescript` 属于不同平台产品范围，不计入上述 30 种 Java Mod Element 的完成度；若未来纳入 Bedrock，应单独建立平台 PRD 和生成器矩阵，不能用 Bedrock 的延期来降低本阶段 30 种类型的完成标准。
+
+#### 7.4.1 “支持”定义
+
+每一种类型只有同时满足以下条件，才能从 `readOnly` / `legacyOnly` 提升为 `supported`：
+
+1. **完整 CRUD**：新 UI 可以创建、打开、编辑、保存和删除；应用服务不再以 `ELEMENT_TYPE_OUTSIDE_FIRST_PARTY_SLICE` 拒绝该类型的正常 create/update。
+2. **类型化编辑体验**：建立可维护的字段模型、默认值、约束和专用或类型化 first-party 编辑器；不得以通用 JSON 文本框作为最终正式体验。
+3. **无损兼容上游工作区**：导入包含该类型的 MCreator 工作区后，未修改字段和未知扩展字段必须 round-trip 保留；打开并保存不能静默丢字段、改语义或破坏 generator-owned 数据。
+4. **引用与迁移正确**：凡涉及元素引用、资源引用、变量/标签、重命名或跨 loader/version 迁移的类型，都必须进入 reference index、影响预览和冲突诊断；不可产生悬空引用而无稳定诊断。
+5. **生成与编译闭环**：每种类型至少有一个真实 golden fixture；对当前 Fabric/NeoForge 8-generator 矩阵中声明支持该类型的组合执行生成与 Gradle 编译。若某 generator/type 组合确实不适用，必须有显式 capability/reason code，不得静默跳过。
+6. **MCP / headless 等价能力**：AI/自动化客户端可以查询 schema/capability，并通过与 UI 同一应用服务完成 create/read/update/delete、预览、验证和构建；不能形成“UI 能改、MCP 不能改”或反向的第二套产品语义。
+7. **诊断和恢复**：非法字段、版本不兼容、资源缺失、引用冲突、生成失败必须返回稳定原因码；写操作继续进入 local history / recovery-point 保护。
+8. **自动化证据**：每一种类型都必须有核心单测、UI/contract 覆盖、导入 round-trip 测试和 generator golden 证据；状态提升必须与测试和证据在同一 PR 中完成。
+
+#### 7.4.2 实施分批
+
+分批仅用于控制工程风险，**不代表下一版可以只交付其中一批**：
+
+- Wave 1（高频创作核心）：`livingentity`、`gui`、`armor`、`tool`、`biome`、`dimension`、`fluid`、`projectile`。
+- Wave 2（世界、表现与交互）：`feature`、`plant`、`structure`、`specialentity`、`overlay`、`particle`、`potion`、`potioneffect`、`enchantment`、`command`、`keybind`。
+- Wave 3（长尾与高级类型）：`armortrim`、`attribute`、`bannerpattern`、`code`、`damagetype`、`gamerule`、`itemextension`、`painting`、`tab`、`villagerprofession`、`villagertrade`。
+
+每个 Wave 合入后都应保持 `main` 可构建、可运行、可回退，并持续更新 `product-status.json`；只有 Wave 1～3 全部完成后，才允许建立下一功能版本的 Release candidate。
 
 ## 8. 风险与缓解
 
@@ -340,4 +377,14 @@ Issue 模板必须收集版本、commit、生成器、元素类型、复现步�
 6. Stage 9 剩余门禁全部关闭，或未关闭能力从 Beta 范围明确移除。
 7. 外部试用若未执行，必须明确标记为不适用并从当前版本宣称范围移除；不得把未执行试用写成通过。
 
-阶段 10 完成后，阶段 11 才进入 Entity、GUI/Menu、Tool/Armor 等高价值元素扩展。
+### 10.1 Stage 11 下一功能版本 Definition of Done
+
+1. 当前 30 种 `readOnly` / `legacyOnly` Java Mod Element 全部进入 first-party `supported`；`product-status.json` 对这些 Java 类型不再保留 `readOnly` / `legacyOnly` 状态。
+2. `ElementCoverageCatalog` / 应用服务不再把这 30 种列入 `UNSUPPORTED_IN_NEW_UI`，正常 create/update 不再触发 `ELEMENT_TYPE_OUTSIDE_FIRST_PARTY_SLICE`。
+3. 新 UI、MCP 和 headless 对全部类型共享同一 schema、验证、CRUD、诊断与持久化语义；不得以 legacy Swing 窗口作为完成这 30 种支持的替代方案。
+4. 建立“全类型 golden workspace”：至少包含每种类型一个有效实例，并在 8-generator 矩阵的所有适用组合完成生成与 Gradle 编译；PR 可分片，Nightly/Release candidate 必须执行完整矩阵。
+5. 建立上游兼容 fixture：覆盖这 30 种类型的 MCreator 工作区可以导入、浏览、编辑、保存、重新打开并构建，未编辑及未知字段无静默损失。
+6. 全量元素支持不得回退现有 Block/Item/Recipe/Procedure/Function/Loot Table/Advancement、工作区生命周期、构建运行、诊断、MCP、历史恢复和发布链能力。
+7. 下一功能版本候选必须从新的冻结 commit/tag 重新执行 CI、Nightly、Windows 安装/升级/卸载、Release provenance 与候选资产验证；不得直接复用 `v0.1.0-beta.2` 二进制。
+
+阶段 10 已完成。阶段 11 的下一功能版本不再只做少数高价值元素试点，而是以“当前 30 种 read-only / legacy-only Java Mod Element 全部转为 first-party supported”为完成条件；具体门禁见 7.4 与 10.1。
