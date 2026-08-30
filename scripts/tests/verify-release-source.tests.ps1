@@ -162,6 +162,29 @@ try {
 	Invoke-TestGit -Arguments @('checkout', '--detach', $betaHead)
 	Invoke-TestGit -Arguments @('update-ref', 'refs/remotes/origin/main', $betaHead)
 
+	$excludedStatus = $eligibleStatus | ConvertFrom-Json -Depth 12
+	$excludedStatus.delivery.betaRelease.tag = 'v0.1.0-beta.12'
+	$excludedStatus.product.betaEligible = $true
+	$excludedStatus.gates = @(
+		@{ id = 'product-status-source'; betaBlocking = $true; status = 'passed'; evidence = @() },
+		@{ id = 'real-jcef-accessibility'; betaBlocking = $false; status = 'not-applicable'; evidence = @() },
+		@{ id = 'clean-windows-11-stage9'; betaBlocking = $false; status = 'not-applicable'; evidence = @() },
+		@{ id = 'five-external-testers'; betaBlocking = $false; status = 'not-applicable'; evidence = @() }
+	)
+	$excludedStatus | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath (Join-Path $repository 'product-status.json') -Encoding utf8
+	Invoke-TestGit -Arguments @('add', 'product-status.json')
+	Invoke-TestGit -Arguments @('commit', '-m', 'exclude optional beta gates')
+	$excludedHead = (& git -C $repository rev-parse HEAD).Trim()
+	Invoke-TestGit -Arguments @('update-ref', 'refs/remotes/origin/main', $excludedHead)
+	& git -C $repository -c gpg.format=ssh -c "user.signingkey=$keyPath" tag -s -a v0.1.0-beta.12 -m 'beta with excluded optional gates'
+	if ($LASTEXITCODE -ne 0) { throw 'Unable to create excluded-gates Beta tag' }
+	$excludedBeta = Invoke-Verifier -Tag 'v0.1.0-beta.12' -MainCommit $excludedHead
+	if ($excludedBeta.ExitCode -ne 0 -or $excludedBeta.Output -notmatch "releaseSource=$excludedHead") {
+		throw "Beta release with explicitly excluded optional gates was rejected:`n$($excludedBeta.Output)"
+	}
+	Invoke-TestGit -Arguments @('checkout', '--detach', $betaHead)
+	Invoke-TestGit -Arguments @('update-ref', 'refs/remotes/origin/main', $betaHead)
+
 	$reservedNameStatus = $eligibleStatus | ConvertFrom-Json -Depth 12
 	$reservedNameStatus.delivery.betaRelease.tag = 'v0.1.0-beta.10'
 	$reservedNameStatus.delivery.betaRelease.candidateRelease.assets.exe.name = 'CON.exe'

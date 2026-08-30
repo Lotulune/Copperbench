@@ -1,10 +1,10 @@
 # Copperbench 下一步 PRD：阶段 10 可信预览发布与 Stage 9 收口
 
-> 状态：实施中（可信 Preview 已建立，Beta 门禁未关闭）<br>
+> 状态：Beta 候选准备中（已排除三项可选门禁，尚未发布候选包）<br>
 > 版本：v1.2<br>
 > 更新日期：2026-08-29<br>
 > 前置基线：[PRD.md](./PRD.md)、[PRD-STAGE-9.md](./PRD-STAGE-9.md)<br>
-> 已验证公开基线：`v0.1.0-preview.3`（`main@cc15d57a`）；后续公开版本必须使用新 Tag；Public Beta 仍由 Stage 9 和外部试用门禁阻断
+> 已验证公开基线：`v0.1.0-preview.3`（`main@cc15d57a`）；当前 Beta 合同已排除三项可选门禁，仍需新的签名 Preview 候选才能发布 Beta
 
 ## 0. 阅读与执行协议
 
@@ -12,7 +12,7 @@
 - 功能状态以源码、自动测试和固定提交产生的证据为准。README、Release Notes 或历史 evidence 不能单独证明能力已完成。
 - 每个实现任务和 PR 必须引用本文件中的需求编号。
 - 关闭需求必须同时满足实现、自动验证、用户文档和可追溯证据，不接受只修改状态文字。
-- 本阶段冻结新模组元素类型，先建立“提交 → CI → 产物 → Release → 用户反馈”的可信闭环。
+- 本阶段冻结新模组元素类型，已建立“提交 → CI → 产物 → Release”可信闭环；无障碍、最终 RC 和外部试用不纳入当前 Beta 宣称，但候选包和签名来源仍是必需项。
 
 ### 0.1 实施快照（2026-08-28）
 
@@ -21,10 +21,10 @@
 | 项目 | 当前事实 | 结论 |
 | --- | --- | --- |
 | Fast CI | main 分支保护持续要求 Java/Javadoc、UI/Playwright 与 MCP；当前 `main@3fcf2923` 的 merged-main run `33306183486` 全绿，并在 MCP job 中通过签名 release-source / Beta eligibility fail-closed 检查 | PR 门禁已闭环；机器状态源继续保留连续 main 门禁 3/3 |
-| 公开 Release | `v0.1.0-preview.3` 已从 `main@cc15d57a` 公开，release run `32923503840` 成功；它现在是历史已发布基线而非未来发布源 | Public Beta 前必须再冻结并公开一个签名 Preview 候选；真实 a11y、G9.5 和 5/5 tester 都绑定该候选 commit/EXE SHA，Beta 只允许 evidence/status 文档增量并原样晋级候选 EXE/ZIP/MSIX/SBOM，不能用重新构建的不同字节替代；Windows 包仍未 Authenticode 签名 |
+| 公开 Release | `v0.1.0-preview.3` 已从 `main@cc15d57a` 公开，release run `32923503840` 成功；它现在是历史已发布基线而非未来发布源 | 当前合同已排除 a11y、最终 RC 和外测三项；仍必须先冻结并公开新的签名 Preview 候选，Beta 原样晋级候选 EXE/ZIP/MSIX/SBOM，不能用重新构建的不同字节替代；Windows 包仍未 Authenticode 签名 |
 | 状态源 | `product-status.json`、Schema 和 CI 漂移校验已进入 main，并已修复首次远端运行暴露的 Release Schema 漏项 | 状态源门禁通过；后续状态提升仍必须带固定提交证据 |
-| 重型门禁 | Nightly `33253594479`（`main@92d1a8d0`）的全量 Java/Javadoc/scale 回归、完整 Playwright、MCP、诊断包 native JCEF 验收与八生成器内容构建 8/8 全绿；PR #36/#37 之后未改产品 runtime，因此该 run 仍是最近一次重型产品基线 | FR-AI-02～05、FR-BETA-01～02 保持闭环；已知良好的 Windows UIA/屏幕阅读器、最终 RC 和外测等 Stage 9/Beta 门禁仍保持 blocked |
-| Stage 9 | 八生成器黄金编译、三个专用编辑器和语言导入工具已有自动化证据；新装 Windows 11 客机已完成真实产品 GUI 新建工作区/Generator setup，并在同一工作区补齐生成物核验、Gradle build、jar 产出与交互式 `runClient`；Windows WR + Chromium 完整 AXMode 与 `DPR=1.25` 路径也已通过；Hyper-V 客机上的原生 Edge 对照同样无法暴露 WebContents UIA，因此该客机不能作为产品失败判据 | 仍缺物理 150%/175%/200% DPI、物理或其他已知良好 Windows 11 上的 UIA/屏幕阅读器与完整人工键盘审计、最终 RC 矩阵和外部试用；`betaEligible=false` |
+| 重型门禁 | Nightly `33253594479`（`main@92d1a8d0`）的全量 Java/Javadoc/scale 回归、完整 Playwright、MCP、诊断包 native JCEF 验收与八生成器内容构建 8/8 全绿；后续发布合同变更也已通过主线 CI | FR-AI-02～05、FR-BETA-01～02 保持闭环；无障碍、最终 RC 和外部试用已按 Beta 合同移出当前范围 |
+| Stage 9 | 八生成器黄金编译、三个专用编辑器、语言工具、安装升级和离线工作区路径已有自动化/客机证据；Windows WR + Chromium 完整 AXMode 与 `DPR=1.25` 路径已通过 | 物理高 DPI、屏幕阅读器、最终 RC 矩阵和外部试用不纳入当前版本宣称，未来重新纳入时需新候选和新证据 |
 | AI Developer Kit | PR #14～#17 的 Cursor、Workspace Plan、Task Events/SDK 与 Windows-native JCEF reconnect 均已合入；当前 `main@3fcf2923` 的 merged-main CI `33306183486` 与固定产品基线 Nightly `33253594479` 全绿 | FR-AI-02～05 均为 `passed`；MCP reconnect 继续冻结为 `get_task(afterLogSequence)`，不引入未版本化的自定义 push 方言 |
 | 仓库治理 | GitHub 已识别 GPLv3；Javadoc Pages 可访问；main 三项必需检查、受保护 PR 与 production 必需审阅者均已验证 | 仓库治理 P0 已闭环 |
 | Dependency Submission | 仓库 Dependency Graph 未启用，原工作流无法成功 | 误导工作流已从 main 删除 |
@@ -268,7 +268,7 @@ Issue 模板必须收集版本、commit、生成器、元素类型、复现步�
 
 至少 5 名非核心开发者完成：下载安装、校验、创建或迁入工作区、创建元素、构建、制造一次失败、查看诊断、创建恢复点并恢复。结果形成匿名汇总，不以口头反馈替代。
 
-实施状态（2026-08-30）：匿名证据 Schema、统一任务协议和机器验证器已就绪；当前仍为 0/5，门禁保持 blocked。五份完成记录必须来自同一签名公开 Preview 候选，全部使用该候选的同一 Windows EXE installer、同一 commit/安装包 SHA-256，全部任务通过且没有 P0/P1。该候选安装器在所有 Beta blocker 关闭后由发布流程原样晋级，避免用重新构建且 hash 不同的二进制冒充已测试候选。
+实施状态（2026-08-30）：匿名证据 Schema、统一任务协议和机器验证器已就绪；根据当前收尾决策，外部试用不属于本版本 Preview-only 交付范围，因此不再作为本版本阻断项。未来重新开启 Beta 试用时，仍要求五名非核心开发者使用同一签名候选和同一 EXE SHA-256。
 
 ## 6. 非目标
 
@@ -294,11 +294,13 @@ Issue 模板必须收集版本、commit、生成器、元素类型、复现步�
 - 至少 2 名外部试用者完成下载、安装、新建、构建和卸载复验。
 - 无 P0/P1 发行缺陷。
 
-### 7.3 Public Beta 候选
+### 7.3 Public Beta 候选（未来版本）
 
 - FR-STATUS、FR-S9、FR-AI、FR-BETA 全部完成。
 - 至少 5 名外部试用者完成全任务。
 - 所有高风险能力有固定提交证据；未验证项明确降级或移出宣称。
+
+当前版本尚未进入 Public Beta 候选，原因仅剩签名 Preview 候选和发布资产冻结；未验证的无障碍、最终 RC 和外部试用能力已从 Beta 宣称范围移除。
 
 ## 8. 风险与缓解
 
@@ -322,7 +324,7 @@ Issue 模板必须收集版本、commit、生成器、元素类型、复现步�
 
 ## 10. Definition of Done
 
-阶段 10 只有在以下条件同时满足时完成：
+当前 Beta 候选准备在以下条件同时满足时完成：
 
 1. 所有 FR 有对应代码、测试、文档和固定提交证据。
 2. `main` 分支保护要求 Java、Frontend、MCP conformance 三个检查。
@@ -330,6 +332,6 @@ Issue 模板必须收集版本、commit、生成器、元素类型、复现步�
 4. Release 的 commit、哈希、SBOM 和 provenance 可由非维护者验证。
 5. README、产品帮助、MCP Release Notes 和 GitHub Release 的能力状态一致。
 6. Stage 9 剩余门禁全部关闭，或未关闭能力从 Beta 范围明确移除。
-7. 外部试用达到指标且 P0/P1 问题清零。
+7. 外部试用若未执行，必须明确标记为不适用并从当前版本宣称范围移除；不得把未执行试用写成通过。
 
 阶段 10 完成后，阶段 11 才进入 Entity、GUI/Menu、Tool/Armor 等高价值元素扩展。

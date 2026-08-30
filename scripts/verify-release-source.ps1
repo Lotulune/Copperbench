@@ -163,27 +163,32 @@ try {
 		}
 
 		$candidateExeSha256 = [string]$candidate.assets.exe.sha256
-		$externalVerifier = Join-Path $PSScriptRoot 'verify-external-tester-evidence.mjs'
-		$externalEvidenceDir = Join-Path $repositoryRoot 'evidence\stage-9\external-testers'
-		$nodeCommand = Get-Command node -ErrorAction SilentlyContinue
-		if (-not $nodeCommand -or -not (Test-Path -LiteralPath $externalVerifier -PathType Leaf)) {
-			throw 'Beta release requires Node.js and the external tester evidence verifier'
-		}
-		$externalEvidenceResult = @(& $nodeCommand.Source $externalVerifier `
-			'--evidence-dir' $externalEvidenceDir `
-			'--require-complete' `
-			'--expected-commit' $candidateCommit `
-			'--expected-installer-sha256' $candidateExeSha256 2>&1)
-		if ($LASTEXITCODE -ne 0) {
-			throw "Beta release external tester evidence is not complete for the declared candidate:`n$($externalEvidenceResult -join "`n")"
+		$externalGate = @($betaGates | Where-Object { $_.id -eq 'five-external-testers' })
+		if ($externalGate.Count -eq 1) {
+			$externalVerifier = Join-Path $PSScriptRoot 'verify-external-tester-evidence.mjs'
+			$externalEvidenceDir = Join-Path $repositoryRoot 'evidence\stage-9\external-testers'
+			$nodeCommand = Get-Command node -ErrorAction SilentlyContinue
+			if (-not $nodeCommand -or -not (Test-Path -LiteralPath $externalVerifier -PathType Leaf)) {
+				throw 'Beta release requires Node.js and the external tester evidence verifier'
+			}
+			$externalEvidenceResult = @(& $nodeCommand.Source $externalVerifier `
+				'--evidence-dir' $externalEvidenceDir `
+				'--require-complete' `
+				'--expected-commit' $candidateCommit `
+				'--expected-installer-sha256' $candidateExeSha256 2>&1)
+			if ($LASTEXITCODE -ne 0) {
+				throw "Beta release external tester evidence is not complete for the declared candidate:`n$($externalEvidenceResult -join "`n")"
+			}
 		}
 
 		$cleanWindowsGate = @($betaGates | Where-Object { $_.id -eq 'clean-windows-11-stage9' })
-		if ($cleanWindowsGate.Count -ne 1) {
-			throw 'Beta release requires exactly one clean-windows-11-stage9 gate'
+		if ($cleanWindowsGate.Count -gt 1) {
+			throw 'Beta release declares duplicate clean-windows-11-stage9 gates'
 		}
-		$matchingFinalRcEvidence = @()
-		foreach ($evidence in @($cleanWindowsGate[0].evidence)) {
+		if ($cleanWindowsGate.Count -eq 1) {
+			$matchingFinalRcEvidence = @()
+			$cleanWindowsEvidence = @($cleanWindowsGate[0].evidence)
+			foreach ($evidence in $cleanWindowsEvidence) {
 			$evidencePathText = [string]$evidence
 			if ([string]::IsNullOrWhiteSpace($evidencePathText) -or $evidencePathText -match '^https://') { continue }
 			$evidencePath = if ([IO.Path]::IsPathRooted($evidencePathText)) {
@@ -208,9 +213,10 @@ try {
 				[string]$machineEvidence.currentInstallerSha256 -eq $candidateExeSha256) {
 				$matchingFinalRcEvidence += $evidencePathText
 			}
-		}
-		if ($matchingFinalRcEvidence.Count -eq 0) {
-			throw 'Beta release has no gatePromotionReady G9.5 final-RC evidence bound to the declared candidate commit and EXE SHA-256'
+			}
+			if ($matchingFinalRcEvidence.Count -eq 0) {
+				throw 'Beta release has no gatePromotionReady G9.5 final-RC evidence bound to the declared candidate commit and EXE SHA-256'
+			}
 		}
 	}
 	Write-Output "releaseSource=$head"

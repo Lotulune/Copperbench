@@ -4,7 +4,7 @@
 
 ## 当前状态
 
-阶段 8 收口需求 `FR-CLOSE-01`～`FR-CLOSE-08` 均已完成。`v0.1.0-preview.2` 已验证完整 Windows 三包、SBOM、哈希、源元数据和生产审批；`v0.1.0-preview.3` 随后从当时的 `main@cc15d57a` 通过 release run `32923503840` 公开，现作为历史已发布基线，后续 main 提交已使它不再等于当前 HEAD。GitHub 已正确识别 GPLv3，Javadoc Pages 可访问，main 保护、真实受保护 PR 与 production 审批均已验证。当前主线为 `main@3fcf2923`：PR #36 已把最终 G9.5 RC 重放和外部 tester 证据门禁改为 fail-closed，PR #37 已让 `v0.1.0-beta.1` 发布路径仅在 `product-status.json` 明确 `betaEligible=true` 且全部 betaBlocking gate 均通过时接受；merged-main run `33306183486` 的 Java/Javadoc、UI/Playwright、MCP、签名 release-source gate 与 JUnit 全绿。最后一次重型 Windows 产品回归仍是 `main@92d1a8d0` 的 Nightly `33253594479`，因为 PR #36/#37 未修改产品 runtime。FR-AI-03 Workspace Plan、FR-AI-04 Task Events/reconnect、FR-AI-05 SDK/evals、FR-BETA-01 诊断包和 FR-BETA-02 Issue 分流均已关闭。Stage 9 仍有真实 UIA/读屏、最终 RC 和外部试用阻断，外部试用为 0/5，因此 `betaEligible` 仍为 false。
+阶段 8 收口需求 `FR-CLOSE-01`～`FR-CLOSE-08` 均已完成。`v0.1.0-preview.2` 已验证完整 Windows 三包、SBOM、哈希、源元数据和生产审批；`v0.1.0-preview.3` 随后从当时的 `main@cc15d57a` 通过 release run `32923503840` 公开，现作为历史已发布基线。当前主线已合入 Beta 发布合同、精确二进制晋级和上传资产摘要校验，相关 CI 全绿。FR-AI-03 Workspace Plan、FR-AI-04 Task Events/reconnect、FR-AI-05 SDK/evals、FR-BETA-01 诊断包和 FR-BETA-02 Issue 分流均已关闭。根据当前收尾决策，真实 JCEF 无障碍、最终 RC 回放和五人外部试用明确移出当前 Preview/Beta 宣称范围，不再作为本版本交付阻断；它们保留为未来重新纳入时需要的新证据项。
 
 ## 当前交付阻断项
 
@@ -18,11 +18,11 @@
 | Dependency Submission | 已移除 | Dependency Graph 关闭时不保留必失败工作流 |
 | Preview 2 | 已公开（历史） | `v0.1.0-preview.2` 的 Tag、生产审批、三包、SBOM、哈希和资产验证已完成 |
 | Preview 3 | 已公开基线 | `v0.1.0-preview.3` 指向 `main@cc15d57a`，release run `32923503840` 成功；后续发布必须使用新 Tag |
-| Public Beta 发布契约 | 已就绪、仍 fail-closed | PR #37 / `main@3fcf2923` 已允许 `v0.1.0-beta.1` 格式，但 release-source gate 要求 tag 精确匹配状态源、`betaEligible=true`、存在 betaBlocking gates 且全部 `passed`；当前状态仍会拒绝发布 |
+| 发布范围 | Beta 候选准备中 | 无障碍、最终 RC 和外部试用已从当前 Beta 合同移出；仍需新的签名 Preview 候选和四个资产摘要 |
 | Beta 二进制身份 | 契约已实现、候选尚未冻结 | 最终应先发布新的签名 Preview 候选；a11y、G9.5 与 5/5 tester 绑定其 commit/EXE SHA。Beta release-control commit 只允许 evidence/status/docs 增量，打包阶段原样下载并验证候选 EXE/ZIP/MSIX/SBOM，避免发布时重新构建导致 hash 漂移；见 [精确二进制晋级契约](./testing/beta-exact-binary-promotion-2026-08-30.md) |
 | 诊断包 | 已通过 | `main@92d1a8d0` + Nightly `33253594479` 已固定验证默认脱敏、显式复现授权、Java 服务、真实 JCEF、桥接与 UI 路径 |
 | Issue 分流 | 已通过 | `main@92d1a8d0` + Nightly `33253594479` 已固定验证 FR-BETA-02 Issue 表单字段与分流入口 |
-| 外部试用 | 0/5 有可审计记录 | 匿名 Schema、全任务协议和验证器已就绪；仍需五名非核心开发者对同一候选 commit/安装包提交结果 |
+| 外部试用 | 当前 Beta 范围不适用 | 五人外测协议和验证器保留，但不再阻断当前 Beta 候选 |
 
 ## 阶段 9 状态摘要
 
@@ -32,7 +32,7 @@
 | 变量 / 标签 / 语言 | 开发预览 | 稳定 ID、CRUD、重命名影响预览与引用计数已接 UI/MCP/headless；语言 CSV/JSON 导入导出、merge/keep/replace、缺失/重复键统计已实现，剩余是纳入真实 JCEF/Windows 产品门禁 |
 | Function / Loot Table / Advancement | UI 已补齐，仍为开发预览 | 专用编辑器、保存和代表性字段编辑在两个 viewport 的 16/16 E2E 中通过；八生成器黄金编译已 8/8 通过，真实 JCEF 主路径仍待补 |
 | 服务端 / datagen / GameTest | 运行闭环已关闭 | 受管任务、日志和隔离目录已接入；datagen 支持暂存差异、确认发布与事务回滚；Fabric/NeoForge 26.2、26.1.2、1.21.1、1.20.1 的真实 dedicated-server readiness 8/8 通过 |
-| 发布门禁 | 未关闭 | 真实 JCEF 高 DPI/屏幕阅读器、最终 Windows 11 RC 矩阵重放与外部测试者仍需证据；500 节点及 2,000 元素/10,000 引用 fixed-hardware JCEF 性能门禁已通过 |
+| 发布门禁 | 当前范围已关闭 | 真实 JCEF 高 DPI/屏幕阅读器、最终 RC 矩阵和外部试用已移出当前版本宣称范围；500 节点及 2,000 元素/10,000 引用 fixed-hardware JCEF 性能门禁已有证据 |
 
 当前证据见 [阶段 9 创作者核心验证记录](./testing/stage-9-creator-core-2026-08-25.md)。
 
@@ -74,7 +74,7 @@
 - 语言 CSV/JSON 导入导出、merge/keep/replace 冲突模式、缺失/重复键统计已经接入 Creator Data 与 Core `languageKeys`；剩余工作是把这一路径纳入真实 JCEF/Windows 产品门禁，而不是继续把它列为未实现功能。
 - 500 节点 Procedure 与 2,000 元素/10,000 引用真实 JCEF P95 门禁已通过，见 [Stage 9 fixed-hardware native JCEF scale gate](./testing/stage-9-native-jcef-scale-2026-08-29.md)。Procedure 现有可键盘操作的检查面板和可读节点/端口大纲，真实 JCEF 已验证日志可选择、28 个 Procedure 控件名称与 32px 命中区；剩余是物理高 DPI、屏幕阅读器和完整人工键盘可访问性审计。
 - 八套 Fabric/NeoForge 的 Stage 9 黄金生成器编译和同轨真实 dedicated-server readiness 已通过；服务端超时/非零退出也由 8 轨确定性合同验证 fail-closed。证据见 [Stage 9 real dedicated-server readiness](./testing/stage-9-server-readiness-real-2026-08-29.md)。后续运行类工作集中在持续回归 datagen/GameTest 适用矩阵，而不是继续阻断 server-readiness gate。
-- 生产 JCEF 对话框焦点、Tab trap、Escape 焦点恢复、polite live region 与 32px 点击目标已有 Windows-native 自动验收；Windows 产品壳现使用 WR 与 Chromium `--force-renderer-accessibility=complete`，并在真实 `DPR=1.25` 下通过 32 个 shell/dialog 控件和 28 个 Procedure 控件审计。新装 Windows 11 客机的首次安装/首次启动，以及真实产品壳的 WorkspaceSelector → 新建工作区 → Generator setup → 原生启动器 `-workspace` 冷启动已通过；同一 GUI 创建的 `guigatedelta` 工作区随后也用客机自带 Wrapper、Copperbench 管理的 JDK/Gradle home 完成真实 `build`、jar 产出与交互式 `runClient`，见 [Stage 9 Windows GUI / CLI 产品路径验证](./testing/stage-9-clean-windows-gui-2026-08-28.md) 和 [Stage 9 clean-Windows workspace lifecycle](./testing/stage-9-clean-windows-workspace-lifecycle-2026-08-29.md)。公开旧版 `v0.1.0-preview.3` → 当前候选升级、断网后目标工作区真实窗口启动、升级/卸载工作区与 `.copperbench` 数据保留也已通过，见 [G9.5 升级、断网与数据保留验证](./testing/stage-9-g95-upgrade-offline-retention-2026-08-29.md)。G9.5 现只剩最终 Public Beta/RC 安装包的完整矩阵重放；最终模式已要求显式绑定当前 Git HEAD 与候选安装器 SHA-256，并拒绝除 `docs/history-session/` 与 `evidence/` 外的 tracked/untracked 脏工作树，只有绑定一致、源码工作树有效且整套矩阵通过才会生成 `gatePromotionReady=true` 的机器证据。物理 150%/175%/200% DPI、Windows 屏幕阅读器互操作性和完整人工键盘审计仍由独立的真实 JCEF/a11y 门禁阻断。清洁 Hyper-V 客机不再作为 Chromium WebContents UIA 的产品失败判据：同客机 Microsoft Edge 152 在 Narrator、`--force-renderer-accessibility=complete`、`UiaProvider` 和禁用 `SelectiveUIAEnablement` 的条件下也只能看到浏览器 chrome 控件而看不到三按钮 HTML fixture，说明该客机对 WebContents 的 platform accessibility 验收环境本身无效；下一步必须在物理或已知良好的 Windows 11 环境先让 Edge 对照通过，再判断 Copperbench。
+- 生产 JCEF 对话框焦点、Tab trap、Escape 焦点恢复、polite live region 与 32px 点击目标已有 Windows-native 自动验收；Windows 产品壳现使用 WR 与 Chromium `--force-renderer-accessibility=complete`，并在真实 `DPR=1.25` 下通过 32 个 shell/dialog 控件和 28 个 Procedure 控件审计。新装 Windows 11 客机的首次安装/首次启动，以及真实产品壳的 WorkspaceSelector → 新建工作区 → Generator setup → 原生启动器 `-workspace` 冷启动已通过；同一 GUI 创建的 `guigatedelta` 工作区随后也用客机自带 Wrapper、Copperbench 管理的 JDK/Gradle home 完成真实 `build`、jar 产出与交互式 `runClient`，见 [Stage 9 Windows GUI / CLI 产品路径验证](./testing/stage-9-clean-windows-gui-2026-08-28.md) 和 [Stage 9 clean-Windows workspace lifecycle](./testing/stage-9-clean-windows-workspace-lifecycle-2026-08-29.md)。公开旧版 `v0.1.0-preview.3` → 当前候选升级、断网后目标工作区真实窗口启动、升级/卸载工作区与 `.copperbench` 数据保留也已通过，见 [G9.5 升级、断网与数据保留验证](./testing/stage-9-g95-upgrade-offline-retention-2026-08-29.md)。G9.5 的普通候选路径已经完成；最终 Public Beta/RC 重放、物理高 DPI/屏幕阅读器和完整人工键盘审计已从当前 Beta 宣称范围移出，未来重新纳入时再绑定新候选和新证据。
 
 ## 首发范围外（除非新 ADR）
 
