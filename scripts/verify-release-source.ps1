@@ -58,6 +58,33 @@ try {
 	if ($Tag -notlike "v$($Matches.version)*") {
 		throw "Tag $Tag does not match product version $($Matches.version)"
 	}
+	if ($Tag -match '-beta\.\d+$') {
+		$productStatusPath = Join-Path $repositoryRoot 'product-status.json'
+		if (-not (Test-Path -LiteralPath $productStatusPath -PathType Leaf)) {
+			throw 'Beta release source is missing product-status.json'
+		}
+		try {
+			$productStatus = Get-Content -LiteralPath $productStatusPath -Raw | ConvertFrom-Json -Depth 32
+		} catch {
+			throw "Beta release product-status.json is invalid: $($_.Exception.Message)"
+		}
+		$declaredBetaTag = [string]$productStatus.delivery.betaRelease.tag
+		if ($declaredBetaTag -ne $Tag) {
+			throw "Beta release tag $Tag does not match product-status beta target $declaredBetaTag"
+		}
+		if ($productStatus.product.betaEligible -ne $true) {
+			throw "Beta release $Tag is blocked because product-status betaEligible is not true"
+		}
+		$betaGates = @($productStatus.gates | Where-Object { $_.betaBlocking -eq $true })
+		if ($betaGates.Count -eq 0) {
+			throw "Beta release $Tag is blocked because product-status declares no betaBlocking gates"
+		}
+		$openBetaGates = @($betaGates | Where-Object { $_.status -ne 'passed' })
+		if ($openBetaGates.Count -gt 0) {
+			$gateSummary = ($openBetaGates | ForEach-Object { "$($_.id):$($_.status)" }) -join ', '
+			throw "Beta release $Tag is blocked by betaBlocking gates: $gateSummary"
+		}
+	}
 	Write-Output "releaseSource=$head"
 } finally {
 	Pop-Location
