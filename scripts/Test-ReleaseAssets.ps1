@@ -24,6 +24,44 @@ function Resolve-RepositorySlug {
 	throw "Unsupported release remote for draft asset verification: $remote"
 }
 
+function Get-ReleaseByTag {
+	param(
+		[Parameter(Mandatory)]
+		[string] $RepositorySlug,
+		[Parameter(Mandatory)]
+		[string] $ReleaseTag
+	)
+
+	# GitHub's "release by tag" endpoint returns 404 for draft releases. The
+	# release list includes drafts for callers with push access, so page through
+	# that endpoint and match the tag locally while the release remains private.
+	for ($page = 1; $page -le 100; $page++) {
+		$endpoint = "repos/$RepositorySlug/releases?per_page=100&page=$page"
+		$releaseJson = @(& gh api $endpoint 2>&1)
+		if ($LASTEXITCODE -ne 0) {
+			throw "Unable to inspect draft release $ReleaseTag`: $($releaseJson -join "`n")"
+		}
+		try {
+			$releasePage = @(($releaseJson -join "`n") | ConvertFrom-Json -Depth 32)
+		} catch {
+			throw "Draft release list for $ReleaseTag returned invalid JSON: $($_.Exception.Message)"
+		}
+
+		$matches = @($releasePage | Where-Object { [string]$_.tag_name -eq $ReleaseTag })
+		if ($matches.Count -gt 1) {
+			throw "Repository release list contains duplicate releases for tag $ReleaseTag"
+		}
+		if ($matches.Count -eq 1) {
+			return $matches[0]
+		}
+		if ($releasePage.Count -lt 100) {
+			break
+		}
+	}
+
+	throw "Unable to inspect draft release $ReleaseTag`: release was not found in repository release list"
+}
+
 $releaseRoot = (Resolve-Path -LiteralPath $ReleaseDirectory).Path
 if (-not (Test-Path -LiteralPath $releaseRoot -PathType Container)) {
 	throw "Release directory does not exist: $ReleaseDirectory"
@@ -33,16 +71,7 @@ if (-not [string]::IsNullOrWhiteSpace($ReleaseJsonPath)) {
 	$release = Get-Content -LiteralPath $ReleaseJsonPath -Raw | ConvertFrom-Json -Depth 32
 } else {
 	$repositorySlug = Resolve-RepositorySlug
-	$escapedTag = [uri]::EscapeDataString($Tag)
-	$releaseJson = @(& gh api "repos/$repositorySlug/releases/tags/$escapedTag" 2>&1)
-	if ($LASTEXITCODE -ne 0) {
-		throw "Unable to inspect draft release $Tag`: $($releaseJson -join "`n")"
-	}
-	try {
-		$release = ($releaseJson -join "`n") | ConvertFrom-Json -Depth 32
-	} catch {
-		throw "Draft release $Tag returned invalid JSON: $($_.Exception.Message)"
-	}
+	$release = Get-ReleaseByTag -RepositorySlug $repositorySlug -ReleaseTag $Tag
 }
 
 if ($release.tag_name -and [string]$release.tag_name -ne $Tag) {
