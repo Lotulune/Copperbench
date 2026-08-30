@@ -29,6 +29,16 @@ try {
 	[IO.Directory]::CreateDirectory((Join-Path $repository 'src/main/resources')) | Out-Null
 	[IO.Directory]::CreateDirectory((Join-Path $repository '.github')) | Out-Null
 	Set-Content -LiteralPath (Join-Path $repository 'src/main/resources/mcreator.conf') -Value 'product.version=0.1.0' -Encoding utf8
+	$eligibleStatus = @{
+		product = @{ betaEligible = $true }
+		delivery = @{ betaRelease = @{ tag = 'v0.1.0-beta.1' } }
+		gates = @(
+			@{ id = 'real-jcef-accessibility'; betaBlocking = $true; status = 'passed' },
+			@{ id = 'clean-windows-11-stage9'; betaBlocking = $true; status = 'passed' },
+			@{ id = 'five-external-testers'; betaBlocking = $true; status = 'passed' }
+		)
+	} | ConvertTo-Json -Depth 8
+	Set-Content -LiteralPath (Join-Path $repository 'product-status.json') -Value $eligibleStatus -Encoding utf8
 	$publicKey = (Get-Content -LiteralPath "$keyPath.pub" -Raw).Trim()
 	Set-Content -LiteralPath (Join-Path $repository '.github/release-signers') -Value "release-test@example.invalid $publicKey" -Encoding utf8
 	Invoke-TestGit -Arguments @('add', '.')
@@ -37,11 +47,58 @@ try {
 	Invoke-TestGit -Arguments @('update-ref', 'refs/remotes/origin/main', $head)
 	& git -C $repository -c gpg.format=ssh -c "user.signingkey=$keyPath" tag -s -a v0.1.0-preview.3 -m 'signed release'
 	if ($LASTEXITCODE -ne 0) { throw 'Unable to create signed test tag' }
+	& git -C $repository -c gpg.format=ssh -c "user.signingkey=$keyPath" tag -s -a v0.1.0-beta.1 -m 'signed beta release'
+	if ($LASTEXITCODE -ne 0) { throw 'Unable to create signed beta test tag' }
 	Invoke-TestGit -Arguments @('tag', '-a', 'v0.1.0-preview.4', '-m', 'unsigned release')
 
 	$valid = Invoke-Verifier -Tag 'v0.1.0-preview.3' -MainCommit $head
 	if ($valid.ExitCode -ne 0 -or $valid.Output -notmatch "releaseSource=$head") {
 		throw "Valid signed release source was rejected:`n$($valid.Output)"
+	}
+	$validBeta = Invoke-Verifier -Tag 'v0.1.0-beta.1' -MainCommit $head
+	if ($validBeta.ExitCode -ne 0 -or $validBeta.Output -notmatch "releaseSource=$head") {
+		throw "Valid signed beta release source was rejected:`n$($validBeta.Output)"
+	}
+
+	$blockedStatus = @{
+		product = @{ betaEligible = $false }
+		delivery = @{ betaRelease = @{ tag = 'v0.1.0-beta.2' } }
+		gates = @(@{ id = 'five-external-testers'; betaBlocking = $true; status = 'blocked' })
+	} | ConvertTo-Json -Depth 8
+	Set-Content -LiteralPath (Join-Path $repository 'product-status.json') -Value $blockedStatus -Encoding utf8
+	Invoke-TestGit -Arguments @('add', 'product-status.json')
+	Invoke-TestGit -Arguments @('commit', '-m', 'blocked beta source')
+	$blockedHead = (& git -C $repository rev-parse HEAD).Trim()
+	Invoke-TestGit -Arguments @('update-ref', 'refs/remotes/origin/main', $blockedHead)
+	& git -C $repository -c gpg.format=ssh -c "user.signingkey=$keyPath" tag -s -a v0.1.0-beta.2 -m 'blocked beta release'
+	if ($LASTEXITCODE -ne 0) { throw 'Unable to create blocked beta test tag' }
+	$blockedBeta = Invoke-Verifier -Tag 'v0.1.0-beta.2' -MainCommit $blockedHead
+	if ($blockedBeta.ExitCode -eq 0 -or $blockedBeta.Output -notmatch 'betaEligible is not true') {
+		throw "Blocked beta release source was not rejected:`n$($blockedBeta.Output)"
+	}
+
+	$openGateStatus = @{
+		product = @{ betaEligible = $true }
+		delivery = @{ betaRelease = @{ tag = 'v0.1.0-beta.3' } }
+		gates = @(@{ id = 'real-jcef-accessibility'; betaBlocking = $true; status = 'blocked' })
+	} | ConvertTo-Json -Depth 8
+	Set-Content -LiteralPath (Join-Path $repository 'product-status.json') -Value $openGateStatus -Encoding utf8
+	Invoke-TestGit -Arguments @('add', 'product-status.json')
+	Invoke-TestGit -Arguments @('commit', '-m', 'beta with open gate')
+	$openGateHead = (& git -C $repository rev-parse HEAD).Trim()
+	Invoke-TestGit -Arguments @('update-ref', 'refs/remotes/origin/main', $openGateHead)
+	& git -C $repository -c gpg.format=ssh -c "user.signingkey=$keyPath" tag -s -a v0.1.0-beta.3 -m 'beta with open gate'
+	if ($LASTEXITCODE -ne 0) { throw 'Unable to create open-gate beta test tag' }
+	$openGateBeta = Invoke-Verifier -Tag 'v0.1.0-beta.3' -MainCommit $openGateHead
+	if ($openGateBeta.ExitCode -eq 0 -or $openGateBeta.Output -notmatch 'blocked by betaBlocking gates') {
+		throw "Beta release with an open blocker was not rejected:`n$($openGateBeta.Output)"
+	}
+
+	Invoke-TestGit -Arguments @('checkout', '--detach', $head)
+	Invoke-TestGit -Arguments @('update-ref', 'refs/remotes/origin/main', $head)
+	$invalidChannel = Invoke-Verifier -Tag 'v0.1.0-rc.1' -MainCommit $head
+	if ($invalidChannel.ExitCode -eq 0 -or $invalidChannel.Output -notmatch 'must match vX.Y.Z') {
+		throw 'Unsupported release channel tag was not rejected'
 	}
 	$unsigned = Invoke-Verifier -Tag 'v0.1.0-preview.4' -MainCommit $head
 	if ($unsigned.ExitCode -eq 0 -or $unsigned.Output -notmatch 'no valid signature') {
