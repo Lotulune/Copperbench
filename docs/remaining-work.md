@@ -6,11 +6,11 @@
 
 ### 2026-08-31 发布控制更新
 
-`v0.1.0-beta.1` 已从 `main@f12823ab` 经 merged-main CI `33332178127` 与 Windows release run `33332537616` 成功公开。Beta 的 EXE/ZIP/MSIX/SBOM 与冻结候选 `v0.1.0-preview.6` 在 GitHub size 与 SHA-256 上逐项完全一致，`RELEASE-METADATA.json` 记录 `binarySource.mode=promoted-tested-candidate`。
+`v0.1.0-beta.2` 已从 `main@8b063283` 经 merged-main CI `33334020837` 与 Windows release run `33334394466` 成功公开。10 个 Release 资产全部 `uploaded` 且具有 digest；EXE/ZIP/MSIX/SBOM 与冻结候选 `v0.1.0-preview.6` 以及 Beta 1 在 GitHub size 与 SHA-256 上逐项完全一致。
 
-发布后验收发现 Beta 1 随包 `product-status.json` 仍声明 `product.channel=preview`。因此 Beta 1 保持不可变但不作为最终状态基线；当前唯一剩余发布动作是发布 `v0.1.0-beta.2` metadata-only correction，把权威 channel 修正为 `beta`，同时继续复用 Preview 6 的相同四个 canonical 字节。证据见 [Beta 1 publication verification](./testing/beta1-publication-2026-08-31.md)。
+Beta 1 随包 `product.channel=preview` 的元数据漂移已由不可变的新标签 Beta 2 修正。Beta 2 随包状态源为 `product.channel=beta`、`delivery.betaRelease.tag=v0.1.0-beta.2`，`RELEASE-METADATA.json` 指向 `binarySource.mode=promoted-tested-candidate` / `v0.1.0-preview.6`。证据见 [Beta 1 publication verification](./testing/beta1-publication-2026-08-31.md) 与 [Beta 2 publication verification](./testing/beta2-publication-2026-08-31.md)。
 
-阶段 8 收口需求 `FR-CLOSE-01`～`FR-CLOSE-08` 均已完成。当前发布链已完成 Preview 6 候选冻结与 Beta 1 exact-binary promotion；`main@f12823ab` 的 merged-main CI `33332178127` 全绿，Beta 1 release run `33332537616` 全绿。当前不再有产品代码或候选二进制阻断，剩余项仅是 Beta 2 的状态源 channel 元数据修正。真实 JCEF 无障碍、最终 RC 回放和五人外部试用继续明确移出当前 Beta 宣称范围。
+阶段 8 收口需求 `FR-CLOSE-01`～`FR-CLOSE-08` 均已完成。当前发布链已完成 Preview 6 候选冻结、Beta 1 exact-binary promotion 与 Beta 2 metadata correction；`main@8b063283` 的 merged-main CI `33334020837` 全绿，Beta 2 release run `33334394466` 全绿。当前 Public Beta 发布控制没有未完成阻断。真实 JCEF 无障碍、最终 RC 回放和五人外部试用继续明确移出当前 Beta 宣称范围。
 
 ## 当前交付阻断项
 
@@ -26,9 +26,9 @@
 | Preview 3 | 历史公开基线 | `v0.1.0-preview.3` 指向 `main@cc15d57a`，release run `32923503840` 成功；已被 Preview 6 取代为当前候选 |
 | Preview 6 | 冻结 Beta candidate | `v0.1.0-preview.6` 指向 `main@f677e481`，release run `33330520467` 成功；EXE/ZIP/MSIX/SBOM canonical 摘要已冻结 |
 | Beta 1 | 已公开；二进制验证通过、状态源 channel 漂移 | `v0.1.0-beta.1` 指向 `main@f12823ab`，release run `33332537616` 成功；四个 canonical 资产与 Preview 6 完全同 SHA-256，但随包 `product.channel=preview` |
-| Beta 2 | metadata-only correction 待发布 | 目标仅把权威状态源 `product.channel` 修正为 `beta`；必须继续 exact-binary promotion Preview 6，不得改产品代码或候选字节 |
-| 发布范围 | Public Beta 已进入 metadata correction | 无障碍、最终 RC 和外部试用已从当前 Beta 合同移出；Beta 1 exact-binary promotion 已通过，Beta 2 只修正状态源 channel |
-| Beta 二进制身份 | 已验证 | Beta 1 的 EXE/ZIP/MSIX/SBOM 与 Preview 6 size/SHA-256 完全一致；`RELEASE-METADATA.json` 指向 `promoted-tested-candidate`，Beta 2 必须继续复用同一候选 |
+| Beta 2 | 已公开，metadata correction 完成 | `v0.1.0-beta.2` 指向 `main@8b063283`，release run `33334394466` 成功；随包 `product.channel=beta`，四个 canonical 资产仍与 Preview 6/Beta 1 完全同 size/SHA-256 |
+| 发布范围 | Public Beta 已发布 | Beta 2 状态源与 exact-binary promotion 已验证；无障碍、最终 RC 和外部试用继续从当前 Beta 合同移出且不宣称已通过 |
+| Beta 二进制身份 | 已验证 | Preview 6、Beta 1、Beta 2 的 EXE/ZIP/MSIX/SBOM size/SHA-256 三方完全一致；Beta 2 `RELEASE-METADATA.json` 继续指向 `promoted-tested-candidate` / Preview 6 |
 | 诊断包 | 已通过 | `main@92d1a8d0` + Nightly `33253594479` 已固定验证默认脱敏、显式复现授权、Java 服务、真实 JCEF、桥接与 UI 路径 |
 | Issue 分流 | 已通过 | `main@92d1a8d0` + Nightly `33253594479` 已固定验证 FR-BETA-02 Issue 表单字段与分流入口 |
 | 外部试用 | 当前 Beta 范围不适用 | 五人外测协议和验证器保留，但不再阻断当前 Beta 候选 |
