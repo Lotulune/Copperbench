@@ -42,11 +42,14 @@ $promotionAssignments = [regex]::Matches($content, '\$result\.gatePromotionReady
 if ($promotionAssignments -ne 1) {
 	throw "Expected exactly one gatePromotionReady=true assignment; found $promotionAssignments."
 }
-if ($content -notmatch '\$FinalRcReplay\s+-and\s+\$result\.finalRcTrackedWorktreeClean\s+-and\s+\$result\.passed\s+-and\s+\$result\.testMarkersRemoved') {
-	throw 'Final RC promotion must require FinalRcReplay, a clean tracked worktree, passed=true, and testMarkersRemoved=true.'
+if ($content -notmatch '\$FinalRcReplay\s+-and\s+\$result\.finalRcSourceWorktreeClean\s+-and\s+\$result\.passed\s+-and\s+\$result\.testMarkersRemoved') {
+	throw 'Final RC promotion must require FinalRcReplay, a clean build-affecting worktree, passed=true, and testMarkersRemoved=true.'
 }
-if ($content -notmatch 'status --porcelain --untracked-files=no') {
-	throw 'Final RC replay must reject tracked worktree changes before touching the guest.'
+if ($content -notmatch 'status --porcelain --untracked-files=all') {
+	throw 'Final RC replay must inspect tracked and untracked worktree changes before touching the guest.'
+}
+if ($content -notmatch "allowedDirtyPrefixes = @\('docs/history-session/', 'evidence/'\)") {
+	throw 'Final RC replay may only exempt history-session and evidence directories from the clean-source check.'
 }
 
 Write-Output 'G9.5 final-RC replay contract tests passed.'

@@ -46,7 +46,7 @@ if ($previousHash -ne $PreviousInstallerSha256.ToLowerInvariant()) {
 }
 $currentHash = (Get-FileHash -LiteralPath $CurrentInstallerPath -Algorithm SHA256).Hash.ToLowerInvariant()
 $resolvedSourceCommit = ''
-$finalRcTrackedWorktreeClean = $false
+$finalRcSourceWorktreeClean = $false
 if ($FinalRcReplay) {
 	$expectedCurrentHash = $ExpectedCurrentInstallerSha256.ToLowerInvariant()
 	if ($currentHash -ne $expectedCurrentHash) {
@@ -63,14 +63,24 @@ if ($FinalRcReplay) {
 		throw "Final RC source commit mismatch. expected=$expectedCommit actual=$resolvedSourceCommit"
 	}
 
-	$trackedStatus = @(& git -C $RepositoryRoot status --porcelain --untracked-files=no 2>$null)
+	$worktreeStatus = @(& git -C $RepositoryRoot status --porcelain --untracked-files=all 2>$null)
 	if ($LASTEXITCODE -ne 0) {
-		throw "Unable to inspect tracked Git worktree state for final RC replay: $RepositoryRoot"
+		throw "Unable to inspect Git worktree state for final RC replay: $RepositoryRoot"
 	}
-	if ($trackedStatus.Count -gt 0) {
-		throw 'Final RC replay requires a clean tracked Git worktree; commit or revert tracked changes before testing the release candidate.'
+	$allowedDirtyPrefixes = @('docs/history-session/', 'evidence/')
+	$disallowedStatus = @($worktreeStatus | Where-Object {
+		$entry = [string]$_
+		if ($entry.Length -lt 4) {
+			return $true
+		}
+		$path = $entry.Substring(3).Trim('"').Replace('\', '/')
+		-not ($allowedDirtyPrefixes | Where-Object { $path.StartsWith($_, [System.StringComparison]::OrdinalIgnoreCase) })
+	})
+	if ($disallowedStatus.Count -gt 0) {
+		$preview = ($disallowedStatus | Select-Object -First 20) -join '; '
+		throw "Final RC replay requires a clean build-affecting Git worktree. Only docs/history-session/ and evidence/ may be dirty. Found: $preview"
 	}
-	$finalRcTrackedWorktreeClean = $true
+	$finalRcSourceWorktreeClean = $true
 }
 
 $plainPassword = (Get-Content -LiteralPath $PasswordFile -Raw).Trim()
@@ -92,7 +102,7 @@ $result = [ordered]@{
 	currentInstallerSha256 = $currentHash
 	finalRcReplayRequested = [bool]$FinalRcReplay
 	finalRcSourceCommit = $resolvedSourceCommit
-	finalRcTrackedWorktreeClean = $finalRcTrackedWorktreeClean
+	finalRcSourceWorktreeClean = $finalRcSourceWorktreeClean
 	installDir = $InstallDir
 	startedAt = (Get-Date).ToString('o')
 	passed = $false
@@ -707,7 +717,7 @@ try {
 	if ($session) {
 		Remove-PSSession $session -ErrorAction SilentlyContinue
 	}
-	if ($FinalRcReplay -and $result.finalRcTrackedWorktreeClean -and $result.passed -and $result.testMarkersRemoved) {
+	if ($FinalRcReplay -and $result.finalRcSourceWorktreeClean -and $result.passed -and $result.testMarkersRemoved) {
 		$result.finalRcReplayRequired = $false
 		$result.gatePromotionReady = $true
 	}
