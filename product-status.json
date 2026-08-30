@@ -3,7 +3,7 @@
   "schemaVersion": "1.0",
   "snapshot": {
     "date": "2026-08-31",
-    "lastVerifiedCommit": "529c5a1a44a7ce491105e66f81ea4edb2c134936",
+    "lastVerifiedCommit": "f677e481914efc2b0a2ceb084a5d9c2f6e7407c8",
     "policy": "Only code, automated checks, and evidence tied to a commit can promote a gate."
   },
   "product": {
@@ -15,34 +15,44 @@
     "targetPlatforms": ["windows-11-x64"],
     "license": "GPL-3.0-only",
     "additionalTerms": "LICENSE-ADDITIONAL-TERMS.md",
-    "betaEligible": false
+    "betaEligible": true
   },
   "delivery": {
     "publishedBaseline": {
-      "tag": "v0.1.0-preview.3",
-      "sourceCommit": "cc15d57a6f25d02ca41833a70bbe28ecf98b43e5",
+      "tag": "v0.1.0-preview.6",
+      "sourceCommit": "f677e481914efc2b0a2ceb084a5d9c2f6e7407c8",
       "status": "public-prerelease",
-      "releaseWorkflowRun": "https://github.com/Lotulune/Copperbench/actions/runs/32923503840"
+      "releaseWorkflowRun": "https://github.com/Lotulune/Copperbench/actions/runs/33330520467"
     },
     "releaseContract": {
-      "tag": "v0.1.0-preview.3",
+      "tag": "v0.1.0-preview.6",
       "purpose": "published-exact-main-head-preview",
       "sourcePolicy": "The signed tag, RELEASE-METADATA.json commit, and main HEAD must resolve to the same commit at publication.",
       "signedTagRequired": true,
       "productionApprovalRequired": true,
-      "publicStateSource": "https://api.github.com/repos/Lotulune/Copperbench/releases/tags/v0.1.0-preview.3"
+      "publicStateSource": "https://api.github.com/repos/Lotulune/Copperbench/releases/tags/v0.1.0-preview.6"
     },
     "betaRelease": {
       "tag": "v0.1.0-beta.1",
-      "status": "beta-candidate-pending"
+      "status": "ready",
+      "candidateRelease": {
+        "tag": "v0.1.0-preview.6",
+        "sourceCommit": "f677e481914efc2b0a2ceb084a5d9c2f6e7407c8",
+        "assets": {
+          "exe": {"name": "Copperbench.0.1.0.Windows.64bit.exe", "sha256": "fbe3bda67efb179d08b09b0e6153a77040e72f0e5c599ef08f7087847ce1354b"},
+          "zip": {"name": "Copperbench.0.1.0.Windows.64bit.zip", "sha256": "e6ee15a656127c521717b04fc60643c6e5f8b8c8e452d25c6bafc2b1e114bf13"},
+          "msix": {"name": "Copperbench.0.1.0.Windows.64bit.msix", "sha256": "2586b7c4e75782c7e6541fe40fa277f7d235df7abc9c4092f4e0d98e969ddd00"},
+          "sbom": {"name": "copperbench.spdx.json", "sha256": "f467cfe23bbdad1f51ccd55723bc3448b1811eda2e0c534ad47daa3d18473a97"}
+        }
+      }
     },
     "fastCi": {
       "status": "passed",
-      "run": "https://github.com/Lotulune/Copperbench/actions/runs/33320875746",
+      "run": "https://github.com/Lotulune/Copperbench/actions/runs/33329612708",
       "latestAttempt": {
         "status": "passed",
-        "run": "https://github.com/Lotulune/Copperbench/actions/runs/33320875746",
-        "reason": "main@529c5a1a passed Java/Javadoc, UI/Playwright smoke, MCP conformance, signed release-source checks, Beta scope exclusions, and the registered local release-signer contract after PR #41 merged. The last heavy Windows product regression remains Nightly 33253594479 on main@92d1a8d0 because the subsequent changes are release-control, evidence, and documentation changes rather than Copperbench product runtime behavior."
+        "run": "https://github.com/Lotulune/Copperbench/actions/runs/33329612708",
+        "reason": "main@f677e481 passed Java/Javadoc, UI/Playwright smoke, MCP conformance, release-source checks, the draft-release lookup fix, and canonical release-asset naming after PR #44 merged. Preview 6 release run 33330520467 then built, verified, and published the signed candidate successfully. The last heavy Windows product regression remains Nightly 33253594479 on main@92d1a8d0 because subsequent changes are release-control, evidence, documentation, and release-tooling fixes rather than Copperbench product runtime behavior."
       },
       "runs": [
         "https://github.com/Lotulune/Copperbench/actions/runs/32904346297",
@@ -116,7 +126,7 @@
     "notApplicable": ["bebiome", "beblock", "beentity", "beitem", "bescript"]
   },
   "gates": [
-    {"id": "release-pipeline", "status": "passed", "betaBlocking": false, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/32838065932"]},
+    {"id": "release-pipeline", "status": "passed", "betaBlocking": false, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/32838065932", "https://github.com/Lotulune/Copperbench/actions/runs/33330520467", "docs/testing/beta-candidate-preview6-2026-08-31.md"]},
     {"id": "fast-ci", "status": "passed", "betaBlocking": false, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/32904346297", "https://github.com/Lotulune/Copperbench/actions/runs/32904844692", "https://github.com/Lotulune/Copperbench/actions/runs/32905419136", "https://github.com/Lotulune/Copperbench/actions/runs/33306183486", "https://github.com/Lotulune/Copperbench/actions/runs/33320875746"]},
     {"id": "product-status-source", "status": "passed", "betaBlocking": true, "evidence": ["product-status.json", "schemas/product-status.schema.json", "scripts/verify-product-status.mjs"]},
     {"id": "repository-governance", "status": "passed", "betaBlocking": false, "evidence": ["docs/testing/repository-governance-2026-08-26.md"]},
@@ -146,7 +156,7 @@
     "Release Git Tags contain SSH signatures; GitHub reports unknown_key until the public signing key is registered.",
     "Stage 9 data elements remain preview; the physical high-DPI/screen-reader audit and final clean-Windows RC replay are excluded from the current Beta scope and are not claimed as passed.",
     "The real JCEF accessibility pass and final clean Windows 11 RC replay are not complete; the Hyper-V guest cannot validate Chromium WebContents accessibility because native Edge reproduces the same missing web-control subtree, so a physical or otherwise known-good Windows accessibility environment is required.",
-    "The current Beta scope explicitly excludes the real JCEF accessibility audit, final clean-Windows RC replay, and external tester trial; Beta publication still requires a signed Preview candidate and exact asset hashes.",
+    "The current Beta scope explicitly excludes the real JCEF accessibility audit, final clean-Windows RC replay, and external tester trial; signed Preview candidate v0.1.0-preview.6 is frozen with exact EXE/ZIP/MSIX/SBOM hashes, so the remaining publication step is exact-binary promotion to the declared Beta tag.",
     "Windows packages are not Authenticode signed."
   ]
 }

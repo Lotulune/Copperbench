@@ -4,7 +4,13 @@
 
 ## 当前状态
 
-阶段 8 收口需求 `FR-CLOSE-01`～`FR-CLOSE-08` 均已完成。`v0.1.0-preview.2` 已验证完整 Windows 三包、SBOM、哈希、源元数据和生产审批；`v0.1.0-preview.3` 随后从当时的 `main@cc15d57a` 通过 release run `32923503840` 公开，现作为历史已发布基线。当前主线 `main@529c5a1a` 已合入 Beta 发布合同、精确二进制晋级、上传资产摘要校验、Beta scope exclusion 和本地 SSH release signer 注册；merged-main CI run `33320875746` 全绿。FR-AI-03 Workspace Plan、FR-AI-04 Task Events/reconnect、FR-AI-05 SDK/evals、FR-BETA-01 诊断包和 FR-BETA-02 Issue 分流均已关闭。根据当前收尾决策，真实 JCEF 无障碍、最终 RC 回放和五人外部试用明确移出当前 Preview/Beta 宣称范围，不再作为本版本交付阻断；它们保留为未来重新纳入时需要的新证据项。当前 Beta 前唯一发布链阻断是冻结新的签名 Preview 候选并把它的 EXE/ZIP/MSIX/SBOM 精确摘要写回状态源。
+### 2026-08-31 发布控制更新
+
+`v0.1.0-preview.6` 已从 `main@f677e481` 经 merged-main CI `33329612708` 和 Windows release run `33330520467` 成功公开。候选 EXE/ZIP/MSIX/SBOM 的 canonical 文件名与 SHA-256 已写入 `product-status.json` 的 `delivery.betaRelease.candidateRelease`，状态源现为 `betaEligible=true` / `delivery.betaRelease.status=ready`。当前版本剩余发布动作是把这四个已测试字节 exact-binary promotion 为 `v0.1.0-beta.1`，不是继续修改产品代码或重新构建候选。
+
+真实 JCEF 无障碍审计、最终 clean-Windows RC replay 与五人外部试用继续明确排除在当前 Beta scope 之外，不宣称其已通过。候选冻结证据见 [Preview 6 Beta candidate freeze](./testing/beta-candidate-preview6-2026-08-31.md)。
+
+阶段 8 收口需求 `FR-CLOSE-01`～`FR-CLOSE-08` 均已完成。当前主线 `main@f677e481` 已合入 Beta 发布合同、exact-binary promotion、draft release 查询修复与 canonical release-asset naming；merged-main CI run `33329612708` 全绿，随后 `v0.1.0-preview.6` 经 release run `33330520467` 成功公开。FR-AI-03 Workspace Plan、FR-AI-04 Task Events/reconnect、FR-AI-05 SDK/evals、FR-BETA-01 诊断包和 FR-BETA-02 Issue 分流均已关闭。真实 JCEF 无障碍、最终 RC 回放和五人外部试用继续明确移出当前 Preview/Beta 宣称范围。当前 Beta 发布链已经完成候选冻结，剩余动作仅是 Beta release-control 合并、签名 `v0.1.0-beta.1` 并 exact-binary promotion Preview 6 的四个 canonical 资产。
 
 ## 当前交付阻断项
 
@@ -17,8 +23,9 @@
 | Nightly | 已通过：`main@92d1a8d0` | [运行 33253594479](https://github.com/Lotulune/Copperbench/actions/runs/33253594479) 的完整 Windows 产品回归、Java/Javadoc/scale、Playwright、MCP、诊断包 native JCEF 验收与八生成器矩阵全部通过 |
 | Dependency Submission | 已移除 | Dependency Graph 关闭时不保留必失败工作流 |
 | Preview 2 | 已公开（历史） | `v0.1.0-preview.2` 的 Tag、生产审批、三包、SBOM、哈希和资产验证已完成 |
-| Preview 3 | 已公开基线 | `v0.1.0-preview.3` 指向 `main@cc15d57a`，release run `32923503840` 成功；后续发布必须使用新 Tag |
-| 发布范围 | Beta 候选准备中 | 无障碍、最终 RC 和外部试用已从当前 Beta 合同移出；`main@529c5a1a` 的 CI 已通过且 release signer 已注册，仍需新的签名 Preview 候选和四个资产摘要 |
+| Preview 3 | 历史公开基线 | `v0.1.0-preview.3` 指向 `main@cc15d57a`，release run `32923503840` 成功；已被 Preview 6 取代为当前候选 |
+| Preview 6 | 当前冻结候选 | `v0.1.0-preview.6` 指向 `main@f677e481`，release run `33330520467` 成功；EXE/ZIP/MSIX/SBOM canonical 摘要已冻结并写回状态源 |
+| 发布范围 | Beta 发布控制就绪 | 无障碍、最终 RC 和外部试用已从当前 Beta 合同移出；`v0.1.0-preview.6` 已签名并公开，四个 canonical 资产 SHA-256 已冻结，`betaEligible=true` |
 | Beta 二进制身份 | 契约已实现、候选尚未冻结 | 最终应先发布新的签名 Preview 候选；a11y、G9.5 与 5/5 tester 绑定其 commit/EXE SHA。Beta release-control commit 只允许 evidence/status/docs 增量，打包阶段原样下载并验证候选 EXE/ZIP/MSIX/SBOM，避免发布时重新构建导致 hash 漂移；见 [精确二进制晋级契约](./testing/beta-exact-binary-promotion-2026-08-30.md) |
 | 诊断包 | 已通过 | `main@92d1a8d0` + Nightly `33253594479` 已固定验证默认脱敏、显式复现授权、Java 服务、真实 JCEF、桥接与 UI 路径 |
 | Issue 分流 | 已通过 | `main@92d1a8d0` + Nightly `33253594479` 已固定验证 FR-BETA-02 Issue 表单字段与分流入口 |
