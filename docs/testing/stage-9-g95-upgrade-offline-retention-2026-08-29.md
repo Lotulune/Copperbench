@@ -101,3 +101,20 @@
 当前 G9.5 的开发候选路径已经覆盖首次安装/首次启动、真实 GUI 新建工作区、generator setup、在线
 `-workspace` 冷启动、公开旧版升级、断网工作区启动和升级/卸载数据保留。剩余的 G9.5 发布阻断项是：**在最终确定的
 Public Beta/RC 安装包上重放同一整套矩阵，并把最终 RC 的机器证据挂回状态源。**
+
+最终候选重放必须显式使用 `-FinalRcReplay`，并同时传入当前安装器 SHA-256 和对应的完整 Git SHA。脚本会在连接客机
+之前验证安装器 hash，并要求 `-ExpectedSourceCommit` 与仓库当前 `HEAD` 完全一致，同时要求 tracked worktree 没有已暂存
+或未暂存改动；任一不一致都直接拒绝运行。未跟踪的本地 evidence/history 文件不会阻断该检查。只有在
+这些绑定检查通过、整套 G9.5 矩阵最终 `passed=true` 且本轮 marker 清理完成时，机器证据才会写入
+`finalRcReplayRequired=false` 与 `gatePromotionReady=true`。普通开发候选运行继续保持这两个字段为
+`true/false`，避免误把中间候选提升成最终 RC 证据。
+
+示例：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass `
+  -File scripts/Invoke-G9CleanWindowsUpgradeRetentionGate.ps1 `
+  -FinalRcReplay `
+  -ExpectedSourceCommit <40-character-source-SHA> `
+  -ExpectedCurrentInstallerSha256 <64-character-installer-SHA256>
+```

@@ -35,7 +35,7 @@
     "tasks": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["downloaded", "hashVerified", "installed", "workspaceCreatedOrImported", "elementCreated", "buildCompleted", "failureInduced", "diagnosticInspected", "recoveryPointCreated", "recoveryRestored", "uninstalled", "workspaceRetainedAfterUninstall"],
+      "required": ["downloaded", "hashVerified", "installed", "workspaceCreatedOrImported", "elementCreated", "buildCompleted", "failureInduced", "diagnosticInspected", "diagnosticBundleExported", "recoveryPointCreated", "recoveryRestored", "uninstalled", "workspaceRetainedAfterUninstall"],
       "properties": {
         "downloaded": { "const": "passed" },
         "hashVerified": { "const": "passed" },
@@ -45,6 +45,7 @@
         "buildCompleted": { "const": "passed" },
         "failureInduced": { "const": "passed" },
         "diagnosticInspected": { "const": "passed" },
+        "diagnosticBundleExported": { "const": "passed" },
         "recoveryPointCreated": { "const": "passed" },
         "recoveryRestored": { "const": "passed" },
         "uninstalled": { "const": "passed" },
