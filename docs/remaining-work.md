@@ -4,7 +4,7 @@
 
 ## 当前状态
 
-阶段 8 收口需求 `FR-CLOSE-01`～`FR-CLOSE-08` 均已完成。`v0.1.0-preview.2` 已验证完整 Windows 三包、SBOM、哈希、源元数据和生产审批；`v0.1.0-preview.3` 随后从当时的 `main@cc15d57a` 通过 release run `32923503840` 公开，现作为历史已发布基线。当前主线已合入 Beta 发布合同、精确二进制晋级和上传资产摘要校验，相关 CI 全绿。FR-AI-03 Workspace Plan、FR-AI-04 Task Events/reconnect、FR-AI-05 SDK/evals、FR-BETA-01 诊断包和 FR-BETA-02 Issue 分流均已关闭。根据当前收尾决策，真实 JCEF 无障碍、最终 RC 回放和五人外部试用明确移出当前 Preview/Beta 宣称范围，不再作为本版本交付阻断；它们保留为未来重新纳入时需要的新证据项。
+阶段 8 收口需求 `FR-CLOSE-01`～`FR-CLOSE-08` 均已完成。`v0.1.0-preview.2` 已验证完整 Windows 三包、SBOM、哈希、源元数据和生产审批；`v0.1.0-preview.3` 随后从当时的 `main@cc15d57a` 通过 release run `32923503840` 公开，现作为历史已发布基线。当前主线 `main@529c5a1a` 已合入 Beta 发布合同、精确二进制晋级、上传资产摘要校验、Beta scope exclusion 和本地 SSH release signer 注册；merged-main CI run `33320875746` 全绿。FR-AI-03 Workspace Plan、FR-AI-04 Task Events/reconnect、FR-AI-05 SDK/evals、FR-BETA-01 诊断包和 FR-BETA-02 Issue 分流均已关闭。根据当前收尾决策，真实 JCEF 无障碍、最终 RC 回放和五人外部试用明确移出当前 Preview/Beta 宣称范围，不再作为本版本交付阻断；它们保留为未来重新纳入时需要的新证据项。当前 Beta 前唯一发布链阻断是冻结新的签名 Preview 候选并把它的 EXE/ZIP/MSIX/SBOM 精确摘要写回状态源。
 
 ## 当前交付阻断项
 
@@ -18,7 +18,7 @@
 | Dependency Submission | 已移除 | Dependency Graph 关闭时不保留必失败工作流 |
 | Preview 2 | 已公开（历史） | `v0.1.0-preview.2` 的 Tag、生产审批、三包、SBOM、哈希和资产验证已完成 |
 | Preview 3 | 已公开基线 | `v0.1.0-preview.3` 指向 `main@cc15d57a`，release run `32923503840` 成功；后续发布必须使用新 Tag |
-| 发布范围 | Beta 候选准备中 | 无障碍、最终 RC 和外部试用已从当前 Beta 合同移出；仍需新的签名 Preview 候选和四个资产摘要 |
+| 发布范围 | Beta 候选准备中 | 无障碍、最终 RC 和外部试用已从当前 Beta 合同移出；`main@529c5a1a` 的 CI 已通过且 release signer 已注册，仍需新的签名 Preview 候选和四个资产摘要 |
 | Beta 二进制身份 | 契约已实现、候选尚未冻结 | 最终应先发布新的签名 Preview 候选；a11y、G9.5 与 5/5 tester 绑定其 commit/EXE SHA。Beta release-control commit 只允许 evidence/status/docs 增量，打包阶段原样下载并验证候选 EXE/ZIP/MSIX/SBOM，避免发布时重新构建导致 hash 漂移；见 [精确二进制晋级契约](./testing/beta-exact-binary-promotion-2026-08-30.md) |
 | 诊断包 | 已通过 | `main@92d1a8d0` + Nightly `33253594479` 已固定验证默认脱敏、显式复现授权、Java 服务、真实 JCEF、桥接与 UI 路径 |
 | Issue 分流 | 已通过 | `main@92d1a8d0` + Nightly `33253594479` 已固定验证 FR-BETA-02 Issue 表单字段与分流入口 |

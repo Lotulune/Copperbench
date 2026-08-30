@@ -2,7 +2,7 @@
 
 > 状态：Beta 候选准备中（已排除三项可选门禁，尚未发布候选包）<br>
 > 版本：v1.2<br>
-> 更新日期：2026-08-29<br>
+> 更新日期：2026-08-31<br>
 > 前置基线：[PRD.md](./PRD.md)、[PRD-STAGE-9.md](./PRD-STAGE-9.md)<br>
 > 已验证公开基线：`v0.1.0-preview.3`（`main@cc15d57a`）；当前 Beta 合同已排除三项可选门禁，仍需新的签名 Preview 候选才能发布 Beta
 
@@ -14,18 +14,18 @@
 - 关闭需求必须同时满足实现、自动验证、用户文档和可追溯证据，不接受只修改状态文字。
 - 本阶段冻结新模组元素类型，已建立“提交 → CI → 产物 → Release”可信闭环；无障碍、最终 RC 和外部试用不纳入当前 Beta 宣称，但候选包和签名来源仍是必需项。
 
-### 0.1 实施快照（2026-08-28）
+### 0.1 实施快照（2026-08-31）
 
 机器可读事实入口为 [`product-status.json`](./product-status.json)，本节只解释执行状态。
 
 | 项目 | 当前事实 | 结论 |
 | --- | --- | --- |
-| Fast CI | main 分支保护持续要求 Java/Javadoc、UI/Playwright 与 MCP；当前 `main@3fcf2923` 的 merged-main run `33306183486` 全绿，并在 MCP job 中通过签名 release-source / Beta eligibility fail-closed 检查 | PR 门禁已闭环；机器状态源继续保留连续 main 门禁 3/3 |
+| Fast CI | main 分支保护持续要求 Java/Javadoc、UI/Playwright 与 MCP；当前 `main@529c5a1a` 的 merged-main run `33320875746` 全绿，并覆盖签名 release-source、Beta scope exclusion 与 release signer 合同 | PR 门禁已闭环；机器状态源继续保留连续 main 门禁 3/3 |
 | 公开 Release | `v0.1.0-preview.3` 已从 `main@cc15d57a` 公开，release run `32923503840` 成功；它现在是历史已发布基线而非未来发布源 | 当前合同已排除 a11y、最终 RC 和外测三项；仍必须先冻结并公开新的签名 Preview 候选，Beta 原样晋级候选 EXE/ZIP/MSIX/SBOM，不能用重新构建的不同字节替代；Windows 包仍未 Authenticode 签名 |
 | 状态源 | `product-status.json`、Schema 和 CI 漂移校验已进入 main，并已修复首次远端运行暴露的 Release Schema 漏项 | 状态源门禁通过；后续状态提升仍必须带固定提交证据 |
 | 重型门禁 | Nightly `33253594479`（`main@92d1a8d0`）的全量 Java/Javadoc/scale 回归、完整 Playwright、MCP、诊断包 native JCEF 验收与八生成器内容构建 8/8 全绿；后续发布合同变更也已通过主线 CI | FR-AI-02～05、FR-BETA-01～02 保持闭环；无障碍、最终 RC 和外部试用已按 Beta 合同移出当前范围 |
 | Stage 9 | 八生成器黄金编译、三个专用编辑器、语言工具、安装升级和离线工作区路径已有自动化/客机证据；Windows WR + Chromium 完整 AXMode 与 `DPR=1.25` 路径已通过 | 物理高 DPI、屏幕阅读器、最终 RC 矩阵和外部试用不纳入当前版本宣称，未来重新纳入时需新候选和新证据 |
-| AI Developer Kit | PR #14～#17 的 Cursor、Workspace Plan、Task Events/SDK 与 Windows-native JCEF reconnect 均已合入；当前 `main@3fcf2923` 的 merged-main CI `33306183486` 与固定产品基线 Nightly `33253594479` 全绿 | FR-AI-02～05 均为 `passed`；MCP reconnect 继续冻结为 `get_task(afterLogSequence)`，不引入未版本化的自定义 push 方言 |
+| AI Developer Kit | PR #14～#17 的 Cursor、Workspace Plan、Task Events/SDK 与 Windows-native JCEF reconnect 均已合入；当前 `main@529c5a1a` 的 merged-main CI `33320875746` 与固定产品基线 Nightly `33253594479` 全绿 | FR-AI-02～05 均为 `passed`；MCP reconnect 继续冻结为 `get_task(afterLogSequence)`，不引入未版本化的自定义 push 方言 |
 | 仓库治理 | GitHub 已识别 GPLv3；Javadoc Pages 可访问；main 三项必需检查、受保护 PR 与 production 必需审阅者均已验证 | 仓库治理 P0 已闭环 |
 | Dependency Submission | 仓库 Dependency Graph 未启用，原工作流无法成功 | 误导工作流已从 main 删除 |
 
@@ -36,10 +36,10 @@
 截至 2026-08-25，代码能力仍高于公共交付能力，主要差距是：
 
 1. `v0.1.0-preview.2` 已证明完整发布链路，但发布后的状态同步提交使公开 Tag 不再等于最新 `main`；Preview 3 用一次冻结提交恢复严格一致性。
-2. 快速 CI、分支保护、真实 PR、Nightly 和人工发布审批配置已闭环；Preview 3 必须在最终合并 SHA 上保留检查、签名 Tag 和生产审批记录。
+2. 快速 CI、分支保护、真实 PR、Nightly 和人工发布审批配置已闭环；下一签名 Preview 候选必须在最终合并 SHA 上保留检查、签名 Tag 和生产审批记录。
 3. 机器状态源已建立；PRD、状态索引和发布说明仍必须在每次状态提升时同步更新。
-4. Stage 9 的大型工作区、专用编辑器、语言工具、服务端 readiness、真实 JCEF/a11y 和干净 Windows 11 门禁仍未关闭。
-5. MCP 的大型列表 Cursor 已闭环；剩余主要缺口为原子 Workspace Plan 的远端闭环、长任务事件的完整订阅验收、SDK/eval 的 live 执行和外部试用。
+4. Stage 9 的大型工作区、专用编辑器、语言工具和服务端 readiness 已有固定证据；真实 JCEF/a11y、最终 clean-Windows RC 与外部试用已明确移出当前 Beta 宣称范围，保留为未来重新纳入时的证据项。
+5. MCP 的大型列表 Cursor、Workspace Plan、Task Events/reconnect 与 SDK/evals 均已闭环；当前不再以新增 AI 能力阻断 Beta 候选。
 
 因此，本阶段的产品目标不是增加更多元素，而是把现有能力变成可下载、可验证、可解释、可反馈的高级 Alpha 预览版。
 
@@ -64,7 +64,7 @@
 | 文档本地链接 | CI 中 0 个失效链接 |
 | Stage 9 定向测试 | 0 失败；环境跳过必须有稳定原因码 |
 | 大型元素遍历 | 2,000 元素可通过 Cursor 完整遍历，无遗漏或重复 |
-| 外部试用 | 至少 5 名非核心开发者完成新建/迁入、创建元素、构建和恢复 |
+| 外部试用 | 当前 Beta scope 为 N/A；未来重新纳入时至少 5 名非核心开发者完成新建/迁入、创建元素、构建和恢复 |
 | P0 发布缺陷 | 发布后 7 天内 0 个“无法下载/资产缺失/版本不明”缺陷 |
 
 ## 3. 用户与核心场景
