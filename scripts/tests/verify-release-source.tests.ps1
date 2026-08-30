@@ -37,11 +37,21 @@ try {
 	Invoke-TestGit -Arguments @('update-ref', 'refs/remotes/origin/main', $head)
 	& git -C $repository -c gpg.format=ssh -c "user.signingkey=$keyPath" tag -s -a v0.1.0-preview.3 -m 'signed release'
 	if ($LASTEXITCODE -ne 0) { throw 'Unable to create signed test tag' }
+	& git -C $repository -c gpg.format=ssh -c "user.signingkey=$keyPath" tag -s -a v0.1.0-beta.1 -m 'signed beta release'
+	if ($LASTEXITCODE -ne 0) { throw 'Unable to create signed beta test tag' }
 	Invoke-TestGit -Arguments @('tag', '-a', 'v0.1.0-preview.4', '-m', 'unsigned release')
 
 	$valid = Invoke-Verifier -Tag 'v0.1.0-preview.3' -MainCommit $head
 	if ($valid.ExitCode -ne 0 -or $valid.Output -notmatch "releaseSource=$head") {
 		throw "Valid signed release source was rejected:`n$($valid.Output)"
+	}
+	$validBeta = Invoke-Verifier -Tag 'v0.1.0-beta.1' -MainCommit $head
+	if ($validBeta.ExitCode -ne 0 -or $validBeta.Output -notmatch "releaseSource=$head") {
+		throw "Valid signed beta release source was rejected:`n$($validBeta.Output)"
+	}
+	$invalidChannel = Invoke-Verifier -Tag 'v0.1.0-rc.1' -MainCommit $head
+	if ($invalidChannel.ExitCode -eq 0 -or $invalidChannel.Output -notmatch 'must match vX.Y.Z') {
+		throw 'Unsupported release channel tag was not rejected'
 	}
 	$unsigned = Invoke-Verifier -Tag 'v0.1.0-preview.4' -MainCommit $head
 	if ($unsigned.ExitCode -eq 0 -or $unsigned.Output -notmatch 'no valid signature') {

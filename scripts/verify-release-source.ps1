@@ -20,8 +20,8 @@ if (-not (Test-Path -LiteralPath $signersPath -PathType Leaf)) {
 }
 Push-Location $repositoryRoot
 try {
-	if ($Tag -notmatch '^v\d+\.\d+\.\d+(?:-preview\.\d+)?$') {
-		throw "Release tag '$Tag' must match vX.Y.Z or vX.Y.Z-preview.N"
+	if ($Tag -notmatch '^v\d+\.\d+\.\d+(?:-(?:preview|beta)\.\d+)?$') {
+		throw "Release tag '$Tag' must match vX.Y.Z, vX.Y.Z-preview.N, or vX.Y.Z-beta.N"
 	}
 	$changes = @(git status --porcelain=v1 --untracked-files=all)
 	if ($LASTEXITCODE -ne 0) { throw 'Unable to inspect Git worktree status' }
