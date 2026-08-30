@@ -38,7 +38,9 @@ for (const gate of status.gates) {
   }
 }
 const openBetaGate = status.gates.some((gate) => gate.betaBlocking && gate.status !== 'passed');
-if (status.product.betaEligible === openBetaGate) fail('betaEligible contradicts beta-blocking gates');
+const previewOnlyScope = ['scope-excluded-preview', 'beta-candidate-pending'].includes(status.delivery?.betaRelease?.status);
+if (!previewOnlyScope && status.product.betaEligible === openBetaGate) fail('betaEligible contradicts beta-blocking gates');
+if (previewOnlyScope && status.product.betaEligible) fail('scope-excluded Preview cannot be beta eligible');
 
 const betaRelease = status.delivery?.betaRelease;
 if (!betaRelease || !new RegExp(`^v${status.product.version.replaceAll('.', '\\.')}\\-beta\\.\\d+$`).test(betaRelease.tag ?? '')) {

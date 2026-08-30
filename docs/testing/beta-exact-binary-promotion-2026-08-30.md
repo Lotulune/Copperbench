@@ -35,9 +35,11 @@ The candidate release provides four immutable promotion inputs:
 the SHA-256/name pair for all four assets under
 `delivery.betaRelease.candidateRelease` before `betaEligible` may become true.
 
-The final accessibility acceptance, G9.5 replay, and all five external testers
-must refer to this candidate. G9.5 and the 5/5 external-tester completion gate
-specifically use the candidate EXE SHA-256.
+Any acceptance gate that remains in the Beta scope must refer to this candidate.
+When accessibility, final RC replay, or external testing is explicitly marked
+`betaBlocking=false` and `not-applicable`, its evidence is not required for the
+current Beta. If a later release adds one of those gates back into scope, it
+must use this candidate's exact EXE SHA-256 or a newly frozen candidate.
 
 ## Evidence-only promotion
 
@@ -58,11 +60,12 @@ following:
    Windows distribution; and
 7. the four candidate asset descriptors contain valid, unique names and full
    lowercase SHA-256 values;
-8. the canonical external-tester verifier still finds 5/5 valid records for
-   the candidate commit and EXE SHA-256, with `packageType=exe`; and
-9. the `clean-windows-11-stage9` evidence set contains a G9.5 final-RC machine
-   result with `gatePromotionReady=true`, clean source, marker cleanup, and the
-   exact same candidate commit/EXE SHA-256.
+8. when the `five-external-testers` gate is beta-blocking, the canonical
+   external-tester verifier finds 5/5 valid records for the candidate commit
+   and EXE SHA-256, with `packageType=exe`; and
+9. when the `clean-windows-11-stage9` gate is beta-blocking, its evidence set
+   contains a G9.5 final-RC machine result with `gatePromotionReady=true`, clean
+   source, marker cleanup, and the exact same candidate commit/EXE SHA-256.
 
 Any product code, build script, runtime, plugin, schema/tooling implementation,
 license, or other build-affecting change after candidate testing requires a new
@@ -105,16 +108,12 @@ The release sequence is intentionally one-way:
 
 1. freeze implementation and release tooling;
 2. publish the signed Preview candidate;
-3. first prove the Windows accessibility environment with the Edge control,
-   then run the Copperbench accessibility/DPI/keyboard acceptance on that
-   candidate;
-4. run G9.5 `-FinalRcReplay` against the candidate commit and exact EXE hash;
-5. collect 5/5 non-core tester records against the same candidate commit and
-   EXE hash;
-6. add only the resulting evidence/status/documentation changes and set the
+3. run each remaining Beta-blocking acceptance gate against the candidate;
+4. add only the resulting evidence/status/documentation changes and set the
    beta-blocking gates to `passed` when their machine contracts allow it;
-7. create the signed Beta tag on that evidence-only release-control commit; and
-8. publish Beta by promoting the declared candidate bytes exactly.
+5. create the signed Beta tag on that evidence-only release-control commit; and
+6. publish Beta by promoting the declared candidate bytes exactly.
 
-Until steps 3-5 have real evidence, `betaEligible` remains `false` and no Beta
-tag can pass the release-source gate.
+Until the remaining scoped gates have real evidence and a signed Preview
+candidate is declared, `betaEligible` remains `false` and no Beta tag can pass
+the release-source gate.

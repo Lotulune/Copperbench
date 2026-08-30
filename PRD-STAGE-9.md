@@ -1,6 +1,6 @@
 # Copperbench 阶段 9 PRD：可视化逻辑与创作者核心
 
-> 状态：实施中（核心创作闭环已完成，发布门禁未关闭）
+> 状态：收尾完成（核心创作闭环已完成，未验证高风险项已移出当前 Preview-only 范围）
 > 前置基线：阶段 0-8 已关闭；本阶段必须先通过 G9.0 正确性门禁
 > 产品判断：当前最大缺口不是继续增加外壳页面，而是让创作者在新 UI 中完成“逻辑编排 -> 数据配置 -> 服务端验证”的闭环
 
@@ -24,9 +24,9 @@
 | M9.2 创作工作台 | 核心路径与性能门禁完成 | Blockly 懒加载工作台、搜索、缩放、撤销/重做、自动布局、草稿校验；Procedure 检查面板支持键盘操作并提供可读节点/端口大纲；变量/标签/语言注册表可 CRUD 与重命名预览；500 节点与 2,000 元素/10,000 引用真实 JCEF 性能门禁已通过；语言 CSV/JSON 导入导出已交付；Windows WR + Chromium 完整 AXMode 下的真实 JCEF 键盘/语义/命中区审计已通过 | 物理 150%/175%/200% DPI、Windows 屏幕阅读器互操作性、清洁客机 UIA provider 和完整人工键盘/a11y 审计 |
 | M9.3 数据内容 | 基础 CRUD 完成 | `function`、`loottable`、`achievement` 已进入第一方 CRUD，并可真实写回 MCreator 工作区 | 专用结构化编辑深度、进度父级循环防护、8 生成器阶段 9 黄金编译 |
 | M9.4 运行闭环 | 已完成 | `run_server`、`run_datagen`、`run_gametest`；datagen 隔离暂存、差异预览、显式发布、失败回滚；8 条 Java 轨道真实 dedicated-server readiness 与故障/超时 fail-closed 已通过 | 持续在受保护 CI/Nightly 保持合同回归；真实服务器证据见 `docs/testing/stage-9-server-readiness-real-2026-08-29.md` |
-| M9.5 发布候选 | 候选矩阵已通过，待最终 RC 重放 | 干净 Windows 11 首次安装/启动、GUI 新建工作区、generator setup、`-workspace` 冷启动、公开旧版升级、断网启动和升级/卸载数据保留均有机器证据 | 在最终 Public Beta/RC 安装包上重放完整 G9.5 矩阵并挂回最终证据 |
+| M9.5 发布候选 | 当前 Preview 范围已关闭 | 干净 Windows 11 首次安装/启动、GUI 新建工作区、generator setup、`-workspace` 冷启动、公开旧版升级、断网启动和升级/卸载数据保留均有机器证据 | 最终 RC 重放仅在未来重新纳入 Beta 范围时执行 |
 
-因此，当前版本可以作为阶段 9 开发预览使用，但不得描述为阶段 9 已发布或已通过 G9.5。
+因此，当前版本可以作为阶段 9 开发预览使用；高 DPI/屏幕阅读器、最终 RC 和外部试用不属于当前 Preview-only 宣称，也不应被描述为已完成验证。
 
 ## 1. 问题定义
 
@@ -84,7 +84,7 @@
 - UI-Core 命令、查询、结果和事件枚举必须一致，并有 Schema 回归测试。
 - 1.20.1/1.21.1/26.x 生成器必须使用各自的 Java 要求、数据包目录和 pack format。
 - 受保护操作的 `userApproved` 只能由可信桌面 UI/旧 UI actor 提供；MCP/headless 不能自行声明用户批准。
-- 仓库的自动测试与发布门禁在取得授权后必须纳入上述回归；未纳入前不得宣布阶段 9 开始公开预览。
+- 仓库的自动测试与发布门禁已纳入当前 Preview-only 收尾；未验证的高 DPI/屏幕阅读器和最终 RC 能力不在本版本宣称内。
 
 ### FR9-01 Procedure 领域模型与合同
 
