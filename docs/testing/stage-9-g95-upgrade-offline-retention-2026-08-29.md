@@ -102,6 +102,14 @@
 `-workspace` 冷启动、公开旧版升级、断网工作区启动和升级/卸载数据保留。剩余的 G9.5 发布阻断项是：**在最终确定的
 Public Beta/RC 安装包上重放同一整套矩阵，并把最终 RC 的机器证据挂回状态源。**
 
+这里的“最终候选”必须是已经公开、签名且源码冻结的 Preview 候选，而不是之后在 Beta tag 上重新构建出来的另一个 EXE。
+G9.5 的 `-ExpectedSourceCommit` 与 `-ExpectedCurrentInstallerSha256` 分别绑定该 Preview 候选的源码 commit 和 EXE
+SHA-256。通过后的 Beta 发布会按
+[Public Beta exact-binary promotion contract](./beta-exact-binary-promotion-2026-08-30.md)
+原样复用这个候选 EXE/ZIP/MSIX/SBOM；如果候选之后出现任何产品/构建代码变化，则必须发布新 Preview 候选并重新执行本门禁。
+最终 Beta 的签名 release-source gate 还会再次读取 `clean-windows-11-stage9` 的机器 JSON，只有
+`gatePromotionReady=true`、源码工作树有效、marker 已清理且其中 commit/installer SHA 与声明的 Preview 候选完全相同时才接受发布。
+
 最终候选重放必须显式使用 `-FinalRcReplay`，并同时传入当前安装器 SHA-256 和对应的完整 Git SHA。脚本会在连接客机
 之前验证安装器 hash，并要求 `-ExpectedSourceCommit` 与仓库当前 `HEAD` 完全一致，同时检查 tracked 与 untracked
 工作树状态；除 `docs/history-session/` 与 `evidence/` 这两类非产品运行证据目录外，任何脏文件都会直接拒绝运行。只有在

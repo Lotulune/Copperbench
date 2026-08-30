@@ -72,6 +72,15 @@ test('records for another installer cannot close the candidate gate', () => {
   assert.match(result.stderr, /installer SHA-256 is not the requested candidate/);
 });
 
+test('Public Beta completion requires all testers to exercise the exact EXE installer', () => {
+  const records = [1, 2, 3, 4, 5].map(record);
+  records[2] = { ...records[2], source: { ...records[2].source, packageType: 'zip' } };
+  const result = verify(records, '--require-complete',
+    '--expected-commit', source.commit, '--expected-installer-sha256', source.installerSha256);
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /requires the tested Windows EXE installer/);
+});
+
 test('unknown fields cannot bypass the evidence schema', () => {
   const invalid = { ...record(1), userName: 'hidden-user' };
   const result = verify([invalid]);

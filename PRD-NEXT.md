@@ -21,7 +21,7 @@
 | 项目 | 当前事实 | 结论 |
 | --- | --- | --- |
 | Fast CI | main 分支保护持续要求 Java/Javadoc、UI/Playwright 与 MCP；当前 `main@3fcf2923` 的 merged-main run `33306183486` 全绿，并在 MCP job 中通过签名 release-source / Beta eligibility fail-closed 检查 | PR 门禁已闭环；机器状态源继续保留连续 main 门禁 3/3 |
-| 公开 Release | `v0.1.0-preview.3` 已从 `main@cc15d57a` 公开，release run `32923503840` 成功；它现在是历史已发布基线而非未来发布源 | 后续公开版本必须使用新 Tag，并在发布时与对应最新全绿 `main` HEAD、`RELEASE-METADATA.json` 完全一致；Windows 包仍未 Authenticode 签名 |
+| 公开 Release | `v0.1.0-preview.3` 已从 `main@cc15d57a` 公开，release run `32923503840` 成功；它现在是历史已发布基线而非未来发布源 | Public Beta 前必须再冻结并公开一个签名 Preview 候选；真实 a11y、G9.5 和 5/5 tester 都绑定该候选 commit/EXE SHA，Beta 只允许 evidence/status 文档增量并原样晋级候选 EXE/ZIP/MSIX/SBOM，不能用重新构建的不同字节替代；Windows 包仍未 Authenticode 签名 |
 | 状态源 | `product-status.json`、Schema 和 CI 漂移校验已进入 main，并已修复首次远端运行暴露的 Release Schema 漏项 | 状态源门禁通过；后续状态提升仍必须带固定提交证据 |
 | 重型门禁 | Nightly `33253594479`（`main@92d1a8d0`）的全量 Java/Javadoc/scale 回归、完整 Playwright、MCP、诊断包 native JCEF 验收与八生成器内容构建 8/8 全绿；PR #36/#37 之后未改产品 runtime，因此该 run 仍是最近一次重型产品基线 | FR-AI-02～05、FR-BETA-01～02 保持闭环；已知良好的 Windows UIA/屏幕阅读器、最终 RC 和外测等 Stage 9/Beta 门禁仍保持 blocked |
 | Stage 9 | 八生成器黄金编译、三个专用编辑器和语言导入工具已有自动化证据；新装 Windows 11 客机已完成真实产品 GUI 新建工作区/Generator setup，并在同一工作区补齐生成物核验、Gradle build、jar 产出与交互式 `runClient`；Windows WR + Chromium 完整 AXMode 与 `DPR=1.25` 路径也已通过；Hyper-V 客机上的原生 Edge 对照同样无法暴露 WebContents UIA，因此该客机不能作为产品失败判据 | 仍缺物理 150%/175%/200% DPI、物理或其他已知良好 Windows 11 上的 UIA/屏幕阅读器与完整人工键盘审计、最终 RC 矩阵和外部试用；`betaEligible=false` |
@@ -268,7 +268,7 @@ Issue 模板必须收集版本、commit、生成器、元素类型、复现步�
 
 至少 5 名非核心开发者完成：下载安装、校验、创建或迁入工作区、创建元素、构建、制造一次失败、查看诊断、创建恢复点并恢复。结果形成匿名汇总，不以口头反馈替代。
 
-实施状态（2026-08-29）：匿名证据 Schema、统一任务协议和机器验证器已就绪；当前仍为 0/5，门禁保持 blocked。五份记录必须来自同一候选 commit/安装包 SHA-256，全部任务通过且没有 P0/P1。
+实施状态（2026-08-30）：匿名证据 Schema、统一任务协议和机器验证器已就绪；当前仍为 0/5，门禁保持 blocked。五份完成记录必须来自同一签名公开 Preview 候选，全部使用该候选的同一 Windows EXE installer、同一 commit/安装包 SHA-256，全部任务通过且没有 P0/P1。该候选安装器在所有 Beta blocker 关闭后由发布流程原样晋级，避免用重新构建且 hash 不同的二进制冒充已测试候选。
 
 ## 6. 非目标
 
