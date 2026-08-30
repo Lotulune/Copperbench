@@ -107,6 +107,32 @@ try {
 		throw "Repository root was accepted as the release directory:`n$($rootFailure -join "`n")"
 	}
 
+	# Regression: Gradle emits Windows packages with spaces, while GitHub Release
+	# normalizes uploaded asset whitespace to periods. Canonicalize before hashing
+	# so the workflow artifact, SHA256SUMS, and remote release use one name.
+	Write-ReleasePrerequisites -Status $status
+	& pwsh -NoProfile -File $metadataScript `
+		-Tag 'v0.1.0-preview.6' `
+		-ReleaseDirectory $releaseDirectory `
+		-RepositoryRoot $fakeRepository
+	if ($LASTEXITCODE -ne 0) { throw 'Preview release metadata generation failed' }
+	foreach ($extension in '.exe', '.zip', '.msix') {
+		$canonicalName = "Fresh.Build$extension"
+		if (-not (Test-Path -LiteralPath (Join-Path $releaseDirectory $canonicalName) -PathType Leaf)) {
+			throw "Preview binary was not canonicalized before hashing: $canonicalName"
+		}
+		if (Test-Path -LiteralPath (Join-Path $releaseDirectory "Fresh Build$extension")) {
+			throw "Preview payload retained a GitHub-unstable binary name: Fresh Build$extension"
+		}
+	}
+	$previewSums = Get-Content -LiteralPath (Join-Path $releaseDirectory 'SHA256SUMS.txt') -Raw
+	if ($previewSums -match 'Fresh Build' -or $previewSums -notmatch 'Fresh\.Build\.exe') {
+		throw "Preview SHA256SUMS did not use canonical binary names:`n$previewSums"
+	}
+	& pwsh -NoProfile -File $payloadScript -ReleaseDirectory $releaseDirectory
+	if ($LASTEXITCODE -ne 0) { throw 'Canonicalized Preview payload verification failed' }
+
+	Remove-Item -LiteralPath $releaseDirectory -Recurse -Force
 	Write-ReleasePrerequisites -Status $status
 	& pwsh -NoProfile -File $metadataScript `
 		-Tag 'v0.1.0-beta.1' `
