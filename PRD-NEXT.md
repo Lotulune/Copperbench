@@ -20,12 +20,12 @@
 
 | 项目 | 当前事实 | 结论 |
 | --- | --- | --- |
-| Fast CI | main 分支保护持续要求 Java/Javadoc、UI/Playwright 与 MCP；当前 `main@92d1a8d0` 的 merged-main run `33253322549` 全绿 | PR 门禁已闭环；机器状态源继续保留连续 main 门禁 3/3 |
+| Fast CI | main 分支保护持续要求 Java/Javadoc、UI/Playwright 与 MCP；当前 `main@3fcf2923` 的 merged-main run `33306183486` 全绿，并在 MCP job 中通过签名 release-source / Beta eligibility fail-closed 检查 | PR 门禁已闭环；机器状态源继续保留连续 main 门禁 3/3 |
 | 公开 Release | `v0.1.0-preview.3` 已从 `main@cc15d57a` 公开，release run `32923503840` 成功；它现在是历史已发布基线而非未来发布源 | 后续公开版本必须使用新 Tag，并在发布时与对应最新全绿 `main` HEAD、`RELEASE-METADATA.json` 完全一致；Windows 包仍未 Authenticode 签名 |
 | 状态源 | `product-status.json`、Schema 和 CI 漂移校验已进入 main，并已修复首次远端运行暴露的 Release Schema 漏项 | 状态源门禁通过；后续状态提升仍必须带固定提交证据 |
-| 重型门禁 | Nightly `33253594479`（`main@92d1a8d0`）的全量 Java/Javadoc/scale 回归、完整 Playwright、MCP、诊断包 native JCEF 验收与八生成器内容构建 8/8 全绿 | FR-AI-02～05、FR-BETA-01～02 保持闭环；独立清洁客机 UIA/屏幕阅读器、最终 RC 和外测等 Stage 9/Beta 门禁仍保持 blocked |
-| Stage 9 | 八生成器黄金编译、三个专用编辑器和语言导入工具已有自动化证据；新装 Windows 11 客机已完成真实产品 GUI 新建工作区/Generator setup，并在同一工作区补齐生成物核验、Gradle build、jar 产出与交互式 `runClient`；Windows WR + Chromium 完整 AXMode 与宿主 `DPR=1.25` 路径也已通过 | 仍缺物理 150%/175%/200% DPI、清洁客机 UIA provider、屏幕阅读器、最终 RC 矩阵和外部试用；`betaEligible=false` |
-| AI Developer Kit | PR #14～#17 的 Cursor、Workspace Plan、Task Events/SDK 与 Windows-native JCEF reconnect 均已合入；当前 `main@92d1a8d0` 的 merged-main CI `33253322549` 与固定提交 Nightly `33253594479` 全绿 | FR-AI-02～05 均为 `passed`；MCP reconnect 继续冻结为 `get_task(afterLogSequence)`，不引入未版本化的自定义 push 方言 |
+| 重型门禁 | Nightly `33253594479`（`main@92d1a8d0`）的全量 Java/Javadoc/scale 回归、完整 Playwright、MCP、诊断包 native JCEF 验收与八生成器内容构建 8/8 全绿；PR #36/#37 之后未改产品 runtime，因此该 run 仍是最近一次重型产品基线 | FR-AI-02～05、FR-BETA-01～02 保持闭环；已知良好的 Windows UIA/屏幕阅读器、最终 RC 和外测等 Stage 9/Beta 门禁仍保持 blocked |
+| Stage 9 | 八生成器黄金编译、三个专用编辑器和语言导入工具已有自动化证据；新装 Windows 11 客机已完成真实产品 GUI 新建工作区/Generator setup，并在同一工作区补齐生成物核验、Gradle build、jar 产出与交互式 `runClient`；Windows WR + Chromium 完整 AXMode 与 `DPR=1.25` 路径也已通过；Hyper-V 客机上的原生 Edge 对照同样无法暴露 WebContents UIA，因此该客机不能作为产品失败判据 | 仍缺物理 150%/175%/200% DPI、物理或其他已知良好 Windows 11 上的 UIA/屏幕阅读器与完整人工键盘审计、最终 RC 矩阵和外部试用；`betaEligible=false` |
+| AI Developer Kit | PR #14～#17 的 Cursor、Workspace Plan、Task Events/SDK 与 Windows-native JCEF reconnect 均已合入；当前 `main@3fcf2923` 的 merged-main CI `33306183486` 与固定产品基线 Nightly `33253594479` 全绿 | FR-AI-02～05 均为 `passed`；MCP reconnect 继续冻结为 `get_task(afterLogSequence)`，不引入未版本化的自定义 push 方言 |
 | 仓库治理 | GitHub 已识别 GPLv3；Javadoc Pages 可访问；main 三项必需检查、受保护 PR 与 production 必需审阅者均已验证 | 仓库治理 P0 已闭环 |
 | Dependency Submission | 仓库 Dependency Graph 未启用，原工作流无法成功 | 误导工作流已从 main 删除 |
 

@@ -4,7 +4,7 @@
 
 ## 当前状态
 
-阶段 8 收口需求 `FR-CLOSE-01`～`FR-CLOSE-08` 均已完成。`v0.1.0-preview.2` 已验证完整 Windows 三包、SBOM、哈希、源元数据和生产审批；`v0.1.0-preview.3` 随后从当时的 `main@cc15d57a` 通过 release run `32923503840` 公开，现作为历史已发布基线，后续 main 提交已使它不再等于当前 HEAD。GitHub 已正确识别 GPLv3，Javadoc Pages 可访问，main 保护、真实受保护 PR 与 production 审批均已验证。PR #27 已合入 `main@92d1a8d0`；Nightly `33253594479` 在该固定提交上全绿：Java/Javadoc、完整 Playwright、MCP conformance、诊断包 native JCEF 验收与八生成器黄金编译均通过。FR-AI-03 Workspace Plan、FR-AI-04 Task Events/reconnect、FR-AI-05 SDK/evals、FR-BETA-01 诊断包和 FR-BETA-02 Issue 分流均已关闭。Stage 9 仍有真实 UIA/读屏、最终 RC 和外部试用阻断，外部试用为 0/5，因此 `betaEligible` 仍为 false。
+阶段 8 收口需求 `FR-CLOSE-01`～`FR-CLOSE-08` 均已完成。`v0.1.0-preview.2` 已验证完整 Windows 三包、SBOM、哈希、源元数据和生产审批；`v0.1.0-preview.3` 随后从当时的 `main@cc15d57a` 通过 release run `32923503840` 公开，现作为历史已发布基线，后续 main 提交已使它不再等于当前 HEAD。GitHub 已正确识别 GPLv3，Javadoc Pages 可访问，main 保护、真实受保护 PR 与 production 审批均已验证。当前主线为 `main@3fcf2923`：PR #36 已把最终 G9.5 RC 重放和外部 tester 证据门禁改为 fail-closed，PR #37 已让 `v0.1.0-beta.1` 发布路径仅在 `product-status.json` 明确 `betaEligible=true` 且全部 betaBlocking gate 均通过时接受；merged-main run `33306183486` 的 Java/Javadoc、UI/Playwright、MCP、签名 release-source gate 与 JUnit 全绿。最后一次重型 Windows 产品回归仍是 `main@92d1a8d0` 的 Nightly `33253594479`，因为 PR #36/#37 未修改产品 runtime。FR-AI-03 Workspace Plan、FR-AI-04 Task Events/reconnect、FR-AI-05 SDK/evals、FR-BETA-01 诊断包和 FR-BETA-02 Issue 分流均已关闭。Stage 9 仍有真实 UIA/读屏、最终 RC 和外部试用阻断，外部试用为 0/5，因此 `betaEligible` 仍为 false。
 
 ## 当前交付阻断项
 
@@ -18,6 +18,7 @@
 | Dependency Submission | 已移除 | Dependency Graph 关闭时不保留必失败工作流 |
 | Preview 2 | 已公开（历史） | `v0.1.0-preview.2` 的 Tag、生产审批、三包、SBOM、哈希和资产验证已完成 |
 | Preview 3 | 已公开基线 | `v0.1.0-preview.3` 指向 `main@cc15d57a`，release run `32923503840` 成功；后续发布必须使用新 Tag |
+| Public Beta 发布契约 | 已就绪、仍 fail-closed | PR #37 / `main@3fcf2923` 已允许 `v0.1.0-beta.1` 格式，但 release-source gate 要求 tag 精确匹配状态源、`betaEligible=true`、存在 betaBlocking gates 且全部 `passed`；当前状态仍会拒绝发布 |
 | 诊断包 | 已通过 | `main@92d1a8d0` + Nightly `33253594479` 已固定验证默认脱敏、显式复现授权、Java 服务、真实 JCEF、桥接与 UI 路径 |
 | Issue 分流 | 已通过 | `main@92d1a8d0` + Nightly `33253594479` 已固定验证 FR-BETA-02 Issue 表单字段与分流入口 |
 | 外部试用 | 0/5 有可审计记录 | 匿名 Schema、全任务协议和验证器已就绪；仍需五名非核心开发者对同一候选 commit/安装包提交结果 |
