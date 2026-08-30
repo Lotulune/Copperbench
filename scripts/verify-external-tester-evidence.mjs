@@ -101,6 +101,9 @@ for (let index = 0; index < records.length; index += 1) {
   if (!/^[0-9a-f]{40}$/.test(record.source?.commit ?? '')) fail(`${file}: source commit must be a full SHA`);
   if (!/^[0-9a-f]{64}$/.test(record.source?.installerSha256 ?? '')) fail(`${file}: installer SHA-256 is invalid`);
   if (!packageTypes.has(record.source?.packageType)) fail(`${file}: packageType is invalid`);
+  if (requireComplete && record.source.packageType !== 'exe') {
+    fail(`${file}: Public Beta completion requires the tested Windows EXE installer`);
+  }
   sourceKeys.add(`${record.source.commit}:${record.source.installerSha256}`);
   if (expectedCommit && record.source.commit !== expectedCommit) fail(`${file}: source commit is not the requested candidate`);
   if (expectedInstallerSha256 && record.source.installerSha256 !== expectedInstallerSha256) {

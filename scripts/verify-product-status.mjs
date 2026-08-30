@@ -40,6 +40,39 @@ for (const gate of status.gates) {
 const openBetaGate = status.gates.some((gate) => gate.betaBlocking && gate.status !== 'passed');
 if (status.product.betaEligible === openBetaGate) fail('betaEligible contradicts beta-blocking gates');
 
+const betaRelease = status.delivery?.betaRelease;
+if (!betaRelease || !new RegExp(`^v${status.product.version.replaceAll('.', '\\.')}\\-beta\\.\\d+$`).test(betaRelease.tag ?? '')) {
+  fail('delivery.betaRelease.tag must be a Beta tag for product.version');
+}
+const candidateRelease = betaRelease.candidateRelease;
+if (status.product.betaEligible && !candidateRelease) {
+  fail('betaEligible requires delivery.betaRelease.candidateRelease');
+}
+if (candidateRelease) {
+  if (!new RegExp(`^v${status.product.version.replaceAll('.', '\\.')}\\-preview\\.\\d+$`).test(candidateRelease.tag ?? '')) {
+    fail('candidateRelease.tag must be a Preview tag for product.version');
+  }
+  if (!/^[0-9a-f]{40}$/.test(candidateRelease.sourceCommit ?? '')) {
+    fail('candidateRelease.sourceCommit must be a full lowercase SHA');
+  }
+  const expectedAssets = { exe: '.exe', zip: '.zip', msix: '.msix', sbom: '.json' };
+  const assetNames = [];
+  for (const [role, extension] of Object.entries(expectedAssets)) {
+    const asset = candidateRelease.assets?.[role];
+    if (!asset || typeof asset.name !== 'string' || !asset.name.toLowerCase().endsWith(extension)) {
+      fail(`candidateRelease.assets.${role}.name must use ${extension}`);
+    }
+    if (!/^[0-9a-f]{64}$/.test(asset.sha256 ?? '')) {
+      fail(`candidateRelease.assets.${role}.sha256 must be a lowercase SHA-256`);
+    }
+    assetNames.push(asset.name);
+  }
+  if (candidateRelease.assets.sbom.name !== 'copperbench.spdx.json') {
+    fail('candidateRelease SBOM must be named copperbench.spdx.json');
+  }
+  if (new Set(assetNames).size !== assetNames.length) fail('candidateRelease asset names must be unique');
+}
+
 if (existsSync(resolve(root, '.github/workflows/dependency-submission.yml'))) {
   fail('dependency-submission.yml must be removed while the repository dependency graph is disabled');
 }

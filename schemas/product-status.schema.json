@@ -32,7 +32,40 @@
         "betaEligible": {"type": "boolean"}
       }
     },
-    "delivery": {"type": "object"},
+    "delivery": {
+      "type": "object",
+      "required": ["betaRelease"],
+      "properties": {
+        "betaRelease": {
+          "type": "object",
+          "required": ["tag", "status"],
+          "properties": {
+            "tag": {"type": "string", "pattern": "^v\\d+\\.\\d+\\.\\d+-beta\\.\\d+$"},
+            "status": {"type": "string", "minLength": 1},
+            "candidateRelease": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["tag", "sourceCommit", "assets"],
+              "properties": {
+                "tag": {"type": "string", "pattern": "^v\\d+\\.\\d+\\.\\d+-preview\\.\\d+$"},
+                "sourceCommit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+                "assets": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["exe", "zip", "msix", "sbom"],
+                  "properties": {
+                    "exe": {"$ref": "#/$defs/candidateAsset"},
+                    "zip": {"$ref": "#/$defs/candidateAsset"},
+                    "msix": {"$ref": "#/$defs/candidateAsset"},
+                    "sbom": {"$ref": "#/$defs/candidateAsset"}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "generators": {"type": "array", "minItems": 8, "maxItems": 8, "items": {"type": "object"}},
     "elements": {
       "type": "object",
@@ -60,5 +93,36 @@
     },
     "mcp": {"type": "object"},
     "knownLimitations": {"type": "array", "items": {"type": "string"}, "minItems": 1}
-  }
+  },
+  "$defs": {
+    "candidateAsset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "sha256"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "product": {
+            "properties": {"betaEligible": {"const": true}}
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "delivery": {
+            "properties": {
+              "betaRelease": {"required": ["candidateRelease"]}
+            }
+          }
+        }
+      }
+    }
+  ]
 }

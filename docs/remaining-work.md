@@ -19,6 +19,7 @@
 | Preview 2 | 已公开（历史） | `v0.1.0-preview.2` 的 Tag、生产审批、三包、SBOM、哈希和资产验证已完成 |
 | Preview 3 | 已公开基线 | `v0.1.0-preview.3` 指向 `main@cc15d57a`，release run `32923503840` 成功；后续发布必须使用新 Tag |
 | Public Beta 发布契约 | 已就绪、仍 fail-closed | PR #37 / `main@3fcf2923` 已允许 `v0.1.0-beta.1` 格式，但 release-source gate 要求 tag 精确匹配状态源、`betaEligible=true`、存在 betaBlocking gates 且全部 `passed`；当前状态仍会拒绝发布 |
+| Beta 二进制身份 | 契约已实现、候选尚未冻结 | 最终应先发布新的签名 Preview 候选；a11y、G9.5 与 5/5 tester 绑定其 commit/EXE SHA。Beta release-control commit 只允许 evidence/status/docs 增量，打包阶段原样下载并验证候选 EXE/ZIP/MSIX/SBOM，避免发布时重新构建导致 hash 漂移；见 [精确二进制晋级契约](./testing/beta-exact-binary-promotion-2026-08-30.md) |
 | 诊断包 | 已通过 | `main@92d1a8d0` + Nightly `33253594479` 已固定验证默认脱敏、显式复现授权、Java 服务、真实 JCEF、桥接与 UI 路径 |
 | Issue 分流 | 已通过 | `main@92d1a8d0` + Nightly `33253594479` 已固定验证 FR-BETA-02 Issue 表单字段与分流入口 |
 | 外部试用 | 0/5 有可审计记录 | 匿名 Schema、全任务协议和验证器已就绪；仍需五名非核心开发者对同一候选 commit/安装包提交结果 |
