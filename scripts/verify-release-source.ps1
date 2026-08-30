@@ -164,6 +164,9 @@ try {
 
 		$candidateExeSha256 = [string]$candidate.assets.exe.sha256
 		$externalGate = @($betaGates | Where-Object { $_.id -eq 'five-external-testers' })
+		if ($externalGate.Count -gt 1) {
+			throw 'Beta release declares duplicate five-external-testers gates'
+		}
 		if ($externalGate.Count -eq 1) {
 			$externalVerifier = Join-Path $PSScriptRoot 'verify-external-tester-evidence.mjs'
 			$externalEvidenceDir = Join-Path $repositoryRoot 'evidence\stage-9\external-testers'
