@@ -137,6 +137,12 @@ try {
 			$descriptor = $candidate.assets.$role
 			$name = [string]$descriptor.name
 			$sha256 = [string]$descriptor.sha256
+			$invalidFileNameChars = [IO.Path]::GetInvalidFileNameChars()
+			if ([string]::IsNullOrWhiteSpace($name) -or [IO.Path]::IsPathRooted($name) -or
+				[IO.Path]::GetFileName($name) -ne $name -or $name -in '.', '..' -or
+				$name.IndexOfAny($invalidFileNameChars) -ge 0 -or $name.Contains('/') -or $name.Contains('\')) {
+				throw "Beta candidate $role asset name must be a plain Windows-safe file name: $name"
+			}
 			if ([string]::IsNullOrWhiteSpace($name) -or [IO.Path]::GetExtension($name) -ne $expectedAssets[$role]) {
 				throw "Beta candidate $role asset name is invalid: $name"
 			}

@@ -59,7 +59,12 @@ if (candidateRelease) {
   const assetNames = [];
   for (const [role, extension] of Object.entries(expectedAssets)) {
     const asset = candidateRelease.assets?.[role];
-    if (!asset || typeof asset.name !== 'string' || !asset.name.toLowerCase().endsWith(extension)) {
+    const plainWindowsFileName = typeof asset?.name === 'string'
+      && asset.name.length > 0
+      && asset.name !== '.'
+      && asset.name !== '..'
+      && !/[\u0000-\u001f<>:"/\\|?*]/.test(asset.name);
+    if (!asset || !plainWindowsFileName || !asset.name.toLowerCase().endsWith(extension)) {
       fail(`candidateRelease.assets.${role}.name must use ${extension}`);
     }
     if (!/^[0-9a-f]{64}$/.test(asset.sha256 ?? '')) {

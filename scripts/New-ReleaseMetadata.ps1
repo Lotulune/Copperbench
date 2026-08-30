@@ -34,6 +34,12 @@ function Assert-CandidateAssetDescriptor {
 	if ([string]::IsNullOrWhiteSpace($name)) {
 		throw "Beta candidate $Role asset name is missing"
 	}
+	$invalidFileNameChars = [IO.Path]::GetInvalidFileNameChars()
+	if ([IO.Path]::IsPathRooted($name) -or [IO.Path]::GetFileName($name) -ne $name -or
+		$name -in '.', '..' -or $name.IndexOfAny($invalidFileNameChars) -ge 0 -or
+		$name.Contains('/') -or $name.Contains('\')) {
+		throw "Beta candidate $Role asset name must be a plain Windows-safe file name: $name"
+	}
 	if ([IO.Path]::GetExtension($name) -ne $ExpectedExtension) {
 		throw "Beta candidate $Role asset must use ${ExpectedExtension}: $name"
 	}
@@ -110,7 +116,11 @@ if ($Tag -match '-beta\.\d+$') {
 	foreach ($role in $assetSpecs.Keys) {
 		$descriptor = $assetSpecs[$role].Descriptor
 		$name = [string]$descriptor.name
-		$destination = Join-Path $releaseRoot $name
+		$destination = [IO.Path]::GetFullPath((Join-Path $releaseRoot $name))
+		$releaseRootPrefix = $releaseRoot.TrimEnd([IO.Path]::DirectorySeparatorChar, [IO.Path]::AltDirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
+		if (-not $destination.StartsWith($releaseRootPrefix, [StringComparison]::OrdinalIgnoreCase)) {
+			throw "Beta candidate $role asset destination escapes release directory: $name"
+		}
 		if ($localCandidateRoot) {
 			$source = Join-Path $localCandidateRoot $name
 			if (-not (Test-Path -LiteralPath $source -PathType Leaf)) {

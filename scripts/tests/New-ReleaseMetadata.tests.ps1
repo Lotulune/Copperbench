@@ -137,6 +137,27 @@ try {
 		throw "Wrong candidate hash was not rejected:`n$($failure -join "`n")"
 	}
 
+	Remove-Item -LiteralPath $releaseDirectory -Recurse -Force
+	$outsideSource = Join-Path $testRoot 'unexpected.exe'
+	Write-TestFile -Path $outsideSource -Content 'must never be copied outside release root'
+	$badPathStatus = $status | ConvertTo-Json -Depth 12 | ConvertFrom-Json -Depth 12
+	$badPathStatus.delivery.betaRelease.candidateRelease.assets.exe.name = '../unexpected.exe'
+	$badPathStatus.delivery.betaRelease.candidateRelease.assets.exe.sha256 = Get-LowerHash -Path $outsideSource
+	$badPathStatus | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath (Join-Path $fakeRepository 'product-status.json') -Encoding utf8
+	Write-ReleasePrerequisites -Status $badPathStatus
+	$pathFailure = @(& pwsh -NoProfile -File $metadataScript `
+		-Tag 'v0.1.0-beta.1' `
+		-ReleaseDirectory $releaseDirectory `
+		-RepositoryRoot $fakeRepository `
+		-CandidateAssetDirectory $candidateDirectory 2>&1)
+	if ($LASTEXITCODE -eq 0 -or ($pathFailure -join "`n") -notmatch 'plain Windows-safe file name') {
+		throw "Candidate path traversal was not rejected:`n$($pathFailure -join "`n")"
+	}
+	$escapedDestination = Join-Path (Split-Path -Parent $releaseDirectory) 'unexpected.exe'
+	if (Test-Path -LiteralPath $escapedDestination) {
+		throw "Candidate path traversal wrote outside the release directory: $escapedDestination"
+	}
+
 	Write-Output 'Beta exact-binary promotion tests passed.'
 } finally {
 	if (Test-Path -LiteralPath $testRoot) {

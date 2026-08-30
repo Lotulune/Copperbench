@@ -145,6 +145,23 @@ try {
 		throw "Valid signed beta release source was rejected:`n$($validBeta.Output)"
 	}
 
+	$badPathStatus = $eligibleStatus | ConvertFrom-Json -Depth 12
+	$badPathStatus.delivery.betaRelease.tag = 'v0.1.0-beta.6'
+	$badPathStatus.delivery.betaRelease.candidateRelease.assets.exe.name = '../escape.exe'
+	$badPathStatus | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath (Join-Path $repository 'product-status.json') -Encoding utf8
+	Invoke-TestGit -Arguments @('add', 'product-status.json')
+	Invoke-TestGit -Arguments @('commit', '-m', 'invalid beta candidate asset path')
+	$badPathHead = (& git -C $repository rev-parse HEAD).Trim()
+	Invoke-TestGit -Arguments @('update-ref', 'refs/remotes/origin/main', $badPathHead)
+	& git -C $repository -c gpg.format=ssh -c "user.signingkey=$keyPath" tag -s -a v0.1.0-beta.6 -m 'invalid beta candidate asset path'
+	if ($LASTEXITCODE -ne 0) { throw 'Unable to create invalid candidate-path Beta tag' }
+	$badPathBeta = Invoke-Verifier -Tag 'v0.1.0-beta.6' -MainCommit $badPathHead
+	if ($badPathBeta.ExitCode -eq 0 -or $badPathBeta.Output -notmatch 'plain Windows-safe file name') {
+		throw "Beta release with candidate path traversal was not rejected:`n$($badPathBeta.Output)"
+	}
+	Invoke-TestGit -Arguments @('checkout', '--detach', $betaHead)
+	Invoke-TestGit -Arguments @('update-ref', 'refs/remotes/origin/main', $betaHead)
+
 	$badTesterRecordPath = Join-Path $externalEvidenceDirectory 'tester-3.json'
 	$badTesterRecord = Get-Content -LiteralPath $badTesterRecordPath -Raw | ConvertFrom-Json -Depth 12
 	$badTesterRecord.source.packageType = 'zip'
