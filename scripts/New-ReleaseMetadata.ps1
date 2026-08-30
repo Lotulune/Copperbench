@@ -68,9 +68,39 @@ function Resolve-RepositorySlug {
 	throw "Unsupported release remote for Beta candidate asset download: $remote"
 }
 
+function ConvertTo-CanonicalBuiltAssetName {
+	param([Parameter(Mandatory)][string] $Name)
+	$canonical = $Name -replace '\s+', '.'
+	if ($canonical -notmatch '^[A-Za-z0-9][A-Za-z0-9._-]*$') {
+		throw "Built release asset name cannot be made GitHub-stable without changing the release contract: $Name"
+	}
+	return $canonical
+}
+
+function Normalize-BuiltReleaseBinaryNames {
+	param([Parameter(Mandatory)][string] $ReleaseRoot)
+	$binaryFiles = @(Get-ChildItem -LiteralPath $ReleaseRoot -File | Where-Object Extension -In '.exe', '.zip', '.msix')
+	foreach ($file in $binaryFiles) {
+		$canonicalName = ConvertTo-CanonicalBuiltAssetName -Name $file.Name
+		if ($canonicalName -ceq $file.Name) { continue }
+		$destination = Join-Path $ReleaseRoot $canonicalName
+		if (Test-Path -LiteralPath $destination) {
+			throw "Built release asset name normalization collides with an existing file: $($file.Name) -> $canonicalName"
+		}
+		Move-Item -LiteralPath $file.FullName -Destination $destination
+	}
+}
+
 $binarySource = [ordered]@{
 	mode = 'built-from-release-commit'
 	commit = $commit
+}
+
+# GitHub replaces whitespace in uploaded release asset names with periods. Keep
+# the workflow artifact, SHA256SUMS, release metadata, and GitHub Release names
+# identical by applying the canonical name before hashing or uploading.
+if ($Tag -notmatch '-beta\.\d+$') {
+	Normalize-BuiltReleaseBinaryNames -ReleaseRoot $releaseRoot
 }
 
 if ($Tag -match '-beta\.\d+$') {
