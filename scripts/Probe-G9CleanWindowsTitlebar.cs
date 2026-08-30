@@ -237,6 +237,10 @@ internal static class Program
     private static extern int AccessibleObjectFromWindow(IntPtr hWnd, uint dwObjectId, ref Guid riid,
         [MarshalAs(UnmanagedType.Interface)] out IAccessible accessibleObject);
 
+    [DllImport("oleacc.dll")]
+    private static extern int AccessibleChildren(IAccessible paccContainer, int iChildStart, int cChildren,
+        [Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2)] object[] rgvarChildren, out int pcObtained);
+
     private const uint WM_GETOBJECT = 0x003D;
     private const uint SMTO_ABORTIFHUNG = 0x0002;
     private const uint OBJID_CLIENT = 0xFFFFFFFC;
@@ -370,17 +374,19 @@ internal static class Program
         }
 
         int cappedChildCount = Math.Min(childCount, 500);
-        for (int index = 1; index <= cappedChildCount && elementCount < maxNodes; index++)
-        {
-            object child = null;
-            try
-            {
-                child = accessible.get_accChild(index);
-            }
-            catch (COMException)
-            {
-            }
+        if (cappedChildCount <= 0)
+            return;
 
+        var children = new object[cappedChildCount];
+        int obtained;
+        int childrenResult = AccessibleChildren(accessible, 0, cappedChildCount, children, out obtained);
+        if (childrenResult < 0)
+            return;
+
+        int childLimit = Math.Min(obtained, children.Length);
+        for (int index = 0; index < childLimit && elementCount < maxNodes; index++)
+        {
+            object child = children[index];
             IAccessible childAccessible = child as IAccessible;
             if (childAccessible != null)
             {
@@ -389,8 +395,10 @@ internal static class Program
             }
             else
             {
-                WalkMsaaTree(accessible, index, depth + 1, elements, ref elementCount, ref buttonCount,
-                    ref namedButtonCount);
+                int enumeratedChildId = MsaaInt(child);
+                if (enumeratedChildId > 0)
+                    WalkMsaaTree(accessible, enumeratedChildId, depth + 1, elements, ref elementCount,
+                        ref buttonCount, ref namedButtonCount);
             }
         }
     }
