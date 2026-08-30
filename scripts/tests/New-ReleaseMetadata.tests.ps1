@@ -91,6 +91,22 @@ try {
 	Invoke-TestGit -Arguments @('add', 'product-status.json')
 	Invoke-TestGit -Arguments @('commit', '-m', 'beta control status')
 
+	$outsideReleaseDirectory = Join-Path $testRoot 'repository-sibling\release'
+	$outsideFailure = @(& pwsh -NoProfile -File $metadataScript `
+		-Tag 'v0.1.0-preview.4' `
+		-ReleaseDirectory $outsideReleaseDirectory `
+		-RepositoryRoot $fakeRepository 2>&1)
+	if ($LASTEXITCODE -eq 0 -or ($outsideFailure -join "`n") -notmatch 'inside the repository') {
+		throw "Repository-prefix sibling release directory was not rejected:`n$($outsideFailure -join "`n")"
+	}
+	$rootFailure = @(& pwsh -NoProfile -File $metadataScript `
+		-Tag 'v0.1.0-preview.4' `
+		-ReleaseDirectory $fakeRepository `
+		-RepositoryRoot $fakeRepository 2>&1)
+	if ($LASTEXITCODE -eq 0 -or ($rootFailure -join "`n") -notmatch 'inside the repository') {
+		throw "Repository root was accepted as the release directory:`n$($rootFailure -join "`n")"
+	}
+
 	Write-ReleasePrerequisites -Status $status
 	& pwsh -NoProfile -File $metadataScript `
 		-Tag 'v0.1.0-beta.1' `
@@ -156,6 +172,20 @@ try {
 	$escapedDestination = Join-Path (Split-Path -Parent $releaseDirectory) 'unexpected.exe'
 	if (Test-Path -LiteralPath $escapedDestination) {
 		throw "Candidate path traversal wrote outside the release directory: $escapedDestination"
+	}
+
+	Remove-Item -LiteralPath $releaseDirectory -Recurse -Force
+	$reservedNameStatus = $status | ConvertTo-Json -Depth 12 | ConvertFrom-Json -Depth 12
+	$reservedNameStatus.delivery.betaRelease.candidateRelease.assets.exe.name = 'CON.exe'
+	$reservedNameStatus | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath (Join-Path $fakeRepository 'product-status.json') -Encoding utf8
+	Write-ReleasePrerequisites -Status $reservedNameStatus
+	$reservedNameFailure = @(& pwsh -NoProfile -File $metadataScript `
+		-Tag 'v0.1.0-beta.1' `
+		-ReleaseDirectory $releaseDirectory `
+		-RepositoryRoot $fakeRepository `
+		-CandidateAssetDirectory $candidateDirectory 2>&1)
+	if ($LASTEXITCODE -eq 0 -or ($reservedNameFailure -join "`n") -notmatch 'plain Windows-safe file name') {
+		throw "Reserved Windows candidate asset name was not rejected:`n$($reservedNameFailure -join "`n")"
 	}
 
 	Write-Output 'Beta exact-binary promotion tests passed.'

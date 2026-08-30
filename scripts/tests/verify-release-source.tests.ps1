@@ -162,6 +162,23 @@ try {
 	Invoke-TestGit -Arguments @('checkout', '--detach', $betaHead)
 	Invoke-TestGit -Arguments @('update-ref', 'refs/remotes/origin/main', $betaHead)
 
+	$reservedNameStatus = $eligibleStatus | ConvertFrom-Json -Depth 12
+	$reservedNameStatus.delivery.betaRelease.tag = 'v0.1.0-beta.10'
+	$reservedNameStatus.delivery.betaRelease.candidateRelease.assets.exe.name = 'CON.exe'
+	$reservedNameStatus | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath (Join-Path $repository 'product-status.json') -Encoding utf8
+	Invoke-TestGit -Arguments @('add', 'product-status.json')
+	Invoke-TestGit -Arguments @('commit', '-m', 'invalid reserved candidate asset name')
+	$reservedNameHead = (& git -C $repository rev-parse HEAD).Trim()
+	Invoke-TestGit -Arguments @('update-ref', 'refs/remotes/origin/main', $reservedNameHead)
+	& git -C $repository -c gpg.format=ssh -c "user.signingkey=$keyPath" tag -s -a v0.1.0-beta.10 -m 'invalid reserved candidate asset name'
+	if ($LASTEXITCODE -ne 0) { throw 'Unable to create reserved-name Beta tag' }
+	$reservedNameBeta = Invoke-Verifier -Tag 'v0.1.0-beta.10' -MainCommit $reservedNameHead
+	if ($reservedNameBeta.ExitCode -eq 0 -or $reservedNameBeta.Output -notmatch 'plain Windows-safe file name') {
+		throw "Beta release with a reserved Windows candidate asset name was not rejected:`n$($reservedNameBeta.Output)"
+	}
+	Invoke-TestGit -Arguments @('checkout', '--detach', $betaHead)
+	Invoke-TestGit -Arguments @('update-ref', 'refs/remotes/origin/main', $betaHead)
+
 	$badTesterRecordPath = Join-Path $externalEvidenceDirectory 'tester-3.json'
 	$badTesterRecord = Get-Content -LiteralPath $badTesterRecordPath -Raw | ConvertFrom-Json -Depth 12
 	$badTesterRecord.source.packageType = 'zip'
@@ -214,6 +231,24 @@ try {
 	$changedBeta = Invoke-Verifier -Tag 'v0.1.0-beta.9' -MainCommit $sourceChangedHead
 	if ($changedBeta.ExitCode -eq 0 -or $changedBeta.Output -notmatch 'build-affecting changes after the tested candidate') {
 		throw "Beta release with build-affecting candidate delta was not rejected:`n$($changedBeta.Output)"
+	}
+	Invoke-TestGit -Arguments @('checkout', '--detach', $betaHead)
+	Invoke-TestGit -Arguments @('update-ref', 'refs/remotes/origin/main', $betaHead)
+
+	[IO.Directory]::CreateDirectory((Join-Path $repository 'docs/user')) | Out-Null
+	Set-Content -LiteralPath (Join-Path $repository 'docs/user/README.md') -Value 'packaged documentation changed after candidate' -Encoding utf8
+	$packagedDocsStatus = $eligibleStatus | ConvertFrom-Json -Depth 12
+	$packagedDocsStatus.delivery.betaRelease.tag = 'v0.1.0-beta.11'
+	$packagedDocsStatus | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath (Join-Path $repository 'product-status.json') -Encoding utf8
+	Invoke-TestGit -Arguments @('add', 'docs/user/README.md', 'product-status.json')
+	Invoke-TestGit -Arguments @('commit', '-m', 'invalid packaged docs change after candidate')
+	$packagedDocsHead = (& git -C $repository rev-parse HEAD).Trim()
+	Invoke-TestGit -Arguments @('update-ref', 'refs/remotes/origin/main', $packagedDocsHead)
+	& git -C $repository -c gpg.format=ssh -c "user.signingkey=$keyPath" tag -s -a v0.1.0-beta.11 -m 'invalid packaged docs beta source'
+	if ($LASTEXITCODE -ne 0) { throw 'Unable to create packaged-docs Beta test tag' }
+	$packagedDocsBeta = Invoke-Verifier -Tag 'v0.1.0-beta.11' -MainCommit $packagedDocsHead
+	if ($packagedDocsBeta.ExitCode -eq 0 -or $packagedDocsBeta.Output -notmatch 'build-affecting changes after the tested candidate') {
+		throw "Beta release with packaged documentation changed after the candidate was not rejected:`n$($packagedDocsBeta.Output)"
 	}
 	Invoke-TestGit -Arguments @('checkout', '--detach', $betaHead)
 	Invoke-TestGit -Arguments @('update-ref', 'refs/remotes/origin/main', $betaHead)

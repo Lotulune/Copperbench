@@ -124,7 +124,9 @@ try {
 		$disallowedPromotionFiles = @($promotionDelta | Where-Object {
 			$path = ([string]$_).Replace('\', '/')
 			-not ($path -eq 'product-status.json' -or $path -eq 'PRD-NEXT.md' -or
-				$path.StartsWith('docs/', [StringComparison]::Ordinal) -or
+				$path -eq 'docs/remaining-work.md' -or
+				$path.StartsWith('docs/testing/', [StringComparison]::Ordinal) -or
+				$path.StartsWith('docs/releases/', [StringComparison]::Ordinal) -or
 				$path.StartsWith('evidence/', [StringComparison]::Ordinal))
 		})
 		if ($disallowedPromotionFiles.Count -gt 0) {
@@ -140,7 +142,9 @@ try {
 			$invalidFileNameChars = [IO.Path]::GetInvalidFileNameChars()
 			if ([string]::IsNullOrWhiteSpace($name) -or [IO.Path]::IsPathRooted($name) -or
 				[IO.Path]::GetFileName($name) -ne $name -or $name -in '.', '..' -or
-				$name.IndexOfAny($invalidFileNameChars) -ge 0 -or $name.Contains('/') -or $name.Contains('\')) {
+				$name.IndexOfAny($invalidFileNameChars) -ge 0 -or $name.Contains('/') -or $name.Contains('\') -or
+				$name.EndsWith(' ') -or $name.EndsWith('.') -or
+				$name -match '^(?:CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(?:\.|$)') {
 				throw "Beta candidate $role asset name must be a plain Windows-safe file name: $name"
 			}
 			if ([string]::IsNullOrWhiteSpace($name) -or [IO.Path]::GetExtension($name) -ne $expectedAssets[$role]) {

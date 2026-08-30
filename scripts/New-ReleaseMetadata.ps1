@@ -16,7 +16,11 @@ $releaseCandidate = if ([IO.Path]::IsPathRooted($ReleaseDirectory)) {
 	Join-Path $repositoryRoot $ReleaseDirectory
 }
 $releaseRoot = [IO.Path]::GetFullPath($releaseCandidate)
-if (-not $releaseRoot.StartsWith($repositoryRoot, [StringComparison]::OrdinalIgnoreCase)) {
+$repositoryRootPrefix = $repositoryRoot.TrimEnd(
+	[IO.Path]::DirectorySeparatorChar,
+	[IO.Path]::AltDirectorySeparatorChar
+) + [IO.Path]::DirectorySeparatorChar
+if (-not $releaseRoot.StartsWith($repositoryRootPrefix, [StringComparison]::OrdinalIgnoreCase)) {
 	throw 'Release directory must be inside the repository'
 }
 [IO.Directory]::CreateDirectory($releaseRoot) | Out-Null
@@ -37,7 +41,8 @@ function Assert-CandidateAssetDescriptor {
 	$invalidFileNameChars = [IO.Path]::GetInvalidFileNameChars()
 	if ([IO.Path]::IsPathRooted($name) -or [IO.Path]::GetFileName($name) -ne $name -or
 		$name -in '.', '..' -or $name.IndexOfAny($invalidFileNameChars) -ge 0 -or
-		$name.Contains('/') -or $name.Contains('\')) {
+		$name.Contains('/') -or $name.Contains('\') -or $name.EndsWith(' ') -or
+		$name.EndsWith('.') -or $name -match '^(?:CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(?:\.|$)') {
 		throw "Beta candidate $Role asset name must be a plain Windows-safe file name: $name"
 	}
 	if ([IO.Path]::GetExtension($name) -ne $ExpectedExtension) {

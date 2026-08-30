@@ -52,7 +52,10 @@ following:
 4. the signed candidate tag resolves to the declared candidate source commit;
 5. the candidate commit is an ancestor of the Beta release-control commit;
 6. the candidate-to-Beta Git delta contains only `product-status.json`,
-   `PRD-NEXT.md`, `docs/**`, or `evidence/**` changes; and
+   `PRD-NEXT.md`, `docs/remaining-work.md`, `docs/testing/**`,
+   `docs/releases/**`, or `evidence/**` changes; packaged documentation such as
+   `docs/user/README.md` is deliberately excluded because it is copied into the
+   Windows distribution; and
 7. the four candidate asset descriptors contain valid, unique names and full
    lowercase SHA-256 values;
 8. the canonical external-tester verifier still finds 5/5 valid records for

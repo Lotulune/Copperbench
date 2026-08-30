@@ -100,7 +100,7 @@
       "additionalProperties": false,
       "required": ["name", "sha256"],
       "properties": {
-        "name": {"type": "string", "minLength": 1, "pattern": "^(?!\\.{1,2}$)(?!.*[\\\\/:*?\"<>|]).+$"},
+        "name": {"type": "string", "minLength": 1, "pattern": "^(?!\\.{1,2}$)(?!.*[\\\\/:*?\"<>|])(?!.*[ .]$)(?!(?:[Cc][Oo][Nn]|[Pp][Rr][Nn]|[Aa][Uu][Xx]|[Nn][Uu][Ll]|[Cc][Oo][Mm][1-9]|[Ll][Pp][Tt][1-9])(?:\\.|$)).+$"},
         "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
       }
     }

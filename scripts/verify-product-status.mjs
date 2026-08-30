@@ -63,7 +63,9 @@ if (candidateRelease) {
       && asset.name.length > 0
       && asset.name !== '.'
       && asset.name !== '..'
-      && !/[\u0000-\u001f<>:"/\\|?*]/.test(asset.name);
+      && !/[\u0000-\u001f<>:"/\\|?*]/.test(asset.name)
+      && !/[ .]$/.test(asset.name)
+      && !/^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(asset.name);
     if (!asset || !plainWindowsFileName || !asset.name.toLowerCase().endsWith(extension)) {
       fail(`candidateRelease.assets.${role}.name must use ${extension}`);
     }
