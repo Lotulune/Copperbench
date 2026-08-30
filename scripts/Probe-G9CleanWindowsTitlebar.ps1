@@ -32,6 +32,7 @@ New-Item -ItemType Directory -Force -Path $probeBuildRoot | Out-Null
 & $compiler /nologo /target:exe /platform:x64 /optimize+ "/out:$probePath" `
 	"/reference:$(Join-Path $frameworkRoot 'WPF\UIAutomationClient.dll')" `
 	"/reference:$(Join-Path $frameworkRoot 'WPF\UIAutomationTypes.dll')" `
+	"/reference:$(Join-Path $frameworkRoot 'Accessibility.dll')" `
 	"/reference:$(Join-Path $frameworkRoot 'System.Runtime.Serialization.dll')" `
 	$probeSource
 if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $probePath -PathType Leaf)) {
