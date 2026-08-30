@@ -2,8 +2,8 @@
   "$schema": "./schemas/product-status.schema.json",
   "schemaVersion": "1.0",
   "snapshot": {
-    "date": "2026-08-30",
-    "lastVerifiedCommit": "3fcf2923c4f34af60eef75eec0134bf922b08505",
+    "date": "2026-08-31",
+    "lastVerifiedCommit": "529c5a1a44a7ce491105e66f81ea4edb2c134936",
     "policy": "Only code, automated checks, and evidence tied to a commit can promote a gate."
   },
   "product": {
@@ -38,11 +38,11 @@
     },
     "fastCi": {
       "status": "passed",
-      "run": "https://github.com/Lotulune/Copperbench/actions/runs/33306183486",
+      "run": "https://github.com/Lotulune/Copperbench/actions/runs/33320875746",
       "latestAttempt": {
         "status": "passed",
-        "run": "https://github.com/Lotulune/Copperbench/actions/runs/33306183486",
-        "reason": "main@3fcf2923 passed Java/Javadoc, UI/Playwright smoke, MCP conformance, signed release-source Beta eligibility checks, and JUnit reporting after PR #37 merged. The last heavy Windows product regression remains Nightly 33253594479 on main@92d1a8d0 because PR #36 and PR #37 changed evidence/release-gate contracts rather than Copperbench product runtime behavior."
+        "run": "https://github.com/Lotulune/Copperbench/actions/runs/33320875746",
+        "reason": "main@529c5a1a passed Java/Javadoc, UI/Playwright smoke, MCP conformance, signed release-source checks, Beta scope exclusions, and the registered local release-signer contract after PR #41 merged. The last heavy Windows product regression remains Nightly 33253594479 on main@92d1a8d0 because the subsequent changes are release-control, evidence, and documentation changes rather than Copperbench product runtime behavior."
       },
       "runs": [
         "https://github.com/Lotulune/Copperbench/actions/runs/32904346297",
@@ -117,7 +117,7 @@
   },
   "gates": [
     {"id": "release-pipeline", "status": "passed", "betaBlocking": false, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/32838065932"]},
-    {"id": "fast-ci", "status": "passed", "betaBlocking": false, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/32904346297", "https://github.com/Lotulune/Copperbench/actions/runs/32904844692", "https://github.com/Lotulune/Copperbench/actions/runs/32905419136", "https://github.com/Lotulune/Copperbench/actions/runs/33306183486"]},
+    {"id": "fast-ci", "status": "passed", "betaBlocking": false, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/32904346297", "https://github.com/Lotulune/Copperbench/actions/runs/32904844692", "https://github.com/Lotulune/Copperbench/actions/runs/32905419136", "https://github.com/Lotulune/Copperbench/actions/runs/33306183486", "https://github.com/Lotulune/Copperbench/actions/runs/33320875746"]},
     {"id": "product-status-source", "status": "passed", "betaBlocking": true, "evidence": ["product-status.json", "schemas/product-status.schema.json", "scripts/verify-product-status.mjs"]},
     {"id": "repository-governance", "status": "passed", "betaBlocking": false, "evidence": ["docs/testing/repository-governance-2026-08-26.md"]},
     {"id": "three-data-editors", "status": "passed", "betaBlocking": true, "evidence": ["docs/testing/stage-9-ui-gates-2026-08-26.md", "ui-shell/e2e/stage9-creator-core.spec.ts"]},
@@ -144,7 +144,7 @@
   },
   "knownLimitations": [
     "Release Git Tags contain SSH signatures; GitHub reports unknown_key until the public signing key is registered.",
-    "Stage 9 data elements remain preview until the JCEF/accessibility and final clean Windows 11 RC gates pass.",
+    "Stage 9 data elements remain preview; the physical high-DPI/screen-reader audit and final clean-Windows RC replay are excluded from the current Beta scope and are not claimed as passed.",
     "The real JCEF accessibility pass and final clean Windows 11 RC replay are not complete; the Hyper-V guest cannot validate Chromium WebContents accessibility because native Edge reproduces the same missing web-control subtree, so a physical or otherwise known-good Windows accessibility environment is required.",
     "The current Beta scope explicitly excludes the real JCEF accessibility audit, final clean-Windows RC replay, and external tester trial; Beta publication still requires a signed Preview candidate and exact asset hashes.",
     "Windows packages are not Authenticode signed."
