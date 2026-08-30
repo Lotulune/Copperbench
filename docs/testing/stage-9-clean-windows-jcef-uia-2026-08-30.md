@@ -192,14 +192,15 @@ serialization. The same product can expose hundreds of AX nodes and named
 buttons through Chromium's renderer API while Windows UIA on the clean guest
 still ends at an unnamed `Document` with zero button descendants.
 
-Chromium's Windows implementation makes the remaining boundary explicit. The
+Chromium's Windows implementation makes the next boundary explicit. The
 `Chrome_RenderWidgetHostHWND` UIA fragment root obtains its child from
 `GetOrCreateBrowserAccessibilityRoot()`, which in turn asks
 `RenderWidgetHostImpl::GetOrCreateRootBrowserAccessibilityManager()` for the
-`BrowserAccessibilityManagerWin` root. Combined with the clean-guest results,
-the remaining defect is therefore in the browser-side manager/platform-provider
-projection or its fragment-root wiring, not in Copperbench's DOM semantics or
-renderer AX generation.
+`BrowserAccessibilityManagerWin` root. At this point in the investigation the
+clean-guest result looked like a browser-side manager/platform-provider
+projection problem. The native Edge control below later reproduced the same
+WebContents visibility failure on the same guest, so this observation must not
+be treated as evidence of a JCEF-specific defect.
 
 ## Direct MSAA provider confirms a root-only Windows platform tree
 
@@ -220,18 +221,63 @@ The final same-guest result is
 - the direct UIA traversal of the exact same renderer HWND also contains only
   `1` `Document` node and `0` buttons.
 
-This is stronger than the earlier UIA-only result. The failure is not a defect
-specific to Chromium's UIA v2 projection: both UIA and MSAA successfully obtain
-the platform document root but both see a root with no descendants. At the same
-time, the real JCEF renderer returns `267` AX nodes and `26/26` named buttons via
+This is stronger than the earlier UIA-only result for describing what the guest
+can observe: both UIA and MSAA successfully obtain a platform document root but
+both see a root with no descendants. At the same time, the real JCEF renderer
+returns `267` AX nodes and `26/26` named buttons via
 `Accessibility.getFullAXTree`.
 
-The remaining boundary is therefore the transfer/materialization of renderer
-AX descendants into Chromium's browser-process Windows platform accessibility
-tree (`BrowserAccessibilityManagerWin` / `BrowserAccessibilityWin`), before the
-platform-specific UIA or MSAA traversal layer. Fixing Copperbench ARIA, adding
-more Chromium accessibility switches, sending more `WM_GETOBJECT` variants, or
-changing only the UIA provider cannot close this gate.
+However, this result alone does **not** identify the root-only platform tree as
+a JCEF defect. The same direct-renderer symptom is reproduced by native Edge on
+the same guest below. Copperbench DOM/ARIA changes are still unnecessary because
+the renderer AX tree is already populated, but the failing clean-guest platform
+projection must now be treated as an environment/acceptance limitation until a
+known-good Windows Chromium control can expose WebContents on the same probe.
+
+## Native Edge control reproduces the clean-guest WebContents limitation
+
+To determine whether the root-only renderer tree was actually JCEF-specific, a
+new control probe launched the Windows 11 guest's installed Microsoft Edge
+`152.0.4191.53` against a local HTML fixture containing exactly three buttons:
+`Control One`, `Control Two`, and `Control Three`. The control runs in the same
+interactive `g7admin` session, starts Narrator, foregrounds/focuses Edge, and
+uses the same .NET UI Automation plus MSAA APIs as the Copperbench probe.
+
+The final control uses a normal Edge browser window rather than app mode and
+explicitly enables the strongest accessibility settings tested during the JCEF
+investigation:
+
+- `--force-renderer-accessibility=complete`;
+- `--enable-features=UiaProvider`;
+- `--disable-features=SelectiveUIAEnablement`.
+
+The machine result is
+[`clean-windows11-edge-accessibility-control.json`](../../evidence/stage-9/2026-08-30/clean-windows11-edge-accessibility-control.json).
+It shows:
+
+- the Edge top-level UIA tree is alive and exposes `62` nodes;
+- UIA exposes `15` browser-chrome buttons (back/refresh/favorites/profile/menu,
+  tab controls, and window controls), proving the probe can traverse Edge's
+  native UI;
+- none of the three HTML buttons are exposed (`uiaExpectedButtonCount=0`);
+- direct UIA traversal from Edge's `Chrome_RenderWidgetHostHWND` exposes only
+  `2` nodes and `0` buttons;
+- direct MSAA on that same renderer HWND returns `HRESULT=0`, but
+  `accChildCount=0`, one root element, and zero buttons.
+
+Therefore the clean Hyper-V guest reproduces the same missing Chromium
+WebContents accessibility subtree in **native Edge**, not only in JCEF. The
+clean-guest `buttonCount=0` result is not a valid product-specific failure
+oracle. It can continue to verify shell/native-window plumbing and renderer AX
+generation, but it cannot close or diagnose the Windows WebContents
+screen-reader/UIA acceptance requirement.
+
+The correct next acceptance step is to use a physical or otherwise known-good
+Windows 11 accessibility environment. First run this Edge control and require
+the three HTML buttons to be observable. Only after that control passes should
+the same machine be used to judge Copperbench JCEF. If Edge fails the control,
+the environment is invalid for this gate and no Copperbench runtime change
+should be inferred from that result.
 
 ## JCEF / CEF 150 runtime A/B also remains blocked
 
@@ -309,24 +355,25 @@ API compatibility change without closing the Public Beta accessibility gate.
 
 ## Decision
 
-Do **not** merge the experimental CEF-offset bridge or the extra Chromium
-feature switches. They did not close the gate and the hard-coded CEF ABI
-offsets would create unnecessary maintenance and crash risk.
+Do **not** merge the experimental CEF-offset bridge, the JCEF 150 source
+adaptation, or the extra Chromium feature switches into the product. None of
+them established a product-specific fix, and the hard-coded CEF ABI bridge
+would add unnecessary maintenance and crash risk.
 
-Retain the improved clean-Windows probe and this failure evidence. Treat the
-missing Windows platform accessibility projection as a CEF 137 Alloy/JCEF
-runtime blocker requiring one of the following before Public Beta:
+Retain the renderer AX regression, the hardened Copperbench probe, the native
+Edge control, and all machine evidence. Reclassify the automated clean-guest
+WebContents result from "JCEF runtime defect" to **inconclusive environment
+validation** because native Edge reproduces the same missing subtree.
 
-1. a newer JCEF/CEF runtime in which the windowed Alloy renderer exposes a
-   populated Windows UIA subtree under the same clean-guest probe (the tested
-   JCEF/CEF `150.0.14` / Chromium `150.0.7871.129` candidate is **not** such a
-   runtime); or
-2. an upstream CEF/Chromium fix for the Alloy Windows platform-provider path,
-   followed by the same clean-guest Narrator/UIA acceptance run; or
-3. a deliberate rendering-architecture change such as OSR plus a maintained
-   native accessibility-provider implementation, treated as a separate large
-   engineering project rather than a launch-flag workaround.
+Before Public Beta, the `real-jcef-accessibility` gate still requires:
 
-Physical 150%/175%/200% DPI verification, screen-reader interoperability, and
-the complete manual keyboard audit remain required even after the provider
-subtree issue is resolved.
+1. a physical or otherwise known-good Windows 11 accessibility environment in
+   which the Edge control first exposes all three fixture buttons;
+2. the same environment to expose Copperbench's Chromium controls through the
+   Windows accessibility stack and a real screen reader;
+3. physical 150%/175%/200% DPI verification; and
+4. the complete manual keyboard audit.
+
+Only if the Edge control passes on that environment while Copperbench fails
+should JCEF/CEF runtime patching, an upstream CEF issue, or an alternative
+rendering/accessibility architecture be reopened as a product defect.
