@@ -1,16 +1,16 @@
 # Copperbench 下一步 PRD：阶段 10 可信预览发布与 Stage 9 收口
 
-> 状态：Public Beta 已发布；`v0.1.0-beta.1` 二进制晋升验证通过，`v0.1.0-beta.2` 正在修正随包状态源 channel 漂移<br>
+> 状态：Public Beta 已发布；`v0.1.0-beta.2` 已完成状态源修正与 exact-binary promotion<br>
 > 版本：v1.2<br>
 > 更新日期：2026-08-31<br>
 > 前置基线：[PRD.md](./PRD.md)、[PRD-STAGE-9.md](./PRD-STAGE-9.md)<br>
-> 当前公开 Beta：`v0.1.0-beta.1`（`main@f12823ab`，release run `33332537616`）；四个 canonical 资产与 `v0.1.0-preview.6` 完全同 SHA-256，Beta 2 仅修正权威状态源 channel
+> 当前公开 Beta：`v0.1.0-beta.2`（`main@8b063283`，release run `33334394466`）；随包 `product.channel=beta`，四个 canonical 资产与 `v0.1.0-preview.6` / Beta 1 完全同 size/SHA-256
 
 ## 2026-08-31 Public Beta publication and metadata correction
 
 `v0.1.0-beta.1` 已从 release-control `main@f12823ab` 通过 release run `33332537616` 成功公开。`RELEASE-METADATA.json` 明确记录 `binarySource.mode=promoted-tested-candidate`，EXE/ZIP/MSIX/SBOM 与签名 `v0.1.0-preview.6` 的大小和 SHA-256 全部一致，因此 Beta 1 没有重新构建候选二进制。详见 [Beta 1 publication verification](./docs/testing/beta1-publication-2026-08-31.md)。
 
-发布后验收发现 Beta 1 随包的权威 `product-status.json` 仍声明 `product.channel=preview`。这不影响已验证的二进制身份，但与 `-beta.N` 的 Public Beta 状态源语义不一致。`v0.1.0-beta.1` 保持不可变；当前改用新的 `v0.1.0-beta.2` release-control tag 修正 channel，并继续原样晋升同一 Preview 6 四个 canonical 资产。真实 JCEF 无障碍审计、最终 clean-Windows RC replay 和五人外部试用继续排除在当前 Beta scope 之外，不宣称其已通过。
+发布后验收发现 Beta 1 随包的权威 `product-status.json` 仍声明 `product.channel=preview`；该元数据问题已由不可变的新标签 `v0.1.0-beta.2` 修正。Beta 2 release run `33334394466` 成功，随包 `product.channel=beta`、`delivery.betaRelease.tag=v0.1.0-beta.2`，并继续原样晋升 Preview 6 的四个 canonical 资产。真实 JCEF 无障碍审计、最终 clean-Windows RC replay 和五人外部试用继续排除在当前 Beta scope 之外，不宣称其已通过。详见 [Beta 2 publication verification](./docs/testing/beta2-publication-2026-08-31.md)。
 
 ## 0. 阅读与执行协议
 
@@ -26,8 +26,8 @@
 
 | 项目 | 当前事实 | 结论 |
 | --- | --- | --- |
-| Fast CI | main 分支保护持续要求 Java/Javadoc、UI/Playwright 与 MCP；当前 Beta release-control `main@f12823ab` 的 merged-main run `33332178127` 全绿 | PR 门禁已闭环；Beta 2 metadata-only correction 仍必须通过同一保护 CI |
-| 公开 Release | `v0.1.0-beta.1` 已从 `main@f12823ab` 公开，release run `33332537616` 成功；四个 canonical 资产与 Preview 6 完全同 SHA-256 | Beta 1 二进制正确，但随包 `product.channel` 仍为 `preview`；发布 `v0.1.0-beta.2` 作为 metadata-only correction，继续 exact-binary promotion Preview 6 |
+| Fast CI | main 分支保护持续要求 Java/Javadoc、UI/Playwright 与 MCP；Beta 2 release-control `main@8b063283` 的 merged-main run `33334020837` 全绿 | PR 门禁已闭环；Beta 2 已从 CI-green main 发布 |
+| 公开 Release | `v0.1.0-beta.2` 已从 `main@8b063283` 公开，release run `33334394466` 成功；10 个资产全部 uploaded 且有 digest | 随包 `product.channel=beta`；EXE/ZIP/MSIX/SBOM 与 Preview 6/Beta 1 完全同 size/SHA-256，metadata correction 已完成 |
 | 状态源 | `product-status.json`、Schema 和 CI 漂移校验已进入 main，并已修复首次远端运行暴露的 Release Schema 漏项 | 状态源门禁通过；后续状态提升仍必须带固定提交证据 |
 | 重型门禁 | Nightly `33253594479`（`main@92d1a8d0`）的全量 Java/Javadoc/scale 回归、完整 Playwright、MCP、诊断包 native JCEF 验收与八生成器内容构建 8/8 全绿；后续发布合同变更也已通过主线 CI | FR-AI-02～05、FR-BETA-01～02 保持闭环；无障碍、最终 RC 和外部试用已按 Beta 合同移出当前范围 |
 | Stage 9 | 八生成器黄金编译、三个专用编辑器、语言工具、安装升级和离线工作区路径已有自动化/客机证据；Windows WR + Chromium 完整 AXMode 与 `DPR=1.25` 路径已通过 | 物理高 DPI、屏幕阅读器、最终 RC 矩阵和外部试用不纳入当前版本宣称，未来重新纳入时需新候选和新证据 |
@@ -306,7 +306,7 @@ Issue 模板必须收集版本、commit、生成器、元素类型、复现步�
 - 至少 5 名外部试用者完成全任务。
 - 所有高风险能力有固定提交证据；未验证项明确降级或移出宣称。
 
-当前版本已经公开 `v0.1.0-beta.1`，且 exact-binary promotion 已验证；当前只剩 `v0.1.0-beta.2` 的状态源 channel 修正。Beta 2 不允许修改产品代码或候选字节，仍必须复用 `v0.1.0-preview.6` 的 EXE/ZIP/MSIX/SBOM。未验证的无障碍、最终 RC 和外部试用能力继续从当前 Beta 宣称范围移除。
+当前版本已经公开 `v0.1.0-beta.2`，状态源 channel 修正与 exact-binary promotion 均已验证。当前 Public Beta 发布链没有未完成的发布控制阻断；后续产品或构建变更若要再次发布，必须重新建立候选与相应证据。未验证的无障碍、最终 RC 和外部试用能力继续从当前 Beta 宣称范围移除。
 
 ## 8. 风险与缓解
 
