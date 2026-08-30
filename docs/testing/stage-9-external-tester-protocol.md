@@ -25,6 +25,10 @@ Verbal feedback and maintainer-run virtual machines do not count.
 Do not enable the optional workspace-file attachment unless the tester has
 reviewed those files and explicitly agrees to share their contents.
 
+The machine record must therefore contain both `diagnosticInspected=passed` and
+`diagnosticBundleExported=passed`; the verifier rejects records that omit the
+bundle-export step.
+
 ## Evidence rule
 
 Each record must validate against

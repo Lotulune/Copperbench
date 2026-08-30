@@ -15,7 +15,7 @@ const source = {
 };
 const tasks = Object.fromEntries([
   'downloaded', 'hashVerified', 'installed', 'workspaceCreatedOrImported', 'elementCreated',
-  'buildCompleted', 'failureInduced', 'diagnosticInspected', 'recoveryPointCreated',
+  'buildCompleted', 'failureInduced', 'diagnosticInspected', 'diagnosticBundleExported', 'recoveryPointCreated',
   'recoveryRestored', 'uninstalled', 'workspaceRetainedAfterUninstall'
 ].map((name) => [name, 'passed']));
 
@@ -84,6 +84,29 @@ test('P0 and P1 issues keep the evidence gate closed', () => {
   const result = verify([invalid]);
   assert.notEqual(result.status, 0);
   assert.match(result.stderr, /P0\/P1 issue remains open/);
+});
+
+test('diagnostic bundle export is required by the machine evidence contract', () => {
+  const invalid = record(1);
+  const { diagnosticBundleExported, ...incompleteTasks } = invalid.tasks;
+  invalid.tasks = incompleteTasks;
+  const result = verify([invalid]);
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /tasks fields must be exactly/);
+});
+
+test('preinstalled developer tools obey the schema item and uniqueness contract', () => {
+  const invalidType = record(1);
+  invalidType.environment = { ...invalidType.environment, preinstalledDeveloperTools: ['git', 42] };
+  const typeResult = verify([invalidType]);
+  assert.notEqual(typeResult.status, 0);
+  assert.match(typeResult.stderr, /preinstalledDeveloperTools entries must be strings/);
+
+  const duplicate = record(2);
+  duplicate.environment = { ...duplicate.environment, preinstalledDeveloperTools: ['git', 'git'] };
+  const duplicateResult = verify([duplicate]);
+  assert.notEqual(duplicateResult.status, 0);
+  assert.match(duplicateResult.stderr, /preinstalledDeveloperTools entries must be unique/);
 });
 
 test('personal paths and credentials are rejected', () => {

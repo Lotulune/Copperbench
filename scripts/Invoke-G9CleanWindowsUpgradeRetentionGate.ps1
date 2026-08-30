@@ -9,10 +9,25 @@ param(
 	[string]$GuestUser = 'g7admin',
 	[string]$PasswordFile = 'D:\Hyper-V\G7\g7admin.password.txt',
 	[string]$InstallDir = 'C:\Copperbench-G9',
-	[string]$WorkspaceFile = ''
+	[string]$WorkspaceFile = '',
+	[switch]$FinalRcReplay,
+	[string]$ExpectedCurrentInstallerSha256 = '',
+	[string]$ExpectedSourceCommit = ''
 )
 
 $ErrorActionPreference = 'Stop'
+
+if ($FinalRcReplay) {
+	if ($ExpectedCurrentInstallerSha256 -notmatch '^[0-9a-fA-F]{64}$') {
+		throw 'Final RC replay requires -ExpectedCurrentInstallerSha256 with a full 64-character SHA-256.'
+	}
+	if ($ExpectedSourceCommit -notmatch '^[0-9a-fA-F]{40}$') {
+		throw 'Final RC replay requires -ExpectedSourceCommit with a full 40-character Git SHA.'
+	}
+} elseif ($ExpectedCurrentInstallerSha256 -or $ExpectedSourceCommit) {
+	throw '-ExpectedCurrentInstallerSha256 and -ExpectedSourceCommit are only valid together with -FinalRcReplay.'
+}
+
 Import-Module Hyper-V -ErrorAction Stop
 
 if (-not (Test-Path -LiteralPath $PreviousInstallerPath -PathType Leaf)) {
@@ -30,6 +45,43 @@ if ($previousHash -ne $PreviousInstallerSha256.ToLowerInvariant()) {
 	throw "Previous installer SHA-256 mismatch. expected=$PreviousInstallerSha256 actual=$previousHash"
 }
 $currentHash = (Get-FileHash -LiteralPath $CurrentInstallerPath -Algorithm SHA256).Hash.ToLowerInvariant()
+$resolvedSourceCommit = ''
+$finalRcSourceWorktreeClean = $false
+if ($FinalRcReplay) {
+	$expectedCurrentHash = $ExpectedCurrentInstallerSha256.ToLowerInvariant()
+	if ($currentHash -ne $expectedCurrentHash) {
+		throw "Final RC installer SHA-256 mismatch. expected=$expectedCurrentHash actual=$currentHash"
+	}
+
+	$gitHead = (& git -C $RepositoryRoot rev-parse HEAD 2>$null)
+	if ($LASTEXITCODE -ne 0 -or -not $gitHead) {
+		throw "Unable to resolve Git HEAD for final RC replay: $RepositoryRoot"
+	}
+	$resolvedSourceCommit = ([string]$gitHead).Trim().ToLowerInvariant()
+	$expectedCommit = $ExpectedSourceCommit.ToLowerInvariant()
+	if ($resolvedSourceCommit -ne $expectedCommit) {
+		throw "Final RC source commit mismatch. expected=$expectedCommit actual=$resolvedSourceCommit"
+	}
+
+	$worktreeStatus = @(& git -C $RepositoryRoot status --porcelain --untracked-files=all 2>$null)
+	if ($LASTEXITCODE -ne 0) {
+		throw "Unable to inspect Git worktree state for final RC replay: $RepositoryRoot"
+	}
+	$allowedDirtyPrefixes = @('docs/history-session/', 'evidence/')
+	$disallowedStatus = @($worktreeStatus | Where-Object {
+		$entry = [string]$_
+		if ($entry.Length -lt 4) {
+			return $true
+		}
+		$path = $entry.Substring(3).Trim('"').Replace('\', '/')
+		-not ($allowedDirtyPrefixes | Where-Object { $path.StartsWith($_, [System.StringComparison]::OrdinalIgnoreCase) })
+	})
+	if ($disallowedStatus.Count -gt 0) {
+		$preview = ($disallowedStatus | Select-Object -First 20) -join '; '
+		throw "Final RC replay requires a clean build-affecting Git worktree. Only docs/history-session/ and evidence/ may be dirty. Found: $preview"
+	}
+	$finalRcSourceWorktreeClean = $true
+}
 
 $plainPassword = (Get-Content -LiteralPath $PasswordFile -Raw).Trim()
 $securePassword = ConvertTo-SecureString $plainPassword -AsPlainText -Force
@@ -48,6 +100,9 @@ $result = [ordered]@{
 	previousInstallerSha256 = $previousHash
 	currentInstallerPath = $CurrentInstallerPath
 	currentInstallerSha256 = $currentHash
+	finalRcReplayRequested = [bool]$FinalRcReplay
+	finalRcSourceCommit = $resolvedSourceCommit
+	finalRcSourceWorktreeClean = $finalRcSourceWorktreeClean
 	installDir = $InstallDir
 	startedAt = (Get-Date).ToString('o')
 	passed = $false
@@ -69,6 +124,7 @@ $result = [ordered]@{
 	uninstallPreservedWorkspace = $false
 	uninstallPreservedUserData = $false
 	restoredCurrentInstall = $false
+	testMarkersRemoved = $false
 	finalRcReplayRequired = $true
 	gatePromotionReady = $false
 }
@@ -661,9 +717,17 @@ try {
 	if ($session) {
 		Remove-PSSession $session -ErrorAction SilentlyContinue
 	}
+	if ($FinalRcReplay -and $result.finalRcSourceWorktreeClean -and $result.passed -and $result.testMarkersRemoved) {
+		$result.finalRcReplayRequired = $false
+		$result.gatePromotionReady = $true
+	}
 	$result.completedAt = (Get-Date).ToString('o')
 	($result | ConvertTo-Json -Depth 12) | Set-Content -LiteralPath $resultPath -Encoding UTF8
 	Write-Output ("passed=" + $result.passed)
+	Write-Output ("finalRcReplayRequested=" + $result.finalRcReplayRequested)
+	if ($result.finalRcSourceCommit) {
+		Write-Output ("finalRcSourceCommit=" + $result.finalRcSourceCommit)
+	}
 	Write-Output ("previousReleaseInstalled=" + $result.previousReleaseInstalled)
 	Write-Output ("oldToCurrentUpgrade=" + $result.oldToCurrentUpgrade)
 	Write-Output ("upgradeInstalledDifferentPayload=" + $result.upgradeInstalledDifferentPayload)
