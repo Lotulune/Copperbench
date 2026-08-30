@@ -166,6 +166,41 @@ provider to AWT. With the bundled CEF 137 runtime in JCEF's forced
 does not expose the DOM accessibility subtree from the renderer HWND after
 `STATE_ENABLED`.
 
+## Renderer AX tree confirmed independently of Windows UIA
+
+The native JCEF Stage 9 test now asks Chromium directly for its renderer-side
+accessibility tree with DevTools `Accessibility.getFullAXTree`. The test does
+**not** call `Accessibility.enable` first, so the query does not serve as an
+extra accessibility activation step. Copperbench is already launched with
+`--force-renderer-accessibility=complete`.
+
+On the bundled JCEF/CEF `137.0.17` / Chromium `137.0.7151.104` runtime, the
+real production shell returned:
+
+- `267` AX nodes;
+- `26` nodes with role `button`;
+- `26/26` button nodes with non-empty accessible names.
+
+The regression test now asserts that the renderer tree contains at least 20
+nodes, at least three buttons, and at least three named buttons. The raw summary
+is recorded in
+[`native-jcef-renderer-ax-tree.json`](../../evidence/stage-9/2026-08-30/native-jcef-renderer-ax-tree.json).
+
+This closes another possible explanation for the clean-guest failure: the
+React DOM/ARIA tree is not missing from Chromium's renderer accessibility
+serialization. The same product can expose hundreds of AX nodes and named
+buttons through Chromium's renderer API while Windows UIA on the clean guest
+still ends at an unnamed `Document` with zero button descendants.
+
+Chromium's Windows implementation makes the remaining boundary explicit. The
+`Chrome_RenderWidgetHostHWND` UIA fragment root obtains its child from
+`GetOrCreateBrowserAccessibilityRoot()`, which in turn asks
+`RenderWidgetHostImpl::GetOrCreateRootBrowserAccessibilityManager()` for the
+`BrowserAccessibilityManagerWin` root. Combined with the clean-guest results,
+the remaining defect is therefore in the browser-side manager/platform-provider
+projection or its fragment-root wiring, not in Copperbench's DOM semantics or
+renderer AX generation.
+
 ## JCEF / CEF 150 runtime A/B also remains blocked
 
 The next bounded experiment tested whether the provider defect had already
