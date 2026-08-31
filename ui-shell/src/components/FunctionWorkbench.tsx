@@ -276,7 +276,7 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
               <span style={{ fontWeight: 700, fontSize: '14px', color: 'var(--text-main)' }}>
                 {element.displayName}
               </span>
-              <span className="badge badge-copper">FUNCTION</span>
+              <span className="badge badge-copper">函数</span>
               <span
                 className={`badge badge-${element.state === 'valid' ? 'green' : 'amber'}`}
               >
@@ -325,8 +325,8 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
               fontSize: '11px',
               fontWeight: activeTab === 'editor' ? 600 : 500,
               borderRadius: 'var(--radius-xs)',
-              background: activeTab === 'editor' ? 'var(--accent-copper)' : 'transparent',
-              color: activeTab === 'editor' ? '#ffffff' : 'var(--text-muted)'
+              background: activeTab === 'editor' ? 'var(--accent-copper-fill)' : 'transparent',
+              color: activeTab === 'editor' ? 'var(--text-on-accent)' : 'var(--text-muted)'
             }}
           >
             <Code2 size={13} />
@@ -346,8 +346,8 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
               fontSize: '11px',
               fontWeight: activeTab === 'tags' ? 600 : 500,
               borderRadius: 'var(--radius-xs)',
-              background: activeTab === 'tags' ? 'var(--accent-copper)' : 'transparent',
-              color: activeTab === 'tags' ? '#ffffff' : 'var(--text-muted)'
+              background: activeTab === 'tags' ? 'var(--accent-copper-fill)' : 'transparent',
+              color: activeTab === 'tags' ? 'var(--text-on-accent)' : 'var(--text-muted)'
             }}
           >
             <Tags size={13} />
@@ -367,8 +367,8 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
               fontSize: '11px',
               fontWeight: activeTab === 'preview' ? 600 : 500,
               borderRadius: 'var(--radius-xs)',
-              background: activeTab === 'preview' ? 'var(--accent-copper)' : 'transparent',
-              color: activeTab === 'preview' ? '#ffffff' : 'var(--text-muted)'
+              background: activeTab === 'preview' ? 'var(--accent-copper-fill)' : 'transparent',
+              color: activeTab === 'preview' ? 'var(--text-on-accent)' : 'var(--text-muted)'
             }}
           >
             <FolderTree size={13} />

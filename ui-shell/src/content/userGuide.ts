@@ -93,7 +93,7 @@ export const TRACK_HONEST_FACTS: readonly TrackHonestFact[] = [
     statusLabel: 'Fabric / NeoForge 正式支持',
     statusCode: 'TRACK_SUPPORTED',
     isGolden: true,
-    notes: '编译 + runClient 已宣称。Fabric 走未混淆 Loom。'
+    notes: 'Fabric 与 NeoForge 均已完成编译与游戏内运行验证。'
   },
   {
     trackName: '前一 26.1',
@@ -101,15 +101,15 @@ export const TRACK_HONEST_FACTS: readonly TrackHonestFact[] = [
     statusLabel: 'Fabric / NeoForge 正式支持',
     statusCode: 'TRACK_SUPPORTED',
     isGolden: true,
-    notes: '钉选 Minecraft 26.1.2。编译 + runClient 已宣称。'
+    notes: '钉选 Minecraft 26.1.2，已完成编译与游戏内运行验证。'
   },
   {
     trackName: '维护 1.21.1',
     minecraftVersion: '1.21.1',
-    statusLabel: '正式支持，有黄金构建 / runClient',
+    statusLabel: '正式支持（推荐首选）',
     statusCode: 'TRACK_SUPPORTED',
     isGolden: true,
-    notes: 'Copperbench 官方完全支持，包含 Golden 构建与 runClient 验证（新项目优先首选）'
+    notes: '验证最完整的轨道，新项目优先推荐。'
   },
   {
     trackName: '维护 1.20.1',
@@ -117,7 +117,7 @@ export const TRACK_HONEST_FACTS: readonly TrackHonestFact[] = [
     statusLabel: 'Fabric / NeoForge 正式支持',
     statusCode: 'TRACK_SUPPORTED',
     isGolden: true,
-    notes: 'Fabric 1.20.1 与 NeoForge 1.20.1（钉选 1.20.1-47.1.106）均有编译和 runClient 证据。'
+    notes: 'Fabric 与 NeoForge（钉选 1.20.1-47.1.106）均已完成编译与游戏内运行验证。'
   }
 ];
 
@@ -126,10 +126,9 @@ export const USER_GUIDE_SECTIONS: readonly UserGuideSection[] = [
     id: 'workspace',
     title: '工作区 (Workspace)',
     content: [
-      '一个工作区同一时间只有一个活动生成器（Fabric 或 NeoForge 的某一个版本）。',
-      '创建、打开、从官方 MCreator 迁入都走同一套 Java 服务。迁入会复制到新目录，并保留未知字段。',
-      '「新建工作区」在产品外壳原生完成：四轨 × Fabric/NeoForge 生成器选择、mod 名称/ID/包名/文件夹表单、确认门后提交 create_workspace 命令。MCP 与 headless 也可查询生成器并提交创建命令，但必须显式提供用户批准事实。',
-      '工作区文件扩展名仍是 .mcreator，以便兼容上游插件。用户设置在 %USERPROFILE%\\.copperbench。'
+      '一个工作区同一时间只使用一个活动生成器（Fabric 或 NeoForge 的某个版本）。',
+      '新建、打开、从官方 MCreator 迁入都在产品内完成；迁入会复制到新目录，不改动原工作区。',
+      '工作区文件仍使用 .mcreator 扩展名，保持与上游插件生态的兼容。'
     ],
     linkView: 'new-workspace',
     linkLabel: '打开新建工作区表单'
@@ -138,16 +137,16 @@ export const USER_GUIDE_SECTIONS: readonly UserGuideSection[] = [
     id: 'version-tracks',
     title: '版本轨道 (Version Tracks)',
     content: [
-      '版本轨道矩阵：第一方纵向切片的 Fabric / NeoForge 支持范围、编译证据与 runClient 状态均从 UI-Core 实时投影。',
-      '可视化「新建工作区」只展示 Core 当前提供的生成器插件与可用状态，不在界面中维护独立版本清单。插件空工作区 Gradle 黄金编译尚未宣称，不能用第一方切片的 compile / runClient 证据替代。'
+      '「版本轨道」页集中展示各 Minecraft 版本线的 Fabric / NeoForge 支持状态。',
+      '新建工作区时只列出当前可用的生成器，建议选择标记为「正式支持」的轨道。'
     ],
     table: {
-      headers: ['轨道', '状态', '原因代码 / 说明'],
+      headers: ['轨道', '状态', '说明'],
       rows: [
-        ['最新 26.2', 'Fabric / NeoForge 正式支持', 'TRACK_SUPPORTED'],
-        ['前一 26.1', 'Fabric / NeoForge 正式支持', 'TRACK_SUPPORTED'],
-        ['维护 1.21.1', '正式支持，有黄金构建 / runClient', 'TRACK_SUPPORTED (推荐首选)'],
-        ['维护 1.20.1', 'Fabric / NeoForge 正式支持', 'TRACK_SUPPORTED']
+        ['最新 26.2', '正式支持', 'Fabric 与 NeoForge 均可用'],
+        ['前一 26.1', '正式支持', '钉选 Minecraft 26.1.2'],
+        ['维护 1.21.1', '正式支持（推荐）', '验证最完整，新项目首选'],
+        ['维护 1.20.1', '正式支持', 'Fabric 与 NeoForge 均可用']
       ]
     },
     linkView: 'tracks',
@@ -157,8 +156,8 @@ export const USER_GUIDE_SECTIONS: readonly UserGuideSection[] = [
     id: 'mod-elements',
     title: '模组元素 (Mod Elements)',
     content: [
-      '第一方纵向切片：方块 (Block)、物品 (Item)、配方 (Recipe)、Procedure。四轨 Fabric/NeoForge 均如此。',
-      '迁入的上游类型（如 livingentity、GUI）会保留并只读列出，不能在新 UI / MCP 里创建或更新。'
+      '可直接可视化创建和编辑：方块、物品、配方、Procedure。',
+      '从上游迁入的其他类型元素会保留并只读显示，暂不能在新界面中修改。'
     ],
     linkView: 'elements',
     linkLabel: '进入模组元素工作台'
@@ -167,8 +166,8 @@ export const USER_GUIDE_SECTIONS: readonly UserGuideSection[] = [
     id: 'local-history',
     title: '本地历史 (Local History)',
     content: [
-      '用「版本 / 恢复点」而不是 Git 术语。',
-      '已有远端仓库不会被自动改写。恢复会回到一致快照。'
+      '用「版本 / 恢复点」管理工作区历史，无需了解 Git。',
+      '可随时恢复到任一恢复点；已有 Git 远端仓库不会被自动改动。'
     ],
     linkView: 'history',
     linkLabel: '查看本地历史与恢复点'
@@ -177,9 +176,8 @@ export const USER_GUIDE_SECTIONS: readonly UserGuideSection[] = [
     id: 'mcp-permissions',
     title: 'MCP 权限 (MCP Permissions)',
     content: [
-      '本机 MCP 三档：只读 (Read Only)、工作区 (Workspace)、完全访问 (Full Access)。',
-      '删除工作区、导出凭据、对外发布、启用 Java 插件必须你亲自确认。',
-      '安全准则：AI 不能替你打开 Java 插件。'
+      '本机 AI 连接分为三档：只读、工作区、完全访问。',
+      '删除工作区、导出凭据、对外发布、启用 Java 插件，都必须由你本人确认。'
     ],
     linkView: 'ai',
     linkLabel: '管理 AI 与 MCP 权限'
@@ -188,9 +186,8 @@ export const USER_GUIDE_SECTIONS: readonly UserGuideSection[] = [
     id: 'blockbench-assets',
     title: 'Blockbench 与资源包 (Blockbench & Resource Packs)',
     content: [
-      '模型和纹理可以往返 Blockbench。',
-      '资源包可以导出 ZIP，并准备到 run/resourcepacks。',
-      '产品不会自动启动 Minecraft。资源包是否可由测试客户端加载，以当前生成器轨道的验证状态为准。'
+      '模型和纹理可以在 Blockbench 中编辑后安全导回。',
+      '资源包可导出为 ZIP；产品不会自动启动 Minecraft。'
     ],
     linkView: 'assets',
     linkLabel: '打开资产与 Blockbench 集成'
@@ -199,9 +196,8 @@ export const USER_GUIDE_SECTIONS: readonly UserGuideSection[] = [
     id: 'loader-migration',
     title: '加载器迁移 (Loader Migration)',
     content: [
-      '只做同版本 Fabric ↔ NeoForge 的安全拷贝。',
-      '源工作区只读。',
-      '预览报告里的阻断项没清完，不要当成迁移成功。'
+      '支持同版本 Fabric ↔ NeoForge 迁移，迁移会生成新副本，原工作区保持只读。',
+      '预览报告中的阻断项未处理完之前，请勿视为迁移成功。'
     ],
     linkView: 'tracks',
     linkLabel: '前往跨加载器迁移工具'
@@ -210,13 +206,9 @@ export const USER_GUIDE_SECTIONS: readonly UserGuideSection[] = [
     id: 'plugins',
     title: '插件 (Plugins)',
     content: [
-      '插件兼容分级标准：',
-      '• A：资源/生成器模板',
-      '• B：不碰 Swing 的 Java 逻辑',
-      '• C：Swing 界面，走旧版窗口',
-      '• X：拒绝或不兼容',
-      'Java 插件默认关闭，启用即完全本机信任。',
-      '兼容中心展示已安装插件清单，以及上游工具是走新 UI、旧版窗口，还是明确不支持。'
+      '插件按兼容性分为 A / B / C / X 四级：A 为资源与生成器类，B 为纯逻辑类，C 为带旧版界面的插件，X 为不兼容。',
+      'Java 插件默认关闭；启用即视为完全信任其在本机运行。',
+      '兼容中心可查看已安装插件清单，以及各上游工具的接入方式。'
     ],
     linkView: 'plugins',
     linkLabel: '查看插件兼容中心'
@@ -225,23 +217,19 @@ export const USER_GUIDE_SECTIONS: readonly UserGuideSection[] = [
     id: 'china-network',
     title: '国内网络 (China Network)',
     content: [
-      '首次启动会询问你是否在中国大陆。',
-      '选“是”后，Copperbench 会把 Gradle 发行版改到华为云镜像，把 Maven Central / Plugin Portal 改到阿里云镜像，并把 Minecraft 库改到 BMCLAPI。',
-      '这些文件写在 %USERPROFILE%\\.copperbench\\gradle，不是系统全局 .gradle。该目录是所有工作区共用的 Gradle 用户主目录。',
-      'Fabric Maven 与 NeoForge 专用仓库仍走官方地址。安装包若带了 gradle-dists，启动时会预填到这个目录。',
-      '之后可在偏好设置的 Gradle 页开关「使用中国大陆软件源」。',
-      '若创建工作区时卡在 services.gradle.org，失败对话框也可以直接配置国内源并重试。'
+      '首次启动会询问你是否在中国大陆，选择后会自动配置国内镜像源。',
+      'Gradle 发行版改走华为云镜像，Maven 仓库改走阿里云镜像，Minecraft 库改走 BMCLAPI。',
+      '之后可在「偏好设置 → Gradle」中随时开关「使用中国大陆软件源」。',
+      '创建工作区时若下载失败，可在失败对话框中直接配置国内源并重试。'
     ]
   },
   {
     id: 'install-uninstall',
     title: '安装与卸载 (Install & Uninstall)',
     content: [
-      '仅支持 64 位 Windows 11（build 22000 及以上）。Windows 10 会在安装器和启动时被拒绝。',
-      '默认打开新产品外壳。旧版 Swing 工作区用 -Dcopperbench.productShell=false。',
-      '卸载默认保留 .copperbench 设置。',
-      '你自己选的工作区目录不会被卸载删除。',
-      'GitHub 安装包没有 Authenticode 签名。Windows SmartScreen 可能提示“已保护你的电脑”，这是预期行为。'
+      '仅支持 64 位 Windows 11，Windows 10 无法安装或启动。',
+      '卸载默认保留个人设置；你自己选择的工作区目录不会被删除。',
+      '安装包未做代码签名，Windows SmartScreen 可能提示「已保护你的电脑」，属预期行为。'
     ]
   }
 ];

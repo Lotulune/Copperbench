@@ -453,7 +453,7 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
               <span style={{ fontWeight: 700, fontSize: '14px', color: 'var(--text-main)' }}>
                 {achievementName}
               </span>
-              <span className="badge badge-copper">ADVANCEMENT</span>
+              <span className="badge badge-copper">进度</span>
               <span
                 className={`badge badge-${
                   achievementType === 'challenge'
@@ -502,8 +502,8 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
               fontSize: '11px',
               fontWeight: activeTab === 'display' ? 600 : 500,
               borderRadius: 'var(--radius-xs)',
-              background: activeTab === 'display' ? 'var(--accent-copper)' : 'transparent',
-              color: activeTab === 'display' ? '#ffffff' : 'var(--text-muted)'
+              background: activeTab === 'display' ? 'var(--accent-copper-fill)' : 'transparent',
+              color: activeTab === 'display' ? 'var(--text-on-accent)' : 'var(--text-muted)'
             }}
           >
             <Settings size={13} />
@@ -523,8 +523,8 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
               fontSize: '11px',
               fontWeight: activeTab === 'criteria' ? 600 : 500,
               borderRadius: 'var(--radius-xs)',
-              background: activeTab === 'criteria' ? 'var(--accent-copper)' : 'transparent',
-              color: activeTab === 'criteria' ? '#ffffff' : 'var(--text-muted)'
+              background: activeTab === 'criteria' ? 'var(--accent-copper-fill)' : 'transparent',
+              color: activeTab === 'criteria' ? 'var(--text-on-accent)' : 'var(--text-muted)'
             }}
           >
             <Sparkles size={13} />
@@ -544,8 +544,8 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
               fontSize: '11px',
               fontWeight: activeTab === 'rewards' ? 600 : 500,
               borderRadius: 'var(--radius-xs)',
-              background: activeTab === 'rewards' ? 'var(--accent-copper)' : 'transparent',
-              color: activeTab === 'rewards' ? '#ffffff' : 'var(--text-muted)'
+              background: activeTab === 'rewards' ? 'var(--accent-copper-fill)' : 'transparent',
+              color: activeTab === 'rewards' ? 'var(--text-on-accent)' : 'var(--text-muted)'
             }}
           >
             <Award size={13} />
@@ -565,8 +565,8 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
               fontSize: '11px',
               fontWeight: activeTab === 'preview' ? 600 : 500,
               borderRadius: 'var(--radius-xs)',
-              background: activeTab === 'preview' ? 'var(--accent-copper)' : 'transparent',
-              color: activeTab === 'preview' ? '#ffffff' : 'var(--text-muted)'
+              background: activeTab === 'preview' ? 'var(--accent-copper-fill)' : 'transparent',
+              color: activeTab === 'preview' ? 'var(--text-on-accent)' : 'var(--text-muted)'
             }}
           >
             <Eye size={13} />
@@ -1089,19 +1089,19 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
             <div
               data-testid="advancement-toast-preview"
               style={{
-                background: '#1a1816',
+                background: '#262421',
                 border:
                   achievementType === 'challenge'
-                    ? '2px solid #a855f7'
+                    ? '2px solid #9a7bd4'
                     : achievementType === 'goal'
-                    ? '2px solid #eab308'
-                    : '2px solid #d97706',
+                    ? '2px solid #d6b656'
+                    : '2px solid #c98446',
                 borderRadius: '8px',
                 padding: '16px',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '16px',
-                boxShadow: '0 8px 24px rgba(0, 0, 0, 0.6)'
+                boxShadow: 'var(--shadow-lg)'
               }}
             >
               {/* Icon Box */}
@@ -1110,17 +1110,17 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
                   width: '44px',
                   height: '44px',
                   borderRadius: achievementType === 'goal' ? '50%' : '4px',
-                  background: '#2b2622',
-                  border: '2px solid #5a4b41',
+                  background: '#33302b',
+                  border: '2px solid #57504a',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   color:
                     achievementType === 'challenge'
-                      ? '#c084fc'
+                      ? '#b8a2e8'
                       : achievementType === 'goal'
-                      ? '#fde047'
-                      : '#fb923c'
+                      ? '#ecd98a'
+                      : '#e8a06a'
                 }}
               >
                 <Trophy size={24} />
@@ -1136,10 +1136,10 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
                     letterSpacing: '0.5px',
                     color:
                       achievementType === 'challenge'
-                        ? '#c084fc'
+                        ? '#b8a2e8'
                         : achievementType === 'goal'
-                        ? '#fde047'
-                        : '#fb923c'
+                        ? '#ecd98a'
+                        : '#e8a06a'
                   }}
                 >
                   {achievementType === 'challenge'
@@ -1148,10 +1148,10 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
                     ? '目标达成！'
                     : '进度达成！'}
                 </span>
-                <span style={{ fontSize: '13px', fontWeight: 700, color: '#ffffff' }}>
+                <span style={{ fontSize: '13px', fontWeight: 700, color: '#f5f2ec' }}>
                   {achievementName}
                 </span>
-                <span style={{ fontSize: '11px', color: '#9ca3af' }}>
+                <span style={{ fontSize: '11px', color: '#b6bcc4' }}>
                   {achievementDescription}
                 </span>
               </div>
@@ -1160,9 +1160,9 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
               {rewardXP > 0 && (
                 <div
                   style={{
-                    background: '#14532d',
-                    border: '1px solid #22c55e',
-                    color: '#86efac',
+                    background: '#1d3a26',
+                    border: '1px solid #3a7a4d',
+                    color: '#a8d8b4',
                     padding: '4px 8px',
                     borderRadius: '4px',
                     fontSize: '10px',

@@ -463,7 +463,7 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
               <span style={{ fontWeight: 700, fontSize: '14px', color: 'var(--text-main)' }}>
                 {element.displayName}
               </span>
-              <span className="badge badge-copper">LOOT_TABLE</span>
+              <span className="badge badge-copper">战利品表</span>
               <span className={`badge badge-${element.state === 'valid' ? 'green' : 'amber'}`}>
                 {element.state.toUpperCase()}
               </span>
@@ -525,8 +525,8 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
                 fontSize: '11px',
                 fontWeight: activeTab === 'designer' ? 600 : 500,
                 borderRadius: 'var(--radius-xs)',
-                background: activeTab === 'designer' ? 'var(--accent-copper)' : 'transparent',
-                color: activeTab === 'designer' ? '#ffffff' : 'var(--text-muted)'
+                background: activeTab === 'designer' ? 'var(--accent-copper-fill)' : 'transparent',
+                color: activeTab === 'designer' ? 'var(--text-on-accent)' : 'var(--text-muted)'
               }}
             >
               <Sliders size={13} />
@@ -545,8 +545,8 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
                 fontSize: '11px',
                 fontWeight: activeTab === 'json' ? 600 : 500,
                 borderRadius: 'var(--radius-xs)',
-                background: activeTab === 'json' ? 'var(--accent-copper)' : 'transparent',
-                color: activeTab === 'json' ? '#ffffff' : 'var(--text-muted)'
+                background: activeTab === 'json' ? 'var(--accent-copper-fill)' : 'transparent',
+                color: activeTab === 'json' ? 'var(--text-on-accent)' : 'var(--text-muted)'
               }}
             >
               <Code2 size={13} />

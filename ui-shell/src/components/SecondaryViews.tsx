@@ -14,6 +14,21 @@ const compatibilityRows = [
   ['X', '内部 API 依赖', '拒绝加载或标记为不兼容']
 ] as const;
 
+/** 内置（第一方）插件的中文显示名；原始英文名作为副标题保留，便于对照。 */
+const FIRST_PARTY_PLUGIN_LABELS: Record<string, string> = {
+  core: 'MCreator 核心插件',
+  localization: 'MCreator 本地化插件',
+  themes: 'MCreator 界面主题插件',
+  'mcreator-link': 'MCreator Link 支持',
+  'generator-1.20.1': 'Minecraft 1.20.1 生成器（Fabric / NeoForge）',
+  'generator-1.21.1': 'Minecraft 1.21.1 生成器（Fabric / NeoForge）',
+  'generator-26.1.x': 'Minecraft 26.1.x 生成器',
+  'generator-26.2': 'Minecraft 26.2 生成器',
+  'generator-addon-26.1x': 'Minecraft 26.1x 基岩版生成器',
+  'generator-fabric-26.1.2': 'Minecraft Fabric 26.1.2 生成器（第三方）',
+  'generator-fabric-26.2': 'Minecraft Fabric 26.2 生成器'
+};
+
 export const PluginsView: React.FC = () => {
   const { listInstalledPlugins, getUpstreamTools } = useWorkbench();
   const [opening, setOpening] = useState(false);
@@ -88,7 +103,18 @@ export const PluginsView: React.FC = () => {
             <tbody>
               {inventory.plugins.map((plugin) => (
                 <tr key={plugin.pluginId + plugin.path} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                  <td style={{ padding: '12px 8px' }}>{plugin.displayName ?? plugin.pluginId}</td>
+                  <td style={{ padding: '12px 8px' }}>
+                    {FIRST_PARTY_PLUGIN_LABELS[plugin.pluginId] ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                        <span>{FIRST_PARTY_PLUGIN_LABELS[plugin.pluginId]}</span>
+                        <span style={{ fontSize: '11px', color: 'var(--text-sub)' }}>
+                          {plugin.displayName ?? plugin.pluginId}
+                        </span>
+                      </div>
+                    ) : (
+                      (plugin.displayName ?? plugin.pluginId)
+                    )}
+                  </td>
                   <td style={{ padding: '12px 8px', fontWeight: 700 }}>{plugin.level}</td>
                   <td style={{ padding: '12px 8px', color: 'var(--text-muted)' }}>{plugin.firstParty ? '第一方' : '用户/第三方'}</td>
                   <td style={{ padding: '12px 8px', color: 'var(--text-muted)' }}>{plugin.route}</td>

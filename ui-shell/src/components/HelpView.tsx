@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
   HelpCircle,
-  Info,
   ShieldAlert,
   Layers,
   Box,
@@ -21,7 +20,6 @@ import {
 import { useWorkbench } from '../context/WorkbenchContext';
 import { diagnosticsBridge } from '../bridge/diagnosticsBridge';
 import {
-  USER_GUIDE_METADATA,
   ABOUT_FACTS,
   TRACK_HONEST_FACTS,
   USER_GUIDE_SECTIONS,
@@ -115,40 +113,16 @@ export const HelpView: React.FC = () => {
                 帮助与使用说明
               </h1>
               <p style={{ fontSize: '12px', color: 'var(--text-sub)', margin: '4px 0 0 0' }}>
-                Copperbench 0.1.0 使用指南 · 4轨版本矩阵 · 安全约束与插件分级
+                Copperbench 0.1.0 使用指南
               </p>
             </div>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span className="badge badge-copper" style={{ fontSize: '11px', padding: '3px 8px' }}>
-              协议 v1.0
-            </span>
             <span className="badge badge-blue" style={{ fontSize: '11px', padding: '3px 8px' }}>
               开发测试版
             </span>
           </div>
-        </div>
-
-        {/* Source document callout */}
-        <div
-          role="note"
-          style={{
-            background: 'var(--bg-panel)',
-            border: '1px solid var(--border-subtle)',
-            borderRadius: 'var(--radius-md)',
-            padding: '10px 14px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-            fontSize: '12px',
-            color: 'var(--text-muted)'
-          }}
-        >
-          <Info size={16} color="var(--accent-copper)" style={{ flexShrink: 0 }} aria-hidden="true" />
-          <span style={{ lineHeight: 1.5 }}>
-            <strong>源文档声明：</strong> 源文档是 <code>{USER_GUIDE_METADATA.sourceDoc}</code>。这是开发测试版说明，不是商店发行手册。产品名 <code>Copperbench</code> 是公开名称。公开分发走 GitHub，安装包未签名。
-          </span>
         </div>
       </div>
 
@@ -221,7 +195,7 @@ export const HelpView: React.FC = () => {
             </h2>
           </div>
           <span className="badge badge-copper" style={{ fontSize: '11px' }}>
-            Facts Only
+            产品事实
           </span>
         </div>
 
@@ -278,7 +252,7 @@ export const HelpView: React.FC = () => {
         >
           <ShieldAlert size={16} color="var(--badge-amber)" style={{ flexShrink: 0, marginTop: '2px' }} aria-hidden="true" />
           <div style={{ lineHeight: 1.5 }}>
-            <strong>版本事实声明：</strong> Copperbench 0.1.0 采用 GPL-3.0-only 协议开源，独立衍生自 MCreator 2026.2.33518。当前为开发测试版（未生产签名，GitHub 分发政策如此），UI 仅通过 UI-Core 1.0 协议与 Java 领域服务交互，不直接访问本机文件系统。
+            <strong>版本声明：</strong> Copperbench 0.1.0 采用 GPL-3.0-only 协议开源，独立衍生自 MCreator 2026.2.33518。当前为开发测试版，安装包未做生产代码签名，通过 GitHub 分发。
           </div>
         </div>
       </section>
@@ -301,7 +275,7 @@ export const HelpView: React.FC = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Compass size={18} color="var(--accent-copper)" aria-hidden="true" />
             <h2 id="tracks-honest-heading" style={{ fontSize: '15px', fontWeight: 700, margin: 0, color: 'var(--text-main)' }}>
-              版本轨道真实状态矩阵 (4轨并进)
+              版本轨道支持状态
             </h2>
           </div>
 
@@ -318,7 +292,7 @@ export const HelpView: React.FC = () => {
         </div>
 
         <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0, lineHeight: 1.5 }}>
-          版本轨道状态与 UI-Core 严格一致：新项目应优先选择目录中标记为正式支持的最新稳定轨。实际 Fabric / NeoForge 版本以“版本轨道”与“新建工作区”页面的 Core 投影为准。仅支持 Windows 11 x64。
+          各轨道的支持状态与「版本轨道」页面保持一致。新项目建议优先选择标记为正式支持的轨道，实际可用的 Fabric / NeoForge 版本以「新建工作区」页面为准。仅支持 Windows 11 x64。
         </p>
 
         <div style={{ overflowX: 'auto' }}>
@@ -335,7 +309,7 @@ export const HelpView: React.FC = () => {
                 <th style={{ padding: '8px 10px', width: '130px' }}>轨道名称</th>
                 <th style={{ padding: '8px 10px', width: '110px' }}>Minecraft 版本</th>
                 <th style={{ padding: '8px 10px', width: '220px' }}>支持状态</th>
-                <th style={{ padding: '8px 10px' }}>详细说明与依据</th>
+                <th style={{ padding: '8px 10px' }}>说明</th>
               </tr>
             </thead>
             <tbody>
@@ -361,7 +335,7 @@ export const HelpView: React.FC = () => {
                     </span>
                   </td>
                   <td style={{ padding: '10px 10px', color: 'var(--text-muted)' }}>
-                    {track.notes} <code style={{ fontSize: '10px', color: 'var(--accent-copper)' }}>({track.statusCode})</code>
+                    {track.notes}
                   </td>
                 </tr>
               ))}
@@ -382,7 +356,7 @@ export const HelpView: React.FC = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Layers size={18} color="var(--accent-copper)" aria-hidden="true" />
           <h2 id="user-guide-sections-heading" style={{ fontSize: '16px', fontWeight: 700, margin: 0, color: 'var(--text-main)' }}>
-            功能模块详解 (基于 docs/user/README.md)
+            功能使用指南
           </h2>
         </div>
 

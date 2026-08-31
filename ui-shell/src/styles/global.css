@@ -384,8 +384,8 @@ input:disabled, select:disabled, textarea:disabled {
 
 /* Primary Button */
 .btn-primary {
-  background: var(--accent-copper);
-  color: #ffffff;
+  background: var(--accent-copper-fill);
+  color: var(--text-on-accent);
   min-width: 32px;
   min-height: 32px;
   padding: 6px 14px;
@@ -396,11 +396,11 @@ input:disabled, select:disabled, textarea:disabled {
   gap: 6px;
 }
 .btn-primary:hover {
-  background: var(--accent-copper-hover);
+  background: var(--accent-copper-fill-hover);
   box-shadow: 0 2px 8px var(--accent-copper-glow);
 }
 .btn-primary:active {
-  background: var(--accent-copper-active);
+  background: var(--accent-copper-fill-active);
 }
 .btn-primary:disabled,
 .btn-primary:disabled:hover,
@@ -408,7 +408,7 @@ input:disabled, select:disabled, textarea:disabled {
   opacity: 0.5;
   cursor: not-allowed;
   box-shadow: none;
-  background: var(--accent-copper);
+  background: var(--accent-copper-fill);
 }
 
 /* Secondary Button */
