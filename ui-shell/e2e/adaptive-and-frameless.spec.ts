@@ -117,14 +117,14 @@ test.describe('Adaptive Layout, Frameless Window & Theme Tests', () => {
     await expect(page.locator('[data-testid="workbench-main"]')).toBeVisible();
   });
 
-  test('help/about view displays honest facts, honest track statuses, and docs/user/README.md content', async ({ page }) => {
+  test('help/about view displays honest facts, honest track statuses, and user guide content', async ({ page }) => {
     await page.click('[data-testid="nav-help"]');
     const helpView = page.locator('[data-testid="help-view"]');
     await expect(helpView).toBeVisible();
 
-    // Source document disclaimer (wording may evolve; pin the invariant parts)
-    await expect(helpView).toContainText('docs/user/README.md');
-    await expect(helpView).toContainText('开发测试版说明');
+    // Header and dev-build badge
+    await expect(helpView).toContainText('帮助与使用说明');
+    await expect(helpView).toContainText('开发测试版');
 
     // About panel facts
     const aboutPanel = page.locator('[data-testid="about-panel"]');
@@ -139,18 +139,14 @@ test.describe('Adaptive Layout, Frameless Window & Theme Tests', () => {
     const tracksTable = page.locator('[data-testid="help-tracks-table"]');
     await expect(tracksTable).toBeVisible();
     await expect(page.locator('[data-testid="help-track-row-1.21.1"]')).toContainText('正式支持');
-    await expect(page.locator('[data-testid="help-track-row-1.21.1"]')).toContainText('TRACK_SUPPORTED');
     await expect(page.locator('[data-testid="help-track-row-26.2"]')).toContainText('Fabric / NeoForge 正式支持');
-    await expect(page.locator('[data-testid="help-track-row-26.2"]')).toContainText('TRACK_SUPPORTED');
     await expect(page.locator('[data-testid="help-track-row-26.1"]')).toContainText('Fabric / NeoForge 正式支持');
-    await expect(page.locator('[data-testid="help-track-row-26.1"]')).toContainText('TRACK_SUPPORTED');
     await expect(page.locator('[data-testid="help-track-row-1.20.1"]')).toContainText('Fabric / NeoForge 正式支持');
-    await expect(page.locator('[data-testid="help-track-row-1.20.1"]')).toContainText('TRACK_SUPPORTED');
 
-    // User guide sections from docs/user/README.md
+    // User guide sections
     await expect(page.locator('[data-testid="guide-section-workspace"]')).toContainText('工作区');
     await expect(page.locator('[data-testid="guide-section-mod-elements"]')).toContainText('模组元素');
-    await expect(page.locator('[data-testid="guide-section-mod-elements"]')).toContainText('第一方纵向切片');
+    await expect(page.locator('[data-testid="guide-section-mod-elements"]')).toContainText('可视化创建');
     await expect(page.locator('[data-testid="guide-section-local-history"]')).toContainText('本地历史');
     await expect(page.locator('[data-testid="guide-section-mcp-permissions"]')).toContainText('MCP 权限');
     await expect(page.locator('[data-testid="guide-section-blockbench-assets"]')).toContainText('Blockbench 与资源包');

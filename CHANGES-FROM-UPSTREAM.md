@@ -83,3 +83,11 @@ This distribution is based on MCreator `2026.2.33518` at commit `361429609b77203
 - Current trusted-preview and Stage 9 closure work is specified in `PRD-NEXT.md` (status index: `docs/remaining-work.md`). New Workspace generator plugins cover Fabric and NeoForge 26.2, 26.1.2, 1.21.1, and 1.20.1. The product shell, MCP, and headless share `list_new_workspace_generators` / `create_workspace`; the Swing dialog remains as fallback. Eight empty-workspace generator compiles and the real-workspace asset browser are covered by Stage 8 evidence.
 - Mainland-China mirrors also rewrite `libraries.minecraft.net` to BMCLAPI. Fabric Maven and NeoForge specialised repositories stay official. Workspace generators for 26.x and 1.21.1 share Gradle 9.7.0; 1.20.1 stays on 8.8. Windows export copies ready Gradle installs from `~\.copperbench\gradle` or `~\.gradle` into `gradle-dists` when present, and startup seeds them into the shared Gradle user home.
 - About dialog now opens the development-test user guide (`docs/user/README.md` or bundled `user/README.md`). The Windows export recipe copies that file into `user/`.
+
+## UI/UX readability and localization pass (ui-ux-readability-i18n)
+
+- Raised product-shell `--text-sub` to WCAG AA contrast in both themes (dark `#7d8798`, light `#66707b`; previously ~2.4-3.0:1) and added `--accent-copper-fill` / `--text-on-accent` tokens so filled buttons and active tabs keep white text at >=4.5:1 (dark theme was 3.3:1).
+- Softened the hard-coded neon advancement-toast preview colors; element type badges and active filter pills in workbenches now use theme tokens and Chinese labels.
+- Rewrote the in-app help user-guide sections in plain user-facing Chinese, removing internal jargon (UI-Core, headless, JVM flags, reason codes) and the source-document callout.
+- Localized bundled `plugin.json` display names/descriptions into Chinese. The third-party Goldorion Fabric generator keeps its English name for attribution; only its description is localized. Plugin IDs are unchanged, so plugin and workspace compatibility is unaffected. The product-shell plugin compatibility center shows Chinese labels with the original English names as subtitles.
+- Technical identifiers remain English per the shell i18n policy: enum states (VALID/DRAFT), task kinds, raw logs, and MCP permission profile names are not translated.

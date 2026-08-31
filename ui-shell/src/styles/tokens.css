@@ -15,13 +15,19 @@
 
   --text-main: #f1f4f8;
   --text-muted: #8c97a8;
-  --text-sub: #505967;
+  /* 次要文字需保证在 bg-base/bg-panel 上 ≥4.5:1（WCAG AA），原 #505967 仅 2.4:1 */
+  --text-sub: #7d8798;
 
   --accent-copper: #c87a3e;
   --accent-copper-hover: #d98a4e;
   --accent-copper-active: #a9622d;
   --accent-copper-dim: rgba(200, 122, 62, 0.12);
   --accent-copper-glow: rgba(200, 122, 62, 0.25);
+  /* 实心填充（主按钮/选中标签）专用：白字对比度 ≥4.5:1，原 #c87a3e 仅 3.3:1 */
+  --accent-copper-fill: #a9622d;
+  --accent-copper-fill-hover: #9a5a28;
+  --accent-copper-fill-active: #8f5226;
+  --text-on-accent: #ffffff;
 
   --badge-green: #3fb950;
   --badge-green-bg: rgba(63, 185, 80, 0.12);
@@ -69,13 +75,19 @@
 
   --text-main: #1f2328;
   --text-muted: #656d76;
-  --text-sub: #8c959f;
+  /* 次要文字需保证在白底/面板上 ≥4.5:1（WCAG AA），原 #8c959f 仅 2.7:1 */
+  --text-sub: #66707b;
 
   --accent-copper: #9a4c17;
   --accent-copper-hover: #833e11;
   --accent-copper-active: #6e330d;
   --accent-copper-dim: rgba(154, 76, 23, 0.08);
   --accent-copper-glow: rgba(154, 76, 23, 0.2);
+  /* 实心填充（主按钮/选中标签）专用：白字对比度 ≥4.5:1 */
+  --accent-copper-fill: #9a4c17;
+  --accent-copper-fill-hover: #833e11;
+  --accent-copper-fill-active: #6e330d;
+  --text-on-accent: #ffffff;
 
   --badge-green: #1a7f37;
   --badge-green-bg: #dafbe1;

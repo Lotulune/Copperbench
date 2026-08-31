@@ -453,8 +453,8 @@ export const CreatorDataView: React.FC = () => {
                     fontSize: '11px',
                     borderRadius: 'var(--radius-xs)',
                     border: '1px solid var(--border-subtle)',
-                    background: langFilter === 'all' ? 'var(--accent-copper)' : 'transparent',
-                    color: langFilter === 'all' ? '#ffffff' : 'var(--text-muted)'
+                    background: langFilter === 'all' ? 'var(--accent-copper-fill)' : 'transparent',
+                    color: langFilter === 'all' ? 'var(--text-on-accent)' : 'var(--text-muted)'
                   }}
                 >
                   全部 ({registries.languageKeys.length})
@@ -558,7 +558,7 @@ export const CreatorDataView: React.FC = () => {
                 <input
                   value={fallback}
                   onChange={(event) => setFallback(event.target.value)}
-                  placeholder="English fallback"
+                  placeholder="英文显示名称"
                   data-testid="registry-new-en-input"
                 />
               </label>

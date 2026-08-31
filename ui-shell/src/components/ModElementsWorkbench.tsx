@@ -214,8 +214,8 @@ export const ModElementsWorkbench: React.FC = () => {
                     fontSize: '11px',
                     fontWeight: selectedType === type ? 600 : 500,
                     borderRadius: 'var(--radius-xs)',
-                    background: selectedType === type ? 'var(--accent-copper)' : 'transparent',
-                    color: selectedType === type ? '#ffffff' : 'var(--text-muted)'
+                    background: selectedType === type ? 'var(--accent-copper-fill)' : 'transparent',
+                    color: selectedType === type ? 'var(--text-on-accent)' : 'var(--text-muted)'
                   }}
                 >
                   {type === 'all' ? '全部' : { block: '方块', item: '物品', recipe: '配方', procedure: '过程', function: '函数', loottable: '战利品表', achievement: '进度' }[type]}
