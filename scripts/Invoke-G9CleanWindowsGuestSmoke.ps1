@@ -201,11 +201,12 @@ try {
 		$matches = @()
 		if (Test-Path -LiteralPath $root) {
 			$textExtensions = @('.log', '.txt', '.json', '.xml', '.yaml', '.yml', '.properties', '.conf')
+			$gradleRootPrefix = (Join-Path $root 'gradle') + [IO.Path]::DirectorySeparatorChar
 			$files = Get-ChildItem -LiteralPath $root -Recurse -File -ErrorAction SilentlyContinue |
 				Where-Object {
 					$_.Length -lt 10MB -and
 					$textExtensions -contains $_.Extension.ToLowerInvariant() -and
-					$_.FullName -notmatch '[\/]\.copperbench[\/]gradle[\/]'
+					-not $_.FullName.StartsWith($gradleRootPrefix, [StringComparison]::OrdinalIgnoreCase)
 				}
 			foreach ($file in $files) {
 				foreach ($pattern in $patterns) {
