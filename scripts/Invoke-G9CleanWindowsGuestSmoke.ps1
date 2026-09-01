@@ -200,8 +200,13 @@ try {
 		)
 		$matches = @()
 		if (Test-Path -LiteralPath $root) {
+			$textExtensions = @('.log', '.txt', '.json', '.xml', '.yaml', '.yml', '.properties', '.conf')
 			$files = Get-ChildItem -LiteralPath $root -Recurse -File -ErrorAction SilentlyContinue |
-				Where-Object { $_.Length -lt 10MB }
+				Where-Object {
+					$_.Length -lt 10MB -and
+					$textExtensions -contains $_.Extension.ToLowerInvariant() -and
+					$_.FullName -notmatch '[\/]\.copperbench[\/]gradle[\/]'
+				}
 			foreach ($file in $files) {
 				foreach ($pattern in $patterns) {
 					$hits = Select-String -LiteralPath $file.FullName -SimpleMatch -Pattern $pattern -ErrorAction SilentlyContinue
