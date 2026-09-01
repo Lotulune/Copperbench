@@ -96,15 +96,29 @@ public final class Fabric1211Generator {
 	}
 
 	public GenerationResult generate(Path targetRoot, WorkspaceState workspace) throws IOException {
+		return generate(targetRoot, workspace, true);
+	}
+
+	/** Regenerates a copied loader-migration target instead of preserving its source-loader files. */
+	public GenerationResult generateMigrationTarget(Path targetRoot, WorkspaceState workspace) throws IOException {
+		return generate(targetRoot, workspace, false);
+	}
+
+	private GenerationResult generate(Path targetRoot, WorkspaceState workspace, boolean preservePluginWorkspace)
+			throws IOException {
 		Path root = Objects.requireNonNull(targetRoot).toAbsolutePath().normalize();
 		List<ValidationIssue> issues = validate(workspace);
 		if (!issues.isEmpty()) throw new IllegalArgumentException(issues.getFirst().message());
 		Descriptor descriptor = descriptor(workspace);
-		if (PluginWorkspaceLayout.present(root))
+		if (preservePluginWorkspace && PluginWorkspaceLayout.present(root))
 			return new GenerationResult(profile.generatorId(), descriptor.modId(),
 					PluginWorkspaceLayout.relativeSourcePaths(root));
 		List<String> generated = new ArrayList<>();
 		Files.createDirectories(root);
+		if (!preservePluginWorkspace) {
+			Files.deleteIfExists(root.resolve("src/main/resources/META-INF/mods.toml"));
+			Files.deleteIfExists(root.resolve("src/main/resources/META-INF/neoforge.mods.toml"));
+		}
 
 		writeBuildFiles(root, descriptor, workspace.revision(), generated);
 		writeJavaSources(root, descriptor, workspace.elements(), generated);

@@ -122,14 +122,26 @@ public final class NeoForge1211Generator implements GradleWorkspaceBackend {
 	}
 
 	@Override public GenerationResult generate(Path targetRoot, WorkspaceState workspace) throws IOException {
+		return generate(targetRoot, workspace, true);
+	}
+
+	/** Regenerates a copied loader-migration target instead of preserving its source-loader files. */
+	public GenerationResult generateMigrationTarget(Path targetRoot, WorkspaceState workspace) throws IOException {
+		return generate(targetRoot, workspace, false);
+	}
+
+	private GenerationResult generate(Path targetRoot, WorkspaceState workspace, boolean preservePluginWorkspace)
+			throws IOException {
 		List<ValidationIssue> issues = validate(workspace);
 		if (!issues.isEmpty()) throw new IllegalArgumentException(issues.getFirst().message());
 		Path root = Objects.requireNonNull(targetRoot).toAbsolutePath().normalize();
 		Descriptor descriptor = descriptor(workspace);
-		if (PluginWorkspaceLayout.present(root))
+		if (preservePluginWorkspace && PluginWorkspaceLayout.present(root))
 			return new GenerationResult(profile.generatorId(), descriptor.modId(),
 					PluginWorkspaceLayout.relativeSourcePaths(root));
-		var common = commonGenerator.generate(root, asFabricWorkspace(workspace));
+		var common = preservePluginWorkspace
+				? commonGenerator.generate(root, asFabricWorkspace(workspace))
+				: commonGenerator.generateMigrationTarget(root, asFabricWorkspace(workspace));
 		Set<String> generated = new LinkedHashSet<>(common.generatedPaths());
 
 		Files.deleteIfExists(root.resolve("src/main/resources/fabric.mod.json"));

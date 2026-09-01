@@ -201,13 +201,17 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 			return;
 		try {
 			GEValidator.validateAndTryToCorrect(definition, null);
-		} catch (GEValidator.ValidationException ignored) {
-			return;
+		} catch (GEValidator.ValidationException exception) {
+			throw new IllegalStateException("Upstream element validation failed for "
+					+ definition.getModElement().getName(), exception);
 		}
 		try {
 			workspace.getGenerator().generateBase();
-			if (!workspace.getGenerator().generateElement(definition))
+			if (!workspace.getGenerator().generateElement(definition)) {
 				workspace.getGenerator().removeElementFilesAndWorkspaceLinks(definition);
+				throw new IllegalStateException("Upstream source generation failed for "
+						+ definition.getModElement().getName());
+			}
 		} catch (RuntimeException exception) {
 			try {
 				workspace.getGenerator().removeElementFilesAndWorkspaceLinks(definition);

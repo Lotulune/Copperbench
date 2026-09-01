@@ -410,6 +410,40 @@ class WorkspacePersistenceCompatibilityTest {
 		}
 	}
 
+	@Test void invalidGeneratedElementIsRejectedAndRolledBackInsteadOfSilentlyPersisted() throws Exception {
+		WorkspaceSettings settings = new WorkspaceSettings("invalid_generation_rollback");
+		settings.setModName("Invalid Generation Rollback");
+		settings.setVersion("1.0.0");
+		settings.setCurrentGenerator("fabric-1.21.1");
+		Workspace workspace = Workspace.createWorkspace(
+				temporaryDirectory.resolve("invalid_generation_rollback.mcreator").toFile(), settings);
+		UUID workspaceId = UUID.fromString("11111111-1111-4111-8111-111111111182");
+		AtomicLong sequence = new AtomicLong(3000);
+		java.util.function.Supplier<UUID> ids = () -> uuid(sequence.incrementAndGet());
+		try (MCreatorWorkspaceSession session = MCreatorWorkspaceSession.attach(workspace, workspaceId,
+				new InMemoryWorkspaceTaskGateway(Clock.systemUTC(), ids), Clock.systemUTC(), ids)) {
+			Files.createDirectories(workspace.getGenerator().getSourceRoot().toPath());
+			JsonObject payload = new JsonObject();
+			payload.addProperty("clientMutationId", ids.get().toString());
+			payload.addProperty("elementType", "armor");
+			payload.addProperty("name", "invalid_armor");
+			JsonObject values = new JsonObject();
+			values.addProperty("enableHelmet", true);
+			values.addProperty("enableBody", true);
+			values.addProperty("enableLeggings", true);
+			values.addProperty("enableBoots", true);
+			payload.add("initialValues", values);
+
+			var outcome = session.headlessEntry(PermissionProfile.WORKSPACE).execute(
+					Command.of(ids.get(), workspaceId, 0, Operation.CREATE_MOD_ELEMENT, payload));
+
+			assertEquals("rejected", outcome.result().status());
+			assertEquals("WORKSPACE_PERSISTENCE_FAILED", outcome.result().diagnostics().getFirst().code());
+			assertFalse(workspace.containsModElement("invalid_armor"));
+			assertFalse(Files.exists(temporaryDirectory.resolve("elements/invalid_armor.mod.json")));
+		}
+	}
+
 	@Test void copperbenchSavePreservesUnknownFieldsForEveryFirstPartyType() throws Exception {
 		WorkspaceSettings settings = new WorkspaceSettings("stage11_roundtrip");
 		settings.setModName("Stage 11 Round Trip");

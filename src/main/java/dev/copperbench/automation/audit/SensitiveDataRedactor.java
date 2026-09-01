@@ -15,7 +15,8 @@ public final class SensitiveDataRedactor {
 
 	private static final Pattern BEARER = Pattern.compile("(?i)(Bearer\\s+)[A-Za-z0-9._~+/=-]+");
 	private static final Pattern KEY_VALUE = Pattern.compile(
-			"(?i)((?:api[_-]?key|client[_-]?secret|private[_-]?key|token|secret|password)\\b\\s*[\\\"']?\\s*[=:]\\s*[\\\"']?)[^\\s,;\\\"']+");
+			"(?i)((?:api[_-]?key|client[_-]?secret|private[_-]?key|token|secret|password)\\b\\s*[\\\"']?\\s*[=:]\\s*)"
+					+ "(?:\\\"[^\\\"\\r\\n]*\\\"|'[^'\\r\\n]*'|[^\\r\\n,;]+)");
 
 	private SensitiveDataRedactor() {
 	}

@@ -50,7 +50,7 @@ public final class LoaderMigrationRebuildService {
 				var issues = generator.validate(target);
 				if (!issues.isEmpty())
 					return RebuildResult.failed(targetGeneratorId, issues.getFirst().code(), issues.getFirst().message());
-				var generated = generator.generate(targetRoot, target);
+				var generated = generator.generateMigrationTarget(targetRoot, target);
 				return RebuildResult.generated(generated.generatorId(), generated.modId(), generated.generatedPaths());
 			}
 			NeoForge1211Generator.Profile neoForge = neoForgeProfile(targetGeneratorId);
@@ -59,7 +59,7 @@ public final class LoaderMigrationRebuildService {
 				var issues = generator.validate(target);
 				if (!issues.isEmpty())
 					return RebuildResult.failed(targetGeneratorId, issues.getFirst().code(), issues.getFirst().message());
-				var generated = generator.generate(targetRoot, target);
+				var generated = generator.generateMigrationTarget(targetRoot, target);
 				return RebuildResult.generated(generated.generatorId(), generated.modId(), generated.generatedPaths());
 			}
 			return RebuildResult.skipped(targetGeneratorId, "VERSION_TRACK_NOT_REBUILDABLE",
