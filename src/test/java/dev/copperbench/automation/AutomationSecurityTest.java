@@ -11,6 +11,7 @@ package dev.copperbench.automation;
 
 import dev.copperbench.automation.audit.AuditRecord;
 import dev.copperbench.automation.audit.JsonLineAuditLog;
+import dev.copperbench.automation.audit.SensitiveDataRedactor;
 import dev.copperbench.automation.security.AutomationCapability;
 import dev.copperbench.automation.security.AuthorizationDecision;
 import dev.copperbench.automation.security.AuthorizationRequest;
@@ -108,6 +109,18 @@ class AutomationSecurityTest {
 		assertFalse(persisted.contains("super-secret"));
 		assertFalse(persisted.contains("abc123"));
 		assertTrue(persisted.contains("[REDACTED]"));
+	}
+
+	@Test void redactorConsumesCompleteQuotedAndUnquotedMultiWordCredentials() {
+		String redacted = SensitiveDataRedactor.redact("password = \"hunter two words\"\n"
+				+ "client_secret='another long secret'\n"
+				+ "token=plain text token\nkeep=value");
+
+		assertFalse(redacted.contains("hunter"));
+		assertFalse(redacted.contains("two words"));
+		assertFalse(redacted.contains("another long secret"));
+		assertFalse(redacted.contains("plain text token"));
+		assertTrue(redacted.contains("keep=value"));
 	}
 
 	private static final class MutableClock extends Clock {

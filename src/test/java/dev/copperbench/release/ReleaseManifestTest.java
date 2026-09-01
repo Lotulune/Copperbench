@@ -89,9 +89,9 @@ class ReleaseManifestTest {
 		assertFalse(limits.contains("WINDOWS_10_MACHINE_RETEST_PENDING"));
 		assertTrue(coverage.contains("windows_10"));
 		JsonObject elements = actual.getAsJsonObject("elementCoverage");
-		assertEquals(7, elements.getAsJsonArray("firstPartySlice").size());
+		assertEquals(37, elements.getAsJsonArray("firstPartySlice").size());
 		assertTrue(elements.getAsJsonArray("firstPartySlice").toString().contains("function"));
-		assertTrue(elements.getAsJsonArray("unsupportedInNewUi").toString().contains("livingentity"));
+		assertEquals(0, elements.getAsJsonArray("unsupportedInNewUi").size());
 		assertEquals(19, actual.getAsJsonObject("upstreamTools").getAsJsonArray("tools").size());
 	}
 }

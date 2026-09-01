@@ -1,7 +1,7 @@
 <#--
  # MCreator (https://mcreator.net/)
  # Copyright (C) 2012-2020, Pylo
- # Copyright (C) 2020-2024, Pylo, opensource contributors
+ # Copyright (C) 2020-2023, Pylo, opensource contributors
  #
  # This program is free software: you can redistribute it and/or modify
  # it under the terms of the GNU General Public License as published by
@@ -29,40 +29,26 @@
 -->
 
 <#-- @formatter:off -->
+<#include "mcitems.ftl">
 <#include "procedures.java.ftl">
 
 package ${package}.potion;
 
-<@javacompress>
-<#if data.hasCustomRenderer()>
-@EventBusSubscriber
-</#if>
-public class ${name}MobEffect extends <#if data.isInstant>Instantenous</#if>MobEffect {
+<#compress>
+public class ${name}MobEffect extends MobEffect {
 
 	public ${name}MobEffect() {
 		super(MobEffectCategory.${data.mobEffectCategory}, ${data.color.getRGB()});
-		<#if data.onAddedSound?has_content && data.onAddedSound.getMappedValue()?has_content>
-		this.withSoundOnAdded(BuiltInRegistries.SOUND_EVENT.get(new ResourceLocation("${data.onAddedSound}")));
-		</#if>
-		<#list data.modifiers as modifier>
-		this.addAttributeModifier(${modifier.attribute},
-				new ResourceLocation(${JavaModName}.MODID, "effect.${registryname}_${modifier?index}"),
-				${modifier.amount}, AttributeModifier.Operation.${modifier.operation});
-		</#list>
 	}
 
-	<#if data.hasCustomParticle()>
-	@Override public ParticleOptions createParticleOptions(MobEffectInstance mobEffectInstance) {
-		return ${data.particle};
+	@Override public String getDescriptionId() {
+		return "effect.${modid}.${registryname}";
 	}
-	</#if>
 
-	<#if data.isCuredbyHoney>
-	@Override public void fillEffectCures(Set<EffectCure> cures, MobEffectInstance effectInstance) {
-		cures.add(EffectCures.MILK);
-		cures.add(EffectCures.PROTECTED_BY_TOTEM);
-		cures.add(EffectCures.HONEY);
-	}
+	<#if data.isInstant>
+		@Override public boolean isInstantenous() {
+			return true;
+		}
 	</#if>
 
 	<#if hasProcedure(data.onStarted)>
@@ -78,7 +64,7 @@ public class ${name}MobEffect extends <#if data.isInstant>Instantenous</#if>MobE
 				}/>
 			}
 		<#else>
-			@Override public void onEffectStarted(LivingEntity entity, int amplifier) {
+			@Override public void addAttributeModifiers(LivingEntity entity, AttributeMap attributeMap, int amplifier) {
 				<@procedureCode data.onStarted, {
 					"x": "entity.getX()",
 					"y": "entity.getY()",
@@ -91,18 +77,8 @@ public class ${name}MobEffect extends <#if data.isInstant>Instantenous</#if>MobE
 		</#if>
 	</#if>
 
-	<#if hasProcedure(data.activeTickCondition) || hasProcedure(data.onActiveTick)>
-		@Override public boolean shouldApplyEffectTickThisTick(int duration, int amplifier) {
-			<#if hasProcedure(data.activeTickCondition)>
-				return <@procedureOBJToConditionCode data.activeTickCondition/>;
-			<#else>
-				return true;
-			</#if>
-		}
-	</#if>
-
 	<#if hasProcedure(data.onActiveTick)>
-		@Override public boolean applyEffectTick(LivingEntity entity, int amplifier) {
+		@Override public void applyEffectTick(LivingEntity entity, int amplifier) {
 			<@procedureCode data.onActiveTick, {
 				"x": "entity.getX()",
 				"y": "entity.getY()",
@@ -111,61 +87,52 @@ public class ${name}MobEffect extends <#if data.isInstant>Instantenous</#if>MobE
 				"entity": "entity",
 				"amplifier": "amplifier"
 			}/>
-			return super.applyEffectTick(entity, amplifier);
 		}
 	</#if>
 
-	<#if hasProcedure(data.onMobHurt)>
-		@Override public void onMobHurt(LivingEntity entity, int amplifier, DamageSource damagesource, float damage) {
-			<@procedureCode data.onMobHurt, {
+	<#if hasProcedure(data.onExpired)>
+		@Override public void removeAttributeModifiers(LivingEntity entity, AttributeMap attributeMap, int amplifier) {
+			super.removeAttributeModifiers(entity, attributeMap, amplifier);
+			<@procedureCode data.onExpired, {
 				"x": "entity.getX()",
 				"y": "entity.getY()",
 				"z": "entity.getZ()",
 				"world": "entity.level()",
 				"entity": "entity",
-				"amplifier": "amplifier",
-				"damagesource": "damagesource",
-				"amount": "damage"
+				"amplifier": "amplifier"
 			}/>
 		}
 	</#if>
 
-	<#if hasProcedure(data.onMobRemoved)>
-		@Override public void onMobRemoved(LivingEntity entity, int amplifier, Entity.RemovalReason reason) {
-			if (reason == Entity.RemovalReason.KILLED) {
-				<@procedureCode data.onMobRemoved, {
-					"x": "entity.getX()",
-					"y": "entity.getY()",
-					"z": "entity.getZ()",
-					"world": "entity.level()",
-					"entity": "entity",
-					"amplifier": "amplifier"
-				}/>
-			}
-		}
-	</#if>
+	@Override public boolean isDurationEffectTick(int duration, int amplifier) {
+		<#if hasProcedure(data.activeTickCondition)>
+			return <@procedureOBJToConditionCode data.activeTickCondition/>;
+		<#else>
+			return true;
+		</#if>
+	}
 
 	<#if data.hasCustomRenderer()>
-	@SubscribeEvent public static void registerMobEffectExtensions(RegisterClientExtensionsEvent event) {
-		event.registerMobEffect(new IClientMobEffectExtensions() {
-			<#if !data.renderStatusInInventory>
-			@Override public boolean isVisibleInInventory(MobEffectInstance effect) {
-				return false;
-			}
-
-			@Override public boolean renderInventoryText(MobEffectInstance instance, EffectRenderingInventoryScreen<?> screen, GuiGraphics guiGraphics, int x, int y, int blitOffset) {
-				return false;
-			}
-			</#if>
-
-			<#if !data.renderStatusInHUD>
-			@Override public boolean isVisibleInGui(MobEffectInstance effect) {
-				return false;
-			}
-			</#if>
-		}, ${JavaModName}MobEffects.${REGISTRYNAME}.get());
-	}
+		@Override public void initializeClient(java.util.function.Consumer<IClientMobEffectExtensions> consumer) {
+			consumer.accept(new IClientMobEffectExtensions() {
+				<#if !data.renderStatusInInventory>
+					@Override public boolean isVisibleInInventory(MobEffectInstance effect) {
+						return false;
+					}
+		
+					@Override public boolean renderInventoryText(MobEffectInstance instance, EffectRenderingInventoryScreen<?> screen, GuiGraphics guiGraphics, int x, int y, int blitOffset) {
+						return false;
+					}
+				</#if>
+	
+				<#if !data.renderStatusInHUD>
+					@Override public boolean isVisibleInGui(MobEffectInstance effect) {
+						return false;
+					}
+				</#if>
+			});
+		}
 	</#if>
 }
-</@javacompress>
+</#compress>
 <#-- @formatter:on -->

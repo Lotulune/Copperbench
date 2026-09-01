@@ -23,6 +23,8 @@ import java.nio.file.Files;
 
 public class UserFolderManager {
 
+	private static final String GRADLE_HOME_PROPERTY = "copperbench.gradle.user.home";
+
 	private static File getUserFolder() {
 		if (System.getenv("MCREATOR_HOME") != null) {
 			return new File(System.getenv("MCREATOR_HOME"));
@@ -45,6 +47,9 @@ public class UserFolderManager {
 	}
 
 	public static File getGradleHome() {
+		String override = System.getProperty(GRADLE_HOME_PROPERTY);
+		if (override != null && !override.isBlank())
+			return new File(override);
 		return getFileFromUserFolder("/gradle/");
 	}
 

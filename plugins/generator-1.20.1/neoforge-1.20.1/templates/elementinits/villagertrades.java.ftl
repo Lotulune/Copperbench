@@ -1,7 +1,7 @@
 <#--
  # MCreator (https://mcreator.net/)
  # Copyright (C) 2012-2020, Pylo
- # Copyright (C) 2020-2024, Pylo, opensource contributors
+ # Copyright (C) 2020-2023, Pylo, opensource contributors
  #
  # This program is free software: you can redistribute it and/or modify
  # it under the terms of the GNU General Public License as published by
@@ -39,11 +39,10 @@ package ${package}.init;
 
 import net.minecraft.world.entity.npc.VillagerTrades;
 
-@EventBusSubscriber public class ${JavaModName}Trades {
+@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE) public class ${JavaModName}Trades {
 
 	<#if w.getGElementsOfType("villagertrade")?filter(e -> e.isWanderingTrader())?size != 0>
 	@SubscribeEvent public static void registerWanderingTrades(WandererTradesEvent event) {
-		<@javacompress>
 		<#list villagertrades?filter(e -> e.isWanderingTrader()) as villagertrade>
 			<#list villagertrade.trades as entry>
 				event.<#if entry.level == 1>getGenericTrades()<#else>getRareTrades()</#if>.add(
@@ -56,13 +55,11 @@ import net.minecraft.world.entity.npc.VillagerTrades;
 				);
 			</#list>
 		</#list>
-		</@javacompress>
 	}
 	</#if>
 
 	<#if w.getGElementsOfType("villagertrade")?filter(e -> !e.isWanderingTrader())?size != 0>
 	@SubscribeEvent public static void registerTrades(VillagerTradesEvent event) {
-		<@javacompress>
 		<#list villagertrades?filter(e -> !e.isWanderingTrader()) as villagertrade>
 			if (event.getType() == ${villagertrade.villagerProfession}) {
 			<#list villagertrade.trades as entry>
@@ -77,8 +74,6 @@ import net.minecraft.world.entity.npc.VillagerTrades;
 			</#list>
 			}
 		</#list>
-		</@javacompress>
 	}
 	</#if>
-
 }

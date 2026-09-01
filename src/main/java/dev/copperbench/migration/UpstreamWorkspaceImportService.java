@@ -16,6 +16,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import dev.copperbench.migration.MigrationReport.Disposition;
 import dev.copperbench.migration.MigrationReport.MigrationItem;
+import dev.copperbench.release.ElementCoverageCatalog;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -42,7 +43,7 @@ public final class UpstreamWorkspaceImportService {
 	private static final Set<String> KNOWN_ROOT_KEYS = Set.of("workspaceSettings", "mod_elements", "variable_elements",
 			"sound_elements", "tag_elements", "language_map", "folder_elements", "linkedModElements",
 			"dev.copperbench");
-	private static final Set<String> SLICE_TYPES = Set.of("block", "item", "recipe", "procedure");
+	private static final Set<String> SLICE_TYPES = Set.copyOf(ElementCoverageCatalog.FIRST_PARTY_SLICE);
 	private static final Gson JSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
 	public MigrationReport preview(Path sourceRoot) throws IOException {
@@ -128,9 +129,9 @@ public final class UpstreamWorkspaceImportService {
 		}
 		if (SLICE_TYPES.contains(type))
 			return new MigrationItem("/elements/" + name, name, type, Disposition.SUPPORTED, "ELEMENT_COPIED",
-					"Known vertical-slice element copied with its original definition.");
-		return new MigrationItem("/elements/" + name, name, type, Disposition.MANUAL, "ELEMENT_OUTSIDE_SLICE",
-				"This element type is copied but is outside the first-party vertical slice.");
+					"Known Java element copied with its original definition.");
+		return new MigrationItem("/elements/" + name, name, type, Disposition.MANUAL, "ELEMENT_OUTSIDE_FIRST_PARTY",
+				"This element type is copied but is outside the supported Java first-party catalog.");
 	}
 
 	private static String readGeneratorId(JsonObject document) {

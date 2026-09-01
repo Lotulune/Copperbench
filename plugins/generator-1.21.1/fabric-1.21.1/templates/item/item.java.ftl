@@ -26,7 +26,7 @@
 package ${package}.item;
 
 <@javacompress>
-public class ${name}Item extends Item {
+public class ${name}Item extends Item implements net.fabricmc.fabric.api.item.v1.FabricItem {
 
 	<#if data.hasBannerPatterns()>
 	public static final TagKey<BannerPattern> PROVIDED_PATTERNS = TagKey.create(Registries.BANNER_PATTERN, ResourceLocation.fromNamespaceAndPath(${JavaModName}.MODID, "pattern_item/${registryname}"));
@@ -41,9 +41,6 @@ public class ${name}Item extends Item {
 				.stacksTo(1)
 				<#elseif data.damageCount != 0>
 				.durability(${data.damageCount})
-					<#if data.repairItems?has_content>
-					.repairable(TagKey.create(Registries.ITEM, ResourceLocation.parse("${modid}:${registryname}_repair_items")))
-					</#if>
 				<#elseif data.stackSize != 64>
 				.stacksTo(${data.stackSize})
 				</#if>
@@ -58,26 +55,7 @@ public class ${name}Item extends Item {
 					.nutrition(${data.nutritionalValue})
 					.saturationModifier(${data.saturation}f)
 					<#if data.isAlwaysEdible>.alwaysEdible()</#if>
-					.build()
-					<#if data.hasCustomFoodConsumable()>,
-						<#if data.animation.getUnmappedValue() == "eat">
-						Consumables.defaultFood()
-						<#elseif data.animation.getUnmappedValue() == "drink">
-						Consumables.defaultDrink()
-						<#else>
-						Consumables.defaultFood().animation(${data.animation})
-						</#if>
-						<#if data.useDuration != 32>
-						.consumeSeconds(${[data.useDuration, 0]?max / 20}F)
-						</#if>
-						.build()
-					<#elseif data.animation.getUnmappedValue() == "drink">,
-						Consumables.DEFAULT_DRINK
-					</#if>
-				)
-				</#if>
-				<#if data.hasEatResultItem() && !data.hasCustomEatResultItem()>
-				.usingConvertsTo(${mappedMCItemToItem(data.eatResultItem)})
+					.build())
 				</#if>
 				<#if data.enableMeleeDamage || (data.attributeModifiers?size gt 0)>
 				.attributes(ItemAttributeModifiers.builder()
@@ -97,12 +75,6 @@ public class ${name}Item extends Item {
 				</#if>
 				<#if data.isMusicDisc>
 				.jukeboxPlayable(ResourceKey.create(Registries.JUKEBOX_SONG, ResourceLocation.fromNamespaceAndPath(${JavaModName}.MODID, "${registryname}")))
-				</#if>
-				<#if data.enchantability != 0>
-				.enchantable(${data.enchantability})
-				</#if>
-				<#if data.hasCustomEatResultItem()>
-				.component(DataComponents.USE_REMAINDER, new UseRemainder(new ItemStackTemplate(${mappedMCItemToItem(data.eatResultItem)})))
 				</#if>
 		);
 	}
@@ -163,31 +135,44 @@ public class ${name}Item extends Item {
 	}
 	</#if>
 
-	<#if !data.isFood && data.animation.getUnmappedValue() != "none"> <#-- If item is food, this is handled by the consumable component -->
-	@Override public ItemUseAnimation getUseAnimation(ItemStack itemstack) {
+	<#if data.hasNonDefaultAnimation()>
+	@Override public UseAnim getUseAnimation(ItemStack itemstack) {
 		return ${data.animation};
 	}
 	</#if>
 
 	<#if data.stayInGridWhenCrafting>
 		<#if data.recipeRemainder?? && !data.recipeRemainder.isEmpty()>
-			@Override public ItemStackTemplate getCraftingRemainder(ItemStack itemstack) {
-				return new ItemStackTemplate(${mappedMCItemToItem(data.recipeRemainder)});
+			@Override public ItemStack getRecipeRemainder(ItemStack itemstack) {
+				return ${mappedMCItemToItemStackCode(data.recipeRemainder, 1)};
 			}
 		<#elseif data.damageOnCrafting && data.damageCount != 0>
-			@Override public ItemStackTemplate getCraftingRemainder(ItemStack itemstack) {
-				ItemStack retval = new ItemStack(this);
+			@Override public ItemStack getRecipeRemainder(ItemStack itemstack) {
+				ItemStack retval = itemstack.copy();
+				retval.setCount(1);
 				retval.setDamageValue(itemstack.getDamageValue() + 1);
 				if(retval.getDamageValue() >= retval.getMaxDamage()) {
-					return null;
+					return ItemStack.EMPTY;
 				}
-				return ItemStackTemplate.fromNonEmptyStack(retval);
+				return retval;
 			}
 		<#else>
-			@Override public ItemStackTemplate getCraftingRemainder(ItemStack itemstack) {
-				return new ItemStackTemplate(this);
+			@Override public ItemStack getRecipeRemainder(ItemStack itemstack) {
+				return new ItemStack(this);
 			}
 		</#if>
+	</#if>
+
+	<#if data.enchantability != 0>
+	@Override public int getEnchantmentValue() {
+		return ${data.enchantability};
+	}
+	</#if>
+
+	<#if data.damageCount != 0 && data.repairItems?has_content>
+	@Override public boolean isValidRepairItem(ItemStack itemstack, ItemStack repairitem) {
+		return ${mappedMCItemsToIngredient(data.repairItems)}.test(repairitem);
+	}
 	</#if>
 
 	<#if !data.isFood && data.useDuration != 0> <#-- If item is food, this is handled by the consumable component -->
@@ -215,11 +200,11 @@ public class ${name}Item extends Item {
 	<#assign shouldExplicitlyCallStartUsing = !data.isFood && (data.useDuration > 0)> <#-- ranged items handled in if below so no need to check for that here too -->
 	<#assign rightClickingOpensGUI = data.openGUIOnRightClick?? && (hasProcedure(data.openGUIOnRightClick) || data.openGUIOnRightClick.getFixedValue())>
 	<#if hasProcedure(data.onRightClickedInAir) || data.enableRanged || shouldExplicitlyCallStartUsing || (data.hasInventory() && rightClickingOpensGUI)>
-	@Override public InteractionResult use(Level world, Player entity, InteractionHand hand) {
+	@Override public InteractionResultHolder<ItemStack> use(Level world, Player entity, InteractionHand hand) {
 		<#if data.enableRanged>
-		InteractionResult ar = InteractionResult.FAIL;
+		InteractionResultHolder<ItemStack> ar = InteractionResultHolder.fail(entity.getItemInHand(hand));
 		<#else>
-		InteractionResult ar = super.use(world, entity, hand);
+		InteractionResultHolder<ItemStack> ar = super.use(world, entity, hand);
 		</#if>
 
 		<#if data.enableRanged>
@@ -234,7 +219,7 @@ public class ${name}Item extends Item {
 			}, false/>)
 			</#if>
 			if (entity.getAbilities().instabuild || findAmmo(entity) != ItemStack.EMPTY) {
-				ar = InteractionResult.CONSUME;
+				ar = InteractionResultHolder.consume(entity.getItemInHand(hand));
 				entity.startUsingItem(hand);
 			}
 		<#elseif shouldExplicitlyCallStartUsing>
@@ -272,9 +257,13 @@ public class ${name}Item extends Item {
 	}
 	</#if>
 
-	<#if hasProcedure(data.onFinishUsingItem)>
+	<#if hasProcedure(data.onFinishUsingItem) || data.hasEatResultItem()>
 		@Override public ItemStack finishUsingItem(ItemStack itemstack, Level world, LivingEntity entity) {
 			ItemStack retval = super.finishUsingItem(itemstack, world, entity);
+			<#if data.hasEatResultItem()>
+			retval = ${mappedMCItemToItemStackCode(data.eatResultItem, 1)};
+			</#if>
+			<#if hasProcedure(data.onFinishUsingItem)>
 			<@procedureCode data.onFinishUsingItem, {
 				"x": "entity.getX()",
 				"y": "entity.getY()",
@@ -283,6 +272,7 @@ public class ${name}Item extends Item {
 				"entity": "entity",
 				"itemstack": "itemstack"
 			}/>
+			</#if>
 			return retval;
 		}
 	</#if>
@@ -417,12 +407,12 @@ public class ${name}Item extends Item {
 			projectile.shootFromRotation(entity, entity.getXRot(), entity.getYRot(), 0, <#if data.rangedItemChargesPower>pullingPower * </#if>3.15f, 1.0F);
 			world.addFreshEntity(projectile);
 			world.playSound(null, entity.getX(), entity.getY(), entity.getZ(),
-				BuiltInRegistries.SOUND_EVENT.getValue(ResourceLocation.parse("entity.arrow.shoot")), SoundSource.PLAYERS,
+				BuiltInRegistries.SOUND_EVENT.get(ResourceLocation.parse("entity.arrow.shoot")), SoundSource.PLAYERS,
 				1, 1f / (world.getRandom().nextFloat() * 0.5f + 1));
 		</#if>
 
 		<#if data.damageCount != 0>
-		itemstack.hurtAndBreak(1, entity, entity.getUsedItemHand().asEquipmentSlot());
+		itemstack.hurtAndBreak(1, entity, LivingEntity.getSlotForHand(entity.getUsedItemHand()));
 		</#if>
 
 		if (player.getAbilities().instabuild) {

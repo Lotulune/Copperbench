@@ -1,7 +1,7 @@
 <#--
  # MCreator (https://mcreator.net/)
  # Copyright (C) 2012-2020, Pylo
- # Copyright (C) 2020-2024, Pylo, opensource contributors
+ # Copyright (C) 2020-2023, Pylo, opensource contributors
  # 
  # This program is free software: you can redistribute it and/or modify
  # it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@
 
 package ${package}.command;
 
-@EventBusSubscriber<#if data.type == "CLIENTSIDE">(Dist.CLIENT)</#if>
+@Mod.EventBusSubscriber<#if data.type == "CLIENTSIDE">(value = Dist.CLIENT)</#if>
 public class ${name}Command {
 
 	<#if data.type == "CLIENTSIDE">
@@ -54,13 +54,11 @@ public class ${name}Command {
 		}
 	</#if>
 
-	${extra_templates_code}
-
 }
 
 <#macro commandRegistrationCode>
 	event.getDispatcher().register(Commands.literal("${data.commandName}")
-		<#if data.permissionLevel != "No requirement">.requires(source -> source.hasPermission(${data.permissionLevel}))</#if>
+		<#if data.permissionLevel != "No requirement">.requires(s -> s.hasPermission(${data.permissionLevel}))</#if>
 		${argscode}
 	);
 </#macro>

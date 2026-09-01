@@ -88,8 +88,7 @@ public final class WorkspaceApplicationService {
 	private static final Pattern RESOURCE_PATH = Pattern.compile("^[a-z0-9_./-]+$");
 	private static final Pattern LANGUAGE_KEY = Pattern.compile("^[a-z0-9_.-]+$");
 	private static final Set<String> REGISTRY_NAMES = Set.of("variables", "tags", "languageKeys");
-	private static final Set<String> ELEMENT_TYPES = Set.of("block", "item", "recipe", "procedure", "function",
-			"loottable", "achievement");
+	private static final Set<String> ELEMENT_TYPES = Set.copyOf(ElementCoverageCatalog.FIRST_PARTY_SLICE);
 	private static final int TASK_EVENT_HISTORY_LIMIT = 2048;
 	private static final ProcedureIrCodec PROCEDURES = new ProcedureIrCodec();
 
@@ -524,7 +523,7 @@ public final class WorkspaceApplicationService {
 			if (!ElementCoverageCatalog.isFirstParty(existing.type()))
 				return Decision.abort(Mutation.rejected(diagnostic("ELEMENT_TYPE_OUTSIDE_FIRST_PARTY_SLICE",
 						"diagnostic.element_type_outside_first_party_slice",
-						"This element type is outside the first-party slice and cannot be updated in the new UI.",
+						"This element type is outside the supported Java catalog and cannot be updated in the new UI.",
 						"/elementId", elementId)));
 			JsonObject values = existing.values().deepCopy();
 			List<String> changedPaths = new ArrayList<>();
@@ -542,7 +541,9 @@ public final class WorkspaceApplicationService {
 			Diagnostic validation = validateElementValues(elementId, values);
 			if (validation != null)
 				return Decision.abort(Mutation.rejected(validation));
-			Element updated = new Element(existing.id(), existing.type(), existing.name(), existing.displayName(),
+			String updatedDisplayName = values.has("displayName") && values.get("displayName").isJsonPrimitive()
+					? values.get("displayName").getAsString() : existing.displayName();
+			Element updated = new Element(existing.id(), existing.type(), existing.name(), updatedDisplayName,
 					"valid", existing.ownership(), clock.instant(), values);
 			state.replaceElement(updated);
 			Diagnostic persistenceFailure = persist(before, state, command, updated);
@@ -1572,9 +1573,9 @@ public final class WorkspaceApplicationService {
 		JsonObject projection = new JsonObject();
 		projection.add("element", elementSummary(element));
 		JsonArray fields = new JsonArray();
-		flattenFields(element.values(), "", fields, readOnly);
+		flattenFields(element.values(), "", fields, readOnly, element.type());
 		if (fields.isEmpty())
-			fields.add(editorField("/displayName", "Display name", element.displayName(), readOnly));
+			fields.add(editorField("/displayName", "Display name", element.displayName(), readOnly, element.type()));
 		JsonObject section = new JsonObject();
 		section.addProperty("id", "general");
 		section.add("title", localized("editor.section.general", "General"));
@@ -1589,7 +1590,7 @@ public final class WorkspaceApplicationService {
 				query.operation(), "succeeded", state.revision(), projection,
 				List.of(diagnostic("ELEMENT_TYPE_OUTSIDE_FIRST_PARTY_SLICE",
 						"diagnostic.element_type_outside_first_party_slice",
-						"This element type is outside the first-party slice. The editor is read-only.", "/elementId",
+						"This element type is outside the supported Java catalog. The editor is read-only.", "/elementId",
 						element.id())));
 	}
 
@@ -2086,18 +2087,18 @@ public final class WorkspaceApplicationService {
 		return querySuccess(query, state.revision(), projection);
 	}
 
-	private void flattenFields(JsonObject object, String base, JsonArray target, boolean readOnly) {
+	private void flattenFields(JsonObject object, String base, JsonArray target, boolean readOnly, String elementType) {
 		for (String key : object.keySet()) {
 			JsonElement value = object.get(key);
 			String path = base + "/" + key.replace("~", "~0").replace("/", "~1");
 			if (value.isJsonObject())
-				flattenFields(value.getAsJsonObject(), path, target, readOnly);
+				flattenFields(value.getAsJsonObject(), path, target, readOnly, elementType);
 			else
-				target.add(editorField(path, displayName(key), value, readOnly));
+				target.add(editorField(path, displayName(key), value, readOnly, elementType));
 		}
 	}
 
-	private JsonObject editorField(String path, String label, Object value, boolean readOnly) {
+	private JsonObject editorField(String path, String label, Object value, boolean readOnly, String elementType) {
 		JsonObject field = new JsonObject();
 		field.addProperty("path", path);
 		field.add("label", localized("field." + path.substring(path.lastIndexOf('/') + 1), label));
@@ -2107,7 +2108,9 @@ public final class WorkspaceApplicationService {
 			control = "textarea";
 		if (fieldName.equals("icon")) control = "resource_reference";
 		if (fieldName.equals("parent") || fieldName.equals("rewardFunction")) control = "procedure_reference";
-		if (fieldName.equals("type") || fieldName.equals("frame")) control = "select";
+		if (fieldName.equals("type") || fieldName.equals("frame") || fieldName.equals("toolType")
+				|| fieldName.equals("rarity") || fieldName.equals("sentiment") || fieldName.equals("priority")
+				|| fieldName.equals("entityType")) control = "select";
 		if (value instanceof JsonElement element && element.isJsonPrimitive()
 				&& element.getAsJsonPrimitive().isBoolean()) control = "toggle";
 		if (value instanceof JsonElement element && element.isJsonPrimitive()
@@ -2126,8 +2129,23 @@ public final class WorkspaceApplicationService {
 			options.add(fieldOption("goal", "Goal"));
 			options.add(fieldOption("challenge", "Challenge"));
 		} else if (fieldName.equals("type")) {
-			for (String option : List.of("Generic", "Block", "Entity", "Chest", "Fishing", "Advancement reward",
-					"Gift", "Archaeology")) options.add(fieldOption(option, option));
+			List<String> typeOptions = switch (elementType) {
+				case "command" -> List.of("STANDARD", "SINGLEPLAYER_ONLY", "MULTIPLAYER_ONLY", "CLIENTSIDE");
+				case "gamerule" -> List.of("Number", "Logic");
+				default -> List.of("Generic", "Block", "Entity", "Chest", "Fishing", "Advancement reward", "Gift", "Archaeology");
+			};
+			for (String option : typeOptions) options.add(fieldOption(option, option));
+		} else if (fieldName.equals("toolType")) {
+			for (String option : List.of("Pickaxe", "Axe", "Shovel", "Hoe", "Sword", "MultiTool"))
+				options.add(fieldOption(option, option));
+		} else if (fieldName.equals("rarity")) {
+			for (String option : List.of("COMMON", "UNCOMMON", "RARE", "EPIC")) options.add(fieldOption(option, option));
+		} else if (fieldName.equals("sentiment")) {
+			for (String option : List.of("POSITIVE", "NEUTRAL", "NEGATIVE")) options.add(fieldOption(option, option));
+		} else if (fieldName.equals("priority")) {
+			for (String option : List.of("NORMAL", "HIGH", "HIGHEST", "LOW", "LOWEST")) options.add(fieldOption(option, option));
+		} else if (fieldName.equals("entityType")) {
+			for (String option : List.of("Boat", "ChestBoat", "Raft", "ChestRaft")) options.add(fieldOption(option, option));
 		}
 		field.add("options", options);
 		field.add("diagnostics", new JsonArray());
@@ -2200,7 +2218,136 @@ public final class WorkspaceApplicationService {
 	private JsonObject defaultElementValues(String type, String name, JsonObject supplied) {
 		JsonObject values = supplied.deepCopy();
 		if (!values.has("displayName")) values.addProperty("displayName", displayName(name));
+		// Every Stage 11 type gets a stable editable identity and description field. Type-specific
+		// values supplied by an imported workspace are retained and rendered below these fields.
+		if (!values.has("name")) values.addProperty("name", name);
+		if (!values.has("description")) values.addProperty("description", "");
 		switch (type) {
+			case "armor" -> {
+				if (!values.has("enableHelmet")) values.addProperty("enableHelmet", true);
+				if (!values.has("enableBody")) values.addProperty("enableBody", true);
+				if (!values.has("enableLeggings")) values.addProperty("enableLeggings", true);
+				if (!values.has("enableBoots")) values.addProperty("enableBoots", true);
+			}
+			case "tool" -> {
+				if (!values.has("toolType")) values.addProperty("toolType", "Pickaxe");
+				if (!values.has("customModelName")) values.addProperty("customModelName", "Normal");
+				if (!values.has("blockingModelName")) values.addProperty("blockingModelName", "Normal");
+				if (!values.has("efficiency")) values.addProperty("efficiency", 4.0);
+				if (!values.has("attackSpeed")) values.addProperty("attackSpeed", 1.0);
+				if (!values.has("usageCount")) values.addProperty("usageCount", 100);
+			}
+			case "itemextension" -> {
+				if (!values.has("enableFuel")) values.addProperty("enableFuel", false);
+				if (!values.has("hasDispenseBehavior")) values.addProperty("hasDispenseBehavior", false);
+			}
+			case "attribute" -> {
+				if (!values.has("defaultValue")) values.addProperty("defaultValue", 0.0);
+				if (!values.has("minValue")) values.addProperty("minValue", 0.0);
+				if (!values.has("maxValue")) values.addProperty("maxValue", 1.0);
+			}
+			case "bannerpattern" -> {
+				if (!values.has("requireItem")) values.addProperty("requireItem", true);
+			}
+			case "command" -> {
+				if (!values.has("commandName")) values.addProperty("commandName", name);
+				if (!values.has("type")) values.addProperty("type", "STANDARD");
+				if (!values.has("permissionLevel")) values.addProperty("permissionLevel", "4");
+			}
+			case "damagetype" -> {
+				if (!values.has("normalDeathMessage")) values.addProperty("normalDeathMessage", " was hurt");
+			}
+			case "enchantment" -> {
+				if (!values.has("isTreasureEnchantment")) values.addProperty("isTreasureEnchantment", false);
+				if (!values.has("isCurse")) values.addProperty("isCurse", false);
+			}
+			case "gamerule" -> {
+				if (!values.has("type")) values.addProperty("type", "Logic");
+				if (!values.has("category")) values.addProperty("category", "MISC");
+				if (!values.has("defaultValueLogic")) values.addProperty("defaultValueLogic", false);
+			}
+			case "painting" -> {
+				if (!values.has("title")) values.addProperty("title", displayName(name));
+				if (!values.has("author")) values.addProperty("author", "Copperbench");
+			}
+			case "particle" -> {
+				if (!values.has("animate")) values.addProperty("animate", true);
+				if (!values.has("fixedScale")) values.addProperty("fixedScale", false);
+			}
+			case "potion" -> {
+				if (!values.has("potionName")) values.addProperty("potionName", displayName(name));
+				if (!values.has("duration")) values.addProperty("duration", 3600);
+			}
+			case "potioneffect" -> {
+				if (!values.has("effectName")) values.addProperty("effectName", displayName(name));
+				if (!values.has("isInstant")) values.addProperty("isInstant", false);
+			}
+			case "tab" -> {
+				if (!values.has("showSearch")) values.addProperty("showSearch", false);
+			}
+			case "biome" -> {
+				if (!values.has("spawnParticles")) values.addProperty("spawnParticles", true);
+				if (!values.has("spawnInCaves")) values.addProperty("spawnInCaves", false);
+			}
+			case "dimension" -> {
+				if (!values.has("generateOreVeins")) values.addProperty("generateOreVeins", true);
+				if (!values.has("generateAquifers")) values.addProperty("generateAquifers", true);
+			}
+			case "feature" -> {
+				if (!values.has("skipPlacement")) values.addProperty("skipPlacement", false);
+			}
+			case "fluid" -> {
+				if (!values.has("bucketName")) values.addProperty("bucketName", displayName(name) + " Bucket");
+				if (!values.has("generateBucket")) values.addProperty("generateBucket", true);
+			}
+			case "plant" -> {
+				if (!values.has("renderType")) values.addProperty("renderType", 0);
+				if (!values.has("unbreakable")) values.addProperty("unbreakable", false);
+			}
+			case "structure" -> {
+				if (!values.has("useStartHeight")) values.addProperty("useStartHeight", false);
+				if (!values.has("poolName")) values.addProperty("poolName", name);
+			}
+			case "livingentity" -> {
+				if (!values.has("mobName")) values.addProperty("mobName", name);
+				if (!values.has("mobLabel")) values.addProperty("mobLabel", displayName(name));
+				if (!values.has("hasSpawnEgg")) values.addProperty("hasSpawnEgg", true);
+				if (!values.has("isBoss")) values.addProperty("isBoss", false);
+			}
+			case "projectile" -> {
+				if (!values.has("disableGravity")) values.addProperty("disableGravity", false);
+				if (!values.has("igniteFire")) values.addProperty("igniteFire", false);
+			}
+			case "gui" -> {
+				if (!values.has("renderBgLayer")) values.addProperty("renderBgLayer", true);
+				if (!values.has("doesPauseGame")) values.addProperty("doesPauseGame", false);
+			}
+			case "armortrim" -> {
+				if (!values.has("armorTextureFile")) values.addProperty("armorTextureFile", name);
+			}
+			case "keybind" -> {
+				if (!values.has("keyBindingName")) values.addProperty("keyBindingName", displayName(name));
+				if (!values.has("keyBindingCategoryKey")) values.addProperty("keyBindingCategoryKey", "key.categories.misc");
+			}
+			case "villagerprofession" -> {
+				if (!values.has("displayName")) values.addProperty("displayName", displayName(name));
+			}
+			case "specialentity" -> {
+				if (!values.has("name")) values.addProperty("name", name);
+				if (!values.has("entityType")) values.addProperty("entityType", "Boat");
+				if (!values.has("rarity")) values.addProperty("rarity", "COMMON");
+			}
+			case "overlay" -> {
+				if (!values.has("priority")) values.addProperty("priority", "NORMAL");
+				if (!values.has("baseTexture")) values.addProperty("baseTexture", "");
+			}
+			case "villagertrade" -> {
+				if (!values.has("villagerProfession")) values.addProperty("villagerProfession", "WANDERING_TRADER");
+				if (!values.has("trades")) values.add("trades", new JsonArray());
+			}
+			case "code" -> {
+				if (!values.has("code")) values.addProperty("code", "");
+			}
 			case "function" -> {
 				if (!values.has("name")) values.addProperty("name", name);
 				if (!values.has("namespace")) values.addProperty("namespace", "mod");

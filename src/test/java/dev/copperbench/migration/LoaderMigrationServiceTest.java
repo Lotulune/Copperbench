@@ -36,12 +36,12 @@ class LoaderMigrationServiceTest {
 
 	private final LoaderMigrationService service = new LoaderMigrationService(VersionTrackCatalog.official());
 
-	@Test void previewMarksCommonSliceSupportedAndUnknownTypesBlocked() {
+	@Test void previewMarksAllJavaTypesSupportedAndLoaderExclusiveFieldsManual() {
 		MigrationReport report = service.preview(workspace(true), "neoforge-1.21.1");
-		assertFalse(report.complete());
+		assertTrue(report.complete());
 		assertEquals(Disposition.SUPPORTED, item(report, "/elements/" + id(1)).disposition());
 		assertEquals(Disposition.MANUAL, item(report, "/elements/" + id(2)).disposition());
-		assertEquals(Disposition.BLOCKED, item(report, "/elements/" + id(3)).disposition());
+		assertEquals(Disposition.SUPPORTED, item(report, "/elements/" + id(3)).disposition());
 		assertEquals(Disposition.MANUAL, item(report, "/upstream/plugin.example").disposition());
 	}
 

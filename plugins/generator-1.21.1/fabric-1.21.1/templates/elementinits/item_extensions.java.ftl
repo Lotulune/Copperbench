@@ -31,7 +31,7 @@ public class ${JavaModName}ItemExtensions {
 
 	public static void load() {
         <#list itemextensions?filter(e -> e.compostLayerChance gt 0) as extension>
-        CompostableRegistry.INSTANCE.add(${mappedMCItemToItem(extension.item)}, ${extension.compostLayerChance}f);
+        CompostingChanceRegistry.INSTANCE.add(${mappedMCItemToItem(extension.item)}, ${extension.compostLayerChance}f);
 		</#list>
 
         <#if w.getGElementsOfType('itemextension')?filter(e -> e.enableFuel)?size != 0>

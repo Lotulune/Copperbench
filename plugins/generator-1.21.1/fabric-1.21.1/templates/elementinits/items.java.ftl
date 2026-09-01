@@ -79,9 +79,7 @@ public class ${JavaModName}Items {
 						properties -> new SpawnEggItem(properties.spawnEgg(${JavaModName}Entities.${item.getModElement().getRegistryNameUpper()})));
 			<#elseif item.getModElement().getTypeString() == "specialentity">
 				${item.getModElement().getRegistryNameUpper()} =
-					register("${item.getModElement().getRegistryName()}",
-						properties -> new BoatItem(${JavaModName}Entities.${item.getModElement().getRegistryNameUpper()},
-						properties.stacksTo(1)<#if item.rarity != "COMMON">.rarity(Rarity.${item.rarity})</#if>));
+					register("${item.getModElement().getRegistryName()}", ${item.getModElement().getName()}Item::new);
 			<#elseif item.getModElement().getTypeString() == "dimension" && item.hasIgniter()>
 				${item.getModElement().getRegistryNameUpper()} =
 					register("${item.getModElement().getRegistryName()}", ${item.getModElement().getName()}Item::new);
@@ -139,7 +137,13 @@ public class ${JavaModName}Items {
 	// End of user code block custom items
 
 	private static <I extends Item> I register(String name, Function<Item.Properties, ? extends I> supplier) {
-		return (I) Items.registerItem(ResourceKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(${JavaModName}.MODID, name)), (Function<Item.Properties, Item>) supplier);
+		ResourceKey<Item> key = ResourceKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(${JavaModName}.MODID, name));
+		return (I) Items.registerItem(key, supplier.apply(new Item.Properties()));
+	}
+
+	private static <I extends Item> I register(String name, java.util.function.Supplier<? extends I> supplier) {
+		ResourceKey<Item> key = ResourceKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(${JavaModName}.MODID, name));
+		return (I) Items.registerItem(key, supplier.get());
 	}
 
 	<#if hasBlocks>
@@ -148,7 +152,7 @@ public class ${JavaModName}Items {
 	}
 
 	private static Item block(Block block, String name, Item.Properties properties) {
-		return Items.registerItem(ResourceKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(${JavaModName}.MODID, name)), prop -> new BlockItem(block, prop), properties);
+		return Items.registerItem(ResourceKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(${JavaModName}.MODID, name)), new BlockItem(block, properties));
 	}
 	</#if>
 
@@ -158,7 +162,7 @@ public class ${JavaModName}Items {
 	}
 
 	private static Item doubleBlock(Block block, String name, Item.Properties properties) {
-		return Items.registerItem(ResourceKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(${JavaModName}.MODID, name)), prop -> new DoubleHighBlockItem(block, prop), properties);
+		return Items.registerItem(ResourceKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(${JavaModName}.MODID, name)), new DoubleHighBlockItem(block, properties));
 	}
 	</#if>
 
@@ -168,7 +172,7 @@ public class ${JavaModName}Items {
 	}
 
 	private static Item signBlock(Block block, String name, Block wallBlock, Item.Properties properties) {
-		return Items.registerItem(ResourceKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(${JavaModName}.MODID, name)), prop -> new SignItem(block, wallBlock, prop), properties);
+		return Items.registerItem(ResourceKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(${JavaModName}.MODID, name)), new SignItem(block, wallBlock, properties));
 	}
 	</#if>
 
@@ -178,7 +182,7 @@ public class ${JavaModName}Items {
 	}
 
 	private static Item hangingSignBlock(Block block, String name, Block wallBlock, Item.Properties properties) {
-		return Items.registerItem(ResourceKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(${JavaModName}.MODID, name)), prop -> new HangingSignItem(block, wallBlock, prop), properties);
+		return Items.registerItem(ResourceKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(${JavaModName}.MODID, name)), new HangingSignItem(block, wallBlock, properties));
 	}
 	</#if>
 }

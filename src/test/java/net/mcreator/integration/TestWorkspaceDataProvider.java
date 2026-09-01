@@ -1724,9 +1724,11 @@ public class TestWorkspaceDataProvider {
 			damageType.playerDeathMessage = "%1$s was slain whilst escaping %2$s";
 			return damageType;
 		}
-		// As a feature requires placement and feature to place, this GE is only returned for uiTests
-		// For generator tests, it will be tested by GTFeatureBlocks anyway
-		else if (ModElementType.FEATURE.equals(modElement.getType()) && uiTest) {
+		else if (ModElementType.CODE.equals(modElement.getType())) {
+			return new CustomElement(modElement);
+		}
+		// Generator golden workspaces also need one Feature instance; GTFeatureBlocks still covers block variants.
+		else if (ModElementType.FEATURE.equals(modElement.getType())) {
 			Feature feature = new Feature(modElement);
 			feature.generationStep = new GenerationStep(modElement.getWorkspace(),
 					TestWorkspaceDataProvider.getRandomItem(random,
@@ -1739,7 +1741,9 @@ public class TestWorkspaceDataProvider {
 				feature.restrictionBiomes.add(new BiomeEntry(modElement.getWorkspace(), "#minecraft:test"));
 			}
 			feature.generateCondition = _true ? new Procedure("condition1") : null;
-			feature.featurexml = AnnotationUtils.getBlocklyXMLDefaultValue(Feature.class, "featurexml");
+			feature.featurexml = "<xml xmlns=\"https://developers.google.com/blockly/xml\"><block "
+					+ "type=\"feature_container\" deletable=\"false\" x=\"40\" y=\"40\"><value name=\"feature\">"
+					+ "<block type=\"feature_no_op\"></block></value></block></xml>";
 			feature.skipPlacement = !_true;
 			return feature;
 		} else if (ModElementType.ATTRIBUTE.equals(modElement.getType())) {
@@ -1953,6 +1957,7 @@ public class TestWorkspaceDataProvider {
 		}
 		return null;
 	}
+
 
 	private static GeneratableElement getCommandExample(ModElement modElement, String type, Random random) {
 		Command command = new Command(modElement);
@@ -3104,6 +3109,10 @@ public class TestWorkspaceDataProvider {
 		}
 
 		Collections.shuffle(pool, random);
+		// Some long-tail element examples have fewer candidates than the requested
+		// sample size. Returning all available entries keeps the fixture generator
+		// deterministic without turning a sparse data list into an index failure.
+		n = Math.max(0, Math.min(n, pool.size()));
 		result.addAll(pool.subList(0, n).stream().map(mapper).toList());
 
 		return result;

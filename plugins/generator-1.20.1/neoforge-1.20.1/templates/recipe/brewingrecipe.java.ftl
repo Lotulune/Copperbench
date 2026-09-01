@@ -31,20 +31,19 @@
 <#-- @formatter:off -->
 <#include "../mcitems.ftl">
 
-package ${package}.recipe.brewing;
+package ${package}.recipes.brewing;
 
-@EventBusSubscriber public class ${name}BrewingRecipe implements IBrewingRecipe {
+@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD) public class ${name}BrewingRecipe implements IBrewingRecipe {
 
-	@SubscribeEvent public static void init(RegisterBrewingRecipesEvent event) {
-		event.getBuilder().addRecipe(new ${name}BrewingRecipe());
+	@SubscribeEvent public static void init(FMLCommonSetupEvent event) {
+		event.enqueueWork(() -> BrewingRecipeRegistry.addRecipe(new ${name}BrewingRecipe()));
 	}
 
 	@Override public boolean isInput(ItemStack input) {
 		<#if data.brewingInputStack?starts_with("POTION:")>
 		Item inputItem = input.getItem();
-		Optional<Holder<Potion>> optionalPotion = input.getOrDefault(DataComponents.POTION_CONTENTS, PotionContents.EMPTY).potion();
 		return (inputItem == Items.POTION || inputItem == Items.SPLASH_POTION || inputItem == Items.LINGERING_POTION)
-			&& optionalPotion.isPresent() && optionalPotion.get().is(${generator.map(data.brewingInputStack?replace("POTION:",""), "potions")});
+			&& PotionUtils.getPotion(input) == ${generator.map(data.brewingInputStack?replace("POTION:",""), "potions")};
 		<#else>
 		return ${mappedMCItemToIngredient(data.brewingInputStack)}.test(input);
 		</#if>
@@ -57,11 +56,11 @@ package ${package}.recipe.brewing;
 	@Override public ItemStack getOutput(ItemStack input, ItemStack ingredient) {
 		if (isInput(input) && isIngredient(ingredient)) {
 			<#if data.brewingReturnStack?starts_with("POTION:")>
-			return PotionContents.createItemStack(
+			return PotionUtils.setPotion(
 				<#if data.brewingInputStack?starts_with("POTION:")>
-				input.getItem()
+				new ItemStack(input.getItem())
 				<#else>
-				Items.POTION
+				new ItemStack(Items.POTION)
 				</#if>, ${generator.map(data.brewingReturnStack?replace("POTION:",""), "potions")});
 			<#else>
 			return ${mappedMCItemToItemStackCode(data.brewingReturnStack, 1)};

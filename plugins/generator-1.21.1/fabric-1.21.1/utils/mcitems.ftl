@@ -64,9 +64,9 @@
 
 <#function mappedMCItemToIngredient mappedBlock>
     <#if mappedBlock.getUnmappedValue().startsWith("TAG:")>
-        <#return "Ingredient.of(HolderSet.emptyNamed(BuiltInRegistries.ITEM, TagKey.create(Registries.ITEM, ResourceLocation.parse(\"" + mappedBlock.asTagEntry() + "\"))))">
+        <#return "Ingredient.of(TagKey.create(Registries.ITEM, ResourceLocation.parse(\"" + mappedBlock.asTagEntry() + "\")))">
     <#elseif mappedBlock.getMappedValue(1).startsWith("#")>
-        <#return "Ingredient.of(HolderSet.emptyNamed(BuiltInRegistries.ITEM, TagKey.create(Registries.ITEM, ResourceLocation.parse(\"" + mappedBlock.getMappedValue(1).replace("#", "") + "\"))))">
+        <#return "Ingredient.of(TagKey.create(Registries.ITEM, ResourceLocation.parse(\"" + mappedBlock.getMappedValue(1).replace("#", "") + "\")))">
     <#else>
         <#return "Ingredient.of(" + mappedMCItemToItem(mappedBlock) + ")">
     </#if>

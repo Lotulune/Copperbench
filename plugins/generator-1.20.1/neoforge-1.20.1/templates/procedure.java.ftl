@@ -1,7 +1,7 @@
 <#--
  # MCreator (https://mcreator.net/)
  # Copyright (C) 2012-2020, Pylo
- # Copyright (C) 2020-2024, Pylo, opensource contributors
+ # Copyright (C) 2020-2023, Pylo, opensource contributors
  #
  # This program is free software: you can redistribute it and/or modify
  # it under the terms of the GNU General Public License as published by
@@ -31,31 +31,24 @@
 <#-- @formatter:off -->
 package ${package}.procedures;
 
-import net.neoforged.bus.api.Event;
+import net.minecraftforge.eventbus.api.Event;
+
+import javax.annotation.Nullable;
 
 <#assign nullableDependencies = []/>
-<#if !(data.skipDependencyNullCheck)>
-	<#list dependencies as dependency>
-		<#if dependency.getRawType() != "number"
-			&& dependency.getRawType() != "world"
-			&& dependency.getRawType() != "itemstack"
-			&& dependency.getRawType() != "blockstate"
-			&& dependency.getRawType() != "actionresulttype"
-			&& dependency.getRawType() != "logic"
-			&& dependency.getRawType() != "cmdcontext">
-			<#assign nullableDependencies += [dependency.getName()]/>
-		</#if>
-	</#list>
-</#if>
+<#list dependencies as dependency>
+	<#if dependency.getType(generator.getWorkspace()) != "double"
+		&& dependency.getType(generator.getWorkspace()) != "LevelAccessor"
+		&& dependency.getType(generator.getWorkspace()) != "ItemStack"
+		&& dependency.getType(generator.getWorkspace()) != "BlockState"
+		&& dependency.getType(generator.getWorkspace()) != "InteractionResult"
+		&& dependency.getType(generator.getWorkspace()) != "boolean"
+		&& dependency.getType(generator.getWorkspace()) != "CommandContext<CommandSourceStack>">
+		<#assign nullableDependencies += [dependency.getName()]/>
+	</#if>
+</#list>
 
-<#assign methodSignature><#list dependencies as d>${d.getType(generator.getWorkspace())} ${d.getName()}<#sep>, </#list></#assign>
-<#assign methodArgs><#list dependencies as d>${d.getName()}<#sep>, </#list></#assign>
-
-<#-- Variants without the world dependency, with a leading comma per entry, so blocks can pass a custom world in its place -->
-<#assign methodSignatureNoWorld><#list dependencies as d><#if d.getName() != "world">, ${d.getType(generator.getWorkspace())} ${d.getName()}</#if></#list></#assign>
-<#assign methodArgsNoWorld><#list dependencies as d><#if d.getName() != "world">, ${d.getName()}</#if></#list></#assign>
-
-<@javacompress>
+<#compress>
 
 <#if trigger_code?has_content>
 ${trigger_code}
@@ -64,17 +57,25 @@ public class ${name}Procedure {
 </#if>
 
 	<#if trigger_code?has_content>
-	public static <#if return_type??>${return_type.getJavaType(generator.getWorkspace())}<#else>void</#if> execute(${methodSignature}) {
-		<#if return_type??>return </#if>execute(null<#if dependencies?has_content>,</#if>${methodArgs});
+	public static <#if return_type??>${return_type.getJavaType(generator.getWorkspace())}<#else>void</#if> execute(
+		<#list dependencies as dependency>
+			${dependency.getType(generator.getWorkspace())} ${dependency.getName()}<#if dependency?has_next>,</#if>
+		</#list>
+	) {
+		<#if return_type??>return </#if>execute(null<#if dependencies?has_content>,</#if><#list dependencies as dependency>${dependency.getName()}<#if dependency?has_next>,</#if></#list>);
 	}
 	</#if>
 
 	<#if trigger_code?has_content>private <#else>public </#if>static <#if return_type??>${return_type.getJavaType(generator.getWorkspace())}<#else>void</#if> execute(
-		<#if trigger_code?has_content>@Nullable Event event<#if dependencies?has_content>,</#if></#if>${methodSignature}) {
+		<#if trigger_code?has_content>@Nullable Event event<#if dependencies?has_content>,</#if></#if>
+		<#list dependencies as dependency>
+				${dependency.getType(generator.getWorkspace())} ${dependency.getName()}<#if dependency?has_next>,</#if>
+		</#list>
+	) {
 		<#if nullableDependencies?has_content>
-			if (
+			if(
 			<#list nullableDependencies as dependency>
-			${dependency} == null <#sep>||
+			${dependency} == null <#if dependency?has_next>||</#if>
 			</#list>
 			) return <#if return_type??>${return_type.getDefaultValue(generator.getWorkspace())}</#if>;
 		</#if>
@@ -83,15 +84,11 @@ public class ${name}Procedure {
 			<@var.getType().getScopeDefinition(generator.getWorkspace(), "LOCAL")['init']?interpret/>
 		</#list>
 
-		${procedurecode?replace("@procedureSignatureNoWorld@", methodSignatureNoWorld)?replace("@procedureArgsNoWorld@", methodArgsNoWorld)}
+		${procedurecode}
 	}
-
-	${additional_code?replace("@procedureSignatureNoWorld@", methodSignatureNoWorld)?replace("@procedureArgsNoWorld@", methodArgsNoWorld)}
-
-	${extra_templates_code}
 
 }
 
-</@javacompress>
+</#compress>
 
 <#-- @formatter:on -->

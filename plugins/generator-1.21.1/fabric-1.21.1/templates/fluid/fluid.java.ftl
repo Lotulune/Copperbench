@@ -22,11 +22,14 @@
 <#include "../procedures.java.ftl">
 package ${package}.fluid;
 
+import net.fabricmc.fabric.api.client.render.fluid.v1.FluidRenderHandlerRegistry;
+import net.fabricmc.fabric.api.client.render.fluid.v1.SimpleFluidRenderHandler;
+
 <@javacompress>
 public abstract class ${name}Fluid extends FlowingFluid {
 	private static final FluidVariantAttributeHandler PROPERTIES = new FluidVariantAttributeHandler() {
 		<#if data.luminosity != 0>
-		@Override public int getLightEmission(FluidVariant variant) {
+		@Override public int getLuminance(FluidVariant variant) {
 			return ${(data.luminosity lt 15)?then(data.luminosity, 15)};
 		}
 		</#if>
@@ -51,7 +54,7 @@ public abstract class ${name}Fluid extends FlowingFluid {
 
 		<#if data.emptySound?has_content && data.emptySound.getMappedValue()?has_content>
 		@Override public Optional<SoundEvent> getEmptySound(FluidVariant variant) {
-			return Optional.of(BuiltInRegistries.SOUND_EVENT.getValue(ResourceLocation.parse("${data.emptySound}")));
+			return Optional.of(BuiltInRegistries.SOUND_EVENT.get(ResourceLocation.parse("${data.emptySound}")));
 		}
 		</#if>
 	};
@@ -68,7 +71,7 @@ public abstract class ${name}Fluid extends FlowingFluid {
 		return ${JavaModName}Fluids.${REGISTRYNAME};
 	}
 
-	@Override protected boolean canConvertToSource(ServerLevel level) {
+	@Override protected boolean canConvertToSource(Level level) {
 		return ${data.canMultiply};
 	}
 
@@ -107,12 +110,6 @@ public abstract class ${name}Fluid extends FlowingFluid {
 	@Override public Optional<SoundEvent> getPickupSound() {
 		return Optional.of(SoundEvents.BUCKET_FILL);
 	}
-
-	<#if data.type == "WATER">
-	@Override ${mcc.getMethod("net.minecraft.world.level.material.WaterFluid", "entityInside", "Level", "BlockPos", "Entity", "InsideBlockEffectApplier")}
-	<#else>
-	@Override ${mcc.getMethod("net.minecraft.world.level.material.LavaFluid", "entityInside", "Level", "BlockPos", "Entity", "InsideBlockEffectApplier")}
-	</#if>
 
 	<#if data.spawnParticles>
 	@Override public ParticleOptions getDripParticle() {
@@ -182,57 +179,33 @@ public abstract class ${name}Fluid extends FlowingFluid {
 	}
 
 	@Environment(EnvType.CLIENT) public static void clientLoad() {
-		FluidRenderingRegistry.register(${JavaModName}Fluids.${REGISTRYNAME}, ${JavaModName}Fluids.FLOWING_${REGISTRYNAME}, new FluidModel.Unbaked(
-		new Material(ResourceLocation.parse("${data.textureStill.format("%s:block/%s")}")), new Material(ResourceLocation.parse("${data.textureFlowing.format("%s:block/%s")}")),
-		<#if data.textureRenderOverlay?has_content>new Material(ResourceLocation.parse("${data.textureRenderOverlay.format("%s:textures/%s")}.png"))<#else>null</#if>,
-				<#if data.isFluidTinted()>
-				new BlockTintSource() {
-					@Override public int color(BlockState state) {
-						return <#if data.tintType == "Grass">
-						-6506636
-						<#elseif data.tintType == "Foliage" || data.tintType == "Default foliage">
-						-12012264
-						<#elseif data.tintType == "Birch foliage">
-						-8345771
-						<#elseif data.tintType == "Spruce foliage">
-						-10380959
-						<#elseif data.tintType == "Water">
-						-13083194
-						<#elseif data.tintType == "Sky">
-						-8214273
-						<#elseif data.tintType == "Fog">
-						-4138753
-						<#else>
-						-16448205
-						</#if>;
-					}
-
-					@Override public int colorInWorld(BlockState blockState, BlockAndTintGetter world, BlockPos pos) {
-						return <#if data.tintType == "Grass">
-							BiomeColors.getAverageGrassColor(world, pos)
-						<#elseif data.tintType == "Foliage">
-							BiomeColors.getAverageFoliageColor(world, pos)
-						<#elseif data.tintType == "Default foliage">
-							FoliageColor.FOLIAGE_DEFAULT
-						<#elseif data.tintType == "Birch foliage">
-							FoliageColor.FOLIAGE_BIRCH
-						<#elseif data.tintType == "Spruce foliage">
-							FoliageColor.FOLIAGE_EVERGREEN
-						<#elseif data.tintType == "Water">
-							BiomeColors.getAverageWaterColor(world, pos)
-						<#elseif data.tintType == "Sky">
-							Minecraft.getInstance().gameRenderer.getMainCamera().attributeProbe().getValue(EnvironmentAttributes.SKY_COLOR, 0)
-						<#elseif data.tintType == "Fog">
-							Minecraft.getInstance().gameRenderer.getMainCamera().attributeProbe().getValue(EnvironmentAttributes.FOG_COLOR, 0)
-						<#else>
-							Minecraft.getInstance().gameRenderer.getMainCamera().attributeProbe().getValue(EnvironmentAttributes.WATER_FOG_COLOR, 0)
-						</#if> | 0xFF000000;
-					}
-				}
+		FluidRenderHandlerRegistry.INSTANCE.register(${JavaModName}Fluids.${REGISTRYNAME}, ${JavaModName}Fluids.FLOWING_${REGISTRYNAME},
+				new SimpleFluidRenderHandler(ResourceLocation.parse("${data.textureStill.format("%s:block/%s")}"),
+						ResourceLocation.parse("${data.textureFlowing.format("%s:block/%s")}")) {
+			<#if data.isFluidTinted()>
+			@Override public int getFluidColor(@Nullable BlockAndTintGetter world, @Nullable BlockPos pos, FluidState state) {
+				<#if data.tintType == "Default foliage">
+				return FoliageColor.getDefaultColor();
+				<#elseif data.tintType == "Birch foliage">
+				return FoliageColor.getBirchColor();
+				<#elseif data.tintType == "Spruce foliage">
+				return FoliageColor.getEvergreenColor();
+				<#elseif data.tintType == "Grass">
+				return world != null && pos != null ? BiomeColors.getAverageGrassColor(world, pos) : GrassColor.get(0.5D, 1.0D);
+				<#elseif data.tintType == "Foliage">
+				return world != null && pos != null ? BiomeColors.getAverageFoliageColor(world, pos) : FoliageColor.getDefaultColor();
+				<#elseif data.tintType == "Water">
+				return world != null && pos != null ? BiomeColors.getAverageWaterColor(world, pos) : 3694022;
+				<#elseif data.tintType == "Sky">
+				return Minecraft.getInstance().level != null && pos != null ? Minecraft.getInstance().level.getBiome(pos).value().getSkyColor() : 8562943;
+				<#elseif data.tintType == "Fog">
+				return Minecraft.getInstance().level != null && pos != null ? Minecraft.getInstance().level.getBiome(pos).value().getFogColor() : 12638463;
 				<#else>
-				null
+				return Minecraft.getInstance().level != null && pos != null ? Minecraft.getInstance().level.getBiome(pos).value().getWaterFogColor() : 329011;
 				</#if>
-		));
+			}
+			</#if>
+		});
 	}
 }</@javacompress>
 <#-- @formatter:on -->

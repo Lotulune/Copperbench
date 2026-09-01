@@ -25,41 +25,44 @@
 
 package ${package}.item;
 
-import java.util.Map;
+import java.util.EnumMap;
 
 <@javacompress>
-public abstract class ${name}Item extends Item {
+public abstract class ${name}Item extends ArmorItem {
 
-	public static ArmorMaterial ARMOR_MATERIAL = new ArmorMaterial(
-		${data.maxDamage},
-		Map.of(
-			ArmorType.BOOTS, ${data.damageValueBoots},
-			ArmorType.LEGGINGS, ${data.damageValueLeggings},
-			ArmorType.CHESTPLATE, ${data.damageValueBody},
-			ArmorType.HELMET, ${data.damageValueHelmet},
-			ArmorType.BODY, ${data.damageValueBody}
-		),
-		${data.enchantability},
-		<#if data.equipSound?has_content && data.equipSound.getUnmappedValue()?has_content>
-		BuiltInRegistries.SOUND_EVENT.wrapAsHolder(BuiltInRegistries.SOUND_EVENT.getValue(ResourceLocation.parse("${data.equipSound}"))),
-		<#else>
-		BuiltInRegistries.SOUND_EVENT.wrapAsHolder(SoundEvents.EMPTY),
-		</#if>
-		${data.toughness}f,
-		${data.knockbackResistance}f,
-		TagKey.create(Registries.ITEM, ResourceLocation.parse("${modid}:${registryname}_repair_items")), <#-- data.repairItems are put into a tag -->
-		ResourceKey.create(EquipmentAssets.ROOT_ID, ResourceLocation.parse("${modid}:${registryname}")) <#-- data.armorTextureFile - just dummy, we override this in client extensions -->
+	public static final Holder<ArmorMaterial> ARMOR_MATERIAL = Registry.registerForHolder(
+		BuiltInRegistries.ARMOR_MATERIAL,
+		ResourceLocation.fromNamespaceAndPath(${JavaModName}.MODID, "${registryname}"),
+		new ArmorMaterial(
+			Util.make(new EnumMap<>(ArmorItem.Type.class), map -> {
+				map.put(ArmorItem.Type.BOOTS, ${data.damageValueBoots});
+				map.put(ArmorItem.Type.LEGGINGS, ${data.damageValueLeggings});
+				map.put(ArmorItem.Type.CHESTPLATE, ${data.damageValueBody});
+				map.put(ArmorItem.Type.HELMET, ${data.damageValueHelmet});
+				map.put(ArmorItem.Type.BODY, ${data.damageValueBody});
+			}),
+			${data.enchantability},
+			<#if data.equipSound?has_content && data.equipSound.getUnmappedValue()?has_content>
+			BuiltInRegistries.SOUND_EVENT.wrapAsHolder(BuiltInRegistries.SOUND_EVENT.get(ResourceLocation.parse("${data.equipSound}"))),
+			<#else>
+			BuiltInRegistries.SOUND_EVENT.wrapAsHolder(SoundEvents.EMPTY),
+			</#if>
+			() -> ${mappedMCItemsToIngredient(data.repairItems)},
+			List.of(new ArmorMaterial.Layer(ResourceLocation.fromNamespaceAndPath(${JavaModName}.MODID, "${data.armorTextureFile}"))),
+			${data.toughness}f,
+			${data.knockbackResistance}f
+		)
 	);
 
-	private ${name}Item(Item.Properties properties) {
-		super(properties);
+	private ${name}Item(ArmorItem.Type type, Item.Properties properties) {
+		super(ARMOR_MATERIAL, type, properties);
 	}
 
 	<#if data.enableHelmet>
 	public static class Helmet extends ${name}Item {
 
 		public Helmet(Item.Properties properties) {
-			super(properties<#if data.helmetImmuneToFire>.fireResistant()</#if><#if data.rarity != "COMMON">.rarity(Rarity.${data.rarity})</#if>.humanoidArmor(ARMOR_MATERIAL, ArmorType.HELMET)
+			super(ArmorItem.Type.HELMET, properties.durability(ArmorItem.Type.HELMET.getDurability(${data.maxDamage}))<#if data.helmetImmuneToFire>.fireResistant()</#if><#if data.rarity != "COMMON">.rarity(Rarity.${data.rarity})</#if>
 					<@itemAttributeModifiers data.attributeModifiers?filter(e -> e.armorPieces[0]) "helmet" "EquipmentSlotGroup.HEAD" data.damageValueHelmet/>);
 		}
 
@@ -77,7 +80,7 @@ public abstract class ${name}Item extends Item {
 	public static class Chestplate extends ${name}Item {
 
 		public Chestplate(Item.Properties properties) {
-			super(properties<#if data.bodyImmuneToFire>.fireResistant()</#if><#if data.rarity != "COMMON">.rarity(Rarity.${data.rarity})</#if>.humanoidArmor(ARMOR_MATERIAL, ArmorType.CHESTPLATE)
+			super(ArmorItem.Type.CHESTPLATE, properties.durability(ArmorItem.Type.CHESTPLATE.getDurability(${data.maxDamage}))<#if data.bodyImmuneToFire>.fireResistant()</#if><#if data.rarity != "COMMON">.rarity(Rarity.${data.rarity})</#if>
 					<@itemAttributeModifiers data.attributeModifiers?filter(e -> e.armorPieces[1]) "chestplate" "EquipmentSlotGroup.CHEST" data.damageValueBody/>);
 		}
 
@@ -95,7 +98,7 @@ public abstract class ${name}Item extends Item {
 	public static class Leggings extends ${name}Item {
 
 		public Leggings(Item.Properties properties) {
-			super(properties<#if data.leggingsImmuneToFire>.fireResistant()</#if><#if data.rarity != "COMMON">.rarity(Rarity.${data.rarity})</#if>.humanoidArmor(ARMOR_MATERIAL, ArmorType.LEGGINGS)
+			super(ArmorItem.Type.LEGGINGS, properties.durability(ArmorItem.Type.LEGGINGS.getDurability(${data.maxDamage}))<#if data.leggingsImmuneToFire>.fireResistant()</#if><#if data.rarity != "COMMON">.rarity(Rarity.${data.rarity})</#if>
 					<@itemAttributeModifiers data.attributeModifiers?filter(e -> e.armorPieces[2]) "leggings" "EquipmentSlotGroup.LEGS" data.damageValueLeggings/>);
 		}
 
@@ -113,7 +116,7 @@ public abstract class ${name}Item extends Item {
 	public static class Boots extends ${name}Item {
 
 		public Boots(Item.Properties properties) {
-			super(properties<#if data.bootsImmuneToFire>.fireResistant()</#if><#if data.rarity != "COMMON">.rarity(Rarity.${data.rarity})</#if>.humanoidArmor(ARMOR_MATERIAL, ArmorType.BOOTS)
+			super(ArmorItem.Type.BOOTS, properties.durability(ArmorItem.Type.BOOTS.getDurability(${data.maxDamage}))<#if data.bootsImmuneToFire>.fireResistant()</#if><#if data.rarity != "COMMON">.rarity(Rarity.${data.rarity})</#if>
 					<@itemAttributeModifiers data.attributeModifiers?filter(e -> e.armorPieces[3]) "boots" "EquipmentSlotGroup.FEET" data.damageValueBoots/>);
 		}
 

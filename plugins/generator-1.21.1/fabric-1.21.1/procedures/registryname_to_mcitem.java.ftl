@@ -1,2 +1,2 @@
 <#include "mcelements.ftl">
-BuiltInRegistries.ITEM.getValue(${toIdentifier(input$registryname)})
+BuiltInRegistries.ITEM.get(${toIdentifier(input$registryname)})

@@ -1,7 +1,7 @@
 <#--
  # MCreator (https://mcreator.net/)
  # Copyright (C) 2012-2020, Pylo
- # Copyright (C) 2020-2024, Pylo, opensource contributors
+ # Copyright (C) 2020-2023, Pylo, opensource contributors
  # 
  # This program is free software: you can redistribute it and/or modify
  # it under the terms of the GNU General Public License as published by
@@ -35,86 +35,35 @@
 
 package ${package}.item;
 
-<#assign hasCustomJAVAModels = data.hasCustomJAVAModel() || data.getModels()?filter(e -> e.hasCustomJAVAModel())?has_content>
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import javax.annotation.Nullable;
 
-<@javacompress>
-<#if hasCustomJAVAModels>
-@EventBusSubscriber
-</#if>
-public class ${name}Item extends <#if data.hasBannerPatterns()>BannerPattern</#if>Item {
-	<#if data.hasBannerPatterns()>
-	public static final TagKey<BannerPattern> PROVIDED_PATTERNS = TagKey.create(Registries.BANNER_PATTERN, new ResourceLocation(${JavaModName}.MODID, "pattern_item/${registryname}"));
-	</#if>
+<#compress>
+public class ${name}Item extends Item {
 
 	public ${name}Item() {
-		super(<#if data.hasBannerPatterns()>PROVIDED_PATTERNS, </#if>new Item.Properties()
+		super(new Item.Properties()
 				<#if data.hasInventory()>
 				.stacksTo(1)
 				<#elseif data.damageCount != 0>
 				.durability(${data.damageCount})
-				<#elseif data.stackSize != 64>
+				<#else>
 				.stacksTo(${data.stackSize})
 				</#if>
 				<#if data.immuneToFire>
 				.fireResistant()
 				</#if>
-				<#if data.rarity != "COMMON">
 				.rarity(Rarity.${data.rarity})
-				</#if>
 				<#if data.isFood>
 				.food((new FoodProperties.Builder())
 					.nutrition(${data.nutritionalValue})
-					.saturationModifier(${data.saturation}f)
-					<#if data.isAlwaysEdible>.alwaysEdible()</#if>
+					.saturationMod(${data.saturation}f)
+					<#if data.isAlwaysEdible>.alwaysEat()</#if>
+					<#if data.isMeat>.meat()</#if>
 					.build())
-				</#if>
-				<#if data.enableMeleeDamage || (data.attributeModifiers?size gt 0)>
-				.attributes(ItemAttributeModifiers.builder()
-					<#if data.enableMeleeDamage>
-					.add(Attributes.ATTACK_DAMAGE, new AttributeModifier(BASE_ATTACK_DAMAGE_ID, ${data.damageVsEntity - 1},
-							AttributeModifier.Operation.ADD_VALUE), EquipmentSlotGroup.MAINHAND)
-					.add(Attributes.ATTACK_SPEED, new AttributeModifier(BASE_ATTACK_SPEED_ID, ${data.attackSpeed - 4},
-							AttributeModifier.Operation.ADD_VALUE), EquipmentSlotGroup.MAINHAND)
-					</#if>
-					<#list data.attributeModifiers as modifier>
-					.add(${modifier.attribute}, new AttributeModifier(
-							new ResourceLocation(${JavaModName}.MODID, "${registryname}_${modifier?index}"),
-							${modifier.amount}, AttributeModifier.Operation.${modifier.operation}),
-							<#if modifier.equipmentSlot.getUnmappedValue() == "default">EquipmentSlotGroup.MAINHAND<#else>${modifier.equipmentSlot}</#if>)
-					</#list>
-					.build())
-				</#if>
-				<#if data.isMusicDisc>
-				.jukeboxPlayable(ResourceKey.create(Registries.JUKEBOX_SONG, new ResourceLocation(${JavaModName}.MODID, "${registryname}")))
 				</#if>
 		);
 	}
-
-	<#if hasCustomJAVAModels>
-	@SubscribeEvent public static void registerClientExtensions(RegisterClientExtensionsEvent event) {
-		event.registerItem(new IClientItemExtensions() {
-			private ${name}ItemRenderer rendererInstance;
-
-			@Override public BlockEntityWithoutLevelRenderer getCustomRenderer() {
-				if (rendererInstance == null)
-					rendererInstance = new ${name}ItemRenderer(Minecraft.getInstance().getBlockEntityRenderDispatcher(), Minecraft.getInstance().getEntityModels());
-				return rendererInstance;
-			}
-		}, ${JavaModName}Items.${REGISTRYNAME}.get());
-	}
-	</#if>
-
-	<#if data.hasBannerPatterns()> <#-- Workaround to allow both music disc and patterns info in description -->
-	@Override public MutableComponent getDisplayName() {
-		return Component.translatable(this.getDescriptionId() + ".patterns");
-	}
-	</#if>
-
-	<#if data.isPiglinCurrency>
-	@Override public boolean isPiglinCurrency(ItemStack stack) {
-		return true;
-	}
-	</#if>
 
 	<#if data.hasNonDefaultAnimation()>
 	@Override public UseAnim getUseAnimation(ItemStack itemstack) {
@@ -122,18 +71,8 @@ public class ${name}Item extends <#if data.hasBannerPatterns()>BannerPattern</#i
 	}
 	</#if>
 
-	<#if !data.isFood && data.animation.getUnmappedValue() == "eat">
-	@Override public SoundEvent getEatingSound() {
-		return SoundEvents.EMPTY;
-	}
-	<#elseif !data.isFood && data.animation.getUnmappedValue() == "drink">
-	@Override public SoundEvent getDrinkingSound() {
-		return SoundEvents.EMPTY;
-	}
-	</#if>
-
 	<#if data.stayInGridWhenCrafting>
-		@Override public boolean hasCraftingRemainingItem(ItemStack stack) {
+		@Override public boolean hasCraftingRemainingItem() {
 			return true;
 		}
 
@@ -174,75 +113,55 @@ public class ${name}Item extends <#if data.hasBannerPatterns()>BannerPattern</#i
 	</#if>
 
 	<#if (!data.isFood && data.useDuration != 0) || (data.isFood && data.useDuration != 32)>
-	@Override public int getUseDuration(ItemStack itemstack, LivingEntity livingEntity) {
+	@Override public int getUseDuration(ItemStack itemstack) {
 		return ${data.useDuration};
 	}
 	</#if>
 
 	<#if data.toolType != 1>
-	@Override public float getDestroySpeed(ItemStack itemstack, BlockState state) {
+	@Override public float getDestroySpeed(ItemStack par1ItemStack, BlockState par2Block) {
 		return ${data.toolType}f;
 	}
+	</#if>
+
+	<#if data.enableMeleeDamage>
+		@Override public Multimap<Attribute, AttributeModifier> getDefaultAttributeModifiers(EquipmentSlot equipmentSlot) {
+			if (equipmentSlot == EquipmentSlot.MAINHAND) {
+				ImmutableMultimap.Builder<Attribute, AttributeModifier> builder = ImmutableMultimap.builder();
+				builder.putAll(super.getDefaultAttributeModifiers(equipmentSlot));
+				builder.put(Attributes.ATTACK_DAMAGE, new AttributeModifier(BASE_ATTACK_DAMAGE_UUID, "Item modifier", ${data.damageVsEntity - 2}d, AttributeModifier.Operation.ADDITION));
+				builder.put(Attributes.ATTACK_SPEED, new AttributeModifier(BASE_ATTACK_SPEED_UUID, "Item modifier", -2.4, AttributeModifier.Operation.ADDITION));
+				return builder.build();
+			}
+			return super.getDefaultAttributeModifiers(equipmentSlot);
+		}
 	</#if>
 
 	<@hasGlow data.glowCondition/>
 
 	<#if data.destroyAnyBlock>
-	@Override public boolean isCorrectToolForDrops(ItemStack itemstack, BlockState state) {
+	@Override public boolean isCorrectToolForDrops(BlockState state) {
 		return true;
 	}
 	</#if>
 
-	<#if data.damageCount != 0 && data.repairItems?has_content>
-	@Override public boolean isValidRepairItem(ItemStack itemstack, ItemStack repairitem) {
-		return ${mappedMCItemsToIngredient(data.repairItems)}.test(repairitem);
-	}
-	</#if>
+	<@addSpecialInformation data.specialInformation/>
 
-	<@addSpecialInformation data.specialInformation, "item." + modid + "." + registryname/>
-
-	<#assign shouldExplicitlyCallStartUsing = !data.isFood && (data.useDuration > 0)> <#-- ranged items handled in if below so no need to check for that here too -->
-	<#assign rightClickingOpensGUI = data.openGUIOnRightClick?? && (hasProcedure(data.openGUIOnRightClick) || data.openGUIOnRightClick.getFixedValue())>
-	<#if hasProcedure(data.onRightClickedInAir) || data.enableRanged || shouldExplicitlyCallStartUsing || (data.hasInventory() && rightClickingOpensGUI)>
+	<#if hasProcedure(data.onRightClickedInAir) || data.hasInventory() || (hasProcedure(data.onStoppedUsing) && (data.useDuration > 0)) || data.enableRanged>
 	@Override public InteractionResultHolder<ItemStack> use(Level world, Player entity, InteractionHand hand) {
 		<#if data.enableRanged>
-		InteractionResultHolder<ItemStack> ar = InteractionResultHolder.fail(entity.getItemInHand(hand));
+		InteractionResultHolder<ItemStack> ar = InteractionResultHolder.success(entity.getItemInHand(hand));
 		<#else>
 		InteractionResultHolder<ItemStack> ar = super.use(world, entity, hand);
 		</#if>
 
-		<#if data.enableRanged>
-			<#if hasProcedure(data.rangedUseCondition)>
-			if (<@procedureCode data.rangedUseCondition, {
-				"x": "entity.getX()",
-				"y": "entity.getY()",
-				"z": "entity.getZ()",
-				"world": "world",
-				"entity": "entity",
-				"itemstack": "ar.getObject()"
-			}, false/>)
-			</#if>
-			if (entity.getAbilities().instabuild || findAmmo(entity) != ItemStack.EMPTY) {
-				ar = InteractionResultHolder.consume(entity.getItemInHand(hand));
-				entity.startUsingItem(hand);
-			}
-		<#elseif shouldExplicitlyCallStartUsing>
-			entity.startUsingItem(hand);
+		<#if (hasProcedure(data.onStoppedUsing) && (data.useDuration > 0)) || data.enableRanged>
+		entity.startUsingItem(hand);
 		</#if>
 
-		<#if data.hasInventory() && rightClickingOpensGUI>
-		if (entity instanceof ServerPlayer serverPlayer) {
-			<#if hasProcedure(data.openGUIOnRightClick)>
-			if (<@procedureCode data.openGUIOnRightClick, {
-				"x": "serverPlayer.getX()",
-				"y": "serverPlayer.getY()",
-				"z": "serverPlayer.getZ()",
-				"world": "serverPlayer.level()",
-				"entity": "serverPlayer",
-				"itemstack": "ar.getObject()"
-			}, false/>) {
-			</#if>
-			serverPlayer.openMenu(new MenuProvider() {
+		<#if data.hasInventory()>
+		if(entity instanceof ServerPlayer serverPlayer) {
+			NetworkHooks.openScreen(serverPlayer, new MenuProvider() {
 				@Override public Component getDisplayName() {
 					return Component.literal("${data.name}");
 				}
@@ -257,7 +176,6 @@ public class ${name}Item extends <#if data.hasBannerPatterns()>BannerPattern</#i
 				buf.writeBlockPos(entity.blockPosition());
 				buf.writeByte(hand == InteractionHand.MAIN_HAND ? 0 : 1);
 			});
-			<#if hasProcedure(data.openGUIOnRightClick)>}</#if>
 		}
 		</#if>
 
@@ -308,7 +226,7 @@ public class ${name}Item extends <#if data.hasBannerPatterns()>BannerPattern</#i
 
 	<@onItemUsedOnBlock data.onRightClickedOnBlock/>
 
-	<@onEntityHitWith data.onEntityHitWith, (data.damageCount != 0 && data.enableMeleeDamage), 1/>
+	<@onEntityHitWith data.onEntityHitWith/>
 
 	<@onEntitySwing data.onEntitySwing/>
 
@@ -318,7 +236,23 @@ public class ${name}Item extends <#if data.hasBannerPatterns()>BannerPattern</#i
 
 	<@onDroppedByPlayer data.onDroppedByPlayer/>
 
-	<@onItemEntityDestroyed data.onItemEntityDestroyed/>
+	<#if data.hasInventory()>
+	@Override public ICapabilityProvider initCapabilities(ItemStack stack, @Nullable CompoundTag compound) {
+		return new ${name}InventoryCapability();
+	}
+
+	@Override public CompoundTag getShareTag(ItemStack stack) {
+		CompoundTag nbt = stack.getOrCreateTag();
+		stack.getCapability(ForgeCapabilities.ITEM_HANDLER, null).ifPresent(capability -> nbt.put("Inventory", ((ItemStackHandler) capability).serializeNBT()));
+		return nbt;
+	}
+
+	@Override public void readShareTag(ItemStack stack, @Nullable CompoundTag nbt) {
+		super.readShareTag(stack, nbt);
+		if(nbt != null)
+			stack.getCapability(ForgeCapabilities.ITEM_HANDLER, null).ifPresent(capability -> ((ItemStackHandler) capability).deserializeNBT((CompoundTag) nbt.get("Inventory")));
+	}
+	</#if>
 
 	<#if hasProcedure(data.onStoppedUsing) || (data.enableRanged && !data.shootConstantly)>
 		@Override public void releaseUsing(ItemStack itemstack, Level world, LivingEntity entity, int time) {
@@ -335,92 +269,82 @@ public class ${name}Item extends <#if data.hasBannerPatterns()>BannerPattern</#i
 			</#if>
 			<#if data.enableRanged && !data.shootConstantly>
 				if (!world.isClientSide() && entity instanceof ServerPlayer player) {
-					<#if data.rangedItemChargesPower>
-						float pullingPower = BowItem.getPowerForTime(this.getUseDuration(itemstack, player) - time);
-						if (pullingPower < 0.1)
-							return;
+					<#if hasProcedure(data.rangedUseCondition)>
+						double x = entity.getX();
+						double y = entity.getY();
+						double z = entity.getZ();
+						if (<@procedureOBJToConditionCode data.rangedUseCondition/>) {
+							<@arrowShootCode/>
+						}
+					<#else>
+						<@arrowShootCode/>
 					</#if>
-					<@arrowShootCode/>
 				}
 			</#if>
 		}
 	</#if>
 
-	<#if hasProcedure(data.everyTickWhileUsing) || (data.enableRanged && data.shootConstantly)>
-		@Override public void onUseTick(Level world, LivingEntity entity, ItemStack itemstack, int time) {
-			<#if hasProcedure(data.everyTickWhileUsing)>
-				<@procedureCode data.everyTickWhileUsing, {
-            		"x": "entity.getX()",
-            		"y": "entity.getY()",
-            		"z": "entity.getZ()",
-            		"world": "world",
-            		"entity": "entity",
-            		"itemstack": "itemstack",
-            		"time": "time"
-            	}/>
-            </#if>
-			<#if data.enableRanged && data.shootConstantly>
-				if (!world.isClientSide() && entity instanceof ServerPlayer player) {
+	<#if data.enableRanged && data.shootConstantly>
+		@Override public void onUseTick(Level world, LivingEntity entity, ItemStack itemstack, int count) {
+			if (!world.isClientSide() && entity instanceof ServerPlayer player) {
+				<#if hasProcedure(data.rangedUseCondition)>
+					double x = entity.getX();
+					double y = entity.getY();
+					double z = entity.getZ();
+					if (<@procedureOBJToConditionCode data.rangedUseCondition/>) {
+						<@arrowShootCode/>
+						entity.releaseUsingItem();
+					}
+				<#else>
 					<@arrowShootCode/>
 					entity.releaseUsingItem();
-				}
-			</#if>
-		}
-	</#if>
-
-	<#if data.enableRanged>
-	private ItemStack findAmmo(Player player) {
-		<#if data.projectileDisableAmmoCheck>
-		return new ItemStack(${generator.map(data.projectile.getUnmappedValue(), "projectiles", 2)});
-		<#else>
-		ItemStack stack = ProjectileWeaponItem.getHeldProjectile(player, e -> e.getItem() == ${generator.map(data.projectile.getUnmappedValue(), "projectiles", 2)});
-		if(stack == ItemStack.EMPTY) {
-			for (int i = 0; i < player.getInventory().items.size(); i++) {
-				ItemStack teststack = player.getInventory().items.get(i);
-				if(teststack != null && teststack.getItem() == ${generator.map(data.projectile.getUnmappedValue(), "projectiles", 2)}) {
-					stack = teststack;
-					break;
-				}
+				</#if>
 			}
 		}
-		return stack;
-		</#if>
-	}
 	</#if>
 }
 
 <#macro arrowShootCode>
 	<#assign projectile = data.projectile.getUnmappedValue()>
-	ItemStack stack = findAmmo(player);
+	ItemStack stack = ProjectileWeaponItem.getHeldProjectile(entity, e -> e.getItem() == ${generator.map(projectile, "projectiles", 2)});
+	if(stack == ItemStack.EMPTY) {
+		for (int i = 0; i < player.getInventory().items.size(); i++) {
+			ItemStack teststack = player.getInventory().items.get(i);
+			if(teststack != null && teststack.getItem() == ${generator.map(projectile, "projectiles", 2)}) {
+				stack = teststack;
+				break;
+			}
+		}
+	}
+
 	if (player.getAbilities().instabuild || stack != ItemStack.EMPTY) {
 		<#assign projectileClass = generator.map(projectile, "projectiles", 0)>
 		<#if projectile.startsWith("CUSTOM:")>
-			${projectileClass} projectile = ${projectileClass}.shoot(world, entity, world.getRandom()<#if data.rangedItemChargesPower>, pullingPower</#if>);
+			${projectileClass} projectile = ${projectileClass}.shoot(world, entity, world.getRandom());
 		<#elseif projectile.endsWith("Arrow")>
-			ItemStack arrowPickupStack = stack;
-			if (arrowPickupStack.isEmpty()) {
-				arrowPickupStack = new ItemStack(${generator.map(projectile, "projectiles", 2)});
-				arrowPickupStack.set(DataComponents.INTANGIBLE_PROJECTILE, Unit.INSTANCE);
-			}
-			${projectileClass} projectile = new ${projectileClass}(world, entity, arrowPickupStack, itemstack);
-			projectile.shootFromRotation(entity, entity.getXRot(), entity.getYRot(), 0, <#if data.rangedItemChargesPower>pullingPower * </#if>3.15f, 1.0F);
+			${projectileClass} projectile = new ${projectileClass}(world, entity);
+			projectile.shootFromRotation(entity, entity.getXRot(), entity.getYRot(), 0, 3.15f, 1.0F);
 			world.addFreshEntity(projectile);
-			world.playSound(null, entity.getX(), entity.getY(), entity.getZ(), BuiltInRegistries.SOUND_EVENT
-				.get(new ResourceLocation("entity.arrow.shoot")), SoundSource.PLAYERS, 1, 1f / (world.getRandom().nextFloat() * 0.5f + 1));
+			world.playSound(null, entity.getX(), entity.getY(), entity.getZ(), ForgeRegistries.SOUND_EVENTS
+				.getValue(new ResourceLocation("entity.arrow.shoot")), SoundSource.PLAYERS, 1, 1f / (world.getRandom().nextFloat() * 0.5f + 1));
 		</#if>
 
-		<#if data.damageCount != 0>
-		itemstack.hurtAndBreak(1, entity, LivingEntity.getSlotForHand(entity.getUsedItemHand()));
-		</#if>
+		itemstack.hurtAndBreak(1, entity, e -> e.broadcastBreakEvent(entity.getUsedItemHand()));
 
 		if (player.getAbilities().instabuild) {
 			projectile.pickup = AbstractArrow.Pickup.CREATIVE_ONLY;
 		} else {
-			if (stack.isDamageableItem()) {
-				if (world instanceof ServerLevel serverLevel)
-					stack.hurtAndBreak(1, serverLevel, player, _stkprov -> {});
-			} else {
+			if (stack.isDamageableItem()){
+				if (stack.hurt(1, world.getRandom(), player)) {
+					stack.shrink(1);
+					stack.setDamageValue(0);
+					if (stack.isEmpty())
+						player.getInventory().removeItem(stack);
+				}
+			} else{
 				stack.shrink(1);
+				if (stack.isEmpty())
+				   player.getInventory().removeItem(stack);
 			}
 		}
 
@@ -431,10 +355,10 @@ public class ${name}Item extends <#if data.hasBannerPatterns()>BannerPattern</#i
 				"z": "entity.getZ()",
 				"world": "world",
 				"entity": "entity",
-				"itemstack": "itemstack"
+				"itemstack": "stack"
 			}/>
 		</#if>
 	}
 </#macro>
-</@javacompress>
+</#compress>
 <#-- @formatter:on -->

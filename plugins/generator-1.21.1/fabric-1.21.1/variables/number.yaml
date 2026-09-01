@@ -10,7 +10,7 @@ scopes:
     set: ${JavaModName}Variables.${name} = ${opt.removeParentheses(value)};
   global_world:
     init: public double ${var.getName()} = ${var.getValue()};
-    read: ${var.getName()} = nbt.getDoubleOr("${var.getName()}", 0);
+    read: ${var.getName()} = nbt.getDouble("${var.getName()}");
     write: nbt.putDouble("${var.getName()}", ${var.getName()});
     get: ${JavaModName}Variables.WorldVariables.get(world).${name}
     set: |
@@ -18,7 +18,7 @@ scopes:
       <@tail>${JavaModName}Variables.WorldVariables.get(world).markSyncDirty();</@tail>
   global_map:
     init: public double ${var.getName()} = ${var.getValue()};
-    read: ${var.getName()} = nbt.getDoubleOr("${var.getName()}", 0);
+    read: ${var.getName()} = nbt.getDouble("${var.getName()}");
     write: nbt.putDouble("${var.getName()}", ${var.getName()});
     get: ${JavaModName}Variables.MapVariables.get(world).${name}
     set: |

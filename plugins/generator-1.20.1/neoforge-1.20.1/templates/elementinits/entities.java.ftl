@@ -1,7 +1,7 @@
 <#--
  # MCreator (https://mcreator.net/)
  # Copyright (C) 2012-2020, Pylo
- # Copyright (C) 2020-2024, Pylo, opensource contributors
+ # Copyright (C) 2020-2022, Pylo, opensource contributors
  #
  # This program is free software: you can redistribute it and/or modify
  # it under the terms of the GNU General Public License as published by
@@ -36,65 +36,50 @@
 
 package ${package}.init;
 
-<#assign hasLivingEntities = w.hasElementsOfType("livingentity")>
-<#assign entitiesWithInventory = w.getGElementsOfType("livingentity")?filter(e -> e.guiBoundTo?has_content)>
+@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD) public class ${JavaModName}Entities {
 
-<#if hasLivingEntities || entitiesWithInventory?size != 0>
-@EventBusSubscriber
-</#if>
-public class ${JavaModName}Entities {
+	public static final DeferredRegister<EntityType<?>> REGISTRY = DeferredRegister.create(ForgeRegistries.ENTITY_TYPES, ${JavaModName}.MODID);
 
-	public static final DeferredRegister<EntityType<?>> REGISTRY = DeferredRegister.create(Registries.ENTITY_TYPE, ${JavaModName}.MODID);
+	<#assign hasLivingEntities = false>
 
 	<#list entities as entity>
 		<#if entity.getModElement().getTypeString() == "projectile">
-			public static final DeferredHolder<EntityType<?>, EntityType<${entity.getModElement().getName()}Entity>> ${entity.getModElement().getRegistryNameUpper()} =
-				register("${entity.getModElement().getRegistryName()}", EntityType.Builder.<${entity.getModElement().getName()}Entity>
-						of(${entity.getModElement().getName()}Entity::new, MobCategory.MISC)
-						.setShouldReceiveVelocityUpdates(true).setTrackingRange(64).setUpdateInterval(1).sized(${entity.modelWidth}f, ${entity.modelHeight}f));
+			public static final RegistryObject<EntityType<${entity.getModElement().getName()}Entity>> ${entity.getModElement().getRegistryNameUpper()} =
+				register("projectile_${entity.getModElement().getRegistryName()}", EntityType.Builder.<${entity.getModElement().getName()}Entity>
+						of(${entity.getModElement().getName()}Entity::new, MobCategory.MISC).setCustomClientFactory(${entity.getModElement().getName()}Entity::new)
+						.setShouldReceiveVelocityUpdates(true).setTrackingRange(64).setUpdateInterval(1).sized(0.5f, 0.5f));
 		<#elseif entity.getModElement().getTypeString() == "livingentity">
-			public static final DeferredHolder<EntityType<?>, EntityType<${entity.getModElement().getName()}Entity>> ${entity.getModElement().getRegistryNameUpper()} =
+			<#assign hasLivingEntities = true>
+			public static final RegistryObject<EntityType<${entity.getModElement().getName()}Entity>> ${entity.getModElement().getRegistryNameUpper()} =
 				register("${entity.getModElement().getRegistryName()}", EntityType.Builder.<${entity.getModElement().getName()}Entity>
-						of(${entity.getModElement().getName()}Entity::new, ${entity.mobSpawningType})
+						of(${entity.getModElement().getName()}Entity::new, ${generator.map(entity.mobSpawningType, "mobspawntypes")})
 							.setShouldReceiveVelocityUpdates(true).setTrackingRange(${entity.trackingRange}).setUpdateInterval(3)
+							.setCustomClientFactory(${entity.getModElement().getName()}Entity::new)
 							<#if entity.immuneToFire>.fireImmune()</#if>
-							<#if entity.mobModelName == "Biped">.ridingOffset(-0.6f)</#if>
 							.sized(${entity.modelWidth}f, ${entity.modelHeight}f)
 						);
 			<#if entity.hasCustomProjectile()>
-			public static final DeferredHolder<EntityType<?>, EntityType<${entity.getModElement().getName()}EntityProjectile>> ${entity.getModElement().getRegistryNameUpper()}_PROJECTILE =
+			public static final RegistryObject<EntityType<${entity.getModElement().getName()}EntityProjectile>> ${entity.getModElement().getRegistryNameUpper()}_PROJECTILE =
 				register("projectile_${entity.getModElement().getRegistryName()}", EntityType.Builder.<${entity.getModElement().getName()}EntityProjectile>
 					of(${entity.getModElement().getName()}EntityProjectile::new, MobCategory.MISC).setShouldReceiveVelocityUpdates(true).setTrackingRange(64)
-						.setUpdateInterval(1).sized(0.5f, 0.5f));
+						.setUpdateInterval(1).setCustomClientFactory(${entity.getModElement().getName()}EntityProjectile::new).sized(0.5f, 0.5f));
 			</#if>
 		</#if>
 	</#list>
 
-	// Start of user code block custom entities
-	// End of user code block custom entities
-
-	private static <T extends Entity> DeferredHolder<EntityType<?>, EntityType<T>> register(String registryname, EntityType.Builder<T> entityTypeBuilder) {
+	private static <T extends Entity> RegistryObject<EntityType<T>> register(String registryname, EntityType.Builder<T> entityTypeBuilder) {
 		return REGISTRY.register(registryname, () -> (EntityType<T>) entityTypeBuilder.build(registryname));
 	}
 
-	<#if entitiesWithInventory?size != 0>
-	<@javacompress>
-	<#-- #4780: entities have equipment inventory capability registered before custom ones without priority set -->
-	@SubscribeEvent(priority = EventPriority.HIGHEST) public static void registerCapabilities(RegisterCapabilitiesEvent event) {
-		<#list entitiesWithInventory as entity>
-			event.registerEntity(Capabilities.ItemHandler.ENTITY, ${entity.getModElement().getRegistryNameUpper()}.get(), (living, context) -> living.getCombinedInventory());
-		</#list>
-	}
-	</@javacompress>
-	</#if>
-
 	<#if hasLivingEntities>
-	@SubscribeEvent public static void init(RegisterSpawnPlacementsEvent event) {
+	@SubscribeEvent public static void init(FMLCommonSetupEvent event) {
+		event.enqueueWork(() -> {
 		<#list entities as entity>
 			<#if entity.getModElement().getTypeString() == "livingentity">
-				${entity.getModElement().getName()}Entity.init(event);
+				${entity.getModElement().getName()}Entity.init();
 			</#if>
 		</#list>
+		});
 	}
 
 	@SubscribeEvent public static void registerAttributes(EntityAttributeCreationEvent event) {

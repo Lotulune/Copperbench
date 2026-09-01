@@ -16,7 +16,7 @@ import {
   ArrowUpDown
 } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
-import { ModElementType } from '../types/contract';
+import { ALL_MOD_ELEMENT_TYPES, ModElementType } from '../types/contract';
 import { ElementInspector } from './ElementInspector';
 import { t } from '../i18n';
 
@@ -37,6 +37,15 @@ const AdvancementWorkbench = React.lazy(() => import('./AdvancementWorkbench').t
 })));
 
 type SortOption = 'updated_desc' | 'updated_asc' | 'name_asc' | 'name_desc' | 'type_asc';
+
+const ELEMENT_LABELS: Partial<Record<ModElementType, string>> = {
+  block: '方块', item: '物品', recipe: '配方', procedure: '过程', function: '函数', loottable: '战利品表', achievement: '进度',
+  armor: '盔甲', armortrim: '盔甲纹饰', tool: '工具', itemextension: '物品扩展', attribute: '属性', bannerpattern: '旗帜图案',
+  command: '命令', damagetype: '伤害类型', enchantment: '附魔', gamerule: '游戏规则', keybind: '按键绑定', painting: '画', particle: '粒子',
+  potion: '药水', potioneffect: '药水效果', tab: '创造模式标签页', villagerprofession: '村民职业', villagertrade: '村民交易', biome: '生物群系',
+  dimension: '维度', feature: '世界特征', fluid: '流体', plant: '植物', structure: '结构', livingentity: '生物实体', specialentity: '特殊实体',
+  projectile: '投射物', gui: '界面', overlay: '覆盖层', code: '代码'
+};
 
 export const ModElementsWorkbench: React.FC = () => {
   const {
@@ -203,7 +212,7 @@ export const ModElementsWorkbench: React.FC = () => {
 
             {/* Type Selector Pills */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '2px', background: 'var(--bg-panel)', padding: '2px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', flexWrap: 'wrap' }}>
-              {(['all', 'block', 'item', 'recipe', 'procedure', 'function', 'loottable', 'achievement'] as const).map((type) => (
+              {(['all', ...ALL_MOD_ELEMENT_TYPES] as const).map((type) => (
                 <button
                   key={type}
                   onClick={() => setSelectedType(type)}
@@ -218,7 +227,7 @@ export const ModElementsWorkbench: React.FC = () => {
                     color: selectedType === type ? 'var(--text-on-accent)' : 'var(--text-muted)'
                   }}
                 >
-                  {type === 'all' ? '全部' : { block: '方块', item: '物品', recipe: '配方', procedure: '过程', function: '函数', loottable: '战利品表', achievement: '进度' }[type]}
+                  {type === 'all' ? '全部' : ELEMENT_LABELS[type] ?? type}
                 </button>
               ))}
             </div>

@@ -38,37 +38,12 @@ package ${package}.init;
 
 public class ${JavaModName}Menus {
 
-	public static final DeferredRegister<MenuType<?>> REGISTRY = DeferredRegister.create(Registries.MENU, ${JavaModName}.MODID);
+	public static final DeferredRegister<MenuType<?>> REGISTRY = DeferredRegister.create(ForgeRegistries.MENU_TYPES, ${JavaModName}.MODID);
 
 	<#list guis as gui>
-	public static final DeferredHolder<MenuType<?>, MenuType<${gui.getModElement().getName()}Menu>> ${gui.getModElement().getRegistryNameUpper()}
-		= REGISTRY.register("${gui.getModElement().getRegistryName()}", () -> IMenuTypeExtension.create(${gui.getModElement().getName()}Menu::new));
+	public static final RegistryObject<MenuType<${gui.getModElement().getName()}Menu>> ${gui.getModElement().getRegistryNameUpper()}
+		= REGISTRY.register("${gui.getModElement().getRegistryName()}", () -> IForgeMenuType.create(${gui.getModElement().getName()}Menu::new));
 	</#list>
-
-	public interface MenuAccessor {
-		Map<String, Object> getMenuState();
-
-		Map<Integer, Slot> getSlots();
-
-		default void sendMenuStateUpdate(Player player, int elementType, String name, Object elementState, boolean needClientUpdate) {
-			getMenuState().put(elementType + ":" + name, elementState);
-			if (player instanceof ServerPlayer serverPlayer) {
-				PacketDistributor.sendToPlayer(serverPlayer, new MenuStateUpdateMessage(elementType, name, elementState));
-			} else if (player.level().isClientSide) {
-				if (Minecraft.getInstance().screen instanceof ${JavaModName}Screens.ScreenAccessor accessor && needClientUpdate)
-					accessor.updateMenuState(elementType, name, elementState);
-				PacketDistributor.sendToServer(new MenuStateUpdateMessage(elementType, name, elementState));
-			}
-		}
-
-		default <T> T getMenuState(int elementType, String name, T defaultValue) {
-			try {
-				return (T) getMenuState().getOrDefault(elementType + ":" + name, defaultValue);
-			} catch (ClassCastException e) {
-				return defaultValue;
-			}
-		}
-	}
 
 }
 

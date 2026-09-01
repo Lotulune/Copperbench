@@ -4,7 +4,7 @@ buildfileversion: 0.92.2
 subversion: 5
 
 import:
-  - datapack-1.21.1
+  - datapack-1.20.1
   - neoforge-1.20.1:
     exclude:
       - procedures

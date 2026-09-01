@@ -2,9 +2,9 @@
 
 <#-- Item-related triggers -->
 <#macro addSpecialInformation procedure="" translationKeyHeader="" isBlock=false>
-	<#if procedure?has_content && (hasProcedure(procedure) || !procedure.getFixedValue().isEmpty())>
-		@Override @OnlyIn(Dist.CLIENT) public void appendHoverText(ItemStack itemstack, Item.TooltipContext context, List<Component> list, TooltipFlag flag) {
-		super.appendHoverText(itemstack, context, list, flag);
+	<#if !isBlock && procedure?has_content && (hasProcedure(procedure) || !procedure.getFixedValue().isEmpty())>
+		@Override public void appendHoverText(ItemStack itemstack, <#if isBlock>BlockGetter<#else>Level</#if> world, List<Component> list, TooltipFlag flag) {
+		super.appendHoverText(itemstack, world, list, flag);
 		<#if hasProcedure(procedure)>
 			Entity entity = itemstack.getEntityRepresentation() != null ? itemstack.getEntityRepresentation() : Minecraft.getInstance().player;
 			String hoverText = <@procedureCode procedure, {

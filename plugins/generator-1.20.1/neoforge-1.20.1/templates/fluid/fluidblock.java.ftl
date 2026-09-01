@@ -36,20 +36,19 @@ package ${package}.block;
 
 import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
 
-<@javacompress>
+<#compress>
 public class ${name}Block extends LiquidBlock {
 	public ${name}Block() {
-		super(${JavaModName}Fluids.${REGISTRYNAME}.get(),
+		super(() -> ${JavaModName}Fluids.${data.getModElement().getRegistryNameUpper()}.get(),
 			BlockBehaviour.Properties.of()
-			<#if (data.colorOnMap!"DEFAULT") != "DEFAULT">
-			.mapColor(MapColor.${data.colorOnMap})
+			<#if generator.map(data.colorOnMap, "mapcolors") != "DEFAULT">
+			.mapColor(MapColor.${generator.map(data.colorOnMap, "mapcolors")})
 			<#else>
 			.mapColor(MapColor.${(data.type=="WATER")?then("WATER","FIRE")})
 			</#if>
 			.strength(${data.resistance}f)
 			<#if data.emissiveRendering>.hasPostProcess((bs, br, bp) -> true).emissiveRendering((bs, br, bp) -> true)</#if>
-			<#if data.luminance != 0>.lightLevel(state -> ${data.luminance})</#if>
-			<#if data.ignitedByLava>.ignitedByLava()</#if>
+			<#if data.luminance != 0>.lightLevel(s -> ${data.luminance})</#if>
 			.noCollission().noLootTable().liquid().pushReaction(PushReaction.DESTROY).sound(SoundType.EMPTY).replaceable()
 		);
 	}
@@ -90,7 +89,7 @@ public class ${name}Block extends LiquidBlock {
 			"world": "world",
 			"blockstate": "blockstate"
 		}/>
-		<#if (data.tickRate > 0)>
+		<#if data.tickRate gt 0>
 		world.scheduleTick(pos, this, ${data.tickRate});
 		</#if>
 	}
@@ -101,4 +100,4 @@ public class ${name}Block extends LiquidBlock {
 	<@onAnimateTick data.onRandomUpdateEvent/>
 
 	<@onDestroyedByExplosion data.onDestroyedByExplosion/>
-}</@javacompress>
+}</#compress>

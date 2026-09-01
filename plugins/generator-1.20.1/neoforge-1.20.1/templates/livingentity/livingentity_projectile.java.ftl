@@ -35,18 +35,24 @@ package ${package}.entity;
 
 @OnlyIn(value = Dist.CLIENT, _interface = ItemSupplier.class) public class ${name}EntityProjectile extends AbstractArrow implements ItemSupplier {
 
-	public static final ItemStack PROJECTILE_ITEM = ${mappedMCItemToItemStackCode(data.rangedAttackItem)};
+	public ${name}EntityProjectile(PlayMessages.SpawnEntity packet, Level world) {
+		super(${JavaModName}Entities.${data.getModElement().getRegistryNameUpper()}_PROJECTILE.get(), world);
+	}
 
 	public ${name}EntityProjectile(EntityType<? extends ${name}EntityProjectile> type, Level world) {
 		super(type, world);
 	}
 
 	public ${name}EntityProjectile(EntityType<? extends ${name}EntityProjectile> type, double x, double y, double z, Level world) {
-		super(type, x, y, z, world, PROJECTILE_ITEM, null);
+		super(type, x, y, z, world);
 	}
 
 	public ${name}EntityProjectile(EntityType<? extends ${name}EntityProjectile> type, LivingEntity entity, Level world) {
-		super(type, entity, world, PROJECTILE_ITEM, null);
+		super(type, entity, world);
+	}
+
+	@Override public Packet<ClientGamePacketListener> getAddEntityPacket() {
+		return NetworkHooks.getEntitySpawningPacket(this);
 	}
 
 	@Override protected void doPostHurtEffects(LivingEntity livingEntity) {
@@ -55,12 +61,11 @@ package ${package}.entity;
 	}
 
 	@Override @OnlyIn(Dist.CLIENT) public ItemStack getItem() {
-		return PROJECTILE_ITEM;
+		return ${mappedMCItemToItemStackCode(data.rangedAttackItem, 1)};
 	}
 
-	@Override protected ItemStack getDefaultPickupItem() {
-		return ${mappedMCItemToItemStackCode(data.rangedAttackItem)};
+	@Override protected ItemStack getPickupItem() {
+		return ${mappedMCItemToItemStackCode(data.rangedAttackItem, 1)};
 	}
-
 }
 <#-- @formatter:on -->

@@ -1,21 +1,31 @@
 <#--
- # This file is part of Fabric-Generator-MCreator.
+ # MCreator (https://mcreator.net/)
  # Copyright (C) 2012-2020, Pylo
- # Copyright (C) 2020-2026, Pylo, opensource contributors
- # Copyright (C) 2020-2026, Goldorion, opensource contributors
+ # Copyright (C) 2020-2024, Pylo, opensource contributors
  #
- # Fabric-Generator-MCreator is free software: you can redistribute it and/or modify
+ # This program is free software: you can redistribute it and/or modify
  # it under the terms of the GNU General Public License as published by
  # the Free Software Foundation, either version 3 of the License, or
  # (at your option) any later version.
  #
- # Fabric-Generator-MCreator is distributed in the hope that it will be useful,
+ # This program is distributed in the hope that it will be useful,
  # but WITHOUT ANY WARRANTY; without even the implied warranty of
- # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  # GNU General Public License for more details.
  #
  # You should have received a copy of the GNU General Public License
- # along with Fabric-Generator-MCreator. If not, see <https://www.gnu.org/licenses/>.
+ # along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ #
+ # Additional permission for code generator templates (*.ftl files)
+ #
+ # As a special exception, you may create a larger work that contains part or
+ # all of the MCreator code generator templates (*.ftl files) and distribute
+ # that work under terms of your choice, so long as that work isn't itself a
+ # template for code generation. Alternatively, if you modify or redistribute
+ # the template itself, you may (at your option) remove this special exception,
+ # which will cause the template and the resulting code generator output files
+ # to be licensed under the GNU General Public License without this special
+ # exception.
 -->
 
 <#-- @formatter:off -->
@@ -24,7 +34,7 @@
 package ${package}.client.particle;
 
 <@javacompress>
-@Environment(EnvType.CLIENT) public class ${name}Particle extends SingleQuadParticle {
+@Environment(EnvType.CLIENT) public class ${name}Particle extends TextureSheetParticle {
 
 	public static ${name}ParticleProvider provider(SpriteSet spriteSet) {
 		return new ${name}ParticleProvider(spriteSet);
@@ -37,7 +47,7 @@ package ${package}.client.particle;
 			this.spriteSet = spriteSet;
 		}
 
-		public Particle createParticle(SimpleParticleType typeIn, ClientLevel worldIn, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed, RandomSource random) {
+		public Particle createParticle(SimpleParticleType typeIn, ClientLevel worldIn, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed) {
 			return new ${name}Particle(worldIn, x, y, z, xSpeed, ySpeed, zSpeed, this.spriteSet);
 		}
 	}
@@ -50,7 +60,7 @@ package ${package}.client.particle;
 	</#if>
 
 	protected ${name}Particle(ClientLevel world, double x, double y, double z, double vx, double vy, double vz, SpriteSet spriteSet) {
-		super(world, x, y, z, spriteSet.first());
+		super(world, x, y, z);
 		this.spriteSet = spriteSet;
 
 		this.setSize(${data.width}f, ${data.height}f);
@@ -79,17 +89,19 @@ package ${package}.client.particle;
 
 		<#if data.animate>
 		this.setSpriteFromAge(spriteSet);
+		<#else>
+		this.pickSprite(spriteSet);
 		</#if>
 	}
 
 	<#if data.emissiveRendering>
-	@Override public int getLightCoords(float partialTick) {
+	@Override public int getLightColor(float partialTick) {
 		return 15728880;
 	}
 	</#if>
 
-	@Override public SingleQuadParticle.Layer getLayer() {
-		return SingleQuadParticle.Layer.${data.renderType};
+	@Override public ParticleRenderType getRenderType() {
+		return ParticleRenderType.PARTICLE_SHEET_${data.renderType};
 	}
 
 	<#if hasProcedure(data.scale)>
@@ -100,7 +112,7 @@ package ${package}.client.particle;
 	</#if>
 
 	<#if hasProcedure(data.rotationProvider)>
-	@Override public void extract(QuadParticleRenderState particleTypeRenderState, Camera camera, float partialTicks) {
+	@Override public void render(VertexConsumer buffer, Camera camera, float partialTicks) {
 		Vec3 vec = <@procedureCode data.rotationProvider, {
 			"world": "this.level",
 			"x": "this.x",
@@ -114,10 +126,10 @@ package ${package}.client.particle;
 			"age": "this.age + partialTicks"
 		}/>
 		Quaternionf tilt = new Quaternionf().rotationXYZ((float) vec.x(), (float) vec.y(), (float) vec.z());
-		this.extractRotatedQuad(particleTypeRenderState, camera, tilt, partialTicks);
-		<#-- render a flipped face because by default only a single side renders this makes particle visible from all angles -->
+		this.renderRotatedQuad(buffer, camera, tilt, partialTicks);
 		Quaternionf flippedTilt = new Quaternionf(tilt).mul(new Quaternionf().rotateY((float) Math.PI));
-		this.extractRotatedQuad(particleTypeRenderState, camera, flippedTilt, partialTicks);
+		<#-- render a flipped face because by default only a single side renders this makes particle visible from all angles -->
+		this.renderRotatedQuad(buffer, camera, flippedTilt, partialTicks);
 	}
 	</#if>
 

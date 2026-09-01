@@ -1,7 +1,7 @@
 <#--
  # MCreator (https://mcreator.net/)
  # Copyright (C) 2012-2020, Pylo
- # Copyright (C) 2020-2024, Pylo, opensource contributors
+ # Copyright (C) 2020-2022, Pylo, opensource contributors
  #
  # This program is free software: you can redistribute it and/or modify
  # it under the terms of the GNU General Public License as published by
@@ -33,8 +33,7 @@
 <#include "../mcitems.ftl">
 
 <#assign tabMap = w.getCreativeTabMap()>
-<#assign vanillaTabs = tabMap.keySet()?filter(e -> !e?starts_with('CUSTOM:'))>
-<#assign customTabs = tabMap.keySet()?filter(e -> e?starts_with('CUSTOM:'))>
+<#assign itemsInVanillaTabs = tabMap.keySet()?filter(e -> !e?starts_with('CUSTOM:'))?size != 0>
 
 /*
  *    MCreator note: This file will be REGENERATED on each build.
@@ -42,47 +41,47 @@
 
 package ${package}.init;
 
-<#if vanillaTabs?has_content>
-@EventBusSubscriber
+<#if itemsInVanillaTabs>
+@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD)
 </#if>
-<@javacompress>
 public class ${JavaModName}Tabs {
 
 	public static final DeferredRegister<CreativeModeTab> REGISTRY = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, ${JavaModName}.MODID);
 
-	<#list customTabs as customTab>
-		<#assign tab = w.getWorkspace().getModElementByName(customTab.replace("CUSTOM:", "")).getGeneratableElement()>
-			public static final DeferredHolder<CreativeModeTab, CreativeModeTab> ${tab.getModElement().getRegistryNameUpper()} =
-				REGISTRY.register("${tab.getModElement().getRegistryName()}", () ->
-					CreativeModeTab.builder()
-						.title(Component.translatable("item_group.${modid}.${tab.getModElement().getRegistryName()}"))
-						.icon(() -> ${mappedMCItemToItemStackCode(tab.icon, 1)})
-						.displayItems((parameters, tabData) -> {
-							<#list tabMap.get("CUSTOM:" + tab.getModElement().getName()) as tabElement>
-							tabData.accept(${mappedMCItemToItem(tabElement)});
-							</#list>
-						})
-						<#if tab.showSearch>.withSearchBar()</#if>
-						<#if prevTab??>.withTabsBefore(${prevTab}.getId())</#if>
-						.build()
-				);
-		<#assign prevTab = tab.getModElement().getRegistryNameUpper()>
+	<#list w.getElementsOfType("tab") as tabME>
+		<#if tabMap.containsKey("CUSTOM:" + tabME.getName())>
+			<#assign tab = tabME.getGeneratableElement()>
+			<#assign tabContents = tabMap.get("CUSTOM:" + tabME.getName())>
+			public static final RegistryObject<CreativeModeTab> ${tabME.getRegistryNameUpper()} = REGISTRY.register("${tabME.getRegistryName()}", () ->
+				CreativeModeTab.builder().title(Component.translatable("item_group.${modid}.${tabME.getRegistryName()}"))
+					.icon(() -> ${mappedMCItemToItemStackCode(tab.icon, 1)})
+					.displayItems((parameters, tabData) -> {
+						<#list tabContents as tabElement>
+						tabData.accept(${mappedMCItemToItem(tabElement)});
+						</#list>
+					})
+					<#if tab.showSearch>.withSearchBar()</#if>
+					.build()
+			);
+		</#if>
 	</#list>
 
-	<#if vanillaTabs?has_content>
+	<#if itemsInVanillaTabs>
 	@SubscribeEvent public static void buildTabContentsVanilla(BuildCreativeModeTabContentsEvent tabData) {
-		<#list vanillaTabs as tabName>
-			<#if !tabName?is_first>else </#if>if (tabData.getTabKey() == ${generator.map(tabName, "tabs")}) {
-				<#if tabName == "OP_BLOCKS">if (tabData.hasPermissions()) {</#if>
-				<#list tabMap.get(tabName) as tabElement>
-				tabData.accept(${mappedMCItemToItem(tabElement)});
-				</#list>
-				<#if tabName == "OP_BLOCKS">}</#if>
-			}
+		<#assign first = true>
+		<#list tabMap.keySet() as tabName>
+			<#if !tabName.startsWith("CUSTOM:")>
+				<#if !first>else <#assign first = false></#if>
+				if (tabData.getTabKey() == ${generator.map(tabName, "tabs")}) {
+					<#list tabMap.get(tabName) as tabElement>
+					tabData.accept(${mappedMCItemToItem(tabElement)});
+					</#list>
+				}
+			</#if>
 		</#list>
 	}
 	</#if>
 
 }
-</@javacompress>
+
 <#-- @formatter:on -->

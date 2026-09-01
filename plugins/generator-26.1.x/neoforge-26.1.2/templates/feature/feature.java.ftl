@@ -33,10 +33,21 @@
 
 package ${package}.world.features;
 
-<#assign configuration = generator.map(featuretype, "features", 1)>
+<#assign mappedFeatureType = "NoOpFeature">
+<#assign configuration = "NoneFeatureConfiguration">
+<#if featuretype?has_content>
+	<#assign mappedFeatureCandidate = generator.map(featuretype, "features")!"">
+	<#assign configurationCandidate = generator.map(featuretype, "features", 1)!"">
+	<#if mappedFeatureCandidate?trim?matches("^[A-Za-z_$][A-Za-z0-9_$]*(\\.[A-Za-z_$][A-Za-z0-9_$]*)*$")>
+		<#assign mappedFeatureType = mappedFeatureCandidate?trim>
+	</#if>
+	<#if configurationCandidate?trim?matches("^[A-Za-z_$][A-Za-z0-9_$]*(\\.[A-Za-z_$][A-Za-z0-9_$]*)*$")>
+		<#assign configuration = configurationCandidate?trim>
+	</#if>
+</#if>
 
 <@javacompress>
-public class ${name}Feature extends ${generator.map(featuretype, "features")} {
+public class ${name}Feature extends ${mappedFeatureType} {
 
 	public ${name}Feature() {
 		super(${configuration}.CODEC);

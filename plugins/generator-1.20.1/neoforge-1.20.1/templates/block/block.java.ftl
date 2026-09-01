@@ -34,18 +34,20 @@
 <#include "../procedures.java.ftl">
 <#include "../triggers.java.ftl">
 
-<#assign filteredCustomProperties = data.customProperties?filter(e ->
-	e.property().getName().startsWith("CUSTOM:") || generator.map(e.property().getName(), "blockstateproperties") != "")>
-<#if data.blockBase?has_content && data.blockBase == "Wall">
-	<#assign filteredCustomProperties = []>
-</#if>
-
 package ${package}.block;
 
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
 
-<@javacompress>
-public class ${getClassName()}Block extends ${getBlockClass(data.blockBase)}
+<#compress>
+public class ${name}Block extends
+	<#if data.hasGravity>
+		FallingBlock
+	<#elseif data.blockBase?has_content>
+		${data.blockBase?replace("Stairs", "Stair")?replace("Pane", "IronBars")}Block
+	<#else>
+		Block
+	</#if>
 
 	<#assign interfaces = []>
 	<#if data.isWaterloggable>
@@ -54,7 +56,7 @@ public class ${getClassName()}Block extends ${getBlockClass(data.blockBase)}
 	<#if data.hasInventory>
 		<#assign interfaces += ["EntityBlock"]>
 	</#if>
-	<#if data.isBonemealable && !(data.blockBase?has_content && data.blockBase == "TrapDoor")>
+	<#if data.isBonemealable>
 		<#assign interfaces += ["BonemealableBlock"]>
 	</#if>
 	<#if interfaces?size gt 0>
@@ -75,60 +77,21 @@ public class ${getClassName()}Block extends ${getBlockClass(data.blockBase)}
 	<#if data.isWaterloggable>
 		public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
 	</#if>
-	<#list filteredCustomProperties as prop>
-		<#if prop.property().getName().startsWith("CUSTOM:")>
-			<#assign propName = prop.property().getName().replace("CUSTOM:", "")>
-			<#if prop.property().getClass().getSimpleName().equals("LogicType")>
-				public static final BooleanProperty ${propName?upper_case} = BooleanProperty.create("${propName}");
-			<#elseif prop.property().getClass().getSimpleName().equals("IntegerType")>
-				public static final IntegerProperty ${propName?upper_case} = IntegerProperty.create("${propName}", ${prop.property().getMin()}, ${prop.property().getMax()});
-			<#elseif prop.property().getClass().getSimpleName().equals("StringType")>
-				public static final EnumProperty<${StringUtils.snakeToCamel(propName)}Property> ${propName?upper_case} = EnumProperty.create("${propName}", ${StringUtils.snakeToCamel(propName)}Property.class);
-			</#if>
-		<#else>
-			<#assign propName = prop.property().getName()>
-			<#if prop.property().getClass().getSimpleName().equals("LogicType")>
-				public static final BooleanProperty ${propName?upper_case} = ${generator.map(propName, "blockstateproperties")};
-			<#elseif prop.property().getClass().getSimpleName().equals("IntegerType")>
-				public static final IntegerProperty ${propName?upper_case} = ${generator.map(propName, "blockstateproperties")};
-			<#elseif prop.property().getClass().getSimpleName().equals("StringType")>
-				public static final EnumProperty<${generator.map(propName, "blockstateproperties", 2)}> ${propName?upper_case} = ${generator.map(propName, "blockstateproperties")};
-			</#if>
-		</#if>
-	</#list>
-
-	<#assign defaultStateCustomShape = data.boundingBoxes?? && !data.blockBase?? && !data.isFullCube()>
-	<#assign statesWithCustomShape = data.getDefinedStatesWithCustomShape()>
-	<#if defaultStateCustomShape || statesWithCustomShape?has_content>
-		<#if data.rotationMode == 0 && !statesWithCustomShape?has_content><#-- shape not state dependent -->
-		private static final VoxelShape SHAPE = <@boundingBoxWithRotation data/>;
-		<#else>
-		private final ImmutableMap<BlockState, VoxelShape> shapes = this.makeShapes();
-		</#if>
-	</#if>
-
-	<#if data.hasGravity>
-	public static final MapCodec<${name}Block> CODEC = simpleCodec(properties -> new ${name}Block());
-
-	public MapCodec<${name}Block> codec() {
-		return CODEC;
-	}
-	</#if>
 
 	<#macro blockProperties>
 		BlockBehaviour.Properties.of()
-		<#if (data.colorOnMap!"DEFAULT") != "DEFAULT">
-			.mapColor(MapColor.${data.colorOnMap})
+		<#if generator.map(data.colorOnMap, "mapcolors") != "DEFAULT">
+			.mapColor(MapColor.${generator.map(data.colorOnMap, "mapcolors")})
 		</#if>
 		<#if data.isCustomSoundType>
-			.sound(new DeferredSoundType(1.0f, 1.0f,
-				() -> BuiltInRegistries.SOUND_EVENT.get(new ResourceLocation("${data.breakSound}")),
-				() -> BuiltInRegistries.SOUND_EVENT.get(new ResourceLocation("${data.stepSound}")),
-				() -> BuiltInRegistries.SOUND_EVENT.get(new ResourceLocation("${data.placeSound}")),
-				() -> BuiltInRegistries.SOUND_EVENT.get(new ResourceLocation("${data.hitSound}")),
-				() -> BuiltInRegistries.SOUND_EVENT.get(new ResourceLocation("${data.fallSound}"))
+			.sound(new ForgeSoundType(1.0f, 1.0f,
+				() -> ForgeRegistries.SOUND_EVENTS.getValue(new ResourceLocation("${data.breakSound}")),
+				() -> ForgeRegistries.SOUND_EVENTS.getValue(new ResourceLocation("${data.stepSound}")),
+				() -> ForgeRegistries.SOUND_EVENTS.getValue(new ResourceLocation("${data.placeSound}")),
+				() -> ForgeRegistries.SOUND_EVENTS.getValue(new ResourceLocation("${data.hitSound}")),
+				() -> ForgeRegistries.SOUND_EVENTS.getValue(new ResourceLocation("${data.fallSound}"))
 			))
-		<#elseif data.soundOnStep != "STONE">
+		<#else>
 			.sound(SoundType.${data.soundOnStep})
 		</#if>
 		<#if data.unbreakable>
@@ -158,7 +121,7 @@ public class ${getClassName()}Block extends ${getBlockClass(data.blockBase)}
 		<#if data.jumpFactor != 1.0>
 			.jumpFactor(${data.jumpFactor}f)
 		</#if>
-		<#if (data.hasTransparency || data.blockBase! == "Leaves") && !data.isNotColidable> <#-- No collision implies no occlusion -->
+		<#if data.hasTransparency || (data.blockBase?has_content && data.blockBase == "Leaves")>
 			.noOcclusion()
 		</#if>
 		<#if data.tickRandomly>
@@ -168,71 +131,57 @@ public class ${getClassName()}Block extends ${getBlockClass(data.blockBase)}
 			.pushReaction(PushReaction.${data.reactionToPushing})
 		</#if>
 		<#if data.emissiveRendering>
-			.hasPostProcess((bs, br, bp) -> true)
-			.emissiveRendering((bs, br, bp) -> true)
+			.hasPostProcess((bs, br, bp) -> true).emissiveRendering((bs, br, bp) -> true)
 		</#if>
 		<#if data.hasTransparency>
 			.isRedstoneConductor((bs, br, bp) -> false)
 		</#if>
-		<#if (!data.isNotColidable && data.offsetType != "NONE")>
+		<#if (data.boundingBoxes?? && !data.blockBase?? && !data.isFullCube() && data.offsetType != "NONE")
+				|| (data.blockBase?has_content && !data.isFullCube())>
 			.dynamicShape()
 		</#if>
-		<#if data.isReplaceable>
-			.replaceable()
+		<#if !data.useLootTableForDrops && (data.dropAmount == 0)>
+			.noLootTable()
 		</#if>
 		<#if data.offsetType != "NONE">
 			.offsetType(Block.OffsetType.${data.offsetType})
-		</#if>
-		<#if data.ignitedByLava>
-			.ignitedByLava()
-		</#if>
-		<#if data.noteBlockInstrument.getUnmappedValue() != "harp">
-			.instrument(${data.noteBlockInstrument})
 		</#if>
 		<#if data.blockBase?has_content && (
 				data.blockBase == "FenceGate" ||
 				data.blockBase == "PressurePlate" ||
 				data.blockBase == "Fence" ||
-				data.blockBase == "Wall" ||
-				data.blockBase == "Sign" ||
-				data.blockBase == "HangingSign")>
+				data.blockBase == "Wall")>
 			.forceSolidOn()
 		</#if>
 		<#if data.blockBase?has_content && data.blockBase == "EndRod">
 			.forceSolidOff()
 		</#if>
-		<#if data.blockBase?has_content && data.blockBase == "Leaves">
-			.isSuffocating((bs, br, bp) -> false)
-			.isViewBlocking((bs, br, bp) -> false)
-		</#if>
-		<#if var_extends_class! == "WallSignBlock" || var_extends_class! == "WallHangingSignBlock">
-			.dropsLike(${JavaModName}Blocks.${REGISTRYNAME}.get())
-		</#if>
 	</#macro>
 
-	public ${getClassName()}Block() {
-		<#if data.blockBase?has_content>
-			<#if data.blockBase == "Stairs">
-				super(Blocks.AIR.defaultBlockState(), <@blockProperties/>);
-			<#elseif data.blockBase == "PressurePlate" || data.blockBase == "TrapDoor" || data.blockBase == "Door">
-				super(BlockSetType.${data.blockSetType}, <@blockProperties/>);
-			<#elseif data.blockBase == "Button">
-				super(BlockSetType.${data.blockSetType}, <#if data.blockSetType == "OAK">30<#else>20</#if>, <@blockProperties/>);
-			<#elseif data.blockBase == "FenceGate">
-				super(WoodType.OAK, <@blockProperties/>);
-			<#elseif data.blockBase == "FlowerPot">
-				super(() -> (FlowerPotBlock) Blocks.FLOWER_POT, () -> ${mappedBlockToBlock(data.pottedPlant)}, <@blockProperties/>);
-				((FlowerPotBlock) Blocks.FLOWER_POT).addPlant(new ResourceLocation("${mappedMCItemToRegistryName(data.pottedPlant)}"), () -> this);
-			<#elseif data.isSign()>
-				super(${JavaModName}WoodTypes.${REGISTRYNAME}_WOOD_TYPE, <@blockProperties/>);
+	public ${name}Block() {
+		<#if data.blockBase?has_content && data.blockBase == "Stairs">
+			super(() -> Blocks.AIR.defaultBlockState(), <@blockProperties/>);
+		<#elseif data.blockBase?has_content && data.blockBase == "PressurePlate">
+		    <#if data.blockSetType == "OAK">
+		        super(Sensitivity.EVERYTHING, <@blockProperties/>, BlockSetType.OAK);
+		    <#else>
+		        super(Sensitivity.MOBS, <@blockProperties/>, BlockSetType.${data.blockSetType});
+		    </#if>
+		<#elseif data.blockBase?has_content && data.blockBase == "Button">
+			<#if data.blockSetType == "OAK">
+		        super(<@blockProperties/>, BlockSetType.OAK, 30, true);
 			<#else>
-				super(<@blockProperties/>);
+		        super(<@blockProperties/>, BlockSetType.${data.blockSetType}, 20, false);
 			</#if>
+		<#elseif data.blockBase?has_content && (data.blockBase == "TrapDoor" || data.blockBase == "Door")>
+			super(<@blockProperties/>, BlockSetType.${data.blockSetType});
+		<#elseif data.blockBase?has_content && data.blockBase == "FenceGate">
+			super(<@blockProperties/>, WoodType.OAK);
 		<#else>
 			super(<@blockProperties/>);
 		</#if>
 
-	    <#if data.rotationMode != 0 || data.isWaterloggable || filteredCustomProperties?has_content>
+	    <#if data.rotationMode != 0 || data.isWaterloggable>
 	    this.registerDefaultState(this.stateDefinition.any()
 	    	<#if data.rotationMode == 1 || data.rotationMode == 3>
 	    	.setValue(FACING, Direction.NORTH)
@@ -244,7 +193,6 @@ public class ${getClassName()}Block extends ${getBlockClass(data.blockBase)}
 	    	<#elseif data.rotationMode == 5>
 	    	.setValue(AXIS, Direction.Axis.Y)
 	    	</#if>
-			<@initCustomBlockStateProperties />
 	    	<#if data.isWaterloggable>
 	    	.setValue(WATERLOGGED, false)
 	    	</#if>
@@ -252,89 +200,47 @@ public class ${getClassName()}Block extends ${getBlockClass(data.blockBase)}
 		</#if>
 	}
 
-	<#if defaultStateCustomShape || statesWithCustomShape?has_content>
-		<#if data.rotationMode != 0 || statesWithCustomShape?has_content>
-		private ImmutableMap<BlockState, VoxelShape> makeShapes() {
-			return this.getShapeForEachState(state -> {
-				<#list statesWithCustomShape as state>
-				<#if !state?is_first>else </#if>if (
-    				<#list state.stateMap.keySet() as property>
-						<#assign value = state.stateMap.get(property)>
-						<#if property.getClass().getSimpleName().equals("StringType")>
-							<#assign value = generator.map(property.getName(), "blockstateproperties", 2) + "." + value?upper_case>
-						</#if>
-						state.getValue(${property.getName().replace("CUSTOM:", "")?upper_case}) == ${value}<#sep>&&
-					</#list>
-				) {
-					return <@boundingBoxWithRotation state data.rotationMode data.enablePitch/>;
-				}
-				</#list>
-				return <@boundingBoxWithRotation data data.rotationMode data.enablePitch/>;
-			});
-		}
-		</#if>
-
-		@Override public VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
-			<#assign offset = !data.shouldDisableOffset() && !data.isBoundingBoxEmpty()>
-			<#if offset>Vec3 offset = state.getOffset(world, pos);</#if>
-
-			<#if data.rotationMode == 0 && !statesWithCustomShape?has_content><#-- shape not state dependent -->
-			return SHAPE<#if offset>.move(offset.x, offset.y, offset.z)</#if>;
-			<#else><#-- shape is state dependent -->
-			return shapes.get(state)<#if offset>.move(offset.x, offset.y, offset.z)</#if>;
-			</#if>
-		}
-	</#if>
-
-	<#if data.renderType() == 4>
-    @Override protected RenderShape getRenderShape(BlockState state) {
-		return RenderShape.INVISIBLE;
-	}
-	</#if>
-
 	<#if data.blockBase?has_content && data.blockBase == "Stairs">
-   	@Override public float getExplosionResistance() {
+	public float getExplosionResistance() {
 		return ${data.resistance}f;
+   	}
+
+	public boolean isRandomlyTicking(BlockState state) {
+		return ${data.tickRandomly?c};
    	}
 	</#if>
 
-	<@addSpecialInformation data.specialInformation, "block." + modid + "." + registryname, true/>
+	<#-- NeoForge 1.20.1 does not expose Item.appendHoverText on Block. -->
+	<@addSpecialInformation data.specialInformation, "", true/>
 
 	<#if data.displayFluidOverlay>
-	@Override public boolean shouldDisplayFluidOverlay(BlockState state, BlockAndTintGetter world, BlockPos pos, FluidState fluidstate) {
+	public boolean shouldDisplayFluidOverlay(BlockState state, BlockAndTintGetter world, BlockPos pos, FluidState fluidstate) {
 		return true;
 	}
 	</#if>
 
 	<#if data.beaconColorModifier?has_content>
-	@Override public Integer getBeaconColorMultiplier(BlockState state, LevelReader world, BlockPos pos, BlockPos beaconPos) {
-		return FastColor.ARGB32.opaque(${data.beaconColorModifier.getRGB()});
+	@Override public float[] getBeaconColorMultiplier(BlockState state, LevelReader world, BlockPos pos, BlockPos beaconPos) {
+		return new float[] { ${data.beaconColorModifier.getRed()/255}f, ${data.beaconColorModifier.getGreen()/255}f, ${data.beaconColorModifier.getBlue()/255}f };
 	}
 	</#if>
 
-	<#-- Connected sides skip all faces touching the same block, which only renders correctly on full cube geometry -->
-	<#if data.connectedSides && (!data.blockBase?has_content || data.blockBase == "Leaves")>
+	<#if data.connectedSides>
 	@Override public boolean skipRendering(BlockState state, BlockState adjacentBlockState, Direction side) {
 		return adjacentBlockState.getBlock() == this ? true : super.skipRendering(state, adjacentBlockState, side);
 	}
 	</#if>
 
-	<#if data.hasCustomOpacity>
-		<#if (!data.blockBase?has_content || data.blockBase == "Leaves") && data.lightOpacity == 0>
-		@Override public boolean propagatesSkylightDown(BlockState state, BlockGetter reader, BlockPos pos) {
-			return <#if data.isWaterloggable>state.getFluidState().isEmpty()<#else>true</#if>;
-		}
-		</#if>
+	<#if (!data.blockBase?has_content || data.blockBase == "Leaves") && data.lightOpacity == 0>
+	@Override public boolean propagatesSkylightDown(BlockState state, BlockGetter reader, BlockPos pos) {
+		return <#if data.isWaterloggable>state.getFluidState().isEmpty()<#else>true</#if>;
+	}
+	</#if>
 
-		<#if !data.blockBase?has_content || data.blockBase == "Leaves" || data.lightOpacity != 15>
-		@Override public int getLightBlock(BlockState state, BlockGetter worldIn, BlockPos pos) {
-			<#if data.isWaterloggable && data.lightOpacity == 0> <#-- Prevent fully transparent blocks from overriding water opacity -->
-				return propagatesSkylightDown(state, worldIn, pos) ? 0 : 1;
-			<#else>
-				return ${data.lightOpacity};
-			</#if>
-		}
-		</#if>
+	<#if !data.blockBase?has_content || data.blockBase == "Leaves" || data.lightOpacity != 15>
+	@Override public int getLightBlock(BlockState state, BlockGetter worldIn, BlockPos pos) {
+		return ${data.lightOpacity};
+	}
 	</#if>
 
 	<#if data.hasTransparency && !data.blockBase?has_content>
@@ -343,9 +249,19 @@ public class ${getClassName()}Block extends ${getBlockClass(data.blockBase)}
 	}
 	</#if>
 
-	<#if data.rotationMode != 0 || data.isWaterloggable || filteredCustomProperties?has_content>
+	<#if data.boundingBoxes?? && !data.blockBase?? && !data.isFullCube()>
+	@Override public VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
+		<#if data.isBoundingBoxEmpty()>
+			return Shapes.empty();
+		<#else>
+			<#if !data.shouldDisableOffset()>Vec3 offset = state.getOffset(world, pos);</#if>
+			<@boundingBoxWithRotation data.positiveBoundingBoxes() data.negativeBoundingBoxes() data.shouldDisableOffset() data.rotationMode data.enablePitch/>
+		</#if>
+	}
+	</#if>
+
+	<#if data.rotationMode != 0 || data.isWaterloggable>
 	@Override protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-		super.createBlockStateDefinition(builder);
 		<#assign props = []>
 		<#if data.rotationMode == 5>
 			<#assign props += ["AXIS"]>
@@ -355,24 +271,19 @@ public class ${getClassName()}Block extends ${getBlockClass(data.blockBase)}
 				<#assign props += ["FACE"]>
 			</#if>
 		</#if>
-		<#list filteredCustomProperties as prop>
-			<#assign props += [prop.property().getName().replace("CUSTOM:", "")?upper_case]>
-		</#list>
 		<#if data.isWaterloggable>
 			<#assign props += ["WATERLOGGED"]>
 		</#if>
 		builder.add(${props?join(", ")});
 	}
 
-	@Override public BlockState getStateForPlacement(BlockPlaceContext context) {
-		BlockState state = super.getStateForPlacement(context);
-		if (state == null) return null;
-
+	@Override
+	public BlockState getStateForPlacement(BlockPlaceContext context) {
 		<#if data.isWaterloggable>
 		boolean flag = context.getLevel().getFluidState(context.getClickedPos()).getType() == Fluids.WATER;
 		</#if>
 		<#if data.rotationMode != 3>
-		return state
+		return this.defaultBlockState()
 			<#if data.rotationMode == 1>
 			    <#if data.enablePitch>
 			    .setValue(FACE, faceForDirection(context.getNearestLookingDirection()))
@@ -385,53 +296,33 @@ public class ${getClassName()}Block extends ${getBlockClass(data.blockBase)}
 			<#elseif data.rotationMode == 5>
 			.setValue(AXIS, context.getClickedFace().getAxis())
 			</#if>
-	    	<@initCustomBlockStateProperties />
 			<#if data.isWaterloggable>
 			.setValue(WATERLOGGED, flag)
 			</#if>;
 		<#elseif data.rotationMode == 3>
 	    if (context.getClickedFace().getAxis() == Direction.Axis.Y)
-	        return state
+	        return this.defaultBlockState()
 	    		<#if data.enablePitch>
 	    		    .setValue(FACE, context.getClickedFace().getOpposite() == Direction.UP ? AttachFace.CEILING : AttachFace.FLOOR)
 	    		    .setValue(FACING, context.getHorizontalDirection())
 	    		<#else>
 	    		    .setValue(FACING, Direction.NORTH)
 	    		</#if>
-	    		<@initCustomBlockStateProperties />
 	    		<#if data.isWaterloggable>
 	    		.setValue(WATERLOGGED, flag)
 	    		</#if>;
 
-	    return state
+	    return this.defaultBlockState()
 	    	<#if data.enablePitch>
 	    	    .setValue(FACE, AttachFace.WALL)
 	    	</#if>
 	    	.setValue(FACING, context.getClickedFace())
-	    	<@initCustomBlockStateProperties />
 	    	<#if data.isWaterloggable>
 	    	.setValue(WATERLOGGED, flag)
 	    	</#if>;
 		</#if>
 	}
 	</#if>
-
-	<#macro initCustomBlockStateProperties>
-		<#list filteredCustomProperties as prop>
-			<#assign propName = prop.property().getName()>
-			.setValue(${propName.replace("CUSTOM:", "")?upper_case},
-				<#if prop.property().getClass().getSimpleName().equals("StringType")>
-					<#if propName.startsWith("CUSTOM:")>
-					${StringUtils.snakeToCamel(propName.replace("CUSTOM:", ""))}Property.${prop.value()?upper_case}
-					<#else>
-					${propName?upper_case}.getValue("${prop.value()}").get()
-					</#if>
-				<#else>
-				${prop.value()}
-				</#if>
-			)
-		</#list>
-	</#macro>
 
 	<#if data.rotationMode != 0>
 		<#if data.rotationMode != 5>
@@ -444,7 +335,14 @@ public class ${getClassName()}Block extends ${getBlockClass(data.blockBase)}
 		}
 		<#else>
 		@Override public BlockState rotate(BlockState state, Rotation rot) {
-			return RotatedPillarBlock.rotatePillar(state, rot);
+			if(rot == Rotation.CLOCKWISE_90 || rot == Rotation.COUNTERCLOCKWISE_90) {
+				if (state.getValue(AXIS) == Direction.Axis.X) {
+					return state.setValue(AXIS, Direction.Axis.Z);
+				} else if (state.getValue(AXIS) == Direction.Axis.Z) {
+					return state.setValue(AXIS, Direction.Axis.X);
+				}
+			}
+			return state;
 		}
 		</#if>
 
@@ -495,6 +393,12 @@ public class ${getClassName()}Block extends ${getBlockClass(data.blockBase)}
 	}
 	</#if>
 
+	<#if data.isReplaceable>
+	@Override public boolean canBeReplaced(BlockState state, BlockPlaceContext context) {
+		return context.getItemInHand().getItem() != this.asItem();
+	}
+	</#if>
+
 	<#if data.canProvidePower && data.emittedRedstonePower??>
 	@Override public boolean isSignalSource(BlockState state) {
 		return true;
@@ -525,45 +429,28 @@ public class ${getClassName()}Block extends ${getBlockClass(data.blockBase)}
 	}
 	</#if>
 
-	<#if data.strippingResult?? && !data.strippingResult.isEmpty()>
-	@Override public BlockState getToolModifiedState(BlockState blockstate, UseOnContext context, ItemAbility itemAbility, boolean simulate) {
-		if (ItemAbilities.AXE_STRIP == itemAbility && context.getItemInHand().canPerformAction(itemAbility)) {
-			return ${mappedBlockToBlock(data.strippingResult)}.withPropertiesOf(blockstate);
-		}
-		return super.getToolModifiedState(blockstate, context, itemAbility, simulate);
-	}
-	</#if>
-
 	<#if data.creativePickItem?? && !data.creativePickItem.isEmpty()>
-	@Override public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state) {
+	@Override public ItemStack getCloneItemStack(BlockState state, HitResult target, BlockGetter world, BlockPos pos, Player player) {
 		return ${mappedMCItemToItemStackCode(data.creativePickItem, 1)};
 	}
-	<#elseif !data.hasBlockItem && (data.blockBase! != "FlowerPot")>
-	@Override public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state) {
-		return ItemStack.EMPTY;
-	}
 	</#if>
 
-	<#if data.xpAmountMax != 0>
-	@Override public int getExpDrop(BlockState state, LevelAccessor level, BlockPos pos, BlockEntity blockEntity, Entity breaker, ItemStack tool) {
-		<#if data.xpAmountMin == data.xpAmountMax>
-		return ${data.xpAmountMin};
-		<#else>
-		return Mth.randomBetweenInclusive(level.getRandom(), ${data.xpAmountMin}, ${data.xpAmountMax});
-		</#if>
-	}
-	</#if>
-
-	<#if data.aiPathNodeType != "DEFAULT">
-	@Override public PathType getBlockPathType(BlockState state, BlockGetter world, BlockPos pos, Mob entity) {
-		return PathType.${data.aiPathNodeType};
+	<#if generator.map(data.aiPathNodeType, "pathnodetypes") != "DEFAULT">
+	@Override public BlockPathTypes getBlockPathType(BlockState state, BlockGetter world, BlockPos pos, Mob entity) {
+		return BlockPathTypes.${generator.map(data.aiPathNodeType, "pathnodetypes")};
 	}
 	</#if>
 
 	<#if data.plantsGrowOn>
 	@Override
-	public TriState canSustainPlant(BlockState state, BlockGetter world, BlockPos pos, Direction direction, BlockState plant) {
-		return TriState.TRUE;
+	public boolean canSustainPlant(BlockState state, BlockGetter world, BlockPos pos, Direction direction, IPlantable plantable) {
+		return true;
+	}
+	</#if>
+
+	<#if data.isLadder>
+	@Override public boolean isLadder(BlockState state, LevelReader world, BlockPos pos, LivingEntity entity) {
+		return true;
 	}
 	</#if>
 
@@ -574,17 +461,51 @@ public class ${getClassName()}Block extends ${getBlockClass(data.blockBase)}
 	}
 	</#if>
 
-	<#if hasProcedure(data.additionalHarvestCondition)>
-	@Override public boolean canHarvestBlock(BlockState state, BlockGetter world, BlockPos pos, Player player) {
-		return super.canHarvestBlock(state, world, pos, player) && <@procedureCode data.additionalHarvestCondition, {
-			"x": "pos.getX()",
-			"y": "pos.getY()",
-			"z": "pos.getZ()",
-			"entity": "player",
-			"world": "player.level()",
-			"blockstate": "state"
-		}, false/>;
-	}
+	<#if !(data.useLootTableForDrops || (data.dropAmount == 0))>
+		<#if data.dropAmount != 1 && !(data.customDrop?? && !data.customDrop.isEmpty())>
+		@Override public List<ItemStack> getDrops(BlockState state, LootParams.Builder builder) {
+			<#if data.blockBase?has_content && data.blockBase == "Door">
+			if(state.getValue(BlockStateProperties.DOUBLE_BLOCK_HALF) != DoubleBlockHalf.LOWER)
+				return Collections.emptyList();
+			</#if>
+
+			List<ItemStack> dropsOriginal = super.getDrops(state, builder);
+			if(!dropsOriginal.isEmpty())
+				return dropsOriginal;
+			return Collections.singletonList(new ItemStack(this, ${data.dropAmount}));
+		}
+		<#elseif data.customDrop?? && !data.customDrop.isEmpty()>
+		@Override public List<ItemStack> getDrops(BlockState state, LootParams.Builder builder) {
+			<#if data.blockBase?has_content && data.blockBase == "Door">
+			if(state.getValue(BlockStateProperties.DOUBLE_BLOCK_HALF) != DoubleBlockHalf.LOWER)
+				return Collections.emptyList();
+			</#if>
+
+			List<ItemStack> dropsOriginal = super.getDrops(state, builder);
+			if(!dropsOriginal.isEmpty())
+				return dropsOriginal;
+			return Collections.singletonList(${mappedMCItemToItemStackCode(data.customDrop, data.dropAmount)});
+		}
+		<#elseif data.blockBase?has_content && data.blockBase == "Slab">
+		@Override public List<ItemStack> getDrops(BlockState state, LootParams.Builder builder) {
+			List<ItemStack> dropsOriginal = super.getDrops(state, builder);
+			if(!dropsOriginal.isEmpty())
+				return dropsOriginal;
+			return Collections.singletonList(new ItemStack(this, state.getValue(TYPE) == SlabType.DOUBLE ? 2 : 1));
+		}
+		<#else>
+		@Override public List<ItemStack> getDrops(BlockState state, LootParams.Builder builder) {
+			<#if data.blockBase?has_content && data.blockBase == "Door">
+			if(state.getValue(BlockStateProperties.DOUBLE_BLOCK_HALF) != DoubleBlockHalf.LOWER)
+				return Collections.emptyList();
+			</#if>
+
+			List<ItemStack> dropsOriginal = super.getDrops(state, builder);
+			if(!dropsOriginal.isEmpty())
+				return dropsOriginal;
+			return Collections.singletonList(new ItemStack(this, 1));
+		}
+		</#if>
 	</#if>
 
 	<@onBlockAdded data.onBlockAdded, hasProcedure(data.onTickUpdate) && data.shouldScheduleTick(), data.tickRate/>
@@ -592,15 +513,14 @@ public class ${getClassName()}Block extends ${getBlockClass(data.blockBase)}
 	<@onRedstoneOrNeighborChanged data.onRedstoneOn, data.onRedstoneOff, data.onNeighbourBlockChanges/>
 
 	<#if hasProcedure(data.onTickUpdate)>
-	@Override public void <#if data.tickRandomly>randomTick<#else>tick</#if>(BlockState blockstate, ServerLevel world, BlockPos pos, RandomSource random) {
-		super.<#if data.tickRandomly>randomTick<#else>tick</#if>(blockstate, world, pos, random);
-		<@procedureCode data.onTickUpdate, {
-			"x": "pos.getX()",
-			"y": "pos.getY()",
-			"z": "pos.getZ()",
-			"world": "world",
-			"blockstate": "blockstate"
-		}/>
+	@Override public void <#if data.tickRandomly && (data.blockBase?has_content && data.blockBase == "Stairs")>randomTick<#else>tick</#if>
+			(BlockState blockstate, ServerLevel world, BlockPos pos, RandomSource random) {
+		super.<#if data.tickRandomly && (data.blockBase?has_content && data.blockBase == "Stairs")>randomTick<#else>tick</#if>(blockstate, world, pos, random);
+		int x = pos.getX();
+		int y = pos.getY();
+		int z = pos.getZ();
+
+		<@procedureOBJToCode data.onTickUpdate/>
 
 		<#if data.shouldScheduleTick()>
 		world.scheduleTick(pos, this, ${data.tickRate});
@@ -608,7 +528,17 @@ public class ${getClassName()}Block extends ${getBlockClass(data.blockBase)}
 	}
 	</#if>
 
-	<@onAnimateTick data.onRandomUpdateEvent/>
+	<#if hasProcedure(data.onRandomUpdateEvent)>
+	@OnlyIn(Dist.CLIENT) @Override
+	public void animateTick(BlockState blockstate, Level world, BlockPos pos, RandomSource random) {
+		super.animateTick(blockstate, world, pos, random);
+		Player entity = Minecraft.getInstance().player;
+		int x = pos.getX();
+		int y = pos.getY();
+		int z = pos.getZ();
+		<@procedureOBJToCode data.onRandomUpdateEvent/>
+	}
+	</#if>
 
 	<@onDestroyedByPlayer data.onDestroyedByPlayer/>
 
@@ -620,19 +550,17 @@ public class ${getClassName()}Block extends ${getBlockClass(data.blockBase)}
 
 	<@onEntityWalksOn data.onEntityWalksOn/>
 
-	<@onEntityFallsOn data.onEntityFallsOn/>
-
 	<@onHitByProjectile data.onHitByProjectile/>
 
 	<@onBlockPlacedBy data.onBlockPlayedBy/>
 
 	<#if hasProcedure(data.onRightClicked) || data.shouldOpenGUIOnRightClick()>
 	@Override
-	public InteractionResult useWithoutItem(BlockState blockstate, Level world, BlockPos pos, Player entity, BlockHitResult hit) {
-		super.useWithoutItem(blockstate, world, pos, entity, hit);
+	public InteractionResult use(BlockState blockstate, Level world, BlockPos pos, Player entity, InteractionHand hand, BlockHitResult hit) {
+		super.use(blockstate, world, pos, entity, hand, hit);
 		<#if data.shouldOpenGUIOnRightClick()>
 		if(entity instanceof ServerPlayer player) {
-			player.openMenu(new MenuProvider() {
+			NetworkHooks.openScreen(player, new MenuProvider() {
 				@Override public Component getDisplayName() {
 					return Component.literal("${data.name}");
 				}
@@ -666,7 +594,7 @@ public class ${getClassName()}Block extends ${getBlockClass(data.blockBase)}
 	}
 	</#if>
 
-	<#if data.isBonemealable && !(data.blockBase?has_content && data.blockBase == "TrapDoor")>
+	<#if data.isBonemealable>
 	<@bonemealEvents data.isBonemealTargetCondition, data.bonemealSuccessCondition, data.onBonemealSuccess/>
 	</#if>
 
@@ -684,7 +612,7 @@ public class ${getClassName()}Block extends ${getBlockClass(data.blockBase)}
 		public boolean triggerEvent(BlockState state, Level world, BlockPos pos, int eventID, int eventParam) {
 			super.triggerEvent(state, world, pos, eventID, eventParam);
 			BlockEntity blockEntity = world.getBlockEntity(pos);
-			return blockEntity != null && blockEntity.triggerEvent(eventID, eventParam);
+			return blockEntity == null ? false : blockEntity.triggerEvent(eventID, eventParam);
 		}
 
 	    <#if data.inventoryDropWhenDestroyed>
@@ -716,18 +644,6 @@ public class ${getClassName()}Block extends ${getBlockClass(data.blockBase)}
 	    </#if>
 	</#if>
 
-	<#if data.sensitiveToVibration && data.hasInventory>
-	@Override public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState blockstate, BlockEntityType<T> blockEntityType) {
-		if (!level.isClientSide && blockEntityType == ${JavaModName}BlockEntities.${REGISTRYNAME}.get()) {
-			return (_level, pos, state, blockEntity) -> {
-				if (blockEntity instanceof ${name}BlockEntity be)
-					VibrationSystem.Ticker.tick(_level, be.getVibrationData(), be.getVibrationUser());
-			};
-		}
-		return null;
-	}
-	</#if>
-
 	<#if data.tintType != "No tint">
 		@OnlyIn(Dist.CLIENT) public static void blockColorLoad(RegisterColorHandlersEvent.Block event) {
 			event.getBlockColors().register((bs, world, pos, index) -> {
@@ -753,10 +669,10 @@ public class ${getClassName()}Block extends ${getBlockClass(data.blockBase)}
 						Minecraft.getInstance().level.getBiome(pos).value().getWaterFogColor() : 329011;
 					</#if>
 				</#if>
-			}, ${JavaModName}Blocks.${REGISTRYNAME}.get());
+			}, ${JavaModName}Blocks.${data.getModElement().getRegistryNameUpper()}.get());
 		}
 
-		<#if data.isItemTinted && data.hasBlockItem>
+		<#if data.isItemTinted>
 		@OnlyIn(Dist.CLIENT) public static void itemColorLoad(RegisterColorHandlersEvent.Item event) {
 			event.getItemColors().register((stack, index) -> {
 				<#if data.tintType == "Grass">
@@ -776,53 +692,11 @@ public class ${getClassName()}Block extends ${getBlockClass(data.blockBase)}
 				<#else>
 					return 329011;
 				</#if>
-			}, ${JavaModName}Blocks.${REGISTRYNAME}.get());
+			}, ${JavaModName}Blocks.${data.getModElement().getRegistryNameUpper()}.get());
 		}
 		</#if>
 	</#if>
-
-	<#list data.customProperties as prop>
-		<#if prop.property().getName().startsWith("CUSTOM:") && prop.property().getClass().getSimpleName().equals("StringType")>
-		<#assign propClassName = StringUtils.snakeToCamel(prop.property().getName().replace("CUSTOM:", ""))>
-		public enum ${propClassName}Property implements StringRepresentable {
-			<#list prop.property.getArrayData() as value>
-			${value?upper_case}("${value}")<#sep>,
-			</#list>;
-
-			private final String name;
-
-			private ${propClassName}Property(String name) {
-				this.name = name;
-			}
-
-			@Override public String getSerializedName() {
-				return this.name;
-			}
-
-			@Override public String toString() {
-				return this.name;
-			}
-		}
-		</#if>
-	</#list>
 
 }
-</@javacompress>
+</#compress>
 <#-- @formatter:on -->
-
-<#function getClassName>
-	<#if var_extends_class! == "WallSignBlock" || var_extends_class! == "WallHangingSignBlock"><#return data.getWallName()>
-	<#else><#return name>
-	</#if>
-</#function>
-
-<#function getBlockClass blockBase="">
-	<#if var_extends_class??><#return var_extends_class>
-	<#elseif data.hasGravity><#return "FallingBlock">
-	<#elseif blockBase == "Stairs"><#return "StairBlock">
-	<#elseif blockBase == "Pane"><#return "IronBarsBlock">
-	<#elseif blockBase == "Sign"><#return "StandingSignBlock">
-	<#elseif blockBase == "HangingSign"><#return "CeilingHangingSignBlock">
-	<#else><#return blockBase + "Block">
-	</#if>
-</#function>

@@ -78,7 +78,7 @@ public class ${name}Entity extends ${extendsClass} <#if interfaces?size gt 0>imp
 	</#list>
 
 	<#if data.isBoss>
-	private final ServerBossEvent bossInfo = new ServerBossEvent(Mth.createInsecureUUID(this.random), this.getDisplayName(),
+	private final ServerBossEvent bossInfo = new ServerBossEvent(this.getDisplayName(),
 		ServerBossEvent.BossBarColor.${data.bossBarColor}, ServerBossEvent.BossBarOverlay.${data.bossBarType});
 	</#if>
 
@@ -243,38 +243,38 @@ public class ${name}Entity extends ${extendsClass} <#if interfaces?size gt 0>imp
 	<#if !data.mobDrop.isEmpty()>
 	protected void dropCustomDeathLoot(ServerLevel serverLevel, DamageSource source, boolean recentlyHitIn) {
 		super.dropCustomDeathLoot(serverLevel, source, recentlyHitIn);
-		this.spawnAtLocation(serverLevel, ${mappedMCItemToItemStackCode(data.mobDrop, 1)});
+		this.spawnAtLocation(${mappedMCItemToItemStackCode(data.mobDrop, 1)});
 	}
 	</#if>
 
 	<#if data.livingSound?has_content && data.livingSound.getMappedValue()?has_content>
 	@Override public SoundEvent getAmbientSound() {
-		return BuiltInRegistries.SOUND_EVENT.getValue(ResourceLocation.parse("${data.livingSound}"));
+		return BuiltInRegistries.SOUND_EVENT.get(ResourceLocation.parse("${data.livingSound}"));
 	}
 	</#if>
 
 	<#if data.stepSound?has_content && data.stepSound.getMappedValue()?has_content>
 	@Override public void playStepSound(BlockPos pos, BlockState blockIn) {
-		this.playSound(BuiltInRegistries.SOUND_EVENT.getValue(ResourceLocation.parse("${data.stepSound}")), 0.15f, 1);
+		this.playSound(BuiltInRegistries.SOUND_EVENT.get(ResourceLocation.parse("${data.stepSound}")), 0.15f, 1);
 	}
 	</#if>
 
 	<#if data.hurtSound?has_content && data.hurtSound.getMappedValue()?has_content>
 	@Override public SoundEvent getHurtSound(DamageSource ds) {
-		return BuiltInRegistries.SOUND_EVENT.getValue(ResourceLocation.parse("${data.hurtSound}"));
+		return BuiltInRegistries.SOUND_EVENT.get(ResourceLocation.parse("${data.hurtSound}"));
 	}
 	</#if>
 
 	<#if data.deathSound?has_content && data.deathSound.getMappedValue()?has_content>
 	@Override public SoundEvent getDeathSound() {
-		return BuiltInRegistries.SOUND_EVENT.getValue(ResourceLocation.parse("${data.deathSound}"));
+		return BuiltInRegistries.SOUND_EVENT.get(ResourceLocation.parse("${data.deathSound}"));
 	}
 	</#if>
 
 	<#if data.mobBehaviourType == "Raider">
 	@Override public SoundEvent getCelebrateSound() {
 		<#if data.raidCelebrationSound?has_content && data.raidCelebrationSound.getMappedValue()?has_content>
-		return BuiltInRegistries.SOUND_EVENT.getValue(ResourceLocation.parse("${data.raidCelebrationSound}"));
+		return BuiltInRegistries.SOUND_EVENT.get(ResourceLocation.parse("${data.raidCelebrationSound}"));
 		<#else>
 		return SoundEvents.EMPTY;
 		</#if>
@@ -319,7 +319,7 @@ public class ${name}Entity extends ${extendsClass} <#if interfaces?size gt 0>imp
 		|| data.immuneToCactus || data.immuneToDrowning || data.immuneToLightning || data.immuneToPotions
 		|| data.immuneToPlayer || data.immuneToExplosion || data.immuneToTrident || data.immuneToAnvil
 		|| data.immuneToDragonBreath || data.immuneToWither>
-	@Override public boolean hurtServer(ServerLevel level, DamageSource damagesource, float amount) {
+	@Override public boolean hurt(DamageSource damagesource, float amount) {
 		<#if hasProcedure(data.whenMobIsHurt)>
 			double x = this.getX();
 			double y = this.getY();
@@ -348,7 +348,7 @@ public class ${name}Entity extends ${extendsClass} <#if interfaces?size gt 0>imp
 				return false;
 		</#if>
 		<#if data.immuneToPotions>
-			if (damagesource.getDirectEntity() instanceof AbstractThrownPotion || damagesource.getDirectEntity() instanceof AreaEffectCloud)
+			if (damagesource.getDirectEntity() instanceof ThrownPotion || damagesource.getDirectEntity() instanceof AreaEffectCloud)
 				return false;
 		</#if>
 		<#if data.immuneToFallDamage>
@@ -387,7 +387,7 @@ public class ${name}Entity extends ${extendsClass} <#if interfaces?size gt 0>imp
 			if (damagesource.is(DamageTypes.WITHER) || damagesource.is(DamageTypes.WITHER_SKULL))
 				return false;
 		</#if>
-		return super.hurtServer(level, damagesource, amount);
+		return super.hurt(damagesource, amount);
 	}
 	</#if>
 
@@ -414,7 +414,7 @@ public class ${name}Entity extends ${extendsClass} <#if interfaces?size gt 0>imp
 	</#if>
 
 	<#if hasProcedure(data.onInitialSpawn)>
-	@Override public SpawnGroupData finalizeSpawn(ServerLevelAccessor world, DifficultyInstance difficulty, EntitySpawnReason reason, @Nullable SpawnGroupData livingdata) {
+	@Override public SpawnGroupData finalizeSpawn(ServerLevelAccessor world, DifficultyInstance difficulty, MobSpawnType reason, @Nullable SpawnGroupData livingdata) {
 		SpawnGroupData retval = super.finalizeSpawn(world, difficulty, reason, livingdata);
 		<@procedureCode data.onInitialSpawn, {
 			"x": "this.getX()",
@@ -437,73 +437,90 @@ public class ${name}Entity extends ${extendsClass} <#if interfaces?size gt 0>imp
 	}
 	</#if>;
 
-   	@Override protected void dropEquipment(ServerLevel serverLevel) {
-		super.dropEquipment(serverLevel);
+	@Override protected void dropEquipment() {
+		super.dropEquipment();
 		for (int i = 0; i < inventory.getContainerSize(); ++i) {
 			ItemStack itemstack = inventory.getItem(i);
 			if (!itemstack.isEmpty() && !EnchantmentHelper.has(itemstack, EnchantmentEffectComponents.PREVENT_EQUIPMENT_DROP)) {
-				this.spawnAtLocation(serverLevel, itemstack);
+				this.spawnAtLocation(itemstack);
 			}
 		}
 	}
 
-	private void serialize(ValueOutput output) {
-		ValueOutput.TypedOutputList<ItemStackWithSlot> itemList = output.list("Items", ItemStackWithSlot.CODEC);
-
-		for(int i = 0; i < this.inventory.getContainerSize(); ++i) {
-			ItemStack stack = (ItemStack)this.inventory.items.get(i);
-			if (!stack.isEmpty())
-				itemList.add(new ItemStackWithSlot(i, stack));
+	private CompoundTag serializeInventory() {
+		CompoundTag output = new CompoundTag();
+		ListTag itemList = new ListTag();
+		for (int i = 0; i < this.inventory.getContainerSize(); ++i) {
+			ItemStack stack = this.inventory.getItem(i);
+			if (!stack.isEmpty()) {
+				CompoundTag stackTag = stack.saveOptional(this.registryAccess());
+				stackTag.putByte("Slot", (byte)i);
+				itemList.add(stackTag);
+			}
 		}
+		output.put("Items", itemList);
 		output.putInt("Size", this.inventory.getContainerSize());
+		return output;
 	}
 
-	private void deserialize(ValueInput input) {
-		SimpleContainer newInventory = new SimpleContainer(input.getIntOr("Size", this.inventory.getContainerSize()));
-		input.listOrEmpty("Items", ItemStackWithSlot.CODEC).forEach((slot) -> {
-			if (slot.isValidInContainer(newInventory.items.size()))
-				newInventory.items.set(slot.slot(), slot.stack());
-		});
+	private void deserializeInventory(CompoundTag input) {
+		int size = input.contains("Size") ? input.getInt("Size") : this.inventory.getContainerSize();
+		SimpleContainer newInventory = new SimpleContainer(size);
+		ListTag itemList = input.getList("Items", Tag.TAG_COMPOUND);
+		for (int i = 0; i < itemList.size(); ++i) {
+			CompoundTag stackTag = itemList.getCompound(i);
+			int slot = stackTag.getByte("Slot") & 255;
+			if (slot < newInventory.getContainerSize())
+				newInventory.setItem(slot, ItemStack.parseOptional(this.registryAccess(), stackTag));
+		}
 		this.inventory = newInventory;
 	}
 	</#if>
 
 	<#if data.entityDataEntries?has_content || data.guiBoundTo?has_content || data.sensitiveToVibration>
-	@Override public void addAdditionalSaveData(ValueOutput valueOutput) {
-		super.addAdditionalSaveData(valueOutput);
+	@Override public void addAdditionalSaveData(CompoundTag compound) {
+		super.addAdditionalSaveData(compound);
 		<#list data.entityDataEntries as entry>
 			<#if entry.value().getClass().getSimpleName() == "Integer">
-			valueOutput.putInt("Data${entry.property().getName()}", this.entityData.get(DATA_${entry.property().getName()}));
+			compound.putInt("Data${entry.property().getName()}", this.entityData.get(DATA_${entry.property().getName()}));
 			<#elseif entry.value().getClass().getSimpleName() == "Boolean">
-			valueOutput.putBoolean("Data${entry.property().getName()}", this.entityData.get(DATA_${entry.property().getName()}));
+			compound.putBoolean("Data${entry.property().getName()}", this.entityData.get(DATA_${entry.property().getName()}));
 			<#elseif entry.value().getClass().getSimpleName() == "String">
-			valueOutput.putString("Data${entry.property().getName()}", this.entityData.get(DATA_${entry.property().getName()}));
+			compound.putString("Data${entry.property().getName()}", this.entityData.get(DATA_${entry.property().getName()}));
 			</#if>
 		</#list>
 		<#if data.guiBoundTo?has_content>
-		serialize(valueOutput.child("InventoryCustom"));
+		compound.put("InventoryCustom", serializeInventory());
 		</#if>
 		<#if data.sensitiveToVibration>
-		valueOutput.store("listener", VibrationSystem.Data.CODEC, this.vibrationData);
+		VibrationSystem.Data.CODEC.encodeStart(this.registryAccess().createSerializationContext(NbtOps.INSTANCE), this.vibrationData)
+			.resultOrPartial(e -> ${JavaModName}.LOGGER.error("Failed to encode vibration listener for ${name}: '{}'", e))
+			.ifPresent(listener -> compound.put("listener", listener));
 		</#if>
 	}
 
-	@Override public void readAdditionalSaveData(ValueInput valueInput) {
-		super.readAdditionalSaveData(valueInput);
+	@Override public void readAdditionalSaveData(CompoundTag compound) {
+		super.readAdditionalSaveData(compound);
 		<#list data.entityDataEntries as entry>
-			<#if entry.value().getClass().getSimpleName() == "Integer">
-			this.entityData.set(DATA_${entry.property().getName()}, valueInput.getIntOr("Data${entry.property().getName()}", 0));
-			<#elseif entry.value().getClass().getSimpleName() == "Boolean">
-			this.entityData.set(DATA_${entry.property().getName()}, valueInput.getBooleanOr("Data${entry.property().getName()}", false));
-			<#elseif entry.value().getClass().getSimpleName() == "String">
-			this.entityData.set(DATA_${entry.property().getName()}, valueInput.getStringOr("Data${entry.property().getName()}", ""));
-			</#if>
+			if (compound.contains("Data${entry.property().getName()}"))
+				<#if entry.value().getClass().getSimpleName() == "Integer">
+				this.entityData.set(DATA_${entry.property().getName()}, compound.getInt("Data${entry.property().getName()}"));
+				<#elseif entry.value().getClass().getSimpleName() == "Boolean">
+				this.entityData.set(DATA_${entry.property().getName()}, compound.getBoolean("Data${entry.property().getName()}"));
+				<#elseif entry.value().getClass().getSimpleName() == "String">
+				this.entityData.set(DATA_${entry.property().getName()}, compound.getString("Data${entry.property().getName()}"));
+				</#if>
 		</#list>
 		<#if data.guiBoundTo?has_content>
-		valueInput.child("InventoryCustom").ifPresent(this::deserialize);
+		if (compound.get("InventoryCustom") instanceof CompoundTag inventoryTag)
+			deserializeInventory(inventoryTag);
 		</#if>
 		<#if data.sensitiveToVibration>
-		this.vibrationData = valueInput.read("listener", VibrationSystem.Data.CODEC).orElseGet(VibrationSystem.Data::new);
+		if (compound.contains("listener", Tag.TAG_COMPOUND)) {
+			VibrationSystem.Data.CODEC.parse(this.registryAccess().createSerializationContext(NbtOps.INSTANCE), compound.getCompound("listener"))
+				.resultOrPartial(e -> ${JavaModName}.LOGGER.error("Failed to parse vibration listener for ${name}: '{}'", e))
+				.ifPresent(data -> this.vibrationData = data);
+		}
 		</#if>
 	}
 	</#if>
@@ -724,18 +741,21 @@ public class ${name}Entity extends ${extendsClass} <#if interfaces?size gt 0>imp
 
 	<#if ["Pig", "Villager", "Wolf", "Cow", "Chicken", "Ocelot", "Squid", "Horse"]?seq_contains(extendsClass)>
 		@Override public ${extendsClass} getBreedOffspring(ServerLevel serverWorld, AgeableMob ageable) {
-			${name}Entity retval = ${JavaModName}Entities.${REGISTRYNAME}.create(serverWorld, EntitySpawnReason.BREEDING);
+			${name}Entity retval = ${JavaModName}Entities.${REGISTRYNAME}.create(serverWorld);
 			<#if data.aiBase == "Wolf">
 			if (this.isTame()) {
-				retval.setOwnerReference(this.getOwnerReference());
+				retval.setOwnerUUID(this.getOwnerUUID());
 				retval.setTame(true, true);
 			}
 			</#if>
+			retval.finalizeSpawn(serverWorld, serverWorld.getCurrentDifficultyAt(retval.blockPosition()), MobSpawnType.BREEDING, null);
 			return retval;
 		}
 	<#elseif data.breedable>
 		@Override public AgeableMob getBreedOffspring(ServerLevel serverWorld, AgeableMob ageable) {
-			return ${JavaModName}Entities.${REGISTRYNAME}.create(serverWorld, EntitySpawnReason.BREEDING);
+			${name}Entity retval = ${JavaModName}Entities.${REGISTRYNAME}.create(serverWorld);
+			retval.finalizeSpawn(serverWorld, serverWorld.getCurrentDifficultyAt(retval.blockPosition()), MobSpawnType.BREEDING, null);
+			return retval;
 		}
 
 		@Override public boolean isFood(ItemStack stack) {
@@ -754,13 +774,13 @@ public class ${name}Entity extends ${extendsClass} <#if interfaces?size gt 0>imp
 	</#if>
 
 	<#if data.breatheUnderwater?? && (hasProcedure(data.breatheUnderwater) || data.breatheUnderwater.getFixedValue())>
-	@Override public boolean canBreatheUnderwater() {
+	@Override protected int decreaseAirSupply(int air) {
 		double x = this.getX();
 		double y = this.getY();
 		double z = this.getZ();
 		Level world = this.level();
 		Entity entity = this;
-		return <@procedureOBJToConditionCode data.breatheUnderwater false true/>;
+		return <@procedureOBJToConditionCode data.breatheUnderwater false true/> ? air : super.decreaseAirSupply(air);
 	}
 	</#if>
 
@@ -794,7 +814,7 @@ public class ${name}Entity extends ${extendsClass} <#if interfaces?size gt 0>imp
 	}
 
 	@Override
-	public boolean canBeCollidedWith(Entity sourceentity) {
+	public boolean canBeCollidedWith() {
 		<#if hasProcedure(data.solidBoundingBox)>
 		Entity entity = this;
 		Level world = entity.level();
@@ -817,8 +837,8 @@ public class ${name}Entity extends ${extendsClass} <#if interfaces?size gt 0>imp
 		this.bossInfo.removePlayer(player);
 	}
 
-	@Override public void customServerAiStep(ServerLevel serverLevel) {
-		super.customServerAiStep(serverLevel);
+	@Override public void customServerAiStep() {
+		super.customServerAiStep();
 		this.bossInfo.setProgress(this.getHealth() / this.getMaxHealth());
 	}
 	</#if>
@@ -835,17 +855,17 @@ public class ${name}Entity extends ${extendsClass} <#if interfaces?size gt 0>imp
 				this.yBodyRot = entity.getYRot();
 				this.yHeadRot = entity.getYRot();
 
-				if (entity instanceof ServerPlayer passenger) {
+				if (entity instanceof LivingEntity passenger) {
 					this.setSpeed((float) this.getAttributeValue(Attributes.MOVEMENT_SPEED));
 
 					<#if data.canControlForward>
-						float forward = passenger.getLastClientInput().forward() == passenger.getLastClientInput().backward() ? 0 : (passenger.getLastClientInput().forward() ? 1 : -1);
+						float forward = passenger.zza;
 					<#else>
 						float forward = 0;
 					</#if>
 
 					<#if data.canControlStrafe>
-						float strafe = passenger.getLastClientInput().left() == passenger.getLastClientInput().right() ? 0 : (passenger.getLastClientInput().left() ? 1 : -1);
+						float strafe = passenger.xxa;
 					<#else>
 						float strafe = 0;
 					</#if>
@@ -916,7 +936,7 @@ public class ${name}Entity extends ${extendsClass} <#if interfaces?size gt 0>imp
 	<#if data.spawnThisMob && data.mobSpawningType.getUnmappedValue() == "monster" && data.mobBehaviourType != "Creature">
 	<#-- Fix MCreator#6451 - monsters won't spawn in end in 26.1 as it has skylight.
 	     EnderMan fixes this by returning 0 in getWalkTargetValue, but this has other unwanted consequences -->
-	@Override public boolean checkSpawnRules(LevelAccessor level, EntitySpawnReason reason) {
+	@Override public boolean checkSpawnRules(LevelAccessor level, MobSpawnType reason) {
 		return this.level().dimension() == Level.OVERWORLD ? super.checkSpawnRules(level, reason) : true;
 	}
 	</#if>

@@ -1,7 +1,7 @@
 <#--
  # MCreator (https://mcreator.net/)
  # Copyright (C) 2012-2020, Pylo
- # Copyright (C) 2020-2024, Pylo, opensource contributors
+ # Copyright (C) 2020-2023, Pylo, opensource contributors
  # 
  # This program is free software: you can redistribute it and/or modify
  # it under the terms of the GNU General Public License as published by
@@ -29,7 +29,7 @@
 -->
 
 <#-- @formatter:off -->
-/*
+/**
  * The code of this mod element is always locked.
  *
  * You can register new events in this class too.
@@ -46,7 +46,7 @@
 
 package ${package};
 
-@EventBusSubscriber
+@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD)
 public class ${name} {
 
 	public ${name}() {
@@ -58,17 +58,17 @@ public class ${name} {
 		new ${name}();
 	}
 
-	@OnlyIn(Dist.CLIENT)
-	@SubscribeEvent
-	public static void clientLoad(FMLClientSetupEvent event) {
-
-	}
-
-    @EventBusSubscriber
-	private static class ${name}ForgeBusEvents {
+    @Mod.EventBusSubscriber
+	private static class ForgeBusEvents {
 
 		@SubscribeEvent
 		public static void serverLoad(ServerStartingEvent event) {
+
+		}
+
+		@OnlyIn(Dist.CLIENT)
+		@SubscribeEvent
+		public static void clientLoad(FMLClientSetupEvent event) {
 
 		}
 

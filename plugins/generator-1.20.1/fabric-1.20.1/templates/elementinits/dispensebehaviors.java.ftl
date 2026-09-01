@@ -105,7 +105,22 @@ public class ${JavaModName}DispenseBehaviors {
 			</#list>
 			<#list specialentities as entity>
 			DispenserBlock.registerBehavior(${JavaModName}Items.${entity.getModElement().getRegistryNameUpper()},
-					new BoatDispenseItemBehavior(${JavaModName}Entities.${entity.getModElement().getRegistryNameUpper()}));
+					new DefaultDispenseItemBehavior() {
+						@Override protected ItemStack execute(BlockSource blockSource, ItemStack itemstack) {
+							Direction direction = blockSource.getBlockState().getValue(DispenserBlock.FACING);
+							BlockPos spawnPos = blockSource.getPos().relative(direction);
+							Entity entity = ${JavaModName}Entities.${entity.getModElement().getRegistryNameUpper()}.create(blockSource.getLevel());
+							if (entity == null)
+								return super.execute(blockSource, itemstack);
+							entity.setPos(spawnPos.getX() + 0.5D, spawnPos.getY() + 0.5D, spawnPos.getZ() + 0.5D);
+							entity.setYRot(direction.toYRot());
+							if (!blockSource.getLevel().noCollision(entity, entity.getBoundingBox()))
+								return super.execute(blockSource, itemstack);
+							blockSource.getLevel().addFreshEntity(entity);
+							itemstack.shrink(1);
+							return itemstack;
+						}
+					});
 			</#list>
 	}
 

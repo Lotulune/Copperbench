@@ -10,11 +10,17 @@
 package dev.copperbench.generator.fabric;
 
 import dev.copperbench.core.workspace.WorkspaceState;
+import dev.copperbench.core.workspace.WorkspaceState.Element;
+import dev.copperbench.release.ElementCoverageCatalog;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -56,6 +62,24 @@ class Fabric1211GeneratorTest {
 		assertTrue(language.contains("Trail Compass"));
 		assertTrue(Files.size(output.resolve(
 				"src/main/resources/assets/copper_trails/textures/block/trail_lamp.png")) > 0);
+	}
+
+	@Test void acceptsEveryStage11JavaTypeAndEmitsACompileSafeRepresentation() throws Exception {
+		WorkspaceState base = Fabric1211GoldenWorkspace.create();
+		List<Element> elements = new ArrayList<>(base.elements());
+		long suffix = 900;
+		for (String type : ElementCoverageCatalog.FIRST_PARTY_SLICE) {
+			if (elements.stream().anyMatch(element -> element.type().equals(type))) continue;
+			String name = "stage11_" + type.replace("-", "_");
+			elements.add(new Element(UUID.fromString("00000000-0000-4000-8000-" + String.format("%012d", suffix++)),
+					type, name, name, "valid", "generated", Instant.parse("2026-08-31T00:00:00Z"), new com.google.gson.JsonObject()));
+		}
+		WorkspaceState workspace = new WorkspaceState(base.id(), base.name(), base.kind(), base.revision(), base.dirty(),
+				base.generator(), base.upstreamDocument(), elements);
+		Fabric1211Generator generator = new Fabric1211Generator(Path.of(".").toAbsolutePath().normalize());
+		var result = generator.generate(output, workspace);
+		assertTrue(result.generatedPaths().stream().anyMatch(path -> path.endsWith("/Stage11LivingentityElement.java")));
+		assertTrue(result.generatedPaths().contains("src/main/resources/copperbench/elements/stage11_livingentity.json"));
 	}
 
 }

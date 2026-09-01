@@ -26,14 +26,13 @@ package ${package}.init;
 
 public class ${JavaModName}Attributes {
 	<#list attributes as attribute>
-	public static Holder<Attribute> ${attribute.getModElement().getRegistryNameUpper()};
+	public static Attribute ${attribute.getModElement().getRegistryNameUpper()};
 	</#list>
 
 	public static void load() {
         <#list attributes as attribute>
         ${attribute.getModElement().getRegistryNameUpper()} = register("${attribute.getModElement().getRegistryName()}",
-            new RangedAttribute("attribute.${modid}.${attribute.getModElement().getRegistryName()}", ${attribute.defaultValue}d, ${attribute.minValue}d, ${attribute.maxValue}d).setSyncable(true)
-            <#if attribute.sentiment != "POSITIVE">.setSentiment(Attribute.Sentiment.${attribute.sentiment})</#if>);
+            new RangedAttribute("attribute.${modid}.${attribute.getModElement().getRegistryName()}", ${attribute.defaultValue}d, ${attribute.minValue}d, ${attribute.maxValue}d).setSyncable(true));
         </#list>
 
 		<#list attributes as attribute>
@@ -62,7 +61,7 @@ public class ${JavaModName}Attributes {
 		</#list>
 	}
 
-	private static AttributeSupplier addAttributeToEntity(AttributeSupplier existingSupplier, EntityType<? extends LivingEntity> entityType, Holder<Attribute> newAttribute) {
+	private static AttributeSupplier addAttributeToEntity(AttributeSupplier existingSupplier, EntityType<? extends LivingEntity> entityType, Attribute newAttribute) {
 		AttributeSupplier.Builder builder = AttributeSupplier.builder();
 		AttributeSupplierAccessor accessor = (AttributeSupplierAccessor) existingSupplier;
 		accessor.getInstances().forEach((attribute, instance) -> {
@@ -71,8 +70,8 @@ public class ${JavaModName}Attributes {
 		return builder.add(newAttribute).build();
 	}
 
-	private static Holder<Attribute> register(String registryname, Attribute element) {
-		return Registry.registerForHolder(BuiltInRegistries.ATTRIBUTE, new ResourceLocation(${JavaModName}.MODID, registryname), element);
+	private static Attribute register(String registryname, Attribute element) {
+		return Registry.register(BuiltInRegistries.ATTRIBUTE, new ResourceLocation(${JavaModName}.MODID, registryname), element);
 	}
 }
 <#-- @formatter:on -->

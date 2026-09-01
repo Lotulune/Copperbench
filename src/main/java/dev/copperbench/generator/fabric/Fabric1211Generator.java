@@ -16,6 +16,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import dev.copperbench.core.workspace.WorkspaceState;
 import dev.copperbench.core.workspace.WorkspaceState.Element;
+import dev.copperbench.generator.PluginWorkspaceLayout;
+import dev.copperbench.release.ElementCoverageCatalog;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -35,7 +37,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
-/** Generates the maintained Fabric 1.21.1 vertical slice from the shared workspace projection. */
+/** Generates the maintained Fabric 1.21.1 workspace projection, including all Stage 11 Java element types. */
 public final class Fabric1211Generator {
 
 	public static final String GENERATOR_ID = Profile.FABRIC_1211.generatorId();
@@ -94,12 +96,29 @@ public final class Fabric1211Generator {
 	}
 
 	public GenerationResult generate(Path targetRoot, WorkspaceState workspace) throws IOException {
+		return generate(targetRoot, workspace, true);
+	}
+
+	/** Regenerates a copied loader-migration target instead of preserving its source-loader files. */
+	public GenerationResult generateMigrationTarget(Path targetRoot, WorkspaceState workspace) throws IOException {
+		return generate(targetRoot, workspace, false);
+	}
+
+	private GenerationResult generate(Path targetRoot, WorkspaceState workspace, boolean preservePluginWorkspace)
+			throws IOException {
 		Path root = Objects.requireNonNull(targetRoot).toAbsolutePath().normalize();
 		List<ValidationIssue> issues = validate(workspace);
 		if (!issues.isEmpty()) throw new IllegalArgumentException(issues.getFirst().message());
 		Descriptor descriptor = descriptor(workspace);
+		if (preservePluginWorkspace && PluginWorkspaceLayout.present(root))
+			return new GenerationResult(profile.generatorId(), descriptor.modId(),
+					PluginWorkspaceLayout.relativeSourcePaths(root));
 		List<String> generated = new ArrayList<>();
 		Files.createDirectories(root);
+		if (!preservePluginWorkspace) {
+			Files.deleteIfExists(root.resolve("src/main/resources/META-INF/mods.toml"));
+			Files.deleteIfExists(root.resolve("src/main/resources/META-INF/neoforge.mods.toml"));
+		}
 
 		writeBuildFiles(root, descriptor, workspace.revision(), generated);
 		writeJavaSources(root, descriptor, workspace.elements(), generated);
@@ -347,6 +366,35 @@ public final class Fabric1211Generator {
 		writeBlocks(root, descriptor, blocks, packagePath, generated);
 		writeItems(root, descriptor, items, packagePath, generated);
 		for (Element procedure : procedures) writeProcedure(root, descriptor, procedure, packagePath, generated);
+		for (Element element : elements) {
+			if (!List.of("block", "item", "procedure").contains(element.type()))
+				writeGenericElement(root, descriptor, element, packagePath, generated);
+		}
+	}
+
+	private void writeGenericElement(Path root, Descriptor descriptor, Element element, String packagePath,
+			List<String> generated) throws IOException {
+		String className = javaName(element.name()) + "Element";
+		write(root, "src/main/java/" + packagePath + "/elements/" + className + ".java", """
+				package %s.elements;
+
+				/** Generated Stage 11 representation for a supported Java mod element. */
+				public final class %s {
+					public static final String TYPE = %s;
+					public static final String NAME = %s;
+					public static final String DISPLAY_NAME = %s;
+
+					private %s() {
+					}
+				}
+				""".formatted(descriptor.basePackage(), className, javaString(element.type()),
+				javaString(element.name()), javaString(element.displayName()), className), generated);
+		JsonObject elementDescriptor = new JsonObject();
+		elementDescriptor.addProperty("type", element.type());
+		elementDescriptor.addProperty("name", element.name());
+		elementDescriptor.addProperty("displayName", element.displayName());
+		elementDescriptor.add("values", element.values());
+		writeJson(root, "src/main/resources/copperbench/elements/" + element.name() + ".json", elementDescriptor, generated);
 	}
 
 	private void writeBlocks(Path root, Descriptor descriptor, List<Element> blocks, String packagePath,
@@ -628,7 +676,7 @@ public final class Fabric1211Generator {
 		for (Element element : workspace.elements()) {
 			if (!ELEMENT_NAME.matcher(element.name()).matches())
 				throw new IllegalArgumentException("Invalid element name: " + element.name());
-			if (!List.of("block", "item", "recipe", "procedure").contains(element.type()))
+			if (!ElementCoverageCatalog.FIRST_PARTY_SLICE.contains(element.type()))
 				throw new IllegalArgumentException("Unsupported Fabric 1.21.1 element type: " + element.type());
 		}
 		return new Descriptor(modId, basePackage, version, workspace.name(), javaName(workspace.name()));

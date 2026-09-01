@@ -10,7 +10,7 @@
     "id": "dev.copperbench.studio",
     "name": "Copperbench",
     "version": "0.1.0",
-    "stage": 10,
+    "stage": 11,
     "channel": "beta",
     "targetPlatforms": ["windows-11-x64"],
     "license": "GPL-3.0-only",
@@ -107,22 +107,10 @@
     {"id": "neoforge-1.20.1", "loader": "neoforge", "minecraft": "1.20.1", "workspace": "supported", "stage9": "golden-passed"}
   ],
   "elements": {
-    "supported": ["block", "item", "recipe"],
-    "preview": ["procedure", "function", "loottable", "achievement"],
-    "readOnly": [
-      "armor", "armortrim", "attribute", "bannerpattern", "biome", "code", "command",
-      "damagetype", "dimension", "enchantment", "feature", "fluid", "gamerule", "gui",
-      "itemextension", "keybind", "livingentity", "overlay", "painting", "particle", "plant",
-      "potion", "potioneffect", "projectile", "specialentity", "structure", "tab", "tool",
-      "villagerprofession", "villagertrade"
-    ],
-    "legacyOnly": [
-      "armor", "armortrim", "attribute", "bannerpattern", "biome", "code", "command",
-      "damagetype", "dimension", "enchantment", "feature", "fluid", "gamerule", "gui",
-      "itemextension", "keybind", "livingentity", "overlay", "painting", "particle", "plant",
-      "potion", "potioneffect", "projectile", "specialentity", "structure", "tab", "tool",
-      "villagerprofession", "villagertrade"
-    ],
+    "supported": ["block", "item", "recipe", "procedure", "function", "loottable", "achievement", "armor", "armortrim", "tool", "itemextension", "attribute", "bannerpattern", "command", "damagetype", "enchantment", "gamerule", "keybind", "painting", "particle", "potion", "potioneffect", "tab", "villagerprofession", "villagertrade", "biome", "dimension", "feature", "fluid", "plant", "structure", "livingentity", "specialentity", "projectile", "gui", "overlay", "code"],
+    "preview": [],
+    "readOnly": [],
+    "legacyOnly": [],
     "notApplicable": ["bebiome", "beblock", "beentity", "beitem", "bescript"]
   },
   "gates": [
@@ -154,7 +142,7 @@
   },
   "knownLimitations": [
     "Release Git Tags contain SSH signatures; GitHub reports unknown_key until the public signing key is registered.",
-    "Stage 9 data elements remain preview; the physical high-DPI/screen-reader audit and final clean-Windows RC replay are excluded from the current Beta scope and are not claimed as passed.",
+    "Stage 11 full Java element support and the local 8-generator Gradle/JAR golden matrix pass; fixed-commit CI/Nightly and new candidate Windows install/upgrade/uninstall plus provenance evidence are still required before the next release candidate.",
     "The real JCEF accessibility pass and final clean Windows 11 RC replay are not complete; the Hyper-V guest cannot validate Chromium WebContents accessibility because native Edge reproduces the same missing web-control subtree, so a physical or otherwise known-good Windows accessibility environment is required.",
     "The current Beta scope explicitly excludes the real JCEF accessibility audit, final clean-Windows RC replay, and external tester trial; those exclusions are not claims that the omitted checks passed.",
     "Windows packages are not Authenticode signed."

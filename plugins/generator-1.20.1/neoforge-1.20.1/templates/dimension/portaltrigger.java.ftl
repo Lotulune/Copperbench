@@ -37,13 +37,10 @@ package ${package}.item;
 public class ${name}Item extends Item {
 
 	public ${name}Item() {
-		super(new Item.Properties()
-			<#if data.igniterRarity != "COMMON">.rarity(Rarity.${data.igniterRarity})</#if>
-			.durability(64)
-		);
+		super(new Item.Properties().durability(64));
 	}
 
-	<@addSpecialInformation data.specialInformation, "item." + modid + "." + registryname/>
+	<@addSpecialInformation data.specialInformation/>
 
 	@Override public InteractionResult useOn(UseOnContext context) {
 		Player entity = context.getPlayer();
@@ -60,7 +57,7 @@ public class ${name}Item extends Item {
 
 			if (world.isEmptyBlock(pos) && <@procedureOBJToConditionCode data.portalMakeCondition/>) {
 				${name}PortalBlock.portalSpawn(world, pos);
-				itemstack.hurtAndBreak(1, entity, LivingEntity.getSlotForHand(context.getHand()));
+				itemstack.hurtAndBreak(1, entity, c -> c.broadcastBreakEvent(context.getHand()));
 				success = true;
 			}
 

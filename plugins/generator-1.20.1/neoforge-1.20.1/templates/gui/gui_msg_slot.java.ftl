@@ -33,40 +33,59 @@
 
 package ${package}.network;
 
-@EventBusSubscriber public record ${name}SlotMessage(int slotID, int x, int y, int z, int changeType, int meta) implements CustomPacketPayload {
+@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD) public class ${name}SlotMessage {
 
-	public static final Type<${name}SlotMessage> TYPE = new Type<>(new ResourceLocation(${JavaModName}.MODID, "${registryname}_slots"));
+	private final int slotID, x, y, z, changeType, meta;
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, ${name}SlotMessage> STREAM_CODEC = StreamCodec.of(
-			(RegistryFriendlyByteBuf buffer, ${name}SlotMessage message) -> {
-				buffer.writeInt(message.slotID);
-				buffer.writeInt(message.x);
-				buffer.writeInt(message.y);
-				buffer.writeInt(message.z);
-				buffer.writeInt(message.changeType);
-				buffer.writeInt(message.meta);
-			},
-			(RegistryFriendlyByteBuf buffer) -> new ${name}SlotMessage(buffer.readInt(), buffer.readInt(), buffer.readInt(), buffer.readInt(), buffer.readInt(), buffer.readInt())
-	);
-
-	@Override public Type<${name}SlotMessage> type() {
-		return TYPE;
+	public ${name}SlotMessage(int slotID, int x, int y, int z, int changeType, int meta) {
+		this.slotID = slotID;
+		this.x = x;
+		this.y = y;
+		this.z = z;
+		this.changeType = changeType;
+		this.meta = meta;
 	}
 
-	public static void handleData(final ${name}SlotMessage message, final IPayloadContext context) {
-		if (context.flow() == PacketFlow.SERVERBOUND) {
-			context.enqueueWork(() -> handleSlotAction(context.player(), message.slotID, message.changeType, message.meta, message.x, message.y, message.z)).exceptionally(e -> {
-				context.connection().disconnect(Component.literal(e.getMessage()));
-				return null;
-			});
-		}
+	public ${name}SlotMessage(FriendlyByteBuf buffer) {
+		this.slotID = buffer.readInt();
+		this.x = buffer.readInt();
+		this.y = buffer.readInt();
+		this.z = buffer.readInt();
+		this.changeType = buffer.readInt();
+		this.meta = buffer.readInt();
+	}
+
+	public static void buffer(${name}SlotMessage message, FriendlyByteBuf buffer) {
+		buffer.writeInt(message.slotID);
+		buffer.writeInt(message.x);
+		buffer.writeInt(message.y);
+		buffer.writeInt(message.z);
+		buffer.writeInt(message.changeType);
+		buffer.writeInt(message.meta);
+	}
+
+	public static void handler(${name}SlotMessage message, Supplier<NetworkEvent.Context> contextSupplier) {
+		NetworkEvent.Context context = contextSupplier.get();
+		context.enqueueWork(() -> {
+			Player entity = context.getSender();
+			int slotID = message.slotID;
+			int changeType = message.changeType;
+			int meta = message.meta;
+			int x = message.x;
+			int y = message.y;
+			int z = message.z;
+
+			handleSlotAction(entity, slotID, changeType, meta, x, y, z);
+		});
+		context.setPacketHandled(true);
 	}
 
 	public static void handleSlotAction(Player entity, int slot, int changeType, int meta, int x, int y, int z) {
 		Level world = entity.level();
+		HashMap guistate = ${name}Menu.guistate;
 
 		// security measure to prevent arbitrary chunk generation
-		if (!world.getChunkSource().hasChunk(SectionPos.blockToSectionCoord(x), SectionPos.blockToSectionCoord(z)))
+		if (!world.hasChunkAt(new BlockPos(x, y, z)))
 			return;
 
 		<#list data.components as component>
@@ -78,7 +97,6 @@ package ${package}.network;
 				</#if>
 				<#if hasProcedure(component.onTakenFromSlot)>
 					if (slot == ${component.id} && changeType == 1) {
-						int amount = meta;
 						<@procedureOBJToCode component.onTakenFromSlot/>
 					}
 				</#if>
@@ -93,7 +111,7 @@ package ${package}.network;
 	}
 
 	@SubscribeEvent public static void registerMessage(FMLCommonSetupEvent event) {
-		${JavaModName}.addNetworkMessage(${name}SlotMessage.TYPE, ${name}SlotMessage.STREAM_CODEC, ${name}SlotMessage::handleData);
+		${JavaModName}.addNetworkMessage(${name}SlotMessage.class, ${name}SlotMessage::buffer, ${name}SlotMessage::new, ${name}SlotMessage::handler);
 	}
 
 }

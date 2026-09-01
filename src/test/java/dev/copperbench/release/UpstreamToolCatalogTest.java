@@ -35,7 +35,7 @@ class UpstreamToolCatalogTest {
 		assertEquals("new_ui", surface(tools, "tags_variables_localization"));
 		assertEquals("legacy_window", surface(tools, "pack_makers"));
 		assertEquals("new_ui", surface(tools, "mod_elements_first_party"));
-		assertEquals("unsupported", surface(tools, "mod_elements_other"));
+		assertEquals("new_ui", surface(tools, "mod_elements_other"));
 		assertEquals("new_ui", surface(tools, "run_server_debug_client"));
 		assertEquals("not_applicable", surface(tools, "check_for_updates"));
 	}

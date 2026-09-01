@@ -31,23 +31,10 @@ public class ${name}Command {
 		if (environment.include${data.type?replace("MULTIPLAYER_ONLY", "Dedicated")?replace("SINGLEPLAYER_ONLY", "Integrated")})
 		</#if>
 		dispatcher.register(Commands.literal("${data.commandName}")
-			<#if data.permissionLevel != "No requirement">.requires(Commands.hasPermission(Commands.${permissionLevelNumberToEnum(data.permissionLevel)}))</#if>
+			<#if data.permissionLevel != "No requirement">.requires(source -> source.hasPermission(${data.permissionLevel}))</#if>
 			${argscode}
 		);
 	}
 }
 
-<#function permissionLevelNumberToEnum level>
-	<#if level == "0">
-		<#return "LEVEL_ALL">
-	<#elseif level == "1">
-		<#return "LEVEL_MODERATORS">
-	<#elseif level == "2">
-		<#return "LEVEL_GAMEMASTERS">
-	<#elseif level == "3">
-		<#return "LEVEL_ADMINS">
-	<#elseif level == "4">
-		<#return "LEVEL_OWNERS">
-	</#if>
-</#function>
 <#-- @formatter:on -->

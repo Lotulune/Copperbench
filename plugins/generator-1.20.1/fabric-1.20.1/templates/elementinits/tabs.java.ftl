@@ -31,6 +31,9 @@
 
 package ${package}.init;
 
+import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
+import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
+
 <@javacompress>
 public class ${JavaModName}Tabs {
 
@@ -42,13 +45,9 @@ public class ${JavaModName}Tabs {
 	public static void load() {
 	<#list customTabs as customTab>
 		<#assign tab = w.getWorkspace().getModElementByName(customTab.replace("CUSTOM:", "")).getGeneratableElement()>
-		Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, TAB_${tab.getModElement().getRegistryNameUpper()}, CreativeModeTab.builder(CreativeModeTab.Row.TOP, 0)
+		Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, TAB_${tab.getModElement().getRegistryNameUpper()}, FabricItemGroup.builder()
 			.title(Component.translatable("item_group.${modid}.${tab.getModElement().getRegistryName()}"))
 			.icon(() -> ${mappedMCItemToItemStackCode(tab.icon, 1)})
-			<#if tab.showSearch>
-			.type(CreativeModeTab.Type.SEARCH)
-			.backgroundTexture(ResourceLocation.withDefaultNamespace("textures/gui/container/creative_inventory/tab_item_search.png"))
-			</#if>
 			.displayItems((parameters, tabData) -> {
 				<#list tabMap.get("CUSTOM:" + tab.getModElement().getName()) as tabElement>
 				tabData.accept(${mappedMCItemToItem(tabElement)});
@@ -59,9 +58,9 @@ public class ${JavaModName}Tabs {
 
 		<#if vanillaTabs?has_content>
 			<#list vanillaTabs as tabName>
-				CreativeModeTabEvents.modifyOutputEvent(${generator.map(tabName, "tabs")}).register(tabData -> {
+				ItemGroupEvents.modifyEntriesEvent(${generator.map(tabName, "tabs")}).register(tabData -> {
 					<#list tabMap.get(tabName) as tabElement>
-					tabData.accept(${mappedMCItemToItem(tabElement)}<#if tabName == "OP_BLOCKS">, CreativeModeTab.TabVisibility.PARENT_TAB_ONLY</#if>);
+					tabData.accept(${mappedMCItemToItem(tabElement)});
 					</#list>
 				});
 			</#list>

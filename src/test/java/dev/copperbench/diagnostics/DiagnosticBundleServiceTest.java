@@ -38,6 +38,9 @@ class DiagnosticBundleServiceTest {
 		JsonObject tasks = new JsonObject();
 		tasks.addProperty("externalPath", "D:\\mods\\private.gradle");
 		tasks.addProperty("unixPath", "/opt/projects/private.gradle");
+		JsonObject taskAuth = new JsonObject();
+		taskAuth.addProperty("password", "task password with spaces");
+		tasks.add("auth", taskAuth);
 		var service = service(logs, workspace, tasks);
 
 		var result = service.export(UUID.fromString("11111111-1111-4111-8111-111111111111"), false);
@@ -55,13 +58,15 @@ class DiagnosticBundleServiceTest {
 			String task = new String(zip.getInputStream(zip.getEntry("tasks.json")).readAllBytes());
 			assertFalse(task.contains("D:\\mods"));
 			assertFalse(task.contains("/opt/projects"));
+			assertFalse(task.contains("task password with spaces"));
 		}
 	}
 
 	@Test void explicitConsentIncludesOnlyBoundedReproductionFiles() throws Exception {
 		Path logs = Files.createDirectories(root.resolve("logs"));
 		Path workspace = Files.createDirectories(root.resolve("workspace"));
-		Files.writeString(workspace.resolve("example.mcreator"), "workspace descriptor");
+		Files.writeString(workspace.resolve("example.mcreator"),
+				"{\"auth\": {\"password\": \"hunter two words\", \"clientSecret\": \"client-value\"}, \"externalPath\": \"C:\\Users\\alice\\workspace\"}");
 		Files.writeString(workspace.resolve("Element.mod.json"), "{}");
 		Files.createDirectories(workspace.resolve("build"));
 		Files.writeString(workspace.resolve("build/secret.java"), "excluded");
@@ -73,8 +78,14 @@ class DiagnosticBundleServiceTest {
 			assertTrue(zip.getEntry("reproduction/example.mcreator") != null);
 			assertTrue(zip.getEntry("reproduction/Element.mod.json") != null);
 			assertTrue(zip.getEntry("reproduction/build/secret.java") == null);
+			String descriptor = new String(zip.getInputStream(zip.getEntry("reproduction/example.mcreator")).readAllBytes());
+			assertFalse(descriptor.contains("hunter2"));
+			assertFalse(descriptor.contains("hunter two words"));
+			assertFalse(descriptor.contains("client-value"));
+			assertFalse(descriptor.contains("alice"));
 			String manifest = new String(zip.getInputStream(zip.getEntry("manifest.json")).readAllBytes());
 			assertTrue(manifest.contains("\"userConfirmedWorkspaceFiles\": true"));
+			assertTrue(manifest.contains("\"reproductionFilesIncludedWithoutContentRedaction\": false"));
 		}
 	}
 

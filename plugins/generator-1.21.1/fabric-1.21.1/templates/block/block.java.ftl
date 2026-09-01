@@ -40,6 +40,8 @@
 
 package ${package}.block;
 
+import java.util.Map;
+import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
 import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
 
 <@javacompress>
@@ -101,7 +103,7 @@ public class ${getClassName()}Block extends ${getBlockClass(data.blockBase)}
 		<#if data.rotationMode == 0 && !statesWithCustomShape?has_content><#-- shape not state dependent -->
 		private static final VoxelShape SHAPE = <@boundingBoxWithRotation data/>;
 		<#else>
-		private final Function<BlockState, VoxelShape> shapes = this.makeShapes();
+		private final Map<BlockState, VoxelShape> shapes = this.makeShapes();
 		</#if>
 	</#if>
 
@@ -124,11 +126,11 @@ public class ${getClassName()}Block extends ${getBlockClass(data.blockBase)}
 		</#if>
 		<#if data.isCustomSoundType>
 			.sound(new SoundType(1.0f, 1.0f,
-			        BuiltInRegistries.SOUND_EVENT.getValue(ResourceLocation.parse("${data.breakSound}")),
-			        BuiltInRegistries.SOUND_EVENT.getValue(ResourceLocation.parse("${data.stepSound}")),
-			        BuiltInRegistries.SOUND_EVENT.getValue(ResourceLocation.parse("${data.placeSound}")),
-			        BuiltInRegistries.SOUND_EVENT.getValue(ResourceLocation.parse("${data.hitSound}")),
-			        BuiltInRegistries.SOUND_EVENT.getValue(ResourceLocation.parse("${data.fallSound}"))))
+			        BuiltInRegistries.SOUND_EVENT.get(ResourceLocation.parse("${data.breakSound}")),
+			        BuiltInRegistries.SOUND_EVENT.get(ResourceLocation.parse("${data.stepSound}")),
+			        BuiltInRegistries.SOUND_EVENT.get(ResourceLocation.parse("${data.placeSound}")),
+			        BuiltInRegistries.SOUND_EVENT.get(ResourceLocation.parse("${data.hitSound}")),
+			        BuiltInRegistries.SOUND_EVENT.get(ResourceLocation.parse("${data.fallSound}"))))
 		<#elseif data.soundOnStep != "STONE">
 			.sound(SoundType.${data.soundOnStep})
 		</#if>
@@ -148,7 +150,7 @@ public class ${getClassName()}Block extends ${getBlockClass(data.blockBase)}
 			.requiresCorrectToolForDrops()
 		</#if>
 		<#if data.isNotColidable>
-			.noCollision()
+			.noCollission()
 		</#if>
 		<#if data.slipperiness != 0.6>
 			.friction(${data.slipperiness}f)
@@ -169,7 +171,7 @@ public class ${getClassName()}Block extends ${getBlockClass(data.blockBase)}
 			.pushReaction(PushReaction.${data.reactionToPushing})
 		</#if>
 		<#if data.emissiveRendering>
-			.postProcess((bs, br, bp) -> bp)
+			.hasPostProcess((bs, br, bp) -> true)
 			.emissiveRendering((bs, br, bp) -> true)
 		</#if>
 		<#if data.hasTransparency>
@@ -277,7 +279,7 @@ public class ${getClassName()}Block extends ${getBlockClass(data.blockBase)}
 
 	<#if defaultStateCustomShape || statesWithCustomShape?has_content>
 		<#if data.rotationMode != 0 || statesWithCustomShape?has_content>
-		private Function<BlockState, VoxelShape> makeShapes() {
+		private Map<BlockState, VoxelShape> makeShapes() {
 			return this.getShapeForEachState(state -> {
 				<#list statesWithCustomShape as state>
 					<#if !state?is_first>else </#if>if (
@@ -293,26 +295,18 @@ public class ${getClassName()}Block extends ${getBlockClass(data.blockBase)}
 				}
 				</#list>
 				return <@boundingBoxWithRotation data data.rotationMode data.enablePitch/>;
-			}
-			<#-- exclude states that don't affect shape -->
-			<#assign usedProperties = data.getPropertiesUsedInStates()>
-			<#if data.isWaterloggable && !usedProperties?contains("waterlogged")>,WATERLOGGED</#if>
-			<#list filteredCustomProperties as prop>
-				<#if !usedProperties?contains(prop.property().getName())>
-				,${prop.property().getName().replace("CUSTOM:", "")?upper_case}
-				</#if>
-			</#list>
-			);
+			});
 		}
 		</#if>
 
 		@Override public VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
 			<#assign offset = !data.shouldDisableOffset() && !data.isBoundingBoxEmpty()>
+			<#if offset>Vec3 offset = state.getOffset(world, pos);</#if>
 
 			<#if data.rotationMode == 0 && !statesWithCustomShape?has_content><#-- shape not state dependent -->
-			return SHAPE<#if offset>.move(state.getOffset(pos))</#if>;
+			return SHAPE<#if offset>.move(offset.x, offset.y, offset.z)</#if>;
 			<#else><#-- shape is state dependent -->
-			return shapes.apply(state)<#if offset>.move(state.getOffset(pos))</#if>;
+			return shapes.get(state)<#if offset>.move(offset.x, offset.y, offset.z)</#if>;
 			</#if>
 		}
 	</#if>
@@ -338,15 +332,15 @@ public class ${getClassName()}Block extends ${getBlockClass(data.blockBase)}
 
 	<#if data.hasCustomOpacity>
 		<#if (!data.blockBase?has_content || data.blockBase == "Leaves") && data.lightOpacity == 0>
-		@Override public boolean propagatesSkylightDown(BlockState state) {
+		@Override public boolean propagatesSkylightDown(BlockState state, BlockGetter reader, BlockPos pos) {
 			return <#if data.isWaterloggable>state.getFluidState().isEmpty()<#else>true</#if>;
 		}
 		</#if>
 
 		<#if !data.blockBase?has_content || data.blockBase == "Leaves" || data.lightOpacity != 15>
-		@Override public int getLightDampening(BlockState state) {
+		@Override public int getLightBlock(BlockState state, BlockGetter worldIn, BlockPos pos) {
 			<#if data.isWaterloggable && data.lightOpacity == 0> <#-- Prevent fully transparent blocks from overriding water opacity -->
-				return propagatesSkylightDown(state) ? 0 : 1;
+				return propagatesSkylightDown(state, worldIn, pos) ? 0 : 1;
 			<#else>
 				return ${data.lightOpacity};
 			</#if>
@@ -494,15 +488,15 @@ public class ${getClassName()}Block extends ${getBlockClass(data.blockBase)}
 	</#if>
 
 	<#if data.isWaterloggable || hasProcedure(data.placingCondition)>
-	@Override public BlockState updateShape(BlockState state, LevelReader world, ScheduledTickAccess scheduledTickAccess, BlockPos currentPos, Direction facing, BlockPos facingPos, BlockState facingState, RandomSource random) {
+	@Override public BlockState updateShape(BlockState state, Direction facing, BlockState facingState, LevelAccessor world, BlockPos currentPos, BlockPos facingPos) {
 		<#if data.isWaterloggable>
 		if (state.getValue(WATERLOGGED)) {
-			scheduledTickAccess.scheduleTick(currentPos, Fluids.WATER, Fluids.WATER.getTickDelay(world));
+			world.scheduleTick(currentPos, Fluids.WATER, Fluids.WATER.getTickDelay(world));
 		}
 		</#if>
 		return <#if hasProcedure(data.placingCondition)>
 		!state.canSurvive(world, currentPos) ? Blocks.AIR.defaultBlockState() :
-		</#if> super.updateShape(state, world, scheduledTickAccess, currentPos, facing, facingPos, facingState, random);
+		</#if> super.updateShape(state, facing, facingState, world, currentPos, facingPos);
 	}
 	</#if>
 
@@ -525,11 +519,11 @@ public class ${getClassName()}Block extends ${getBlockClass(data.blockBase)}
 	</#if>
 
 	<#if data.creativePickItem?? && !data.creativePickItem.isEmpty()>
-	@Override public ItemStack getCloneItemStack(LevelReader world, BlockPos pos, BlockState state, boolean includeData) {
+	@Override public ItemStack getCloneItemStack(LevelReader world, BlockPos pos, BlockState state) {
 		return ${mappedMCItemToItemStackCode(data.creativePickItem, 1)};
 	}
 	<#elseif !data.hasBlockItem && (data.blockBase! != "FlowerPot")>
-	@Override public ItemStack getCloneItemStack(LevelReader world, BlockPos pos, BlockState state, boolean includeData) {
+	@Override public ItemStack getCloneItemStack(LevelReader world, BlockPos pos, BlockState state) {
 		return ItemStack.EMPTY;
 	}
 	</#if>
@@ -635,8 +629,15 @@ public class ${getClassName()}Block extends ${getBlockClass(data.blockBase)}
 		}
 
 		<#if data.inventoryDropWhenDestroyed>
-		@Override protected void affectNeighborsAfterRemoval(BlockState blockstate, ServerLevel world, BlockPos blockpos, boolean flag) {
-			Containers.updateNeighboursAfterDestroy(blockstate, world, blockpos);
+		@Override public void onRemove(BlockState state, Level world, BlockPos pos, BlockState newState, boolean isMoving) {
+			if (state.getBlock() != newState.getBlock()) {
+				BlockEntity blockEntity = world.getBlockEntity(pos);
+				if (blockEntity instanceof ${name}BlockEntity be) {
+					Containers.dropContents(world, pos, be);
+					world.updateNeighbourForOutputSignal(pos, this);
+				}
+				super.onRemove(state, world, pos, newState, isMoving);
+			}
 		}
 		</#if>
 
@@ -645,7 +646,7 @@ public class ${getClassName()}Block extends ${getBlockClass(data.blockBase)}
 			return true;
 		}
 
-		@Override public int getAnalogOutputSignal(BlockState blockState, Level world, BlockPos pos, Direction direction) {
+		@Override public int getAnalogOutputSignal(BlockState blockState, Level world, BlockPos pos) {
 			BlockEntity tileentity = world.getBlockEntity(pos);
 			if (tileentity instanceof ${name}BlockEntity be)
 				return AbstractContainerMenu.getRedstoneSignalFromContainer(be);
@@ -669,42 +670,49 @@ public class ${getClassName()}Block extends ${getBlockClass(data.blockBase)}
 
 	<#if data.tintType != "No tint">
 		public static void blockColorLoad() {
-			BlockColorRegistry.register(
+			ColorProviderRegistry.BLOCK.register((state, world, pos, tintIndex) -> {
 				<#if data.tintType == "Default foliage">
-					List.of(BlockTintSources.constant(FoliageColor.FOLIAGE_DEFAULT))
+				return FoliageColor.getDefaultColor();
 				<#elseif data.tintType == "Birch foliage">
-					List.of(BlockTintSources.constant(FoliageColor.FOLIAGE_BIRCH))
+				return FoliageColor.getBirchColor();
 				<#elseif data.tintType == "Spruce foliage">
-					List.of(BlockTintSources.constant(FoliageColor.FOLIAGE_EVERGREEN))
+				return FoliageColor.getEvergreenColor();
 				<#elseif data.tintType == "Grass">
-					List.of(BlockTintSources.grass())
+				return world != null && pos != null ? BiomeColors.getAverageGrassColor(world, pos) : GrassColor.get(0.5D, 1.0D);
 				<#elseif data.tintType == "Foliage">
-					List.of(BlockTintSources.foliage())
+				return world != null && pos != null ? BiomeColors.getAverageFoliageColor(world, pos) : FoliageColor.getDefaultColor();
 				<#elseif data.tintType == "Water">
-					List.of(BlockTintSources.water())
+				return world != null && pos != null ? BiomeColors.getAverageWaterColor(world, pos) : 3694022;
 				<#elseif data.tintType == "Sky">
-					List.of(new BlockTintSource() {
-						@Override public int color(BlockState state) { return 8562943; }
-						@Override public int colorInWorld(BlockState state, BlockAndTintGetter level, BlockPos pos) {
-							return Minecraft.getInstance().gameRenderer.getMainCamera().attributeProbe().getValue(EnvironmentAttributes.SKY_COLOR, 0);
-						}
-					})
+				return Minecraft.getInstance().level != null && pos != null ? Minecraft.getInstance().level.getBiome(pos).value().getSkyColor() : 8562943;
 				<#elseif data.tintType == "Fog">
-					List.of(new BlockTintSource() {
-						@Override public int color(BlockState state) { return 12638463; }
-						@Override public int colorInWorld(BlockState state, BlockAndTintGetter level, BlockPos pos) {
-							return Minecraft.getInstance().gameRenderer.getMainCamera().attributeProbe().getValue(EnvironmentAttributes.FOG_COLOR, 0);
-						}
-					})
+				return Minecraft.getInstance().level != null && pos != null ? Minecraft.getInstance().level.getBiome(pos).value().getFogColor() : 12638463;
 				<#else>
-					List.of(new BlockTintSource() {
-						@Override public int color(BlockState state) { return 329011; }
-						@Override public int colorInWorld(BlockState state, BlockAndTintGetter level, BlockPos pos) {
-							return Minecraft.getInstance().gameRenderer.getMainCamera().attributeProbe().getValue(EnvironmentAttributes.WATER_FOG_COLOR, 0);
-						}
-					})
-				</#if>,
-						${JavaModName}Blocks.${REGISTRYNAME});
+				return Minecraft.getInstance().level != null && pos != null ? Minecraft.getInstance().level.getBiome(pos).value().getWaterFogColor() : 329011;
+				</#if>
+			}, ${JavaModName}Blocks.${REGISTRYNAME});
+
+			<#if data.isItemTinted && data.hasBlockItem>
+			ColorProviderRegistry.ITEM.register((stack, tintIndex) -> {
+				<#if data.tintType == "Grass">
+				return GrassColor.get(0.5D, 1.0D);
+				<#elseif data.tintType == "Foliage" || data.tintType == "Default foliage">
+				return FoliageColor.getDefaultColor();
+				<#elseif data.tintType == "Birch foliage">
+				return FoliageColor.getBirchColor();
+				<#elseif data.tintType == "Spruce foliage">
+				return FoliageColor.getEvergreenColor();
+				<#elseif data.tintType == "Water">
+				return 3694022;
+				<#elseif data.tintType == "Sky">
+				return 8562943;
+				<#elseif data.tintType == "Fog">
+				return 12638463;
+				<#else>
+				return 329011;
+				</#if>
+			}, ${JavaModName}Blocks.${REGISTRYNAME});
+			</#if>
 		}
 	</#if>
 

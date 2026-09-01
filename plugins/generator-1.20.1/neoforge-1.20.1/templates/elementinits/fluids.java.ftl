@@ -1,7 +1,7 @@
 <#--
  # MCreator (https://mcreator.net/)
  # Copyright (C) 2012-2020, Pylo
- # Copyright (C) 2020-2024, Pylo, opensource contributors
+ # Copyright (C) 2020-2023, Pylo, opensource contributors
  #
  # This program is free software: you can redistribute it and/or modify
  # it under the terms of the GNU General Public License as published by
@@ -38,16 +38,16 @@ package ${package}.init;
 
 public class ${JavaModName}Fluids {
 
-	public static final DeferredRegister<Fluid> REGISTRY = DeferredRegister.create(BuiltInRegistries.FLUID, ${JavaModName}.MODID);
+	public static final DeferredRegister<Fluid> REGISTRY = DeferredRegister.create(ForgeRegistries.FLUIDS, ${JavaModName}.MODID);
 
 	<#list fluids as fluid>
-	public static final DeferredHolder<Fluid, FlowingFluid> ${fluid.getModElement().getRegistryNameUpper()} =
-		REGISTRY.register("${fluid.getModElement().getRegistryName()}", ${fluid.getModElement().getName()}Fluid.Source::new);
-	public static final DeferredHolder<Fluid, FlowingFluid> FLOWING_${fluid.getModElement().getRegistryNameUpper()} =
-		REGISTRY.register("flowing_${fluid.getModElement().getRegistryName()}", ${fluid.getModElement().getName()}Fluid.Flowing::new);
+	public static final RegistryObject<FlowingFluid> ${fluid.getModElement().getRegistryNameUpper()} =
+		REGISTRY.register("${fluid.getModElement().getRegistryName()}", () -> new ${fluid.getModElement().getName()}Fluid.Source());
+	public static final RegistryObject<FlowingFluid> FLOWING_${fluid.getModElement().getRegistryNameUpper()} =
+		REGISTRY.register("flowing_${fluid.getModElement().getRegistryName()}", () -> new ${fluid.getModElement().getName()}Fluid.Flowing());
 	</#list>
 
-	@EventBusSubscriber(Dist.CLIENT) public static class FluidsClientSideHandler {
+	@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT) public static class ClientSideHandler {
 		@SubscribeEvent public static void clientSetup(FMLClientSetupEvent event) {
 			<#list fluids as fluid>
 			ItemBlockRenderTypes.setRenderLayer(${fluid.getModElement().getRegistryNameUpper()}.get(), RenderType.translucent());

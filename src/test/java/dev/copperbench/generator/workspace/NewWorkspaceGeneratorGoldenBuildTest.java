@@ -11,18 +11,26 @@ package dev.copperbench.generator.workspace;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import dev.copperbench.core.application.InMemoryWorkspaceTaskGateway;
 import dev.copperbench.core.contract.UiCore.Command;
 import dev.copperbench.core.contract.UiCore.Operation;
 import dev.copperbench.core.workspace.mcreator.MCreatorWorkspaceSession;
+import dev.copperbench.release.ElementCoverageCatalog;
+import dev.copperbench.release.GeneratorElementCapabilityCatalog;
 import dev.copperbench.testing.McreatorTestRuntime;
 import dev.copperbench.gradle.GradleDistributionPool;
+import net.mcreator.element.GeneratableElement;
+import net.mcreator.element.ModElementType;
+import net.mcreator.element.ModElementTypeLoader;
 import net.mcreator.generator.Generator;
 import net.mcreator.generator.GeneratorConfiguration;
 import net.mcreator.generator.io.JavaWriter;
 import net.mcreator.generator.setup.WorkspaceGeneratorSetup;
 import net.mcreator.gradle.GradleUtils;
+import net.mcreator.integration.TestWorkspaceDataProvider;
 import net.mcreator.preferences.PreferencesManager;
+import net.mcreator.ui.workspace.resources.TextureType;
 import net.mcreator.workspace.Workspace;
 import net.mcreator.workspace.settings.WorkspaceSettings;
 import org.gradle.tooling.GradleConnector;
@@ -32,6 +40,7 @@ import org.junit.jupiter.api.TestFactory;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
@@ -41,12 +50,15 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.Base64;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.jar.JarFile;
 import java.util.stream.Stream;
 
 /** Builds deterministic workspaces from the eight visual workspace-generator plugins. */
@@ -57,7 +69,51 @@ class NewWorkspaceGeneratorGoldenBuildTest {
 			"fabric-1.21.1", "neoforge-1.21.1", "fabric-1.20.1", "neoforge-1.20.1");
 	private static final String STAGE8_SELECTED_GENERATOR_PROPERTY = "copperbench.stage8.workspaceGeneratorId";
 	private static final String STAGE9_SELECTED_GENERATOR_PROPERTY = "copperbench.stage9.workspaceGeneratorId";
+	private static final String STAGE11_SELECTED_GENERATOR_PROPERTY = "copperbench.stage11.workspaceGeneratorId";
+	private static final String GRADLE_HOME_PROPERTY = "copperbench.gradle.user.home";
 	private static final Clock CLOCK = Clock.fixed(Instant.parse("2026-08-26T00:00:00Z"), ZoneOffset.UTC);
+	private static final byte[] FALLBACK_TEXTURE = Base64.getDecoder().decode(
+			"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=");
+
+	private enum Content {
+		EMPTY, STAGE9, STAGE11
+	}
+
+	private static void validateMixinClasses(String generatorId, Path jar) throws IOException {
+		List<String> missing = new java.util.ArrayList<>();
+		try (JarFile archive = new JarFile(jar.toFile())) {
+			for (var entry : archive.stream()
+					.filter(candidate -> !candidate.isDirectory())
+					.filter(candidate -> candidate.getName().endsWith(".json"))
+					.filter(candidate -> candidate.getName().toLowerCase(java.util.Locale.ROOT).contains("mixin"))
+					.toList()) {
+				JsonObject config;
+				try (InputStreamReader reader = new InputStreamReader(archive.getInputStream(entry), StandardCharsets.UTF_8)) {
+					var parsed = JsonParser.parseReader(reader);
+					if (!parsed.isJsonObject())
+						continue;
+					config = parsed.getAsJsonObject();
+				}
+				if (!config.has("package") || !config.get("package").isJsonPrimitive())
+					continue;
+				String packagePath = config.get("package").getAsString().replace('.', '/');
+				for (String section : List.of("mixins", "client", "server")) {
+					if (!config.has(section) || !config.get(section).isJsonArray())
+						continue;
+					for (var raw : config.getAsJsonArray(section)) {
+						if (!raw.isJsonPrimitive())
+							continue;
+						String mixin = raw.getAsString();
+						String classPath = packagePath + "/" + mixin.replace('.', '/') + ".class";
+						if (archive.getEntry(classPath) == null)
+							missing.add(entry.getName() + ":" + section + "=" + mixin + " -> " + classPath);
+					}
+				}
+			}
+		}
+		if (!missing.isEmpty())
+			throw failure(generatorId, "mixin-classes", "Mixin configuration references missing classes: " + missing);
+	}
 
 	@TestFactory @EnabledIfSystemProperty(named = "copperbench.stage8.workspaceGeneratorBuild", matches = "true")
 	Stream<DynamicTest> emptyWorkspaceGeneratorsBuildIntoJars() {
@@ -67,7 +123,7 @@ class NewWorkspaceGeneratorGoldenBuildTest {
 		if (generators.isEmpty())
 			throw failure(selected, "catalog", "Unknown generator id");
 		return generators.stream().map(generatorId -> DynamicTest.dynamicTest(
-				generatorId + " - empty workspace Gradle build", () -> buildWorkspace(generatorId, false)));
+				generatorId + " - empty workspace Gradle build", () -> buildWorkspace(generatorId, Content.EMPTY)));
 	}
 
 	@TestFactory @EnabledIfSystemProperty(named = "copperbench.stage9.workspaceGeneratorBuild", matches = "true")
@@ -78,18 +134,36 @@ class NewWorkspaceGeneratorGoldenBuildTest {
 		if (generators.isEmpty())
 			throw failure(selected, "catalog", "Unknown generator id");
 		return generators.stream().map(generatorId -> DynamicTest.dynamicTest(
-				generatorId + " - Stage 9 data elements Gradle build", () -> buildWorkspace(generatorId, true)));
+				generatorId + " - Stage 9 data elements Gradle build", () -> buildWorkspace(generatorId, Content.STAGE9)));
 	}
 
-	private static void buildWorkspace(String generatorId, boolean stage9) throws Exception {
+	@TestFactory @EnabledIfSystemProperty(named = "copperbench.stage11.workspaceGeneratorBuild", matches = "true")
+	Stream<DynamicTest> stage11JavaElementsBuildIntoJars() {
+		String selected = System.getProperty(STAGE11_SELECTED_GENERATOR_PROPERTY, "").trim();
+		List<String> generators = selected.isEmpty() ? GENERATOR_IDS
+				: GENERATOR_IDS.stream().filter(selected::equals).toList();
+		if (generators.isEmpty())
+			throw failure(selected, "catalog", "Unknown generator id");
+		return generators.stream().map(generatorId -> DynamicTest.dynamicTest(
+				generatorId + " - Stage 11 Java elements Gradle build",
+				() -> buildWorkspace(generatorId, Content.STAGE11)));
+	}
+
+	private static void buildWorkspace(String generatorId, Content content) throws Exception {
 		McreatorTestRuntime.ensureInitialized();
-		String stage = stage9 ? "stage9" : "stage8";
+		String stage = switch (content) {
+			case EMPTY -> "stage8";
+			case STAGE9 -> "stage9";
+			case STAGE11 -> "stage11";
+		};
 		Path workspaceRoot = Files.createTempDirectory("copperbench-" + stage + "-" + generatorId.replace('.', '_') + "-")
 				.toAbsolutePath().normalize();
 		File previousJavaHome = PreferencesManager.PREFERENCES.hidden.java_home.get();
 		Path gradleJavaHome = javaHomeFor(generatorId);
 		Path gradleHome = Path.of("build", "stage8-workspace-generator-gradle",
 				generatorId.replace('.', '_')).toAbsolutePath().normalize();
+		String previousGradleHome = System.getProperty(GRADLE_HOME_PROPERTY);
+		System.setProperty(GRADLE_HOME_PROPERTY, gradleHome.toString());
 		PreferencesManager.PREFERENCES.hidden.java_home.set(gradleJavaHome.resolve("bin/java.exe").toFile());
 		try {
 			seedGradleNetworkProperties(gradleHome);
@@ -97,12 +171,24 @@ class NewWorkspaceGeneratorGoldenBuildTest {
 			if (configuration == null)
 				throw failure(generatorId, "generator-cache", "Generator configuration is not loaded");
 
-			String modId = stage9 ? "copperbench_stage9" : "copperbench_empty";
+			String modId = switch (content) {
+				case EMPTY -> "copperbench_empty";
+				case STAGE9 -> "copperbench_stage9";
+				case STAGE11 -> "copperbench_stage11";
+			};
 			WorkspaceSettings settings = new WorkspaceSettings(modId);
-			settings.setModName(stage9 ? "Copperbench Stage 9 Golden" : "Copperbench Empty Workspace");
+			settings.setModName(switch (content) {
+				case EMPTY -> "Copperbench Empty Workspace";
+				case STAGE9 -> "Copperbench Stage 9 Golden";
+				case STAGE11 -> "Copperbench Stage 11 Golden";
+			});
 			settings.setVersion("1.0.0");
 			settings.setCurrentGenerator(generatorId);
-			settings.setModElementsPackage(stage9 ? "dev.copperbench.stage9" : "dev.copperbench.empty");
+			settings.setModElementsPackage(switch (content) {
+				case EMPTY -> "dev.copperbench.empty";
+				case STAGE9 -> "dev.copperbench.stage9";
+				case STAGE11 -> "dev.copperbench.stage11";
+			});
 
 			try (Workspace workspace = Workspace.createWorkspace(
 					workspaceRoot.resolve(modId + ".mcreator").toFile(), settings)) {
@@ -118,7 +204,7 @@ class NewWorkspaceGeneratorGoldenBuildTest {
 					throw failure(generatorId, "generate-base", exception.getMessage(), exception);
 				}
 				workspace.getGenerator().runResourceSetupTasks();
-				if (stage9) {
+				if (content == Content.STAGE9) {
 					createStage9DataElements(workspace, generatorId);
 					for (String name : List.of("bootstrap", "trail_cache", "trail_ready")) {
 						var element = workspace.getModElementByName(name);
@@ -127,6 +213,10 @@ class NewWorkspaceGeneratorGoldenBuildTest {
 						if (!workspace.getGenerator().generateElement(element.getGeneratableElement()))
 							throw failure(generatorId, "stage9-generation", "Generator rejected element " + name);
 					}
+					workspace.getGenerator().generateBase(true);
+				} else if (content == Content.STAGE11) {
+					seedTextures(workspace);
+					createStage11JavaElements(workspace, generatorId);
 					workspace.getGenerator().generateBase(true);
 				}
 				try (Stream<Path> entries = Files.walk(workspace.getGenerator().getSourceRoot().toPath())) {
@@ -148,12 +238,18 @@ class NewWorkspaceGeneratorGoldenBuildTest {
 			if (jar == null)
 				throw failure(generatorId, "jar-output", "Gradle build produced no non-sources JAR\n"
 						+ gradleDiagnostic(gradle.output()));
+			if (content == Content.STAGE11)
+				validateMixinClasses(generatorId, jar);
 		} catch (AssertionError error) {
 			throw error;
 		} catch (Exception exception) {
 			throw failure(generatorId, "harness", exception.getMessage(), exception);
 		} finally {
 			PreferencesManager.PREFERENCES.hidden.java_home.set(previousJavaHome);
+			if (previousGradleHome == null)
+				System.clearProperty(GRADLE_HOME_PROPERTY);
+			else
+				System.setProperty(GRADLE_HOME_PROPERTY, previousGradleHome);
 			deleteRecursively(workspaceRoot);
 		}
 	}
@@ -199,6 +295,92 @@ class NewWorkspaceGeneratorGoldenBuildTest {
 			requireCommitted(generatorId, "achievement", session.uiEntry().execute(
 					create(session.workspaceId(), 2, "achievement", "trail_ready", advancement)).result().status());
 		}
+	}
+
+	private static void seedTextures(Workspace workspace) throws IOException {
+		for (TextureType type : TextureType.values()) {
+			File folder = workspace.getFolderManager().getTexturesFolder(type);
+			if (folder == null)
+				continue;
+			Files.createDirectories(folder.toPath());
+			for (String name : List.of("test", "test1", "test2", "test3", "test4", "test5", "test6", "test7", "itest",
+					"other0", "example", "entity_texture_0", "entity_texture_1", "entity_texture_2", "effect1",
+					"armor_texture_layer_1", "armor_texture_layer_2")) {
+				File texture = workspace.getFolderManager().getTextureFile(name, type);
+				if (texture == null)
+					continue;
+				Files.createDirectories(texture.toPath().getParent());
+				Files.write(texture.toPath(), FALLBACK_TEXTURE);
+			}
+		}
+	}
+
+	private static void createStage11JavaElements(Workspace workspace, String generatorId) throws Exception {
+		Random random = new Random(11);
+		JsonArray matrix = new JsonArray();
+		for (String type : ElementCoverageCatalog.FIRST_PARTY_SLICE) {
+				JsonObject row = new JsonObject();
+				row.addProperty("type", type);
+				var decision = GeneratorElementCapabilityCatalog.decision(generatorId, type);
+				row.addProperty("reasonCode", decision.reasonCode());
+				row.addProperty("generatable", decision.generatable());
+				if (!decision.generatable()) {
+					matrix.add(row);
+					continue;
+				}
+				ModElementType<?> upstream = ModElementTypeLoader.getModElementType(type);
+				List<GeneratableElement> examples = TestWorkspaceDataProvider.getModElementExamplesFor(workspace,
+						upstream, false, random);
+				if (examples.isEmpty()) {
+					row.addProperty("generatable", false);
+					row.addProperty("reasonCode", "GENERATOR_ELEMENT_EXAMPLE_MISSING");
+					matrix.add(row);
+					continue;
+				}
+				GeneratableElement example = examples.getFirst();
+				workspace.addModElement(example.getModElement());
+				try {
+					if (!workspace.getGenerator().generateElement(example)) {
+						workspace.removeModElement(example.getModElement());
+						row.addProperty("generatable", false);
+						row.addProperty("reasonCode", "GENERATOR_ELEMENT_GENERATION_FAILED");
+						row.addProperty("name", example.getModElement().getName());
+						matrix.add(row);
+						continue;
+					}
+					workspace.getModElementManager().storeModElement(example);
+				} catch (RuntimeException exception) {
+					try {
+						workspace.removeModElement(example.getModElement());
+					} catch (RuntimeException ignored) {
+					}
+					row.addProperty("generatable", false);
+					row.addProperty("reasonCode", "GENERATOR_ELEMENT_GENERATION_FAILED");
+					row.addProperty("name", example.getModElement().getName());
+					row.addProperty("detail", String.valueOf(exception.getMessage()));
+					matrix.add(row);
+					continue;
+				}
+				row.addProperty("name", example.getModElement().getName());
+				row.addProperty("generatedFiles", example.getModElement().getAssociatedFiles().size());
+				matrix.add(row);
+		}
+		Path evidence = Path.of("build", "stage11-workspace-generator-logs", generatorId + "-capability.json");
+		Files.createDirectories(evidence.getParent());
+		JsonObject root = new JsonObject();
+		root.addProperty("generatorId", generatorId);
+		root.add("types", matrix);
+		Files.writeString(evidence, root.toString(), StandardCharsets.UTF_8);
+		List<String> failed = new java.util.ArrayList<>();
+		matrix.forEach(entry -> {
+			JsonObject row = entry.getAsJsonObject();
+			String reason = row.get("reasonCode").getAsString();
+			if ("GENERATOR_ELEMENT_GENERATION_FAILED".equals(reason)
+					|| "GENERATOR_ELEMENT_EXAMPLE_MISSING".equals(reason))
+				failed.add(row.get("type").getAsString() + "=" + reason);
+		});
+		if (!failed.isEmpty())
+			throw failure(generatorId, "stage11-generation", "Generation failed for " + failed);
 	}
 
 	private static Command create(UUID workspaceId, long revision, String type, String name, JsonObject values) {

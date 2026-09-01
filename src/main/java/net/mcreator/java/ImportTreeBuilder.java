@@ -28,11 +28,15 @@ import org.fife.rsta.ac.java.buildpath.LibraryInfo;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Stream;
 
 public class ImportTreeBuilder {
 
@@ -113,6 +117,39 @@ public class ImportTreeBuilder {
 
 	static void reloadClassesFromMod(Generator generator, Map<String, List<String>> store) {
 		reloadClassesFromModImpl(generator.getSourceRoot(), generator.getSourceRoot(), store);
+	}
+
+	public static void loadClassesFromIndexedSources(Generator generator, Map<String, List<String>> store) {
+		File sourceIndex = new File(generator.getWorkspace().getWorkspaceFolder(),
+				"build/mcreator/minecraft-sources.txt");
+		if (!sourceIndex.isFile())
+			return;
+
+		try {
+			for (String indexedPath : Files.readAllLines(sourceIndex.toPath(), StandardCharsets.UTF_8)) {
+				if (indexedPath.isBlank())
+					continue;
+				Path sourceRoot = Path.of(indexedPath);
+				if (!Files.isDirectory(sourceRoot))
+					continue;
+				try (Stream<Path> sourceFiles = Files.walk(sourceRoot)) {
+					sourceFiles.filter(Files::isRegularFile).filter(path -> path.toString().endsWith(".java"))
+							.forEach(path -> addIndexedSource(sourceRoot, path, store));
+				}
+			}
+		} catch (IOException e) {
+			LOG.warn("Failed to load import format classes from {}", sourceIndex, e);
+		}
+	}
+
+	private static void addIndexedSource(Path sourceRoot, Path sourceFile, Map<String, List<String>> store) {
+		String relativePath = sourceRoot.relativize(sourceFile).toString().replace('\\', '/');
+		if (relativePath.endsWith("package-info.java") || relativePath.endsWith("module-info.java"))
+			return;
+		String fqdn = relativePath.substring(0, relativePath.length() - 5).replace('/', '.');
+		int lastDot = fqdn.lastIndexOf('.');
+		if (lastDot > 0)
+			addClassToTree(fqdn.substring(0, lastDot), fqdn.substring(lastDot + 1), store);
 	}
 
 	private static void reloadClassesFromModImpl(File parent, File root, Map<String, List<String>> store) {

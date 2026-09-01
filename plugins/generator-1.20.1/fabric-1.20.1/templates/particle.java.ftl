@@ -1,30 +1,30 @@
 <#--
  # This file is part of Fabric-Generator-MCreator.
  # Copyright (C) 2012-2020, Pylo
- # Copyright (C) 2020-2026, Pylo, opensource contributors
- # Copyright (C) 2020-2026, Goldorion, opensource contributors
+ # Copyright (C) 2020-2023, Pylo, opensource contributors
+ # Copyright (C) 2020-2023, Goldorion, opensource contributors
  #
  # Fabric-Generator-MCreator is free software: you can redistribute it and/or modify
- # it under the terms of the GNU General Public License as published by
+ # it under the terms of the GNU Lesser General Public License as published by
  # the Free Software Foundation, either version 3 of the License, or
  # (at your option) any later version.
- #
+
  # Fabric-Generator-MCreator is distributed in the hope that it will be useful,
  # but WITHOUT ANY WARRANTY; without even the implied warranty of
  # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- # GNU General Public License for more details.
+ # GNU Lesser General Public License for more details.
  #
- # You should have received a copy of the GNU General Public License
- # along with Fabric-Generator-MCreator. If not, see <https://www.gnu.org/licenses/>.
+ # You should have received a copy of the GNU Lesser General Public License
+ # along with Fabric-Generator-MCreator.  If not, see <https://www.gnu.org/licenses/>.
 -->
 
 <#-- @formatter:off -->
 <#include "procedures.java.ftl">
 
 package ${package}.client.particle;
+import net.fabricmc.api.Environment;
 
-<@javacompress>
-@Environment(EnvType.CLIENT) public class ${name}Particle extends SingleQuadParticle {
+@Environment(EnvType.CLIENT) public class ${name}Particle extends TextureSheetParticle {
 
 	public static ${name}ParticleProvider provider(SpriteSet spriteSet) {
 		return new ${name}ParticleProvider(spriteSet);
@@ -37,113 +37,84 @@ package ${package}.client.particle;
 			this.spriteSet = spriteSet;
 		}
 
-		public Particle createParticle(SimpleParticleType typeIn, ClientLevel worldIn, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed, RandomSource random) {
+		public Particle createParticle(SimpleParticleType typeIn, ClientLevel worldIn, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed) {
 			return new ${name}Particle(worldIn, x, y, z, xSpeed, ySpeed, zSpeed, this.spriteSet);
 		}
 	}
 
 	private final SpriteSet spriteSet;
-
-	<#if data.hasAngularVelocityOrAcceleration()>
-	private float angularVelocity;
-	private float angularAcceleration;
+	
+	<#if data.angularVelocity != 0 || data.angularAcceleration != 0>
+		private float angularVelocity;
+		private float angularAcceleration;
 	</#if>
 
 	protected ${name}Particle(ClientLevel world, double x, double y, double z, double vx, double vy, double vz, SpriteSet spriteSet) {
-		super(world, x, y, z, spriteSet.first());
+		super(world, x, y, z);
 		this.spriteSet = spriteSet;
 
-		this.setSize(${data.width}f, ${data.height}f);
-
-		<#if (data.scale.getFixedValue() != 1 || data.fixedScale)  && !hasProcedure(data.scale)>
-		this.quadSize <#if data.fixedScale>= 0.15f *<#else>*=</#if> ${data.scale.getFixedValue()}f;
-		</#if>
+		this.setSize((float) ${data.width}, (float) ${data.height});
+		this.quadSize *= (float) ${data.scale};
 
 		<#if (data.maxAgeDiff > 0)>
-		this.lifetime = (int) Math.max(1, ${data.maxAge} + (this.random.nextInt(${data.maxAgeDiff * 2}) - ${data.maxAgeDiff}));
+			this.lifetime = (int) Math.max(1, ${data.maxAge} + (this.random.nextInt(${data.maxAgeDiff * 2}) - ${data.maxAgeDiff}));
 		<#else>
-		this.lifetime = ${data.maxAge};
+			this.lifetime = ${data.maxAge};
 		</#if>
 
-		this.gravity = ${data.gravity}f;
+		this.gravity = (float) ${data.gravity};
 		this.hasPhysics = ${data.canCollide};
 
 		this.xd = vx * ${data.speedFactor};
 		this.yd = vy * ${data.speedFactor};
 		this.zd = vz * ${data.speedFactor};
 
-		<#if data.hasAngularVelocityOrAcceleration()>
-		this.angularVelocity = ${data.angularVelocity}f;
-		this.angularAcceleration = ${data.angularAcceleration}f;
+		<#if data.angularVelocity != 0 || data.angularAcceleration != 0>
+			this.angularVelocity = (float) ${data.angularVelocity};
+			this.angularAcceleration = (float) ${data.angularAcceleration};
 		</#if>
 
 		<#if data.animate>
-		this.setSpriteFromAge(spriteSet);
+			this.setSpriteFromAge(spriteSet);
+		<#else>
+			this.pickSprite(spriteSet);
 		</#if>
 	}
 
-	<#if data.emissiveRendering>
-	@Override public int getLightCoords(float partialTick) {
-		return 15728880;
-	}
+	<#if data.renderType == "LIT">
+		@Override public int getLightColor(float partialTick) {
+			return 15728880;
+		}
 	</#if>
 
-	@Override public SingleQuadParticle.Layer getLayer() {
-		return SingleQuadParticle.Layer.${data.renderType};
+	@Override public ParticleRenderType getRenderType() {
+		return ParticleRenderType.PARTICLE_SHEET_${data.renderType};
 	}
-
-	<#if hasProcedure(data.scale)>
-	@Override public float getQuadSize(float scale) {
-		Level world = this.level;
-		return <#if data.fixedScale>0.15f<#else>super.getQuadSize(scale)</#if> * (float) <@procedureOBJToConditionCode data.scale/>;
-	}
-	</#if>
-
-	<#if hasProcedure(data.rotationProvider)>
-	@Override public void extract(QuadParticleRenderState particleTypeRenderState, Camera camera, float partialTicks) {
-		Vec3 vec = <@procedureCode data.rotationProvider, {
-			"world": "this.level",
-			"x": "this.x",
-			"y": "this.y",
-			"z": "this.z",
-			"speedX": "this.xd",
-			"speedY": "this.yd",
-			"speedZ": "this.zd",
-			"angularVelocity": "this.angularVelocity",
-			"angularAcceleration": "this.angularAcceleration",
-			"age": "this.age + partialTicks"
-		}/>
-		Quaternionf tilt = new Quaternionf().rotationXYZ((float) vec.x(), (float) vec.y(), (float) vec.z());
-		this.extractRotatedQuad(particleTypeRenderState, camera, tilt, partialTicks);
-		<#-- render a flipped face because by default only a single side renders this makes particle visible from all angles -->
-		Quaternionf flippedTilt = new Quaternionf(tilt).mul(new Quaternionf().rotateY((float) Math.PI));
-		this.extractRotatedQuad(particleTypeRenderState, camera, flippedTilt, partialTicks);
-	}
-	</#if>
 
 	@Override public void tick() {
 		super.tick();
 
 		<#if data.angularVelocity != 0 || data.angularAcceleration != 0>
-		this.oRoll = this.roll;
-		this.roll += this.angularVelocity;
-		this.angularVelocity += this.angularAcceleration;
+			this.oRoll = this.roll;
+			this.roll += this.angularVelocity;
+			this.angularVelocity += this.angularAcceleration;
 		</#if>
 
 		<#if data.animate>
-		if(!this.removed) {
-			<#assign frameCount = data.getTextureTileCount()>
-			this.setSprite(this.spriteSet.get((this.age / ${data.frameDuration}) % ${frameCount} + 1, ${frameCount}));
-		}
+			if(!this.removed) {
+				<#assign frameCount = data.getTextureTileCount()>
+				this.setSprite(this.spriteSet.get((this.age / ${data.frameDuration}) % ${frameCount} + 1, ${frameCount}));
+			}
 		</#if>
 
 		<#if hasProcedure(data.additionalExpiryCondition)>
-		Level world = this.level;
-		if (<@procedureOBJToConditionCode data.additionalExpiryCondition/>)
-			this.remove();
+			double x = this.x;
+			double y = this.y;
+			double z = this.z;
+			if (<@procedureOBJToConditionCode data.additionalExpiryCondition/>)
+				this.remove();
 		</#if>
 	}
 
 }
-</@javacompress>
 <#-- @formatter:on -->

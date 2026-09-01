@@ -1,9 +1,20 @@
 <#-- @formatter:off -->
+/*
+ *    MCreator note:
+ *
+ *    If you lock base mod element files, you can edit this file and it won't get overwritten.
+ *    If you change your modid or package, you need to apply these changes to this file MANUALLY.
+ *
+ *    Settings in @Mod annotation WON'T be changed in case of the base mod element
+ *    files lock too, so you need to set them manually here in such case.
+ *
+ *    If you do not lock base mod element files in Workspace settings, this file
+ *    will be REGENERATED on each build.
+ *
+ */
+
 package ${package};
 
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.common.Mod;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -13,88 +24,61 @@ import org.apache.logging.log4j.Logger;
 
 	public static final String MODID = "${modid}";
 
-	public ${JavaModName}(IEventBus modEventBus) {
-		// Start of user code block mod constructor
-		// End of user code block mod constructor
-
+	public ${JavaModName}() {
 		MinecraftForge.EVENT_BUS.register(this);
 
-		<#if w.hasVariables() || w.hasElementsOfType("keybind") || w.hasElementsOfType("gui") || w.hasElementsOfType("procedure")>
-		modEventBus.addListener(this::registerNetworking);
+		IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
+		<#if w.hasSounds()>${JavaModName}Sounds.REGISTRY.register(bus);</#if>
+		<#if w.hasElementsOfBaseType("block")>${JavaModName}Blocks.REGISTRY.register(bus);</#if>
+		<#if w.hasElementsOfBaseType("blockentity")>${JavaModName}BlockEntities.REGISTRY.register(bus);</#if>
+		<#if w.hasElementsOfBaseType("item")>${JavaModName}Items.REGISTRY.register(bus);</#if>
+		<#if w.hasElementsOfBaseType("entity")>${JavaModName}Entities.REGISTRY.register(bus);</#if>
+		<#if w.hasElementsOfType("enchantment")>${JavaModName}Enchantments.REGISTRY.register(bus);</#if>
+		<#if w.hasItemsInTabs()>${JavaModName}Tabs.REGISTRY.register(bus);</#if>
+		<#if w.hasElementsOfBaseType("feature")>${JavaModName}Features.REGISTRY.register(bus);</#if>
+		<#if w.getElementsOfType("feature")?filter(e -> e.getMetadata("has_nbt_structure")??)?size != 0>StructureFeature.REGISTRY.register(bus);</#if>
+		<#if w.hasElementsOfType("potioneffect")>${JavaModName}MobEffects.REGISTRY.register(bus);</#if>
+		<#if w.hasElementsOfType("potion")>${JavaModName}Potions.REGISTRY.register(bus);</#if>
+		<#if w.hasElementsOfType("painting")>${JavaModName}Paintings.REGISTRY.register(bus);</#if>
+		<#if w.hasElementsOfType("particle")>${JavaModName}ParticleTypes.REGISTRY.register(bus);</#if>
+		<#if w.hasElementsOfType("villagerprofession")>${JavaModName}VillagerProfessions.PROFESSIONS.register(bus);</#if>
+		<#if w.hasElementsOfType("gui")>${JavaModName}Menus.REGISTRY.register(bus);</#if>
+		<#if w.hasElementsOfType("fluid")>
+			${JavaModName}Fluids.REGISTRY.register(bus);
+			${JavaModName}FluidTypes.REGISTRY.register(bus);
 		</#if>
-
-		<@javacompress>
-		<#if w.hasSounds()>${JavaModName}Sounds.REGISTRY.register(modEventBus);</#if>
-		<#if types["base:blocks"]??>${JavaModName}Blocks.REGISTRY.register(modEventBus);</#if>
-		<#if types["base:blockentities"]??>${JavaModName}BlockEntities.REGISTRY.register(modEventBus);</#if>
-		<#if types["base:items"]??>${JavaModName}Items.REGISTRY.register(modEventBus);</#if>
-		<#if types["base:entities"]??>${JavaModName}Entities.REGISTRY.register(modEventBus);</#if>
-		<#if w.hasItemsInTabs()>${JavaModName}Tabs.REGISTRY.register(modEventBus);</#if>
-		<#if w.hasVariables()>${JavaModName}Variables.ATTACHMENT_TYPES.register(modEventBus);</#if>
-		<#if types["base:features"]??>${JavaModName}Features.REGISTRY.register(modEventBus);</#if>
-		<#if w.getElementsOfType("feature")?filter(e -> e.getMetadata("has_nbt_structure")??)?size != 0>StructureFeature.REGISTRY.register(modEventBus);</#if>
-		<#if types["potions"]??>${JavaModName}Potions.REGISTRY.register(modEventBus);</#if>
-		<#if types["potioneffects"]??>${JavaModName}MobEffects.REGISTRY.register(modEventBus);</#if>
-		<#if types["guis"]??>${JavaModName}Menus.REGISTRY.register(modEventBus);</#if>
-		<#if types["particles"]??>${JavaModName}ParticleTypes.REGISTRY.register(modEventBus);</#if>
-		<#if types["villagerprofessions"]??>${JavaModName}VillagerProfessions.PROFESSIONS.register(modEventBus);</#if>
-		<#if types["fluids"]??>
-			${JavaModName}Fluids.REGISTRY.register(modEventBus);
-			${JavaModName}FluidTypes.REGISTRY.register(modEventBus);
-		</#if>
-		<#if types["attributes"]??>${JavaModName}Attributes.REGISTRY.register(modEventBus);</#if>
-		</@javacompress>
-
-		// Start of user code block mod init
-		// End of user code block mod init
 	}
 
-	// Start of user code block mod methods
-	// End of user code block mod methods
+	private static final String PROTOCOL_VERSION = "1";
+	public static final SimpleChannel PACKET_HANDLER = NetworkRegistry.newSimpleChannel(new ResourceLocation(MODID, MODID),
+		() -> PROTOCOL_VERSION, PROTOCOL_VERSION::equals, PROTOCOL_VERSION::equals);
 
-	<#if w.hasVariables() || w.hasElementsOfType("keybind") || w.hasElementsOfType("gui") || w.hasElementsOfType("procedure")>
-	<#-- Networking support below -->
-	private static boolean networkingRegistered = false;
-	private static final Map<CustomPacketPayload.Type<?>, NetworkMessage<?>> MESSAGES = new HashMap<>();
+	private static int messageID = 0;
 
-	private record NetworkMessage<T extends CustomPacketPayload>(StreamCodec<? extends FriendlyByteBuf, T> reader, IPayloadHandler<T> handler) {}
-
-	public static <T extends CustomPacketPayload> void addNetworkMessage(CustomPacketPayload.Type<T> id, StreamCodec<? extends FriendlyByteBuf, T> reader, IPayloadHandler<T> handler) {
-		if (networkingRegistered)
-			throw new IllegalStateException("Cannot register new network messages after networking has been registered");
-		MESSAGES.put(id, new NetworkMessage<>(reader, handler));
+	public static <T> void addNetworkMessage(Class<T> messageType, BiConsumer<T, FriendlyByteBuf> encoder, Function<FriendlyByteBuf, T> decoder,
+										BiConsumer<T, Supplier<NetworkEvent.Context>> messageConsumer) {
+		PACKET_HANDLER.registerMessage(messageID, messageType, encoder, decoder, messageConsumer);
+		messageID++;
 	}
 
-	@SuppressWarnings({"rawtypes", "unchecked"}) private void registerNetworking(final RegisterPayloadHandlersEvent event) {
-		final PayloadRegistrar registrar = event.registrar(MODID);
-		MESSAGES.forEach((id, networkMessage) -> registrar.playBidirectional(id, ((NetworkMessage) networkMessage).reader(), ((NetworkMessage) networkMessage).handler()));
-		networkingRegistered = true;
-	}
-	</#if>
+	private static final Collection<AbstractMap.SimpleEntry<Runnable, Integer>> workQueue = new ConcurrentLinkedQueue<>();
 
-	<#if w.hasElementsOfType("procedure")>
-	<#-- Wait procedure block support below -->
-	private static final Queue<IntObjectPair<Runnable>> workToBeScheduled = new ConcurrentLinkedQueue<>();
-	private static final PriorityQueue<TickTask> workQueue = new PriorityQueue<>(Comparator.comparingInt(TickTask::getTick));
-
-	public static void queueServerWork(int delay, Runnable action) {
-		if (Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER)
-			workToBeScheduled.add(new IntObjectImmutablePair<>(delay, action));
+	public static void queueServerWork(int tick, Runnable action) {
+		workQueue.add(new AbstractMap.SimpleEntry(action, tick));
 	}
 
-	@SubscribeEvent public void tick(ServerTickEvent.Post event) {
-		int currentTick = event.getServer().getTickCount();
-
-		IntObjectPair<Runnable> work;
-		while ((work = workToBeScheduled.poll()) != null) {
-			workQueue.add(new TickTask(currentTick + work.leftInt(), work.right()));
-		}
-
-		while (!workQueue.isEmpty() && currentTick >= workQueue.peek().getTick()) {
-			workQueue.poll().run();
+	@SubscribeEvent public void tick(TickEvent.ServerTickEvent event) {
+		if (event.phase == TickEvent.Phase.END) {
+			List<AbstractMap.SimpleEntry<Runnable, Integer>> actions = new ArrayList<>();
+			workQueue.forEach(work -> {
+				work.setValue(work.getValue() - 1);
+				if (work.getValue() == 0)
+					actions.add(work);
+			});
+			actions.forEach(e -> e.getKey().run());
+			workQueue.removeAll(actions);
 		}
 	}
-	</#if>
 
 }
 <#-- @formatter:on -->

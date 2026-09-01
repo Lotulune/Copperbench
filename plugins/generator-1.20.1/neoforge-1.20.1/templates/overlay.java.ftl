@@ -35,7 +35,7 @@ package ${package}.client.screens;
 
 <#assign hasEntityModels = false>
 
-@EventBusSubscriber(Dist.CLIENT) public class ${name}Overlay {
+@Mod.EventBusSubscriber(value = Dist.CLIENT) public class ${name}Overlay {
 	<#if data.baseTexture?has_content>
 		private static final ResourceLocation BACKGROUND = new ResourceLocation("${modid}:textures/screens/${data.baseTexture}");
 	</#if>
@@ -122,13 +122,16 @@ package ${package}.client.screens;
 
 			<#list data.getComponentsOfType("EntityModel") as component>
 				<#assign hasEntityModels = true>
-			    if (<@procedureOBJToConditionCode component.entityModel/> instanceof LivingEntity livingEntity) {
+				<#assign entityExpr><@procedureOBJToConditionCode component.entityModel/></#assign>
+				<#if entityExpr?trim != "true">
+			    if (((Object) (${entityExpr})) instanceof LivingEntity livingEntity) {
 			    	<#if hasProcedure(component.displayCondition)>
                         if (<@procedureOBJToConditionCode component.displayCondition/>)
                     </#if>
 					renderEntityInInventoryFollowsAngle(event.getGuiGraphics(), <@calculatePosition component=component x_offset=10 y_offset=20/>,
                         ${component.scale}, ${component.rotationX / 20.0}f, 0, livingEntity);
 			    }
+				</#if>
 			</#list>
         }
 
@@ -159,7 +162,7 @@ package ${package}.client.screens;
 		entity.setXRot(-angleYComponent * 20.0F);
 		entity.yHeadRot = entity.getYRot();
 		entity.yHeadRotO = entity.getYRot();
-		InventoryScreen.renderEntityInInventory(guiGraphics, x, y, scale, new Vector3f(0, 0, 0), pose, cameraOrientation, entity);
+		InventoryScreen.renderEntityInInventoryFollowsAngle(guiGraphics, x, y, scale, angleXComponent, angleYComponent, entity);
 		entity.yBodyRot = f2;
 		entity.setYRot(f3);
 		entity.setXRot(f4);

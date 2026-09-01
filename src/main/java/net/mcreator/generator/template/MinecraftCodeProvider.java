@@ -27,12 +27,14 @@
 
 package net.mcreator.generator.template;
 
+import net.mcreator.generator.GeneratorGradleCache;
 import net.mcreator.io.zip.ZipIO;
 import net.mcreator.java.ProjectJarManager;
 import net.mcreator.util.TestUtil;
 import net.mcreator.workspace.Workspace;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fife.rsta.ac.java.buildpath.DirSourceLocation;
 import org.fife.rsta.ac.java.buildpath.SourceLocation;
 import org.fife.rsta.ac.java.rjc.ast.CompilationUnit;
 import org.fife.rsta.ac.java.rjc.ast.TypeDeclaration;
@@ -45,6 +47,8 @@ import org.jboss.forge.roaster.model.source.MethodSource;
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -67,11 +71,25 @@ import java.util.Map;
 				ProjectJarManager jarManager = workspace.getGenerator().getProjectJarManager();
 				if (jarManager != null) {
 					SourceLocation sourceLocation = jarManager.getSourceLocForClass(key);
-					// we always expect ZIP-formatted file for source here, so we can use ZipIO
-					String code = ZipIO.readCodeInZip(new File(sourceLocation.getLocationAsString()),
-							key.replace(".", "/") + ".java");
+					String sourcePath = key.replace(".", "/") + ".java";
+					String code = null;
+					if (sourceLocation instanceof DirSourceLocation) {
+						// CFR and some Gradle tooling configurations expose sources as a directory.
+						File sourceRoot = new File(sourceLocation.getLocationAsString());
+						File sourceFile = new File(sourceRoot, sourcePath);
+						if (sourceFile.isFile()) {
+							LOG.debug("Reading Minecraft source {} from {}", key, sourceFile);
+							code = Files.readString(sourceFile.toPath(), StandardCharsets.UTF_8);
+						}
+					} else if (sourceLocation != null) {
+						code = ZipIO.readCodeInZip(new File(sourceLocation.getLocationAsString()), sourcePath);
+					}
 					if (code == null)
-						throw new NullPointerException("Provided code is null");
+						code = readClasspathSource(jarManager, key, sourcePath);
+					if (code == null)
+						code = readIndexedDirectorySource(key, sourcePath);
+					if (code == null)
+						throw new IllegalStateException("No source location for " + key);
 
 					return code;
 				}
@@ -84,6 +102,47 @@ import java.util.Map;
 			}
 		});
 	}
+
+	private String readClasspathSource(ProjectJarManager jarManager, String key, String sourcePath) throws Exception {
+		for (GeneratorGradleCache.ClasspathEntry classpathEntry : jarManager.getClasspath()) {
+			String source = classpathEntry.getSrc(workspace);
+			if (source == null || source.isBlank())
+				continue;
+			File sourceLocation = new File(source);
+			if (sourceLocation.isDirectory()) {
+				File sourceFile = new File(sourceLocation, sourcePath);
+				if (sourceFile.isFile()) {
+					LOG.debug("Reading classpath Minecraft source {} from {}", key, sourceFile);
+					return Files.readString(sourceFile.toPath(), StandardCharsets.UTF_8);
+				}
+			} else if (sourceLocation.isFile()) {
+				String code = ZipIO.readCodeInZip(sourceLocation, sourcePath);
+				if (code != null) {
+					LOG.debug("Reading classpath Minecraft source {} from {}", key, sourceLocation);
+					return code;
+				}
+			}
+		}
+		return null;
+	}
+
+	private String readIndexedDirectorySource(String key, String sourcePath) throws Exception {
+		File sourceIndex = new File(workspace.getWorkspaceFolder(), "build/mcreator/minecraft-sources.txt");
+		if (!sourceIndex.isFile())
+			return null;
+		for (String sourceRoot : Files.readAllLines(sourceIndex.toPath(), StandardCharsets.UTF_8)) {
+			if (sourceRoot.isBlank())
+				continue;
+			File sourceFile = new File(sourceRoot, sourcePath);
+			if (sourceFile.isFile()) {
+				LOG.debug("Reading indexed Minecraft source {} from {}", key, sourceFile);
+				return Files.readString(sourceFile.toPath(), StandardCharsets.UTF_8);
+			}
+		}
+		throw new java.io.FileNotFoundException("Source file not found in directories indexed by " + sourceIndex + ": "
+				+ sourcePath);
+	}
+
 
 	public CodeString getCodeFor(@Nonnull String template, int lineFrom, int lineTo) {
 		String code = readCode(template);

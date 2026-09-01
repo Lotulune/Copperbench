@@ -9,9 +9,6 @@ templates:
   - template: json/bucket.json.ftl
     writer: json
     name: "@MODASSETSROOT/models/item/@registryname_bucket.json"
-  - template: json/model_item_bucket.json.ftl
-    writer: json
-    name: "@MODASSETSROOT/items/@registryname_bucket.json"
   - template: json/fluid_states.json.ftl
     writer: json
     name: "@MODASSETSROOT/blockstates/@registryname.json"

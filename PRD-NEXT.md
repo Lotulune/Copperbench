@@ -312,6 +312,8 @@ Issue 模板必须收集版本、commit、生成器、元素类型、复现步�
 
 **产品决策：下一功能版本必须把当前 30 种 `readOnly` / `legacyOnly` Java Mod Element 全部升级为 Copperbench first-party `supported`。** 开发过程允许分批落地，但下一功能版本不得在仍有这些类型停留于 `readOnly`、`legacyOnly`、`unsupportedInNewUi` 或“只能导入不能修改”的情况下宣称完成。
 
+实施状态（2026-09-01）：**本地功能与生成器门禁已完成，进入固定提交/候选验证阶段。** 30 种目标 Java Mod Element 已全部进入 first-party `supported` 路径；全类型持久化/未知字段 round-trip、导入、迁移、UI/status contract 和核心 Java 回归通过。`NewWorkspaceGeneratorGoldenBuildTest` 的 8-generator Stage 11 全量工作区现为 8/8 PASS，所有轨道均完成真实 Gradle build 与 JAR 输出；新增的 JAR/mixin 一致性门禁还会验证 mixin JSON 中声明的每个 mixin 类都真实存在于产物。最终本地证据见 [`docs/testing/stage-11-element-support-2026-08-31.md`](./docs/testing/stage-11-element-support-2026-08-31.md) 与 [`evidence/stage-11/2026-09-01/eight-generator-matrix.json`](./evidence/stage-11/2026-09-01/eight-generator-matrix.json)。按 10.1.7，下一步不是继续增加 Stage 11 功能，而是冻结新的提交并重新执行 CI、Nightly、Windows 安装/升级/卸载、provenance 与候选资产验证；在这些固定提交证据完成前，不宣称下一功能版本 Release Candidate 已完成。
+
 本阶段覆盖以下 30 种类型：
 
 - 装备与物品扩展：`armor`、`armortrim`、`tool`、`itemextension`。

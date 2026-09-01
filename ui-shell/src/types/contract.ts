@@ -93,7 +93,20 @@ export interface CapabilityDecision {
   affectedPaths: string[];
 }
 
-export type ModElementType = 'block' | 'item' | 'recipe' | 'procedure' | 'function' | 'loottable' | 'achievement';
+export type ModElementType =
+  | 'block' | 'item' | 'recipe' | 'procedure' | 'function' | 'loottable' | 'achievement'
+  | 'armor' | 'armortrim' | 'tool' | 'itemextension' | 'attribute' | 'bannerpattern'
+  | 'command' | 'damagetype' | 'enchantment' | 'gamerule' | 'keybind' | 'painting' | 'particle'
+  | 'potion' | 'potioneffect' | 'tab' | 'villagerprofession' | 'villagertrade'
+  | 'biome' | 'dimension' | 'feature' | 'fluid' | 'plant' | 'structure' | 'livingentity'
+  | 'specialentity' | 'projectile' | 'gui' | 'overlay' | 'code';
+
+export const ALL_MOD_ELEMENT_TYPES: ModElementType[] = [
+  'block', 'item', 'recipe', 'procedure', 'function', 'loottable', 'achievement', 'armor', 'armortrim', 'tool',
+  'itemextension', 'attribute', 'bannerpattern', 'command', 'damagetype', 'enchantment', 'gamerule', 'keybind',
+  'painting', 'particle', 'potion', 'potioneffect', 'tab', 'villagerprofession', 'villagertrade', 'biome', 'dimension',
+  'feature', 'fluid', 'plant', 'structure', 'livingentity', 'specialentity', 'projectile', 'gui', 'overlay', 'code'
+];
 
 export interface ModElementSummary {
   id: UUID;

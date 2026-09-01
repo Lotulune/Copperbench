@@ -41,6 +41,7 @@ public class GeneratorGradleCache {
 		projectJarManager = new ProjectJarManager(generator);
 		this.classpath = projectJarManager.getClasspath();
 		this.importTree = ImportTreeBuilder.generateImportTree(this.projectJarManager);
+		ImportTreeBuilder.loadClassesFromIndexedSources(generator, this.importTree);
 		this.javaHome = projectJarManager.getJavaHome();
 	}
 

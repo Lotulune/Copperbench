@@ -25,11 +25,11 @@ import org.spongepowered.asm.mixin.injection.Constant;
 @Mixin(RepairItemRecipe.class)
 public abstract class RepairItemRecipeMixin {
 
-	@Inject(method = "assemble(Lnet/minecraft/world/item/crafting/CraftingInput;)Lnet/minecraft/world/item/ItemStack;", at = @At("HEAD"))
-	public void assemble(CraftingInput input, CallbackInfoReturnable<ItemStack> cir) {
+	@Inject(method = "assemble", at = @At("HEAD"), cancellable = true)
+	public void assemble(CraftingContainer input, RegistryAccess registryAccess, CallbackInfoReturnable<ItemStack> cir) {
 		ItemStack itemStack, itemStack3;
 		ArrayList<ItemStack> list = Lists.newArrayList();
-		for (int i = 0; i < input.ingredientCount(); ++i) {
+		for (int i = 0; i < input.getContainerSize(); ++i) {
 			itemStack = input.getItem(i);
 			if (itemStack.isEmpty())
 				continue;

@@ -5,8 +5,11 @@ import dev.copperbench.core.application.WorkspaceMutationGateway;
 import dev.copperbench.core.contract.UiCore.Operation;
 import dev.copperbench.core.workspace.WorkspaceState;
 import dev.copperbench.core.workspace.WorkspaceState.Element;
+import dev.copperbench.release.GeneratorElementCapabilityCatalog;
+import net.mcreator.element.util.GEValidator;
 import net.mcreator.element.GeneratableElement;
 import net.mcreator.element.ModElementType;
+import net.mcreator.element.ModElementTypeLoader;
 import net.mcreator.element.parts.AIPathNodeType;
 import net.mcreator.element.parts.AchievementEntry;
 import net.mcreator.element.parts.ItemUseAnimation;
@@ -15,6 +18,7 @@ import net.mcreator.element.parts.MapColor;
 import net.mcreator.element.parts.NoteBlockInstrument;
 import net.mcreator.element.types.Block;
 import net.mcreator.element.types.Achievement;
+import net.mcreator.element.types.CustomElement;
 import net.mcreator.element.types.Function;
 import net.mcreator.element.types.Item;
 import net.mcreator.element.types.LootTable;
@@ -31,8 +35,10 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.List;
 import java.util.UUID;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 
-/** Transaction participant for the first-party upstream-backed element slice. */
+/** Transaction participant for all first-party Java elements backed by the upstream model classes. */
 public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutationGateway {
 
 	public static final String ELEMENT_ID_METADATA = "dev.copperbench.elementId";
@@ -160,7 +166,7 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 		storeProductMetadata(modElement, element);
 		GeneratableElement definition = newDefinition(modElement, element);
 		workspace.addModElement(modElement);
-		workspace.getModElementManager().storeModElement(definition);
+		persistGeneratedElement(modElement, element, definition);
 	}
 
 	private void update(ModElement modElement, Element element) {
@@ -172,7 +178,60 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 		storeProductMetadata(modElement, element);
 		updateDefinition(definition, element);
 		workspace.markDirty();
+		persistGeneratedElement(modElement, element, definition);
+	}
+
+	private void persistGeneratedElement(ModElement modElement, Element element, GeneratableElement definition) {
+		if (definition instanceof CustomElement) {
+			persistCustomCode(modElement, element, definition);
+			generateWorkspaceBaseIfReady();
+			return;
+		}
 		workspace.getModElementManager().storeModElement(definition);
+		generateRegisteredSources(definition);
+	}
+
+	private void generateRegisteredSources(GeneratableElement definition) {
+		if (!generatorWorkspaceReady())
+			return;
+		String generatorId = workspace.getWorkspaceSettings().getCurrentGenerator();
+		String type = definition.getModElement().getType().getRegistryName();
+		var decision = GeneratorElementCapabilityCatalog.decision(generatorId, type);
+		if (!decision.generatable())
+			return;
+		try {
+			GEValidator.validateAndTryToCorrect(definition, null);
+		} catch (GEValidator.ValidationException | AssertionError exception) {
+			throw new IllegalStateException("Upstream element validation failed for "
+					+ definition.getModElement().getName(), exception);
+		}
+		try {
+			workspace.getGenerator().generateBase();
+			if (!workspace.getGenerator().generateElement(definition)) {
+				workspace.getGenerator().removeElementFilesAndWorkspaceLinks(definition);
+				throw new IllegalStateException("Upstream source generation failed for "
+						+ definition.getModElement().getName());
+			}
+		} catch (RuntimeException exception) {
+			try {
+				workspace.getGenerator().removeElementFilesAndWorkspaceLinks(definition);
+			} catch (RuntimeException cleanup) {
+				exception.addSuppressed(cleanup);
+			}
+			throw exception;
+		}
+	}
+
+	private void generateWorkspaceBaseIfReady() {
+		if (generatorWorkspaceReady())
+			workspace.getGenerator().generateBase();
+	}
+
+	private boolean generatorWorkspaceReady() {
+		if (workspace.getGenerator() == null || workspace.getGenerator().getGeneratorConfiguration() == null)
+			return false;
+		java.io.File sourceRoot = workspace.getGenerator().getSourceRoot();
+		return sourceRoot != null && sourceRoot.isDirectory();
 	}
 
 	private ModElementType<?> modElementType(String type) {
@@ -184,7 +243,7 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 			case "function" -> ModElementType.FUNCTION;
 			case "loottable" -> ModElementType.LOOTTABLE;
 			case "achievement" -> ModElementType.ADVANCEMENT;
-			default -> throw new UnsupportedOperationException("Unsupported first-party element type: " + type);
+			default -> ModElementTypeLoader.getModElementType(type);
 		};
 		if (result == null)
 			throw new IllegalStateException("Element type is not registered: " + type);
@@ -204,8 +263,19 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 			case "function" -> newFunction(modElement, element);
 			case "loottable" -> newLootTable(modElement, element);
 			case "achievement" -> newAchievement(modElement, element);
-			default -> throw new UnsupportedOperationException("Unsupported first-party element type: " + element.type());
+			default -> newGenericDefinition(modElement, element);
 		};
+	}
+
+	private GeneratableElement newGenericDefinition(ModElement modElement, Element element) {
+		try {
+			Class<? extends GeneratableElement> storageClass = modElementType(element.type()).getModElementStorageClass();
+			GeneratableElement definition = storageClass.getConstructor(ModElement.class).newInstance(modElement);
+			applyGenericValues(definition, element);
+			return definition;
+		} catch (ReflectiveOperationException exception) {
+			throw new IllegalStateException("Unable to instantiate upstream element type: " + element.type(), exception);
+		}
 	}
 
 	private Block newBlock(ModElement modElement, Element element) {
@@ -337,9 +407,78 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 			case Function function -> applyFunction(function, element);
 			case LootTable lootTable -> applyLootTable(lootTable, element);
 			case Achievement achievement -> applyAchievement(achievement, element);
-			default -> throw new UnsupportedOperationException(
-					"Unsupported first-party definition: " + definition.getClass().getName());
+			default -> applyGenericValues(definition, element);
 		}
+	}
+
+	/**
+	 * The upstream model classes expose their editable fields as public members. Mapping only
+	 * fields present in the Copperbench value object keeps type-specific defaults intact while
+	 * allowing newly added upstream fields to round-trip without another gateway switch.
+	 */
+	private void applyGenericValues(GeneratableElement definition, Element element) {
+		JsonObject values = element.values();
+		for (Field field : definition.getClass().getFields()) {
+			if (Modifier.isStatic(field.getModifiers())) continue;
+			com.google.gson.JsonElement raw = values.get(field.getName());
+			if ((raw == null || raw.isJsonNull()) && values.has("fields") && values.get("fields").isJsonObject())
+				raw = values.getAsJsonObject("fields").get(field.getName());
+			if (raw == null || raw.isJsonNull()) continue;
+			try {
+				Object value = WorkspaceFileManager.gson.fromJson(raw, field.getGenericType());
+				field.set(definition, value);
+			} catch (RuntimeException | IllegalAccessException ignored) {
+				// Complex workspace-dependent values retain the upstream default; raw values stay in metadata.
+			}
+		}
+		try {
+			Field name = definition.getClass().getField("name");
+			if (name.getType() == String.class && values.has("displayName"))
+				name.set(definition, element.displayName());
+			else if (!values.has("name") && name.getType() == String.class
+					&& (name.get(definition) == null || ((String) name.get(definition)).isBlank()))
+				name.set(definition, element.displayName());
+		} catch (NoSuchFieldException | IllegalAccessException ignored) {
+			// Some upstream types intentionally do not expose a name field.
+		}
+		fillMissingStringDefaults(definition);
+	}
+
+	private void fillMissingStringDefaults(GeneratableElement definition) {
+		for (Field field : definition.getClass().getFields()) {
+			if (Modifier.isStatic(field.getModifiers()) || field.getType() != String.class)
+				continue;
+			try {
+				if (field.get(definition) != null)
+					continue;
+				var options = field.getAnnotation(net.mcreator.element.types.interfaces.LimitedOptions.class);
+				field.set(definition, options != null && options.value().length > 0 ? options.value()[0] : "");
+			} catch (IllegalAccessException ignored) {
+				// Keep the upstream constructor default when the field cannot be written.
+			}
+		}
+	}
+
+	private void persistCustomCode(ModElement modElement, Element element, GeneratableElement definition) {
+		if (workspace.getGenerator() == null)
+			throw new IllegalStateException("A generator is required to persist a code element");
+		if (!generatorWorkspaceReady())
+			return;
+		if (modElement.getAssociatedFiles().isEmpty() && !workspace.getGenerator().generateElement(definition))
+			throw new IllegalStateException("The generator could not create the code element source file");
+		String code = element.values().has("code") && element.values().get("code").isJsonPrimitive()
+				? element.values().get("code").getAsString() : null;
+		if (code != null) {
+			java.io.File source = modElement.getAssociatedFiles().stream()
+					.filter(file -> file.getName().endsWith(".java")).findFirst()
+					.orElseThrow(() -> new IllegalStateException("The code element has no generated Java source file"));
+			try {
+				Files.writeString(source.toPath(), code, java.nio.charset.StandardCharsets.UTF_8);
+			} catch (IOException exception) {
+				throw new IllegalStateException("Unable to write the code element source file", exception);
+			}
+		}
+		modElement.setCodeLock(true);
 	}
 
 	private void delete(ModElement modElement, boolean checkpoint) {

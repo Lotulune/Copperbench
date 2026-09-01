@@ -36,21 +36,21 @@
 
 package ${package}.init;
 
-@EventBusSubscriber
+@Mod.EventBusSubscriber
 public class ${JavaModName}Attributes {
 
-	public static final DeferredRegister<Attribute> REGISTRY = DeferredRegister.create(BuiltInRegistries.ATTRIBUTE, ${JavaModName}.MODID);
+	public static final DeferredRegister<Attribute> REGISTRY = DeferredRegister.create(ForgeRegistries.ATTRIBUTES, ${JavaModName}.MODID);
 
 	<#list attributes as attribute>
-	public static final DeferredHolder<Attribute, Attribute> ${attribute.getModElement().getRegistryNameUpper()} = REGISTRY.register("${attribute.getModElement().getRegistryName()}",
+	public static final RegistryObject<Attribute> ${attribute.getModElement().getRegistryNameUpper()} = REGISTRY.register("${attribute.getModElement().getRegistryName()}",
 		() -> new RangedAttribute("attribute.${modid}.${attribute.getModElement().getRegistryName()}", ${attribute.defaultValue}d, ${attribute.minValue}d, ${attribute.maxValue}d).setSyncable(true)
-		<#if attribute.sentiment != "POSITIVE">.setSentiment(Attribute.Sentiment.${attribute.sentiment})</#if>);
+		);
 	</#list>
 
 	@SubscribeEvent public static void addAttributes(EntityAttributeModificationEvent event) {
 		<#list attributes as attribute>
 			<#if attribute.addToAllEntities>
-				event.getTypes().forEach(entity -> event.add(entity, ${attribute.getModElement().getRegistryNameUpper()}));
+				event.getTypes().forEach(entity -> event.add(entity, ${attribute.getModElement().getRegistryNameUpper()}.get()));
 			<#else>
 				<#if attribute.entities?has_content>
 					List.of(
@@ -60,10 +60,10 @@ public class ${JavaModName}Attributes {
 					).stream()
 					.filter(DefaultAttributes::hasSupplier)
 					.map(entityType -> (EntityType<? extends LivingEntity>) entityType)
-					.collect(Collectors.toList()).forEach(entity -> event.add(entity, ${attribute.getModElement().getRegistryNameUpper()}));
+					.collect(Collectors.toList()).forEach(entity -> event.add(entity, ${attribute.getModElement().getRegistryNameUpper()}.get()));
 				</#if>
 				<#if attribute.addToPlayers>
-					event.add(EntityType.PLAYER, ${attribute.getModElement().getRegistryNameUpper()});
+					event.add(EntityType.PLAYER, ${attribute.getModElement().getRegistryNameUpper()}.get());
 				</#if>
 			</#if>
 		</#list>

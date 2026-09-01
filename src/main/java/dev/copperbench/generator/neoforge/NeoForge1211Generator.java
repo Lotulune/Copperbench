@@ -15,6 +15,7 @@ import com.google.gson.JsonObject;
 import dev.copperbench.core.workspace.WorkspaceState;
 import dev.copperbench.core.workspace.WorkspaceState.Element;
 import dev.copperbench.generator.GradleWorkspaceBackend;
+import dev.copperbench.generator.PluginWorkspaceLayout;
 import dev.copperbench.generator.fabric.Fabric1211Generator;
 
 import java.io.IOException;
@@ -29,7 +30,7 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 
-/** Generates the maintained NeoForge 1.21.1 parity slice from the shared workspace projection. */
+/** Generates the maintained NeoForge 1.21.1 workspace projection through the shared all-type generator path. */
 public final class NeoForge1211Generator implements GradleWorkspaceBackend {
 
 	public static final String GENERATOR_ID = Profile.NEOFORGE_1211.generatorId();
@@ -121,11 +122,26 @@ public final class NeoForge1211Generator implements GradleWorkspaceBackend {
 	}
 
 	@Override public GenerationResult generate(Path targetRoot, WorkspaceState workspace) throws IOException {
+		return generate(targetRoot, workspace, true);
+	}
+
+	/** Regenerates a copied loader-migration target instead of preserving its source-loader files. */
+	public GenerationResult generateMigrationTarget(Path targetRoot, WorkspaceState workspace) throws IOException {
+		return generate(targetRoot, workspace, false);
+	}
+
+	private GenerationResult generate(Path targetRoot, WorkspaceState workspace, boolean preservePluginWorkspace)
+			throws IOException {
 		List<ValidationIssue> issues = validate(workspace);
 		if (!issues.isEmpty()) throw new IllegalArgumentException(issues.getFirst().message());
 		Path root = Objects.requireNonNull(targetRoot).toAbsolutePath().normalize();
 		Descriptor descriptor = descriptor(workspace);
-		var common = commonGenerator.generate(root, asFabricWorkspace(workspace));
+		if (preservePluginWorkspace && PluginWorkspaceLayout.present(root))
+			return new GenerationResult(profile.generatorId(), descriptor.modId(),
+					PluginWorkspaceLayout.relativeSourcePaths(root));
+		var common = preservePluginWorkspace
+				? commonGenerator.generate(root, asFabricWorkspace(workspace))
+				: commonGenerator.generateMigrationTarget(root, asFabricWorkspace(workspace));
 		Set<String> generated = new LinkedHashSet<>(common.generatedPaths());
 
 		Files.deleteIfExists(root.resolve("src/main/resources/fabric.mod.json"));

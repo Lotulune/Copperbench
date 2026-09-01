@@ -23,28 +23,7 @@
 <#assign customCategories = []>
 
 <#function categoryToObject category>
-	<#if category == "movement">
-		<#return "KeyMapping.Category.MOVEMENT">
-	<#elseif category == "misc">
-		<#return "KeyMapping.Category.MISC">
-	<#elseif category == "multiplayer">
-		<#return "KeyMapping.Category.MULTIPLAYER">
-	<#elseif category == "gameplay">
-		<#return "KeyMapping.Category.GAMEPLAY">
-	<#elseif category == "inventory">
-		<#return "KeyMapping.Category.INVENTORY">
-	<#elseif category == "creative">
-		<#return "KeyMapping.Category.CREATIVE">
-	<#elseif category == "spectator">
-		<#return "KeyMapping.Category.SPECTATOR">
-	<#elseif category == "debug">
-		<#return "KeyMapping.Category.DEBUG">
-	<#else>
-		<#if !(customCategories?seq_contains(category))>
-			<#assign customCategories += [category]>
-		</#if>
-		<#return "CATEGORY_" + category?upper_case>
-	</#if>
+	<#return "\"key.category." + modid + "." + category?lower_case + "\"">
 </#function>
 
 /*
@@ -112,7 +91,7 @@ package ${package}.init;
 
 	public static void clientLoad() {
 		<#list keybinds as keybind>
-			KeyMappingHelper.registerKeyMapping(${keybind.getModElement().getRegistryNameUpper()});
+			KeyBindingHelper.registerKeyBinding(${keybind.getModElement().getRegistryNameUpper()});
 		</#list>
 
 		ClientTickEvents.END_CLIENT_TICK.register((client) -> {

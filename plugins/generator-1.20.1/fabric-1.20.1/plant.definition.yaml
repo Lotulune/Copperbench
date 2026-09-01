@@ -26,10 +26,6 @@ templates:
     writer: json
     condition: hasBlockItem
     name: "@MODASSETSROOT/models/item/@registryname.json"
-  - template: json/model_item_block.json.ftl
-    writer: json
-    condition: hasBlockItem
-    name: "@MODASSETSROOT/items/@registryname.json"
 
   # Block model templates
   - template: json/block.json.ftl

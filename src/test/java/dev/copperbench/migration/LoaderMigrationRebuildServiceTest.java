@@ -40,8 +40,13 @@ class LoaderMigrationRebuildServiceTest {
 	@Test void generatesTheTargetCopyWithTheDestinationGeneratorAndLeavesSourceUnchanged() throws Exception {
 		Path source = temp.resolve("source");
 		Files.createDirectories(source.resolve("elements"));
+		Files.createDirectories(source.resolve("src/main/java/dev/coppertrails"));
+		Files.createDirectories(source.resolve("src/main/resources"));
 		Files.writeString(source.resolve("workspace.mcreator"),
 				"{\"workspaceSettings\":{\"currentGenerator\":\"fabric-1.21.1\"}}", StandardCharsets.UTF_8);
+		Files.writeString(source.resolve("src/main/java/dev/coppertrails/CopperTrailsMod.java"),
+				"// COPIED_FABRIC_SOURCE_MUST_BE_REBUILT", StandardCharsets.UTF_8);
+		Files.writeString(source.resolve("src/main/resources/fabric.mod.json"), "{}", StandardCharsets.UTF_8);
 		String before = WorkspaceTreeHasher.hash(source);
 		WorkspaceState state = Fabric1211GoldenWorkspace.create();
 		Path target = temp.resolve("copied-neoforge");
@@ -53,9 +58,34 @@ class LoaderMigrationRebuildServiceTest {
 		assertTrue(Files.isRegularFile(target.resolve("src/main/java/dev/coppertrails/CopperTrailsMod.java")));
 		assertTrue(Files.readString(target.resolve("src/main/java/dev/coppertrails/CopperTrailsMod.java"))
 				.contains("COPPERBENCH_STAGE5_NEOFORGE_READY"));
+		assertFalse(Files.readString(target.resolve("src/main/java/dev/coppertrails/CopperTrailsMod.java"))
+				.contains("COPIED_FABRIC_SOURCE_MUST_BE_REBUILT"));
+		assertFalse(Files.exists(target.resolve("src/main/resources/fabric.mod.json")));
 		assertTrue(Files.isRegularFile(target.resolve(".copperbench/generator-lock.json")));
 		assertEquals(before, WorkspaceTreeHasher.hash(source));
 		assertTrue(Files.readString(source.resolve("workspace.mcreator")).contains("fabric-1.21.1"));
+	}
+
+	@Test void reverseMigrationRebuildRemovesCopiedNeoForgeMetadata() throws Exception {
+		WorkspaceState fabricState = Fabric1211GoldenWorkspace.create();
+		var neoForgeGenerator = fabricState.generator().deepCopy();
+		neoForgeGenerator.addProperty("id", "neoforge-1.21.1");
+		neoForgeGenerator.addProperty("loader", "neoforge");
+		neoForgeGenerator.addProperty("displayName", "NeoForge 1.21.1");
+		WorkspaceState state = fabricState.withGenerator(neoForgeGenerator);
+		Path source = temp.resolve("neoforge-source");
+		Files.createDirectories(source.resolve("src/main/resources/META-INF"));
+		Files.writeString(source.resolve("workspace.mcreator"),
+				"{\"workspaceSettings\":{\"currentGenerator\":\"neoforge-1.21.1\"}}", StandardCharsets.UTF_8);
+		Files.writeString(source.resolve("src/main/resources/META-INF/mods.toml"), "copied=true", StandardCharsets.UTF_8);
+
+		Path target = temp.resolve("copied-fabric");
+		assertTrue(migrations.execute(state, "fabric-1.21.1", source, target).complete());
+		var rebuild = rebuilds.rebuild(state, "fabric-1.21.1", target);
+
+		assertTrue(rebuild.generated());
+		assertTrue(Files.isRegularFile(target.resolve("src/main/resources/fabric.mod.json")));
+		assertFalse(Files.exists(target.resolve("src/main/resources/META-INF/mods.toml")));
 	}
 
 	@Test void generatesA261CopyBetweenFirstPartyPreviewLoaders() throws Exception {

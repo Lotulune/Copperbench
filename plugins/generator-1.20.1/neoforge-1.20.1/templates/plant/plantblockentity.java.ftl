@@ -34,15 +34,15 @@ package ${package}.block.entity;
 public class ${name}BlockEntity extends BlockEntity {
 
 	public ${name}BlockEntity(BlockPos pos, BlockState state) {
-		super(${JavaModName}BlockEntities.${REGISTRYNAME}.get(), pos, state);
+		super(${JavaModName}BlockEntities.${data.getModElement().getRegistryNameUpper()}.get(), pos, state);
 	}
 
 	@Override public ClientboundBlockEntityDataPacket getUpdatePacket() {
 		return ClientboundBlockEntityDataPacket.create(this);
 	}
 
-	@Override public CompoundTag getUpdateTag(HolderLookup.Provider lookupProvider) {
-		return this.saveWithFullMetadata(lookupProvider);
+	@Override public CompoundTag getUpdateTag() {
+		return this.saveWithFullMetadata();
 	}
 
 }

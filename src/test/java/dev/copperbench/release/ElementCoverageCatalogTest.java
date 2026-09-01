@@ -31,35 +31,35 @@ class ElementCoverageCatalogTest {
 	private static final UUID LIVING = UUID.fromString("11111111-1111-4111-8111-111111111141");
 	private static final Clock CLOCK = Clock.fixed(Instant.parse("2026-08-20T12:00:00Z"), ZoneOffset.UTC);
 
-	@Test void firstPartySliceExcludesLivingEntitiesAndBedrockAddonTypes() {
+	@Test void firstPartySliceIncludesStage11JavaTypesAndExcludesBedrockAddonTypes() {
 		assertTrue(ElementCoverageCatalog.isFirstParty("block"));
 		assertTrue(ElementCoverageCatalog.isFirstParty("procedure"));
 		assertTrue(ElementCoverageCatalog.isFirstParty("function"));
 		assertTrue(ElementCoverageCatalog.isFirstParty("loottable"));
 		assertTrue(ElementCoverageCatalog.isFirstParty("achievement"));
-		assertFalse(ElementCoverageCatalog.isFirstParty("livingentity"));
-		assertFalse(ElementCoverageCatalog.isFirstParty("gui"));
+		assertTrue(ElementCoverageCatalog.isFirstParty("livingentity"));
+		assertTrue(ElementCoverageCatalog.isFirstParty("gui"));
 		assertFalse(ElementCoverageCatalog.isFirstParty("beblock"));
 		JsonObject json = ElementCoverageCatalog.toJson();
-		assertEquals(7, json.getAsJsonArray("firstPartySlice").size());
-		assertTrue(json.getAsJsonArray("unsupportedInNewUi").toString().contains("livingentity"));
+		assertEquals(37, json.getAsJsonArray("firstPartySlice").size());
+		assertEquals(0, json.getAsJsonArray("unsupportedInNewUi").size());
 		assertTrue(json.getAsJsonArray("bedrockAddonNotApplicable").toString().contains("beentity"));
 	}
 
-	@Test void importedLivingEntityIsListedReadOnlyAndCannotBeUpdated() {
+	@Test void importedLivingEntityIsListedAndCanBeUpdated() {
 		WorkspaceApplicationService service = service();
 		var list = service.query(Query.of(uuid(1), WORKSPACE_ID, Operation.LIST_MOD_ELEMENTS, listPayload()),
 				new RequestContext(Actor.HEADLESS, PermissionProfile.WORKSPACE));
 		assertEquals("succeeded", list.status());
 		JsonObject item = list.data().getAsJsonObject().getAsJsonArray("items").get(0).getAsJsonObject();
 		assertEquals("livingentity", item.get("type").getAsString());
-		assertFalse(item.get("firstParty").getAsBoolean());
+		assertTrue(item.get("firstParty").getAsBoolean());
 
 		var editor = service.query(Query.of(uuid(2), WORKSPACE_ID, Operation.GET_MOD_ELEMENT_EDITOR, editorPayload()),
 				new RequestContext(Actor.HEADLESS, PermissionProfile.WORKSPACE));
 		assertEquals("succeeded", editor.status());
-		assertTrue(editor.diagnostics().stream().anyMatch(d -> "ELEMENT_TYPE_OUTSIDE_FIRST_PARTY_SLICE".equals(d.code())));
-		assertTrue(editor.data().getAsJsonObject().getAsJsonArray("sections").get(0).getAsJsonObject()
+		assertTrue(editor.diagnostics().isEmpty());
+		assertFalse(editor.data().getAsJsonObject().getAsJsonArray("sections").get(0).getAsJsonObject()
 				.getAsJsonArray("fields").get(0).getAsJsonObject().get("readOnly").getAsBoolean());
 
 		JsonObject change = new JsonObject();
@@ -73,9 +73,7 @@ class ElementCoverageCatalogTest {
 		update.add("changes", changes);
 		var outcome = service.execute(Command.of(uuid(4), WORKSPACE_ID, 0, Operation.UPDATE_MOD_ELEMENT, update),
 				new RequestContext(Actor.HEADLESS, PermissionProfile.WORKSPACE));
-		assertEquals("rejected", outcome.result().status());
-		assertEquals("ELEMENT_TYPE_OUTSIDE_FIRST_PARTY_SLICE",
-				outcome.result().diagnostics().get(0).code());
+		assertEquals("committed", outcome.result().status());
 	}
 
 	private static WorkspaceApplicationService service() {

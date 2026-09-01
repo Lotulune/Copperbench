@@ -24,6 +24,22 @@ test.describe('Interactive UI-Core Commands & Mutations', () => {
     await expect(page.locator('[data-testid="element-inspector"]')).toBeVisible();
   });
 
+  test('Stage 11 exposes all Java element types and creates a long-tail element', async ({ page }) => {
+    await page.click('[data-testid="nav-elements"]');
+    await page.click('[data-testid="create-element-btn"]');
+
+    const typeButtons = page.locator('[data-testid="create-element-modal"] button[aria-pressed]');
+    await expect(typeButtons).toHaveCount(37);
+    await page.locator('[data-testid="create-element-modal"] button').filter({ hasText: '生物实体' }).click();
+    await page.fill('[data-testid="create-element-name-input"]', 'copper_guardian');
+    await page.click('[data-testid="create-element-submit-btn"]');
+
+    await expect(page.locator('[data-testid="create-element-modal"]')).not.toBeVisible();
+    await expect(page.locator('[data-testid="element-inspector"]')).toBeVisible();
+    await expect(page.locator('[data-testid="field-displayName"]')).toHaveValue('Copper Guardian');
+    await expect(page.locator('[data-testid="field-displayName"]')).toBeEditable();
+  });
+
   test('update_mod_element with invalid value triggers validation error', async ({ page }) => {
     await page.click('[data-testid="nav-elements"]');
     await page.locator('[data-element-id="22222222-2222-4222-8222-222222222221"]').first().click();

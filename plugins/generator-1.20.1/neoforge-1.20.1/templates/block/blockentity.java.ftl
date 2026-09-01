@@ -29,78 +29,52 @@
 -->
 
 <#-- @formatter:off -->
-<#include "../procedures.java.ftl">
-
 package ${package}.block.entity;
 
-<@javacompress>
-public class ${name}BlockEntity extends RandomizableContainerBlockEntity implements WorldlyContainer
- 		<#if data.sensitiveToVibration>, GameEventListener.Provider<VibrationSystem.Listener>, VibrationSystem</#if> {
+import javax.annotation.Nullable;
 
-	private NonNullList<ItemStack> stacks = NonNullList.withSize(${data.inventorySize}, ItemStack.EMPTY);
+public class ${name}BlockEntity extends RandomizableContainerBlockEntity implements WorldlyContainer {
 
-	<#if data.sensitiveToVibration>
-	private final VibrationSystem.Listener vibrationListener = new VibrationSystem.Listener(this);
-	private final VibrationSystem.User vibrationUser = new VibrationUser(this.getBlockPos());
-	private VibrationSystem.Data vibrationData = new VibrationSystem.Data();
-	</#if>
+	private NonNullList<ItemStack> stacks = NonNullList.<ItemStack>withSize(${data.inventorySize}, ItemStack.EMPTY);
 
-	<#if data.renderType() == 4>
-		<#list data.animations as animation>
-		public final AnimationState animationState${animation?index} = new AnimationState();
-		</#list>
-	</#if>
+	private final LazyOptional<? extends IItemHandler>[] handlers = SidedInvWrapper.create(this, Direction.values());
 
 	public ${name}BlockEntity(BlockPos position, BlockState state) {
-		super(${JavaModName}BlockEntities.${REGISTRYNAME}.get(), position, state);
+		super(${JavaModName}BlockEntities.${data.getModElement().getRegistryNameUpper()}.get(), position, state);
 	}
 
-	@Override public void loadAdditional(CompoundTag compound, HolderLookup.Provider lookupProvider) {
-		super.loadAdditional(compound, lookupProvider);
+	@Override public void load(CompoundTag compound) {
+		super.load(compound);
 
 		if (!this.tryLoadLootTable(compound))
 			this.stacks = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
 
-		ContainerHelper.loadAllItems(compound, this.stacks, lookupProvider);
+		ContainerHelper.loadAllItems(compound, this.stacks);
 
 		<#if data.hasEnergyStorage>
 		if(compound.get("energyStorage") instanceof IntTag intTag)
-			energyStorage.deserializeNBT(lookupProvider, intTag);
+			energyStorage.deserializeNBT(intTag);
 		</#if>
 
 		<#if data.isFluidTank>
 		if(compound.get("fluidTank") instanceof CompoundTag compoundTag)
-			fluidTank.readFromNBT(lookupProvider, compoundTag);
-		</#if>
-
-		<#if data.sensitiveToVibration>
-		if (compound.contains("listener", 10)) {
-			VibrationSystem.Data.CODEC.parse(lookupProvider.createSerializationContext(NbtOps.INSTANCE), compound.getCompound("listener"))
-					.resultOrPartial(e -> ${JavaModName}.LOGGER.error("Failed to parse vibration listener for ${data.name}: '{}'", e))
-					.ifPresent(data -> this.vibrationData = data);
-		}
+			fluidTank.readFromNBT(compoundTag);
 		</#if>
 	}
 
-	@Override public void saveAdditional(CompoundTag compound, HolderLookup.Provider lookupProvider) {
-		super.saveAdditional(compound, lookupProvider);
+	@Override public void saveAdditional(CompoundTag compound) {
+		super.saveAdditional(compound);
 
 		if (!this.trySaveLootTable(compound)) {
-			ContainerHelper.saveAllItems(compound, this.stacks, lookupProvider);
+			ContainerHelper.saveAllItems(compound, this.stacks);
 		}
 
 		<#if data.hasEnergyStorage>
-		compound.put("energyStorage", energyStorage.serializeNBT(lookupProvider));
+		compound.put("energyStorage", energyStorage.serializeNBT());
 		</#if>
 
 		<#if data.isFluidTank>
-		compound.put("fluidTank", fluidTank.writeToNBT(lookupProvider, new CompoundTag()));
-		</#if>
-
-		<#if data.sensitiveToVibration>
-		VibrationSystem.Data.CODEC.encodeStart(lookupProvider.createSerializationContext(NbtOps.INSTANCE), this.vibrationData)
-				.resultOrPartial(e -> ${JavaModName}.LOGGER.error("Failed to encode vibration listener for ${data.name}: '{}'", e))
-				.ifPresent(listener -> compound.put("listener", listener));
+		compound.put("fluidTank", fluidTank.writeToNBT(new CompoundTag()));
 		</#if>
 	}
 
@@ -108,8 +82,8 @@ public class ${name}BlockEntity extends RandomizableContainerBlockEntity impleme
 		return ClientboundBlockEntityDataPacket.create(this);
 	}
 
-	@Override public CompoundTag getUpdateTag(HolderLookup.Provider lookupProvider) {
-		return this.saveWithFullMetadata(lookupProvider);
+	@Override public CompoundTag getUpdateTag() {
+		return this.saveWithFullMetadata();
 	}
 
 	@Override public int getContainerSize() {
@@ -127,14 +101,12 @@ public class ${name}BlockEntity extends RandomizableContainerBlockEntity impleme
 		return Component.literal("${registryname}");
 	}
 
-	<#if data.inventoryStackSize != 99>
 	@Override public int getMaxStackSize() {
 		return ${data.inventoryStackSize};
 	}
-	</#if>
 
 	@Override public AbstractContainerMenu createMenu(int id, Inventory inventory) {
-		<#if !data.guiBoundTo?has_content>
+		<#if !data.guiBoundTo?has_content || data.guiBoundTo == "<NONE>" || !(data.guiBoundTo)?has_content>
 		return ChestMenu.threeRows(id, inventory);
 		<#else>
 		return new ${data.guiBoundTo}Menu(id, inventory, new FriendlyByteBuf(Unpooled.buffer()).writeBlockPos(this.worldPosition));
@@ -161,38 +133,23 @@ public class ${name}BlockEntity extends RandomizableContainerBlockEntity impleme
 		return true;
 	}
 
-	<#-- START: WorldlyContainer -->
+	<#-- START: ISidedInventory -->
 	@Override public int[] getSlotsForFace(Direction side) {
 		return IntStream.range(0, this.getContainerSize()).toArray();
 	}
 
-	@Override public boolean canPlaceItemThroughFace(int index, ItemStack itemstack, @Nullable Direction direction) {
-		return this.canPlaceItem(index, itemstack)
-		<#if hasProcedure(data.inventoryAutomationPlaceCondition)>&&
-			<@procedureCode data.inventoryAutomationPlaceCondition, {
-				"index": "index",
-				"itemstack": "itemstack",
-				"direction": "direction"
-			}, false/>
-		</#if>;
+	@Override public boolean canPlaceItemThroughFace(int index, ItemStack stack, @Nullable Direction direction) {
+		return this.canPlaceItem(index, stack);
 	}
 
-	@Override public boolean canTakeItemThroughFace(int index, ItemStack itemstack, Direction direction) {
+	@Override public boolean canTakeItemThroughFace(int index, ItemStack stack, Direction direction) {
 		<#list data.inventoryInSlotIDs as id>
 		if (index == ${id})
 			return false;
-		</#list>
-		<#if hasProcedure(data.inventoryAutomationTakeCondition)>
-			return <@procedureCode data.inventoryAutomationTakeCondition, {
-				"index": "index",
-				"itemstack": "itemstack",
-				"direction": "direction"
-			}, false/>;
-		<#else>
-			return true;
-		</#if>
+        </#list>
+		return true;
 	}
-	<#-- END: WorldlyContainer -->
+	<#-- END: ISidedInventory -->
 
 	<#if data.hasEnergyStorage>
 	private final EnergyStorage energyStorage = new EnergyStorage(${data.energyCapacity}, ${data.energyMaxReceive}, ${data.energyMaxExtract}, ${data.energyInitial}) {
@@ -214,125 +171,61 @@ public class ${name}BlockEntity extends RandomizableContainerBlockEntity impleme
 			return retval;
 		}
 	};
-
-	public EnergyStorage getEnergyStorage() {
-		return energyStorage;
-	}
-	</#if>
+    </#if>
 
 	<#if data.isFluidTank>
-	private final FluidTank fluidTank = new FluidTank(${data.fluidCapacity}
-		<#if data.fluidRestrictions?has_content>, fs -> {
-		<#list data.fluidRestrictions as fluidRestriction>
-            if (fs.getFluid() == ${fluidRestriction}) return true;
-        </#list>
-		return false;
-		}</#if>
-	) {
-		@Override protected void onContentsChanged() {
-			super.onContentsChanged();
-			setChanged();
-			level.sendBlockUpdated(worldPosition, level.getBlockState(worldPosition), level.getBlockState(worldPosition), 2);
-		}
-	};
+        <#if data.fluidRestrictions?has_content>
+		private final FluidTank fluidTank = new FluidTank(${data.fluidCapacity}, fs -> {
+			<#list data.fluidRestrictions as fluidRestriction>
+                <#if fluidRestriction.getUnmappedValue().startsWith("CUSTOM:")>
+					if(fs.getFluid() ==
+					${JavaModName}Fluids.<#if fluidRestriction.getUnmappedValue().endsWith(":Flowing")>FLOWING_</#if>${generator.getRegistryNameForModElement(fluidRestriction.getUnmappedValue()?remove_beginning("CUSTOM:")?remove_ending(":Flowing"))?upper_case}.get()) return true;
+                <#else>
+				if(fs.getFluid() == Fluids.${fluidRestriction}) return true;
+                </#if>
+            </#list>
 
-	public FluidTank getFluidTank() {
-		return fluidTank;
-	}
+			return false;
+		}) {
+			@Override protected void onContentsChanged() {
+				super.onContentsChanged();
+				setChanged();
+				level.sendBlockUpdated(worldPosition, level.getBlockState(worldPosition), level.getBlockState(worldPosition), 2);
+			}
+		};
+        <#else>
+		private final FluidTank fluidTank = new FluidTank(${data.fluidCapacity}) {
+			@Override protected void onContentsChanged() {
+				super.onContentsChanged();
+				setChanged();
+				level.sendBlockUpdated(worldPosition, level.getBlockState(worldPosition), level.getBlockState(worldPosition), 2);
+			}
+		};
+        </#if>
     </#if>
 
-    <#if data.sensitiveToVibration>
-    @Override public VibrationSystem.Data getVibrationData() {
-    	return this.vibrationData;
-    }
+	@Override public <T> LazyOptional<T> getCapability(Capability<T> capability, @Nullable Direction facing) {
+		if (!this.remove && facing != null && capability == ForgeCapabilities.ITEM_HANDLER)
+			return handlers[facing.ordinal()].cast();
 
-    @Override public VibrationSystem.User getVibrationUser() {
-    	return this.vibrationUser;
-    }
+		<#if data.hasEnergyStorage>
+		if (!this.remove && capability == ForgeCapabilities.ENERGY)
+			return LazyOptional.of(() -> energyStorage).cast();
+        </#if>
 
-    @Override public VibrationSystem.Listener getListener() {
-    	return this.vibrationListener;
-    }
+		<#if data.isFluidTank>
+		if (!this.remove && capability == ForgeCapabilities.FLUID_HANDLER)
+			return LazyOptional.of(() -> fluidTank).cast();
+        </#if>
 
-	private class VibrationUser implements VibrationSystem.User {
-
-		private final int x;
-		private final int y;
-		private final int z;
-		private final PositionSource positionSource;
-
-		public VibrationUser(BlockPos blockPos) {
-			this.x = blockPos.getX();
-			this.y = blockPos.getY();
-			this.z = blockPos.getZ();
-			this.positionSource = new BlockPositionSource(blockPos);
-		}
-
-		@Override public PositionSource getPositionSource() {
-			return this.positionSource;
-		}
-
-		<#if data.vibrationalEvents?has_content>
-		@Override public TagKey<GameEvent> getListenableEvents() {
-			return TagKey.create(Registries.GAME_EVENT, ResourceLocation.withDefaultNamespace("${registryname}_can_listen"));
-		}
-		</#if>
-
-		@Override public int getListenerRadius() {
-			<#if hasProcedure(data.vibrationSensitivityRadius)>
-				Level world = ${name}BlockEntity.this.getLevel();
-				BlockState blockstate = ${name}BlockEntity.this.getBlockState();
-				return (int) <@procedureOBJToNumberCode data.vibrationSensitivityRadius/>;
-			<#else>
-				return ${data.vibrationSensitivityRadius.getFixedValue()};
-			</#if>
-		}
-
-		@Override public boolean canReceiveVibration(ServerLevel world, BlockPos vibrationPos, Holder<GameEvent> holder, GameEvent.Context context) {
-			<#if hasProcedure(data.canReceiveVibrationCondition)>
-				return <@procedureCode data.canReceiveVibrationCondition {
-					"x": "x",
-					"y": "y",
-					"z": "z",
-					"vibrationX": "vibrationPos.getX()",
-					"vibrationY": "vibrationPos.getY()",
-					"vibrationZ": "vibrationPos.getZ()",
-					"world": "world",
-					"entity": "context.sourceEntity()",
-					"blockstate": "${name}BlockEntity.this.getBlockState()"
-				}/>
-			<#else>
-				return true;
-			</#if>
-		}
-
-		@Override public void onReceiveVibration(ServerLevel world, BlockPos vibrationPos, Holder<GameEvent> holder, Entity entity, Entity projectileShooter, float distance) {
-			<#if hasProcedure(data.onReceivedVibration)>
-				<@procedureCode data.onReceivedVibration {
-					"x": "x",
-					"y": "y",
-					"z": "z",
-					"vibrationX": "vibrationPos.getX()",
-					"vibrationY": "vibrationPos.getY()",
-					"vibrationZ": "vibrationPos.getZ()",
-					"world": "world",
-					"blockstate": "${name}BlockEntity.this.getBlockState()",
-					"entity": "entity",
-					"sourceentity": "projectileShooter",
-					"distance": "distance"
-				}/>
-			</#if>
-		}
-
-		@Override public void onDataChanged() {
-			${name}BlockEntity.this.setChanged();
-		}
-
-		@Override public boolean requiresAdjacentChunksToBeTicking() {
-			return true;
-		}
+		return super.getCapability(capability, facing);
 	}
-    </#if>
+
+	@Override public void setRemoved() {
+		super.setRemoved();
+		for(LazyOptional<? extends IItemHandler> handler : handlers)
+			handler.invalidate();
+	}
+
 }
-</@javacompress>
 <#-- @formatter:on -->

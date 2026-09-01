@@ -36,43 +36,19 @@
 
 package ${package}.init;
 
-<#assign blockentitiesWithInventory = w.getGElementsOfType("block")?filter(e -> e.hasInventory)>
-
-<#if blockentitiesWithInventory?size != 0>
-@EventBusSubscriber
-</#if>
 public class ${JavaModName}BlockEntities {
 
-	public static final DeferredRegister<BlockEntityType<?>> REGISTRY = DeferredRegister.create(BuiltInRegistries.BLOCK_ENTITY_TYPE, ${JavaModName}.MODID);
+	public static final DeferredRegister<BlockEntityType<?>> REGISTRY = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, ${JavaModName}.MODID);
 
 	<#list blockentities as blockentity>
-	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<${blockentity.getModElement().getName()}BlockEntity>> ${blockentity.getModElement().getRegistryNameUpper()} =
+	public static final RegistryObject<BlockEntityType<?>> ${blockentity.getModElement().getRegistryNameUpper()} =
 		register("${blockentity.getModElement().getRegistryName()}", ${JavaModName}Blocks.${blockentity.getModElement().getRegistryNameUpper()},
 			${blockentity.getModElement().getName()}BlockEntity::new);
 	</#list>
 
-	// Start of user code block custom block entities
-	// End of user code block custom block entities
-
-	private static <T extends BlockEntity> DeferredHolder<BlockEntityType<?>, BlockEntityType<T>> register(String registryname, DeferredHolder<Block, Block> block, BlockEntityType.BlockEntitySupplier<T> supplier) {
+	private static RegistryObject<BlockEntityType<?>> register(String registryname, RegistryObject<Block> block, BlockEntityType.BlockEntitySupplier<?> supplier) {
 		return REGISTRY.register(registryname, () -> BlockEntityType.Builder.of(supplier, block.get()).build(null));
 	}
-
-	<#if blockentitiesWithInventory?size != 0>
-	<@javacompress>
-	@SubscribeEvent public static void registerCapabilities(RegisterCapabilitiesEvent event) {
-		<#list blockentitiesWithInventory as blockentity>
-			event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ${blockentity.getModElement().getRegistryNameUpper()}.get(), SidedInvWrapper::new);
-			<#if blockentity.hasEnergyStorage>
-			event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ${blockentity.getModElement().getRegistryNameUpper()}.get(), (blockEntity, side) -> blockEntity.getEnergyStorage());
-			</#if>
-			<#if blockentity.isFluidTank>
-			event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ${blockentity.getModElement().getRegistryNameUpper()}.get(), (blockEntity, side) -> blockEntity.getFluidTank());
-			</#if>
-		</#list>
-	}
-	</@javacompress>
-	</#if>
 
 }
 <#-- @formatter:on -->

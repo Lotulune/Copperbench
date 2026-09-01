@@ -29,7 +29,7 @@ public class ${name}MobEffect extends <#if data.isInstant>Instantenous</#if>MobE
 	public ${name}MobEffect() {
 		super(MobEffectCategory.${data.mobEffectCategory}, ${data.color.getRGB()}<#if data.hasCustomParticle()>, ${data.particle}</#if>);
 		<#if data.onAddedSound?has_content && data.onAddedSound.getMappedValue()?has_content>
-		this.withSoundOnAdded(BuiltInRegistries.SOUND_EVENT.getValue(new ResourceLocation("${data.onAddedSound}")));
+		this.withSoundOnAdded(BuiltInRegistries.SOUND_EVENT.get(new ResourceLocation("${data.onAddedSound}")));
 		</#if>
 		<#list data.modifiers as modifier>
 		this.addAttributeModifier(${modifier.attribute},

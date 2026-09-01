@@ -1,19 +1,19 @@
 <#--
  # This file is part of Fabric-Generator-MCreator.
- # Copyright (C) 2020-2026, Goldorion, opensource contributors
+ # Copyright (C) 2020-2023, Goldorion, opensource contributors
  #
  # Fabric-Generator-MCreator is free software: you can redistribute it and/or modify
- # it under the terms of the GNU General Public License as published by
+ # it under the terms of the GNU Lesser General Public License as published by
  # the Free Software Foundation, either version 3 of the License, or
  # (at your option) any later version.
- #
+
  # Fabric-Generator-MCreator is distributed in the hope that it will be useful,
  # but WITHOUT ANY WARRANTY; without even the implied warranty of
  # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- # GNU General Public License for more details.
+ # GNU Lesser General Public License for more details.
  #
- # You should have received a copy of the GNU General Public License
- # along with Fabric-Generator-MCreator. If not, see <https://www.gnu.org/licenses/>.
+ # You should have received a copy of the GNU Lesser General Public License
+ # along with Fabric-Generator-MCreator.  If not, see <https://www.gnu.org/licenses/>.
 -->
 
 <#-- @formatter:off -->
@@ -23,20 +23,17 @@
 
 package ${package}.init;
 
+import net.fabricmc.api.Environment;
+
 @Environment(EnvType.CLIENT) public class ${JavaModName}Overlays {
 
-	public static void clientLoad() {
-		<#list overlays as overlay>
-			register(<#if overlay.overlayTarget != "VanillaHudElements.MISC_OVERLAYS" && overlay.overlayTarget?starts_with("VanillaHudElements")>${overlay.overlayTarget},</#if>"${overlay.getModElement().getRegistryName()}", ${overlay.getModElement().getName()}Overlay::render);
-		</#list>
+	public static void load() {
+		HudRenderCallback.EVENT.register((matrices, tickDelta) -> {
+			<#list w.getElementsOfType("overlay") as overlay>
+				${overlay}Overlay.render(matrices, tickDelta);
+			</#list>
+		});
 	}
 
-	private static void register(ResourceLocation identifier, String registryname, HudElement element) {
-		HudElementRegistry.attachElementAfter(identifier, new ResourceLocation(${JavaModName}.MODID, registryname), element);
-	}
-
-	private static void register(String registryname, HudElement element) {
-		register(VanillaHudElements.MISC_OVERLAYS, registryname, element);
-	}
 }
 <#-- @formatter:on -->
