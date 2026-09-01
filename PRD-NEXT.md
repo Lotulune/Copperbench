@@ -1,10 +1,10 @@
-# Copperbench 下一步 PRD：阶段 10 Public Beta 收口与阶段 11 全量 Mod Element 支持
+# Copperbench PRD：Public Beta 基线、Stage 11 全量 Mod Element 与后续产品深化路线
 
-> 状态：Stage 11 功能、固定提交 Nightly、签名 Preview 7 与候选所需 Windows 安装/升级/卸载 RC 已完成；进入 `v0.1.0-beta.3` exact-binary promotion release-control；图形化 clean-Windows `runClient` 仍不在本 Beta 宣称范围<br>
-> 版本：v1.4<br>
-> 更新日期：2026-09-01<br>
+> 状态：Public Beta `v0.1.0-beta.3` 已发布；Stage 11 全量 Java Mod Element 支持已完成；后续开发转入 Stage 12～14 的“创作深度、生产力与高级开发者体验”路线<br>
+> 版本：v1.5<br>
+> 更新日期：2026-09-02<br>
 > 前置基线：[PRD.md](./PRD.md)、[PRD-STAGE-9.md](./PRD-STAGE-9.md)<br>
-> 当前公开 Beta：`v0.1.0-beta.2`（`main@8b063283`，release run `33334394466`）；下一 Beta 目标为 `v0.1.0-beta.3`，冻结候选为 `v0.1.0-preview.7`（`f4b58062`，release run `33506364499`）
+> 当前公开 Beta：`v0.1.0-beta.3`（release-control `7956dcb9`，release run `33515908561`）；canonical EXE/ZIP/MSIX/SBOM 与签名候选 `v0.1.0-preview.7` 完全同 size/SHA-256；当前主线已推进到 `main@af1b6ed9`
 
 ## 2026-08-31 Public Beta publication and metadata correction
 
@@ -12,13 +12,21 @@
 
 发布后验收发现 Beta 1 随包的权威 `product-status.json` 仍声明 `product.channel=preview`；该元数据问题已由不可变的新标签 `v0.1.0-beta.2` 修正。Beta 2 release run `33334394466` 成功，随包 `product.channel=beta`、`delivery.betaRelease.tag=v0.1.0-beta.2`，并继续原样晋升 Preview 6 的四个 canonical 资产。真实 JCEF 无障碍审计、最终 clean-Windows RC replay 和五人外部试用继续排除在当前 Beta scope 之外，不宣称其已通过。详见 [Beta 2 publication verification](./docs/testing/beta2-publication-2026-08-31.md)。
 
+## 2026-09-02 Stage 11 与 Beta 3 收口
+
+Stage 11 已把现有 30 种原 `readOnly` / `legacyOnly` Java Mod Element 全部提升为 first-party `supported`，与既有 7 种核心类型合计形成 37 种第一方 Java Mod Element 覆盖。全类型 CRUD、持久化与未知字段保留、导入/迁移、UI/MCP/headless 语义、诊断脱敏以及 8-generator Gradle/JAR matrix 均已取得固定实现证据。
+
+签名候选 `v0.1.0-preview.7` 来自 `f4b58062`；其 exact-binary promotion `v0.1.0-beta.3` 已由 release-control `7956dcb9` 和 release run `33515908561` 成功公开。Beta 3 的 EXE、ZIP、MSIX 与 SBOM 与 Preview 7 canonical 资产逐项保持相同 size / SHA-256，因此 Stage 11 的“实现 → Nightly → 候选 → Windows 安装/升级/卸载 → exact-binary Beta”闭环已完成。
+
+Beta 3 发布后又完成两组只影响测试基础设施的 Stage 9 harness 加固：IPC 扫描不再误读 Gradle/JDK 二进制缓存，workspace lifecycle 不再硬编码测试工作区且不会把 GLFW/OpenGL 初始化错误窗口判定为 `runClient` 成功；GUI gate 也修复了 workspace 主窗口先出现时可能漏采 generator setup dialog 的竞态。当前 `main@af1b6ed9` 的 Java/Javadoc、UI、Windows Stage 9 regression、MCP 与 JUnit merged-main CI 全绿。这些后续 harness 变更不改变 Beta 3 产品二进制。
+
 ## 0. 阅读与执行协议
 
-- 本文件是阶段 10 的唯一产品需求入口；`PRD.md` 和 `PRD-STAGE-9.md` 作为已实现能力与历史需求基线。
+- 本文件同时承担阶段 10～11 的历史产品基线与 Stage 12～14 的后续产品需求入口；`PRD.md` 和 `PRD-STAGE-9.md` 作为更早已实现能力与历史需求基线。
 - 功能状态以源码、自动测试和固定提交产生的证据为准。README、Release Notes 或历史 evidence 不能单独证明能力已完成。
 - 每个实现任务和 PR 必须引用本文件中的需求编号。
 - 关闭需求必须同时满足实现、自动验证、用户文档和可追溯证据，不接受只修改状态文字。
-- 本阶段冻结新模组元素类型，已建立“提交 → CI → 产物 → Release”可信闭环；无障碍、最终 RC 和外部试用不纳入当前 Beta 宣称，但候选包和签名来源仍是必需项。
+- Stage 10～11 已建立“提交 → CI → 产物 → Release”的可信闭环。Stage 12 起不再把图形化 clean-Windows `runClient` 环境复验、真实 JCEF 无障碍、五人外部试用、Authenticode、Linux/macOS 作为版本门禁；这些项目仅在未来单独 ADR/PRD 重新纳入时恢复为交付条件。
 
 ### 0.1 实施快照（2026-08-31）
 
@@ -306,13 +314,13 @@ Issue 模板必须收集版本、commit、生成器、元素类型、复现步�
 - 至少 5 名外部试用者完成全任务。
 - 所有高风险能力有固定提交证据；未验证项明确降级或移出宣称。
 
-当前公开版本仍为 `v0.1.0-beta.2`，其状态源 channel 修正与 exact-binary promotion 均已验证。Stage 11 后续产品变更已经建立新的签名候选 `v0.1.0-preview.7`：固定 `main@f4b58062` 的 merged-main CI 与 Nightly 已通过，Preview release/provenance 已通过，公开 EXE 的候选所需 Windows install/upgrade/uninstall、offline workspace launch 与 retention replay 也已得到 `gatePromotionReady=true`。因此下一步仅允许 evidence/status/docs release-control 变更并将 Preview 7 原字节提升为 `v0.1.0-beta.3`；任何产品、构建、运行时或工具实现变更都必须重新建立 Preview 候选。当前 Hyper-V 客机没有可用 OpenGL profile，图形化 clean-Windows `runClient` replay 无法形成通过证据，继续与真实 JCEF 无障碍和外部试用一起从本 Beta 宣称范围移除。
+当前公开版本为 `v0.1.0-beta.3`。Stage 11 的签名候选 `v0.1.0-preview.7` 已完成固定提交 CI/Nightly、Windows install/upgrade/uninstall 与 retention 验证，并通过 release-control `7956dcb9` / release run `33515908561` 以 exact-binary 方式原样晋升。Stage 11 发布控制已完成；后续产品开发不再继续延长 Beta 3 门禁，而是按第 11 节进入产品深化路线。
 
 ### 7.4 下一功能版本（Stage 11）：全量 Mod Element 一等支持
 
 **产品决策：下一功能版本必须把当前 30 种 `readOnly` / `legacyOnly` Java Mod Element 全部升级为 Copperbench first-party `supported`。** 开发过程允许分批落地，但下一功能版本不得在仍有这些类型停留于 `readOnly`、`legacyOnly`、`unsupportedInNewUi` 或“只能导入不能修改”的情况下宣称完成。
 
-实施状态（2026-09-01）：**Stage 11 功能与候选验收已完成，进入 Beta 3 release-control。** 30 种目标 Java Mod Element 已全部进入 first-party `supported` 路径；全类型持久化/未知字段 round-trip、导入、迁移、UI/status contract 和核心 Java 回归通过。`NewWorkspaceGeneratorGoldenBuildTest` 的 8-generator Stage 11 全量工作区为 8/8 PASS，所有轨道均完成真实 Gradle build 与 JAR 输出，JAR/mixin 一致性门禁也会验证 mixin JSON 中声明的每个 mixin 类真实存在于产物。固定提交 `f4b58062` 的 Nightly `33503172036` 已完成产品回归与 8/8 generator golden；签名 `v0.1.0-preview.7` 的 Windows release run `33506364499` 已发布；公开 EXE SHA-256 `716a93ea45278d71b2ef80eeee3bd4d0ec315891c349478cff50ed093db90d93` 已完成 GUI 新建工作区、真实 workspace Gradle build/JAR，以及 Stage 11 候选要求的 upgrade/offline/uninstall retention RC replay，机器结果为 `gatePromotionReady=true`。图形化 `runClient` 在当前 Hyper-V 客机上因无可用 OpenGL profile 进入 NeoForge 初始化错误窗口，原 lifecycle harness 将该窗口误判为 stable，因此该图形化 replay 不宣称通过并继续移出 Beta 3 scope。候选证据见 [`docs/testing/beta-candidate-preview7-2026-09-01.md`](./docs/testing/beta-candidate-preview7-2026-09-01.md)。下一步只允许 exact-binary promotion 所允许的 evidence/status/docs 变化，把 Preview 7 canonical bytes 原样提升为 Beta 3。
+实施状态（2026-09-02）：**Stage 11 已完成并随 `v0.1.0-beta.3` 公开。** 30 种目标 Java Mod Element 已全部进入 first-party `supported` 路径；全类型持久化/未知字段 round-trip、导入、迁移、UI/status contract 和核心 Java 回归通过。`NewWorkspaceGeneratorGoldenBuildTest` 的 8-generator Stage 11 全量工作区为 8/8 PASS，所有轨道均完成真实 Gradle build 与 JAR 输出，JAR/mixin 一致性门禁也验证 mixin JSON 中声明的每个 mixin 类真实存在于产物。固定提交 `f4b58062` 的 Nightly `33503172036` 已完成产品回归与 8/8 generator golden；签名 `v0.1.0-preview.7` 的 Windows release run `33506364499` 已发布；公开 EXE SHA-256 `716a93ea45278d71b2ef80eeee3bd4d0ec315891c349478cff50ed093db90d93` 完成了 GUI 新建工作区和 Stage 11 候选要求的 upgrade/offline/uninstall retention replay。随后 `v0.1.0-beta.3` release run `33515908561` 将 Preview 7 canonical bytes 原样公开。Stage 11 后续仅保留回归维护，不再作为新增功能阶段。
 
 本阶段覆盖以下 30 种类型：
 
@@ -389,4 +397,340 @@ Bedrock Add-on 的 `bebiome`、`beblock`、`beentity`、`beitem`、`bescript` �
 6. 全量元素支持不得回退现有 Block/Item/Recipe/Procedure/Function/Loot Table/Advancement、工作区生命周期、构建运行、诊断、MCP、历史恢复和发布链能力。
 7. 下一功能版本候选必须从新的冻结 commit/tag 重新执行 CI、Nightly、Windows 安装/升级/卸载、Release provenance 与候选资产验证；不得直接复用 `v0.1.0-beta.2` 二进制。
 
-阶段 10 已完成。阶段 11 的下一功能版本不再只做少数高价值元素试点，而是以“当前 30 种 read-only / legacy-only Java Mod Element 全部转为 first-party supported”为完成条件；具体门禁见 7.4 与 10.1。
+阶段 10 与 Stage 11 均已完成。Stage 11 的 37 种第一方 Java Mod Element 覆盖成为后续开发基线；未来工作不再以“增加支持类型数量”为主要目标，而以“复杂元素编辑深度、创作效率、诊断能力和高级开发者工作流”为主，具体规划见第 11 节。
+
+## 11. Stage 12～14 后续产品深化路线
+
+### 11.0 路线决策与执行原则
+
+`v0.1.0-beta.3` 之后，Copperbench 已具备“真实模组项目可用”的基础闭环。后续开发不再追求更多 `supported` 类型数量，而是把已经支持的 37 种 Java Mod Element 从“能够创建/保存/生成/构建”继续深化到“复杂项目中高效、可理解、可诊断、可维护”。
+
+后续路线遵循以下原则：
+
+1. **优先解决真实创作摩擦，而不是增加门禁数量。** 用户能否更快完成复杂实体、世界生成、GUI、Procedure 和资产工作流，比新增环境验收更重要。
+2. **每个阶段可以独立发布。** Stage 12、13、14 不是必须一次完成的单一大版本；每个 Wave 达到自身 DoD 后即可形成独立功能版本。
+3. **保持 Core 单一语义。** UI、MCP、headless、导入/迁移、历史恢复继续共享相同 schema、验证、引用和持久化模型，不为某个界面创建第二套业务规则。
+4. **优先高频复杂类型。** `livingentity`、`biome`、`dimension`、`gui` 是 Stage 12 第一优先级；其它类型按对真实模组开发的价值继续分批深化。
+5. **复杂项目必须可恢复。** 批量修改、迁移、AI 操作和高级编辑器仍必须进入 revision / recovery-point / semantic diff 保护。
+6. **不为已明确排除的环境项重新制造发布阻断。** 第 11.6 节列出的项目不进入 Stage 12～14 DoD。
+
+### 11.1 总体拆分
+
+| 阶段 | 优先级 | 核心目标 | 主要用户收益 | 建议交付方式 |
+| --- | --- | --- | --- | --- |
+| Stage 12：复杂元素编辑深度 | P0 | 把高价值复杂元素从“技术支持”提升为“专业创作体验” | 不依赖通用字段面板即可完成常见实体、世界生成和 GUI 场景 | 12A / 12B / 12C 三个可独立发布 Wave |
+| Stage 13：创作者生产力 | P1 | 深化 Procedure、资产、诊断、历史和迁移工作流 | 大型项目更快定位、修改、构建和恢复 | 可按 Procedure / Asset / Diagnostics 三条线并行 |
+| Stage 14：高级开发者与 AI-native 工作流 | P2 | 强化手写代码、IDE、批量重构、AI 计划审阅和扩展能力 | 高级作者能把 Copperbench 当作长期工程环境而非单次生成器 | API 稳定后逐项开放，不要求一次完成 |
+| Continuous：版本与兼容维护 | 持续 | 保持现有能力随 Minecraft、Loader、JDK/JCEF/Gradle 与上游工作区演进 | 已有项目不因平台升级快速失效 | 与每个功能版本并行执行 |
+
+---
+
+### 11.2 Stage 12：复杂 Mod Element 编辑深度
+
+#### 11.2.1 产品目标
+
+Stage 11 已解决“37 种 Java Mod Element 是否能作为 first-party 类型被创建、编辑、保存和构建”的问题；Stage 12 解决“复杂类型是否足够适合真实日常创作”的问题。
+
+Stage 12 不要求复制上游 MCreator 每一个 Swing 控件，而要求围绕常见创作任务建立 Copperbench 自己的类型化工作流：字段分组、资源/元素选择器、预览、引用提示、条件显示、诊断和生成器 capability 必须形成一致体验。
+
+#### FR-DEPTH-01 Living Entity 与实体创作工作台
+
+为 `livingentity` 建立第一优先级专用编辑体验，并复用公共实体组件到 `specialentity`、`projectile`：
+
+- 基础身份、尺寸、属性、模型/纹理、声音和资源引用分区；
+- 行为、事件/Procedure 引用、掉落、生成条件等按 generator capability 显示；
+- 所有元素/资源引用使用统一选择器，显示缺失和跨版本不兼容诊断；
+- 修改后可查看语义摘要与生成影响，不要求用户阅读原始 JSON；
+- 上游未知字段继续无损保留，专用编辑器不得因“未显示字段”而删除数据。
+
+#### FR-DEPTH-02 Biome / Dimension 世界环境编辑工作台
+
+优先深化 `biome` 与 `dimension`，建立可复用的 World/Registry 编辑组件：
+
+- 环境参数、视觉/声音、生成规则、结构/feature、资源引用按领域分组；
+- registry/resource picker 必须显示来源、类型和版本 capability；
+- 不适用字段必须显式解释原因，不得静默隐藏导致用户误以为已生效；
+- 跨 Fabric/NeoForge 或版本迁移时给出字段级保留、转换、降级和待人工处理清单。
+
+#### FR-DEPTH-03 GUI / Overlay 可视化布局工作台
+
+深化 `gui` 与 `overlay`：
+
+- 提供层级/组件树、属性检查器和基础布局预览；
+- 控件事件可以直接绑定 Procedure / Function 等已有元素；
+- 图片、纹理和字体等资源引用进入统一资产选择器；
+- 对分辨率、锚点、尺寸和重叠问题提供即时诊断；
+- 保存结果继续走 Core schema，不允许 UI 产生无法被 MCP/headless 读取的私有格式。
+
+#### FR-DEPTH-04 Worldgen 与内容生成组件
+
+在 FR-DEPTH-02 的公共组件基础上深化 `feature`、`structure`、`fluid`、`plant`：
+
+- worldgen/resource 引用统一可视化；
+- 结构、feature、放置规则和维度/生物群系关系可被引用索引追踪；
+- 资源缺失、循环引用、generator 不支持和版本漂移给出稳定诊断码；
+- 代表性 fixture 必须进入适用 generator 的真实生成/构建回归。
+
+#### FR-DEPTH-05 装备、战斗与玩法数据编辑组件
+
+深化 `armor`、`tool`、`enchantment`、`potion`、`potioneffect`、`damagetype`、`attribute`、`itemextension`：
+
+- 建立可复用的数值、枚举、装备槽、效果、属性 modifier 与资源引用控件；
+- 显示默认值、合法范围和 loader/version 差异；
+- 常见错误在保存前以字段级诊断阻断，而不是等待 Gradle 编译失败。
+
+#### FR-DEPTH-06 长尾数据与系统类型整理
+
+对 `command`、`gamerule`、`keybind`、`painting`、`particle`、`tab`、`armortrim`、`bannerpattern`、`villagerprofession`、`villagertrade`、`code` 等长尾类型统一完成：
+
+- 字段分组和类型化控件；
+- capability / reason code 可见；
+- 元素/资源引用可跳转；
+- 创建模板与默认值可解释；
+- UI、MCP、headless schema 一致。
+
+#### 11.2.2 Stage 12 分批
+
+| Wave | 范围 | 原因 | 完成后可独立发布 |
+| --- | --- | --- | --- |
+| 12A | `livingentity`、`biome`、`dimension`、`gui` | 最能决定复杂模组开发是否“顺手”的四类高价值元素 | 是 |
+| 12B | `projectile`、`specialentity`、`overlay`、`feature`、`structure`、`fluid`、`plant` | 复用 12A 的实体、UI 和 worldgen 基础组件 | 是 |
+| 12C | 装备/战斗/系统/长尾类型 | 统一剩余类型的专业化编辑与字段体验 | 是 |
+
+#### 11.2.3 Stage 12 Definition of Done
+
+每个 Wave 完成必须满足：
+
+1. Wave 内高频常见场景可以仅使用类型化 UI 完成，不要求编辑原始 JSON 或手写生成器文件。
+2. UI、MCP、headless 对新增字段模型保持同一 schema / validation / persistence 语义。
+3. 上游工作区 open → edit → save → reopen 未编辑字段与未知字段无静默损失。
+4. 代表性 fixture 在所有声明支持的 generator/type 组合生成并构建成功；不适用组合有明确 capability/reason code。
+5. 引用、资源缺失、非法值和迁移差异具有字段级诊断和可跳转位置。
+6. Wave 合入不得降低 Stage 11 既有 37 类型 CRUD 与 8-generator golden 基线。
+
+---
+
+### 11.3 Stage 13：创作者生产力与大型项目体验
+
+#### 11.3.1 产品目标
+
+Stage 13 不增加新的 Mod Element 类型，目标是降低真实项目在“找东西、改逻辑、管理资产、理解失败、恢复改动”上的时间成本。
+
+#### FR-PROD-01 Procedure 工作台 2.0
+
+在现有 Blockly / Procedure IR 基础上继续深化：
+
+- 节点/动作搜索、分类过滤和最近使用；
+- 变量、元素引用、资源引用和调用关系侧栏；
+- 节点级即时诊断与错误路径跳转；
+- 大型 Procedure 的结构大纲、搜索结果导航和选中节点定位；
+- 常见重构操作，例如提取可复用逻辑、批量替换引用或重命名影响预览，必须先生成 semantic diff / recovery point；
+- 继续保持 500 节点基线为回归下限，不因增强 UI 退化已有性能与序列化保真。
+
+#### FR-PROD-02 Asset Center 统一资产中心
+
+把纹理、模型、声音、语言和其它资源从“文件集合”提升为项目资产系统：
+
+- 统一资产树、搜索、类型过滤和预览；
+- 显示“被哪些元素使用”的反向引用；
+- 检测缺失资产、失效路径、重复资产和可安全清理的未使用资产；
+- 支持拖放/批量导入，并在写入前预览目标路径和冲突；
+- Blockbench 往返继续使用受管外部进程，但保存后自动刷新引用、预览和 recovery point；
+- 资产重命名/移动必须通过引用索引预览影响，禁止静默制造悬空引用。
+
+#### FR-PROD-03 Diagnostics 2.0：从日志到元素/字段
+
+建立统一的“失败 → 原因 → 位置 → 修复建议”链：
+
+- Gradle、generator、资源处理、迁移、MCP 和运行任务错误统一映射为稳定错误 ID；
+- 尽可能映射到具体 Mod Element、字段路径、Procedure 节点或资产；
+- UI 提供“打开元素”“跳到字段”“查看生成源码”“打开完整日志”等明确动作；
+- 对可确定的常见问题提供修复建议或安全的一键修正计划；
+- 自动修复必须经过 semantic diff / recovery point，不允许直接修改后无法回退。
+
+#### FR-PROD-04 本地历史与恢复体验
+
+深化现有 local history / recovery point：
+
+- 支持用户命名恢复点和自动恢复点来源标签；
+- 展示元素、字段、资产层面的语义差异，而非仅文件 diff；
+- 恢复前明确列出受影响对象；
+- AI、迁移、批量重构和 datagen 发布统一使用同一恢复时间线；
+- 恢复后自动运行引用和结构完整性检查。
+
+#### FR-PROD-05 Migration / Refactor 工作台
+
+把 loader/version migration 从一次性转换提升为可审阅工程操作：
+
+- 迁移前 capability matrix；
+- 元素级“可直接转换 / 自动降级 / 需人工处理 / 不适用”分类；
+- 批量重命名、移动、替换引用先生成影响图和计划；
+- 默认复制到新工作区，除非未来 ADR 明确允许原地迁移；
+- 迁移结果可与源工作区做语义对比。
+
+#### FR-PROD-06 Workspace Health 项目健康面板
+
+提供一个不依赖构建失败才发现问题的项目视图：
+
+- 诊断总数、悬空引用、缺失资产、未使用资产、generator capability 差异；
+- 最近失败任务和恢复点；
+- 高风险迁移/AI 批量变更提示；
+- 只显示可解释的静态事实，不引入未经用户同意的远程遥测评分。
+
+#### 11.3.2 Stage 13 Definition of Done
+
+1. 代表性的“创建/修改 → 构建失败 → 定位 → 修复 → 重建”流程可以在 Copperbench 内完成，不要求用户手工翻找 Gradle 目录。
+2. Procedure、资产、诊断和历史共享同一引用索引与 revision/recovery 机制。
+3. 资产移动、批量重命名和迁移均有影响预览，不产生无诊断的悬空引用。
+4. 500-node Procedure 与 2,000-element / 10,000-reference 大型工作区既有性能基线不得出现显著回归。
+5. 关键生产力动作通过 UI 与 MCP 暴露同一 Core 能力；MCP 不直接操作 UI 私有状态。
+
+---
+
+### 11.4 Stage 14：高级开发者与 AI-native 工程工作流
+
+#### 11.4.1 产品目标
+
+Stage 14 面向希望长期维护复杂项目、愿意使用 Java/IDE 或外部 AI 的高级模组作者。目标不是把 Copperbench 变成完整 IDE，而是让可视化创作、生成代码、手写扩展和 AI 修改能够在一个可审阅、可恢复的工程模型中协作。
+
+#### FR-ADV-01 Generated / Manual Source 工程边界
+
+- 对 generated source、manual source、generator-owned resource 建立清晰 ownership；
+- generated 文件只读展示并可查看“由哪个元素/字段生成”；
+- manual source 提供独立目录和生命周期，重新生成不得覆盖；
+- 当 manual code 引用被迁移/删除的元素时进入 reference/diagnostic 系统；
+- 生成前后可以查看源码差异，但源码 diff 不替代元素 semantic diff。
+
+#### FR-ADV-02 IDE Bridge
+
+- 从工作区一键打开 IntelliJ IDEA / VS Code 等外部 IDE；
+- 传递正确的工作区、Wrapper、JDK 与 Gradle 环境信息；
+- 外部编辑后文件变化由 Copperbench 检测并更新诊断/历史；
+- 不承诺成为 IDE 调试器，也不复制 IDE 的代码智能功能。
+
+#### FR-ADV-03 AI Plan Review 工作台
+
+在现有 Workspace Plan / MCP 上增加面向创作者的审阅界面：
+
+- 按元素、字段、资产和 Procedure 节点展示 AI 计划；
+- 高风险操作分组显示并要求用户确认；
+- 应用前自动 recovery point；
+- 应用后展示实际结果与计划差异；
+- 长任务继续使用 Task Events / `get_task(afterLogSequence)` 可恢复模型，不创建第二套 AI 专用任务系统。
+
+#### FR-ADV-04 高层 MCP / 批量工程操作
+
+逐步把真实高频工程任务提升为高层工具，而不是要求 AI 连续调用大量低层 CRUD：
+
+- 批量重命名与引用更新；
+- 模板化创建一组相关元素；
+- 项目健康检查与可修复问题计划；
+- 构建失败后的诊断收集与修复计划；
+- 大规模迁移/重构的 preview → apply → rollback。
+
+所有高层工具必须落到同一 Core command/plan 模型，并保留权限、幂等、revision 和恢复语义。
+
+#### FR-ADV-05 模板与可复用创作单元
+
+- 支持把一组元素、Procedure 和资产打包为本地模板；
+- 导入模板前检查名称、ID、资源和 generator capability 冲突；
+- 模板实例化通过 Workspace Plan 完成，可预览、可回滚；
+- 默认仅本地文件，不在本阶段引入账号、云市场或远程模板商店。
+
+#### FR-ADV-06 扩展/生成器开发者入口
+
+在不承诺立即稳定第三方 ABI 的前提下整理：
+
+- generator capability manifest；
+- schema/version compatibility 规则；
+- 最小示例与 conformance fixture；
+- 插件错误隔离与诊断边界。
+
+任何“正式第三方插件 SDK”承诺必须先经过独立 ADR，明确兼容周期和破坏性变更策略；Stage 14 可以先改善内部/实验性开发入口，不因 SDK 尚未稳定阻塞其它高级功能。
+
+#### 11.4.2 Stage 14 Definition of Done
+
+1. 可视化元素、generated source、manual source、AI plan 和外部 IDE 修改之间的 ownership 清晰且不会互相静默覆盖。
+2. AI 高层操作全部可以 preview、审批、应用、观察结果并恢复。
+3. 批量操作保持 revision / idempotency / permission profile / recovery point 约束。
+4. 外部 IDE 或 AI 不得绕过 Copperbench 的核心工作区完整性检查后直接宣称操作成功。
+5. 扩展能力若仍为实验性，必须显式标记兼容级别，不使用“稳定 SDK”措辞。
+
+---
+
+### 11.5 Continuous：版本、兼容与回归维护轨道
+
+以下工作与 Stage 12～14 并行，不单独定义为一个必须等完才能发布的阶段：
+
+#### NFR-MAINT-01 Minecraft / Loader 轨道维护
+
+- 当前 8 条 Fabric/NeoForge 轨道继续作为受支持基线；
+- 新 Minecraft / Loader 版本引入时必须先建立 generator capability、workspace fixture 和真实 Gradle build；
+- 废弃旧轨道必须有明确生命周期说明，不因新增版本静默删除已有项目支持。
+
+#### NFR-MAINT-02 上游 MCreator 工作区兼容
+
+- 定期用代表性上游 workspace fixture 检查导入、保存和未知字段保留；
+- 上游字段/格式变化优先通过兼容层适配，不要求用户重建项目；
+- 无法安全转换时保持只读保留并给出稳定诊断，禁止猜测转换。
+
+#### NFR-MAINT-03 工具链升级
+
+- JDK/JCEF、Gradle、Node、Playwright 与依赖升级走独立 PR；
+- 升级必须保留 Java/UI/MCP 和 generator regression；
+- 工具链升级不得与大型功能改造混成无法定位回归的单一提交。
+
+#### NFR-MAINT-04 真实用户缺陷驱动回归
+
+- Public Beta 用户报告的 P0/P1 问题优先转化为最小稳定回归测试；
+- 修复必须先复现根因，再增加测试，避免只针对日志文本或一次性环境打补丁；
+- 与某个 generator/version 相关的问题进入 capability matrix 或 fixture，避免其它轨道重复发生。
+
+#### NFR-MAINT-05 性能预算
+
+- 500-node Procedure、2,000 elements / 10,000 references、8-generator build 继续作为回归基线；
+- Stage 12～14 的新 UI/索引功能不得引入明显的 O(n²) 扫描或无界列表；
+- 性能失败优先通过算法/索引修复，不通过提高超时掩盖。
+
+---
+
+### 11.6 明确排除项
+
+根据当前产品决策，下列项目**不属于 Stage 12～14 的版本门禁、未来开发必做项或发布阻断项**：
+
+- 专门寻找带可用 OpenGL/GLFW 的 clean Windows 环境重做图形化 `runClient` 验收；
+- 真实 JCEF + UIA/屏幕阅读器无障碍认证、物理 150%/175%/200% DPI 人工审计；
+- “至少 5 名外部测试者”形式化试用门禁；
+- Authenticode / SmartScreen 商业签名；
+- Linux / macOS 安装包与正式支持；
+- Windows 10 支持；
+- Bedrock Add-on first-party 支持；若未来决定进入 Bedrock，必须单独建立平台 PRD；
+- 账号、云同步、遥测、远程 MCP、内置厂商聊天或在线市场，除非未来独立 ADR/PRD 明确批准。
+
+“排除”表示不主动投入专门门禁或把它们作为版本完成条件，并不表示删除已经存在的 `runClient`、JCEF UI 或相关代码路径。若真实用户报告这些路径中的明确产品 bug，仍按正常缺陷优先级处理。
+
+---
+
+### 11.7 推荐开发顺序
+
+建议未来开发按以下顺序推进，但不绑定具体日历日期：
+
+1. **Stage 12A**：`livingentity` + `biome` + `dimension` + `gui` 专用编辑深度。
+2. **Stage 12B**：复用 12A 公共组件，完成实体/worldgen/UI 周边类型。
+3. **Stage 13A**：Procedure 2.0 与引用/诊断联动。
+4. **Stage 13B**：Asset Center 与 Diagnostics 2.0；这两项可以与 Stage 12C 部分并行。
+5. **Stage 12C / Stage 13C**：长尾类型专业化、本地历史与 Migration/Refactor 工作台收口。
+6. **Stage 14**：在 Core schema / plan / reference / recovery 模型稳定后推进 IDE、AI Plan Review、高层 MCP 和模板/扩展能力。
+
+优先级改变只能基于以下信息：真实用户高频痛点、P0/P1 缺陷、Minecraft/Loader 生态版本变化或已经测得的工程阻塞；不因为“某项测试尚未做”自动把第 11.6 节排除项重新提升为 P0。
+
+### 11.8 后续版本验收口径
+
+从 Stage 12 开始，版本评审应回答四个问题，而不是重新执行 Stage 10 的所有历史收口任务：
+
+1. **用户价值是否真实增加？** 本版本是否让一个明确的模组创作任务更完整、更快或更容易理解。
+2. **数据是否仍然安全？** 导入、编辑、迁移、AI/批量操作是否保持 unknown-field、revision、reference 和 recovery 语义。
+3. **生成是否仍然可信？** 所有受影响的 generator/type 组合是否有适用 fixture 和真实构建回归。
+4. **失败是否可解释？** 新功能失败时是否能给出稳定诊断、用户可定位对象和可恢复路径。
+
+只有同时满足这四项，本阶段功能才可以标记为完成。第 11.6 节明确排除的环境/平台任务不参与该判定。
