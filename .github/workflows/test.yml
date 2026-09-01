@@ -140,6 +140,9 @@ jobs:
       - name: Verify signed release-source gate
         shell: pwsh
         run: pwsh -NoProfile -File ./scripts/tests/verify-release-source.tests.ps1
+      - name: Run Stage 9 clean Windows harness regression tests
+        shell: pwsh
+        run: pwsh -NoProfile -File ./scripts/tests/Stage9CleanWindowsHarness.tests.ps1
       - name: Run MCP conformance suite
         shell: pwsh
         run: pwsh -NoProfile -File ./scripts/verify-mcp-conformance.ps1 -OutputDirectory build/mcp-conformance-results
