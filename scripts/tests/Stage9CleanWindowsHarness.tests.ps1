@@ -12,7 +12,7 @@ $guestSmoke = Get-Content -LiteralPath $guestSmokePath -Raw
 $lifecycle = Get-Content -LiteralPath $lifecyclePath -Raw
 
 Assert-True ($guestSmoke -match 'textExtensions') 'Guest smoke must restrict IPC scanning to known text extensions.'
-Assert-True ($guestSmoke -match 'copperbench.*gradle') 'Guest smoke must exclude the managed Gradle/JDK cache from IPC scanning.'
+Assert-True ($guestSmoke -match 'gradleRootPrefix' -and $guestSmoke -match 'StartsWith') 'Guest smoke must exclude the managed Gradle/JDK cache from IPC scanning.'
 
 $tempRoot = Join-Path ([IO.Path]::GetTempPath()) ('copperbench-stage9-harness-' + [guid]::NewGuid().ToString('N'))
 try {
@@ -25,10 +25,11 @@ try {
 	Set-Content -LiteralPath (Join-Path $logDir 'ipc-error.log') -Value 'Address already in use' -Encoding UTF8
 
 	$textExtensions = @('.log', '.txt', '.json', '.xml', '.yaml', '.yml', '.properties', '.conf')
+	$gradleRootPrefix = (Join-Path $root 'gradle') + [IO.Path]::DirectorySeparatorChar
 	$files = @(Get-ChildItem -LiteralPath $root -Recurse -File | Where-Object {
 		$_.Length -lt 10MB -and
 		$textExtensions -contains $_.Extension.ToLowerInvariant() -and
-		$_.FullName -notmatch '[\\/]\.copperbench[\\/]gradle[\\/]'
+		-not $_.FullName.StartsWith($gradleRootPrefix, [StringComparison]::OrdinalIgnoreCase)
 	})
 	Assert-True (-not [bool]($files | Where-Object Name -eq 'binary.jar')) 'Binary Gradle cache entries must not be scanned as IPC logs.'
 	Assert-True ([bool]($files | Where-Object Name -eq 'ipc-error.log')) 'Real text logs must remain eligible for IPC scanning.'
