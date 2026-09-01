@@ -2,8 +2,8 @@
   "$schema": "./schemas/product-status.schema.json",
   "schemaVersion": "1.0",
   "snapshot": {
-    "date": "2026-09-01",
-    "lastVerifiedCommit": "f4b5806222b1224712cf33e827cc97241acdc45c",
+    "date": "2026-09-02",
+    "lastVerifiedCommit": "af1b6ed929e1b6d6d1e08d01bd90c0b86a1b4d88",
     "policy": "Only code, automated checks, and evidence tied to a commit can promote a gate."
   },
   "product": {
@@ -19,22 +19,22 @@
   },
   "delivery": {
     "publishedBaseline": {
-      "tag": "v0.1.0-beta.2",
-      "sourceCommit": "8b06328347bc45b9ccc8cb243bf913c3e28e3be6",
+      "tag": "v0.1.0-beta.3",
+      "sourceCommit": "7956dcb9930897357e2380ee413cdc4aa928f357",
       "status": "public-prerelease",
-      "releaseWorkflowRun": "https://github.com/Lotulune/Copperbench/actions/runs/33334394466"
+      "releaseWorkflowRun": "https://github.com/Lotulune/Copperbench/actions/runs/33515908561"
     },
     "releaseContract": {
-      "tag": "v0.1.0-beta.2",
+      "tag": "v0.1.0-beta.3",
       "purpose": "published-exact-binary-beta-promotion",
       "sourcePolicy": "The signed Beta tag and RELEASE-METADATA.json commit resolve to the release-control commit, while binarySource identifies the signed Preview candidate whose canonical assets were promoted byte-for-byte.",
       "signedTagRequired": true,
       "productionApprovalRequired": true,
-      "publicStateSource": "https://api.github.com/repos/Lotulune/Copperbench/releases/tags/v0.1.0-beta.2"
+      "publicStateSource": "https://api.github.com/repos/Lotulune/Copperbench/releases/tags/v0.1.0-beta.3"
     },
     "betaRelease": {
       "tag": "v0.1.0-beta.3",
-      "status": "ready",
+      "status": "published",
       "candidateRelease": {
         "tag": "v0.1.0-preview.7",
         "sourceCommit": "f4b5806222b1224712cf33e827cc97241acdc45c",
@@ -48,16 +48,16 @@
     },
     "fastCi": {
       "status": "passed",
-      "run": "https://github.com/Lotulune/Copperbench/actions/runs/33497929171",
+      "run": "https://github.com/Lotulune/Copperbench/actions/runs/33528964018",
       "latestAttempt": {
         "status": "passed",
-        "run": "https://github.com/Lotulune/Copperbench/actions/runs/33497929171",
-        "reason": "main@f4b58062 passed merged-main Java/Javadoc, UI/Playwright smoke, and MCP conformance in run 33497929171 after Stage 11 merged. Nightly 33503172036 then passed the full product regression and all 8 generator golden jobs on the same commit; signed Preview 7 release run 33506364499 published the frozen candidate, and its exact public EXE passed the final clean-Windows upgrade/offline/uninstall retention replay."
+        "run": "https://github.com/Lotulune/Copperbench/actions/runs/33528964018",
+        "reason": "Stage 11 product source main@f4b58062 passed merged-main CI and Nightly 33503172036 with 8/8 generator golden; signed Preview 7 was published and promoted byte-for-byte as Beta 3 by release run 33515908561. Post-publication PRs #52 and #53 changed only Stage 9 test harnesses, and current main@af1b6ed9 passed merged-main Java/Javadoc, UI, Windows Stage 9 regression, MCP conformance, and JUnit in run 33528964018."
       },
       "runs": [
-        "https://github.com/Lotulune/Copperbench/actions/runs/32904346297",
-        "https://github.com/Lotulune/Copperbench/actions/runs/32904844692",
-        "https://github.com/Lotulune/Copperbench/actions/runs/32905419136"
+        "https://github.com/Lotulune/Copperbench/actions/runs/33515069964",
+        "https://github.com/Lotulune/Copperbench/actions/runs/33527164779",
+        "https://github.com/Lotulune/Copperbench/actions/runs/33528964018"
       ],
       "consecutiveGreenMainRuns": 3,
       "consecutiveGreenTarget": 3,
@@ -114,8 +114,8 @@
     "notApplicable": ["bebiome", "beblock", "beentity", "beitem", "bescript"]
   },
   "gates": [
-    {"id": "release-pipeline", "status": "passed", "betaBlocking": false, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/32838065932", "https://github.com/Lotulune/Copperbench/actions/runs/33330520467", "docs/testing/beta-candidate-preview6-2026-08-31.md", "https://github.com/Lotulune/Copperbench/actions/runs/33332537616", "docs/testing/beta1-publication-2026-08-31.md", "https://github.com/Lotulune/Copperbench/actions/runs/33334394466", "docs/testing/beta2-publication-2026-08-31.md", "https://github.com/Lotulune/Copperbench/actions/runs/33506364499", "docs/testing/beta-candidate-preview7-2026-09-01.md"]},
-    {"id": "fast-ci", "status": "passed", "betaBlocking": false, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/32904346297", "https://github.com/Lotulune/Copperbench/actions/runs/32904844692", "https://github.com/Lotulune/Copperbench/actions/runs/32905419136", "https://github.com/Lotulune/Copperbench/actions/runs/33306183486", "https://github.com/Lotulune/Copperbench/actions/runs/33320875746", "https://github.com/Lotulune/Copperbench/actions/runs/33334020837", "https://github.com/Lotulune/Copperbench/actions/runs/33497929171"]},
+    {"id": "release-pipeline", "status": "passed", "betaBlocking": false, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/32838065932", "https://github.com/Lotulune/Copperbench/actions/runs/33330520467", "docs/testing/beta-candidate-preview6-2026-08-31.md", "https://github.com/Lotulune/Copperbench/actions/runs/33332537616", "docs/testing/beta1-publication-2026-08-31.md", "https://github.com/Lotulune/Copperbench/actions/runs/33334394466", "docs/testing/beta2-publication-2026-08-31.md", "https://github.com/Lotulune/Copperbench/actions/runs/33506364499", "docs/testing/beta-candidate-preview7-2026-09-01.md", "https://github.com/Lotulune/Copperbench/actions/runs/33515908561", "docs/testing/beta3-publication-2026-09-02.md"]},
+    {"id": "fast-ci", "status": "passed", "betaBlocking": false, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/32904346297", "https://github.com/Lotulune/Copperbench/actions/runs/32904844692", "https://github.com/Lotulune/Copperbench/actions/runs/32905419136", "https://github.com/Lotulune/Copperbench/actions/runs/33306183486", "https://github.com/Lotulune/Copperbench/actions/runs/33320875746", "https://github.com/Lotulune/Copperbench/actions/runs/33334020837", "https://github.com/Lotulune/Copperbench/actions/runs/33497929171", "https://github.com/Lotulune/Copperbench/actions/runs/33515069964", "https://github.com/Lotulune/Copperbench/actions/runs/33527164779", "https://github.com/Lotulune/Copperbench/actions/runs/33528964018"]},
     {"id": "product-status-source", "status": "passed", "betaBlocking": true, "evidence": ["product-status.json", "schemas/product-status.schema.json", "scripts/verify-product-status.mjs"]},
     {"id": "repository-governance", "status": "passed", "betaBlocking": false, "evidence": ["docs/testing/repository-governance-2026-08-26.md"]},
     {"id": "three-data-editors", "status": "passed", "betaBlocking": true, "evidence": ["docs/testing/stage-9-ui-gates-2026-08-26.md", "ui-shell/e2e/stage9-creator-core.spec.ts"]},
@@ -142,9 +142,9 @@
   },
   "knownLimitations": [
     "Release Git Tags contain SSH signatures; GitHub reports unknown_key until the public signing key is registered.",
-    "Preview 7 qualification exposed Stage 9 test-harness defects: the guest-smoke IPC scan reads Gradle/JDK binaries as text; the workspace-lifecycle gate hardcodes the historical guigatedelta fixture; and its runClient readiness predicate can accept a surviving NeoForge initialization-error window as stable. The exact candidate's install/start IPC path was separately checked against real text logs, and its workspace generation plus Gradle build/JAR succeeded, but the Hyper-V guest cannot prove graphical runClient readiness because it exposes no usable OpenGL profile. Script fixes are deferred until after exact-binary promotion so the frozen candidate-to-Beta delta stays evidence/status/docs only.",
-    "The real JCEF accessibility pass is not complete; the Hyper-V guest cannot validate Chromium WebContents accessibility because native Edge reproduces the same missing web-control subtree, so a physical or otherwise known-good Windows accessibility environment is required.",
-    "The current Beta scope explicitly excludes the real JCEF accessibility audit, a graphics-capable clean-Windows runClient replay, and the external tester trial; those exclusions are not claims that the omitted checks passed. Preview 7 did complete the Stage 11 candidate-required Windows install/upgrade/uninstall, offline workspace launch, data-retention, provenance, and asset-verification replay.",
-    "Windows packages are not Authenticode signed."
+    "Preview 7 / Beta 3 qualification exposed two Stage 9 harness false-positive classes. Post-promotion PRs #52 and #53 fixed the IPC binary-cache scan, dynamic workspace discovery, runClient initialization-error rejection, and generator-setup observation race; main@af1b6ed9 merged-main CI 33528964018 passes the Windows Stage 9 regression gate.",
+    "Real JCEF/UIA accessibility certification and physical screen-reader/DPI audits are outside the Stage 12+ release scope unless a future ADR or PRD explicitly reintroduces them.",
+    "Dedicated graphics-capable clean-Windows runClient certification and the formal five-external-tester gate are outside the Stage 12+ release scope; existing product paths remain subject to normal defect handling when users report reproducible failures.",
+    "Windows packages are not Authenticode signed; signing and Linux/macOS installers are outside the current roadmap."
   ]
 }
