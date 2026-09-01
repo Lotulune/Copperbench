@@ -201,7 +201,7 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 			return;
 		try {
 			GEValidator.validateAndTryToCorrect(definition, null);
-		} catch (GEValidator.ValidationException exception) {
+		} catch (GEValidator.ValidationException | AssertionError exception) {
 			throw new IllegalStateException("Upstream element validation failed for "
 					+ definition.getModElement().getName(), exception);
 		}
