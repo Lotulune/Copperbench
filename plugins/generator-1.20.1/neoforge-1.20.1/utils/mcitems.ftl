@@ -157,3 +157,34 @@
     <#return JavaModName + generator.isBlock(mappedElement)?then("Blocks", "Items") + "."
     + handleExtension(mappedElement, generator.getRegistryNameFromFullName(mappedElement))?upper_case + ".get()">
 </#function>
+
+<#function mappedMCItemToBlockStateJSON mappedBlock>
+    <#if !mappedBlock.getUnmappedValue().startsWith("TAG:")>
+        <#assign mapped = generator.map(mappedBlock.getUnmappedValue(), "blocksitems", 1) />
+        <#if !mapped?starts_with("#")>
+            <#if !mapped.contains(":")><#assign mapped = "minecraft:" + mapped /></#if>
+            <#assign propertymap = fp.file("utils/defaultstates.json")?eval_json/>
+            <#if propertymap[mapped]?has_content>
+                <#assign retval='{ "Name": "' + mapped + '", "Properties" : {'/>
+                <#list propertymap[mapped] as property>
+                    <#assign retval = retval + '"' + property.name + '": "' + property.value + '"'/>
+                    <#if property?has_next><#assign retval = retval + ","/></#if>
+                </#list>
+                <#return retval + "} }">
+            <#else><#return '{ "Name": "' + mapped + '" }'></#if>
+        </#if>
+    </#if>
+    <#return '{ "Name": "minecraft:air" }'>
+</#function>
+
+<#function mappedMCItemToItemObjectJSON mappedBlock>
+    <#if mappedBlock.getUnmappedValue().startsWith("CUSTOM:")>
+        <#assign customelement = generator.getRegistryNameFromFullName(mappedBlock.getUnmappedValue())!""/>
+        <#if customelement?has_content><#return '"item": "${modid}:' + customelement + '"'><#else><#return '"item": "minecraft:air"'></#if>
+    <#elseif mappedBlock.getUnmappedValue().startsWith("TAG:")>
+        <#return '"tag": "' + mappedBlock.getUnmappedValue().replace("TAG:", "")?lower_case + '"'>
+    <#else>
+        <#assign mapped = generator.map(mappedBlock.getUnmappedValue(), "blocksitems", 1) />
+        <#if mapped.startsWith("#")><#return '"tag": "' + mapped?replace("#", "") + '"'><#elseif mapped.contains(":")><#return '"item": "' + mapped + '"'><#else><#return '"item": "minecraft:' + mapped + '"'></#if>
+    </#if>
+</#function>

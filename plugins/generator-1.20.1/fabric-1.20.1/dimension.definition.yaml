@@ -15,14 +15,6 @@ templates:
   - template: dimension/dimension_type.json.ftl # loaded from datapack generator
     writer: json
     name: "@MODDATAROOT/dimension_type/@registryname.json"
-  - template: dimension/fixed_timeline.json.ftl # loaded from datapack generator
-    writer: json
-    condition: hasFixedTimeAndNeedsCustomTimeline()
-    name: "@MODDATAROOT/timeline/@registryname_fixed.json"
-  - template: dimension/effects_timeline.json.ftl # loaded from datapack generator
-    writer: json
-    condition: needsCustomEffectsTimeline()
-    name: "@MODDATAROOT/timeline/@registryname_effects.json"
   - template: dimension/dimension_overworld.json.ftl # loaded from datapack generator
     writer: json
     condition: "worldGenType %= Normal world gen"
@@ -51,10 +43,6 @@ templates:
   - template: json/item.json.ftl
     writer: json
     name: "@MODASSETSROOT/models/item/@registryname.json"
-    condition: hasIgniter()
-  - template: json/model_item.json.ftl
-    writer: json
-    name: "@MODASSETSROOT/items/@registryname.json"
     condition: hasIgniter()
 
 global_templates:

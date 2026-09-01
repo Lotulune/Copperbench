@@ -1,7 +1,7 @@
 <#--
  # MCreator (https://mcreator.net/)
  # Copyright (C) 2012-2020, Pylo
- # Copyright (C) 2020-2024, Pylo, opensource contributors
+ # Copyright (C) 2020-2023, Pylo, opensource contributors
  #
  # This program is free software: you can redistribute it and/or modify
  # it under the terms of the GNU General Public License as published by
@@ -36,7 +36,7 @@
 
 package ${package}.init;
 
-@EventBusSubscriber(Dist.CLIENT) public class ${JavaModName}Particles {
+@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT) public class ${JavaModName}Particles {
 
 	@SubscribeEvent public static void registerParticles(RegisterParticleProvidersEvent event) {
 		<#list particles as particle>

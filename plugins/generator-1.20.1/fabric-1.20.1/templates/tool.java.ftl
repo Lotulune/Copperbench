@@ -1,21 +1,21 @@
 <#--
  # This file is part of Fabric-Generator-MCreator.
  # Copyright (C) 2012-2020, Pylo
- # Copyright (C) 2020-2026, Pylo, opensource contributors
- # Copyright (C) 2020-2026, Goldorion, opensource contributors
+ # Copyright (C) 2020-2023, Pylo, opensource contributors
+ # Copyright (C) 2020-2023, Goldorion, opensource contributors
  #
  # Fabric-Generator-MCreator is free software: you can redistribute it and/or modify
- # it under the terms of the GNU General Public License as published by
+ # it under the terms of the GNU Lesser General Public License as published by
  # the Free Software Foundation, either version 3 of the License, or
  # (at your option) any later version.
- #
+
  # Fabric-Generator-MCreator is distributed in the hope that it will be useful,
  # but WITHOUT ANY WARRANTY; without even the implied warranty of
  # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- # GNU General Public License for more details.
+ # GNU Lesser General Public License for more details.
  #
- # You should have received a copy of the GNU General Public License
- # along with Fabric-Generator-MCreator. If not, see <https://www.gnu.org/licenses/>.
+ # You should have received a copy of the GNU Lesser General Public License
+ # along with Fabric-Generator-MCreator.  If not, see <https://www.gnu.org/licenses/>.
 -->
 
 <#-- @formatter:off -->
@@ -25,139 +25,155 @@
 
 package ${package}.item;
 
-<@javacompress>
+import com.google.common.collect.Multimap;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.fabricmc.api.Environment;
+
+<#compress>
 <#if data.toolType == "Pickaxe" || data.toolType == "Axe" || data.toolType == "Sword" || data.toolType == "Spade"
-		|| data.toolType == "Hoe"|| data.toolType == "Shears" || data.toolType == "Shield" || data.toolType == "MultiTool">
-public class ${name}Item extends ${data.toolType?replace("Spade", "Shovel")?replace("MultiTool|Pickaxe|Sword", "", "r")}Item {
+		|| data.toolType == "Hoe" || data.toolType == "Shears" || data.toolType == "Shield" || data.toolType == "MultiTool">
+public class ${name}Item extends ${data.toolType?replace("Spade", "Shovel")?replace("MultiTool", "Tiered")}Item {
+	public ${name}Item () {
+		super(<#if data.toolType == "Pickaxe" || data.toolType == "Axe" || data.toolType == "Sword"
+				|| data.toolType == "Spade" || data.toolType == "Hoe" || data.toolType == "MultiTool">
+			new Tier() {
+				public int getUses() {
+					return ${data.usageCount};
+				}
 
-	<#if data.toolType == "Pickaxe" || data.toolType == "Axe" || data.toolType == "Sword" || data.toolType == "Spade" || data.toolType == "Hoe" || data.toolType == "MultiTool">
-	private static final ToolMaterial TOOL_MATERIAL = new ToolMaterial(
-		<#if data.blockDropsTier == "WOOD">BlockTags.INCORRECT_FOR_WOODEN_TOOL
-		<#elseif data.blockDropsTier == "STONE">BlockTags.INCORRECT_FOR_STONE_TOOL
-		<#elseif data.blockDropsTier == "IRON">BlockTags.INCORRECT_FOR_IRON_TOOL
-		<#elseif data.blockDropsTier == "DIAMOND">BlockTags.INCORRECT_FOR_DIAMOND_TOOL
-		<#elseif data.blockDropsTier == "GOLD">BlockTags.INCORRECT_FOR_GOLD_TOOL
-		<#else>BlockTags.INCORRECT_FOR_NETHERITE_TOOL
-		</#if>,
-		${data.usageCount},
-		${data.efficiency}f,
-		0,
-		${data.enchantability},
-		TagKey.create(Registries.ITEM, new ResourceLocation("${modid}:${registryname}_repair_items")) <#-- data.repairItems are put into a tag -->
-	);
-	</#if>
+   				public float getSpeed() {
+					return ${data.efficiency}f;
+				}
 
-	public ${name}Item (Item.Properties properties) {
-		super(
-			<#if data.toolType == "Axe" || data.toolType == "Spade" || data.toolType == "Hoe">
-			TOOL_MATERIAL, ${data.damageVsEntity - 1}f, ${data.attackSpeed - 4}f,
+   				public float getAttackDamageBonus() {
+					return ${data.damageVsEntity - 2}f;
+				}
+
+   				public int getLevel() {
+					return <#if data.blockDropsTier == "STONE">1<#elseif data.blockDropsTier == "IRON">2<#elseif data.blockDropsTier == "DIAMOND">3<#elseif data.blockDropsTier == "NETHERITE">4<#else>0</#if>;
+				}
+
+   				public int getEnchantmentValue() {
+					return ${data.enchantability};
+				}
+
+   				public Ingredient getRepairIngredient() {
+					return ${mappedMCItemsToIngredient(data.repairItems)};
+				}
+			},
+
+			<#if data.toolType!="MultiTool">
+				<#if data.toolType=="Sword">3<#elseif data.toolType=="Hoe">0<#else>1</#if>,${data.attackSpeed - 4}f,
 			</#if>
-			<#if data.toolType == "MultiTool">
-			TOOL_MATERIAL.applyToolProperties(properties, BlockTags.MINEABLE_WITH_PICKAXE, ${data.damageVsEntity - 1}f, ${data.attackSpeed - 4}f, 0)
-			<#else>
-			properties
-			</#if>
-			<#if data.toolType == "Pickaxe">
-			.pickaxe(TOOL_MATERIAL, ${data.damageVsEntity - 1}f, ${data.attackSpeed - 4}f)
-			<#elseif data.toolType == "Sword">
-			.sword(TOOL_MATERIAL, ${data.damageVsEntity - 1}f, ${data.attackSpeed - 4}f)
-			<#elseif data.toolType == "MultiTool">
-			.attributes(<@itemAttributeModifiers true/>)
-			<#elseif data.toolType == "Shield">
-			.repairable(TagKey.create(Registries.ITEM, new ResourceLocation("${modid}:${registryname}_repair_items")))
-			.component(DataComponents.BREAK_SOUND, SoundEvents.SHIELD_BREAK)
-			.equippableUnswappable(EquipmentSlot.OFFHAND)
-			.delayedComponent(DataComponents.BLOCKS_ATTACKS, context -> new BlocksAttacks(
-				0.25f,
-				1,
-				List.of(new BlocksAttacks.DamageReduction(90.0f, Optional.empty(), 0, 1)),
-				new BlocksAttacks.ItemDamageFunction(3, 1, 1),
-				Optional.of(context.getOrThrow(DamageTypeTags.BYPASSES_SHIELD)),
-				Optional.of(SoundEvents.SHIELD_BLOCK),
-				Optional.of(SoundEvents.SHIELD_BREAK)
-			))
-			<#elseif data.toolType == "Shears">
-			.component(DataComponents.TOOL, ShearsItem.createToolProperties())
-				<#if data.repairItems?has_content>
-				.repairable(TagKey.create(Registries.ITEM, new ResourceLocation("${modid}:${registryname}_repair_items")))
-				</#if>
-			</#if>
-			<#if data.toolType == "Shears" || data.toolType == "Shield">
-				<#if data.usageCount != 0>
+
+				new Item.Properties()
+			 	<#if data.immuneToFire>
+			 		.fireResistant()
+			 	</#if>
+		<#elseif data.toolType == "Shears" || data.toolType == "Shield">
+			new Item.Properties()
 				.durability(${data.usageCount})
-				<#else>
-				.stacksTo(1)
+				<#if data.immuneToFire>
+				.fireResistant()
 				</#if>
-			</#if>
-			<#if data.rarity != "COMMON">
-			.rarity(Rarity.${data.rarity})
-			</#if>
-			<#if data.immuneToFire>
-			.fireResistant()
-			</#if>
-			<#if data.enchantability != 0 && data.toolType=="Shears">
-			.enchantable(${data.enchantability})
-			</#if>
-			<#if (data.attributeModifiers?size gt 0) && (data.toolType == "Pickaxe" || data.toolType == "Sword" || data.toolType == "Shears" || data.toolType == "Shield")>
-			.attributes(<@itemAttributeModifiers (data.toolType == "Pickaxe" || data.toolType == "Sword")/>)
-			</#if>
-			<#if modifiesDefaultComponents(data.toolType)>
-                <#if data.usageCount == 0>
-                    .component(DataComponents.MAX_DAMAGE, null)
-                </#if>
-                <#if data.attributeModifiers?size gt 0 && (data.toolType == "Axe" || data.toolType == "Spade" || data.toolType == "Hoe")>
-                    .component(DataComponents.ATTRIBUTE_MODIFIERS, <@itemAttributeModifiers true/>)
-                </#if>
-			</#if>
-		);
+		</#if>);
+
 	}
 
-	<#if hasProcedure(data.additionalDropCondition) && data.toolType!="MultiTool">
-	@Override public boolean isCorrectToolForDrops(ItemStack itemstack, BlockState blockstate) {
-		return super.isCorrectToolForDrops(itemstack, blockstate) && <@procedureCode data.additionalDropCondition, {
-		"itemstack": "itemstack",
-		"blockstate": "blockstate"
-		}, false/>;
+	<#if data.toolType == "Shield" && data.repairItems?has_content>
+	@Override public boolean isValidRepairItem(ItemStack itemstack, ItemStack repairitem) {
+		return ${mappedMCItemsToIngredient(data.repairItems)}.test(repairitem);
 	}
 	</#if>
 
 	<#if data.toolType=="Shears">
+		@Override public int getEnchantmentValue() {
+			return ${data.enchantability};
+		}
+
 		@Override public float getDestroySpeed(ItemStack stack, BlockState blockstate) {
 			return ${data.efficiency}f;
 		}
 	<#elseif data.toolType=="MultiTool">
-		@Override public boolean isCorrectToolForDrops(ItemStack itemstack, BlockState blockstate) {
-			<#if hasProcedure(data.additionalDropCondition)>
-				if(!<@procedureCode data.additionalDropCondition, {
-					"itemstack": "itemstack",
-					"blockstate": "blockstate"
-				}, false/>) return false;
-			</#if>
-
-			<#if data.blockDropsTier == "WOOD" || data.blockDropsTier == "GOLD">
-			return !blockstate.is(BlockTags.NEEDS_STONE_TOOL) && !blockstate.is(BlockTags.NEEDS_IRON_TOOL) && !blockstate.is(BlockTags.NEEDS_DIAMOND_TOOL);
-			<#elseif data.blockDropsTier == "STONE">
-			return !blockstate.is(BlockTags.NEEDS_IRON_TOOL) && !blockstate.is(BlockTags.NEEDS_DIAMOND_TOOL);
-			<#elseif data.blockDropsTier == "IRON">
-			return !blockstate.is(BlockTags.NEEDS_DIAMOND_TOOL);
-			<#else>
-			return blockstate.is(BlockTags.MINEABLE_WITH_AXE) || blockstate.is(BlockTags.MINEABLE_WITH_HOE) || blockstate.is(BlockTags.MINEABLE_WITH_PICKAXE) || blockstate.is(BlockTags.MINEABLE_WITH_SHOVEL);
-			</#if>
+		@Override public boolean isCorrectToolForDrops(BlockState blockstate) {
+			int tier = ${data.harvestLevel};
+			if (tier < 3 && blockstate.is(BlockTags.NEEDS_DIAMOND_TOOL)) {
+				return false;
+			} else if (tier < 2 && blockstate.is(BlockTags.NEEDS_IRON_TOOL)) {
+				return false;
+			} else {
+				return tier < 1 && blockstate.is(BlockTags.NEEDS_STONE_TOOL) ? false : (
+								blockstate.is(BlockTags.MINEABLE_WITH_AXE) ||
+								blockstate.is(BlockTags.MINEABLE_WITH_HOE) ||
+								blockstate.is(BlockTags.MINEABLE_WITH_PICKAXE) ||
+								blockstate.is(BlockTags.MINEABLE_WITH_SHOVEL)
+						);
+			}
 		}
 
 		@Override public float getDestroySpeed(ItemStack itemstack, BlockState blockstate) {
 			return ${data.efficiency}f;
 		}
+
+		@Override public Multimap<Attribute, AttributeModifier> getDefaultAttributeModifiers(EquipmentSlot equipmentSlot) {
+			if (equipmentSlot == EquipmentSlot.MAINHAND) {
+				ImmutableMultimap.Builder<Attribute, AttributeModifier> builder = ImmutableMultimap.builder();
+				builder.putAll(super.getDefaultAttributeModifiers(equipmentSlot));
+				builder.put(Attributes.ATTACK_DAMAGE, new AttributeModifier(BASE_ATTACK_DAMAGE_UUID, "Tool modifier", ${data.damageVsEntity - 2}f, AttributeModifier.Operation.ADDITION));
+				builder.put(Attributes.ATTACK_SPEED, new AttributeModifier(BASE_ATTACK_SPEED_UUID, "Tool modifier", ${data.attackSpeed - 4}, AttributeModifier.Operation.ADDITION));
+				return builder.build();
+			}
+
+			return super.getDefaultAttributeModifiers(equipmentSlot);
+		}
 	</#if>
 
 	<#if data.toolType=="MultiTool">
-		<@onBlockDestroyedWith data.onBlockDestroyedWithTool, true/>
+		@Override public boolean hurtEnemy(ItemStack stack, LivingEntity entity, LivingEntity sourceentity) {
+			stack.hurtAndBreak(2, sourceentity, i -> i.broadcastBreakEvent(EquipmentSlot.MAINHAND));
+			<#if hasProcedure(data.onEntityHitWith)>
+				double x = entity.getX();
+				double y = entity.getY();
+				double z = entity.getZ();
+				Level world = entity.level();
+				<@procedureOBJToCode data.onEntityHitWith/>
+			</#if>
+			return true;
+		}
 
-		<@onEntityHitWith data.onEntityHitWith, true/>
+		@Override public boolean mineBlock(ItemStack stack, Level world, BlockState state, BlockPos pos, LivingEntity entity) {
+			stack.hurtAndBreak(1, entity, i -> i.broadcastBreakEvent(EquipmentSlot.MAINHAND));
+			<#if hasProcedure(data.onBlockDestroyedWithTool)>
+				int x = pos.getX();
+				int y = pos.getY();
+				int z = pos.getZ();
+				<@procedureOBJToCode data.onBlockDestroyedWithTool/>
+			</#if>
+			return true;
+		}
 	<#else>
-		<@onBlockDestroyedWith data.onBlockDestroyedWithTool/>
+		<#if hasProcedure(data.onBlockDestroyedWithTool)>
+		@Override public boolean mineBlock(ItemStack itemstack, Level world, BlockState blockstate, BlockPos pos, LivingEntity entity){
+			boolean retval = super.mineBlock(itemstack, world, blockstate, pos, entity);
+			int x = pos.getX();
+			int y = pos.getY();
+			int z = pos.getZ();
+			<@procedureOBJToCode data.onBlockDestroyedWithTool/>
+			return retval;
+		}
+		</#if>
 
-		<@onEntityHitWith data.onEntityHitWith/>
+		<#if hasProcedure(data.onEntityHitWith)>
+		@Override public boolean hurtEnemy(ItemStack itemstack, LivingEntity entity, LivingEntity sourceentity) {
+			boolean retval = super.hurtEnemy(itemstack, entity, sourceentity);
+			double x = entity.getX();
+			double y = entity.getY();
+			double z = entity.getZ();
+			Level world = entity.level();
+			<@procedureOBJToCode data.onEntityHitWith/>
+			return retval;
+		}
+		</#if>
 	</#if>
 
 	<@onRightClickedInAir data.onRightClickedInAir/>
@@ -168,177 +184,170 @@ public class ${name}Item extends ${data.toolType?replace("Spade", "Shovel")?repl
 <#elseif data.toolType=="Special">
 public class ${name}Item extends Item {
 
-	public ${name}Item(Item.Properties properties) {
-		super(properties
-			<#if data.usageCount != 0>
+	public ${name}Item() {
+		super(new Item.Properties()
 			.durability(${data.usageCount})
-			<#else>
-			.stacksTo(1)
-			</#if>
-			<#if data.rarity != "COMMON">
-			.rarity(Rarity.${data.rarity})
-			</#if>
 			<#if data.immuneToFire>
 			.fireResistant()
 			</#if>
-			<#if data.repairItems?has_content>
-			.repairable(TagKey.create(Registries.ITEM, new ResourceLocation("${modid}:${registryname}_repair_items")))
-			</#if>
-			.attributes(<@itemAttributeModifiers true/>)
-			<#if data.enchantability != 0>
-			.enchantable(${data.enchantability})
-			</#if>
 		);
+
 	}
 
 	@Override public float getDestroySpeed(ItemStack itemstack, BlockState blockstate) {
-		return <#if data.blocksAffected?has_content>${containsAnyOfBlocks(data.blocksAffected "blockstate")} ? ${data.efficiency}f : </#if>1;
+		return <#if data.blocksAffected?has_content>${containsAnyOfBlocks(data.blocksAffected "blockstate")} ? ${data.efficiency} : </#if>1f;
 	}
 
-	<@onBlockDestroyedWith data.onBlockDestroyedWithTool, true/>
+	@Override public boolean mineBlock(ItemStack stack, Level world, BlockState state, BlockPos pos, LivingEntity entity) {
+		stack.hurtAndBreak(1, entity, i -> i.broadcastBreakEvent(EquipmentSlot.MAINHAND));
+		<#if hasProcedure(data.onBlockDestroyedWithTool)>
+			int x = pos.getX();
+			int y = pos.getY();
+			int z = pos.getZ();
+			<@procedureOBJToCode data.onBlockDestroyedWithTool/>
+		</#if>
+		return true;
+	}
 
-	<@onEntityHitWith data.onEntityHitWith, true/>
-
+	@Override public boolean hurtEnemy(ItemStack stack, LivingEntity entity, LivingEntity sourceentity) {
+		stack.hurtAndBreak(2, sourceentity, i -> i.broadcastBreakEvent(EquipmentSlot.MAINHAND));
+		<#if hasProcedure(data.onEntityHitWith)>
+			double x = entity.getX();
+			double y = entity.getY();
+			double z = entity.getZ();
+			Level world = entity.level();
+			<@procedureOBJToCode data.onEntityHitWith/>
+		</#if>
+		return true;
+	}
+	
 	<@onRightClickedInAir data.onRightClickedInAir/>
+
+	@Override public int getEnchantmentValue() {
+		return ${data.enchantability};
+	}
+
+	@Override public Multimap<Attribute, AttributeModifier> getDefaultAttributeModifiers(EquipmentSlot equipmentSlot) {
+		if (equipmentSlot == EquipmentSlot.MAINHAND) {
+			ImmutableMultimap.Builder<Attribute, AttributeModifier> builder = ImmutableMultimap.builder();
+			builder.putAll(super.getDefaultAttributeModifiers(equipmentSlot));
+			builder.put(Attributes.ATTACK_DAMAGE, new AttributeModifier(BASE_ATTACK_DAMAGE_UUID, "Tool modifier", ${data.damageVsEntity - 2}f, AttributeModifier.Operation.ADDITION));
+			builder.put(Attributes.ATTACK_SPEED, new AttributeModifier(BASE_ATTACK_SPEED_UUID, "Tool modifier", ${data.attackSpeed - 4}, AttributeModifier.Operation.ADDITION));
+			return builder.build();
+		}
+
+   	   return super.getDefaultAttributeModifiers(equipmentSlot);
+   	}
 
 	<@commonMethods/>
 }
 <#elseif data.toolType=="Fishing rod">
 public class ${name}Item extends FishingRodItem {
 
-	public ${name}Item(Item.Properties properties) {
-		super(properties
-			<#if data.usageCount != 0>
+	public ${name}Item() {
+		super(new Item.Properties()
 			.durability(${data.usageCount})
-			<#else>
-			.stacksTo(1)
-			</#if>
-			<#if data.rarity != "COMMON">
-			.rarity(Rarity.${data.rarity})
-			</#if>
 			<#if data.immuneToFire>
 			.fireResistant()
 			</#if>
-			.repairable(TagKey.create(Registries.ITEM, new ResourceLocation("${modid}:${registryname}_repair_items")))
-			<#if data.enchantability != 0>
-			.enchantable(${data.enchantability})
-			</#if>
-			<#if data.attributeModifiers?size gt 0>
-			.attributes(<@itemAttributeModifiers/>)
-			</#if>
 		);
+
 	}
 
-	<@onBlockDestroyedWith data.onBlockDestroyedWithTool/>
+	<#if data.repairItems?has_content>
+	@Override public boolean isValidRepairItem(ItemStack itemstack, ItemStack repairitem) {
+		return ${mappedMCItemsToIngredient(data.repairItems)}.test(repairitem);
+	}
+	</#if>
+
+	@Override public int getEnchantmentValue() {
+		return ${data.enchantability};
+	}
+
+	<#if hasProcedure(data.onBlockDestroyedWithTool)>
+		@Override public boolean mineBlock(ItemStack itemstack, Level world, BlockState blockstate, BlockPos pos, LivingEntity entity){
+			boolean retval = super.mineBlock(itemstack,world,blockstate,pos,entity);
+			int x = pos.getX();
+			int y = pos.getY();
+			int z = pos.getZ();
+			<@procedureOBJToCode data.onBlockDestroyedWithTool/>
+			return retval;
+		}
+	</#if>
 
 	<@onEntityHitWith data.onEntityHitWith/>
 
-	@Override public InteractionResult use(Level world, Player entity, InteractionHand hand) {
-        ItemStack itemStack = entity.getItemInHand(hand);
-        if (entity.fishing != null) {
-            if (!world.isClientSide()) {
-                int dmg = entity.fishing.retrieve(itemStack);
-                itemStack.hurtAndBreak(dmg, (LivingEntity) entity, hand.asEquipmentSlot());
-            }
-            world.playSound(null, entity.getX(), entity.getY(), entity.getZ(), SoundEvents.FISHING_BOBBER_RETRIEVE, SoundSource.NEUTRAL, 1.0f, 0.4f / (world.getRandom().nextFloat() * 0.4f + 0.8f));
-            itemStack.causeUseVibration(entity, GameEvent.ITEM_INTERACT_FINISH);
-        } else {
-            world.playSound(null, entity.getX(), entity.getY(), entity.getZ(), SoundEvents.FISHING_BOBBER_THROW, SoundSource.NEUTRAL, 0.5f, 0.4f / (world.getRandom().nextFloat() * 0.4f + 0.8f));
-            if (world instanceof ServerLevel) {
-                ServerLevel serverLevel = (ServerLevel) world;
-                int lureSpeed = (int)(EnchantmentHelper.getFishingTimeReduction(serverLevel, itemStack, entity) * 20.0f);
-                int luck = EnchantmentHelper.getFishingLuckBonus(serverLevel, itemStack, entity);
-                Projectile.spawnProjectile(new FishingHook(entity, world, luck, lureSpeed) {
-                    @Override protected boolean shouldStopFishing(Player owner) {
-                        if (owner.canInteractWithLevel() && this.distanceToSqr(owner) <= 1024 && (owner.getMainHandItem().is(${JavaModName}Items.${REGISTRYNAME}) || owner.getOffhandItem().is(${JavaModName}Items.${REGISTRYNAME})))
-                            return false;
+	@Override public InteractionResultHolder<ItemStack> use(Level world, Player entity, InteractionHand hand) {
+		ItemStack itemstack = entity.getItemInHand(hand);
+		if (entity.fishing != null) {
+			if (!world.isClientSide()) {
+				itemstack.hurtAndBreak(entity.fishing.retrieve(itemstack), entity, i -> i.broadcastBreakEvent(hand));
+			}
+			world.playSound(null, entity.getX(), entity.getY(), entity.getZ(), SoundEvents.FISHING_BOBBER_RETRIEVE, SoundSource.NEUTRAL, 1, 0.4f / (world.getRandom().nextFloat() * 0.4f + 0.8f));
+			entity.gameEvent(GameEvent.ITEM_INTERACT_FINISH);
+		} else {
+			world.playSound(null, entity.getX(), entity.getY(), entity.getZ(), SoundEvents.FISHING_BOBBER_THROW, SoundSource.NEUTRAL, 0.5f, 0.4f / (world.getRandom().nextFloat() * 0.4f + 0.8f));
+			if (!world.isClientSide()) {
+				int k = EnchantmentHelper.getFishingSpeedBonus(itemstack);
+				int j = EnchantmentHelper.getFishingLuckBonus(itemstack);
+				world.addFreshEntity(new FishingHook(entity, world, j, k));
+			}
 
-                        this.discard();
-                        return true;
-                    }
-                }, serverLevel, itemStack);
-            }
-            entity.awardStat(Stats.ITEM_USED.get(this));
-            itemStack.causeUseVibration(entity, GameEvent.ITEM_INTERACT_START);
-        }
-
+			entity.awardStat(Stats.ITEM_USED.get(this));
+			entity.gameEvent(GameEvent.ITEM_INTERACT_FINISH);
+		}
+		
 		<#if hasProcedure(data.onRightClickedInAir)>
-			<@procedureCode data.onRightClickedInAir, {
-				"x": "entity.getX()",
-				"y": "entity.getY()",
-				"z": "entity.getZ()",
-				"world": "world",
-				"entity": "entity",
-				"itemstack": "itemstack"
-			}/>
+		double x = entity.getX();
+		double y = entity.getY();
+		double z = entity.getZ();
+		<@procedureOBJToCode data.onRightClickedInAir/>
 		</#if>
 
-		return InteractionResult.SUCCESS;
+		return InteractionResultHolder.sidedSuccess(itemstack, world.isClientSide());
 	}
 
 	<@commonMethods/>
 }
 </#if>
-</@javacompress>
-
-<#function modifiesDefaultComponents toolType>
-	<#if data.usageCount == 0>
-		<#return toolType == "Pickaxe" || toolType == "Axe" || toolType == "Sword" || toolType == "Spade" || toolType == "Hoe" || toolType == "MultiTool">
-	<#elseif data.attributeModifiers?size gt 0>
-		<#return toolType == "Axe" || toolType == "Spade" || toolType == "Hoe">
-	<#else>
-		<#return false>
-	</#if>
-</#function>
-
-<#macro itemAttributeModifiers includeMeleeAttributes=false>
-	ItemAttributeModifiers.builder()
-	<#if includeMeleeAttributes>
-	.add(Attributes.ATTACK_DAMAGE, new AttributeModifier(BASE_ATTACK_DAMAGE_ID, ${data.damageVsEntity - 1}, AttributeModifier.Operation.ADD_VALUE), EquipmentSlotGroup.MAINHAND)
-	.add(Attributes.ATTACK_SPEED, new AttributeModifier(BASE_ATTACK_SPEED_ID, ${data.attackSpeed - 4}, AttributeModifier.Operation.ADD_VALUE), EquipmentSlotGroup.MAINHAND)
-	</#if>
-	<#list data.attributeModifiers as modifier>
-	.add(${modifier.attribute}, new AttributeModifier(
-			new ResourceLocation(${JavaModName}.MODID, "${registryname}_${modifier?index}"),
-			${modifier.amount}, AttributeModifier.Operation.${modifier.operation}),
-			<#if modifier.equipmentSlot.getUnmappedValue() == "default">EquipmentSlotGroup.MAINHAND<#else>${modifier.equipmentSlot}</#if>)
-	</#list>
-	.build()
-</#macro>
 
 <#macro commonMethods>
 	<#if data.stayInGridWhenCrafting>
-		<#if data.damageOnCrafting && data.usageCount != 0>
-			@Override public ItemStackTemplate getCraftingRemainder(ItemStack itemstack) {
+		@Override public boolean hasCraftingRemainingItem() {
+			return true;
+		}
+
+		<#if data.recipeRemainder?? && !data.recipeRemainder.isEmpty()>
+			@Override public ItemStack getRecipeRemainder(ItemStack itemstack) {
+				return ${mappedMCItemToItemStackCode(data.recipeRemainder, 1)};
+			}
+		<#elseif data.damageOnCrafting && data.usageCount != 0>
+			@Override public ItemStack getRecipeRemainder(ItemStack itemstack) {
 				ItemStack retval = new ItemStack(this);
 				retval.setDamageValue(itemstack.getDamageValue() + 1);
 				if(retval.getDamageValue() >= retval.getMaxDamage()) {
-					return null;
+					return ItemStack.EMPTY;
 				}
-				return ItemStackTemplate.fromNonEmptyStack(retval);
+				return retval;
 			}
 		<#else>
-			@Override public ItemStackTemplate getCraftingRemainder(ItemStack itemstack) {
-				return new ItemStackTemplate(this);
+			@Override public ItemStack getRecipeRemainder(ItemStack itemstack) {
+				return new ItemStack(this);
 			}
 		</#if>
 	</#if>
 
-	<@addSpecialInformation data.specialInformation, "item." + modid + "." + registryname/>
+	<@addSpecialInformation data.specialInformation/>
 
 	<@onItemUsedOnBlock data.onRightClickedOnBlock/>
 
 	<@onCrafted data.onCrafted/>
 
-	<@onEntitySwing data.onEntitySwing/>
+	<@onStoppedUsing data.onStoppedUsing/>
 
 	<@onItemTick data.onItemInUseTick, data.onItemInInventoryTick/>
 
-	<@onDroppedByPlayer data.onDroppedByPlayer/>
-
-	<@onItemEntityDestroyed data.onItemEntityDestroyed/>
-
 	<@hasGlow data.glowCondition/>
-
 </#macro>
+</#compress>
 <#-- @formatter:on -->

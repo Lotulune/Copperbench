@@ -90,7 +90,9 @@ package ${package}.client.screens;
 			</#list>
 
 			<#list data.getComponentsOfType("EntityModel") as component>
-				if (<@procedureOBJToConditionCode component.entityModel/> instanceof LivingEntity livingEntity) {
+				<#assign entityExpr><@procedureOBJToConditionCode component.entityModel/></#assign>
+				<#if entityExpr?trim != "true">
+				if (((Object) (${entityExpr})) instanceof LivingEntity livingEntity) {
 					<#if hasProcedure(component.displayCondition)>
 						if (<@procedureOBJToConditionCode component.displayCondition/>)
 					</#if>
@@ -100,6 +102,7 @@ package ${package}.client.screens;
 						${component.scale}, -livingEntity.getBbHeight() / (2.0f * livingEntity.getScale()),
 						${component.rotationX / 20.0}f, 0, livingEntity);
 				}
+				</#if>
 			</#list>
 		}
 	}

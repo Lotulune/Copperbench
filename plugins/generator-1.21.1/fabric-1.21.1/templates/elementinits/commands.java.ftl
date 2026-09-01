@@ -31,7 +31,7 @@ public class ${JavaModName}Commands {
 
 	<#if nonClientCommands?has_content>
 	public static void load() {
-		CommandRegistrationCallback.EVENT.register((dispatcher, commandBuildContext, environment) -> {
+		net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback.EVENT.register((dispatcher, commandBuildContext, environment) -> {
 		<#list nonClientCommands as command>
 			${command.getModElement().getName()}Command.register(dispatcher, commandBuildContext, environment);
 		</#list>
@@ -41,7 +41,7 @@ public class ${JavaModName}Commands {
 
 	<#if clientCommands?has_content>
 	@Environment(EnvType.CLIENT) public static void clientLoad() {
-		CommandRegistrationCallback.EVENT.register((dispatcher, commandBuildContext, environment) -> {
+		net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback.EVENT.register((dispatcher, commandBuildContext, environment) -> {
 		<#list clientCommands as command>
 			${command.getModElement().getName()}Command.register(dispatcher, commandBuildContext, environment);
 		</#list>

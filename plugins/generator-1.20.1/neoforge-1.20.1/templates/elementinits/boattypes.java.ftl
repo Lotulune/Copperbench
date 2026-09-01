@@ -39,14 +39,10 @@ package ${package}.init;
 
 <#assign boatsWithTickEvent = specialentities?filter(e -> hasProcedure(e.onTickUpdate))>
 
-<#if boatsWithTickEvent?size gt 0>@EventBusSubscriber </#if>public class ${JavaModName}BoatTypes {
+<#if boatsWithTickEvent?size gt 0>@Mod.EventBusSubscriber </#if>public class ${JavaModName}BoatTypes {
 	<@javacompress>
 	<#list specialentities as entity>
-		public static final EnumProxy<Boat.Type> ${entity.getModElement().getRegistryNameUpper()}_TYPE =
-				new EnumProxy<>(Boat.Type.class, (Supplier<Block>) () -> Blocks.OAK_PLANKS, "${modid}:${entity.getModElement().getRegistryName()}",
-				<#if !entity.isBoatChestVariant()>${JavaModName}Items.${entity.getModElement().getRegistryNameUpper()}, (Supplier<Item>) () -> Items.AIR,
-				<#else>(Supplier<Item>) () -> Items.AIR, ${JavaModName}Items.${entity.getModElement().getRegistryNameUpper()},</#if>
-				(Supplier<Item>) () -> Items.STICK, ${entity.isAnyRaft()});
+		public static final Boat.Type ${entity.getModElement().getRegistryNameUpper()}_TYPE = Boat.Type.OAK;
 	</#list>
 
 	<#if boatsWithTickEvent?size gt 0>
@@ -54,7 +50,7 @@ package ${package}.init;
 		Entity entity = event.getEntity();
 		if (entity instanceof Boat boat) {
 			<#list boatsWithTickEvent as entity>
-			if (boat.getVariant() == ${entity.getModElement().getRegistryNameUpper()}_TYPE.getValue()) {
+			if (boat.getVariant() == ${entity.getModElement().getRegistryNameUpper()}_TYPE) {
 				<@procedureCode entity.onTickUpdate, {
 					"x": "entity.getX()",
 					"y": "entity.getY()",

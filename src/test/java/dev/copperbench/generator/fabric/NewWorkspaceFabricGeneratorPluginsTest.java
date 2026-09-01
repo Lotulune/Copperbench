@@ -74,7 +74,9 @@ class NewWorkspaceFabricGeneratorPluginsTest {
 		assertTrue(Files.readString(gradle).contains("modImplementation \"net.fabricmc:fabric-loader"));
 		assertTrue(Files.readString(item).contains("ResourceLocation"));
 		assertFalse(Files.readString(item).contains("Identifier.parse"));
-		assertFalse(Files.isDirectory(Path.of("plugins/generator-1.21.1/fabric-1.21.1/mappings")));
+		Path attributes = Path.of("plugins/generator-1.21.1/fabric-1.21.1/mappings/attributes.yaml");
+		assertTrue(Files.isRegularFile(attributes));
+		assertTrue(Files.readString(attributes).contains("_mcreator_map_template"));
 	}
 
 	@Test void neoforge262PluginPinsNeoForge262() throws Exception {
@@ -204,8 +206,12 @@ class NewWorkspaceFabricGeneratorPluginsTest {
 	}
 
 	@Test void neoforgeAlwaysProvidesNetworkingUsedByProcedureTriggers() throws Exception {
+		Path maintenance = Path.of("plugins/generator-1.20.1/neoforge-1.20.1/templates/modbase/mod.java.ftl");
+		String maintenanceText = Files.readString(maintenance);
+		assertTrue(maintenanceText.contains("SimpleChannel PACKET_HANDLER"), maintenance.toString());
+		assertTrue(maintenanceText.contains("void addNetworkMessage("), maintenance.toString());
+
 		for (Path template : List.of(
-				Path.of("plugins/generator-1.20.1/neoforge-1.20.1/templates/modbase/mod.java.ftl"),
 				Path.of("plugins/generator-1.21.1/neoforge-1.21.1/templates/modbase/mod.java.ftl"),
 				Path.of("plugins/generator-26.1.x/neoforge-26.1.2/templates/modbase/mod.java.ftl"),
 				Path.of("plugins/generator-26.2/neoforge-26.2/templates/modbase/mod.java.ftl"))) {

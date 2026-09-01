@@ -26,4 +26,27 @@ tasks.withType(JavaCompile).configureEach {
     options.release = 17
 }
 
+abstract class WriteMinecraftSourcesIndex extends DefaultTask {
+    @OutputFile
+    abstract RegularFileProperty getIndexFile()
+
+    @TaskAction
+    void writeIndex() {
+        def sourceDirectories = taskDependencies.getDependencies(this)
+                .findAll { it.name == 'neoFormUnzipSources' }
+                .collectMany { it.outputs.files.files }
+                .findAll { it.isDirectory() }
+        def indexFile = getIndexFile().get().asFile
+        indexFile.parentFile.mkdirs()
+        indexFile.text = sourceDirectories.collect { it.absolutePath }.join(System.lineSeparator())
+
+    }
+}
+
+def minecraftSourcesIndex = tasks.register('mcreatorPrepareMinecraftSources', WriteMinecraftSourcesIndex) {
+    dependsOn 'eclipse'
+    dependsOn 'neoFormUnzipSources'
+    indexFile = layout.buildDirectory.file('mcreator/minecraft-sources.txt')
+}
+
 apply from: 'mcreator.gradle'

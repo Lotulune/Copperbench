@@ -35,33 +35,33 @@ package ${package}.network;
 
 import ${package}.${JavaModName};
 
-@EventBusSubscriber public record ${name}Message(int eventType, int pressedms) implements CustomPacketPayload {
+@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD) public class ${name}Message {
 
-	public static final Type<${name}Message> TYPE = new Type<>(new ResourceLocation(${JavaModName}.MODID, "key_${registryname}"));
+	int type, pressedms;
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, ${name}Message> STREAM_CODEC = StreamCodec.of(
-			(RegistryFriendlyByteBuf buffer, ${name}Message message) -> {
-				buffer.writeInt(message.eventType);
-				buffer.writeInt(message.pressedms);
-			},
-			(RegistryFriendlyByteBuf buffer) -> new ${name}Message(buffer.readInt(), buffer.readInt())
-	);
-
-	@Override public Type<${name}Message> type() {
-		return TYPE;
+	public ${name}Message(int type, int pressedms) {
+		this.type = type;
+		this.pressedms = pressedms;
 	}
 
-	public static void handleData(final ${name}Message message, final IPayloadContext context) {
-		if (context.flow() == PacketFlow.SERVERBOUND) {
-			context.enqueueWork(() -> {
+	public ${name}Message(FriendlyByteBuf buffer) {
+		this.type = buffer.readInt();
+		this.pressedms = buffer.readInt();
+	}
+
+	public static void buffer(${name}Message message, FriendlyByteBuf buffer) {
+		buffer.writeInt(message.type);
+		buffer.writeInt(message.pressedms);
+	}
+
+	public static void handler(${name}Message message, Supplier<NetworkEvent.Context> contextSupplier) {
+		NetworkEvent.Context context = contextSupplier.get();
+		context.enqueueWork(() -> {
 				<#if hasProcedure(data.onKeyPressed) || hasProcedure(data.onKeyReleased)>
-				pressAction(context.player(), message.eventType, message.pressedms);
+				pressAction(context.getSender(), message.type, message.pressedms);
 				</#if>
-			}).exceptionally(e -> {
-				context.connection().disconnect(Component.literal(e.getMessage()));
-				return null;
-			});
-		}
+		});
+		context.setPacketHandled(true);
 	}
 
 	<#if hasProcedure(data.onKeyPressed) || hasProcedure(data.onKeyReleased)>
@@ -72,7 +72,7 @@ import ${package}.${JavaModName};
 		double z = entity.getZ();
 
 		// security measure to prevent arbitrary chunk generation
-		if (!world.getChunkSource().hasChunk(SectionPos.blockToSectionCoord(x), SectionPos.blockToSectionCoord(z)))
+		if (!world.hasChunkAt(entity.blockPosition()))
 			return;
 
 		<#if hasProcedure(data.onKeyPressed)>
@@ -90,7 +90,7 @@ import ${package}.${JavaModName};
 	</#if>
 
 	@SubscribeEvent public static void registerMessage(FMLCommonSetupEvent event) {
-		${JavaModName}.addNetworkMessage(${name}Message.TYPE, ${name}Message.STREAM_CODEC, ${name}Message::handleData);
+		${JavaModName}.addNetworkMessage(${name}Message.class, ${name}Message::buffer, ${name}Message::new, ${name}Message::handler);
 	}
 
 }

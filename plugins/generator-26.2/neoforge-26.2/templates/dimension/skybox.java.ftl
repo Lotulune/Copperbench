@@ -99,21 +99,21 @@ public class ${JavaModName}SkyboxRenderer {
 		GpuBufferSlice dynamicTransforms = RenderSystem.getDynamicUniforms()
 			.writeTransform(modelViewStack, new Vector4f(1.0F, 1.0F, 1.0F, state.rainBrightness), new Vector3f(), new Matrix4f());
 
-		GpuTextureView color = mc.getMainRenderTarget().getColorTextureView();
-		GpuTextureView depth = mc.getMainRenderTarget().getDepthTextureView();
-		GpuBuffer indexBuffer = RenderSystem.getSequentialBuffer(VertexFormat.Mode.QUADS).getBuffer(6);
+		GpuTextureView color = mc.gameRenderer.mainRenderTarget().getColorTextureView();
+		GpuTextureView depth = mc.gameRenderer.mainRenderTarget().getDepthTextureView();
+		GpuBuffer indexBuffer = RenderSystem.getSequentialBuffer(com.mojang.blaze3d.PrimitiveTopology.QUADS).getBuffer(6);
 		AbstractTexture texture = mc.getTextureManager().getTexture(textureId);
 
 		try (RenderPass renderPass = RenderSystem.getDevice()
 				.createCommandEncoder()
-				.createRenderPass(() -> "${modid} Sun", color, OptionalInt.empty(), depth, OptionalDouble.empty())) {
+				.createRenderPass(() -> "${modid} Sun", color, java.util.Optional.empty(), depth, OptionalDouble.empty())) {
 			renderPass.setPipeline(RenderPipelines.CELESTIAL);
 			RenderSystem.bindDefaultUniforms(renderPass);
 			renderPass.setUniform("DynamicTransforms", dynamicTransforms);
 			renderPass.bindTexture("Sampler0", texture.getTextureView(), texture.getSampler());
-			renderPass.setVertexBuffer(0, sunBuffer);
-			renderPass.setIndexBuffer(indexBuffer, RenderSystem.getSequentialBuffer(VertexFormat.Mode.QUADS).type());
-			renderPass.drawIndexed(0, 0, 6, 1);
+			renderPass.setVertexBuffer(0, sunBuffer.slice());
+			renderPass.setIndexBuffer(indexBuffer, RenderSystem.getSequentialBuffer(com.mojang.blaze3d.PrimitiveTopology.QUADS).type());
+			renderPass.drawIndexed(0, 0, 6, 1, 0);
 		}
 
 		modelViewStack.popMatrix();
@@ -139,23 +139,23 @@ public class ${JavaModName}SkyboxRenderer {
 		GpuBufferSlice dynamicTransforms = RenderSystem.getDynamicUniforms()
 			.writeTransform(modelViewStack, new Vector4f(1.0F, 1.0F, 1.0F, state.rainBrightness), new Vector3f(), new Matrix4f());
 
-		GpuTextureView color = mc.getMainRenderTarget().getColorTextureView();
-		GpuTextureView depth = mc.getMainRenderTarget().getDepthTextureView();
-		GpuBuffer indexBuffer = RenderSystem.getSequentialBuffer(VertexFormat.Mode.QUADS).getBuffer(6);
+		GpuTextureView color = mc.gameRenderer.mainRenderTarget().getColorTextureView();
+		GpuTextureView depth = mc.gameRenderer.mainRenderTarget().getDepthTextureView();
+		GpuBuffer indexBuffer = RenderSystem.getSequentialBuffer(com.mojang.blaze3d.PrimitiveTopology.QUADS).getBuffer(6);
 		AbstractTexture texture = mc.getTextureManager().getTexture(textureId);
 
 		int baseVertex = state.moonPhase.index() * 4;
 
 		try (RenderPass renderPass = RenderSystem.getDevice()
 				.createCommandEncoder()
-				.createRenderPass(() -> "${modid} Moon", color, OptionalInt.empty(), depth, OptionalDouble.empty())) {
+				.createRenderPass(() -> "${modid} Moon", color, java.util.Optional.empty(), depth, OptionalDouble.empty())) {
 			renderPass.setPipeline(RenderPipelines.CELESTIAL);
 			RenderSystem.bindDefaultUniforms(renderPass);
 			renderPass.setUniform("DynamicTransforms", dynamicTransforms);
 			renderPass.bindTexture("Sampler0", texture.getTextureView(), texture.getSampler());
-			renderPass.setVertexBuffer(0, moonBuffer);
-			renderPass.setIndexBuffer(indexBuffer, RenderSystem.getSequentialBuffer(VertexFormat.Mode.QUADS).type());
-			renderPass.drawIndexed(baseVertex, 0, 6, 1);
+			renderPass.setVertexBuffer(0, moonBuffer.slice());
+			renderPass.setIndexBuffer(indexBuffer, RenderSystem.getSequentialBuffer(com.mojang.blaze3d.PrimitiveTopology.QUADS).type());
+			renderPass.drawIndexed(baseVertex, 0, 6, 1, 0);
 		}
 
 		modelViewStack.popMatrix();
@@ -174,21 +174,21 @@ public class ${JavaModName}SkyboxRenderer {
 		GpuBufferSlice dynamicTransforms = RenderSystem.getDynamicUniforms()
 			.writeTransform(modelViewStack, new Vector4f(1.0F, 1.0F, 1.0F, 1.0F), new Vector3f(), new Matrix4f());
 
-		GpuTextureView color = mc.getMainRenderTarget().getColorTextureView();
-		GpuTextureView depth = mc.getMainRenderTarget().getDepthTextureView();
-		GpuBuffer indexBuffer = RenderSystem.getSequentialBuffer(VertexFormat.Mode.QUADS).getBuffer(36);
+		GpuTextureView color = mc.gameRenderer.mainRenderTarget().getColorTextureView();
+		GpuTextureView depth = mc.gameRenderer.mainRenderTarget().getDepthTextureView();
+		GpuBuffer indexBuffer = RenderSystem.getSequentialBuffer(com.mojang.blaze3d.PrimitiveTopology.QUADS).getBuffer(36);
 		AbstractTexture texture = mc.getTextureManager().getTexture(textureId);
 
 		try (RenderPass renderPass = RenderSystem.getDevice()
 				.createCommandEncoder()
-				.createRenderPass(() -> "${modid} Skybox", color, OptionalInt.empty(), depth, OptionalDouble.empty())) {
+				.createRenderPass(() -> "${modid} Skybox", color, java.util.Optional.empty(), depth, OptionalDouble.empty())) {
 			renderPass.setPipeline(RenderPipelines.END_SKY);
 			RenderSystem.bindDefaultUniforms(renderPass);
 			renderPass.setUniform("DynamicTransforms", dynamicTransforms);
 			renderPass.bindTexture("Sampler0", texture.getTextureView(), texture.getSampler());
-			renderPass.setVertexBuffer(0, skyboxBuffer);
-			renderPass.setIndexBuffer(indexBuffer, RenderSystem.getSequentialBuffer(VertexFormat.Mode.QUADS).type());
-			renderPass.drawIndexed(0, 0, 36, 1);
+			renderPass.setVertexBuffer(0, skyboxBuffer.slice());
+			renderPass.setIndexBuffer(indexBuffer, RenderSystem.getSequentialBuffer(com.mojang.blaze3d.PrimitiveTopology.QUADS).type());
+			renderPass.drawIndexed(0, 0, 36, 1, 0);
 		}
 
 		modelViewStack.popMatrix();
@@ -197,7 +197,7 @@ public class ${JavaModName}SkyboxRenderer {
 	private static GpuBuffer buildSunBuffer() {
 		VertexFormat format = DefaultVertexFormat.POSITION_TEX;
 		try (ByteBufferBuilder byteBufferBuilder = ByteBufferBuilder.exactlySized(4 * format.getVertexSize())) {
-			BufferBuilder bufferBuilder = new BufferBuilder(byteBufferBuilder, VertexFormat.Mode.QUADS, format);
+			BufferBuilder bufferBuilder = new BufferBuilder(byteBufferBuilder, com.mojang.blaze3d.PrimitiveTopology.QUADS, format);
 			bufferBuilder.addVertex(-1.0F, 0.0F, -1.0F).setUv(0.0F, 0.0F);
 			bufferBuilder.addVertex(1.0F, 0.0F, -1.0F).setUv(1.0F, 0.0F);
 			bufferBuilder.addVertex(1.0F, 0.0F, 1.0F).setUv(1.0F, 1.0F);
@@ -211,7 +211,7 @@ public class ${JavaModName}SkyboxRenderer {
 	private static GpuBuffer buildMoonBuffer() {
 		VertexFormat format = DefaultVertexFormat.POSITION_TEX;
 		try (ByteBufferBuilder byteBufferBuilder = ByteBufferBuilder.exactlySized(8 * 4 * format.getVertexSize())) {
-			BufferBuilder bufferBuilder = new BufferBuilder(byteBufferBuilder, VertexFormat.Mode.QUADS, format);
+			BufferBuilder bufferBuilder = new BufferBuilder(byteBufferBuilder, com.mojang.blaze3d.PrimitiveTopology.QUADS, format);
 			for (int k = 0; k < 8; k++) {
 				int l = k % 4;
 				int i1 = k / 4 % 2;
@@ -234,7 +234,7 @@ public class ${JavaModName}SkyboxRenderer {
 	private static GpuBuffer buildSkyboxBuffer() {
 		VertexFormat format = DefaultVertexFormat.POSITION_TEX_COLOR;
 		try (ByteBufferBuilder byteBufferBuilder = ByteBufferBuilder.exactlySized(24 * format.getVertexSize())) {
-			BufferBuilder bufferBuilder = new BufferBuilder(byteBufferBuilder, VertexFormat.Mode.QUADS, format);
+			BufferBuilder bufferBuilder = new BufferBuilder(byteBufferBuilder, com.mojang.blaze3d.PrimitiveTopology.QUADS, format);
 			float distance = 100.0F;
 			float size = 100.0F;
 			int color = 0xFFFFFFFF;

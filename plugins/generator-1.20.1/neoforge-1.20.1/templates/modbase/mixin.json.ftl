@@ -1,7 +1,5 @@
 <#assign mixins = []>
-<#if w.getGElementsOfType('biome')?filter(e -> e.spawnBiome || e.spawnInCaves || e.spawnBiomeNether)?size != 0>
-  <#assign mixins = mixins + ['NoiseGeneratorSettingsMixin', 'BiomeSourcePresetMixin']>
-</#if>
+<#-- 1.20.1 has no compatible access to the private worldgen fields used by newer loaders. -->
 
 {
   "required": true,

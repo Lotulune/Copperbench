@@ -1,0 +1,157 @@
+Items.SKULL:
+  - Items.SKELETON_SKULL
+  - "skeleton_skull"
+
+# Minecraft 26.2 consolidated dyed and weathering copper variants into collections.
+Blocks.PURPLE_BANNER:
+  - Blocks.BANNER.purple()
+  - "purple_banner"
+Blocks.CYAN_CANDLE:
+  - Blocks.DYED_CANDLE.cyan()
+  - "cyan_candle"
+Blocks.WAXED_COPPER_TRAPDOOR:
+  - Blocks.COPPER_TRAPDOOR.waxed().unaffected()
+  - "waxed_copper_trapdoor"
+Items.WHITE_DYE:
+  - Items.DYE.white()
+  - "white_dye"
+Items.PINK_DYE:
+  - Items.DYE.pink()
+  - "pink_dye"
+Blocks.YELLOW_STAINED_GLASS_PANE:
+  - Blocks.STAINED_GLASS_PANE.yellow()
+  - "yellow_stained_glass_pane"
+
+# These entries must override the original MCreator datalist keys directly.
+# Mapping is single-pass, so mapping a 26.1-era Java constant name is not enough
+# for subtype-backed entries such as dyes and stained glass panes.
+Items.DYE#1:
+  - Items.DYE.red()
+  - "red_dye"
+Items.DYE#2:
+  - Items.DYE.green()
+  - "green_dye"
+Items.DYE#5:
+  - Items.DYE.purple()
+  - "purple_dye"
+Items.DYE#6:
+  - Items.DYE.cyan()
+  - "cyan_dye"
+Items.DYE#7:
+  - Items.DYE.lightGray()
+  - "light_gray_dye"
+Items.DYE#8:
+  - Items.DYE.gray()
+  - "gray_dye"
+Items.DYE#9:
+  - Items.DYE.pink()
+  - "pink_dye"
+Items.DYE#10:
+  - Items.DYE.lime()
+  - "lime_dye"
+Items.DYE#11:
+  - Items.DYE.yellow()
+  - "yellow_dye"
+Items.DYE#12:
+  - Items.DYE.lightBlue()
+  - "light_blue_dye"
+Items.DYE#13:
+  - Items.DYE.magenta()
+  - "magenta_dye"
+Items.DYE#14:
+  - Items.DYE.orange()
+  - "orange_dye"
+Items.DYE#16:
+  - Items.DYE.black()
+  - "black_dye"
+Items.DYE#17:
+  - Items.DYE.brown()
+  - "brown_dye"
+Items.DYE#18:
+  - Items.DYE.blue()
+  - "blue_dye"
+Items.DYE#19:
+  - Items.DYE.white()
+  - "white_dye"
+
+Blocks.STAINED_GLASS_PANE#0:
+  - Blocks.STAINED_GLASS_PANE.white()
+  - "white_stained_glass_pane"
+Blocks.STAINED_GLASS_PANE#1:
+  - Blocks.STAINED_GLASS_PANE.orange()
+  - "orange_stained_glass_pane"
+Blocks.STAINED_GLASS_PANE#2:
+  - Blocks.STAINED_GLASS_PANE.magenta()
+  - "magenta_stained_glass_pane"
+Blocks.STAINED_GLASS_PANE#3:
+  - Blocks.STAINED_GLASS_PANE.lightBlue()
+  - "light_blue_stained_glass_pane"
+Blocks.STAINED_GLASS_PANE#4:
+  - Blocks.STAINED_GLASS_PANE.yellow()
+  - "yellow_stained_glass_pane"
+Blocks.STAINED_GLASS_PANE#5:
+  - Blocks.STAINED_GLASS_PANE.lime()
+  - "lime_stained_glass_pane"
+Blocks.STAINED_GLASS_PANE#6:
+  - Blocks.STAINED_GLASS_PANE.pink()
+  - "pink_stained_glass_pane"
+Blocks.STAINED_GLASS_PANE#7:
+  - Blocks.STAINED_GLASS_PANE.gray()
+  - "gray_stained_glass_pane"
+Blocks.STAINED_GLASS_PANE#8:
+  - Blocks.STAINED_GLASS_PANE.lightGray()
+  - "light_gray_stained_glass_pane"
+Blocks.STAINED_GLASS_PANE#9:
+  - Blocks.STAINED_GLASS_PANE.cyan()
+  - "cyan_stained_glass_pane"
+Blocks.STAINED_GLASS_PANE#10:
+  - Blocks.STAINED_GLASS_PANE.purple()
+  - "purple_stained_glass_pane"
+Blocks.STAINED_GLASS_PANE#11:
+  - Blocks.STAINED_GLASS_PANE.blue()
+  - "blue_stained_glass_pane"
+Blocks.STAINED_GLASS_PANE#12:
+  - Blocks.STAINED_GLASS_PANE.brown()
+  - "brown_stained_glass_pane"
+Blocks.STAINED_GLASS_PANE#13:
+  - Blocks.STAINED_GLASS_PANE.green()
+  - "green_stained_glass_pane"
+Blocks.STAINED_GLASS_PANE#14:
+  - Blocks.STAINED_GLASS_PANE.red()
+  - "red_stained_glass_pane"
+Blocks.STAINED_GLASS_PANE#15:
+  - Blocks.STAINED_GLASS_PANE.black()
+  - "black_stained_glass_pane"
+Blocks.CYAN_SHULKER_BOX:
+  - Blocks.DYED_SHULKER_BOX.cyan()
+  - "cyan_shulker_box"
+Blocks.EXPOSED_COPPER_BULB:
+  - Blocks.COPPER_BULB.weathering().exposed()
+  - "exposed_copper_bulb"
+Blocks.WEATHERED_CUT_COPPER_SLAB:
+  - Blocks.CUT_COPPER_SLAB.weathering().weathered()
+  - "weathered_cut_copper_slab"
+Blocks.OXIDIZED_CUT_COPPER_SLAB:
+  - Blocks.CUT_COPPER_SLAB.weathering().oxidized()
+  - "oxidized_cut_copper_slab"
+Blocks.CANDLE#9:
+  - Blocks.DYED_CANDLE.lightGray()
+  - "light_gray_candle"
+Blocks.LIGHT_BLUE_BANNER:
+  - Blocks.BANNER.lightBlue()
+  - "light_blue_banner"
+Blocks.WAXED_COPPER_BULB:
+  - Blocks.COPPER_BULB.waxed().unaffected()
+  - "waxed_copper_bulb"
+Blocks.WAXED_EXPOSED_CUT_COPPER:
+  - Blocks.CUT_COPPER.waxed().exposed()
+  - "waxed_exposed_cut_copper"
+Blocks.WAXED_LIGHTNING_ROD:
+  - Blocks.LIGHTNING_ROD.waxed().unaffected()
+  - "waxed_lightning_rod"
+Blocks.WAXED_OXIDIZED_LIGHTNING_ROD:
+  - Blocks.LIGHTNING_ROD.waxed().oxidized()
+  - "waxed_oxidized_lightning_rod"
+Items.BROWN_BUNDLE:
+  - Items.DYED_BUNDLE.brown()
+  - "brown_bundle"

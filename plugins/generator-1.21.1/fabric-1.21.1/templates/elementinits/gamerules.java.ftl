@@ -26,35 +26,26 @@
 
 package ${package}.init;
 
-<#assign hasLogicRules = false>
-<#assign hasNumberRules = false>
-
 public class ${JavaModName}GameRules {
 
 	<#list gamerules as gamerule>
 		<#if gamerule.type == "Number">
-            <#assign hasNumberRules = true>
-            public static final GameRule<Integer> ${gamerule.getModElement().getRegistryNameUpper()} = registerInt(${gamerule.defaultValueNumber},
-                GameRuleCategory.${gamerule.category}, "${gamerule.getModElement().getRegistryName()}");
+            public static GameRules.Key<GameRules.IntegerValue> ${gamerule.getModElement().getRegistryNameUpper()};
 		<#else>
-            <#assign hasLogicRules = true>
-            public static final GameRule<Boolean> ${gamerule.getModElement().getRegistryNameUpper()} = registerBoolean(${gamerule.defaultValueLogic},
-                GameRuleCategory.${gamerule.category}, "${gamerule.getModElement().getRegistryName()}");
+            public static GameRules.Key<GameRules.BooleanValue> ${gamerule.getModElement().getRegistryNameUpper()};
 		</#if>
 	</#list>
 
-	public static void load() {}
-
-    <#if hasNumberRules>
-	private static GameRule<Integer> registerInt(int defaultValue, GameRuleCategory category, String registryName) {
-		return GameRuleBuilder.forInteger(defaultValue).category(category).buildAndRegister(ResourceLocation.fromNamespaceAndPath(${JavaModName}.MODID, registryName));
+	public static void load() {
+		<#list gamerules as gamerule>
+			<#if gamerule.type == "Number">
+			${gamerule.getModElement().getRegistryNameUpper()} = GameRuleRegistry.register("${StringUtils.lowercaseFirstLetter(gamerule.getModElement().getName())}",
+				GameRules.Category.${gamerule.category}, GameRuleFactory.createIntRule(${gamerule.defaultValueNumber}));
+			<#else>
+			${gamerule.getModElement().getRegistryNameUpper()} = GameRuleRegistry.register("${StringUtils.lowercaseFirstLetter(gamerule.getModElement().getName())}",
+				GameRules.Category.${gamerule.category}, GameRuleFactory.createBooleanRule(${gamerule.defaultValueLogic}));
+			</#if>
+		</#list>
 	}
-    </#if>
-
-	<#if hasLogicRules>
-	private static GameRule<Boolean> registerBoolean(boolean defaultValue, GameRuleCategory category, String registryName) {
-		return GameRuleBuilder.forBoolean(defaultValue).category(category).buildAndRegister(ResourceLocation.fromNamespaceAndPath(${JavaModName}.MODID, registryName));
-	}
-    </#if>
 }
 <#-- @formatter:on -->

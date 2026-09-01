@@ -1,0 +1,76 @@
+{
+  "date": "2026-09-01",
+  "test": "NewWorkspaceGeneratorGoldenBuildTest.stage11JavaElementsBuildIntoJars",
+  "command": "gradlew.bat test --rerun-tasks --tests dev.copperbench.generator.workspace.NewWorkspaceGeneratorGoldenBuildTest.stage11JavaElementsBuildIntoJars -Dcopperbench.stage11.workspaceGeneratorBuild=true --console=plain",
+  "outerBuild": "passed",
+  "generatorCount": 8,
+  "passed": 8,
+  "failed": 0,
+  "additionalGate": "Every mixin class declared in generated JAR mixin JSON must exist in the JAR",
+  "results": [
+    {
+      "generatorId": "fabric-26.2",
+      "supported": 37,
+      "phase": "passed",
+      "gradleBuild": "passed",
+      "jar": "passed",
+      "mixinClassValidation": "passed"
+    },
+    {
+      "generatorId": "neoforge-26.2",
+      "supported": 37,
+      "phase": "passed",
+      "gradleBuild": "passed",
+      "jar": "passed",
+      "mixinClassValidation": "passed"
+    },
+    {
+      "generatorId": "fabric-26.1.2",
+      "supported": 37,
+      "phase": "passed",
+      "gradleBuild": "passed",
+      "jar": "passed",
+      "mixinClassValidation": "passed"
+    },
+    {
+      "generatorId": "neoforge-26.1.2",
+      "supported": 37,
+      "phase": "passed",
+      "gradleBuild": "passed",
+      "jar": "passed",
+      "mixinClassValidation": "passed"
+    },
+    {
+      "generatorId": "fabric-1.21.1",
+      "supported": 37,
+      "phase": "passed",
+      "gradleBuild": "passed",
+      "jar": "passed",
+      "mixinClassValidation": "passed"
+    },
+    {
+      "generatorId": "neoforge-1.21.1",
+      "supported": 37,
+      "phase": "passed",
+      "gradleBuild": "passed",
+      "jar": "passed",
+      "mixinClassValidation": "passed"
+    },
+    {
+      "generatorId": "fabric-1.20.1",
+      "supported": 37,
+      "phase": "passed",
+      "gradleBuild": "passed",
+      "jar": "passed",
+      "mixinClassValidation": "passed"
+    },
+    {
+      "generatorId": "neoforge-1.20.1",
+      "supported": 37,
+      "phase": "passed",
+      "gradleBuild": "passed",
+      "jar": "passed",
+      "mixinClassValidation": "passed"
+    }
+  ]
+}

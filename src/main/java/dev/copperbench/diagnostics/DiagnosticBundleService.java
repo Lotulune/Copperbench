@@ -12,7 +12,9 @@ package dev.copperbench.diagnostics;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import dev.copperbench.ProductIdentity;
 import dev.copperbench.automation.audit.SensitiveDataRedactor;
 
@@ -113,7 +115,9 @@ public final class DiagnosticBundleService {
 	private JsonObject sanitizedTaskSnapshot() {
 		JsonObject snapshot = taskSnapshot == null ? new JsonObject() : taskSnapshot.get();
 		if (snapshot == null) snapshot = new JsonObject();
-		return JSON.fromJson(redact(JSON.toJson(snapshot)), JsonObject.class);
+		JsonObject sanitized = snapshot.deepCopy();
+		redactJson(sanitized);
+		return JSON.fromJson(redact(JSON.toJson(sanitized)), JsonObject.class);
 	}
 
 	private void addLogs(List<BundleEntry> entries) throws IOException {
@@ -150,7 +154,11 @@ public final class DiagnosticBundleService {
 				if (REPRODUCTION_EXTENSIONS.stream().noneMatch(normalized::endsWith)) continue;
 				long size = Files.size(path);
 				if (size > MAX_LOG_BYTES || total + size > MAX_REPRODUCTION_BYTES || count >= MAX_REPRODUCTION_FILES) continue;
-				entries.add(new BundleEntry("reproduction/" + normalized, Files.readAllBytes(path)));
+				// Workspace descriptors and source files are text; apply the same credential and path
+				// redaction used for logs before placing user-confirmed files in the bundle.
+				String content = redactWorkspaceFile(normalized, new String(Files.readAllBytes(path), StandardCharsets.UTF_8));
+				entries.add(new BundleEntry("reproduction/" + normalized,
+						content.getBytes(StandardCharsets.UTF_8)));
 				total += size;
 				count++;
 			}
@@ -167,11 +175,12 @@ public final class DiagnosticBundleService {
 		if (failureId != null) manifest.addProperty("failureId", failureId.toString());
 		manifest.addProperty("userConfirmedWorkspaceFiles", includeWorkspaceFiles);
 		manifest.addProperty("reproductionFileCount", reproductionFiles);
-		manifest.addProperty("reproductionFilesIncludedWithoutContentRedaction", includeWorkspaceFiles);
+		manifest.addProperty("reproductionFilesIncludedWithoutContentRedaction", false);
 		JsonArray redactions = new JsonArray();
 		redactions.add("credentials and bearer tokens");
 		redactions.add("user name and home directory");
 		redactions.add("workspace and external absolute paths in generated summaries and logs");
+		redactions.add("credentials and absolute paths in user-confirmed workspace reproduction files");
 		manifest.add("redactions", redactions);
 		JsonArray files = new JsonArray();
 		entries.forEach(entry -> files.add(entry.name()));
@@ -189,6 +198,36 @@ public final class DiagnosticBundleService {
 		result = WINDOWS_PATH.matcher(result).replaceAll("[PATH]");
 		result = UNIX_HOME.matcher(result).replaceAll("[PATH]");
 		return UNIX_ABSOLUTE_PATH.matcher(result).replaceAll("[PATH]");
+	}
+
+	private String redactWorkspaceFile(String path, String source) {
+		String lowerPath = path.toLowerCase(Locale.ROOT);
+		if (!lowerPath.endsWith(".json") && !lowerPath.endsWith(".mcreator")) return redact(source);
+		try {
+			JsonElement document = JsonParser.parseString(source);
+			redactJson(document);
+			return redact(JSON.toJson(document));
+		} catch (RuntimeException ignored) {
+			return redact(source);
+		}
+	}
+
+	private void redactJson(JsonElement value) {
+		if (value == null || value.isJsonNull()) return;
+		if (value.isJsonObject()) {
+			for (String key : List.copyOf(value.getAsJsonObject().keySet())) {
+				if (isSensitiveKey(key)) value.getAsJsonObject().addProperty(key, "[REDACTED]");
+				else redactJson(value.getAsJsonObject().get(key));
+			}
+		} else if (value.isJsonArray()) {
+			value.getAsJsonArray().forEach(this::redactJson);
+		}
+	}
+
+	private static boolean isSensitiveKey(String key) {
+		String normalized = key.replaceAll("[^A-Za-z0-9]", "").toLowerCase(Locale.ROOT);
+		return normalized.contains("password") || normalized.contains("secret") || normalized.contains("token")
+				|| normalized.contains("apikey") || normalized.contains("privatekey") || normalized.contains("credential");
 	}
 
 	private static String safeName(String name) {

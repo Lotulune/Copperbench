@@ -3,7 +3,7 @@ status: lts
 buildfileversion: 47.1.106
 
 import:
-  - datapack-1.21.1
+  - datapack-1.20.1
 
 java_models:
   key: mojmap-1.20.x
@@ -12,6 +12,7 @@ java_models:
 
 # gradle task definitions
 gradle:
+  sync_task: mcreatorPrepareMinecraftSources
   run_client: runClient
   run_server: runServer
   export_file: "build/libs/modid-1.0.jar"

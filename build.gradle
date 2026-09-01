@@ -240,6 +240,10 @@ test {
 		System.getProperty('copperbench.stage9.workspaceGeneratorBuild', 'false')
 	systemProperty 'copperbench.stage9.workspaceGeneratorId',
 		System.getProperty('copperbench.stage9.workspaceGeneratorId', '')
+	systemProperty 'copperbench.stage11.workspaceGeneratorBuild',
+		System.getProperty('copperbench.stage11.workspaceGeneratorBuild', 'false')
+	systemProperty 'copperbench.stage11.workspaceGeneratorId',
+		System.getProperty('copperbench.stage11.workspaceGeneratorId', '')
 	systemProperty 'copperbench.stage9.realServer',
 		System.getProperty('copperbench.stage9.realServer', 'false')
 	systemProperty 'copperbench.stage9.realServerGeneratorId',
@@ -256,6 +260,8 @@ test {
 		System.getProperty('copperbench.uiWindowTimeoutSeconds', '20')
 
     jvmArgs '--add-opens', 'java.base/java.lang=ALL-UNNAMED', '--add-opens', 'java.base/java.io=ALL-UNNAMED',
+            '--add-opens', 'java.desktop/java.awt=ALL-UNNAMED',
+            '--add-opens', 'java.desktop/java.awt.color=ALL-UNNAMED',
             '--enable-native-access', 'ALL-UNNAMED,jcef'
 
     // default max heap is VM RAM / 4, which may be too low on low RAM VMs

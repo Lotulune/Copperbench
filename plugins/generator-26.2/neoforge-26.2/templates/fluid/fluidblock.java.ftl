@@ -48,7 +48,7 @@ public class ${name}Block extends LiquidBlock {
 			.mapColor(MapColor.${(data.type=="WATER")?then("WATER","FIRE")})
 			</#if>
 			.strength(${data.resistance}f)
-			<#if data.emissiveRendering>.postProcess((bs, br, bp) -> bp).emissiveRendering((bs, br, bp) -> true)</#if>
+			<#if data.emissiveRendering>.postProcess((bs, br, bp) -> bp).emissiveRendering(bs -> true)</#if>
 			<#if data.luminance != 0>.lightLevel(state -> ${data.luminance})</#if>
 			<#if data.ignitedByLava>.ignitedByLava()</#if>
 			.noCollision().noLootTable().liquid().pushReaction(PushReaction.DESTROY).sound(SoundType.EMPTY).replaceable()

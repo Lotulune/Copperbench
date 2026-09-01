@@ -1,7 +1,7 @@
 <#--
  # MCreator (https://mcreator.net/)
  # Copyright (C) 2012-2020, Pylo
- # Copyright (C) 2020-2024, Pylo, opensource contributors
+ # Copyright (C) 2020-2023, Pylo, opensource contributors
  #
  # This program is free software: you can redistribute it and/or modify
  # it under the terms of the GNU General Public License as published by
@@ -38,11 +38,11 @@ package ${package}.init;
 
 public class ${JavaModName}FluidTypes {
 
-	public static final DeferredRegister<FluidType> REGISTRY = DeferredRegister.create(NeoForgeRegistries.FLUID_TYPES, ${JavaModName}.MODID);
+	public static final DeferredRegister<FluidType> REGISTRY = DeferredRegister.create(ForgeRegistries.Keys.FLUID_TYPES, ${JavaModName}.MODID);
 
 	<#list fluids as fluid>
-	public static final DeferredHolder<FluidType, FluidType> ${fluid.getModElement().getRegistryNameUpper()}_TYPE =
-		REGISTRY.register("${fluid.getModElement().getRegistryName()}", ${fluid.getModElement().getName()}FluidType::new);
+	public static final RegistryObject<FluidType> ${fluid.getModElement().getRegistryNameUpper()}_TYPE =
+		REGISTRY.register("${fluid.getModElement().getRegistryName()}", () -> new ${fluid.getModElement().getName()}FluidType());
 	</#list>
 }
 

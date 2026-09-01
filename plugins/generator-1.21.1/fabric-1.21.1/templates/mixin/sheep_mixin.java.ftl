@@ -31,7 +31,7 @@ public abstract class SheepMixin {
 			if (sheep.level() instanceof ServerLevel serverLevel && sheep.readyForShearing()) {
 				sheep.shear(serverLevel, SoundSource.PLAYERS, itemStack);
 				sheep.gameEvent(GameEvent.SHEAR, player);
-				itemStack.hurtAndBreak(1, player, hand.asEquipmentSlot());
+				itemStack.hurtAndBreak(1, player, LivingEntity.getSlotForHand(hand));
 				cir.setReturnValue(InteractionResult.SUCCESS_SERVER);
 			}
 

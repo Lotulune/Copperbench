@@ -37,10 +37,6 @@ templates:
       - "renderType() #?= 13,3"
     writer: json
     name: "@MODASSETSROOT/models/item/@registryname.json"
-  - template: json/model_item_block.json.ftl
-    condition: hasBlockItem
-    writer: json
-    name: "@MODASSETSROOT/items/@registryname.json"
 
   # Normal block templates
   - template: json/block_states.json.ftl

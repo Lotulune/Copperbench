@@ -19,6 +19,7 @@ import dev.copperbench.core.workspace.WorkspaceState.Element;
 import dev.copperbench.migration.MigrationReport.Disposition;
 import dev.copperbench.migration.MigrationReport.MigrationItem;
 import dev.copperbench.tracks.VersionTrackCatalog;
+import dev.copperbench.release.ElementCoverageCatalog;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -44,7 +45,7 @@ import java.util.Set;
  */
 public final class LoaderMigrationService {
 
-	private static final Set<String> SLICE_TYPES = Set.of("block", "item", "recipe", "procedure");
+	private static final Set<String> SLICE_TYPES = Set.copyOf(ElementCoverageCatalog.FIRST_PARTY_SLICE);
 	private static final Gson JSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 	private final VersionTrackCatalog catalog;
 
@@ -121,7 +122,7 @@ public final class LoaderMigrationService {
 						"Loader-exclusive fields were copied unchanged and need review in the target generator."));
 			} else {
 				items.add(new MigrationItem(path, element.name(), element.type(), Disposition.SUPPORTED,
-						"COMMON_FIELDS_COPIED", "Common vertical-slice fields copy without conversion."));
+						"COMMON_FIELDS_COPIED", "Common Java element fields copy without conversion."));
 			}
 		}
 		JsonObject document = source.upstreamDocument();

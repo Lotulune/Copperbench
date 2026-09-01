@@ -33,61 +33,74 @@
 
 package ${package}.network;
 
-@EventBusSubscriber public record ${name}ButtonMessage(int buttonID, int x, int y, int z) implements CustomPacketPayload {
+@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD) public class ${name}ButtonMessage {
 
-	public static final Type<${name}ButtonMessage> TYPE = new Type<>(new ResourceLocation(${JavaModName}.MODID, "${registryname}_buttons"));
+	private final int buttonID, x, y, z;
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, ${name}ButtonMessage> STREAM_CODEC = StreamCodec.of(
-			(RegistryFriendlyByteBuf buffer, ${name}ButtonMessage message) -> {
-				buffer.writeInt(message.buttonID);
-				buffer.writeInt(message.x);
-				buffer.writeInt(message.y);
-				buffer.writeInt(message.z);
-			},
-			(RegistryFriendlyByteBuf buffer) -> new ${name}ButtonMessage(buffer.readInt(), buffer.readInt(), buffer.readInt(), buffer.readInt())
-	);
-
-	@Override public Type<${name}ButtonMessage> type() {
-		return TYPE;
+	public ${name}ButtonMessage(FriendlyByteBuf buffer) {
+		this.buttonID = buffer.readInt();
+		this.x = buffer.readInt();
+		this.y = buffer.readInt();
+		this.z = buffer.readInt();
 	}
 
-	public static void handleData(final ${name}ButtonMessage message, final IPayloadContext context) {
-		if (context.flow() == PacketFlow.SERVERBOUND) {
-			context.enqueueWork(() -> handleButtonAction(context.player(), message.buttonID, message.x, message.y, message.z)).exceptionally(e -> {
-				context.connection().disconnect(Component.literal(e.getMessage()));
-				return null;
-			});
-		}
+	public ${name}ButtonMessage(int buttonID, int x, int y, int z) {
+		this.buttonID = buttonID;
+		this.x = x;
+		this.y = y;
+		this.z = z;
+	}
+
+	public static void buffer(${name}ButtonMessage message, FriendlyByteBuf buffer) {
+		buffer.writeInt(message.buttonID);
+		buffer.writeInt(message.x);
+		buffer.writeInt(message.y);
+		buffer.writeInt(message.z);
+	}
+
+	public static void handler(${name}ButtonMessage message, Supplier<NetworkEvent.Context> contextSupplier) {
+		NetworkEvent.Context context = contextSupplier.get();
+		context.enqueueWork(() -> {
+			Player entity = context.getSender();
+			int buttonID = message.buttonID;
+			int x = message.x;
+			int y = message.y;
+			int z = message.z;
+
+			handleButtonAction(entity, buttonID, x, y, z);
+		});
+		context.setPacketHandled(true);
 	}
 
 	public static void handleButtonAction(Player entity, int buttonID, int x, int y, int z) {
 		Level world = entity.level();
+		HashMap guistate = ${name}Menu.guistate;
 
 		// security measure to prevent arbitrary chunk generation
-		if (!world.getChunkSource().hasChunk(SectionPos.blockToSectionCoord(x), SectionPos.blockToSectionCoord(z)))
+		if (!world.hasChunkAt(new BlockPos(x, y, z)))
 			return;
 
 		<#assign btid = 0>
 		<#list data.getComponentsOfType("Button") as component>
-			<#if hasProcedure(component.onClick)>
-				if (buttonID == ${btid}) {
-					<@procedureOBJToCode component.onClick/>
-				}
-			</#if>
-			<#assign btid +=1>
+				<#if hasProcedure(component.onClick)>
+					if (buttonID == ${btid}) {
+						<@procedureOBJToCode component.onClick/>
+					}
+				</#if>
+				<#assign btid +=1>
 		</#list>
 		<#list data.getComponentsOfType("ImageButton") as component>
-			<#if hasProcedure(component.onClick)>
-				if (buttonID == ${btid}) {
-					<@procedureOBJToCode component.onClick/>
-				}
-			</#if>
-			<#assign btid +=1>
+				<#if hasProcedure(component.onClick)>
+					if (buttonID == ${btid}) {
+						<@procedureOBJToCode component.onClick/>
+					}
+				</#if>
+				<#assign btid +=1>
 		</#list>
 	}
 
 	@SubscribeEvent public static void registerMessage(FMLCommonSetupEvent event) {
-		${JavaModName}.addNetworkMessage(${name}ButtonMessage.TYPE, ${name}ButtonMessage.STREAM_CODEC, ${name}ButtonMessage::handleData);
+		${JavaModName}.addNetworkMessage(${name}ButtonMessage.class, ${name}ButtonMessage::buffer, ${name}ButtonMessage::new, ${name}ButtonMessage::handler);
 	}
 
 }

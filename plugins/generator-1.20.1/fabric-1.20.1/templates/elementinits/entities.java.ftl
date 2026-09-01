@@ -42,12 +42,11 @@ public class ${JavaModName}Entities {
                                 .clientTrackingRange(${entity.trackingRange}).updateInterval(3)
                                 <#if entity.immuneToFire>.fireImmune()</#if>
                                 <#if entity.mobModelName == "Biped">.ridingOffset(-0.6f)</#if>
-                                <#if entity.mobBehaviourType != "Creature">.notInPeaceful()</#if>
                                 .sized(${entity.modelWidth}f, ${entity.modelHeight}f));
                 <#elseif entity.getModElement().getTypeString() == "specialentity">
                     register("${entity.getModElement().getRegistryName()}",
                         EntityType.Builder.<${entity.getModElement().getName()}Entity>of(${entity.getModElement().getName()}Entity::new, MobCategory.MISC)
-                            .noLootTable().sized(1.375F, 0.5625F).eyeHeight(0.5625F).clientTrackingRange(10));
+                            .sized(1.375F, 0.5625F).clientTrackingRange(10));
                 </#if>
 		<#if entity.getModElement().getTypeString() == "livingentity" && entity.hasCustomProjectile()>
 			public static EntityType<${entity.getModElement().getName()}EntityProjectile> ${entity.getModElement().getRegistryNameUpper()}_PROJECTILE =
@@ -68,9 +67,7 @@ public class ${JavaModName}Entities {
 	// End of user code block custom entities
 
 	private static <T extends Entity> EntityType<T> register(String registryname, EntityType.Builder<T> entityTypeBuilder) {
-		return Registry.register(BuiltInRegistries.ENTITY_TYPE, new ResourceLocation(${JavaModName}.MODID, registryname), (EntityType<T>) entityTypeBuilder.build(
-				ResourceKey.create(Registries.ENTITY_TYPE, new ResourceLocation(${JavaModName}.MODID, registryname))
-		));
+		return Registry.register(BuiltInRegistries.ENTITY_TYPE, new ResourceLocation(${JavaModName}.MODID, registryname), entityTypeBuilder.build(registryname));
 	}
 
 	<#if hasLivingEntities>

@@ -36,7 +36,7 @@ public class ${JavaModName}Variables {
 
 	public static void variablesLoad() {
         <#if w.hasVariablesOfScope("PLAYER_LIFETIME") || w.hasVariablesOfScope("PLAYER_PERSISTENT")>
-        PayloadTypeRegistry.clientboundPlay().register(PlayerVariablesSyncMessage.TYPE, PlayerVariablesSyncMessage.STREAM_CODEC);
+        PayloadTypeRegistry.playS2C().register(PlayerVariablesSyncMessage.TYPE, PlayerVariablesSyncMessage.STREAM_CODEC);
 
         ServerPlayerEvents.JOIN.register((player) -> {
             ServerPlayNetworking.send(player, new PlayerVariablesSyncMessage(player.getAttachedOrCreate(PLAYER_VARIABLES)));
@@ -46,7 +46,7 @@ public class ${JavaModName}Variables {
 				ServerPlayNetworking.send(newPlayer, new PlayerVariablesSyncMessage(oldPlayer.getAttachedOrCreate(PLAYER_VARIABLES)));
 		});
 
-		ServerEntityLevelChangeEvents.AFTER_PLAYER_CHANGE_LEVEL.register((player, origin, destination) -> {
+		ServerEntityWorldChangeEvents.AFTER_PLAYER_CHANGE_WORLD.register((player, origin, destination) -> {
 			if (!destination.isClientSide())
 				ServerPlayNetworking.send(player, new PlayerVariablesSyncMessage(player.getAttachedOrCreate(PLAYER_VARIABLES)));
 		});
@@ -78,7 +78,7 @@ public class ${JavaModName}Variables {
         </#if>
 
         <#if w.hasVariablesOfScope("GLOBAL_WORLD") || w.hasVariablesOfScope("GLOBAL_MAP")>
-        PayloadTypeRegistry.clientboundPlay().register(SavedDataSyncMessage.TYPE, SavedDataSyncMessage.STREAM_CODEC);
+        PayloadTypeRegistry.playS2C().register(SavedDataSyncMessage.TYPE, SavedDataSyncMessage.STREAM_CODEC);
 
 		ServerPlayerEvents.JOIN.register((player) -> {
 			SavedData mapdata = MapVariables.get(player.level());
@@ -89,7 +89,7 @@ public class ${JavaModName}Variables {
 				ServerPlayNetworking.send(player, new SavedDataSyncMessage(1, worlddata));
 		});
 
-		ServerEntityLevelChangeEvents.AFTER_PLAYER_CHANGE_LEVEL.register((player, origin, destination) -> {
+		ServerEntityWorldChangeEvents.AFTER_PLAYER_CHANGE_WORLD.register((player, origin, destination) -> {
 			if (!destination.isClientSide()) {
 				SavedData worlddata = WorldVariables.get(player.level());
 				if(worlddata != null)
@@ -116,16 +116,7 @@ public class ${JavaModName}Variables {
 	<#if w.hasVariablesOfScope("GLOBAL_WORLD") || w.hasVariablesOfScope("GLOBAL_MAP")>
 	public static class WorldVariables extends SavedData {
 
-		public static final SavedDataType<WorldVariables> TYPE = new SavedDataType<>(ResourceLocation.parse("${modid}:worldvars"), WorldVariables::new,
-				CompoundTag.CODEC.xmap(
-				tag -> {
-					WorldVariables instance = new WorldVariables();
-					instance.read(tag);
-					return instance;
-				},
-				instance -> instance.save(new CompoundTag())
-			), null
-		);
+		public static final String DATA_NAME = "${modid}_worldvars";
 
 		boolean _syncDirty = false;
 
@@ -135,7 +126,13 @@ public class ${JavaModName}Variables {
 			</#if>
 		</#list>
 
-		public void read(CompoundTag nbt) {
+		public static WorldVariables load(CompoundTag tag, HolderLookup.Provider lookupProvider) {
+			WorldVariables data = new WorldVariables();
+			data.read(tag, lookupProvider);
+			return data;
+		}
+
+		public void read(CompoundTag nbt, HolderLookup.Provider lookupProvider) {
 			<#list variables as var>
 				<#if var.getScope().name() == "GLOBAL_WORLD">
 					<@var.getType().getScopeDefinition(generator.getWorkspace(), "GLOBAL_WORLD")['read']?interpret/>
@@ -143,7 +140,7 @@ public class ${JavaModName}Variables {
 			</#list>
 		}
 
-		public CompoundTag save(CompoundTag nbt) {
+		@Override public CompoundTag save(CompoundTag nbt, HolderLookup.Provider lookupProvider) {
 			<#list variables as var>
 				<#if var.getScope().name() == "GLOBAL_WORLD">
 					<@var.getType().getScopeDefinition(generator.getWorkspace(), "GLOBAL_WORLD")['write']?interpret/>
@@ -161,7 +158,7 @@ public class ${JavaModName}Variables {
 
 		public static WorldVariables get(LevelAccessor world) {
 			if (world instanceof ServerLevel level) {
-				return level.getDataStorage().computeIfAbsent(WorldVariables.TYPE);
+				return level.getDataStorage().computeIfAbsent(new SavedData.Factory<>(WorldVariables::new, WorldVariables::load), DATA_NAME);
 			} else {
 				return clientSide;
 			}
@@ -170,16 +167,7 @@ public class ${JavaModName}Variables {
 
 	public static class MapVariables extends SavedData {
 
-		public static final SavedDataType<MapVariables> TYPE = new SavedDataType<>(ResourceLocation.parse("${modid}:mapvars"), MapVariables::new,
-				CompoundTag.CODEC.xmap(
-				tag -> {
-					MapVariables instance = new MapVariables();
-					instance.read(tag);
-					return instance;
-				},
-				instance -> instance.save(new CompoundTag())
-			), null
-		);
+		public static final String DATA_NAME = "${modid}_mapvars";
 
 		boolean _syncDirty = false;
 
@@ -189,7 +177,13 @@ public class ${JavaModName}Variables {
 			</#if>
 		</#list>
 
-		public void read(CompoundTag nbt) {
+		public static MapVariables load(CompoundTag tag, HolderLookup.Provider lookupProvider) {
+			MapVariables data = new MapVariables();
+			data.read(tag, lookupProvider);
+			return data;
+		}
+
+		public void read(CompoundTag nbt, HolderLookup.Provider lookupProvider) {
 			<#list variables as var>
 				<#if var.getScope().name() == "GLOBAL_MAP">
 					<@var.getType().getScopeDefinition(generator.getWorkspace(), "GLOBAL_MAP")['read']?interpret/>
@@ -197,7 +191,7 @@ public class ${JavaModName}Variables {
 			</#list>
 		}
 
-		public CompoundTag save(CompoundTag nbt) {
+		@Override public CompoundTag save(CompoundTag nbt, HolderLookup.Provider lookupProvider) {
 			<#list variables as var>
 				<#if var.getScope().name() == "GLOBAL_MAP">
 					<@var.getType().getScopeDefinition(generator.getWorkspace(), "GLOBAL_MAP")['write']?interpret/>
@@ -215,7 +209,8 @@ public class ${JavaModName}Variables {
 
 		public static MapVariables get(LevelAccessor world) {
 			if (world instanceof ServerLevelAccessor serverLevelAccessor) {
-				return serverLevelAccessor.getLevel().getServer().getLevel(Level.OVERWORLD).getDataStorage().computeIfAbsent(MapVariables.TYPE);
+				return serverLevelAccessor.getLevel().getServer().getLevel(Level.OVERWORLD).getDataStorage()
+						.computeIfAbsent(new SavedData.Factory<>(MapVariables::new, MapVariables::load), DATA_NAME);
 			} else {
 				return clientSide;
 			}
@@ -229,10 +224,8 @@ public class ${JavaModName}Variables {
 		public static final StreamCodec<RegistryFriendlyByteBuf, SavedDataSyncMessage> STREAM_CODEC = StreamCodec.of(
 			(RegistryFriendlyByteBuf buffer, SavedDataSyncMessage message) -> {
 				buffer.writeInt(message.dataType);
-				if (message.data instanceof MapVariables mapVariables)
-					buffer.writeNbt(mapVariables.save(new CompoundTag()));
-				else if (message.data instanceof WorldVariables worldVariables)
-					buffer.writeNbt(worldVariables.save(new CompoundTag()));
+				if (message.data != null)
+					buffer.writeNbt(message.data.save(new CompoundTag(), buffer.registryAccess()));
 			},
 			(RegistryFriendlyByteBuf buffer) -> {
 				int dataType = buffer.readInt();
@@ -241,9 +234,9 @@ public class ${JavaModName}Variables {
 				if (nbt != null) {
 					data = dataType == 0 ? new MapVariables() : new WorldVariables();
 					if(data instanceof MapVariables mapVariables)
-						mapVariables.read(nbt);
+						mapVariables.read(nbt, buffer.registryAccess());
 					else if(data instanceof WorldVariables worldVariables)
-						worldVariables.read(nbt);
+						worldVariables.read(nbt, buffer.registryAccess());
 				}
 				return new SavedDataSyncMessage(dataType, data);
 			}
@@ -257,9 +250,9 @@ public class ${JavaModName}Variables {
 			if (message.data != null) {
 				context.client().execute(() -> {
 					if (message.dataType == 0)
-						MapVariables.clientSide.read(((MapVariables) message.data).save(new CompoundTag()));
+						MapVariables.clientSide.read(message.data.save(new CompoundTag(), context.player().registryAccess()), context.player().registryAccess());
 					else
-						WorldVariables.clientSide.read(((WorldVariables) message.data).save(new CompoundTag()));
+						WorldVariables.clientSide.read(message.data.save(new CompoundTag(), context.player().registryAccess()), context.player().registryAccess());
 				});
 			}
 		}
@@ -303,26 +296,6 @@ public class ${JavaModName}Variables {
             </#list>
 		}
 
-		public void serialize(ValueOutput output) {
-			<#list variables as var>
-				<#if var.getScope().name() == "PLAYER_LIFETIME">
-					<@var.getType().getScopeDefinition(generator.getWorkspace(), "PLAYER_LIFETIME")['write']?interpret/>
-				<#elseif var.getScope().name() == "PLAYER_PERSISTENT">
-					<@var.getType().getScopeDefinition(generator.getWorkspace(), "PLAYER_PERSISTENT")['write']?interpret/>
-				</#if>
-			</#list>
-		}
-
-		public void deserialize(ValueInput input) {
-			<#list variables as var>
-				<#if var.getScope().name() == "PLAYER_LIFETIME">
-					<@var.getType().getScopeDefinition(generator.getWorkspace(), "PLAYER_LIFETIME")['read']?interpret/>
-				<#elseif var.getScope().name() == "PLAYER_PERSISTENT">
-					<@var.getType().getScopeDefinition(generator.getWorkspace(), "PLAYER_PERSISTENT")['read']?interpret/>
-				</#if>
-			</#list>
-		}
-
 		public void markSyncDirty() {
 			_syncDirty = true;
 		}
@@ -334,14 +307,16 @@ public class ${JavaModName}Variables {
 
 		public static final StreamCodec<RegistryFriendlyByteBuf, PlayerVariablesSyncMessage> STREAM_CODEC = StreamCodec.of(
 				(RegistryFriendlyByteBuf buffer, PlayerVariablesSyncMessage message) -> {
-					TagValueOutput output = TagValueOutput.createWithContext(ProblemReporter.DISCARDING, buffer.registryAccess());
-					message.data.serialize(output);
-					buffer.writeNbt(output.buildResult());
+					buffer.writeNbt((CompoundTag) PlayerVariables.CODEC.encodeStart(
+							buffer.registryAccess().createSerializationContext(NbtOps.INSTANCE), message.data)
+							.result().orElseGet(CompoundTag::new));
 				},
 				(RegistryFriendlyByteBuf buffer) -> {
-					PlayerVariablesSyncMessage message = new PlayerVariablesSyncMessage(new PlayerVariables());
-					message.data.deserialize(TagValueInput.create(ProblemReporter.DISCARDING, buffer.registryAccess(), buffer.readNbt()));
-					return message;
+					CompoundTag tag = buffer.readNbt();
+					PlayerVariables data = tag == null ? new PlayerVariables() : PlayerVariables.CODEC.parse(
+							buffer.registryAccess().createSerializationContext(NbtOps.INSTANCE), tag)
+							.result().orElseGet(PlayerVariables::new);
+					return new PlayerVariablesSyncMessage(data);
 				}
 		);
 
@@ -352,10 +327,7 @@ public class ${JavaModName}Variables {
 		public static void handleData(final PlayerVariablesSyncMessage message, final ClientPlayNetworking.Context context) {
 			if (message.data != null) {
 				context.client().execute(() -> {
-					<#-- If we use setAttached here, we may get unwanted references to old data instance -->
-					TagValueOutput output = TagValueOutput.createWithContext(ProblemReporter.DISCARDING, context.player().registryAccess());
-					message.data.serialize(output);
-					context.player().getAttachedOrCreate(PLAYER_VARIABLES).deserialize(TagValueInput.create(ProblemReporter.DISCARDING, context.player().registryAccess(), output.buildResult()));
+					context.player().setAttached(PLAYER_VARIABLES, message.data);
 				});
 			}
 		}

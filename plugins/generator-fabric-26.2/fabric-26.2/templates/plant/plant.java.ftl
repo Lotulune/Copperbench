@@ -98,7 +98,7 @@ public class ${name}Block extends ${getPlantClass(data.plantType)}Block <#if int
 		.strength(${data.hardness}f, ${data.resistance}f)
 		</#if>
 		<#if data.emissiveRendering>
-		.postProcess((bs, br, bp) -> bp).emissiveRendering((bs, br, bp) -> true)
+		.postProcess((bs, br, bp) -> bp).emissiveRendering(bs -> true)
 		</#if>
 		<#if data.speedFactor != 1.0>
 		.speedFactor(${data.speedFactor}f)
@@ -374,21 +374,21 @@ public class ${name}Block extends ${getPlantClass(data.plantType)}Block <#if int
 					List.of(new BlockTintSource() {
 						@Override public int color(BlockState state) { return 8562943; }
 						@Override public int colorInWorld(BlockState state, BlockAndTintGetter level, BlockPos pos) {
-							return Minecraft.getInstance().gameRenderer.getMainCamera().attributeProbe().getValue(EnvironmentAttributes.SKY_COLOR, 0);
+							return Minecraft.getInstance().gameRenderer.mainCamera().attributeProbe().getValue(EnvironmentAttributes.SKY_COLOR, 0);
 						}
 					})
 				<#elseif data.tintType == "Fog">
 					List.of(new BlockTintSource() {
 						@Override public int color(BlockState state) { return 12638463; }
 						@Override public int colorInWorld(BlockState state, BlockAndTintGetter level, BlockPos pos) {
-							return Minecraft.getInstance().gameRenderer.getMainCamera().attributeProbe().getValue(EnvironmentAttributes.FOG_COLOR, 0);
+							return Minecraft.getInstance().gameRenderer.mainCamera().attributeProbe().getValue(EnvironmentAttributes.FOG_COLOR, 0);
 						}
 					})
 				<#else>
 					List.of(new BlockTintSource() {
 						@Override public int color(BlockState state) { return 329011; }
 						@Override public int colorInWorld(BlockState state, BlockAndTintGetter level, BlockPos pos) {
-							return Minecraft.getInstance().gameRenderer.getMainCamera().attributeProbe().getValue(EnvironmentAttributes.WATER_FOG_COLOR, 0);
+							return Minecraft.getInstance().gameRenderer.mainCamera().attributeProbe().getValue(EnvironmentAttributes.WATER_FOG_COLOR, 0);
 						}
 					})
 				</#if>,

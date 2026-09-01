@@ -28,7 +28,7 @@ public class ${name}Teleporter {
 	public static Holder<PoiType> poi = null;
 
 	public static void registerPointOfInterest() {
-		PoiType poiType = PoiHelper.register(new ResourceLocation("${modid}:${registryname}_portal"), 0, 1, ImmutableSet.copyOf(${JavaModName}Blocks.${REGISTRYNAME}_PORTAL.getStateDefinition().getPossibleStates()));
+		PoiType poiType = net.fabricmc.fabric.api.object.builder.v1.world.poi.PointOfInterestHelper.register(new ResourceLocation("${modid}:${registryname}_portal"), 0, 1, ImmutableSet.copyOf(${JavaModName}Blocks.${REGISTRYNAME}_PORTAL.getStateDefinition().getPossibleStates()));
 		poi = BuiltInRegistries.POINT_OF_INTEREST_TYPE.wrapAsHolder(poiType);
 	}
 
@@ -38,9 +38,11 @@ public class ${name}Teleporter {
 		this.level = level;
 	}
 
-	${mcc.getMethod("net.minecraft.world.level.portal.PortalForcer", "findClosestPortalPosition", "BlockPos", "boolean", "WorldBorder")
+	${mcc.getMethod("net.minecraft.world.level.portal.PortalForcer", "findPortalAround", "BlockPos", "boolean", "WorldBorder")
 		 .replace("PoiTypes.NETHER_PORTAL", "poi.unwrapKey().get()")
-		 .replace("Comparator.comparingDouble", "Comparator.<BlockPos>comparingDouble")}
+		 .replace("Comparator.comparingDouble", "Comparator.<PoiRecord>comparingDouble")
+		 .replace("blockPos ->", "candidatePos ->")
+		 .replace("(BlockPos) blockPos", "(BlockPos) candidatePos")}
 
 	${mcc.getMethod("net.minecraft.world.level.portal.PortalForcer", "createPortal", "BlockPos", "Direction.Axis")
 		 .replace("Blocks.OBSIDIAN", mappedBlockToBlock(data.portalFrame)?string)

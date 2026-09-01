@@ -59,27 +59,6 @@ public class ${name}PortalBlock extends NetherPortalBlock {
 	@Override ${mcc.getMethod("net.minecraft.world.level.block.NetherPortalBlock", "updateShape", "BlockState", "Direction", "BlockState", "LevelAccessor", "BlockPos", "BlockPos")
 				   .replace("new PortalShape(", "new "+name+"PortalShape(")}
 
-	@Override @Nullable ${mcc.getMethod("net.minecraft.world.level.block.NetherPortalBlock", "getPortalDestination", "ServerLevel", "Entity", "BlockPos")
-							 .replace("Level.NETHER", "ResourceKey.create(Registries.DIMENSION, new ResourceLocation(\"${modid}:${registryname}\"))")}
-
-	@Nullable ${mcc.getMethod("net.minecraft.world.level.block.NetherPortalBlock", "getExitPortal", "ServerLevel", "Entity", "BlockPos", "BlockPos", "boolean", "WorldBorder")
-				   .replace("p_350564_.getPortalForcer()", "getTeleporter(p_350564_)")}
-
-	${mcc.getMethod("net.minecraft.world.level.block.NetherPortalBlock", "getDimensionTransitionFromExit",
-			"Entity", "BlockPos", "BlockUtil.FoundRectangle", "ServerLevel", "DimensionTransition.PostDimensionTransition")}
-
-	${mcc.getMethod("net.minecraft.world.level.block.NetherPortalBlock", "createDimensionTransition",
-			"ServerLevel", "BlockUtil.FoundRectangle", "Direction.Axis", "Vec3", "Entity", "Vec3", "float", "float", "DimensionTransition.PostDimensionTransition")
-				.replace("PortalShape.", name+"PortalShape.")}
-
-	@Override public int getPortalTransitionTime(ServerLevel world, Entity entity) {
-		return 0;
-	}
-
-	@Override public Portal.Transition getLocalTransition() {
-		return Portal.Transition.NONE;
-	}
-
 	@Override public void randomTick(BlockState blockstate, ServerLevel world, BlockPos pos, RandomSource random) {
 	<#-- Do not call super to prevent ZOMBIFIED_PIGLINs from spawning -->
 		<#if hasProcedure(data.onPortalTickUpdate)>

@@ -38,19 +38,13 @@ package ${package}.world.inventory;
 
 import ${package}.${JavaModName};
 
-<@javacompress>
-<#if hasProcedure(data.onTick) || hasProcedure(data.onOpen)>
-@EventBusSubscriber
+<#compress>
+<#if hasProcedure(data.onTick)>
+@Mod.EventBusSubscriber
 </#if>
-public class ${name}Menu extends AbstractContainerMenu implements ${JavaModName}Menus.MenuAccessor {
+public class ${name}Menu extends AbstractContainerMenu implements Supplier<Map<Integer, Slot>> {
 
-	public final Map<String, Object> menuState = new HashMap<>() {
-		@Override public Object put(String key, Object value) {
-			<#-- Prevent arbitrary data storage beyond the menu state -->
-			if (!this.containsKey(key) && this.size() >= ${data.components?size}) return null;
-			return super.put(key, value);
-		}
-	};
+	public final static HashMap<String, Object> guistate = new HashMap<>();
 
 	public final Level world;
 	public final Player entity;
@@ -67,7 +61,7 @@ public class ${name}Menu extends AbstractContainerMenu implements ${JavaModName}
 	private BlockEntity boundBlockEntity = null;
 
 	public ${name}Menu(int id, Inventory inv, FriendlyByteBuf extraData) {
-		super(${JavaModName}Menus.${REGISTRYNAME}.get(), id);
+		super(${JavaModName}Menus.${data.getModElement().getRegistryNameUpper()}.get(), id);
 
 		this.entity = inv.player;
 		this.world = inv.player.level();
@@ -85,31 +79,29 @@ public class ${name}Menu extends AbstractContainerMenu implements ${JavaModName}
 
 		<#if data.type == 1>
 			if (pos != null) {
-				if (extraData.readableBytes() == 1) { <#-- bound to item, GUI opened by item ME internal logic -->
+				if (extraData.readableBytes() == 1) { // bound to item
 					byte hand = extraData.readByte();
 					ItemStack itemstack = hand == 0 ? this.entity.getMainHandItem() : this.entity.getOffhandItem();
 					this.boundItemMatcher = () -> itemstack == (hand == 0 ? this.entity.getMainHandItem() : this.entity.getOffhandItem());
-					IItemHandler cap = itemstack.getCapability(Capabilities.ItemHandler.ITEM);
-					if (cap != null) {
-						this.internal = cap;
+					itemstack.getCapability(ForgeCapabilities.ITEM_HANDLER, null).ifPresent(capability -> {
+						this.internal = capability;
 						this.bound = true;
-					}
-				} else if (extraData.readableBytes() > 1) { <#-- bound to entity, GUI opened by entity ME internal logic -->
-					extraData.readByte(); <#-- drop padding byte -->
+					});
+				} else if (extraData.readableBytes() > 1) { // bound to entity
+					extraData.readByte(); // drop padding
 					boundEntity = world.getEntity(extraData.readVarInt());
-					if(boundEntity != null) {
-						IItemHandler cap = boundEntity.getCapability(Capabilities.ItemHandler.ENTITY);
-						if (cap != null) {
-							this.internal = cap;
+					if(boundEntity != null)
+						boundEntity.getCapability(ForgeCapabilities.ITEM_HANDLER, null).ifPresent(capability -> {
+							this.internal = capability;
 							this.bound = true;
-						}
-					}
-				} else { <#-- if we find container block at pos, we bind to it in all cases -->
+						});
+				} else { // might be bound to block
 					boundBlockEntity = this.world.getBlockEntity(pos);
-					if (boundBlockEntity instanceof BaseContainerBlockEntity baseContainerBlockEntity) {
-						this.internal = new InvWrapper(baseContainerBlockEntity);
-						this.bound = true;
-					}
+					if (boundBlockEntity != null)
+						boundBlockEntity.getCapability(ForgeCapabilities.ITEM_HANDLER, null).ifPresent(capability -> {
+							this.internal = capability;
+							this.bound = true;
+						});
 				}
 			}
 
@@ -119,9 +111,7 @@ public class ${name}Menu extends AbstractContainerMenu implements ${JavaModName}
 					this.customSlots.put(${component.id}, this.addSlot(new SlotItemHandler(internal, ${component.id},
 						${component.gx(data.width) + 1},
 						${component.gy(data.height) + 1}) {
-						private final int slot = ${component.id}; <#-- #5209, this is needed for procedure dependencies -->
-						private int x = ${name}Menu.this.x; <#-- #5239 - x and y provided by slot are in-GUI, not in-world coordinates -->
-						private int y = ${name}Menu.this.y;
+						private final int slot = ${component.id};
 
 						<#if hasProcedure(component.disablePickup) || component.disablePickup.getFixedValue()>
 						@Override public boolean mayPickup(Player entity) {
@@ -139,7 +129,7 @@ public class ${name}Menu extends AbstractContainerMenu implements ${JavaModName}
 						<#if hasProcedure(component.onTakenFromSlot)>
 						@Override public void onTake(Player entity, ItemStack stack) {
 							super.onTake(entity, stack);
-							slotChanged(${component.id}, 1, stack.getCount());
+							slotChanged(${component.id}, 1, 0);
 						}
 						</#if>
 
@@ -158,7 +148,7 @@ public class ${name}Menu extends AbstractContainerMenu implements ${JavaModName}
 							<#elseif component.inputLimit.toString()?has_content>
 								@Override public boolean mayPlace(ItemStack stack) {
 									<#if component.inputLimit.getUnmappedValue().startsWith("TAG:")>
-										<#assign tag = "\"" + component.inputLimit.asTagEntry() + "\"">
+										<#assign tag = "\"" + component.inputLimit.getUnmappedValue().replace("TAG:", "") + "\"">
 										return stack.is(ItemTags.create(new ResourceLocation(${tag})));
 									<#else>
 										return ${mappedMCItemToItem(component.inputLimit)} == stack.getItem();
@@ -183,6 +173,10 @@ public class ${name}Menu extends AbstractContainerMenu implements ${JavaModName}
 
 			for (int si = 0; si < 9; ++si)
 				this.addSlot(new Slot(inv, si, ${coffx} + 8 + si * 18, ${coffy} + 142));
+		</#if>
+
+		<#if hasProcedure(data.onOpen)>
+			<@procedureOBJToCode data.onOpen/>
 		</#if>
 	}
 
@@ -222,15 +216,13 @@ public class ${name}Menu extends AbstractContainerMenu implements ${JavaModName}
 					return ItemStack.EMPTY;
 				}
 
-				if (itemstack1.isEmpty()) {
-					slot.setByPlayer(ItemStack.EMPTY);
-				} else {
+				if (itemstack1.getCount() == 0)
+					slot.set(ItemStack.EMPTY);
+				else
 					slot.setChanged();
-				}
 
-				if (itemstack1.getCount() == itemstack.getCount()) {
+				if (itemstack1.getCount() == itemstack.getCount())
 					return ItemStack.EMPTY;
-				}
 
 				slot.onTake(playerIn, itemstack1);
 			}
@@ -257,9 +249,7 @@ public class ${name}Menu extends AbstractContainerMenu implements ${JavaModName}
 								if(j == ${component.id}) continue;
 							</#if>
 						</#list>
-						playerIn.drop(internal.getStackInSlot(j), false);
-						if (internal instanceof IItemHandlerModifiable ihm)
-							ihm.setStackInSlot(j, ItemStack.EMPTY);
+						playerIn.drop(internal.extractItem(j, internal.getStackInSlot(j).getCount(), false), false);
 					}
 				} else {
 					for(int i = 0; i < internal.getSlots(); ++i) {
@@ -268,9 +258,7 @@ public class ${name}Menu extends AbstractContainerMenu implements ${JavaModName}
 								if(i == ${component.id}) continue;
 							</#if>
 						</#list>
-						playerIn.getInventory().placeItemBackInInventory(internal.getStackInSlot(i));
-						if (internal instanceof IItemHandlerModifiable ihm)
-							ihm.setStackInSlot(i, ItemStack.EMPTY);
+						playerIn.getInventory().placeItemBackInInventory(internal.extractItem(i, internal.getStackInSlot(i).getCount(), false));
 					}
 				}
 			}
@@ -279,7 +267,7 @@ public class ${name}Menu extends AbstractContainerMenu implements ${JavaModName}
 		<#if data.hasSlotEvents()>
 			private void slotChanged(int slotid, int ctype, int meta) {
 				if(this.world != null && this.world.isClientSide()) {
-					PacketDistributor.sendToServer(new ${name}SlotMessage(slotid, x, y, z, ctype, meta));
+					${JavaModName}.PACKET_HANDLER.sendToServer(new ${name}SlotMessage(slotid, x, y, z, ctype, meta));
 					${name}SlotMessage.handleSlotAction(entity, slotid, ctype, meta, x, y, z);
 				}
 			}
@@ -296,40 +284,23 @@ public class ${name}Menu extends AbstractContainerMenu implements ${JavaModName}
 		</#if>
 	</#if>
 
-	@Override public Map<Integer, Slot> getSlots() {
-		return Collections.unmodifiableMap(customSlots);
-	}
-
-	@Override public Map<String, Object> getMenuState() {
-		return menuState;
+	public Map<Integer, Slot> get() {
+		return customSlots;
 	}
 
 	<#if hasProcedure(data.onTick)>
-	@SubscribeEvent public static void onPlayerTick(PlayerTickEvent.Post event) {
-		Player entity = event.getEntity();
-		if(entity.containerMenu instanceof ${name}Menu menu) {
-			Level world = menu.world;
-			double x = menu.x;
-			double y = menu.y;
-			double z = menu.z;
-			<@procedureOBJToCode data.onTick/>
+		@SubscribeEvent public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
+			Player entity = event.player;
+			if(event.phase == TickEvent.Phase.END && entity.containerMenu instanceof ${name}Menu) {
+				Level world = entity.level();
+				double x = entity.getX();
+				double y = entity.getY();
+				double z = entity.getZ();
+				<@procedureOBJToCode data.onTick/>
+			}
 		}
-	}
-	</#if>
-
-	<#if hasProcedure(data.onOpen)>
-	@SubscribeEvent public static void onContainerOpen(PlayerContainerEvent.Open event) {
-		Player entity = event.getEntity();
-		if(event.getContainer() instanceof ${name}Menu menu) {
-			Level world = menu.world;
-			double x = menu.x;
-			double y = menu.y;
-			double z = menu.z;
-			<@procedureOBJToCode data.onOpen/>
-		}
-	}
 	</#if>
 
 }
-</@javacompress>
+</#compress>
 <#-- @formatter:on -->

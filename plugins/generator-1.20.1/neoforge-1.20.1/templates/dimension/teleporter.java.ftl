@@ -33,7 +33,7 @@
 
 package ${package}.world.teleporter;
 
-@EventBusSubscriber public class ${name}Teleporter {
+@Mod.EventBusSubscriber public class ${name}Teleporter {
 
 	public static Holder<PoiType> poi = null;
 
@@ -51,7 +51,7 @@ package ${package}.world.teleporter;
 		this.level = level;
 	}
 
-	${mcc.getMethod("net.minecraft.world.level.portal.PortalForcer", "findClosestPortalPosition", "BlockPos", "boolean", "WorldBorder")
+	${mcc.getMethod("net.minecraft.world.level.portal.PortalForcer", "findPortalAround", "BlockPos", "boolean", "WorldBorder")
 		 .replace("PoiTypes.NETHER_PORTAL", "poi.unwrapKey().get()")}
 
 	${mcc.getMethod("net.minecraft.world.level.portal.PortalForcer", "createPortal", "BlockPos", "Direction.Axis")

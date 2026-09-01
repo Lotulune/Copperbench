@@ -28,19 +28,19 @@ import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
 <@javacompress>
 public class ${name}Block extends LiquidBlock {
 
-	public ${name}Block(BlockBehaviour.Properties properties) {
+	public ${name}Block() {
 		super(${JavaModName}Fluids.${REGISTRYNAME},
-			properties
+			BlockBehaviour.Properties.of()
 			<#if (data.colorOnMap!"DEFAULT") != "DEFAULT">
 			.mapColor(MapColor.${data.colorOnMap})
 			<#else>
 			.mapColor(MapColor.${(data.type=="WATER")?then("WATER","FIRE")})
 			</#if>
 			.strength(${data.resistance}f)
-			<#if data.emissiveRendering>.postProcess((bs, br, bp) -> bp).emissiveRendering((bs, br, bp) -> true)</#if>
+			<#if data.emissiveRendering>.hasPostProcess((bs, br, bp) -> true).emissiveRendering((bs, br, bp) -> true)</#if>
 			<#if data.luminance != 0>.lightLevel(state -> ${data.luminance})</#if>
 			<#if data.ignitedByLava>.ignitedByLava()</#if>
-			.noCollision().noLootTable().liquid().pushReaction(PushReaction.DESTROY).sound(SoundType.EMPTY).replaceable()
+			.noCollission().noLootTable().liquid().pushReaction(PushReaction.DESTROY).sound(SoundType.EMPTY).replaceable()
 		);
 
 		<#if data.flammability != 0 && data.fireSpreadSpeed != 0>
@@ -49,11 +49,11 @@ public class ${name}Block extends LiquidBlock {
 	}
 
 	<#if data.lightOpacity == 0>
-	@Override public boolean propagatesSkylightDown(BlockState state) {
+	@Override public boolean propagatesSkylightDown(BlockState state, BlockGetter reader, BlockPos pos) {
 		return true;
 	}
 	<#elseif data.lightOpacity != 1>
-	@Override public int getLightDampening(BlockState state) {
+	@Override public int getLightBlock(BlockState state, BlockGetter worldIn, BlockPos pos) {
 		return ${data.lightOpacity};
 	}
 	</#if>

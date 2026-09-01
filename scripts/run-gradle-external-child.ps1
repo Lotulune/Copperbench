@@ -13,6 +13,14 @@ try {
     $env:JAVA_HOME = (Resolve-Path $request.javaHome).Path
     $env:Path = "$env:JAVA_HOME\bin;$env:Path"
 
+    # JDK 17+ uses a Unix-domain socket for the Windows selector wakeup pipe.
+    # AppContainer/sandbox launchers can leak an invalid POSIX TEMP path; use a
+    # real per-user Windows directory before Gradle initializes its daemon.
+    $tempRoot = Join-Path $env:LOCALAPPDATA 'Copperbench\Temp'
+    New-Item -ItemType Directory -Force -Path $tempRoot | Out-Null
+    $env:TEMP = $tempRoot
+    $env:TMP = $tempRoot
+
     & (Join-Path $request.repositoryRoot 'gradlew.bat') @($request.gradleArgs) *> $request.logPath
     $exitCode = $LASTEXITCODE
 } catch {

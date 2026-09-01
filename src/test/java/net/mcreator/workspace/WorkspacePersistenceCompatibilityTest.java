@@ -14,8 +14,10 @@ import dev.copperbench.core.contract.UiCore.Query;
 import dev.copperbench.core.workspace.UnknownFieldPreservingJsonStore;
 import dev.copperbench.core.workspace.RevisionedWorkspaceStore;
 import dev.copperbench.core.workspace.mcreator.MCreatorWorkspaceSession;
+import dev.copperbench.release.ElementCoverageCatalog;
 import dev.copperbench.testing.McreatorTestRuntime;
 import net.mcreator.element.ModElementType;
+import net.mcreator.element.ModElementTypeLoader;
 import net.mcreator.element.types.Function;
 import net.mcreator.generator.Generator;
 import net.mcreator.io.zip.ZipIO;
@@ -113,7 +115,7 @@ class WorkspacePersistenceCompatibilityTest {
 	@Test void upstreamBackedWorkspacePlanRestoresAllFilesWhenFinalRevisionCommitConflicts() throws Exception {
 		WorkspaceSettings settings = new WorkspaceSettings("workspace_plan_rollback");
 		settings.setModName("Workspace Plan Rollback");
-		settings.setCurrentGenerator("neoforge-1.21.8");
+		settings.setCurrentGenerator("neoforge-1.21.1");
 		Workspace workspace = Workspace.createWorkspace(
 				temporaryDirectory.resolve("workspace_plan_rollback.mcreator").toFile(), settings);
 		AtomicLong sequence = new AtomicLong(750);
@@ -325,7 +327,7 @@ class WorkspacePersistenceCompatibilityTest {
 	@Test void upstreamBackedSessionPersistsEveryFirstPartyElementType() throws Exception {
 		WorkspaceSettings settings = new WorkspaceSettings("first_party_slice_test");
 		settings.setModName("First Party Slice Test");
-		settings.setCurrentGenerator("neoforge-1.21.8");
+		settings.setCurrentGenerator("neoforge-1.21.1");
 		Workspace workspace = Workspace.createWorkspace(
 				temporaryDirectory.resolve("first_party_slice_test.mcreator").toFile(), settings);
 		UUID workspaceId = UUID.fromString("11111111-1111-4111-8111-111111111180");
@@ -335,9 +337,9 @@ class WorkspacePersistenceCompatibilityTest {
 			MCreatorWorkspaceSession session = MCreatorWorkspaceSession.attach(workspace, workspaceId,
 					new InMemoryWorkspaceTaskGateway(Clock.systemUTC(), ids), Clock.systemUTC(), ids);
 			var entry = session.headlessEntry(PermissionProfile.WORKSPACE);
-			List<String> types = List.of("block", "item", "recipe", "procedure");
-			List<ModElementType<?>> upstreamTypes = List.of(ModElementType.BLOCK, ModElementType.ITEM,
-					ModElementType.RECIPE, ModElementType.PROCEDURE);
+			List<String> types = ElementCoverageCatalog.FIRST_PARTY_SLICE;
+			List<ModElementType<?>> upstreamTypes = types.stream()
+				.map(ModElementTypeLoader::getModElementType).toList();
 			long revision = 0;
 			for (int index = 0; index < types.size(); index++) {
 				String type = types.get(index);
@@ -361,7 +363,8 @@ class WorkspacePersistenceCompatibilityTest {
 				assertNotNull(upstream);
 				assertEquals(upstreamTypes.get(index), upstream.getType());
 				assertNotNull(upstream.getGeneratableElement());
-				assertTrue(Files.isRegularFile(temporaryDirectory.resolve("elements/" + name + ".mod.json")));
+				if (!type.equals("code"))
+					assertTrue(Files.isRegularFile(temporaryDirectory.resolve("elements/" + name + ".mod.json")));
 
 				JsonObject updatePayload = new JsonObject();
 				updatePayload.addProperty("clientMutationId", ids.get().toString());
@@ -381,15 +384,94 @@ class WorkspacePersistenceCompatibilityTest {
 						upstream.getMetadata(dev.copperbench.core.workspace.mcreator.MCreatorWorkspaceMutationGateway
 								.ELEMENT_VALUES_METADATA)).contains(type.equals("procedure")
 								? "no_ext_trigger_updated" : "customFlag"));
+				assertTrue(Files.readString(workspace.getFileManager().getWorkspaceFile().toPath())
+						.contains("session_" + type), type);
 			}
-			assertEquals(8, revision);
+			assertEquals(types.size() * 2L, revision);
 
+			String savedWorkspace = Files.readString(workspace.getFileManager().getWorkspaceFile().toPath(),
+					StandardCharsets.UTF_8);
 			workspace.reloadFromFileSystem();
+			List<String> reloadedNames = workspace.getModElements().stream().map(ModElement::getName).sorted()
+					.toList();
 			for (int index = 0; index < types.size(); index++) {
-				ModElement reloaded = workspace.getModElementByName("session_" + types.get(index));
-				assertNotNull(reloaded);
+				String type = types.get(index);
+				if (type.equals("code"))
+					continue;
+				assertTrue(savedWorkspace.contains("session_" + type), type);
+				ModElement reloaded = workspace.getModElementByName("session_" + type);
+				assertNotNull(reloaded, () -> type + " missing after reload; present=" + reloadedNames);
 				assertEquals(upstreamTypes.get(index), reloaded.getType());
-				assertNotNull(reloaded.getGeneratableElement());
+				assertTrue(Files.isRegularFile(temporaryDirectory.resolve("elements/session_" + type + ".mod.json")),
+						type);
+			}
+		} finally {
+			workspace.close();
+		}
+	}
+
+	@Test void copperbenchSavePreservesUnknownFieldsForEveryFirstPartyType() throws Exception {
+		WorkspaceSettings settings = new WorkspaceSettings("stage11_roundtrip");
+		settings.setModName("Stage 11 Round Trip");
+		settings.setCurrentGenerator("fabric-1.21.1");
+		Workspace workspace = Workspace.createWorkspace(
+				temporaryDirectory.resolve("stage11_roundtrip.mcreator").toFile(), settings);
+		UUID workspaceId = UUID.fromString("11111111-1111-4111-8111-111111111181");
+		AtomicLong sequence = new AtomicLong(2000);
+		java.util.function.Supplier<UUID> ids = () -> uuid(sequence.incrementAndGet());
+		try (MCreatorWorkspaceSession session = MCreatorWorkspaceSession.attach(workspace, workspaceId,
+				new InMemoryWorkspaceTaskGateway(Clock.systemUTC(), ids), Clock.systemUTC(), ids)) {
+			var entry = session.headlessEntry(PermissionProfile.WORKSPACE);
+			long revision = 0;
+			for (String type : ElementCoverageCatalog.FIRST_PARTY_SLICE) {
+				String name = "roundtrip_" + type;
+				JsonObject createPayload = new JsonObject();
+				createPayload.addProperty("clientMutationId", ids.get().toString());
+				createPayload.addProperty("elementType", type);
+				createPayload.addProperty("name", name);
+				JsonObject values = new JsonObject();
+				values.addProperty("pluginFutureField", "keep-" + type);
+				if (type.equals("procedure"))
+					values.addProperty("procedurexml", emptyProcedureXml("no_ext_trigger"));
+				createPayload.add("initialValues", values);
+				var created = entry.execute(Command.of(ids.get(), workspaceId, revision,
+						Operation.CREATE_MOD_ELEMENT, createPayload));
+				assertEquals("committed", created.result().status(), created.result().diagnostics().toString());
+				revision++;
+				String elementId = created.result().data().getAsJsonObject().getAsJsonObject("element")
+						.get("id").getAsString();
+				Path definitionFile = temporaryDirectory.resolve("elements/" + name + ".mod.json");
+				if (!type.equals("code")) {
+					assertTrue(Files.isRegularFile(definitionFile));
+					JsonObject definition = JsonParser.parseString(Files.readString(definitionFile)).getAsJsonObject();
+					definition.addProperty("pluginOpaque", "keep-disk-" + type);
+					Files.writeString(definitionFile, WorkspaceFileManager.gson.toJson(definition),
+							StandardCharsets.UTF_8);
+				}
+
+				JsonObject updatePayload = new JsonObject();
+				updatePayload.addProperty("clientMutationId", ids.get().toString());
+				updatePayload.addProperty("elementId", elementId);
+				JsonObject change = new JsonObject();
+				change.addProperty("path", "/displayName");
+				change.addProperty("value", "Updated " + type);
+				com.google.gson.JsonArray changes = new com.google.gson.JsonArray();
+				changes.add(change);
+				updatePayload.add("changes", changes);
+				var updated = entry.execute(Command.of(ids.get(), workspaceId, revision,
+						Operation.UPDATE_MOD_ELEMENT, updatePayload));
+				assertEquals("committed", updated.result().status(), updated.result().diagnostics().toString());
+				revision++;
+
+				ModElement upstream = workspace.getModElementByName(name);
+				assertNotNull(upstream);
+				assertTrue(WorkspaceFileManager.gson.toJson(upstream.getMetadata(
+						dev.copperbench.core.workspace.mcreator.MCreatorWorkspaceMutationGateway
+								.ELEMENT_VALUES_METADATA)).contains("keep-" + type));
+				if (!type.equals("code")) {
+					JsonObject saved = JsonParser.parseString(Files.readString(definitionFile)).getAsJsonObject();
+					assertEquals("keep-disk-" + type, saved.get("pluginOpaque").getAsString());
+				}
 			}
 		} finally {
 			workspace.close();

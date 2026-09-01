@@ -25,6 +25,7 @@ package ${package}.world.teleporter;
 
 public class ${name}PortalShape ${mcc.getClassBody("net.minecraft.world.level.portal.PortalShape")
         .replace("private PortalShape", "public " + name + "PortalShape")
+        .replace("public PortalShape(", "public " + name + "PortalShape(")
         .replace("new PortalShape(", "new " + name + "PortalShape(")
         .replace("Optional<PortalShape>", "Optional<" + name + "PortalShape>")
         .replace("Predicate<PortalShape>", "Predicate<" + name + "PortalShape>")

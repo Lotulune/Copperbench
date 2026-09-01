@@ -122,13 +122,16 @@ package ${package}.client.screens;
 
 			<#list data.getComponentsOfType("EntityModel") as component>
 				<#assign hasEntityModels = true>
-			    if (<@procedureOBJToConditionCode component.entityModel/> instanceof LivingEntity livingEntity) {
+				<#assign entityExpr><@procedureOBJToConditionCode component.entityModel/></#assign>
+				<#if entityExpr?trim != "true">
+			    if (((Object) (${entityExpr})) instanceof LivingEntity livingEntity) {
 			    	<#if hasProcedure(component.displayCondition)>
                         if (<@procedureOBJToConditionCode component.displayCondition/>)
                     </#if>
 					renderEntityInInventoryFollowsAngle(event.getGuiGraphics(), <@calculatePosition component=component x_offset=10 y_offset=20/>,
                         ${component.scale}, ${component.rotationX / 20.0}f, 0, livingEntity);
 			    }
+				</#if>
 			</#list>
         }
 

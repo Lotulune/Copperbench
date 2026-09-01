@@ -27,10 +27,11 @@
 package ${package}.init;
 
 <#assign hasLivingEntities = w.hasElementsOfType("livingentity")>
+<#assign specialentities = w.getGElementsOfType("specialentity")>
 
 public class ${JavaModName}Entities {
 
-	<#list entities as entity>
+	<#list entities?filter(e -> e.getModElement().getTypeString() != "specialentity") as entity>
 		public static EntityType<${entity.getModElement().getName()}Entity> ${entity.getModElement().getRegistryNameUpper()} =
                 <#if entity.getModElement().getTypeString() == "projectile">
                     register("${entity.getModElement().getRegistryName()}", EntityType.Builder.<${entity.getModElement().getName()}Entity>
@@ -42,7 +43,6 @@ public class ${JavaModName}Entities {
                                 .clientTrackingRange(${entity.trackingRange}).updateInterval(3)
                                 <#if entity.immuneToFire>.fireImmune()</#if>
                                 <#if entity.mobModelName == "Biped">.ridingOffset(-0.6f)</#if>
-                                <#if entity.mobBehaviourType != "Creature">.notInPeaceful()</#if>
                                 .sized(${entity.modelWidth}f, ${entity.modelHeight}f));
                 <#elseif entity.getModElement().getTypeString() == "specialentity">
                     register("${entity.getModElement().getRegistryName()}",
@@ -57,6 +57,13 @@ public class ${JavaModName}Entities {
 		</#if>
 	</#list>
 
+	<#list specialentities as entity>
+		public static EntityType<${entity.getModElement().getName()}Entity> ${entity.getModElement().getRegistryNameUpper()} =
+				register("${entity.getModElement().getRegistryName()}",
+					EntityType.Builder.<${entity.getModElement().getName()}Entity>of(${entity.getModElement().getName()}Entity::new, MobCategory.MISC)
+						.sized(1.375F, 0.5625F).eyeHeight(0.5625F).clientTrackingRange(10));
+	</#list>
+
 	public static void load() {
 		<#if hasLivingEntities>
 			init();
@@ -68,9 +75,8 @@ public class ${JavaModName}Entities {
 	// End of user code block custom entities
 
 	private static <T extends Entity> EntityType<T> register(String registryname, EntityType.Builder<T> entityTypeBuilder) {
-		return Registry.register(BuiltInRegistries.ENTITY_TYPE, ResourceLocation.fromNamespaceAndPath(${JavaModName}.MODID, registryname), (EntityType<T>) entityTypeBuilder.build(
-				ResourceKey.create(Registries.ENTITY_TYPE, ResourceLocation.fromNamespaceAndPath(${JavaModName}.MODID, registryname))
-		));
+		ResourceLocation id = ResourceLocation.fromNamespaceAndPath(${JavaModName}.MODID, registryname);
+		return Registry.register(BuiltInRegistries.ENTITY_TYPE, id, (EntityType<T>) entityTypeBuilder.build(id.toString()));
 	}
 
 	<#if hasLivingEntities>

@@ -1639,7 +1639,7 @@ export class MockCoreBridge implements CoreBridge {
               type: 'block',
               disposition: 'supported',
               reasonCode: 'COMMON_FIELDS_COPIED',
-              nextStep: 'Common vertical-slice fields copy without conversion.'
+              nextStep: 'Common Java element fields copy without conversion.'
             },
             {
               path: '/elements/ruby_gem',
@@ -1647,7 +1647,7 @@ export class MockCoreBridge implements CoreBridge {
               type: 'item',
               disposition: 'supported',
               reasonCode: 'COMMON_FIELDS_COPIED',
-              nextStep: 'Common vertical-slice fields copy without conversion.'
+              nextStep: 'Common Java element fields copy without conversion.'
             },
             {
               path: '/elements/ruby_block_recipe',
@@ -1655,7 +1655,7 @@ export class MockCoreBridge implements CoreBridge {
               type: 'recipe',
               disposition: 'supported',
               reasonCode: 'COMMON_FIELDS_COPIED',
-              nextStep: 'Common vertical-slice fields copy without conversion.'
+              nextStep: 'Common Java element fields copy without conversion.'
             },
             {
               path: '/elements/ruby_fire_handler',
@@ -1826,7 +1826,7 @@ export class MockCoreBridge implements CoreBridge {
               type: 'item',
               disposition: 'supported',
               reasonCode: 'ELEMENT_COPIED',
-              nextStep: 'Known vertical-slice element copied with its original definition.'
+              nextStep: 'Known Java element copied with its original definition.'
             },
             {
               path: '/elements/copper_block',
@@ -1834,7 +1834,7 @@ export class MockCoreBridge implements CoreBridge {
               type: 'block',
               disposition: 'supported',
               reasonCode: 'ELEMENT_COPIED',
-              nextStep: 'Known vertical-slice element copied with its original definition.'
+              nextStep: 'Known Java element copied with its original definition.'
             },
             {
               path: '/elements/copper_pickaxe_recipe',
@@ -1842,7 +1842,7 @@ export class MockCoreBridge implements CoreBridge {
               type: 'recipe',
               disposition: 'supported',
               reasonCode: 'ELEMENT_COPIED',
-              nextStep: 'Known vertical-slice element copied with its original definition.'
+              nextStep: 'Known Java element copied with its original definition.'
             },
             {
               path: '/elements/copper_strike_proc',
@@ -1850,7 +1850,7 @@ export class MockCoreBridge implements CoreBridge {
               type: 'procedure',
               disposition: 'substitute',
               reasonCode: 'ELEMENT_COPIED',
-              nextStep: 'Known vertical-slice element copied with its original definition.'
+              nextStep: 'Known Java element copied with its original definition.'
             }
           ],
           blockedCount: 0,
@@ -2016,7 +2016,7 @@ export class MockCoreBridge implements CoreBridge {
           pageSize: 50,
           total: this.state.elements.length,
           nextCursor: null,
-          availableTypes: ['block', 'item', 'recipe', 'procedure', 'function', 'loottable', 'achievement']
+          availableTypes: ['block', 'item', 'recipe', 'procedure', 'function', 'loottable', 'achievement', 'armor', 'armortrim', 'tool', 'itemextension', 'attribute', 'bannerpattern', 'command', 'damagetype', 'enchantment', 'gamerule', 'keybind', 'painting', 'particle', 'potion', 'potioneffect', 'tab', 'villagerprofession', 'villagertrade', 'biome', 'dimension', 'feature', 'fluid', 'plant', 'structure', 'livingentity', 'specialentity', 'projectile', 'gui', 'overlay', 'code']
         };
         break;
       case 'get_procedure_editor': {
@@ -2166,7 +2166,7 @@ export class MockCoreBridge implements CoreBridge {
                 type: 'block',
                 disposition: 'supported',
                 reasonCode: 'COMMON_FIELDS_COPIED',
-                nextStep: 'Common vertical-slice fields copy without conversion.'
+              nextStep: 'Common Java element fields copy without conversion.'
               },
               {
                 path: '/elements/ruby_gem',
@@ -2174,7 +2174,7 @@ export class MockCoreBridge implements CoreBridge {
                 type: 'item',
                 disposition: 'supported',
                 reasonCode: 'COMMON_FIELDS_COPIED',
-                nextStep: 'Common vertical-slice fields copy without conversion.'
+              nextStep: 'Common Java element fields copy without conversion.'
               },
               {
                 path: '/elements/ruby_block_recipe',
@@ -2182,7 +2182,7 @@ export class MockCoreBridge implements CoreBridge {
                 type: 'recipe',
                 disposition: 'supported',
                 reasonCode: 'COMMON_FIELDS_COPIED',
-                nextStep: 'Common vertical-slice fields copy without conversion.'
+              nextStep: 'Common Java element fields copy without conversion.'
               },
               {
                 path: '/elements/ruby_fire_handler',
@@ -2229,7 +2229,7 @@ export class MockCoreBridge implements CoreBridge {
                 type: 'block',
                 disposition: 'supported',
                 reasonCode: 'COMMON_FIELDS_COPIED',
-                nextStep: 'Common vertical-slice fields copy without conversion.'
+              nextStep: 'Common Java element fields copy without conversion.'
               },
               {
                 path: '/elements/ruby_block_recipe',
@@ -2328,7 +2328,7 @@ export class MockCoreBridge implements CoreBridge {
               type: 'item',
               disposition: 'supported',
               reasonCode: 'ELEMENT_COPIED',
-              nextStep: 'Known vertical-slice element copied with its original definition.'
+              nextStep: 'Known Java element copied with its original definition.'
             },
             {
               path: '/elements/copper_block',
@@ -2336,7 +2336,7 @@ export class MockCoreBridge implements CoreBridge {
               type: 'block',
               disposition: 'supported',
               reasonCode: 'ELEMENT_COPIED',
-              nextStep: 'Known vertical-slice element copied with its original definition.'
+              nextStep: 'Known Java element copied with its original definition.'
             },
             {
               path: '/elements/copper_pickaxe_recipe',
@@ -2344,7 +2344,7 @@ export class MockCoreBridge implements CoreBridge {
               type: 'recipe',
               disposition: 'supported',
               reasonCode: 'ELEMENT_COPIED',
-              nextStep: 'Known vertical-slice element copied with its original definition.'
+              nextStep: 'Known Java element copied with its original definition.'
             },
             {
               path: '/elements/copper_strike_proc',
@@ -2352,7 +2352,7 @@ export class MockCoreBridge implements CoreBridge {
               type: 'procedure',
               disposition: 'substitute',
               reasonCode: 'ELEMENT_COPIED',
-              nextStep: 'Known vertical-slice element copied with its original definition.'
+              nextStep: 'Known Java element copied with its original definition.'
             }
           ],
           blockedCount: 0,

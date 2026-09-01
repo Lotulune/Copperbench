@@ -38,17 +38,12 @@
 
 package ${package}.init;
 
-@EventBusSubscriber(Dist.CLIENT) public class ${JavaModName}KeyMappings {
+@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD, value = {Dist.CLIENT}) public class ${JavaModName}KeyMappings {
 
 	<#list keybinds as keybind>
 	public static final KeyMapping ${keybind.getModElement().getRegistryNameUpper()} = new KeyMapping(
-			"key.${modid}.${keybind.getModElement().getRegistryName()}",
-			<#if keybind.triggerKey?starts_with("MOUSE")>
-				InputConstants.Type.MOUSE, GLFW.GLFW_${keybind.triggerKey},
-			<#else>
-				GLFW.GLFW_KEY_${keybind.triggerKey},
-			</#if>
-			"key.category.${modid}.${keybind.keyBindingCategoryKey}")
+			"key.${modid}.${keybind.getModElement().getRegistryName()}", GLFW.GLFW_KEY_${generator.map(keybind.triggerKey, "keybuttons")},
+			"key.categories.${keybind.keyBindingCategoryKey}")
 				<#if hasProcedure(keybind.onKeyReleased) || hasProcedure(keybind.onKeyPressed)>
 				{
 					private boolean isDownOld = false;
@@ -58,7 +53,7 @@ package ${package}.init;
 
 						if (isDownOld != isDown && isDown) {
 							<#if hasProcedure(keybind.onKeyPressed)>
-								PacketDistributor.sendToServer(new ${keybind.getModElement().getName()}Message(0, 0));
+								${JavaModName}.PACKET_HANDLER.sendToServer(new ${keybind.getModElement().getName()}Message(0, 0));
 								${keybind.getModElement().getName()}Message.pressAction(Minecraft.getInstance().player, 0, 0);
 							</#if>
 
@@ -69,7 +64,7 @@ package ${package}.init;
 						<#if hasProcedure(keybind.onKeyReleased)>
 						else if (isDownOld != isDown && !isDown) {
 							int dt = (int) (System.currentTimeMillis() - ${keybind.getModElement().getRegistryNameUpper()}_LASTPRESS);
-							PacketDistributor.sendToServer(new ${keybind.getModElement().getName()}Message(1, dt));
+							${JavaModName}.PACKET_HANDLER.sendToServer(new ${keybind.getModElement().getName()}Message(1, dt));
 							${keybind.getModElement().getName()}Message.pressAction(Minecraft.getInstance().player, 1, dt);
 						}
 						</#if>
@@ -89,13 +84,13 @@ package ${package}.init;
 
 	@SubscribeEvent public static void registerKeyMappings(RegisterKeyMappingsEvent event) {
 		<#list keybinds as keybind>
-		event.register(${keybind.getModElement().getRegistryNameUpper()});
+			event.register(${keybind.getModElement().getRegistryNameUpper()});
 		</#list>
 	}
 
-	@EventBusSubscriber(Dist.CLIENT) public static class KeyEventListener {
+	@Mod.EventBusSubscriber({Dist.CLIENT}) public static class KeyEventListener {
 
-		@SubscribeEvent public static void onClientTick(ClientTickEvent.Post event) {
+		@SubscribeEvent public static void onClientTick(TickEvent.ClientTickEvent event) {
 			if (Minecraft.getInstance().screen == null) {
 			<#list keybinds as keybind>
 				<#if hasProcedure(keybind.onKeyPressed) || hasProcedure(keybind.onKeyReleased)>

@@ -110,6 +110,7 @@ class McpHttpServerTest {
 			assertTrue(tools.body().contains("create_registry_entry"));
 			assertTrue(tools.body().contains("rename_registry_entry"));
 			assertTrue(tools.body().contains("create_mod_element"));
+			assertTrue(tools.body().contains("livingentity"));
 			assertTrue(tools.body().contains("update_mod_element"));
 			assertTrue(tools.body().contains("delete_mod_element"));
 			assertTrue(tools.body().contains("generate_workspace"));
@@ -123,6 +124,14 @@ class McpHttpServerTest {
 			assertTrue(tools.body().contains("restore_recovery_point"));
 			assertTrue(tools.body().contains("list_assets"));
 			assertTrue(tools.body().contains("inspect_asset_references"));
+
+			HttpResponse<String> coverageResult = post(endpoint,
+					"{\"jsonrpc\":\"2.0\",\"id\":35,\"method\":\"tools/call\",\"params\":{\"name\":\"get_element_coverage\",\"arguments\":{}}}",
+					token.value(), sessionId, "http://localhost:5173");
+			JsonObject coverage = toolResult(coverageResult);
+			assertEquals("succeeded", coverage.get("status").getAsString());
+			assertEquals(37, coverage.getAsJsonObject("data").getAsJsonArray("firstPartySlice").size());
+			assertEquals(0, coverage.getAsJsonObject("data").getAsJsonArray("unsupportedInNewUi").size());
 
 			HttpResponse<String> workspaceResult = post(endpoint,
 					"{\"jsonrpc\":\"2.0\",\"id\":3,\"method\":\"tools/call\",\"params\":{\"name\":\"get_workspace\",\"arguments\":{}}}",

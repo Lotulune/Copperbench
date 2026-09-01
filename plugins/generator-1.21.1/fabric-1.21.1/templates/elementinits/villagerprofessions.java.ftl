@@ -41,7 +41,7 @@ public class ${JavaModName}VillagerProfessions {
 				registerProfession(
 					"${villagerprofession.getModElement().getRegistryName()}",
 					() -> ${mappedBlockToBlock(villagerprofession.pointOfInterest)},
-					() -> BuiltInRegistries.SOUND_EVENT.getValue(ResourceLocation.parse("${villagerprofession.actionSound}"))
+					() -> BuiltInRegistries.SOUND_EVENT.get(ResourceLocation.parse("${villagerprofession.actionSound}"))
 				);
 		</#list>
 
@@ -55,7 +55,7 @@ public class ${JavaModName}VillagerProfessions {
 				continue;
 			}
 
-			PoiType poiType = PoiHelper.register(ResourceLocation.fromNamespaceAndPath("${modid}", name), 1, 1, ImmutableSet.copyOf(block.getStateDefinition().getPossibleStates()));
+			PoiType poiType = net.fabricmc.fabric.api.object.builder.v1.world.poi.PointOfInterestHelper.register(ResourceLocation.fromNamespaceAndPath("${modid}", name), 1, 1, ImmutableSet.copyOf(block.getStateDefinition().getPossibleStates()));
 				entry.getValue().poiType = BuiltInRegistries.POINT_OF_INTEREST_TYPE.wrapAsHolder(poiType);
 		}
 	}
@@ -66,18 +66,8 @@ public class ${JavaModName}VillagerProfessions {
 		Predicate<Holder<PoiType>> poiPredicate = poiTypeHolder -> (POI_TYPES.get(name).poiType != null) && (poiTypeHolder.value() == POI_TYPES.get(name).poiType.value());
 
 		return Registry.register(BuiltInRegistries.VILLAGER_PROFESSION, ResourceLocation.fromNamespaceAndPath(${JavaModName}.MODID, name),
-		        new VillagerProfession(Component.translatable("entity.villager." + ${JavaModName}.MODID + "." + name),
-            	        poiPredicate, poiPredicate, ImmutableSet.of(), ImmutableSet.of(), soundEvent.get(), Int2ObjectMap.ofEntries(
-            			Int2ObjectMap.entry(1, tradeSetResourceKey(name, 1)),
-            			Int2ObjectMap.entry(2, tradeSetResourceKey(name, 2)),
-            			Int2ObjectMap.entry(3, tradeSetResourceKey(name, 3)),
-            			Int2ObjectMap.entry(4, tradeSetResourceKey(name, 4)),
-            			Int2ObjectMap.entry(5, tradeSetResourceKey(name, 5))
-                )));
-	}
-
-	private static ResourceKey<TradeSet> tradeSetResourceKey(String name, int level) {
-		return ResourceKey.create(Registries.TRADE_SET, ResourceLocation.fromNamespaceAndPath("${modid}", name + "/level_" + level));
+		        new VillagerProfession(${JavaModName}.MODID + ":" + name,
+            	        poiPredicate, poiPredicate, ImmutableSet.of(), ImmutableSet.of(), soundEvent.get()));
 	}
 
 	private static class ProfessionPoiType {

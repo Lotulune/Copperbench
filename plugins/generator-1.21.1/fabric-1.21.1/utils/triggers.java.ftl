@@ -4,9 +4,9 @@
 <#macro onArmorTick procedure="">
 <#if hasProcedure(procedure)>
 <#-- ideally we would use inventoryTick for slot [36, 39], however slot number does not seem to work in NF 1.20.4 -->
-@Override public void inventoryTick(ItemStack itemstack, ServerLevel world, Entity entity, @Nullable EquipmentSlot equipmentSlot) {
-	super.inventoryTick(itemstack, world, entity, equipmentSlot);
-	if (entity instanceof Player player && (equipmentSlot != null && equipmentSlot.getType() == EquipmentSlot.Type.HUMANOID_ARMOR)) {
+@Override public void inventoryTick(ItemStack itemstack, Level world, Entity entity, int slot, boolean selected) {
+	super.inventoryTick(itemstack, world, entity, slot, selected);
+	if (entity instanceof Player player && Iterables.contains(player.getArmorSlots(), itemstack)) {
 		<@procedureCode procedure, {
 			"x": "entity.getX()",
 			"y": "entity.getY()",
@@ -42,8 +42,8 @@ public boolean makesPiglinsNeutral(ItemStack itemstack, LivingEntity entity) {
 <#-- Item-related triggers -->
 <#macro addSpecialInformation procedure="" translationKeyHeader="" isBlock=false>
 	<#if procedure?has_content && (hasProcedure(procedure) || !procedure.getFixedValue().isEmpty())>
-		@Override public void appendHoverText(ItemStack itemstack, Item.TooltipContext context, TooltipDisplay tooltipDisplay, Consumer<Component> componentConsumer, TooltipFlag flag) {
-			super.appendHoverText(itemstack, context, tooltipDisplay, componentConsumer, flag);
+		@Override @Environment(EnvType.CLIENT) public void appendHoverText(ItemStack itemstack, Item.TooltipContext context, List<Component> list, TooltipFlag flag) {
+			super.appendHoverText(itemstack, context, list, flag);
 		<#if hasProcedure(procedure)>
 			Entity entity = ${JavaModName}.clientPlayer();
 			String hoverText = <@procedureCode procedure, {
@@ -56,16 +56,16 @@ public boolean makesPiglinsNeutral(ItemStack itemstack, LivingEntity entity) {
 			}, false/>;
 			if (hoverText != null) {
 				for (String line : hoverText.split("\n")) {
-					componentConsumer.accept(Component.literal(line));
+					list.add(Component.literal(line));
 				}
 			}
 		<#elseif translationKeyHeader?has_content>
 			<#list procedure.getFixedValue() as entry>
-			componentConsumer.accept(Component.translatable("${translationKeyHeader}.description_${entry?index}"));
+			list.add(Component.translatable("${translationKeyHeader}.description_${entry?index}"));
 			</#list>
 		<#else>
 			<#list procedure.getFixedValue() as entry>
-			componentConsumer.accept(Component.literal("${JavaConventions.escapeStringForJava(entry)}"));
+			list.add(Component.literal("${JavaConventions.escapeStringForJava(entry)}"));
 			</#list>
 		</#if>
 		}
@@ -79,7 +79,7 @@ public void onEntitySwing(ItemStack itemstack, LivingEntity entity, InteractionH
 		"x": "entity.getX()",
 		"y": "entity.getY()",
 		"z": "entity.getZ()",
-		"world": "entity.level()",
+		"world": "world",
 		"entity": "entity",
 		"itemstack": "itemstack"
 	}/>
@@ -89,8 +89,8 @@ public void onEntitySwing(ItemStack itemstack, LivingEntity entity, InteractionH
 
 <#macro onCrafted procedure="">
 <#if hasProcedure(procedure)>
-@Override public void onCraftedBy(ItemStack itemstack, Player entity) {
-	super.onCraftedBy(itemstack, entity);
+@Override public void onCraftedBy(ItemStack itemstack, Level world, Player entity) {
+	super.onCraftedBy(itemstack, world, entity);
 	<@procedureCode data.onCrafted, {
 		"x": "entity.getX()",
 		"y": "entity.getY()",
@@ -105,11 +105,11 @@ public void onEntitySwing(ItemStack itemstack, LivingEntity entity, InteractionH
 
 <#macro onEntityHitWith procedure="" hurtStack=false hurtStackAmount=2>
 <#if hasProcedure(procedure) || hurtStack>
-@Override public void hurtEnemy(ItemStack itemstack, LivingEntity entity, LivingEntity sourceentity) {
+@Override public boolean hurtEnemy(ItemStack itemstack, LivingEntity entity, LivingEntity sourceentity) {
 	<#if hurtStack>
-		itemstack.hurtAndBreak(${hurtStackAmount}, entity, entity.getUsedItemHand().asEquipmentSlot());
+		itemstack.hurtAndBreak(${hurtStackAmount}, entity, LivingEntity.getSlotForHand(entity.getUsedItemHand()));
 	<#else>
-		super.hurtEnemy(itemstack, entity, sourceentity);
+		boolean retval = super.hurtEnemy(itemstack, entity, sourceentity);
 	</#if>
 	<#if hasProcedure(procedure)>
 		<@procedureCode procedure, {
@@ -122,21 +122,22 @@ public void onEntitySwing(ItemStack itemstack, LivingEntity entity, InteractionH
 			"itemstack": "itemstack"
 		}/>
 	</#if>
+	return <#if hurtStack>true<#else>retval</#if>;
 }
 </#if>
 </#macro>
 
 <#macro onRightClickedInAir procedure="">
 <#if hasProcedure(procedure)>
-@Override public InteractionResult use(Level world, Player entity, InteractionHand hand) {
-	InteractionResult ar = super.use(world, entity, hand);
+@Override public InteractionResultHolder<ItemStack> use(Level world, Player entity, InteractionHand hand) {
+	InteractionResultHolder<ItemStack> ar = super.use(world, entity, hand);
 	<@procedureCode procedure, {
 		"x": "entity.getX()",
 		"y": "entity.getY()",
 		"z": "entity.getZ()",
 		"world": "world",
 		"entity": "entity",
-		"itemstack": "entity.getItemInHand(hand)"
+		"itemstack": "ar.getObject()"
 	}/>
 	return ar;
 }
@@ -145,10 +146,10 @@ public void onEntitySwing(ItemStack itemstack, LivingEntity entity, InteractionH
 
 <#macro onItemTick inUseProcedure="" inInvProcedure="">
 <#if hasProcedure(inUseProcedure) || hasProcedure(inInvProcedure)>
-@Override public void inventoryTick(ItemStack itemstack, ServerLevel world, Entity entity, @Nullable EquipmentSlot equipmentSlot) {
-	super.inventoryTick(itemstack, world, entity, equipmentSlot);
+@Override public void inventoryTick(ItemStack itemstack, Level world, Entity entity, int slot, boolean selected) {
+	super.inventoryTick(itemstack, world, entity, slot, selected);
 	<#if hasProcedure(inUseProcedure)>
-	if (equipmentSlot == EquipmentSlot.MAINHAND)
+	if (selected)
 		<@procedureCode inUseProcedure, {
 			"x": "entity.getX()",
 			"y": "entity.getY()",
@@ -156,7 +157,7 @@ public void onEntitySwing(ItemStack itemstack, LivingEntity entity, InteractionH
 			"world": "world",
 			"entity": "entity",
 			"itemstack": "itemstack",
-			"slot": "equipmentSlot != null ? equipmentSlot.getId() : -1"
+			"slot": "slot"
 		}/>
 	</#if>
 	<#if hasProcedure(inInvProcedure)>
@@ -167,7 +168,7 @@ public void onEntitySwing(ItemStack itemstack, LivingEntity entity, InteractionH
 			"world": "world",
 			"entity": "entity",
 			"itemstack": "itemstack",
-			"slot": "equipmentSlot != null ? equipmentSlot.getId() : -1"
+			"slot": "slot"
 		}/>
 	</#if>
 }
@@ -234,7 +235,7 @@ public void onDroppedByPlayer(ItemStack itemstack, Player entity) {
 <#if hasProcedure(procedure) || hurtStack>
 @Override public boolean mineBlock(ItemStack itemstack, Level world, BlockState blockstate, BlockPos pos, LivingEntity entity) {
 	<#if hurtStack>
-		itemstack.hurtAndBreak(1, entity, entity.getUsedItemHand().asEquipmentSlot());
+		itemstack.hurtAndBreak(1, entity, LivingEntity.getSlotForHand(entity.getUsedItemHand()));
 	<#else>
 		boolean retval = super.mineBlock(itemstack,world,blockstate,pos,entity);
 	</#if>
@@ -291,8 +292,8 @@ public void onDroppedByPlayer(ItemStack itemstack, Player entity) {
 
 <#macro onEntityCollides procedure="">
 <#if hasProcedure(procedure)>
-@Override public void entityInside(BlockState blockstate, Level world, BlockPos pos, Entity entity, InsideBlockEffectApplier insideBlockEffectApplier, boolean isPrecise) {
-	super.entityInside(blockstate, world, pos, entity, insideBlockEffectApplier, isPrecise);
+@Override public void entityInside(BlockState blockstate, Level world, BlockPos pos, Entity entity) {
+	super.entityInside(blockstate, world, pos, entity);
 	<@procedureCode procedure, {
 		"x": "pos.getX()",
 		"y": "pos.getY()",

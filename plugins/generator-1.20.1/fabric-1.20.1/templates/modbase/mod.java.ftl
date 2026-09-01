@@ -56,10 +56,12 @@ public class ${JavaModName} implements ModInitializer {
 		<#if w.getGElementsOfType('dimension')?filter(e -> e.hasDimensionTriggers() || e.enablePortal)?size != 0>${JavaModName}Dimensions.load();</#if>
 		<#if types["guis"]??>${JavaModName}Menus.load();</#if>
 		<#if types["villagerprofessions"]??>${JavaModName}VillagerProfessions.load();</#if>
+		<#if types["villagertrades"]??>${JavaModName}Trades.load();</#if>
 		<#if w.getGElementsOfType('itemextension')?filter(e -> (e.compostLayerChance gt 0) || e.enableFuel)?size != 0>${JavaModName}ItemExtensions.load();</#if>
 		<#if w.getGElementsOfType('itemextension')?filter(e -> e.hasDispenseBehavior)?size != 0 || types["specialentities"]??>${JavaModName}DispenseBehaviors.load();</#if>
 		<#if types["potioneffects"]??>${JavaModName}MobEffects.load();</#if>
 		<#if types["potions"]??>${JavaModName}Potions.load();</#if>
+		<#if types["enchantments"]??>${JavaModName}Enchantments.load();</#if>
 		<#if types["gamerules"]??>${JavaModName}GameRules.load();</#if>
 		<#if w.getGElementsOfType("command")?filter(e -> e.type != "CLIENTSIDE")?size != 0>${JavaModName}Commands.load();</#if>
 		<#if w.getGElementsOfType('procedure')?filter(e -> !e.procedurexml?contains('no_ext_trigger'))?size != 0>${JavaModName}Procedures.load();</#if>

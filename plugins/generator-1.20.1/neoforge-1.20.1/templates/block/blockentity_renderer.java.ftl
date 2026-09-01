@@ -33,7 +33,7 @@
 
 package ${package}.client.renderer.block;
 
-@EventBusSubscriber(Dist.CLIENT) public class ${name}Renderer implements BlockEntityRenderer<${name}BlockEntity> {
+@Mod.EventBusSubscriber(value = Dist.CLIENT) public class ${name}Renderer implements BlockEntityRenderer<${name}BlockEntity> {
 
 	private final CustomHierarchicalModel model;
 	private final ResourceLocation texture;

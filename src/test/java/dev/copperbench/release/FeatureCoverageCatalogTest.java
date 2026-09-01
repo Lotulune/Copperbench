@@ -23,7 +23,7 @@ class FeatureCoverageCatalogTest {
 						&& item.surface() == FeatureCoverageCatalog.Surface.NEW_UI));
 		assertTrue(FeatureCoverageCatalog.ITEMS.stream()
 				.anyMatch(item -> item.id().equals("other_mod_elements")
-						&& item.surface() == FeatureCoverageCatalog.Surface.UNSUPPORTED));
+						&& item.surface() == FeatureCoverageCatalog.Surface.NEW_UI));
 		assertTrue(FeatureCoverageCatalog.ITEMS.stream()
 				.anyMatch(item -> item.id().equals("code_signing")
 						&& item.surface() == FeatureCoverageCatalog.Surface.NOT_APPLICABLE));

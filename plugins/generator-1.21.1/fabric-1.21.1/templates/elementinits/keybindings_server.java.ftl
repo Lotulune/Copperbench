@@ -30,7 +30,7 @@ public class ${JavaModName}KeyMappingsServer {
 
 	public static void serverLoad() {
 		<#list keybinds as keybind>
-			PayloadTypeRegistry.serverboundPlay().register(${keybind.getModElement().getName()}Message.TYPE, ${keybind.getModElement().getName()}Message.STREAM_CODEC);
+			PayloadTypeRegistry.playC2S().register(${keybind.getModElement().getName()}Message.TYPE, ${keybind.getModElement().getName()}Message.STREAM_CODEC);
 			ServerPlayNetworking.registerGlobalReceiver(${keybind.getModElement().getName()}Message.TYPE, ${keybind.getModElement().getName()}Message::handleData);
 		</#list>
 	}

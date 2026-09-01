@@ -45,7 +45,7 @@ public class ${JavaModName}Biomes {
 		BOOTSTRAP_VALIDATION_PASSED = true;
 
 		ServerLifecycleEvents.SERVER_STARTING.register((server) -> {
-            Registry<LevelStem> levelStemTypeRegistry = server.registryAccess().lookupOrThrow(Registries.LEVEL_STEM);
+            Registry<LevelStem> levelStemTypeRegistry = server.registryAccess().registryOrThrow(Registries.LEVEL_STEM);
             for (LevelStem levelStem : levelStemTypeRegistry.stream().toList()) {
                 Holder<DimensionType> dimensionType = levelStem.type();
                 if (dimensionType.is(BuiltinDimensionTypes.NETHER) || dimensionType.is(BuiltinDimensionTypes.OVERWORLD)) {

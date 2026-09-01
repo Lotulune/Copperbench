@@ -35,7 +35,7 @@ class UpstreamWorkspaceImportServiceTest {
 		assertEquals(before, WorkspaceTreeHasher.hash(source));
 		assertEquals(Disposition.MANUAL, item(report, "/futurePluginBlob").disposition());
 		assertEquals(Disposition.SUPPORTED, item(report, "/elements/trail_lamp").disposition());
-		assertEquals(Disposition.MANUAL, item(report, "/elements/trail_golem").disposition());
+		assertEquals(Disposition.SUPPORTED, item(report, "/elements/trail_golem").disposition());
 	}
 
 	@Test void executeCopiesToANewDirectoryAndLeavesSourceBytesUnchanged() throws Exception {

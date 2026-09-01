@@ -1,5 +1,5 @@
 templates:
-  - template: painting/painting.json.ftl # Imported from NF generator
+  - template: json/painting.json.ftl
     writer: json
     name: "@MODDATAROOT/painting_variant/@registryname.json"
 

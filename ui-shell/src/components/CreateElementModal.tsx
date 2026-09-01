@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, Plus, Box, Compass, Scroll, Terminal, FileCode2, Gift, Trophy } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
-import { ModElementType } from '../types/contract';
+import { ALL_MOD_ELEMENT_TYPES, ModElementType } from '../types/contract';
 import { useDialogA11y } from '../hooks/useDialogA11y';
 
 export const CreateElementModal: React.FC = () => {
@@ -10,6 +10,15 @@ export const CreateElementModal: React.FC = () => {
   const [name, setName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const typeLabels: Partial<Record<ModElementType, string>> = {
+    block: '方块', item: '物品', recipe: '配方', procedure: '过程', function: '函数', loottable: '战利品表', achievement: '进度',
+    armor: '盔甲', armortrim: '盔甲纹饰', tool: '工具', itemextension: '物品扩展', attribute: '属性', bannerpattern: '旗帜图案',
+    command: '命令', damagetype: '伤害类型', enchantment: '附魔', gamerule: '游戏规则', keybind: '按键绑定', painting: '画', particle: '粒子',
+    potion: '药水', potioneffect: '药水效果', tab: '创造模式标签页', villagerprofession: '村民职业', villagertrade: '村民交易', biome: '生物群系',
+    dimension: '维度', feature: '世界特征', fluid: '流体', plant: '植物', structure: '结构', livingentity: '生物实体', specialentity: '特殊实体',
+    projectile: '投射物', gui: '界面', overlay: '覆盖层', code: '代码'
+  };
+  const typeIcons: Record<string, typeof Box> = { block: Box, item: Compass, recipe: Scroll, procedure: Terminal, function: FileCode2, loottable: Gift, achievement: Trophy };
 
   const dialogRef = useDialogA11y(isCreateModalOpen, () => setIsCreateModalOpen(false));
 
@@ -77,16 +86,9 @@ export const CreateElementModal: React.FC = () => {
                 元素类型
               </label>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
-                {[
-                  { type: 'block', label: '方块', icon: Box },
-                  { type: 'item', label: '物品', icon: Compass },
-                  { type: 'recipe', label: '配方', icon: Scroll },
-                  { type: 'procedure', label: '过程', icon: Terminal },
-                  { type: 'function', label: '函数', icon: FileCode2 },
-                  { type: 'loottable', label: '战利品表', icon: Gift },
-                  { type: 'achievement', label: '进度', icon: Trophy }
-                ].map((item) => {
-                  const Icon = item.icon;
+                {ALL_MOD_ELEMENT_TYPES.map((type) => {
+                  const Icon = typeIcons[type] ?? Compass;
+                  const item = { type, label: typeLabels[type] ?? type, icon: Icon };
                   const isSel = elementType === item.type;
                   return (
                     <button

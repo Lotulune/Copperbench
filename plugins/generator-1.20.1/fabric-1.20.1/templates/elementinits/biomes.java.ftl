@@ -35,8 +35,8 @@ import com.mojang.datafixers.util.Pair;
 
 public class ${JavaModName}Biomes {
 
-	public static final ResourceLocation OVERWORLD_BIOMESOURCE_PRESET_ID = ResourceLocation.withDefaultNamespace("overworld");
-	public static final ResourceLocation NETHER_BIOMESOURCE_PRESET_ID = ResourceLocation.withDefaultNamespace("nether");
+	public static final ResourceLocation OVERWORLD_BIOMESOURCE_PRESET_ID = new ResourceLocation("overworld");
+	public static final ResourceLocation NETHER_BIOMESOURCE_PRESET_ID = new ResourceLocation("nether");
 
 	private static boolean BOOTSTRAP_VALIDATION_PASSED = false;
 
@@ -45,7 +45,7 @@ public class ${JavaModName}Biomes {
 		BOOTSTRAP_VALIDATION_PASSED = true;
 
 		ServerLifecycleEvents.SERVER_STARTING.register((server) -> {
-            Registry<LevelStem> levelStemTypeRegistry = server.registryAccess().lookupOrThrow(Registries.LEVEL_STEM);
+            Registry<LevelStem> levelStemTypeRegistry = server.registryAccess().registryOrThrow(Registries.LEVEL_STEM);
             for (LevelStem levelStem : levelStemTypeRegistry.stream().toList()) {
                 Holder<DimensionType> dimensionType = levelStem.type();
                 if (dimensionType.is(BuiltinDimensionTypes.NETHER) || dimensionType.is(BuiltinDimensionTypes.OVERWORLD)) {

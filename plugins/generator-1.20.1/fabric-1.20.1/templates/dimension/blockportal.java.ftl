@@ -43,12 +43,12 @@ public class ${name}PortalBlock extends NetherPortalBlock {
 	public static void portalSpawn(Level world, BlockPos pos) {
 		Optional<${name}PortalShape> optional = ${name}PortalShape.findEmptyPortalShape(world, pos, Direction.Axis.X);
 		if (optional.isPresent()) {
-			optional.get().createPortalBlocks(world);
+			optional.get().createPortalBlocks();
 		}
 	}
 
-	public ${name}PortalBlock(BlockBehaviour.Properties properties) {
-		super(properties.noCollision().randomTicks().pushReaction(PushReaction.BLOCK)
+	public ${name}PortalBlock() {
+		super(BlockBehaviour.Properties.of().noCollission().randomTicks().pushReaction(PushReaction.BLOCK)
 				.strength(-1.0F).sound(SoundType.GLASS).lightLevel(state -> ${data.portalLuminance}).noLootTable());
 	}
 
@@ -56,29 +56,8 @@ public class ${name}PortalBlock extends NetherPortalBlock {
 		return new ${name}Teleporter(level);
 	}
 
-	@Override ${mcc.getMethod("net.minecraft.world.level.block.NetherPortalBlock", "updateShape", "BlockState", "LevelReader", "ScheduledTickAccess", "BlockPos", "Direction", "BlockPos", "BlockState", "RandomSource")
-					.replace("PortalShape", name+"PortalShape")}
-
-	@Override @Nullable ${mcc.getMethod("net.minecraft.world.level.block.NetherPortalBlock", "getPortalDestination", "ServerLevel", "Entity", "BlockPos")
-					 .replace("Level.NETHER", "ResourceKey.create(Registries.DIMENSION, new ResourceLocation(\"${modid}:${registryname}\"))")}
-
-	@Nullable ${mcc.getMethod("net.minecraft.world.level.block.NetherPortalBlock", "getExitPortal", "ServerLevel", "Entity", "BlockPos", "BlockPos", "boolean", "WorldBorder")
-					.replace("newLevel.getPortalForcer()", "getTeleporter(newLevel)").replace("NetherPortalBlock.", "")}
-
-	${mcc.getMethod("net.minecraft.world.level.block.NetherPortalBlock", "getDimensionTransitionFromExit",
-			"Entity", "BlockPos", "BlockUtil.FoundRectangle", "ServerLevel", "TeleportTransition.PostTeleportTransition").replace("NetherPortalBlock.", "")}
-
-	${mcc.getMethod("net.minecraft.world.level.block.NetherPortalBlock", "createDimensionTransition",
-			"ServerLevel", "BlockUtil.FoundRectangle", "Direction.Axis", "Vec3", "Entity", "TeleportTransition.PostTeleportTransition")
-				.replace("PortalShape", name+"PortalShape")}
-
-	@Override public int getPortalTransitionTime(ServerLevel world, Entity entity) {
-		return 0;
-	}
-
-	@Override public Portal.Transition getLocalTransition() {
-		return Portal.Transition.NONE;
-	}
+	@Override ${mcc.getMethod("net.minecraft.world.level.block.NetherPortalBlock", "updateShape", "BlockState", "Direction", "BlockState", "LevelAccessor", "BlockPos", "BlockPos")
+					.replace("new PortalShape(", "new "+name+"PortalShape(")}
 
 	@Override public void randomTick(BlockState blockstate, ServerLevel world, BlockPos pos, RandomSource random) {
 	<#-- Do not call super to prevent ZOMBIFIED_PIGLINs from spawning -->
@@ -116,13 +95,13 @@ public class ${name}PortalBlock extends NetherPortalBlock {
 		<#if data.portalSound?? && data.portalSound.toString()?has_content>
 		if (random.nextInt(110) == 0)
 			world.playLocalSound(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5,
-					BuiltInRegistries.SOUND_EVENT.getValue(new ResourceLocation("${data.portalSound}")), SoundSource.BLOCKS, 0.5f,
+					BuiltInRegistries.SOUND_EVENT.get(new ResourceLocation("${data.portalSound}")), SoundSource.BLOCKS, 0.5f,
 					random.nextFloat() * 0.4f + 0.8f, false);
 		</#if>
 	}
 
 	<#if hasProcedure(data.portalUseCondition)>
-	@Override protected void entityInside(BlockState state, Level world, BlockPos pos, Entity entity, InsideBlockEffectApplier effectApplier, boolean isPrecise) {
+	@Override protected void entityInside(BlockState state, Level world, BlockPos pos, Entity entity) {
 		if (<@procedureCode data.portalUseCondition, {
 			"x": "pos.getX()",
 			"y": "pos.getY()",
@@ -130,7 +109,7 @@ public class ${name}PortalBlock extends NetherPortalBlock {
 			"entity": "entity",
 			"world": "world"
 		}, false/>)
-			super.entityInside(state, world, pos, entity, effectApplier, isPrecise);
+			super.entityInside(state, world, pos, entity);
 	}
 	</#if>
 

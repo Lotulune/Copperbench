@@ -25,6 +25,7 @@ package ${package}.world.teleporter;
 
 public class ${name}PortalShape ${mcc.getClassBody("net.minecraft.world.level.portal.PortalShape")
         .replace("private PortalShape", "public " + name + "PortalShape")
+        .replace("public PortalShape(", "public " + name + "PortalShape(")
         .replace("new PortalShape(", "new " + name + "PortalShape(")
         .replace("Optional<PortalShape>", "Optional<" + name + "PortalShape>")
         .replace("Predicate<PortalShape>", "Predicate<" + name + "PortalShape>")
@@ -33,5 +34,7 @@ public class ${name}PortalShape ${mcc.getClassBody("net.minecraft.world.level.po
         .replace("state.is(Blocks.NETHER_PORTAL)", "state.is(" + JavaModName + "Blocks." + REGISTRYNAME + "_PORTAL)")
         .replace("Blocks.NETHER_PORTAL.defaultBlockState()", JavaModName + "Blocks." + REGISTRYNAME + "_PORTAL.defaultBlockState()")
         .replace("(state, level, pos) -> state.is(Blocks.OBSIDIAN);", "(state, level, pos) -> state.is(" + mappedBlockToBlock(data.portalFrame) + ");")
-        .replace("PortalShape.", "").replace("Optional collisionFreePosition", "Optional<Vec3> collisionFreePosition")}
+        .replace("PortalShape.", "")
+        .replace("Optional collisionFreePosition", "Optional<Vec3> collisionFreePosition")
+        .replace("Optional optional =", "Optional<Vec3> optional =")}
 <#-- @formatter:on -->

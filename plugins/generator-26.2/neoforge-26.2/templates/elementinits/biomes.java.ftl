@@ -49,6 +49,7 @@ import com.mojang.datafixers.util.Pair;
 	public static final Identifier NETHER_BIOMESOURCE_PRESET_ID = Identifier.withDefaultNamespace("nether");
 
 	private static boolean BOOTSTRAP_VALIDATION_PASSED = false;
+	private static HolderGetter<Biome> BIOME_LOOKUP;
 
 	@SubscribeEvent public static void onCommonSetup(FMLCommonSetupEvent event) {
 		<#-- At FMLCommonSetupEvent, bootstrap validation is already done -->
@@ -56,6 +57,7 @@ import com.mojang.datafixers.util.Pair;
 	}
 
 	@SubscribeEvent public static void onServerAboutToStart(ServerAboutToStartEvent event) {
+		BIOME_LOOKUP = event.getServer().registryAccess().lookupOrThrow(Registries.BIOME);
 		Registry<LevelStem> levelStemTypeRegistry = event.getServer().registryAccess().lookupOrThrow(Registries.LEVEL_STEM);
 		for (LevelStem levelStem : levelStemTypeRegistry.stream().toList()) {
 			Holder<DimensionType> dimensionType = levelStem.type();
@@ -68,6 +70,7 @@ import com.mojang.datafixers.util.Pair;
 	}
 
 	public static SurfaceRules.RuleSource adaptSurfaceRule(SurfaceRules.RuleSource currentRuleSource, Holder<DimensionType> dimensionType) {
+		if (BIOME_LOOKUP == null) return currentRuleSource;
 		<#if spawn_overworld?has_content || spawn_overworld_caves?has_content>
 		if (dimensionType.is(BuiltinDimensionTypes.OVERWORLD)) return injectOverworldSurfaceRules(currentRuleSource);
 		</#if>
@@ -232,7 +235,7 @@ import com.mojang.datafixers.util.Pair;
 
 	<#if spawn_overworld?has_content>
 	private static SurfaceRules.RuleSource preliminarySurfaceRule(ResourceKey<Biome> biomeKey, BlockState groundBlock, BlockState undergroundBlock, BlockState underwaterBlock) {
-		return SurfaceRules.ifTrue(SurfaceRules.isBiome(biomeKey),
+		return SurfaceRules.ifTrue(SurfaceRules.isBiome(BIOME_LOOKUP, biomeKey),
 			SurfaceRules.ifTrue(SurfaceRules.abovePreliminarySurface(),
 				SurfaceRules.sequence(
 					SurfaceRules.ifTrue(SurfaceRules.stoneDepthCheck(0, false, 0, CaveSurface.FLOOR),
@@ -254,7 +257,7 @@ import com.mojang.datafixers.util.Pair;
 
 	<#if spawn_nether?has_content || spawn_overworld_caves?has_content>
 	private static SurfaceRules.RuleSource anySurfaceRule(ResourceKey<Biome> biomeKey, BlockState groundBlock, BlockState undergroundBlock, BlockState underwaterBlock) {
-		return SurfaceRules.ifTrue(SurfaceRules.isBiome(biomeKey),
+		return SurfaceRules.ifTrue(SurfaceRules.isBiome(BIOME_LOOKUP, biomeKey),
 			SurfaceRules.ifTrue(SurfaceRules.yBlockCheck(VerticalAnchor.aboveBottom(5), 0),
 				SurfaceRules.ifTrue(SurfaceRules.not(SurfaceRules.yBlockCheck(VerticalAnchor.belowTop(5), 0)),
 					SurfaceRules.sequence(

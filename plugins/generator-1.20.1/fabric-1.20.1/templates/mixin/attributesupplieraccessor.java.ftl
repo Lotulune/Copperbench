@@ -25,6 +25,6 @@ import org.spongepowered.asm.mixin.Mutable;
 @Mixin(AttributeSupplier.class)
 public interface AttributeSupplierAccessor {
 	@Accessor("instances") @Mutable
-	Map<Holder<Attribute>, AttributeInstance> getInstances();
+	Map<Attribute, AttributeInstance> getInstances();
 }
 <#-- @formatter:on -->

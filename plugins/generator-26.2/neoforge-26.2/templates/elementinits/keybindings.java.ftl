@@ -136,7 +136,7 @@ package ${package}.init;
 	@EventBusSubscriber(Dist.CLIENT) public static class KeyEventListener {
 
 		@SubscribeEvent public static void onClientTick(ClientTickEvent.Post event) {
-			if (Minecraft.getInstance().screen == null) {
+			if (Minecraft.getInstance().gui.screen() == null) {
 			<#list keybinds as keybind>
 				<#if hasProcedure(keybind.onKeyPressed) || hasProcedure(keybind.onKeyReleased)>
 					${keybind.getModElement().getRegistryNameUpper()}.consumeClick();

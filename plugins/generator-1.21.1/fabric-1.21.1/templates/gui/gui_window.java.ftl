@@ -71,12 +71,14 @@ public class ${name}Screen extends AbstractContainerScreen<${name}Menu> implemen
 	</#list>
 
 	public ${name}Screen(${name}Menu container, Inventory inventory, Component text) {
-		super(container, inventory, text, ${data.width}, ${data.height});
+		super(container, inventory, text);
 		this.world = container.world;
 		this.x = container.x;
 		this.y = container.y;
 		this.z = container.z;
 		this.entity = container.entity;
+		this.imageWidth = ${data.width};
+		this.imageHeight = ${data.height};
 	}
 
 	@Override public void updateMenuState(int elementType, String name, Object elementState) {
@@ -95,7 +97,7 @@ public class ${name}Screen extends AbstractContainerScreen<${name}Menu> implemen
 		if (elementType == 1 && elementState instanceof Boolean logicState) {
 			<#list checkboxes as component>
 				<#if !component?is_first>else</#if> if (name.equals("${component.getName()}")) {
-					if (${component.getName()}.selected() != logicState) ${component.getName()}.onPress(null);
+					if (${component.getName()}.selected() != logicState) ${component.getName()}.onPress();
 				}
 			</#list>
 		}
@@ -119,7 +121,30 @@ public class ${name}Screen extends AbstractContainerScreen<${name}Menu> implemen
 	}
 	</#if>
 
-	@Override public void extractRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
+	@Override public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+		super.render(guiGraphics, mouseX, mouseY, partialTicks);
+
+		<#list textFields as component>
+		${component.getName()}.render(guiGraphics, mouseX, mouseY, partialTicks);
+		</#list>
+
+		<#list data.getComponentsOfType("EntityModel") as component>
+			<#assign followMouse = component.followMouseMovement>
+			<#assign x = component.gx(data.width)>
+			<#assign y = component.gy(data.height)>
+			if (<@procedureOBJToConditionCode component.entityModel/> instanceof LivingEntity livingEntity) {
+				<#if hasProcedure(component.displayCondition)>
+					if (<@procedureOBJToConditionCode component.displayCondition/>)
+				</#if>
+				${JavaModName}Screens.renderEntityInInventoryFollowsAngle(guiGraphics, this.leftPos + ${x + 10}, this.topPos + ${y + 20}, ${component.scale},
+					${component.rotationX / 20.0}f <#if followMouse> + (float) Math.atan((this.leftPos + ${x + 10} - mouseX) / 40.0)</#if>,
+					<#if followMouse>(float) Math.atan((this.topPos + ${y + 21 - 50} - mouseY) / 40.0)<#else>0</#if>, livingEntity);
+			}
+		</#list>
+
+		<#if tooltips?has_content>
+		boolean customTooltipShown = false;
+		</#if>
 		<#list tooltips as component>
 			<#assign x = component.gx(data.width)>
 			<#assign y = component.gy(data.height)>
@@ -130,51 +155,33 @@ public class ${name}Screen extends AbstractContainerScreen<${name}Menu> implemen
 					<#if hasProcedure(component.text)>
 					String hoverText = <@procedureOBJToStringCode component.text/>;
 					if (hoverText != null) {
-						guiGraphics.setComponentTooltipForNextFrame(font, Arrays.stream(hoverText.split("\n")).map(Component::literal).collect(Collectors.toList()), mouseX, mouseY);
+						guiGraphics.renderComponentTooltip(font, Arrays.stream(hoverText.split("\n")).map(Component::literal).collect(Collectors.toList()), mouseX, mouseY);
 					}
 					<#else>
-						guiGraphics.setTooltipForNextFrame(font, Component.translatable("gui.${modid}.${registryname}.${component.getName()}"), mouseX, mouseY);
+						guiGraphics.renderTooltip(font, Component.translatable("gui.${modid}.${registryname}.${component.getName()}"), mouseX, mouseY);
 					</#if>
+					customTooltipShown = true;
 				}
 		</#list>
 
-		super.extractRenderState(guiGraphics, mouseX, mouseY, partialTicks);
-
-		<#list textFields as component>
-		${component.getName()}.extractWidgetRenderState(guiGraphics, mouseX, mouseY, partialTicks);
-		</#list>
-
-		<@javacompress>
-		<#list data.getComponentsOfType("EntityModel") as component>
-			<#assign followMouse = component.followMouseMovement>
-			<#assign x = component.gx(data.width)>
-			<#assign y = component.gy(data.height)>
-			if (<@procedureOBJToConditionCode component.entityModel/> instanceof LivingEntity livingEntity) {
-				<#if hasProcedure(component.displayCondition)>
-					if (<@procedureOBJToConditionCode component.displayCondition/>)
-				</#if>
-				InventoryScreen.extractEntityInInventoryFollowsMouse(guiGraphics,
-					this.leftPos + ${x + (10 - 1000)}, this.topPos + ${y + (20 - 1000)},
-					this.leftPos + ${x + (10 + 1000)}, this.topPos + ${y + (20 + 1000)},
-					${component.scale}, -livingEntity.getBbHeight() / (2.0f * livingEntity.getScale()),
-					${component.rotationX / 20.0}f <#if followMouse> + (float) Math.atan((this.leftPos + ${x + 10} - mouseX) / 40.0)</#if>,
-					<#if followMouse>(float) Math.atan((this.topPos + ${y + 21 - 50} - mouseY) / 40.0)<#else>0</#if>, livingEntity
-				);
-			}
-		</#list>
-		</@javacompress>
+		<#if tooltips?has_content>
+		if (!customTooltipShown)
+		</#if>
+		this.renderTooltip(guiGraphics, mouseX, mouseY);
 	}
 
-	@Override public void extractBackground(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
-		super.extractBackground(guiGraphics, mouseX, mouseY, partialTicks);
+	@Override protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
+		RenderSystem.setShaderColor(1, 1, 1, 1);
+		RenderSystem.enableBlend();
+		RenderSystem.defaultBlendFunc();
 
 		<#if data.renderBgLayer>
-			guiGraphics.blit(RenderPipelines.GUI_TEXTURED, BACKGROUND, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight, this.imageWidth, this.imageHeight);
+			guiGraphics.blit(BACKGROUND, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight, this.imageWidth, this.imageHeight);
 		</#if>
 
 		<#list data.getComponentsOfType("Image") as component>
 			<#if hasProcedure(component.displayCondition)>if (<@procedureOBJToConditionCode component.displayCondition/>) {</#if>
-				guiGraphics.blit(RenderPipelines.GUI_TEXTURED, IMAGE_${component?index},
+				guiGraphics.blit(IMAGE_${component?index},
 					this.leftPos + ${component.gx(data.width)}, this.topPos + ${component.gy(data.height)}, 0, 0,
 					${component.getWidth(w.getWorkspace())}, ${component.getHeight(w.getWorkspace())},
 					${component.getWidth(w.getWorkspace())}, ${component.getHeight(w.getWorkspace())});
@@ -183,7 +190,7 @@ public class ${name}Screen extends AbstractContainerScreen<${name}Menu> implemen
 
 		<#list data.getComponentsOfType("Sprite") as component>
 			<#if hasProcedure(component.displayCondition)>if (<@procedureOBJToConditionCode component.displayCondition/>) {</#if>
-				guiGraphics.blit(RenderPipelines.GUI_TEXTURED, SPRITE_${component?index},
+				guiGraphics.blit(SPRITE_${component?index},
 					this.leftPos + ${component.gx(data.width)}, this.topPos + ${component.gy(data.height)},
 					<#if (component.getTextureWidth(w.getWorkspace()) > component.getTextureHeight(w.getWorkspace()))>
 						<@getSpriteByIndex component "width"/>, 0
@@ -194,10 +201,11 @@ public class ${name}Screen extends AbstractContainerScreen<${name}Menu> implemen
 					${component.getTextureWidth(w.getWorkspace())}, ${component.getTextureHeight(w.getWorkspace())});
 			<#if hasProcedure(component.displayCondition)>}</#if>
 		</#list>
+
+		RenderSystem.disableBlend();
 	}
 
-	@Override public boolean keyPressed(KeyEvent event) {
-	    int key = event.key();
+	@Override public boolean keyPressed(int key, int b, int c) {
 		if (key == 256) {
 			this.minecraft.player.closeContainer();
 			return true;
@@ -205,30 +213,37 @@ public class ${name}Screen extends AbstractContainerScreen<${name}Menu> implemen
 
 		<#list textFields as component>
 			if(${component.getName()}.isFocused())
-				return ${component.getName()}.keyPressed(event);
+				return ${component.getName()}.keyPressed(key, b, c);
 		</#list>
 
-		return super.keyPressed(event);
+		return super.keyPressed(key, b, c);
 	}
 
+	<#if sliders?has_content> <#-- AbstractContainerScreen overrides it for slots only, causing a bug with Sliders, so we override it again -->
+	@Override public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+		return (this.getFocused() != null && this.isDragging() && button == 0) ? this.getFocused().mouseDragged(mouseX, mouseY, button, dragX, dragY)
+			: super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+	}
+	</#if>
+
 	<#if textFields?has_content>
-	@Override public void resize(int width, int height) {
+	@Override public void resize(Minecraft minecraft, int width, int height) {
 		<#list textFields as component>
 		String ${component.getName()}Value = ${component.getName()}.getValue();
 		</#list>
-		super.resize(width, height);
+		super.resize(minecraft, width, height);
 		<#list textFields as component>
 		${component.getName()}.setValue(${component.getName()}Value);
 		</#list>
 	}
 	</#if>
 
-	@Override protected void extractLabels(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
+	@Override protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
 		<#list data.getComponentsOfType("Label") as component>
 			<#if hasProcedure(component.displayCondition)>
 				if (<@procedureOBJToConditionCode component.displayCondition/>)
 			</#if>
-			guiGraphics.text(this.font,
+			guiGraphics.drawString(this.font,
 				<#if hasProcedure(component.text)><@procedureOBJToStringCode component.text/><#else>Component.translatable("gui.${modid}.${registryname}.${component.getName()}")</#if>,
 				${component.gx(data.width)}, ${component.gy(data.height)}, ${component.color.getRGB()}, ${component.hasShadow});
 		</#list>
@@ -283,8 +298,8 @@ public class ${name}Screen extends AbstractContainerScreen<${name}Menu> implemen
 				</#if>
 				<@buttonOnClick component/>
 			) {
-				@Override public void extractContents(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
-					guiGraphics.blit(RenderPipelines.GUI_TEXTURED, sprites.get(isActive(), isHoveredOrFocused()), getX(), getY(), 0, 0, width, height, width, height);
+				@Override public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+					guiGraphics.blit(sprites.get(isActive(), isHoveredOrFocused()), getX(), getY(), 0, 0, width, height, width, height);
 				}
 			};
 

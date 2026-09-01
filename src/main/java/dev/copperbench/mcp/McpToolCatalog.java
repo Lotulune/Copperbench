@@ -22,6 +22,7 @@ import dev.copperbench.core.application.McpWorkspaceEntryAdapter;
 import dev.copperbench.core.contract.UiCore.Command;
 import dev.copperbench.core.contract.UiCore.Operation;
 import dev.copperbench.core.contract.UiCore.Query;
+import dev.copperbench.release.ElementCoverageCatalog;
 import io.modelcontextprotocol.server.McpServerFeatures;
 import io.modelcontextprotocol.spec.McpSchema.CallToolResult;
 import io.modelcontextprotocol.spec.McpSchema.TextContent;
@@ -176,7 +177,7 @@ final class McpToolCatalog {
 				"Apply a validated workspace plan as one revision with one recovery point and full rollback",
 				Operation.APPLY_WORKSPACE_PLAN, planEnvelopeSchema(true), McpToolCatalog::mutationPayload));
 		tools.add(commandTool("create_mod_element", "Create a mod element", Operation.CREATE_MOD_ELEMENT,
-				requiredSchema(Map.of("elementType", Map.of("type", "string"), "name", Map.of("type", "string"),
+				requiredSchema(Map.of("elementType", Map.of("type", "string", "enum", ElementCoverageCatalog.FIRST_PARTY_SLICE), "name", Map.of("type", "string"),
 						"initialValues", Map.of("type", "object"), "expectedRevision",
 						Map.of("type", "integer", "minimum", 0)),
 						List.of("elementType", "name", "initialValues", "expectedRevision")),
@@ -320,7 +321,7 @@ final class McpToolCatalog {
 				"List first-party and user plugins with A/B/C/X classification without loading Java",
 				Operation.LIST_INSTALLED_PLUGINS, EMPTY_SCHEMA, arguments -> new JsonObject()));
 		tools.add(queryTool("get_element_coverage",
-				"Read the first-party mod-element slice and unsupported upstream types",
+				"Read the complete Stage 11 Java mod-element catalog and out-of-scope Bedrock types",
 				Operation.GET_ELEMENT_COVERAGE, EMPTY_SCHEMA, arguments -> new JsonObject()));
 		tools.add(queryTool("get_upstream_tools",
 				"Read how upstream MCreator tools map onto new UI, legacy window, unsupported, or out of scope",

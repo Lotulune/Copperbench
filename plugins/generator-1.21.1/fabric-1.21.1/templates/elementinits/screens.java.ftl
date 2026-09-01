@@ -107,19 +107,18 @@ import java.text.DecimalFormat;
 		}
 
 		@Override
-		public void onClick(MouseButtonEvent event, boolean doubleClick) {
-			this.setValueFromMouse(event.x());
+		public void onClick(double mouseX, double mouseY) {
+			this.setValueFromMouse(mouseX);
 		}
 
 		@Override
-		protected void onDrag(MouseButtonEvent event, double dx, double dy) {
-			super.onDrag(event, dx, dy);
-			this.setValueFromMouse(event.x());
+		protected void onDrag(double mouseX, double mouseY, double dx, double dy) {
+			super.onDrag(mouseX, mouseY, dx, dy);
+			this.setValueFromMouse(mouseX);
 		}
 
 		@Override
-		public boolean keyPressed(KeyEvent event) {
-			int keyCode = event.key();
+		public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
 			boolean flag = keyCode == GLFW.GLFW_KEY_LEFT;
 			if (flag || keyCode == GLFW.GLFW_KEY_RIGHT) {
 				if (this.minValue > this.maxValue)
@@ -175,18 +174,28 @@ import java.text.DecimalFormat;
 
 		@Override
 		protected void applyValue() {}
+	}
 
-		@Override
-		public void extractWidgetRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
-			guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, this.getSprite(), this.getX(), this.getY(), this.getWidth(), this.getHeight(), ARGB.white(this.alpha));
-			guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, this.getHandleSprite(), this.getX() + (int) (this.value * (double) (this.width - 8)), this.getY(), 8, this.getHeight(), ARGB.white(this.alpha));
-			int i = this.active ? 16777215 : 10526880;
-			var message = getMessage().copy().withStyle(style -> style.withColor(i)); // TODO 1.21.11: Inefficient, check how Vanilla does this
-			this.extractScrollingStringOverContents(guiGraphics.textRendererForWidget(this, GuiGraphicsExtractor.HoveredTextEffects.NONE), message, 2);
-	
-			if (this.isHovered())
-				guiGraphics.requestCursor(this.dragging ? CursorTypes.RESIZE_EW : CursorTypes.POINTING_HAND);
-		}
+	public static void renderEntityInInventoryFollowsAngle(GuiGraphics guiGraphics, int x, int y, int scale, float angleXComponent, float angleYComponent, LivingEntity entity) {
+		Quaternionf pose = new Quaternionf().rotateZ((float) Math.PI);
+		Quaternionf cameraOrientation = new Quaternionf().rotateX(angleYComponent * 20 * ((float) Math.PI / 180F));
+		pose.mul(cameraOrientation);
+		float oldBodyRot = entity.yBodyRot;
+		float oldYRot = entity.getYRot();
+		float oldXRot = entity.getXRot();
+		float oldHeadRotO = entity.yHeadRotO;
+		float oldHeadRot = entity.yHeadRot;
+		entity.yBodyRot = 180.0F + angleXComponent * 20.0F;
+		entity.setYRot(180.0F + angleXComponent * 40.0F);
+		entity.setXRot(-angleYComponent * 20.0F);
+		entity.yHeadRot = entity.getYRot();
+		entity.yHeadRotO = entity.getYRot();
+		InventoryScreen.renderEntityInInventory(guiGraphics, x, y, scale, new Vector3f(0, 0, 0), pose, cameraOrientation, entity);
+		entity.yBodyRot = oldBodyRot;
+		entity.setYRot(oldYRot);
+		entity.setXRot(oldXRot);
+		entity.yHeadRotO = oldHeadRotO;
+		entity.yHeadRot = oldHeadRot;
 	}
 }
 <#-- @formatter:on -->

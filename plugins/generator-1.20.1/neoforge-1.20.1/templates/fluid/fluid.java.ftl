@@ -1,7 +1,7 @@
 <#--
  # MCreator (https://mcreator.net/)
  # Copyright (C) 2012-2020, Pylo
- # Copyright (C) 2020-2024, Pylo, opensource contributors
+ # Copyright (C) 2020-2023, Pylo, opensource contributors
  #
  # This program is free software: you can redistribute it and/or modify
  # it under the terms of the GNU General Public License as published by
@@ -33,19 +33,19 @@
 
 package ${package}.fluid;
 
-<@javacompress>
-public abstract class ${name}Fluid extends BaseFlowingFluid {
+<#compress>
+public abstract class ${name}Fluid extends ForgeFlowingFluid {
 
-	public static final BaseFlowingFluid.Properties PROPERTIES = new BaseFlowingFluid.Properties(
-		() -> ${JavaModName}FluidTypes.${REGISTRYNAME}_TYPE.get(),
-		() -> ${JavaModName}Fluids.${REGISTRYNAME}.get(),
-		() -> ${JavaModName}Fluids.FLOWING_${REGISTRYNAME}.get())
+	public static final ForgeFlowingFluid.Properties PROPERTIES = new ForgeFlowingFluid.Properties(
+		() -> ${JavaModName}FluidTypes.${data.getModElement().getRegistryNameUpper()}_TYPE.get(),
+		() -> ${JavaModName}Fluids.${data.getModElement().getRegistryNameUpper()}.get(),
+		() -> ${JavaModName}Fluids.FLOWING_${data.getModElement().getRegistryNameUpper()}.get())
 		.explosionResistance(${data.resistance}f)
 		<#if data.flowRate != 5>.tickRate(${data.flowRate})</#if>
 		<#if data.levelDecrease != 1>.levelDecreasePerBlock(${data.levelDecrease})</#if>
 		<#if data.slopeFindDistance != 4>.slopeFindDistance(${data.slopeFindDistance})</#if>
-		<#if data.generateBucket>.bucket(() -> ${JavaModName}Items.${REGISTRYNAME}_BUCKET.get())</#if>
-		.block(() -> (LiquidBlock) ${JavaModName}Blocks.${REGISTRYNAME}.get());
+		<#if data.generateBucket>.bucket(() -> ${JavaModName}Items.${data.getModElement().getRegistryNameUpper()}_BUCKET.get())</#if>
+		.block(() -> (LiquidBlock) ${JavaModName}Blocks.${data.getModElement().getRegistryNameUpper()}.get());
 
 	private ${name}Fluid() {
 		super(PROPERTIES);
@@ -108,5 +108,5 @@ public abstract class ${name}Fluid extends BaseFlowingFluid {
 		}
 	}
 
-}</@javacompress>
+}</#compress>
 <#-- @formatter:on -->

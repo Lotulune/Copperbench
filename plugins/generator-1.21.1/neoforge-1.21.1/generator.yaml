@@ -12,6 +12,7 @@ java_models:
 
 # gradle task definitions
 gradle:
+  sync_task: createMinecraftArtifacts
   run_client: runClient
   run_server: runServer
   export_file: "build/libs/modid-1.0.jar"

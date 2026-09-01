@@ -1,0 +1,20 @@
+{
+  "date": "2026-09-01",
+  "command": "gradlew.bat test --rerun-tasks --tests <Stage 11 targeted regression classes>",
+  "build": "passed",
+  "passedTests": 25,
+  "failedTests": 0,
+  "testClasses": [
+    "dev.copperbench.release.ElementCoverageCatalogTest",
+    "dev.copperbench.release.GeneratorElementCapabilityCatalogTest",
+    "net.mcreator.workspace.WorkspacePersistenceCompatibilityTest",
+    "dev.copperbench.migration.UpstreamWorkspaceImportServiceTest",
+    "dev.copperbench.migration.LoaderMigrationServiceTest",
+    "dev.copperbench.generator.fabric.Fabric1211GeneratorTest",
+    "dev.copperbench.release.ReleaseManifestTest"
+  ],
+  "notes": [
+    "Expected WORKSPACE_PERSISTENCE_FAILED error logs are emitted by fault-injection tests whose assertions pass.",
+    "UI/status verification also passed separately: product status 8 generators/19 gates, ui-core 12 schemas/15 scenarios, ui-shell production build and Chinese localization 125/125."
+  ]
+}

@@ -43,12 +43,12 @@ public class ${name}PortalBlock extends NetherPortalBlock {
 	public static void portalSpawn(Level world, BlockPos pos) {
 		Optional<${name}PortalShape> optional = ${name}PortalShape.findEmptyPortalShape(world, pos, Direction.Axis.X);
 		if (optional.isPresent()) {
-			optional.get().createPortalBlocks(world);
+			optional.get().createPortalBlocks();
 		}
 	}
 
 	public ${name}PortalBlock(BlockBehaviour.Properties properties) {
-		super(properties.noCollision().randomTicks().pushReaction(PushReaction.BLOCK)
+		super(properties.noCollission().randomTicks().pushReaction(PushReaction.BLOCK)
 				.strength(-1.0F).sound(SoundType.GLASS).lightLevel(state -> ${data.portalLuminance}).noLootTable());
 	}
 
@@ -56,21 +56,23 @@ public class ${name}PortalBlock extends NetherPortalBlock {
 		return new ${name}Teleporter(level);
 	}
 
-	@Override ${mcc.getMethod("net.minecraft.world.level.block.NetherPortalBlock", "updateShape", "BlockState", "LevelReader", "ScheduledTickAccess", "BlockPos", "Direction", "BlockPos", "BlockState", "RandomSource")
-					.replace("PortalShape", name+"PortalShape")}
+	@Override ${mcc.getMethod("net.minecraft.world.level.block.NetherPortalBlock", "updateShape", "BlockState", "Direction", "BlockState", "LevelAccessor", "BlockPos", "BlockPos")
+					.replace("new PortalShape(", "new "+name+"PortalShape(")}
 
 	@Override @Nullable ${mcc.getMethod("net.minecraft.world.level.block.NetherPortalBlock", "getPortalDestination", "ServerLevel", "Entity", "BlockPos")
 					 .replace("Level.NETHER", "ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse(\"${modid}:${registryname}\"))")}
 
 	@Nullable ${mcc.getMethod("net.minecraft.world.level.block.NetherPortalBlock", "getExitPortal", "ServerLevel", "Entity", "BlockPos", "BlockPos", "boolean", "WorldBorder")
-					.replace("newLevel.getPortalForcer()", "getTeleporter(newLevel)").replace("NetherPortalBlock.", "")}
+					.replace("p_350564_.getPortalForcer()", "getTeleporter(p_350564_)")
+					.replace("NetherPortalBlock.getDimensionTransitionFromExit", "getDimensionTransitionFromExit")}
 
 	${mcc.getMethod("net.minecraft.world.level.block.NetherPortalBlock", "getDimensionTransitionFromExit",
-			"Entity", "BlockPos", "BlockUtil.FoundRectangle", "ServerLevel", "TeleportTransition.PostTeleportTransition").replace("NetherPortalBlock.", "")}
+			"Entity", "BlockPos", "BlockUtil.FoundRectangle", "ServerLevel", "DimensionTransition.PostDimensionTransition")
+				.replace("NetherPortalBlock.createDimensionTransition", "createDimensionTransition")}
 
 	${mcc.getMethod("net.minecraft.world.level.block.NetherPortalBlock", "createDimensionTransition",
-			"ServerLevel", "BlockUtil.FoundRectangle", "Direction.Axis", "Vec3", "Entity", "TeleportTransition.PostTeleportTransition")
-				.replace("PortalShape", name+"PortalShape")}
+			"ServerLevel", "BlockUtil.FoundRectangle", "Direction.Axis", "Vec3", "Entity", "Vec3", "float", "float", "DimensionTransition.PostDimensionTransition")
+				.replace("PortalShape.", name+"PortalShape.")}
 
 	@Override public int getPortalTransitionTime(ServerLevel world, Entity entity) {
 		return 0;
@@ -116,13 +118,13 @@ public class ${name}PortalBlock extends NetherPortalBlock {
 		<#if data.portalSound?? && data.portalSound.toString()?has_content>
 		if (random.nextInt(110) == 0)
 			world.playLocalSound(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5,
-					BuiltInRegistries.SOUND_EVENT.getValue(ResourceLocation.parse("${data.portalSound}")), SoundSource.BLOCKS, 0.5f,
+					BuiltInRegistries.SOUND_EVENT.get(ResourceLocation.parse("${data.portalSound}")), SoundSource.BLOCKS, 0.5f,
 					random.nextFloat() * 0.4f + 0.8f, false);
 		</#if>
 	}
 
 	<#if hasProcedure(data.portalUseCondition)>
-	@Override protected void entityInside(BlockState state, Level world, BlockPos pos, Entity entity, InsideBlockEffectApplier effectApplier, boolean isPrecise) {
+	@Override protected void entityInside(BlockState state, Level world, BlockPos pos, Entity entity) {
 		if (<@procedureCode data.portalUseCondition, {
 			"x": "pos.getX()",
 			"y": "pos.getY()",
@@ -130,7 +132,7 @@ public class ${name}PortalBlock extends NetherPortalBlock {
 			"entity": "entity",
 			"world": "world"
 		}, false/>)
-			super.entityInside(state, world, pos, entity, effectApplier, isPrecise);
+			super.entityInside(state, world, pos, entity);
 	}
 	</#if>
 

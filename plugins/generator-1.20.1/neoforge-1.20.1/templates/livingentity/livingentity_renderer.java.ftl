@@ -38,81 +38,73 @@ package ${package}.client.renderer;
 <#assign model = "HumanoidModel">
 
 <#if data.mobModelName == "Chicken">
-	<#assign rootPart = "context.bakeLayer(ModelLayers.CHICKEN)">
+	<#assign super = "super(context, new ChickenModel(context.bakeLayer(ModelLayers.CHICKEN)), " + data.modelShadowSize + "f);">
 	<#assign model = "ChickenModel">
 <#elseif data.mobModelName == "Cod">
-	<#assign rootPart = "context.bakeLayer(ModelLayers.COD)">
+	<#assign super = "super(context, new CodModel(context.bakeLayer(ModelLayers.COD)), " + data.modelShadowSize + "f);">
 	<#assign model = "CodModel">
 <#elseif data.mobModelName == "Cow">
-	<#assign rootPart = "context.bakeLayer(ModelLayers.COW)">
+	<#assign super = "super(context, new CowModel(context.bakeLayer(ModelLayers.COW)), " + data.modelShadowSize + "f);">
 	<#assign model = "CowModel">
 <#elseif data.mobModelName == "Creeper">
-	<#assign rootPart = "context.bakeLayer(ModelLayers.CREEPER)">
+	<#assign super = "super(context, new CreeperModel(context.bakeLayer(ModelLayers.CREEPER)), " + data.modelShadowSize + "f);">
 	<#assign model = "CreeperModel">
 <#elseif data.mobModelName == "Ghast">
-	<#assign rootPart = "context.bakeLayer(ModelLayers.GHAST)">
+	<#assign super = "super(context, new GhastModel(context.bakeLayer(ModelLayers.GHAST)), " + data.modelShadowSize + "f);">
 	<#assign model = "GhastModel">
 <#elseif data.mobModelName == "Ocelot">
-	<#assign rootPart = "context.bakeLayer(ModelLayers.OCELOT)">
+	<#assign super = "super(context, new OcelotModel(context.bakeLayer(ModelLayers.OCELOT)), " + data.modelShadowSize + "f);">
 	<#assign model = "OcelotModel">
 <#elseif data.mobModelName == "Pig">
-	<#assign rootPart = "context.bakeLayer(ModelLayers.PIG)">
+	<#assign super = "super(context, new PigModel(context.bakeLayer(ModelLayers.PIG)), " + data.modelShadowSize + "f);">
 	<#assign model = "PigModel">
 <#elseif data.mobModelName == "Piglin">
-	<#assign rootPart = "context.bakeLayer(ModelLayers.PIGLIN)">
+	<#assign super = "super(context, new PiglinModel(context.bakeLayer(ModelLayers.PIGLIN)), " + data.modelShadowSize + "f);">
 	<#assign model = "PiglinModel">
 <#elseif data.mobModelName == "Slime">
-	<#assign rootPart = "context.bakeLayer(ModelLayers.SLIME)">
+	<#assign super = "super(context, new SlimeModel(context.bakeLayer(ModelLayers.SLIME)), " + data.modelShadowSize + "f);">
 	<#assign model = "SlimeModel">
 <#elseif data.mobModelName == "Salmon">
-	<#assign rootPart = "context.bakeLayer(ModelLayers.SALMON)">
+	<#assign super = "super(context, new SalmonModel(context.bakeLayer(ModelLayers.SALMON)), " + data.modelShadowSize + "f);">
 	<#assign model = "SalmonModel">
 <#elseif data.mobModelName == "Spider">
-	<#assign rootPart = "context.bakeLayer(ModelLayers.SPIDER)">
+	<#assign super = "super(context, new SpiderModel(context.bakeLayer(ModelLayers.SPIDER)), " + data.modelShadowSize + "f);">
 	<#assign model = "SpiderModel">
 <#elseif data.mobModelName == "Villager">
-	<#assign rootPart = "context.bakeLayer(ModelLayers.VILLAGER)">
+	<#assign super = "super(context, new VillagerModel(context.bakeLayer(ModelLayers.VILLAGER)), " + data.modelShadowSize + "f);">
 	<#assign model = "VillagerModel">
 <#elseif data.mobModelName == "Silverfish">
-	<#assign rootPart = "context.bakeLayer(ModelLayers.SILVERFISH)">
+	<#assign super = "super(context, new SilverfishModel(context.bakeLayer(ModelLayers.SILVERFISH)), " + data.modelShadowSize + "f);">
 	<#assign model = "SilverfishModel">
 <#elseif data.mobModelName == "Witch">
-	<#assign rootPart = "context.bakeLayer(ModelLayers.WITCH)">
+	<#assign super = "super(context, new WitchModel(context.bakeLayer(ModelLayers.WITCH)), " + data.modelShadowSize + "f);">
 	<#assign model = "WitchModel">
 <#elseif !data.isBuiltInModel()>
-	<#assign rootPart = "context.bakeLayer(${data.mobModelName}.LAYER_LOCATION)">
+	<#assign super = "super(context, new ${data.mobModelName}(context.bakeLayer(${data.mobModelName}.LAYER_LOCATION)), " + data.modelShadowSize + "f);">
 	<#assign model = data.mobModelName>
 <#else>
-	<#assign rootPart = "context.bakeLayer(ModelLayers.PLAYER)">
+	<#assign super = "super(context, new HumanoidModel(context.bakeLayer(ModelLayers.PLAYER)), " + data.modelShadowSize + "f);">
 	<#assign model = "HumanoidModel">
 	<#assign humanoid = true>
 </#if>
 
 <#assign model = model + "<" + name + "Entity>">
 
-<@javacompress>
 public class ${name}Renderer extends <#if humanoid>Humanoid</#if>MobRenderer<${name}Entity, ${model}> {
 
-	private final ResourceLocation entityTexture = new ResourceLocation("${modid}:textures/entities/${data.mobModelTexture}");
-
 	public ${name}Renderer(EntityRendererProvider.Context context) {
-		super(context, new <#if data.animations?has_content>AnimatedModel<#else>${model}</#if>(${rootPart}), ${data.modelShadowSize}f);
+		${super}
 
 		<#if humanoid>
 		this.addLayer(new HumanoidArmorLayer(this, new HumanoidModel(context.bakeLayer(ModelLayers.PLAYER_INNER_ARMOR)),
 				new HumanoidModel(context.bakeLayer(ModelLayers.PLAYER_OUTER_ARMOR)), context.getModelManager()));
-		<#elseif data.mobModelName == "Villager" || data.mobModelName == "Witch">
-		this.addLayer(new CrossedArmsItemLayer<>(this, context.getItemInHandRenderer()));
 		</#if>
 
 		<#list data.modelLayers as layer>
 		this.addLayer(new RenderLayer<${name}Entity, ${model}>(this) {
 			final ResourceLocation LAYER_TEXTURE = new ResourceLocation("${modid}:textures/entities/${layer.texture}");
-			<#if layer.model != "Default">
-				final EntityModel LAYER_MODEL = new ${layer.model}(Minecraft.getInstance().getEntityModels().bakeLayer(${layer.model}.LAYER_LOCATION));
-			</#if>
 
-			<@javacompress>
+			<#compress>
 			@Override public void render(PoseStack poseStack, MultiBufferSource bufferSource, int light,
 						${name}Entity entity, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
 				<#if hasProcedure(layer.condition)>
@@ -125,24 +117,23 @@ public class ${name}Renderer extends <#if humanoid>Humanoid</#if>MobRenderer<${n
 
 				VertexConsumer vertexConsumer = bufferSource.getBuffer(RenderType.<#if layer.glow>eyes<#else>entityCutoutNoCull</#if>(LAYER_TEXTURE));
 				<#if layer.model != "Default">
-					this.getParentModel().copyPropertiesTo(LAYER_MODEL);
-					LAYER_MODEL.prepareMobModel(entity, limbSwing, limbSwingAmount, partialTicks);
-					LAYER_MODEL.setupAnim(entity, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
-					LAYER_MODEL.renderToBuffer(poseStack, vertexConsumer, light,
-						<#if layer.disableHurtOverlay>OverlayTexture.NO_OVERLAY<#else>LivingEntityRenderer.getOverlayCoords(entity, 0)</#if>);
+					EntityModel model = new ${layer.model}(Minecraft.getInstance().getEntityModels().bakeLayer(${layer.model}.LAYER_LOCATION));
+					this.getParentModel().copyPropertiesTo(model);
+					model.prepareMobModel(entity, limbSwing, limbSwingAmount, partialTicks);
+					model.setupAnim(entity, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
+					model.renderToBuffer(poseStack, vertexConsumer, 15728640, LivingEntityRenderer.getOverlayCoords(entity, 0), 1, 1, 1, 1);
 				<#else>
-					this.getParentModel().renderToBuffer(poseStack, vertexConsumer, light,
-						<#if layer.disableHurtOverlay>OverlayTexture.NO_OVERLAY<#else>LivingEntityRenderer.getOverlayCoords(entity, 0)</#if>);
+					this.getParentModel().renderToBuffer(poseStack, vertexConsumer, 15728640, LivingEntityRenderer.getOverlayCoords(entity, 0), 1, 1, 1, 1);
 				</#if>
 
 				<#if hasProcedure(layer.condition)>}</#if>
 			}
-			</@javacompress>
+			</#compress>
 		});
 		</#list>
 	}
 
-	<#if data.mobModelName == "Villager" || data.breedable || (data.visualScale?? && (data.visualScale.getFixedValue() != 1 || hasProcedure(data.visualScale)))>
+	<#if data.mobModelName == "Villager" || (data.visualScale?? && (data.visualScale.getFixedValue() != 1 || hasProcedure(data.visualScale)))>
 	@Override protected void scale(${name}Entity entity, PoseStack poseStack, float f) {
 		<#if hasProcedure(data.visualScale)>
 			Level world = entity.level();
@@ -157,15 +148,11 @@ public class ${name}Renderer extends <#if humanoid>Humanoid</#if>MobRenderer<${n
 		<#if data.mobModelName == "Villager">
 			poseStack.scale(0.9375f, 0.9375f, 0.9375f);
 		</#if>
-		<#if data.breedable>
-			poseStack.scale(entity.getAgeScale(), entity.getAgeScale(), entity.getAgeScale());
-
-		</#if>
 	}
 	</#if>
 
 	@Override public ResourceLocation getTextureLocation(${name}Entity entity) {
-		return entityTexture;
+		return new ResourceLocation("${modid}:textures/entities/${data.mobModelTexture}");
 	}
 
 	<#if data.transparentModelCondition?? && (hasProcedure(data.transparentModelCondition) || data.transparentModelCondition.getFixedValue())>
@@ -192,56 +179,4 @@ public class ${name}Renderer extends <#if humanoid>Humanoid</#if>MobRenderer<${n
 	}
 	</#if>
 
-	<#if data.animations?has_content>
-	private static final class AnimatedModel extends ${model} {
-
-		private final ModelPart root;
-
-		private final HierarchicalModel animator = new HierarchicalModel<${name}Entity>() {
-			@Override public ModelPart root() {
-				return root;
-			}
-
-			@Override public void setupAnim(${name}Entity entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
-				<#if !humanoid> <#-- HumanoidModel resets its pose in its setupAnim which is called before this one for this special case -->
-				this.root().getAllParts().forEach(ModelPart::resetPose);
-				</#if>
-				<#list data.animations as animation>
-					<#if !animation.walking>
-						this.animate(entity.animationState${animation?index}, ${animation.animation}, ageInTicks, ${animation.speed}f);
-					<#else>
-						<#if hasProcedure(animation.condition)>
-						if (<@procedureCode animation.condition, {
-							"x": "entity.getX()",
-							"y": "entity.getY()",
-							"z": "entity.getZ()",
-							"entity": "entity",
-							"world": "entity.level()"
-						}, false/>)
-						</#if>
-						this.animateWalk(${animation.animation}, limbSwing, limbSwingAmount, ${animation.speed}f, ${animation.amplitude}f);
-					</#if>
-				</#list>
-			}
-		};
-
-		public AnimatedModel(ModelPart root) {
-			super(root);
-			this.root = root;
-		}
-
-		@Override public void setupAnim(${name}Entity entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
-			<#if humanoid>
-			super.setupAnim(entity, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
-			animator.setupAnim(entity, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
-			<#else>
-			animator.setupAnim(entity, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
-			super.setupAnim(entity, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
-			</#if>
-		}
-
-	}
-	</#if>
-
 }
-</@javacompress>

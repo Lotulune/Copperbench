@@ -1,7 +1,7 @@
 <#--
  # MCreator (https://mcreator.net/)
  # Copyright (C) 2012-2020, Pylo
- # Copyright (C) 2020-2024, Pylo, opensource contributors
+ # Copyright (C) 2020-2023, Pylo, opensource contributors
  #
  # This program is free software: you can redistribute it and/or modify
  # it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@
 
 package ${package}.client.particle;
 
-<@javacompress>
+<#compress>
 @OnlyIn(Dist.CLIENT) public class ${name}Particle extends TextureSheetParticle {
 
 	public static ${name}ParticleProvider provider(SpriteSet spriteSet) {
@@ -53,8 +53,8 @@ package ${package}.client.particle;
 	}
 
 	private final SpriteSet spriteSet;
-
-	<#if data.hasAngularVelocityOrAcceleration()>
+	
+	<#if data.angularVelocity != 0 || data.angularAcceleration != 0>
 	private float angularVelocity;
 	private float angularAcceleration;
 	</#if>
@@ -64,8 +64,7 @@ package ${package}.client.particle;
 		this.spriteSet = spriteSet;
 
 		this.setSize(${data.width}f, ${data.height}f);
-
-		<#if (data.scale.getFixedValue() != 1 || data.fixedScale)  && !hasProcedure(data.scale)>
+		<#if (data.scale.getFixedValue() != 1 || data.fixedScale) && !hasProcedure(data.scale)>
 		this.quadSize <#if data.fixedScale>= 0.15f *<#else>*=</#if> ${data.scale.getFixedValue()}f;
 		</#if>
 
@@ -82,7 +81,7 @@ package ${package}.client.particle;
 		this.yd = vy * ${data.speedFactor};
 		this.zd = vz * ${data.speedFactor};
 
-		<#if data.hasAngularVelocityOrAcceleration()>
+		<#if data.angularVelocity != 0 || data.angularAcceleration != 0>
 		this.angularVelocity = ${data.angularVelocity}f;
 		this.angularAcceleration = ${data.angularAcceleration}f;
 		</#if>
@@ -94,7 +93,7 @@ package ${package}.client.particle;
 		</#if>
 	}
 
-	<#if data.emissiveRendering>
+	<#if data.renderType == "LIT">
 	@Override public int getLightColor(float partialTick) {
 		return 15728880;
 	}
@@ -103,35 +102,6 @@ package ${package}.client.particle;
 	@Override public ParticleRenderType getRenderType() {
 		return ParticleRenderType.PARTICLE_SHEET_${data.renderType};
 	}
-
-	<#if hasProcedure(data.scale)>
-	@Override public float getQuadSize(float scale) {
-		Level world = this.level;
-		return <#if data.fixedScale>0.15f<#else>super.getQuadSize(scale)</#if> * (float) <@procedureOBJToConditionCode data.scale/>;
-	}
-	</#if>
-
-	<#if hasProcedure(data.rotationProvider)>
-	@Override public void render(VertexConsumer buffer, Camera camera, float partialTicks) {
-		Vec3 vec = <@procedureCode data.rotationProvider, {
-			"world": "this.level",
-			"x": "this.x",
-			"y": "this.y",
-			"z": "this.z",
-			"speedX": "this.xd",
-			"speedY": "this.yd",
-			"speedZ": "this.zd",
-			"angularVelocity": "this.angularVelocity",
-			"angularAcceleration": "this.angularAcceleration",
-			"age": "this.age + partialTicks"
-		}/>
-		Quaternionf tilt = new Quaternionf().rotationXYZ((float) vec.x(), (float) vec.y(), (float) vec.z());
-		this.renderRotatedQuad(buffer, camera, tilt, partialTicks);
-		Quaternionf flippedTilt = new Quaternionf(tilt).mul(new Quaternionf().rotateY((float) Math.PI));
-		<#-- render a flipped face because by default only a single side renders this makes particle visible from all angles -->
-		this.renderRotatedQuad(buffer, camera, flippedTilt, partialTicks);
-	}
-	</#if>
 
 	@Override public void tick() {
 		super.tick();
@@ -157,5 +127,5 @@ package ${package}.client.particle;
 	}
 
 }
-</@javacompress>
+</#compress>
 <#-- @formatter:on -->

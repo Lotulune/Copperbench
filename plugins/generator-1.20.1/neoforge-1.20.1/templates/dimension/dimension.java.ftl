@@ -34,33 +34,29 @@
 
 package ${package}.world.dimension;
 
-<@javacompress>
+<#compress>
+@Mod.EventBusSubscriber public class ${name}Dimension {
 
-<#if hasProcedure(data.onPlayerLeavesDimension) || hasProcedure(data.onPlayerEntersDimension)>
-@EventBusSubscriber
-</#if>
-public class ${name}Dimension {
+	@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD) public static class DimensionSpecialEffectsHandler {
 
-	<#if data.useCustomEffects>
-	@EventBusSubscriber(Dist.CLIENT) public static class ${name}SpecialEffectsHandler {
-
-		@SubscribeEvent public static void registerDimensionSpecialEffects(RegisterDimensionSpecialEffectsEvent event) {
+		@SubscribeEvent @OnlyIn(Dist.CLIENT) public static void registerDimensionSpecialEffects(RegisterDimensionSpecialEffectsEvent event) {
 			DimensionSpecialEffects customEffect = new DimensionSpecialEffects(
-				<#if data.hasClouds>${data.cloudHeight}f<#else>Float.NaN</#if>,
+				<#if data.imitateOverworldBehaviour>DimensionSpecialEffects.OverworldEffects.CLOUD_LEVEL<#else>Float.NaN</#if>,
 				true,
-				DimensionSpecialEffects.SkyType.${data.skyType},
+				<#if data.imitateOverworldBehaviour>DimensionSpecialEffects.SkyType.NORMAL<#else>DimensionSpecialEffects.SkyType.NONE</#if>,
 				false,
 				false
 			) {
 				@Override public Vec3 getBrightnessDependentFogColor(Vec3 color, float sunHeight) {
 					<#if data.airColor?has_content>
-						return new Vec3(${data.airColor.getRed()/255},${data.airColor.getGreen()/255},${data.airColor.getBlue()/255})
+						return new Vec3(${data.airColor.getRed()/255},${data.airColor.getGreen()/255},${data.airColor.getBlue()/255});
 					<#else>
-						return color
+						<#if data.imitateOverworldBehaviour>
+							return color.multiply(sunHeight * 0.94 + 0.06, sunHeight * 0.94 + 0.06, sunHeight * 0.91 + 0.09);
+						<#else>
+							return color;
+						</#if>
 					</#if>
-					<#if data.sunHeightAffectsFog>
-						.multiply(sunHeight * 0.94 + 0.06, sunHeight * 0.94 + 0.06, sunHeight * 0.91 + 0.09)
-					</#if>;
 				}
 
 				@Override public boolean isFoggyAt(int x, int y) {
@@ -71,7 +67,6 @@ public class ${name}Dimension {
 		}
 
 	}
-	</#if>
 
 	<#if hasProcedure(data.onPlayerLeavesDimension) || hasProcedure(data.onPlayerEntersDimension)>
 	@SubscribeEvent public static void onPlayerChangedDimensionEvent(PlayerEvent.PlayerChangedDimensionEvent event) {
@@ -96,4 +91,4 @@ public class ${name}Dimension {
     </#if>
 
 }
-</@javacompress>
+</#compress>

@@ -1,7 +1,7 @@
 <#--
  # MCreator (https://mcreator.net/)
  # Copyright (C) 2012-2020, Pylo
- # Copyright (C) 2020-2024, Pylo, opensource contributors
+ # Copyright (C) 2020-2023, Pylo, opensource contributors
  # 
  # This program is free software: you can redistribute it and/or modify
  # it under the terms of the GNU General Public License as published by
@@ -34,11 +34,15 @@
 
 package ${package}.entity;
 
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.sounds.SoundEvent;
+
+import javax.annotation.Nullable;
 
 <#assign extendsClass = "PathfinderMob">
-<#assign interfaces = []>
 
 <#if data.aiBase != "(none)">
 	<#assign extendsClass = data.aiBase?replace("Enderman", "EnderMan")>
@@ -50,20 +54,7 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 	<#assign extendsClass = data.tameable?then("TamableAnimal", "Animal")>
 </#if>
 
-<#if data.ranged>
-	<#assign interfaces += ["RangedAttackMob"]>
-</#if>
-<#if data.sensitiveToVibration>
-	<#assign interfaces += ["VibrationSystem"]>
-</#if>
-
-public class ${name}Entity extends ${extendsClass} <#if interfaces?size gt 0>implements ${interfaces?join(",")}</#if> {
-
-	<#if data.mobBehaviourType == "Raider">
-	public static final EnumProxy<Raid.RaiderType> RAIDER_TYPE = new EnumProxy<>(Raid.RaiderType.class,
-		${JavaModName}Entities.${REGISTRYNAME}, new int[] {0, ${data.raidSpawnsCount[0]}, ${data.raidSpawnsCount[1]}, ${data.raidSpawnsCount[2]}, ${data.raidSpawnsCount[3]}, ${data.raidSpawnsCount[4]}, ${data.raidSpawnsCount[5]}, ${data.raidSpawnsCount[6]}}
-	);
-	</#if>
+public class ${name}Entity extends ${extendsClass} <#if data.ranged>implements RangedAttackMob</#if> {
 
 	<#list data.entityDataEntries as entry>
 		<#if entry.value().getClass().getSimpleName() == "Integer">
@@ -75,27 +66,18 @@ public class ${name}Entity extends ${extendsClass} <#if interfaces?size gt 0>imp
 		</#if>
 	</#list>
 
-	<#assign hasPlayableAnimations = false>
-	<#list data.animations as animation>
-		<#if !animation.walking>
-		public final AnimationState animationState${animation?index} = new AnimationState();
-		<#assign hasPlayableAnimations = true>
-		</#if>
-	</#list>
-
 	<#if data.isBoss>
 	private final ServerBossEvent bossInfo = new ServerBossEvent(this.getDisplayName(),
 		ServerBossEvent.BossBarColor.${data.bossBarColor}, ServerBossEvent.BossBarOverlay.${data.bossBarType});
 	</#if>
 
-	<#if data.sensitiveToVibration>
-	private final DynamicGameEventListener<VibrationSystem.Listener> dynamicGameEventListener = new DynamicGameEventListener<>(new VibrationSystem.Listener(this));
-	private final VibrationSystem.User vibrationUser = new VibrationUser();
-	private VibrationSystem.Data vibrationData = new VibrationSystem.Data();
-	</#if>
+	public ${name}Entity(PlayMessages.SpawnEntity packet, Level world) {
+    	this(${JavaModName}Entities.${data.getModElement().getRegistryNameUpper()}.get(), world);
+    }
 
 	public ${name}Entity(EntityType<${name}Entity> type, Level world) {
     	super(type, world);
+		setMaxUpStep(${data.stepHeight}f);
 		xpReward = ${data.xpAmount};
 		setNoAi(${(!data.hasAI)});
 
@@ -130,7 +112,7 @@ public class ${name}Entity extends ${extendsClass} <#if interfaces?size gt 0>imp
 		<#if data.flyingMob>
 		this.moveControl = new FlyingMoveControl(this, 10, true);
 		<#elseif data.waterMob>
-		this.setPathfindingMalus(PathType.WATER, 0);
+		this.setPathfindingMalus(BlockPathTypes.WATER, 0);
 		this.moveControl = new MoveControl(this) {
 			@Override public void tick() {
 			    if (${name}Entity.this.isInWater())
@@ -175,11 +157,15 @@ public class ${name}Entity extends ${extendsClass} <#if interfaces?size gt 0>imp
 		</#if>
 	}
 
+	@Override public Packet<ClientGamePacketListener> getAddEntityPacket() {
+		return NetworkHooks.getEntitySpawningPacket(this);
+	}
+
 	<#if data.entityDataEntries?has_content>
-	@Override protected void defineSynchedData(SynchedEntityData.Builder builder) {
-		super.defineSynchedData(builder);
+	@Override protected void defineSynchedData() {
+		super.defineSynchedData();
 		<#list data.entityDataEntries as entry>
-			builder.define(DATA_${entry.property().getName()}, ${entry.value()?is_string?then("\"" + JavaConventions.escapeStringForJava(entry.value()) + "\"", entry.value())});
+			this.entityData.define(DATA_${entry.property().getName()}, ${entry.value()?is_string?then("\"" + entry.value() + "\"", entry.value())});
 		</#list>
 	}
 	</#if>
@@ -222,7 +208,9 @@ public class ${name}Entity extends ${extendsClass} <#if interfaces?size gt 0>imp
 	}
 	</#if>
 
-	${extra_templates_code}
+	@Override public MobType getMobType() {
+		return MobType.${data.mobCreatureType};
+	}
 
 	<#if !data.doesDespawnWhenIdle>
 	@Override public boolean removeWhenFarAway(double distanceToClosestPlayer) {
@@ -231,59 +219,49 @@ public class ${name}Entity extends ${extendsClass} <#if interfaces?size gt 0>imp
     </#if>
 
 	<#if data.mobModelName == "Biped">
-	@Override public Vec3 getPassengerRidingPosition(Entity entity) {
-		return super.getPassengerRidingPosition(entity).add(0, -0.35F, 0);
+	@Override public double getMyRidingOffset() {
+		return -0.35D;
 	}
 	<#elseif data.mobModelName == "Silverfish">
-	@Override public Vec3 getPassengerRidingPosition(Entity entity) {
-		return super.getPassengerRidingPosition(entity).add(0, 0.1F, 0);
+	@Override public double getMyRidingOffset() {
+		return 0.1D;
 	}
 	</#if>
 
 	<#if data.mountedYOffset != 0>
-	@Override protected Vec3 getPassengerAttachmentPoint(Entity entity, EntityDimensions dimensions, float f) {
-		return super.getPassengerAttachmentPoint(entity, dimensions, f).add(0, ${data.mountedYOffset}f, 0);
+	@Override public double getPassengersRidingOffset() {
+		return super.getPassengersRidingOffset() + ${data.mountedYOffset};
 	}
 	</#if>
 
 	<#if !data.mobDrop.isEmpty()>
-    protected void dropCustomDeathLoot(ServerLevel serverLevel, DamageSource source, boolean recentlyHitIn) {
-        super.dropCustomDeathLoot(serverLevel, source, recentlyHitIn);
+    protected void dropCustomDeathLoot(DamageSource source, int looting, boolean recentlyHitIn) {
+        super.dropCustomDeathLoot(source, looting, recentlyHitIn);
         this.spawnAtLocation(${mappedMCItemToItemStackCode(data.mobDrop, 1)});
    	}
 	</#if>
 
    	<#if data.livingSound?has_content && data.livingSound.getMappedValue()?has_content>
 	@Override public SoundEvent getAmbientSound() {
-		return BuiltInRegistries.SOUND_EVENT.get(new ResourceLocation("${data.livingSound}"));
+		return ForgeRegistries.SOUND_EVENTS.getValue(new ResourceLocation("${data.livingSound}"));
 	}
 	</#if>
 
    	<#if data.stepSound?has_content && data.stepSound.getMappedValue()?has_content>
 	@Override public void playStepSound(BlockPos pos, BlockState blockIn) {
-		this.playSound(BuiltInRegistries.SOUND_EVENT.get(new ResourceLocation("${data.stepSound}")), 0.15f, 1);
+		this.playSound(ForgeRegistries.SOUND_EVENTS.getValue(new ResourceLocation("${data.stepSound}")), 0.15f, 1);
 	}
 	</#if>
 
 	<#if data.hurtSound?has_content && data.hurtSound.getMappedValue()?has_content>
 	@Override public SoundEvent getHurtSound(DamageSource ds) {
-		return BuiltInRegistries.SOUND_EVENT.get(new ResourceLocation("${data.hurtSound}"));
+		return ForgeRegistries.SOUND_EVENTS.getValue(new ResourceLocation("${data.hurtSound}"));
 	}
 	</#if>
 
 	<#if data.deathSound?has_content && data.deathSound.getMappedValue()?has_content>
 	@Override public SoundEvent getDeathSound() {
-		return BuiltInRegistries.SOUND_EVENT.get(new ResourceLocation("${data.deathSound}"));
-	}
-	</#if>
-
-	<#if data.mobBehaviourType == "Raider">
-	@Override public SoundEvent getCelebrateSound() {
-		<#if data.raidCelebrationSound?has_content && data.raidCelebrationSound.getMappedValue()?has_content>
-		return BuiltInRegistries.SOUND_EVENT.get(new ResourceLocation("${data.raidCelebrationSound}"));
-		<#else>
-		return SoundEvents.EMPTY;
-		</#if>
+		return ForgeRegistries.SOUND_EVENTS.getValue(new ResourceLocation("${data.deathSound}"));
 	}
 	</#if>
 
@@ -354,8 +332,7 @@ public class ${name}Entity extends ${extendsClass} <#if interfaces?size gt 0>imp
 				return false;
 		</#if>
 		<#if data.immuneToPotions>
-			if (damagesource.getDirectEntity() instanceof ThrownPotion || damagesource.getDirectEntity() instanceof AreaEffectCloud
-					|| damagesource.typeHolder().is(NeoForgeMod.POISON_DAMAGE))
+			if (damagesource.getDirectEntity() instanceof ThrownPotion || damagesource.getDirectEntity() instanceof AreaEffectCloud)
 				return false;
 		</#if>
 		<#if data.immuneToFallDamage>
@@ -375,7 +352,7 @@ public class ${name}Entity extends ${extendsClass} <#if interfaces?size gt 0>imp
 				return false;
 		</#if>
 		<#if data.immuneToExplosion>
-			if (damagesource.is(DamageTypes.EXPLOSION) || damagesource.is(DamageTypes.PLAYER_EXPLOSION))
+			if (damagesource.is(DamageTypes.EXPLOSION))
 				return false;
 		</#if>
 		<#if data.immuneToTrident>
@@ -391,18 +368,14 @@ public class ${name}Entity extends ${extendsClass} <#if interfaces?size gt 0>imp
 				return false;
 		</#if>
 		<#if data.immuneToWither>
-			if (damagesource.is(DamageTypes.WITHER) || damagesource.is(DamageTypes.WITHER_SKULL))
+			if (damagesource.is(DamageTypes.WITHER))
+				return false;
+			if (damagesource.is(DamageTypes.WITHER_SKULL))
 				return false;
 		</#if>
 		return super.hurt(damagesource, amount);
 	}
     </#if>
-
-	<#if data.immuneToExplosion>
-	@Override public boolean ignoreExplosion(Explosion explosion) {
-		return true;
-	}
-	</#if>
 
 	<#if hasProcedure(data.whenMobDies)>
 	@Override public void die(DamageSource source) {
@@ -421,8 +394,9 @@ public class ${name}Entity extends ${extendsClass} <#if interfaces?size gt 0>imp
     </#if>
 
 	<#if hasProcedure(data.onInitialSpawn)>
-	@Override public SpawnGroupData finalizeSpawn(ServerLevelAccessor world, DifficultyInstance difficulty, MobSpawnType reason, @Nullable SpawnGroupData livingdata) {
-		SpawnGroupData retval = super.finalizeSpawn(world, difficulty, reason, livingdata);
+	@Override public SpawnGroupData finalizeSpawn(ServerLevelAccessor world, DifficultyInstance difficulty,
+			MobSpawnType reason, @Nullable SpawnGroupData livingdata, @Nullable CompoundTag tag) {
+		SpawnGroupData retval = super.finalizeSpawn(world, difficulty, reason, livingdata, tag);
 		<@procedureCode data.onInitialSpawn, {
 			"x": "this.getX()",
 			"y": "this.getY()",
@@ -434,34 +408,34 @@ public class ${name}Entity extends ${extendsClass} <#if interfaces?size gt 0>imp
 	}
     </#if>
 
-	<#if data.guiBoundTo?has_content>
-	private final ItemStackHandler inventory = new ItemStackHandler(${data.inventorySize})
-	<#if data.inventoryStackSize != 99>
-	{
+	<#if data.guiBoundTo?has_content && data.guiBoundTo != "<NONE>">
+	private final ItemStackHandler inventory = new ItemStackHandler(${data.inventorySize}) {
 		@Override public int getSlotLimit(int slot) {
 			return ${data.inventoryStackSize};
 		}
-	}
-	</#if>;
+	};
 
 	private final CombinedInvWrapper combined = new CombinedInvWrapper(inventory, new EntityHandsInvWrapper(this), new EntityArmorInvWrapper(this));
 
-	public CombinedInvWrapper getCombinedInventory() {
-		return combined;
+	@Override public <T> LazyOptional<T> getCapability(@Nonnull Capability<T> capability, @Nullable Direction side) {
+		if (this.isAlive() && capability == ForgeCapabilities.ITEM_HANDLER && side == null)
+			return LazyOptional.of(() -> combined).cast();
+
+		return super.getCapability(capability, side);
 	}
 
    	@Override protected void dropEquipment() {
 		super.dropEquipment();
-		for (int i = 0; i < inventory.getSlots(); ++i) {
+		for(int i = 0; i < inventory.getSlots(); ++i) {
 			ItemStack itemstack = inventory.getStackInSlot(i);
-			if (!itemstack.isEmpty() && !EnchantmentHelper.has(itemstack, EnchantmentEffectComponents.PREVENT_EQUIPMENT_DROP)) {
+			if (!itemstack.isEmpty() && !EnchantmentHelper.hasVanishingCurse(itemstack)) {
 				this.spawnAtLocation(itemstack);
 			}
 		}
 	}
-	</#if>
+    </#if>
 
-	<#if data.entityDataEntries?has_content || data.guiBoundTo?has_content || data.sensitiveToVibration>
+	<#if data.entityDataEntries?has_content || (data.guiBoundTo?has_content && data.guiBoundTo != "<NONE>")>
 	@Override public void addAdditionalSaveData(CompoundTag compound) {
 		super.addAdditionalSaveData(compound);
 		<#list data.entityDataEntries as entry>
@@ -473,13 +447,8 @@ public class ${name}Entity extends ${extendsClass} <#if interfaces?size gt 0>imp
 			compound.putString("Data${entry.property().getName()}", this.entityData.get(DATA_${entry.property().getName()}));
 			</#if>
 		</#list>
-		<#if data.guiBoundTo?has_content>
-		compound.put("InventoryCustom", inventory.serializeNBT(this.registryAccess()));
-		</#if>
-		<#if data.sensitiveToVibration>
-		VibrationSystem.Data.CODEC.encodeStart(this.registryAccess().createSerializationContext(NbtOps.INSTANCE), this.vibrationData)
-			.resultOrPartial(e -> ${JavaModName}.LOGGER.error("Failed to encode vibration listener for ${name}: '{}'", e))
-			.ifPresent(listener -> compound.put("listener", listener));
+		<#if data.guiBoundTo?has_content && data.guiBoundTo != "<NONE>">
+		compound.put("InventoryCustom", inventory.serializeNBT());
 		</#if>
 	}
 
@@ -495,47 +464,24 @@ public class ${name}Entity extends ${extendsClass} <#if interfaces?size gt 0>imp
 				this.entityData.set(DATA_${entry.property().getName()}, compound.getString("Data${entry.property().getName()}"));
 				</#if>
 		</#list>
-		<#if data.guiBoundTo?has_content>
+		<#if data.guiBoundTo?has_content && data.guiBoundTo != "<NONE>">
 		if (compound.get("InventoryCustom") instanceof CompoundTag inventoryTag)
-			inventory.deserializeNBT(this.registryAccess(), inventoryTag);
-		</#if>
-		<#if data.sensitiveToVibration>
-		if (compound.contains("listener", Tag.TAG_COMPOUND)) {
-			VibrationSystem.Data.CODEC.parse(this.registryAccess().createSerializationContext(NbtOps.INSTANCE), compound.getCompound("listener"))
-				.resultOrPartial(e -> ${JavaModName}.LOGGER.error("Failed to parse vibration listener for ${name}: '{}'", e))
-				.ifPresent(data -> this.vibrationData = data);
-		}
+			inventory.deserializeNBT(inventoryTag);
 		</#if>
 	}
 	</#if>
 
-	<#if data.sensitiveToVibration>
-	@Override public void updateDynamicGameEventListener(BiConsumer<DynamicGameEventListener<?>, ServerLevel> listenerConsumer) {
-		if (this.level() instanceof ServerLevel serverLevel) {
-			listenerConsumer.accept(this.dynamicGameEventListener, serverLevel);
-		}
-	}
-
-	@Override public VibrationSystem.Data getVibrationData() {
-		return this.vibrationData;
-	}
-
-	@Override public VibrationSystem.User getVibrationUser() {
-		return this.vibrationUser;
-	}
-	</#if>
-
-	<#if hasProcedure(data.onRightClickedOn) || data.ridable || (data.tameable && data.breedable) || data.guiBoundTo?has_content>
+	<#if hasProcedure(data.onRightClickedOn) || data.ridable || (data.tameable && data.breedable) || (data.guiBoundTo?has_content && data.guiBoundTo != "<NONE>")>
 	@Override public InteractionResult mobInteract(Player sourceentity, InteractionHand hand) {
 		ItemStack itemstack = sourceentity.getItemInHand(hand);
 		InteractionResult retval = InteractionResult.sidedSuccess(this.level().isClientSide());
 
-		<#if data.guiBoundTo?has_content>
+		<#if data.guiBoundTo?has_content && data.guiBoundTo != "<NONE>">
 			<#if data.ridable>
 				if (sourceentity.isSecondaryUseActive()) {
 			</#if>
 				if (sourceentity instanceof ServerPlayer serverPlayer) {
-					serverPlayer.openMenu(new MenuProvider() {
+					NetworkHooks.openScreen(serverPlayer, new MenuProvider() {
 
 						@Override public Component getDisplayName() {
 							return Component.literal("${data.mobName}");
@@ -571,11 +517,9 @@ public class ${name}Entity extends ${extendsClass} <#if interfaces?size gt 0>imp
 			} else {
 				if (this.isTame()) {
 					if (this.isOwnedBy(sourceentity)) {
-						if (this.isFood(itemstack) && this.getHealth() < this.getMaxHealth()) {
+						if (item.isEdible() && this.isFood(itemstack) && this.getHealth() < this.getMaxHealth()) {
 							this.usePlayerItem(sourceentity, hand, itemstack);
-							FoodProperties foodproperties = itemstack.getFoodProperties(this);
-							float nutrition = foodproperties != null ? (float) foodproperties.nutrition() : 1;
-							this.heal(nutrition);
+							this.heal((float)item.getFoodProperties().getNutrition());
 							retval = InteractionResult.sidedSuccess(this.level().isClientSide());
 						} else if (this.isFood(itemstack) && this.getHealth() < this.getMaxHealth()) {
 							this.usePlayerItem(sourceentity, hand, itemstack);
@@ -587,7 +531,7 @@ public class ${name}Entity extends ${extendsClass} <#if interfaces?size gt 0>imp
 					}
 				} else if (this.isFood(itemstack)) {
 					this.usePlayerItem(sourceentity, hand, itemstack);
-					if (this.random.nextInt(3) == 0 && !EventHooks.onAnimalTame(this, sourceentity)) {
+					if (this.random.nextInt(3) == 0 && !net.minecraftforge.event.ForgeEventFactory.onAnimalTame(this, sourceentity)) {
 						this.tame(sourceentity);
 						this.level().broadcastEntityEvent(this, (byte) 7);
 					} else {
@@ -644,38 +588,6 @@ public class ${name}Entity extends ${extendsClass} <#if interfaces?size gt 0>imp
 	}
     </#if>
 
-	<#if hasPlayableAnimations || data.sensitiveToVibration>
-	@Override public void tick() {
-		super.tick();
-
-		<#if data.sensitiveToVibration>
-		if (this.level() instanceof ServerLevel serverLevel) {
-			VibrationSystem.Ticker.tick(serverLevel, this.vibrationData, this.vibrationUser);
-		}
-		</#if>
-
-		<#if hasPlayableAnimations>
-		if (this.level().isClientSide()) {
-			<#list data.animations as animation>
-				<#if !animation.walking>
-					<#if hasProcedure(animation.condition)>
-					this.animationState${animation?index}.animateWhen(<@procedureCode animation.condition, {
-						"x": "this.getX()",
-						"y": "this.getY()",
-						"z": "this.getZ()",
-						"entity": "this",
-						"world": "this.level()"
-					}, false/>, this.tickCount);
-					<#else>
-					this.animationState${animation?index}.animateWhen(true, this.tickCount);
-					</#if>
-				</#if>
-			</#list>
-		}
-		</#if>
-	}
-	</#if>
-
 	<#if hasProcedure(data.onMobTickUpdate) || hasProcedure(data.boundingBoxScale)>
 	@Override public void baseTick() {
 		super.baseTick();
@@ -712,9 +624,9 @@ public class ${name}Entity extends ${extendsClass} <#if interfaces?size gt 0>imp
 	    @Override public void performRangedAttack(LivingEntity target, float flval) {
 			<#if data.rangedItemType == "Default item">
 				<#if !data.rangedAttackItem.isEmpty()>
-				${name}EntityProjectile entityarrow = new ${name}EntityProjectile(${JavaModName}Entities.${REGISTRYNAME}_PROJECTILE.get(), this, this.level());
+				${name}EntityProjectile entityarrow = new ${name}EntityProjectile(${JavaModName}Entities.${data.getModElement().getRegistryNameUpper()}_PROJECTILE.get(), this, this.level());
 				<#else>
-				Arrow entityarrow = new Arrow(this.level(), this, new ItemStack(Items.ARROW), null);
+				Arrow entityarrow = new Arrow(this.level(), this);
 				</#if>
 				double d0 = target.getY() + target.getEyeHeight() - 1.1;
 				double d1 = target.getX() - this.getX();
@@ -727,31 +639,15 @@ public class ${name}Entity extends ${extendsClass} <#if interfaces?size gt 0>imp
 		}
     </#if>
 
-	<#if ["Pig", "Villager", "Wolf", "Cow", "Chicken", "Ocelot", "Squid", "Horse"]?seq_contains(extendsClass)>
-		@Override public ${extendsClass} getBreedOffspring(ServerLevel serverWorld, AgeableMob ageable) {
-			${name}Entity retval = ${JavaModName}Entities.${REGISTRYNAME}.get().create(serverWorld);
-			<#if data.aiBase == "Wolf">
-			if (this.isTame()) {
-				retval.setOwnerUUID(this.getOwnerUUID());
-				retval.setTame(true, true);
-			}
-			</#if>
-			retval.finalizeSpawn(serverWorld, serverWorld.getCurrentDifficultyAt(retval.blockPosition()), MobSpawnType.BREEDING, null);
-			return retval;
-		}
-	<#elseif data.breedable>
+	<#if data.breedable>
         @Override public AgeableMob getBreedOffspring(ServerLevel serverWorld, AgeableMob ageable) {
-			${name}Entity retval = ${JavaModName}Entities.${REGISTRYNAME}.get().create(serverWorld);
-			retval.finalizeSpawn(serverWorld, serverWorld.getCurrentDifficultyAt(retval.blockPosition()), MobSpawnType.BREEDING, null);
+			${name}Entity retval = ${JavaModName}Entities.${data.getModElement().getRegistryNameUpper()}.get().create(serverWorld);
+			retval.finalizeSpawn(serverWorld, serverWorld.getCurrentDifficultyAt(retval.blockPosition()), MobSpawnType.BREEDING, null, null);
 			return retval;
 		}
 
 		@Override public boolean isFood(ItemStack stack) {
-			<#if data.breedTriggerItems?has_content>
 			return ${mappedMCItemsToIngredient(data.breedTriggerItems)}.test(stack);
-			<#else>
-			return false;
-			</#if>
 		}
     </#if>
 
@@ -762,13 +658,13 @@ public class ${name}Entity extends ${extendsClass} <#if interfaces?size gt 0>imp
 	</#if>
 
 	<#if data.breatheUnderwater?? && (hasProcedure(data.breatheUnderwater) || data.breatheUnderwater.getFixedValue())>
-	@Override public boolean canDrownInFluidType(FluidType type) {
+	@Override public boolean canBreatheUnderwater() {
 		double x = this.getX();
 		double y = this.getY();
 		double z = this.getZ();
 		Level world = this.level();
 		Entity entity = this;
-		return <@procedureOBJToConditionCode data.breatheUnderwater false true/>;
+		return <@procedureOBJToConditionCode data.breatheUnderwater true false/>;
 	}
 	</#if>
 
@@ -815,6 +711,10 @@ public class ${name}Entity extends ${extendsClass} <#if interfaces?size gt 0>imp
 	</#if>
 
 	<#if data.isBoss>
+	@Override public boolean canChangeDimensions() {
+		return false;
+	}
+
 	@Override public void startSeenByPlayer(ServerPlayer player) {
 		super.startSeenByPlayer(player);
 		this.bossInfo.addPlayer(player);
@@ -877,16 +777,16 @@ public class ${name}Entity extends ${extendsClass} <#if interfaces?size gt 0>imp
     </#if>
 
 	<#if hasProcedure(data.boundingBoxScale) || (data.boundingBoxScale?? && data.boundingBoxScale.getFixedValue() != 1)>
-	@Override public EntityDimensions getDefaultDimensions(Pose pose) {
+	@Override public EntityDimensions getDimensions(Pose pose) {
 		<#if hasProcedure(data.boundingBoxScale)>
 			Entity entity = this;
 			Level world = this.level();
 			double x = this.getX();
 			double y = this.getY();
 			double z = this.getZ();
-			return super.getDefaultDimensions(pose).scale((float) <@procedureOBJToNumberCode data.boundingBoxScale/>);
+			return super.getDimensions(pose).scale((float) <@procedureOBJToNumberCode data.boundingBoxScale/>);
 		<#else>
-			return super.getDefaultDimensions(pose).scale(${data.boundingBoxScale.getFixedValue()}f);
+			return super.getDimensions(pose).scale(${data.boundingBoxScale.getFixedValue()}f);
 		</#if>
 	}
 	</#if>
@@ -898,22 +798,21 @@ public class ${name}Entity extends ${extendsClass} <#if interfaces?size gt 0>imp
    	@Override public void setNoGravity(boolean ignored) {
 		super.setNoGravity(true);
 	}
+    </#if>
 
-    @Override public void aiStep() {
+    <#if data.flyingMob>
+    public void aiStep() {
 		super.aiStep();
-		this.setNoGravity(true);
-	}
 
-	@Override protected float getFlyingSpeed() {
-		return (float) this.getAttributeValue(Attributes.FLYING_SPEED);
+		this.setNoGravity(true);
 	}
     </#if>
 
-	public static void init(RegisterSpawnPlacementsEvent event) {
+	public static void init() {
 		<#if data.spawnThisMob>
-			<#if data.mobSpawningType.getUnmappedValue() == "creature">
-			event.register(${JavaModName}Entities.${REGISTRYNAME}.get(),
-					SpawnPlacementTypes.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+			<#if data.mobSpawningType == "creature">
+			SpawnPlacements.register(${JavaModName}Entities.${data.getModElement().getRegistryNameUpper()}.get(),
+					SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
 				<#if hasProcedure(data.spawningCondition)>
 					(entityType, world, reason, pos, random) -> {
 						int x = pos.getX();
@@ -923,14 +822,12 @@ public class ${name}Entity extends ${extendsClass} <#if interfaces?size gt 0>imp
 					}
 				<#else>
 					(entityType, world, reason, pos, random) ->
-							(world.getBlockState(pos.below()).is(BlockTags.ANIMALS_SPAWNABLE_ON) &&
-							world.getRawBrightness(pos, 0) > 8)
-				</#if>,
-				RegisterSpawnPlacementsEvent.Operation.REPLACE
+							(world.getBlockState(pos.below()).is(BlockTags.ANIMALS_SPAWNABLE_ON) && world.getRawBrightness(pos, 0) > 8)
+				</#if>
 			);
-			<#elseif data.mobSpawningType.getUnmappedValue() == "ambient" || data.mobSpawningType.getUnmappedValue() == "misc">
-			event.register(${JavaModName}Entities.${REGISTRYNAME}.get(),
-					SpawnPlacementTypes.NO_RESTRICTIONS, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+			<#elseif data.mobSpawningType == "ambient" || data.mobSpawningType == "misc">
+			SpawnPlacements.register(${JavaModName}Entities.${data.getModElement().getRegistryNameUpper()}.get(),
+					SpawnPlacements.Type.NO_RESTRICTIONS, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
 					<#if hasProcedure(data.spawningCondition)>
 					(entityType, world, reason, pos, random) -> {
 						int x = pos.getX();
@@ -940,12 +837,11 @@ public class ${name}Entity extends ${extendsClass} <#if interfaces?size gt 0>imp
 					}
 					<#else>
 					Mob::checkMobSpawnRules
-					</#if>,
-					RegisterSpawnPlacementsEvent.Operation.REPLACE
+					</#if>
 			);
-			<#elseif data.mobSpawningType.getUnmappedValue() == "waterCreature" || data.mobSpawningType.getUnmappedValue() == "waterAmbient">
-			event.register(${JavaModName}Entities.${REGISTRYNAME}.get(),
-					SpawnPlacementTypes.IN_WATER, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+			<#elseif data.mobSpawningType == "waterCreature" || data.mobSpawningType == "waterAmbient">
+			SpawnPlacements.register(${JavaModName}Entities.${data.getModElement().getRegistryNameUpper()}.get(),
+					SpawnPlacements.Type.IN_WATER, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
 					<#if hasProcedure(data.spawningCondition)>
 					(entityType, world, reason, pos, random) -> {
 						int x = pos.getX();
@@ -955,14 +851,12 @@ public class ${name}Entity extends ${extendsClass} <#if interfaces?size gt 0>imp
 					}
 					<#else>
 					(entityType, world, reason, pos, random) ->
-							(world.getBlockState(pos).is(Blocks.WATER) &&
-							world.getBlockState(pos.above()).is(Blocks.WATER))
-					</#if>,
-					RegisterSpawnPlacementsEvent.Operation.REPLACE
+							(world.getBlockState(pos).is(Blocks.WATER) && world.getBlockState(pos.above()).is(Blocks.WATER))
+					</#if>
 			);
-			<#elseif data.mobSpawningType.getUnmappedValue() == "undergroundWaterCreature">
-			event.register(${JavaModName}Entities.${REGISTRYNAME}.get(),
-					SpawnPlacementTypes.IN_WATER, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+			<#elseif data.mobSpawningType == "undergroundWaterCreature">
+			SpawnPlacements.register(${JavaModName}Entities.${data.getModElement().getRegistryNameUpper()}.get(),
+					SpawnPlacements.Type.IN_WATER, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
 					<#if hasProcedure(data.spawningCondition)>
 					(entityType, world, reason, pos, random) -> {
 						int x = pos.getX();
@@ -971,17 +865,14 @@ public class ${name}Entity extends ${extendsClass} <#if interfaces?size gt 0>imp
 						return <@procedureOBJToConditionCode data.spawningCondition/>;
 					}
 					<#else>
-					(entityType, world, reason, pos, random) ->
-							(world.getFluidState(pos.below()).is(FluidTags.WATER) &&
-							world.getBlockState(pos.above()).is(Blocks.WATER) &&
-							pos.getY() >= (world.getSeaLevel() - 13) &&
-							pos.getY() <= world.getSeaLevel())
-					</#if>,
-					RegisterSpawnPlacementsEvent.Operation.REPLACE
+					(entityType, world, reason, pos, random) -> {
+					    return world.getFluidState(pos.below()).is(FluidTags.WATER) && world.getBlockState(pos.above()).is(Blocks.WATER) && pos.getY() >= (world.getSeaLevel() - 13) && pos.getY() <= world.getSeaLevel();
+                    }
+					</#if>
 			);
 			<#else>
-			event.register(${JavaModName}Entities.${REGISTRYNAME}.get(),
-					SpawnPlacementTypes.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+			SpawnPlacements.register(${JavaModName}Entities.${data.getModElement().getRegistryNameUpper()}.get(),
+					SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
 					<#if hasProcedure(data.spawningCondition)>
 					(entityType, world, reason, pos, random) -> {
 						int x = pos.getX();
@@ -991,19 +882,17 @@ public class ${name}Entity extends ${extendsClass} <#if interfaces?size gt 0>imp
 					}
 					<#else>
 						(entityType, world, reason, pos, random) ->
-								(world.getDifficulty() != Difficulty.PEACEFUL &&
-								Monster.isDarkEnoughToSpawn(world, pos, random) &&
-								Mob.checkMobSpawnRules(entityType, world, reason, pos, random))
-					</#if>,
-					RegisterSpawnPlacementsEvent.Operation.REPLACE
+								(world.getDifficulty() != Difficulty.PEACEFUL && Monster.isDarkEnoughToSpawn(world, pos, random)
+										&& Mob.checkMobSpawnRules(entityType, world, reason, pos, random))
+					</#if>
 			);
 			</#if>
 		</#if>
-	}
 
-	<#if data.mobBehaviourType == "Raider">
-	@Override public void applyRaidBuffs(ServerLevel serverLevel, int num, boolean logic) {}
-	</#if>
+		<#if data.spawnInDungeons>
+			DungeonHooks.addDungeonMob(${JavaModName}Entities.${data.getModElement().getRegistryNameUpper()}.get(), 180);
+		</#if>
+	}
 
 	public static AttributeSupplier.Builder createAttributes() {
 		AttributeSupplier.Builder builder = Mob.createMobAttributes();
@@ -1012,8 +901,6 @@ public class ${name}Entity extends ${extendsClass} <#if interfaces?size gt 0>imp
 		builder = builder.add(Attributes.ARMOR, ${data.armorBaseValue});
 		builder = builder.add(Attributes.ATTACK_DAMAGE, ${data.attackStrength});
 		builder = builder.add(Attributes.FOLLOW_RANGE, ${data.followRange});
-
-		builder = builder.add(Attributes.STEP_HEIGHT, ${data.stepHeight});
 
 		<#if (data.knockbackResistance > 0)>
 		builder = builder.add(Attributes.KNOCKBACK_RESISTANCE, ${data.knockbackResistance});
@@ -1028,7 +915,7 @@ public class ${name}Entity extends ${extendsClass} <#if interfaces?size gt 0>imp
 		</#if>
 
 		<#if data.waterMob>
-		builder = builder.add(NeoForgeMod.SWIM_SPEED, ${data.movementSpeed});
+		builder = builder.add(ForgeMod.SWIM_SPEED.get(), ${data.movementSpeed});
 		</#if>
 
 		<#if data.aiBase == "Zombie">
@@ -1038,71 +925,5 @@ public class ${name}Entity extends ${extendsClass} <#if interfaces?size gt 0>imp
 		return builder;
 	}
 
-	<#if data.sensitiveToVibration>
-	private class VibrationUser implements VibrationSystem.User {
-
-		private final ${name}Entity entity = ${name}Entity.this;
-		private final PositionSource positionSource = new EntityPositionSource(this.entity, this.entity.getEyeHeight());
-
-		@Override public PositionSource getPositionSource() {
-			return this.positionSource;
-		}
-
-		<#if data.vibrationalEvents?has_content>
-		@Override public TagKey<GameEvent> getListenableEvents() {
-			return TagKey.create(Registries.GAME_EVENT, ResourceLocation.withDefaultNamespace("${registryname}_can_listen"));
-		}
-		</#if>
-
-		@Override public int getListenerRadius() {
-			<#if hasProcedure(data.vibrationSensitivityRadius)>
-				Level world = entity.level();
-				double x = entity.getX();
-				double y = entity.getY();
-				double z = entity.getZ();
-				return (int) <@procedureOBJToNumberCode data.vibrationSensitivityRadius/>;
-			<#else>
-				return ${data.vibrationSensitivityRadius.getFixedValue()};
-			</#if>
-		}
-
-		@Override public boolean canReceiveVibration(ServerLevel world, BlockPos vibrationPos, Holder<GameEvent> holder, GameEvent.Context context) {
-			<#if hasProcedure(data.canReceiveVibrationCondition)>
-				return <@procedureCode data.canReceiveVibrationCondition {
-					"x": "entity.getX()",
-					"y": "entity.getY()",
-					"z": "entity.getZ()",
-					"vibrationX": "vibrationPos.getX()",
-					"vibrationY": "vibrationPos.getY()",
-					"vibrationZ": "vibrationPos.getZ()",
-					"world": "world",
-					"entity": "entity",
-					"sourceentity": "context.sourceEntity()"
-				}/>
-			<#else>
-				return true;
-			</#if>
-		}
-
-		@Override public void onReceiveVibration(ServerLevel world, BlockPos vibrationPos, Holder<GameEvent> holder, @Nullable Entity vibrationSource, @Nullable Entity immediateSource, float distance) {
-			<#if hasProcedure(data.onReceivedVibration)>
-				<@procedureCode data.onReceivedVibration {
-					"x": "entity.getX()",
-					"y": "entity.getY()",
-					"z": "entity.getZ()",
-					"vibrationX": "vibrationPos.getX()",
-					"vibrationY": "vibrationPos.getY()",
-					"vibrationZ": "vibrationPos.getZ()",
-					"world": "world",
-					"entity": "entity",
-					"sourceentity": "vibrationSource",
-					"immediatesourceentity": "immediateSource",
-					"distance": "distance"
-				}/>
-			</#if>
-		}
-	}
-	</#if>
-
 }
-<#-- @formatter:off -->
+<#-- @formatter:on -->

@@ -49,27 +49,33 @@ public class ${name}BlockEntity extends RandomizableContainerBlockEntity impleme
 	}
 	</#if>
 
-	@Override public void loadAdditional(ValueInput valueInput) {
-		super.loadAdditional(valueInput);
+	@Override public void loadAdditional(CompoundTag compound, HolderLookup.Provider lookupProvider) {
+		super.loadAdditional(compound, lookupProvider);
 
-		if (!this.tryLoadLootTable(valueInput))
+		if (!this.tryLoadLootTable(compound))
 			this.stacks = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
 
-		ContainerHelper.loadAllItems(valueInput, this.stacks);
+		ContainerHelper.loadAllItems(compound, this.stacks, lookupProvider);
 
 		<#if data.sensitiveToVibration>
-		this.vibrationData = valueInput.read("listener", VibrationSystem.Data.CODEC).orElseGet(VibrationSystem.Data::new);
+		if (compound.contains("listener", 10)) {
+			VibrationSystem.Data.CODEC.parse(lookupProvider.createSerializationContext(NbtOps.INSTANCE), compound.getCompound("listener"))
+				.resultOrPartial(e -> ${JavaModName}.LOGGER.error("Failed to parse vibration listener for ${data.name}: '{}'", e))
+				.ifPresent(data -> this.vibrationData = data);
+		}
 		</#if>
 	}
 
-	@Override public void saveAdditional(ValueOutput valueOutput) {
-		super.saveAdditional(valueOutput);
+	@Override public void saveAdditional(CompoundTag compound, HolderLookup.Provider lookupProvider) {
+		super.saveAdditional(compound, lookupProvider);
 
-		if (!this.trySaveLootTable(valueOutput))
-			ContainerHelper.saveAllItems(valueOutput, this.stacks);
+		if (!this.trySaveLootTable(compound))
+			ContainerHelper.saveAllItems(compound, this.stacks, lookupProvider);
 
 		<#if data.sensitiveToVibration>
-		valueOutput.store("listener", VibrationSystem.Data.CODEC, this.vibrationData);
+		VibrationSystem.Data.CODEC.encodeStart(lookupProvider.createSerializationContext(NbtOps.INSTANCE), this.vibrationData)
+			.resultOrPartial(e -> ${JavaModName}.LOGGER.error("Failed to encode vibration listener for ${data.name}: '{}'", e))
+			.ifPresent(listener -> compound.put("listener", listener));
 		</#if>
 	}
 

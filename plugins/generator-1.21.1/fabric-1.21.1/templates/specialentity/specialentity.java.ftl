@@ -26,7 +26,11 @@ package ${package}.entity;
 public class ${name}Entity extends ${data.entityType} {
 
 	public ${name}Entity(EntityType<${name}Entity> type, Level world) {
-		super(type, world, () -> ${JavaModName}Items.${REGISTRYNAME});
+		super(type, world);
+	}
+
+	@Override public Item getDropItem() {
+		return ${JavaModName}Items.${REGISTRYNAME};
 	}
 
 	<#if hasProcedure(data.onTickUpdate)>

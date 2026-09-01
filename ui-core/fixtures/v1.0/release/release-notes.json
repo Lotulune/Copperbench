@@ -132,13 +132,13 @@
       "id": "slice_elements",
       "area": "T03",
       "surface": "new_ui",
-      "notes": "First-party editing covers block, item, recipe, procedure, function, loot table, and advancement. The final three passed the eight-generator golden build but remain Stage 9 development preview until their editor and remaining product gates pass."
+      "notes": "Stage 11 first-party editing covers all 37 Java mod element types through the shared UI, MCP, headless, persistence, diagnostics, and recovery services."
     },
     {
       "id": "other_mod_elements",
       "area": "T03",
-      "surface": "unsupported",
-      "notes": "Living entities and other upstream types are outside the first-party slice. See elementCoverage: imported types stay read-only; create/update are rejected."
+      "surface": "new_ui",
+      "notes": "The 30 Stage 11 Java types use upstream storage models and the schema-driven editor. Bedrock add-on types remain outside this product scope."
     },
     {
       "id": "assets_blockbench",
@@ -156,7 +156,7 @@
       "id": "generate_source",
       "area": "T06",
       "surface": "new_ui",
-      "notes": "The Stage 8 block/item/recipe/procedure slice has all-track evidence. Stage 9 function/loot table/advancement generation and compilation passed all eight generators."
+      "notes": "The shared generator path accepts all Stage 11 Java element types; core block/item/recipe/procedure and data-element golden evidence remain tracked per generator."
     },
     {
       "id": "managed_build",
@@ -553,25 +553,19 @@
   },
   "elementCoverage": {
     "schemaVersion": "1.0",
-    "firstPartySlice": ["block", "item", "recipe", "procedure", "function", "loottable", "achievement"],
-    "unsupportedInNewUi": [
-      "armor", "armortrim", "attribute", "bannerpattern", "biome", "code", "command", "damagetype",
-      "dimension", "enchantment", "feature", "fluid", "gamerule", "gui", "itemextension", "keybind",
-      "livingentity", "overlay", "painting", "particle",
-      "plant", "potion", "potioneffect", "projectile", "specialentity", "structure", "tab", "tool",
-      "villagerprofession", "villagertrade"
-    ],
+    "firstPartySlice": ["block", "item", "recipe", "procedure", "function", "loottable", "achievement", "armor", "armortrim", "tool", "itemextension", "attribute", "bannerpattern", "command", "damagetype", "enchantment", "gamerule", "keybind", "painting", "particle", "potion", "potioneffect", "tab", "villagerprofession", "villagertrade", "biome", "dimension", "feature", "fluid", "plant", "structure", "livingentity", "specialentity", "projectile", "gui", "overlay", "code"],
+    "unsupportedInNewUi": [],
     "bedrockAddonNotApplicable": ["bebiome", "beblock", "beentity", "beitem", "bescript"],
-    "appliesToGenerators": "shared Java application service; Stage 9 golden generation passed all eight generators",
-    "notes": "Create and update in the new UI, MCP, and headless accept only the first-party slice. Function, loot table, and advancement passed the eight-generator golden build but remain Stage 9 development preview until the dedicated editor and remaining product gates pass. Imported upstream types are preserved and listed, but the editor is read-only and updates are rejected."
+    "appliesToGenerators": "shared Java application service; generator capability gates remain explicit per loader/version",
+    "notes": "All Java mod element types in this catalog share the application-service CRUD, editor schema, diagnostics, persistence and recovery semantics. Bedrock add-on types remain outside this catalog."
   },
   "upstreamTools": {
     "schemaVersion": "1.0",
     "notes": "Upstream Swing tools are either in the new UI, opened through the legacy plugin window, explicitly unsupported, or out of first-release scope. The legacy window is not a visual or accessibility promise.",
     "tools": [
       {"id": "workspace_open_create_import", "upstream": "File/Open, New, Import workspace", "surface": "new_ui", "notes": "Shared application service. Import copies to a sibling directory and preserves unknown fields."},
-      {"id": "mod_elements_first_party", "upstream": "Workspace/Mod elements for block, item, recipe, procedure, function, loot table, advancement", "surface": "new_ui", "notes": "Seven first-party editable types. The three Stage 9 data types passed the eight-generator golden build but remain development preview until their dedicated editors and remaining product gates pass."},
-      {"id": "mod_elements_other", "upstream": "Living entity, GUI, plant, dimension, and other element editors", "surface": "unsupported", "notes": "Imported definitions are preserved and listed read-only. Create/update in the new UI are rejected."},
+      {"id": "mod_elements_first_party", "upstream": "Workspace/Mod elements for all 37 Java element types", "surface": "new_ui", "notes": "All Java types share the schema-driven editor and application-service CRUD; generator capability remains explicit per loader/version."},
+      {"id": "mod_elements_other", "upstream": "Living entity, GUI, plant, dimension, and other element editors", "surface": "new_ui", "notes": "Stage 11 promotes these Java types to first-party support. Bedrock-specific elements remain outside this tool surface."},
       {"id": "assets_blockbench", "upstream": "Resources/3D models and animations via Blockbench", "surface": "new_ui", "notes": "Asset graph, leases, and the Blockbench process bridge. The editor is not embedded."},
       {"id": "resource_pack_workspace", "upstream": "Resource pack maker and ZIP export", "surface": "new_ui", "notes": "Deterministic ZIP, publish batches, and prepare_resource_pack_client. Fabric 1.21.1 ResourceManager load is claimed."},
       {"id": "textures_sounds_structures", "upstream": "Resources/Textures, Sounds, Structures, Screenshots", "surface": "legacy_window", "notes": "Native texture/sound/structure browsers stay in the legacy Swing window. Blockbench is the first-party model path."},
