@@ -14,6 +14,16 @@ Date: 2026-09-02
 
 Beta 3 uses the release-control commit for the signed Beta tag and metadata while its canonical product payload is the already-tested Preview 7 candidate. The release workflow therefore promotes the tested candidate bytes instead of rebuilding a different product binary.
 
+## Two-phase status semantics
+
+The `product-status.json` copied into a release payload is deliberately a **pre-publication snapshot**, not a mutable post-publication status document. At release-build time, `publishedBaseline` and `releaseContract` identify the last release that is already known to be public, while `betaRelease.tag` identifies the Beta currently being verified and `betaRelease.status=ready` records that publication has not succeeded yet. The workflow can still fail during draft upload, remote asset verification, production approval, or the final publish step, so the tagged source must not claim its own release is already public before those steps complete.
+
+This is the same state model used for Beta 2: release source `8b06328347bc45b9ccc8cb243bf913c3e28e3be6` carried `publishedBaseline=v0.1.0-beta.1` and `betaRelease.tag=v0.1.0-beta.2` / `status=ready`; only the repository post-publication closeout advanced the live baseline after run `33334394466` succeeded. Beta 3 follows the same invariant: release source `7956dcb9` truthfully records Beta 2 as the last already-published baseline and Beta 3 as the ready release being published, while this post-publication closeout advances the repository machine state to Beta 3 after run `33515908561` succeeded.
+
+`deploy.yml` also explicitly refuses to overwrite an already-public Release. Consequently, the `product-status.json` attached to an immutable historical Release is provenance for the state **at build/publication time**; it is not the live public-state endpoint for that same release after publication. Consumers that need current publication state must use the repository's current `product-status.json` and its `releaseContract.publicStateSource` / the GitHub Release API. A new immutable Beta tag is required only when the release payload itself has an actual identity error (for example the Beta 1 `product.channel=preview` mismatch), not merely because the pre-publication snapshot names the previous successful release as `publishedBaseline`.
+
+For Beta 3 the release payload already has `product.channel=beta`, `delivery.betaRelease.tag=v0.1.0-beta.3`, the correct Preview 7 candidate identity, and the correct canonical digests. Therefore no metadata-correction Beta is required for this two-phase baseline transition.
+
 ## Canonical asset verification
 
 | Asset | Size (bytes) | SHA-256 | Result |
