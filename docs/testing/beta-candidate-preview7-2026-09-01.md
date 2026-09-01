@@ -60,7 +60,7 @@ Machine evidence:
 - `evidence/stage-9/2026-09-01/clean-windows11-gui-new-workspace.json`
 - `evidence/stage-9/2026-09-01/clean-windows11-gui-new-workspace.png`
 
-### Workspace build, JAR and runClient
+### Workspace build/JAR and graphical runClient limitation
 
 The historical lifecycle harness contains a fixture defect: it hardcodes `guigatedelta` in its generated-source path and log match even when `-WorkspaceFile` points to another workspace. Running the unmodified script against `guigateeta` therefore failed before the build because it looked for `GuigatedeltaMod.java`.
 
@@ -73,22 +73,23 @@ A read-only prerequisite probe confirmed that the actual Preview 7 workspace con
 - the Copperbench-managed JDK 21; and
 - the Copperbench-managed Gradle home.
 
-For product qualification, a temporary copy of the candidate-tag lifecycle harness was used with only the three historical fixture-name occurrences changed from `guigatedelta`/`Guigatedelta` to `guigateeta`/`Guigateeta`. No candidate product, source tag, build script, runtime, schema, generator or release payload was changed.
+For diagnostic qualification, a temporary copy of the candidate-tag lifecycle harness was used with only the three historical fixture-name occurrences changed from `guigatedelta`/`Guigatedelta` to `guigateeta`/`Guigateeta`. No candidate product, source tag, build script, runtime, schema, generator or release payload was changed.
 
-That lifecycle run passed:
+That run proves the workspace-generation/build portion:
 
 - generated source present;
 - Gradle build succeeded;
-- JAR artifact present;
-- `runClient` window observed;
-- `runClient` window remained stable; and
-- client log observed.
+- JAR artifact present.
+
+It does **not** prove graphical `runClient` success. The captured client log shows NeoForge exhausting OpenGL/GLFW profiles and reporting `Failed to initialize the mod loading system and display`. The current lifecycle harness accepts any surviving Java window for its stability predicate, so the NeoForge initialization-error window was incorrectly reported as `windowObserved=true` / `stable=true`. This is a second lifecycle-harness defect in addition to the hardcoded fixture name.
+
+The Hyper-V guest used for this gate does not expose a usable OpenGL profile, so a successful graphics-capable `runClient` replay cannot be obtained from this environment. Beta 3 therefore does not claim this graphical replay as passed; `clean-windows-11-stage9` remains `not-applicable` / non-blocking for the Beta scope. Stage 11 candidate qualification instead relies on its explicit candidate requirements—fixed-commit CI/Nightly, Windows install/upgrade/uninstall, offline workspace launch/retention, provenance and candidate assets—which are independently evidenced below.
 
 Machine evidence:
 
-- `evidence/stage-9/2026-09-01/clean-windows11-workspace-lifecycle.json`
+- `evidence/stage-9/2026-09-01/clean-windows11-workspace-lifecycle-harness-false-positive.json`
 
-The harness fixture defect must be fixed after the exact-binary promotion boundary; changing `scripts/**` before promotion would violate the evidence/status/docs-only candidate-to-Beta delta.
+The lifecycle harness must be fixed after the exact-binary promotion boundary to derive fixture paths from `-WorkspaceFile` and to reject known client-initialization errors before declaring a stable `runClient`. Changing `scripts/**` before promotion would violate the evidence/status/docs-only candidate-to-Beta delta.
 
 ### Product-shell IPC scan false positive
 
@@ -131,8 +132,8 @@ Machine evidence:
 
 ## Promotion decision
 
-Preview 7 is qualified as the frozen Stage 11 exact-binary candidate for `v0.1.0-beta.3`.
+Preview 7 is qualified as the frozen Stage 11 exact-binary candidate for `v0.1.0-beta.3` for the scoped Beta contract. Its exact public binary passed the Stage 11 candidate-required Windows install/upgrade/uninstall and offline workspace/data-retention replay. A graphics-capable clean-Windows `runClient` replay remains outside the Beta 3 claim because the available Hyper-V guest cannot provide a usable OpenGL profile.
 
 The Beta release-control delta must remain limited to the paths allowed by the exact-binary promotion contract: `product-status.json`, `PRD-NEXT.md`, `docs/remaining-work.md`, `docs/testing/**`, `docs/releases/**`, and `evidence/**`. Any product, runtime, generator, release-tooling, schema/tooling implementation, license, or other build-affecting change requires a new signed Preview and a new acceptance cycle.
 
-The real JCEF accessibility audit and the five-external-tester trial remain outside this Beta scope and are not claimed as passed. Windows packages remain without Authenticode signing.
+The real JCEF accessibility audit, graphics-capable clean-Windows `runClient` replay, and five-external-tester trial remain outside this Beta scope and are not claimed as passed. Windows packages remain without Authenticode signing.
