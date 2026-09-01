@@ -1,10 +1,10 @@
 # Copperbench 下一步 PRD：阶段 10 Public Beta 收口与阶段 11 全量 Mod Element 支持
 
-> 状态：Public Beta `v0.1.0-beta.2` 已发布并完成收口；下一功能版本进入 Stage 11，全量支持当前 30 种 read-only / legacy-only Java Mod Element<br>
-> 版本：v1.3<br>
-> 更新日期：2026-08-31<br>
+> 状态：Stage 11 功能、固定提交 Nightly、签名 Preview 7 与候选所需 Windows 安装/升级/卸载 RC 已完成；进入 `v0.1.0-beta.3` exact-binary promotion release-control；图形化 clean-Windows `runClient` 仍不在本 Beta 宣称范围<br>
+> 版本：v1.4<br>
+> 更新日期：2026-09-01<br>
 > 前置基线：[PRD.md](./PRD.md)、[PRD-STAGE-9.md](./PRD-STAGE-9.md)<br>
-> 当前公开 Beta：`v0.1.0-beta.2`（`main@8b063283`，release run `33334394466`）；随包 `product.channel=beta`，四个 canonical 资产与 `v0.1.0-preview.6` / Beta 1 完全同 size/SHA-256
+> 当前公开 Beta：`v0.1.0-beta.2`（`main@8b063283`，release run `33334394466`）；下一 Beta 目标为 `v0.1.0-beta.3`，冻结候选为 `v0.1.0-preview.7`（`f4b58062`，release run `33506364499`）
 
 ## 2026-08-31 Public Beta publication and metadata correction
 
@@ -306,13 +306,13 @@ Issue 模板必须收集版本、commit、生成器、元素类型、复现步�
 - 至少 5 名外部试用者完成全任务。
 - 所有高风险能力有固定提交证据；未验证项明确降级或移出宣称。
 
-当前版本已经公开 `v0.1.0-beta.2`，状态源 channel 修正与 exact-binary promotion 均已验证。当前 Public Beta 发布链没有未完成的发布控制阻断；后续产品或构建变更若要再次发布，必须重新建立候选与相应证据。未验证的无障碍、最终 RC 和外部试用能力继续从当前 Beta 宣称范围移除。
+当前公开版本仍为 `v0.1.0-beta.2`，其状态源 channel 修正与 exact-binary promotion 均已验证。Stage 11 后续产品变更已经建立新的签名候选 `v0.1.0-preview.7`：固定 `main@f4b58062` 的 merged-main CI 与 Nightly 已通过，Preview release/provenance 已通过，公开 EXE 的候选所需 Windows install/upgrade/uninstall、offline workspace launch 与 retention replay 也已得到 `gatePromotionReady=true`。因此下一步仅允许 evidence/status/docs release-control 变更并将 Preview 7 原字节提升为 `v0.1.0-beta.3`；任何产品、构建、运行时或工具实现变更都必须重新建立 Preview 候选。当前 Hyper-V 客机没有可用 OpenGL profile，图形化 clean-Windows `runClient` replay 无法形成通过证据，继续与真实 JCEF 无障碍和外部试用一起从本 Beta 宣称范围移除。
 
 ### 7.4 下一功能版本（Stage 11）：全量 Mod Element 一等支持
 
 **产品决策：下一功能版本必须把当前 30 种 `readOnly` / `legacyOnly` Java Mod Element 全部升级为 Copperbench first-party `supported`。** 开发过程允许分批落地，但下一功能版本不得在仍有这些类型停留于 `readOnly`、`legacyOnly`、`unsupportedInNewUi` 或“只能导入不能修改”的情况下宣称完成。
 
-实施状态（2026-09-01）：**本地功能与生成器门禁已完成，进入固定提交/候选验证阶段。** 30 种目标 Java Mod Element 已全部进入 first-party `supported` 路径；全类型持久化/未知字段 round-trip、导入、迁移、UI/status contract 和核心 Java 回归通过。`NewWorkspaceGeneratorGoldenBuildTest` 的 8-generator Stage 11 全量工作区现为 8/8 PASS，所有轨道均完成真实 Gradle build 与 JAR 输出；新增的 JAR/mixin 一致性门禁还会验证 mixin JSON 中声明的每个 mixin 类都真实存在于产物。最终本地证据见 [`docs/testing/stage-11-element-support-2026-08-31.md`](./docs/testing/stage-11-element-support-2026-08-31.md) 与 [`evidence/stage-11/2026-09-01/eight-generator-matrix.json`](./evidence/stage-11/2026-09-01/eight-generator-matrix.json)。按 10.1.7，下一步不是继续增加 Stage 11 功能，而是冻结新的提交并重新执行 CI、Nightly、Windows 安装/升级/卸载、provenance 与候选资产验证；在这些固定提交证据完成前，不宣称下一功能版本 Release Candidate 已完成。
+实施状态（2026-09-01）：**Stage 11 功能与候选验收已完成，进入 Beta 3 release-control。** 30 种目标 Java Mod Element 已全部进入 first-party `supported` 路径；全类型持久化/未知字段 round-trip、导入、迁移、UI/status contract 和核心 Java 回归通过。`NewWorkspaceGeneratorGoldenBuildTest` 的 8-generator Stage 11 全量工作区为 8/8 PASS，所有轨道均完成真实 Gradle build 与 JAR 输出，JAR/mixin 一致性门禁也会验证 mixin JSON 中声明的每个 mixin 类真实存在于产物。固定提交 `f4b58062` 的 Nightly `33503172036` 已完成产品回归与 8/8 generator golden；签名 `v0.1.0-preview.7` 的 Windows release run `33506364499` 已发布；公开 EXE SHA-256 `716a93ea45278d71b2ef80eeee3bd4d0ec315891c349478cff50ed093db90d93` 已完成 GUI 新建工作区、真实 workspace Gradle build/JAR，以及 Stage 11 候选要求的 upgrade/offline/uninstall retention RC replay，机器结果为 `gatePromotionReady=true`。图形化 `runClient` 在当前 Hyper-V 客机上因无可用 OpenGL profile 进入 NeoForge 初始化错误窗口，原 lifecycle harness 将该窗口误判为 stable，因此该图形化 replay 不宣称通过并继续移出 Beta 3 scope。候选证据见 [`docs/testing/beta-candidate-preview7-2026-09-01.md`](./docs/testing/beta-candidate-preview7-2026-09-01.md)。下一步只允许 exact-binary promotion 所允许的 evidence/status/docs 变化，把 Preview 7 canonical bytes 原样提升为 Beta 3。
 
 本阶段覆盖以下 30 种类型：
 
