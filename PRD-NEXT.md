@@ -4,7 +4,7 @@
 > 版本：v1.5<br>
 > 更新日期：2026-09-02<br>
 > 前置基线：[PRD.md](./PRD.md)、[PRD-STAGE-9.md](./PRD-STAGE-9.md)<br>
-> 当前公开 Beta：`v0.1.0-beta.3`（release-control `7956dcb9`，release run `33515908561`）；canonical EXE/ZIP/MSIX/SBOM 与签名候选 `v0.1.0-preview.7` 完全同 size/SHA-256；当前主线已推进到 `main@af1b6ed9`
+> 当前公开 Beta：`v0.1.0-beta.3`（release-control `7956dcb9`，release run `33515908561`）；canonical EXE/ZIP/MSIX/SBOM 与签名候选 `v0.1.0-preview.7` 完全同 size/SHA-256；Beta 3 发布后 harness 验证基线为 `main@af1b6ed9`
 
 ## 2026-08-31 Public Beta publication and metadata correction
 
@@ -18,7 +18,7 @@ Stage 11 已把现有 30 种原 `readOnly` / `legacyOnly` Java Mod Element 全�
 
 签名候选 `v0.1.0-preview.7` 来自 `f4b58062`；其 exact-binary promotion `v0.1.0-beta.3` 已由 release-control `7956dcb9` 和 release run `33515908561` 成功公开。Beta 3 的 EXE、ZIP、MSIX 与 SBOM 与 Preview 7 canonical 资产逐项保持相同 size / SHA-256，因此 Stage 11 的“实现 → Nightly → 候选 → Windows 安装/升级/卸载 → exact-binary Beta”闭环已完成。
 
-Beta 3 发布后又完成两组只影响测试基础设施的 Stage 9 harness 加固：IPC 扫描不再误读 Gradle/JDK 二进制缓存，workspace lifecycle 不再硬编码测试工作区且不会把 GLFW/OpenGL 初始化错误窗口判定为 `runClient` 成功；GUI gate 也修复了 workspace 主窗口先出现时可能漏采 generator setup dialog 的竞态。当前 `main@af1b6ed9` 的 Java/Javadoc、UI、Windows Stage 9 regression、MCP 与 JUnit merged-main CI 全绿。这些后续 harness 变更不改变 Beta 3 产品二进制。
+Beta 3 发布后又完成两组只影响测试基础设施的 Stage 9 harness 加固：IPC 扫描不再误读 Gradle/JDK 二进制缓存，workspace lifecycle 不再硬编码测试工作区且不会把 GLFW/OpenGL 初始化错误窗口判定为 `runClient` 成功；GUI gate 也修复了 workspace 主窗口先出现时可能漏采 generator setup dialog 的竞态。发布后 harness 验证基线 `main@af1b6ed9` 的 Java/Javadoc、UI、Windows Stage 9 regression、MCP 与 JUnit merged-main CI 全绿。这些后续 harness 变更不改变 Beta 3 产品二进制。
 
 ## 0. 阅读与执行协议
 
