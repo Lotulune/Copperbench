@@ -77,6 +77,7 @@ loadScripts(document, 'script');</script>
 <ol class="toc-list">
 <li><a href="#profile()" tabindex="0">profile()</a></li>
 <li><a href="#generate(java.nio.file.Path,dev.copperbench.core.workspace.WorkspaceState)" tabindex="0">generate(Path, WorkspaceState)</a></li>
+<li><a href="#generateMigrationTarget(java.nio.file.Path,dev.copperbench.core.workspace.WorkspaceState)" tabindex="0">generateMigrationTarget(Path, WorkspaceState)</a></li>
 <li><a href="#validate(dev.copperbench.core.workspace.WorkspaceState)" tabindex="0">validate(WorkspaceState)</a></li>
 </ol>
 </li>
@@ -95,7 +96,7 @@ loadScripts(document, 'script');</script>
 <div class="horizontal-scroll">
 <div class="type-signature"><span class="modifiers">public final class </span><span class="element-name type-name-label">Fabric1211Generator</span>
 <span class="extends-implements">extends <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a></span></div>
-<div class="block">Generates the maintained Fabric 1.21.1 vertical slice from the shared workspace projection.</div>
+<div class="block">Generates the maintained Fabric 1.21.1 workspace projection, including all Stage 11 Java element types.</div>
 </div>
 </section>
 <section class="summary">
@@ -182,12 +183,18 @@ loadScripts(document, 'script');</script>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#generate(java.nio.file.Path,dev.copperbench.core.workspace.WorkspaceState)" class="member-name-link">generate</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;targetRoot,
  <a href="../../core/workspace/WorkspaceState.html" title="class in dev.copperbench.core.workspace">WorkspaceState</a>&nbsp;workspace)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="Fabric1211Generator.Profile.html" title="class in dev.copperbench.generator.fabric">Fabric1211Generator.Profile</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#profile()" class="member-name-link">profile</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a><wbr>&lt;<a href="Fabric1211Generator.ValidationIssue.html" title="class in dev.copperbench.generator.fabric">Fabric1211Generator.ValidationIssue</a>&gt;</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#validate(dev.copperbench.core.workspace.WorkspaceState)" class="member-name-link">validate</a><wbr>(<a href="../../core/workspace/WorkspaceState.html" title="class in dev.copperbench.core.workspace">WorkspaceState</a>&nbsp;workspace)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="Fabric1211Generator.GenerationResult.html" title="class in dev.copperbench.generator.fabric">Fabric1211Generator.GenerationResult</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#generateMigrationTarget(java.nio.file.Path,dev.copperbench.core.workspace.WorkspaceState)" class="member-name-link">generateMigrationTarget</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;targetRoot,
+ <a href="../../core/workspace/WorkspaceState.html" title="class in dev.copperbench.core.workspace">WorkspaceState</a>&nbsp;workspace)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Regenerates a copied loader-migration target instead of preserving its source-loader files.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="Fabric1211Generator.Profile.html" title="class in dev.copperbench.generator.fabric">Fabric1211Generator.Profile</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#profile()" class="member-name-link">profile</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a><wbr>&lt;<a href="Fabric1211Generator.ValidationIssue.html" title="class in dev.copperbench.generator.fabric">Fabric1211Generator.ValidationIssue</a>&gt;</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#validate(dev.copperbench.core.workspace.WorkspaceState)" class="member-name-link">validate</a><wbr>(<a href="../../core/workspace/WorkspaceState.html" title="class in dev.copperbench.core.workspace">WorkspaceState</a>&nbsp;workspace)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Validates the maintained Fabric slice without writing to the target workspace.</div>
 </div>
 </div>
@@ -311,6 +318,21 @@ loadScripts(document, 'script');</script>
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="Fabric1211Generator.GenerationResult.html" title="class in dev.copperbench.generator.fabric">Fabric1211Generator.GenerationResult</a></span>&nbsp;<span class="element-name">generate</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;targetRoot,
  <a href="../../core/workspace/WorkspaceState.html" title="class in dev.copperbench.core.workspace">WorkspaceState</a>&nbsp;workspace)</span>
                                               throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+<dl class="notes">
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code></dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="generateMigrationTarget(java.nio.file.Path,dev.copperbench.core.workspace.WorkspaceState)">
+<h3>generateMigrationTarget</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="Fabric1211Generator.GenerationResult.html" title="class in dev.copperbench.generator.fabric">Fabric1211Generator.GenerationResult</a></span>&nbsp;<span class="element-name">generateMigrationTarget</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;targetRoot,
+ <a href="../../core/workspace/WorkspaceState.html" title="class in dev.copperbench.core.workspace">WorkspaceState</a>&nbsp;workspace)</span>
+                                                             throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+<div class="block">Regenerates a copied loader-migration target instead of preserving its source-loader files.</div>
 <dl class="notes">
 <dt>Throws:</dt>
 <dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code></dd>
