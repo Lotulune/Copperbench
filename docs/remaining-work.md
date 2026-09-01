@@ -4,6 +4,16 @@
 
 ## 当前状态
 
+### 2026-09-01 Stage 11 / Beta 3 发布控制更新
+
+Stage 11 的 30 种 Java Mod Element 已全部进入 first-party `supported`。固定 `main@f4b58062` 的 merged-main CI `33497929171` 与 Nightly `33503172036` 均已通过；Nightly 包含完整产品回归和 8/8 generator golden。
+
+签名候选 `v0.1.0-preview.7` 已由 Windows release run `33506364499` 成功发布。四个 canonical promotion 资产已冻结：EXE `716a93ea45278d71b2ef80eeee3bd4d0ec315891c349478cff50ed093db90d93`、ZIP `1255a8528cd104d9fb26dfbb6228bfab415d77b84b071b636032c65a1e0282f5`、MSIX `cafcaadf49cb0a59873d47d55ee0f0023e8c6f03c9b820a03994bb75b215faa3`、SBOM `655daa5b9a7a96edba27726169f46146cda391e6e5bfee4fa350da5d4a94c078`。
+
+公开 Preview 7 EXE 已在 Windows 11 客机完成 exact-candidate GUI 新建工作区/`-workspace` 冷启动、真实 workspace Gradle build/JAR/runClient，以及 `-FinalRcReplay` 的 Preview 3 → Preview 7 升级、断网工作区启动、静默卸载保留和恢复安装。最终机器结果为 `passed=true`、`finalRcReplayRequired=false`、`testMarkersRemoved=true`、`gatePromotionReady=true`，并绑定 source `f4b58062` 与上述 EXE SHA-256。证据见 [Preview 7 candidate qualification](./testing/beta-candidate-preview7-2026-09-01.md)。
+
+因此下一发布动作只剩 evidence/status/docs release-control PR、受保护 CI、签名 `v0.1.0-beta.3` 与 Preview 7 exact-binary promotion。候选冻结后发现的两个测试 harness 缺陷（guest-smoke 把 Gradle/JDK 二进制当文本扫描、workspace-lifecycle 硬编码 `guigatedelta`）不会在 promotion 前修改 `scripts/**`；候选已通过针对真实文本日志的 IPC 复核和仅修正 fixture 名称的临时 lifecycle harness 完成产品验证。真实 JCEF 无障碍与五人外部试用仍明确移出当前 Beta 宣称范围；Windows 包仍未 Authenticode 签名。
+
 ### 2026-08-31 发布控制更新
 
 `v0.1.0-beta.2` 已从 `main@8b063283` 经 merged-main CI `33334020837` 与 Windows release run `33334394466` 成功公开。10 个 Release 资产全部 `uploaded` 且具有 digest；EXE/ZIP/MSIX/SBOM 与冻结候选 `v0.1.0-preview.6` 以及 Beta 1 在 GitHub size 与 SHA-256 上逐项完全一致。
@@ -20,14 +30,16 @@ Beta 1 随包 `product.channel=preview` 的元数据漂移已由不可变的新�
 | main 分支保护 | 已验证 | 三项必需检查、严格更新和管理员保护已生效；PR #1～#5 留有全绿记录 |
 | Javadoc Pages | 已验证 | <https://lotulune.github.io/Copperbench/> 返回 200 |
 | production 审批 | 已验证 | Preview 2 在批准前保持等待；run `32909134939` 留下批准与部署记录后才公开 |
-| Nightly | 已通过：`main@92d1a8d0` | [运行 33253594479](https://github.com/Lotulune/Copperbench/actions/runs/33253594479) 的完整 Windows 产品回归、Java/Javadoc/scale、Playwright、MCP、诊断包 native JCEF 验收与八生成器矩阵全部通过 |
+| Nightly | 已通过：`main@f4b58062` | [运行 33503172036](https://github.com/Lotulune/Copperbench/actions/runs/33503172036) 的 Stage 11 固定提交产品回归与 8/8 generator golden 全部通过 |
 | Dependency Submission | 已移除 | Dependency Graph 关闭时不保留必失败工作流 |
 | Preview 2 | 已公开（历史） | `v0.1.0-preview.2` 的 Tag、生产审批、三包、SBOM、哈希和资产验证已完成 |
 | Preview 3 | 历史公开基线 | `v0.1.0-preview.3` 指向 `main@cc15d57a`，release run `32923503840` 成功；已被 Preview 6 取代为当前候选 |
 | Preview 6 | 冻结 Beta candidate | `v0.1.0-preview.6` 指向 `main@f677e481`，release run `33330520467` 成功；EXE/ZIP/MSIX/SBOM canonical 摘要已冻结 |
+| Preview 7 | Stage 11 冻结 Beta candidate | `v0.1.0-preview.7` 指向 `main@f4b58062`，release run `33506364499` 成功；四个 canonical 摘要已冻结，最终 clean-Windows RC `gatePromotionReady=true` |
 | Beta 1 | 已公开；二进制验证通过、状态源 channel 漂移 | `v0.1.0-beta.1` 指向 `main@f12823ab`，release run `33332537616` 成功；四个 canonical 资产与 Preview 6 完全同 SHA-256，但随包 `product.channel=preview` |
 | Beta 2 | 已公开，metadata correction 完成 | `v0.1.0-beta.2` 指向 `main@8b063283`，release run `33334394466` 成功；随包 `product.channel=beta`，四个 canonical 资产仍与 Preview 6/Beta 1 完全同 size/SHA-256 |
-| 发布范围 | Public Beta 已发布 | Beta 2 状态源与 exact-binary promotion 已验证；无障碍、最终 RC 和外部试用继续从当前 Beta 合同移出且不宣称已通过 |
+| Beta 3 | release-control ready | 目标 `v0.1.0-beta.3`；只允许 evidence/status/docs 变化，发布时必须逐字节提升 Preview 7 canonical 资产 |
+| 发布范围 | Stage 11 Beta 3 promotion ready | Preview 7 final clean-Windows RC 已通过；真实 JCEF 无障碍和外部试用继续从当前 Beta 合同移出且不宣称已通过 |
 | Beta 二进制身份 | 已验证 | Preview 6、Beta 1、Beta 2 的 EXE/ZIP/MSIX/SBOM size/SHA-256 三方完全一致；Beta 2 `RELEASE-METADATA.json` 继续指向 `promoted-tested-candidate` / Preview 6 |
 | 诊断包 | 已通过 | `main@92d1a8d0` + Nightly `33253594479` 已固定验证默认脱敏、显式复现授权、Java 服务、真实 JCEF、桥接与 UI 路径 |
 | Issue 分流 | 已通过 | `main@92d1a8d0` + Nightly `33253594479` 已固定验证 FR-BETA-02 Issue 表单字段与分流入口 |
