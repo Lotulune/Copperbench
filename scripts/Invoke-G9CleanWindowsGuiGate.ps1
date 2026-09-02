@@ -723,17 +723,32 @@ public static class G9Kernel32 {
 	$setupObserveDeadline = (Get-Date).AddSeconds(30)
 	$setupDialog = $null
 	$createdMain = $null
+	$mainStableSince = $null
+	$mainStableSeconds = 5
 	do {
 		$currentWindows = @(Get-TargetWindows)
 		$setupDialog = Get-GeneratorSetupWindow -Windows $currentWindows
 		$createdMain = Get-CreatedWorkspaceMainWindow -Windows $currentWindows -WorkspaceName $selection.modid
-		if ($null -ne $setupDialog -or $null -ne $createdMain) {
+		if ($null -ne $createdMain) {
+			$result.workspaceMainObserved = $true
+		}
+		if ($null -ne $setupDialog) {
 			break
+		}
+		if ($null -ne $createdMain -and $createdMain.Current.IsEnabled) {
+			if ($null -eq $mainStableSince) {
+				$mainStableSince = Get-Date
+			}
+			if (((Get-Date) - $mainStableSince).TotalSeconds -ge $mainStableSeconds) {
+				break
+			}
+		} else {
+			$mainStableSince = $null
 		}
 		Start-Sleep -Milliseconds 500
 	} while ((Get-Date) -lt $setupObserveDeadline)
 
-	$result.workspaceMainObserved = $null -ne $createdMain
+	$result.workspaceMainObserved = $result.workspaceMainObserved -or $null -ne $createdMain
 	if ($null -ne $setupDialog) {
 		$result.generatorSetupObserved = $true
 		$result.generatorSetupHandle = [int64]$setupDialog.Current.NativeWindowHandle

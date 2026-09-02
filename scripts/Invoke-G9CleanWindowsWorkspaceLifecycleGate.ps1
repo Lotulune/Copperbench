@@ -42,6 +42,7 @@ $result = [ordered]@{
 	runClientWindowObserved = $false
 	runClientStable = $false
 	runClientLogObserved = $false
+	runClientInitializationErrorDetected = $false
 	runClientTerminatedAfterReadiness = $false
 	usedGuestWorkspaceWrapper = $false
 	usedCopperbenchManagedJdk = $false
@@ -85,7 +86,10 @@ try {
 		$workspace = Get-Content -LiteralPath $TargetWorkspaceFile -Raw | ConvertFrom-Json
 		$jdk21 = Join-Path $env:USERPROFILE '.copperbench\gradle\jdks\eclipse_adoptium-21-amd64-windows.2'
 		$gradleHome = Join-Path $env:USERPROFILE '.copperbench\gradle'
-		$source = Join-Path $workspaceRoot 'src\main\java\net\mcreator\guigatedelta\GuigatedeltaMod.java'
+		$sourceRoot = Join-Path $workspaceRoot 'src\main\java\net\mcreator'
+		$sourceCandidates = @(Get-ChildItem -LiteralPath $sourceRoot -Filter '*Mod.java' -Recurse -File -ErrorAction SilentlyContinue |
+			Sort-Object FullName)
+		$source = if ($sourceCandidates.Count -gt 0) { $sourceCandidates[0].FullName } else { $null }
 		$metadata = Join-Path $workspaceRoot 'src\main\resources\META-INF\neoforge.mods.toml'
 		$wrapper = Join-Path $workspaceRoot 'gradlew.bat'
 		[pscustomobject]@{
@@ -93,8 +97,9 @@ try {
 			generatorId = [string]$workspace.workspaceSettings.currentGenerator
 			workspaceRevision = [int64]$workspace.'dev.copperbench'.revision
 			workspaceSha256 = (Get-FileHash -LiteralPath $TargetWorkspaceFile -Algorithm SHA256).Hash.ToLowerInvariant()
-			generatedSourcePresent = Test-Path -LiteralPath $source -PathType Leaf
-			generatedSourceSha256 = if (Test-Path -LiteralPath $source -PathType Leaf) {
+			generatedSourcePath = $source
+			generatedSourcePresent = ($null -ne $source -and (Test-Path -LiteralPath $source -PathType Leaf))
+			generatedSourceSha256 = if ($null -ne $source -and (Test-Path -LiteralPath $source -PathType Leaf)) {
 				(Get-FileHash -LiteralPath $source -Algorithm SHA256).Hash.ToLowerInvariant()
 			} else { $null }
 			generatedMetadataPresent = Test-Path -LiteralPath $metadata -PathType Leaf
@@ -203,6 +208,7 @@ try {
 [CmdletBinding()]
 param(
 	[Parameter(Mandatory = $true)][string]$WorkspaceRoot,
+	[Parameter(Mandatory = $true)][string]$WorkspaceToken,
 	[Parameter(Mandatory = $true)][string]$JavaHome,
 	[Parameter(Mandatory = $true)][string]$GradleHome,
 	[Parameter(Mandatory = $true)][string]$ChildScript,
@@ -256,6 +262,7 @@ $result = [ordered]@{
 	latestLogPresent = $false
 	latestLogMentionsWorkspace = $false
 	latestLogMentionsNeoForge = $false
+	initializationErrorDetected = $false
 	observedWindows = @()
 	terminatedAfterReadiness = $false
 	probeStage = 'initialized'
@@ -301,7 +308,7 @@ try {
 					nativeWindowHandle = $handle
 				}
 				$observed += $row
-				if ($row.name -match 'Minecraft|NeoForge' -or $row.nativeWindowHandle -ne 0) {
+				if ($row.name -match 'Minecraft|NeoForge') {
 					$matchedProcess = [pscustomobject]@{
 						ProcessId = [int]$candidate.Id
 						CommandLine = $null
@@ -343,8 +350,13 @@ try {
 		$result.latestLogPresent = $true
 		$tail = @(Get-Content -LiteralPath $latestLog -Tail 240 -Encoding UTF8 -ErrorAction SilentlyContinue |
 			ForEach-Object { [string]$_.ToString() })
-		$result.latestLogMentionsWorkspace = [bool]($tail | Where-Object { $_ -match 'guigatedelta' } | Select-Object -First 1)
+		$result.latestLogMentionsWorkspace = [bool]($tail | Where-Object { $_ -match [regex]::Escape($WorkspaceToken) } | Select-Object -First 1)
 		$result.latestLogMentionsNeoForge = [bool]($tail | Where-Object { $_ -match 'NeoForge|neoforge' } | Select-Object -First 1)
+		$result.initializationErrorDetected = [bool]($tail | Where-Object {
+			$_ -match 'Failed to initialize the mod loading system and display' -or
+			$_ -match 'Failed to find any valid GLFW profile' -or
+			$_ -match 'Failed to find a valid GLFW profile'
+		} | Select-Object -First 1)
 		$result.latestLogTail = @($tail | Select-Object -Last 120 | ForEach-Object { [string]$_.ToString() })
 	}
 } catch {
@@ -394,13 +406,14 @@ try {
 	}
 
 	$result.runClientStarted = $true
-	Invoke-Command -Session $session -ArgumentList $taskName, $guestProbePath, $preflight.workspaceRoot,
+	$workspaceToken = Split-Path -Leaf $preflight.workspaceRoot
+	Invoke-Command -Session $session -ArgumentList $taskName, $guestProbePath, $preflight.workspaceRoot, $workspaceToken,
 			$preflight.jdk21, $preflight.gradleHome, $guestRunChildPath, $guestRunResultPath, $guestRunLogPath,
 			$GuestUser -ScriptBlock {
-		param($TaskName, $ProbePath, $WorkspaceRoot, $JavaHome, $GradleHome, $ChildPath, $ResultPath, $LogPath,
+		param($TaskName, $ProbePath, $WorkspaceRoot, $WorkspaceToken, $JavaHome, $GradleHome, $ChildPath, $ResultPath, $LogPath,
 			$TargetUser)
 		Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false -ErrorAction SilentlyContinue
-		$arguments = "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$ProbePath`" -WorkspaceRoot `"$WorkspaceRoot`" -JavaHome `"$JavaHome`" -GradleHome `"$GradleHome`" -ChildScript `"$ChildPath`" -ResultPath `"$ResultPath`" -LogPath `"$LogPath`""
+		$arguments = "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$ProbePath`" -WorkspaceRoot `"$WorkspaceRoot`" -WorkspaceToken `"$WorkspaceToken`" -JavaHome `"$JavaHome`" -GradleHome `"$GradleHome`" -ChildScript `"$ChildPath`" -ResultPath `"$ResultPath`" -LogPath `"$LogPath`""
 		$action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument $arguments
 		$principal = New-ScheduledTaskPrincipal -UserId $TargetUser -LogonType Interactive -RunLevel Highest
 		Register-ScheduledTask -TaskName $TaskName -Action $action -Principal $principal -Force | Out-Null
@@ -428,9 +441,11 @@ try {
 	$result.runClientWindowObserved = [bool]$run.windowObserved
 	$result.runClientStable = [bool]$run.stable
 	$result.runClientLogObserved = [bool]$run.latestLogPresent
+	$result.runClientInitializationErrorDetected = [bool]$run.initializationErrorDetected
 	$result.runClientTerminatedAfterReadiness = [bool]$run.terminatedAfterReadiness
 	if (-not ($result.runClientWindowObserved -and $result.runClientStable -and
-			$result.runClientLogObserved -and $result.runClientTerminatedAfterReadiness)) {
+			$result.runClientLogObserved -and -not $result.runClientInitializationErrorDetected -and
+			$result.runClientTerminatedAfterReadiness)) {
 		throw 'The clean guest runClient task did not reach a stable interactive Minecraft window.'
 	}
 
