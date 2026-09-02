@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 import urllib.error
+import urllib.parse
 import time
 import urllib.request
 from typing import Any, Iterator
@@ -202,7 +203,24 @@ def read_workspace_connection(workspace: str | Path) -> dict[str, str]:
         raise CopperbenchError("MCP connection metadata is not a listening v1.0 endpoint", "MCP_CONNECTION_FILE_INVALID", connection)
     url = connection.get("url")
     workspace_id = connection.get("workspaceId")
-    if not isinstance(url, str) or not url.startswith("http://127.0.0.1:") or not url.endswith("/mcp"):
+    try:
+        parsed_url = urllib.parse.urlsplit(url) if isinstance(url, str) else None
+        parsed_port = parsed_url.port if parsed_url is not None else None
+    except ValueError:
+        parsed_url = None
+        parsed_port = None
+    if (
+        parsed_url is None
+        or parsed_url.scheme != "http"
+        or parsed_url.hostname != "127.0.0.1"
+        or parsed_port is None
+        or not 1 <= parsed_port <= 65535
+        or parsed_url.username is not None
+        or parsed_url.password is not None
+        or parsed_url.path != "/mcp"
+        or parsed_url.query
+        or parsed_url.fragment
+    ):
         raise CopperbenchError("MCP connection URL must be a loopback /mcp endpoint", "MCP_CONNECTION_FILE_INVALID", connection)
     if not isinstance(workspace_id, str) or not workspace_id:
         raise CopperbenchError("MCP connection metadata has no workspaceId", "MCP_CONNECTION_FILE_INVALID", connection)

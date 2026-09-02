@@ -2,6 +2,8 @@
 
 Date: 2026-09-03
 
+> Historical candidate status: this exact binary completed the P0 replay below, but later PR review identified token-expiry renewal and SDK loopback-URL parsing hardening. Those fixes change the deliverable, so `29005125` is now superseded evidence rather than the final merge candidate. The installed-product gates remain blocked until the post-review exact candidate is rebuilt and replayed.
+
 ## Candidate identity
 
 - Binary source commit: `29005125cacb888591a126af9487764b6633df0d`

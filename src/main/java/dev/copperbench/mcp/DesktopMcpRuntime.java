@@ -31,6 +31,9 @@ import java.time.Instant;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -40,30 +43,44 @@ public final class DesktopMcpRuntime implements AutoCloseable {
 	private static final Logger LOG = LogManager.getLogger(DesktopMcpRuntime.class);
 	private static final Gson JSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 	private static final Duration TOKEN_TTL = Duration.ofHours(12);
+	private static final Duration TOKEN_RENEWAL_LEAD = Duration.ofMinutes(5);
 
 	private final UUID workspaceId;
 	private final PermissionProfile permissionProfile;
 	private final Path connectionFile;
 	private final WorkspaceTokenService tokens;
-	private final WorkspaceToken token;
+	private final Clock clock;
+	private final AtomicReference<WorkspaceToken> activeToken;
 	private final CopperbenchMcpServer server;
 	private final String endpoint;
 	private final String failure;
 	private final AtomicReference<String> oneTimeToken;
+	private final ScheduledExecutorService tokenRenewal;
 	private final AtomicBoolean closed = new AtomicBoolean(false);
 
 	private DesktopMcpRuntime(UUID workspaceId, PermissionProfile permissionProfile, Path connectionFile,
 			WorkspaceTokenService tokens, WorkspaceToken token, CopperbenchMcpServer server, String endpoint,
-			String failure) {
+			Clock clock, String failure) {
 		this.workspaceId = workspaceId;
 		this.permissionProfile = permissionProfile;
 		this.connectionFile = connectionFile;
 		this.tokens = tokens;
-		this.token = token;
+		this.clock = clock;
+		this.activeToken = new AtomicReference<>(token);
 		this.server = server;
 		this.endpoint = endpoint;
 		this.failure = failure;
 		this.oneTimeToken = new AtomicReference<>(token == null ? null : token.value());
+		if (token == null) {
+			this.tokenRenewal = null;
+		} else {
+			this.tokenRenewal = Executors.newSingleThreadScheduledExecutor(runnable -> {
+				Thread thread = new Thread(runnable, "Copperbench-MCP-token-renewal-" + workspaceId);
+				thread.setDaemon(true);
+				return thread;
+			});
+			this.tokenRenewal.scheduleWithFixedDelay(this::renewTokenSafely, 1, 1, TimeUnit.MINUTES);
+		}
 	}
 
 	public static DesktopMcpRuntime start(Path workspaceRoot, UUID workspaceId, McpWorkspaceEntryAdapter adapter,
@@ -81,7 +98,8 @@ public final class DesktopMcpRuntime implements AutoCloseable {
 					new AssetWorkspaceService(root));
 			String endpoint = "http://127.0.0.1:" + server.address().getPort() + "/mcp";
 			writeConnectionFile(connectionFile, endpoint, workspaceId, permission, token.expiresAt());
-			return new DesktopMcpRuntime(workspaceId, permission, connectionFile, tokens, token, server, endpoint, null);
+			return new DesktopMcpRuntime(workspaceId, permission, connectionFile, tokens, token, server, endpoint, clock,
+					null);
 		} catch (Exception exception) {
 			if (server != null) {
 				try {
@@ -97,18 +115,21 @@ public final class DesktopMcpRuntime implements AutoCloseable {
 				exception.addSuppressed(cleanupFailure);
 			}
 			LOG.error("Could not start desktop MCP for workspace {}", workspaceId, exception);
-			return new DesktopMcpRuntime(workspaceId, permission, connectionFile, tokens, null, null, null,
+			return new DesktopMcpRuntime(workspaceId, permission, connectionFile, tokens, null, null, null, clock,
 					exception.getClass().getSimpleName() + ": " + exception.getMessage());
 		}
 	}
 
 	public RuntimeState state() {
+		renewTokenIfNeeded();
+		WorkspaceToken token = activeToken.get();
 		return new RuntimeState(server != null && !closed.get() ? "listening" : "not_started", endpoint, workspaceId,
 				permissionProfile, token == null ? null : token.expiresAt(), oneTimeToken.get() != null, failure);
 	}
 
 	public Optional<String> revealTokenOnce() {
 		if (closed.get()) return Optional.empty();
+		renewTokenIfNeeded();
 		return Optional.ofNullable(oneTimeToken.getAndSet(null));
 	}
 
@@ -118,8 +139,9 @@ public final class DesktopMcpRuntime implements AutoCloseable {
 
 	@Override public void close() {
 		if (!closed.compareAndSet(false, true)) return;
+		if (tokenRenewal != null) tokenRenewal.shutdownNow();
 		oneTimeToken.set(null);
-		if (token != null) tokens.revoke(token.value());
+		activeToken.set(null);
 		tokens.revokeWorkspace(workspaceId);
 		RuntimeException failure = null;
 		if (server != null) {
@@ -136,6 +158,30 @@ public final class DesktopMcpRuntime implements AutoCloseable {
 			else failure.addSuppressed(exception);
 		}
 		if (failure != null) throw failure;
+	}
+
+	private void renewTokenSafely() {
+		try {
+			renewTokenIfNeeded();
+		} catch (RuntimeException exception) {
+			LOG.warn("Could not renew desktop MCP token for workspace {}", workspaceId, exception);
+		}
+	}
+
+	private synchronized void renewTokenIfNeeded() {
+		if (closed.get() || server == null) return;
+		WorkspaceToken current = activeToken.get();
+		if (current == null || clock.instant().isBefore(current.expiresAt().minus(TOKEN_RENEWAL_LEAD))) return;
+
+		WorkspaceToken replacement = tokens.issue(workspaceId, permissionProfile);
+		try {
+			writeConnectionFile(connectionFile, endpoint, workspaceId, permissionProfile, replacement.expiresAt());
+		} catch (Exception exception) {
+			tokens.revoke(replacement.value());
+			throw new IllegalStateException("Could not publish renewed MCP connection metadata", exception);
+		}
+		activeToken.set(replacement);
+		oneTimeToken.set(replacement.value());
 	}
 
 	private static void writeConnectionFile(Path connectionFile, String endpoint, UUID workspaceId,

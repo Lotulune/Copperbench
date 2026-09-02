@@ -31,6 +31,7 @@ import java.nio.file.Path;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.UUID;
@@ -97,6 +98,36 @@ class DesktopMcpRuntimeTest {
 		}
 	}
 
+	@Test void desktopRuntimeRenewsCredentialsBeforeExpiryWithoutRestartingTheWorkspace() throws Exception {
+		Files.writeString(workspace.resolve("workspace.mcreator"), "{\"name\":\"Desktop MCP Workspace\"}");
+		MutableClock clock = new MutableClock(Instant.parse("2026-09-02T03:00:00Z"));
+		try (LocalHistoryService history = JGitLocalHistoryService.open(workspace, clock);
+				DesktopMcpRuntime runtime = DesktopMcpRuntime.start(workspace, WORKSPACE_ID, adapter(history), clock)) {
+			var initialState = runtime.state();
+			String initialToken = runtime.revealTokenOnce().orElseThrow();
+			Instant initialExpiry = initialState.expiresAt();
+
+			clock.advance(Duration.ofHours(11).plusMinutes(56));
+			var renewedState = runtime.state();
+			assertEquals("listening", renewedState.status());
+			assertTrue(renewedState.expiresAt().isAfter(initialExpiry));
+			assertTrue(renewedState.tokenAvailable());
+			String renewedToken = runtime.revealTokenOnce().orElseThrow();
+			assertFalse(initialToken.equals(renewedToken));
+
+			JsonObject connection = JsonParser.parseString(Files.readString(
+					workspace.resolve(".copperbench/mcp-connection.json"))).getAsJsonObject();
+			assertEquals(renewedState.expiresAt().toString(), connection.get("expiresAt").getAsString());
+			URI endpoint = URI.create(renewedState.url());
+			assertEquals(200, post(endpoint, initializeBody(), initialToken, null).statusCode(),
+					"the previous credential must remain valid during the renewal overlap");
+
+			clock.advance(Duration.ofMinutes(5));
+			assertEquals(401, post(endpoint, initializeBody(), initialToken, null).statusCode());
+			assertEquals(200, post(endpoint, initializeBody(), renewedToken, null).statusCode());
+		}
+	}
+
 	private static HttpResponse<String> post(URI endpoint, String body, String token, String sessionId)
 			throws Exception {
 		HttpRequest.Builder request = HttpRequest.newBuilder(endpoint).timeout(Duration.ofSeconds(10))
@@ -133,5 +164,29 @@ class DesktopMcpRuntimeTest {
 				dev.copperbench.core.application.WorkspaceMutationGateway.noOp(), history,
 				ignored -> store.read(WORKSPACE_ID).orElseThrow().copy(), CLOCK, ids);
 		return new McpWorkspaceEntryAdapter(service, PermissionProfile.WORKSPACE);
+	}
+
+	private static final class MutableClock extends Clock {
+		private volatile Instant instant;
+
+		private MutableClock(Instant instant) {
+			this.instant = instant;
+		}
+
+		private void advance(Duration duration) {
+			instant = instant.plus(duration);
+		}
+
+		@Override public ZoneId getZone() {
+			return ZoneOffset.UTC;
+		}
+
+		@Override public Clock withZone(ZoneId zone) {
+			return this;
+		}
+
+		@Override public Instant instant() {
+			return instant;
+		}
 	}
 }

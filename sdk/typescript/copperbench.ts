@@ -238,7 +238,28 @@ export function readWorkspaceConnection(workspacePath: string): WorkspaceConnect
   if (connection.schemaVersion !== '1.0' || connection.status !== 'listening') {
     throw new CopperbenchError('MCP connection metadata is not a listening v1.0 endpoint', 'MCP_CONNECTION_FILE_INVALID', connection);
   }
-  if (typeof connection.url !== 'string' || !connection.url.startsWith('http://127.0.0.1:') || !connection.url.endsWith('/mcp')) {
+  let parsedUrl: URL | null = null;
+  if (typeof connection.url === 'string') {
+    try {
+      parsedUrl = new URL(connection.url);
+    } catch {
+      parsedUrl = null;
+    }
+  }
+  const port = parsedUrl?.port ? Number.parseInt(parsedUrl.port, 10) : Number.NaN;
+  if (
+    !parsedUrl
+    || parsedUrl.protocol !== 'http:'
+    || parsedUrl.hostname !== '127.0.0.1'
+    || !Number.isInteger(port)
+    || port < 1
+    || port > 65535
+    || parsedUrl.username !== ''
+    || parsedUrl.password !== ''
+    || parsedUrl.pathname !== '/mcp'
+    || parsedUrl.search !== ''
+    || parsedUrl.hash !== ''
+  ) {
     throw new CopperbenchError('MCP connection URL must be a loopback /mcp endpoint', 'MCP_CONNECTION_FILE_INVALID', connection);
   }
   if (typeof connection.workspaceId !== 'string' || !connection.workspaceId) {
