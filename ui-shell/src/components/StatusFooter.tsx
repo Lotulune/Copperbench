@@ -23,7 +23,9 @@ export const StatusFooter: React.FC = () => {
     bridge: 'ready'
   };
 
-  const permission = mcp?.permissionProfile ?? 'workspace';
+  const permission = mcp?.status === 'listening'
+    ? mcp.permissionProfile
+    : state.workbench?.permission.profile ?? mcp?.permissionProfile ?? 'workspace';
   const activeTasks = state.workbench?.activeTasks ?? [];
   const runningTask = activeTasks.find((t) => t.state === 'running' || t.state === 'queued');
 
@@ -146,7 +148,7 @@ export const StatusFooter: React.FC = () => {
           data-testid="permission-alert"
         >
           <Shield size={11} />
-          <span style={{ fontWeight: 600 }}>MCP: {mcp?.status === 'listening' ? permission.toUpperCase() : 'OFFLINE'}</span>
+          <span style={{ fontWeight: 600 }}>MCP: {permission.toUpperCase()}</span>
         </div>
       </div>
     </footer>

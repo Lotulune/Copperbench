@@ -9,6 +9,7 @@
 
 package dev.copperbench.generator.neoforge;
 
+import dev.copperbench.generator.BundledJdkLocator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -24,7 +25,8 @@ class NeoForge1211GeneratorTest {
 	@TempDir Path output;
 
 	@Test void generatesTheParityBlockItemRecipeProcedureAndResources() throws Exception {
-		var generator = new NeoForge1211Generator(Path.of(".").toAbsolutePath().normalize());
+		Path distribution = Path.of(".").toAbsolutePath().normalize();
+		var generator = new NeoForge1211Generator(distribution);
 
 		var result = generator.generate(output, NeoForge1211GoldenWorkspace.create());
 
@@ -39,7 +41,8 @@ class NeoForge1211GeneratorTest {
 		assertTrue(Files.readString(output.resolve("build.gradle")).contains("net.neoforged.moddev"));
 		String properties = Files.readString(output.resolve("gradle.properties"));
 		assertTrue(properties.contains("neoforge_version=21.1.232"));
-		assertTrue(properties.contains("jdk/jdk21_win_64"));
+		String expectedJdk = BundledJdkLocator.locate(distribution, 21).toString().replace('\\', '/');
+		assertTrue(properties.contains("org.gradle.java.installations.paths=" + expectedJdk));
 		assertTrue(Files.readString(output.resolve("settings.gradle"))
 				.contains("org.gradle.toolchains.foojay-resolver-convention"));
 		assertTrue(Files.readString(output.resolve("gradle/wrapper/gradle-wrapper.properties"))

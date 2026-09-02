@@ -133,7 +133,8 @@ class Fabric1211TaskGatewayTest {
 			assertEquals("failed", projection.getAsJsonObject("task").get("state").getAsString());
 			String diagnostics = projection.getAsJsonArray("diagnostics").toString();
 			assertTrue(diagnostics.contains("BUNDLED_JDK_MISSING"));
-			assertTrue(diagnostics.contains("distribution\\\\jdk"));
+			String expectedJdkPath = distribution.resolve("jdk").toString().replace("\\", "\\\\");
+			assertTrue(diagnostics.contains(expectedJdkPath));
 			assertTrue(diagnostics.contains("jdk21_win_64"));
 			assertTrue(diagnostics.contains("not-a-java-home"));
 			assertTrue(projection.getAsJsonArray("logs").toString().contains("No usable Java home found"));
