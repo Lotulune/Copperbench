@@ -410,6 +410,43 @@ class WorkspacePersistenceCompatibilityTest {
 		}
 	}
 
+	@Test void minimalAgentItemAndProjectilePersistThroughRealFabricGeneration() throws Exception {
+		WorkspaceSettings settings = new WorkspaceSettings("agent_generation_defaults");
+		settings.setModName("Agent Generation Defaults");
+		settings.setVersion("1.0.0");
+		settings.setCurrentGenerator("fabric-26.1.2");
+		Workspace workspace = Workspace.createWorkspace(
+				temporaryDirectory.resolve("agent_generation_defaults.mcreator").toFile(), settings);
+		UUID workspaceId = UUID.fromString("11111111-1111-4111-8111-111111111183");
+		AtomicLong sequence = new AtomicLong(4000);
+		java.util.function.Supplier<UUID> ids = () -> uuid(sequence.incrementAndGet());
+		try (MCreatorWorkspaceSession session = MCreatorWorkspaceSession.attach(workspace, workspaceId,
+				new InMemoryWorkspaceTaskGateway(Clock.systemUTC(), ids), Clock.systemUTC(), ids)) {
+			Files.createDirectories(workspace.getGenerator().getSourceRoot().toPath());
+			var entry = session.headlessEntry(PermissionProfile.WORKSPACE);
+			long revision = 0;
+
+			for (String type : List.of("item", "projectile")) {
+				JsonObject payload = new JsonObject();
+				payload.addProperty("clientMutationId", ids.get().toString());
+				payload.addProperty("elementType", type);
+				payload.addProperty("name", "agent_" + type);
+				JsonObject values = new JsonObject();
+				if (type.equals("item")) values.addProperty("displayName", "Agent Item");
+				payload.add("initialValues", values);
+
+				var created = entry.execute(Command.of(ids.get(), workspaceId, revision,
+						Operation.CREATE_MOD_ELEMENT, payload));
+				assertEquals("committed", created.result().status(),
+						() -> type + ": " + created.result().diagnostics());
+				revision++;
+				assertNotNull(workspace.getModElementByName("agent_" + type));
+			}
+		} finally {
+			workspace.close();
+		}
+	}
+
 	@Test void invalidGeneratedElementIsRejectedAndRolledBackInsteadOfSilentlyPersisted() throws Exception {
 		WorkspaceSettings settings = new WorkspaceSettings("invalid_generation_rollback");
 		settings.setModName("Invalid Generation Rollback");

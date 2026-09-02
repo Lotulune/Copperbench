@@ -32,7 +32,7 @@ export const AIControlView: React.FC = () => {
 
   const copyText = async (text: string, message: string) => {
     try {
-      await navigator.clipboard.writeText(text);
+      await mcpRuntimeBridge.copyText(text);
       setStatus(message);
     } catch {
       setStatus('复制失败，请手动选择文本');

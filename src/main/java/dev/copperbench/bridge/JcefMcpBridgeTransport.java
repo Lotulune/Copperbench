@@ -21,6 +21,8 @@ import org.cef.callback.CefQueryCallback;
 import org.cef.handler.CefMessageRouterHandlerAdapter;
 
 import java.io.Closeable;
+import java.awt.Toolkit;
+import java.awt.datatransfer.StringSelection;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -74,13 +76,15 @@ public final class JcefMcpBridgeTransport extends CefMessageRouterHandlerAdapter
 		}
 		try {
 			JsonObject payload = JsonParser.parseString(request.substring(QUERY_PREFIX.length())).getAsJsonObject();
-			requireOnly(payload, Set.of("operation"));
+			requireOperation(payload);
 			String operation = payload.get("operation").getAsString();
 			if (operation.equals("get_state")) {
+				requireOnly(payload, Set.of("operation"));
 				callback.success(JSON.toJson(runtime.state().toJson()));
 				return true;
 			}
 			if (operation.equals("reveal_token_once")) {
+				requireOnly(payload, Set.of("operation"));
 				var token = runtime.revealTokenOnce();
 				if (token.isEmpty()) {
 					callback.failure(410, "MCP token is unavailable or was already revealed");
@@ -89,6 +93,17 @@ public final class JcefMcpBridgeTransport extends CefMessageRouterHandlerAdapter
 				JsonObject response = new JsonObject();
 				response.addProperty("token", token.get());
 				callback.success(JSON.toJson(response));
+				return true;
+			}
+			if (operation.equals("copy_text")) {
+				requireOnly(payload, Set.of("operation", "text"));
+				if (!payload.has("text") || !payload.get("text").isJsonPrimitive())
+					throw new IllegalArgumentException("Missing clipboard text");
+				String text = payload.get("text").getAsString();
+				if (text.length() > 16_384)
+					throw new IllegalArgumentException("Clipboard text is too large");
+				Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(text), null);
+				callback.success("{}");
 				return true;
 			}
 			callback.failure(400, "Unknown MCP runtime operation");
@@ -137,15 +152,34 @@ public final class JcefMcpBridgeTransport extends CefMessageRouterHandlerAdapter
 				                    }
 				                });
 				            });
+				        },
+				        copyText: function(text) {
+				            return new Promise(function(resolve, reject) {
+				                if (typeof window.cefQuery !== 'function') {
+				                    reject(new Error('JCEF MCP runtime transport is not available'));
+				                    return;
+				                }
+				                window.cefQuery({
+				                    request: %s + JSON.stringify({ operation: 'copy_text', text: String(text) }),
+				                    persistent: false,
+				                    onSuccess: function() { resolve(); },
+				                    onFailure: function(code, message) {
+				                        reject(new Error('Native clipboard copy failed [' + code + ']: ' + message));
+				                    }
+				                });
+				            });
 				        }
 				    };
 				})();
-				""".formatted(JSON.toJson(QUERY_PREFIX), JSON.toJson(QUERY_PREFIX));
+				""".formatted(JSON.toJson(QUERY_PREFIX), JSON.toJson(QUERY_PREFIX), JSON.toJson(QUERY_PREFIX));
+	}
+
+	private static void requireOperation(JsonObject payload) {
+		if (!payload.has("operation") || !payload.get("operation").isJsonPrimitive())
+			throw new IllegalArgumentException("Missing MCP runtime operation");
 	}
 
 	private static void requireOnly(JsonObject payload, Set<String> allowed) {
-		if (!payload.has("operation") || !payload.get("operation").isJsonPrimitive())
-			throw new IllegalArgumentException("Missing MCP runtime operation");
 		if (payload.keySet().stream().anyMatch(key -> !allowed.contains(key)))
 			throw new IllegalArgumentException("Unknown MCP runtime property");
 	}

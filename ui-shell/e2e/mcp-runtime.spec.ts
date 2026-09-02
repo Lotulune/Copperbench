@@ -21,7 +21,9 @@ test.describe('Desktop MCP runtime state', () => {
           available: boolean;
           getState: () => Promise<unknown>;
           revealTokenOnce: () => Promise<{ token: string }>;
+          copyText: (text: string) => Promise<void>;
         };
+        __COPPERBENCH_TEST_CLIPBOARD__?: string;
       }).__COPPERBENCH_MCP_HOST__ = {
         available: true,
         getState: async () => ({
@@ -36,6 +38,9 @@ test.describe('Desktop MCP runtime state', () => {
         revealTokenOnce: async () => {
           tokenAvailable = false;
           return { token: 'one-time-test-token' };
+        },
+        copyText: async (text: string) => {
+          (window as unknown as { __COPPERBENCH_TEST_CLIPBOARD__?: string }).__COPPERBENCH_TEST_CLIPBOARD__ = text;
         }
       };
     });
@@ -55,5 +60,13 @@ test.describe('Desktop MCP runtime state', () => {
     await reveal.click();
     await expect(page.getByText('one-time-test-token', { exact: true })).toBeVisible();
     await expect(reveal).toBeDisabled();
+
+    await page.getByRole('button', { name: '复制配置' }).click();
+    await expect(page.getByText('已复制 MCP 配置信息', { exact: true })).toBeVisible();
+    const copied = await page.evaluate(() =>
+      (window as unknown as { __COPPERBENCH_TEST_CLIPBOARD__?: string }).__COPPERBENCH_TEST_CLIPBOARD__ ?? '');
+    expect(copied).toContain('URL: http://127.0.0.1:43123/mcp');
+    expect(copied).toContain('Authorization: Bearer one-time-test-token');
+    expect(copied).toContain('workspaceId: 11111111-1111-4111-8111-111111111111');
   });
 });

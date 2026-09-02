@@ -15,14 +15,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class JcefMcpBridgeTransportTest {
 
-	@Test void bootstrapExposesRuntimeStateAndOneTimeTokenOperations() {
+	@Test void bootstrapExposesRuntimeStateTokenAndNativeClipboardOperations() {
 		String script = JcefMcpBridgeTransport.generateBootstrapScript();
 
 		assertTrue(script.contains("__COPPERBENCH_MCP_HOST__"));
 		assertTrue(script.contains("getState"));
 		assertTrue(script.contains("revealTokenOnce"));
+		assertTrue(script.contains("copyText"));
 		assertTrue(script.contains("copperbench:mcp-runtime:"));
 		assertTrue(script.contains("get_state"));
 		assertTrue(script.contains("reveal_token_once"));
+		assertTrue(script.contains("copy_text"));
 	}
 }
