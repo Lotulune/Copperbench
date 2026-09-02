@@ -1,9 +1,12 @@
-import { CopperbenchClient } from '../../sdk/typescript/copperbench.js';
+import { CopperbenchClient, readWorkspaceConnection } from '../../sdk/typescript/copperbench.js';
 
+const workspacePath = process.env.COPPERBENCH_WORKSPACE ?? '';
+if (!workspacePath) throw new Error('COPPERBENCH_WORKSPACE must point to the workspace folder or .mcreator file');
+const connection = readWorkspaceConnection(workspacePath);
 const client = new CopperbenchClient({
-  endpoint: process.env.COPPERBENCH_MCP_URL ?? 'http://127.0.0.1:8787/mcp',
+  endpoint: process.env.COPPERBENCH_MCP_URL ?? connection.url,
   token: process.env.COPPERBENCH_TOKEN ?? '',
-  workspaceId: process.env.COPPERBENCH_WORKSPACE_ID ?? ''
+  workspaceId: process.env.COPPERBENCH_WORKSPACE_ID ?? connection.workspaceId
 });
 
 await client.initialize();

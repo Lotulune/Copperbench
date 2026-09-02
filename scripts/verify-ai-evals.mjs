@@ -6,6 +6,8 @@ const manifestPath = path.join(root, 'sdk', 'evals', 'manifest.json');
 const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
 const typescriptSdk = fs.readFileSync(path.join(root, 'sdk', 'typescript', 'copperbench.ts'), 'utf8');
 const pythonSdk = fs.readFileSync(path.join(root, 'sdk', 'python', 'copperbench.py'), 'utf8');
+const typescriptQuickstart = fs.readFileSync(path.join(root, 'examples', 'ai', 'quickstart.ts'), 'utf8');
+const pythonQuickstart = fs.readFileSync(path.join(root, 'examples', 'ai', 'quickstart.py'), 'utf8');
 if (manifest.schemaVersion !== '1.0' || !Array.isArray(manifest.cases)) {
   throw new Error('AI eval manifest must use schemaVersion 1.0 and contain cases');
 }
@@ -49,6 +51,20 @@ const missingPythonMethods = requiredPythonMethods.filter((method) => !pythonSdk
 if (missingPythonMethods.length) throw new Error(`Python SDK is missing methods: ${missingPythonMethods.join(', ')}`);
 if (!typescriptSdk.includes('maxTransportRetries') || !pythonSdk.includes('max_transport_retries')) {
   throw new Error('SDKs must implement bounded transport retry configuration');
+}
+if (!typescriptSdk.includes('readWorkspaceConnection(') || !typescriptSdk.includes('fromWorkspace(')) {
+  throw new Error('TypeScript SDK must discover the desktop MCP endpoint from workspace connection metadata');
+}
+if (!pythonSdk.includes('def read_workspace_connection(') || !pythonSdk.includes('def from_workspace(')) {
+  throw new Error('Python SDK must discover the desktop MCP endpoint from workspace connection metadata');
+}
+for (const [name, quickstart] of [['TypeScript', typescriptQuickstart], ['Python', pythonQuickstart]]) {
+  if (!quickstart.includes('COPPERBENCH_WORKSPACE')) {
+    throw new Error(`${name} quickstart must accept a workspace path for desktop MCP discovery`);
+  }
+  if (quickstart.includes('127.0.0.1:8787')) {
+    throw new Error(`${name} quickstart must not assume the legacy fixed MCP port 8787`);
+  }
 }
 for (const liveFile of ['scripts/run-ai-live-evals.py', 'scripts/verify-ai-live-evals.ps1']) {
   if (!fs.existsSync(path.join(root, liveFile))) throw new Error(`AI live eval runner is missing: ${liveFile}`);

@@ -9,6 +9,7 @@
 
 package dev.copperbench.release;
 
+import dev.copperbench.generator.BundledJdkLocator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Assumptions;
 
@@ -16,6 +17,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class WindowsDistributionLayoutTest {
@@ -42,11 +44,20 @@ class WindowsDistributionLayoutTest {
 		Assumptions.assumeTrue(Files.isDirectory(win64), "Windows export has not been built in this checkout");
 		assertTrue(WindowsDistributionLayout.missing(win64).isEmpty(),
 				() -> "Missing: " + WindowsDistributionLayout.missing(win64));
+		assertEquals(win64.toAbsolutePath().normalize().resolve("jdk"),
+				BundledJdkLocator.locate(win64, 25));
 		assertFalse(Files.exists(win64.resolve("mcreator.exe")));
 		var missingPlugins = BundledPluginInventory.FIRST_PARTY.stream()
 				.map(plugin -> "plugins/" + plugin.packageName() + ".zip")
 				.filter(path -> !Files.isRegularFile(win64.resolve(path))).toList();
 		Assumptions.assumeTrue(missingPlugins.isEmpty(),
 				"Stale Windows export is missing rebuilt plugin zips: " + missingPlugins);
+	}
+
+	@Test void releaseMetadataDistinguishesInstalledAndSourceTreeJdkLayouts() {
+		var bundledJdk = WindowsDistributionLayout.toJson().getAsJsonObject("bundledJdk");
+		assertEquals("jdk", bundledJdk.get("installed").getAsString());
+		assertEquals("jdk/jbr25_win_64", bundledJdk.get("sourceTreeJava25").getAsString());
+		assertEquals("jdk/jdk21_win_64", bundledJdk.get("sourceTreeJava21").getAsString());
 	}
 }

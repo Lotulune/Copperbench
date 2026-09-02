@@ -14,6 +14,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import dev.copperbench.core.workspace.WorkspaceState;
 import dev.copperbench.core.workspace.WorkspaceState.Element;
+import dev.copperbench.generator.BundledJdkLocator;
 import dev.copperbench.generator.GradleWorkspaceBackend;
 import dev.copperbench.generator.PluginWorkspaceLayout;
 import dev.copperbench.generator.fabric.Fabric1211Generator;
@@ -29,6 +30,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Supplier;
 
 /** Generates the maintained NeoForge 1.21.1 workspace projection through the shared all-type generator path. */
 public final class NeoForge1211Generator implements GradleWorkspaceBackend {
@@ -79,14 +81,20 @@ public final class NeoForge1211Generator implements GradleWorkspaceBackend {
 	private final Path distributionRoot;
 	private final Fabric1211Generator commonGenerator;
 	private final Profile profile;
+	private final Supplier<Path> javaHome;
 
 	public NeoForge1211Generator(Path distributionRoot) {
 		this(distributionRoot, Profile.NEOFORGE_1211);
 	}
 
 	public NeoForge1211Generator(Path distributionRoot, Profile profile) {
+		this(distributionRoot, profile, () -> BundledJdkLocator.locate(distributionRoot, profile.javaRelease()));
+	}
+
+	public NeoForge1211Generator(Path distributionRoot, Profile profile, Supplier<Path> javaHome) {
 		this.distributionRoot = Objects.requireNonNull(distributionRoot).toAbsolutePath().normalize();
 		this.profile = Objects.requireNonNull(profile);
+		this.javaHome = Objects.requireNonNull(javaHome);
 		this.commonGenerator = new Fabric1211Generator(this.distributionRoot, profile.fabricProfile());
 	}
 
@@ -244,7 +252,7 @@ public final class NeoForge1211Generator implements GradleWorkspaceBackend {
 				mod_version=%s
 				maven_group=%s
 				mod_id=%s
-				""".formatted(distributionRoot.resolve(profile.jdkRelativePath()).toString().replace('\\', '/'),
+				""".formatted(javaHome.get().toAbsolutePath().normalize().toString().replace('\\', '/'),
 				ngCache, profile.minecraftVersion(), profile.neoForgeVersion(), profile.moddevVersion(),
 				descriptor.version(), descriptor.basePackage(), descriptor.modId()), generated);
 

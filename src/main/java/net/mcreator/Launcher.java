@@ -18,6 +18,7 @@
 
 package net.mcreator;
 
+import dev.copperbench.headless.HeadlessProductLauncher;
 import dev.copperbench.ProductIdentity;
 import dev.copperbench.release.SupportedPlatform;
 import net.mcreator.io.LoggingSystem;
@@ -33,6 +34,11 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
+import java.io.FileDescriptor;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Properties;
@@ -42,7 +48,14 @@ public class Launcher {
 	public static MCreatorVersionNumber version;
 
 	public static void main(String[] args) {
+		boolean headless = args.length > 0 && "headless".equalsIgnoreCase(args[0]);
+		PrintWriter headlessOutput = headless ? new PrintWriter(
+				new OutputStreamWriter(new FileOutputStream(FileDescriptor.out), StandardCharsets.UTF_8), true) : null;
+		if (headless)
+			System.setProperty("java.awt.headless", "true");
 		LoggingSystem.init();
+		if (headless)
+			LoggingSystem.disableConsoleOutput();
 
 		TerribleModuleHacks.openAllFor(ClassLoader.getSystemClassLoader().getUnnamedModule());
 		TerribleModuleHacks.openMCreatorRequirements();
@@ -98,6 +111,12 @@ public class Launcher {
 		WindowsPackage.initIfWindows();
 
 		if (!UserFolderManager.createUserFolderIfNotExists()) {
+			if (headless) {
+				headlessOutput.println("{\"schemaVersion\":\"1.0\",\"operation\":\"headless_product_start\","
+						+ "\"status\":\"failed\",\"code\":\"USER_DIRECTORY_UNAVAILABLE\",\"exitCode\":10}");
+				System.exit(10);
+				return;
+			}
 			JOptionPane.showMessageDialog(null,
 					"<html><b>" + ProductIdentity.NAME + " failed to write to the user directory!</b><br><br>"
 							+ "Make sure the current user can read and write the application data directory:<br><br>"
@@ -105,6 +124,13 @@ public class Launcher {
 					ProductIdentity.NAME + " file system error",
 					JOptionPane.WARNING_MESSAGE);
 			System.exit(-2);
+		}
+
+		if (headless) {
+			int exitCode = HeadlessProductLauncher.run(Arrays.copyOfRange(args, 1, args.length),
+					headlessOutput);
+			System.exit(exitCode);
+			return;
 		}
 
 		MCreatorApplication.createApplication(Arrays.asList(args));

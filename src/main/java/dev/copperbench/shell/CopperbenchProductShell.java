@@ -16,12 +16,14 @@ import dev.copperbench.bridge.JcefBlockbenchBridgeTransport;
 import dev.copperbench.bridge.JcefCoreBridgeTransport;
 import dev.copperbench.bridge.JcefDiagnosticsBridgeTransport;
 import dev.copperbench.bridge.JcefLegacyPluginBridgeTransport;
+import dev.copperbench.bridge.JcefMcpBridgeTransport;
 import dev.copperbench.bridge.JcefWindowBridgeTransport;
 import dev.copperbench.bridge.JcefWorkspaceOpenBridgeTransport;
 import dev.copperbench.core.workspace.mcreator.MCreatorWorkspaceSession;
 import dev.copperbench.core.contract.UiCore;
 import dev.copperbench.diagnostics.DiagnosticBundleService;
 import dev.copperbench.generator.LoaderRoutingWorkspaceTaskGateway;
+import dev.copperbench.mcp.DesktopMcpRuntime;
 import dev.copperbench.window.WindowsWindowChromeController;
 import net.mcreator.ui.chromium.WebView;
 import net.mcreator.io.UserFolderManager;
@@ -44,6 +46,7 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 	public static final String UI_URL = "http://mcreator/copperbench/ui/index.html";
 
 	private final MCreatorWorkspaceSession session;
+	private final DesktopMcpRuntime mcpRuntime;
 	private final RecoverableBrowserHost browserHost;
 	private final AtomicBoolean closed = new AtomicBoolean(false);
 
@@ -59,17 +62,21 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 				store -> new LoaderRoutingWorkspaceTaskGateway(store,
 				ignored -> workspace.getWorkspaceFolder().toPath(), distributionRoot, clock, UUID::randomUUID),
 				clock, UUID::randomUUID);
-		RecoverableBrowserHost createdBrowserHost;
 		Path workspaceRoot = workspace.getWorkspaceFolder().toPath().toAbsolutePath().normalize();
+		DesktopMcpRuntime createdMcpRuntime = DesktopMcpRuntime.start(workspaceRoot, createdSession.workspaceId(),
+				createdSession.mcpEntry(UiCore.PermissionProfile.WORKSPACE), clock);
+		RecoverableBrowserHost createdBrowserHost;
 		try {
 			createdBrowserHost = new RecoverableBrowserHost(
 					() -> createBrowser(createdSession, owner, closeAction, openLegacyPluginWindow,
-							openWorkspaceAction, windowChromeController, workspaceRoot), closeAction);
+							openWorkspaceAction, windowChromeController, workspaceRoot, createdMcpRuntime), closeAction);
 		} catch (RuntimeException exception) {
+			createdMcpRuntime.close();
 			createdSession.close();
 			throw exception;
 		}
 		this.session = createdSession;
+		this.mcpRuntime = createdMcpRuntime;
 		this.browserHost = createdBrowserHost;
 		add(browserHost, BorderLayout.CENTER);
 	}
@@ -94,13 +101,30 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 	@Override public void close() {
 		if (!closed.compareAndSet(false, true))
 			return;
-		browserHost.close();
-		session.close();
+		RuntimeException failure = null;
+		try {
+			browserHost.close();
+		} catch (RuntimeException exception) {
+			failure = exception;
+		}
+		try {
+			mcpRuntime.close();
+		} catch (RuntimeException exception) {
+			if (failure == null) failure = exception;
+			else failure.addSuppressed(exception);
+		}
+		try {
+			session.close();
+		} catch (RuntimeException exception) {
+			if (failure == null) failure = exception;
+			else failure.addSuppressed(exception);
+		}
+		if (failure != null) throw failure;
 	}
 
 	private static RecoverableBrowserHost.BrowserHandle createBrowser(MCreatorWorkspaceSession session, JFrame owner,
 			Runnable closeAction, Runnable openLegacyPluginWindow, Consumer<File> openWorkspaceAction,
-			WindowsWindowChromeController windowChromeController, Path workspaceRoot) {
+			WindowsWindowChromeController windowChromeController, Path workspaceRoot, DesktopMcpRuntime mcpRuntime) {
 		WebView webView = new WebView(UI_URL);
 		JcefCoreBridgeTransport coreTransport = null;
 		JcefWindowBridgeTransport windowTransport = null;
@@ -108,6 +132,7 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 		JcefBlockbenchBridgeTransport blockbenchTransport = null;
 		JcefWorkspaceOpenBridgeTransport workspaceOpenTransport = null;
 		JcefDiagnosticsBridgeTransport diagnosticsTransport = null;
+		JcefMcpBridgeTransport mcpTransport = null;
 		try {
 			coreTransport = webView.attachCoreBridge(session.workspaceId(), session.uiEntry());
 			windowTransport = windowChromeController != null
@@ -121,6 +146,7 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 			diagnosticsTransport = JcefDiagnosticsBridgeTransport.attach(webView,
 					new DiagnosticBundleService(UserFolderManager.getFileFromUserFolder("diagnostics").toPath(),
 							logRoot(), workspaceRoot, () -> diagnosticSnapshot(session), Clock.systemUTC()));
+			mcpTransport = JcefMcpBridgeTransport.attach(webView, mcpRuntime);
 			blockbenchTransport = JcefBlockbenchBridgeTransport.attach(webView,
 					new BlockbenchProcessService(new AssetWorkspaceService(workspaceRoot),
 							BlockbenchExecutableLocator.locate()));
@@ -130,6 +156,7 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 			JcefBlockbenchBridgeTransport attachedBlockbench = blockbenchTransport;
 			JcefWorkspaceOpenBridgeTransport attachedWorkspaceOpen = workspaceOpenTransport;
 			JcefDiagnosticsBridgeTransport attachedDiagnostics = diagnosticsTransport;
+			JcefMcpBridgeTransport attachedMcp = mcpTransport;
 			return new RecoverableBrowserHost.BrowserHandle() {
 				@Override public Component component() {
 					return webView;
@@ -154,6 +181,7 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 
 				@Override public void close() {
 					attachedBlockbench.close();
+					attachedMcp.close();
 					attachedDiagnostics.close();
 					if (attachedWorkspaceOpen != null)
 						attachedWorkspaceOpen.close();
@@ -166,6 +194,8 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 		} catch (RuntimeException exception) {
 			if (blockbenchTransport != null)
 				blockbenchTransport.close();
+			if (mcpTransport != null)
+				mcpTransport.close();
 			if (diagnosticsTransport != null)
 				diagnosticsTransport.close();
 			if (workspaceOpenTransport != null)

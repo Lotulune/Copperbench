@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
-import { Bot, Check, ChevronRight, LockKeyhole, ShieldAlert, ShieldCheck, X } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { Bot, Check, ChevronRight, Clipboard, KeyRound, LockKeyhole, ShieldAlert, ShieldCheck, X } from 'lucide-react';
+import { mcpRuntimeBridge } from '../bridge/mcpRuntimeBridge';
 import { useWorkbench } from '../context/WorkbenchContext';
 import { useDialogA11y } from '../hooks/useDialogA11y';
+import { useMcpRuntimeState } from '../hooks/useMcpRuntimeState';
 import { t } from '../i18n';
 import type { OperationApproval, PermissionProfile } from '../types/contract';
 
@@ -12,11 +14,41 @@ const profiles: { id: PermissionProfile; title: string; desc: string }[] = [
 ];
 
 export const AIControlView: React.FC = () => {
-  const { state, elevatePermission, resolveOperationApproval } = useWorkbench();
-  const profile = state.workbench?.permission?.profile ?? 'workspace';
+  const { state, resolveOperationApproval } = useWorkbench();
+  const { mcp, refresh: refreshMcp } = useMcpRuntimeState();
+  const profile = mcp?.permissionProfile ?? 'workspace';
   const [selected, setSelected] = useState<OperationApproval | null>(null);
   const [status, setStatus] = useState('');
+  const [token, setToken] = useState<string | null>(null);
   const dialogRef = useDialogA11y(!!selected, () => setSelected(null));
+
+  const connectionLabel = mcp?.status === 'listening' ? '服务已启动' : '未启动';
+  const configSnippet = useMemo(() => {
+    if (!mcp?.url) return '';
+    return token
+      ? `URL: ${mcp.url}\nAuthorization: Bearer ${token}\nworkspaceId: ${mcp.workspaceId}`
+      : `URL: ${mcp.url}\nworkspaceId: ${mcp.workspaceId}`;
+  }, [mcp, token]);
+
+  const copyText = async (text: string, message: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setStatus(message);
+    } catch {
+      setStatus('复制失败，请手动选择文本');
+    }
+  };
+
+  const revealToken = async () => {
+    try {
+      const response = await mcpRuntimeBridge.revealTokenOnce();
+      setToken(response.token);
+      await refreshMcp();
+      setStatus('令牌已显示一次；请勿粘贴到聊天或日志');
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : '令牌不可用');
+    }
+  };
 
   const resolve = async (decision: 'approve' | 'deny') => {
     if (!selected) return;
@@ -37,15 +69,50 @@ export const AIControlView: React.FC = () => {
             <span>本地连接 · 审计开启</span>
           </div>
         </div>
-        <span className="connection-state"><span aria-hidden="true" />已连接</span>
+        <span className={`connection-state${mcp?.status === 'listening' ? '' : ' is-offline'}`}>
+          <span aria-hidden="true" />{connectionLabel}
+        </span>
       </header>
 
       <div className="ai-control-layout">
+        <section className="permission-panel" aria-labelledby="mcp-runtime-heading">
+          <div className="stage2-section-heading">
+            <div>
+              <h3 id="mcp-runtime-heading">本机 MCP 服务</h3>
+              <p>{mcp?.status === 'listening' ? '仅监听 127.0.0.1；没有客户端连接时不会显示“已连接”。' : '当前工作区没有可用的 MCP 监听端点。'}</p>
+            </div>
+            <Bot size={18} aria-hidden="true" />
+          </div>
+          <dl className="approval-details">
+            <div><dt>状态</dt><dd>{connectionLabel}</dd></div>
+            <div><dt>地址</dt><dd><code>{mcp?.url ?? '—'}</code></dd></div>
+            <div><dt>工作区</dt><dd><code>{mcp?.workspaceId || '—'}</code></dd></div>
+            <div><dt>权限</dt><dd>{mcp?.permissionProfile ?? 'workspace'}</dd></div>
+            <div><dt>令牌到期</dt><dd>{mcp?.expiresAt ?? '—'}</dd></div>
+          </dl>
+          {mcp?.failure && <div className="stage2-status" role="status">{mcp.failure}</div>}
+          <div className="approval-actions">
+            <button className="btn-secondary" type="button" disabled={!mcp?.url}
+              onClick={() => void copyText(mcp?.url ?? '', '已复制 MCP 地址')}>
+              <Clipboard size={15} aria-hidden="true" />复制 URL
+            </button>
+            <button className="btn-secondary" type="button" disabled={!mcp?.tokenAvailable}
+              onClick={() => void revealToken()}>
+              <KeyRound size={15} aria-hidden="true" />显示一次令牌
+            </button>
+            <button className="btn-secondary" type="button" disabled={!configSnippet}
+              onClick={() => void copyText(configSnippet, '已复制 MCP 配置信息')}>
+              <Clipboard size={15} aria-hidden="true" />复制配置
+            </button>
+          </div>
+          {token && <div className="stage2-status" role="status"><code>{token}</code></div>}
+        </section>
+
         <section className="permission-panel" aria-labelledby="permission-heading">
           <div className="stage2-section-heading">
             <div>
               <h3 id="permission-heading">权限档位</h3>
-              <p>当前工作区令牌在档位变化后自动吊销。</p>
+              <p>显示桌面 MCP runtime 实际签发的权限；当前版本不在前端伪切换令牌权限。</p>
             </div>
             <ShieldCheck size={18} aria-hidden="true" />
           </div>
@@ -58,7 +125,7 @@ export const AIControlView: React.FC = () => {
                   type="button"
                   className={`permission-option${active ? ' is-active' : ''}`}
                   aria-pressed={active}
-                  onClick={() => elevatePermission(item.id)}
+                  disabled
                 >
                   <span>{item.title}</span>
                   <small>{item.desc}</small>

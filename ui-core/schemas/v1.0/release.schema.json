@@ -78,7 +78,16 @@
       "additionalProperties": false,
       "properties": {
         "executable": { "type": "string" },
-        "bundledJdk": { "type": "string" },
+        "bundledJdk": {
+          "type": "object",
+          "required": ["installed", "sourceTreeJava25", "sourceTreeJava21"],
+          "additionalProperties": false,
+          "properties": {
+            "installed": { "type": "string" },
+            "sourceTreeJava25": { "type": "string" },
+            "sourceTreeJava21": { "type": "string" }
+          }
+        },
         "jcefBundledWithJdk": { "type": "boolean" },
         "pluginsDirectory": { "type": "string" },
         "licenseDirectory": { "type": "string" },

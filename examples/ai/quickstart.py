@@ -1,11 +1,13 @@
 import os
 
-from sdk.python.copperbench import CopperbenchClient
+from sdk.python.copperbench import CopperbenchClient, read_workspace_connection
 
+workspace_path = os.environ["COPPERBENCH_WORKSPACE"]
+connection = read_workspace_connection(workspace_path)
 client = CopperbenchClient(
-    os.environ.get("COPPERBENCH_MCP_URL", "http://127.0.0.1:8787/mcp"),
+    os.environ.get("COPPERBENCH_MCP_URL", connection["url"]),
     os.environ["COPPERBENCH_TOKEN"],
-    os.environ["COPPERBENCH_WORKSPACE_ID"],
+    os.environ.get("COPPERBENCH_WORKSPACE_ID", connection["workspaceId"]),
 )
 client.initialize()
 workspace = client.get_workspace()

@@ -49,4 +49,24 @@ class NeoForge1211GeneratorTest {
 		assertTrue(Files.size(output.resolve(
 				"src/main/resources/assets/copper_trails/textures/block/trail_lamp.png")) > 0);
 	}
+
+	@Test void installedFlatJdkLayoutIsWrittenIntoGeneratedToolchainProperties() throws Exception {
+		Path distribution = output.resolve("distribution");
+		Path workspace = output.resolve("workspace");
+		Path installedJdk = distribution.resolve("jdk");
+		Files.createDirectories(installedJdk.resolve("bin"));
+		Files.write(installedJdk.resolve("bin/java.exe"), new byte[] { 0 });
+		Files.createDirectories(distribution.resolve("gradle/wrapper"));
+		Files.writeString(distribution.resolve("gradlew"), "placeholder");
+		Files.writeString(distribution.resolve("gradlew.bat"), "placeholder");
+		Files.write(distribution.resolve("gradle/wrapper/gradle-wrapper.jar"), new byte[] { 0 });
+
+		var generator = new NeoForge1211Generator(distribution, NeoForge1211Generator.Profile.NEOFORGE_1211);
+		generator.generate(workspace, NeoForge1211GoldenWorkspace.create());
+
+		String properties = Files.readString(workspace.resolve("gradle.properties"));
+		String expected = installedJdk.toAbsolutePath().normalize().toString().replace('\\', '/');
+		assertTrue(properties.contains("org.gradle.java.installations.paths=" + expected));
+		assertFalse(properties.contains("jdk/jdk21_win_64"));
+	}
 }

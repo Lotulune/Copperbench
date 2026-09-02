@@ -1,8 +1,8 @@
-# Copperbench 下一步 PRD：阶段 10 Public Beta 收口与阶段 11 全量 Mod Element 支持
+# Copperbench 下一步 PRD：Stage 11 全量 Mod Element 与安装产品 Agent / 运行闭环
 
-> 状态：Public Beta `v0.1.0-beta.2` 已发布并完成收口；下一功能版本进入 Stage 11，全量支持当前 30 种 read-only / legacy-only Java Mod Element<br>
-> 版本：v1.3<br>
-> 更新日期：2026-08-31<br>
+> 状态：Public Beta `v0.1.0-beta.2` 已发布；Stage 11 全量 Java Mod Element 的本地功能/生成器门禁已完成，但 2026-09-02 外部 Agent 对已安装产品的实测重新打开 4 个 P0 产品闭环门禁，下一候选在修复前不得建立<br>
+> 版本：v1.4<br>
+> 更新日期：2026-09-02<br>
 > 前置基线：[PRD.md](./PRD.md)、[PRD-STAGE-9.md](./PRD-STAGE-9.md)<br>
 > 当前公开 Beta：`v0.1.0-beta.2`（`main@8b063283`，release run `33334394466`）；随包 `product.channel=beta`，四个 canonical 资产与 `v0.1.0-preview.6` / Beta 1 完全同 size/SHA-256
 
@@ -12,15 +12,29 @@
 
 发布后验收发现 Beta 1 随包的权威 `product-status.json` 仍声明 `product.channel=preview`；该元数据问题已由不可变的新标签 `v0.1.0-beta.2` 修正。Beta 2 release run `33334394466` 成功，随包 `product.channel=beta`、`delivery.betaRelease.tag=v0.1.0-beta.2`，并继续原样晋升 Preview 6 的四个 canonical 资产。真实 JCEF 无障碍审计、最终 clean-Windows RC replay 和五人外部试用继续排除在当前 Beta scope 之外，不宣称其已通过。详见 [Beta 2 publication verification](./docs/testing/beta2-publication-2026-08-31.md)。
 
+## 2026-09-02 外部 Agent 安装产品实测纠偏
+
+外部 AI Agent 使用已安装 Copperbench 与真实 Fabric 26.1.2 工作区完成模组开发后，提交了 [AI Agent 安装产品实测改进任务书](./docs/handoffs/ai-agent-experience-fixes.md)。该实测不是“已完成”证据，而是对既有验收模型的反例：**协议测试、loopback MCP eval、源码布局和 Nightly 绿色，不能替代已安装产品上的真实入口验证。**
+
+因此即日起将以下 4 项重新定义为下一候选的 P0 门禁：
+
+1. **安装布局 JDK 解析**：发行包只有 `jdk/bin/java.exe` 时，Fabric/NeoForge 运行任务不得继续按源码树 `jdk/jbr25_win_64` / `jdk/jdk21_win_64` 路径设置无效 `JAVA_HOME`。
+2. **交互式 `runClient` 生命周期**：产品“测试客户端”必须保持 Minecraft 运行直到用户主动关闭；readiness marker 只能用于 CI/冒烟探针，不能作为产品交互任务的成功条件，更不能触发杀进程。
+3. **桌面产品 MCP 生命周期**：已打开工作区的桌面进程必须真实启动 loopback MCP、签发工作区凭据并呈现真实连接状态；“AI 与 MCP”页不得在没有客户端连接/监听事实时写死“已连接”。
+4. **外部 Agent 最小闭环**：必须从同一个已安装候选、由桌面产品实际暴露的 MCP 地址完成 `initialize/get_workspace → list → create → preview/plan/apply → build/get_task → revision conflict 重读重试`，不得以测试 fixture 或专用 conformance 进程替代。
+
+P1/P2 随后补齐 headless 产品入口、JDK/runClient 结构化诊断、generate 保留用户代码、`code` 元素与 `initialValues` Agent 文档、真实 MCP 连接文件/quickstart、真实 modid/导出名和客户端 API 一致性。所有状态提升必须在代码、自动测试和**安装候选复演**同时存在后才允许关闭。
+
 ## 0. 阅读与执行协议
 
-- 本文件是阶段 10 的唯一产品需求入口；`PRD.md` 和 `PRD-STAGE-9.md` 作为已实现能力与历史需求基线。
+- 本文件是阶段 10 收口、Stage 11 全量元素与后续安装产品闭环的当前产品需求入口；`PRD.md` 和 `PRD-STAGE-9.md` 作为已实现能力与历史需求基线。
 - 功能状态以源码、自动测试和固定提交产生的证据为准。README、Release Notes 或历史 evidence 不能单独证明能力已完成。
 - 每个实现任务和 PR 必须引用本文件中的需求编号。
 - 关闭需求必须同时满足实现、自动验证、用户文档和可追溯证据，不接受只修改状态文字。
+- 涉及安装布局、桌面入口、MCP 生命周期或交互式运行任务时，测试 harness / loopback eval / 源码树验证只证明对应层级；**不得替代同一候选安装包上的端到端验证**。
 - 本阶段冻结新模组元素类型，已建立“提交 → CI → 产物 → Release”可信闭环；无障碍、最终 RC 和外部试用不纳入当前 Beta 宣称，但候选包和签名来源仍是必需项。
 
-### 0.1 实施快照（2026-08-31）
+### 0.1 实施快照（2026-09-02）
 
 机器可读事实入口为 [`product-status.json`](./product-status.json)，本节只解释执行状态。
 
@@ -29,9 +43,10 @@
 | Fast CI | main 分支保护持续要求 Java/Javadoc、UI/Playwright 与 MCP；Beta 2 release-control `main@8b063283` 的 merged-main run `33334020837` 全绿 | PR 门禁已闭环；Beta 2 已从 CI-green main 发布 |
 | 公开 Release | `v0.1.0-beta.2` 已从 `main@8b063283` 公开，release run `33334394466` 成功；10 个资产全部 uploaded 且有 digest | 随包 `product.channel=beta`；EXE/ZIP/MSIX/SBOM 与 Preview 6/Beta 1 完全同 size/SHA-256，metadata correction 已完成 |
 | 状态源 | `product-status.json`、Schema 和 CI 漂移校验已进入 main，并已修复首次远端运行暴露的 Release Schema 漏项 | 状态源门禁通过；后续状态提升仍必须带固定提交证据 |
-| 重型门禁 | Nightly `33253594479`（`main@92d1a8d0`）的全量 Java/Javadoc/scale 回归、完整 Playwright、MCP、诊断包 native JCEF 验收与八生成器内容构建 8/8 全绿；后续发布合同变更也已通过主线 CI | FR-AI-02～05、FR-BETA-01～02 保持闭环；无障碍、最终 RC 和外部试用已按 Beta 合同移出当前范围 |
+| 重型门禁 | Nightly `33253594479`（`main@92d1a8d0`）的全量 Java/Javadoc/scale 回归、完整 Playwright、MCP、诊断包 native JCEF 验收与八生成器内容构建 8/8 全绿；后续发布合同变更也已通过主线 CI | 这些证据继续证明对应 Core/协议/构建能力，但不覆盖 2026-09-02 新发现的安装布局 JDK、交互 runClient、桌面 MCP 与外部 Agent 产品入口 P0 |
 | Stage 9 | 八生成器黄金编译、三个专用编辑器、语言工具、安装升级和离线工作区路径已有自动化/客机证据；Windows WR + Chromium 完整 AXMode 与 `DPR=1.25` 路径已通过 | 物理高 DPI、屏幕阅读器、最终 RC 矩阵和外部试用不纳入当前版本宣称，未来重新纳入时需新候选和新证据 |
-| AI Developer Kit | PR #14～#17 的 Cursor、Workspace Plan、Task Events/SDK 与 Windows-native JCEF reconnect 均已合入；当前 `main@f677e481` 的 merged-main CI `33329612708` 与固定产品基线 Nightly `33253594479` 全绿 | FR-AI-02～05 均为 `passed`；MCP reconnect 继续冻结为 `get_task(afterLogSequence)`，不引入未版本化的自定义 push 方言 |
+| AI Developer Kit | PR #14～#17 的 Cursor、Workspace Plan、Task Events/SDK 与 Windows-native JCEF reconnect 均已合入；Core/协议层证据仍有效 | FR-AI-02～05 仅保持 **Core/协议层 `passed`**；安装产品 AI readiness 已由 FR-PROD-03/04 重新打开，不能再用 loopback eval 推导“外部 Agent 可直接使用安装包” |
+| 安装产品创作 / Agent 闭环 | 外部 Agent 在真实已安装产品发现 JDK 布局、交互式 runClient 和桌面 MCP 接线缺陷 | **P0 blocked**；FR-PROD-01～04 全部通过同一候选安装复演前，不得建立下一 Preview/Beta/RC 候选 |
 | 仓库治理 | GitHub 已识别 GPLv3；Javadoc Pages 可访问；main 三项必需检查、受保护 PR 与 production 必需审阅者均已验证 | 仓库治理 P0 已闭环 |
 | Dependency Submission | 仓库 Dependency Graph 未启用，原工作流无法成功 | 误导工作流已从 main 删除 |
 
@@ -45,9 +60,9 @@
 2. 快速 CI、分支保护、真实 PR、Nightly 和人工发布审批配置已闭环；下一签名 Preview 候选必须在最终合并 SHA 上保留检查、签名 Tag 和生产审批记录。
 3. 机器状态源已建立；PRD、状态索引和发布说明仍必须在每次状态提升时同步更新。
 4. Stage 9 的大型工作区、专用编辑器、语言工具和服务端 readiness 已有固定证据；真实 JCEF/a11y、最终 clean-Windows RC 与外部试用已明确移出当前 Beta 宣称范围，保留为未来重新纳入时的证据项。
-5. MCP 的大型列表 Cursor、Workspace Plan、Task Events/reconnect 与 SDK/evals 均已闭环；当前不再以新增 AI 能力阻断 Beta 候选。
+5. MCP 的大型列表 Cursor、Workspace Plan、Task Events/reconnect 与 SDK/evals 在 Core/协议层已闭环；2026-09-02 安装产品实测证明桌面 MCP 启动/发现、发行布局和真实 Agent 入口此前未被该门禁覆盖，因此产品级 AI readiness 重新成为下一候选阻断项。
 
-因此，阶段 10 的产品目标不是增加更多元素，而是把当时已有能力变成可下载、可验证、可解释、可反馈的 Public Beta 基线；阶段 10 已完成，后续产品范围由 7.4 的 Stage 11 全量元素计划接管。
+因此，阶段 10 的产品目标不是增加更多元素，而是把当时已有能力变成可下载、可验证、可解释、可反馈的 Public Beta 基线；阶段 10 的发布控制已经完成。后续产品范围同时由 7.4 的 Stage 11 全量元素计划与 5.7 的安装产品创作/Agent 闭环接管。
 
 ## 2. 阶段 10 目标与成功指标
 
@@ -70,6 +85,10 @@
 | 文档本地链接 | CI 中 0 个失效链接 |
 | Stage 9 定向测试 | 0 失败；环境跳过必须有稳定原因码 |
 | 大型元素遍历 | 2,000 元素可通过 Cursor 完整遍历，无遗漏或重复 |
+| 安装布局 JDK | 同一 resolver 覆盖发行 `jdk/bin/java.exe` 与源码嵌套 JDK；无有效 JDK 时返回稳定诊断且不注入无效 `JAVA_HOME` |
+| 交互式 `runClient` | 已安装候选启动 Minecraft 后保持 running 直到用户关闭；marker 不杀进程、不把缺 marker 当产品失败 |
+| 桌面 MCP | 已安装候选打开工作区后真实监听 loopback MCP；UI/连接文件中的 URL、workspaceId、权限与实际服务一致 |
+| 外部 Agent 最小闭环 | 外部客户端从桌面产品暴露的 MCP 完成读 → 写 → 构建 → `get_task(afterLogSequence)` → revision 冲突恢复，不依赖测试 harness |
 | 外部试用 | 当前 Beta scope 为 N/A；未来重新纳入时至少 5 名非核心开发者完成新建/迁入、创建元素、构建和恢复 |
 | P0 发布缺陷 | 发布后 7 天内 0 个“无法下载/资产缺失/版本不明”缺陷 |
 
@@ -85,7 +104,7 @@
 
 ### 3.3 AI 客户端开发者
 
-作为本机 AI 集成开发者，我能按版本化 Schema 遍历大型工作区，预览多步修改、处理 revision 冲突、订阅长任务结果，并使用官方示例复现完整工作流。
+作为本机 AI 集成开发者，我安装并打开 Copperbench 工作区后，不需要另起测试服务就能获得真实 MCP 地址/工作区信息；我能按版本化 Schema 遍历大型工作区，预览并提交多步修改、处理 revision 冲突、读取长任务增量日志并完成构建。UI 不会把“服务已监听”和“已有客户端连接”混为一谈。
 
 ### 3.4 发布维护者
 
@@ -100,6 +119,7 @@
 | 单一状态源 | FR-STATUS-01～03 | README、产品和 Release 不再互相矛盾 |
 | Stage 9 质量门禁 | FR-S9-01～05 | 现有预览能力具备规模与多轨证据 |
 | AI Developer Kit | FR-AI-01～05 | 第三方客户端能稳定接入大型项目 |
+| 安装产品创作 / Agent 闭环 | FR-PROD-01～06 | 已安装 Windows 产品上的 JDK、runClient、MCP 与外部 Agent 使用路径真实可用 |
 | 试用与反馈闭环 | FR-BETA-01～03 | 外部问题可复现、可分流、可量化 |
 
 ## 5. 功能需求
@@ -256,6 +276,8 @@ Function、Loot Table、Advancement 在八套 Fabric/NeoForge 生成器上运行
 
 实施状态（2026-08-28）：**passed**。`sdk/typescript`、`sdk/python`、`sdk/evals/manifest.json` 和最小示例已随 PR #16 合入；10 项 manifest/覆盖校验与真实 loopback HTTP MCP live eval **10/10** 均已通过（含独立 read-only 权限会话）。固定提交 Windows Nightly `33098518016` 在包含 PR #16 的 `main@e8caf018` 上完成全量 Java/Javadoc、Playwright、MCP conformance 与 8/8 generator golden，提供了缺失的 merged implementation Nightly 证据。Nightly 不被表述为重新执行 live-eval harness；10/10 仍由专用 HTTP MCP 评测记录证明。
 
+纠偏（2026-09-02）：上述 `passed` 继续证明 SDK、协议、权限和 loopback server 能力，不再被解释为“已安装桌面产品会自动启动 MCP，外部 Agent 可直接发现并连接”。产品级入口改由 FR-PROD-03/04 单独验收。
+
 ### 5.6 外部试用与反馈
 
 #### FR-BETA-01 诊断包
@@ -275,6 +297,85 @@ Issue 模板必须收集版本、commit、生成器、元素类型、复现步�
 至少 5 名非核心开发者完成：下载安装、校验、创建或迁入工作区、创建元素、构建、制造一次失败、查看诊断、创建恢复点并恢复。结果形成匿名汇总，不以口头反馈替代。
 
 实施状态（2026-08-30）：匿名证据 Schema、统一任务协议和机器验证器已就绪；根据当前收尾决策，外部试用不属于本版本 Preview-only 交付范围，因此不再作为本版本阻断项。未来重新开启 Beta 试用时，仍要求五名非核心开发者使用同一签名候选和同一 EXE SHA-256。
+
+### 5.7 安装产品创作与 Agent 闭环（2026-09-02 重开）
+
+本节专门覆盖“代码/协议存在，但发行包真实入口没有工作”的风险。FR-PROD-01～04 为下一候选 **P0**；不得通过缩小宣称范围将其排除，因为它们直接影响 Windows 11 x64 已安装产品的基础创作与本机 AI 集成主路径。
+
+#### FR-PROD-01 Bundled JDK 实际布局解析（P0）
+
+建立共享 JDK resolver，由 `distributionRoot + javaRelease` 得到实际可执行的 Java home，而不是由 generator profile 直接拼发行相对路径：
+
+1. 优先识别发行布局 `{root}/jdk/bin/java.exe`；
+2. Java 25 源码布局可识别 `{root}/jdk/jbr25_win_64/bin/java.exe`；
+3. Java 21 源码布局可识别 `{root}/jdk/jdk21_win_64/bin/java.exe`；
+4. 最后可回退到仍含 `bin/java.exe` 的 `System.getProperty("java.home")`；
+5. 全部不可用时返回稳定 `BUNDLED_JDK_MISSING`（或等价稳定代码），正文列出解析根与尝试路径，不得把不存在的目录写入 `JAVA_HOME`。
+
+Fabric/NeoForge 的所有 Gradle 任务必须复用同一个 resolver；发行布局描述也必须明确“源码嵌套布局”和“安装后扁平布局”不是同一目录结构。
+
+验收：单测模拟两类 JDK 布局和无 JDK 失败路径；随后用实际安装候选在 Fabric 26.1.2 至少完成一次 `build` + `runClient` 启动，日志不得再出现指向不存在 `jdk/jbr25_win_64` 的 `JAVA_HOME`。
+
+#### FR-PROD-02 交互式 `runClient` 生命周期与诊断（P0）
+
+产品外壳的 `RUN_CLIENT` 是创作者交互任务，不是 readiness smoke probe：
+
+- Minecraft 启动后任务保持 `running`，直到用户关闭客户端；不得因看到 generator marker 主动销毁游戏进程。
+- 缺少 marker 不能单独导致产品任务失败。需要 marker 的 CI 验证应使用独立 operation、显式 smoke flag 或专用验证脚本。
+- Gradle 在客户端真正启动前非 0 退出应失败；JDK/Wrapper 等已知错误必须映射为结构化诊断，同时保留原始 Gradle 日志和解析后的 Java home。
+- UI/任务说明明确这是 Fabric/NeoForge 开发客户端，不能以“看起来像原版”作为加载失败判断。
+
+验收：安装候选打开真实工作区，启动客户端并保持到用户主动关闭；任务期间 UI 为 running；关闭后正确收口；无效 JDK 用 JDK 诊断码而不是 `readiness marker` 失败包装。
+
+#### FR-PROD-03 桌面 MCP 生命周期、凭据与真实状态（P0）
+
+工作区被桌面产品成功打开后，由持有 `WorkspaceFileLease` 的桌面进程负责本机 MCP 生命周期：
+
+- 在 `127.0.0.1` 启动实际 `CopperbenchMcpServer`（动态或受控端口），并确保 `tools/list` 能正确反映工具能力；
+- 为当前 workspaceId 签发默认 `workspace` 权限的凭据，令牌不得进入普通日志；
+- 在工作区本地 `.copperbench/mcp-connection.json` 写入可供客户端发现的 URL、workspaceId、permissionProfile、expiresAt 等非秘密/受控连接信息；
+- “AI 与 MCP”页显示真实监听状态、地址、工作区与权限，并提供 Grok/Cursor/Claude 等客户端配置片段；未监听时显示未启动，服务已监听但尚无客户端时不得写成“已连接”；
+- 关闭/切换工作区时停止对应 MCP、吊销凭据并使连接文件失效。
+
+验收：实际安装候选打开工作区后，独立外部进程可以对 UI 所示地址执行 MCP `initialize` 和 `get_workspace`，得到一致的 workspaceId/revision；工作区关闭后旧连接不可继续使用。
+
+#### FR-PROD-04 外部 Agent 安装产品最小闭环（P0）
+
+使用**同一个已安装候选**、桌面产品真实创建的 MCP 连接，外部 Agent 必须完成：
+
+1. `initialize` / `get_workspace`；
+2. `list_mod_elements` 按 cursor 遍历到 `nextCursor=null`；
+3. `create_mod_element` 至少创建 `item`，并再覆盖 `code` 或 `projectile` 之一；
+4. `preview_mod_element_change` 或 `plan_workspace_changes` → `apply_workspace_plan`；
+5. `build_workspace` → `get_task(afterLogSequence)` 直到终态并保留诊断；
+6. 人为制造一次旧 revision 写入，得到 `WORKSPACE_REVISION_CONFLICT`，重读后成功重试。
+
+该门禁不得使用测试专用 `McpConformanceServerMain`、直接 `new HeadlessCli` 或人工修改 Java 作为替代。证据至少记录候选 SHA、workspace generator、MCP URL 的端口级信息（不含令牌）、操作序列、最终 revision、build 结果和脱敏任务日志。
+
+#### FR-PROD-05 Agent/代码创作安全与 fallback（P1）
+
+- 为安装的 `copperbench.exe` 提供 `headless --workspace <path> <command>` 入口，作为桌面 MCP 故障时的第二条受支持自动化路径。
+- `create_mod_element type=code` 能提交 Java 源并返回编译诊断；复杂战斗/实体行为不应被迫全部表达成 Procedure。
+- `docs/ai/` 或 Agent playbook 增加 `initialValues`、item/projectile/procedure 最小示例、推荐调用顺序、revision 冲突策略和令牌处理规则。
+- generate / runClient 前置 generate 必须证明保留 `// Start of user code block` 及非 generator-owned 用户包；不得以重新生成为由静默删除用户代码。
+- 示例和文档使用各受支持 Minecraft/Fabric/NeoForge 轨道的真实 API，不复制不兼容版本教程。
+
+2026-09-02 本地实现状态：上述 P1 能力已完成到源码与 fresh `exportWin64` 预候选复验层。安装产品入口支持
+`copperbench.exe headless --workspace <path> <command>`，headless 主进程固定 `java.awt.headless=true`、机器 stdout
+固定 UTF-8 JSON，且不进入单实例 GUI/JCEF 生命周期；真实 `validate` 已 exit 0。MCP 直接
+`create_mod_element(type=code)` 会在提交后自动启动真实 `build_workspace` compile-verification task，Agent 通过
+现有 `get_task` 取得 Gradle/javac 诊断。编译诊断已在中文 Windows javac 输出下验证为去重后的
+`JAVA_COMPILE_ERROR`，包含工作区相对源码路径与行号。用户代码块/独立用户包保留及 Agent playbook 也已有回归。
+这些是 **pre-candidate evidence**；若发布候选继续把 headless/code 作为正式产品能力，仍需在冻结候选上重放并绑定候选 SHA。
+
+#### FR-PROD-06 体验与发行一致性（P2）
+
+- 客户端渲染等生成模板跟进目标版本已废弃 API；
+- `AIControlView`、帮助页和状态栏共享真实 MCP runtime state；
+- Python/TypeScript quickstart 默认优先读取工作区 `.copperbench/mcp-connection.json`，不得假设固定 `8787`；
+- 新建工作区的 `actualmodid`、archive name、导出 JAR 与用户填写 modid 保持一致。
+
+实施顺序固定为 **FR-PROD-01 → FR-PROD-02 → FR-PROD-03 → FR-PROD-04 → FR-PROD-05 → FR-PROD-06**。P0 每项都需要代码、自动测试和安装候选证据；只让单元测试或源码布局恢复绿色不能关闭该项。
 
 ## 6. 阶段 10 非目标（已完成的 Public Beta 基线）
 
@@ -305,14 +406,17 @@ Issue 模板必须收集版本、commit、生成器、元素类型、复现步�
 - FR-STATUS、FR-S9、FR-AI、FR-BETA 全部完成。
 - 至少 5 名外部试用者完成全任务。
 - 所有高风险能力有固定提交证据；未验证项明确降级或移出宣称。
+- 对 2026-09-02 之后建立的新候选，FR-PROD-01～04 也必须全部 `passed`；这四项属于已安装 Windows 主路径，不允许通过缩小宣称范围绕过。
 
 当前版本已经公开 `v0.1.0-beta.2`，状态源 channel 修正与 exact-binary promotion 均已验证。当前 Public Beta 发布链没有未完成的发布控制阻断；后续产品或构建变更若要再次发布，必须重新建立候选与相应证据。未验证的无障碍、最终 RC 和外部试用能力继续从当前 Beta 宣称范围移除。
+
+2026-09-02 纠偏：上句只描述 `v0.1.0-beta.2` 当时的**发布控制事实**，不能继续扩张解释为当前安装产品在 `runClient`、桌面 MCP 或外部 Agent 集成上不存在 P0。外部实测已重新打开 FR-PROD-01～04；因此 Beta 2 仍是已发布历史版本，但**任何下一 Preview/Beta/RC 候选都被 FR-PROD-01～04 阻断**，并且不得再以 Beta 2 的历史 Nightly/MCP conformance 作为这些新门禁的替代证据。
 
 ### 7.4 下一功能版本（Stage 11）：全量 Mod Element 一等支持
 
 **产品决策：下一功能版本必须把当前 30 种 `readOnly` / `legacyOnly` Java Mod Element 全部升级为 Copperbench first-party `supported`。** 开发过程允许分批落地，但下一功能版本不得在仍有这些类型停留于 `readOnly`、`legacyOnly`、`unsupportedInNewUi` 或“只能导入不能修改”的情况下宣称完成。
 
-实施状态（2026-09-01）：**本地功能与生成器门禁已完成，进入固定提交/候选验证阶段。** 30 种目标 Java Mod Element 已全部进入 first-party `supported` 路径；全类型持久化/未知字段 round-trip、导入、迁移、UI/status contract 和核心 Java 回归通过。`NewWorkspaceGeneratorGoldenBuildTest` 的 8-generator Stage 11 全量工作区现为 8/8 PASS，所有轨道均完成真实 Gradle build 与 JAR 输出；新增的 JAR/mixin 一致性门禁还会验证 mixin JSON 中声明的每个 mixin 类都真实存在于产物。最终本地证据见 [`docs/testing/stage-11-element-support-2026-08-31.md`](./docs/testing/stage-11-element-support-2026-08-31.md) 与 [`evidence/stage-11/2026-09-01/eight-generator-matrix.json`](./evidence/stage-11/2026-09-01/eight-generator-matrix.json)。按 10.1.7，下一步不是继续增加 Stage 11 功能，而是冻结新的提交并重新执行 CI、Nightly、Windows 安装/升级/卸载、provenance 与候选资产验证；在这些固定提交证据完成前，不宣称下一功能版本 Release Candidate 已完成。
+实施状态（2026-09-02）：**30 种元素的本地功能与生成器门禁仍视为完成，但候选准备被安装产品 P0 重新阻断。** 30 种目标 Java Mod Element 已全部进入 first-party `supported` 路径；全类型持久化/未知字段 round-trip、导入、迁移、UI/status contract 和核心 Java 回归通过。`NewWorkspaceGeneratorGoldenBuildTest` 的 8-generator Stage 11 全量工作区现为 8/8 PASS，所有轨道均完成真实 Gradle build 与 JAR 输出；新增的 JAR/mixin 一致性门禁还会验证 mixin JSON 中声明的每个 mixin 类都真实存在于产物。最终本地证据见 [`docs/testing/stage-11-element-support-2026-08-31.md`](./docs/testing/stage-11-element-support-2026-08-31.md) 与 [`evidence/stage-11/2026-09-01/eight-generator-matrix.json`](./evidence/stage-11/2026-09-01/eight-generator-matrix.json)。下一步先完成 FR-PROD-01～04，再冻结新提交并重新执行 CI、Nightly、Windows 安装/升级/卸载、外部 Agent 安装产品复演、provenance 与候选资产验证；元素支持本身不因该纠偏回退为 read-only，但在这些产品闭环证据完成前不得宣称下一功能版本 Release Candidate 已完成。
 
 本阶段覆盖以下 30 种类型：
 
@@ -345,7 +449,7 @@ Bedrock Add-on 的 `bebiome`、`beblock`、`beentity`、`beitem`、`bescript` �
 - Wave 2（世界、表现与交互）：`feature`、`plant`、`structure`、`specialentity`、`overlay`、`particle`、`potion`、`potioneffect`、`enchantment`、`command`、`keybind`。
 - Wave 3（长尾与高级类型）：`armortrim`、`attribute`、`bannerpattern`、`code`、`damagetype`、`gamerule`、`itemextension`、`painting`、`tab`、`villagerprofession`、`villagertrade`。
 
-每个 Wave 合入后都应保持 `main` 可构建、可运行、可回退，并持续更新 `product-status.json`；只有 Wave 1～3 全部完成后，才允许建立下一功能版本的 Release candidate。
+每个 Wave 合入后都应保持 `main` 可构建、可运行、可回退，并持续更新 `product-status.json`。Wave 1～3 是元素功能完成的必要条件；2026-09-02 起，建立下一功能版本 Release candidate 还必须先关闭 FR-PROD-01～04。
 
 ## 8. 风险与缓解
 
@@ -356,6 +460,8 @@ Bedrock Add-on 的 `bebiome`、`beblock`、`beentity`、`beitem`、`bescript` �
 | 全量测试过慢 | PR 快速门禁、nightly 重矩阵、发布前全门禁分层 |
 | 状态源与源码再次漂移 | CI 做结构化投影比对，状态提升必须携带测试证据 |
 | MCP 协议演进破坏客户端 | 版本协商、弃用周期、兼容测试和 SDK fixture |
+| 测试/loopback 绿色但安装产品入口未接线 | 对安装布局、桌面 MCP、交互式 runClient 和外部 Agent 主路径建立独立候选 Gate；低层测试只能证明自身层级 |
+| generate / 运行任务破坏用户自定义代码 | 用户代码块与非 generator-owned 包加入回归 fixture；运行前自动 generate 也必须做无损验证 |
 | 大型工作区性能目标不现实 | 先固定硬件/数据集测基线，再以 P95 回归阈值管理 |
 
 ## 9. 依赖与负责人边界
@@ -363,9 +469,10 @@ Bedrock Add-on 的 `bebiome`、`beblock`、`beentity`、`beitem`、`bescript` �
 - GitHub 仓库管理员：配置 `main` 分支保护、Actions 权限和可选 `production` Environment 审阅者。
 - 发布维护者：创建并推送干净 Tag，审核 Release Notes，执行外部安装复验。
 - Core：状态源、分页、计划事务、任务事件和性能基线。
-- UI：能力状态呈现、JCEF/可访问性、诊断导出。
-- Generator：八套黄金编译与服务端 readiness。
-- Docs/SDK：AI Developer Kit、快速开始、故障排查和示例。
+- UI：能力状态呈现、JCEF/可访问性、诊断导出、真实 MCP runtime state 与配置复制。
+- Generator：八套黄金编译、服务端 readiness、Bundled JDK 解析与交互式 `runClient` 生命周期。
+- MCP/Core integration：桌面工作区打开/关闭时的 MCP server、token、连接文件和 lease 生命周期。
+- Docs/SDK：AI Developer Kit、安装产品 Agent playbook、连接发现、快速开始、故障排查和示例。
 
 ## 10. Definition of Done
 
@@ -388,5 +495,10 @@ Bedrock Add-on 的 `bebiome`、`beblock`、`beentity`、`beitem`、`bescript` �
 5. 建立上游兼容 fixture：覆盖这 30 种类型的 MCreator 工作区可以导入、浏览、编辑、保存、重新打开并构建，未编辑及未知字段无静默损失。
 6. 全量元素支持不得回退现有 Block/Item/Recipe/Procedure/Function/Loot Table/Advancement、工作区生命周期、构建运行、诊断、MCP、历史恢复和发布链能力。
 7. 下一功能版本候选必须从新的冻结 commit/tag 重新执行 CI、Nightly、Windows 安装/升级/卸载、Release provenance 与候选资产验证；不得直接复用 `v0.1.0-beta.2` 二进制。
+8. FR-PROD-01 的发行/源码两种 Bundled JDK 布局均自动验证，并在实际安装候选上消除无效 `JAVA_HOME`；失败时提供稳定 JDK 诊断。
+9. FR-PROD-02 的产品 `runClient` 在实际安装候选中保持长寿命，直到用户关闭客户端；CI readiness marker 与交互任务语义已经分离。
+10. FR-PROD-03 的桌面产品真实启动并关闭 MCP；连接信息、workspaceId、权限和 UI 状态与实际 runtime 一致，不存在静态“已连接”假状态。
+11. FR-PROD-04 在同一安装候选上由独立外部 Agent 完成读 → 写 → 构建 → 增量任务日志 → revision 冲突恢复；不得由测试专用 MCP server 代替。
+12. generate/runClient 回归证明用户代码块与非 generator-owned 用户包不被删除；headless 必须从实际 Windows 导出/安装产品返回 UTF-8 机器 JSON，`code` 创建必须给出可继续轮询的 compile-verification task，真实 javac 失败必须产生带源码路径/行号的 `JAVA_COMPILE_ERROR`；若下一版本继续宣称 headless/code 为一等 AI fallback，则这些 FR-PROD-05 证据必须在冻结候选上重放。
 
-阶段 10 已完成。阶段 11 的下一功能版本不再只做少数高价值元素试点，而是以“当前 30 种 read-only / legacy-only Java Mod Element 全部转为 first-party supported”为完成条件；具体门禁见 7.4 与 10.1。
+阶段 10 的发布控制历史已经完成，Stage 11 的 30 种元素本地支持也已达到原计划的功能门槛；但 2026-09-02 安装产品实测证明原 Definition of Done 对发行布局与外部 Agent 入口覆盖不足。**当前正确状态是“Stage 11 功能完成、下一候选产品闭环 blocked”，而不是“可以直接进入发布”。** 具体门禁见 5.7、7.4 与 10.1。

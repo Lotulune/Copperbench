@@ -38,7 +38,11 @@ public final class WindowsDistributionLayout {
 	public static JsonObject toJson() {
 		JsonObject json = new JsonObject();
 		json.addProperty("executable", "copperbench.exe");
-		json.addProperty("bundledJdk", "jdk/jbr25_win_64");
+		JsonObject bundledJdk = new JsonObject();
+		bundledJdk.addProperty("installed", "jdk");
+		bundledJdk.addProperty("sourceTreeJava25", "jdk/jbr25_win_64");
+		bundledJdk.addProperty("sourceTreeJava21", "jdk/jdk21_win_64");
+		json.add("bundledJdk", bundledJdk);
 		json.addProperty("jcefBundledWithJdk", true);
 		json.addProperty("pluginsDirectory", "plugins");
 		json.addProperty("licenseDirectory", "license");

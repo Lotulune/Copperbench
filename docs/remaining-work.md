@@ -1,8 +1,25 @@
 # 剩余完善清单
 
-本页是**状态索引**，不是需求基线。机器可读状态以 [`product-status.json`](../product-status.json) 为准；阶段 8 历史见 [阶段 8 路线](./roadmap/stage-8-windows-beta-ga.md)，阶段 9 历史边界见 [PRD-STAGE-9.md](../PRD-STAGE-9.md)，阶段 10 需求入口是 [PRD-NEXT.md](../PRD-NEXT.md)。
+本页是**状态索引**，不是需求基线。机器可读状态以 [`product-status.json`](../product-status.json) 为准；阶段 8 历史见 [阶段 8 路线](./roadmap/stage-8-windows-beta-ga.md)，阶段 9 历史边界见 [PRD-STAGE-9.md](../PRD-STAGE-9.md)，当前 Stage 10/11 与安装产品闭环需求入口是 [PRD-NEXT.md](../PRD-NEXT.md)。
 
 ## 当前状态
+
+### 2026-09-02 外部 Agent 安装产品实测纠偏
+
+外部 AI Agent 在已安装 Copperbench 上使用真实 Fabric 26.1.2 工作区完成一次复杂模组开发后，发现此前的自动化门禁没有覆盖“安装包桌面入口真实可用”这一层。原始问题清单见 [AI Agent 安装产品实测改进任务书](./handoffs/ai-agent-experience-fixes.md)。该文档是缺陷证据，不是完成证明。
+
+`v0.1.0-beta.2` 的历史发布控制、资产摘要和 provenance 结论不变；但这次实测重新打开了下一候选的产品级 P0。当前不能再把 MCP conformance/loopback eval、源码布局 runClient 或测试内 `HeadlessCli` 直接解释成“安装后的外部 Agent 与测试客户端可用”。
+
+| 项 | 当前状态 | 下一证据 |
+| --- | --- | --- |
+| P0 安装布局 Bundled JDK | **blocked（实现/本地发行复验已完成）** | shared resolver、任务级 `BUNDLED_JDK_MISSING`、真实 `exportWin64/jdk` + `testmod2` Gradle build 已通过；仍需把实现绑定到提交并在选定安装候选的桌面 `runClient` 重放后才能升 Gate |
+| P0 交互式 `runClient` | **blocked（实现/本地发行树 runtime 复验已完成）** | fresh `exportWin64/jdk` 已真实启动 Fabric 26.1.2 + `testmod2`，readiness 后 Gradle 仍 running，正常关闭 Minecraft 后任务才结束；仍需选定安装候选从真实桌面按钮重放 |
+| P0 桌面 MCP 生命周期 | **blocked（实现/发行树 runtime 复验已完成）** | fresh `exportWin64` 产品壳已真实监听随机 loopback 端口并写无 token 连接文件；仍需安装候选从 UI 取得一次性 token，再由外部进程连接 |
+| P0 外部 Agent 最小闭环 | **blocked（runtime HTTP 回归已完成）** | 自动化已覆盖 list → create → plan/preview/apply → build/get_task → revision conflict 恢复；仍需同一安装候选 + UI 取得 token 的外部 Agent 重放 |
+| P1 headless / code / 用户代码保护 / Agent 文档 | **实现/本地发行复验完成** | fresh `exportWin64` 的真实 EXE 已完成 `headless validate`/`build`（exit 0、单行 JSON），强制 `java.awt.headless=true` 也通过；独立错误 Java 的真实 EXE build 返回 exit 10 + `JAVA_COMPILE_ERROR`（路径+行号），`code` 源码 byte-exact 落盘/code-lock、MCP compile-verification/get_task、用户代码保留与 playbook 均已回归。若候选宣称这些能力，剩冻结候选绑定 SHA 后重放 |
+| P2 MCP UI/quickstart/modid 一致性 | **实现/本地验证完成，待固定提交候选** | AIControlView 由 native MCP runtime state 驱动且 4/4 Playwright 通过；Python/TypeScript SDK 与 quickstart 读取 `.copperbench/mcp-connection.json`，不再假设固定 8787；8 条正式 Fabric/NeoForge 轨道的 workspace identity 测试均确认 `archivesName=${modid}`，Fabric 同时确认 `actualmodid=${modid}` |
+
+本轮实现与 fresh Windows export 复验记录见 [P0 AI Agent / installed-layout product fixes](./testing/p0-ai-agent-product-fixes-2026-09-02.md)、[P1 Agent fallback / code diagnostics](./testing/p1-agent-fallback-code-diagnostics-2026-09-02.md) 与 [P2 MCP discovery / workspace identity](./testing/p2-mcp-discovery-workspace-identity-2026-09-02.md)。表中 P0 继续保持 `blocked` 是发布证据边界，不表示上述源码修复尚未实现。
 
 ### 2026-08-31 发布控制更新
 
@@ -10,7 +27,7 @@
 
 Beta 1 随包 `product.channel=preview` 的元数据漂移已由不可变的新标签 Beta 2 修正。Beta 2 随包状态源为 `product.channel=beta`、`delivery.betaRelease.tag=v0.1.0-beta.2`，`RELEASE-METADATA.json` 指向 `binarySource.mode=promoted-tested-candidate` / `v0.1.0-preview.6`。证据见 [Beta 1 publication verification](./testing/beta1-publication-2026-08-31.md) 与 [Beta 2 publication verification](./testing/beta2-publication-2026-08-31.md)。
 
-阶段 8 收口需求 `FR-CLOSE-01`～`FR-CLOSE-08` 均已完成。当前发布链已完成 Preview 6 候选冻结、Beta 1 exact-binary promotion 与 Beta 2 metadata correction；`main@8b063283` 的 merged-main CI `33334020837` 全绿，Beta 2 release run `33334394466` 全绿。当前 Public Beta 发布控制没有未完成阻断。真实 JCEF 无障碍、最终 RC 回放和五人外部试用继续明确移出当前 Beta 宣称范围。
+阶段 8 收口需求 `FR-CLOSE-01`～`FR-CLOSE-08` 均已完成。当前发布链已完成 Preview 6 候选冻结、Beta 1 exact-binary promotion 与 Beta 2 metadata correction；`main@8b063283` 的 merged-main CI `33334020837` 全绿，Beta 2 release run `33334394466` 全绿。**这仍表示 Beta 2 当时的发布控制没有未完成阻断；2026-09-02 的安装产品实测已重新打开下一候选的产品 P0，不能用这段历史结论覆盖新缺陷。** 真实 JCEF 无障碍、最终 RC 回放和五人外部试用继续明确移出当前 Beta 宣称范围。
 
 ## 当前交付阻断项
 
@@ -32,6 +49,10 @@ Beta 1 随包 `product.channel=preview` 的元数据漂移已由不可变的新�
 | 诊断包 | 已通过 | `main@92d1a8d0` + Nightly `33253594479` 已固定验证默认脱敏、显式复现授权、Java 服务、真实 JCEF、桥接与 UI 路径 |
 | Issue 分流 | 已通过 | `main@92d1a8d0` + Nightly `33253594479` 已固定验证 FR-BETA-02 Issue 表单字段与分流入口 |
 | 外部试用 | 当前 Beta 范围不适用 | 五人外测协议和验证器保留，但不再阻断当前 Beta 候选 |
+| 安装布局 JDK 解析 | **阻断下一候选；修复已实现** | fresh `exportWin64` 为仅 `jdk/bin/java.exe` 的扁平布局，真实 `testmod2` 已用该 JDK `BUILD SUCCESSFUL`；剩安装候选桌面 `runClient` 重放与 commit/candidate 证据 |
+| 交互式 `runClient` | **阻断下一候选；修复已实现** | 产品 task 已与 CI readiness probe 分离，自动化证明 marker 后仍保持 running；剩候选真实游戏窗口生命周期重放 |
+| 桌面 MCP 产品接线 | **阻断下一候选；修复已实现** | fresh 导出树的真实产品壳已启动 `127.0.0.1` MCP 并写无密钥连接文件；当前工具宿主无法通过 JCEF UIA 安全点击一次性 token，剩候选人工/可交互桌面外部连接证据 |
+| 外部 Agent 安装产品闭环 | **阻断下一候选；协议/runtime 回归已实现** | HTTP runtime 已覆盖完整读写构建/增量日志/冲突恢复；剩安装候选外部 Agent 使用 UI 取得 token 的同链路重放 |
 
 ## 阶段 9 状态摘要
 
@@ -49,11 +70,11 @@ Beta 1 随包 `product.channel=preview` 的元数据漂移已由不可变的新�
 
 | 项 | 当前状态 | 证据/备注 |
 | --- | --- | --- |
-| 产品外壳「新建工作区」 | 已完成 | 落盘、JCEF 宿主打开、MCP/headless 查询与审批测试通过；Playwright mock 仅作 UI 场景测试 |
+| 产品外壳「新建工作区」 | 工作区生命周期已完成；安装产品 MCP 入口重开 | 落盘、JCEF 宿主打开和测试层 MCP/headless 查询已有证据；2026-09-02 证明这些测试不等于桌面产品会真实启动 MCP，产品入口由 FR-PROD-03/04 重新验收 |
 | 八套工作区生成器插件 | 已完成 | 8/8 空工程黄金编译通过，当前 Windows 预览包已对齐 |
 | 国内源 / Gradle 池 / 9.7.0 | 已完成（受缓存/网络条件约束） | 当前导出包布局和启动预填已通过；官方专用 Maven 源仍不承诺镜像化 |
 | Gradle `--offline` 宣称 | 已完成 | 7 条轨道进入正式列表；NeoForge 1.20.1 明确排除 |
-| 第一方纵向切片 | 已完成 | 八生成器 × block/item/recipe/procedure 的编译与 `runClient` 证据独立存在 |
+| 第一方纵向切片 | 生成/编译证据已完成；交互式 `runClient` 重开 | 八生成器 × block/item/recipe/procedure 的生成/编译与历史 smoke 证据独立存在；安装产品交互式 `runClient` 的生命周期/JDK 由 FR-PROD-01/02 重新验收 |
 | 资产 | 已完成 | `AssetWorkspaceService`、UI-Core、MCP 与产品路径已接真实工作区 |
 | 独立资源包 | 已完成 | 创建、骨架、ZIP 导出和客户端准备均通过 |
 | Windows 预览包 | 已完成 | 当前包、11 个插件、README、unsigned preview、安装/升级/卸载演练通过 |

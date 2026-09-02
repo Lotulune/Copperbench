@@ -13,6 +13,7 @@ import com.google.gson.JsonObject;
 import dev.copperbench.core.application.WorkspaceTaskGateway;
 import dev.copperbench.core.contract.UiCore.Operation;
 import dev.copperbench.core.workspace.RevisionedWorkspaceStore;
+import dev.copperbench.generator.BundledJdkLocator;
 import dev.copperbench.generator.GradleProcessRunner;
 import dev.copperbench.generator.GradleWorkspaceTaskGateway;
 import dev.copperbench.generator.fabric.Fabric1211ProcessRunner;
@@ -40,7 +41,7 @@ public final class NeoForge1211WorkspaceTaskGateway implements WorkspaceTaskGate
 			Path distributionRoot, Clock clock, Supplier<UUID> ids, NeoForge1211Generator.Profile profile) {
 		this(store, workspaceRoots, distributionRoot, clock, ids, profile,
 				Fabric1211ProcessRunner.system(profile.readyMarker(),
-						distributionRoot.resolve(profile.jdkRelativePath())));
+						() -> BundledJdkLocator.locate(distributionRoot, profile.javaRelease())));
 	}
 
 	public NeoForge1211WorkspaceTaskGateway(RevisionedWorkspaceStore store, Function<UUID, Path> workspaceRoots,
@@ -57,7 +58,8 @@ public final class NeoForge1211WorkspaceTaskGateway implements WorkspaceTaskGate
 			return new GradleProcessRunner.ProcessResult(result.exitCode(), result.readinessMarkerSeen());
 		};
 		this.delegate = new GradleWorkspaceTaskGateway(store, workspaceRoots,
-				new NeoForge1211Generator(distributionRoot, profile), clock, ids, processAdapter);
+				new NeoForge1211Generator(distributionRoot, profile,
+						() -> BundledJdkLocator.locate(distributionRoot, profile.javaRelease())), clock, ids, processAdapter);
 	}
 
 	@Override public JsonObject start(UUID workspaceId, Operation operation, JsonObject payload) {

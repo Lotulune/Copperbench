@@ -22,7 +22,11 @@
   },
   "packaging": {
     "executable": "copperbench.exe",
-    "bundledJdk": "jdk/jbr25_win_64",
+    "bundledJdk": {
+      "installed": "jdk",
+      "sourceTreeJava25": "jdk/jbr25_win_64",
+      "sourceTreeJava21": "jdk/jdk21_win_64"
+    },
     "jcefBundledWithJdk": true,
     "pluginsDirectory": "plugins",
     "licenseDirectory": "license",
