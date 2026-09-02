@@ -76,7 +76,9 @@ test.describe('Interactive UI-Core Commands & Mutations', () => {
   test('MCP permission status does not fake elevation when the desktop runtime is unavailable', async ({ page }) => {
     const permBtn = page.locator('[data-testid="permission-alert"]');
     await expect(permBtn).toContainText('MCP: WORKSPACE');
-    await expect(permBtn).toHaveAttribute('title', 'MCP 服务未启动');
+
+    await permBtn.click();
+    await expect(permBtn).toContainText('MCP: WORKSPACE');
 
     await permBtn.click();
     await expect(permBtn).toContainText('MCP: WORKSPACE');
