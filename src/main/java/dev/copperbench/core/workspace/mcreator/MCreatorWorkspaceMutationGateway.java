@@ -215,6 +215,11 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 				throw new IllegalStateException("Upstream source generation failed for "
 						+ definition.getModElement().getName());
 			}
+			// The first base generation intentionally runs before element generation so upstream element
+			// templates can resolve existing base classes. A newly created element's own Java class does
+			// not exist in the import tree until generateElement() writes it, though. Refresh the base once
+			// more so shared registries/init files can import that new class before the next real Gradle build.
+			workspace.getGenerator().generateBase();
 		} catch (RuntimeException exception) {
 			try {
 				workspace.getGenerator().removeElementFilesAndWorkspaceLinks(definition);
