@@ -12,7 +12,7 @@
 
 签名候选 `v0.1.0-preview.8` 随后从 `main@69469b8f` 构建并通过正式 release tests、Windows 三件套打包、SBOM、payload/provenance 与资产摘要校验。`v0.1.0-beta.4` 由 release-control `29ac9cf2` 通过 release run `33751421385` 采用 `promote-tested-candidate` 路径公开，EXE、ZIP、MSIX 与 SBOM 均逐字节复用 Preview 8 的冻结资产，没有重新构建第二套 Beta 二进制。详见 [Beta 4 publication evidence](./docs/testing/beta4-publication-2026-09-03.md)。
 
-因此 Stage 12～14 不再被 FR-PROD-01～04 阻断；这些 gate 只应在后续回归证据表明已验证行为发生变化时重新打开。
+因此 Stage 12～14 不再被 FR-PROD-01～04 阻断；但后续若修改对应的 JDK、Run Client、Desktop MCP 或 external-Agent 产品路径，或出现回归证据表明已验证行为发生变化，就必须重新打开并复验相应 gate。
 
 ## 2026-08-31 Public Beta publication and metadata correction
 
