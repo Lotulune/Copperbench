@@ -2314,7 +2314,7 @@ public final class WorkspaceApplicationService {
 			case "livingentity" -> {
 				if (!values.has("mobName")) values.addProperty("mobName", name);
 				if (!values.has("mobLabel")) values.addProperty("mobLabel", displayName(name));
-				if (!values.has("hasSpawnEgg")) values.addProperty("hasSpawnEgg", true);
+				if (!values.has("hasSpawnEgg")) values.addProperty("hasSpawnEgg", false);
 				if (!values.has("isBoss")) values.addProperty("isBoss", false);
 			}
 			case "projectile" -> {

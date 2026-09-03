@@ -6,40 +6,52 @@ import dev.copperbench.core.contract.UiCore.Operation;
 import dev.copperbench.core.workspace.WorkspaceState;
 import dev.copperbench.core.workspace.WorkspaceState.Element;
 import dev.copperbench.release.GeneratorElementCapabilityCatalog;
-import net.mcreator.element.util.GEValidator;
+import net.mcreator.blockly.data.BlocklyXML;
 import net.mcreator.element.GeneratableElement;
 import net.mcreator.element.ModElementType;
 import net.mcreator.element.ModElementTypeLoader;
 import net.mcreator.element.parts.AIPathNodeType;
 import net.mcreator.element.parts.AchievementEntry;
 import net.mcreator.element.parts.ItemUseAnimation;
+import net.mcreator.element.parts.IWorkspaceDependent;
 import net.mcreator.element.parts.MItemBlock;
 import net.mcreator.element.parts.MapColor;
+import net.mcreator.element.parts.MobSpawnType;
 import net.mcreator.element.parts.NoteBlockInstrument;
 import net.mcreator.element.parts.Sound;
+import net.mcreator.element.parts.StepSound;
 import net.mcreator.element.parts.TextureHolder;
-import net.mcreator.element.types.Block;
+import net.mcreator.element.parts.procedure.NumberProcedure;
 import net.mcreator.element.types.Achievement;
+import net.mcreator.element.types.Block;
 import net.mcreator.element.types.CustomElement;
 import net.mcreator.element.types.Function;
 import net.mcreator.element.types.Item;
+import net.mcreator.element.types.LivingEntity;
 import net.mcreator.element.types.LootTable;
 import net.mcreator.element.types.Procedure;
 import net.mcreator.element.types.Projectile;
 import net.mcreator.element.types.Recipe;
+import net.mcreator.element.types.SpecialEntity;
+import net.mcreator.element.types.Tool;
+import net.mcreator.element.util.GEValidator;
 import net.mcreator.workspace.Workspace;
 import net.mcreator.workspace.WorkspaceFileManager;
 import net.mcreator.workspace.elements.ModElement;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.List;
-import java.util.UUID;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 /** Transaction participant for all first-party Java elements backed by the upstream model classes. */
 public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutationGateway {
@@ -71,8 +83,7 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 	@Override public void persist(WorkspaceState before, WorkspaceState after, Operation operation,
 			Element affectedElement) throws Exception {
 		ModElement existing = find(affectedElement.id());
-		String storedName = existing == null ? affectedElement.name() : existing.getName();
-		FileSnapshot snapshot = FileSnapshot.capture(workspace, storedName, existing);
+		FileSnapshot snapshot = FileSnapshot.capture(workspace, existing);
 		try {
 			switch (operation) {
 				case CREATE_MOD_ELEMENT -> create(affectedElement);
@@ -140,7 +151,7 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 
 	@Override public void persistWorkspaceData(WorkspaceState before, WorkspaceState after, Operation operation)
 			throws Exception {
-		FileSnapshot snapshot = FileSnapshot.capture(workspace, "__workspace_registry__", null);
+		FileSnapshot snapshot = FileSnapshot.capture(workspace, null);
 		try {
 			MCreatorWorkspaceRegistryMapper.synchronize(workspace, after.registries());
 			for (Element element : after.elements()) {
@@ -259,7 +270,7 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 	}
 
 	private GeneratableElement newDefinition(ModElement modElement, Element element) {
-		return switch (element.type()) {
+		GeneratableElement definition = switch (element.type()) {
 			case "block" -> newBlock(modElement, element);
 			case "item" -> newItem(modElement, element);
 			case "recipe" -> newRecipe(modElement, element);
@@ -274,6 +285,10 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 			case "achievement" -> newAchievement(modElement, element);
 			default -> newGenericDefinition(modElement, element);
 		};
+		applyRequiredGenerationDefaults(definition, element);
+		IWorkspaceDependent.processWorkspaceDependentObjects(definition,
+				workspaceDependent -> workspaceDependent.setWorkspace(workspace));
+		return definition;
 	}
 
 	private GeneratableElement newGenericDefinition(ModElement modElement, Element element) {
@@ -295,11 +310,25 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 		block.colorOnMap = new MapColor(workspace, "DEFAULT");
 		block.noteBlockInstrument = new NoteBlockInstrument(workspace, "harp");
 		block.aiPathNodeType = new AIPathNodeType(workspace, "DEFAULT");
-		block.boundingBoxes.clear();
+		block.soundOnStep = new StepSound(workspace, "STONE");
+		block.luminance = new NumberProcedure(null, 0);
+		block.emittedRedstonePower = new NumberProcedure(null, 0);
+		block.customDrop = new MItemBlock(workspace, "");
+		block.creativePickItem = new MItemBlock(workspace, "");
+		block.strippingResult = new MItemBlock(workspace, "");
+		block.texture = texture(element.values(), "texture", "minecraft:stone");
+		block.textureTop = texture(element.values(), "textureTop", block.texture.toString());
+		block.textureLeft = texture(element.values(), "textureLeft", block.texture.toString());
+		block.textureFront = texture(element.values(), "textureFront", block.texture.toString());
+		block.textureRight = texture(element.values(), "textureRight", block.texture.toString());
+		block.textureBack = texture(element.values(), "textureBack", block.texture.toString());
+		block.itemTexture = texture(element.values(), "itemTexture", block.texture.toString());
+		block.particleTexture = texture(element.values(), "particleTexture", block.texture.toString());
 		block.inventoryStackSize = 99;
 		block.frequencyPerChunks = 10;
 		block.frequencyOnChunk = 16;
 		block.maxGenerateHeight = 64;
+		applyGenericValues(block, element);
 		return block;
 	}
 
@@ -435,7 +464,7 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 	}
 
 	private void updateDefinition(GeneratableElement definition, Element element) {
-			switch (definition) {
+		switch (definition) {
 			case Block block -> block.name = element.displayName();
 			case Item item -> applyItem(item, element);
 			case Recipe recipe -> recipe.name = element.name();
@@ -446,6 +475,9 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 			case Achievement achievement -> applyAchievement(achievement, element);
 			default -> applyGenericValues(definition, element);
 		}
+		applyRequiredGenerationDefaults(definition, element);
+		IWorkspaceDependent.processWorkspaceDependentObjects(definition,
+				workspaceDependent -> workspaceDependent.setWorkspace(workspace));
 	}
 
 	/**
@@ -488,12 +520,61 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 			try {
 				if (field.get(definition) != null)
 					continue;
+				BlocklyXML blockly = field.getAnnotation(BlocklyXML.class);
 				var options = field.getAnnotation(net.mcreator.element.types.interfaces.LimitedOptions.class);
-				field.set(definition, options != null && options.value().length > 0 ? options.value()[0] : "");
+				if (blockly != null) field.set(definition, blockly.defaultXML());
+				else field.set(definition, options != null && options.value().length > 0 ? options.value()[0] : "");
 			} catch (IllegalAccessException ignored) {
 				// Keep the upstream constructor default when the field cannot be written.
 			}
 		}
+	}
+
+	private void applyRequiredGenerationDefaults(GeneratableElement definition, Element element) {
+		JsonObject values = element.values();
+		switch (definition) {
+			case Tool tool -> {
+				tool.texture = texture(values, "texture", "minecraft:barrier");
+				tool.guiTexture = texture(values, "guiTexture", "");
+			}
+			case LivingEntity entity -> {
+				entity.mobModelName = string(values, "mobModelName", "Biped");
+				entity.mobModelTexture = string(values, "mobModelTexture", "zombie.png");
+				if (entity.spawnEggBaseColor == null) entity.spawnEggBaseColor = java.awt.Color.GRAY;
+				if (entity.spawnEggDotColor == null) entity.spawnEggDotColor = java.awt.Color.DARK_GRAY;
+				if (entity.equipmentMainHand == null) entity.equipmentMainHand = new MItemBlock(workspace, "");
+				if (entity.equipmentOffHand == null) entity.equipmentOffHand = new MItemBlock(workspace, "");
+				if (entity.equipmentHelmet == null) entity.equipmentHelmet = new MItemBlock(workspace, "");
+				if (entity.equipmentBody == null) entity.equipmentBody = new MItemBlock(workspace, "");
+				if (entity.equipmentLeggings == null) entity.equipmentLeggings = new MItemBlock(workspace, "");
+				if (entity.equipmentBoots == null) entity.equipmentBoots = new MItemBlock(workspace, "");
+				if (entity.mobDrop == null) entity.mobDrop = new MItemBlock(workspace, "");
+				if (entity.rangedAttackItem == null) entity.rangedAttackItem = new MItemBlock(workspace, "");
+				entity.mobSpawningType = new MobSpawnType(workspace,
+						string(values, "mobSpawningType", "creature"));
+				if (!values.has("modelWidth")) entity.modelWidth = 0.6;
+				if (!values.has("modelHeight")) entity.modelHeight = 1.8;
+				if (!values.has("health")) entity.health = 10;
+				if (!values.has("movementSpeed")) entity.movementSpeed = 0.3;
+			}
+			case SpecialEntity entity -> {
+				entity.entityTexture = texture(values, "entityTexture", "minecraft:oak_planks");
+				entity.itemTexture = texture(values, "itemTexture", "minecraft:oak_boat");
+			}
+			case Projectile projectile -> {
+				projectile.projectileItem = new MItemBlock(workspace,
+						string(values, "projectileItem", "Items.ARROW"));
+				projectile.actionSound = new Sound(workspace, string(values, "actionSound", ""));
+				projectile.entityModel = string(values, "entityModel", "Default");
+				projectile.customModelTexture = string(values, "customModelTexture", "");
+			}
+			default -> {
+			}
+		}
+	}
+
+	private TextureHolder texture(JsonObject values, String key, String fallback) {
+		return new TextureHolder(workspace, string(values, key, fallback));
 	}
 
 	private void persistCustomCode(ModElement modElement, Element element, GeneratableElement definition) {
@@ -575,27 +656,32 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 		return null;
 	}
 
-	private record FileSnapshot(Map<Path, byte[]> files) {
+	private record FileSnapshot(Map<Path, byte[]> files, Set<Path> directories, Set<Path> trees) {
 
-		private static FileSnapshot capture(Workspace workspace, String elementName, ModElement existing)
-				throws IOException {
+		private static FileSnapshot capture(Workspace workspace, ModElement existing) throws IOException {
 			Path root = workspace.getWorkspaceFolder().toPath().toAbsolutePath().normalize();
 			Map<Path, byte[]> files = new LinkedHashMap<>();
+			Set<Path> directories = new LinkedHashSet<>();
+			Set<Path> trees = new LinkedHashSet<>();
 			capture(files, root, workspace.getFileManager().getWorkspaceFile().toPath());
-			capture(files, root, workspace.getFolderManager().getModElementsDir().toPath()
-					.resolve(elementName + ".mod.json"));
+			captureTree(files, directories, trees, root, root.resolve("src"));
+			captureTree(files, directories, trees, root, workspace.getFolderManager().getModElementsDir().toPath());
 			if (existing != null) {
 				for (var associated : existing.getAssociatedFiles())
 					capture(files, root, associated.toPath());
 			}
-			return new FileSnapshot(files);
+			return new FileSnapshot(files, directories, trees);
 		}
 
 		private static FileSnapshot capturePlan(Workspace workspace, WorkspaceState before, WorkspaceState after,
 				UUID workspaceId) throws IOException {
 			Path root = workspace.getWorkspaceFolder().toPath().toAbsolutePath().normalize();
 			Map<Path, byte[]> files = new LinkedHashMap<>();
+			Set<Path> directories = new LinkedHashSet<>();
+			Set<Path> trees = new LinkedHashSet<>();
 			capture(files, root, workspace.getFileManager().getWorkspaceFile().toPath());
+			captureTree(files, directories, trees, root, root.resolve("src"));
+			captureTree(files, directories, trees, root, workspace.getFolderManager().getModElementsDir().toPath());
 			Map<UUID, Element> beforeElements = new LinkedHashMap<>();
 			for (Element element : before.elements()) beforeElements.put(element.id(), element);
 			Map<UUID, Element> afterElements = new LinkedHashMap<>();
@@ -615,7 +701,7 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 				capture(files, root, workspace.getFolderManager().getModElementsDir().toPath()
 						.resolve(next.name() + ".mod.json"));
 			}
-			return new FileSnapshot(files);
+			return new FileSnapshot(files, directories, trees);
 		}
 
 		private static ModElement find(Workspace workspace, UUID workspaceId, UUID elementId) {
@@ -634,13 +720,45 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 			files.putIfAbsent(normalized, Files.isRegularFile(normalized) ? Files.readAllBytes(normalized) : null);
 		}
 
+		private static void captureTree(Map<Path, byte[]> files, Set<Path> directories, Set<Path> trees, Path root,
+				Path candidate) throws IOException {
+			Path normalized = candidate.toAbsolutePath().normalize();
+			if (!normalized.startsWith(root))
+				throw new IOException("Workspace mutation referenced a directory outside the workspace: " + normalized);
+			trees.add(normalized);
+			if (!Files.isDirectory(normalized, LinkOption.NOFOLLOW_LINKS)) return;
+			try (var paths = Files.walk(normalized)) {
+				for (Path path : paths.toList()) {
+					if (Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS)) directories.add(path);
+					else if (Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS))
+						files.putIfAbsent(path, Files.readAllBytes(path));
+				}
+			}
+		}
+
 		private void restore() throws IOException {
+			for (Path tree : trees) {
+				if (!Files.isDirectory(tree, LinkOption.NOFOLLOW_LINKS)) continue;
+				try (var paths = Files.walk(tree)) {
+					for (Path path : paths.filter(candidate ->
+							Files.isRegularFile(candidate, LinkOption.NOFOLLOW_LINKS)).toList())
+						if (!files.containsKey(path)) Files.deleteIfExists(path);
+				}
+			}
 			for (var entry : files.entrySet()) {
 				if (entry.getValue() == null) {
 					Files.deleteIfExists(entry.getKey());
 				} else {
 					Files.createDirectories(entry.getKey().getParent());
 					Files.write(entry.getKey(), entry.getValue());
+				}
+			}
+			for (Path tree : trees) {
+				if (!Files.isDirectory(tree, LinkOption.NOFOLLOW_LINKS)) continue;
+				try (var paths = Files.walk(tree)) {
+					for (Path path : paths.sorted(Comparator.reverseOrder()).toList())
+						if (Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS) && !directories.contains(path))
+							Files.deleteIfExists(path);
 				}
 			}
 		}

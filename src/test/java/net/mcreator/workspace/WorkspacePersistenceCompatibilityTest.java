@@ -31,7 +31,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Clock;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -535,6 +537,65 @@ class WorkspacePersistenceCompatibilityTest {
 		}
 	}
 
+	@Test void fabric2612PersistsScenarioTwoElementTypesWithRealSourceGeneration() throws Exception {
+		WorkspaceSettings settings = new WorkspaceSettings("fabric_2612_element_persistence");
+		settings.setModName("Fabric 26.1.2 Element Persistence");
+		settings.setVersion("1.0.0");
+		settings.setCurrentGenerator("fabric-26.1.2");
+		Workspace workspace = Workspace.createWorkspace(
+				temporaryDirectory.resolve("fabric_2612_element_persistence.mcreator").toFile(), settings);
+		UUID workspaceId = UUID.fromString("11111111-1111-4111-8111-111111111183");
+		AtomicLong sequence = new AtomicLong(3100);
+		java.util.function.Supplier<UUID> ids = () -> uuid(sequence.incrementAndGet());
+		try (MCreatorWorkspaceSession session = MCreatorWorkspaceSession.attach(workspace, workspaceId,
+				new InMemoryWorkspaceTaskGateway(Clock.systemUTC(), ids), Clock.systemUTC(), ids)) {
+			Files.createDirectories(workspace.getGenerator().getSourceRoot().toPath());
+			var entry = session.headlessEntry(PermissionProfile.WORKSPACE);
+			long revision = 0;
+			for (String type : List.of("tool", "livingentity", "specialentity", "block")) {
+				String name = "scenario_two_" + type;
+				JsonObject payload = new JsonObject();
+				payload.addProperty("clientMutationId", ids.get().toString());
+				payload.addProperty("elementType", type);
+				payload.addProperty("name", name);
+				JsonObject values = new JsonObject();
+				values.addProperty("displayName", "Scenario Two " + type);
+				if (type.equals("tool")) values.addProperty("toolType", "Sword");
+				payload.add("initialValues", values);
+
+				var outcome = entry.execute(Command.of(ids.get(), workspaceId, revision,
+						Operation.CREATE_MOD_ELEMENT, payload));
+
+				assertEquals("committed", outcome.result().status(),
+						() -> type + ": " + outcome.result().diagnostics());
+				revision++;
+				assertTrue(workspace.containsModElement(name));
+				assertTrue(Files.isRegularFile(temporaryDirectory.resolve("elements/" + name + ".mod.json")));
+			}
+
+			JsonObject planPayload = workspacePlanPayload(revision, "fabric-2612-scenario-two-plan",
+					workspacePlanCreate("tool", "planned_scenario_two_tool"),
+					workspacePlanCreate("projectile", "planned_scenario_two_projectile"),
+					workspacePlanCreate("livingentity", "planned_scenario_two_livingentity"),
+					workspacePlanCreate("code", "planned_scenario_two_code"));
+			var planned = entry.query(Query.of(ids.get(), workspaceId, Operation.PLAN_WORKSPACE_CHANGES, planPayload));
+			assertEquals("succeeded", planned.status(), planned.diagnostics().toString());
+			JsonObject applyPayload = new JsonObject();
+			applyPayload.addProperty("clientMutationId", ids.get().toString());
+			applyPayload.add("plan", planned.data().deepCopy());
+
+			var applied = entry.execute(Command.of(ids.get(), workspaceId, revision,
+					Operation.APPLY_WORKSPACE_PLAN, applyPayload));
+
+			assertEquals("committed", applied.result().status(), applied.result().diagnostics().toString());
+			for (String name : List.of("planned_scenario_two_tool", "planned_scenario_two_projectile",
+					"planned_scenario_two_livingentity", "planned_scenario_two_code"))
+				assertTrue(workspace.containsModElement(name), name);
+		} finally {
+			workspace.close();
+		}
+	}
+
 	@Test void copperbenchSavePreservesUnknownFieldsForEveryFirstPartyType() throws Exception {
 		WorkspaceSettings settings = new WorkspaceSettings("stage11_roundtrip");
 		settings.setModName("Stage 11 Round Trip");
@@ -670,6 +731,59 @@ class WorkspacePersistenceCompatibilityTest {
 		} finally {
 			workspace.close();
 		}
+	}
+
+	@Test void rollbackRestoresAllGeneratedSourcesAfterPostGenerationFailure() throws Exception {
+		WorkspaceSettings settings = new WorkspaceSettings("generated_source_rollback");
+		settings.setModName("Generated Source Rollback");
+		settings.setVersion("1.0.0");
+		settings.setCurrentGenerator("fabric-26.1.2");
+		Workspace workspace = Workspace.createWorkspace(
+				temporaryDirectory.resolve("generated_source_rollback.mcreator").toFile(), settings);
+		UUID workspaceId = UUID.fromString("11111111-1111-4111-8111-111111111184");
+		AtomicLong sequence = new AtomicLong(3200);
+		java.util.function.Supplier<UUID> ids = () -> uuid(sequence.incrementAndGet());
+		Path sourceRoot = temporaryDirectory.resolve("src");
+		try {
+			Files.createDirectories(workspace.getGenerator().getSourceRoot().toPath());
+			Files.writeString(sourceRoot.resolve("preserved.txt"), "before");
+			Map<String, byte[]> before = sourceFiles(sourceRoot);
+			try (MCreatorWorkspaceSession session = MCreatorWorkspaceSession.attach(workspace, workspaceId,
+					new InMemoryWorkspaceTaskGateway(Clock.systemUTC(), ids), Clock.systemUTC(), ids,
+					List.of((actual, _, _, _, _) -> {
+						assertTrue(actual.containsModElement("rolled_back_generated_block"));
+						throw new IllegalStateException("simulated post-generation failure");
+					}))) {
+				JsonObject payload = new JsonObject();
+				payload.addProperty("clientMutationId", ids.get().toString());
+				payload.addProperty("elementType", "block");
+				payload.addProperty("name", "rolled_back_generated_block");
+				payload.add("initialValues", new JsonObject());
+
+				var outcome = session.mcpEntry(PermissionProfile.WORKSPACE).execute(
+						Command.of(ids.get(), workspaceId, 0, Operation.CREATE_MOD_ELEMENT, payload));
+
+				assertEquals("rejected", outcome.result().status());
+				assertEquals("WORKSPACE_PERSISTENCE_FAILED", outcome.result().diagnostics().getFirst().code());
+				Map<String, byte[]> after = sourceFiles(sourceRoot);
+				assertEquals(before.keySet(), after.keySet());
+				for (var entry : before.entrySet())
+					assertTrue(java.util.Arrays.equals(entry.getValue(), after.get(entry.getKey())),
+							entry.getKey());
+			}
+		} finally {
+			workspace.close();
+		}
+	}
+
+	private static Map<String, byte[]> sourceFiles(Path root) throws Exception {
+		Map<String, byte[]> result = new LinkedHashMap<>();
+		if (!Files.isDirectory(root)) return result;
+		try (var paths = Files.walk(root)) {
+			for (Path path : paths.filter(Files::isRegularFile).sorted().toList())
+				result.put(root.relativize(path).toString().replace('\\', '/'), Files.readAllBytes(path));
+		}
+		return result;
 	}
 
 	private Workspace workspace() {
