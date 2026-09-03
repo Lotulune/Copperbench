@@ -4,7 +4,7 @@
 
 阶段 8 收口项已完成，历史见 [阶段 8 路线](./roadmap/stage-8-windows-beta-ga.md)；G7 已通过 Hyper-V Win11 客机最终复验。VMware 不属于 G7 必需门禁。四轨 Fabric / NeoForge 及 `resourcepack-1.21.1` 生成器已经在源码里。当前需求见 [PRD-NEXT.md](../PRD-NEXT.md)。
 
-远程 MCP、自有云账户、Linux/macOS 正式支持、内置模型厂商聊天、产品网站、付费 Authenticode 不属于当前未决事项；它们已经明确排除在首个公开 GitHub 衍生版之外，后续若重启必须新增 ADR。
+远程 MCP、自有云账户、macOS 正式支持、内置模型厂商聊天、产品网站、付费 Authenticode 不属于当前未决事项；它们已经明确排除在首个公开 GitHub 衍生版之外，后续若重启必须新增 ADR。Linux 正式支持已按该规则由 [ADR-0016](./adr/0016-stage15-linux-formal-support.md) 重启并进入 Stage 15 路线，但在 Stage 15 DoD 完成前仍不属于当前已支持平台。
 
 ## 已关闭
 
@@ -17,6 +17,7 @@
 | 无开发工具的干净 Windows 11 安装环境 | Hyper-V 客户机断网状态下 `copperbench.exe` 10 秒常驻通过；静默安装/升级/卸载通过；工作区与 `.copperbench` 保留。 | [`hyperv-g7-guest-checks.json`](../evidence/stage-8/2026-08-23/hyperv-g7-guest-checks.json) |
 | 阶段 0 开发发行身份 | 公开名称 `Copperbench`；产品 ID `dev.copperbench.studio`（反向 DNS，不是网站）；新增 Java 命名空间 `dev.copperbench`；Publisher `Copperbench Contributors` | [`BRANDING.md`](../compliance/BRANDING.md)、[`branding-assets.lock.json`](../compliance/branding-assets.lock.json) |
 | 最终公开发行品牌、域名、签名主体与商标法律复核 | 不做商业化。公开身份为 Copperbench；分发仅为 GitHub 未签名 GPL 衍生版；无域名、无商店、无 Authenticode。不是律师商标意见。 | [ADR-0015](./adr/0015-github-unsigned-gpl-fork.md)、[`BRANDING.md`](../compliance/BRANDING.md)、`ReleaseManifest` |
+| Linux 正式平台支持是否重启 | 重启，但作为 Stage 15 独立平台阶段；Stage 15 完成前正式支持范围仍只有 Windows 11 x64。首个 Linux 目标为 x86_64 桌面，认证发行版与打包格式在 Stage 15 开工时进一步冻结。 | [ADR-0016](./adr/0016-stage15-linux-formal-support.md)、[`PRD-NEXT.md`](../PRD-NEXT.md) 11.5 |
 | 最新稳定版与前一个稳定版对应的 Minecraft 版本 | 最新稳定版 = Minecraft `26.2`；前一个稳定版 = Minecraft `26.1`（钉选 `26.1.2`）。四轨 × Fabric/NeoForge 第一方纵向切片均为 `TRACK_SUPPORTED`（编译 + runClient）；八个工作区生成器插件空工程也已完成独立黄金编译。 | [`VersionTrackCatalog`](../src/main/java/dev/copperbench/tracks/VersionTrackCatalog.java)、[`stage-8-workspace-generators-assets-2026-08-23.md`](./testing/stage-8-workspace-generators-assets-2026-08-23.md) |
 
 `Minecraft Mod Creator` 只保留为 PRD 工作标题。`Copperbench` 是公开产品名。G7 已为 `passed`；VMware 不属于该门禁。
