@@ -1,10 +1,18 @@
 # Copperbench PRD：Public Beta 基线、Stage 11 全量 Mod Element、安装产品 Agent 闭环与后续深化路线
 
-> 状态：Public Beta `v0.1.0-beta.3` 已发布、Stage 11 全量 Java Mod Element 支持已完成；2026-09-02 外部 Agent 对已安装产品的实测重新打开 4 个下一候选 P0 产品闭环门禁，Stage 12～14 路线保留但任何下一 Preview/Beta/RC 在这些 P0 关闭前不得建立
-> 版本：v1.6
-> 更新日期：2026-09-02
+> 状态：Public Beta `v0.1.0-beta.4` 已发布；Stage 11 全量 Java Mod Element 与 2026-09-02 重新打开的 4 个安装产品 P0 门禁均已闭环，Stage 12～14 路线进入可执行状态
+> 版本：v1.7
+> 更新日期：2026-09-03
 > 前置基线：[PRD.md](./PRD.md)、[PRD-STAGE-9.md](./PRD-STAGE-9.md)
-> 当前公开 Beta：`v0.1.0-beta.3`（release-control `7956dcb9`，release run `33515908561`）；canonical EXE/ZIP/MSIX/SBOM 与签名候选 `v0.1.0-preview.7` 完全同 size/SHA-256；Beta 3 发布后 harness 验证基线为 `main@af1b6ed9`
+> 当前公开 Beta：`v0.1.0-beta.4`（release-control `29ac9cf2`，release run `33751421385`）；canonical EXE/ZIP/MSIX/SBOM 与签名候选 `v0.1.0-preview.8` 完全同 size/SHA-256；安装产品 P0 行为证据来自 `d0d96877`，其到 Preview 8 的 tracked delta 不含产品/runtime/build/SDK 实现变更
+
+## 2026-09-03 Beta 4 安装产品闭环与发布收口
+
+2026-09-02 外部 Agent 实测重新打开的 bundled JDK、交互式 `runClient`、Desktop MCP、external-Agent 四个产品级 P0 已在后续 hardening 中全部关闭。最终安装产品候选 `d0d96877` 完成 clean Windows 11、真实桌面 Run Client、一次性 MCP 凭据、完整 Agent 读写/plan/build/conflict/code-compile 与正常关闭失效验证；相关 beta-blocking gates 已全部恢复为 `passed`。
+
+签名候选 `v0.1.0-preview.8` 随后从 `main@69469b8f` 构建并通过正式 release tests、Windows 三件套打包、SBOM、payload/provenance 与资产摘要校验。`v0.1.0-beta.4` 由 release-control `29ac9cf2` 通过 release run `33751421385` 采用 `promote-tested-candidate` 路径公开：Beta-tag job 仍运行常规 Windows package/SBOM 生成，但候选晋升步骤在发布前将 `build/release` 中这些临时产物替换为并校验 Preview 8 冻结资产；最终公开的 EXE、ZIP、MSIX 与 SBOM 与 Preview 8 逐字节一致，临时 Beta-tag 产物未被发布。详见 [Beta 4 publication evidence](./docs/testing/beta4-publication-2026-09-03.md)。
+
+因此 Stage 12～14 不再被 FR-PROD-01～04 阻断；但后续若修改对应的 JDK、Run Client、Desktop MCP 或 external-Agent 产品路径，或出现回归证据表明已验证行为发生变化，就必须重新打开并复验相应 gate。
 
 ## 2026-08-31 Public Beta publication and metadata correction
 
@@ -42,19 +50,19 @@ P1/P2 随后补齐 headless 产品入口、JDK/runClient 结构化诊断、gener
 - 涉及安装布局、桌面入口、MCP 生命周期或交互式运行任务时，测试 harness / loopback eval / 源码树验证只证明对应层级；**不得替代同一候选安装包上的端到端验证**。
 - Stage 10～11 已建立“提交 → CI → 产物 → Release”的可信闭环。Stage 12 起不再把专门的图形环境认证、真实 JCEF 无障碍、五人外部试用、Authenticode、Linux/macOS 作为通用版本门禁；但 FR-PROD-01～04 是已确认影响 Windows 安装产品主路径的功能正确性 P0，不能按环境排除项绕过。
 
-### 0.1 实施快照（2026-09-02）
+### 0.1 实施快照（2026-09-03）
 
 机器可读事实入口为 [`product-status.json`](./product-status.json)，本节只解释执行状态。
 
 | 项目 | 当前事实 | 结论 |
 | --- | --- | --- |
-| Fast CI | main 分支保护持续要求 Java/Javadoc、UI/Playwright 与 MCP；Beta 3 发布后 harness 验证基线 `main@af1b6ed9` 的 merged-main run `33528964018` 全绿 | 历史发布与 post-publication harness 基线均已闭环；新安装产品修复仍需自己的固定提交 CI/Nightly |
-| 公开 Release | `v0.1.0-beta.3` 已由 release-control `7956dcb9` 公开，release run `33515908561` 成功 | Stage 11 exact-binary promotion 已完成；该历史发布事实不被后续安装产品缺陷追溯改写 |
+| Fast CI | main 分支保护持续要求 Java/Javadoc、UI/Playwright 与 MCP；安装产品 hardening 合并后的 merged-main Build and test #176、Beta 4 release-control merged-main #179 均全绿 | 当前 Beta 4 产品与 release-control 基线已闭环；后续 Stage 12+ 继续按 protected CI 提升 |
+| 公开 Release | `v0.1.0-beta.4` 已由 release-control `29ac9cf2` 公开，release run `33751421385` 成功 | Preview 8 → Beta 4 exact-binary promotion 已完成；四个 canonical 资产摘要与冻结候选一致 |
 | 状态源 | `product-status.json`、Schema 和 CI 漂移校验已进入 main，并已修复首次远端运行暴露的 Release Schema 漏项 | 状态源门禁通过；后续状态提升仍必须带固定提交证据 |
-| 重型门禁 | Stage 11 固定提交 `main@f4b58062` 的 Nightly `33503172036` 已完成完整产品回归与 8/8 generator golden | 该证据继续证明对应 Core/协议/构建能力，但不覆盖 2026-09-02 新发现的安装布局 JDK、交互 runClient、桌面 MCP 与外部 Agent 产品入口 P0 |
+| 重型门禁 | Stage 11 Nightly 保持 8/8 generator golden；post-review binary-source `d0d96877` 的 Build and test #173 与 Nightly #28 全绿 | Stage 11 与安装产品 P0 都有各自固定提交证据，Beta 4 可作为当前公开产品基线 |
 | Stage 9 | 八生成器黄金编译、三个专用编辑器、语言工具、安装升级和离线工作区路径已有自动化/客机证据；Windows WR + Chromium 完整 AXMode 与 `DPR=1.25` 路径已通过 | 物理高 DPI、屏幕阅读器、最终 RC 矩阵和外部试用不纳入当前版本宣称，未来重新纳入时需新候选和新证据 |
-| AI Developer Kit | PR #14～#17 的 Cursor、Workspace Plan、Task Events/SDK 与 Windows-native JCEF reconnect 均已合入；Core/协议层证据仍有效 | FR-AI-02～05 仅保持 **Core/协议层 `passed`**；安装产品 AI readiness 已由 FR-PROD-03/04 重新打开，不能再用 loopback eval 推导“外部 Agent 可直接使用安装包” |
-| 安装产品创作 / Agent 闭环 | 外部 Agent 在真实已安装产品发现 JDK 布局、交互式 runClient 和桌面 MCP 接线缺陷 | **P0 blocked**；FR-PROD-01～04 全部通过同一候选安装复演前，不得建立下一 Preview/Beta/RC 候选 |
+| AI Developer Kit | Cursor、Workspace Plan、Task Events/SDK、Windows-native JCEF reconnect 与安装产品 external-Agent 闭环均已取得固定证据 | Core/协议层与安装产品入口均 `passed`；后续新增高层 AI 能力按 Stage 14 独立验收 |
+| 安装产品创作 / Agent 闭环 | `d0d96877` 完成 bundled JDK、真实桌面 Run Client、Desktop MCP、外部 Agent 完整读写/plan/build/conflict/code-compile/关闭失效复演 | **P0 passed**；Beta 4 已代表该闭环，Stage 12～14 不再受 FR-PROD-01～04 阻断 |
 | 仓库治理 | GitHub 已识别 GPLv3；Javadoc Pages 可访问；main 三项必需检查、受保护 PR 与 production 必需审阅者均已验证 | 仓库治理 P0 已闭环 |
 | Dependency Submission | 仓库 Dependency Graph 未启用，原工作流无法成功 | 误导工作流已从 main 删除 |
 
@@ -308,7 +316,9 @@ Issue 模板必须收集版本、commit、生成器、元素类型、复现步�
 
 ### 5.7 安装产品创作与 Agent 闭环（2026-09-02 重开）
 
-本节专门覆盖“代码/协议存在，但发行包真实入口没有工作”的风险。FR-PROD-01～04 为下一候选 **P0**；不得通过缩小宣称范围将其排除，因为它们直接影响 Windows 11 x64 已安装产品的基础创作与本机 AI 集成主路径。
+本节专门覆盖“代码/协议存在，但发行包真实入口没有工作”的风险。FR-PROD-01～04 于 2026-09-02 被定义为下一候选 **P0**；不得通过缩小宣称范围将其排除，因为它们直接影响 Windows 11 x64 已安装产品的基础创作与本机 AI 集成主路径。
+
+实施状态（2026-09-03）：FR-PROD-01～04 已由 `d0d96877` 安装候选复演关闭，并由 `v0.1.0-beta.4` 公开代表。以下需求与验收条款继续作为长期回归合同；只有相关产品路径发生变化或出现新的回归证据时才重新打开对应 gate。
 
 #### FR-PROD-01 Bundled JDK 实际布局解析（P0）
 
@@ -383,7 +393,7 @@ Fabric/NeoForge 的所有 Gradle 任务必须复用同一个 resolver；发行�
 - Python/TypeScript quickstart 默认优先读取工作区 `.copperbench/mcp-connection.json`，不得假设固定 `8787`；
 - 新建工作区的 `actualmodid`、archive name、导出 JAR 与用户填写 modid 保持一致。
 
-实施顺序固定为 **FR-PROD-01 → FR-PROD-02 → FR-PROD-03 → FR-PROD-04 → FR-PROD-05 → FR-PROD-06**。P0 每项都需要代码、自动测试和安装候选证据；只让单元测试或源码布局恢复绿色不能关闭该项。
+2026-09-02 hardening 的实施顺序为 **FR-PROD-01 → FR-PROD-02 → FR-PROD-03 → FR-PROD-04 → FR-PROD-05 → FR-PROD-06**。这些 P0 当前已在 Beta 4 基线关闭；未来若因产品变更或回归重新打开，仍必须同时具备代码、自动测试和安装候选证据，不能只凭单元测试或源码布局恢复绿色再次关闭。
 
 ## 6. 阶段 10 非目标（已完成的 Public Beta 基线）
 
@@ -416,15 +426,15 @@ Fabric/NeoForge 的所有 Gradle 任务必须复用同一个 resolver；发行�
 - 所有高风险能力有固定提交证据；未验证项明确降级或移出宣称。
 - 对 2026-09-02 之后建立的新候选，FR-PROD-01～04 也必须全部 `passed`；这四项属于已安装 Windows 主路径，不允许通过缩小宣称范围绕过。
 
-当前公开版本为 `v0.1.0-beta.3`。Stage 11 的签名候选 `v0.1.0-preview.7` 已完成固定提交 CI/Nightly、Windows install/upgrade/uninstall 与 retention 验证，并通过 release-control `7956dcb9` / release run `33515908561` 以 exact-binary 方式原样晋升。Beta 3 的历史发布控制已完成；后续产品或构建变更若要再次发布，必须重新建立候选与相应证据。
+当前公开版本为 `v0.1.0-beta.4`。Beta 4 由签名候选 `v0.1.0-preview.8` 通过 release-control `29ac9cf2` / release run `33751421385` 以 exact-binary 方式原样晋升；其 EXE/ZIP/MSIX/SBOM 与冻结 Preview 8 canonical assets 完全一致。后续产品或构建变更若要再次发布，仍必须重新建立候选与相应证据。
 
-2026-09-02 纠偏：上句只描述 Beta 3 已完成的**历史发布控制事实**，不能扩张解释为当前安装产品在 `runClient`、桌面 MCP 或外部 Agent 集成上不存在 P0。外部实测已重新打开 FR-PROD-01～04；因此 Beta 3 仍是有效的已发布历史版本，但**任何下一 Preview/Beta/RC 候选都被 FR-PROD-01～04 阻断**，并且不得再以 Beta 3 的历史 Nightly/MCP conformance 作为这些新门禁的替代证据。
+2026-09-02 历史纠偏：Beta 3 当时只证明 Stage 11 的发布控制事实，外部实测随后重新打开 FR-PROD-01～04，并禁止用 Beta 3 的历史 Nightly/MCP conformance 替代安装产品门禁。该阻断已在后续 hardening 与 `d0d96877` 安装候选复演中关闭，并由 Beta 4 公开代表；这段记录保留用于解释为何这些安装产品门禁存在，而不再表示当前 release blocked。
 
 ### 7.4 下一功能版本（Stage 11）：全量 Mod Element 一等支持
 
 **产品决策：下一功能版本必须把当前 30 种 `readOnly` / `legacyOnly` Java Mod Element 全部升级为 Copperbench first-party `supported`。** 开发过程允许分批落地，但下一功能版本不得在仍有这些类型停留于 `readOnly`、`legacyOnly`、`unsupportedInNewUi` 或“只能导入不能修改”的情况下宣称完成。
 
-实施状态（2026-09-02）：**Stage 11 已完成并随 `v0.1.0-beta.3` 公开；后续安装产品实测只重新阻断下一候选，不回滚 Stage 11 历史完成状态。** 30 种目标 Java Mod Element 已全部进入 first-party `supported` 路径；全类型持久化/未知字段 round-trip、导入、迁移、UI/status contract 和核心 Java 回归通过。`NewWorkspaceGeneratorGoldenBuildTest` 的 8-generator Stage 11 全量工作区为 8/8 PASS，所有轨道均完成真实 Gradle build 与 JAR 输出，JAR/mixin 一致性门禁也验证 mixin JSON 中声明的每个 mixin 类真实存在于产物。固定提交 `f4b58062` 的 Nightly `33503172036` 已完成产品回归与 8/8 generator golden；签名 `v0.1.0-preview.7` 的 Windows release run `33506364499` 已发布；随后 `v0.1.0-beta.3` release run `33515908561` 将 Preview 7 canonical bytes 原样公开。下一候选必须另外关闭 FR-PROD-01～04，并重新绑定 CI/Nightly、安装产品复演、provenance 与候选资产。
+实施状态：**Stage 11 已完成；2026-09-02 后续安装产品实测重新打开的 FR-PROD-01～04 也已在 Beta 4 前全部关闭。** 30 种目标 Java Mod Element 已全部进入 first-party `supported` 路径；全类型持久化/未知字段 round-trip、导入、迁移、UI/status contract 和核心 Java 回归通过。固定提交 `f4b58062` 的 Nightly `33503172036` 保留 Stage 11 产品回归与 8/8 generator golden 历史证据；`d0d96877` 及其安装产品复演补齐 FR-PROD-01～04；`v0.1.0-beta.4` 最终通过 Preview 8 exact-binary promotion 公开这些修复。未来候选若改变相关产品路径，必须重新绑定 CI/Nightly、安装产品复演、provenance 与候选资产。
 
 本阶段覆盖以下 30 种类型：
 
@@ -457,7 +467,7 @@ Bedrock Add-on 的 `bebiome`、`beblock`、`beentity`、`beitem`、`bescript` �
 - Wave 2（世界、表现与交互）：`feature`、`plant`、`structure`、`specialentity`、`overlay`、`particle`、`potion`、`potioneffect`、`enchantment`、`command`、`keybind`。
 - Wave 3（长尾与高级类型）：`armortrim`、`attribute`、`bannerpattern`、`code`、`damagetype`、`gamerule`、`itemextension`、`painting`、`tab`、`villagerprofession`、`villagertrade`。
 
-每个 Wave 合入后都应保持 `main` 可构建、可运行、可回退，并持续更新 `product-status.json`。Wave 1～3 是元素功能完成的必要条件；2026-09-02 起，建立下一功能版本 Release candidate 还必须先关闭 FR-PROD-01～04。
+每个 Wave 合入后都应保持 `main` 可构建、可运行、可回退，并持续更新 `product-status.json`。Wave 1～3 是元素功能完成的必要条件；FR-PROD-01～04 已在 Beta 4 基线关闭，后续候选应持续证明这些 gate 未发生回归，而不是把它们当作尚未完成的前置任务。
 
 ## 8. 风险与缓解
 
@@ -509,18 +519,18 @@ Bedrock Add-on 的 `bebiome`、`beblock`、`beentity`、`beitem`、`bescript` �
 11. FR-PROD-04 在同一安装候选上由独立外部 Agent 完成读 → 写 → 构建 → 增量任务日志 → revision 冲突恢复；不得由测试专用 MCP server 代替。
 12. generate/runClient 回归证明用户代码块与非 generator-owned 用户包不被删除；headless 必须从实际 Windows 导出/安装产品返回 UTF-8 机器 JSON，`code` 创建必须给出可继续轮询的 compile-verification task，真实 javac 失败必须产生带源码路径/行号的 `JAVA_COMPILE_ERROR`；若下一版本继续宣称 headless/code 为一等 AI fallback，则这些 FR-PROD-05 证据必须在冻结候选上重放。
 
-阶段 10 与 Stage 11 均已完成并形成 Beta 3 历史基线；2026-09-02 安装产品实测证明原 Definition of Done 对发行布局与外部 Agent 入口覆盖不足。**当前正确状态是“Stage 11/Beta 3 历史完成、下一候选产品闭环 blocked”，而不是“当前实现可以直接再次发布”。** 具体门禁见 5.7、7.4 与 10.1；后续功能深化路线见第 11 节。
+阶段 10 与 Stage 11 均已完成；2026-09-02 安装产品实测证明原 Definition of Done 对发行布局与外部 Agent 入口覆盖不足，并由 FR-PROD-01～04 补齐。**当前正确状态是“Beta 4 已公开、安装产品闭环 passed、Stage 12～14 可继续开发”；后续候选若触及这些路径则必须重新证明相应 gate 未回归。** 具体历史门禁见 5.7、7.4 与 10.1；后续功能深化路线见第 11 节。
 
 ## 11. Stage 12～14 后续产品深化路线
 
 ### 11.0 路线决策与执行原则
 
-`v0.1.0-beta.3` 之后，Copperbench 已具备“真实模组项目可用”的基础闭环。后续开发不再追求更多 `supported` 类型数量，而是把已经支持的 37 种 Java Mod Element 从“能够创建/保存/生成/构建”继续深化到“复杂项目中高效、可理解、可诊断、可维护”。这些深化路线可以继续开发，但形成任何新的 Preview/Beta/RC 前仍必须先关闭 5.7 定义的安装产品 P0。
+`v0.1.0-beta.4` 之后，Copperbench 已具备“真实模组项目可用”且经过安装产品 Agent/运行闭环复演的基础基线。后续开发不再追求更多 `supported` 类型数量，而是把已经支持的 37 种 Java Mod Element 从“能够创建/保存/生成/构建”继续深化到“复杂项目中高效、可理解、可诊断、可维护”。FR-PROD-01～04 已关闭；新的 Preview/Beta/RC 仍需保持这些 gate 为 `passed`，若产品变更或回归证据重新打开 gate，则在候选建立前重新验证。
 
 后续路线遵循以下原则：
 
 1. **优先解决真实创作摩擦，而不是增加无关门禁数量。** 用户能否更快完成复杂实体、世界生成、GUI、Procedure 和资产工作流，比新增环境认证更重要；已确认的产品正确性 P0 不属于可排除的环境认证。
-2. **每个阶段可以独立开发与验收。** Stage 12、13、14 不是必须一次完成的单一大版本；每个 Wave 达到自身 DoD 后即可进入候选准备，但候选准备同时受 FR-PROD-01～04 约束。
+2. **每个阶段可以独立开发与验收。** Stage 12、13、14 不是必须一次完成的单一大版本；每个 Wave 达到自身 DoD 后即可进入候选准备，同时保持 Beta 4 已关闭的 FR-PROD-01～04 不回归。
 3. **保持 Core 单一语义。** UI、MCP、headless、导入/迁移、历史恢复继续共享相同 schema、验证、引用和持久化模型，不为某个界面创建第二套业务规则。
 4. **优先高频复杂类型。** `livingentity`、`biome`、`dimension`、`gui` 是 Stage 12 第一优先级；其它类型按对真实模组开发的价值继续分批深化。
 5. **复杂项目必须可恢复。** 批量修改、迁移、AI 操作和高级编辑器仍必须进入 revision / recovery-point / semantic diff 保护。
@@ -819,7 +829,7 @@ Stage 14 面向希望长期维护复杂项目、愿意使用 Java/IDE 或外部 
 - Bedrock Add-on first-party 支持；若未来决定进入 Bedrock，必须单独建立平台 PRD；
 - 账号、云同步、遥测、远程 MCP、内置厂商聊天或在线市场，除非未来独立 ADR/PRD 明确批准。
 
-“排除”表示不主动投入专门认证或把它们作为 Stage 12～14 功能完成条件，并不表示删除已经存在的 `runClient`、JCEF UI 或相关代码路径，更不覆盖真实用户已复现的产品缺陷。若真实用户报告这些路径中的明确产品 bug，仍按正常缺陷优先级处理；FR-PROD-01～04 在本次纠偏中明确属于下一候选 P0。
+“排除”表示不主动投入专门认证或把它们作为 Stage 12～14 功能完成条件，并不表示删除已经存在的 `runClient`、JCEF UI 或相关代码路径，更不覆盖真实用户已复现的产品缺陷。若真实用户报告这些路径中的明确产品 bug，仍按正常缺陷优先级处理；FR-PROD-01～04 是 2026-09-02 纠偏建立的产品正确性 P0，并已在 Beta 4 基线关闭；若修改对应的 JDK、Run Client、Desktop MCP 或 external-Agent 产品路径，或出现新的回归证据，就必须重新打开并复验相应 gate。
 
 ---
 
@@ -827,23 +837,22 @@ Stage 14 面向希望长期维护复杂项目、愿意使用 Java/IDE 或外部 
 
 建议未来开发按以下顺序推进，但不绑定具体日历日期：
 
-1. **先关闭 FR-PROD-01～04 候选 P0**：确保安装布局、交互式 runClient、桌面 MCP 与外部 Agent 主路径可在同一冻结候选上复演。
-2. **Stage 12A**：`livingentity` + `biome` + `dimension` + `gui` 专用编辑深度。
-3. **Stage 12B**：复用 12A 公共组件，完成实体/worldgen/UI 周边类型。
-4. **Stage 13A**：Procedure 2.0 与引用/诊断联动。
-5. **Stage 13B**：Asset Center 与 Diagnostics 2.0；这两项可以与 Stage 12C 部分并行。
-6. **Stage 12C / Stage 13C**：长尾类型专业化、本地历史与 Migration/Refactor 工作台收口。
-7. **Stage 14**：在 Core schema / plan / reference / recovery 模型稳定后推进 IDE、AI Plan Review、高层 MCP 和模板/扩展能力。
+1. **Stage 12A**：`livingentity` + `biome` + `dimension` + `gui` 专用编辑深度。
+2. **Stage 12B**：复用 12A 公共组件，完成实体/worldgen/UI 周边类型。
+3. **Stage 13A**：Procedure 2.0 与引用/诊断联动。
+4. **Stage 13B**：Asset Center 与 Diagnostics 2.0；这两项可以与 Stage 12C 部分并行。
+5. **Stage 12C / Stage 13C**：长尾类型专业化、本地历史与 Migration/Refactor 工作台收口。
+6. **Stage 14**：在 Core schema / plan / reference / recovery 模型稳定后推进 IDE、AI Plan Review、高层 MCP 和模板/扩展能力。
 
 优先级改变可以基于真实用户高频痛点、P0/P1 缺陷、Minecraft/Loader 生态版本变化或已经测得的工程阻塞；不因为“某项专项环境认证尚未做”自动把第 11.6 节排除项重新提升为 P0，但已经复现的功能正确性缺陷不适用这条排除规则。
 
 ### 11.8 后续版本验收口径
 
-从 Stage 12 开始，功能评审应回答四个问题；进入新的发布候选时还必须额外满足 5.7 的安装产品 P0：
+从 Stage 12 开始，功能评审应回答四个问题；进入新的发布候选时还必须确认 5.7 的安装产品 P0 继续保持 `passed`，被相关变更或回归重新打开的 gate 必须先重新验证：
 
 1. **用户价值是否真实增加？** 本版本是否让一个明确的模组创作任务更完整、更快或更容易理解。
 2. **数据是否仍然安全？** 导入、编辑、迁移、AI/批量操作是否保持 unknown-field、revision、reference 和 recovery 语义。
 3. **生成是否仍然可信？** 所有受影响的 generator/type 组合是否有适用 fixture 和真实构建回归。
 4. **失败是否可解释？** 新功能失败时是否能给出稳定诊断、用户可定位对象和可恢复路径。
 
-只有同时满足这四项，本阶段功能才可以标记为完成。第 11.6 节明确排除的专项环境/平台任务不参与该功能完成判定；但新的 Preview/Beta/RC 仍不得绕过 FR-PROD-01～04。
+只有同时满足这四项，本阶段功能才可以标记为完成。第 11.6 节明确排除的专项环境/平台任务不参与该功能完成判定；新的 Preview/Beta/RC 仍不得绕过任何被重新打开的 FR-PROD-01～04 回归门禁。

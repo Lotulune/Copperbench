@@ -3,7 +3,7 @@
   "schemaVersion": "1.0",
   "snapshot": {
     "date": "2026-09-03",
-    "lastVerifiedCommit": "69469b8f28464469e6d917335b49b775ddb343dd",
+    "lastVerifiedCommit": "29ac9cf23f9f029f2c1b671b91e9ae59410df40a",
     "policy": "Only code, automated checks, and evidence tied to a commit can promote a gate."
   },
   "product": {
@@ -19,22 +19,22 @@
   },
   "delivery": {
     "publishedBaseline": {
-      "tag": "v0.1.0-beta.3",
-      "sourceCommit": "7956dcb9930897357e2380ee413cdc4aa928f357",
+      "tag": "v0.1.0-beta.4",
+      "sourceCommit": "29ac9cf23f9f029f2c1b671b91e9ae59410df40a",
       "status": "public-prerelease",
-      "releaseWorkflowRun": "https://github.com/Lotulune/Copperbench/actions/runs/33515908561"
+      "releaseWorkflowRun": "https://github.com/Lotulune/Copperbench/actions/runs/33751421385"
     },
     "releaseContract": {
-      "tag": "v0.1.0-beta.3",
+      "tag": "v0.1.0-beta.4",
       "purpose": "published-exact-binary-beta-promotion",
       "sourcePolicy": "The signed Beta tag and RELEASE-METADATA.json commit resolve to the release-control commit, while binarySource identifies the signed Preview candidate whose canonical assets were promoted byte-for-byte.",
       "signedTagRequired": true,
       "productionApprovalRequired": true,
-      "publicStateSource": "https://api.github.com/repos/Lotulune/Copperbench/releases/tags/v0.1.0-beta.3"
+      "publicStateSource": "https://api.github.com/repos/Lotulune/Copperbench/releases/tags/v0.1.0-beta.4"
     },
     "betaRelease": {
       "tag": "v0.1.0-beta.4",
-      "status": "candidate-frozen",
+      "status": "public-prerelease",
       "candidateRelease": {
         "tag": "v0.1.0-preview.8",
         "sourceCommit": "69469b8f28464469e6d917335b49b775ddb343dd",
@@ -117,7 +117,7 @@
     "notApplicable": ["bebiome", "beblock", "beentity", "beitem", "bescript"]
   },
   "gates": [
-    {"id": "release-pipeline", "status": "passed", "betaBlocking": false, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/32838065932", "https://github.com/Lotulune/Copperbench/actions/runs/33330520467", "docs/testing/beta-candidate-preview6-2026-08-31.md", "https://github.com/Lotulune/Copperbench/actions/runs/33332537616", "docs/testing/beta1-publication-2026-08-31.md", "https://github.com/Lotulune/Copperbench/actions/runs/33334394466", "docs/testing/beta2-publication-2026-08-31.md", "https://github.com/Lotulune/Copperbench/actions/runs/33506364499", "https://github.com/Lotulune/Copperbench/actions/runs/33515908561", "https://github.com/Lotulune/Copperbench/actions/runs/33740746411", "docs/testing/beta-candidate-preview8-2026-09-03.md"]},
+    {"id": "release-pipeline", "status": "passed", "betaBlocking": false, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/32838065932", "https://github.com/Lotulune/Copperbench/actions/runs/33330520467", "docs/testing/beta-candidate-preview6-2026-08-31.md", "https://github.com/Lotulune/Copperbench/actions/runs/33332537616", "docs/testing/beta1-publication-2026-08-31.md", "https://github.com/Lotulune/Copperbench/actions/runs/33334394466", "docs/testing/beta2-publication-2026-08-31.md", "https://github.com/Lotulune/Copperbench/actions/runs/33506364499", "https://github.com/Lotulune/Copperbench/actions/runs/33515908561", "https://github.com/Lotulune/Copperbench/actions/runs/33740746411", "docs/testing/beta-candidate-preview8-2026-09-03.md", "https://github.com/Lotulune/Copperbench/actions/runs/33751421385", "docs/testing/beta4-publication-2026-09-03.md"]},
     {"id": "fast-ci", "status": "passed", "betaBlocking": false, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/32904346297", "https://github.com/Lotulune/Copperbench/actions/runs/32904844692", "https://github.com/Lotulune/Copperbench/actions/runs/32905419136", "https://github.com/Lotulune/Copperbench/actions/runs/33306183486", "https://github.com/Lotulune/Copperbench/actions/runs/33320875746", "https://github.com/Lotulune/Copperbench/actions/runs/33334020837", "https://github.com/Lotulune/Copperbench/actions/runs/33497929171", "https://github.com/Lotulune/Copperbench/actions/runs/33515069964", "https://github.com/Lotulune/Copperbench/actions/runs/33527164779", "https://github.com/Lotulune/Copperbench/actions/runs/33528964018", "https://github.com/Lotulune/Copperbench/actions/runs/33584248803"]},
     {"id": "product-status-source", "status": "passed", "betaBlocking": true, "evidence": ["product-status.json", "schemas/product-status.schema.json", "scripts/verify-product-status.mjs"]},
     {"id": "repository-governance", "status": "passed", "betaBlocking": false, "evidence": ["docs/testing/repository-governance-2026-08-26.md"]},
@@ -150,9 +150,9 @@
     "desktopLifecycle": "passed-ui-token-renewal-auth-and-shutdown"
   },
   "knownLimitations": [
-    "PR #56 post-review binary-source candidate d0d96877 passed Build and test #173, Nightly product gates #28, clean Windows 11 installation, bundled-JDK Run Client replay through the real desktop UI, visible one-time-token MCP authentication, the full external-Agent read/write/plan/build/conflict/code-compile loop, workspace-scoped descriptor cleanup, and old endpoint/token invalidation. Preview 8 was subsequently built and published from main@69469b8f; the tracked delta from d0d96877 is limited to product-status and its installed-product evidence document, with no product/runtime/build/SDK source changes. Preview 8 release workflow 33740746411 independently passed release tests, packaging, SBOM, payload, provenance, asset verification, and prerelease publication. No additional G7 replay is claimed for the public Preview 8 bytes because the current automation sandbox denied Hyper-V guest writes.",
+    "PR #56 post-review binary-source candidate d0d96877 passed Build and test #173, Nightly product gates #28, clean Windows 11 installation, bundled-JDK Run Client replay through the real desktop UI, visible one-time-token MCP authentication, the full external-Agent read/write/plan/build/conflict/code-compile loop, workspace-scoped descriptor cleanup, and old endpoint/token invalidation. Preview 8 was subsequently built and published from main@69469b8f; the tracked delta from d0d96877 is limited to product-status and its installed-product evidence document, with no product/runtime/build/SDK source changes. Beta 4 release workflow 33751421385 still generated transient Beta-tag packages/SBOM as part of the normal job, then replaced the release payload with the frozen Preview 8 EXE/ZIP/MSIX/SBOM after candidate hash verification and published those candidate bytes byte-for-byte. No additional G7 replay is claimed for the public Preview 8/Beta 4 bytes because the automation sandbox denied Hyper-V guest writes during the public-candidate replay attempt.",
     "Release Git Tags contain SSH signatures; GitHub reports unknown_key until the public signing key is registered.",
-    "Stage 11 full Java element support was published as v0.1.0-beta.3 through the signed Preview 7 exact-binary promotion. The installed-product JDK/runClient/MCP/Agent defects discovered afterward were first closed by 29005125 and then revalidated after review hardening by post-review binary-source candidate d0d96877; they do not retroactively invalidate the Beta 3 publication record.",
+    "Stage 11 full Java element support remains complete. The installed-product JDK/runClient/MCP/Agent defects discovered after Beta 3 were closed by 29005125 and revalidated after review hardening by d0d96877; the resulting product code is now publicly represented by v0.1.0-beta.4 through the signed Preview 8 exact-binary promotion.",
     "The real JCEF accessibility pass and final clean Windows 11 RC replay are not complete; the Hyper-V guest cannot validate Chromium WebContents accessibility because native Edge reproduces the same missing web-control subtree, so a physical or otherwise known-good Windows accessibility environment is required.",
     "The current Beta scope explicitly excludes the real JCEF accessibility audit, final clean-Windows RC replay, and external tester trial; those exclusions are not claims that the omitted checks passed.",
     "Windows packages are not Authenticode signed."
