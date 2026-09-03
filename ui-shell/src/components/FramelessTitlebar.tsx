@@ -123,6 +123,14 @@ export const FramelessTitlebar: React.FC = () => {
     };
   }, [generator?.displayName, systemFrameFallback, workspace?.id, workspace?.name, workspace?.revision]);
 
+  const handlePointerDown = (event: React.PointerEvent<HTMLElement>) => {
+    if (event.button !== 0 || systemFrameFallback) return;
+    const target = event.target as HTMLElement | null;
+    if (!target || target.closest('[data-window-chrome-kind]')) return;
+    if (target.closest('button, input, select, textarea, a, [role="button"]')) return;
+    windowBridge.beginDrag();
+  };
+
   return (
     <header
       ref={titlebarRef}
@@ -130,6 +138,7 @@ export const FramelessTitlebar: React.FC = () => {
       data-testid="frameless-titlebar"
       data-window-chrome-root
       style={{ WebkitAppRegion: systemFrameFallback ? 'no-drag' : 'drag' } as React.CSSProperties}
+      onPointerDown={handlePointerDown}
     >
       {/* Left: Brand & Workspace Pill */}
       <div className="titlebar-left">

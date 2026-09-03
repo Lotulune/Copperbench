@@ -40,6 +40,7 @@ public final class JcefWindowBridgeTransport extends CefMessageRouterHandlerAdap
 	private final Runnable closeAction;
 	private final Consumer<WindowChromeSnapshot> chromeRegionConsumer;
 	private final BooleanSupplier nativeChromeAvailable;
+	private final Runnable dragAction;
 	private final CefBrowser expectedBrowser;
 	private final CefMessageRouter router;
 	private final WebView.PageLoadListener loadStartListener;
@@ -47,13 +48,15 @@ public final class JcefWindowBridgeTransport extends CefMessageRouterHandlerAdap
 	private final AtomicBoolean closed = new AtomicBoolean(false);
 
 	private JcefWindowBridgeTransport(WebView webView, JFrame window, Runnable closeAction,
-			Consumer<WindowChromeSnapshot> chromeRegionConsumer, BooleanSupplier nativeChromeAvailable) {
+			Consumer<WindowChromeSnapshot> chromeRegionConsumer, BooleanSupplier nativeChromeAvailable,
+			Runnable dragAction) {
 		this.webView = Objects.requireNonNull(webView, "webView must not be null");
 		this.window = Objects.requireNonNull(window, "window must not be null");
 		this.closeAction = Objects.requireNonNull(closeAction, "closeAction must not be null");
 		this.chromeRegionConsumer = chromeRegionConsumer;
 		this.nativeChromeAvailable = Objects.requireNonNull(nativeChromeAvailable,
 				"nativeChromeAvailable must not be null");
+		this.dragAction = dragAction;
 		this.expectedBrowser = webView.getBrowser();
 		this.router = webView.getRouter();
 		this.loadStartListener = this::installHost;
@@ -64,18 +67,41 @@ public final class JcefWindowBridgeTransport extends CefMessageRouterHandlerAdap
 		installHost();
 	}
 
+	JcefWindowBridgeTransport(JFrame window, Runnable closeAction,
+			Consumer<WindowChromeSnapshot> chromeRegionConsumer, BooleanSupplier nativeChromeAvailable,
+			Runnable dragAction) {
+		this.webView = null;
+		this.window = Objects.requireNonNull(window, "window must not be null");
+		this.closeAction = Objects.requireNonNull(closeAction, "closeAction must not be null");
+		this.chromeRegionConsumer = chromeRegionConsumer;
+		this.nativeChromeAvailable = Objects.requireNonNull(nativeChromeAvailable,
+				"nativeChromeAvailable must not be null");
+		this.dragAction = dragAction;
+		this.expectedBrowser = null;
+		this.router = null;
+		this.loadStartListener = null;
+		this.closeListener = null;
+	}
+
 	public static JcefWindowBridgeTransport attach(WebView webView, JFrame window, Runnable closeAction) {
-		return new JcefWindowBridgeTransport(webView, window, closeAction, null, () -> false);
+		return new JcefWindowBridgeTransport(webView, window, closeAction, null, () -> false, null);
 	}
 
 	public static JcefWindowBridgeTransport attach(WebView webView, JFrame window, Runnable closeAction,
 			Consumer<WindowChromeSnapshot> chromeRegionConsumer, BooleanSupplier nativeChromeAvailable) {
 		return new JcefWindowBridgeTransport(webView, window, closeAction, chromeRegionConsumer,
-				nativeChromeAvailable);
+				nativeChromeAvailable, null);
+	}
+
+	public static JcefWindowBridgeTransport attach(WebView webView, JFrame window, Runnable closeAction,
+			Consumer<WindowChromeSnapshot> chromeRegionConsumer, BooleanSupplier nativeChromeAvailable,
+			Runnable dragAction) {
+		return new JcefWindowBridgeTransport(webView, window, closeAction, chromeRegionConsumer,
+				nativeChromeAvailable, dragAction);
 	}
 
 	private void installHost() {
-		if (!closed.get()) {
+		if (!closed.get() && webView != null) {
 			boolean nativeChrome = nativeChromeActive();
 			webView.executeScriptAsync(generateBootstrapScript(!nativeChrome, nativeChrome));
 		}
@@ -95,7 +121,7 @@ public final class JcefWindowBridgeTransport extends CefMessageRouterHandlerAdap
 			callback.failure(503, "Window bridge is closed");
 			return true;
 		}
-		if (browser != expectedBrowser)
+		if (expectedBrowser != null && browser != expectedBrowser)
 			return false;
 		if (frame != null && !frame.isMain()) {
 			callback.failure(403, "Window bridge is only available to the main frame");
@@ -117,6 +143,15 @@ public final class JcefWindowBridgeTransport extends CefMessageRouterHandlerAdap
 		}
 
 		String action = request.substring(QUERY_PREFIX.length());
+		if ("begin_drag".equals(action)) {
+			if (!nativeChromeActive() || dragAction == null) {
+				callback.failure(409, "Native window chrome is not active");
+				return true;
+			}
+			callback.success("{}");
+			SwingUtilities.invokeLater(dragAction);
+			return true;
+		}
 		if (!ACTIONS.contains(action)) {
 			callback.failure(400, "Unsupported window action");
 			return true;
@@ -165,6 +200,9 @@ public final class JcefWindowBridgeTransport extends CefMessageRouterHandlerAdap
 				                });
 				            });
 				        },
+				        beginDrag: function() {
+				            return window.__COPPERBENCH_WINDOW_HOST__.invoke('begin_drag');
+				        },
 				""".formatted(JSON.toJson(WindowChromeSnapshot.SCHEMA_VERSION), JSON.toJson(REGION_QUERY_PREFIX)) : "";
 		return """
 				(function() {
@@ -195,11 +233,15 @@ public final class JcefWindowBridgeTransport extends CefMessageRouterHandlerAdap
 	@Override public void close() {
 		if (!closed.compareAndSet(false, true))
 			return;
-		webView.removeLoadStartListener(loadStartListener);
-		webView.removeCloseListener(closeListener);
-		try {
-			router.removeHandler(this);
-		} catch (Exception ignored) {
+		if (webView != null) {
+			webView.removeLoadStartListener(loadStartListener);
+			webView.removeCloseListener(closeListener);
+		}
+		if (router != null) {
+			try {
+				router.removeHandler(this);
+			} catch (Exception ignored) {
+			}
 		}
 	}
 

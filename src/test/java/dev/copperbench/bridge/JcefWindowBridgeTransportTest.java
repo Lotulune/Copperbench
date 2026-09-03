@@ -9,8 +9,15 @@
 
 package dev.copperbench.bridge;
 
+import org.cef.callback.CefQueryCallback;
 import org.junit.jupiter.api.Test;
 
+import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -34,9 +41,40 @@ class JcefWindowBridgeTransportTest {
 		assertTrue(bootstrap.contains("systemFrame: false"));
 		assertTrue(bootstrap.contains("chromeRegionSchemaVersion: \"1.0\""));
 		assertTrue(bootstrap.contains("reportChromeRegions"));
+		assertTrue(bootstrap.contains("beginDrag"));
 		assertTrue(bootstrap.contains(JcefWindowBridgeTransport.REGION_QUERY_PREFIX));
 		assertTrue(bootstrap.contains("JSON.stringify(snapshot)"));
 		assertFalse(bootstrap.contains("java.lang"));
 		assertFalse(bootstrap.contains("getClass"));
+	}
+
+	@Test void acceptsBeginDragOnlyWhenNativeChromeIsActive() throws Exception {
+		JFrame frame = new JFrame();
+		frame.setUndecorated(true);
+		AtomicBoolean dragged = new AtomicBoolean(false);
+		AtomicInteger failureCode = new AtomicInteger();
+		AtomicBoolean success = new AtomicBoolean(false);
+		CefQueryCallback callback = new CefQueryCallback() {
+			@Override public void success(String response) {
+				success.set(true);
+			}
+
+			@Override public void failure(int errorCode, String errorMessage) {
+				failureCode.set(errorCode);
+			}
+		};
+
+		JcefWindowBridgeTransport inactiveTransport = new JcefWindowBridgeTransport(
+				frame, () -> {}, snapshot -> {}, () -> false, () -> dragged.set(true));
+		inactiveTransport.onQuery(null, null, 1L, JcefWindowBridgeTransport.QUERY_PREFIX + "begin_drag", false, callback);
+		assertEquals(409, failureCode.get());
+		assertFalse(dragged.get());
+
+		JcefWindowBridgeTransport activeTransport = new JcefWindowBridgeTransport(
+				frame, () -> {}, snapshot -> {}, () -> true, () -> dragged.set(true));
+		activeTransport.onQuery(null, null, 2L, JcefWindowBridgeTransport.QUERY_PREFIX + "begin_drag", false, callback);
+		assertTrue(success.get());
+		SwingUtilities.invokeAndWait(() -> {});
+		assertTrue(dragged.get());
 	}
 }

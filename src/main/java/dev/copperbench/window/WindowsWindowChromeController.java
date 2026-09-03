@@ -45,6 +45,7 @@ public final class WindowsWindowChromeController implements AutoCloseable {
 	private static final int WM_CANCELMODE = 0x001F;
 	private static final int WM_NCCALCSIZE = 0x0083;
 	private static final int WM_NCHITTEST = 0x0084;
+	private static final int WM_NCLBUTTONDOWN = 0x00A1;
 	private static final int WM_NCLBUTTONDBLCLK = 0x00A3;
 	private static final int WM_NCRBUTTONUP = 0x00A5;
 	private static final int WM_SYSKEYDOWN = 0x0104;
@@ -193,6 +194,26 @@ public final class WindowsWindowChromeController implements AutoCloseable {
 
 	boolean isMaximizedForTesting() {
 		return hwnd != null && User32.INSTANCE.IsZoomed(hwnd);
+	}
+
+	public void beginDrag() {
+		if (hwnd == null || !installed || !customFrame.get())
+			return;
+		Runnable drag = () -> {
+			if (hwnd == null || !installed || !customFrame.get())
+				return;
+			User32.INSTANCE.ReleaseCapture();
+			Point point = new Point();
+			long packedPoint = 0;
+			if (User32.INSTANCE.GetCursorPos(point)) {
+				packedPoint = ((long) (point.y & 0xffff) << 16) | (point.x & 0xffffL);
+			}
+			User32.INSTANCE.SendMessageW(hwnd, WM_NCLBUTTONDOWN, NativeHit.HTCAPTION.value, packedPoint);
+		};
+		if (SwingUtilities.isEventDispatchThread())
+			drag.run();
+		else
+			SwingUtilities.invokeLater(drag);
 	}
 
 	public void fallbackToSystemFrame() {
@@ -416,6 +437,8 @@ public final class WindowsWindowChromeController implements AutoCloseable {
 		int TrackPopupMenu(Pointer menu, int flags, int x, int y, int reserved, Pointer hwnd, Pointer rect);
 		boolean PostMessageW(Pointer hwnd, int message, long wParam, long lParam);
 		long SendMessageW(Pointer hwnd, int message, long wParam, long lParam);
+		boolean ReleaseCapture();
+		boolean GetCursorPos(Point point);
 	}
 
 	private interface DwmApi extends StdCallLibrary {
