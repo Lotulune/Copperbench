@@ -137,7 +137,6 @@ export const FramelessTitlebar: React.FC = () => {
       className="titlebar"
       data-testid="frameless-titlebar"
       data-window-chrome-root
-      style={{ WebkitAppRegion: systemFrameFallback ? 'no-drag' : 'drag' } as React.CSSProperties}
       onPointerDown={handlePointerDown}
     >
       {/* Left: Brand & Workspace Pill */}

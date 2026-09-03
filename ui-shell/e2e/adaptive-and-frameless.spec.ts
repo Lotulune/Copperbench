@@ -47,6 +47,27 @@ test.describe('Adaptive Layout, Frameless Window & Theme Tests', () => {
     await expect(maxBtn).toHaveAttribute('title', '最大化');
   });
 
+
+  test('frameless titlebar computed and inline -webkit-app-region is not drag while explicit pointer bridge is used', async ({ page }) => {
+    const titlebar = page.locator('[data-testid="frameless-titlebar"]');
+    await expect(titlebar).toBeVisible();
+
+    const appRegion = await titlebar.evaluate((element) => {
+      const computed = window.getComputedStyle(element) as CSSStyleDeclaration & {
+        webkitAppRegion?: string;
+      };
+      return {
+        inline: element.style.webkitAppRegion,
+        computed: computed.webkitAppRegion || window.getComputedStyle(element).getPropertyValue('-webkit-app-region')
+      };
+    });
+    expect(appRegion.inline).not.toBe('drag');
+    expect(appRegion.computed).not.toBe('drag');
+
+    const minBtn = page.locator('[data-testid="window-minimize-btn"]');
+    await expect(minBtn).toBeVisible();
+    await expect(minBtn).toBeEnabled();
+  });
   test('reports typed chrome regions to a compatible native host', async ({ page }) => {
     await page.addInitScript(() => {
       window.__COPPERBENCH_WINDOW_HOST__ = {
