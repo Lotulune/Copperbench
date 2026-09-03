@@ -12,6 +12,13 @@ Workspace Plan calls, build task start/status/cancel, and recovery point
 create/restore. `get_task` remains the compatible polling path while native
 JCEF clients additionally receive task events.
 
+Desktop endpoints use a random loopback port. Do not assume `8787`: both SDKs
+can read `<workspace>/.copperbench/mcp-connection.json` (or accept the
+`.mcreator` file path) via `read_workspace_connection` / `readWorkspaceConnection`,
+and `CopperbenchClient.from_workspace` / `CopperbenchClient.fromWorkspace`
+construct a client from that non-secret metadata plus the one-time token shown
+by the Copperbench UI. The connection file never contains the bearer token.
+
 The ten-case manifest in `sdk/evals/manifest.json` is the stable evaluation
 coverage contract. Validate its shape with:
 

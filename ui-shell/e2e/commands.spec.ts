@@ -73,14 +73,14 @@ test.describe('Interactive UI-Core Commands & Mutations', () => {
     await expect(page.getByText('任务完成').first()).toBeVisible({ timeout: 5000 });
   });
 
-  test('cycling MCP permission updates status and allows elevation', async ({ page }) => {
+  test('MCP permission status does not fake elevation when the desktop runtime is unavailable', async ({ page }) => {
     const permBtn = page.locator('[data-testid="permission-alert"]');
     await expect(permBtn).toContainText('MCP: WORKSPACE');
 
     await permBtn.click();
-    await expect(permBtn).toContainText('MCP: FULL_ACCESS');
+    await expect(permBtn).toContainText('MCP: WORKSPACE');
 
     await permBtn.click();
-    await expect(permBtn).toContainText('MCP: READ_ONLY');
+    await expect(permBtn).toContainText('MCP: WORKSPACE');
   });
 });

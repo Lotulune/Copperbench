@@ -29,11 +29,13 @@ import java.time.Clock;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -43,12 +45,17 @@ import java.util.concurrent.Future;
 import java.util.function.Function;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 /** Runs loader-specific generation and Gradle tasks outside the workspace revision lock. */
 public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, AutoCloseable {
 	private static final Logger LOG = LogManager.getLogger(GradleWorkspaceTaskGateway.class);
+	private static final Pattern JAVA_COMPILE_ERROR = Pattern.compile(
+			"^(.+\\.java):(\\d+):\\s*(?:error|错误|錯誤|エラー|오류|fehler|erreur|errore|ошибка|erro):\\s*(.+)$",
+			Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
 
 	private final RevisionedWorkspaceStore store;
 	private final Function<UUID, Path> workspaceRoots;
@@ -119,7 +126,10 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 			if (operation == Operation.BUILD_WORKSPACE || operation == Operation.EXPORT_WORKSPACE) {
 				job.progress(0.55, "task." + taskKind(operation) + ".building", "Running Gradle build");
 				var process = processes.run(executionRoot, backend.gradleArguments(operation), Duration.ofMinutes(15),
-						line -> job.log("info", line));
+						line -> {
+							job.log("info", line);
+							job.captureJavaCompileDiagnostic(executionRoot, line);
+						});
 				if (process.exitCode() != 0)
 					throw new IllegalStateException(backend.displayName() + " build exited " + process.exitCode());
 				if (!backend.buildOutputAvailable(executionRoot))
@@ -131,10 +141,10 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 				}
 			} else if (operation == Operation.RUN_CLIENT) {
 				job.progress(0.55, "task.run_client.starting", "Starting Minecraft client");
-				var process = processes.run(executionRoot, backend.gradleArguments(operation), Duration.ofMinutes(20),
+				var process = processes.run(executionRoot, backend.gradleArguments(operation), Duration.ZERO,
 						line -> job.log("info", line));
-				if (process.exitCode() != 0 || !process.readinessMarkerSeen())
-					throw new IllegalStateException(backend.displayName() + " client did not reach the readiness marker");
+				if (process.exitCode() != 0)
+					throw new IllegalStateException(backend.displayName() + " client exited " + process.exitCode());
 			} else if (operation == Operation.RUN_SERVER) {
 				job.progress(0.55, "task.run_server.starting", "Starting dedicated server");
 				if (!payload.has("eulaAccepted") || !payload.get("eulaAccepted").getAsBoolean())
@@ -161,6 +171,13 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 			}
 			job.succeed("task." + taskKind(operation) + ".completed",
 					backend.displayName() + " " + taskKind(operation) + " completed");
+		} catch (BundledJdkLocator.MissingJdkException exception) {
+			if (job.isCancelled()) return;
+			String failureId = UUID.randomUUID().toString();
+			LOG.error("Workspace task failure {} (backend={}, operation={}, workspaceId={})", failureId,
+					backend.displayName(), operation, workspaceId, exception);
+			job.log("error", exception.getMessage());
+			job.fail(exception.diagnosticCode(), failureId, taskKind(operation), exception.getMessage());
 		} catch (Exception exception) {
 			if (job.isCancelled()) return;
 			String failureId = UUID.randomUUID().toString();
@@ -539,6 +556,7 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 		private final JsonObject summary;
 		private final List<JsonObject> logEntries = new ArrayList<>();
 		private final List<JsonObject> diagnosticEntries = new ArrayList<>();
+		private final Set<String> javaCompileDiagnosticKeys = new HashSet<>();
 		private Future<?> future;
 		private Path executionRoot;
 		private long sourceRevision;
@@ -628,6 +646,10 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 		}
 
 		private void fail(String code, String failureId, String taskKind) {
+			fail(code, failureId, taskKind, null);
+		}
+
+		private void fail(String code, String failureId, String taskKind, String detail) {
 			synchronized (this) {
 				if (!isRunning()) return;
 			}
@@ -636,7 +658,7 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 			WorkspaceTaskGateway.TaskEvent completedEvent;
 			synchronized (this) {
 				if (!isRunning()) return;
-				addFailureDiagnostic(code, failureId, taskKind);
+				addFailureDiagnostic(code, failureId, taskKind, detail);
 				completeFailure();
 				List<JsonObject> diagnostics = diagnostics();
 				diagnosticsEvent = new WorkspaceTaskGateway.TaskEvent(workspaceId, id(), "diagnostics_changed", summary,
@@ -648,7 +670,7 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 			publishTaskEvent(completedEvent);
 		}
 
-		private void addFailureDiagnostic(String code, String failureId, String taskKind) {
+		private void addFailureDiagnostic(String code, String failureId, String taskKind, String detail) {
 			JsonObject args = new JsonObject();
 			args.addProperty("backend", backend.displayName());
 			args.addProperty("task", taskKind);
@@ -656,8 +678,9 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 			JsonObject diagnostic = new JsonObject();
 			diagnostic.addProperty("code", code);
 			diagnostic.addProperty("severity", "error");
-			diagnostic.add("message", localized("diagnostic.workspace_task_failed",
-					"The {backend} {task} task failed.", args));
+			diagnostic.add("message", localized(detail == null ? "diagnostic.workspace_task_failed"
+					: "diagnostic.bundled_jdk_missing",
+					detail == null ? "The {backend} {task} task failed." : detail, args));
 			diagnostic.add("path", JsonNull.INSTANCE);
 			diagnostic.add("elementId", JsonNull.INSTANCE);
 			diagnostic.addProperty("recoverable", true);
@@ -670,6 +693,36 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 			actions.add(action);
 			diagnostic.add("actions", actions);
 			diagnosticEntries.add(diagnostic);
+		}
+
+		private void captureJavaCompileDiagnostic(Path executionRoot, String line) {
+			Matcher matcher = JAVA_COMPILE_ERROR.matcher(line == null ? "" : line.trim());
+			if (!matcher.matches())
+				return;
+			String source = matcher.group(1);
+			String lineNumber = matcher.group(2);
+			String compilerMessage = matcher.group(3).trim();
+			String path = diagnosticPath(executionRoot, source);
+			String message = "Line " + lineNumber + ": " + compilerMessage;
+			String key = path + "\n" + message;
+			synchronized (this) {
+				if (isRunning() && javaCompileDiagnosticKeys.add(key))
+					addDiagnostic("JAVA_COMPILE_ERROR", message, path, null);
+			}
+		}
+
+		private static String diagnosticPath(Path executionRoot, String source) {
+			String normalizedSource = source.replace('\\', '/');
+			String normalizedRoot = executionRoot.toAbsolutePath().normalize().toString().replace('\\', '/');
+			if (normalizedSource.regionMatches(true, 0, normalizedRoot, 0, normalizedRoot.length())) {
+				String relative = normalizedSource.substring(normalizedRoot.length());
+				return relative.startsWith("/") ? relative : "/" + relative;
+			}
+			int src = normalizedSource.indexOf("/src/");
+			if (src >= 0)
+				return normalizedSource.substring(src);
+			int slash = normalizedSource.lastIndexOf('/');
+			return "/" + (slash >= 0 ? normalizedSource.substring(slash + 1) : normalizedSource);
 		}
 
 		private void failValidation(List<GradleWorkspaceBackend.ValidationIssue> issues) {

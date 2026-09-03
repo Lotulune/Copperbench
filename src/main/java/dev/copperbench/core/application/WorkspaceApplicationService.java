@@ -2223,6 +2223,9 @@ public final class WorkspaceApplicationService {
 		if (!values.has("name")) values.addProperty("name", name);
 		if (!values.has("description")) values.addProperty("description", "");
 		switch (type) {
+			case "item" -> {
+				if (!values.has("texture")) values.addProperty("texture", "minecraft:barrier");
+			}
 			case "armor" -> {
 				if (!values.has("enableHelmet")) values.addProperty("enableHelmet", true);
 				if (!values.has("enableBody")) values.addProperty("enableBody", true);
@@ -2315,8 +2318,17 @@ public final class WorkspaceApplicationService {
 				if (!values.has("isBoss")) values.addProperty("isBoss", false);
 			}
 			case "projectile" -> {
+				if (!values.has("projectileItem")) values.addProperty("projectileItem", "Items.ARROW");
+				if (!values.has("entityModel")) values.addProperty("entityModel", "Default");
+				if (!values.has("customModelTexture")) values.addProperty("customModelTexture", "");
+				if (!values.has("actionSound")) values.addProperty("actionSound", "");
+				if (!values.has("power")) values.addProperty("power", 1.0);
+				if (!values.has("damage")) values.addProperty("damage", 5.0);
+				if (!values.has("knockback")) values.addProperty("knockback", 5);
 				if (!values.has("disableGravity")) values.addProperty("disableGravity", false);
 				if (!values.has("igniteFire")) values.addProperty("igniteFire", false);
+				if (!values.has("disableDiscarding")) values.addProperty("disableDiscarding", false);
+				if (!values.has("showParticles")) values.addProperty("showParticles", false);
 			}
 			case "gui" -> {
 				if (!values.has("renderBgLayer")) values.addProperty("renderBgLayer", true);

@@ -1,5 +1,8 @@
 /** Minimal dependency-free Copperbench MCP client for Node.js 22+. */
 
+import { readFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+
 export type JsonObject = Record<string, unknown>;
 
 export interface CopperbenchClientOptions {
@@ -9,6 +12,11 @@ export interface CopperbenchClientOptions {
   fetch?: typeof fetch;
   maxTransportRetries?: number;
   retryBackoffMs?: number;
+}
+
+export interface WorkspaceConnection {
+  url: string;
+  workspaceId: string;
 }
 
 export class CopperbenchError extends Error {
@@ -38,6 +46,15 @@ export class CopperbenchClient {
 
   public constructor(private readonly options: CopperbenchClientOptions) {
     this.request = options.fetch ?? fetch;
+  }
+
+  public static fromWorkspace(
+    workspacePath: string,
+    token: string,
+    options: Omit<CopperbenchClientOptions, 'endpoint' | 'token' | 'workspaceId'> = {}
+  ): CopperbenchClient {
+    const connection = readWorkspaceConnection(workspacePath);
+    return new CopperbenchClient({ ...options, endpoint: connection.url, token, workspaceId: connection.workspaceId });
   }
 
   public async initialize(clientName = 'copperbench-typescript-sdk', version = '0.1.0'): Promise<JsonObject> {
@@ -199,4 +216,54 @@ function parseRpcEnvelope(body: string): JsonObject {
   const line = trimmed.split(/\r?\n/).find((value) => value.startsWith('data: '));
   if (!line) throw new CopperbenchError('MCP response did not contain a JSON-RPC envelope', 'MCP_RESPONSE_INVALID', body);
   return JSON.parse(line.slice(6)) as JsonObject;
+}
+
+export function readWorkspaceConnection(workspacePath: string): WorkspaceConnection {
+  const absolute = resolve(workspacePath);
+  const root = absolute.toLowerCase().endsWith('.mcreator') ? dirname(absolute) : absolute;
+  const path = resolve(root, '.copperbench', 'mcp-connection.json');
+  let value: unknown;
+  try {
+    value = JSON.parse(readFileSync(path, 'utf8'));
+  } catch (error) {
+    throw new CopperbenchError(`Could not read Copperbench MCP connection metadata: ${path}`, 'MCP_CONNECTION_FILE_UNAVAILABLE', error);
+  }
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new CopperbenchError('MCP connection metadata must be a JSON object', 'MCP_CONNECTION_FILE_INVALID', value);
+  }
+  const connection = value as JsonObject;
+  if ('token' in connection || 'authorization' in connection) {
+    throw new CopperbenchError('MCP connection metadata must not contain credentials', 'MCP_CONNECTION_FILE_INVALID');
+  }
+  if (connection.schemaVersion !== '1.0' || connection.status !== 'listening') {
+    throw new CopperbenchError('MCP connection metadata is not a listening v1.0 endpoint', 'MCP_CONNECTION_FILE_INVALID', connection);
+  }
+  let parsedUrl: URL | null = null;
+  if (typeof connection.url === 'string') {
+    try {
+      parsedUrl = new URL(connection.url);
+    } catch {
+      parsedUrl = null;
+    }
+  }
+  const port = parsedUrl?.port ? Number.parseInt(parsedUrl.port, 10) : Number.NaN;
+  if (
+    !parsedUrl
+    || parsedUrl.protocol !== 'http:'
+    || parsedUrl.hostname !== '127.0.0.1'
+    || !Number.isInteger(port)
+    || port < 1
+    || port > 65535
+    || parsedUrl.username !== ''
+    || parsedUrl.password !== ''
+    || parsedUrl.pathname !== '/mcp'
+    || parsedUrl.search !== ''
+    || parsedUrl.hash !== ''
+  ) {
+    throw new CopperbenchError('MCP connection URL must be a loopback /mcp endpoint', 'MCP_CONNECTION_FILE_INVALID', connection);
+  }
+  if (typeof connection.workspaceId !== 'string' || !connection.workspaceId) {
+    throw new CopperbenchError('MCP connection metadata has no workspaceId', 'MCP_CONNECTION_FILE_INVALID', connection);
+  }
+  return { url: connection.url, workspaceId: connection.workspaceId };
 }

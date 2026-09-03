@@ -82,4 +82,42 @@ class Fabric1211GeneratorTest {
 		assertTrue(result.generatedPaths().contains("src/main/resources/copperbench/elements/stage11_livingentity.json"));
 	}
 
+	@Test void materializedPluginWorkspaceGenerationPreservesUserCodeAndIndependentPackagesByteExact() throws Exception {
+		Files.writeString(output.resolve("testmod2.mcreator"), "{\"name\":\"testmod2\"}\n");
+		Path mainClass = output.resolve("src/main/java/net/mcreator/testmod/Testmod2Mod.java");
+		Path wanjianClass = output.resolve("src/main/java/net/mcreator/testmod/wanjian/WanJianGuiZongItem.java");
+		Path recipe = output.resolve("src/main/resources/data/testmod2/recipe/wan_jian_gui_zong.json");
+		Files.createDirectories(mainClass.getParent());
+		Files.createDirectories(wanjianClass.getParent());
+		Files.createDirectories(recipe.getParent());
+		String userOwnedMain = """
+				package net.mcreator.testmod;
+				public class Testmod2Mod {
+				    // Start of user code block
+				    static final String USER_SENTINEL = "wanjian-user-code";
+				    // End of user code block
+				}
+				""";
+		String independentPackage = """
+				package net.mcreator.testmod.wanjian;
+				public final class WanJianGuiZongItem { static final int MAX_SWORDS = 6; }
+				""";
+		String userRecipe = "{\"type\":\"minecraft:crafting_shaped\",\"result\":{\"id\":\"testmod2:wan_jian_gui_zong\"}}\n";
+		Files.writeString(mainClass, userOwnedMain);
+		Files.writeString(wanjianClass, independentPackage);
+		Files.writeString(recipe, userRecipe);
+
+		WorkspaceState workspace = Fabric1211GoldenWorkspace.create();
+		Fabric1211Generator generator = new Fabric1211Generator(Path.of(".").toAbsolutePath().normalize());
+		Fabric1211Generator.GenerationResult result = generator.generate(output, workspace);
+
+		assertEquals(userOwnedMain, Files.readString(mainClass));
+		assertEquals(independentPackage, Files.readString(wanjianClass));
+		assertEquals(userRecipe, Files.readString(recipe));
+		assertTrue(result.generatedPaths().contains("src/main/java/net/mcreator/testmod/Testmod2Mod.java"));
+		assertTrue(result.generatedPaths().contains("src/main/java/net/mcreator/testmod/wanjian/WanJianGuiZongItem.java"));
+		assertFalse(Files.exists(output.resolve("src/main/java/dev/coppertrails/CopperTrailsMod.java")),
+				"projection generation must not replace an already materialized plugin workspace");
+	}
+
 }

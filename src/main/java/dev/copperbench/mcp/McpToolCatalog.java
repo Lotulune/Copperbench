@@ -37,7 +37,7 @@ import java.util.UUID;
 
 final class McpToolCatalog {
 
-	private static final Gson GSON = new GsonBuilder().disableHtmlEscaping().create();
+	private static final Gson GSON = new GsonBuilder().disableHtmlEscaping().serializeNulls().create();
 	private static final Map<String, Object> EMPTY_SCHEMA = Map.of("type", "object", "properties", Map.of(),
 			"additionalProperties", false);
 
@@ -49,6 +49,52 @@ final class McpToolCatalog {
 
 	McpToolCatalog(UUID workspaceId, McpWorkspaceEntryAdapter adapter, JsonLineAuditLog audit, Clock clock) {
 		this(workspaceId, adapter, audit, clock, null);
+	}
+
+	private McpServerFeatures.SyncToolSpecification createModElementTool() {
+		Map<String, Object> schema = requiredSchema(Map.of(
+				"elementType", Map.of("type", "string", "enum", ElementCoverageCatalog.FIRST_PARTY_SLICE),
+				"name", Map.of("type", "string"),
+				"initialValues", Map.of("type", "object"),
+				"expectedRevision", Map.of("type", "integer", "minimum", 0)),
+				List.of("elementType", "name", "initialValues", "expectedRevision"));
+		return McpServerFeatures.SyncToolSpecification.builder()
+				.tool(Tool.builder("create_mod_element", schema)
+						.description("Create a mod element; code elements also schedule a real Gradle compile verification task")
+						.build())
+				.callHandler((exchange, request) -> {
+					try {
+						audit("create_mod_element", request.arguments(), "started", 0, "");
+						long revision = request.arguments().get("expectedRevision") instanceof Number number
+								? number.longValue() : 0;
+						JsonObject payload = mutationPayload(request.arguments());
+						payload.addProperty("clientMutationId", UUID.randomUUID().toString());
+						var outcome = adapter.execute(Command.of(UUID.randomUUID(), workspaceId, revision,
+								Operation.CREATE_MOD_ELEMENT, payload));
+						var result = outcome.result();
+						JsonObject response = GSON.toJsonTree(result).getAsJsonObject();
+						if ("committed".equals(result.status()) && "code".equals(request.arguments().get("elementType"))) {
+							JsonObject buildPayload = workspacePayload(Map.of());
+							buildPayload.addProperty("clientMutationId", UUID.randomUUID().toString());
+							var verification = adapter.execute(Command.of(UUID.randomUUID(), workspaceId, result.newRevision(),
+									Operation.BUILD_WORKSPACE, buildPayload)).result();
+							JsonObject verificationJson = new JsonObject();
+							verificationJson.addProperty("operation", "build_workspace");
+							verificationJson.addProperty("status", verification.status());
+							verificationJson.add("task", verification.task().deepCopy());
+							verificationJson.add("diagnostics", GSON.toJsonTree(verification.diagnostics()));
+							JsonObject data = response.has("data") && response.get("data").isJsonObject()
+									? response.getAsJsonObject("data") : new JsonObject();
+							data.add("compileVerification", verificationJson);
+							response.add("data", data);
+						}
+						boolean error = result.status().equals("rejected") || result.status().equals("failed");
+						audit("create_mod_element", request.arguments(), result.status(), result.newRevision(), "");
+						return text(GSON.toJson(response), error);
+					} catch (AuditUnavailableException exception) {
+						return auditUnavailable();
+					}
+				}).build();
 	}
 
 	private static Map<String, Object> workspacePlanSchema() {
@@ -176,12 +222,7 @@ final class McpToolCatalog {
 		tools.add(commandTool("apply_workspace_plan",
 				"Apply a validated workspace plan as one revision with one recovery point and full rollback",
 				Operation.APPLY_WORKSPACE_PLAN, planEnvelopeSchema(true), McpToolCatalog::mutationPayload));
-		tools.add(commandTool("create_mod_element", "Create a mod element", Operation.CREATE_MOD_ELEMENT,
-				requiredSchema(Map.of("elementType", Map.of("type", "string", "enum", ElementCoverageCatalog.FIRST_PARTY_SLICE), "name", Map.of("type", "string"),
-						"initialValues", Map.of("type", "object"), "expectedRevision",
-						Map.of("type", "integer", "minimum", 0)),
-						List.of("elementType", "name", "initialValues", "expectedRevision")),
-				McpToolCatalog::mutationPayload));
+		tools.add(createModElementTool());
 		tools.add(commandTool("update_mod_element", "Update a mod element", Operation.UPDATE_MOD_ELEMENT,
 				requiredSchema(Map.of("elementId", Map.of("type", "string", "format", "uuid"), "changes",
 						Map.of("type", "array", "items", Map.of("type", "object"), "minItems", 1),

@@ -23,6 +23,7 @@ import net.mcreator.util.DefaultExceptionHandler;
 import net.mcreator.util.LoggingOutputStream;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.LoggerContext;
 
 import java.io.PrintStream;
 import java.lang.management.ManagementFactory;
@@ -43,6 +44,15 @@ public class LoggingSystem {
 		System.setErr(new PrintStream(new LoggingOutputStream(LogManager.getLogger("STDERR"), Level.ERROR), true));
 		System.setOut(new PrintStream(new LoggingOutputStream(LogManager.getLogger("STDOUT"), Level.INFO), true));
 		Thread.setDefaultUncaughtExceptionHandler(new DefaultExceptionHandler());
+	}
+
+	/** Keep machine-readable headless stdout free of normal application log records. */
+	public static void disableConsoleOutput() {
+		if (!(LogManager.getContext(false) instanceof LoggerContext context))
+			return;
+		var configuration = context.getConfiguration();
+		configuration.getRootLogger().removeAppender("CONSOLE");
+		context.updateLoggers();
 	}
 
 }

@@ -16,6 +16,8 @@ import net.mcreator.element.parts.ItemUseAnimation;
 import net.mcreator.element.parts.MItemBlock;
 import net.mcreator.element.parts.MapColor;
 import net.mcreator.element.parts.NoteBlockInstrument;
+import net.mcreator.element.parts.Sound;
+import net.mcreator.element.parts.TextureHolder;
 import net.mcreator.element.types.Block;
 import net.mcreator.element.types.Achievement;
 import net.mcreator.element.types.CustomElement;
@@ -23,6 +25,7 @@ import net.mcreator.element.types.Function;
 import net.mcreator.element.types.Item;
 import net.mcreator.element.types.LootTable;
 import net.mcreator.element.types.Procedure;
+import net.mcreator.element.types.Projectile;
 import net.mcreator.element.types.Recipe;
 import net.mcreator.workspace.Workspace;
 import net.mcreator.workspace.WorkspaceFileManager;
@@ -212,6 +215,11 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 				throw new IllegalStateException("Upstream source generation failed for "
 						+ definition.getModElement().getName());
 			}
+			// The first base generation intentionally runs before element generation so upstream element
+			// templates can resolve existing base classes. A newly created element's own Java class does
+			// not exist in the import tree until generateElement() writes it, though. Refresh the base once
+			// more so shared registries/init files can import that new class before the next real Gradle build.
+			workspace.getGenerator().generateBase();
 		} catch (RuntimeException exception) {
 			try {
 				workspace.getGenerator().removeElementFilesAndWorkspaceLinks(definition);
@@ -260,6 +268,7 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 				procedure.procedurexml = procedureXml(element.values());
 				yield procedure;
 			}
+			case "projectile" -> newProjectile(modElement, element);
 			case "function" -> newFunction(modElement, element);
 			case "loottable" -> newLootTable(modElement, element);
 			case "achievement" -> newAchievement(modElement, element);
@@ -296,12 +305,39 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 
 	private Item newItem(ModElement modElement, Element element) {
 		Item item = new Item(modElement);
-		item.name = element.displayName();
+		applyItem(item, element);
 		item.customModelName = "Normal";
 		item.stackSize = 64;
 		item.toolType = 1;
 		item.animation = new ItemUseAnimation(workspace, "eat");
 		return item;
+	}
+
+	private void applyItem(Item item, Element element) {
+		JsonObject values = element.values();
+		item.name = element.displayName();
+		item.texture = new TextureHolder(workspace, string(values, "texture", "minecraft:barrier"));
+	}
+
+	private Projectile newProjectile(ModElement modElement, Element element) {
+		Projectile projectile = new Projectile(modElement);
+		applyProjectileDefaults(projectile, element);
+		return projectile;
+	}
+
+	private void applyProjectileDefaults(Projectile projectile, Element element) {
+		JsonObject values = element.values();
+		projectile.projectileItem = new MItemBlock(workspace, string(values, "projectileItem", "Items.ARROW"));
+		projectile.entityModel = string(values, "entityModel", "Default");
+		projectile.customModelTexture = string(values, "customModelTexture", "");
+		projectile.actionSound = new Sound(workspace, string(values, "actionSound", ""));
+		projectile.power = decimal(values, "power", 1.0);
+		projectile.damage = decimal(values, "damage", 5.0);
+		projectile.knockback = integer(values, "knockback", 5);
+		projectile.showParticles = bool(values, "showParticles", false);
+		projectile.disableGravity = bool(values, "disableGravity", false);
+		projectile.igniteFire = bool(values, "igniteFire", false);
+		projectile.disableDiscarding = bool(values, "disableDiscarding", false);
 	}
 
 	private Recipe newRecipe(ModElement modElement, Element element) {
@@ -401,9 +437,10 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 	private void updateDefinition(GeneratableElement definition, Element element) {
 			switch (definition) {
 			case Block block -> block.name = element.displayName();
-			case Item item -> item.name = element.displayName();
+			case Item item -> applyItem(item, element);
 			case Recipe recipe -> recipe.name = element.name();
 			case Procedure procedure -> procedure.procedurexml = procedureXml(element.values());
+			case Projectile projectile -> applyProjectileDefaults(projectile, element);
 			case Function function -> applyFunction(function, element);
 			case LootTable lootTable -> applyLootTable(lootTable, element);
 			case Achievement achievement -> applyAchievement(achievement, element);
@@ -506,6 +543,10 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 
 	private static int integer(JsonObject object, String key, int fallback) {
 		return object.has(key) && object.get(key).isJsonPrimitive() ? object.get(key).getAsInt() : fallback;
+	}
+
+	private static double decimal(JsonObject object, String key, double fallback) {
+		return object.has(key) && object.get(key).isJsonPrimitive() ? object.get(key).getAsDouble() : fallback;
 	}
 
 	private static boolean bool(JsonObject object, String key, boolean fallback) {

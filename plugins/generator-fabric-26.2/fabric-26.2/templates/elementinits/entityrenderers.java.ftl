@@ -32,17 +32,17 @@ package ${package}.init;
 		<#list entities as entity>
 			<#if entity.getModElement().getTypeString() == "projectile">
 				<#if entity.isCustomModel()>
-				EntityRendererRegistry.register(${JavaModName}Entities.${entity.getModElement().getRegistryNameUpper()}, ${entity.getModElement().getName()}Renderer::new);
+				net.minecraft.client.renderer.entity.EntityRenderers.register(${JavaModName}Entities.${entity.getModElement().getRegistryNameUpper()}, ${entity.getModElement().getName()}Renderer::new);
 				<#else>
-				EntityRendererRegistry.register(${JavaModName}Entities.${entity.getModElement().getRegistryNameUpper()}, ThrownItemRenderer::new);
+				net.minecraft.client.renderer.entity.EntityRenderers.register(${JavaModName}Entities.${entity.getModElement().getRegistryNameUpper()}, ThrownItemRenderer::new);
 				</#if>
 			<#elseif entity.getModElement().getTypeString() == "livingentity">
-				EntityRendererRegistry.register(${JavaModName}Entities.${entity.getModElement().getRegistryNameUpper()}, ${entity.getModElement().getName()}Renderer::new);
+				net.minecraft.client.renderer.entity.EntityRenderers.register(${JavaModName}Entities.${entity.getModElement().getRegistryNameUpper()}, ${entity.getModElement().getName()}Renderer::new);
 				<#if entity.hasCustomProjectile()>
-				EntityRendererRegistry.register(${JavaModName}Entities.${entity.getModElement().getRegistryNameUpper()}_PROJECTILE, ThrownItemRenderer::new);
+				net.minecraft.client.renderer.entity.EntityRenderers.register(${JavaModName}Entities.${entity.getModElement().getRegistryNameUpper()}_PROJECTILE, ThrownItemRenderer::new);
 				</#if>
 			<#elseif entity.getModElement().getTypeString() == "specialentity">
-				EntityRendererRegistry.register(${JavaModName}Entities.${entity.getModElement().getRegistryNameUpper()},
+				net.minecraft.client.renderer.entity.EntityRenderers.register(${JavaModName}Entities.${entity.getModElement().getRegistryNameUpper()},
 						context -> new <#if entity.isAnyRaft()>Raft<#else>Boat</#if>Renderer(context, ${JavaModName}Models.${entity.getModElement().getRegistryNameUpper()}_LAYER_LOCATION));
 			</#if>
 		</#list>

@@ -45,6 +45,7 @@ export const zh: Record<string, string> = {
   'diagnostic.workspace_plan_persistence_failed': '工作区计划未能完整写入，所有变更均已回滚。',
   'diagnostic.workspace_root_unavailable': '当前工作区根目录不可用。',
   'diagnostic.workspace_task_failed': '{backend} 的 {task} 任务失败，请查看日志。',
+  'diagnostic.bundled_jdk_missing': '未找到可用的 Copperbench Java 运行时；请查看日志中的解析路径。',
   'diagnostic.procedure_element_required': '该操作只能用于 Procedure 元素。',
   'diagnostic.procedure_ir_invalid': 'Procedure 图数据无效，请修复节点或连接后重试。',
   'diagnostic.workspace_reference_dangling': '结构化引用的目标不存在。',

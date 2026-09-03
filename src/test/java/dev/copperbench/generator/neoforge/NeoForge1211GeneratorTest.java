@@ -9,6 +9,7 @@
 
 package dev.copperbench.generator.neoforge;
 
+import dev.copperbench.generator.BundledJdkLocator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -24,7 +25,8 @@ class NeoForge1211GeneratorTest {
 	@TempDir Path output;
 
 	@Test void generatesTheParityBlockItemRecipeProcedureAndResources() throws Exception {
-		var generator = new NeoForge1211Generator(Path.of(".").toAbsolutePath().normalize());
+		Path distribution = Path.of(".").toAbsolutePath().normalize();
+		var generator = new NeoForge1211Generator(distribution);
 
 		var result = generator.generate(output, NeoForge1211GoldenWorkspace.create());
 
@@ -39,7 +41,8 @@ class NeoForge1211GeneratorTest {
 		assertTrue(Files.readString(output.resolve("build.gradle")).contains("net.neoforged.moddev"));
 		String properties = Files.readString(output.resolve("gradle.properties"));
 		assertTrue(properties.contains("neoforge_version=21.1.232"));
-		assertTrue(properties.contains("jdk/jdk21_win_64"));
+		String expectedJdk = BundledJdkLocator.locate(distribution, 21).toString().replace('\\', '/');
+		assertTrue(properties.contains("org.gradle.java.installations.paths=" + expectedJdk));
 		assertTrue(Files.readString(output.resolve("settings.gradle"))
 				.contains("org.gradle.toolchains.foojay-resolver-convention"));
 		assertTrue(Files.readString(output.resolve("gradle/wrapper/gradle-wrapper.properties"))
@@ -48,5 +51,25 @@ class NeoForge1211GeneratorTest {
 				.contains("COPPERBENCH_STAGE5_NEOFORGE_READY"));
 		assertTrue(Files.size(output.resolve(
 				"src/main/resources/assets/copper_trails/textures/block/trail_lamp.png")) > 0);
+	}
+
+	@Test void installedFlatJdkLayoutIsWrittenIntoGeneratedToolchainProperties() throws Exception {
+		Path distribution = output.resolve("distribution");
+		Path workspace = output.resolve("workspace");
+		Path installedJdk = distribution.resolve("jdk");
+		Files.createDirectories(installedJdk.resolve("bin"));
+		Files.write(installedJdk.resolve("bin/java.exe"), new byte[] { 0 });
+		Files.createDirectories(distribution.resolve("gradle/wrapper"));
+		Files.writeString(distribution.resolve("gradlew"), "placeholder");
+		Files.writeString(distribution.resolve("gradlew.bat"), "placeholder");
+		Files.write(distribution.resolve("gradle/wrapper/gradle-wrapper.jar"), new byte[] { 0 });
+
+		var generator = new NeoForge1211Generator(distribution, NeoForge1211Generator.Profile.NEOFORGE_1211);
+		generator.generate(workspace, NeoForge1211GoldenWorkspace.create());
+
+		String properties = Files.readString(workspace.resolve("gradle.properties"));
+		String expected = installedJdk.toAbsolutePath().normalize().toString().replace('\\', '/');
+		assertTrue(properties.contains("org.gradle.java.installations.paths=" + expected));
+		assertFalse(properties.contains("jdk/jdk21_win_64"));
 	}
 }

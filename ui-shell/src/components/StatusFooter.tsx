@@ -10,10 +10,12 @@ import {
   ChevronUp
 } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
+import { useMcpRuntimeState } from '../hooks/useMcpRuntimeState';
 import { t } from '../i18n';
 
 export const StatusFooter: React.FC = () => {
-  const { state, setIsTaskDrawerOpen, isTaskDrawerOpen, elevatePermission } = useWorkbench();
+  const { state, setIsTaskDrawerOpen, isTaskDrawerOpen } = useWorkbench();
+  const { mcp } = useMcpRuntimeState();
 
   const connection = state.workbench?.connection ?? {
     core: 'connected',
@@ -21,7 +23,9 @@ export const StatusFooter: React.FC = () => {
     bridge: 'ready'
   };
 
-  const permission = state.workbench?.permission?.profile ?? 'workspace';
+  const permission = mcp?.status === 'listening'
+    ? mcp.permissionProfile
+    : state.workbench?.permission.profile ?? mcp?.permissionProfile ?? 'workspace';
   const activeTasks = state.workbench?.activeTasks ?? [];
   const runningTask = activeTasks.find((t) => t.state === 'running' || t.state === 'queued');
 
@@ -129,7 +133,7 @@ export const StatusFooter: React.FC = () => {
         </div>
 
         {/* MCP Permission Pill */}
-        <button
+        <div
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -140,16 +144,12 @@ export const StatusFooter: React.FC = () => {
             borderRadius: 'var(--radius-full)',
             color: permission === 'workspace' ? 'var(--badge-green)' : permission === 'full_access' ? 'var(--accent-copper)' : 'var(--badge-amber)'
           }}
-          onClick={() => {
-            const next = permission === 'read_only' ? 'workspace' : permission === 'workspace' ? 'full_access' : 'read_only';
-            elevatePermission(next);
-          }}
-          title="切换 MCP 权限档位（只读 / 工作区 / 完全访问）"
+          title={mcp?.status === 'listening' ? `MCP 服务已启动：${permission}` : 'MCP 服务未启动'}
           data-testid="permission-alert"
         >
           <Shield size={11} />
           <span style={{ fontWeight: 600 }}>MCP: {permission.toUpperCase()}</span>
-        </button>
+        </div>
       </div>
     </footer>
   );

@@ -238,6 +238,9 @@ class NewWorkspaceGeneratorGoldenBuildTest {
 			if (jar == null)
 				throw failure(generatorId, "jar-output", "Gradle build produced no non-sources JAR\n"
 						+ gradleDiagnostic(gradle.output()));
+			if (!jar.getFileName().toString().startsWith(modId + "-"))
+				throw failure(generatorId, "jar-identity", "Expected JAR name to start with user modid " + modId
+						+ " but got " + jar.getFileName());
 			if (content == Content.STAGE11)
 				validateMixinClasses(generatorId, jar);
 		} catch (AssertionError error) {

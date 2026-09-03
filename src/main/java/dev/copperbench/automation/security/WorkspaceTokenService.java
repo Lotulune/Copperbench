@@ -38,6 +38,7 @@ public final class WorkspaceTokenService {
 	}
 
 	public WorkspaceToken issue(UUID workspaceId, PermissionProfile profile) {
+		purgeExpired();
 		byte[] bytes = new byte[32];
 		random.nextBytes(bytes);
 		String value = Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
@@ -69,6 +70,11 @@ public final class WorkspaceTokenService {
 
 	public void revokeWorkspace(UUID workspaceId) {
 		sessions.entrySet().removeIf(entry -> entry.getValue().workspaceId().equals(workspaceId));
+	}
+
+	private void purgeExpired() {
+		Instant now = clock.instant();
+		sessions.entrySet().removeIf(entry -> !now.isBefore(entry.getValue().expiresAt()));
 	}
 
 	private static String digest(String value) {

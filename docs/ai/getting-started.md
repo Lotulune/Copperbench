@@ -11,6 +11,9 @@
 - 删除、外部发布、凭据导出和启用 Java 插件必须由用户确认。
 
 完整规则见 [MCP 权限模型](../security/permission-model.md)。
+需要让通用 Agent 实际完成“读取 → 修改 → 构建 → 冲突恢复”时，继续阅读
+[外部 Agent 操作手册](./agent-playbook.md)。该手册同时给出 `create_mod_element`、Procedure IR、
+Workspace Plan、增量任务日志和 `code` 使用边界的可复制示例。
 
 ## 推荐调用顺序
 

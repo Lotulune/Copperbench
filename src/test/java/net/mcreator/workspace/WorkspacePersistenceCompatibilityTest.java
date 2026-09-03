@@ -410,6 +410,97 @@ class WorkspacePersistenceCompatibilityTest {
 		}
 	}
 
+	@Test void minimalAgentItemAndProjectilePersistThroughRealFabricGeneration() throws Exception {
+		WorkspaceSettings settings = new WorkspaceSettings("agent_generation_defaults");
+		settings.setModName("Agent Generation Defaults");
+		settings.setVersion("1.0.0");
+		settings.setCurrentGenerator("fabric-26.1.2");
+		Workspace workspace = Workspace.createWorkspace(
+				temporaryDirectory.resolve("agent_generation_defaults.mcreator").toFile(), settings);
+		UUID workspaceId = UUID.fromString("11111111-1111-4111-8111-111111111183");
+		AtomicLong sequence = new AtomicLong(4000);
+		java.util.function.Supplier<UUID> ids = () -> uuid(sequence.incrementAndGet());
+		try (MCreatorWorkspaceSession session = MCreatorWorkspaceSession.attach(workspace, workspaceId,
+				new InMemoryWorkspaceTaskGateway(Clock.systemUTC(), ids), Clock.systemUTC(), ids)) {
+			Files.createDirectories(workspace.getGenerator().getSourceRoot().toPath());
+			var entry = session.headlessEntry(PermissionProfile.WORKSPACE);
+			long revision = 0;
+
+			for (String type : List.of("item", "projectile")) {
+				JsonObject payload = new JsonObject();
+				payload.addProperty("clientMutationId", ids.get().toString());
+				payload.addProperty("elementType", type);
+				payload.addProperty("name", "agent_" + type);
+				JsonObject values = new JsonObject();
+				if (type.equals("item")) values.addProperty("displayName", "Agent Item");
+				payload.add("initialValues", values);
+
+				var created = entry.execute(Command.of(ids.get(), workspaceId, revision,
+						Operation.CREATE_MOD_ELEMENT, payload));
+				assertEquals("committed", created.result().status(),
+						() -> type + ": " + created.result().diagnostics());
+				revision++;
+				assertNotNull(workspace.getModElementByName("agent_" + type));
+			}
+		} finally {
+			workspace.close();
+		}
+	}
+
+	@Test void workspacePlanRefreshesRealFabricBaseImportsAfterCreatingJavaElement() throws Exception {
+		WorkspaceSettings settings = new WorkspaceSettings("agent_plan_imports");
+		settings.setModName("Agent Plan Imports");
+		settings.setVersion("1.0.0");
+		settings.setCurrentGenerator("fabric-26.1.2");
+		Workspace workspace = Workspace.createWorkspace(
+				temporaryDirectory.resolve("agent_plan_imports.mcreator").toFile(), settings);
+		UUID workspaceId = UUID.fromString("11111111-1111-4111-8111-111111111184");
+		AtomicLong sequence = new AtomicLong(5000);
+		java.util.function.Supplier<UUID> ids = () -> uuid(sequence.incrementAndGet());
+		try (MCreatorWorkspaceSession session = MCreatorWorkspaceSession.attach(workspace, workspaceId,
+				new InMemoryWorkspaceTaskGateway(Clock.systemUTC(), ids), Clock.systemUTC(), ids)) {
+			Path sourceRoot = workspace.getGenerator().getSourceRoot().toPath();
+			Files.createDirectories(sourceRoot);
+			workspace.getGenerator().setGradleCache(new com.google.gson.Gson().fromJson(
+					"{\"classpath\":[],\"importTree\":{}}", net.mcreator.generator.GeneratorGradleCache.class));
+			var entry = session.mcpEntry(PermissionProfile.WORKSPACE);
+
+			JsonObject directPayload = new JsonObject();
+			directPayload.addProperty("clientMutationId", ids.get().toString());
+			directPayload.addProperty("elementType", "item");
+			directPayload.addProperty("name", "direct_item");
+			directPayload.add("initialValues", new JsonObject());
+			var direct = entry.execute(Command.of(ids.get(), workspaceId, 0,
+					Operation.CREATE_MOD_ELEMENT, directPayload));
+			assertEquals("committed", direct.result().status(), direct.result().diagnostics().toString());
+
+			JsonObject planPayload = workspacePlanPayload(1, "real-fabric-plan-import",
+					workspacePlanCreate("item", "planned_item"));
+			var planned = entry.query(Query.of(ids.get(), workspaceId, Operation.PLAN_WORKSPACE_CHANGES,
+					planPayload));
+			assertEquals("succeeded", planned.status(), planned.diagnostics().toString());
+			JsonObject applyPayload = new JsonObject();
+			applyPayload.addProperty("clientMutationId", ids.get().toString());
+			applyPayload.add("plan", planned.data().deepCopy());
+			var applied = entry.execute(Command.of(ids.get(), workspaceId, 1,
+					Operation.APPLY_WORKSPACE_PLAN, applyPayload));
+			assertEquals("committed", applied.result().status(), applied.result().diagnostics().toString());
+
+			Path itemRegistry;
+			try (var sources = Files.walk(sourceRoot)) {
+				itemRegistry = sources.filter(Files::isRegularFile)
+						.filter(path -> path.getFileName().toString().endsWith("ModItems.java"))
+						.findFirst().orElseThrow();
+			}
+			String generated = Files.readString(itemRegistry, StandardCharsets.UTF_8);
+			assertTrue(generated.contains("import net.mcreator.agent_plan_imports.item.direct_itemItem;"), generated);
+			assertTrue(generated.contains("import net.mcreator.agent_plan_imports.item.planned_itemItem;"), generated);
+			assertTrue(generated.contains("planned_itemItem::new"), generated);
+		} finally {
+			workspace.close();
+		}
+	}
+
 	@Test void invalidGeneratedElementIsRejectedAndRolledBackInsteadOfSilentlyPersisted() throws Exception {
 		WorkspaceSettings settings = new WorkspaceSettings("invalid_generation_rollback");
 		settings.setModName("Invalid Generation Rollback");

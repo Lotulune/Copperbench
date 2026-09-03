@@ -13,6 +13,7 @@ import com.google.gson.JsonObject;
 import dev.copperbench.core.application.WorkspaceTaskGateway;
 import dev.copperbench.core.contract.UiCore.Operation;
 import dev.copperbench.core.workspace.RevisionedWorkspaceStore;
+import dev.copperbench.generator.BundledJdkLocator;
 import dev.copperbench.generator.GradleProcessRunner;
 import dev.copperbench.generator.GradleWorkspaceBackend;
 import dev.copperbench.generator.GradleWorkspaceTaskGateway;
@@ -40,7 +41,7 @@ public final class Fabric1211WorkspaceTaskGateway implements WorkspaceTaskGatewa
 			Path distributionRoot, Clock clock, Supplier<UUID> ids, Fabric1211Generator.Profile profile) {
 		this(store, workspaceRoots, distributionRoot, clock, ids, profile,
 				Fabric1211ProcessRunner.system(profile.readyMarker(),
-						distributionRoot.resolve(profile.jdkRelativePath())));
+						() -> BundledJdkLocator.locate(distributionRoot, profile.javaRelease())));
 	}
 
 	public Fabric1211WorkspaceTaskGateway(RevisionedWorkspaceStore store, Function<UUID, Path> workspaceRoots,

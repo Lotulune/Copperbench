@@ -20,6 +20,8 @@ import dev.copperbench.core.contract.UiCore.RequestContext;
 import dev.copperbench.core.workspace.RevisionedWorkspaceStore;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.parallel.ResourceLock;
+import org.junit.jupiter.api.parallel.Resources;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -74,6 +76,76 @@ class Fabric1211TaskGatewayTest {
 		}
 	}
 
+	@Test void runClientRemainsRunningAfterMarkerUntilTheClientProcessExits() throws Exception {
+		RevisionedWorkspaceStore store = new RevisionedWorkspaceStore();
+		store.register(Fabric1211GoldenWorkspace.create());
+		AtomicLong sequence = new AtomicLong(625);
+		Supplier<UUID> ids = () -> UUID.fromString("00000000-0000-4000-8000-" +
+				String.format("%012d", sequence.getAndIncrement()));
+		CountDownLatch markerSeen = new CountDownLatch(1);
+		CountDownLatch closeClient = new CountDownLatch(1);
+		Fabric1211ProcessRunner runner = (root, arguments, timeout, output) -> {
+			assertEquals(List.of("runClient"), arguments);
+			assertTrue(timeout.isZero(), "interactive runClient must not use the CI smoke timeout");
+			output.accept("[Render thread/INFO] COPPERBENCH_STAGE3_READY");
+			markerSeen.countDown();
+			closeClient.await();
+			return new Fabric1211ProcessRunner.ProcessResult(0, true);
+		};
+		try (Fabric1211WorkspaceTaskGateway tasks = new Fabric1211WorkspaceTaskGateway(store,
+				ignored -> generatedWorkspace, Path.of(".").toAbsolutePath().normalize(), CLOCK, ids, runner)) {
+			WorkspaceApplicationService service = new WorkspaceApplicationService(store, tasks, CLOCK, ids);
+			JsonObject payload = new JsonObject();
+			payload.addProperty("clientMutationId", ids.get().toString());
+			payload.addProperty("scope", "workspace");
+			var accepted = service.execute(Command.of(ids.get(), WORKSPACE_ID, 4, Operation.RUN_CLIENT, payload), UI);
+			UUID taskId = UUID.fromString(accepted.result().task().getAsJsonObject().get("id").getAsString());
+
+			assertTrue(markerSeen.await(5, TimeUnit.SECONDS));
+			assertEquals("running", task(service, taskId).getAsJsonObject("task").get("state").getAsString());
+			closeClient.countDown();
+			assertEquals("succeeded", awaitTask(service, taskId).getAsJsonObject("task").get("state").getAsString());
+		}
+	}
+
+	@Test
+	@ResourceLock(Resources.SYSTEM_PROPERTIES)
+	void missingBundledJdkBecomesStructuredTaskDiagnostic() throws Exception {
+		RevisionedWorkspaceStore store = new RevisionedWorkspaceStore();
+		store.register(Fabric1211GoldenWorkspace.create());
+		AtomicLong sequence = new AtomicLong(640);
+		Supplier<UUID> ids = () -> UUID.fromString("00000000-0000-4000-8000-" +
+				String.format("%012d", sequence.getAndIncrement()));
+		Path distribution = generatedWorkspace.resolve("distribution");
+		Path workspace = generatedWorkspace.resolve("workspace");
+		Files.createDirectories(distribution.resolve("gradle/wrapper"));
+		Files.writeString(distribution.resolve("gradlew"), "placeholder");
+		Files.writeString(distribution.resolve("gradlew.bat"), "placeholder");
+		Files.write(distribution.resolve("gradle/wrapper/gradle-wrapper.jar"), new byte[] { 0 });
+		Path unusableFallback = generatedWorkspace.resolve("not-a-java-home");
+		String previousJavaHome = System.getProperty("java.home");
+		System.setProperty("java.home", unusableFallback.toString());
+		try (Fabric1211WorkspaceTaskGateway tasks = new Fabric1211WorkspaceTaskGateway(store,
+				ignored -> workspace, distribution, CLOCK, ids)) {
+			WorkspaceApplicationService service = new WorkspaceApplicationService(store, tasks, CLOCK, ids);
+			JsonObject projection = startAndAwait(service, ids, Operation.RUN_CLIENT);
+
+			assertEquals("failed", projection.getAsJsonObject("task").get("state").getAsString());
+			String diagnostics = projection.getAsJsonArray("diagnostics").toString();
+			assertTrue(diagnostics.contains("BUNDLED_JDK_MISSING"));
+			String expectedJdkPath = distribution.resolve("jdk").toString().replace("\\", "\\\\");
+			assertTrue(diagnostics.contains(expectedJdkPath));
+			assertTrue(diagnostics.contains("jdk21_win_64"));
+			assertTrue(diagnostics.contains("not-a-java-home"));
+			assertTrue(projection.getAsJsonArray("logs").toString().contains("No usable Java home found"));
+		} finally {
+			if (previousJavaHome == null)
+				System.clearProperty("java.home");
+			else
+				System.setProperty("java.home", previousJavaHome);
+		}
+	}
+
 	@Test void buildAndRunClientCommandsExposeGradleOutputAndReadiness() throws Exception {
 		RevisionedWorkspaceStore store = new RevisionedWorkspaceStore();
 		store.register(Fabric1211GoldenWorkspace.create());
@@ -102,6 +174,34 @@ class Fabric1211TaskGatewayTest {
 			JsonObject runClient = startAndAwait(service, ids, Operation.RUN_CLIENT);
 			assertEquals("succeeded", runClient.getAsJsonObject("task").get("state").getAsString());
 			assertTrue(runClient.getAsJsonArray("logs").toString().contains("COPPERBENCH_STAGE3_READY"));
+		}
+	}
+
+	@Test void failedBuildExtractsJavaCompilerErrorsIntoStructuredDiagnostics() throws Exception {
+		RevisionedWorkspaceStore store = new RevisionedWorkspaceStore();
+		store.register(Fabric1211GoldenWorkspace.create());
+		AtomicLong sequence = new AtomicLong(620);
+		Supplier<UUID> ids = () -> UUID.fromString("00000000-0000-4000-8000-" +
+				String.format("%012d", sequence.getAndIncrement()));
+		Fabric1211ProcessRunner runner = (root, arguments, timeout, output) -> {
+			assertEquals(List.of("build"), arguments);
+			Path source = root.resolve("src/main/java/net/example/BrokenBehavior.java");
+			output.accept(source + ":42: 错误: 找不到符号");
+			output.accept("  " + source + ":42: 错误: 找不到符号");
+			return new Fabric1211ProcessRunner.ProcessResult(1, false);
+		};
+		try (Fabric1211WorkspaceTaskGateway tasks = new Fabric1211WorkspaceTaskGateway(store,
+				ignored -> generatedWorkspace, Path.of(".").toAbsolutePath().normalize(), CLOCK, ids, runner)) {
+			WorkspaceApplicationService service = new WorkspaceApplicationService(store, tasks, CLOCK, ids);
+
+			JsonObject build = startAndAwait(service, ids, Operation.BUILD_WORKSPACE);
+			assertEquals("failed", build.getAsJsonObject("task").get("state").getAsString());
+			String diagnostics = build.getAsJsonArray("diagnostics").toString();
+			assertTrue(diagnostics.contains("JAVA_COMPILE_ERROR"), diagnostics);
+			assertEquals(diagnostics.indexOf("JAVA_COMPILE_ERROR"), diagnostics.lastIndexOf("JAVA_COMPILE_ERROR"), diagnostics);
+			assertTrue(diagnostics.contains("/src/main/java/net/example/BrokenBehavior.java"), diagnostics);
+			assertTrue(diagnostics.contains("Line 42: 找不到符号"), diagnostics);
+			assertTrue(diagnostics.contains("FABRIC_BUILD_FAILED"), diagnostics);
 		}
 	}
 

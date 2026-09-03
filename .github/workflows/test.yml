@@ -79,6 +79,10 @@ jobs:
           cache-dependency-path: |
             ui-core/package-lock.json
             ui-shell/package-lock.json
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
       - name: Install UI contract dependencies
         working-directory: ui-core
         run: npm ci
@@ -96,7 +100,9 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Run fast product-shell smoke tests
         working-directory: ui-shell
-        run: npx playwright test e2e/scenarios.spec.ts e2e/new-workspace.spec.ts --project=chromium
+        run: npx playwright test e2e/scenarios.spec.ts e2e/new-workspace.spec.ts e2e/sdk-connection-security.spec.ts --project=chromium
+      - name: Test Python SDK connection metadata security
+        run: python sdk/python/test_connection_security.py
       - name: Validate product status
         run: node scripts/verify-product-status.mjs
       - name: Check repository Markdown links
