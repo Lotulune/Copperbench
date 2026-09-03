@@ -3,7 +3,7 @@
   "schemaVersion": "1.0",
   "snapshot": {
     "date": "2026-09-03",
-    "lastVerifiedCommit": "29005125cacb888591a126af9487764b6633df0d",
+    "lastVerifiedCommit": "d0d96877afdc00c98cdfeab20524f2f2551b73f9",
     "policy": "Only code, automated checks, and evidence tied to a commit can promote a gate."
   },
   "product": {
@@ -15,7 +15,7 @@
     "targetPlatforms": ["windows-11-x64"],
     "license": "GPL-3.0-only",
     "additionalTerms": "LICENSE-ADDITIONAL-TERMS.md",
-    "betaEligible": false
+    "betaEligible": true
   },
   "delivery": {
     "publishedBaseline": {
@@ -51,14 +51,15 @@
       "run": "https://github.com/Lotulune/Copperbench/actions/runs/33528964018",
       "latestAttempt": {
         "status": "passed",
-        "run": "https://github.com/Lotulune/Copperbench/actions/runs/33676088550",
-        "reason": "PR #56 exact binary-source candidate 29005125 passed Build and test #171, including Java/Javadoc, UI smoke, MCP conformance, and JUnit. The same SHA then passed Nightly product gates #27 and the clean Windows 11 installed-product replay documented in docs/testing/p0-installed-product-candidate-29005125-2026-09-03.md. Historical Beta 3 publication remains recorded separately under delivery.betaRelease."
+        "run": "https://github.com/Lotulune/Copperbench/actions/runs/33696803966",
+        "reason": "PR #56 post-review binary-source candidate d0d96877 passed Build and test #173 and Nightly product gates #28. The same source tree passed the clean Windows 11 installed-product replay documented in docs/testing/p0-installed-product-candidate-d0d96877-2026-09-03.md, including the review-requested MCP token-renewal and SDK loopback-URL hardening. Historical Beta 3 publication remains recorded separately under delivery.betaRelease."
       },
       "runs": [
         "https://github.com/Lotulune/Copperbench/actions/runs/33515069964",
         "https://github.com/Lotulune/Copperbench/actions/runs/33527164779",
         "https://github.com/Lotulune/Copperbench/actions/runs/33528964018",
-        "https://github.com/Lotulune/Copperbench/actions/runs/33676088550"
+        "https://github.com/Lotulune/Copperbench/actions/runs/33676088550",
+        "https://github.com/Lotulune/Copperbench/actions/runs/33696803966"
       ],
       "consecutiveGreenMainRuns": 3,
       "consecutiveGreenTarget": 3,
@@ -71,8 +72,8 @@
     "nightly": {
       "status": "passed",
       "workflow": ".github/workflows/nightly.yml",
-      "run": "https://github.com/Lotulune/Copperbench/actions/runs/33676688082",
-      "sourceCommit": "29005125cacb888591a126af9487764b6633df0d",
+      "run": "https://github.com/Lotulune/Copperbench/actions/runs/33697324598",
+      "sourceCommit": "d0d96877afdc00c98cdfeab20524f2f2551b73f9",
       "productRegression": "passed",
       "generatorGolden": "8/8 passed"
     },
@@ -134,23 +135,23 @@
     {"id": "ai-workspace-plan", "status": "passed", "betaBlocking": true, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/33044562447", "https://github.com/Lotulune/Copperbench/actions/runs/33044983727", "https://github.com/Lotulune/Copperbench/actions/runs/33098518016", "docs/testing/stage-10-ai-workspace-plan-2026-08-27.md"]},
     {"id": "ai-task-events", "status": "passed", "betaBlocking": true, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/33071508349", "https://github.com/Lotulune/Copperbench/actions/runs/33075057263", "https://github.com/Lotulune/Copperbench/actions/runs/33098518016", "docs/testing/stage-10-ai-task-events-2026-08-27.md", "src/test/java/dev/copperbench/core/application/WorkspaceTaskEventTest.java", "src/test/java/dev/copperbench/shell/Stage10NativeJcefTaskReconnectTest.java"]},
     {"id": "ai-sdk-evals", "status": "passed", "betaBlocking": true, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/33071508349", "https://github.com/Lotulune/Copperbench/actions/runs/33098518016", "sdk/typescript/copperbench.ts", "sdk/python/copperbench.py", "sdk/evals/manifest.json", "scripts/verify-ai-evals.mjs", "scripts/run-ai-live-evals.py", "scripts/verify-ai-live-evals.ps1", "docs/testing/stage-10-ai-sdk-live-evals-2026-08-27.md"]},
-    {"id": "installed-bundled-jdk-resolution", "status": "blocked", "betaBlocking": true, "evidence": ["platform/windows/windows.gradle", "src/main/java/dev/copperbench/generator/BundledJdkLocator.java", "src/main/java/dev/copperbench/generator/fabric/Fabric1211WorkspaceTaskGateway.java", "src/main/java/dev/copperbench/generator/neoforge/NeoForge1211WorkspaceTaskGateway.java", "src/main/java/dev/copperbench/generator/fabric/Fabric1211ProcessRunner.java", "src/main/java/dev/copperbench/release/WindowsDistributionLayout.java", "src/test/java/dev/copperbench/generator/BundledJdkLocatorTest.java", "src/test/java/dev/copperbench/generator/fabric/Fabric1211TaskGatewayTest.java", "src/test/java/dev/copperbench/release/WindowsDistributionLayoutTest.java", "docs/testing/p0-ai-agent-product-fixes-2026-09-02.md", "docs/testing/p0-installed-product-candidate-29005125-2026-09-03.md", "https://github.com/Lotulune/Copperbench/actions/runs/33676088550", "https://github.com/Lotulune/Copperbench/actions/runs/33676688082"]},
-    {"id": "interactive-run-client-lifecycle", "status": "blocked", "betaBlocking": true, "evidence": ["src/main/java/dev/copperbench/generator/GradleWorkspaceTaskGateway.java", "src/main/java/dev/copperbench/generator/fabric/Fabric1211ProcessRunner.java", "src/test/java/dev/copperbench/generator/fabric/Fabric1211TaskGatewayTest.java", "docs/testing/p0-ai-agent-product-fixes-2026-09-02.md", "docs/testing/p0-installed-product-candidate-29005125-2026-09-03.md"]},
-    {"id": "desktop-mcp-product-integration", "status": "blocked", "betaBlocking": true, "evidence": ["src/main/java/dev/copperbench/shell/CopperbenchProductShell.java", "src/main/java/dev/copperbench/mcp/CopperbenchMcpServer.java", "src/main/java/dev/copperbench/mcp/DesktopMcpRuntime.java", "src/main/java/dev/copperbench/bridge/JcefMcpBridgeTransport.java", "src/test/java/dev/copperbench/mcp/DesktopMcpRuntimeTest.java", "src/test/java/dev/copperbench/bridge/JcefMcpBridgeTransportTest.java", "ui-shell/e2e/mcp-runtime.spec.ts", "docs/testing/p0-ai-agent-product-fixes-2026-09-02.md", "docs/testing/p0-installed-product-candidate-29005125-2026-09-03.md"]},
-    {"id": "external-agent-installed-product-loop", "status": "blocked", "betaBlocking": true, "evidence": ["src/main/java/dev/copperbench/shell/CopperbenchProductShell.java", "src/main/java/dev/copperbench/mcp/CopperbenchMcpServer.java", "src/test/java/dev/copperbench/mcp/DesktopMcpAgentLoopTest.java", "sdk/python/copperbench.py", "sdk/typescript/copperbench.ts", "docs/ai/agent-playbook.md", "docs/testing/p0-ai-agent-product-fixes-2026-09-02.md", "docs/testing/p0-installed-product-candidate-29005125-2026-09-03.md", "https://github.com/Lotulune/Copperbench/actions/runs/33676088550", "https://github.com/Lotulune/Copperbench/actions/runs/33676688082"]}
+    {"id": "installed-bundled-jdk-resolution", "status": "passed", "betaBlocking": true, "evidence": ["platform/windows/windows.gradle", "src/main/java/dev/copperbench/generator/BundledJdkLocator.java", "src/main/java/dev/copperbench/generator/fabric/Fabric1211WorkspaceTaskGateway.java", "src/main/java/dev/copperbench/generator/neoforge/NeoForge1211WorkspaceTaskGateway.java", "src/main/java/dev/copperbench/generator/fabric/Fabric1211ProcessRunner.java", "src/main/java/dev/copperbench/release/WindowsDistributionLayout.java", "src/test/java/dev/copperbench/generator/BundledJdkLocatorTest.java", "src/test/java/dev/copperbench/generator/fabric/Fabric1211TaskGatewayTest.java", "src/test/java/dev/copperbench/release/WindowsDistributionLayoutTest.java", "docs/testing/p0-ai-agent-product-fixes-2026-09-02.md", "docs/testing/p0-installed-product-candidate-29005125-2026-09-03.md", "docs/testing/p0-installed-product-candidate-d0d96877-2026-09-03.md", "https://github.com/Lotulune/Copperbench/actions/runs/33696803966", "https://github.com/Lotulune/Copperbench/actions/runs/33697324598"]},
+    {"id": "interactive-run-client-lifecycle", "status": "passed", "betaBlocking": true, "evidence": ["src/main/java/dev/copperbench/generator/GradleWorkspaceTaskGateway.java", "src/main/java/dev/copperbench/generator/fabric/Fabric1211ProcessRunner.java", "src/test/java/dev/copperbench/generator/fabric/Fabric1211TaskGatewayTest.java", "docs/testing/p0-ai-agent-product-fixes-2026-09-02.md", "docs/testing/p0-installed-product-candidate-29005125-2026-09-03.md", "docs/testing/p0-installed-product-candidate-d0d96877-2026-09-03.md"]},
+    {"id": "desktop-mcp-product-integration", "status": "passed", "betaBlocking": true, "evidence": ["src/main/java/dev/copperbench/shell/CopperbenchProductShell.java", "src/main/java/dev/copperbench/mcp/CopperbenchMcpServer.java", "src/main/java/dev/copperbench/mcp/DesktopMcpRuntime.java", "src/main/java/dev/copperbench/bridge/JcefMcpBridgeTransport.java", "src/test/java/dev/copperbench/mcp/DesktopMcpRuntimeTest.java", "src/test/java/dev/copperbench/bridge/JcefMcpBridgeTransportTest.java", "ui-shell/e2e/mcp-runtime.spec.ts", "docs/testing/p0-ai-agent-product-fixes-2026-09-02.md", "docs/testing/p0-installed-product-candidate-29005125-2026-09-03.md", "docs/testing/p0-installed-product-candidate-d0d96877-2026-09-03.md", "https://github.com/Lotulune/Copperbench/actions/runs/33696803966"]},
+    {"id": "external-agent-installed-product-loop", "status": "passed", "betaBlocking": true, "evidence": ["src/main/java/dev/copperbench/shell/CopperbenchProductShell.java", "src/main/java/dev/copperbench/mcp/CopperbenchMcpServer.java", "src/test/java/dev/copperbench/mcp/DesktopMcpAgentLoopTest.java", "sdk/python/copperbench.py", "sdk/typescript/copperbench.ts", "docs/ai/agent-playbook.md", "docs/testing/p0-ai-agent-product-fixes-2026-09-02.md", "docs/testing/p0-installed-product-candidate-29005125-2026-09-03.md", "docs/testing/p0-installed-product-candidate-d0d96877-2026-09-03.md", "https://github.com/Lotulune/Copperbench/actions/runs/33696803966", "https://github.com/Lotulune/Copperbench/actions/runs/33697324598"]}
   ],
   "mcp": {
     "transport": "streamable-http",
     "specVersion": "2025-11-25",
     "schemaVersion": "1.0",
     "conformance": "passed",
-    "installedProductIntegration": "blocked-awaiting-post-review-hardening-candidate-replay",
-    "desktopLifecycle": "review-hardening-implemented-awaiting-exact-candidate-replay"
+    "installedProductIntegration": "passed-exact-candidate-d0d96877",
+    "desktopLifecycle": "passed-ui-token-renewal-auth-and-shutdown"
   },
   "knownLimitations": [
-    "PR #56 exact binary-source candidate 29005125 passed Build and test #171, Nightly product gates #27, clean Windows 11 installation, real desktop Run Client lifecycle, visible one-time-token MCP authentication, the full external-Agent read/write/plan/build/conflict/code-compile loop, workspace-scoped descriptor cleanup, and old endpoint/token invalidation. Subsequent unresolved PR review correctly identified token-expiry renewal and SDK loopback-URL parsing hardening that change the deliverable, so 29005125 is retained as superseded evidence and the four installed-product gates are reopened until the post-review exact candidate is rebuilt and replayed.",
+    "PR #56 post-review binary-source candidate d0d96877 passed Build and test #173, Nightly product gates #28, clean Windows 11 installation, bundled-JDK Run Client replay through the real desktop UI, visible one-time-token MCP authentication, the full external-Agent read/write/plan/build/conflict/code-compile loop, workspace-scoped descriptor cleanup, and old endpoint/token invalidation. The review-requested token-expiry renewal and structural SDK loopback-URL validation are included in this source tree; 29005125 is retained only as superseded historical candidate evidence.",
     "Release Git Tags contain SSH signatures; GitHub reports unknown_key until the public signing key is registered.",
-    "Stage 11 full Java element support was published as v0.1.0-beta.3 through the signed Preview 7 exact-binary promotion. The installed-product JDK/runClient/MCP/Agent defects discovered afterward were addressed by binary-source candidate 29005125 and its exact-candidate replay; they do not retroactively invalidate the Beta 3 publication record.",
+    "Stage 11 full Java element support was published as v0.1.0-beta.3 through the signed Preview 7 exact-binary promotion. The installed-product JDK/runClient/MCP/Agent defects discovered afterward were first closed by 29005125 and then revalidated after review hardening by post-review binary-source candidate d0d96877; they do not retroactively invalidate the Beta 3 publication record.",
     "The real JCEF accessibility pass and final clean Windows 11 RC replay are not complete; the Hyper-V guest cannot validate Chromium WebContents accessibility because native Edge reproduces the same missing web-control subtree, so a physical or otherwise known-good Windows accessibility environment is required.",
     "The current Beta scope explicitly excludes the real JCEF accessibility audit, final clean-Windows RC replay, and external tester trial; those exclusions are not claims that the omitted checks passed.",
     "Windows packages are not Authenticode signed."
