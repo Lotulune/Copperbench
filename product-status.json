@@ -3,7 +3,7 @@
   "schemaVersion": "1.0",
   "snapshot": {
     "date": "2026-09-03",
-    "lastVerifiedCommit": "d0d96877afdc00c98cdfeab20524f2f2551b73f9",
+    "lastVerifiedCommit": "69469b8f28464469e6d917335b49b775ddb343dd",
     "policy": "Only code, automated checks, and evidence tied to a commit can promote a gate."
   },
   "product": {
@@ -25,24 +25,24 @@
       "releaseWorkflowRun": "https://github.com/Lotulune/Copperbench/actions/runs/33515908561"
     },
     "releaseContract": {
-      "tag": "v0.1.0-beta.3",
+      "tag": "v0.1.0-beta.4",
       "purpose": "published-exact-binary-beta-promotion",
       "sourcePolicy": "The signed Beta tag and RELEASE-METADATA.json commit resolve to the release-control commit, while binarySource identifies the signed Preview candidate whose canonical assets were promoted byte-for-byte.",
       "signedTagRequired": true,
       "productionApprovalRequired": true,
-      "publicStateSource": "https://api.github.com/repos/Lotulune/Copperbench/releases/tags/v0.1.0-beta.3"
+      "publicStateSource": "https://api.github.com/repos/Lotulune/Copperbench/releases/tags/v0.1.0-beta.4"
     },
     "betaRelease": {
-      "tag": "v0.1.0-beta.3",
-      "status": "published",
+      "tag": "v0.1.0-beta.4",
+      "status": "candidate-frozen",
       "candidateRelease": {
-        "tag": "v0.1.0-preview.7",
-        "sourceCommit": "f4b5806222b1224712cf33e827cc97241acdc45c",
+        "tag": "v0.1.0-preview.8",
+        "sourceCommit": "69469b8f28464469e6d917335b49b775ddb343dd",
         "assets": {
-          "exe": {"name": "Copperbench.0.1.0.Windows.64bit.exe", "sha256": "716a93ea45278d71b2ef80eeee3bd4d0ec315891c349478cff50ed093db90d93"},
-          "zip": {"name": "Copperbench.0.1.0.Windows.64bit.zip", "sha256": "1255a8528cd104d9fb26dfbb6228bfab415d77b84b071b636032c65a1e0282f5"},
-          "msix": {"name": "Copperbench.0.1.0.Windows.64bit.msix", "sha256": "cafcaadf49cb0a59873d47d55ee0f0023e8c6f03c9b820a03994bb75b215faa3"},
-          "sbom": {"name": "copperbench.spdx.json", "sha256": "655daa5b9a7a96edba27726169f46146cda391e6e5bfee4fa350da5d4a94c078"}
+          "exe": {"name": "Copperbench.0.1.0.Windows.64bit.exe", "sha256": "660a01351e91f70286b632de896a5581545a3eef3b45d3b564227cfc962f7206"},
+          "zip": {"name": "Copperbench.0.1.0.Windows.64bit.zip", "sha256": "c0c8081a6f0b019914c9a28e0d5ab2c5ba74a347921a1cf591dd87fc6e228fcc"},
+          "msix": {"name": "Copperbench.0.1.0.Windows.64bit.msix", "sha256": "3aedbcbdd23a1c9cb171f10cb25ec42a61c64e314f0f0d46c30b76bb3b3ccf36"},
+          "sbom": {"name": "copperbench.spdx.json", "sha256": "2149c06e5f7ed112ee8a40098ffad5b8a67b843354946594fbd9a6867f43442b"}
         }
       }
     },
@@ -51,15 +51,16 @@
       "run": "https://github.com/Lotulune/Copperbench/actions/runs/33528964018",
       "latestAttempt": {
         "status": "passed",
-        "run": "https://github.com/Lotulune/Copperbench/actions/runs/33696803966",
-        "reason": "PR #56 post-review binary-source candidate d0d96877 passed Build and test #173 and Nightly product gates #28. The same source tree passed the clean Windows 11 installed-product replay documented in docs/testing/p0-installed-product-candidate-d0d96877-2026-09-03.md, including the review-requested MCP token-renewal and SDK loopback-URL hardening. Historical Beta 3 publication remains recorded separately under delivery.betaRelease."
+        "run": "https://github.com/Lotulune/Copperbench/actions/runs/33704752654",
+        "reason": "PR #56 merged as 69469b8f after the d0d96877 installed-product replay; merged-main Build and test #176 passed. Preview 8 then passed the signed release-source check, release tests, package build, SBOM, payload verification, provenance, draft-asset verification, and publication in Build Windows release run 33740746411. The only tracked delta from d0d96877 to the Preview 8 release source is product-status plus its candidate evidence document, so the installed-product P0 behavior evidence remains tied to unchanged product/runtime code."
       },
       "runs": [
         "https://github.com/Lotulune/Copperbench/actions/runs/33515069964",
         "https://github.com/Lotulune/Copperbench/actions/runs/33527164779",
         "https://github.com/Lotulune/Copperbench/actions/runs/33528964018",
         "https://github.com/Lotulune/Copperbench/actions/runs/33676088550",
-        "https://github.com/Lotulune/Copperbench/actions/runs/33696803966"
+        "https://github.com/Lotulune/Copperbench/actions/runs/33696803966",
+        "https://github.com/Lotulune/Copperbench/actions/runs/33704752654"
       ],
       "consecutiveGreenMainRuns": 3,
       "consecutiveGreenTarget": 3,
@@ -116,7 +117,7 @@
     "notApplicable": ["bebiome", "beblock", "beentity", "beitem", "bescript"]
   },
   "gates": [
-    {"id": "release-pipeline", "status": "passed", "betaBlocking": false, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/32838065932", "https://github.com/Lotulune/Copperbench/actions/runs/33330520467", "docs/testing/beta-candidate-preview6-2026-08-31.md", "https://github.com/Lotulune/Copperbench/actions/runs/33332537616", "docs/testing/beta1-publication-2026-08-31.md", "https://github.com/Lotulune/Copperbench/actions/runs/33334394466", "docs/testing/beta2-publication-2026-08-31.md", "https://github.com/Lotulune/Copperbench/actions/runs/33506364499", "https://github.com/Lotulune/Copperbench/actions/runs/33515908561"]},
+    {"id": "release-pipeline", "status": "passed", "betaBlocking": false, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/32838065932", "https://github.com/Lotulune/Copperbench/actions/runs/33330520467", "docs/testing/beta-candidate-preview6-2026-08-31.md", "https://github.com/Lotulune/Copperbench/actions/runs/33332537616", "docs/testing/beta1-publication-2026-08-31.md", "https://github.com/Lotulune/Copperbench/actions/runs/33334394466", "docs/testing/beta2-publication-2026-08-31.md", "https://github.com/Lotulune/Copperbench/actions/runs/33506364499", "https://github.com/Lotulune/Copperbench/actions/runs/33515908561", "https://github.com/Lotulune/Copperbench/actions/runs/33740746411", "docs/testing/beta-candidate-preview8-2026-09-03.md"]},
     {"id": "fast-ci", "status": "passed", "betaBlocking": false, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/32904346297", "https://github.com/Lotulune/Copperbench/actions/runs/32904844692", "https://github.com/Lotulune/Copperbench/actions/runs/32905419136", "https://github.com/Lotulune/Copperbench/actions/runs/33306183486", "https://github.com/Lotulune/Copperbench/actions/runs/33320875746", "https://github.com/Lotulune/Copperbench/actions/runs/33334020837", "https://github.com/Lotulune/Copperbench/actions/runs/33497929171", "https://github.com/Lotulune/Copperbench/actions/runs/33515069964", "https://github.com/Lotulune/Copperbench/actions/runs/33527164779", "https://github.com/Lotulune/Copperbench/actions/runs/33528964018", "https://github.com/Lotulune/Copperbench/actions/runs/33584248803"]},
     {"id": "product-status-source", "status": "passed", "betaBlocking": true, "evidence": ["product-status.json", "schemas/product-status.schema.json", "scripts/verify-product-status.mjs"]},
     {"id": "repository-governance", "status": "passed", "betaBlocking": false, "evidence": ["docs/testing/repository-governance-2026-08-26.md"]},
@@ -149,7 +150,7 @@
     "desktopLifecycle": "passed-ui-token-renewal-auth-and-shutdown"
   },
   "knownLimitations": [
-    "PR #56 post-review binary-source candidate d0d96877 passed Build and test #173, Nightly product gates #28, clean Windows 11 installation, bundled-JDK Run Client replay through the real desktop UI, visible one-time-token MCP authentication, the full external-Agent read/write/plan/build/conflict/code-compile loop, workspace-scoped descriptor cleanup, and old endpoint/token invalidation. The review-requested token-expiry renewal and structural SDK loopback-URL validation are included in this source tree; 29005125 is retained only as superseded historical candidate evidence.",
+    "PR #56 post-review binary-source candidate d0d96877 passed Build and test #173, Nightly product gates #28, clean Windows 11 installation, bundled-JDK Run Client replay through the real desktop UI, visible one-time-token MCP authentication, the full external-Agent read/write/plan/build/conflict/code-compile loop, workspace-scoped descriptor cleanup, and old endpoint/token invalidation. Preview 8 was subsequently built and published from main@69469b8f; the tracked delta from d0d96877 is limited to product-status and its installed-product evidence document, with no product/runtime/build/SDK source changes. Preview 8 release workflow 33740746411 independently passed release tests, packaging, SBOM, payload, provenance, asset verification, and prerelease publication. No additional G7 replay is claimed for the public Preview 8 bytes because the current automation sandbox denied Hyper-V guest writes.",
     "Release Git Tags contain SSH signatures; GitHub reports unknown_key until the public signing key is registered.",
     "Stage 11 full Java element support was published as v0.1.0-beta.3 through the signed Preview 7 exact-binary promotion. The installed-product JDK/runClient/MCP/Agent defects discovered afterward were first closed by 29005125 and then revalidated after review hardening by post-review binary-source candidate d0d96877; they do not retroactively invalidate the Beta 3 publication record.",
     "The real JCEF accessibility pass and final clean Windows 11 RC replay are not complete; the Hyper-V guest cannot validate Chromium WebContents accessibility because native Edge reproduces the same missing web-control subtree, so a physical or otherwise known-good Windows accessibility environment is required.",
