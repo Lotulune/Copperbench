@@ -1,10 +1,18 @@
 # Copperbench PRD：Public Beta 基线、Stage 11 全量 Mod Element、安装产品 Agent 闭环与后续深化路线
 
-> 状态：Public Beta `v0.1.0-beta.3` 已发布、Stage 11 全量 Java Mod Element 支持已完成；2026-09-02 外部 Agent 对已安装产品的实测重新打开 4 个下一候选 P0 产品闭环门禁，Stage 12～14 路线保留但任何下一 Preview/Beta/RC 在这些 P0 关闭前不得建立
-> 版本：v1.6
-> 更新日期：2026-09-02
+> 状态：Public Beta `v0.1.0-beta.4` 已发布；Stage 11 全量 Java Mod Element 与 2026-09-02 重新打开的 4 个安装产品 P0 门禁均已闭环，Stage 12～14 路线进入可执行状态
+> 版本：v1.7
+> 更新日期：2026-09-03
 > 前置基线：[PRD.md](./PRD.md)、[PRD-STAGE-9.md](./PRD-STAGE-9.md)
-> 当前公开 Beta：`v0.1.0-beta.3`（release-control `7956dcb9`，release run `33515908561`）；canonical EXE/ZIP/MSIX/SBOM 与签名候选 `v0.1.0-preview.7` 完全同 size/SHA-256；Beta 3 发布后 harness 验证基线为 `main@af1b6ed9`
+> 当前公开 Beta：`v0.1.0-beta.4`（release-control `29ac9cf2`，release run `33751421385`）；canonical EXE/ZIP/MSIX/SBOM 与签名候选 `v0.1.0-preview.8` 完全同 size/SHA-256；安装产品 P0 行为证据来自 `d0d96877`，其到 Preview 8 的 tracked delta 不含产品/runtime/build/SDK 实现变更
+
+## 2026-09-03 Beta 4 安装产品闭环与发布收口
+
+2026-09-02 外部 Agent 实测重新打开的 bundled JDK、交互式 `runClient`、Desktop MCP、external-Agent 四个产品级 P0 已在后续 hardening 中全部关闭。最终安装产品候选 `d0d96877` 完成 clean Windows 11、真实桌面 Run Client、一次性 MCP 凭据、完整 Agent 读写/plan/build/conflict/code-compile 与正常关闭失效验证；相关 beta-blocking gates 已全部恢复为 `passed`。
+
+签名候选 `v0.1.0-preview.8` 随后从 `main@69469b8f` 构建并通过正式 release tests、Windows 三件套打包、SBOM、payload/provenance 与资产摘要校验。`v0.1.0-beta.4` 由 release-control `29ac9cf2` 通过 release run `33751421385` 采用 `promote-tested-candidate` 路径公开，EXE、ZIP、MSIX 与 SBOM 均逐字节复用 Preview 8 的冻结资产，没有重新构建第二套 Beta 二进制。详见 [Beta 4 publication evidence](./docs/testing/beta4-publication-2026-09-03.md)。
+
+因此 Stage 12～14 不再被 FR-PROD-01～04 阻断；这些 gate 只应在后续回归证据表明已验证行为发生变化时重新打开。
 
 ## 2026-08-31 Public Beta publication and metadata correction
 
@@ -42,19 +50,19 @@ P1/P2 随后补齐 headless 产品入口、JDK/runClient 结构化诊断、gener
 - 涉及安装布局、桌面入口、MCP 生命周期或交互式运行任务时，测试 harness / loopback eval / 源码树验证只证明对应层级；**不得替代同一候选安装包上的端到端验证**。
 - Stage 10～11 已建立“提交 → CI → 产物 → Release”的可信闭环。Stage 12 起不再把专门的图形环境认证、真实 JCEF 无障碍、五人外部试用、Authenticode、Linux/macOS 作为通用版本门禁；但 FR-PROD-01～04 是已确认影响 Windows 安装产品主路径的功能正确性 P0，不能按环境排除项绕过。
 
-### 0.1 实施快照（2026-09-02）
+### 0.1 实施快照（2026-09-03）
 
 机器可读事实入口为 [`product-status.json`](./product-status.json)，本节只解释执行状态。
 
 | 项目 | 当前事实 | 结论 |
 | --- | --- | --- |
-| Fast CI | main 分支保护持续要求 Java/Javadoc、UI/Playwright 与 MCP；Beta 3 发布后 harness 验证基线 `main@af1b6ed9` 的 merged-main run `33528964018` 全绿 | 历史发布与 post-publication harness 基线均已闭环；新安装产品修复仍需自己的固定提交 CI/Nightly |
-| 公开 Release | `v0.1.0-beta.3` 已由 release-control `7956dcb9` 公开，release run `33515908561` 成功 | Stage 11 exact-binary promotion 已完成；该历史发布事实不被后续安装产品缺陷追溯改写 |
+| Fast CI | main 分支保护持续要求 Java/Javadoc、UI/Playwright 与 MCP；安装产品 hardening 合并后的 merged-main Build and test #176、Beta 4 release-control merged-main #179 均全绿 | 当前 Beta 4 产品与 release-control 基线已闭环；后续 Stage 12+ 继续按 protected CI 提升 |
+| 公开 Release | `v0.1.0-beta.4` 已由 release-control `29ac9cf2` 公开，release run `33751421385` 成功 | Preview 8 → Beta 4 exact-binary promotion 已完成；四个 canonical 资产摘要与冻结候选一致 |
 | 状态源 | `product-status.json`、Schema 和 CI 漂移校验已进入 main，并已修复首次远端运行暴露的 Release Schema 漏项 | 状态源门禁通过；后续状态提升仍必须带固定提交证据 |
-| 重型门禁 | Stage 11 固定提交 `main@f4b58062` 的 Nightly `33503172036` 已完成完整产品回归与 8/8 generator golden | 该证据继续证明对应 Core/协议/构建能力，但不覆盖 2026-09-02 新发现的安装布局 JDK、交互 runClient、桌面 MCP 与外部 Agent 产品入口 P0 |
+| 重型门禁 | Stage 11 Nightly 保持 8/8 generator golden；post-review binary-source `d0d96877` 的 Build and test #173 与 Nightly #28 全绿 | Stage 11 与安装产品 P0 都有各自固定提交证据，Beta 4 可作为当前公开产品基线 |
 | Stage 9 | 八生成器黄金编译、三个专用编辑器、语言工具、安装升级和离线工作区路径已有自动化/客机证据；Windows WR + Chromium 完整 AXMode 与 `DPR=1.25` 路径已通过 | 物理高 DPI、屏幕阅读器、最终 RC 矩阵和外部试用不纳入当前版本宣称，未来重新纳入时需新候选和新证据 |
-| AI Developer Kit | PR #14～#17 的 Cursor、Workspace Plan、Task Events/SDK 与 Windows-native JCEF reconnect 均已合入；Core/协议层证据仍有效 | FR-AI-02～05 仅保持 **Core/协议层 `passed`**；安装产品 AI readiness 已由 FR-PROD-03/04 重新打开，不能再用 loopback eval 推导“外部 Agent 可直接使用安装包” |
-| 安装产品创作 / Agent 闭环 | 外部 Agent 在真实已安装产品发现 JDK 布局、交互式 runClient 和桌面 MCP 接线缺陷 | **P0 blocked**；FR-PROD-01～04 全部通过同一候选安装复演前，不得建立下一 Preview/Beta/RC 候选 |
+| AI Developer Kit | Cursor、Workspace Plan、Task Events/SDK、Windows-native JCEF reconnect 与安装产品 external-Agent 闭环均已取得固定证据 | Core/协议层与安装产品入口均 `passed`；后续新增高层 AI 能力按 Stage 14 独立验收 |
+| 安装产品创作 / Agent 闭环 | `d0d96877` 完成 bundled JDK、真实桌面 Run Client、Desktop MCP、外部 Agent 完整读写/plan/build/conflict/code-compile/关闭失效复演 | **P0 passed**；Beta 4 已代表该闭环，Stage 12～14 不再受 FR-PROD-01～04 阻断 |
 | 仓库治理 | GitHub 已识别 GPLv3；Javadoc Pages 可访问；main 三项必需检查、受保护 PR 与 production 必需审阅者均已验证 | 仓库治理 P0 已闭环 |
 | Dependency Submission | 仓库 Dependency Graph 未启用，原工作流无法成功 | 误导工作流已从 main 删除 |
 
