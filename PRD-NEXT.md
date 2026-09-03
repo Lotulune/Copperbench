@@ -785,7 +785,7 @@ Stage 14 面向希望长期维护复杂项目、愿意使用 Java/IDE 或外部 
 
 #### 11.5.1 产品目标
 
-Stage 15 将 Linux 从“未来可能支持的平台”提升为明确的正式产品路线。Stage 15 开始前 Copperbench 的正式支持平台仍仅为 Windows 11 x64；只有满足本节 Definition of Done 并形成 Linux 候选/发布证据后，才能在 README、Release Notes、`product-status.json` 或安装包页面宣称 Linux 正式支持。
+Stage 15 将 Linux 从“未来可能支持的平台”提升为明确的正式产品路线；该范围重启决策由 [ADR-0016](./docs/adr/0016-stage15-linux-formal-support.md) 记录，ADR-0014 继续保留为首期 Windows-only 的历史决策。Stage 15 开始前 Copperbench 的正式支持平台仍仅为 Windows 11 x64；只有满足本节 Definition of Done 并形成 Linux 候选/发布证据后，才能在 README、Release Notes、`product-status.json` 或安装包页面宣称 Linux 正式支持。
 
 首个 Linux 正式目标为 **x86_64 桌面 Linux**。具体认证发行版与最低版本在 Stage 15 开工时冻结，并至少选择一个主流 LTS/稳定发行版作为 clean-VM 认证基线；其它发行版可以标记为兼容预览，不得在缺少证据时泛化为“全 Linux 支持”。
 
