@@ -1,8 +1,8 @@
 # Copperbench PRD：Public Beta 基线、Stage 11 全量 Mod Element、安装产品 Agent 闭环与后续深化路线
 
-> 状态：Public Beta `v0.1.0-beta.4` 已发布；Stage 11 全量 Java Mod Element 与 2026-09-02 重新打开的 4 个安装产品 P0 门禁均已闭环，Stage 12～14 路线进入可执行状态
-> 版本：v1.7
-> 更新日期：2026-09-03
+> 状态：Public Beta `v0.1.0-beta.4` 已发布；Stage 11 全量 Java Mod Element 与 2026-09-02 重新打开的 4 个安装产品 P0 门禁均已闭环，Stage 12～15 路线进入可执行状态
+> 版本：v1.8
+> 更新日期：2026-09-04
 > 前置基线：[PRD.md](./PRD.md)、[PRD-STAGE-9.md](./PRD-STAGE-9.md)
 > 当前公开 Beta：`v0.1.0-beta.4`（release-control `29ac9cf2`，release run `33751421385`）；canonical EXE/ZIP/MSIX/SBOM 与签名候选 `v0.1.0-preview.8` 完全同 size/SHA-256；安装产品 P0 行为证据来自 `d0d96877`，其到 Preview 8 的 tracked delta 不含产品/runtime/build/SDK 实现变更
 
@@ -12,7 +12,7 @@
 
 签名候选 `v0.1.0-preview.8` 随后从 `main@69469b8f` 构建并通过正式 release tests、Windows 三件套打包、SBOM、payload/provenance 与资产摘要校验。`v0.1.0-beta.4` 由 release-control `29ac9cf2` 通过 release run `33751421385` 采用 `promote-tested-candidate` 路径公开：Beta-tag job 仍运行常规 Windows package/SBOM 生成，但候选晋升步骤在发布前将 `build/release` 中这些临时产物替换为并校验 Preview 8 冻结资产；最终公开的 EXE、ZIP、MSIX 与 SBOM 与 Preview 8 逐字节一致，临时 Beta-tag 产物未被发布。详见 [Beta 4 publication evidence](./docs/testing/beta4-publication-2026-09-03.md)。
 
-因此 Stage 12～14 不再被 FR-PROD-01～04 阻断；但后续若修改对应的 JDK、Run Client、Desktop MCP 或 external-Agent 产品路径，或出现回归证据表明已验证行为发生变化，就必须重新打开并复验相应 gate。
+因此 Stage 12～15 不再被 FR-PROD-01～04 阻断；但后续若修改对应的 JDK、Run Client、Desktop MCP 或 external-Agent 产品路径，或出现回归证据表明已验证行为发生变化，就必须重新打开并复验相应 gate。Linux 正式支持已明确进入 Stage 15，在 Stage 15 DoD 完成前当前正式平台仍仅为 Windows 11 x64。
 
 ## 2026-08-31 Public Beta publication and metadata correction
 
@@ -43,7 +43,7 @@ P1/P2 随后补齐 headless 产品入口、JDK/runClient 结构化诊断、gener
 
 ## 0. 阅读与执行协议
 
-- 本文件同时承担阶段 10～11 的历史产品基线、安装产品 Agent/运行闭环纠偏与 Stage 12～14 后续产品需求入口；`PRD.md` 和 `PRD-STAGE-9.md` 作为更早已实现能力与历史需求基线。
+- 本文件同时承担阶段 10～11 的历史产品基线、安装产品 Agent/运行闭环纠偏与 Stage 12～15 后续产品需求入口；`PRD.md` 和 `PRD-STAGE-9.md` 作为更早已实现能力与历史需求基线。
 - 功能状态以源码、自动测试和固定提交产生的证据为准。README、Release Notes 或历史 evidence 不能单独证明能力已完成。
 - 每个实现任务和 PR 必须引用本文件中的需求编号。
 - 关闭需求必须同时满足实现、自动验证、用户文档和可追溯证据，不接受只修改状态文字。
@@ -62,7 +62,7 @@ P1/P2 随后补齐 headless 产品入口、JDK/runClient 结构化诊断、gener
 | 重型门禁 | Stage 11 Nightly 保持 8/8 generator golden；post-review binary-source `d0d96877` 的 Build and test #173 与 Nightly #28 全绿 | Stage 11 与安装产品 P0 都有各自固定提交证据，Beta 4 可作为当前公开产品基线 |
 | Stage 9 | 八生成器黄金编译、三个专用编辑器、语言工具、安装升级和离线工作区路径已有自动化/客机证据；Windows WR + Chromium 完整 AXMode 与 `DPR=1.25` 路径已通过 | 物理高 DPI、屏幕阅读器、最终 RC 矩阵和外部试用不纳入当前版本宣称，未来重新纳入时需新候选和新证据 |
 | AI Developer Kit | Cursor、Workspace Plan、Task Events/SDK、Windows-native JCEF reconnect 与安装产品 external-Agent 闭环均已取得固定证据 | Core/协议层与安装产品入口均 `passed`；后续新增高层 AI 能力按 Stage 14 独立验收 |
-| 安装产品创作 / Agent 闭环 | `d0d96877` 完成 bundled JDK、真实桌面 Run Client、Desktop MCP、外部 Agent 完整读写/plan/build/conflict/code-compile/关闭失效复演 | **P0 passed**；Beta 4 已代表该闭环，Stage 12～14 不再受 FR-PROD-01～04 阻断 |
+| 安装产品创作 / Agent 闭环 | `d0d96877` 完成 bundled JDK、真实桌面 Run Client、Desktop MCP、外部 Agent 完整读写/plan/build/conflict/code-compile/关闭失效复演 | **P0 passed**；Beta 4 已代表该闭环，Stage 12～15 不再受 FR-PROD-01～04 阻断 |
 | 仓库治理 | GitHub 已识别 GPLv3；Javadoc Pages 可访问；main 三项必需检查、受保护 PR 与 production 必需审阅者均已验证 | 仓库治理 P0 已闭环 |
 | Dependency Submission | 仓库 Dependency Graph 未启用，原工作流无法成功 | 误导工作流已从 main 删除 |
 
@@ -519,9 +519,9 @@ Bedrock Add-on 的 `bebiome`、`beblock`、`beentity`、`beitem`、`bescript` �
 11. FR-PROD-04 在同一安装候选上由独立外部 Agent 完成读 → 写 → 构建 → 增量任务日志 → revision 冲突恢复；不得由测试专用 MCP server 代替。
 12. generate/runClient 回归证明用户代码块与非 generator-owned 用户包不被删除；headless 必须从实际 Windows 导出/安装产品返回 UTF-8 机器 JSON，`code` 创建必须给出可继续轮询的 compile-verification task，真实 javac 失败必须产生带源码路径/行号的 `JAVA_COMPILE_ERROR`；若下一版本继续宣称 headless/code 为一等 AI fallback，则这些 FR-PROD-05 证据必须在冻结候选上重放。
 
-阶段 10 与 Stage 11 均已完成；2026-09-02 安装产品实测证明原 Definition of Done 对发行布局与外部 Agent 入口覆盖不足，并由 FR-PROD-01～04 补齐。**当前正确状态是“Beta 4 已公开、安装产品闭环 passed、Stage 12～14 可继续开发”；后续候选若触及这些路径则必须重新证明相应 gate 未回归。** 具体历史门禁见 5.7、7.4 与 10.1；后续功能深化路线见第 11 节。
+阶段 10 与 Stage 11 均已完成；2026-09-02 安装产品实测证明原 Definition of Done 对发行布局与外部 Agent 入口覆盖不足，并由 FR-PROD-01～04 补齐。**当前正确状态是“Beta 4 已公开、安装产品闭环 passed、Stage 12～15 可继续开发”；后续候选若触及这些路径则必须重新证明相应 gate 未回归。** 具体历史门禁见 5.7、7.4 与 10.1；后续功能深化路线见第 11 节。
 
-## 11. Stage 12～14 后续产品深化路线
+## 11. Stage 12～15 后续产品深化路线
 
 ### 11.0 路线决策与执行原则
 
@@ -530,11 +530,11 @@ Bedrock Add-on 的 `bebiome`、`beblock`、`beentity`、`beitem`、`bescript` �
 后续路线遵循以下原则：
 
 1. **优先解决真实创作摩擦，而不是增加无关门禁数量。** 用户能否更快完成复杂实体、世界生成、GUI、Procedure 和资产工作流，比新增环境认证更重要；已确认的产品正确性 P0 不属于可排除的环境认证。
-2. **每个阶段可以独立开发与验收。** Stage 12、13、14 不是必须一次完成的单一大版本；每个 Wave 达到自身 DoD 后即可进入候选准备，同时保持 Beta 4 已关闭的 FR-PROD-01～04 不回归。
+2. **每个阶段可以独立开发与验收。** Stage 12、13、14、15 不是必须一次完成的单一大版本；每个 Wave 达到自身 DoD 后即可进入候选准备，同时保持 Beta 4 已关闭的 FR-PROD-01～04 不回归。
 3. **保持 Core 单一语义。** UI、MCP、headless、导入/迁移、历史恢复继续共享相同 schema、验证、引用和持久化模型，不为某个界面创建第二套业务规则。
 4. **优先高频复杂类型。** `livingentity`、`biome`、`dimension`、`gui` 是 Stage 12 第一优先级；其它类型按对真实模组开发的价值继续分批深化。
 5. **复杂项目必须可恢复。** 批量修改、迁移、AI 操作和高级编辑器仍必须进入 revision / recovery-point / semantic diff 保护。
-6. **不为已明确排除的环境项重新制造发布阻断。** 第 11.6 节列出的专项认证不进入 Stage 12～14 DoD；但真实用户已经复现的安装产品功能缺陷仍按正常 P0/P1 管理。
+6. **不为已明确排除的环境项重新制造发布阻断。** 第 11.7 节列出的专项认证不进入 Stage 12～14 DoD；Stage 15 的 Linux 平台工作按 11.5 自身 DoD 独立验收。真实用户已经复现的安装产品功能缺陷仍按正常 P0/P1 管理。
 
 ### 11.1 总体拆分
 
@@ -543,6 +543,7 @@ Bedrock Add-on 的 `bebiome`、`beblock`、`beentity`、`beitem`、`bescript` �
 | Stage 12：复杂元素编辑深度 | P0 | 把高价值复杂元素从“技术支持”提升为“专业创作体验” | 不依赖通用字段面板即可完成常见实体、世界生成和 GUI 场景 | 12A / 12B / 12C 三个可独立开发 Wave |
 | Stage 13：创作者生产力 | P1 | 深化 Procedure、资产、诊断、历史和迁移工作流 | 大型项目更快定位、修改、构建和恢复 | 可按 Procedure / Asset / Diagnostics 三条线并行 |
 | Stage 14：高级开发者与 AI-native 工作流 | P2 | 强化手写代码、IDE、批量重构、AI 计划审阅和扩展能力 | 高级作者能把 Copperbench 当作长期工程环境而非单次生成器 | API 稳定后逐项开放，不要求一次完成 |
+| Stage 15：Linux 正式平台扩展 | P1 | 将现有 Windows-first 产品能力迁移并验证到 Linux x86_64 桌面 | Linux 用户获得正式安装包、桌面工作流、构建/运行与 Agent 能力 | 独立平台候选；完成 clean Linux 安装与发布闭环后才宣称正式支持 |
 | Continuous：版本与兼容维护 | 持续 | 保持现有能力随 Minecraft、Loader、JDK/JCEF/Gradle 与上游工作区演进 | 已有项目不因平台升级快速失效 | 与每个功能版本并行执行 |
 
 ---
@@ -780,9 +781,63 @@ Stage 14 面向希望长期维护复杂项目、愿意使用 Java/IDE 或外部 
 
 ---
 
-### 11.5 Continuous：版本、兼容与回归维护轨道
+### 11.5 Stage 15：Linux 正式平台扩展
 
-以下工作与 Stage 12～14 并行，不单独定义为一个必须等完才能发布的阶段：
+#### 11.5.1 产品目标
+
+Stage 15 将 Linux 从“未来可能支持的平台”提升为明确的正式产品路线。Stage 15 开始前 Copperbench 的正式支持平台仍仅为 Windows 11 x64；只有满足本节 Definition of Done 并形成 Linux 候选/发布证据后，才能在 README、Release Notes、`product-status.json` 或安装包页面宣称 Linux 正式支持。
+
+首个 Linux 正式目标为 **x86_64 桌面 Linux**。具体认证发行版与最低版本在 Stage 15 开工时冻结，并至少选择一个主流 LTS/稳定发行版作为 clean-VM 认证基线；其它发行版可以标记为兼容预览，不得在缺少证据时泛化为“全 Linux 支持”。
+
+#### FR-LINUX-01 Linux 打包与桌面发行
+
+- 发行包必须自带与 Windows 同等级别的可用 JDK/JCEF 运行时，不依赖用户预装 Java；
+- 至少提供一个可直接解压运行的 portable 产物，并提供一个具有桌面入口/图标/卸载或清理说明的正式发行形态；具体采用 AppImage、`.deb`、tarball 或其它格式在 Stage 15 开工时通过打包 ADR 固定；
+- Linux 资产进入与 Windows 相同的 SHA-256、SBOM、release metadata 与 provenance 合同，不允许手工上传无法追溯的旁路安装包；
+- 安装路径、用户数据目录、日志、缓存与工作区路径遵循 Linux/XDG 语义，不把 Windows 路径约定硬编码到 Linux 产品。
+
+#### FR-LINUX-02 桌面集成与外部工具
+
+- JCEF 主窗口、无边框/窗口控制、文件选择器、系统剪贴板和打开目录/URL 等桌面能力在认证 Linux 环境可用；
+- Blockbench 与外部 IDE/文件管理器继续通过受管外部进程启动，并正确处理可执行路径、权限与进程退出；
+- 平台特定行为必须收敛到 platform adapter，不允许在 Core schema、MCP 或工作区语义中复制 Linux 专用业务规则；
+- 若 Wayland/X11 存在行为差异，必须在 capability/known limitations 中明确记录，不得静默降级。
+
+#### FR-LINUX-03 构建、运行与 Minecraft 客户端
+
+- 使用 bundled JDK 完成代表性 Fabric/NeoForge 工作区的 generate/build；
+- 交互式 `runClient` 必须真实启动 Minecraft/Fabric/NeoForge 客户端，并保持任务存活直到用户关闭游戏；
+- Gradle Wrapper、文件权限、可执行位、路径分隔符、临时目录和进程树处理不得依赖 Windows 语义；
+- OpenGL/GLFW、GPU/软件渲染等环境差异应输出稳定诊断，不能把环境初始化失败误报为 Copperbench 任务成功。
+
+#### FR-LINUX-04 Desktop MCP、headless 与 external-Agent 闭环
+
+- Desktop MCP 继续只监听 loopback，并在 Linux 上保持相同 token 生命周期、workspaceId、permission profile 与 descriptor 安全语义；
+- connection descriptor 的文件权限应避免同机其它普通用户直接读取敏感凭据；
+- headless/SDK 不得假设 `.exe`、PowerShell、盘符或 Windows-only 路径；
+- 独立外部 Agent 必须在同一个已安装 Linux 候选上完成 `initialize/get_workspace → list → create → plan/preview/apply → build/get_task → revision conflict 重读重试`。
+
+#### FR-LINUX-05 Clean Linux 候选与发布闭环
+
+- 在没有系统 Java/Gradle/Git 前置依赖的 clean Linux VM 上完成安装/解压、启动、创建/打开工作区、生成、构建与关闭；
+- 至少完成一条真实图形化 `runClient` 与一条 Desktop MCP/external-Agent 安装产品复演；
+- CI 必须增加 Linux product-shell/package smoke，并保持现有 Windows required checks 不回归；
+- Linux Preview/Beta 候选必须遵守签名 tag、生产审批、immutable asset digest 与 exact-binary promotion 规则，不因新增平台降低现有发布供应链要求。
+
+#### 11.5.2 Stage 15 Definition of Done
+
+1. clean Linux x86_64 认证 VM 在无系统 Java 的前提下可以启动正式候选并完成工作区 create/open/save/reopen。
+2. bundled JDK/JCEF、Gradle build、真实 `runClient`、桌面窗口与外部工具主路径均有安装候选证据。
+3. Desktop MCP 与独立 external Agent 在同一 Linux 安装候选上完成完整读写/plan/build/conflict 闭环，关闭后 descriptor/凭据生命周期正确收尾。
+4. Linux 发行资产具有与 Windows 等价的 SHA-256、SBOM、release metadata、provenance 与不可变候选记录。
+5. 文档明确列出正式认证发行版/桌面会话、已知限制与不支持范围；未认证发行版不得自动宣传为正式支持。
+6. Stage 15 对平台层的改动不得降低 Windows 11 已通过的 FR-PROD-01～04、Stage 11 CRUD/generator 或 Stage 12～14 Core 语义基线；若触及相应产品路径，必须按既有规则重新打开并复验 gate。
+
+---
+
+### 11.6 Continuous：版本、兼容与回归维护轨道
+
+以下工作与 Stage 12～15 并行，不单独定义为一个必须等完才能发布的阶段：
 
 #### NFR-MAINT-01 Minecraft / Loader 轨道维护
 
@@ -811,12 +866,12 @@ Stage 14 面向希望长期维护复杂项目、愿意使用 Java/IDE 或外部 
 #### NFR-MAINT-05 性能预算
 
 - 500-node Procedure、2,000 elements / 10,000 references、8-generator build 继续作为回归基线；
-- Stage 12～14 的新 UI/索引功能不得引入明显的 O(n²) 扫描或无界列表；
+- Stage 12～15 的新 UI/索引/平台适配功能不得引入明显的 O(n²) 扫描或无界列表；
 - 性能失败优先通过算法/索引修复，不通过提高超时掩盖。
 
 ---
 
-### 11.6 明确排除项
+### 11.7 Stage 12～14 明确排除项
 
 根据当前产品决策，下列项目**不属于 Stage 12～14 的通用版本门禁或独立专项认证要求**：
 
@@ -824,16 +879,17 @@ Stage 14 面向希望长期维护复杂项目、愿意使用 Java/IDE 或外部 
 - 真实 JCEF + UIA/屏幕阅读器无障碍认证、物理 150%/175%/200% DPI 人工审计；
 - “至少 5 名外部测试者”形式化试用门禁；
 - Authenticode / SmartScreen 商业签名；
-- Linux / macOS 安装包与正式支持；
+- Linux 安装包与正式支持不作为 Stage 12～14 的完成门禁，已明确延后到 Stage 15 独立交付；
+- macOS 安装包与正式支持仍未进入当前已批准路线，需未来独立决策；
 - Windows 10 支持；
 - Bedrock Add-on first-party 支持；若未来决定进入 Bedrock，必须单独建立平台 PRD；
 - 账号、云同步、遥测、远程 MCP、内置厂商聊天或在线市场，除非未来独立 ADR/PRD 明确批准。
 
-“排除”表示不主动投入专门认证或把它们作为 Stage 12～14 功能完成条件，并不表示删除已经存在的 `runClient`、JCEF UI 或相关代码路径，更不覆盖真实用户已复现的产品缺陷。若真实用户报告这些路径中的明确产品 bug，仍按正常缺陷优先级处理；FR-PROD-01～04 是 2026-09-02 纠偏建立的产品正确性 P0，并已在 Beta 4 基线关闭；若修改对应的 JDK、Run Client、Desktop MCP 或 external-Agent 产品路径，或出现新的回归证据，就必须重新打开并复验相应 gate。
+“排除”表示不主动投入专门认证或把它们作为 Stage 12～14 功能完成条件，并不表示永久放弃。Linux 已由本版 PRD 明确进入 Stage 15，因此 Stage 12～14 不因 Linux 尚未实现而阻断，但 Stage 15 自身必须满足 11.5 DoD 才能宣称 Linux 正式支持。其余排除项不表示删除已经存在的 `runClient`、JCEF UI 或相关代码路径，更不覆盖真实用户已复现的产品缺陷。若真实用户报告这些路径中的明确产品 bug，仍按正常缺陷优先级处理；FR-PROD-01～04 是 2026-09-02 纠偏建立的产品正确性 P0，并已在 Beta 4 基线关闭；若修改对应的 JDK、Run Client、Desktop MCP 或 external-Agent 产品路径，或出现新的回归证据，就必须重新打开并复验相应 gate。
 
 ---
 
-### 11.7 推荐开发顺序
+### 11.8 推荐开发顺序
 
 建议未来开发按以下顺序推进，但不绑定具体日历日期：
 
@@ -843,10 +899,11 @@ Stage 14 面向希望长期维护复杂项目、愿意使用 Java/IDE 或外部 
 4. **Stage 13B**：Asset Center 与 Diagnostics 2.0；这两项可以与 Stage 12C 部分并行。
 5. **Stage 12C / Stage 13C**：长尾类型专业化、本地历史与 Migration/Refactor 工作台收口。
 6. **Stage 14**：在 Core schema / plan / reference / recovery 模型稳定后推进 IDE、AI Plan Review、高层 MCP 和模板/扩展能力。
+7. **Stage 15**：Linux x86_64 正式平台扩展；冻结认证发行版和打包 ADR，完成 JDK/JCEF、桌面、`runClient`、MCP/Agent、clean-VM 与正式发布闭环。
 
-优先级改变可以基于真实用户高频痛点、P0/P1 缺陷、Minecraft/Loader 生态版本变化或已经测得的工程阻塞；不因为“某项专项环境认证尚未做”自动把第 11.6 节排除项重新提升为 P0，但已经复现的功能正确性缺陷不适用这条排除规则。
+优先级改变可以基于真实用户高频痛点、P0/P1 缺陷、Minecraft/Loader 生态版本变化或已经测得的工程阻塞；不因为“某项专项环境认证尚未做”自动把第 11.7 节排除项重新提升为 P0，但已经复现的功能正确性缺陷不适用这条排除规则。Stage 15 已是明确承诺的后续平台阶段，不再属于“无限期 deferred”的 Linux 事项。
 
-### 11.8 后续版本验收口径
+### 11.9 后续版本验收口径
 
 从 Stage 12 开始，功能评审应回答四个问题；进入新的发布候选时还必须确认 5.7 的安装产品 P0 继续保持 `passed`，被相关变更或回归重新打开的 gate 必须先重新验证：
 
@@ -855,4 +912,4 @@ Stage 14 面向希望长期维护复杂项目、愿意使用 Java/IDE 或外部 
 3. **生成是否仍然可信？** 所有受影响的 generator/type 组合是否有适用 fixture 和真实构建回归。
 4. **失败是否可解释？** 新功能失败时是否能给出稳定诊断、用户可定位对象和可恢复路径。
 
-只有同时满足这四项，本阶段功能才可以标记为完成。第 11.6 节明确排除的专项环境/平台任务不参与该功能完成判定；新的 Preview/Beta/RC 仍不得绕过任何被重新打开的 FR-PROD-01～04 回归门禁。
+只有同时满足这四项，本阶段功能才可以标记为完成。第 11.7 节明确排除的 Stage 12～14 专项环境/平台任务不参与这些阶段的功能完成判定；Stage 15 Linux 正式支持则必须额外满足 11.5.2 的平台 DoD。新的 Preview/Beta/RC 仍不得绕过任何被重新打开的 FR-PROD-01～04 回归门禁。
