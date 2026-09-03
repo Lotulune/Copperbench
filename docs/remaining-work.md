@@ -7,7 +7,7 @@
 - The installed-product P0 hardening for bundled JDK resolution, real Run Client lifecycle, desktop MCP integration, and the external-Agent product loop is complete and represented by Beta 4.
 - All current beta-blocking gates in `product-status.json` are `passed`; `product.betaEligible=true`.
 
-The historical Stage 9–11 evidence remains authoritative for the Beta 4 baseline. New development should not reopen those gates unless a regression changes the validated behavior.
+The historical Stage 9–11 evidence remains authoritative for the Beta 4 baseline. New development should reopen and revalidate the corresponding installed-product gate whenever it changes the validated JDK, Run Client, Desktop MCP, or external-Agent product path, or when regression evidence shows the validated behavior changed; otherwise the existing passed gate state remains the baseline.
 
 ## Next product work
 

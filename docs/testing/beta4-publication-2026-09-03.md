@@ -37,12 +37,13 @@ GitHub reports all four assets as uploaded with the digests above. These values 
 The Beta 4 release job completed successfully and used the repository's `promote-tested-candidate` path:
 
 - the signed Beta release source contract passed;
-- package generation was skipped for the Beta payload because the already-tested candidate binaries were reused;
-- the workflow explicitly promoted the tested candidate assets;
+- the workflow still ran its normal unsigned Windows package build and SBOM generation steps on the Beta-tag source;
+- when `New-ReleaseMetadata.ps1` entered the Beta candidate-promotion path, it removed the newly generated EXE/ZIP/MSIX/SBOM from `build/release`, downloaded the frozen Preview 8 candidate assets, verified each candidate SHA-256, and recorded `binarySource.mode=promoted-tested-candidate`;
+- all subsequent release payload, provenance, draft-asset, and publication steps therefore operated on the promoted tested-candidate files in `build/release`;
 - draft-release asset digest verification passed before publication;
 - the final GitHub Release publication step passed.
 
-Therefore Beta 4 did not rebuild a second set of Windows binaries. Its EXE, ZIP, MSIX, and SBOM are the frozen Preview 8 bytes.
+Therefore the Beta workflow did generate a transient second set of Windows packages/SBOM, but that generated set was discarded from the release payload and was not published. The published Beta 4 EXE, ZIP, MSIX, and SBOM are the frozen Preview 8 bytes.
 
 ## Installed-product evidence boundary
 
