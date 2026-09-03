@@ -25,12 +25,12 @@
       "releaseWorkflowRun": "https://github.com/Lotulune/Copperbench/actions/runs/33515908561"
     },
     "releaseContract": {
-      "tag": "v0.1.0-beta.4",
+      "tag": "v0.1.0-beta.3",
       "purpose": "published-exact-binary-beta-promotion",
       "sourcePolicy": "The signed Beta tag and RELEASE-METADATA.json commit resolve to the release-control commit, while binarySource identifies the signed Preview candidate whose canonical assets were promoted byte-for-byte.",
       "signedTagRequired": true,
       "productionApprovalRequired": true,
-      "publicStateSource": "https://api.github.com/repos/Lotulune/Copperbench/releases/tags/v0.1.0-beta.4"
+      "publicStateSource": "https://api.github.com/repos/Lotulune/Copperbench/releases/tags/v0.1.0-beta.3"
     },
     "betaRelease": {
       "tag": "v0.1.0-beta.4",
