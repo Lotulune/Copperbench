@@ -27,7 +27,9 @@ import {
   ProcedureEdit,
   ProcedureEditorProjection,
   ProcedureNode,
-  ProcedureNodeCatalogItem
+  ProcedureNodeCatalogItem,
+  RegistryRenamePreview,
+  WorkspacePlan
 } from '../types/contract';
 import { t } from '../i18n';
 
@@ -133,6 +135,12 @@ function registerProcedureBlocks(): void {
     }
   ]);
   blocksRegistered = true;
+}
+
+interface VariableRefactorDraft {
+  entryId: string;
+  oldName: string;
+  newName: string;
 }
 
 function defineUnknownBlock(node: ProcedureNode): void {
@@ -298,7 +306,14 @@ function diagnosticNodeId(diagnostic: Diagnostic): string | null {
 }
 
 export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element, onClose }) => {
-  const { getProcedureEditor, previewProcedureChange, updateProcedure } = useWorkbench();
+  const {
+    getProcedureEditor,
+    previewProcedureChange,
+    updateProcedure,
+    previewRegistryRename,
+    planWorkspaceChanges,
+    applyWorkspacePlan
+  } = useWorkbench();
   const hostRef = useRef<HTMLDivElement | null>(null);
   const workspaceRef = useRef<Blockly.WorkspaceSvg | null>(null);
   const [projection, setProjection] = useState<ProcedureEditorProjection | null>(null);
@@ -315,6 +330,10 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
   const [liveDiagnostics, setLiveDiagnostics] = useState<Diagnostic[] | null>(null);
   const [liveSourcePreview, setLiveSourcePreview] = useState<string | null>(null);
   const [liveCanGenerate, setLiveCanGenerate] = useState<boolean | null>(null);
+  const [refactorDraft, setRefactorDraft] = useState<VariableRefactorDraft | null>(null);
+  const [refactorImpact, setRefactorImpact] = useState<RegistryRenamePreview | null>(null);
+  const [refactorPlan, setRefactorPlan] = useState<WorkspacePlan | null>(null);
+  const [refactorBusy, setRefactorBusy] = useState(false);
   const [panel, setPanel] = useState<ProcedurePanel>('source');
   const [message, setMessage] = useState<string | null>(null);
   const previewSequenceRef = useRef(0);
@@ -475,12 +494,85 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
     const block = workspace.newBlock(item.type, generateNodeId());
     block.initSvg();
     block.render();
+    if ((item.type === 'variables_get_number' || item.type === 'variables_set_number')
+      && projection?.symbols.availableVariables.length) {
+      block.setFieldValue(projection.symbols.availableVariables[0].name, 'VAR');
+    }
     const offset = workspace.getAllBlocks(false).length * 12;
     block.moveBy(72 + offset, 72 + offset);
     block.select();
     setSelectedNodeId(block.id);
     setRecentTypes((current) => [item.type, ...current.filter((type) => type !== item.type)].slice(0, 5));
     setDirty(true);
+  };
+
+  const beginVariableRefactor = (entryId: string | null, name: string) => {
+    if (!entryId) {
+      setMessage(`变量 ${name || '(未命名)'} 没有可重构的工作区 Registry 身份。`);
+      return;
+    }
+    if (dirty) {
+      setMessage('请先保存当前 Procedure 变更，再启动跨工作区变量重命名。');
+      return;
+    }
+    setRefactorDraft({ entryId, oldName: name, newName: name });
+    setRefactorImpact(null);
+    setRefactorPlan(null);
+    setPanel('references');
+    setMessage(null);
+  };
+
+  const previewVariableRefactor = async () => {
+    if (!refactorDraft) return;
+    const newName = refactorDraft.newName.trim();
+    if (!newName || newName === refactorDraft.oldName) {
+      setMessage('请输入与当前名称不同的新变量名称。');
+      return;
+    }
+    setRefactorBusy(true);
+    setMessage(null);
+    try {
+      const [impact, plan] = await Promise.all([
+        previewRegistryRename(refactorDraft.entryId, newName),
+        planWorkspaceChanges([{
+          operation: 'rename_registry_entry',
+          payload: { entryId: refactorDraft.entryId, newName }
+        }], true)
+      ]);
+      setRefactorImpact(impact);
+      setRefactorPlan(plan);
+      if (!impact || !plan) setMessage('无法生成变量重命名影响预览。');
+    } catch (error) {
+      setRefactorImpact(null);
+      setRefactorPlan(null);
+      setMessage(error instanceof Error ? error.message : String(error));
+    } finally {
+      setRefactorBusy(false);
+    }
+  };
+
+  const applyVariableRefactor = async () => {
+    if (!refactorDraft || !refactorPlan || !refactorPlan.safety.ready) return;
+    setRefactorBusy(true);
+    setMessage(null);
+    try {
+      const result = await applyWorkspacePlan(refactorPlan);
+      if (result.status !== 'committed') {
+        setMessage(result.diagnostics[0] ? t(result.diagnostics[0].message) : '变量重命名计划应用失败。');
+        return;
+      }
+      const recovery = result.recoveryPointId ? `，恢复点 ${result.recoveryPointId}` : '';
+      setMessage(`已安全重命名 ${refactorDraft.oldName} → ${refactorDraft.newName.trim()}${recovery}。`);
+      setRefactorDraft(null);
+      setRefactorImpact(null);
+      setRefactorPlan(null);
+      const refreshed = await getProcedureEditor(element.id);
+      if (refreshed) setProjection(refreshed);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : String(error));
+    } finally {
+      setRefactorBusy(false);
+    }
   };
 
   const save = async () => {
@@ -715,10 +807,63 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
                 <span>{projection?.symbols?.stats.variableCount ?? 0} 变量 · {projection?.symbols?.stats.resourceCount ?? 0} 资源 · {projection?.symbols?.stats.callCount ?? 0} 调用</span>
               </div>
               {(projection?.symbols?.variables ?? []).map((symbol) => (
-                <button type="button" className="procedure-symbol-row" key={`variable-${symbol.nodeId}`} onClick={() => selectNode(symbol.nodeId)}>
-                  <span>变量 · {symbol.access === 'read' ? '读取' : '写入'}</span><code>{symbol.name || '(未命名)'}</code>
-                </button>
+                <div className="procedure-symbol-refactor-row" key={`variable-${symbol.nodeId}`}>
+                  <button type="button" className="procedure-symbol-row" onClick={() => selectNode(symbol.nodeId)}>
+                    <span>变量 · {symbol.access === 'read' ? '读取' : '写入'}</span>
+                    <code>{symbol.name || '(未命名)'}</code>
+                    {symbol.registryEntryId && <small>{symbol.dataType ?? 'unknown'} · {symbol.scope ?? 'global'}</small>}
+                  </button>
+                  <button
+                    type="button"
+                    className="procedure-refactor-start"
+                    disabled={!symbol.registryEntryId || projection?.readOnly}
+                    onClick={() => beginVariableRefactor(symbol.registryEntryId, symbol.name)}
+                    aria-label={`重命名变量 ${symbol.name || '(未命名)'}`}
+                  >重命名</button>
+                </div>
               ))}
+              {refactorDraft && (
+                <section className="procedure-refactor-card" data-testid="procedure-variable-refactor" aria-label="变量安全重命名">
+                  <div className="procedure-section-label">安全重命名 · {refactorDraft.oldName}</div>
+                  <label>
+                    <span>新变量名称</span>
+                    <input
+                      aria-label="新的变量名称"
+                      value={refactorDraft.newName}
+                      disabled={refactorBusy}
+                      onChange={(event) => {
+                        setRefactorDraft({ ...refactorDraft, newName: event.target.value });
+                        setRefactorImpact(null);
+                        setRefactorPlan(null);
+                      }}
+                    />
+                  </label>
+                  <div className="procedure-refactor-actions">
+                    <button type="button" onClick={() => void previewVariableRefactor()} disabled={refactorBusy}>预览安全重命名</button>
+                    <button
+                      type="button"
+                      className="btn-primary"
+                      onClick={() => void applyVariableRefactor()}
+                      disabled={refactorBusy || !refactorPlan?.safety.ready || !refactorImpact?.canApply}
+                    >应用重构</button>
+                    <button type="button" onClick={() => {
+                      setRefactorDraft(null);
+                      setRefactorImpact(null);
+                      setRefactorPlan(null);
+                    }} disabled={refactorBusy}>取消</button>
+                  </div>
+                  {refactorImpact && refactorPlan && (
+                    <div className={`procedure-refactor-preview ${refactorPlan.safety.ready ? 'ready' : 'blocked'}`} data-testid="procedure-refactor-preview">
+                      <strong>{refactorImpact.impactedElementCount} 个受影响元素 · {refactorPlan.semanticDiff.length} 项语义变更</strong>
+                      <span>{refactorPlan.changedPaths.length} 条持久化路径</span>
+                      <span>{refactorPlan.safety.ready
+                        ? '恢复保护可用：应用前将强制创建 recovery point。'
+                        : '恢复保护不可用：该重构被禁止应用。'}</span>
+                      <code>{refactorPlan.planId}</code>
+                    </div>
+                  )}
+                </section>
+              )}
               {(projection?.symbols?.resources ?? []).map((symbol) => (
                 <button type="button" className="procedure-symbol-row" key={`resource-${symbol.nodeId}`} onClick={() => selectNode(symbol.nodeId)}>
                   <span>资源 · {symbol.kind}</span><code>{symbol.target || '(未设置)'}</code>

@@ -104,12 +104,13 @@ final class WorkspacePlanEngine {
 			String idempotencyKey = requiredString(query.payload(), "idempotencyKey");
 			if (idempotencyKey.length() > 128)
 				throw new IllegalArgumentException("idempotencyKey must be at most 128 characters");
+			boolean requireRecoveryPoint = optionalBoolean(query.payload(), "requireRecoveryPoint", false);
 			JsonArray operations = normalizedOperations(query.payload(), true);
 			Simulation simulation = simulate(state, operations);
 			if (!simulation.succeeded())
 				return queryFailure(query, state.revision(), simulation.diagnostic());
 			JsonObject plan = buildPlan(query.workspaceId(), state, idempotencyKey, operations,
-					simulation.state(), context.permission());
+					simulation.state(), context.permission(), requireRecoveryPoint);
 			return querySuccess(query, state.revision(), plan);
 		} catch (RuntimeException exception) {
 			return queryFailure(query, state.revision(), diagnostic("WORKSPACE_PLAN_INVALID",
@@ -128,8 +129,10 @@ final class WorkspacePlanEngine {
 			projection.addProperty("currentRevision", state.revision());
 			projection.addProperty("alreadyApplied", validated.alreadyApplied());
 			projection.addProperty("wouldApply", !validated.alreadyApplied()
-					&& context.permission() != PermissionProfile.READ_ONLY);
+					&& context.permission() != PermissionProfile.READ_ONLY
+					&& (!requiresRecoveryPoint(validated.plan()) || history != null));
 			projection.add("permission", permission(context.permission()));
+			projection.add("safety", recoverySafety(validated.plan()));
 			return querySuccess(query, state.revision(), projection);
 		} catch (PlanException exception) {
 			return queryFailure(query, state.revision(), exception.diagnostic());
@@ -162,6 +165,10 @@ final class WorkspacePlanEngine {
 			return revisionConflict(command, current.revision(), List.of());
 		if (validated.alreadyApplied())
 			return idempotentReplay(command, current.revision(), plan);
+		if (requiresRecoveryPoint(plan) && history == null)
+			return rejected(command, current.revision(), diagnostic("RECOVERY_POINT_REQUIRED_UNAVAILABLE",
+					"diagnostic.recovery_point_required_unavailable",
+					"This protected workspace plan requires local history, but recovery points are unavailable."));
 
 		JsonArray operations = plan.getAsJsonArray("operations");
 		Simulation simulation = validated.simulation();
@@ -282,12 +289,14 @@ final class WorkspacePlanEngine {
 	}
 
 	private JsonObject buildPlan(UUID workspaceId, WorkspaceState before, String idempotencyKey,
-			JsonArray operations, WorkspaceState after, PermissionProfile permissionProfile) {
+			JsonArray operations, WorkspaceState after, PermissionProfile permissionProfile,
+			boolean requireRecoveryPoint) {
 		JsonObject plan = new JsonObject();
 		plan.addProperty("schemaVersion", UiCore.SCHEMA_VERSION);
 		plan.addProperty("workspaceId", workspaceId.toString());
 		plan.addProperty("baseRevision", before.revision());
 		plan.addProperty("idempotencyKey", idempotencyKey);
+		plan.addProperty("requireRecoveryPoint", requireRecoveryPoint);
 		plan.add("operations", operations.deepCopy());
 		plan.addProperty("operationCount", operations.size());
 		plan.addProperty("targetDigest", workspaceDigest(after));
@@ -296,6 +305,7 @@ final class WorkspacePlanEngine {
 		changedPaths(before, after).forEach(paths::add);
 		plan.add("changedPaths", paths);
 		plan.add("permission", permission(permissionProfile));
+		plan.add("safety", recoverySafety(plan));
 		plan.addProperty("planId", planId(plan));
 		plan.addProperty("planToken", planToken(plan.get("planId").getAsString()));
 		return plan;
@@ -308,6 +318,7 @@ final class WorkspacePlanEngine {
 					"diagnostic.workspace_plan_wrong_workspace", "The workspace plan belongs to another workspace."));
 		long baseRevision = requiredLong(plan, "baseRevision");
 		requiredString(plan, "idempotencyKey");
+		optionalBoolean(plan, "requireRecoveryPoint", false);
 		JsonArray normalized = normalizedOperations(plan, false);
 		plan.add("operations", normalized);
 		int operationCount = requiredInt(plan, "operationCount");
@@ -348,7 +359,21 @@ final class WorkspacePlanEngine {
 		plan.add("semanticDiff", canonicalSemanticDiff);
 		plan.add("changedPaths", canonicalChangedPaths);
 		plan.addProperty("operationCount", normalized.size());
+		plan.add("safety", recoverySafety(plan));
 		return new ValidatedPlan(false, simulation, plan);
+	}
+
+	private JsonObject recoverySafety(JsonObject plan) {
+		JsonObject safety = new JsonObject();
+		boolean required = requiresRecoveryPoint(plan);
+		safety.addProperty("requiresRecoveryPoint", required);
+		safety.addProperty("recoveryPointAvailable", history != null);
+		safety.addProperty("ready", !required || history != null);
+		return safety;
+	}
+
+	private static boolean requiresRecoveryPoint(JsonObject plan) {
+		return optionalBoolean(plan, "requireRecoveryPoint", false);
 	}
 
 	private static JsonObject permission(PermissionProfile profile) {
@@ -433,12 +458,18 @@ final class WorkspacePlanEngine {
 		core.addProperty("workspaceId", requiredString(plan, "workspaceId"));
 		core.addProperty("baseRevision", requiredLong(plan, "baseRevision"));
 		core.addProperty("idempotencyKey", requiredString(plan, "idempotencyKey"));
+		core.addProperty("requireRecoveryPoint", optionalBoolean(plan, "requireRecoveryPoint", false));
 		core.add("operations", plan.getAsJsonArray("operations").deepCopy());
 		core.addProperty("operationCount", requiredInt(plan, "operationCount"));
 		core.addProperty("targetDigest", requiredString(plan, "targetDigest"));
 		core.add("semanticDiff", requiredArray(plan, "semanticDiff").deepCopy());
 		core.add("changedPaths", requiredArray(plan, "changedPaths").deepCopy());
 		return sha256(GSON.toJson(core));
+	}
+
+	private static boolean optionalBoolean(JsonObject object, String property, boolean fallback) {
+		if (object == null || !object.has(property) || !object.get(property).isJsonPrimitive()) return fallback;
+		return object.get(property).getAsBoolean();
 	}
 
 	private static String sha256(String value) {

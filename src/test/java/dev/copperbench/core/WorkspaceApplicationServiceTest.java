@@ -740,12 +740,26 @@ class WorkspaceApplicationServiceTest {
 	@Test void stage13ProcedureEditorProjectsSharedVariableResourceAndCallSymbols() {
 		Fixture fixture = fixture();
 		RequestContext context = new RequestContext(Actor.UI, PermissionProfile.WORKSPACE);
+		JsonObject registryPayload = new JsonObject();
+		registryPayload.addProperty("clientMutationId", uuid(938).toString());
+		registryPayload.addProperty("registry", "variables");
+		JsonObject variableEntry = new JsonObject();
+		variableEntry.addProperty("name", "quest_score");
+		variableEntry.addProperty("dataType", "number");
+		variableEntry.addProperty("scope", "player_persistent");
+		registryPayload.add("entry", variableEntry);
+		CommandOutcome registryCreated = fixture.service.execute(Command.of(uuid(939), WORKSPACE_ID, 0,
+				Operation.CREATE_REGISTRY_ENTRY, registryPayload), context);
+		assertEquals("committed", registryCreated.result().status(), registryCreated.result().diagnostics().toString());
+		String registryEntryId = registryCreated.result().data().getAsJsonObject().getAsJsonObject("entry")
+				.get("id").getAsString();
+
 		JsonObject initialValues = new JsonObject();
 		initialValues.addProperty("procedurexml",
 				"<xml xmlns=\"https://developers.google.com/blockly/xml\"><block type=\"event_trigger\">"
 						+ "<field name=\"trigger\">no_ext_trigger</field></block></xml>");
 		CommandOutcome created = fixture.service.execute(
-				createElementCommand(uuid(93), "procedure", "stage13_symbols", initialValues), context);
+				createTypedCommand(uuid(93), 1, "procedure", "stage13_symbols", initialValues), context);
 		assertEquals("committed", created.result().status(), created.result().diagnostics().toString());
 		String elementId = created.result().data().getAsJsonObject().getAsJsonObject("element").get("id").getAsString();
 
@@ -767,7 +781,7 @@ class WorkspaceApplicationServiceTest {
 		updatePayload.addProperty("clientMutationId", uuid(935).toString());
 		updatePayload.addProperty("elementId", elementId);
 		updatePayload.add("edits", edits);
-		CommandOutcome updated = fixture.service.execute(Command.of(uuid(936), WORKSPACE_ID, 1,
+		CommandOutcome updated = fixture.service.execute(Command.of(uuid(936), WORKSPACE_ID, 2,
 				Operation.UPDATE_PROCEDURE, updatePayload), context);
 		assertEquals("committed", updated.result().status(), updated.result().diagnostics().toString());
 
@@ -780,7 +794,14 @@ class WorkspaceApplicationServiceTest {
 		assertEquals(2, symbols.getAsJsonArray("variables").size());
 		assertEquals("quest_score", symbols.getAsJsonArray("variables").get(0).getAsJsonObject().get("name").getAsString());
 		assertEquals("read", symbols.getAsJsonArray("variables").get(0).getAsJsonObject().get("access").getAsString());
+		assertEquals(registryEntryId, symbols.getAsJsonArray("variables").get(0).getAsJsonObject()
+				.get("registryEntryId").getAsString());
+		assertEquals("player_persistent", symbols.getAsJsonArray("variables").get(0).getAsJsonObject()
+				.get("scope").getAsString());
 		assertEquals("write", symbols.getAsJsonArray("variables").get(1).getAsJsonObject().get("access").getAsString());
+		assertEquals(1, symbols.getAsJsonArray("availableVariables").size());
+		assertEquals(registryEntryId, symbols.getAsJsonArray("availableVariables").get(0).getAsJsonObject()
+				.get("id").getAsString());
 		assertEquals("minecraft:copper_ingot",
 				symbols.getAsJsonArray("resources").get(0).getAsJsonObject().get("target").getAsString());
 		assertEquals("grant_quest_reward",

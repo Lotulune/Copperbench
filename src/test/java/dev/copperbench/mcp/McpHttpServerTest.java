@@ -107,6 +107,8 @@ class McpHttpServerTest {
 			assertTrue(tools.body().contains("get_workspace_references"));
 			assertTrue(tools.body().contains("list_workspace_registries"));
 			assertTrue(tools.body().contains("preview_registry_rename"));
+			assertTrue(tools.body().contains("plan_workspace_changes"));
+			assertTrue(tools.body().contains("requireRecoveryPoint"));
 			assertTrue(tools.body().contains("create_registry_entry"));
 			assertTrue(tools.body().contains("rename_registry_entry"));
 			assertTrue(tools.body().contains("create_mod_element"));

@@ -162,6 +162,7 @@ class DesktopMcpAgentLoopTest {
 				JsonObject planArguments = new JsonObject();
 				planArguments.addProperty("expectedRevision", 1);
 				planArguments.addProperty("idempotencyKey", "desktop-agent-code-plan");
+				planArguments.addProperty("requireRecoveryPoint", true);
 				JsonArray operations = new JsonArray();
 				JsonObject operation = new JsonObject();
 				operation.addProperty("operation", "create_mod_element");
@@ -175,6 +176,8 @@ class DesktopMcpAgentLoopTest {
 				JsonObject plannedResult = call(endpoint, token, sessionId, 5, "plan_workspace_changes", planArguments);
 				assertEquals("succeeded", plannedResult.get("status").getAsString(), plannedResult.toString());
 				JsonObject plan = plannedResult.getAsJsonObject("data");
+				assertTrue(plan.get("requireRecoveryPoint").getAsBoolean());
+				assertTrue(plan.getAsJsonObject("safety").get("ready").getAsBoolean());
 
 				JsonObject previewArguments = new JsonObject();
 				previewArguments.add("plan", plan.deepCopy());
@@ -187,6 +190,7 @@ class DesktopMcpAgentLoopTest {
 				JsonObject applied = call(endpoint, token, sessionId, 7, "apply_workspace_plan", applyArguments);
 				assertEquals("committed", applied.get("status").getAsString(), applied.toString());
 				assertEquals(2, applied.get("newRevision").getAsLong());
+				assertFalse(applied.get("recoveryPointId").isJsonNull(), applied.toString());
 
 				JsonObject firstPageArguments = new JsonObject();
 				firstPageArguments.addProperty("limit", 1);

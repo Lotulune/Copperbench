@@ -62,6 +62,16 @@ test.describe('Stage 9 creator core', () => {
 
     await page.getByRole('tab', { name: /引用/ }).click();
     await expect(page.locator('[data-testid="procedure-symbol-summary"]')).toContainText('1 变量 · 0 资源 · 1 调用');
+    await expect(page.getByRole('button', { name: /变量 · 读取 player_energy number/ })).toBeVisible();
+    await page.getByRole('button', { name: '重命名变量 player_energy' }).click();
+    await page.getByLabel('新的变量名称').fill('player_stamina');
+    await page.getByRole('button', { name: '预览安全重命名' }).click();
+    await expect(page.locator('[data-testid="procedure-refactor-preview"]')).toContainText('1 个受影响元素 · 2 项语义变更');
+    await expect(page.locator('[data-testid="procedure-refactor-preview"]')).toContainText('应用前将强制创建 recovery point');
+    await page.getByRole('button', { name: '应用重构' }).click();
+    await expect(page.locator('.procedure-message')).toContainText('已安全重命名 player_energy → player_stamina');
+    await expect(page.locator('.procedure-message')).toContainText('恢复点 rec-');
+    await expect(page.getByRole('button', { name: /变量 · 读取 player_stamina number/ })).toBeVisible();
   });
 
   test('reviews and explicitly publishes isolated datagen output', async ({ page }) => {

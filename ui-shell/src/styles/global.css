@@ -2268,6 +2268,83 @@ input:disabled, select:disabled, textarea:disabled {
 
 .procedure-symbol-row span { font-size: 9px; }
 .procedure-symbol-row code { color: var(--text-sub); font-size: 9px; overflow-wrap: anywhere; }
+.procedure-symbol-row small { color: var(--text-sub); font-size: 9px; }
+
+.procedure-symbol-refactor-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px;
+  align-items: stretch;
+}
+
+.procedure-symbol-refactor-row .procedure-symbol-row {
+  min-width: 0;
+}
+
+.procedure-refactor-start,
+.procedure-refactor-actions button {
+  min-width: 32px;
+  min-height: 32px;
+  padding: 6px 9px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  background: var(--bg-panel);
+}
+
+.procedure-refactor-start:hover:not(:disabled),
+.procedure-refactor-actions button:hover:not(:disabled) {
+  color: var(--text-main);
+  border-color: var(--border-active);
+  background: var(--bg-hover);
+}
+
+.procedure-refactor-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 9px;
+  border: 1px solid var(--border-active);
+  border-radius: var(--radius-sm);
+  background: var(--bg-panel);
+}
+
+.procedure-refactor-card label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--text-sub);
+  font-size: 9px;
+}
+
+.procedure-refactor-card input {
+  min-height: 32px;
+  padding: 5px 7px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-main);
+  background: var(--bg-base);
+}
+
+.procedure-refactor-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.procedure-refactor-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 7px 8px;
+  border-left: 3px solid var(--badge-green);
+  background: var(--bg-base);
+}
+
+.procedure-refactor-preview.blocked { border-left-color: var(--badge-red); }
+.procedure-refactor-preview strong { color: var(--text-main); font-size: 10px; }
+.procedure-refactor-preview span { color: var(--text-sub); font-size: 9px; }
+.procedure-refactor-preview code { overflow-wrap: anywhere; color: var(--text-muted); font-size: 8px; }
 
 .procedure-node-outline {
   display: flex;

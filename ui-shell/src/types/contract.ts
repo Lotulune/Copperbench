@@ -198,7 +198,15 @@ export interface ProcedureNodeCatalogItem {
 }
 
 export interface ProcedureSymbols {
-  variables: Array<{ nodeId: UUID; name: string; access: 'read' | 'write' }>;
+  variables: Array<{
+    nodeId: UUID;
+    name: string;
+    access: 'read' | 'write';
+    registryEntryId: UUID | null;
+    dataType: string | null;
+    scope: string | null;
+  }>;
+  availableVariables: Array<{ id: UUID; name: string; dataType: string; scope: string }>;
   resources: Array<{ nodeId: UUID; kind: string; target: string }>;
   calls: Array<{ nodeId: UUID; target: string }>;
   stats: { variableCount: number; resourceCount: number; callCount: number };
@@ -586,12 +594,18 @@ export interface WorkspacePlan {
   workspaceId: UUID;
   baseRevision: Revision;
   idempotencyKey: string;
+  requireRecoveryPoint: boolean;
   operations: WorkspacePlanStep[];
   operationCount: number;
   targetDigest: string;
   semanticDiff: Record<string, unknown>[];
   changedPaths: string[];
   permission: WorkspacePlanPermission;
+  safety: {
+    requiresRecoveryPoint: boolean;
+    recoveryPointAvailable: boolean;
+    ready: boolean;
+  };
   planId: string;
   planToken: string;
   currentRevision?: Revision;
@@ -602,6 +616,7 @@ export interface WorkspacePlan {
 export interface WorkspacePlanRequestPayload {
   expectedRevision: Revision;
   idempotencyKey: string;
+  requireRecoveryPoint?: boolean;
   operations: Array<Omit<WorkspacePlanStep, 'plannedId'>>;
 }
 

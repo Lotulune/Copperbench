@@ -78,6 +78,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.Deque;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -2553,8 +2554,11 @@ public final class WorkspaceApplicationService {
 			JsonObject values = element.values().deepCopy();
 			if (!rewriteRegistryReferences(values, location.registry(), entryId.toString(), oldName, newName, ""))
 				continue;
-			if (element.type().equals("procedure") && values.has("procedureIr"))
-				values.addProperty("procedurexml", PROCEDURES.toBlocklyXml(PROCEDURES.read(values, element.id())));
+			if (element.type().equals("procedure") && values.has("procedureIr")) {
+				ProcedureIr rewritten = PROCEDURES.applyEdits(PROCEDURES.read(values, element.id()), new JsonArray());
+				values.add("procedureIr", PROCEDURES.toJson(rewritten));
+				values.addProperty("procedurexml", PROCEDURES.toBlocklyXml(rewritten));
+			}
 			state.replaceElement(new Element(element.id(), element.type(), element.name(), element.displayName(),
 					element.state(), element.ownership(), clock.instant(), values));
 			changedElements.add(element.id().toString());
@@ -2577,21 +2581,34 @@ public final class WorkspaceApplicationService {
 		projection.addProperty("readOnly", context.permission() == PermissionProfile.READ_ONLY);
 		projection.add("ir", PROCEDURES.toJson(ir));
 		projection.add("nodeCatalog", procedureNodeCatalog(state));
-		projection.add("symbols", procedureSymbols(ir));
+		projection.add("symbols", procedureSymbols(state, ir));
 		projection.addProperty("sourcePreview", PROCEDURES.sourcePreview(ir));
 		projection.addProperty("sourceOwnership", "generated");
 		projection.add("references", references.projection(state, element.id().toString()));
 		return projection;
 	}
 
-	private JsonObject procedureSymbols(ProcedureIr ir) {
+	private JsonObject procedureSymbols(WorkspaceState state, ProcedureIr ir) {
 		JsonArray variables = new JsonArray();
 		JsonArray resources = new JsonArray();
 		JsonArray calls = new JsonArray();
+		JsonArray availableVariables = new JsonArray();
+		Map<String, JsonObject> registryVariables = new LinkedHashMap<>();
+		for (JsonElement raw : state.registries().getAsJsonArray("variables")) {
+			JsonObject entry = raw.getAsJsonObject();
+			String name = string(entry, "name", "");
+			if (!name.isBlank()) registryVariables.put(name, entry);
+			JsonObject available = new JsonObject();
+			available.addProperty("id", string(entry, "id", ""));
+			available.addProperty("name", name);
+			available.addProperty("dataType", string(entry, "dataType", "unknown"));
+			available.addProperty("scope", string(entry, "scope", "global"));
+			availableVariables.add(available);
+		}
 		for (ProcedureIr.Node node : ir.nodes()) {
 			switch (node.type()) {
-				case "variables_get_number" -> variables.add(procedureVariableSymbol(node, "read"));
-				case "variables_set_number" -> variables.add(procedureVariableSymbol(node, "write"));
+				case "variables_get_number" -> variables.add(procedureVariableSymbol(node, "read", registryVariables));
+				case "variables_set_number" -> variables.add(procedureVariableSymbol(node, "write", registryVariables));
 				case "mcitem_all" -> {
 					JsonObject resource = new JsonObject();
 					resource.addProperty("nodeId", node.id().toString());
@@ -2611,6 +2628,7 @@ public final class WorkspaceApplicationService {
 		}
 		JsonObject symbols = new JsonObject();
 		symbols.add("variables", variables);
+		symbols.add("availableVariables", availableVariables);
 		symbols.add("resources", resources);
 		symbols.add("calls", calls);
 		JsonObject stats = new JsonObject();
@@ -2621,11 +2639,22 @@ public final class WorkspaceApplicationService {
 		return symbols;
 	}
 
-	private JsonObject procedureVariableSymbol(ProcedureIr.Node node, String access) {
+	private JsonObject procedureVariableSymbol(ProcedureIr.Node node, String access, Map<String, JsonObject> registryVariables) {
 		JsonObject variable = new JsonObject();
+		String name = string(node.fields(), "VAR", "");
 		variable.addProperty("nodeId", node.id().toString());
-		variable.addProperty("name", string(node.fields(), "VAR", ""));
+		variable.addProperty("name", name);
 		variable.addProperty("access", access);
+		JsonObject registry = registryVariables.get(name);
+		if (registry == null) {
+			variable.add("registryEntryId", JsonNull.INSTANCE);
+			variable.add("dataType", JsonNull.INSTANCE);
+			variable.add("scope", JsonNull.INSTANCE);
+		} else {
+			variable.addProperty("registryEntryId", string(registry, "id", ""));
+			variable.addProperty("dataType", string(registry, "dataType", "unknown"));
+			variable.addProperty("scope", string(registry, "scope", "global"));
+		}
 		return variable;
 	}
 

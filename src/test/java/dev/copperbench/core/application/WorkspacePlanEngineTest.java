@@ -132,6 +132,134 @@ class WorkspacePlanEngineTest {
 		assertEquals(1, fixture.gateway().planCalls);
 	}
 
+	@Test void protectedPlanIsBlockedBeforeMutationWhenRecoveryPointsAreUnavailable() {
+		Fixture fixture = fixture(false, false);
+		JsonObject payload = planPayload(7, "protected-refactor", createElement("item", "planned_item"));
+		payload.addProperty("requireRecoveryPoint", true);
+		var planned = fixture.service().query(Query.of(uuid(45), WORKSPACE_ID,
+				Operation.PLAN_WORKSPACE_CHANGES, payload), MCP);
+		assertEquals("succeeded", planned.status(), planned.diagnostics().toString());
+		JsonObject plan = planned.data().getAsJsonObject();
+		assertTrue(plan.get("requireRecoveryPoint").getAsBoolean());
+		assertFalse(plan.getAsJsonObject("safety").get("recoveryPointAvailable").getAsBoolean());
+		assertFalse(plan.getAsJsonObject("safety").get("ready").getAsBoolean());
+
+		JsonObject previewPayload = new JsonObject();
+		previewPayload.add("plan", plan.deepCopy());
+		var preview = fixture.service().query(Query.of(uuid(46), WORKSPACE_ID,
+				Operation.PREVIEW_WORKSPACE_PLAN, previewPayload), MCP);
+		assertEquals("succeeded", preview.status(), preview.diagnostics().toString());
+		assertFalse(preview.data().getAsJsonObject().get("wouldApply").getAsBoolean());
+
+		var applied = fixture.service().execute(applyCommand(47, 7, plan), MCP);
+		assertEquals("rejected", applied.result().status());
+		assertTrue(applied.result().diagnostics().stream().anyMatch(diagnostic ->
+				"RECOVERY_POINT_REQUIRED_UNAVAILABLE".equals(diagnostic.code())));
+		assertEquals(7, fixture.store().read(WORKSPACE_ID).orElseThrow().revision());
+		assertTrue(fixture.store().read(WORKSPACE_ID).orElseThrow().elements().isEmpty());
+		assertEquals(0, fixture.gateway().planCalls);
+	}
+
+	@Test void protectedVariableRenameUpdatesProcedureDependenciesAndKeepsReferenceIndexStable() {
+		Fixture fixture = fixture(false);
+		RequestContext ui = new RequestContext(Actor.UI, PermissionProfile.WORKSPACE);
+
+		JsonObject registryPayload = new JsonObject();
+		registryPayload.addProperty("clientMutationId", uuid(60).toString());
+		registryPayload.addProperty("registry", "variables");
+		JsonObject variable = new JsonObject();
+		variable.addProperty("name", "player_energy");
+		variable.addProperty("dataType", "number");
+		variable.addProperty("scope", "player_persistent");
+		registryPayload.add("entry", variable);
+		var registryCreated = fixture.service().execute(Command.of(uuid(61), WORKSPACE_ID, 7,
+				Operation.CREATE_REGISTRY_ENTRY, registryPayload), ui);
+		assertEquals("committed", registryCreated.result().status(), registryCreated.result().diagnostics().toString());
+		String registryEntryId = registryCreated.result().data().getAsJsonObject().getAsJsonObject("entry")
+				.get("id").getAsString();
+
+		JsonObject createPayload = new JsonObject();
+		createPayload.addProperty("clientMutationId", uuid(62).toString());
+		createPayload.addProperty("elementType", "procedure");
+		createPayload.addProperty("name", "energy_tick");
+		JsonObject initialValues = new JsonObject();
+		initialValues.addProperty("procedurexml",
+				"<xml xmlns=\"https://developers.google.com/blockly/xml\"><block type=\"event_trigger\">"
+						+ "<field name=\"trigger\">no_ext_trigger</field></block></xml>");
+		createPayload.add("initialValues", initialValues);
+		var procedureCreated = fixture.service().execute(Command.of(uuid(63), WORKSPACE_ID, 8,
+				Operation.CREATE_MOD_ELEMENT, createPayload), ui);
+		assertEquals("committed", procedureCreated.result().status(), procedureCreated.result().diagnostics().toString());
+		String procedureId = procedureCreated.result().data().getAsJsonObject().getAsJsonObject("element")
+				.get("id").getAsString();
+
+		JsonObject node = new JsonObject();
+		node.addProperty("id", uuid(64).toString());
+		node.addProperty("type", "variables_get_number");
+		node.addProperty("kind", "value");
+		node.addProperty("x", 120);
+		node.addProperty("y", 80);
+		JsonObject fields = new JsonObject();
+		fields.addProperty("VAR", "player_energy");
+		node.add("fields", fields);
+		node.add("inputs", new JsonObject());
+		node.add("next", com.google.gson.JsonNull.INSTANCE);
+		JsonObject edit = new JsonObject();
+		edit.addProperty("operation", "add_node");
+		edit.add("node", node);
+		JsonArray edits = new JsonArray();
+		edits.add(edit);
+		JsonObject updatePayload = new JsonObject();
+		updatePayload.addProperty("clientMutationId", uuid(65).toString());
+		updatePayload.addProperty("elementId", procedureId);
+		updatePayload.add("edits", edits);
+		var procedureUpdated = fixture.service().execute(Command.of(uuid(66), WORKSPACE_ID, 9,
+				Operation.UPDATE_PROCEDURE, updatePayload), ui);
+		assertEquals("committed", procedureUpdated.result().status(), procedureUpdated.result().diagnostics().toString());
+
+		JsonObject renamePayload = new JsonObject();
+		renamePayload.addProperty("entryId", registryEntryId);
+		renamePayload.addProperty("newName", "player_stamina");
+		JsonObject renameStep = new JsonObject();
+		renameStep.addProperty("operation", "rename_registry_entry");
+		renameStep.add("payload", renamePayload);
+		JsonObject planPayload = planPayload(10, "stage13-variable-refactor", renameStep);
+		planPayload.addProperty("requireRecoveryPoint", true);
+		var planned = fixture.service().query(Query.of(uuid(67), WORKSPACE_ID,
+				Operation.PLAN_WORKSPACE_CHANGES, planPayload), MCP);
+		assertEquals("succeeded", planned.status(), planned.diagnostics().toString());
+		JsonObject plan = planned.data().getAsJsonObject();
+		assertTrue(plan.getAsJsonObject("safety").get("ready").getAsBoolean());
+		assertTrue(plan.getAsJsonArray("semanticDiff").asList().stream().anyMatch(raw ->
+				"registry_updated".equals(raw.getAsJsonObject().get("kind").getAsString())));
+		assertTrue(plan.getAsJsonArray("semanticDiff").asList().stream().anyMatch(raw ->
+				"element_updated".equals(raw.getAsJsonObject().get("kind").getAsString())));
+
+		var applied = fixture.service().execute(applyCommand(68, 10, plan), MCP);
+		assertEquals("committed", applied.result().status(), applied.result().diagnostics().toString());
+		assertEquals(11, applied.result().newRevision());
+		assertTrue(applied.result().recoveryPointId() != null && !applied.result().recoveryPointId().isBlank());
+		assertEquals(1, fixture.history().created.size());
+
+		WorkspaceState after = fixture.store().read(WORKSPACE_ID).orElseThrow();
+		Element procedure = after.element(UUID.fromString(procedureId));
+		JsonObject procedureIr = procedure.values().getAsJsonObject("procedureIr");
+		assertTrue(procedureIr.getAsJsonArray("nodes").asList().stream().anyMatch(raw -> {
+			JsonObject candidate = raw.getAsJsonObject();
+			return "variables_get_number".equals(candidate.get("type").getAsString())
+					&& "player_stamina".equals(candidate.getAsJsonObject("fields").get("VAR").getAsString());
+		}));
+		assertTrue(procedureIr.getAsJsonArray("dependencies").asList().stream().anyMatch(raw ->
+				"player_stamina".equals(raw.getAsJsonObject().get("target").getAsString())));
+
+		JsonObject referencesPayload = new JsonObject();
+		referencesPayload.addProperty("target", registryEntryId);
+		var references = fixture.service().query(Query.of(uuid(69), WORKSPACE_ID,
+				Operation.GET_WORKSPACE_REFERENCES, referencesPayload), ui);
+		assertEquals("succeeded", references.status(), references.diagnostics().toString());
+		assertEquals(1, references.data().getAsJsonObject().getAsJsonArray("edges").size());
+	}
+
 	@Test void tamperedDerivedPlanMetadataIsRejectedBeforeMutation() {
 		Fixture fixture = fixture(false);
 		JsonObject plan = plan(fixture.service(), MCP, 7, "tamper-plan", createElement("item", "planned_item"));
@@ -167,16 +295,34 @@ class WorkspacePlanEngineTest {
 		assertEquals(7, fixture.store().read(WORKSPACE_ID).orElseThrow().revision());
 		assertEquals(0, fixture.gateway().planCalls);
 		assertEquals(0, fixture.history().created.size());
+
+		JsonObject protectedPayload = planPayload(7, "protected-tamper-plan", createElement("item", "protected_item"));
+		protectedPayload.addProperty("requireRecoveryPoint", true);
+		var protectedResult = fixture.service().query(Query.of(uuid(52), WORKSPACE_ID,
+				Operation.PLAN_WORKSPACE_CHANGES, protectedPayload), MCP);
+		assertEquals("succeeded", protectedResult.status(), protectedResult.diagnostics().toString());
+		JsonObject strippedProtection = protectedResult.data().getAsJsonObject().deepCopy();
+		strippedProtection.addProperty("requireRecoveryPoint", false);
+		var strippedApply = fixture.service().execute(applyCommand(53, 7, strippedProtection), MCP);
+		assertEquals("rejected", strippedApply.result().status());
+		assertTrue(strippedApply.result().diagnostics().stream().anyMatch(diagnostic ->
+				"WORKSPACE_PLAN_INTEGRITY_FAILED".equals(diagnostic.code())));
+		assertEquals(7, fixture.store().read(WORKSPACE_ID).orElseThrow().revision());
+		assertEquals(0, fixture.history().created.size());
 	}
 
 	private static Fixture fixture(boolean failPlanPersistence) {
+		return fixture(failPlanPersistence, true);
+	}
+
+	private static Fixture fixture(boolean failPlanPersistence, boolean withHistory) {
 		RevisionedWorkspaceStore store = new RevisionedWorkspaceStore();
 		JsonObject generator = new JsonObject();
 		generator.addProperty("id", "fabric-1.21.1");
 		store.register(new WorkspaceState(WORKSPACE_ID, "Workspace Plan", "mod", 7, false, generator,
 				new JsonObject(), List.of()));
 		AtomicLong sequence = new AtomicLong(100);
-		RecordingHistory history = new RecordingHistory();
+		RecordingHistory history = withHistory ? new RecordingHistory() : null;
 		RecordingGateway gateway = new RecordingGateway(failPlanPersistence);
 		WorkspaceApplicationService service = new WorkspaceApplicationService(store,
 				new InMemoryWorkspaceTaskGateway(CLOCK, () -> uuid(sequence.getAndIncrement())), gateway,

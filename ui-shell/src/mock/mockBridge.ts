@@ -50,6 +50,7 @@ import {
   RegistryEntry,
   WorkspaceReferenceProjection,
   WorkspaceRegistriesProjection,
+  WorkspacePlan,
   DatagenPreview,
   FieldChange
 } from '../types/contract';
@@ -658,12 +659,23 @@ export class MockCoreBridge implements CoreBridge {
       symbols: {
         variables: ir.nodes.flatMap((node) => {
           if (node.type !== 'variables_get_number' && node.type !== 'variables_set_number') return [];
+          const name = String(node.fields.VAR ?? '');
+          const registry = this.mockRegistries.variables.find((entry) => entry.name === name);
           return [{
             nodeId: node.id,
-            name: String(node.fields.VAR ?? ''),
-            access: node.type === 'variables_get_number' ? 'read' as const : 'write' as const
+            name,
+            access: node.type === 'variables_get_number' ? 'read' as const : 'write' as const,
+            registryEntryId: registry?.id ?? null,
+            dataType: registry?.dataType ?? null,
+            scope: registry?.scope ?? null
           }];
         }),
+        availableVariables: this.mockRegistries.variables.map((entry) => ({
+          id: entry.id,
+          name: entry.name ?? '',
+          dataType: entry.dataType ?? 'unknown',
+          scope: entry.scope ?? 'global'
+        })),
         resources: ir.nodes.flatMap((node) => node.type === 'mcitem_all'
           ? [{ nodeId: node.id, kind: 'item', target: String(node.fields.value ?? '') }]
           : []),
@@ -837,6 +849,57 @@ export class MockCoreBridge implements CoreBridge {
           payload: { element: newElement }
         };
         this.notifyEvent(createdEvent);
+        this.notifyState();
+        return result;
+      }
+
+      case 'apply_workspace_plan': {
+        const payload = command.payload as unknown as { plan?: WorkspacePlan };
+        const plan = payload.plan;
+        if (!plan) throw new Error('Workspace plan is required.');
+        for (const step of plan.operations) {
+          if (step.operation !== 'rename_registry_entry') continue;
+          const entryId = String(step.payload.entryId ?? '');
+          const newName = String(step.payload.newName ?? '');
+          const registry = this.mockRegistries.variables.find((entry) => entry.id === entryId);
+          if (!registry || !newName) continue;
+          const oldName = registry.name ?? '';
+          registry.name = newName;
+          for (const [elementId, ir] of this.procedureIrs.entries()) {
+            const nextNodes = ir.nodes.map((node) => {
+              if ((node.type === 'variables_get_number' || node.type === 'variables_set_number')
+                  && String(node.fields.VAR ?? '') === oldName) {
+                return { ...node, fields: { ...node.fields, VAR: newName } };
+              }
+              return node;
+            });
+            this.procedureIrs.set(elementId, { ...ir, nodes: nextNodes });
+          }
+        }
+        if (this.state.workbench) this.state.workbench.workspace.revision = newRevision;
+        const recoveryPointId = `rec-${generateUUID().slice(0, 8)}`;
+        const result: CommandResult = {
+          messageType: 'command_result', schemaVersion: '1.0', requestId: command.requestId,
+          workspaceId, operation: 'apply_workspace_plan', status: 'committed', newRevision,
+          recoveryPointId, task: null,
+          data: { planId: plan.planId, semanticDiff: plan.semanticDiff, changedPaths: plan.changedPaths, idempotentReplay: false },
+          conflict: null, denial: null, diagnostics: []
+        };
+        const event: CoreEvent = {
+          messageType: 'event', schemaVersion: '1.0', eventId: generateUUID(), workspaceId,
+          revision: newRevision, sequence: ++this.sequenceCounter, occurredAt: new Date().toISOString(),
+          event: 'workspace_plan_applied', causedByRequestId: command.requestId,
+          payload: {
+            planId: plan.planId,
+            idempotencyKey: plan.idempotencyKey,
+            operationCount: plan.operationCount,
+            targetDigest: plan.targetDigest,
+            idempotentReplay: false,
+            semanticDiff: plan.semanticDiff,
+            changedPaths: plan.changedPaths
+          }
+        };
+        this.notifyEvent(event);
         this.notifyState();
         return result;
       }
@@ -2129,15 +2192,69 @@ export class MockCoreBridge implements CoreBridge {
           entries.some((entry) => entry.id === payload.entryId)
         );
         const entry = location?.[1].find((candidate) => candidate.id === payload.entryId);
+        const impactedElementCount = entry ? Array.from(this.procedureIrs.values()).filter((ir) =>
+          ir.nodes.some((node) => (node.type === 'variables_get_number' || node.type === 'variables_set_number')
+            && String(node.fields.VAR ?? '') === entry.name)).length : 0;
         data = entry ? {
           entryId: entry.id,
           registry: location?.[0],
           oldName: entry.key ?? entry.name,
           newName: payload.newName,
           references: this.mockReferences(entry.id),
-          impactedElementCount: 0,
+          impactedElementCount,
           canApply: true
         } : null;
+        break;
+      }
+      case 'plan_workspace_changes': {
+        const payload = query.payload as unknown as {
+          expectedRevision?: number;
+          idempotencyKey?: string;
+          requireRecoveryPoint?: boolean;
+          operations?: WorkspacePlan['operations'];
+        };
+        const operations = payload.operations ?? [];
+        const changedPaths: string[] = [];
+        const semanticDiff: Record<string, unknown>[] = [];
+        for (const step of operations) {
+          if (step.operation !== 'rename_registry_entry') continue;
+          const entryId = String(step.payload.entryId ?? '');
+          const entry = this.mockRegistries.variables.find((candidate) => candidate.id === entryId);
+          if (!entry) continue;
+          changedPaths.push('/registries/variables');
+          semanticDiff.push({
+            kind: 'registry_updated', registry: 'variables',
+            beforeCount: this.mockRegistries.variables.length, afterCount: this.mockRegistries.variables.length
+          });
+          for (const [elementId, ir] of this.procedureIrs.entries()) {
+            if (ir.nodes.some((node) => (node.type === 'variables_get_number' || node.type === 'variables_set_number')
+                && String(node.fields.VAR ?? '') === entry.name)) {
+              changedPaths.push(`/elements/${elementId}`);
+              const element = this.state.elements.find((candidate) => candidate.id === elementId);
+              semanticDiff.push({ kind: 'element_updated', elementId, type: 'procedure', name: element?.name ?? elementId });
+            }
+          }
+        }
+        const requireRecoveryPoint = payload.requireRecoveryPoint ?? false;
+        data = {
+          schemaVersion: '1.0',
+          workspaceId: this.state.workbench?.workspace.id ?? query.workspaceId,
+          baseRevision: payload.expectedRevision ?? revision,
+          idempotencyKey: payload.idempotencyKey ?? generateUUID(),
+          requireRecoveryPoint,
+          operations,
+          operationCount: operations.length,
+          targetDigest: 'mock-target-digest',
+          semanticDiff,
+          changedPaths: Array.from(new Set(changedPaths)),
+          permission: {
+            currentProfile: this.state.workbench?.permission.profile ?? 'workspace',
+            requiredProfile: 'workspace', allowed: true
+          },
+          safety: { requiresRecoveryPoint: requireRecoveryPoint, recoveryPointAvailable: true, ready: true },
+          planId: `mock-plan-${generateUUID()}`,
+          planToken: 'mock-plan-token'
+        } satisfies WorkspacePlan;
         break;
       }
       case 'list_assets':

@@ -111,6 +111,7 @@ final class McpToolCatalog {
 		return requiredSchema(Map.of(
 				"expectedRevision", Map.of("type", "integer", "minimum", 0),
 				"idempotencyKey", Map.of("type", "string", "minLength", 1, "maxLength", 128),
+				"requireRecoveryPoint", Map.of("type", "boolean"),
 				"operations", Map.of("type", "array", "items", step, "minItems", 1, "maxItems", 100)),
 				List.of("expectedRevision", "idempotencyKey", "operations"));
 	}

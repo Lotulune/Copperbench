@@ -25,6 +25,8 @@ import {
   RegistryEntry,
   RegistryRenamePreview,
   WorkspaceReferenceProjection,
+  WorkspacePlan,
+  WorkspacePlanStep,
   DatagenPreview
 } from '../types/contract';
 import {
@@ -74,6 +76,8 @@ interface WorkbenchContextType {
   createRegistryEntry: (registry: 'variables' | 'tags' | 'languageKeys', entry: Partial<RegistryEntry>) => Promise<CommandResult>;
   updateRegistryEntry: (entryId: UUID, changes: FieldChange[]) => Promise<CommandResult>;
   previewRegistryRename: (entryId: UUID, newName: string) => Promise<RegistryRenamePreview | null>;
+  planWorkspaceChanges: (operations: Array<Omit<WorkspacePlanStep, 'plannedId'>>, requireRecoveryPoint?: boolean) => Promise<WorkspacePlan | null>;
+  applyWorkspacePlan: (plan: WorkspacePlan) => Promise<CommandResult>;
   renameRegistryEntry: (entryId: UUID, newName: string) => Promise<CommandResult>;
   deleteRegistryEntry: (entryId: UUID) => Promise<CommandResult>;
   createModElement: (type: ModElementType, name: string) => Promise<CommandResult>;
@@ -324,6 +328,31 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     });
     return res.data ?? null;
   }, [state.workbench]);
+
+  const planWorkspaceChanges = useCallback(async (
+    operations: Array<Omit<WorkspacePlanStep, 'plannedId'>>,
+    requireRecoveryPoint = false
+  ): Promise<WorkspacePlan | null> => {
+    const res = await coreBridge.sendQuery<WorkspacePlan>({
+      messageType: 'query', schemaVersion: '1.0', requestId: generateUUID(),
+      workspaceId: state.workbench?.workspace.id ?? '', operation: 'plan_workspace_changes',
+      payload: {
+        expectedRevision: state.workbench?.workspace.revision ?? 0,
+        idempotencyKey: generateUUID(),
+        requireRecoveryPoint,
+        operations
+      }
+    });
+    return res.data ?? null;
+  }, [state.workbench]);
+
+  const applyWorkspacePlan = useCallback(async (plan: WorkspacePlan): Promise<CommandResult> => coreBridge.sendCommand({
+    messageType: 'command', schemaVersion: '1.0', requestId: generateUUID(),
+    workspaceId: state.workbench?.workspace.id || plan.workspaceId,
+    expectedRevision: plan.baseRevision,
+    operation: 'apply_workspace_plan',
+    payload: { clientMutationId: generateUUID(), plan }
+  }), [state.workbench]);
 
   const updateProcedure = useCallback(async (elementId: UUID, edits: ProcedureEdit[]): Promise<CommandResult> => {
     const workspaceId = state.workbench?.workspace.id || generateUUID();
@@ -981,6 +1010,8 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       createRegistryEntry,
       updateRegistryEntry,
       previewRegistryRename,
+      planWorkspaceChanges,
+      applyWorkspacePlan,
       renameRegistryEntry,
       deleteRegistryEntry,
       createModElement,
@@ -1042,6 +1073,8 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       createRegistryEntry,
       updateRegistryEntry,
       previewRegistryRename,
+      planWorkspaceChanges,
+      applyWorkspacePlan,
       renameRegistryEntry,
       deleteRegistryEntry,
       createModElement,
