@@ -302,6 +302,10 @@ export interface EditorField {
     maxLength?: number;
     pattern?: string;
   };
+  condition?: {
+    operator: 'any_truthy';
+    paths: string[];
+  };
   diagnostics: Diagnostic[];
 }
 

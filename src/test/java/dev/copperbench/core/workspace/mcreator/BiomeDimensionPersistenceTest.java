@@ -23,6 +23,7 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -65,6 +66,7 @@ class BiomeDimensionPersistenceTest {
 					workspace.getModElementByName("copper_grove").getGeneratableElement());
 			assertEquals("Blocks.GRASS", storedBiome.groundBlock.getUnmappedValue());
 			assertEquals("Blocks.DIRT#0", storedBiome.undergroundBlock.getUnmappedValue());
+			assertFalse(storedBiome.spawnParticles);
 
 			Dimension storedDimension = assertInstanceOf(Dimension.class,
 					workspace.getModElementByName("copper_realm").getGeneratableElement());
@@ -72,6 +74,10 @@ class BiomeDimensionPersistenceTest {
 			assertEquals("Blocks.STONE#0", storedDimension.mainFillerBlock.getUnmappedValue());
 			assertEquals("Blocks.WATER", storedDimension.fluidBlock.getUnmappedValue());
 			assertEquals(63, storedDimension.seaLevel);
+			assertFalse(storedDimension.enablePortal);
+			assertFalse(storedDimension.enableIgniter);
+			assertFalse(storedDimension.enableCustomSkyboxTextures);
+			assertFalse(storedDimension.enableCustomSunMoonTextures);
 			assertEquals(1, storedDimension.biomesInDimension.size());
 			assertEquals("CUSTOM:copper_grove", storedDimension.biomesInDimension.getFirst().getUnmappedValue());
 

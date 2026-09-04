@@ -2787,6 +2787,19 @@ export class MockCoreBridge implements CoreBridge {
                       path: '/seaLevel', label: { key: 'field.name', fallback: 'Sea Level' },
                       control: 'number', required: false, readOnly: false, value: 63, options: [],
                       constraints: { min: -1024, max: 1024, step: 1 }, diagnostics: []
+                    },
+                    {
+                      path: '/enablePortal', label: { key: 'field.name', fallback: 'Enable Portal' },
+                      control: 'toggle', required: false, readOnly: false, value: false, options: [], diagnostics: []
+                    },
+                    {
+                      path: '/portalFrame', label: { key: 'field.name', fallback: 'Portal Frame' },
+                      control: 'element_reference', required: false, readOnly: false, value: null,
+                      options: [
+                        { value: 'Blocks.OBSIDIAN', label: { key: 'field.option', fallback: 'Blocks.OBSIDIAN' }, disabled: false },
+                        { value: 'Blocks.STONE#0', label: { key: 'field.option', fallback: 'Blocks.STONE#0' }, disabled: false }
+                      ],
+                      condition: { operator: 'any_truthy', paths: ['/enablePortal'] }, diagnostics: []
                     }
                   ]
                 }
@@ -3016,6 +3029,24 @@ export class MockCoreBridge implements CoreBridge {
           return elem && ['livingentity', 'biome', 'dimension', 'gui'].includes(String(elem.type)) ? 'advanced' : 'general';
         };
         const sections = [...new Set(changes.map((change) => sectionForPath(change.path)))];
+        const portalEnabledWithoutFrame = elem?.type === 'dimension'
+          && changes.some((change) => change.path === '/enablePortal' && change.value === true)
+          && !changes.some((change) => change.path === '/portalFrame' && Boolean(change.value));
+        const conditionalDiagnostics = portalEnabledWithoutFrame
+          ? [{
+              code: 'FIELD_REQUIRED_BY_CONDITION',
+              severity: 'error' as const,
+              message: {
+                key: 'diagnostic.field_required_by_condition',
+                fallback: 'portalFrame is required when enablePortal is enabled.',
+                args: { field: 'portalFrame', condition: 'enablePortal' }
+              },
+              path: `/elements/${payload.elementId}/portalFrame`,
+              elementId: payload.elementId ?? null,
+              recoverable: true,
+              actions: []
+            }]
+          : [];
         const affectedDomains = elem?.type === 'livingentity'
           ? [...new Set(sections.map((section) =>
               section === 'resources' ? 'client_resources'
@@ -3029,10 +3060,10 @@ export class MockCoreBridge implements CoreBridge {
         data = {
           elementId: payload.elementId ?? '',
           baseRevision: revision,
-          canApply: true,
+          canApply: conditionalDiagnostics.length === 0,
           changedPaths: changes.map((change) => `/elements/${payload.elementId}${change.path}`),
           candidateValues: Object.fromEntries(changes.map((change) => [change.path, change.value])),
-          diagnostics: [],
+          diagnostics: conditionalDiagnostics,
           semanticSummary: {
             changedFieldCount: changes.length,
             changedFields: changes.map((change) => ({

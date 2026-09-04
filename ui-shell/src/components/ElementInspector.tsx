@@ -37,6 +37,17 @@ function comparable(value: unknown): string {
   return JSON.stringify(value) ?? String(value);
 }
 
+function conditionTruthy(value: unknown): boolean {
+  if (value === null || value === undefined || value === false || value === 0) return false;
+  if (typeof value === 'string') return value.trim().length > 0;
+  return true;
+}
+
+function conditionActive(field: EditorField, values: Record<string, unknown>): boolean {
+  if (!field.condition) return true;
+  return field.condition.paths.some((path) => conditionTruthy(values[path]));
+}
+
 function collectFieldChanges(
   editor: ModElementEditorProjection | null,
   values: Record<string, unknown>
@@ -280,6 +291,8 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
       ? localErrors
       : pending.invalidJson
         ? ['JSON 字段格式无效；请修正括号、引号或逗号后再保存。']
+        : preview && !preview.canApply
+          ? preview.diagnostics.filter((d) => d.severity === 'error').map((d) => t(d.message))
       : elementDiagnostics.filter((d) => d.severity === 'error').map((d) => t(d.message));
 
   const diagnosticByPath = new Map(
@@ -339,7 +352,8 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
 
   const renderControl = (field: EditorField) => {
     const value = values[field.path];
-    const disabled = field.readOnly;
+    const enabledByCondition = conditionActive(field, values);
+    const disabled = field.readOnly || !enabledByCondition;
     const commonStyle = disabled ? { background: 'var(--bg-hover)' } : {};
     const controlId = fieldControlId(field.path);
 
@@ -732,6 +746,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
                 const extensionName = loaderExtensionName(field.path);
                 const isLoaderExtension = field.readOnly && extensionName !== null;
                 const controlId = fieldControlId(field.path);
+                const enabledByCondition = conditionActive(field, values);
 
                 const controlBlock = (
                   <>
@@ -739,6 +754,14 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
                     {field.constraints && field.control === 'number' && (
                       <div style={{ fontSize: '10px', color: 'var(--text-sub)' }}>
                         范围：{field.constraints.min} - {field.constraints.max}
+                      </div>
+                    )}
+                    {field.condition && (
+                      <div
+                        data-testid={`field-condition-${fieldTestSuffix(field.path)}`}
+                        style={{ fontSize: '10px', color: enabledByCondition ? 'var(--badge-blue)' : 'var(--text-sub)' }}
+                      >
+                        {enabledByCondition ? '条件已启用 · 当前字段必填' : '条件未启用 · 当前字段不会参与生成'}
                       </div>
                     )}
                     {pickerIssue && (
@@ -824,12 +847,12 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
                       display: 'flex',
                       flexDirection: 'column',
                       gap: '4px',
-                      opacity: field.readOnly ? 0.8 : 1
+                      opacity: field.readOnly || !enabledByCondition ? 0.72 : 1
                     }}
                   >
                     <label htmlFor={controlId} style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)' }}>
                       {t(field.label)}
-                      {field.required && <span style={{ color: 'var(--badge-red)' }}> *</span>}
+                      {(field.required || (field.condition && enabledByCondition)) && <span style={{ color: 'var(--badge-red)' }}> *</span>}
                       {field.readOnly && (
                         <span className="badge badge-amber" style={{ fontSize: '9px', marginLeft: '6px' }}>
                           只读保留
@@ -875,7 +898,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
           <button
             className="btn-primary"
             onClick={handleSave}
-            disabled={isSaving || !editor || pending.invalidJson || pending.changes.length === 0}
+            disabled={isSaving || !editor || pending.invalidJson || pending.changes.length === 0 || Boolean(preview && !preview.canApply)}
             data-testid="inspector-save-btn"
           >
             <Save size={13} />

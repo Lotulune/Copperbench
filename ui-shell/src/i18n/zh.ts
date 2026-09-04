@@ -6,6 +6,7 @@
 export const zh: Record<string, string> = {
   /* ---- 诊断 (diagnostic.*) ---- */
   'diagnostic.field_value_out_of_range': '硬度必须在 {min} 到 {max} 之间。',
+  'diagnostic.field_required_by_condition': '启用 {condition} 时必须填写 {field}。',
   'diagnostic.permission_profile_denied': '需要工作区写入权限才能执行构建。',
   'diagnostic.workspace_revision_conflict': '此编辑器打开后工作区已被其他写入者修改，为避免覆盖，本次提交未生效。',
   'diagnostic.external_process_exited': 'Minecraft 以退出码 {exitCode} 意外退出，请检查崩溃日志。',

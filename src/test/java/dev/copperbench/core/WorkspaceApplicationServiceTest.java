@@ -115,6 +115,70 @@ class WorkspaceApplicationServiceTest {
 		assertTrue(editorFieldHasOption(biomes, "#is_overworld"));
 	}
 
+	@Test void stage12WorldgenConditionalFieldsMirrorUpstreamNonNullIf() {
+		Fixture fixture = fixture();
+		RequestContext context = new RequestContext(Actor.UI, PermissionProfile.WORKSPACE);
+		CommandOutcome biomeCreated = fixture.service.execute(
+				createTypedCommand(uuid(35), 0, "biome", "conditional_grove", new JsonObject()), context);
+		assertEquals("committed", biomeCreated.result().status());
+		String biomeId = biomeCreated.result().data().getAsJsonObject().getAsJsonObject("element")
+				.get("id").getAsString();
+
+		JsonObject biomePayload = new JsonObject();
+		biomePayload.addProperty("elementId", biomeId);
+		JsonObject biomeEditor = fixture.service.query(Query.of(uuid(36), WORKSPACE_ID,
+				Operation.GET_MOD_ELEMENT_EDITOR, biomePayload), context).data().getAsJsonObject();
+		JsonObject spawnParticles = findEditorField(biomeEditor, "/spawnParticles");
+		JsonObject particleToSpawn = findEditorField(biomeEditor, "/particleToSpawn");
+		assertNotNull(spawnParticles);
+		assertFalse(spawnParticles.get("value").getAsBoolean());
+		assertNotNull(particleToSpawn);
+		assertTrue(particleToSpawn.get("value").isJsonNull());
+		assertEquals("any_truthy", particleToSpawn.getAsJsonObject("condition").get("operator").getAsString());
+		assertEquals("/spawnParticles",
+				particleToSpawn.getAsJsonObject("condition").getAsJsonArray("paths").get(0).getAsString());
+
+		CommandOutcome dimensionCreated = fixture.service.execute(
+				createTypedCommand(uuid(37), 1, "dimension", "conditional_realm", new JsonObject()), context);
+		assertEquals("committed", dimensionCreated.result().status());
+		String dimensionId = dimensionCreated.result().data().getAsJsonObject().getAsJsonObject("element")
+				.get("id").getAsString();
+		JsonObject dimensionPayload = new JsonObject();
+		dimensionPayload.addProperty("elementId", dimensionId);
+		JsonObject dimensionEditor = fixture.service.query(Query.of(uuid(38), WORKSPACE_ID,
+				Operation.GET_MOD_ELEMENT_EDITOR, dimensionPayload), context).data().getAsJsonObject();
+		JsonObject enablePortal = findEditorField(dimensionEditor, "/enablePortal");
+		JsonObject portalFrame = findEditorField(dimensionEditor, "/portalFrame");
+		assertNotNull(enablePortal);
+		assertFalse(enablePortal.get("value").getAsBoolean());
+		assertNotNull(portalFrame);
+		assertTrue(portalFrame.get("value").isJsonNull());
+		assertEquals("/enablePortal",
+				portalFrame.getAsJsonObject("condition").getAsJsonArray("paths").get(0).getAsString());
+
+		JsonObject enablePortalChange = new JsonObject();
+		enablePortalChange.addProperty("path", "/enablePortal");
+		enablePortalChange.addProperty("value", true);
+		JsonArray changes = new JsonArray();
+		changes.add(enablePortalChange);
+		JsonObject previewPayload = new JsonObject();
+		previewPayload.addProperty("elementId", dimensionId);
+		previewPayload.add("changes", changes);
+		JsonObject preview = fixture.service.query(Query.of(uuid(39), WORKSPACE_ID,
+				Operation.PREVIEW_MOD_ELEMENT_CHANGE, previewPayload), context).data().getAsJsonObject();
+		assertFalse(preview.get("canApply").getAsBoolean());
+		assertEquals("FIELD_REQUIRED_BY_CONDITION",
+				preview.getAsJsonArray("diagnostics").get(0).getAsJsonObject().get("code").getAsString());
+
+		Fixture createFixture = fixture();
+		JsonObject invalidInitial = new JsonObject();
+		invalidInitial.addProperty("enablePortal", true);
+		CommandOutcome invalidCreate = createFixture.service.execute(
+				createTypedCommand(uuid(40), 0, "dimension", "invalid_portal_realm", invalidInitial), context);
+		assertEquals("rejected", invalidCreate.result().status());
+		assertEquals("FIELD_REQUIRED_BY_CONDITION", invalidCreate.result().diagnostics().get(0).code());
+	}
+
 	@Test void stage12LivingEntityEditorProvidesReferenceCandidatesAndSemanticGenerationImpact() {
 		Fixture fixture = fixture();
 		RequestContext context = new RequestContext(Actor.UI, PermissionProfile.WORKSPACE);

@@ -55,7 +55,11 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.Marker;
 import org.apache.logging.log4j.MarkerManager;
+import net.mcreator.element.types.Biome;
+import net.mcreator.element.types.Dimension;
+import net.mcreator.element.types.interfaces.NonNullIf;
 
+import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.time.Clock;
@@ -123,6 +127,66 @@ public final class WorkspaceApplicationService {
 			case "dimension" -> Set.of("mainFillerBlock", "fluidBlock", "portalFrame").contains(fieldName);
 			default -> false;
 		};
+	}
+
+	private static Class<?> stage12ConditionalStorageClass(String elementType) {
+		return switch (elementType) {
+			case "biome" -> Biome.class;
+			case "dimension" -> Dimension.class;
+			default -> null;
+		};
+	}
+
+	private static Field conditionalField(String elementType, String fieldName) {
+		Class<?> storageClass = stage12ConditionalStorageClass(elementType);
+		if (storageClass == null) return null;
+		try {
+			Field field = storageClass.getField(fieldName);
+			return field.isAnnotationPresent(NonNullIf.class) ? field : null;
+		} catch (NoSuchFieldException ignored) {
+			return null;
+		}
+	}
+
+	private void appendMissingConditionalFields(JsonObject values, JsonArray target, boolean readOnly, String elementType,
+			WorkspaceState state) {
+		Class<?> storageClass = stage12ConditionalStorageClass(elementType);
+		if (storageClass == null) return;
+		Set<String> existing = new HashSet<>();
+		for (JsonElement raw : target)
+			existing.add(raw.getAsJsonObject().get("path").getAsString());
+		for (Field reflected : storageClass.getFields()) {
+			if (!reflected.isAnnotationPresent(NonNullIf.class)) continue;
+			String path = "/" + reflected.getName();
+			if (existing.contains(path)) continue;
+			target.add(editorField(path, displayName(reflected.getName()), JsonNull.INSTANCE, readOnly, elementType, state));
+		}
+	}
+
+	private static JsonObject conditionalMetadata(String elementType, String fieldName) {
+		Field field = conditionalField(elementType, fieldName);
+		if (field == null) return null;
+		JsonObject condition = new JsonObject();
+		condition.addProperty("operator", "any_truthy");
+		JsonArray paths = new JsonArray();
+		for (String dependency : field.getAnnotation(NonNullIf.class).value()) paths.add("/" + dependency);
+		condition.add("paths", paths);
+		return condition;
+	}
+
+	private static boolean jsonTruthy(JsonElement value) {
+		if (value == null || value.isJsonNull()) return false;
+		if (!value.isJsonPrimitive()) return true;
+		if (value.getAsJsonPrimitive().isBoolean()) return value.getAsBoolean();
+		if (value.getAsJsonPrimitive().isNumber()) return value.getAsDouble() != 0;
+		return !value.getAsString().isBlank();
+	}
+
+	private static boolean missingConditionalValue(JsonElement value) {
+		if (value == null || value.isJsonNull()) return true;
+		if (value.isJsonPrimitive() && value.getAsJsonPrimitive().isString()) return value.getAsString().isBlank();
+		if (value.isJsonArray()) return value.getAsJsonArray().isEmpty();
+		return false;
 	}
 
 	private static boolean isElementReferenceListField(String elementType, String fieldName) {
@@ -496,6 +560,9 @@ public final class WorkspaceApplicationService {
 			return failed(command, currentRevision(command.workspaceId()), diagnostic("MOD_ELEMENT_INVALID_IDENTITY",
 					"diagnostic.mod_element_invalid_identity", "Element type or name is invalid.", "/name", null));
 		JsonObject normalizedValues = defaultElementValues(type, name, initialValues);
+		Diagnostic validation = validateElementValues(null, type, normalizedValues);
+		if (validation != null)
+			return failed(command, currentRevision(command.workspaceId()), validation);
 		RecoveryPoint recoveryPoint;
 		try {
 			recoveryPoint = automationRecoveryPoint(command, context);
@@ -563,7 +630,7 @@ public final class WorkspaceApplicationService {
 			} catch (RuntimeException exception) {
 				return Decision.abort(Mutation.rejected(invalidPayload(exception.getMessage())));
 			}
-			Diagnostic validation = validateElementValues(elementId, values);
+			Diagnostic validation = validateElementValues(elementId, existing.type(), values);
 			if (validation != null)
 				return Decision.abort(Mutation.rejected(validation));
 			String updatedDisplayName = values.has("displayName") && values.get("displayName").isJsonPrimitive()
@@ -1635,7 +1702,7 @@ public final class WorkspaceApplicationService {
 			changedField.addProperty("sectionId", sectionId);
 			changedFields.add(changedField);
 		}
-		Diagnostic diagnostic = validateElementValues(elementId, values);
+		Diagnostic diagnostic = validateElementValues(elementId, element.type(), values);
 		JsonObject projection = new JsonObject();
 		projection.addProperty("elementId", elementId.toString());
 		projection.addProperty("baseRevision", state.revision());
@@ -1664,6 +1731,7 @@ public final class WorkspaceApplicationService {
 	private JsonArray editorSections(Element element, boolean readOnly, WorkspaceState state) {
 		JsonArray fields = new JsonArray();
 		flattenFields(element.values(), "", fields, readOnly, element.type(), state);
+		appendMissingConditionalFields(element.values(), fields, readOnly, element.type(), state);
 		if (fields.isEmpty())
 			fields.add(editorField("/displayName", "Display name", element.displayName(), readOnly, element.type(), state));
 
@@ -2372,6 +2440,13 @@ public final class WorkspaceApplicationService {
 		if (value instanceof JsonElement element && element.isJsonPrimitive()
 				&& element.getAsJsonPrimitive().isNumber() && !control.equals("select"))
 			control = "number";
+		Field reflectedConditionalField = conditionalField(elementType, fieldName);
+		if (reflectedConditionalField != null && value instanceof JsonElement element && element.isJsonNull()) {
+			Class<?> javaType = reflectedConditionalField.getType();
+			if (javaType == boolean.class || javaType == Boolean.class) control = "toggle";
+			else if (javaType.isPrimitive() && javaType != char.class && javaType != boolean.class
+					|| Number.class.isAssignableFrom(javaType)) control = "number";
+		}
 		field.addProperty("control", control);
 		boolean required = elementType.equals("livingentity")
 				&& Set.of("mobName", "mobLabel", "mobModelName", "mobModelTexture").contains(fieldName);
@@ -2473,6 +2548,8 @@ public final class WorkspaceApplicationService {
 		field.add("options", options);
 		JsonObject constraints = editorConstraints(elementType, fieldName);
 		if (constraints != null) field.add("constraints", constraints);
+		JsonObject condition = conditionalMetadata(elementType, fieldName);
+		if (condition != null) field.add("condition", condition);
 		field.add("diagnostics", new JsonArray());
 		return field;
 	}
@@ -2694,7 +2771,7 @@ public final class WorkspaceApplicationService {
 			case "biome" -> {
 				if (!values.has("groundBlock")) values.addProperty("groundBlock", "Blocks.GRASS");
 				if (!values.has("undergroundBlock")) values.addProperty("undergroundBlock", "Blocks.DIRT#0");
-				if (!values.has("spawnParticles")) values.addProperty("spawnParticles", true);
+				if (!values.has("spawnParticles")) values.addProperty("spawnParticles", false);
 				if (!values.has("spawnInCaves")) values.addProperty("spawnInCaves", false);
 			}
 			case "dimension" -> {
@@ -2706,6 +2783,12 @@ public final class WorkspaceApplicationService {
 				if (!values.has("seaLevel")) values.addProperty("seaLevel", 63);
 				if (!values.has("generateOreVeins")) values.addProperty("generateOreVeins", true);
 				if (!values.has("generateAquifers")) values.addProperty("generateAquifers", true);
+				if (!values.has("hasFixedTime")) values.addProperty("hasFixedTime", false);
+				if (!values.has("fixedTimeValue")) values.addProperty("fixedTimeValue", 0);
+				if (!values.has("enableCustomSkyboxTextures")) values.addProperty("enableCustomSkyboxTextures", false);
+				if (!values.has("enableCustomSunMoonTextures")) values.addProperty("enableCustomSunMoonTextures", false);
+				if (!values.has("enablePortal")) values.addProperty("enablePortal", false);
+				if (!values.has("enableIgniter")) values.addProperty("enableIgniter", false);
 			}
 			case "feature" -> {
 				if (!values.has("skipPlacement")) values.addProperty("skipPlacement", false);
@@ -2807,7 +2890,7 @@ public final class WorkspaceApplicationService {
 		return values;
 	}
 
-	private Diagnostic validateElementValues(UUID elementId, JsonObject values) {
+	private Diagnostic validateElementValues(UUID elementId, String elementType, JsonObject values) {
 		if (values.has("fields") && values.get("fields").isJsonObject()) {
 			JsonObject fields = values.getAsJsonObject("fields");
 			if (fields.has("hardness") && fields.get("hardness").isJsonPrimitive()
@@ -2821,6 +2904,28 @@ public final class WorkspaceApplicationService {
 							"Hardness must be between {min} and {max}.", args,
 							elementPath(elementId) + "/fields/hardness", elementId);
 				}
+			}
+		}
+		Class<?> storageClass = stage12ConditionalStorageClass(elementType);
+		if (storageClass != null) {
+			for (Field reflected : storageClass.getFields()) {
+				NonNullIf condition = reflected.getAnnotation(NonNullIf.class);
+				if (condition == null) continue;
+				String activeDependency = null;
+				for (String dependency : condition.value()) {
+					if (jsonTruthy(values.get(dependency))) {
+						activeDependency = dependency;
+						break;
+					}
+				}
+				if (activeDependency == null || !missingConditionalValue(values.get(reflected.getName()))) continue;
+				JsonObject args = new JsonObject();
+				args.addProperty("field", reflected.getName());
+				args.addProperty("condition", activeDependency);
+				String path = elementId == null ? "/initialValues/" + reflected.getName()
+						: elementPath(elementId) + "/" + reflected.getName();
+				return diagnostic("FIELD_REQUIRED_BY_CONDITION", "diagnostic.field_required_by_condition",
+						"{field} is required when {condition} is enabled.", args, path, elementId);
 			}
 		}
 		return null;
