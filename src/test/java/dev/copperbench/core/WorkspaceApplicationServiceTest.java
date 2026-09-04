@@ -432,6 +432,32 @@ class WorkspaceApplicationServiceTest {
 		assertEquals("general", sections.get(0).getAsJsonObject().get("id").getAsString());
 	}
 
+	@Test void stage12GuiCreationUsesCanonicalCanvasDefaults() {
+		Fixture fixture = fixture();
+		RequestContext context = new RequestContext(Actor.UI, PermissionProfile.WORKSPACE);
+		CommandOutcome created = fixture.service.execute(
+				createElementCommand(uuid(26), "gui", "control_panel", new JsonObject()), context);
+		assertEquals("committed", created.result().status());
+		UUID elementId = UUID.fromString(created.result().data().getAsJsonObject().getAsJsonObject("element")
+				.get("id").getAsString());
+		JsonObject values = fixture.store.read(WORKSPACE_ID).orElseThrow().element(elementId).values();
+		assertEquals(0, values.get("type").getAsInt());
+		assertEquals(176, values.get("width").getAsInt());
+		assertEquals(166, values.get("height").getAsInt());
+		assertEquals(0, values.get("inventoryOffsetX").getAsInt());
+		assertEquals(0, values.get("inventoryOffsetY").getAsInt());
+		assertTrue(values.get("renderBgLayer").getAsBoolean());
+		assertFalse(values.get("doesPauseGame").getAsBoolean());
+		assertTrue(values.getAsJsonArray("components").isEmpty());
+
+		JsonObject payload = new JsonObject();
+		payload.addProperty("elementId", elementId.toString());
+		JsonArray sections = fixture.service.query(Query.of(uuid(27), WORKSPACE_ID,
+				Operation.GET_MOD_ELEMENT_EDITOR, payload), context).data().getAsJsonObject().getAsJsonArray("sections");
+		assertEquals("components", editorSectionId(sections, "/components"));
+		assertEquals("select", editorField(sections, "/type").get("control").getAsString());
+	}
+
 	@Test void taskStartAndContentMutationAreOrderedByTheWorkspaceLock() throws Exception {
 		RevisionedWorkspaceStore store = registeredStore();
 		BlockingTaskGateway gateway = new BlockingTaskGateway();

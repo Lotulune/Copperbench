@@ -2688,8 +2688,14 @@ public final class WorkspaceApplicationService {
 				if (!values.has("showParticles")) values.addProperty("showParticles", false);
 			}
 			case "gui" -> {
+				if (!values.has("type")) values.addProperty("type", 0);
+				if (!values.has("width")) values.addProperty("width", 176);
+				if (!values.has("height")) values.addProperty("height", 166);
+				if (!values.has("inventoryOffsetX")) values.addProperty("inventoryOffsetX", 0);
+				if (!values.has("inventoryOffsetY")) values.addProperty("inventoryOffsetY", 0);
 				if (!values.has("renderBgLayer")) values.addProperty("renderBgLayer", true);
 				if (!values.has("doesPauseGame")) values.addProperty("doesPauseGame", false);
+				if (!values.has("components")) values.add("components", new JsonArray());
 			}
 			case "armortrim" -> {
 				if (!values.has("armorTextureFile")) values.addProperty("armorTextureFile", name);

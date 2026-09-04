@@ -2737,6 +2737,102 @@ export class MockCoreBridge implements CoreBridge {
               ],
               capabilities: []
             };
+          } else if (elem?.type === 'gui') {
+            editor = {
+              element: elem,
+              sections: [
+                {
+                  id: 'identity',
+                  title: { key: 'editor.section.identity', fallback: 'Identity' },
+                  fields: [
+                    {
+                      path: '/displayName',
+                      label: { key: 'field.displayName', fallback: 'Display Name' },
+                      control: 'text', required: true, readOnly: false, value: elem.displayName,
+                      options: [], diagnostics: []
+                    }
+                  ]
+                },
+                {
+                  id: 'layout',
+                  title: { key: 'editor.section.layout', fallback: 'Layout' },
+                  fields: [
+                    {
+                      path: '/type', label: { key: 'field.name', fallback: 'GUI Type' }, control: 'select',
+                      required: true, readOnly: false, value: 0,
+                      options: [
+                        { value: 0, label: { key: 'field.option', fallback: 'Without slots' }, disabled: false },
+                        { value: 1, label: { key: 'field.option', fallback: 'With slots' }, disabled: false }
+                      ], diagnostics: []
+                    },
+                    {
+                      path: '/width', label: { key: 'field.name', fallback: 'Width' }, control: 'number',
+                      required: true, readOnly: false, value: 176, options: [], constraints: { min: 0, max: 512, step: 1 }, diagnostics: []
+                    },
+                    {
+                      path: '/height', label: { key: 'field.name', fallback: 'Height' }, control: 'number',
+                      required: true, readOnly: false, value: 166, options: [], constraints: { min: 0, max: 512, step: 1 }, diagnostics: []
+                    },
+                    {
+                      path: '/inventoryOffsetX', label: { key: 'field.name', fallback: 'Inventory Offset X' }, control: 'number',
+                      required: false, readOnly: false, value: 0, options: [], diagnostics: []
+                    },
+                    {
+                      path: '/inventoryOffsetY', label: { key: 'field.name', fallback: 'Inventory Offset Y' }, control: 'number',
+                      required: false, readOnly: false, value: 0, options: [], diagnostics: []
+                    }
+                  ]
+                },
+                {
+                  id: 'components',
+                  title: { key: 'editor.section.components', fallback: 'Components' },
+                  fields: [
+                    {
+                      path: '/components', label: { key: 'field.name', fallback: 'Components' }, control: 'json',
+                      required: false, readOnly: false,
+                      value: [
+                        {
+                          type: 'button',
+                          data: {
+                            anchorPoint: null, x: 174, y: 110, locked: false,
+                            width: 80, height: 20, name: 'button_1', text: 'Button',
+                            isUndecorated: false, onClick: null, displayCondition: null
+                          }
+                        }
+                      ],
+                      options: [], diagnostics: []
+                    }
+                  ]
+                },
+                {
+                  id: 'behavior',
+                  title: { key: 'editor.section.behavior', fallback: 'Behavior' },
+                  fields: [
+                    {
+                      path: '/renderBgLayer', label: { key: 'field.name', fallback: 'Render Background' }, control: 'toggle',
+                      required: false, readOnly: false, value: true, options: [], diagnostics: []
+                    },
+                    {
+                      path: '/doesPauseGame', label: { key: 'field.name', fallback: 'Pause Game' }, control: 'toggle',
+                      required: false, readOnly: false, value: false, options: [], diagnostics: []
+                    },
+                    {
+                      path: '/onOpen', label: { key: 'field.name', fallback: 'On Open' }, control: 'procedure_reference',
+                      required: false, readOnly: false, value: null, options: [], diagnostics: []
+                    },
+                    {
+                      path: '/onTick', label: { key: 'field.name', fallback: 'On Tick' }, control: 'procedure_reference',
+                      required: false, readOnly: false, value: null, options: [], diagnostics: []
+                    },
+                    {
+                      path: '/onClosed', label: { key: 'field.name', fallback: 'On Closed' }, control: 'procedure_reference',
+                      required: false, readOnly: false, value: null, options: [], diagnostics: []
+                    }
+                  ]
+                }
+              ],
+              capabilities: []
+            };
           } else {
             editor = {
               element: elem,
@@ -2871,7 +2967,9 @@ export class MockCoreBridge implements CoreBridge {
                 : section === 'events' || section === 'spawning' ? 'entity_behavior'
                 : 'element_source'
             ))]
-          : ['element_source'];
+          : elem?.type === 'gui'
+            ? ['ui_layout']
+            : ['element_source'];
         data = {
           elementId: payload.elementId ?? '',
           baseRevision: revision,

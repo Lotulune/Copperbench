@@ -50,6 +50,32 @@ test.describe('Interactive UI-Core Commands & Mutations', () => {
     await expect(page.locator('[data-testid="inspector-save-btn"]')).toBeDisabled();
   });
 
+  test('Stage 12 GUI workbench edits component tree and layout preview', async ({ page }) => {
+    await page.click('[data-testid="nav-elements"]');
+    await page.click('[data-testid="create-element-btn"]');
+    await page.locator('[data-testid="create-element-modal"] button').filter({ hasText: '界面' }).click();
+    await page.fill('[data-testid="create-element-name-input"]', 'control_panel');
+    await page.click('[data-testid="create-element-submit-btn"]');
+
+    await expect(page.locator('[data-testid="gui-workbench"]')).toBeVisible();
+    await expect(page.locator('[data-testid="gui-component-tree"]')).toBeVisible();
+    await expect(page.locator('[data-testid="gui-layout-preview"]')).toBeVisible();
+    await expect(page.locator('[data-testid="gui-component-0"]')).toBeVisible();
+    await expect(page.locator('[data-testid="gui-save-btn"]')).toBeDisabled();
+
+    await page.fill('[data-testid="gui-width"]', '200');
+    await expect(page.locator('[data-testid="gui-generation-impact"]')).toContainText('ui_layout');
+    await page.click('[data-testid="gui-add-button-component"]');
+    await expect(page.locator('[data-testid="gui-component-1"]')).toBeVisible();
+    await page.fill('[data-testid="gui-component-field-x"]', '420');
+    await expect(page.locator('[data-testid="gui-layout-diagnostics"]')).toContainText('超出 MCreator 427×240');
+    await page.fill('[data-testid="gui-component-field-x"]', '300');
+    await expect(page.locator('[data-testid="gui-layout-diagnostics"]')).not.toBeVisible();
+    await expect(page.locator('[data-testid="gui-save-btn"]')).toBeEnabled();
+    await page.click('[data-testid="gui-save-btn"]');
+    await expect(page.locator('[data-testid="gui-save-btn"]')).toBeDisabled();
+  });
+
   test('update_mod_element with invalid value triggers validation error', async ({ page }) => {
     await page.click('[data-testid="nav-elements"]');
     await page.locator('[data-element-id="22222222-2222-4222-8222-222222222221"]').first().click();
