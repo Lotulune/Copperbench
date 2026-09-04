@@ -13,9 +13,11 @@ The historical Stage 9–11 evidence remains authoritative for the Beta 4 baseli
 
 ## Next product work
 
-The active roadmap remains `PRD-NEXT.md`. Stage 12 is closed; the next implementation work is:
+The active roadmap remains `PRD-NEXT.md`. Stage 12 is closed and Stage 13 is now active. The first Procedure 2.0 productivity slice is implemented on the Stage 13 development line: category/recent-node discovery, live graph search/navigation, selected-node location, Core-owned variable/resource/call symbol projection, debounced Core validation previews, node-level diagnostic jumps, and the existing 500-node Procedure scale gate all have regression coverage. See [Stage 13 Procedure 2.0 foundation evidence](./testing/stage13-procedure-productivity-2026-09-05.md).
 
-1. **Stage 13 — creator productivity**: Procedure 2.0, Asset Center, Diagnostics 2.0, history/migration/refactor workflows.
+The remaining Stage 13 work is:
+
+1. **Stage 13 — creator productivity**: finish Procedure 2.0 semantic refactor/impact-preview/recovery workflows, then Asset Center, Diagnostics 2.0, history/migration/refactor workflows and Workspace Health.
 2. **Stage 14 — advanced developer / AI-native workflows**: IDE bridge, AI Plan Review, higher-level MCP workflows, templates and extension-developer entry points.
 3. **Stage 15 — Linux formal platform support**: Linux x86_64 packaging, bundled JDK/JCEF, desktop integration, Gradle/Run Client, desktop MCP/external-Agent parity, clean-Linux VM validation, and release/provenance closure.
 4. **Continuous maintenance**: Minecraft/loader/generator/toolchain compatibility and regression coverage.

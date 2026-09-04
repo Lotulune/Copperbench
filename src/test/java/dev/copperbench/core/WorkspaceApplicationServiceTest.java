@@ -737,6 +737,59 @@ class WorkspaceApplicationServiceTest {
 		assertTrue(domains.asList().stream().anyMatch(domain -> domain.getAsString().equals("client_resources")));
 	}
 
+	@Test void stage13ProcedureEditorProjectsSharedVariableResourceAndCallSymbols() {
+		Fixture fixture = fixture();
+		RequestContext context = new RequestContext(Actor.UI, PermissionProfile.WORKSPACE);
+		JsonObject initialValues = new JsonObject();
+		initialValues.addProperty("procedurexml",
+				"<xml xmlns=\"https://developers.google.com/blockly/xml\"><block type=\"event_trigger\">"
+						+ "<field name=\"trigger\">no_ext_trigger</field></block></xml>");
+		CommandOutcome created = fixture.service.execute(
+				createElementCommand(uuid(93), "procedure", "stage13_symbols", initialValues), context);
+		assertEquals("committed", created.result().status(), created.result().diagnostics().toString());
+		String elementId = created.result().data().getAsJsonObject().getAsJsonObject("element").get("id").getAsString();
+
+		JsonArray edits = new JsonArray();
+		JsonObject variableFields = new JsonObject();
+		variableFields.addProperty("VAR", "quest_score");
+		edits.add(procedureAddNode(uuid(931), "variables_get_number", "value", variableFields));
+		JsonObject writeFields = new JsonObject();
+		writeFields.addProperty("VAR", "quest_score");
+		edits.add(procedureAddNode(uuid(932), "variables_set_number", "statement", writeFields));
+		JsonObject resourceFields = new JsonObject();
+		resourceFields.addProperty("value", "minecraft:copper_ingot");
+		edits.add(procedureAddNode(uuid(933), "mcitem_all", "value", resourceFields));
+		JsonObject callFields = new JsonObject();
+		callFields.addProperty("procedureId", "grant_quest_reward");
+		edits.add(procedureAddNode(uuid(934), "call_procedure", "statement", callFields));
+
+		JsonObject updatePayload = new JsonObject();
+		updatePayload.addProperty("clientMutationId", uuid(935).toString());
+		updatePayload.addProperty("elementId", elementId);
+		updatePayload.add("edits", edits);
+		CommandOutcome updated = fixture.service.execute(Command.of(uuid(936), WORKSPACE_ID, 1,
+				Operation.UPDATE_PROCEDURE, updatePayload), context);
+		assertEquals("committed", updated.result().status(), updated.result().diagnostics().toString());
+
+		JsonObject queryPayload = new JsonObject();
+		queryPayload.addProperty("elementId", elementId);
+		var result = fixture.service.query(Query.of(uuid(937), WORKSPACE_ID, Operation.GET_PROCEDURE_EDITOR,
+				queryPayload), context);
+		assertEquals("succeeded", result.status(), result.diagnostics().toString());
+		JsonObject symbols = result.data().getAsJsonObject().getAsJsonObject("symbols");
+		assertEquals(2, symbols.getAsJsonArray("variables").size());
+		assertEquals("quest_score", symbols.getAsJsonArray("variables").get(0).getAsJsonObject().get("name").getAsString());
+		assertEquals("read", symbols.getAsJsonArray("variables").get(0).getAsJsonObject().get("access").getAsString());
+		assertEquals("write", symbols.getAsJsonArray("variables").get(1).getAsJsonObject().get("access").getAsString());
+		assertEquals("minecraft:copper_ingot",
+				symbols.getAsJsonArray("resources").get(0).getAsJsonObject().get("target").getAsString());
+		assertEquals("grant_quest_reward",
+				symbols.getAsJsonArray("calls").get(0).getAsJsonObject().get("target").getAsString());
+		assertEquals(2, symbols.getAsJsonObject("stats").get("variableCount").getAsInt());
+		assertEquals(1, symbols.getAsJsonObject("stats").get("resourceCount").getAsInt());
+		assertEquals(1, symbols.getAsJsonObject("stats").get("callCount").getAsInt());
+	}
+
 	@Test void taskStartAndContentMutationAreOrderedByTheWorkspaceLock() throws Exception {
 		RevisionedWorkspaceStore store = registeredStore();
 		BlockingTaskGateway gateway = new BlockingTaskGateway();
@@ -800,6 +853,23 @@ class WorkspaceApplicationServiceTest {
 		payload.addProperty("name", name);
 		payload.add("initialValues", initialValues.deepCopy());
 		return Command.of(requestId, WORKSPACE_ID, 0, Operation.CREATE_MOD_ELEMENT, payload);
+	}
+
+	private static JsonObject procedureAddNode(UUID id, String type, String kind, JsonObject fields) {
+		JsonObject node = new JsonObject();
+		node.addProperty("id", id.toString());
+		node.addProperty("type", type);
+		node.addProperty("kind", kind);
+		node.addProperty("x", 120);
+		node.addProperty("y", 120);
+		node.add("fields", fields.deepCopy());
+		node.add("inputs", new JsonObject());
+		node.add("next", com.google.gson.JsonNull.INSTANCE);
+		node.addProperty("unknown", false);
+		JsonObject edit = new JsonObject();
+		edit.addProperty("operation", "add_node");
+		edit.add("node", node);
+		return edit;
 	}
 
 	private static Command createTypedCommand(UUID requestId, long expectedRevision, String type, String name,

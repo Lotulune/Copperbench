@@ -27,7 +27,7 @@ test.describe('Stage 9 creator core', () => {
     await expect(page.getByText('quest_score', { exact: true })).not.toBeVisible();
   });
 
-  test('creates a Procedure, adds a structured node, and commits once', async ({ page }) => {
+  test('uses Procedure 2.0 palette, recent nodes, graph search navigation, and shared symbols', async ({ page }) => {
     await page.click('[data-testid="nav-elements"]');
     await page.click('[data-testid="create-element-btn"]');
     await page.locator('[data-testid="create-element-modal"]').getByRole('button', { name: '过程', exact: true }).click();
@@ -35,10 +35,33 @@ test.describe('Stage 9 creator core', () => {
     await page.click('[data-testid="create-element-submit-btn"]');
 
     await expect(page.locator('[data-testid="procedure-workbench"]')).toBeVisible();
+    await page.getByLabel('筛选 Procedure 节点分类').selectOption('value');
     await page.getByLabel('搜索 Procedure 节点').fill('数值');
     await page.getByRole('button', { name: /^数值 value/ }).click();
+    await expect(page.locator('[data-testid="procedure-recent-nodes"]')).toContainText('数值');
+
+    await page.getByLabel('筛选 Procedure 节点分类').selectOption('variable');
+    await page.getByLabel('搜索 Procedure 节点').fill('读取变量');
+    await page.getByRole('button', { name: /^读取变量 variable/ }).click();
+
+    await page.getByLabel('搜索当前 Procedure 图').fill('数值');
+    await expect(page.locator('[data-testid="procedure-graph-navigation"]')).toContainText('1 个匹配');
+    await page.getByRole('button', { name: '下一个匹配节点' }).click();
+    await expect(page.locator('[data-testid="procedure-selected-location"]')).toContainText('数值');
+
+    await page.getByLabel('筛选 Procedure 节点分类').selectOption('procedure');
+    await page.getByLabel('搜索 Procedure 节点').fill('调用 Procedure');
+    await page.getByRole('button', { name: /^调用 Procedure procedure/ }).click();
+    await page.getByRole('tab', { name: /诊断/ }).click();
+    await expect(page.getByText('PROCEDURE_CALL_TARGET_REQUIRED')).toBeVisible();
+    await page.getByRole('button', { name: '定位节点' }).click();
+    await expect(page.locator('[data-testid="procedure-selected-location"]')).toContainText('调用 Procedure');
+
     await page.getByRole('button', { name: /保存/ }).click();
-    await expect(page.getByText(/已保存 1 项结构化变更/)).toBeVisible();
+    await expect(page.getByText(/已保存 3 项结构化变更/)).toBeVisible();
+
+    await page.getByRole('tab', { name: /引用/ }).click();
+    await expect(page.locator('[data-testid="procedure-symbol-summary"]')).toContainText('1 变量 · 0 资源 · 1 调用');
   });
 
   test('reviews and explicitly publishes isolated datagen output', async ({ page }) => {

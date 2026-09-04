@@ -951,6 +951,82 @@ input:disabled, select:disabled, textarea:disabled {
   background: var(--accent-copper-dim);
 }
 
+.procedure-graph-navigation {
+  flex: 0 0 auto;
+  padding-bottom: 7px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+}
+
+.procedure-graph-search {
+  padding: 8px 10px 4px;
+}
+
+.procedure-graph-search svg {
+  top: 17px;
+}
+
+.procedure-search-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 10px;
+}
+
+.procedure-search-controls span {
+  min-width: 0;
+  flex: 1;
+  color: var(--text-sub);
+  font-size: 9px;
+}
+
+.procedure-search-controls button,
+.procedure-diagnostic button {
+  min-width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 3px 5px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  background: var(--bg-panel);
+  font-size: 9px;
+}
+
+.procedure-search-controls button:hover:not(:disabled),
+.procedure-diagnostic button:hover {
+  color: var(--text-main);
+  border-color: var(--border-active);
+  background: var(--bg-hover);
+}
+
+.procedure-selected-location {
+  width: calc(100% - 20px);
+  min-width: 0;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 5px 10px 0;
+  padding: 4px 6px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-sub);
+  background: var(--bg-panel);
+  font-size: 9px;
+  text-align: left;
+}
+
+.procedure-selected-location span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .connection-state {
   display: inline-flex;
   align-items: center;
@@ -1947,6 +2023,61 @@ input:disabled, select:disabled, textarea:disabled {
   padding-left: 29px;
 }
 
+.procedure-palette-filter {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px 8px;
+  color: var(--text-sub);
+}
+
+.procedure-palette-filter select {
+  min-width: 0;
+  flex: 1;
+  height: 28px;
+}
+
+.procedure-recent {
+  flex: 0 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 0 8px 8px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.procedure-section-label {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 2px 1px;
+  color: var(--text-sub);
+  font-size: 9px;
+  text-transform: uppercase;
+}
+
+.procedure-recent-button {
+  max-width: 100%;
+  min-width: 32px;
+  min-height: 32px;
+  padding: 4px 7px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  background: var(--bg-panel);
+  font-size: 9px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.procedure-recent-button:hover:not(:disabled) {
+  color: var(--text-main);
+  border-color: var(--border-active);
+  background: var(--bg-hover);
+}
+
 .procedure-node-list {
   flex: 1;
   overflow-y: auto;
@@ -2096,6 +2227,47 @@ input:disabled, select:disabled, textarea:disabled {
 .procedure-diagnostic.error { border-left-color: var(--badge-red); }
 .procedure-diagnostic code,
 .procedure-reference code { overflow-wrap: anywhere; color: var(--text-sub); font-size: 9px; }
+
+.procedure-diagnostic button {
+  align-self: flex-start;
+  margin-top: 3px;
+}
+
+.procedure-symbol-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 7px 8px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--bg-panel);
+}
+
+.procedure-symbol-summary strong { color: var(--text-main); font-size: 10px; }
+.procedure-symbol-summary span { color: var(--text-sub); font-size: 9px; }
+
+.procedure-symbol-row {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 6px 8px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  background: var(--bg-panel);
+  text-align: left;
+}
+
+.procedure-symbol-row:hover {
+  color: var(--text-main);
+  border-color: var(--border-active);
+  background: var(--bg-hover);
+}
+
+.procedure-symbol-row span { font-size: 9px; }
+.procedure-symbol-row code { color: var(--text-sub); font-size: 9px; overflow-wrap: anywhere; }
 
 .procedure-node-outline {
   display: flex;

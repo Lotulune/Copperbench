@@ -6,10 +6,15 @@ import {
   AlignStartVertical,
   ArrowLeft,
   Braces,
+  ChevronLeft,
+  ChevronRight,
   CircleAlert,
+  Clock3,
   Code2,
+  Filter,
   Link2,
   ListTree,
+  LocateFixed,
   Redo2,
   Save,
   Search,
@@ -114,7 +119,7 @@ function registerProcedureBlocks(): void {
     {
       type: 'call_procedure',
       message0: '调用 Procedure %1',
-      args0: [{ type: 'field_input', name: 'procedureId', text: 'procedure-id' }],
+      args0: [{ type: 'field_input', name: 'procedureId', text: '' }],
       previousStatement: null,
       nextStatement: null,
       colour: 285
@@ -256,8 +261,44 @@ type ProcedurePanel = 'source' | 'diagnostics' | 'references' | 'outline';
 
 const procedurePanels: ProcedurePanel[] = ['source', 'diagnostics', 'references', 'outline'];
 
+interface ProcedureGraphNode {
+  id: string;
+  type: string;
+  kind: 'value' | 'statement';
+  x: number;
+  y: number;
+  fields: ProcedureNode['fields'];
+}
+
+const procedureCategoryLabels: Record<string, string> = {
+  control: '控制',
+  value: '值',
+  variable: '变量',
+  context: '上下文',
+  procedure: 'Procedure'
+};
+
+function snapshotGraph(workspace: Blockly.WorkspaceSvg): ProcedureGraphNode[] {
+  return workspace.getAllBlocks(false).map((block) => {
+    const point = block.getRelativeToSurfaceXY();
+    return {
+      id: block.id,
+      type: block.type,
+      kind: block.outputConnection ? 'value' : 'statement',
+      x: point.x,
+      y: point.y,
+      fields: fieldValues(block)
+    };
+  });
+}
+
+function diagnosticNodeId(diagnostic: Diagnostic): string | null {
+  const match = diagnostic.path?.match(/\/nodes\/([0-9a-f-]{36})(?:\/|$)/i);
+  return match?.[1] ?? null;
+}
+
 export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element, onClose }) => {
-  const { getProcedureEditor, updateProcedure } = useWorkbench();
+  const { getProcedureEditor, previewProcedureChange, updateProcedure } = useWorkbench();
   const hostRef = useRef<HTMLDivElement | null>(null);
   const workspaceRef = useRef<Blockly.WorkspaceSvg | null>(null);
   const [projection, setProjection] = useState<ProcedureEditorProjection | null>(null);
@@ -265,8 +306,18 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [search, setSearch] = useState('');
+  const [category, setCategory] = useState('all');
+  const [recentTypes, setRecentTypes] = useState<string[]>([]);
+  const [graphNodes, setGraphNodes] = useState<ProcedureGraphNode[]>([]);
+  const [graphSearch, setGraphSearch] = useState('');
+  const [graphSearchIndex, setGraphSearchIndex] = useState(-1);
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [liveDiagnostics, setLiveDiagnostics] = useState<Diagnostic[] | null>(null);
+  const [liveSourcePreview, setLiveSourcePreview] = useState<string | null>(null);
+  const [liveCanGenerate, setLiveCanGenerate] = useState<boolean | null>(null);
   const [panel, setPanel] = useState<ProcedurePanel>('source');
   const [message, setMessage] = useState<string | null>(null);
+  const previewSequenceRef = useRef(0);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -285,6 +336,9 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
 
   useEffect(() => {
     if (!projection || !hostRef.current) return;
+    setLiveDiagnostics(null);
+    setLiveSourcePreview(null);
+    setLiveCanGenerate(null);
     registerProcedureBlocks();
     projection.ir.nodes.filter((node) => node.unknown).forEach(defineUnknownBlock);
     const workspace = Blockly.inject(hostRef.current, {
@@ -334,8 +388,16 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
     } finally {
       Blockly.Events.enable();
     }
+    setGraphNodes(snapshotGraph(workspace));
     const listener = (event: Blockly.Events.Abstract) => {
-      if (!event.isUiEvent) setDirty(true);
+      if (event.type === 'selected') {
+        const selected = (event as unknown as { newElementId?: string | null }).newElementId;
+        setSelectedNodeId(selected ?? null);
+      }
+      if (!event.isUiEvent) {
+        setDirty(true);
+        setGraphNodes(snapshotGraph(workspace));
+      }
     };
     workspace.addChangeListener(listener);
     window.setTimeout(() => Blockly.svgResize(workspace), 0);
@@ -346,12 +408,66 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
     };
   }, [projection]);
 
+  useEffect(() => {
+    const workspace = workspaceRef.current;
+    if (!workspace || !projection || !dirty) {
+      setLiveDiagnostics(null);
+      setLiveSourcePreview(null);
+      setLiveCanGenerate(null);
+      return;
+    }
+    const edits = buildEdits(workspace, projection);
+    if (edits.length === 0) {
+      setLiveDiagnostics(null);
+      setLiveSourcePreview(null);
+      setLiveCanGenerate(null);
+      return;
+    }
+    const sequence = ++previewSequenceRef.current;
+    const timer = window.setTimeout(() => {
+      void previewProcedureChange(element.id, edits).then((preview) => {
+        if (sequence !== previewSequenceRef.current || !preview) return;
+        setLiveDiagnostics(preview.diagnostics);
+        setLiveSourcePreview(preview.sourcePreview);
+        setLiveCanGenerate(preview.canGenerate);
+      }).catch(() => {
+        if (sequence !== previewSequenceRef.current) return;
+        setLiveDiagnostics(null);
+        setLiveSourcePreview(null);
+        setLiveCanGenerate(null);
+      });
+    }, 180);
+    return () => window.clearTimeout(timer);
+  }, [dirty, element.id, graphNodes, previewProcedureChange, projection]);
+
   const filteredCatalog = useMemo(() => {
     const needle = search.trim().toLowerCase();
     return (projection?.nodeCatalog ?? []).filter((item) =>
-      !needle || item.type.toLowerCase().includes(needle) || catalogLabel(item).toLowerCase().includes(needle)
+      (category === 'all' || item.category === category)
+      && (!needle || item.type.toLowerCase().includes(needle) || catalogLabel(item).toLowerCase().includes(needle))
     );
-  }, [projection, search]);
+  }, [category, projection, search]);
+
+  const categories = useMemo(() => Array.from(new Set((projection?.nodeCatalog ?? []).map((item) => item.category))),
+    [projection]);
+
+  const recentCatalog = useMemo(() => recentTypes
+    .map((type) => projection?.nodeCatalog.find((item) => item.type === type))
+    .filter((item): item is ProcedureNodeCatalogItem => Boolean(item)), [projection, recentTypes]);
+
+  const graphSearchResults = useMemo(() => {
+    const needle = graphSearch.trim().toLowerCase();
+    if (!needle) return [];
+    return graphNodes.filter((node) => {
+      const item = projection?.nodeCatalog.find((candidate) => candidate.type === node.type);
+      const values = Object.entries(node.fields).flatMap(([name, value]) => [name, String(value)]);
+      return [node.type, item ? catalogLabel(item) : '', ...values]
+        .some((value) => value.toLowerCase().includes(needle));
+    });
+  }, [graphNodes, graphSearch, projection]);
+
+  const selectedGraphNode = useMemo(() => graphNodes.find((node) => node.id === selectedNodeId) ?? null,
+    [graphNodes, selectedNodeId]);
 
   const addBlock = (item: ProcedureNodeCatalogItem) => {
     const workspace = workspaceRef.current;
@@ -362,6 +478,8 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
     const offset = workspace.getAllBlocks(false).length * 12;
     block.moveBy(72 + offset, 72 + offset);
     block.select();
+    setSelectedNodeId(block.id);
+    setRecentTypes((current) => [item.type, ...current.filter((type) => type !== item.type)].slice(0, 5));
     setDirty(true);
   };
 
@@ -393,7 +511,15 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
     }
   };
 
-  const diagnostics: Diagnostic[] = projection?.diagnostics ?? projection?.references.diagnostics ?? [];
+  const diagnostics: Diagnostic[] = liveDiagnostics
+    ?? projection?.diagnostics
+    ?? projection?.references.diagnostics
+    ?? [];
+  const sourcePreview = liveSourcePreview ?? projection?.sourcePreview ?? '//';
+
+  useEffect(() => {
+    setGraphSearchIndex(-1);
+  }, [graphSearch]);
 
   const focusPanel = (nextPanel: ProcedurePanel, tab: HTMLButtonElement) => {
     setPanel(nextPanel);
@@ -413,10 +539,14 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
     focusPanel(procedurePanels[nextIndex], event.currentTarget);
   };
 
+  const nodeTypeLabel = (type: string) => {
+    if (type === 'event_trigger') return '入口触发器';
+    const item = projection?.nodeCatalog.find((candidate) => candidate.type === type);
+    return item ? catalogLabel(item) : `未知节点 ${type}`;
+  };
+
   const nodeLabel = (node: ProcedureNode) => {
-    if (node.type === 'event_trigger') return '入口触发器';
-    const item = projection?.nodeCatalog.find((candidate) => candidate.type === node.type);
-    return item ? catalogLabel(item) : `未知节点 ${node.type}`;
+    return nodeTypeLabel(node.type);
   };
 
   const nodeAccessibleName = (node: ProcedureNode) => {
@@ -438,6 +568,16 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
     if (!workspace || !block) return;
     block.select();
     workspace.centerOnBlock(nodeId);
+    setSelectedNodeId(nodeId);
+  };
+
+  const navigateGraphSearch = (direction: -1 | 1) => {
+    if (graphSearchResults.length === 0) return;
+    const nextIndex = direction === 1
+      ? (graphSearchIndex + 1 + graphSearchResults.length) % graphSearchResults.length
+      : (graphSearchIndex <= 0 ? graphSearchResults.length - 1 : graphSearchIndex - 1);
+    setGraphSearchIndex(nextIndex);
+    selectNode(graphSearchResults[nextIndex].id);
   };
 
   return (
@@ -467,6 +607,31 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
             <Search size={14} />
             <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="搜索节点" aria-label="搜索 Procedure 节点" />
           </div>
+          <div className="procedure-palette-filter">
+            <Filter size={13} aria-hidden="true" />
+            <select value={category} onChange={(event) => setCategory(event.target.value)} aria-label="筛选 Procedure 节点分类">
+              <option value="all">全部分类</option>
+              {categories.map((item) => (
+                <option value={item} key={item}>{procedureCategoryLabels[item] ?? item}</option>
+              ))}
+            </select>
+          </div>
+          {recentCatalog.length > 0 && (
+            <div className="procedure-recent" data-testid="procedure-recent-nodes">
+              <div className="procedure-section-label"><Clock3 size={12} aria-hidden="true" />最近使用</div>
+              {recentCatalog.map((item) => (
+                <button
+                  key={`recent-${item.type}`}
+                  type="button"
+                  className="procedure-recent-button"
+                  disabled={item.availability !== 'available' || projection?.readOnly}
+                  onClick={() => addBlock(item)}
+                >
+                  {catalogLabel(item)}
+                </button>
+              ))}
+            </div>
+          )}
           <div className="procedure-node-list">
             {filteredCatalog.map((item) => (
               <button
@@ -496,10 +661,37 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
             <button type="button" id="procedure-tab-references" role="tab" aria-controls="procedure-panel-references" aria-selected={panel === 'references'} tabIndex={panel === 'references' ? 0 : -1} onClick={() => setPanel('references')} onKeyDown={handlePanelKeyDown}><Link2 size={13} aria-hidden="true" />引用</button>
             <button type="button" id="procedure-tab-outline" role="tab" aria-controls="procedure-panel-outline" aria-selected={panel === 'outline'} tabIndex={panel === 'outline' ? 0 : -1} onClick={() => setPanel('outline')} onKeyDown={handlePanelKeyDown}><ListTree size={13} aria-hidden="true" />节点</button>
           </div>
+          <div className="procedure-graph-navigation" data-testid="procedure-graph-navigation">
+            <div className="procedure-search procedure-graph-search">
+              <Search size={14} />
+              <input
+                value={graphSearch}
+                onChange={(event) => setGraphSearch(event.target.value)}
+                placeholder="查找当前图"
+                aria-label="搜索当前 Procedure 图"
+              />
+            </div>
+            <div className="procedure-search-controls">
+              <span aria-live="polite">
+                {graphSearch.trim() ? `${graphSearchResults.length} 个匹配` : `${graphNodes.length} 个节点`}
+              </span>
+              <button type="button" onClick={() => navigateGraphSearch(-1)} disabled={graphSearchResults.length === 0} aria-label="上一个匹配节点"><ChevronLeft size={14} /></button>
+              <button type="button" onClick={() => navigateGraphSearch(1)} disabled={graphSearchResults.length === 0} aria-label="下一个匹配节点"><ChevronRight size={14} /></button>
+            </div>
+            {selectedGraphNode && (
+              <button type="button" className="procedure-selected-location" onClick={() => selectNode(selectedGraphNode.id)} data-testid="procedure-selected-location">
+                <LocateFixed size={12} aria-hidden="true" />
+                <span>{nodeTypeLabel(selectedGraphNode.type)} · x {Math.round(selectedGraphNode.x)}, y {Math.round(selectedGraphNode.y)}</span>
+              </button>
+            )}
+          </div>
           {panel === 'source' && (
             <div id="procedure-panel-source" role="tabpanel" aria-labelledby="procedure-tab-source" className="procedure-panel-content">
-              <div className="procedure-panel-meta"><span className="badge badge-green">{projection?.sourceOwnership ?? 'generated'}</span><span>只读</span></div>
-              <pre>{projection?.sourcePreview ?? '//'}</pre>
+              <div className="procedure-panel-meta">
+                <span className="badge badge-green">{projection?.sourceOwnership ?? 'generated'}</span>
+                <span>{dirty ? (liveCanGenerate === false ? '实时预览 · 存在阻断诊断' : '实时预览') : '只读'}</span>
+              </div>
+              <pre>{sourcePreview}</pre>
             </div>
           )}
           {panel === 'diagnostics' && (
@@ -507,12 +699,36 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
               {diagnostics.length === 0 ? <p>当前图没有诊断。</p> : diagnostics.map((diagnostic) => (
                 <div className={`procedure-diagnostic ${diagnostic.severity}`} key={`${diagnostic.code}-${diagnostic.path}`}>
                   <strong>{diagnostic.code}</strong><span>{t(diagnostic.message)}</span><code>{diagnostic.path}</code>
+                  {diagnosticNodeId(diagnostic) && (
+                    <button type="button" onClick={() => selectNode(diagnosticNodeId(diagnostic)!)}>
+                      <LocateFixed size={12} aria-hidden="true" />定位节点
+                    </button>
+                  )}
                 </div>
               ))}
             </div>
           )}
           {panel === 'references' && (
             <div id="procedure-panel-references" role="tabpanel" aria-labelledby="procedure-tab-references" className="procedure-panel-content procedure-list-content">
+              <div className="procedure-symbol-summary" data-testid="procedure-symbol-summary">
+                <strong>图内符号</strong>
+                <span>{projection?.symbols?.stats.variableCount ?? 0} 变量 · {projection?.symbols?.stats.resourceCount ?? 0} 资源 · {projection?.symbols?.stats.callCount ?? 0} 调用</span>
+              </div>
+              {(projection?.symbols?.variables ?? []).map((symbol) => (
+                <button type="button" className="procedure-symbol-row" key={`variable-${symbol.nodeId}`} onClick={() => selectNode(symbol.nodeId)}>
+                  <span>变量 · {symbol.access === 'read' ? '读取' : '写入'}</span><code>{symbol.name || '(未命名)'}</code>
+                </button>
+              ))}
+              {(projection?.symbols?.resources ?? []).map((symbol) => (
+                <button type="button" className="procedure-symbol-row" key={`resource-${symbol.nodeId}`} onClick={() => selectNode(symbol.nodeId)}>
+                  <span>资源 · {symbol.kind}</span><code>{symbol.target || '(未设置)'}</code>
+                </button>
+              ))}
+              {(projection?.symbols?.calls ?? []).map((symbol) => (
+                <button type="button" className="procedure-symbol-row" key={`call-${symbol.nodeId}`} onClick={() => selectNode(symbol.nodeId)}>
+                  <span>Procedure 调用</span><code>{symbol.target || '(未设置)'}</code>
+                </button>
+              ))}
               <p>{projection?.references.stats.edgeCount ?? 0} 条引用 · 增量索引</p>
               {(projection?.references.edges ?? []).map((edge, index) => (
                 <div className="procedure-reference" key={String(edge.id ?? index)}><code>{String(edge.sourcePath ?? '')}</code><span>→ {String(edge.target ?? '')}</span></div>

@@ -49,6 +49,7 @@ export const zh: Record<string, string> = {
   'diagnostic.bundled_jdk_missing': '未找到可用的 Copperbench Java 运行时；请查看日志中的解析路径。',
   'diagnostic.procedure_element_required': '该操作只能用于 Procedure 元素。',
   'diagnostic.procedure_ir_invalid': 'Procedure 图数据无效，请修复节点或连接后重试。',
+  'diagnostic.procedure_call_target_required': 'Procedure 调用必须指定目标。',
   'diagnostic.workspace_reference_dangling': '结构化引用的目标不存在。',
   'diagnostic.registry_entry_in_use': '该注册表条目仍被引用，不能直接删除。',
   'diagnostic.registry_entry_name_conflict': '已存在同名注册表条目。',

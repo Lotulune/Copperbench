@@ -655,6 +655,27 @@ export class MockCoreBridge implements CoreBridge {
         availability: 'available' as const,
         reasonCode: null
       })),
+      symbols: {
+        variables: ir.nodes.flatMap((node) => {
+          if (node.type !== 'variables_get_number' && node.type !== 'variables_set_number') return [];
+          return [{
+            nodeId: node.id,
+            name: String(node.fields.VAR ?? ''),
+            access: node.type === 'variables_get_number' ? 'read' as const : 'write' as const
+          }];
+        }),
+        resources: ir.nodes.flatMap((node) => node.type === 'mcitem_all'
+          ? [{ nodeId: node.id, kind: 'item', target: String(node.fields.value ?? '') }]
+          : []),
+        calls: ir.nodes.flatMap((node) => node.type === 'call_procedure'
+          ? [{ nodeId: node.id, target: String(node.fields.procedureId ?? '') }]
+          : []),
+        stats: {
+          variableCount: ir.nodes.filter((node) => node.type === 'variables_get_number' || node.type === 'variables_set_number').length,
+          resourceCount: ir.nodes.filter((node) => node.type === 'mcitem_all').length,
+          callCount: ir.nodes.filter((node) => node.type === 'call_procedure').length
+        }
+      },
       sourcePreview: `// Read-only Procedure IR preview\ntrigger ${ir.trigger}\n${ir.nodes.map((node) => `${node.type} ${node.id}`).join('\n')}`,
       sourceOwnership: 'generated',
       references: this.mockReferences(elementId)
@@ -2033,14 +2054,35 @@ export class MockCoreBridge implements CoreBridge {
         const original = this.getMockProcedure(payload.elementId);
         const candidate = this.applyMockProcedureEdits(payload.elementId, payload.edits ?? []);
         this.procedureIrs.set(payload.elementId, original);
+        const diagnostics = candidate.nodes.flatMap((node) => {
+          if (node.type !== 'call_procedure' || String(node.fields.procedureId ?? '').trim()) return [];
+          const path = `/elements/${payload.elementId}/procedureIr/nodes/${node.id}/ports/procedureId`;
+          return [{
+            code: 'PROCEDURE_CALL_TARGET_REQUIRED',
+            severity: 'error' as const,
+            message: {
+              key: 'diagnostic.procedure_call_target_required',
+              fallback: 'Procedure call target is required.'
+            },
+            path,
+            elementId: payload.elementId,
+            recoverable: true,
+            actions: [{
+              id: 'open_procedure_node',
+              label: { key: 'action.open_procedure_node', fallback: 'Locate node' },
+              kind: 'open_field' as const,
+              target: path
+            }]
+          }];
+        });
         data = {
           elementId: payload.elementId,
           baseRevision: revision,
           canSaveDraft: true,
-          canGenerate: true,
+          canGenerate: diagnostics.length === 0,
           candidateIr: candidate,
           sourcePreview: `// Read-only Procedure IR preview\ntrigger ${candidate.trigger}`,
-          diagnostics: [],
+          diagnostics,
           changedPaths: [`/elements/${payload.elementId}/procedureIr`, `/elements/${payload.elementId}/procedurexml`]
         };
         break;

@@ -19,6 +19,7 @@ import {
   NewWorkspaceGeneratorCatalog,
   AssetProjection,
   ProcedureEditorProjection,
+  ProcedureChangePreview,
   ProcedureEdit,
   WorkspaceRegistriesProjection,
   RegistryEntry,
@@ -66,6 +67,7 @@ interface WorkbenchContextType {
   getModElementEditor: (elementId: UUID) => Promise<ModElementEditorProjection | null>;
   previewModElementChange: (elementId: UUID, changes: FieldChange[]) => Promise<ModElementChangePreview | null>;
   getProcedureEditor: (elementId: UUID) => Promise<ProcedureEditorProjection | null>;
+  previewProcedureChange: (elementId: UUID, edits: ProcedureEdit[]) => Promise<ProcedureChangePreview | null>;
   updateProcedure: (elementId: UUID, edits: ProcedureEdit[]) => Promise<CommandResult>;
   listWorkspaceRegistries: () => Promise<WorkspaceRegistriesProjection | null>;
   getWorkspaceReferences: (target?: string) => Promise<WorkspaceReferenceProjection | null>;
@@ -306,6 +308,21 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       payload: { elementId }
     });
     return res.data ? { ...res.data, diagnostics: res.diagnostics } : null;
+  }, [state.workbench]);
+
+  const previewProcedureChange = useCallback(async (
+    elementId: UUID, edits: ProcedureEdit[]
+  ): Promise<ProcedureChangePreview | null> => {
+    if (edits.length === 0) return null;
+    const res = await coreBridge.sendQuery<ProcedureChangePreview>({
+      messageType: 'query',
+      schemaVersion: '1.0',
+      requestId: generateUUID(),
+      workspaceId: state.workbench?.workspace.id ?? '',
+      operation: 'preview_procedure_change',
+      payload: { elementId, edits }
+    });
+    return res.data ?? null;
   }, [state.workbench]);
 
   const updateProcedure = useCallback(async (elementId: UUID, edits: ProcedureEdit[]): Promise<CommandResult> => {
@@ -957,6 +974,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       getModElementEditor,
       previewModElementChange,
       getProcedureEditor,
+      previewProcedureChange,
       updateProcedure,
       listWorkspaceRegistries,
       getWorkspaceReferences,
@@ -1017,6 +1035,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       getModElementEditor,
       previewModElementChange,
       getProcedureEditor,
+      previewProcedureChange,
       updateProcedure,
       listWorkspaceRegistries,
       getWorkspaceReferences,

@@ -2577,10 +2577,56 @@ public final class WorkspaceApplicationService {
 		projection.addProperty("readOnly", context.permission() == PermissionProfile.READ_ONLY);
 		projection.add("ir", PROCEDURES.toJson(ir));
 		projection.add("nodeCatalog", procedureNodeCatalog(state));
+		projection.add("symbols", procedureSymbols(ir));
 		projection.addProperty("sourcePreview", PROCEDURES.sourcePreview(ir));
 		projection.addProperty("sourceOwnership", "generated");
 		projection.add("references", references.projection(state, element.id().toString()));
 		return projection;
+	}
+
+	private JsonObject procedureSymbols(ProcedureIr ir) {
+		JsonArray variables = new JsonArray();
+		JsonArray resources = new JsonArray();
+		JsonArray calls = new JsonArray();
+		for (ProcedureIr.Node node : ir.nodes()) {
+			switch (node.type()) {
+				case "variables_get_number" -> variables.add(procedureVariableSymbol(node, "read"));
+				case "variables_set_number" -> variables.add(procedureVariableSymbol(node, "write"));
+				case "mcitem_all" -> {
+					JsonObject resource = new JsonObject();
+					resource.addProperty("nodeId", node.id().toString());
+					resource.addProperty("kind", "item");
+					resource.addProperty("target", string(node.fields(), "value", ""));
+					resources.add(resource);
+				}
+				case "call_procedure" -> {
+					JsonObject call = new JsonObject();
+					call.addProperty("nodeId", node.id().toString());
+					call.addProperty("target", string(node.fields(), "procedureId", ""));
+					calls.add(call);
+				}
+				default -> {
+				}
+			}
+		}
+		JsonObject symbols = new JsonObject();
+		symbols.add("variables", variables);
+		symbols.add("resources", resources);
+		symbols.add("calls", calls);
+		JsonObject stats = new JsonObject();
+		stats.addProperty("variableCount", variables.size());
+		stats.addProperty("resourceCount", resources.size());
+		stats.addProperty("callCount", calls.size());
+		symbols.add("stats", stats);
+		return symbols;
+	}
+
+	private JsonObject procedureVariableSymbol(ProcedureIr.Node node, String access) {
+		JsonObject variable = new JsonObject();
+		variable.addProperty("nodeId", node.id().toString());
+		variable.addProperty("name", string(node.fields(), "VAR", ""));
+		variable.addProperty("access", access);
+		return variable;
 	}
 
 	private JsonArray procedureNodeCatalog(WorkspaceState state) {

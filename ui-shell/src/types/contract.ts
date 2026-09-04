@@ -197,16 +197,35 @@ export interface ProcedureNodeCatalogItem {
   reasonCode?: string | null;
 }
 
+export interface ProcedureSymbols {
+  variables: Array<{ nodeId: UUID; name: string; access: 'read' | 'write' }>;
+  resources: Array<{ nodeId: UUID; kind: string; target: string }>;
+  calls: Array<{ nodeId: UUID; target: string }>;
+  stats: { variableCount: number; resourceCount: number; callCount: number };
+}
+
 export interface ProcedureEditorProjection {
   element: ModElementSummary;
   baseRevision: Revision;
   readOnly: boolean;
   ir: ProcedureIr;
   nodeCatalog: ProcedureNodeCatalogItem[];
+  symbols: ProcedureSymbols;
   sourcePreview: string;
   sourceOwnership: 'generated' | 'manual' | 'mixed';
   references: WorkspaceReferenceProjection;
   diagnostics?: Diagnostic[];
+}
+
+export interface ProcedureChangePreview {
+  elementId: UUID;
+  baseRevision: Revision;
+  canSaveDraft: boolean;
+  canGenerate: boolean;
+  candidateIr: ProcedureIr;
+  sourcePreview: string;
+  diagnostics: Diagnostic[];
+  changedPaths: string[];
 }
 
 export type ProcedureEdit = Record<string, unknown> & { operation: string };
