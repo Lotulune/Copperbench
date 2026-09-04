@@ -315,6 +315,32 @@ export interface ModElementEditorProjection {
   capabilities: CapabilityDecision[];
 }
 
+export interface ModElementChangePreview {
+  elementId: UUID;
+  baseRevision: Revision;
+  canApply: boolean;
+  changedPaths: string[];
+  candidateValues: Record<string, unknown>;
+  diagnostics: Diagnostic[];
+  semanticSummary?: {
+    changedFieldCount: number;
+    changedFields: Array<{
+      path: string;
+      field: string;
+      sectionId: string;
+    }>;
+    sections: string[];
+  };
+  generationImpact?: {
+    scope: 'element' | string;
+    requiresRegeneration: boolean;
+    generatorId: string;
+    loader: string;
+    minecraftVersion: string;
+    affectedDomains: string[];
+  };
+}
+
 export interface TaskLogEntry {
   sequence: number;
   timestamp: Timestamp;

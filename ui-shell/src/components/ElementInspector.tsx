@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   X,
   Save,
@@ -15,6 +15,8 @@ import {
   ModElementSummary,
   FieldChange,
   ModElementEditorProjection,
+  ModElementChangePreview,
+  AssetProjection,
   EditorField,
   Diagnostic
 } from '../types/contract';
@@ -23,6 +25,58 @@ import { t } from '../i18n';
 interface ElementInspectorProps {
   element: ModElementSummary;
   onClose: () => void;
+}
+
+function fieldValue(field: EditorField, values: Record<string, unknown>): unknown {
+  const value = values[field.path];
+  if (field.control === 'json' && typeof value === 'string') return JSON.parse(value);
+  return value;
+}
+
+function comparable(value: unknown): string {
+  return JSON.stringify(value) ?? String(value);
+}
+
+function collectFieldChanges(
+  editor: ModElementEditorProjection | null,
+  values: Record<string, unknown>
+): { changes: FieldChange[]; invalidJson: boolean } {
+  if (!editor) return { changes: [], invalidJson: false };
+  try {
+    const changes = editor.sections
+      .flatMap((section) => section.fields)
+      .filter((field) => !field.readOnly)
+      .flatMap((field) => {
+        const next = fieldValue(field, values);
+        return comparable(next) === comparable(field.value) ? [] : [{ path: field.path, value: next }];
+      });
+    return { changes, invalidJson: false };
+  } catch {
+    return { changes: [], invalidJson: true };
+  }
+}
+
+function resourceCategoryForField(path: string): AssetProjection['assets'][number]['category'] | null {
+  const field = fieldTestSuffix(path).toLowerCase();
+  if (field.includes('texture') || field === 'icon') return 'TEXTURE';
+  if (field.includes('sound') || field.includes('music')) return 'SOUND';
+  if (field.includes('model')) return 'MODEL';
+  return null;
+}
+
+function looksLikeWorkspaceAssetReference(value: string): boolean {
+  return /[\\/]/.test(value) && /\.(png|jpg|jpeg|json|ogg|wav|ttf|otf)$/i.test(value);
+}
+
+function generationDomainLabel(domain: string): string {
+  switch (domain) {
+    case 'client_resources': return '客户端资源';
+    case 'entity_behavior': return '实体行为';
+    case 'entity_definition': return '实体定义';
+    case 'worldgen': return '世界生成';
+    case 'ui_layout': return '界面布局';
+    default: return '元素生成源码';
+  }
 }
 
 function fieldTestSuffix(path: string): string {
@@ -41,9 +95,19 @@ function loaderExtensionName(path: string): string | null {
 }
 
 export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onClose }) => {
-  const { updateModElement, deleteModElement, getModElementEditor, state } = useWorkbench();
+  const {
+    updateModElement,
+    deleteModElement,
+    getModElementEditor,
+    previewModElementChange,
+    listAssets,
+    state
+  } = useWorkbench();
   const [editor, setEditor] = useState<ModElementEditorProjection | null>(null);
   const [values, setValues] = useState<Record<string, unknown>>({});
+  const [assets, setAssets] = useState<AssetProjection | null>(null);
+  const [preview, setPreview] = useState<ModElementChangePreview | null>(null);
+  const [isPreviewing, setIsPreviewing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [localErrors, setLocalErrors] = useState<string[]>([]);
@@ -52,11 +116,17 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
   // on unrelated bridge state changes.
   const getEditorRef = useRef(getModElementEditor);
   getEditorRef.current = getModElementEditor;
+  const previewRef = useRef(previewModElementChange);
+  previewRef.current = previewModElementChange;
+  const listAssetsRef = useRef(listAssets);
+  listAssetsRef.current = listAssets;
 
   useEffect(() => {
     let cancelled = false;
     setEditor(null);
     setValues({});
+    setAssets(null);
+    setPreview(null);
     setLocalErrors([]);
     getEditorRef.current(element.id)
       .then((projection) => {
@@ -78,6 +148,52 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
     };
   }, [element.id]);
 
+  useEffect(() => {
+    if (!editor?.sections.some((section) => section.fields.some((field) => field.control === 'resource_reference'))) {
+      setAssets(null);
+      return;
+    }
+    let cancelled = false;
+    listAssetsRef.current()
+      .then((projection) => {
+        if (!cancelled) setAssets(projection);
+      })
+      .catch(() => {
+        if (!cancelled) setAssets(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [editor?.element.id]);
+
+  const pending = useMemo(() => collectFieldChanges(editor, values), [editor, values]);
+
+  useEffect(() => {
+    if (!editor || pending.invalidJson || pending.changes.length === 0) {
+      setPreview(null);
+      setIsPreviewing(false);
+      return;
+    }
+    let cancelled = false;
+    setIsPreviewing(true);
+    const timer = window.setTimeout(() => {
+      previewRef.current(element.id, pending.changes)
+        .then((result) => {
+          if (!cancelled) setPreview(result);
+        })
+        .catch(() => {
+          if (!cancelled) setPreview(null);
+        })
+        .finally(() => {
+          if (!cancelled) setIsPreviewing(false);
+        });
+    }, 180);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [editor, element.id, pending]);
+
   const elementDiagnostics: Diagnostic[] = [
     ...(editor?.sections.flatMap((section) => section.fields.flatMap((field) => field.diagnostics)) ??
       []),
@@ -90,19 +206,13 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
     setSaveSuccess(false);
     setLocalErrors([]);
 
-    let changes: FieldChange[];
-    try {
-      changes = editor.sections
-        .flatMap((section) => section.fields)
-        .filter((field) => !field.readOnly)
-        .map((field) => ({
-          path: field.path,
-          value: field.control === 'json' && typeof values[field.path] === 'string'
-            ? JSON.parse(values[field.path] as string)
-            : values[field.path]
-        }));
-    } catch {
+    if (pending.invalidJson) {
       setLocalErrors(['JSON 字段格式无效；请修正括号、引号或逗号后再保存。']);
+      setIsSaving(false);
+      return;
+    }
+    const changes = pending.changes;
+    if (changes.length === 0) {
       setIsSaving(false);
       return;
     }
@@ -126,13 +236,22 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
       try {
         const refreshed = await getEditorRef.current(element.id);
         if (refreshed) {
-          const projected = Object.fromEntries(
-            refreshed.sections.flatMap((section) =>
-              section.fields.map((field) => [field.path, field.value])
-            )
-          );
-          setEditor(refreshed);
-          setValues((prev) => ({ ...projected, ...prev }));
+          const committed = { ...values };
+          const rebased = {
+            ...refreshed,
+            sections: refreshed.sections.map((section) => ({
+              ...section,
+              fields: section.fields.map((field) => ({
+                ...field,
+                value: Object.prototype.hasOwnProperty.call(committed, field.path)
+                  ? fieldValue(field, committed)
+                  : field.value
+              }))
+            }))
+          };
+          setEditor(rebased);
+          setValues(committed);
+          setPreview(null);
         }
       } catch {
         setLocalErrors(['元素已保存，但无法刷新编辑器投影。']);
@@ -157,11 +276,45 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
   const errorMessagesToDisplay =
     localErrors.length > 0
       ? localErrors
+      : pending.invalidJson
+        ? ['JSON 字段格式无效；请修正括号、引号或逗号后再保存。']
       : elementDiagnostics.filter((d) => d.severity === 'error').map((d) => t(d.message));
 
   const diagnosticByPath = new Map(
     elementDiagnostics.filter((d) => d.path).map((d) => [d.path as string, d])
   );
+
+  const referenceCandidates = (field: EditorField): Array<{ value: string; label: string }> => {
+    const byValue = new Map<string, string>();
+    field.options.forEach((option) => byValue.set(String(option.value), t(option.label)));
+    if (field.control === 'procedure_reference') {
+      state.elements
+        .filter((candidate) => candidate.type === 'procedure' || candidate.type === 'function')
+        .forEach((candidate) => byValue.set(candidate.name, `${candidate.displayName} · ${candidate.type}`));
+    } else if (field.control === 'resource_reference') {
+      const category = resourceCategoryForField(field.path);
+      assets?.assets
+        .filter((asset) => !category || asset.category === category)
+        .forEach((asset) => byValue.set(asset.relativePath, asset.relativePath));
+    }
+    return [...byValue.entries()].map(([value, label]) => ({ value, label }));
+  };
+
+  const referenceIssue = (field: EditorField): string | null => {
+    if (field.control !== 'procedure_reference' && field.control !== 'resource_reference') return null;
+    const value = String(values[field.path] ?? '').trim();
+    if (!value || ['root', 'none', '(none)', 'null'].includes(value.toLowerCase())) return null;
+    const candidates = referenceCandidates(field);
+    if (field.control === 'procedure_reference' && candidates.length > 0
+      && !candidates.some((candidate) => candidate.value === value)) {
+      return `未找到引用的 Procedure / Function：${value}`;
+    }
+    if (field.control === 'resource_reference' && assets && looksLikeWorkspaceAssetReference(value)
+      && !assets.assets.some((asset) => asset.relativePath.replace(/\\/g, '/') === value.replace(/\\/g, '/'))) {
+      return `工作区中未找到资源：${value}`;
+    }
+    return null;
+  };
 
   const renderControl = (field: EditorField) => {
     const value = values[field.path];
@@ -219,7 +372,10 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
             id={controlId}
             value={value === undefined || value === null ? '' : String(value)}
             disabled={disabled}
-            onChange={(e) => setValues((prev) => ({ ...prev, [field.path]: e.target.value }))}
+            onChange={(e) => setValues((prev) => ({
+              ...prev,
+              [field.path]: typeof field.value === 'number' ? Number(e.target.value) : e.target.value
+            }))}
             style={commonStyle}
             data-testid={`field-${fieldTestSuffix(field.path)}`}
           >
@@ -249,16 +405,46 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
         );
       case 'resource_reference':
       case 'procedure_reference':
+        {
+          const candidates = referenceCandidates(field);
+          const listId = `${controlId}-suggestions`;
+          return (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <div style={{ position: 'relative' }}>
+                <LinkIcon
+                  size={13}
+                  style={{ position: 'absolute', left: '10px', top: '9px', color: 'var(--text-sub)' }}
+                />
+                <input
+                  id={controlId}
+                  type="text"
+                  list={candidates.length > 0 ? listId : undefined}
+                  value={value === undefined || value === null ? '' : String(value)}
+                  disabled={disabled}
+                  readOnly={disabled}
+                  onChange={(e) => setValues((prev) => ({ ...prev, [field.path]: e.target.value }))}
+                  style={{ ...commonStyle, paddingLeft: '30px' }}
+                  data-testid={`field-${fieldTestSuffix(field.path)}`}
+                />
+                {candidates.length > 0 && (
+                  <datalist id={listId}>
+                    {candidates.map((candidate) => (
+                      <option key={candidate.value} value={candidate.value}>{candidate.label}</option>
+                    ))}
+                  </datalist>
+                )}
+              </div>
+              <div style={{ fontSize: '10px', color: 'var(--text-sub)' }}>
+                {field.control === 'resource_reference' ? '资源选择器' : '元素引用选择器'}
+                {candidates.length > 0 ? ` · ${candidates.length} 个候选` : ' · 可输入完整引用'}
+              </div>
+            </div>
+          );
+        }
       case 'text':
       default:
         return (
-          <div style={{ position: 'relative' }}>
-            {(field.control === 'resource_reference' || field.control === 'procedure_reference') && (
-              <LinkIcon
-                size={13}
-                style={{ position: 'absolute', left: '10px', top: '9px', color: 'var(--text-sub)' }}
-              />
-            )}
+          <div>
             <input
               id={controlId}
               type="text"
@@ -266,13 +452,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
               disabled={disabled}
               readOnly={disabled}
               onChange={(e) => setValues((prev) => ({ ...prev, [field.path]: e.target.value }))}
-              style={{
-                ...commonStyle,
-                paddingLeft:
-                  field.control === 'resource_reference' || field.control === 'procedure_reference'
-                    ? '30px'
-                    : undefined
-              }}
+              style={commonStyle}
               data-testid={`field-${fieldTestSuffix(field.path)}`}
             />
           </div>
@@ -382,6 +562,49 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
           </div>
         )}
 
+        {editor && pending.changes.length > 0 && (
+          <div
+            data-testid="element-change-preview"
+            style={{
+              background: 'var(--bg-panel)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 'var(--radius-md)',
+              padding: '12px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '7px'
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
+              <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-main)' }}>更改影响预览</span>
+              <span className="badge badge-blue" style={{ fontSize: '9px' }}>
+                {preview?.semanticSummary?.changedFieldCount ?? pending.changes.length} 个字段
+              </span>
+            </div>
+            {isPreviewing ? (
+              <div style={{ fontSize: '10px', color: 'var(--text-sub)' }}>正在分析语义与生成影响…</div>
+            ) : preview ? (
+              <>
+                <div style={{ fontSize: '10px', color: 'var(--text-sub)' }}>
+                  分区：{(preview.semanticSummary?.sections ?? [])
+                    .map((id) => editor.sections.find((section) => section.id === id))
+                    .filter(Boolean)
+                    .map((section) => t(section!.title))
+                    .join('、') || '通用属性'}
+                </div>
+                {preview.generationImpact && (
+                  <div style={{ fontSize: '10px', color: 'var(--badge-blue)' }}>
+                    保存后需重新生成当前元素 · {preview.generationImpact.affectedDomains.map(generationDomainLabel).join('、')}
+                    {preview.generationImpact.generatorId ? ` · ${preview.generationImpact.generatorId}` : ''}
+                  </div>
+                )}
+              </>
+            ) : (
+              <div style={{ fontSize: '10px', color: 'var(--badge-amber)' }}>暂时无法读取生成影响，保存仍会走 Core 校验。</div>
+            )}
+          </div>
+        )}
+
         {!editor ? (
           <div
             data-testid="inspector-loading"
@@ -407,6 +630,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
 
               {section.fields.map((field) => {
                 const fieldDiagnostic = diagnosticByPath.get(field.path);
+                const pickerIssue = referenceIssue(field);
                 const extensionName = loaderExtensionName(field.path);
                 const isLoaderExtension = field.readOnly && extensionName !== null;
                 const controlId = fieldControlId(field.path);
@@ -417,6 +641,21 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
                     {field.constraints && field.control === 'number' && (
                       <div style={{ fontSize: '10px', color: 'var(--text-sub)' }}>
                         范围：{field.constraints.min} - {field.constraints.max}
+                      </div>
+                    )}
+                    {pickerIssue && (
+                      <div
+                        data-testid={`reference-issue-${fieldTestSuffix(field.path)}`}
+                        style={{
+                          fontSize: '10px',
+                          color: 'var(--badge-amber)',
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          gap: '4px'
+                        }}
+                      >
+                        <AlertTriangle size={11} style={{ flexShrink: 0, marginTop: '1px' }} />
+                        <span>{pickerIssue}</span>
                       </div>
                     )}
                     {fieldDiagnostic && (
@@ -538,7 +777,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
           <button
             className="btn-primary"
             onClick={handleSave}
-            disabled={isSaving || !editor}
+            disabled={isSaving || !editor || pending.invalidJson || pending.changes.length === 0}
             data-testid="inspector-save-btn"
           >
             <Save size={13} />

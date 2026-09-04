@@ -2846,6 +2846,59 @@ export class MockCoreBridge implements CoreBridge {
         }
         break;
       }
+      case 'preview_mod_element_change': {
+        const payload = query.payload as {
+          elementId?: UUID;
+          changes?: Array<{ path: string; value: unknown }>;
+        };
+        const changes = payload.changes ?? [];
+        const elem = this.state.elements.find((candidate) => candidate.id === payload.elementId);
+        const sectionForPath = (path: string): string => {
+          const field = path.split('/').filter(Boolean).pop()?.toLowerCase() ?? '';
+          if (elem?.type === 'livingentity') {
+            if (field.includes('texture') || field.includes('sound')) return 'resources';
+            if (['health', 'attackstrength', 'movementspeed', 'armorbasevalue'].includes(field)) return 'attributes';
+            if (field.startsWith('on') || field.startsWith('when') || field.endsWith('condition')) return 'events';
+            if (field.includes('spawn')) return 'spawning';
+          }
+          return elem && ['livingentity', 'biome', 'dimension', 'gui'].includes(String(elem.type)) ? 'advanced' : 'general';
+        };
+        const sections = [...new Set(changes.map((change) => sectionForPath(change.path)))];
+        const affectedDomains = elem?.type === 'livingentity'
+          ? [...new Set(sections.map((section) =>
+              section === 'resources' ? 'client_resources'
+                : section === 'attributes' ? 'entity_definition'
+                : section === 'events' || section === 'spawning' ? 'entity_behavior'
+                : 'element_source'
+            ))]
+          : ['element_source'];
+        data = {
+          elementId: payload.elementId ?? '',
+          baseRevision: revision,
+          canApply: true,
+          changedPaths: changes.map((change) => `/elements/${payload.elementId}${change.path}`),
+          candidateValues: Object.fromEntries(changes.map((change) => [change.path, change.value])),
+          diagnostics: [],
+          semanticSummary: {
+            changedFieldCount: changes.length,
+            changedFields: changes.map((change) => ({
+              path: change.path,
+              field: change.path.split('/').filter(Boolean).pop() ?? 'field',
+              sectionId: sectionForPath(change.path)
+            })),
+            sections
+          },
+          generationImpact: {
+            scope: 'element',
+            requiresRegeneration: true,
+            generatorId: this.state.workbench?.workspace.generator.id ?? 'fabric-1.21.1',
+            loader: this.state.workbench?.workspace.generator.loader ?? 'fabric',
+            minecraftVersion: this.state.workbench?.workspace.generator.minecraftVersion ?? '1.21.1',
+            affectedDomains
+          }
+        };
+        break;
+      }
       case 'get_task': {
         const taskId = (query.payload as { taskId?: UUID })?.taskId;
         const afterLogSequence = (query.payload as { afterLogSequence?: number })?.afterLogSequence ?? 0;

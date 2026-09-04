@@ -38,6 +38,16 @@ test.describe('Interactive UI-Core Commands & Mutations', () => {
     await expect(page.locator('[data-testid="element-inspector"]')).toBeVisible();
     await expect(page.locator('[data-testid="field-displayName"]')).toHaveValue('Copper Guardian');
     await expect(page.locator('[data-testid="field-displayName"]')).toBeEditable();
+
+    await expect(page.locator('[data-testid="inspector-save-btn"]')).toBeDisabled();
+    await page.fill('[data-testid="field-displayName"]', 'Copper Guardian Prime');
+    await expect(page.locator('[data-testid="element-change-preview"]')).toBeVisible();
+    await expect(page.locator('[data-testid="element-change-preview"]')).toContainText('更改影响预览');
+    await expect(page.locator('[data-testid="element-change-preview"]')).toContainText('保存后需重新生成当前元素');
+    await expect(page.locator('[data-testid="inspector-save-btn"]')).toBeEnabled();
+    await page.click('[data-testid="inspector-save-btn"]');
+    await expect(page.locator('[data-testid="element-change-preview"]')).not.toBeVisible();
+    await expect(page.locator('[data-testid="inspector-save-btn"]')).toBeDisabled();
   });
 
   test('update_mod_element with invalid value triggers validation error', async ({ page }) => {

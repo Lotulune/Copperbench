@@ -45,6 +45,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class WorkspaceApplicationServiceTest {
@@ -61,6 +62,65 @@ class WorkspaceApplicationServiceTest {
 				PermissionProfile.WORKSPACE);
 
 		assertEquals(GSON.toJsonTree(legacy.query(query)), GSON.toJsonTree(headless.query(query)));
+	}
+
+	@Test void stage12LivingEntityEditorProvidesReferenceCandidatesAndSemanticGenerationImpact() {
+		Fixture fixture = fixture();
+		RequestContext context = new RequestContext(Actor.UI, PermissionProfile.WORKSPACE);
+		JsonObject entityValues = new JsonObject();
+		entityValues.addProperty("mobName", "copper_guardian");
+		entityValues.addProperty("mobLabel", "Copper Guardian");
+		entityValues.addProperty("health", 20);
+		entityValues.addProperty("mobModelTexture", "textures/entity/copper_guardian.png");
+		entityValues.addProperty("whenMobDies", "guardian_cleanup");
+		CommandOutcome created = fixture.service.execute(
+				createTypedCommand(uuid(31), 0, "livingentity", "copper_guardian", entityValues), context);
+		String elementId = created.result().data().getAsJsonObject().getAsJsonObject("element").get("id").getAsString();
+
+		JsonObject procedureValues = new JsonObject();
+		procedureValues.addProperty("procedurexml", "<xml xmlns=\"https://developers.google.com/blockly/xml\"></xml>");
+		CommandOutcome procedure = fixture.service.execute(
+				createTypedCommand(uuid(32), 1, "procedure", "guardian_cleanup", procedureValues), context);
+		assertEquals("committed", procedure.result().status());
+
+		JsonObject editorPayload = new JsonObject();
+		editorPayload.addProperty("elementId", elementId);
+		var editorResult = fixture.service.query(Query.of(uuid(33), WORKSPACE_ID,
+				Operation.GET_MOD_ELEMENT_EDITOR, editorPayload), context);
+		JsonObject editor = editorResult.data().getAsJsonObject();
+		JsonObject deathProcedure = findEditorField(editor, "/whenMobDies");
+		assertNotNull(deathProcedure);
+		assertEquals("procedure_reference", deathProcedure.get("control").getAsString());
+		assertTrue(deathProcedure.getAsJsonArray("options").asList().stream()
+				.anyMatch(option -> option.getAsJsonObject().get("value").getAsString().equals("guardian_cleanup")));
+
+		JsonArray changes = new JsonArray();
+		JsonObject health = new JsonObject();
+		health.addProperty("path", "/health");
+		health.addProperty("value", 32);
+		changes.add(health);
+		JsonObject texture = new JsonObject();
+		texture.addProperty("path", "/mobModelTexture");
+		texture.addProperty("value", "textures/entity/copper_guardian_alt.png");
+		changes.add(texture);
+		JsonObject previewPayload = new JsonObject();
+		previewPayload.addProperty("elementId", elementId);
+		previewPayload.add("changes", changes);
+
+		var previewResult = fixture.service.query(Query.of(uuid(34), WORKSPACE_ID,
+				Operation.PREVIEW_MOD_ELEMENT_CHANGE, previewPayload), context);
+		JsonObject preview = previewResult.data().getAsJsonObject();
+		assertEquals(2, preview.getAsJsonObject("semanticSummary").get("changedFieldCount").getAsInt());
+		JsonArray sections = preview.getAsJsonObject("semanticSummary").getAsJsonArray("sections");
+		assertTrue(sections.asList().stream().anyMatch(section -> section.getAsString().equals("attributes")));
+		assertTrue(sections.asList().stream().anyMatch(section -> section.getAsString().equals("resources")));
+		JsonObject impact = preview.getAsJsonObject("generationImpact");
+		assertTrue(impact.get("requiresRegeneration").getAsBoolean());
+		assertEquals("fabric-1.21.1", impact.get("generatorId").getAsString());
+		assertTrue(impact.getAsJsonArray("affectedDomains").asList().stream()
+				.anyMatch(domain -> domain.getAsString().equals("entity_definition")));
+		assertTrue(impact.getAsJsonArray("affectedDomains").asList().stream()
+				.anyMatch(domain -> domain.getAsString().equals("client_resources")));
 	}
 
 	@Test void legacyMcpAndHeadlessEntriesProduceTheSameElementResultAndEvent() {
@@ -305,8 +365,27 @@ class WorkspaceApplicationServiceTest {
 	@Test void stage12P0TypesUseDepthSectionsWhileLegacyTypesKeepGeneralProjection() {
 		for (String type : List.of("biome", "dimension", "gui")) {
 			Fixture fixture = fixture();
+			JsonObject initialValues = new JsonObject();
+			switch (type) {
+				case "biome" -> {
+					initialValues.addProperty("temperature", 0.5);
+					initialValues.addProperty("treeType", 0);
+					initialValues.addProperty("villageType", "plains");
+				}
+				case "dimension" -> {
+					initialValues.addProperty("seaLevel", 63);
+					initialValues.addProperty("worldGenType", "Normal world gen");
+					initialValues.addProperty("skyType", "NORMAL");
+				}
+				case "gui" -> {
+					initialValues.addProperty("type", 0);
+					initialValues.addProperty("width", 176);
+					initialValues.addProperty("height", 166);
+				}
+				default -> throw new AssertionError(type);
+			}
 			CommandOutcome created = fixture.service.execute(
-					createElementCommand(uuid(22), type, "depth_sample", new JsonObject()),
+					createElementCommand(uuid(22), type, "depth_sample", initialValues),
 					new RequestContext(Actor.UI, PermissionProfile.WORKSPACE));
 			String elementId = created.result().data().getAsJsonObject().getAsJsonObject("element")
 					.get("id").getAsString();
@@ -318,6 +397,25 @@ class WorkspaceApplicationServiceTest {
 					.getAsJsonArray("sections");
 			assertTrue(sections.size() > 1, type + " should expose Stage 12 depth sections");
 			assertEquals("identity", sections.get(0).getAsJsonObject().get("id").getAsString());
+			if (type.equals("biome")) {
+				JsonObject temperature = editorField(sections, "/temperature");
+				assertEquals(-1, temperature.getAsJsonObject("constraints").get("min").getAsInt());
+				assertEquals(2, temperature.getAsJsonObject("constraints").get("max").getAsInt());
+				JsonObject treeType = editorField(sections, "/treeType");
+				assertEquals("select", treeType.get("control").getAsString());
+				assertEquals(0, treeType.getAsJsonArray("options").get(0).getAsJsonObject().get("value").getAsInt());
+			} else if (type.equals("dimension")) {
+				JsonObject seaLevel = editorField(sections, "/seaLevel");
+				assertEquals(-1024, seaLevel.getAsJsonObject("constraints").get("min").getAsInt());
+				assertEquals(1024, seaLevel.getAsJsonObject("constraints").get("max").getAsInt());
+				assertEquals("select", editorField(sections, "/worldGenType").get("control").getAsString());
+			} else {
+				JsonObject guiType = editorField(sections, "/type");
+				assertEquals("select", guiType.get("control").getAsString());
+				assertEquals(0, guiType.getAsJsonArray("options").get(0).getAsJsonObject().get("value").getAsInt());
+				JsonObject width = editorField(sections, "/width");
+				assertEquals(512, width.getAsJsonObject("constraints").get("max").getAsInt());
+			}
 		}
 
 		Fixture legacyFixture = fixture();
@@ -397,6 +495,26 @@ class WorkspaceApplicationServiceTest {
 		payload.addProperty("name", name);
 		payload.add("initialValues", initialValues.deepCopy());
 		return Command.of(requestId, WORKSPACE_ID, 0, Operation.CREATE_MOD_ELEMENT, payload);
+	}
+
+	private static Command createTypedCommand(UUID requestId, long expectedRevision, String type, String name,
+			JsonObject initialValues) {
+		JsonObject payload = new JsonObject();
+		payload.addProperty("clientMutationId", uuid(500 + expectedRevision).toString());
+		payload.addProperty("elementType", type);
+		payload.addProperty("name", name);
+		payload.add("initialValues", initialValues.deepCopy());
+		return Command.of(requestId, WORKSPACE_ID, expectedRevision, Operation.CREATE_MOD_ELEMENT, payload);
+	}
+
+	private static JsonObject findEditorField(JsonObject editor, String path) {
+		for (var sectionRaw : editor.getAsJsonArray("sections")) {
+			for (var fieldRaw : sectionRaw.getAsJsonObject().getAsJsonArray("fields")) {
+				JsonObject field = fieldRaw.getAsJsonObject();
+				if (field.get("path").getAsString().equals(path)) return field;
+			}
+		}
+		return null;
 	}
 
 	private static JsonObject editorField(JsonArray sections, String path) {

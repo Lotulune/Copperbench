@@ -1572,7 +1572,7 @@ public final class WorkspaceApplicationService {
 		boolean readOnly = outsideSlice || context.permission() == PermissionProfile.READ_ONLY;
 		JsonObject projection = new JsonObject();
 		projection.add("element", elementSummary(element));
-		projection.add("sections", editorSections(element, readOnly));
+		projection.add("sections", editorSections(element, readOnly, state));
 		projection.add("capabilities", capabilities(context));
 		if (!outsideSlice)
 			return querySuccess(query, state.revision(), projection);
@@ -1594,11 +1594,21 @@ public final class WorkspaceApplicationService {
 			return queryFailure(query, state.revision(), invalidPayload("changes must not be empty"));
 		JsonObject values = element.values().deepCopy();
 		JsonArray changedPaths = new JsonArray();
+		JsonArray changedFields = new JsonArray();
+		Set<String> changedSections = new java.util.LinkedHashSet<>();
 		for (JsonElement rawChange : changes) {
 			JsonObject change = rawChange.getAsJsonObject();
 			String pointer = requiredString(change, "path");
 			JsonPointerPatch.set(values, pointer, change.has("value") ? change.get("value") : JsonNull.INSTANCE);
 			changedPaths.add(elementPath(elementId) + pointer);
+			String sectionId = stage12SectionOrder(element.type()) == null ? "general"
+					: stage12SectionId(element.type(), pointer);
+			changedSections.add(sectionId);
+			JsonObject changedField = new JsonObject();
+			changedField.addProperty("path", pointer);
+			changedField.addProperty("field", editorFieldName(pointer));
+			changedField.addProperty("sectionId", sectionId);
+			changedFields.add(changedField);
 		}
 		Diagnostic diagnostic = validateElementValues(elementId, values);
 		JsonObject projection = new JsonObject();
@@ -1611,6 +1621,12 @@ public final class WorkspaceApplicationService {
 		if (diagnostic != null)
 			diagnostics.add(GSON.toJsonTree(diagnostic));
 		projection.add("diagnostics", diagnostics);
+		JsonObject semanticSummary = new JsonObject();
+		semanticSummary.addProperty("changedFieldCount", changedFields.size());
+		semanticSummary.add("changedFields", changedFields);
+		semanticSummary.add("sections", GSON.toJsonTree(changedSections));
+		projection.add("semanticSummary", semanticSummary);
+		projection.add("generationImpact", generationImpact(state, element.type(), changedSections));
 		return querySuccess(query, state.revision(), projection);
 	}
 
@@ -1620,11 +1636,11 @@ public final class WorkspaceApplicationService {
 	 * that Copperbench does not understand are deliberately collected under {@code advanced} instead
 	 * of being omitted. That makes the typed UI safe for upstream/newer-generator round trips.
 	 */
-	private JsonArray editorSections(Element element, boolean readOnly) {
+	private JsonArray editorSections(Element element, boolean readOnly, WorkspaceState state) {
 		JsonArray fields = new JsonArray();
-		flattenFields(element.values(), "", fields, readOnly, element.type());
+		flattenFields(element.values(), "", fields, readOnly, element.type(), state);
 		if (fields.isEmpty())
-			fields.add(editorField("/displayName", "Display name", element.displayName(), readOnly, element.type()));
+			fields.add(editorField("/displayName", "Display name", element.displayName(), readOnly, element.type(), state));
 
 		List<String> order = stage12SectionOrder(element.type());
 		if (order == null)
@@ -1647,6 +1663,38 @@ public final class WorkspaceApplicationService {
 			sections.add(editorSection(id, stage12SectionTitle(id), grouped.get(index)));
 		}
 		return sections;
+	}
+
+	private JsonObject generationImpact(WorkspaceState state, String elementType, Set<String> sections) {
+		JsonObject impact = new JsonObject();
+		impact.addProperty("scope", "element");
+		impact.addProperty("requiresRegeneration", true);
+		impact.addProperty("generatorId", state.generator().has("id") ? state.generator().get("id").getAsString() : "");
+		impact.addProperty("loader", state.generator().has("loader") ? state.generator().get("loader").getAsString() : "");
+		impact.addProperty("minecraftVersion", state.generator().has("minecraftVersion")
+				? state.generator().get("minecraftVersion").getAsString() : "");
+		Set<String> domains = new java.util.LinkedHashSet<>();
+		for (String section : sections) {
+			switch (elementType) {
+				case "livingentity" -> {
+					if (Set.of("appearance", "resources").contains(section)) domains.add("client_resources");
+					if (Set.of("behavior", "events", "spawning").contains(section)) domains.add("entity_behavior");
+					if (Set.of("attributes", "equipment").contains(section)) domains.add("entity_definition");
+				}
+				case "biome", "dimension" -> {
+					if (Set.of("generation", "spawning", "environment", "climate").contains(section)) domains.add("worldgen");
+					if (Set.of("appearance", "resources").contains(section)) domains.add("client_resources");
+				}
+				case "gui" -> {
+					if (Set.of("layout", "components", "behavior").contains(section)) domains.add("ui_layout");
+					if (section.equals("resources")) domains.add("client_resources");
+				}
+				default -> domains.add("element_source");
+			}
+		}
+		if (domains.isEmpty()) domains.add("element_source");
+		impact.add("affectedDomains", GSON.toJsonTree(domains));
+		return impact;
 	}
 
 	private JsonArray singleEditorSection(String id, String title, JsonArray fields) {
@@ -2259,18 +2307,20 @@ public final class WorkspaceApplicationService {
 		return querySuccess(query, state.revision(), projection);
 	}
 
-	private void flattenFields(JsonObject object, String base, JsonArray target, boolean readOnly, String elementType) {
+	private void flattenFields(JsonObject object, String base, JsonArray target, boolean readOnly, String elementType,
+			WorkspaceState state) {
 		for (String key : object.keySet()) {
 			JsonElement value = object.get(key);
 			String path = base + "/" + key.replace("~", "~0").replace("/", "~1");
 			if (value.isJsonObject())
-				flattenFields(value.getAsJsonObject(), path, target, readOnly, elementType);
+				flattenFields(value.getAsJsonObject(), path, target, readOnly, elementType, state);
 			else
-				target.add(editorField(path, displayName(key), value, readOnly, elementType));
+				target.add(editorField(path, displayName(key), value, readOnly, elementType, state));
 		}
 	}
 
-	private JsonObject editorField(String path, String label, Object value, boolean readOnly, String elementType) {
+	private JsonObject editorField(String path, String label, Object value, boolean readOnly, String elementType,
+			WorkspaceState state) {
 		JsonObject field = new JsonObject();
 		field.addProperty("path", path);
 		field.add("label", localized("field." + path.substring(path.lastIndexOf('/') + 1), label));
@@ -2285,11 +2335,15 @@ public final class WorkspaceApplicationService {
 				|| fieldName.equals("rarity") || fieldName.equals("sentiment") || fieldName.equals("priority")
 				|| fieldName.equals("entityType") || (elementType.equals("livingentity")
 				&& Set.of("bossBarColor", "bossBarType", "mobBehaviourType", "mobCreatureType", "aiBase")
-						.contains(fieldName))) control = "select";
+						.contains(fieldName)) || (elementType.equals("biome")
+				&& Set.of("vanillaTreeType", "treeType", "villageType", "oceanRuinType", "spawnRuinedPortal")
+						.contains(fieldName)) || (elementType.equals("dimension")
+				&& Set.of("worldGenType", "defaultEffects", "skyType", "igniterRarity").contains(fieldName)))
+			control = "select";
 		if (value instanceof JsonElement element && element.isJsonPrimitive()
 				&& element.getAsJsonPrimitive().isBoolean()) control = "toggle";
 		if (value instanceof JsonElement element && element.isJsonPrimitive()
-				&& element.getAsJsonPrimitive().isNumber())
+				&& element.getAsJsonPrimitive().isNumber() && !control.equals("select"))
 			control = "number";
 		field.addProperty("control", control);
 		field.addProperty("required", elementType.equals("livingentity")
@@ -2300,7 +2354,10 @@ public final class WorkspaceApplicationService {
 		else
 			field.addProperty("value", String.valueOf(value));
 		JsonArray options = new JsonArray();
-		if (fieldName.equals("frame")) {
+		if (elementType.equals("gui") && fieldName.equals("type")) {
+			options.add(fieldOption(0, "Without slots"));
+			options.add(fieldOption(1, "With slots"));
+		} else if (fieldName.equals("frame")) {
 			options.add(fieldOption("task", "Task"));
 			options.add(fieldOption("goal", "Goal"));
 			options.add(fieldOption("challenge", "Challenge"));
@@ -2337,6 +2394,35 @@ public final class WorkspaceApplicationService {
 			for (String option : List.of("(none)", "Bat", "Blaze", "Chicken", "Cow", "Creeper", "Enderman", "Horse",
 					"IronGolem", "MagmaCube", "Ocelot", "Pig", "Skeleton", "Slime", "Spider", "Squid",
 					"Villager", "Witch", "Wolf", "Zombie")) options.add(fieldOption(option, option));
+		} else if (elementType.equals("biome") && fieldName.equals("vanillaTreeType")) {
+			for (String option : List.of("Default", "Big trees", "Birch trees", "Savanna trees", "Mega pine trees",
+					"Mega spruce trees")) options.add(fieldOption(option, option));
+		} else if (elementType.equals("biome") && fieldName.equals("treeType")) {
+			options.add(fieldOption(0, "Vanilla trees"));
+			options.add(fieldOption(1, "Custom trees"));
+		} else if (elementType.equals("biome") && fieldName.equals("villageType")) {
+			for (String option : List.of("none", "desert", "plains", "savanna", "snowy", "taiga"))
+				options.add(fieldOption(option, option));
+		} else if (elementType.equals("biome") && fieldName.equals("oceanRuinType")) {
+			for (String option : List.of("NONE", "COLD", "WARM")) options.add(fieldOption(option, option));
+		} else if (elementType.equals("biome") && fieldName.equals("spawnRuinedPortal")) {
+			for (String option : List.of("NONE", "STANDARD", "DESERT", "JUNGLE", "SWAMP", "MOUNTAIN", "OCEAN", "NETHER"))
+				options.add(fieldOption(option, option));
+		} else if (elementType.equals("dimension") && fieldName.equals("worldGenType")) {
+			for (String option : List.of("Normal world gen", "Nether like gen", "End like gen"))
+				options.add(fieldOption(option, option));
+		} else if (elementType.equals("dimension") && fieldName.equals("defaultEffects")) {
+			for (String option : List.of("overworld", "the_nether", "the_end")) options.add(fieldOption(option, option));
+		} else if (elementType.equals("dimension") && fieldName.equals("skyType")) {
+			for (String option : List.of("NORMAL", "NONE", "END")) options.add(fieldOption(option, option));
+		} else if (elementType.equals("dimension") && fieldName.equals("igniterRarity")) {
+			for (String option : List.of("COMMON", "UNCOMMON", "RARE", "EPIC")) options.add(fieldOption(option, option));
+		} else if (control.equals("procedure_reference")) {
+			state.elements().stream()
+					.filter(candidate -> candidate.type().equals("procedure") || candidate.type().equals("function"))
+					.sorted(Comparator.comparing(Element::displayName, String.CASE_INSENSITIVE_ORDER))
+					.forEach(candidate -> options.add(fieldOption(candidate.name(),
+							candidate.displayName() + " · " + candidate.type())));
 		}
 		field.add("options", options);
 		JsonObject constraints = editorConstraints(elementType, fieldName);
@@ -2364,23 +2450,49 @@ public final class WorkspaceApplicationService {
 	}
 
 	private JsonObject editorConstraints(String elementType, String fieldName) {
-		if (!elementType.equals("livingentity")) return null;
-		double[] constraint = switch (fieldName) {
-			case "modelWidth", "modelHeight", "modelShadowSize" -> new double[] { 0, 16, 0.1 };
-			case "mountedYOffset" -> new double[] { -1024, 1024, 0.1 };
-			case "attackStrength" -> new double[] { 0, 10000, 1 };
-			case "attackKnockback", "knockbackResistance" -> new double[] { 0, 1000, 0.1 };
-			case "movementSpeed" -> new double[] { 0, 50, 0.1 };
-			case "stepHeight" -> new double[] { 0, 255, 0.1 };
-			case "armorBaseValue" -> new double[] { 0, 100, 0.1 };
-			case "trackingRange" -> new double[] { 0, 2048, 1 };
-			case "followRange", "health", "rangedAttackInterval" -> new double[] { 0, 1024, 1 };
-			case "xpAmount" -> new double[] { 0, 100000, 1 };
-			case "inventorySize" -> new double[] { 0, 256, 1 };
-			case "inventoryStackSize" -> new double[] { 1, 1024, 1 };
-			case "rangedAttackRadius" -> new double[] { 0, 1024, 0.1 };
-			case "spawningProbability" -> new double[] { 1, 1000, 1 };
-			case "minNumberOfMobsPerGroup", "maxNumberOfMobsPerGroup" -> new double[] { 1, 128, 1 };
+		double[] constraint = switch (elementType) {
+			case "livingentity" -> switch (fieldName) {
+				case "modelWidth", "modelHeight", "modelShadowSize" -> new double[] { 0, 16, 0.1 };
+				case "mountedYOffset" -> new double[] { -1024, 1024, 0.1 };
+				case "attackStrength" -> new double[] { 0, 10000, 1 };
+				case "attackKnockback", "knockbackResistance" -> new double[] { 0, 1000, 0.1 };
+				case "movementSpeed" -> new double[] { 0, 50, 0.1 };
+				case "stepHeight" -> new double[] { 0, 255, 0.1 };
+				case "armorBaseValue" -> new double[] { 0, 100, 0.1 };
+				case "trackingRange" -> new double[] { 0, 2048, 1 };
+				case "followRange", "health", "rangedAttackInterval" -> new double[] { 0, 1024, 1 };
+				case "xpAmount" -> new double[] { 0, 100000, 1 };
+				case "inventorySize" -> new double[] { 0, 256, 1 };
+				case "inventoryStackSize" -> new double[] { 1, 1024, 1 };
+				case "rangedAttackRadius" -> new double[] { 0, 1024, 0.1 };
+				case "spawningProbability" -> new double[] { 1, 1000, 1 };
+				case "minNumberOfMobsPerGroup", "maxNumberOfMobsPerGroup" -> new double[] { 1, 128, 1 };
+				default -> null;
+			};
+			case "biome" -> switch (fieldName) {
+				case "moodSoundDelay" -> new double[] { 1, 30000, 1 };
+				case "particlesProbability" -> new double[] { 0, 100, 0.1 };
+				case "rainingPossibility" -> new double[] { 0, 1, 0.1 };
+				case "temperature" -> new double[] { -1, 2, 0.1 };
+				case "genDepthMin", "genDepthMax" -> new double[] { 0, 1.5, 0.0001 };
+				case "treesPerChunk" -> new double[] { 0, 64, 1 };
+				case "minHeight" -> new double[] { 0, 32, 1 };
+				default -> null;
+			};
+			case "dimension" -> switch (fieldName) {
+				case "seaLevel" -> new double[] { -1024, 1024, 1 };
+				case "cloudHeight" -> new double[] { -2032, 2031, 16 };
+				case "ambientLight" -> new double[] { 0, 1, 0.01 };
+				case "fixedTimeValue" -> new double[] { 0, 24000, 1 };
+				case "coordinateScale" -> new double[] { 0.01, 1000, 0.01 };
+				case "minMonsterSpawnLightLimit", "maxMonsterSpawnLightLimit", "monsterSpawnBlockLightLimit",
+						"portalLuminance" -> new double[] { 0, 15, 1 };
+				default -> null;
+			};
+			case "gui" -> switch (fieldName) {
+				case "width", "height" -> new double[] { 0, 512, 1 };
+				default -> null;
+			};
 			default -> null;
 		};
 		if (constraint == null) return null;
@@ -2399,6 +2511,12 @@ public final class WorkspaceApplicationService {
 		option.add("label", localized("field.option", label, args));
 		option.addProperty("disabled", false);
 		option.add("reason", JsonNull.INSTANCE);
+		return option;
+	}
+
+	private JsonObject fieldOption(int value, String label) {
+		JsonObject option = fieldOption(String.valueOf(value), label);
+		option.addProperty("value", value);
 		return option;
 	}
 
