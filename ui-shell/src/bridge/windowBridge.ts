@@ -30,8 +30,7 @@ export interface WindowChromeSnapshot {
 export interface NativeWindowHost {
   readonly systemFrame: boolean;
   readonly chromeRegionSchemaVersion?: typeof WINDOW_CHROME_SCHEMA_VERSION;
-  invoke(action: 'minimize' | 'toggle_maximize' | 'close' | 'begin_drag'): Promise<void>;
-  beginDrag?(): Promise<void>;
+  invoke(action: 'minimize' | 'toggle_maximize' | 'close'): Promise<void>;
   reportChromeRegions?(snapshot: WindowChromeSnapshot): Promise<void>;
 }
 
@@ -48,7 +47,6 @@ export interface WindowBridge {
   minimize(): void;
   toggleMaximize(): void;
   close(): void;
-  beginDrag(): void;
   reportChromeRegions(snapshot: WindowChromeSnapshot): void;
 }
 
@@ -76,16 +74,6 @@ class JcefWindowBridge implements WindowBridge {
     this.invoke('close');
   }
 
-  public beginDrag(): void {
-    if (typeof this.host.beginDrag === 'function') {
-      void this.host.beginDrag().catch((error: unknown) => {
-        console.warn('[Copperbench Window Bridge] Native begin-drag failed:', error);
-      });
-      return;
-    }
-    this.invoke('begin_drag');
-  }
-
   public reportChromeRegions(snapshot: WindowChromeSnapshot): void {
     if (!this.supportsChromeRegions || !this.host.reportChromeRegions) return;
     void this.host.reportChromeRegions(snapshot).catch((error: unknown) => {
@@ -93,7 +81,7 @@ class JcefWindowBridge implements WindowBridge {
     });
   }
 
-  private invoke(action: 'minimize' | 'toggle_maximize' | 'close' | 'begin_drag'): void {
+  private invoke(action: 'minimize' | 'toggle_maximize' | 'close'): void {
     void this.host.invoke(action).catch((error: unknown) => {
       console.warn('[Copperbench Window Bridge] Native action failed:', error);
     });
@@ -116,10 +104,6 @@ class MockWindowBridge implements WindowBridge {
 
   public close(): void {
     this.lastAction = 'close';
-  }
-
-  public beginDrag(): void {
-    this.lastAction = 'begin_drag';
   }
 
   public reportChromeRegions(_snapshot: WindowChromeSnapshot): void {

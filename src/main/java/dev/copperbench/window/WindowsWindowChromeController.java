@@ -10,9 +10,11 @@
 package dev.copperbench.window;
 
 import com.sun.jna.CallbackReference;
+import com.sun.jna.CallbackThreadInitializer;
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 import com.sun.jna.Structure;
+import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.ptr.LongByReference;
 import com.sun.jna.win32.StdCallLibrary;
 import com.sun.jna.win32.W32APIOptions;
@@ -24,8 +26,10 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static dev.copperbench.window.WindowChromeHitTest.HitTarget;
 
@@ -43,6 +47,8 @@ public final class WindowsWindowChromeController implements AutoCloseable {
 
 	private static final int WM_GETMINMAXINFO = 0x0024;
 	private static final int WM_CANCELMODE = 0x001F;
+	private static final int WM_SETCURSOR = 0x0020;
+	private static final int WM_MOUSEMOVE = 0x0200;
 	private static final int WM_NCCALCSIZE = 0x0083;
 	private static final int WM_NCHITTEST = 0x0084;
 	private static final int WM_NCLBUTTONDOWN = 0x00A1;
@@ -52,6 +58,12 @@ public final class WindowsWindowChromeController implements AutoCloseable {
 	private static final int WM_SYSCOMMAND = 0x0112;
 	private static final int WM_DPICHANGED = 0x02E0;
 	private static final int VK_SPACE = 0x20;
+	private static final int SC_SIZE = 0xF000;
+	private static final int IDC_SIZENWSE = 32642;
+	private static final int IDC_SIZENESW = 32643;
+	private static final int IDC_SIZEWE = 32644;
+	private static final int IDC_SIZENS = 32645;
+	private static final int IDC_ARROW = 32512;
 
 	private static final int SM_CXSIZEFRAME = 32;
 	private static final int SM_CYSIZEFRAME = 33;
@@ -65,12 +77,18 @@ public final class WindowsWindowChromeController implements AutoCloseable {
 	private static final int SWP_FRAMECHANGED = 0x0020;
 	private static final int MINIMUM_WIDTH_CSS = 500;
 	private static final int MINIMUM_HEIGHT_CSS = 600;
+	private static final int RESIZE_HIT_TARGET_CSS = 10;
+	private static final int RESIZE_CURSOR_HINT_WIDTH_CSS = 50;
+	private static final int RESIZE_CURSOR_EDGE_OUTSET_CSS = 40;
 
 	private final JFrame window;
 	private final AtomicReference<WindowChromeSnapshot> chromeSnapshot = new AtomicReference<>();
 	private final AtomicBoolean customFrame = new AtomicBoolean(true);
 	private final AtomicBoolean fallbackScheduled = new AtomicBoolean(false);
 	private final WindowProc windowProc = this::windowProc;
+	private final WindowProc childWindowProc = this::childWindowProc;
+	private final Map<Long, Pointer> previousChildWindowProcs = new ConcurrentHashMap<>();
+	private final AtomicBoolean resizeCursorHintActive = new AtomicBoolean(false);
 
 	private Pointer hwnd;
 	private Pointer previousWindowProc;
@@ -79,6 +97,230 @@ public final class WindowsWindowChromeController implements AutoCloseable {
 
 	private WindowsWindowChromeController(JFrame window) {
 		this.window = window;
+		Native.setCallbackThreadInitializer(childWindowProc,
+				new CallbackThreadInitializer(true, false, "Copperbench-JCEF-window-chrome"));
+	}
+
+	static int resizeHitTargetForDpi(int currentDpi) {
+		int systemBorder = Math.max(systemMetricForDpi(SM_CXSIZEFRAME, currentDpi),
+				systemMetricForDpi(SM_CYSIZEFRAME, currentDpi)) + systemMetricForDpi(SM_CXPADDEDBORDER, currentDpi);
+		return Math.max(Math.max(1, systemBorder), scaleForDpi(RESIZE_HIT_TARGET_CSS, currentDpi));
+	}
+
+	static int resizeCursorHintTargetForDpi(int currentDpi) {
+		return Math.max(resizeHitTargetForDpi(currentDpi), scaleForDpi(RESIZE_CURSOR_HINT_WIDTH_CSS, currentDpi));
+	}
+
+	int childHookCountForTesting() {
+		return previousChildWindowProcs.size();
+	}
+
+	private void refreshChildWindowHooks() {
+		Pointer parent = hwnd;
+		if (parent == null || !installed || !customFrame.get())
+			return;
+		long currentPid = ProcessHandle.current().pid();
+		User32.INSTANCE.EnumChildWindows(parent, (child, data) -> {
+			if (child == null)
+				return true;
+			IntByReference processId = new IntByReference();
+			User32.INSTANCE.GetWindowThreadProcessId(child, processId);
+			if (Integer.toUnsignedLong(processId.getValue()) != currentPid)
+				return true;
+			long key = Pointer.nativeValue(child);
+			if (previousChildWindowProcs.containsKey(key))
+				return true;
+			Native.setLastError(0);
+			Pointer previous = User32.INSTANCE.SetWindowLongPtrW(child, GWL_WNDPROC,
+					CallbackReference.getFunctionPointer(childWindowProc));
+			if (previous == null && Native.getLastError() != 0) {
+				LOG.debug("Could not subclass child HWND 0x{}: error {}", Long.toHexString(key), Native.getLastError());
+				return true;
+			}
+			previousChildWindowProcs.put(key, previous);
+			LOG.debug("Subclassed product-shell child HWND 0x{} for native chrome input", Long.toHexString(key));
+			return true;
+		}, null);
+	}
+
+	private long childWindowProc(Pointer callbackHwnd, int message, long wParam, long lParam) {
+		try {
+			if (message == WM_NCHITTEST) {
+				int parentHit = childHitTest(lParam);
+				return isChildNativeChromeHit(parentHit) ? parentHit : NativeHit.HTCLIENT.value;
+			}
+			if (message == WM_SETCURSOR) {
+				if (applyResizeCursorHint())
+					return 1;
+			}
+			if (message == WM_MOUSEMOVE) {
+				long result = callPreviousChild(callbackHwnd, message, wParam, lParam);
+				applyResizeCursorHint();
+				return result;
+			}
+			if (message == WM_NCLBUTTONDOWN && isResizeHit((int) wParam) && hwnd != null) {
+				User32.INSTANCE.ReleaseCapture();
+				User32.INSTANCE.PostMessageW(hwnd, WM_SYSCOMMAND, systemSizeCommandForHit((int) wParam), lParam);
+				return 0;
+			}
+			if ((message == WM_NCLBUTTONDOWN || message == WM_NCLBUTTONDBLCLK)
+					&& wParam == NativeHit.HTCAPTION.value && hwnd != null) {
+				User32.INSTANCE.ReleaseCapture();
+				User32.INSTANCE.PostMessageW(hwnd, message, wParam, lParam);
+				return 0;
+			}
+			if (message == WM_NCRBUTTONUP && wParam == NativeHit.HTCAPTION.value && hwnd != null) {
+				User32.INSTANCE.PostMessageW(hwnd, message, wParam, lParam);
+				return 0;
+			}
+			return callPreviousChild(callbackHwnd, message, wParam, lParam);
+		} catch (Throwable exception) {
+			LOG.error("Windows product-shell child chrome failed while processing message 0x{}",
+					Integer.toHexString(message), exception);
+			return callPreviousChild(callbackHwnd, message, wParam, lParam);
+		}
+	}
+
+	private int childHitTest(long lParam) {
+		Pointer parent = hwnd;
+		if (parent == null || !installed || !customFrame.get())
+			return NativeHit.HTCLIENT.value;
+		return childHitTestAt(screenPoint(lParam), resizeHitTargetForDpi(getDpi(parent)));
+	}
+
+	private int childCursorHintHit() {
+		Pointer parent = hwnd;
+		if (parent == null || !installed || !customFrame.get())
+			return NativeHit.HTCLIENT.value;
+		Point point = new Point();
+		if (!User32.INSTANCE.GetCursorPos(point))
+			return NativeHit.HTCLIENT.value;
+		return childCursorHintHitAt(point, getDpi(parent));
+	}
+
+	private boolean applyResizeCursorHint() {
+		int cursorResource = resizeCursorResourceForHit(childCursorHintHit());
+		if (cursorResource != 0) {
+			Pointer cursor = User32.INSTANCE.LoadCursorW(null, new Pointer(cursorResource));
+			if (cursor != null) {
+				resizeCursorHintActive.set(true);
+				User32.INSTANCE.SetCursor(cursor);
+				return true;
+			}
+		}
+		if (resizeCursorHintActive.getAndSet(false)) {
+			Pointer arrow = User32.INSTANCE.LoadCursorW(null, new Pointer(IDC_ARROW));
+			if (arrow != null)
+				User32.INSTANCE.SetCursor(arrow);
+		}
+		return false;
+	}
+
+	private int childCursorHintHitAt(Point point, int currentDpi) {
+		Pointer parent = hwnd;
+		if (parent == null || !installed || !customFrame.get() || User32.INSTANCE.IsZoomed(parent))
+			return NativeHit.HTCLIENT.value;
+		Rect clientRect = new Rect();
+		if (!User32.INSTANCE.GetClientRect(parent, clientRect))
+			return NativeHit.HTCLIENT.value;
+		Point clientOrigin = new Point();
+		if (!User32.INSTANCE.ClientToScreen(parent, clientOrigin))
+			return NativeHit.HTCLIENT.value;
+		int edgeOutset = scaleForDpi(RESIZE_CURSOR_EDGE_OUTSET_CSS, currentDpi);
+		WindowChromeHitTest.WindowBounds visibleBounds = new WindowChromeHitTest.WindowBounds(
+				clientOrigin.x - edgeOutset,
+				clientOrigin.y - edgeOutset,
+				clientOrigin.x + clientRect.right + edgeOutset,
+				clientOrigin.y + clientRect.bottom + edgeOutset);
+		return cursorHintHitForBounds(point.x, point.y,
+				visibleBounds,
+				resizeCursorHintTargetForDpi(currentDpi), resizeCursorHintTargetForDpi(currentDpi));
+	}
+
+	static int cursorHintHitForBounds(int screenX, int screenY, WindowChromeHitTest.WindowBounds bounds,
+			int sideAndBottomHint, int topHint) {
+		int leftDistance = screenX - bounds.left();
+		int rightDistance = bounds.right() - 1 - screenX;
+		int topDistance = screenY - bounds.top();
+		int bottomDistance = bounds.bottom() - 1 - screenY;
+		if (leftDistance < 0 || rightDistance < 0 || topDistance < 0 || bottomDistance < 0)
+			return NativeHit.HTCLIENT.value;
+
+		boolean left = leftDistance < sideAndBottomHint;
+		boolean right = rightDistance < sideAndBottomHint;
+		boolean top = topDistance < topHint;
+		boolean bottom = bottomDistance < sideAndBottomHint;
+		if (top && left)
+			return NativeHit.HTTOPLEFT.value;
+		if (top && right)
+			return NativeHit.HTTOPRIGHT.value;
+		if (bottom && left)
+			return NativeHit.HTBOTTOMLEFT.value;
+		if (bottom && right)
+			return NativeHit.HTBOTTOMRIGHT.value;
+		if (left)
+			return NativeHit.HTLEFT.value;
+		if (right)
+			return NativeHit.HTRIGHT.value;
+		if (top)
+			return NativeHit.HTTOP.value;
+		if (bottom)
+			return NativeHit.HTBOTTOM.value;
+		return NativeHit.HTCLIENT.value;
+	}
+
+	private int childHitTestAt(Point point, int resizeBorder) {
+		Pointer parent = hwnd;
+		if (parent == null || !installed || !customFrame.get())
+			return NativeHit.HTCLIENT.value;
+		Rect rect = new Rect();
+		if (!User32.INSTANCE.GetWindowRect(parent, rect))
+			return NativeHit.HTCLIENT.value;
+		HitTarget target = WindowChromeHitTest.hitTest(point.x, point.y,
+				new WindowChromeHitTest.WindowBounds(rect.left, rect.top, rect.right, rect.bottom),
+				Math.max(1, resizeBorder), User32.INSTANCE.IsZoomed(parent), chromeSnapshot.get());
+		return NativeHit.from(target).value;
+	}
+
+	static boolean isChildNativeChromeHit(int hit) {
+		return hit == NativeHit.HTCAPTION.value || isResizeHit(hit);
+	}
+
+	static boolean isResizeHit(int hit) {
+		return hit == NativeHit.HTLEFT.value || hit == NativeHit.HTRIGHT.value || hit == NativeHit.HTTOP.value
+				|| hit == NativeHit.HTBOTTOM.value || hit == NativeHit.HTTOPLEFT.value
+				|| hit == NativeHit.HTTOPRIGHT.value || hit == NativeHit.HTBOTTOMLEFT.value
+				|| hit == NativeHit.HTBOTTOMRIGHT.value;
+	}
+
+	static int systemSizeCommandForHit(int hit) {
+		return switch (hit) {
+			case 10 -> SC_SIZE + 1; // WMSZ_LEFT
+			case 11 -> SC_SIZE + 2; // WMSZ_RIGHT
+			case 12 -> SC_SIZE + 3; // WMSZ_TOP
+			case 13 -> SC_SIZE + 4; // WMSZ_TOPLEFT
+			case 14 -> SC_SIZE + 5; // WMSZ_TOPRIGHT
+			case 15 -> SC_SIZE + 6; // WMSZ_BOTTOM
+			case 16 -> SC_SIZE + 7; // WMSZ_BOTTOMLEFT
+			case 17 -> SC_SIZE + 8; // WMSZ_BOTTOMRIGHT
+			default -> throw new IllegalArgumentException("Not a resize hit: " + hit);
+		};
+	}
+
+	static int resizeCursorResourceForHit(int hit) {
+		return switch (hit) {
+			case 10, 11 -> IDC_SIZEWE;
+			case 12, 15 -> IDC_SIZENS;
+			case 13, 17 -> IDC_SIZENWSE;
+			case 14, 16 -> IDC_SIZENESW;
+			default -> 0;
+		};
+	}
+
+	private long callPreviousChild(Pointer callbackHwnd, int message, long wParam, long lParam) {
+		Pointer previous = previousChildWindowProcs.get(Pointer.nativeValue(callbackHwnd));
+		return previous != null ? User32.INSTANCE.CallWindowProcW(previous, callbackHwnd, message, wParam, lParam)
+				: User32.INSTANCE.DefWindowProcW(callbackHwnd, message, wParam, lParam);
 	}
 
 	@Nullable public static WindowsWindowChromeController prepare(JFrame window) {
@@ -133,6 +375,7 @@ public final class WindowsWindowChromeController implements AutoCloseable {
 			return;
 		chromeSnapshot.accumulateAndGet(snapshot,
 				(current, update) -> current == null || update.sequence() > current.sequence() ? update : current);
+		refreshChildWindowHooks();
 	}
 
 	public boolean isUsingCustomFrame() {
@@ -275,8 +518,7 @@ public final class WindowsWindowChromeController implements AutoCloseable {
 			return callPrevious(callbackHwnd, message, wParam, lParam);
 		Point point = screenPoint(lParam);
 		int currentDpi = getDpi(callbackHwnd);
-		int resizeBorder = Math.max(systemMetricForDpi(SM_CXSIZEFRAME, currentDpi),
-				systemMetricForDpi(SM_CYSIZEFRAME, currentDpi)) + systemMetricForDpi(SM_CXPADDEDBORDER, currentDpi);
+		int resizeBorder = resizeHitTargetForDpi(currentDpi);
 		HitTarget target = WindowChromeHitTest.hitTest(point.x, point.y,
 				new WindowChromeHitTest.WindowBounds(rect.left, rect.top, rect.right, rect.bottom),
 				Math.max(1, resizeBorder), User32.INSTANCE.IsZoomed(callbackHwnd), chromeSnapshot.get());
@@ -339,6 +581,18 @@ public final class WindowsWindowChromeController implements AutoCloseable {
 	}
 
 	private synchronized void restoreWindowProc() {
+		for (Map.Entry<Long, Pointer> entry : previousChildWindowProcs.entrySet()) {
+			Pointer child = new Pointer(entry.getKey());
+			if (User32.INSTANCE.IsWindow(child)) {
+				try {
+					User32.INSTANCE.SetWindowLongPtrW(child, GWL_WNDPROC, entry.getValue());
+				} catch (Throwable exception) {
+					LOG.debug("Could not restore child Win32 window procedure for 0x{}",
+							Long.toHexString(entry.getKey()), exception);
+				}
+			}
+		}
+		previousChildWindowProcs.clear();
 		if (hwnd != null && previousWindowProc != null && window.isDisplayable()) {
 			try {
 				User32.INSTANCE.SetWindowLongPtrW(hwnd, GWL_WNDPROC, previousWindowProc);
@@ -423,10 +677,15 @@ public final class WindowsWindowChromeController implements AutoCloseable {
 		int GetWindowLongW(Pointer hwnd, int index);
 		int SetWindowLongW(Pointer hwnd, int index, int value);
 		Pointer SetWindowLongPtrW(Pointer hwnd, int index, Pointer value);
+		boolean EnumChildWindows(Pointer parent, EnumWindowProc callback, Pointer data);
+		int GetWindowThreadProcessId(Pointer hwnd, IntByReference processId);
+		boolean IsWindow(Pointer hwnd);
 		long CallWindowProcW(Pointer previous, Pointer hwnd, int message, long wParam, long lParam);
 		long DefWindowProcW(Pointer hwnd, int message, long wParam, long lParam);
 		boolean SetWindowPos(Pointer hwnd, Pointer insertAfter, int x, int y, int width, int height, int flags);
 		boolean GetWindowRect(Pointer hwnd, Rect rect);
+		boolean GetClientRect(Pointer hwnd, Rect rect);
+		boolean ClientToScreen(Pointer hwnd, Point point);
 		boolean IsZoomed(Pointer hwnd);
 		int GetDpiForWindow(Pointer hwnd);
 		int GetSystemMetricsForDpi(int index, int dpi);
@@ -438,7 +697,13 @@ public final class WindowsWindowChromeController implements AutoCloseable {
 		boolean PostMessageW(Pointer hwnd, int message, long wParam, long lParam);
 		long SendMessageW(Pointer hwnd, int message, long wParam, long lParam);
 		boolean ReleaseCapture();
+		Pointer LoadCursorW(Pointer instance, Pointer cursorName);
+		Pointer SetCursor(Pointer cursor);
 		boolean GetCursorPos(Point point);
+	}
+
+	private interface EnumWindowProc extends StdCallLibrary.StdCallCallback {
+		boolean invoke(Pointer hwnd, Pointer data);
 	}
 
 	private interface DwmApi extends StdCallLibrary {
