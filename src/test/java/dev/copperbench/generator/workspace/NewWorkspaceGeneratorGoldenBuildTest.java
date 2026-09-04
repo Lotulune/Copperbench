@@ -10,8 +10,11 @@
 package dev.copperbench.generator.workspace;
 
 import com.google.gson.JsonArray;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
 import dev.copperbench.core.application.InMemoryWorkspaceTaskGateway;
 import dev.copperbench.core.contract.UiCore.Command;
 import dev.copperbench.core.contract.UiCore.Operation;
@@ -67,16 +70,18 @@ class NewWorkspaceGeneratorGoldenBuildTest {
 	private static final List<String> GENERATOR_IDS = List.of(
 			"fabric-26.2", "neoforge-26.2", "fabric-26.1.2", "neoforge-26.1.2",
 			"fabric-1.21.1", "neoforge-1.21.1", "fabric-1.20.1", "neoforge-1.20.1");
+	private static final List<String> STAGE12_GENERATOR_IDS = List.of("fabric-1.21.1", "neoforge-1.21.1");
 	private static final String STAGE8_SELECTED_GENERATOR_PROPERTY = "copperbench.stage8.workspaceGeneratorId";
 	private static final String STAGE9_SELECTED_GENERATOR_PROPERTY = "copperbench.stage9.workspaceGeneratorId";
 	private static final String STAGE11_SELECTED_GENERATOR_PROPERTY = "copperbench.stage11.workspaceGeneratorId";
+	private static final String STAGE12_SELECTED_GENERATOR_PROPERTY = "copperbench.stage12.workspaceGeneratorId";
 	private static final String GRADLE_HOME_PROPERTY = "copperbench.gradle.user.home";
 	private static final Clock CLOCK = Clock.fixed(Instant.parse("2026-08-26T00:00:00Z"), ZoneOffset.UTC);
 	private static final byte[] FALLBACK_TEXTURE = Base64.getDecoder().decode(
 			"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=");
 
 	private enum Content {
-		EMPTY, STAGE9, STAGE11
+		EMPTY, STAGE9, STAGE11, STAGE12
 	}
 
 	private static void validateMixinClasses(String generatorId, Path jar) throws IOException {
@@ -149,12 +154,25 @@ class NewWorkspaceGeneratorGoldenBuildTest {
 				() -> buildWorkspace(generatorId, Content.STAGE11)));
 	}
 
+	@TestFactory @EnabledIfSystemProperty(named = "copperbench.stage12.workspaceGeneratorBuild", matches = "true")
+	Stream<DynamicTest> stage12CopperbenchEditedComplexElementsBuildIntoJars() {
+		String selected = System.getProperty(STAGE12_SELECTED_GENERATOR_PROPERTY, "").trim();
+		List<String> generators = selected.isEmpty() ? STAGE12_GENERATOR_IDS
+				: STAGE12_GENERATOR_IDS.stream().filter(selected::equals).toList();
+		if (generators.isEmpty())
+			throw failure(selected, "catalog", "Stage 12 representative generator must be fabric-1.21.1 or neoforge-1.21.1");
+		return generators.stream().map(generatorId -> DynamicTest.dynamicTest(
+				generatorId + " - Stage 12 Copperbench-edited complex elements Gradle build",
+				() -> buildWorkspace(generatorId, Content.STAGE12)));
+	}
+
 	private static void buildWorkspace(String generatorId, Content content) throws Exception {
 		McreatorTestRuntime.ensureInitialized();
 		String stage = switch (content) {
 			case EMPTY -> "stage8";
 			case STAGE9 -> "stage9";
 			case STAGE11 -> "stage11";
+			case STAGE12 -> "stage12";
 		};
 		Path workspaceRoot = Files.createTempDirectory("copperbench-" + stage + "-" + generatorId.replace('.', '_') + "-")
 				.toAbsolutePath().normalize();
@@ -175,12 +193,14 @@ class NewWorkspaceGeneratorGoldenBuildTest {
 				case EMPTY -> "copperbench_empty";
 				case STAGE9 -> "copperbench_stage9";
 				case STAGE11 -> "copperbench_stage11";
+				case STAGE12 -> "copperbench_stage12";
 			};
 			WorkspaceSettings settings = new WorkspaceSettings(modId);
 			settings.setModName(switch (content) {
 				case EMPTY -> "Copperbench Empty Workspace";
 				case STAGE9 -> "Copperbench Stage 9 Golden";
 				case STAGE11 -> "Copperbench Stage 11 Golden";
+				case STAGE12 -> "Copperbench Stage 12 Golden";
 			});
 			settings.setVersion("1.0.0");
 			settings.setCurrentGenerator(generatorId);
@@ -188,6 +208,7 @@ class NewWorkspaceGeneratorGoldenBuildTest {
 				case EMPTY -> "dev.copperbench.empty";
 				case STAGE9 -> "dev.copperbench.stage9";
 				case STAGE11 -> "dev.copperbench.stage11";
+				case STAGE12 -> "dev.copperbench.stage12";
 			});
 
 			try (Workspace workspace = Workspace.createWorkspace(
@@ -218,6 +239,10 @@ class NewWorkspaceGeneratorGoldenBuildTest {
 					seedTextures(workspace);
 					createStage11JavaElements(workspace, generatorId);
 					workspace.getGenerator().generateBase(true);
+				} else if (content == Content.STAGE12) {
+					seedTextures(workspace);
+					createStage12ComplexElements(workspace, generatorId);
+					workspace.getGenerator().generateBase(true);
 				}
 				try (Stream<Path> entries = Files.walk(workspace.getGenerator().getSourceRoot().toPath())) {
 					JavaWriter.formatAndOrganiseImportsForFiles(workspace,
@@ -241,7 +266,7 @@ class NewWorkspaceGeneratorGoldenBuildTest {
 			if (!jar.getFileName().toString().startsWith(modId + "-"))
 				throw failure(generatorId, "jar-identity", "Expected JAR name to start with user modid " + modId
 						+ " but got " + jar.getFileName());
-			if (content == Content.STAGE11)
+			if (content == Content.STAGE11 || content == Content.STAGE12)
 				validateMixinClasses(generatorId, jar);
 		} catch (AssertionError error) {
 			throw error;
@@ -386,6 +411,82 @@ class NewWorkspaceGeneratorGoldenBuildTest {
 			throw failure(generatorId, "stage11-generation", "Generation failed for " + failed);
 	}
 
+	private static void createStage12ComplexElements(Workspace workspace, String generatorId) throws Exception {
+		List<String> types = List.of("livingentity", "biome", "dimension", "gui", "overlay");
+		Random random = new Random(12);
+		AtomicLong ids = new AtomicLong(1_200);
+		UUID workspaceId = UUID.nameUUIDFromBytes(("stage12-" + generatorId).getBytes(StandardCharsets.UTF_8));
+		List<String> names = new java.util.ArrayList<>();
+		JsonArray evidenceRows = new JsonArray();
+		try (MCreatorWorkspaceSession session = MCreatorWorkspaceSession.attach(workspace, workspaceId,
+				new InMemoryWorkspaceTaskGateway(CLOCK, () -> uuid(ids.incrementAndGet())), CLOCK,
+				() -> uuid(ids.incrementAndGet()))) {
+			var serializer = new GsonBuilder().registerTypeHierarchyAdapter(GeneratableElement.class,
+					new GeneratableElement.GSONAdapter(workspace)).create();
+			long revision = 0;
+			for (String type : types) {
+				ModElementType<?> upstream = ModElementTypeLoader.getModElementType(type);
+				List<GeneratableElement> examples = TestWorkspaceDataProvider.getModElementExamplesFor(workspace,
+						upstream, false, random);
+				if (examples.isEmpty())
+					throw failure(generatorId, "stage12-example", "No upstream valid example for " + type);
+				GeneratableElement example = examples.getFirst();
+				JsonObject stored = serializer.toJsonTree(example, GeneratableElement.class).getAsJsonObject();
+				JsonObject definition = stored.getAsJsonObject("definition").deepCopy();
+				String name = "stage12_" + type;
+				var created = session.uiEntry().execute(create(session.workspaceId(), revision, type, name, definition));
+				if (!"committed".equals(created.result().status()))
+					throw failure(generatorId, "stage12-core-create",
+							type + " returned " + created.result().status() + ": " + created.result().diagnostics());
+				revision = created.result().newRevision();
+				UUID elementId = UUID.fromString(created.result().data().getAsJsonObject().getAsJsonObject("element")
+						.get("id").getAsString());
+
+				Stage12Mutation mutation = switch (type) {
+					case "livingentity" -> new Stage12Mutation("/health", new JsonPrimitive(24));
+					case "biome" -> new Stage12Mutation("/spawnInCaves", new JsonPrimitive(true));
+					case "dimension" -> new Stage12Mutation("/seaLevel", new JsonPrimitive(62));
+					case "gui" -> new Stage12Mutation("/width", new JsonPrimitive(200));
+					case "overlay" -> new Stage12Mutation("/priority", new JsonPrimitive("HIGH"));
+					default -> throw new IllegalStateException("Unexpected Stage 12 type " + type);
+				};
+				var updated = session.uiEntry().execute(update(session.workspaceId(), revision, elementId, mutation));
+				if (!"committed".equals(updated.result().status()))
+					throw failure(generatorId, "stage12-core-update",
+							type + " returned " + updated.result().status() + ": " + updated.result().diagnostics());
+				revision = updated.result().newRevision();
+				names.add(name);
+
+				JsonObject row = new JsonObject();
+				row.addProperty("type", type);
+				row.addProperty("name", name);
+				row.addProperty("editedPath", mutation.path());
+				row.add("editedValue", mutation.value().deepCopy());
+				evidenceRows.add(row);
+			}
+		}
+
+		for (String name : names) {
+			var element = workspace.getModElementByName(name);
+			if (element == null || element.getGeneratableElement() == null)
+				throw failure(generatorId, "stage12-persistence", "Missing persisted element " + name);
+			if (!workspace.getGenerator().generateElement(element.getGeneratableElement()))
+				throw failure(generatorId, "stage12-generation", "Generator rejected element " + name);
+		}
+
+		for (var raw : evidenceRows) {
+			JsonObject row = raw.getAsJsonObject();
+			var element = workspace.getModElementByName(row.get("name").getAsString());
+			row.addProperty("generatedFiles", element == null ? 0 : element.getAssociatedFiles().size());
+		}
+		Path evidence = Path.of("build", "stage12-workspace-generator-logs", generatorId + "-elements.json");
+		Files.createDirectories(evidence.getParent());
+		JsonObject root = new JsonObject();
+		root.addProperty("generatorId", generatorId);
+		root.add("elements", evidenceRows);
+		Files.writeString(evidence, root.toString(), StandardCharsets.UTF_8);
+	}
+
 	private static Command create(UUID workspaceId, long revision, String type, String name, JsonObject values) {
 		JsonObject payload = new JsonObject();
 		payload.addProperty("clientMutationId", uuid(10 + revision).toString());
@@ -393,6 +494,19 @@ class NewWorkspaceGeneratorGoldenBuildTest {
 		payload.addProperty("name", name);
 		payload.add("initialValues", values);
 		return Command.of(uuid(20 + revision), workspaceId, revision, Operation.CREATE_MOD_ELEMENT, payload);
+	}
+
+	private static Command update(UUID workspaceId, long revision, UUID elementId, Stage12Mutation mutation) {
+		JsonObject payload = new JsonObject();
+		payload.addProperty("clientMutationId", uuid(120 + revision).toString());
+		payload.addProperty("elementId", elementId.toString());
+		JsonArray changes = new JsonArray();
+		JsonObject change = new JsonObject();
+		change.addProperty("path", mutation.path());
+		change.add("value", mutation.value().deepCopy());
+		changes.add(change);
+		payload.add("changes", changes);
+		return Command.of(uuid(220 + revision), workspaceId, revision, Operation.UPDATE_MOD_ELEMENT, payload);
 	}
 
 	private static void requireCommitted(String generatorId, String type, String status) {
@@ -547,5 +661,8 @@ class NewWorkspaceGeneratorGoldenBuildTest {
 	}
 
 	private record GradleRun(boolean completed, int exitCode, String output) {
+	}
+
+	private record Stage12Mutation(String path, JsonElement value) {
 	}
 }
