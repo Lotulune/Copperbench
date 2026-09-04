@@ -30,7 +30,7 @@ test.describe('Interactive UI-Core Commands & Mutations', () => {
 
     const typeButtons = page.locator('[data-testid="create-element-modal"] button[aria-pressed]');
     await expect(typeButtons).toHaveCount(37);
-    await page.locator('[data-testid="create-element-modal"] button').filter({ hasText: '生物实体' }).click();
+    await page.click('[data-testid=create-element-type-armortrim]');
     await page.fill('[data-testid="create-element-name-input"]', 'copper_guardian');
     await page.click('[data-testid="create-element-submit-btn"]');
 
@@ -48,6 +48,58 @@ test.describe('Interactive UI-Core Commands & Mutations', () => {
     await page.click('[data-testid="inspector-save-btn"]');
     await expect(page.locator('[data-testid="element-change-preview"]')).not.toBeVisible();
     await expect(page.locator('[data-testid="inspector-save-btn"]')).toBeDisabled();
+  });
+
+  test('Stage 12 Living Entity exposes typed resources attributes spawning and event controls', async ({ page }) => {
+    await page.click('[data-testid="nav-elements"]');
+    await page.click('[data-testid="create-element-btn"]');
+    await page.click('[data-testid="create-element-type-livingentity"]');
+    await page.fill('[data-testid="create-element-name-input"]', 'copper_guardian');
+    await page.click('[data-testid="create-element-submit-btn"]');
+
+    await expect(page.locator('[data-testid="element-inspector"]')).toBeVisible();
+    await expect(page.locator('[data-testid="field-mobName"]')).toHaveValue('copper_guardian');
+    await expect(page.locator('[data-testid="field-mobLabel"]')).toHaveValue('Copper Guardian');
+    await expect(page.locator('[data-testid="field-mobModelName"]')).toHaveValue('Biped');
+    await expect(page.locator('[data-testid="field-mobModelTexture"]')).toBeEditable();
+    await expect(page.locator('[data-testid="field-health"]')).toHaveAttribute('min', '0');
+    await expect(page.locator('[data-testid="field-health"]')).toHaveAttribute('max', '1024');
+    await expect(page.locator('[data-testid="field-spawningProbability"]')).toHaveAttribute('min', '1');
+    await expect(page.locator('[data-testid="field-whenMobDies"]')).toBeEditable();
+
+    await page.fill('[data-testid="field-health"]', '32');
+    await expect(page.locator('[data-testid="element-change-preview"]')).toBeVisible();
+    await expect(page.locator('[data-testid="inspector-save-btn"]')).toBeEnabled();
+    await page.click('[data-testid="inspector-save-btn"]');
+    await expect(page.locator('[data-testid="inspector-save-btn"]')).toBeDisabled();
+    await expect(page.locator('[data-testid="field-health"]')).toHaveValue('32');
+  });
+
+  test('Stage 12 Biome exposes typed block references climate bounds and conditional particle fields', async ({ page }) => {
+    await page.click('[data-testid="nav-elements"]');
+    await page.click('[data-testid="create-element-btn"]');
+    await page.click('[data-testid="create-element-type-biome"]');
+    await page.fill('[data-testid="create-element-name-input"]', 'copper_grove');
+    await page.click('[data-testid="create-element-submit-btn"]');
+
+    await expect(page.locator('[data-testid="element-inspector"]')).toBeVisible();
+    await expect(page.locator('[data-testid="field-groundBlock"]')).toHaveValue('Blocks.GRASS');
+    await expect(page.locator('[data-testid="field-undergroundBlock"]')).toHaveValue('Blocks.DIRT#0');
+    await expect(page.locator('[data-testid="field-temperature"]')).toHaveAttribute('min', '-1');
+    await expect(page.locator('[data-testid="field-temperature"]')).toHaveAttribute('max', '2');
+    await expect(page.locator('[data-testid="field-treeType"]')).toHaveValue('0');
+    await expect(page.locator('[data-testid="field-particleToSpawn"]')).toBeDisabled();
+    await expect(page.locator('[data-testid="field-condition-particleToSpawn"]')).toBeVisible();
+
+    await page.check('[data-testid="field-spawnParticles"]');
+    await expect(page.locator('[data-testid="field-particleToSpawn"]')).toBeEnabled();
+    await page.fill('[data-testid="field-particleToSpawn"]', 'minecraft:ash');
+    await page.fill('[data-testid="field-groundBlock"]', 'Blocks.STONE#0');
+    await expect(page.locator('[data-testid="element-change-preview"]')).toBeVisible();
+    await expect(page.locator('[data-testid="inspector-save-btn"]')).toBeEnabled();
+    await page.click('[data-testid="inspector-save-btn"]');
+    await expect(page.locator('[data-testid="inspector-save-btn"]')).toBeDisabled();
+    await expect(page.locator('[data-testid="field-groundBlock"]')).toHaveValue('Blocks.STONE#0');
   });
 
   test('Stage 12 GUI workbench edits component tree and layout preview', async ({ page }) => {
@@ -164,6 +216,67 @@ test.describe('Interactive UI-Core Commands & Mutations', () => {
     await expect(page.locator('[data-testid="overlay-save-btn"]')).toBeEnabled();
     await page.click('[data-testid="overlay-save-btn"]');
     await expect(page.locator('[data-testid="overlay-save-btn"]')).toBeDisabled();
+  });
+
+  test('Stage 12 Projectile uses typed references numeric bounds and procedure pickers', async ({ page }) => {
+    await page.click('[data-testid="nav-elements"]');
+    await page.click('[data-testid="create-element-btn"]');
+    await page.click('[data-testid="create-element-type-projectile"]');
+    await page.fill('[data-testid="create-element-name-input"]', 'copper_bolt');
+    await page.click('[data-testid="create-element-submit-btn"]');
+
+    await expect(page.locator('[data-testid="element-inspector"]')).toBeVisible();
+    await expect(page.locator('[data-testid="field-projectileItem"]')).toBeEditable();
+    await expect(page.locator('[data-testid="field-customModelTexture"]')).toBeEditable();
+    await expect(page.locator('[data-testid="field-power"]')).toHaveAttribute('min', '0');
+    await expect(page.locator('[data-testid="field-power"]')).toHaveAttribute('max', '100');
+    await expect(page.locator('[data-testid="field-power"]')).toHaveAttribute('step', '0.1');
+    await expect(page.locator('[data-testid="field-onHitsBlock"]')).toBeEditable();
+
+    await page.fill('[data-testid="field-power"]', '3.5');
+    await page.fill('[data-testid="field-projectileItem"]', 'CUSTOM:copper_marker');
+    await expect(page.locator('[data-testid="element-change-preview"]')).toBeVisible();
+    await expect(page.locator('[data-testid="inspector-save-btn"]')).toBeEnabled();
+    await page.click('[data-testid="inspector-save-btn"]');
+    await expect(page.locator('[data-testid="inspector-save-btn"]')).toBeDisabled();
+    await expect(page.locator('[data-testid="field-power"]')).toHaveValue('3.5');
+    await expect(page.locator('[data-testid="field-projectileItem"]')).toHaveValue('CUSTOM:copper_marker');
+  });
+
+  test('Stage 12 Villager Trade edits structured trade rows without raw JSON and survives reopen', async ({ page }) => {
+    await page.click('[data-testid="nav-elements"]');
+    await page.click('[data-testid="create-element-btn"]');
+    await page.click('[data-testid="create-element-type-villagertrade"]');
+    await page.fill('[data-testid="create-element-name-input"]', 'copper_trade');
+    await page.click('[data-testid="create-element-submit-btn"]');
+
+    await expect(page.locator('[data-testid="element-inspector"]')).toBeVisible();
+    await expect(page.locator('[data-testid="field-villagerProfession"]')).toBeEditable();
+    await expect(page.locator('[data-testid="field-trades-structured-list"]')).toBeVisible();
+    await expect(page.locator('[data-testid="field-trades-add"]')).toBeVisible();
+    await expect(page.locator('[data-testid="field-trades"]')).toHaveCount(0);
+
+    await page.click('[data-testid="field-trades-add"]');
+    await expect(page.locator('[data-testid="field-trades-0-price1"]')).toBeEditable();
+    await expect(page.locator('[data-testid="field-trades-0-countPrice1"]')).toHaveAttribute('min', '1');
+    await expect(page.locator('[data-testid="field-trades-0-countPrice1"]')).toHaveAttribute('max', '64');
+    await expect(page.locator('[data-testid="field-trades-0-priceMultiplier"]')).toHaveValue('0.05');
+
+    await page.fill('[data-testid="field-trades-0-price1"]', 'CUSTOM:copper_marker');
+    await page.fill('[data-testid="field-trades-0-countPrice1"]', '4');
+    await page.fill('[data-testid="field-trades-0-offer"]', 'CUSTOM:copper_block');
+    await page.fill('[data-testid="field-trades-0-countOffer"]', '2');
+    await expect(page.locator('[data-testid="element-change-preview"]')).toBeVisible();
+    await expect(page.locator('[data-testid="inspector-save-btn"]')).toBeEnabled();
+    await page.click('[data-testid="inspector-save-btn"]');
+    await expect(page.locator('[data-testid="inspector-save-btn"]')).toBeDisabled();
+
+    await page.locator('[data-element-id="22222222-2222-4222-8222-222222222221"]').first().click();
+    await page.getByText('Copper Trade').first().click();
+    await expect(page.locator('[data-testid="field-trades-0-price1"]')).toHaveValue('CUSTOM:copper_marker');
+    await expect(page.locator('[data-testid="field-trades-0-countPrice1"]')).toHaveValue('4');
+    await expect(page.locator('[data-testid="field-trades-0-offer"]')).toHaveValue('CUSTOM:copper_block');
+    await expect(page.locator('[data-testid="field-trades-0-countOffer"]')).toHaveValue('2');
   });
 
   test('update_mod_element with invalid value triggers validation error', async ({ page }) => {

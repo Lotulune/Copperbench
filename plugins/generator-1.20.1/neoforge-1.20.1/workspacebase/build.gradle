@@ -8,6 +8,57 @@ base.archivesName = "${modid}"
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
+def copperbenchClientMappings = file('.gradle/caches/minecraft/versions/1.20.1/client.txt')
+def copperbenchClientMappingsUrl = new URL('https://piston-data.mojang.com/v1/objects/6c48521eed01fe2e8ecdadbd5ae348415f3c47da/client.txt')
+def copperbenchClientMappingsSize = 8001795L
+def copperbenchClientMappingsSha1 = '6c48521eed01fe2e8ecdadbd5ae348415f3c47da'
+
+def copperbenchSha1 = { File source ->
+    def digest = java.security.MessageDigest.getInstance('SHA-1')
+    source.withInputStream { input ->
+        byte[] buffer = new byte[64 * 1024]
+        int read
+        while ((read = input.read(buffer)) != -1) {
+            digest.update(buffer, 0, read)
+        }
+    }
+    java.util.HexFormat.of().formatHex(digest.digest())
+}
+
+def copperbenchRepairClientMappings = {
+    if (copperbenchClientMappings.isFile()
+            && copperbenchClientMappings.length() == copperbenchClientMappingsSize
+            && copperbenchSha1(copperbenchClientMappings).equalsIgnoreCase(copperbenchClientMappingsSha1)) {
+        return
+    }
+
+    logger.warn('NeoGradle cached incomplete Minecraft 1.20.1 client mappings; repairing from Mojang')
+    copperbenchClientMappings.parentFile.mkdirs()
+    def temporary = new File(copperbenchClientMappings.parentFile, copperbenchClientMappings.name + '.repair-download')
+    try {
+        def connection = copperbenchClientMappingsUrl.openConnection(java.net.Proxy.NO_PROXY)
+        connection.connectTimeout = 30000
+        connection.readTimeout = 120000
+        connection.inputStream.withCloseable { input ->
+            temporary.withOutputStream { output -> input.transferTo(output) }
+        }
+        if (temporary.length() != copperbenchClientMappingsSize
+                || !copperbenchSha1(temporary).equalsIgnoreCase(copperbenchClientMappingsSha1)) {
+            throw new GradleException('Downloaded Minecraft 1.20.1 client mappings failed integrity validation')
+        }
+        java.nio.file.Files.move(temporary.toPath(), copperbenchClientMappings.toPath(),
+                java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+    } finally {
+        temporary.delete()
+    }
+}
+
+tasks.matching { it.name == 'neoFormMergeMappings' }.configureEach {
+    doFirst {
+        copperbenchRepairClientMappings()
+    }
+}
+
 runs {
     client {
         client()

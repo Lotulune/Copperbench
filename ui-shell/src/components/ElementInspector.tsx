@@ -18,7 +18,8 @@ import {
   ModElementChangePreview,
   AssetProjection,
   EditorField,
-  Diagnostic
+  Diagnostic,
+  ModElementType
 } from '../types/contract';
 import { t } from '../i18n';
 
@@ -112,6 +113,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
     getModElementEditor,
     previewModElementChange,
     listAssets,
+    runDiagnosticAction,
     state
   } = useWorkbench();
   const [editor, setEditor] = useState<ModElementEditorProjection | null>(null);
@@ -295,12 +297,17 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
           ? preview.diagnostics.filter((d) => d.severity === 'error').map((d) => t(d.message))
       : elementDiagnostics.filter((d) => d.severity === 'error').map((d) => t(d.message));
 
+  const elementPathPrefix = `/elements/${element.id}`;
   const diagnosticByPath = new Map(
-    elementDiagnostics.filter((d) => d.path).map((d) => [d.path as string, d])
+    elementDiagnostics.filter((d) => d.path).map((d) => {
+      const path = d.path as string;
+      return [path.startsWith(`${elementPathPrefix}/`) ? path.slice(elementPathPrefix.length) : path, d];
+    })
   );
 
   const referenceCandidates = (field: EditorField): Array<{ value: string; label: string }> => {
     const byValue = new Map<string, string>();
+    const acceptedTypes = field.referenceTypes?.length ? new Set(field.referenceTypes) : null;
     field.options.forEach((option) => byValue.set(String(option.value), t(option.label)));
     if (field.control === 'procedure_reference') {
       state.elements
@@ -308,12 +315,14 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
         .forEach((candidate) => byValue.set(candidate.name, `${candidate.displayName} · ${candidate.type}`));
     } else if (field.control === 'element_reference') {
       state.elements
-        .filter((candidate) => candidate.type === 'block' || candidate.type === 'plant' || candidate.type === 'fluid')
+        .filter((candidate) => acceptedTypes
+          ? acceptedTypes.has(candidate.type as ModElementType)
+          : candidate.type === 'block' || candidate.type === 'plant' || candidate.type === 'fluid')
         .forEach((candidate) => byValue.set(`CUSTOM:${candidate.name}`, `${candidate.displayName} · ${candidate.type}`));
     } else if (field.control === 'element_reference_list') {
       state.elements
-        .filter((candidate) => candidate.type === 'biome')
-        .forEach((candidate) => byValue.set(`CUSTOM:${candidate.name}`, `${candidate.displayName} · biome`));
+        .filter((candidate) => acceptedTypes ? acceptedTypes.has(candidate.type as ModElementType) : candidate.type === 'biome')
+        .forEach((candidate) => byValue.set(`CUSTOM:${candidate.name}`, `${candidate.displayName} · ${candidate.type}`));
     } else if (field.control === 'resource_reference') {
       const category = resourceCategoryForField(field.path);
       assets?.assets
@@ -478,6 +487,90 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
                     : '元素引用选择器'}
                 {candidates.length > 0 ? ` · ${candidates.length} 个候选` : ' · 可输入完整引用'}
               </div>
+            </div>
+          );
+        }
+      case 'structured_list':
+        {
+          const current = Array.isArray(value)
+            ? value.filter((entry): entry is Record<string, unknown> => Boolean(entry) && typeof entry === 'object' && !Array.isArray(entry))
+            : [];
+          const itemFields = field.itemFields ?? [];
+          const updateItem = (index: number, itemPath: string, nextValue: unknown) => {
+            const itemName = fieldTestSuffix(itemPath);
+            const next = current.map((item, itemIndex) => itemIndex === index ? { ...item, [itemName]: nextValue } : item);
+            setValues((prev) => ({ ...prev, [field.path]: next }));
+          };
+          const renderItemControl = (itemField: EditorField, item: Record<string, unknown>, index: number) => {
+            const itemName = fieldTestSuffix(itemField.path);
+            const itemValue = item[itemName] ?? itemField.value;
+            const itemValuesByPath = Object.fromEntries(itemFields.map((candidate) => [
+              candidate.path,
+              item[fieldTestSuffix(candidate.path)] ?? candidate.value
+            ]));
+            const itemDisabled = disabled || itemField.readOnly || !conditionActive(itemField, itemValuesByPath);
+            const itemTestId = `field-${fieldTestSuffix(field.path)}-${index}-${itemName}`;
+            if (itemField.control === 'number') {
+              return <input type="number" value={itemValue === null || itemValue === undefined ? '' : String(itemValue)}
+                min={itemField.constraints?.min} max={itemField.constraints?.max} step={itemField.constraints?.step ?? 1}
+                disabled={itemDisabled} onChange={(e) => updateItem(index, itemField.path, Number(e.target.value))}
+                data-testid={itemTestId} />;
+            }
+            if (itemField.control === 'toggle') {
+              return <input type="checkbox" checked={Boolean(itemValue)} disabled={itemDisabled}
+                onChange={(e) => updateItem(index, itemField.path, e.target.checked)} data-testid={itemTestId} />;
+            }
+            if (itemField.control === 'select') {
+              return <select value={itemValue === null || itemValue === undefined ? '' : String(itemValue)} disabled={itemDisabled}
+                onChange={(e) => updateItem(index, itemField.path,
+                  typeof itemField.value === 'number' ? Number(e.target.value) : e.target.value)} data-testid={itemTestId}>
+                {itemField.options.map((option) => <option key={String(option.value)} value={String(option.value)} disabled={option.disabled}>
+                  {t(option.label)}
+                </option>)}
+              </select>;
+            }
+            if (['resource_reference', 'procedure_reference', 'element_reference'].includes(itemField.control)) {
+              const candidates = referenceCandidates(itemField);
+              const listId = `${fieldControlId(field.path)}-${index}-${itemName}-suggestions`;
+              return <>
+                <input type="text" list={candidates.length ? listId : undefined}
+                  value={itemValue === null || itemValue === undefined ? '' : String(itemValue)} disabled={itemDisabled}
+                  onChange={(e) => updateItem(index, itemField.path, e.target.value)} data-testid={itemTestId} />
+                {candidates.length > 0 && <datalist id={listId}>
+                  {candidates.map((candidate) => <option key={candidate.value} value={candidate.value}>{candidate.label}</option>)}
+                </datalist>}
+              </>;
+            }
+            return <input type="text" value={itemValue === null || itemValue === undefined ? '' : String(itemValue)}
+              disabled={itemDisabled} onChange={(e) => updateItem(index, itemField.path, e.target.value)} data-testid={itemTestId} />;
+          };
+          return (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }} data-testid={`field-${fieldTestSuffix(field.path)}-structured-list`}>
+              {current.map((item, index) => (
+                <div key={index} style={{ border: '1px solid var(--border-main)', borderRadius: '6px', padding: '8px', display: 'grid', gap: '7px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <strong style={{ fontSize: '11px' }}>#{index + 1}</strong>
+                    <button type="button" className="btn-secondary" disabled={disabled}
+                      onClick={() => setValues((prev) => ({ ...prev, [field.path]: current.filter((_, itemIndex) => itemIndex !== index) }))}
+                      data-testid={`field-${fieldTestSuffix(field.path)}-${index}-remove`}>
+                      {t({ key: 'action.remove_list_item', fallback: 'Remove item' })}
+                    </button>
+                  </div>
+                  {itemFields.map((itemField) => (
+                    <label key={itemField.path} style={{ display: 'grid', gridTemplateColumns: 'minmax(100px, 0.8fr) minmax(0, 1.4fr)', gap: '8px', alignItems: 'center' }}>
+                      <span style={{ fontSize: '11px', color: 'var(--text-sub)' }}>{t(itemField.label)}</span>
+                      {renderItemControl(itemField, item, index)}
+                    </label>
+                  ))}
+                </div>
+              ))}
+              <button type="button" className="btn-secondary" disabled={disabled}
+                onClick={() => {
+                  const template = JSON.parse(JSON.stringify(field.itemTemplate ?? {})) as Record<string, unknown>;
+                  setValues((prev) => ({ ...prev, [field.path]: [...current, template] }));
+                }} data-testid={`field-${fieldTestSuffix(field.path)}-add`}>
+                {t({ key: 'action.add_list_item', fallback: 'Add item' })}
+              </button>
             </div>
           );
         }
@@ -785,12 +878,31 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
                           fontSize: '10px',
                           color: fieldDiagnostic.severity === 'error' ? 'var(--badge-red)' : 'var(--badge-amber)',
                           display: 'flex',
+                          flexDirection: 'column',
                           alignItems: 'flex-start',
-                          gap: '4px'
+                          gap: '6px'
                         }}
                       >
-                        <AlertTriangle size={11} style={{ flexShrink: 0, marginTop: '1px' }} />
-                        <span>{t(fieldDiagnostic.message)}</span>
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '4px' }}>
+                          <AlertTriangle size={11} style={{ flexShrink: 0, marginTop: '1px' }} />
+                          <span>{t(fieldDiagnostic.message)}</span>
+                        </div>
+                        {fieldDiagnostic.actions.length > 0 && (
+                          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', paddingLeft: '15px' }}>
+                            {fieldDiagnostic.actions.map((action) => (
+                              <button
+                                key={action.id}
+                                type="button"
+                                className="btn-secondary"
+                                style={{ fontSize: '10px', padding: '3px 8px' }}
+                                onClick={() => runDiagnosticAction(action, fieldDiagnostic)}
+                                data-testid={`diag-action-${action.id}`}
+                              >
+                                {t(action.label)}
+                              </button>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     )}
                   </>

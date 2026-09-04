@@ -131,6 +131,9 @@ function generateUUID(): UUID {
  * value before querying so contract data stays copy-pasteable.
  */
 function focusByContractSelector(selector: string): void {
+  if (selector.startsWith('/')) {
+    selector = `[data-field-path=${selector}]`;
+  }
   const match = /^\[([A-Za-z0-9_-]+)=(.+)\]$/.exec(selector.trim());
   const query = match ? `[${match[1]}="${match[2]}"]` : selector;
   const el = document.querySelector(query);

@@ -9,6 +9,48 @@ Blocks.CANDLE#9:
 Blocks.LIGHT_BLUE_BANNER:
   - Blocks.BANNER.lightBlue()
   - "light_blue_banner"
+Blocks.WHITE_BANNER:
+  - Blocks.BANNER.white()
+  - "white_banner"
+Blocks.ORANGE_BANNER:
+  - Blocks.BANNER.orange()
+  - "orange_banner"
+Blocks.MAGENTA_BANNER:
+  - Blocks.BANNER.magenta()
+  - "magenta_banner"
+Blocks.YELLOW_BANNER:
+  - Blocks.BANNER.yellow()
+  - "yellow_banner"
+Blocks.LIME_BANNER:
+  - Blocks.BANNER.lime()
+  - "lime_banner"
+Blocks.PINK_BANNER:
+  - Blocks.BANNER.pink()
+  - "pink_banner"
+Blocks.GRAY_BANNER:
+  - Blocks.BANNER.gray()
+  - "gray_banner"
+Blocks.LIGHT_GRAY_BANNER:
+  - Blocks.BANNER.lightGray()
+  - "light_gray_banner"
+Blocks.CYAN_BANNER:
+  - Blocks.BANNER.cyan()
+  - "cyan_banner"
+Blocks.BLUE_BANNER:
+  - Blocks.BANNER.blue()
+  - "blue_banner"
+Blocks.BROWN_BANNER:
+  - Blocks.BANNER.brown()
+  - "brown_banner"
+Blocks.GREEN_BANNER:
+  - Blocks.BANNER.green()
+  - "green_banner"
+Blocks.RED_BANNER:
+  - Blocks.BANNER.red()
+  - "red_banner"
+Blocks.BLACK_BANNER:
+  - Blocks.BANNER.black()
+  - "black_banner"
 Blocks.WAXED_COPPER_BULB:
   - Blocks.COPPER_BULB.waxed().unaffected()
   - "waxed_copper_bulb"
@@ -21,9 +63,54 @@ Blocks.WAXED_LIGHTNING_ROD:
 Blocks.WAXED_OXIDIZED_LIGHTNING_ROD:
   - Blocks.LIGHTNING_ROD.waxed().oxidized()
   - "waxed_oxidized_lightning_rod"
+Items.WHITE_BUNDLE:
+  - Items.DYED_BUNDLE.white()
+  - "white_bundle"
+Items.ORANGE_BUNDLE:
+  - Items.DYED_BUNDLE.orange()
+  - "orange_bundle"
+Items.MAGENTA_BUNDLE:
+  - Items.DYED_BUNDLE.magenta()
+  - "magenta_bundle"
+Items.LIGHT_BLUE_BUNDLE:
+  - Items.DYED_BUNDLE.lightBlue()
+  - "light_blue_bundle"
+Items.YELLOW_BUNDLE:
+  - Items.DYED_BUNDLE.yellow()
+  - "yellow_bundle"
+Items.LIME_BUNDLE:
+  - Items.DYED_BUNDLE.lime()
+  - "lime_bundle"
+Items.PINK_BUNDLE:
+  - Items.DYED_BUNDLE.pink()
+  - "pink_bundle"
+Items.GRAY_BUNDLE:
+  - Items.DYED_BUNDLE.gray()
+  - "gray_bundle"
+Items.LIGHT_GRAY_BUNDLE:
+  - Items.DYED_BUNDLE.lightGray()
+  - "light_gray_bundle"
+Items.CYAN_BUNDLE:
+  - Items.DYED_BUNDLE.cyan()
+  - "cyan_bundle"
+Items.PURPLE_BUNDLE:
+  - Items.DYED_BUNDLE.purple()
+  - "purple_bundle"
+Items.BLUE_BUNDLE:
+  - Items.DYED_BUNDLE.blue()
+  - "blue_bundle"
 Items.BROWN_BUNDLE:
   - Items.DYED_BUNDLE.brown()
   - "brown_bundle"
+Items.GREEN_BUNDLE:
+  - Items.DYED_BUNDLE.green()
+  - "green_bundle"
+Items.RED_BUNDLE:
+  - Items.DYED_BUNDLE.red()
+  - "red_bundle"
+Items.BLACK_BUNDLE:
+  - Items.DYED_BUNDLE.black()
+  - "black_bundle"
 Items.PINK_DYE:
   - Items.DYE.pink()
   - "pink_dye"
@@ -135,6 +222,54 @@ Blocks.STAINED_GLASS_PANE#14:
 Blocks.STAINED_GLASS_PANE#15:
   - Blocks.STAINED_GLASS_PANE.black()
   - "black_stained_glass_pane"
+Blocks.CONCRETE_POWDER#0:
+  - Blocks.CONCRETE_POWDER.white()
+  - "white_concrete_powder"
+Blocks.CONCRETE_POWDER#1:
+  - Blocks.CONCRETE_POWDER.orange()
+  - "orange_concrete_powder"
+Blocks.CONCRETE_POWDER#2:
+  - Blocks.CONCRETE_POWDER.magenta()
+  - "magenta_concrete_powder"
+Blocks.CONCRETE_POWDER#3:
+  - Blocks.CONCRETE_POWDER.lightBlue()
+  - "light_blue_concrete_powder"
+Blocks.CONCRETE_POWDER#4:
+  - Blocks.CONCRETE_POWDER.yellow()
+  - "yellow_concrete_powder"
+Blocks.CONCRETE_POWDER#5:
+  - Blocks.CONCRETE_POWDER.lime()
+  - "lime_concrete_powder"
+Blocks.CONCRETE_POWDER#6:
+  - Blocks.CONCRETE_POWDER.pink()
+  - "pink_concrete_powder"
+Blocks.CONCRETE_POWDER#7:
+  - Blocks.CONCRETE_POWDER.gray()
+  - "gray_concrete_powder"
+Blocks.CONCRETE_POWDER#8:
+  - Blocks.CONCRETE_POWDER.lightGray()
+  - "light_gray_concrete_powder"
+Blocks.CONCRETE_POWDER#9:
+  - Blocks.CONCRETE_POWDER.cyan()
+  - "cyan_concrete_powder"
+Blocks.CONCRETE_POWDER#10:
+  - Blocks.CONCRETE_POWDER.purple()
+  - "purple_concrete_powder"
+Blocks.CONCRETE_POWDER#11:
+  - Blocks.CONCRETE_POWDER.blue()
+  - "blue_concrete_powder"
+Blocks.CONCRETE_POWDER#12:
+  - Blocks.CONCRETE_POWDER.brown()
+  - "brown_concrete_powder"
+Blocks.CONCRETE_POWDER#13:
+  - Blocks.CONCRETE_POWDER.green()
+  - "green_concrete_powder"
+Blocks.CONCRETE_POWDER#14:
+  - Blocks.CONCRETE_POWDER.red()
+  - "red_concrete_powder"
+Blocks.CONCRETE_POWDER#15:
+  - Blocks.CONCRETE_POWDER.black()
+  - "black_concrete_powder"
 Blocks.CYAN_SHULKER_BOX:
   - Blocks.DYED_SHULKER_BOX.cyan()
   - "cyan_shulker_box"

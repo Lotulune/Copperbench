@@ -161,6 +161,24 @@ class NewWorkspaceFabricGeneratorPluginsTest {
 		}
 	}
 
+	@Test void minecraft262MapsEveryLegacyDyedBundleToTheConsolidatedBundleCollection() throws Exception {
+		var colors = List.of("WHITE:white", "ORANGE:orange", "MAGENTA:magenta", "LIGHT_BLUE:lightBlue",
+				"YELLOW:yellow", "LIME:lime", "PINK:pink", "GRAY:gray", "LIGHT_GRAY:lightGray", "CYAN:cyan",
+				"PURPLE:purple", "BLUE:blue", "BROWN:brown", "GREEN:green", "RED:red", "BLACK:black");
+		for (Path mapping : List.of(
+				Path.of("plugins/generator-fabric-26.2/fabric-26.2/mappings/blocksitems.yaml"),
+				Path.of("plugins/generator-26.2/neoforge-26.2/mappings/blocksitems.yaml"))) {
+			String source = Files.readString(mapping);
+			for (String color : colors) {
+				String[] parts = color.split(":", 2);
+				assertTrue(source.contains("Items." + parts[0] + "_BUNDLE:"),
+						mapping + " is missing the legacy " + parts[0] + " bundle key");
+				assertTrue(source.contains("Items.DYED_BUNDLE." + parts[1] + "()"),
+						mapping + " does not map " + parts[0] + " bundle to the 26.2 collection accessor");
+			}
+		}
+	}
+
 	@Test void workspaceGeneratorsShareGradle97ExceptMaintenance1201() throws Exception {
 		String wrappers = Files.readString(Path.of(
 				"plugins/generator-1.21.1/fabric-1.21.1/workspacebase/gradle/wrapper/gradle-wrapper.properties"))

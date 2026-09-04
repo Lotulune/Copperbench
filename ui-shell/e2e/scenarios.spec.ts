@@ -42,11 +42,12 @@ test.describe('UI-Core v1.0 Contract Scenarios', () => {
     await page.click('[data-testid="scenario-switcher-trigger"]');
     await page.click('[data-testid="scenario-btn-validation-failed"]');
 
-    // Open elements view & inspect copper_lamp
     await page.click('[data-testid="nav-elements"]');
     await page.locator('[data-element-id="22222222-2222-4222-8222-222222222221"]').first().click();
-
     await expect(page.locator('[data-testid="element-inspector"]')).toBeVisible();
+    await expect(page.locator('[data-testid="diag-action-open_invalid_field"]')).toBeVisible();
+    await page.click('[data-testid="diag-action-open_invalid_field"]');
+    await expect(page.locator('[data-field-path="/fields/hardness"]')).toBeFocused();
     await expect(page.locator('[data-testid="validation-alert"]')).toBeVisible();
     await expect(page.locator('[data-testid="validation-alert"]')).toContainText(
       '硬度必须在 0 到 100 之间。'

@@ -289,11 +289,15 @@ export interface EditorField {
     | 'resource_reference'
     | 'procedure_reference'
     | 'element_reference'
-    | 'element_reference_list';
+    | 'element_reference_list'
+    | 'structured_list';
   required: boolean;
   readOnly: boolean;
   value: unknown;
   options: FieldOption[];
+  referenceTypes?: ModElementType[];
+  itemFields?: EditorField[];
+  itemTemplate?: Record<string, unknown>;
   constraints?: {
     min?: number;
     max?: number;

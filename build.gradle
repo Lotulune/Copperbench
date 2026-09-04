@@ -248,6 +248,8 @@ test {
 		System.getProperty('copperbench.stage12.workspaceGeneratorBuild', 'false')
 	systemProperty 'copperbench.stage12.workspaceGeneratorId',
 		System.getProperty('copperbench.stage12.workspaceGeneratorId', '')
+	systemProperty 'copperbench.workspaceGeneratorKeepWorkspace',
+		System.getProperty('copperbench.workspaceGeneratorKeepWorkspace', 'false')
 	systemProperty 'copperbench.stage9.realServer',
 		System.getProperty('copperbench.stage9.realServer', 'false')
 	systemProperty 'copperbench.stage9.realServerGeneratorId',

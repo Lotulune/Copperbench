@@ -2,6 +2,7 @@ package dev.copperbench.core;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import dev.copperbench.core.application.InMemoryWorkspaceTaskGateway;
 import dev.copperbench.core.application.HeadlessWorkspaceEntryAdapter;
@@ -29,9 +30,11 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.ArrayDeque;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Queue;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
@@ -169,6 +172,12 @@ class WorkspaceApplicationServiceTest {
 		assertFalse(preview.get("canApply").getAsBoolean());
 		assertEquals("FIELD_REQUIRED_BY_CONDITION",
 				preview.getAsJsonArray("diagnostics").get(0).getAsJsonObject().get("code").getAsString());
+		JsonObject portalDiagnostic = preview.getAsJsonArray("diagnostics").get(0).getAsJsonObject();
+		assertEquals("/elements/" + dimensionId + "/portalFrame", portalDiagnostic.get("path").getAsString());
+		assertEquals("open_field", portalDiagnostic.getAsJsonArray("actions").get(0).getAsJsonObject()
+				.get("kind").getAsString());
+		assertEquals("/portalFrame", portalDiagnostic.getAsJsonArray("actions").get(0)
+				.getAsJsonObject().get("target").getAsString());
 
 		Fixture createFixture = fixture();
 		JsonObject invalidInitial = new JsonObject();
@@ -383,6 +392,10 @@ class WorkspaceApplicationServiceTest {
 		assertEquals("FIELD_VALUE_OUT_OF_RANGE", diagnostic.code());
 		assertEquals(0, diagnostic.message().args().get("min").getAsInt());
 		assertEquals(100, diagnostic.message().args().get("max").getAsInt());
+		assertEquals("/elements/" + elementId + "/fields/hardness", diagnostic.path());
+		assertEquals(elementId, diagnostic.elementId());
+		assertEquals("open_field", diagnostic.actions().getFirst().kind());
+		assertEquals("/fields/hardness", diagnostic.actions().getFirst().target());
 		WorkspaceState state = fixture.store.read(WORKSPACE_ID).orElseThrow();
 		assertEquals(1, state.revision());
 		assertTrue(!state.element(elementId).values().has("fields"));
@@ -506,10 +519,8 @@ class WorkspaceApplicationServiceTest {
 					.get("id").getAsString();
 			JsonObject payload = new JsonObject();
 			payload.addProperty("elementId", elementId);
-			JsonArray sections = fixture.service.query(Query.of(uuid(23), WORKSPACE_ID,
-					Operation.GET_MOD_ELEMENT_EDITOR, payload),
-					new RequestContext(Actor.UI, PermissionProfile.WORKSPACE)).data().getAsJsonObject()
-					.getAsJsonArray("sections");
+			JsonArray sections = queryEditorSections(fixture, payload, uuid(23),
+					new RequestContext(Actor.UI, PermissionProfile.WORKSPACE));
 			assertTrue(sections.size() > 1, type + " should expose Stage 12 depth sections");
 			assertEquals("identity", sections.get(0).getAsJsonObject().get("id").getAsString());
 			if (type.equals("biome")) {
@@ -547,6 +558,91 @@ class WorkspaceApplicationServiceTest {
 		assertEquals("general", sections.get(0).getAsJsonObject().get("id").getAsString());
 	}
 
+	@Test void stage12WaveBAndCUseUpstreamMetadataForTypedControls() {
+		RequestContext context = new RequestContext(Actor.UI, PermissionProfile.WORKSPACE);
+
+		Fixture projectileFixture = fixture();
+		CommandOutcome projectileCreated = projectileFixture.service.execute(
+				createElementCommand(uuid(60), "projectile", "copper_bolt", new JsonObject()), context);
+		JsonArray projectileSections = editorSections(projectileFixture, projectileCreated, uuid(61), context);
+		assertTrue(projectileSections.size() > 1);
+		assertEquals("element_reference", editorField(projectileSections, "/projectileItem").get("control").getAsString());
+		assertTrue(editorField(projectileSections, "/projectileItem").getAsJsonArray("referenceTypes").asList()
+				.stream().anyMatch(type -> type.getAsString().equals("item")));
+		JsonObject power = editorField(projectileSections, "/power");
+		assertEquals("number", power.get("control").getAsString());
+		assertEquals(0.0, power.getAsJsonObject("constraints").get("min").getAsDouble());
+		assertEquals(100.0, power.getAsJsonObject("constraints").get("max").getAsDouble());
+		assertEquals(0.1, power.getAsJsonObject("constraints").get("step").getAsDouble());
+		assertEquals("resource_reference",
+				editorField(projectileSections, "/customModelTexture").get("control").getAsString());
+		assertEquals("procedure_reference", editorField(projectileSections, "/onHitsBlock").get("control").getAsString());
+		assertEquals("attributes", editorSectionId(projectileSections, "/damage"));
+		assertEquals("events", editorSectionId(projectileSections, "/onFlyingTick"));
+
+		Fixture structureFixture = fixture();
+		CommandOutcome structureCreated = structureFixture.service.execute(
+				createElementCommand(uuid(62), "structure", "copper_ruin", new JsonObject()), context);
+		JsonArray structureSections = editorSections(structureFixture, structureCreated, uuid(63), context);
+		JsonObject provider = editorField(structureSections, "/startHeightProviderType");
+		assertEquals("select", provider.get("control").getAsString());
+		assertTrue(provider.getAsJsonArray("options").size() >= 4);
+		JsonObject minHeight = editorField(structureSections, "/startHeightMin");
+		assertEquals(-64.0, minHeight.getAsJsonObject("constraints").get("min").getAsDouble());
+		assertEquals(320.0, minHeight.getAsJsonObject("constraints").get("max").getAsDouble());
+		assertEquals("/useStartHeight", minHeight.getAsJsonObject("condition").getAsJsonArray("paths")
+				.get(0).getAsString());
+		assertEquals("generation", editorSectionId(structureSections, "/startHeightMin"));
+
+		Fixture toolFixture = fixture();
+		CommandOutcome toolCreated = toolFixture.service.execute(
+				createElementCommand(uuid(64), "tool", "copper_hammer", new JsonObject()), context);
+		JsonArray toolSections = editorSections(toolFixture, toolCreated, uuid(65), context);
+		assertEquals("select", editorField(toolSections, "/renderType").get("control").getAsString());
+		assertEquals("procedure_reference", editorField(toolSections, "/onCrafted").get("control").getAsString());
+		assertEquals("events", editorSectionId(toolSections, "/onCrafted"));
+
+		Fixture tradeFixture = fixture();
+		CommandOutcome tradeCreated = tradeFixture.service.execute(
+				createElementCommand(uuid(66), "villagertrade", "copper_trade", new JsonObject()), context);
+		JsonArray tradeSections = editorSections(tradeFixture, tradeCreated, uuid(67), context);
+		JsonObject profession = editorField(tradeSections, "/villagerProfession");
+		assertEquals("element_reference", profession.get("control").getAsString());
+		assertEquals("villagerprofession", profession.getAsJsonArray("referenceTypes").get(0).getAsString());
+		JsonObject trades = editorField(tradeSections, "/trades");
+		assertEquals("structured_list", trades.get("control").getAsString());
+		JsonArray tradeFields = trades.getAsJsonArray("itemFields");
+		assertEquals("element_reference", editorFieldInFlatList(tradeFields, "/price1").get("control").getAsString());
+		assertEquals(1.0, editorFieldInFlatList(tradeFields, "/countPrice1").getAsJsonObject("constraints")
+				.get("min").getAsDouble());
+		assertEquals(0.05, trades.getAsJsonObject("itemTemplate").get("priceMultiplier").getAsDouble());
+	}
+
+	@Test void stage12AllWaveBAndCTypesExposeDomainDepthSections() {
+		RequestContext context = new RequestContext(Actor.UI, PermissionProfile.WORKSPACE);
+		List<String> types = List.of("projectile", "specialentity", "overlay", "feature", "structure", "fluid", "plant",
+				"armor", "tool", "enchantment", "potion", "potioneffect", "damagetype", "attribute", "itemextension",
+				"command", "gamerule", "keybind", "painting", "particle", "tab", "armortrim", "bannerpattern",
+				"villagerprofession", "villagertrade", "code");
+		int sequence = 70;
+		for (String type : types) {
+			Fixture fixture = fixture();
+			CommandOutcome created = fixture.service.execute(
+					createElementCommand(uuid(sequence++), type, "depth_" + type, new JsonObject()), context);
+			assertEquals("committed", created.result().status(), type + " minimal Stage 12 create should commit");
+			JsonArray sections = editorSections(fixture, created, uuid(sequence++), context);
+			assertTrue(sections.size() > 1, type + " should expose Stage 12 domain sections");
+			Set<String> paths = new HashSet<>();
+			for (JsonElement rawSection : sections) {
+				for (JsonElement rawField : rawSection.getAsJsonObject().getAsJsonArray("fields")) {
+					String path = rawField.getAsJsonObject().get("path").getAsString();
+					assertTrue(paths.add(path), type + " projected duplicate field " + path);
+				}
+			}
+			assertTrue(paths.size() > 3, type + " should expose more than identity-only fields");
+		}
+	}
+
 	@Test void stage12GuiCreationUsesCanonicalCanvasDefaults() {
 		Fixture fixture = fixture();
 		RequestContext context = new RequestContext(Actor.UI, PermissionProfile.WORKSPACE);
@@ -567,8 +663,7 @@ class WorkspaceApplicationServiceTest {
 
 		JsonObject payload = new JsonObject();
 		payload.addProperty("elementId", elementId.toString());
-		JsonArray sections = fixture.service.query(Query.of(uuid(27), WORKSPACE_ID,
-				Operation.GET_MOD_ELEMENT_EDITOR, payload), context).data().getAsJsonObject().getAsJsonArray("sections");
+		JsonArray sections = queryEditorSections(fixture, payload, uuid(27), context);
 		assertEquals("components", editorSectionId(sections, "/components"));
 		assertEquals("select", editorField(sections, "/type").get("control").getAsString());
 	}
@@ -596,8 +691,7 @@ class WorkspaceApplicationServiceTest {
 
 		JsonObject payload = new JsonObject();
 		payload.addProperty("elementId", elementId.toString());
-		JsonArray sections = fixture.service.query(Query.of(uuid(42), WORKSPACE_ID,
-				Operation.GET_MOD_ELEMENT_EDITOR, payload), context).data().getAsJsonObject().getAsJsonArray("sections");
+		JsonArray sections = queryEditorSections(fixture, payload, uuid(42), context);
 		assertEquals("layout", editorSectionId(sections, "/gridSettings/sx"));
 		assertEquals("components", editorSectionId(sections, "/components"));
 		assertEquals("behavior", editorSectionId(sections, "/priority"));
@@ -724,6 +818,30 @@ class WorkspaceApplicationServiceTest {
 			}
 		}
 		throw new AssertionError("Editor field not found: " + path);
+	}
+
+	private static JsonObject editorFieldInFlatList(JsonArray fields, String path) {
+		for (JsonElement rawField : fields) {
+			JsonObject field = rawField.getAsJsonObject();
+			if (path.equals(field.get("path").getAsString())) return field;
+		}
+		throw new AssertionError("Editor item field not found: " + path);
+	}
+
+	private static JsonArray editorSections(Fixture fixture, CommandOutcome created, UUID queryId,
+			RequestContext context) {
+		assertEquals("committed", created.result().status());
+		String elementId = created.result().data().getAsJsonObject().getAsJsonObject("element").get("id").getAsString();
+		JsonObject payload = new JsonObject();
+		payload.addProperty("elementId", elementId);
+		return queryEditorSections(fixture, payload, queryId, context);
+	}
+
+	private static JsonArray queryEditorSections(Fixture fixture, JsonObject payload, UUID queryId,
+			RequestContext context) {
+		var result = fixture.service.query(Query.of(queryId, WORKSPACE_ID, Operation.GET_MOD_ELEMENT_EDITOR, payload), context);
+		assertEquals("succeeded", result.status(), () -> "editor query diagnostics=" + result.diagnostics());
+		return result.data().getAsJsonObject().getAsJsonArray("sections");
 	}
 
 	private static String editorSectionId(JsonArray sections, String path) {

@@ -2737,6 +2737,193 @@ export class MockCoreBridge implements CoreBridge {
               ],
               capabilities: []
             };
+          } else if (elem?.type === 'livingentity') {
+            const procedureOptions = this.state.elements
+              .filter((candidate) => candidate.type === 'procedure' || candidate.type === 'function')
+              .map((candidate) => ({
+                value: candidate.name,
+                label: { key: 'field.option', fallback: `${candidate.displayName} · ${candidate.type}` },
+                disabled: false
+              }));
+            editor = {
+              element: elem,
+              sections: [
+                {
+                  id: 'identity',
+                  title: { key: 'editor.section.identity', fallback: 'Identity' },
+                  fields: [
+                    {
+                      path: '/mobName', label: { key: 'field.mobName', fallback: 'Mob Name' }, control: 'text',
+                      required: true, readOnly: false, value: elem.name, options: [], diagnostics: []
+                    },
+                    {
+                      path: '/mobLabel', label: { key: 'field.mobLabel', fallback: 'Mob Label' }, control: 'text',
+                      required: true, readOnly: false, value: elem.displayName, options: [], diagnostics: []
+                    }
+                  ]
+                },
+                {
+                  id: 'appearance',
+                  title: { key: 'editor.section.appearance', fallback: 'Appearance' },
+                  fields: [
+                    {
+                      path: '/mobModelName', label: { key: 'field.mobModelName', fallback: 'Model' }, control: 'text',
+                      required: true, readOnly: false, value: 'Biped', options: [], diagnostics: []
+                    }
+                  ]
+                },
+                {
+                  id: 'resources',
+                  title: { key: 'editor.section.resources', fallback: 'Resources' },
+                  fields: [
+                    {
+                      path: '/mobModelTexture', label: { key: 'field.mobModelTexture', fallback: 'Model Texture' },
+                      control: 'resource_reference', required: true, readOnly: false,
+                      value: 'textures/entity/copper_guardian.png', options: [], diagnostics: []
+                    }
+                  ]
+                },
+                {
+                  id: 'attributes',
+                  title: { key: 'editor.section.attributes', fallback: 'Attributes' },
+                  fields: [
+                    {
+                      path: '/health', label: { key: 'field.health', fallback: 'Health' }, control: 'number',
+                      required: false, readOnly: false, value: 20, options: [],
+                      constraints: { min: 0, max: 1024, step: 1 }, diagnostics: []
+                    },
+                    {
+                      path: '/movementSpeed', label: { key: 'field.movementSpeed', fallback: 'Movement Speed' },
+                      control: 'number', required: false, readOnly: false, value: 0.3, options: [],
+                      constraints: { min: 0, max: 50, step: 0.1 }, diagnostics: []
+                    }
+                  ]
+                },
+                {
+                  id: 'behavior',
+                  title: { key: 'editor.section.behavior', fallback: 'Behavior' },
+                  fields: [
+                    {
+                      path: '/hasAI', label: { key: 'field.hasAI', fallback: 'Has AI' }, control: 'toggle',
+                      required: false, readOnly: false, value: true, options: [], diagnostics: []
+                    }
+                  ]
+                },
+                {
+                  id: 'spawning',
+                  title: { key: 'editor.section.spawning', fallback: 'Spawning' },
+                  fields: [
+                    {
+                      path: '/spawnThisMob', label: { key: 'field.spawnThisMob', fallback: 'Spawn This Mob' },
+                      control: 'toggle', required: false, readOnly: false, value: true, options: [], diagnostics: []
+                    },
+                    {
+                      path: '/spawningProbability', label: { key: 'field.spawningProbability', fallback: 'Spawn Weight' },
+                      control: 'number', required: false, readOnly: false, value: 20, options: [],
+                      constraints: { min: 1, max: 1000, step: 1 }, diagnostics: []
+                    }
+                  ]
+                },
+                {
+                  id: 'events',
+                  title: { key: 'editor.section.events', fallback: 'Events' },
+                  fields: [
+                    {
+                      path: '/whenMobDies', label: { key: 'field.whenMobDies', fallback: 'When Mob Dies' },
+                      control: 'procedure_reference', required: false, readOnly: false, value: '',
+                      options: procedureOptions, diagnostics: []
+                    }
+                  ]
+                },
+                {
+                  id: 'advanced',
+                  title: { key: 'editor.section.advanced', fallback: 'Advanced' },
+                  fields: [
+                    {
+                      path: '/hasSpawnEgg', label: { key: 'field.hasSpawnEgg', fallback: 'Has Spawn Egg' },
+                      control: 'toggle', required: false, readOnly: false, value: true, options: [], diagnostics: []
+                    },
+                    {
+                      path: '/isBoss', label: { key: 'field.isBoss', fallback: 'Boss' }, control: 'toggle',
+                      required: false, readOnly: false, value: false, options: [], diagnostics: []
+                    }
+                  ]
+                }
+              ],
+              capabilities: []
+            };
+          } else if (elem?.type === 'biome') {
+            const blockOptions = ['Blocks.GRASS', 'Blocks.DIRT#0', 'Blocks.STONE#0'].map((value) => ({
+              value,
+              label: { key: 'field.option', fallback: value },
+              disabled: false
+            }));
+            editor = {
+              element: elem,
+              sections: [
+                {
+                  id: 'climate',
+                  title: { key: 'editor.section.climate', fallback: 'Climate' },
+                  fields: [
+                    {
+                      path: '/temperature', label: { key: 'field.temperature', fallback: 'Temperature' },
+                      control: 'number', required: false, readOnly: false, value: 0.5, options: [],
+                      constraints: { min: -1, max: 2, step: 0.1 }, diagnostics: []
+                    }
+                  ]
+                },
+                {
+                  id: 'appearance',
+                  title: { key: 'editor.section.appearance', fallback: 'Appearance' },
+                  fields: [
+                    {
+                      path: '/spawnParticles', label: { key: 'field.spawnParticles', fallback: 'Spawn Particles' },
+                      control: 'toggle', required: false, readOnly: false, value: false, options: [], diagnostics: []
+                    },
+                    {
+                      path: '/particleToSpawn', label: { key: 'field.particleToSpawn', fallback: 'Particle' },
+                      control: 'text', required: false, readOnly: false, value: null, options: [],
+                      condition: { operator: 'any_truthy', paths: ['/spawnParticles'] }, diagnostics: []
+                    }
+                  ]
+                },
+                {
+                  id: 'generation',
+                  title: { key: 'editor.section.generation', fallback: 'Generation' },
+                  fields: [
+                    {
+                      path: '/groundBlock', label: { key: 'field.groundBlock', fallback: 'Ground Block' },
+                      control: 'element_reference', required: true, readOnly: false, value: 'Blocks.GRASS',
+                      options: blockOptions, diagnostics: []
+                    },
+                    {
+                      path: '/undergroundBlock', label: { key: 'field.undergroundBlock', fallback: 'Underground Block' },
+                      control: 'element_reference', required: true, readOnly: false, value: 'Blocks.DIRT#0',
+                      options: blockOptions, diagnostics: []
+                    },
+                    {
+                      path: '/treeType', label: { key: 'field.treeType', fallback: 'Tree Type' }, control: 'select',
+                      required: false, readOnly: false, value: 0,
+                      options: [
+                        { value: 0, label: { key: 'field.option', fallback: 'Vanilla trees' }, disabled: false },
+                        { value: 1, label: { key: 'field.option', fallback: 'Custom trees' }, disabled: false }
+                      ], diagnostics: []
+                    }
+                  ]
+                },
+                {
+                  id: 'spawning',
+                  title: { key: 'editor.section.spawning', fallback: 'Spawning' },
+                  fields: [
+                    {
+                      path: '/spawnInCaves', label: { key: 'field.spawnInCaves', fallback: 'Spawn In Caves' },
+                      control: 'toggle', required: false, readOnly: false, value: false, options: [], diagnostics: []
+                    }
+                  ]
+                }
+              ],
+              capabilities: []
+            };
           } else if (elem?.type === 'dimension') {
             const biomeOptions = [
               '#is_overworld', '#is_nether', '#is_end',
@@ -2800,6 +2987,133 @@ export class MockCoreBridge implements CoreBridge {
                         { value: 'Blocks.STONE#0', label: { key: 'field.option', fallback: 'Blocks.STONE#0' }, disabled: false }
                       ],
                       condition: { operator: 'any_truthy', paths: ['/enablePortal'] }, diagnostics: []
+                    }
+                  ]
+                }
+              ],
+              capabilities: []
+            };
+          } else if (elem?.type === 'projectile') {
+            const procedureOptions = this.state.elements
+              .filter((candidate) => candidate.type === 'procedure' || candidate.type === 'function')
+              .map((candidate) => ({
+                value: candidate.name,
+                label: { key: 'field.option', fallback: `${candidate.displayName} · ${candidate.type}` },
+                disabled: false
+              }));
+            const itemOptions = this.state.elements
+              .filter((candidate) => ['block', 'item', 'armor', 'tool', 'plant', 'fluid', 'specialentity'].includes(String(candidate.type)))
+              .map((candidate) => ({
+                value: `CUSTOM:${candidate.name}`,
+                label: { key: 'field.option', fallback: `${candidate.displayName} · ${candidate.type}` },
+                disabled: false
+              }));
+            editor = {
+              element: elem,
+              sections: [
+                {
+                  id: 'equipment',
+                  title: { key: 'editor.section.equipment', fallback: 'Equipment' },
+                  fields: [
+                    {
+                      path: '/projectileItem', label: { key: 'field.projectileItem', fallback: 'Projectile Item' },
+                      control: 'element_reference', required: false, readOnly: false, value: '', options: itemOptions,
+                      referenceTypes: ['block', 'item', 'armor', 'tool', 'plant', 'fluid', 'specialentity'], diagnostics: []
+                    }
+                  ]
+                },
+                {
+                  id: 'resources',
+                  title: { key: 'editor.section.resources', fallback: 'Resources' },
+                  fields: [
+                    {
+                      path: '/customModelTexture', label: { key: 'field.customModelTexture', fallback: 'Model Texture' },
+                      control: 'resource_reference', required: false, readOnly: false, value: '', options: [], diagnostics: []
+                    }
+                  ]
+                },
+                {
+                  id: 'attributes',
+                  title: { key: 'editor.section.attributes', fallback: 'Attributes' },
+                  fields: [
+                    {
+                      path: '/power', label: { key: 'field.power', fallback: 'Power' }, control: 'number',
+                      required: false, readOnly: false, value: 1, options: [],
+                      constraints: { min: 0, max: 100, step: 0.1 }, diagnostics: []
+                    },
+                    {
+                      path: '/damage', label: { key: 'field.damage', fallback: 'Damage' }, control: 'number',
+                      required: false, readOnly: false, value: 2, options: [],
+                      constraints: { min: 0, max: 100, step: 0.1 }, diagnostics: []
+                    }
+                  ]
+                },
+                {
+                  id: 'events',
+                  title: { key: 'editor.section.events', fallback: 'Events' },
+                  fields: [
+                    {
+                      path: '/onHitsBlock', label: { key: 'field.onHitsBlock', fallback: 'On Hits Block' },
+                      control: 'procedure_reference', required: false, readOnly: false, value: '',
+                      options: procedureOptions, diagnostics: []
+                    },
+                    {
+                      path: '/onFlyingTick', label: { key: 'field.onFlyingTick', fallback: 'On Flying Tick' },
+                      control: 'procedure_reference', required: false, readOnly: false, value: '',
+                      options: procedureOptions, diagnostics: []
+                    }
+                  ]
+                }
+              ],
+              capabilities: []
+            };
+          } else if (elem?.type === 'villagertrade') {
+            const itemReferenceTypes = ['block', 'item', 'armor', 'tool', 'plant', 'fluid', 'specialentity'] as const;
+            const itemOptions = this.state.elements
+              .filter((candidate) => itemReferenceTypes.includes(candidate.type as typeof itemReferenceTypes[number]))
+              .map((candidate) => ({
+                value: `CUSTOM:${candidate.name}`,
+                label: { key: 'field.option', fallback: `${candidate.displayName} · ${candidate.type}` },
+                disabled: false
+              }));
+            const professionOptions = this.state.elements
+              .filter((candidate) => candidate.type === 'villagerprofession')
+              .map((candidate) => ({
+                value: `CUSTOM:${candidate.name}`,
+                label: { key: 'field.option', fallback: `${candidate.displayName} · villagerprofession` },
+                disabled: false
+              }));
+            const tradeItemFields = [
+              { path: '/price1', label: { key: 'field.price1', fallback: 'Price 1' }, control: 'element_reference' as const, required: false, readOnly: false, value: '', options: itemOptions, referenceTypes: [...itemReferenceTypes], diagnostics: [] },
+              { path: '/countPrice1', label: { key: 'field.countPrice1', fallback: 'Price 1 Count' }, control: 'number' as const, required: false, readOnly: false, value: 1, options: [], constraints: { min: 1, max: 64, step: 1 }, diagnostics: [] },
+              { path: '/price2', label: { key: 'field.price2', fallback: 'Price 2' }, control: 'element_reference' as const, required: false, readOnly: false, value: '', options: itemOptions, referenceTypes: [...itemReferenceTypes], diagnostics: [] },
+              { path: '/countPrice2', label: { key: 'field.countPrice2', fallback: 'Price 2 Count' }, control: 'number' as const, required: false, readOnly: false, value: 1, options: [], constraints: { min: 0, max: 64, step: 1 }, diagnostics: [] },
+              { path: '/offer', label: { key: 'field.offer', fallback: 'Offer' }, control: 'element_reference' as const, required: false, readOnly: false, value: '', options: itemOptions, referenceTypes: [...itemReferenceTypes], diagnostics: [] },
+              { path: '/countOffer', label: { key: 'field.countOffer', fallback: 'Offer Count' }, control: 'number' as const, required: false, readOnly: false, value: 1, options: [], constraints: { min: 1, max: 64, step: 1 }, diagnostics: [] },
+              { path: '/level', label: { key: 'field.level', fallback: 'Level' }, control: 'number' as const, required: false, readOnly: false, value: 1, options: [], constraints: { min: 1, max: 5, step: 1 }, diagnostics: [] },
+              { path: '/maxTrades', label: { key: 'field.maxTrades', fallback: 'Max Trades' }, control: 'number' as const, required: false, readOnly: false, value: 12, options: [], constraints: { min: 1, max: 64, step: 1 }, diagnostics: [] },
+              { path: '/xp', label: { key: 'field.xp', fallback: 'XP' }, control: 'number' as const, required: false, readOnly: false, value: 1, options: [], constraints: { min: 0, max: 1000, step: 1 }, diagnostics: [] },
+              { path: '/priceMultiplier', label: { key: 'field.priceMultiplier', fallback: 'Price Multiplier' }, control: 'number' as const, required: false, readOnly: false, value: 0.05, options: [], constraints: { min: 0, max: 1, step: 0.05 }, diagnostics: [] }
+            ];
+            editor = {
+              element: elem,
+              sections: [
+                {
+                  id: 'equipment',
+                  title: { key: 'editor.section.equipment', fallback: 'Trade' },
+                  fields: [
+                    {
+                      path: '/villagerProfession', label: { key: 'field.villagerProfession', fallback: 'Villager Profession' },
+                      control: 'element_reference', required: false, readOnly: false, value: '', options: professionOptions,
+                      referenceTypes: ['villagerprofession'], diagnostics: []
+                    },
+                    {
+                      path: '/trades', label: { key: 'field.trades', fallback: 'Trades' }, control: 'structured_list',
+                      required: false, readOnly: false, value: [], options: [], itemFields: tradeItemFields,
+                      itemTemplate: {
+                        price1: '', countPrice1: 1, price2: '', countPrice2: 1, offer: '', countOffer: 1,
+                        level: 1, maxTrades: 12, xp: 1, priceMultiplier: 0.05
+                      }, diagnostics: []
                     }
                   ]
                 }
@@ -3067,13 +3381,37 @@ export class MockCoreBridge implements CoreBridge {
             if (field.startsWith('on') || field.startsWith('when') || field.endsWith('condition')) return 'events';
             if (field.includes('spawn')) return 'spawning';
           }
+          if (elem?.type === 'biome') {
+            if (field.includes('texture') || field.includes('sound') || field.includes('music')) return 'resources';
+            if (field.includes('temperature') || field.includes('rain') || field.includes('climate')) return 'climate';
+            if (field.includes('particle') || field.includes('fog') || field.includes('sky') || field.includes('color')) return 'appearance';
+            if (field.includes('spawn') || field.includes('creature') || field.includes('mob')) return 'spawning';
+            if (field.includes('tree') || field.includes('feature') || field.includes('structure') || field.includes('generation')) return 'generation';
+          }
+          if (elem?.type === 'dimension') {
+            if (field.includes('texture') || field.includes('sound') || field.includes('music')) return 'resources';
+            if (field.includes('fog') || field.includes('sky') || field.includes('cloud') || field.includes('color')) return 'appearance';
+            if (field.includes('biome') || field.includes('structure') || field.includes('feature') || field.includes('worldgen') || field.startsWith('generate')) return 'generation';
+            if (field.includes('height') || field.includes('scale') || field.includes('portal') || field.includes('skylight') || field.includes('ambientlight')) return 'environment';
+          }
           if (elem?.type === 'overlay') {
             if (field === 'components') return 'components';
             if (['sx', 'sy', 'ox', 'oy', 'snapongrid'].includes(field)) return 'layout';
             if (field === 'basetexture') return 'resources';
             if (['priority', 'overlaytarget', 'displaycondition'].includes(field)) return 'behavior';
           }
-          return elem && ['livingentity', 'biome', 'dimension', 'gui'].includes(String(elem.type)) ? 'advanced' : 'general';
+          if (elem?.type === 'projectile') {
+            if (field.includes('texture') || field.includes('sound')) return 'resources';
+            if (field.includes('item')) return 'equipment';
+            if (field.startsWith('on') || field.startsWith('when')) return 'events';
+            if (field.includes('damage') || field.includes('power') || field.includes('speed') || field.includes('knockback')) return 'attributes';
+            return 'behavior';
+          }
+          if (elem?.type === 'villagertrade') {
+            if (field === 'villagerprofession' || field === 'trades') return 'equipment';
+            return 'behavior';
+          }
+          return elem && ['livingentity', 'biome', 'dimension', 'gui', 'projectile', 'villagertrade'].includes(String(elem.type)) ? 'advanced' : 'general';
         };
         const sections = [...new Set(changes.map((change) => sectionForPath(change.path)))];
         const portalEnabledWithoutFrame = elem?.type === 'dimension'
@@ -3101,11 +3439,24 @@ export class MockCoreBridge implements CoreBridge {
                 : section === 'events' || section === 'spawning' ? 'entity_behavior'
                 : 'element_source'
             ))]
+          : elem?.type === 'biome' || elem?.type === 'dimension'
+            ? [...new Set(sections.map((section) =>
+                section === 'resources' || section === 'appearance' ? 'client_resources'
+                  : section === 'generation' || section === 'spawning' || section === 'environment' || section === 'climate'
+                    ? 'worldgen'
+                    : 'element_source'
+              ))]
           : elem?.type === 'gui'
             ? ['ui_layout']
             : elem?.type === 'overlay'
               ? [...new Set(sections.map((section) => section === 'resources' ? 'client_resources' : 'ui_overlay'))]
-            : ['element_source'];
+              : elem?.type === 'projectile'
+                ? [...new Set(sections.map((section) => section === 'resources' ? 'client_resources'
+                  : section === 'attributes' || section === 'equipment' ? 'entity_definition'
+                    : section === 'events' || section === 'behavior' ? 'entity_behavior' : 'element_source'))]
+                : elem?.type === 'villagertrade'
+                  ? [...new Set(sections.map((section) => section === 'equipment' ? 'element_definition' : 'element_behavior'))]
+                  : ['element_source'];
         data = {
           elementId: payload.elementId ?? '',
           baseRevision: revision,
