@@ -587,6 +587,7 @@ class WorkspacePersistenceCompatibilityTest {
 						Operation.UPDATE_MOD_ELEMENT, updatePayload));
 				assertEquals("committed", updated.result().status(), updated.result().diagnostics().toString());
 				revision++;
+				workspace.reloadFromFileSystem();
 
 				ModElement upstream = workspace.getModElementByName(name);
 				assertNotNull(upstream);

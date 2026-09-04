@@ -7,6 +7,7 @@ import {
   CommandResult,
   ModElementSummary,
   ModElementEditorProjection,
+  ModElementChangePreview,
   Diagnostic,
   ActionHint,
   VersionTracksProjection,
@@ -63,6 +64,7 @@ interface WorkbenchContextType {
   // Bridge Actions
   loadScenario: (scenarioId: string) => void;
   getModElementEditor: (elementId: UUID) => Promise<ModElementEditorProjection | null>;
+  previewModElementChange: (elementId: UUID, changes: FieldChange[]) => Promise<ModElementChangePreview | null>;
   getProcedureEditor: (elementId: UUID) => Promise<ProcedureEditorProjection | null>;
   updateProcedure: (elementId: UUID, edits: ProcedureEdit[]) => Promise<CommandResult>;
   listWorkspaceRegistries: () => Promise<WorkspaceRegistriesProjection | null>;
@@ -129,6 +131,9 @@ function generateUUID(): UUID {
  * value before querying so contract data stays copy-pasteable.
  */
 function focusByContractSelector(selector: string): void {
+  if (selector.startsWith('/')) {
+    selector = `[data-field-path=${selector}]`;
+  }
   const match = /^\[([A-Za-z0-9_-]+)=(.+)\]$/.exec(selector.trim());
   const query = match ? `[${match[1]}="${match[2]}"]` : selector;
   const el = document.querySelector(query);
@@ -271,6 +276,22 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         payload: { elementId }
       });
       return (res.data as ModElementEditorProjection | null) ?? null;
+    },
+    [state.workbench]
+  );
+
+  const previewModElementChange = useCallback(
+    async (elementId: UUID, changes: FieldChange[]): Promise<ModElementChangePreview | null> => {
+      if (changes.length === 0) return null;
+      const res = await coreBridge.sendQuery<ModElementChangePreview>({
+        messageType: 'query',
+        schemaVersion: '1.0',
+        requestId: generateUUID(),
+        workspaceId: state.workbench?.workspace.id ?? '',
+        operation: 'preview_mod_element_change',
+        payload: { elementId, changes }
+      });
+      return res.data ?? null;
     },
     [state.workbench]
   );
@@ -934,6 +955,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       announcement,
       loadScenario,
       getModElementEditor,
+      previewModElementChange,
       getProcedureEditor,
       updateProcedure,
       listWorkspaceRegistries,
@@ -993,6 +1015,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       announcement,
       loadScenario,
       getModElementEditor,
+      previewModElementChange,
       getProcedureEditor,
       updateProcedure,
       listWorkspaceRegistries,

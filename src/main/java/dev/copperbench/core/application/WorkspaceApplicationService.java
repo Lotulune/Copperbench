@@ -5,6 +5,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import dev.copperbench.core.contract.UiCore;
 import dev.copperbench.core.contract.UiCore.ActionHint;
 import dev.copperbench.core.contract.UiCore.Command;
@@ -55,13 +56,25 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.Marker;
 import org.apache.logging.log4j.MarkerManager;
+import net.mcreator.element.types.Biome;
+import net.mcreator.element.types.Dimension;
+import net.mcreator.element.types.interfaces.LimitedOptions;
+import net.mcreator.element.types.interfaces.Numeric;
+import net.mcreator.element.types.interfaces.NonNullIf;
+import net.mcreator.workspace.references.ModElementReference;
+import net.mcreator.workspace.references.TextureReference;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.time.Clock;
 import java.util.ArrayList;
 import java.util.ArrayDeque;
 import java.util.Base64;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.Deque;
 import java.util.HashSet;
@@ -114,6 +127,220 @@ public final class WorkspaceApplicationService {
 	public WorkspaceApplicationService(RevisionedWorkspaceStore store, WorkspaceTaskGateway tasks, Clock clock,
 			Supplier<UUID> ids) {
 		this(store, tasks, WorkspaceMutationGateway.noOp(), clock, ids);
+	}
+
+	private static boolean isElementReferenceField(String elementType, String fieldName) {
+		Field reflected = stage12Field(elementType, fieldName);
+		if (reflected != null) {
+			if (reflected.getType().getSimpleName().equals("MItemBlock")
+					|| reflected.getType().getSimpleName().equals("ProfessionEntry")) return true;
+			if (reflected.isAnnotationPresent(ModElementReference.class)
+					&& !Collection.class.isAssignableFrom(reflected.getType())) return true;
+		}
+		return switch (elementType) {
+			case "biome" -> Set.of("groundBlock", "undergroundBlock", "underwaterBlock", "treeStem", "treeBranch",
+					"treeVines", "treeFruits").contains(fieldName);
+			case "dimension" -> Set.of("mainFillerBlock", "fluidBlock", "portalFrame").contains(fieldName);
+			default -> false;
+		};
+	}
+
+	private static Class<?> structuredCollectionItem(Field field) {
+		if (field == null || !Collection.class.isAssignableFrom(field.getType())
+				|| simpleReferenceCollectionItem(field) != null) return null;
+		Class<?> itemClass = collectionItemClass(field);
+		if (itemClass == null || itemClass.getName().startsWith("java.")) return null;
+		return itemClass;
+	}
+
+	private static Class<?> stage12StorageClass(String elementType) {
+		return switch (elementType) {
+			case "biome" -> Biome.class;
+			case "dimension" -> Dimension.class;
+			case "livingentity" -> net.mcreator.element.types.LivingEntity.class;
+			case "gui" -> net.mcreator.element.types.GUI.class;
+			case "overlay" -> net.mcreator.element.types.Overlay.class;
+			case "projectile" -> net.mcreator.element.types.Projectile.class;
+			case "specialentity" -> net.mcreator.element.types.SpecialEntity.class;
+			case "feature" -> net.mcreator.element.types.Feature.class;
+			case "structure" -> net.mcreator.element.types.Structure.class;
+			case "fluid" -> net.mcreator.element.types.Fluid.class;
+			case "plant" -> net.mcreator.element.types.Plant.class;
+			case "armor" -> net.mcreator.element.types.Armor.class;
+			case "armortrim" -> net.mcreator.element.types.ArmorTrim.class;
+			case "tool" -> net.mcreator.element.types.Tool.class;
+			case "itemextension" -> net.mcreator.element.types.ItemExtension.class;
+			case "attribute" -> net.mcreator.element.types.Attribute.class;
+			case "bannerpattern" -> net.mcreator.element.types.BannerPattern.class;
+			case "command" -> net.mcreator.element.types.Command.class;
+			case "damagetype" -> net.mcreator.element.types.DamageType.class;
+			case "enchantment" -> net.mcreator.element.types.Enchantment.class;
+			case "gamerule" -> net.mcreator.element.types.GameRule.class;
+			case "keybind" -> net.mcreator.element.types.KeyBinding.class;
+			case "painting" -> net.mcreator.element.types.Painting.class;
+			case "particle" -> net.mcreator.element.types.Particle.class;
+			case "potion" -> net.mcreator.element.types.Potion.class;
+			case "potioneffect" -> net.mcreator.element.types.PotionEffect.class;
+			case "tab" -> net.mcreator.element.types.Tab.class;
+			case "villagerprofession" -> net.mcreator.element.types.VillagerProfession.class;
+			case "villagertrade" -> net.mcreator.element.types.VillagerTrade.class;
+			case "code" -> net.mcreator.element.types.CustomElement.class;
+			default -> null;
+		};
+	}
+
+	private static Field stage12Field(String elementType, String fieldName) {
+		Class<?> storageClass = stage12StorageClass(elementType);
+		if (storageClass == null) return null;
+		try {
+			Field field = storageClass.getField(fieldName);
+			return Modifier.isStatic(field.getModifiers()) ? null : field;
+		} catch (NoSuchFieldException ignored) {
+			return null;
+		}
+	}
+
+	private static Field conditionalField(String elementType, String fieldName) {
+		Field field = stage12Field(elementType, fieldName);
+		return field != null && field.isAnnotationPresent(NonNullIf.class) ? field : null;
+	}
+
+	private static Class<?> stage12ConditionalValidationClass(String elementType) {
+		return switch (elementType) {
+			case "biome" -> Biome.class;
+			case "dimension" -> Dimension.class;
+			case "structure" -> net.mcreator.element.types.Structure.class;
+			case "fluid" -> net.mcreator.element.types.Fluid.class;
+			case "plant" -> net.mcreator.element.types.Plant.class;
+			default -> null;
+		};
+	}
+
+	private void appendMissingStage12Fields(JsonObject values, JsonArray target, boolean readOnly, String elementType,
+			WorkspaceState state) {
+		Class<?> storageClass = stage12StorageClass(elementType);
+		if (storageClass == null) return;
+		Set<String> existing = new HashSet<>();
+		for (JsonElement raw : target)
+			existing.add(raw.getAsJsonObject().get("path").getAsString());
+		for (Field reflected : storageClass.getFields()) {
+			if (Modifier.isStatic(reflected.getModifiers()) || reflected.isSynthetic()) continue;
+			String path = "/" + reflected.getName();
+			if (existing.contains(path) || values.has(reflected.getName())) continue;
+			target.add(editorField(path, displayName(reflected.getName()), JsonNull.INSTANCE, readOnly, elementType, state));
+		}
+	}
+
+	private static JsonObject conditionalMetadata(String elementType, String fieldName) {
+		Field field = conditionalField(elementType, fieldName);
+		if (field == null) return null;
+		JsonObject condition = new JsonObject();
+		condition.addProperty("operator", "any_truthy");
+		JsonArray paths = new JsonArray();
+		JsonArray expressions = new JsonArray();
+		for (String expression : field.getAnnotation(NonNullIf.class).value()) {
+			expressions.add(expression);
+			String dependency = conditionFieldName(expression);
+			if (!dependency.isBlank()) paths.add("/" + dependency);
+		}
+		condition.add("paths", paths);
+		condition.add("expressions", expressions);
+		return condition;
+	}
+
+	private static boolean jsonTruthy(JsonElement value) {
+		if (value == null || value.isJsonNull()) return false;
+		if (!value.isJsonPrimitive()) return true;
+		if (value.getAsJsonPrimitive().isBoolean()) return value.getAsBoolean();
+		if (value.getAsJsonPrimitive().isNumber()) return value.getAsDouble() != 0;
+		return !value.getAsString().isBlank();
+	}
+
+	private static String conditionFieldName(String expression) {
+		String condition = expression == null ? "" : expression.trim();
+		if (condition.startsWith("!")) condition = condition.substring(1).trim();
+		for (String operator : List.of("#?=", "#=", "%=")) {
+			int index = condition.indexOf(operator);
+			if (index >= 0) return condition.substring(0, index).trim();
+		}
+		return condition;
+	}
+
+	private static boolean conditionExpressionMatches(JsonObject values, String expression) {
+		String condition = expression == null ? "" : expression.trim();
+		boolean negate = condition.startsWith("!");
+		if (negate) condition = condition.substring(1).trim();
+		boolean result;
+		try {
+			int index;
+			if ((index = condition.indexOf("#?=")) >= 0) {
+				JsonElement value = values.get(condition.substring(0, index).trim());
+				if (value == null || !value.isJsonPrimitive() || !value.getAsJsonPrimitive().isNumber()) result = false;
+				else {
+					int actual = value.getAsInt();
+					result = java.util.Arrays.stream(condition.substring(index + 3).trim().split(","))
+							.map(String::trim).mapToInt(Integer::parseInt).anyMatch(candidate -> candidate == actual);
+				}
+			} else if ((index = condition.indexOf("#=")) >= 0) {
+				JsonElement value = values.get(condition.substring(0, index).trim());
+				result = value != null && value.isJsonPrimitive() && value.getAsJsonPrimitive().isNumber()
+						&& value.getAsInt() == Integer.parseInt(condition.substring(index + 2).trim());
+			} else if ((index = condition.indexOf("%=")) >= 0) {
+				JsonElement value = values.get(condition.substring(0, index).trim());
+				result = value != null && value.isJsonPrimitive()
+						&& condition.substring(index + 2).trim().equals(value.getAsString());
+			} else {
+				result = jsonTruthy(values.get(condition));
+			}
+		} catch (RuntimeException ignored) {
+			result = false;
+		}
+		return negate ? !result : result;
+	}
+
+	private static boolean missingConditionalValue(JsonElement value) {
+		if (value == null || value.isJsonNull()) return true;
+		if (value.isJsonPrimitive() && value.getAsJsonPrimitive().isString()) return value.getAsString().isBlank();
+		if (value.isJsonArray()) return value.getAsJsonArray().isEmpty();
+		return false;
+	}
+
+	private static boolean isElementReferenceListField(String elementType, String fieldName) {
+		Field reflected = stage12Field(elementType, fieldName);
+		if (reflected != null && reflected.isAnnotationPresent(ModElementReference.class)
+				&& Collection.class.isAssignableFrom(reflected.getType())
+				&& simpleReferenceCollectionItem(reflected) != null) return true;
+		return elementType.equals("dimension")
+				&& Set.of("biomesInDimension", "biomesInDimensionCaves").contains(fieldName);
+	}
+
+	private static Class<?> collectionItemClass(Field field) {
+		if (field == null || !Collection.class.isAssignableFrom(field.getType())) return null;
+		Type genericType = field.getGenericType();
+		if (!(genericType instanceof ParameterizedType parameterizedType)) return null;
+		Type[] arguments = parameterizedType.getActualTypeArguments();
+		if (arguments.length != 1) return null;
+		return arguments[0] instanceof Class<?> itemClass ? itemClass : null;
+	}
+
+	private static Class<?> simpleReferenceCollectionItem(Field field) {
+		Class<?> itemClass = collectionItemClass(field);
+		if (itemClass == null) return null;
+		return switch (itemClass.getSimpleName()) {
+			case "String", "MItemBlock", "BiomeEntry", "EnchantmentEntry", "EntityEntry", "FluidEntry", "TabEntry" -> itemClass;
+			default -> null;
+		};
+	}
+
+	private static List<String> elementReferenceDefaults(String fieldName) {
+		return switch (fieldName) {
+			case "groundBlock" -> List.of("Blocks.GRASS", "Blocks.DIRT#0", "Blocks.STONE#0");
+			case "undergroundBlock" -> List.of("Blocks.DIRT#0", "Blocks.STONE#0");
+			case "underwaterBlock" -> List.of("Blocks.DIRT#0", "Blocks.GRAVEL", "Blocks.SAND");
+			case "fluidBlock" -> List.of("Blocks.WATER", "Blocks.LAVA");
+			case "mainFillerBlock", "portalFrame" -> List.of("Blocks.STONE#0", "Blocks.OBSIDIAN");
+			default -> List.of();
+		};
 	}
 
 	public WorkspaceApplicationService(RevisionedWorkspaceStore store, WorkspaceTaskGateway tasks,
@@ -311,6 +538,7 @@ public final class WorkspaceApplicationService {
 			return queryFailure(query, state.revision(), diagnostic(exception.code(),
 					"diagnostic.list_cursor_invalid", exception.getMessage(), null, null));
 		} catch (RuntimeException exception) {
+			LOG.debug("Copperbench query payload rejected for {}", query.operation(), exception);
 			return queryFailure(query, state.revision(), invalidPayload(exception.getMessage()));
 		}
 	}
@@ -471,6 +699,9 @@ public final class WorkspaceApplicationService {
 			return failed(command, currentRevision(command.workspaceId()), diagnostic("MOD_ELEMENT_INVALID_IDENTITY",
 					"diagnostic.mod_element_invalid_identity", "Element type or name is invalid.", "/name", null));
 		JsonObject normalizedValues = defaultElementValues(type, name, initialValues);
+		Diagnostic validation = validateElementValues(null, type, normalizedValues);
+		if (validation != null)
+			return failed(command, currentRevision(command.workspaceId()), validation);
 		RecoveryPoint recoveryPoint;
 		try {
 			recoveryPoint = automationRecoveryPoint(command, context);
@@ -538,7 +769,7 @@ public final class WorkspaceApplicationService {
 			} catch (RuntimeException exception) {
 				return Decision.abort(Mutation.rejected(invalidPayload(exception.getMessage())));
 			}
-			Diagnostic validation = validateElementValues(elementId, values);
+			Diagnostic validation = validateElementValues(elementId, existing.type(), values);
 			if (validation != null)
 				return Decision.abort(Mutation.rejected(validation));
 			String updatedDisplayName = values.has("displayName") && values.get("displayName").isJsonPrimitive()
@@ -1572,17 +1803,7 @@ public final class WorkspaceApplicationService {
 		boolean readOnly = outsideSlice || context.permission() == PermissionProfile.READ_ONLY;
 		JsonObject projection = new JsonObject();
 		projection.add("element", elementSummary(element));
-		JsonArray fields = new JsonArray();
-		flattenFields(element.values(), "", fields, readOnly, element.type());
-		if (fields.isEmpty())
-			fields.add(editorField("/displayName", "Display name", element.displayName(), readOnly, element.type()));
-		JsonObject section = new JsonObject();
-		section.addProperty("id", "general");
-		section.add("title", localized("editor.section.general", "General"));
-		section.add("fields", fields);
-		JsonArray sections = new JsonArray();
-		sections.add(section);
-		projection.add("sections", sections);
+		projection.add("sections", editorSections(element, readOnly, state));
 		projection.add("capabilities", capabilities(context));
 		if (!outsideSlice)
 			return querySuccess(query, state.revision(), projection);
@@ -1604,13 +1825,23 @@ public final class WorkspaceApplicationService {
 			return queryFailure(query, state.revision(), invalidPayload("changes must not be empty"));
 		JsonObject values = element.values().deepCopy();
 		JsonArray changedPaths = new JsonArray();
+		JsonArray changedFields = new JsonArray();
+		Set<String> changedSections = new java.util.LinkedHashSet<>();
 		for (JsonElement rawChange : changes) {
 			JsonObject change = rawChange.getAsJsonObject();
 			String pointer = requiredString(change, "path");
 			JsonPointerPatch.set(values, pointer, change.has("value") ? change.get("value") : JsonNull.INSTANCE);
 			changedPaths.add(elementPath(elementId) + pointer);
+			String sectionId = stage12SectionOrder(element.type()) == null ? "general"
+					: stage12SectionId(element.type(), pointer);
+			changedSections.add(sectionId);
+			JsonObject changedField = new JsonObject();
+			changedField.addProperty("path", pointer);
+			changedField.addProperty("field", editorFieldName(pointer));
+			changedField.addProperty("sectionId", sectionId);
+			changedFields.add(changedField);
 		}
-		Diagnostic diagnostic = validateElementValues(elementId, values);
+		Diagnostic diagnostic = validateElementValues(elementId, element.type(), values);
 		JsonObject projection = new JsonObject();
 		projection.addProperty("elementId", elementId.toString());
 		projection.addProperty("baseRevision", state.revision());
@@ -1621,7 +1852,341 @@ public final class WorkspaceApplicationService {
 		if (diagnostic != null)
 			diagnostics.add(GSON.toJsonTree(diagnostic));
 		projection.add("diagnostics", diagnostics);
+		JsonObject semanticSummary = new JsonObject();
+		semanticSummary.addProperty("changedFieldCount", changedFields.size());
+		semanticSummary.add("changedFields", changedFields);
+		semanticSummary.add("sections", GSON.toJsonTree(changedSections));
+		projection.add("semanticSummary", semanticSummary);
+		projection.add("generationImpact", generationImpact(state, element.type(), changedSections));
 		return querySuccess(query, state.revision(), projection);
+	}
+
+	/**
+	 * Stage 12 keeps the Stage 11 wire and persistence contract intact while adding a domain-oriented
+	 * projection for the high-complexity P0 types. Every leaf still appears exactly once, and fields
+	 * that Copperbench does not understand are deliberately collected under {@code advanced} instead
+	 * of being omitted. That makes the typed UI safe for upstream/newer-generator round trips.
+	 */
+	private JsonArray editorSections(Element element, boolean readOnly, WorkspaceState state) {
+		JsonArray fields = new JsonArray();
+		flattenFields(element.values(), "", fields, readOnly, element.type(), state);
+		appendMissingStage12Fields(element.values(), fields, readOnly, element.type(), state);
+		if (fields.isEmpty())
+			fields.add(editorField("/displayName", "Display name", element.displayName(), readOnly, element.type(), state));
+
+		List<String> order = stage12SectionOrder(element.type());
+		if (order == null)
+			return singleEditorSection("general", "General", fields);
+
+		List<JsonArray> grouped = new ArrayList<>();
+		for (int index = 0; index < order.size(); index++) grouped.add(new JsonArray());
+		for (JsonElement rawField : fields) {
+			JsonObject field = rawField.getAsJsonObject();
+			String sectionId = stage12SectionId(element.type(), field.get("path").getAsString());
+			int sectionIndex = order.indexOf(sectionId);
+			if (sectionIndex < 0) sectionIndex = order.indexOf("advanced");
+			grouped.get(sectionIndex).add(field);
+		}
+
+		JsonArray sections = new JsonArray();
+		for (int index = 0; index < order.size(); index++) {
+			if (grouped.get(index).isEmpty()) continue;
+			String id = order.get(index);
+			sections.add(editorSection(id, stage12SectionTitle(id), grouped.get(index)));
+		}
+		return sections;
+	}
+
+	private JsonObject generationImpact(WorkspaceState state, String elementType, Set<String> sections) {
+		JsonObject impact = new JsonObject();
+		impact.addProperty("scope", "element");
+		impact.addProperty("requiresRegeneration", true);
+		impact.addProperty("generatorId", state.generator().has("id") ? state.generator().get("id").getAsString() : "");
+		impact.addProperty("loader", state.generator().has("loader") ? state.generator().get("loader").getAsString() : "");
+		impact.addProperty("minecraftVersion", state.generator().has("minecraftVersion")
+				? state.generator().get("minecraftVersion").getAsString() : "");
+		Set<String> domains = new java.util.LinkedHashSet<>();
+		for (String section : sections) {
+			switch (elementType) {
+				case "livingentity" -> {
+					if (Set.of("appearance", "resources").contains(section)) domains.add("client_resources");
+					if (Set.of("behavior", "events", "spawning").contains(section)) domains.add("entity_behavior");
+					if (Set.of("attributes", "equipment").contains(section)) domains.add("entity_definition");
+				}
+				case "biome", "dimension" -> {
+					if (Set.of("generation", "spawning", "environment", "climate").contains(section)) domains.add("worldgen");
+					if (Set.of("appearance", "resources").contains(section)) domains.add("client_resources");
+				}
+				case "gui" -> {
+					if (Set.of("layout", "components", "behavior").contains(section)) domains.add("ui_layout");
+					if (section.equals("resources")) domains.add("client_resources");
+				}
+				case "overlay" -> {
+					if (Set.of("layout", "components", "behavior").contains(section)) domains.add("ui_overlay");
+					if (section.equals("resources")) domains.add("client_resources");
+				}
+				case "projectile", "specialentity" -> {
+					if (Set.of("appearance", "resources").contains(section)) domains.add("client_resources");
+					if (Set.of("behavior", "events", "spawning").contains(section)) domains.add("entity_behavior");
+					if (Set.of("attributes", "equipment").contains(section)) domains.add("entity_definition");
+				}
+				case "feature", "structure", "fluid", "plant" -> {
+					if (Set.of("generation", "behavior", "events", "attributes").contains(section)) domains.add("worldgen");
+					if (Set.of("appearance", "resources").contains(section)) domains.add("client_resources");
+				}
+				case "armor", "tool", "enchantment", "potion", "potioneffect", "damagetype", "attribute",
+						"itemextension" -> {
+					if (Set.of("appearance", "resources").contains(section)) domains.add("client_resources");
+					if (Set.of("attributes", "equipment").contains(section)) domains.add("combat_definition");
+					if (Set.of("behavior", "events").contains(section)) domains.add("element_behavior");
+				}
+				case "command", "gamerule", "keybind", "painting", "particle", "tab", "armortrim",
+						"bannerpattern", "villagerprofession", "villagertrade", "code" -> {
+					if (Set.of("appearance", "resources").contains(section)) domains.add("client_resources");
+					if (Set.of("attributes", "equipment").contains(section)) domains.add("element_definition");
+					if (Set.of("behavior", "events").contains(section)) domains.add("element_behavior");
+				}
+				default -> domains.add("element_source");
+			}
+		}
+		if (domains.isEmpty()) domains.add("element_source");
+		impact.add("affectedDomains", GSON.toJsonTree(domains));
+		return impact;
+	}
+
+	private JsonArray singleEditorSection(String id, String title, JsonArray fields) {
+		JsonArray sections = new JsonArray();
+		sections.add(editorSection(id, title, fields));
+		return sections;
+	}
+
+	private JsonObject editorSection(String id, String title, JsonArray fields) {
+		JsonObject section = new JsonObject();
+		section.addProperty("id", id);
+		section.add("title", localized(editorSectionKey(id), title));
+		section.add("fields", fields);
+		return section;
+	}
+
+	private String editorSectionKey(String id) {
+		return switch (id) {
+			case "general" -> "editor.section.general";
+			case "identity" -> "editor.section.identity";
+			case "appearance" -> "editor.section.appearance";
+			case "resources" -> "editor.section.resources";
+			case "attributes" -> "editor.section.attributes";
+			case "behavior" -> "editor.section.behavior";
+			case "equipment" -> "editor.section.equipment";
+			case "spawning" -> "editor.section.spawning";
+			case "events" -> "editor.section.events";
+			case "climate" -> "editor.section.climate";
+			case "generation" -> "editor.section.generation";
+			case "environment" -> "editor.section.environment";
+			case "layout" -> "editor.section.layout";
+			case "components" -> "editor.section.components";
+			case "advanced" -> "editor.section.advanced";
+			default -> "editor.section.general";
+		};
+	}
+
+	private List<String> stage12SectionOrder(String elementType) {
+		return switch (elementType) {
+			case "livingentity" -> List.of("identity", "appearance", "resources", "attributes", "behavior",
+					"equipment", "spawning", "events", "advanced");
+			case "biome" -> List.of("identity", "climate", "appearance", "generation", "spawning", "resources",
+					"advanced");
+			case "dimension" -> List.of("identity", "environment", "appearance", "generation", "resources",
+					"advanced");
+			case "gui" -> List.of("identity", "layout", "components", "behavior", "resources", "advanced");
+			case "overlay" -> List.of("layout", "components", "behavior", "resources", "advanced");
+			case "projectile", "specialentity" -> List.of("identity", "appearance", "resources", "attributes",
+					"equipment", "spawning", "behavior", "events", "advanced");
+			case "feature", "structure", "fluid", "plant" -> List.of("identity", "appearance", "resources",
+					"attributes", "generation", "behavior", "events", "advanced");
+			case "armor", "tool", "enchantment", "potion", "potioneffect", "damagetype", "attribute",
+					"itemextension" -> List.of("identity", "appearance", "resources", "attributes", "equipment",
+					"behavior", "events", "advanced");
+			case "command", "gamerule", "keybind", "painting", "particle", "tab", "armortrim",
+					"bannerpattern", "villagerprofession", "villagertrade", "code" -> List.of("identity",
+					"appearance", "resources", "attributes", "equipment", "behavior", "events", "advanced");
+			default -> null;
+		};
+	}
+
+	private String stage12SectionId(String elementType, String path) {
+		String field = editorFieldName(path).toLowerCase(Locale.ROOT);
+		if (Set.of("displayname", "name", "description", "mobname", "moblabel", "title").contains(field))
+			return "identity";
+
+		return switch (elementType) {
+			case "livingentity" -> livingEntitySection(field);
+			case "biome" -> biomeSection(field);
+			case "dimension" -> dimensionSection(field);
+			case "gui" -> guiSection(field);
+			case "overlay" -> overlaySection(field);
+			case "projectile", "specialentity" -> entitySupportSection(elementType, field);
+			case "feature", "structure", "fluid", "plant" -> worldgenSupportSection(elementType, field);
+			case "armor", "tool", "enchantment", "potion", "potioneffect", "damagetype", "attribute",
+					"itemextension" -> combatSupportSection(elementType, field);
+			case "command", "gamerule", "keybind", "painting", "particle", "tab", "armortrim",
+					"bannerpattern", "villagerprofession", "villagertrade", "code" -> systemSupportSection(elementType, field);
+			default -> "advanced";
+		};
+	}
+
+	private String livingEntitySection(String field) {
+		if (isResourceReferenceField(field)) return "resources";
+		if (Set.of("modelwidth", "modelheight", "modelshadowsize", "mountedyoffset", "visualscale",
+				"boundingboxscale", "transparentmodelcondition", "isshakingcondition", "solidboundingbox",
+				"hasspawnegg", "spawneggbasecolor", "spawneggdotcolor", "bossbarcolor", "bossbartype").contains(field)
+				|| field.contains("model")) return "appearance";
+		if (Set.of("attackstrength", "attackknockback", "knockbackresistance", "movementspeed", "stepheight",
+				"armorbasevalue", "trackingrange", "followrange", "health", "xpamount").contains(field))
+			return "attributes";
+		if (field.startsWith("equipment") || Set.of("mobdrop", "guiboundto", "inventorysize",
+				"inventorystacksize", "rangedattackitem", "breedtriggeritems", "creativetabs").contains(field))
+			return "equipment";
+		if (field.contains("spawn") || field.equals("restrictionbiomes") || field.equals("doesdespawnwhenidle"))
+			return "spawning";
+		if (isProcedureReferenceField(field)) return "events";
+		if (field.equals("aixml") || field.equals("aibase") || field.equals("hasai") || field.equals("ranged")
+				|| field.equals("rangeditemtype") || field.equals("rangedattackinterval")
+				|| field.equals("rangedattackradius") || field.equals("breedable") || field.equals("tameable")
+				|| field.equals("ridable") || field.startsWith("cancontrol") || field.startsWith("immuneto")
+				|| field.equals("watermob") || field.equals("flyingmob") || field.equals("disablecollisions")
+				|| field.equals("mobbehaviourtype") || field.equals("mobcreaturetype") || field.equals("isboss")
+				|| field.equals("entitydataentries") || field.equals("animations")
+				|| field.equals("sensitivetovibration") || field.equals("vibrationalevents")) return "behavior";
+		return "advanced";
+	}
+
+	private String overlaySection(String field) {
+		if (isResourceReferenceField(field)) return "resources";
+		if (field.equals("sx") || field.equals("sy") || field.equals("ox") || field.equals("oy")
+				|| field.equals("snapongrid")) return "layout";
+		if (field.equals("components")) return "components";
+		if (field.equals("priority") || field.equals("overlaytarget") || field.equals("displaycondition"))
+			return "behavior";
+		return "advanced";
+	}
+
+	private String biomeSection(String field) {
+		if (isResourceReferenceField(field)) return "resources";
+		if (field.contains("temperature") || field.contains("rain") || field.contains("downfall")
+				|| field.contains("climate") || field.contains("precipitation")) return "climate";
+		if (field.contains("color") || field.contains("fog") || field.contains("sky") || field.contains("grass")
+				|| field.contains("foliage") || field.contains("water") || field.contains("particle")
+				|| field.contains("ambient")) return "appearance";
+		if (field.contains("spawn") || field.contains("creature") || field.contains("mob")) return "spawning";
+		if (field.contains("feature") || field.contains("structure") || field.contains("ore")
+				|| field.contains("tree") || field.contains("carver") || field.contains("generation")
+				|| field.contains("surface")) return "generation";
+		return "advanced";
+	}
+
+	private String dimensionSection(String field) {
+		if (isResourceReferenceField(field)) return "resources";
+		if (field.contains("fog") || field.contains("sky") || field.contains("cloud") || field.contains("sun")
+				|| field.contains("moon") || field.contains("color")) return "appearance";
+		if (field.startsWith("generate") || field.contains("biome") || field.contains("structure")
+				|| field.contains("feature") || field.contains("worldgen") || field.contains("ore")) return "generation";
+		if (field.contains("height") || field.contains("scale") || field.contains("skylight")
+				|| field.contains("natural") || field.contains("bed") || field.contains("respawn")
+				|| field.contains("portal") || field.contains("infiniburn") || field.contains("ambientlight")
+				|| field.contains("ultrawarm") || field.contains("ceiling")) return "environment";
+		return "advanced";
+	}
+
+	private String guiSection(String field) {
+		if (isResourceReferenceField(field)) return "resources";
+		if (field.equals("width") || field.equals("height") || field.endsWith("x") || field.endsWith("y")
+				|| field.contains("anchor") || field.contains("offset") || field.contains("background")) return "layout";
+		if (field.contains("component") || field.contains("button") || field.contains("label")
+				|| field.contains("slot") || field.contains("checkbox") || field.contains("textfield")
+				|| field.contains("image") || field.contains("widget")) return "components";
+		if (field.contains("pause") || field.contains("container") || field.contains("inventory")
+				|| isProcedureReferenceField(field)) return "behavior";
+		return "advanced";
+	}
+
+	private String entitySupportSection(String elementType, String field) {
+		if (isResourceReferenceField(field)) return "resources";
+		if (isProcedureReferenceField(field)) return "events";
+		if (field.contains("model") || field.contains("render") || field.contains("texture")
+				|| field.contains("particle") || field.contains("color") || field.contains("transluc")) return "appearance";
+		if (field.contains("item") || field.contains("drop") || field.contains("inventory")
+				|| field.contains("equipment")) return "equipment";
+		if (field.contains("spawn") || field.contains("biome")) return "spawning";
+		if (field.contains("damage") || field.contains("power") || field.contains("knockback")
+				|| field.contains("speed") || field.contains("range") || field.contains("width")
+				|| field.contains("height") || field.contains("scale") || field.contains("health")) return "attributes";
+		if (elementType.equals("projectile") && field.equals("actionSound".toLowerCase(Locale.ROOT))) return "resources";
+		return "behavior";
+	}
+
+	private String worldgenSupportSection(String elementType, String field) {
+		if (isResourceReferenceField(field)) return "resources";
+		if (isProcedureReferenceField(field)) return "events";
+		if (field.contains("model") || field.contains("render") || field.contains("texture")
+				|| field.contains("particle") || field.contains("fog") || field.contains("color")
+				|| field.contains("emissive")) return "appearance";
+		if (field.contains("generation") || field.contains("placement") || field.contains("biome")
+				|| field.contains("structure") || field.contains("feature") || field.contains("pool")
+				|| field.contains("height") || field.contains("terrain") || field.contains("ore")) return "generation";
+		if (field.contains("hardness") || field.contains("resistance") || field.contains("luminance")
+				|| field.contains("speed") || field.contains("slipper") || field.contains("light")) return "attributes";
+		if (elementType.equals("plant") && (field.contains("drop") || field.contains("pickitem")
+				|| field.contains("strippingresult"))) return "resources";
+		return "behavior";
+	}
+
+	private String combatSupportSection(String elementType, String field) {
+		if (isResourceReferenceField(field)) return "resources";
+		if (isProcedureReferenceField(field)) return "events";
+		if (field.contains("model") || field.contains("render") || field.contains("texture")
+				|| field.contains("color") || field.contains("glow") || field.contains("transluc")) return "appearance";
+		if (field.contains("item") || field.contains("helmet") || field.contains("body")
+				|| field.contains("legging") || field.contains("boot") || field.contains("material")
+				|| field.contains("repair") || field.contains("ingredient")) return "equipment";
+		if (field.contains("damage") || field.contains("attack") || field.contains("speed")
+				|| field.contains("level") || field.contains("weight") || field.contains("duration")
+				|| field.contains("amplifier") || field.contains("value") || field.contains("power")
+				|| field.startsWith("min") || field.startsWith("max") || field.contains("count")) return "attributes";
+		if (elementType.equals("attribute") && field.contains("entity")) return "behavior";
+		return "behavior";
+	}
+
+	private String systemSupportSection(String elementType, String field) {
+		if (isResourceReferenceField(field)) return "resources";
+		if (isProcedureReferenceField(field)) return "events";
+		if (field.contains("model") || field.contains("render") || field.contains("texture")
+				|| field.contains("color") || field.contains("icon") || field.contains("particle")) return "appearance";
+		if (field.contains("item") || field.contains("price") || field.contains("offer")
+				|| field.contains("profession") || field.contains("pointofinterest")) return "equipment";
+		if (field.contains("value") || field.contains("level") || field.contains("duration")
+				|| field.contains("scale") || field.contains("size") || field.contains("count")) return "attributes";
+		if (elementType.equals("code") && field.equals("code")) return "behavior";
+		return "behavior";
+	}
+
+	private String stage12SectionTitle(String id) {
+		return switch (id) {
+			case "identity" -> "Identity";
+			case "appearance" -> "Appearance";
+			case "resources" -> "Resources";
+			case "attributes" -> "Attributes";
+			case "behavior" -> "Behavior";
+			case "equipment" -> "Equipment & Inventory";
+			case "spawning" -> "Spawning";
+			case "events" -> "Events & Procedures";
+			case "climate" -> "Climate";
+			case "generation" -> "Generation";
+			case "environment" -> "Environment";
+			case "layout" -> "Layout";
+			case "components" -> "Components";
+			case "advanced" -> "Advanced / Preserved";
+			default -> displayName(id);
+		};
 	}
 
 	private QueryResult previewDatagenOutput(Query query, WorkspaceState state) {
@@ -2087,44 +2652,102 @@ public final class WorkspaceApplicationService {
 		return querySuccess(query, state.revision(), projection);
 	}
 
-	private void flattenFields(JsonObject object, String base, JsonArray target, boolean readOnly, String elementType) {
+	private void flattenFields(JsonObject object, String base, JsonArray target, boolean readOnly, String elementType,
+			WorkspaceState state) {
 		for (String key : object.keySet()) {
 			JsonElement value = object.get(key);
 			String path = base + "/" + key.replace("~", "~0").replace("/", "~1");
 			if (value.isJsonObject())
-				flattenFields(value.getAsJsonObject(), path, target, readOnly, elementType);
+				flattenFields(value.getAsJsonObject(), path, target, readOnly, elementType, state);
 			else
-				target.add(editorField(path, displayName(key), value, readOnly, elementType));
+				target.add(editorField(path, displayName(key), value, readOnly, elementType, state));
 		}
 	}
 
-	private JsonObject editorField(String path, String label, Object value, boolean readOnly, String elementType) {
+	private JsonObject editorField(String path, String label, Object value, boolean readOnly, String elementType,
+			WorkspaceState state) {
 		JsonObject field = new JsonObject();
 		field.addProperty("path", path);
 		field.add("label", localized("field." + path.substring(path.lastIndexOf('/') + 1), label));
-		String fieldName = path.substring(path.lastIndexOf('/') + 1);
+		String fieldName = editorFieldName(path);
+		String normalizedFieldName = fieldName.toLowerCase(Locale.ROOT);
+		Field reflectedField = stage12Field(elementType, fieldName);
 		String control = value instanceof JsonElement element && element.isJsonArray() ? "json" : "text";
+		if (reflectedField != null && Collection.class.isAssignableFrom(reflectedField.getType())) control = "json";
+		if (isElementReferenceListField(elementType, fieldName)) control = "element_reference_list";
+		if (structuredCollectionItem(reflectedField) != null) control = "structured_list";
 		if (fieldName.equals("code") || fieldName.equals("description") || fieldName.equals("triggerxml"))
 			control = "textarea";
-		if (fieldName.equals("icon")) control = "resource_reference";
-		if (fieldName.equals("parent") || fieldName.equals("rewardFunction")) control = "procedure_reference";
+		if (isResourceReferenceField(normalizedFieldName) || isResourceReferenceStorage(reflectedField))
+			control = "resource_reference";
+		if (isProcedureReferenceField(normalizedFieldName) || isProcedureReferenceStorage(reflectedField))
+			control = "procedure_reference";
+		if (isElementReferenceField(elementType, fieldName)) control = "element_reference";
+		if (reflectedField != null && (reflectedField.isAnnotationPresent(LimitedOptions.class)
+				|| reflectedField.getType().isEnum() || reflectedField.getType().getSimpleName().equals("GenerationStep")))
+			control = "select";
+		if ((elementType.equals("tool") && Set.of("renderType", "blockingRenderType").contains(fieldName))
+				|| (elementType.equals("armor") && fieldName.endsWith("ItemRenderType"))) control = "select";
 		if (fieldName.equals("type") || fieldName.equals("frame") || fieldName.equals("toolType")
 				|| fieldName.equals("rarity") || fieldName.equals("sentiment") || fieldName.equals("priority")
-				|| fieldName.equals("entityType")) control = "select";
+				|| fieldName.equals("entityType") || (elementType.equals("livingentity")
+				&& Set.of("bossBarColor", "bossBarType", "mobBehaviourType", "mobCreatureType", "aiBase")
+						.contains(fieldName)) || (elementType.equals("biome")
+				&& Set.of("vanillaTreeType", "treeType", "villageType", "oceanRuinType", "spawnRuinedPortal")
+						.contains(fieldName)) || (elementType.equals("dimension")
+				&& Set.of("worldGenType", "defaultEffects", "skyType", "igniterRarity").contains(fieldName)))
+			control = "select";
 		if (value instanceof JsonElement element && element.isJsonPrimitive()
 				&& element.getAsJsonPrimitive().isBoolean()) control = "toggle";
 		if (value instanceof JsonElement element && element.isJsonPrimitive()
-				&& element.getAsJsonPrimitive().isNumber())
+				&& element.getAsJsonPrimitive().isNumber() && !control.equals("select"))
 			control = "number";
+		if (reflectedField != null && value instanceof JsonElement element && element.isJsonNull()) {
+			Class<?> javaType = reflectedField.getType();
+			if (javaType == boolean.class || javaType == Boolean.class) control = "toggle";
+			else if (javaType.isPrimitive() && javaType != char.class && javaType != boolean.class
+					|| Number.class.isAssignableFrom(javaType)) {
+				if (!control.equals("select")) control = "number";
+			}
+		}
 		field.addProperty("control", control);
-		field.addProperty("required", false);
+		boolean required = elementType.equals("livingentity")
+				&& Set.of("mobName", "mobLabel", "mobModelName", "mobModelTexture").contains(fieldName);
+		required |= elementType.equals("biome") && Set.of("groundBlock", "undergroundBlock").contains(fieldName);
+		required |= elementType.equals("dimension")
+				&& Set.of("biomesInDimension", "worldGenType", "mainFillerBlock", "fluidBlock").contains(fieldName);
+		field.addProperty("required", required);
 		field.addProperty("readOnly", readOnly);
 		if (value instanceof JsonElement element)
 			field.add("value", element.deepCopy());
 		else
 			field.addProperty("value", String.valueOf(value));
 		JsonArray options = new JsonArray();
-		if (fieldName.equals("frame")) {
+		if (reflectedField != null && reflectedField.isAnnotationPresent(LimitedOptions.class)) {
+			String[] limited = reflectedField.getAnnotation(LimitedOptions.class).value();
+			for (int index = 0; index < limited.length; index++) {
+				if (reflectedField.getType() == int.class || reflectedField.getType() == Integer.class)
+					options.add(fieldOption(index, limited[index]));
+				else
+					options.add(fieldOption(limited[index], limited[index]));
+			}
+		} else if (reflectedField != null && reflectedField.getType().isEnum()) {
+			for (Object option : reflectedField.getType().getEnumConstants())
+				options.add(fieldOption(enumName(option), enumName(option)));
+		} else if (reflectedField != null && reflectedField.getType().getSimpleName().equals("GenerationStep")) {
+			for (String option : List.of("RAW_GENERATION", "LAKES", "LOCAL_MODIFICATIONS", "UNDERGROUND_STRUCTURES",
+					"SURFACE_STRUCTURES", "STRONGHOLDS", "UNDERGROUND_ORES", "UNDERGROUND_DECORATION",
+					"FLUID_SPRINGS", "VEGETAL_DECORATION", "TOP_LAYER_MODIFICATION"))
+				options.add(fieldOption(option, option));
+		} else if ((elementType.equals("tool") && Set.of("renderType", "blockingRenderType").contains(fieldName))
+				|| (elementType.equals("armor") && fieldName.endsWith("ItemRenderType"))) {
+			options.add(fieldOption(0, "Built-in model"));
+			options.add(fieldOption(1, "JSON model"));
+			options.add(fieldOption(2, "OBJ model"));
+		} else if (elementType.equals("gui") && fieldName.equals("type")) {
+			options.add(fieldOption(0, "Without slots"));
+			options.add(fieldOption(1, "With slots"));
+		} else if (fieldName.equals("frame")) {
 			options.add(fieldOption("task", "Task"));
 			options.add(fieldOption("goal", "Goal"));
 			options.add(fieldOption("challenge", "Challenge"));
@@ -2146,10 +2769,376 @@ public final class WorkspaceApplicationService {
 			for (String option : List.of("NORMAL", "HIGH", "HIGHEST", "LOW", "LOWEST")) options.add(fieldOption(option, option));
 		} else if (fieldName.equals("entityType")) {
 			for (String option : List.of("Boat", "ChestBoat", "Raft", "ChestRaft")) options.add(fieldOption(option, option));
+		} else if (elementType.equals("livingentity") && fieldName.equals("bossBarColor")) {
+			for (String option : List.of("PINK", "BLUE", "RED", "GREEN", "YELLOW", "PURPLE", "WHITE"))
+				options.add(fieldOption(option, option));
+		} else if (elementType.equals("livingentity") && fieldName.equals("bossBarType")) {
+			for (String option : List.of("PROGRESS", "NOTCHED_6", "NOTCHED_10", "NOTCHED_12", "NOTCHED_20"))
+				options.add(fieldOption(option, option));
+		} else if (elementType.equals("livingentity") && fieldName.equals("mobBehaviourType")) {
+			for (String option : List.of("Mob", "Creature", "Raider")) options.add(fieldOption(option, option));
+		} else if (elementType.equals("livingentity") && fieldName.equals("mobCreatureType")) {
+			for (String option : List.of("UNDEFINED", "UNDEAD", "ARTHROPOD", "ILLAGER", "WATER"))
+				options.add(fieldOption(option, option));
+		} else if (elementType.equals("livingentity") && fieldName.equals("aiBase")) {
+			for (String option : List.of("(none)", "Bat", "Blaze", "Chicken", "Cow", "Creeper", "Enderman", "Horse",
+					"IronGolem", "MagmaCube", "Ocelot", "Pig", "Skeleton", "Slime", "Spider", "Squid",
+					"Villager", "Witch", "Wolf", "Zombie")) options.add(fieldOption(option, option));
+		} else if (elementType.equals("biome") && fieldName.equals("vanillaTreeType")) {
+			for (String option : List.of("Default", "Big trees", "Birch trees", "Savanna trees", "Mega pine trees",
+					"Mega spruce trees")) options.add(fieldOption(option, option));
+		} else if (elementType.equals("biome") && fieldName.equals("treeType")) {
+			options.add(fieldOption(0, "Vanilla trees"));
+			options.add(fieldOption(1, "Custom trees"));
+		} else if (elementType.equals("biome") && fieldName.equals("villageType")) {
+			for (String option : List.of("none", "desert", "plains", "savanna", "snowy", "taiga"))
+				options.add(fieldOption(option, option));
+		} else if (elementType.equals("biome") && fieldName.equals("oceanRuinType")) {
+			for (String option : List.of("NONE", "COLD", "WARM")) options.add(fieldOption(option, option));
+		} else if (elementType.equals("biome") && fieldName.equals("spawnRuinedPortal")) {
+			for (String option : List.of("NONE", "STANDARD", "DESERT", "JUNGLE", "SWAMP", "MOUNTAIN", "OCEAN", "NETHER"))
+				options.add(fieldOption(option, option));
+		} else if (elementType.equals("dimension") && fieldName.equals("worldGenType")) {
+			for (String option : List.of("Normal world gen", "Nether like gen", "End like gen"))
+				options.add(fieldOption(option, option));
+		} else if (elementType.equals("dimension") && fieldName.equals("defaultEffects")) {
+			for (String option : List.of("overworld", "the_nether", "the_end")) options.add(fieldOption(option, option));
+		} else if (elementType.equals("dimension") && fieldName.equals("skyType")) {
+			for (String option : List.of("NORMAL", "NONE", "END")) options.add(fieldOption(option, option));
+		} else if (elementType.equals("dimension") && fieldName.equals("igniterRarity")) {
+			for (String option : List.of("COMMON", "UNCOMMON", "RARE", "EPIC")) options.add(fieldOption(option, option));
+		} else if (control.equals("element_reference_list")) {
+			List<String> referenceTypes = elementReferenceTypes(elementType, fieldName);
+			if (referenceTypes.contains("biome"))
+				for (String tag : List.of("#is_overworld", "#is_nether", "#is_end")) options.add(fieldOption(tag, tag));
+			state.elements().stream()
+					.filter(candidate -> referenceTypes.isEmpty() || referenceTypes.contains(candidate.type()))
+					.sorted(Comparator.comparing(Element::displayName, String.CASE_INSENSITIVE_ORDER))
+					.forEach(candidate -> options.add(fieldOption("CUSTOM:" + candidate.name(),
+							candidate.displayName() + " · biome")));
+		} else if (control.equals("element_reference")) {
+			for (String vanilla : elementReferenceDefaults(fieldName)) options.add(fieldOption(vanilla, vanilla));
+			List<String> referenceTypes = elementReferenceTypes(elementType, fieldName);
+			state.elements().stream()
+					.filter(candidate -> referenceTypes.isEmpty() || referenceTypes.contains(candidate.type()))
+					.sorted(Comparator.comparing(Element::displayName, String.CASE_INSENSITIVE_ORDER))
+					.forEach(candidate -> options.add(fieldOption("CUSTOM:" + candidate.name(),
+							candidate.displayName() + " · " + candidate.type())));
+		} else if (control.equals("procedure_reference")) {
+			state.elements().stream()
+					.filter(candidate -> candidate.type().equals("procedure") || candidate.type().equals("function"))
+					.sorted(Comparator.comparing(Element::displayName, String.CASE_INSENSITIVE_ORDER))
+					.forEach(candidate -> options.add(fieldOption(candidate.name(),
+							candidate.displayName() + " · " + candidate.type())));
 		}
 		field.add("options", options);
+		List<String> referenceTypes = elementReferenceTypes(elementType, fieldName);
+		if (!referenceTypes.isEmpty()) field.add("referenceTypes", GSON.toJsonTree(referenceTypes));
+		if (reflectedField != null && reflectedField.isAnnotationPresent(TextureReference.class))
+			field.addProperty("resourceType", reflectedField.getAnnotation(TextureReference.class).value().getID());
+		if (control.equals("structured_list") && reflectedField != null) {
+			JsonArray itemFields = structuredItemFields(reflectedField, readOnly, state);
+			field.add("itemFields", itemFields);
+			JsonObject itemTemplate = new JsonObject();
+			for (JsonElement rawItemField : itemFields) {
+				JsonObject itemField = rawItemField.getAsJsonObject();
+				String itemPath = itemField.get("path").getAsString();
+				String itemName = editorFieldName(itemPath);
+				itemTemplate.add(itemName, itemField.get("value").deepCopy());
+			}
+			field.add("itemTemplate", itemTemplate);
+		}
+		JsonObject constraints = editorConstraints(elementType, fieldName);
+		if (constraints != null) field.add("constraints", constraints);
+		JsonObject condition = conditionalMetadata(elementType, fieldName);
+		if (condition != null) field.add("condition", condition);
 		field.add("diagnostics", new JsonArray());
 		return field;
+	}
+
+	private static String editorFieldName(String path) {
+		return path.substring(path.lastIndexOf('/') + 1).replace("~1", "/").replace("~0", "~");
+	}
+
+	private static boolean isResourceReferenceField(String fieldName) {
+		String field = fieldName.toLowerCase(Locale.ROOT);
+		return field.equals("icon") || field.contains("texture") || field.contains("sound") || field.contains("music")
+				|| field.contains("font") || field.equals("basetexture") || field.equals("armortexturefile");
+	}
+
+	private static boolean isProcedureReferenceField(String fieldName) {
+		String field = fieldName.toLowerCase(Locale.ROOT);
+		return field.equals("parent") || field.equals("rewardfunction") || field.startsWith("on")
+				|| field.startsWith("when") || field.endsWith("condition") || field.equals("breatheunderwater")
+				|| field.equals("pushedbyfluids") || field.equals("visualscale") || field.equals("boundingboxscale")
+				|| field.equals("solidboundingbox") || field.equals("vibrationsensitivityradius");
+	}
+
+	private static boolean isResourceReferenceStorage(Field field) {
+		return field != null && !Collection.class.isAssignableFrom(field.getType()) && (field.isAnnotationPresent(TextureReference.class)
+				|| field.getType().getSimpleName().equals("Sound"));
+	}
+
+	private static boolean isProcedureReferenceStorage(Field field) {
+		return field != null && field.getType().getSimpleName().endsWith("Procedure");
+	}
+
+	private static List<String> elementReferenceTypes(String elementType, String fieldName) {
+		Field field = stage12Field(elementType, fieldName);
+		if (field != null) {
+			Class<?> collectionItem = simpleReferenceCollectionItem(field);
+			if (collectionItem != null) {
+				List<String> accepted = acceptedReferenceTypes(field);
+				if (!accepted.isEmpty()) return accepted;
+				return switch (collectionItem.getSimpleName()) {
+					case "MItemBlock" -> List.of("block", "item", "armor", "tool", "plant", "fluid", "specialentity");
+					case "BiomeEntry" -> List.of("biome");
+					case "EnchantmentEntry" -> List.of("enchantment");
+					case "EntityEntry" -> List.of("livingentity", "specialentity");
+					case "FluidEntry" -> List.of("fluid");
+					case "TabEntry" -> List.of("tab");
+					default -> List.of();
+				};
+			}
+			if (field.getType().getSimpleName().equals("ProfessionEntry")) return List.of("villagerprofession");
+			if (field.getType().getSimpleName().equals("MItemBlock"))
+				return List.of("block", "item", "armor", "tool", "plant", "fluid", "specialentity");
+			if (field.isAnnotationPresent(ModElementReference.class)) {
+				List<String> accepted = acceptedReferenceTypes(field);
+				if (!accepted.isEmpty()) return accepted;
+				if (fieldName.toLowerCase(Locale.ROOT).contains("biome")) return List.of("biome");
+			}
+		}
+		if (elementType.equals("dimension") && Set.of("biomesInDimension", "biomesInDimensionCaves").contains(fieldName))
+			return List.of("biome");
+		if (isElementReferenceField(elementType, fieldName)) return List.of("block", "plant", "fluid");
+		return List.of();
+	}
+
+	private static List<String> acceptedReferenceTypes(Field field) {
+		ModElementReference reference = field == null ? null : field.getAnnotation(ModElementReference.class);
+		if (reference == null) return List.of();
+		List<String> accepted = new ArrayList<>();
+		for (Class<?> acceptedType : reference.acceptedTypes()) {
+			String type = stage12TypeForStorageClass(acceptedType);
+			if (type != null && !accepted.contains(type)) accepted.add(type);
+		}
+		return List.copyOf(accepted);
+	}
+
+	private JsonArray structuredItemFields(Field collectionField, boolean readOnly, WorkspaceState state) {
+		JsonArray fields = new JsonArray();
+		Class<?> itemClass = structuredCollectionItem(collectionField);
+		if (itemClass == null) return fields;
+		for (Field reflected : itemClass.getFields()) {
+			if (Modifier.isStatic(reflected.getModifiers()) || reflected.isSynthetic()) continue;
+			fields.add(structuredItemField(reflected, readOnly, state));
+		}
+		return fields;
+	}
+
+	private JsonObject structuredItemField(Field reflected, boolean readOnly, WorkspaceState state) {
+		String name = reflected.getName();
+		JsonObject field = new JsonObject();
+		field.addProperty("path", "/" + name);
+		field.add("label", localized("field." + name, displayName(name)));
+		String control = "text";
+		Class<?> type = reflected.getType();
+		if (Collection.class.isAssignableFrom(type)) control = "json";
+		if (type == boolean.class || type == Boolean.class) control = "toggle";
+		if (reflected.isAnnotationPresent(Numeric.class) || (type.isPrimitive() && type != boolean.class && type != char.class)
+				|| Number.class.isAssignableFrom(type)) control = "number";
+		if (reflected.isAnnotationPresent(LimitedOptions.class) || type.isEnum()) control = "select";
+		if (isReflectedElementReference(reflected)) control = "element_reference";
+		if (isResourceReferenceStorage(reflected)) control = "resource_reference";
+		if (isProcedureReferenceStorage(reflected)) control = "procedure_reference";
+		field.addProperty("control", control);
+		field.addProperty("required", false);
+		field.addProperty("readOnly", readOnly);
+		field.add("value", structuredItemDefault(reflected));
+		JsonArray options = new JsonArray();
+		if (reflected.isAnnotationPresent(LimitedOptions.class)) {
+			String[] limited = reflected.getAnnotation(LimitedOptions.class).value();
+			for (int index = 0; index < limited.length; index++) {
+				if (type == int.class || type == Integer.class) options.add(fieldOption(index, limited[index]));
+				else options.add(fieldOption(limited[index], limited[index]));
+			}
+		} else if (type.isEnum()) {
+			for (Object option : type.getEnumConstants()) options.add(fieldOption(enumName(option), enumName(option)));
+		}
+		List<String> referenceTypes = reflectedReferenceTypes(reflected);
+		if (reflected.isAnnotationPresent(TextureReference.class))
+			field.addProperty("resourceType", reflected.getAnnotation(TextureReference.class).value().getID());
+		if (control.equals("element_reference")) {
+			state.elements().stream()
+					.filter(candidate -> referenceTypes.isEmpty() || referenceTypes.contains(candidate.type()))
+					.sorted(Comparator.comparing(Element::displayName, String.CASE_INSENSITIVE_ORDER))
+					.forEach(candidate -> options.add(fieldOption("CUSTOM:" + candidate.name(),
+							candidate.displayName() + " �� " + candidate.type())));
+		} else if (control.equals("procedure_reference")) {
+			state.elements().stream()
+					.filter(candidate -> candidate.type().equals("procedure") || candidate.type().equals("function"))
+					.sorted(Comparator.comparing(Element::displayName, String.CASE_INSENSITIVE_ORDER))
+					.forEach(candidate -> options.add(fieldOption(candidate.name(),
+							candidate.displayName() + " �� " + candidate.type())));
+		}
+		field.add("options", options);
+		if (!referenceTypes.isEmpty()) field.add("referenceTypes", GSON.toJsonTree(referenceTypes));
+		if (reflected.isAnnotationPresent(Numeric.class)) {
+			Numeric numeric = reflected.getAnnotation(Numeric.class);
+			JsonObject constraints = new JsonObject();
+			constraints.addProperty("min", numeric.min());
+			constraints.addProperty("max", numeric.max());
+			constraints.addProperty("step", numeric.step());
+			field.add("constraints", constraints);
+		}
+		if (reflected.isAnnotationPresent(NonNullIf.class)) {
+			JsonObject condition = new JsonObject();
+			condition.addProperty("operator", "any_truthy");
+			JsonArray paths = new JsonArray();
+			for (String dependency : reflected.getAnnotation(NonNullIf.class).value()) paths.add("/" + dependency);
+			condition.add("paths", paths);
+			field.add("condition", condition);
+		}
+		field.add("diagnostics", new JsonArray());
+		return field;
+	}
+
+	private static boolean isReflectedElementReference(Field field) {
+		return field != null && !Collection.class.isAssignableFrom(field.getType())
+				&& (field.getType().getSimpleName().equals("MItemBlock")
+				|| field.getType().getSimpleName().equals("ProfessionEntry")
+				|| field.isAnnotationPresent(ModElementReference.class));
+	}
+
+	private static List<String> reflectedReferenceTypes(Field field) {
+		if (field == null) return List.of();
+		if (field.getType().getSimpleName().equals("ProfessionEntry")) return List.of("villagerprofession");
+		if (field.getType().getSimpleName().equals("MItemBlock"))
+			return List.of("block", "item", "armor", "tool", "plant", "fluid", "specialentity");
+		return acceptedReferenceTypes(field);
+	}
+
+	private static JsonElement structuredItemDefault(Field field) {
+		if (field.isAnnotationPresent(Numeric.class))
+			return new JsonPrimitive(field.getAnnotation(Numeric.class).init());
+		Class<?> type = field.getType();
+		if (type == boolean.class || type == Boolean.class) return new JsonPrimitive(false);
+		if (type == byte.class || type == short.class || type == int.class || type == long.class
+				|| type == float.class || type == double.class || Number.class.isAssignableFrom(type)) return new JsonPrimitive(0);
+		if (field.isAnnotationPresent(LimitedOptions.class)) {
+			String[] options = field.getAnnotation(LimitedOptions.class).value();
+			if (options.length > 0) return new JsonPrimitive(options[0]);
+		}
+		if (type == String.class) return new JsonPrimitive("");
+		if (Collection.class.isAssignableFrom(type)) return new JsonArray();
+		if (type.isEnum() && type.getEnumConstants().length > 0) return new JsonPrimitive(enumName(type.getEnumConstants()[0]));
+		return JsonNull.INSTANCE;
+	}
+
+	private static String enumName(Object value) {
+		return value instanceof Enum<?> enumValue ? enumValue.name() : String.valueOf(value);
+	}
+
+	private static String stage12TypeForStorageClass(Class<?> type) {
+		return switch (type.getSimpleName()) {
+			case "Armor" -> "armor";
+			case "ArmorTrim" -> "armortrim";
+			case "Attribute" -> "attribute";
+			case "BannerPattern" -> "bannerpattern";
+			case "Biome" -> "biome";
+			case "Block" -> "block";
+			case "Command" -> "command";
+			case "CustomElement" -> "code";
+			case "DamageType" -> "damagetype";
+			case "Dimension" -> "dimension";
+			case "Enchantment" -> "enchantment";
+			case "Feature" -> "feature";
+			case "Fluid" -> "fluid";
+			case "GameRule" -> "gamerule";
+			case "GUI" -> "gui";
+			case "Item" -> "item";
+			case "ItemExtension" -> "itemextension";
+			case "KeyBinding" -> "keybind";
+			case "LivingEntity" -> "livingentity";
+			case "Overlay" -> "overlay";
+			case "Painting" -> "painting";
+			case "Particle" -> "particle";
+			case "Plant" -> "plant";
+			case "Potion" -> "potion";
+			case "PotionEffect" -> "potioneffect";
+			case "Projectile" -> "projectile";
+			case "SpecialEntity" -> "specialentity";
+			case "Structure" -> "structure";
+			case "Tab" -> "tab";
+			case "Tool" -> "tool";
+			case "VillagerProfession" -> "villagerprofession";
+			case "VillagerTrade" -> "villagertrade";
+			default -> null;
+		};
+	}
+
+	private JsonObject editorConstraints(String elementType, String fieldName) {
+		Field reflected = stage12Field(elementType, fieldName);
+		if (reflected != null && reflected.isAnnotationPresent(Numeric.class)) {
+			Numeric numeric = reflected.getAnnotation(Numeric.class);
+			JsonObject constraints = new JsonObject();
+			constraints.addProperty("min", numeric.min());
+			constraints.addProperty("max", numeric.max());
+			constraints.addProperty("step", numeric.step());
+			return constraints;
+		}
+		double[] constraint = switch (elementType) {
+			case "livingentity" -> switch (fieldName) {
+				case "modelWidth", "modelHeight", "modelShadowSize" -> new double[] { 0, 16, 0.1 };
+				case "mountedYOffset" -> new double[] { -1024, 1024, 0.1 };
+				case "attackStrength" -> new double[] { 0, 10000, 1 };
+				case "attackKnockback", "knockbackResistance" -> new double[] { 0, 1000, 0.1 };
+				case "movementSpeed" -> new double[] { 0, 50, 0.1 };
+				case "stepHeight" -> new double[] { 0, 255, 0.1 };
+				case "armorBaseValue" -> new double[] { 0, 100, 0.1 };
+				case "trackingRange" -> new double[] { 0, 2048, 1 };
+				case "followRange", "health", "rangedAttackInterval" -> new double[] { 0, 1024, 1 };
+				case "xpAmount" -> new double[] { 0, 100000, 1 };
+				case "inventorySize" -> new double[] { 0, 256, 1 };
+				case "inventoryStackSize" -> new double[] { 1, 1024, 1 };
+				case "rangedAttackRadius" -> new double[] { 0, 1024, 0.1 };
+				case "spawningProbability" -> new double[] { 1, 1000, 1 };
+				case "minNumberOfMobsPerGroup", "maxNumberOfMobsPerGroup" -> new double[] { 1, 128, 1 };
+				default -> null;
+			};
+			case "biome" -> switch (fieldName) {
+				case "moodSoundDelay" -> new double[] { 1, 30000, 1 };
+				case "particlesProbability" -> new double[] { 0, 100, 0.1 };
+				case "rainingPossibility" -> new double[] { 0, 1, 0.1 };
+				case "temperature" -> new double[] { -1, 2, 0.1 };
+				case "genDepthMin", "genDepthMax" -> new double[] { 0, 1.5, 0.0001 };
+				case "treesPerChunk" -> new double[] { 0, 64, 1 };
+				case "minHeight" -> new double[] { 0, 32, 1 };
+				default -> null;
+			};
+			case "dimension" -> switch (fieldName) {
+				case "seaLevel" -> new double[] { -1024, 1024, 1 };
+				case "cloudHeight" -> new double[] { -2032, 2031, 16 };
+				case "ambientLight" -> new double[] { 0, 1, 0.01 };
+				case "fixedTimeValue" -> new double[] { 0, 24000, 1 };
+				case "coordinateScale" -> new double[] { 0.01, 1000, 0.01 };
+				case "minMonsterSpawnLightLimit", "maxMonsterSpawnLightLimit", "monsterSpawnBlockLightLimit",
+						"portalLuminance" -> new double[] { 0, 15, 1 };
+				default -> null;
+			};
+			case "gui" -> switch (fieldName) {
+				case "width", "height" -> new double[] { 0, 512, 1 };
+				default -> null;
+			};
+			default -> null;
+		};
+		if (constraint == null) return null;
+		JsonObject constraints = new JsonObject();
+		constraints.addProperty("min", constraint[0]);
+		constraints.addProperty("max", constraint[1]);
+		constraints.addProperty("step", constraint[2]);
+		return constraints;
 	}
 
 	private JsonObject fieldOption(String value, String label) {
@@ -2160,6 +3149,12 @@ public final class WorkspaceApplicationService {
 		option.add("label", localized("field.option", label, args));
 		option.addProperty("disabled", false);
 		option.add("reason", JsonNull.INSTANCE);
+		return option;
+	}
+
+	private JsonObject fieldOption(int value, String label) {
+		JsonObject option = fieldOption(String.valueOf(value), label);
+		option.addProperty("value", value);
 		return option;
 	}
 
@@ -2289,12 +3284,26 @@ public final class WorkspaceApplicationService {
 				if (!values.has("showSearch")) values.addProperty("showSearch", false);
 			}
 			case "biome" -> {
-				if (!values.has("spawnParticles")) values.addProperty("spawnParticles", true);
+				if (!values.has("groundBlock")) values.addProperty("groundBlock", "Blocks.GRASS");
+				if (!values.has("undergroundBlock")) values.addProperty("undergroundBlock", "Blocks.DIRT#0");
+				if (!values.has("spawnParticles")) values.addProperty("spawnParticles", false);
 				if (!values.has("spawnInCaves")) values.addProperty("spawnInCaves", false);
 			}
 			case "dimension" -> {
+				if (!values.has("biomesInDimension")) values.add("biomesInDimension", new JsonArray());
+				if (!values.has("biomesInDimensionCaves")) values.add("biomesInDimensionCaves", new JsonArray());
+				if (!values.has("worldGenType")) values.addProperty("worldGenType", "Normal world gen");
+				if (!values.has("mainFillerBlock")) values.addProperty("mainFillerBlock", "Blocks.STONE#0");
+				if (!values.has("fluidBlock")) values.addProperty("fluidBlock", "Blocks.WATER");
+				if (!values.has("seaLevel")) values.addProperty("seaLevel", 63);
 				if (!values.has("generateOreVeins")) values.addProperty("generateOreVeins", true);
 				if (!values.has("generateAquifers")) values.addProperty("generateAquifers", true);
+				if (!values.has("hasFixedTime")) values.addProperty("hasFixedTime", false);
+				if (!values.has("fixedTimeValue")) values.addProperty("fixedTimeValue", 0);
+				if (!values.has("enableCustomSkyboxTextures")) values.addProperty("enableCustomSkyboxTextures", false);
+				if (!values.has("enableCustomSunMoonTextures")) values.addProperty("enableCustomSunMoonTextures", false);
+				if (!values.has("enablePortal")) values.addProperty("enablePortal", false);
+				if (!values.has("enableIgniter")) values.addProperty("enableIgniter", false);
 			}
 			case "feature" -> {
 				if (!values.has("skipPlacement")) values.addProperty("skipPlacement", false);
@@ -2331,8 +3340,14 @@ public final class WorkspaceApplicationService {
 				if (!values.has("showParticles")) values.addProperty("showParticles", false);
 			}
 			case "gui" -> {
+				if (!values.has("type")) values.addProperty("type", 0);
+				if (!values.has("width")) values.addProperty("width", 176);
+				if (!values.has("height")) values.addProperty("height", 166);
+				if (!values.has("inventoryOffsetX")) values.addProperty("inventoryOffsetX", 0);
+				if (!values.has("inventoryOffsetY")) values.addProperty("inventoryOffsetY", 0);
 				if (!values.has("renderBgLayer")) values.addProperty("renderBgLayer", true);
 				if (!values.has("doesPauseGame")) values.addProperty("doesPauseGame", false);
+				if (!values.has("components")) values.add("components", new JsonArray());
 			}
 			case "armortrim" -> {
 				if (!values.has("armorTextureFile")) values.addProperty("armorTextureFile", name);
@@ -2352,6 +3367,18 @@ public final class WorkspaceApplicationService {
 			case "overlay" -> {
 				if (!values.has("priority")) values.addProperty("priority", "NORMAL");
 				if (!values.has("baseTexture")) values.addProperty("baseTexture", "");
+				if (!values.has("overlayTarget")) values.addProperty("overlayTarget", "Ingame");
+				if (!values.has("displayCondition")) values.add("displayCondition", JsonNull.INSTANCE);
+				if (!values.has("components")) values.add("components", new JsonArray());
+				if (!values.has("gridSettings")) {
+					JsonObject grid = new JsonObject();
+					grid.addProperty("sx", 18);
+					grid.addProperty("sy", 18);
+					grid.addProperty("ox", 11);
+					grid.addProperty("oy", 15);
+					grid.addProperty("snapOnGrid", false);
+					values.add("gridSettings", grid);
+				}
 			}
 			case "villagertrade" -> {
 				if (!values.has("villagerProfession")) values.addProperty("villagerProfession", "WANDERING_TRADER");
@@ -2390,7 +3417,7 @@ public final class WorkspaceApplicationService {
 		return values;
 	}
 
-	private Diagnostic validateElementValues(UUID elementId, JsonObject values) {
+	private Diagnostic validateElementValues(UUID elementId, String elementType, JsonObject values) {
 		if (values.has("fields") && values.get("fields").isJsonObject()) {
 			JsonObject fields = values.getAsJsonObject("fields");
 			if (fields.has("hardness") && fields.get("hardness").isJsonPrimitive()
@@ -2404,6 +3431,28 @@ public final class WorkspaceApplicationService {
 							"Hardness must be between {min} and {max}.", args,
 							elementPath(elementId) + "/fields/hardness", elementId);
 				}
+			}
+		}
+		Class<?> storageClass = stage12ConditionalValidationClass(elementType);
+		if (storageClass != null) {
+			for (Field reflected : storageClass.getFields()) {
+				NonNullIf condition = reflected.getAnnotation(NonNullIf.class);
+				if (condition == null) continue;
+				String activeDependency = null;
+				for (String dependency : condition.value()) {
+					if (conditionExpressionMatches(values, dependency)) {
+						activeDependency = dependency;
+						break;
+					}
+				}
+				if (activeDependency == null || !missingConditionalValue(values.get(reflected.getName()))) continue;
+				JsonObject args = new JsonObject();
+				args.addProperty("field", reflected.getName());
+				args.addProperty("condition", activeDependency);
+				String path = elementId == null ? "/initialValues/" + reflected.getName()
+						: elementPath(elementId) + "/" + reflected.getName();
+				return diagnostic("FIELD_REQUIRED_BY_CONDITION", "diagnostic.field_required_by_condition",
+						"{field} is required when {condition} is enabled.", args, path, elementId);
 			}
 		}
 		return null;
@@ -2469,12 +3518,25 @@ public final class WorkspaceApplicationService {
 	}
 
 	private Diagnostic diagnostic(String code, String key, String fallback, String path, UUID elementId) {
-		return Diagnostic.error(code, key, fallback, path, elementId);
+		return new Diagnostic(code, UiCore.Severity.ERROR, LocalizedText.of(key, fallback), path, elementId, true,
+				fieldLocationActions(path, elementId));
 	}
 
 	private Diagnostic diagnostic(String code, String key, String fallback, JsonObject args, String path,
 			UUID elementId) {
-		return Diagnostic.error(code, key, fallback, args, path, elementId);
+		return new Diagnostic(code, UiCore.Severity.ERROR, LocalizedText.of(key, fallback, args), path, elementId, true,
+				fieldLocationActions(path, elementId));
+	}
+
+	private List<ActionHint> fieldLocationActions(String path, UUID elementId) {
+		if (path == null || elementId == null)
+			return List.of();
+		String elementPath = elementPath(elementId);
+		if (!path.startsWith(elementPath + "/"))
+			return List.of();
+		String fieldPath = path.substring(elementPath.length());
+		return List.of(new ActionHint("open_field", LocalizedText.of("action.open_field", "Locate invalid field"),
+				"open_field", fieldPath));
 	}
 
 	private Diagnostic failureDiagnostic(Command command, String code, String key, String fallback, String path,

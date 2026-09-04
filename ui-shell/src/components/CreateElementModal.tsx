@@ -94,6 +94,7 @@ export const CreateElementModal: React.FC = () => {
                     <button
                       key={item.type}
                       type="button"
+                      data-testid={`create-element-type-${item.type}`}
                       onClick={() => setElementType(item.type as ModElementType)}
                       aria-pressed={isSel}
                       style={{

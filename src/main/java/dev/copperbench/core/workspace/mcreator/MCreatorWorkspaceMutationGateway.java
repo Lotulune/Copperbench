@@ -1,6 +1,6 @@
 package dev.copperbench.core.workspace.mcreator;
 
-import com.google.gson.JsonObject;
+import com.google.gson.*;
 import dev.copperbench.core.application.WorkspaceMutationGateway;
 import dev.copperbench.core.contract.UiCore.Operation;
 import dev.copperbench.core.workspace.WorkspaceState;
@@ -12,12 +12,14 @@ import net.mcreator.element.ModElementType;
 import net.mcreator.element.ModElementTypeLoader;
 import net.mcreator.element.parts.AIPathNodeType;
 import net.mcreator.element.parts.AchievementEntry;
+import net.mcreator.element.parts.IWorkspaceDependent;
 import net.mcreator.element.parts.ItemUseAnimation;
 import net.mcreator.element.parts.MItemBlock;
 import net.mcreator.element.parts.MapColor;
 import net.mcreator.element.parts.NoteBlockInstrument;
 import net.mcreator.element.parts.Sound;
 import net.mcreator.element.parts.TextureHolder;
+import net.mcreator.element.parts.procedure.RetvalProcedure;
 import net.mcreator.element.types.Block;
 import net.mcreator.element.types.Achievement;
 import net.mcreator.element.types.CustomElement;
@@ -27,11 +29,13 @@ import net.mcreator.element.types.LootTable;
 import net.mcreator.element.types.Procedure;
 import net.mcreator.element.types.Projectile;
 import net.mcreator.element.types.Recipe;
+import net.mcreator.generator.mapping.MappableElement;
 import net.mcreator.workspace.Workspace;
 import net.mcreator.workspace.WorkspaceFileManager;
 import net.mcreator.workspace.elements.ModElement;
 
 import java.io.IOException;
+import java.awt.Color;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
@@ -52,10 +56,26 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 	private static final String EMPTY_ADVANCEMENT_TRIGGER_XML = "<xml xmlns=\"https://developers.google.com/blockly/xml\">"
 			+ "<block type=\"advancement_trigger\" deletable=\"false\" x=\"40\" y=\"80\">"
 			+ "<next><shadow type=\"custom_trigger\"></shadow></next></block></xml>";
+	private static final Gson GENERIC_FIELD_GSON = genericFieldGson();
 
 	private final Workspace workspace;
 	private final UUID workspaceId;
 	private final List<WorkspaceMutationObserver> observers;
+
+	private static Gson genericFieldGson() {
+		GsonBuilder builder = new GsonBuilder().disableHtmlEscaping().setStrictness(Strictness.LENIENT)
+				.registerTypeAdapter(Color.class, new JsonDeserializer<Color>() {
+					@Override public Color deserialize(JsonElement json, java.lang.reflect.Type type,
+							JsonDeserializationContext context) throws JsonParseException {
+						if (json == null || json.isJsonNull()) return null;
+						int value = json.isJsonObject() ? json.getAsJsonObject().get("value").getAsInt() : json.getAsInt();
+						return new Color(value, true);
+					}
+				});
+		RetvalProcedure.GSON_ADAPTERS.forEach(builder::registerTypeAdapter);
+		builder.registerTypeHierarchyAdapter(MappableElement.class, new MappableElement.GSONAdapter());
+		return builder.create();
+	}
 
 	public MCreatorWorkspaceMutationGateway(Workspace workspace, UUID workspaceId) {
 		this(workspace, workspaceId, List.of());
@@ -462,7 +482,9 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 				raw = values.getAsJsonObject("fields").get(field.getName());
 			if (raw == null || raw.isJsonNull()) continue;
 			try {
-				Object value = WorkspaceFileManager.gson.fromJson(raw, field.getGenericType());
+				Object value = GENERIC_FIELD_GSON.fromJson(raw, field.getGenericType());
+				IWorkspaceDependent.processWorkspaceDependentObjects(value,
+						workspaceDependent -> workspaceDependent.setWorkspace(workspace));
 				field.set(definition, value);
 			} catch (RuntimeException | IllegalAccessException ignored) {
 				// Complex workspace-dependent values retain the upstream default; raw values stay in metadata.

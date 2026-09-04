@@ -287,11 +287,18 @@ export interface EditorField {
     | 'toggle'
     | 'select'
     | 'resource_reference'
-    | 'procedure_reference';
+    | 'procedure_reference'
+    | 'element_reference'
+    | 'element_reference_list'
+    | 'structured_list';
   required: boolean;
   readOnly: boolean;
   value: unknown;
   options: FieldOption[];
+  referenceTypes?: ModElementType[];
+  resourceType?: string;
+  itemFields?: EditorField[];
+  itemTemplate?: Record<string, unknown>;
   constraints?: {
     min?: number;
     max?: number;
@@ -299,6 +306,11 @@ export interface EditorField {
     minLength?: number;
     maxLength?: number;
     pattern?: string;
+  };
+  condition?: {
+    operator: 'any_truthy';
+    paths: string[];
+    expressions?: string[];
   };
   diagnostics: Diagnostic[];
 }
@@ -313,6 +325,32 @@ export interface ModElementEditorProjection {
   element: ModElementSummary;
   sections: EditorSection[];
   capabilities: CapabilityDecision[];
+}
+
+export interface ModElementChangePreview {
+  elementId: UUID;
+  baseRevision: Revision;
+  canApply: boolean;
+  changedPaths: string[];
+  candidateValues: Record<string, unknown>;
+  diagnostics: Diagnostic[];
+  semanticSummary?: {
+    changedFieldCount: number;
+    changedFields: Array<{
+      path: string;
+      field: string;
+      sectionId: string;
+    }>;
+    sections: string[];
+  };
+  generationImpact?: {
+    scope: 'element' | string;
+    requiresRegeneration: boolean;
+    generatorId: string;
+    loader: string;
+    minecraftVersion: string;
+    affectedDomains: string[];
+  };
 }
 
 export interface TaskLogEntry {
