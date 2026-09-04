@@ -39,4 +39,5 @@ class JcefWindowBridgeTransportTest {
 		assertFalse(bootstrap.contains("java.lang"));
 		assertFalse(bootstrap.contains("getClass"));
 	}
+
 }

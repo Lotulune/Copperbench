@@ -110,7 +110,8 @@ class ProductShellJcefSnapDpiSmokeTest {
 			window.setLocationRelativeTo(null);
 			WebView webView = new WebView(CopperbenchProductShell.UI_URL);
 			webView.attachCoreBridge(WORKSPACE_ID, adapter);
-			JcefWindowBridgeTransport.attach(webView, window, window::dispose, chrome::accept, chrome::isUsingCustomFrame);
+			JcefWindowBridgeTransport.attach(webView, window, window::dispose, chrome::accept,
+					chrome::isUsingCustomFrame);
 			window.setContentPane(webView);
 			window.setVisible(true);
 			assertTrue(chrome.install(), "Native chrome must install on the JCEF product window");
@@ -169,6 +170,9 @@ class ProductShellJcefSnapDpiSmokeTest {
 			evidence.addProperty("topLeftHit", topLeft);
 			evidence.addProperty("maximizeHit", maxHit);
 			evidence.addProperty("captionHit", capHit);
+			evidence.addProperty("nativeChildHookCount", chrome.childHookCountForTesting());
+			assertTrue(chrome.childHookCountForTesting() > 0,
+					"Real JCEF must expose at least one same-process child HWND for native titlebar input proxying");
 			evidence.addProperty("dpiAfterChange", chrome.devicePixelRatioForTesting());
 			evidence.addProperty("customFrame", chrome.isUsingCustomFrame());
 			evidence.addProperty("passed", true);

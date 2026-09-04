@@ -13,7 +13,9 @@ import org.junit.jupiter.api.Test;
 
 import static dev.copperbench.window.WindowChromeHitTest.HitTarget;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class WindowChromeHitTestTest {
 
@@ -35,6 +37,75 @@ class WindowChromeHitTestTest {
 		assertEquals(HitTarget.CLIENT, WindowChromeHitTest.hitTest(520, 220, WINDOW, 8, false, snapshot));
 		assertEquals(HitTarget.MAXIMIZE, WindowChromeHitTest.hitTest(1020, 220, WINDOW, 8, false, snapshot));
 		assertEquals(HitTarget.CLOSE, WindowChromeHitTest.hitTest(1070, 220, WINDOW, 8, false, snapshot));
+	}
+
+	@Test void resizeInteractionAndCursorHintUseSeparateDpiScaledTargets() {
+		assertTrue(WindowsWindowChromeController.resizeHitTargetForDpi(96) >= 10);
+		assertTrue(WindowsWindowChromeController.resizeHitTargetForDpi(120) >= 13);
+		assertTrue(WindowsWindowChromeController.resizeHitTargetForDpi(144) >= 15);
+		assertTrue(WindowsWindowChromeController.resizeCursorHintTargetForDpi(96) >= 50);
+		assertTrue(WindowsWindowChromeController.resizeCursorHintTargetForDpi(120) >= 63);
+		assertTrue(WindowsWindowChromeController.resizeCursorHintTargetForDpi(144) >= 75);
+		assertTrue(WindowsWindowChromeController.resizeCursorHintTargetForDpi(120)
+				> WindowsWindowChromeController.resizeHitTargetForDpi(120));
+	}
+
+	@Test void cursorHintTracksTheVisibleEdgeSymmetrically() {
+		assertEquals(10, WindowsWindowChromeController.cursorHintHitForBounds(105, 500, WINDOW, 12, 12));
+		assertEquals(11, WindowsWindowChromeController.cursorHintHitForBounds(1094, 500, WINDOW, 12, 12));
+		assertEquals(12, WindowsWindowChromeController.cursorHintHitForBounds(500, 205, WINDOW, 12, 12));
+		assertEquals(15, WindowsWindowChromeController.cursorHintHitForBounds(500, 894, WINDOW, 12, 12));
+		assertEquals(1, WindowsWindowChromeController.cursorHintHitForBounds(500, 220, WINDOW, 12, 12));
+	}
+
+	@Test void cursorHintVisibleBoundsCanBeShiftedTowardOuterFrame() {
+		WindowChromeHitTest.WindowBounds shifted = new WindowChromeHitTest.WindowBounds(60, 160, 1140, 940);
+		assertEquals(10, WindowsWindowChromeController.cursorHintHitForBounds(109, 500, shifted, 50, 50));
+		assertEquals(11, WindowsWindowChromeController.cursorHintHitForBounds(1090, 500, shifted, 50, 50));
+		assertEquals(15, WindowsWindowChromeController.cursorHintHitForBounds(500, 890, shifted, 50, 50));
+		assertEquals(12, WindowsWindowChromeController.cursorHintHitForBounds(500, 209, shifted, 50, 50));
+		assertEquals(1, WindowsWindowChromeController.cursorHintHitForBounds(110, 500, shifted, 50, 50));
+		assertEquals(1, WindowsWindowChromeController.cursorHintHitForBounds(500, 210, shifted, 50, 50));
+	}
+
+	@Test void widenedCursorHintHasSubstantialInteriorReachFromTheAlignedEdge() {
+		assertEquals(10, WindowsWindowChromeController.cursorHintHitForBounds(114, 500, WINDOW, 20, 20));
+		assertEquals(11, WindowsWindowChromeController.cursorHintHitForBounds(1085, 500, WINDOW, 20, 20));
+		assertEquals(12, WindowsWindowChromeController.cursorHintHitForBounds(500, 214, WINDOW, 20, 20));
+		assertEquals(15, WindowsWindowChromeController.cursorHintHitForBounds(500, 885, WINDOW, 20, 20));
+		assertEquals(1, WindowsWindowChromeController.cursorHintHitForBounds(500, 221, WINDOW, 20, 20));
+	}
+
+	@Test void resizeHitsMapToStandardWindowsCursors() {
+		assertEquals(32644, WindowsWindowChromeController.resizeCursorResourceForHit(10));
+		assertEquals(32644, WindowsWindowChromeController.resizeCursorResourceForHit(11));
+		assertEquals(32645, WindowsWindowChromeController.resizeCursorResourceForHit(12));
+		assertEquals(32645, WindowsWindowChromeController.resizeCursorResourceForHit(15));
+		assertEquals(32642, WindowsWindowChromeController.resizeCursorResourceForHit(13));
+		assertEquals(32642, WindowsWindowChromeController.resizeCursorResourceForHit(17));
+		assertEquals(32643, WindowsWindowChromeController.resizeCursorResourceForHit(14));
+		assertEquals(32643, WindowsWindowChromeController.resizeCursorResourceForHit(16));
+		assertEquals(0, WindowsWindowChromeController.resizeCursorResourceForHit(2));
+	}
+
+	@Test void childNativeChromeProxyOnlyClaimsCaptionAndResizeHits() {
+		assertTrue(WindowsWindowChromeController.isChildNativeChromeHit(2));
+		for (int hit = 10; hit <= 17; hit++)
+			assertTrue(WindowsWindowChromeController.isChildNativeChromeHit(hit));
+		assertFalse(WindowsWindowChromeController.isChildNativeChromeHit(1));
+		assertFalse(WindowsWindowChromeController.isChildNativeChromeHit(8));
+		assertFalse(WindowsWindowChromeController.isChildNativeChromeHit(9));
+		assertFalse(WindowsWindowChromeController.isChildNativeChromeHit(20));
+	}
+
+	@Test void resizeHitsMapToWin32SystemSizeCommands() {
+		for (int hit = 10; hit <= 17; hit++) {
+			assertTrue(WindowsWindowChromeController.isResizeHit(hit));
+			assertEquals(0xF001 + (hit - 10), WindowsWindowChromeController.systemSizeCommandForHit(hit));
+		}
+		assertFalse(WindowsWindowChromeController.isResizeHit(2));
+		assertThrows(IllegalArgumentException.class,
+				() -> WindowsWindowChromeController.systemSizeCommandForHit(2));
 	}
 
 	@Test void edgesAndCornersWinBeforeCaptionButAreDisabledWhenMaximized() {

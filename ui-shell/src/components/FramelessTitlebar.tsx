@@ -123,13 +123,21 @@ export const FramelessTitlebar: React.FC = () => {
     };
   }, [generator?.displayName, systemFrameFallback, workspace?.id, workspace?.name, workspace?.revision]);
 
+  const handleDoubleClick = (event: React.MouseEvent<HTMLElement>) => {
+    if (event.button !== 0 || systemFrameFallback) return;
+    const target = event.target as HTMLElement | null;
+    if (!target || target.closest('[data-window-chrome-kind]')) return;
+    if (target.closest('button, input, select, textarea, a, [role="button"]')) return;
+    toggleMaximize();
+  };
+
   return (
     <header
       ref={titlebarRef}
       className="titlebar"
       data-testid="frameless-titlebar"
       data-window-chrome-root
-      style={{ WebkitAppRegion: systemFrameFallback ? 'no-drag' : 'drag' } as React.CSSProperties}
+      onDoubleClick={handleDoubleClick}
     >
       {/* Left: Brand & Workspace Pill */}
       <div className="titlebar-left">
