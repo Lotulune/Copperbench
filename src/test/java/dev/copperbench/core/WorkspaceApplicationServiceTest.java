@@ -250,6 +250,90 @@ class WorkspaceApplicationServiceTest {
 			assertEquals("unavailable", capability.getAsJsonObject().get("availability").getAsString());
 	}
 
+	@Test void stage12LivingEntityEditorUsesDomainSectionsAndPreservesUnknownFields() {
+		Fixture fixture = fixture();
+		JsonObject initialValues = new JsonObject();
+		initialValues.addProperty("mobModelName", "Biped");
+		initialValues.addProperty("mobModelTexture", "zombie.png");
+		initialValues.addProperty("health", 40);
+		initialValues.addProperty("movementSpeed", 0.35);
+		initialValues.addProperty("hasAI", true);
+		initialValues.addProperty("equipmentMainHand", "Items.IRON_SWORD");
+		initialValues.addProperty("spawnThisMob", true);
+		initialValues.addProperty("spawningProbability", 20);
+		initialValues.addProperty("onMobTickUpdate", "tick_entity");
+		JsonObject future = new JsonObject();
+		future.addProperty("enabled", true);
+		initialValues.add("futureEntityTuning", future);
+
+		CommandOutcome created = fixture.service.execute(
+				createElementCommand(uuid(20), "livingentity", "copper_golem", initialValues),
+				new RequestContext(Actor.UI, PermissionProfile.WORKSPACE));
+		String elementId = created.result().data().getAsJsonObject().getAsJsonObject("element")
+				.get("id").getAsString();
+		JsonObject payload = new JsonObject();
+		payload.addProperty("elementId", elementId);
+
+		var result = fixture.service.query(Query.of(uuid(21), WORKSPACE_ID,
+				Operation.GET_MOD_ELEMENT_EDITOR, payload),
+				new RequestContext(Actor.UI, PermissionProfile.WORKSPACE));
+		JsonArray sections = result.data().getAsJsonObject().getAsJsonArray("sections");
+
+		assertEquals(9, sections.size());
+		assertEquals("identity", sections.get(0).getAsJsonObject().get("id").getAsString());
+		assertEquals("appearance", sections.get(1).getAsJsonObject().get("id").getAsString());
+		assertEquals("resources", sections.get(2).getAsJsonObject().get("id").getAsString());
+		assertEquals("attributes", sections.get(3).getAsJsonObject().get("id").getAsString());
+		assertEquals("behavior", sections.get(4).getAsJsonObject().get("id").getAsString());
+		assertEquals("equipment", sections.get(5).getAsJsonObject().get("id").getAsString());
+		assertEquals("spawning", sections.get(6).getAsJsonObject().get("id").getAsString());
+		assertEquals("events", sections.get(7).getAsJsonObject().get("id").getAsString());
+		assertEquals("advanced", sections.get(8).getAsJsonObject().get("id").getAsString());
+
+		JsonObject texture = editorField(sections, "/mobModelTexture");
+		assertEquals("resource_reference", texture.get("control").getAsString());
+		assertTrue(texture.get("required").getAsBoolean());
+		JsonObject event = editorField(sections, "/onMobTickUpdate");
+		assertEquals("procedure_reference", event.get("control").getAsString());
+		JsonObject health = editorField(sections, "/health");
+		assertEquals("number", health.get("control").getAsString());
+		assertEquals(0, health.getAsJsonObject("constraints").get("min").getAsInt());
+		assertEquals(1024, health.getAsJsonObject("constraints").get("max").getAsInt());
+		assertEquals("advanced", editorSectionId(sections, "/futureEntityTuning/enabled"));
+	}
+
+	@Test void stage12P0TypesUseDepthSectionsWhileLegacyTypesKeepGeneralProjection() {
+		for (String type : List.of("biome", "dimension", "gui")) {
+			Fixture fixture = fixture();
+			CommandOutcome created = fixture.service.execute(
+					createElementCommand(uuid(22), type, "depth_sample", new JsonObject()),
+					new RequestContext(Actor.UI, PermissionProfile.WORKSPACE));
+			String elementId = created.result().data().getAsJsonObject().getAsJsonObject("element")
+					.get("id").getAsString();
+			JsonObject payload = new JsonObject();
+			payload.addProperty("elementId", elementId);
+			JsonArray sections = fixture.service.query(Query.of(uuid(23), WORKSPACE_ID,
+					Operation.GET_MOD_ELEMENT_EDITOR, payload),
+					new RequestContext(Actor.UI, PermissionProfile.WORKSPACE)).data().getAsJsonObject()
+					.getAsJsonArray("sections");
+			assertTrue(sections.size() > 1, type + " should expose Stage 12 depth sections");
+			assertEquals("identity", sections.get(0).getAsJsonObject().get("id").getAsString());
+		}
+
+		Fixture legacyFixture = fixture();
+		CommandOutcome block = legacyFixture.service.execute(createCommand(uuid(24), "legacy_block"),
+				new RequestContext(Actor.UI, PermissionProfile.WORKSPACE));
+		JsonObject payload = new JsonObject();
+		payload.addProperty("elementId", block.result().data().getAsJsonObject().getAsJsonObject("element")
+				.get("id").getAsString());
+		JsonArray sections = legacyFixture.service.query(Query.of(uuid(25), WORKSPACE_ID,
+				Operation.GET_MOD_ELEMENT_EDITOR, payload),
+				new RequestContext(Actor.UI, PermissionProfile.WORKSPACE)).data().getAsJsonObject()
+				.getAsJsonArray("sections");
+		assertEquals(1, sections.size());
+		assertEquals("general", sections.get(0).getAsJsonObject().get("id").getAsString());
+	}
+
 	@Test void taskStartAndContentMutationAreOrderedByTheWorkspaceLock() throws Exception {
 		RevisionedWorkspaceStore store = registeredStore();
 		BlockingTaskGateway gateway = new BlockingTaskGateway();
@@ -303,12 +387,37 @@ class WorkspaceApplicationServiceTest {
 	}
 
 	private static Command createCommand(UUID requestId, String name) {
+		return createElementCommand(requestId, "block", name, new JsonObject());
+	}
+
+	private static Command createElementCommand(UUID requestId, String type, String name, JsonObject initialValues) {
 		JsonObject payload = new JsonObject();
 		payload.addProperty("clientMutationId", uuid(requestId.variant() + 20).toString());
-		payload.addProperty("elementType", "block");
+		payload.addProperty("elementType", type);
 		payload.addProperty("name", name);
-		payload.add("initialValues", new JsonObject());
+		payload.add("initialValues", initialValues.deepCopy());
 		return Command.of(requestId, WORKSPACE_ID, 0, Operation.CREATE_MOD_ELEMENT, payload);
+	}
+
+	private static JsonObject editorField(JsonArray sections, String path) {
+		for (var rawSection : sections) {
+			for (var rawField : rawSection.getAsJsonObject().getAsJsonArray("fields")) {
+				JsonObject field = rawField.getAsJsonObject();
+				if (path.equals(field.get("path").getAsString())) return field;
+			}
+		}
+		throw new AssertionError("Editor field not found: " + path);
+	}
+
+	private static String editorSectionId(JsonArray sections, String path) {
+		for (var rawSection : sections) {
+			JsonObject section = rawSection.getAsJsonObject();
+			for (var rawField : section.getAsJsonArray("fields")) {
+				if (path.equals(rawField.getAsJsonObject().get("path").getAsString()))
+					return section.get("id").getAsString();
+			}
+		}
+		throw new AssertionError("Editor section not found for field: " + path);
 	}
 
 	private static Fixture fixture() {
