@@ -24,6 +24,78 @@ interface GuiWorkbenchProps {
   onClose: () => void;
 }
 
+function createLabel(index: number): GuiComponentWire {
+  return {
+    type: 'label',
+    data: {
+      anchorPoint: null,
+      x: Math.floor(WYSIWYG_WIDTH / 2 - 36),
+      y: Math.floor(WYSIWYG_HEIGHT / 2 - 5),
+      locked: false,
+      name: `label_${index + 1}`,
+      text: { name: null, fixedValue: 'Label' },
+      color: { value: -1, falpha: 0 },
+      hasShadow: false,
+      displayCondition: null
+    }
+  };
+}
+
+function createImage(index: number, initialTexture: string): GuiComponentWire {
+  return {
+    type: 'image',
+    data: {
+      anchorPoint: null,
+      x: Math.floor(WYSIWYG_WIDTH / 2 - 16),
+      y: Math.floor(WYSIWYG_HEIGHT / 2 - 16),
+      locked: false,
+      image: initialTexture || `gui_image_${index + 1}.png`,
+      use1Xscale: false,
+      displayCondition: null
+    }
+  };
+}
+
+function createSlot(type: 'inputslot' | 'outputslot', id: number): GuiComponentWire {
+  return {
+    type,
+    data: {
+      anchorPoint: null,
+      x: Math.floor(WYSIWYG_WIDTH / 2 - 9),
+      y: Math.floor(WYSIWYG_HEIGHT / 2 - 9),
+      locked: false,
+      color: null,
+      id,
+      disablePickup: null,
+      dropItemsWhenNotBound: true,
+      onSlotChanged: null,
+      onTakenFromSlot: null,
+      onStackTransfer: null,
+      ...(type === 'inputslot' ? { inputLimit: 'Blocks.AIR', disablePlacement: null } : {})
+    }
+  };
+}
+
+function labelText(component: GuiComponentWire): string {
+  if (component.type !== 'label') return '';
+  const text = component.data.text;
+  if (!text || typeof text !== 'object' || Array.isArray(text)) return '';
+  const value = (text as Record<string, unknown>).fixedValue;
+  return typeof value === 'string' ? value : '';
+}
+
+function argbToHex(value: unknown): string {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return '#ffffff';
+  const raw = Number((value as Record<string, unknown>).value ?? -1);
+  const rgb = Number.isFinite(raw) ? (raw >>> 0) & 0xffffff : 0xffffff;
+  return `#${rgb.toString(16).padStart(6, '0')}`;
+}
+
+function hexToArgb(value: string): { value: number; falpha: number } {
+  const rgb = Number.parseInt(value.replace('#', ''), 16) & 0xffffff;
+  return { value: (0xff000000 | rgb) | 0, falpha: 0 };
+}
+
 interface GuiComponentWire {
   type: string;
   data: Record<string, unknown>;
@@ -119,7 +191,7 @@ function componentSize(component: GuiComponentWire): { width: number; height: nu
 
 function editablePrimitiveEntries(component: GuiComponentWire): Array<[string, unknown]> {
   const priority = ['name', 'x', 'y', 'width', 'height', 'anchorPoint', 'locked', 'text', 'image', 'hoveredImage',
-    'sprite', 'spritesCount', 'id', 'isUndecorated', 'use1Xscale', 'dropItemsWhenNotBound',
+    'sprite', 'spritesCount', 'id', 'inputLimit', 'isUndecorated', 'use1Xscale', 'dropItemsWhenNotBound',
     ...PROCEDURE_FIELDS];
   const entries = Object.entries(component.data).filter(([, value]) =>
     value === null || ['string', 'number', 'boolean'].includes(typeof value)
@@ -149,6 +221,9 @@ function layoutIssues(values: Record<string, unknown>, components: GuiComponentW
 
   const named = new Map<string, number>();
   components.forEach((component, index) => {
+    if ((component.type === 'inputslot' || component.type === 'outputslot') && Number(values['/type'] ?? 0) !== 1) {
+      issues.push({ index, message: '槽位组件要求 GUI 类型为 With slots。' });
+    }
     const name = component.data.name;
     if (typeof name === 'string' && name.trim()) {
       const previous = named.get(name);
@@ -215,6 +290,7 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [impact, setImpact] = useState<string[]>([]);
+  const [newComponentType, setNewComponentType] = useState<'button' | 'label' | 'image' | 'inputslot' | 'outputslot'>('button');
   const requestToken = useRef(0);
 
   useEffect(() => {
@@ -283,8 +359,34 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
     setComponents(next);
   };
 
-  const addButton = () => {
-    const next = [...clone(components), createButton(components.length)];
+  const updateComponentObjectField = (parent: string, key: string, value: unknown) => {
+    if (selectedIndex === null) return;
+    const next = clone(components);
+    const current = next[selectedIndex].data[parent];
+    const object = current && typeof current === 'object' && !Array.isArray(current)
+      ? current as Record<string, unknown>
+      : {};
+    next[selectedIndex] = {
+      ...next[selectedIndex],
+      data: { ...next[selectedIndex].data, [parent]: { ...object, [key]: value } }
+    };
+    setComponents(next);
+  };
+
+  const addComponent = () => {
+    const slotIds = components
+      .map((component) => typeof component.data.id === 'number' ? component.data.id : -1)
+      .filter((id) => id >= 0);
+    const nextSlotId = slotIds.length === 0 ? 0 : Math.max(...slotIds) + 1;
+    const initialTexture = textureAssets[0]?.relativePath ?? '';
+    const component = newComponentType === 'button'
+      ? createButton(components.length)
+      : newComponentType === 'label'
+        ? createLabel(components.length)
+        : newComponentType === 'image'
+          ? createImage(components.length, initialTexture)
+          : createSlot(newComponentType, nextSlotId);
+    const next = [...clone(components), component];
     setComponents(next);
     setSelectedIndex(next.length - 1);
   };
@@ -308,7 +410,7 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
   };
 
   const save = async () => {
-    if (changes.length === 0 || issues.some((issue) => issue.index === null)) return;
+    if (changes.length === 0 || issues.length > 0) return;
     setSaving(true);
     setSaveMessage(null);
     try {
@@ -361,7 +463,7 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
           type="button"
           className="btn-primary"
           data-testid="gui-save-btn"
-          disabled={saving || changes.length === 0 || issues.some((issue) => issue.index === null)}
+          disabled={saving || changes.length === 0 || issues.length > 0}
           onClick={save}
         >
           <Save size={13} /> {saving ? '保存中…' : '保存 GUI'}
@@ -377,14 +479,29 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
               <div style={{ fontWeight: 700, fontSize: 11, color: 'var(--text-main)' }}>组件树</div>
               <div style={{ fontSize: 9, color: 'var(--text-sub)' }}>{components.length} 个组件</div>
             </div>
-            <button type="button" className="btn-secondary" onClick={addButton} data-testid="gui-add-button-component">
-              <Plus size={12} /> 按钮
-            </button>
+            <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+              <select
+                aria-label="新增组件类型"
+                data-testid="gui-add-component-type"
+                value={newComponentType}
+                onChange={(event) => setNewComponentType(event.target.value as typeof newComponentType)}
+                style={{ maxWidth: 112, fontSize: 9, padding: '4px 5px' }}
+              >
+                <option value="button">Button</option>
+                <option value="label">Label</option>
+                <option value="image">Image</option>
+                <option value="inputslot">Input Slot</option>
+                <option value="outputslot">Output Slot</option>
+              </select>
+              <button type="button" className="btn-secondary" onClick={addComponent} data-testid="gui-add-component-btn" aria-label="添加组件">
+                <Plus size={12} />
+              </button>
+            </div>
           </div>
           <div data-testid="gui-component-tree" style={{ flex: 1, overflowY: 'auto', padding: 8 }}>
             {components.length === 0 ? (
               <div style={{ padding: '24px 8px', fontSize: 10, color: 'var(--text-sub)', textAlign: 'center' }}>
-                当前 GUI 没有组件。可先添加一个上游 Button 组件。
+                当前 GUI 没有组件。可添加上游 Button、Label、Image 或 Slot 组件。
               </div>
             ) : components.map((component, index) => {
               const componentIssues = issues.filter((issue) => issue.index === index);
@@ -415,6 +532,18 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
         <main style={{ minWidth: 0, minHeight: 0, display: 'flex', flexDirection: 'column', background: 'var(--bg-base)' }}>
           <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', gap: 12,
             alignItems: 'center', flexWrap: 'wrap' }}>
+            <label style={{ fontSize: 10, color: 'var(--text-sub)' }}>
+              类型
+              <select
+                data-testid="gui-type"
+                value={Number(values['/type'] ?? 0)}
+                onChange={(event) => setValue('/type', Number(event.target.value))}
+                style={{ marginLeft: 5 }}
+              >
+                <option value={0}>Without slots</option>
+                <option value={1}>With slots</option>
+              </select>
+            </label>
             <label style={{ fontSize: 10, color: 'var(--text-sub)' }}>
               宽度
               <input data-testid="gui-width" type="number" min={0} max={512} value={guiWidth}
@@ -457,8 +586,8 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
                       background: selectedIndex === index ? 'var(--accent-copper-dim)' : 'rgba(120,120,120,0.15)',
                       color: 'var(--text-main)' }}
                   >
-                    {component.type === 'label' && typeof component.data.text === 'string'
-                      ? component.data.text
+                    {component.type === 'label'
+                      ? labelText(component)
                       : componentName(component, index)}
                   </button>
                 );
@@ -512,6 +641,30 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
                   <Trash2 size={12} />
                 </button>
               </div>
+
+              {selected.type === 'label' && (
+                <>
+                  <label style={{ display: 'block', marginBottom: 8, fontSize: 9, color: 'var(--text-sub)' }}>
+                    text · fixedValue
+                    <input
+                      data-testid="gui-component-field-label-text"
+                      value={labelText(selected)}
+                      onChange={(event) => updateComponentObjectField('text', 'fixedValue', event.target.value)}
+                      style={{ width: '100%', marginTop: 3 }}
+                    />
+                  </label>
+                  <label style={{ display: 'block', marginBottom: 8, fontSize: 9, color: 'var(--text-sub)' }}>
+                    color
+                    <input
+                      data-testid="gui-component-field-label-color"
+                      type="color"
+                      value={argbToHex(selected.data.color)}
+                      onChange={(event) => updateComponentField('color', hexToArgb(event.target.value))}
+                      style={{ width: '100%', marginTop: 3, minHeight: 28 }}
+                    />
+                  </label>
+                </>
+              )}
 
               {editablePrimitiveEntries(selected).map(([key, value]) => {
                 const inputId = `gui-component-field-${key}`;

@@ -65,11 +65,38 @@ test.describe('Interactive UI-Core Commands & Mutations', () => {
 
     await page.fill('[data-testid="gui-width"]', '200');
     await expect(page.locator('[data-testid="gui-generation-impact"]')).toContainText('ui_layout');
-    await page.click('[data-testid="gui-add-button-component"]');
+    await page.selectOption('[data-testid="gui-add-component-type"]', 'button');
+    await page.click('[data-testid="gui-add-component-btn"]');
     await expect(page.locator('[data-testid="gui-component-1"]')).toBeVisible();
     await page.fill('[data-testid="gui-component-field-x"]', '420');
     await expect(page.locator('[data-testid="gui-layout-diagnostics"]')).toContainText('超出 MCreator 427×240');
+    await expect(page.locator('[data-testid="gui-save-btn"]')).toBeDisabled();
     await page.fill('[data-testid="gui-component-field-x"]', '300');
+    await expect(page.locator('[data-testid="gui-layout-diagnostics"]')).not.toBeVisible();
+
+    await page.selectOption('[data-testid="gui-add-component-type"]', 'label');
+    await page.click('[data-testid="gui-add-component-btn"]');
+    await expect(page.locator('[data-testid="gui-component-2"]')).toContainText('label_3');
+    await page.fill('[data-testid="gui-component-field-label-text"]', 'Copper Console');
+    await expect(page.locator('[data-testid="gui-preview-component-2"]')).toContainText('Copper Console');
+
+    await page.selectOption('[data-testid="gui-add-component-type"]', 'image');
+    await page.click('[data-testid="gui-add-component-btn"]');
+    await expect(page.locator('[data-testid="gui-component-3"]')).toBeVisible();
+
+    await page.selectOption('[data-testid="gui-type"]', '1');
+    await page.selectOption('[data-testid="gui-add-component-type"]', 'inputslot');
+    await page.click('[data-testid="gui-add-component-btn"]');
+    await expect(page.locator('[data-testid="gui-component-4"]')).toContainText('inputslot_0');
+    await expect(page.locator('[data-testid="gui-component-field-id"]')).toHaveValue('0');
+
+    await page.selectOption('[data-testid="gui-add-component-type"]', 'outputslot');
+    await page.click('[data-testid="gui-add-component-btn"]');
+    await expect(page.locator('[data-testid="gui-component-5"]')).toContainText('outputslot_1');
+    await page.selectOption('[data-testid="gui-type"]', '0');
+    await expect(page.locator('[data-testid="gui-layout-diagnostics"]')).toContainText('槽位组件要求 GUI 类型为 With slots');
+    await expect(page.locator('[data-testid="gui-save-btn"]')).toBeDisabled();
+    await page.selectOption('[data-testid="gui-type"]', '1');
     await expect(page.locator('[data-testid="gui-layout-diagnostics"]')).not.toBeVisible();
     await expect(page.locator('[data-testid="gui-save-btn"]')).toBeEnabled();
     await page.click('[data-testid="gui-save-btn"]');

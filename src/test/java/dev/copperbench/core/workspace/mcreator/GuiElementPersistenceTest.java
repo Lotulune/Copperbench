@@ -8,6 +8,10 @@ import dev.copperbench.core.contract.UiCore.Command;
 import dev.copperbench.core.contract.UiCore.Operation;
 import dev.copperbench.testing.McreatorTestRuntime;
 import net.mcreator.element.parts.gui.Button;
+import net.mcreator.element.parts.gui.Image;
+import net.mcreator.element.parts.gui.InputSlot;
+import net.mcreator.element.parts.gui.Label;
+import net.mcreator.element.parts.gui.OutputSlot;
 import net.mcreator.element.types.GUI;
 import net.mcreator.workspace.Workspace;
 import net.mcreator.workspace.settings.WorkspaceSettings;
@@ -49,7 +53,7 @@ class GuiElementPersistenceTest {
 						new InMemoryWorkspaceTaskGateway(CLOCK, () -> uuid(ids.incrementAndGet())), CLOCK,
 						() -> uuid(ids.incrementAndGet()))) {
 			JsonObject values = new JsonObject();
-			values.addProperty("type", 0);
+			values.addProperty("type", 1);
 			values.addProperty("width", 176);
 			values.addProperty("height", 166);
 			values.add("components", components(174));
@@ -63,12 +67,23 @@ class GuiElementPersistenceTest {
 					workspace.getModElementByName("control_panel").getGeneratableElement());
 			assertEquals(176, stored.width);
 			assertEquals(166, stored.height);
-			assertEquals(1, stored.components.size());
+			assertEquals(5, stored.components.size());
 			Button first = assertInstanceOf(Button.class, stored.components.getFirst());
 			assertEquals("button_1", first.name);
 			assertEquals("Button", first.text);
 			assertEquals(174, first.x);
 			assertEquals(110, first.y);
+			Label label = assertInstanceOf(Label.class, stored.components.get(1));
+			assertEquals("label_2", label.name);
+			assertEquals("Copper Console", label.text.getFixedValue());
+			assertEquals(-65536, label.color.getRGB());
+			Image image = assertInstanceOf(Image.class, stored.components.get(2));
+			assertEquals("picture1", image.image);
+			InputSlot input = assertInstanceOf(InputSlot.class, stored.components.get(3));
+			assertEquals(0, input.id);
+			assertEquals("Blocks.AIR", input.inputLimit.getUnmappedValue());
+			OutputSlot output = assertInstanceOf(OutputSlot.class, stored.components.get(4));
+			assertEquals(1, output.id);
 
 			JsonObject updatePayload = new JsonObject();
 			updatePayload.addProperty("clientMutationId", uuid(31).toString());
@@ -93,6 +108,16 @@ class GuiElementPersistenceTest {
 	}
 
 	private static JsonArray components(int x) {
+		JsonArray components = new JsonArray();
+		components.add(button(x));
+		components.add(label());
+		components.add(image());
+		components.add(inputSlot());
+		components.add(outputSlot());
+		return components;
+	}
+
+	private static JsonObject button(int x) {
 		JsonObject data = new JsonObject();
 		data.add("anchorPoint", JsonNull.INSTANCE);
 		data.addProperty("x", x);
@@ -108,9 +133,78 @@ class GuiElementPersistenceTest {
 		JsonObject button = new JsonObject();
 		button.addProperty("type", "button");
 		button.add("data", data);
-		JsonArray components = new JsonArray();
-		components.add(button);
-		return components;
+		return button;
+	}
+
+	private static JsonObject label() {
+		JsonObject text = new JsonObject();
+		text.add("name", JsonNull.INSTANCE);
+		text.addProperty("fixedValue", "Copper Console");
+		JsonObject color = new JsonObject();
+		color.addProperty("value", -65536);
+		color.addProperty("falpha", 0.0f);
+		JsonObject data = new JsonObject();
+		data.add("anchorPoint", JsonNull.INSTANCE);
+		data.addProperty("x", 120);
+		data.addProperty("y", 90);
+		data.addProperty("locked", false);
+		data.addProperty("name", "label_2");
+		data.add("text", text);
+		data.add("color", color);
+		data.addProperty("hasShadow", true);
+		data.add("displayCondition", JsonNull.INSTANCE);
+		JsonObject component = new JsonObject();
+		component.addProperty("type", "label");
+		component.add("data", data);
+		return component;
+	}
+
+	private static JsonObject image() {
+		JsonObject data = new JsonObject();
+		data.add("anchorPoint", JsonNull.INSTANCE);
+		data.addProperty("x", 140);
+		data.addProperty("y", 100);
+		data.addProperty("locked", false);
+		data.addProperty("image", "picture1");
+		data.addProperty("use1Xscale", false);
+		data.add("displayCondition", JsonNull.INSTANCE);
+		JsonObject component = new JsonObject();
+		component.addProperty("type", "image");
+		component.add("data", data);
+		return component;
+	}
+
+	private static JsonObject inputSlot() {
+		JsonObject data = slotData(0, 160);
+		data.addProperty("inputLimit", "Blocks.AIR");
+		data.add("disablePlacement", JsonNull.INSTANCE);
+		JsonObject component = new JsonObject();
+		component.addProperty("type", "inputslot");
+		component.add("data", data);
+		return component;
+	}
+
+	private static JsonObject outputSlot() {
+		JsonObject component = new JsonObject();
+		component.addProperty("type", "outputslot");
+		component.add("data", slotData(1, 180));
+		return component;
+	}
+
+	private static JsonObject slotData(int id, int x) {
+		JsonObject data = new JsonObject();
+		data.add("anchorPoint", JsonNull.INSTANCE);
+		data.addProperty("x", x);
+		data.addProperty("y", 110);
+		data.addProperty("locked", false);
+		data.add("color", JsonNull.INSTANCE);
+		data.addProperty("id", id);
+		data.add("disablePickup", JsonNull.INSTANCE);
+		data.addProperty("dropItemsWhenNotBound", true);
+		data.add("onSlotChanged", JsonNull.INSTANCE);
+		data.add("onTakenFromSlot", JsonNull.INSTANCE);
+		data.add("onStackTransfer", JsonNull.INSTANCE);
+		return data;
 	}
 
 	private static Command create(UUID workspaceId, JsonObject values) {
