@@ -111,6 +111,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [localErrors, setLocalErrors] = useState<string[]>([]);
+  const [referenceDrafts, setReferenceDrafts] = useState<Record<string, string>>({});
 
   // Keep the latest query dispatcher without re-running the projection fetch
   // on unrelated bridge state changes.
@@ -128,6 +129,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
     setAssets(null);
     setPreview(null);
     setLocalErrors([]);
+    setReferenceDrafts({});
     getEditorRef.current(element.id)
       .then((projection) => {
         if (cancelled || !projection) return;
@@ -291,6 +293,14 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
       state.elements
         .filter((candidate) => candidate.type === 'procedure' || candidate.type === 'function')
         .forEach((candidate) => byValue.set(candidate.name, `${candidate.displayName} · ${candidate.type}`));
+    } else if (field.control === 'element_reference') {
+      state.elements
+        .filter((candidate) => candidate.type === 'block' || candidate.type === 'plant' || candidate.type === 'fluid')
+        .forEach((candidate) => byValue.set(`CUSTOM:${candidate.name}`, `${candidate.displayName} · ${candidate.type}`));
+    } else if (field.control === 'element_reference_list') {
+      state.elements
+        .filter((candidate) => candidate.type === 'biome')
+        .forEach((candidate) => byValue.set(`CUSTOM:${candidate.name}`, `${candidate.displayName} · biome`));
     } else if (field.control === 'resource_reference') {
       const category = resourceCategoryForField(field.path);
       assets?.assets
@@ -301,13 +311,24 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
   };
 
   const referenceIssue = (field: EditorField): string | null => {
-    if (field.control !== 'procedure_reference' && field.control !== 'resource_reference') return null;
+    if (!['procedure_reference', 'resource_reference', 'element_reference', 'element_reference_list'].includes(field.control)) return null;
+    if (field.control === 'element_reference_list') {
+      const current = Array.isArray(values[field.path]) ? (values[field.path] as unknown[]).map(String) : [];
+      const candidates = referenceCandidates(field);
+      const missing = current.find((entry) => entry.startsWith('CUSTOM:')
+        && !candidates.some((candidate) => candidate.value === entry));
+      return missing ? `工作区中未找到引用的元素：${missing}` : null;
+    }
     const value = String(values[field.path] ?? '').trim();
     if (!value || ['root', 'none', '(none)', 'null'].includes(value.toLowerCase())) return null;
     const candidates = referenceCandidates(field);
     if (field.control === 'procedure_reference' && candidates.length > 0
       && !candidates.some((candidate) => candidate.value === value)) {
       return `未找到引用的 Procedure / Function：${value}`;
+    }
+    if (field.control === 'element_reference' && value.startsWith('CUSTOM:') && candidates.length > 0
+      && !candidates.some((candidate) => candidate.value === value)) {
+      return `工作区中未找到引用的元素：${value}`;
     }
     if (field.control === 'resource_reference' && assets && looksLikeWorkspaceAssetReference(value)
       && !assets.assets.some((asset) => asset.relativePath.replace(/\\/g, '/') === value.replace(/\\/g, '/'))) {
@@ -405,6 +426,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
         );
       case 'resource_reference':
       case 'procedure_reference':
+      case 'element_reference':
         {
           const candidates = referenceCandidates(field);
           const listId = `${controlId}-suggestions`;
@@ -435,8 +457,84 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
                 )}
               </div>
               <div style={{ fontSize: '10px', color: 'var(--text-sub)' }}>
-                {field.control === 'resource_reference' ? '资源选择器' : '元素引用选择器'}
+                {field.control === 'resource_reference'
+                  ? '资源选择器'
+                  : field.control === 'element_reference'
+                    ? '方块 / 元素引用选择器'
+                    : '元素引用选择器'}
                 {candidates.length > 0 ? ` · ${candidates.length} 个候选` : ' · 可输入完整引用'}
+              </div>
+            </div>
+          );
+        }
+      case 'element_reference_list':
+        {
+          const candidates = referenceCandidates(field);
+          const listId = `${controlId}-suggestions`;
+          const current = Array.isArray(value) ? value.map(String) : [];
+          const draft = referenceDrafts[field.path] ?? '';
+          const addReference = () => {
+            const nextValue = draft.trim();
+            if (!nextValue || current.includes(nextValue)) return;
+            setValues((prev) => ({ ...prev, [field.path]: [...current, nextValue] }));
+            setReferenceDrafts((prev) => ({ ...prev, [field.path]: '' }));
+          };
+          return (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              {current.length > 0 && (
+                <div data-testid={`field-${fieldTestSuffix(field.path)}-values`} style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+                  {current.map((entry) => (
+                    <span key={entry} className="badge badge-copper" style={{ display: 'inline-flex', gap: '4px', alignItems: 'center' }}>
+                      {entry}
+                      {!disabled && (
+                        <button
+                          type="button"
+                          aria-label={`移除 ${entry}`}
+                          onClick={() => setValues((prev) => ({
+                            ...prev,
+                            [field.path]: current.filter((candidate) => candidate !== entry)
+                          }))}
+                          style={{ padding: 0, color: 'inherit', lineHeight: 1 }}
+                        >
+                          ×
+                        </button>
+                      )}
+                    </span>
+                  ))}
+                </div>
+              )}
+              <div style={{ display: 'flex', gap: '5px' }}>
+                <input
+                  id={controlId}
+                  type="text"
+                  list={candidates.length > 0 ? listId : undefined}
+                  value={draft}
+                  disabled={disabled}
+                  readOnly={disabled}
+                  placeholder="选择候选或输入完整 Biome 引用"
+                  onChange={(e) => setReferenceDrafts((prev) => ({ ...prev, [field.path]: e.target.value }))}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      addReference();
+                    }
+                  }}
+                  style={{ ...commonStyle, flex: 1 }}
+                  data-testid={`field-${fieldTestSuffix(field.path)}`}
+                />
+                <button type="button" className="btn-secondary" disabled={disabled || !draft.trim()} onClick={addReference}>
+                  添加
+                </button>
+                {candidates.length > 0 && (
+                  <datalist id={listId}>
+                    {candidates.map((candidate) => (
+                      <option key={candidate.value} value={candidate.value}>{candidate.label}</option>
+                    ))}
+                  </datalist>
+                )}
+              </div>
+              <div style={{ fontSize: '10px', color: 'var(--text-sub)' }}>
+                Biome 引用列表 · {candidates.length} 个候选 · 支持 CUSTOM:、标签或完整上游引用
               </div>
             </div>
           );

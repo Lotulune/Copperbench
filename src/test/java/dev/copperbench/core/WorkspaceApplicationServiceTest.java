@@ -64,6 +64,57 @@ class WorkspaceApplicationServiceTest {
 		assertEquals(GSON.toJsonTree(legacy.query(query)), GSON.toJsonTree(headless.query(query)));
 	}
 
+	@Test void stage12BiomeAndDimensionExposeCanonicalElementReferencePickers() {
+		Fixture fixture = fixture();
+		assertEquals("committed", fixture.service.execute(
+				createTypedCommand(uuid(30), 0, "block", "copper_stone", new JsonObject()),
+				new RequestContext(Actor.UI, PermissionProfile.WORKSPACE)).result().status());
+		CommandOutcome biomeCreated = fixture.service.execute(
+				createTypedCommand(uuid(31), 1, "biome", "copper_grove", new JsonObject()),
+				new RequestContext(Actor.UI, PermissionProfile.WORKSPACE));
+		assertEquals("committed", biomeCreated.result().status());
+		String biomeId = biomeCreated.result().data().getAsJsonObject().getAsJsonObject("element")
+				.get("id").getAsString();
+		CommandOutcome dimensionCreated = fixture.service.execute(
+				createTypedCommand(uuid(32), 2, "dimension", "copper_realm", new JsonObject()),
+				new RequestContext(Actor.UI, PermissionProfile.WORKSPACE));
+		assertEquals("committed", dimensionCreated.result().status());
+		String dimensionId = dimensionCreated.result().data().getAsJsonObject().getAsJsonObject("element")
+				.get("id").getAsString();
+
+		JsonObject biomePayload = new JsonObject();
+		biomePayload.addProperty("elementId", biomeId);
+		JsonObject biomeEditor = fixture.service.query(Query.of(uuid(33), WORKSPACE_ID,
+				Operation.GET_MOD_ELEMENT_EDITOR, biomePayload),
+				new RequestContext(Actor.UI, PermissionProfile.WORKSPACE)).data().getAsJsonObject();
+		JsonObject ground = findEditorField(biomeEditor, "/groundBlock");
+		assertNotNull(ground);
+		assertEquals("element_reference", ground.get("control").getAsString());
+		assertEquals("Blocks.GRASS", ground.get("value").getAsString());
+		assertTrue(ground.get("required").getAsBoolean());
+		assertTrue(editorFieldHasOption(ground, "CUSTOM:copper_stone"));
+
+		JsonObject dimensionPayload = new JsonObject();
+		dimensionPayload.addProperty("elementId", dimensionId);
+		JsonObject dimensionEditor = fixture.service.query(Query.of(uuid(34), WORKSPACE_ID,
+				Operation.GET_MOD_ELEMENT_EDITOR, dimensionPayload),
+				new RequestContext(Actor.UI, PermissionProfile.WORKSPACE)).data().getAsJsonObject();
+		JsonObject filler = findEditorField(dimensionEditor, "/mainFillerBlock");
+		assertNotNull(filler);
+		assertEquals("element_reference", filler.get("control").getAsString());
+		assertEquals("Blocks.STONE#0", filler.get("value").getAsString());
+		assertTrue(editorFieldHasOption(filler, "CUSTOM:copper_stone"));
+
+		JsonObject biomes = findEditorField(dimensionEditor, "/biomesInDimension");
+		assertNotNull(biomes);
+		assertEquals("element_reference_list", biomes.get("control").getAsString());
+		assertTrue(biomes.get("value").isJsonArray());
+		assertTrue(biomes.getAsJsonArray("value").isEmpty());
+		assertTrue(biomes.get("required").getAsBoolean());
+		assertTrue(editorFieldHasOption(biomes, "CUSTOM:copper_grove"));
+		assertTrue(editorFieldHasOption(biomes, "#is_overworld"));
+	}
+
 	@Test void stage12LivingEntityEditorProvidesReferenceCandidatesAndSemanticGenerationImpact() {
 		Fixture fixture = fixture();
 		RequestContext context = new RequestContext(Actor.UI, PermissionProfile.WORKSPACE);
@@ -541,6 +592,13 @@ class WorkspaceApplicationServiceTest {
 			}
 		}
 		return null;
+	}
+
+	private static boolean editorFieldHasOption(JsonObject field, String value) {
+		for (var raw : field.getAsJsonArray("options")) {
+			if (value.equals(raw.getAsJsonObject().get("value").getAsString())) return true;
+		}
+		return false;
 	}
 
 	private static JsonObject editorField(JsonArray sections, String path) {

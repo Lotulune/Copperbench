@@ -2737,6 +2737,62 @@ export class MockCoreBridge implements CoreBridge {
               ],
               capabilities: []
             };
+          } else if (elem?.type === 'dimension') {
+            const biomeOptions = [
+              '#is_overworld', '#is_nether', '#is_end',
+              ...this.state.elements
+                .filter((candidate) => candidate.type === 'biome')
+                .map((candidate) => `CUSTOM:${candidate.name}`)
+            ].map((value) => ({
+              value,
+              label: { key: 'field.option', fallback: value },
+              disabled: false
+            }));
+            editor = {
+              element: elem,
+              sections: [
+                {
+                  id: 'generation',
+                  title: { key: 'editor.section.generation', fallback: 'Generation' },
+                  fields: [
+                    {
+                      path: '/biomesInDimension', label: { key: 'field.name', fallback: 'Biomes in Dimension' },
+                      control: 'element_reference_list', required: true, readOnly: false, value: [],
+                      options: biomeOptions, diagnostics: []
+                    },
+                    {
+                      path: '/worldGenType', label: { key: 'field.name', fallback: 'World Generation Type' },
+                      control: 'select', required: true, readOnly: false, value: 'Normal world gen',
+                      options: ['Normal world gen', 'Nether like gen', 'End like gen'].map((value) => ({
+                        value, label: { key: 'field.option', fallback: value }, disabled: false
+                      })), diagnostics: []
+                    },
+                    {
+                      path: '/mainFillerBlock', label: { key: 'field.name', fallback: 'Main Filler Block' },
+                      control: 'element_reference', required: true, readOnly: false, value: 'Blocks.STONE#0',
+                      options: [
+                        { value: 'Blocks.STONE#0', label: { key: 'field.option', fallback: 'Blocks.STONE#0' }, disabled: false },
+                        { value: 'Blocks.OBSIDIAN', label: { key: 'field.option', fallback: 'Blocks.OBSIDIAN' }, disabled: false }
+                      ], diagnostics: []
+                    },
+                    {
+                      path: '/fluidBlock', label: { key: 'field.name', fallback: 'Fluid Block' },
+                      control: 'element_reference', required: true, readOnly: false, value: 'Blocks.WATER',
+                      options: [
+                        { value: 'Blocks.WATER', label: { key: 'field.option', fallback: 'Blocks.WATER' }, disabled: false },
+                        { value: 'Blocks.LAVA', label: { key: 'field.option', fallback: 'Blocks.LAVA' }, disabled: false }
+                      ], diagnostics: []
+                    },
+                    {
+                      path: '/seaLevel', label: { key: 'field.name', fallback: 'Sea Level' },
+                      control: 'number', required: false, readOnly: false, value: 63, options: [],
+                      constraints: { min: -1024, max: 1024, step: 1 }, diagnostics: []
+                    }
+                  ]
+                }
+              ],
+              capabilities: []
+            };
           } else if (elem?.type === 'gui') {
             editor = {
               element: elem,

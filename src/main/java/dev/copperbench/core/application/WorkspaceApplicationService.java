@@ -116,6 +116,31 @@ public final class WorkspaceApplicationService {
 		this(store, tasks, WorkspaceMutationGateway.noOp(), clock, ids);
 	}
 
+	private static boolean isElementReferenceField(String elementType, String fieldName) {
+		return switch (elementType) {
+			case "biome" -> Set.of("groundBlock", "undergroundBlock", "underwaterBlock", "treeStem", "treeBranch",
+					"treeVines", "treeFruits").contains(fieldName);
+			case "dimension" -> Set.of("mainFillerBlock", "fluidBlock", "portalFrame").contains(fieldName);
+			default -> false;
+		};
+	}
+
+	private static boolean isElementReferenceListField(String elementType, String fieldName) {
+		return elementType.equals("dimension")
+				&& Set.of("biomesInDimension", "biomesInDimensionCaves").contains(fieldName);
+	}
+
+	private static List<String> elementReferenceDefaults(String fieldName) {
+		return switch (fieldName) {
+			case "groundBlock" -> List.of("Blocks.GRASS", "Blocks.DIRT#0", "Blocks.STONE#0");
+			case "undergroundBlock" -> List.of("Blocks.DIRT#0", "Blocks.STONE#0");
+			case "underwaterBlock" -> List.of("Blocks.DIRT#0", "Blocks.GRAVEL", "Blocks.SAND");
+			case "fluidBlock" -> List.of("Blocks.WATER", "Blocks.LAVA");
+			case "mainFillerBlock", "portalFrame" -> List.of("Blocks.STONE#0", "Blocks.OBSIDIAN");
+			default -> List.of("Blocks.AIR");
+		};
+	}
+
 	public WorkspaceApplicationService(RevisionedWorkspaceStore store, WorkspaceTaskGateway tasks,
 			WorkspaceMutationGateway mutations, Clock clock, Supplier<UUID> ids) {
 		this(store, tasks, mutations, null, null, clock, ids);
@@ -2327,10 +2352,12 @@ public final class WorkspaceApplicationService {
 		String fieldName = editorFieldName(path);
 		String normalizedFieldName = fieldName.toLowerCase(Locale.ROOT);
 		String control = value instanceof JsonElement element && element.isJsonArray() ? "json" : "text";
+		if (isElementReferenceListField(elementType, fieldName)) control = "element_reference_list";
 		if (fieldName.equals("code") || fieldName.equals("description") || fieldName.equals("triggerxml"))
 			control = "textarea";
 		if (isResourceReferenceField(normalizedFieldName)) control = "resource_reference";
 		if (isProcedureReferenceField(normalizedFieldName)) control = "procedure_reference";
+		if (isElementReferenceField(elementType, fieldName)) control = "element_reference";
 		if (fieldName.equals("type") || fieldName.equals("frame") || fieldName.equals("toolType")
 				|| fieldName.equals("rarity") || fieldName.equals("sentiment") || fieldName.equals("priority")
 				|| fieldName.equals("entityType") || (elementType.equals("livingentity")
@@ -2346,8 +2373,12 @@ public final class WorkspaceApplicationService {
 				&& element.getAsJsonPrimitive().isNumber() && !control.equals("select"))
 			control = "number";
 		field.addProperty("control", control);
-		field.addProperty("required", elementType.equals("livingentity")
-				&& Set.of("mobName", "mobLabel", "mobModelName", "mobModelTexture").contains(fieldName));
+		boolean required = elementType.equals("livingentity")
+				&& Set.of("mobName", "mobLabel", "mobModelName", "mobModelTexture").contains(fieldName);
+		required |= elementType.equals("biome") && Set.of("groundBlock", "undergroundBlock").contains(fieldName);
+		required |= elementType.equals("dimension")
+				&& Set.of("biomesInDimension", "worldGenType", "mainFillerBlock", "fluidBlock").contains(fieldName);
+		field.addProperty("required", required);
 		field.addProperty("readOnly", readOnly);
 		if (value instanceof JsonElement element)
 			field.add("value", element.deepCopy());
@@ -2417,6 +2448,21 @@ public final class WorkspaceApplicationService {
 			for (String option : List.of("NORMAL", "NONE", "END")) options.add(fieldOption(option, option));
 		} else if (elementType.equals("dimension") && fieldName.equals("igniterRarity")) {
 			for (String option : List.of("COMMON", "UNCOMMON", "RARE", "EPIC")) options.add(fieldOption(option, option));
+		} else if (control.equals("element_reference_list")) {
+			for (String tag : List.of("#is_overworld", "#is_nether", "#is_end"))
+				options.add(fieldOption(tag, tag));
+			state.elements().stream()
+					.filter(candidate -> candidate.type().equals("biome"))
+					.sorted(Comparator.comparing(Element::displayName, String.CASE_INSENSITIVE_ORDER))
+					.forEach(candidate -> options.add(fieldOption("CUSTOM:" + candidate.name(),
+							candidate.displayName() + " · biome")));
+		} else if (control.equals("element_reference")) {
+			for (String vanilla : elementReferenceDefaults(fieldName)) options.add(fieldOption(vanilla, vanilla));
+			state.elements().stream()
+					.filter(candidate -> Set.of("block", "plant", "fluid").contains(candidate.type()))
+					.sorted(Comparator.comparing(Element::displayName, String.CASE_INSENSITIVE_ORDER))
+					.forEach(candidate -> options.add(fieldOption("CUSTOM:" + candidate.name(),
+							candidate.displayName() + " · " + candidate.type())));
 		} else if (control.equals("procedure_reference")) {
 			state.elements().stream()
 					.filter(candidate -> candidate.type().equals("procedure") || candidate.type().equals("function"))
@@ -2646,10 +2692,18 @@ public final class WorkspaceApplicationService {
 				if (!values.has("showSearch")) values.addProperty("showSearch", false);
 			}
 			case "biome" -> {
+				if (!values.has("groundBlock")) values.addProperty("groundBlock", "Blocks.GRASS");
+				if (!values.has("undergroundBlock")) values.addProperty("undergroundBlock", "Blocks.DIRT#0");
 				if (!values.has("spawnParticles")) values.addProperty("spawnParticles", true);
 				if (!values.has("spawnInCaves")) values.addProperty("spawnInCaves", false);
 			}
 			case "dimension" -> {
+				if (!values.has("biomesInDimension")) values.add("biomesInDimension", new JsonArray());
+				if (!values.has("biomesInDimensionCaves")) values.add("biomesInDimensionCaves", new JsonArray());
+				if (!values.has("worldGenType")) values.addProperty("worldGenType", "Normal world gen");
+				if (!values.has("mainFillerBlock")) values.addProperty("mainFillerBlock", "Blocks.STONE#0");
+				if (!values.has("fluidBlock")) values.addProperty("fluidBlock", "Blocks.WATER");
+				if (!values.has("seaLevel")) values.addProperty("seaLevel", 63);
 				if (!values.has("generateOreVeins")) values.addProperty("generateOreVeins", true);
 				if (!values.has("generateAquifers")) values.addProperty("generateAquifers", true);
 			}

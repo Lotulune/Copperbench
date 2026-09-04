@@ -103,6 +103,28 @@ test.describe('Interactive UI-Core Commands & Mutations', () => {
     await expect(page.locator('[data-testid="gui-save-btn"]')).toBeDisabled();
   });
 
+  test('Stage 12 Dimension uses typed block and biome reference pickers', async ({ page }) => {
+    await page.click('[data-testid="nav-elements"]');
+    await page.click('[data-testid="create-element-btn"]');
+    await page.locator('[data-testid="create-element-modal"] button').filter({ hasText: '维度' }).click();
+    await page.fill('[data-testid="create-element-name-input"]', 'copper_realm');
+    await page.click('[data-testid="create-element-submit-btn"]');
+
+    await expect(page.locator('[data-testid="element-inspector"]')).toBeVisible();
+    await expect(page.locator('[data-testid="field-mainFillerBlock"]')).toHaveValue('Blocks.STONE#0');
+    await expect(page.locator('[data-testid="field-fluidBlock"]')).toHaveValue('Blocks.WATER');
+    await expect(page.locator('[data-testid="field-biomesInDimension"]')).toBeVisible();
+    await page.fill('[data-testid="field-biomesInDimension"]', '#is_overworld');
+    await page.locator('[data-testid="field-biomesInDimension"]').press('Enter');
+    await expect(page.locator('[data-testid="field-biomesInDimension-values"]')).toContainText('#is_overworld');
+
+    await page.fill('[data-testid="field-mainFillerBlock"]', 'Blocks.OBSIDIAN');
+    await expect(page.locator('[data-testid="inspector-save-btn"]')).toBeEnabled();
+    await page.click('[data-testid="inspector-save-btn"]');
+    await expect(page.locator('[data-testid="inspector-save-btn"]')).toBeDisabled();
+    await expect(page.locator('[data-testid="field-biomesInDimension-values"]')).toContainText('#is_overworld');
+  });
+
   test('update_mod_element with invalid value triggers validation error', async ({ page }) => {
     await page.click('[data-testid="nav-elements"]');
     await page.locator('[data-element-id="22222222-2222-4222-8222-222222222221"]').first().click();

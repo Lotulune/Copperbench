@@ -287,7 +287,9 @@ export interface EditorField {
     | 'toggle'
     | 'select'
     | 'resource_reference'
-    | 'procedure_reference';
+    | 'procedure_reference'
+    | 'element_reference'
+    | 'element_reference_list';
   required: boolean;
   readOnly: boolean;
   value: unknown;
