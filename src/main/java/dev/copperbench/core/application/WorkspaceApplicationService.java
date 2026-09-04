@@ -1782,6 +1782,10 @@ public final class WorkspaceApplicationService {
 					if (Set.of("layout", "components", "behavior").contains(section)) domains.add("ui_layout");
 					if (section.equals("resources")) domains.add("client_resources");
 				}
+				case "overlay" -> {
+					if (Set.of("layout", "components", "behavior").contains(section)) domains.add("ui_overlay");
+					if (section.equals("resources")) domains.add("client_resources");
+				}
 				default -> domains.add("element_source");
 			}
 		}
@@ -1834,6 +1838,7 @@ public final class WorkspaceApplicationService {
 			case "dimension" -> List.of("identity", "environment", "appearance", "generation", "resources",
 					"advanced");
 			case "gui" -> List.of("identity", "layout", "components", "behavior", "resources", "advanced");
+			case "overlay" -> List.of("layout", "components", "behavior", "resources", "advanced");
 			default -> null;
 		};
 	}
@@ -1848,6 +1853,7 @@ public final class WorkspaceApplicationService {
 			case "biome" -> biomeSection(field);
 			case "dimension" -> dimensionSection(field);
 			case "gui" -> guiSection(field);
+			case "overlay" -> overlaySection(field);
 			default -> "advanced";
 		};
 	}
@@ -1875,6 +1881,16 @@ public final class WorkspaceApplicationService {
 				|| field.equals("mobbehaviourtype") || field.equals("mobcreaturetype") || field.equals("isboss")
 				|| field.equals("entitydataentries") || field.equals("animations")
 				|| field.equals("sensitivetovibration") || field.equals("vibrationalevents")) return "behavior";
+		return "advanced";
+	}
+
+	private String overlaySection(String field) {
+		if (isResourceReferenceField(field)) return "resources";
+		if (field.equals("sx") || field.equals("sy") || field.equals("ox") || field.equals("oy")
+				|| field.equals("snapongrid")) return "layout";
+		if (field.equals("components")) return "components";
+		if (field.equals("priority") || field.equals("overlaytarget") || field.equals("displaycondition"))
+			return "behavior";
 		return "advanced";
 	}
 
@@ -2852,6 +2868,18 @@ public final class WorkspaceApplicationService {
 			case "overlay" -> {
 				if (!values.has("priority")) values.addProperty("priority", "NORMAL");
 				if (!values.has("baseTexture")) values.addProperty("baseTexture", "");
+				if (!values.has("overlayTarget")) values.addProperty("overlayTarget", "Ingame");
+				if (!values.has("displayCondition")) values.add("displayCondition", JsonNull.INSTANCE);
+				if (!values.has("components")) values.add("components", new JsonArray());
+				if (!values.has("gridSettings")) {
+					JsonObject grid = new JsonObject();
+					grid.addProperty("sx", 18);
+					grid.addProperty("sy", 18);
+					grid.addProperty("ox", 11);
+					grid.addProperty("oy", 15);
+					grid.addProperty("snapOnGrid", false);
+					values.add("gridSettings", grid);
+				}
 			}
 			case "villagertrade" -> {
 				if (!values.has("villagerProfession")) values.addProperty("villagerProfession", "WANDERING_TRADER");

@@ -2806,6 +2806,47 @@ export class MockCoreBridge implements CoreBridge {
               ],
               capabilities: []
             };
+          } else if (elem?.type === 'overlay') {
+            editor = {
+              element: elem,
+              sections: [
+                {
+                  id: 'layout',
+                  title: { key: 'editor.section.layout', fallback: 'Layout' },
+                  fields: [
+                    { path: '/gridSettings/sx', label: { key: 'field.name', fallback: 'Grid X' }, control: 'number', required: false, readOnly: false, value: 18, options: [], diagnostics: [] },
+                    { path: '/gridSettings/sy', label: { key: 'field.name', fallback: 'Grid Y' }, control: 'number', required: false, readOnly: false, value: 18, options: [], diagnostics: [] },
+                    { path: '/gridSettings/ox', label: { key: 'field.name', fallback: 'Offset X' }, control: 'number', required: false, readOnly: false, value: 11, options: [], diagnostics: [] },
+                    { path: '/gridSettings/oy', label: { key: 'field.name', fallback: 'Offset Y' }, control: 'number', required: false, readOnly: false, value: 15, options: [], diagnostics: [] },
+                    { path: '/gridSettings/snapOnGrid', label: { key: 'field.name', fallback: 'Snap on Grid' }, control: 'toggle', required: false, readOnly: false, value: false, options: [], diagnostics: [] }
+                  ]
+                },
+                {
+                  id: 'components',
+                  title: { key: 'editor.section.components', fallback: 'Components' },
+                  fields: [
+                    { path: '/components', label: { key: 'field.name', fallback: 'Components' }, control: 'json', required: false, readOnly: false, value: [], options: [], diagnostics: [] }
+                  ]
+                },
+                {
+                  id: 'behavior',
+                  title: { key: 'editor.section.behavior', fallback: 'Behavior' },
+                  fields: [
+                    { path: '/priority', label: { key: 'field.name', fallback: 'Priority' }, control: 'select', required: false, readOnly: false, value: 'NORMAL', options: ['LOWEST', 'LOW', 'NORMAL', 'HIGH', 'HIGHEST'].map((value) => ({ value, label: { key: 'field.option', fallback: value }, disabled: false })), diagnostics: [] },
+                    { path: '/overlayTarget', label: { key: 'field.name', fallback: 'Overlay Target' }, control: 'text', required: true, readOnly: false, value: 'Ingame', options: [], diagnostics: [] },
+                    { path: '/displayCondition', label: { key: 'field.name', fallback: 'Display Condition' }, control: 'procedure_reference', required: false, readOnly: false, value: null, options: [], diagnostics: [] }
+                  ]
+                },
+                {
+                  id: 'resources',
+                  title: { key: 'editor.section.resources', fallback: 'Resources' },
+                  fields: [
+                    { path: '/baseTexture', label: { key: 'field.name', fallback: 'Base Texture' }, control: 'resource_reference', required: false, readOnly: false, value: '', options: [], diagnostics: [] }
+                  ]
+                }
+              ],
+              capabilities: []
+            };
           } else if (elem?.type === 'gui') {
             editor = {
               element: elem,
@@ -3026,6 +3067,12 @@ export class MockCoreBridge implements CoreBridge {
             if (field.startsWith('on') || field.startsWith('when') || field.endsWith('condition')) return 'events';
             if (field.includes('spawn')) return 'spawning';
           }
+          if (elem?.type === 'overlay') {
+            if (field === 'components') return 'components';
+            if (['sx', 'sy', 'ox', 'oy', 'snapongrid'].includes(field)) return 'layout';
+            if (field === 'basetexture') return 'resources';
+            if (['priority', 'overlaytarget', 'displaycondition'].includes(field)) return 'behavior';
+          }
           return elem && ['livingentity', 'biome', 'dimension', 'gui'].includes(String(elem.type)) ? 'advanced' : 'general';
         };
         const sections = [...new Set(changes.map((change) => sectionForPath(change.path)))];
@@ -3056,6 +3103,8 @@ export class MockCoreBridge implements CoreBridge {
             ))]
           : elem?.type === 'gui'
             ? ['ui_layout']
+            : elem?.type === 'overlay'
+              ? [...new Set(sections.map((section) => section === 'resources' ? 'client_resources' : 'ui_overlay'))]
             : ['element_source'];
         data = {
           elementId: payload.elementId ?? '',

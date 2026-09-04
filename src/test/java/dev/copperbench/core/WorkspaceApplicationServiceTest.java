@@ -573,6 +573,57 @@ class WorkspaceApplicationServiceTest {
 		assertEquals("select", editorField(sections, "/type").get("control").getAsString());
 	}
 
+	@Test void stage12OverlayCreationUsesCanonicalWysiwygDefaultsAndSections() {
+		Fixture fixture = fixture();
+		RequestContext context = new RequestContext(Actor.UI, PermissionProfile.WORKSPACE);
+		CommandOutcome created = fixture.service.execute(
+				createElementCommand(uuid(41), "overlay", "copper_hud", new JsonObject()), context);
+		assertEquals("committed", created.result().status());
+		UUID elementId = UUID.fromString(created.result().data().getAsJsonObject().getAsJsonObject("element")
+				.get("id").getAsString());
+		JsonObject values = fixture.store.read(WORKSPACE_ID).orElseThrow().element(elementId).values();
+		assertEquals("NORMAL", values.get("priority").getAsString());
+		assertEquals("", values.get("baseTexture").getAsString());
+		assertEquals("Ingame", values.get("overlayTarget").getAsString());
+		assertTrue(values.get("displayCondition").isJsonNull());
+		assertTrue(values.getAsJsonArray("components").isEmpty());
+		JsonObject grid = values.getAsJsonObject("gridSettings");
+		assertEquals(18, grid.get("sx").getAsInt());
+		assertEquals(18, grid.get("sy").getAsInt());
+		assertEquals(11, grid.get("ox").getAsInt());
+		assertEquals(15, grid.get("oy").getAsInt());
+		assertFalse(grid.get("snapOnGrid").getAsBoolean());
+
+		JsonObject payload = new JsonObject();
+		payload.addProperty("elementId", elementId.toString());
+		JsonArray sections = fixture.service.query(Query.of(uuid(42), WORKSPACE_ID,
+				Operation.GET_MOD_ELEMENT_EDITOR, payload), context).data().getAsJsonObject().getAsJsonArray("sections");
+		assertEquals("layout", editorSectionId(sections, "/gridSettings/sx"));
+		assertEquals("components", editorSectionId(sections, "/components"));
+		assertEquals("behavior", editorSectionId(sections, "/priority"));
+		assertEquals("resources", editorSectionId(sections, "/baseTexture"));
+		assertEquals("select", editorField(sections, "/priority").get("control").getAsString());
+		assertEquals("procedure_reference", editorField(sections, "/displayCondition").get("control").getAsString());
+
+		JsonArray changes = new JsonArray();
+		JsonObject gridChange = new JsonObject();
+		gridChange.addProperty("path", "/gridSettings/sx");
+		gridChange.addProperty("value", 20);
+		changes.add(gridChange);
+		JsonObject textureChange = new JsonObject();
+		textureChange.addProperty("path", "/baseTexture");
+		textureChange.addProperty("value", "textures/gui/copper_hud.png");
+		changes.add(textureChange);
+		JsonObject previewPayload = new JsonObject();
+		previewPayload.addProperty("elementId", elementId.toString());
+		previewPayload.add("changes", changes);
+		JsonObject preview = fixture.service.query(Query.of(uuid(43), WORKSPACE_ID,
+				Operation.PREVIEW_MOD_ELEMENT_CHANGE, previewPayload), context).data().getAsJsonObject();
+		JsonArray domains = preview.getAsJsonObject("generationImpact").getAsJsonArray("affectedDomains");
+		assertTrue(domains.asList().stream().anyMatch(domain -> domain.getAsString().equals("ui_overlay")));
+		assertTrue(domains.asList().stream().anyMatch(domain -> domain.getAsString().equals("client_resources")));
+	}
+
 	@Test void taskStartAndContentMutationAreOrderedByTheWorkspaceLock() throws Exception {
 		RevisionedWorkspaceStore store = registeredStore();
 		BlockingTaskGateway gateway = new BlockingTaskGateway();

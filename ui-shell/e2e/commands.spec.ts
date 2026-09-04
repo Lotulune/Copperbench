@@ -135,6 +135,37 @@ test.describe('Interactive UI-Core Commands & Mutations', () => {
     await expect(page.locator('[data-testid="field-biomesInDimension-values"]')).toContainText('#is_overworld');
   });
 
+  test('Stage 12 Overlay workbench uses the upstream overlay component subset and grid', async ({ page }) => {
+    await page.click('[data-testid="nav-elements"]');
+    await page.click('[data-testid="create-element-btn"]');
+    await page.locator('[data-testid="create-element-modal"] button').filter({ hasText: '覆盖层' }).click();
+    await page.fill('[data-testid="create-element-name-input"]', 'copper_hud');
+    await page.click('[data-testid="create-element-submit-btn"]');
+
+    await expect(page.locator('[data-testid="overlay-workbench"]')).toBeVisible();
+    await expect(page.locator('[data-testid="overlay-target"]')).toHaveValue('Ingame');
+    await expect(page.locator('[data-testid="overlay-priority"]')).toHaveValue('NORMAL');
+    await expect(page.locator('[data-testid="overlay-grid-sx"]')).toHaveValue('18');
+    await expect(page.locator('[data-testid="overlay-grid-ox"]')).toHaveValue('11');
+    await expect(page.locator('[data-testid="overlay-add-component-type"] option[value="button"]')).toHaveCount(0);
+    await expect(page.locator('[data-testid="overlay-add-component-type"] option[value="sprite"]')).toHaveCount(1);
+    await expect(page.locator('[data-testid="overlay-add-component-type"] option[value="entitymodel"]')).toHaveCount(1);
+
+    await page.selectOption('[data-testid="overlay-add-component-type"]', 'label');
+    await page.click('[data-testid="overlay-add-component-btn"]');
+    await expect(page.locator('[data-testid="overlay-component-0"]')).toContainText('label_1');
+    await page.fill('[data-testid="overlay-component-field-label-text"]', 'Copper HUD');
+    await expect(page.locator('[data-testid="overlay-preview-component-0"]')).toContainText('Copper HUD');
+
+    await page.check('[data-testid="overlay-grid-snap"]');
+    await page.fill('[data-testid="overlay-grid-sx"]', '20');
+    await page.selectOption('[data-testid="overlay-priority"]', 'HIGH');
+    await expect(page.locator('[data-testid="overlay-generation-impact"]')).toContainText('ui_overlay');
+    await expect(page.locator('[data-testid="overlay-save-btn"]')).toBeEnabled();
+    await page.click('[data-testid="overlay-save-btn"]');
+    await expect(page.locator('[data-testid="overlay-save-btn"]')).toBeDisabled();
+  });
+
   test('update_mod_element with invalid value triggers validation error', async ({ page }) => {
     await page.click('[data-testid="nav-elements"]');
     await page.locator('[data-element-id="22222222-2222-4222-8222-222222222221"]').first().click();
