@@ -237,8 +237,14 @@ public final class WorkspaceApplicationService {
 		JsonObject condition = new JsonObject();
 		condition.addProperty("operator", "any_truthy");
 		JsonArray paths = new JsonArray();
-		for (String dependency : field.getAnnotation(NonNullIf.class).value()) paths.add("/" + dependency);
+		JsonArray expressions = new JsonArray();
+		for (String expression : field.getAnnotation(NonNullIf.class).value()) {
+			expressions.add(expression);
+			String dependency = conditionFieldName(expression);
+			if (!dependency.isBlank()) paths.add("/" + dependency);
+		}
 		condition.add("paths", paths);
+		condition.add("expressions", expressions);
 		return condition;
 	}
 
@@ -248,6 +254,48 @@ public final class WorkspaceApplicationService {
 		if (value.getAsJsonPrimitive().isBoolean()) return value.getAsBoolean();
 		if (value.getAsJsonPrimitive().isNumber()) return value.getAsDouble() != 0;
 		return !value.getAsString().isBlank();
+	}
+
+	private static String conditionFieldName(String expression) {
+		String condition = expression == null ? "" : expression.trim();
+		if (condition.startsWith("!")) condition = condition.substring(1).trim();
+		for (String operator : List.of("#?=", "#=", "%=")) {
+			int index = condition.indexOf(operator);
+			if (index >= 0) return condition.substring(0, index).trim();
+		}
+		return condition;
+	}
+
+	private static boolean conditionExpressionMatches(JsonObject values, String expression) {
+		String condition = expression == null ? "" : expression.trim();
+		boolean negate = condition.startsWith("!");
+		if (negate) condition = condition.substring(1).trim();
+		boolean result;
+		try {
+			int index;
+			if ((index = condition.indexOf("#?=")) >= 0) {
+				JsonElement value = values.get(condition.substring(0, index).trim());
+				if (value == null || !value.isJsonPrimitive() || !value.getAsJsonPrimitive().isNumber()) result = false;
+				else {
+					int actual = value.getAsInt();
+					result = java.util.Arrays.stream(condition.substring(index + 3).trim().split(","))
+							.map(String::trim).mapToInt(Integer::parseInt).anyMatch(candidate -> candidate == actual);
+				}
+			} else if ((index = condition.indexOf("#=")) >= 0) {
+				JsonElement value = values.get(condition.substring(0, index).trim());
+				result = value != null && value.isJsonPrimitive() && value.getAsJsonPrimitive().isNumber()
+						&& value.getAsInt() == Integer.parseInt(condition.substring(index + 2).trim());
+			} else if ((index = condition.indexOf("%=")) >= 0) {
+				JsonElement value = values.get(condition.substring(0, index).trim());
+				result = value != null && value.isJsonPrimitive()
+						&& condition.substring(index + 2).trim().equals(value.getAsString());
+			} else {
+				result = jsonTruthy(values.get(condition));
+			}
+		} catch (RuntimeException ignored) {
+			result = false;
+		}
+		return negate ? !result : result;
 	}
 
 	private static boolean missingConditionalValue(JsonElement value) {
@@ -2786,6 +2834,8 @@ public final class WorkspaceApplicationService {
 		field.add("options", options);
 		List<String> referenceTypes = elementReferenceTypes(elementType, fieldName);
 		if (!referenceTypes.isEmpty()) field.add("referenceTypes", GSON.toJsonTree(referenceTypes));
+		if (reflectedField != null && reflectedField.isAnnotationPresent(TextureReference.class))
+			field.addProperty("resourceType", reflectedField.getAnnotation(TextureReference.class).value().getID());
 		if (control.equals("structured_list") && reflectedField != null) {
 			JsonArray itemFields = structuredItemFields(reflectedField, readOnly, state);
 			field.add("itemFields", itemFields);
@@ -2917,6 +2967,8 @@ public final class WorkspaceApplicationService {
 			for (Object option : type.getEnumConstants()) options.add(fieldOption(enumName(option), enumName(option)));
 		}
 		List<String> referenceTypes = reflectedReferenceTypes(reflected);
+		if (reflected.isAnnotationPresent(TextureReference.class))
+			field.addProperty("resourceType", reflected.getAnnotation(TextureReference.class).value().getID());
 		if (control.equals("element_reference")) {
 			state.elements().stream()
 					.filter(candidate -> referenceTypes.isEmpty() || referenceTypes.contains(candidate.type()))
@@ -3388,7 +3440,7 @@ public final class WorkspaceApplicationService {
 				if (condition == null) continue;
 				String activeDependency = null;
 				for (String dependency : condition.value()) {
-					if (jsonTruthy(values.get(dependency))) {
+					if (conditionExpressionMatches(values, dependency)) {
 						activeDependency = dependency;
 						break;
 					}

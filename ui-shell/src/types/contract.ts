@@ -296,6 +296,7 @@ export interface EditorField {
   value: unknown;
   options: FieldOption[];
   referenceTypes?: ModElementType[];
+  resourceType?: string;
   itemFields?: EditorField[];
   itemTemplate?: Record<string, unknown>;
   constraints?: {
@@ -309,6 +310,7 @@ export interface EditorField {
   condition?: {
     operator: 'any_truthy';
     paths: string[];
+    expressions?: string[];
   };
   diagnostics: Diagnostic[];
 }

@@ -186,6 +186,15 @@ class WorkspaceApplicationServiceTest {
 				createTypedCommand(uuid(40), 0, "dimension", "invalid_portal_realm", invalidInitial), context);
 		assertEquals("rejected", invalidCreate.result().status());
 		assertEquals("FIELD_REQUIRED_BY_CONDITION", invalidCreate.result().diagnostics().get(0).code());
+
+		Fixture plantCreateFixture = fixture();
+		JsonObject invalidDoublePlant = new JsonObject();
+		invalidDoublePlant.addProperty("plantType", "double");
+		CommandOutcome invalidDoublePlantCreate = plantCreateFixture.service.execute(
+				createTypedCommand(uuid(41), 0, "plant", "invalid_double_plant", invalidDoublePlant), context);
+		assertEquals("rejected", invalidDoublePlantCreate.result().status());
+		assertEquals("FIELD_REQUIRED_BY_CONDITION", invalidDoublePlantCreate.result().diagnostics().get(0).code());
+		assertEquals("plantType %= double", invalidDoublePlantCreate.result().diagnostics().get(0).message().args().get("condition").getAsString());
 	}
 
 	@Test void stage12LivingEntityEditorProvidesReferenceCandidatesAndSemanticGenerationImpact() {
@@ -576,6 +585,7 @@ class WorkspaceApplicationServiceTest {
 		assertEquals(0.1, power.getAsJsonObject("constraints").get("step").getAsDouble());
 		assertEquals("resource_reference",
 				editorField(projectileSections, "/customModelTexture").get("control").getAsString());
+		assertEquals("entity", editorField(projectileSections, "/customModelTexture").get("resourceType").getAsString());
 		assertEquals("procedure_reference", editorField(projectileSections, "/onHitsBlock").get("control").getAsString());
 		assertEquals("attributes", editorSectionId(projectileSections, "/damage"));
 		assertEquals("events", editorSectionId(projectileSections, "/onFlyingTick"));
@@ -593,6 +603,15 @@ class WorkspaceApplicationServiceTest {
 		assertEquals("/useStartHeight", minHeight.getAsJsonObject("condition").getAsJsonArray("paths")
 				.get(0).getAsString());
 		assertEquals("generation", editorSectionId(structureSections, "/startHeightMin"));
+
+		Fixture plantFixture = fixture();
+		CommandOutcome plantCreated = plantFixture.service.execute(
+				createElementCommand(uuid(68), "plant", "double_plant", new JsonObject()), context);
+		JsonArray plantSections = editorSections(plantFixture, plantCreated, uuid(69), context);
+		JsonObject bottomTexture = editorField(plantSections, "/textureBottom");
+		assertEquals("block", bottomTexture.get("resourceType").getAsString());
+		assertEquals("/plantType", bottomTexture.getAsJsonObject("condition").getAsJsonArray("paths").get(0).getAsString());
+		assertEquals("plantType %= double", bottomTexture.getAsJsonObject("condition").getAsJsonArray("expressions").get(0).getAsString());
 
 		Fixture toolFixture = fixture();
 		CommandOutcome toolCreated = toolFixture.service.execute(

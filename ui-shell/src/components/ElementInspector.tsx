@@ -44,8 +44,36 @@ function conditionTruthy(value: unknown): boolean {
   return true;
 }
 
+function conditionExpressionActive(expression: string, values: Record<string, unknown>): boolean {
+  let condition = expression.trim();
+  const negate = condition.startsWith('!');
+  if (negate) condition = condition.slice(1).trim();
+  let result = false;
+  const compare = (operator: string): [string, string] | null => {
+    const index = condition.indexOf(operator);
+    return index >= 0 ? [condition.slice(0, index).trim(), condition.slice(index + operator.length).trim()] : null;
+  };
+  const stringEquals = compare('%=');
+  const intListEquals = compare('#?=');
+  const intEquals = compare('#=');
+  if (intListEquals) {
+    const actual = Number(values[`/${intListEquals[0]}`]);
+    result = Number.isFinite(actual) && intListEquals[1].split(',').some((entry) => Number(entry.trim()) === actual);
+  } else if (intEquals) {
+    result = Number(values[`/${intEquals[0]}`]) === Number(intEquals[1]);
+  } else if (stringEquals) {
+    result = String(values[`/${stringEquals[0]}`] ?? '') === stringEquals[1];
+  } else {
+    result = conditionTruthy(values[`/${condition}`]);
+  }
+  return negate ? !result : result;
+}
+
 function conditionActive(field: EditorField, values: Record<string, unknown>): boolean {
   if (!field.condition) return true;
+  if (field.condition.expressions?.length) {
+    return field.condition.expressions.some((expression) => conditionExpressionActive(expression, values));
+  }
   return field.condition.paths.some((path) => conditionTruthy(values[path]));
 }
 
@@ -78,6 +106,13 @@ function resourceCategoryForField(path: string): AssetProjection['assets'][numbe
 
 function looksLikeWorkspaceAssetReference(value: string): boolean {
   return /[\\/]/.test(value) && /\.(png|jpg|jpeg|json|ogg|wav|ttf|otf)$/i.test(value);
+}
+
+function resourceStorageIdentifier(asset: AssetProjection['assets'][number], field: EditorField): string | null {
+  if (asset.category !== 'TEXTURE') return null;
+  const normalized = asset.relativePath.replace(/\\/g, '/');
+  if (field.resourceType && !normalized.toLowerCase().includes(`/textures/${field.resourceType.toLowerCase()}/`)) return null;
+  return normalized.split('/').filter(Boolean).pop() ?? null;
 }
 
 function generationDomainLabel(domain: string): string {
@@ -327,7 +362,10 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
       const category = resourceCategoryForField(field.path);
       assets?.assets
         .filter((asset) => !category || asset.category === category)
-        .forEach((asset) => byValue.set(asset.relativePath, asset.relativePath));
+        .forEach((asset) => {
+          const identifier = resourceStorageIdentifier(asset, field);
+          if (identifier) byValue.set(identifier, `${identifier} · ${asset.relativePath}`);
+        });
     }
     return [...byValue.entries()].map(([value, label]) => ({ value, label }));
   };

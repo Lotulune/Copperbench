@@ -2993,6 +2993,40 @@ export class MockCoreBridge implements CoreBridge {
               ],
               capabilities: []
             };
+          } else if (elem?.type === 'plant') {
+            editor = {
+              element: elem,
+              sections: [
+                {
+                  id: 'behavior',
+                  title: { key: 'editor.section.behavior', fallback: 'Behavior' },
+                  fields: [
+                    {
+                      path: '/plantType', label: { key: 'field.name', fallback: 'Plant Type' },
+                      control: 'select', required: false, readOnly: false, value: 'normal',
+                      options: [
+                        { value: 'normal', label: { key: 'field.option', fallback: 'normal' }, disabled: false },
+                        { value: 'double', label: { key: 'field.option', fallback: 'double' }, disabled: false }
+                      ], diagnostics: []
+                    }
+                  ]
+                },
+                {
+                  id: 'resources',
+                  title: { key: 'editor.section.resources', fallback: 'Resources' },
+                  fields: [
+                    {
+                      path: '/textureBottom', label: { key: 'field.name', fallback: 'Bottom Texture' },
+                      control: 'resource_reference', required: false, readOnly: false, value: '', options: [],
+                      resourceType: 'block',
+                      condition: { operator: 'any_truthy', paths: ['/plantType'], expressions: ['plantType %= double'] },
+                      diagnostics: []
+                    }
+                  ]
+                }
+              ],
+              capabilities: []
+            };
           } else if (elem?.type === 'projectile') {
             const procedureOptions = this.state.elements
               .filter((candidate) => candidate.type === 'procedure' || candidate.type === 'function')
