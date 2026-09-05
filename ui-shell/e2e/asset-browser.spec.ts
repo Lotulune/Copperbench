@@ -38,6 +38,14 @@ test.describe('U3 asset browser', () => {
     await expect(page.locator('[data-testid="asset-outgoing-references"]')).toBeVisible();
   });
 
+  test('separates conservatively safe cleanup candidates from static-unreferenced assets', async ({ page }) => {
+    await expect(page.getByTestId('asset-health-safe-summary')).toContainText('1');
+    await page.getByTestId('asset-health-safe-unused').click();
+    await expect(page.getByTestId('asset-card-asset:7777777777777777777777777777777777777777777777777777777777777777')).toBeVisible();
+    await expect(page.getByTestId('asset-card-asset:3333333333333333333333333333333333333333333333333333333333333333')).not.toBeVisible();
+    await expect(page.getByTestId('asset-usage-status')).toContainText('可安全清理候选');
+  });
+
   test('filters exact duplicate-content candidates from Core-owned health', async ({ page }) => {
     await page.getByTestId('asset-health-duplicates').click();
     await expect(page.getByTestId('asset-health-duplicate-summary')).toContainText('重复组 1');

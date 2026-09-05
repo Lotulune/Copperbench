@@ -86,6 +86,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.ArrayDeque;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Deque;
@@ -259,7 +260,8 @@ public final class WorkspaceApplicationService {
 
 		assetMovePlanGrants.remove(approved.id());
 		AssetReferenceGraph refreshed = new AssetWorkspaceService(root).referenceGraph();
-		AssetHealthReport refreshedHealth = refreshed.healthReport();
+		AssetHealthReport refreshedHealth = workspaceAssetHealth(refreshed,
+				store.read(command.workspaceId()).orElseThrow());
 		JsonObject data = new JsonObject();
 		data.addProperty("complete", true);
 		data.addProperty("sourceRelativePath", approved.plan().sourceRelativePath());
@@ -363,7 +365,8 @@ public final class WorkspaceApplicationService {
 		assetImportPlanGrants.remove(approved.id());
 		assetImportSourceGrants.remove(approved.sourceGrantId());
 		AssetReferenceGraph refreshed = new AssetWorkspaceService(root).referenceGraph();
-		AssetHealthReport refreshedHealth = refreshed.healthReport();
+		AssetHealthReport refreshedHealth = workspaceAssetHealth(refreshed,
+				store.read(command.workspaceId()).orElseThrow());
 		JsonObject data = new JsonObject();
 		data.addProperty("complete", true);
 		data.addProperty("conflict", mutation.applied().conflict().name());
@@ -762,7 +765,7 @@ public final class WorkspaceApplicationService {
 					"Could not register the external Blockbench edit as a workspace revision");
 
 		AssetReferenceGraph refreshed = new AssetWorkspaceService(root).referenceGraph();
-		AssetHealthReport health = refreshed.healthReport();
+		AssetHealthReport health = workspaceAssetHealth(refreshed, store.read(workspaceId).orElseThrow());
 		AssetDescriptor refreshedAsset = refreshed.assets().stream()
 				.filter(asset -> asset.relativePath().equals(current.relativePath())).findFirst().orElseThrow();
 		JsonObject payload = new JsonObject();
@@ -978,7 +981,7 @@ public final class WorkspaceApplicationService {
 					"The workspace root is not available for asset indexing.", null, null));
 		try {
 			AssetReferenceGraph graph = new AssetWorkspaceService(root).referenceGraph();
-			AssetHealthReport health = graph.healthReport();
+			AssetHealthReport health = workspaceAssetHealth(graph, state);
 			JsonObject projection = new JsonObject();
 			projection.addProperty("schemaVersion", UiCore.SCHEMA_VERSION);
 			projection.add("assets", GSON.toJsonTree(graph.assets().stream()
@@ -994,6 +997,63 @@ public final class WorkspaceApplicationService {
 					"diagnostic.asset_query_failed", "The workspace asset index could not be read.", null, null,
 					exception));
 		}
+	}
+
+	private AssetHealthReport workspaceAssetHealth(AssetReferenceGraph graph, WorkspaceState state) {
+		JsonObject referenceProjection = references.projection(state, "");
+		Map<String, Integer> resourceReferences = new HashMap<>();
+		for (JsonElement raw : referenceProjection.getAsJsonArray("edges")) {
+			JsonObject edge = raw.getAsJsonObject();
+			if (!edge.has("kind") || !edge.get("kind").getAsString().equals("resource") || !edge.has("target")) continue;
+			String target = edge.get("target").getAsString().trim().toLowerCase(Locale.ROOT);
+			if (!target.isBlank()) resourceReferences.merge(target, 1, Integer::sum);
+		}
+		Set<String> textSignals = new LinkedHashSet<>();
+		for (Element element : state.elements()) {
+			textSignals.add(element.name().toLowerCase(Locale.ROOT));
+			textSignals.add(element.displayName().toLowerCase(Locale.ROOT));
+			collectWorkspaceTextSignals(element.values(), textSignals);
+		}
+		collectWorkspaceTextSignals(state.generator(), textSignals);
+		collectWorkspaceTextSignals(state.upstreamDocument(), textSignals);
+		collectWorkspaceTextSignals(state.registries(), textSignals);
+		boolean workspaceUsageComplete = "mod".equals(state.kind()) && state.elements().stream()
+				.allMatch(element -> ElementCoverageCatalog.isFirstParty(element.type()) && !element.type().equals("code")
+						&& workspaceTextSignalsComplete(element.values()))
+				&& workspaceTextSignalsComplete(state.generator())
+				&& workspaceTextSignalsComplete(state.upstreamDocument());
+		return graph.healthReport(resourceReferences, textSignals, workspaceUsageComplete);
+	}
+
+	private static boolean workspaceTextSignalsComplete(JsonElement value) {
+		if (value == null || value.isJsonNull()) return true;
+		if (value.isJsonPrimitive()) {
+			return !value.getAsJsonPrimitive().isString() || value.getAsString().length() <= 512;
+		}
+		if (value.isJsonArray()) {
+			for (JsonElement child : value.getAsJsonArray())
+				if (!workspaceTextSignalsComplete(child)) return false;
+			return true;
+		}
+		for (JsonElement child : value.getAsJsonObject().asMap().values())
+			if (!workspaceTextSignalsComplete(child)) return false;
+		return true;
+	}
+
+	private static void collectWorkspaceTextSignals(JsonElement value, Set<String> target) {
+		if (value == null || value.isJsonNull()) return;
+		if (value.isJsonPrimitive()) {
+			if (value.getAsJsonPrimitive().isString()) {
+				String text = value.getAsString().trim().toLowerCase(Locale.ROOT);
+				if (!text.isBlank() && text.length() <= 512) target.add(text);
+			}
+			return;
+		}
+		if (value.isJsonArray()) {
+			for (JsonElement child : value.getAsJsonArray()) collectWorkspaceTextSignals(child, target);
+			return;
+		}
+		for (JsonElement child : value.getAsJsonObject().asMap().values()) collectWorkspaceTextSignals(child, target);
 	}
 
 	private static JsonObject asset(AssetDescriptor descriptor, AssetHealthReport.Entry health) {

@@ -1043,6 +1043,9 @@ export interface AssetProjectionHealthEntry {
   unused: boolean;
   inboundCount: number;
   outboundCount: number;
+  workspaceReferenceCount: number;
+  cleanupAssessed: boolean;
+  safeUnused: boolean;
   duplicateContent: boolean;
   duplicatePaths: string[];
   issueCodes: string[];
@@ -1054,6 +1057,7 @@ export interface AssetProjectionHealthSummary {
   warningAssets: number;
   errorAssets: number;
   unusedAssets: number;
+  safeUnusedAssets: number;
   duplicateAssets: number;
   duplicateGroups: number;
   missingReferences: number;

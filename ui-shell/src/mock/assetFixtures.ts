@@ -38,5 +38,11 @@ export const ASSET_FIXTURES: readonly AssetRecord[] = [
     path: 'resourcepacks/coppertrails_resources.zip', format: 'ZIP', size: '74.3 KB', sizeBytes: 76083,
     updatedAt: '2026-08-13T16:48:00Z', source: 'workspace', sourceLabel: '工作区', references: ['model:copper_lamp', 'texture:copper_lamp', 'language:zh_cn'],
     validation: 'ready', validationLabel: '已校验', description: '可独立启用的资源包导出，包含铜灯模型、纹理及语言文件。'
+  },
+  {
+    id: 'asset:7777777777777777777777777777777777777777777777777777777777777777', name: 'obsolete_panel', category: 'texture', categoryLabel: 'Texture',
+    path: 'assets/coppertrails/textures/gui/obsolete_panel.png', format: 'PNG', size: '1.4 KB', sizeBytes: 1434, dimensions: '32 x 32 px',
+    updatedAt: '2026-08-12T10:10:00Z', source: 'workspace', sourceLabel: 'Workspace', references: [],
+    validation: 'ready', validationLabel: 'Ready', description: 'Unreferenced texture fixture used to verify conservative safe-cleanup candidate filtering.'
   }
 ];

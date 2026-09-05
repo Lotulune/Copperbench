@@ -26,7 +26,10 @@ The first Stage 13 Asset Center slice builds on the Stage 6/8 asset foundation a
 - managed Blockbench editing now creates a Core-owned recovery point before the external process is launched; recovery creation, opened revision and event-sequence allocation occur under the same workspace revision lock;
 - when Blockbench exits with a changed `.bbmodel`, Core re-indexes the edited asset, advances exactly one workspace revision, publishes `asset_external_edit_committed`, refreshes asset health/reference state, and returns the recovery/revision metadata through the narrow JCEF bridge;
 - Asset Center polls Blockbench only while a managed session is active, stops on exit, surfaces the resulting recovery/revision state and automatically reloads the asset catalog after a committed save;
-- static-unused candidates are intentionally not upgraded to warnings/errors yet, because asset-file references alone cannot prove that Mod Elements or generator metadata do not use a resource.
+- safe-unused classification now layers the shared workspace reference index and conservative workspace text signals on top of asset-file references; embedded resource locations inside ordinary Mod Element strings count as usage;
+- `safeUnused` is deliberately narrower than static `unused`: the first cleanup-assessed slice only covers model/texture assets, excludes assets with error diagnostics, and disables the entire cleanup assessment when raw code, non-first-party element types or oversized unexhausted text signals are present;
+- generator/upstream/registry strings are included as conservative usage signals, so uncertain workspaces degrade to “static unreferenced / cleanup not assessed” instead of producing a false safe-delete claim;
+- Asset Center exposes static-unused and safe-cleanup candidates as separate filters and does not perform automatic deletion.
 
 Existing Stage 6/8 behavior retained by this slice includes unified category browsing/search, asset preview metadata, missing/invalid/path-escape diagnostics, the managed Blockbench process boundary, JCEF Blockbench bridge and MCP asset queries.
 
@@ -34,18 +37,18 @@ Existing Stage 6/8 behavior retained by this slice includes unified category bro
 
 - `npm run build` / forced Gradle UI build — passed; TypeScript, Vite and the Chinese localization gate (`200/200`) completed successfully.
 - `AssetWorkspaceServiceTest` — passed, including reverse usage, exact duplicate-content groups, health projection, missing references, invalid JSON, path escape and generated resource-root behavior.
-- `AssetQueryProjectionTest` — passed, including per-asset health, duplicate summary/issue projection and workspace health projection through UI-Core.
+- `AssetQueryProjectionTest` — passed, including per-asset health, duplicate summary/issue projection, embedded Mod Element resource usage blocking safe cleanup, and raw-code workspaces disabling cleanup assessment.
 - `McpHttpServerTest` — passed, including `assetHealth` and `incomingReferences` on `inspect_asset_references`.
 - `AssetImportServiceTest` / `AssetImportApplicationServiceTest` / `JcefAssetImportBridgeTransportTest` — passed, including stale-plan rejection, workspace-scoped tokens, replacement confirmation, recovery restore, external-path non-disclosure and symlink/junction protection.
 - `AssetMoveServiceTest` / `AssetMoveApplicationServiceTest` — passed, including exact JSON Pointer rewrites, stale-source rejection before recovery/write, target/category/resource-root blocking, workspace-bound move tokens, one-revision apply and recovery restore.
 - `McpHttpServerTest.externalAgentCanPreviewAndApplyReferenceSafeAssetMove` — passed through the real loopback MCP server, including preview, apply, reference rewrite and recovery point return.
 - `BlockbenchProcessServiceTest` / `BlockbenchEditApplicationServiceTest` / `JcefBlockbenchBridgeTransportTest` — forced rerun passed; recovery preparation precedes process start, completion runs once, the Core save registers one revision/event, recovery restores the pre-edit file, and the wire contract carries explicit recovery/revision metadata. The optional real-installed-Blockbench smoke remains skipped unless `copperbench.blockbench.executable` is supplied.
-- `npx playwright test e2e/asset-browser.spec.ts` — `24 passed` across Chromium and compact-1366; the browser covers health/static-unused/duplicate filters, CREATE and explicitly reviewed REPLACE import, exact move-reference review, blocked unchanged move, the >=32px move-review interaction target baseline, and managed Blockbench save-exit auto-refresh with recovery/revision feedback.
+- `WorkspaceReferenceIndexScaleTest` with `copperbench.stage9.scale=true` — passed at 2,000 elements / 10,000 references (`initial=123ms`, `repeat=47ms`, `P95=28ms`) after embedded resource-location scanning was added.
+- `npx playwright test e2e/asset-browser.spec.ts` — `26 passed` across Chromium and compact-1366; the browser covers health/static-unused/safe-cleanup/duplicate filters, CREATE and explicitly reviewed REPLACE import, exact move-reference review, blocked unchanged move, the >=32px move-review interaction target baseline, and managed Blockbench save-exit auto-refresh with recovery/revision feedback.
 
 ## Remaining `FR-PRODUCTIVITY-02` work
 
-- safe-unused classification that also accounts for Mod Element / workspace references before cleanup can be offered;
 - drag/drop and multi-file/batch import planning; the single-file preview/replace/recovery path is implemented;
 - broader asset move coverage for non-JSON or generator-specific references if future supported asset kinds introduce such references; current structured JSON/resource-ID references are protected.
 
-The existing static-unused candidate flag is discovery information only and must not be used as an automatic deletion decision.
+Static-unused remains discovery information only. Only the narrower Core-owned `safeUnused` slice is presented as a cleanup candidate, and no automatic deletion action is implemented.

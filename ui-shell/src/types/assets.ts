@@ -29,6 +29,9 @@ export interface AssetRecord {
   readonly outgoingReferences?: readonly string[];
   readonly usageAssessed?: boolean;
   readonly unused?: boolean;
+  readonly workspaceReferenceCount?: number;
+  readonly cleanupAssessed?: boolean;
+  readonly safeUnused?: boolean;
   readonly issueCodes?: readonly string[];
   readonly inboundCount?: number;
   readonly outboundCount?: number;
@@ -109,6 +112,9 @@ export function assetRecordsFromProjection(projection: AssetProjection): AssetRe
       outgoingReferences,
       usageAssessed: asset.health.usageAssessed,
       unused: asset.health.unused,
+      workspaceReferenceCount: asset.health.workspaceReferenceCount,
+      cleanupAssessed: asset.health.cleanupAssessed,
+      safeUnused: asset.health.safeUnused,
       issueCodes: asset.health.issueCodes,
       inboundCount: asset.health.inboundCount,
       outboundCount: asset.health.outboundCount,

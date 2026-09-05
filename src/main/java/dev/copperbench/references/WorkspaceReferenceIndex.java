@@ -37,6 +37,8 @@ public final class WorkspaceReferenceIndex {
 
 	private static final Gson GSON = new Gson();
 	private static final Pattern RESOURCE_LOCATION = Pattern.compile("^[a-z0-9_.-]+:[a-z0-9_./-]+$");
+	private static final Pattern EMBEDDED_RESOURCE_LOCATION = Pattern.compile(
+			"(?<![a-z0-9_.-])([a-z0-9_.-]+):(?!//)([a-z0-9_./-]+)", Pattern.CASE_INSENSITIVE);
 	private static final Set<String> REFERENCE_KEYS = Set.of("elementid", "procedureid", "variableid", "tagid",
 			"languagekey", "parent", "rewardfunction", "function", "loottable", "target", "reference", "ref");
 	private final ProcedureIrCodec procedures = new ProcedureIrCodec();
@@ -45,6 +47,14 @@ public final class WorkspaceReferenceIndex {
 	public JsonObject projection(WorkspaceState state, String target) {
 		WorkspaceIndex index = workspaces.computeIfAbsent(state.id(), ignored -> new WorkspaceIndex());
 		return index.update(state, target == null ? "" : target);
+	}
+
+	private static void addEmbeddedResourceCandidates(UUID elementId, String path, String text, List<Candidate> target) {
+		java.util.regex.Matcher matcher = EMBEDDED_RESOURCE_LOCATION.matcher(text);
+		while (matcher.find()) {
+			String resource = matcher.group().toLowerCase(Locale.ROOT);
+			target.add(candidate(elementId, path + "#resource-" + matcher.start(), resource, "resource", false));
+		}
 	}
 
 	private final class WorkspaceIndex {
@@ -195,6 +205,7 @@ public final class WorkspaceReferenceIndex {
 						target.add(candidate(elementId, childPath, text, kind(key, text), true));
 					else if (RESOURCE_LOCATION.matcher(text).matches())
 						target.add(candidate(elementId, childPath, text, "resource", false));
+					else addEmbeddedResourceCandidates(elementId, childPath, text, target);
 				} else scanJson(elementId, child, childPath, target);
 			}
 		} else if (value.isJsonArray()) {

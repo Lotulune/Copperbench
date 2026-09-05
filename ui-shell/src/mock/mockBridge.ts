@@ -82,7 +82,8 @@ function generateUUID(): UUID {
 
 function mockAssetProjection() {
   const assets = ASSET_FIXTURES.map((asset) => {
-    const unused = asset.category === 'animation';
+    const safeUnused = asset.id.endsWith('7777');
+    const unused = asset.category === 'animation' || safeUnused;
     const duplicateContent = asset.category === 'sound';
     const warning = asset.validation === 'warning';
     const error = asset.validation === 'error';
@@ -102,6 +103,9 @@ function mockAssetProjection() {
         unused,
         inboundCount: unused ? 0 : asset.references.length,
         outboundCount: 0,
+        workspaceReferenceCount: 0,
+        cleanupAssessed: safeUnused,
+        safeUnused,
         duplicateContent,
         duplicatePaths: duplicateContent ? ['assets/coppertrails/sounds/archive/copper_chime.ogg'] : [],
         issueCodes: duplicateContent ? ['DUPLICATE_ASSET_CONTENT'] : []
@@ -119,6 +123,7 @@ function mockAssetProjection() {
       warningAssets: assets.filter((asset) => asset.health.status === 'WARNING').length,
       errorAssets: assets.filter((asset) => asset.health.status === 'ERROR').length,
       unusedAssets: assets.filter((asset) => asset.health.unused).length,
+      safeUnusedAssets: assets.filter((asset) => asset.health.safeUnused).length,
       duplicateAssets: assets.filter((asset) => asset.health.duplicateContent).length,
       duplicateGroups: assets.some((asset) => asset.health.duplicateContent) ? 1 : 0,
       missingReferences: 0,

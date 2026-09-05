@@ -15,7 +15,7 @@ import { t } from '../i18n';
 
 type BrowserMode = 'ready' | 'empty' | 'loading' | 'error';
 type CategoryFilter = 'all' | AssetCategory;
-type HealthFilter = 'all' | 'issues' | 'errors' | 'unused' | 'duplicates';
+type HealthFilter = 'all' | 'issues' | 'errors' | 'unused' | 'safe-unused' | 'duplicates';
 type SortField = 'updated' | 'name' | 'references' | 'size';
 
 interface AssetImportReviewState {
@@ -189,6 +189,7 @@ export const AssetBrowserView: React.FC = () => {
         || (healthFilter === 'issues' && asset.validation !== 'ready')
         || (healthFilter === 'errors' && asset.validation === 'error')
         || (healthFilter === 'unused' && asset.unused === true)
+        || (healthFilter === 'safe-unused' && asset.safeUnused === true)
         || (healthFilter === 'duplicates' && asset.duplicateContent === true))
       .filter((asset) => {
         if (!normalized) return true;
@@ -431,6 +432,7 @@ export const AssetBrowserView: React.FC = () => {
               <span><strong>{healthSummary?.errorAssets ?? 0}</strong> 错误</span>
               <span><strong>{healthSummary?.warningAssets ?? 0}</strong> 警告</span>
               <span><strong>{healthSummary?.unusedAssets ?? 0}</strong> 未使用</span>
+              <span data-testid="asset-health-safe-summary"><strong>{healthSummary?.safeUnusedAssets ?? 0}</strong> 可清理候选</span>
             </div>
             <div className="asset-health-filters">
               {([
@@ -438,6 +440,7 @@ export const AssetBrowserView: React.FC = () => {
                 ['issues', '有问题'],
                 ['errors', '错误'],
                 ['unused', '静态未引用'],
+                ['safe-unused', '可安全清理候选'],
                 ['duplicates', '重复内容']
               ] as const).map(([id, label]) => (
                 <button
@@ -1047,7 +1050,7 @@ const AssetDetails: React.FC<{
         <div className="asset-metadata-row">
           <dt>使用状态</dt>
           <dd data-testid="asset-usage-status">
-            {asset.unused ? '静态未引用候选' : asset.usageAssessed ? '存在静态入站引用' : '不做静态未使用判定'}
+            {asset.safeUnused ? '可安全清理候选（模型/纹理引用检查已完成）' : asset.unused ? (asset.cleanupAssessed ? '静态未引用，但存在工作区引用信号' : '静态未引用候选（安全清理尚未评估）') : asset.usageAssessed ? '存在静态入站引用' : '不参与静态未使用判断'}
           </dd>
         </div>
       </dl>
