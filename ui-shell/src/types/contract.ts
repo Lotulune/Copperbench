@@ -13,6 +13,10 @@ export interface LocalizedText {
   args?: Record<string, string | number | boolean | null>;
 }
 
+export type ProcedureRefactorRequest =
+  | { kind: 'extract_node'; elementId: UUID; nodeId: UUID; newProcedureName: string }
+  | { kind: 'replace_call_target'; sourceProcedureId: UUID; targetProcedureId: UUID };
+
 export type ActionHintKind =
   | 'retry'
   | 'refresh'
@@ -207,8 +211,9 @@ export interface ProcedureSymbols {
     scope: string | null;
   }>;
   availableVariables: Array<{ id: UUID; name: string; dataType: string; scope: string }>;
+  availableProcedures: Array<{ id: UUID; name: string; displayName: string }>;
   resources: Array<{ nodeId: UUID; kind: string; target: string }>;
-  calls: Array<{ nodeId: UUID; target: string }>;
+  calls: Array<{ nodeId: UUID; target: string; targetId: UUID | null; targetName: string }>;
   stats: { variableCount: number; resourceCount: number; callCount: number };
 }
 
@@ -774,6 +779,7 @@ export type QueryOperation =
   | 'get_workspace_references'
   | 'list_workspace_registries'
   | 'preview_registry_rename'
+	| 'plan_procedure_refactor'
 	| 'plan_workspace_changes'
 	| 'preview_workspace_plan'
 	| 'preview_datagen_output'

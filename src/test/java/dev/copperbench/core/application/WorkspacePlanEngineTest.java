@@ -18,6 +18,8 @@ import dev.copperbench.history.RecoveryPoint;
 import dev.copperbench.history.RecoveryPointRequest;
 import dev.copperbench.history.RestoreResult;
 import dev.copperbench.history.WorkspaceChange;
+import dev.copperbench.procedure.ProcedureIr;
+import dev.copperbench.procedure.ProcedureIrCodec;
 import org.junit.jupiter.api.Test;
 
 import java.time.Clock;
@@ -260,6 +262,153 @@ class WorkspacePlanEngineTest {
 		assertEquals(1, references.data().getAsJsonObject().getAsJsonArray("edges").size());
 	}
 
+	@Test void procedureExtractionCreatesReusableProcedureAndReplacesSourceAsOneProtectedRevision() {
+		Fixture fixture = fixture(false);
+		RequestContext ui = new RequestContext(Actor.UI, PermissionProfile.WORKSPACE);
+		UUID triggerId = uuid(71);
+		UUID rootId = uuid(72);
+		UUID valueId = uuid(73);
+		UUID afterId = uuid(74);
+		UUID afterTextId = uuid(75);
+		String xml = "<xml xmlns=\"https://developers.google.com/blockly/xml\">"
+				+ "<block type=\"event_trigger\" id=\"" + triggerId + "\"><field name=\"trigger\">no_ext_trigger</field><next>"
+				+ "<block type=\"variables_set_number\" id=\"" + rootId + "\"><field name=\"VAR\">quest_score</field>"
+				+ "<value name=\"VALUE\"><block type=\"math_number\" id=\"" + valueId + "\"><field name=\"NUM\">5</field></block></value>"
+				+ "<next><block type=\"text_print\" id=\"" + afterId + "\"><value name=\"TEXT\">"
+				+ "<block type=\"text\" id=\"" + afterTextId + "\"><field name=\"TEXT\">after</field></block>"
+				+ "</value></block></next></block></next></block></xml>";
+		String sourceId = createProcedure(fixture, ui, 7, 76, "quest_tick", xml);
+
+		JsonObject request = new JsonObject();
+		request.addProperty("kind", "extract_node");
+		request.addProperty("expectedRevision", 8);
+		request.addProperty("idempotencyKey", "extract-quest-score");
+		request.addProperty("elementId", sourceId);
+		request.addProperty("nodeId", rootId.toString());
+		request.addProperty("newProcedureName", "award_quest_score");
+		var planned = fixture.service().query(Query.of(uuid(77), WORKSPACE_ID,
+				Operation.PLAN_PROCEDURE_REFACTOR, request), ui);
+		assertEquals("succeeded", planned.status(), planned.diagnostics().toString());
+		JsonObject plan = planned.data().getAsJsonObject();
+		assertTrue(plan.get("requireRecoveryPoint").getAsBoolean());
+		assertTrue(plan.getAsJsonObject("safety").get("ready").getAsBoolean());
+		assertEquals(2, plan.get("operationCount").getAsInt());
+		String extractedId = plan.getAsJsonArray("operations").get(0).getAsJsonObject()
+				.get("plannedId").getAsString();
+
+		var applied = fixture.service().execute(applyCommand(78, 8, plan), ui);
+		assertEquals("committed", applied.result().status(), applied.result().diagnostics().toString());
+		assertEquals(9, applied.result().newRevision());
+		assertTrue(applied.result().recoveryPointId() != null && !applied.result().recoveryPointId().isBlank());
+		assertEquals(1, fixture.history().created.size());
+		assertEquals(1, fixture.gateway().planCalls);
+
+		WorkspaceState after = fixture.store().read(WORKSPACE_ID).orElseThrow();
+		assertEquals(2, after.elements().size());
+		ProcedureIrCodec codec = new ProcedureIrCodec();
+		ProcedureIr sourceIr = codec.read(after.element(UUID.fromString(sourceId)).values(), UUID.fromString(sourceId));
+		ProcedureIr.Node call = sourceIr.nodeIndex().get(rootId);
+		assertEquals("call_procedure", call.type());
+		assertEquals("award_quest_score", call.fields().get("procedureId").getAsString());
+		assertEquals(afterId, call.next());
+		assertFalse(sourceIr.nodeIndex().containsKey(valueId));
+		assertTrue(sourceIr.nodeIndex().containsKey(afterId));
+
+		Element extracted = after.element(UUID.fromString(extractedId));
+		assertEquals("procedure", extracted.type());
+		assertEquals("award_quest_score", extracted.name());
+		ProcedureIr extractedIr = codec.read(extracted.values(), extracted.id());
+		assertEquals(3, extractedIr.nodes().size());
+		assertTrue(extractedIr.nodes().stream().anyMatch(node -> node.type().equals("variables_set_number")));
+		assertTrue(extractedIr.nodes().stream().anyMatch(node -> node.type().equals("math_number")));
+		assertFalse(extractedIr.nodes().stream().anyMatch(node -> node.type().equals("text_print")));
+
+		JsonObject referencesPayload = new JsonObject();
+		referencesPayload.addProperty("target", extractedId);
+		var references = fixture.service().query(Query.of(uuid(79), WORKSPACE_ID,
+				Operation.GET_WORKSPACE_REFERENCES, referencesPayload), ui);
+		assertEquals("succeeded", references.status(), references.diagnostics().toString());
+		assertEquals(1, references.data().getAsJsonObject().getAsJsonArray("edges").size());
+	}
+
+	@Test void batchProcedureCallReplacementUpdatesMultipleCallersAsOneProtectedRevision() {
+		Fixture fixture = fixture(false);
+		RequestContext ui = new RequestContext(Actor.UI, PermissionProfile.WORKSPACE);
+		String empty = "<xml xmlns=\"https://developers.google.com/blockly/xml\"><block type=\"event_trigger\">"
+				+ "<field name=\"trigger\">no_ext_trigger</field></block></xml>";
+		String sourceId = createProcedure(fixture, ui, 7, 80, "old_reward", empty);
+		String targetId = createProcedure(fixture, ui, 8, 81, "new_reward", empty);
+		String callerXml = "<xml xmlns=\"https://developers.google.com/blockly/xml\"><block type=\"event_trigger\">"
+				+ "<field name=\"trigger\">no_ext_trigger</field><next><block type=\"call_procedure\">"
+				+ "<field name=\"procedureId\">old_reward</field><field name=\"procedure\">old_reward</field>"
+				+ "</block></next></block></xml>";
+		String firstCallerId = createProcedure(fixture, ui, 9, 82, "first_caller", callerXml);
+		String secondCallerId = createProcedure(fixture, ui, 10, 83, "second_caller", callerXml);
+
+		JsonObject request = new JsonObject();
+		request.addProperty("kind", "replace_call_target");
+		request.addProperty("expectedRevision", 11);
+		request.addProperty("idempotencyKey", "replace-old-reward-calls");
+		request.addProperty("sourceProcedureId", sourceId);
+		request.addProperty("targetProcedureId", targetId);
+		var planned = fixture.service().query(Query.of(uuid(84), WORKSPACE_ID,
+				Operation.PLAN_PROCEDURE_REFACTOR, request), ui);
+		assertEquals("succeeded", planned.status(), planned.diagnostics().toString());
+		JsonObject plan = planned.data().getAsJsonObject();
+		assertEquals(2, plan.get("operationCount").getAsInt());
+		assertTrue(plan.get("requireRecoveryPoint").getAsBoolean());
+
+		var applied = fixture.service().execute(applyCommand(85, 11, plan), ui);
+		assertEquals("committed", applied.result().status(), applied.result().diagnostics().toString());
+		assertEquals(12, applied.result().newRevision());
+		assertEquals(1, fixture.history().created.size());
+		assertEquals(1, fixture.gateway().planCalls);
+
+		ProcedureIrCodec codec = new ProcedureIrCodec();
+		WorkspaceState after = fixture.store().read(WORKSPACE_ID).orElseThrow();
+		for (String callerId : List.of(firstCallerId, secondCallerId)) {
+			Element caller = after.element(UUID.fromString(callerId));
+			ProcedureIr.Node call = codec.read(caller.values(), caller.id()).nodes().stream()
+					.filter(node -> node.type().equals("call_procedure")).findFirst().orElseThrow();
+			assertEquals(targetId, call.fields().get("procedureId").getAsString());
+			assertEquals("new_reward", call.fields().get("procedure").getAsString());
+		}
+
+		JsonObject referencesPayload = new JsonObject();
+		referencesPayload.addProperty("target", targetId);
+		var references = fixture.service().query(Query.of(uuid(86), WORKSPACE_ID,
+				Operation.GET_WORKSPACE_REFERENCES, referencesPayload), ui);
+		assertEquals(2, references.data().getAsJsonObject().getAsJsonArray("edges").size());
+	}
+
+	@Test void batchProcedureCallReplacementRejectsIntroducedCallCycleBeforePlanning() {
+		Fixture fixture = fixture(false);
+		RequestContext ui = new RequestContext(Actor.UI, PermissionProfile.WORKSPACE);
+		String empty = "<xml xmlns=\"https://developers.google.com/blockly/xml\"><block type=\"event_trigger\">"
+				+ "<field name=\"trigger\">no_ext_trigger</field></block></xml>";
+		String sourceId = createProcedure(fixture, ui, 7, 87, "old_reward", empty);
+		String targetXml = "<xml xmlns=\"https://developers.google.com/blockly/xml\"><block type=\"event_trigger\">"
+				+ "<field name=\"trigger\">no_ext_trigger</field><next><block type=\"call_procedure\">"
+				+ "<field name=\"procedureId\">old_reward</field><field name=\"procedure\">old_reward</field>"
+				+ "</block></next></block></xml>";
+		String targetId = createProcedure(fixture, ui, 8, 88, "new_reward", targetXml);
+
+		JsonObject request = new JsonObject();
+		request.addProperty("kind", "replace_call_target");
+		request.addProperty("expectedRevision", 9);
+		request.addProperty("idempotencyKey", "reject-call-cycle");
+		request.addProperty("sourceProcedureId", sourceId);
+		request.addProperty("targetProcedureId", targetId);
+		var planned = fixture.service().query(Query.of(uuid(89), WORKSPACE_ID,
+				Operation.PLAN_PROCEDURE_REFACTOR, request), ui);
+		assertEquals("rejected", planned.status());
+		assertTrue(planned.diagnostics().stream().anyMatch(diagnostic ->
+				"PROCEDURE_REFACTOR_CALL_CYCLE".equals(diagnostic.code())));
+		assertEquals(9, fixture.store().read(WORKSPACE_ID).orElseThrow().revision());
+		assertEquals(0, fixture.gateway().planCalls);
+		assertEquals(0, fixture.history().created.size());
+	}
+
 	@Test void tamperedDerivedPlanMetadataIsRejectedBeforeMutation() {
 		Fixture fixture = fixture(false);
 		JsonObject plan = plan(fixture.service(), MCP, 7, "tamper-plan", createElement("item", "planned_item"));
@@ -357,6 +506,21 @@ class WorkspacePlanEngineTest {
 		step.addProperty("operation", "create_mod_element");
 		step.add("payload", payload);
 		return step;
+	}
+
+	private static String createProcedure(Fixture fixture, RequestContext context, long revision, long requestId,
+			String name, String xml) {
+		JsonObject payload = new JsonObject();
+		payload.addProperty("clientMutationId", uuid(requestId + 1000).toString());
+		payload.addProperty("elementType", "procedure");
+		payload.addProperty("name", name);
+		JsonObject values = new JsonObject();
+		values.addProperty("procedurexml", xml);
+		payload.add("initialValues", values);
+		var result = fixture.service().execute(Command.of(uuid(requestId), WORKSPACE_ID, revision,
+				Operation.CREATE_MOD_ELEMENT, payload), context);
+		assertEquals("committed", result.result().status(), result.result().diagnostics().toString());
+		return result.result().data().getAsJsonObject().getAsJsonObject("element").get("id").getAsString();
 	}
 
 	private static Command applyCommand(long request, long revision, JsonObject plan) {

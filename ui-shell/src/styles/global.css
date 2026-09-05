@@ -2317,13 +2317,19 @@ input:disabled, select:disabled, textarea:disabled {
   font-size: 9px;
 }
 
-.procedure-refactor-card input {
+.procedure-refactor-card input,
+.procedure-refactor-card select {
   min-height: 32px;
   padding: 5px 7px;
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
   color: var(--text-main);
   background: var(--bg-base);
+}
+
+.procedure-extract-start {
+  align-self: flex-start;
+  margin: 2px 0 4px;
 }
 
 .procedure-refactor-actions {

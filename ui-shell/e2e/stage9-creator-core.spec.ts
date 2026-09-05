@@ -74,6 +74,37 @@ test.describe('Stage 9 creator core', () => {
     await expect(page.getByRole('button', { name: /变量 · 读取 player_stamina number/ })).toBeVisible();
   });
 
+  test('extracts selected Procedure logic through a protected semantic refactor plan', async ({ page }) => {
+    await page.click('[data-testid="nav-elements"]');
+    await page.click('[data-testid="create-element-btn"]');
+    await page.locator('[data-testid="create-element-modal"]').getByRole('button', { name: '过程', exact: true }).click();
+    await page.fill('[data-testid="create-element-name-input"]', 'extract_source');
+    await page.click('[data-testid="create-element-submit-btn"]');
+
+    await expect(page.locator('[data-testid="procedure-workbench"]')).toBeVisible();
+    await page.getByLabel('筛选 Procedure 节点分类').selectOption('variable');
+    await page.getByLabel('搜索 Procedure 节点').fill('设置变量');
+    await page.getByRole('button', { name: /^设置变量 variable/ }).click();
+    await page.getByRole('button', { name: /保存/ }).click();
+    await expect(page.locator('.procedure-message')).toContainText('已保存 1 项结构化变更');
+
+    await page.getByRole('tab', { name: /引用/ }).click();
+    await page.getByRole('button', { name: /变量 · 写入 player_energy/ }).click();
+    await page.getByRole('tab', { name: /源码/ }).click();
+    await page.locator('[data-testid="procedure-extract-start"]').click();
+    await page.getByLabel('提取后的 Procedure 名称').fill('shared_energy_logic');
+    await page.getByRole('button', { name: '预览提取计划' }).click();
+
+    await expect(page.locator('[data-testid="procedure-extract-preview"]')).toContainText('2 步原子计划');
+    await expect(page.locator('[data-testid="procedure-extract-preview"]')).toContainText('恢复保护可用');
+    await page.getByRole('button', { name: '应用提取' }).click();
+    await expect(page.locator('.procedure-message')).toContainText('已将 variables_set_number 提取为 shared_energy_logic');
+    await expect(page.locator('.procedure-message')).toContainText('恢复点 rec-');
+
+    await page.getByRole('tab', { name: /引用/ }).click();
+    await expect(page.locator('.procedure-symbol-row').filter({ hasText: 'shared_energy_logic' })).toBeVisible();
+  });
+
   test('reviews and explicitly publishes isolated datagen output', async ({ page }) => {
     await page.getByRole('button', { name: '在暂存区运行数据生成' }).click();
     await expect(page.getByText('任务完成').first()).toBeVisible({ timeout: 5000 });

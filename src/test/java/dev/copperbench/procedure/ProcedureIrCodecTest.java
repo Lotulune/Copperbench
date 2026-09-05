@@ -103,6 +103,44 @@ class ProcedureIrCodecTest {
 		assertFalse(codec.sourcePreview(base).isBlank());
 	}
 
+	@Test void replaceNodeChangesSemanticTypeWhilePreservingStableNodeIdentity() {
+		ProcedureIrCodec codec = new ProcedureIrCodec();
+		UUID statementId = UUID.fromString("77777777-7777-4777-8777-777777777777");
+		UUID afterId = UUID.fromString("88888888-8888-4888-8888-888888888888");
+		String xml = "<xml xmlns=\"https://developers.google.com/blockly/xml\">"
+				+ "<block type=\"event_trigger\" id=\"" + TRIGGER_ID + "\"><field name=\"trigger\">no_ext_trigger</field><next>"
+				+ "<block type=\"text_print\" id=\"" + statementId + "\"><next>"
+				+ "<block type=\"text_print\" id=\"" + afterId + "\"></block></next></block></next></block></xml>";
+		ProcedureIr original = codec.fromBlocklyXml(xml, ELEMENT_ID);
+
+		JsonObject node = new JsonObject();
+		node.addProperty("type", "call_procedure");
+		node.addProperty("kind", "statement");
+		node.addProperty("x", 120);
+		node.addProperty("y", 80);
+		JsonObject fields = new JsonObject();
+		fields.addProperty("procedureId", "reusable_logic");
+		node.add("fields", fields);
+		node.add("inputs", new JsonObject());
+		node.addProperty("next", afterId.toString());
+		JsonObject replace = new JsonObject();
+		replace.addProperty("operation", "replace_node");
+		replace.addProperty("nodeId", statementId.toString());
+		replace.add("node", node);
+		JsonArray edits = new JsonArray();
+		edits.add(replace);
+
+		ProcedureIr changed = codec.applyEdits(original, edits);
+		ProcedureIr.Node replacement = changed.nodeIndex().get(statementId);
+		assertEquals("call_procedure", replacement.type());
+		assertEquals(statementId, replacement.id());
+		assertEquals(afterId, replacement.next());
+		assertEquals("reusable_logic", replacement.fields().get("procedureId").getAsString());
+		assertTrue(changed.dependencies().stream().anyMatch(dependency -> dependency.kind().equals("procedure")
+				&& dependency.target().equals("reusable_logic")));
+		assertTrue(codec.validate(changed).isEmpty());
+	}
+
 	@Test void parsesDeepButBoundedBlocklyControlFlow() {
 		StringBuilder xml = new StringBuilder("<xml xmlns=\"https://developers.google.com/blockly/xml\">"
 				+ "<block type=\"event_trigger\" id=\"" + TRIGGER_ID + "\">");

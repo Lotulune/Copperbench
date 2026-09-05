@@ -79,6 +79,7 @@ import java.util.Comparator;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -518,6 +519,7 @@ public final class WorkspaceApplicationService {
 				case GET_WORKSPACE_REFERENCES -> workspaceReferences(query, state);
 				case LIST_WORKSPACE_REGISTRIES -> listRegistries(query, state);
 				case PREVIEW_REGISTRY_RENAME -> previewRegistryRename(query, state);
+				case PLAN_PROCEDURE_REFACTOR -> planProcedureRefactor(query, state, context);
 				case PLAN_WORKSPACE_CHANGES -> plans.plan(query, context);
 				case PREVIEW_WORKSPACE_PLAN -> plans.preview(query, context);
 				case GET_TASK -> task(query, state);
@@ -2414,6 +2416,248 @@ public final class WorkspaceApplicationService {
 		return querySuccess(query, state.revision(), data);
 	}
 
+	private QueryResult planProcedureRefactor(Query query, WorkspaceState state, RequestContext context) {
+		JsonObject payload = query.payload();
+		String kind = requiredString(payload, "kind");
+		RefactorDraft draft = switch (kind) {
+			case "extract_node" -> extractProcedureNode(state, payload);
+			case "replace_call_target" -> replaceProcedureCallTarget(state, payload);
+			default -> RefactorDraft.failed(diagnostic("PROCEDURE_REFACTOR_KIND_UNSUPPORTED",
+					"diagnostic.procedure_refactor_kind_unsupported", "The requested Procedure refactor is not supported.",
+					"/kind", null));
+		};
+		if (draft.diagnostic() != null) return queryFailure(query, state.revision(), draft.diagnostic());
+		JsonObject planPayload = new JsonObject();
+		planPayload.addProperty("expectedRevision", requiredLong(payload, "expectedRevision"));
+		planPayload.addProperty("idempotencyKey", requiredString(payload, "idempotencyKey"));
+		planPayload.addProperty("requireRecoveryPoint", true);
+		planPayload.add("operations", draft.operations());
+		return plans.plan(Query.of(query.requestId(), query.workspaceId(), query.operation(), planPayload), context);
+	}
+
+	private RefactorDraft extractProcedureNode(WorkspaceState state, JsonObject payload) {
+		UUID elementId = UUID.fromString(requiredString(payload, "elementId"));
+		UUID nodeId = UUID.fromString(requiredString(payload, "nodeId"));
+		String newProcedureName = requiredString(payload, "newProcedureName");
+		Element source = state.element(elementId);
+		if (source == null) return RefactorDraft.failed(elementNotFound(elementId));
+		if (!source.type().equals("procedure")) return RefactorDraft.failed(diagnostic("PROCEDURE_ELEMENT_REQUIRED",
+				"diagnostic.procedure_element_required", "The requested element is not a Procedure.", "/elementId", elementId));
+		ProcedureIr ir = PROCEDURES.read(source.values(), elementId);
+		Map<UUID, ProcedureIr.Node> nodes = ir.nodeIndex();
+		ProcedureIr.Node root = nodes.get(nodeId);
+		if (root == null) return RefactorDraft.failed(diagnostic("PROCEDURE_REFACTOR_NODE_NOT_FOUND",
+				"diagnostic.procedure_refactor_node_not_found", "The selected Procedure node no longer exists.",
+				"/nodeId", elementId));
+		if (root.unknown() || root.type().equals("event_trigger") || !root.kind().equals("statement"))
+			return RefactorDraft.failed(diagnostic("PROCEDURE_REFACTOR_NODE_UNSUPPORTED",
+					"diagnostic.procedure_refactor_node_unsupported",
+					"Only supported statement nodes can be extracted into a reusable Procedure.", "/nodeId", elementId));
+
+		LinkedHashSet<UUID> closure = new LinkedHashSet<>();
+		collectProcedureExtraction(nodes, nodeId, false, closure);
+		if (closure.stream().map(nodes::get).anyMatch(node -> node == null || node.unknown()
+				|| node.type().equals("event_trigger") || node.type().equals("controls_flow_statements")
+				|| node.type().startsWith("return_")))
+			return RefactorDraft.failed(diagnostic("PROCEDURE_REFACTOR_CONTROL_FLOW_UNSAFE",
+					"diagnostic.procedure_refactor_control_flow_unsafe",
+					"The selected graph contains control flow that cannot be safely moved into another Procedure.",
+					"/nodeId", elementId));
+		for (ProcedureIr.Node candidate : ir.nodes()) {
+			if (closure.contains(candidate.id())) continue;
+			for (UUID target : candidate.inputs().values()) {
+				if (closure.contains(target) && !target.equals(nodeId))
+					return RefactorDraft.failed(sharedExtractionDiagnostic(elementId));
+			}
+			if (candidate.next() != null && closure.contains(candidate.next()) && !candidate.next().equals(nodeId))
+				return RefactorDraft.failed(sharedExtractionDiagnostic(elementId));
+		}
+
+		Map<UUID, UUID> clonedIds = new LinkedHashMap<>();
+		for (UUID id : closure) clonedIds.put(id, extractedNodeId(elementId, nodeId, newProcedureName, id));
+		List<ProcedureIr.Node> extractedNodes = new ArrayList<>();
+		UUID triggerId = UUID.nameUUIDFromBytes(("procedure-extract-trigger\n" + elementId + "\n" + nodeId + "\n"
+				+ newProcedureName).getBytes(StandardCharsets.UTF_8));
+		JsonObject triggerFields = new JsonObject();
+		triggerFields.addProperty("trigger", "no_ext_trigger");
+		extractedNodes.add(new ProcedureIr.Node(triggerId, "event_trigger", "statement", 40, 40, triggerFields,
+				Map.of(), clonedIds.get(nodeId), false, ""));
+		for (UUID id : closure) {
+			ProcedureIr.Node original = nodes.get(id);
+			Map<String, UUID> inputs = new LinkedHashMap<>();
+			original.inputs().forEach((name, target) -> {
+				if (clonedIds.containsKey(target)) inputs.put(name, clonedIds.get(target));
+			});
+			UUID next = !id.equals(nodeId) && original.next() != null && clonedIds.containsKey(original.next())
+					? clonedIds.get(original.next()) : null;
+			extractedNodes.add(new ProcedureIr.Node(clonedIds.get(id), original.type(), original.kind(),
+					original.x() + 120, original.y(), original.fields(), inputs, next, false, ""));
+		}
+		ProcedureIr extracted = PROCEDURES.applyEdits(new ProcedureIr(ProcedureIr.SCHEMA_VERSION, "no_ext_trigger",
+				extractedNodes, List.of(), new JsonObject()), new JsonArray());
+		List<ProcedureIr.ValidationIssue> extractedIssues = PROCEDURES.validate(extracted);
+		if (extractedIssues.stream().anyMatch(ProcedureIr.ValidationIssue::error))
+			return RefactorDraft.failed(diagnostic("PROCEDURE_REFACTOR_EXTRACT_INVALID",
+					"diagnostic.procedure_refactor_extract_invalid", "The extracted Procedure graph is not valid.",
+					"/nodeId", elementId));
+
+		JsonObject initialValues = new JsonObject();
+		initialValues.add("procedureIr", PROCEDURES.toJson(extracted));
+		initialValues.addProperty("procedurexml", PROCEDURES.toBlocklyXml(extracted));
+		initialValues.addProperty("displayName", displayName(newProcedureName));
+		JsonObject createPayload = new JsonObject();
+		createPayload.addProperty("elementType", "procedure");
+		createPayload.addProperty("name", newProcedureName);
+		createPayload.add("initialValues", initialValues);
+
+		JsonArray edits = new JsonArray();
+		JsonObject replacementFields = new JsonObject();
+		replacementFields.addProperty("procedureId", newProcedureName);
+		replacementFields.addProperty("procedure", newProcedureName);
+		JsonObject replacement = new JsonObject();
+		replacement.addProperty("id", nodeId.toString());
+		replacement.addProperty("type", "call_procedure");
+		replacement.addProperty("kind", "statement");
+		replacement.addProperty("x", root.x());
+		replacement.addProperty("y", root.y());
+		replacement.add("fields", replacementFields);
+		replacement.add("inputs", new JsonObject());
+		if (root.next() == null) replacement.add("next", JsonNull.INSTANCE);
+		else replacement.addProperty("next", root.next().toString());
+		replacement.addProperty("unknown", false);
+		JsonObject replace = new JsonObject();
+		replace.addProperty("operation", "replace_node");
+		replace.addProperty("nodeId", nodeId.toString());
+		replace.add("node", replacement);
+		edits.add(replace);
+		for (UUID id : closure) {
+			if (id.equals(nodeId)) continue;
+			JsonObject remove = new JsonObject();
+			remove.addProperty("operation", "delete_node");
+			remove.addProperty("nodeId", id.toString());
+			edits.add(remove);
+		}
+		JsonObject updatePayload = new JsonObject();
+		updatePayload.addProperty("elementId", elementId.toString());
+		updatePayload.add("edits", edits);
+
+		JsonArray operations = new JsonArray();
+		operations.add(planStep("create_mod_element", createPayload));
+		operations.add(planStep("update_procedure", updatePayload));
+		return RefactorDraft.success(operations);
+	}
+
+	private RefactorDraft replaceProcedureCallTarget(WorkspaceState state, JsonObject payload) {
+		UUID sourceId = UUID.fromString(requiredString(payload, "sourceProcedureId"));
+		UUID targetId = UUID.fromString(requiredString(payload, "targetProcedureId"));
+		if (sourceId.equals(targetId)) return RefactorDraft.failed(diagnostic("PROCEDURE_REFACTOR_TARGET_UNCHANGED",
+				"diagnostic.procedure_refactor_target_unchanged", "Source and target Procedures must be different.",
+				"/targetProcedureId", targetId));
+		Element source = state.element(sourceId);
+		Element target = state.element(targetId);
+		if (source == null || !source.type().equals("procedure") || target == null || !target.type().equals("procedure"))
+			return RefactorDraft.failed(diagnostic("PROCEDURE_REFACTOR_PROCEDURE_REQUIRED",
+					"diagnostic.procedure_refactor_procedure_required",
+					"Both the source and replacement targets must be Procedures.", "/sourceProcedureId", null));
+		Set<String> sourceIdentities = new LinkedHashSet<>();
+		sourceIdentities.add(source.id().toString());
+		if (source.name() != null && !source.name().isBlank()) sourceIdentities.add(source.name());
+		if (source.displayName() != null && !source.displayName().isBlank()) sourceIdentities.add(source.displayName());
+		Map<String, UUID> procedureIdentities = new LinkedHashMap<>();
+		for (Element element : state.elements()) {
+			if (!element.type().equals("procedure")) continue;
+			procedureIdentities.put(element.id().toString(), element.id());
+			if (element.name() != null && !element.name().isBlank()) procedureIdentities.put(element.name(), element.id());
+			if (element.displayName() != null && !element.displayName().isBlank())
+				procedureIdentities.put(element.displayName(), element.id());
+		}
+		JsonArray operations = new JsonArray();
+		int replacements = 0;
+		Map<UUID, Set<UUID>> callGraph = new LinkedHashMap<>();
+		Set<UUID> modifiedCallers = new LinkedHashSet<>();
+		for (Element element : state.elements()) {
+			if (!element.type().equals("procedure")) continue;
+			ProcedureIr ir = PROCEDURES.read(element.values(), element.id());
+			JsonArray edits = new JsonArray();
+			Set<UUID> outgoing = new LinkedHashSet<>();
+			for (ProcedureIr.Node node : ir.nodes()) {
+				if (!node.type().equals("call_procedure")) continue;
+				String currentTarget = string(node.fields(), "procedureId", string(node.fields(), "procedure", ""));
+				UUID resolvedTarget = procedureIdentities.get(currentTarget);
+				if (!sourceIdentities.contains(currentTarget)) {
+					if (resolvedTarget != null) outgoing.add(resolvedTarget);
+					continue;
+				}
+				outgoing.add(targetId);
+				modifiedCallers.add(element.id());
+				JsonObject fields = node.fields().deepCopy();
+				fields.addProperty("procedureId", target.id().toString());
+				fields.addProperty("procedure", target.name());
+				JsonObject edit = new JsonObject();
+				edit.addProperty("operation", "update_node");
+				edit.addProperty("nodeId", node.id().toString());
+				edit.add("fields", fields);
+				edits.add(edit);
+				replacements++;
+			}
+			callGraph.put(element.id(), outgoing);
+			if (edits.isEmpty()) continue;
+			JsonObject updatePayload = new JsonObject();
+			updatePayload.addProperty("elementId", element.id().toString());
+			updatePayload.add("edits", edits);
+			operations.add(planStep("update_procedure", updatePayload));
+		}
+		if (replacements == 0) return RefactorDraft.failed(diagnostic("PROCEDURE_REFACTOR_NO_MATCHES",
+				"diagnostic.procedure_refactor_no_matches", "No Procedure calls reference the selected source Procedure.",
+				"/sourceProcedureId", sourceId));
+		if (operations.size() > 100) return RefactorDraft.failed(diagnostic("PROCEDURE_REFACTOR_TOO_LARGE",
+				"diagnostic.procedure_refactor_too_large", "The refactor affects more than 100 Procedures; narrow the operation.",
+				"/sourceProcedureId", sourceId));
+		for (UUID caller : modifiedCallers) {
+			if (reachesProcedure(callGraph, targetId, caller, new HashSet<>()))
+				return RefactorDraft.failed(diagnostic("PROCEDURE_REFACTOR_CALL_CYCLE",
+						"diagnostic.procedure_refactor_call_cycle",
+						"The replacement would introduce a circular Procedure call dependency.",
+						"/targetProcedureId", targetId));
+		}
+		return RefactorDraft.success(operations);
+	}
+
+	private static boolean reachesProcedure(Map<UUID, Set<UUID>> graph, UUID current, UUID target, Set<UUID> visited) {
+		if (current.equals(target)) return true;
+		if (!visited.add(current)) return false;
+		for (UUID next : graph.getOrDefault(current, Set.of()))
+			if (reachesProcedure(graph, next, target, visited)) return true;
+		return false;
+	}
+
+	private void collectProcedureExtraction(Map<UUID, ProcedureIr.Node> nodes, UUID nodeId, boolean includeNext,
+			LinkedHashSet<UUID> target) {
+		if (!target.add(nodeId)) return;
+		ProcedureIr.Node node = nodes.get(nodeId);
+		if (node == null) return;
+		for (UUID input : node.inputs().values()) collectProcedureExtraction(nodes, input, true, target);
+		if (includeNext && node.next() != null) collectProcedureExtraction(nodes, node.next(), true, target);
+	}
+
+	private static UUID extractedNodeId(UUID elementId, UUID rootId, String newProcedureName, UUID originalId) {
+		return UUID.nameUUIDFromBytes(("procedure-extract-node\n" + elementId + "\n" + rootId + "\n"
+				+ newProcedureName + "\n" + originalId).getBytes(StandardCharsets.UTF_8));
+	}
+
+	private static JsonObject planStep(String operation, JsonObject payload) {
+		JsonObject step = new JsonObject();
+		step.addProperty("operation", operation);
+		step.add("payload", payload);
+		return step;
+	}
+
+	private Diagnostic sharedExtractionDiagnostic(UUID elementId) {
+		return diagnostic("PROCEDURE_REFACTOR_SHARED_SUBGRAPH",
+				"diagnostic.procedure_refactor_shared_subgraph",
+				"The selected graph shares child nodes with code outside the extraction boundary.", "/nodeId", elementId);
+	}
+
 	private QueryResult previewRegistryRename(Query query, WorkspaceState state) {
 		UUID entryId = UUID.fromString(requiredString(query.payload(), "entryId"));
 		String newName = requiredString(query.payload(), "newName");
@@ -2593,7 +2837,9 @@ public final class WorkspaceApplicationService {
 		JsonArray resources = new JsonArray();
 		JsonArray calls = new JsonArray();
 		JsonArray availableVariables = new JsonArray();
+		JsonArray availableProcedures = new JsonArray();
 		Map<String, JsonObject> registryVariables = new LinkedHashMap<>();
+		Map<String, Element> procedureIdentities = new LinkedHashMap<>();
 		for (JsonElement raw : state.registries().getAsJsonArray("variables")) {
 			JsonObject entry = raw.getAsJsonObject();
 			String name = string(entry, "name", "");
@@ -2604,6 +2850,17 @@ public final class WorkspaceApplicationService {
 			available.addProperty("dataType", string(entry, "dataType", "unknown"));
 			available.addProperty("scope", string(entry, "scope", "global"));
 			availableVariables.add(available);
+		}
+		for (Element element : state.elements()) {
+			if (!element.type().equals("procedure")) continue;
+			procedureIdentities.put(element.id().toString(), element);
+			procedureIdentities.put(element.name(), element);
+			procedureIdentities.put(element.displayName(), element);
+			JsonObject available = new JsonObject();
+			available.addProperty("id", element.id().toString());
+			available.addProperty("name", element.name());
+			available.addProperty("displayName", element.displayName());
+			availableProcedures.add(available);
 		}
 		for (ProcedureIr.Node node : ir.nodes()) {
 			switch (node.type()) {
@@ -2618,8 +2875,17 @@ public final class WorkspaceApplicationService {
 				}
 				case "call_procedure" -> {
 					JsonObject call = new JsonObject();
+					String rawTarget = string(node.fields(), "procedureId", string(node.fields(), "procedure", ""));
+					Element resolved = procedureIdentities.get(rawTarget);
 					call.addProperty("nodeId", node.id().toString());
-					call.addProperty("target", string(node.fields(), "procedureId", ""));
+					call.addProperty("target", rawTarget);
+					if (resolved == null) {
+						call.add("targetId", JsonNull.INSTANCE);
+						call.addProperty("targetName", rawTarget);
+					} else {
+						call.addProperty("targetId", resolved.id().toString());
+						call.addProperty("targetName", resolved.name());
+					}
 					calls.add(call);
 				}
 				default -> {
@@ -2629,6 +2895,7 @@ public final class WorkspaceApplicationService {
 		JsonObject symbols = new JsonObject();
 		symbols.add("variables", variables);
 		symbols.add("availableVariables", availableVariables);
+		symbols.add("availableProcedures", availableProcedures);
 		symbols.add("resources", resources);
 		symbols.add("calls", calls);
 		JsonObject stats = new JsonObject();
@@ -3889,6 +4156,16 @@ public final class WorkspaceApplicationService {
 	}
 
 	private record RegistryEdit(JsonObject entry, JsonObject data, List<String> changedPaths) {
+	}
+
+	private record RefactorDraft(JsonArray operations, Diagnostic diagnostic) {
+		private static RefactorDraft success(JsonArray operations) {
+			return new RefactorDraft(operations.deepCopy(), null);
+		}
+
+		private static RefactorDraft failed(Diagnostic diagnostic) {
+			return new RefactorDraft(null, diagnostic);
+		}
 	}
 
 	private record RegistryMutation(JsonObject entry, long sequence, JsonObject data, Diagnostic diagnostic) {

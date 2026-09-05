@@ -113,6 +113,84 @@ class DesktopMcpAgentLoopTest {
 		}
 	}
 
+	@Test void externalAgentCanPlanAndApplyProtectedProcedureExtraction() throws Exception {
+		Files.writeString(workspace.resolve("workspace.mcreator"), "{\"name\":\"Procedure Refactor Workspace\"}");
+		RevisionedWorkspaceStore store = new RevisionedWorkspaceStore();
+		JsonObject generator = new JsonObject();
+		generator.addProperty("id", "fabric-26.1.2");
+		generator.addProperty("loader", "fabric");
+		generator.addProperty("minecraftVersion", "26.1.2");
+		generator.addProperty("displayName", "Fabric 26.1.2");
+		generator.addProperty("state", "ready");
+		store.register(new WorkspaceState(WORKSPACE_ID, "Procedure Refactor Workspace", "testmod2", 0, false,
+				generator, new JsonObject(), List.of()));
+		AtomicLong sequence = new AtomicLong(8000);
+		Supplier<UUID> ids = () -> UUID.fromString("00000000-0000-4000-8000-" +
+				String.format("%012d", sequence.getAndIncrement()));
+		CompletedBuildGateway tasks = new CompletedBuildGateway(ids);
+		UUID triggerId = UUID.fromString("11111111-1111-4111-8111-111111111101");
+		UUID statementId = UUID.fromString("11111111-1111-4111-8111-111111111102");
+
+		try (LocalHistoryService history = JGitLocalHistoryService.open(workspace, CLOCK)) {
+			WorkspaceApplicationService service = new WorkspaceApplicationService(store, tasks,
+					WorkspaceMutationGateway.noOp(), history,
+					ignored -> store.read(WORKSPACE_ID).orElseThrow().copy(), CLOCK, ids);
+			DesktopMcpRuntime runtime = DesktopMcpRuntime.start(workspace, WORKSPACE_ID,
+					new McpWorkspaceEntryAdapter(service, PermissionProfile.WORKSPACE), CLOCK);
+			try {
+				String token = runtime.revealTokenOnce().orElseThrow();
+				URI endpoint = URI.create(runtime.state().url());
+				String sessionId = initialize(endpoint, token);
+
+				JsonObject create = new JsonObject();
+				create.addProperty("elementType", "procedure");
+				create.addProperty("name", "agent_source_logic");
+				create.addProperty("expectedRevision", 0);
+				JsonObject initialValues = new JsonObject();
+				initialValues.addProperty("procedurexml",
+						"<xml xmlns=\"https://developers.google.com/blockly/xml\"><block type=\"event_trigger\" id=\""
+								+ triggerId + "\"><field name=\"trigger\">no_ext_trigger</field><next>"
+								+ "<block type=\"text_print\" id=\"" + statementId + "\"></block>"
+								+ "</next></block></xml>");
+				create.add("initialValues", initialValues);
+				JsonObject created = call(endpoint, token, sessionId, 30, "create_mod_element", create);
+				assertEquals("committed", created.get("status").getAsString(), created.toString());
+				String sourceId = created.getAsJsonObject("data").getAsJsonObject("element").get("id").getAsString();
+
+				JsonObject refactor = new JsonObject();
+				refactor.addProperty("kind", "extract_node");
+				refactor.addProperty("expectedRevision", 1);
+				refactor.addProperty("idempotencyKey", "external-agent-extract");
+				refactor.addProperty("elementId", sourceId);
+				refactor.addProperty("nodeId", statementId.toString());
+				refactor.addProperty("newProcedureName", "agent_reusable_logic");
+				JsonObject plannedResult = call(endpoint, token, sessionId, 31, "plan_procedure_refactor", refactor);
+				assertEquals("succeeded", plannedResult.get("status").getAsString(), plannedResult.toString());
+				JsonObject plan = plannedResult.getAsJsonObject("data");
+				assertTrue(plan.get("requireRecoveryPoint").getAsBoolean());
+				assertTrue(plan.getAsJsonObject("safety").get("ready").getAsBoolean());
+				assertEquals(2, plan.get("operationCount").getAsInt());
+
+				JsonObject previewArgs = new JsonObject();
+				previewArgs.add("plan", plan.deepCopy());
+				JsonObject preview = call(endpoint, token, sessionId, 32, "preview_workspace_plan", previewArgs);
+				assertTrue(preview.getAsJsonObject("data").get("wouldApply").getAsBoolean(), preview.toString());
+
+				JsonObject applyArgs = new JsonObject();
+				applyArgs.add("plan", plan.deepCopy());
+				applyArgs.addProperty("expectedRevision", 1);
+				JsonObject applied = call(endpoint, token, sessionId, 33, "apply_workspace_plan", applyArgs);
+				assertEquals("committed", applied.get("status").getAsString(), applied.toString());
+				assertEquals(2, applied.get("newRevision").getAsLong());
+				assertFalse(applied.get("recoveryPointId").isJsonNull());
+				assertTrue(Files.readString(workspace.resolve(".copperbench/automation-audit.jsonl"))
+						.contains("plan_procedure_refactor"));
+			} finally {
+				runtime.close();
+			}
+		}
+	}
+
 	@Test void desktopHttpLoopSupportsReadWritePlanBuildIncrementalLogsAndRevisionRecovery() throws Exception {
 		Files.writeString(workspace.resolve("workspace.mcreator"), "{\"name\":\"Agent Loop Workspace\"}");
 		RevisionedWorkspaceStore store = new RevisionedWorkspaceStore();

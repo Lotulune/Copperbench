@@ -62,6 +62,7 @@ public final class UiCore {
 		@SerializedName("get_workspace_references") GET_WORKSPACE_REFERENCES,
 		@SerializedName("list_workspace_registries") LIST_WORKSPACE_REGISTRIES,
 		@SerializedName("preview_registry_rename") PREVIEW_REGISTRY_RENAME,
+		@SerializedName("plan_procedure_refactor") PLAN_PROCEDURE_REFACTOR,
 		@SerializedName("plan_workspace_changes") PLAN_WORKSPACE_CHANGES,
 		@SerializedName("preview_workspace_plan") PREVIEW_WORKSPACE_PLAN,
 		@SerializedName("apply_workspace_plan") APPLY_WORKSPACE_PLAN,

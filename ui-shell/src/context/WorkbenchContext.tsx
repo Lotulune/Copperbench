@@ -27,6 +27,7 @@ import {
   WorkspaceReferenceProjection,
   WorkspacePlan,
   WorkspacePlanStep,
+  ProcedureRefactorRequest,
   DatagenPreview
 } from '../types/contract';
 import {
@@ -76,6 +77,7 @@ interface WorkbenchContextType {
   createRegistryEntry: (registry: 'variables' | 'tags' | 'languageKeys', entry: Partial<RegistryEntry>) => Promise<CommandResult>;
   updateRegistryEntry: (entryId: UUID, changes: FieldChange[]) => Promise<CommandResult>;
   previewRegistryRename: (entryId: UUID, newName: string) => Promise<RegistryRenamePreview | null>;
+  planProcedureRefactor: (request: ProcedureRefactorRequest) => Promise<WorkspacePlan | null>;
   planWorkspaceChanges: (operations: Array<Omit<WorkspacePlanStep, 'plannedId'>>, requireRecoveryPoint?: boolean) => Promise<WorkspacePlan | null>;
   applyWorkspacePlan: (plan: WorkspacePlan) => Promise<CommandResult>;
   renameRegistryEntry: (entryId: UUID, newName: string) => Promise<CommandResult>;
@@ -312,6 +314,19 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       payload: { elementId }
     });
     return res.data ? { ...res.data, diagnostics: res.diagnostics } : null;
+  }, [state.workbench]);
+
+  const planProcedureRefactor = useCallback(async (request: ProcedureRefactorRequest): Promise<WorkspacePlan | null> => {
+    const res = await coreBridge.sendQuery<WorkspacePlan>({
+      messageType: 'query', schemaVersion: '1.0', requestId: generateUUID(),
+      workspaceId: state.workbench?.workspace.id ?? '', operation: 'plan_procedure_refactor',
+      payload: {
+        ...request,
+        expectedRevision: state.workbench?.workspace.revision ?? 0,
+        idempotencyKey: generateUUID()
+      }
+    });
+    return res.data ?? null;
   }, [state.workbench]);
 
   const previewProcedureChange = useCallback(async (
@@ -1010,6 +1025,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       createRegistryEntry,
       updateRegistryEntry,
       previewRegistryRename,
+      planProcedureRefactor,
       planWorkspaceChanges,
       applyWorkspacePlan,
       renameRegistryEntry,
@@ -1073,6 +1089,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       createRegistryEntry,
       updateRegistryEntry,
       previewRegistryRename,
+      planProcedureRefactor,
       planWorkspaceChanges,
       applyWorkspacePlan,
       renameRegistryEntry,

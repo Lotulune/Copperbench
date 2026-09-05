@@ -143,6 +143,18 @@ interface VariableRefactorDraft {
   newName: string;
 }
 
+interface ExtractRefactorDraft {
+  nodeId: string;
+  nodeType: string;
+  newProcedureName: string;
+}
+
+interface CallRefactorDraft {
+  sourceProcedureId: string;
+  sourceName: string;
+  targetProcedureId: string;
+}
+
 function defineUnknownBlock(node: ProcedureNode): void {
   if (Blockly.Blocks[node.type]) return;
   const shape = node.kind === 'value'
@@ -311,6 +323,7 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
     previewProcedureChange,
     updateProcedure,
     previewRegistryRename,
+    planProcedureRefactor,
     planWorkspaceChanges,
     applyWorkspacePlan
   } = useWorkbench();
@@ -333,6 +346,9 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
   const [refactorDraft, setRefactorDraft] = useState<VariableRefactorDraft | null>(null);
   const [refactorImpact, setRefactorImpact] = useState<RegistryRenamePreview | null>(null);
   const [refactorPlan, setRefactorPlan] = useState<WorkspacePlan | null>(null);
+  const [extractDraft, setExtractDraft] = useState<ExtractRefactorDraft | null>(null);
+  const [callRefactorDraft, setCallRefactorDraft] = useState<CallRefactorDraft | null>(null);
+  const [semanticRefactorPlan, setSemanticRefactorPlan] = useState<WorkspacePlan | null>(null);
   const [refactorBusy, setRefactorBusy] = useState(false);
   const [panel, setPanel] = useState<ProcedurePanel>('source');
   const [message, setMessage] = useState<string | null>(null);
@@ -487,6 +503,8 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
 
   const selectedGraphNode = useMemo(() => graphNodes.find((node) => node.id === selectedNodeId) ?? null,
     [graphNodes, selectedNodeId]);
+  const selectedIrNode = useMemo(() => projection?.ir.nodes.find((node) => node.id === selectedNodeId) ?? null,
+    [projection, selectedNodeId]);
 
   const addBlock = (item: ProcedureNodeCatalogItem) => {
     const workspace = workspaceRef.current;
@@ -504,6 +522,141 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
     setSelectedNodeId(block.id);
     setRecentTypes((current) => [item.type, ...current.filter((type) => type !== item.type)].slice(0, 5));
     setDirty(true);
+  };
+
+  const beginExtraction = () => {
+    if (!selectedIrNode || selectedIrNode.kind !== 'statement' || selectedIrNode.type === 'event_trigger' || selectedIrNode.unknown) {
+      setMessage('请选择一个受支持的语句节点再执行提取。');
+      return;
+    }
+    if (dirty) {
+      setMessage('请先保存当前 Procedure 变更，再执行跨工作区逻辑提取。');
+      return;
+    }
+    const normalizedType = selectedIrNode.type.toLowerCase().replace(/[^a-z0-9_]+/g, '_');
+    setExtractDraft({
+      nodeId: selectedIrNode.id,
+      nodeType: selectedIrNode.type,
+      newProcedureName: `${element.name}_${normalizedType}_logic`
+    });
+    setCallRefactorDraft(null);
+    setSemanticRefactorPlan(null);
+    setPanel('source');
+    setMessage(null);
+  };
+
+  const previewExtraction = async () => {
+    if (!extractDraft) return;
+    const newProcedureName = extractDraft.newProcedureName.trim();
+    if (!newProcedureName) {
+      setMessage('请输入新 Procedure 名称。');
+      return;
+    }
+    setRefactorBusy(true);
+    setMessage(null);
+    try {
+      const plan = await planProcedureRefactor({
+        kind: 'extract_node',
+        elementId: element.id,
+        nodeId: extractDraft.nodeId,
+        newProcedureName
+      });
+      setSemanticRefactorPlan(plan);
+      if (!plan) setMessage('无法生成逻辑提取计划。');
+    } catch (error) {
+      setSemanticRefactorPlan(null);
+      setMessage(error instanceof Error ? error.message : String(error));
+    } finally {
+      setRefactorBusy(false);
+    }
+  };
+
+  const applyExtraction = async () => {
+    if (!extractDraft || !semanticRefactorPlan?.safety.ready) return;
+    setRefactorBusy(true);
+    setMessage(null);
+    try {
+      const result = await applyWorkspacePlan(semanticRefactorPlan);
+      if (result.status !== 'committed') {
+        setMessage(result.diagnostics[0] ? t(result.diagnostics[0].message) : '逻辑提取计划应用失败。');
+        return;
+      }
+      const recovery = result.recoveryPointId ? `，恢复点 ${result.recoveryPointId}` : '';
+      setMessage(`已将 ${extractDraft.nodeType} 提取为 ${extractDraft.newProcedureName.trim()}${recovery}。`);
+      setExtractDraft(null);
+      setSemanticRefactorPlan(null);
+      const refreshed = await getProcedureEditor(element.id);
+      if (refreshed) setProjection(refreshed);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : String(error));
+    } finally {
+      setRefactorBusy(false);
+    }
+  };
+
+  const beginCallRefactor = (sourceProcedureId: string | null, sourceName: string) => {
+    if (!sourceProcedureId) {
+      setMessage('该调用目标没有可用于批量重构的稳定 Procedure 身份。');
+      return;
+    }
+    if (dirty) {
+      setMessage('请先保存当前 Procedure 变更，再执行批量调用替换。');
+      return;
+    }
+    const alternative = projection?.symbols.availableProcedures.find((candidate) => candidate.id !== sourceProcedureId);
+    if (!alternative) {
+      setMessage('工作区中没有其他 Procedure 可作为替换目标。');
+      return;
+    }
+    setCallRefactorDraft({ sourceProcedureId, sourceName, targetProcedureId: alternative.id });
+    setExtractDraft(null);
+    setSemanticRefactorPlan(null);
+    setPanel('references');
+    setMessage(null);
+  };
+
+  const previewCallRefactor = async () => {
+    if (!callRefactorDraft) return;
+    setRefactorBusy(true);
+    setMessage(null);
+    try {
+      const plan = await planProcedureRefactor({
+        kind: 'replace_call_target',
+        sourceProcedureId: callRefactorDraft.sourceProcedureId,
+        targetProcedureId: callRefactorDraft.targetProcedureId
+      });
+      setSemanticRefactorPlan(plan);
+      if (!plan) setMessage('无法生成批量调用替换计划。');
+    } catch (error) {
+      setSemanticRefactorPlan(null);
+      setMessage(error instanceof Error ? error.message : String(error));
+    } finally {
+      setRefactorBusy(false);
+    }
+  };
+
+  const applyCallRefactor = async () => {
+    if (!callRefactorDraft || !semanticRefactorPlan?.safety.ready) return;
+    setRefactorBusy(true);
+    setMessage(null);
+    try {
+      const target = projection?.symbols.availableProcedures.find((candidate) => candidate.id === callRefactorDraft.targetProcedureId);
+      const result = await applyWorkspacePlan(semanticRefactorPlan);
+      if (result.status !== 'committed') {
+        setMessage(result.diagnostics[0] ? t(result.diagnostics[0].message) : '批量调用替换计划应用失败。');
+        return;
+      }
+      const recovery = result.recoveryPointId ? `，恢复点 ${result.recoveryPointId}` : '';
+      setMessage(`已批量替换 ${callRefactorDraft.sourceName} → ${target?.name ?? callRefactorDraft.targetProcedureId}${recovery}。`);
+      setCallRefactorDraft(null);
+      setSemanticRefactorPlan(null);
+      const refreshed = await getProcedureEditor(element.id);
+      if (refreshed) setProjection(refreshed);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : String(error));
+    } finally {
+      setRefactorBusy(false);
+    }
   };
 
   const beginVariableRefactor = (entryId: string | null, name: string) => {
@@ -783,6 +936,47 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
                 <span className="badge badge-green">{projection?.sourceOwnership ?? 'generated'}</span>
                 <span>{dirty ? (liveCanGenerate === false ? '实时预览 · 存在阻断诊断' : '实时预览') : '只读'}</span>
               </div>
+              {selectedIrNode && selectedIrNode.kind === 'statement' && selectedIrNode.type !== 'event_trigger' && !selectedIrNode.unknown && (
+                <button
+                  type="button"
+                  className="procedure-refactor-start procedure-extract-start"
+                  data-testid="procedure-extract-start"
+                  disabled={projection?.readOnly || dirty || refactorBusy}
+                  onClick={beginExtraction}
+                  aria-label={`提取节点 ${selectedIrNode.type} 为 Procedure`}
+                >提取选中逻辑为 Procedure</button>
+              )}
+              {extractDraft && (
+                <section className="procedure-refactor-card" data-testid="procedure-extract-refactor" aria-label="提取可复用 Procedure">
+                  <div className="procedure-section-label">可复用逻辑提取 · {extractDraft.nodeType}</div>
+                  <label>
+                    <span>新 Procedure 名称</span>
+                    <input
+                      aria-label="提取后的 Procedure 名称"
+                      value={extractDraft.newProcedureName}
+                      disabled={refactorBusy}
+                      onChange={(event) => {
+                        setExtractDraft({ ...extractDraft, newProcedureName: event.target.value });
+                        setSemanticRefactorPlan(null);
+                      }}
+                    />
+                  </label>
+                  <div className="procedure-refactor-actions">
+                    <button type="button" onClick={() => void previewExtraction()} disabled={refactorBusy}>预览提取计划</button>
+                    <button type="button" className="btn-primary" onClick={() => void applyExtraction()}
+                      disabled={refactorBusy || !semanticRefactorPlan?.safety.ready}>应用提取</button>
+                    <button type="button" onClick={() => { setExtractDraft(null); setSemanticRefactorPlan(null); }} disabled={refactorBusy}>取消</button>
+                  </div>
+                  {semanticRefactorPlan && (
+                    <div className={`procedure-refactor-preview ${semanticRefactorPlan.safety.ready ? 'ready' : 'blocked'}`} data-testid="procedure-extract-preview">
+                      <strong>{semanticRefactorPlan.operationCount} 步原子计划 · {semanticRefactorPlan.semanticDiff.length} 项语义变更</strong>
+                      <span>{semanticRefactorPlan.changedPaths.length} 条持久化路径</span>
+                      <span>{semanticRefactorPlan.safety.ready ? '恢复保护可用：应用前将创建 recovery point。' : '恢复保护不可用：禁止应用。'}</span>
+                      <code>{semanticRefactorPlan.planId}</code>
+                    </div>
+                  )}
+                </section>
+              )}
               <pre>{sourcePreview}</pre>
             </div>
           )}
@@ -870,10 +1064,48 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
                 </button>
               ))}
               {(projection?.symbols?.calls ?? []).map((symbol) => (
-                <button type="button" className="procedure-symbol-row" key={`call-${symbol.nodeId}`} onClick={() => selectNode(symbol.nodeId)}>
-                  <span>Procedure 调用</span><code>{symbol.target || '(未设置)'}</code>
-                </button>
+                <div className="procedure-symbol-refactor-row" key={`call-${symbol.nodeId}`}>
+                  <button type="button" className="procedure-symbol-row" onClick={() => selectNode(symbol.nodeId)}>
+                    <span>Procedure 调用</span><code>{symbol.targetName || symbol.target || '(未设置)'}</code>
+                    {symbol.targetId && <small>{symbol.targetId}</small>}
+                  </button>
+                  <button type="button" className="procedure-refactor-start"
+                    disabled={!symbol.targetId || projection?.readOnly || (projection?.symbols.availableProcedures.length ?? 0) < 2}
+                    onClick={() => beginCallRefactor(symbol.targetId, symbol.targetName || symbol.target)}
+                    aria-label={`批量替换 Procedure 调用 ${symbol.targetName || symbol.target}`}
+                  >批量替换</button>
+                </div>
               ))}
+              {callRefactorDraft && (
+                <section className="procedure-refactor-card" data-testid="procedure-call-refactor" aria-label="批量替换 Procedure 调用">
+                  <div className="procedure-section-label">批量替换调用 · {callRefactorDraft.sourceName}</div>
+                  <label>
+                    <span>替换为</span>
+                    <select aria-label="新的 Procedure 调用目标" value={callRefactorDraft.targetProcedureId} disabled={refactorBusy}
+                      onChange={(event) => {
+                        setCallRefactorDraft({ ...callRefactorDraft, targetProcedureId: event.target.value });
+                        setSemanticRefactorPlan(null);
+                      }}>
+                      {(projection?.symbols.availableProcedures ?? []).filter((candidate) => candidate.id !== callRefactorDraft.sourceProcedureId)
+                        .map((candidate) => <option key={candidate.id} value={candidate.id}>{candidate.name}</option>)}
+                    </select>
+                  </label>
+                  <div className="procedure-refactor-actions">
+                    <button type="button" onClick={() => void previewCallRefactor()} disabled={refactorBusy}>预览批量替换</button>
+                    <button type="button" className="btn-primary" onClick={() => void applyCallRefactor()}
+                      disabled={refactorBusy || !semanticRefactorPlan?.safety.ready}>应用批量替换</button>
+                    <button type="button" onClick={() => { setCallRefactorDraft(null); setSemanticRefactorPlan(null); }} disabled={refactorBusy}>取消</button>
+                  </div>
+                  {semanticRefactorPlan && (
+                    <div className={`procedure-refactor-preview ${semanticRefactorPlan.safety.ready ? 'ready' : 'blocked'}`} data-testid="procedure-call-refactor-preview">
+                      <strong>{semanticRefactorPlan.operationCount} 个受影响 Procedure · {semanticRefactorPlan.semanticDiff.length} 项语义变更</strong>
+                      <span>{semanticRefactorPlan.changedPaths.length} 条持久化路径</span>
+                      <span>{semanticRefactorPlan.safety.ready ? '恢复保护可用：批量替换将作为单个 revision 提交。' : '恢复保护不可用：禁止应用。'}</span>
+                      <code>{semanticRefactorPlan.planId}</code>
+                    </div>
+                  )}
+                </section>
+              )}
               <p>{projection?.references.stats.edgeCount ?? 0} 条引用 · 增量索引</p>
               {(projection?.references.edges ?? []).map((edge, index) => (
                 <div className="procedure-reference" key={String(edge.id ?? index)}><code>{String(edge.sourcePath ?? '')}</code><span>→ {String(edge.target ?? '')}</span></div>

@@ -51,6 +51,19 @@ final class McpToolCatalog {
 		this(workspaceId, adapter, audit, clock, null);
 	}
 
+	private static Map<String, Object> procedureRefactorSchema() {
+		return requiredSchema(Map.of(
+				"kind", Map.of("type", "string", "enum", List.of("extract_node", "replace_call_target")),
+				"expectedRevision", Map.of("type", "integer", "minimum", 0),
+				"idempotencyKey", Map.of("type", "string", "minLength", 1, "maxLength", 128),
+				"elementId", Map.of("type", "string", "format", "uuid"),
+				"nodeId", Map.of("type", "string", "format", "uuid"),
+				"newProcedureName", Map.of("type", "string", "minLength", 1),
+				"sourceProcedureId", Map.of("type", "string", "format", "uuid"),
+				"targetProcedureId", Map.of("type", "string", "format", "uuid")),
+				List.of("kind", "expectedRevision", "idempotencyKey"));
+	}
+
 	private McpServerFeatures.SyncToolSpecification createModElementTool() {
 		Map<String, Object> schema = requiredSchema(Map.of(
 				"elementType", Map.of("type", "string", "enum", ElementCoverageCatalog.FIRST_PARTY_SLICE),
@@ -211,6 +224,10 @@ final class McpToolCatalog {
 				Operation.PREVIEW_REGISTRY_RENAME,
 				requiredSchema(Map.of("entryId", Map.of("type", "string", "format", "uuid"), "newName",
 						Map.of("type", "string", "minLength", 1)), List.of("entryId", "newName")),
+				arguments -> GSON.toJsonTree(arguments).getAsJsonObject()));
+		tools.add(queryTool("plan_procedure_refactor",
+				"Plan protected Procedure semantic refactors such as reusable-logic extraction or batch call replacement",
+				Operation.PLAN_PROCEDURE_REFACTOR, procedureRefactorSchema(),
 				arguments -> GSON.toJsonTree(arguments).getAsJsonObject()));
 		tools.add(queryTool("plan_workspace_changes",
 				"Plan an ordered set of workspace mutations against one base revision without changing the workspace",

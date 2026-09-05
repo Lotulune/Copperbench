@@ -150,6 +150,16 @@ public final class ProcedureIrCodec {
 					nodes.put(nodeId, new Node(nodeId, current.type(), current.kind(), x, y, fields,
 							current.inputs(), current.next(), false, ""));
 				}
+				case "replace_node" -> {
+					UUID nodeId = UUID.fromString(requiredString(edit, "nodeId"));
+					Node current = requiredNode(nodes, nodeId);
+					if (current.unknown()) throw new IllegalArgumentException("Unknown nodes are read only");
+					JsonObject replacementJson = edit.getAsJsonObject("node").deepCopy();
+					replacementJson.addProperty("id", nodeId.toString());
+					Node replacement = nodeFromJson(replacementJson);
+					if (replacement.unknown()) throw new IllegalArgumentException("Replacement nodes must be supported");
+					nodes.put(nodeId, replacement);
+				}
 				case "move_node" -> {
 					UUID nodeId = UUID.fromString(requiredString(edit, "nodeId"));
 					Node current = requiredNode(nodes, nodeId);

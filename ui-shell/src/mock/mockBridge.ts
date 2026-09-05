@@ -554,6 +554,15 @@ export class MockCoreBridge implements CoreBridge {
           x: typeof edit.x === 'number' ? edit.x : node.x,
           y: typeof edit.y === 'number' ? edit.y : node.y
         } : node);
+      } else if (operation === 'replace_node' && edit.node) {
+        const replacement = edit.node as ProcedureNode;
+        nodes = nodes.map((node) => node.id === edit.nodeId ? {
+          ...replacement,
+          id: node.id,
+          fields: { ...(replacement.fields ?? {}) },
+          inputs: { ...(replacement.inputs ?? {}) },
+          unknown: false
+        } : node);
       } else if (operation === 'move_node') {
         nodes = nodes.map((node) => node.id === edit.nodeId ? {
           ...node,
@@ -676,12 +685,26 @@ export class MockCoreBridge implements CoreBridge {
           dataType: entry.dataType ?? 'unknown',
           scope: entry.scope ?? 'global'
         })),
+        availableProcedures: this.state.elements.filter((candidate) => candidate.type === 'procedure').map((candidate) => ({
+          id: candidate.id,
+          name: candidate.name,
+          displayName: candidate.displayName
+        })),
         resources: ir.nodes.flatMap((node) => node.type === 'mcitem_all'
           ? [{ nodeId: node.id, kind: 'item', target: String(node.fields.value ?? '') }]
           : []),
-        calls: ir.nodes.flatMap((node) => node.type === 'call_procedure'
-          ? [{ nodeId: node.id, target: String(node.fields.procedureId ?? '') }]
-          : []),
+        calls: ir.nodes.flatMap((node) => {
+          if (node.type !== 'call_procedure') return [];
+          const target = String(node.fields.procedureId ?? node.fields.procedure ?? '');
+          const resolved = this.state.elements.find((candidate) => candidate.type === 'procedure'
+            && (candidate.id === target || candidate.name === target || candidate.displayName === target));
+          return [{
+            nodeId: node.id,
+            target,
+            targetId: resolved?.id ?? null,
+            targetName: resolved?.name ?? target
+          }];
+        }),
         stats: {
           variableCount: ir.nodes.filter((node) => node.type === 'variables_get_number' || node.type === 'variables_set_number').length,
           resourceCount: ir.nodes.filter((node) => node.type === 'mcitem_all').length,
@@ -858,25 +881,50 @@ export class MockCoreBridge implements CoreBridge {
         const plan = payload.plan;
         if (!plan) throw new Error('Workspace plan is required.');
         for (const step of plan.operations) {
-          if (step.operation !== 'rename_registry_entry') continue;
-          const entryId = String(step.payload.entryId ?? '');
-          const newName = String(step.payload.newName ?? '');
-          const registry = this.mockRegistries.variables.find((entry) => entry.id === entryId);
-          if (!registry || !newName) continue;
-          const oldName = registry.name ?? '';
-          registry.name = newName;
-          for (const [elementId, ir] of this.procedureIrs.entries()) {
-            const nextNodes = ir.nodes.map((node) => {
-              if ((node.type === 'variables_get_number' || node.type === 'variables_set_number')
-                  && String(node.fields.VAR ?? '') === oldName) {
-                return { ...node, fields: { ...node.fields, VAR: newName } };
-              }
-              return node;
-            });
-            this.procedureIrs.set(elementId, { ...ir, nodes: nextNodes });
+          if (step.operation === 'rename_registry_entry') {
+            const entryId = String(step.payload.entryId ?? '');
+            const newName = String(step.payload.newName ?? '');
+            const registry = this.mockRegistries.variables.find((entry) => entry.id === entryId);
+            if (!registry || !newName) continue;
+            const oldName = registry.name ?? '';
+            registry.name = newName;
+            for (const [elementId, ir] of this.procedureIrs.entries()) {
+              const nextNodes = ir.nodes.map((node) => {
+                if ((node.type === 'variables_get_number' || node.type === 'variables_set_number')
+                    && String(node.fields.VAR ?? '') === oldName) {
+                  return { ...node, fields: { ...node.fields, VAR: newName } };
+                }
+                return node;
+              });
+              this.procedureIrs.set(elementId, { ...ir, nodes: nextNodes });
+            }
+          } else if (step.operation === 'create_mod_element') {
+            const plannedId = step.plannedId ?? generateUUID();
+            const elementType = String(step.payload.elementType ?? 'procedure');
+            const name = String(step.payload.name ?? 'planned_element');
+            const newElement: ModElementSummary = {
+              id: plannedId,
+              type: elementType as ModElementSummary['type'],
+              name,
+              displayName: name.split('_').map((part) => part ? part[0].toUpperCase() + part.slice(1) : part).join(' '),
+              state: 'valid', ownership: 'generated', updatedAt: new Date().toISOString(),
+              diagnostics: { error: 0, warning: 0, info: 0 }
+            };
+            this.state.elements.unshift(newElement);
+            if (elementType === 'procedure') {
+              const initialValues = (step.payload.initialValues ?? {}) as Record<string, unknown>;
+              const supplied = initialValues.procedureIr as ProcedureIr | undefined;
+              if (supplied) this.procedureIrs.set(plannedId, supplied);
+              else this.getMockProcedure(plannedId);
+            }
+          } else if (step.operation === 'update_procedure') {
+            const elementId = String(step.payload.elementId ?? '') as UUID;
+            const edits = (step.payload.edits ?? []) as Array<Record<string, unknown>>;
+            if (elementId) this.applyMockProcedureEdits(elementId, edits);
           }
         }
         if (this.state.workbench) this.state.workbench.workspace.revision = newRevision;
+        this.updateWorkbenchCounts();
         const recoveryPointId = `rec-${generateUUID().slice(0, 8)}`;
         const result: CommandResult = {
           messageType: 'command_result', schemaVersion: '1.0', requestId: command.requestId,
@@ -2204,6 +2252,89 @@ export class MockCoreBridge implements CoreBridge {
           impactedElementCount,
           canApply: true
         } : null;
+        break;
+      }
+      case 'plan_procedure_refactor': {
+        const payload = query.payload as unknown as {
+          kind?: 'extract_node' | 'replace_call_target';
+          expectedRevision?: number;
+          idempotencyKey?: string;
+          elementId?: UUID;
+          nodeId?: UUID;
+          newProcedureName?: string;
+          sourceProcedureId?: UUID;
+          targetProcedureId?: UUID;
+        };
+        const operations: WorkspacePlan['operations'] = [];
+        const semanticDiff: Record<string, unknown>[] = [];
+        const changedPaths: string[] = [];
+        if (payload.kind === 'extract_node' && payload.elementId && payload.nodeId && payload.newProcedureName) {
+          const sourceIr = this.getMockProcedure(payload.elementId);
+          const selected = sourceIr.nodes.find((node) => node.id === payload.nodeId);
+          if (selected) {
+            const plannedId = generateUUID();
+            const triggerId = generateUUID();
+            const cloneId = generateUUID();
+            const extractedIr: ProcedureIr = {
+              schemaVersion: '1.0', trigger: 'no_ext_trigger',
+              nodes: [
+                { id: triggerId, type: 'event_trigger', kind: 'statement', x: 40, y: 40,
+                  fields: { trigger: 'no_ext_trigger' }, inputs: {}, next: cloneId, unknown: false },
+                { ...selected, id: cloneId, inputs: {}, next: null, fields: { ...selected.fields }, unknown: false }
+              ],
+              dependencies: []
+            };
+            operations.push({
+              operation: 'create_mod_element', plannedId,
+              payload: { elementType: 'procedure', name: payload.newProcedureName, initialValues: { procedureIr: extractedIr } }
+            });
+            operations.push({
+              operation: 'update_procedure',
+              payload: {
+                elementId: payload.elementId,
+                edits: [{
+                  operation: 'replace_node', nodeId: payload.nodeId,
+                  node: { ...selected, type: 'call_procedure', kind: 'statement', inputs: {},
+                    fields: { procedureId: payload.newProcedureName, procedure: payload.newProcedureName }, unknown: false }
+                }]
+              }
+            });
+            semanticDiff.push({ kind: 'element_created', elementId: plannedId, type: 'procedure', name: payload.newProcedureName });
+            semanticDiff.push({ kind: 'element_updated', elementId: payload.elementId, type: 'procedure' });
+            changedPaths.push(`/elements/${plannedId}`, `/elements/${payload.elementId}`);
+          }
+        } else if (payload.kind === 'replace_call_target' && payload.sourceProcedureId && payload.targetProcedureId) {
+          const source = this.state.elements.find((candidate) => candidate.id === payload.sourceProcedureId);
+          const target = this.state.elements.find((candidate) => candidate.id === payload.targetProcedureId);
+          if (source && target) {
+            for (const [elementId, ir] of this.procedureIrs.entries()) {
+              const edits = ir.nodes.filter((node) => node.type === 'call_procedure'
+                && [source.id, source.name, source.displayName].includes(String(node.fields.procedureId ?? node.fields.procedure ?? '')))
+                .map((node) => ({ operation: 'update_node', nodeId: node.id,
+                  fields: { ...node.fields, procedureId: target.id, procedure: target.name } }));
+              if (!edits.length) continue;
+              operations.push({ operation: 'update_procedure', payload: { elementId, edits } });
+              semanticDiff.push({ kind: 'element_updated', elementId, type: 'procedure' });
+              changedPaths.push(`/elements/${elementId}`);
+            }
+          }
+        }
+        data = {
+          schemaVersion: '1.0',
+          workspaceId: this.state.workbench?.workspace.id ?? query.workspaceId,
+          baseRevision: payload.expectedRevision ?? revision,
+          idempotencyKey: payload.idempotencyKey ?? generateUUID(),
+          requireRecoveryPoint: true,
+          operations,
+          operationCount: operations.length,
+          targetDigest: 'mock-procedure-refactor-digest',
+          semanticDiff,
+          changedPaths: Array.from(new Set(changedPaths)),
+          permission: { currentProfile: this.state.workbench?.permission.profile ?? 'workspace', requiredProfile: 'workspace', allowed: true },
+          safety: { requiresRecoveryPoint: true, recoveryPointAvailable: true, ready: operations.length > 0 },
+          planId: `mock-refactor-${generateUUID()}`,
+          planToken: 'mock-plan-token'
+        } satisfies WorkspacePlan;
         break;
       }
       case 'plan_workspace_changes': {
