@@ -101,6 +101,10 @@ public final class JcefBlockbenchBridgeTransport extends CefMessageRouterHandler
 		add(result, "currentSha256", snapshot.currentSha256());
 		add(result, "blockbenchVersion", snapshot.blockbenchVersion());
 		add(result, "diagnosticCode", snapshot.diagnosticCode());
+		add(result, "recoveryPointId", snapshot.recoveryPointId());
+		if (snapshot.workspaceRevision() == null) result.add("workspaceRevision", JsonNull.INSTANCE);
+		else result.addProperty("workspaceRevision", snapshot.workspaceRevision());
+		result.addProperty("changeCommitted", snapshot.changeCommitted());
 		return JSON.toJson(result);
 	}
 

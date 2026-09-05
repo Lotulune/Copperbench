@@ -142,3 +142,47 @@ test.describe('U3 asset browser', () => {
     await expect(page.locator('[data-testid="asset-browser-error"]')).toBeVisible();
   });
 });
+
+test.describe('U3 managed Blockbench roundtrip', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => {
+      const running = {
+        schemaVersion: '1.0', state: 'running',
+        assetId: 'asset:1111111111111111111111111111111111111111111111111111111111111111',
+        relativePath: 'assets/coppertrails/models/block/copper_lamp.bbmodel', processId: 4242,
+        exitCode: null, openedSha256: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        currentSha256: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        blockbenchVersion: '5.1.6', diagnosticCode: null, recoveryPointId: 'rp-blockbench-1',
+        workspaceRevision: null, changeCommitted: false
+      };
+      (window as unknown as { __blockbenchStatusCalls: number }).__blockbenchStatusCalls = 0;
+      (window as unknown as Record<string, unknown>).__COPPERBENCH_BLOCKBENCH_HOST__ = {
+        schemaVersion: '1.0',
+        openAsset: async () => running,
+        status: async () => {
+          (window as unknown as { __blockbenchStatusCalls: number }).__blockbenchStatusCalls += 1;
+          return {
+            ...running,
+            state: 'exited',
+            exitCode: 0,
+            currentSha256: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+            workspaceRevision: 7,
+            changeCommitted: true
+          };
+        }
+      };
+    });
+    await page.goto('/');
+    await page.waitForSelector('[data-testid="app-shell"]');
+    await page.click('[data-testid="nav-assets"]');
+    await expect(page.locator('[data-testid="asset-browser"]')).toBeVisible();
+  });
+
+  test('refreshes Asset Center after a managed Blockbench save exits', async ({ page }) => {
+    await page.getByTestId('asset-open-blockbench').click();
+    await expect(page.getByTestId('asset-notice')).toContainText('revision 7');
+    await expect(page.getByTestId('asset-notice')).toContainText('rp-blockbench-1');
+    await expect.poll(() => page.evaluate(() =>
+      (window as unknown as { __blockbenchStatusCalls: number }).__blockbenchStatusCalls)).toBeGreaterThan(0);
+  });
+});

@@ -1218,7 +1218,8 @@ export type EventType =
   | 'publish_batch_created'
   | 'resource_pack_client_prepared'
   | 'asset_imported'
-  | 'asset_moved';
+  | 'asset_moved'
+  | 'asset_external_edit_committed';
 
 export interface BaseEvent<E extends EventType, P> {
   messageType: 'event';
@@ -1392,6 +1393,19 @@ export type AssetMovedEvent = BaseEvent<
   CommandResultData
 >;
 
+export type AssetExternalEditCommittedEvent = BaseEvent<
+  'asset_external_edit_committed',
+  {
+    assetId: string;
+    relativePath: string;
+    openedSha256: string;
+    currentSha256: string;
+    recoveryPointId: string;
+    asset: AssetProjectionAsset;
+    health: AssetProjectionHealthSummary;
+  }
+>;
+
 export type CoreEvent =
   | RevisionAdvancedEvent
   | ModElementCreatedEvent
@@ -1415,7 +1429,8 @@ export type CoreEvent =
   | PublishBatchCreatedEvent
   | ResourcePackClientPreparedEvent
   | AssetImportedEvent
-  | AssetMovedEvent;
+  | AssetMovedEvent
+  | AssetExternalEditCommittedEvent;
 
 /* =========================================================================
  * Scenario Schema

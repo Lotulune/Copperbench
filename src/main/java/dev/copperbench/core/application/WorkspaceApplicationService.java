@@ -37,6 +37,8 @@ import dev.copperbench.assets.AssetPathViolationException;
 import dev.copperbench.assets.AssetReference;
 import dev.copperbench.assets.AssetReferenceGraph;
 import dev.copperbench.assets.AssetWorkspaceService;
+import dev.copperbench.assets.BlockbenchBridgeException;
+import dev.copperbench.assets.BlockbenchProcessService;
 import dev.copperbench.assets.ResourcePackClientLoadService;
 import dev.copperbench.assets.ResourcePackExportService;
 import dev.copperbench.core.workspace.WorkspaceState;
@@ -654,6 +656,129 @@ public final class WorkspaceApplicationService {
 		return () -> listeners.remove(listener);
 	}
 
+	/** Managed lifecycle used by the desktop Blockbench bridge without giving the bridge direct history access. */
+	public BlockbenchProcessService.EditLifecycle blockbenchEditLifecycle(UUID workspaceId) {
+		Objects.requireNonNull(workspaceId, "workspaceId");
+		if (store.read(workspaceId).isEmpty())
+			throw new IllegalArgumentException("Workspace not found: " + workspaceId);
+		return new BlockbenchProcessService.EditLifecycle() {
+			@Override public BlockbenchProcessService.PreparedEdit prepare(AssetDescriptor asset) {
+				return prepareBlockbenchEdit(workspaceId, asset);
+			}
+
+			@Override public BlockbenchProcessService.Completion complete(BlockbenchProcessService.PreparedEdit prepared,
+					AssetDescriptor current) {
+				return completeBlockbenchEdit(workspaceId, prepared, current);
+			}
+		};
+	}
+
+	private BlockbenchProcessService.PreparedEdit prepareBlockbenchEdit(UUID workspaceId, AssetDescriptor asset) {
+		if (history == null)
+			throw new BlockbenchBridgeException("BLOCKBENCH_RECOVERY_UNAVAILABLE",
+					"Blockbench editing requires local-history recovery");
+		Path root = workspaceRoot(workspaceId);
+		if (root == null)
+			throw new BlockbenchBridgeException("ASSET_WORKSPACE_ROOT_UNAVAILABLE",
+					"The workspace root is unavailable for Blockbench editing");
+		AssetDescriptor indexed = new AssetWorkspaceService(root).findById(asset.id()).orElseThrow(() ->
+				new BlockbenchBridgeException("ASSET_NOT_FOUND",
+						"The selected Blockbench asset is no longer indexed"));
+		if (!indexed.relativePath().equals(asset.relativePath()) || !indexed.sha256().equals(asset.sha256()))
+			throw new BlockbenchBridgeException("BLOCKBENCH_ASSET_STALE",
+					"The selected Blockbench asset changed before the editor was launched");
+		TransactionResult<BlockbenchPreparation> coordinated = null;
+		for (int attempt = 0; attempt < 3; attempt++) {
+			WorkspaceState state = store.read(workspaceId).orElseThrow(() ->
+					new BlockbenchBridgeException("WORKSPACE_NOT_FOUND",
+							"The workspace closed before the Blockbench edit could be prepared"));
+			try {
+				coordinated = store.coordinate(workspaceId, state.revision(), candidate -> {
+					try {
+						RecoveryPoint recovery = history.createRecoveryPoint(new RecoveryPointRequest(
+								"Before Blockbench edit: " + asset.relativePath(), UiCore.Actor.UI,
+								"blockbench:" + asset.id()));
+						return new BlockbenchPreparation(recovery, candidate.revision(), candidate.nextEventSequence());
+					} catch (LocalHistoryException exception) {
+						throw new BlockbenchPreparationException(exception);
+					}
+				});
+			} catch (BlockbenchPreparationException exception) {
+				throw new BlockbenchBridgeException("BLOCKBENCH_RECOVERY_FAILED",
+						"Could not create the required pre-Blockbench recovery point");
+			}
+			if (coordinated.status() == TransactionResult.Status.COORDINATED) break;
+			if (coordinated.status() != TransactionResult.Status.CONFLICT) break;
+		}
+		if (coordinated == null || coordinated.status() != TransactionResult.Status.COORDINATED)
+			throw new BlockbenchBridgeException("BLOCKBENCH_PREPARE_CONFLICT",
+					"Could not prepare the Blockbench edit against a stable workspace revision");
+
+		BlockbenchPreparation preparation = coordinated.value();
+		JsonObject payload = new JsonObject();
+		payload.add("recoveryPoint", recoveryPoint(preparation.recoveryPoint()));
+		publishRetainedEvent(new Event("event", UiCore.SCHEMA_VERSION, ids.get(), workspaceId, preparation.revision(),
+				preparation.sequence(), clock.instant().toString(), "recovery_point_created", null, payload));
+		return new BlockbenchProcessService.PreparedEdit(preparation.recoveryPoint().id(), preparation.revision(), asset.id(),
+				asset.relativePath(), asset.sha256());
+	}
+
+	private BlockbenchProcessService.Completion completeBlockbenchEdit(UUID workspaceId,
+			BlockbenchProcessService.PreparedEdit prepared, AssetDescriptor current) {
+		if (prepared == null)
+			throw new BlockbenchBridgeException("BLOCKBENCH_EDIT_NOT_PREPARED",
+					"The Blockbench edit has no prepared recovery state");
+		Objects.requireNonNull(current, "current");
+		if (!prepared.assetId().equals(current.id()) || !prepared.relativePath().equals(current.relativePath()))
+			throw new BlockbenchBridgeException("BLOCKBENCH_ASSET_IDENTITY_CHANGED",
+					"The Blockbench asset identity changed while the editor was open");
+		if (prepared.openedSha256().equals(current.sha256()))
+			return new BlockbenchProcessService.Completion(prepared.recoveryPointId(),
+					store.read(workspaceId).orElseThrow().revision());
+
+		Path root = workspaceRoot(workspaceId);
+		if (root == null)
+			throw new BlockbenchBridgeException("ASSET_WORKSPACE_ROOT_UNAVAILABLE",
+					"The workspace root is unavailable while completing the Blockbench edit");
+		AssetDescriptor indexed = new AssetWorkspaceService(root).findByRelativePath(current.relativePath())
+				.orElseThrow(() -> new BlockbenchBridgeException("ASSET_MISSING_AFTER_BLOCKBENCH",
+						"The edited Blockbench asset is no longer indexed"));
+		if (!indexed.sha256().equals(current.sha256()))
+			throw new BlockbenchBridgeException("BLOCKBENCH_ASSET_STALE",
+					"The edited asset changed again while its Blockbench result was being finalized");
+
+		TransactionResult<Long> committed = null;
+		for (int attempt = 0; attempt < 3; attempt++) {
+			WorkspaceState state = store.read(workspaceId).orElseThrow(() ->
+					new BlockbenchBridgeException("WORKSPACE_NOT_FOUND",
+							"The workspace closed before the Blockbench edit could be finalized"));
+			committed = store.transact(workspaceId, state.revision(), candidate ->
+					Decision.commit(candidate.nextEventSequence(), List.of("/" + current.relativePath())));
+			if (committed.status() == TransactionResult.Status.COMMITTED) break;
+			if (committed.status() != TransactionResult.Status.CONFLICT) break;
+		}
+		if (committed == null || committed.status() != TransactionResult.Status.COMMITTED)
+			throw new BlockbenchBridgeException("BLOCKBENCH_REVISION_COMMIT_FAILED",
+					"Could not register the external Blockbench edit as a workspace revision");
+
+		AssetReferenceGraph refreshed = new AssetWorkspaceService(root).referenceGraph();
+		AssetHealthReport health = refreshed.healthReport();
+		AssetDescriptor refreshedAsset = refreshed.assets().stream()
+				.filter(asset -> asset.relativePath().equals(current.relativePath())).findFirst().orElseThrow();
+		JsonObject payload = new JsonObject();
+		payload.addProperty("assetId", refreshedAsset.id());
+		payload.addProperty("relativePath", refreshedAsset.relativePath());
+		payload.addProperty("openedSha256", prepared.openedSha256());
+		payload.addProperty("currentSha256", refreshedAsset.sha256());
+		payload.addProperty("recoveryPointId", prepared.recoveryPointId());
+		payload.add("asset", asset(refreshedAsset, health.findById(refreshedAsset.id()).orElseThrow()));
+		payload.add("health", GSON.toJsonTree(health.summary()));
+		publishRetainedEvent(new Event("event", UiCore.SCHEMA_VERSION, ids.get(), workspaceId, committed.revision(),
+				committed.value(), clock.instant().toString(), "asset_external_edit_committed", null, payload));
+		return new BlockbenchProcessService.Completion(prepared.recoveryPointId(), committed.revision());
+	}
+
+
 	/**
 	 * Creates a short-lived capability for a file explicitly selected by the native desktop host.
 	 * The returned grant never exposes the selected absolute path to browser code.
@@ -741,8 +866,12 @@ public final class WorkspaceApplicationService {
 			return;
 		Event event = new Event("event", UiCore.SCHEMA_VERSION, ids.get(), taskEvent.workspaceId(),
 				coordinated.revision(), coordinated.value(), clock.instant().toString(), taskEvent.event(), null, payload);
-		Deque<Event> history = taskEventHistory.computeIfAbsent(taskEvent.workspaceId(), ignored -> new ArrayDeque<>());
-		CopyOnWriteArrayList<Consumer<Event>> listeners = eventListeners.computeIfAbsent(taskEvent.workspaceId(),
+		publishRetainedEvent(event);
+	}
+
+	private void publishRetainedEvent(Event event) {
+		Deque<Event> history = taskEventHistory.computeIfAbsent(event.workspaceId(), ignored -> new ArrayDeque<>());
+		CopyOnWriteArrayList<Consumer<Event>> listeners = eventListeners.computeIfAbsent(event.workspaceId(),
 				ignored -> new CopyOnWriteArrayList<>());
 		List<Consumer<Event>> recipients;
 		synchronized (history) {
@@ -757,7 +886,7 @@ public final class WorkspaceApplicationService {
 			try {
 				listener.accept(event);
 			} catch (RuntimeException exception) {
-				LOG.debug("Task event listener disconnected", exception);
+				LOG.debug("Workspace event listener disconnected", exception);
 			}
 		}
 	}
@@ -4595,6 +4724,15 @@ public final class WorkspaceApplicationService {
 
 		private static AssetImportMutation rejected(Diagnostic diagnostic) {
 			return new AssetImportMutation(null, 0, diagnostic);
+		}
+	}
+
+	private record BlockbenchPreparation(RecoveryPoint recoveryPoint, long revision, long sequence) {
+	}
+
+	private static final class BlockbenchPreparationException extends RuntimeException {
+		private BlockbenchPreparationException(LocalHistoryException cause) {
+			super(cause);
 		}
 	}
 

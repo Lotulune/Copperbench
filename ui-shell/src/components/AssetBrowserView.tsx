@@ -132,6 +132,7 @@ export const AssetBrowserView: React.FC = () => {
   const [modeOverride, setModeOverride] = useState<BrowserMode | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [openingBlockbench, setOpeningBlockbench] = useState(false);
+  const [blockbenchSessionAssetId, setBlockbenchSessionAssetId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState(false);
   const [importReview, setImportReview] = useState<AssetImportReviewState | null>(null);
   const [moveReview, setMoveReview] = useState<AssetMoveReviewState | null>(null);
@@ -314,6 +315,7 @@ export const AssetBrowserView: React.FC = () => {
     try {
       const result = await blockbenchBridge.openAsset(asset.id);
       if (result.state === 'running') {
+        setBlockbenchSessionAssetId(asset.id);
         setNotice(`Blockbench 桥接就绪：已打开模型 ${asset.name}。`);
       } else if (result.diagnosticCode === 'BLOCKBENCH_NOT_CONFIGURED') {
         setNotice('尚未配置 Blockbench，可在应用设置中选择安装位置。');
@@ -326,6 +328,42 @@ export const AssetBrowserView: React.FC = () => {
       setOpeningBlockbench(false);
     }
   };
+
+  useEffect(() => {
+    if (!blockbenchSessionAssetId) return;
+    let active = true;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const poll = async () => {
+      try {
+        const result = await blockbenchBridge.status();
+        if (!active) return;
+        if (result.state === 'running') {
+          timer = setTimeout(() => void poll(), 750);
+          return;
+        }
+        setBlockbenchSessionAssetId(null);
+        if (result.changeCommitted) {
+          const revision = result.workspaceRevision == null ? '' : `，工作区 revision ${result.workspaceRevision}`;
+          const recovery = result.recoveryPointId == null ? '' : `，恢复点 ${result.recoveryPointId}`;
+          setNotice(`Blockbench 保存已同步，资产索引与引用已刷新${revision}${recovery}。`);
+          setReloadToken((token) => token + 1);
+        } else if (result.diagnosticCode) {
+          setNotice(`Blockbench 会话已结束：${result.diagnosticCode}。`);
+        } else {
+          setNotice('Blockbench 会话已结束，文件内容未发生变化。');
+        }
+      } catch (error) {
+        if (!active) return;
+        setBlockbenchSessionAssetId(null);
+        setNotice(error instanceof Error ? `读取 Blockbench 状态失败：${error.message}` : '读取 Blockbench 状态失败。');
+      }
+    };
+    timer = setTimeout(() => void poll(), 500);
+    return () => {
+      active = false;
+      if (timer) clearTimeout(timer);
+    };
+  }, [blockbenchSessionAssetId]);
 
   if (mode === 'loading') {
     return <AssetStateView mode="loading" query={query} setQuery={setQuery} />;
@@ -1108,6 +1146,7 @@ const AssetDetails: React.FC<{
         <button
           type="button"
           className="btn-primary asset-action-btn"
+          data-testid="asset-open-blockbench"
           disabled={openingBlockbench}
           onClick={() => onOpenBlockbench(asset)}
         >

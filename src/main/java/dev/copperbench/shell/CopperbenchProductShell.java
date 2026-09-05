@@ -151,7 +151,7 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 			mcpTransport = JcefMcpBridgeTransport.attach(webView, mcpRuntime);
 			blockbenchTransport = JcefBlockbenchBridgeTransport.attach(webView,
 					new BlockbenchProcessService(new AssetWorkspaceService(workspaceRoot),
-							BlockbenchExecutableLocator.locate()));
+							BlockbenchExecutableLocator.locate(), session.service().blockbenchEditLifecycle(session.workspaceId())));
 			assetImportTransport = JcefAssetImportBridgeTransport.attach(webView, owner, session.service());
 			JcefCoreBridgeTransport attachedCore = coreTransport;
 			JcefWindowBridgeTransport attachedWindow = windowTransport;
