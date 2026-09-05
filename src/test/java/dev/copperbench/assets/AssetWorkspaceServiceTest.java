@@ -123,6 +123,28 @@ class AssetWorkspaceServiceTest {
 	}
 
 	@Test
+	void detectsExactDuplicateContentWithinTheSameMediaType() throws IOException {
+		Path original = workspace.resolve("assets/copperbench/textures/block/copper_lamp.png");
+		Path duplicate = workspace.resolve("assets/copperbench/textures/block/copper_lamp_copy.png");
+		Files.copy(original, duplicate);
+
+		AssetHealthReport report = new AssetWorkspaceService(workspace).referenceGraph().healthReport();
+		AssetHealthReport.Entry originalHealth = report.entries().stream()
+				.filter(entry -> entry.relativePath().endsWith("copper_lamp.png")).findFirst().orElseThrow();
+		AssetHealthReport.Entry duplicateHealth = report.entries().stream()
+				.filter(entry -> entry.relativePath().endsWith("copper_lamp_copy.png")).findFirst().orElseThrow();
+
+		assertTrue(originalHealth.duplicateContent());
+		assertTrue(duplicateHealth.duplicateContent());
+		assertEquals(List.of("assets/copperbench/textures/block/copper_lamp_copy.png"),
+				originalHealth.duplicatePaths());
+		assertTrue(originalHealth.issueCodes().contains("DUPLICATE_ASSET_CONTENT"));
+		assertEquals(AssetHealthReport.Status.WARNING, originalHealth.status());
+		assertEquals(2, report.summary().duplicateAssets());
+		assertEquals(1, report.summary().duplicateGroups());
+	}
+
+	@Test
 	void invalidJsonIsAStableDiagnosticInsteadOfAServiceFailure() throws IOException {
 		Files.writeString(workspace.resolve("assets/copperbench/models/broken.json"), "{broken");
 		AssetReferenceGraph graph = new AssetWorkspaceService(workspace).referenceGraph();

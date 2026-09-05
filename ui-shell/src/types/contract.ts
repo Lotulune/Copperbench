@@ -1008,6 +1008,8 @@ export interface AssetProjectionHealthEntry {
   unused: boolean;
   inboundCount: number;
   outboundCount: number;
+  duplicateContent: boolean;
+  duplicatePaths: string[];
   issueCodes: string[];
 }
 
@@ -1017,6 +1019,8 @@ export interface AssetProjectionHealthSummary {
   warningAssets: number;
   errorAssets: number;
   unusedAssets: number;
+  duplicateAssets: number;
+  duplicateGroups: number;
   missingReferences: number;
   invalidDocuments: number;
   pathEscapes: number;

@@ -43,11 +43,13 @@ class AssetQueryProjectionTest {
 	void listAssetsReadsTheWorkspaceAndReturnsReferenceDiagnostics(@TempDir Path temp) throws Exception {
 		Path model = temp.resolve("assets/copperbench/models/block/lamp.json");
 		Path texture = temp.resolve("assets/copperbench/textures/block/lamp.png");
+		Path duplicateTexture = temp.resolve("assets/copperbench/textures/block/lamp_copy.png");
 		Files.createDirectories(model.getParent());
 		Files.createDirectories(texture.getParent());
 		Files.writeString(model, "{\"textures\":{\"all\":\"copperbench:block/lamp\"},"
 				+ "\"missing\":\"copperbench:block/missing\"}");
 		Files.write(texture, new byte[] { 1, 2, 3 });
+		Files.write(duplicateTexture, new byte[] { 1, 2, 3 });
 
 		RevisionedWorkspaceStore store = new RevisionedWorkspaceStore();
 		JsonObject generator = new JsonObject();
@@ -68,7 +70,7 @@ class AssetQueryProjectionTest {
 		assertEquals("succeeded", result.status());
 		JsonObject projection = result.data().getAsJsonObject();
 		assertEquals("1.0", projection.get("schemaVersion").getAsString());
-		assertEquals(2, projection.getAsJsonArray("assets").size());
+		assertEquals(3, projection.getAsJsonArray("assets").size());
 		assertTrue(projection.getAsJsonArray("assets").toString().contains("assets/copperbench/models/block/lamp.json"));
 		assertTrue(projection.getAsJsonArray("assets").get(0).getAsJsonObject().has("updatedAt"));
 		assertEquals(1, projection.getAsJsonArray("references").size());
@@ -76,10 +78,13 @@ class AssetQueryProjectionTest {
 				projection.getAsJsonArray("references").get(0).getAsJsonObject().get("targetPath").getAsString());
 		assertTrue(projection.getAsJsonArray("diagnostics").toString().contains("MISSING_ASSET_REFERENCE"));
 		JsonObject health = projection.getAsJsonObject("health");
-		assertEquals(2, health.get("totalAssets").getAsInt());
+		assertEquals(3, health.get("totalAssets").getAsInt());
 		assertEquals(1, health.get("errorAssets").getAsInt());
 		assertEquals(1, health.get("missingReferences").getAsInt());
-		assertEquals(1, health.get("unusedAssets").getAsInt());
+		assertEquals(2, health.get("unusedAssets").getAsInt());
+		assertEquals(2, health.get("duplicateAssets").getAsInt());
+		assertEquals(1, health.get("duplicateGroups").getAsInt());
+		assertTrue(projection.getAsJsonArray("assets").toString().contains("DUPLICATE_ASSET_CONTENT"));
 		JsonObject modelHealth = projection.getAsJsonArray("assets").get(0).getAsJsonObject().getAsJsonObject("health");
 		assertEquals("ERROR", modelHealth.get("status").getAsString());
 		assertTrue(modelHealth.getAsJsonArray("issueCodes").toString().contains("MISSING_ASSET_REFERENCE"));

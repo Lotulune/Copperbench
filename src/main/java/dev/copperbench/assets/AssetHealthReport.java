@@ -31,24 +31,29 @@ public record AssetHealthReport(List<Entry> entries, Summary summary) {
 	}
 
 	public record Entry(String assetId, String relativePath, Status status, boolean usageAssessed, boolean unused,
-			int inboundCount, int outboundCount, List<String> issueCodes) {
+			int inboundCount, int outboundCount, boolean duplicateContent, List<String> duplicatePaths,
+			List<String> issueCodes) {
 		public Entry {
 			Objects.requireNonNull(assetId, "assetId");
 			Objects.requireNonNull(relativePath, "relativePath");
 			Objects.requireNonNull(status, "status");
+			duplicatePaths = List.copyOf(Objects.requireNonNull(duplicatePaths, "duplicatePaths"));
 			issueCodes = List.copyOf(Objects.requireNonNull(issueCodes, "issueCodes"));
 			if (inboundCount < 0 || outboundCount < 0)
 				throw new IllegalArgumentException("Asset usage counts must not be negative");
 			if (unused && !usageAssessed)
 				throw new IllegalArgumentException("Only usage-assessed assets can be marked unused");
+			if (duplicateContent != !duplicatePaths.isEmpty())
+				throw new IllegalArgumentException("duplicateContent must match duplicatePaths");
 		}
 	}
 
 	public record Summary(int totalAssets, int readyAssets, int warningAssets, int errorAssets, int unusedAssets,
-			int missingReferences, int invalidDocuments, int pathEscapes) {
+			int duplicateAssets, int duplicateGroups, int missingReferences, int invalidDocuments, int pathEscapes) {
 		public Summary {
 			if (totalAssets < 0 || readyAssets < 0 || warningAssets < 0 || errorAssets < 0 || unusedAssets < 0
-					|| missingReferences < 0 || invalidDocuments < 0 || pathEscapes < 0)
+					|| duplicateAssets < 0 || duplicateGroups < 0 || missingReferences < 0 || invalidDocuments < 0
+					|| pathEscapes < 0)
 				throw new IllegalArgumentException("Asset health counts must not be negative");
 			if (readyAssets + warningAssets + errorAssets != totalAssets)
 				throw new IllegalArgumentException("Asset health status counts must equal totalAssets");

@@ -38,6 +38,14 @@ test.describe('U3 asset browser', () => {
     await expect(page.locator('[data-testid="asset-outgoing-references"]')).toBeVisible();
   });
 
+  test('filters exact duplicate-content candidates from Core-owned health', async ({ page }) => {
+    await page.getByTestId('asset-health-duplicates').click();
+    await expect(page.getByTestId('asset-health-duplicate-summary')).toContainText('重复组 1');
+    await expect(page.getByTestId('asset-card-asset:5555555555555555555555555555555555555555555555555555555555555555')).toBeVisible();
+    await expect(page.getByTestId('asset-duplicate-paths')).toContainText('copper_chime.ogg');
+    await expect(page.getByTestId('asset-health-issue-codes')).toContainText('DUPLICATE_ASSET_CONTENT');
+  });
+
   test('reports an explicit unavailable state when Blockbench is not configured', async ({ page }) => {
     await page.getByRole('button', { name: '在 Blockbench 打开' }).click();
     await expect(page.locator('[data-testid="asset-notice"]')).toContainText('尚未配置 Blockbench');

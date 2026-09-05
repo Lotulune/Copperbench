@@ -13,7 +13,7 @@ import { blockbenchBridge } from '../bridge/blockbenchBridge';
 
 type BrowserMode = 'ready' | 'empty' | 'loading' | 'error';
 type CategoryFilter = 'all' | AssetCategory;
-type HealthFilter = 'all' | 'issues' | 'errors' | 'unused';
+type HealthFilter = 'all' | 'issues' | 'errors' | 'unused' | 'duplicates';
 type SortField = 'updated' | 'name' | 'references' | 'size';
 
 interface CategoryConfig {
@@ -142,7 +142,8 @@ export const AssetBrowserView: React.FC = () => {
       .filter((asset) => healthFilter === 'all'
         || (healthFilter === 'issues' && asset.validation !== 'ready')
         || (healthFilter === 'errors' && asset.validation === 'error')
-        || (healthFilter === 'unused' && asset.unused === true))
+        || (healthFilter === 'unused' && asset.unused === true)
+        || (healthFilter === 'duplicates' && asset.duplicateContent === true))
       .filter((asset) => {
         if (!normalized) return true;
         return [asset.name, asset.path, asset.categoryLabel, asset.id, asset.format, asset.sourceLabel]
@@ -269,7 +270,8 @@ export const AssetBrowserView: React.FC = () => {
                 ['all', '全部'],
                 ['issues', '有问题'],
                 ['errors', '错误'],
-                ['unused', '静态未引用']
+                ['unused', '静态未引用'],
+                ['duplicates', '重复内容']
               ] as const).map(([id, label]) => (
                 <button
                   type="button"
@@ -288,6 +290,11 @@ export const AssetBrowserView: React.FC = () => {
                 <AlertCircle size={12} aria-hidden="true" />
                 <span>{healthSummary?.missingReferences} 条缺失引用</span>
               </div>
+            )}
+            {(healthSummary?.duplicateGroups ?? 0) > 0 && (
+              <span className="asset-health-summary-item" data-testid="asset-health-duplicate-summary">
+                重复组 {healthSummary?.duplicateGroups} / 资产 {healthSummary?.duplicateAssets}
+              </span>
             )}
           </div>
 
@@ -724,12 +731,27 @@ const AssetDetails: React.FC<{
       </div>
 
       {(asset.issueCodes?.length ?? 0) > 0 && (
-        <div className="asset-health-issues" data-testid="asset-health-issues">
+        <div className="asset-health-issues" data-testid="asset-health-issue-codes">
           <div className="asset-panel-label">
             <AlertTriangle size={14} aria-hidden="true" />
             <span>健康诊断</span>
           </div>
           {asset.issueCodes?.map((code) => <code key={code}>{code}</code>)}
+        </div>
+      )}
+
+      {(asset.duplicatePaths?.length ?? 0) > 0 && (
+        <div className="asset-reference-section" data-testid="asset-duplicate-paths">
+          <div className="asset-panel-label">
+            <Copy size={14} aria-hidden="true" />
+            <span>相同内容</span>
+            <span className="asset-ref-count-badge">{asset.duplicatePaths?.length ?? 0}</span>
+          </div>
+          <ul className="asset-reference-list" aria-label="内容完全相同的其它资产">
+            {asset.duplicatePaths?.map((path) => (
+              <li key={path} className="asset-reference-item"><code title={path}>{path}</code></li>
+            ))}
+          </ul>
         </div>
       )}
 

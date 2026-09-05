@@ -37,39 +37,56 @@ public record AssetReferenceGraph(List<AssetDescriptor> assets, List<AssetRefere
 		Map<String, List<AssetDiagnostic>> diagnosticsBySource = new HashMap<>();
 		for (AssetDiagnostic diagnostic : diagnostics)
 			diagnosticsBySource.computeIfAbsent(diagnostic.sourcePath(), ignored -> new ArrayList<>()).add(diagnostic);
+		Map<String, List<AssetDescriptor>> duplicateGroups = new HashMap<>();
+		for (AssetDescriptor asset : assets)
+			duplicateGroups.computeIfAbsent(asset.mediaType() + "\n" + asset.sha256(), ignored -> new ArrayList<>())
+					.add(asset);
+		duplicateGroups.entrySet().removeIf(entry -> entry.getValue().size() < 2);
+		Map<String, List<String>> duplicatePaths = new HashMap<>();
+		for (List<AssetDescriptor> group : duplicateGroups.values()) {
+			List<String> paths = group.stream().map(AssetDescriptor::relativePath).sorted().toList();
+			for (AssetDescriptor asset : group)
+				duplicatePaths.put(asset.relativePath(), paths.stream()
+						.filter(path -> !path.equals(asset.relativePath())).toList());
+		}
 
 		List<AssetHealthReport.Entry> entries = new ArrayList<>(assets.size());
 		int ready = 0;
 		int warnings = 0;
 		int errors = 0;
 		int unusedCount = 0;
+		int duplicateAssetCount = 0;
 		for (AssetDescriptor asset : assets) {
 			List<AssetDiagnostic> assetDiagnostics = diagnosticsBySource.getOrDefault(asset.relativePath(), List.of());
 			boolean usageAssessed = usageAssessed(asset);
 			int inboundCount = inbound.getOrDefault(asset.relativePath(), 0);
 			int outboundCount = outbound.getOrDefault(asset.relativePath(), 0);
 			boolean unused = usageAssessed && inboundCount == 0;
+			List<String> duplicates = duplicatePaths.getOrDefault(asset.relativePath(), List.of());
+			boolean duplicateContent = !duplicates.isEmpty();
 			Set<String> issueCodes = new LinkedHashSet<>();
 			assetDiagnostics.stream().map(AssetDiagnostic::code).sorted().forEach(issueCodes::add);
+			if (duplicateContent) issueCodes.add("DUPLICATE_ASSET_CONTENT");
 			boolean hasError = assetDiagnostics.stream()
 					.anyMatch(diagnostic -> diagnostic.severity() == AssetDiagnostic.Severity.ERROR);
 			boolean hasWarning = assetDiagnostics.stream()
 					.anyMatch(diagnostic -> diagnostic.severity() == AssetDiagnostic.Severity.WARNING);
 			AssetHealthReport.Status status = hasError ? AssetHealthReport.Status.ERROR
-					: hasWarning ? AssetHealthReport.Status.WARNING : AssetHealthReport.Status.READY;
+					: hasWarning || duplicateContent ? AssetHealthReport.Status.WARNING : AssetHealthReport.Status.READY;
 			switch (status) {
 				case READY -> ready++;
 				case WARNING -> warnings++;
 				case ERROR -> errors++;
 			}
 			if (unused) unusedCount++;
+			if (duplicateContent) duplicateAssetCount++;
 			entries.add(new AssetHealthReport.Entry(asset.id(), asset.relativePath(), status, usageAssessed, unused,
-					inboundCount, outboundCount, List.copyOf(issueCodes)));
+					inboundCount, outboundCount, duplicateContent, duplicates, List.copyOf(issueCodes)));
 		}
 		entries.sort(Comparator.comparing(AssetHealthReport.Entry::relativePath));
 		AssetHealthReport.Summary summary = new AssetHealthReport.Summary(assets.size(), ready, warnings, errors,
-				unusedCount, countDiagnostic("MISSING_ASSET_REFERENCE"), countDiagnostic("INVALID_ASSET_DOCUMENT"),
-				countDiagnostic("REFERENCE_PATH_ESCAPE"));
+				unusedCount, duplicateAssetCount, duplicateGroups.size(), countDiagnostic("MISSING_ASSET_REFERENCE"),
+				countDiagnostic("INVALID_ASSET_DOCUMENT"), countDiagnostic("REFERENCE_PATH_ESCAPE"));
 		return new AssetHealthReport(entries, summary);
 	}
 

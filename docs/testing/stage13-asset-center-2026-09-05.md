@@ -10,6 +10,7 @@ The first Stage 13 Asset Center slice builds on the Stage 6/8 asset foundation a
 - `list_assets` now returns per-asset health metadata rather than requiring React to derive asset truth independently;
 - health metadata includes inbound/outbound reference counts, stable issue codes and a conservative static-unused candidate flag;
 - workspace-level health summarizes missing references, invalid documents, path escapes and static-unused candidates;
+- exact duplicate content is detected by `mediaType + SHA-256`; matching assets expose peer paths and `DUPLICATE_ASSET_CONTENT`, and the workspace summary reports duplicate groups/assets;
 - reverse usage is projected explicitly, so consumers can answer both “what does this asset use?” and “what uses this asset?”;
 - desktop MCP `inspect_asset_references` exposes incoming references and the same Core-owned asset health;
 - the Asset Center UI adds error/warning/static-unused filters and separates inbound usage from outbound dependencies in the detail view;
@@ -20,14 +21,13 @@ Existing Stage 6/8 behavior retained by this slice includes unified category bro
 ## Verification
 
 - `npm run build` — passed; TypeScript, Vite and the Chinese localization gate (`193/193`) completed successfully.
-- `AssetWorkspaceServiceTest` — passed, including reverse usage, health projection, missing references, invalid JSON, path escape and generated resource-root behavior.
-- `AssetQueryProjectionTest` — passed, including per-asset health and workspace health projection through UI-Core.
+- `AssetWorkspaceServiceTest` — passed, including reverse usage, exact duplicate-content groups, health projection, missing references, invalid JSON, path escape and generated resource-root behavior.
+- `AssetQueryProjectionTest` — passed, including per-asset health, duplicate summary/issue projection and workspace health projection through UI-Core.
 - `McpHttpServerTest` — passed, including `assetHealth` and `incomingReferences` on `inspect_asset_references`.
-- `npx playwright test e2e/asset-browser.spec.ts` — passed; the browser covers the Stage 13 health/static-unused filter in addition to the existing category/search/Blockbench/state tests.
+- `npx playwright test e2e/asset-browser.spec.ts` — `12 passed` across Chromium and compact-1366; the browser covers Stage 13 health/static-unused and duplicate-content filters in addition to the existing category/search/Blockbench/state tests.
 
 ## Remaining `FR-PRODUCTIVITY-02` work
 
-- duplicate-asset detection with an explainable hash/path basis;
 - safe-unused classification that also accounts for Mod Element / workspace references before cleanup can be offered;
 - drag/drop and batch-import planning with target-path/conflict preview before writing;
 - Blockbench save/exit refresh that creates a recovery point and refreshes preview/reference state automatically;

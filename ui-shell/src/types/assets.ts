@@ -32,6 +32,8 @@ export interface AssetRecord {
   readonly issueCodes?: readonly string[];
   readonly inboundCount?: number;
   readonly outboundCount?: number;
+  readonly duplicateContent?: boolean;
+  readonly duplicatePaths?: readonly string[];
   readonly validation: AssetValidationStatus;
   readonly validationLabel: string;
   readonly description: string;
@@ -110,6 +112,8 @@ export function assetRecordsFromProjection(projection: AssetProjection): AssetRe
       issueCodes: asset.health.issueCodes,
       inboundCount: asset.health.inboundCount,
       outboundCount: asset.health.outboundCount,
+      duplicateContent: asset.health.duplicateContent,
+      duplicatePaths: asset.health.duplicatePaths,
       ...validation,
       description: '工作区真实资产，由 AssetWorkspaceService 实时索引。',
       sha256: asset.sha256

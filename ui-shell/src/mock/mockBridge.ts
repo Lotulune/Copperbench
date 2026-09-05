@@ -81,6 +81,7 @@ function generateUUID(): UUID {
 function mockAssetProjection() {
   const assets = ASSET_FIXTURES.map((asset) => {
     const unused = asset.category === 'animation';
+    const duplicateContent = asset.category === 'sound';
     const warning = asset.validation === 'warning';
     const error = asset.validation === 'error';
     return {
@@ -94,12 +95,14 @@ function mockAssetProjection() {
       health: {
         assetId: asset.id,
         relativePath: asset.path,
-        status: error ? 'ERROR' as const : warning ? 'WARNING' as const : 'READY' as const,
+        status: error ? 'ERROR' as const : warning || duplicateContent ? 'WARNING' as const : 'READY' as const,
         usageAssessed: ['model', 'texture', 'animation', 'sound'].includes(asset.category) && asset.format !== 'BBMODEL',
         unused,
         inboundCount: unused ? 0 : asset.references.length,
         outboundCount: 0,
-        issueCodes: []
+        duplicateContent,
+        duplicatePaths: duplicateContent ? ['assets/coppertrails/sounds/archive/copper_chime.ogg'] : [],
+        issueCodes: duplicateContent ? ['DUPLICATE_ASSET_CONTENT'] : []
       }
     };
   });
@@ -114,6 +117,8 @@ function mockAssetProjection() {
       warningAssets: assets.filter((asset) => asset.health.status === 'WARNING').length,
       errorAssets: assets.filter((asset) => asset.health.status === 'ERROR').length,
       unusedAssets: assets.filter((asset) => asset.health.unused).length,
+      duplicateAssets: assets.filter((asset) => asset.health.duplicateContent).length,
+      duplicateGroups: assets.some((asset) => asset.health.duplicateContent) ? 1 : 0,
       missingReferences: 0,
       invalidDocuments: 0,
       pathEscapes: 0

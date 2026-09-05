@@ -17,7 +17,7 @@ The active roadmap remains `PRD-NEXT.md`. Stage 12 is closed and Stage 13 is now
 
 The remaining Stage 13 work is:
 
-1. **Stage 13 / `FR-PRODUCTIVITY-02` — Asset Center**: continue from the completed reverse-usage/health slice with duplicate detection, safe-unused classification that includes Mod Element references, safe batch import, Blockbench refresh/recovery, and reference-safe rename/move.
+1. **Stage 13 / `FR-PRODUCTIVITY-02` — Asset Center**: continue from the completed reverse-usage/health and exact duplicate-content slices with safe-unused classification that includes Mod Element references, safe batch import, Blockbench refresh/recovery, and reference-safe rename/move.
 2. **Stage 13 / `FR-PRODUCTIVITY-03` — Diagnostics 2.0**: map build/generator/resource/migration/MCP failures to stable IDs and concrete element/field/Procedure-node/asset locations with actionable repair guidance.
 3. **Stage 13 / `FR-PRODUCTIVITY-04`–`06`**: deepen history/recovery UX, Migration / Refactor Workbench, and Workspace Health.
 4. **Stage 14 — advanced developer / AI-native workflows**: IDE bridge, AI Plan Review, higher-level MCP workflows, templates and extension-developer entry points.
