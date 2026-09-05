@@ -35,6 +35,7 @@ import net.mcreator.workspace.WorkspaceFileManager;
 import net.mcreator.workspace.elements.ModElement;
 
 import java.io.IOException;
+import java.io.File;
 import java.awt.Color;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -50,6 +51,7 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 
 	public static final String ELEMENT_ID_METADATA = "dev.copperbench.elementId";
 	public static final String ELEMENT_VALUES_METADATA = "dev.copperbench.values";
+	private static final String CODE_FILES_METADATA = "dev.copperbench.codeFiles";
 	private static final String EMPTY_PROCEDURE_XML = "<xml xmlns=\"https://developers.google.com/blockly/xml\">"
 			+ "<block type=\"event_trigger\" deletable=\"false\" x=\"40\" y=\"40\">"
 			+ "<field name=\"trigger\">no_ext_trigger</field></block></xml>";
@@ -532,19 +534,63 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 			return;
 		if (modElement.getAssociatedFiles().isEmpty() && !workspace.getGenerator().generateElement(definition))
 			throw new IllegalStateException("The generator could not create the code element source file");
+		List<File> associated = new java.util.ArrayList<>(modElement.getAssociatedFiles());
+		File source = associated.stream().filter(file -> file.getName().endsWith(".java")).findFirst()
+				.orElseThrow(() -> new IllegalStateException("The code element has no generated Java source file"));
 		String code = element.values().has("code") && element.values().get("code").isJsonPrimitive()
 				? element.values().get("code").getAsString() : null;
 		if (code != null) {
-			java.io.File source = modElement.getAssociatedFiles().stream()
-					.filter(file -> file.getName().endsWith(".java")).findFirst()
-					.orElseThrow(() -> new IllegalStateException("The code element has no generated Java source file"));
 			try {
 				Files.writeString(source.toPath(), code, java.nio.charset.StandardCharsets.UTF_8);
 			} catch (IOException exception) {
 				throw new IllegalStateException("Unable to write the code element source file", exception);
 			}
 		}
+		persistCodeBundle(modElement, element, source.toPath(), associated);
 		modElement.setCodeLock(true);
+	}
+
+	private void persistCodeBundle(ModElement modElement, Element element, Path primarySource, List<File> associated) {
+		Path workspaceRoot = workspace.getWorkspaceFolder().toPath().toAbsolutePath().normalize();
+		List<Path> previous = new java.util.ArrayList<>();
+		Object stored = modElement.getMetadata(CODE_FILES_METADATA);
+		if (stored instanceof List<?> paths) {
+			for (Object value : paths) {
+				Path path = workspaceRoot.resolve(value.toString()).normalize();
+				if (path.startsWith(workspaceRoot)) previous.add(path);
+			}
+		}
+		for (Path path : previous) {
+			try {
+				Files.deleteIfExists(path);
+			} catch (IOException exception) {
+				throw new IllegalStateException("Unable to remove stale code bundle file " + path.getFileName(), exception);
+			}
+		}
+
+		List<File> retained = associated.stream()
+				.filter(file -> previous.stream().noneMatch(path -> path.equals(file.toPath().toAbsolutePath().normalize())))
+				.collect(java.util.stream.Collectors.toCollection(java.util.ArrayList::new));
+		List<String> storedPaths = new java.util.ArrayList<>();
+		JsonArray files = element.values().has("codeFiles") && element.values().get("codeFiles").isJsonArray()
+				? element.values().getAsJsonArray("codeFiles") : new JsonArray();
+		Path base = primarySource.toAbsolutePath().normalize().getParent();
+		for (JsonElement raw : files) {
+			JsonObject file = raw.getAsJsonObject();
+			Path target = base.resolve(file.get("path").getAsString()).normalize();
+			if (!target.startsWith(base) || target.equals(primarySource.toAbsolutePath().normalize()))
+				throw new IllegalStateException("Code bundle path escapes the generated source package or replaces the primary source");
+			try {
+				Files.createDirectories(target.getParent());
+				Files.writeString(target, file.get("code").getAsString(), java.nio.charset.StandardCharsets.UTF_8);
+			} catch (IOException exception) {
+				throw new IllegalStateException("Unable to write code bundle file " + target.getFileName(), exception);
+			}
+			retained.add(target.toFile());
+			storedPaths.add(workspaceRoot.relativize(target).toString().replace(File.separator, "/"));
+		}
+		modElement.setAssociatedFiles(retained);
+		modElement.putMetadata(CODE_FILES_METADATA, storedPaths);
 	}
 
 	private void delete(ModElement modElement, boolean checkpoint) {

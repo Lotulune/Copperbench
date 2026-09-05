@@ -81,6 +81,79 @@ class CodeElementPersistenceTest {
 		}
 	}
 
+	@Test void codeElementPersistsUpdatesAndTracksMultiFileBundle() throws Exception {
+		WorkspaceSettings settings = new WorkspaceSettings("code_bundle_agent");
+		settings.setModName("Code Bundle Agent");
+		settings.setVersion("1.0.0");
+		settings.setCurrentGenerator("fabric-1.21.1");
+		Path workspaceFile = root.resolve("code_bundle_agent.mcreator");
+		AtomicLong ids = new AtomicLong(260);
+		try (Workspace workspace = Workspace.createWorkspace(workspaceFile.toFile(), settings)) {
+			assertTrue(workspace.getGenerator().generateBase(), "Generator base must exist before persisting custom code");
+			try (MCreatorWorkspaceSession session = MCreatorWorkspaceSession.attach(workspace,
+					UUID.fromString("22222222-2222-4222-8222-222222222223"),
+					new InMemoryWorkspaceTaskGateway(CLOCK, () -> uuid(ids.incrementAndGet())), CLOCK,
+					() -> uuid(ids.incrementAndGet()))) {
+				JsonObject values = new JsonObject();
+				values.addProperty("code", "package net.mcreator.code_bundle_agent;\npublic final class RuntimeRoot {}\n");
+				com.google.gson.JsonArray files = new com.google.gson.JsonArray();
+				JsonObject stateFile = new JsonObject();
+				stateFile.addProperty("path", "runtime/SwordState.java");
+				stateFile.addProperty("code", "package net.mcreator.code_bundle_agent.runtime;\npublic final class SwordState {}\n");
+				files.add(stateFile);
+				JsonObject controllerFile = new JsonObject();
+				controllerFile.addProperty("path", "runtime/SwordController.java");
+				controllerFile.addProperty("code", "package net.mcreator.code_bundle_agent.runtime;\npublic final class SwordController {}\n");
+				files.add(controllerFile);
+				values.add("codeFiles", files);
+				JsonObject create = new JsonObject();
+				create.addProperty("clientMutationId", uuid(40).toString());
+				create.addProperty("elementType", "code");
+				create.addProperty("name", "runtime_root");
+				create.add("initialValues", values);
+
+				var created = session.uiEntry().execute(Command.of(uuid(41), session.workspaceId(), 0,
+						Operation.CREATE_MOD_ELEMENT, create));
+				assertEquals("committed", created.result().status(), created.result().diagnostics().toString());
+				String elementId = created.result().data().getAsJsonObject().getAsJsonObject("element")
+						.get("id").getAsString();
+				var stored = workspace.getModElementByName("runtime_root");
+				Path primary = stored.getAssociatedFiles().stream().filter(file -> file.getName().endsWith(".java"))
+						.map(java.io.File::toPath).findFirst().orElseThrow();
+				Path stateSource = primary.getParent().resolve("runtime/SwordState.java");
+				Path controllerSource = primary.getParent().resolve("runtime/SwordController.java");
+				assertTrue(Files.isRegularFile(stateSource));
+				assertTrue(Files.isRegularFile(controllerSource));
+				assertTrue(stored.getAssociatedFiles().stream().anyMatch(file -> file.toPath().equals(stateSource)));
+
+				com.google.gson.JsonArray replacementFiles = new com.google.gson.JsonArray();
+				JsonObject replacement = new JsonObject();
+				replacement.addProperty("path", "runtime/SwordRuntime.java");
+				replacement.addProperty("code", "package net.mcreator.code_bundle_agent.runtime;\npublic final class SwordRuntime {}\n");
+				replacementFiles.add(replacement);
+				JsonObject change = new JsonObject();
+				change.addProperty("path", "/codeFiles");
+				change.add("value", replacementFiles);
+				com.google.gson.JsonArray changes = new com.google.gson.JsonArray();
+				changes.add(change);
+				JsonObject update = new JsonObject();
+				update.addProperty("clientMutationId", uuid(42).toString());
+				update.addProperty("elementId", elementId);
+				update.add("changes", changes);
+				var updated = session.uiEntry().execute(Command.of(uuid(43), session.workspaceId(), 1,
+						Operation.UPDATE_MOD_ELEMENT, update));
+
+				assertEquals("committed", updated.result().status(), updated.result().diagnostics().toString());
+				assertFalse(Files.exists(stateSource));
+				assertFalse(Files.exists(controllerSource));
+				Path runtimeSource = primary.getParent().resolve("runtime/SwordRuntime.java");
+				assertTrue(Files.isRegularFile(runtimeSource));
+				assertTrue(workspace.getModElementByName("runtime_root").getAssociatedFiles().stream()
+						.anyMatch(file -> file.toPath().equals(runtimeSource)));
+			}
+		}
+	}
+
 	@Test void deletingGeneratedElementRefreshesSharedGeneratorRegistrations() throws Exception {
 		WorkspaceSettings settings = new WorkspaceSettings("delete_refresh");
 		settings.setModName("Delete Refresh");

@@ -4626,6 +4626,30 @@ public final class WorkspaceApplicationService {
 				}
 			}
 		}
+		if (elementType.equals("code") && values.has("codeFiles")) {
+			if (!values.get("codeFiles").isJsonArray())
+				return diagnostic("CODE_BUNDLE_INVALID", "diagnostic.code_bundle_invalid",
+						"codeFiles must be an array of Java source files.", null,
+						elementId == null ? "/initialValues/codeFiles" : elementPath(elementId) + "/codeFiles", elementId);
+			for (int index = 0; index < values.getAsJsonArray("codeFiles").size(); index++) {
+				JsonElement raw = values.getAsJsonArray("codeFiles").get(index);
+				if (!raw.isJsonObject())
+					return codeBundleDiagnostic(elementId, index, "Each codeFiles entry must be an object.");
+				JsonObject file = raw.getAsJsonObject();
+				if (!file.has("path") || !file.get("path").isJsonPrimitive()
+						|| !file.has("code") || !file.get("code").isJsonPrimitive())
+					return codeBundleDiagnostic(elementId, index, "Each codeFiles entry requires path and code strings.");
+				String path = file.get("path").getAsString();
+				try {
+					Path candidate = Path.of(path);
+					if (candidate.isAbsolute() || candidate.normalize().startsWith("..") || !path.endsWith(".java"))
+						return codeBundleDiagnostic(elementId, index,
+								"Code bundle paths must be relative .java paths inside the generated source package.");
+				} catch (RuntimeException exception) {
+					return codeBundleDiagnostic(elementId, index, "Code bundle path is invalid.");
+				}
+			}
+		}
 		Class<?> storageClass = stage12ConditionalValidationClass(elementType);
 		if (storageClass != null) {
 			for (Field reflected : storageClass.getFields()) {
@@ -4649,6 +4673,12 @@ public final class WorkspaceApplicationService {
 			}
 		}
 		return null;
+	}
+
+	private Diagnostic codeBundleDiagnostic(UUID elementId, int index, String message) {
+		String path = elementId == null ? "/initialValues/codeFiles/" + index
+				: elementPath(elementId) + "/codeFiles/" + index;
+		return diagnostic("CODE_BUNDLE_INVALID", "diagnostic.code_bundle_invalid", message, path, elementId);
 	}
 
 	private CommandOutcome denied(Command command, PermissionProfile current, PermissionProfile required) {
