@@ -117,6 +117,46 @@ class Stage67ApplicationServiceTest {
 		assertTrue(diagnostic.message().args().get("nextStep").getAsString().contains("review"));
 	}
 
+	@Test void loaderMigrationRebuildPreservesGeneratorFieldLocation() throws Exception {
+		Path source = temp.resolve("invalid-generator-source");
+		Files.createDirectories(source);
+		Files.writeString(source.resolve("workspace.mcreator"),
+				"{\"workspaceSettings\":{\"currentGenerator\":\"fabric-1.21.1\"}}");
+		UUID elementId = uuid(93);
+		JsonObject fields = new JsonObject();
+		fields.addProperty("maxStackSize", 0);
+		JsonObject values = new JsonObject();
+		values.add("fields", fields);
+		WorkspaceState.Element item = new WorkspaceState.Element(elementId, "item", "broken_stack", "Broken Stack",
+				"invalid", "generated", CLOCK.instant(), values);
+		WorkspaceApplicationService service = service(id -> source, List.of(item));
+
+		JsonObject approved = new JsonObject();
+		approved.addProperty("clientMutationId", uuid(94).toString());
+		approved.addProperty("targetGeneratorId", "neoforge-1.21.1");
+		approved.addProperty("outputName", "invalid-neoforge");
+		approved.addProperty("userApproved", true);
+		var outcome = service.execute(Command.of(uuid(95), WORKSPACE_ID, 0, Operation.EXECUTE_LOADER_MIGRATION,
+				approved), uiWorkspace());
+
+		assertEquals("committed", outcome.result().status());
+		assertEquals("failed", outcome.result().data().getAsJsonObject().getAsJsonObject("rebuild")
+				.get("status").getAsString());
+		assertEquals("NEOFORGE_ITEM_STACK_INVALID", outcome.result().data().getAsJsonObject().getAsJsonObject("rebuild")
+				.get("reasonCode").getAsString());
+		var diagnostic = outcome.result().diagnostics().stream()
+				.filter(entry -> entry.code().equals("NEOFORGE_ITEM_STACK_INVALID"))
+				.findFirst().orElseThrow();
+		assertEquals(elementId, diagnostic.elementId());
+		assertEquals("/elements/" + elementId + "/values/fields/maxStackSize", diagnostic.path());
+		assertEquals(1, diagnostic.actions().size());
+		assertEquals("locate_generator_field", diagnostic.actions().getFirst().id());
+		assertEquals("open_field", diagnostic.actions().getFirst().kind());
+		assertEquals("/fields/maxStackSize", diagnostic.actions().getFirst().target());
+		assertFalse(outcome.result().diagnostics().stream()
+				.anyMatch(entry -> entry.code().equals("MIGRATION_REBUILD_FAILED")));
+	}
+
 	@Test void upstreamImportRequiresFullAccess() {
 		WorkspaceApplicationService service = service(id -> temp.resolve("source"));
 		JsonObject payload = new JsonObject();

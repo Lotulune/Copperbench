@@ -1979,13 +1979,8 @@ public final class WorkspaceApplicationService {
 		if (!report.complete())
 			diagnostics.add(diagnostic("MIGRATION_INCOMPLETE", "diagnostic.migration_incomplete",
 					"The copy was created or previewed but is not a complete supported migration.", null, null));
-		if (rebuild != null && "failed".equals(rebuild.status())) {
-			Throwable cause = rebuild.cause() != null ? rebuild.cause()
-					: new IllegalStateException(rebuild.reasonCode() + ": " + rebuild.message());
-			diagnostics.add(failureDiagnostic(command, "MIGRATION_REBUILD_FAILED",
-					"diagnostic.migration_rebuild_failed",
-					"The migration target copy was created, but it could not be rebuilt.", null, null, cause));
-		}
+		if (rebuild != null && "failed".equals(rebuild.status()))
+			diagnostics.add(migrationRebuildDiagnostic(command, rebuild));
 		if (!report.complete() && report.targetDirectory() == null)
 			return new CommandOutcome(result(command, status, revision, JsonNull.INSTANCE, payload, diagnostics,
 					JsonNull.INSTANCE, JsonNull.INSTANCE), List.of());
@@ -2010,6 +2005,59 @@ public final class WorkspaceApplicationService {
 		return new Diagnostic(item.reasonCode(), severity,
 				LocalizedText.of("diagnostic.migration_item_review",
 						"{name} requires migration review: {nextStep}", args), item.path(), elementId, true, actions);
+	}
+
+	private Diagnostic migrationRebuildDiagnostic(Command command,
+			LoaderMigrationRebuildService.RebuildResult rebuild) {
+		if (rebuild.path() != null || rebuild.elementId() != null) {
+			JsonObject args = new JsonObject();
+			args.addProperty("message", rebuild.message());
+			return new Diagnostic(rebuild.reasonCode(), UiCore.Severity.ERROR,
+					LocalizedText.of("diagnostic." + rebuild.reasonCode().toLowerCase(Locale.ROOT), rebuild.message(), args),
+					rebuild.path(), rebuild.elementId(), true,
+					generatorValidationLocationActions(rebuild.path(), rebuild.elementId()));
+		}
+		Throwable cause = rebuild.cause() != null ? rebuild.cause()
+				: new IllegalStateException(rebuild.reasonCode() + ": " + rebuild.message());
+		return failureDiagnostic(command, "MIGRATION_REBUILD_FAILED",
+				"diagnostic.migration_rebuild_failed",
+				"The migration target copy was created, but it could not be rebuilt.", null, null, cause);
+	}
+
+	private List<ActionHint> generatorValidationLocationActions(String path, UUID elementId) {
+		if (elementId == null) return List.of();
+		ActionHint procedureAction = procedureLocationAction(path, elementId);
+		if (procedureAction != null) return List.of(procedureAction);
+		String base = elementPath(elementId);
+		if (path == null || !path.startsWith(base + "/"))
+			return List.of(new ActionHint("locate_element", LocalizedText.of("action.open_element", "Open element"),
+					"open_field", null));
+		String fieldTarget = path.substring(base.length());
+		if (fieldTarget.startsWith("/values/")) fieldTarget = fieldTarget.substring("/values".length());
+		return List.of(new ActionHint("locate_generator_field",
+				LocalizedText.of("action.open_field", "Locate invalid field"), "open_field", fieldTarget));
+	}
+
+	private ActionHint procedureLocationAction(String path, UUID elementId) {
+		if (path == null) return null;
+		String prefix = elementPath(elementId) + "/procedureIr/nodes/";
+		if (!path.startsWith(prefix)) return null;
+		String tail = path.substring(prefix.length());
+		int portSeparator = tail.indexOf("/ports/");
+		String nodeId = portSeparator >= 0 ? tail.substring(0, portSeparator) : tail;
+		try {
+			UUID.fromString(nodeId);
+		} catch (IllegalArgumentException exception) {
+			return null;
+		}
+		JsonObject payload = new JsonObject();
+		payload.addProperty("nodeId", nodeId);
+		if (portSeparator >= 0) {
+			String port = tail.substring(portSeparator + "/ports/".length());
+			if (!port.isBlank() && !port.contains("/")) payload.addProperty("port", port);
+		}
+		return new ActionHint("open_procedure_node", LocalizedText.of("action.open_procedure_node", "Locate node"),
+				"open_procedure_node", nodeId, payload);
 	}
 
 	private UUID migrationElementId(String path) {

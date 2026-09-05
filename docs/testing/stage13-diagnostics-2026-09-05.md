@@ -129,6 +129,19 @@ Procedure diagnostics now preserve the strongest ownership already proven by the
 
 This closes the current Procedure node-location gap while retaining the conservative Diagnostics rule: stable node and port identities come from the Procedure producer, never from diagnostic-message parsing.
 
+## Ninth slice: migration rebuild generator-field ownership
+
+Loader migration rebuild validation now preserves the exact ownership facts already emitted by the destination generator instead of collapsing every failed rebuild into the generic `MIGRATION_REBUILD_FAILED` diagnostic:
+
+- Fabric/NeoForge validation failures retain their stable loader-specific diagnostic code, exact `/elements/<UUID>/...` path, stable Mod Element ID and any explicit deterministic `repairValue` supplied by the generator;
+- the migration application layer projects those producer facts directly into the shared diagnostic contract rather than wrapping them in an implementation exception;
+- element field paths reuse the existing `locate_generator_field` action and translate internal `/values/...` storage paths into valid Element Inspector field targets;
+- Procedure node/port paths reuse the shared `open_procedure_node` action when the producer supplies a valid node identity;
+- rebuild failures without proven element/path ownership keep the existing generic migration failure path, so exception-only failures do not acquire speculative navigation targets;
+- copy-only migration semantics remain unchanged: the source workspace is not mutated and a failed destination rebuild remains a failed rebuild projection rather than an implicit repair.
+
+This extends Diagnostics 2.0 across the migration rebuild boundary without adding a second ownership classifier. The generator remains the source of truth for location and safe-repair facts.
+
 ## Verification
 
 - `Fabric1211TaskGatewayTest.failedBuildExtractsJavaCompilerErrorsIntoStructuredDiagnostics` — passed; a Procedure compiler error resolves to stable element ID `00000000-0000-4000-8000-000000000004`, preserves path/line/message, exposes element-location/generated-source/task-log actions, returns its bounded compiler-time source snapshot even after the live file is rewritten, and rejects a different existing generated Java file that is not referenced by the task diagnostic.
@@ -173,13 +186,14 @@ This closes the current Procedure node-location gap while retaining the conserva
 - `npx playwright test e2e/scenarios.spec.ts --grep procedure-node-diagnostic` — `2/2` passed; failed task → Procedure diagnostic → exact Procedure node selection/centering works in Chromium and compact-1366.
 - full `npx playwright test e2e/scenarios.spec.ts` — `32/32` passed; full `e2e/accessibility.spec.ts` — `22/22` passed.
 - the final combined `WorkspaceApplicationServiceTest` + `WorkspaceReferenceIndexTest` + `Fabric1211TaskGatewayTest` + `NeoForge1211GeneratorTest` + `DesktopMcpAgentLoopTest` run — `BUILD SUCCESSFUL`.
+- forced `--rerun-tasks` `Stage67ApplicationServiceTest` + `LoaderMigrationRebuildServiceTest` — `BUILD SUCCESSFUL`; `loaderMigrationRebuildPreservesGeneratorFieldLocation` keeps `NEOFORGE_ITEM_STACK_INVALID` bound to the exact element and `/fields/maxStackSize` editor target, while `validationFailurePreservesStableElementFieldAndRepairFact` proves the rebuild service retains the generator's path, element ID and explicit repair value `1`.
 - `git -c core.whitespace=cr-at-eol diff --check` — passed before evidence finalization.
 
 ## Remaining `FR-PRODUCTIVITY-03` work
 
 This slice does not close Diagnostics 2.0. Remaining work includes:
 
-- extend the stable-location model to remaining deterministic generator/runtime and MCP failure classes where ownership can be proven; resource, migration, generator pre-validation, Procedure node/port ownership, task-level process exits/readiness and generic task identity are now covered;
+- extend the stable-location model to remaining deterministic generator/runtime and MCP failure classes where ownership can be proven; resource, migration review/rebuild, generator pre-validation, Procedure node/port ownership, task-level process exits/readiness and generic task identity are now covered;
 - deepen remaining element locations into other field/node paths where the producer can prove that relationship; stable asset IDs, generator validation fields and Procedure node/port targets are now covered;
 - extend safe repair guidance beyond the first bounded numeric generator failures only when another producer can provide an equally explicit, non-heuristic repair value;
 - preserve the new previewed semantic WorkspacePlan + recovery-point path for every future automatic repair rather than adding direct-mutation diagnostic actions;
