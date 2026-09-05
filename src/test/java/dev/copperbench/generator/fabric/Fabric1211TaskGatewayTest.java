@@ -40,6 +40,7 @@ import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class Fabric1211TaskGatewayTest {
@@ -185,7 +186,7 @@ class Fabric1211TaskGatewayTest {
 				String.format("%012d", sequence.getAndIncrement()));
 		Fabric1211ProcessRunner runner = (root, arguments, timeout, output) -> {
 			assertEquals(List.of("build"), arguments);
-			Path source = root.resolve("src/main/java/net/example/BrokenBehavior.java");
+			Path source = root.resolve("src/main/java/dev/coppertrails/procedure/AnnounceTrailProcedure.java");
 			output.accept(source + ":42: 错误: 找不到符号");
 			output.accept("  " + source + ":42: 错误: 找不到符号");
 			return new Fabric1211ProcessRunner.ProcessResult(1, false);
@@ -199,9 +200,48 @@ class Fabric1211TaskGatewayTest {
 			String diagnostics = build.getAsJsonArray("diagnostics").toString();
 			assertTrue(diagnostics.contains("JAVA_COMPILE_ERROR"), diagnostics);
 			assertEquals(diagnostics.indexOf("JAVA_COMPILE_ERROR"), diagnostics.lastIndexOf("JAVA_COMPILE_ERROR"), diagnostics);
-			assertTrue(diagnostics.contains("/src/main/java/net/example/BrokenBehavior.java"), diagnostics);
+			assertTrue(diagnostics.contains("/src/main/java/dev/coppertrails/procedure/AnnounceTrailProcedure.java"), diagnostics);
 			assertTrue(diagnostics.contains("Line 42: 找不到符号"), diagnostics);
+			assertTrue(diagnostics.contains("\"message\":\"Line 42: 找不到符号\""), diagnostics);
 			assertTrue(diagnostics.contains("FABRIC_BUILD_FAILED"), diagnostics);
+			assertTrue(diagnostics.contains("00000000-0000-4000-8000-000000000004"), diagnostics);
+			assertTrue(diagnostics.contains("locate_element"), diagnostics);
+			assertTrue(diagnostics.contains("open_task_logs"), diagnostics);
+		}
+	}
+
+	@Test void unresolvedCompilerSourceKeepsFileAndLogsButNeverGuessesAnElement() throws Exception {
+		RevisionedWorkspaceStore store = new RevisionedWorkspaceStore();
+		store.register(Fabric1211GoldenWorkspace.create());
+		AtomicLong sequence = new AtomicLong(640);
+		Supplier<UUID> ids = () -> UUID.fromString("00000000-0000-4000-8000-" +
+				String.format("%012d", sequence.getAndIncrement()));
+		Fabric1211ProcessRunner runner = (root, arguments, timeout, output) -> {
+			assertEquals(List.of("build"), arguments);
+			Path source = root.resolve("src/main/java/dev/coppertrails/registry/ModBlocks.java");
+			output.accept(source + ":17: error: cannot find symbol");
+			return new Fabric1211ProcessRunner.ProcessResult(1, false);
+		};
+		try (Fabric1211WorkspaceTaskGateway tasks = new Fabric1211WorkspaceTaskGateway(store,
+				ignored -> generatedWorkspace, Path.of(".").toAbsolutePath().normalize(), CLOCK, ids, runner)) {
+			WorkspaceApplicationService service = new WorkspaceApplicationService(store, tasks, CLOCK, ids);
+
+			JsonObject build = startAndAwait(service, ids, Operation.BUILD_WORKSPACE);
+			assertEquals("failed", build.getAsJsonObject("task").get("state").getAsString());
+			var diagnostics = build.getAsJsonArray("diagnostics");
+			JsonObject compile = null;
+			for (var raw : diagnostics) {
+				JsonObject diagnostic = raw.getAsJsonObject();
+				if ("JAVA_COMPILE_ERROR".equals(diagnostic.get("code").getAsString())) {
+					compile = diagnostic;
+					break;
+				}
+			}
+			assertNotNull(compile);
+			assertTrue(!compile.has("elementId") || compile.get("elementId").isJsonNull(), compile.toString());
+			assertTrue(compile.get("path").getAsString().endsWith("/src/main/java/dev/coppertrails/registry/ModBlocks.java"));
+			assertTrue(compile.getAsJsonArray("actions").toString().contains("open_task_logs"), compile.toString());
+			assertFalse(compile.getAsJsonArray("actions").toString().contains("locate_element"), compile.toString());
 		}
 	}
 

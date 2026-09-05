@@ -1,0 +1,106 @@
+{
+  "schemaVersion": "1.0",
+  "scenarioId": "compile-diagnostic",
+  "extendsScenarioId": "ready",
+  "title": { "key": "scenario.compile_diagnostic", "fallback": "Compile diagnostic", "args": {} },
+  "description": "A structured Java compiler diagnostic can navigate back to the owning Mod Element.",
+  "viewportState": "error",
+  "initialMessages": [
+    {
+      "messageType": "event",
+      "schemaVersion": "1.0",
+      "eventId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbc1",
+      "workspaceId": "11111111-1111-4111-8111-111111111111",
+      "revision": 42,
+      "sequence": 201,
+      "occurredAt": "2026-09-05T09:15:00Z",
+      "event": "task_started",
+      "causedByRequestId": null,
+      "payload": {
+        "task": {
+          "id": "33333333-3333-4333-8333-3333333333c1",
+          "kind": "build",
+          "state": "running",
+          "cancellable": true,
+          "progress": 0.55,
+          "stage": { "key": "task.build.building", "fallback": "Running Gradle build", "args": { "backend": "Fabric 1.21.1" } },
+          "startedAt": "2026-09-05T09:14:00Z",
+          "completedAt": null,
+          "diagnostics": { "error": 0, "warning": 0, "info": 0 }
+        }
+      }
+    },
+    {
+      "messageType": "event",
+      "schemaVersion": "1.0",
+      "eventId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbc2",
+      "workspaceId": "11111111-1111-4111-8111-111111111111",
+      "revision": 42,
+      "sequence": 202,
+      "occurredAt": "2026-09-05T09:15:00Z",
+      "event": "diagnostics_changed",
+      "causedByRequestId": null,
+      "payload": {
+        "counts": { "error": 1, "warning": 0, "info": 0 },
+        "diagnostics": [
+        {
+          "code": "JAVA_COMPILE_ERROR",
+          "severity": "error",
+          "message": {
+            "key": "diagnostic.java_compile_error",
+            "fallback": "Line 42: cannot find symbol",
+            "args": { "message": "Line 42: cannot find symbol" }
+          },
+          "path": "/src/main/java/dev/coppertrails/elements/CopperLampElement.java",
+          "elementId": "22222222-2222-4222-8222-222222222221",
+          "recoverable": true,
+          "actions": [
+            {
+              "id": "locate_compile_element",
+              "label": { "key": "action.open_element", "fallback": "Open element", "args": {} },
+              "kind": "open_field",
+              "target": null
+            },
+            {
+              "id": "open_compile_logs",
+              "label": { "key": "action.open_logs", "fallback": "View task logs", "args": {} },
+              "kind": "open_logs",
+              "target": "33333333-3333-4333-8333-3333333333c1"
+            }
+          ]
+        }
+        ]
+      }
+    },
+    {
+      "messageType": "event",
+      "schemaVersion": "1.0",
+      "eventId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbc3",
+      "workspaceId": "11111111-1111-4111-8111-111111111111",
+      "revision": 42,
+      "sequence": 203,
+      "occurredAt": "2026-09-05T09:15:00Z",
+      "event": "task_completed",
+      "causedByRequestId": null,
+      "payload": {
+        "task": {
+          "id": "33333333-3333-4333-8333-3333333333c1",
+          "kind": "build",
+          "state": "failed",
+          "cancellable": false,
+          "progress": 1,
+          "stage": { "key": "task.failed", "fallback": "Build failed", "args": { "backend": "Fabric 1.21.1" } },
+          "startedAt": "2026-09-05T09:14:00Z",
+          "completedAt": "2026-09-05T09:15:00Z",
+          "diagnostics": { "error": 1, "warning": 0, "info": 0 }
+        }
+      }
+    }
+  ],
+  "timeline": [],
+  "expectedUi": {
+    "announcement": "JAVA_COMPILE_ERROR",
+    "primaryAction": "open-failed-task-logs-btn",
+    "focusTarget": "[data-testid=task-failure]"
+  }
+}

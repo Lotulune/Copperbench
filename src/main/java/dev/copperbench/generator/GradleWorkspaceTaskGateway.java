@@ -101,6 +101,7 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 					: root;
 			job.executionRoot = executionRoot;
 			job.sourceRevision = state.revision();
+			job.sourceState = state;
 			if (isolated(operation)) {
 				if (!executionRoot.startsWith(root.toAbsolutePath().normalize()))
 					throw new IllegalStateException("Isolated task path escaped the workspace");
@@ -560,6 +561,7 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 		private Future<?> future;
 		private Path executionRoot;
 		private long sourceRevision;
+		private WorkspaceState sourceState;
 		private PublishSession publishSession;
 		private boolean published;
 
@@ -705,10 +707,42 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 			String path = diagnosticPath(executionRoot, source);
 			String message = "Line " + lineNumber + ": " + compilerMessage;
 			String key = path + "\n" + message;
+			UUID elementId = resolveGeneratedElement(path);
 			synchronized (this) {
 				if (isRunning() && javaCompileDiagnosticKeys.add(key))
-					addDiagnostic("JAVA_COMPILE_ERROR", message, path, null);
+					addDiagnostic("JAVA_COMPILE_ERROR", message, path, elementId);
 			}
+		}
+
+		private UUID resolveGeneratedElement(String path) {
+			WorkspaceState snapshot = sourceState;
+			if (snapshot == null || path == null || path.isBlank()) return null;
+			String fileName;
+			try {
+				fileName = Path.of(path.replace('/', java.io.File.separatorChar)).getFileName().toString();
+			} catch (RuntimeException exception) {
+				return null;
+			}
+			String stem = fileName.toLowerCase(Locale.ROOT).endsWith(".java")
+					? fileName.substring(0, fileName.length() - 5) : fileName;
+			String normalizedStem = normalizeGeneratedName(stem);
+			List<WorkspaceState.Element> matches = snapshot.elements().stream()
+					.filter(element -> generatedSourceMatches(element, normalizedStem)).toList();
+			return matches.size() == 1 ? matches.getFirst().id() : null;
+		}
+
+		private static boolean generatedSourceMatches(WorkspaceState.Element element, String normalizedStem) {
+			String name = normalizeGeneratedName(element.name());
+			return switch (element.type()) {
+				case "procedure" -> normalizedStem.equals(name + "procedure");
+				case "block", "item" -> false;
+				case "code" -> normalizedStem.equals(name) || normalizedStem.equals(name + "element");
+				default -> normalizedStem.equals(name + "element");
+			};
+		}
+
+		private static String normalizeGeneratedName(String value) {
+			return value == null ? "" : value.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]", "");
 		}
 
 		private static String diagnosticPath(Path executionRoot, String source) {
@@ -751,12 +785,31 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 			JsonObject diagnostic = new JsonObject();
 			diagnostic.addProperty("code", code);
 			diagnostic.addProperty("severity", "error");
-			diagnostic.add("message", localized("diagnostic." + code.toLowerCase(Locale.ROOT), message));
+			JsonObject messageArgs = new JsonObject();
+			messageArgs.addProperty("message", message);
+			diagnostic.add("message", localized("diagnostic." + code.toLowerCase(Locale.ROOT), message, messageArgs));
 			if (path == null) diagnostic.add("path", JsonNull.INSTANCE); else diagnostic.addProperty("path", path);
 			if (elementId == null) diagnostic.add("elementId", JsonNull.INSTANCE);
 			else diagnostic.addProperty("elementId", elementId.toString());
 			diagnostic.addProperty("recoverable", true);
-			diagnostic.add("actions", new JsonArray());
+			JsonArray actions = new JsonArray();
+			if (elementId != null) {
+				JsonObject locate = new JsonObject();
+				locate.addProperty("id", "locate_element");
+				locate.add("label", localized("action.open_element", "Open element"));
+				locate.addProperty("kind", "open_field");
+				locate.add("target", JsonNull.INSTANCE);
+				actions.add(locate);
+			}
+			if (path != null) {
+				JsonObject logs = new JsonObject();
+				logs.addProperty("id", "open_task_logs");
+				logs.add("label", localized("action.open_logs", "View task logs"));
+				logs.addProperty("kind", "open_logs");
+				logs.addProperty("target", id().toString());
+				actions.add(logs);
+			}
+			diagnostic.add("actions", actions);
 			diagnosticEntries.add(diagnostic);
 		}
 

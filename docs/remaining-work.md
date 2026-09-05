@@ -18,7 +18,7 @@ The active roadmap remains `PRD-NEXT.md`. Stage 12 is closed and Stage 13 is now
 The remaining Stage 13 work is:
 
 1. **Stage 13 / `FR-PRODUCTIVITY-02` — Asset Center**: implementation is complete; retain one installed-product Windows Explorer-to-Copperbench drag/drop smoke as the remaining closure gate.
-2. **Stage 13 / `FR-PRODUCTIVITY-03` — Diagnostics 2.0**: begin active implementation by mapping build/generator/resource/migration/MCP failures to stable IDs and concrete element/field/Procedure-node/asset locations with actionable repair guidance.
+2. **Stage 13 / `FR-PRODUCTIVITY-03` — Diagnostics 2.0**: active implementation. The first slice now maps unambiguous Java compiler failures back to stable Mod Element IDs without guessing aggregate-source ownership, preserves concrete compiler details in localized diagnostics, stores diagnostics per task across bridge refreshes, and exposes structured Task Drawer actions for element location and task logs. Next, add generated-source navigation and extend the same stable-location model to generator/resource/migration/MCP failures, then layer safe repair guidance/previewed recovery-protected fixes. See [Stage 13 Diagnostics 2.0 evidence](./testing/stage13-diagnostics-2026-09-05.md).
 3. **Stage 13 / `FR-PRODUCTIVITY-04`–`06`**: deepen history/recovery UX, Migration / Refactor Workbench, and Workspace Health.
 4. **Stage 14 — advanced developer / AI-native workflows**: IDE bridge, AI Plan Review, higher-level MCP workflows, templates and extension-developer entry points.
 5. **Stage 15 — Linux formal platform support**: Linux x86_64 packaging, bundled JDK/JCEF, desktop integration, Gradle/Run Client, desktop MCP/external-Agent parity, clean-Linux VM validation, and release/provenance closure.

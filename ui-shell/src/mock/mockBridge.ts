@@ -179,6 +179,7 @@ export class MockCoreBridge implements CoreBridge {
     elementEditors: {},
     tasks: {},
     taskLogs: {},
+    taskDiagnostics: {},
     diagnostics: [],
     recoveryPoints: [],
     currentRecoveryPointId: null,
@@ -214,6 +215,7 @@ export class MockCoreBridge implements CoreBridge {
       elementEditors: {},
       tasks: {},
       taskLogs: {},
+      taskDiagnostics: {},
       diagnostics: [],
       recoveryPoints: [],
       currentRecoveryPointId: null,
@@ -492,6 +494,14 @@ export class MockCoreBridge implements CoreBridge {
       }
       case 'diagnostics_changed': {
         this.state.diagnostics = ev.payload.diagnostics;
+        const grouped: BridgeState['taskDiagnostics'] = {};
+        for (const diagnostic of ev.payload.diagnostics) {
+          for (const action of diagnostic.actions) {
+            if (action.kind !== 'open_logs' || !action.target || !this.state.tasks[action.target]) continue;
+            grouped[action.target] = [...(grouped[action.target] ?? []), diagnostic];
+          }
+        }
+        this.state.taskDiagnostics = { ...this.state.taskDiagnostics, ...grouped };
         break;
       }
       case 'task_started':
@@ -4141,7 +4151,7 @@ export class MockCoreBridge implements CoreBridge {
         data = {
           task,
           logs: logs.filter((entry) => entry.sequence > afterLogSequence),
-          diagnostics: []
+          diagnostics: taskId ? this.state.taskDiagnostics[taskId] || [] : []
         };
         break;
       }

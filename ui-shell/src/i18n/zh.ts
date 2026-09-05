@@ -6,6 +6,7 @@
 export const zh: Record<string, string> = {
   /* ---- 诊断 (diagnostic.*) ---- */
   'diagnostic.field_value_out_of_range': '硬度必须在 {min} 到 {max} 之间。',
+  'diagnostic.java_compile_error': 'Java 编译错误：{message}',
   'diagnostic.field_required_by_condition': '启用 {condition} 时必须填写 {field}。',
   'diagnostic.permission_profile_denied': '需要工作区写入权限才能执行构建。',
   'diagnostic.workspace_revision_conflict': '此编辑器打开后工作区已被其他写入者修改，为避免覆盖，本次提交未生效。',
@@ -77,6 +78,7 @@ export const zh: Record<string, string> = {
 
   /* ---- 诊断动作 (action.*) ---- */
   'action.open_field': '定位问题字段',
+  'action.open_element': '定位到元素',
   'action.add_list_item': '添加条目',
   'action.remove_list_item': '删除条目',
   'action.open_logs': '查看日志',
@@ -172,6 +174,7 @@ export const zh: Record<string, string> = {
   'task.validate.started': '正在使用 {backend} 校验工作区…',
   'task.generate.started': '正在使用 {backend} 生成工作区…',
   'task.build.started': '正在使用 {backend} 构建工作区…',
+  'task.build.building': '正在运行 {backend} Gradle 构建',
   'task.export.started': '正在使用 {backend} 导出工作区…',
   'task.run_client.started': '正在使用 {backend} 启动测试客户端…',
   'task.run_server.started': '正在使用 {backend} 启动隔离测试服务端…',
@@ -193,6 +196,7 @@ export const zh: Record<string, string> = {
   'scenario.empty_workspace': '空白工作区',
   'scenario.loading_workbench': '加载中',
   'scenario.validation_failed': '字段校验失败',
+  'scenario.compile_diagnostic': '编译诊断定位',
   'scenario.permission_denied': '权限被拒绝',
   'scenario.revision_conflict': '版本并发冲突',
   'scenario.partial_capability': '加载器差异字段',

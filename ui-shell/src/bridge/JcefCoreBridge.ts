@@ -101,6 +101,7 @@ const initialState = (): BridgeState => ({
   elementEditors: {},
   tasks: {},
   taskLogs: {},
+  taskDiagnostics: {},
   diagnostics: [],
   recoveryPoints: [],
   currentRecoveryPointId: null,
@@ -352,6 +353,7 @@ export class JcefCoreBridge implements CoreBridge {
       case 'get_task': {
         const projection = result.data as TaskProjection;
         this.state.tasks[projection.task.id] = projection.task;
+        this.state.taskDiagnostics[projection.task.id] = [...projection.diagnostics];
         const existing = this.state.taskLogs[projection.task.id] ?? [];
         const bySequence = new Map(existing.map((entry) => [entry.sequence, entry]));
         projection.logs.forEach((entry) => bySequence.set(entry.sequence, entry));
@@ -416,6 +418,10 @@ export class JcefCoreBridge implements CoreBridge {
       }
       case 'diagnostics_changed':
         this.state.diagnostics = [...event.payload.diagnostics];
+        this.state.taskDiagnostics = {
+          ...this.state.taskDiagnostics,
+          ...this.diagnosticsByTask(event.payload.diagnostics)
+        };
         break;
       case 'connectivity_changed':
         if (this.state.workbench) this.state.workbench.connection = event.payload;
@@ -493,6 +499,17 @@ export class JcefCoreBridge implements CoreBridge {
     const activeTasks = this.state.workbench.activeTasks.filter((candidate) => candidate.id !== task.id);
     if (task.state === 'queued' || task.state === 'running') activeTasks.unshift(task);
     this.state.workbench.activeTasks = activeTasks;
+  }
+
+  private diagnosticsByTask(diagnostics: BridgeState['diagnostics']): BridgeState['taskDiagnostics'] {
+    const grouped: BridgeState['taskDiagnostics'] = {};
+    for (const diagnostic of diagnostics) {
+      for (const action of diagnostic.actions) {
+        if (action.kind !== 'open_logs' || !action.target || !this.state.tasks[action.target]) continue;
+        grouped[action.target] = [...(grouped[action.target] ?? []), diagnostic];
+      }
+    }
+    return grouped;
   }
 
   private isStaleRevision(revision: number): boolean {

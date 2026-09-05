@@ -6,7 +6,8 @@ import {
   FileDiff,
   Upload,
   LoaderCircle,
-  CheckCircle2
+  CheckCircle2,
+  AlertTriangle
 } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
 import { useDialogA11y } from '../hooks/useDialogA11y';
@@ -21,7 +22,8 @@ export const TaskDrawer: React.FC = () => {
     state,
     cancelTask,
     previewDatagenOutput,
-    publishDatagenOutput
+    publishDatagenOutput,
+    runDiagnosticAction
   } = useWorkbench();
 
   const logContainerRef = useRef<HTMLDivElement>(null);
@@ -37,6 +39,7 @@ export const TaskDrawer: React.FC = () => {
     : Object.values(state.tasks)[0] || null;
 
   const logs = activeTask ? state.taskLogs[activeTask.id] || [] : [];
+  const diagnostics = activeTask ? state.taskDiagnostics[activeTask.id] || [] : [];
 
   useEffect(() => {
     if (logContainerRef.current) {
@@ -95,7 +98,7 @@ export const TaskDrawer: React.FC = () => {
         bottom: 0,
         left: 0,
         right: 0,
-        height: datagenPreview || datagenError ? '360px' : '240px',
+        height: datagenPreview || datagenError || diagnostics.length > 0 ? '360px' : '240px',
         background: 'var(--drawer-bg)',
         borderTop: '1px solid var(--border-subtle)',
         display: 'flex',
@@ -224,6 +227,60 @@ export const TaskDrawer: React.FC = () => {
               <span>发布到工作区</span>
             </button>
           )}
+        </section>
+      )}
+
+      {diagnostics.length > 0 && (
+        <section
+          data-testid="task-diagnostics"
+          aria-label="Task diagnostics"
+          style={{
+            padding: '10px 16px',
+            borderBottom: '1px solid var(--border-subtle)',
+            background: 'var(--bg-panel)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '8px',
+            maxHeight: '132px',
+            overflowY: 'auto'
+          }}
+        >
+          {diagnostics.map((diagnostic, index) => (
+            <div
+              key={`${diagnostic.code}:${diagnostic.path ?? ''}:${index}`}
+              data-testid={`task-diagnostic-${diagnostic.code}`}
+              style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: '8px 12px', alignItems: 'center' }}
+            >
+              <div style={{ minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--badge-red)', fontSize: '11px', fontWeight: 600 }}>
+                  <AlertTriangle size={13} />
+                  <code>{diagnostic.code}</code>
+                </div>
+                <div style={{ marginTop: '3px', fontSize: '11px', color: 'var(--text-main)' }}>{t(diagnostic.message)}</div>
+                {diagnostic.path && (
+                  <code style={{ display: 'block', marginTop: '3px', fontSize: '10px', color: 'var(--text-sub)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {diagnostic.path}
+                  </code>
+                )}
+              </div>
+              {diagnostic.actions.length > 0 && (
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                  {diagnostic.actions.map((action) => (
+                    <button
+                      key={action.id}
+                      type="button"
+                      className="btn-secondary"
+                      style={{ fontSize: '11px', minHeight: '32px', padding: '4px 9px' }}
+                      onClick={() => runDiagnosticAction(action, diagnostic)}
+                      data-testid={`task-diag-action-${action.id}`}
+                    >
+                      {t(action.label)}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
         </section>
       )}
 

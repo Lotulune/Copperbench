@@ -5,6 +5,7 @@ import { ScenarioDefinition } from '../types/contract';
 // re-exporting keeps the mock bridge and the JSON Schema validator aligned.
 import bridgeRecovery from '../../../ui-core/fixtures/v1.0/scenarios/bridge-recovery.json';
 import buildRunning from '../../../ui-core/fixtures/v1.0/scenarios/build-running.json';
+import compileDiagnostic from '../../../ui-core/fixtures/v1.0/scenarios/compile-diagnostic.json';
 import elementCreated from '../../../ui-core/fixtures/v1.0/scenarios/element-created.json';
 import emptyWorkspace from '../../../ui-core/fixtures/v1.0/scenarios/empty-workspace.json';
 import externalProcessExited from '../../../ui-core/fixtures/v1.0/scenarios/external-process-exited.json';
@@ -22,6 +23,7 @@ import approvalRequired from '../../../ui-core/fixtures/v1.0/scenarios/approval-
 const fixtureList: unknown[] = [
   bridgeRecovery,
   buildRunning,
+  compileDiagnostic,
   elementCreated,
   emptyWorkspace,
   externalProcessExited,

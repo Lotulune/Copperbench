@@ -6,6 +6,24 @@ test.describe('UI-Core v1.0 Contract Scenarios', () => {
     await page.waitForSelector('[data-testid="app-shell"]');
   });
 
+  test('scenario: compile-diagnostic navigates from compiler failure to the owning element', async ({ page }) => {
+    await page.click('[data-testid="scenario-switcher-trigger"]');
+    await page.click('[data-testid="scenario-btn-compile-diagnostic"]');
+
+    await expect(page.locator('[data-testid="global-diagnostics-banner"]')).toBeVisible();
+    await expect(page.locator('[data-testid="task-failure"]')).toBeVisible();
+    await page.click('[data-testid="open-failed-task-logs-btn"]');
+
+    await expect(page.locator('[data-testid="task-diagnostics"]')).toBeVisible();
+    await expect(page.locator('[data-testid="task-diagnostic-JAVA_COMPILE_ERROR"]')).toBeVisible();
+    await expect(page.locator('[data-testid="task-diag-action-locate_compile_element"]')).toBeVisible();
+    await page.click('[data-testid="task-diag-action-locate_compile_element"]');
+
+    await expect(page.locator('[data-testid="element-inspector"]')).toBeVisible();
+    await expect(page.locator('[data-element-id="22222222-2222-4222-8222-222222222221"]').first()).toBeVisible();
+    await expect(page.getByText('Copper Lamp').first()).toBeVisible();
+  });
+
   test('scenario: ready renders healthy workbench and recent elements', async ({ page }) => {
     // Switch to ready scenario
     await page.click('[data-testid="scenario-switcher-trigger"]');
