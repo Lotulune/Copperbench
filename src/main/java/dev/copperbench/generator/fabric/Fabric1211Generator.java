@@ -17,6 +17,7 @@ import com.google.gson.JsonObject;
 import dev.copperbench.core.workspace.WorkspaceState;
 import dev.copperbench.core.workspace.WorkspaceState.Element;
 import dev.copperbench.generator.PluginWorkspaceLayout;
+import dev.copperbench.procedure.ProcedureIrCodec;
 import dev.copperbench.release.ElementCoverageCatalog;
 
 import java.io.IOException;
@@ -76,6 +77,7 @@ public final class Fabric1211Generator {
 	private static final Pattern PACKAGE = Pattern.compile("^[a-z][a-z0-9_]*(?:\\.[a-z][a-z0-9_]*)+$");
 	private static final Pattern ELEMENT_NAME = Pattern.compile("^[a-z][a-z0-9_]{0,63}$");
 	private static final Gson JSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+	private static final ProcedureIrCodec PROCEDURES = new ProcedureIrCodec();
 	private static final byte[] FALLBACK_TEXTURE = Base64.getDecoder().decode(
 			"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=");
 
@@ -168,6 +170,25 @@ public final class Fabric1211Generator {
 						if (string(values, "message", "").isBlank())
 							issues.add(issue("FABRIC_PROCEDURE_MESSAGE_REQUIRED", "Procedure message is required.",
 									base + "/message", element));
+						JsonObject stored = element.values();
+						boolean hasIr = stored.has("procedureIr") && stored.get("procedureIr").isJsonObject();
+						boolean hasXml = stored.has("procedurexml") && stored.get("procedurexml").isJsonPrimitive()
+								&& !stored.get("procedurexml").getAsString().isBlank();
+						if (hasIr || hasXml) {
+							try {
+								var ir = PROCEDURES.read(stored, element.id());
+								for (var procedureIssue : PROCEDURES.validate(ir)) {
+									String path = "/elements/" + element.id() + "/procedureIr";
+									if (procedureIssue.nodeId() != null) path += "/nodes/" + procedureIssue.nodeId();
+									if (procedureIssue.port() != null) path += "/ports/" + procedureIssue.port();
+									issues.add(new ValidationIssue(procedureIssue.code(), procedureIssue.message(), path,
+											element.id()));
+								}
+							} catch (RuntimeException exception) {
+								issues.add(issue("FABRIC_PROCEDURE_IR_INVALID", "Procedure graph could not be parsed.",
+										"/elements/" + element.id() + "/procedureIr", element));
+							}
+						}
 					}
 					default -> { }
 				}

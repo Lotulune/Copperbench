@@ -171,7 +171,16 @@ public final class WorkspaceReferenceIndex {
 
 	private IndexedElement scan(Element element, String fingerprint, Map<String, UUID> identities) {
 		List<Candidate> candidates = new ArrayList<>();
-		scanJson(element.id(), element.values(), "", candidates);
+		JsonObject indexedValues = element.values();
+		if (element.type().equals("procedure")) {
+			// Canonical Procedure references are indexed from ProcedureIr.dependencies below.
+			// Do not rescan the serialized Blockly XML or the IR storage itself, otherwise
+			// resource locations and stable procedure/variable targets are duplicated.
+			indexedValues = indexedValues.deepCopy();
+			indexedValues.remove("procedureIr");
+			indexedValues.remove("procedurexml");
+		}
+		scanJson(element.id(), indexedValues, "", candidates);
 		if (element.type().equals("procedure")) {
 			try {
 				ProcedureIr ir = procedures.read(element.values(), element.id());

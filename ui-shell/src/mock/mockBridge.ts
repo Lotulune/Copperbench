@@ -322,6 +322,26 @@ export class MockCoreBridge implements CoreBridge {
     }
 
     this.applyScenarioMessages(scenario, true);
+    if (scenario.scenarioId === 'procedure-node-diagnostic') {
+      this.procedureIrs.set('22222222-2222-4222-8222-222222222230', {
+        schemaVersion: '1.0',
+        trigger: 'no_ext_trigger',
+        nodes: [
+          {
+            id: '44444444-4444-4444-8444-444444444441',
+            type: 'event_trigger', kind: 'statement', x: 48, y: 48,
+            fields: { trigger: 'no_ext_trigger' }, inputs: {},
+            next: '44444444-4444-4444-8444-444444444442', unknown: false
+          },
+          {
+            id: '44444444-4444-4444-8444-444444444442',
+            type: 'call_procedure', kind: 'statement', x: 220, y: 48,
+            fields: { procedureId: '', procedure: '' }, inputs: {}, next: null, unknown: false
+          }
+        ],
+        dependencies: []
+      });
+    }
     this.state.expectedUi = scenario.expectedUi ?? null;
     this.notifyState();
   }
@@ -2465,8 +2485,9 @@ export class MockCoreBridge implements CoreBridge {
             actions: [{
               id: 'open_procedure_node',
               label: { key: 'action.open_procedure_node', fallback: 'Locate node' },
-              kind: 'open_field' as const,
-              target: path
+              kind: 'open_procedure_node' as const,
+              target: node.id,
+              payload: { nodeId: node.id, port: 'procedureId' }
             }]
           }];
         });

@@ -183,6 +183,20 @@ test.describe('UI-Core v1.0 Contract Scenarios', () => {
     await expect(page.locator('[data-testid="task-diag-action-open_client_logs"]')).toBeVisible();
   });
 
+  test('scenario: procedure-node-diagnostic opens the exact Procedure node', async ({ page }) => {
+    await page.click('[data-testid="scenario-switcher-trigger"]');
+    await page.click('[data-testid="scenario-btn-procedure-node-diagnostic"]');
+
+    await expect(page.locator('[data-testid="task-failure"]')).toBeVisible();
+    await page.click('[data-testid="open-failed-task-logs-btn"]');
+    await expect(page.locator('[data-testid="task-diagnostic-PROCEDURE_CALL_TARGET_REQUIRED"]')).toBeVisible();
+    await page.click('[data-testid="task-diag-action-open_procedure_node"]');
+
+    await expect(page.locator('[data-testid="procedure-workbench"]')).toBeVisible();
+    await expect(page.locator('[data-testid="procedure-selected-location"]')).toContainText('调用 Procedure');
+    await expect(page.locator('#procedure-tab-diagnostics')).toHaveAttribute('aria-selected', 'true');
+  });
+
   test('scenario: element-created lists the committed block', async ({ page }) => {
     await page.click('[data-testid="scenario-switcher-trigger"]');
     await page.click('[data-testid="scenario-btn-element-created"]');

@@ -358,7 +358,9 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
     previewRegistryRename,
     planProcedureRefactor,
     planWorkspaceChanges,
-    applyWorkspacePlan
+    applyWorkspacePlan,
+    procedureFocusRequest,
+    clearProcedureFocusRequest
   } = useWorkbench();
   const hostRef = useRef<HTMLDivElement | null>(null);
   const workspaceRef = useRef<Blockly.WorkspaceSvg | null>(null);
@@ -476,6 +478,18 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
       workspaceRef.current = null;
     };
   }, [projection]);
+
+  useEffect(() => {
+    if (!procedureFocusRequest || procedureFocusRequest.elementId !== element.id || !projection) return;
+    const workspace = workspaceRef.current;
+    const block = workspace?.getBlockById(procedureFocusRequest.nodeId);
+    if (!workspace || !block) return;
+    block.select();
+    workspace.centerOnBlock(procedureFocusRequest.nodeId);
+    setSelectedNodeId(procedureFocusRequest.nodeId);
+    setPanel('diagnostics');
+    clearProcedureFocusRequest();
+  }, [clearProcedureFocusRequest, element.id, procedureFocusRequest, projection]);
 
   useEffect(() => {
     const workspace = workspaceRef.current;

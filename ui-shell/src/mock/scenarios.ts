@@ -14,6 +14,7 @@ import loadingWorkbench from '../../../ui-core/fixtures/v1.0/scenarios/loading-w
 import offline from '../../../ui-core/fixtures/v1.0/scenarios/offline.json';
 import partialCapability from '../../../ui-core/fixtures/v1.0/scenarios/partial-capability.json';
 import permissionDenied from '../../../ui-core/fixtures/v1.0/scenarios/permission-denied.json';
+import procedureNodeDiagnostic from '../../../ui-core/fixtures/v1.0/scenarios/procedure-node-diagnostic.json';
 import ready from '../../../ui-core/fixtures/v1.0/scenarios/ready.json';
 import revisionConflict from '../../../ui-core/fixtures/v1.0/scenarios/revision-conflict.json';
 import schemaIncompatible from '../../../ui-core/fixtures/v1.0/scenarios/schema-incompatible.json';
@@ -33,6 +34,7 @@ const fixtureList: unknown[] = [
   offline,
   partialCapability,
   permissionDenied,
+  procedureNodeDiagnostic,
   ready,
   revisionConflict,
   schemaIncompatible,

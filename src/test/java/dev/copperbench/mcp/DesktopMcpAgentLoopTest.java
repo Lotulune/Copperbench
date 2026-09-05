@@ -166,6 +166,7 @@ class DesktopMcpAgentLoopTest {
 		CompletedBuildGateway tasks = new CompletedBuildGateway(ids);
 		UUID triggerId = UUID.fromString("11111111-1111-4111-8111-111111111101");
 		UUID statementId = UUID.fromString("11111111-1111-4111-8111-111111111102");
+		UUID diagnosticCallId = UUID.fromString("11111111-1111-4111-8111-111111111103");
 
 		try (LocalHistoryService history = JGitLocalHistoryService.open(workspace, CLOCK)) {
 			WorkspaceApplicationService service = new WorkspaceApplicationService(store, tasks,
@@ -192,6 +193,34 @@ class DesktopMcpAgentLoopTest {
 				JsonObject created = call(endpoint, token, sessionId, 30, "create_mod_element", create);
 				assertEquals("committed", created.get("status").getAsString(), created.toString());
 				String sourceId = created.getAsJsonObject("data").getAsJsonObject("element").get("id").getAsString();
+
+				JsonObject diagnosticNode = new JsonObject();
+				diagnosticNode.addProperty("id", diagnosticCallId.toString());
+				diagnosticNode.addProperty("type", "call_procedure");
+				diagnosticNode.addProperty("kind", "statement");
+				diagnosticNode.addProperty("x", 240);
+				diagnosticNode.addProperty("y", 80);
+				diagnosticNode.add("fields", new JsonObject());
+				diagnosticNode.add("inputs", new JsonObject());
+				JsonObject addDiagnosticNode = new JsonObject();
+				addDiagnosticNode.addProperty("operation", "add_node");
+				addDiagnosticNode.add("node", diagnosticNode);
+				JsonArray diagnosticEdits = new JsonArray();
+				diagnosticEdits.add(addDiagnosticNode);
+				JsonObject diagnosticPreviewArgs = new JsonObject();
+				diagnosticPreviewArgs.addProperty("elementId", sourceId);
+				diagnosticPreviewArgs.add("edits", diagnosticEdits);
+				JsonObject diagnosticPreview = call(endpoint, token, sessionId, 35,
+						"preview_procedure_change", diagnosticPreviewArgs).getAsJsonObject("data");
+				JsonObject nodeDiagnostic = diagnosticPreview.getAsJsonArray("diagnostics").asList().stream()
+						.map(value -> value.getAsJsonObject())
+						.filter(value -> value.get("code").getAsString().equals("PROCEDURE_CALL_TARGET_REQUIRED"))
+						.findFirst().orElseThrow();
+				JsonObject nodeAction = nodeDiagnostic.getAsJsonArray("actions").get(0).getAsJsonObject();
+				assertEquals("open_procedure_node", nodeAction.get("kind").getAsString());
+				assertEquals(diagnosticCallId.toString(), nodeAction.get("target").getAsString());
+				assertEquals(diagnosticCallId.toString(), nodeAction.getAsJsonObject("payload").get("nodeId").getAsString());
+				assertEquals("procedureId", nodeAction.getAsJsonObject("payload").get("port").getAsString());
 
 				JsonObject refactor = new JsonObject();
 				refactor.addProperty("kind", "extract_node");

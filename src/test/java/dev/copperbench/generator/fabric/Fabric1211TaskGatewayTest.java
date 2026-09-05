@@ -548,6 +548,74 @@ class Fabric1211TaskGatewayTest {
 		}
 	}
 
+	@Test void modernProcedureValidationPreservesNodeAndPortThroughTaskDiagnostics() throws Exception {
+		RevisionedWorkspaceStore store = new RevisionedWorkspaceStore();
+		var valid = Fabric1211GoldenWorkspace.create();
+		var elements = new ArrayList<>(valid.elements());
+		int procedureIndex = -1;
+		for (int index = 0; index < elements.size(); index++) {
+			if (elements.get(index).type().equals("procedure")) {
+				procedureIndex = index;
+				break;
+			}
+		}
+		assertTrue(procedureIndex >= 0);
+		var procedure = elements.get(procedureIndex);
+		JsonObject values = procedure.values();
+		UUID triggerId = UUID.fromString("00000000-0000-4000-8000-000000000961");
+		UUID callId = UUID.fromString("00000000-0000-4000-8000-000000000962");
+		JsonObject ir = new JsonObject();
+		ir.addProperty("schemaVersion", "1.0");
+		ir.addProperty("trigger", "no_ext_trigger");
+		JsonArray nodes = new JsonArray();
+		JsonObject trigger = new JsonObject();
+		trigger.addProperty("id", triggerId.toString());
+		trigger.addProperty("type", "event_trigger");
+		trigger.addProperty("kind", "statement");
+		JsonObject triggerFields = new JsonObject();
+		triggerFields.addProperty("trigger", "no_ext_trigger");
+		trigger.add("fields", triggerFields);
+		trigger.add("inputs", new JsonObject());
+		nodes.add(trigger);
+		JsonObject call = new JsonObject();
+		call.addProperty("id", callId.toString());
+		call.addProperty("type", "call_procedure");
+		call.addProperty("kind", "statement");
+		JsonObject callFields = new JsonObject();
+		callFields.addProperty("procedureId", "");
+		call.add("fields", callFields);
+		call.add("inputs", new JsonObject());
+		nodes.add(call);
+		ir.add("nodes", nodes);
+		ir.add("dependencies", new JsonArray());
+		values.add("procedureIr", ir);
+		elements.set(procedureIndex, new dev.copperbench.core.workspace.WorkspaceState.Element(procedure.id(),
+				procedure.type(), procedure.name(), procedure.displayName(), procedure.state(), procedure.ownership(),
+				procedure.updatedAt(), values));
+		store.register(new dev.copperbench.core.workspace.WorkspaceState(valid.id(), valid.name(), valid.kind(),
+				valid.revision(), valid.dirty(), valid.generator(), valid.upstreamDocument(), elements));
+		AtomicLong sequence = new AtomicLong(960);
+		Supplier<UUID> ids = () -> UUID.fromString("00000000-0000-4000-8000-" +
+				String.format("%012d", sequence.getAndIncrement()));
+		try (Fabric1211WorkspaceTaskGateway tasks = new Fabric1211WorkspaceTaskGateway(store,
+				ignored -> generatedWorkspace, Path.of(".").toAbsolutePath().normalize(), CLOCK, ids)) {
+			WorkspaceApplicationService service = new WorkspaceApplicationService(store, tasks, CLOCK, ids);
+			JsonObject projection = startAndAwait(service, ids, Operation.VALIDATE_WORKSPACE);
+			assertEquals("failed", projection.getAsJsonObject("task").get("state").getAsString());
+			JsonObject diagnostic = projection.getAsJsonArray("diagnostics").asList().stream()
+					.map(raw -> raw.getAsJsonObject())
+					.filter(item -> item.get("code").getAsString().equals("PROCEDURE_CALL_TARGET_REQUIRED"))
+					.findFirst().orElseThrow();
+			assertEquals("/elements/" + procedure.id() + "/procedureIr/nodes/" + callId + "/ports/procedureId",
+					diagnostic.get("path").getAsString());
+			JsonObject action = diagnostic.getAsJsonArray("actions").get(0).getAsJsonObject();
+			assertEquals("open_procedure_node", action.get("kind").getAsString());
+			assertEquals(callId.toString(), action.get("target").getAsString());
+			assertEquals(callId.toString(), action.getAsJsonObject("payload").get("nodeId").getAsString());
+			assertEquals("procedureId", action.getAsJsonObject("payload").get("port").getAsString());
+		}
+	}
+
 	@Test void cancellationCannotBeOverwrittenByTheInterruptedWorker() throws Exception {
 		RevisionedWorkspaceStore store = new RevisionedWorkspaceStore();
 		store.register(Fabric1211GoldenWorkspace.create());

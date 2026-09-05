@@ -115,6 +115,20 @@ Diagnostics 2.0 now preserves task ownership for generic runtime failures and di
 
 This slice also aligns external MCP and reconnect/replay behavior with the desktop UI: a task diagnostic can remain searchable by failure ID while still belonging unambiguously to one task.
 
+## Eighth slice: Procedure node and port ownership
+
+Procedure diagnostics now preserve the strongest ownership already proven by the Core-owned Procedure IR validator instead of collapsing graph failures to an element or persistence path:
+
+- `ProcedureIr.ValidationIssue` node IDs and ports are exposed through a shared `open_procedure_node` diagnostic action with structured `{ nodeId, port }` payload;
+- desktop navigation stores a route-safe Procedure focus request, opens the owning Procedure, then selects and centers the matching Blockly node after the workbench is mounted; it does not depend on a short DOM timing guess;
+- Fabric generator pre-validation reuses the same `ProcedureIrCodec` only for workspaces that already carry modern `procedureIr` or non-empty `procedurexml`, preserving legacy Procedure compatibility while adding exact node/port diagnostics for modern graphs;
+- NeoForge keeps the same Procedure diagnostic identity because its loader mapping changes only Fabric-prefixed codes;
+- desktop MCP query tools serialize the same Core result unchanged, so `preview_procedure_change` and task projections retain the same node/port action contract for external Agents;
+- node-level location remains navigation-only. A missing Procedure target is a semantic choice, so no repair value or automatic mutation is invented;
+- the reference index now excludes serialized `procedurexml` from generic text scanning when canonical Procedure IR is available, preventing duplicate resource/reference edges beside `ProcedureIr.dependencies`.
+
+This closes the current Procedure node-location gap while retaining the conservative Diagnostics rule: stable node and port identities come from the Procedure producer, never from diagnostic-message parsing.
+
 ## Verification
 
 - `Fabric1211TaskGatewayTest.failedBuildExtractsJavaCompilerErrorsIntoStructuredDiagnostics` — passed; a Procedure compiler error resolves to stable element ID `00000000-0000-4000-8000-000000000004`, preserves path/line/message, exposes element-location/generated-source/task-log actions, returns its bounded compiler-time source snapshot even after the live file is rewritten, and rejects a different existing generated Java file that is not referenced by the task diagnostic.
@@ -149,14 +163,24 @@ This slice also aligns external MCP and reconnect/replay behavior with the deskt
 - `npx playwright test e2e/scenarios.spec.ts --grep external-process-exited` — `2/2` passed across Chromium and compact-1366; the runtime diagnostic is visible inside the correct failed-task drawer even though the log target remains a failure ID.
 - the final full `npx playwright test e2e/scenarios.spec.ts` run — `30/30` passed; the final accessibility run — `22/22` passed.
 - the final runtime-slice UI build passed TypeScript/Vite and the Chinese localization gate at `221/221` referenced keys.
+- `WorkspaceApplicationServiceTest.procedurePreviewExposesStableNodeAndPortNavigationAction` — passed; Core Procedure preview preserves the exact node/port path and exposes `open_procedure_node` with stable node ID and `procedureId` port payload.
+- `Fabric1211TaskGatewayTest.modernProcedureValidationPreservesNodeAndPortThroughTaskDiagnostics` — passed; modern Procedure IR validation reaches the failed task without losing node or port ownership.
+- `NeoForge1211GeneratorTest.procedureNodeAndPortIdentitySurvivesNeoForgeValidationMapping` — passed; NeoForge parity keeps the shared Procedure diagnostic identity and exact node/port path.
+- `DesktopMcpAgentLoopTest.externalAgentCanPlanAndApplyProtectedProcedureExtraction` — passed with an external MCP `preview_procedure_change` assertion for the same `open_procedure_node` target/payload, while protected extraction remains green.
+- `WorkspaceReferenceIndexTest.indexesProcedureDependenciesWithoutTreatingGraphNodeIdsAsWorkspaceReferences` and `stage13ProcedureEditorProjectsSharedVariableResourceAndCallSymbols` — passed after preventing serialized Blockly XML from duplicating canonical Procedure dependency edges.
+- `npm test` in `ui-core` — `20/20` passed with the new `open_procedure_node` action kind and canonical `procedure-node-diagnostic` scenario.
+- `npm run build` in `ui-shell` — passed TypeScript/Vite and the Chinese localization gate at `222/222` referenced keys.
+- `npx playwright test e2e/scenarios.spec.ts --grep procedure-node-diagnostic` — `2/2` passed; failed task → Procedure diagnostic → exact Procedure node selection/centering works in Chromium and compact-1366.
+- full `npx playwright test e2e/scenarios.spec.ts` — `32/32` passed; full `e2e/accessibility.spec.ts` — `22/22` passed.
+- the final combined `WorkspaceApplicationServiceTest` + `WorkspaceReferenceIndexTest` + `Fabric1211TaskGatewayTest` + `NeoForge1211GeneratorTest` + `DesktopMcpAgentLoopTest` run — `BUILD SUCCESSFUL`.
 - `git -c core.whitespace=cr-at-eol diff --check` — passed before evidence finalization.
 
 ## Remaining `FR-PRODUCTIVITY-03` work
 
 This slice does not close Diagnostics 2.0. Remaining work includes:
 
-- extend the stable-location model to remaining deterministic generator/runtime and MCP failure classes where ownership can be proven; resource, migration, generator pre-validation, task-level process exits/readiness and generic task identity are now covered;
-- deepen remaining element locations into Procedure node IDs or other field paths where the producer can prove that relationship; stable asset IDs and generator validation fields are now covered;
+- extend the stable-location model to remaining deterministic generator/runtime and MCP failure classes where ownership can be proven; resource, migration, generator pre-validation, Procedure node/port ownership, task-level process exits/readiness and generic task identity are now covered;
+- deepen remaining element locations into other field/node paths where the producer can prove that relationship; stable asset IDs, generator validation fields and Procedure node/port targets are now covered;
 - extend safe repair guidance beyond the first bounded numeric generator failures only when another producer can provide an equally explicit, non-heuristic repair value;
 - preserve the new previewed semantic WorkspacePlan + recovery-point path for every future automatic repair rather than adding direct-mutation diagnostic actions;
 - preserve the same diagnostic identities and locations through UI, desktop MCP, headless and reconnect/replay paths;

@@ -52,6 +52,8 @@ class WorkspaceReferenceIndexTest {
 		JsonObject values = new JsonObject();
 		values.addProperty("id", UUID.randomUUID().toString());
 		values.add("procedureIr", ir);
+		values.addProperty("procedurexml",
+				"<xml><block type=\"mcitem_all\"><field name=\"value\">minecraft:stone</field></block></xml>");
 		JsonObject generator = new JsonObject();
 		generator.addProperty("id", "fabric-1.21.1");
 		Element procedure = new Element(elementId, "procedure", "caller", "Caller", "valid", "owned",

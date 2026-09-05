@@ -80,6 +80,7 @@ export type ActionHintKind =
   | 'open_asset'
   | 'open_source'
   | 'open_logs'
+  | 'open_procedure_node'
   | 'preview_repair'
   | 'request_permission'
   | 'dismiss';

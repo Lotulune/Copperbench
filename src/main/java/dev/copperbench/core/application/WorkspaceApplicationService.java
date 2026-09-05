@@ -3754,10 +3754,21 @@ public final class WorkspaceApplicationService {
 			JsonObject args = new JsonObject();
 			if (issue.nodeId() != null) args.addProperty("nodeId", issue.nodeId().toString());
 			if (issue.port() != null) args.addProperty("port", issue.port());
+			List<ActionHint> actions;
+			if (issue.nodeId() != null) {
+				JsonObject payload = new JsonObject();
+				payload.addProperty("nodeId", issue.nodeId().toString());
+				if (issue.port() != null) payload.addProperty("port", issue.port());
+				actions = List.of(new ActionHint("open_procedure_node",
+						LocalizedText.of("action.open_procedure_node", "Locate node"), "open_procedure_node",
+						issue.nodeId().toString(), payload));
+			} else {
+				actions = List.of(new ActionHint("open_procedure_element",
+						LocalizedText.of("action.open_element", "Open element"), "open_field", null));
+			}
 			diagnostics.add(new Diagnostic(issue.code(), issue.error() ? UiCore.Severity.ERROR : UiCore.Severity.WARNING,
 					LocalizedText.of("diagnostic." + issue.code().toLowerCase(Locale.ROOT), issue.message(), args),
-					path, elementId, true, List.of(new ActionHint("open_procedure_node",
-							LocalizedText.of("action.open_procedure_node", "Locate node"), "open_field", path))));
+					path, elementId, true, actions));
 		}
 		return List.copyOf(diagnostics);
 	}

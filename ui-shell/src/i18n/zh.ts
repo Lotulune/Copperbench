@@ -203,6 +203,7 @@ export const zh: Record<string, string> = {
   'scenario.validation_failed': '字段校验失败',
   'scenario.compile_diagnostic': '编译诊断定位',
   'scenario.permission_denied': '权限被拒绝',
+  'scenario.procedure_node_diagnostic': 'Procedure 节点诊断',
   'scenario.revision_conflict': '版本并发冲突',
   'scenario.partial_capability': '加载器差异字段',
   'scenario.offline': '离线工作模式',

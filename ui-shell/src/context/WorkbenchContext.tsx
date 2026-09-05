@@ -45,6 +45,13 @@ import { t } from '../i18n';
 
 export type NavView = 'hub' | 'elements' | 'data' | 'assets' | 'history' | 'ai' | 'plugins' | 'tracks' | 'new-workspace' | 'help';
 
+export interface ProcedureFocusRequest {
+  elementId: UUID;
+  nodeId: string;
+  port: string | null;
+  requestId: UUID;
+}
+
 interface WorkbenchContextType {
   state: BridgeState;
   theme: 'dark' | 'light';
@@ -56,6 +63,8 @@ interface WorkbenchContextType {
   setSelectedElementId: (id: UUID | null) => void;
   assetFocusId: string | null;
   setAssetFocusId: (id: string | null) => void;
+  procedureFocusRequest: ProcedureFocusRequest | null;
+  clearProcedureFocusRequest: () => void;
   isTaskDrawerOpen: boolean;
   setIsTaskDrawerOpen: (open: boolean) => void;
   activeTaskId: UUID | null;
@@ -172,6 +181,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [activeView, setActiveView] = useState<NavView>('hub');
   const [selectedElementId, setSelectedElementId] = useState<UUID | null>(null);
   const [assetFocusId, setAssetFocusId] = useState<string | null>(null);
+  const [procedureFocusRequest, setProcedureFocusRequest] = useState<ProcedureFocusRequest | null>(null);
   const [isTaskDrawerOpen, setIsTaskDrawerOpen] = useState(false);
   const [activeTaskId, setActiveTaskId] = useState<UUID | null>(null);
   const [isMaximized, setIsMaximized] = useState(false);
@@ -254,6 +264,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const loadScenario = useCallback((scenarioId: string) => {
     coreBridge.loadScenario?.(scenarioId);
     setSelectedElementId(null);
+    setProcedureFocusRequest(null);
     setIsTaskDrawerOpen(false);
     setActiveTaskId(null);
 
@@ -286,6 +297,8 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     if (!selectedElementId) return null;
     return state.elements.find((e) => e.id === selectedElementId) || null;
   }, [selectedElementId, state.elements]);
+
+  const clearProcedureFocusRequest = useCallback(() => setProcedureFocusRequest(null), []);
 
   const getModElementEditor = useCallback(
     async (elementId: UUID): Promise<ModElementEditorProjection | null> => {
@@ -1117,6 +1130,23 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
               });
           }
           break;
+        case 'open_procedure_node':
+          if (diagnostic.elementId) {
+            const payloadNodeId = typeof action.payload?.nodeId === 'string' ? action.payload.nodeId : null;
+            const nodeId = payloadNodeId || action.target;
+            if (nodeId) {
+              const port = typeof action.payload?.port === 'string' ? action.payload.port : null;
+              setProcedureFocusRequest({
+                elementId: diagnostic.elementId,
+                nodeId,
+                port,
+                requestId: generateUUID()
+              });
+              setSelectedElementId(diagnostic.elementId);
+              setActiveView('elements');
+            }
+          }
+          break;
         case 'open_asset':
           if (action.target) {
             setAssetFocusId(action.target);
@@ -1151,6 +1181,8 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       selectedElement,
       setSelectedElementId,
       assetFocusId,
+      procedureFocusRequest,
+      clearProcedureFocusRequest,
       setAssetFocusId,
       isTaskDrawerOpen,
       setIsTaskDrawerOpen,
@@ -1228,6 +1260,8 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       selectedElementId,
       selectedElement,
       assetFocusId,
+      procedureFocusRequest,
+      clearProcedureFocusRequest,
       isTaskDrawerOpen,
       activeTaskId,
       isMaximized,

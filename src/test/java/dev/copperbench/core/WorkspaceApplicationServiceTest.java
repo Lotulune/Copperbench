@@ -822,6 +822,39 @@ class WorkspaceApplicationServiceTest {
 		}));
 	}
 
+	@Test void procedurePreviewExposesStableNodeAndPortNavigationAction() {
+		Fixture fixture = fixture();
+		RequestContext context = new RequestContext(Actor.UI, PermissionProfile.WORKSPACE);
+		JsonObject initialValues = new JsonObject();
+		initialValues.addProperty("procedurexml",
+				"<xml xmlns=\"https://developers.google.com/blockly/xml\"><block type=\"event_trigger\">"
+						+ "<field name=\"trigger\">no_ext_trigger</field></block></xml>");
+		CommandOutcome created = fixture.service.execute(
+				createTypedCommand(uuid(950), 0, "procedure", "procedure_node_diagnostic", initialValues), context);
+		assertEquals("committed", created.result().status(), created.result().diagnostics().toString());
+		String elementId = created.result().data().getAsJsonObject().getAsJsonObject("element").get("id").getAsString();
+
+		UUID nodeId = uuid(951);
+		JsonArray edits = new JsonArray();
+		edits.add(procedureAddNode(nodeId, "call_procedure", "statement", new JsonObject()));
+		JsonObject previewPayload = new JsonObject();
+		previewPayload.addProperty("elementId", elementId);
+		previewPayload.add("edits", edits);
+		var preview = fixture.service.query(Query.of(uuid(952), WORKSPACE_ID,
+				Operation.PREVIEW_PROCEDURE_CHANGE, previewPayload), context);
+		assertEquals("succeeded", preview.status(), preview.diagnostics().toString());
+		JsonObject diagnostic = preview.data().getAsJsonObject().getAsJsonArray("diagnostics").asList().stream()
+				.map(raw -> raw.getAsJsonObject())
+				.filter(item -> item.get("code").getAsString().equals("PROCEDURE_CALL_TARGET_REQUIRED"))
+				.findFirst().orElseThrow();
+		assertTrue(diagnostic.get("path").getAsString().contains("/nodes/" + nodeId + "/ports/procedureId"));
+		JsonObject action = diagnostic.getAsJsonArray("actions").get(0).getAsJsonObject();
+		assertEquals("open_procedure_node", action.get("kind").getAsString());
+		assertEquals(nodeId.toString(), action.get("target").getAsString());
+		assertEquals(nodeId.toString(), action.getAsJsonObject("payload").get("nodeId").getAsString());
+		assertEquals("procedureId", action.getAsJsonObject("payload").get("port").getAsString());
+	}
+
 	@Test void taskStartAndContentMutationAreOrderedByTheWorkspaceLock() throws Exception {
 		RevisionedWorkspaceStore store = registeredStore();
 		BlockingTaskGateway gateway = new BlockingTaskGateway();

@@ -803,6 +803,27 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 			diagnosticEntries.add(diagnostic);
 		}
 
+		private JsonObject procedureDiagnosticTarget(String path, UUID elementId) {
+			if (path == null) return null;
+			String prefix = "/elements/" + elementId + "/procedureIr/nodes/";
+			if (!path.startsWith(prefix)) return null;
+			String tail = path.substring(prefix.length());
+			int portSeparator = tail.indexOf("/ports/");
+			String nodeId = portSeparator >= 0 ? tail.substring(0, portSeparator) : tail;
+			try {
+				UUID.fromString(nodeId);
+			} catch (IllegalArgumentException exception) {
+				return null;
+			}
+			JsonObject target = new JsonObject();
+			target.addProperty("nodeId", nodeId);
+			if (portSeparator >= 0) {
+				String port = tail.substring(portSeparator + "/ports/".length());
+				if (!port.isBlank() && !port.contains("/")) target.addProperty("port", port);
+			}
+			return target;
+		}
+
 		private void captureJavaCompileDiagnostic(Path executionRoot, String line) {
 			Matcher matcher = JAVA_COMPILE_ERROR.matcher(line == null ? "" : line.trim());
 			if (!matcher.matches())
@@ -909,20 +930,29 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 			JsonArray actions = new JsonArray();
 			if (elementId != null) {
 				String elementPath = "/elements/" + elementId;
-				String fieldTarget = path != null && path.startsWith(elementPath + "/")
+				JsonObject procedureTarget = procedureDiagnosticTarget(path, elementId);
+				String fieldTarget = procedureTarget == null && path != null && path.startsWith(elementPath + "/")
 						? path.substring(elementPath.length()) : null;
 				if (fieldTarget != null && fieldTarget.startsWith("/values/"))
 					fieldTarget = fieldTarget.substring("/values".length());
 				JsonObject locate = new JsonObject();
-				locate.addProperty("id", fieldTarget == null ? "locate_element" : "locate_generator_field");
-				locate.add("label", fieldTarget == null
-						? localized("action.open_element", "Open element")
-						: localized("action.open_field", "Locate invalid field"));
-				locate.addProperty("kind", "open_field");
-				if (fieldTarget == null) locate.add("target", JsonNull.INSTANCE);
-				else locate.addProperty("target", fieldTarget);
+				if (procedureTarget != null) {
+					locate.addProperty("id", "open_procedure_node");
+					locate.add("label", localized("action.open_procedure_node", "Locate node"));
+					locate.addProperty("kind", "open_procedure_node");
+					locate.addProperty("target", procedureTarget.get("nodeId").getAsString());
+					locate.add("payload", procedureTarget);
+				} else {
+					locate.addProperty("id", fieldTarget == null ? "locate_element" : "locate_generator_field");
+					locate.add("label", fieldTarget == null
+							? localized("action.open_element", "Open element")
+							: localized("action.open_field", "Locate invalid field"));
+					locate.addProperty("kind", "open_field");
+					if (fieldTarget == null) locate.add("target", JsonNull.INSTANCE);
+					else locate.addProperty("target", fieldTarget);
+				}
 				actions.add(locate);
-				if (fieldTarget != null && repairValue != null) {
+				if (procedureTarget == null && fieldTarget != null && repairValue != null) {
 					JsonObject change = new JsonObject();
 					change.addProperty("path", fieldTarget);
 					change.add("value", repairValue.deepCopy());
