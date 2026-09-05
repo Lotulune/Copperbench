@@ -56,7 +56,7 @@ class DesktopMcpAgentLoopTest {
 
 	@TempDir Path workspace;
 
-	@Test void directCodeCreationSurfacesCompileVerificationDiagnosticsThroughGetTask() throws Exception {
+	@Test void externalAgentCanFailLocateRepairAndRebuildCodeThroughDesktopMcp() throws Exception {
 		Files.writeString(workspace.resolve("workspace.mcreator"), "{\"name\":\"Code Diagnostic Workspace\"}");
 		RevisionedWorkspaceStore store = new RevisionedWorkspaceStore();
 		JsonObject generator = new JsonObject();
@@ -70,7 +70,7 @@ class DesktopMcpAgentLoopTest {
 		AtomicLong sequence = new AtomicLong(7000);
 		Supplier<UUID> ids = () -> UUID.fromString("00000000-0000-4000-8000-" +
 				String.format("%012d", sequence.getAndIncrement()));
-		FailedCompileBuildGateway tasks = new FailedCompileBuildGateway(ids);
+		RepairLoopBuildGateway tasks = new RepairLoopBuildGateway(ids);
 
 		try (LocalHistoryService history = JGitLocalHistoryService.open(workspace, CLOCK)) {
 			WorkspaceApplicationService service = new WorkspaceApplicationService(store, tasks,
@@ -92,6 +92,7 @@ class DesktopMcpAgentLoopTest {
 				code.addProperty("expectedRevision", 0);
 				JsonObject created = call(endpoint, token, sessionId, 20, "create_mod_element", code);
 				assertEquals("committed", created.get("status").getAsString(), created.toString());
+				String elementId = created.getAsJsonObject("data").getAsJsonObject("element").get("id").getAsString();
 				JsonObject verification = created.getAsJsonObject("data").getAsJsonObject("compileVerification");
 				assertEquals("build_workspace", verification.get("operation").getAsString());
 				assertEquals("accepted", verification.get("status").getAsString());
@@ -107,6 +108,33 @@ class DesktopMcpAgentLoopTest {
 				assertTrue(diagnostics.contains("JAVA_COMPILE_ERROR"), diagnostics);
 				assertTrue(diagnostics.contains("/src/main/java/net/example/Broken.java"), diagnostics);
 				assertTrue(diagnostics.contains("Line 1: cannot find symbol"), diagnostics);
+
+				JsonObject repair = new JsonObject();
+				repair.addProperty("elementId", elementId);
+				JsonObject codeChange = new JsonObject();
+				codeChange.addProperty("path", "/code");
+				codeChange.addProperty("value", "package net.example; public final class Broken { public static void run() { } }");
+				JsonArray changes = new JsonArray();
+				changes.add(codeChange);
+				repair.add("changes", changes);
+				repair.addProperty("expectedRevision", 1);
+				JsonObject repaired = call(endpoint, token, sessionId, 22, "update_mod_element", repair);
+				assertEquals("committed", repaired.get("status").getAsString(), repaired.toString());
+				assertEquals(2, repaired.get("newRevision").getAsLong());
+
+				JsonObject rebuildArguments = new JsonObject();
+				rebuildArguments.addProperty("expectedRevision", 2);
+				JsonObject rebuild = call(endpoint, token, sessionId, 23, "build_workspace", rebuildArguments);
+				assertEquals("accepted", rebuild.get("status").getAsString(), rebuild.toString());
+				String rebuildTaskId = rebuild.getAsJsonObject("task").get("id").getAsString();
+				JsonObject rebuildTaskArguments = new JsonObject();
+				rebuildTaskArguments.addProperty("taskId", rebuildTaskId);
+				rebuildTaskArguments.addProperty("afterLogSequence", 0);
+				JsonObject rebuilt = call(endpoint, token, sessionId, 24, "get_task", rebuildTaskArguments)
+						.getAsJsonObject("data");
+				assertEquals("succeeded", rebuilt.getAsJsonObject("task").get("state").getAsString());
+				assertTrue(rebuilt.getAsJsonArray("logs").toString().contains("BUILD SUCCESSFUL"), rebuilt.toString());
+				assertTrue(rebuilt.getAsJsonArray("diagnostics").isEmpty(), rebuilt.toString());
 			} finally {
 				runtime.close();
 			}
@@ -454,18 +482,20 @@ class DesktopMcpAgentLoopTest {
 		}
 	}
 
-	private static final class FailedCompileBuildGateway implements WorkspaceTaskGateway {
+	private static final class RepairLoopBuildGateway implements WorkspaceTaskGateway {
 		private final Supplier<UUID> ids;
 		private final Map<UUID, JsonObject> tasks = new LinkedHashMap<>();
 		private final Map<UUID, List<JsonObject>> logs = new LinkedHashMap<>();
 		private final Map<UUID, List<JsonObject>> diagnostics = new LinkedHashMap<>();
+		private int starts;
 
-		private FailedCompileBuildGateway(Supplier<UUID> ids) {
+		private RepairLoopBuildGateway(Supplier<UUID> ids) {
 			this.ids = ids;
 		}
 
 		@Override public JsonObject start(UUID workspaceId, Operation operation, JsonObject payload) {
 			assertEquals(Operation.BUILD_WORKSPACE, operation);
+			if (starts++ > 0) return succeededTask();
 			UUID taskId = ids.get();
 			JsonObject task = new JsonObject();
 			task.addProperty("id", taskId.toString());
@@ -499,6 +529,33 @@ class DesktopMcpAgentLoopTest {
 			message.add("args", new JsonObject());
 			diagnostic.add("message", message);
 			diagnostics.put(taskId, List.of(diagnostic));
+			return task.deepCopy();
+		}
+
+		private JsonObject succeededTask() {
+			UUID taskId = ids.get();
+			JsonObject task = new JsonObject();
+			task.addProperty("id", taskId.toString());
+			task.addProperty("kind", "build");
+			task.addProperty("state", "succeeded");
+			task.addProperty("cancellable", false);
+			task.addProperty("progress", 1.0);
+			JsonObject stage = new JsonObject();
+			stage.addProperty("key", "task.completed");
+			stage.addProperty("fallback", "Build completed");
+			stage.add("args", new JsonObject());
+			task.add("stage", stage);
+			task.addProperty("startedAt", CLOCK.instant().toString());
+			task.addProperty("completedAt", CLOCK.instant().toString());
+			JsonObject counts = new JsonObject();
+			counts.addProperty("error", 0);
+			counts.addProperty("warning", 0);
+			counts.addProperty("info", 0);
+			task.add("diagnostics", counts);
+			tasks.put(taskId, task);
+			logs.put(taskId, List.of(CompletedBuildGateway.log(1, "Gradle build started"),
+					CompletedBuildGateway.log(2, "BUILD SUCCESSFUL")));
+			diagnostics.put(taskId, List.of());
 			return task.deepCopy();
 		}
 

@@ -13,14 +13,16 @@ The historical Stage 9–11 evidence remains authoritative for the Beta 4 baseli
 
 ## Next product work
 
-The active roadmap remains `PRD-NEXT.md`. Stage 12 is closed and Stage 13 is now active. The Procedure 2.0 development line now covers graph discovery/navigation, Core-owned variable/resource/call symbols, readable inbound/outbound relationships, protected variable rename, reusable-logic extraction, multi-caller Procedure-call and resource replacement, circular-call prevention, signed affected-object/field plan review, the shared UI/MCP refactor planner, the 500-node Procedure gate, and the 2,000-element / 10,000-reference index gate. See [Stage 13 Procedure 2.0 foundation evidence](./testing/stage13-procedure-productivity-2026-09-05.md).
+The active roadmap remains `PRD-NEXT.md`. Stage 12 is closed and Stage 13 is now active. `FR-PRODUCTIVITY-01 Procedure Workbench 2.0` is complete on the current development line: graph discovery/navigation, Core-owned variable/resource/call symbols and readable relationships, node-level validation/location, protected variable/extraction/call/resource refactors, signed affected-object/field plan review, shared UI/MCP Core semantics, the 500-node Procedure gate, the 2,000-element / 10,000-reference index gate, and a fresh-export failure → locate → fix → rebuild replay all have executable evidence. See [Stage 13 Procedure 2.0 closure evidence](./testing/stage13-procedure-productivity-2026-09-05.md).
 
 The remaining Stage 13 work is:
 
-1. **Stage 13 — creator productivity**: close the remaining installed-product Procedure failure → locate → fix → rebuild evidence, then continue with Asset Center, Diagnostics 2.0, history/migration/refactor workflows and Workspace Health.
-2. **Stage 14 — advanced developer / AI-native workflows**: IDE bridge, AI Plan Review, higher-level MCP workflows, templates and extension-developer entry points.
-3. **Stage 15 — Linux formal platform support**: Linux x86_64 packaging, bundled JDK/JCEF, desktop integration, Gradle/Run Client, desktop MCP/external-Agent parity, clean-Linux VM validation, and release/provenance closure.
-4. **Continuous maintenance**: Minecraft/loader/generator/toolchain compatibility and regression coverage.
+1. **Stage 13 / `FR-PRODUCTIVITY-02` — Asset Center**: unify asset search/filter/preview, reverse usage, missing/invalid/unused asset diagnostics, safe import, Blockbench refresh, and reference-safe rename/move.
+2. **Stage 13 / `FR-PRODUCTIVITY-03` — Diagnostics 2.0**: map build/generator/resource/migration/MCP failures to stable IDs and concrete element/field/Procedure-node/asset locations with actionable repair guidance.
+3. **Stage 13 / `FR-PRODUCTIVITY-04`–`06`**: deepen history/recovery UX, Migration / Refactor Workbench, and Workspace Health.
+4. **Stage 14 — advanced developer / AI-native workflows**: IDE bridge, AI Plan Review, higher-level MCP workflows, templates and extension-developer entry points.
+5. **Stage 15 — Linux formal platform support**: Linux x86_64 packaging, bundled JDK/JCEF, desktop integration, Gradle/Run Client, desktop MCP/external-Agent parity, clean-Linux VM validation, and release/provenance closure.
+6. **Continuous maintenance**: Minecraft/loader/generator/toolchain compatibility and regression coverage.
 
 ## Non-blocking follow-up
 
