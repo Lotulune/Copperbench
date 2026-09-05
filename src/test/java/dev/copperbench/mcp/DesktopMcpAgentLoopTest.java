@@ -108,6 +108,14 @@ class DesktopMcpAgentLoopTest {
 				assertTrue(diagnostics.contains("JAVA_COMPILE_ERROR"), diagnostics);
 				assertTrue(diagnostics.contains("/src/main/java/net/example/Broken.java"), diagnostics);
 				assertTrue(diagnostics.contains("Line 1: cannot find symbol"), diagnostics);
+				JsonObject taskFailure = task.getAsJsonArray("diagnostics").asList().stream()
+						.map(value -> value.getAsJsonObject())
+						.filter(value -> value.get("code").getAsString().equals("FABRIC_BUILD_FAILED"))
+						.findFirst().orElseThrow();
+				JsonObject failureLogs = taskFailure.getAsJsonArray("actions").get(0).getAsJsonObject();
+				assertEquals(taskId, failureLogs.getAsJsonObject("payload").get("taskId").getAsString());
+				assertEquals(taskFailure.getAsJsonObject("message").getAsJsonObject("args").get("failureId").getAsString(),
+						failureLogs.get("target").getAsString());
 
 				JsonObject repair = new JsonObject();
 				repair.addProperty("elementId", elementId);
@@ -511,7 +519,7 @@ class DesktopMcpAgentLoopTest {
 			task.addProperty("startedAt", CLOCK.instant().toString());
 			task.addProperty("completedAt", CLOCK.instant().toString());
 			JsonObject counts = new JsonObject();
-			counts.addProperty("error", 1);
+			counts.addProperty("error", 2);
 			counts.addProperty("warning", 0);
 			counts.addProperty("info", 0);
 			task.add("diagnostics", counts);
@@ -528,7 +536,35 @@ class DesktopMcpAgentLoopTest {
 			message.addProperty("fallback", "Line 1: cannot find symbol");
 			message.add("args", new JsonObject());
 			diagnostic.add("message", message);
-			diagnostics.put(taskId, List.of(diagnostic));
+			JsonObject taskFailure = new JsonObject();
+			taskFailure.addProperty("code", "FABRIC_BUILD_FAILED");
+			taskFailure.addProperty("severity", "error");
+			taskFailure.add("path", com.google.gson.JsonNull.INSTANCE);
+			taskFailure.add("elementId", com.google.gson.JsonNull.INSTANCE);
+			taskFailure.addProperty("recoverable", true);
+			JsonObject failureArgs = new JsonObject();
+			failureArgs.addProperty("failureId", "failure-mcp-build-1");
+			JsonObject failureMessage = new JsonObject();
+			failureMessage.addProperty("key", "diagnostic.workspace_task_failed");
+			failureMessage.addProperty("fallback", "Fabric build failed.");
+			failureMessage.add("args", failureArgs);
+			taskFailure.add("message", failureMessage);
+			JsonObject failureAction = new JsonObject();
+			failureAction.addProperty("id", "open_logs");
+			failureAction.addProperty("kind", "open_logs");
+			failureAction.addProperty("target", "failure-mcp-build-1");
+			JsonObject actionLabel = new JsonObject();
+			actionLabel.addProperty("key", "action.open_logs");
+			actionLabel.addProperty("fallback", "View logs");
+			actionLabel.add("args", new JsonObject());
+			failureAction.add("label", actionLabel);
+			JsonObject failurePayload = new JsonObject();
+			failurePayload.addProperty("taskId", taskId.toString());
+			failureAction.add("payload", failurePayload);
+			JsonArray failureActions = new JsonArray();
+			failureActions.add(failureAction);
+			taskFailure.add("actions", failureActions);
+			diagnostics.put(taskId, List.of(diagnostic, taskFailure));
 			return task.deepCopy();
 		}
 

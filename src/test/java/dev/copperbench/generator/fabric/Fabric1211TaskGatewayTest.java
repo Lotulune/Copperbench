@@ -230,6 +230,14 @@ class Fabric1211TaskGatewayTest {
 			assertTrue(diagnostics.contains(expectedJdkPath));
 			assertTrue(diagnostics.contains("jdk21_win_64"));
 			assertTrue(diagnostics.contains("not-a-java-home"));
+			UUID taskId = UUID.fromString(projection.getAsJsonObject("task").get("id").getAsString());
+			JsonObject failureDiagnostic = projection.getAsJsonArray("diagnostics").get(0).getAsJsonObject();
+			JsonObject openLogs = failureDiagnostic.getAsJsonArray("actions").get(0).getAsJsonObject();
+			assertEquals("open_logs", openLogs.get("kind").getAsString());
+			assertEquals(taskId.toString(), openLogs.getAsJsonObject("payload").get("taskId").getAsString());
+			assertFalse(taskId.toString().equals(openLogs.get("target").getAsString()));
+			assertEquals(failureDiagnostic.getAsJsonObject("message").getAsJsonObject("args").get("failureId").getAsString(),
+					openLogs.get("target").getAsString());
 			assertTrue(projection.getAsJsonArray("logs").toString().contains("No usable Java home found"));
 		} finally {
 			if (previousJavaHome == null)
@@ -267,6 +275,61 @@ class Fabric1211TaskGatewayTest {
 			JsonObject runClient = startAndAwait(service, ids, Operation.RUN_CLIENT);
 			assertEquals("succeeded", runClient.getAsJsonObject("task").get("state").getAsString());
 			assertTrue(runClient.getAsJsonArray("logs").toString().contains("COPPERBENCH_STAGE3_READY"));
+		}
+	}
+
+	@Test void runtimeProcessFailuresExposeExitAndReadinessFactsWithoutGuessingElements() throws Exception {
+		RevisionedWorkspaceStore store = new RevisionedWorkspaceStore();
+		store.register(Fabric1211GoldenWorkspace.create());
+		AtomicLong sequence = new AtomicLong(610);
+		Supplier<UUID> ids = () -> UUID.fromString("00000000-0000-4000-8000-" +
+				String.format("%012d", sequence.getAndIncrement()));
+		Fabric1211ProcessRunner runner = (root, arguments, timeout, output) -> {
+			if (arguments.equals(List.of("runClient")))
+				return new Fabric1211ProcessRunner.ProcessResult(7, false);
+			if (arguments.equals(List.of("runServer")))
+				return new Fabric1211ProcessRunner.ProcessResult(0, false);
+			throw new AssertionError("Unexpected runtime task: " + arguments);
+		};
+		try (Fabric1211WorkspaceTaskGateway tasks = new Fabric1211WorkspaceTaskGateway(store,
+				ignored -> generatedWorkspace, Path.of(".").toAbsolutePath().normalize(), CLOCK, ids, runner)) {
+			WorkspaceApplicationService service = new WorkspaceApplicationService(store, tasks, CLOCK, ids);
+
+			JsonObject client = startAndAwait(service, ids, Operation.RUN_CLIENT);
+			assertEquals("failed", client.getAsJsonObject("task").get("state").getAsString());
+			JsonObject clientDiagnostic = client.getAsJsonArray("diagnostics").asList().stream()
+					.map(value -> value.getAsJsonObject())
+					.filter(value -> value.get("code").getAsString().equals("FABRIC_RUN_CLIENT_EXITED"))
+					.findFirst().orElseThrow();
+			JsonObject clientArgs = clientDiagnostic.getAsJsonObject("message").getAsJsonObject("args");
+			assertEquals(7, clientArgs.get("exitCode").getAsInt());
+			assertEquals("run_client", clientArgs.get("task").getAsString());
+			assertTrue(!clientDiagnostic.has("path") || clientDiagnostic.get("path").isJsonNull());
+			assertTrue(!clientDiagnostic.has("elementId") || clientDiagnostic.get("elementId").isJsonNull());
+			JsonObject clientLogs = clientDiagnostic.getAsJsonArray("actions").get(0).getAsJsonObject();
+			assertEquals(client.getAsJsonObject("task").get("id").getAsString(),
+					clientLogs.getAsJsonObject("payload").get("taskId").getAsString());
+
+			JsonObject serverPayload = new JsonObject();
+			serverPayload.addProperty("clientMutationId", ids.get().toString());
+			serverPayload.addProperty("scope", "workspace");
+			serverPayload.addProperty("userApproved", true);
+			var serverAccepted = service.execute(Command.of(ids.get(), WORKSPACE_ID, 4,
+					Operation.RUN_SERVER, serverPayload), UI);
+			assertEquals("accepted", serverAccepted.result().status());
+			UUID serverTaskId = UUID.fromString(serverAccepted.result().task().getAsJsonObject().get("id").getAsString());
+			JsonObject server = awaitTask(service, serverTaskId);
+			assertEquals("failed", server.getAsJsonObject("task").get("state").getAsString());
+			JsonObject readinessDiagnostic = server.getAsJsonArray("diagnostics").asList().stream()
+					.map(value -> value.getAsJsonObject())
+					.filter(value -> value.get("code").getAsString().equals("FABRIC_RUN_SERVER_NOT_READY"))
+					.findFirst().orElseThrow();
+			assertEquals("diagnostic.task_readiness_not_reached",
+					readinessDiagnostic.getAsJsonObject("message").get("key").getAsString());
+			assertEquals(0, readinessDiagnostic.getAsJsonObject("message").getAsJsonObject("args")
+					.get("exitCode").getAsInt());
+			assertEquals(serverTaskId.toString(), readinessDiagnostic.getAsJsonArray("actions").get(0).getAsJsonObject()
+					.getAsJsonObject("payload").get("taskId").getAsString());
 		}
 	}
 

@@ -174,10 +174,13 @@ test.describe('UI-Core v1.0 Contract Scenarios', () => {
     await expect(page.getByText('RUN_CLIENT 任务失败').first()).toBeVisible();
     await expect(page.getByText('意外退出').first()).toBeVisible();
 
-    // Open Client Logs action jumps straight into the task drawer
-    await page.click('[data-testid="diag-action-open_client_logs"]');
+    // The task-level entry point opens the drawer and the payload taskId keeps the runtime diagnostic attached
+    // even though open_logs.target remains the native application-log failureId.
+    await page.click('[data-testid="open-failed-task-logs-btn"]');
     await expect(page.locator('[data-testid="task-drawer"]')).toBeVisible();
     await expect(page.getByText('RUN_CLIENT').first()).toBeVisible();
+    await expect(page.locator('[data-testid="task-diagnostic-FABRIC_RUN_CLIENT_EXITED"]')).toBeVisible();
+    await expect(page.locator('[data-testid="task-diag-action-open_client_logs"]')).toBeVisible();
   });
 
   test('scenario: element-created lists the committed block', async ({ page }) => {

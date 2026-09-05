@@ -102,6 +102,19 @@ Diagnostics 2.0 now has its first repair workflow, deliberately limited to valid
 
 The repair rule is stricter than the location rule: Copperbench may offer a location whenever ownership is proven, but it offers `preview_repair` only when the producer supplies an explicit replacement value. No diagnostic message parsing or heuristic target inference is used.
 
+## Seventh slice: runtime task identity and proven process facts
+
+Diagnostics 2.0 now preserves task ownership for generic runtime failures and distinguishes runtime facts that the process boundary can prove directly:
+
+- generic task failures keep `open_logs.target = failureId`, preserving the native application-log search contract, while the action payload now carries the stable `taskId` used by UI/MCP task projections;
+- the real JCEF bridge and Mock bridge group diagnostics by `payload.taskId` first and retain the legacy target-as-task fallback for older events;
+- non-zero `runClient`, `runDatagen` and `runGameTest` results are emitted as loader-specific `*_EXITED` diagnostics with the exact exit code;
+- `runServer` distinguishes a non-zero process exit from `exitCode=0` without the readiness marker (`*_RUN_SERVER_NOT_READY`);
+- these runtime diagnostics deliberately keep element/path ownership unset and expose logs only; no Mod Element, field or repair is inferred from process status alone;
+- exceptions that do not expose a deterministic `ProcessResult` fact remain on the existing generic task-failure path instead of being mislabeled.
+
+This slice also aligns external MCP and reconnect/replay behavior with the desktop UI: a task diagnostic can remain searchable by failure ID while still belonging unambiguously to one task.
+
 ## Verification
 
 - `Fabric1211TaskGatewayTest.failedBuildExtractsJavaCompilerErrorsIntoStructuredDiagnostics` — passed; a Procedure compiler error resolves to stable element ID `00000000-0000-4000-8000-000000000004`, preserves path/line/message, exposes element-location/generated-source/task-log actions, returns its bounded compiler-time source snapshot even after the live file is rewritten, and rejects a different existing generated Java file that is not referenced by the task diagnostic.
@@ -129,13 +142,20 @@ The repair rule is stricter than the location rule: Copperbench may offer a loca
 - full `npx playwright test e2e/scenarios.spec.ts` — `30/30` passed across Chromium and compact-1366 after adding the safe-repair scenario.
 - full `npx playwright test e2e/accessibility.spec.ts` — `22/22` passed across Chromium and compact-1366, including the >=32px interaction-target baseline used by the new repair controls.
 - the final UI build passed TypeScript/Vite and the Chinese localization gate at `220/220` referenced keys.
+- `Fabric1211TaskGatewayTest.runtimeProcessFailuresExposeExitAndReadinessFactsWithoutGuessingElements` — passed; `runClient` exit `7` emits `FABRIC_RUN_CLIENT_EXITED` with `exitCode=7`, while an otherwise successful server process without readiness emits `FABRIC_RUN_SERVER_NOT_READY`; neither diagnostic invents element ownership.
+- `Fabric1211TaskGatewayTest.missingBundledJdkBecomesStructuredTaskDiagnostic` — passed with the generic failure action retaining the failure ID target and carrying the real task ID in its payload.
+- the full `Fabric1211TaskGatewayTest` + `DesktopMcpAgentLoopTest` run — `BUILD SUCCESSFUL`; existing compile, export, missing-JDK, datagen, safe-repair and MCP fail/locate/repair/rebuild behavior remained green.
+- `npm test` in `ui-core` — `20/20` passed after updating the canonical external-process scenario to the production-shaped task/failure identity contract.
+- `npx playwright test e2e/scenarios.spec.ts --grep external-process-exited` — `2/2` passed across Chromium and compact-1366; the runtime diagnostic is visible inside the correct failed-task drawer even though the log target remains a failure ID.
+- the final full `npx playwright test e2e/scenarios.spec.ts` run — `30/30` passed; the final accessibility run — `22/22` passed.
+- the final runtime-slice UI build passed TypeScript/Vite and the Chinese localization gate at `221/221` referenced keys.
 - `git -c core.whitespace=cr-at-eol diff --check` — passed before evidence finalization.
 
 ## Remaining `FR-PRODUCTIVITY-03` work
 
 This slice does not close Diagnostics 2.0. Remaining work includes:
 
-- extend the stable-location model to remaining deterministic generator/runtime and MCP failure classes where ownership can be proven; resource, migration and generator pre-validation locations are now covered;
+- extend the stable-location model to remaining deterministic generator/runtime and MCP failure classes where ownership can be proven; resource, migration, generator pre-validation, task-level process exits/readiness and generic task identity are now covered;
 - deepen remaining element locations into Procedure node IDs or other field paths where the producer can prove that relationship; stable asset IDs and generator validation fields are now covered;
 - extend safe repair guidance beyond the first bounded numeric generator failures only when another producer can provide an equally explicit, non-heuristic repair value;
 - preserve the new previewed semantic WorkspacePlan + recovery-point path for every future automatic repair rather than adding direct-mutation diagnostic actions;

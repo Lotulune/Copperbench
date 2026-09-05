@@ -505,8 +505,13 @@ export class JcefCoreBridge implements CoreBridge {
     const grouped: BridgeState['taskDiagnostics'] = {};
     for (const diagnostic of diagnostics) {
       for (const action of diagnostic.actions) {
-        if (action.kind !== 'open_logs' || !action.target || !this.state.tasks[action.target]) continue;
-        grouped[action.target] = [...(grouped[action.target] ?? []), diagnostic];
+        if (action.kind !== 'open_logs') continue;
+        const payloadTaskId = typeof action.payload?.taskId === 'string' ? action.payload.taskId : null;
+        const taskId = payloadTaskId && this.state.tasks[payloadTaskId]
+          ? payloadTaskId
+          : action.target && this.state.tasks[action.target] ? action.target : null;
+        if (!taskId) continue;
+        grouped[taskId] = [...(grouped[taskId] ?? []), diagnostic];
       }
     }
     return grouped;
