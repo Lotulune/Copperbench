@@ -128,6 +128,29 @@ test.describe('U3 asset browser', () => {
     }
   });
 
+  test('routes native dropped-file grants into the same batch preview without exposing file paths', async ({ page }) => {
+    await expect(page.getByTestId('asset-drop-hint')).toContainText('拖放');
+    await page.evaluate(() => {
+      window.dispatchEvent(new CustomEvent('copperbench:asset-drop', {
+        detail: {
+          grants: [
+            { id: 'drop-grant-1', fileName: 'dropped_panel.png', size: 1024, expiresAt: '2026-09-05T18:00:00Z' },
+            { id: 'drop-grant-2', fileName: 'dropped_icon.png', size: 2048, expiresAt: '2026-09-05T18:00:00Z' }
+          ]
+        }
+      }));
+    });
+
+    await expect(page.getByTestId('asset-batch-import-review')).toBeVisible();
+    await expect(page.getByTestId('asset-batch-item-0')).toContainText('dropped_panel.png');
+    await expect(page.getByTestId('asset-batch-item-1')).toContainText('dropped_icon.png');
+    await expect(page.getByTestId('asset-batch-target-0')).toHaveValue(
+      'assets/coppertrails/textures/imported/dropped_panel.png'
+    );
+    await expect(page.getByTestId('asset-batch-preview-summary')).toBeVisible();
+    await expect(page.getByTestId('asset-batch-create-count')).toHaveText('2');
+  });
+
   test('reviews exact reference rewrites before a reference-safe asset move', async ({ page }) => {
     await page.getByTestId('asset-category-texture').click();
     await page.getByTestId('asset-move-button').click();

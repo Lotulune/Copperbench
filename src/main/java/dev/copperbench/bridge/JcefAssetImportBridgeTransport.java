@@ -22,9 +22,20 @@ import org.cef.callback.CefQueryCallback;
 import org.cef.handler.CefMessageRouterHandlerAdapter;
 
 import javax.swing.SwingUtilities;
+import java.awt.Component;
+import java.awt.GraphicsEnvironment;
 import java.awt.Window;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DropTarget;
+import java.awt.dnd.DropTargetAdapter;
+import java.awt.dnd.DropTargetDragEvent;
+import java.awt.dnd.DropTargetDropEvent;
 import java.io.Closeable;
 import java.io.File;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -33,6 +44,7 @@ public final class JcefAssetImportBridgeTransport extends CefMessageRouterHandle
 
 	private static final Gson JSON = new Gson();
 	public static final String QUERY_PREFIX = "copperbench:asset-import:";
+	public static final String DROP_EVENT = "copperbench:asset-drop";
 	private static final String[] EXTENSIONS = { ".png", ".jpg", ".jpeg", ".json", ".bbmodel", ".ogg",
 			".wav", ".mcmeta", ".zip", ".lang" };
 
@@ -43,6 +55,9 @@ public final class JcefAssetImportBridgeTransport extends CefMessageRouterHandle
 	private final CefMessageRouter router;
 	private final WebView.PageLoadListener loadStartListener;
 	private final Runnable closeListener;
+	private final Component dropComponent;
+	private final DropTarget previousDropTarget;
+	private final DropTarget assetDropTarget;
 	private final AtomicBoolean closed = new AtomicBoolean(false);
 
 	private JcefAssetImportBridgeTransport(WebView webView, Window owner, WorkspaceApplicationService service) {
@@ -56,6 +71,28 @@ public final class JcefAssetImportBridgeTransport extends CefMessageRouterHandle
 		this.router.addHandler(this, false);
 		this.webView.addLoadStartListener(loadStartListener);
 		this.webView.addCloseListener(closeListener);
+		if (!GraphicsEnvironment.isHeadless()) {
+			this.dropComponent = expectedBrowser.getUIComponent();
+			this.previousDropTarget = dropComponent.getDropTarget();
+			this.assetDropTarget = new DropTarget(dropComponent, DnDConstants.ACTION_COPY,
+					new DropTargetAdapter() {
+						@Override public void dragEnter(DropTargetDragEvent event) {
+							processDrag(event);
+						}
+
+						@Override public void dragOver(DropTargetDragEvent event) {
+							processDrag(event);
+						}
+
+						@Override public void drop(DropTargetDropEvent event) {
+							handleDrop(event);
+						}
+					}, true);
+		} else {
+			this.dropComponent = null;
+			this.previousDropTarget = null;
+			this.assetDropTarget = null;
+		}
 		installHost();
 	}
 
@@ -66,6 +103,48 @@ public final class JcefAssetImportBridgeTransport extends CefMessageRouterHandle
 
 	private void installHost() {
 		if (!closed.get()) webView.executeScriptAsync(generateBootstrapScript());
+	}
+
+	private void processDrag(DropTargetDragEvent event) {
+		if (!closed.get() && event.isDataFlavorSupported(DataFlavor.javaFileListFlavor))
+			event.acceptDrag(DnDConstants.ACTION_COPY);
+		else event.rejectDrag();
+	}
+
+	private void handleDrop(DropTargetDropEvent event) {
+		if (closed.get() || !event.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
+			event.rejectDrop();
+			return;
+		}
+		boolean complete = false;
+		try {
+			event.acceptDrop(DnDConstants.ACTION_COPY);
+			List<?> dropped = (List<?>) event.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
+			List<Path> paths = new ArrayList<>(dropped.size());
+			for (Object item : dropped) {
+				if (!(item instanceof File file))
+					throw new IllegalArgumentException("Dropped value is not a file");
+				paths.add(file.toPath());
+			}
+			if (paths.isEmpty()) throw new IllegalArgumentException("No files were dropped");
+			List<WorkspaceApplicationService.AssetImportSelectionGrant> grants = service.grantAssetImportSources(paths);
+			publishDroppedSources(grants);
+			complete = true;
+		} catch (Exception ignored) {
+			// The browser receives no external path or raw drop payload on failure. A rejected drop can be retried
+			// through the native multi-select action, which uses the same grant boundary.
+		} finally {
+			event.dropComplete(complete);
+		}
+	}
+
+	private void publishDroppedSources(List<WorkspaceApplicationService.AssetImportSelectionGrant> grants) {
+		if (!closed.get() && !grants.isEmpty()) webView.executeScriptAsync(generateDroppedSourcesScript(grants));
+	}
+
+	static String generateDroppedSourcesScript(List<WorkspaceApplicationService.AssetImportSelectionGrant> grants) {
+		return "window.dispatchEvent(new CustomEvent(%s, { detail: { grants: %s } }));"
+				.formatted(JSON.toJson(DROP_EVENT), JSON.toJson(grants));
 	}
 
 	@Override public boolean onQuery(CefBrowser browser, CefFrame frame, long queryId, String request,
@@ -166,6 +245,11 @@ public final class JcefAssetImportBridgeTransport extends CefMessageRouterHandle
 
 	@Override public void close() {
 		if (!closed.compareAndSet(false, true)) return;
+		if (assetDropTarget != null) {
+			assetDropTarget.setActive(false);
+			if (dropComponent != null && dropComponent.getDropTarget() == assetDropTarget)
+				dropComponent.setDropTarget(previousDropTarget);
+		}
 		webView.removeLoadStartListener(loadStartListener);
 		webView.removeCloseListener(closeListener);
 		try {

@@ -251,6 +251,12 @@ export const AssetBrowserView: React.FC = () => {
     }
   };
 
+  useEffect(() => assetImportBridge.subscribeDroppedSources((grants) => {
+    const namespace = assetNamespace(assets);
+    const targets = grants.map((grant) => defaultImportTarget(grant.fileName, namespace));
+    void runBatchImportPreview(grants, targets);
+  }), [assets, previewAssetImportBatch]);
+
   const runBatchImportPreview = async (grants: AssetImportSelectionGrant[], targetRelativePaths: string[]) => {
     setBatchImportReview({ grants, targetRelativePaths, preview: null, busy: true, error: null });
     try {
@@ -586,6 +592,7 @@ export const AssetBrowserView: React.FC = () => {
                 <PackageOpen size={12} aria-hidden="true" />
                 <span>批量导入</span>
               </button>
+              <span className="asset-drop-hint" data-testid="asset-drop-hint">或将资产文件拖放到窗口</span>
             </div>
           </div>
 
