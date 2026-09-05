@@ -49,6 +49,11 @@ class WorkspacePlanEngineTest {
 		assertEquals(2, plan.get("operationCount").getAsInt());
 		assertEquals(2, plan.getAsJsonArray("semanticDiff").size());
 		assertEquals(2, plan.getAsJsonArray("changedPaths").size());
+		assertEquals(2, plan.getAsJsonObject("review").getAsJsonObject("summary")
+				.get("affectedObjectCount").getAsInt());
+		assertEquals("multi_object", plan.getAsJsonObject("review").getAsJsonObject("summary")
+				.get("scope").getAsString());
+		assertEquals(1, plan.getAsJsonObject("review").getAsJsonArray("operationGroups").size());
 		assertNotEquals(plan.getAsJsonArray("operations").get(0).getAsJsonObject().get("plannedId").getAsString(),
 				plan.getAsJsonArray("operations").get(1).getAsJsonObject().get("plannedId").getAsString());
 
@@ -76,6 +81,50 @@ class WorkspacePlanEngineTest {
 		assertEquals(1, fixture.history().created.size());
 		assertEquals(1, fixture.gateway().planCalls);
 		assertEquals(8, fixture.store().read(WORKSPACE_ID).orElseThrow().revision());
+	}
+
+	@Test void batchProcedureResourceReplacementUpdatesMultipleCallersAsOneProtectedRevision() {
+		Fixture fixture = fixture(false);
+		RequestContext ui = new RequestContext(Actor.UI, PermissionProfile.WORKSPACE);
+		String resourceXml = "<xml xmlns=\"https://developers.google.com/blockly/xml\">"
+				+ "<block type=\"event_trigger\"><field name=\"trigger\">no_ext_trigger</field></block>"
+				+ "<block type=\"mcitem_all\"><field name=\"value\">minecraft:stone</field></block></xml>";
+		String firstCallerId = createProcedure(fixture, ui, 7, 90, "first_resource_user", resourceXml);
+		String secondCallerId = createProcedure(fixture, ui, 8, 91, "second_resource_user", resourceXml);
+
+		JsonObject request = new JsonObject();
+		request.addProperty("kind", "replace_resource_target");
+		request.addProperty("expectedRevision", 9);
+		request.addProperty("idempotencyKey", "replace-stone-resource");
+		request.addProperty("sourceResource", "minecraft:stone");
+		request.addProperty("targetResource", "minecraft:diamond");
+		var planned = fixture.service().query(Query.of(uuid(92), WORKSPACE_ID,
+				Operation.PLAN_PROCEDURE_REFACTOR, request), ui);
+		assertEquals("succeeded", planned.status(), planned.diagnostics().toString());
+		JsonObject plan = planned.data().getAsJsonObject();
+		assertEquals(2, plan.get("operationCount").getAsInt());
+		assertTrue(plan.get("requireRecoveryPoint").getAsBoolean());
+		assertEquals(2, plan.getAsJsonObject("review").getAsJsonObject("summary")
+				.get("affectedElementCount").getAsInt());
+		assertTrue(plan.getAsJsonObject("review").getAsJsonArray("affectedObjects").asList().stream()
+				.allMatch(raw -> raw.getAsJsonObject().getAsJsonArray("changedProperties").asList().stream()
+						.anyMatch(path -> path.getAsString().equals("/values/procedureIr"))));
+
+		var applied = fixture.service().execute(applyCommand(93, 9, plan), ui);
+		assertEquals("committed", applied.result().status(), applied.result().diagnostics().toString());
+		assertEquals(10, applied.result().newRevision());
+		assertEquals(1, fixture.history().created.size());
+		assertEquals(1, fixture.gateway().planCalls);
+		assertEquals(plan.getAsJsonObject("review"), applied.result().data().getAsJsonObject().getAsJsonObject("review"));
+
+		ProcedureIrCodec codec = new ProcedureIrCodec();
+		WorkspaceState after = fixture.store().read(WORKSPACE_ID).orElseThrow();
+		for (String callerId : List.of(firstCallerId, secondCallerId)) {
+			Element caller = after.element(UUID.fromString(callerId));
+			ProcedureIr.Node resource = codec.read(caller.values(), caller.id()).nodes().stream()
+					.filter(node -> node.type().equals("mcitem_all")).findFirst().orElseThrow();
+			assertEquals("minecraft:diamond", resource.fields().get("value").getAsString());
+		}
 	}
 
 	@Test void planSimulationHonorsOperationOrderAndRejectsInvalidSecondStep() {
@@ -444,6 +493,16 @@ class WorkspacePlanEngineTest {
 		assertEquals(7, fixture.store().read(WORKSPACE_ID).orElseThrow().revision());
 		assertEquals(0, fixture.gateway().planCalls);
 		assertEquals(0, fixture.history().created.size());
+
+		JsonObject reviewTamper = plan.deepCopy();
+		reviewTamper.getAsJsonObject("review").getAsJsonObject("summary").addProperty("affectedObjectCount", 99);
+		JsonObject reviewPreviewPayload = new JsonObject();
+		reviewPreviewPayload.add("plan", reviewTamper);
+		var reviewPreview = fixture.service().query(Query.of(uuid(54), WORKSPACE_ID,
+				Operation.PREVIEW_WORKSPACE_PLAN, reviewPreviewPayload), MCP);
+		assertEquals("failed", reviewPreview.status());
+		assertTrue(reviewPreview.diagnostics().stream().anyMatch(diagnostic ->
+				"WORKSPACE_PLAN_INTEGRITY_FAILED".equals(diagnostic.code())));
 
 		JsonObject protectedPayload = planPayload(7, "protected-tamper-plan", createElement("item", "protected_item"));
 		protectedPayload.addProperty("requireRecoveryPoint", true);

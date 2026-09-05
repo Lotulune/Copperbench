@@ -440,6 +440,11 @@ public final class ProcedureIrCodec {
 			kind = "procedure";
 			name = ProcedureIr.string(node.fields(), "procedure", "");
 			target = ProcedureIr.string(node.fields(), "procedureId", name);
+		} else if (node.type().equals("mcitem_all") || node.type().equals("mcitem_allblocks")) {
+			kind = "resource";
+			name = ProcedureIr.string(node.fields(), "value", "");
+			dataType = "itemstack";
+			target = name;
 		} else if (node.type().contains("from_deps") || node.type().startsWith("coord_")) {
 			kind = "context";
 			name = node.type();

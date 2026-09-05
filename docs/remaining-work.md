@@ -13,11 +13,11 @@ The historical Stage 9–11 evidence remains authoritative for the Beta 4 baseli
 
 ## Next product work
 
-The active roadmap remains `PRD-NEXT.md`. Stage 12 is closed and Stage 13 is now active. The Procedure 2.0 foundation plus three protected semantic-refactor slices are implemented on the Stage 13 development line: category/recent-node discovery, live graph search/navigation, selected-node location, Core-owned variable/resource/call symbol projection, debounced Core validation previews, node-level diagnostic jumps, stable Registry/Procedure identities, recovery-protected workspace-variable rename, reusable-logic extraction, multi-caller Procedure target replacement with circular-call prevention, the shared UI/MCP high-level refactor planner, and the existing 500-node Procedure scale gate all have regression coverage. See [Stage 13 Procedure 2.0 foundation evidence](./testing/stage13-procedure-productivity-2026-09-05.md).
+The active roadmap remains `PRD-NEXT.md`. Stage 12 is closed and Stage 13 is now active. The Procedure 2.0 development line now covers graph discovery/navigation, Core-owned variable/resource/call symbols, readable inbound/outbound relationships, protected variable rename, reusable-logic extraction, multi-caller Procedure-call and resource replacement, circular-call prevention, signed affected-object/field plan review, the shared UI/MCP refactor planner, the 500-node Procedure gate, and the 2,000-element / 10,000-reference index gate. See [Stage 13 Procedure 2.0 foundation evidence](./testing/stage13-procedure-productivity-2026-09-05.md).
 
 The remaining Stage 13 work is:
 
-1. **Stage 13 — creator productivity**: finish Procedure 2.0 richer relationship presentation, larger-plan review UX and remaining reference-refactor coverage, then Asset Center, Diagnostics 2.0, history/migration/refactor workflows and Workspace Health.
+1. **Stage 13 — creator productivity**: close the remaining installed-product Procedure failure → locate → fix → rebuild evidence, then continue with Asset Center, Diagnostics 2.0, history/migration/refactor workflows and Workspace Health.
 2. **Stage 14 — advanced developer / AI-native workflows**: IDE bridge, AI Plan Review, higher-level MCP workflows, templates and extension-developer entry points.
 3. **Stage 15 — Linux formal platform support**: Linux x86_64 packaging, bundled JDK/JCEF, desktop integration, Gradle/Run Client, desktop MCP/external-Agent parity, clean-Linux VM validation, and release/provenance closure.
 4. **Continuous maintenance**: Minecraft/loader/generator/toolchain compatibility and regression coverage.

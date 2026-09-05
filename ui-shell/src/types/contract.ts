@@ -13,9 +13,40 @@ export interface LocalizedText {
   args?: Record<string, string | number | boolean | null>;
 }
 
+export interface WorkspacePlanReviewObject {
+  kind: string;
+  elementId?: UUID;
+  type?: string;
+  name?: string;
+  displayName?: string;
+  registry?: string;
+  beforeCount?: number;
+  afterCount?: number;
+  changedProperties?: string[];
+}
+
+export interface WorkspacePlanReview {
+  summary: {
+    operationCount: number;
+    affectedObjectCount: number;
+    affectedElementCount: number;
+    affectedRegistryCount: number;
+    createCount: number;
+    updateCount: number;
+    deleteCount: number;
+    changedPathCount: number;
+    scope: 'single_object' | 'multi_object';
+    highImpact: boolean;
+  };
+  operationGroups: Array<{ operation: WorkspacePlanOperation; count: number }>;
+  affectedObjects: WorkspacePlanReviewObject[];
+  changedPaths: string[];
+}
+
 export type ProcedureRefactorRequest =
   | { kind: 'extract_node'; elementId: UUID; nodeId: UUID; newProcedureName: string }
-  | { kind: 'replace_call_target'; sourceProcedureId: UUID; targetProcedureId: UUID };
+  | { kind: 'replace_call_target'; sourceProcedureId: UUID; targetProcedureId: UUID }
+  | { kind: 'replace_resource_target'; sourceResource: string; targetResource: string };
 
 export type ActionHintKind =
   | 'retry'
@@ -227,6 +258,7 @@ export interface ProcedureEditorProjection {
   sourcePreview: string;
   sourceOwnership: 'generated' | 'manual' | 'mixed';
   references: WorkspaceReferenceProjection;
+  relationships: ProcedureRelationships;
   diagnostics?: Diagnostic[];
 }
 
@@ -243,12 +275,49 @@ export interface ProcedureChangePreview {
 
 export type ProcedureEdit = Record<string, unknown> & { operation: string };
 
+export interface WorkspaceReferenceNode {
+  id: UUID;
+  kind: 'element' | 'registry';
+  type: string;
+  name: string;
+  displayName: string;
+}
+
+export interface WorkspaceReferenceEdge {
+  id: UUID;
+  sourceId: UUID;
+  sourcePath: string;
+  target: string;
+  targetId: UUID | null;
+  kind: string;
+  sourceKind?: string;
+  sourceType?: string;
+  sourceName?: string;
+  sourceDisplayName?: string;
+  targetKind?: string | null;
+  targetType?: string | null;
+  targetName?: string;
+  targetDisplayName?: string | null;
+  direction?: 'inbound' | 'outbound';
+}
+
 export interface WorkspaceReferenceProjection {
   revision: Revision;
-  nodes: Array<Record<string, unknown>>;
-  edges: Array<Record<string, unknown>>;
+  nodes: WorkspaceReferenceNode[];
+  edges: WorkspaceReferenceEdge[];
   diagnostics: Diagnostic[];
   stats: { indexedElements: number; edgeCount: number; incremental: boolean };
+}
+
+export interface ProcedureRelationships {
+  inbound: WorkspaceReferenceEdge[];
+  outbound: WorkspaceReferenceEdge[];
+  stats: {
+    inboundCount: number;
+    outboundCount: number;
+    totalCount: number;
+    byKind: Record<string, number>;
+  };
 }
 
 export interface RegistryEntry {
@@ -605,6 +674,7 @@ export interface WorkspacePlan {
   targetDigest: string;
   semanticDiff: Record<string, unknown>[];
   changedPaths: string[];
+  review: WorkspacePlanReview;
   permission: WorkspacePlanPermission;
   safety: {
     requiresRecoveryPoint: boolean;

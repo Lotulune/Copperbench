@@ -2352,6 +2352,69 @@ input:disabled, select:disabled, textarea:disabled {
 .procedure-refactor-preview span { color: var(--text-sub); font-size: 9px; }
 .procedure-refactor-preview code { overflow-wrap: anywhere; color: var(--text-muted); font-size: 8px; }
 
+.procedure-plan-review {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 7px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--bg-panel);
+}
+
+.procedure-plan-review.high-impact { border-color: var(--border-active); }
+.procedure-plan-review-summary { display: flex; flex-direction: column; gap: 2px; }
+.procedure-plan-review-summary strong { color: var(--text-main); font-size: 10px; }
+.procedure-plan-review-summary span,
+.procedure-plan-review details,
+.procedure-plan-review-objects small { color: var(--text-sub); font-size: 9px; }
+.procedure-plan-review-groups { display: flex; flex-wrap: wrap; gap: 4px; }
+.procedure-plan-review-groups span,
+.procedure-relationship-kinds span {
+  padding: 2px 5px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  color: var(--text-sub);
+  font-size: 8px;
+}
+.procedure-plan-review-objects { margin: 5px 0 0; padding-left: 18px; }
+.procedure-plan-review-objects li { margin: 3px 0; }
+.procedure-plan-review-objects li > span { display: flex; justify-content: space-between; gap: 8px; }
+.procedure-plan-review-objects code { font-size: 8px; }
+
+.procedure-relationship-overview {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 8px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--bg-panel);
+}
+.procedure-relationship-summary { display: flex; justify-content: space-between; gap: 8px; }
+.procedure-relationship-summary strong { color: var(--text-main); font-size: 10px; }
+.procedure-relationship-summary span { color: var(--text-sub); font-size: 9px; }
+.procedure-relationship-kinds { display: flex; flex-wrap: wrap; gap: 4px; }
+.procedure-relationship-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.procedure-relationship-columns > div { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.procedure-relationship-columns > div > strong { color: var(--text-sub); font-size: 9px; }
+.procedure-relationship-columns small { color: var(--text-muted); font-size: 8px; }
+.procedure-relationship-row {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 5px 6px;
+  border-left: 2px solid var(--border-active);
+  background: var(--bg-base);
+}
+.procedure-relationship-row span { overflow-wrap: anywhere; color: var(--text-main); font-size: 9px; }
+.procedure-relationship-row code { overflow-wrap: anywhere; color: var(--text-muted); font-size: 8px; }
+
+@media (max-width: 1450px) {
+  .procedure-relationship-columns { grid-template-columns: 1fr; }
+}
+
 .procedure-node-outline {
   display: flex;
   flex-direction: column;

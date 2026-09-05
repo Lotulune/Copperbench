@@ -33,6 +33,12 @@ class WorkspaceReferenceIndexTest {
 		dependency.addProperty("name", "missing_procedure");
 		dependency.addProperty("dataType", "unknown");
 		dependency.addProperty("target", missingProcedureId.toString());
+		JsonObject resourceDependency = new JsonObject();
+		resourceDependency.addProperty("id", UUID.randomUUID().toString());
+		resourceDependency.addProperty("kind", "resource");
+		resourceDependency.addProperty("name", "minecraft:stone");
+		resourceDependency.addProperty("dataType", "itemstack");
+		resourceDependency.addProperty("target", "minecraft:stone");
 		JsonObject ir = new JsonObject();
 		ir.addProperty("schemaVersion", "1.0");
 		ir.addProperty("trigger", "no_ext_trigger");
@@ -41,6 +47,7 @@ class WorkspaceReferenceIndexTest {
 		ir.add("nodes", nodes);
 		JsonArray dependencies = new JsonArray();
 		dependencies.add(dependency);
+		dependencies.add(resourceDependency);
 		ir.add("dependencies", dependencies);
 		JsonObject values = new JsonObject();
 		values.addProperty("id", UUID.randomUUID().toString());
@@ -54,9 +61,17 @@ class WorkspaceReferenceIndexTest {
 
 		JsonObject projection = new WorkspaceReferenceIndex().projection(state, "");
 
-		assertEquals(1, projection.getAsJsonArray("edges").size());
+		assertEquals(2, projection.getAsJsonArray("edges").size());
 		assertEquals(missingProcedureId.toString(), projection.getAsJsonArray("edges").get(0).getAsJsonObject()
 				.get("target").getAsString());
+		assertEquals("caller", projection.getAsJsonArray("edges").get(0).getAsJsonObject()
+				.get("sourceName").getAsString());
+		assertEquals("procedure", projection.getAsJsonArray("edges").get(0).getAsJsonObject()
+				.get("sourceType").getAsString());
+		assertEquals("minecraft:stone", projection.getAsJsonArray("edges").get(1).getAsJsonObject()
+				.get("targetName").getAsString());
+		assertEquals("resource", projection.getAsJsonArray("edges").get(1).getAsJsonObject()
+				.get("kind").getAsString());
 		assertEquals(1, projection.getAsJsonArray("diagnostics").size());
 	}
 }

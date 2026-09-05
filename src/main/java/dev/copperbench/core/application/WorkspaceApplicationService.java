@@ -2422,6 +2422,7 @@ public final class WorkspaceApplicationService {
 		RefactorDraft draft = switch (kind) {
 			case "extract_node" -> extractProcedureNode(state, payload);
 			case "replace_call_target" -> replaceProcedureCallTarget(state, payload);
+			case "replace_resource_target" -> replaceProcedureResourceTarget(state, payload);
 			default -> RefactorDraft.failed(diagnostic("PROCEDURE_REFACTOR_KIND_UNSUPPORTED",
 					"diagnostic.procedure_refactor_kind_unsupported", "The requested Procedure refactor is not supported.",
 					"/kind", null));
@@ -2544,6 +2545,45 @@ public final class WorkspaceApplicationService {
 		JsonArray operations = new JsonArray();
 		operations.add(planStep("create_mod_element", createPayload));
 		operations.add(planStep("update_procedure", updatePayload));
+		return RefactorDraft.success(operations);
+	}
+
+	private RefactorDraft replaceProcedureResourceTarget(WorkspaceState state, JsonObject payload) {
+		String sourceTarget = requiredString(payload, "sourceResource");
+		String targetTarget = requiredString(payload, "targetResource");
+		if (sourceTarget.equals(targetTarget)) return RefactorDraft.failed(diagnostic("PROCEDURE_REFACTOR_TARGET_UNCHANGED",
+				"diagnostic.procedure_refactor_target_unchanged", "Source and target resources must be different.",
+				"/targetResource", null));
+		JsonArray operations = new JsonArray();
+		int replacements = 0;
+		for (Element element : state.elements()) {
+			if (!element.type().equals("procedure")) continue;
+			ProcedureIr ir = PROCEDURES.read(element.values(), element.id());
+			JsonArray edits = new JsonArray();
+			for (ProcedureIr.Node node : ir.nodes()) {
+				if (!node.type().equals("mcitem_all") && !node.type().equals("mcitem_allblocks")) continue;
+				if (!sourceTarget.equals(string(node.fields(), "value", ""))) continue;
+				JsonObject fields = node.fields().deepCopy();
+				fields.addProperty("value", targetTarget);
+				JsonObject edit = new JsonObject();
+				edit.addProperty("operation", "update_node");
+				edit.addProperty("nodeId", node.id().toString());
+				edit.add("fields", fields);
+				edits.add(edit);
+				replacements++;
+			}
+			if (edits.isEmpty()) continue;
+			JsonObject updatePayload = new JsonObject();
+			updatePayload.addProperty("elementId", element.id().toString());
+			updatePayload.add("edits", edits);
+			operations.add(planStep("update_procedure", updatePayload));
+		}
+		if (replacements == 0) return RefactorDraft.failed(diagnostic("PROCEDURE_REFACTOR_NO_MATCHES",
+				"diagnostic.procedure_refactor_no_matches", "No Procedure resource references match the selected source.",
+				"/sourceResource", null));
+		if (operations.size() > 100) return RefactorDraft.failed(diagnostic("PROCEDURE_REFACTOR_TOO_LARGE",
+				"diagnostic.procedure_refactor_too_large", "The refactor affects more than 100 Procedures; narrow the operation.",
+				"/sourceResource", null));
 		return RefactorDraft.success(operations);
 	}
 
@@ -2829,7 +2869,48 @@ public final class WorkspaceApplicationService {
 		projection.addProperty("sourcePreview", PROCEDURES.sourcePreview(ir));
 		projection.addProperty("sourceOwnership", "generated");
 		projection.add("references", references.projection(state, element.id().toString()));
+		projection.add("relationships", procedureRelationships(state, element.id()));
 		return projection;
+	}
+
+	private JsonObject procedureRelationships(WorkspaceState state, UUID elementId) {
+		JsonObject graph = references.projection(state, "");
+		JsonArray inbound = new JsonArray();
+		JsonArray outbound = new JsonArray();
+		Map<String, Integer> byKind = new LinkedHashMap<>();
+		for (JsonElement raw : graph.getAsJsonArray("edges")) {
+			JsonObject edge = raw.getAsJsonObject();
+			String sourceId = string(edge, "sourceId", "");
+			String targetId = edge.has("targetId") && !edge.get("targetId").isJsonNull()
+					? edge.get("targetId").getAsString() : "";
+			boolean incoming = targetId.equals(elementId.toString());
+			boolean outgoing = sourceId.equals(elementId.toString());
+			if (!incoming && !outgoing) continue;
+			String kind = string(edge, "kind", "reference");
+			byKind.merge(kind, 1, Integer::sum);
+			if (incoming) {
+				JsonObject relation = edge.deepCopy();
+				relation.addProperty("direction", "inbound");
+				inbound.add(relation);
+			}
+			if (outgoing) {
+				JsonObject relation = edge.deepCopy();
+				relation.addProperty("direction", "outbound");
+				outbound.add(relation);
+			}
+		}
+		JsonObject kinds = new JsonObject();
+		byKind.forEach(kinds::addProperty);
+		JsonObject stats = new JsonObject();
+		stats.addProperty("inboundCount", inbound.size());
+		stats.addProperty("outboundCount", outbound.size());
+		stats.addProperty("totalCount", inbound.size() + outbound.size());
+		stats.add("byKind", kinds);
+		JsonObject result = new JsonObject();
+		result.add("inbound", inbound);
+		result.add("outbound", outbound);
+		result.add("stats", stats);
+		return result;
 	}
 
 	private JsonObject procedureSymbols(WorkspaceState state, ProcedureIr ir) {

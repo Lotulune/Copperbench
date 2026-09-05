@@ -53,14 +53,16 @@ final class McpToolCatalog {
 
 	private static Map<String, Object> procedureRefactorSchema() {
 		return requiredSchema(Map.of(
-				"kind", Map.of("type", "string", "enum", List.of("extract_node", "replace_call_target")),
+				"kind", Map.of("type", "string", "enum", List.of("extract_node", "replace_call_target", "replace_resource_target")),
 				"expectedRevision", Map.of("type", "integer", "minimum", 0),
 				"idempotencyKey", Map.of("type", "string", "minLength", 1, "maxLength", 128),
 				"elementId", Map.of("type", "string", "format", "uuid"),
 				"nodeId", Map.of("type", "string", "format", "uuid"),
 				"newProcedureName", Map.of("type", "string", "minLength", 1),
 				"sourceProcedureId", Map.of("type", "string", "format", "uuid"),
-				"targetProcedureId", Map.of("type", "string", "format", "uuid")),
+				"targetProcedureId", Map.of("type", "string", "format", "uuid"),
+				"sourceResource", Map.of("type", "string", "minLength", 1),
+				"targetResource", Map.of("type", "string", "minLength", 1)),
 				List.of("kind", "expectedRevision", "idempotencyKey"));
 	}
 

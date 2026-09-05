@@ -603,10 +603,10 @@ export class MockCoreBridge implements CoreBridge {
   }
 
   private mockReferences(target = ''): WorkspaceReferenceProjection {
-    const nodes = [
+    const nodes: WorkspaceReferenceProjection['nodes'] = [
       ...this.state.elements.map((element) => ({
         id: element.id,
-        kind: 'element',
+        kind: 'element' as const,
         type: element.type,
         name: element.name,
         displayName: element.displayName
@@ -614,13 +614,56 @@ export class MockCoreBridge implements CoreBridge {
       ...Object.entries(this.mockRegistries ?? {}).flatMap(([type, entries]) =>
         entries.map((entry) => ({
           id: entry.id,
-          kind: 'registry',
+          kind: 'registry' as const,
           type,
           name: entry.key ?? entry.name ?? '',
           displayName: entry.key ?? entry.name ?? ''
         })))
     ];
-    const edges: Array<Record<string, unknown>> = [];
+    const edges: WorkspaceReferenceProjection['edges'] = [];
+    for (const [elementId, ir] of this.procedureIrs.entries()) {
+      const source = this.state.elements.find((candidate) => candidate.id === elementId);
+      if (!source) continue;
+      for (const node of ir.nodes) {
+        let kind = '';
+        let rawTarget = '';
+        let resolved: ModElementSummary | RegistryEntry | undefined;
+        if (node.type === 'call_procedure') {
+          kind = 'procedure';
+          rawTarget = String(node.fields.procedureId ?? node.fields.procedure ?? '');
+          resolved = this.state.elements.find((candidate) => candidate.type === 'procedure'
+            && (candidate.id === rawTarget || candidate.name === rawTarget || candidate.displayName === rawTarget));
+        } else if (node.type.startsWith('variables_get_') || node.type.startsWith('variables_set_')) {
+          kind = 'variable';
+          rawTarget = String(node.fields.variableId ?? node.fields.VAR ?? node.fields.name ?? '');
+          resolved = this.mockRegistries.variables.find((candidate) => candidate.id === rawTarget || candidate.name === rawTarget);
+        } else if (node.type === 'mcitem_all' || node.type === 'mcitem_allblocks') {
+          kind = 'resource';
+          rawTarget = String(node.fields.value ?? '');
+        }
+        if (!kind || !rawTarget) continue;
+        const targetId = resolved?.id ?? null;
+        const resolvedName = 'displayName' in (resolved ?? {})
+          ? (resolved as ModElementSummary).displayName
+          : (resolved as RegistryEntry | undefined)?.name;
+        edges.push({
+          id: generateUUID(),
+          sourceId: elementId,
+          sourcePath: `/procedureIr/nodes/${node.id}`,
+          target: rawTarget,
+          targetId,
+          kind,
+          sourceKind: 'element',
+          sourceType: source.type,
+          sourceName: source.name,
+          sourceDisplayName: source.displayName,
+          targetKind: resolved ? ('type' in resolved ? 'element' : 'registry') : null,
+          targetType: resolved ? ('type' in resolved ? String((resolved as ModElementSummary).type) : 'variables') : null,
+          targetName: resolvedName ?? rawTarget,
+          targetDisplayName: resolvedName ?? null
+        });
+      }
+    }
     return {
       revision: this.state.workbench?.workspace.revision ?? 42,
       nodes,
@@ -634,6 +677,15 @@ export class MockCoreBridge implements CoreBridge {
     const element = this.state.elements.find((candidate) => candidate.id === elementId);
     if (!element) return null;
     const ir = this.getMockProcedure(elementId);
+    const referenceGraph = this.mockReferences();
+    const inbound = referenceGraph.edges.filter((edge) => edge.targetId === elementId)
+      .map((edge) => ({ ...edge, direction: 'inbound' as const }));
+    const outbound = referenceGraph.edges.filter((edge) => edge.sourceId === elementId)
+      .map((edge) => ({ ...edge, direction: 'outbound' as const }));
+    const byKind = [...inbound, ...outbound].reduce<Record<string, number>>((accumulator, edge) => {
+      accumulator[edge.kind] = (accumulator[edge.kind] ?? 0) + 1;
+      return accumulator;
+    }, {});
     return {
       element,
       baseRevision: this.state.workbench?.workspace.revision ?? 42,
@@ -713,7 +765,40 @@ export class MockCoreBridge implements CoreBridge {
       },
       sourcePreview: `// Read-only Procedure IR preview\ntrigger ${ir.trigger}\n${ir.nodes.map((node) => `${node.type} ${node.id}`).join('\n')}`,
       sourceOwnership: 'generated',
-      references: this.mockReferences(elementId)
+      references: this.mockReferences(elementId),
+      relationships: {
+        inbound,
+        outbound,
+        stats: { inboundCount: inbound.length, outboundCount: outbound.length, totalCount: inbound.length + outbound.length, byKind }
+      }
+    };
+  }
+
+  private mockPlanReview(operations: WorkspacePlan['operations'], semanticDiff: Record<string, unknown>[], changedPaths: string[]): WorkspacePlan['review'] {
+    const operationCounts = new Map<string, number>();
+    operations.forEach((step) => operationCounts.set(step.operation, (operationCounts.get(step.operation) ?? 0) + 1));
+    const affectedElements = semanticDiff.filter((item) => String(item.kind ?? '').startsWith('element_')).length;
+    const affectedRegistries = semanticDiff.filter((item) => item.kind === 'registry_updated').length;
+    const creates = semanticDiff.filter((item) => item.kind === 'element_created').length;
+    const deletes = semanticDiff.filter((item) => item.kind === 'element_deleted').length;
+    return {
+      summary: {
+        operationCount: operations.length,
+        affectedObjectCount: semanticDiff.length,
+        affectedElementCount: affectedElements,
+        affectedRegistryCount: affectedRegistries,
+        createCount: creates,
+        updateCount: Math.max(0, semanticDiff.length - creates - deletes),
+        deleteCount: deletes,
+        changedPathCount: changedPaths.length,
+        scope: semanticDiff.length > 1 ? 'multi_object' : 'single_object',
+        highImpact: semanticDiff.length >= 5 || operations.length >= 5
+      },
+      operationGroups: Array.from(operationCounts.entries()).map(([operation, count]) => ({
+        operation: operation as WorkspacePlan['operations'][number]['operation'], count
+      })),
+      affectedObjects: semanticDiff as unknown as WorkspacePlan['review']['affectedObjects'],
+      changedPaths
     };
   }
 
@@ -2256,7 +2341,7 @@ export class MockCoreBridge implements CoreBridge {
       }
       case 'plan_procedure_refactor': {
         const payload = query.payload as unknown as {
-          kind?: 'extract_node' | 'replace_call_target';
+          kind?: 'extract_node' | 'replace_call_target' | 'replace_resource_target';
           expectedRevision?: number;
           idempotencyKey?: string;
           elementId?: UUID;
@@ -2264,6 +2349,8 @@ export class MockCoreBridge implements CoreBridge {
           newProcedureName?: string;
           sourceProcedureId?: UUID;
           targetProcedureId?: UUID;
+          sourceResource?: string;
+          targetResource?: string;
         };
         const operations: WorkspacePlan['operations'] = [];
         const semanticDiff: Record<string, unknown>[] = [];
@@ -2318,7 +2405,21 @@ export class MockCoreBridge implements CoreBridge {
               changedPaths.push(`/elements/${elementId}`);
             }
           }
+        } else if (payload.kind === 'replace_resource_target' && payload.sourceResource && payload.targetResource) {
+          for (const [elementId, ir] of this.procedureIrs.entries()) {
+            const edits = ir.nodes.filter((node) => (node.type === 'mcitem_all' || node.type === 'mcitem_allblocks')
+              && String(node.fields.value ?? '') === payload.sourceResource)
+              .map((node) => ({ operation: 'update_node', nodeId: node.id,
+                fields: { ...node.fields, value: payload.targetResource } }));
+            if (!edits.length) continue;
+            operations.push({ operation: 'update_procedure', payload: { elementId, edits } });
+            const element = this.state.elements.find((candidate) => candidate.id === elementId);
+            semanticDiff.push({ kind: 'element_updated', elementId, type: 'procedure', name: element?.name ?? elementId,
+              displayName: element?.displayName ?? elementId, changedProperties: ['/values/procedureIr', '/values/procedurexml'] });
+            changedPaths.push(`/elements/${elementId}`);
+          }
         }
+        const review = this.mockPlanReview(operations, semanticDiff, Array.from(new Set(changedPaths)));
         data = {
           schemaVersion: '1.0',
           workspaceId: this.state.workbench?.workspace.id ?? query.workspaceId,
@@ -2330,6 +2431,7 @@ export class MockCoreBridge implements CoreBridge {
           targetDigest: 'mock-procedure-refactor-digest',
           semanticDiff,
           changedPaths: Array.from(new Set(changedPaths)),
+          review,
           permission: { currentProfile: this.state.workbench?.permission.profile ?? 'workspace', requiredProfile: 'workspace', allowed: true },
           safety: { requiresRecoveryPoint: true, recoveryPointAvailable: true, ready: operations.length > 0 },
           planId: `mock-refactor-${generateUUID()}`,
@@ -2367,6 +2469,8 @@ export class MockCoreBridge implements CoreBridge {
           }
         }
         const requireRecoveryPoint = payload.requireRecoveryPoint ?? false;
+        const uniqueChangedPaths = Array.from(new Set(changedPaths));
+        const review = this.mockPlanReview(operations, semanticDiff, uniqueChangedPaths);
         data = {
           schemaVersion: '1.0',
           workspaceId: this.state.workbench?.workspace.id ?? query.workspaceId,
@@ -2377,7 +2481,8 @@ export class MockCoreBridge implements CoreBridge {
           operationCount: operations.length,
           targetDigest: 'mock-target-digest',
           semanticDiff,
-          changedPaths: Array.from(new Set(changedPaths)),
+          changedPaths: uniqueChangedPaths,
+          review,
           permission: {
             currentProfile: this.state.workbench?.permission.profile ?? 'workspace',
             requiredProfile: 'workspace', allowed: true

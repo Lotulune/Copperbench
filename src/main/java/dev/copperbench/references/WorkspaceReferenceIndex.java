@@ -83,6 +83,7 @@ public final class WorkspaceReferenceIndex {
 			JsonObject result = new JsonObject();
 			result.addProperty("revision", state.revision());
 			JsonArray nodes = new JsonArray();
+			Map<UUID, JsonObject> nodesById = new LinkedHashMap<>();
 			for (Element element : state.elements()) {
 				JsonObject node = new JsonObject();
 				node.addProperty("id", element.id().toString());
@@ -91,6 +92,7 @@ public final class WorkspaceReferenceIndex {
 				node.addProperty("name", element.name());
 				node.addProperty("displayName", element.displayName());
 				nodes.add(node);
+				nodesById.put(element.id(), node);
 			}
 			for (String registry : List.of("variables", "tags", "languageKeys")) {
 				for (JsonElement raw : state.registries().getAsJsonArray(registry)) {
@@ -103,6 +105,7 @@ public final class WorkspaceReferenceIndex {
 					node.addProperty("name", registry.equals("languageKeys") ? string(entry, "key") : string(entry, "name"));
 					node.addProperty("displayName", node.get("name").getAsString());
 					nodes.add(node);
+					nodesById.put(UUID.fromString(entry.get("id").getAsString()), node);
 				}
 			}
 			result.add("nodes", nodes);
@@ -124,6 +127,16 @@ public final class WorkspaceReferenceIndex {
 					if (resolved == null) edge.add("targetId", com.google.gson.JsonNull.INSTANCE);
 					else edge.addProperty("targetId", resolved.toString());
 					edge.addProperty("kind", candidate.kind());
+					JsonObject sourceNode = nodesById.get(indexed.elementId());
+					JsonObject targetNode = resolved == null ? null : nodesById.get(resolved);
+					if (sourceNode != null) addNodeSummary(edge, "source", sourceNode);
+					if (targetNode != null) addNodeSummary(edge, "target", targetNode);
+					else {
+						edge.addProperty("targetName", candidate.target());
+						edge.add("targetKind", com.google.gson.JsonNull.INSTANCE);
+						edge.add("targetType", com.google.gson.JsonNull.INSTANCE);
+						edge.add("targetDisplayName", com.google.gson.JsonNull.INSTANCE);
+					}
 					edges.add(edge);
 					if (resolved == null && candidate.required()) diagnostics.add(diagnostic(indexed.elementId(), candidate));
 				}
@@ -139,6 +152,13 @@ public final class WorkspaceReferenceIndex {
 		}
 	}
 
+	private static void addNodeSummary(JsonObject edge, String prefix, JsonObject node) {
+		edge.addProperty(prefix + "Kind", string(node, "kind"));
+		edge.addProperty(prefix + "Type", string(node, "type"));
+		edge.addProperty(prefix + "Name", string(node, "name"));
+		edge.addProperty(prefix + "DisplayName", string(node, "displayName"));
+	}
+
 	private IndexedElement scan(Element element, String fingerprint, Map<String, UUID> identities) {
 		List<Candidate> candidates = new ArrayList<>();
 		scanJson(element.id(), element.values(), "", candidates);
@@ -149,7 +169,7 @@ public final class WorkspaceReferenceIndex {
 					if (dependency.kind().equals("context")) continue;
 					String target = dependency.target().isBlank() ? dependency.name() : dependency.target();
 					candidates.add(candidate(element.id(), "/procedureIr/dependencies/" + dependency.id(), target,
-							dependency.kind(), true));
+							dependency.kind(), !dependency.kind().equals("resource")));
 				}
 			} catch (RuntimeException ignored) {
 				// Invalid Procedure XML is reported by the Procedure validator, not duplicated here.

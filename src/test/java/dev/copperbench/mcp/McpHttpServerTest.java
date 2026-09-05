@@ -109,6 +109,9 @@ class McpHttpServerTest {
 			assertTrue(tools.body().contains("preview_registry_rename"));
 			assertTrue(tools.body().contains("plan_procedure_refactor"));
 			assertTrue(tools.body().contains("replace_call_target"));
+			assertTrue(tools.body().contains("replace_resource_target"));
+			assertTrue(tools.body().contains("sourceResource"));
+			assertTrue(tools.body().contains("targetResource"));
 			assertTrue(tools.body().contains("plan_workspace_changes"));
 			assertTrue(tools.body().contains("requireRecoveryPoint"));
 			assertTrue(tools.body().contains("create_registry_entry"));

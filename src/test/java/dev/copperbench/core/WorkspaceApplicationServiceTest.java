@@ -809,6 +809,17 @@ class WorkspaceApplicationServiceTest {
 		assertEquals(2, symbols.getAsJsonObject("stats").get("variableCount").getAsInt());
 		assertEquals(1, symbols.getAsJsonObject("stats").get("resourceCount").getAsInt());
 		assertEquals(1, symbols.getAsJsonObject("stats").get("callCount").getAsInt());
+		JsonObject relationships = result.data().getAsJsonObject().getAsJsonObject("relationships");
+		assertEquals(0, relationships.getAsJsonObject("stats").get("inboundCount").getAsInt());
+		assertEquals(4, relationships.getAsJsonObject("stats").get("outboundCount").getAsInt());
+		assertEquals(2, relationships.getAsJsonObject("stats").getAsJsonObject("byKind").get("variable").getAsInt());
+		assertEquals(1, relationships.getAsJsonObject("stats").getAsJsonObject("byKind").get("resource").getAsInt());
+		assertEquals(1, relationships.getAsJsonObject("stats").getAsJsonObject("byKind").get("procedure").getAsInt());
+		assertTrue(relationships.getAsJsonArray("outbound").asList().stream().anyMatch(raw -> {
+			JsonObject edge = raw.getAsJsonObject();
+			return "resource".equals(edge.get("kind").getAsString())
+					&& "minecraft:copper_ingot".equals(edge.get("targetName").getAsString());
+		}));
 	}
 
 	@Test void taskStartAndContentMutationAreOrderedByTheWorkspaceLock() throws Exception {

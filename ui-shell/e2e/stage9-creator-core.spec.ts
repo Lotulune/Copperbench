@@ -105,6 +105,45 @@ test.describe('Stage 9 creator core', () => {
     await expect(page.locator('.procedure-symbol-row').filter({ hasText: 'shared_energy_logic' })).toBeVisible();
   });
 
+  test('reviews Procedure relationships and batch-replaces resource references through a protected plan', async ({ page }) => {
+    await page.click('[data-testid="nav-elements"]');
+    await page.click('[data-testid="create-element-btn"]');
+    await page.click('[data-testid="create-element-type-procedure"]');
+    await page.fill('[data-testid="create-element-name-input"]', 'resource_refactor_source');
+    await page.click('[data-testid="create-element-submit-btn"]');
+
+    await expect(page.locator('[data-testid="procedure-workbench"]')).toBeVisible();
+    await page.locator('.procedure-palette-filter select').selectOption('context');
+    await page.locator('.procedure-search').first().locator('input').fill('');
+    await expect(page.locator('.procedure-node-list .procedure-node-button')).toHaveCount(5);
+    await page.locator('.procedure-node-list .procedure-node-button').nth(4).click();
+    await page.locator('.procedure-save').click();
+
+    await page.locator('#procedure-tab-references').click();
+    const relationships = page.locator('[data-testid="procedure-relationship-overview"]');
+    await expect(relationships).toBeVisible();
+    await expect(relationships).toContainText('resource');
+    await expect(relationships.locator('.procedure-relationship-row')).toHaveCount(1);
+
+    const resourceRow = page.locator('.procedure-symbol-refactor-row').filter({ hasText: 'minecraft:stone' });
+    await expect(resourceRow).toBeVisible();
+    await resourceRow.locator('.procedure-refactor-start').click();
+    const card = page.locator('[data-testid="procedure-resource-refactor"]');
+    await card.locator('input').fill('minecraft:diamond');
+    await card.locator('.procedure-refactor-actions button').nth(0).click();
+
+    const review = page.locator('[data-testid="procedure-resource-plan-review"]');
+    await expect(review).toBeVisible();
+    await expect(review).toContainText('update_procedure');
+    await expect(review).toContainText('1');
+    await expect(page.locator('[data-testid="procedure-resource-refactor-preview"]')).toContainText('revision');
+
+    await card.locator('.procedure-refactor-actions button').nth(1).click();
+    await expect(page.locator('.procedure-message')).toContainText('minecraft:diamond');
+    await expect(page.locator('.procedure-message')).toContainText('rec-');
+    await expect(page.locator('.procedure-symbol-refactor-row').filter({ hasText: 'minecraft:diamond' })).toBeVisible();
+  });
+
   test('reviews and explicitly publishes isolated datagen output', async ({ page }) => {
     await page.getByRole('button', { name: '在暂存区运行数据生成' }).click();
     await expect(page.getByText('任务完成').first()).toBeVisible({ timeout: 5000 });

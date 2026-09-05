@@ -38,6 +38,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.HexFormat;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -300,10 +301,13 @@ final class WorkspacePlanEngine {
 		plan.add("operations", operations.deepCopy());
 		plan.addProperty("operationCount", operations.size());
 		plan.addProperty("targetDigest", workspaceDigest(after));
-		plan.add("semanticDiff", semanticDiff(before, after));
+		JsonArray semanticDiff = semanticDiff(before, after);
+		plan.add("semanticDiff", semanticDiff);
+		List<String> changedPaths = changedPaths(before, after);
 		JsonArray paths = new JsonArray();
-		changedPaths(before, after).forEach(paths::add);
+		changedPaths.forEach(paths::add);
 		plan.add("changedPaths", paths);
+		plan.add("review", planReview(operations, semanticDiff, changedPaths));
 		plan.add("permission", permission(permissionProfile));
 		plan.add("safety", recoverySafety(plan));
 		plan.addProperty("planId", planId(plan));
@@ -328,6 +332,7 @@ final class WorkspacePlanEngine {
 					"The workspace plan operationCount does not match its ordered operations."));
 		JsonArray suppliedSemanticDiff = requiredArray(plan, "semanticDiff");
 		JsonArray suppliedChangedPaths = requiredArray(plan, "changedPaths");
+		JsonObject suppliedReview = requiredObject(plan, "review");
 		String suppliedPlanId = requiredString(plan, "planId");
 		String suppliedPlanToken = requiredString(plan, "planToken");
 		String targetDigest = requiredString(plan, "targetDigest");
@@ -350,14 +355,18 @@ final class WorkspacePlanEngine {
 					"diagnostic.workspace_plan_target_mismatch",
 					"The workspace plan no longer produces its recorded target state."));
 		JsonArray canonicalSemanticDiff = semanticDiff(current, simulation.state());
+		List<String> canonicalPathList = changedPaths(current, simulation.state());
 		JsonArray canonicalChangedPaths = new JsonArray();
-		changedPaths(current, simulation.state()).forEach(canonicalChangedPaths::add);
-		if (!canonicalSemanticDiff.equals(suppliedSemanticDiff) || !canonicalChangedPaths.equals(suppliedChangedPaths))
+		canonicalPathList.forEach(canonicalChangedPaths::add);
+		JsonObject canonicalReview = planReview(normalized, canonicalSemanticDiff, canonicalPathList);
+		if (!canonicalSemanticDiff.equals(suppliedSemanticDiff) || !canonicalChangedPaths.equals(suppliedChangedPaths)
+				|| !canonicalReview.equals(suppliedReview))
 			throw new PlanException(diagnostic("WORKSPACE_PLAN_INTEGRITY_FAILED",
 					"diagnostic.workspace_plan_integrity_failed",
 					"The workspace plan derived diff does not match the validated target state."));
 		plan.add("semanticDiff", canonicalSemanticDiff);
 		plan.add("changedPaths", canonicalChangedPaths);
+		plan.add("review", canonicalReview);
 		plan.addProperty("operationCount", normalized.size());
 		plan.add("safety", recoverySafety(plan));
 		return new ValidatedPlan(false, simulation, plan);
@@ -395,9 +404,9 @@ final class WorkspacePlanEngine {
 		for (UUID id : ordered) {
 			Element oldValue = oldElements.get(id);
 			Element newValue = newElements.get(id);
-			if (oldValue == null) diff.add(elementDiff("element_created", newValue));
-			else if (newValue == null) diff.add(elementDiff("element_deleted", oldValue));
-			else if (!sameElementContent(oldValue, newValue)) diff.add(elementDiff("element_updated", newValue));
+			if (oldValue == null) diff.add(elementDiff("element_created", null, newValue));
+			else if (newValue == null) diff.add(elementDiff("element_deleted", oldValue, null));
+			else if (!sameElementContent(oldValue, newValue)) diff.add(elementDiff("element_updated", oldValue, newValue));
 		}
 		JsonObject oldRegistries = before.registries();
 		JsonObject newRegistries = after.registries();
@@ -411,6 +420,54 @@ final class WorkspacePlanEngine {
 			diff.add(item);
 		}
 		return diff;
+	}
+
+	private static JsonObject planReview(JsonArray operations, JsonArray semanticDiff, List<String> changedPaths) {
+		Map<String, Integer> operationCounts = new LinkedHashMap<>();
+		for (JsonElement raw : operations) {
+			String operation = requiredString(raw.getAsJsonObject(), "operation");
+			operationCounts.merge(operation, 1, Integer::sum);
+		}
+		JsonArray operationGroups = new JsonArray();
+		operationCounts.forEach((operation, count) -> {
+			JsonObject group = new JsonObject();
+			group.addProperty("operation", operation);
+			group.addProperty("count", count);
+			operationGroups.add(group);
+		});
+		int affectedElements = 0;
+		int affectedRegistries = 0;
+		int creates = 0;
+		int updates = 0;
+		int deletes = 0;
+		for (JsonElement raw : semanticDiff) {
+			JsonObject item = raw.getAsJsonObject();
+			String kind = requiredString(item, "kind");
+			if (kind.startsWith("element_")) affectedElements++;
+			if (kind.equals("registry_updated")) affectedRegistries++;
+			if (kind.equals("element_created")) creates++;
+			else if (kind.equals("element_deleted")) deletes++;
+			else updates++;
+		}
+		JsonObject summary = new JsonObject();
+		summary.addProperty("operationCount", operations.size());
+		summary.addProperty("affectedObjectCount", semanticDiff.size());
+		summary.addProperty("affectedElementCount", affectedElements);
+		summary.addProperty("affectedRegistryCount", affectedRegistries);
+		summary.addProperty("createCount", creates);
+		summary.addProperty("updateCount", updates);
+		summary.addProperty("deleteCount", deletes);
+		summary.addProperty("changedPathCount", changedPaths.size());
+		summary.addProperty("scope", semanticDiff.size() > 1 ? "multi_object" : "single_object");
+		summary.addProperty("highImpact", semanticDiff.size() >= 5 || operations.size() >= 5);
+		JsonObject review = new JsonObject();
+		review.add("summary", summary);
+		review.add("operationGroups", operationGroups);
+		review.add("affectedObjects", semanticDiff.deepCopy());
+		JsonArray paths = new JsonArray();
+		changedPaths.forEach(paths::add);
+		review.add("changedPaths", paths);
+		return review;
 	}
 
 	private static List<String> changedPaths(WorkspaceState before, WorkspaceState after) {
@@ -464,6 +521,7 @@ final class WorkspacePlanEngine {
 		core.addProperty("targetDigest", requiredString(plan, "targetDigest"));
 		core.add("semanticDiff", requiredArray(plan, "semanticDiff").deepCopy());
 		core.add("changedPaths", requiredArray(plan, "changedPaths").deepCopy());
+		core.add("review", requiredObject(plan, "review").deepCopy());
 		return sha256(GSON.toJson(core));
 	}
 
@@ -493,12 +551,30 @@ final class WorkspacePlanEngine {
 				&& left.ownership().equals(right.ownership()) && left.values().equals(right.values());
 	}
 
-	private static JsonObject elementDiff(String kind, Element element) {
+	private static JsonObject elementDiff(String kind, Element before, Element after) {
+		Element element = after == null ? before : after;
 		JsonObject item = new JsonObject();
 		item.addProperty("kind", kind);
 		item.addProperty("elementId", element.id().toString());
 		item.addProperty("type", element.type());
 		item.addProperty("name", element.name());
+		item.addProperty("displayName", element.displayName());
+		JsonArray changedProperties = new JsonArray();
+		if (before != null && after != null) {
+			if (!before.name().equals(after.name())) changedProperties.add("/name");
+			if (!before.displayName().equals(after.displayName())) changedProperties.add("/displayName");
+			if (!before.state().equals(after.state())) changedProperties.add("/state");
+			if (!before.ownership().equals(after.ownership())) changedProperties.add("/ownership");
+			Set<String> keys = new LinkedHashSet<>();
+			keys.addAll(before.values().keySet());
+			keys.addAll(after.values().keySet());
+			keys.stream().sorted().forEach(key -> {
+				JsonElement oldValue = before.values().get(key);
+				JsonElement newValue = after.values().get(key);
+				if (!java.util.Objects.equals(oldValue, newValue)) changedProperties.add("/values/" + key);
+			});
+		}
+		item.add("changedProperties", changedProperties);
 		return item;
 	}
 
@@ -523,6 +599,7 @@ final class WorkspacePlanEngine {
 		data.addProperty("idempotentReplay", replay);
 		data.add("semanticDiff", plan.getAsJsonArray("semanticDiff").deepCopy());
 		data.add("changedPaths", plan.getAsJsonArray("changedPaths").deepCopy());
+		data.add("review", plan.getAsJsonObject("review").deepCopy());
 		return data;
 	}
 
@@ -572,6 +649,12 @@ final class WorkspacePlanEngine {
 		if (!object.has(key) || !object.get(key).isJsonArray())
 			throw new IllegalArgumentException(key + " is required");
 		return object.getAsJsonArray(key);
+	}
+
+	private static JsonObject requiredObject(JsonObject object, String key) {
+		if (!object.has(key) || !object.get(key).isJsonObject())
+			throw new IllegalArgumentException(key + " is required");
+		return object.getAsJsonObject(key);
 	}
 
 	private static String shortId(String value) {

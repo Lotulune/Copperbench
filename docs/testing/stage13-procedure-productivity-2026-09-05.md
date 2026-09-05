@@ -2,7 +2,7 @@
 
 ## Scope
 
-This evidence covers the first three `FR-PRODUCTIVITY-01` implementation slices. It does not close Stage 13 or the full Procedure Workbench 2.0 requirement.
+This evidence covers the first four `FR-PRODUCTIVITY-01` implementation slices. It does not close Stage 13 or the full Procedure Workbench 2.0 requirement because installed-product failure-to-fix evidence is still pending.
 
 Implemented in this slice:
 
@@ -24,26 +24,33 @@ Implemented in this slice:
 - a new high-level `plan_procedure_refactor` MCP query so external Agents use the same extraction/batch-refactor planner as the UI instead of reconstructing low-level edits independently;
 - preservation of the existing 500-node Procedure IR validation/serialization performance gate.
 
+Fourth-slice additions:
+
+- Core-owned inbound/outbound Procedure relationship projection with readable source/target names, types, and relationship-kind summaries;
+- item-resource nodes now participate in the canonical dependency/reference index without false mandatory-identity diagnostics;
+- protected batch item-resource replacement uses the same high-level planner and one-revision/recovery-point apply path;
+- signed workspace-plan `review` metadata includes operation groups, affected objects, create/update/delete counts, changed paths, and per-element changed properties, and is rejected if tampered;
+- the Procedure UI renders the same Core review for extraction, variable rename, call replacement, and resource replacement.
+
 Still required before `FR-PRODUCTIVITY-01` can be called complete:
 
-- richer element/reference relationship presentation beyond the existing workspace reference edge list;
-- richer reference refactors outside the now-covered workspace-variable rename and Procedure-call replacement domains;
-- richer multi-operation refactor review UX for larger semantic plans;
 - representative end-to-end failure → locate → fix → rebuild coverage using the installed-product path.
 
 ## Core / UI ownership
 
-The new symbol relationships are emitted by `GET_PROCEDURE_EDITOR`; React does not derive workspace truth independently. Live validation calls the existing Core `PREVIEW_PROCEDURE_CHANGE` operation, so UI and MCP/headless consumers can share the same Procedure IR validation semantics. Variable refactoring reuses `PLAN_WORKSPACE_CHANGES` / `APPLY_WORKSPACE_PLAN` and `rename_registry_entry` instead of adding UI-private mutation logic. Reusable-logic extraction and batch call replacement use the new Core `PLAN_PROCEDURE_REFACTOR` planner, which emits ordinary signed workspace-plan operations and forces recovery protection. The plan token covers `requireRecoveryPoint`, and protected-plan execution recomputes recovery readiness in Core before mutation. Desktop MCP exposes both the low-level protected-plan capability and the same high-level Procedure refactor planner.
+The new symbol relationships are emitted by `GET_PROCEDURE_EDITOR`; React does not derive workspace truth independently. Live validation calls the existing Core `PREVIEW_PROCEDURE_CHANGE` operation, so UI and MCP/headless consumers can share the same Procedure IR validation semantics. Variable refactoring reuses `PLAN_WORKSPACE_CHANGES` / `APPLY_WORKSPACE_PLAN` and `rename_registry_entry` instead of adding UI-private mutation logic. Reusable-logic extraction plus batch call/resource replacement use the Core `PLAN_PROCEDURE_REFACTOR` planner, which emits ordinary signed workspace-plan operations and forces recovery protection. The plan identity/token covers `requireRecoveryPoint` and canonical `review` metadata, and preview/apply recompute both recovery readiness and semantic review before mutation. Desktop MCP exposes both the low-level protected-plan capability and the same high-level Procedure refactor planner.
 
 ## Verification
 
 - `npm run build` — passed, including TypeScript, Vite, and the Chinese localization gate (`193/193`).
-- `WorkspaceApplicationServiceTest` — passed, including Registry-backed `stage13ProcedureEditorProjectsSharedVariableResourceAndCallSymbols`.
-- `WorkspacePlanEngineTest` — passed, including protected-plan rejection without history, protected variable rename, reusable-logic extraction, multi-caller Procedure target replacement, stable-ID reference-index resolution, and pre-plan circular-call rejection.
+- `WorkspaceApplicationServiceTest` — passed, including Registry-backed symbols and Core-owned variable/resource/call relationship projection.
+- `WorkspacePlanEngineTest` — passed, including protected variable rename, extraction, multi-caller call/resource replacement, review tamper rejection, stable reference resolution, and circular-call rejection.
+- `WorkspaceReferenceIndexTest` — passed, including readable edge metadata and optional unresolved resource references without false dangling diagnostics.
 - `ProcedureIrCodecTest` — passed, including semantic `replace_node` while preserving the stable node identity.
-- `npx playwright test e2e/stage9-creator-core.spec.ts` — `18 passed` across Chromium and compact-1366 projects, including the protected reusable-logic extraction workflow.
+- `npx playwright test e2e/stage9-creator-core.spec.ts` — `20 passed` across Chromium and compact-1366, including relationship review and protected resource replacement with affected-object plan review.
 - `npx playwright test e2e/accessibility.spec.ts --grep "Procedure exposes"` — `2 passed` across Chromium and compact-1366 projects.
 - `DesktopMcpAgentLoopTest`, `DesktopMcpRuntimeTest`, and `McpHttpServerTest` — passed in the forced `--rerun-tasks` gate; the external Agent explicitly plans and applies reusable-logic extraction through `plan_procedure_refactor`, receives a recovery point, and `tools/list` exposes the high-level refactor schema.
 - `ProcedureIrScaleGateTest` with `-Dcopperbench.stage9.scale=true` — passed for the 500-node Procedure baseline.
+- `WorkspaceReferenceIndexScaleTest` with `-Dcopperbench.stage9.scale=true` — passed for the 2,000-element / 10,000-reference baseline after readable edge metadata was added.
 
 The isolated Stage 13 worktree does not contain its own bundled-JDK directory, so Gradle verification used the repository-root bundled JBR 25 via `JAVA_HOME`. Gradle emitted warnings for worktree-local configured JDK paths that do not exist; the test executions themselves completed successfully.
