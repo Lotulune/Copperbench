@@ -63,6 +63,31 @@ The next slice reuses migration facts that already existed in `MigrationReport` 
 
 This keeps copy-only migration semantics unchanged: the source workspace is still not mutated, the success/incomplete result is still decided by the migration service, and Diagnostics 2.0 only makes already-proven review locations actionable.
 
+## Fourth slice: resource diagnostics and stable asset locations
+
+Asset health diagnostics now use the same shared `UiCore.Diagnostic` contract as build, element and migration failures instead of remaining Asset Center-only records:
+
+- `INVALID_ASSET_DOCUMENT`, `REFERENCE_PATH_ESCAPE` and `MISSING_ASSET_REFERENCE` are projected by a shared Core mapper with localized message arguments, stable severity and actions;
+- the location always points at the existing source asset that contains the invalid document or reference: `/assets/<stableAssetId>` with an `open_asset` action targeting that stable ID;
+- a missing target is never assigned a fabricated asset identity; the unresolved target remains message context while navigation goes to the source that can actually be repaired;
+- `LIST_ASSETS` returns the same structured diagnostics both inside the asset projection and on the successful `QueryResult`, while MCP `list_assets` and `inspect_asset_references` reuse the exact same mapper;
+- Asset Center renders the shared diagnostic code/message/action and `open_asset` clears filters, selects the stable source asset, scrolls it into view and focuses its card;
+- the v1.0 asset schema and canonical fixture were brought forward to the already-shipped Stage 13 health/reference shape, including per-asset health, rich reference locations, workspace health summary and shared diagnostic actions.
+
+The source-asset rule is intentionally conservative: a diagnostic may identify an unresolved target path, but only an asset that actually exists can become a navigation target.
+
+## Fifth slice: generator validation field locations
+
+Generator pre-validation already carried stable element IDs and exact internal paths, but the task adapter previously reduced that information to an element-only action. The shared task diagnostic now preserves the stronger proven location:
+
+- validation diagnostics keep their original producer path such as `/elements/<UUID>/values/fields/maxStackSize`;
+- when that path is under the diagnosed element, the action becomes `locate_generator_field` and targets the Element Inspector contract path `/fields/maxStackSize`;
+- the internal `/values` storage layer is removed only from the action target, not from the diagnostic itself, so producer evidence remains lossless while UI navigation remains valid;
+- element-bound diagnostics without a proven editor field continue to use element-only navigation;
+- Java compiler diagnostics remain unchanged: generated-source paths still expose owning-element, bounded source-preview and task-log actions rather than being incorrectly treated as generator field paths.
+
+This closes the information-loss gap between Fabric/NeoForge validation producers and the shared Diagnostics 2.0 UI without inventing field ownership for runtime failures that only have logs.
+
 ## Verification
 
 - `Fabric1211TaskGatewayTest.failedBuildExtractsJavaCompilerErrorsIntoStructuredDiagnostics` — passed; a Procedure compiler error resolves to stable element ID `00000000-0000-4000-8000-000000000004`, preserves path/line/message, exposes element-location/generated-source/task-log actions, returns its bounded compiler-time source snapshot even after the live file is rewritten, and rejects a different existing generated Java file that is not referenced by the task diagnostic.
@@ -71,6 +96,11 @@ This keeps copy-only migration semantics unchanged: the source workspace is stil
 - `npm test` in `ui-core` — `20/20` passed after installing that package's declared test dependencies; all schemas and all canonical mock scenarios, including the new `compile-diagnostic` scenario, validate.
 - `npx playwright test e2e/scenarios.spec.ts --grep compile-diagnostic` — `2/2` passed across Chromium and compact-1366; the UI follows failed task → Task Drawer → `JAVA_COMPILE_ERROR` → bounded generated-source preview → owning Mod Element.
 - `npx playwright test e2e/scenarios.spec.ts` — `28/28` passed across Chromium and compact-1366, preserving existing validation, permission, bridge-recovery, external-process and task scenarios.
+- `npm test` in `ui-core` — final `20/20` passed with the current Stage 13 asset health/reference schema and a canonical shared `MISSING_ASSET_REFERENCE -> open_asset` fixture.
+- `AssetQueryProjectionTest` and the authenticated `McpHttpServerTest` asset path — passed; UI-Core `LIST_ASSETS`, MCP `list_assets` and MCP `inspect_asset_references` all expose the same stable source-asset diagnostic.
+- `npx playwright test e2e/asset-browser.spec.ts` — `36/36` passed across Chromium and compact-1366, including `MISSING_ASSET_REFERENCE -> open_asset -> stable source asset` navigation while preserving import, batch, move, safe-unused and Blockbench flows.
+- forced `--rerun-tasks` verification of the asset projection, authenticated MCP asset tooling, generator validation field location and Java compile diagnostic regression — `BUILD SUCCESSFUL`; the generator validation action targets `/fields/maxStackSize` while compiler-source ownership remains unchanged.
+- the forced Gradle run rebuilt the UI shell and passed the Chinese localization gate at `212/212`.
 - `Stage67ApplicationServiceTest.loaderMigrationSurfacesManualItemsAsElementAddressableDiagnostics` — passed; a successful Fabric-to-NeoForge copy with a loader-exclusive Procedure field remains `committed` while surfacing `LOADER_EXCLUSIVE_FIELDS_PRESERVED` as a warning bound to the exact `/elements/<UUID>` path and `open_migration_element` action.
 - `Stage67ApplicationServiceTest.loaderMigrationRequiresApprovalAndDoesNotMutateTheSourceWorkspace` — passed unchanged, preserving explicit approval, source immutability and generated target evidence.
 - `npm run build` in `ui-shell` — passed TypeScript/Vite and the Chinese localization gate (`207/207`).
@@ -83,8 +113,8 @@ This keeps copy-only migration semantics unchanged: the source workspace is stil
 
 This slice does not close Diagnostics 2.0. Remaining work includes:
 
-- extend the stable-location model beyond compiler and migration review items to generator, resource and MCP failures rather than leaving them as task/log-only errors;
-- deepen element locations into field paths, Procedure node IDs and asset IDs where the producer can prove that relationship;
+- extend the stable-location model to remaining deterministic generator/runtime and MCP failure classes where ownership can be proven; resource, migration and generator pre-validation locations are now covered;
+- deepen remaining element locations into Procedure node IDs or other field paths where the producer can prove that relationship; stable asset IDs and generator validation fields are now covered;
 - provide repair guidance for deterministic failure classes without turning heuristics into false guarantees;
 - route eligible automatic repairs through previewed semantic workspace plans and recovery points instead of direct mutation;
 - preserve the same diagnostic identities and locations through UI, desktop MCP, headless and reconnect/replay paths;

@@ -77,6 +77,7 @@ export type ActionHintKind =
   | 'retry'
   | 'refresh'
   | 'open_field'
+  | 'open_asset'
   | 'open_source'
   | 'open_logs'
   | 'request_permission'
@@ -1093,19 +1094,11 @@ export interface AssetProjectionReference {
   kind: 'RESOURCE_ID' | 'JSON_STRING';
 }
 
-export interface AssetProjectionDiagnostic {
-  code: 'INVALID_ASSET_DOCUMENT' | 'REFERENCE_PATH_ESCAPE' | 'MISSING_ASSET_REFERENCE';
-  severity: 'INFO' | 'WARNING' | 'ERROR';
-  sourcePath: string;
-  targetPath: string | null;
-  message: string;
-}
-
 export interface AssetProjection {
   schemaVersion: '1.0';
   assets: AssetProjectionAsset[];
   references: AssetProjectionReference[];
-  diagnostics: AssetProjectionDiagnostic[];
+  diagnostics: Diagnostic[];
   health: AssetProjectionHealthSummary;
 }
 

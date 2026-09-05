@@ -856,11 +856,19 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 			diagnostic.addProperty("recoverable", true);
 			JsonArray actions = new JsonArray();
 			if (elementId != null) {
+				String elementPath = "/elements/" + elementId;
+				String fieldTarget = path != null && path.startsWith(elementPath + "/")
+						? path.substring(elementPath.length()) : null;
+				if (fieldTarget != null && fieldTarget.startsWith("/values/"))
+					fieldTarget = fieldTarget.substring("/values".length());
 				JsonObject locate = new JsonObject();
-				locate.addProperty("id", "locate_element");
-				locate.add("label", localized("action.open_element", "Open element"));
+				locate.addProperty("id", fieldTarget == null ? "locate_element" : "locate_generator_field");
+				locate.add("label", fieldTarget == null
+						? localized("action.open_element", "Open element")
+						: localized("action.open_field", "Locate invalid field"));
 				locate.addProperty("kind", "open_field");
-				locate.add("target", JsonNull.INSTANCE);
+				if (fieldTarget == null) locate.add("target", JsonNull.INSTANCE);
+				else locate.addProperty("target", fieldTarget);
 				actions.add(locate);
 			}
 			if (path != null) {

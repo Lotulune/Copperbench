@@ -86,6 +86,7 @@ function mockAssetProjection() {
     const safeUnused = asset.id.endsWith('7777');
     const unused = asset.category === 'animation' || safeUnused;
     const duplicateContent = asset.category === 'sound';
+    const missingReference = asset.id.endsWith('3333');
     const warning = asset.validation === 'warning';
     const error = asset.validation === 'error';
     return {
@@ -99,7 +100,7 @@ function mockAssetProjection() {
       health: {
         assetId: asset.id,
         relativePath: asset.path,
-        status: error ? 'ERROR' as const : warning || duplicateContent ? 'WARNING' as const : 'READY' as const,
+        status: error || missingReference ? 'ERROR' as const : warning || duplicateContent ? 'WARNING' as const : 'READY' as const,
         usageAssessed: ['model', 'texture', 'animation', 'sound'].includes(asset.category) && asset.format !== 'BBMODEL',
         unused,
         inboundCount: unused ? 0 : asset.references.length,
@@ -109,15 +110,37 @@ function mockAssetProjection() {
         safeUnused,
         duplicateContent,
         duplicatePaths: duplicateContent ? ['assets/coppertrails/sounds/archive/copper_chime.ogg'] : [],
-        issueCodes: duplicateContent ? ['DUPLICATE_ASSET_CONTENT'] : []
+        issueCodes: duplicateContent ? ['DUPLICATE_ASSET_CONTENT'] : missingReference ? ['MISSING_ASSET_REFERENCE'] : []
       }
     };
   });
+  const missingSource = assets.find((asset) => asset.id.endsWith('3333'))!;
   return {
     schemaVersion: '1.0' as const,
     assets,
     references: [],
-    diagnostics: [],
+    diagnostics: [{
+      code: 'MISSING_ASSET_REFERENCE',
+      severity: 'error' as const,
+      message: {
+        key: 'diagnostic.asset_missing_reference',
+        fallback: 'Asset {sourcePath} references missing asset {targetPath}.',
+        args: {
+          sourcePath: missingSource.relativePath,
+          targetPath: 'assets/coppertrails/models/block/missing_lamp.json',
+          detail: 'Referenced asset does not exist'
+        }
+      },
+      path: `/assets/${missingSource.id}`,
+      elementId: null,
+      recoverable: true,
+      actions: [{
+        id: 'open_asset',
+        label: { key: 'action.open_asset', fallback: 'Open asset', args: {} },
+        kind: 'open_asset' as const,
+        target: missingSource.id
+      }]
+    }],
     health: {
       totalAssets: assets.length,
       readyAssets: assets.filter((asset) => asset.health.status === 'READY').length,
@@ -127,7 +150,7 @@ function mockAssetProjection() {
       safeUnusedAssets: assets.filter((asset) => asset.health.safeUnused).length,
       duplicateAssets: assets.filter((asset) => asset.health.duplicateContent).length,
       duplicateGroups: assets.some((asset) => asset.health.duplicateContent) ? 1 : 0,
-      missingReferences: 0,
+      missingReferences: 1,
       invalidDocuments: 0,
       pathEscapes: 0
     }

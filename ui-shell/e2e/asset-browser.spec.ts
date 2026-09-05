@@ -38,6 +38,18 @@ test.describe('U3 asset browser', () => {
     await expect(page.locator('[data-testid="asset-outgoing-references"]')).toBeVisible();
   });
 
+  test('navigates shared resource diagnostics to the stable source asset', async ({ page }) => {
+    const assetId = 'asset:3333333333333333333333333333333333333333333333333333333333333333';
+    await expect(page.getByTestId('asset-diagnostics-panel')).toBeVisible();
+    await expect(page.getByTestId('asset-diagnostic-MISSING_ASSET_REFERENCE')).toContainText('MISSING_ASSET_REFERENCE');
+    await page.getByTestId('asset-diagnostic-action-open_asset').click();
+
+    const card = page.getByTestId(`asset-card-${assetId}`);
+    await expect(card).toHaveAttribute('aria-pressed', 'true');
+    await expect(card).toBeFocused();
+    await expect(page.getByTestId('asset-stable-id')).toHaveText(assetId);
+  });
+
   test('separates conservatively safe cleanup candidates from static-unreferenced assets', async ({ page }) => {
     await expect(page.getByTestId('asset-health-safe-summary')).toContainText('1');
     await page.getByTestId('asset-health-safe-unused').click();

@@ -381,6 +381,14 @@ class Fabric1211TaskGatewayTest {
 			JsonObject projection = startAndAwait(service, ids, Operation.VALIDATE_WORKSPACE);
 			assertEquals("failed", projection.getAsJsonObject("task").get("state").getAsString());
 			assertTrue(projection.getAsJsonArray("diagnostics").toString().contains("FABRIC_ITEM_STACK_INVALID"));
+			JsonObject diagnostic = projection.getAsJsonArray("diagnostics").asList().stream()
+					.map(value -> value.getAsJsonObject())
+					.filter(value -> value.get("code").getAsString().equals("FABRIC_ITEM_STACK_INVALID"))
+					.findFirst().orElseThrow();
+			assertEquals("/fields/maxStackSize",
+					diagnostic.getAsJsonArray("actions").get(0).getAsJsonObject().get("target").getAsString());
+			assertEquals("locate_generator_field",
+					diagnostic.getAsJsonArray("actions").get(0).getAsJsonObject().get("id").getAsString());
 			assertFalse(Files.exists(generatedWorkspace.resolve("build.gradle")));
 		}
 	}

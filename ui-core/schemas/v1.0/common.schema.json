@@ -106,6 +106,7 @@
             "retry",
             "refresh",
             "open_field",
+            "open_asset",
             "open_source",
             "open_logs",
             "request_permission",

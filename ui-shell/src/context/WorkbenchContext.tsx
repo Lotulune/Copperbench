@@ -54,6 +54,8 @@ interface WorkbenchContextType {
   selectedElementId: UUID | null;
   selectedElement: ModElementSummary | null;
   setSelectedElementId: (id: UUID | null) => void;
+  assetFocusId: string | null;
+  setAssetFocusId: (id: string | null) => void;
   isTaskDrawerOpen: boolean;
   setIsTaskDrawerOpen: (open: boolean) => void;
   activeTaskId: UUID | null;
@@ -168,6 +170,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const [activeView, setActiveView] = useState<NavView>('hub');
   const [selectedElementId, setSelectedElementId] = useState<UUID | null>(null);
+  const [assetFocusId, setAssetFocusId] = useState<string | null>(null);
   const [isTaskDrawerOpen, setIsTaskDrawerOpen] = useState(false);
   const [activeTaskId, setActiveTaskId] = useState<UUID | null>(null);
   const [isMaximized, setIsMaximized] = useState(false);
@@ -1112,6 +1115,12 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
               });
           }
           break;
+        case 'open_asset':
+          if (action.target) {
+            setAssetFocusId(action.target);
+            setActiveView('assets');
+          }
+          break;
         case 'open_field':
           if (diagnostic.elementId) {
             setSelectedElementId(diagnostic.elementId);
@@ -1139,6 +1148,8 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       selectedElementId,
       selectedElement,
       setSelectedElementId,
+      assetFocusId,
+      setAssetFocusId,
       isTaskDrawerOpen,
       setIsTaskDrawerOpen,
       activeTaskId,
@@ -1214,6 +1225,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       activeView,
       selectedElementId,
       selectedElement,
+      assetFocusId,
       isTaskDrawerOpen,
       activeTaskId,
       isMaximized,

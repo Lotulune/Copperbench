@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
 import { assetRecordsFromProjection, AssetCategory, AssetRecord, AssetValidationStatus } from '../types/assets';
-import type { AssetImportPreview, AssetImportBatchPreview, AssetMovePreview, AssetProjectionHealthSummary } from '../types/contract';
+import type { AssetImportPreview, AssetImportBatchPreview, AssetMovePreview, AssetProjectionHealthSummary, Diagnostic } from '../types/contract';
 import { blockbenchBridge } from '../bridge/blockbenchBridge';
 import { assetImportBridge, type AssetImportSelectionGrant } from '../bridge/assetImportBridge';
 import { t } from '../i18n';
@@ -129,9 +129,10 @@ function formatBytes(bytes: number) {
 export const AssetBrowserView: React.FC = () => {
   const {
     state, listAssets, previewAssetImport, importAsset, previewAssetImportBatch, importAssetBatch,
-    previewAssetMove, moveAsset
+    previewAssetMove, moveAsset, assetFocusId, setAssetFocusId, runDiagnosticAction
   } = useWorkbench();
   const [assets, setAssets] = useState<AssetRecord[]>([]);
+  const [assetDiagnostics, setAssetDiagnostics] = useState<Diagnostic[]>([]);
   const [healthSummary, setHealthSummary] = useState<AssetProjectionHealthSummary | null>(null);
   const [assetLoadState, setAssetLoadState] = useState<'loading' | 'ready' | 'error'>('loading');
   const [reloadToken, setReloadToken] = useState(0);
@@ -159,6 +160,7 @@ export const AssetBrowserView: React.FC = () => {
     setModeOverride(null);
     if (state.currentScenarioId !== 'native' && scenarioMode !== 'ready') {
       setAssets([]);
+      setAssetDiagnostics([]);
       setHealthSummary(null);
       setAssetLoadState(scenarioMode === 'error' ? 'error' : scenarioMode === 'loading' ? 'loading' : 'ready');
       return;
@@ -170,22 +172,42 @@ export const AssetBrowserView: React.FC = () => {
       if (!active) return;
       if (!projection) {
         setAssets([]);
+        setAssetDiagnostics([]);
         setHealthSummary(null);
         setAssetLoadState('error');
         return;
       }
       setAssets(assetRecordsFromProjection(projection));
+      setAssetDiagnostics(projection.diagnostics);
       setHealthSummary(projection.health);
       setAssetLoadState('ready');
     }).catch(() => {
       if (!active) return;
       setAssets([]);
+      setAssetDiagnostics([]);
       setAssetLoadState('error');
     });
     return () => {
       active = false;
     };
   }, [listAssets, reloadToken, scenarioMode, state.currentScenarioId]);
+
+  useEffect(() => {
+    if (!assetFocusId || !assets.some((asset) => asset.id === assetFocusId)) return;
+    setQuery('');
+    setCategory('all');
+    setHealthFilter('all');
+    setSelectedId(assetFocusId);
+    const target = assetFocusId;
+    window.setTimeout(() => {
+      const element = document.querySelector(`[data-asset-id="${target}"]`);
+      if (element instanceof HTMLElement) {
+        element.scrollIntoView({ block: 'nearest' });
+        element.focus();
+      }
+    }, 80);
+    setAssetFocusId(null);
+  }, [assetFocusId, assets, setAssetFocusId]);
 
   useEffect(() => {
     if (!selectedId || !assets.some((asset) => asset.id === selectedId)) {
@@ -534,6 +556,8 @@ export const AssetBrowserView: React.FC = () => {
               </span>
             )}
           </div>
+
+          <AssetDiagnosticsPanel diagnostics={assetDiagnostics} onAction={runDiagnosticAction} />
 
           <div className="asset-category-hint">
             <Link2 size={13} aria-hidden="true" />
@@ -1068,6 +1092,36 @@ const AssetStateView: React.FC<{
 };
 
 /* Individual Asset Card in the grid */
+const AssetDiagnosticsPanel: React.FC<{
+  diagnostics: readonly Diagnostic[];
+  onAction: (action: Diagnostic['actions'][number], diagnostic: Diagnostic) => void;
+}> = ({ diagnostics, onAction }) => {
+  if (diagnostics.length === 0) return null;
+  return (
+    <div className="asset-health-panel" data-testid="asset-diagnostics-panel" aria-label={t({ key: 'asset.diagnostics.label', fallback: 'Asset diagnostics' })}>
+      <div className="asset-panel-label">
+        <AlertCircle size={13} aria-hidden="true" />
+        <span>{t({ key: 'asset.diagnostics.title', fallback: 'Structured diagnostics' })}</span>
+      </div>
+      {diagnostics.map((diagnostic) => (
+        <div key={`${diagnostic.code}-${diagnostic.path ?? ''}`} data-testid={`asset-diagnostic-${diagnostic.code}`}
+          style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '8px 0' }}>
+          <code style={{ fontSize: '10px', color: 'var(--text-sub)', overflowWrap: 'anywhere' }}>{diagnostic.code}</code>
+          <span style={{ fontSize: '11px', lineHeight: 1.5 }}>{t(diagnostic.message)}</span>
+          {diagnostic.actions.map((action) => (
+            <button key={action.id} type="button" className="btn-secondary"
+              data-testid={`asset-diagnostic-action-${action.id}`}
+              style={{ minHeight: '32px', alignSelf: 'flex-start' }}
+              onClick={() => onAction(action, diagnostic)}>
+              {t(action.label)}
+            </button>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+};
+
 const AssetCard: React.FC<{
   asset: AssetRecord;
   selected: boolean;

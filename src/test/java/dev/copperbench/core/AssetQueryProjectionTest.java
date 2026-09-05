@@ -89,6 +89,20 @@ class AssetQueryProjectionTest {
 		assertEquals("copperbench:block/lamp", reference.get("rawValue").getAsString());
 		assertEquals("textures/", reference.get("expectedPrefix").getAsString());
 		assertTrue(projection.getAsJsonArray("diagnostics").toString().contains("MISSING_ASSET_REFERENCE"));
+		JsonObject modelAsset = assetByPath(projection, "assets/copperbench/models/block/lamp.json");
+		String modelAssetId = modelAsset.get("id").getAsString();
+		JsonObject diagnostic = projection.getAsJsonArray("diagnostics").get(0).getAsJsonObject();
+		assertEquals("MISSING_ASSET_REFERENCE", diagnostic.get("code").getAsString());
+		assertEquals("error", diagnostic.get("severity").getAsString());
+		assertEquals("/assets/" + modelAssetId, diagnostic.get("path").getAsString());
+		assertEquals(modelAssetId, diagnostic.getAsJsonArray("actions").get(0).getAsJsonObject()
+				.get("target").getAsString());
+		assertEquals("open_asset", diagnostic.getAsJsonArray("actions").get(0).getAsJsonObject()
+				.get("kind").getAsString());
+		assertEquals("assets/copperbench/block/missing.json",
+				diagnostic.getAsJsonObject("message").getAsJsonObject("args").get("targetPath").getAsString());
+		assertEquals("MISSING_ASSET_REFERENCE", result.diagnostics().getFirst().code());
+		assertEquals("/assets/" + modelAssetId, result.diagnostics().getFirst().path());
 		JsonObject health = projection.getAsJsonObject("health");
 		assertEquals(4, health.get("totalAssets").getAsInt());
 		assertEquals(1, health.get("errorAssets").getAsInt());

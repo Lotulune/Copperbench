@@ -62,7 +62,8 @@ class McpHttpServerTest {
 		Path texture = workspace.resolve("assets/coppertrails/textures/block/copper_lamp.png");
 		Files.createDirectories(model.getParent());
 		Files.createDirectories(texture.getParent());
-		Files.writeString(model, "{\"textures\":{\"all\":\"coppertrails:textures/block/copper_lamp\"}}");
+		Files.writeString(model, "{\"textures\":{\"all\":\"coppertrails:textures/block/copper_lamp\","
+				+ "\"missing\":\"coppertrails:textures/block/missing_lamp\"}}");
 		Files.write(texture, new byte[] { 0, 1, 2 });
 
 		WorkspaceTokenService tokens = new WorkspaceTokenService(CLOCK, Duration.ofMinutes(5));
@@ -122,7 +123,8 @@ class McpHttpServerTest {
 		Path model = workspace.resolve("assets/coppertrails/models/block/copper_lamp.json");
 		Files.createDirectories(model.getParent());
 		Files.createDirectories(workspace.resolve("assets/coppertrails/textures/block"));
-		Files.writeString(model, "{\"textures\":{\"all\":\"coppertrails:textures/block/copper_lamp\"}}");
+		Files.writeString(model, "{\"textures\":{\"all\":\"coppertrails:textures/block/copper_lamp\","
+				+ "\"missing\":\"coppertrails:block/missing_lamp\"}}");
 		Files.write(workspace.resolve("assets/coppertrails/textures/block/copper_lamp.png"), new byte[] { 0, 1, 2 });
 		WorkspaceTokenService tokens = new WorkspaceTokenService(CLOCK, Duration.ofMinutes(5));
 		WorkspaceToken token = tokens.issue(WORKSPACE_ID, PermissionProfile.WORKSPACE);
@@ -233,6 +235,8 @@ class McpHttpServerTest {
 			assertTrue(assets.getAsJsonArray("assets").toString().contains("copper_lamp.json"));
 			assertTrue(assets.has("health"));
 			assertEquals(1, assets.getAsJsonArray("assetHealth").size());
+			assertTrue(assets.getAsJsonArray("diagnostics").toString().contains("MISSING_ASSET_REFERENCE"));
+			assertTrue(assets.getAsJsonArray("diagnostics").toString().contains("open_asset"));
 			HttpResponse<String> referencesResult = post(endpoint,
 					"{\"jsonrpc\":\"2.0\",\"id\":32,\"method\":\"tools/call\",\"params\":{\"name\":\"inspect_asset_references\",\"arguments\":{\"sourcePath\":\"assets/coppertrails/models/block/copper_lamp.json\"}}}",
 					token.value(), sessionId, "http://localhost:5173");
@@ -241,6 +245,8 @@ class McpHttpServerTest {
 			assertEquals(1, references.getAsJsonArray("references").size());
 			assertTrue(references.has("incomingReferences"));
 			assertTrue(references.has("health"));
+			assertTrue(references.getAsJsonArray("diagnostics").toString().contains("MISSING_ASSET_REFERENCE"));
+			assertTrue(references.getAsJsonArray("diagnostics").toString().contains("open_asset"));
 
 			HttpResponse<String> recoveryPointResult = post(endpoint,
 					"{\"jsonrpc\":\"2.0\",\"id\":4,\"method\":\"tools/call\",\"params\":{\"name\":\"create_recovery_point\",\"arguments\":{\"label\":\"Before MCP edit\",\"expectedRevision\":0}}}",

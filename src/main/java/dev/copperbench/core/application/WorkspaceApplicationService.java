@@ -19,6 +19,7 @@ import dev.copperbench.core.contract.UiCore.PermissionProfile;
 import dev.copperbench.core.contract.UiCore.Query;
 import dev.copperbench.core.contract.UiCore.QueryResult;
 import dev.copperbench.core.contract.UiCore.RequestContext;
+import dev.copperbench.core.diagnostics.AssetDiagnosticProjection;
 import dev.copperbench.core.workspace.RevisionedWorkspaceStore;
 import dev.copperbench.core.workspace.RevisionedWorkspaceStore.Decision;
 import dev.copperbench.core.workspace.RevisionedWorkspaceStore.TransactionResult;
@@ -33,7 +34,6 @@ import dev.copperbench.assets.AssetMovePlan;
 import dev.copperbench.assets.AssetMoveService;
 import dev.copperbench.assets.AssetMoveService.AssetMoveException;
 import dev.copperbench.assets.AssetDescriptor;
-import dev.copperbench.assets.AssetDiagnostic;
 import dev.copperbench.assets.AssetHealthReport;
 import dev.copperbench.assets.AssetPathViolationException;
 import dev.copperbench.assets.AssetReference;
@@ -1166,10 +1166,11 @@ public final class WorkspaceApplicationService {
 					.map(descriptor -> asset(descriptor, health.findById(descriptor.id()).orElseThrow())).toList()));
 			projection.add("references", GSON.toJsonTree(graph.references().stream()
 					.map(WorkspaceApplicationService::assetReference).toList()));
-			projection.add("diagnostics", GSON.toJsonTree(graph.diagnostics().stream()
-					.map(WorkspaceApplicationService::assetDiagnostic).toList()));
+			List<Diagnostic> diagnostics = graph.diagnostics().stream().map(AssetDiagnosticProjection::project).toList();
+			projection.add("diagnostics", GSON.toJsonTree(diagnostics));
 			projection.add("health", GSON.toJsonTree(health.summary()));
-			return querySuccess(query, state.revision(), projection);
+			return new QueryResult("query_result", UiCore.SCHEMA_VERSION, query.requestId(), query.workspaceId(),
+					query.operation(), "succeeded", state.revision(), projection, diagnostics);
 		} catch (RuntimeException exception) {
 			return queryFailure(query, state.revision(), failureDiagnostic(query, "ASSET_QUERY_FAILED",
 					"diagnostic.asset_query_failed", "The workspace asset index could not be read.", null, null,
@@ -1258,19 +1259,6 @@ public final class WorkspaceApplicationService {
 		value.addProperty("targetPath", reference.targetPath());
 		value.addProperty("targetAssetId", reference.targetAssetId());
 		value.addProperty("kind", reference.kind().name());
-		return value;
-	}
-
-	private static JsonObject assetDiagnostic(AssetDiagnostic diagnostic) {
-		JsonObject value = new JsonObject();
-		value.addProperty("code", diagnostic.code());
-		value.addProperty("severity", diagnostic.severity().name());
-		value.addProperty("sourcePath", diagnostic.sourcePath());
-		if (diagnostic.targetPath() == null)
-			value.add("targetPath", JsonNull.INSTANCE);
-		else
-			value.addProperty("targetPath", diagnostic.targetPath());
-		value.addProperty("message", diagnostic.message());
 		return value;
 	}
 

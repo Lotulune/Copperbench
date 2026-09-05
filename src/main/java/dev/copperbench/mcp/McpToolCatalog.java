@@ -19,6 +19,7 @@ import dev.copperbench.assets.AssetDescriptor;
 import dev.copperbench.assets.AssetHealthReport;
 import dev.copperbench.assets.AssetReferenceGraph;
 import dev.copperbench.assets.AssetWorkspaceService;
+import dev.copperbench.core.diagnostics.AssetDiagnosticProjection;
 import dev.copperbench.core.application.McpWorkspaceEntryAdapter;
 import dev.copperbench.core.contract.UiCore.Command;
 import dev.copperbench.core.contract.UiCore.Operation;
@@ -476,12 +477,16 @@ final class McpToolCatalog {
 						String search = request.arguments() == null ? "" : String.valueOf(request.arguments().getOrDefault("search", ""));
 						AssetCategory category = parseCategory(request.arguments() == null ? null : request.arguments().get("category"));
 						List<AssetDescriptor> result = assets.search(search, category);
-						AssetHealthReport health = assets.buildReferenceGraph().healthReport();
+						AssetReferenceGraph graph = assets.buildReferenceGraph();
+						AssetHealthReport health = graph.healthReport();
 						var resultHealth = health.entries().stream()
 								.filter(entry -> result.stream().anyMatch(asset -> asset.id().equals(entry.assetId()))).toList();
+						var diagnostics = graph.diagnostics().stream()
+								.filter(diagnostic -> result.stream().anyMatch(asset -> asset.relativePath().equals(diagnostic.sourcePath())))
+								.map(AssetDiagnosticProjection::project).toList();
 						audit("list_assets", request.arguments(), "succeeded", 0, "");
 						return text(GSON.toJson(Map.of("status", "succeeded", "assets", result,
-								"assetHealth", resultHealth, "health", health.summary())), false);
+								"assetHealth", resultHealth, "health", health.summary(), "diagnostics", diagnostics)), false);
 					} catch (AuditUnavailableException exception) {
 						return auditUnavailable();
 					} catch (RuntimeException exception) {
@@ -504,7 +509,8 @@ final class McpToolCatalog {
 						var references = graph.outgoing(sourcePath);
 						var incoming = graph.incoming(sourcePath);
 						var diagnostics = graph.diagnostics().stream()
-								.filter(diagnostic -> diagnostic.sourcePath().equals(sourcePath)).toList();
+								.filter(diagnostic -> diagnostic.sourcePath().equals(sourcePath))
+								.map(AssetDiagnosticProjection::project).toList();
 						var health = graph.healthReport().entries().stream()
 								.filter(entry -> entry.relativePath().equals(sourcePath)).findFirst().orElse(null);
 						audit("inspect_asset_references", request.arguments(), "succeeded", 0, "");
