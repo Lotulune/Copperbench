@@ -27,6 +27,9 @@ import dev.copperbench.assets.AssetPublishBatchService;
 import dev.copperbench.assets.AssetImportPlan;
 import dev.copperbench.assets.AssetImportService;
 import dev.copperbench.assets.AssetImportService.AssetImportException;
+import dev.copperbench.assets.AssetMovePlan;
+import dev.copperbench.assets.AssetMoveService;
+import dev.copperbench.assets.AssetMoveService.AssetMoveException;
 import dev.copperbench.assets.AssetDescriptor;
 import dev.copperbench.assets.AssetDiagnostic;
 import dev.copperbench.assets.AssetHealthReport;
@@ -135,11 +138,137 @@ public final class WorkspaceApplicationService {
 	private final Map<UUID, Deque<Event>> taskEventHistory = new ConcurrentHashMap<>();
 	private final Map<String, AssetImportSourceGrant> assetImportSourceGrants = new ConcurrentHashMap<>();
 	private final Map<String, AssetImportPlanGrant> assetImportPlanGrants = new ConcurrentHashMap<>();
+	private final Map<String, AssetMovePlanGrant> assetMovePlanGrants = new ConcurrentHashMap<>();
 	private static final Duration ASSET_IMPORT_GRANT_TTL = Duration.ofMinutes(10);
+	private static final Duration ASSET_MOVE_PLAN_TTL = Duration.ofMinutes(10);
 
 	public WorkspaceApplicationService(RevisionedWorkspaceStore store, WorkspaceTaskGateway tasks, Clock clock,
 			Supplier<UUID> ids) {
 		this(store, tasks, WorkspaceMutationGateway.noOp(), clock, ids);
+	}
+
+	private record AssetMovePlanGrant(String id, UUID workspaceId, AssetMovePlan plan, Instant expiresAt) {
+	}
+
+	private record AssetMoveMutation(AssetMoveService.ApplyResult applied, long sequence, Diagnostic diagnostic) {
+		private static AssetMoveMutation success(AssetMoveService.ApplyResult applied, long sequence) {
+			return new AssetMoveMutation(applied, sequence, null);
+		}
+
+		private static AssetMoveMutation rejected(Diagnostic diagnostic) {
+			return new AssetMoveMutation(null, 0, diagnostic);
+		}
+	}
+
+	private void pruneAssetMovePlans() {
+		Instant now = clock.instant();
+		assetMovePlanGrants.entrySet().removeIf(entry -> !entry.getValue().expiresAt().isAfter(now));
+	}
+
+	private AssetMovePlanGrant assetMovePlanGrant(String id, UUID workspaceId) {
+		pruneAssetMovePlans();
+		AssetMovePlanGrant grant = assetMovePlanGrants.get(id);
+		if (grant == null)
+			throw new AssetMoveException("ASSET_MOVE_PLAN_INVALID", "The asset move plan is missing or expired");
+		if (!grant.workspaceId().equals(workspaceId))
+			throw new AssetMoveException("ASSET_MOVE_PLAN_WORKSPACE_MISMATCH",
+					"The asset move plan belongs to a different workspace");
+		return grant;
+	}
+
+	private QueryResult previewAssetMove(Query query, WorkspaceState state) {
+		if (history == null)
+			return queryFailure(query, state.revision(), diagnostic("ASSET_MOVE_RECOVERY_UNAVAILABLE",
+					"diagnostic.asset_move_recovery_unavailable",
+					"Asset move requires local-history recovery, which is unavailable in this session.", null, null));
+		Path root = workspaceRoot(query.workspaceId());
+		if (root == null)
+			return queryFailure(query, state.revision(), diagnostic("ASSET_WORKSPACE_ROOT_UNAVAILABLE",
+					"diagnostic.asset_workspace_root_unavailable",
+					"The workspace root is not available for asset move.", null, null));
+		try {
+			String sourceAssetId = requiredString(query.payload(), "sourceAssetId");
+			String targetRelativePath = requiredString(query.payload(), "targetRelativePath");
+			AssetMovePlan plan = new AssetMoveService(new AssetWorkspaceService(root), history)
+					.preview(sourceAssetId, targetRelativePath);
+			String planToken = ids.get().toString();
+			Instant expiresAt = clock.instant().plus(ASSET_MOVE_PLAN_TTL);
+			assetMovePlanGrants.put(planToken, new AssetMovePlanGrant(planToken, query.workspaceId(), plan, expiresAt));
+			pruneAssetMovePlans();
+			JsonObject data = plan.toJson();
+			data.addProperty("planToken", planToken);
+			data.addProperty("expiresAt", expiresAt.toString());
+			return querySuccess(query, state.revision(), data);
+		} catch (AssetMoveException exception) {
+			return queryFailure(query, state.revision(), diagnostic(exception.code(),
+					"diagnostic.asset_move_preview_failed", exception.getMessage(), null, null));
+		} catch (RuntimeException exception) {
+			return queryFailure(query, state.revision(), invalidPayload(exception.getMessage()));
+		}
+	}
+
+	private CommandOutcome moveAsset(Command command, RequestContext context) {
+		if (history == null)
+			return failed(command, currentRevision(command.workspaceId()), diagnostic("ASSET_MOVE_RECOVERY_UNAVAILABLE",
+					"diagnostic.asset_move_recovery_unavailable",
+					"Asset move requires local-history recovery, which is unavailable in this session.", null, null));
+		Path root = workspaceRoot(command.workspaceId());
+		if (root == null)
+			return failed(command, currentRevision(command.workspaceId()), diagnostic("ASSET_WORKSPACE_ROOT_UNAVAILABLE",
+					"diagnostic.asset_workspace_root_unavailable",
+					"The workspace root is not available for asset move.", null, null));
+		AssetMovePlanGrant approved;
+		try {
+			approved = assetMovePlanGrant(requiredString(command.payload(), "planToken"), command.workspaceId());
+		} catch (AssetMoveException exception) {
+			return failed(command, currentRevision(command.workspaceId()), diagnostic(exception.code(),
+					"diagnostic.asset_move_failed", exception.getMessage(), null, null));
+		} catch (RuntimeException exception) {
+			return failed(command, currentRevision(command.workspaceId()), invalidPayload(exception.getMessage()));
+		}
+		if (!approved.plan().canApply())
+			return failed(command, currentRevision(command.workspaceId()), diagnostic("ASSET_MOVE_NOT_APPLICABLE",
+					"diagnostic.asset_move_failed", "The reviewed asset move is blocked.", "/planToken", null));
+
+		AssetMoveService mover = new AssetMoveService(new AssetWorkspaceService(root), history);
+		TransactionResult<AssetMoveMutation> transaction = store.transact(command.workspaceId(),
+				command.expectedRevision(), state -> {
+			try {
+				AssetMoveService.ApplyResult applied = mover.apply(approved.plan(), context.actor(),
+						command.payload().has("clientMutationId") ? command.payload().get("clientMutationId").getAsString()
+								: command.requestId().toString());
+				return Decision.commit(AssetMoveMutation.success(applied, state.nextEventSequence()),
+						List.of("/" + approved.plan().sourceRelativePath(), "/" + applied.asset().relativePath()));
+			} catch (AssetMoveException exception) {
+				return Decision.abort(AssetMoveMutation.rejected(diagnostic(exception.code(),
+						"diagnostic.asset_move_failed", exception.getMessage(), null, null)));
+			} catch (LocalHistoryException exception) {
+				return Decision.abort(AssetMoveMutation.rejected(failureDiagnostic(command,
+						"RECOVERY_POINT_FAILED", "diagnostic.recovery_point_failed",
+						"The required recovery point could not be created; the workspace was not changed.",
+						null, null, exception)));
+			}
+		});
+		CommandOutcome conflict = checkFailure(command, transaction);
+		if (conflict != null) return conflict;
+		AssetMoveMutation mutation = transaction.value();
+		if (transaction.status() == TransactionResult.Status.ABORTED)
+			return failed(command, transaction.revision(), mutation.diagnostic());
+
+		assetMovePlanGrants.remove(approved.id());
+		AssetReferenceGraph refreshed = new AssetWorkspaceService(root).referenceGraph();
+		AssetHealthReport refreshedHealth = refreshed.healthReport();
+		JsonObject data = new JsonObject();
+		data.addProperty("complete", true);
+		data.addProperty("sourceRelativePath", approved.plan().sourceRelativePath());
+		data.addProperty("targetRelativePath", mutation.applied().asset().relativePath());
+		data.addProperty("rewrittenReferences", mutation.applied().rewrittenReferences());
+		data.add("asset", asset(mutation.applied().asset(),
+				refreshedHealth.findById(mutation.applied().asset().id()).orElseThrow()));
+		data.add("health", GSON.toJsonTree(refreshedHealth.summary()));
+		Event event = event(command, transaction.revision(), mutation.sequence(), "asset_moved", data.deepCopy());
+		return new CommandOutcome(result(command, "committed", transaction.revision(), mutation.applied().recoveryPoint(),
+				JsonNull.INSTANCE, data, List.of(), JsonNull.INSTANCE, JsonNull.INSTANCE), List.of(event));
 	}
 
 	private QueryResult previewAssetImport(Query query, WorkspaceState state) {
@@ -659,6 +788,7 @@ public final class WorkspaceApplicationService {
 			case CREATE_PUBLISH_BATCH -> createPublishBatch(command, context);
 			case PREPARE_RESOURCE_PACK_CLIENT -> prepareResourcePackClient(command, context);
 			case IMPORT_ASSET -> importAsset(command, context);
+			case MOVE_ASSET -> moveAsset(command, context);
 			case APPLY_WORKSPACE_PLAN -> plans.apply(command, context);
 			default -> failed(command, 0, diagnostic("UNSUPPORTED_OPERATION", "diagnostic.unsupported_operation",
 					"The requested operation is not supported.", null, null));
@@ -675,6 +805,7 @@ public final class WorkspaceApplicationService {
 				case LIST_NEW_WORKSPACE_GENERATORS -> querySuccess(query, state.revision(), newWorkspaceGenerators());
 				case LIST_ASSETS -> listAssets(query, state);
 				case PREVIEW_ASSET_IMPORT -> previewAssetImport(query, state);
+				case PREVIEW_ASSET_MOVE -> previewAssetMove(query, state);
 				case LIST_MOD_ELEMENTS -> querySuccess(query, state.revision(), elementList(state, query.payload()));
 				case GET_MOD_ELEMENT_EDITOR -> editor(query, state, context);
 				case PREVIEW_MOD_ELEMENT_CHANGE -> preview(query, state);
@@ -753,6 +884,10 @@ public final class WorkspaceApplicationService {
 		JsonObject value = new JsonObject();
 		value.addProperty("sourceAssetId", reference.sourceAssetId());
 		value.addProperty("sourcePath", reference.sourcePath());
+		value.addProperty("sourcePointer", reference.sourcePointer());
+		value.addProperty("rawValue", reference.rawValue());
+		if (reference.expectedPrefix() == null) value.add("expectedPrefix", JsonNull.INSTANCE);
+		else value.addProperty("expectedPrefix", reference.expectedPrefix());
 		value.addProperty("targetPath", reference.targetPath());
 		value.addProperty("targetAssetId", reference.targetAssetId());
 		value.addProperty("kind", reference.kind().name());

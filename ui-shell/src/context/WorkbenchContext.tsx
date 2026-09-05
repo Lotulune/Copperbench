@@ -18,7 +18,7 @@ import {
   UpstreamToolCatalogProjection,
   NewWorkspaceGeneratorCatalog,
   AssetProjection,
-  AssetImportPreview,
+  AssetImportPreview, AssetMovePreview,
   ProcedureEditorProjection,
   ProcedureChangePreview,
   ProcedureEdit,
@@ -111,6 +111,8 @@ interface WorkbenchContextType {
   listAssets: () => Promise<AssetProjection | null>;
   previewAssetImport: (sourceGrantId: string, targetRelativePath: string) => Promise<AssetImportPreview | null>;
   importAsset: (planToken: string, confirmReplace: boolean) => Promise<CommandResult>;
+  previewAssetMove: (sourceAssetId: string, targetRelativePath: string) => Promise<AssetMovePreview | null>;
+  moveAsset: (planToken: string) => Promise<CommandResult>;
   listNewWorkspaceGenerators: () => Promise<NewWorkspaceGeneratorCatalog | null>;
   createWorkspace: (form: {
     generatorId: string;
@@ -290,6 +292,40 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     },
     [state.workbench]
   );
+
+  const previewAssetMove = useCallback(
+    async (sourceAssetId: string, targetRelativePath: string): Promise<AssetMovePreview | null> => {
+      const workspaceId = state.workbench?.workspace.id || generateUUID();
+      const res = await coreBridge.sendQuery<AssetMovePreview>({
+        messageType: 'query',
+        schemaVersion: '1.0',
+        requestId: generateUUID(),
+        workspaceId,
+        operation: 'preview_asset_move',
+        payload: { sourceAssetId, targetRelativePath }
+      });
+      if (res.status !== 'succeeded' || !res.data) {
+        const diagnostic = res.diagnostics[0];
+        throw new Error(diagnostic ? t(diagnostic.message) : '资产移动预览失败。');
+      }
+      return res.data as AssetMovePreview;
+    },
+    [state.workbench]
+  );
+
+  const moveAsset = useCallback(async (planToken: string): Promise<CommandResult> => {
+    const workspaceId = state.workbench?.workspace.id || generateUUID();
+    const revision = state.workbench?.workspace.revision ?? 0;
+    return coreBridge.sendCommand({
+      messageType: 'command',
+      schemaVersion: '1.0',
+      requestId: generateUUID(),
+      workspaceId,
+      expectedRevision: revision,
+      operation: 'move_asset',
+      payload: { clientMutationId: generateUUID(), planToken }
+    });
+  }, [state.workbench]);
 
   const previewModElementChange = useCallback(
     async (elementId: UUID, changes: FieldChange[]): Promise<ModElementChangePreview | null> => {
@@ -1102,6 +1138,8 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       listAssets,
       previewAssetImport,
       importAsset,
+      previewAssetMove,
+      moveAsset,
       listNewWorkspaceGenerators,
       createWorkspace,
       elevatePermission,
@@ -1166,6 +1204,10 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       createPublishBatch,
       prepareResourcePackClient,
       listAssets,
+      previewAssetImport,
+      importAsset,
+      previewAssetMove,
+      moveAsset,
       listNewWorkspaceGenerators,
       createWorkspace,
       elevatePermission,

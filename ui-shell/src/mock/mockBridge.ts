@@ -53,7 +53,8 @@ import {
   WorkspacePlan,
   DatagenPreview,
   FieldChange,
-  AssetImportPreview
+  AssetImportPreview,
+  AssetMovePreview
 } from '../types/contract';
 import {
   BridgeState,
@@ -989,6 +990,27 @@ export class MockCoreBridge implements CoreBridge {
           payload: { element: newElement }
         };
         this.notifyEvent(createdEvent);
+        this.notifyState();
+        return result;
+      }
+
+      case 'move_asset': {
+        const payload = command.payload as unknown as { planToken: string };
+        const newRevision = currentRevision + 1;
+        if (this.state.workbench) this.state.workbench.workspace.revision = newRevision;
+        const target = decodeURIComponent(payload.planToken.split('::')[1] ?? 'assets/coppertrails/textures/block/moved.png');
+        const result: CommandResult = {
+          messageType: 'command_result', schemaVersion: '1.0', requestId: command.requestId, workspaceId,
+          operation: 'move_asset', status: 'committed', newRevision, recoveryPointId: generateUUID(),
+          task: null,
+          data: { complete: true, targetRelativePath: target, rewrittenReferences: 1 },
+          conflict: null, denial: null, diagnostics: []
+        };
+        this.notifyEvent({
+          messageType: 'event', schemaVersion: '1.0', eventId: generateUUID(), workspaceId, revision: newRevision,
+          sequence: ++this.sequenceCounter, occurredAt: new Date().toISOString(), event: 'asset_moved',
+          causedByRequestId: command.requestId, payload: { complete: true, targetRelativePath: target }
+        });
         this.notifyState();
         return result;
       }
@@ -2582,6 +2604,40 @@ export class MockCoreBridge implements CoreBridge {
           expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
           requiresReplacementConfirmation: Boolean(existing)
         } satisfies AssetImportPreview;
+        break;
+      }
+      case 'preview_asset_move': {
+        const payload = query.payload as { sourceAssetId?: string; targetRelativePath?: string };
+        const projection = mockAssetProjection();
+        const source = projection.assets.find((asset) => asset.id === payload.sourceAssetId) ?? projection.assets[1];
+        const target = payload.targetRelativePath ?? source.relativePath;
+        const unchanged = target === source.relativePath;
+        const sourceName = source.relativePath.split('/').pop() ?? source.relativePath;
+        const targetName = target.split('/').pop() ?? target;
+        const oldStem = sourceName.replace(/\.[^.]+$/, '');
+        const newStem = targetName.replace(/\.[^.]+$/, '');
+        data = {
+          sourceAssetId: source.id,
+          sourceRelativePath: source.relativePath,
+          sourceSha256: source.sha256,
+          category: source.category,
+          targetRelativePath: target,
+          targetAssetId: `asset:moved-${targetName}`,
+          referenceCount: source.category === 'TEXTURE' ? 1 : 0,
+          rewrites: source.category === 'TEXTURE' ? [{
+            sourceAssetId: ASSET_FIXTURES[0].id,
+            sourcePath: ASSET_FIXTURES[0].path,
+            sourceSha256: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+            sourcePointer: '/textures/all',
+            oldRawValue: `coppertrails:block/${oldStem}`,
+            newRawValue: `coppertrails:block/${newStem}`,
+            kind: 'RESOURCE_ID'
+          }] : [],
+          canApply: !unchanged,
+          issueCodes: unchanged ? ['ASSET_MOVE_TARGET_UNCHANGED'] : [],
+          planToken: `mock-asset-move::${encodeURIComponent(target)}`,
+          expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString()
+        } satisfies AssetMovePreview;
         break;
       }
       case 'get_version_tracks':

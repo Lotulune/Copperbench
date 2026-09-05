@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
 import { assetRecordsFromProjection, AssetCategory, AssetRecord, AssetValidationStatus } from '../types/assets';
-import type { AssetImportPreview, AssetProjectionHealthSummary } from '../types/contract';
+import type { AssetImportPreview, AssetMovePreview, AssetProjectionHealthSummary } from '../types/contract';
 import { blockbenchBridge } from '../bridge/blockbenchBridge';
 import { assetImportBridge, type AssetImportSelectionGrant } from '../bridge/assetImportBridge';
 import { t } from '../i18n';
@@ -22,6 +22,14 @@ interface AssetImportReviewState {
   readonly grant: AssetImportSelectionGrant;
   readonly targetRelativePath: string;
   readonly preview: AssetImportPreview | null;
+  readonly busy: boolean;
+  readonly error: string | null;
+}
+
+interface AssetMoveReviewState {
+  readonly asset: AssetRecord;
+  readonly targetRelativePath: string;
+  readonly preview: AssetMovePreview | null;
   readonly busy: boolean;
   readonly error: string | null;
 }
@@ -111,7 +119,7 @@ function formatBytes(bytes: number) {
 }
 
 export const AssetBrowserView: React.FC = () => {
-  const { state, listAssets, previewAssetImport, importAsset } = useWorkbench();
+  const { state, listAssets, previewAssetImport, importAsset, previewAssetMove, moveAsset } = useWorkbench();
   const [assets, setAssets] = useState<AssetRecord[]>([]);
   const [healthSummary, setHealthSummary] = useState<AssetProjectionHealthSummary | null>(null);
   const [assetLoadState, setAssetLoadState] = useState<'loading' | 'ready' | 'error'>('loading');
@@ -126,6 +134,7 @@ export const AssetBrowserView: React.FC = () => {
   const [openingBlockbench, setOpeningBlockbench] = useState(false);
   const [copiedId, setCopiedId] = useState(false);
   const [importReview, setImportReview] = useState<AssetImportReviewState | null>(null);
+  const [moveReview, setMoveReview] = useState<AssetMoveReviewState | null>(null);
 
   const scenarioMode = modeForScenario(state.currentScenarioId);
   const mode = modeOverride ?? (state.currentScenarioId !== 'native'
@@ -209,6 +218,45 @@ export const AssetBrowserView: React.FC = () => {
     navigator.clipboard?.writeText(id).catch(() => {});
     setCopiedId(true);
     setTimeout(() => setCopiedId(false), 1600);
+  };
+
+  const beginMove = (asset: AssetRecord) => {
+    setMoveReview({ asset, targetRelativePath: asset.path, preview: null, busy: false, error: null });
+  };
+
+  const runMovePreview = async () => {
+    const current = moveReview;
+    if (!current) return;
+    setMoveReview({ ...current, busy: true, error: null, preview: null });
+    try {
+      const preview = await previewAssetMove(current.asset.id, current.targetRelativePath);
+      setMoveReview({ ...current, busy: false, preview, error: null });
+    } catch (error) {
+      setMoveReview({ ...current, busy: false, preview: null,
+        error: error instanceof Error ? error.message : '资产移动预览失败。' });
+    }
+  };
+
+  const commitMove = async () => {
+    const current = moveReview;
+    const preview = current?.preview;
+    if (!current || !preview?.canApply) return;
+    setMoveReview({ ...current, busy: true, error: null });
+    try {
+      const result = await moveAsset(preview.planToken);
+      if (result.status !== 'committed') {
+        setMoveReview({ ...current, busy: false,
+          error: t(result.diagnostics[0]?.message) || '资产移动未提交。' });
+        return;
+      }
+      setMoveReview(null);
+      setNotice(`已移动到 ${preview.targetRelativePath}；更新 ${preview.referenceCount} 条引用并创建恢复点。`);
+      setSelectedId('');
+      setReloadToken((token) => token + 1);
+    } catch (error) {
+      setMoveReview({ ...current, busy: false,
+        error: error instanceof Error ? error.message : '资产移动失败。' });
+    }
   };
 
   const runImportPreview = async (grant: AssetImportSelectionGrant, targetRelativePath: string) => {
@@ -471,6 +519,7 @@ export const AssetBrowserView: React.FC = () => {
           openingBlockbench={openingBlockbench}
           onCopyId={copyStableId}
           onImport={(asset) => void beginImport(asset)}
+          onMove={beginMove}
           onOpenBlockbench={openInBlockbench}
           onDismissNotice={() => setNotice(null)}
         />
@@ -491,7 +540,104 @@ export const AssetBrowserView: React.FC = () => {
         />
       )}
 
+      {moveReview && (
+        <AssetMoveReview
+          state={moveReview}
+          onTargetChange={(targetRelativePath) => setMoveReview({
+            ...moveReview,
+            targetRelativePath,
+            preview: null,
+            error: null
+          })}
+          onPreview={() => void runMovePreview()}
+          onCommit={() => void commitMove()}
+          onCancel={() => setMoveReview(null)}
+        />
+      )}
+
     </section>
+  );
+};
+
+const AssetMoveReview: React.FC<{
+  state: AssetMoveReviewState;
+  onTargetChange: (targetRelativePath: string) => void;
+  onPreview: () => void;
+  onCommit: () => void;
+  onCancel: () => void;
+}> = ({ state, onTargetChange, onPreview, onCommit, onCancel }) => {
+  const preview = state.preview;
+  return (
+    <div className="asset-import-review-backdrop" role="presentation">
+      <section className="asset-import-review" role="dialog" aria-modal="true"
+        aria-label="资产重命名或移动预览" data-testid="asset-move-review">
+        <div className="asset-import-review-heading">
+          <div>
+            <strong>重命名 / 移动资产</strong>
+            <span>先审阅新路径和每一条引用改写；任何无法安全改写的引用都会阻止提交。</span>
+          </div>
+          <button type="button" className="asset-clear-button" onClick={onCancel} aria-label="取消移动">
+            <XCircle size={16} />
+          </button>
+        </div>
+
+        <div className="asset-import-review-source">
+          <span>当前资产</span>
+          <strong data-testid="asset-move-source">{state.asset.path}</strong>
+          <small>{state.asset.categoryLabel}</small>
+        </div>
+
+        <label className="asset-import-target-field">
+          <span>新的工作区路径</span>
+          <input data-testid="asset-move-target" value={state.targetRelativePath}
+            onChange={(event) => onTargetChange(event.target.value)} disabled={state.busy} />
+        </label>
+
+        <div className="asset-import-review-actions">
+          <button type="button" className="btn-secondary" onClick={onPreview} disabled={state.busy}
+            data-testid="asset-move-preview">
+            <RefreshCw size={13} aria-hidden="true" />
+            <span>{preview ? '重新预览' : '预览影响'}</span>
+          </button>
+          <button type="button" className="btn-primary" onClick={onCommit}
+            disabled={state.busy || !preview?.canApply} data-testid="asset-move-commit">
+            <CornerDownRight size={13} aria-hidden="true" />
+            <span>确认移动并更新引用</span>
+          </button>
+          <button type="button" className="btn-secondary" onClick={onCancel} disabled={state.busy}>取消</button>
+        </div>
+
+        {state.busy && <div className="asset-import-review-status" role="status">正在计算引用影响…</div>}
+        {state.error && <div className="asset-import-review-error" role="alert">{state.error}</div>}
+        {preview && (
+          <div className="asset-import-preview-summary" data-testid="asset-move-preview-summary">
+            <div><span>旧路径</span><code>{preview.sourceRelativePath}</code></div>
+            <div><span>新路径</span><code>{preview.targetRelativePath}</code></div>
+            <div><span>新稳定标识</span><code data-testid="asset-move-target-id">{preview.targetAssetId}</code></div>
+            <div><span>受影响引用</span><strong data-testid="asset-move-reference-count">{preview.referenceCount}</strong></div>
+            {preview.rewrites.length > 0 && (
+              <div className="asset-move-rewrites" data-testid="asset-move-rewrites">
+                <span>精确改写</span>
+                <ul>
+                  {preview.rewrites.map((rewrite) => (
+                    <li key={`${rewrite.sourcePath}:${rewrite.sourcePointer}`}>
+                      <code>{rewrite.sourcePath}{rewrite.sourcePointer}</code>
+                      <small>{rewrite.oldRawValue} → {rewrite.newRawValue}</small>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {preview.issueCodes.length > 0 && (
+              <div className="asset-import-issue-codes" data-testid="asset-move-issues">
+                <span>阻断 / 检查项</span>
+                <div>{preview.issueCodes.map((code) => <code key={code}>{code}</code>)}</div>
+              </div>
+            )}
+          </div>
+        )}
+      </section>
+    </div>
   );
 };
 
@@ -767,6 +913,7 @@ const AssetDetails: React.FC<{
   openingBlockbench: boolean;
   onCopyId: (id: string) => void;
   onImport: (asset: AssetRecord) => void;
+  onMove: (asset: AssetRecord) => void;
   onOpenBlockbench: (asset: AssetRecord) => void;
   onDismissNotice: () => void;
 }> = ({
@@ -776,6 +923,7 @@ const AssetDetails: React.FC<{
   openingBlockbench,
   onCopyId,
   onImport,
+  onMove,
   onOpenBlockbench,
   onDismissNotice
 }) => {
@@ -938,6 +1086,16 @@ const AssetDetails: React.FC<{
 
       {/* Action Buttons */}
       <div className="asset-details-actions">
+        <button
+          type="button"
+          className="btn-secondary asset-action-btn"
+          onClick={() => onMove(asset)}
+          data-testid="asset-move-button"
+        >
+          <CornerDownRight size={14} aria-hidden="true" />
+          <span>重命名 / 移动</span>
+        </button>
+
         <button
           type="button"
           className="btn-secondary asset-action-btn"

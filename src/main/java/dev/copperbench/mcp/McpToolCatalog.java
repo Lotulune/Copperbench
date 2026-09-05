@@ -442,6 +442,19 @@ final class McpToolCatalog {
 						Map.of("type", "string"), "expectedRevision", Map.of("type", "integer", "minimum", 0)),
 						List.of("sourceDirectory", "zipFileName", "expectedRevision")),
 				McpToolCatalog::mutationPayload));
+		tools.add(queryTool("preview_asset_move",
+				"Preview a reference-safe asset rename or move, including exact structured reference rewrites",
+				Operation.PREVIEW_ASSET_MOVE,
+				requiredSchema(Map.of("sourceAssetId", Map.of("type", "string", "minLength", 1),
+						"targetRelativePath", Map.of("type", "string", "minLength", 1)),
+						List.of("sourceAssetId", "targetRelativePath")),
+				arguments -> GSON.toJsonTree(arguments).getAsJsonObject()));
+		tools.add(commandTool("move_asset",
+				"Apply a reviewed asset move as one revision with pre-change recovery and exact reference rewrites",
+				Operation.MOVE_ASSET,
+				requiredSchema(Map.of("planToken", Map.of("type", "string", "minLength", 1),
+						"expectedRevision", Map.of("type", "integer", "minimum", 0)),
+						List.of("planToken", "expectedRevision")), McpToolCatalog::mutationPayload));
 		if (assets != null) {
 			tools.add(assetListTool());
 			tools.add(assetReferencesTool());

@@ -71,6 +71,9 @@ class AssetWorkspaceServiceTest {
 		assertEquals(1, graph.references().size());
 		AssetReference reference = graph.references().getFirst();
 		assertEquals("assets/copperbench/models/copper_lamp.json", reference.sourcePath());
+		assertEquals("/textures/all", reference.sourcePointer());
+		assertEquals("copperbench:textures/block/copper_lamp", reference.rawValue());
+		assertEquals("textures/", reference.expectedPrefix());
 		assertEquals("assets/copperbench/textures/block/copper_lamp.png", reference.targetPath());
 		assertNotNull(reference.targetAssetId());
 		assertTrue(graph.diagnostics().stream().anyMatch(diagnostic ->
@@ -176,6 +179,10 @@ class AssetWorkspaceServiceTest {
 		assertEquals(List.of("assets/copperbench/models/block/cube_all.json",
 				"assets/copperbench/textures/block/copper_lamp.png"),
 				outgoing.stream().map(AssetReference::targetPath).sorted().toList());
+		AssetReference parentReference = outgoing.stream()
+				.filter(reference -> reference.sourcePointer().equals("/parent")).findFirst().orElseThrow();
+		assertEquals("copperbench:block/cube_all", parentReference.rawValue());
+		assertEquals("models/", parentReference.expectedPrefix());
 	}
 
 	@Test

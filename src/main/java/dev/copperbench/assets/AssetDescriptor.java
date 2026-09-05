@@ -40,9 +40,14 @@ public record AssetDescriptor(String id, String relativePath, AssetCategory cate
 			throw new IllegalArgumentException("Asset path is outside the workspace or is not a file");
 		String relativePath = normalize(root.relativize(realFile).toString());
 		String hash = sha256(realFile);
-		return new AssetDescriptor("asset:" + digest(relativePath.getBytes(StandardCharsets.UTF_8)), relativePath,
+		return new AssetDescriptor(stableIdForPath(relativePath), relativePath,
 				AssetCategory.fromRelativePath(relativePath),
 				Files.size(realFile), hash, mediaType(realFile), Files.getLastModifiedTime(realFile).toInstant());
+	}
+
+	public static String stableIdForPath(String relativePath) {
+		String normalized = normalize(Objects.requireNonNull(relativePath, "relativePath"));
+		return "asset:" + digest(normalized.getBytes(StandardCharsets.UTF_8));
 	}
 
 	private static String normalize(String path) {

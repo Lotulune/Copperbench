@@ -56,6 +56,65 @@ class McpHttpServerTest {
 		System.setProperty("log_directory", System.getProperty("java.io.tmpdir"));
 	}
 
+	@Test void externalAgentCanPreviewAndApplyReferenceSafeAssetMove() throws Exception {
+		Files.writeString(workspace.resolve("workspace.mcreator"), "{\"name\":\"Copper Trails\"}");
+		Path model = workspace.resolve("assets/coppertrails/models/block/copper_lamp.json");
+		Path texture = workspace.resolve("assets/coppertrails/textures/block/copper_lamp.png");
+		Files.createDirectories(model.getParent());
+		Files.createDirectories(texture.getParent());
+		Files.writeString(model, "{\"textures\":{\"all\":\"coppertrails:textures/block/copper_lamp\"}}");
+		Files.write(texture, new byte[] { 0, 1, 2 });
+
+		WorkspaceTokenService tokens = new WorkspaceTokenService(CLOCK, Duration.ofMinutes(5));
+		WorkspaceToken token = tokens.issue(WORKSPACE_ID, PermissionProfile.WORKSPACE);
+		Path auditPath = workspace.resolve(".copperbench/automation-audit.jsonl");
+
+		try (LocalHistoryService history = JGitLocalHistoryService.open(workspace, CLOCK);
+				CopperbenchMcpServer server = CopperbenchMcpServer.start(
+						new McpServerConfiguration(0, WORKSPACE_ID, PermissionProfile.WORKSPACE,
+								Set.of("http://localhost:5173"), CLOCK),
+						tokens, adapter(history, workspace), new JsonLineAuditLog(auditPath), new AssetWorkspaceService(workspace))) {
+			URI endpoint = URI.create("http://127.0.0.1:" + server.address().getPort() + "/mcp");
+			HttpResponse<String> initialized = post(endpoint, initializeBody(), token.value(), null,
+					"http://localhost:5173");
+			String sessionId = initialized.headers().firstValue("mcp-session-id").orElseThrow();
+			post(endpoint, "{\"jsonrpc\":\"2.0\",\"method\":\"notifications/initialized\"}", token.value(),
+					sessionId, "http://localhost:5173");
+
+			JsonObject textureList = toolResult(post(endpoint,
+					"{\"jsonrpc\":\"2.0\",\"id\":51,\"method\":\"tools/call\",\"params\":{\"name\":\"list_assets\",\"arguments\":{\"category\":\"TEXTURE\"}}}",
+					token.value(), sessionId, "http://localhost:5173"));
+			String sourceAssetId = textureList.getAsJsonArray("assets").get(0).getAsJsonObject().get("id").getAsString();
+
+			String target = "assets/coppertrails/textures/block/copper_lamp_renamed.png";
+			JsonObject preview = toolResult(post(endpoint,
+					"{\"jsonrpc\":\"2.0\",\"id\":52,\"method\":\"tools/call\",\"params\":{\"name\":\"preview_asset_move\",\"arguments\":{\"sourceAssetId\":\""
+							+ sourceAssetId + "\",\"targetRelativePath\":\"" + target + "\"}}}",
+					token.value(), sessionId, "http://localhost:5173"));
+			assertEquals("succeeded", preview.get("status").getAsString(), preview::toString);
+			JsonObject plan = preview.getAsJsonObject("data");
+			assertTrue(plan.get("canApply").getAsBoolean());
+			assertEquals(1, plan.get("referenceCount").getAsInt());
+			assertEquals("/textures/all", plan.getAsJsonArray("rewrites").get(0).getAsJsonObject()
+					.get("sourcePointer").getAsString());
+			String planToken = plan.get("planToken").getAsString();
+
+			JsonObject moved = toolResult(post(endpoint,
+					"{\"jsonrpc\":\"2.0\",\"id\":53,\"method\":\"tools/call\",\"params\":{\"name\":\"move_asset\",\"arguments\":{\"planToken\":\""
+							+ planToken + "\",\"expectedRevision\":0}}}",
+					token.value(), sessionId, "http://localhost:5173"));
+			assertEquals("committed", moved.get("status").getAsString());
+			assertEquals(1, moved.get("newRevision").getAsLong());
+			assertTrue(moved.has("recoveryPointId") && !moved.get("recoveryPointId").isJsonNull());
+			assertEquals(1, moved.getAsJsonObject("data").get("rewrittenReferences").getAsInt());
+			assertFalse(Files.exists(texture));
+			assertTrue(Files.isRegularFile(workspace.resolve(target)));
+			assertTrue(Files.readString(model).contains("copper_lamp_renamed"));
+			assertTrue(Files.readString(auditPath).contains("preview_asset_move"));
+			assertTrue(Files.readString(auditPath).contains("move_asset"));
+		}
+	}
+
 	@TempDir Path workspace;
 
 	@Test void authenticatedLoopbackServerExposesSdkToolsAndRejectsUntrustedRequests() throws Exception {
@@ -131,6 +190,8 @@ class McpHttpServerTest {
 			assertTrue(tools.body().contains("restore_recovery_point"));
 			assertTrue(tools.body().contains("list_assets"));
 			assertTrue(tools.body().contains("inspect_asset_references"));
+			assertTrue(tools.body().contains("preview_asset_move"));
+			assertTrue(tools.body().contains("move_asset"));
 
 			HttpResponse<String> coverageResult = post(endpoint,
 					"{\"jsonrpc\":\"2.0\",\"id\":35,\"method\":\"tools/call\",\"params\":{\"name\":\"get_element_coverage\",\"arguments\":{}}}",
@@ -309,6 +370,10 @@ class McpHttpServerTest {
 	}
 
 	private static McpWorkspaceEntryAdapter adapter(LocalHistoryService history) {
+		return adapter(history, null);
+	}
+
+	private static McpWorkspaceEntryAdapter adapter(LocalHistoryService history, Path workspaceRoot) {
 		RevisionedWorkspaceStore store = new RevisionedWorkspaceStore();
 		JsonObject generator = new JsonObject();
 		generator.addProperty("id", "fabric-1.21.1");
@@ -321,10 +386,13 @@ class McpHttpServerTest {
 		AtomicLong sequence = new AtomicLong(300);
 		Supplier<UUID> ids = () -> UUID.fromString("00000000-0000-4000-8000-" +
 				String.format("%012d", sequence.getAndIncrement()));
-		WorkspaceApplicationService service = new WorkspaceApplicationService(store,
-				new InMemoryWorkspaceTaskGateway(CLOCK, ids),
-				dev.copperbench.core.application.WorkspaceMutationGateway.noOp(), history,
-				ignored -> store.read(WORKSPACE_ID).orElseThrow().copy(), CLOCK, ids);
+		WorkspaceApplicationService service = workspaceRoot == null
+				? new WorkspaceApplicationService(store, new InMemoryWorkspaceTaskGateway(CLOCK, ids),
+						dev.copperbench.core.application.WorkspaceMutationGateway.noOp(), history,
+						ignored -> store.read(WORKSPACE_ID).orElseThrow().copy(), CLOCK, ids)
+				: new WorkspaceApplicationService(store, new InMemoryWorkspaceTaskGateway(CLOCK, ids),
+						dev.copperbench.core.application.WorkspaceMutationGateway.noOp(), history,
+						ignored -> store.read(WORKSPACE_ID).orElseThrow().copy(), ignored -> workspaceRoot, CLOCK, ids);
 		return new McpWorkspaceEntryAdapter(service, PermissionProfile.WORKSPACE);
 	}
 }

@@ -13,6 +13,31 @@ export interface LocalizedText {
   args?: Record<string, string | number | boolean | null>;
 }
 
+export interface AssetMoveReferenceRewrite {
+  sourceAssetId: string;
+  sourcePath: string;
+  sourceSha256: string;
+  sourcePointer: string;
+  oldRawValue: string;
+  newRawValue: string;
+  kind: 'JSON_STRING' | 'RESOURCE_ID';
+}
+
+export interface AssetMovePreview {
+  sourceAssetId: string;
+  sourceRelativePath: string;
+  sourceSha256: string;
+  category: AssetProjectionCategory;
+  targetRelativePath: string;
+  targetAssetId: string;
+  referenceCount: number;
+  rewrites: AssetMoveReferenceRewrite[];
+  canApply: boolean;
+  issueCodes: string[];
+  planToken: string;
+  expiresAt: string;
+}
+
 export interface WorkspacePlanReviewObject {
   kind: string;
   elementId?: UUID;
@@ -731,7 +756,8 @@ export type CommandOperation =
   | 'import_upstream_workspace'
   | 'create_publish_batch'
   | 'prepare_resource_pack_client'
-  | 'import_asset';
+  | 'import_asset'
+  | 'move_asset';
 
 export interface Command<T = unknown> {
   messageType: 'command';
@@ -819,6 +845,9 @@ export interface CommandResultData {
   asset?: AssetProjectionAsset;
   conflict?: 'CREATE' | 'IDENTICAL' | 'REPLACE';
   health?: AssetProjectionHealthSummary;
+  sourceRelativePath?: string;
+  targetRelativePath?: string;
+  rewrittenReferences?: number;
 }
 
 export interface CommandResult {
@@ -846,6 +875,7 @@ export type QueryOperation =
   | 'list_new_workspace_generators'
   | 'list_assets'
   | 'preview_asset_import'
+  | 'preview_asset_move'
   | 'list_mod_elements'
   | 'get_mod_element_editor'
   | 'preview_mod_element_change'
@@ -1034,6 +1064,9 @@ export interface AssetProjectionHealthSummary {
 export interface AssetProjectionReference {
   sourceAssetId: string;
   sourcePath: string;
+  sourcePointer: string;
+  rawValue: string;
+  expectedPrefix: string | null;
   targetPath: string;
   targetAssetId: string;
   kind: 'RESOURCE_ID' | 'JSON_STRING';
@@ -1184,7 +1217,8 @@ export type EventType =
   | 'upstream_workspace_imported'
   | 'publish_batch_created'
   | 'resource_pack_client_prepared'
-  | 'asset_imported';
+  | 'asset_imported'
+  | 'asset_moved';
 
 export interface BaseEvent<E extends EventType, P> {
   messageType: 'event';
@@ -1353,6 +1387,11 @@ export type AssetImportedEvent = BaseEvent<
   CommandResultData
 >;
 
+export type AssetMovedEvent = BaseEvent<
+  'asset_moved',
+  CommandResultData
+>;
+
 export type CoreEvent =
   | RevisionAdvancedEvent
   | ModElementCreatedEvent
@@ -1375,7 +1414,8 @@ export type CoreEvent =
   | UpstreamWorkspaceImportedEvent
   | PublishBatchCreatedEvent
   | ResourcePackClientPreparedEvent
-  | AssetImportedEvent;
+  | AssetImportedEvent
+  | AssetMovedEvent;
 
 /* =========================================================================
  * Scenario Schema

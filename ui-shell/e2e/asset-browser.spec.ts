@@ -78,6 +78,48 @@ test.describe('U3 asset browser', () => {
     await expect(page.getByTestId('asset-notice')).toContainText('已创建恢复点');
   });
 
+  test('reviews exact reference rewrites before a reference-safe asset move', async ({ page }) => {
+    await page.getByTestId('asset-category-texture').click();
+    await page.getByTestId('asset-move-button').click();
+    await expect(page.getByTestId('asset-move-review')).toBeVisible();
+
+    const target = 'assets/coppertrails/textures/block/copper_lamp_renamed.png';
+    await page.getByTestId('asset-move-target').fill(target);
+    await page.getByTestId('asset-move-preview').click();
+
+    await expect(page.getByTestId('asset-move-preview-summary')).toBeVisible();
+    await expect(page.getByTestId('asset-move-reference-count')).toHaveText('1');
+    await expect(page.getByTestId('asset-move-rewrites')).toContainText('/textures/all');
+    await expect(page.getByTestId('asset-move-rewrites')).toContainText('copper_lamp_renamed');
+    await expect(page.getByTestId('asset-move-target-id')).toContainText('asset:');
+    await expect(page.getByTestId('asset-move-commit')).toBeEnabled();
+
+    await page.getByTestId('asset-move-commit').click();
+    await expect(page.getByTestId('asset-move-review')).not.toBeVisible();
+    await expect(page.getByTestId('asset-notice')).toContainText('更新 1 条引用并创建恢复点');
+  });
+
+  test('blocks an unchanged asset move before any write is possible', async ({ page }) => {
+    await page.getByTestId('asset-category-texture').click();
+    await page.getByTestId('asset-move-button').click();
+    await page.getByTestId('asset-move-preview').click();
+
+    await expect(page.getByTestId('asset-move-issues')).toContainText('ASSET_MOVE_TARGET_UNCHANGED');
+    await expect(page.getByTestId('asset-move-commit')).toBeDisabled();
+  });
+
+  test('keeps asset move review controls at the >=32px interaction target baseline', async ({ page }) => {
+    await page.getByTestId('asset-category-texture').click();
+    await page.getByTestId('asset-move-button').click();
+    const controls = await page.getByTestId('asset-move-review').locator('button:visible, input:visible').all();
+    for (const control of controls) {
+      const box = await control.boundingBox();
+      if (!box) continue;
+      expect(Math.round(box.width)).toBeGreaterThanOrEqual(32);
+      expect(Math.round(box.height)).toBeGreaterThanOrEqual(32);
+    }
+  });
+
   test('reports an explicit unavailable state when Blockbench is not configured', async ({ page }) => {
     await page.getByRole('button', { name: '在 Blockbench 打开' }).click();
     await expect(page.locator('[data-testid="asset-notice"]')).toContainText('尚未配置 Blockbench');
