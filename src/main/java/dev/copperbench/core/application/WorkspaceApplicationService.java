@@ -1378,7 +1378,7 @@ public final class WorkspaceApplicationService {
 			UUID elementId = ids.get();
 			String displayName = normalizedValues.has("displayName") ? normalizedValues.get("displayName").getAsString()
 					: displayName(name);
-			Element element = new Element(elementId, type, name, displayName, "draft", "generated", clock.instant(),
+			Element element = new Element(elementId, type, name, displayName, "valid", "generated", clock.instant(),
 					normalizedValues);
 			state.addElement(element);
 			Diagnostic persistenceFailure = persist(before, state, command, element);

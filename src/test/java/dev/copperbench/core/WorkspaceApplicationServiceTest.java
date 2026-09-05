@@ -907,6 +907,23 @@ class WorkspaceApplicationServiceTest {
 		assertTrue(json.has("denial") && json.get("denial").isJsonNull());
 	}
 
+	@Test void persistedValidatedCreateIsImmediatelyValidAndWorkspaceIsClean() {
+		Fixture fixture = fixture();
+		RequestContext context = new RequestContext(Actor.UI, PermissionProfile.WORKSPACE);
+		CommandOutcome outcome = fixture.service.execute(createCommand(uuid(93), "signal_lantern"), context);
+		assertEquals("committed", outcome.result().status());
+
+		var workbench = fixture.service.query(Query.of(uuid(94), WORKSPACE_ID, Operation.GET_WORKBENCH,
+				new JsonObject()), context);
+		assertEquals("succeeded", workbench.status());
+		JsonObject data = workbench.data().getAsJsonObject();
+		assertFalse(data.getAsJsonObject("workspace").get("dirty").getAsBoolean());
+		assertEquals(1, data.getAsJsonObject("elementCounts").get("valid").getAsInt());
+		assertEquals(0, data.getAsJsonObject("elementCounts").get("draft").getAsInt());
+		assertEquals("valid", data.getAsJsonArray("recentElements").get(0).getAsJsonObject()
+				.get("state").getAsString());
+	}
+
 	private static Command createCommand(UUID requestId, String name) {
 		return createElementCommand(requestId, "block", name, new JsonObject());
 	}

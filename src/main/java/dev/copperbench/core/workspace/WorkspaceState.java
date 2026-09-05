@@ -148,6 +148,7 @@ public final class WorkspaceState {
 
 	void committed(long newRevision) {
 		revision = newRevision;
+		dirty = false;
 	}
 
 	void ensureEventSequenceAtLeast(long sequence) {
