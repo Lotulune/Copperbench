@@ -240,6 +240,7 @@ export const zh: Record<string, string> = {
   /* ---- U3 诊断 ---- */
   'diagnostic.migration_confirmation_required': '用户必须确认迁移差异后方可执行。',
   'diagnostic.migration_incomplete': '该目标加载器处于技术预览或未完全支持状态，尚未完成自动迁移。',
+  'diagnostic.migration_item_review': '{name} 需要迁移复核：{nextStep}',
   'diagnostic.user_approval_required': '迁入上游工作区将创建新副本，需要用户显式确认。',
   'diagnostic.permission_denied': '迁入上游工作区需要桌面 Full Access 权限。',
 	'diagnostic.datagen_staging_not_found': '未找到该任务的数据生成暂存结果，或任务尚未成功完成。',

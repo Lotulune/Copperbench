@@ -51,6 +51,12 @@ test.describe('U3: Version Tracks, Loader Migration, Upstream Import, and Publis
     await executeBtn.click();
     await expect(page.locator('[data-testid="migration-success-banner"]')).toBeVisible();
     await expect(page.getByText('加载器迁移已完成！')).toBeVisible();
+    await expect(page.locator('[data-testid="migration-diagnostics-banner"]')).toBeVisible();
+    await expect(page.locator('[data-testid="migration-diagnostics-banner"]').getByText('LOADER_EXCLUSIVE_FIELDS_PRESERVED')).toBeVisible();
+    await page.click('[data-testid="migration-diagnostics-banner-action-open_migration_element"]');
+    await expect(page.locator('[data-testid="element-inspector"]')).toBeVisible();
+    await expect(page.locator('[data-element-id="22222222-2222-4222-8222-222222222221"]').first()).toBeVisible();
+    await expect(page.getByText('Copper Lamp').first()).toBeVisible();
   });
 
   test('previews 26.1 migration showing partial capability notice (complete=false) without source corruption', async ({ page }) => {

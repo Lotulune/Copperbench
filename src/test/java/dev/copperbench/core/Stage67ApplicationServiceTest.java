@@ -80,6 +80,43 @@ class Stage67ApplicationServiceTest {
 		assertTrue(Files.isRegularFile(temp.resolve("copied-neoforge/src/main/java/dev/copperbench/generated/copper_trails/CopperTrailsMod.java")));
 	}
 
+	@Test void loaderMigrationSurfacesManualItemsAsElementAddressableDiagnostics() throws Exception {
+		Path source = temp.resolve("manual-source");
+		Files.createDirectories(source);
+		Files.writeString(source.resolve("workspace.mcreator"),
+				"{\"workspaceSettings\":{\"currentGenerator\":\"fabric-1.21.1\"}}");
+		UUID elementId = uuid(90);
+		JsonObject fields = new JsonObject();
+		fields.addProperty("message", "Migration diagnostic fixture");
+		fields.addProperty("fabricExclusive", true);
+		JsonObject values = new JsonObject();
+		values.add("fields", fields);
+		WorkspaceState.Element procedure = new WorkspaceState.Element(elementId, "procedure", "migration_notice",
+				"Migration Notice", "valid", "generated", CLOCK.instant(), values);
+		WorkspaceApplicationService service = service(id -> source, List.of(procedure));
+
+		JsonObject approved = new JsonObject();
+		approved.addProperty("clientMutationId", uuid(91).toString());
+		approved.addProperty("targetGeneratorId", "neoforge-1.21.1");
+		approved.addProperty("outputName", "manual-neoforge");
+		approved.addProperty("userApproved", true);
+		var outcome = service.execute(Command.of(uuid(92), WORKSPACE_ID, 0, Operation.EXECUTE_LOADER_MIGRATION,
+				approved), uiWorkspace());
+
+		assertEquals("committed", outcome.result().status());
+		var diagnostic = outcome.result().diagnostics().stream()
+				.filter(entry -> entry.code().equals("LOADER_EXCLUSIVE_FIELDS_PRESERVED"))
+				.findFirst().orElseThrow();
+		assertEquals(UiCore.Severity.WARNING, diagnostic.severity());
+		assertEquals("/elements/" + elementId, diagnostic.path());
+		assertEquals(elementId, diagnostic.elementId());
+		assertEquals(1, diagnostic.actions().size());
+		assertEquals("open_migration_element", diagnostic.actions().getFirst().id());
+		assertEquals("open_field", diagnostic.actions().getFirst().kind());
+		assertEquals(null, diagnostic.actions().getFirst().target());
+		assertTrue(diagnostic.message().args().get("nextStep").getAsString().contains("review"));
+	}
+
 	@Test void upstreamImportRequiresFullAccess() {
 		WorkspaceApplicationService service = service(id -> temp.resolve("source"));
 		JsonObject payload = new JsonObject();
@@ -120,6 +157,11 @@ class Stage67ApplicationServiceTest {
 	}
 
 	private WorkspaceApplicationService service(java.util.function.Function<UUID, Path> roots) {
+		return service(roots, List.of());
+	}
+
+	private WorkspaceApplicationService service(java.util.function.Function<UUID, Path> roots,
+			List<WorkspaceState.Element> elements) {
 		RevisionedWorkspaceStore store = new RevisionedWorkspaceStore();
 		JsonObject generator = new JsonObject();
 		generator.addProperty("id", "fabric-1.21.1");
@@ -128,7 +170,7 @@ class Stage67ApplicationServiceTest {
 		generator.addProperty("displayName", "Fabric 1.21.1");
 		generator.addProperty("state", "ready");
 		store.register(new WorkspaceState(WORKSPACE_ID, "Copper Trails", "mod", 0, false, generator, new JsonObject(),
-				List.of()));
+				elements));
 		AtomicLong sequence = new AtomicLong(200);
 		return new WorkspaceApplicationService(store, new InMemoryWorkspaceTaskGateway(CLOCK, () -> uuid(sequence.getAndIncrement())),
 				WorkspaceMutationGateway.noOp(), null, null, roots, CLOCK, () -> uuid(sequence.getAndIncrement()));

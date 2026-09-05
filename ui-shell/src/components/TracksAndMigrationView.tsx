@@ -81,13 +81,14 @@ export const TracksAndMigrationView: React.FC = () => {
     const diagnostics = result?.diagnostics.filter((diagnostic) =>
       diagnostic.actions.length > 0 || diagnostic.message.args?.failureId != null) ?? [];
     if (diagnostics.length === 0) return null;
+    const hasError = diagnostics.some((diagnostic) => diagnostic.severity === 'error');
     return (
       <div
         role="alert"
         data-testid={testId}
         style={{
-          background: 'var(--badge-red-bg)',
-          border: '1px solid rgba(248, 81, 73, 0.4)',
+          background: hasError ? 'var(--badge-red-bg)' : 'var(--badge-amber-bg)',
+          border: hasError ? '1px solid rgba(248, 81, 73, 0.4)' : '1px solid rgba(210, 153, 34, 0.4)',
           borderRadius: 'var(--radius-md)',
           padding: '14px 18px',
           display: 'flex',
@@ -97,9 +98,10 @@ export const TracksAndMigrationView: React.FC = () => {
       >
         {diagnostics.map((diagnostic) => (
           <div key={diagnostic.code} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-            <AlertTriangle size={20} color="var(--badge-red)" aria-hidden="true" style={{ flexShrink: 0 }} />
+            <AlertTriangle size={20} color={diagnostic.severity === 'error' ? 'var(--badge-red)' : 'var(--badge-amber)'} aria-hidden="true" style={{ flexShrink: 0 }} />
             <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: '7px' }}>
               <div style={{ fontSize: '12px', color: 'var(--text-main)', lineHeight: 1.5 }}>
+                <code style={{ marginRight: '8px', fontSize: '10px', color: 'var(--text-sub)' }}>{diagnostic.code}</code>
                 {t(diagnostic.message)}
                 {diagnostic.message.args?.failureId != null && (
                   <code style={{ marginLeft: '8px', fontSize: '10px', color: 'var(--text-sub)', overflowWrap: 'anywhere' }}>
@@ -116,6 +118,7 @@ export const TracksAndMigrationView: React.FC = () => {
                       className="btn-primary"
                       style={{ fontSize: '11px', padding: '4px 10px' }}
                       onClick={() => runDiagnosticAction(action, diagnostic)}
+                      data-testid={`${testId}-action-${action.id}`}
                     >
                       {t(action.label)}
                     </button>

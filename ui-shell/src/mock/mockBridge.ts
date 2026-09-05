@@ -2045,7 +2045,34 @@ export class MockCoreBridge implements CoreBridge {
           data: copyResult,
           conflict: null,
           denial: null,
-          diagnostics: []
+          diagnostics: [
+            {
+              code: 'LOADER_EXCLUSIVE_FIELDS_PRESERVED',
+              severity: 'warning',
+              message: {
+                key: 'diagnostic.migration_item_review',
+                fallback: '{name} requires migration review: {nextStep}',
+                args: {
+                  name: 'copper_lamp',
+                  type: 'block',
+                  disposition: 'manual',
+                  reasonCode: 'LOADER_EXCLUSIVE_FIELDS_PRESERVED',
+                  nextStep: 'Loader-exclusive fields were copied unchanged and need review in the target generator.'
+                }
+              },
+              path: '/elements/22222222-2222-4222-8222-222222222221',
+              elementId: '22222222-2222-4222-8222-222222222221',
+              recoverable: true,
+              actions: [
+                {
+                  id: 'open_migration_element',
+                  label: { key: 'action.open_element', fallback: 'Open element', args: {} },
+                  kind: 'open_field',
+                  target: null
+                }
+              ]
+            }
+          ]
         };
 
         if (this.state.workbench) {

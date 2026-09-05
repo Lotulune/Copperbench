@@ -54,6 +54,8 @@ import dev.copperbench.history.WorkspaceChange;
 import dev.copperbench.migration.LoaderMigrationRebuildService;
 import dev.copperbench.migration.LoaderMigrationService;
 import dev.copperbench.migration.MigrationReport;
+import dev.copperbench.migration.MigrationReport.Disposition;
+import dev.copperbench.migration.MigrationReport.MigrationItem;
 import dev.copperbench.migration.UpstreamWorkspaceImportService;
 import dev.copperbench.core.plugin.InstalledPluginInventoryService;
 import dev.copperbench.release.ElementCoverageCatalog;
@@ -1982,6 +1984,10 @@ public final class WorkspaceApplicationService {
 		Event event = event(command, revision, sequence, eventName, payload);
 		String status = report.complete() ? "committed" : "rejected";
 		List<Diagnostic> diagnostics = new ArrayList<>();
+		for (MigrationItem item : report.items()) {
+			if (item.disposition() != Disposition.SUPPORTED)
+				diagnostics.add(migrationDiagnostic(item));
+		}
 		if (!report.complete())
 			diagnostics.add(diagnostic("MIGRATION_INCOMPLETE", "diagnostic.migration_incomplete",
 					"The copy was created or previewed but is not a complete supported migration.", null, null));
@@ -1997,6 +2003,46 @@ public final class WorkspaceApplicationService {
 					JsonNull.INSTANCE, JsonNull.INSTANCE), List.of());
 		return new CommandOutcome(result(command, "committed", revision, JsonNull.INSTANCE, payload, diagnostics,
 				JsonNull.INSTANCE, JsonNull.INSTANCE), List.of(event));
+	}
+
+	private Diagnostic migrationDiagnostic(MigrationItem item) {
+		UUID elementId = migrationElementId(item.path());
+		JsonObject args = new JsonObject();
+		args.addProperty("name", item.name());
+		args.addProperty("type", item.type());
+		args.addProperty("disposition", item.disposition().name().toLowerCase(Locale.ROOT));
+		args.addProperty("reasonCode", item.reasonCode());
+		args.addProperty("nextStep", item.nextStep());
+		UiCore.Severity severity = switch (item.disposition()) {
+			case BLOCKED, LOST -> UiCore.Severity.ERROR;
+			case MANUAL, SUBSTITUTE -> UiCore.Severity.WARNING;
+			case SUPPORTED -> UiCore.Severity.INFO;
+		};
+		List<ActionHint> actions = migrationLocationActions(item.path(), elementId);
+		return new Diagnostic(item.reasonCode(), severity,
+				LocalizedText.of("diagnostic.migration_item_review",
+						"{name} requires migration review: {nextStep}", args), item.path(), elementId, true, actions);
+	}
+
+	private UUID migrationElementId(String path) {
+		if (path == null || !path.startsWith("/elements/")) return null;
+		String suffix = path.substring("/elements/".length());
+		int slash = suffix.indexOf('/');
+		String candidate = slash < 0 ? suffix : suffix.substring(0, slash);
+		try {
+			return UUID.fromString(candidate);
+		} catch (IllegalArgumentException exception) {
+			return null;
+		}
+	}
+
+	private List<ActionHint> migrationLocationActions(String path, UUID elementId) {
+		if (elementId == null) return List.of();
+		String elementPath = elementPath(elementId);
+		if (path.equals(elementPath))
+			return List.of(new ActionHint("open_migration_element",
+					LocalizedText.of("action.open_element", "Open element"), "open_field", null));
+		return fieldLocationActions(path, elementId);
 	}
 
 	private CommandOutcome approvalRequired(Command command, RequestContext context, String fallback) {

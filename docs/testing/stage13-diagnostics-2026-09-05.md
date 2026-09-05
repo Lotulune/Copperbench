@@ -48,6 +48,21 @@ The next Diagnostics 2.0 slice adds the PRD-required `查看生成源码` path w
 
 The security regression deliberately requests an existing generated Java file from the same task staging tree that is **not** referenced by the task diagnostic. Core rejects it, proving that root containment alone is not enough to authorize a source preview. The regression also rewrites the diagnosed live Java file after the failed build and confirms that the returned preview remains the compiler-time snapshot, not the later file contents.
 
+## Third slice: migration review locations
+
+The next slice reuses migration facts that already existed in `MigrationReport` instead of inventing a parallel error classifier:
+
+- every non-`SUPPORTED` migration item is projected into a structured diagnostic whose stable code is the item's existing `reasonCode`;
+- `BLOCKED` and `LOST` items are errors, while `MANUAL` and `SUBSTITUTE` items are warnings, so a successful copy that only needs human review remains visibly successful;
+- the diagnostic preserves `name`, `type`, `disposition`, `reasonCode` and the report's concrete `nextStep` as localized message arguments;
+- migration items already expressed as `/elements/<UUID>` keep that exact path and stable Mod Element ID; no name matching or fuzzy ownership inference is added;
+- exact element paths expose an `open_migration_element` action, while future deeper `/elements/<UUID>/...` paths can reuse the existing field-location action contract;
+- non-element migration paths remain diagnostic-only rather than being assigned a speculative Mod Element;
+- `TracksAndMigrationView` now renders actionable warning-only results with warning styling rather than presenting every actionable diagnostic as an error, and shows the stable reason code beside the localized guidance;
+- the existing `MIGRATION_INCOMPLETE` summary is retained for genuinely incomplete reports, so item-level diagnostics add location/detail without replacing the migration-level outcome.
+
+This keeps copy-only migration semantics unchanged: the source workspace is still not mutated, the success/incomplete result is still decided by the migration service, and Diagnostics 2.0 only makes already-proven review locations actionable.
+
 ## Verification
 
 - `Fabric1211TaskGatewayTest.failedBuildExtractsJavaCompilerErrorsIntoStructuredDiagnostics` — passed; a Procedure compiler error resolves to stable element ID `00000000-0000-4000-8000-000000000004`, preserves path/line/message, exposes element-location/generated-source/task-log actions, returns its bounded compiler-time source snapshot even after the live file is rewritten, and rejects a different existing generated Java file that is not referenced by the task diagnostic.
@@ -56,13 +71,19 @@ The security regression deliberately requests an existing generated Java file fr
 - `npm test` in `ui-core` — `20/20` passed after installing that package's declared test dependencies; all schemas and all canonical mock scenarios, including the new `compile-diagnostic` scenario, validate.
 - `npx playwright test e2e/scenarios.spec.ts --grep compile-diagnostic` — `2/2` passed across Chromium and compact-1366; the UI follows failed task → Task Drawer → `JAVA_COMPILE_ERROR` → bounded generated-source preview → owning Mod Element.
 - `npx playwright test e2e/scenarios.spec.ts` — `28/28` passed across Chromium and compact-1366, preserving existing validation, permission, bridge-recovery, external-process and task scenarios.
+- `Stage67ApplicationServiceTest.loaderMigrationSurfacesManualItemsAsElementAddressableDiagnostics` — passed; a successful Fabric-to-NeoForge copy with a loader-exclusive Procedure field remains `committed` while surfacing `LOADER_EXCLUSIVE_FIELDS_PRESERVED` as a warning bound to the exact `/elements/<UUID>` path and `open_migration_element` action.
+- `Stage67ApplicationServiceTest.loaderMigrationRequiresApprovalAndDoesNotMutateTheSourceWorkspace` — passed unchanged, preserving explicit approval, source immutability and generated target evidence.
+- `npm run build` in `ui-shell` — passed TypeScript/Vite and the Chinese localization gate (`207/207`).
+- `npx playwright test e2e/u3-tracks-migration.spec.ts --grep "previews loader migration"` — `2/2` passed across Chromium and compact-1366; a successful migration renders the review warning and the action navigates to `Copper Lamp`.
+- `npx playwright test e2e/u3-tracks-migration.spec.ts` — `12/12` passed across Chromium and compact-1366.
+- the post-migration full `npx playwright test e2e/scenarios.spec.ts` run — `28/28` passed, preserving the compiler-diagnostic and all canonical scenario behavior.
 - `git -c core.whitespace=cr-at-eol diff --check` — passed before evidence finalization.
 
 ## Remaining `FR-PRODUCTIVITY-03` work
 
 This slice does not close Diagnostics 2.0. Remaining work includes:
 
-- map generator, resource, migration and MCP failures to the same stable diagnostic-location model rather than leaving them as task/log-only errors;
+- extend the stable-location model beyond compiler and migration review items to generator, resource and MCP failures rather than leaving them as task/log-only errors;
 - deepen element locations into field paths, Procedure node IDs and asset IDs where the producer can prove that relationship;
 - provide repair guidance for deterministic failure classes without turning heuristics into false guarantees;
 - route eligible automatic repairs through previewed semantic workspace plans and recovery points instead of direct mutation;
