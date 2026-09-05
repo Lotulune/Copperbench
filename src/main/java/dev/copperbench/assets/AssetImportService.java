@@ -75,30 +75,14 @@ public final class AssetImportService {
 	public ApplyResult apply(AssetImportPlan approved, Actor actor, String taskId) throws LocalHistoryException {
 		Objects.requireNonNull(approved, "approved");
 		Objects.requireNonNull(actor, "actor");
-		AssetImportPlan current = preview(approved.source(), approved.targetRelativePath());
-		if (!sameSnapshot(approved, current))
-			throw new AssetImportException("ASSET_IMPORT_PLAN_STALE",
-					"The source or target changed after the asset import preview");
+		AssetImportPlan current = revalidate(approved);
 		if (!current.canApply())
 			throw new AssetImportException("ASSET_IMPORT_NOT_APPLICABLE", "The approved asset import has no changes");
 
 		RecoveryPoint recovery = history.createRecoveryPoint(new RecoveryPointRequest(
 				"Before asset import: " + current.targetRelativePath(), actor, taskId));
-		Path target = assets.workspaceRoot().resolve(current.targetRelativePath()).normalize();
 		try {
-			Files.createDirectories(target.getParent());
-			Path temporary = Files.createTempFile(target.getParent(), ".copperbench-asset-import-", ".tmp");
-			try {
-				Files.copy(current.source(), temporary, StandardCopyOption.REPLACE_EXISTING);
-				try {
-					Files.move(temporary, target, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
-				} catch (java.nio.file.AtomicMoveNotSupportedException exception) {
-					Files.move(temporary, target, StandardCopyOption.REPLACE_EXISTING);
-				}
-			} finally {
-				Files.deleteIfExists(temporary);
-			}
-			AssetDescriptor imported = AssetDescriptor.fromFile(assets.workspaceRoot(), target);
+			AssetDescriptor imported = writeValidated(current);
 			return new ApplyResult(imported, recovery, current.conflict());
 		} catch (Exception writeFailure) {
 			try {
@@ -110,6 +94,37 @@ public final class AssetImportService {
 			throw new AssetImportException("ASSET_IMPORT_WRITE_FAILED", "Asset import failed and was rolled back",
 					writeFailure);
 		}
+	}
+
+	AssetImportPlan revalidate(AssetImportPlan approved) {
+		AssetImportPlan current = preview(approved.source(), approved.targetRelativePath());
+		if (!sameSnapshot(approved, current))
+			throw new AssetImportException("ASSET_IMPORT_PLAN_STALE",
+					"The source or target changed after the asset import preview");
+		return current;
+	}
+
+	AssetDescriptor writeValidated(AssetImportPlan current) throws IOException {
+		if (!current.canApply())
+			throw new AssetImportException("ASSET_IMPORT_NOT_APPLICABLE", "The approved asset import has no changes");
+		return writeSourceToTarget(current.source(), current.targetRelativePath());
+	}
+
+	AssetDescriptor writeSourceToTarget(Path source, String targetRelativePath) throws IOException {
+		Path target = assets.workspaceRoot().resolve(targetRelativePath).normalize();
+		Files.createDirectories(target.getParent());
+		Path temporary = Files.createTempFile(target.getParent(), ".copperbench-asset-import-", ".tmp");
+		try {
+			Files.copy(source, temporary, StandardCopyOption.REPLACE_EXISTING);
+			try {
+				Files.move(temporary, target, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+			} catch (java.nio.file.AtomicMoveNotSupportedException exception) {
+				Files.move(temporary, target, StandardCopyOption.REPLACE_EXISTING);
+			}
+		} finally {
+			Files.deleteIfExists(temporary);
+		}
+		return AssetDescriptor.fromFile(assets.workspaceRoot(), target);
 	}
 
 	private Path source(Path source) {

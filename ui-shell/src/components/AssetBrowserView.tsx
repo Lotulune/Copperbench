@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
 import { assetRecordsFromProjection, AssetCategory, AssetRecord, AssetValidationStatus } from '../types/assets';
-import type { AssetImportPreview, AssetMovePreview, AssetProjectionHealthSummary } from '../types/contract';
+import type { AssetImportPreview, AssetImportBatchPreview, AssetMovePreview, AssetProjectionHealthSummary } from '../types/contract';
 import { blockbenchBridge } from '../bridge/blockbenchBridge';
 import { assetImportBridge, type AssetImportSelectionGrant } from '../bridge/assetImportBridge';
 import { t } from '../i18n';
@@ -22,6 +22,14 @@ interface AssetImportReviewState {
   readonly grant: AssetImportSelectionGrant;
   readonly targetRelativePath: string;
   readonly preview: AssetImportPreview | null;
+  readonly busy: boolean;
+  readonly error: string | null;
+}
+
+interface AssetBatchImportReviewState {
+  readonly grants: AssetImportSelectionGrant[];
+  readonly targetRelativePaths: string[];
+  readonly preview: AssetImportBatchPreview | null;
   readonly busy: boolean;
   readonly error: string | null;
 }
@@ -119,7 +127,10 @@ function formatBytes(bytes: number) {
 }
 
 export const AssetBrowserView: React.FC = () => {
-  const { state, listAssets, previewAssetImport, importAsset, previewAssetMove, moveAsset } = useWorkbench();
+  const {
+    state, listAssets, previewAssetImport, importAsset, previewAssetImportBatch, importAssetBatch,
+    previewAssetMove, moveAsset
+  } = useWorkbench();
   const [assets, setAssets] = useState<AssetRecord[]>([]);
   const [healthSummary, setHealthSummary] = useState<AssetProjectionHealthSummary | null>(null);
   const [assetLoadState, setAssetLoadState] = useState<'loading' | 'ready' | 'error'>('loading');
@@ -135,6 +146,7 @@ export const AssetBrowserView: React.FC = () => {
   const [blockbenchSessionAssetId, setBlockbenchSessionAssetId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState(false);
   const [importReview, setImportReview] = useState<AssetImportReviewState | null>(null);
+  const [batchImportReview, setBatchImportReview] = useState<AssetBatchImportReviewState | null>(null);
   const [moveReview, setMoveReview] = useState<AssetMoveReviewState | null>(null);
 
   const scenarioMode = modeForScenario(state.currentScenarioId);
@@ -236,6 +248,55 @@ export const AssetBrowserView: React.FC = () => {
     } catch (error) {
       setMoveReview({ ...current, busy: false, preview: null,
         error: error instanceof Error ? error.message : '资产移动预览失败。' });
+    }
+  };
+
+  const runBatchImportPreview = async (grants: AssetImportSelectionGrant[], targetRelativePaths: string[]) => {
+    setBatchImportReview({ grants, targetRelativePaths, preview: null, busy: true, error: null });
+    try {
+      const preview = await previewAssetImportBatch(grants.map((grant, index) => ({
+        sourceGrantId: grant.id,
+        targetRelativePath: targetRelativePaths[index] ?? defaultImportTarget(grant.fileName, assetNamespace(assets))
+      })));
+      setBatchImportReview({ grants, targetRelativePaths, preview, busy: false, error: null });
+    } catch (error) {
+      setBatchImportReview({ grants, targetRelativePaths, preview: null, busy: false,
+        error: error instanceof Error ? error.message : '资产批量导入预览失败。' });
+    }
+  };
+
+  const beginBatchImport = async () => {
+    try {
+      const selection = await assetImportBridge.selectSources();
+      if (selection.cancelled || selection.grants.length === 0) return;
+      const namespace = assetNamespace(assets);
+      const targets = selection.grants.map((grant) => defaultImportTarget(grant.fileName, namespace));
+      await runBatchImportPreview(selection.grants, targets);
+    } catch (error) {
+      setNotice(error instanceof Error ? `无法选择批量导入文件：${error.message}` : '无法选择批量导入文件。');
+    }
+  };
+
+  const commitBatchImport = async () => {
+    const current = batchImportReview;
+    const preview = current?.preview;
+    if (!current || !preview?.canApply) return;
+    setBatchImportReview({ ...current, busy: true, error: null });
+    try {
+      const result = await importAssetBatch(preview.planToken, preview.requiresReplacementConfirmation);
+      if (result.status !== 'committed') {
+        setBatchImportReview({ ...current, busy: false,
+          error: t(result.diagnostics[0]?.message) || '资产批量导入未提交。' });
+        return;
+      }
+      setBatchImportReview(null);
+      const importedCount = result.data?.importedCount ?? preview.changedCount;
+      const skipped = result.data?.skippedIdenticalCount ?? preview.identicalCount;
+      setNotice(`已批量导入 ${importedCount} 个资产，跳过 ${skipped} 个相同文件；整个批次只创建一个恢复点。`);
+      setReloadToken((token) => token + 1);
+    } catch (error) {
+      setBatchImportReview({ ...current, busy: false,
+        error: error instanceof Error ? error.message : '资产批量导入失败。' });
     }
   };
 
@@ -515,6 +576,16 @@ export const AssetBrowserView: React.FC = () => {
                 <Upload size={12} aria-hidden="true" />
                 <span>导入</span>
               </button>
+              <button
+                type="button"
+                className="asset-import-inline-btn btn-secondary"
+                onClick={() => void beginBatchImport()}
+                data-testid="asset-batch-import-button"
+                title="选择多个文件并在一次计划中导入"
+              >
+                <PackageOpen size={12} aria-hidden="true" />
+                <span>批量导入</span>
+              </button>
             </div>
           </div>
 
@@ -581,6 +652,22 @@ export const AssetBrowserView: React.FC = () => {
         />
       )}
 
+      {batchImportReview && (
+        <AssetBatchImportReview
+          state={batchImportReview}
+          onTargetChange={(index, targetRelativePath) => {
+            const targetRelativePaths = [...batchImportReview.targetRelativePaths];
+            targetRelativePaths[index] = targetRelativePath;
+            setBatchImportReview({ ...batchImportReview, targetRelativePaths, preview: null, error: null });
+          }}
+          onPreview={() => void runBatchImportPreview(
+            batchImportReview.grants, batchImportReview.targetRelativePaths
+          )}
+          onCommit={() => void commitBatchImport()}
+          onCancel={() => setBatchImportReview(null)}
+        />
+      )}
+
       {moveReview && (
         <AssetMoveReview
           state={moveReview}
@@ -597,6 +684,86 @@ export const AssetBrowserView: React.FC = () => {
       )}
 
     </section>
+  );
+};
+
+const AssetBatchImportReview: React.FC<{
+  state: AssetBatchImportReviewState;
+  onTargetChange: (index: number, targetRelativePath: string) => void;
+  onPreview: () => void;
+  onCommit: () => void;
+  onCancel: () => void;
+}> = ({ state, onTargetChange, onPreview, onCommit, onCancel }) => {
+  const preview = state.preview;
+  return (
+    <div className="asset-import-review-backdrop" role="presentation">
+      <section className="asset-import-review" role="dialog" aria-modal="true"
+        aria-label="资产批量导入预览" data-testid="asset-batch-import-review">
+        <div className="asset-import-review-heading">
+          <div>
+            <strong>批量导入资产</strong>
+            <span>整个批次会先审阅目标与冲突，再用一个恢复点和一个工作区 revision 原子提交。</span>
+          </div>
+          <button type="button" className="asset-clear-button" onClick={onCancel} aria-label="取消批量导入">
+            <XCircle size={16} />
+          </button>
+        </div>
+
+        <div className="asset-batch-import-items" data-testid="asset-batch-import-items">
+          {state.grants.map((grant, index) => {
+            const itemPreview = preview?.items[index];
+            return (
+              <div className="asset-import-review-source" key={grant.id} data-testid={`asset-batch-item-${index}`}>
+                <div>
+                  <span>来源 {index + 1}</span>
+                  <strong>{grant.fileName}</strong>
+                  <small>{formatBytes(grant.size)}</small>
+                </div>
+                <label className="asset-import-target-field">
+                  <span>工作区目标路径</span>
+                  <input data-testid={`asset-batch-target-${index}`} value={state.targetRelativePaths[index] ?? ''}
+                    onChange={(event) => onTargetChange(index, event.target.value)} disabled={state.busy} />
+                </label>
+                <div data-testid={`asset-batch-conflict-${index}`}>
+                  {itemPreview ? `${itemPreview.conflict} · ${itemPreview.category}` : '等待预览'}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {preview && (
+          <div className="asset-import-preview-summary" data-testid="asset-batch-preview-summary">
+            <div><span>新建</span><strong data-testid="asset-batch-create-count">{preview.createCount}</strong></div>
+            <div><span>替换</span><strong data-testid="asset-batch-replace-count">{preview.replaceCount}</strong></div>
+            <div><span>相同 / 跳过</span><strong>{preview.identicalCount}</strong></div>
+            <div><span>实际变更</span><strong>{preview.changedCount}</strong></div>
+            {preview.issueCodes.length > 0 && (
+              <div className="asset-import-issue-codes" data-testid="asset-batch-issues">
+                <span>阻断 / 检查项</span>
+                <div>{preview.issueCodes.map((code) => <code key={code}>{code}</code>)}</div>
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className="asset-import-review-actions">
+          <button type="button" className="btn-secondary" onClick={onPreview} disabled={state.busy}
+            data-testid="asset-batch-preview">
+            <RefreshCw size={13} aria-hidden="true" />
+            <span>{preview ? '重新预览全部' : '预览全部'}</span>
+          </button>
+          <button type="button" className="btn-primary" onClick={onCommit}
+            disabled={state.busy || !preview?.canApply} data-testid="asset-batch-commit">
+            <PackageOpen size={13} aria-hidden="true" />
+            <span>{preview?.requiresReplacementConfirmation ? '确认替换并批量导入' : '确认批量导入'}</span>
+          </button>
+          <button type="button" className="btn-secondary" onClick={onCancel} disabled={state.busy}>取消</button>
+        </div>
+        {state.busy && <div className="asset-import-review-status" role="status">正在校验整个导入批次…</div>}
+        {state.error && <div className="asset-import-review-error" role="alert">{state.error}</div>}
+      </section>
+    </div>
   );
 };
 

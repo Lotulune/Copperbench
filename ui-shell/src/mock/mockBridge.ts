@@ -54,6 +54,7 @@ import {
   DatagenPreview,
   FieldChange,
   AssetImportPreview,
+  AssetImportBatchPreview,
   AssetMovePreview
 } from '../types/contract';
 import {
@@ -995,6 +996,39 @@ export class MockCoreBridge implements CoreBridge {
           payload: { element: newElement }
         };
         this.notifyEvent(createdEvent);
+        this.notifyState();
+        return result;
+      }
+
+      case 'import_asset_batch': {
+        const payload = command.payload as unknown as { planToken: string; confirmReplace?: boolean };
+        const replacing = payload.planToken.includes('replace-1');
+        if (replacing && !payload.confirmReplace) {
+          return {
+            messageType: 'command_result', schemaVersion: '1.0', requestId: command.requestId, workspaceId,
+            operation: 'import_asset_batch', status: 'rejected', newRevision: currentRevision, recoveryPointId: null,
+            task: null, data: null, conflict: null, denial: null,
+            diagnostics: [{
+              code: 'ASSET_IMPORT_REPLACE_CONFIRMATION_REQUIRED', severity: 'error',
+              message: { key: 'diagnostic.asset_import_replace_confirmation_required', fallback: 'Replacement confirmation required.' },
+              path: '/confirmReplace', recoverable: true, actions: []
+            }]
+          };
+        }
+        const newRevision = currentRevision + 1;
+        if (this.state.workbench) this.state.workbench.workspace.revision = newRevision;
+        const result: CommandResult = {
+          messageType: 'command_result', schemaVersion: '1.0', requestId: command.requestId, workspaceId,
+          operation: 'import_asset_batch', status: 'committed', newRevision, recoveryPointId: generateUUID(),
+          task: null,
+          data: { complete: true, importedCount: 2, skippedIdenticalCount: 0, createCount: replacing ? 1 : 2, replaceCount: replacing ? 1 : 0 },
+          conflict: null, denial: null, diagnostics: []
+        };
+        this.notifyEvent({
+          messageType: 'event', schemaVersion: '1.0', eventId: generateUUID(), workspaceId, revision: newRevision,
+          sequence: ++this.sequenceCounter, occurredAt: new Date().toISOString(), event: 'assets_imported',
+          causedByRequestId: command.requestId, payload: result.data ?? {}
+        });
         this.notifyState();
         return result;
       }
@@ -2609,6 +2643,43 @@ export class MockCoreBridge implements CoreBridge {
           expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
           requiresReplacementConfirmation: Boolean(existing)
         } satisfies AssetImportPreview;
+        break;
+      }
+      case 'preview_asset_import_batch': {
+        const payload = query.payload as { items?: { sourceGrantId: string; targetRelativePath: string }[] };
+        const projection = mockAssetProjection();
+        const requests = payload.items ?? [];
+        const batchItems = requests.map((request) => {
+          const existing = projection.assets.find((asset) => asset.relativePath === request.targetRelativePath);
+          return {
+            sourceFileName: request.sourceGrantId.endsWith('2') ? 'batch_icon.png' : 'batch_texture.png',
+            sourceSize: request.sourceGrantId.endsWith('2') ? 4096 : 2048,
+            sourceSha256: `${request.sourceGrantId.endsWith('2') ? 'b' : 'a'}`.repeat(64),
+            sourceMediaType: 'image/png',
+            category: 'TEXTURE' as const,
+            targetRelativePath: request.targetRelativePath,
+            conflict: existing ? 'REPLACE' as const : 'CREATE' as const,
+            targetSha256: existing?.sha256 ?? null,
+            duplicatePaths: [],
+            canApply: true,
+            issueCodes: existing ? ['ASSET_IMPORT_TARGET_WILL_REPLACE'] : []
+          };
+        });
+        const targets = batchItems.map((item) => item.targetRelativePath.toLowerCase());
+        const targetConflict = new Set(targets).size !== targets.length;
+        const replaceCount = batchItems.filter((item) => item.conflict === 'REPLACE').length;
+        data = {
+          items: batchItems,
+          createCount: batchItems.length - replaceCount,
+          replaceCount,
+          identicalCount: 0,
+          changedCount: batchItems.length,
+          canApply: batchItems.length > 0 && !targetConflict,
+          issueCodes: targetConflict ? ['ASSET_IMPORT_BATCH_TARGET_CONFLICT'] : [],
+          planToken: `mock-asset-batch-plan::replace-${replaceCount}`,
+          expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+          requiresReplacementConfirmation: replaceCount > 0
+        } satisfies AssetImportBatchPreview;
         break;
       }
       case 'preview_asset_move': {

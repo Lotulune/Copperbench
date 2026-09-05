@@ -24,6 +24,8 @@ import dev.copperbench.core.workspace.RevisionedWorkspaceStore.Decision;
 import dev.copperbench.core.workspace.RevisionedWorkspaceStore.TransactionResult;
 import dev.copperbench.core.workspace.WorkspaceCreationService;
 import dev.copperbench.assets.AssetPublishBatchService;
+import dev.copperbench.assets.AssetImportBatchPlan;
+import dev.copperbench.assets.AssetImportBatchService;
 import dev.copperbench.assets.AssetImportPlan;
 import dev.copperbench.assets.AssetImportService;
 import dev.copperbench.assets.AssetImportService.AssetImportException;
@@ -141,6 +143,7 @@ public final class WorkspaceApplicationService {
 	private final Map<UUID, Deque<Event>> taskEventHistory = new ConcurrentHashMap<>();
 	private final Map<String, AssetImportSourceGrant> assetImportSourceGrants = new ConcurrentHashMap<>();
 	private final Map<String, AssetImportPlanGrant> assetImportPlanGrants = new ConcurrentHashMap<>();
+	private final Map<String, AssetImportBatchPlanGrant> assetImportBatchPlanGrants = new ConcurrentHashMap<>();
 	private final Map<String, AssetMovePlanGrant> assetMovePlanGrants = new ConcurrentHashMap<>();
 	private static final Duration ASSET_IMPORT_GRANT_TTL = Duration.ofMinutes(10);
 	private static final Duration ASSET_MOVE_PLAN_TTL = Duration.ofMinutes(10);
@@ -148,6 +151,164 @@ public final class WorkspaceApplicationService {
 	public WorkspaceApplicationService(RevisionedWorkspaceStore store, WorkspaceTaskGateway tasks, Clock clock,
 			Supplier<UUID> ids) {
 		this(store, tasks, WorkspaceMutationGateway.noOp(), clock, ids);
+	}
+
+	/** Grants a bounded multi-selection without exposing any external absolute path to browser code. */
+	public List<AssetImportSelectionGrant> grantAssetImportSources(List<Path> sources) {
+		Objects.requireNonNull(sources, "sources");
+		if (sources.isEmpty()) return List.of();
+		if (sources.size() > 64)
+			throw new AssetImportException("ASSET_IMPORT_BATCH_TOO_LARGE", "At most 64 assets can be imported at once");
+		List<Path> validated = new ArrayList<>(sources.size());
+		try {
+			for (Path source : sources) {
+				Path real = Objects.requireNonNull(source, "source").toRealPath();
+				if (!Files.isRegularFile(real))
+					throw new AssetImportException("ASSET_IMPORT_SOURCE_UNAVAILABLE",
+							"Selected import source is not a file");
+				validated.add(real);
+			}
+		} catch (AssetImportException exception) {
+			throw exception;
+		} catch (Exception exception) {
+			throw new AssetImportException("ASSET_IMPORT_SOURCE_UNAVAILABLE",
+					"One of the selected import sources is unavailable", exception);
+		}
+		return validated.stream().map(this::grantAssetImportSource).toList();
+	}
+
+	private CommandOutcome importAssetBatch(Command command, RequestContext context) {
+		if (history == null)
+			return failed(command, currentRevision(command.workspaceId()), diagnostic("ASSET_IMPORT_RECOVERY_UNAVAILABLE",
+					"diagnostic.asset_import_recovery_unavailable",
+					"Asset import requires local-history recovery, which is unavailable in this session.", null, null));
+		Path root = workspaceRoot(command.workspaceId());
+		if (root == null)
+			return failed(command, currentRevision(command.workspaceId()), diagnostic("ASSET_WORKSPACE_ROOT_UNAVAILABLE",
+					"diagnostic.asset_workspace_root_unavailable",
+					"The workspace root is not available for asset import.", null, null));
+		AssetImportBatchPlanGrant approved;
+		boolean confirmReplace;
+		try {
+			approved = assetImportBatchPlanGrant(requiredString(command.payload(), "planToken"), command.workspaceId());
+			confirmReplace = command.payload().has("confirmReplace") && command.payload().get("confirmReplace").isJsonPrimitive()
+					&& command.payload().getAsJsonPrimitive("confirmReplace").isBoolean()
+					&& command.payload().getAsJsonPrimitive("confirmReplace").getAsBoolean();
+		} catch (AssetImportException exception) {
+			return failed(command, currentRevision(command.workspaceId()), diagnostic(exception.code(),
+					"diagnostic.asset_import_failed", exception.getMessage(), null, null));
+		} catch (RuntimeException exception) {
+			return failed(command, currentRevision(command.workspaceId()), invalidPayload(exception.getMessage()));
+		}
+		if (approved.plan().replaceCount() > 0 && !confirmReplace)
+			return failed(command, currentRevision(command.workspaceId()), diagnostic(
+					"ASSET_IMPORT_REPLACE_CONFIRMATION_REQUIRED", "diagnostic.asset_import_replace_confirmation_required",
+					"Replacing existing assets in a batch requires explicit confirmation after preview.",
+					"/confirmReplace", null));
+		if (!approved.plan().canApply())
+			return failed(command, currentRevision(command.workspaceId()), diagnostic("ASSET_IMPORT_BATCH_NOT_APPLICABLE",
+					"diagnostic.asset_import_failed", "The reviewed asset import batch is blocked or has no changes.",
+					"/planToken", null));
+
+		AssetImportBatchService importer = new AssetImportBatchService(new AssetWorkspaceService(root), history);
+		TransactionResult<AssetImportBatchMutation> transaction = store.transact(command.workspaceId(),
+				command.expectedRevision(), state -> {
+			try {
+				AssetImportBatchService.ApplyResult applied = importer.apply(approved.plan(), context.actor(),
+						command.payload().has("clientMutationId") ? command.payload().get("clientMutationId").getAsString()
+								: command.requestId().toString());
+				return Decision.commit(AssetImportBatchMutation.success(applied, state.nextEventSequence()),
+						applied.assets().stream().map(asset -> "/" + asset.relativePath()).toList());
+			} catch (AssetImportException exception) {
+				return Decision.abort(AssetImportBatchMutation.rejected(diagnostic(exception.code(),
+						"diagnostic.asset_import_failed", exception.getMessage(), null, null)));
+			} catch (LocalHistoryException exception) {
+				return Decision.abort(AssetImportBatchMutation.rejected(failureDiagnostic(command,
+						"RECOVERY_POINT_FAILED", "diagnostic.recovery_point_failed",
+						"The required recovery point could not be created; the workspace was not changed.",
+						null, null, exception)));
+			}
+		});
+		CommandOutcome conflict = checkFailure(command, transaction);
+		if (conflict != null) return conflict;
+		AssetImportBatchMutation mutation = transaction.value();
+		if (transaction.status() == TransactionResult.Status.ABORTED)
+			return failed(command, transaction.revision(), mutation.diagnostic());
+
+		assetImportBatchPlanGrants.remove(approved.id());
+		approved.sourceGrantIds().forEach(assetImportSourceGrants::remove);
+		AssetReferenceGraph refreshed = new AssetWorkspaceService(root).referenceGraph();
+		AssetHealthReport refreshedHealth = workspaceAssetHealth(refreshed,
+				store.read(command.workspaceId()).orElseThrow());
+		JsonObject data = new JsonObject();
+		data.addProperty("complete", true);
+		data.addProperty("importedCount", mutation.applied().importedCount());
+		data.addProperty("skippedIdenticalCount", mutation.applied().skippedIdenticalCount());
+		data.addProperty("createCount", mutation.applied().createCount());
+		data.addProperty("replaceCount", mutation.applied().replaceCount());
+		JsonArray importedAssets = new JsonArray();
+		for (AssetDescriptor imported : mutation.applied().assets())
+			importedAssets.add(asset(imported, refreshedHealth.findById(imported.id()).orElseThrow()));
+		data.add("assets", importedAssets);
+		data.add("health", GSON.toJsonTree(refreshedHealth.summary()));
+		Event event = event(command, transaction.revision(), mutation.sequence(), "assets_imported", data.deepCopy());
+		return new CommandOutcome(result(command, "committed", transaction.revision(), mutation.applied().recoveryPoint(),
+				JsonNull.INSTANCE, data, List.of(), JsonNull.INSTANCE, JsonNull.INSTANCE), List.of(event));
+	}
+
+	private QueryResult previewAssetImportBatch(Query query, WorkspaceState state) {
+		if (history == null)
+			return queryFailure(query, state.revision(), diagnostic("ASSET_IMPORT_RECOVERY_UNAVAILABLE",
+					"diagnostic.asset_import_recovery_unavailable",
+					"Asset import requires local-history recovery, which is unavailable in this session.", null, null));
+		Path root = workspaceRoot(query.workspaceId());
+		if (root == null)
+			return queryFailure(query, state.revision(), diagnostic("ASSET_WORKSPACE_ROOT_UNAVAILABLE",
+					"diagnostic.asset_workspace_root_unavailable",
+					"The workspace root is not available for asset import.", null, null));
+		try {
+			JsonArray items = query.payload().has("items") && query.payload().get("items").isJsonArray()
+					? query.payload().getAsJsonArray("items") : new JsonArray();
+			if (items.isEmpty()) throw new IllegalArgumentException("items must not be empty");
+			if (items.size() > 64) throw new IllegalArgumentException("asset import batch may contain at most 64 items");
+			List<String> sourceGrantIds = new ArrayList<>(items.size());
+			List<AssetImportBatchService.Request> requests = new ArrayList<>(items.size());
+			for (JsonElement raw : items) {
+				if (!raw.isJsonObject()) throw new IllegalArgumentException("each batch item must be an object");
+				JsonObject item = raw.getAsJsonObject();
+				String grantId = requiredString(item, "sourceGrantId");
+				String target = requiredString(item, "targetRelativePath");
+				AssetImportSourceGrant grant = assetImportSourceGrant(grantId);
+				sourceGrantIds.add(grantId);
+				requests.add(new AssetImportBatchService.Request(grant.source(), target));
+			}
+			AssetImportBatchPlan plan = new AssetImportBatchService(new AssetWorkspaceService(root), history).preview(requests);
+			String planToken = ids.get().toString();
+			Instant expiresAt = clock.instant().plus(ASSET_IMPORT_GRANT_TTL);
+			assetImportBatchPlanGrants.put(planToken,
+					new AssetImportBatchPlanGrant(planToken, query.workspaceId(), sourceGrantIds, plan, expiresAt));
+			JsonObject data = plan.toJson();
+			data.addProperty("planToken", planToken);
+			data.addProperty("expiresAt", expiresAt.toString());
+			data.addProperty("requiresReplacementConfirmation", plan.replaceCount() > 0);
+			return querySuccess(query, state.revision(), data);
+		} catch (AssetImportException exception) {
+			return queryFailure(query, state.revision(), diagnostic(exception.code(),
+					"diagnostic.asset_import_preview_failed", exception.getMessage(), null, null));
+		} catch (RuntimeException exception) {
+			return queryFailure(query, state.revision(), invalidPayload(exception.getMessage()));
+		}
+	}
+
+	private record AssetImportBatchMutation(AssetImportBatchService.ApplyResult applied, long sequence,
+			Diagnostic diagnostic) {
+		private static AssetImportBatchMutation success(AssetImportBatchService.ApplyResult applied, long sequence) {
+			return new AssetImportBatchMutation(applied, sequence, null);
+		}
+
+		private static AssetImportBatchMutation rejected(Diagnostic diagnostic) {
+			return new AssetImportBatchMutation(null, 0, diagnostic);
+		}
 	}
 
 	private record AssetMovePlanGrant(String id, UUID workspaceId, AssetMovePlan plan, Instant expiresAt) {
@@ -176,6 +337,18 @@ public final class WorkspaceApplicationService {
 		if (!grant.workspaceId().equals(workspaceId))
 			throw new AssetMoveException("ASSET_MOVE_PLAN_WORKSPACE_MISMATCH",
 					"The asset move plan belongs to a different workspace");
+		return grant;
+	}
+
+	private AssetImportBatchPlanGrant assetImportBatchPlanGrant(String id, UUID workspaceId) {
+		pruneAssetImportGrants();
+		AssetImportBatchPlanGrant grant = assetImportBatchPlanGrants.get(id);
+		if (grant == null)
+			throw new AssetImportException("ASSET_IMPORT_BATCH_PLAN_INVALID",
+					"The asset import batch plan is missing or expired");
+		if (!grant.workspaceId().equals(workspaceId))
+			throw new AssetImportException("ASSET_IMPORT_BATCH_PLAN_WORKSPACE_MISMATCH",
+					"The asset import batch plan belongs to a different workspace");
 		return grant;
 	}
 
@@ -809,6 +982,7 @@ public final class WorkspaceApplicationService {
 		Instant now = clock.instant();
 		assetImportSourceGrants.entrySet().removeIf(entry -> !entry.getValue().expiresAt().isAfter(now));
 		assetImportPlanGrants.entrySet().removeIf(entry -> !entry.getValue().expiresAt().isAfter(now));
+		assetImportBatchPlanGrants.entrySet().removeIf(entry -> !entry.getValue().expiresAt().isAfter(now));
 	}
 
 	private AssetImportSourceGrant assetImportSourceGrant(String id) {
@@ -920,6 +1094,7 @@ public final class WorkspaceApplicationService {
 			case CREATE_PUBLISH_BATCH -> createPublishBatch(command, context);
 			case PREPARE_RESOURCE_PACK_CLIENT -> prepareResourcePackClient(command, context);
 			case IMPORT_ASSET -> importAsset(command, context);
+			case IMPORT_ASSET_BATCH -> importAssetBatch(command, context);
 			case MOVE_ASSET -> moveAsset(command, context);
 			case APPLY_WORKSPACE_PLAN -> plans.apply(command, context);
 			default -> failed(command, 0, diagnostic("UNSUPPORTED_OPERATION", "diagnostic.unsupported_operation",
@@ -937,6 +1112,7 @@ public final class WorkspaceApplicationService {
 				case LIST_NEW_WORKSPACE_GENERATORS -> querySuccess(query, state.revision(), newWorkspaceGenerators());
 				case LIST_ASSETS -> listAssets(query, state);
 				case PREVIEW_ASSET_IMPORT -> previewAssetImport(query, state);
+				case PREVIEW_ASSET_IMPORT_BATCH -> previewAssetImportBatch(query, state);
 				case PREVIEW_ASSET_MOVE -> previewAssetMove(query, state);
 				case LIST_MOD_ELEMENTS -> querySuccess(query, state.revision(), elementList(state, query.payload()));
 				case GET_MOD_ELEMENT_EDITOR -> editor(query, state, context);
@@ -4775,6 +4951,13 @@ public final class WorkspaceApplicationService {
 
 	private record AssetImportPlanGrant(String id, UUID workspaceId, String sourceGrantId, AssetImportPlan plan,
 			Instant expiresAt) {
+	}
+
+	private record AssetImportBatchPlanGrant(String id, UUID workspaceId, List<String> sourceGrantIds,
+			AssetImportBatchPlan plan, Instant expiresAt) {
+		private AssetImportBatchPlanGrant {
+			sourceGrantIds = List.copyOf(sourceGrantIds);
+		}
 	}
 
 	private record AssetImportMutation(AssetImportService.ApplyResult applied, long sequence, Diagnostic diagnostic) {

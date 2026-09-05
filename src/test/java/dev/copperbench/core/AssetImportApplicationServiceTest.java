@@ -75,6 +75,67 @@ class AssetImportApplicationServiceTest {
 		}
 	}
 
+	@Test void nativeMultiGrantPreviewAndBatchImportCommitOneRevisionAndOneRecovery() throws Exception {
+		Path workspace = temp.resolve("workspace-batch");
+		Path existing = workspace.resolve("assets/copperbench/textures/block/existing.png");
+		Files.createDirectories(existing.getParent());
+		Files.write(existing, new byte[] { 1, 1, 1 });
+		Path createSource = Files.write(temp.resolve("batch-new.png"), new byte[] { 2, 2, 2 });
+		Path replaceSource = Files.write(temp.resolve("batch-replace.png"), new byte[] { 3, 3, 3 });
+
+		try (JGitLocalHistoryService history = JGitLocalHistoryService.open(workspace, CLOCK)) {
+			WorkspaceApplicationService service = service(workspace, history);
+			var grants = service.grantAssetImportSources(List.of(createSource, replaceSource));
+			assertEquals(2, grants.size());
+			assertFalse(grants.toString().contains(temp.toString()));
+
+			JsonObject previewPayload = new JsonObject();
+			com.google.gson.JsonArray items = new com.google.gson.JsonArray();
+			JsonObject createItem = new JsonObject();
+			createItem.addProperty("sourceGrantId", grants.get(0).id());
+			createItem.addProperty("targetRelativePath", "assets/copperbench/textures/block/new.png");
+			items.add(createItem);
+			JsonObject replaceItem = new JsonObject();
+			replaceItem.addProperty("sourceGrantId", grants.get(1).id());
+			replaceItem.addProperty("targetRelativePath", "assets/copperbench/textures/block/existing.png");
+			items.add(replaceItem);
+			previewPayload.add("items", items);
+
+			var preview = service.query(Query.of(uuid(30), WORKSPACE_ID, Operation.PREVIEW_ASSET_IMPORT_BATCH,
+					previewPayload), UI);
+			assertEquals("succeeded", preview.status());
+			JsonObject plan = preview.data().getAsJsonObject();
+			assertEquals(1, plan.get("createCount").getAsInt());
+			assertEquals(1, plan.get("replaceCount").getAsInt());
+			assertTrue(plan.get("requiresReplacementConfirmation").getAsBoolean());
+
+			JsonObject commandPayload = new JsonObject();
+			commandPayload.addProperty("clientMutationId", uuid(31).toString());
+			commandPayload.addProperty("planToken", plan.get("planToken").getAsString());
+			var rejected = service.execute(Command.of(uuid(32), WORKSPACE_ID, 0, Operation.IMPORT_ASSET_BATCH,
+					commandPayload), UI);
+			assertEquals("rejected", rejected.result().status());
+			assertEquals("ASSET_IMPORT_REPLACE_CONFIRMATION_REQUIRED",
+					rejected.result().diagnostics().getFirst().code());
+			assertTrue(history.listRecoveryPoints().isEmpty());
+
+			commandPayload.addProperty("confirmReplace", true);
+			var committed = service.execute(Command.of(uuid(33), WORKSPACE_ID, 0, Operation.IMPORT_ASSET_BATCH,
+					commandPayload), UI);
+			assertEquals("committed", committed.result().status());
+			assertEquals(1, committed.result().newRevision());
+			assertNotNull(committed.result().recoveryPointId());
+			assertEquals("assets_imported", committed.events().getFirst().event());
+			JsonObject data = committed.result().data().getAsJsonObject();
+			assertEquals(2, data.get("importedCount").getAsInt());
+			assertEquals(0, data.get("skippedIdenticalCount").getAsInt());
+			assertEquals(2, data.getAsJsonArray("assets").size());
+			assertEquals(1, history.listRecoveryPoints().size());
+			assertTrue(Files.isRegularFile(workspace.resolve("assets/copperbench/textures/block/new.png")));
+			assertEquals(List.of((byte) 3, (byte) 3, (byte) 3), toList(Files.readAllBytes(existing)));
+		}
+	}
+
 	@Test void previewTokenCannotBeReplayedAgainstAnotherWorkspace() throws Exception {
 		Path workspace = temp.resolve("workspace");
 		Files.createDirectories(workspace);
@@ -98,6 +159,25 @@ class AssetImportApplicationServiceTest {
 			assertEquals("rejected", rejected.result().status());
 			assertEquals("ASSET_IMPORT_PLAN_WORKSPACE_MISMATCH", rejected.result().diagnostics().getFirst().code());
 			assertFalse(Files.exists(workspace.resolve("assets/copperbench/textures/block/lamp.png")));
+
+			JsonObject batchPreviewPayload = new JsonObject();
+			com.google.gson.JsonArray batchItems = new com.google.gson.JsonArray();
+			JsonObject batchItem = new JsonObject();
+			batchItem.addProperty("sourceGrantId", grant.id());
+			batchItem.addProperty("targetRelativePath", "assets/copperbench/textures/block/batch.png");
+			batchItems.add(batchItem);
+			batchPreviewPayload.add("items", batchItems);
+			JsonObject batchPlan = service.query(Query.of(uuid(23), WORKSPACE_ID,
+					Operation.PREVIEW_ASSET_IMPORT_BATCH, batchPreviewPayload), UI).data().getAsJsonObject();
+			JsonObject batchCommandPayload = new JsonObject();
+			batchCommandPayload.addProperty("clientMutationId", uuid(24).toString());
+			batchCommandPayload.addProperty("planToken", batchPlan.get("planToken").getAsString());
+			var batchRejected = service.execute(Command.of(uuid(25), OTHER_WORKSPACE_ID, 0,
+					Operation.IMPORT_ASSET_BATCH, batchCommandPayload), UI);
+			assertEquals("rejected", batchRejected.result().status());
+			assertEquals("ASSET_IMPORT_BATCH_PLAN_WORKSPACE_MISMATCH",
+					batchRejected.result().diagnostics().getFirst().code());
+			assertFalse(Files.exists(workspace.resolve("assets/copperbench/textures/block/batch.png")));
 		}
 	}
 

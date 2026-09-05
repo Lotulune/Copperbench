@@ -11,6 +11,7 @@ export interface AssetImportSelectionGrant {
 interface NativeAssetImportHost {
   readonly schemaVersion: typeof ASSET_IMPORT_BRIDGE_SCHEMA_VERSION;
   selectSource(): Promise<AssetImportSelectionGrant>;
+  selectSources(): Promise<{ cancelled: boolean; grants: AssetImportSelectionGrant[] }>;
 }
 
 declare global {
@@ -22,12 +23,16 @@ declare global {
 export interface AssetImportBridge {
   readonly available: boolean;
   selectSource(): Promise<AssetImportSelectionGrant>;
+  selectSources(): Promise<{ cancelled: boolean; grants: AssetImportSelectionGrant[] }>;
 }
 
 class NativeBridge implements AssetImportBridge {
   public readonly available = true;
   public constructor(private readonly host: NativeAssetImportHost) {}
   public selectSource(): Promise<AssetImportSelectionGrant> { return this.host.selectSource(); }
+  public selectSources(): Promise<{ cancelled: boolean; grants: AssetImportSelectionGrant[] }> {
+    return this.host.selectSources();
+  }
 }
 
 class PreviewBridge implements AssetImportBridge {
@@ -39,6 +44,16 @@ class PreviewBridge implements AssetImportBridge {
       size: 1536,
       expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
       cancelled: false
+    };
+  }
+  public async selectSources(): Promise<{ cancelled: boolean; grants: AssetImportSelectionGrant[] }> {
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+    return {
+      cancelled: false,
+      grants: [
+        { id: 'mock-asset-batch-source-1', fileName: 'batch_texture.png', size: 2048, expiresAt, cancelled: false },
+        { id: 'mock-asset-batch-source-2', fileName: 'batch_icon.png', size: 4096, expiresAt, cancelled: false }
+      ]
     };
   }
 }

@@ -9,6 +9,8 @@ class JcefAssetImportBridgeTransportTest {
 		String bootstrap = JcefAssetImportBridgeTransport.generateBootstrapScript();
 		assertTrue(bootstrap.contains("window.__COPPERBENCH_ASSET_IMPORT_HOST__"));
 		assertTrue(bootstrap.contains("selectSource"));
+		assertTrue(bootstrap.contains("selectSources"));
+		assertTrue(bootstrap.contains("operation: multiple ? 'selectSources' : 'selectSource'"));
 		assertTrue(bootstrap.contains(JcefAssetImportBridgeTransport.QUERY_PREFIX));
 		assertTrue(!bootstrap.contains("sourcePath"));
 	}

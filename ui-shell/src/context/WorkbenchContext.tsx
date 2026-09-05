@@ -18,7 +18,7 @@ import {
   UpstreamToolCatalogProjection,
   NewWorkspaceGeneratorCatalog,
   AssetProjection,
-  AssetImportPreview, AssetMovePreview,
+  AssetImportPreview, AssetImportBatchPreview, AssetMovePreview,
   ProcedureEditorProjection,
   ProcedureChangePreview,
   ProcedureEdit,
@@ -111,6 +111,8 @@ interface WorkbenchContextType {
   listAssets: () => Promise<AssetProjection | null>;
   previewAssetImport: (sourceGrantId: string, targetRelativePath: string) => Promise<AssetImportPreview | null>;
   importAsset: (planToken: string, confirmReplace: boolean) => Promise<CommandResult>;
+  previewAssetImportBatch: (items: { sourceGrantId: string; targetRelativePath: string }[]) => Promise<AssetImportBatchPreview | null>;
+  importAssetBatch: (planToken: string, confirmReplace: boolean) => Promise<CommandResult>;
   previewAssetMove: (sourceAssetId: string, targetRelativePath: string) => Promise<AssetMovePreview | null>;
   moveAsset: (planToken: string) => Promise<CommandResult>;
   listNewWorkspaceGenerators: () => Promise<NewWorkspaceGeneratorCatalog | null>;
@@ -289,6 +291,43 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         payload: { elementId }
       });
       return (res.data as ModElementEditorProjection | null) ?? null;
+    },
+    [state.workbench]
+  );
+
+  const previewAssetImportBatch = useCallback(
+    async (items: { sourceGrantId: string; targetRelativePath: string }[]): Promise<AssetImportBatchPreview | null> => {
+      const workspaceId = state.workbench?.workspace.id || generateUUID();
+      const res = await coreBridge.sendQuery<AssetImportBatchPreview>({
+        messageType: 'query',
+        schemaVersion: '1.0',
+        requestId: generateUUID(),
+        workspaceId,
+        operation: 'preview_asset_import_batch',
+        payload: { items }
+      });
+      if (res.status !== 'succeeded' || !res.data) {
+        const diagnostic = res.diagnostics[0];
+        throw new Error(diagnostic ? t(diagnostic.message) : '资产批量导入预览失败。');
+      }
+      return res.data as AssetImportBatchPreview;
+    },
+    [state.workbench]
+  );
+
+  const importAssetBatch = useCallback(
+    async (planToken: string, confirmReplace: boolean): Promise<CommandResult> => {
+      const workspaceId = state.workbench?.workspace.id || generateUUID();
+      const revision = state.workbench?.workspace.revision ?? 0;
+      return coreBridge.sendCommand({
+        messageType: 'command',
+        schemaVersion: '1.0',
+        requestId: generateUUID(),
+        workspaceId,
+        expectedRevision: revision,
+        operation: 'import_asset_batch',
+        payload: { clientMutationId: generateUUID(), planToken, confirmReplace }
+      });
     },
     [state.workbench]
   );
@@ -1138,6 +1177,8 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       listAssets,
       previewAssetImport,
       importAsset,
+      previewAssetImportBatch,
+      importAssetBatch,
       previewAssetMove,
       moveAsset,
       listNewWorkspaceGenerators,
@@ -1206,6 +1247,8 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       listAssets,
       previewAssetImport,
       importAsset,
+      previewAssetImportBatch,
+      importAssetBatch,
       previewAssetMove,
       moveAsset,
       listNewWorkspaceGenerators,

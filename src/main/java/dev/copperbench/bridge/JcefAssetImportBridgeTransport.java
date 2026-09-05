@@ -80,10 +80,13 @@ public final class JcefAssetImportBridgeTransport extends CefMessageRouterHandle
 			callback.failure(403, "Asset import bridge is only available to the main frame");
 			return true;
 		}
+		String operation;
 		try {
 			JsonObject payload = JsonParser.parseString(request.substring(QUERY_PREFIX.length())).getAsJsonObject();
-			if (!payload.has("operation") || !payload.get("operation").isJsonPrimitive()
-					|| !payload.get("operation").getAsString().equals("selectSource"))
+			if (!payload.has("operation") || !payload.get("operation").isJsonPrimitive())
+				throw new IllegalArgumentException("Unsupported asset import bridge operation");
+			operation = payload.get("operation").getAsString();
+			if (!operation.equals("selectSource") && !operation.equals("selectSources"))
 				throw new IllegalArgumentException("Unsupported asset import bridge operation");
 		} catch (RuntimeException exception) {
 			callback.failure(400, "Invalid asset import request: " + exception.getMessage());
@@ -96,16 +99,29 @@ public final class JcefAssetImportBridgeTransport extends CefMessageRouterHandle
 				return;
 			}
 			try {
-				File source = FileDialogs.getOpenDialog(owner, EXTENSIONS);
-				if (source == null) {
-					callback.success("{\"cancelled\":true}");
-					return;
+				if (operation.equals("selectSources")) {
+					File[] sources = FileDialogs.getMultiOpenDialog(owner, EXTENSIONS);
+					if (sources == null || sources.length == 0) {
+						callback.success("{\"cancelled\":true,\"grants\":[]}");
+						return;
+					}
+					var grants = service.grantAssetImportSources(java.util.Arrays.stream(sources).map(File::toPath).toList());
+					JsonObject response = new JsonObject();
+					response.addProperty("cancelled", false);
+					response.add("grants", JSON.toJsonTree(grants));
+					callback.success(JSON.toJson(response));
+				} else {
+					File source = FileDialogs.getOpenDialog(owner, EXTENSIONS);
+					if (source == null) {
+						callback.success("{\"cancelled\":true}");
+						return;
+					}
+					WorkspaceApplicationService.AssetImportSelectionGrant grant = service
+							.grantAssetImportSource(source.toPath());
+					JsonObject response = JSON.toJsonTree(grant).getAsJsonObject();
+					response.addProperty("cancelled", false);
+					callback.success(JSON.toJson(response));
 				}
-				WorkspaceApplicationService.AssetImportSelectionGrant grant = service
-						.grantAssetImportSource(source.toPath());
-				JsonObject response = JSON.toJsonTree(grant).getAsJsonObject();
-				response.addProperty("cancelled", false);
-				callback.success(JSON.toJson(response));
 			} catch (RuntimeException exception) {
 				callback.failure(400, "Asset source selection failed: " + exception.getMessage());
 			}
@@ -122,13 +138,19 @@ public final class JcefAssetImportBridgeTransport extends CefMessageRouterHandle
 				    window.__COPPERBENCH_ASSET_IMPORT_HOST__ = {
 				        schemaVersion: '1.0',
 				        selectSource: function() {
+				            return window.__COPPERBENCH_ASSET_IMPORT_HOST__.select(false);
+				        },
+				        selectSources: function() {
+				            return window.__COPPERBENCH_ASSET_IMPORT_HOST__.select(true);
+				        },
+				        select: function(multiple) {
 				            return new Promise(function(resolve, reject) {
 				                if (typeof window.cefQuery !== 'function') {
 				                    reject(new Error('JCEF asset import transport is not available'));
 				                    return;
 				                }
 				                window.cefQuery({
-				                    request: %s + JSON.stringify({ operation: 'selectSource' }),
+				                    request: %s + JSON.stringify({ operation: multiple ? 'selectSources' : 'selectSource' }),
 				                    persistent: false,
 				                    onSuccess: function(response) { resolve(JSON.parse(response)); },
 				                    onFailure: function(code, message) {

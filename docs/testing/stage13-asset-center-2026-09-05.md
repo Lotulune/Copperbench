@@ -20,6 +20,10 @@ The first Stage 13 Asset Center slice builds on the Stage 6/8 asset foundation a
 - import writes create a pre-change recovery point and roll back through local history if the write fails;
 - target validation rejects unknown asset roots, extension mismatch, workspace escape and symlink/junction ancestors that resolve outside the workspace;
 - legacy `.lang` assets are now indexed consistently and use `text/plain`, matching import-preview media typing;
+- multi-file import now uses the native multi-select picker to issue up to 64 short-lived source grants without exposing external absolute paths to browser code;
+- the batch preview reviews every target together, reports CREATE/REPLACE/IDENTICAL counts, blocks duplicate target paths inside the same batch and requires explicit confirmation if any item will replace an existing asset;
+- batch apply revalidates every item, snapshots all changed source bytes before the first workspace write, then commits the full batch with one recovery point, one workspace revision and one `assets_imported` event; this also prevents an earlier target from overwriting a later item’s source bytes;
+- IDENTICAL batch items are explicit no-ops rather than failures, and any stale source/target or write failure rejects or restores the whole batch instead of leaving a partial import;
 - asset rename/move is preview-first and reference-safe: the review lists every exact structured-document rewrite by source path + JSON Pointer before apply;
 - move plan tokens are workspace-bound and short-lived; apply rescans source/reference hashes, blocks stale plans and target/category/resource-root conflicts, creates one recovery point and advances one workspace revision;
 - post-move validation requires the target asset to be re-indexed under its previewed stable ID and rejects any old-path dangling reference; UI and MCP use the same Core move planner/apply path;
@@ -40,15 +44,16 @@ Existing Stage 6/8 behavior retained by this slice includes unified category bro
 - `AssetQueryProjectionTest` — passed, including per-asset health, duplicate summary/issue projection, embedded Mod Element resource usage blocking safe cleanup, and raw-code workspaces disabling cleanup assessment.
 - `McpHttpServerTest` — passed, including `assetHealth` and `incomingReferences` on `inspect_asset_references`.
 - `AssetImportServiceTest` / `AssetImportApplicationServiceTest` / `JcefAssetImportBridgeTransportTest` — passed, including stale-plan rejection, workspace-scoped tokens, replacement confirmation, recovery restore, external-path non-disclosure and symlink/junction protection.
+- `AssetImportBatchServiceTest` / `AssetImportApplicationServiceTest` / `JcefAssetImportBridgeTransportTest` — forced rerun passed, including mixed CREATE/REPLACE/IDENTICAL preview, duplicate-target blocking, whole-batch stale rejection, overlapping source/target staging, native multi-grants, batch-token workspace isolation, one revision and one recovery point.
 - `AssetMoveServiceTest` / `AssetMoveApplicationServiceTest` — passed, including exact JSON Pointer rewrites, stale-source rejection before recovery/write, target/category/resource-root blocking, workspace-bound move tokens, one-revision apply and recovery restore.
 - `McpHttpServerTest.externalAgentCanPreviewAndApplyReferenceSafeAssetMove` — passed through the real loopback MCP server, including preview, apply, reference rewrite and recovery point return.
 - `BlockbenchProcessServiceTest` / `BlockbenchEditApplicationServiceTest` / `JcefBlockbenchBridgeTransportTest` — forced rerun passed; recovery preparation precedes process start, completion runs once, the Core save registers one revision/event, recovery restores the pre-edit file, and the wire contract carries explicit recovery/revision metadata. The optional real-installed-Blockbench smoke remains skipped unless `copperbench.blockbench.executable` is supplied.
 - `WorkspaceReferenceIndexScaleTest` with `copperbench.stage9.scale=true` — passed at 2,000 elements / 10,000 references (`initial=123ms`, `repeat=47ms`, `P95=28ms`) after embedded resource-location scanning was added.
-- `npx playwright test e2e/asset-browser.spec.ts` — `26 passed` across Chromium and compact-1366; the browser covers health/static-unused/safe-cleanup/duplicate filters, CREATE and explicitly reviewed REPLACE import, exact move-reference review, blocked unchanged move, the >=32px move-review interaction target baseline, and managed Blockbench save-exit auto-refresh with recovery/revision feedback.
+- `npx playwright test e2e/asset-browser.spec.ts` — `32 passed` across Chromium and compact-1366; the browser covers health/static-unused/safe-cleanup/duplicate filters, single-file CREATE/REPLACE import, mixed CREATE/REPLACE batch review, intra-batch target collision blocking, the >=32px batch/move review interaction target baseline, exact move-reference review, and managed Blockbench save-exit auto-refresh with recovery/revision feedback.
 
 ## Remaining `FR-PRODUCTIVITY-02` work
 
-- drag/drop and multi-file/batch import planning; the single-file preview/replace/recovery path is implemented;
+- native multi-file/batch import planning is implemented; true OS drag/drop ingestion still needs to feed the same grant-based batch planner without exposing absolute paths to browser code;
 - broader asset move coverage for non-JSON or generator-specific references if future supported asset kinds introduce such references; current structured JSON/resource-ID references are protected.
 
 Static-unused remains discovery information only. Only the narrower Core-owned `safeUnused` slice is presented as a cleanup candidate, and no automatic deletion action is implemented.

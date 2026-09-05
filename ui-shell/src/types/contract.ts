@@ -757,6 +757,7 @@ export type CommandOperation =
   | 'create_publish_batch'
   | 'prepare_resource_pack_client'
   | 'import_asset'
+  | 'import_asset_batch'
   | 'move_asset';
 
 export interface Command<T = unknown> {
@@ -843,8 +844,13 @@ export interface CommandResultData {
   semanticDiff?: Record<string, unknown>[];
   idempotentReplay?: boolean;
   asset?: AssetProjectionAsset;
+  assets?: AssetProjectionAsset[];
   conflict?: 'CREATE' | 'IDENTICAL' | 'REPLACE';
   health?: AssetProjectionHealthSummary;
+  importedCount?: number;
+  skippedIdenticalCount?: number;
+  createCount?: number;
+  replaceCount?: number;
   sourceRelativePath?: string;
   targetRelativePath?: string;
   rewrittenReferences?: number;
@@ -875,6 +881,7 @@ export type QueryOperation =
   | 'list_new_workspace_generators'
   | 'list_assets'
   | 'preview_asset_import'
+  | 'preview_asset_import_batch'
   | 'preview_asset_move'
   | 'list_mod_elements'
   | 'get_mod_element_editor'
@@ -1109,6 +1116,24 @@ export interface AssetImportPreview {
   requiresReplacementConfirmation: boolean;
 }
 
+export type AssetImportBatchItemPreview = Omit<
+  AssetImportPreview,
+  'planToken' | 'expiresAt' | 'requiresReplacementConfirmation'
+>;
+
+export interface AssetImportBatchPreview {
+  items: AssetImportBatchItemPreview[];
+  createCount: number;
+  replaceCount: number;
+  identicalCount: number;
+  changedCount: number;
+  canApply: boolean;
+  issueCodes: string[];
+  planToken: string;
+  expiresAt: string;
+  requiresReplacementConfirmation: boolean;
+}
+
 export type MigrationDisposition = 'supported' | 'substitute' | 'lost' | 'blocked' | 'manual';
 
 export interface MigrationItem {
@@ -1222,6 +1247,7 @@ export type EventType =
   | 'publish_batch_created'
   | 'resource_pack_client_prepared'
   | 'asset_imported'
+  | 'assets_imported'
   | 'asset_moved'
   | 'asset_external_edit_committed';
 
@@ -1392,6 +1418,11 @@ export type AssetImportedEvent = BaseEvent<
   CommandResultData
 >;
 
+export type AssetsImportedEvent = BaseEvent<
+  'assets_imported',
+  CommandResultData
+>;
+
 export type AssetMovedEvent = BaseEvent<
   'asset_moved',
   CommandResultData
@@ -1433,6 +1464,7 @@ export type CoreEvent =
   | PublishBatchCreatedEvent
   | ResourcePackClientPreparedEvent
   | AssetImportedEvent
+  | AssetsImportedEvent
   | AssetMovedEvent
   | AssetExternalEditCommittedEvent;
 

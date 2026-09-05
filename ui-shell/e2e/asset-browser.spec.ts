@@ -86,6 +86,48 @@ test.describe('U3 asset browser', () => {
     await expect(page.getByTestId('asset-notice')).toContainText('已创建恢复点');
   });
 
+  test('reviews a mixed create/replace batch and commits it through one batch action', async ({ page }) => {
+    await page.getByTestId('asset-batch-import-button').click();
+    await expect(page.getByTestId('asset-batch-import-review')).toBeVisible();
+    await expect(page.getByTestId('asset-batch-item-0')).toContainText('batch_texture.png');
+    await expect(page.getByTestId('asset-batch-item-1')).toContainText('batch_icon.png');
+
+    await page.getByTestId('asset-batch-target-1').fill('assets/coppertrails/textures/block/copper_lamp.png');
+    await page.getByTestId('asset-batch-preview').click();
+    await expect(page.getByTestId('asset-batch-create-count')).toHaveText('1');
+    await expect(page.getByTestId('asset-batch-replace-count')).toHaveText('1');
+    await expect(page.getByTestId('asset-batch-conflict-0')).toContainText('CREATE');
+    await expect(page.getByTestId('asset-batch-conflict-1')).toContainText('REPLACE');
+    await expect(page.getByTestId('asset-batch-commit')).toContainText('确认替换并批量导入');
+
+    await page.getByTestId('asset-batch-commit').click();
+    await expect(page.getByTestId('asset-batch-import-review')).not.toBeVisible();
+    await expect(page.getByTestId('asset-notice')).toContainText('批量导入 2 个资产');
+    await expect(page.getByTestId('asset-notice')).toContainText('一个恢复点');
+  });
+
+  test('blocks an intra-batch target collision before any batch write', async ({ page }) => {
+    await page.getByTestId('asset-batch-import-button').click();
+    const shared = 'assets/coppertrails/textures/imported/shared.png';
+    await page.getByTestId('asset-batch-target-0').fill(shared);
+    await page.getByTestId('asset-batch-target-1').fill(shared);
+    await page.getByTestId('asset-batch-preview').click();
+
+    await expect(page.getByTestId('asset-batch-issues')).toContainText('ASSET_IMPORT_BATCH_TARGET_CONFLICT');
+    await expect(page.getByTestId('asset-batch-commit')).toBeDisabled();
+  });
+
+  test('keeps batch import review controls at the >=32px interaction target baseline', async ({ page }) => {
+    await page.getByTestId('asset-batch-import-button').click();
+    const controls = await page.getByTestId('asset-batch-import-review').locator('button:visible, input:visible').all();
+    for (const control of controls) {
+      const box = await control.boundingBox();
+      if (!box) continue;
+      expect(Math.round(box.width)).toBeGreaterThanOrEqual(32);
+      expect(Math.round(box.height)).toBeGreaterThanOrEqual(32);
+    }
+  });
+
   test('reviews exact reference rewrites before a reference-safe asset move', async ({ page }) => {
     await page.getByTestId('asset-category-texture').click();
     await page.getByTestId('asset-move-button').click();
