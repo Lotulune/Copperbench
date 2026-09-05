@@ -97,7 +97,10 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 			switch (operation) {
 				case CREATE_MOD_ELEMENT -> create(affectedElement);
 				case UPDATE_MOD_ELEMENT, UPDATE_PROCEDURE -> update(existing, affectedElement);
-				case DELETE_MOD_ELEMENT -> delete(existing, true);
+				case DELETE_MOD_ELEMENT -> {
+					delete(existing, true);
+					generateWorkspaceBaseIfReady();
+				}
 				default -> throw new IllegalArgumentException("Operation is not a content mutation: " + operation);
 			}
 			workspace.getFileManager().saveWorkspaceDirectlyAndWait();
@@ -134,6 +137,10 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 				if (previous == null) create(element);
 				else if (!sameContent(previous, element)) update(find(element.id()), element);
 			}
+			// Deletes remove element-owned files and localization/tag links immediately, but generator-owned
+			// base registries/imports are shared across the workspace. Refresh them once from the final plan
+			// state so a delete-only plan cannot leave imports or registrations pointing at removed elements.
+			generateWorkspaceBaseIfReady();
 
 			workspace.getFileManager().saveWorkspaceDirectlyAndWait();
 			workspace.getFileManager().advanceProductRevision(before.id(), before.revision(), after.registries());

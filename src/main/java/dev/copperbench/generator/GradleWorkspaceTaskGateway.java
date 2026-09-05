@@ -39,11 +39,13 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -91,7 +93,14 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 		job.log("info", "Starting " + backend.displayName() + " " + taskKind(operation)
 				+ " from revision " + state.revision());
 		JsonObject taskPayload = payload == null ? new JsonObject() : payload.deepCopy();
-		job.future = executor.submit(() -> execute(workspaceId, state, operation, taskPayload, job));
+		job.future = executor.submit(() -> {
+			job.workerStarted();
+			try {
+				execute(workspaceId, state, operation, taskPayload, job);
+			} finally {
+				job.workerFinished();
+			}
+		});
 		return job.task();
 	}
 
@@ -203,14 +212,14 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 			job.succeed("task." + taskKind(operation) + ".completed",
 					backend.displayName() + " " + taskKind(operation) + " completed");
 		} catch (BundledJdkLocator.MissingJdkException exception) {
-			if (job.isCancelled()) return;
+			if (job.isCancelled() || job.cancellationRequested()) return;
 			String failureId = UUID.randomUUID().toString();
 			LOG.error("Workspace task failure {} (backend={}, operation={}, workspaceId={})", failureId,
 					backend.displayName(), operation, workspaceId, exception);
 			job.log("error", exception.getMessage());
 			job.fail(exception.diagnosticCode(), failureId, taskKind(operation), exception.getMessage());
 		} catch (Exception exception) {
-			if (job.isCancelled()) return;
+			if (job.isCancelled() || job.cancellationRequested()) return;
 			String failureId = UUID.randomUUID().toString();
 			LOG.error("Workspace task failure {} (backend={}, operation={}, workspaceId={})", failureId,
 					backend.displayName(), operation, workspaceId, exception);
@@ -277,7 +286,8 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 	@Override public Optional<JsonObject> cancel(UUID workspaceId, UUID taskId) {
 		Job job = job(workspaceId, taskId);
 		if (job == null) return Optional.empty();
-		job.cancel();
+		if (!job.cancelAndAwait())
+			throw new IllegalStateException("Task cancellation did not finish process cleanup before the timeout");
 		return Optional.of(job.task());
 	}
 
@@ -660,6 +670,9 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 		private WorkspaceState sourceState;
 		private PublishSession publishSession;
 		private boolean published;
+		private final CountDownLatch workerFinished = new CountDownLatch(1);
+		private boolean workerStarted;
+		private boolean cancellationRequested;
 
 		private Job(UUID workspaceId, JsonObject summary) {
 			this.workspaceId = workspaceId;
@@ -1010,21 +1023,66 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 			summary.add("diagnostics", counts(diagnosticEntries.size()));
 		}
 
-		private void cancel() {
-			WorkspaceTaskGateway.TaskEvent event;
+		private synchronized void workerStarted() {
+			workerStarted = true;
+		}
+
+		private void workerFinished() {
+			WorkspaceTaskGateway.TaskEvent event = null;
 			synchronized (this) {
-				if (!isRunning()) return;
-				if (future != null) future.cancel(true);
-				summary.addProperty("state", "cancelled");
-				summary.addProperty("cancellable", false);
-				summary.addProperty("progress", 1);
-				summary.add("stage", localized("task.cancelled", "Task cancelled"));
-				summary.addProperty("completedAt", clock.instant().toString());
-				event = new WorkspaceTaskGateway.TaskEvent(workspaceId, id(), "task_completed", summary,
-						List.of(), List.of());
+				if (cancellationRequested && isRunning()) event = completeCancelled();
 			}
-			log("warning", backend.displayName() + " task cancelled");
-			publishTaskEvent(event);
+			workerFinished.countDown();
+			if (event != null) {
+				log("warning", backend.displayName() + " task cancelled");
+				publishTaskEvent(event);
+			}
+		}
+
+		private boolean cancelAndAwait() {
+			Future<?> currentFuture;
+			boolean cancelledBeforeStart = false;
+			synchronized (this) {
+				if (!isRunning()) return isCancelled();
+				cancellationRequested = true;
+				currentFuture = future;
+				if (currentFuture == null) {
+					WorkspaceTaskGateway.TaskEvent event = completeCancelled();
+					workerFinished.countDown();
+					publishTaskEvent(event);
+					return true;
+				}
+				if (!workerStarted) cancelledBeforeStart = currentFuture.cancel(false);
+				if (!cancelledBeforeStart) currentFuture.cancel(true);
+			}
+			if (cancelledBeforeStart) {
+				WorkspaceTaskGateway.TaskEvent event;
+				synchronized (this) {
+					event = isRunning() ? completeCancelled() : null;
+				}
+				workerFinished.countDown();
+				if (event != null) {
+					log("warning", backend.displayName() + " task cancelled");
+					publishTaskEvent(event);
+				}
+				return true;
+			}
+			try {
+				return workerFinished.await(15, TimeUnit.SECONDS) && isCancelled();
+			} catch (InterruptedException exception) {
+				Thread.currentThread().interrupt();
+				return false;
+			}
+		}
+
+		private WorkspaceTaskGateway.TaskEvent completeCancelled() {
+			summary.addProperty("state", "cancelled");
+			summary.addProperty("cancellable", false);
+			summary.addProperty("progress", 1);
+			summary.add("stage", localized("task.cancelled", "Task cancelled"));
+			summary.addProperty("completedAt", clock.instant().toString());
+			return new WorkspaceTaskGateway.TaskEvent(workspaceId, id(), "task_completed", summary,
+					List.of(), List.of());
 		}
 
 		private boolean isRunning() {
@@ -1033,6 +1091,10 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 
 		private synchronized boolean isCancelled() {
 			return summary.get("state").getAsString().equals("cancelled");
+		}
+
+		private synchronized boolean cancellationRequested() {
+			return cancellationRequested;
 		}
 	}
 }

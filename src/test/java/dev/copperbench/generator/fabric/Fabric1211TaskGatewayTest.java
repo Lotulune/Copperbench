@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
@@ -624,11 +625,20 @@ class Fabric1211TaskGatewayTest {
 				String.format("%012d", sequence.getAndIncrement()));
 		CountDownLatch started = new CountDownLatch(1);
 		CountDownLatch exited = new CountDownLatch(1);
+		AtomicBoolean cleanedUp = new AtomicBoolean();
 		Fabric1211ProcessRunner runner = (root, arguments, timeout, output) -> {
 			started.countDown();
 			try {
-				new CountDownLatch(1).await();
-				return new Fabric1211ProcessRunner.ProcessResult(0, false);
+				try {
+					new CountDownLatch(1).await();
+					return new Fabric1211ProcessRunner.ProcessResult(0, false);
+				} catch (InterruptedException exception) {
+					// Simulate real process-tree cleanup that takes a short but observable amount of time
+					// after the Gradle worker receives cancellation.
+					Thread.sleep(250);
+					cleanedUp.set(true);
+					throw exception;
+				}
 			} finally {
 				exited.countDown();
 			}
@@ -650,6 +660,7 @@ class Fabric1211TaskGatewayTest {
 					Command.of(ids.get(), WORKSPACE_ID, 4, Operation.CANCEL_TASK, cancelPayload), UI);
 
 			assertEquals("cancelled", cancelled.result().status());
+			assertTrue(cleanedUp.get(), "cancel_task must not report cancelled before external cleanup finishes");
 			assertTrue(exited.await(2, TimeUnit.SECONDS));
 			JsonObject projection = task(service, taskId);
 			assertEquals("cancelled", projection.getAsJsonObject("task").get("state").getAsString());

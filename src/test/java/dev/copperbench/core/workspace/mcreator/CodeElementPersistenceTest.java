@@ -26,10 +26,12 @@ import java.nio.file.Path;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CodeElementPersistenceTest {
@@ -76,6 +78,74 @@ class CodeElementPersistenceTest {
 						.findFirst().orElseThrow();
 				assertEquals(sourceCode, Files.readString(source, StandardCharsets.UTF_8));
 			}
+		}
+	}
+
+	@Test void deletingGeneratedElementRefreshesSharedGeneratorRegistrations() throws Exception {
+		WorkspaceSettings settings = new WorkspaceSettings("delete_refresh");
+		settings.setModName("Delete Refresh");
+		settings.setVersion("1.0.0");
+		settings.setCurrentGenerator("fabric-1.21.1");
+		Path workspaceFile = root.resolve("delete_refresh.mcreator");
+		AtomicLong ids = new AtomicLong(300);
+		try (Workspace workspace = Workspace.createWorkspace(workspaceFile.toFile(), settings)) {
+			assertTrue(workspace.getGenerator().generateBase(), "Generator base must exist before persisting elements");
+			try (MCreatorWorkspaceSession session = MCreatorWorkspaceSession.attach(workspace,
+					UUID.fromString("33333333-3333-4333-8333-333333333333"),
+					new InMemoryWorkspaceTaskGateway(CLOCK, () -> uuid(ids.incrementAndGet())), CLOCK,
+					() -> uuid(ids.incrementAndGet()))) {
+				JsonObject values = new JsonObject();
+				values.addProperty("texture", "minecraft:barrier");
+				JsonObject create = new JsonObject();
+				create.addProperty("clientMutationId", uuid(30).toString());
+				create.addProperty("elementType", "item");
+				create.addProperty("name", "temporary_blade");
+				create.add("initialValues", values);
+
+				var created = session.uiEntry().execute(Command.of(uuid(31), session.workspaceId(), 0,
+						Operation.CREATE_MOD_ELEMENT, create));
+				assertEquals("committed", created.result().status(), created.result().diagnostics().toString());
+				String elementId = created.result().data().getAsJsonObject().getAsJsonObject("element")
+						.get("id").getAsString();
+				var stored = workspace.getModElementByName("temporary_blade");
+				Path elementSource = stored.getAssociatedFiles().stream()
+						.filter(file -> file.getName().endsWith(".java"))
+						.map(java.io.File::toPath)
+						.findFirst().orElseThrow();
+				String generatedType = elementSource.getFileName().toString().replaceFirst("\\.java$", "");
+				List<Path> sharedReferencesBefore = javaFilesContaining(root.resolve("src/main/java"), generatedType,
+						elementSource);
+				assertFalse(sharedReferencesBefore.isEmpty(),
+						"The generated item must be referenced by at least one shared base/registry source before delete");
+
+				JsonObject delete = new JsonObject();
+				delete.addProperty("clientMutationId", uuid(32).toString());
+				delete.addProperty("elementId", elementId);
+				var deleted = session.uiEntry().execute(Command.of(uuid(33), session.workspaceId(), 1,
+						Operation.DELETE_MOD_ELEMENT, delete));
+
+				assertEquals("committed", deleted.result().status(), deleted.result().diagnostics().toString());
+				assertFalse(Files.exists(elementSource));
+				assertTrue(javaFilesContaining(root.resolve("src/main/java"), generatedType, null).isEmpty(),
+						"Deleting an element must regenerate shared sources so no generator-owned reference survives");
+			}
+		}
+	}
+
+	private static List<Path> javaFilesContaining(Path sourceRoot, String needle, Path excluded) throws Exception {
+		if (!Files.isDirectory(sourceRoot)) return List.of();
+		Path normalizedExcluded = excluded == null ? null : excluded.toAbsolutePath().normalize();
+		try (var paths = Files.walk(sourceRoot)) {
+			return paths.filter(Files::isRegularFile)
+					.filter(path -> path.getFileName().toString().endsWith(".java"))
+					.filter(path -> normalizedExcluded == null || !path.toAbsolutePath().normalize().equals(normalizedExcluded))
+					.filter(path -> {
+						try {
+							return Files.readString(path, StandardCharsets.UTF_8).contains(needle);
+						} catch (Exception exception) {
+							throw new IllegalStateException(exception);
+						}
+					}).toList();
 		}
 	}
 
