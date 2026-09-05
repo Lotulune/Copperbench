@@ -13,6 +13,7 @@ import dev.copperbench.assets.AssetWorkspaceService;
 import dev.copperbench.assets.BlockbenchExecutableLocator;
 import dev.copperbench.assets.BlockbenchProcessService;
 import dev.copperbench.bridge.JcefBlockbenchBridgeTransport;
+import dev.copperbench.bridge.JcefAssetImportBridgeTransport;
 import dev.copperbench.bridge.JcefCoreBridgeTransport;
 import dev.copperbench.bridge.JcefDiagnosticsBridgeTransport;
 import dev.copperbench.bridge.JcefLegacyPluginBridgeTransport;
@@ -130,6 +131,7 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 		JcefWindowBridgeTransport windowTransport = null;
 		JcefLegacyPluginBridgeTransport legacyPluginTransport = null;
 		JcefBlockbenchBridgeTransport blockbenchTransport = null;
+		JcefAssetImportBridgeTransport assetImportTransport = null;
 		JcefWorkspaceOpenBridgeTransport workspaceOpenTransport = null;
 		JcefDiagnosticsBridgeTransport diagnosticsTransport = null;
 		JcefMcpBridgeTransport mcpTransport = null;
@@ -150,10 +152,12 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 			blockbenchTransport = JcefBlockbenchBridgeTransport.attach(webView,
 					new BlockbenchProcessService(new AssetWorkspaceService(workspaceRoot),
 							BlockbenchExecutableLocator.locate()));
+			assetImportTransport = JcefAssetImportBridgeTransport.attach(webView, owner, session.service());
 			JcefCoreBridgeTransport attachedCore = coreTransport;
 			JcefWindowBridgeTransport attachedWindow = windowTransport;
 			JcefLegacyPluginBridgeTransport attachedLegacyPlugin = legacyPluginTransport;
 			JcefBlockbenchBridgeTransport attachedBlockbench = blockbenchTransport;
+			JcefAssetImportBridgeTransport attachedAssetImport = assetImportTransport;
 			JcefWorkspaceOpenBridgeTransport attachedWorkspaceOpen = workspaceOpenTransport;
 			JcefDiagnosticsBridgeTransport attachedDiagnostics = diagnosticsTransport;
 			JcefMcpBridgeTransport attachedMcp = mcpTransport;
@@ -180,6 +184,7 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 				}
 
 				@Override public void close() {
+					attachedAssetImport.close();
 					attachedBlockbench.close();
 					attachedMcp.close();
 					attachedDiagnostics.close();
@@ -192,6 +197,8 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 				}
 			};
 		} catch (RuntimeException exception) {
+			if (assetImportTransport != null)
+				assetImportTransport.close();
 			if (blockbenchTransport != null)
 				blockbenchTransport.close();
 			if (mcpTransport != null)

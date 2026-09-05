@@ -24,6 +24,9 @@ import dev.copperbench.core.workspace.RevisionedWorkspaceStore.Decision;
 import dev.copperbench.core.workspace.RevisionedWorkspaceStore.TransactionResult;
 import dev.copperbench.core.workspace.WorkspaceCreationService;
 import dev.copperbench.assets.AssetPublishBatchService;
+import dev.copperbench.assets.AssetImportPlan;
+import dev.copperbench.assets.AssetImportService;
+import dev.copperbench.assets.AssetImportService.AssetImportException;
 import dev.copperbench.assets.AssetDescriptor;
 import dev.copperbench.assets.AssetDiagnostic;
 import dev.copperbench.assets.AssetHealthReport;
@@ -70,8 +73,11 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.ArrayDeque;
 import java.util.Base64;
@@ -84,6 +90,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -126,10 +133,115 @@ public final class WorkspaceApplicationService {
 	private final WorkspaceReferenceIndex references = new WorkspaceReferenceIndex();
 	private final Map<UUID, CopyOnWriteArrayList<Consumer<Event>>> eventListeners = new ConcurrentHashMap<>();
 	private final Map<UUID, Deque<Event>> taskEventHistory = new ConcurrentHashMap<>();
+	private final Map<String, AssetImportSourceGrant> assetImportSourceGrants = new ConcurrentHashMap<>();
+	private final Map<String, AssetImportPlanGrant> assetImportPlanGrants = new ConcurrentHashMap<>();
+	private static final Duration ASSET_IMPORT_GRANT_TTL = Duration.ofMinutes(10);
 
 	public WorkspaceApplicationService(RevisionedWorkspaceStore store, WorkspaceTaskGateway tasks, Clock clock,
 			Supplier<UUID> ids) {
 		this(store, tasks, WorkspaceMutationGateway.noOp(), clock, ids);
+	}
+
+	private QueryResult previewAssetImport(Query query, WorkspaceState state) {
+		if (history == null)
+			return queryFailure(query, state.revision(), diagnostic("ASSET_IMPORT_RECOVERY_UNAVAILABLE",
+					"diagnostic.asset_import_recovery_unavailable",
+					"Asset import requires local-history recovery, which is unavailable in this session.", null, null));
+		Path root = workspaceRoot(query.workspaceId());
+		if (root == null)
+			return queryFailure(query, state.revision(), diagnostic("ASSET_WORKSPACE_ROOT_UNAVAILABLE",
+					"diagnostic.asset_workspace_root_unavailable",
+					"The workspace root is not available for asset import.", null, null));
+		try {
+			String sourceGrantId = requiredString(query.payload(), "sourceGrantId");
+			String targetRelativePath = requiredString(query.payload(), "targetRelativePath");
+			AssetImportSourceGrant sourceGrant = assetImportSourceGrant(sourceGrantId);
+			AssetImportPlan plan = new AssetImportService(new AssetWorkspaceService(root), history)
+					.preview(sourceGrant.source(), targetRelativePath);
+			String planToken = ids.get().toString();
+			Instant expiresAt = clock.instant().plus(ASSET_IMPORT_GRANT_TTL);
+			assetImportPlanGrants.put(planToken,
+					new AssetImportPlanGrant(planToken, query.workspaceId(), sourceGrantId, plan, expiresAt));
+			JsonObject data = plan.toJson();
+			data.addProperty("planToken", planToken);
+			data.addProperty("expiresAt", expiresAt.toString());
+			data.addProperty("requiresReplacementConfirmation", plan.conflict() == AssetImportPlan.Conflict.REPLACE);
+			return querySuccess(query, state.revision(), data);
+		} catch (AssetImportException exception) {
+			return queryFailure(query, state.revision(), diagnostic(exception.code(),
+					"diagnostic.asset_import_preview_failed", exception.getMessage(), null, null));
+		} catch (RuntimeException exception) {
+			return queryFailure(query, state.revision(), invalidPayload(exception.getMessage()));
+		}
+	}
+
+	private CommandOutcome importAsset(Command command, RequestContext context) {
+		if (history == null)
+			return failed(command, currentRevision(command.workspaceId()), diagnostic("ASSET_IMPORT_RECOVERY_UNAVAILABLE",
+					"diagnostic.asset_import_recovery_unavailable",
+					"Asset import requires local-history recovery, which is unavailable in this session.", null, null));
+		Path root = workspaceRoot(command.workspaceId());
+		if (root == null)
+			return failed(command, currentRevision(command.workspaceId()), diagnostic("ASSET_WORKSPACE_ROOT_UNAVAILABLE",
+					"diagnostic.asset_workspace_root_unavailable",
+					"The workspace root is not available for asset import.", null, null));
+		AssetImportPlanGrant approved;
+		boolean confirmReplace;
+		try {
+			approved = assetImportPlanGrant(requiredString(command.payload(), "planToken"), command.workspaceId());
+			confirmReplace = command.payload().has("confirmReplace") && command.payload().get("confirmReplace").isJsonPrimitive()
+					&& command.payload().getAsJsonPrimitive("confirmReplace").isBoolean()
+					&& command.payload().getAsJsonPrimitive("confirmReplace").getAsBoolean();
+		} catch (AssetImportException exception) {
+			return failed(command, currentRevision(command.workspaceId()), diagnostic(exception.code(),
+					"diagnostic.asset_import_failed", exception.getMessage(), null, null));
+		} catch (RuntimeException exception) {
+			return failed(command, currentRevision(command.workspaceId()), invalidPayload(exception.getMessage()));
+		}
+		if (approved.plan().conflict() == AssetImportPlan.Conflict.REPLACE && !confirmReplace)
+			return failed(command, currentRevision(command.workspaceId()), diagnostic(
+					"ASSET_IMPORT_REPLACE_CONFIRMATION_REQUIRED", "diagnostic.asset_import_replace_confirmation_required",
+					"Replacing an existing asset requires explicit confirmation after preview.",
+					"/confirmReplace", null));
+
+		AssetImportService importer = new AssetImportService(new AssetWorkspaceService(root), history);
+		TransactionResult<AssetImportMutation> transaction = store.transact(command.workspaceId(),
+				command.expectedRevision(), state -> {
+			try {
+				AssetImportService.ApplyResult applied = importer.apply(approved.plan(), context.actor(),
+						command.payload().has("clientMutationId") ? command.payload().get("clientMutationId").getAsString()
+								: command.requestId().toString());
+				return Decision.commit(AssetImportMutation.success(applied, state.nextEventSequence()),
+						List.of("/" + applied.asset().relativePath()));
+			} catch (AssetImportException exception) {
+				return Decision.abort(AssetImportMutation.rejected(diagnostic(exception.code(),
+						"diagnostic.asset_import_failed", exception.getMessage(), null, null)));
+			} catch (LocalHistoryException exception) {
+				return Decision.abort(AssetImportMutation.rejected(failureDiagnostic(command,
+						"RECOVERY_POINT_FAILED", "diagnostic.recovery_point_failed",
+						"The required recovery point could not be created; the workspace was not changed.",
+						null, null, exception)));
+			}
+		});
+		CommandOutcome conflict = checkFailure(command, transaction);
+		if (conflict != null) return conflict;
+		AssetImportMutation mutation = transaction.value();
+		if (transaction.status() == TransactionResult.Status.ABORTED)
+			return failed(command, transaction.revision(), mutation.diagnostic());
+
+		assetImportPlanGrants.remove(approved.id());
+		assetImportSourceGrants.remove(approved.sourceGrantId());
+		AssetReferenceGraph refreshed = new AssetWorkspaceService(root).referenceGraph();
+		AssetHealthReport refreshedHealth = refreshed.healthReport();
+		JsonObject data = new JsonObject();
+		data.addProperty("complete", true);
+		data.addProperty("conflict", mutation.applied().conflict().name());
+		data.add("asset", asset(mutation.applied().asset(),
+				refreshedHealth.findById(mutation.applied().asset().id()).orElseThrow()));
+		data.add("health", GSON.toJsonTree(refreshedHealth.summary()));
+		Event event = event(command, transaction.revision(), mutation.sequence(), "asset_imported", data.deepCopy());
+		return new CommandOutcome(result(command, "committed", transaction.revision(), mutation.applied().recoveryPoint(),
+				JsonNull.INSTANCE, data, List.of(), JsonNull.INSTANCE, JsonNull.INSTANCE), List.of(event));
 	}
 
 	private static boolean isElementReferenceField(String elementType, String fieldName) {
@@ -413,6 +525,55 @@ public final class WorkspaceApplicationService {
 		return () -> listeners.remove(listener);
 	}
 
+	/**
+	 * Creates a short-lived capability for a file explicitly selected by the native desktop host.
+	 * The returned grant never exposes the selected absolute path to browser code.
+	 */
+	public AssetImportSelectionGrant grantAssetImportSource(Path source) {
+		Objects.requireNonNull(source, "source");
+		try {
+			Path real = source.toRealPath();
+			if (!Files.isRegularFile(real))
+				throw new AssetImportException("ASSET_IMPORT_SOURCE_UNAVAILABLE", "Selected import source is not a file");
+			String id = ids.get().toString();
+			Instant expiresAt = clock.instant().plus(ASSET_IMPORT_GRANT_TTL);
+			assetImportSourceGrants.put(id, new AssetImportSourceGrant(id, real, expiresAt));
+			pruneAssetImportGrants();
+			return new AssetImportSelectionGrant(id, real.getFileName().toString(), Files.size(real), expiresAt.toString());
+		} catch (AssetImportException exception) {
+			throw exception;
+		} catch (Exception exception) {
+			throw new AssetImportException("ASSET_IMPORT_SOURCE_UNAVAILABLE", "Selected import source is unavailable",
+					exception);
+		}
+	}
+
+	private void pruneAssetImportGrants() {
+		Instant now = clock.instant();
+		assetImportSourceGrants.entrySet().removeIf(entry -> !entry.getValue().expiresAt().isAfter(now));
+		assetImportPlanGrants.entrySet().removeIf(entry -> !entry.getValue().expiresAt().isAfter(now));
+	}
+
+	private AssetImportSourceGrant assetImportSourceGrant(String id) {
+		pruneAssetImportGrants();
+		AssetImportSourceGrant grant = assetImportSourceGrants.get(id);
+		if (grant == null)
+			throw new AssetImportException("ASSET_IMPORT_SOURCE_GRANT_INVALID",
+					"The selected asset source grant is missing or expired");
+		return grant;
+	}
+
+	private AssetImportPlanGrant assetImportPlanGrant(String id, UUID workspaceId) {
+		pruneAssetImportGrants();
+		AssetImportPlanGrant grant = assetImportPlanGrants.get(id);
+		if (grant == null)
+			throw new AssetImportException("ASSET_IMPORT_PLAN_INVALID", "The asset import plan is missing or expired");
+		if (!grant.workspaceId().equals(workspaceId))
+			throw new AssetImportException("ASSET_IMPORT_PLAN_WORKSPACE_MISMATCH",
+					"The asset import plan belongs to a different workspace");
+		return grant;
+	}
+
 	private void publishTaskEvent(WorkspaceTaskGateway.TaskEvent taskEvent) {
 		JsonObject payload = new JsonObject();
 		switch (taskEvent.event()) {
@@ -497,6 +658,7 @@ public final class WorkspaceApplicationService {
 			case IMPORT_UPSTREAM_WORKSPACE -> importUpstreamWorkspace(command, context);
 			case CREATE_PUBLISH_BATCH -> createPublishBatch(command, context);
 			case PREPARE_RESOURCE_PACK_CLIENT -> prepareResourcePackClient(command, context);
+			case IMPORT_ASSET -> importAsset(command, context);
 			case APPLY_WORKSPACE_PLAN -> plans.apply(command, context);
 			default -> failed(command, 0, diagnostic("UNSUPPORTED_OPERATION", "diagnostic.unsupported_operation",
 					"The requested operation is not supported.", null, null));
@@ -512,6 +674,7 @@ public final class WorkspaceApplicationService {
 				case GET_WORKBENCH -> querySuccess(query, state.revision(), workbench(state, context));
 				case LIST_NEW_WORKSPACE_GENERATORS -> querySuccess(query, state.revision(), newWorkspaceGenerators());
 				case LIST_ASSETS -> listAssets(query, state);
+				case PREVIEW_ASSET_IMPORT -> previewAssetImport(query, state);
 				case LIST_MOD_ELEMENTS -> querySuccess(query, state.revision(), elementList(state, query.payload()));
 				case GET_MOD_ELEMENT_EDITOR -> editor(query, state, context);
 				case PREVIEW_MOD_ELEMENT_CHANGE -> preview(query, state);
@@ -4271,6 +4434,32 @@ public final class WorkspaceApplicationService {
 
 		private static DatagenMutation rejected(Diagnostic diagnostic) {
 			return new DatagenMutation(null, 0, diagnostic);
+		}
+	}
+
+	public record AssetImportSelectionGrant(String id, String fileName, long size, String expiresAt) {
+		public AssetImportSelectionGrant {
+			Objects.requireNonNull(id, "id");
+			Objects.requireNonNull(fileName, "fileName");
+			Objects.requireNonNull(expiresAt, "expiresAt");
+			if (size < 0) throw new IllegalArgumentException("size must not be negative");
+		}
+	}
+
+	private record AssetImportSourceGrant(String id, Path source, Instant expiresAt) {
+	}
+
+	private record AssetImportPlanGrant(String id, UUID workspaceId, String sourceGrantId, AssetImportPlan plan,
+			Instant expiresAt) {
+	}
+
+	private record AssetImportMutation(AssetImportService.ApplyResult applied, long sequence, Diagnostic diagnostic) {
+		private static AssetImportMutation success(AssetImportService.ApplyResult applied, long sequence) {
+			return new AssetImportMutation(applied, sequence, null);
+		}
+
+		private static AssetImportMutation rejected(Diagnostic diagnostic) {
+			return new AssetImportMutation(null, 0, diagnostic);
 		}
 	}
 

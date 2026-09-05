@@ -46,6 +46,38 @@ test.describe('U3 asset browser', () => {
     await expect(page.getByTestId('asset-health-issue-codes')).toContainText('DUPLICATE_ASSET_CONTENT');
   });
 
+  test('previews a grant-scoped asset import before committing with recovery protection', async ({ page }) => {
+    await page.getByTestId('asset-import-button').click();
+    await expect(page.getByTestId('asset-import-review')).toBeVisible();
+    await expect(page.getByTestId('asset-import-source')).toHaveText('imported_texture.png');
+    await expect(page.getByTestId('asset-import-target')).toHaveValue(
+      'assets/coppertrails/textures/imported/imported_texture.png'
+    );
+    await expect(page.getByTestId('asset-import-preview-summary')).toBeVisible();
+    await expect(page.getByTestId('asset-import-conflict')).toHaveText('新建资产');
+
+    await page.getByTestId('asset-import-commit').click();
+    await expect(page.getByTestId('asset-import-review')).not.toBeVisible();
+    await expect(page.getByTestId('asset-notice')).toContainText('已创建恢复点');
+  });
+
+  test('requires an explicit reviewed replacement action for an existing asset', async ({ page }) => {
+    await page.getByTestId('asset-category-texture').click();
+    await page.getByRole('button', { name: '替换文件' }).click();
+
+    await expect(page.getByTestId('asset-import-review')).toBeVisible();
+    await expect(page.getByTestId('asset-import-target')).toHaveValue(
+      'assets/coppertrails/textures/block/copper_lamp.png'
+    );
+    await expect(page.getByTestId('asset-import-conflict')).toHaveText('将替换现有资产');
+    await expect(page.getByTestId('asset-import-commit')).toHaveText('确认替换并导入');
+
+    await page.getByTestId('asset-import-commit').click();
+    await expect(page.getByTestId('asset-import-review')).not.toBeVisible();
+    await expect(page.getByTestId('asset-notice')).toContainText('已安全替换');
+    await expect(page.getByTestId('asset-notice')).toContainText('已创建恢复点');
+  });
+
   test('reports an explicit unavailable state when Blockbench is not configured', async ({ page }) => {
     await page.getByRole('button', { name: '在 Blockbench 打开' }).click();
     await expect(page.locator('[data-testid="asset-notice"]')).toContainText('尚未配置 Blockbench');

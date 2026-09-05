@@ -52,7 +52,8 @@ import {
   WorkspaceRegistriesProjection,
   WorkspacePlan,
   DatagenPreview,
-  FieldChange
+  FieldChange,
+  AssetImportPreview
 } from '../types/contract';
 import {
   BridgeState,
@@ -988,6 +989,39 @@ export class MockCoreBridge implements CoreBridge {
           payload: { element: newElement }
         };
         this.notifyEvent(createdEvent);
+        this.notifyState();
+        return result;
+      }
+
+      case 'import_asset': {
+        const payload = command.payload as unknown as { planToken: string; confirmReplace?: boolean };
+        const replacing = payload.planToken.includes('REPLACE');
+        if (replacing && !payload.confirmReplace) {
+          return {
+            messageType: 'command_result', schemaVersion: '1.0', requestId: command.requestId, workspaceId,
+            operation: 'import_asset', status: 'rejected', newRevision: currentRevision, recoveryPointId: null,
+            task: null, data: null, conflict: null, denial: null,
+            diagnostics: [{
+              code: 'ASSET_IMPORT_REPLACE_CONFIRMATION_REQUIRED', severity: 'error',
+              message: { key: 'diagnostic.asset_import_replace_confirmation_required', fallback: 'Replacement confirmation required.' },
+              path: '/confirmReplace', recoverable: true, actions: []
+            }]
+          };
+        }
+        const newRevision = currentRevision + 1;
+        if (this.state.workbench) this.state.workbench.workspace.revision = newRevision;
+        const result: CommandResult = {
+          messageType: 'command_result', schemaVersion: '1.0', requestId: command.requestId, workspaceId,
+          operation: 'import_asset', status: 'committed', newRevision, recoveryPointId: generateUUID(),
+          task: null,
+          data: { complete: true, conflict: replacing ? 'REPLACE' : 'CREATE' },
+          conflict: null, denial: null, diagnostics: []
+        };
+        this.notifyEvent({
+          messageType: 'event', schemaVersion: '1.0', eventId: generateUUID(), workspaceId, revision: newRevision,
+          sequence: ++this.sequenceCounter, occurredAt: new Date().toISOString(), event: 'asset_imported',
+          causedByRequestId: command.requestId, payload: { complete: true }
+        });
         this.notifyState();
         return result;
       }
@@ -2527,6 +2561,29 @@ export class MockCoreBridge implements CoreBridge {
       case 'list_assets':
         data = mockAssetProjection();
         break;
+      case 'preview_asset_import': {
+        const payload = query.payload as { sourceGrantId?: string; targetRelativePath?: string };
+        const target = payload.targetRelativePath ?? 'assets/coppertrails/textures/imported/imported_texture.png';
+        const existing = mockAssetProjection().assets.find((asset) => asset.relativePath === target);
+        const conflict: AssetImportPreview['conflict'] = existing ? 'REPLACE' : 'CREATE';
+        data = {
+          sourceFileName: 'imported_texture.png',
+          sourceSize: 1536,
+          sourceSha256: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+          sourceMediaType: 'image/png',
+          category: 'TEXTURE',
+          targetRelativePath: target,
+          conflict,
+          targetSha256: existing?.sha256 ?? null,
+          duplicatePaths: [],
+          canApply: true,
+          issueCodes: existing ? ['ASSET_IMPORT_TARGET_WILL_REPLACE'] : [],
+          planToken: `mock-asset-plan-${conflict}`,
+          expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+          requiresReplacementConfirmation: Boolean(existing)
+        } satisfies AssetImportPreview;
+        break;
+      }
       case 'get_version_tracks':
         data = {
           ...(versionTracksData as unknown as VersionTracksProjection),

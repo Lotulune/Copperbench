@@ -26,7 +26,7 @@ public final class AssetWorkspaceService {
 	private static final Set<String> RESOURCE_PREFIXES = Set.of("textures/", "models/", "animations/", "sounds/",
 			"lang/", "blockstates/", "items/", "font/", "shaders/");
 	private static final Set<String> KNOWN_EXTENSIONS = Set.of(".json", ".png", ".jpg", ".jpeg", ".ogg", ".wav",
-			".bbmodel", ".mcmeta", ".zip");
+			".bbmodel", ".mcmeta", ".zip", ".lang");
 	private static final Pattern URI = Pattern.compile("^[a-z][a-z0-9+.-]*://.*$", Pattern.CASE_INSENSITIVE);
 
 	private final Path root;

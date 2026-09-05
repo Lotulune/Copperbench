@@ -730,7 +730,8 @@ export type CommandOperation =
   | 'execute_loader_migration'
   | 'import_upstream_workspace'
   | 'create_publish_batch'
-  | 'prepare_resource_pack_client';
+  | 'prepare_resource_pack_client'
+  | 'import_asset';
 
 export interface Command<T = unknown> {
   messageType: 'command';
@@ -815,6 +816,9 @@ export interface CommandResultData {
   targetDigest?: string;
   semanticDiff?: Record<string, unknown>[];
   idempotentReplay?: boolean;
+  asset?: AssetProjectionAsset;
+  conflict?: 'CREATE' | 'IDENTICAL' | 'REPLACE';
+  health?: AssetProjectionHealthSummary;
 }
 
 export interface CommandResult {
@@ -841,6 +845,7 @@ export type QueryOperation =
   | 'get_workbench'
   | 'list_new_workspace_generators'
   | 'list_assets'
+  | 'preview_asset_import'
   | 'list_mod_elements'
   | 'get_mod_element_editor'
   | 'preview_mod_element_change'
@@ -1050,6 +1055,23 @@ export interface AssetProjection {
   health: AssetProjectionHealthSummary;
 }
 
+export interface AssetImportPreview {
+  sourceFileName: string;
+  sourceSize: number;
+  sourceSha256: string;
+  sourceMediaType: string;
+  category: AssetProjectionCategory;
+  targetRelativePath: string;
+  conflict: 'CREATE' | 'IDENTICAL' | 'REPLACE';
+  targetSha256: string | null;
+  duplicatePaths: string[];
+  canApply: boolean;
+  issueCodes: string[];
+  planToken: string;
+  expiresAt: string;
+  requiresReplacementConfirmation: boolean;
+}
+
 export type MigrationDisposition = 'supported' | 'substitute' | 'lost' | 'blocked' | 'manual';
 
 export interface MigrationItem {
@@ -1161,7 +1183,8 @@ export type EventType =
   | 'loader_migration_executed'
   | 'upstream_workspace_imported'
   | 'publish_batch_created'
-  | 'resource_pack_client_prepared';
+  | 'resource_pack_client_prepared'
+  | 'asset_imported';
 
 export interface BaseEvent<E extends EventType, P> {
   messageType: 'event';
@@ -1325,6 +1348,11 @@ export type ResourcePackClientPreparedEvent = BaseEvent<
   ClientLoadPreparation
 >;
 
+export type AssetImportedEvent = BaseEvent<
+  'asset_imported',
+  CommandResultData
+>;
+
 export type CoreEvent =
   | RevisionAdvancedEvent
   | ModElementCreatedEvent
@@ -1346,7 +1374,8 @@ export type CoreEvent =
   | LoaderMigrationExecutedEvent
   | UpstreamWorkspaceImportedEvent
   | PublishBatchCreatedEvent
-  | ResourcePackClientPreparedEvent;
+  | ResourcePackClientPreparedEvent
+  | AssetImportedEvent;
 
 /* =========================================================================
  * Scenario Schema

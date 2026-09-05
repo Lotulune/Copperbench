@@ -204,4 +204,14 @@ class AssetWorkspaceServiceTest {
 				|| asset.relativePath().startsWith("src/main/java/")));
 		assertFalse(graph.diagnostics().stream().anyMatch(diagnostic -> diagnostic.sourcePath().startsWith("build/")));
 	}
+
+	@Test void indexesLegacyLangAssetsWithConsistentMediaType() throws IOException {
+		Path legacy = workspace.resolve("assets/copperbench/lang/legacy.lang");
+		Files.writeString(legacy, "tile.copperbench.lamp=Copper Lamp");
+
+		AssetDescriptor descriptor = new AssetWorkspaceService(workspace).findByRelativePath(
+				"assets/copperbench/lang/legacy.lang").orElseThrow();
+		assertEquals(AssetCategory.LANGUAGE, descriptor.category());
+		assertEquals("text/plain", descriptor.mediaType());
+	}
 }

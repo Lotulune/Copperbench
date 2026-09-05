@@ -18,6 +18,7 @@ import {
   UpstreamToolCatalogProjection,
   NewWorkspaceGeneratorCatalog,
   AssetProjection,
+  AssetImportPreview,
   ProcedureEditorProjection,
   ProcedureChangePreview,
   ProcedureEdit,
@@ -108,6 +109,8 @@ interface WorkbenchContextType {
   createPublishBatch: (name: string, sourceDirectory: string, output: string) => Promise<CommandResult>;
   prepareResourcePackClient: (sourceDirectory: string, zipFileName: string) => Promise<CommandResult>;
   listAssets: () => Promise<AssetProjection | null>;
+  previewAssetImport: (sourceGrantId: string, targetRelativePath: string) => Promise<AssetImportPreview | null>;
+  importAsset: (planToken: string, confirmReplace: boolean) => Promise<CommandResult>;
   listNewWorkspaceGenerators: () => Promise<NewWorkspaceGeneratorCatalog | null>;
   createWorkspace: (form: {
     generatorId: string;
@@ -855,6 +858,47 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     return (res.data as AssetProjection | null) ?? null;
   }, [state.workbench]);
 
+  const previewAssetImport = useCallback(
+    async (sourceGrantId: string, targetRelativePath: string): Promise<AssetImportPreview | null> => {
+      const workspaceId = state.workbench?.workspace.id || generateUUID();
+      const res = await coreBridge.sendQuery<AssetImportPreview>({
+        messageType: 'query',
+        schemaVersion: '1.0',
+        requestId: generateUUID(),
+        workspaceId,
+        operation: 'preview_asset_import',
+        payload: { sourceGrantId, targetRelativePath }
+      });
+      if (res.status !== 'succeeded' || !res.data) {
+        const diagnostic = res.diagnostics[0];
+        throw new Error(diagnostic ? t(diagnostic.message) : '资产导入预览失败。');
+      }
+      return res.data as AssetImportPreview;
+    },
+    [state.workbench]
+  );
+
+  const importAsset = useCallback(
+    async (planToken: string, confirmReplace: boolean): Promise<CommandResult> => {
+      const workspaceId = state.workbench?.workspace.id || generateUUID();
+      const revision = state.workbench?.workspace.revision ?? 0;
+      return coreBridge.sendCommand({
+        messageType: 'command',
+        schemaVersion: '1.0',
+        requestId: generateUUID(),
+        workspaceId,
+        expectedRevision: revision,
+        operation: 'import_asset',
+        payload: {
+          clientMutationId: generateUUID(),
+          planToken,
+          confirmReplace
+        }
+      });
+    },
+    [state.workbench]
+  );
+
   const createPublishBatch = useCallback(
     async (name: string, sourceDirectory: string, output: string): Promise<CommandResult> => {
       const workspaceId = state.workbench?.workspace.id || generateUUID();
@@ -1056,6 +1100,8 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       createPublishBatch,
       prepareResourcePackClient,
       listAssets,
+      previewAssetImport,
+      importAsset,
       listNewWorkspaceGenerators,
       createWorkspace,
       elevatePermission,

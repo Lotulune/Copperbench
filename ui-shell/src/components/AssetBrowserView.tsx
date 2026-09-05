@@ -8,13 +8,43 @@ import {
 } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
 import { assetRecordsFromProjection, AssetCategory, AssetRecord, AssetValidationStatus } from '../types/assets';
-import type { AssetProjectionHealthSummary } from '../types/contract';
+import type { AssetImportPreview, AssetProjectionHealthSummary } from '../types/contract';
 import { blockbenchBridge } from '../bridge/blockbenchBridge';
+import { assetImportBridge, type AssetImportSelectionGrant } from '../bridge/assetImportBridge';
+import { t } from '../i18n';
 
 type BrowserMode = 'ready' | 'empty' | 'loading' | 'error';
 type CategoryFilter = 'all' | AssetCategory;
 type HealthFilter = 'all' | 'issues' | 'errors' | 'unused' | 'duplicates';
 type SortField = 'updated' | 'name' | 'references' | 'size';
+
+interface AssetImportReviewState {
+  readonly grant: AssetImportSelectionGrant;
+  readonly targetRelativePath: string;
+  readonly preview: AssetImportPreview | null;
+  readonly busy: boolean;
+  readonly error: string | null;
+}
+
+function assetNamespace(assets: readonly AssetRecord[]): string {
+  for (const asset of assets) {
+    const match = /(?:^|\/)assets\/([^/]+)\//.exec(asset.path);
+    if (match?.[1]) return match[1];
+  }
+  return 'mod';
+}
+
+function defaultImportTarget(fileName: string, namespace: string): string {
+  const lower = fileName.toLowerCase();
+  if (lower.endsWith('.png') || lower.endsWith('.jpg') || lower.endsWith('.jpeg')) {
+    return `assets/${namespace}/textures/imported/${fileName}`;
+  }
+  if (lower.endsWith('.ogg') || lower.endsWith('.wav')) return `assets/${namespace}/sounds/${fileName}`;
+  if (lower.endsWith('.bbmodel')) return `assets/${namespace}/models/imported/${fileName}`;
+  if (lower.endsWith('.lang')) return `assets/${namespace}/lang/${fileName}`;
+  if (lower.endsWith('.zip')) return `resourcepacks/${fileName}`;
+  return `assets/${namespace}/models/imported/${fileName}`;
+}
 
 interface CategoryConfig {
   readonly id: CategoryFilter;
@@ -74,8 +104,14 @@ function formatDate(value?: string) {
   }).format(new Date(value));
 }
 
+function formatBytes(bytes: number) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 export const AssetBrowserView: React.FC = () => {
-  const { state, listAssets } = useWorkbench();
+  const { state, listAssets, previewAssetImport, importAsset } = useWorkbench();
   const [assets, setAssets] = useState<AssetRecord[]>([]);
   const [healthSummary, setHealthSummary] = useState<AssetProjectionHealthSummary | null>(null);
   const [assetLoadState, setAssetLoadState] = useState<'loading' | 'ready' | 'error'>('loading');
@@ -89,6 +125,7 @@ export const AssetBrowserView: React.FC = () => {
   const [notice, setNotice] = useState<string | null>(null);
   const [openingBlockbench, setOpeningBlockbench] = useState(false);
   const [copiedId, setCopiedId] = useState(false);
+  const [importReview, setImportReview] = useState<AssetImportReviewState | null>(null);
 
   const scenarioMode = modeForScenario(state.currentScenarioId);
   const mode = modeOverride ?? (state.currentScenarioId !== 'native'
@@ -100,7 +137,6 @@ export const AssetBrowserView: React.FC = () => {
     setModeOverride(null);
     if (state.currentScenarioId !== 'native' && scenarioMode !== 'ready') {
       setAssets([]);
-      setHealthSummary(null);
       setHealthSummary(null);
       setAssetLoadState(scenarioMode === 'error' ? 'error' : scenarioMode === 'loading' ? 'loading' : 'ready');
       return;
@@ -175,9 +211,54 @@ export const AssetBrowserView: React.FC = () => {
     setTimeout(() => setCopiedId(false), 1600);
   };
 
-  const importAsset = () => {
-    setModeOverride('ready');
-    setNotice('资产导入任务已加入工作区管线，校验完成后将自动挂载。');
+  const runImportPreview = async (grant: AssetImportSelectionGrant, targetRelativePath: string) => {
+    setImportReview({ grant, targetRelativePath, preview: null, busy: true, error: null });
+    try {
+      const preview = await previewAssetImport(grant.id, targetRelativePath);
+      setImportReview({ grant, targetRelativePath, preview, busy: false, error: null });
+    } catch (error) {
+      setImportReview({
+        grant,
+        targetRelativePath,
+        preview: null,
+        busy: false,
+        error: error instanceof Error ? error.message : '资产导入预览失败。'
+      });
+    }
+  };
+
+  const commitImport = async () => {
+    const current = importReview;
+    const preview = current?.preview;
+    if (!current || !preview?.canApply) return;
+    setImportReview({ ...current, busy: true, error: null });
+    try {
+      const result = await importAsset(preview.planToken, preview.conflict === 'REPLACE');
+      if (result.status !== 'committed') {
+        setImportReview({ ...current, busy: false,
+          error: t(result.diagnostics[0]?.message) || '资产导入未提交。' });
+        return;
+      }
+      setImportReview(null);
+      setNotice(preview.conflict === 'REPLACE'
+        ? `已安全替换 ${preview.targetRelativePath}；已创建恢复点。`
+        : `已导入 ${preview.targetRelativePath}；已创建恢复点。`);
+      setReloadToken((token) => token + 1);
+    } catch (error) {
+      setImportReview({ ...current, busy: false,
+        error: error instanceof Error ? error.message : '资产导入失败。' });
+    }
+  };
+
+  const beginImport = async (replacement?: AssetRecord) => {
+    try {
+      const grant = await assetImportBridge.selectSource();
+      if (grant.cancelled) return;
+      const target = replacement?.path ?? defaultImportTarget(grant.fileName, assetNamespace(assets));
+      await runImportPreview(grant, target);
+    } catch (error) {
+      setNotice(error instanceof Error ? `无法选择导入文件：${error.message}` : '无法选择导入文件。');
+    }
   };
 
   const openInBlockbench = async (asset: AssetRecord) => {
@@ -208,7 +289,7 @@ export const AssetBrowserView: React.FC = () => {
     }} />;
   }
   if (mode === 'empty') {
-    return <AssetStateView mode="empty" query={query} setQuery={setQuery} onRetry={importAsset} />;
+    return <AssetStateView mode="empty" query={query} setQuery={setQuery} onRetry={() => void beginImport()} />;
   }
 
   return (
@@ -338,7 +419,8 @@ export const AssetBrowserView: React.FC = () => {
               <button
                 type="button"
                 className="asset-import-inline-btn btn-secondary"
-                onClick={importAsset}
+                onClick={() => void beginImport()}
+                data-testid="asset-import-button"
                 title="导入外部模型或贴图"
               >
                 <Upload size={12} aria-hidden="true" />
@@ -388,13 +470,109 @@ export const AssetBrowserView: React.FC = () => {
           copiedId={copiedId}
           openingBlockbench={openingBlockbench}
           onCopyId={copyStableId}
-          onImport={importAsset}
+          onImport={(asset) => void beginImport(asset)}
           onOpenBlockbench={openInBlockbench}
           onDismissNotice={() => setNotice(null)}
         />
       </div>
 
+      {importReview && (
+        <AssetImportReview
+          state={importReview}
+          onTargetChange={(targetRelativePath) => setImportReview({
+            ...importReview,
+            targetRelativePath,
+            preview: null,
+            error: null
+          })}
+          onPreview={() => void runImportPreview(importReview.grant, importReview.targetRelativePath)}
+          onCommit={() => void commitImport()}
+          onCancel={() => setImportReview(null)}
+        />
+      )}
+
     </section>
+  );
+};
+
+const AssetImportReview: React.FC<{
+  state: AssetImportReviewState;
+  onTargetChange: (targetRelativePath: string) => void;
+  onPreview: () => void;
+  onCommit: () => void;
+  onCancel: () => void;
+}> = ({ state, onTargetChange, onPreview, onCommit, onCancel }) => {
+  const preview = state.preview;
+  const conflictLabel = preview?.conflict === 'REPLACE'
+    ? '将替换现有资产'
+    : preview?.conflict === 'IDENTICAL' ? '目标内容已相同' : '新建资产';
+  return (
+    <div className="asset-import-review-backdrop" role="presentation">
+      <section className="asset-import-review" role="dialog" aria-modal="true"
+        aria-label="资产导入预览" data-testid="asset-import-review">
+        <div className="asset-import-review-heading">
+          <div>
+            <strong>导入资产</strong>
+            <span>先检查目标路径、冲突和重复内容，再写入工作区。</span>
+          </div>
+          <button type="button" className="asset-clear-button" onClick={onCancel} aria-label="取消导入">
+            <XCircle size={16} />
+          </button>
+        </div>
+
+        <div className="asset-import-review-source">
+          <span>来源文件</span>
+          <strong data-testid="asset-import-source">{state.grant.fileName}</strong>
+          <small>{formatBytes(state.grant.size)}</small>
+        </div>
+
+        <label className="asset-import-target-field">
+          <span>工作区目标路径</span>
+          <input data-testid="asset-import-target" value={state.targetRelativePath}
+            onChange={(event) => onTargetChange(event.target.value)} disabled={state.busy} />
+        </label>
+
+        <div className="asset-import-review-actions">
+          <button type="button" className="btn-secondary" onClick={onPreview} disabled={state.busy}
+            data-testid="asset-import-preview">
+            <RefreshCw size={13} aria-hidden="true" />
+            <span>{preview ? '重新预览' : '预览导入'}</span>
+          </button>
+          <button type="button" className="btn-primary" onClick={onCommit}
+            disabled={state.busy || !preview?.canApply} data-testid="asset-import-commit">
+            <Upload size={13} aria-hidden="true" />
+            <span>{preview?.conflict === 'REPLACE' ? '确认替换并导入' : '确认导入'}</span>
+          </button>
+          <button type="button" className="btn-secondary" onClick={onCancel} disabled={state.busy}
+            data-testid="asset-import-cancel">取消</button>
+        </div>
+
+        {state.busy && <div className="asset-import-review-status" role="status">正在校验导入计划…</div>}
+        {state.error && <div className="asset-import-review-error" role="alert" data-testid="asset-import-error">
+          {state.error}
+        </div>}
+        {preview && (
+          <div className="asset-import-preview-summary" data-testid="asset-import-preview-summary">
+            <div><span>操作</span><strong data-testid="asset-import-conflict">{conflictLabel}</strong></div>
+            <div><span>目标</span><code>{preview.targetRelativePath}</code></div>
+            <div><span>来源 SHA-256</span><code>{preview.sourceSha256.slice(0, 16)}…</code></div>
+            {preview.targetSha256 && <div><span>现有 SHA-256</span><code>{preview.targetSha256.slice(0, 16)}…</code></div>}
+            {preview.duplicatePaths.length > 0 && (
+              <div className="asset-import-duplicates" data-testid="asset-import-duplicates">
+                <span>相同内容</span>
+                <div>{preview.duplicatePaths.map((path) => <code key={path}>{path}</code>)}</div>
+              </div>
+            )}
+            {preview.issueCodes.length > 0 && (
+              <div className="asset-import-issue-codes">
+                <span>检查项</span>
+                <div>{preview.issueCodes.map((code) => <code key={code}>{code}</code>)}</div>
+              </div>
+            )}
+          </div>
+        )}
+      </section>
+    </div>
   );
 };
 
@@ -588,7 +766,7 @@ const AssetDetails: React.FC<{
   copiedId: boolean;
   openingBlockbench: boolean;
   onCopyId: (id: string) => void;
-  onImport: () => void;
+  onImport: (asset: AssetRecord) => void;
   onOpenBlockbench: (asset: AssetRecord) => void;
   onDismissNotice: () => void;
 }> = ({
@@ -763,7 +941,7 @@ const AssetDetails: React.FC<{
         <button
           type="button"
           className="btn-secondary asset-action-btn"
-          onClick={onImport}
+          onClick={() => onImport(asset)}
         >
           <Upload size={14} aria-hidden="true" />
           <span>替换文件</span>

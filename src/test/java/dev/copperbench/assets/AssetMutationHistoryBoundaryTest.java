@@ -28,7 +28,7 @@ class AssetMutationHistoryBoundaryTest {
 			Files.writeString(source, "two");
 			var second = boundary.importOrReplace(source, "assets/copperbench/models/lamp.bbmodel", Actor.UI, "task-2");
 			assertEquals("two", Files.readString(workspace.resolve("assets/copperbench/models/lamp.bbmodel")));
-			boundary.restore(first.id());
+			boundary.restore(second.id());
 			assertEquals("one", Files.readString(workspace.resolve("assets/copperbench/models/lamp.bbmodel")));
 			assertEquals(2, history.listRecoveryPoints().size());
 		}
@@ -37,9 +37,12 @@ class AssetMutationHistoryBoundaryTest {
 	@Test void rejectsWorkspaceEscape() throws Exception {
 		Path workspace = temp.resolve("workspace");
 		Files.createDirectories(workspace);
+		Path source = Files.writeString(temp.resolve("source.bbmodel"), "{}");
 		try (var history = JGitLocalHistoryService.open(workspace, Clock.systemUTC())) {
 			var boundary = new AssetMutationHistoryBoundary(new AssetWorkspaceService(workspace), history);
-			assertThrows(AssetPathViolationException.class, () -> boundary.importOrReplace(temp.resolve("source"), "../escape", Actor.UI, "task"));
+			var error = assertThrows(AssetImportService.AssetImportException.class,
+					() -> boundary.importOrReplace(source, "../escape.bbmodel", Actor.UI, "task"));
+			assertEquals("ASSET_IMPORT_TARGET_INVALID", error.code());
 		}
 	}
 }

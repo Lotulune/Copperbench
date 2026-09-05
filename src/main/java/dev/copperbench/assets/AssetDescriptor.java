@@ -81,6 +81,7 @@ public record AssetDescriptor(String id, String relativePath, AssetCategory cate
 			case "ogg" -> "audio/ogg";
 			case "wav" -> "audio/wav";
 			case "zip" -> "application/zip";
+			case "lang" -> "text/plain";
 			default -> "application/octet-stream";
 		};
 	}
