@@ -75,5 +75,13 @@ class AssetQueryProjectionTest {
 		assertEquals("assets/copperbench/textures/block/lamp.png",
 				projection.getAsJsonArray("references").get(0).getAsJsonObject().get("targetPath").getAsString());
 		assertTrue(projection.getAsJsonArray("diagnostics").toString().contains("MISSING_ASSET_REFERENCE"));
+		JsonObject health = projection.getAsJsonObject("health");
+		assertEquals(2, health.get("totalAssets").getAsInt());
+		assertEquals(1, health.get("errorAssets").getAsInt());
+		assertEquals(1, health.get("missingReferences").getAsInt());
+		assertEquals(1, health.get("unusedAssets").getAsInt());
+		JsonObject modelHealth = projection.getAsJsonArray("assets").get(0).getAsJsonObject().getAsJsonObject("health");
+		assertEquals("ERROR", modelHealth.get("status").getAsString());
+		assertTrue(modelHealth.getAsJsonArray("issueCodes").toString().contains("MISSING_ASSET_REFERENCE"));
 	}
 }

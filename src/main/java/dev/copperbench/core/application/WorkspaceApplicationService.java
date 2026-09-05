@@ -26,6 +26,7 @@ import dev.copperbench.core.workspace.WorkspaceCreationService;
 import dev.copperbench.assets.AssetPublishBatchService;
 import dev.copperbench.assets.AssetDescriptor;
 import dev.copperbench.assets.AssetDiagnostic;
+import dev.copperbench.assets.AssetHealthReport;
 import dev.copperbench.assets.AssetPathViolationException;
 import dev.copperbench.assets.AssetReference;
 import dev.copperbench.assets.AssetReferenceGraph;
@@ -554,13 +555,16 @@ public final class WorkspaceApplicationService {
 					"The workspace root is not available for asset indexing.", null, null));
 		try {
 			AssetReferenceGraph graph = new AssetWorkspaceService(root).referenceGraph();
+			AssetHealthReport health = graph.healthReport();
 			JsonObject projection = new JsonObject();
 			projection.addProperty("schemaVersion", UiCore.SCHEMA_VERSION);
-			projection.add("assets", GSON.toJsonTree(graph.assets().stream().map(WorkspaceApplicationService::asset).toList()));
+			projection.add("assets", GSON.toJsonTree(graph.assets().stream()
+					.map(descriptor -> asset(descriptor, health.findById(descriptor.id()).orElseThrow())).toList()));
 			projection.add("references", GSON.toJsonTree(graph.references().stream()
 					.map(WorkspaceApplicationService::assetReference).toList()));
 			projection.add("diagnostics", GSON.toJsonTree(graph.diagnostics().stream()
 					.map(WorkspaceApplicationService::assetDiagnostic).toList()));
+			projection.add("health", GSON.toJsonTree(health.summary()));
 			return querySuccess(query, state.revision(), projection);
 		} catch (RuntimeException exception) {
 			return queryFailure(query, state.revision(), failureDiagnostic(query, "ASSET_QUERY_FAILED",
@@ -569,7 +573,7 @@ public final class WorkspaceApplicationService {
 		}
 	}
 
-	private static JsonObject asset(AssetDescriptor descriptor) {
+	private static JsonObject asset(AssetDescriptor descriptor, AssetHealthReport.Entry health) {
 		JsonObject value = new JsonObject();
 		value.addProperty("id", descriptor.id());
 		value.addProperty("relativePath", descriptor.relativePath());
@@ -578,6 +582,7 @@ public final class WorkspaceApplicationService {
 		value.addProperty("sha256", descriptor.sha256());
 		value.addProperty("mediaType", descriptor.mediaType());
 		value.addProperty("updatedAt", descriptor.updatedAt().toString());
+		value.add("health", GSON.toJsonTree(health));
 		return value;
 	}
 

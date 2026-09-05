@@ -167,13 +167,19 @@ class McpHttpServerTest {
 			HttpResponse<String> assetsResult = post(endpoint,
 					"{\"jsonrpc\":\"2.0\",\"id\":31,\"method\":\"tools/call\",\"params\":{\"name\":\"list_assets\",\"arguments\":{\"category\":\"MODEL\"}}}",
 					token.value(), sessionId, "http://localhost:5173");
-			assertEquals("succeeded", toolResult(assetsResult).get("status").getAsString());
-			assertTrue(toolResult(assetsResult).getAsJsonArray("assets").toString().contains("copper_lamp.json"));
+			JsonObject assets = toolResult(assetsResult);
+			assertEquals("succeeded", assets.get("status").getAsString());
+			assertTrue(assets.getAsJsonArray("assets").toString().contains("copper_lamp.json"));
+			assertTrue(assets.has("health"));
+			assertEquals(1, assets.getAsJsonArray("assetHealth").size());
 			HttpResponse<String> referencesResult = post(endpoint,
 					"{\"jsonrpc\":\"2.0\",\"id\":32,\"method\":\"tools/call\",\"params\":{\"name\":\"inspect_asset_references\",\"arguments\":{\"sourcePath\":\"assets/coppertrails/models/block/copper_lamp.json\"}}}",
 					token.value(), sessionId, "http://localhost:5173");
-			assertEquals("succeeded", toolResult(referencesResult).get("status").getAsString());
-			assertEquals(1, toolResult(referencesResult).getAsJsonArray("references").size());
+			JsonObject references = toolResult(referencesResult);
+			assertEquals("succeeded", references.get("status").getAsString());
+			assertEquals(1, references.getAsJsonArray("references").size());
+			assertTrue(references.has("incomingReferences"));
+			assertTrue(references.has("health"));
 
 			HttpResponse<String> recoveryPointResult = post(endpoint,
 					"{\"jsonrpc\":\"2.0\",\"id\":4,\"method\":\"tools/call\",\"params\":{\"name\":\"create_recovery_point\",\"arguments\":{\"label\":\"Before MCP edit\",\"expectedRevision\":0}}}",

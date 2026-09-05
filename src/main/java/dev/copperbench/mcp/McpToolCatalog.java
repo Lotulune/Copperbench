@@ -16,6 +16,7 @@ import dev.copperbench.automation.audit.AuditRecord;
 import dev.copperbench.automation.audit.JsonLineAuditLog;
 import dev.copperbench.assets.AssetCategory;
 import dev.copperbench.assets.AssetDescriptor;
+import dev.copperbench.assets.AssetHealthReport;
 import dev.copperbench.assets.AssetReferenceGraph;
 import dev.copperbench.assets.AssetWorkspaceService;
 import dev.copperbench.core.application.McpWorkspaceEntryAdapter;
@@ -462,8 +463,12 @@ final class McpToolCatalog {
 						String search = request.arguments() == null ? "" : String.valueOf(request.arguments().getOrDefault("search", ""));
 						AssetCategory category = parseCategory(request.arguments() == null ? null : request.arguments().get("category"));
 						List<AssetDescriptor> result = assets.search(search, category);
+						AssetHealthReport health = assets.buildReferenceGraph().healthReport();
+						var resultHealth = health.entries().stream()
+								.filter(entry -> result.stream().anyMatch(asset -> asset.id().equals(entry.assetId()))).toList();
 						audit("list_assets", request.arguments(), "succeeded", 0, "");
-						return text(GSON.toJson(Map.of("status", "succeeded", "assets", result)), false);
+						return text(GSON.toJson(Map.of("status", "succeeded", "assets", result,
+								"assetHealth", resultHealth, "health", health.summary())), false);
 					} catch (AuditUnavailableException exception) {
 						return auditUnavailable();
 					} catch (RuntimeException exception) {
@@ -477,18 +482,22 @@ final class McpToolCatalog {
 				List.of("sourcePath"));
 		return McpServerFeatures.SyncToolSpecification.builder()
 				.tool(Tool.builder("inspect_asset_references", schema)
-						.description("Inspect outgoing references and diagnostics for one asset").build())
+						.description("Inspect incoming/outgoing references, diagnostics, and health for one asset").build())
 				.callHandler((exchange, request) -> {
 					try {
 						audit("inspect_asset_references", request.arguments(), "started", 0, "");
 						String sourcePath = String.valueOf(request.arguments().get("sourcePath"));
 						AssetReferenceGraph graph = assets.buildReferenceGraph();
 						var references = graph.outgoing(sourcePath);
+						var incoming = graph.incoming(sourcePath);
 						var diagnostics = graph.diagnostics().stream()
 								.filter(diagnostic -> diagnostic.sourcePath().equals(sourcePath)).toList();
+						var health = graph.healthReport().entries().stream()
+								.filter(entry -> entry.relativePath().equals(sourcePath)).findFirst().orElse(null);
 						audit("inspect_asset_references", request.arguments(), "succeeded", 0, "");
 						return text(GSON.toJson(Map.of("status", "succeeded", "sourcePath", sourcePath,
-								"references", references, "diagnostics", diagnostics)), false);
+								"references", references, "incomingReferences", incoming, "diagnostics", diagnostics,
+								"health", health == null ? Map.of() : health)), false);
 					} catch (AuditUnavailableException exception) {
 						return auditUnavailable();
 					} catch (RuntimeException exception) {

@@ -997,6 +997,29 @@ export interface AssetProjectionAsset {
   sha256: string;
   mediaType: string;
   updatedAt?: string;
+  health: AssetProjectionHealthEntry;
+}
+
+export interface AssetProjectionHealthEntry {
+  assetId: string;
+  relativePath: string;
+  status: 'READY' | 'WARNING' | 'ERROR';
+  usageAssessed: boolean;
+  unused: boolean;
+  inboundCount: number;
+  outboundCount: number;
+  issueCodes: string[];
+}
+
+export interface AssetProjectionHealthSummary {
+  totalAssets: number;
+  readyAssets: number;
+  warningAssets: number;
+  errorAssets: number;
+  unusedAssets: number;
+  missingReferences: number;
+  invalidDocuments: number;
+  pathEscapes: number;
 }
 
 export interface AssetProjectionReference {
@@ -1020,6 +1043,7 @@ export interface AssetProjection {
   assets: AssetProjectionAsset[];
   references: AssetProjectionReference[];
   diagnostics: AssetProjectionDiagnostic[];
+  health: AssetProjectionHealthSummary;
 }
 
 export type MigrationDisposition = 'supported' | 'substitute' | 'lost' | 'blocked' | 'manual';

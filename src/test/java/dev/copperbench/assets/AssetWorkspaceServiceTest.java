@@ -79,6 +79,40 @@ class AssetWorkspaceServiceTest {
 	}
 
 	@Test
+	void derivesReverseUsageAndHealthWithoutTreatingStaticOrphansAsErrors() {
+		AssetReferenceGraph graph = new AssetWorkspaceService(workspace).referenceGraph();
+		AssetHealthReport health = graph.healthReport();
+
+		assertEquals(1, graph.incoming("assets/copperbench/textures/block/copper_lamp.png").size());
+		AssetHealthReport.Entry texture = health.entries().stream()
+				.filter(entry -> entry.relativePath().endsWith("textures/block/copper_lamp.png"))
+				.findFirst().orElseThrow();
+		assertEquals(1, texture.inboundCount());
+		assertEquals(AssetHealthReport.Status.READY, texture.status());
+
+		AssetHealthReport.Entry model = health.entries().stream()
+				.filter(entry -> entry.relativePath().endsWith("models/copper_lamp.json"))
+				.findFirst().orElseThrow();
+		assertTrue(model.unused());
+		assertTrue(model.usageAssessed());
+		assertEquals(AssetHealthReport.Status.ERROR, model.status());
+		assertTrue(model.issueCodes().contains("MISSING_ASSET_REFERENCE"));
+
+		AssetHealthReport.Entry language = health.entries().stream()
+				.filter(entry -> entry.relativePath().endsWith("lang/en_us.json"))
+				.findFirst().orElseThrow();
+		assertFalse(language.usageAssessed());
+		assertFalse(language.unused());
+		assertEquals(AssetHealthReport.Status.READY, language.status());
+
+		assertEquals(3, health.summary().totalAssets());
+		assertEquals(1, health.summary().errorAssets());
+		assertEquals(0, health.summary().warningAssets());
+		assertEquals(1, health.summary().unusedAssets());
+		assertEquals(1, health.summary().missingReferences());
+	}
+
+	@Test
 	void rejectsAbsoluteTraversalAndMissingAuthorizedPaths() {
 		AssetWorkspaceService service = new AssetWorkspaceService(workspace);
 		assertTrue(Files.isRegularFile(service.resolveAuthorizedPath("assets/copperbench/models/copper_lamp.json")));

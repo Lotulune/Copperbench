@@ -29,6 +29,15 @@ test.describe('U3 asset browser', () => {
     await expect(page.locator('[data-testid="asset-card-asset:1111111111111111111111111111111111111111111111111111111111111111"]')).toBeVisible();
   });
 
+  test('filters Core-owned asset health and identifies static unreferenced candidates', async ({ page }) => {
+    await expect(page.locator('[data-testid="asset-health-summary"]')).toBeVisible();
+    await page.locator('[data-testid="asset-health-unused"]').click();
+    await expect(page.locator('[data-testid="asset-card-asset:3333333333333333333333333333333333333333333333333333333333333333"]')).toBeVisible();
+    await expect(page.locator('[data-testid="asset-card-asset:1111111111111111111111111111111111111111111111111111111111111111"]')).not.toBeVisible();
+    await expect(page.locator('[data-testid="asset-usage-status"]')).toContainText('静态未引用');
+    await expect(page.locator('[data-testid="asset-outgoing-references"]')).toBeVisible();
+  });
+
   test('reports an explicit unavailable state when Blockbench is not configured', async ({ page }) => {
     await page.getByRole('button', { name: '在 Blockbench 打开' }).click();
     await expect(page.locator('[data-testid="asset-notice"]')).toContainText('尚未配置 Blockbench');

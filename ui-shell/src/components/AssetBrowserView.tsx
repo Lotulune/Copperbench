@@ -8,10 +8,12 @@ import {
 } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
 import { assetRecordsFromProjection, AssetCategory, AssetRecord, AssetValidationStatus } from '../types/assets';
+import type { AssetProjectionHealthSummary } from '../types/contract';
 import { blockbenchBridge } from '../bridge/blockbenchBridge';
 
 type BrowserMode = 'ready' | 'empty' | 'loading' | 'error';
 type CategoryFilter = 'all' | AssetCategory;
+type HealthFilter = 'all' | 'issues' | 'errors' | 'unused';
 type SortField = 'updated' | 'name' | 'references' | 'size';
 
 interface CategoryConfig {
@@ -75,10 +77,12 @@ function formatDate(value?: string) {
 export const AssetBrowserView: React.FC = () => {
   const { state, listAssets } = useWorkbench();
   const [assets, setAssets] = useState<AssetRecord[]>([]);
+  const [healthSummary, setHealthSummary] = useState<AssetProjectionHealthSummary | null>(null);
   const [assetLoadState, setAssetLoadState] = useState<'loading' | 'ready' | 'error'>('loading');
   const [reloadToken, setReloadToken] = useState(0);
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState<CategoryFilter>('all');
+  const [healthFilter, setHealthFilter] = useState<HealthFilter>('all');
   const [sort, setSort] = useState<SortField>('updated');
   const [selectedId, setSelectedId] = useState('');
   const [modeOverride, setModeOverride] = useState<BrowserMode | null>(null);
@@ -96,6 +100,8 @@ export const AssetBrowserView: React.FC = () => {
     setModeOverride(null);
     if (state.currentScenarioId !== 'native' && scenarioMode !== 'ready') {
       setAssets([]);
+      setHealthSummary(null);
+      setHealthSummary(null);
       setAssetLoadState(scenarioMode === 'error' ? 'error' : scenarioMode === 'loading' ? 'loading' : 'ready');
       return;
     }
@@ -106,10 +112,12 @@ export const AssetBrowserView: React.FC = () => {
       if (!active) return;
       if (!projection) {
         setAssets([]);
+        setHealthSummary(null);
         setAssetLoadState('error');
         return;
       }
       setAssets(assetRecordsFromProjection(projection));
+      setHealthSummary(projection.health);
       setAssetLoadState('ready');
     }).catch(() => {
       if (!active) return;
@@ -131,6 +139,10 @@ export const AssetBrowserView: React.FC = () => {
     const normalized = deferredQuery.trim().toLocaleLowerCase();
     return assets
       .filter((asset) => category === 'all' || asset.category === category)
+      .filter((asset) => healthFilter === 'all'
+        || (healthFilter === 'issues' && asset.validation !== 'ready')
+        || (healthFilter === 'errors' && asset.validation === 'error')
+        || (healthFilter === 'unused' && asset.unused === true))
       .filter((asset) => {
         if (!normalized) return true;
         return [asset.name, asset.path, asset.categoryLabel, asset.id, asset.format, asset.sourceLabel]
@@ -138,11 +150,11 @@ export const AssetBrowserView: React.FC = () => {
       })
       .sort((a, b) => {
         if (sort === 'name') return a.name.localeCompare(b.name);
-        if (sort === 'references') return b.references.length - a.references.length;
+        if (sort === 'references') return (b.inboundCount ?? b.references.length) - (a.inboundCount ?? a.references.length);
         if (sort === 'size') return b.sizeBytes - a.sizeBytes;
         return (b.updatedAt ?? '').localeCompare(a.updatedAt ?? '');
       });
-  }, [assets, category, deferredQuery, sort]);
+  }, [assets, category, deferredQuery, healthFilter, sort]);
 
   const selectedAsset = useMemo(() => {
     return filteredAssets.find((asset) => asset.id === selectedId) ?? filteredAssets[0] ?? null;
@@ -242,6 +254,43 @@ export const AssetBrowserView: React.FC = () => {
             })}
           </nav>
 
+          <div className="asset-health-panel" data-testid="asset-health-panel" aria-label="资产健康筛选">
+            <div className="asset-panel-label">
+              <AlertTriangle size={13} aria-hidden="true" />
+              <span>资产健康</span>
+            </div>
+            <div className="asset-health-summary" data-testid="asset-health-summary">
+              <span><strong>{healthSummary?.errorAssets ?? 0}</strong> 错误</span>
+              <span><strong>{healthSummary?.warningAssets ?? 0}</strong> 警告</span>
+              <span><strong>{healthSummary?.unusedAssets ?? 0}</strong> 未使用</span>
+            </div>
+            <div className="asset-health-filters">
+              {([
+                ['all', '全部'],
+                ['issues', '有问题'],
+                ['errors', '错误'],
+                ['unused', '静态未引用']
+              ] as const).map(([id, label]) => (
+                <button
+                  type="button"
+                  key={id}
+                  className={healthFilter === id ? 'is-active' : ''}
+                  aria-pressed={healthFilter === id}
+                  data-testid={`asset-health-${id}`}
+                  onClick={() => setHealthFilter(id)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            {(healthSummary?.missingReferences ?? 0) > 0 && (
+              <div className="asset-health-missing" role="status">
+                <AlertCircle size={12} aria-hidden="true" />
+                <span>{healthSummary?.missingReferences} 条缺失引用</span>
+              </div>
+            )}
+          </div>
+
           <div className="asset-category-hint">
             <Link2 size={13} aria-hidden="true" />
             <span>引用关系随工作区修订保存。</span>
@@ -304,6 +353,7 @@ export const AssetBrowserView: React.FC = () => {
                 onClick={() => {
                   setQuery('');
                   setCategory('all');
+                  setHealthFilter('all');
                 }}
               >
                 <XCircle size={13} aria-hidden="true" />
@@ -336,6 +386,7 @@ export const AssetBrowserView: React.FC = () => {
           onDismissNotice={() => setNotice(null)}
         />
       </div>
+
     </section>
   );
 };
@@ -622,14 +673,20 @@ const AssetDetails: React.FC<{
           <dt>更新时间</dt>
           <dd>{formatDate(asset.updatedAt)}</dd>
         </div>
+        <div className="asset-metadata-row">
+          <dt>使用状态</dt>
+          <dd data-testid="asset-usage-status">
+            {asset.unused ? '静态未引用候选' : asset.usageAssessed ? '存在静态入站引用' : '不做静态未使用判定'}
+          </dd>
+        </div>
       </dl>
 
       {/* Reference Diagnostics */}
       <div className="asset-reference-section">
         <div className="asset-panel-label">
           <Link2 size={14} aria-hidden="true" />
-          <span>引用关系</span>
-          <span className="asset-ref-count-badge">{asset.references.length}</span>
+          <span>入站引用</span>
+          <span className="asset-ref-count-badge">{asset.inboundCount ?? asset.references.length}</span>
         </div>
 
         {asset.references.length === 0 ? (
@@ -645,6 +702,36 @@ const AssetDetails: React.FC<{
           </ul>
         )}
       </div>
+
+      <div className="asset-reference-section" data-testid="asset-outgoing-references">
+        <div className="asset-panel-label">
+          <CornerDownRight size={14} aria-hidden="true" />
+          <span>出站依赖</span>
+          <span className="asset-ref-count-badge">{asset.outboundCount ?? asset.outgoingReferences?.length ?? 0}</span>
+        </div>
+        {(asset.outgoingReferences?.length ?? 0) === 0 ? (
+          <div className="asset-reference-empty">该资产没有静态出站依赖。</div>
+        ) : (
+          <ul className="asset-reference-list" aria-label="该资产引用的目标">
+            {asset.outgoingReferences?.map((reference) => (
+              <li key={reference} className="asset-reference-item">
+                <CornerDownRight size={11} className="asset-ref-arrow" aria-hidden="true" />
+                <code title={reference}>{reference}</code>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      {(asset.issueCodes?.length ?? 0) > 0 && (
+        <div className="asset-health-issues" data-testid="asset-health-issues">
+          <div className="asset-panel-label">
+            <AlertTriangle size={14} aria-hidden="true" />
+            <span>健康诊断</span>
+          </div>
+          {asset.issueCodes?.map((code) => <code key={code}>{code}</code>)}
+        </div>
+      )}
 
       {/* Description Summary */}
       <p className="asset-description">{asset.description}</p>

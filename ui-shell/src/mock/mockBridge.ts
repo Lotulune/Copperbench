@@ -79,19 +79,45 @@ function generateUUID(): UUID {
 }
 
 function mockAssetProjection() {
-  return {
-    schemaVersion: '1.0' as const,
-    assets: ASSET_FIXTURES.map((asset) => ({
+  const assets = ASSET_FIXTURES.map((asset) => {
+    const unused = asset.category === 'animation';
+    const warning = asset.validation === 'warning';
+    const error = asset.validation === 'error';
+    return {
       id: asset.id,
       relativePath: asset.path,
       category: asset.category.toUpperCase() as 'MODEL' | 'TEXTURE' | 'ANIMATION' | 'LANGUAGE' | 'SOUND' | 'RESOURCE_PACK',
       size: asset.sizeBytes,
       sha256: '0000000000000000000000000000000000000000000000000000000000000000',
       mediaType: asset.format === 'PNG' ? 'image/png' : asset.format === 'OGG' ? 'audio/ogg' : 'application/octet-stream',
-      updatedAt: asset.updatedAt
-    })),
+      updatedAt: asset.updatedAt,
+      health: {
+        assetId: asset.id,
+        relativePath: asset.path,
+        status: error ? 'ERROR' as const : warning ? 'WARNING' as const : 'READY' as const,
+        usageAssessed: ['model', 'texture', 'animation', 'sound'].includes(asset.category) && asset.format !== 'BBMODEL',
+        unused,
+        inboundCount: unused ? 0 : asset.references.length,
+        outboundCount: 0,
+        issueCodes: []
+      }
+    };
+  });
+  return {
+    schemaVersion: '1.0' as const,
+    assets,
     references: [],
-    diagnostics: []
+    diagnostics: [],
+    health: {
+      totalAssets: assets.length,
+      readyAssets: assets.filter((asset) => asset.health.status === 'READY').length,
+      warningAssets: assets.filter((asset) => asset.health.status === 'WARNING').length,
+      errorAssets: assets.filter((asset) => asset.health.status === 'ERROR').length,
+      unusedAssets: assets.filter((asset) => asset.health.unused).length,
+      missingReferences: 0,
+      invalidDocuments: 0,
+      pathEscapes: 0
+    }
   };
 }
 
