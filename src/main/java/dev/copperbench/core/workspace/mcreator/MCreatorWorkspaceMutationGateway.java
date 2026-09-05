@@ -367,6 +367,19 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 		projectile.disableGravity = bool(values, "disableGravity", false);
 		projectile.igniteFire = bool(values, "igniteFire", false);
 		projectile.disableDiscarding = bool(values, "disableDiscarding", false);
+		projectile.onHitsBlock = procedureReference(values, "onHitsBlock");
+		projectile.onHitsPlayer = procedureReference(values, "onHitsPlayer");
+		projectile.onHitsEntity = procedureReference(values, "onHitsEntity");
+		projectile.onFlyingTick = procedureReference(values, "onFlyingTick");
+	}
+
+	private net.mcreator.element.parts.procedure.Procedure procedureReference(JsonObject values, String key) {
+		String name = string(values, key, "");
+		if (name.isBlank()) return null;
+		ModElement target = workspace.getModElementByName(name);
+		if (target == null || !target.getType().equals(ModElementType.PROCEDURE))
+			throw new IllegalStateException("Procedure reference " + key + " does not target a Procedure element: " + name);
+		return new net.mcreator.element.parts.procedure.Procedure(name);
 	}
 
 	private Recipe newRecipe(ModElement modElement, Element element) {
