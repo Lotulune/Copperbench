@@ -571,11 +571,38 @@ final class WorkspacePlanEngine {
 			keys.stream().sorted().forEach(key -> {
 				JsonElement oldValue = before.values().get(key);
 				JsonElement newValue = after.values().get(key);
-				if (!java.util.Objects.equals(oldValue, newValue)) changedProperties.add("/values/" + key);
+				if (java.util.Objects.equals(oldValue, newValue)) return;
+				String propertyPath = "/values/" + escapePointerSegment(key);
+				if (key.equals("fields") && oldValue != null && newValue != null
+						&& oldValue.isJsonObject() && newValue.isJsonObject())
+					collectFieldChanges(oldValue.getAsJsonObject(), newValue.getAsJsonObject(), propertyPath,
+							changedProperties);
+				else
+					changedProperties.add(propertyPath);
 			});
 		}
 		item.add("changedProperties", changedProperties);
 		return item;
+	}
+
+	private static void collectFieldChanges(JsonObject before, JsonObject after, String base, JsonArray target) {
+		Set<String> keys = new LinkedHashSet<>();
+		keys.addAll(before.keySet());
+		keys.addAll(after.keySet());
+		for (String key : keys.stream().sorted().toList()) {
+			JsonElement oldValue = before.get(key);
+			JsonElement newValue = after.get(key);
+			if (java.util.Objects.equals(oldValue, newValue)) continue;
+			String path = base + "/" + escapePointerSegment(key);
+			if (oldValue != null && newValue != null && oldValue.isJsonObject() && newValue.isJsonObject())
+				collectFieldChanges(oldValue.getAsJsonObject(), newValue.getAsJsonObject(), path, target);
+			else
+				target.add(path);
+		}
+	}
+
+	private static String escapePointerSegment(String value) {
+		return value.replace("~", "~0").replace("/", "~1");
 	}
 
 	private static List<Operation> operationKinds(JsonArray operations) {

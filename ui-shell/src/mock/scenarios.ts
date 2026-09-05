@@ -9,6 +9,7 @@ import compileDiagnostic from '../../../ui-core/fixtures/v1.0/scenarios/compile-
 import elementCreated from '../../../ui-core/fixtures/v1.0/scenarios/element-created.json';
 import emptyWorkspace from '../../../ui-core/fixtures/v1.0/scenarios/empty-workspace.json';
 import externalProcessExited from '../../../ui-core/fixtures/v1.0/scenarios/external-process-exited.json';
+import generatorRepair from '../../../ui-core/fixtures/v1.0/scenarios/generator-repair.json';
 import loadingWorkbench from '../../../ui-core/fixtures/v1.0/scenarios/loading-workbench.json';
 import offline from '../../../ui-core/fixtures/v1.0/scenarios/offline.json';
 import partialCapability from '../../../ui-core/fixtures/v1.0/scenarios/partial-capability.json';
@@ -27,6 +28,7 @@ const fixtureList: unknown[] = [
   elementCreated,
   emptyWorkspace,
   externalProcessExited,
+  generatorRepair,
   loadingWorkbench,
   offline,
   partialCapability,

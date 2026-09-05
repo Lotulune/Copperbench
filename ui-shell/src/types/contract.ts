@@ -80,6 +80,7 @@ export type ActionHintKind =
   | 'open_asset'
   | 'open_source'
   | 'open_logs'
+  | 'preview_repair'
   | 'request_permission'
   | 'dismiss';
 
@@ -88,6 +89,7 @@ export interface ActionHint {
   label: LocalizedText;
   kind: ActionHintKind;
   target?: string | null;
+  payload?: Record<string, unknown> | null;
 }
 
 export interface Diagnostic {

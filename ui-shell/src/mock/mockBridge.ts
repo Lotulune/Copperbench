@@ -1165,6 +1165,14 @@ export class MockCoreBridge implements CoreBridge {
             const elementId = String(step.payload.elementId ?? '') as UUID;
             const edits = (step.payload.edits ?? []) as Array<Record<string, unknown>>;
             if (elementId) this.applyMockProcedureEdits(elementId, edits);
+          } else if (step.operation === 'update_mod_element') {
+            const elementId = String(step.payload.elementId ?? '') as UUID;
+            const element = this.state.elements.find((candidate) => candidate.id === elementId);
+            if (element) {
+              element.state = 'valid';
+              element.updatedAt = new Date().toISOString();
+              element.diagnostics = { error: 0, warning: 0, info: 0 };
+            }
           }
         }
         if (this.state.workbench) this.state.workbench.workspace.revision = newRevision;
@@ -2636,6 +2644,21 @@ export class MockCoreBridge implements CoreBridge {
         const changedPaths: string[] = [];
         const semanticDiff: Record<string, unknown>[] = [];
         for (const step of operations) {
+          if (step.operation === 'update_mod_element') {
+            const elementId = String(step.payload.elementId ?? '');
+            const element = this.state.elements.find((candidate) => candidate.id === elementId);
+            const changes = Array.isArray(step.payload.changes)
+              ? step.payload.changes as Array<{ path?: unknown; value?: unknown }>
+              : [];
+            const paths = changes.map((change) => String(change.path ?? '')).filter(Boolean);
+            changedPaths.push(...paths.map((path) => `/elements/${elementId}${path}`));
+            semanticDiff.push({
+              kind: 'element_updated', elementId, type: element?.type ?? 'item',
+              name: element?.name ?? elementId, displayName: element?.displayName ?? elementId,
+              changedProperties: paths.map((path) => `/values${path}`)
+            });
+            continue;
+          }
           if (step.operation !== 'rename_registry_entry') continue;
           const entryId = String(step.payload.entryId ?? '');
           const entry = this.mockRegistries.variables.find((candidate) => candidate.id === entryId);

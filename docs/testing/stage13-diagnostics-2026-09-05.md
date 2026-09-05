@@ -88,6 +88,20 @@ Generator pre-validation already carried stable element IDs and exact internal p
 
 This closes the information-loss gap between Fabric/NeoForge validation producers and the shared Diagnostics 2.0 UI without inventing field ownership for runtime failures that only have logs.
 
+## Sixth slice: deterministic safe repair through WorkspacePlan
+
+Diagnostics 2.0 now has its first repair workflow, deliberately limited to validation failures where the generator can prove one safe bounded value:
+
+- shared diagnostic actions can carry an optional structured payload and use the `preview_repair` action kind; existing actions remain source-compatible and schema-compatible;
+- Fabric emits repair values only for bounded numeric validation failures whose nearest legal value is deterministic: item stack size is clamped to `1..64` and block luminance to `0..15`; recipe targets, missing Procedure content and other semantic choices remain navigation-only;
+- NeoForge preserves the same explicit repair value while mapping the diagnostic code to its loader-specific identity;
+- the task diagnostic packages the proven value as one `update_mod_element` WorkspacePlan operation, binds it to the workspace revision that was actually validated, and requires a recovery point; it does not mutate the workspace directly;
+- Task Drawer asks Core to create the plan, shows affected-object counts, aggregate changed paths and semantic diff, and enables apply only while `safety.ready` confirms the required recovery protection is available;
+- the generic WorkspacePlan apply path still performs simulation, plan-integrity/stale checks, one atomic revision, one recovery point and persistence rollback on failure;
+- element `fields` semantic diffs are now leaf-addressable (for example `/values/fields/maxStackSize`) while conflict `changedPaths` intentionally remain element-granular and Procedure IR remains coarse-grained, avoiding noisy node dumps in existing refactor reviews.
+
+The repair rule is stricter than the location rule: Copperbench may offer a location whenever ownership is proven, but it offers `preview_repair` only when the producer supplies an explicit replacement value. No diagnostic message parsing or heuristic target inference is used.
+
 ## Verification
 
 - `Fabric1211TaskGatewayTest.failedBuildExtractsJavaCompilerErrorsIntoStructuredDiagnostics` — passed; a Procedure compiler error resolves to stable element ID `00000000-0000-4000-8000-000000000004`, preserves path/line/message, exposes element-location/generated-source/task-log actions, returns its bounded compiler-time source snapshot even after the live file is rewritten, and rejects a different existing generated Java file that is not referenced by the task diagnostic.
@@ -107,6 +121,14 @@ This closes the information-loss gap between Fabric/NeoForge validation producer
 - `npx playwright test e2e/u3-tracks-migration.spec.ts --grep "previews loader migration"` — `2/2` passed across Chromium and compact-1366; a successful migration renders the review warning and the action navigates to `Copper Lamp`.
 - `npx playwright test e2e/u3-tracks-migration.spec.ts` — `12/12` passed across Chromium and compact-1366.
 - the post-migration full `npx playwright test e2e/scenarios.spec.ts` run — `28/28` passed, preserving the compiler-diagnostic and all canonical scenario behavior.
+- `Fabric1211TaskGatewayTest.deterministicValidationRepairPreviewsAndAppliesThroughRecoveryProtectedWorkspacePlan` — passed; `maxStackSize=0` produces an explicit repair value `1`, Core plans an `update_mod_element`, semantic diff reaches `/values/fields/maxStackSize`, apply advances exactly one workspace revision, stores `1`, and creates exactly one recovery point. The same test then changes the live value to `32` after validation and proves the old repair is rejected as `WORKSPACE_PLAN_STALE` without overwriting `32`.
+- `NeoForge1211GeneratorTest.deterministicNumericValidationRepairsSurviveNeoForgeCodeMapping` — passed; `maxStackSize=99` maps to `NEOFORGE_ITEM_STACK_INVALID` while preserving the deterministic repair value `64` and exact element field path.
+- the combined `Fabric1211TaskGatewayTest` + `NeoForge1211GeneratorTest` + `WorkspacePlanEngineTest` run — `BUILD SUCCESSFUL`; existing intentional export/path, compiler, JDK and datagen failure tests remained expected failures inside passing tests, and protected Procedure plan regressions remained green.
+- `npm test` in `ui-core` — final `20/20` passed with the canonical `generator-repair` scenario and the shared `preview_repair` action payload schema.
+- `npx playwright test e2e/scenarios.spec.ts --grep generator-repair` — `2/2` passed across Chromium and compact-1366; failed task → structured diagnostic → repair plan → semantic diff → explicit apply is visible in Task Drawer.
+- full `npx playwright test e2e/scenarios.spec.ts` — `30/30` passed across Chromium and compact-1366 after adding the safe-repair scenario.
+- full `npx playwright test e2e/accessibility.spec.ts` — `22/22` passed across Chromium and compact-1366, including the >=32px interaction-target baseline used by the new repair controls.
+- the final UI build passed TypeScript/Vite and the Chinese localization gate at `220/220` referenced keys.
 - `git -c core.whitespace=cr-at-eol diff --check` — passed before evidence finalization.
 
 ## Remaining `FR-PRODUCTIVITY-03` work
@@ -115,8 +137,8 @@ This slice does not close Diagnostics 2.0. Remaining work includes:
 
 - extend the stable-location model to remaining deterministic generator/runtime and MCP failure classes where ownership can be proven; resource, migration and generator pre-validation locations are now covered;
 - deepen remaining element locations into Procedure node IDs or other field paths where the producer can prove that relationship; stable asset IDs and generator validation fields are now covered;
-- provide repair guidance for deterministic failure classes without turning heuristics into false guarantees;
-- route eligible automatic repairs through previewed semantic workspace plans and recovery points instead of direct mutation;
+- extend safe repair guidance beyond the first bounded numeric generator failures only when another producer can provide an equally explicit, non-heuristic repair value;
+- preserve the new previewed semantic WorkspacePlan + recovery-point path for every future automatic repair rather than adding direct-mutation diagnostic actions;
 - preserve the same diagnostic identities and locations through UI, desktop MCP, headless and reconnect/replay paths;
 - add representative installed-product failure → location → repair evidence for the broader generator/resource/migration classes before formal closure.
 

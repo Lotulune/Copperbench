@@ -155,13 +155,13 @@ public final class Fabric1211Generator {
 									base, element));
 						if (luminance < 0 || luminance > 15)
 							issues.add(issue("FABRIC_BLOCK_LUMINANCE_INVALID", "Block luminance must be between 0 and 15.",
-									base + "/luminance", element));
+									base + "/luminance", element, JSON.toJsonTree(Math.max(0, Math.min(15, luminance)))));
 					}
 					case "item" -> {
 						int maxStack = integer(values, "maxStackSize", 64);
 						if (maxStack < 1 || maxStack > 64)
 							issues.add(issue("FABRIC_ITEM_STACK_INVALID", "Item stack size must be between 1 and 64.",
-									base + "/maxStackSize", element));
+									base + "/maxStackSize", element, JSON.toJsonTree(Math.max(1, Math.min(64, maxStack)))));
 					}
 					case "recipe" -> validateRecipe(values, availableResults, base, element, issues);
 					case "procedure" -> {
@@ -198,6 +198,11 @@ public final class Fabric1211Generator {
 
 	private static ValidationIssue issue(String code, String message, String path, Element element) {
 		return new ValidationIssue(code, message, path, element.id());
+	}
+
+	private static ValidationIssue issue(String code, String message, String path, Element element,
+			JsonElement repairValue) {
+		return new ValidationIssue(code, message, path, element.id(), repairValue);
 	}
 
 	private void writeBuildFiles(Path root, Descriptor descriptor, long revision, List<String> generated)
@@ -861,7 +866,14 @@ public final class Fabric1211Generator {
 		}
 	}
 
-	public record ValidationIssue(String code, String message, String path, UUID elementId) {
+	public record ValidationIssue(String code, String message, String path, UUID elementId, JsonElement repairValue) {
+		public ValidationIssue(String code, String message, String path, UUID elementId) {
+			this(code, message, path, elementId, null);
+		}
+
+		public ValidationIssue {
+			repairValue = repairValue == null ? null : repairValue.deepCopy();
+		}
 	}
 
 	private record Descriptor(String modId, String basePackage, String version, String displayName, String javaName) {

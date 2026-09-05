@@ -124,7 +124,14 @@ public final class UiCore {
 		}
 	}
 
-	public record ActionHint(String id, LocalizedText label, String kind, String target) {
+	public record ActionHint(String id, LocalizedText label, String kind, String target, JsonObject payload) {
+		public ActionHint(String id, LocalizedText label, String kind, String target) {
+			this(id, label, kind, target, null);
+		}
+
+		public ActionHint {
+			payload = payload == null ? null : payload.deepCopy();
+		}
 	}
 
 	public record Diagnostic(String code, Severity severity, LocalizedText message, String path, UUID elementId,

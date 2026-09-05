@@ -29,6 +29,24 @@ test.describe('UI-Core v1.0 Contract Scenarios', () => {
     await expect(page.getByText('Copper Lamp').first()).toBeVisible();
   });
 
+  test('scenario: generator-repair previews semantic diff before recovery-protected apply', async ({ page }) => {
+    await page.click('[data-testid="scenario-switcher-trigger"]');
+    await page.click('[data-testid="scenario-btn-generator-repair"]');
+
+    await expect(page.locator('[data-testid="task-failure"]')).toBeVisible();
+    await page.click('[data-testid="open-failed-task-logs-btn"]');
+    await expect(page.locator('[data-testid="task-diagnostic-FABRIC_ITEM_STACK_INVALID"]')).toBeVisible();
+    await expect(page.locator('[data-testid="task-diag-action-preview_generator_repair"]')).toBeVisible();
+    await page.click('[data-testid="task-diag-action-preview_generator_repair"]');
+
+    await expect(page.locator('[data-testid="task-repair-preview"]')).toBeVisible();
+    await expect(page.locator('[data-testid="task-repair-summary"]')).toContainText('1');
+    await expect(page.locator('[data-testid="task-repair-semantic-diff"]')).toContainText('maxStackSize');
+    await expect(page.locator('[data-testid="task-repair-apply"]')).toBeEnabled();
+    await page.click('[data-testid="task-repair-apply"]');
+    await expect(page.locator('[data-testid="task-repair-preview"]')).toContainText('安全修复已应用');
+  });
+
   test('scenario: ready renders healthy workbench and recent elements', async ({ page }) => {
     // Switch to ready scenario
     await page.click('[data-testid="scenario-switcher-trigger"]');

@@ -10,6 +10,7 @@
 package dev.copperbench.generator;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import dev.copperbench.core.application.WorkspaceTaskGateway;
@@ -825,7 +826,8 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 			for (var issue : issues) {
 				log("error", issue.message());
 				synchronized (this) {
-					if (isRunning()) addDiagnostic(issue.code(), issue.message(), issue.path(), issue.elementId());
+					if (isRunning()) addDiagnostic(issue.code(), issue.message(), issue.path(), issue.elementId(),
+							issue.repairValue());
 				}
 			}
 			WorkspaceTaskGateway.TaskEvent diagnosticsEvent;
@@ -844,6 +846,10 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 		}
 
 		private void addDiagnostic(String code, String message, String path, UUID elementId) {
+			addDiagnostic(code, message, path, elementId, null);
+		}
+
+		private void addDiagnostic(String code, String message, String path, UUID elementId, JsonElement repairValue) {
 			JsonObject diagnostic = new JsonObject();
 			diagnostic.addProperty("code", code);
 			diagnostic.addProperty("severity", "error");
@@ -870,6 +876,32 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 				if (fieldTarget == null) locate.add("target", JsonNull.INSTANCE);
 				else locate.addProperty("target", fieldTarget);
 				actions.add(locate);
+				if (fieldTarget != null && repairValue != null) {
+					JsonObject change = new JsonObject();
+					change.addProperty("path", fieldTarget);
+					change.add("value", repairValue.deepCopy());
+					JsonArray changes = new JsonArray();
+					changes.add(change);
+					JsonObject updatePayload = new JsonObject();
+					updatePayload.addProperty("elementId", elementId.toString());
+					updatePayload.add("changes", changes);
+					JsonObject step = new JsonObject();
+					step.addProperty("operation", "update_mod_element");
+					step.add("payload", updatePayload);
+					JsonArray operations = new JsonArray();
+					operations.add(step);
+					JsonObject repairPayload = new JsonObject();
+					repairPayload.addProperty("expectedRevision", sourceRevision);
+					repairPayload.addProperty("requireRecoveryPoint", true);
+					repairPayload.add("operations", operations);
+					JsonObject repair = new JsonObject();
+					repair.addProperty("id", "preview_generator_repair");
+					repair.add("label", localized("action.preview_repair", "Preview safe repair"));
+					repair.addProperty("kind", "preview_repair");
+					repair.add("target", JsonNull.INSTANCE);
+					repair.add("payload", repairPayload);
+					actions.add(repair);
+				}
 			}
 			if (path != null) {
 				if (path.startsWith("/src/main/java/") && path.toLowerCase(Locale.ROOT).endsWith(".java")) {

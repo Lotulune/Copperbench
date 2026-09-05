@@ -9,8 +9,10 @@
 
 package dev.copperbench.generator.fabric;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import dev.copperbench.core.application.WorkspaceApplicationService;
+import dev.copperbench.core.application.WorkspaceMutationGateway;
 import dev.copperbench.core.contract.UiCore.Actor;
 import dev.copperbench.core.contract.UiCore.Command;
 import dev.copperbench.core.contract.UiCore.Operation;
@@ -18,6 +20,11 @@ import dev.copperbench.core.contract.UiCore.PermissionProfile;
 import dev.copperbench.core.contract.UiCore.Query;
 import dev.copperbench.core.contract.UiCore.RequestContext;
 import dev.copperbench.core.workspace.RevisionedWorkspaceStore;
+import dev.copperbench.history.LocalHistoryService;
+import dev.copperbench.history.RecoveryPoint;
+import dev.copperbench.history.RecoveryPointRequest;
+import dev.copperbench.history.RestoreResult;
+import dev.copperbench.history.WorkspaceChange;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.api.parallel.ResourceLock;
@@ -74,6 +81,91 @@ class Fabric1211TaskGatewayTest {
 			assertFalse(taskProjection.getAsJsonArray("logs").isEmpty());
 			assertTrue(taskProjection.getAsJsonArray("logs").toString().contains("Fabric 1.21.1"));
 			assertTrue(Files.isRegularFile(generatedWorkspace.resolve("src/main/resources/fabric.mod.json")));
+		}
+	}
+
+	@Test void deterministicValidationRepairPreviewsAndAppliesThroughRecoveryProtectedWorkspacePlan() throws Exception {
+		RevisionedWorkspaceStore store = new RevisionedWorkspaceStore();
+		var valid = Fabric1211GoldenWorkspace.create();
+		var brokenElements = new ArrayList<>(valid.elements());
+		var item = brokenElements.get(1);
+		JsonObject values = item.values();
+		values.getAsJsonObject("fields").addProperty("maxStackSize", 0);
+		brokenElements.set(1, new dev.copperbench.core.workspace.WorkspaceState.Element(item.id(), item.type(),
+				item.name(), item.displayName(), item.state(), item.ownership(), item.updatedAt(), values));
+		store.register(new dev.copperbench.core.workspace.WorkspaceState(valid.id(), valid.name(), valid.kind(),
+				valid.revision(), valid.dirty(), valid.generator(), valid.upstreamDocument(), brokenElements));
+		AtomicLong sequence = new AtomicLong(720);
+		Supplier<UUID> ids = () -> UUID.fromString("00000000-0000-4000-8000-" +
+				String.format("%012d", sequence.getAndIncrement()));
+		RecordingHistory history = new RecordingHistory();
+		try (Fabric1211WorkspaceTaskGateway tasks = new Fabric1211WorkspaceTaskGateway(store,
+				ignored -> generatedWorkspace, Path.of(".").toAbsolutePath().normalize(), CLOCK, ids)) {
+			WorkspaceApplicationService service = new WorkspaceApplicationService(store, tasks,
+					WorkspaceMutationGateway.noOp(), history, null, CLOCK, ids);
+
+			JsonObject projection = startAndAwait(service, ids, Operation.VALIDATE_WORKSPACE);
+			JsonObject diagnostic = projection.getAsJsonArray("diagnostics").asList().stream()
+					.map(value -> value.getAsJsonObject())
+					.filter(value -> value.get("code").getAsString().equals("FABRIC_ITEM_STACK_INVALID"))
+					.findFirst().orElseThrow();
+			JsonObject repair = diagnostic.getAsJsonArray("actions").asList().stream()
+					.map(value -> value.getAsJsonObject())
+					.filter(value -> value.get("kind").getAsString().equals("preview_repair"))
+					.findFirst().orElseThrow();
+			JsonObject repairPayload = repair.getAsJsonObject("payload");
+			assertEquals(valid.revision(), repairPayload.get("expectedRevision").getAsLong());
+			assertTrue(repairPayload.get("requireRecoveryPoint").getAsBoolean());
+			JsonArray operations = repairPayload.getAsJsonArray("operations");
+			assertEquals(1, operations.size());
+			JsonObject change = operations.get(0).getAsJsonObject().getAsJsonObject("payload")
+					.getAsJsonArray("changes").get(0).getAsJsonObject();
+			assertEquals("/fields/maxStackSize", change.get("path").getAsString());
+			assertEquals(1, change.get("value").getAsInt());
+
+			JsonObject planPayload = repairPayload.deepCopy();
+			planPayload.addProperty("idempotencyKey", "repair-item-stack");
+			var planned = service.query(Query.of(ids.get(), WORKSPACE_ID, Operation.PLAN_WORKSPACE_CHANGES,
+					planPayload), UI);
+			assertEquals("succeeded", planned.status(), planned.diagnostics().toString());
+			JsonObject plan = planned.data().getAsJsonObject();
+			assertTrue(plan.get("requireRecoveryPoint").getAsBoolean());
+			assertTrue(plan.getAsJsonObject("safety").get("ready").getAsBoolean());
+			assertTrue(plan.getAsJsonArray("changedPaths").toString().contains(item.id().toString()));
+			assertTrue(plan.getAsJsonArray("semanticDiff").toString().contains("/values/fields/maxStackSize"));
+
+			JsonObject applyPayload = new JsonObject();
+			applyPayload.add("plan", plan.deepCopy());
+			var applied = service.execute(Command.of(ids.get(), WORKSPACE_ID, valid.revision(),
+					Operation.APPLY_WORKSPACE_PLAN, applyPayload), UI);
+			assertEquals("committed", applied.result().status(), applied.result().diagnostics().toString());
+			assertNotNull(applied.result().recoveryPointId());
+			assertEquals(1, history.created.size());
+			var repaired = store.read(WORKSPACE_ID).orElseThrow();
+			assertEquals(valid.revision() + 1, repaired.revision());
+			assertEquals(1, repaired.element(item.id()).values().getAsJsonObject("fields")
+					.get("maxStackSize").getAsInt());
+
+			JsonObject manualChange = new JsonObject();
+			manualChange.addProperty("path", "/fields/maxStackSize");
+			manualChange.addProperty("value", 32);
+			JsonArray manualChanges = new JsonArray();
+			manualChanges.add(manualChange);
+			JsonObject manualPayload = new JsonObject();
+			manualPayload.addProperty("elementId", item.id().toString());
+			manualPayload.add("changes", manualChanges);
+			var manual = service.execute(Command.of(ids.get(), WORKSPACE_ID, repaired.revision(),
+					Operation.UPDATE_MOD_ELEMENT, manualPayload), UI);
+			assertEquals("committed", manual.result().status(), manual.result().diagnostics().toString());
+
+			JsonObject stalePlanPayload = repairPayload.deepCopy();
+			stalePlanPayload.addProperty("idempotencyKey", "stale-repair-item-stack");
+			var stale = service.query(Query.of(ids.get(), WORKSPACE_ID, Operation.PLAN_WORKSPACE_CHANGES,
+					stalePlanPayload), UI);
+			assertEquals("failed", stale.status());
+			assertTrue(stale.diagnostics().toString().contains("WORKSPACE_PLAN_STALE"));
+			assertEquals(32, store.read(WORKSPACE_ID).orElseThrow().element(item.id()).values()
+					.getAsJsonObject("fields").get("maxStackSize").getAsInt());
 		}
 	}
 
@@ -498,5 +590,31 @@ class Fabric1211TaskGatewayTest {
 		payload.addProperty("taskId", taskId.toString());
 		return service.query(Query.of(UUID.randomUUID(), WORKSPACE_ID, Operation.GET_TASK, payload), UI)
 				.data().getAsJsonObject();
+	}
+
+	private static final class RecordingHistory implements LocalHistoryService {
+		private final List<RecoveryPoint> created = new ArrayList<>();
+
+		@Override public RecoveryPoint createRecoveryPoint(RecoveryPointRequest request) {
+			RecoveryPoint point = new RecoveryPoint("repair-rp-" + (created.size() + 1), request.label(),
+					request.actor(), request.taskId(), CLOCK.instant());
+			created.add(point);
+			return point;
+		}
+
+		@Override public List<RecoveryPoint> listRecoveryPoints() {
+			return List.copyOf(created);
+		}
+
+		@Override public List<WorkspaceChange> compare(String fromRecoveryPointId, String toRecoveryPointId) {
+			return List.of();
+		}
+
+		@Override public RestoreResult restore(String recoveryPointId) {
+			throw new UnsupportedOperationException("restore is not needed by this test");
+		}
+
+		@Override public void close() {
+		}
 	}
 }

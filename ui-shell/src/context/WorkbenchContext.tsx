@@ -83,7 +83,8 @@ interface WorkbenchContextType {
   updateRegistryEntry: (entryId: UUID, changes: FieldChange[]) => Promise<CommandResult>;
   previewRegistryRename: (entryId: UUID, newName: string) => Promise<RegistryRenamePreview | null>;
   planProcedureRefactor: (request: ProcedureRefactorRequest) => Promise<WorkspacePlan | null>;
-  planWorkspaceChanges: (operations: Array<Omit<WorkspacePlanStep, 'plannedId'>>, requireRecoveryPoint?: boolean) => Promise<WorkspacePlan | null>;
+  planWorkspaceChanges: (operations: Array<Omit<WorkspacePlanStep, 'plannedId'>>, requireRecoveryPoint?: boolean,
+    expectedRevision?: number) => Promise<WorkspacePlan | null>;
   applyWorkspacePlan: (plan: WorkspacePlan) => Promise<CommandResult>;
   renameRegistryEntry: (entryId: UUID, newName: string) => Promise<CommandResult>;
   deleteRegistryEntry: (entryId: UUID) => Promise<CommandResult>;
@@ -430,13 +431,14 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const planWorkspaceChanges = useCallback(async (
     operations: Array<Omit<WorkspacePlanStep, 'plannedId'>>,
-    requireRecoveryPoint = false
+    requireRecoveryPoint = false,
+    expectedRevision?: number
   ): Promise<WorkspacePlan | null> => {
     const res = await coreBridge.sendQuery<WorkspacePlan>({
       messageType: 'query', schemaVersion: '1.0', requestId: generateUUID(),
       workspaceId: state.workbench?.workspace.id ?? '', operation: 'plan_workspace_changes',
       payload: {
-        expectedRevision: state.workbench?.workspace.revision ?? 0,
+        expectedRevision: expectedRevision ?? state.workbench?.workspace.revision ?? 0,
         idempotencyKey: generateUUID(),
         requireRecoveryPoint,
         operations

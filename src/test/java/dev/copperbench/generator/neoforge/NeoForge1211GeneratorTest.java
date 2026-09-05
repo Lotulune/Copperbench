@@ -9,12 +9,14 @@
 
 package dev.copperbench.generator.neoforge;
 
+import dev.copperbench.core.workspace.WorkspaceState;
 import dev.copperbench.generator.BundledJdkLocator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -71,5 +73,25 @@ class NeoForge1211GeneratorTest {
 		String expected = installedJdk.toAbsolutePath().normalize().toString().replace('\\', '/');
 		assertTrue(properties.contains("org.gradle.java.installations.paths=" + expected));
 		assertFalse(properties.contains("jdk/jdk21_win_64"));
+	}
+
+	@Test void deterministicNumericValidationRepairsSurviveNeoForgeCodeMapping() {
+		WorkspaceState valid = NeoForge1211GoldenWorkspace.create();
+		var elements = new ArrayList<>(valid.elements());
+		var item = elements.get(1);
+		var values = item.values();
+		values.getAsJsonObject("fields").addProperty("maxStackSize", 99);
+		elements.set(1, new WorkspaceState.Element(item.id(), item.type(), item.name(), item.displayName(),
+				item.state(), item.ownership(), item.updatedAt(), values));
+		WorkspaceState broken = new WorkspaceState(valid.id(), valid.name(), valid.kind(), valid.revision(),
+				valid.dirty(), valid.generator(), valid.upstreamDocument(), elements);
+
+		var issue = new NeoForge1211Generator(Path.of(".").toAbsolutePath().normalize()).validate(broken).stream()
+				.filter(candidate -> candidate.code().equals("NEOFORGE_ITEM_STACK_INVALID"))
+				.findFirst().orElseThrow();
+
+		assertEquals(item.id(), issue.elementId());
+		assertEquals("/elements/" + item.id() + "/values/fields/maxStackSize", issue.path());
+		assertEquals(64, issue.repairValue().getAsInt());
 	}
 }

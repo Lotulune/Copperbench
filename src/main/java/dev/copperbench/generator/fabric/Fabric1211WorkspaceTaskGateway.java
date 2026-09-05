@@ -64,7 +64,7 @@ public final class Fabric1211WorkspaceTaskGateway implements WorkspaceTaskGatewa
 
 			@Override public List<ValidationIssue> validate(dev.copperbench.core.workspace.WorkspaceState workspace) {
 				return generator.validate(workspace).stream().map(issue -> new ValidationIssue(issue.code(),
-						issue.message(), issue.path(), issue.elementId())).toList();
+						issue.message(), issue.path(), issue.elementId(), issue.repairValue())).toList();
 			}
 
 			@Override public GenerationResult generate(Path targetRoot,

@@ -125,7 +125,7 @@ public final class NeoForge1211Generator implements GradleWorkspaceBackend {
 		}
 		return commonGenerator.validate(asFabricWorkspace(workspace)).stream()
 				.map(issue -> new ValidationIssue(issue.code().replaceFirst("^FABRIC_", "NEOFORGE_"),
-						issue.message().replace("Fabric", "NeoForge"), issue.path(), issue.elementId()))
+						issue.message().replace("Fabric", "NeoForge"), issue.path(), issue.elementId(), issue.repairValue()))
 				.toList();
 	}
 

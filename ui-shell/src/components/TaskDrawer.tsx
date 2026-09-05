@@ -12,7 +12,7 @@ import {
 import { useWorkbench } from '../context/WorkbenchContext';
 import { useDialogA11y } from '../hooks/useDialogA11y';
 import { t } from '../i18n';
-import type { ActionHint, DatagenPreview, Diagnostic, TaskSourcePreview } from '../types/contract';
+import type { ActionHint, DatagenPreview, Diagnostic, TaskSourcePreview, WorkspacePlan, WorkspacePlanStep } from '../types/contract';
 
 export const TaskDrawer: React.FC = () => {
   const {
@@ -24,7 +24,9 @@ export const TaskDrawer: React.FC = () => {
     previewDatagenOutput,
     previewTaskSource,
     publishDatagenOutput,
-    runDiagnosticAction
+    runDiagnosticAction,
+    planWorkspaceChanges,
+    applyWorkspacePlan
   } = useWorkbench();
 
   const logContainerRef = useRef<HTMLDivElement>(null);
@@ -34,6 +36,10 @@ export const TaskDrawer: React.FC = () => {
   const [sourcePreview, setSourcePreview] = useState<TaskSourcePreview | null>(null);
   const [sourceBusy, setSourceBusy] = useState(false);
   const [sourceError, setSourceError] = useState<string | null>(null);
+  const [repairPlan, setRepairPlan] = useState<WorkspacePlan | null>(null);
+  const [repairBusy, setRepairBusy] = useState(false);
+  const [repairError, setRepairError] = useState<string | null>(null);
+  const [repairApplied, setRepairApplied] = useState(false);
   const [confirmPublish, setConfirmPublish] = useState(false);
   const publishDialogRef = useDialogA11y(confirmPublish, () => setConfirmPublish(false));
 
@@ -56,10 +62,50 @@ export const TaskDrawer: React.FC = () => {
     setDatagenError(null);
     setSourcePreview(null);
     setSourceError(null);
+    setRepairPlan(null);
+    setRepairError(null);
+    setRepairApplied(false);
     setConfirmPublish(false);
   }, [activeTask?.id]);
 
   const handleDiagnosticAction = async (action: ActionHint, diagnostic: Diagnostic) => {
+    if (action.kind === 'preview_repair') {
+      const operations = action.payload?.operations;
+      const expectedRevision = action.payload?.expectedRevision;
+      if (!Array.isArray(operations) || operations.length === 0
+        || !Number.isSafeInteger(expectedRevision) || Number(expectedRevision) < 0) {
+        setRepairPlan(null);
+        setRepairError(t({ key: 'diagnostic.repair_invalid', fallback: 'The diagnostic repair payload is invalid.' }));
+        return;
+      }
+      if (state.workbench?.workspace.revision !== expectedRevision) {
+        setRepairPlan(null);
+        setRepairError(t({ key: 'diagnostic.repair_stale', fallback: 'This repair was produced for an older workspace revision. Validate again before applying a fix.' }));
+        return;
+      }
+      setRepairBusy(true);
+      setRepairError(null);
+      setRepairApplied(false);
+      try {
+        const plan = await planWorkspaceChanges(
+          operations as Array<Omit<WorkspacePlanStep, 'plannedId'>>,
+          true,
+          Number(expectedRevision)
+        );
+        if (!plan) {
+          setRepairPlan(null);
+          setRepairError(t({ key: 'diagnostic.repair_preview_unavailable', fallback: 'Safe repair preview is unavailable.' }));
+          return;
+        }
+        setRepairPlan(plan);
+      } catch {
+        setRepairPlan(null);
+        setRepairError(t({ key: 'diagnostic.repair_preview_unavailable', fallback: 'Safe repair preview is unavailable.' }));
+      } finally {
+        setRepairBusy(false);
+      }
+      return;
+    }
     if (action.kind !== 'open_source') {
       runDiagnosticAction(action, diagnostic);
       return;
@@ -82,6 +128,27 @@ export const TaskDrawer: React.FC = () => {
       setSourceBusy(false);
     }
   };
+  const applyDiagnosticRepair = async () => {
+    if (!repairPlan || !repairPlan.safety.ready) return;
+    setRepairBusy(true);
+    setRepairError(null);
+    try {
+      const result = await applyWorkspacePlan(repairPlan);
+      if (result.status !== 'committed') {
+        setRepairError(result.diagnostics[0]
+          ? t(result.diagnostics[0].message)
+          : t({ key: 'diagnostic.repair_apply_failed', fallback: 'The safe repair was not applied.' }));
+        return;
+      }
+      setRepairPlan(null);
+      setRepairApplied(true);
+    } catch {
+      setRepairError(t({ key: 'diagnostic.repair_apply_failed', fallback: 'The safe repair was not applied.' }));
+    } finally {
+      setRepairBusy(false);
+    }
+  };
+
   const loadDatagenPreview = async () => {
     if (!activeTask) return;
     setDatagenBusy(true);
@@ -127,7 +194,9 @@ export const TaskDrawer: React.FC = () => {
         bottom: 0,
         left: 0,
         right: 0,
-        height: sourcePreview || sourceError ? '480px' : datagenPreview || datagenError || diagnostics.length > 0 ? '360px' : '240px',
+        height: sourcePreview || sourceError || repairPlan || repairError || repairApplied
+          ? '480px'
+          : datagenPreview || datagenError || diagnostics.length > 0 ? '360px' : '240px',
         background: 'var(--drawer-bg)',
         borderTop: '1px solid var(--border-subtle)',
         display: 'flex',
@@ -259,6 +328,49 @@ export const TaskDrawer: React.FC = () => {
         </section>
       )}
 
+      {(repairPlan || repairError || repairApplied) && (
+        <section
+          data-testid="task-repair-preview"
+          aria-label={t({ key: 'repair.preview.title', fallback: 'Safe repair preview' })}
+          style={{ padding: '10px 16px', borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-panel)', display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: '10px 16px' }}
+        >
+          <div style={{ minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: 600 }}>
+              {repairApplied ? <CheckCircle2 size={14} color="var(--badge-green)" /> : <FileDiff size={14} />}
+              <span>{repairApplied
+                ? t({ key: 'repair.preview.applied', fallback: 'Safe repair applied' })
+                : t({ key: 'repair.preview.title', fallback: 'Safe repair preview' })}</span>
+              {repairPlan?.requireRecoveryPoint && <span className="badge badge-green">{t({ key: 'repair.preview.recovery', fallback: 'Recovery point required' })}</span>}
+            </div>
+            {repairPlan && (
+              <>
+                <div data-testid="task-repair-summary" style={{ marginTop: '5px', fontSize: '11px', color: 'var(--text-muted)' }}>
+                  {t({ key: 'repair.preview.summary', fallback: '{objects} affected objects · {operations} operations · {paths} changed paths', args: { objects: repairPlan.review.summary.affectedObjectCount, operations: repairPlan.operationCount, paths: repairPlan.changedPaths.length } })}
+                </div>
+                <code style={{ display: 'block', marginTop: '5px', fontSize: '10px', color: 'var(--text-sub)', overflowWrap: 'anywhere' }}>{repairPlan.changedPaths.join(', ')}</code>
+                <details style={{ marginTop: '6px', fontSize: '10px' }}>
+                  <summary>{t({ key: 'repair.preview.semantic_diff', fallback: 'Semantic diff' })}</summary>
+                  <pre data-testid="task-repair-semantic-diff" style={{ margin: '6px 0 0', maxHeight: '80px', overflow: 'auto', whiteSpace: 'pre-wrap' }}>{JSON.stringify(repairPlan.semanticDiff, null, 2)}</pre>
+                </details>
+                {!repairPlan.safety.ready && <div data-testid="task-repair-safety-blocked" style={{ marginTop: '5px', color: 'var(--badge-red)', fontSize: '11px' }}>{t({ key: 'repair.preview.safety_blocked', fallback: 'This repair cannot be applied because a required recovery point is unavailable.' })}</div>}
+              </>
+            )}
+            {repairError && <div data-testid="task-repair-error" style={{ marginTop: '5px', color: 'var(--badge-red)', fontSize: '11px' }}>{repairError}</div>}
+          </div>
+          {repairPlan && (
+            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+              <button type="button" className="btn-secondary" onClick={() => { setRepairPlan(null); setRepairError(null); }} disabled={repairBusy} data-testid="task-repair-dismiss" style={{ minHeight: '32px', padding: '4px 9px' }}>
+                {t({ key: 'repair.preview.dismiss', fallback: 'Dismiss' })}
+              </button>
+              <button type="button" className="btn-primary" onClick={() => void applyDiagnosticRepair()} disabled={repairBusy || !repairPlan.safety.ready} data-testid="task-repair-apply" style={{ minHeight: '32px', padding: '4px 9px' }}>
+                {repairBusy ? <LoaderCircle className="spin" size={13} /> : <CheckCircle2 size={13} />}
+                <span>{t({ key: 'repair.preview.apply', fallback: 'Apply reviewed repair' })}</span>
+              </button>
+            </div>
+          )}
+        </section>
+      )}
+
       {diagnostics.length > 0 && (
         <section
           data-testid="task-diagnostics"
@@ -301,7 +413,8 @@ export const TaskDrawer: React.FC = () => {
                       className="btn-secondary"
                       style={{ fontSize: '11px', minHeight: '32px', padding: '4px 9px' }}
                       onClick={() => void handleDiagnosticAction(action, diagnostic)}
-                      disabled={action.kind === 'open_source' && sourceBusy}
+                      disabled={(action.kind === 'open_source' && sourceBusy)
+                        || (action.kind === 'preview_repair' && repairBusy)}
                       data-testid={`task-diag-action-${action.id}`}
                     >
                       {t(action.label)}

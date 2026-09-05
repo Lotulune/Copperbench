@@ -109,6 +109,7 @@
             "open_asset",
             "open_source",
             "open_logs",
+            "preview_repair",
             "request_permission",
             "dismiss"
           ]
@@ -116,6 +117,12 @@
         "target": {
           "type": [
             "string",
+            "null"
+          ]
+        },
+        "payload": {
+          "type": [
+            "object",
             "null"
           ]
         }
