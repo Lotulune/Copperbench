@@ -16,6 +16,11 @@ test.describe('UI-Core v1.0 Contract Scenarios', () => {
 
     await expect(page.locator('[data-testid="task-diagnostics"]')).toBeVisible();
     await expect(page.locator('[data-testid="task-diagnostic-JAVA_COMPILE_ERROR"]')).toBeVisible();
+    await expect(page.locator('[data-testid="task-diag-action-open_generated_source"]')).toBeVisible();
+    await page.click('[data-testid="task-diag-action-open_generated_source"]');
+    await expect(page.locator('[data-testid="task-source-preview"]')).toBeVisible();
+    await expect(page.locator('[data-testid="task-source-preview"]')).toContainText('CopperLampElement.java:42');
+    await expect(page.locator('[data-testid="task-source-content"]')).toContainText('CopperLampElement');
     await expect(page.locator('[data-testid="task-diag-action-locate_compile_element"]')).toBeVisible();
     await page.click('[data-testid="task-diag-action-locate_compile_element"]');
 

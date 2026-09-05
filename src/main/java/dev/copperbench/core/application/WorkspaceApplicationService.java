@@ -3740,6 +3740,15 @@ public final class WorkspaceApplicationService {
 		projection.add("task", task);
 		projection.add("logs", GSON.toJsonTree(tasks.logsAfter(state.id(), taskId, afterLogSequence)));
 		projection.add("diagnostics", GSON.toJsonTree(tasks.diagnostics(state.id(), taskId)));
+		if (query.payload().has("sourcePath")) {
+			String sourcePath = requiredString(query.payload(), "sourcePath");
+			JsonObject source = tasks.sourcePreview(state.id(), taskId, sourcePath).orElse(null);
+			if (source == null)
+				return queryFailure(query, state.revision(), diagnostic("TASK_SOURCE_NOT_FOUND",
+						"diagnostic.task_source_not_found", "The requested task source preview is not available.",
+						"/sourcePath", null));
+			projection.add("source", source);
+		}
 		return querySuccess(query, state.revision(), projection);
 	}
 

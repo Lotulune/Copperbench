@@ -106,6 +106,7 @@
             "retry",
             "refresh",
             "open_field",
+            "open_source",
             "open_logs",
             "request_permission",
             "dismiss"
@@ -1036,6 +1037,43 @@
           "items": {
             "$ref": "#/$defs/diagnostic"
           }
+        },
+        "source": {
+          "$ref": "#/$defs/taskSourcePreview"
+        }
+      },
+      "additionalProperties": false
+    },
+    "taskSourcePreview": {
+      "type": "object",
+      "required": [
+        "path",
+        "language",
+        "content",
+        "size",
+        "line"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "pattern": "^/src/main/java/.+\\.java$",
+          "maxLength": 4096
+        },
+        "language": {
+          "const": "java"
+        },
+        "content": {
+          "type": "string",
+          "maxLength": 262144
+        },
+        "size": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 262144
+        },
+        "line": {
+          "type": "integer",
+          "minimum": 0
         }
       },
       "additionalProperties": false

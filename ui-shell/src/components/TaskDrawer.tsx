@@ -12,7 +12,7 @@ import {
 import { useWorkbench } from '../context/WorkbenchContext';
 import { useDialogA11y } from '../hooks/useDialogA11y';
 import { t } from '../i18n';
-import type { DatagenPreview } from '../types/contract';
+import type { ActionHint, DatagenPreview, Diagnostic, TaskSourcePreview } from '../types/contract';
 
 export const TaskDrawer: React.FC = () => {
   const {
@@ -22,6 +22,7 @@ export const TaskDrawer: React.FC = () => {
     state,
     cancelTask,
     previewDatagenOutput,
+    previewTaskSource,
     publishDatagenOutput,
     runDiagnosticAction
   } = useWorkbench();
@@ -30,6 +31,9 @@ export const TaskDrawer: React.FC = () => {
   const [datagenPreview, setDatagenPreview] = useState<DatagenPreview | null>(null);
   const [datagenBusy, setDatagenBusy] = useState(false);
   const [datagenError, setDatagenError] = useState<string | null>(null);
+  const [sourcePreview, setSourcePreview] = useState<TaskSourcePreview | null>(null);
+  const [sourceBusy, setSourceBusy] = useState(false);
+  const [sourceError, setSourceError] = useState<string | null>(null);
   const [confirmPublish, setConfirmPublish] = useState(false);
   const publishDialogRef = useDialogA11y(confirmPublish, () => setConfirmPublish(false));
 
@@ -50,9 +54,34 @@ export const TaskDrawer: React.FC = () => {
   useEffect(() => {
     setDatagenPreview(null);
     setDatagenError(null);
+    setSourcePreview(null);
+    setSourceError(null);
     setConfirmPublish(false);
   }, [activeTask?.id]);
 
+  const handleDiagnosticAction = async (action: ActionHint, diagnostic: Diagnostic) => {
+    if (action.kind !== 'open_source') {
+      runDiagnosticAction(action, diagnostic);
+      return;
+    }
+    if (!activeTask || !action.target) return;
+    setSourceBusy(true);
+    setSourceError(null);
+    try {
+      const preview = await previewTaskSource(activeTask.id, action.target);
+      if (!preview) {
+        setSourcePreview(null);
+        setSourceError('生成源码预览不可用。');
+        return;
+      }
+      setSourcePreview(preview);
+    } catch {
+      setSourcePreview(null);
+      setSourceError('生成源码预览不可用。');
+    } finally {
+      setSourceBusy(false);
+    }
+  };
   const loadDatagenPreview = async () => {
     if (!activeTask) return;
     setDatagenBusy(true);
@@ -98,7 +127,7 @@ export const TaskDrawer: React.FC = () => {
         bottom: 0,
         left: 0,
         right: 0,
-        height: datagenPreview || datagenError || diagnostics.length > 0 ? '360px' : '240px',
+        height: sourcePreview || sourceError ? '480px' : datagenPreview || datagenError || diagnostics.length > 0 ? '360px' : '240px',
         background: 'var(--drawer-bg)',
         borderTop: '1px solid var(--border-subtle)',
         display: 'flex',
@@ -271,7 +300,8 @@ export const TaskDrawer: React.FC = () => {
                       type="button"
                       className="btn-secondary"
                       style={{ fontSize: '11px', minHeight: '32px', padding: '4px 9px' }}
-                      onClick={() => runDiagnosticAction(action, diagnostic)}
+                      onClick={() => void handleDiagnosticAction(action, diagnostic)}
+                      disabled={action.kind === 'open_source' && sourceBusy}
                       data-testid={`task-diag-action-${action.id}`}
                     >
                       {t(action.label)}
@@ -284,6 +314,50 @@ export const TaskDrawer: React.FC = () => {
         </section>
       )}
 
+      {(sourcePreview || sourceError) && (
+        <section
+          data-testid="task-source-preview"
+          aria-label="Generated source preview"
+          style={{
+            borderBottom: '1px solid var(--border-subtle)',
+            background: 'var(--bg-input)',
+            minHeight: 0,
+            maxHeight: '220px',
+            display: 'flex',
+            flexDirection: 'column'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', padding: '7px 12px', borderBottom: '1px solid var(--border-subtle)' }}>
+            <div style={{ minWidth: 0, fontSize: '11px' }}>
+              <strong>生成源码</strong>
+              {sourcePreview && (
+                <code style={{ marginLeft: '8px', color: 'var(--text-sub)' }}>
+                  {sourcePreview.path}{sourcePreview.line > 0 ? `:${sourcePreview.line}` : ''}
+                </code>
+              )}
+            </div>
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => { setSourcePreview(null); setSourceError(null); }}
+              data-testid="task-source-preview-close"
+              style={{ minHeight: '32px', padding: '4px 9px' }}
+            >
+              关闭
+            </button>
+          </div>
+          {sourceError ? (
+            <div data-testid="task-source-error" style={{ padding: '12px', color: 'var(--badge-red)', fontSize: '11px' }}>{sourceError}</div>
+          ) : (
+            <pre
+              data-testid="task-source-content"
+              style={{ margin: 0, padding: '10px 12px', overflow: 'auto', fontFamily: 'var(--font-mono)', fontSize: '11px', lineHeight: 1.5, whiteSpace: 'pre' }}
+            >
+              {sourcePreview?.content}
+            </pre>
+          )}
+        </section>
+      )}
       {/* Log Stream Output */}
       <div
         ref={logContainerRef}

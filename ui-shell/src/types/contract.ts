@@ -77,6 +77,7 @@ export type ActionHintKind =
   | 'retry'
   | 'refresh'
   | 'open_field'
+  | 'open_source'
   | 'open_logs'
   | 'request_permission'
   | 'dismiss';
@@ -490,6 +491,15 @@ export interface TaskProjection {
   task: TaskSummary;
   logs: TaskLogEntry[];
   diagnostics: Diagnostic[];
+  source?: TaskSourcePreview | null;
+}
+
+export interface TaskSourcePreview {
+  path: string;
+  language: 'java';
+  content: string;
+  size: number;
+  line: number;
 }
 
 export type RecoveryPointActor = 'ui' | 'mcp' | 'headless' | 'legacy_ui' | 'system';

@@ -90,6 +90,10 @@ public final class NeoForge1211WorkspaceTaskGateway implements WorkspaceTaskGate
 		return delegate.diagnostics(workspaceId, taskId);
 	}
 
+	@Override public Optional<JsonObject> sourcePreview(UUID workspaceId, UUID taskId, String sourcePath) {
+		return delegate.sourcePreview(workspaceId, taskId, sourcePath);
+	}
+
 	@Override public Optional<JsonObject> previewDatagen(UUID workspaceId, UUID taskId) {
 		return delegate.previewDatagen(workspaceId, taskId);
 	}

@@ -62,6 +62,12 @@
               "target": null
             },
             {
+              "id": "open_generated_source",
+              "label": { "key": "action.open_source", "fallback": "View generated source", "args": {} },
+              "kind": "open_source",
+              "target": "/src/main/java/dev/coppertrails/elements/CopperLampElement.java"
+            },
+            {
               "id": "open_compile_logs",
               "label": { "key": "action.open_logs", "fallback": "View task logs", "args": {} },
               "kind": "open_logs",

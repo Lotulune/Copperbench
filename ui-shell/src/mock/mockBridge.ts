@@ -4144,14 +4144,30 @@ export class MockCoreBridge implements CoreBridge {
         break;
       }
       case 'get_task': {
-        const taskId = (query.payload as { taskId?: UUID })?.taskId;
-        const afterLogSequence = (query.payload as { afterLogSequence?: number })?.afterLogSequence ?? 0;
+        const taskPayload = query.payload as { taskId?: UUID; afterLogSequence?: number; sourcePath?: string };
+        const taskId = taskPayload.taskId;
+        const afterLogSequence = taskPayload.afterLogSequence ?? 0;
+        const sourcePath = taskPayload.sourcePath;
         const task = taskId ? this.state.tasks[taskId] : Object.values(this.state.tasks)[0];
         const logs = taskId ? this.state.taskLogs[taskId] || [] : [];
+        const diagnostics = taskId ? this.state.taskDiagnostics[taskId] || [] : [];
+        const sourceDiagnostic = sourcePath
+          ? diagnostics.find((diagnostic) => diagnostic.path === sourcePath)
+          : undefined;
+        const source = sourceDiagnostic && sourcePath?.startsWith('/src/main/java/') && sourcePath.endsWith('.java')
+          ? {
+              path: sourcePath,
+              language: 'java' as const,
+              content: 'package dev.coppertrails.elements;\n\npublic final class CopperLampElement {\n    BROKEN_SYMBOL;\n}\n',
+              size: 104,
+              line: 42
+            }
+          : undefined;
         data = {
           task,
           logs: logs.filter((entry) => entry.sequence > afterLogSequence),
-          diagnostics: taskId ? this.state.taskDiagnostics[taskId] || [] : []
+          diagnostics,
+          ...(source ? { source } : {})
         };
         break;
       }

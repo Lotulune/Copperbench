@@ -206,7 +206,37 @@ class Fabric1211TaskGatewayTest {
 			assertTrue(diagnostics.contains("FABRIC_BUILD_FAILED"), diagnostics);
 			assertTrue(diagnostics.contains("00000000-0000-4000-8000-000000000004"), diagnostics);
 			assertTrue(diagnostics.contains("locate_element"), diagnostics);
+			assertTrue(diagnostics.contains("open_generated_source"), diagnostics);
 			assertTrue(diagnostics.contains("open_task_logs"), diagnostics);
+
+			Path generatedSource = generatedWorkspace.resolve(
+					"src/main/java/dev/coppertrails/procedure/AnnounceTrailProcedure.java");
+			Files.writeString(generatedSource,
+					"package dev.coppertrails.procedure;\nfinal class RewrittenAfterFailure {}\n");
+
+			UUID taskId = UUID.fromString(build.getAsJsonObject("task").get("id").getAsString());
+			JsonObject sourcePayload = new JsonObject();
+			sourcePayload.addProperty("taskId", taskId.toString());
+			sourcePayload.addProperty("afterLogSequence", 0);
+			sourcePayload.addProperty("sourcePath",
+					"/src/main/java/dev/coppertrails/procedure/AnnounceTrailProcedure.java");
+			var sourceResult = service.query(Query.of(ids.get(), WORKSPACE_ID, Operation.GET_TASK, sourcePayload), UI);
+			assertEquals("succeeded", sourceResult.status(), sourceResult.diagnostics().toString());
+			JsonObject source = sourceResult.data().getAsJsonObject().getAsJsonObject("source");
+			assertEquals("/src/main/java/dev/coppertrails/procedure/AnnounceTrailProcedure.java",
+					source.get("path").getAsString());
+			assertEquals("java", source.get("language").getAsString());
+			assertEquals(42, source.get("line").getAsInt());
+			assertTrue(source.get("size").getAsLong() <= 256L * 1024L);
+			assertTrue(source.get("content").getAsString().contains("AnnounceTrailProcedure"));
+			assertFalse(source.get("content").getAsString().contains("RewrittenAfterFailure"));
+
+			JsonObject unrelatedPayload = sourcePayload.deepCopy();
+			unrelatedPayload.addProperty("sourcePath", "/src/main/java/dev/coppertrails/CopperTrailsMod.java");
+			var unrelated = service.query(Query.of(ids.get(), WORKSPACE_ID, Operation.GET_TASK, unrelatedPayload), UI);
+			assertEquals("rejected", unrelated.status());
+			assertTrue(unrelated.diagnostics().toString().contains("COMMAND_PAYLOAD_INVALID"),
+					unrelated.diagnostics().toString());
 		}
 	}
 

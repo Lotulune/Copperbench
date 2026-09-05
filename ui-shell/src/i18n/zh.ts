@@ -40,6 +40,7 @@ export const zh: Record<string, string> = {
   'diagnostic.resource_pack_client_failed': '资源包测试客户端准备失败。',
   'diagnostic.task_cancel_failed': '无法取消请求的任务。',
   'diagnostic.task_not_found': '请求的任务不存在或已结束。',
+  'diagnostic.task_source_not_found': '请求的任务生成源码预览不可用。',
   'diagnostic.task_start_failed': '无法启动请求的任务。',
   'diagnostic.unsupported_operation': '当前版本不支持请求的操作。',
   'diagnostic.upstream_import_failed': '无法读取或复制上游工作区。',
@@ -79,6 +80,7 @@ export const zh: Record<string, string> = {
   /* ---- 诊断动作 (action.*) ---- */
   'action.open_field': '定位问题字段',
   'action.open_element': '定位到元素',
+  'action.open_source': '查看生成源码',
   'action.add_list_item': '添加条目',
   'action.remove_list_item': '删除条目',
   'action.open_logs': '查看日志',

@@ -29,7 +29,9 @@ import {
   WorkspacePlan,
   WorkspacePlanStep,
   ProcedureRefactorRequest,
-  DatagenPreview
+  DatagenPreview,
+  TaskProjection,
+  TaskSourcePreview
 } from '../types/contract';
 import {
   coreBridge,
@@ -92,6 +94,7 @@ interface WorkbenchContextType {
   runServer: (userApproved: boolean) => Promise<CommandResult>;
   runDatagen: () => Promise<CommandResult>;
   previewDatagenOutput: (taskId: UUID) => Promise<DatagenPreview | null>;
+  previewTaskSource: (taskId: UUID, sourcePath: string) => Promise<TaskSourcePreview | null>;
   publishDatagenOutput: (taskId: UUID, manifestHash: string) => Promise<CommandResult>;
   runGameTest: () => Promise<CommandResult>;
   cancelTask: (taskId: UUID) => Promise<CommandResult>;
@@ -704,6 +707,22 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     return res.status === 'succeeded' ? res.data : null;
   }, [state.workbench]);
 
+  const previewTaskSource = useCallback(async (
+    taskId: UUID,
+    sourcePath: string
+  ): Promise<TaskSourcePreview | null> => {
+    const afterLogSequence = state.taskLogs[taskId]?.at(-1)?.sequence ?? 0;
+    const res = await coreBridge.sendQuery<TaskProjection>({
+      messageType: 'query',
+      schemaVersion: '1.0',
+      requestId: generateUUID(),
+      workspaceId: state.workbench?.workspace.id || generateUUID(),
+      operation: 'get_task',
+      payload: { taskId, afterLogSequence, sourcePath }
+    });
+    return res.status === 'succeeded' ? res.data?.source ?? null : null;
+  }, [state.taskLogs, state.workbench]);
+
   const publishDatagenOutput = useCallback(async (
     taskId: UUID,
     manifestHash: string
@@ -1158,6 +1177,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       runServer,
       runDatagen,
       previewDatagenOutput,
+      previewTaskSource,
       publishDatagenOutput,
       runGameTest,
       cancelTask,
@@ -1228,6 +1248,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       runServer,
       runDatagen,
       previewDatagenOutput,
+      previewTaskSource,
       publishDatagenOutput,
       runGameTest,
       cancelTask,

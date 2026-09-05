@@ -29,6 +29,7 @@ import java.time.Clock;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.HexFormat;
 import java.util.List;
@@ -53,6 +54,7 @@ import java.util.zip.ZipOutputStream;
 /** Runs loader-specific generation and Gradle tasks outside the workspace revision lock. */
 public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, AutoCloseable {
 	private static final Logger LOG = LogManager.getLogger(GradleWorkspaceTaskGateway.class);
+	private static final long MAX_SOURCE_PREVIEW_BYTES = 256L * 1024L;
 	private static final Pattern JAVA_COMPILE_ERROR = Pattern.compile(
 			"^(.+\\.java):(\\d+):\\s*(?:error|错误|錯誤|エラー|오류|fehler|erreur|errore|ошибка|erro):\\s*(.+)$",
 			Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
@@ -265,6 +267,62 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 	@Override public List<JsonObject> diagnostics(UUID workspaceId, UUID taskId) {
 		Job job = job(workspaceId, taskId);
 		return job == null ? List.of() : job.diagnostics();
+	}
+
+	@Override public Optional<JsonObject> sourcePreview(UUID workspaceId, UUID taskId, String sourcePath) {
+		Job job = job(workspaceId, taskId);
+		if (job == null) return Optional.empty();
+		synchronized (job) {
+			String relative = diagnosticSourcePath(sourcePath);
+			String diagnosticPath = "/" + relative;
+			boolean owned = job.diagnostics().stream()
+					.anyMatch(diagnostic -> diagnostic.has("path") && !diagnostic.get("path").isJsonNull()
+							&& diagnosticPath.equals(diagnostic.get("path").getAsString()));
+			if (!owned)
+				throw new IllegalArgumentException("Source preview path is not referenced by this task diagnostic");
+			JsonObject preview = job.sourcePreviews.get(diagnosticPath);
+			return preview == null ? Optional.empty() : Optional.of(preview.deepCopy());
+		}
+	}
+
+	private static String diagnosticSourcePath(String sourcePath) {
+		if (sourcePath == null || sourcePath.isBlank() || sourcePath.indexOf('\0') >= 0)
+			throw new IllegalArgumentException("Diagnostic source path is required");
+		String candidate = sourcePath.replace('\\', '/');
+		while (candidate.startsWith("/")) candidate = candidate.substring(1);
+		Path relative = Path.of(candidate).normalize();
+		if (relative.isAbsolute() || relative.startsWith(".."))
+			throw new IllegalArgumentException("Diagnostic source path escaped task staging");
+		String normalized = relative.toString().replace('\\', '/');
+		if (!normalized.startsWith("src/main/java/") || !normalized.toLowerCase(Locale.ROOT).endsWith(".java"))
+			throw new IllegalArgumentException("Only generated Java diagnostic sources can be previewed");
+		return normalized;
+	}
+
+	private static JsonObject captureSourcePreview(Path executionRoot, String compilerSource, String diagnosticPath,
+			String lineNumber) {
+		try {
+			String relative = diagnosticSourcePath(diagnosticPath);
+			Path normalizedRoot = executionRoot.toAbsolutePath().normalize();
+			Path rawSource = Path.of(compilerSource);
+			Path source = rawSource.isAbsolute() ? rawSource.toAbsolutePath().normalize()
+					: normalizedRoot.resolve(rawSource).normalize();
+			if (!source.equals(resolveInside(normalizedRoot, relative)) || !Files.isRegularFile(source)) return null;
+			Path realRoot = normalizedRoot.toRealPath();
+			Path realSource = source.toRealPath();
+			if (!realSource.startsWith(realRoot)) return null;
+			long size = Files.size(realSource);
+			if (size > MAX_SOURCE_PREVIEW_BYTES) return null;
+			JsonObject preview = new JsonObject();
+			preview.addProperty("path", "/" + relative);
+			preview.addProperty("language", "java");
+			preview.addProperty("content", Files.readString(realSource, StandardCharsets.UTF_8));
+			preview.addProperty("size", size);
+			preview.addProperty("line", Integer.parseInt(lineNumber));
+			return preview;
+		} catch (java.io.IOException | RuntimeException exception) {
+			return null;
+		}
 	}
 
 	@Override public Optional<JsonObject> previewDatagen(UUID workspaceId, UUID taskId) {
@@ -557,6 +615,7 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 		private final JsonObject summary;
 		private final List<JsonObject> logEntries = new ArrayList<>();
 		private final List<JsonObject> diagnosticEntries = new ArrayList<>();
+		private final Map<String, JsonObject> sourcePreviews = new HashMap<>();
 		private final Set<String> javaCompileDiagnosticKeys = new HashSet<>();
 		private Future<?> future;
 		private Path executionRoot;
@@ -708,9 +767,12 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 			String message = "Line " + lineNumber + ": " + compilerMessage;
 			String key = path + "\n" + message;
 			UUID elementId = resolveGeneratedElement(path);
+			JsonObject sourcePreview = captureSourcePreview(executionRoot, source, path, lineNumber);
 			synchronized (this) {
-				if (isRunning() && javaCompileDiagnosticKeys.add(key))
+				if (isRunning() && javaCompileDiagnosticKeys.add(key)) {
 					addDiagnostic("JAVA_COMPILE_ERROR", message, path, elementId);
+					if (sourcePreview != null) sourcePreviews.put(path, sourcePreview);
+				}
 			}
 		}
 
@@ -802,6 +864,14 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 				actions.add(locate);
 			}
 			if (path != null) {
+				if (path.startsWith("/src/main/java/") && path.toLowerCase(Locale.ROOT).endsWith(".java")) {
+					JsonObject source = new JsonObject();
+					source.addProperty("id", "open_generated_source");
+					source.add("label", localized("action.open_source", "View generated source"));
+					source.addProperty("kind", "open_source");
+					source.addProperty("target", path);
+					actions.add(source);
+				}
 				JsonObject logs = new JsonObject();
 				logs.addProperty("id", "open_task_logs");
 				logs.add("label", localized("action.open_logs", "View task logs"));

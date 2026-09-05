@@ -32,13 +32,29 @@ The generated-source resolver is intentionally narrower than a filename fuzzy se
 
 An unresolved compiler source still retains its source path, concrete message and task-log action. The absence of a safe owning element must never be converted into a speculative navigation target.
 
+## Second slice: bounded generated-source preview
+
+The next Diagnostics 2.0 slice adds the PRD-required `查看生成源码` path without introducing a browser-to-filesystem escape hatch:
+
+- generated Java task diagnostics now expose an `open_source` action in addition to element-location and task-log actions;
+- the UI reuses `get_task` with `taskId + sourcePath`; there is no new native bridge that accepts arbitrary local filesystem paths;
+- the requested source path must exactly match a path already present in a diagnostic belonging to that same task;
+- when the compiler error is emitted, the task gateway normalizes the path inside that task's `executionRoot`, requires `src/main/java/*.java`, verifies the real resolved file remains inside the real task root, and captures the source immediately;
+- source snapshots are capped at 256 KiB and `get_task` later returns only that task-time UTF-8 snapshot plus path, language, byte size and diagnostic line metadata; it does not re-read a mutable live workspace file when the user clicks the action;
+- Fabric, NeoForge and Resource Pack Gradle-backed task adapters all delegate the same source-preview boundary rather than implementing loader-specific file access;
+- Task Drawer renders the preview as read-only text and does not fall back to browser file APIs when the preview is unavailable;
+- UI-Core schema and TypeScript contracts model the optional task source preview and the new `open_source` action explicitly;
+- the mock bridge only returns a source preview when the requested path exactly matches a task diagnostic, so browser regression evidence follows the same ownership rule as Core.
+
+The security regression deliberately requests an existing generated Java file from the same task staging tree that is **not** referenced by the task diagnostic. Core rejects it, proving that root containment alone is not enough to authorize a source preview. The regression also rewrites the diagnosed live Java file after the failed build and confirms that the returned preview remains the compiler-time snapshot, not the later file contents.
+
 ## Verification
 
-- `Fabric1211TaskGatewayTest.failedBuildExtractsJavaCompilerErrorsIntoStructuredDiagnostics` — passed; a Procedure compiler error resolves to stable element ID `00000000-0000-4000-8000-000000000004`, preserves path/line/message, and exposes element-location plus task-log actions.
+- `Fabric1211TaskGatewayTest.failedBuildExtractsJavaCompilerErrorsIntoStructuredDiagnostics` — passed; a Procedure compiler error resolves to stable element ID `00000000-0000-4000-8000-000000000004`, preserves path/line/message, exposes element-location/generated-source/task-log actions, returns its bounded compiler-time source snapshot even after the live file is rewritten, and rejects a different existing generated Java file that is not referenced by the task diagnostic.
 - `Fabric1211TaskGatewayTest.unresolvedCompilerSourceKeepsFileAndLogsButNeverGuessesAnElement` — passed; aggregate `ModBlocks.java` keeps path/log navigation while leaving `elementId` unset and omitting the locate-element action.
-- the forced Gradle targeted run completed `BUILD SUCCESSFUL`; its normal `buildUiShell` dependency also passed TypeScript/Vite and the Chinese localization gate (`204/204`).
+- the forced Gradle targeted run completed `BUILD SUCCESSFUL`; its normal `buildUiShell` dependency also passed TypeScript/Vite and the Chinese localization gate (`206/206`).
 - `npm test` in `ui-core` — `20/20` passed after installing that package's declared test dependencies; all schemas and all canonical mock scenarios, including the new `compile-diagnostic` scenario, validate.
-- `npx playwright test e2e/scenarios.spec.ts --grep compile-diagnostic` — `2/2` passed across Chromium and compact-1366; the UI follows failed task → Task Drawer → `JAVA_COMPILE_ERROR` → owning Mod Element.
+- `npx playwright test e2e/scenarios.spec.ts --grep compile-diagnostic` — `2/2` passed across Chromium and compact-1366; the UI follows failed task → Task Drawer → `JAVA_COMPILE_ERROR` → bounded generated-source preview → owning Mod Element.
 - `npx playwright test e2e/scenarios.spec.ts` — `28/28` passed across Chromium and compact-1366, preserving existing validation, permission, bridge-recovery, external-process and task scenarios.
 - `git -c core.whitespace=cr-at-eol diff --check` — passed before evidence finalization.
 
@@ -47,7 +63,6 @@ An unresolved compiler source still retains its source path, concrete message an
 This slice does not close Diagnostics 2.0. Remaining work includes:
 
 - map generator, resource, migration and MCP failures to the same stable diagnostic-location model rather than leaving them as task/log-only errors;
-- add a first-class `查看生成源码` action and safe source-location surface for path diagnostics;
 - deepen element locations into field paths, Procedure node IDs and asset IDs where the producer can prove that relationship;
 - provide repair guidance for deterministic failure classes without turning heuristics into false guarantees;
 - route eligible automatic repairs through previewed semantic workspace plans and recovery points instead of direct mutation;

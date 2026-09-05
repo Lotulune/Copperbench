@@ -110,6 +110,11 @@ test('get_task requires an incremental log cursor and rejects malformed cursors'
     },
   };
   assert.equal(validate(query), true, JSON.stringify(validate.errors));
+  query.payload.sourcePath = '/src/main/java/dev/coppertrails/procedure/AnnounceTrailProcedure.java';
+  assert.equal(validate(query), true, JSON.stringify(validate.errors));
+  query.payload.sourcePath = '../workspace.mcreator';
+  assert.equal(validate(query), false, 'task source previews must stay on generated Java paths');
+  delete query.payload.sourcePath;
   delete query.payload.afterLogSequence;
   assert.equal(validate(query), false, 'get_task must carry an incremental log cursor');
   query.payload.afterLogSequence = -1;

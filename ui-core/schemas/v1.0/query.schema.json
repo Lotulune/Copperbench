@@ -762,6 +762,12 @@
         "afterLogSequence": {
           "type": "integer",
           "minimum": 0
+        },
+        "sourcePath": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096,
+          "pattern": "^/src/main/java/.+\\.java$"
         }
       },
       "additionalProperties": false
