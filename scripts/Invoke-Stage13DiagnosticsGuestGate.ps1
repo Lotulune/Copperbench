@@ -28,6 +28,7 @@ $evidenceDir = Join-Path $RepositoryRoot "evidence\stage-13\$stamp"
 New-Item -ItemType Directory -Force -Path $evidenceDir | Out-Null
 $hostResultPath = Join-Path $evidenceDir 'diagnostics-clean-windows11.json'
 $hostErrorPath = Join-Path $evidenceDir 'diagnostics-clean-windows11-error.txt'
+Remove-Item -LiteralPath $hostErrorPath -Force -ErrorAction SilentlyContinue
 $fixtureArchive = Join-Path $RepositoryRoot 'build\stage13-diagnostics-fixture.zip'
 Remove-Item -LiteralPath $fixtureArchive -Force -ErrorAction SilentlyContinue
 Compress-Archive -Path (Join-Path $fixtureRoot '*') -DestinationPath $fixtureArchive -CompressionLevel Fastest
@@ -60,8 +61,6 @@ using System.Runtime.InteropServices;
 public static class Stage13DiagnosticsInput {
   [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd);
   [DllImport("user32.dll")] public static extern bool ShowWindowAsync(IntPtr hWnd, int nCmdShow);
-  [DllImport("user32.dll")] public static extern bool SetCursorPos(int X, int Y);
-  [DllImport("user32.dll")] public static extern void mouse_event(uint flags, uint dx, uint dy, uint data, UIntPtr extraInfo);
 }
 "@
 
@@ -95,13 +94,6 @@ function Add-Step([string]$Name, [hashtable]$Facts = @{}) {
 	$entry = [ordered]@{ name = $Name; passed = $true }
 	foreach ($key in $Facts.Keys) { $entry[$key] = $Facts[$key] }
 	$steps.Add([pscustomobject]$entry)
-}
-
-function Click-Point([int]$X, [int]$Y) {
-	[Stage13DiagnosticsInput]::SetCursorPos($X, $Y) | Out-Null
-	Start-Sleep -Milliseconds 80
-	[Stage13DiagnosticsInput]::mouse_event(0x0002, 0, 0, 0, [UIntPtr]::Zero)
-	[Stage13DiagnosticsInput]::mouse_event(0x0004, 0, 0, 0, [UIntPtr]::Zero)
 }
 
 function Invoke-Headless([string]$Command, [int]$TimeoutSeconds = 420) {
@@ -213,8 +205,8 @@ try {
 	[Stage13DiagnosticsInput]::SetForegroundWindow($hwnd) | Out-Null
 	Start-Sleep -Milliseconds 500
 	[System.Windows.Forms.Clipboard]::SetText('STAGE13_DIAGNOSTICS_URL_SENTINEL')
-	Click-Point 95 383
-	Start-Sleep -Milliseconds 400
+	[System.Windows.Forms.SendKeys]::SendWait('%m')
+	Start-Sleep -Milliseconds 500
 	1..3 | ForEach-Object { [System.Windows.Forms.SendKeys]::SendWait('{TAB}'); Start-Sleep -Milliseconds 90 }
 	[System.Windows.Forms.SendKeys]::SendWait('{ENTER}')
 	Start-Sleep -Milliseconds 500
@@ -224,9 +216,9 @@ try {
 	[System.Windows.Forms.SendKeys]::SendWait('{ENTER}')
 	Start-Sleep -Milliseconds 900
 	[System.Windows.Forms.Clipboard]::SetText('STAGE13_DIAGNOSTICS_CONFIG_SENTINEL')
-	Click-Point 95 383
+	[System.Windows.Forms.SendKeys]::SendWait('%m')
 	Start-Sleep -Milliseconds 350
-	1..4 | ForEach-Object { [System.Windows.Forms.SendKeys]::SendWait('{TAB}'); Start-Sleep -Milliseconds 90 }
+	1..5 | ForEach-Object { [System.Windows.Forms.SendKeys]::SendWait('{TAB}'); Start-Sleep -Milliseconds 90 }
 	[System.Windows.Forms.SendKeys]::SendWait('{ENTER}')
 	Start-Sleep -Milliseconds 500
 	$config = [System.Windows.Forms.Clipboard]::GetText()
