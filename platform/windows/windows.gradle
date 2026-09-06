@@ -41,7 +41,10 @@ tasks.register('exportWin64', Copy.class) {
         from file('LICENSE.txt')
         from file('LICENSE-ADDITIONAL-TERMS.md')
         from file('build/launch4j/copperbench.exe')
+        from file('gradlew')
+        from file('gradlew.bat')
     }
+    into('gradle/wrapper') { from file('gradle/wrapper/gradle-wrapper.jar') }
     into('lib') {
         from 'build/libs'
         from configurations.export

@@ -33,6 +33,10 @@ class WindowsDistributionLayoutTest {
 		assertTrue(gradle.contains("wantedGradleDists"));
 		assertTrue(gradle.contains(".copperbench/gradle/wrapper/dists"));
 		assertTrue(gradle.contains(".gradle/wrapper/dists"));
+		assertTrue(gradle.contains("from file('gradlew')"));
+		assertTrue(gradle.contains("from file('gradlew.bat')"));
+		assertTrue(gradle.contains("into('gradle/wrapper')"));
+		assertTrue(gradle.contains("from file('gradle/wrapper/gradle-wrapper.jar')"));
 		assertTrue(gradle.contains("into('license')"));
 		assertTrue(gradle.contains("docs/user/README.md"));
 		assertTrue(gradle.contains("copperbench.exe"));

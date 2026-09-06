@@ -21,7 +21,8 @@ import java.util.List;
 public final class WindowsDistributionLayout {
 
 	public static final List<String> REQUIRED_ENTRIES = List.of("copperbench.exe", "LICENSE.txt",
-			"LICENSE-ADDITIONAL-TERMS.md", "jdk/bin/java.exe", "jdk/bin/jcef.dll", "lib/copperbench.jar", "plugins");
+			"LICENSE-ADDITIONAL-TERMS.md", "jdk/bin/java.exe", "jdk/bin/jcef.dll", "lib/copperbench.jar", "plugins",
+			"gradlew", "gradlew.bat", "gradle/wrapper/gradle-wrapper.jar");
 
 	private WindowsDistributionLayout() {
 	}
