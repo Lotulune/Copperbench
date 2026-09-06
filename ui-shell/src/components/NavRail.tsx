@@ -22,7 +22,7 @@ export const NavRail: React.FC = () => {
 
   useEffect(() => {
     const openAiNavigation = (event: KeyboardEvent) => {
-      if (!event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || event.key.toLowerCase() !== 'm') return;
+      if (!event.ctrlKey || !event.shiftKey || event.altKey || event.metaKey || event.key.toLowerCase() !== 'm') return;
       event.preventDefault();
       setActiveView('ai');
       requestAnimationFrame(() => aiNavigationRef.current?.focus());
@@ -91,7 +91,7 @@ export const NavRail: React.FC = () => {
               type="button"
               onClick={() => setActiveView(item.id)}
               aria-current={isActive ? 'page' : undefined}
-              aria-keyshortcuts={item.id === 'ai' ? 'Alt+M' : undefined}
+              aria-keyshortcuts={item.id === 'ai' ? 'Control+Shift+M' : undefined}
               data-testid={`nav-${item.id}`}
               style={{
                 display: 'flex',
