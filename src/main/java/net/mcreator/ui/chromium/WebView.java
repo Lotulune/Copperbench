@@ -106,6 +106,10 @@ public class WebView extends JPanel implements Closeable {
 	}
 
 	public WebView(String url, boolean isTransparent) {
+		this(url, isTransparent, true);
+	}
+
+	private WebView(String url, boolean isTransparent, boolean applyThemeOnLoad) {
 		setLayout(new BorderLayout());
 
 		this.client = CefUtils.createClient(this::handleRendererTermination);
@@ -328,14 +332,16 @@ public class WebView extends JPanel implements Closeable {
 
 		enableEvents(AWTEvent.MOUSE_WHEEL_EVENT_MASK);
 
-		StringBuilder css = new StringBuilder(ThemeCSS.generateCSS(Theme.current()));
+		if (applyThemeOnLoad) {
+			StringBuilder css = new StringBuilder(ThemeCSS.generateCSS(Theme.current()));
 
-		// Workaround for https://github.com/JetBrains/jcef/issues/15 - we force the cursor to default + theme CSS
-		// Only needed for non-OSR rendering; on OSR, the cursor does not flicker, and we don't need to force the pointer
-		if (!CefUtils.useOSR())
-			css.append("* { cursor: default !important; }");
+			// Workaround for https://github.com/JetBrains/jcef/issues/15 - we force the cursor to default + theme CSS
+			// Only needed for non-OSR rendering; on OSR, the cursor does not flicker, and we don't need to force the pointer
+			if (!CefUtils.useOSR())
+				css.append("* { cursor: default !important; }");
 
-		addLoadListener(() -> addCSSToDOM(css.toString()));
+			addLoadListener(() -> addCSSToDOM(css.toString()));
+		}
 	}
 
 	private static void enablePlatformAccessibility(CefBrowser targetBrowser) {
@@ -622,7 +628,7 @@ public class WebView extends JPanel implements Closeable {
 	public static void preload() {
 		LOG.debug("Preloading CEF WebView");
 		CountDownLatch latch = new CountDownLatch(1);
-		WebView preloader = new WebView("about:blank", false);
+		WebView preloader = new WebView("about:blank", false, false);
 		try (preloader) {
 			preloader.addLoadListener(latch::countDown);
 			preloader.forceLoad();
