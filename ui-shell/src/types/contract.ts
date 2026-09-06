@@ -536,6 +536,12 @@ export interface HistoryComparison {
   changes: WorkspaceChange[];
 }
 
+export interface RecoveryRestorePreview {
+  recoveryPointId: string;
+  baseRevision: Revision;
+  changes: WorkspaceChange[];
+}
+
 export type ProtectedOperation =
   | 'delete_workspace'
   | 'overwrite_workspace'
@@ -912,6 +918,7 @@ export type QueryOperation =
   | 'get_task'
   | 'get_history'
   | 'get_diff'
+  | 'preview_recovery_restore'
   | 'list_operation_approvals'
   | 'get_version_tracks'
   | 'get_release_notes'

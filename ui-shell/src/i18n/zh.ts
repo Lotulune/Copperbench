@@ -7,6 +7,7 @@ export const zh: Record<string, string> = {
   /* ---- 诊断 (diagnostic.*) ---- */
   'diagnostic.field_value_out_of_range': '硬度必须在 {min} 到 {max} 之间。',
   'diagnostic.code_bundle_invalid': '代码文件包无效：{message}',
+  'diagnostic.history_restore_preview_failed': '无法读取恢复影响。',
   'diagnostic.java_compile_error': 'Java 编译错误：{message}',
   'diagnostic.field_required_by_condition': '启用 {condition} 时必须填写 {field}。',
   'diagnostic.permission_profile_denied': '需要工作区写入权限才能执行构建。',

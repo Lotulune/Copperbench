@@ -32,7 +32,8 @@ import {
   DatagenPreview,
   TaskProjection,
   TaskSourcePreview,
-  HistoryComparison
+  HistoryComparison,
+  RecoveryRestorePreview
 } from '../types/contract';
 import {
   coreBridge,
@@ -113,6 +114,7 @@ interface WorkbenchContextType {
   cancelTask: (taskId: UUID) => Promise<CommandResult>;
   createRecoveryPoint: (label: string) => Promise<CommandResult>;
   compareRecoveryPoints: (fromRecoveryPointId: string, toRecoveryPointId: string) => Promise<HistoryComparison | null>;
+  previewRecoveryRestore: (recoveryPointId: string) => Promise<RecoveryRestorePreview | null>;
   restoreRecoveryPoint: (recoveryPointId: string) => Promise<CommandResult>;
   resolveOperationApproval: (approvalId: UUID, decision: 'approve' | 'deny') => Promise<CommandResult>;
   getVersionTracks: () => Promise<VersionTracksProjection | null>;
@@ -812,6 +814,21 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     [state.workbench]
   );
 
+  const previewRecoveryRestore = useCallback(
+    async (recoveryPointId: string): Promise<RecoveryRestorePreview | null> => {
+      const res = await coreBridge.sendQuery<RecoveryRestorePreview>({
+        messageType: 'query',
+        schemaVersion: '1.0',
+        requestId: generateUUID(),
+        workspaceId: state.workbench?.workspace.id || generateUUID(),
+        operation: 'preview_recovery_restore',
+        payload: { recoveryPointId }
+      });
+      return res.status === 'succeeded' ? res.data : null;
+    },
+    [state.workbench]
+  );
+
   const restoreRecoveryPoint = useCallback(
     async (recoveryPointId: string): Promise<CommandResult> => {
       const workspaceId = state.workbench?.workspace.id || generateUUID();
@@ -1245,6 +1262,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       cancelTask,
       createRecoveryPoint,
       compareRecoveryPoints,
+      previewRecoveryRestore,
       restoreRecoveryPoint,
       resolveOperationApproval,
       getVersionTracks,
@@ -1320,6 +1338,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       cancelTask,
       createRecoveryPoint,
       compareRecoveryPoints,
+      previewRecoveryRestore,
       restoreRecoveryPoint,
       resolveOperationApproval,
       getVersionTracks,

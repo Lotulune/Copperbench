@@ -20,6 +20,8 @@ public interface LocalHistoryService extends AutoCloseable {
 	List<WorkspaceChange> compare(String fromRecoveryPointId, String toRecoveryPointId)
 			throws LocalHistoryException;
 
+	List<WorkspaceChange> previewRestore(String recoveryPointId) throws LocalHistoryException;
+
 	RestoreResult restore(String recoveryPointId) throws LocalHistoryException;
 
 	@Override void close();

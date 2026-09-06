@@ -47,6 +47,7 @@
         "get_task",
         "get_history",
         "get_diff",
+        "preview_recovery_restore",
         "list_operation_approvals",
         "get_version_tracks",
         "get_release_notes",
@@ -97,6 +98,29 @@
         "properties": {
           "data": {
             "$ref": "urn:ui-core:1.0:common#/$defs/newWorkspaceGeneratorCatalog"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "preview_recovery_restore"
+          },
+          "status": {
+            "const": "succeeded"
+          }
+        },
+        "required": [
+          "operation",
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "data": {
+            "$ref": "urn:ui-core:1.0:common#/$defs/recoveryRestorePreview"
           }
         }
       }

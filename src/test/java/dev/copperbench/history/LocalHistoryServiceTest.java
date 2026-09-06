@@ -57,6 +57,14 @@ class LocalHistoryServiceTest {
 					new WorkspaceChange(ChangeType.MODIFY, "workspace.mcreator")
 			), history.compare(before.id(), after.id()));
 
+			Files.writeString(workspace.resolve("workspace.mcreator"), "{\"revision\":2,\"unsaved\":true}");
+			Files.writeString(workspace.resolve("scratch.txt"), "current working tree only");
+			assertEquals(List.of(
+					new WorkspaceChange(ChangeType.DELETE, "elements/copper_block.mod.json"),
+					new WorkspaceChange(ChangeType.DELETE, "scratch.txt"),
+					new WorkspaceChange(ChangeType.MODIFY, "workspace.mcreator")
+			), history.previewRestore(before.id()));
+
 			RestoreResult restored = history.restore(before.id());
 			assertTrue(restored.changedPaths().contains("workspace.mcreator"));
 			assertTrue(restored.changedPaths().contains("elements/copper_block.mod.json"));

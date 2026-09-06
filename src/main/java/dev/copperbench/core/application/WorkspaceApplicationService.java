@@ -302,6 +302,36 @@ public final class WorkspaceApplicationService {
 		}
 	}
 
+	private QueryResult previewRecoveryRestore(Query query, WorkspaceState state) {
+		if (history == null)
+			return queryFailure(query, state.revision(), historyUnavailable());
+		String recoveryPointId;
+		try {
+			recoveryPointId = requiredString(query.payload(), "recoveryPointId");
+		} catch (RuntimeException exception) {
+			return queryFailure(query, state.revision(), invalidPayload(exception.getMessage()));
+		}
+		try {
+			List<WorkspaceChange> changes = history.previewRestore(recoveryPointId);
+			JsonObject projection = new JsonObject();
+			projection.addProperty("recoveryPointId", recoveryPointId);
+			projection.addProperty("baseRevision", state.revision());
+			JsonArray items = new JsonArray();
+			changes.forEach(change -> {
+				JsonObject item = new JsonObject();
+				item.addProperty("type", change.type().name().toLowerCase(Locale.ROOT));
+				item.addProperty("path", change.path());
+				items.add(item);
+			});
+			projection.add("changes", items);
+			return querySuccess(query, state.revision(), projection);
+		} catch (LocalHistoryException exception) {
+			return queryFailure(query, state.revision(), failureDiagnostic(query, "HISTORY_RESTORE_PREVIEW_FAILED",
+					"diagnostic.history_restore_preview_failed", "The restore impact could not be previewed.", null, null,
+					exception));
+		}
+	}
+
 	private record AssetImportBatchMutation(AssetImportBatchService.ApplyResult applied, long sequence,
 			Diagnostic diagnostic) {
 		private static AssetImportBatchMutation success(AssetImportBatchService.ApplyResult applied, long sequence) {
@@ -1131,6 +1161,7 @@ public final class WorkspaceApplicationService {
 				case PREVIEW_DATAGEN_OUTPUT -> previewDatagenOutput(query, state);
 				case GET_HISTORY -> historyList(query, state);
 				case GET_DIFF -> historyDiff(query, state);
+				case PREVIEW_RECOVERY_RESTORE -> previewRecoveryRestore(query, state);
 				case GET_VERSION_TRACKS -> querySuccess(query, state.revision(), versionTracks(state));
 				case GET_RELEASE_NOTES -> querySuccess(query, state.revision(), ReleaseManifest.official());
 				case PREVIEW_LOADER_MIGRATION -> previewLoaderMigration(query, state);

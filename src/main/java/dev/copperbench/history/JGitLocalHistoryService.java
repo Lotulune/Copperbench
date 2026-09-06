@@ -16,6 +16,8 @@ import org.eclipse.jgit.diff.DiffFormatter;
 import org.eclipse.jgit.dircache.DirCache;
 import org.eclipse.jgit.dircache.DirCacheCheckout;
 import org.eclipse.jgit.lib.Constants;
+import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.ObjectInserter;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.StoredConfig;
@@ -117,6 +119,29 @@ public final class JGitLocalHistoryService implements LocalHistoryService {
 			throw exception;
 		} catch (Exception exception) {
 			throw new LocalHistoryException("Could not compare recovery points", exception);
+		}
+	}
+
+	@Override public synchronized List<WorkspaceChange> previewRestore(String recoveryPointId)
+			throws LocalHistoryException {
+		try (RevWalk walk = new RevWalk(git.getRepository());
+				DiffFormatter formatter = new DiffFormatter(DisabledOutputStream.INSTANCE);
+				ObjectInserter inserter = git.getRepository().newObjectInserter()) {
+			RevCommit target = resolveCommit(walk, recoveryPointId);
+			git.add().addFilepattern(".").call();
+			git.add().setUpdate(true).addFilepattern(".").call();
+			ObjectId currentTree = git.getRepository().readDirCache().writeTree(inserter);
+			inserter.flush();
+			formatter.setRepository(git.getRepository());
+			formatter.setDetectRenames(true);
+			return formatter.scan(currentTree, target.getTree()).stream()
+					.map(JGitLocalHistoryService::toWorkspaceChange)
+					.sorted(Comparator.comparing(WorkspaceChange::path))
+					.toList();
+		} catch (LocalHistoryException exception) {
+			throw exception;
+		} catch (Exception exception) {
+			throw new LocalHistoryException("Could not preview restore of recovery point " + recoveryPointId, exception);
 		}
 	}
 

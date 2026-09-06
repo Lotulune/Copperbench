@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
 import { useDialogA11y } from '../hooks/useDialogA11y';
-import type { HistoryComparison, RecoveryPoint, WorkspaceChange } from '../types/contract';
+import type { HistoryComparison, RecoveryPoint, RecoveryRestorePreview, WorkspaceChange } from '../types/contract';
 
 const actorLabels: Record<RecoveryPoint['actor'], string> = {
   ui: '界面',
@@ -40,10 +40,13 @@ function formatTime(value: string) {
 }
 
 export const HistoryView: React.FC = () => {
-  const { state, createRecoveryPoint, compareRecoveryPoints, restoreRecoveryPoint } = useWorkbench();
+  const { state, createRecoveryPoint, compareRecoveryPoints, previewRecoveryRestore, restoreRecoveryPoint } = useWorkbench();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [comparison, setComparison] = useState<HistoryComparison | null>(null);
   const [comparisonLoading, setComparisonLoading] = useState(false);
+  const [restorePreview, setRestorePreview] = useState<RecoveryRestorePreview | null>(null);
+  const [restorePreviewLoading, setRestorePreviewLoading] = useState(false);
+  const [restorePreviewFailed, setRestorePreviewFailed] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [restoreOpen, setRestoreOpen] = useState(false);
   const [label, setLabel] = useState('');
@@ -88,6 +91,29 @@ export const HistoryView: React.FC = () => {
       cancelled = true;
     };
   }, [compareRecoveryPoints, selectedId, state.recoveryPoints]);
+
+  useEffect(() => {
+    if (!restoreOpen || !selectedId) {
+      setRestorePreview(null);
+      setRestorePreviewLoading(false);
+      setRestorePreviewFailed(false);
+      return;
+    }
+    let cancelled = false;
+    setRestorePreview(null);
+    setRestorePreviewFailed(false);
+    setRestorePreviewLoading(true);
+    void previewRecoveryRestore(selectedId).then((result) => {
+      if (!cancelled) {
+        setRestorePreview(result);
+        setRestorePreviewFailed(result === null);
+        setRestorePreviewLoading(false);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [previewRecoveryRestore, restoreOpen, selectedId]);
 
   const createPoint = async () => {
     const trimmed = label.trim();
@@ -280,9 +306,16 @@ export const HistoryView: React.FC = () => {
             </div>
             <div className="modal-body">
               <p>将工作区还原到“{selected.label}”。当前状态会先创建恢复点，然后重新校验工作区。</p>
-              <p>以下是该恢复点相对上一恢复点的已记录文件变化：</p>
+              <p>以下是从当前工作区还原到该恢复点将涉及的文件变化：</p>
               <div className="dialog-impact-list">
-                {changes.slice(0, 5).map((change) => <code key={change.path}>{change.path}</code>)}
+                {restorePreviewLoading && <span data-testid="restore-preview-loading">正在读取恢复影响…</span>}
+                {restorePreviewFailed && <span data-testid="restore-preview-failed">无法读取恢复影响，暂不能执行还原。</span>}
+                {!restorePreviewLoading && restorePreview && restorePreview.changes.length === 0 && (
+                  <span data-testid="restore-preview-empty">当前工作区与该恢复点没有文件差异。</span>
+                )}
+                {restorePreview?.changes.slice(0, 8).map((change) => (
+                  <code key={`${change.type}:${change.path}`}>{changeLabels[change.type]} · {change.path}</code>
+                ))}
               </div>
             </div>
             <div className="modal-footer">
@@ -291,6 +324,7 @@ export const HistoryView: React.FC = () => {
                 className="btn-danger"
                 type="button"
                 data-testid="confirm-restore-recovery"
+                disabled={restorePreviewLoading || restorePreview === null}
                 onClick={() => void restorePoint()}
               >
                 <RotateCcw size={15} aria-hidden="true" />

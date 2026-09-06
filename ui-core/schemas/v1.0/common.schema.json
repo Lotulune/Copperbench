@@ -47,6 +47,29 @@
       },
       "additionalProperties": false
     },
+    "recoveryRestorePreview": {
+      "type": "object",
+      "required": [
+        "recoveryPointId",
+        "baseRevision",
+        "changes"
+      ],
+      "properties": {
+        "recoveryPointId": {
+          "$ref": "#/$defs/recoveryPointId"
+        },
+        "baseRevision": {
+          "$ref": "#/$defs/revision"
+        },
+        "changes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/workspaceChange"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
     "modElementListItem": {
       "type": "object",
       "minProperties": 1,

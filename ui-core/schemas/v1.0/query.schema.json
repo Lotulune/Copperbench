@@ -44,6 +44,7 @@
         "get_task",
         "get_history",
         "get_diff",
+        "preview_recovery_restore",
         "list_operation_approvals",
         "get_version_tracks",
         "get_release_notes",
@@ -67,6 +68,25 @@
       },
       "then": {
         "properties": {"payload": {"$ref": "#/$defs/datagenTaskPayload"}}
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "preview_recovery_restore"
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/recoveryRestorePreviewPayload"
+          }
+        }
       }
     },
     {
@@ -429,6 +449,18 @@
     "emptyPayload": {
       "type": "object",
       "maxProperties": 0,
+      "additionalProperties": false
+    },
+    "recoveryRestorePreviewPayload": {
+      "type": "object",
+      "required": [
+        "recoveryPointId"
+      ],
+      "properties": {
+        "recoveryPointId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/recoveryPointId"
+        }
+      },
       "additionalProperties": false
     },
     "workspacePlanOperationName": {

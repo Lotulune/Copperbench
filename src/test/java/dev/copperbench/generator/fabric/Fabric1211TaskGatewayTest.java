@@ -752,6 +752,10 @@ class Fabric1211TaskGatewayTest {
 			return List.of();
 		}
 
+		@Override public List<WorkspaceChange> previewRestore(String recoveryPointId) {
+			return List.of();
+		}
+
 		@Override public RestoreResult restore(String recoveryPointId) {
 			throw new UnsupportedOperationException("restore is not needed by this test");
 		}

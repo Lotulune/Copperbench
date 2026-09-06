@@ -76,6 +76,7 @@ public final class UiCore {
 		@SerializedName("preview_datagen_output") PREVIEW_DATAGEN_OUTPUT,
 		@SerializedName("get_history") GET_HISTORY,
 		@SerializedName("get_diff") GET_DIFF,
+		@SerializedName("preview_recovery_restore") PREVIEW_RECOVERY_RESTORE,
 		@SerializedName("list_operation_approvals") LIST_OPERATION_APPROVALS,
 		@SerializedName("resolve_operation_approval") RESOLVE_OPERATION_APPROVAL,
 		@SerializedName("get_version_tracks") GET_VERSION_TRACKS,

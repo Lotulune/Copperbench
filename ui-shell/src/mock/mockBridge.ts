@@ -4301,6 +4301,15 @@ export class MockCoreBridge implements CoreBridge {
       case 'get_diff':
         data = this.state.historyComparison;
         break;
+      case 'preview_recovery_restore': {
+        const recoveryPointId = (query.payload as { recoveryPointId?: string })?.recoveryPointId ?? '';
+        data = {
+          recoveryPointId,
+          baseRevision: revision,
+          changes: this.state.historyComparison?.changes ?? []
+        };
+        break;
+      }
       case 'list_operation_approvals':
         data = { items: this.state.operationApprovals };
         break;

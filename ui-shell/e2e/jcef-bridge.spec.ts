@@ -71,6 +71,28 @@ test.describe('JCEF Bridge & Host Transport Integration', () => {
             });
           }
 
+          if (envelope.messageType === 'query' && envelope.operation === 'preview_recovery_restore') {
+            window.sessionStorage.setItem('lastRestorePreviewPayload', JSON.stringify(envelope.payload));
+            return JSON.stringify({
+              messageType: 'query_result',
+              schemaVersion: '1.0',
+              requestId: envelope.requestId,
+              workspaceId,
+              operation: 'preview_recovery_restore',
+              status: 'succeeded',
+              revision: 42,
+              data: {
+                recoveryPointId: envelope.payload.recoveryPointId,
+                baseRevision: 42,
+                changes: [
+                  { type: 'modify', path: 'workspace.mcreator' },
+                  { type: 'delete', path: 'scratch/current-only.txt' }
+                ]
+              },
+              diagnostics: []
+            });
+          }
+
           if (envelope.messageType === 'query' && envelope.operation === 'get_workbench') {
             return JSON.stringify({
               messageType: 'query_result',
@@ -319,6 +341,14 @@ test.describe('JCEF Bridge & Host Transport Integration', () => {
         toRecoveryPointId: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
       }));
     await expect(page.locator('[data-testid="history-change"]')).toContainText('elements/native_compass.mod.json');
+
+    await page.locator('[data-testid="history-point"]').nth(1).click();
+    await page.locator('[data-testid="restore-recovery-point"]').click();
+    await expect.poll(() => page.evaluate(() => window.sessionStorage.getItem('lastRestorePreviewPayload')))
+      .toBe(JSON.stringify({ recoveryPointId: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' }));
+    await expect(page.locator('[data-testid="restore-recovery-dialog"]'))
+      .toContainText('scratch/current-only.txt');
+    await expect(page.locator('[data-testid="confirm-restore-recovery"]')).toBeEnabled();
   });
 
   test('routes native domain events to update diagnostics and workbench in real-time', async ({ page }) => {

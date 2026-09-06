@@ -82,6 +82,27 @@ class HistoryContractTest {
 		assertEquals(1, diff.data().getAsJsonObject().getAsJsonArray("changes").size());
 		assertEquals("workspace.mcreator", diff.data().getAsJsonObject().getAsJsonArray("changes").get(0)
 				.getAsJsonObject().get("path").getAsString());
+
+		Files.writeString(workspaceDirectory.resolve("workspace.mcreator"), "{\"revision\":2,\"workingTree\":true}");
+		Files.writeString(workspaceDirectory.resolve("scratch.txt"), "not checkpointed");
+		JsonObject restorePreviewPayload = new JsonObject();
+		restorePreviewPayload.addProperty("recoveryPointId", pointId(projection, 1));
+		Query restorePreviewQuery = Query.of(uuid(12), WORKSPACE_ID, Operation.PREVIEW_RECOVERY_RESTORE,
+				restorePreviewPayload);
+		var previewLegacy = GSON.toJsonTree(new LegacyWorkspaceEntryAdapter(fixture.service).query(restorePreviewQuery));
+		var previewMcp = GSON.toJsonTree(new McpWorkspaceEntryAdapter(fixture.service, PermissionProfile.WORKSPACE)
+				.query(restorePreviewQuery));
+		var previewHeadless = GSON.toJsonTree(new HeadlessWorkspaceEntryAdapter(fixture.service,
+				PermissionProfile.WORKSPACE).query(restorePreviewQuery));
+		assertEquals(previewLegacy, previewMcp);
+		assertEquals(previewLegacy, previewHeadless);
+		JsonObject restorePreview = previewLegacy.getAsJsonObject().getAsJsonObject("data");
+		assertEquals(pointId(projection, 1), restorePreview.get("recoveryPointId").getAsString());
+		assertEquals(2, restorePreview.getAsJsonArray("changes").size());
+		assertEquals("scratch.txt", restorePreview.getAsJsonArray("changes").get(0).getAsJsonObject()
+				.get("path").getAsString());
+		assertEquals("delete", restorePreview.getAsJsonArray("changes").get(0).getAsJsonObject()
+				.get("type").getAsString());
 	}
 
 	@Test void restoreIsAProtectedOperationAndCannotRunWithoutExplicitUserApproval() throws Exception {
