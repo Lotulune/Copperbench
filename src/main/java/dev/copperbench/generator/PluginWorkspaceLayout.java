@@ -10,8 +10,10 @@
 package dev.copperbench.generator;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -48,5 +50,41 @@ public final class PluginWorkspaceLayout {
 					.sorted()
 					.toList();
 		}
+	}
+
+	/**
+	 * Restores only the workspace-local Gradle runtime files required by Copperbench task runners. Existing plugin
+	 * build configuration is never overwritten.
+	 */
+	public static void ensureGradleRuntime(Path root, Path distributionRoot, String gradleWrapperZip)
+			throws IOException {
+		Path normalizedRoot = root.toAbsolutePath().normalize();
+		Path normalizedDistribution = distributionRoot.toAbsolutePath().normalize();
+		copyIfMissing(normalizedRoot.resolve("gradlew"), normalizedDistribution.resolve("gradlew"));
+		copyIfMissing(normalizedRoot.resolve("gradlew.bat"), normalizedDistribution.resolve("gradlew.bat"));
+		copyIfMissing(normalizedRoot.resolve("gradle/wrapper/gradle-wrapper.jar"),
+				normalizedDistribution.resolve("gradle/wrapper/gradle-wrapper.jar"));
+		Path wrapperProperties = normalizedRoot.resolve("gradle/wrapper/gradle-wrapper.properties");
+		if (!Files.isRegularFile(wrapperProperties)) {
+			Files.createDirectories(wrapperProperties.getParent());
+			Files.writeString(wrapperProperties, """
+					distributionBase=GRADLE_USER_HOME
+					distributionPath=wrapper/dists
+					distributionUrl=https\\://mirrors.huaweicloud.com/gradle/%s
+					networkTimeout=60000
+					retries=3
+					retryBackOffMs=2000
+					validateDistributionUrl=true
+					zipStoreBase=GRADLE_USER_HOME
+					zipStorePath=wrapper/dists
+					""".formatted(gradleWrapperZip).replace("\r\n", "\n"), StandardCharsets.UTF_8);
+		}
+	}
+
+	private static void copyIfMissing(Path target, Path source) throws IOException {
+		if (Files.isRegularFile(target)) return;
+		if (!Files.isRegularFile(source)) throw new IOException("Missing distribution file: " + source);
+		Files.createDirectories(target.getParent());
+		Files.copy(source, target, StandardCopyOption.COPY_ATTRIBUTES);
 	}
 }

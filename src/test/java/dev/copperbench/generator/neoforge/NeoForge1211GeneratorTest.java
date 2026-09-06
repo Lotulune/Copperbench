@@ -58,6 +58,32 @@ class NeoForge1211GeneratorTest {
 				"src/main/resources/assets/copper_trails/textures/block/trail_lamp.png")) > 0);
 	}
 
+	@Test void materializedPluginWorkspaceKeepsBuildFilesAndRestoresMissingGradleRuntime() throws Exception {
+		Path distribution = output.resolve("distribution");
+		Path workspace = output.resolve("workspace");
+		Files.createDirectories(distribution.resolve("gradle/wrapper"));
+		Files.writeString(distribution.resolve("gradlew"), "unix-wrapper");
+		Files.writeString(distribution.resolve("gradlew.bat"), "windows-wrapper");
+		Files.write(distribution.resolve("gradle/wrapper/gradle-wrapper.jar"), new byte[] { 1, 2, 3 });
+		Files.createDirectories(workspace.resolve("src/main/java/example"));
+		Files.writeString(workspace.resolve("stage13.mcreator"), "{}\n");
+		Files.writeString(workspace.resolve("src/main/java/example/UserCode.java"), "final class UserCode {}\n");
+		String userBuild = "plugins { id 'example.neoforge-owned' version '1.0' }\n";
+		Files.writeString(workspace.resolve("build.gradle"), userBuild);
+
+		var generator = new NeoForge1211Generator(distribution, NeoForge1211Generator.Profile.NEOFORGE_1211,
+				() -> distribution.resolve("jdk"));
+		generator.generate(workspace, NeoForge1211GoldenWorkspace.create());
+
+		assertEquals(userBuild, Files.readString(workspace.resolve("build.gradle")));
+		assertEquals("windows-wrapper", Files.readString(workspace.resolve("gradlew.bat")));
+		assertTrue(Files.isRegularFile(workspace.resolve("gradle/wrapper/gradle-wrapper.jar")));
+		assertTrue(Files.readString(workspace.resolve("gradle/wrapper/gradle-wrapper.properties"))
+				.contains("mirrors.huaweicloud.com/gradle/gradle-9.7.0-bin.zip"));
+		assertEquals("final class UserCode {}\n",
+				Files.readString(workspace.resolve("src/main/java/example/UserCode.java")));
+	}
+
 	@Test void installedFlatJdkLayoutIsWrittenIntoGeneratedToolchainProperties() throws Exception {
 		Path distribution = output.resolve("distribution");
 		Path workspace = output.resolve("workspace");

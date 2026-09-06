@@ -112,9 +112,11 @@ public final class Fabric1211Generator {
 		List<ValidationIssue> issues = validate(workspace);
 		if (!issues.isEmpty()) throw new IllegalArgumentException(issues.getFirst().message());
 		Descriptor descriptor = descriptor(workspace);
-		if (preservePluginWorkspace && PluginWorkspaceLayout.present(root))
+		if (preservePluginWorkspace && PluginWorkspaceLayout.present(root)) {
+			PluginWorkspaceLayout.ensureGradleRuntime(root, distributionRoot, profile.gradleWrapperZip());
 			return new GenerationResult(profile.generatorId(), descriptor.modId(),
 					PluginWorkspaceLayout.relativeSourcePaths(root));
+		}
 		List<String> generated = new ArrayList<>();
 		Files.createDirectories(root);
 		if (!preservePluginWorkspace) {
