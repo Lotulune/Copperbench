@@ -68,7 +68,14 @@ function formatTime(value: string) {
 }
 
 export const HistoryView: React.FC = () => {
-  const { state, createRecoveryPoint, compareRecoveryPoints, previewRecoveryRestore, restoreRecoveryPoint } = useWorkbench();
+  const {
+    state,
+    createRecoveryPoint,
+    refreshHistory,
+    compareRecoveryPoints,
+    previewRecoveryRestore,
+    restoreRecoveryPoint
+  } = useWorkbench();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [comparison, setComparison] = useState<HistoryComparison | null>(null);
   const [comparisonLoading, setComparisonLoading] = useState(false);
@@ -84,6 +91,10 @@ export const HistoryView: React.FC = () => {
   const [sourceFilter, setSourceFilter] = useState('');
   const createDialogRef = useDialogA11y(createOpen, () => setCreateOpen(false));
   const restoreDialogRef = useDialogA11y(restoreOpen, () => setRestoreOpen(false));
+
+  useEffect(() => {
+    void refreshHistory();
+  }, [refreshHistory]);
 
   const filteredPoints = useMemo(() => {
     const query = search.trim().toLowerCase();

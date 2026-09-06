@@ -32,6 +32,7 @@ import {
   DatagenPreview,
   TaskProjection,
   TaskSourcePreview,
+  HistoryProjection,
   HistoryComparison,
   RecoveryRestorePreview
 } from '../types/contract';
@@ -113,6 +114,7 @@ interface WorkbenchContextType {
   runGameTest: () => Promise<CommandResult>;
   cancelTask: (taskId: UUID) => Promise<CommandResult>;
   createRecoveryPoint: (label: string) => Promise<CommandResult>;
+  refreshHistory: () => Promise<HistoryProjection | null>;
   compareRecoveryPoints: (fromRecoveryPointId: string, toRecoveryPointId: string) => Promise<HistoryComparison | null>;
   previewRecoveryRestore: (recoveryPointId: string) => Promise<RecoveryRestorePreview | null>;
   restoreRecoveryPoint: (recoveryPointId: string) => Promise<CommandResult>;
@@ -799,6 +801,18 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     [state.workbench]
   );
 
+  const refreshHistory = useCallback(async (): Promise<HistoryProjection | null> => {
+    const res = await coreBridge.sendQuery<HistoryProjection>({
+      messageType: 'query',
+      schemaVersion: '1.0',
+      requestId: generateUUID(),
+      workspaceId: state.workbench?.workspace.id || generateUUID(),
+      operation: 'get_history',
+      payload: {}
+    });
+    return res.status === 'succeeded' ? res.data : null;
+  }, [state.workbench]);
+
   const compareRecoveryPoints = useCallback(
     async (fromRecoveryPointId: string, toRecoveryPointId: string): Promise<HistoryComparison | null> => {
       const res = await coreBridge.sendQuery<HistoryComparison>({
@@ -1261,6 +1275,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       runGameTest,
       cancelTask,
       createRecoveryPoint,
+      refreshHistory,
       compareRecoveryPoints,
       previewRecoveryRestore,
       restoreRecoveryPoint,
@@ -1337,6 +1352,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       runGameTest,
       cancelTask,
       createRecoveryPoint,
+      refreshHistory,
       compareRecoveryPoints,
       previewRecoveryRestore,
       restoreRecoveryPoint,

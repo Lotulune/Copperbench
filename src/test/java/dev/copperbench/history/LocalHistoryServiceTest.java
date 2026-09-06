@@ -16,6 +16,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -32,6 +33,72 @@ class LocalHistoryServiceTest {
 	private static final Clock CLOCK = Clock.fixed(Instant.parse("2026-08-17T00:00:00Z"), ZoneOffset.UTC);
 
 	@TempDir Path workspace;
+
+	@Test void rewritingTrackedWorkspaceFileInvalidatesCurrentRecoveryPoint() throws Exception {
+		Path sentinel = workspace.resolve("stage13-history-sentinel.txt");
+		Files.writeString(workspace.resolve("workspace.mcreator"), "{\"revision\":0}");
+		Files.writeString(sentinel, "stage13-history-baseline");
+
+		try (LocalHistoryService history = JGitLocalHistoryService.open(workspace, CLOCK)) {
+			RecoveryPoint point = history.createRecoveryPoint(
+					new RecoveryPointRequest("Stage13 baseline", Actor.UI, ""));
+			assertEquals(point.id(), history.currentRecoveryPointId());
+
+			Files.writeString(sentinel, "stage13-history-mutated");
+			assertNull(history.currentRecoveryPointId());
+		}
+	}
+
+	@Test void previewAndRestoreStillWorkAfterReopeningHistoryAroundAnExternalTrackedFileEdit() throws Exception {
+		Path workspaceFile = workspace.resolve("workspace.mcreator");
+		Path trackedFile = workspace.resolve("gradle/wrapper/gradle-wrapper.properties");
+		Files.createDirectories(trackedFile.getParent());
+		Files.writeString(workspaceFile, "{\"revision\":0}");
+		Files.writeString(trackedFile, "distributionUrl=https://example.invalid/gradle.zip\n");
+
+		RecoveryPoint baseline;
+		try (LocalHistoryService history = JGitLocalHistoryService.open(workspace, CLOCK)) {
+			baseline = history.createRecoveryPoint(new RecoveryPointRequest("Stage13 baseline", Actor.UI, ""));
+			assertEquals(baseline.id(), history.currentRecoveryPointId());
+		}
+
+		Files.writeString(trackedFile,
+				"distributionUrl=https://example.invalid/gradle.zip\n# stage13-history-mutated");
+
+		try (LocalHistoryService history = JGitLocalHistoryService.open(workspace, CLOCK)) {
+			assertNull(history.currentRecoveryPointId());
+			assertEquals(List.of(new WorkspaceChange(ChangeType.MODIFY,
+					"gradle/wrapper/gradle-wrapper.properties")), history.previewRestore(baseline.id()));
+
+			RestoreResult restored = history.restore(baseline.id());
+			assertTrue(restored.changedPaths().contains("gradle/wrapper/gradle-wrapper.properties"));
+			assertEquals("distributionUrl=https://example.invalid/gradle.zip\n", Files.readString(trackedFile));
+			assertEquals(baseline.id(), history.currentRecoveryPointId());
+		}
+	}
+
+	@Test void currentRecoveryPointRehashesTrackedContentWhenSizeAndTimestampMatchTheIndex() throws Exception {
+		Path trackedFile = workspace.resolve("gradle/wrapper/gradle-wrapper.properties");
+		Files.createDirectories(trackedFile.getParent());
+		Files.writeString(workspace.resolve("workspace.mcreator"), "{\"revision\":0}");
+		Files.writeString(trackedFile, "distributionUrl=https://example.invalid/a.zip\n");
+
+		try (LocalHistoryService history = JGitLocalHistoryService.open(workspace, CLOCK)) {
+			RecoveryPoint baseline = history.createRecoveryPoint(
+					new RecoveryPointRequest("Before external rewrite", Actor.UI, ""));
+			assertEquals(baseline.id(), history.currentRecoveryPointId());
+
+			FileTime indexedTimestamp = Files.getLastModifiedTime(trackedFile);
+			String original = Files.readString(trackedFile);
+			String rewritten = original.replace("a.zip", "b.zip");
+			assertEquals(original.length(), rewritten.length());
+			Files.writeString(trackedFile, rewritten);
+			Files.setLastModifiedTime(trackedFile, indexedTimestamp);
+
+			assertNull(history.currentRecoveryPointId(),
+					"content changes must invalidate the current recovery point even when stat metadata is unchanged");
+		}
+	}
 
 	@Test void creatorCanCompareAndRestoreRecoveryPointsWithoutChangingExistingGitMetadata() throws Exception {
 		Files.writeString(workspace.resolve("workspace.mcreator"), "{\"revision\":0}");

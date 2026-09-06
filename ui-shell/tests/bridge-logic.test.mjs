@@ -133,7 +133,7 @@ class TestJcefCoreBridge {
         break;
       case 'get_history':
         this.state.recoveryPoints = [...result.data.recoveryPoints];
-        this.state.currentRecoveryPointId = result.data.recoveryPoints[0]?.id ?? null;
+        this.state.currentRecoveryPointId = result.data.currentRecoveryPointId;
         break;
       case 'get_diff':
         this.state.historyComparison = result.data;
@@ -169,10 +169,18 @@ class TestJcefCoreBridge {
 function createMockHost(workspaceId) {
   let eventSink = null;
   const invocationLog = [];
+  let historyProjection = {
+    currentRevision: 10,
+    currentRecoveryPointId: null,
+    recoveryPoints: []
+  };
 
   const host = {
     workspaceId,
     invocationLog,
+    setHistoryProjection: (projection) => {
+      historyProjection = projection;
+    },
     invoke: async (rawJson) => {
       const envelope = JSON.parse(rawJson);
       invocationLog.push(envelope);
@@ -186,6 +194,19 @@ function createMockHost(workspaceId) {
           selectedSchemaVersion: isV1 ? '1.0' : null,
           coreSchemaVersions: ['1.0'],
           diagnostics: isV1 ? [] : [{ code: 'SCHEMA_INCOMPATIBLE', message: 'Incompatible schema', severity: 'error', blocking: true }]
+        });
+      }
+
+      if (envelope.messageType === 'query' && envelope.operation === 'get_history') {
+        return JSON.stringify({
+          messageType: 'query_result',
+          requestId: envelope.requestId,
+          workspaceId,
+          operation: 'get_history',
+          status: 'succeeded',
+          revision: historyProjection.currentRevision,
+          data: historyProjection,
+          diagnostics: []
         });
       }
 
@@ -260,6 +281,42 @@ test('JcefCoreBridge performs handshake and queries workbench and elements', asy
   assert.equal(bridge.getState().viewportState, 'ready');
   assert.equal(bridge.getState().workbench.workspace.name, 'Copper Trails');
   assert.equal(host.invocationLog.length, 3); // handshake, get_workbench, list_mod_elements
+});
+
+test('JcefCoreBridge history refresh clears a stale current recovery point and notifies listeners', async () => {
+  const workspaceId = '11111111-1111-4111-8111-111111111111';
+  const host = createMockHost(workspaceId);
+  const bridge = new TestJcefCoreBridge(host);
+  bridge.getState().currentRecoveryPointId = 'stale-current';
+
+  const observedCurrentIds = [];
+  bridge.onStateChange((state) => observedCurrentIds.push(state.currentRecoveryPointId));
+  host.setHistoryProjection({
+    currentRevision: 10,
+    currentRecoveryPointId: null,
+    recoveryPoints: [
+      {
+        id: 'baseline-recovery-point',
+        label: 'Baseline',
+        actor: 'ui',
+        taskId: '',
+        createdAt: '2026-09-06T00:00:00Z'
+      }
+    ]
+  });
+
+  await bridge.sendQuery({
+    messageType: 'query',
+    schemaVersion: '1.0',
+    requestId: 'req-history-refresh',
+    workspaceId,
+    operation: 'get_history',
+    payload: {}
+  });
+
+  assert.equal(bridge.getState().recoveryPoints[0].id, 'baseline-recovery-point');
+  assert.equal(bridge.getState().currentRecoveryPointId, null);
+  assert.equal(observedCurrentIds.at(-1), null);
 });
 
 test('JcefCoreBridge marks state incompatible on schema mismatch', async () => {
