@@ -49,6 +49,7 @@ import dev.copperbench.history.LocalHistoryException;
 import dev.copperbench.history.LocalHistoryService;
 import dev.copperbench.history.RecoveryPoint;
 import dev.copperbench.history.RecoveryPointRequest;
+import dev.copperbench.history.RecoveryPointSource;
 import dev.copperbench.history.RestoreResult;
 import dev.copperbench.history.WorkspaceChange;
 import dev.copperbench.migration.LoaderMigrationRebuildService;
@@ -905,7 +906,7 @@ public final class WorkspaceApplicationService {
 					try {
 						RecoveryPoint recovery = history.createRecoveryPoint(new RecoveryPointRequest(
 								"Before Blockbench edit: " + asset.relativePath(), UiCore.Actor.UI,
-								"blockbench:" + asset.id()));
+								"blockbench:" + asset.id(), RecoveryPointSource.BLOCKBENCH));
 						return new BlockbenchPreparation(recovery, candidate.revision(), candidate.nextEventSequence());
 					} catch (LocalHistoryException exception) {
 						throw new BlockbenchPreparationException(exception);
@@ -1532,7 +1533,8 @@ public final class WorkspaceApplicationService {
 		if (current == null || current.revision() != command.expectedRevision()) return null;
 		String taskId = command.payload().has("clientMutationId")
 				? command.payload().get("clientMutationId").getAsString() : command.requestId().toString();
-		return history.createRecoveryPoint(new RecoveryPointRequest("Before large Procedure edit", context.actor(), taskId));
+		return history.createRecoveryPoint(new RecoveryPointRequest("Before large Procedure edit", context.actor(), taskId,
+				RecoveryPointSource.PROCEDURE));
 	}
 
 	private CommandOutcome delete(Command command, RequestContext context) {
@@ -1570,7 +1572,8 @@ public final class WorkspaceApplicationService {
 		String taskId = command.payload().has("clientMutationId")
 				? command.payload().get("clientMutationId").getAsString() : command.requestId().toString();
 		return history.createRecoveryPoint(new RecoveryPointRequest(
-				"Before MCP " + command.operation().name().toLowerCase(Locale.ROOT), context.actor(), taskId));
+				"Before MCP " + command.operation().name().toLowerCase(Locale.ROOT), context.actor(), taskId,
+				RecoveryPointSource.AUTOMATION));
 	}
 
 	private CommandOutcome automationRecoveryFailed(Command command, Throwable cause) {
@@ -1712,7 +1715,7 @@ public final class WorkspaceApplicationService {
 		try {
 			transaction = store.restore(command.workspaceId(), command.expectedRevision(), newRevision -> {
 				RecoveryPoint safetyPoint = history.createRecoveryPoint(new RecoveryPointRequest(
-						"Before restoring " + pointId, context.actor(), ""));
+						"Before restoring " + pointId, context.actor(), "", RecoveryPointSource.RESTORE_SAFETY));
 				boolean restoreStarted = false;
 				try {
 					restoreStarted = true;
@@ -2259,6 +2262,7 @@ public final class WorkspaceApplicationService {
 		json.addProperty("label", point.label());
 		json.addProperty("actor", wire(point.actor()));
 		json.addProperty("taskId", point.taskId());
+		json.addProperty("source", point.source().wireName());
 		json.addProperty("createdAt", point.createdAt().toString());
 		return json;
 	}
@@ -3042,7 +3046,7 @@ public final class WorkspaceApplicationService {
 		WorkspaceState current = store.read(command.workspaceId()).orElse(null);
 		if (current == null || current.revision() != command.expectedRevision()) return null;
 		return history.createRecoveryPoint(new RecoveryPointRequest("Before datagen publish", context.actor(),
-				taskId.toString()));
+				taskId.toString(), RecoveryPointSource.DATAGEN));
 	}
 
 	private CommandOutcome runServer(Command command, RequestContext context) {
@@ -3077,7 +3081,8 @@ public final class WorkspaceApplicationService {
 		if (current == null || current.revision() != command.expectedRevision()) return null;
 		String taskId = command.payload().has("clientMutationId")
 				? command.payload().get("clientMutationId").getAsString() : command.requestId().toString();
-		return history.createRecoveryPoint(new RecoveryPointRequest("Before registry mutation", context.actor(), taskId));
+		return history.createRecoveryPoint(new RecoveryPointRequest("Before registry mutation", context.actor(), taskId,
+				RecoveryPointSource.REGISTRY));
 	}
 
 	private Diagnostic persistWorkspaceData(WorkspaceState before, WorkspaceState after, Command command) {

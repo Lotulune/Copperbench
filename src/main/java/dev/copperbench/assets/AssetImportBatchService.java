@@ -15,6 +15,7 @@ import dev.copperbench.history.LocalHistoryException;
 import dev.copperbench.history.LocalHistoryService;
 import dev.copperbench.history.RecoveryPoint;
 import dev.copperbench.history.RecoveryPointRequest;
+import dev.copperbench.history.RecoveryPointSource;
 
 import java.nio.file.Path;
 import java.nio.file.Files;
@@ -91,7 +92,8 @@ public final class AssetImportBatchService {
 		}
 
 		RecoveryPoint recovery = history.createRecoveryPoint(new RecoveryPointRequest(
-				"Before asset batch import: " + current.changedCount() + " assets", actor, taskId));
+				"Before asset batch import: " + current.changedCount() + " assets", actor, taskId,
+				RecoveryPointSource.ASSET));
 		List<AssetDescriptor> imported = new ArrayList<>(current.changedCount());
 		try {
 			for (StagedItem item : staged)

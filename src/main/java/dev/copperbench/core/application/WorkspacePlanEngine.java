@@ -26,6 +26,7 @@ import dev.copperbench.history.LocalHistoryException;
 import dev.copperbench.history.LocalHistoryService;
 import dev.copperbench.history.RecoveryPoint;
 import dev.copperbench.history.RecoveryPointRequest;
+import dev.copperbench.history.RecoveryPointSource;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -181,7 +182,7 @@ final class WorkspacePlanEngine {
 				try {
 					recoveryPoint = history.createRecoveryPoint(new RecoveryPointRequest(
 							"Before workspace plan " + shortId(plan.get("planId").getAsString()), context.actor(),
-							plan.get("idempotencyKey").getAsString()));
+							plan.get("idempotencyKey").getAsString(), RecoveryPointSource.WORKSPACE_PLAN));
 				} catch (LocalHistoryException exception) {
 					return Decision.abort(PlanMutation.rejected(diagnostic("RECOVERY_POINT_FAILED",
 							"diagnostic.recovery_point_failed",

@@ -1249,6 +1249,20 @@
         "taskId": {
           "type": "string"
         },
+        "source": {
+          "type": "string",
+          "enum": [
+            "manual",
+            "automation",
+            "workspace_plan",
+            "procedure",
+            "asset",
+            "datagen",
+            "registry",
+            "blockbench",
+            "restore_safety"
+          ]
+        },
         "createdAt": {
           "$ref": "#/$defs/timestamp"
         }

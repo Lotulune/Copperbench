@@ -201,6 +201,7 @@ test.describe('JCEF Bridge & Host Transport Integration', () => {
                     label: 'After native edit',
                     actor: 'ui',
                     taskId: '',
+                    source: 'workspace_plan',
                     createdAt: '2026-09-06T06:10:00Z'
                   },
                   {
@@ -208,6 +209,7 @@ test.describe('JCEF Bridge & Host Transport Integration', () => {
                     label: 'Before native edit',
                     actor: 'system',
                     taskId: '',
+                    source: 'manual',
                     createdAt: '2026-09-06T06:00:00Z'
                   }
                 ]
@@ -335,6 +337,7 @@ test.describe('JCEF Bridge & Host Transport Integration', () => {
 
     await page.click('[data-testid="nav-history"]');
     await expect(page.locator('[data-testid="history-view"]')).toBeVisible();
+    await expect(page.locator('[data-testid="history-point"]').first()).toContainText('工作区计划');
     await expect.poll(() => page.evaluate(() => window.sessionStorage.getItem('lastHistoryDiffPayload')))
       .toBe(JSON.stringify({
         fromRecoveryPointId: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',

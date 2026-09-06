@@ -14,6 +14,7 @@ import dev.copperbench.history.LocalHistoryException;
 import dev.copperbench.history.LocalHistoryService;
 import dev.copperbench.history.RecoveryPoint;
 import dev.copperbench.history.RecoveryPointRequest;
+import dev.copperbench.history.RecoveryPointSource;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -80,7 +81,7 @@ public final class AssetImportService {
 			throw new AssetImportException("ASSET_IMPORT_NOT_APPLICABLE", "The approved asset import has no changes");
 
 		RecoveryPoint recovery = history.createRecoveryPoint(new RecoveryPointRequest(
-				"Before asset import: " + current.targetRelativePath(), actor, taskId));
+				"Before asset import: " + current.targetRelativePath(), actor, taskId, RecoveryPointSource.ASSET));
 		try {
 			AssetDescriptor imported = writeValidated(current);
 			return new ApplyResult(imported, recovery, current.conflict());

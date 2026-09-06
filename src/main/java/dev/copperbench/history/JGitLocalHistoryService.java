@@ -46,6 +46,7 @@ public final class JGitLocalHistoryService implements LocalHistoryService {
 	private static final String LABEL_HEADER = "Copperbench-Label: ";
 	private static final String ACTOR_HEADER = "Copperbench-Actor: ";
 	private static final String TASK_HEADER = "Copperbench-Task-Id: ";
+	private static final String SOURCE_HEADER = "Copperbench-Source: ";
 
 	private final Clock clock;
 	private final Git git;
@@ -80,7 +81,8 @@ public final class JGitLocalHistoryService implements LocalHistoryService {
 			PersonIdent identity = new PersonIdent("Copperbench", "local-history@copperbench.invalid",
 					Date.from(clock.instant()), TimeZone.getTimeZone(ZoneOffset.UTC));
 			String message = "Copperbench recovery point\n\n" + LABEL_HEADER + request.label() + "\n"
-					+ ACTOR_HEADER + request.actor().name() + "\n" + TASK_HEADER + request.taskId();
+					+ ACTOR_HEADER + request.actor().name() + "\n" + TASK_HEADER + request.taskId() + "\n"
+					+ SOURCE_HEADER + request.source().wireName();
 			RevCommit commit = git.commit().setMessage(message).setAuthor(identity).setCommitter(identity)
 					.setSign(false).setAllowEmpty(true).call();
 			return toRecoveryPoint(commit);
@@ -202,6 +204,7 @@ public final class JGitLocalHistoryService implements LocalHistoryService {
 		String message = commit.getFullMessage();
 		return new RecoveryPoint(commit.getName(), header(message, LABEL_HEADER),
 				Actor.valueOf(header(message, ACTOR_HEADER)), header(message, TASK_HEADER),
+				RecoveryPointSource.fromWire(header(message, SOURCE_HEADER)),
 				commit.getAuthorIdent().getWhenAsInstant());
 	}
 

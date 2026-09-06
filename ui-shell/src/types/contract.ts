@@ -513,6 +513,7 @@ export interface RecoveryPoint {
   label: string;
   actor: RecoveryPointActor;
   taskId: string;
+  source?: 'manual' | 'automation' | 'workspace_plan' | 'procedure' | 'asset' | 'datagen' | 'registry' | 'blockbench' | 'restore_safety';
   createdAt: Timestamp;
 }
 

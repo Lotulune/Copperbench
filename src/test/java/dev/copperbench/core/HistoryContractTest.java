@@ -73,6 +73,8 @@ class HistoryContractTest {
 		assertEquals(2, projection.getAsJsonArray("recoveryPoints").size());
 		assertEquals("After AI edit", projection.getAsJsonArray("recoveryPoints").get(0).getAsJsonObject()
 				.get("label").getAsString());
+		assertEquals("manual", projection.getAsJsonArray("recoveryPoints").get(0).getAsJsonObject()
+				.get("source").getAsString());
 
 		JsonObject diffPayload = new JsonObject();
 		diffPayload.addProperty("fromRecoveryPointId", pointId(projection, 1));

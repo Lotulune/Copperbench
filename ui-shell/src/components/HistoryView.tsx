@@ -21,6 +21,18 @@ const actorLabels: Record<RecoveryPoint['actor'], string> = {
   system: '系统'
 };
 
+const sourceLabels: Record<NonNullable<RecoveryPoint['source']>, string> = {
+  manual: '手动',
+  automation: '自动操作',
+  workspace_plan: '工作区计划',
+  procedure: 'Procedure',
+  asset: '资产',
+  datagen: 'Datagen',
+  registry: '注册表',
+  blockbench: 'Blockbench',
+  restore_safety: '还原保护'
+};
+
 const changeLabels: Record<WorkspaceChange['type'], string> = {
   add: '新增',
   modify: '修改',
@@ -180,7 +192,7 @@ export const HistoryView: React.FC = () => {
                       {current && <span className="history-current">当前</span>}
                     </span>
                     <span className="history-point-meta">
-                      {actorLabels[point.actor]} · {formatTime(point.createdAt)}
+                      {sourceLabels[point.source ?? 'manual']} · {actorLabels[point.actor]} · {formatTime(point.createdAt)}
                     </span>
                   </span>
                   <ChevronRight size={14} aria-hidden="true" />

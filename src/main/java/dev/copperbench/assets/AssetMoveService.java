@@ -21,6 +21,7 @@ import dev.copperbench.history.LocalHistoryException;
 import dev.copperbench.history.LocalHistoryService;
 import dev.copperbench.history.RecoveryPoint;
 import dev.copperbench.history.RecoveryPointRequest;
+import dev.copperbench.history.RecoveryPointSource;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -104,7 +105,8 @@ public final class AssetMoveService {
 			throw new AssetMoveException("ASSET_MOVE_NOT_APPLICABLE", "Asset move preview is blocked");
 
 		RecoveryPoint recovery = history.createRecoveryPoint(new RecoveryPointRequest(
-				"Before asset move: " + current.sourceRelativePath() + " -> " + current.targetRelativePath(), actor, taskId));
+				"Before asset move: " + current.sourceRelativePath() + " -> " + current.targetRelativePath(), actor,
+				taskId, RecoveryPointSource.ASSET));
 		try {
 			rewriteIncomingReferences(current);
 			Path source = assets.workspaceRoot().resolve(current.sourceRelativePath()).normalize();

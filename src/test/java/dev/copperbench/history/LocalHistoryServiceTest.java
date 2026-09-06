@@ -50,7 +50,8 @@ class LocalHistoryServiceTest {
 			Files.createDirectories(workspace.resolve("elements"));
 			Files.writeString(workspace.resolve("elements/copper_block.mod.json"), "{\"name\":\"Copper Block\"}");
 			RecoveryPoint after = history.createRecoveryPoint(
-					new RecoveryPointRequest("After AI edit", Actor.MCP, "task-42"));
+					new RecoveryPointRequest("After AI edit", Actor.MCP, "task-42", RecoveryPointSource.WORKSPACE_PLAN));
+			assertEquals(RecoveryPointSource.WORKSPACE_PLAN, after.source());
 
 			assertEquals(List.of(
 					new WorkspaceChange(ChangeType.ADD, "elements/copper_block.mod.json"),
