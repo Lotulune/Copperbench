@@ -85,7 +85,12 @@ test.describe('JCEF Bridge & Host Transport Integration', () => {
                 recoveryPointId: envelope.payload.recoveryPointId,
                 baseRevision: 42,
                 changes: [
-                  { type: 'modify', path: 'workspace.mcreator' },
+                  {
+                    type: 'modify',
+                    path: 'workspace.mcreator',
+                    objectKind: 'workspace',
+                    objectName: 'workspace'
+                  },
                   { type: 'delete', path: 'scratch/current-only.txt' }
                 ]
               },
@@ -232,7 +237,12 @@ test.describe('JCEF Bridge & Host Transport Integration', () => {
                 fromRecoveryPointId: envelope.payload.fromRecoveryPointId,
                 toRecoveryPointId: envelope.payload.toRecoveryPointId,
                 baseRevision: 42,
-                changes: [{ type: 'modify', path: 'elements/native_compass.mod.json' }]
+                changes: [{
+                  type: 'modify',
+                  path: 'elements/native_compass.mod.json',
+                  objectKind: 'mod_element',
+                  objectName: 'native_compass'
+                }]
               },
               diagnostics: []
             });
@@ -343,7 +353,10 @@ test.describe('JCEF Bridge & Host Transport Integration', () => {
         fromRecoveryPointId: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
         toRecoveryPointId: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
       }));
-    await expect(page.locator('[data-testid="history-change"]')).toContainText('elements/native_compass.mod.json');
+    await expect(page.locator('[data-testid="history-change"]'))
+      .toContainText('Mod Element native_compass');
+    await expect(page.locator('[data-testid="history-change"]'))
+      .toContainText('elements/native_compass.mod.json');
 
     await page.locator('[data-testid="history-point"]').nth(1).click();
     await page.locator('[data-testid="restore-recovery-point"]').click();
@@ -351,6 +364,8 @@ test.describe('JCEF Bridge & Host Transport Integration', () => {
       .toBe(JSON.stringify({ recoveryPointId: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' }));
     await expect(page.locator('[data-testid="restore-recovery-dialog"]'))
       .toContainText('scratch/current-only.txt');
+    await expect(page.locator('[data-testid="restore-recovery-dialog"]'))
+      .toContainText('工作区 workspace');
     await expect(page.locator('[data-testid="confirm-restore-recovery"]')).toBeEnabled();
   });
 

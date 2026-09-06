@@ -1289,6 +1289,14 @@
         "path": {
           "type": "string",
           "minLength": 1
+        },
+        "objectKind": {
+          "type": "string",
+          "enum": ["workspace", "mod_element", "asset"]
+        },
+        "objectName": {
+          "type": "string",
+          "minLength": 1
         }
       },
       "additionalProperties": false

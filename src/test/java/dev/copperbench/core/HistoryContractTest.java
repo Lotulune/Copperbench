@@ -58,6 +58,11 @@ class HistoryContractTest {
 		Fixture fixture = fixture(stateAtRestoredPoint());
 		createPoint(fixture.service, "Before AI edit");
 		Files.writeString(workspaceDirectory.resolve("workspace.mcreator"), "{\"revision\":1}");
+		Files.createDirectories(workspaceDirectory.resolve("elements"));
+		Files.writeString(workspaceDirectory.resolve("elements/copper_lamp.mod.json"), "{\"name\":\"Copper Lamp\"}");
+		Files.createDirectories(workspaceDirectory.resolve("src/main/resources/assets/coppertrails/textures/item"));
+		Files.writeString(workspaceDirectory.resolve("src/main/resources/assets/coppertrails/textures/item/copper_lamp.png"),
+				"png-placeholder");
 		createPoint(fixture.service, "After AI edit");
 
 		Query history = Query.of(uuid(10), WORKSPACE_ID, Operation.GET_HISTORY, new JsonObject());
@@ -81,9 +86,17 @@ class HistoryContractTest {
 		diffPayload.addProperty("toRecoveryPointId", pointId(projection, 0));
 		var diff = fixture.service.query(Query.of(uuid(11), WORKSPACE_ID, Operation.GET_DIFF, diffPayload), UI);
 		assertEquals("succeeded", diff.status());
-		assertEquals(1, diff.data().getAsJsonObject().getAsJsonArray("changes").size());
-		assertEquals("workspace.mcreator", diff.data().getAsJsonObject().getAsJsonArray("changes").get(0)
-				.getAsJsonObject().get("path").getAsString());
+		var changes = diff.data().getAsJsonObject().getAsJsonArray("changes");
+		assertEquals(3, changes.size());
+		JsonObject elementChange = findChange(changes, "elements/copper_lamp.mod.json");
+		assertEquals("mod_element", elementChange.get("objectKind").getAsString());
+		assertEquals("copper_lamp", elementChange.get("objectName").getAsString());
+		JsonObject assetChange = findChange(changes,
+				"src/main/resources/assets/coppertrails/textures/item/copper_lamp.png");
+		assertEquals("asset", assetChange.get("objectKind").getAsString());
+		assertEquals("coppertrails/textures/item/copper_lamp.png", assetChange.get("objectName").getAsString());
+		JsonObject workspaceChange = findChange(changes, "workspace.mcreator");
+		assertEquals("workspace", workspaceChange.get("objectKind").getAsString());
 
 		Files.writeString(workspaceDirectory.resolve("workspace.mcreator"), "{\"revision\":2,\"workingTree\":true}");
 		Files.writeString(workspaceDirectory.resolve("scratch.txt"), "not checkpointed");
@@ -100,11 +113,13 @@ class HistoryContractTest {
 		assertEquals(previewLegacy, previewHeadless);
 		JsonObject restorePreview = previewLegacy.getAsJsonObject().getAsJsonObject("data");
 		assertEquals(pointId(projection, 1), restorePreview.get("recoveryPointId").getAsString());
-		assertEquals(2, restorePreview.getAsJsonArray("changes").size());
-		assertEquals("scratch.txt", restorePreview.getAsJsonArray("changes").get(0).getAsJsonObject()
-				.get("path").getAsString());
-		assertEquals("delete", restorePreview.getAsJsonArray("changes").get(0).getAsJsonObject()
-				.get("type").getAsString());
+		var restoreChanges = restorePreview.getAsJsonArray("changes");
+		assertEquals(4, restoreChanges.size());
+		JsonObject scratchChange = findChange(restoreChanges, "scratch.txt");
+		assertEquals("delete", scratchChange.get("type").getAsString());
+		JsonObject restoreElementChange = findChange(restoreChanges, "elements/copper_lamp.mod.json");
+		assertEquals("mod_element", restoreElementChange.get("objectKind").getAsString());
+		assertEquals("copper_lamp", restoreElementChange.get("objectName").getAsString());
 	}
 
 	@Test void restoreIsAProtectedOperationAndCannotRunWithoutExplicitUserApproval() throws Exception {
@@ -210,6 +225,13 @@ class HistoryContractTest {
 	private static String pointId(com.google.gson.JsonElement historyProjection, int index) {
 		return historyProjection.getAsJsonObject().getAsJsonArray("recoveryPoints").get(index).getAsJsonObject()
 				.get("id").getAsString();
+	}
+
+	private static JsonObject findChange(com.google.gson.JsonArray changes, String path) {
+		return java.util.stream.StreamSupport.stream(changes.spliterator(), false)
+				.map(com.google.gson.JsonElement::getAsJsonObject)
+				.filter(change -> path.equals(change.get("path").getAsString()))
+				.findFirst().orElseThrow();
 	}
 
 	private Fixture fixture(WorkspaceState restoredSnapshot) {

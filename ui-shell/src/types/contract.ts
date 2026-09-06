@@ -528,6 +528,8 @@ export interface HistoryProjection {
 export interface WorkspaceChange {
   type: 'add' | 'modify' | 'delete' | 'rename' | 'copy';
   path: string;
+  objectKind?: 'workspace' | 'mod_element' | 'asset';
+  objectName?: string;
 }
 
 export interface HistoryComparison {

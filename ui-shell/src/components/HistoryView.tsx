@@ -41,6 +41,19 @@ const changeLabels: Record<WorkspaceChange['type'], string> = {
   copy: '复制'
 };
 
+const objectKindLabels: Record<NonNullable<WorkspaceChange['objectKind']>, string> = {
+  workspace: '工作区',
+  mod_element: 'Mod Element',
+  asset: '资产'
+};
+
+function changeText(change: WorkspaceChange): string {
+  const semantic = change.objectKind && change.objectName
+    ? `${objectKindLabels[change.objectKind]} ${change.objectName} · `
+    : '';
+  return `${semantic}${changeLabels[change.type]} · ${change.path}`;
+}
+
 function formatTime(value: string) {
   return new Intl.DateTimeFormat('zh-CN', {
     month: '2-digit',
@@ -237,7 +250,7 @@ export const HistoryView: React.FC = () => {
                 {changes.map((change) => (
                   <div className="history-change" data-testid="history-change" key={`${change.type}:${change.path}`}>
                     <span className={`change-badge change-${change.type}`}>{changeLabels[change.type]}</span>
-                    <code>{change.path}</code>
+                    <code>{changeText(change)}</code>
                   </div>
                 ))}
               </div>
@@ -326,7 +339,7 @@ export const HistoryView: React.FC = () => {
                   <span data-testid="restore-preview-empty">当前工作区与该恢复点没有文件差异。</span>
                 )}
                 {restorePreview?.changes.slice(0, 8).map((change) => (
-                  <code key={`${change.type}:${change.path}`}>{changeLabels[change.type]} · {change.path}</code>
+                  <code key={`${change.type}:${change.path}`}>{changeText(change)}</code>
                 ))}
               </div>
             </div>

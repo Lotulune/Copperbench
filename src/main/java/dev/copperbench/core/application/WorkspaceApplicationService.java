@@ -318,12 +318,7 @@ public final class WorkspaceApplicationService {
 			projection.addProperty("recoveryPointId", recoveryPointId);
 			projection.addProperty("baseRevision", state.revision());
 			JsonArray items = new JsonArray();
-			changes.forEach(change -> {
-				JsonObject item = new JsonObject();
-				item.addProperty("type", change.type().name().toLowerCase(Locale.ROOT));
-				item.addProperty("path", change.path());
-				items.add(item);
-			});
+			changes.forEach(change -> items.add(historyChange(change)));
 			projection.add("changes", items);
 			return querySuccess(query, state.revision(), projection);
 		} catch (LocalHistoryException exception) {
@@ -2241,12 +2236,7 @@ public final class WorkspaceApplicationService {
 			projection.addProperty("toRecoveryPointId", to);
 			projection.addProperty("baseRevision", state.revision());
 			JsonArray items = new JsonArray();
-			changes.forEach(change -> {
-				JsonObject item = new JsonObject();
-				item.addProperty("type", change.type().name().toLowerCase(Locale.ROOT));
-				item.addProperty("path", change.path());
-				items.add(item);
-			});
+			changes.forEach(change -> items.add(historyChange(change)));
 			projection.add("changes", items);
 			return querySuccess(query, state.revision(), projection);
 		} catch (LocalHistoryException exception) {
@@ -2265,6 +2255,28 @@ public final class WorkspaceApplicationService {
 		json.addProperty("source", point.source().wireName());
 		json.addProperty("createdAt", point.createdAt().toString());
 		return json;
+	}
+
+	private JsonObject historyChange(WorkspaceChange change) {
+		JsonObject item = new JsonObject();
+		item.addProperty("type", change.type().name().toLowerCase(Locale.ROOT));
+		String path = change.path().replace('\\', '/');
+		item.addProperty("path", path);
+		if ("workspace.mcreator".equals(path)) {
+			item.addProperty("objectKind", "workspace");
+			item.addProperty("objectName", "workspace");
+		} else if (path.startsWith("elements/") && path.endsWith(".mod.json")
+				&& path.indexOf('/', "elements/".length()) < 0) {
+			item.addProperty("objectKind", "mod_element");
+			item.addProperty("objectName", path.substring("elements/".length(), path.length() - ".mod.json".length()));
+		} else if (path.startsWith("src/main/resources/assets/")) {
+			item.addProperty("objectKind", "asset");
+			item.addProperty("objectName", path.substring("src/main/resources/assets/".length()));
+		} else if (path.startsWith("resources/assets/")) {
+			item.addProperty("objectKind", "asset");
+			item.addProperty("objectName", path.substring("resources/assets/".length()));
+		}
+		return item;
 	}
 
 	private Diagnostic historyUnavailable() {
