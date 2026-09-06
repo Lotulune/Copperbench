@@ -641,6 +641,26 @@ input:disabled, select:disabled, textarea:disabled {
   text-transform: uppercase;
 }
 
+.history-filter-bar {
+  display: grid;
+  gap: 6px;
+  margin: 0 0 12px;
+}
+
+.history-filter-bar input,
+.history-filter-bar select {
+  width: 100%;
+  min-width: 0;
+  height: 30px;
+  font-size: 11px;
+}
+
+.history-filter-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 6px;
+}
+
 .history-list {
   display: flex;
   flex-direction: column;

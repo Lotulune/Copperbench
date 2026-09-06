@@ -21,6 +21,7 @@
             "id": "7d7c3e34c657acc1",
             "label": "Before MCP batch edit",
             "actor": "mcp",
+            "source": "workspace_plan",
             "taskId": "mcp-edit-184",
             "createdAt": "2026-08-17T02:10:00Z"
           },
@@ -28,6 +29,7 @@
             "id": "51bcbf674b6399a2",
             "label": "Copper Lamp validated",
             "actor": "ui",
+            "source": "manual",
             "taskId": "validate-183",
             "createdAt": "2026-08-17T01:42:00Z"
           },
@@ -35,6 +37,7 @@
             "id": "3a6f0da7b6da984e",
             "label": "Workspace opened",
             "actor": "system",
+            "source": "automation",
             "taskId": "",
             "createdAt": "2026-08-17T01:05:00Z"
           }

@@ -369,11 +369,14 @@ final class McpToolCatalog {
 						"cursor", Map.of("type", "string"),
 						"limit", Map.of("type", "integer", "minimum", 1, "maximum", 200),
 						"sort", Map.of("type", "string", "enum", List.of("createdAt", "-createdAt", "label",
-								"-label", "actor", "-actor")),
+								"-label", "actor", "-actor", "source", "-source")),
 						"filter", Map.of("type", "object", "properties", Map.of(
 								"search", Map.of("type", "string"),
 								"actor", Map.of("type", "string", "enum", List.of("ui", "mcp", "headless",
-										"legacy_ui", "system"))), "additionalProperties", false),
+										"legacy_ui", "system")),
+								"source", Map.of("type", "string", "enum", List.of("manual", "automation",
+										"workspace_plan", "procedure", "asset", "datagen", "registry", "blockbench",
+										"restore_safety"))), "additionalProperties", false),
 						"fields", Map.of("type", "array", "items", Map.of("type", "string"), "uniqueItems", true))),
 				arguments -> {
 					JsonObject payload = GSON.toJsonTree(arguments).getAsJsonObject();

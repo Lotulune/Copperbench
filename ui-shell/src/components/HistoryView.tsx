@@ -79,14 +79,30 @@ export const HistoryView: React.FC = () => {
   const [restoreOpen, setRestoreOpen] = useState(false);
   const [label, setLabel] = useState('');
   const [status, setStatus] = useState('');
+  const [search, setSearch] = useState('');
+  const [actorFilter, setActorFilter] = useState('');
+  const [sourceFilter, setSourceFilter] = useState('');
   const createDialogRef = useDialogA11y(createOpen, () => setCreateOpen(false));
   const restoreDialogRef = useDialogA11y(restoreOpen, () => setRestoreOpen(false));
 
+  const filteredPoints = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    return state.recoveryPoints.filter((point) => {
+      const source = point.source ?? 'manual';
+      const matchesSearch = !query || point.label.toLowerCase().includes(query)
+        || point.taskId.toLowerCase().includes(query)
+        || source.toLowerCase().includes(query);
+      return matchesSearch
+        && (!actorFilter || point.actor === actorFilter)
+        && (!sourceFilter || source === sourceFilter);
+    });
+  }, [actorFilter, search, sourceFilter, state.recoveryPoints]);
+
   useEffect(() => {
-    if (!selectedId || !state.recoveryPoints.some((point) => point.id === selectedId)) {
-      setSelectedId(state.recoveryPoints[0]?.id ?? null);
+    if (!selectedId || !filteredPoints.some((point) => point.id === selectedId)) {
+      setSelectedId(filteredPoints[0]?.id ?? null);
     }
-  }, [selectedId, state.recoveryPoints]);
+  }, [filteredPoints, selectedId]);
 
   const selected = useMemo(
     () => state.recoveryPoints.find((point) => point.id === selectedId) ?? null,
@@ -190,9 +206,42 @@ export const HistoryView: React.FC = () => {
 
       <div className="history-workspace">
         <aside className="history-timeline" aria-label="恢复点时间线">
-          <div className="history-section-label">恢复点</div>
+          <div className="history-filter-bar" aria-label="筛选恢复点">
+            <input
+              type="search"
+              data-testid="history-search"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="搜索恢复点"
+            />
+            <div className="history-filter-row">
+              <select
+                data-testid="history-source-filter"
+                aria-label="按来源筛选"
+                value={sourceFilter}
+                onChange={(event) => setSourceFilter(event.target.value)}
+              >
+                <option value="">全部来源</option>
+                {Object.entries(sourceLabels).map(([value, text]) => (
+                  <option value={value} key={value}>{text}</option>
+                ))}
+              </select>
+              <select
+                data-testid="history-actor-filter"
+                aria-label="按操作者筛选"
+                value={actorFilter}
+                onChange={(event) => setActorFilter(event.target.value)}
+              >
+                <option value="">全部操作者</option>
+                {Object.entries(actorLabels).map(([value, text]) => (
+                  <option value={value} key={value}>{text}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div className="history-section-label">恢复点 · {filteredPoints.length}/{state.recoveryPoints.length}</div>
           <div className="history-list">
-            {state.recoveryPoints.map((point) => {
+            {filteredPoints.map((point) => {
               const selectedPoint = point.id === selectedId;
               const current = point.id === state.currentRecoveryPointId;
               return (
@@ -218,6 +267,7 @@ export const HistoryView: React.FC = () => {
                 </button>
               );
             })}
+            {filteredPoints.length === 0 && <div className="stage2-empty">没有匹配的恢复点</div>}
           </div>
         </aside>
 

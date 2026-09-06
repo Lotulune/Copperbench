@@ -2223,17 +2223,20 @@ public final class WorkspaceApplicationService {
 			String search = filter != null && filter.has("search")
 					? requiredString(filter, "search").toLowerCase(Locale.ROOT) : "";
 			String actor = filter != null && filter.has("actor") ? requiredString(filter, "actor") : "";
-			Set<String> fields = listFields(payload, Set.of("id", "label", "actor", "taskId", "createdAt"),
+			String source = filter != null && filter.has("source") ? requiredString(filter, "source") : "";
+			Set<String> fields = listFields(payload, Set.of("id", "label", "actor", "source", "taskId", "createdAt"),
 					"recovery point");
 			Comparator<RecoveryPoint> comparator = recoveryPointComparator(sort);
 			List<RecoveryPoint> filtered = points.stream()
 					.filter(point -> search.isBlank() || point.label().toLowerCase(Locale.ROOT).contains(search)
-							|| point.taskId().toLowerCase(Locale.ROOT).contains(search))
+							|| point.taskId().toLowerCase(Locale.ROOT).contains(search)
+							|| point.source().wireName().contains(search))
 					.filter(point -> actor.isBlank() || wire(point.actor()).equals(actor))
+					.filter(point -> source.isBlank() || point.source().wireName().equals(source))
 					.sorted(comparator).toList();
 			String dataset = points.stream().map(RecoveryPoint::id).sorted()
 					.reduce((left, right) -> left + "," + right).orElse("");
-			String signature = "history|" + dataset + "|" + search + "|" + actor + "|" + sort + "|"
+			String signature = "history|" + dataset + "|" + search + "|" + actor + "|" + source + "|" + sort + "|"
 					+ listFieldSignature(fields) + "|" + limit;
 			int from = listCursorOffset(payload, state.revision(), signature, filtered.size());
 			int to = Math.min(from + limit, filtered.size());
@@ -2543,6 +2546,7 @@ public final class WorkspaceApplicationService {
 			case "createdAt" -> Comparator.comparing(RecoveryPoint::createdAt);
 			case "label" -> Comparator.comparing(RecoveryPoint::label, String.CASE_INSENSITIVE_ORDER);
 			case "actor" -> Comparator.comparing(point -> wire(point.actor()));
+			case "source" -> Comparator.comparing(point -> point.source().wireName());
 			default -> throw new IllegalArgumentException("Unsupported recovery point sort: " + sort);
 		};
 		if (descending) comparator = comparator.reversed();
