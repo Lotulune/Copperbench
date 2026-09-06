@@ -32,6 +32,20 @@ Generated Java, Gradle state, build output and other derived files are not prese
 - `npm run build` in `ui-shell` -> passed TypeScript, Vite and Chinese localization (`224/224` referenced keys); only the existing chunk-size warning remains.
 - `npx playwright test e2e/u3-tracks-migration.spec.ts` -> `12/12` passed across Chromium and compact-1366. Preview does not show a fabricated comparison; execute shows the real committed comparison.
 
+## Unified Refactor Workbench slice
+
+The broader FR05 audit found that Copperbench already had the required mutation mechanics, but they were spread across specialist screens. This slice adds one shared Refactor tab under Tracks / Migration without introducing a second refactor engine:
+
+- Registry rename loads the existing registry projection, calls `preview_registry_rename`, and creates the existing recovery-protected `WorkspacePlan` for `rename_registry_entry`. The workbench displays impacted elements, reference edges, changed paths and plan safety before applying the reviewed plan through `apply_workspace_plan`.
+- Asset rename / move loads the existing Asset Center projection and calls `preview_asset_move`. The workbench displays inbound-reference counts plus the exact JSON Pointer rewrites already computed by `AssetMoveService`, then applies the reviewed move through the existing recovery-protected `move_asset` command.
+- Procedure extraction, batch call-target replacement and batch resource-target replacement remain in Procedure Workbench because that specialist editor already uses the shared protected `plan_procedure_refactor` / `WorkspacePlan` path. The unified page links the capability conceptually instead of duplicating a second Procedure editor.
+
+Verification for this slice:
+
+- `npm run build` in `ui-shell` -> passed TypeScript, Vite and Chinese localization (`224/224`); only the existing chunk-size warning remains.
+- `npx playwright test e2e/stage13-refactor-workbench.spec.ts` -> `4/4` passed across Chromium and compact-1366. Registry preview -> WorkspacePlan -> apply and Asset exact-reference preview -> apply are both exercised.
+- Existing `npx playwright test e2e/u3-tracks-migration.spec.ts` remains `12/12` across the same two viewport projects after the new fifth tab was added.
+
 ## Remaining `FR-PRODUCTIVITY-05` work
 
-The post-migration semantic comparison requirement is implemented. FR05 remains active while Copperbench audits and unifies the broader batch rename / move / reference-replacement workbench required by `PRD-NEXT.md`, reusing existing WorkspacePlan, reference-index and recovery mechanisms instead of introducing a parallel refactor engine.
+Post-migration semantic comparison and the shared Registry / Asset refactor entry are implemented. FR05 remains active only for the final acceptance audit: confirm that Procedure specialist refactors and the unified entry together satisfy the PRD's batch rename / move / reference-replacement workflow from both desktop and Agent surfaces, and close any concrete parity gap found there. No generic AST/refactor engine is planned unless an actual unsupported workflow requires it.

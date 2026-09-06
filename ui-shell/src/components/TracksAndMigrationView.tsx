@@ -8,7 +8,9 @@ import {
   CheckCircle2,
   Play,
   Plus,
-  Lock
+  Lock,
+  GitBranch,
+  MoveRight
 } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
 import { useDialogA11y } from '../hooks/useDialogA11y';
@@ -23,13 +25,25 @@ import {
   MigrationItem,
   PublishBatch,
   CommandResult,
-  ClientLoadPreparation
+  ClientLoadPreparation,
+  WorkspaceRegistriesProjection,
+  RegistryRenamePreview,
+  WorkspacePlan,
+  AssetProjection,
+  AssetMovePreview
 } from '../types/contract';
 
-type U3Tab = 'matrix' | 'migration' | 'upstream' | 'publish';
+type U3Tab = 'matrix' | 'migration' | 'refactor' | 'upstream' | 'publish';
 
 const sanitizeOutputName = (raw: string): string => {
   return raw.toLowerCase().replace(/[^a-z0-9_-]/g, '_').replace(/^_+/, 'w_').slice(0, 64);
+};
+
+const suggestedMovedAssetPath = (path: string): string => {
+  const slash = path.lastIndexOf('/');
+  const dot = path.lastIndexOf('.');
+  const boundary = dot > slash ? dot : path.length;
+  return `${path.slice(0, boundary)}_moved${path.slice(boundary)}`;
 };
 
 export const TracksAndMigrationView: React.FC = () => {
@@ -43,6 +57,13 @@ export const TracksAndMigrationView: React.FC = () => {
     listPublishBatches,
     createPublishBatch,
     prepareResourcePackClient,
+    listWorkspaceRegistries,
+    previewRegistryRename,
+    planWorkspaceChanges,
+    applyWorkspacePlan,
+    listAssets,
+    previewAssetMove,
+    moveAsset,
     elevatePermission,
     runDiagnosticAction
   } = useWorkbench();
@@ -59,6 +80,19 @@ export const TracksAndMigrationView: React.FC = () => {
   const [migrationLoading, setMigrationLoading] = useState(false);
   const [migrationConfirmed, setMigrationConfirmed] = useState(false);
   const [migrationResult, setMigrationResult] = useState<CommandResult | null>(null);
+
+  // Refactor Workbench state. This surface orchestrates existing Core plans; it owns no mutation logic.
+  const [refactorRegistries, setRefactorRegistries] = useState<WorkspaceRegistriesProjection | null>(null);
+  const [refactorAssets, setRefactorAssets] = useState<AssetProjection | null>(null);
+  const [selectedRegistryId, setSelectedRegistryId] = useState('');
+  const [registryNewName, setRegistryNewName] = useState('');
+  const [registryRenamePreview, setRegistryRenamePreview] = useState<RegistryRenamePreview | null>(null);
+  const [registryRenamePlan, setRegistryRenamePlan] = useState<WorkspacePlan | null>(null);
+  const [selectedAssetId, setSelectedAssetId] = useState('');
+  const [assetTargetPath, setAssetTargetPath] = useState('');
+  const [assetMovePreview, setAssetMovePreview] = useState<AssetMovePreview | null>(null);
+  const [refactorBusy, setRefactorBusy] = useState(false);
+  const [refactorResult, setRefactorResult] = useState<CommandResult | null>(null);
 
   // Upstream Import state
   const [upstreamSourcePath, setUpstreamSourcePath] = useState<string>('fixtures/upstream/sample_workspace');
@@ -189,6 +223,116 @@ export const TracksAndMigrationView: React.FC = () => {
       isMounted = false;
     };
   }, [activeTab, listPublishBatches]);
+
+  useEffect(() => {
+    if (activeTab !== 'refactor') return;
+    let mounted = true;
+    void Promise.all([listWorkspaceRegistries(), listAssets()]).then(([registries, assets]) => {
+      if (!mounted) return;
+      setRefactorRegistries(registries);
+      setRefactorAssets(assets);
+      const firstRegistry = registries?.registries?.variables[0]
+        ?? registries?.registries?.tags[0]
+        ?? registries?.registries?.languageKeys[0];
+      setSelectedRegistryId((current) => {
+        if (current || !firstRegistry) return current;
+        const currentName = firstRegistry.name ?? firstRegistry.key ?? '';
+        setRegistryNewName(currentName ? `${currentName}_renamed` : 'renamed_entry');
+        return firstRegistry.id;
+      });
+      const firstAsset = assets?.assets[0];
+      setSelectedAssetId((current) => {
+        if (current || !firstAsset) return current;
+        setAssetTargetPath(suggestedMovedAssetPath(firstAsset.relativePath));
+        return firstAsset.id;
+      });
+    });
+    return () => { mounted = false; };
+  }, [activeTab, listAssets, listWorkspaceRegistries]);
+
+  const refactorRegistryEntries = useMemo(() => {
+    const registries = refactorRegistries?.registries;
+    return registries ? [...registries.variables, ...registries.tags, ...registries.languageKeys] : [];
+  }, [refactorRegistries]);
+
+  const handleRegistrySelection = (entryId: string) => {
+    setSelectedRegistryId(entryId);
+    const entry = refactorRegistryEntries.find((candidate) => candidate.id === entryId);
+    const currentName = entry?.name ?? entry?.key ?? '';
+    setRegistryNewName(currentName ? `${currentName}_renamed` : 'renamed_entry');
+    setRegistryRenamePreview(null);
+    setRegistryRenamePlan(null);
+    setRefactorResult(null);
+  };
+
+  const handlePreviewRegistryRefactor = async () => {
+    if (!selectedRegistryId || !registryNewName.trim()) return;
+    setRefactorBusy(true);
+    setRefactorResult(null);
+    try {
+      const [impact, plan] = await Promise.all([
+        previewRegistryRename(selectedRegistryId, registryNewName.trim()),
+        planWorkspaceChanges([{
+          operation: 'rename_registry_entry',
+          payload: { entryId: selectedRegistryId, newName: registryNewName.trim() }
+        }], true)
+      ]);
+      setRegistryRenamePreview(impact);
+      setRegistryRenamePlan(plan);
+    } finally {
+      setRefactorBusy(false);
+    }
+  };
+
+  const handleApplyRegistryRefactor = async () => {
+    if (!registryRenamePlan) return;
+    setRefactorBusy(true);
+    try {
+      const result = await applyWorkspacePlan(registryRenamePlan);
+      setRefactorResult(result);
+      if (result.status === 'committed') {
+        setRefactorRegistries(await listWorkspaceRegistries());
+        setRegistryRenamePreview(null);
+        setRegistryRenamePlan(null);
+      }
+    } finally {
+      setRefactorBusy(false);
+    }
+  };
+
+  const handleAssetSelection = (assetId: string) => {
+    setSelectedAssetId(assetId);
+    const asset = refactorAssets?.assets.find((candidate) => candidate.id === assetId);
+    setAssetTargetPath(asset ? suggestedMovedAssetPath(asset.relativePath) : '');
+    setAssetMovePreview(null);
+    setRefactorResult(null);
+  };
+
+  const handlePreviewAssetRefactor = async () => {
+    if (!selectedAssetId || !assetTargetPath.trim()) return;
+    setRefactorBusy(true);
+    setRefactorResult(null);
+    try {
+      setAssetMovePreview(await previewAssetMove(selectedAssetId, assetTargetPath.trim()));
+    } finally {
+      setRefactorBusy(false);
+    }
+  };
+
+  const handleApplyAssetRefactor = async () => {
+    if (!assetMovePreview?.planToken) return;
+    setRefactorBusy(true);
+    try {
+      const result = await moveAsset(assetMovePreview.planToken);
+      setRefactorResult(result);
+      if (result.status === 'committed') {
+        setRefactorAssets(await listAssets());
+        setAssetMovePreview(null);
+      }
+    } finally {
+      setRefactorBusy(false);
+    }
+  };
 
   // Handle migration preview
   const handlePreviewMigration = async (targetId?: string) => {
@@ -345,6 +489,15 @@ export const TracksAndMigrationView: React.FC = () => {
             style={{ fontSize: '12px', padding: '6px 12px', borderRadius: 'var(--radius-sm)', background: activeTab === 'upstream' ? 'var(--accent-copper-dim)' : 'transparent', color: activeTab === 'upstream' ? 'var(--accent-copper)' : 'var(--text-main)', fontWeight: activeTab === 'upstream' ? 600 : 400 }}
           >
             上游工作区迁入
+          </button>
+          <button
+            type="button"
+            className={`btn-ghost ${activeTab === 'refactor' ? 'is-active' : ''}`}
+            data-testid="tab-refactor-workbench"
+            onClick={() => setActiveTab('refactor')}
+            style={{ fontSize: '12px', padding: '6px 12px', borderRadius: 'var(--radius-sm)', background: activeTab === 'refactor' ? 'var(--accent-copper-dim)' : 'transparent', color: activeTab === 'refactor' ? 'var(--accent-copper)' : 'var(--text-main)', fontWeight: activeTab === 'refactor' ? 600 : 400 }}
+          >
+            重构工作台
           </button>
           <button
             type="button"
@@ -736,6 +889,132 @@ export const TracksAndMigrationView: React.FC = () => {
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Refactor Workbench: orchestrates existing Core plans instead of owning mutations. */}
+      {activeTab === 'refactor' && (
+        <div className="refactor-workbench-content animate-fade-in" data-testid="refactor-workbench-section" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div role="note" style={{ background: 'var(--badge-blue-bg)', border: '1px solid rgba(88, 166, 255, 0.4)', borderRadius: 'var(--radius-md)', padding: '12px 16px', display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+            <GitBranch size={18} color="var(--badge-blue)" style={{ flexShrink: 0, marginTop: '2px' }} />
+            <div style={{ fontSize: '12px', lineHeight: 1.5 }}>
+              <strong>统一影响预览，不新增第二套重构引擎。</strong>
+              <div style={{ color: 'var(--text-sub)', marginTop: '3px' }}>
+                Registry 重命名复用 protected WorkspacePlan；资产移动复用 Asset Center 的引用图与 recovery。Procedure 调用/资源批量替换继续使用同一 Core 的 Procedure Refactor Plan。
+              </div>
+            </div>
+          </div>
+
+          {refactorResult && (
+            <div
+              data-testid="refactor-result"
+              role="status"
+              style={{
+                background: refactorResult.status === 'committed' ? 'var(--badge-green-bg)' : 'var(--badge-amber-bg)',
+                border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '10px 14px',
+                fontSize: '12px'
+              }}
+            >
+              {refactorResult.status === 'committed' ? '重构已提交，并使用现有恢复机制保护。' : `重构未提交：${refactorResult.status}`}
+            </div>
+          )}
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '16px' }}>
+            <section data-testid="refactor-registry-card" style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '14px' }}>Registry 引用感知重命名</h3>
+                <p style={{ margin: '4px 0 0', color: 'var(--text-sub)', fontSize: '11px' }}>先看引用影响，再生成 recovery-protected WorkspacePlan；应用时仍走共享 Core。</p>
+              </div>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: '5px', fontSize: '11px' }}>
+                Registry 条目
+                <select data-testid="refactor-registry-select" value={selectedRegistryId} onChange={(event) => handleRegistrySelection(event.target.value)}>
+                  {refactorRegistryEntries.map((entry) => (
+                    <option key={entry.id} value={entry.id}>{entry.name ?? entry.key ?? entry.id} · {entry.kind}</option>
+                  ))}
+                </select>
+              </label>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: '5px', fontSize: '11px' }}>
+                新名称
+                <input data-testid="refactor-registry-new-name" value={registryNewName} onChange={(event) => {
+                  setRegistryNewName(event.target.value);
+                  setRegistryRenamePreview(null);
+                  setRegistryRenamePlan(null);
+                }} />
+              </label>
+              <button type="button" className="btn-secondary" data-testid="preview-registry-refactor" disabled={refactorBusy || !selectedRegistryId || !registryNewName.trim()} onClick={() => void handlePreviewRegistryRefactor()}>
+                生成影响图与计划
+              </button>
+
+              {registryRenamePreview && registryRenamePlan && (
+                <div data-testid="registry-refactor-impact" style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+                    <div className="stage2-stat-card"><span>受影响元素</span><strong>{registryRenamePreview.impactedElementCount}</strong></div>
+                    <div className="stage2-stat-card"><span>引用边</span><strong>{registryRenamePreview.references.edges.length}</strong></div>
+                    <div className="stage2-stat-card"><span>持久化路径</span><strong>{registryRenamePlan.changedPaths.length}</strong></div>
+                  </div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-sub)' }}>
+                    {registryRenamePreview.oldName} <MoveRight size={12} style={{ verticalAlign: '-2px' }} /> {registryRenamePreview.newName}
+                  </div>
+                  <div style={{ fontSize: '11px', color: registryRenamePlan.safety.ready ? 'var(--badge-green)' : 'var(--badge-red)' }}>
+                    {registryRenamePlan.safety.ready ? '恢复保护就绪，可应用计划。' : '恢复保护不可用，计划不可应用。'}
+                  </div>
+                  <button type="button" className="btn-primary" data-testid="apply-registry-refactor" disabled={refactorBusy || !registryRenamePreview.canApply || !registryRenamePlan.safety.ready} onClick={() => void handleApplyRegistryRefactor()}>
+                    应用已审阅计划
+                  </button>
+                </div>
+              )}
+            </section>
+
+            <section data-testid="refactor-asset-card" style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '14px' }}>资产重命名 / 移动</h3>
+                <p style={{ margin: '4px 0 0', color: 'var(--text-sub)', fontSize: '11px' }}>复用 Asset Center 的引用图，预览精确 JSON Pointer rewrite 后再移动。</p>
+              </div>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: '5px', fontSize: '11px' }}>
+                源资产
+                <select data-testid="refactor-asset-select" value={selectedAssetId} onChange={(event) => handleAssetSelection(event.target.value)}>
+                  {(refactorAssets?.assets ?? []).map((asset) => (
+                    <option key={asset.id} value={asset.id}>{asset.relativePath}</option>
+                  ))}
+                </select>
+              </label>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: '5px', fontSize: '11px' }}>
+                目标路径
+                <input data-testid="refactor-asset-target" value={assetTargetPath} onChange={(event) => {
+                  setAssetTargetPath(event.target.value);
+                  setAssetMovePreview(null);
+                }} />
+              </label>
+              <button type="button" className="btn-secondary" data-testid="preview-asset-refactor" disabled={refactorBusy || !selectedAssetId || !assetTargetPath.trim()} onClick={() => void handlePreviewAssetRefactor()}>
+                预览移动与引用重写
+              </button>
+
+              {assetMovePreview && (
+                <div data-testid="asset-refactor-impact" style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
+                    <div className="stage2-stat-card"><span>入站引用</span><strong>{assetMovePreview.referenceCount}</strong></div>
+                    <div className="stage2-stat-card"><span>精确重写</span><strong>{assetMovePreview.rewrites.length}</strong></div>
+                  </div>
+                  <code style={{ fontSize: '10px', overflowWrap: 'anywhere' }}>{assetMovePreview.sourceRelativePath} → {assetMovePreview.targetRelativePath}</code>
+                  {assetMovePreview.issueCodes.length > 0 && (
+                    <div data-testid="asset-refactor-issues" style={{ color: 'var(--badge-amber)', fontSize: '10px' }}>{assetMovePreview.issueCodes.join(' · ')}</div>
+                  )}
+                  {assetMovePreview.rewrites.slice(0, 5).map((rewrite) => (
+                    <div key={`${rewrite.sourcePath}:${rewrite.sourcePointer}`} style={{ fontSize: '10px', color: 'var(--text-sub)' }}>
+                      <code>{rewrite.sourcePath}{rewrite.sourcePointer}</code> · {rewrite.oldRawValue} → {rewrite.newRawValue}
+                    </div>
+                  ))}
+                  <button type="button" className="btn-primary" data-testid="apply-asset-refactor" disabled={refactorBusy || !assetMovePreview.canApply} onClick={() => void handleApplyAssetRefactor()}>
+                    应用移动与引用重写
+                  </button>
+                </div>
+              )}
+            </section>
+          </div>
+
+          <div data-testid="refactor-procedure-note" style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '12px 16px', fontSize: '11px', color: 'var(--text-sub)' }}>
+            Procedure 的批量调用目标替换、资源引用替换与逻辑抽取继续在 Procedure Workbench 中执行；它们已经共享 protected WorkspacePlan，因此这里不复制第二套编辑器。
+          </div>
         </div>
       )}
 
