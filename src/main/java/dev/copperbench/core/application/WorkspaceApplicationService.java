@@ -106,6 +106,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -1707,6 +1708,7 @@ public final class WorkspaceApplicationService {
 					JsonNull.INSTANCE, JsonNull.INSTANCE, List.of(diagnostic), JsonNull.INSTANCE, denial), List.of());
 		}
 		TransactionResult<RevisionedWorkspaceStore.Replacement> transaction;
+		AtomicReference<List<Diagnostic>> restoreDiagnostics = new AtomicReference<>(List.of());
 		try {
 			transaction = store.restore(command.workspaceId(), command.expectedRevision(), newRevision -> {
 				RecoveryPoint safetyPoint = history.createRecoveryPoint(new RecoveryPointRequest(
@@ -1716,6 +1718,7 @@ public final class WorkspaceApplicationService {
 					restoreStarted = true;
 					RestoreResult restored = history.restore(pointId);
 					WorkspaceState reloaded = reloader.reload(command.workspaceId());
+					restoreDiagnostics.set(validateRestoredState(reloaded));
 					mutations.persistRestoredRevision(reloaded, newRevision);
 					return new RevisionedWorkspaceStore.Restoration(reloaded, restored.changedPaths());
 				} catch (Exception exception) {
@@ -1749,8 +1752,38 @@ public final class WorkspaceApplicationService {
 				payload);
 		CommandResult result = new CommandResult("command_result", UiCore.SCHEMA_VERSION, command.requestId(),
 				command.workspaceId(), command.operation(), "committed", transaction.revision(), pointId,
-				JsonNull.INSTANCE, payload.deepCopy(), List.of(), JsonNull.INSTANCE, JsonNull.INSTANCE);
+				JsonNull.INSTANCE, payload.deepCopy(), restoreDiagnostics.get(), JsonNull.INSTANCE, JsonNull.INSTANCE);
 		return new CommandOutcome(result, List.of(event));
+	}
+
+	private List<Diagnostic> validateRestoredState(WorkspaceState restored) {
+		LinkedHashMap<String, Diagnostic> diagnostics = new LinkedHashMap<>();
+		Set<UUID> invalidElements = new LinkedHashSet<>();
+		for (Element element : restored.elements()) {
+			Diagnostic diagnostic = validateElementValues(element.id(), element.type(), element.values());
+			if (diagnostic == null) continue;
+			addRestoreDiagnostic(diagnostics, diagnostic);
+			invalidElements.add(element.id());
+		}
+		JsonObject referenceProjection = references.projection(restored, "");
+		for (JsonElement raw : referenceProjection.getAsJsonArray("diagnostics")) {
+			Diagnostic diagnostic = GSON.fromJson(raw, Diagnostic.class);
+			addRestoreDiagnostic(diagnostics, diagnostic);
+			if (diagnostic.elementId() != null) invalidElements.add(diagnostic.elementId());
+		}
+		for (UUID elementId : invalidElements) {
+			Element element = restored.element(elementId);
+			if (element == null || element.state().equals("invalid")) continue;
+			restored.replaceElement(new Element(element.id(), element.type(), element.name(), element.displayName(),
+					"invalid", element.ownership(), element.updatedAt(), element.values()));
+		}
+		return List.copyOf(diagnostics.values());
+	}
+
+	private static void addRestoreDiagnostic(Map<String, Diagnostic> diagnostics, Diagnostic diagnostic) {
+		String key = diagnostic.code() + "\n" + String.valueOf(diagnostic.path()) + "\n"
+				+ String.valueOf(diagnostic.elementId());
+		diagnostics.putIfAbsent(key, diagnostic);
 	}
 
 	private CommandOutcome executeLoaderMigration(Command command, RequestContext context) {

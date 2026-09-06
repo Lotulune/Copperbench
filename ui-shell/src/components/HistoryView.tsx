@@ -160,7 +160,10 @@ export const HistoryView: React.FC = () => {
     const result = await restoreRecoveryPoint(selected.id);
     if (result.status === 'committed') {
       setRestoreOpen(false);
-      setStatus(`已还原到“${selected.label}”，工作区将重新校验`);
+      const issueCount = result.diagnostics?.length ?? 0;
+      setStatus(issueCount > 0
+        ? `已还原到“${selected.label}”，重新校验发现 ${issueCount} 个需要处理的问题`
+        : `已还原到“${selected.label}”，重新校验通过`);
     }
   };
 

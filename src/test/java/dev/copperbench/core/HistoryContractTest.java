@@ -207,6 +207,37 @@ class HistoryContractTest {
 		assertTrue(nextEvent.events().get(0).sequence() > outcome.events().get(0).sequence());
 	}
 
+	@Test void approvedRestoreCommitsButSurfacesStructuralAndReferenceDiagnostics() throws Exception {
+		UUID restoredElementId = uuid(90);
+		JsonObject values = new JsonObject();
+		JsonObject fields = new JsonObject();
+		fields.addProperty("hardness", 101);
+		values.add("fields", fields);
+		values.addProperty("targetId", uuid(999).toString());
+		WorkspaceState restoredSnapshot = stateAtRestoredPoint();
+		restoredSnapshot.addElement(new WorkspaceState.Element(restoredElementId, "block", "broken_block",
+				"Broken Block", "valid", "generated", CLOCK.instant(), values));
+		Fixture fixture = fixture(restoredSnapshot);
+		String pointId = createPoint(fixture.service, "Checkpoint before broken historical state");
+
+		JsonObject payload = new JsonObject();
+		payload.addProperty("recoveryPointId", pointId);
+		payload.addProperty("userApproved", true);
+		CommandOutcome outcome = fixture.service.execute(
+				Command.of(uuid(34), WORKSPACE_ID, 0, Operation.RESTORE_RECOVERY_POINT, payload), UI);
+
+		assertEquals("committed", outcome.result().status());
+		assertEquals(1, outcome.result().newRevision());
+		assertTrue(outcome.result().diagnostics().stream()
+				.anyMatch(diagnostic -> diagnostic.code().equals("FIELD_VALUE_OUT_OF_RANGE")));
+		var dangling = outcome.result().diagnostics().stream()
+				.filter(diagnostic -> diagnostic.code().equals("WORKSPACE_REFERENCE_DANGLING"))
+				.findFirst().orElseThrow();
+		assertEquals(restoredElementId, dangling.elementId());
+		assertTrue(dangling.actions().stream().anyMatch(action -> action.kind().equals("open_field")));
+		assertEquals("invalid", fixture.store.read(WORKSPACE_ID).orElseThrow().element(restoredElementId).state());
+	}
+
 	@Test void readOnlySessionsCannotCreateRecoveryPoints() throws Exception {
 		Fixture fixture = fixture(stateAtRestoredPoint());
 		JsonObject payload = new JsonObject();
