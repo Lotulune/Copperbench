@@ -24,6 +24,7 @@ import dev.copperbench.core.contract.UiCore.QueryResult;
 
 import java.io.PrintWriter;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -100,13 +101,15 @@ public final class HeadlessCli {
 			if (!payload.has("scope"))
 				payload.addProperty("scope", "workspace");
 			long revision = parsed.revision();
-			if (parsed.operation() == Operation.VALIDATE_WORKSPACE && !parsed.revisionExplicit()) {
+			if ((parsed.operation() == Operation.VALIDATE_WORKSPACE || parsed.operation() == Operation.BUILD_WORKSPACE)
+					&& !parsed.revisionExplicit()) {
 				JsonObject revisionProbe = new JsonObject();
 				revisionProbe.addProperty("limit", 1);
 				QueryResult current = adapter.query(Query.of(ids.get(), workspaceId, Operation.LIST_MOD_ELEMENTS,
 						revisionProbe));
 				if (!"succeeded".equals(current.status()))
-					throw new IllegalStateException("Could not resolve the current workspace revision for validation");
+					throw new IllegalStateException("Could not resolve the current workspace revision for "
+							+ parsed.operation().name().toLowerCase(Locale.ROOT));
 				revision = current.revision();
 			}
 			Command command = Command.of(ids.get(), workspaceId, revision, parsed.operation(), payload);
