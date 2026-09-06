@@ -77,6 +77,14 @@ class Stage67ApplicationServiceTest {
 		assertTrue(Files.readString(source.resolve("workspace.mcreator")).contains("fabric-1.21.1"));
 		assertEquals("generated", committed.result().data().getAsJsonObject().getAsJsonObject("rebuild")
 				.get("status").getAsString());
+		JsonObject semanticComparison = committed.result().data().getAsJsonObject()
+				.getAsJsonObject("semanticComparison");
+		assertTrue(semanticComparison.get("generatorChanged").getAsBoolean());
+		assertTrue(semanticComparison.get("workspaceMetadataPreserved").getAsBoolean());
+		assertEquals(0, semanticComparison.get("changedElementCount").getAsInt());
+		assertEquals(1, semanticComparison.getAsJsonArray("changes").size());
+		assertEquals("/generator", semanticComparison.getAsJsonArray("changes").get(0).getAsJsonObject()
+				.get("path").getAsString());
 		assertTrue(Files.isRegularFile(temp.resolve("copied-neoforge/src/main/java/dev/copperbench/generated/copper_trails/CopperTrailsMod.java")));
 	}
 

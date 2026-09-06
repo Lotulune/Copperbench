@@ -38,6 +38,7 @@ test.describe('U3: Version Tracks, Loader Migration, Upstream Import, and Publis
     await expect(page.locator('[data-testid="disposition-group-supported"]')).toBeVisible();
     await expect(page.locator('[data-testid="disposition-group-substitute"]')).toBeVisible();
     await expect(page.locator('[data-testid="disposition-group-manual"]')).toBeVisible();
+    await expect(page.locator('[data-testid="migration-semantic-comparison"]')).not.toBeVisible();
 
     // Execute button MUST be disabled before confirmation checkbox is checked
     const executeBtn = page.locator('[data-testid="execute-migration-btn"]');
@@ -51,6 +52,13 @@ test.describe('U3: Version Tracks, Loader Migration, Upstream Import, and Publis
     await executeBtn.click();
     await expect(page.locator('[data-testid="migration-success-banner"]')).toBeVisible();
     await expect(page.getByText('加载器迁移已完成！')).toBeVisible();
+    const semanticComparison = page.locator('[data-testid="migration-semantic-comparison"]');
+    await expect(semanticComparison).toBeVisible();
+    await expect(semanticComparison.getByText('已按计划切换')).toBeVisible();
+    await expect(page.locator('[data-testid="migration-metadata-preserved"]')).toBeVisible();
+    await expect(page.locator('[data-testid="migration-preserved-elements"]')).toHaveText('5');
+    await expect(page.locator('[data-testid="migration-semantic-change"]')).toHaveCount(1);
+    await expect(page.locator('[data-testid="migration-semantic-change"]')).toContainText('fabric-1.21.1 -> neoforge-1.21.1');
     await expect(page.locator('[data-testid="migration-diagnostics-banner"]')).toBeVisible();
     await expect(page.locator('[data-testid="migration-diagnostics-banner"]').getByText('LOADER_EXCLUSIVE_FIELDS_PRESERVED')).toBeVisible();
     await page.click('[data-testid="migration-diagnostics-banner-action-open_migration_element"]');

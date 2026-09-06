@@ -18,10 +18,57 @@ import java.util.Objects;
 
 /** Copy-only loader or upstream migration diagnosis. The source workspace is never mutated. */
 public record MigrationReport(String kind, String sourceGeneratorId, String targetGeneratorId, String sourceHash,
-		String targetDirectory, boolean sourceUnchanged, boolean complete, List<MigrationItem> items) {
+		String targetDirectory, boolean sourceUnchanged, boolean complete, List<MigrationItem> items,
+		SemanticComparison semanticComparison) {
 
 	public enum Disposition {
 		SUPPORTED, SUBSTITUTE, LOST, BLOCKED, MANUAL
+	}
+
+	public record SemanticChange(String path, String name, String type, String change) {
+		public SemanticChange {
+			Objects.requireNonNull(path);
+			Objects.requireNonNull(name);
+			Objects.requireNonNull(type);
+			Objects.requireNonNull(change);
+		}
+
+		JsonObject toJson() {
+			JsonObject json = new JsonObject();
+			json.addProperty("path", path);
+			json.addProperty("name", name);
+			json.addProperty("type", type);
+			json.addProperty("change", change);
+			return json;
+		}
+	}
+
+	public record SemanticComparison(boolean generatorChanged, boolean workspaceMetadataPreserved,
+			int preservedElementCount, int changedElementCount, int addedElementCount, int removedElementCount,
+			List<SemanticChange> changes) {
+		public SemanticComparison {
+			changes = List.copyOf(changes);
+		}
+
+		JsonObject toJson() {
+			JsonObject json = new JsonObject();
+			json.addProperty("generatorChanged", generatorChanged);
+			json.addProperty("workspaceMetadataPreserved", workspaceMetadataPreserved);
+			json.addProperty("preservedElementCount", preservedElementCount);
+			json.addProperty("changedElementCount", changedElementCount);
+			json.addProperty("addedElementCount", addedElementCount);
+			json.addProperty("removedElementCount", removedElementCount);
+			JsonArray array = new JsonArray();
+			changes.forEach(change -> array.add(change.toJson()));
+			json.add("changes", array);
+			return json;
+		}
+	}
+
+	public MigrationReport(String kind, String sourceGeneratorId, String targetGeneratorId, String sourceHash,
+			String targetDirectory, boolean sourceUnchanged, boolean complete, List<MigrationItem> items) {
+		this(kind, sourceGeneratorId, targetGeneratorId, sourceHash, targetDirectory, sourceUnchanged, complete, items,
+				null);
 	}
 
 	public record MigrationItem(String path, String name, String type, Disposition disposition, String reasonCode,
@@ -76,6 +123,10 @@ public record MigrationReport(String kind, String sourceGeneratorId, String targ
 		json.addProperty("blockedCount", blocked);
 		json.addProperty("lostCount", lost);
 		json.addProperty("manualCount", manual);
+		if (semanticComparison == null)
+			json.add("semanticComparison", com.google.gson.JsonNull.INSTANCE);
+		else
+			json.add("semanticComparison", semanticComparison.toJson());
 		return json;
 	}
 }

@@ -650,6 +650,80 @@ export const TracksAndMigrationView: React.FC = () => {
             </div>
           )}
 
+          {migrationResult?.status === 'committed' && migrationResult.data?.semanticComparison && (
+            <div
+              data-testid="migration-semantic-comparison"
+              style={{
+                background: 'var(--bg-panel)',
+                border: '1px solid var(--border-subtle)',
+                borderRadius: 'var(--radius-md)',
+                padding: '16px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+                <div>
+                  <strong style={{ fontSize: '13px' }}>源工作区 → 迁移结果语义对比</strong>
+                  <div style={{ marginTop: '3px', fontSize: '11px', color: 'var(--text-sub)' }}>
+                    只比较 generator、工作区元数据与 Mod Element 定义；生成源码和构建产物不计入语义变化。
+                  </div>
+                </div>
+                {migrationResult.data.semanticComparison.workspaceMetadataPreserved ? (
+                  <span className="badge badge-green" data-testid="migration-metadata-preserved">元数据保持</span>
+                ) : (
+                  <span className="badge badge-amber" data-testid="migration-metadata-changed">元数据有额外变化</span>
+                )}
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '8px' }}>
+                <div className="stage2-stat-card">
+                  <span>Generator</span>
+                  <strong>{migrationResult.data.semanticComparison.generatorChanged ? '已按计划切换' : '需检查'}</strong>
+                </div>
+                <div className="stage2-stat-card">
+                  <span>元素保持</span>
+                  <strong data-testid="migration-preserved-elements">{migrationResult.data.semanticComparison.preservedElementCount}</strong>
+                </div>
+                <div className="stage2-stat-card">
+                  <span>元素修改</span>
+                  <strong>{migrationResult.data.semanticComparison.changedElementCount}</strong>
+                </div>
+                <div className="stage2-stat-card">
+                  <span>新增 / 移除</span>
+                  <strong>{migrationResult.data.semanticComparison.addedElementCount} / {migrationResult.data.semanticComparison.removedElementCount}</strong>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                {migrationResult.data.semanticComparison.changes.map((change) => (
+                  <div
+                    key={`${change.path}:${change.change}`}
+                    data-testid="migration-semantic-change"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '12px',
+                      padding: '8px 10px',
+                      border: '1px solid var(--border-subtle)',
+                      borderRadius: 'var(--radius-sm)',
+                      background: 'var(--bg-canvas)'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+                      <span className={`badge ${change.change === 'changed' ? 'badge-blue' : 'badge-amber'}`}>{change.change}</span>
+                      <strong style={{ fontSize: '11px' }}>{change.name}</strong>
+                      <code style={{ fontSize: '10px', color: 'var(--text-sub)' }}>{change.path}</code>
+                    </div>
+                    <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{change.type}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Migration Incomplete / Rejected Banner */}
           {migrationResult && (migrationResult.status === 'rejected' || (migrationResult.data && !migrationResult.data.complete)) && (
             <div data-testid="migration-incomplete-banner" style={{ background: 'var(--badge-amber-bg)', border: '1px solid rgba(210, 153, 34, 0.4)', borderRadius: 'var(--radius-md)', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: '12px' }}>

@@ -1990,7 +1990,8 @@ export class MockCoreBridge implements CoreBridge {
             ],
             blockedCount: 1,
             lostCount: 0,
-            manualCount: 0
+            manualCount: 0,
+            semanticComparison: null
           };
           const result: CommandResult = {
             messageType: 'command_result',
@@ -2085,7 +2086,23 @@ export class MockCoreBridge implements CoreBridge {
           ],
           blockedCount: 0,
           lostCount: 0,
-          manualCount: 1
+          manualCount: 1,
+          semanticComparison: {
+            generatorChanged: true,
+            workspaceMetadataPreserved: true,
+            preservedElementCount: 5,
+            changedElementCount: 0,
+            addedElementCount: 0,
+            removedElementCount: 0,
+            changes: [
+              {
+                path: '/generator',
+                name: 'fabric-1.21.1 -> neoforge-1.21.1',
+                type: 'generator',
+                change: 'changed'
+              }
+            ]
+          }
         };
 
         const result: CommandResult = {
@@ -2291,7 +2308,8 @@ export class MockCoreBridge implements CoreBridge {
           ],
           blockedCount: 0,
           lostCount: 0,
-          manualCount: 0
+          manualCount: 0,
+          semanticComparison: null
         };
 
         const result: CommandResult = {
@@ -2927,7 +2945,8 @@ export class MockCoreBridge implements CoreBridge {
             ],
             blockedCount: 0,
             lostCount: 0,
-            manualCount: 1
+            manualCount: 1,
+            semanticComparison: null
           } satisfies LoaderMigrationPreview;
         } else if (targetGeneratorId.includes('26.')) {
           data = {
@@ -2990,7 +3009,8 @@ export class MockCoreBridge implements CoreBridge {
             ],
             blockedCount: 2,
             lostCount: 1,
-            manualCount: 1
+            manualCount: 1,
+            semanticComparison: null
           } satisfies LoaderMigrationPreview;
         } else {
           data = {
@@ -3013,7 +3033,8 @@ export class MockCoreBridge implements CoreBridge {
             ],
             blockedCount: 1,
             lostCount: 0,
-            manualCount: 0
+            manualCount: 0,
+            semanticComparison: null
           } satisfies LoaderMigrationPreview;
         }
         break;
@@ -3081,7 +3102,8 @@ export class MockCoreBridge implements CoreBridge {
           ],
           blockedCount: 0,
           lostCount: 0,
-          manualCount: 0
+          manualCount: 0,
+          semanticComparison: null
         } satisfies UpstreamImportPreview;
         break;
       }

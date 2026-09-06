@@ -847,6 +847,7 @@ export interface CommandResultData {
   blockedCount?: number;
   lostCount?: number;
   manualCount?: number;
+  semanticComparison?: MigrationSemanticComparison | null;
   batch?: PublishBatch;
   zipRelativePath?: string;
   packFormat?: number;
@@ -1178,6 +1179,24 @@ export interface MigrationReport {
   blockedCount: number;
   lostCount: number;
   manualCount: number;
+  semanticComparison: MigrationSemanticComparison | null;
+}
+
+export interface MigrationSemanticChange {
+  path: string;
+  name: string;
+  type: string;
+  change: 'changed' | 'unexpected' | 'added' | 'removed' | string;
+}
+
+export interface MigrationSemanticComparison {
+  generatorChanged: boolean;
+  workspaceMetadataPreserved: boolean;
+  preservedElementCount: number;
+  changedElementCount: number;
+  addedElementCount: number;
+  removedElementCount: number;
+  changes: MigrationSemanticChange[];
 }
 
 export type LoaderMigrationPreview = MigrationReport;
