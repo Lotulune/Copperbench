@@ -28,6 +28,7 @@
       "type": "string",
       "enum": [
         "get_workbench",
+        "get_workspace_health",
         "list_new_workspace_generators",
         "list_assets",
         "list_mod_elements",
@@ -367,6 +368,7 @@
           "operation": {
             "enum": [
               "list_operation_approvals",
+              "get_workspace_health",
               "get_version_tracks",
               "get_release_notes",
               "list_installed_plugins",

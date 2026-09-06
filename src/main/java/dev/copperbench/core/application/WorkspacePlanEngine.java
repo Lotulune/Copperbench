@@ -56,6 +56,8 @@ final class WorkspacePlanEngine {
 
 	private static final Gson GSON = UiCore.wireGson();
 	private static final int MAX_OPERATIONS = 100;
+	private static final int HIGH_IMPACT_OPERATION_THRESHOLD = 5;
+	private static final int HIGH_IMPACT_OBJECT_THRESHOLD = 5;
 	private static final Set<Operation> SUPPORTED = Set.of(
 			Operation.CREATE_MOD_ELEMENT,
 			Operation.UPDATE_MOD_ELEMENT,
@@ -460,7 +462,8 @@ final class WorkspacePlanEngine {
 		summary.addProperty("deleteCount", deletes);
 		summary.addProperty("changedPathCount", changedPaths.size());
 		summary.addProperty("scope", semanticDiff.size() > 1 ? "multi_object" : "single_object");
-		summary.addProperty("highImpact", semanticDiff.size() >= 5 || operations.size() >= 5);
+		summary.addProperty("highImpact", semanticDiff.size() >= HIGH_IMPACT_OBJECT_THRESHOLD
+				|| operations.size() >= HIGH_IMPACT_OPERATION_THRESHOLD);
 		JsonObject review = new JsonObject();
 		review.add("summary", summary);
 		review.add("operationGroups", operationGroups);
@@ -469,6 +472,18 @@ final class WorkspacePlanEngine {
 		changedPaths.forEach(paths::add);
 		review.add("changedPaths", paths);
 		return review;
+	}
+
+	static int maxOperations() {
+		return MAX_OPERATIONS;
+	}
+
+	static int highImpactOperationThreshold() {
+		return HIGH_IMPACT_OPERATION_THRESHOLD;
+	}
+
+	static int highImpactObjectThreshold() {
+		return HIGH_IMPACT_OBJECT_THRESHOLD;
 	}
 
 	private static List<String> changedPaths(WorkspaceState before, WorkspaceState after) {

@@ -2463,6 +2463,73 @@ export class MockCoreBridge implements CoreBridge {
       case 'get_workbench':
         data = this.state.workbench;
         break;
+      case 'get_workspace_health': {
+        const references = this.mockReferences();
+        const assets = mockAssetProjection();
+        const healthDiagnostics = [...references.diagnostics, ...assets.diagnostics];
+        const elementCounts = this.state.workbench?.elementCounts ?? {
+          total: this.state.elements.length,
+          valid: this.state.elements.filter((element) => element.state === 'valid').length,
+          invalid: this.state.elements.filter((element) => element.state === 'invalid').length,
+          draft: this.state.elements.filter((element) => element.state === 'draft').length,
+          unsupported: this.state.elements.filter((element) => element.state === 'unsupported').length
+        };
+        data = {
+          revision,
+          elements: elementCounts,
+          diagnostics: {
+            total: healthDiagnostics.length,
+            error: healthDiagnostics.filter((diagnostic) => diagnostic.severity === 'error').length,
+            warning: healthDiagnostics.filter((diagnostic) => diagnostic.severity === 'warning').length,
+            info: healthDiagnostics.filter((diagnostic) => diagnostic.severity === 'info').length
+          },
+          references: {
+            edgeCount: references.stats.edgeCount,
+            danglingCount: references.diagnostics.length,
+            diagnostics: references.diagnostics
+          },
+          assets: {
+            indexed: true,
+            summary: assets.health,
+            diagnostics: assets.diagnostics
+          },
+          generator: {
+            generator: this.state.workbench?.workspace.generator ?? {
+              id: 'fabric-1.21.1', loader: 'fabric', minecraftVersion: '1.21.1',
+              displayName: 'Fabric 1.21.1', state: 'ready'
+            },
+            status: 'supported',
+            reasonCode: 'TRACK_SUPPORTED',
+            generatable: true
+          },
+          risk: {
+            loaderMigration: {
+              requiresUserApproval: true,
+              copyOnly: true,
+              availableTargetGeneratorIds: ['neoforge-1.21.1'],
+              availableTargetCount: 1
+            },
+            aiBatchChanges: {
+              reviewModel: 'workspace_plan',
+              maxOperations: 100,
+              highImpactOperationThreshold: 5,
+              highImpactObjectThreshold: 5
+            }
+          },
+          tasks: {
+            activeCount: this.state.workbench?.activeTasks.length ?? 0,
+            recentFailureScope: 'current_session',
+            recentFailed: []
+          },
+          recovery: {
+            available: true,
+            recoveryPointCount: 3,
+            currentRecoveryPointId: null,
+            currentStateMatchesRecoveryPoint: false
+          }
+        };
+        break;
+      }
       case 'list_mod_elements':
         data = {
           items: this.state.elements,

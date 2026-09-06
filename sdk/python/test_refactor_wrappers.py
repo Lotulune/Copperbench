@@ -19,6 +19,7 @@ class RefactorWrapperTest(unittest.TestCase):
     def test_refactor_wrappers_forward_to_matching_mcp_tools(self) -> None:
         client = RecordingClient()
 
+        client.get_workspace_health()
         client.preview_registry_rename(entryId="entry", newName="renamed")
         client.plan_procedure_refactor(kind="replace_resource_target", sourceResource="a", targetResource="b")
         client.list_assets()
@@ -27,6 +28,7 @@ class RefactorWrapperTest(unittest.TestCase):
 
         self.assertEqual(
             [
+                "get_workspace_health",
                 "preview_registry_rename",
                 "plan_procedure_refactor",
                 "list_assets",
@@ -35,7 +37,8 @@ class RefactorWrapperTest(unittest.TestCase):
             ],
             [name for name, _ in client.calls],
         )
-        self.assertEqual("renamed", client.calls[0][1]["newName"])
+        self.assertEqual({}, client.calls[0][1])
+        self.assertEqual("renamed", client.calls[1][1]["newName"])
         self.assertEqual(7, client.calls[-1][1]["expectedRevision"])
 
 

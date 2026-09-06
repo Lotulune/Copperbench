@@ -55,6 +55,7 @@ public final class UiCore {
 		@SerializedName("import_asset_batch") IMPORT_ASSET_BATCH,
 		@SerializedName("move_asset") MOVE_ASSET,
 		@SerializedName("get_workbench") GET_WORKBENCH,
+		@SerializedName("get_workspace_health") GET_WORKSPACE_HEALTH,
 		@SerializedName("list_new_workspace_generators") LIST_NEW_WORKSPACE_GENERATORS,
 		@SerializedName("list_assets") LIST_ASSETS,
 		@SerializedName("preview_asset_import") PREVIEW_ASSET_IMPORT,

@@ -34,7 +34,8 @@ import {
   TaskSourcePreview,
   HistoryProjection,
   HistoryComparison,
-  RecoveryRestorePreview
+  RecoveryRestorePreview,
+  WorkspaceHealthProjection
 } from '../types/contract';
 import {
   coreBridge,
@@ -119,6 +120,7 @@ interface WorkbenchContextType {
   previewRecoveryRestore: (recoveryPointId: string) => Promise<RecoveryRestorePreview | null>;
   restoreRecoveryPoint: (recoveryPointId: string) => Promise<CommandResult>;
   resolveOperationApproval: (approvalId: UUID, decision: 'approve' | 'deny') => Promise<CommandResult>;
+  getWorkspaceHealth: () => Promise<WorkspaceHealthProjection | null>;
   getVersionTracks: () => Promise<VersionTracksProjection | null>;
   previewLoaderMigration: (targetGeneratorId: string) => Promise<LoaderMigrationPreview | null>;
   executeLoaderMigration: (targetGeneratorId: string, outputName: string, userApproved: boolean) => Promise<CommandResult>;
@@ -390,6 +392,19 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       operation: 'move_asset',
       payload: { clientMutationId: generateUUID(), planToken }
     });
+  }, [state.workbench]);
+
+  const getWorkspaceHealth = useCallback(async (): Promise<WorkspaceHealthProjection | null> => {
+    if (!state.workbench) return null;
+    const res = await coreBridge.sendQuery<WorkspaceHealthProjection>({
+      messageType: 'query',
+      schemaVersion: '1.0',
+      requestId: generateUUID(),
+      workspaceId: state.workbench.workspace.id,
+      operation: 'get_workspace_health',
+      payload: {}
+    });
+    return res.status === 'succeeded' ? res.data : null;
   }, [state.workbench]);
 
   const previewModElementChange = useCallback(
@@ -1280,6 +1295,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       previewRecoveryRestore,
       restoreRecoveryPoint,
       resolveOperationApproval,
+      getWorkspaceHealth,
       getVersionTracks,
       previewLoaderMigration,
       executeLoaderMigration,
@@ -1357,6 +1373,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       previewRecoveryRestore,
       restoreRecoveryPoint,
       resolveOperationApproval,
+      getWorkspaceHealth,
       getVersionTracks,
       previewLoaderMigration,
       executeLoaderMigration,

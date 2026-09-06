@@ -47,6 +47,9 @@ class CopperbenchClient:
     def get_workspace(self) -> dict[str, Any]:
         return self.call_tool("get_workspace", {})
 
+    def get_workspace_health(self) -> dict[str, Any]:
+        return self.call_tool("get_workspace_health", {})
+
     def list_mod_elements(self, **arguments: Any) -> Iterator[dict[str, Any]]:
         cursor: str | None = None
         while True:

@@ -50,6 +50,46 @@ class Stage67ApplicationServiceTest {
 		assertTrue(preview.data().getAsJsonObject().get("complete").getAsBoolean());
 	}
 
+	@Test void workspaceHealthAggregatesOnlyCoreOwnedFacts() throws Exception {
+		Path root = temp.resolve("health-workspace");
+		Path texture = root.resolve("src/main/resources/assets/copper_trails/textures/item/unused.png");
+		Files.createDirectories(texture.getParent());
+		Files.write(texture, new byte[] { 1, 2, 3, 4 });
+
+		UUID elementId = uuid(20);
+		JsonObject values = new JsonObject();
+		values.addProperty("procedureId", "missing_procedure");
+		WorkspaceState.Element broken = new WorkspaceState.Element(elementId, "item", "broken_health",
+				"Broken Health", "invalid", "generated", CLOCK.instant(), values);
+		WorkspaceApplicationService service = service(id -> root, List.of(broken));
+
+		var result = service.query(Query.of(uuid(21), WORKSPACE_ID, Operation.GET_WORKSPACE_HEALTH, new JsonObject()),
+				uiWorkspace());
+
+		assertEquals("succeeded", result.status());
+		JsonObject health = result.data().getAsJsonObject();
+		assertEquals(1, health.getAsJsonObject("elements").get("total").getAsInt());
+		assertEquals(1, health.getAsJsonObject("elements").get("invalid").getAsInt());
+		assertEquals(1, health.getAsJsonObject("references").get("danglingCount").getAsInt());
+		assertTrue(health.getAsJsonObject("diagnostics").get("total").getAsInt() >= 1);
+		assertEquals("WORKSPACE_REFERENCE_DANGLING", health.getAsJsonObject("references")
+				.getAsJsonArray("diagnostics").get(0).getAsJsonObject().get("code").getAsString());
+		assertTrue(health.getAsJsonObject("assets").get("indexed").getAsBoolean());
+		assertTrue(health.getAsJsonObject("assets").getAsJsonObject("summary").get("totalAssets").getAsInt() >= 1);
+		assertTrue(health.getAsJsonObject("generator").get("generatable").getAsBoolean());
+		assertTrue(health.getAsJsonObject("risk").getAsJsonObject("loaderMigration")
+				.get("requiresUserApproval").getAsBoolean());
+		assertTrue(health.getAsJsonObject("risk").getAsJsonObject("loaderMigration")
+				.getAsJsonArray("availableTargetGeneratorIds").toString().contains("neoforge-1.21.1"));
+		assertEquals(5, health.getAsJsonObject("risk").getAsJsonObject("aiBatchChanges")
+				.get("highImpactOperationThreshold").getAsInt());
+		assertEquals(0, health.getAsJsonObject("tasks").get("activeCount").getAsInt());
+		assertEquals("current_session", health.getAsJsonObject("tasks").get("recentFailureScope").getAsString());
+		assertEquals(0, health.getAsJsonObject("tasks").getAsJsonArray("recentFailed").size());
+		assertFalse(health.getAsJsonObject("recovery").get("available").getAsBoolean());
+		assertEquals("LOCAL_HISTORY_UNAVAILABLE", health.getAsJsonObject("recovery").get("reasonCode").getAsString());
+	}
+
 	@Test void loaderMigrationRequiresApprovalAndDoesNotMutateTheSourceWorkspace() throws Exception {
 		Path source = temp.resolve("source");
 		Files.createDirectories(source);

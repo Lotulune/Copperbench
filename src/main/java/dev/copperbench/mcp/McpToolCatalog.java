@@ -387,6 +387,9 @@ final class McpToolCatalog {
 				}));
 		tools.add(queryTool("get_version_tracks", "Read the four-track Fabric/NeoForge support matrix",
 				Operation.GET_VERSION_TRACKS, EMPTY_SCHEMA, arguments -> new JsonObject()));
+		tools.add(queryTool("get_workspace_health",
+				"Read explainable workspace health facts: element state, dangling references, assets, generator support, recent failed tasks, and recovery availability",
+				Operation.GET_WORKSPACE_HEALTH, EMPTY_SCHEMA, arguments -> new JsonObject()));
 		tools.add(queryTool("get_release_notes", "Read Stage 8 release notes, support matrix, and G7 status",
 				Operation.GET_RELEASE_NOTES, EMPTY_SCHEMA, arguments -> new JsonObject()));
 		tools.add(queryTool("list_installed_plugins",

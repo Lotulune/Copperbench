@@ -165,6 +165,7 @@ class McpHttpServerTest {
 			assertTrue(tools.body().contains("get_procedure"));
 			assertTrue(tools.body().contains("preview_procedure_change"));
 			assertTrue(tools.body().contains("update_procedure"));
+			assertTrue(tools.body().contains("get_workspace_health"));
 			assertTrue(tools.body().contains("get_workspace_references"));
 			assertTrue(tools.body().contains("list_workspace_registries"));
 			assertTrue(tools.body().contains("preview_registry_rename"));

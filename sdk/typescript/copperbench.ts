@@ -71,6 +71,10 @@ export class CopperbenchClient {
     return this.callTool('get_workspace', {});
   }
 
+  public getWorkspaceHealth(): Promise<JsonObject> {
+    return this.callTool('get_workspace_health', {});
+  }
+
   public async *listModElements(args: JsonObject = {}): AsyncGenerator<JsonObject, void, void> {
     let cursor: string | undefined;
     do {

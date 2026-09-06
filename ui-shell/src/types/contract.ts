@@ -205,6 +205,60 @@ export interface ElementCounts {
   unsupported: number;
 }
 
+export interface WorkspaceHealthProjection {
+  revision: Revision;
+  elements: ElementCounts;
+  diagnostics: {
+    total: number;
+    error: number;
+    warning: number;
+    info: number;
+  };
+  references: {
+    edgeCount: number;
+    danglingCount: number;
+    diagnostics: Diagnostic[];
+  };
+  assets: {
+    indexed: boolean;
+    reasonCode?: string;
+    summary?: AssetProjectionHealthSummary;
+    diagnostics?: Diagnostic[];
+  };
+  generator: {
+    generator: GeneratorTarget;
+    status: TrackStatus;
+    reasonCode: string;
+    generatable: boolean;
+  };
+  risk: {
+    loaderMigration: {
+      requiresUserApproval: boolean;
+      copyOnly: boolean;
+      availableTargetGeneratorIds: string[];
+      availableTargetCount: number;
+    };
+    aiBatchChanges: {
+      reviewModel: 'workspace_plan';
+      maxOperations: number;
+      highImpactOperationThreshold: number;
+      highImpactObjectThreshold: number;
+    };
+  };
+  tasks: {
+    activeCount: number;
+    recentFailureScope: 'current_session';
+    recentFailed: Array<TaskSummary & { observedAt: Timestamp }>;
+  };
+  recovery: {
+    available: boolean;
+    reasonCode?: string;
+    recoveryPointCount: number;
+    currentRecoveryPointId: string | null;
+    currentStateMatchesRecoveryPoint: boolean;
+  };
+}
+
 export interface WorkbenchProjection {
   workspace: WorkspaceSummary;
   permission: PermissionProjection;
@@ -907,6 +961,7 @@ export interface CommandResult {
 
 export type QueryOperation =
   | 'get_workbench'
+  | 'get_workspace_health'
   | 'list_new_workspace_generators'
   | 'list_assets'
   | 'preview_asset_import'

@@ -157,6 +157,168 @@ public final class WorkspaceApplicationService {
 		this(store, tasks, WorkspaceMutationGateway.noOp(), clock, ids);
 	}
 
+	private JsonObject workspaceHealth(Query query, WorkspaceState state) {
+		JsonObject projection = new JsonObject();
+		projection.addProperty("revision", state.revision());
+		projection.add("elements", elementCounts(state.elements()));
+
+		JsonObject referenceProjection = references.projection(state, "");
+		JsonObject referenceHealth = new JsonObject();
+		JsonObject referenceStats = referenceProjection.getAsJsonObject("stats");
+		JsonArray referenceDiagnostics = referenceProjection.getAsJsonArray("diagnostics");
+		referenceHealth.addProperty("edgeCount", referenceStats.get("edgeCount").getAsInt());
+		referenceHealth.addProperty("danglingCount", referenceDiagnostics.size());
+		referenceHealth.add("diagnostics", referenceDiagnostics.deepCopy());
+		projection.add("references", referenceHealth);
+
+		JsonObject assetHealth = new JsonObject();
+		List<Diagnostic> assetDiagnostics = List.of();
+		Path root = workspaceRoot(query.workspaceId());
+		if (root == null) {
+			assetHealth.addProperty("indexed", false);
+			assetHealth.addProperty("reasonCode", "ASSET_WORKSPACE_ROOT_UNAVAILABLE");
+		} else {
+			try {
+				AssetReferenceGraph graph = new AssetWorkspaceService(root).referenceGraph();
+				AssetHealthReport health = workspaceAssetHealth(graph, state);
+				assetDiagnostics = graph.diagnostics().stream().map(AssetDiagnosticProjection::project).toList();
+				assetHealth.addProperty("indexed", true);
+				assetHealth.add("summary", GSON.toJsonTree(health.summary()));
+				assetHealth.add("diagnostics", GSON.toJsonTree(assetDiagnostics));
+			} catch (RuntimeException exception) {
+				assetHealth.addProperty("indexed", false);
+				assetHealth.addProperty("reasonCode", "ASSET_QUERY_FAILED");
+			}
+		}
+		projection.add("assets", assetHealth);
+		projection.add("diagnostics", workspaceDiagnosticCounts(state, referenceDiagnostics, assetDiagnostics));
+
+		JsonObject generatorHealth = new JsonObject();
+		JsonObject generator = state.generator();
+		String generatorId = generator.has("id") && generator.get("id").isJsonPrimitive()
+				? generator.get("id").getAsString() : "";
+		var decision = tracks.decision(generatorId);
+		generatorHealth.add("generator", generator.deepCopy());
+		generatorHealth.addProperty("status", decision.status().name().toLowerCase(Locale.ROOT));
+		generatorHealth.addProperty("reasonCode", decision.reasonCode());
+		generatorHealth.addProperty("generatable", decision.generatable());
+		projection.add("generator", generatorHealth);
+
+		JsonObject risk = new JsonObject();
+		JsonObject migrationRisk = new JsonObject();
+		JsonArray migrationTargets = new JsonArray();
+		for (var track : tracks.tracks()) {
+			for (var loader : track.loaders()) {
+				if (tracks.migratable(generatorId, loader.generatorId())) migrationTargets.add(loader.generatorId());
+			}
+		}
+		migrationRisk.addProperty("requiresUserApproval", true);
+		migrationRisk.addProperty("copyOnly", true);
+		migrationRisk.add("availableTargetGeneratorIds", migrationTargets);
+		migrationRisk.addProperty("availableTargetCount", migrationTargets.size());
+		risk.add("loaderMigration", migrationRisk);
+		JsonObject aiBatchRisk = new JsonObject();
+		aiBatchRisk.addProperty("reviewModel", "workspace_plan");
+		aiBatchRisk.addProperty("maxOperations", WorkspacePlanEngine.maxOperations());
+		aiBatchRisk.addProperty("highImpactOperationThreshold", WorkspacePlanEngine.highImpactOperationThreshold());
+		aiBatchRisk.addProperty("highImpactObjectThreshold", WorkspacePlanEngine.highImpactObjectThreshold());
+		risk.add("aiBatchChanges", aiBatchRisk);
+		projection.add("risk", risk);
+
+		JsonObject taskHealth = new JsonObject();
+		taskHealth.addProperty("activeCount", tasks.active(query.workspaceId()).size());
+		taskHealth.addProperty("recentFailureScope", "current_session");
+		taskHealth.add("recentFailed", recentFailedTasks(query.workspaceId()));
+		projection.add("tasks", taskHealth);
+
+		JsonObject recoveryHealth = new JsonObject();
+		if (history == null) {
+			recoveryHealth.addProperty("available", false);
+			recoveryHealth.addProperty("reasonCode", "LOCAL_HISTORY_UNAVAILABLE");
+			recoveryHealth.addProperty("recoveryPointCount", 0);
+			recoveryHealth.add("currentRecoveryPointId", JsonNull.INSTANCE);
+			recoveryHealth.addProperty("currentStateMatchesRecoveryPoint", false);
+		} else {
+			try {
+				List<RecoveryPoint> recoveryPoints = history.listRecoveryPoints();
+				String currentRecoveryPointId = history.currentRecoveryPointId();
+				recoveryHealth.addProperty("available", true);
+				recoveryHealth.addProperty("recoveryPointCount", recoveryPoints.size());
+				if (currentRecoveryPointId == null) recoveryHealth.add("currentRecoveryPointId", JsonNull.INSTANCE);
+				else recoveryHealth.addProperty("currentRecoveryPointId", currentRecoveryPointId);
+				recoveryHealth.addProperty("currentStateMatchesRecoveryPoint", currentRecoveryPointId != null);
+			} catch (LocalHistoryException exception) {
+				recoveryHealth.addProperty("available", false);
+				recoveryHealth.addProperty("reasonCode", "HISTORY_READ_FAILED");
+				recoveryHealth.addProperty("recoveryPointCount", 0);
+				recoveryHealth.add("currentRecoveryPointId", JsonNull.INSTANCE);
+				recoveryHealth.addProperty("currentStateMatchesRecoveryPoint", false);
+			}
+		}
+		projection.add("recovery", recoveryHealth);
+		return projection;
+	}
+
+	private JsonObject workspaceDiagnosticCounts(WorkspaceState state, JsonArray referenceDiagnostics,
+			List<Diagnostic> assetDiagnostics) {
+		int errors = 0;
+		int warnings = 0;
+		int info = 0;
+		for (Element element : state.elements()) {
+			Diagnostic diagnostic = validateElementValues(element.id(), element.type(), element.values());
+			if (diagnostic == null) continue;
+			switch (diagnostic.severity()) {
+				case ERROR -> errors++;
+				case WARNING -> warnings++;
+				case INFO -> info++;
+			}
+		}
+		for (JsonElement raw : referenceDiagnostics) {
+			String severity = raw.getAsJsonObject().has("severity")
+					? raw.getAsJsonObject().get("severity").getAsString() : "info";
+			switch (severity) {
+				case "error" -> errors++;
+				case "warning" -> warnings++;
+				default -> info++;
+			}
+		}
+		for (Diagnostic diagnostic : assetDiagnostics) {
+			switch (diagnostic.severity()) {
+				case ERROR -> errors++;
+				case WARNING -> warnings++;
+				case INFO -> info++;
+			}
+		}
+		JsonObject counts = new JsonObject();
+		counts.addProperty("total", errors + warnings + info);
+		counts.addProperty("error", errors);
+		counts.addProperty("warning", warnings);
+		counts.addProperty("info", info);
+		return counts;
+	}
+
+	private JsonArray recentFailedTasks(UUID workspaceId) {
+		JsonArray failed = new JsonArray();
+		Deque<Event> retained = taskEventHistory.get(workspaceId);
+		if (retained == null) return failed;
+		Set<String> seenTaskIds = new HashSet<>();
+		synchronized (retained) {
+			var iterator = retained.descendingIterator();
+			while (iterator.hasNext() && failed.size() < 5) {
+				Event event = iterator.next();
+				if (!"task_completed".equals(event.event()) || !event.payload().has("task")) continue;
+				JsonObject task = event.payload().getAsJsonObject("task");
+				if (!task.has("state") || !"failed".equals(task.get("state").getAsString())) continue;
+				String taskId = task.has("id") ? task.get("id").getAsString() : "";
+				if (!taskId.isBlank() && !seenTaskIds.add(taskId)) continue;
+				JsonObject item = task.deepCopy();
+				item.addProperty("observedAt", event.occurredAt());
+				failed.add(item);
+			}
+		}
+		return failed;
+	}
+
 	/** Grants a bounded multi-selection without exposing any external absolute path to browser code. */
 	public List<AssetImportSelectionGrant> grantAssetImportSources(List<Path> sources) {
 		Objects.requireNonNull(sources, "sources");
@@ -1138,6 +1300,7 @@ public final class WorkspaceApplicationService {
 		try {
 			return switch (query.operation()) {
 				case GET_WORKBENCH -> querySuccess(query, state.revision(), workbench(state, context));
+				case GET_WORKSPACE_HEALTH -> querySuccess(query, state.revision(), workspaceHealth(query, state));
 				case LIST_NEW_WORKSPACE_GENERATORS -> querySuccess(query, state.revision(), newWorkspaceGenerators());
 				case LIST_ASSETS -> listAssets(query, state);
 				case PREVIEW_ASSET_IMPORT -> previewAssetImport(query, state);
