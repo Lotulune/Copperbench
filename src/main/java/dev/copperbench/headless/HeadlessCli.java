@@ -99,7 +99,17 @@ public final class HeadlessCli {
 			payload.addProperty("clientMutationId", ids.get().toString());
 			if (!payload.has("scope"))
 				payload.addProperty("scope", "workspace");
-			Command command = Command.of(ids.get(), workspaceId, parsed.revision(), parsed.operation(), payload);
+			long revision = parsed.revision();
+			if (parsed.operation() == Operation.VALIDATE_WORKSPACE && !parsed.revisionExplicit()) {
+				JsonObject revisionProbe = new JsonObject();
+				revisionProbe.addProperty("limit", 1);
+				QueryResult current = adapter.query(Query.of(ids.get(), workspaceId, Operation.LIST_MOD_ELEMENTS,
+						revisionProbe));
+				if (!"succeeded".equals(current.status()))
+					throw new IllegalStateException("Could not resolve the current workspace revision for validation");
+				revision = current.revision();
+			}
+			Command command = Command.of(ids.get(), workspaceId, revision, parsed.operation(), payload);
 			CommandOutcome outcome = adapter.execute(command);
 			HeadlessExitCode exitCode = exitCode(outcome);
 			JsonObject response = GSON.toJsonTree(outcome.result()).getAsJsonObject();
@@ -126,7 +136,7 @@ public final class HeadlessCli {
 		if (arguments.length == 0)
 			throw new IllegalArgumentException("A command is required");
 		if (arguments[0].equals("help") || arguments[0].equals("--help"))
-			return new ParsedCommand(null, 0, new JsonObject(), true, false);
+			return new ParsedCommand(null, 0, false, new JsonObject(), true, false);
 		boolean query = switch (arguments[0]) {
 			case "list-new-workspace-generators", "tracks", "release", "preview-migrate", "preview-import", "plugins",
 					"elements", "upstream-tools", "procedure", "preview-procedure", "references", "registries",
@@ -281,7 +291,7 @@ public final class HeadlessCli {
 			throw new IllegalArgumentException("publish-datagen requires --task-id and --manifest-hash");
 		if (operation == Operation.GET_TASK && !payload.has("afterLogSequence"))
 			payload.addProperty("afterLogSequence", 0);
-		return new ParsedCommand(operation, revision, payload, false, query);
+		return new ParsedCommand(operation, revision, options.containsKey("--revision"), payload, false, query);
 	}
 
 	private static HeadlessExitCode exitCode(CommandOutcome outcome) {
@@ -323,6 +333,7 @@ public final class HeadlessCli {
 		output.flush();
 	}
 
-	private record ParsedCommand(Operation operation, long revision, JsonObject payload, boolean help, boolean query) {
+	private record ParsedCommand(Operation operation, long revision, boolean revisionExplicit, JsonObject payload, boolean help,
+			boolean query) {
 	}
 }

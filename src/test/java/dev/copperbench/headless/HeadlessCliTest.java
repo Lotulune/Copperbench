@@ -80,6 +80,24 @@ class HeadlessCliTest {
 		assertEquals("rejected", denied.json().get("status").getAsString());
 	}
 
+	@Test void validateUsesCurrentRevisionWhenRevisionIsOmittedButPreservesExplicitConflictChecks() {
+		SequentialIds ids = new SequentialIds();
+		HeadlessCli cli = new HeadlessCli(
+				new HeadlessWorkspaceEntryAdapter(service(ids), PermissionProfile.WORKSPACE), WORKSPACE_ID, ids);
+
+		RunResult created = run(cli, "create-registry-entry", "--registry", "variables", "--entry-json",
+				"{\"name\":\"score\",\"dataType\":\"number\",\"scope\":\"global\"}");
+		assertEquals(HeadlessExitCode.SUCCESS.code(), created.exitCode());
+		assertEquals(1, created.json().get("newRevision").getAsLong());
+
+		assertSuccessful(cli, "validate", "validate_workspace");
+
+		RunResult stale = run(cli, "validate", "--revision", "0");
+		assertEquals(HeadlessExitCode.REVISION_CONFLICT.code(), stale.exitCode());
+		assertEquals("rejected", stale.json().get("status").getAsString());
+		assertEquals(1, stale.json().getAsJsonObject("conflict").get("actualRevision").getAsLong());
+	}
+
 	@Test void newWorkspaceQueryAndCreateCommandShareCoreApprovalRules() {
 		SequentialIds ids = new SequentialIds();
 		HeadlessCli cli = new HeadlessCli(
