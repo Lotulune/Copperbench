@@ -7,10 +7,12 @@ ID, parse JSON or SSE responses, and raise stable diagnostic codes for rejected
 tool calls.
 
 Both clients expose the same minimum surface: workspace reads, Cursor-based
-element traversal, element and Procedure writes, registry rename, atomic
-Workspace Plan calls, build task start/status/cancel, and recovery point
-create/restore. `get_task` remains the compatible polling path while native
-JCEF clients additionally receive task events.
+element traversal, element and Procedure writes, reference-aware registry
+rename preview, protected Procedure refactor planning, asset discovery and
+reference-safe asset move preview/apply, atomic Workspace Plan calls, build
+task start/status/cancel, and recovery point create/restore. `get_task` remains
+the compatible polling path while native JCEF clients additionally receive
+task events.
 
 Desktop endpoints use a random loopback port. Do not assume `8787`: both SDKs
 can read `<workspace>/.copperbench/mcp-connection.json` (or accept the

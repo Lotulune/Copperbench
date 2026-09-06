@@ -2,7 +2,7 @@
 
 ## Scope
 
-This page tracks `FR-PRODUCTIVITY-05 Migration / Refactor Workbench`. The requirement is not closed yet; this slice closes the missing **post-migration semantic comparison** part of the PRD while preserving the existing copy-only migration model.
+This page records closure evidence for `FR-PRODUCTIVITY-05 Migration / Refactor Workbench`. The implementation preserves the existing copy-only migration model and reuses shared WorkspacePlan, reference-index and recovery mechanisms instead of introducing a parallel refactor engine.
 
 The implementation deliberately compares only facts Copperbench can prove from the two workspace trees:
 
@@ -46,6 +46,23 @@ Verification for this slice:
 - `npx playwright test e2e/stage13-refactor-workbench.spec.ts` -> `4/4` passed across Chromium and compact-1366. Registry preview -> WorkspacePlan -> apply and Asset exact-reference preview -> apply are both exercised.
 - Existing `npx playwright test e2e/u3-tracks-migration.spec.ts` remains `12/12` across the same two viewport projects after the new fifth tab was added.
 
-## Remaining `FR-PRODUCTIVITY-05` work
+## Agent parity and closure
 
-Post-migration semantic comparison and the shared Registry / Asset refactor entry are implemented. FR05 remains active only for the final acceptance audit: confirm that Procedure specialist refactors and the unified entry together satisfy the PRD's batch rename / move / reference-replacement workflow from both desktop and Agent surfaces, and close any concrete parity gap found there. No generic AST/refactor engine is planned unless an actual unsupported workflow requires it.
+The final parity audit found that the MCP catalog already exposed the same Core capabilities used by the desktop workbench, but the dependency-free Python and TypeScript SDKs did not wrap all of them. Both SDKs now expose:
+
+- `preview_registry_rename` / `previewRegistryRename`;
+- `plan_procedure_refactor` / `planProcedureRefactor`;
+- `list_assets` / `listAssets`;
+- `preview_asset_move` / `previewAssetMove`;
+- `move_asset` / `moveAsset`.
+
+This remains a thin transport surface: Procedure and Registry plans still apply through the existing `apply_workspace_plan`, and Asset moves still apply through the existing reviewed plan token. No new SDK state machine or second refactor abstraction was added.
+
+Parity verification:
+
+- Python SDK `unittest` -> `3` tests passed, including direct forwarding checks for all five refactor methods.
+- `node scripts/verify-ai-evals.mjs` -> passed; the static SDK contract now requires all five methods in both languages while retaining the existing ten-case live-eval manifest.
+- standalone TypeScript SDK compile -> passed with Node type roots supplied from the repository UI toolchain.
+- `McpHttpServerTest` + `DesktopMcpAgentLoopTest` -> `BUILD SUCCESSFUL`; real loopback MCP exposes and executes protected Procedure refactor planning plus reference-safe Asset preview/apply.
+
+`FR-PRODUCTIVITY-05` is closed. The PRD requirements are covered by the combined workbench rather than one monolithic editor: capability/disposition migration preview, copy-only execution, source-to-target semantic comparison, Registry rename impact + protected WorkspacePlan, Asset move impact + exact structured reference rewrites, and Procedure batch replacement/extraction plans all use shared Core semantics and are available from UI and MCP/SDK surfaces.

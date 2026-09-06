@@ -102,6 +102,10 @@ export class CopperbenchClient {
     return this.callTool('rename_registry_entry', args);
   }
 
+  public previewRegistryRename(args: JsonObject): Promise<JsonObject> {
+    return this.callTool('preview_registry_rename', args);
+  }
+
   public createRegistryEntry(args: JsonObject): Promise<JsonObject> {
     return this.callTool('create_registry_entry', args);
   }
@@ -114,12 +118,28 @@ export class CopperbenchClient {
     return this.callTool('plan_workspace_changes', args);
   }
 
+  public planProcedureRefactor(args: JsonObject): Promise<JsonObject> {
+    return this.callTool('plan_procedure_refactor', args);
+  }
+
   public previewWorkspacePlan(plan: JsonObject): Promise<JsonObject> {
     return this.callTool('preview_workspace_plan', { plan });
   }
 
   public applyWorkspacePlan(args: JsonObject): Promise<JsonObject> {
     return this.callTool('apply_workspace_plan', args);
+  }
+
+  public listAssets(args: JsonObject = {}): Promise<JsonObject> {
+    return this.callTool('list_assets', args);
+  }
+
+  public previewAssetMove(args: JsonObject): Promise<JsonObject> {
+    return this.callTool('preview_asset_move', args);
+  }
+
+  public moveAsset(args: JsonObject): Promise<JsonObject> {
+    return this.callTool('move_asset', args);
   }
 
   public buildWorkspace(expectedRevision: number): Promise<JsonObject> {
@@ -269,5 +289,5 @@ export function readWorkspaceConnection(workspacePath: string): WorkspaceConnect
   if (typeof connection.workspaceId !== 'string' || !connection.workspaceId) {
     throw new CopperbenchError('MCP connection metadata has no workspaceId', 'MCP_CONNECTION_FILE_INVALID', connection);
   }
-  return { url: connection.url, workspaceId: connection.workspaceId };
+  return { url: connection.url as string, workspaceId: connection.workspaceId };
 }
