@@ -32,6 +32,7 @@ import net.mcreator.workspace.Workspace;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -49,6 +50,7 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 	private final MCreatorWorkspaceSession session;
 	private final DesktopMcpRuntime mcpRuntime;
 	private final RecoverableBrowserHost browserHost;
+	private final KeyEventDispatcher keyboardShortcutDispatcher;
 	private final AtomicBoolean closed = new AtomicBoolean(false);
 
 	private CopperbenchProductShell(JFrame owner, Workspace workspace, Path distributionRoot, Runnable closeAction,
@@ -79,6 +81,8 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 		this.session = createdSession;
 		this.mcpRuntime = createdMcpRuntime;
 		this.browserHost = createdBrowserHost;
+		this.keyboardShortcutDispatcher = event -> dispatchDesktopShortcut(owner, event);
+		KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(keyboardShortcutDispatcher);
 		add(browserHost, BorderLayout.CENTER);
 	}
 
@@ -102,6 +106,7 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 	@Override public void close() {
 		if (!closed.compareAndSet(false, true))
 			return;
+		KeyboardFocusManager.getCurrentKeyboardFocusManager().removeKeyEventDispatcher(keyboardShortcutDispatcher);
 		RuntimeException failure = null;
 		try {
 			browserHost.close();
@@ -121,6 +126,17 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 			else failure.addSuppressed(exception);
 		}
 		if (failure != null) throw failure;
+	}
+
+	private boolean dispatchDesktopShortcut(JFrame owner, KeyEvent event) {
+		if (closed.get() || !owner.isActive() || event.getID() != KeyEvent.KEY_PRESSED
+				|| event.getKeyCode() != KeyEvent.VK_M || !event.isControlDown() || !event.isShiftDown()
+				|| event.isAltDown() || event.isMetaDown())
+			return false;
+		browserHost.executeScriptAsync("window.dispatchEvent(new KeyboardEvent('keydown', {"
+				+ "key: 'm', code: 'KeyM', ctrlKey: true, shiftKey: true, bubbles: true" + "}));");
+		event.consume();
+		return true;
 	}
 
 	private static RecoverableBrowserHost.BrowserHandle createBrowser(MCreatorWorkspaceSession session, JFrame owner,
@@ -177,6 +193,10 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 
 				@Override public void forceLoad() {
 					webView.forceLoad();
+				}
+
+				@Override public void executeScriptAsync(String javaScript) {
+					webView.executeScriptAsync(javaScript);
 				}
 
 				@Override public void requestFocus() {

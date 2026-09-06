@@ -61,10 +61,6 @@ using System.Runtime.InteropServices;
 public static class Stage13DiagnosticsInput {
   [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd);
   [DllImport("user32.dll")] public static extern bool ShowWindowAsync(IntPtr hWnd, int nCmdShow);
-  [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr hWnd, out RECT rect);
-  [DllImport("user32.dll")] public static extern bool SetCursorPos(int X, int Y);
-  [DllImport("user32.dll")] public static extern void mouse_event(uint flags, uint dx, uint dy, uint data, UIntPtr extraInfo);
-  public struct RECT { public int Left; public int Top; public int Right; public int Bottom; }
 }
 "@
 
@@ -98,18 +94,6 @@ function Add-Step([string]$Name, [hashtable]$Facts = @{}) {
 	$entry = [ordered]@{ name = $Name; passed = $true }
 	foreach ($key in $Facts.Keys) { $entry[$key] = $Facts[$key] }
 	$steps.Add([pscustomobject]$entry)
-}
-
-function Focus-JcefContent([IntPtr]$WindowHandle) {
-	$rect = New-Object Stage13DiagnosticsInput+RECT
-	Assert-Gate ([Stage13DiagnosticsInput]::GetWindowRect($WindowHandle, [ref]$rect)) 'Installed desktop window bounds were unavailable.'
-	$x = [int](($rect.Left + $rect.Right) / 2)
-	$y = [int](($rect.Top + $rect.Bottom) / 2)
-	[Stage13DiagnosticsInput]::SetCursorPos($x, $y) | Out-Null
-	Start-Sleep -Milliseconds 80
-	[Stage13DiagnosticsInput]::mouse_event(0x0002, 0, 0, 0, [UIntPtr]::Zero)
-	[Stage13DiagnosticsInput]::mouse_event(0x0004, 0, 0, 0, [UIntPtr]::Zero)
-	Start-Sleep -Milliseconds 250
 }
 
 function Invoke-Headless([string]$Command, [int]$TimeoutSeconds = 420) {
@@ -220,15 +204,19 @@ try {
 	Start-Sleep -Milliseconds 300
 	[Stage13DiagnosticsInput]::SetForegroundWindow($hwnd) | Out-Null
 	Start-Sleep -Milliseconds 500
-	Focus-JcefContent $hwnd
-	[System.Windows.Forms.Clipboard]::SetText('STAGE13_DIAGNOSTICS_URL_SENTINEL')
-	[System.Windows.Forms.SendKeys]::SendWait('^+m')
-	Start-Sleep -Milliseconds 500
-	1..3 | ForEach-Object { [System.Windows.Forms.SendKeys]::SendWait('{TAB}'); Start-Sleep -Milliseconds 90 }
-	[System.Windows.Forms.SendKeys]::SendWait('{ENTER}')
-	Start-Sleep -Milliseconds 500
-	$copiedUrl = [System.Windows.Forms.Clipboard]::GetText()
+	$copiedUrl = ''
+	for ($uiAttempt = 1; $uiAttempt -le 12 -and $copiedUrl -ne [string]$descriptor.url; $uiAttempt++) {
+		[System.Windows.Forms.Clipboard]::SetText('STAGE13_DIAGNOSTICS_URL_SENTINEL')
+		[System.Windows.Forms.SendKeys]::SendWait('^+m')
+		Start-Sleep -Milliseconds 500
+		1..3 | ForEach-Object { [System.Windows.Forms.SendKeys]::SendWait('{TAB}'); Start-Sleep -Milliseconds 90 }
+		[System.Windows.Forms.SendKeys]::SendWait('{ENTER}')
+		Start-Sleep -Milliseconds 500
+		$copiedUrl = [System.Windows.Forms.Clipboard]::GetText()
+		if ($copiedUrl -ne [string]$descriptor.url) { Start-Sleep -Milliseconds 500 }
+	}
 	Assert-Gate ($copiedUrl -eq [string]$descriptor.url) 'Real UI Copy URL did not match the Desktop MCP descriptor.'
+	Add-Step 'desktop_mcp_keyboard_navigation' @{ shortcut = 'Control+Shift+M'; copyUrlMatched = $true }
 	[System.Windows.Forms.SendKeys]::SendWait('{TAB}')
 	[System.Windows.Forms.SendKeys]::SendWait('{ENTER}')
 	Start-Sleep -Milliseconds 900
