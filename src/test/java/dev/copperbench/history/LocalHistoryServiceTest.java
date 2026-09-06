@@ -23,6 +23,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -48,13 +49,16 @@ class LocalHistoryServiceTest {
 					"{\"settings\":{\"hardness\":1,\"enabled\":true}}");
 			RecoveryPoint before = history.createRecoveryPoint(
 					new RecoveryPointRequest("Before AI edit", Actor.MCP, "task-42"));
+			assertEquals(before.id(), history.currentRecoveryPointId());
 
 			Files.writeString(workspace.resolve("workspace.mcreator"), "{\"revision\":1}");
 			Files.writeString(workspace.resolve("elements/copper_block.mod.json"),
 					"{\"settings\":{\"hardness\":2,\"luminance\":7}}");
+			assertNull(history.currentRecoveryPointId());
 			RecoveryPoint after = history.createRecoveryPoint(
 					new RecoveryPointRequest("After AI edit", Actor.MCP, "task-42", RecoveryPointSource.WORKSPACE_PLAN));
 			assertEquals(RecoveryPointSource.WORKSPACE_PLAN, after.source());
+			assertEquals(after.id(), history.currentRecoveryPointId());
 
 			List<WorkspaceChange> compared = history.compare(before.id(), after.id());
 			assertEquals(2, compared.size());
@@ -70,6 +74,7 @@ class LocalHistoryServiceTest {
 
 			Files.writeString(workspace.resolve("workspace.mcreator"), "{\"revision\":2,\"unsaved\":true}");
 			Files.writeString(workspace.resolve("scratch.txt"), "current working tree only");
+			assertNull(history.currentRecoveryPointId());
 			List<WorkspaceChange> restorePreview = history.previewRestore(before.id());
 			assertTrue(Files.exists(workspace.resolve(".mcreator/localHistory/HEAD")));
 			assertEquals(3, restorePreview.size());
@@ -90,6 +95,7 @@ class LocalHistoryServiceTest {
 			assertEquals("{\"settings\":{\"hardness\":1,\"enabled\":true}}",
 					Files.readString(workspace.resolve("elements/copper_block.mod.json")));
 			assertFalse(Files.exists(workspace.resolve("scratch.txt")));
+			assertEquals(before.id(), history.currentRecoveryPointId());
 			assertEquals(List.of(after, before), history.listRecoveryPoints());
 		}
 

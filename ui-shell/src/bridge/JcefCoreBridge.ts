@@ -363,7 +363,7 @@ export class JcefCoreBridge implements CoreBridge {
       case 'get_history': {
         const history = result.data as HistoryProjection;
         this.state.recoveryPoints = [...history.recoveryPoints];
-        this.state.currentRecoveryPointId = history.recoveryPoints[0]?.id ?? null;
+        this.state.currentRecoveryPointId = history.currentRecoveryPointId;
         break;
       }
       case 'get_diff':
@@ -391,12 +391,15 @@ export class JcefCoreBridge implements CoreBridge {
       case 'mod_element_created':
       case 'mod_element_updated':
       case 'procedure_updated':
+        this.state.currentRecoveryPointId = null;
         this.upsertElement(event.payload.element);
         break;
       case 'registry_updated':
 		case 'datagen_published':
+        this.state.currentRecoveryPointId = null;
         break;
       case 'mod_element_deleted':
+        this.state.currentRecoveryPointId = null;
         this.state.elements = this.state.elements.filter((element) => element.id !== event.payload.elementId);
         delete this.state.elementEditors[event.payload.elementId];
         this.synchronizeElementProjection();
@@ -435,6 +438,13 @@ export class JcefCoreBridge implements CoreBridge {
           ...this.state.recoveryPoints.filter((point) => point.id !== event.payload.recoveryPoint.id)
         ];
         this.state.currentRecoveryPointId = event.payload.recoveryPoint.id;
+        break;
+      case 'workspace_plan_applied':
+      case 'asset_imported':
+      case 'assets_imported':
+      case 'asset_moved':
+      case 'asset_external_edit_committed':
+        this.state.currentRecoveryPointId = null;
         break;
       case 'bridge_recovery_required':
         this.state.viewportState = 'recovery';

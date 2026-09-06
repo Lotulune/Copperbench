@@ -399,7 +399,7 @@ export class MockCoreBridge implements CoreBridge {
       } else if (qr.operation === 'get_history') {
         const history = qr.data as HistoryProjection;
         this.state.recoveryPoints = [...history.recoveryPoints];
-        this.state.currentRecoveryPointId = history.recoveryPoints[0]?.id ?? null;
+        this.state.currentRecoveryPointId = history.currentRecoveryPointId;
       } else if (qr.operation === 'get_diff') {
         this.state.historyComparison = qr.data as HistoryComparison;
       } else if (qr.operation === 'list_operation_approvals') {
@@ -4295,6 +4295,7 @@ export class MockCoreBridge implements CoreBridge {
       case 'get_history':
         data = {
           currentRevision: revision,
+          currentRecoveryPointId: this.state.currentRecoveryPointId,
           recoveryPoints: this.state.recoveryPoints
         };
         break;

@@ -519,6 +519,7 @@ export interface RecoveryPoint {
 
 export interface HistoryProjection {
   currentRevision: Revision;
+  currentRecoveryPointId: string | null;
   recoveryPoints: RecoveryPoint[];
   total?: number;
   pageSize?: number;

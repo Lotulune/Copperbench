@@ -625,6 +625,7 @@ class WorkspacePlanEngineTest {
 		}
 
 		@Override public List<RecoveryPoint> listRecoveryPoints() { return List.of(); }
+		@Override public String currentRecoveryPointId() { return null; }
 		@Override public List<WorkspaceChange> compare(String fromRecoveryPointId, String toRecoveryPointId)
 				throws LocalHistoryException { return List.of(); }
 		@Override public List<WorkspaceChange> previewRestore(String recoveryPointId) { return List.of(); }

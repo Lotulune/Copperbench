@@ -16,6 +16,7 @@
       "revision": 42,
       "data": {
         "currentRevision": 42,
+        "currentRecoveryPointId": "7d7c3e34c657acc1",
         "recoveryPoints": [
           {
             "id": "7d7c3e34c657acc1",

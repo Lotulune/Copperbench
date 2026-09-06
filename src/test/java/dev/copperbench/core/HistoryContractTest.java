@@ -83,6 +83,7 @@ class HistoryContractTest {
 				.get("label").getAsString());
 		assertEquals("manual", projection.getAsJsonArray("recoveryPoints").get(0).getAsJsonObject()
 				.get("source").getAsString());
+		assertEquals(pointId(projection, 0), projection.get("currentRecoveryPointId").getAsString());
 
 		JsonObject diffPayload = new JsonObject();
 		diffPayload.addProperty("fromRecoveryPointId", pointId(projection, 1));
@@ -108,6 +109,9 @@ class HistoryContractTest {
 
 		Files.writeString(workspaceDirectory.resolve("workspace.mcreator"), "{\"revision\":2,\"workingTree\":true}");
 		Files.writeString(workspaceDirectory.resolve("scratch.txt"), "not checkpointed");
+		var changedHistory = fixture.service.query(
+				Query.of(uuid(13), WORKSPACE_ID, Operation.GET_HISTORY, new JsonObject()), UI);
+		assertTrue(changedHistory.data().getAsJsonObject().get("currentRecoveryPointId").isJsonNull());
 		JsonObject restorePreviewPayload = new JsonObject();
 		restorePreviewPayload.addProperty("recoveryPointId", pointId(projection, 1));
 		Query restorePreviewQuery = Query.of(uuid(12), WORKSPACE_ID, Operation.PREVIEW_RECOVERY_RESTORE,

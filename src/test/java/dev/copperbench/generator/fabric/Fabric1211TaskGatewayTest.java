@@ -748,6 +748,10 @@ class Fabric1211TaskGatewayTest {
 			return List.copyOf(created);
 		}
 
+		@Override public String currentRecoveryPointId() {
+			return null;
+		}
+
 		@Override public List<WorkspaceChange> compare(String fromRecoveryPointId, String toRecoveryPointId) {
 			return List.of();
 		}

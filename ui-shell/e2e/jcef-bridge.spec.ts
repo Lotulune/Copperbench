@@ -200,6 +200,7 @@ test.describe('JCEF Bridge & Host Transport Integration', () => {
               revision: 42,
               data: {
                 currentRevision: 42,
+                currentRecoveryPointId: null,
                 recoveryPoints: [
                   {
                     id: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
@@ -352,6 +353,7 @@ test.describe('JCEF Bridge & Host Transport Integration', () => {
     await page.click('[data-testid="nav-history"]');
     await expect(page.locator('[data-testid="history-view"]')).toBeVisible();
     await expect(page.locator('[data-testid="history-point"]').first()).toContainText('工作区计划');
+    await expect(page.locator('[data-testid="restore-recovery-point"]')).toBeEnabled();
     await expect.poll(() => page.evaluate(() => window.sessionStorage.getItem('lastHistoryDiffPayload')))
       .toBe(JSON.stringify({
         fromRecoveryPointId: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
@@ -610,7 +612,7 @@ test.describe('JCEF Bridge & Host Transport Integration', () => {
             return JSON.stringify({
               messageType: 'query_result', schemaVersion: '1.0', requestId: envelope.requestId,
               workspaceId, operation: 'get_history', status: 'succeeded', revision: 1,
-              data: { recoveryPoints: [] }, diagnostics: []
+              data: { currentRevision: 1, currentRecoveryPointId: null, recoveryPoints: [] }, diagnostics: []
             });
           }
           throw new Error(`Unexpected operation: ${String(envelope.operation)}`);
@@ -744,7 +746,11 @@ test.describe('JCEF Bridge & Host Transport Integration', () => {
             });
           }
           if (envelope.operation === 'get_history') {
-            return queryResult(envelope, 'get_history', { recoveryPoints: [] });
+            return queryResult(envelope, 'get_history', {
+              currentRevision: 1,
+              currentRecoveryPointId: null,
+              recoveryPoints: []
+            });
           }
           if (envelope.operation === 'run_client') {
             return JSON.stringify({

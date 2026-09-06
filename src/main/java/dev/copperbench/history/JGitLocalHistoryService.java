@@ -61,6 +61,27 @@ public final class JGitLocalHistoryService implements LocalHistoryService {
 		this.git = git;
 	}
 
+	private ObjectId currentWorkTree(ObjectInserter inserter) throws Exception {
+		git.add().addFilepattern(".").call();
+		git.add().setUpdate(true).addFilepattern(".").call();
+		ObjectId tree = git.getRepository().readDirCache().writeTree(inserter);
+		inserter.flush();
+		return tree;
+	}
+
+	@Override public synchronized String currentRecoveryPointId() throws LocalHistoryException {
+		try (ObjectInserter inserter = git.getRepository().newObjectInserter()) {
+			if (git.getRepository().resolve(Constants.HEAD) == null) return null;
+			ObjectId currentTree = currentWorkTree(inserter);
+			for (RevCommit commit : git.log().call()) {
+				if (commit.getTree().getId().equals(currentTree)) return commit.getName();
+			}
+			return null;
+		} catch (Exception exception) {
+			throw new LocalHistoryException("Could not resolve the current recovery point", exception);
+		}
+	}
+
 	public static JGitLocalHistoryService open(Path workspaceRoot, Clock clock) throws LocalHistoryException {
 		Path workspace = workspaceRoot.toAbsolutePath().normalize();
 		Path historyDirectory = workspace.resolve(HISTORY_DIRECTORY);
@@ -135,10 +156,7 @@ public final class JGitLocalHistoryService implements LocalHistoryService {
 				DiffFormatter formatter = new DiffFormatter(DisabledOutputStream.INSTANCE);
 				ObjectInserter inserter = git.getRepository().newObjectInserter()) {
 			RevCommit target = resolveCommit(walk, recoveryPointId);
-			git.add().addFilepattern(".").call();
-			git.add().setUpdate(true).addFilepattern(".").call();
-			ObjectId currentTree = git.getRepository().readDirCache().writeTree(inserter);
-			inserter.flush();
+			ObjectId currentTree = currentWorkTree(inserter);
 			formatter.setRepository(git.getRepository());
 			formatter.setDetectRenames(true);
 			List<WorkspaceChange> changes = new ArrayList<>();

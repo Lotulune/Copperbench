@@ -2205,10 +2205,13 @@ public final class WorkspaceApplicationService {
 			return queryFailure(query, state.revision(), historyUnavailable());
 		try {
 			List<RecoveryPoint> points = history.listRecoveryPoints();
+			String currentRecoveryPointId = history.currentRecoveryPointId();
 			JsonObject payload = query.payload();
 			if (!cursorListRequested(payload)) {
 				JsonObject projection = new JsonObject();
 				projection.addProperty("currentRevision", state.revision());
+				if (currentRecoveryPointId == null) projection.add("currentRecoveryPointId", JsonNull.INSTANCE);
+				else projection.addProperty("currentRecoveryPointId", currentRecoveryPointId);
 				JsonArray items = new JsonArray();
 				points.forEach(point -> items.add(recoveryPoint(point)));
 				projection.add("recoveryPoints", items);
@@ -2244,6 +2247,8 @@ public final class WorkspaceApplicationService {
 			filtered.subList(from, to).forEach(point -> items.add(projectListFields(recoveryPoint(point), fields)));
 			JsonObject projection = cursorListProjection(items, filtered.size(), limit, state.revision(), to, signature);
 			projection.addProperty("currentRevision", state.revision());
+			if (currentRecoveryPointId == null) projection.add("currentRecoveryPointId", JsonNull.INSTANCE);
+			else projection.addProperty("currentRecoveryPointId", currentRecoveryPointId);
 			projection.add("recoveryPoints", projection.remove("items"));
 			return querySuccess(query, state.revision(), projection);
 		} catch (ListCursorException exception) {
