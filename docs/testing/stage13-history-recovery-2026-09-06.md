@@ -2,7 +2,7 @@
 
 ## Scope
 
-This page tracks `FR-PRODUCTIVITY-04 Local History / Recovery UX` on the active Stage 13 development line. The local implementation is functionally complete; formal closure still waits for one installed-product replay from the current HEAD.
+This page records closure evidence for `FR-PRODUCTIVITY-04 Local History / Recovery UX` on the active Stage 13 development line. The implementation and the final clean-installed Windows product replay are both complete.
 
 The first slices deliberately repair existing product truthfulness before adding broader history abstractions.
 
@@ -71,21 +71,22 @@ Existing history commits without the new header remain readable and project as `
 
 ## Installed-product acceptance status
 
-An earlier Windows G7 replay against the packaged `cfbe18fc` candidate proved that the installed desktop UI could open History and create a real recovery-point commit; the history HEAD changed from the pre-action commit to the new UI-created commit. That package is no longer the current development HEAD and therefore cannot close FR04.
+`FR-PRODUCTIVITY-04` is closed by the final G7 Windows 11 replay from committed candidate `b4eddaff4861d9d4a26031d99536cac140717f12`.
 
-While extending the replay to external-edit -> restore, the long-lived G7 guest exposed two acceptance-environment problems:
+- final installer: `Copperbench 0.1.0 Windows 64bit.exe`
+- size: `722,725,347` bytes
+- SHA-256: `1afe289a8c7b07b1736e0101090c02948c9056a9404e47b31810b2bd70659d3b`
+- clean install/start smoke: `passed=true`, `cleanGuest=true`, `installPassed=true`, `productProcessStarted=true`, `ipcFailureDetected=false`, screenshot captured
+- installed History gate: `passed=true`, recovery point created by desktop UI, external tracked sentinel mutation preserved across relaunch, restore confirmation reached, sentinel bytes restored exactly, installed headless validation returned `status=succeeded`
+- structured evidence: `evidence/stage-13/2026-09-06/history-recovery-clean-windows11.json`
+- screenshots: create dialog, restore confirmation and post-restore product state under the same evidence directory
 
-- repeated JCEF launches could reach the real 1024x768 Swing/JCEF window while the renderer remained the solid `#232323` placeholder for the entire bounded render wait;
-- after rebooting the dedicated guest to clear that renderer state, Hyper-V Integration Services reported healthy but PowerShell Direct did not become usable within the bounded probe window, so the guest automation could not be continued reliably.
+The final replay also closed a product-shell defect discovered by this acceptance work. G7 exposes only `Microsoft Hyper-V Video`; Chromium WR repeatedly failed Vulkan/SwANGLE surface creation and left the product shell gray even though the Swing frame existed. Copperbench now keeps native WR on normal GPU-backed Windows desktops, but automatically selects the existing OSR path when every active adapter is a known software-only Hyper-V/Basic Display device. The software path uses ANGLE D3D11 WARP and disables Vulkan. The same fallback remains available when the user explicitly disables GPU acceleration.
 
-The gate itself was also corrected during this work: Chromium input now targets the renderer HWND rather than assuming global `mouse_event` delivery, and the acceptance mutation is required to use a LocalHistory-tracked workspace file instead of an arbitrary generated file that may be ignored by the workspace.
+The final clean-installed replay proves this happens without user intervention: `gpuAccelerationPreference=true`, `softwareDisplayFallbackObserved=true`, `jcefMode=OSR`, first render ready in `194 ms`, and the second launch ready in `36 ms`. On the normal development host, `Stage9NativeJcefAccessibilityTest` logs `Initializing JCEF in WR mode` and passes, so native Windows accessibility remains on the ordinary GPU-backed path.
 
-No current-HEAD installed-product pass is claimed from these interrupted runs.
+The acceptance gate itself now uses a dedicated `stage13-history-sentinel.txt` in the workspace root. It is covered by LocalHistory but not rewritten by Copperbench during workspace open, making byte-for-byte restore verification deterministic. Product-managed `.mcreator` metadata is intentionally not used as a restore sentinel.
 
-## Remaining `FR-PRODUCTIVITY-04` work
+## `FR-PRODUCTIVITY-04` closure
 
-The implementation-side work is now closed. Formal FR04 closure requires one remaining product gate:
-
-1. rebuild the Windows installer from the current Stage 13 HEAD (not `cfbe18fc`);
-2. run the clean installed-product flow on a responsive G7/G9 guest: UI create recovery point -> external tracked JSON edit -> reopen History -> verify the newest point is not labelled current -> preview impact -> desktop-confirm restore -> verify restored bytes -> installed headless validate succeeds;
-3. archive that run's candidate commit, installer SHA-256, screenshots and structured result as the final FR04 evidence.
+No remaining FR04 implementation or installed-product acceptance item is open. Subsequent Stage 13 work can proceed to the next roadmap slice without carrying History/Recovery as a release blocker.
