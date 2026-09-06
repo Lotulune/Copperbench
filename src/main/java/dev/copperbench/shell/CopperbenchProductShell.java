@@ -129,12 +129,16 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 	}
 
 	private boolean dispatchDesktopShortcut(JFrame owner, KeyEvent event) {
-		if (closed.get() || !owner.isActive() || event.getID() != KeyEvent.KEY_PRESSED
+		Component source = event.getSource() instanceof Component component ? component : null;
+		Window eventWindow = source != null ? SwingUtilities.getWindowAncestor(source) : null;
+		boolean belongsToOwner = eventWindow == owner
+				|| KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow() == owner;
+		if (closed.get() || !belongsToOwner || event.getID() != KeyEvent.KEY_PRESSED
 				|| event.getKeyCode() != KeyEvent.VK_M || !event.isControlDown() || !event.isShiftDown()
 				|| event.isAltDown() || event.isMetaDown())
 			return false;
-		browserHost.executeScriptAsync("window.dispatchEvent(new KeyboardEvent('keydown', {"
-				+ "key: 'm', code: 'KeyM', ctrlKey: true, shiftKey: true, bubbles: true" + "}));");
+		browserHost.executeScriptAsync("const target = document.querySelector('[data-testid=\"nav-ai\"]');"
+				+ " if (target instanceof HTMLElement) { target.click(); target.focus(); }");
 		event.consume();
 		return true;
 	}
