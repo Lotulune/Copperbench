@@ -43,34 +43,53 @@ class LocalHistoryServiceTest {
 		}
 
 		try (LocalHistoryService history = JGitLocalHistoryService.open(workspace, CLOCK)) {
+			Files.createDirectories(workspace.resolve("elements"));
+			Files.writeString(workspace.resolve("elements/copper_block.mod.json"),
+					"{\"settings\":{\"hardness\":1,\"enabled\":true}}");
 			RecoveryPoint before = history.createRecoveryPoint(
 					new RecoveryPointRequest("Before AI edit", Actor.MCP, "task-42"));
 
 			Files.writeString(workspace.resolve("workspace.mcreator"), "{\"revision\":1}");
-			Files.createDirectories(workspace.resolve("elements"));
-			Files.writeString(workspace.resolve("elements/copper_block.mod.json"), "{\"name\":\"Copper Block\"}");
+			Files.writeString(workspace.resolve("elements/copper_block.mod.json"),
+					"{\"settings\":{\"hardness\":2,\"luminance\":7}}");
 			RecoveryPoint after = history.createRecoveryPoint(
 					new RecoveryPointRequest("After AI edit", Actor.MCP, "task-42", RecoveryPointSource.WORKSPACE_PLAN));
 			assertEquals(RecoveryPointSource.WORKSPACE_PLAN, after.source());
 
+			List<WorkspaceChange> compared = history.compare(before.id(), after.id());
+			assertEquals(2, compared.size());
+			WorkspaceChange elementChange = compared.get(0);
+			assertEquals(ChangeType.MODIFY, elementChange.type());
+			assertEquals("elements/copper_block.mod.json", elementChange.path());
 			assertEquals(List.of(
-					new WorkspaceChange(ChangeType.ADD, "elements/copper_block.mod.json"),
-					new WorkspaceChange(ChangeType.MODIFY, "workspace.mcreator")
-			), history.compare(before.id(), after.id()));
+					new HistoryFieldChange(ChangeType.DELETE, "/settings/enabled"),
+					new HistoryFieldChange(ChangeType.MODIFY, "/settings/hardness"),
+					new HistoryFieldChange(ChangeType.ADD, "/settings/luminance")
+			), elementChange.fieldChanges());
+			assertEquals(new WorkspaceChange(ChangeType.MODIFY, "workspace.mcreator"), compared.get(1));
 
 			Files.writeString(workspace.resolve("workspace.mcreator"), "{\"revision\":2,\"unsaved\":true}");
 			Files.writeString(workspace.resolve("scratch.txt"), "current working tree only");
+			List<WorkspaceChange> restorePreview = history.previewRestore(before.id());
+			assertTrue(Files.exists(workspace.resolve(".mcreator/localHistory/HEAD")));
+			assertEquals(3, restorePreview.size());
 			assertEquals(List.of(
-					new WorkspaceChange(ChangeType.DELETE, "elements/copper_block.mod.json"),
-					new WorkspaceChange(ChangeType.DELETE, "scratch.txt"),
-					new WorkspaceChange(ChangeType.MODIFY, "workspace.mcreator")
-			), history.previewRestore(before.id()));
+					new HistoryFieldChange(ChangeType.ADD, "/settings/enabled"),
+					new HistoryFieldChange(ChangeType.MODIFY, "/settings/hardness"),
+					new HistoryFieldChange(ChangeType.DELETE, "/settings/luminance")
+			), restorePreview.get(0).fieldChanges());
+			assertEquals(new WorkspaceChange(ChangeType.DELETE, "scratch.txt"), restorePreview.get(1));
+			assertEquals(new WorkspaceChange(ChangeType.MODIFY, "workspace.mcreator"), restorePreview.get(2));
 
 			RestoreResult restored = history.restore(before.id());
+			assertTrue(Files.exists(workspace.resolve(".mcreator/localHistory/HEAD")));
 			assertTrue(restored.changedPaths().contains("workspace.mcreator"));
 			assertTrue(restored.changedPaths().contains("elements/copper_block.mod.json"));
+			assertTrue(restored.changedPaths().contains("scratch.txt"));
 			assertEquals("{\"revision\":0}", Files.readString(workspace.resolve("workspace.mcreator")));
-			assertFalse(Files.exists(workspace.resolve("elements/copper_block.mod.json")));
+			assertEquals("{\"settings\":{\"hardness\":1,\"enabled\":true}}",
+					Files.readString(workspace.resolve("elements/copper_block.mod.json")));
+			assertFalse(Files.exists(workspace.resolve("scratch.txt")));
 			assertEquals(List.of(after, before), history.listRecoveryPoints());
 		}
 

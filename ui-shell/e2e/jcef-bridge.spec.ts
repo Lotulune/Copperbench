@@ -241,7 +241,11 @@ test.describe('JCEF Bridge & Host Transport Integration', () => {
                   type: 'modify',
                   path: 'elements/native_compass.mod.json',
                   objectKind: 'mod_element',
-                  objectName: 'native_compass'
+                  objectName: 'native_compass',
+                  fieldChanges: [
+                    { type: 'modify', pointer: '/settings/maxStackSize' },
+                    { type: 'add', pointer: '/settings/glint' }
+                  ]
                 }]
               },
               diagnostics: []
@@ -355,6 +359,8 @@ test.describe('JCEF Bridge & Host Transport Integration', () => {
       }));
     await expect(page.locator('[data-testid="history-change"]'))
       .toContainText('Mod Element native_compass');
+    await expect(page.locator('[data-testid="history-change"]'))
+      .toContainText('/settings/maxStackSize');
     await expect(page.locator('[data-testid="history-change"]'))
       .toContainText('elements/native_compass.mod.json');
 

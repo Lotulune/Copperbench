@@ -51,7 +51,10 @@ function changeText(change: WorkspaceChange): string {
   const semantic = change.objectKind && change.objectName
     ? `${objectKindLabels[change.objectKind]} ${change.objectName} · `
     : '';
-  return `${semantic}${changeLabels[change.type]} · ${change.path}`;
+  const fields = change.fieldChanges?.length
+    ? ` · 字段 ${change.fieldChanges.slice(0, 4).map((field) => field.pointer).join('、')}${change.fieldChanges.length > 4 ? ` 等 ${change.fieldChanges.length} 项` : ''}`
+    : '';
+  return `${semantic}${changeLabels[change.type]}${fields} · ${change.path}`;
 }
 
 function formatTime(value: string) {

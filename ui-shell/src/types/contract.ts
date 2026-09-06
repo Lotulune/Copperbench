@@ -530,6 +530,10 @@ export interface WorkspaceChange {
   path: string;
   objectKind?: 'workspace' | 'mod_element' | 'asset';
   objectName?: string;
+  fieldChanges?: {
+    type: 'add' | 'modify' | 'delete';
+    pointer: string;
+  }[];
 }
 
 export interface HistoryComparison {

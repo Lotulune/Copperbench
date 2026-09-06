@@ -2262,6 +2262,16 @@ public final class WorkspaceApplicationService {
 		item.addProperty("type", change.type().name().toLowerCase(Locale.ROOT));
 		String path = change.path().replace('\\', '/');
 		item.addProperty("path", path);
+		if (!change.fieldChanges().isEmpty()) {
+			JsonArray fieldChanges = new JsonArray();
+			change.fieldChanges().forEach(fieldChange -> {
+				JsonObject field = new JsonObject();
+				field.addProperty("type", fieldChange.type().name().toLowerCase(Locale.ROOT));
+				field.addProperty("pointer", fieldChange.pointer());
+				fieldChanges.add(field);
+			});
+			item.add("fieldChanges", fieldChanges);
+		}
 		if ("workspace.mcreator".equals(path)) {
 			item.addProperty("objectKind", "workspace");
 			item.addProperty("objectName", "workspace");

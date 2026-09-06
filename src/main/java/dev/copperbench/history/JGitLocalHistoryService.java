@@ -9,6 +9,9 @@
 
 package dev.copperbench.history;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import dev.copperbench.core.contract.UiCore.Actor;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.diff.DiffEntry;
@@ -24,6 +27,7 @@ import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
+import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.util.io.DisabledOutputStream;
 
 import java.io.IOException;
@@ -38,6 +42,7 @@ import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.TimeZone;
 
 public final class JGitLocalHistoryService implements LocalHistoryService {
@@ -112,10 +117,10 @@ public final class JGitLocalHistoryService implements LocalHistoryService {
 			RevCommit to = resolveCommit(walk, toRecoveryPointId);
 			formatter.setRepository(git.getRepository());
 			formatter.setDetectRenames(true);
-			List<WorkspaceChange> changes = formatter.scan(from.getTree(), to.getTree()).stream()
-					.map(JGitLocalHistoryService::toWorkspaceChange)
-					.sorted(Comparator.comparing(WorkspaceChange::path))
-					.toList();
+			List<WorkspaceChange> changes = new ArrayList<>();
+			for (DiffEntry entry : formatter.scan(from.getTree(), to.getTree()))
+				changes.add(toWorkspaceChange(entry, from.getTree(), to.getTree()));
+			changes.sort(Comparator.comparing(WorkspaceChange::path));
 			return List.copyOf(changes);
 		} catch (LocalHistoryException exception) {
 			throw exception;
@@ -136,10 +141,11 @@ public final class JGitLocalHistoryService implements LocalHistoryService {
 			inserter.flush();
 			formatter.setRepository(git.getRepository());
 			formatter.setDetectRenames(true);
-			return formatter.scan(currentTree, target.getTree()).stream()
-					.map(JGitLocalHistoryService::toWorkspaceChange)
-					.sorted(Comparator.comparing(WorkspaceChange::path))
-					.toList();
+			List<WorkspaceChange> changes = new ArrayList<>();
+			for (DiffEntry entry : formatter.scan(currentTree, target.getTree()))
+				changes.add(toWorkspaceChange(entry, currentTree, target.getTree()));
+			changes.sort(Comparator.comparing(WorkspaceChange::path));
+			return List.copyOf(changes);
 		} catch (LocalHistoryException exception) {
 			throw exception;
 		} catch (Exception exception) {
@@ -151,6 +157,12 @@ public final class JGitLocalHistoryService implements LocalHistoryService {
 		Set<String> changedPaths = new LinkedHashSet<>();
 		try (RevWalk walk = new RevWalk(git.getRepository())) {
 			RevCommit target = resolveCommit(walk, recoveryPointId);
+			// Make the isolated history index represent the current non-ignored
+			// workspace before checkout. Files introduced after the target point
+			// then become ordinary tracked removals instead of requiring a broad
+			// clean pass that could touch upstream/ignored workspace metadata.
+			git.add().addFilepattern(".").call();
+			git.add().setUpdate(true).addFilepattern(".").call();
 			DirCache cache = git.getRepository().lockDirCache();
 			try {
 				DirCacheCheckout checkout = new DirCacheCheckout(git.getRepository(), cache, target.getTree());
@@ -162,7 +174,6 @@ public final class JGitLocalHistoryService implements LocalHistoryService {
 			} finally {
 				cache.unlock();
 			}
-			changedPaths.addAll(git.clean().setCleanDirectories(true).call());
 			return new RestoreResult(recoveryPointId, changedPaths);
 		} catch (LocalHistoryException exception) {
 			throw exception;
@@ -213,13 +224,73 @@ public final class JGitLocalHistoryService implements LocalHistoryService {
 				.findFirst().orElse("");
 	}
 
-	private static WorkspaceChange toWorkspaceChange(DiffEntry entry) {
+	private WorkspaceChange toWorkspaceChange(DiffEntry entry, ObjectId fromTree, ObjectId toTree) throws IOException {
 		return switch (entry.getChangeType()) {
 			case ADD -> new WorkspaceChange(ChangeType.ADD, entry.getNewPath());
-			case MODIFY -> new WorkspaceChange(ChangeType.MODIFY, entry.getNewPath());
+			case MODIFY -> new WorkspaceChange(ChangeType.MODIFY, entry.getNewPath(),
+					fieldChanges(entry.getNewPath(), fromTree, toTree));
 			case DELETE -> new WorkspaceChange(ChangeType.DELETE, entry.getOldPath());
 			case RENAME -> new WorkspaceChange(ChangeType.RENAME, entry.getNewPath());
 			case COPY -> new WorkspaceChange(ChangeType.COPY, entry.getNewPath());
 		};
+	}
+
+	private List<HistoryFieldChange> fieldChanges(String path, ObjectId fromTree, ObjectId toTree) throws IOException {
+		String normalized = path.replace('\\', '/');
+		if (!normalized.startsWith("elements/") || !normalized.endsWith(".mod.json")
+				|| normalized.indexOf('/', "elements/".length()) >= 0)
+			return List.of();
+		JsonObject before = readJsonObject(fromTree, normalized);
+		JsonObject after = readJsonObject(toTree, normalized);
+		if (before == null || after == null) return List.of();
+		List<HistoryFieldChange> changes = new ArrayList<>();
+		diffJsonObjects("", before, after, changes);
+		return List.copyOf(changes);
+	}
+
+	private JsonObject readJsonObject(ObjectId tree, String path) throws IOException {
+		try (TreeWalk walk = TreeWalk.forPath(git.getRepository(), path, tree)) {
+			if (walk == null) return null;
+			byte[] bytes = git.getRepository().open(walk.getObjectId(0)).getBytes();
+			JsonElement parsed;
+			try {
+				parsed = JsonParser.parseString(new String(bytes, StandardCharsets.UTF_8));
+			} catch (RuntimeException exception) {
+				return null;
+			}
+			return parsed.isJsonObject() ? parsed.getAsJsonObject() : null;
+		}
+	}
+
+	private static void diffJsonObjects(String basePointer, JsonObject before, JsonObject after,
+			List<HistoryFieldChange> changes) {
+		Set<String> names = new TreeSet<>();
+		before.keySet().forEach(names::add);
+		after.keySet().forEach(names::add);
+		for (String name : names) {
+			String pointer = basePointer + "/" + pointerSegment(name);
+			boolean hadBefore = before.has(name);
+			boolean hasAfter = after.has(name);
+			if (!hadBefore) {
+				changes.add(new HistoryFieldChange(ChangeType.ADD, pointer));
+				continue;
+			}
+			if (!hasAfter) {
+				changes.add(new HistoryFieldChange(ChangeType.DELETE, pointer));
+				continue;
+			}
+			JsonElement beforeValue = before.get(name);
+			JsonElement afterValue = after.get(name);
+			if (beforeValue.equals(afterValue)) continue;
+			if (beforeValue.isJsonObject() && afterValue.isJsonObject()) {
+				diffJsonObjects(pointer, beforeValue.getAsJsonObject(), afterValue.getAsJsonObject(), changes);
+			} else {
+				changes.add(new HistoryFieldChange(ChangeType.MODIFY, pointer));
+			}
+		}
+	}
+
+	private static String pointerSegment(String value) {
+		return value.replace("~", "~0").replace("/", "~1");
 	}
 }

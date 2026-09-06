@@ -56,10 +56,13 @@ class HistoryContractTest {
 
 	@Test void historyQueriesListRecoveryPointsAndDiffIdenticallyAcrossEntryAdapters() throws Exception {
 		Fixture fixture = fixture(stateAtRestoredPoint());
+		Files.createDirectories(workspaceDirectory.resolve("elements"));
+		Files.writeString(workspaceDirectory.resolve("elements/copper_lamp.mod.json"),
+				"{\"name\":\"Copper Lamp\",\"settings\":{\"hardness\":1,\"enabled\":true}}");
 		createPoint(fixture.service, "Before AI edit");
 		Files.writeString(workspaceDirectory.resolve("workspace.mcreator"), "{\"revision\":1}");
-		Files.createDirectories(workspaceDirectory.resolve("elements"));
-		Files.writeString(workspaceDirectory.resolve("elements/copper_lamp.mod.json"), "{\"name\":\"Copper Lamp\"}");
+		Files.writeString(workspaceDirectory.resolve("elements/copper_lamp.mod.json"),
+				"{\"name\":\"Copper Lamp\",\"settings\":{\"hardness\":2,\"luminance\":7}}");
 		Files.createDirectories(workspaceDirectory.resolve("src/main/resources/assets/coppertrails/textures/item"));
 		Files.writeString(workspaceDirectory.resolve("src/main/resources/assets/coppertrails/textures/item/copper_lamp.png"),
 				"png-placeholder");
@@ -91,6 +94,11 @@ class HistoryContractTest {
 		JsonObject elementChange = findChange(changes, "elements/copper_lamp.mod.json");
 		assertEquals("mod_element", elementChange.get("objectKind").getAsString());
 		assertEquals("copper_lamp", elementChange.get("objectName").getAsString());
+		var elementFields = elementChange.getAsJsonArray("fieldChanges");
+		assertEquals(3, elementFields.size());
+		assertEquals("delete", findFieldChange(elementFields, "/settings/enabled").get("type").getAsString());
+		assertEquals("modify", findFieldChange(elementFields, "/settings/hardness").get("type").getAsString());
+		assertEquals("add", findFieldChange(elementFields, "/settings/luminance").get("type").getAsString());
 		JsonObject assetChange = findChange(changes,
 				"src/main/resources/assets/coppertrails/textures/item/copper_lamp.png");
 		assertEquals("asset", assetChange.get("objectKind").getAsString());
@@ -120,6 +128,9 @@ class HistoryContractTest {
 		JsonObject restoreElementChange = findChange(restoreChanges, "elements/copper_lamp.mod.json");
 		assertEquals("mod_element", restoreElementChange.get("objectKind").getAsString());
 		assertEquals("copper_lamp", restoreElementChange.get("objectName").getAsString());
+		var restoreElementFields = restoreElementChange.getAsJsonArray("fieldChanges");
+		assertEquals("add", findFieldChange(restoreElementFields, "/settings/enabled").get("type").getAsString());
+		assertEquals("delete", findFieldChange(restoreElementFields, "/settings/luminance").get("type").getAsString());
 	}
 
 	@Test void restoreIsAProtectedOperationAndCannotRunWithoutExplicitUserApproval() throws Exception {
@@ -231,6 +242,13 @@ class HistoryContractTest {
 		return java.util.stream.StreamSupport.stream(changes.spliterator(), false)
 				.map(com.google.gson.JsonElement::getAsJsonObject)
 				.filter(change -> path.equals(change.get("path").getAsString()))
+				.findFirst().orElseThrow();
+	}
+
+	private static JsonObject findFieldChange(com.google.gson.JsonArray changes, String pointer) {
+		return java.util.stream.StreamSupport.stream(changes.spliterator(), false)
+				.map(com.google.gson.JsonElement::getAsJsonObject)
+				.filter(change -> pointer.equals(change.get("pointer").getAsString()))
 				.findFirst().orElseThrow();
 	}
 
