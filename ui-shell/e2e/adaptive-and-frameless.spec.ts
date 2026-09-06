@@ -47,6 +47,48 @@ test.describe('Adaptive Layout, Frameless Window & Theme Tests', () => {
     await expect(maxBtn).toHaveAttribute('title', '最大化');
   });
 
+
+  test('frameless titlebar does not rely on -webkit-app-region drag', async ({ page }) => {
+    const titlebar = page.locator('[data-testid="frameless-titlebar"]');
+    await expect(titlebar).toBeVisible();
+
+    const appRegion = await titlebar.evaluate((element) => {
+      const computed = window.getComputedStyle(element) as CSSStyleDeclaration & {
+        webkitAppRegion?: string;
+      };
+      return {
+        inline: element.style.webkitAppRegion,
+        computed: computed.webkitAppRegion || window.getComputedStyle(element).getPropertyValue('-webkit-app-region')
+      };
+    });
+    expect(appRegion.inline).not.toBe('drag');
+    expect(appRegion.computed).not.toBe('drag');
+
+    const minBtn = page.locator('[data-testid="window-minimize-btn"]');
+    await expect(minBtn).toBeVisible();
+    await expect(minBtn).toBeEnabled();
+  });
+  test('caption double-click keeps maximize state synchronized', async ({ page }) => {
+    await page.addInitScript(() => {
+      window.__COPPERBENCH_WINDOW_HOST__ = {
+        systemFrame: false,
+        chromeRegionSchemaVersion: '1.0',
+        invoke: async (action) => {
+          window.sessionStorage.setItem('windowAction', action);
+        },
+        reportChromeRegions: async () => undefined
+      };
+    });
+    await page.reload();
+    await page.waitForSelector('[data-testid="app-shell"]');
+
+    const titlebar = page.locator('[data-testid="frameless-titlebar"]');
+    const maxBtn = page.locator('[data-testid="window-maximize-btn"]');
+    await expect(maxBtn).toHaveAttribute('title', '最大化');
+    await titlebar.dispatchEvent('dblclick', { button: 0 });
+    await expect.poll(() => page.evaluate(() => window.sessionStorage.getItem('windowAction'))).toBe('toggle_maximize');
+    await expect(maxBtn).toHaveAttribute('title', '恢复');
+  });
   test('reports typed chrome regions to a compatible native host', async ({ page }) => {
     await page.addInitScript(() => {
       window.__COPPERBENCH_WINDOW_HOST__ = {
