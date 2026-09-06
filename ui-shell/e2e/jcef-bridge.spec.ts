@@ -162,6 +162,58 @@ test.describe('JCEF Bridge & Host Transport Integration', () => {
             });
           }
 
+          if (envelope.messageType === 'query' && envelope.operation === 'get_history') {
+            return JSON.stringify({
+              messageType: 'query_result',
+              schemaVersion: '1.0',
+              requestId: envelope.requestId,
+              workspaceId,
+              operation: 'get_history',
+              status: 'succeeded',
+              revision: 42,
+              data: {
+                currentRevision: 42,
+                recoveryPoints: [
+                  {
+                    id: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+                    label: 'After native edit',
+                    actor: 'ui',
+                    taskId: '',
+                    createdAt: '2026-09-06T06:10:00Z'
+                  },
+                  {
+                    id: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+                    label: 'Before native edit',
+                    actor: 'system',
+                    taskId: '',
+                    createdAt: '2026-09-06T06:00:00Z'
+                  }
+                ]
+              },
+              diagnostics: []
+            });
+          }
+
+          if (envelope.messageType === 'query' && envelope.operation === 'get_diff') {
+            window.sessionStorage.setItem('lastHistoryDiffPayload', JSON.stringify(envelope.payload));
+            return JSON.stringify({
+              messageType: 'query_result',
+              schemaVersion: '1.0',
+              requestId: envelope.requestId,
+              workspaceId,
+              operation: 'get_diff',
+              status: 'succeeded',
+              revision: 42,
+              data: {
+                fromRecoveryPointId: envelope.payload.fromRecoveryPointId,
+                toRecoveryPointId: envelope.payload.toRecoveryPointId,
+                baseRevision: 42,
+                changes: [{ type: 'modify', path: 'elements/native_compass.mod.json' }]
+              },
+              diagnostics: []
+            });
+          }
+
           if (envelope.messageType === 'query' && envelope.operation === 'get_task') {
             return JSON.stringify({
               messageType: 'query_result',
@@ -258,6 +310,15 @@ test.describe('JCEF Bridge & Host Transport Integration', () => {
     await expect(page.locator('[data-testid="task-drawer"]')).toContainText('SUCCEEDED');
     await expect(page.locator('[data-testid="task-log-stream"]'))
       .toContainText('Minecraft client reached the readiness marker.');
+
+    await page.click('[data-testid="nav-history"]');
+    await expect(page.locator('[data-testid="history-view"]')).toBeVisible();
+    await expect.poll(() => page.evaluate(() => window.sessionStorage.getItem('lastHistoryDiffPayload')))
+      .toBe(JSON.stringify({
+        fromRecoveryPointId: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+        toRecoveryPointId: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+      }));
+    await expect(page.locator('[data-testid="history-change"]')).toContainText('elements/native_compass.mod.json');
   });
 
   test('routes native domain events to update diagnostics and workbench in real-time', async ({ page }) => {

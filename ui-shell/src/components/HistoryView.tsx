@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
 import { useDialogA11y } from '../hooks/useDialogA11y';
-import type { RecoveryPoint, WorkspaceChange } from '../types/contract';
+import type { HistoryComparison, RecoveryPoint, WorkspaceChange } from '../types/contract';
 
 const actorLabels: Record<RecoveryPoint['actor'], string> = {
   ui: '界面',
@@ -40,8 +40,10 @@ function formatTime(value: string) {
 }
 
 export const HistoryView: React.FC = () => {
-  const { state, createRecoveryPoint, restoreRecoveryPoint } = useWorkbench();
+  const { state, createRecoveryPoint, compareRecoveryPoints, restoreRecoveryPoint } = useWorkbench();
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [comparison, setComparison] = useState<HistoryComparison | null>(null);
+  const [comparisonLoading, setComparisonLoading] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [restoreOpen, setRestoreOpen] = useState(false);
   const [label, setLabel] = useState('');
@@ -59,7 +61,33 @@ export const HistoryView: React.FC = () => {
     () => state.recoveryPoints.find((point) => point.id === selectedId) ?? null,
     [selectedId, state.recoveryPoints]
   );
-  const changes = state.historyComparison?.changes ?? [];
+  const changes = comparison?.changes ?? [];
+
+  useEffect(() => {
+    if (!selectedId) {
+      setComparison(null);
+      setComparisonLoading(false);
+      return;
+    }
+    const index = state.recoveryPoints.findIndex((point) => point.id === selectedId);
+    const previous = index >= 0 ? state.recoveryPoints[index + 1] : undefined;
+    if (!previous) {
+      setComparison(null);
+      setComparisonLoading(false);
+      return;
+    }
+    let cancelled = false;
+    setComparisonLoading(true);
+    void compareRecoveryPoints(previous.id, selectedId).then((result) => {
+      if (!cancelled) {
+        setComparison(result);
+        setComparisonLoading(false);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [compareRecoveryPoints, selectedId, state.recoveryPoints]);
 
   const createPoint = async () => {
     const trimmed = label.trim();
@@ -162,9 +190,12 @@ export const HistoryView: React.FC = () => {
                   <FileDiff size={16} aria-hidden="true" />
                   <span>与上一恢复点比较</span>
                 </div>
-                <span>{changes.length} 个文件</span>
+                <span>{comparisonLoading ? '读取中…' : `${changes.length} 个文件`}</span>
               </div>
               <div className="history-change-list" aria-label="文件差异">
+                {!comparisonLoading && changes.length === 0 && (
+                  <div className="stage2-empty" data-testid="history-no-changes">没有可比较的文件变化</div>
+                )}
                 {changes.map((change) => (
                   <div className="history-change" data-testid="history-change" key={`${change.type}:${change.path}`}>
                     <span className={`change-badge change-${change.type}`}>{changeLabels[change.type]}</span>
@@ -249,6 +280,7 @@ export const HistoryView: React.FC = () => {
             </div>
             <div className="modal-body">
               <p>将工作区还原到“{selected.label}”。当前状态会先创建恢复点，然后重新校验工作区。</p>
+              <p>以下是该恢复点相对上一恢复点的已记录文件变化：</p>
               <div className="dialog-impact-list">
                 {changes.slice(0, 5).map((change) => <code key={change.path}>{change.path}</code>)}
               </div>

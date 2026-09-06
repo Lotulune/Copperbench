@@ -31,7 +31,8 @@ import {
   ProcedureRefactorRequest,
   DatagenPreview,
   TaskProjection,
-  TaskSourcePreview
+  TaskSourcePreview,
+  HistoryComparison
 } from '../types/contract';
 import {
   coreBridge,
@@ -111,6 +112,7 @@ interface WorkbenchContextType {
   runGameTest: () => Promise<CommandResult>;
   cancelTask: (taskId: UUID) => Promise<CommandResult>;
   createRecoveryPoint: (label: string) => Promise<CommandResult>;
+  compareRecoveryPoints: (fromRecoveryPointId: string, toRecoveryPointId: string) => Promise<HistoryComparison | null>;
   restoreRecoveryPoint: (recoveryPointId: string) => Promise<CommandResult>;
   resolveOperationApproval: (approvalId: UUID, decision: 'approve' | 'deny') => Promise<CommandResult>;
   getVersionTracks: () => Promise<VersionTracksProjection | null>;
@@ -795,6 +797,21 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     [state.workbench]
   );
 
+  const compareRecoveryPoints = useCallback(
+    async (fromRecoveryPointId: string, toRecoveryPointId: string): Promise<HistoryComparison | null> => {
+      const res = await coreBridge.sendQuery<HistoryComparison>({
+        messageType: 'query',
+        schemaVersion: '1.0',
+        requestId: generateUUID(),
+        workspaceId: state.workbench?.workspace.id || generateUUID(),
+        operation: 'get_diff',
+        payload: { fromRecoveryPointId, toRecoveryPointId }
+      });
+      return res.status === 'succeeded' ? res.data : null;
+    },
+    [state.workbench]
+  );
+
   const restoreRecoveryPoint = useCallback(
     async (recoveryPointId: string): Promise<CommandResult> => {
       const workspaceId = state.workbench?.workspace.id || generateUUID();
@@ -1227,6 +1244,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       runGameTest,
       cancelTask,
       createRecoveryPoint,
+      compareRecoveryPoints,
       restoreRecoveryPoint,
       resolveOperationApproval,
       getVersionTracks,
@@ -1301,6 +1319,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       runGameTest,
       cancelTask,
       createRecoveryPoint,
+      compareRecoveryPoints,
       restoreRecoveryPoint,
       resolveOperationApproval,
       getVersionTracks,
