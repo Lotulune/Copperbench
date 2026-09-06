@@ -189,6 +189,12 @@ final class McpToolCatalog {
 					if (!payload.has("filter")) payload.add("filter", new JsonObject());
 					return payload;
 				}));
+		tools.add(queryTool("preview_recovery_restore",
+				"Preview the exact current-workspace file impact before requesting a protected recovery-point restore",
+				Operation.PREVIEW_RECOVERY_RESTORE,
+				requiredSchema(Map.of("recoveryPointId", Map.of("type", "string", "minLength", 1)),
+						List.of("recoveryPointId")),
+				arguments -> GSON.toJsonTree(arguments).getAsJsonObject()));
 		tools.add(queryTool("read_mod_element", "Read a mod element", Operation.GET_MOD_ELEMENT_EDITOR,
 				elementSchema(false), arguments -> GSON.toJsonTree(arguments).getAsJsonObject()));
 		tools.add(queryTool("preview_mod_element_change", "Preview validated element changes without committing",

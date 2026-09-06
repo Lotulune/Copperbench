@@ -115,6 +115,9 @@ class CopperbenchClient:
     def create_recovery_point(self, label: str, expected_revision: int) -> dict[str, Any]:
         return self.call_tool("create_recovery_point", {"label": label, "expectedRevision": expected_revision})
 
+    def preview_recovery_restore(self, recovery_point_id: str) -> dict[str, Any]:
+        return self.call_tool("preview_recovery_restore", {"recoveryPointId": recovery_point_id})
+
     def restore_recovery_point(self, recovery_point_id: str, expected_revision: int) -> dict[str, Any]:
         return self.call_tool("restore_recovery_point", {
             "recoveryPointId": recovery_point_id,

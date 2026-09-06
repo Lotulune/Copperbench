@@ -190,6 +190,7 @@ class McpHttpServerTest {
 			assertTrue(tools.body().contains("get_task"));
 			assertTrue(tools.body().contains("cancel_task"));
 			assertTrue(tools.body().contains("restore_recovery_point"));
+			assertTrue(tools.body().contains("preview_recovery_restore"));
 			assertTrue(tools.body().contains("list_assets"));
 			assertTrue(tools.body().contains("inspect_asset_references"));
 			assertTrue(tools.body().contains("preview_asset_move"));
@@ -257,6 +258,13 @@ class McpHttpServerTest {
 			assertEquals("create_recovery_point", recoveryPoint.get("operation").getAsString());
 			assertTrue(recoveryPoint.has("recoveryPointId"));
 			String recoveryPointId = recoveryPoint.get("recoveryPointId").getAsString();
+
+			HttpResponse<String> restorePreviewResult = post(endpoint,
+					"{\"jsonrpc\":\"2.0\",\"id\":40,\"method\":\"tools/call\",\"params\":{\"name\":\"preview_recovery_restore\",\"arguments\":{\"recoveryPointId\":\"" + recoveryPointId + "\"}}}",
+					token.value(), sessionId, "http://localhost:5173");
+			JsonObject restorePreview = toolResult(restorePreviewResult);
+			assertEquals("succeeded", restorePreview.get("status").getAsString());
+			assertEquals(recoveryPointId, restorePreview.getAsJsonObject("data").get("recoveryPointId").getAsString());
 
 			HttpResponse<String> protectedRestoreResult = post(endpoint,
 					"{\"jsonrpc\":\"2.0\",\"id\":41,\"method\":\"tools/call\",\"params\":{\"name\":\"restore_recovery_point\",\"arguments\":{\"recoveryPointId\":\"" + recoveryPointId + "\",\"expectedRevision\":0}}}",

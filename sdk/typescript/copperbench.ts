@@ -150,6 +150,10 @@ export class CopperbenchClient {
     return this.callTool('create_recovery_point', { label, expectedRevision });
   }
 
+  public previewRecoveryRestore(recoveryPointId: string): Promise<JsonObject> {
+    return this.callTool('preview_recovery_restore', { recoveryPointId });
+  }
+
   public restoreRecoveryPoint(recoveryPointId: string, expectedRevision: number): Promise<JsonObject> {
     return this.callTool('restore_recovery_point', {
       recoveryPointId,
