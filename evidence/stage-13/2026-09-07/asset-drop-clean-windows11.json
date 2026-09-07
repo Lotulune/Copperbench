@@ -1,0 +1,61 @@
+﻿{
+    "schemaVersion":  "1.0",
+    "kind":  "stage13-asset-drop-clean-windows11",
+    "candidateCommit":  "09bda9c6d8c6a37bbcf15d7cf7c964c68abea2a4",
+    "candidateInstallerSha256":  "bc59026c08c635b7b06c90e434fe3de80d639e4042288b0a20b2445e16ad6b1a",
+    "workspaceFile":  "C:\\Users\\g7admin\\Documents\\Copperbench-Stage13-AssetDrop\\workspace\\stage13_diagnostics.mcreator",
+    "startedAt":  "2026-09-07T07:55:01.2776560+08:00",
+    "passed":  true,
+    "steps":  [
+                  {
+                      "name":  "external_source_prepared",
+                      "passed":  true,
+                      "bytes":  68,
+                      "fileName":  "dropped_panel.png"
+                  },
+                  {
+                      "name":  "explorer_drag_control",
+                      "passed":  true,
+                      "selectedThroughUia":  true,
+                      "sourceName":  "dropped_panel.png",
+                      "foregroundClassBeforeDrag":  "CabinetWClass",
+                      "dropUiPoint":  "800,420",
+                      "shellTransferObserved":  true,
+                      "sourceUiPoint":  "234,321"
+                  },
+                  {
+                      "name":  "installed_generator_setup",
+                      "passed":  true,
+                      "observed":  true,
+                      "completed":  true,
+                      "waitMs":  95624
+                  },
+                  {
+                      "name":  "asset_center_opened_through_real_ui",
+                      "passed":  true,
+                      "viewport":  "1024x768",
+                      "navPoint":  "95,292"
+                  },
+                  {
+                      "name":  "real_explorer_to_copperbench_drop",
+                      "passed":  true,
+                      "selectedThroughUia":  true,
+                      "sourceName":  "dropped_panel.png",
+                      "sourceUiPoint":  "234,321",
+                      "foregroundClassBeforeDrag":  "CabinetWClass",
+                      "dropUiPoint":  "760,500",
+                      "explorerClass":  "CabinetWClass"
+                  },
+                  {
+                      "name":  "asset_batch_review_opened",
+                      "passed":  true,
+                      "reviewInputPoint":  "644,336",
+                      "reviewedTarget":  "assets/stage13_diagnostics/textures/imported/dropped_panel.png",
+                      "sourceName":  "dropped_panel.png",
+                      "externalPathDisclosedToEvidence":  false
+                  }
+              ],
+    "reviewedTarget":  "assets/stage13_diagnostics/textures/imported/dropped_panel.png",
+    "clipboardEmptyAtEnd":  true,
+    "completedAt":  "2026-09-07T07:57:07.7491836+08:00"
+}

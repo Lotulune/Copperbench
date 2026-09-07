@@ -2,7 +2,7 @@
 
 ## Scope
 
-This page tracks `FR-PRODUCTIVITY-02 Asset Center` on the active Stage 13 development line. The requirement is not closed yet.
+This page records closure evidence for `FR-PRODUCTIVITY-02 Asset Center` on the Stage 13 development line. The implementation and the final clean-installed Windows Explorer-to-Copperbench drag/drop replay are complete.
 
 The first Stage 13 Asset Center slice builds on the Stage 6/8 asset foundation and adds Core-owned asset health and reverse-usage semantics:
 
@@ -54,9 +54,17 @@ Existing Stage 6/8 behavior retained by this slice includes unified category bro
 - `WorkspaceReferenceIndexScaleTest` with `copperbench.stage9.scale=true` — passed at 2,000 elements / 10,000 references (`initial=123ms`, `repeat=47ms`, `P95=28ms`) after embedded resource-location scanning was added.
 - `npx playwright test e2e/asset-browser.spec.ts` — `34 passed` across Chromium and compact-1366; the browser covers health/static-unused/safe-cleanup/duplicate filters, single-file CREATE/REPLACE import, mixed CREATE/REPLACE batch review, intra-batch target collision blocking, native dropped-grant routing into the same batch preview, the >=32px batch/move review interaction target baseline, exact move-reference review, and managed Blockbench save-exit auto-refresh with recovery/revision feedback.
 
-## Remaining `FR-PRODUCTIVITY-02` closure evidence
+## Installed-product closure evidence
 
-- the feature implementation now covers the PRD drag/drop and batch-import requirement; before marking the requirement fully closed, run one installed-product Windows smoke with a real Explorer-to-Copperbench file drop and confirm the Asset Center opens the reviewed batch plan;
-- broader asset move coverage for non-JSON or generator-specific references if future supported asset kinds introduce such references; current structured JSON/resource-ID references are protected.
+The remaining physical OS-drop boundary was closed on clean Windows 11 with `scripts/Invoke-Stage13AssetDropGuestGate.ps1` against exact installed candidate `09bda9c6d8c6a37bbcf15d7cf7c964c68abea2a4`, installer SHA-256 `bc59026c08c635b7b06c90e434fe3de80d639e4042288b0a20b2445e16ad6b1a`.
+
+- the gate silently installs that candidate to a separate product directory and launches Copperbench at the same ordinary interactive integrity level as Explorer rather than elevating the product and invalidating Windows drag/drop behavior;
+- before judging Copperbench, the gate selects the real `dropped_panel.png` Explorer item through UI Automation and proves the mouse input produces a genuine Windows Shell/OLE drag by transferring that same item Explorer-to-Explorer;
+- the gate then opens Asset Center through the installed JCEF UI and drags the same real Explorer item into Copperbench; no synthetic `copperbench:asset-drop` browser event is used for the closure assertion;
+- the reviewed batch plan opens and its real target input contains `assets/stage13_diagnostics/textures/imported/dropped_panel.png`, proving the native `DropTarget -> Core source grant -> copperbench:asset-drop -> atomic batch preview` path completed;
+- evidence intentionally records the external file name and reviewed workspace target only. The external source path is not exposed as browser/product evidence, matching the grant-only security boundary;
+- the final default **clean-install** run returned `passed=true` with all six steps green. Machine evidence is stored at `evidence/stage-13/2026-09-07/asset-drop-clean-windows11.json`; the companion screenshot is `asset-drop-clean-windows11.png`.
+
+`FR-PRODUCTIVITY-02` is therefore closed. Broader asset-move coverage for future non-JSON or generator-specific reference kinds remains ordinary follow-up work rather than a Stage 13 blocker; current structured JSON/resource-ID references are protected.
 
 Static-unused remains discovery information only. Only the narrower Core-owned `safeUnused` slice is presented as a cleanup candidate, and no automatic deletion action is implemented.

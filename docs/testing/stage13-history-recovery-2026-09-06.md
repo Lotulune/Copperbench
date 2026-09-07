@@ -2,7 +2,7 @@
 
 ## Scope
 
-This page records closure evidence for `FR-PRODUCTIVITY-04 Local History / Recovery UX` on the active Stage 13 development line. The implementation and the final clean-installed Windows product replay are both complete.
+This page records closure evidence for `FR-PRODUCTIVITY-04 Local History / Recovery UX` on the Stage 13 development line. The implementation and the final clean-installed Windows product replay are both complete.
 
 The first slices deliberately repair existing product truthfulness before adding broader history abstractions.
 

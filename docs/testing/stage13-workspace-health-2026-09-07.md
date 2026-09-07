@@ -2,7 +2,7 @@
 
 ## Scope
 
-This page records closure evidence for `FR-PRODUCTIVITY-06 Workspace Health` on the active Stage 13 development line.
+This page records closure evidence for `FR-PRODUCTIVITY-06 Workspace Health` on the Stage 13 development line.
 
 The implementation deliberately does **not** compute a hidden health score and does not introduce remote telemetry, speculative ownership, an approval queue, or automatic repair. `get_workspace_health` is a read-only Core projection that aggregates facts already owned by existing Copperbench subsystems.
 

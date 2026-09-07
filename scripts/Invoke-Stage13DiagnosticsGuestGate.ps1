@@ -57,10 +57,14 @@ $ProgressPreference = 'SilentlyContinue'
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type @"
 using System;
+using System.Text;
 using System.Runtime.InteropServices;
 public static class Stage13DiagnosticsInput {
   [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd);
   [DllImport("user32.dll")] public static extern bool ShowWindowAsync(IntPtr hWnd, int nCmdShow);
+  [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
+  [DllImport("user32.dll", CharSet=CharSet.Unicode)] public static extern int GetClassName(IntPtr hWnd, StringBuilder text, int maxCount);
+  [DllImport("user32.dll", CharSet=CharSet.Unicode)] public static extern int GetWindowText(IntPtr hWnd, StringBuilder text, int maxCount);
 }
 "@
 
@@ -96,6 +100,50 @@ function Add-Step([string]$Name, [hashtable]$Facts = @{}) {
 	$steps.Add([pscustomobject]$entry)
 }
 
+function Get-ForegroundWindowIdentity {
+	$handle = [Stage13DiagnosticsInput]::GetForegroundWindow()
+	$classBuilder = [Text.StringBuilder]::new(256)
+	$textBuilder = [Text.StringBuilder]::new(512)
+	if ($handle -ne [IntPtr]::Zero) {
+		$null = [Stage13DiagnosticsInput]::GetClassName($handle, $classBuilder, $classBuilder.Capacity)
+		$null = [Stage13DiagnosticsInput]::GetWindowText($handle, $textBuilder, $textBuilder.Capacity)
+	}
+	return [pscustomobject]@{
+		handle = $handle
+		className = $classBuilder.ToString()
+		text = $textBuilder.ToString()
+	}
+}
+
+function Wait-GeneratorSetupDialog([IntPtr]$WindowHandle, [int]$TimeoutSeconds = 480) {
+	[Stage13DiagnosticsInput]::SetForegroundWindow($WindowHandle) | Out-Null
+	Start-Sleep -Milliseconds 500
+	$started = Get-Date
+	$deadline = $started.AddSeconds($TimeoutSeconds)
+	$observed = $false
+	do {
+		$foreground = Get-ForegroundWindowIdentity
+		$setupBlocking = $foreground.className -eq 'SunAwtDialog' -and $foreground.text -eq 'Workspace setup for selected generator'
+		if ($setupBlocking) {
+			$observed = $true
+			Start-Sleep -Seconds 1
+			continue
+		}
+		# Require the main product window to remain the active same-process surface for a short stable
+		# period so we do not race the setup dialog disappearing while JCEF is regaining focus.
+		[Stage13DiagnosticsInput]::SetForegroundWindow($WindowHandle) | Out-Null
+		Start-Sleep -Milliseconds 750
+		$foreground = Get-ForegroundWindowIdentity
+		$setupBlocking = $foreground.className -eq 'SunAwtDialog' -and $foreground.text -eq 'Workspace setup for selected generator'
+		if (-not $setupBlocking) { break }
+	} while ((Get-Date) -lt $deadline)
+	Assert-Gate (-not $setupBlocking) 'Workspace setup for selected generator did not finish within 8 minutes.'
+	return [pscustomobject]@{
+		observed = $observed
+		waitMs = [int]((Get-Date) - $started).TotalMilliseconds
+	}
+}
+
 function Invoke-Headless([string]$Command, [int]$TimeoutSeconds = 420) {
 	$psi = [Diagnostics.ProcessStartInfo]::new()
 	$psi.FileName = $launcher
@@ -118,7 +166,26 @@ function Invoke-Headless([string]$Command, [int]$TimeoutSeconds = 420) {
 	$stdout = $stdoutTask.GetAwaiter().GetResult().Trim()
 	$stderr = $stderrTask.GetAwaiter().GetResult().Trim()
 	$json = $null
-	try { $json = $stdout | ConvertFrom-Json } catch { }
+	try { $json = $stdout | ConvertFrom-Json -ErrorAction Stop } catch { }
+	if ($null -eq $json -and -not [string]::IsNullOrWhiteSpace($stdout)) {
+		# The installed launcher can emit startup/plugin/Gradle log lines before the final one-line
+		# HeadlessProductLauncher JSON envelope. Parse the last valid JSON line rather than treating
+		# harmless preamble output as a failed command.
+		$lines = @($stdout -split '\r?\n')
+		for ($index = $lines.Count - 1; $index -ge 0; $index--) {
+			$candidate = [string]$lines[$index]
+			if ([string]::IsNullOrWhiteSpace($candidate)) { continue }
+			$candidate = $candidate.Trim()
+			if (-not ($candidate.StartsWith('{') -and $candidate.EndsWith('}'))) { continue }
+			try {
+				$parsed = $candidate | ConvertFrom-Json -ErrorAction Stop
+				if ($null -ne $parsed) {
+					$json = $parsed
+					break
+				}
+			} catch { }
+		}
+	}
 	return [pscustomobject]@{ exitCode = $process.ExitCode; stdout = $stdout; stderr = $stderr; json = $json }
 }
 
@@ -202,6 +269,8 @@ try {
 	$hwnd = [IntPtr]$uiProcess.MainWindowHandle
 	[Stage13DiagnosticsInput]::ShowWindowAsync($hwnd, 3) | Out-Null
 	Start-Sleep -Milliseconds 300
+	$setup = Wait-GeneratorSetupDialog $hwnd 480
+	Add-Step 'installed_generator_setup' @{ observed = [bool]$setup.observed; completed = $true; waitMs = [int]$setup.waitMs }
 	[Stage13DiagnosticsInput]::SetForegroundWindow($hwnd) | Out-Null
 	Start-Sleep -Milliseconds 500
 	$copiedUrl = ''
@@ -223,7 +292,9 @@ try {
 	[System.Windows.Forms.Clipboard]::SetText('STAGE13_DIAGNOSTICS_CONFIG_SENTINEL')
 	[System.Windows.Forms.SendKeys]::SendWait('^+m')
 	Start-Sleep -Milliseconds 350
-	1..5 | ForEach-Object { [System.Windows.Forms.SendKeys]::SendWait('{TAB}'); Start-Sleep -Milliseconds 90 }
+	# revealTokenOnce refreshes MCP state and disables the reveal button, so it is no longer part of
+	# the keyboard tab order: nav-ai -> plugins -> help -> Copy URL -> Copy Config.
+	1..4 | ForEach-Object { [System.Windows.Forms.SendKeys]::SendWait('{TAB}'); Start-Sleep -Milliseconds 90 }
 	[System.Windows.Forms.SendKeys]::SendWait('{ENTER}')
 	Start-Sleep -Milliseconds 500
 	$config = [System.Windows.Forms.Clipboard]::GetText()
@@ -306,8 +377,28 @@ try {
 	$validated = Invoke-Headless 'validate' 180
 	Assert-Gate ($validated.exitCode -eq 0 -and $null -ne $validated.json -and [string]$validated.json.status -eq 'succeeded') 'Installed validate did not succeed after safe repair.'
 	$built = Invoke-Headless 'build' 600
-	Assert-Gate ($built.exitCode -eq 0 -and $null -ne $built.json -and [string]$built.json.status -eq 'succeeded') 'Installed build did not succeed after safe repair.'
-	Add-Step 'installed_revalidate_and_rebuild' @{ validate = 'succeeded'; build = 'succeeded' }
+	# HeadlessProductLauncher returns process exit code 0 only after an accepted build task reaches
+	# state=succeeded. Gradle/plugin startup output can precede the final JSON envelope on stdout in
+	# installed builds, so a missing parsed envelope must not turn that authoritative success into a
+	# false negative. When the envelope is parseable, still require its status to agree with exit 0.
+	$buildSucceeded = $built.exitCode -eq 0 -and ($null -eq $built.json -or [string]$built.json.status -eq 'succeeded')
+	if (-not $buildSucceeded) {
+		$buildDiagnostic = [ordered]@{
+			exitCode = $built.exitCode
+			status = if ($null -ne $built.json) { [string]$built.json.status } else { $null }
+			code = if ($null -ne $built.json) { [string]$built.json.code } else { $null }
+			message = if ($null -ne $built.json) { [string]$built.json.message } else { $null }
+			stderr = if ($built.stderr.Length -gt 3000) { $built.stderr.Substring($built.stderr.Length - 3000) } else { $built.stderr }
+			stdout = if ($built.stdout.Length -gt 3000) { $built.stdout.Substring($built.stdout.Length - 3000) } else { $built.stdout }
+		}
+		throw ('Installed build did not succeed after safe repair: ' + ($buildDiagnostic | ConvertTo-Json -Compress -Depth 8))
+	}
+	Add-Step 'installed_revalidate_and_rebuild' @{
+		validate = 'succeeded'
+		build = 'succeeded'
+		buildExitCode = $built.exitCode
+		buildEnvelopeParsed = $null -ne $built.json
+	}
 
 	$migration = Invoke-Headless 'preview-migrate --target neoforge-1.21.1' 180
 	Assert-Gate ($migration.exitCode -eq 0 -and $null -ne $migration.json -and [string]$migration.json.status -eq 'succeeded') 'Installed loader migration preview failed.'

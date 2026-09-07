@@ -2,7 +2,7 @@
 
 ## Scope
 
-This page tracks `FR-PRODUCTIVITY-03 Diagnostics 2.0` on the active Stage 13 development line. The requirement is **not closed yet**.
+This page records closure evidence for `FR-PRODUCTIVITY-03 Diagnostics 2.0` on the Stage 13 development line. The implementation and the final clean-installed Windows failure-to-repair replay are complete.
 
 The first Diagnostics 2.0 slice turns Java compiler failures from file/line-only task output into user-addressable diagnostics while preserving conservative ownership semantics:
 
@@ -189,15 +189,18 @@ This extends Diagnostics 2.0 across the migration rebuild boundary without addin
 - forced `--rerun-tasks` `Stage67ApplicationServiceTest` + `LoaderMigrationRebuildServiceTest` — `BUILD SUCCESSFUL`; `loaderMigrationRebuildPreservesGeneratorFieldLocation` keeps `NEOFORGE_ITEM_STACK_INVALID` bound to the exact element and `/fields/maxStackSize` editor target, while `validationFailurePreservesStableElementFieldAndRepairFact` proves the rebuild service retains the generator's path, element ID and explicit repair value `1`.
 - `git -c core.whitespace=cr-at-eol diff --check` — passed before evidence finalization.
 
-## Remaining `FR-PRODUCTIVITY-03` work
+## Installed-product closure evidence
 
-This slice does not close Diagnostics 2.0. Remaining work includes:
+The final product boundary was replayed by `scripts/Invoke-Stage13DiagnosticsGuestGate.ps1` on clean Windows 11 against exact installed candidate `09bda9c6d8c6a37bbcf15d7cf7c964c68abea2a4`, installer SHA-256 `bc59026c08c635b7b06c90e434fe3de80d639e4042288b0a20b2445e16ad6b1a`. The default gate returned `passed=true` with seven machine-checked steps:
 
-- extend the stable-location model to remaining deterministic generator/runtime and MCP failure classes where ownership can be proven; resource, migration review/rebuild, generator pre-validation, Procedure node/port ownership, task-level process exits/readiness and generic task identity are now covered;
-- deepen remaining element locations into other field/node paths where the producer can prove that relationship; stable asset IDs, generator validation fields and Procedure node/port targets are now covered;
-- extend safe repair guidance beyond the first bounded numeric generator failures only when another producer can provide an equally explicit, non-heuristic repair value;
-- preserve the new previewed semantic WorkspacePlan + recovery-point path for every future automatic repair rather than adding direct-mutation diagnostic actions;
-- preserve the same diagnostic identities and locations through UI, desktop MCP, headless and reconnect/replay paths;
-- add representative installed-product failure → location → repair evidence for the broader generator/resource/migration classes before formal closure.
+1. installed validation returned `FABRIC_ITEM_STACK_INVALID` bound to stable element `00000000-0000-4000-8000-000000013001`, exact producer path `/elements/.../values/fields/maxStackSize`, editor target `/fields/maxStackSize` and explicit safe repair value `1`;
+2. the real `Workspace setup for selected generator` progress dialog was observed and allowed to finish naturally before UI interaction, reusing the established clean-Windows generator-setup rule instead of clicking through a modal progress boundary;
+3. the installed product's window-scoped `Ctrl+Shift+M` path opened the real AI/MCP page and `Copy URL` matched the active Desktop MCP descriptor;
+4. the one-time bearer credential came only from the visible installed UI, the persisted descriptor contained no token, and the clipboard was cleared before repair;
+5. the external MCP client previewed/applied the producer-supplied WorkspacePlan with a recovery point, moving workspace revision `1 -> 2` and changing only `/values/fields/maxStackSize`;
+6. installed headless `validate` and `build` both succeeded after repair; the build process returned authoritative exit code `0` and its Gradle log contained a successful build;
+7. installed migration preview retained `LOADER_EXCLUSIVE_FIELDS_PRESERVED` with exact `/elements/00000000-0000-4000-8000-000000013001` review location and `manual` disposition.
 
-The governing rule remains conservative: a diagnostic may lose a navigation shortcut when ownership cannot be proven, but it must not invent an element, field, Procedure node or asset target.
+Machine evidence is stored at `evidence/stage-13/2026-09-07/diagnostics-clean-windows11.json`. It records final revision `2`, no persisted bearer credential, and an empty clipboard at gate completion.
+
+`FR-PRODUCTIVITY-03` is therefore closed. Future diagnostics may add more proven locations or producer-supplied repairs, but they remain additive follow-up work. The governing rule remains conservative: a diagnostic may lose a navigation shortcut when ownership cannot be proven, but it must not invent an element, field, Procedure node or asset target.
