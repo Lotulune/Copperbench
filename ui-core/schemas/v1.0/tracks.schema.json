@@ -63,6 +63,7 @@
                 "loader",
                 "generatorId",
                 "minecraftVersion",
+                "javaRelease",
                 "status",
                 "reasonCode",
                 "notes"
@@ -80,6 +81,10 @@
                 },
                 "minecraftVersion": {
                   "type": "string"
+                },
+                "javaRelease": {
+                  "type": "integer",
+                  "enum": [17, 21, 25]
                 },
                 "status": {
                   "type": "string",
