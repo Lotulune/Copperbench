@@ -14,7 +14,11 @@ import org.junit.jupiter.api.io.TempDir;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermission;
+import java.util.Set;
 
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -34,5 +38,26 @@ class PluginWorkspaceLayoutTest {
 		Files.writeString(source, "class Example {}\n");
 		assertTrue(PluginWorkspaceLayout.present(temp));
 		assertTrue(PluginWorkspaceLayout.relativeSourcePaths(temp).contains("src/main/java/example/Example.java"));
+	}
+
+	@Test void existingPosixGradleWrapperIsMadeExecutableWithoutBeingOverwritten() throws Exception {
+		assumeFalse(java.io.File.separatorChar == '\\');
+		Path distribution = temp.resolve("distribution");
+		Path workspace = temp.resolve("workspace");
+		Files.createDirectories(distribution.resolve("gradle/wrapper"));
+		Files.writeString(distribution.resolve("gradlew"), "distribution wrapper\n");
+		Files.writeString(distribution.resolve("gradlew.bat"), "distribution wrapper\r\n");
+		Files.write(distribution.resolve("gradle/wrapper/gradle-wrapper.jar"), new byte[] { 1 });
+
+		Files.createDirectories(workspace);
+		Path existing = workspace.resolve("gradlew");
+		Files.writeString(existing, "workspace wrapper\n");
+		Files.setPosixFilePermissions(existing,
+				Set.of(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE));
+
+		PluginWorkspaceLayout.ensureGradleRuntime(workspace, distribution, "gradle-9.2.1-bin.zip");
+
+		assertEquals("workspace wrapper\n", Files.readString(existing));
+		assertTrue(Files.isExecutable(existing));
 	}
 }

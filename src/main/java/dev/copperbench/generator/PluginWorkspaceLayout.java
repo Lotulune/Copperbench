@@ -60,7 +60,9 @@ public final class PluginWorkspaceLayout {
 			throws IOException {
 		Path normalizedRoot = root.toAbsolutePath().normalize();
 		Path normalizedDistribution = distributionRoot.toAbsolutePath().normalize();
-		copyIfMissing(normalizedRoot.resolve("gradlew"), normalizedDistribution.resolve("gradlew"));
+		Path posixLauncher = normalizedRoot.resolve("gradlew");
+		copyIfMissing(posixLauncher, normalizedDistribution.resolve("gradlew"));
+		ensurePosixLauncherExecutable(posixLauncher);
 		copyIfMissing(normalizedRoot.resolve("gradlew.bat"), normalizedDistribution.resolve("gradlew.bat"));
 		copyIfMissing(normalizedRoot.resolve("gradle/wrapper/gradle-wrapper.jar"),
 				normalizedDistribution.resolve("gradle/wrapper/gradle-wrapper.jar"));
@@ -86,5 +88,11 @@ public final class PluginWorkspaceLayout {
 		if (!Files.isRegularFile(source)) throw new IOException("Missing distribution file: " + source);
 		Files.createDirectories(target.getParent());
 		Files.copy(source, target, StandardCopyOption.COPY_ATTRIBUTES);
+	}
+
+	private static void ensurePosixLauncherExecutable(Path launcher) throws IOException {
+		if (java.io.File.separatorChar == '\\' || Files.isExecutable(launcher)) return;
+		if (!launcher.toFile().setExecutable(true, false) && !Files.isExecutable(launcher))
+			throw new IOException("Could not mark Gradle wrapper executable: " + launcher);
 	}
 }
