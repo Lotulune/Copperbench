@@ -142,8 +142,14 @@ jobs:
           test -d "$root/gradle-dists/gradle-9.6.1-bin"
           test -d "$root/gradle-dists/gradle-8.8-bin"
           test -f "$root/linux-candidate-manifest.json"
-          grep -q '"status" : "development-not-certified"' "$root/linux-candidate-manifest.json"
-          grep -q '"formalSupportClaim" : false' "$root/linux-candidate-manifest.json"
+          node -e '
+            const fs = require("node:fs");
+            const manifest = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+            if (manifest.status !== "development-not-certified" || manifest.formalSupportClaim !== false) {
+              console.error("Unexpected Linux candidate support claim", manifest.status, manifest.formalSupportClaim);
+              process.exit(1);
+            }
+          ' "$root/linux-candidate-manifest.json"
           "$root/jdk/bin/java" -version
           "$root/jdk21/bin/java" -version
 

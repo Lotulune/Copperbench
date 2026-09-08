@@ -98,5 +98,8 @@ test('Stage 15 workflow carries the Linux supply-chain contract', () => {
   assert.match(workflow, /scripts\/\*linux-candidate-metadata\.mjs/);
   assert.match(workflow, /LINUX-CANDIDATE-METADATA\.json/);
   assert.match(workflow, /copperbench-linux\.spdx\.json/);
+  assert.match(workflow, /manifest\.status !== "development-not-certified"/);
+  assert.match(workflow, /manifest\.formalSupportClaim !== false/);
+  assert.doesNotMatch(workflow, /grep -q '\"status\" :/);
   assert.match(workflow, /cmp "\$portable_manifest" build\/stage15-deb-smoke\/opt\/copperbench\/linux-candidate-manifest\.json/);
 });
