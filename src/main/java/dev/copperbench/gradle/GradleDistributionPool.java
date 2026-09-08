@@ -123,8 +123,9 @@ public final class GradleDistributionPool {
 	public static boolean isReadyInstall(Path hashDirectory, String version) {
 		if (hashDirectory == null || version == null)
 			return false;
-		Path launcher = hashDirectory.resolve("gradle-" + version).resolve("bin").resolve("gradle.bat");
-		return Files.isRegularFile(launcher);
+		Path bin = hashDirectory.resolve("gradle-" + version).resolve("bin");
+		return Files.isRegularFile(bin.resolve("gradle"))
+				|| Files.isRegularFile(bin.resolve("gradle.bat"));
 	}
 
 	public static boolean seedDistributionUrl(String distributionUrl, Path gradleHome, List<Path> extraRoots) {

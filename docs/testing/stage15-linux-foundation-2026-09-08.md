@@ -29,7 +29,7 @@ Frozen target:
 - Linux `runClient` startup logs classify missing display, GLFW initialization and OpenGL initialization failures into stable task diagnostic codes before the readiness marker, while post-readiness exits remain generic runtime failures;
 - candidate SBOM/inventory with installed `jdk`, `jdk21` and packaged Gradle distributions;
 - Copperbench portable launcher, portable tar layout, Debian launcher/desktop entry and `.deb` build task;
-- Ubuntu 24.04 package-smoke workflow for Linux platform/generator regressions, portable/deb layout, executable bits and bundled runtimes;
+- Ubuntu 24.04 package-smoke workflow for Linux platform/generator regressions, portable/deb layout, executable bits and bundled runtimes; after extracting the portable tar it also starts the packaged `bootstrap list-generators` entry with an isolated XDG home and a minimal `PATH` containing no system Java/Gradle/Git, then requires Fabric/NeoForge discovery and all three packaged Gradle runtimes to seed into the isolated cache;
 - the same workflow now freezes an exact Linux development-candidate record binding the source commit to tar/.deb/SBOM/manifest SHA-256 values, emits an SPDX JSON SBOM, verifies the frozen record against the bytes, and requests GitHub build-provenance attestation.
 
 The generated candidate manifest deliberately reports:
@@ -53,6 +53,7 @@ Focused Gradle regressions passed for:
 - `DevelopmentSbomTest`;
 - `LinuxCandidateManifestTest`;
 - `LinuxDistributionLayoutTest`;
+- `GradleDistributionPoolTest`;
 - `Fabric1211ProcessRunnerTest`;
 - `Fabric1211TaskGatewayTest`;
 - `NeoForge1211TaskGatewayTest`;
@@ -75,7 +76,7 @@ The tests were run with `-x buildUiShell` because the stacked Stage 14 branch st
 
 This checkpoint is not Linux runtime evidence. Still required before Stage 15 closure:
 
-- run the package workflow on Ubuntu 24.04 and inspect the actual tar/deb artifacts;
+- run the package workflow on Ubuntu 24.04 and inspect the actual tar/deb artifacts plus the packaged minimal-PATH bootstrap/XDG/Gradle-pool smoke result;
 - start bundled JBR/JCEF on a clean graphical Linux VM;
 - create/open/save/reopen real workspaces without system Java/Gradle/Git;
 - verify Fabric/NeoForge generate/build and real graphical `runClient`;

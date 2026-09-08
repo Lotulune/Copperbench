@@ -97,10 +97,12 @@ jobs:
             --tests dev.copperbench.platform.UserDataPathsTest \
             --tests dev.copperbench.generator.BundledJdkLocatorTest \
             --tests dev.copperbench.generator.WorkspaceEnvironmentContextTest \
+            --tests dev.copperbench.gradle.GradleDistributionPoolTest \
             --tests dev.copperbench.mcp.DesktopMcpRuntimeTest \
             --tests dev.copperbench.mcp.McpHttpServerTest \
             --tests dev.copperbench.mcp.DesktopMcpAgentLoopTest \
             --tests dev.copperbench.headless.HeadlessProductLauncherTest \
+            --tests dev.copperbench.headless.BootstrapProductLauncherTest.generatorDiscoveryWorksWithoutAnExistingWorkspace \
             --tests dev.copperbench.generator.fabric.Fabric1211ProcessRunnerTest \
             --tests dev.copperbench.generator.fabric.Fabric1211TaskGatewayTest \
             --tests dev.copperbench.generator.neoforge.NeoForge1211GeneratorTest \
@@ -139,6 +141,47 @@ jobs:
           grep -q '"formalSupportClaim" : false' "$root/linux-candidate-manifest.json"
           "$root/jdk/bin/java" -version
           "$root/jdk21/bin/java" -version
+
+      - name: Launch packaged headless bootstrap without system Java Gradle or Git
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="$(find build/stage15-linux-smoke -mindepth 1 -maxdepth 1 -type d -print -quit)"
+          test -n "$root"
+          minimal_path="$PWD/build/stage15-minimal-path"
+          isolated_home="$PWD/build/stage15-isolated-home"
+          rm -rf "$minimal_path" "$isolated_home"
+          mkdir -p "$minimal_path" "$isolated_home/runtime"
+          chmod 700 "$isolated_home/runtime"
+          ln -s /usr/bin/dirname "$minimal_path/dirname"
+          test ! -e "$minimal_path/java"
+          test ! -e "$minimal_path/gradle"
+          test ! -e "$minimal_path/git"
+          env \
+            PATH="$minimal_path" \
+            HOME="$isolated_home" \
+            XDG_DATA_HOME="$isolated_home/data" \
+            XDG_CONFIG_HOME="$isolated_home/config" \
+            XDG_CACHE_HOME="$isolated_home/cache" \
+            XDG_STATE_HOME="$isolated_home/state" \
+            XDG_RUNTIME_DIR="$isolated_home/runtime" \
+            JAVA_TOOL_OPTIONS="-Djava.awt.headless=true" \
+            /usr/bin/bash "$root/copperbench.sh" bootstrap list-generators \
+            > build/stage15-packaged-bootstrap.json
+          grep -q '"status":"succeeded"' build/stage15-packaged-bootstrap.json
+          grep -q '"fabric-1.21.1"' build/stage15-packaged-bootstrap.json
+          grep -q '"neoforge-1.21.1"' build/stage15-packaged-bootstrap.json
+          test -d "$isolated_home/data/copperbench"
+          test -d "$isolated_home/config/copperbench"
+          test -d "$isolated_home/cache/copperbench/gradle"
+          test -d "$isolated_home/state/copperbench"
+          test -d "$isolated_home/runtime/copperbench"
+          shopt -s nullglob
+          for version in 9.7.0 9.6.1 8.8; do
+            installs=("$isolated_home/cache/copperbench/gradle/wrapper/dists/gradle-$version-bin"/*/"gradle-$version")
+            test "${#installs[@]}" -ge 1
+            test -f "${installs[0]}/bin/gradle"
+          done
 
       - name: Verify deb candidate layout
         shell: bash

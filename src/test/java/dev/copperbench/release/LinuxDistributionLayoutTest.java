@@ -64,6 +64,21 @@ class LinuxDistributionLayoutTest {
         assertTrue(launcher.contains("-Dcopperbench.productShell=true"));
         assertTrue(launcher.contains("-Dcopperbench.stage15LinuxCandidate=true"));
         assertTrue(launcher.contains("net.mcreator.Launcher \"$@\""));
+        assertTrue(launcher.contains("exec \"$SCRIPT_DIR/jdk/bin/java\""));
+        assertFalse(launcher.contains("exec java "));
+        assertFalse(launcher.contains("JAVA_HOME/bin/java"));
+
+        String workflow = Files.readString(Path.of(".github/workflows/stage15-linux-candidate.yml"));
+        assertTrue(workflow.contains("Launch packaged headless bootstrap without system Java Gradle or Git"));
+        assertTrue(workflow.contains("PATH=\"$minimal_path\""));
+        assertTrue(workflow.contains("/usr/bin/bash \"$root/copperbench.sh\" bootstrap list-generators"));
+        assertTrue(workflow.contains("test ! -e \"$minimal_path/java\""));
+        assertTrue(workflow.contains("test ! -e \"$minimal_path/gradle\""));
+        assertTrue(workflow.contains("test ! -e \"$minimal_path/git\""));
+        assertTrue(workflow.contains("test -d \"$isolated_home/data/copperbench\""));
+        assertTrue(workflow.contains("test -d \"$isolated_home/cache/copperbench/gradle\""));
+        assertTrue(workflow.contains("test -d \"$isolated_home/runtime/copperbench\""));
+        assertTrue(workflow.contains("for version in 9.7.0 9.6.1 8.8; do"));
     }
 
     @Test void linuxSetupProvidesJava25JcefAndJava21Sidecar() throws Exception {
