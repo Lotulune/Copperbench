@@ -44,6 +44,7 @@ tasks.register('exportLinux64', Copy.class) {
         from file('LICENSE.txt')
         from file('LICENSE-ADDITIONAL-TERMS.md')
         from file('platform/linux/copperbench.sh') rename('copperbench.sh', 'copperbench.shdos')
+        from file('platform/linux/LINUX-CANDIDATE.md')
         from file('src/main/resources/net/mcreator/ui/res/' + icon) rename(icon, 'icon.png')
         from file('gradlew')
         from file('gradlew.bat')

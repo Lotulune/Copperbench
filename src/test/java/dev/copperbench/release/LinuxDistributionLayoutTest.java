@@ -44,6 +44,7 @@ class LinuxDistributionLayoutTest {
         String gradle = Files.readString(Path.of("platform/linux/linux.gradle"));
         assertTrue(gradle.contains("dependsOn downloadJDK21Linux64"));
         assertTrue(gradle.contains("platform/linux/copperbench.sh"));
+        assertTrue(gradle.contains("platform/linux/LINUX-CANDIDATE.md"));
         assertTrue(gradle.contains("writeLinuxCandidateManifest"));
         assertTrue(gradle.contains("prepareLinuxGradleDistPool"));
         assertTrue(gradle.contains("['9.7.0', '9.6.1', '8.8']"));
@@ -61,6 +62,15 @@ class LinuxDistributionLayoutTest {
         assertTrue(gradle.contains("dpkg-deb"));
         assertTrue(gradle.contains("opt/copperbench"));
         assertTrue(Files.readString(Path.of("platform/linux/deb/copperbench.desktop")).contains("Name=Copperbench"));
+
+        String candidateInstructions = Files.readString(Path.of("platform/linux/LINUX-CANDIDATE.md"));
+        assertTrue(candidateInstructions.contains("Stage 15 development candidate"));
+        assertTrue(candidateInstructions.contains("sudo apt remove copperbench"));
+        assertTrue(candidateInstructions.contains("~/.local/share/copperbench"));
+        assertTrue(candidateInstructions.contains("~/.config/copperbench"));
+        assertTrue(candidateInstructions.contains("~/.cache/copperbench"));
+        assertTrue(candidateInstructions.contains("~/.local/state/copperbench"));
+        assertTrue(candidateInstructions.contains("never part of package cleanup"));
 
         String launcher = Files.readString(Path.of("platform/linux/copperbench.sh"));
         assertTrue(launcher.contains("BASH_SOURCE[0]"));

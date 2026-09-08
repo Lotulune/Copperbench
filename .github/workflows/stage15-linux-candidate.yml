@@ -167,6 +167,7 @@ jobs:
           test -x "$root/jdk/lib/jcef_helper"
           test -x "$root/jdk21/bin/java"
           test -x "$root/jdk21/bin/javac"
+          test -f "$root/LINUX-CANDIDATE.md"
           test -d "$root/gradle-dists/gradle-9.7.0-bin"
           test -d "$root/gradle-dists/gradle-9.6.1-bin"
           test -d "$root/gradle-dists/gradle-8.8-bin"
@@ -308,6 +309,7 @@ jobs:
           test -x build/stage15-deb-smoke/opt/copperbench/jdk/bin/java
           test -x build/stage15-deb-smoke/opt/copperbench/jdk21/bin/java
           test -f build/stage15-deb-smoke/usr/share/applications/copperbench.desktop
+          test -f build/stage15-deb-smoke/opt/copperbench/LINUX-CANDIDATE.md
           test -f build/stage15-deb-smoke/opt/copperbench/linux-candidate-manifest.json
 
           portable_manifest="$(find build/stage15-linux-smoke -type f -name 'linux-candidate-manifest.json' -print -quit)"
