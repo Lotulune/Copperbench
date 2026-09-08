@@ -281,6 +281,9 @@ public final class WorkspaceCreationService {
 	}
 
 	private static void setupResourcePackWorkspace(Workspace workspace, Path workspaceFolder) {
+		if (!workspace.getGenerator().generateBase())
+			throw new WorkspaceSkeletonSetupException();
+		WorkspaceGeneratorSetup.completeSetup(workspace.getGenerator());
 		workspace.getGenerator().runResourceSetupTasks();
 		if (!Files.isRegularFile(workspaceFolder.resolve("src/main/pack.mcmeta"))
 				|| !Files.isRegularFile(workspaceFolder.resolve("src/main/pack.png")))

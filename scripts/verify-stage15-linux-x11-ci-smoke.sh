@@ -46,10 +46,9 @@ export XDG_RUNTIME_DIR="$isolated_home/runtime"
 export JAVA_TOOL_OPTIONS="-Duser.home=$isolated_home"
 
 "$portable_root/copperbench.sh" bootstrap create-workspace \
-  --generator-id fabric-1.21.1 \
+  --generator-id resourcepack-1.21.1 \
   --mod-name "Stage15 Graphical Smoke" \
   --mod-id stage15_graphical_smoke \
-  --package-name dev.copperbench.stage15.graphical \
   --workspace-folder "$workspace_root" \
   --version 1.0.0 >"$bootstrap_json" 2>"$bootstrap_log" &
 bootstrap_pid=$!

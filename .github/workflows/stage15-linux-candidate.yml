@@ -213,6 +213,7 @@ jobs:
           done
 
       - name: Launch packaged JCEF product shell under Xvfb
+        timeout-minutes: 8
         shell: bash
         run: |
           set -euo pipefail
