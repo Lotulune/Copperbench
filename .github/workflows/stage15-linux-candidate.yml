@@ -9,6 +9,8 @@ on:
       - "platform/linux/**"
       - "platform/setup.gradle"
       - "src/main/java/dev/copperbench/generator/**"
+      - "src/test/java/dev/copperbench/generator/**"
+      - "src/test/java/dev/copperbench/generator/**"
       - "src/main/java/dev/copperbench/headless/**"
       - "src/main/java/dev/copperbench/mcp/**"
       - "src/test/java/dev/copperbench/mcp/**"
