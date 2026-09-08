@@ -5,6 +5,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import javax.tools.ToolProvider;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -70,6 +71,18 @@ class LinuxDistributionLayoutTest {
         assertTrue(graphicalVerifier.contains("Expected desktop session must be x11 or wayland"));
         assertTrue(graphicalVerifier.contains("Stage 15 graphical probe must keep formal certification pending"));
 
+        Path blockbenchVerifierPath = Path.of("scripts/stage15/Stage15InstalledBlockbenchVerifier.java");
+        String blockbenchVerifier = Files.readString(blockbenchVerifierPath);
+        assertTrue(blockbenchVerifier.contains("BlockbenchExecutableLocator.locate()"));
+        assertTrue(blockbenchVerifier.contains("BLOCKBENCH_ASSET_LEASED"));
+        assertTrue(blockbenchVerifier.contains("ASSET_CHANGED_EXTERNALLY"));
+        assertTrue(blockbenchVerifier.contains("formalSupportClaim"));
+        var compiler = ToolProvider.getSystemJavaCompiler();
+        assertNotNull(compiler, "Stage 15 verifier contract requires a full JDK");
+        Path verifierClasses = Files.createDirectories(root.resolve("stage15-blockbench-verifier-classes"));
+        assertEquals(0, compiler.run(null, null, null, "-classpath", System.getProperty("java.class.path"),
+                "-d", verifierClasses.toString(), blockbenchVerifierPath.toString()));
+
         String installedGate = Files.readString(Path.of("scripts/verify-stage15-linux-installed-guest.sh"));
         assertTrue(installedGate.contains("guest desktop is not GNOME"));
         assertTrue(installedGate.contains("for tool in java gradle git"));
@@ -78,9 +91,18 @@ class LinuxDistributionLayoutTest {
         assertTrue(installedGate.contains("/usr/share/applications/copperbench.desktop"));
         assertTrue(installedGate.contains("Exec=/usr/bin/copperbench %F"));
         assertTrue(installedGate.contains("/usr/share/icons/hicolor/256x256/apps/copperbench.png"));
-        assertTrue(installedGate.contains("confirm-interactive-runclient-remains-running-until-user-closes-minecraft"));
+        assertTrue(installedGate.contains("confirm-user-visible-minecraft-window-during-agent-helper-runclient"));
         assertTrue(installedGate.contains("copy-one-time-desktop-mcp-token-from-ui-and-run-bundled-agent-helper"));
         assertTrue(installedGate.contains("normal-close-copperbench-after-agent-helper-prompt"));
+        assertTrue(installedGate.contains("run-bundled-blockbench-helper-edit-save-close"));
+        assertTrue(installedGate.contains("confirm-installed-asset-center-launches-real-blockbench"));
+
+        String installedAgentGate = Files.readString(Path.of("scripts/verify-stage15-linux-installed-agent.py"));
+        assertTrue(installedAgentGate.contains("call_tool(\"run_client\""));
+        assertTrue(installedAgentGate.contains("Backend library: LWJGL version"));
+        assertTrue(installedAgentGate.contains("minecraft:textures/atlas/blocks.png-atlas"));
+        assertTrue(installedAgentGate.contains("stableBeforeUserCloseSeconds"));
+        assertTrue(installedAgentGate.contains("terminalStateAfterUserClose"));
 
         String candidateInstructions = Files.readString(Path.of("platform/linux/LINUX-CANDIDATE.md"));
         assertTrue(candidateInstructions.contains("Stage 15 development candidate"));
@@ -120,10 +142,14 @@ class LinuxDistributionLayoutTest {
         assertTrue(workflow.contains("scripts/verify-stage15-linux-installed-guest.sh"));
         assertTrue(workflow.contains("scripts/verify-stage15-linux-installed-agent.py"));
         assertTrue(workflow.contains("scripts/stage15/Stage15GraphicalProbeVerifier.java"));
+        assertTrue(workflow.contains("scripts/stage15/Stage15InstalledBlockbenchVerifier.java"));
         assertTrue(workflow.contains("scripts/stage15/INSTALLED-GATE.md"));
         assertTrue(workflow.contains("sdk/python/copperbench.py"));
         assertTrue(workflow.contains("stage15-linux-installed-gate-harness.tar.gz"));
         assertTrue(workflow.contains("tar -C \"$harness_root\" -czf \"$archive\" ."));
+        assertTrue(workflow.contains("tar -tzf \"$archive\" > \"$archive_contents\""));
+        assertTrue(workflow.contains("tar -tvzf \"$archive\" > \"$archive_listing\""));
+        assertFalse(workflow.contains("tar -tzf \"$archive\" | grep -q"));
         assertTrue(workflow.contains("-rwxr-xr-x"));
         assertTrue(workflow.contains("desktop_entry=\"build/stage15-deb-smoke/usr/share/applications/copperbench.desktop\""));
         assertTrue(workflow.contains("desktop_icon=\"build/stage15-deb-smoke/usr/share/icons/hicolor/256x256/apps/copperbench.png\""));

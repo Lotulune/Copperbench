@@ -194,7 +194,7 @@ if grep -Eqi 'crash report|failed to start minecraft|exception in thread "Render
 fi
 
 cat >"$result_json" <<EOF
-{"schemaVersion":"1.0","status":"automated-preflight-passed-manual-gates-pending","candidateSha256":"$actual_sha","sessionType":"$session_type","generatorId":"$generator_id","ubuntu2404GnomeVerified":true,"systemJavaGradleGitAbsentBeforeInstall":true,"formalSupportClaim":false,"manualGatesPending":["confirm-workspace-create-save-reopen-via-installed-ui","confirm-user-visible-copperbench-jcef-window","confirm-user-visible-minecraft-window","confirm-interactive-runclient-remains-running-until-user-closes-minecraft","copy-one-time-desktop-mcp-token-from-ui-and-run-bundled-agent-helper","normal-close-copperbench-after-agent-helper-prompt","exercise-installed-blockbench-open-edit-close"]}
+{"schemaVersion":"1.0","status":"automated-preflight-passed-manual-gates-pending","candidateSha256":"$actual_sha","sessionType":"$session_type","generatorId":"$generator_id","ubuntu2404GnomeVerified":true,"systemJavaGradleGitAbsentBeforeInstall":true,"formalSupportClaim":false,"manualGatesPending":["confirm-workspace-create-save-reopen-via-installed-ui","confirm-user-visible-copperbench-jcef-window","confirm-user-visible-minecraft-window-during-agent-helper-runclient","copy-one-time-desktop-mcp-token-from-ui-and-run-bundled-agent-helper","normal-close-copperbench-after-agent-helper-prompt","run-bundled-blockbench-helper-edit-save-close","confirm-installed-asset-center-launches-real-blockbench"]}
 EOF
 
 echo "Stage 15 installed Linux automated preflight passed; manual GNOME/UI/external-tool gates remain pending. Evidence: $result_json"

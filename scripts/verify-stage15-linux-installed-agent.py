@@ -24,6 +24,11 @@ from copperbench import CopperbenchClient, CopperbenchError, read_workspace_conn
 
 
 TERMINAL_TASK_STATES = {"succeeded", "failed", "cancelled"}
+RUN_CLIENT_MARKERS = (
+    "Backend library: LWJGL version",
+    "Reloading ResourceManager:",
+    "minecraft:textures/atlas/blocks.png-atlas",
+)
 
 
 def require(condition: bool, message: str) -> None:
@@ -75,6 +80,69 @@ def wait_task(client: CopperbenchClient, task_id: str, timeout_seconds: int = 90
             return {"state": state, "logs": collected_logs, "result": result}
         time.sleep(0.5)
     raise RuntimeError(f"task {task_id} did not reach a terminal state within {timeout_seconds}s")
+
+
+def wait_interactive_run_client(client: CopperbenchClient, revision: int,
+                                readiness_timeout_seconds: int = 600,
+                                close_timeout_seconds: int = 900) -> dict[str, Any]:
+    accepted = client.call_tool("run_client", {"expectedRevision": revision})
+    require(accepted.get("status") == "accepted", f"run_client was not accepted: {accepted}")
+    run_task_id = task_id(accepted)
+    after_sequence = 0
+    markers = {marker: False for marker in RUN_CLIENT_MARKERS}
+    readiness_deadline = time.monotonic() + readiness_timeout_seconds
+
+    while time.monotonic() < readiness_deadline:
+        result = client.get_task(run_task_id, after_sequence)
+        data = result.get("data") if isinstance(result.get("data"), dict) else {}
+        task = data.get("task") if isinstance(data.get("task"), dict) else {}
+        logs = data.get("logs") if isinstance(data.get("logs"), list) else []
+        for entry in logs:
+            if not isinstance(entry, dict):
+                continue
+            sequence = entry.get("sequence")
+            if isinstance(sequence, int):
+                after_sequence = max(after_sequence, sequence)
+            text = entry.get("text")
+            if isinstance(text, str):
+                for marker in markers:
+                    if marker in text:
+                        markers[marker] = True
+        state = task.get("state")
+        require(state not in TERMINAL_TASK_STATES,
+                f"run_client terminated before render readiness: {state}: {result}")
+        if all(markers.values()):
+            require(state == "running", f"run_client reached render markers but is not running: {state}")
+            break
+        time.sleep(0.5)
+    require(all(markers.values()), f"run_client did not reach render readiness: {markers}")
+
+    stability_deadline = time.monotonic() + 10
+    while time.monotonic() < stability_deadline:
+        result = client.get_task(run_task_id, after_sequence)
+        data = result.get("data") if isinstance(result.get("data"), dict) else {}
+        task = data.get("task") if isinstance(data.get("task"), dict) else {}
+        logs = data.get("logs") if isinstance(data.get("logs"), list) else []
+        for entry in logs:
+            if isinstance(entry, dict) and isinstance(entry.get("sequence"), int):
+                after_sequence = max(after_sequence, int(entry["sequence"]))
+        require(task.get("state") == "running",
+                f"run_client did not remain alive through the 10-second stability window: {result}")
+        time.sleep(0.5)
+
+    print("Minecraft render readiness passed and run_client stayed running for 10 seconds.", flush=True)
+    print("Confirm the Minecraft window is visibly usable, then close Minecraft normally; do not cancel the task.",
+          flush=True)
+    closed = wait_task(client, run_task_id, close_timeout_seconds)
+    require(closed["state"] == "succeeded",
+            f"run_client did not succeed after Minecraft was closed normally: {closed['result']}")
+    return {
+        "taskId": run_task_id,
+        "renderMarkers": list(RUN_CLIENT_MARKERS),
+        "renderReady": True,
+        "stableBeforeUserCloseSeconds": 10,
+        "terminalStateAfterUserClose": closed["state"],
+    }
 
 
 def task_id(result: dict[str, Any]) -> str:
@@ -177,6 +245,8 @@ def run_agent_loop(client: CopperbenchClient, descriptor_workspace_id: str) -> d
     require(len(final_elements) >= len(initial_elements) + 3,
             "final element readback is missing Agent-created elements")
 
+    run_client_lifecycle = wait_interactive_run_client(client, final_revision)
+
     return {
         "initializeProtocolVersion": initialized.get("protocolVersion"),
         "workspaceId": descriptor_workspace_id,
@@ -189,6 +259,7 @@ def run_agent_loop(client: CopperbenchClient, descriptor_workspace_id: str) -> d
         "revisionConflictCode": conflict_code,
         "conflictRetryCommitted": True,
         "finalBuildState": final_build_result["state"],
+        "runClientLifecycle": run_client_lifecycle,
     }
 
 
