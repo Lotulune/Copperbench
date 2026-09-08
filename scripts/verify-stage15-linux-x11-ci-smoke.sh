@@ -57,11 +57,14 @@ export XDG_RUNTIME_DIR="$isolated_home/runtime"
 export JAVA_TOOL_OPTIONS="-Duser.home=$isolated_home"
 
 echo "[stage15-x11] preparing deterministic graphical workspace fixture"
-if ! timeout 120s "$portable_root/jdk/bin/java" \
-  --add-opens=java.base/java.lang=ALL-UNNAMED \
-  -cp "$portable_root/lib/copperbench.jar:$portable_root/lib/*" \
-  "$GITHUB_WORKSPACE/src/test/java/dev/copperbench/headless/Stage15GraphicalWorkspaceFixture.java" \
-  "$workspace_root" >"$bootstrap_json" 2>"$bootstrap_log"; then
+if ! (
+  cd "$portable_root"
+  timeout 120s "$portable_root/jdk/bin/java" \
+    --add-opens=java.base/java.lang=ALL-UNNAMED \
+    -cp "$portable_root/lib/copperbench.jar:$portable_root/lib/*" \
+    "$GITHUB_WORKSPACE/src/test/java/dev/copperbench/headless/Stage15GraphicalWorkspaceFixture.java" \
+    "$workspace_root"
+) >"$bootstrap_json" 2>"$bootstrap_log"; then
   echo "Stage 15 graphical workspace fixture failed" >&2
   dump_bootstrap_failure
   exit 1
