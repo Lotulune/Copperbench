@@ -26,7 +26,7 @@ public final class BlockbenchInstallationDetector {
 	}
 
 	BlockbenchInstallationDetector(VersionReader versions) {
-		this(RuntimePlatform.current(), versions);
+		this(RuntimePlatform.detect("Windows", "amd64"), versions);
 	}
 
 	BlockbenchInstallationDetector(RuntimePlatform platform, VersionReader versions) {
