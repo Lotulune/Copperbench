@@ -113,6 +113,16 @@ installed_root="/opt/copperbench"
 [[ -f "$installed_root/LINUX-CANDIDATE.md" ]] || fail "installed candidate guidance is missing"
 [[ -f "$installed_root/linux-candidate-manifest.json" ]] || fail "installed candidate manifest is missing"
 
+desktop_entry="/usr/share/applications/copperbench.desktop"
+desktop_icon="/usr/share/icons/hicolor/256x256/apps/copperbench.png"
+[[ -f "$desktop_entry" ]] || fail "installed Copperbench desktop entry is missing"
+[[ -f "$desktop_icon" ]] || fail "installed Copperbench desktop icon is missing"
+grep -Fxq 'Type=Application' "$desktop_entry" || fail "installed desktop entry has the wrong Type"
+grep -Fxq 'Name=Copperbench' "$desktop_entry" || fail "installed desktop entry has the wrong Name"
+grep -Fxq 'Exec=/usr/bin/copperbench %F' "$desktop_entry" || fail "installed desktop entry has the wrong Exec contract"
+grep -Fxq 'Icon=copperbench' "$desktop_entry" || fail "installed desktop entry has the wrong Icon contract"
+grep -Fxq 'Terminal=false' "$desktop_entry" || fail "installed desktop entry unexpectedly requires a terminal"
+
 python3 - "$installed_root/linux-candidate-manifest.json" <<'PY'
 import json, pathlib, sys
 manifest = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))

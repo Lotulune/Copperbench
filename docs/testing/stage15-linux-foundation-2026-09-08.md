@@ -186,12 +186,30 @@ The current Stage 15 branch now also carries `scripts/verify-stage15-linux-insta
 - it binds the replay to an exact `.deb` SHA-256 and verifies the installed candidate still declares `development-not-certified` / `formalSupportClaim=false`;
 - it requires Ubuntu 24.04 x86_64 and a GNOME Wayland or GNOME X11 session, recording the session/display facts as evidence;
 - before installation it requires system `java`, `gradle`, and `git` to be absent, so a passing replay cannot silently borrow the host toolchain;
+- after installation it verifies the packaged desktop integration files themselves: `/usr/share/applications/copperbench.desktop`, its exact `Exec=/usr/bin/copperbench %F` launch contract, and the hicolor application icon. This proves package integration bytes only; an actual launch from the GNOME application menu remains a user-visible clean-desktop gate;
+- the hosted `.deb` extraction smoke now enforces the same desktop-entry fields and icon presence before a candidate reaches the clean-guest step, so packaging drift is caught in ordinary Stage 15 CI while the real GNOME menu launch remains separately unproven;
 - it launches the installed JBR/JCEF product, verifies the Stage 15 graphical probe and private Desktop MCP descriptor permissions, then uses `/usr/bin/copperbench` for installed-Core build and Fabric/NeoForge `run-client` render readiness;
 - its machine result is intentionally `automated-preflight-passed-manual-gates-pending`. Workspace create/save/reopen through the installed UI, actual user-visible Copperbench/Minecraft windows, interactive Run Client lifetime until the user closes Minecraft, UI-authorized independent external-Agent MCP replay plus descriptor/old-connection cleanup, and real installed Blockbench open/edit/close remain explicit manual gates.
 
 The harness also includes a dependency-free Python external-Agent helper. The tester still has to copy the one-time Desktop MCP token from the installed Copperbench UI; the helper deliberately reads that credential from a hidden prompt rather than a command-line argument. It then runs from an independent Python process through the published loopback MCP endpoint, verifies cursor traversal, direct element creation, Workspace Plan preview/apply, real build-to-terminal polling, a forced `WORKSPACE_REVISION_CONFLICT` plus reread/retry, final build/readback and audit-log credential redaction. After the loop passes it asks the tester to close Copperbench normally, waits for the descriptor to disappear, and verifies that the old endpoint/token can no longer read the workspace. The token remains process-memory-only and is excluded from the machine-readable evidence.
 
 The verifier also accepts an explicit expected `wayland` or `x11` target and checks the corresponding `stage15-primary-target` / `stage15-compatibility-target` role while still requiring `stage15CertificationPending=true`. The hosted Stage 15 workflow runs static contracts for this installed-gate harness and is configured to upload a separate `stage15-linux-installed-gate-harness.tar.gz` bundle containing the gate script plus verifier, so the clean guest does not need Git merely to obtain the certification helper. The bundle is created with `tar` and explicitly checks that the gate script retains mode `0755`; this avoids relying on `upload-artifact` to preserve Unix file modes. The harness artifact is intentionally separate from the candidate binary/provenance subjects. The hosted workflow does not execute the installed gate on Xvfb or treat that environment as clean GNOME certification.
+
+GitHub Actions run `34279938312` replayed the complete hosted Stage 15 chain against commit `3fd793af1254470c97b36652e014515997b1d39f` after the independent installed external-Agent helper and maintainer instructions were added. Linux platform/generator tests, the six installed-gate contracts, candidate export, minimal-PATH bootstrap, packaged JCEF/X11 smoke, NeoForge and Fabric 1.21.1 render preflights, `.deb` verification, SPDX, frozen metadata, SHA-256 output, provenance, candidate upload and harness packaging/upload all passed. The resulting harness archive contains `verify-stage15-linux-installed-guest.sh`, `verify-stage15-linux-installed-agent.py`, `Stage15GraphicalProbeVerifier.java`, `INSTALLED-GATE.md` and the dependency-free Python SDK; the workflow also verified executable modes for both helper scripts.
+
+Immutable Run 26 evidence:
+
+- candidate identity: `sha256:cb966b77a8761ec21312b949e731d55b500f4567c1ccb2d2160edc10c6eac564`;
+- portable tar SHA-256: `f4dd9a84fd91646a9654f8df0bb210109008aae181b0067ef891d7c14e28e366`;
+- Debian package SHA-256: `543d72c80a663831c6cece23d242953376d1eb53dabc5b4cb87567d6a594df2e`;
+- SPDX SHA-256: `06e83b4af9f45cb96da731f8bb3fb8d90d342c44e3b535eb9e22e48c5c31843d`;
+- frozen metadata SHA-256: `2275324204053d467464670424310be9e54e91b7c7dc1fec7b306908561178cc`;
+- candidate manifest SHA-256: `1952b06e6d7bc593fcec5b1c5fd24a2558d481aca0f5f22ff57c2461b2b319b7`;
+- candidate artifact ID `10077740513`, artifact digest `sha256:5f863f1d50531925cd5217082218e7df1fb8f714e9cc7a3ab3f6963e29b68850`;
+- installed-gate harness artifact ID `10077741092`, artifact digest `sha256:a5c704f8b9c80a2cf6a1faf2537d2ce3fa88d17c95372aff304c3f771ca4d258`;
+- GitHub provenance attestation ID `46085006`, Rekor transparency-log index `2762346133`.
+
+Run 26 therefore closes **harness publication/readiness**, not the installed-desktop certification itself. The one-time token still has to be authorized from a real installed UI, and Wayland/Xorg visible-window, interactive Run Client and real Blockbench checks remain pending until they are replayed in the clean GNOME guest.
 
 ### Windows affected-source regression replay
 

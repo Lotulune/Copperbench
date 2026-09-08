@@ -21,6 +21,9 @@ test('installed Linux guest gate binds exact candidate and Ubuntu GNOME session 
   assert.match(gate, /preinstall-system-tooling\.txt/);
   assert.match(gate, /guest-environment\.txt/);
   assert.match(gate, /sudo apt-get install -y --reinstall/);
+  assert.match(gate, /\/usr\/share\/applications\/copperbench\.desktop/);
+  assert.match(gate, /Exec=\/usr\/bin\/copperbench %F/);
+  assert.match(gate, /\/usr\/share\/icons\/hicolor\/256x256\/apps\/copperbench\.png/);
   assert.match(gate, /development-not-certified/);
   assert.match(gate, /formalSupportClaim/);
 });

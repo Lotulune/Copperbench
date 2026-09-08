@@ -316,7 +316,15 @@ jobs:
           test -x build/stage15-deb-smoke/opt/copperbench/copperbench.sh
           test -x build/stage15-deb-smoke/opt/copperbench/jdk/bin/java
           test -x build/stage15-deb-smoke/opt/copperbench/jdk21/bin/java
-          test -f build/stage15-deb-smoke/usr/share/applications/copperbench.desktop
+          desktop_entry="build/stage15-deb-smoke/usr/share/applications/copperbench.desktop"
+          desktop_icon="build/stage15-deb-smoke/usr/share/icons/hicolor/256x256/apps/copperbench.png"
+          test -f "$desktop_entry"
+          test -f "$desktop_icon"
+          grep -Fxq 'Type=Application' "$desktop_entry"
+          grep -Fxq 'Name=Copperbench' "$desktop_entry"
+          grep -Fxq 'Exec=/usr/bin/copperbench %F' "$desktop_entry"
+          grep -Fxq 'Icon=copperbench' "$desktop_entry"
+          grep -Fxq 'Terminal=false' "$desktop_entry"
           test -f build/stage15-deb-smoke/opt/copperbench/LINUX-CANDIDATE.md
           test -f build/stage15-deb-smoke/opt/copperbench/linux-candidate-manifest.json
 

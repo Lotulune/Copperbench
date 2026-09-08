@@ -75,6 +75,9 @@ class LinuxDistributionLayoutTest {
         assertTrue(installedGate.contains("for tool in java gradle git"));
         assertTrue(installedGate.contains("preinstall-system-tooling.txt"));
         assertTrue(installedGate.contains("systemJavaGradleGitAbsentBeforeInstall\":true"));
+        assertTrue(installedGate.contains("/usr/share/applications/copperbench.desktop"));
+        assertTrue(installedGate.contains("Exec=/usr/bin/copperbench %F"));
+        assertTrue(installedGate.contains("/usr/share/icons/hicolor/256x256/apps/copperbench.png"));
         assertTrue(installedGate.contains("confirm-interactive-runclient-remains-running-until-user-closes-minecraft"));
         assertTrue(installedGate.contains("copy-one-time-desktop-mcp-token-from-ui-and-run-bundled-agent-helper"));
         assertTrue(installedGate.contains("normal-close-copperbench-after-agent-helper-prompt"));
@@ -122,6 +125,9 @@ class LinuxDistributionLayoutTest {
         assertTrue(workflow.contains("stage15-linux-installed-gate-harness.tar.gz"));
         assertTrue(workflow.contains("tar -C \"$harness_root\" -czf \"$archive\" ."));
         assertTrue(workflow.contains("-rwxr-xr-x"));
+        assertTrue(workflow.contains("desktop_entry=\"build/stage15-deb-smoke/usr/share/applications/copperbench.desktop\""));
+        assertTrue(workflow.contains("desktop_icon=\"build/stage15-deb-smoke/usr/share/icons/hicolor/256x256/apps/copperbench.png\""));
+        assertTrue(workflow.contains("grep -Fxq 'Exec=/usr/bin/copperbench %F' \"$desktop_entry\""));
         assertFalse(workflow.contains("verify-stage15-linux-fabric-runclient-ci-smoke.sh"));
         assertTrue(workflow.contains("\"fabric-1.21.1\""));
         assertTrue(workflow.contains("\"neoforge-1.21.1\""));
