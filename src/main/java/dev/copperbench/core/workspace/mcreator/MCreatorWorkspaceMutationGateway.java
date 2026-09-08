@@ -328,7 +328,7 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 		Element previous = before.element(affectedElement.id());
 		String storedName = existing == null ? affectedElement.name() : existing.getName();
 		FileSnapshot snapshot = FileSnapshot.capture(workspace, storedName, existing,
-				plannedRollbackPaths(before, after));
+				plannedSingleElementRollbackPaths(existing, affectedElement));
 		try {
 			switch (operation) {
 				case CREATE_MOD_ELEMENT -> create(affectedElement);
@@ -362,6 +362,24 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 			}
 			throw exception;
 		}
+	}
+
+	private List<Path> plannedSingleElementRollbackPaths(ModElement existing, Element affectedElement) {
+		if (existing == null || !"code".equals(affectedElement.type())) return List.of();
+		Path workspaceRoot = workspace.getWorkspaceFolder().toPath().toAbsolutePath().normalize();
+		List<Path> managed = managedCodeBundlePaths(existing, workspaceRoot);
+		Path primary = null;
+		for (File associated : existing.getAssociatedFiles()) {
+			Path candidate = associated.toPath().toAbsolutePath().normalize();
+			if (!candidate.getFileName().toString().endsWith(".java")) continue;
+			if (managed.stream().anyMatch(path -> pathKey(path).equals(pathKey(candidate)))) continue;
+			primary = candidate;
+			break;
+		}
+		if (primary == null) return List.of();
+		return codeBundleFiles(affectedElement.values(), primary.getParent(), primary).values().stream()
+				.map(CodeBundleFile::path)
+				.toList();
 	}
 
 	private void cleanupFailedCreate(ModElement failed) throws IOException {
