@@ -91,7 +91,12 @@ class LinuxDistributionLayoutTest {
         assertTrue(runClientSmoke.contains("headless --workspace \"$workspace_file\" run-client"));
         assertTrue(runClientSmoke.contains("Loading Minecraft 1.21.1 with Fabric Loader"));
         assertTrue(runClientSmoke.contains("Reloading ResourceManager:"));
-        assertTrue(runClientSmoke.contains("xdotool search --onlyvisible --name 'Minecraft'"));
+        assertTrue(runClientSmoke.contains("xdotool search --onlyvisible --name '.*'"));
+        assertTrue(runClientSmoke.contains("xdotool getwindowpid"));
+        assertTrue(runClientSmoke.contains("ps -o pgid= -p"));
+        assertTrue(runClientSmoke.contains("window_pgid\" == \"$product_pid"));
+        assertTrue(runClientSmoke.contains("x11-visible-windows.txt"));
+        assertFalse(runClientSmoke.contains("xdotool search --onlyvisible --name 'Minecraft'"));
         assertTrue(runClientSmoke.contains("COPPERBENCH_GRADLE_USER_HOME"));
         assertFalse(runClientSmoke.contains("./gradlew runClient"));
     }

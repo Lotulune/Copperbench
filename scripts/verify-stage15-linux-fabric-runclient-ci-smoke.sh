@@ -19,6 +19,7 @@ build_log="$evidence_root/headless-build.log"
 runclient_stdout="$evidence_root/headless-run-client.stdout"
 runclient_stderr="$evidence_root/headless-run-client.stderr"
 client_log_copy="$evidence_root/minecraft-latest.log"
+x11_windows="$evidence_root/x11-visible-windows.txt"
 product_pid=""
 
 copy_client_log() {
@@ -46,6 +47,44 @@ dump_failure() {
     echo "--- Minecraft latest.log tail ---" >&2
     tail -n 200 "$client_log_copy" >&2 || true
   fi
+  if [[ -f "$x11_windows" ]]; then
+    echo "--- visible X11 windows ---" >&2
+    cat "$x11_windows" >&2 || true
+  fi
+}
+
+capture_visible_windows() {
+  : >"$x11_windows"
+  local window window_pid window_pgid window_name
+  while read -r window; do
+    [[ -n "$window" ]] || continue
+    window_pid="$(xdotool getwindowpid "$window" 2>/dev/null || true)"
+    window_pgid=""
+    if [[ "$window_pid" =~ ^[0-9]+$ ]]; then
+      window_pgid="$(ps -o pgid= -p "$window_pid" 2>/dev/null || true)"
+      window_pgid="${window_pgid//[[:space:]]/}"
+    fi
+    window_name="$(xdotool getwindowname "$window" 2>/dev/null || true)"
+    printf 'window=%s pid=%s pgid=%s title=%q\n' \
+      "$window" "${window_pid:-unknown}" "${window_pgid:-unknown}" "$window_name" >>"$x11_windows"
+  done < <(xdotool search --onlyvisible --name '.*' 2>/dev/null || true)
+}
+
+find_runclient_window() {
+  capture_visible_windows
+  local window window_pid window_pgid
+  while read -r window; do
+    [[ -n "$window" ]] || continue
+    window_pid="$(xdotool getwindowpid "$window" 2>/dev/null || true)"
+    [[ "$window_pid" =~ ^[0-9]+$ ]] || continue
+    window_pgid="$(ps -o pgid= -p "$window_pid" 2>/dev/null || true)"
+    window_pgid="${window_pgid//[[:space:]]/}"
+    if [[ "$window_pgid" == "$product_pid" ]]; then
+      printf '%s\n' "$window"
+      return 0
+    fi
+  done < <(xdotool search --onlyvisible --name '.*' 2>/dev/null || true)
+  return 1
 }
 
 cleanup() {
@@ -158,14 +197,14 @@ echo "[stage15-runclient] Minecraft/Fabric client loading and resource reload ma
 
 minecraft_window=""
 for ((attempt = 0; attempt < 30; attempt++)); do
-  minecraft_window="$(xdotool search --onlyvisible --name 'Minecraft' 2>/dev/null | head -n 1 || true)"
+  minecraft_window="$(find_runclient_window || true)"
   if [[ -n "$minecraft_window" ]]; then
     break
   fi
   sleep 1
 done
 if [[ -z "$minecraft_window" ]]; then
-  echo "Minecraft emitted client startup markers but no visible X11 Minecraft window was found" >&2
+  echo "Minecraft emitted client startup markers but no visible X11 window belonged to the run-client process group" >&2
   dump_failure
   exit 1
 fi
@@ -185,4 +224,5 @@ if grep -Eqi 'crash report|failed to start minecraft|exception in thread \"Rende
   dump_failure
   exit 1
 fi
-echo "Stage 15 packaged Fabric 1.21.1 runClient X11 preflight passed for PID $product_pid, window $minecraft_window"
+capture_visible_windows
+echo "Stage 15 packaged Fabric 1.21.1 runClient X11 preflight passed for process group $product_pid, window $minecraft_window"
