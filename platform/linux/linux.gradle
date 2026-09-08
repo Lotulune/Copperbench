@@ -1,5 +1,39 @@
+import org.apache.tools.ant.taskdefs.condition.Os
+
+tasks.register('prepareLinuxGradleDistPool') {
+    group = 'setup'
+    onlyIf { Os.isFamily(Os.FAMILY_UNIX) && !Os.isFamily(Os.FAMILY_MAC) }
+
+    doLast {
+        def poolRoot = file('build/linux-gradle-dists')
+        def downloadRoot = file('build/tmp/linux-gradle-dists')
+        poolRoot.mkdirs()
+        downloadRoot.mkdirs()
+        ['9.7.0', '9.6.1', '8.8'].each { version ->
+            def distName = "gradle-${version}-bin"
+            def readyRoot = new File(poolRoot, "${distName}/bundled")
+            def launcher = new File(readyRoot, "gradle-${version}/bin/gradle")
+            if (!launcher.isFile()) {
+                delete readyRoot
+                readyRoot.mkdirs()
+                def archive = new File(downloadRoot, "${distName}.zip")
+                download.run {
+                    src "https://services.gradle.org/distributions/${distName}.zip"
+                    dest archive
+                    overwrite false
+                }
+                copy { from zipTree(archive) into readyRoot }
+                new File(readyRoot, "${distName}.zip.ok").text = ''
+            }
+        }
+    }
+}
+
 tasks.register('exportLinux64', Copy.class) {
     dependsOn downloadJDKLinux64
+    dependsOn downloadJDK21Linux64
+    dependsOn writeLinuxCandidateManifest
+    dependsOn prepareLinuxGradleDistPool
     dependsOn jar
     dependsOn exportPlugins
 
@@ -9,10 +43,11 @@ tasks.register('exportLinux64', Copy.class) {
     into('') {
         from file('LICENSE.txt')
         from file('LICENSE-ADDITIONAL-TERMS.md')
-        from file('platform/linux/mcreator.sh') rename('mcreator.sh', 'mcreator.shdos')
+        from file('platform/linux/copperbench.sh') rename('copperbench.sh', 'copperbench.shdos')
         from file('src/main/resources/net/mcreator/ui/res/' + icon) rename(icon, 'icon.png')
         from file('gradlew')
         from file('gradlew.bat')
+        from file('build/reports/linux-candidate-manifest.json')
     }
     into('gradle/wrapper') { from file('gradle/wrapper/gradle-wrapper.jar') }
     into('lib') {
@@ -23,9 +58,11 @@ tasks.register('exportLinux64', Copy.class) {
     into('plugins') { from 'build/plugins/' }
     into('license') { from 'license' }
     into('jdk') { from 'jdk/jbr25_linux_64' }
+    into('jdk21') { from 'jdk/jdk21_linux_64' }
+    into('gradle-dists') { from 'build/linux-gradle-dists' }
     doLast {
-        convertCRLF(file('build/export/linux64/mcreator.shdos'), file('build/export/linux64/mcreator.sh'))
-        delete 'build/export/linux64/mcreator.shdos'
+        convertCRLF(file('build/export/linux64/copperbench.shdos'), file('build/export/linux64/copperbench.sh'))
+        delete 'build/export/linux64/copperbench.shdos'
     }
 }
 
@@ -40,12 +77,22 @@ tasks.register('tarLinux64', Tar.class) {
         }
     }
 
-    into('MCreator' + (String) project.mcreatorconf.getProperty('mcreator').replace(".", "").replace(" ", "")) {
+    into(project.productName + project.productVersion.replace(".", "").replace(" ", "")) {
         from('build/export/linux64/') {
-            exclude "mcreator.sh", "jdk/bin*", "jdk/lib/jspawnhelper", "jdk/lib/jexec", "jdk/lib/jcef_helper", "jdk/lib/cef_server"
+            exclude "copperbench.sh", "gradlew", "gradle-dists/**/bin/gradle", "jdk/bin*", "jdk21/bin*",
+                    "jdk21/lib/jspawnhelper", "jdk21/lib/jexec", "jdk/lib/jspawnhelper", "jdk/lib/jexec",
+                    "jdk/lib/jcef_helper", "jdk/lib/cef_server"
         }
-        from('build/export/linux64/mcreator.sh', execPermissions)
+        from('build/export/linux64/copperbench.sh', execPermissions)
+        from('build/export/linux64/gradlew', execPermissions)
+        from('build/export/linux64/gradle-dists/', execPermissions) {
+            include '**/bin/gradle'
+            into 'gradle-dists/'
+        }
         from('build/export/linux64/jdk/bin/', execPermissions) into 'jdk/bin/'
+        from('build/export/linux64/jdk21/bin/', execPermissions) into 'jdk21/bin/'
+        from('build/export/linux64/jdk21/lib/jspawnhelper', execPermissions) into 'jdk21/lib/'
+        from('build/export/linux64/jdk21/lib/jexec', execPermissions) into 'jdk21/lib/'
         from('build/export/linux64/jdk/lib/jspawnhelper', execPermissions) into 'jdk/lib/'
         from('build/export/linux64/jdk/lib/jexec', execPermissions) into 'jdk/lib/'
         from('build/export/linux64/jdk/lib/jcef_helper', execPermissions) into 'jdk/lib/'
@@ -54,7 +101,70 @@ tasks.register('tarLinux64', Tar.class) {
 
     destinationDirectory = file('build/export/')
     compression = Compression.GZIP
-    archiveFileName = 'MCreator ' + (String) project.mcreatorconf.getProperty('mcreator') + ' Linux 64bit.tar.gz'
+    archiveFileName = project.productName + ' ' + project.productVersion + ' Linux x86_64.tar.gz'
+}
+
+tasks.register('prepareDebLinux64') {
+    dependsOn exportLinux64
+
+    doLast {
+        def debRoot = file('build/export/linux-deb-root')
+        delete debRoot
+        copy { from 'build/export/linux64/' into new File(debRoot, 'opt/copperbench') }
+        copy { from 'platform/linux/deb/copperbench' into new File(debRoot, 'usr/bin') }
+        copy { from 'platform/linux/deb/copperbench.desktop' into new File(debRoot, 'usr/share/applications') }
+        copy {
+            from 'build/export/linux64/icon.png'
+            into new File(debRoot, 'usr/share/icons/hicolor/256x256/apps')
+            rename 'icon.png', 'copperbench.png'
+        }
+        def controlDir = new File(debRoot, 'DEBIAN')
+        controlDir.mkdirs()
+        new File(controlDir, 'control').text = """Package: copperbench
+Version: ${project.productVersion.replace(' ', '~')}
+Section: devel
+Priority: optional
+Architecture: amd64
+Maintainer: ${project.productPublisher}
+Description: AI-first Minecraft mod development studio
+"""
+
+        if (Os.isFamily(Os.FAMILY_UNIX) && !Os.isFamily(Os.FAMILY_MAC)) {
+            execCtx.execOps.exec { commandLine 'chmod', '-R', 'u+rwX,go+rX', debRoot.absolutePath }
+            execCtx.execOps.exec { commandLine 'chmod', '0755', new File(debRoot, 'usr/bin/copperbench').absolutePath }
+            execCtx.execOps.exec { commandLine 'chmod', '0755', new File(debRoot, 'opt/copperbench/copperbench.sh').absolutePath }
+            execCtx.execOps.exec { commandLine 'chmod', '0755', new File(debRoot, 'opt/copperbench/gradlew').absolutePath }
+            execCtx.execOps.exec { commandLine 'chmod', '-R', 'a+rx', new File(debRoot, 'opt/copperbench/jdk/bin').absolutePath }
+            execCtx.execOps.exec { commandLine 'chmod', '-R', 'a+rx', new File(debRoot, 'opt/copperbench/jdk21/bin').absolutePath }
+            ['jspawnhelper', 'jexec', 'jcef_helper', 'cef_server'].each { helper ->
+                def runtimeHelper = new File(debRoot, 'opt/copperbench/jdk/lib/' + helper)
+                if (runtimeHelper.exists()) execCtx.execOps.exec { commandLine 'chmod', '0755', runtimeHelper.absolutePath }
+            }
+            ['jspawnhelper', 'jexec'].each { helper ->
+                def runtimeHelper = new File(debRoot, 'opt/copperbench/jdk21/lib/' + helper)
+                if (runtimeHelper.exists()) execCtx.execOps.exec { commandLine 'chmod', '0755', runtimeHelper.absolutePath }
+            }
+        }
+    }
+}
+
+tasks.register('buildDebLinux64') {
+    dependsOn prepareDebLinux64
+    onlyIf { Os.isFamily(Os.FAMILY_UNIX) && !Os.isFamily(Os.FAMILY_MAC) }
+
+    doLast {
+        def output = file("build/export/copperbench_${project.productVersion.replace(' ', '~')}_amd64.deb")
+        execCtx.execOps.exec {
+            commandLine 'dpkg-deb', '--build', '--root-owner-group',
+                    file('build/export/linux-deb-root').absolutePath, output.absolutePath
+        }
+    }
+}
+
+tasks.register('exportLinuxCandidate') {
+    group = 'export'
+    dependsOn tarLinux64
+    if (Os.isFamily(Os.FAMILY_UNIX) && !Os.isFamily(Os.FAMILY_MAC)) dependsOn buildDebLinux64
 }
 
 tasks.register('exportLinux') {

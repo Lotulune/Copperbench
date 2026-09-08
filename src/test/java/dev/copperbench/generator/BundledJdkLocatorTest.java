@@ -9,6 +9,7 @@
 
 package dev.copperbench.generator;
 
+import dev.copperbench.platform.RuntimePlatform;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -39,6 +40,19 @@ class BundledJdkLocatorTest {
 				BundledJdkLocator.locate(root, 21, root.resolve("missing-fallback")));
 		assertEquals(java21.toAbsolutePath().normalize(),
 				BundledJdkLocator.locate(root, 17, root.resolve("missing-fallback")));
+	}
+
+	@Test void linuxSourceLayoutsAreSelectedWithoutFallingBackToWindowsBinaries() throws Exception {
+		RuntimePlatform linux = RuntimePlatform.detect("Linux", "x86_64");
+		Path java25 = unixJavaHome(root.resolve("jdk/jbr25_linux_64"));
+		javaHome(root.resolve("jdk/jbr25_win_64"));
+		assertEquals(java25.toAbsolutePath().normalize(),
+				BundledJdkLocator.locate(root, 25, root.resolve("missing-fallback"), linux));
+
+		Files.delete(root.resolve("jdk/jbr25_linux_64/bin/java"));
+		Path java21 = unixJavaHome(root.resolve("jdk/jdk21_linux_64"));
+		assertEquals(java21.toAbsolutePath().normalize(),
+				BundledJdkLocator.locate(root, 21, root.resolve("missing-fallback"), linux));
 	}
 
 	@Test void sourceLayoutsAreSelectedByRequiredJavaRelease() throws Exception {
@@ -74,6 +88,12 @@ class BundledJdkLocatorTest {
 	private static Path javaHome(Path home) throws Exception {
 		Files.createDirectories(home.resolve("bin"));
 		Files.writeString(home.resolve("bin/java.exe"), "fixture");
+		return home;
+	}
+
+	private static Path unixJavaHome(Path home) throws Exception {
+		Files.createDirectories(home.resolve("bin"));
+		Files.writeString(home.resolve("bin/java"), "fixture");
 		return home;
 	}
 }

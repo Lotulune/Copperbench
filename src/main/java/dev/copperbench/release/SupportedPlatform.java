@@ -9,6 +9,8 @@
 
 package dev.copperbench.release;
 
+import dev.copperbench.platform.RuntimePlatform;
+
 import javax.swing.JOptionPane;
 import java.awt.GraphicsEnvironment;
 import java.nio.charset.StandardCharsets;
@@ -24,6 +26,7 @@ public final class SupportedPlatform {
 	public static final int MINIMUM_BUILD = 22000;
 	public static final String UNSUPPORTED_MESSAGE =
 			"Copperbench requires 64-bit Windows 11 (build 22000 or later). Windows 10 is not supported.";
+	public static final String STAGE15_LINUX_CANDIDATE_PROPERTY = "copperbench.stage15LinuxCandidate";
 
 	private SupportedPlatform() {
 	}
@@ -61,10 +64,17 @@ public final class SupportedPlatform {
 		return isSupported(osName, build);
 	}
 
+	/** Runtime admission used by Stage 15 Linux candidates without changing the public support claim. */
+	public static boolean currentHostRunnable() {
+		if (currentHostSupported()) return true;
+		return Boolean.parseBoolean(System.getProperty(STAGE15_LINUX_CANDIDATE_PROPERTY, "false"))
+				&& RuntimePlatform.current().isLinuxX64();
+	}
+
 	public static void refuseIfUnsupported() {
 		if (Boolean.parseBoolean(System.getProperty("copperbench.allowUnsupportedOs", "false")))
 			return;
-		if (currentHostSupported())
+		if (currentHostRunnable())
 			return;
 		if (!GraphicsEnvironment.isHeadless())
 			JOptionPane.showMessageDialog(null, UNSUPPORTED_MESSAGE, "Copperbench", JOptionPane.ERROR_MESSAGE);

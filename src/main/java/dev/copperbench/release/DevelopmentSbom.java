@@ -12,6 +12,7 @@ package dev.copperbench.release;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import dev.copperbench.ProductIdentity;
+import dev.copperbench.platform.RuntimePlatform;
 
 import java.util.List;
 
@@ -40,16 +41,36 @@ public final class DevelopmentSbom {
 	}
 
 	public static JsonObject toJson() {
+		return toJson(RuntimePlatform.current());
+	}
+
+	public static JsonObject toJson(RuntimePlatform platform) {
+		return inventory(platform, false);
+	}
+
+	public static JsonObject toInstalledCandidateJson(RuntimePlatform platform) {
+		return inventory(platform, true);
+	}
+
+	private static JsonObject inventory(RuntimePlatform platform, boolean installedLayout) {
 		JsonObject root = new JsonObject();
 		root.addProperty("schemaVersion", "1.0");
-		root.addProperty("kind", "development-inventory");
+		root.addProperty("kind", installedLayout ? "candidate-inventory" : "development-inventory");
 		root.addProperty("productId", ProductIdentity.ID);
 		root.addProperty("productVersion", ProductIdentity.VERSION);
 		JsonArray components = new JsonArray();
 		add(components, ProductIdentity.NAME, ProductIdentity.VERSION, "application", "GPL-3.0-only", ".");
+		String java25 = installedLayout ? "jdk" : platform.sourceJavaHome(25);
+		String java21 = installedLayout ? "jdk21" : platform.sourceJavaHome(21);
 		add(components, "JetBrains Runtime JCEF", "25", "runtime", "GPL-2.0-with-classpath-exception",
-				"jdk/jbr25_win_64");
-		add(components, "Bundled JDK 21", "21", "runtime", "GPL-2.0-with-classpath-exception", "jdk/jdk21_win_64");
+				java25 == null ? "jdk" : java25);
+		add(components, "Bundled JDK 21", "21", "runtime", "GPL-2.0-with-classpath-exception",
+				java21 == null ? "jdk21" : java21);
+		if (installedLayout) {
+			for (String version : dev.copperbench.gradle.GradleDistributionPool.PACKAGED_VERSIONS)
+				add(components, "Gradle", version, "build-runtime", "Apache-2.0",
+						"gradle-dists/gradle-" + version + "-bin");
+		}
 		for (var plugin : BundledPluginInventory.FIRST_PARTY)
 			add(components, plugin.pluginId(), ProductIdentity.VERSION, "plugin", "GPL-3.0-only",
 					"plugins/" + plugin.packageName());

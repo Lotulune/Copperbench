@@ -1,0 +1,128 @@
+name: Stage 15 Linux candidate
+
+on:
+  workflow_dispatch: {}
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "platform/linux/**"
+      - "platform/setup.gradle"
+      - "src/main/java/dev/copperbench/generator/BundledJdkLocator.java"
+      - "src/main/java/dev/copperbench/platform/**"
+      - "src/main/java/dev/copperbench/release/**"
+      - "src/main/java/net/mcreator/io/UserFolderManager.java"
+      - ".github/workflows/stage15-linux-candidate.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "platform/linux/**"
+      - "platform/setup.gradle"
+      - "src/main/java/dev/copperbench/generator/BundledJdkLocator.java"
+      - "src/main/java/dev/copperbench/platform/**"
+      - "src/main/java/dev/copperbench/release/**"
+      - ".github/workflows/stage15-linux-candidate.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: stage15-linux-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  package-smoke:
+    name: Ubuntu 24.04 package candidate smoke
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up build JDK 25 with JCEF
+        uses: actions/setup-java@v6
+        with:
+          java-version: "25.0.2"
+          distribution: jetbrains
+          java-package: jdk+jcef
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ui-shell/package-lock.json
+
+      - name: Install UI shell dependencies
+        working-directory: ui-shell
+        run: npm ci
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Build portable and deb candidates
+        run: |
+          chmod +x ./gradlew
+          ./gradlew --no-daemon exportLinuxCandidate
+
+      - name: Verify portable candidate contents and executable modes
+        shell: bash
+        run: |
+          set -euo pipefail
+          tarball="$(find build/export -maxdepth 1 -type f -name 'Copperbench*Linux x86_64.tar.gz' -print -quit)"
+          test -n "$tarball"
+          rm -rf build/stage15-linux-smoke
+          mkdir -p build/stage15-linux-smoke
+          tar -xzf "$tarball" -C build/stage15-linux-smoke
+          root="$(find build/stage15-linux-smoke -mindepth 1 -maxdepth 1 -type d -print -quit)"
+          test -n "$root"
+          test -x "$root/copperbench.sh"
+          test -x "$root/gradlew"
+          test -x "$root/jdk/bin/java"
+          test -x "$root/jdk/lib/jcef_helper"
+          test -x "$root/jdk21/bin/java"
+          test -x "$root/jdk21/bin/javac"
+          test -d "$root/gradle-dists/gradle-9.7.0-bin"
+          test -d "$root/gradle-dists/gradle-9.6.1-bin"
+          test -d "$root/gradle-dists/gradle-8.8-bin"
+          test -f "$root/linux-candidate-manifest.json"
+          grep -q '"status" : "development-not-certified"' "$root/linux-candidate-manifest.json"
+          grep -q '"formalSupportClaim" : false' "$root/linux-candidate-manifest.json"
+          "$root/jdk/bin/java" -version
+          "$root/jdk21/bin/java" -version
+
+      - name: Verify deb candidate layout
+        shell: bash
+        run: |
+          set -euo pipefail
+          deb="$(find build/export -maxdepth 1 -type f -name 'copperbench_*_amd64.deb' -print -quit)"
+          test -n "$deb"
+          dpkg-deb --info "$deb"
+          rm -rf build/stage15-deb-smoke
+          dpkg-deb --extract "$deb" build/stage15-deb-smoke
+          test -x build/stage15-deb-smoke/usr/bin/copperbench
+          test -x build/stage15-deb-smoke/opt/copperbench/copperbench.sh
+          test -x build/stage15-deb-smoke/opt/copperbench/jdk/bin/java
+          test -x build/stage15-deb-smoke/opt/copperbench/jdk21/bin/java
+          test -f build/stage15-deb-smoke/usr/share/applications/copperbench.desktop
+          test -f build/stage15-deb-smoke/opt/copperbench/linux-candidate-manifest.json
+
+      - name: Write SHA-256 candidate hashes
+        shell: bash
+        run: |
+          set -euo pipefail
+          find build/export -maxdepth 1 -type f \( -name '*Linux x86_64.tar.gz' -o -name 'copperbench_*_amd64.deb' \) -print0 \
+            | sort -z | xargs -0 sha256sum | tee build/export/linux-candidate-sha256.txt
+
+      - name: Upload Linux candidate artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: stage15-linux-candidate
+          path: |
+            build/export/*Linux x86_64.tar.gz
+            build/export/copperbench_*_amd64.deb
+            build/export/linux-candidate-sha256.txt
+          if-no-files-found: error
+          retention-days: 14

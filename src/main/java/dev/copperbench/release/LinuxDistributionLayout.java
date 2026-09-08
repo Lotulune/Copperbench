@@ -21,7 +21,7 @@ import java.util.List;
 public final class LinuxDistributionLayout {
     public static final List<String> REQUIRED_ENTRIES = List.of(
             "copperbench.sh", "linux-candidate-manifest.json", "LICENSE.txt", "LICENSE-ADDITIONAL-TERMS.md",
-            "jdk/bin/java", "jdk/bin/jcef_helper", "jdk21/bin/java", "jdk21/bin/javac",
+            "jdk/bin/java", "jdk/lib/jcef_helper", "jdk21/bin/java", "jdk21/bin/javac",
             "lib/copperbench.jar", "plugins", "gradlew", "gradle/wrapper/gradle-wrapper.jar", "gradle-dists");
 
     private LinuxDistributionLayout() {

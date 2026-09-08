@@ -388,4 +388,12 @@ tasks.register('runMcpConformanceServer', JavaExec.class) {
 }
 
 apply from: 'platform/setup.gradle'
+tasks.register('writeLinuxCandidateManifest', JavaExec) {
+    group = 'export'
+    dependsOn classes
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'dev.copperbench.release.LinuxCandidateManifestWriter'
+    args layout.buildDirectory.file('reports/linux-candidate-manifest.json').get().asFile.absolutePath
+}
+
 apply from: 'platform/export.gradle'

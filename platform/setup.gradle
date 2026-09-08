@@ -3,6 +3,8 @@ import org.apache.tools.ant.taskdefs.condition.Os
 def jbr25_win_64 = 'jbrsdk_jcef-25.0.3-windows-x64-b329.124'
 def temurin21_win_64 = 'jdk-21.0.12+8'
 def temurin21_win_64_archive = 'OpenJDK21U-jdk_x64_windows_hotspot_21.0.12_8.zip'
+def temurin21_linux_64 = 'jdk-21.0.12+8'
+def temurin21_linux_64_archive = 'OpenJDK21U-jdk_x64_linux_hotspot_21.0.12_8.tar.gz'
 def jbr25_linux_64 = 'jbrsdk_jcef-25.0.2-linux-x64-b329.117'
 def jbr25_mac_x64 = 'jbrsdk_jcef-25.0.2-osx-x64-b329.117'
 def jbr25_mac_aarch64 = 'jbrsdk_jcef-25.0.2-osx-aarch64-b329.117'
@@ -31,6 +33,30 @@ tasks.register('downloadJDKWin64') {
 
             // Space saving
             delete fileTree('jdk/jbr25_win_64/jmods') { exclude 'java.base.jmod' }
+        }
+    }
+}
+
+tasks.register('downloadJDK21Linux64') {
+    group = 'setup'
+    doLast {
+        if (!file('jdk/jdk21_linux_64/bin/java').exists()) {
+            mkdir 'jdk/jdk21_linux_64'
+
+            download.run {
+                src "https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.12%2B8/${temurin21_linux_64_archive}"
+                dest 'build/tmp/temurin21_linux_64.tar.gz'
+                overwrite true
+            }
+            copy {
+                from tarTree(resources.gzip('build/tmp/temurin21_linux_64.tar.gz'))
+                into file('build/tmp/temurin21_linux_64')
+            }
+            copy { from file("build/tmp/temurin21_linux_64/${temurin21_linux_64}") into file('jdk/jdk21_linux_64/') }
+            delete 'build/tmp/temurin21_linux_64.tar.gz'
+            delete 'build/tmp/temurin21_linux_64'
+
+            delete fileTree('jdk/jdk21_linux_64/jmods') { exclude 'java.base.jmod' }
         }
     }
 }
@@ -182,7 +208,7 @@ tasks.register('initialSetup') {
     } else if (Os.isFamily(Os.FAMILY_MAC)) {
         dependsOn downloadJDKMacAarch64, downloadJDKMacX64
     } else if (Os.isFamily(Os.FAMILY_UNIX)) {
-        dependsOn downloadJDKLinux64
+        dependsOn downloadJDKLinux64, downloadJDK21Linux64
     }
 }
 
