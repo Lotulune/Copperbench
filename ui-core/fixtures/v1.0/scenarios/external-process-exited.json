@@ -44,12 +44,17 @@
         "counts": { "error": 1, "warning": 0, "info": 0 },
         "diagnostics": [
           {
-            "code": "EXTERNAL_PROCESS_EXITED",
+            "code": "FABRIC_RUN_CLIENT_EXITED",
             "severity": "error",
             "message": {
-              "key": "diagnostic.external_process_exited",
-              "fallback": "Minecraft exited with code 1.",
-              "args": { "exitCode": 1 }
+              "key": "diagnostic.task_process_exited",
+              "fallback": "The Fabric 1.21.1 run_client task exited with code 1.",
+              "args": {
+                "backend": "Fabric 1.21.1",
+                "task": "run_client",
+                "exitCode": 1,
+                "failureId": "failure-run-client-1"
+              }
             },
             "path": null,
             "elementId": null,
@@ -59,7 +64,8 @@
                 "id": "open_client_logs",
                 "label": { "key": "action.open_logs", "fallback": "Open logs", "args": {} },
                 "kind": "open_logs",
-                "target": "33333333-3333-4333-8333-333333333332"
+                "target": "failure-run-client-1",
+                "payload": { "taskId": "33333333-3333-4333-8333-333333333332" }
               }
             ]
           }
@@ -69,7 +75,7 @@
   ],
   "timeline": [],
   "expectedUi": {
-    "announcement": "EXTERNAL_PROCESS_EXITED",
+    "announcement": "FABRIC_RUN_CLIENT_EXITED",
     "primaryAction": "open_client_logs",
     "focusTarget": "[data-testid=task-failure]"
   }

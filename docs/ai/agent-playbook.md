@@ -142,6 +142,32 @@ Procedure 可以先以空 `initialValues` 创建：
 是否 `committed` 就假定 Java 可编译。通过 `plan_workspace_changes` 批量创建 `code` 时不会隐式启动构建，
 apply 后应显式调用 `build_workspace`。
 
+复杂运行时不需要强塞进一个 Java 文件。`code` 的 `initialValues`/更新值支持可选的 `codeFiles` 数组；
+每项包含相对 `path` 与完整 `code`。路径必须是生成的主 Java 源文件所在 package 目录下的相对 `.java`
+路径，不能使用绝对路径或 `..`。Copperbench 会把这些附加文件登记为该 ModElement 的 associated files，
+因此后续更新会移除不再声明的旧 bundle 文件，删除元素时也会一起清理。
+
+```json
+{
+  "elementType": "code",
+  "name": "charged_blade_runtime",
+  "initialValues": {
+    "code": "package net.mcreator.example;\npublic final class ChargedBladeRuntime {}\n",
+    "codeFiles": [
+      {
+        "path": "runtime/SwordState.java",
+        "code": "package net.mcreator.example.runtime;\npublic final class SwordState {}\n"
+      },
+      {
+        "path": "runtime/SwordController.java",
+        "code": "package net.mcreator.example.runtime;\npublic final class SwordController {}\n"
+      }
+    ]
+  },
+  "expectedRevision": 16
+}
+```
+
 使用 `code` 时仍要遵守工作区所有权边界：
 
 - 不覆盖 `// Start of user code block` / 对应结束标记中的用户内容。
@@ -162,7 +188,15 @@ apply 后应显式调用 `build_workspace`。
       "payload": {
         "elementType": "code",
         "name": "charged_blade_runtime",
-        "initialValues": {}
+        "initialValues": {
+          "code": "package net.mcreator.example;\npublic final class ChargedBladeRuntime {}\n",
+          "codeFiles": [
+            {
+              "path": "runtime/SwordState.java",
+              "code": "package net.mcreator.example.runtime;\npublic final class SwordState {}\n"
+            }
+          ]
+        }
       }
     }
   ]

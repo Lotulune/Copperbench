@@ -7,7 +7,22 @@
       "category": "MODEL",
       "size": 256,
       "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-      "mediaType": "application/json"
+      "mediaType": "application/json",
+      "health": {
+        "assetId": "asset:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "relativePath": "assets/coppertrails/models/block/copper_lamp.json",
+        "status": "ERROR",
+        "usageAssessed": true,
+        "unused": true,
+        "inboundCount": 0,
+        "outboundCount": 1,
+        "workspaceReferenceCount": 0,
+        "cleanupAssessed": false,
+        "safeUnused": false,
+        "duplicateContent": false,
+        "duplicatePaths": [],
+        "issueCodes": ["MISSING_ASSET_REFERENCE"]
+      }
     },
     {
       "id": "asset:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
@@ -15,17 +30,73 @@
       "category": "TEXTURE",
       "size": 1024,
       "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-      "mediaType": "image/png"
+      "mediaType": "image/png",
+      "health": {
+        "assetId": "asset:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "relativePath": "assets/coppertrails/textures/block/copper_lamp.png",
+        "status": "READY",
+        "usageAssessed": true,
+        "unused": false,
+        "inboundCount": 1,
+        "outboundCount": 0,
+        "workspaceReferenceCount": 0,
+        "cleanupAssessed": false,
+        "safeUnused": false,
+        "duplicateContent": false,
+        "duplicatePaths": [],
+        "issueCodes": []
+      }
     }
   ],
   "references": [
     {
       "sourceAssetId": "asset:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       "sourcePath": "assets/coppertrails/models/block/copper_lamp.json",
+      "sourcePointer": "/textures/all",
+      "rawValue": "coppertrails:block/copper_lamp",
+      "expectedPrefix": "textures/",
       "targetPath": "assets/coppertrails/textures/block/copper_lamp.png",
       "targetAssetId": "asset:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
       "kind": "RESOURCE_ID"
     }
   ],
-  "diagnostics": []
+  "diagnostics": [
+    {
+      "code": "MISSING_ASSET_REFERENCE",
+      "severity": "error",
+      "message": {
+        "key": "diagnostic.asset_missing_reference",
+        "fallback": "Asset {sourcePath} references missing asset {targetPath}.",
+        "args": {
+          "sourcePath": "assets/coppertrails/models/block/copper_lamp.json",
+          "targetPath": "assets/coppertrails/textures/block/missing.png",
+          "detail": "Referenced asset does not exist"
+        }
+      },
+      "path": "/assets/asset:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "elementId": null,
+      "recoverable": true,
+      "actions": [
+        {
+          "id": "open_asset",
+          "label": { "key": "action.open_asset", "fallback": "Open asset", "args": {} },
+          "kind": "open_asset",
+          "target": "asset:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      ]
+    }
+  ],
+  "health": {
+    "totalAssets": 2,
+    "readyAssets": 1,
+    "warningAssets": 0,
+    "errorAssets": 1,
+    "unusedAssets": 1,
+    "safeUnusedAssets": 0,
+    "duplicateAssets": 0,
+    "duplicateGroups": 0,
+    "missingReferences": 1,
+    "invalidDocuments": 0,
+    "pathEscapes": 0
+  }
 }

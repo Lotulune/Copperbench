@@ -9,5 +9,15 @@
 
 package dev.copperbench.history;
 
-public record WorkspaceChange(ChangeType type, String path) {
+import java.util.List;
+
+public record WorkspaceChange(ChangeType type, String path, List<HistoryFieldChange> fieldChanges) {
+
+	public WorkspaceChange(ChangeType type, String path) {
+		this(type, path, List.of());
+	}
+
+	public WorkspaceChange {
+		fieldChanges = fieldChanges == null ? List.of() : List.copyOf(fieldChanges);
+	}
 }

@@ -39,6 +39,7 @@ class LoaderMigrationServiceTest {
 	@Test void previewMarksAllJavaTypesSupportedAndLoaderExclusiveFieldsManual() {
 		MigrationReport report = service.preview(workspace(true), "neoforge-1.21.1");
 		assertTrue(report.complete());
+		assertEquals(null, report.semanticComparison());
 		assertEquals(Disposition.SUPPORTED, item(report, "/elements/" + id(1)).disposition());
 		assertEquals(Disposition.MANUAL, item(report, "/elements/" + id(2)).disposition());
 		assertEquals(Disposition.SUPPORTED, item(report, "/elements/" + id(3)).disposition());
@@ -59,6 +60,7 @@ class LoaderMigrationServiceTest {
 				target);
 		assertTrue(report.complete());
 		assertTrue(report.sourceUnchanged());
+		assertEquals(null, report.semanticComparison());
 		assertTrue(Files.isRegularFile(target.resolve("migration-report.json")));
 	}
 
@@ -85,6 +87,18 @@ class LoaderMigrationServiceTest {
 				.getAsString());
 		assertTrue(rewritten.getAsJsonObject("plugin.example").get("keep").getAsBoolean());
 		assertEquals(before, WorkspaceTreeHasher.hash(source));
+		assertTrue(one.semanticComparison().generatorChanged());
+		assertTrue(one.semanticComparison().workspaceMetadataPreserved());
+		assertEquals(1, one.semanticComparison().preservedElementCount());
+		assertEquals(0, one.semanticComparison().changedElementCount());
+		assertEquals(0, one.semanticComparison().addedElementCount());
+		assertEquals(0, one.semanticComparison().removedElementCount());
+		assertEquals(1, one.semanticComparison().changes().size());
+		assertEquals("/generator", one.semanticComparison().changes().getFirst().path());
+		JsonObject persistedReport = JsonParser.parseString(Files.readString(first.resolve("migration-report.json")))
+				.getAsJsonObject();
+		assertTrue(persistedReport.getAsJsonObject("semanticComparison").get("generatorChanged").getAsBoolean());
+		assertEquals(1, persistedReport.getAsJsonObject("semanticComparison").get("preservedElementCount").getAsInt());
 	}
 
 	private static MigrationReport.MigrationItem item(MigrationReport report, String path) {

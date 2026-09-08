@@ -56,8 +56,16 @@ class HistoryContractTest {
 
 	@Test void historyQueriesListRecoveryPointsAndDiffIdenticallyAcrossEntryAdapters() throws Exception {
 		Fixture fixture = fixture(stateAtRestoredPoint());
+		Files.createDirectories(workspaceDirectory.resolve("elements"));
+		Files.writeString(workspaceDirectory.resolve("elements/copper_lamp.mod.json"),
+				"{\"name\":\"Copper Lamp\",\"settings\":{\"hardness\":1,\"enabled\":true}}");
 		createPoint(fixture.service, "Before AI edit");
 		Files.writeString(workspaceDirectory.resolve("workspace.mcreator"), "{\"revision\":1}");
+		Files.writeString(workspaceDirectory.resolve("elements/copper_lamp.mod.json"),
+				"{\"name\":\"Copper Lamp\",\"settings\":{\"hardness\":2,\"luminance\":7}}");
+		Files.createDirectories(workspaceDirectory.resolve("src/main/resources/assets/coppertrails/textures/item"));
+		Files.writeString(workspaceDirectory.resolve("src/main/resources/assets/coppertrails/textures/item/copper_lamp.png"),
+				"png-placeholder");
 		createPoint(fixture.service, "After AI edit");
 
 		Query history = Query.of(uuid(10), WORKSPACE_ID, Operation.GET_HISTORY, new JsonObject());
@@ -73,15 +81,60 @@ class HistoryContractTest {
 		assertEquals(2, projection.getAsJsonArray("recoveryPoints").size());
 		assertEquals("After AI edit", projection.getAsJsonArray("recoveryPoints").get(0).getAsJsonObject()
 				.get("label").getAsString());
+		assertEquals("manual", projection.getAsJsonArray("recoveryPoints").get(0).getAsJsonObject()
+				.get("source").getAsString());
+		assertEquals(pointId(projection, 0), projection.get("currentRecoveryPointId").getAsString());
 
 		JsonObject diffPayload = new JsonObject();
 		diffPayload.addProperty("fromRecoveryPointId", pointId(projection, 1));
 		diffPayload.addProperty("toRecoveryPointId", pointId(projection, 0));
 		var diff = fixture.service.query(Query.of(uuid(11), WORKSPACE_ID, Operation.GET_DIFF, diffPayload), UI);
 		assertEquals("succeeded", diff.status());
-		assertEquals(1, diff.data().getAsJsonObject().getAsJsonArray("changes").size());
-		assertEquals("workspace.mcreator", diff.data().getAsJsonObject().getAsJsonArray("changes").get(0)
-				.getAsJsonObject().get("path").getAsString());
+		var changes = diff.data().getAsJsonObject().getAsJsonArray("changes");
+		assertEquals(3, changes.size());
+		JsonObject elementChange = findChange(changes, "elements/copper_lamp.mod.json");
+		assertEquals("mod_element", elementChange.get("objectKind").getAsString());
+		assertEquals("copper_lamp", elementChange.get("objectName").getAsString());
+		var elementFields = elementChange.getAsJsonArray("fieldChanges");
+		assertEquals(3, elementFields.size());
+		assertEquals("delete", findFieldChange(elementFields, "/settings/enabled").get("type").getAsString());
+		assertEquals("modify", findFieldChange(elementFields, "/settings/hardness").get("type").getAsString());
+		assertEquals("add", findFieldChange(elementFields, "/settings/luminance").get("type").getAsString());
+		JsonObject assetChange = findChange(changes,
+				"src/main/resources/assets/coppertrails/textures/item/copper_lamp.png");
+		assertEquals("asset", assetChange.get("objectKind").getAsString());
+		assertEquals("coppertrails/textures/item/copper_lamp.png", assetChange.get("objectName").getAsString());
+		JsonObject workspaceChange = findChange(changes, "workspace.mcreator");
+		assertEquals("workspace", workspaceChange.get("objectKind").getAsString());
+
+		Files.writeString(workspaceDirectory.resolve("workspace.mcreator"), "{\"revision\":2,\"workingTree\":true}");
+		Files.writeString(workspaceDirectory.resolve("scratch.txt"), "not checkpointed");
+		var changedHistory = fixture.service.query(
+				Query.of(uuid(13), WORKSPACE_ID, Operation.GET_HISTORY, new JsonObject()), UI);
+		assertTrue(changedHistory.data().getAsJsonObject().get("currentRecoveryPointId").isJsonNull());
+		JsonObject restorePreviewPayload = new JsonObject();
+		restorePreviewPayload.addProperty("recoveryPointId", pointId(projection, 1));
+		Query restorePreviewQuery = Query.of(uuid(12), WORKSPACE_ID, Operation.PREVIEW_RECOVERY_RESTORE,
+				restorePreviewPayload);
+		var previewLegacy = GSON.toJsonTree(new LegacyWorkspaceEntryAdapter(fixture.service).query(restorePreviewQuery));
+		var previewMcp = GSON.toJsonTree(new McpWorkspaceEntryAdapter(fixture.service, PermissionProfile.WORKSPACE)
+				.query(restorePreviewQuery));
+		var previewHeadless = GSON.toJsonTree(new HeadlessWorkspaceEntryAdapter(fixture.service,
+				PermissionProfile.WORKSPACE).query(restorePreviewQuery));
+		assertEquals(previewLegacy, previewMcp);
+		assertEquals(previewLegacy, previewHeadless);
+		JsonObject restorePreview = previewLegacy.getAsJsonObject().getAsJsonObject("data");
+		assertEquals(pointId(projection, 1), restorePreview.get("recoveryPointId").getAsString());
+		var restoreChanges = restorePreview.getAsJsonArray("changes");
+		assertEquals(4, restoreChanges.size());
+		JsonObject scratchChange = findChange(restoreChanges, "scratch.txt");
+		assertEquals("delete", scratchChange.get("type").getAsString());
+		JsonObject restoreElementChange = findChange(restoreChanges, "elements/copper_lamp.mod.json");
+		assertEquals("mod_element", restoreElementChange.get("objectKind").getAsString());
+		assertEquals("copper_lamp", restoreElementChange.get("objectName").getAsString());
+		var restoreElementFields = restoreElementChange.getAsJsonArray("fieldChanges");
+		assertEquals("add", findFieldChange(restoreElementFields, "/settings/enabled").get("type").getAsString());
+		assertEquals("delete", findFieldChange(restoreElementFields, "/settings/luminance").get("type").getAsString());
 	}
 
 	@Test void restoreIsAProtectedOperationAndCannotRunWithoutExplicitUserApproval() throws Exception {
@@ -158,6 +211,37 @@ class HistoryContractTest {
 		assertTrue(nextEvent.events().get(0).sequence() > outcome.events().get(0).sequence());
 	}
 
+	@Test void approvedRestoreCommitsButSurfacesStructuralAndReferenceDiagnostics() throws Exception {
+		UUID restoredElementId = uuid(90);
+		JsonObject values = new JsonObject();
+		JsonObject fields = new JsonObject();
+		fields.addProperty("hardness", 101);
+		values.add("fields", fields);
+		values.addProperty("targetId", uuid(999).toString());
+		WorkspaceState restoredSnapshot = stateAtRestoredPoint();
+		restoredSnapshot.addElement(new WorkspaceState.Element(restoredElementId, "block", "broken_block",
+				"Broken Block", "valid", "generated", CLOCK.instant(), values));
+		Fixture fixture = fixture(restoredSnapshot);
+		String pointId = createPoint(fixture.service, "Checkpoint before broken historical state");
+
+		JsonObject payload = new JsonObject();
+		payload.addProperty("recoveryPointId", pointId);
+		payload.addProperty("userApproved", true);
+		CommandOutcome outcome = fixture.service.execute(
+				Command.of(uuid(34), WORKSPACE_ID, 0, Operation.RESTORE_RECOVERY_POINT, payload), UI);
+
+		assertEquals("committed", outcome.result().status());
+		assertEquals(1, outcome.result().newRevision());
+		assertTrue(outcome.result().diagnostics().stream()
+				.anyMatch(diagnostic -> diagnostic.code().equals("FIELD_VALUE_OUT_OF_RANGE")));
+		var dangling = outcome.result().diagnostics().stream()
+				.filter(diagnostic -> diagnostic.code().equals("WORKSPACE_REFERENCE_DANGLING"))
+				.findFirst().orElseThrow();
+		assertEquals(restoredElementId, dangling.elementId());
+		assertTrue(dangling.actions().stream().anyMatch(action -> action.kind().equals("open_field")));
+		assertEquals("invalid", fixture.store.read(WORKSPACE_ID).orElseThrow().element(restoredElementId).state());
+	}
+
 	@Test void readOnlySessionsCannotCreateRecoveryPoints() throws Exception {
 		Fixture fixture = fixture(stateAtRestoredPoint());
 		JsonObject payload = new JsonObject();
@@ -187,6 +271,20 @@ class HistoryContractTest {
 	private static String pointId(com.google.gson.JsonElement historyProjection, int index) {
 		return historyProjection.getAsJsonObject().getAsJsonArray("recoveryPoints").get(index).getAsJsonObject()
 				.get("id").getAsString();
+	}
+
+	private static JsonObject findChange(com.google.gson.JsonArray changes, String path) {
+		return java.util.stream.StreamSupport.stream(changes.spliterator(), false)
+				.map(com.google.gson.JsonElement::getAsJsonObject)
+				.filter(change -> path.equals(change.get("path").getAsString()))
+				.findFirst().orElseThrow();
+	}
+
+	private static JsonObject findFieldChange(com.google.gson.JsonArray changes, String pointer) {
+		return java.util.stream.StreamSupport.stream(changes.spliterator(), false)
+				.map(com.google.gson.JsonElement::getAsJsonObject)
+				.filter(change -> pointer.equals(change.get("pointer").getAsString()))
+				.findFirst().orElseThrow();
 	}
 
 	private Fixture fixture(WorkspaceState restoredSnapshot) {

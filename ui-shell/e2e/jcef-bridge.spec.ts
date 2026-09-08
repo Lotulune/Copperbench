@@ -71,6 +71,33 @@ test.describe('JCEF Bridge & Host Transport Integration', () => {
             });
           }
 
+          if (envelope.messageType === 'query' && envelope.operation === 'preview_recovery_restore') {
+            window.sessionStorage.setItem('lastRestorePreviewPayload', JSON.stringify(envelope.payload));
+            return JSON.stringify({
+              messageType: 'query_result',
+              schemaVersion: '1.0',
+              requestId: envelope.requestId,
+              workspaceId,
+              operation: 'preview_recovery_restore',
+              status: 'succeeded',
+              revision: 42,
+              data: {
+                recoveryPointId: envelope.payload.recoveryPointId,
+                baseRevision: 42,
+                changes: [
+                  {
+                    type: 'modify',
+                    path: 'workspace.mcreator',
+                    objectKind: 'workspace',
+                    objectName: 'workspace'
+                  },
+                  { type: 'delete', path: 'scratch/current-only.txt' }
+                ]
+              },
+              diagnostics: []
+            });
+          }
+
           if (envelope.messageType === 'query' && envelope.operation === 'get_workbench') {
             return JSON.stringify({
               messageType: 'query_result',
@@ -157,6 +184,70 @@ test.describe('JCEF Bridge & Host Transport Integration', () => {
                 page: 1,
                 pageSize: 200,
                 availableTypes: ['item', 'block', 'recipe', 'procedure']
+              },
+              diagnostics: []
+            });
+          }
+
+          if (envelope.messageType === 'query' && envelope.operation === 'get_history') {
+            return JSON.stringify({
+              messageType: 'query_result',
+              schemaVersion: '1.0',
+              requestId: envelope.requestId,
+              workspaceId,
+              operation: 'get_history',
+              status: 'succeeded',
+              revision: 42,
+              data: {
+                currentRevision: 42,
+                currentRecoveryPointId: null,
+                recoveryPoints: [
+                  {
+                    id: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+                    label: 'After native edit',
+                    actor: 'ui',
+                    taskId: '',
+                    source: 'workspace_plan',
+                    createdAt: '2026-09-06T06:10:00Z'
+                  },
+                  {
+                    id: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+                    label: 'Before native edit',
+                    actor: 'system',
+                    taskId: '',
+                    source: 'manual',
+                    createdAt: '2026-09-06T06:00:00Z'
+                  }
+                ]
+              },
+              diagnostics: []
+            });
+          }
+
+          if (envelope.messageType === 'query' && envelope.operation === 'get_diff') {
+            window.sessionStorage.setItem('lastHistoryDiffPayload', JSON.stringify(envelope.payload));
+            return JSON.stringify({
+              messageType: 'query_result',
+              schemaVersion: '1.0',
+              requestId: envelope.requestId,
+              workspaceId,
+              operation: 'get_diff',
+              status: 'succeeded',
+              revision: 42,
+              data: {
+                fromRecoveryPointId: envelope.payload.fromRecoveryPointId,
+                toRecoveryPointId: envelope.payload.toRecoveryPointId,
+                baseRevision: 42,
+                changes: [{
+                  type: 'modify',
+                  path: 'elements/native_compass.mod.json',
+                  objectKind: 'mod_element',
+                  objectName: 'native_compass',
+                  fieldChanges: [
+                    { type: 'modify', pointer: '/settings/maxStackSize' },
+                    { type: 'add', pointer: '/settings/glint' }
+                  ]
+                }]
               },
               diagnostics: []
             });
@@ -258,6 +349,32 @@ test.describe('JCEF Bridge & Host Transport Integration', () => {
     await expect(page.locator('[data-testid="task-drawer"]')).toContainText('SUCCEEDED');
     await expect(page.locator('[data-testid="task-log-stream"]'))
       .toContainText('Minecraft client reached the readiness marker.');
+
+    await page.click('[data-testid="nav-history"]');
+    await expect(page.locator('[data-testid="history-view"]')).toBeVisible();
+    await expect(page.locator('[data-testid="history-point"]').first()).toContainText('工作区计划');
+    await expect(page.locator('[data-testid="restore-recovery-point"]')).toBeEnabled();
+    await expect.poll(() => page.evaluate(() => window.sessionStorage.getItem('lastHistoryDiffPayload')))
+      .toBe(JSON.stringify({
+        fromRecoveryPointId: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+        toRecoveryPointId: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+      }));
+    await expect(page.locator('[data-testid="history-change"]'))
+      .toContainText('Mod Element native_compass');
+    await expect(page.locator('[data-testid="history-change"]'))
+      .toContainText('/settings/maxStackSize');
+    await expect(page.locator('[data-testid="history-change"]'))
+      .toContainText('elements/native_compass.mod.json');
+
+    await page.locator('[data-testid="history-point"]').nth(1).click();
+    await page.locator('[data-testid="restore-recovery-point"]').click();
+    await expect.poll(() => page.evaluate(() => window.sessionStorage.getItem('lastRestorePreviewPayload')))
+      .toBe(JSON.stringify({ recoveryPointId: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' }));
+    await expect(page.locator('[data-testid="restore-recovery-dialog"]'))
+      .toContainText('scratch/current-only.txt');
+    await expect(page.locator('[data-testid="restore-recovery-dialog"]'))
+      .toContainText('工作区 workspace');
+    await expect(page.locator('[data-testid="confirm-restore-recovery"]')).toBeEnabled();
   });
 
   test('routes native domain events to update diagnostics and workbench in real-time', async ({ page }) => {
@@ -495,7 +612,7 @@ test.describe('JCEF Bridge & Host Transport Integration', () => {
             return JSON.stringify({
               messageType: 'query_result', schemaVersion: '1.0', requestId: envelope.requestId,
               workspaceId, operation: 'get_history', status: 'succeeded', revision: 1,
-              data: { recoveryPoints: [] }, diagnostics: []
+              data: { currentRevision: 1, currentRecoveryPointId: null, recoveryPoints: [] }, diagnostics: []
             });
           }
           throw new Error(`Unexpected operation: ${String(envelope.operation)}`);
@@ -629,7 +746,11 @@ test.describe('JCEF Bridge & Host Transport Integration', () => {
             });
           }
           if (envelope.operation === 'get_history') {
-            return queryResult(envelope, 'get_history', { recoveryPoints: [] });
+            return queryResult(envelope, 'get_history', {
+              currentRevision: 1,
+              currentRecoveryPointId: null,
+              recoveryPoints: []
+            });
           }
           if (envelope.operation === 'run_client') {
             return JSON.stringify({

@@ -84,6 +84,8 @@ class Fabric1211GeneratorTest {
 
 	@Test void materializedPluginWorkspaceGenerationPreservesUserCodeAndIndependentPackagesByteExact() throws Exception {
 		Files.writeString(output.resolve("testmod2.mcreator"), "{\"name\":\"testmod2\"}\n");
+		String userBuild = "plugins { id 'example.user-owned' version '1.0' }\n";
+		Files.writeString(output.resolve("build.gradle"), userBuild);
 		Path mainClass = output.resolve("src/main/java/net/mcreator/testmod/Testmod2Mod.java");
 		Path wanjianClass = output.resolve("src/main/java/net/mcreator/testmod/wanjian/WanJianGuiZongItem.java");
 		Path recipe = output.resolve("src/main/resources/data/testmod2/recipe/wan_jian_gui_zong.json");
@@ -114,6 +116,13 @@ class Fabric1211GeneratorTest {
 		assertEquals(userOwnedMain, Files.readString(mainClass));
 		assertEquals(independentPackage, Files.readString(wanjianClass));
 		assertEquals(userRecipe, Files.readString(recipe));
+		assertEquals(userBuild, Files.readString(output.resolve("build.gradle")),
+				"plugin-owned Gradle configuration must remain byte-exact");
+		assertTrue(Files.isRegularFile(output.resolve("gradlew")));
+		assertTrue(Files.isRegularFile(output.resolve("gradlew.bat")));
+		assertTrue(Files.isRegularFile(output.resolve("gradle/wrapper/gradle-wrapper.jar")));
+		assertTrue(Files.readString(output.resolve("gradle/wrapper/gradle-wrapper.properties"))
+				.contains("mirrors.huaweicloud.com/gradle/gradle-9.7.0-bin.zip"));
 		assertTrue(result.generatedPaths().contains("src/main/java/net/mcreator/testmod/Testmod2Mod.java"));
 		assertTrue(result.generatedPaths().contains("src/main/java/net/mcreator/testmod/wanjian/WanJianGuiZongItem.java"));
 		assertFalse(Files.exists(output.resolve("src/main/java/dev/coppertrails/CopperTrailsMod.java")),

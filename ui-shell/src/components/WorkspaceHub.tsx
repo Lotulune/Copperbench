@@ -15,7 +15,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
-import { TaskSummary } from '../types/contract';
+import { TaskSummary, WorkspaceHealthProjection } from '../types/contract';
 import { t } from '../i18n';
 
 export const WorkspaceHub: React.FC = () => {
@@ -27,8 +27,11 @@ export const WorkspaceHub: React.FC = () => {
     buildWorkspace,
     cancelTask,
     setIsTaskDrawerOpen,
-    runDiagnosticAction
+    runDiagnosticAction,
+    getWorkspaceHealth
   } = useWorkbench();
+
+  const [workspaceHealth, setWorkspaceHealth] = React.useState<WorkspaceHealthProjection | null>(null);
 
   const workspace = state.workbench?.workspace;
   const elementCounts = state.workbench?.elementCounts ?? { total: 0, valid: 0, draft: 0, invalid: 0, unsupported: 0 };
@@ -40,6 +43,16 @@ export const WorkspaceHub: React.FC = () => {
   const topLevelDiagnostics = state.diagnostics.filter((d) => !d.elementId && !d.path);
   const failedTask: TaskSummary | null =
     Object.values(state.tasks).find((t) => t.state === 'failed') ?? null;
+
+  React.useEffect(() => {
+    let active = true;
+    void getWorkspaceHealth().then((health) => {
+      if (active) setWorkspaceHealth(health);
+    });
+    return () => {
+      active = false;
+    };
+  }, [getWorkspaceHealth, workspace?.revision]);
 
   if (state.viewportState === 'loading') {
     return (
@@ -382,6 +395,125 @@ export const WorkspaceHub: React.FC = () => {
           <AlertCircle size={28} color={elementCounts.invalid > 0 ? 'var(--badge-red)' : 'var(--text-sub)'} />
         </div>
       </div>
+
+      {workspaceHealth && (
+        <div
+          data-testid="workspace-health-panel"
+          style={{
+            background: 'var(--bg-surface)',
+            border: '1px solid var(--border-subtle)',
+            borderRadius: 'var(--radius-lg)',
+            padding: '20px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '14px'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+            <div>
+              <h2 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-main)' }}>项目健康</h2>
+              <div style={{ marginTop: '4px', fontSize: '11px', color: 'var(--text-sub)' }}>
+                仅汇总 Core 已确认的项目事实，不计算隐藏健康分。
+              </div>
+            </div>
+            <span className="badge badge-copper">修订 {workspaceHealth.revision}</span>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '10px' }}>
+            <div
+              data-testid="workspace-health-diagnostics"
+              style={{
+                minHeight: '58px', padding: '8px 12px', border: '1px solid var(--border-subtle)',
+                borderRadius: 'var(--radius-sm)', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+              }}
+            >
+              <span>诊断</span>
+              <strong>{workspaceHealth.diagnostics.total} 条 · {workspaceHealth.diagnostics.error} 错误</strong>
+            </div>
+            <button
+              type="button"
+              className="btn-secondary"
+              data-testid="workspace-health-elements"
+              onClick={() => setActiveView('elements')}
+              style={{ justifyContent: 'space-between', minHeight: '58px' }}
+            >
+              <span>元素状态</span>
+              <strong>{workspaceHealth.elements.invalid} 无效 · {workspaceHealth.elements.draft} 草稿</strong>
+            </button>
+            <button
+              type="button"
+              className="btn-secondary"
+              data-testid="workspace-health-references"
+              onClick={() => setActiveView('data')}
+              style={{ justifyContent: 'space-between', minHeight: '58px' }}
+            >
+              <span>结构化引用</span>
+              <strong>{workspaceHealth.references.danglingCount} 个断引用</strong>
+            </button>
+            <button
+              type="button"
+              className="btn-secondary"
+              data-testid="workspace-health-assets"
+              onClick={() => setActiveView('assets')}
+              style={{ justifyContent: 'space-between', minHeight: '58px' }}
+            >
+              <span>资产</span>
+              <strong>
+                {workspaceHealth.assets.indexed && workspaceHealth.assets.summary
+                  ? `${workspaceHealth.assets.summary.missingReferences} 缺失 · ${workspaceHealth.assets.summary.unusedAssets} 未使用`
+                  : workspaceHealth.assets.reasonCode ?? '未建立索引'}
+              </strong>
+            </button>
+            <button
+              type="button"
+              className="btn-secondary"
+              data-testid="workspace-health-generator"
+              onClick={() => setActiveView('tracks')}
+              style={{ justifyContent: 'space-between', minHeight: '58px' }}
+            >
+              <span>生成器</span>
+              <strong>{workspaceHealth.generator.status} · {workspaceHealth.generator.generatable ? '可生成' : '不可生成'}</strong>
+            </button>
+            <button
+              type="button"
+              className="btn-secondary"
+              data-testid="workspace-health-tasks"
+              onClick={() => setIsTaskDrawerOpen(true)}
+              style={{ justifyContent: 'space-between', minHeight: '58px' }}
+            >
+              <span>当前会话任务</span>
+              <strong>{workspaceHealth.tasks.activeCount} 运行中 · {workspaceHealth.tasks.recentFailed.length} 最近失败</strong>
+            </button>
+            <button
+              type="button"
+              className="btn-secondary"
+              data-testid="workspace-health-recovery"
+              onClick={() => setActiveView('history')}
+              style={{ justifyContent: 'space-between', minHeight: '58px' }}
+            >
+              <span>本地恢复</span>
+              <strong>
+                {workspaceHealth.recovery.available
+                  ? `${workspaceHealth.recovery.recoveryPointCount} 个恢复点`
+                  : workspaceHealth.recovery.reasonCode ?? '不可用'}
+              </strong>
+            </button>
+            <button
+              type="button"
+              className="btn-secondary"
+              data-testid="workspace-health-risk"
+              onClick={() => setActiveView('tracks')}
+              style={{ justifyContent: 'space-between', minHeight: '58px' }}
+            >
+              <span>高风险变更</span>
+              <strong>
+                {workspaceHealth.risk.loaderMigration.availableTargetCount} 个迁移目标 ·
+                {workspaceHealth.risk.aiBatchChanges.highImpactOperationThreshold}+ 操作标记高影响
+              </strong>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Recent Elements Queue Section */}
       <div

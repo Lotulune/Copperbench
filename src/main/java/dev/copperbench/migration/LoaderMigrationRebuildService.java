@@ -10,6 +10,7 @@
 package dev.copperbench.migration;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import dev.copperbench.core.workspace.WorkspaceState;
 import dev.copperbench.generator.fabric.Fabric1211Generator;
@@ -19,6 +20,7 @@ import dev.copperbench.tracks.VersionTrackCatalog;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 /**
  * Validates and generates the copy-only migration target with the destination
@@ -49,7 +51,9 @@ public final class LoaderMigrationRebuildService {
 				Fabric1211Generator generator = new Fabric1211Generator(distributionRoot, fabric);
 				var issues = generator.validate(target);
 				if (!issues.isEmpty())
-					return RebuildResult.failed(targetGeneratorId, issues.getFirst().code(), issues.getFirst().message());
+					return RebuildResult.failedValidation(targetGeneratorId, issues.getFirst().code(),
+							issues.getFirst().message(), issues.getFirst().path(), issues.getFirst().elementId(),
+							issues.getFirst().repairValue());
 				var generated = generator.generateMigrationTarget(targetRoot, target);
 				return RebuildResult.generated(generated.generatorId(), generated.modId(), generated.generatedPaths());
 			}
@@ -58,7 +62,9 @@ public final class LoaderMigrationRebuildService {
 				NeoForge1211Generator generator = new NeoForge1211Generator(distributionRoot, neoForge);
 				var issues = generator.validate(target);
 				if (!issues.isEmpty())
-					return RebuildResult.failed(targetGeneratorId, issues.getFirst().code(), issues.getFirst().message());
+					return RebuildResult.failedValidation(targetGeneratorId, issues.getFirst().code(),
+							issues.getFirst().message(), issues.getFirst().path(), issues.getFirst().elementId(),
+							issues.getFirst().repairValue());
 				var generated = generator.generateMigrationTarget(targetRoot, target);
 				return RebuildResult.generated(generated.generatorId(), generated.modId(), generated.generatedPaths());
 			}
@@ -108,18 +114,19 @@ public final class LoaderMigrationRebuildService {
 	}
 
 	public record RebuildResult(String status, String generatorId, String modId, String reasonCode, String message,
-			List<String> generatedPaths, Throwable cause) {
+			List<String> generatedPaths, String path, UUID elementId, JsonElement repairValue, Throwable cause) {
 		public RebuildResult {
 			generatedPaths = generatedPaths == null ? List.of() : List.copyOf(generatedPaths);
+			repairValue = repairValue == null ? null : repairValue.deepCopy();
 		}
 
 		static RebuildResult generated(String generatorId, String modId, List<String> generatedPaths) {
 			return new RebuildResult("generated", generatorId, modId, "MIGRATION_REBUILT",
-					"The target copy was generated with the destination generator.", generatedPaths, null);
+					"The target copy was generated with the destination generator.", generatedPaths, null, null, null, null);
 		}
 
 		static RebuildResult skipped(String generatorId, String reasonCode, String message) {
-			return new RebuildResult("skipped", generatorId, "", reasonCode, message, List.of(), null);
+			return new RebuildResult("skipped", generatorId, "", reasonCode, message, List.of(), null, null, null, null);
 		}
 
 		static RebuildResult failed(String generatorId, String reasonCode, String message) {
@@ -127,7 +134,13 @@ public final class LoaderMigrationRebuildService {
 		}
 
 		static RebuildResult failed(String generatorId, String reasonCode, String message, Throwable cause) {
-			return new RebuildResult("failed", generatorId, "", reasonCode, message, List.of(), cause);
+			return new RebuildResult("failed", generatorId, "", reasonCode, message, List.of(), null, null, null, cause);
+		}
+
+		static RebuildResult failedValidation(String generatorId, String reasonCode, String message, String path,
+				UUID elementId, JsonElement repairValue) {
+			return new RebuildResult("failed", generatorId, "", reasonCode, message, List.of(), path, elementId,
+					repairValue, null);
 		}
 
 		public boolean generated() {

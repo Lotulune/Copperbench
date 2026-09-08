@@ -13,5 +13,10 @@ import dev.copperbench.core.contract.UiCore.Actor;
 
 import java.time.Instant;
 
-public record RecoveryPoint(String id, String label, Actor actor, String taskId, Instant createdAt) {
+public record RecoveryPoint(String id, String label, Actor actor, String taskId, RecoveryPointSource source,
+		Instant createdAt) {
+
+	public RecoveryPoint(String id, String label, Actor actor, String taskId, Instant createdAt) {
+		this(id, label, actor, taskId, RecoveryPointSource.MANUAL, createdAt);
+	}
 }

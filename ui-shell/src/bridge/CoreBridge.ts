@@ -44,6 +44,7 @@ export interface BridgeState {
   elementEditors: Record<UUID, ModElementEditorProjection>;
   tasks: Record<UUID, TaskSummary>;
   taskLogs: Record<UUID, TaskLogEntry[]>;
+  taskDiagnostics: Record<UUID, Diagnostic[]>;
   diagnostics: Diagnostic[];
   recoveryPoints: RecoveryPoint[];
   currentRecoveryPointId: string | null;

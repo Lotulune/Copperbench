@@ -641,6 +641,26 @@ input:disabled, select:disabled, textarea:disabled {
   text-transform: uppercase;
 }
 
+.history-filter-bar {
+  display: grid;
+  gap: 6px;
+  margin: 0 0 12px;
+}
+
+.history-filter-bar input,
+.history-filter-bar select {
+  width: 100%;
+  min-width: 0;
+  height: 30px;
+  font-size: 11px;
+}
+
+.history-filter-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 6px;
+}
+
 .history-list {
   display: flex;
   flex-direction: column;
@@ -949,6 +969,82 @@ input:disabled, select:disabled, textarea:disabled {
 .permission-option.is-active {
   border-color: var(--accent-copper);
   background: var(--accent-copper-dim);
+}
+
+.procedure-graph-navigation {
+  flex: 0 0 auto;
+  padding-bottom: 7px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+}
+
+.procedure-graph-search {
+  padding: 8px 10px 4px;
+}
+
+.procedure-graph-search svg {
+  top: 17px;
+}
+
+.procedure-search-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 10px;
+}
+
+.procedure-search-controls span {
+  min-width: 0;
+  flex: 1;
+  color: var(--text-sub);
+  font-size: 9px;
+}
+
+.procedure-search-controls button,
+.procedure-diagnostic button {
+  min-width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 3px 5px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  background: var(--bg-panel);
+  font-size: 9px;
+}
+
+.procedure-search-controls button:hover:not(:disabled),
+.procedure-diagnostic button:hover {
+  color: var(--text-main);
+  border-color: var(--border-active);
+  background: var(--bg-hover);
+}
+
+.procedure-selected-location {
+  width: calc(100% - 20px);
+  min-width: 0;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 5px 10px 0;
+  padding: 4px 6px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-sub);
+  background: var(--bg-panel);
+  font-size: 9px;
+  text-align: left;
+}
+
+.procedure-selected-location span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .connection-state {
@@ -1461,6 +1557,74 @@ input:disabled, select:disabled, textarea:disabled {
   color: var(--text-muted);
 }
 
+.asset-health-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-top: 10px;
+  padding: 9px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+}
+
+.asset-health-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.asset-health-summary span {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 5px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-panel);
+  color: var(--text-sub);
+  font-size: 9px;
+}
+
+.asset-health-summary strong { color: var(--text-main); font-size: 12px; }
+.asset-health-filters { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; }
+.asset-health-filters button {
+  min-height: 28px;
+  padding: 4px 6px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-sub);
+  background: var(--bg-panel);
+  font-size: 10px;
+}
+.asset-health-filters button:hover,
+.asset-health-filters button.is-active {
+  color: var(--text-main);
+  border-color: var(--border-active);
+  background: var(--bg-card-hover);
+}
+.asset-health-missing {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--badge-red);
+  font-size: 9px;
+}
+
+.asset-health-issues {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 8px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+}
+.asset-health-issues > code {
+  overflow-wrap: anywhere;
+  color: var(--badge-amber);
+  font-size: 9px;
+}
+
 /* Detail Panel */
 .asset-details-panel {
   display: flex;
@@ -1947,6 +2111,61 @@ input:disabled, select:disabled, textarea:disabled {
   padding-left: 29px;
 }
 
+.procedure-palette-filter {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px 8px;
+  color: var(--text-sub);
+}
+
+.procedure-palette-filter select {
+  min-width: 0;
+  flex: 1;
+  height: 28px;
+}
+
+.procedure-recent {
+  flex: 0 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 0 8px 8px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.procedure-section-label {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 2px 1px;
+  color: var(--text-sub);
+  font-size: 9px;
+  text-transform: uppercase;
+}
+
+.procedure-recent-button {
+  max-width: 100%;
+  min-width: 32px;
+  min-height: 32px;
+  padding: 4px 7px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  background: var(--bg-panel);
+  font-size: 9px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.procedure-recent-button:hover:not(:disabled) {
+  color: var(--text-main);
+  border-color: var(--border-active);
+  background: var(--bg-hover);
+}
+
 .procedure-node-list {
   flex: 1;
   overflow-y: auto;
@@ -2096,6 +2315,193 @@ input:disabled, select:disabled, textarea:disabled {
 .procedure-diagnostic.error { border-left-color: var(--badge-red); }
 .procedure-diagnostic code,
 .procedure-reference code { overflow-wrap: anywhere; color: var(--text-sub); font-size: 9px; }
+
+.procedure-diagnostic button {
+  align-self: flex-start;
+  margin-top: 3px;
+}
+
+.procedure-symbol-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 7px 8px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--bg-panel);
+}
+
+.procedure-symbol-summary strong { color: var(--text-main); font-size: 10px; }
+.procedure-symbol-summary span { color: var(--text-sub); font-size: 9px; }
+
+.procedure-symbol-row {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 6px 8px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  background: var(--bg-panel);
+  text-align: left;
+}
+
+.procedure-symbol-row:hover {
+  color: var(--text-main);
+  border-color: var(--border-active);
+  background: var(--bg-hover);
+}
+
+.procedure-symbol-row span { font-size: 9px; }
+.procedure-symbol-row code { color: var(--text-sub); font-size: 9px; overflow-wrap: anywhere; }
+.procedure-symbol-row small { color: var(--text-sub); font-size: 9px; }
+
+.procedure-symbol-refactor-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px;
+  align-items: stretch;
+}
+
+.procedure-symbol-refactor-row .procedure-symbol-row {
+  min-width: 0;
+}
+
+.procedure-refactor-start,
+.procedure-refactor-actions button {
+  min-width: 32px;
+  min-height: 32px;
+  padding: 6px 9px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  background: var(--bg-panel);
+}
+
+.procedure-refactor-start:hover:not(:disabled),
+.procedure-refactor-actions button:hover:not(:disabled) {
+  color: var(--text-main);
+  border-color: var(--border-active);
+  background: var(--bg-hover);
+}
+
+.procedure-refactor-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 9px;
+  border: 1px solid var(--border-active);
+  border-radius: var(--radius-sm);
+  background: var(--bg-panel);
+}
+
+.procedure-refactor-card label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--text-sub);
+  font-size: 9px;
+}
+
+.procedure-refactor-card input,
+.procedure-refactor-card select {
+  min-height: 32px;
+  padding: 5px 7px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-main);
+  background: var(--bg-base);
+}
+
+.procedure-extract-start {
+  align-self: flex-start;
+  margin: 2px 0 4px;
+}
+
+.procedure-refactor-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.procedure-refactor-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 7px 8px;
+  border-left: 3px solid var(--badge-green);
+  background: var(--bg-base);
+}
+
+.procedure-refactor-preview.blocked { border-left-color: var(--badge-red); }
+.procedure-refactor-preview strong { color: var(--text-main); font-size: 10px; }
+.procedure-refactor-preview span { color: var(--text-sub); font-size: 9px; }
+.procedure-refactor-preview code { overflow-wrap: anywhere; color: var(--text-muted); font-size: 8px; }
+
+.procedure-plan-review {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 7px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--bg-panel);
+}
+
+.procedure-plan-review.high-impact { border-color: var(--border-active); }
+.procedure-plan-review-summary { display: flex; flex-direction: column; gap: 2px; }
+.procedure-plan-review-summary strong { color: var(--text-main); font-size: 10px; }
+.procedure-plan-review-summary span,
+.procedure-plan-review details,
+.procedure-plan-review-objects small { color: var(--text-sub); font-size: 9px; }
+.procedure-plan-review-groups { display: flex; flex-wrap: wrap; gap: 4px; }
+.procedure-plan-review-groups span,
+.procedure-relationship-kinds span {
+  padding: 2px 5px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  color: var(--text-sub);
+  font-size: 8px;
+}
+.procedure-plan-review-objects { margin: 5px 0 0; padding-left: 18px; }
+.procedure-plan-review-objects li { margin: 3px 0; }
+.procedure-plan-review-objects li > span { display: flex; justify-content: space-between; gap: 8px; }
+.procedure-plan-review-objects code { font-size: 8px; }
+
+.procedure-relationship-overview {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 8px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--bg-panel);
+}
+.procedure-relationship-summary { display: flex; justify-content: space-between; gap: 8px; }
+.procedure-relationship-summary strong { color: var(--text-main); font-size: 10px; }
+.procedure-relationship-summary span { color: var(--text-sub); font-size: 9px; }
+.procedure-relationship-kinds { display: flex; flex-wrap: wrap; gap: 4px; }
+.procedure-relationship-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.procedure-relationship-columns > div { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.procedure-relationship-columns > div > strong { color: var(--text-sub); font-size: 9px; }
+.procedure-relationship-columns small { color: var(--text-muted); font-size: 8px; }
+.procedure-relationship-row {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 5px 6px;
+  border-left: 2px solid var(--border-active);
+  background: var(--bg-base);
+}
+.procedure-relationship-row span { overflow-wrap: anywhere; color: var(--text-main); font-size: 9px; }
+.procedure-relationship-row code { overflow-wrap: anywhere; color: var(--text-muted); font-size: 8px; }
+
+@media (max-width: 1450px) {
+  .procedure-relationship-columns { grid-template-columns: 1fr; }
+}
 
 .procedure-node-outline {
   display: flex;
@@ -2316,4 +2722,141 @@ input:disabled, select:disabled, textarea:disabled {
   .procedure-body { grid-template-columns: 180px minmax(300px, 1fr) 260px; }
   .procedure-tabs svg { display: none; }
   .registry-create-band { grid-template-columns: repeat(2, minmax(140px, 1fr)); }
+}
+
+.asset-import-review-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.52);
+}
+
+.asset-import-review {
+  width: min(620px, 100%);
+  max-height: min(760px, calc(100vh - 48px));
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.36);
+}
+
+.asset-import-review-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.asset-import-review-heading > div,
+.asset-import-target-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.asset-import-review-heading strong {
+  font-size: 15px;
+}
+
+.asset-import-review-heading span,
+.asset-import-review-source span,
+.asset-import-target-field > span,
+.asset-import-preview-summary span {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.asset-import-review-source,
+.asset-import-preview-summary {
+  padding: 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+}
+
+.asset-import-review-source {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.asset-import-review-source strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.asset-import-target-field input {
+  min-height: 34px;
+  padding: 6px 9px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--bg-input);
+  color: var(--text-main);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.asset-import-review-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.asset-import-review-actions button,
+.asset-import-review-heading button {
+  min-width: 32px;
+  min-height: 32px;
+}
+
+.asset-import-review-status,
+.asset-import-review-error {
+  padding: 9px 11px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+}
+
+.asset-import-review-status {
+  background: var(--bg-panel);
+  color: var(--text-muted);
+}
+
+.asset-import-review-error {
+  border: 1px solid var(--badge-red);
+  background: var(--badge-red-bg);
+  color: var(--badge-red);
+}
+
+.asset-import-preview-summary {
+  display: grid;
+  gap: 8px;
+}
+
+.asset-import-preview-summary > div {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+}
+
+.asset-import-preview-summary code {
+  overflow-wrap: anywhere;
+  font-size: 10px;
+}
+
+.asset-import-duplicates > div,
+.asset-import-issue-codes > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }

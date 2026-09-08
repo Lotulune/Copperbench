@@ -23,6 +23,18 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class RecoverableBrowserHostTest {
 
+	@Test void forwardsAsyncScriptsToCurrentBrowser() throws Exception {
+		FakeBrowser browser = new FakeBrowser();
+		RecoverableBrowserHost host = onEdt(() -> new RecoverableBrowserHost(() -> browser, () -> {
+		}));
+		try {
+			host.executeScriptAsync("window.__copperbenchShortcut = true;");
+			assertEquals("window.__copperbenchShortcut = true;", browser.lastScript);
+		} finally {
+			onEdt(host::close);
+		}
+	}
+
 	@Test void recreatesBrowserAndWaitsForLoadBeforeLeavingRecovery() throws Exception {
 		FakeBrowser first = new FakeBrowser();
 		FakeBrowser replacement = new FakeBrowser();
@@ -125,6 +137,7 @@ class RecoverableBrowserHostTest {
 		private final List<Runnable> loadListeners = new CopyOnWriteArrayList<>();
 		private final List<Consumer<String>> terminationListeners = new CopyOnWriteArrayList<>();
 		private int forceLoads;
+		private String lastScript;
 		private boolean closed;
 		private boolean loadBeforeFailure;
 		private RuntimeException forceLoadFailure;
@@ -147,6 +160,10 @@ class RecoverableBrowserHostTest {
 				loaded();
 			if (forceLoadFailure != null)
 				throw forceLoadFailure;
+		}
+
+		@Override public void executeScriptAsync(String javaScript) {
+			lastScript = javaScript;
 		}
 
 		@Override public void close() {

@@ -12,8 +12,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -100,6 +102,48 @@ class BlockbenchProcessServiceTest {
 		assertEquals(BlockbenchProcessService.State.EXITED, exited.state());
 		assertEquals("ASSET_CHANGED_EXTERNALLY", exited.diagnosticCode());
 		assertTrue(!exited.openedSha256().equals(exited.currentSha256()));
+	}
+
+	@Test void managedLifecyclePreparesBeforeLaunchAndCompletesAChangedAssetExactlyOnce() throws IOException {
+		Path executable = temp.resolve("Blockbench.exe");
+		Files.write(executable, new byte[] { 1 });
+		FakeProcess process = new FakeProcess(9912);
+		List<String> order = new ArrayList<>();
+		AtomicInteger completions = new AtomicInteger();
+		BlockbenchProcessService.EditLifecycle lifecycle = new BlockbenchProcessService.EditLifecycle() {
+			@Override public BlockbenchProcessService.PreparedEdit prepare(AssetDescriptor asset) {
+				order.add("prepare");
+				return new BlockbenchProcessService.PreparedEdit("recovery-1", 3, asset.id(), asset.relativePath(),
+						asset.sha256());
+			}
+
+			@Override public BlockbenchProcessService.Completion complete(BlockbenchProcessService.PreparedEdit prepared,
+					AssetDescriptor current) {
+				order.add("complete");
+				completions.incrementAndGet();
+				return new BlockbenchProcessService.Completion(prepared.recoveryPointId(), 4);
+			}
+		};
+		var service = new BlockbenchProcessService(new AssetWorkspaceService(workspace), executable, arguments -> {
+			order.add("start");
+			return process;
+		}, new BlockbenchInstallationDetector(path -> "5.0.0"), lifecycle);
+
+		var opened = service.openAsset(model.id());
+		assertEquals(List.of("prepare", "start"), order);
+		assertEquals("recovery-1", opened.recoveryPointId());
+		Files.writeString(workspace.resolve("assets/copperbench/models/copper_lamp.bbmodel"), "{\"edited\":true}");
+		process.finish(0);
+
+		var exited = service.status();
+		assertEquals(BlockbenchProcessService.State.EXITED, exited.state());
+		assertTrue(exited.changeCommitted());
+		assertEquals(4L, exited.workspaceRevision());
+		assertEquals("recovery-1", exited.recoveryPointId());
+		assertEquals(null, exited.diagnosticCode());
+		assertEquals(1, completions.get());
+		service.status();
+		assertEquals(1, completions.get());
 	}
 
 	@Test void reportsAbnormalExitWithoutChangingTheCommittedAsset() throws IOException {

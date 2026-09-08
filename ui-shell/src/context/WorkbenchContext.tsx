@@ -18,13 +18,24 @@ import {
   UpstreamToolCatalogProjection,
   NewWorkspaceGeneratorCatalog,
   AssetProjection,
+  AssetImportPreview, AssetImportBatchPreview, AssetMovePreview,
   ProcedureEditorProjection,
+  ProcedureChangePreview,
   ProcedureEdit,
   WorkspaceRegistriesProjection,
   RegistryEntry,
   RegistryRenamePreview,
   WorkspaceReferenceProjection,
-  DatagenPreview
+  WorkspacePlan,
+  WorkspacePlanStep,
+  ProcedureRefactorRequest,
+  DatagenPreview,
+  TaskProjection,
+  TaskSourcePreview,
+  HistoryProjection,
+  HistoryComparison,
+  RecoveryRestorePreview,
+  WorkspaceHealthProjection
 } from '../types/contract';
 import {
   coreBridge,
@@ -38,6 +49,13 @@ import { t } from '../i18n';
 
 export type NavView = 'hub' | 'elements' | 'data' | 'assets' | 'history' | 'ai' | 'plugins' | 'tracks' | 'new-workspace' | 'help';
 
+export interface ProcedureFocusRequest {
+  elementId: UUID;
+  nodeId: string;
+  port: string | null;
+  requestId: UUID;
+}
+
 interface WorkbenchContextType {
   state: BridgeState;
   theme: 'dark' | 'light';
@@ -47,6 +65,10 @@ interface WorkbenchContextType {
   selectedElementId: UUID | null;
   selectedElement: ModElementSummary | null;
   setSelectedElementId: (id: UUID | null) => void;
+  assetFocusId: string | null;
+  setAssetFocusId: (id: string | null) => void;
+  procedureFocusRequest: ProcedureFocusRequest | null;
+  clearProcedureFocusRequest: () => void;
   isTaskDrawerOpen: boolean;
   setIsTaskDrawerOpen: (open: boolean) => void;
   activeTaskId: UUID | null;
@@ -66,12 +88,17 @@ interface WorkbenchContextType {
   getModElementEditor: (elementId: UUID) => Promise<ModElementEditorProjection | null>;
   previewModElementChange: (elementId: UUID, changes: FieldChange[]) => Promise<ModElementChangePreview | null>;
   getProcedureEditor: (elementId: UUID) => Promise<ProcedureEditorProjection | null>;
+  previewProcedureChange: (elementId: UUID, edits: ProcedureEdit[]) => Promise<ProcedureChangePreview | null>;
   updateProcedure: (elementId: UUID, edits: ProcedureEdit[]) => Promise<CommandResult>;
   listWorkspaceRegistries: () => Promise<WorkspaceRegistriesProjection | null>;
   getWorkspaceReferences: (target?: string) => Promise<WorkspaceReferenceProjection | null>;
   createRegistryEntry: (registry: 'variables' | 'tags' | 'languageKeys', entry: Partial<RegistryEntry>) => Promise<CommandResult>;
   updateRegistryEntry: (entryId: UUID, changes: FieldChange[]) => Promise<CommandResult>;
   previewRegistryRename: (entryId: UUID, newName: string) => Promise<RegistryRenamePreview | null>;
+  planProcedureRefactor: (request: ProcedureRefactorRequest) => Promise<WorkspacePlan | null>;
+  planWorkspaceChanges: (operations: Array<Omit<WorkspacePlanStep, 'plannedId'>>, requireRecoveryPoint?: boolean,
+    expectedRevision?: number) => Promise<WorkspacePlan | null>;
+  applyWorkspacePlan: (plan: WorkspacePlan) => Promise<CommandResult>;
   renameRegistryEntry: (entryId: UUID, newName: string) => Promise<CommandResult>;
   deleteRegistryEntry: (entryId: UUID) => Promise<CommandResult>;
   createModElement: (type: ModElementType, name: string) => Promise<CommandResult>;
@@ -83,12 +110,17 @@ interface WorkbenchContextType {
   runServer: (userApproved: boolean) => Promise<CommandResult>;
   runDatagen: () => Promise<CommandResult>;
   previewDatagenOutput: (taskId: UUID) => Promise<DatagenPreview | null>;
+  previewTaskSource: (taskId: UUID, sourcePath: string) => Promise<TaskSourcePreview | null>;
   publishDatagenOutput: (taskId: UUID, manifestHash: string) => Promise<CommandResult>;
   runGameTest: () => Promise<CommandResult>;
   cancelTask: (taskId: UUID) => Promise<CommandResult>;
   createRecoveryPoint: (label: string) => Promise<CommandResult>;
+  refreshHistory: () => Promise<HistoryProjection | null>;
+  compareRecoveryPoints: (fromRecoveryPointId: string, toRecoveryPointId: string) => Promise<HistoryComparison | null>;
+  previewRecoveryRestore: (recoveryPointId: string) => Promise<RecoveryRestorePreview | null>;
   restoreRecoveryPoint: (recoveryPointId: string) => Promise<CommandResult>;
   resolveOperationApproval: (approvalId: UUID, decision: 'approve' | 'deny') => Promise<CommandResult>;
+  getWorkspaceHealth: () => Promise<WorkspaceHealthProjection | null>;
   getVersionTracks: () => Promise<VersionTracksProjection | null>;
   previewLoaderMigration: (targetGeneratorId: string) => Promise<LoaderMigrationPreview | null>;
   executeLoaderMigration: (targetGeneratorId: string, outputName: string, userApproved: boolean) => Promise<CommandResult>;
@@ -100,6 +132,12 @@ interface WorkbenchContextType {
   createPublishBatch: (name: string, sourceDirectory: string, output: string) => Promise<CommandResult>;
   prepareResourcePackClient: (sourceDirectory: string, zipFileName: string) => Promise<CommandResult>;
   listAssets: () => Promise<AssetProjection | null>;
+  previewAssetImport: (sourceGrantId: string, targetRelativePath: string) => Promise<AssetImportPreview | null>;
+  importAsset: (planToken: string, confirmReplace: boolean) => Promise<CommandResult>;
+  previewAssetImportBatch: (items: { sourceGrantId: string; targetRelativePath: string }[]) => Promise<AssetImportBatchPreview | null>;
+  importAssetBatch: (planToken: string, confirmReplace: boolean) => Promise<CommandResult>;
+  previewAssetMove: (sourceAssetId: string, targetRelativePath: string) => Promise<AssetMovePreview | null>;
+  moveAsset: (planToken: string) => Promise<CommandResult>;
   listNewWorkspaceGenerators: () => Promise<NewWorkspaceGeneratorCatalog | null>;
   createWorkspace: (form: {
     generatorId: string;
@@ -150,6 +188,8 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const [activeView, setActiveView] = useState<NavView>('hub');
   const [selectedElementId, setSelectedElementId] = useState<UUID | null>(null);
+  const [assetFocusId, setAssetFocusId] = useState<string | null>(null);
+  const [procedureFocusRequest, setProcedureFocusRequest] = useState<ProcedureFocusRequest | null>(null);
   const [isTaskDrawerOpen, setIsTaskDrawerOpen] = useState(false);
   const [activeTaskId, setActiveTaskId] = useState<UUID | null>(null);
   const [isMaximized, setIsMaximized] = useState(false);
@@ -232,6 +272,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const loadScenario = useCallback((scenarioId: string) => {
     coreBridge.loadScenario?.(scenarioId);
     setSelectedElementId(null);
+    setProcedureFocusRequest(null);
     setIsTaskDrawerOpen(false);
     setActiveTaskId(null);
 
@@ -265,6 +306,8 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     return state.elements.find((e) => e.id === selectedElementId) || null;
   }, [selectedElementId, state.elements]);
 
+  const clearProcedureFocusRequest = useCallback(() => setProcedureFocusRequest(null), []);
+
   const getModElementEditor = useCallback(
     async (elementId: UUID): Promise<ModElementEditorProjection | null> => {
       const res = await coreBridge.sendQuery({
@@ -279,6 +322,90 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     },
     [state.workbench]
   );
+
+  const previewAssetImportBatch = useCallback(
+    async (items: { sourceGrantId: string; targetRelativePath: string }[]): Promise<AssetImportBatchPreview | null> => {
+      const workspaceId = state.workbench?.workspace.id || generateUUID();
+      const res = await coreBridge.sendQuery<AssetImportBatchPreview>({
+        messageType: 'query',
+        schemaVersion: '1.0',
+        requestId: generateUUID(),
+        workspaceId,
+        operation: 'preview_asset_import_batch',
+        payload: { items }
+      });
+      if (res.status !== 'succeeded' || !res.data) {
+        const diagnostic = res.diagnostics[0];
+        throw new Error(diagnostic ? t(diagnostic.message) : '资产批量导入预览失败。');
+      }
+      return res.data as AssetImportBatchPreview;
+    },
+    [state.workbench]
+  );
+
+  const importAssetBatch = useCallback(
+    async (planToken: string, confirmReplace: boolean): Promise<CommandResult> => {
+      const workspaceId = state.workbench?.workspace.id || generateUUID();
+      const revision = state.workbench?.workspace.revision ?? 0;
+      return coreBridge.sendCommand({
+        messageType: 'command',
+        schemaVersion: '1.0',
+        requestId: generateUUID(),
+        workspaceId,
+        expectedRevision: revision,
+        operation: 'import_asset_batch',
+        payload: { clientMutationId: generateUUID(), planToken, confirmReplace }
+      });
+    },
+    [state.workbench]
+  );
+
+  const previewAssetMove = useCallback(
+    async (sourceAssetId: string, targetRelativePath: string): Promise<AssetMovePreview | null> => {
+      const workspaceId = state.workbench?.workspace.id || generateUUID();
+      const res = await coreBridge.sendQuery<AssetMovePreview>({
+        messageType: 'query',
+        schemaVersion: '1.0',
+        requestId: generateUUID(),
+        workspaceId,
+        operation: 'preview_asset_move',
+        payload: { sourceAssetId, targetRelativePath }
+      });
+      if (res.status !== 'succeeded' || !res.data) {
+        const diagnostic = res.diagnostics[0];
+        throw new Error(diagnostic ? t(diagnostic.message) : '资产移动预览失败。');
+      }
+      return res.data as AssetMovePreview;
+    },
+    [state.workbench]
+  );
+
+  const moveAsset = useCallback(async (planToken: string): Promise<CommandResult> => {
+    const workspaceId = state.workbench?.workspace.id || generateUUID();
+    const revision = state.workbench?.workspace.revision ?? 0;
+    return coreBridge.sendCommand({
+      messageType: 'command',
+      schemaVersion: '1.0',
+      requestId: generateUUID(),
+      workspaceId,
+      expectedRevision: revision,
+      operation: 'move_asset',
+      payload: { clientMutationId: generateUUID(), planToken }
+    });
+  }, [state.workbench]);
+
+  const getWorkspaceHealth = useCallback(async (): Promise<WorkspaceHealthProjection | null> => {
+    if (!state.workbench) return null;
+    const res = await coreBridge.sendQuery<WorkspaceHealthProjection>({
+      messageType: 'query',
+      schemaVersion: '1.0',
+      requestId: generateUUID(),
+      workspaceId: state.workbench.workspace.id,
+      operation: 'get_workspace_health',
+      payload: {}
+    });
+    return res.status === 'succeeded' ? res.data : null;
+  }, [state.workbench]);
 
   const previewModElementChange = useCallback(
     async (elementId: UUID, changes: FieldChange[]): Promise<ModElementChangePreview | null> => {
@@ -307,6 +434,60 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     });
     return res.data ? { ...res.data, diagnostics: res.diagnostics } : null;
   }, [state.workbench]);
+
+  const planProcedureRefactor = useCallback(async (request: ProcedureRefactorRequest): Promise<WorkspacePlan | null> => {
+    const res = await coreBridge.sendQuery<WorkspacePlan>({
+      messageType: 'query', schemaVersion: '1.0', requestId: generateUUID(),
+      workspaceId: state.workbench?.workspace.id ?? '', operation: 'plan_procedure_refactor',
+      payload: {
+        ...request,
+        expectedRevision: state.workbench?.workspace.revision ?? 0,
+        idempotencyKey: generateUUID()
+      }
+    });
+    return res.data ?? null;
+  }, [state.workbench]);
+
+  const previewProcedureChange = useCallback(async (
+    elementId: UUID, edits: ProcedureEdit[]
+  ): Promise<ProcedureChangePreview | null> => {
+    if (edits.length === 0) return null;
+    const res = await coreBridge.sendQuery<ProcedureChangePreview>({
+      messageType: 'query',
+      schemaVersion: '1.0',
+      requestId: generateUUID(),
+      workspaceId: state.workbench?.workspace.id ?? '',
+      operation: 'preview_procedure_change',
+      payload: { elementId, edits }
+    });
+    return res.data ?? null;
+  }, [state.workbench]);
+
+  const planWorkspaceChanges = useCallback(async (
+    operations: Array<Omit<WorkspacePlanStep, 'plannedId'>>,
+    requireRecoveryPoint = false,
+    expectedRevision?: number
+  ): Promise<WorkspacePlan | null> => {
+    const res = await coreBridge.sendQuery<WorkspacePlan>({
+      messageType: 'query', schemaVersion: '1.0', requestId: generateUUID(),
+      workspaceId: state.workbench?.workspace.id ?? '', operation: 'plan_workspace_changes',
+      payload: {
+        expectedRevision: expectedRevision ?? state.workbench?.workspace.revision ?? 0,
+        idempotencyKey: generateUUID(),
+        requireRecoveryPoint,
+        operations
+      }
+    });
+    return res.data ?? null;
+  }, [state.workbench]);
+
+  const applyWorkspacePlan = useCallback(async (plan: WorkspacePlan): Promise<CommandResult> => coreBridge.sendCommand({
+    messageType: 'command', schemaVersion: '1.0', requestId: generateUUID(),
+    workspaceId: state.workbench?.workspace.id || plan.workspaceId,
+    expectedRevision: plan.baseRevision,
+    operation: 'apply_workspace_plan',
+    payload: { clientMutationId: generateUUID(), plan }
+  }), [state.workbench]);
 
   const updateProcedure = useCallback(async (elementId: UUID, edits: ProcedureEdit[]): Promise<CommandResult> => {
     const workspaceId = state.workbench?.workspace.id || generateUUID();
@@ -565,6 +746,22 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     return res.status === 'succeeded' ? res.data : null;
   }, [state.workbench]);
 
+  const previewTaskSource = useCallback(async (
+    taskId: UUID,
+    sourcePath: string
+  ): Promise<TaskSourcePreview | null> => {
+    const afterLogSequence = state.taskLogs[taskId]?.at(-1)?.sequence ?? 0;
+    const res = await coreBridge.sendQuery<TaskProjection>({
+      messageType: 'query',
+      schemaVersion: '1.0',
+      requestId: generateUUID(),
+      workspaceId: state.workbench?.workspace.id || generateUUID(),
+      operation: 'get_task',
+      payload: { taskId, afterLogSequence, sourcePath }
+    });
+    return res.status === 'succeeded' ? res.data?.source ?? null : null;
+  }, [state.taskLogs, state.workbench]);
+
   const publishDatagenOutput = useCallback(async (
     taskId: UUID,
     manifestHash: string
@@ -615,6 +812,48 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         operation: 'create_recovery_point',
         payload: { clientMutationId: generateUUID(), label }
       });
+    },
+    [state.workbench]
+  );
+
+  const refreshHistory = useCallback(async (): Promise<HistoryProjection | null> => {
+    const res = await coreBridge.sendQuery<HistoryProjection>({
+      messageType: 'query',
+      schemaVersion: '1.0',
+      requestId: generateUUID(),
+      workspaceId: state.workbench?.workspace.id || generateUUID(),
+      operation: 'get_history',
+      payload: {}
+    });
+    return res.status === 'succeeded' ? res.data : null;
+  }, [state.workbench]);
+
+  const compareRecoveryPoints = useCallback(
+    async (fromRecoveryPointId: string, toRecoveryPointId: string): Promise<HistoryComparison | null> => {
+      const res = await coreBridge.sendQuery<HistoryComparison>({
+        messageType: 'query',
+        schemaVersion: '1.0',
+        requestId: generateUUID(),
+        workspaceId: state.workbench?.workspace.id || generateUUID(),
+        operation: 'get_diff',
+        payload: { fromRecoveryPointId, toRecoveryPointId }
+      });
+      return res.status === 'succeeded' ? res.data : null;
+    },
+    [state.workbench]
+  );
+
+  const previewRecoveryRestore = useCallback(
+    async (recoveryPointId: string): Promise<RecoveryRestorePreview | null> => {
+      const res = await coreBridge.sendQuery<RecoveryRestorePreview>({
+        messageType: 'query',
+        schemaVersion: '1.0',
+        requestId: generateUUID(),
+        workspaceId: state.workbench?.workspace.id || generateUUID(),
+        operation: 'preview_recovery_restore',
+        payload: { recoveryPointId }
+      });
+      return res.status === 'succeeded' ? res.data : null;
     },
     [state.workbench]
   );
@@ -794,6 +1033,47 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     return (res.data as AssetProjection | null) ?? null;
   }, [state.workbench]);
 
+  const previewAssetImport = useCallback(
+    async (sourceGrantId: string, targetRelativePath: string): Promise<AssetImportPreview | null> => {
+      const workspaceId = state.workbench?.workspace.id || generateUUID();
+      const res = await coreBridge.sendQuery<AssetImportPreview>({
+        messageType: 'query',
+        schemaVersion: '1.0',
+        requestId: generateUUID(),
+        workspaceId,
+        operation: 'preview_asset_import',
+        payload: { sourceGrantId, targetRelativePath }
+      });
+      if (res.status !== 'succeeded' || !res.data) {
+        const diagnostic = res.diagnostics[0];
+        throw new Error(diagnostic ? t(diagnostic.message) : '资产导入预览失败。');
+      }
+      return res.data as AssetImportPreview;
+    },
+    [state.workbench]
+  );
+
+  const importAsset = useCallback(
+    async (planToken: string, confirmReplace: boolean): Promise<CommandResult> => {
+      const workspaceId = state.workbench?.workspace.id || generateUUID();
+      const revision = state.workbench?.workspace.revision ?? 0;
+      return coreBridge.sendCommand({
+        messageType: 'command',
+        schemaVersion: '1.0',
+        requestId: generateUUID(),
+        workspaceId,
+        expectedRevision: revision,
+        operation: 'import_asset',
+        payload: {
+          clientMutationId: generateUUID(),
+          planToken,
+          confirmReplace
+        }
+      });
+    },
+    [state.workbench]
+  );
+
   const createPublishBatch = useCallback(
     async (name: string, sourceDirectory: string, output: string): Promise<CommandResult> => {
       const workspaceId = state.workbench?.workspace.id || generateUUID();
@@ -913,6 +1193,29 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
               });
           }
           break;
+        case 'open_procedure_node':
+          if (diagnostic.elementId) {
+            const payloadNodeId = typeof action.payload?.nodeId === 'string' ? action.payload.nodeId : null;
+            const nodeId = payloadNodeId || action.target;
+            if (nodeId) {
+              const port = typeof action.payload?.port === 'string' ? action.payload.port : null;
+              setProcedureFocusRequest({
+                elementId: diagnostic.elementId,
+                nodeId,
+                port,
+                requestId: generateUUID()
+              });
+              setSelectedElementId(diagnostic.elementId);
+              setActiveView('elements');
+            }
+          }
+          break;
+        case 'open_asset':
+          if (action.target) {
+            setAssetFocusId(action.target);
+            setActiveView('assets');
+          }
+          break;
         case 'open_field':
           if (diagnostic.elementId) {
             setSelectedElementId(diagnostic.elementId);
@@ -940,6 +1243,10 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       selectedElementId,
       selectedElement,
       setSelectedElementId,
+      assetFocusId,
+      procedureFocusRequest,
+      clearProcedureFocusRequest,
+      setAssetFocusId,
       isTaskDrawerOpen,
       setIsTaskDrawerOpen,
       activeTaskId,
@@ -957,12 +1264,16 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       getModElementEditor,
       previewModElementChange,
       getProcedureEditor,
+      previewProcedureChange,
       updateProcedure,
       listWorkspaceRegistries,
       getWorkspaceReferences,
       createRegistryEntry,
       updateRegistryEntry,
       previewRegistryRename,
+      planProcedureRefactor,
+      planWorkspaceChanges,
+      applyWorkspacePlan,
       renameRegistryEntry,
       deleteRegistryEntry,
       createModElement,
@@ -974,12 +1285,17 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       runServer,
       runDatagen,
       previewDatagenOutput,
+      previewTaskSource,
       publishDatagenOutput,
       runGameTest,
       cancelTask,
       createRecoveryPoint,
+      refreshHistory,
+      compareRecoveryPoints,
+      previewRecoveryRestore,
       restoreRecoveryPoint,
       resolveOperationApproval,
+      getWorkspaceHealth,
       getVersionTracks,
       previewLoaderMigration,
       executeLoaderMigration,
@@ -991,6 +1307,12 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       createPublishBatch,
       prepareResourcePackClient,
       listAssets,
+      previewAssetImport,
+      importAsset,
+      previewAssetImportBatch,
+      importAssetBatch,
+      previewAssetMove,
+      moveAsset,
       listNewWorkspaceGenerators,
       createWorkspace,
       elevatePermission,
@@ -1004,6 +1326,9 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       activeView,
       selectedElementId,
       selectedElement,
+      assetFocusId,
+      procedureFocusRequest,
+      clearProcedureFocusRequest,
       isTaskDrawerOpen,
       activeTaskId,
       isMaximized,
@@ -1017,12 +1342,16 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       getModElementEditor,
       previewModElementChange,
       getProcedureEditor,
+      previewProcedureChange,
       updateProcedure,
       listWorkspaceRegistries,
       getWorkspaceReferences,
       createRegistryEntry,
       updateRegistryEntry,
       previewRegistryRename,
+      planProcedureRefactor,
+      planWorkspaceChanges,
+      applyWorkspacePlan,
       renameRegistryEntry,
       deleteRegistryEntry,
       createModElement,
@@ -1034,12 +1363,17 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       runServer,
       runDatagen,
       previewDatagenOutput,
+      previewTaskSource,
       publishDatagenOutput,
       runGameTest,
       cancelTask,
       createRecoveryPoint,
+      refreshHistory,
+      compareRecoveryPoints,
+      previewRecoveryRestore,
       restoreRecoveryPoint,
       resolveOperationApproval,
+      getWorkspaceHealth,
       getVersionTracks,
       previewLoaderMigration,
       executeLoaderMigration,
@@ -1051,6 +1385,12 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       createPublishBatch,
       prepareResourcePackClient,
       listAssets,
+      previewAssetImport,
+      importAsset,
+      previewAssetImportBatch,
+      importAssetBatch,
+      previewAssetMove,
+      moveAsset,
       listNewWorkspaceGenerators,
       createWorkspace,
       elevatePermission,

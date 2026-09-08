@@ -737,6 +737,124 @@ class WorkspaceApplicationServiceTest {
 		assertTrue(domains.asList().stream().anyMatch(domain -> domain.getAsString().equals("client_resources")));
 	}
 
+	@Test void stage13ProcedureEditorProjectsSharedVariableResourceAndCallSymbols() {
+		Fixture fixture = fixture();
+		RequestContext context = new RequestContext(Actor.UI, PermissionProfile.WORKSPACE);
+		JsonObject registryPayload = new JsonObject();
+		registryPayload.addProperty("clientMutationId", uuid(938).toString());
+		registryPayload.addProperty("registry", "variables");
+		JsonObject variableEntry = new JsonObject();
+		variableEntry.addProperty("name", "quest_score");
+		variableEntry.addProperty("dataType", "number");
+		variableEntry.addProperty("scope", "player_persistent");
+		registryPayload.add("entry", variableEntry);
+		CommandOutcome registryCreated = fixture.service.execute(Command.of(uuid(939), WORKSPACE_ID, 0,
+				Operation.CREATE_REGISTRY_ENTRY, registryPayload), context);
+		assertEquals("committed", registryCreated.result().status(), registryCreated.result().diagnostics().toString());
+		String registryEntryId = registryCreated.result().data().getAsJsonObject().getAsJsonObject("entry")
+				.get("id").getAsString();
+
+		JsonObject initialValues = new JsonObject();
+		initialValues.addProperty("procedurexml",
+				"<xml xmlns=\"https://developers.google.com/blockly/xml\"><block type=\"event_trigger\">"
+						+ "<field name=\"trigger\">no_ext_trigger</field></block></xml>");
+		CommandOutcome created = fixture.service.execute(
+				createTypedCommand(uuid(93), 1, "procedure", "stage13_symbols", initialValues), context);
+		assertEquals("committed", created.result().status(), created.result().diagnostics().toString());
+		String elementId = created.result().data().getAsJsonObject().getAsJsonObject("element").get("id").getAsString();
+
+		JsonArray edits = new JsonArray();
+		JsonObject variableFields = new JsonObject();
+		variableFields.addProperty("VAR", "quest_score");
+		edits.add(procedureAddNode(uuid(931), "variables_get_number", "value", variableFields));
+		JsonObject writeFields = new JsonObject();
+		writeFields.addProperty("VAR", "quest_score");
+		edits.add(procedureAddNode(uuid(932), "variables_set_number", "statement", writeFields));
+		JsonObject resourceFields = new JsonObject();
+		resourceFields.addProperty("value", "minecraft:copper_ingot");
+		edits.add(procedureAddNode(uuid(933), "mcitem_all", "value", resourceFields));
+		JsonObject callFields = new JsonObject();
+		callFields.addProperty("procedureId", "grant_quest_reward");
+		edits.add(procedureAddNode(uuid(934), "call_procedure", "statement", callFields));
+
+		JsonObject updatePayload = new JsonObject();
+		updatePayload.addProperty("clientMutationId", uuid(935).toString());
+		updatePayload.addProperty("elementId", elementId);
+		updatePayload.add("edits", edits);
+		CommandOutcome updated = fixture.service.execute(Command.of(uuid(936), WORKSPACE_ID, 2,
+				Operation.UPDATE_PROCEDURE, updatePayload), context);
+		assertEquals("committed", updated.result().status(), updated.result().diagnostics().toString());
+
+		JsonObject queryPayload = new JsonObject();
+		queryPayload.addProperty("elementId", elementId);
+		var result = fixture.service.query(Query.of(uuid(937), WORKSPACE_ID, Operation.GET_PROCEDURE_EDITOR,
+				queryPayload), context);
+		assertEquals("succeeded", result.status(), result.diagnostics().toString());
+		JsonObject symbols = result.data().getAsJsonObject().getAsJsonObject("symbols");
+		assertEquals(2, symbols.getAsJsonArray("variables").size());
+		assertEquals("quest_score", symbols.getAsJsonArray("variables").get(0).getAsJsonObject().get("name").getAsString());
+		assertEquals("read", symbols.getAsJsonArray("variables").get(0).getAsJsonObject().get("access").getAsString());
+		assertEquals(registryEntryId, symbols.getAsJsonArray("variables").get(0).getAsJsonObject()
+				.get("registryEntryId").getAsString());
+		assertEquals("player_persistent", symbols.getAsJsonArray("variables").get(0).getAsJsonObject()
+				.get("scope").getAsString());
+		assertEquals("write", symbols.getAsJsonArray("variables").get(1).getAsJsonObject().get("access").getAsString());
+		assertEquals(1, symbols.getAsJsonArray("availableVariables").size());
+		assertEquals(registryEntryId, symbols.getAsJsonArray("availableVariables").get(0).getAsJsonObject()
+				.get("id").getAsString());
+		assertEquals("minecraft:copper_ingot",
+				symbols.getAsJsonArray("resources").get(0).getAsJsonObject().get("target").getAsString());
+		assertEquals("grant_quest_reward",
+				symbols.getAsJsonArray("calls").get(0).getAsJsonObject().get("target").getAsString());
+		assertEquals(2, symbols.getAsJsonObject("stats").get("variableCount").getAsInt());
+		assertEquals(1, symbols.getAsJsonObject("stats").get("resourceCount").getAsInt());
+		assertEquals(1, symbols.getAsJsonObject("stats").get("callCount").getAsInt());
+		JsonObject relationships = result.data().getAsJsonObject().getAsJsonObject("relationships");
+		assertEquals(0, relationships.getAsJsonObject("stats").get("inboundCount").getAsInt());
+		assertEquals(4, relationships.getAsJsonObject("stats").get("outboundCount").getAsInt());
+		assertEquals(2, relationships.getAsJsonObject("stats").getAsJsonObject("byKind").get("variable").getAsInt());
+		assertEquals(1, relationships.getAsJsonObject("stats").getAsJsonObject("byKind").get("resource").getAsInt());
+		assertEquals(1, relationships.getAsJsonObject("stats").getAsJsonObject("byKind").get("procedure").getAsInt());
+		assertTrue(relationships.getAsJsonArray("outbound").asList().stream().anyMatch(raw -> {
+			JsonObject edge = raw.getAsJsonObject();
+			return "resource".equals(edge.get("kind").getAsString())
+					&& "minecraft:copper_ingot".equals(edge.get("targetName").getAsString());
+		}));
+	}
+
+	@Test void procedurePreviewExposesStableNodeAndPortNavigationAction() {
+		Fixture fixture = fixture();
+		RequestContext context = new RequestContext(Actor.UI, PermissionProfile.WORKSPACE);
+		JsonObject initialValues = new JsonObject();
+		initialValues.addProperty("procedurexml",
+				"<xml xmlns=\"https://developers.google.com/blockly/xml\"><block type=\"event_trigger\">"
+						+ "<field name=\"trigger\">no_ext_trigger</field></block></xml>");
+		CommandOutcome created = fixture.service.execute(
+				createTypedCommand(uuid(950), 0, "procedure", "procedure_node_diagnostic", initialValues), context);
+		assertEquals("committed", created.result().status(), created.result().diagnostics().toString());
+		String elementId = created.result().data().getAsJsonObject().getAsJsonObject("element").get("id").getAsString();
+
+		UUID nodeId = uuid(951);
+		JsonArray edits = new JsonArray();
+		edits.add(procedureAddNode(nodeId, "call_procedure", "statement", new JsonObject()));
+		JsonObject previewPayload = new JsonObject();
+		previewPayload.addProperty("elementId", elementId);
+		previewPayload.add("edits", edits);
+		var preview = fixture.service.query(Query.of(uuid(952), WORKSPACE_ID,
+				Operation.PREVIEW_PROCEDURE_CHANGE, previewPayload), context);
+		assertEquals("succeeded", preview.status(), preview.diagnostics().toString());
+		JsonObject diagnostic = preview.data().getAsJsonObject().getAsJsonArray("diagnostics").asList().stream()
+				.map(raw -> raw.getAsJsonObject())
+				.filter(item -> item.get("code").getAsString().equals("PROCEDURE_CALL_TARGET_REQUIRED"))
+				.findFirst().orElseThrow();
+		assertTrue(diagnostic.get("path").getAsString().contains("/nodes/" + nodeId + "/ports/procedureId"));
+		JsonObject action = diagnostic.getAsJsonArray("actions").get(0).getAsJsonObject();
+		assertEquals("open_procedure_node", action.get("kind").getAsString());
+		assertEquals(nodeId.toString(), action.get("target").getAsString());
+		assertEquals(nodeId.toString(), action.getAsJsonObject("payload").get("nodeId").getAsString());
+		assertEquals("procedureId", action.getAsJsonObject("payload").get("port").getAsString());
+	}
+
 	@Test void taskStartAndContentMutationAreOrderedByTheWorkspaceLock() throws Exception {
 		RevisionedWorkspaceStore store = registeredStore();
 		BlockingTaskGateway gateway = new BlockingTaskGateway();
@@ -789,6 +907,23 @@ class WorkspaceApplicationServiceTest {
 		assertTrue(json.has("denial") && json.get("denial").isJsonNull());
 	}
 
+	@Test void persistedValidatedCreateIsImmediatelyValidAndWorkspaceIsClean() {
+		Fixture fixture = fixture();
+		RequestContext context = new RequestContext(Actor.UI, PermissionProfile.WORKSPACE);
+		CommandOutcome outcome = fixture.service.execute(createCommand(uuid(93), "signal_lantern"), context);
+		assertEquals("committed", outcome.result().status());
+
+		var workbench = fixture.service.query(Query.of(uuid(94), WORKSPACE_ID, Operation.GET_WORKBENCH,
+				new JsonObject()), context);
+		assertEquals("succeeded", workbench.status());
+		JsonObject data = workbench.data().getAsJsonObject();
+		assertFalse(data.getAsJsonObject("workspace").get("dirty").getAsBoolean());
+		assertEquals(1, data.getAsJsonObject("elementCounts").get("valid").getAsInt());
+		assertEquals(0, data.getAsJsonObject("elementCounts").get("draft").getAsInt());
+		assertEquals("valid", data.getAsJsonArray("recentElements").get(0).getAsJsonObject()
+				.get("state").getAsString());
+	}
+
 	private static Command createCommand(UUID requestId, String name) {
 		return createElementCommand(requestId, "block", name, new JsonObject());
 	}
@@ -800,6 +935,23 @@ class WorkspaceApplicationServiceTest {
 		payload.addProperty("name", name);
 		payload.add("initialValues", initialValues.deepCopy());
 		return Command.of(requestId, WORKSPACE_ID, 0, Operation.CREATE_MOD_ELEMENT, payload);
+	}
+
+	private static JsonObject procedureAddNode(UUID id, String type, String kind, JsonObject fields) {
+		JsonObject node = new JsonObject();
+		node.addProperty("id", id.toString());
+		node.addProperty("type", type);
+		node.addProperty("kind", kind);
+		node.addProperty("x", 120);
+		node.addProperty("y", 120);
+		node.add("fields", fields.deepCopy());
+		node.add("inputs", new JsonObject());
+		node.add("next", com.google.gson.JsonNull.INSTANCE);
+		node.addProperty("unknown", false);
+		JsonObject edit = new JsonObject();
+		edit.addProperty("operation", "add_node");
+		edit.add("node", node);
+		return edit;
 	}
 
 	private static Command createTypedCommand(UUID requestId, long expectedRevision, String type, String name,

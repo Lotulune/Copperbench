@@ -28,6 +28,7 @@
       "type": "string",
       "enum": [
         "get_workbench",
+        "get_workspace_health",
         "list_new_workspace_generators",
         "list_assets",
         "list_mod_elements",
@@ -44,6 +45,7 @@
         "get_task",
         "get_history",
         "get_diff",
+        "preview_recovery_restore",
         "list_operation_approvals",
         "get_version_tracks",
         "get_release_notes",
@@ -67,6 +69,25 @@
       },
       "then": {
         "properties": {"payload": {"$ref": "#/$defs/datagenTaskPayload"}}
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "preview_recovery_restore"
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/recoveryRestorePreviewPayload"
+          }
+        }
       }
     },
     {
@@ -347,6 +368,7 @@
           "operation": {
             "enum": [
               "list_operation_approvals",
+              "get_workspace_health",
               "get_version_tracks",
               "get_release_notes",
               "list_installed_plugins",
@@ -429,6 +451,18 @@
     "emptyPayload": {
       "type": "object",
       "maxProperties": 0,
+      "additionalProperties": false
+    },
+    "recoveryRestorePreviewPayload": {
+      "type": "object",
+      "required": [
+        "recoveryPointId"
+      ],
+      "properties": {
+        "recoveryPointId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/recoveryPointId"
+        }
+      },
       "additionalProperties": false
     },
     "workspacePlanOperationName": {
@@ -762,6 +796,12 @@
         "afterLogSequence": {
           "type": "integer",
           "minimum": 0
+        },
+        "sourcePath": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096,
+          "pattern": "^/src/main/java/.+\\.java$"
         }
       },
       "additionalProperties": false

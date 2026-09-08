@@ -149,18 +149,37 @@ import java.util.function.Supplier;
 		}
 
 		private static void destroy(Process process) {
-			process.descendants().forEach(ProcessHandle::destroy);
-			process.destroy();
+			List<ProcessHandle> descendants = process.descendants().toList();
+			boolean interrupted = Thread.interrupted();
 			try {
-				if (!process.waitFor(5, TimeUnit.SECONDS)) {
-					process.descendants().forEach(ProcessHandle::destroyForcibly);
-					process.destroyForcibly();
+				descendants.forEach(ProcessHandle::destroy);
+				process.destroy();
+				if (!waitForExit(process.toHandle(), descendants, Duration.ofSeconds(5))) {
+					// The Gradle wrapper can exit before its JavaExec/Minecraft child. Keep the original
+					// descendant handles and force every survivor instead of treating root exit as cleanup.
+					descendants.stream().filter(ProcessHandle::isAlive).forEach(ProcessHandle::destroyForcibly);
+					process.descendants().filter(ProcessHandle::isAlive).forEach(ProcessHandle::destroyForcibly);
+					if (process.isAlive()) process.destroyForcibly();
+					waitForExit(process.toHandle(), descendants, Duration.ofSeconds(5));
 				}
 			} catch (InterruptedException exception) {
-				Thread.currentThread().interrupt();
-				process.descendants().forEach(ProcessHandle::destroyForcibly);
-				process.destroyForcibly();
+				interrupted = true;
+				descendants.stream().filter(ProcessHandle::isAlive).forEach(ProcessHandle::destroyForcibly);
+				process.descendants().filter(ProcessHandle::isAlive).forEach(ProcessHandle::destroyForcibly);
+				if (process.isAlive()) process.destroyForcibly();
+			} finally {
+				if (interrupted) Thread.currentThread().interrupt();
 			}
+		}
+
+		private static boolean waitForExit(ProcessHandle root, List<ProcessHandle> descendants, Duration timeout)
+				throws InterruptedException {
+			long deadline = System.nanoTime() + timeout.toNanos();
+			while (root.isAlive() || descendants.stream().anyMatch(ProcessHandle::isAlive)) {
+				if (System.nanoTime() >= deadline) return false;
+				Thread.sleep(50);
+			}
+			return true;
 		}
 
 		static boolean stabilityWindowSatisfied(Instant serverReadyAt, Instant now) {

@@ -18,6 +18,7 @@ import dev.copperbench.core.contract.UiCore.Actor;
 import dev.copperbench.history.LocalHistoryException;
 import dev.copperbench.history.LocalHistoryService;
 import dev.copperbench.history.RecoveryPointRequest;
+import dev.copperbench.history.RecoveryPointSource;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -77,7 +78,8 @@ public final class AssetPublishBatchService {
 			throw new AssetPathViolationException("Publish batch manifest could not be stored");
 		}
 		if (history != null)
-			history.createRecoveryPoint(new RecoveryPointRequest("Publish batch " + name, actor, taskId));
+			history.createRecoveryPoint(new RecoveryPointRequest("Publish batch " + name, actor, taskId,
+					RecoveryPointSource.ASSET));
 		return batch;
 	}
 

@@ -13,6 +13,7 @@ import dev.copperbench.assets.AssetWorkspaceService;
 import dev.copperbench.assets.BlockbenchExecutableLocator;
 import dev.copperbench.assets.BlockbenchProcessService;
 import dev.copperbench.bridge.JcefBlockbenchBridgeTransport;
+import dev.copperbench.bridge.JcefAssetImportBridgeTransport;
 import dev.copperbench.bridge.JcefCoreBridgeTransport;
 import dev.copperbench.bridge.JcefDiagnosticsBridgeTransport;
 import dev.copperbench.bridge.JcefLegacyPluginBridgeTransport;
@@ -31,6 +32,7 @@ import net.mcreator.workspace.Workspace;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -48,6 +50,7 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 	private final MCreatorWorkspaceSession session;
 	private final DesktopMcpRuntime mcpRuntime;
 	private final RecoverableBrowserHost browserHost;
+	private final KeyEventDispatcher keyboardShortcutDispatcher;
 	private final AtomicBoolean closed = new AtomicBoolean(false);
 
 	private CopperbenchProductShell(JFrame owner, Workspace workspace, Path distributionRoot, Runnable closeAction,
@@ -78,6 +81,8 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 		this.session = createdSession;
 		this.mcpRuntime = createdMcpRuntime;
 		this.browserHost = createdBrowserHost;
+		this.keyboardShortcutDispatcher = event -> dispatchDesktopShortcut(owner, event);
+		KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(keyboardShortcutDispatcher);
 		add(browserHost, BorderLayout.CENTER);
 	}
 
@@ -101,6 +106,7 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 	@Override public void close() {
 		if (!closed.compareAndSet(false, true))
 			return;
+		KeyboardFocusManager.getCurrentKeyboardFocusManager().removeKeyEventDispatcher(keyboardShortcutDispatcher);
 		RuntimeException failure = null;
 		try {
 			browserHost.close();
@@ -122,6 +128,21 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 		if (failure != null) throw failure;
 	}
 
+	private boolean dispatchDesktopShortcut(JFrame owner, KeyEvent event) {
+		Component source = event.getSource() instanceof Component component ? component : null;
+		Window eventWindow = source != null ? SwingUtilities.getWindowAncestor(source) : null;
+		boolean belongsToOwner = eventWindow == owner
+				|| KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow() == owner;
+		if (closed.get() || !belongsToOwner || event.getID() != KeyEvent.KEY_PRESSED
+				|| event.getKeyCode() != KeyEvent.VK_M || !event.isControlDown() || !event.isShiftDown()
+				|| event.isAltDown() || event.isMetaDown())
+			return false;
+		browserHost.executeScriptAsync("const target = document.querySelector('[data-testid=\"nav-ai\"]');"
+				+ " if (target instanceof HTMLElement) { target.click(); target.focus(); }");
+		event.consume();
+		return true;
+	}
+
 	private static RecoverableBrowserHost.BrowserHandle createBrowser(MCreatorWorkspaceSession session, JFrame owner,
 			Runnable closeAction, Runnable openLegacyPluginWindow, Consumer<File> openWorkspaceAction,
 			WindowsWindowChromeController windowChromeController, Path workspaceRoot, DesktopMcpRuntime mcpRuntime) {
@@ -130,6 +151,7 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 		JcefWindowBridgeTransport windowTransport = null;
 		JcefLegacyPluginBridgeTransport legacyPluginTransport = null;
 		JcefBlockbenchBridgeTransport blockbenchTransport = null;
+		JcefAssetImportBridgeTransport assetImportTransport = null;
 		JcefWorkspaceOpenBridgeTransport workspaceOpenTransport = null;
 		JcefDiagnosticsBridgeTransport diagnosticsTransport = null;
 		JcefMcpBridgeTransport mcpTransport = null;
@@ -149,11 +171,13 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 			mcpTransport = JcefMcpBridgeTransport.attach(webView, mcpRuntime);
 			blockbenchTransport = JcefBlockbenchBridgeTransport.attach(webView,
 					new BlockbenchProcessService(new AssetWorkspaceService(workspaceRoot),
-							BlockbenchExecutableLocator.locate()));
+							BlockbenchExecutableLocator.locate(), session.service().blockbenchEditLifecycle(session.workspaceId())));
+			assetImportTransport = JcefAssetImportBridgeTransport.attach(webView, owner, session.service());
 			JcefCoreBridgeTransport attachedCore = coreTransport;
 			JcefWindowBridgeTransport attachedWindow = windowTransport;
 			JcefLegacyPluginBridgeTransport attachedLegacyPlugin = legacyPluginTransport;
 			JcefBlockbenchBridgeTransport attachedBlockbench = blockbenchTransport;
+			JcefAssetImportBridgeTransport attachedAssetImport = assetImportTransport;
 			JcefWorkspaceOpenBridgeTransport attachedWorkspaceOpen = workspaceOpenTransport;
 			JcefDiagnosticsBridgeTransport attachedDiagnostics = diagnosticsTransport;
 			JcefMcpBridgeTransport attachedMcp = mcpTransport;
@@ -175,11 +199,16 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 					webView.forceLoad();
 				}
 
+				@Override public void executeScriptAsync(String javaScript) {
+					webView.executeScriptAsync(javaScript);
+				}
+
 				@Override public void requestFocus() {
 					webView.requestFocusInWindow();
 				}
 
 				@Override public void close() {
+					attachedAssetImport.close();
 					attachedBlockbench.close();
 					attachedMcp.close();
 					attachedDiagnostics.close();
@@ -192,6 +221,8 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 				}
 			};
 		} catch (RuntimeException exception) {
+			if (assetImportTransport != null)
+				assetImportTransport.close();
 			if (blockbenchTransport != null)
 				blockbenchTransport.close();
 			if (mcpTransport != null)

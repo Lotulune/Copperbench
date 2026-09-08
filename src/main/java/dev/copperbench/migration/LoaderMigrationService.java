@@ -18,6 +18,8 @@ import dev.copperbench.core.workspace.WorkspaceState;
 import dev.copperbench.core.workspace.WorkspaceState.Element;
 import dev.copperbench.migration.MigrationReport.Disposition;
 import dev.copperbench.migration.MigrationReport.MigrationItem;
+import dev.copperbench.migration.MigrationReport.SemanticChange;
+import dev.copperbench.migration.MigrationReport.SemanticComparison;
 import dev.copperbench.tracks.VersionTrackCatalog;
 import dev.copperbench.release.ElementCoverageCatalog;
 
@@ -36,8 +38,10 @@ import java.util.Comparator;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeMap;
 
 /**
  * Copy-only Fabric/NeoForge migration. The source workspace is hashed before
@@ -68,8 +72,8 @@ public final class LoaderMigrationService {
 			return new MigrationReport("loader", generatorId(source), targetGeneratorId, before, null, true, false,
 					preview.items());
 		Path destination = targetRoot.toAbsolutePath().normalize();
+		Path origin = sourceRoot == null ? null : sourceRoot.toAbsolutePath().normalize();
 		if (sourceRoot != null) {
-			Path origin = sourceRoot.toAbsolutePath().normalize();
 			if (destination.startsWith(origin) || origin.startsWith(destination))
 				throw new IllegalArgumentException("Migration target must be outside the source workspace");
 			if (Files.exists(destination)) {
@@ -80,18 +84,133 @@ public final class LoaderMigrationService {
 			}
 			copyTree(origin, destination);
 			rewriteGenerator(destination, targetGeneratorId, source.generator());
-			writeReport(destination, preview, destination.toString().replace('\\', '/'));
 		} else {
 			Files.createDirectories(destination);
 			writeProjection(destination, source, targetGeneratorId);
-			writeReport(destination, preview, destination.toString().replace('\\', '/'));
 		}
 		String after = sourceRoot == null ? sourceHash(source) : WorkspaceTreeHasher.hash(sourceRoot);
 		boolean unchanged = before.equals(after);
 		boolean complete = unchanged && preview.items().stream()
 				.noneMatch(item -> item.disposition() == Disposition.BLOCKED);
-		return new MigrationReport("loader", generatorId(source), targetGeneratorId, before,
-				destination.toString().replace('\\', '/'), unchanged, complete, preview.items());
+		SemanticComparison comparison = origin == null ? null
+				: semanticComparison(origin, destination, generatorId(source), targetGeneratorId);
+		MigrationReport result = new MigrationReport("loader", generatorId(source), targetGeneratorId, before,
+				destination.toString().replace('\\', '/'), unchanged, complete, preview.items(), comparison);
+		writeReport(destination, result);
+		return result;
+	}
+
+	private static SemanticComparison semanticComparison(Path sourceRoot, Path targetRoot, String sourceGeneratorId,
+			String targetGeneratorId) throws IOException {
+		JsonObject sourceWorkspace = readJsonObject(sourceRoot.resolve("workspace.mcreator"));
+		JsonObject targetWorkspace = readJsonObject(targetRoot.resolve("workspace.mcreator"));
+		String actualTargetGenerator = workspaceGeneratorId(targetWorkspace);
+		boolean generatorChanged = !sourceGeneratorId.equals(actualTargetGenerator)
+				&& targetGeneratorId.equals(actualTargetGenerator);
+
+		JsonObject normalizedSource = sourceWorkspace.deepCopy();
+		JsonObject normalizedTarget = targetWorkspace.deepCopy();
+		removeGeneratorMetadata(normalizedSource);
+		removeGeneratorMetadata(normalizedTarget);
+		boolean workspaceMetadataPreserved = normalizedSource.equals(normalizedTarget);
+
+		Map<String, SemanticElement> sourceElements = semanticElements(sourceRoot.resolve("elements"));
+		Map<String, SemanticElement> targetElements = semanticElements(targetRoot.resolve("elements"));
+		List<SemanticChange> changes = new ArrayList<>();
+		changes.add(new SemanticChange("/generator", sourceGeneratorId + " -> " + actualTargetGenerator,
+				"generator", generatorChanged ? "changed" : "unexpected"));
+		if (!workspaceMetadataPreserved)
+			changes.add(new SemanticChange("/workspace", "workspace.mcreator", "workspace_metadata", "changed"));
+
+		int preserved = 0;
+		int changed = 0;
+		int added = 0;
+		int removed = 0;
+		for (Map.Entry<String, SemanticElement> entry : sourceElements.entrySet()) {
+			SemanticElement target = targetElements.get(entry.getKey());
+			if (target == null) {
+				removed++;
+				changes.add(new SemanticChange("/" + entry.getKey(), entry.getValue().name(), entry.getValue().type(),
+						"removed"));
+			} else if (entry.getValue().semanticallyEquals(target)) {
+				preserved++;
+			} else {
+				changed++;
+				changes.add(new SemanticChange("/" + entry.getKey(), entry.getValue().name(), entry.getValue().type(),
+						"changed"));
+			}
+		}
+		for (Map.Entry<String, SemanticElement> entry : targetElements.entrySet()) {
+			if (sourceElements.containsKey(entry.getKey())) continue;
+			added++;
+			changes.add(new SemanticChange("/" + entry.getKey(), entry.getValue().name(), entry.getValue().type(),
+					"added"));
+		}
+		changes.sort(Comparator.comparing(SemanticChange::path));
+		return new SemanticComparison(generatorChanged, workspaceMetadataPreserved, preserved, changed, added, removed,
+				changes);
+	}
+
+	private static JsonObject readJsonObject(Path path) throws IOException {
+		return JsonParser.parseString(Files.readString(path, StandardCharsets.UTF_8)).getAsJsonObject();
+	}
+
+	private static String workspaceGeneratorId(JsonObject document) {
+		if (document.has("workspaceSettings") && document.get("workspaceSettings").isJsonObject()) {
+			JsonObject settings = document.getAsJsonObject("workspaceSettings");
+			if (settings.has("currentGenerator") && settings.get("currentGenerator").isJsonPrimitive())
+				return settings.get("currentGenerator").getAsString();
+		}
+		if (document.has("dev.copperbench") && document.get("dev.copperbench").isJsonObject()) {
+			JsonObject product = document.getAsJsonObject("dev.copperbench");
+			if (product.has("generator") && product.get("generator").isJsonObject()) {
+				JsonObject generator = product.getAsJsonObject("generator");
+				if (generator.has("id") && generator.get("id").isJsonPrimitive()) return generator.get("id").getAsString();
+			}
+		}
+		return "";
+	}
+
+	private static void removeGeneratorMetadata(JsonObject document) {
+		if (document.has("workspaceSettings") && document.get("workspaceSettings").isJsonObject())
+			document.getAsJsonObject("workspaceSettings").remove("currentGenerator");
+		if (document.has("dev.copperbench") && document.get("dev.copperbench").isJsonObject()) {
+			JsonObject product = document.getAsJsonObject("dev.copperbench");
+			product.remove("generator");
+			if (product.isEmpty()) document.remove("dev.copperbench");
+		}
+	}
+
+	private static Map<String, SemanticElement> semanticElements(Path elementsRoot) throws IOException {
+		Map<String, SemanticElement> elements = new TreeMap<>();
+		if (!Files.isDirectory(elementsRoot)) return elements;
+		try (var paths = Files.walk(elementsRoot)) {
+			for (Path path : paths.filter(Files::isRegularFile)
+					.filter(path -> path.getFileName().toString().endsWith(".mod.json")).toList()) {
+				String relative = "elements/" + elementsRoot.relativize(path).toString().replace('\\', '/');
+				String raw = Files.readString(path, StandardCharsets.UTF_8);
+				JsonElement json = null;
+				try {
+					json = JsonParser.parseString(raw);
+				} catch (RuntimeException ignored) {
+					// Preserve malformed-but-copied definitions by exact text instead of blocking comparison.
+				}
+				String fileName = path.getFileName().toString();
+				String name = fileName.substring(0, fileName.length() - ".mod.json".length());
+				String type = json != null && json.isJsonObject() && json.getAsJsonObject().has("_type")
+						&& json.getAsJsonObject().get("_type").isJsonPrimitive()
+						? json.getAsJsonObject().get("_type").getAsString() : "mod_element";
+				elements.put(relative, new SemanticElement(name, type, raw, json));
+			}
+		}
+		return elements;
+	}
+
+	private record SemanticElement(String name, String type, String raw, JsonElement json) {
+		boolean semanticallyEquals(SemanticElement other) {
+			if (json != null && other.json != null) return json.equals(other.json);
+			return raw.equals(other.raw);
+		}
 	}
 
 	private MigrationReport preview(WorkspaceState source, String targetGeneratorId, String sourceHash,
@@ -236,12 +355,8 @@ public final class LoaderMigrationService {
 				StandardCharsets.UTF_8);
 	}
 
-	private static void writeReport(Path targetRoot, MigrationReport preview, String targetDirectory)
-			throws IOException {
-		MigrationReport written = new MigrationReport(preview.kind(), preview.sourceGeneratorId(),
-				preview.targetGeneratorId(), preview.sourceHash(), targetDirectory, true, preview.complete(),
-				preview.items());
-		Files.writeString(targetRoot.resolve("migration-report.json"), JSON.toJson(written.toJson()),
+	private static void writeReport(Path targetRoot, MigrationReport report) throws IOException {
+		Files.writeString(targetRoot.resolve("migration-report.json"), JSON.toJson(report.toJson()),
 				StandardCharsets.UTF_8);
 	}
 

@@ -56,6 +56,66 @@ class McpHttpServerTest {
 		System.setProperty("log_directory", System.getProperty("java.io.tmpdir"));
 	}
 
+	@Test void externalAgentCanPreviewAndApplyReferenceSafeAssetMove() throws Exception {
+		Files.writeString(workspace.resolve("workspace.mcreator"), "{\"name\":\"Copper Trails\"}");
+		Path model = workspace.resolve("assets/coppertrails/models/block/copper_lamp.json");
+		Path texture = workspace.resolve("assets/coppertrails/textures/block/copper_lamp.png");
+		Files.createDirectories(model.getParent());
+		Files.createDirectories(texture.getParent());
+		Files.writeString(model, "{\"textures\":{\"all\":\"coppertrails:textures/block/copper_lamp\","
+				+ "\"missing\":\"coppertrails:textures/block/missing_lamp\"}}");
+		Files.write(texture, new byte[] { 0, 1, 2 });
+
+		WorkspaceTokenService tokens = new WorkspaceTokenService(CLOCK, Duration.ofMinutes(5));
+		WorkspaceToken token = tokens.issue(WORKSPACE_ID, PermissionProfile.WORKSPACE);
+		Path auditPath = workspace.resolve(".copperbench/automation-audit.jsonl");
+
+		try (LocalHistoryService history = JGitLocalHistoryService.open(workspace, CLOCK);
+				CopperbenchMcpServer server = CopperbenchMcpServer.start(
+						new McpServerConfiguration(0, WORKSPACE_ID, PermissionProfile.WORKSPACE,
+								Set.of("http://localhost:5173"), CLOCK),
+						tokens, adapter(history, workspace), new JsonLineAuditLog(auditPath), new AssetWorkspaceService(workspace))) {
+			URI endpoint = URI.create("http://127.0.0.1:" + server.address().getPort() + "/mcp");
+			HttpResponse<String> initialized = post(endpoint, initializeBody(), token.value(), null,
+					"http://localhost:5173");
+			String sessionId = initialized.headers().firstValue("mcp-session-id").orElseThrow();
+			post(endpoint, "{\"jsonrpc\":\"2.0\",\"method\":\"notifications/initialized\"}", token.value(),
+					sessionId, "http://localhost:5173");
+
+			JsonObject textureList = toolResult(post(endpoint,
+					"{\"jsonrpc\":\"2.0\",\"id\":51,\"method\":\"tools/call\",\"params\":{\"name\":\"list_assets\",\"arguments\":{\"category\":\"TEXTURE\"}}}",
+					token.value(), sessionId, "http://localhost:5173"));
+			String sourceAssetId = textureList.getAsJsonArray("assets").get(0).getAsJsonObject().get("id").getAsString();
+
+			String target = "assets/coppertrails/textures/block/copper_lamp_renamed.png";
+			JsonObject preview = toolResult(post(endpoint,
+					"{\"jsonrpc\":\"2.0\",\"id\":52,\"method\":\"tools/call\",\"params\":{\"name\":\"preview_asset_move\",\"arguments\":{\"sourceAssetId\":\""
+							+ sourceAssetId + "\",\"targetRelativePath\":\"" + target + "\"}}}",
+					token.value(), sessionId, "http://localhost:5173"));
+			assertEquals("succeeded", preview.get("status").getAsString(), preview::toString);
+			JsonObject plan = preview.getAsJsonObject("data");
+			assertTrue(plan.get("canApply").getAsBoolean());
+			assertEquals(1, plan.get("referenceCount").getAsInt());
+			assertEquals("/textures/all", plan.getAsJsonArray("rewrites").get(0).getAsJsonObject()
+					.get("sourcePointer").getAsString());
+			String planToken = plan.get("planToken").getAsString();
+
+			JsonObject moved = toolResult(post(endpoint,
+					"{\"jsonrpc\":\"2.0\",\"id\":53,\"method\":\"tools/call\",\"params\":{\"name\":\"move_asset\",\"arguments\":{\"planToken\":\""
+							+ planToken + "\",\"expectedRevision\":0}}}",
+					token.value(), sessionId, "http://localhost:5173"));
+			assertEquals("committed", moved.get("status").getAsString());
+			assertEquals(1, moved.get("newRevision").getAsLong());
+			assertTrue(moved.has("recoveryPointId") && !moved.get("recoveryPointId").isJsonNull());
+			assertEquals(1, moved.getAsJsonObject("data").get("rewrittenReferences").getAsInt());
+			assertFalse(Files.exists(texture));
+			assertTrue(Files.isRegularFile(workspace.resolve(target)));
+			assertTrue(Files.readString(model).contains("copper_lamp_renamed"));
+			assertTrue(Files.readString(auditPath).contains("preview_asset_move"));
+			assertTrue(Files.readString(auditPath).contains("move_asset"));
+		}
+	}
+
 	@TempDir Path workspace;
 
 	@Test void authenticatedLoopbackServerExposesSdkToolsAndRejectsUntrustedRequests() throws Exception {
@@ -63,7 +123,8 @@ class McpHttpServerTest {
 		Path model = workspace.resolve("assets/coppertrails/models/block/copper_lamp.json");
 		Files.createDirectories(model.getParent());
 		Files.createDirectories(workspace.resolve("assets/coppertrails/textures/block"));
-		Files.writeString(model, "{\"textures\":{\"all\":\"coppertrails:textures/block/copper_lamp\"}}");
+		Files.writeString(model, "{\"textures\":{\"all\":\"coppertrails:textures/block/copper_lamp\","
+				+ "\"missing\":\"coppertrails:block/missing_lamp\"}}");
 		Files.write(workspace.resolve("assets/coppertrails/textures/block/copper_lamp.png"), new byte[] { 0, 1, 2 });
 		WorkspaceTokenService tokens = new WorkspaceTokenService(CLOCK, Duration.ofMinutes(5));
 		WorkspaceToken token = tokens.issue(WORKSPACE_ID, PermissionProfile.WORKSPACE);
@@ -104,9 +165,17 @@ class McpHttpServerTest {
 			assertTrue(tools.body().contains("get_procedure"));
 			assertTrue(tools.body().contains("preview_procedure_change"));
 			assertTrue(tools.body().contains("update_procedure"));
+			assertTrue(tools.body().contains("get_workspace_health"));
 			assertTrue(tools.body().contains("get_workspace_references"));
 			assertTrue(tools.body().contains("list_workspace_registries"));
 			assertTrue(tools.body().contains("preview_registry_rename"));
+			assertTrue(tools.body().contains("plan_procedure_refactor"));
+			assertTrue(tools.body().contains("replace_call_target"));
+			assertTrue(tools.body().contains("replace_resource_target"));
+			assertTrue(tools.body().contains("sourceResource"));
+			assertTrue(tools.body().contains("targetResource"));
+			assertTrue(tools.body().contains("plan_workspace_changes"));
+			assertTrue(tools.body().contains("requireRecoveryPoint"));
 			assertTrue(tools.body().contains("create_registry_entry"));
 			assertTrue(tools.body().contains("rename_registry_entry"));
 			assertTrue(tools.body().contains("create_mod_element"));
@@ -122,8 +191,11 @@ class McpHttpServerTest {
 			assertTrue(tools.body().contains("get_task"));
 			assertTrue(tools.body().contains("cancel_task"));
 			assertTrue(tools.body().contains("restore_recovery_point"));
+			assertTrue(tools.body().contains("preview_recovery_restore"));
 			assertTrue(tools.body().contains("list_assets"));
 			assertTrue(tools.body().contains("inspect_asset_references"));
+			assertTrue(tools.body().contains("preview_asset_move"));
+			assertTrue(tools.body().contains("move_asset"));
 
 			HttpResponse<String> coverageResult = post(endpoint,
 					"{\"jsonrpc\":\"2.0\",\"id\":35,\"method\":\"tools/call\",\"params\":{\"name\":\"get_element_coverage\",\"arguments\":{}}}",
@@ -160,13 +232,23 @@ class McpHttpServerTest {
 			HttpResponse<String> assetsResult = post(endpoint,
 					"{\"jsonrpc\":\"2.0\",\"id\":31,\"method\":\"tools/call\",\"params\":{\"name\":\"list_assets\",\"arguments\":{\"category\":\"MODEL\"}}}",
 					token.value(), sessionId, "http://localhost:5173");
-			assertEquals("succeeded", toolResult(assetsResult).get("status").getAsString());
-			assertTrue(toolResult(assetsResult).getAsJsonArray("assets").toString().contains("copper_lamp.json"));
+			JsonObject assets = toolResult(assetsResult);
+			assertEquals("succeeded", assets.get("status").getAsString());
+			assertTrue(assets.getAsJsonArray("assets").toString().contains("copper_lamp.json"));
+			assertTrue(assets.has("health"));
+			assertEquals(1, assets.getAsJsonArray("assetHealth").size());
+			assertTrue(assets.getAsJsonArray("diagnostics").toString().contains("MISSING_ASSET_REFERENCE"));
+			assertTrue(assets.getAsJsonArray("diagnostics").toString().contains("open_asset"));
 			HttpResponse<String> referencesResult = post(endpoint,
 					"{\"jsonrpc\":\"2.0\",\"id\":32,\"method\":\"tools/call\",\"params\":{\"name\":\"inspect_asset_references\",\"arguments\":{\"sourcePath\":\"assets/coppertrails/models/block/copper_lamp.json\"}}}",
 					token.value(), sessionId, "http://localhost:5173");
-			assertEquals("succeeded", toolResult(referencesResult).get("status").getAsString());
-			assertEquals(1, toolResult(referencesResult).getAsJsonArray("references").size());
+			JsonObject references = toolResult(referencesResult);
+			assertEquals("succeeded", references.get("status").getAsString());
+			assertEquals(1, references.getAsJsonArray("references").size());
+			assertTrue(references.has("incomingReferences"));
+			assertTrue(references.has("health"));
+			assertTrue(references.getAsJsonArray("diagnostics").toString().contains("MISSING_ASSET_REFERENCE"));
+			assertTrue(references.getAsJsonArray("diagnostics").toString().contains("open_asset"));
 
 			HttpResponse<String> recoveryPointResult = post(endpoint,
 					"{\"jsonrpc\":\"2.0\",\"id\":4,\"method\":\"tools/call\",\"params\":{\"name\":\"create_recovery_point\",\"arguments\":{\"label\":\"Before MCP edit\",\"expectedRevision\":0}}}",
@@ -177,6 +259,13 @@ class McpHttpServerTest {
 			assertEquals("create_recovery_point", recoveryPoint.get("operation").getAsString());
 			assertTrue(recoveryPoint.has("recoveryPointId"));
 			String recoveryPointId = recoveryPoint.get("recoveryPointId").getAsString();
+
+			HttpResponse<String> restorePreviewResult = post(endpoint,
+					"{\"jsonrpc\":\"2.0\",\"id\":40,\"method\":\"tools/call\",\"params\":{\"name\":\"preview_recovery_restore\",\"arguments\":{\"recoveryPointId\":\"" + recoveryPointId + "\"}}}",
+					token.value(), sessionId, "http://localhost:5173");
+			JsonObject restorePreview = toolResult(restorePreviewResult);
+			assertEquals("succeeded", restorePreview.get("status").getAsString());
+			assertEquals(recoveryPointId, restorePreview.getAsJsonObject("data").get("recoveryPointId").getAsString());
 
 			HttpResponse<String> protectedRestoreResult = post(endpoint,
 					"{\"jsonrpc\":\"2.0\",\"id\":41,\"method\":\"tools/call\",\"params\":{\"name\":\"restore_recovery_point\",\"arguments\":{\"recoveryPointId\":\"" + recoveryPointId + "\",\"expectedRevision\":0}}}",
@@ -296,6 +385,10 @@ class McpHttpServerTest {
 	}
 
 	private static McpWorkspaceEntryAdapter adapter(LocalHistoryService history) {
+		return adapter(history, null);
+	}
+
+	private static McpWorkspaceEntryAdapter adapter(LocalHistoryService history, Path workspaceRoot) {
 		RevisionedWorkspaceStore store = new RevisionedWorkspaceStore();
 		JsonObject generator = new JsonObject();
 		generator.addProperty("id", "fabric-1.21.1");
@@ -308,10 +401,13 @@ class McpHttpServerTest {
 		AtomicLong sequence = new AtomicLong(300);
 		Supplier<UUID> ids = () -> UUID.fromString("00000000-0000-4000-8000-" +
 				String.format("%012d", sequence.getAndIncrement()));
-		WorkspaceApplicationService service = new WorkspaceApplicationService(store,
-				new InMemoryWorkspaceTaskGateway(CLOCK, ids),
-				dev.copperbench.core.application.WorkspaceMutationGateway.noOp(), history,
-				ignored -> store.read(WORKSPACE_ID).orElseThrow().copy(), CLOCK, ids);
+		WorkspaceApplicationService service = workspaceRoot == null
+				? new WorkspaceApplicationService(store, new InMemoryWorkspaceTaskGateway(CLOCK, ids),
+						dev.copperbench.core.application.WorkspaceMutationGateway.noOp(), history,
+						ignored -> store.read(WORKSPACE_ID).orElseThrow().copy(), CLOCK, ids)
+				: new WorkspaceApplicationService(store, new InMemoryWorkspaceTaskGateway(CLOCK, ids),
+						dev.copperbench.core.application.WorkspaceMutationGateway.noOp(), history,
+						ignored -> store.read(WORKSPACE_ID).orElseThrow().copy(), ignored -> workspaceRoot, CLOCK, ids);
 		return new McpWorkspaceEntryAdapter(service, PermissionProfile.WORKSPACE);
 	}
 }

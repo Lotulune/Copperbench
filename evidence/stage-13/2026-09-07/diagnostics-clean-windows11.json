@@ -1,0 +1,70 @@
+﻿{
+    "schemaVersion":  "1.0",
+    "kind":  "stage13-diagnostics-clean-windows11",
+    "candidateCommit":  "09bda9c6d8c6a37bbcf15d7cf7c964c68abea2a4",
+    "candidateInstallerSha256":  "bc59026c08c635b7b06c90e434fe3de80d639e4042288b0a20b2445e16ad6b1a",
+    "workspaceFile":  "C:\\Temp\\Copperbench-Stage13-Diagnostics\\workspace\\stage13_diagnostics.mcreator",
+    "startedAt":  "2026-09-07T07:25:53.7122731+08:00",
+    "passed":  true,
+    "steps":  [
+                  {
+                      "name":  "installed_failure_location_repair_payload",
+                      "passed":  true,
+                      "recoveryRequired":  true,
+                      "diagnosticCode":  "FABRIC_ITEM_STACK_INVALID",
+                      "repairValue":  1,
+                      "path":  "/elements/00000000-0000-4000-8000-000000013001/values/fields/maxStackSize",
+                      "actionTarget":  "/fields/maxStackSize",
+                      "elementId":  "00000000-0000-4000-8000-000000013001"
+                  },
+                  {
+                      "name":  "installed_generator_setup",
+                      "passed":  true,
+                      "observed":  true,
+                      "completed":  true,
+                      "waitMs":  85061
+                  },
+                  {
+                      "name":  "desktop_mcp_keyboard_navigation",
+                      "passed":  true,
+                      "shortcut":  "Control+Shift+M",
+                      "copyUrlMatched":  true
+                  },
+                  {
+                      "name":  "desktop_mcp_credential_from_real_ui",
+                      "passed":  true,
+                      "clipboardCleared":  true,
+                      "tokenPersisted":  false,
+                      "descriptorMatched":  true
+                  },
+                  {
+                      "name":  "desktop_mcp_safe_repair",
+                      "passed":  true,
+                      "toRevision":  2,
+                      "auditTokenAbsent":  true,
+                      "semanticField":  "/values/fields/maxStackSize",
+                      "recoveryPointCreated":  true,
+                      "fromRevision":  1
+                  },
+                  {
+                      "name":  "installed_revalidate_and_rebuild",
+                      "passed":  true,
+                      "validate":  "succeeded",
+                      "build":  "succeeded",
+                      "buildExitCode":  0,
+                      "buildEnvelopeParsed":  false
+                  },
+                  {
+                      "name":  "installed_migration_review_location",
+                      "passed":  true,
+                      "reasonCode":  "LOADER_EXCLUSIVE_FIELDS_PRESERVED",
+                      "path":  "/elements/00000000-0000-4000-8000-000000013001",
+                      "disposition":  "manual"
+                  }
+              ],
+    "finalRevision":  2,
+    "diagnosticCode":  "FABRIC_ITEM_STACK_INVALID",
+    "repairValue":  1,
+    "clipboardEmptyAtEnd":  true,
+    "completedAt":  "2026-09-07T07:28:13.0927139+08:00"
+}

@@ -47,6 +47,9 @@ class CopperbenchClient:
     def get_workspace(self) -> dict[str, Any]:
         return self.call_tool("get_workspace", {})
 
+    def get_workspace_health(self) -> dict[str, Any]:
+        return self.call_tool("get_workspace_health", {})
+
     def list_mod_elements(self, **arguments: Any) -> Iterator[dict[str, Any]]:
         cursor: str | None = None
         while True:
@@ -75,6 +78,9 @@ class CopperbenchClient:
     def rename_registry_entry(self, **arguments: Any) -> dict[str, Any]:
         return self.call_tool("rename_registry_entry", arguments)
 
+    def preview_registry_rename(self, **arguments: Any) -> dict[str, Any]:
+        return self.call_tool("preview_registry_rename", arguments)
+
     def create_registry_entry(self, **arguments: Any) -> dict[str, Any]:
         return self.call_tool("create_registry_entry", arguments)
 
@@ -84,11 +90,23 @@ class CopperbenchClient:
     def plan_workspace_changes(self, **arguments: Any) -> dict[str, Any]:
         return self.call_tool("plan_workspace_changes", arguments)
 
+    def plan_procedure_refactor(self, **arguments: Any) -> dict[str, Any]:
+        return self.call_tool("plan_procedure_refactor", arguments)
+
     def preview_workspace_plan(self, plan: dict[str, Any]) -> dict[str, Any]:
         return self.call_tool("preview_workspace_plan", {"plan": plan})
 
     def apply_workspace_plan(self, **arguments: Any) -> dict[str, Any]:
         return self.call_tool("apply_workspace_plan", arguments)
+
+    def list_assets(self, **arguments: Any) -> dict[str, Any]:
+        return self.call_tool("list_assets", arguments)
+
+    def preview_asset_move(self, **arguments: Any) -> dict[str, Any]:
+        return self.call_tool("preview_asset_move", arguments)
+
+    def move_asset(self, **arguments: Any) -> dict[str, Any]:
+        return self.call_tool("move_asset", arguments)
 
     def build_workspace(self, expected_revision: int) -> dict[str, Any]:
         return self.call_tool("build_workspace", {"expectedRevision": expected_revision})
@@ -114,6 +132,9 @@ class CopperbenchClient:
 
     def create_recovery_point(self, label: str, expected_revision: int) -> dict[str, Any]:
         return self.call_tool("create_recovery_point", {"label": label, "expectedRevision": expected_revision})
+
+    def preview_recovery_restore(self, recovery_point_id: str) -> dict[str, Any]:
+        return self.call_tool("preview_recovery_restore", {"recoveryPointId": recovery_point_id})
 
     def restore_recovery_point(self, recovery_point_id: str, expected_revision: int) -> dict[str, Any]:
         return self.call_tool("restore_recovery_point", {

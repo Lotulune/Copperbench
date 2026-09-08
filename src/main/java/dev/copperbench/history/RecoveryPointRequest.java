@@ -13,12 +13,17 @@ import dev.copperbench.core.contract.UiCore.Actor;
 
 import java.util.Objects;
 
-public record RecoveryPointRequest(String label, Actor actor, String taskId) {
+public record RecoveryPointRequest(String label, Actor actor, String taskId, RecoveryPointSource source) {
+
+	public RecoveryPointRequest(String label, Actor actor, String taskId) {
+		this(label, actor, taskId, RecoveryPointSource.MANUAL);
+	}
 
 	public RecoveryPointRequest {
 		if (label == null || label.isBlank())
 			throw new IllegalArgumentException("Recovery point label is required");
 		Objects.requireNonNull(actor, "actor");
 		taskId = taskId == null ? "" : taskId;
+		source = source == null ? RecoveryPointSource.MANUAL : source;
 	}
 }

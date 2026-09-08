@@ -20,6 +20,8 @@ import dev.copperbench.core.contract.UiCore.RequestContext;
 import dev.copperbench.core.workspace.RevisionedWorkspaceStore;
 import dev.copperbench.core.workspace.WorkspaceState;
 import dev.copperbench.history.JGitLocalHistoryService;
+import dev.copperbench.history.RecoveryPointRequest;
+import dev.copperbench.history.RecoveryPointSource;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -70,6 +72,33 @@ class HistoryListCursorTest {
 		assertEquals("rejected", changedDataset.status());
 		assertTrue(changedDataset.diagnostics().stream().anyMatch(diagnostic ->
 				"LIST_CURSOR_INVALID".equals(diagnostic.code())));
+
+		JsonObject filteredPayload = historyCursorPayload(null);
+		filteredPayload.getAsJsonObject("filter").addProperty("source", "workspace_plan");
+		filteredPayload.getAsJsonArray("fields").add("source");
+		var filtered = service.query(Query.of(uuid(4), WORKSPACE_ID, Operation.GET_HISTORY, filteredPayload), MCP);
+		assertEquals("succeeded", filtered.status());
+		assertEquals(0, filtered.data().getAsJsonObject().get("total").getAsInt());
+	}
+
+	@Test void historyCursorFiltersAndProjectsRecoverySource() throws Exception {
+		WorkspaceApplicationService service = service();
+		createPoint(service, "Manual point");
+		try (JGitLocalHistoryService history = JGitLocalHistoryService.open(workspace, CLOCK)) {
+			history.createRecoveryPoint(new RecoveryPointRequest("Plan point", Actor.MCP, "plan-1",
+					RecoveryPointSource.WORKSPACE_PLAN));
+		}
+		JsonObject payload = historyCursorPayload(null);
+		payload.getAsJsonObject("filter").addProperty("source", "workspace_plan");
+		payload.getAsJsonArray("fields").add("source");
+		payload.addProperty("sort", "source");
+		var result = service.query(Query.of(uuid(5), WORKSPACE_ID, Operation.GET_HISTORY, payload), MCP);
+		assertEquals("succeeded", result.status());
+		JsonObject data = result.data().getAsJsonObject();
+		assertEquals(1, data.get("total").getAsInt());
+		JsonObject point = data.getAsJsonArray("recoveryPoints").get(0).getAsJsonObject();
+		assertEquals(Set.of("id", "label", "source"), point.keySet());
+		assertEquals("workspace_plan", point.get("source").getAsString());
 	}
 
 	private WorkspaceApplicationService service() throws Exception {

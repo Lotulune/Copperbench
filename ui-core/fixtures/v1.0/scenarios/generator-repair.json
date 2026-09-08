@@ -1,0 +1,127 @@
+{
+  "schemaVersion": "1.0",
+  "scenarioId": "generator-repair",
+  "extendsScenarioId": "ready",
+  "title": { "key": "scenario.generator_repair", "fallback": "Generator safe repair", "args": {} },
+  "description": "A deterministic generator validation failure offers a recovery-protected workspace-plan repair preview.",
+  "viewportState": "error",
+  "initialMessages": [
+    {
+      "messageType": "event",
+      "schemaVersion": "1.0",
+      "eventId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbb71",
+      "workspaceId": "11111111-1111-4111-8111-111111111111",
+      "revision": 42,
+      "sequence": 211,
+      "occurredAt": "2026-09-05T12:00:00Z",
+      "event": "task_started",
+      "causedByRequestId": null,
+      "payload": {
+        "task": {
+          "id": "33333333-3333-4333-8333-333333333371",
+          "kind": "validate",
+          "state": "running",
+          "cancellable": true,
+          "progress": 0.25,
+          "stage": { "key": "task.validate.validating", "fallback": "Validating workspace", "args": {} },
+          "startedAt": "2026-09-05T11:59:55Z",
+          "completedAt": null,
+          "diagnostics": { "error": 0, "warning": 0, "info": 0 }
+        }
+      }
+    },
+    {
+      "messageType": "event",
+      "schemaVersion": "1.0",
+      "eventId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbb72",
+      "workspaceId": "11111111-1111-4111-8111-111111111111",
+      "revision": 42,
+      "sequence": 212,
+      "occurredAt": "2026-09-05T12:00:01Z",
+      "event": "diagnostics_changed",
+      "causedByRequestId": null,
+      "payload": {
+        "counts": { "error": 1, "warning": 0, "info": 0 },
+        "diagnostics": [
+          {
+            "code": "FABRIC_ITEM_STACK_INVALID",
+            "severity": "error",
+            "message": {
+              "key": "diagnostic.fabric_item_stack_invalid",
+              "fallback": "Item stack size must be between 1 and 64.",
+              "args": { "message": "Item stack size must be between 1 and 64." }
+            },
+            "path": "/elements/22222222-2222-4222-8222-222222222222/values/fields/maxStackSize",
+            "elementId": "22222222-2222-4222-8222-222222222222",
+            "recoverable": true,
+            "actions": [
+              {
+                "id": "locate_generator_field",
+                "label": { "key": "action.open_field", "fallback": "Locate invalid field", "args": {} },
+                "kind": "open_field",
+                "target": "/fields/maxStackSize"
+              },
+              {
+                "id": "preview_generator_repair",
+                "label": { "key": "action.preview_repair", "fallback": "Preview safe repair", "args": {} },
+                "kind": "preview_repair",
+                "target": null,
+                "payload": {
+                  "expectedRevision": 42,
+                  "requireRecoveryPoint": true,
+                  "operations": [
+                    {
+                      "operation": "update_mod_element",
+                      "payload": {
+                        "elementId": "22222222-2222-4222-8222-222222222222",
+                        "changes": [
+                          { "path": "/fields/maxStackSize", "value": 1 }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "open_generator_repair_logs",
+                "label": { "key": "action.open_logs", "fallback": "View task logs", "args": {} },
+                "kind": "open_logs",
+                "target": "33333333-3333-4333-8333-333333333371"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "messageType": "event",
+      "schemaVersion": "1.0",
+      "eventId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbb73",
+      "workspaceId": "11111111-1111-4111-8111-111111111111",
+      "revision": 42,
+      "sequence": 213,
+      "occurredAt": "2026-09-05T12:00:02Z",
+      "event": "task_completed",
+      "causedByRequestId": null,
+      "payload": {
+        "task": {
+          "id": "33333333-3333-4333-8333-333333333371",
+          "kind": "validate",
+          "state": "failed",
+          "cancellable": false,
+          "progress": 1,
+          "stage": { "key": "task.failed", "fallback": "Validation failed", "args": {} },
+          "startedAt": "2026-09-05T11:59:55Z",
+          "completedAt": "2026-09-05T12:00:02Z",
+          "diagnostics": { "error": 1, "warning": 0, "info": 0 }
+        }
+      }
+    }
+  ],
+  "timeline": [],
+  "expectedUi": {
+    "announcement": "FABRIC_ITEM_STACK_INVALID",
+    "primaryAction": "preview_generator_repair",
+    "focusTarget": "[data-testid=task-repair-preview]"
+  }
+}

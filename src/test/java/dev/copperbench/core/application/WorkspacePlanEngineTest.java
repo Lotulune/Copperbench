@@ -18,6 +18,8 @@ import dev.copperbench.history.RecoveryPoint;
 import dev.copperbench.history.RecoveryPointRequest;
 import dev.copperbench.history.RestoreResult;
 import dev.copperbench.history.WorkspaceChange;
+import dev.copperbench.procedure.ProcedureIr;
+import dev.copperbench.procedure.ProcedureIrCodec;
 import org.junit.jupiter.api.Test;
 
 import java.time.Clock;
@@ -47,6 +49,11 @@ class WorkspacePlanEngineTest {
 		assertEquals(2, plan.get("operationCount").getAsInt());
 		assertEquals(2, plan.getAsJsonArray("semanticDiff").size());
 		assertEquals(2, plan.getAsJsonArray("changedPaths").size());
+		assertEquals(2, plan.getAsJsonObject("review").getAsJsonObject("summary")
+				.get("affectedObjectCount").getAsInt());
+		assertEquals("multi_object", plan.getAsJsonObject("review").getAsJsonObject("summary")
+				.get("scope").getAsString());
+		assertEquals(1, plan.getAsJsonObject("review").getAsJsonArray("operationGroups").size());
 		assertNotEquals(plan.getAsJsonArray("operations").get(0).getAsJsonObject().get("plannedId").getAsString(),
 				plan.getAsJsonArray("operations").get(1).getAsJsonObject().get("plannedId").getAsString());
 
@@ -74,6 +81,50 @@ class WorkspacePlanEngineTest {
 		assertEquals(1, fixture.history().created.size());
 		assertEquals(1, fixture.gateway().planCalls);
 		assertEquals(8, fixture.store().read(WORKSPACE_ID).orElseThrow().revision());
+	}
+
+	@Test void batchProcedureResourceReplacementUpdatesMultipleCallersAsOneProtectedRevision() {
+		Fixture fixture = fixture(false);
+		RequestContext ui = new RequestContext(Actor.UI, PermissionProfile.WORKSPACE);
+		String resourceXml = "<xml xmlns=\"https://developers.google.com/blockly/xml\">"
+				+ "<block type=\"event_trigger\"><field name=\"trigger\">no_ext_trigger</field></block>"
+				+ "<block type=\"mcitem_all\"><field name=\"value\">minecraft:stone</field></block></xml>";
+		String firstCallerId = createProcedure(fixture, ui, 7, 90, "first_resource_user", resourceXml);
+		String secondCallerId = createProcedure(fixture, ui, 8, 91, "second_resource_user", resourceXml);
+
+		JsonObject request = new JsonObject();
+		request.addProperty("kind", "replace_resource_target");
+		request.addProperty("expectedRevision", 9);
+		request.addProperty("idempotencyKey", "replace-stone-resource");
+		request.addProperty("sourceResource", "minecraft:stone");
+		request.addProperty("targetResource", "minecraft:diamond");
+		var planned = fixture.service().query(Query.of(uuid(92), WORKSPACE_ID,
+				Operation.PLAN_PROCEDURE_REFACTOR, request), ui);
+		assertEquals("succeeded", planned.status(), planned.diagnostics().toString());
+		JsonObject plan = planned.data().getAsJsonObject();
+		assertEquals(2, plan.get("operationCount").getAsInt());
+		assertTrue(plan.get("requireRecoveryPoint").getAsBoolean());
+		assertEquals(2, plan.getAsJsonObject("review").getAsJsonObject("summary")
+				.get("affectedElementCount").getAsInt());
+		assertTrue(plan.getAsJsonObject("review").getAsJsonArray("affectedObjects").asList().stream()
+				.allMatch(raw -> raw.getAsJsonObject().getAsJsonArray("changedProperties").asList().stream()
+						.anyMatch(path -> path.getAsString().equals("/values/procedureIr"))));
+
+		var applied = fixture.service().execute(applyCommand(93, 9, plan), ui);
+		assertEquals("committed", applied.result().status(), applied.result().diagnostics().toString());
+		assertEquals(10, applied.result().newRevision());
+		assertEquals(1, fixture.history().created.size());
+		assertEquals(1, fixture.gateway().planCalls);
+		assertEquals(plan.getAsJsonObject("review"), applied.result().data().getAsJsonObject().getAsJsonObject("review"));
+
+		ProcedureIrCodec codec = new ProcedureIrCodec();
+		WorkspaceState after = fixture.store().read(WORKSPACE_ID).orElseThrow();
+		for (String callerId : List.of(firstCallerId, secondCallerId)) {
+			Element caller = after.element(UUID.fromString(callerId));
+			ProcedureIr.Node resource = codec.read(caller.values(), caller.id()).nodes().stream()
+					.filter(node -> node.type().equals("mcitem_all")).findFirst().orElseThrow();
+			assertEquals("minecraft:diamond", resource.fields().get("value").getAsString());
+		}
 	}
 
 	@Test void planSimulationHonorsOperationOrderAndRejectsInvalidSecondStep() {
@@ -132,6 +183,281 @@ class WorkspacePlanEngineTest {
 		assertEquals(1, fixture.gateway().planCalls);
 	}
 
+	@Test void protectedPlanIsBlockedBeforeMutationWhenRecoveryPointsAreUnavailable() {
+		Fixture fixture = fixture(false, false);
+		JsonObject payload = planPayload(7, "protected-refactor", createElement("item", "planned_item"));
+		payload.addProperty("requireRecoveryPoint", true);
+		var planned = fixture.service().query(Query.of(uuid(45), WORKSPACE_ID,
+				Operation.PLAN_WORKSPACE_CHANGES, payload), MCP);
+		assertEquals("succeeded", planned.status(), planned.diagnostics().toString());
+		JsonObject plan = planned.data().getAsJsonObject();
+		assertTrue(plan.get("requireRecoveryPoint").getAsBoolean());
+		assertFalse(plan.getAsJsonObject("safety").get("recoveryPointAvailable").getAsBoolean());
+		assertFalse(plan.getAsJsonObject("safety").get("ready").getAsBoolean());
+
+		JsonObject previewPayload = new JsonObject();
+		previewPayload.add("plan", plan.deepCopy());
+		var preview = fixture.service().query(Query.of(uuid(46), WORKSPACE_ID,
+				Operation.PREVIEW_WORKSPACE_PLAN, previewPayload), MCP);
+		assertEquals("succeeded", preview.status(), preview.diagnostics().toString());
+		assertFalse(preview.data().getAsJsonObject().get("wouldApply").getAsBoolean());
+
+		var applied = fixture.service().execute(applyCommand(47, 7, plan), MCP);
+		assertEquals("rejected", applied.result().status());
+		assertTrue(applied.result().diagnostics().stream().anyMatch(diagnostic ->
+				"RECOVERY_POINT_REQUIRED_UNAVAILABLE".equals(diagnostic.code())));
+		assertEquals(7, fixture.store().read(WORKSPACE_ID).orElseThrow().revision());
+		assertTrue(fixture.store().read(WORKSPACE_ID).orElseThrow().elements().isEmpty());
+		assertEquals(0, fixture.gateway().planCalls);
+	}
+
+	@Test void protectedVariableRenameUpdatesProcedureDependenciesAndKeepsReferenceIndexStable() {
+		Fixture fixture = fixture(false);
+		RequestContext ui = new RequestContext(Actor.UI, PermissionProfile.WORKSPACE);
+
+		JsonObject registryPayload = new JsonObject();
+		registryPayload.addProperty("clientMutationId", uuid(60).toString());
+		registryPayload.addProperty("registry", "variables");
+		JsonObject variable = new JsonObject();
+		variable.addProperty("name", "player_energy");
+		variable.addProperty("dataType", "number");
+		variable.addProperty("scope", "player_persistent");
+		registryPayload.add("entry", variable);
+		var registryCreated = fixture.service().execute(Command.of(uuid(61), WORKSPACE_ID, 7,
+				Operation.CREATE_REGISTRY_ENTRY, registryPayload), ui);
+		assertEquals("committed", registryCreated.result().status(), registryCreated.result().diagnostics().toString());
+		String registryEntryId = registryCreated.result().data().getAsJsonObject().getAsJsonObject("entry")
+				.get("id").getAsString();
+
+		JsonObject createPayload = new JsonObject();
+		createPayload.addProperty("clientMutationId", uuid(62).toString());
+		createPayload.addProperty("elementType", "procedure");
+		createPayload.addProperty("name", "energy_tick");
+		JsonObject initialValues = new JsonObject();
+		initialValues.addProperty("procedurexml",
+				"<xml xmlns=\"https://developers.google.com/blockly/xml\"><block type=\"event_trigger\">"
+						+ "<field name=\"trigger\">no_ext_trigger</field></block></xml>");
+		createPayload.add("initialValues", initialValues);
+		var procedureCreated = fixture.service().execute(Command.of(uuid(63), WORKSPACE_ID, 8,
+				Operation.CREATE_MOD_ELEMENT, createPayload), ui);
+		assertEquals("committed", procedureCreated.result().status(), procedureCreated.result().diagnostics().toString());
+		String procedureId = procedureCreated.result().data().getAsJsonObject().getAsJsonObject("element")
+				.get("id").getAsString();
+
+		JsonObject node = new JsonObject();
+		node.addProperty("id", uuid(64).toString());
+		node.addProperty("type", "variables_get_number");
+		node.addProperty("kind", "value");
+		node.addProperty("x", 120);
+		node.addProperty("y", 80);
+		JsonObject fields = new JsonObject();
+		fields.addProperty("VAR", "player_energy");
+		node.add("fields", fields);
+		node.add("inputs", new JsonObject());
+		node.add("next", com.google.gson.JsonNull.INSTANCE);
+		JsonObject edit = new JsonObject();
+		edit.addProperty("operation", "add_node");
+		edit.add("node", node);
+		JsonArray edits = new JsonArray();
+		edits.add(edit);
+		JsonObject updatePayload = new JsonObject();
+		updatePayload.addProperty("clientMutationId", uuid(65).toString());
+		updatePayload.addProperty("elementId", procedureId);
+		updatePayload.add("edits", edits);
+		var procedureUpdated = fixture.service().execute(Command.of(uuid(66), WORKSPACE_ID, 9,
+				Operation.UPDATE_PROCEDURE, updatePayload), ui);
+		assertEquals("committed", procedureUpdated.result().status(), procedureUpdated.result().diagnostics().toString());
+
+		JsonObject renamePayload = new JsonObject();
+		renamePayload.addProperty("entryId", registryEntryId);
+		renamePayload.addProperty("newName", "player_stamina");
+		JsonObject renameStep = new JsonObject();
+		renameStep.addProperty("operation", "rename_registry_entry");
+		renameStep.add("payload", renamePayload);
+		JsonObject planPayload = planPayload(10, "stage13-variable-refactor", renameStep);
+		planPayload.addProperty("requireRecoveryPoint", true);
+		var planned = fixture.service().query(Query.of(uuid(67), WORKSPACE_ID,
+				Operation.PLAN_WORKSPACE_CHANGES, planPayload), MCP);
+		assertEquals("succeeded", planned.status(), planned.diagnostics().toString());
+		JsonObject plan = planned.data().getAsJsonObject();
+		assertTrue(plan.getAsJsonObject("safety").get("ready").getAsBoolean());
+		assertTrue(plan.getAsJsonArray("semanticDiff").asList().stream().anyMatch(raw ->
+				"registry_updated".equals(raw.getAsJsonObject().get("kind").getAsString())));
+		assertTrue(plan.getAsJsonArray("semanticDiff").asList().stream().anyMatch(raw ->
+				"element_updated".equals(raw.getAsJsonObject().get("kind").getAsString())));
+
+		var applied = fixture.service().execute(applyCommand(68, 10, plan), MCP);
+		assertEquals("committed", applied.result().status(), applied.result().diagnostics().toString());
+		assertEquals(11, applied.result().newRevision());
+		assertTrue(applied.result().recoveryPointId() != null && !applied.result().recoveryPointId().isBlank());
+		assertEquals(1, fixture.history().created.size());
+
+		WorkspaceState after = fixture.store().read(WORKSPACE_ID).orElseThrow();
+		Element procedure = after.element(UUID.fromString(procedureId));
+		JsonObject procedureIr = procedure.values().getAsJsonObject("procedureIr");
+		assertTrue(procedureIr.getAsJsonArray("nodes").asList().stream().anyMatch(raw -> {
+			JsonObject candidate = raw.getAsJsonObject();
+			return "variables_get_number".equals(candidate.get("type").getAsString())
+					&& "player_stamina".equals(candidate.getAsJsonObject("fields").get("VAR").getAsString());
+		}));
+		assertTrue(procedureIr.getAsJsonArray("dependencies").asList().stream().anyMatch(raw ->
+				"player_stamina".equals(raw.getAsJsonObject().get("target").getAsString())));
+
+		JsonObject referencesPayload = new JsonObject();
+		referencesPayload.addProperty("target", registryEntryId);
+		var references = fixture.service().query(Query.of(uuid(69), WORKSPACE_ID,
+				Operation.GET_WORKSPACE_REFERENCES, referencesPayload), ui);
+		assertEquals("succeeded", references.status(), references.diagnostics().toString());
+		assertEquals(1, references.data().getAsJsonObject().getAsJsonArray("edges").size());
+	}
+
+	@Test void procedureExtractionCreatesReusableProcedureAndReplacesSourceAsOneProtectedRevision() {
+		Fixture fixture = fixture(false);
+		RequestContext ui = new RequestContext(Actor.UI, PermissionProfile.WORKSPACE);
+		UUID triggerId = uuid(71);
+		UUID rootId = uuid(72);
+		UUID valueId = uuid(73);
+		UUID afterId = uuid(74);
+		UUID afterTextId = uuid(75);
+		String xml = "<xml xmlns=\"https://developers.google.com/blockly/xml\">"
+				+ "<block type=\"event_trigger\" id=\"" + triggerId + "\"><field name=\"trigger\">no_ext_trigger</field><next>"
+				+ "<block type=\"variables_set_number\" id=\"" + rootId + "\"><field name=\"VAR\">quest_score</field>"
+				+ "<value name=\"VALUE\"><block type=\"math_number\" id=\"" + valueId + "\"><field name=\"NUM\">5</field></block></value>"
+				+ "<next><block type=\"text_print\" id=\"" + afterId + "\"><value name=\"TEXT\">"
+				+ "<block type=\"text\" id=\"" + afterTextId + "\"><field name=\"TEXT\">after</field></block>"
+				+ "</value></block></next></block></next></block></xml>";
+		String sourceId = createProcedure(fixture, ui, 7, 76, "quest_tick", xml);
+
+		JsonObject request = new JsonObject();
+		request.addProperty("kind", "extract_node");
+		request.addProperty("expectedRevision", 8);
+		request.addProperty("idempotencyKey", "extract-quest-score");
+		request.addProperty("elementId", sourceId);
+		request.addProperty("nodeId", rootId.toString());
+		request.addProperty("newProcedureName", "award_quest_score");
+		var planned = fixture.service().query(Query.of(uuid(77), WORKSPACE_ID,
+				Operation.PLAN_PROCEDURE_REFACTOR, request), ui);
+		assertEquals("succeeded", planned.status(), planned.diagnostics().toString());
+		JsonObject plan = planned.data().getAsJsonObject();
+		assertTrue(plan.get("requireRecoveryPoint").getAsBoolean());
+		assertTrue(plan.getAsJsonObject("safety").get("ready").getAsBoolean());
+		assertEquals(2, plan.get("operationCount").getAsInt());
+		String extractedId = plan.getAsJsonArray("operations").get(0).getAsJsonObject()
+				.get("plannedId").getAsString();
+
+		var applied = fixture.service().execute(applyCommand(78, 8, plan), ui);
+		assertEquals("committed", applied.result().status(), applied.result().diagnostics().toString());
+		assertEquals(9, applied.result().newRevision());
+		assertTrue(applied.result().recoveryPointId() != null && !applied.result().recoveryPointId().isBlank());
+		assertEquals(1, fixture.history().created.size());
+		assertEquals(1, fixture.gateway().planCalls);
+
+		WorkspaceState after = fixture.store().read(WORKSPACE_ID).orElseThrow();
+		assertEquals(2, after.elements().size());
+		ProcedureIrCodec codec = new ProcedureIrCodec();
+		ProcedureIr sourceIr = codec.read(after.element(UUID.fromString(sourceId)).values(), UUID.fromString(sourceId));
+		ProcedureIr.Node call = sourceIr.nodeIndex().get(rootId);
+		assertEquals("call_procedure", call.type());
+		assertEquals("award_quest_score", call.fields().get("procedureId").getAsString());
+		assertEquals(afterId, call.next());
+		assertFalse(sourceIr.nodeIndex().containsKey(valueId));
+		assertTrue(sourceIr.nodeIndex().containsKey(afterId));
+
+		Element extracted = after.element(UUID.fromString(extractedId));
+		assertEquals("procedure", extracted.type());
+		assertEquals("award_quest_score", extracted.name());
+		ProcedureIr extractedIr = codec.read(extracted.values(), extracted.id());
+		assertEquals(3, extractedIr.nodes().size());
+		assertTrue(extractedIr.nodes().stream().anyMatch(node -> node.type().equals("variables_set_number")));
+		assertTrue(extractedIr.nodes().stream().anyMatch(node -> node.type().equals("math_number")));
+		assertFalse(extractedIr.nodes().stream().anyMatch(node -> node.type().equals("text_print")));
+
+		JsonObject referencesPayload = new JsonObject();
+		referencesPayload.addProperty("target", extractedId);
+		var references = fixture.service().query(Query.of(uuid(79), WORKSPACE_ID,
+				Operation.GET_WORKSPACE_REFERENCES, referencesPayload), ui);
+		assertEquals("succeeded", references.status(), references.diagnostics().toString());
+		assertEquals(1, references.data().getAsJsonObject().getAsJsonArray("edges").size());
+	}
+
+	@Test void batchProcedureCallReplacementUpdatesMultipleCallersAsOneProtectedRevision() {
+		Fixture fixture = fixture(false);
+		RequestContext ui = new RequestContext(Actor.UI, PermissionProfile.WORKSPACE);
+		String empty = "<xml xmlns=\"https://developers.google.com/blockly/xml\"><block type=\"event_trigger\">"
+				+ "<field name=\"trigger\">no_ext_trigger</field></block></xml>";
+		String sourceId = createProcedure(fixture, ui, 7, 80, "old_reward", empty);
+		String targetId = createProcedure(fixture, ui, 8, 81, "new_reward", empty);
+		String callerXml = "<xml xmlns=\"https://developers.google.com/blockly/xml\"><block type=\"event_trigger\">"
+				+ "<field name=\"trigger\">no_ext_trigger</field><next><block type=\"call_procedure\">"
+				+ "<field name=\"procedureId\">old_reward</field><field name=\"procedure\">old_reward</field>"
+				+ "</block></next></block></xml>";
+		String firstCallerId = createProcedure(fixture, ui, 9, 82, "first_caller", callerXml);
+		String secondCallerId = createProcedure(fixture, ui, 10, 83, "second_caller", callerXml);
+
+		JsonObject request = new JsonObject();
+		request.addProperty("kind", "replace_call_target");
+		request.addProperty("expectedRevision", 11);
+		request.addProperty("idempotencyKey", "replace-old-reward-calls");
+		request.addProperty("sourceProcedureId", sourceId);
+		request.addProperty("targetProcedureId", targetId);
+		var planned = fixture.service().query(Query.of(uuid(84), WORKSPACE_ID,
+				Operation.PLAN_PROCEDURE_REFACTOR, request), ui);
+		assertEquals("succeeded", planned.status(), planned.diagnostics().toString());
+		JsonObject plan = planned.data().getAsJsonObject();
+		assertEquals(2, plan.get("operationCount").getAsInt());
+		assertTrue(plan.get("requireRecoveryPoint").getAsBoolean());
+
+		var applied = fixture.service().execute(applyCommand(85, 11, plan), ui);
+		assertEquals("committed", applied.result().status(), applied.result().diagnostics().toString());
+		assertEquals(12, applied.result().newRevision());
+		assertEquals(1, fixture.history().created.size());
+		assertEquals(1, fixture.gateway().planCalls);
+
+		ProcedureIrCodec codec = new ProcedureIrCodec();
+		WorkspaceState after = fixture.store().read(WORKSPACE_ID).orElseThrow();
+		for (String callerId : List.of(firstCallerId, secondCallerId)) {
+			Element caller = after.element(UUID.fromString(callerId));
+			ProcedureIr.Node call = codec.read(caller.values(), caller.id()).nodes().stream()
+					.filter(node -> node.type().equals("call_procedure")).findFirst().orElseThrow();
+			assertEquals(targetId, call.fields().get("procedureId").getAsString());
+			assertEquals("new_reward", call.fields().get("procedure").getAsString());
+		}
+
+		JsonObject referencesPayload = new JsonObject();
+		referencesPayload.addProperty("target", targetId);
+		var references = fixture.service().query(Query.of(uuid(86), WORKSPACE_ID,
+				Operation.GET_WORKSPACE_REFERENCES, referencesPayload), ui);
+		assertEquals(2, references.data().getAsJsonObject().getAsJsonArray("edges").size());
+	}
+
+	@Test void batchProcedureCallReplacementRejectsIntroducedCallCycleBeforePlanning() {
+		Fixture fixture = fixture(false);
+		RequestContext ui = new RequestContext(Actor.UI, PermissionProfile.WORKSPACE);
+		String empty = "<xml xmlns=\"https://developers.google.com/blockly/xml\"><block type=\"event_trigger\">"
+				+ "<field name=\"trigger\">no_ext_trigger</field></block></xml>";
+		String sourceId = createProcedure(fixture, ui, 7, 87, "old_reward", empty);
+		String targetXml = "<xml xmlns=\"https://developers.google.com/blockly/xml\"><block type=\"event_trigger\">"
+				+ "<field name=\"trigger\">no_ext_trigger</field><next><block type=\"call_procedure\">"
+				+ "<field name=\"procedureId\">old_reward</field><field name=\"procedure\">old_reward</field>"
+				+ "</block></next></block></xml>";
+		String targetId = createProcedure(fixture, ui, 8, 88, "new_reward", targetXml);
+
+		JsonObject request = new JsonObject();
+		request.addProperty("kind", "replace_call_target");
+		request.addProperty("expectedRevision", 9);
+		request.addProperty("idempotencyKey", "reject-call-cycle");
+		request.addProperty("sourceProcedureId", sourceId);
+		request.addProperty("targetProcedureId", targetId);
+		var planned = fixture.service().query(Query.of(uuid(89), WORKSPACE_ID,
+				Operation.PLAN_PROCEDURE_REFACTOR, request), ui);
+		assertEquals("rejected", planned.status());
+		assertTrue(planned.diagnostics().stream().anyMatch(diagnostic ->
+				"PROCEDURE_REFACTOR_CALL_CYCLE".equals(diagnostic.code())));
+		assertEquals(9, fixture.store().read(WORKSPACE_ID).orElseThrow().revision());
+		assertEquals(0, fixture.gateway().planCalls);
+		assertEquals(0, fixture.history().created.size());
+	}
+
 	@Test void tamperedDerivedPlanMetadataIsRejectedBeforeMutation() {
 		Fixture fixture = fixture(false);
 		JsonObject plan = plan(fixture.service(), MCP, 7, "tamper-plan", createElement("item", "planned_item"));
@@ -167,16 +493,44 @@ class WorkspacePlanEngineTest {
 		assertEquals(7, fixture.store().read(WORKSPACE_ID).orElseThrow().revision());
 		assertEquals(0, fixture.gateway().planCalls);
 		assertEquals(0, fixture.history().created.size());
+
+		JsonObject reviewTamper = plan.deepCopy();
+		reviewTamper.getAsJsonObject("review").getAsJsonObject("summary").addProperty("affectedObjectCount", 99);
+		JsonObject reviewPreviewPayload = new JsonObject();
+		reviewPreviewPayload.add("plan", reviewTamper);
+		var reviewPreview = fixture.service().query(Query.of(uuid(54), WORKSPACE_ID,
+				Operation.PREVIEW_WORKSPACE_PLAN, reviewPreviewPayload), MCP);
+		assertEquals("failed", reviewPreview.status());
+		assertTrue(reviewPreview.diagnostics().stream().anyMatch(diagnostic ->
+				"WORKSPACE_PLAN_INTEGRITY_FAILED".equals(diagnostic.code())));
+
+		JsonObject protectedPayload = planPayload(7, "protected-tamper-plan", createElement("item", "protected_item"));
+		protectedPayload.addProperty("requireRecoveryPoint", true);
+		var protectedResult = fixture.service().query(Query.of(uuid(52), WORKSPACE_ID,
+				Operation.PLAN_WORKSPACE_CHANGES, protectedPayload), MCP);
+		assertEquals("succeeded", protectedResult.status(), protectedResult.diagnostics().toString());
+		JsonObject strippedProtection = protectedResult.data().getAsJsonObject().deepCopy();
+		strippedProtection.addProperty("requireRecoveryPoint", false);
+		var strippedApply = fixture.service().execute(applyCommand(53, 7, strippedProtection), MCP);
+		assertEquals("rejected", strippedApply.result().status());
+		assertTrue(strippedApply.result().diagnostics().stream().anyMatch(diagnostic ->
+				"WORKSPACE_PLAN_INTEGRITY_FAILED".equals(diagnostic.code())));
+		assertEquals(7, fixture.store().read(WORKSPACE_ID).orElseThrow().revision());
+		assertEquals(0, fixture.history().created.size());
 	}
 
 	private static Fixture fixture(boolean failPlanPersistence) {
+		return fixture(failPlanPersistence, true);
+	}
+
+	private static Fixture fixture(boolean failPlanPersistence, boolean withHistory) {
 		RevisionedWorkspaceStore store = new RevisionedWorkspaceStore();
 		JsonObject generator = new JsonObject();
 		generator.addProperty("id", "fabric-1.21.1");
 		store.register(new WorkspaceState(WORKSPACE_ID, "Workspace Plan", "mod", 7, false, generator,
 				new JsonObject(), List.of()));
 		AtomicLong sequence = new AtomicLong(100);
-		RecordingHistory history = new RecordingHistory();
+		RecordingHistory history = withHistory ? new RecordingHistory() : null;
 		RecordingGateway gateway = new RecordingGateway(failPlanPersistence);
 		WorkspaceApplicationService service = new WorkspaceApplicationService(store,
 				new InMemoryWorkspaceTaskGateway(CLOCK, () -> uuid(sequence.getAndIncrement())), gateway,
@@ -211,6 +565,21 @@ class WorkspacePlanEngineTest {
 		step.addProperty("operation", "create_mod_element");
 		step.add("payload", payload);
 		return step;
+	}
+
+	private static String createProcedure(Fixture fixture, RequestContext context, long revision, long requestId,
+			String name, String xml) {
+		JsonObject payload = new JsonObject();
+		payload.addProperty("clientMutationId", uuid(requestId + 1000).toString());
+		payload.addProperty("elementType", "procedure");
+		payload.addProperty("name", name);
+		JsonObject values = new JsonObject();
+		values.addProperty("procedurexml", xml);
+		payload.add("initialValues", values);
+		var result = fixture.service().execute(Command.of(uuid(requestId), WORKSPACE_ID, revision,
+				Operation.CREATE_MOD_ELEMENT, payload), context);
+		assertEquals("committed", result.result().status(), result.result().diagnostics().toString());
+		return result.result().data().getAsJsonObject().getAsJsonObject("element").get("id").getAsString();
 	}
 
 	private static Command applyCommand(long request, long revision, JsonObject plan) {
@@ -256,8 +625,10 @@ class WorkspacePlanEngineTest {
 		}
 
 		@Override public List<RecoveryPoint> listRecoveryPoints() { return List.of(); }
+		@Override public String currentRecoveryPointId() { return null; }
 		@Override public List<WorkspaceChange> compare(String fromRecoveryPointId, String toRecoveryPointId)
 				throws LocalHistoryException { return List.of(); }
+		@Override public List<WorkspaceChange> previewRestore(String recoveryPointId) { return List.of(); }
 		@Override public RestoreResult restore(String recoveryPointId) throws LocalHistoryException {
 			throw new LocalHistoryException("not used");
 		}

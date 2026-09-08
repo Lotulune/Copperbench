@@ -53,6 +53,12 @@ final class RecoverableBrowserHost extends JPanel implements AutoCloseable {
 			browser.forceLoad();
 	}
 
+	void executeScriptAsync(String javaScript) {
+		BrowserHandle browser = currentBrowser;
+		if (browser != null && !closed.get())
+			browser.executeScriptAsync(javaScript);
+	}
+
 	boolean isRecovering() {
 		return recovering;
 	}
@@ -228,6 +234,9 @@ final class RecoverableBrowserHost extends JPanel implements AutoCloseable {
 		void addRendererTerminationListener(Consumer<String> listener);
 
 		void forceLoad();
+
+		default void executeScriptAsync(String javaScript) {
+		}
 
 		default void requestFocus() {
 			component().requestFocusInWindow();

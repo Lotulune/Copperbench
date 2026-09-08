@@ -26,7 +26,7 @@ public final class AssetWorkspaceService {
 	private static final Set<String> RESOURCE_PREFIXES = Set.of("textures/", "models/", "animations/", "sounds/",
 			"lang/", "blockstates/", "items/", "font/", "shaders/");
 	private static final Set<String> KNOWN_EXTENSIONS = Set.of(".json", ".png", ".jpg", ".jpeg", ".ogg", ".wav",
-			".bbmodel", ".mcmeta", ".zip");
+			".bbmodel", ".mcmeta", ".zip", ".lang");
 	private static final Pattern URI = Pattern.compile("^[a-z][a-z0-9+.-]*://.*$", Pattern.CASE_INSENSITIVE);
 
 	private final Path root;
@@ -136,8 +136,8 @@ public final class AssetWorkspaceService {
 			Path file = root.resolve(source.relativePath());
 			try {
 				JsonElement document = JsonParser.parseString(Files.readString(file));
-				collectStrings(document, null,
-						(candidate, prefix) -> addReference(source, candidate, prefix, byPath, references, diagnostics));
+				collectStrings(document, null, "",
+						candidate -> addReference(source, candidate, byPath, references, diagnostics));
 			} catch (Exception exception) {
 				diagnostics.add(new AssetDiagnostic("INVALID_ASSET_DOCUMENT", AssetDiagnostic.Severity.ERROR,
 						source.relativePath(), null, "Asset document is not valid JSON"));
@@ -166,22 +166,24 @@ public final class AssetWorkspaceService {
 		return lower.endsWith(".json") || lower.endsWith(".bbmodel") || lower.endsWith(".mcmeta");
 	}
 
-	private static void collectStrings(JsonElement value, String inheritedPrefix,
-			java.util.function.BiConsumer<String, String> consumer) {
+	private static void collectStrings(JsonElement value, String inheritedPrefix, String pointer,
+			java.util.function.Consumer<ReferenceCandidate> consumer) {
 		if (value == null || value.isJsonNull())
 			return;
 		if (value.isJsonPrimitive() && value.getAsJsonPrimitive().isString()) {
-			consumer.accept(value.getAsString(), inheritedPrefix);
+			consumer.accept(new ReferenceCandidate(value.getAsString(), inheritedPrefix, pointer));
 			return;
 		}
 		if (value.isJsonArray()) {
 			JsonArray array = value.getAsJsonArray();
-			array.forEach(element -> collectStrings(element, inheritedPrefix, consumer));
+			for (int index = 0; index < array.size(); index++)
+				collectStrings(array.get(index), inheritedPrefix, pointer + "/" + index, consumer);
 			return;
 		}
 		if (value.isJsonObject()) {
 			JsonObject object = value.getAsJsonObject();
-			object.entrySet().forEach(entry -> collectStrings(entry.getValue(), prefixForKey(entry.getKey(), inheritedPrefix), consumer));
+			object.entrySet().forEach(entry -> collectStrings(entry.getValue(),
+					prefixForKey(entry.getKey(), inheritedPrefix), pointer + "/" + escapePointer(entry.getKey()), consumer));
 		}
 	}
 
@@ -195,15 +197,15 @@ public final class AssetWorkspaceService {
 		};
 	}
 
-	private static void addReference(AssetDescriptor source, String rawValue, String expectedPrefix,
+	private static void addReference(AssetDescriptor source, ReferenceCandidate candidate,
 			Map<String, AssetDescriptor> byPath,
 			List<AssetReference> references, List<AssetDiagnostic> diagnostics) {
-		String value = rawValue == null ? "" : rawValue.trim();
-		if (!isReferenceCandidate(value, expectedPrefix))
+		String value = candidate.rawValue() == null ? "" : candidate.rawValue().trim();
+		if (!isReferenceCandidate(value, candidate.expectedPrefix()))
 			return;
 		String targetPath;
 		try {
-			targetPath = normalizeReference(value, source.relativePath(), expectedPrefix);
+			targetPath = normalizeReference(value, source.relativePath(), candidate.expectedPrefix());
 		} catch (AssetPathViolationException exception) {
 			diagnostics.add(new AssetDiagnostic("REFERENCE_PATH_ESCAPE", AssetDiagnostic.Severity.ERROR,
 					source.relativePath(), value, "Asset reference escapes the workspace"));
@@ -217,7 +219,12 @@ public final class AssetWorkspaceService {
 		}
 		AssetReference.ReferenceKind kind = value.indexOf(':') >= 0 ? AssetReference.ReferenceKind.RESOURCE_ID
 				: AssetReference.ReferenceKind.JSON_STRING;
-		references.add(new AssetReference(source.id(), source.relativePath(), targetPath, target.id(), kind));
+		references.add(new AssetReference(source.id(), source.relativePath(), candidate.pointer(), value,
+				candidate.expectedPrefix(), targetPath, target.id(), kind));
+	}
+
+	private static String escapePointer(String value) {
+		return value.replace("~", "~0").replace("/", "~1");
 	}
 
 	private static boolean isReferenceCandidate(String value, String expectedPrefix) {
@@ -232,7 +239,7 @@ public final class AssetWorkspaceService {
 				|| KNOWN_EXTENSIONS.stream().anyMatch(lower::endsWith);
 	}
 
-	private static String normalizeReference(String value, String sourcePath, String expectedPrefix) {
+	static String normalizeReference(String value, String sourcePath, String expectedPrefix) {
 		String candidate = value.replace('\\', '/');
 		if (candidate.startsWith("/") || candidate.matches("^[a-zA-Z]:/.*"))
 			throw new AssetPathViolationException("Absolute asset reference");
@@ -293,5 +300,8 @@ public final class AssetWorkspaceService {
 	private static boolean hasKnownPrefix(String value) {
 		String lower = value.toLowerCase(Locale.ROOT);
 		return RESOURCE_PREFIXES.stream().anyMatch(lower::startsWith) || lower.startsWith("assets/");
+	}
+
+	private record ReferenceCandidate(String rawValue, String expectedPrefix, String pointer) {
 	}
 }

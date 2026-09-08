@@ -50,8 +50,12 @@ import {
   RegistryEntry,
   WorkspaceReferenceProjection,
   WorkspaceRegistriesProjection,
+  WorkspacePlan,
   DatagenPreview,
-  FieldChange
+  FieldChange,
+  AssetImportPreview,
+  AssetImportBatchPreview,
+  AssetMovePreview
 } from '../types/contract';
 import {
   BridgeState,
@@ -78,19 +82,78 @@ function generateUUID(): UUID {
 }
 
 function mockAssetProjection() {
-  return {
-    schemaVersion: '1.0' as const,
-    assets: ASSET_FIXTURES.map((asset) => ({
+  const assets = ASSET_FIXTURES.map((asset) => {
+    const safeUnused = asset.id.endsWith('7777');
+    const unused = asset.category === 'animation' || safeUnused;
+    const duplicateContent = asset.category === 'sound';
+    const missingReference = asset.id.endsWith('3333');
+    const warning = asset.validation === 'warning';
+    const error = asset.validation === 'error';
+    return {
       id: asset.id,
       relativePath: asset.path,
       category: asset.category.toUpperCase() as 'MODEL' | 'TEXTURE' | 'ANIMATION' | 'LANGUAGE' | 'SOUND' | 'RESOURCE_PACK',
       size: asset.sizeBytes,
       sha256: '0000000000000000000000000000000000000000000000000000000000000000',
       mediaType: asset.format === 'PNG' ? 'image/png' : asset.format === 'OGG' ? 'audio/ogg' : 'application/octet-stream',
-      updatedAt: asset.updatedAt
-    })),
+      updatedAt: asset.updatedAt,
+      health: {
+        assetId: asset.id,
+        relativePath: asset.path,
+        status: error || missingReference ? 'ERROR' as const : warning || duplicateContent ? 'WARNING' as const : 'READY' as const,
+        usageAssessed: ['model', 'texture', 'animation', 'sound'].includes(asset.category) && asset.format !== 'BBMODEL',
+        unused,
+        inboundCount: unused ? 0 : asset.references.length,
+        outboundCount: 0,
+        workspaceReferenceCount: 0,
+        cleanupAssessed: safeUnused,
+        safeUnused,
+        duplicateContent,
+        duplicatePaths: duplicateContent ? ['assets/coppertrails/sounds/archive/copper_chime.ogg'] : [],
+        issueCodes: duplicateContent ? ['DUPLICATE_ASSET_CONTENT'] : missingReference ? ['MISSING_ASSET_REFERENCE'] : []
+      }
+    };
+  });
+  const missingSource = assets.find((asset) => asset.id.endsWith('3333'))!;
+  return {
+    schemaVersion: '1.0' as const,
+    assets,
     references: [],
-    diagnostics: []
+    diagnostics: [{
+      code: 'MISSING_ASSET_REFERENCE',
+      severity: 'error' as const,
+      message: {
+        key: 'diagnostic.asset_missing_reference',
+        fallback: 'Asset {sourcePath} references missing asset {targetPath}.',
+        args: {
+          sourcePath: missingSource.relativePath,
+          targetPath: 'assets/coppertrails/models/block/missing_lamp.json',
+          detail: 'Referenced asset does not exist'
+        }
+      },
+      path: `/assets/${missingSource.id}`,
+      elementId: null,
+      recoverable: true,
+      actions: [{
+        id: 'open_asset',
+        label: { key: 'action.open_asset', fallback: 'Open asset', args: {} },
+        kind: 'open_asset' as const,
+        target: missingSource.id
+      }]
+    }],
+    health: {
+      totalAssets: assets.length,
+      readyAssets: assets.filter((asset) => asset.health.status === 'READY').length,
+      warningAssets: assets.filter((asset) => asset.health.status === 'WARNING').length,
+      errorAssets: assets.filter((asset) => asset.health.status === 'ERROR').length,
+      unusedAssets: assets.filter((asset) => asset.health.unused).length,
+      safeUnusedAssets: assets.filter((asset) => asset.health.safeUnused).length,
+      duplicateAssets: assets.filter((asset) => asset.health.duplicateContent).length,
+      duplicateGroups: assets.some((asset) => asset.health.duplicateContent) ? 1 : 0,
+      missingReferences: 1,
+      invalidDocuments: 0,
+      pathEscapes: 0
+    }
   };
 }
 
@@ -139,6 +202,7 @@ export class MockCoreBridge implements CoreBridge {
     elementEditors: {},
     tasks: {},
     taskLogs: {},
+    taskDiagnostics: {},
     diagnostics: [],
     recoveryPoints: [],
     currentRecoveryPointId: null,
@@ -174,6 +238,7 @@ export class MockCoreBridge implements CoreBridge {
       elementEditors: {},
       tasks: {},
       taskLogs: {},
+      taskDiagnostics: {},
       diagnostics: [],
       recoveryPoints: [],
       currentRecoveryPointId: null,
@@ -257,6 +322,26 @@ export class MockCoreBridge implements CoreBridge {
     }
 
     this.applyScenarioMessages(scenario, true);
+    if (scenario.scenarioId === 'procedure-node-diagnostic') {
+      this.procedureIrs.set('22222222-2222-4222-8222-222222222230', {
+        schemaVersion: '1.0',
+        trigger: 'no_ext_trigger',
+        nodes: [
+          {
+            id: '44444444-4444-4444-8444-444444444441',
+            type: 'event_trigger', kind: 'statement', x: 48, y: 48,
+            fields: { trigger: 'no_ext_trigger' }, inputs: {},
+            next: '44444444-4444-4444-8444-444444444442', unknown: false
+          },
+          {
+            id: '44444444-4444-4444-8444-444444444442',
+            type: 'call_procedure', kind: 'statement', x: 220, y: 48,
+            fields: { procedureId: '', procedure: '' }, inputs: {}, next: null, unknown: false
+          }
+        ],
+        dependencies: []
+      });
+    }
     this.state.expectedUi = scenario.expectedUi ?? null;
     this.notifyState();
   }
@@ -314,7 +399,7 @@ export class MockCoreBridge implements CoreBridge {
       } else if (qr.operation === 'get_history') {
         const history = qr.data as HistoryProjection;
         this.state.recoveryPoints = [...history.recoveryPoints];
-        this.state.currentRecoveryPointId = history.recoveryPoints[0]?.id ?? null;
+        this.state.currentRecoveryPointId = history.currentRecoveryPointId;
       } else if (qr.operation === 'get_diff') {
         this.state.historyComparison = qr.data as HistoryComparison;
       } else if (qr.operation === 'list_operation_approvals') {
@@ -452,6 +537,19 @@ export class MockCoreBridge implements CoreBridge {
       }
       case 'diagnostics_changed': {
         this.state.diagnostics = ev.payload.diagnostics;
+        const grouped: BridgeState['taskDiagnostics'] = {};
+        for (const diagnostic of ev.payload.diagnostics) {
+          for (const action of diagnostic.actions) {
+            if (action.kind !== 'open_logs') continue;
+            const payloadTaskId = typeof action.payload?.taskId === 'string' ? action.payload.taskId : null;
+            const taskId = payloadTaskId && this.state.tasks[payloadTaskId]
+              ? payloadTaskId
+              : action.target && this.state.tasks[action.target] ? action.target : null;
+            if (!taskId) continue;
+            grouped[taskId] = [...(grouped[taskId] ?? []), diagnostic];
+          }
+        }
+        this.state.taskDiagnostics = { ...this.state.taskDiagnostics, ...grouped };
         break;
       }
       case 'task_started':
@@ -553,6 +651,15 @@ export class MockCoreBridge implements CoreBridge {
           x: typeof edit.x === 'number' ? edit.x : node.x,
           y: typeof edit.y === 'number' ? edit.y : node.y
         } : node);
+      } else if (operation === 'replace_node' && edit.node) {
+        const replacement = edit.node as ProcedureNode;
+        nodes = nodes.map((node) => node.id === edit.nodeId ? {
+          ...replacement,
+          id: node.id,
+          fields: { ...(replacement.fields ?? {}) },
+          inputs: { ...(replacement.inputs ?? {}) },
+          unknown: false
+        } : node);
       } else if (operation === 'move_node') {
         nodes = nodes.map((node) => node.id === edit.nodeId ? {
           ...node,
@@ -593,10 +700,10 @@ export class MockCoreBridge implements CoreBridge {
   }
 
   private mockReferences(target = ''): WorkspaceReferenceProjection {
-    const nodes = [
+    const nodes: WorkspaceReferenceProjection['nodes'] = [
       ...this.state.elements.map((element) => ({
         id: element.id,
-        kind: 'element',
+        kind: 'element' as const,
         type: element.type,
         name: element.name,
         displayName: element.displayName
@@ -604,13 +711,56 @@ export class MockCoreBridge implements CoreBridge {
       ...Object.entries(this.mockRegistries ?? {}).flatMap(([type, entries]) =>
         entries.map((entry) => ({
           id: entry.id,
-          kind: 'registry',
+          kind: 'registry' as const,
           type,
           name: entry.key ?? entry.name ?? '',
           displayName: entry.key ?? entry.name ?? ''
         })))
     ];
-    const edges: Array<Record<string, unknown>> = [];
+    const edges: WorkspaceReferenceProjection['edges'] = [];
+    for (const [elementId, ir] of this.procedureIrs.entries()) {
+      const source = this.state.elements.find((candidate) => candidate.id === elementId);
+      if (!source) continue;
+      for (const node of ir.nodes) {
+        let kind = '';
+        let rawTarget = '';
+        let resolved: ModElementSummary | RegistryEntry | undefined;
+        if (node.type === 'call_procedure') {
+          kind = 'procedure';
+          rawTarget = String(node.fields.procedureId ?? node.fields.procedure ?? '');
+          resolved = this.state.elements.find((candidate) => candidate.type === 'procedure'
+            && (candidate.id === rawTarget || candidate.name === rawTarget || candidate.displayName === rawTarget));
+        } else if (node.type.startsWith('variables_get_') || node.type.startsWith('variables_set_')) {
+          kind = 'variable';
+          rawTarget = String(node.fields.variableId ?? node.fields.VAR ?? node.fields.name ?? '');
+          resolved = this.mockRegistries.variables.find((candidate) => candidate.id === rawTarget || candidate.name === rawTarget);
+        } else if (node.type === 'mcitem_all' || node.type === 'mcitem_allblocks') {
+          kind = 'resource';
+          rawTarget = String(node.fields.value ?? '');
+        }
+        if (!kind || !rawTarget) continue;
+        const targetId = resolved?.id ?? null;
+        const resolvedName = 'displayName' in (resolved ?? {})
+          ? (resolved as ModElementSummary).displayName
+          : (resolved as RegistryEntry | undefined)?.name;
+        edges.push({
+          id: generateUUID(),
+          sourceId: elementId,
+          sourcePath: `/procedureIr/nodes/${node.id}`,
+          target: rawTarget,
+          targetId,
+          kind,
+          sourceKind: 'element',
+          sourceType: source.type,
+          sourceName: source.name,
+          sourceDisplayName: source.displayName,
+          targetKind: resolved ? ('type' in resolved ? 'element' : 'registry') : null,
+          targetType: resolved ? ('type' in resolved ? String((resolved as ModElementSummary).type) : 'variables') : null,
+          targetName: resolvedName ?? rawTarget,
+          targetDisplayName: resolvedName ?? null
+        });
+      }
+    }
     return {
       revision: this.state.workbench?.workspace.revision ?? 42,
       nodes,
@@ -624,6 +774,15 @@ export class MockCoreBridge implements CoreBridge {
     const element = this.state.elements.find((candidate) => candidate.id === elementId);
     if (!element) return null;
     const ir = this.getMockProcedure(elementId);
+    const referenceGraph = this.mockReferences();
+    const inbound = referenceGraph.edges.filter((edge) => edge.targetId === elementId)
+      .map((edge) => ({ ...edge, direction: 'inbound' as const }));
+    const outbound = referenceGraph.edges.filter((edge) => edge.sourceId === elementId)
+      .map((edge) => ({ ...edge, direction: 'outbound' as const }));
+    const byKind = [...inbound, ...outbound].reduce<Record<string, number>>((accumulator, edge) => {
+      accumulator[edge.kind] = (accumulator[edge.kind] ?? 0) + 1;
+      return accumulator;
+    }, {});
     return {
       element,
       baseRevision: this.state.workbench?.workspace.revision ?? 42,
@@ -655,9 +814,88 @@ export class MockCoreBridge implements CoreBridge {
         availability: 'available' as const,
         reasonCode: null
       })),
+      symbols: {
+        variables: ir.nodes.flatMap((node) => {
+          if (node.type !== 'variables_get_number' && node.type !== 'variables_set_number') return [];
+          const name = String(node.fields.VAR ?? '');
+          const registry = this.mockRegistries.variables.find((entry) => entry.name === name);
+          return [{
+            nodeId: node.id,
+            name,
+            access: node.type === 'variables_get_number' ? 'read' as const : 'write' as const,
+            registryEntryId: registry?.id ?? null,
+            dataType: registry?.dataType ?? null,
+            scope: registry?.scope ?? null
+          }];
+        }),
+        availableVariables: this.mockRegistries.variables.map((entry) => ({
+          id: entry.id,
+          name: entry.name ?? '',
+          dataType: entry.dataType ?? 'unknown',
+          scope: entry.scope ?? 'global'
+        })),
+        availableProcedures: this.state.elements.filter((candidate) => candidate.type === 'procedure').map((candidate) => ({
+          id: candidate.id,
+          name: candidate.name,
+          displayName: candidate.displayName
+        })),
+        resources: ir.nodes.flatMap((node) => node.type === 'mcitem_all'
+          ? [{ nodeId: node.id, kind: 'item', target: String(node.fields.value ?? '') }]
+          : []),
+        calls: ir.nodes.flatMap((node) => {
+          if (node.type !== 'call_procedure') return [];
+          const target = String(node.fields.procedureId ?? node.fields.procedure ?? '');
+          const resolved = this.state.elements.find((candidate) => candidate.type === 'procedure'
+            && (candidate.id === target || candidate.name === target || candidate.displayName === target));
+          return [{
+            nodeId: node.id,
+            target,
+            targetId: resolved?.id ?? null,
+            targetName: resolved?.name ?? target
+          }];
+        }),
+        stats: {
+          variableCount: ir.nodes.filter((node) => node.type === 'variables_get_number' || node.type === 'variables_set_number').length,
+          resourceCount: ir.nodes.filter((node) => node.type === 'mcitem_all').length,
+          callCount: ir.nodes.filter((node) => node.type === 'call_procedure').length
+        }
+      },
       sourcePreview: `// Read-only Procedure IR preview\ntrigger ${ir.trigger}\n${ir.nodes.map((node) => `${node.type} ${node.id}`).join('\n')}`,
       sourceOwnership: 'generated',
-      references: this.mockReferences(elementId)
+      references: this.mockReferences(elementId),
+      relationships: {
+        inbound,
+        outbound,
+        stats: { inboundCount: inbound.length, outboundCount: outbound.length, totalCount: inbound.length + outbound.length, byKind }
+      }
+    };
+  }
+
+  private mockPlanReview(operations: WorkspacePlan['operations'], semanticDiff: Record<string, unknown>[], changedPaths: string[]): WorkspacePlan['review'] {
+    const operationCounts = new Map<string, number>();
+    operations.forEach((step) => operationCounts.set(step.operation, (operationCounts.get(step.operation) ?? 0) + 1));
+    const affectedElements = semanticDiff.filter((item) => String(item.kind ?? '').startsWith('element_')).length;
+    const affectedRegistries = semanticDiff.filter((item) => item.kind === 'registry_updated').length;
+    const creates = semanticDiff.filter((item) => item.kind === 'element_created').length;
+    const deletes = semanticDiff.filter((item) => item.kind === 'element_deleted').length;
+    return {
+      summary: {
+        operationCount: operations.length,
+        affectedObjectCount: semanticDiff.length,
+        affectedElementCount: affectedElements,
+        affectedRegistryCount: affectedRegistries,
+        createCount: creates,
+        updateCount: Math.max(0, semanticDiff.length - creates - deletes),
+        deleteCount: deletes,
+        changedPathCount: changedPaths.length,
+        scope: semanticDiff.length > 1 ? 'multi_object' : 'single_object',
+        highImpact: semanticDiff.length >= 5 || operations.length >= 5
+      },
+      operationGroups: Array.from(operationCounts.entries()).map(([operation, count]) => ({
+        operation: operation as WorkspacePlan['operations'][number]['operation'], count
+      })),
+      affectedObjects: semanticDiff as unknown as WorkspacePlan['review']['affectedObjects'],
+      changedPaths
     };
   }
 
@@ -816,6 +1054,177 @@ export class MockCoreBridge implements CoreBridge {
           payload: { element: newElement }
         };
         this.notifyEvent(createdEvent);
+        this.notifyState();
+        return result;
+      }
+
+      case 'import_asset_batch': {
+        const payload = command.payload as unknown as { planToken: string; confirmReplace?: boolean };
+        const replacing = payload.planToken.includes('replace-1');
+        if (replacing && !payload.confirmReplace) {
+          return {
+            messageType: 'command_result', schemaVersion: '1.0', requestId: command.requestId, workspaceId,
+            operation: 'import_asset_batch', status: 'rejected', newRevision: currentRevision, recoveryPointId: null,
+            task: null, data: null, conflict: null, denial: null,
+            diagnostics: [{
+              code: 'ASSET_IMPORT_REPLACE_CONFIRMATION_REQUIRED', severity: 'error',
+              message: { key: 'diagnostic.asset_import_replace_confirmation_required', fallback: 'Replacement confirmation required.' },
+              path: '/confirmReplace', recoverable: true, actions: []
+            }]
+          };
+        }
+        const newRevision = currentRevision + 1;
+        if (this.state.workbench) this.state.workbench.workspace.revision = newRevision;
+        const result: CommandResult = {
+          messageType: 'command_result', schemaVersion: '1.0', requestId: command.requestId, workspaceId,
+          operation: 'import_asset_batch', status: 'committed', newRevision, recoveryPointId: generateUUID(),
+          task: null,
+          data: { complete: true, importedCount: 2, skippedIdenticalCount: 0, createCount: replacing ? 1 : 2, replaceCount: replacing ? 1 : 0 },
+          conflict: null, denial: null, diagnostics: []
+        };
+        this.notifyEvent({
+          messageType: 'event', schemaVersion: '1.0', eventId: generateUUID(), workspaceId, revision: newRevision,
+          sequence: ++this.sequenceCounter, occurredAt: new Date().toISOString(), event: 'assets_imported',
+          causedByRequestId: command.requestId, payload: result.data ?? {}
+        });
+        this.notifyState();
+        return result;
+      }
+
+      case 'move_asset': {
+        const payload = command.payload as unknown as { planToken: string };
+        const newRevision = currentRevision + 1;
+        if (this.state.workbench) this.state.workbench.workspace.revision = newRevision;
+        const target = decodeURIComponent(payload.planToken.split('::')[1] ?? 'assets/coppertrails/textures/block/moved.png');
+        const result: CommandResult = {
+          messageType: 'command_result', schemaVersion: '1.0', requestId: command.requestId, workspaceId,
+          operation: 'move_asset', status: 'committed', newRevision, recoveryPointId: generateUUID(),
+          task: null,
+          data: { complete: true, targetRelativePath: target, rewrittenReferences: 1 },
+          conflict: null, denial: null, diagnostics: []
+        };
+        this.notifyEvent({
+          messageType: 'event', schemaVersion: '1.0', eventId: generateUUID(), workspaceId, revision: newRevision,
+          sequence: ++this.sequenceCounter, occurredAt: new Date().toISOString(), event: 'asset_moved',
+          causedByRequestId: command.requestId, payload: { complete: true, targetRelativePath: target }
+        });
+        this.notifyState();
+        return result;
+      }
+
+      case 'import_asset': {
+        const payload = command.payload as unknown as { planToken: string; confirmReplace?: boolean };
+        const replacing = payload.planToken.includes('REPLACE');
+        if (replacing && !payload.confirmReplace) {
+          return {
+            messageType: 'command_result', schemaVersion: '1.0', requestId: command.requestId, workspaceId,
+            operation: 'import_asset', status: 'rejected', newRevision: currentRevision, recoveryPointId: null,
+            task: null, data: null, conflict: null, denial: null,
+            diagnostics: [{
+              code: 'ASSET_IMPORT_REPLACE_CONFIRMATION_REQUIRED', severity: 'error',
+              message: { key: 'diagnostic.asset_import_replace_confirmation_required', fallback: 'Replacement confirmation required.' },
+              path: '/confirmReplace', recoverable: true, actions: []
+            }]
+          };
+        }
+        const newRevision = currentRevision + 1;
+        if (this.state.workbench) this.state.workbench.workspace.revision = newRevision;
+        const result: CommandResult = {
+          messageType: 'command_result', schemaVersion: '1.0', requestId: command.requestId, workspaceId,
+          operation: 'import_asset', status: 'committed', newRevision, recoveryPointId: generateUUID(),
+          task: null,
+          data: { complete: true, conflict: replacing ? 'REPLACE' : 'CREATE' },
+          conflict: null, denial: null, diagnostics: []
+        };
+        this.notifyEvent({
+          messageType: 'event', schemaVersion: '1.0', eventId: generateUUID(), workspaceId, revision: newRevision,
+          sequence: ++this.sequenceCounter, occurredAt: new Date().toISOString(), event: 'asset_imported',
+          causedByRequestId: command.requestId, payload: { complete: true }
+        });
+        this.notifyState();
+        return result;
+      }
+
+      case 'apply_workspace_plan': {
+        const payload = command.payload as unknown as { plan?: WorkspacePlan };
+        const plan = payload.plan;
+        if (!plan) throw new Error('Workspace plan is required.');
+        for (const step of plan.operations) {
+          if (step.operation === 'rename_registry_entry') {
+            const entryId = String(step.payload.entryId ?? '');
+            const newName = String(step.payload.newName ?? '');
+            const registry = this.mockRegistries.variables.find((entry) => entry.id === entryId);
+            if (!registry || !newName) continue;
+            const oldName = registry.name ?? '';
+            registry.name = newName;
+            for (const [elementId, ir] of this.procedureIrs.entries()) {
+              const nextNodes = ir.nodes.map((node) => {
+                if ((node.type === 'variables_get_number' || node.type === 'variables_set_number')
+                    && String(node.fields.VAR ?? '') === oldName) {
+                  return { ...node, fields: { ...node.fields, VAR: newName } };
+                }
+                return node;
+              });
+              this.procedureIrs.set(elementId, { ...ir, nodes: nextNodes });
+            }
+          } else if (step.operation === 'create_mod_element') {
+            const plannedId = step.plannedId ?? generateUUID();
+            const elementType = String(step.payload.elementType ?? 'procedure');
+            const name = String(step.payload.name ?? 'planned_element');
+            const newElement: ModElementSummary = {
+              id: plannedId,
+              type: elementType as ModElementSummary['type'],
+              name,
+              displayName: name.split('_').map((part) => part ? part[0].toUpperCase() + part.slice(1) : part).join(' '),
+              state: 'valid', ownership: 'generated', updatedAt: new Date().toISOString(),
+              diagnostics: { error: 0, warning: 0, info: 0 }
+            };
+            this.state.elements.unshift(newElement);
+            if (elementType === 'procedure') {
+              const initialValues = (step.payload.initialValues ?? {}) as Record<string, unknown>;
+              const supplied = initialValues.procedureIr as ProcedureIr | undefined;
+              if (supplied) this.procedureIrs.set(plannedId, supplied);
+              else this.getMockProcedure(plannedId);
+            }
+          } else if (step.operation === 'update_procedure') {
+            const elementId = String(step.payload.elementId ?? '') as UUID;
+            const edits = (step.payload.edits ?? []) as Array<Record<string, unknown>>;
+            if (elementId) this.applyMockProcedureEdits(elementId, edits);
+          } else if (step.operation === 'update_mod_element') {
+            const elementId = String(step.payload.elementId ?? '') as UUID;
+            const element = this.state.elements.find((candidate) => candidate.id === elementId);
+            if (element) {
+              element.state = 'valid';
+              element.updatedAt = new Date().toISOString();
+              element.diagnostics = { error: 0, warning: 0, info: 0 };
+            }
+          }
+        }
+        if (this.state.workbench) this.state.workbench.workspace.revision = newRevision;
+        this.updateWorkbenchCounts();
+        const recoveryPointId = `rec-${generateUUID().slice(0, 8)}`;
+        const result: CommandResult = {
+          messageType: 'command_result', schemaVersion: '1.0', requestId: command.requestId,
+          workspaceId, operation: 'apply_workspace_plan', status: 'committed', newRevision,
+          recoveryPointId, task: null,
+          data: { planId: plan.planId, semanticDiff: plan.semanticDiff, changedPaths: plan.changedPaths, idempotentReplay: false },
+          conflict: null, denial: null, diagnostics: []
+        };
+        const event: CoreEvent = {
+          messageType: 'event', schemaVersion: '1.0', eventId: generateUUID(), workspaceId,
+          revision: newRevision, sequence: ++this.sequenceCounter, occurredAt: new Date().toISOString(),
+          event: 'workspace_plan_applied', causedByRequestId: command.requestId,
+          payload: {
+            planId: plan.planId,
+            idempotencyKey: plan.idempotencyKey,
+            operationCount: plan.operationCount,
+            targetDigest: plan.targetDigest,
+            idempotentReplay: false,
+            semanticDiff: plan.semanticDiff,
+            changedPaths: plan.changedPaths
+          }
+        };
+        this.notifyEvent(event);
         this.notifyState();
         return result;
       }
@@ -1581,7 +1990,8 @@ export class MockCoreBridge implements CoreBridge {
             ],
             blockedCount: 1,
             lostCount: 0,
-            manualCount: 0
+            manualCount: 0,
+            semanticComparison: null
           };
           const result: CommandResult = {
             messageType: 'command_result',
@@ -1676,7 +2086,23 @@ export class MockCoreBridge implements CoreBridge {
           ],
           blockedCount: 0,
           lostCount: 0,
-          manualCount: 1
+          manualCount: 1,
+          semanticComparison: {
+            generatorChanged: true,
+            workspaceMetadataPreserved: true,
+            preservedElementCount: 5,
+            changedElementCount: 0,
+            addedElementCount: 0,
+            removedElementCount: 0,
+            changes: [
+              {
+                path: '/generator',
+                name: 'fabric-1.21.1 -> neoforge-1.21.1',
+                type: 'generator',
+                change: 'changed'
+              }
+            ]
+          }
         };
 
         const result: CommandResult = {
@@ -1692,7 +2118,34 @@ export class MockCoreBridge implements CoreBridge {
           data: copyResult,
           conflict: null,
           denial: null,
-          diagnostics: []
+          diagnostics: [
+            {
+              code: 'LOADER_EXCLUSIVE_FIELDS_PRESERVED',
+              severity: 'warning',
+              message: {
+                key: 'diagnostic.migration_item_review',
+                fallback: '{name} requires migration review: {nextStep}',
+                args: {
+                  name: 'copper_lamp',
+                  type: 'block',
+                  disposition: 'manual',
+                  reasonCode: 'LOADER_EXCLUSIVE_FIELDS_PRESERVED',
+                  nextStep: 'Loader-exclusive fields were copied unchanged and need review in the target generator.'
+                }
+              },
+              path: '/elements/22222222-2222-4222-8222-222222222221',
+              elementId: '22222222-2222-4222-8222-222222222221',
+              recoverable: true,
+              actions: [
+                {
+                  id: 'open_migration_element',
+                  label: { key: 'action.open_element', fallback: 'Open element', args: {} },
+                  kind: 'open_field',
+                  target: null
+                }
+              ]
+            }
+          ]
         };
 
         if (this.state.workbench) {
@@ -1855,7 +2308,8 @@ export class MockCoreBridge implements CoreBridge {
           ],
           blockedCount: 0,
           lostCount: 0,
-          manualCount: 0
+          manualCount: 0,
+          semanticComparison: null
         };
 
         const result: CommandResult = {
@@ -2009,6 +2463,73 @@ export class MockCoreBridge implements CoreBridge {
       case 'get_workbench':
         data = this.state.workbench;
         break;
+      case 'get_workspace_health': {
+        const references = this.mockReferences();
+        const assets = mockAssetProjection();
+        const healthDiagnostics = [...references.diagnostics, ...assets.diagnostics];
+        const elementCounts = this.state.workbench?.elementCounts ?? {
+          total: this.state.elements.length,
+          valid: this.state.elements.filter((element) => element.state === 'valid').length,
+          invalid: this.state.elements.filter((element) => element.state === 'invalid').length,
+          draft: this.state.elements.filter((element) => element.state === 'draft').length,
+          unsupported: this.state.elements.filter((element) => element.state === 'unsupported').length
+        };
+        data = {
+          revision,
+          elements: elementCounts,
+          diagnostics: {
+            total: healthDiagnostics.length,
+            error: healthDiagnostics.filter((diagnostic) => diagnostic.severity === 'error').length,
+            warning: healthDiagnostics.filter((diagnostic) => diagnostic.severity === 'warning').length,
+            info: healthDiagnostics.filter((diagnostic) => diagnostic.severity === 'info').length
+          },
+          references: {
+            edgeCount: references.stats.edgeCount,
+            danglingCount: references.diagnostics.length,
+            diagnostics: references.diagnostics
+          },
+          assets: {
+            indexed: true,
+            summary: assets.health,
+            diagnostics: assets.diagnostics
+          },
+          generator: {
+            generator: this.state.workbench?.workspace.generator ?? {
+              id: 'fabric-1.21.1', loader: 'fabric', minecraftVersion: '1.21.1',
+              displayName: 'Fabric 1.21.1', state: 'ready'
+            },
+            status: 'supported',
+            reasonCode: 'TRACK_SUPPORTED',
+            generatable: true
+          },
+          risk: {
+            loaderMigration: {
+              requiresUserApproval: true,
+              copyOnly: true,
+              availableTargetGeneratorIds: ['neoforge-1.21.1'],
+              availableTargetCount: 1
+            },
+            aiBatchChanges: {
+              reviewModel: 'workspace_plan',
+              maxOperations: 100,
+              highImpactOperationThreshold: 5,
+              highImpactObjectThreshold: 5
+            }
+          },
+          tasks: {
+            activeCount: this.state.workbench?.activeTasks.length ?? 0,
+            recentFailureScope: 'current_session',
+            recentFailed: []
+          },
+          recovery: {
+            available: true,
+            recoveryPointCount: 3,
+            currentRecoveryPointId: null,
+            currentStateMatchesRecoveryPoint: false
+          }
+        };
+        break;
+      }
       case 'list_mod_elements':
         data = {
           items: this.state.elements,
@@ -2033,14 +2554,36 @@ export class MockCoreBridge implements CoreBridge {
         const original = this.getMockProcedure(payload.elementId);
         const candidate = this.applyMockProcedureEdits(payload.elementId, payload.edits ?? []);
         this.procedureIrs.set(payload.elementId, original);
+        const diagnostics = candidate.nodes.flatMap((node) => {
+          if (node.type !== 'call_procedure' || String(node.fields.procedureId ?? '').trim()) return [];
+          const path = `/elements/${payload.elementId}/procedureIr/nodes/${node.id}/ports/procedureId`;
+          return [{
+            code: 'PROCEDURE_CALL_TARGET_REQUIRED',
+            severity: 'error' as const,
+            message: {
+              key: 'diagnostic.procedure_call_target_required',
+              fallback: 'Procedure call target is required.'
+            },
+            path,
+            elementId: payload.elementId,
+            recoverable: true,
+            actions: [{
+              id: 'open_procedure_node',
+              label: { key: 'action.open_procedure_node', fallback: 'Locate node' },
+              kind: 'open_procedure_node' as const,
+              target: node.id,
+              payload: { nodeId: node.id, port: 'procedureId' }
+            }]
+          }];
+        });
         data = {
           elementId: payload.elementId,
           baseRevision: revision,
           canSaveDraft: true,
-          canGenerate: true,
+          canGenerate: diagnostics.length === 0,
           candidateIr: candidate,
           sourcePreview: `// Read-only Procedure IR preview\ntrigger ${candidate.trigger}`,
-          diagnostics: [],
+          diagnostics,
           changedPaths: [`/elements/${payload.elementId}/procedureIr`, `/elements/${payload.elementId}/procedurexml`]
         };
         break;
@@ -2087,20 +2630,286 @@ export class MockCoreBridge implements CoreBridge {
           entries.some((entry) => entry.id === payload.entryId)
         );
         const entry = location?.[1].find((candidate) => candidate.id === payload.entryId);
+        const impactedElementCount = entry ? Array.from(this.procedureIrs.values()).filter((ir) =>
+          ir.nodes.some((node) => (node.type === 'variables_get_number' || node.type === 'variables_set_number')
+            && String(node.fields.VAR ?? '') === entry.name)).length : 0;
         data = entry ? {
           entryId: entry.id,
           registry: location?.[0],
           oldName: entry.key ?? entry.name,
           newName: payload.newName,
           references: this.mockReferences(entry.id),
-          impactedElementCount: 0,
+          impactedElementCount,
           canApply: true
         } : null;
+        break;
+      }
+      case 'plan_procedure_refactor': {
+        const payload = query.payload as unknown as {
+          kind?: 'extract_node' | 'replace_call_target' | 'replace_resource_target';
+          expectedRevision?: number;
+          idempotencyKey?: string;
+          elementId?: UUID;
+          nodeId?: UUID;
+          newProcedureName?: string;
+          sourceProcedureId?: UUID;
+          targetProcedureId?: UUID;
+          sourceResource?: string;
+          targetResource?: string;
+        };
+        const operations: WorkspacePlan['operations'] = [];
+        const semanticDiff: Record<string, unknown>[] = [];
+        const changedPaths: string[] = [];
+        if (payload.kind === 'extract_node' && payload.elementId && payload.nodeId && payload.newProcedureName) {
+          const sourceIr = this.getMockProcedure(payload.elementId);
+          const selected = sourceIr.nodes.find((node) => node.id === payload.nodeId);
+          if (selected) {
+            const plannedId = generateUUID();
+            const triggerId = generateUUID();
+            const cloneId = generateUUID();
+            const extractedIr: ProcedureIr = {
+              schemaVersion: '1.0', trigger: 'no_ext_trigger',
+              nodes: [
+                { id: triggerId, type: 'event_trigger', kind: 'statement', x: 40, y: 40,
+                  fields: { trigger: 'no_ext_trigger' }, inputs: {}, next: cloneId, unknown: false },
+                { ...selected, id: cloneId, inputs: {}, next: null, fields: { ...selected.fields }, unknown: false }
+              ],
+              dependencies: []
+            };
+            operations.push({
+              operation: 'create_mod_element', plannedId,
+              payload: { elementType: 'procedure', name: payload.newProcedureName, initialValues: { procedureIr: extractedIr } }
+            });
+            operations.push({
+              operation: 'update_procedure',
+              payload: {
+                elementId: payload.elementId,
+                edits: [{
+                  operation: 'replace_node', nodeId: payload.nodeId,
+                  node: { ...selected, type: 'call_procedure', kind: 'statement', inputs: {},
+                    fields: { procedureId: payload.newProcedureName, procedure: payload.newProcedureName }, unknown: false }
+                }]
+              }
+            });
+            semanticDiff.push({ kind: 'element_created', elementId: plannedId, type: 'procedure', name: payload.newProcedureName });
+            semanticDiff.push({ kind: 'element_updated', elementId: payload.elementId, type: 'procedure' });
+            changedPaths.push(`/elements/${plannedId}`, `/elements/${payload.elementId}`);
+          }
+        } else if (payload.kind === 'replace_call_target' && payload.sourceProcedureId && payload.targetProcedureId) {
+          const source = this.state.elements.find((candidate) => candidate.id === payload.sourceProcedureId);
+          const target = this.state.elements.find((candidate) => candidate.id === payload.targetProcedureId);
+          if (source && target) {
+            for (const [elementId, ir] of this.procedureIrs.entries()) {
+              const edits = ir.nodes.filter((node) => node.type === 'call_procedure'
+                && [source.id, source.name, source.displayName].includes(String(node.fields.procedureId ?? node.fields.procedure ?? '')))
+                .map((node) => ({ operation: 'update_node', nodeId: node.id,
+                  fields: { ...node.fields, procedureId: target.id, procedure: target.name } }));
+              if (!edits.length) continue;
+              operations.push({ operation: 'update_procedure', payload: { elementId, edits } });
+              semanticDiff.push({ kind: 'element_updated', elementId, type: 'procedure' });
+              changedPaths.push(`/elements/${elementId}`);
+            }
+          }
+        } else if (payload.kind === 'replace_resource_target' && payload.sourceResource && payload.targetResource) {
+          for (const [elementId, ir] of this.procedureIrs.entries()) {
+            const edits = ir.nodes.filter((node) => (node.type === 'mcitem_all' || node.type === 'mcitem_allblocks')
+              && String(node.fields.value ?? '') === payload.sourceResource)
+              .map((node) => ({ operation: 'update_node', nodeId: node.id,
+                fields: { ...node.fields, value: payload.targetResource } }));
+            if (!edits.length) continue;
+            operations.push({ operation: 'update_procedure', payload: { elementId, edits } });
+            const element = this.state.elements.find((candidate) => candidate.id === elementId);
+            semanticDiff.push({ kind: 'element_updated', elementId, type: 'procedure', name: element?.name ?? elementId,
+              displayName: element?.displayName ?? elementId, changedProperties: ['/values/procedureIr', '/values/procedurexml'] });
+            changedPaths.push(`/elements/${elementId}`);
+          }
+        }
+        const review = this.mockPlanReview(operations, semanticDiff, Array.from(new Set(changedPaths)));
+        data = {
+          schemaVersion: '1.0',
+          workspaceId: this.state.workbench?.workspace.id ?? query.workspaceId,
+          baseRevision: payload.expectedRevision ?? revision,
+          idempotencyKey: payload.idempotencyKey ?? generateUUID(),
+          requireRecoveryPoint: true,
+          operations,
+          operationCount: operations.length,
+          targetDigest: 'mock-procedure-refactor-digest',
+          semanticDiff,
+          changedPaths: Array.from(new Set(changedPaths)),
+          review,
+          permission: { currentProfile: this.state.workbench?.permission.profile ?? 'workspace', requiredProfile: 'workspace', allowed: true },
+          safety: { requiresRecoveryPoint: true, recoveryPointAvailable: true, ready: operations.length > 0 },
+          planId: `mock-refactor-${generateUUID()}`,
+          planToken: 'mock-plan-token'
+        } satisfies WorkspacePlan;
+        break;
+      }
+      case 'plan_workspace_changes': {
+        const payload = query.payload as unknown as {
+          expectedRevision?: number;
+          idempotencyKey?: string;
+          requireRecoveryPoint?: boolean;
+          operations?: WorkspacePlan['operations'];
+        };
+        const operations = payload.operations ?? [];
+        const changedPaths: string[] = [];
+        const semanticDiff: Record<string, unknown>[] = [];
+        for (const step of operations) {
+          if (step.operation === 'update_mod_element') {
+            const elementId = String(step.payload.elementId ?? '');
+            const element = this.state.elements.find((candidate) => candidate.id === elementId);
+            const changes = Array.isArray(step.payload.changes)
+              ? step.payload.changes as Array<{ path?: unknown; value?: unknown }>
+              : [];
+            const paths = changes.map((change) => String(change.path ?? '')).filter(Boolean);
+            changedPaths.push(...paths.map((path) => `/elements/${elementId}${path}`));
+            semanticDiff.push({
+              kind: 'element_updated', elementId, type: element?.type ?? 'item',
+              name: element?.name ?? elementId, displayName: element?.displayName ?? elementId,
+              changedProperties: paths.map((path) => `/values${path}`)
+            });
+            continue;
+          }
+          if (step.operation !== 'rename_registry_entry') continue;
+          const entryId = String(step.payload.entryId ?? '');
+          const entry = this.mockRegistries.variables.find((candidate) => candidate.id === entryId);
+          if (!entry) continue;
+          changedPaths.push('/registries/variables');
+          semanticDiff.push({
+            kind: 'registry_updated', registry: 'variables',
+            beforeCount: this.mockRegistries.variables.length, afterCount: this.mockRegistries.variables.length
+          });
+          for (const [elementId, ir] of this.procedureIrs.entries()) {
+            if (ir.nodes.some((node) => (node.type === 'variables_get_number' || node.type === 'variables_set_number')
+                && String(node.fields.VAR ?? '') === entry.name)) {
+              changedPaths.push(`/elements/${elementId}`);
+              const element = this.state.elements.find((candidate) => candidate.id === elementId);
+              semanticDiff.push({ kind: 'element_updated', elementId, type: 'procedure', name: element?.name ?? elementId });
+            }
+          }
+        }
+        const requireRecoveryPoint = payload.requireRecoveryPoint ?? false;
+        const uniqueChangedPaths = Array.from(new Set(changedPaths));
+        const review = this.mockPlanReview(operations, semanticDiff, uniqueChangedPaths);
+        data = {
+          schemaVersion: '1.0',
+          workspaceId: this.state.workbench?.workspace.id ?? query.workspaceId,
+          baseRevision: payload.expectedRevision ?? revision,
+          idempotencyKey: payload.idempotencyKey ?? generateUUID(),
+          requireRecoveryPoint,
+          operations,
+          operationCount: operations.length,
+          targetDigest: 'mock-target-digest',
+          semanticDiff,
+          changedPaths: uniqueChangedPaths,
+          review,
+          permission: {
+            currentProfile: this.state.workbench?.permission.profile ?? 'workspace',
+            requiredProfile: 'workspace', allowed: true
+          },
+          safety: { requiresRecoveryPoint: requireRecoveryPoint, recoveryPointAvailable: true, ready: true },
+          planId: `mock-plan-${generateUUID()}`,
+          planToken: 'mock-plan-token'
+        } satisfies WorkspacePlan;
         break;
       }
       case 'list_assets':
         data = mockAssetProjection();
         break;
+      case 'preview_asset_import': {
+        const payload = query.payload as { sourceGrantId?: string; targetRelativePath?: string };
+        const target = payload.targetRelativePath ?? 'assets/coppertrails/textures/imported/imported_texture.png';
+        const existing = mockAssetProjection().assets.find((asset) => asset.relativePath === target);
+        const conflict: AssetImportPreview['conflict'] = existing ? 'REPLACE' : 'CREATE';
+        data = {
+          sourceFileName: 'imported_texture.png',
+          sourceSize: 1536,
+          sourceSha256: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+          sourceMediaType: 'image/png',
+          category: 'TEXTURE',
+          targetRelativePath: target,
+          conflict,
+          targetSha256: existing?.sha256 ?? null,
+          duplicatePaths: [],
+          canApply: true,
+          issueCodes: existing ? ['ASSET_IMPORT_TARGET_WILL_REPLACE'] : [],
+          planToken: `mock-asset-plan-${conflict}`,
+          expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+          requiresReplacementConfirmation: Boolean(existing)
+        } satisfies AssetImportPreview;
+        break;
+      }
+      case 'preview_asset_import_batch': {
+        const payload = query.payload as { items?: { sourceGrantId: string; targetRelativePath: string }[] };
+        const projection = mockAssetProjection();
+        const requests = payload.items ?? [];
+        const batchItems = requests.map((request) => {
+          const existing = projection.assets.find((asset) => asset.relativePath === request.targetRelativePath);
+          return {
+            sourceFileName: request.sourceGrantId.endsWith('2') ? 'batch_icon.png' : 'batch_texture.png',
+            sourceSize: request.sourceGrantId.endsWith('2') ? 4096 : 2048,
+            sourceSha256: `${request.sourceGrantId.endsWith('2') ? 'b' : 'a'}`.repeat(64),
+            sourceMediaType: 'image/png',
+            category: 'TEXTURE' as const,
+            targetRelativePath: request.targetRelativePath,
+            conflict: existing ? 'REPLACE' as const : 'CREATE' as const,
+            targetSha256: existing?.sha256 ?? null,
+            duplicatePaths: [],
+            canApply: true,
+            issueCodes: existing ? ['ASSET_IMPORT_TARGET_WILL_REPLACE'] : []
+          };
+        });
+        const targets = batchItems.map((item) => item.targetRelativePath.toLowerCase());
+        const targetConflict = new Set(targets).size !== targets.length;
+        const replaceCount = batchItems.filter((item) => item.conflict === 'REPLACE').length;
+        data = {
+          items: batchItems,
+          createCount: batchItems.length - replaceCount,
+          replaceCount,
+          identicalCount: 0,
+          changedCount: batchItems.length,
+          canApply: batchItems.length > 0 && !targetConflict,
+          issueCodes: targetConflict ? ['ASSET_IMPORT_BATCH_TARGET_CONFLICT'] : [],
+          planToken: `mock-asset-batch-plan::replace-${replaceCount}`,
+          expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+          requiresReplacementConfirmation: replaceCount > 0
+        } satisfies AssetImportBatchPreview;
+        break;
+      }
+      case 'preview_asset_move': {
+        const payload = query.payload as { sourceAssetId?: string; targetRelativePath?: string };
+        const projection = mockAssetProjection();
+        const source = projection.assets.find((asset) => asset.id === payload.sourceAssetId) ?? projection.assets[1];
+        const target = payload.targetRelativePath ?? source.relativePath;
+        const unchanged = target === source.relativePath;
+        const sourceName = source.relativePath.split('/').pop() ?? source.relativePath;
+        const targetName = target.split('/').pop() ?? target;
+        const oldStem = sourceName.replace(/\.[^.]+$/, '');
+        const newStem = targetName.replace(/\.[^.]+$/, '');
+        data = {
+          sourceAssetId: source.id,
+          sourceRelativePath: source.relativePath,
+          sourceSha256: source.sha256,
+          category: source.category,
+          targetRelativePath: target,
+          targetAssetId: `asset:moved-${targetName}`,
+          referenceCount: source.category === 'TEXTURE' ? 1 : 0,
+          rewrites: source.category === 'TEXTURE' ? [{
+            sourceAssetId: ASSET_FIXTURES[0].id,
+            sourcePath: ASSET_FIXTURES[0].path,
+            sourceSha256: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+            sourcePointer: '/textures/all',
+            oldRawValue: `coppertrails:block/${oldStem}`,
+            newRawValue: `coppertrails:block/${newStem}`,
+            kind: 'RESOURCE_ID'
+          }] : [],
+          canApply: !unchanged,
+          issueCodes: unchanged ? ['ASSET_MOVE_TARGET_UNCHANGED'] : [],
+          planToken: `mock-asset-move::${encodeURIComponent(target)}`,
+          expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString()
+        } satisfies AssetMovePreview;
+        break;
+      }
       case 'get_version_tracks':
         data = {
           ...(versionTracksData as unknown as VersionTracksProjection),
@@ -2203,7 +3012,8 @@ export class MockCoreBridge implements CoreBridge {
             ],
             blockedCount: 0,
             lostCount: 0,
-            manualCount: 1
+            manualCount: 1,
+            semanticComparison: null
           } satisfies LoaderMigrationPreview;
         } else if (targetGeneratorId.includes('26.')) {
           data = {
@@ -2266,7 +3076,8 @@ export class MockCoreBridge implements CoreBridge {
             ],
             blockedCount: 2,
             lostCount: 1,
-            manualCount: 1
+            manualCount: 1,
+            semanticComparison: null
           } satisfies LoaderMigrationPreview;
         } else {
           data = {
@@ -2289,7 +3100,8 @@ export class MockCoreBridge implements CoreBridge {
             ],
             blockedCount: 1,
             lostCount: 0,
-            manualCount: 0
+            manualCount: 0,
+            semanticComparison: null
           } satisfies LoaderMigrationPreview;
         }
         break;
@@ -2357,7 +3169,8 @@ export class MockCoreBridge implements CoreBridge {
           ],
           blockedCount: 0,
           lostCount: 0,
-          manualCount: 0
+          manualCount: 0,
+          semanticComparison: null
         } satisfies UpstreamImportPreview;
         break;
       }
@@ -3519,14 +4332,30 @@ export class MockCoreBridge implements CoreBridge {
         break;
       }
       case 'get_task': {
-        const taskId = (query.payload as { taskId?: UUID })?.taskId;
-        const afterLogSequence = (query.payload as { afterLogSequence?: number })?.afterLogSequence ?? 0;
+        const taskPayload = query.payload as { taskId?: UUID; afterLogSequence?: number; sourcePath?: string };
+        const taskId = taskPayload.taskId;
+        const afterLogSequence = taskPayload.afterLogSequence ?? 0;
+        const sourcePath = taskPayload.sourcePath;
         const task = taskId ? this.state.tasks[taskId] : Object.values(this.state.tasks)[0];
         const logs = taskId ? this.state.taskLogs[taskId] || [] : [];
+        const diagnostics = taskId ? this.state.taskDiagnostics[taskId] || [] : [];
+        const sourceDiagnostic = sourcePath
+          ? diagnostics.find((diagnostic) => diagnostic.path === sourcePath)
+          : undefined;
+        const source = sourceDiagnostic && sourcePath?.startsWith('/src/main/java/') && sourcePath.endsWith('.java')
+          ? {
+              path: sourcePath,
+              language: 'java' as const,
+              content: 'package dev.coppertrails.elements;\n\npublic final class CopperLampElement {\n    BROKEN_SYMBOL;\n}\n',
+              size: 104,
+              line: 42
+            }
+          : undefined;
         data = {
           task,
           logs: logs.filter((entry) => entry.sequence > afterLogSequence),
-          diagnostics: []
+          diagnostics,
+          ...(source ? { source } : {})
         };
         break;
       }
@@ -3555,12 +4384,22 @@ export class MockCoreBridge implements CoreBridge {
       case 'get_history':
         data = {
           currentRevision: revision,
+          currentRecoveryPointId: this.state.currentRecoveryPointId,
           recoveryPoints: this.state.recoveryPoints
         };
         break;
       case 'get_diff':
         data = this.state.historyComparison;
         break;
+      case 'preview_recovery_restore': {
+        const recoveryPointId = (query.payload as { recoveryPointId?: string })?.recoveryPointId ?? '';
+        data = {
+          recoveryPointId,
+          baseRevision: revision,
+          changes: this.state.historyComparison?.changes ?? []
+        };
+        break;
+      }
       case 'list_operation_approvals':
         data = { items: this.state.operationApprovals };
         break;

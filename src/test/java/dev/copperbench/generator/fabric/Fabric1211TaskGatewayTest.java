@@ -9,8 +9,10 @@
 
 package dev.copperbench.generator.fabric;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import dev.copperbench.core.application.WorkspaceApplicationService;
+import dev.copperbench.core.application.WorkspaceMutationGateway;
 import dev.copperbench.core.contract.UiCore.Actor;
 import dev.copperbench.core.contract.UiCore.Command;
 import dev.copperbench.core.contract.UiCore.Operation;
@@ -18,6 +20,11 @@ import dev.copperbench.core.contract.UiCore.PermissionProfile;
 import dev.copperbench.core.contract.UiCore.Query;
 import dev.copperbench.core.contract.UiCore.RequestContext;
 import dev.copperbench.core.workspace.RevisionedWorkspaceStore;
+import dev.copperbench.history.LocalHistoryService;
+import dev.copperbench.history.RecoveryPoint;
+import dev.copperbench.history.RecoveryPointRequest;
+import dev.copperbench.history.RestoreResult;
+import dev.copperbench.history.WorkspaceChange;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.api.parallel.ResourceLock;
@@ -34,12 +41,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class Fabric1211TaskGatewayTest {
@@ -73,6 +82,91 @@ class Fabric1211TaskGatewayTest {
 			assertFalse(taskProjection.getAsJsonArray("logs").isEmpty());
 			assertTrue(taskProjection.getAsJsonArray("logs").toString().contains("Fabric 1.21.1"));
 			assertTrue(Files.isRegularFile(generatedWorkspace.resolve("src/main/resources/fabric.mod.json")));
+		}
+	}
+
+	@Test void deterministicValidationRepairPreviewsAndAppliesThroughRecoveryProtectedWorkspacePlan() throws Exception {
+		RevisionedWorkspaceStore store = new RevisionedWorkspaceStore();
+		var valid = Fabric1211GoldenWorkspace.create();
+		var brokenElements = new ArrayList<>(valid.elements());
+		var item = brokenElements.get(1);
+		JsonObject values = item.values();
+		values.getAsJsonObject("fields").addProperty("maxStackSize", 0);
+		brokenElements.set(1, new dev.copperbench.core.workspace.WorkspaceState.Element(item.id(), item.type(),
+				item.name(), item.displayName(), item.state(), item.ownership(), item.updatedAt(), values));
+		store.register(new dev.copperbench.core.workspace.WorkspaceState(valid.id(), valid.name(), valid.kind(),
+				valid.revision(), valid.dirty(), valid.generator(), valid.upstreamDocument(), brokenElements));
+		AtomicLong sequence = new AtomicLong(720);
+		Supplier<UUID> ids = () -> UUID.fromString("00000000-0000-4000-8000-" +
+				String.format("%012d", sequence.getAndIncrement()));
+		RecordingHistory history = new RecordingHistory();
+		try (Fabric1211WorkspaceTaskGateway tasks = new Fabric1211WorkspaceTaskGateway(store,
+				ignored -> generatedWorkspace, Path.of(".").toAbsolutePath().normalize(), CLOCK, ids)) {
+			WorkspaceApplicationService service = new WorkspaceApplicationService(store, tasks,
+					WorkspaceMutationGateway.noOp(), history, null, CLOCK, ids);
+
+			JsonObject projection = startAndAwait(service, ids, Operation.VALIDATE_WORKSPACE);
+			JsonObject diagnostic = projection.getAsJsonArray("diagnostics").asList().stream()
+					.map(value -> value.getAsJsonObject())
+					.filter(value -> value.get("code").getAsString().equals("FABRIC_ITEM_STACK_INVALID"))
+					.findFirst().orElseThrow();
+			JsonObject repair = diagnostic.getAsJsonArray("actions").asList().stream()
+					.map(value -> value.getAsJsonObject())
+					.filter(value -> value.get("kind").getAsString().equals("preview_repair"))
+					.findFirst().orElseThrow();
+			JsonObject repairPayload = repair.getAsJsonObject("payload");
+			assertEquals(valid.revision(), repairPayload.get("expectedRevision").getAsLong());
+			assertTrue(repairPayload.get("requireRecoveryPoint").getAsBoolean());
+			JsonArray operations = repairPayload.getAsJsonArray("operations");
+			assertEquals(1, operations.size());
+			JsonObject change = operations.get(0).getAsJsonObject().getAsJsonObject("payload")
+					.getAsJsonArray("changes").get(0).getAsJsonObject();
+			assertEquals("/fields/maxStackSize", change.get("path").getAsString());
+			assertEquals(1, change.get("value").getAsInt());
+
+			JsonObject planPayload = repairPayload.deepCopy();
+			planPayload.addProperty("idempotencyKey", "repair-item-stack");
+			var planned = service.query(Query.of(ids.get(), WORKSPACE_ID, Operation.PLAN_WORKSPACE_CHANGES,
+					planPayload), UI);
+			assertEquals("succeeded", planned.status(), planned.diagnostics().toString());
+			JsonObject plan = planned.data().getAsJsonObject();
+			assertTrue(plan.get("requireRecoveryPoint").getAsBoolean());
+			assertTrue(plan.getAsJsonObject("safety").get("ready").getAsBoolean());
+			assertTrue(plan.getAsJsonArray("changedPaths").toString().contains(item.id().toString()));
+			assertTrue(plan.getAsJsonArray("semanticDiff").toString().contains("/values/fields/maxStackSize"));
+
+			JsonObject applyPayload = new JsonObject();
+			applyPayload.add("plan", plan.deepCopy());
+			var applied = service.execute(Command.of(ids.get(), WORKSPACE_ID, valid.revision(),
+					Operation.APPLY_WORKSPACE_PLAN, applyPayload), UI);
+			assertEquals("committed", applied.result().status(), applied.result().diagnostics().toString());
+			assertNotNull(applied.result().recoveryPointId());
+			assertEquals(1, history.created.size());
+			var repaired = store.read(WORKSPACE_ID).orElseThrow();
+			assertEquals(valid.revision() + 1, repaired.revision());
+			assertEquals(1, repaired.element(item.id()).values().getAsJsonObject("fields")
+					.get("maxStackSize").getAsInt());
+
+			JsonObject manualChange = new JsonObject();
+			manualChange.addProperty("path", "/fields/maxStackSize");
+			manualChange.addProperty("value", 32);
+			JsonArray manualChanges = new JsonArray();
+			manualChanges.add(manualChange);
+			JsonObject manualPayload = new JsonObject();
+			manualPayload.addProperty("elementId", item.id().toString());
+			manualPayload.add("changes", manualChanges);
+			var manual = service.execute(Command.of(ids.get(), WORKSPACE_ID, repaired.revision(),
+					Operation.UPDATE_MOD_ELEMENT, manualPayload), UI);
+			assertEquals("committed", manual.result().status(), manual.result().diagnostics().toString());
+
+			JsonObject stalePlanPayload = repairPayload.deepCopy();
+			stalePlanPayload.addProperty("idempotencyKey", "stale-repair-item-stack");
+			var stale = service.query(Query.of(ids.get(), WORKSPACE_ID, Operation.PLAN_WORKSPACE_CHANGES,
+					stalePlanPayload), UI);
+			assertEquals("failed", stale.status());
+			assertTrue(stale.diagnostics().toString().contains("WORKSPACE_PLAN_STALE"));
+			assertEquals(32, store.read(WORKSPACE_ID).orElseThrow().element(item.id()).values()
+					.getAsJsonObject("fields").get("maxStackSize").getAsInt());
 		}
 	}
 
@@ -137,6 +231,14 @@ class Fabric1211TaskGatewayTest {
 			assertTrue(diagnostics.contains(expectedJdkPath));
 			assertTrue(diagnostics.contains("jdk21_win_64"));
 			assertTrue(diagnostics.contains("not-a-java-home"));
+			UUID taskId = UUID.fromString(projection.getAsJsonObject("task").get("id").getAsString());
+			JsonObject failureDiagnostic = projection.getAsJsonArray("diagnostics").get(0).getAsJsonObject();
+			JsonObject openLogs = failureDiagnostic.getAsJsonArray("actions").get(0).getAsJsonObject();
+			assertEquals("open_logs", openLogs.get("kind").getAsString());
+			assertEquals(taskId.toString(), openLogs.getAsJsonObject("payload").get("taskId").getAsString());
+			assertFalse(taskId.toString().equals(openLogs.get("target").getAsString()));
+			assertEquals(failureDiagnostic.getAsJsonObject("message").getAsJsonObject("args").get("failureId").getAsString(),
+					openLogs.get("target").getAsString());
 			assertTrue(projection.getAsJsonArray("logs").toString().contains("No usable Java home found"));
 		} finally {
 			if (previousJavaHome == null)
@@ -177,6 +279,61 @@ class Fabric1211TaskGatewayTest {
 		}
 	}
 
+	@Test void runtimeProcessFailuresExposeExitAndReadinessFactsWithoutGuessingElements() throws Exception {
+		RevisionedWorkspaceStore store = new RevisionedWorkspaceStore();
+		store.register(Fabric1211GoldenWorkspace.create());
+		AtomicLong sequence = new AtomicLong(610);
+		Supplier<UUID> ids = () -> UUID.fromString("00000000-0000-4000-8000-" +
+				String.format("%012d", sequence.getAndIncrement()));
+		Fabric1211ProcessRunner runner = (root, arguments, timeout, output) -> {
+			if (arguments.equals(List.of("runClient")))
+				return new Fabric1211ProcessRunner.ProcessResult(7, false);
+			if (arguments.equals(List.of("runServer")))
+				return new Fabric1211ProcessRunner.ProcessResult(0, false);
+			throw new AssertionError("Unexpected runtime task: " + arguments);
+		};
+		try (Fabric1211WorkspaceTaskGateway tasks = new Fabric1211WorkspaceTaskGateway(store,
+				ignored -> generatedWorkspace, Path.of(".").toAbsolutePath().normalize(), CLOCK, ids, runner)) {
+			WorkspaceApplicationService service = new WorkspaceApplicationService(store, tasks, CLOCK, ids);
+
+			JsonObject client = startAndAwait(service, ids, Operation.RUN_CLIENT);
+			assertEquals("failed", client.getAsJsonObject("task").get("state").getAsString());
+			JsonObject clientDiagnostic = client.getAsJsonArray("diagnostics").asList().stream()
+					.map(value -> value.getAsJsonObject())
+					.filter(value -> value.get("code").getAsString().equals("FABRIC_RUN_CLIENT_EXITED"))
+					.findFirst().orElseThrow();
+			JsonObject clientArgs = clientDiagnostic.getAsJsonObject("message").getAsJsonObject("args");
+			assertEquals(7, clientArgs.get("exitCode").getAsInt());
+			assertEquals("run_client", clientArgs.get("task").getAsString());
+			assertTrue(!clientDiagnostic.has("path") || clientDiagnostic.get("path").isJsonNull());
+			assertTrue(!clientDiagnostic.has("elementId") || clientDiagnostic.get("elementId").isJsonNull());
+			JsonObject clientLogs = clientDiagnostic.getAsJsonArray("actions").get(0).getAsJsonObject();
+			assertEquals(client.getAsJsonObject("task").get("id").getAsString(),
+					clientLogs.getAsJsonObject("payload").get("taskId").getAsString());
+
+			JsonObject serverPayload = new JsonObject();
+			serverPayload.addProperty("clientMutationId", ids.get().toString());
+			serverPayload.addProperty("scope", "workspace");
+			serverPayload.addProperty("userApproved", true);
+			var serverAccepted = service.execute(Command.of(ids.get(), WORKSPACE_ID, 4,
+					Operation.RUN_SERVER, serverPayload), UI);
+			assertEquals("accepted", serverAccepted.result().status());
+			UUID serverTaskId = UUID.fromString(serverAccepted.result().task().getAsJsonObject().get("id").getAsString());
+			JsonObject server = awaitTask(service, serverTaskId);
+			assertEquals("failed", server.getAsJsonObject("task").get("state").getAsString());
+			JsonObject readinessDiagnostic = server.getAsJsonArray("diagnostics").asList().stream()
+					.map(value -> value.getAsJsonObject())
+					.filter(value -> value.get("code").getAsString().equals("FABRIC_RUN_SERVER_NOT_READY"))
+					.findFirst().orElseThrow();
+			assertEquals("diagnostic.task_readiness_not_reached",
+					readinessDiagnostic.getAsJsonObject("message").get("key").getAsString());
+			assertEquals(0, readinessDiagnostic.getAsJsonObject("message").getAsJsonObject("args")
+					.get("exitCode").getAsInt());
+			assertEquals(serverTaskId.toString(), readinessDiagnostic.getAsJsonArray("actions").get(0).getAsJsonObject()
+					.getAsJsonObject("payload").get("taskId").getAsString());
+		}
+	}
+
 	@Test void failedBuildExtractsJavaCompilerErrorsIntoStructuredDiagnostics() throws Exception {
 		RevisionedWorkspaceStore store = new RevisionedWorkspaceStore();
 		store.register(Fabric1211GoldenWorkspace.create());
@@ -185,7 +342,7 @@ class Fabric1211TaskGatewayTest {
 				String.format("%012d", sequence.getAndIncrement()));
 		Fabric1211ProcessRunner runner = (root, arguments, timeout, output) -> {
 			assertEquals(List.of("build"), arguments);
-			Path source = root.resolve("src/main/java/net/example/BrokenBehavior.java");
+			Path source = root.resolve("src/main/java/dev/coppertrails/procedure/AnnounceTrailProcedure.java");
 			output.accept(source + ":42: 错误: 找不到符号");
 			output.accept("  " + source + ":42: 错误: 找不到符号");
 			return new Fabric1211ProcessRunner.ProcessResult(1, false);
@@ -199,9 +356,78 @@ class Fabric1211TaskGatewayTest {
 			String diagnostics = build.getAsJsonArray("diagnostics").toString();
 			assertTrue(diagnostics.contains("JAVA_COMPILE_ERROR"), diagnostics);
 			assertEquals(diagnostics.indexOf("JAVA_COMPILE_ERROR"), diagnostics.lastIndexOf("JAVA_COMPILE_ERROR"), diagnostics);
-			assertTrue(diagnostics.contains("/src/main/java/net/example/BrokenBehavior.java"), diagnostics);
+			assertTrue(diagnostics.contains("/src/main/java/dev/coppertrails/procedure/AnnounceTrailProcedure.java"), diagnostics);
 			assertTrue(diagnostics.contains("Line 42: 找不到符号"), diagnostics);
+			assertTrue(diagnostics.contains("\"message\":\"Line 42: 找不到符号\""), diagnostics);
 			assertTrue(diagnostics.contains("FABRIC_BUILD_FAILED"), diagnostics);
+			assertTrue(diagnostics.contains("00000000-0000-4000-8000-000000000004"), diagnostics);
+			assertTrue(diagnostics.contains("locate_element"), diagnostics);
+			assertTrue(diagnostics.contains("open_generated_source"), diagnostics);
+			assertTrue(diagnostics.contains("open_task_logs"), diagnostics);
+
+			Path generatedSource = generatedWorkspace.resolve(
+					"src/main/java/dev/coppertrails/procedure/AnnounceTrailProcedure.java");
+			Files.writeString(generatedSource,
+					"package dev.coppertrails.procedure;\nfinal class RewrittenAfterFailure {}\n");
+
+			UUID taskId = UUID.fromString(build.getAsJsonObject("task").get("id").getAsString());
+			JsonObject sourcePayload = new JsonObject();
+			sourcePayload.addProperty("taskId", taskId.toString());
+			sourcePayload.addProperty("afterLogSequence", 0);
+			sourcePayload.addProperty("sourcePath",
+					"/src/main/java/dev/coppertrails/procedure/AnnounceTrailProcedure.java");
+			var sourceResult = service.query(Query.of(ids.get(), WORKSPACE_ID, Operation.GET_TASK, sourcePayload), UI);
+			assertEquals("succeeded", sourceResult.status(), sourceResult.diagnostics().toString());
+			JsonObject source = sourceResult.data().getAsJsonObject().getAsJsonObject("source");
+			assertEquals("/src/main/java/dev/coppertrails/procedure/AnnounceTrailProcedure.java",
+					source.get("path").getAsString());
+			assertEquals("java", source.get("language").getAsString());
+			assertEquals(42, source.get("line").getAsInt());
+			assertTrue(source.get("size").getAsLong() <= 256L * 1024L);
+			assertTrue(source.get("content").getAsString().contains("AnnounceTrailProcedure"));
+			assertFalse(source.get("content").getAsString().contains("RewrittenAfterFailure"));
+
+			JsonObject unrelatedPayload = sourcePayload.deepCopy();
+			unrelatedPayload.addProperty("sourcePath", "/src/main/java/dev/coppertrails/CopperTrailsMod.java");
+			var unrelated = service.query(Query.of(ids.get(), WORKSPACE_ID, Operation.GET_TASK, unrelatedPayload), UI);
+			assertEquals("rejected", unrelated.status());
+			assertTrue(unrelated.diagnostics().toString().contains("COMMAND_PAYLOAD_INVALID"),
+					unrelated.diagnostics().toString());
+		}
+	}
+
+	@Test void unresolvedCompilerSourceKeepsFileAndLogsButNeverGuessesAnElement() throws Exception {
+		RevisionedWorkspaceStore store = new RevisionedWorkspaceStore();
+		store.register(Fabric1211GoldenWorkspace.create());
+		AtomicLong sequence = new AtomicLong(640);
+		Supplier<UUID> ids = () -> UUID.fromString("00000000-0000-4000-8000-" +
+				String.format("%012d", sequence.getAndIncrement()));
+		Fabric1211ProcessRunner runner = (root, arguments, timeout, output) -> {
+			assertEquals(List.of("build"), arguments);
+			Path source = root.resolve("src/main/java/dev/coppertrails/registry/ModBlocks.java");
+			output.accept(source + ":17: error: cannot find symbol");
+			return new Fabric1211ProcessRunner.ProcessResult(1, false);
+		};
+		try (Fabric1211WorkspaceTaskGateway tasks = new Fabric1211WorkspaceTaskGateway(store,
+				ignored -> generatedWorkspace, Path.of(".").toAbsolutePath().normalize(), CLOCK, ids, runner)) {
+			WorkspaceApplicationService service = new WorkspaceApplicationService(store, tasks, CLOCK, ids);
+
+			JsonObject build = startAndAwait(service, ids, Operation.BUILD_WORKSPACE);
+			assertEquals("failed", build.getAsJsonObject("task").get("state").getAsString());
+			var diagnostics = build.getAsJsonArray("diagnostics");
+			JsonObject compile = null;
+			for (var raw : diagnostics) {
+				JsonObject diagnostic = raw.getAsJsonObject();
+				if ("JAVA_COMPILE_ERROR".equals(diagnostic.get("code").getAsString())) {
+					compile = diagnostic;
+					break;
+				}
+			}
+			assertNotNull(compile);
+			assertTrue(!compile.has("elementId") || compile.get("elementId").isJsonNull(), compile.toString());
+			assertTrue(compile.get("path").getAsString().endsWith("/src/main/java/dev/coppertrails/registry/ModBlocks.java"));
+			assertTrue(compile.getAsJsonArray("actions").toString().contains("open_task_logs"), compile.toString());
+			assertFalse(compile.getAsJsonArray("actions").toString().contains("locate_element"), compile.toString());
 		}
 	}
 
@@ -311,7 +537,83 @@ class Fabric1211TaskGatewayTest {
 			JsonObject projection = startAndAwait(service, ids, Operation.VALIDATE_WORKSPACE);
 			assertEquals("failed", projection.getAsJsonObject("task").get("state").getAsString());
 			assertTrue(projection.getAsJsonArray("diagnostics").toString().contains("FABRIC_ITEM_STACK_INVALID"));
+			JsonObject diagnostic = projection.getAsJsonArray("diagnostics").asList().stream()
+					.map(value -> value.getAsJsonObject())
+					.filter(value -> value.get("code").getAsString().equals("FABRIC_ITEM_STACK_INVALID"))
+					.findFirst().orElseThrow();
+			assertEquals("/fields/maxStackSize",
+					diagnostic.getAsJsonArray("actions").get(0).getAsJsonObject().get("target").getAsString());
+			assertEquals("locate_generator_field",
+					diagnostic.getAsJsonArray("actions").get(0).getAsJsonObject().get("id").getAsString());
 			assertFalse(Files.exists(generatedWorkspace.resolve("build.gradle")));
+		}
+	}
+
+	@Test void modernProcedureValidationPreservesNodeAndPortThroughTaskDiagnostics() throws Exception {
+		RevisionedWorkspaceStore store = new RevisionedWorkspaceStore();
+		var valid = Fabric1211GoldenWorkspace.create();
+		var elements = new ArrayList<>(valid.elements());
+		int procedureIndex = -1;
+		for (int index = 0; index < elements.size(); index++) {
+			if (elements.get(index).type().equals("procedure")) {
+				procedureIndex = index;
+				break;
+			}
+		}
+		assertTrue(procedureIndex >= 0);
+		var procedure = elements.get(procedureIndex);
+		JsonObject values = procedure.values();
+		UUID triggerId = UUID.fromString("00000000-0000-4000-8000-000000000961");
+		UUID callId = UUID.fromString("00000000-0000-4000-8000-000000000962");
+		JsonObject ir = new JsonObject();
+		ir.addProperty("schemaVersion", "1.0");
+		ir.addProperty("trigger", "no_ext_trigger");
+		JsonArray nodes = new JsonArray();
+		JsonObject trigger = new JsonObject();
+		trigger.addProperty("id", triggerId.toString());
+		trigger.addProperty("type", "event_trigger");
+		trigger.addProperty("kind", "statement");
+		JsonObject triggerFields = new JsonObject();
+		triggerFields.addProperty("trigger", "no_ext_trigger");
+		trigger.add("fields", triggerFields);
+		trigger.add("inputs", new JsonObject());
+		nodes.add(trigger);
+		JsonObject call = new JsonObject();
+		call.addProperty("id", callId.toString());
+		call.addProperty("type", "call_procedure");
+		call.addProperty("kind", "statement");
+		JsonObject callFields = new JsonObject();
+		callFields.addProperty("procedureId", "");
+		call.add("fields", callFields);
+		call.add("inputs", new JsonObject());
+		nodes.add(call);
+		ir.add("nodes", nodes);
+		ir.add("dependencies", new JsonArray());
+		values.add("procedureIr", ir);
+		elements.set(procedureIndex, new dev.copperbench.core.workspace.WorkspaceState.Element(procedure.id(),
+				procedure.type(), procedure.name(), procedure.displayName(), procedure.state(), procedure.ownership(),
+				procedure.updatedAt(), values));
+		store.register(new dev.copperbench.core.workspace.WorkspaceState(valid.id(), valid.name(), valid.kind(),
+				valid.revision(), valid.dirty(), valid.generator(), valid.upstreamDocument(), elements));
+		AtomicLong sequence = new AtomicLong(960);
+		Supplier<UUID> ids = () -> UUID.fromString("00000000-0000-4000-8000-" +
+				String.format("%012d", sequence.getAndIncrement()));
+		try (Fabric1211WorkspaceTaskGateway tasks = new Fabric1211WorkspaceTaskGateway(store,
+				ignored -> generatedWorkspace, Path.of(".").toAbsolutePath().normalize(), CLOCK, ids)) {
+			WorkspaceApplicationService service = new WorkspaceApplicationService(store, tasks, CLOCK, ids);
+			JsonObject projection = startAndAwait(service, ids, Operation.VALIDATE_WORKSPACE);
+			assertEquals("failed", projection.getAsJsonObject("task").get("state").getAsString());
+			JsonObject diagnostic = projection.getAsJsonArray("diagnostics").asList().stream()
+					.map(raw -> raw.getAsJsonObject())
+					.filter(item -> item.get("code").getAsString().equals("PROCEDURE_CALL_TARGET_REQUIRED"))
+					.findFirst().orElseThrow();
+			assertEquals("/elements/" + procedure.id() + "/procedureIr/nodes/" + callId + "/ports/procedureId",
+					diagnostic.get("path").getAsString());
+			JsonObject action = diagnostic.getAsJsonArray("actions").get(0).getAsJsonObject();
+			assertEquals("open_procedure_node", action.get("kind").getAsString());
+			assertEquals(callId.toString(), action.get("target").getAsString());
+			assertEquals(callId.toString(), action.getAsJsonObject("payload").get("nodeId").getAsString());
+			assertEquals("procedureId", action.getAsJsonObject("payload").get("port").getAsString());
 		}
 	}
 
@@ -323,11 +625,20 @@ class Fabric1211TaskGatewayTest {
 				String.format("%012d", sequence.getAndIncrement()));
 		CountDownLatch started = new CountDownLatch(1);
 		CountDownLatch exited = new CountDownLatch(1);
+		AtomicBoolean cleanedUp = new AtomicBoolean();
 		Fabric1211ProcessRunner runner = (root, arguments, timeout, output) -> {
 			started.countDown();
 			try {
-				new CountDownLatch(1).await();
-				return new Fabric1211ProcessRunner.ProcessResult(0, false);
+				try {
+					new CountDownLatch(1).await();
+					return new Fabric1211ProcessRunner.ProcessResult(0, false);
+				} catch (InterruptedException exception) {
+					// Simulate real process-tree cleanup that takes a short but observable amount of time
+					// after the Gradle worker receives cancellation.
+					Thread.sleep(250);
+					cleanedUp.set(true);
+					throw exception;
+				}
 			} finally {
 				exited.countDown();
 			}
@@ -349,6 +660,7 @@ class Fabric1211TaskGatewayTest {
 					Command.of(ids.get(), WORKSPACE_ID, 4, Operation.CANCEL_TASK, cancelPayload), UI);
 
 			assertEquals("cancelled", cancelled.result().status());
+			assertTrue(cleanedUp.get(), "cancel_task must not report cancelled before external cleanup finishes");
 			assertTrue(exited.await(2, TimeUnit.SECONDS));
 			JsonObject projection = task(service, taskId);
 			assertEquals("cancelled", projection.getAsJsonObject("task").get("state").getAsString());
@@ -420,5 +732,39 @@ class Fabric1211TaskGatewayTest {
 		payload.addProperty("taskId", taskId.toString());
 		return service.query(Query.of(UUID.randomUUID(), WORKSPACE_ID, Operation.GET_TASK, payload), UI)
 				.data().getAsJsonObject();
+	}
+
+	private static final class RecordingHistory implements LocalHistoryService {
+		private final List<RecoveryPoint> created = new ArrayList<>();
+
+		@Override public RecoveryPoint createRecoveryPoint(RecoveryPointRequest request) {
+			RecoveryPoint point = new RecoveryPoint("repair-rp-" + (created.size() + 1), request.label(),
+					request.actor(), request.taskId(), CLOCK.instant());
+			created.add(point);
+			return point;
+		}
+
+		@Override public List<RecoveryPoint> listRecoveryPoints() {
+			return List.copyOf(created);
+		}
+
+		@Override public String currentRecoveryPointId() {
+			return null;
+		}
+
+		@Override public List<WorkspaceChange> compare(String fromRecoveryPointId, String toRecoveryPointId) {
+			return List.of();
+		}
+
+		@Override public List<WorkspaceChange> previewRestore(String recoveryPointId) {
+			return List.of();
+		}
+
+		@Override public RestoreResult restore(String recoveryPointId) {
+			throw new UnsupportedOperationException("restore is not needed by this test");
+		}
+
+		@Override public void close() {
+		}
 	}
 }

@@ -26,6 +26,8 @@ Workspace Plan、增量任务日志和 `code` 使用边界的可复制示例。
 7. 运行校验或构建；长任务使用 `get_task` 查询状态和日志，并把最近收到的日志序号作为 `afterLogSequence` 传回以增量恢复。
 8. 修订冲突时重新读取并重新生成计划，不要自动重试覆盖。
 
+需要请求用户还原恢复点时，先调用 `preview_recovery_restore`。它比较当前工作树和目标恢复点，返回还原真正会涉及的文件；`restore_recovery_point` 仍然是受保护操作，MCP 客户端不能自行声明桌面用户已经批准。
+
 JCEF 客户端会接收任务的 `task_progressed`、`task_log_appended`、
 `task_completed` 和失败诊断事件；页面重载时会重放 Core 保留的任务事件，
 如果发现序列缺口则自动刷新工作区和任务投影。MCP/Headless 客户端继续使用

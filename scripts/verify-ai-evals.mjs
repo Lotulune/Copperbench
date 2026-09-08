@@ -33,17 +33,19 @@ const missing = requiredCoverage.filter((value) => !covered.has(value));
 if (missing.length) throw new Error(`AI eval suite is missing coverage: ${missing.join(', ')}`);
 const requiredMethods = [
   'getWorkspace', 'listModElements', 'createModElement', 'updateProcedure',
-  'createRegistryEntry', 'listWorkspaceRegistries', 'renameRegistryEntry',
-  'planWorkspaceChanges', 'previewWorkspacePlan', 'applyWorkspacePlan',
+  'getWorkspaceHealth', 'createRegistryEntry', 'listWorkspaceRegistries', 'renameRegistryEntry', 'previewRegistryRename',
+  'planWorkspaceChanges', 'planProcedureRefactor', 'previewWorkspacePlan', 'applyWorkspacePlan',
+  'listAssets', 'previewAssetMove', 'moveAsset',
   'buildWorkspace', 'runDatagen', 'previewDatagenOutput', 'publishDatagenOutput', 'getTask', 'cancelTask',
   'createRecoveryPoint', 'restoreRecoveryPoint'
 ];
 const missingTypeScriptMethods = requiredMethods.filter((method) => !typescriptSdk.includes(`${method}(`));
 if (missingTypeScriptMethods.length) throw new Error(`TypeScript SDK is missing methods: ${missingTypeScriptMethods.join(', ')}`);
 const requiredPythonMethods = [
-  'get_workspace', 'list_mod_elements', 'create_mod_element', 'update_procedure',
-  'create_registry_entry', 'list_workspace_registries', 'rename_registry_entry',
-  'plan_workspace_changes', 'preview_workspace_plan', 'apply_workspace_plan',
+  'get_workspace', 'get_workspace_health', 'list_mod_elements', 'create_mod_element', 'update_procedure',
+  'create_registry_entry', 'list_workspace_registries', 'rename_registry_entry', 'preview_registry_rename',
+  'plan_workspace_changes', 'plan_procedure_refactor', 'preview_workspace_plan', 'apply_workspace_plan',
+  'list_assets', 'preview_asset_move', 'move_asset',
   'build_workspace', 'run_datagen', 'preview_datagen_output', 'publish_datagen_output', 'get_task', 'cancel_task',
   'create_recovery_point', 'restore_recovery_point'
 ];

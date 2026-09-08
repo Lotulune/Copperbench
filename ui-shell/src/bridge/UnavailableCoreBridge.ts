@@ -16,6 +16,7 @@ const unavailableState: BridgeState = {
   elementEditors: {},
   tasks: {},
   taskLogs: {},
+  taskDiagnostics: {},
   diagnostics: [
     {
       code: 'UI_CORE_HOST_UNAVAILABLE',

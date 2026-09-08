@@ -51,9 +51,16 @@ public final class UiCore {
 		@SerializedName("import_upstream_workspace") IMPORT_UPSTREAM_WORKSPACE,
 		@SerializedName("create_publish_batch") CREATE_PUBLISH_BATCH,
 		@SerializedName("prepare_resource_pack_client") PREPARE_RESOURCE_PACK_CLIENT,
+		@SerializedName("import_asset") IMPORT_ASSET,
+		@SerializedName("import_asset_batch") IMPORT_ASSET_BATCH,
+		@SerializedName("move_asset") MOVE_ASSET,
 		@SerializedName("get_workbench") GET_WORKBENCH,
+		@SerializedName("get_workspace_health") GET_WORKSPACE_HEALTH,
 		@SerializedName("list_new_workspace_generators") LIST_NEW_WORKSPACE_GENERATORS,
 		@SerializedName("list_assets") LIST_ASSETS,
+		@SerializedName("preview_asset_import") PREVIEW_ASSET_IMPORT,
+		@SerializedName("preview_asset_import_batch") PREVIEW_ASSET_IMPORT_BATCH,
+		@SerializedName("preview_asset_move") PREVIEW_ASSET_MOVE,
 		@SerializedName("list_mod_elements") LIST_MOD_ELEMENTS,
 		@SerializedName("get_mod_element_editor") GET_MOD_ELEMENT_EDITOR,
 		@SerializedName("preview_mod_element_change") PREVIEW_MOD_ELEMENT_CHANGE,
@@ -62,6 +69,7 @@ public final class UiCore {
 		@SerializedName("get_workspace_references") GET_WORKSPACE_REFERENCES,
 		@SerializedName("list_workspace_registries") LIST_WORKSPACE_REGISTRIES,
 		@SerializedName("preview_registry_rename") PREVIEW_REGISTRY_RENAME,
+		@SerializedName("plan_procedure_refactor") PLAN_PROCEDURE_REFACTOR,
 		@SerializedName("plan_workspace_changes") PLAN_WORKSPACE_CHANGES,
 		@SerializedName("preview_workspace_plan") PREVIEW_WORKSPACE_PLAN,
 		@SerializedName("apply_workspace_plan") APPLY_WORKSPACE_PLAN,
@@ -69,6 +77,7 @@ public final class UiCore {
 		@SerializedName("preview_datagen_output") PREVIEW_DATAGEN_OUTPUT,
 		@SerializedName("get_history") GET_HISTORY,
 		@SerializedName("get_diff") GET_DIFF,
+		@SerializedName("preview_recovery_restore") PREVIEW_RECOVERY_RESTORE,
 		@SerializedName("list_operation_approvals") LIST_OPERATION_APPROVALS,
 		@SerializedName("resolve_operation_approval") RESOLVE_OPERATION_APPROVAL,
 		@SerializedName("get_version_tracks") GET_VERSION_TRACKS,
@@ -117,7 +126,14 @@ public final class UiCore {
 		}
 	}
 
-	public record ActionHint(String id, LocalizedText label, String kind, String target) {
+	public record ActionHint(String id, LocalizedText label, String kind, String target, JsonObject payload) {
+		public ActionHint(String id, LocalizedText label, String kind, String target) {
+			this(id, label, kind, target, null);
+		}
+
+		public ActionHint {
+			payload = payload == null ? null : payload.deepCopy();
+		}
 	}
 
 	public record Diagnostic(String code, Severity severity, LocalizedText message, String path, UUID elementId,

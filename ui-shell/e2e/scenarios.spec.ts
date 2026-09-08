@@ -6,6 +6,47 @@ test.describe('UI-Core v1.0 Contract Scenarios', () => {
     await page.waitForSelector('[data-testid="app-shell"]');
   });
 
+  test('scenario: compile-diagnostic navigates from compiler failure to the owning element', async ({ page }) => {
+    await page.click('[data-testid="scenario-switcher-trigger"]');
+    await page.click('[data-testid="scenario-btn-compile-diagnostic"]');
+
+    await expect(page.locator('[data-testid="global-diagnostics-banner"]')).toBeVisible();
+    await expect(page.locator('[data-testid="task-failure"]')).toBeVisible();
+    await page.click('[data-testid="open-failed-task-logs-btn"]');
+
+    await expect(page.locator('[data-testid="task-diagnostics"]')).toBeVisible();
+    await expect(page.locator('[data-testid="task-diagnostic-JAVA_COMPILE_ERROR"]')).toBeVisible();
+    await expect(page.locator('[data-testid="task-diag-action-open_generated_source"]')).toBeVisible();
+    await page.click('[data-testid="task-diag-action-open_generated_source"]');
+    await expect(page.locator('[data-testid="task-source-preview"]')).toBeVisible();
+    await expect(page.locator('[data-testid="task-source-preview"]')).toContainText('CopperLampElement.java:42');
+    await expect(page.locator('[data-testid="task-source-content"]')).toContainText('CopperLampElement');
+    await expect(page.locator('[data-testid="task-diag-action-locate_compile_element"]')).toBeVisible();
+    await page.click('[data-testid="task-diag-action-locate_compile_element"]');
+
+    await expect(page.locator('[data-testid="element-inspector"]')).toBeVisible();
+    await expect(page.locator('[data-element-id="22222222-2222-4222-8222-222222222221"]').first()).toBeVisible();
+    await expect(page.getByText('Copper Lamp').first()).toBeVisible();
+  });
+
+  test('scenario: generator-repair previews semantic diff before recovery-protected apply', async ({ page }) => {
+    await page.click('[data-testid="scenario-switcher-trigger"]');
+    await page.click('[data-testid="scenario-btn-generator-repair"]');
+
+    await expect(page.locator('[data-testid="task-failure"]')).toBeVisible();
+    await page.click('[data-testid="open-failed-task-logs-btn"]');
+    await expect(page.locator('[data-testid="task-diagnostic-FABRIC_ITEM_STACK_INVALID"]')).toBeVisible();
+    await expect(page.locator('[data-testid="task-diag-action-preview_generator_repair"]')).toBeVisible();
+    await page.click('[data-testid="task-diag-action-preview_generator_repair"]');
+
+    await expect(page.locator('[data-testid="task-repair-preview"]')).toBeVisible();
+    await expect(page.locator('[data-testid="task-repair-summary"]')).toContainText('1');
+    await expect(page.locator('[data-testid="task-repair-semantic-diff"]')).toContainText('maxStackSize');
+    await expect(page.locator('[data-testid="task-repair-apply"]')).toBeEnabled();
+    await page.click('[data-testid="task-repair-apply"]');
+    await expect(page.locator('[data-testid="task-repair-preview"]')).toContainText('安全修复已应用');
+  });
+
   test('scenario: ready renders healthy workbench and recent elements', async ({ page }) => {
     // Switch to ready scenario
     await page.click('[data-testid="scenario-switcher-trigger"]');
@@ -133,10 +174,27 @@ test.describe('UI-Core v1.0 Contract Scenarios', () => {
     await expect(page.getByText('RUN_CLIENT 任务失败').first()).toBeVisible();
     await expect(page.getByText('意外退出').first()).toBeVisible();
 
-    // Open Client Logs action jumps straight into the task drawer
-    await page.click('[data-testid="diag-action-open_client_logs"]');
+    // The task-level entry point opens the drawer and the payload taskId keeps the runtime diagnostic attached
+    // even though open_logs.target remains the native application-log failureId.
+    await page.click('[data-testid="open-failed-task-logs-btn"]');
     await expect(page.locator('[data-testid="task-drawer"]')).toBeVisible();
     await expect(page.getByText('RUN_CLIENT').first()).toBeVisible();
+    await expect(page.locator('[data-testid="task-diagnostic-FABRIC_RUN_CLIENT_EXITED"]')).toBeVisible();
+    await expect(page.locator('[data-testid="task-diag-action-open_client_logs"]')).toBeVisible();
+  });
+
+  test('scenario: procedure-node-diagnostic opens the exact Procedure node', async ({ page }) => {
+    await page.click('[data-testid="scenario-switcher-trigger"]');
+    await page.click('[data-testid="scenario-btn-procedure-node-diagnostic"]');
+
+    await expect(page.locator('[data-testid="task-failure"]')).toBeVisible();
+    await page.click('[data-testid="open-failed-task-logs-btn"]');
+    await expect(page.locator('[data-testid="task-diagnostic-PROCEDURE_CALL_TARGET_REQUIRED"]')).toBeVisible();
+    await page.click('[data-testid="task-diag-action-open_procedure_node"]');
+
+    await expect(page.locator('[data-testid="procedure-workbench"]')).toBeVisible();
+    await expect(page.locator('[data-testid="procedure-selected-location"]')).toContainText('调用 Procedure');
+    await expect(page.locator('#procedure-tab-diagnostics')).toHaveAttribute('aria-selected', 'true');
   });
 
   test('scenario: element-created lists the committed block', async ({ page }) => {

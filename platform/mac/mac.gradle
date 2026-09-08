@@ -22,7 +22,10 @@ tasks.register('exportMacX64', Copy.class) {
         }
         from file('LICENSE.txt')
         from file('LICENSE-ADDITIONAL-TERMS.md')
+        from file('gradlew')
+        from file('gradlew.bat')
     }
+    into('gradle/wrapper') { from file('gradle/wrapper/gradle-wrapper.jar') }
     into('Resources') {
         from file('platform/mac/' + appIcon) rename(appIcon, 'mcreatorapp.icns')
         from file('platform/mac/' + icon) rename(icon, 'mcreator.icns')
@@ -75,7 +78,10 @@ tasks.register('exportMacAarch64', Copy.class) {
         }
         from file('LICENSE.txt')
         from file('LICENSE-ADDITIONAL-TERMS.md')
+        from file('gradlew')
+        from file('gradlew.bat')
     }
+    into('gradle/wrapper') { from file('gradle/wrapper/gradle-wrapper.jar') }
     into('Resources') {
         from file('platform/mac/' + appIcon) rename(appIcon, 'mcreatorapp.icns')
         from file('platform/mac/' + icon) rename(icon, 'mcreator.icns')

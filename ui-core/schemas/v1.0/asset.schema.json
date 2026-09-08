@@ -3,18 +3,19 @@
   "$id": "urn:ui-core:1.0:asset",
   "title": "UI-Core asset projection v1.0",
   "type": "object",
-  "required": ["schemaVersion", "assets", "references", "diagnostics"],
+  "required": ["schemaVersion", "assets", "references", "diagnostics", "health"],
   "properties": {
     "schemaVersion": { "const": "1.0" },
     "assets": { "type": "array", "items": { "$ref": "#/$defs/asset" } },
     "references": { "type": "array", "items": { "$ref": "#/$defs/reference" } },
-    "diagnostics": { "type": "array", "items": { "$ref": "#/$defs/diagnostic" } }
+    "diagnostics": { "type": "array", "items": { "$ref": "urn:ui-core:1.0:common#/$defs/diagnostic" } },
+    "health": { "$ref": "#/$defs/healthSummary" }
   },
   "additionalProperties": false,
   "$defs": {
     "asset": {
       "type": "object",
-      "required": ["id", "relativePath", "category", "size", "sha256", "mediaType"],
+      "required": ["id", "relativePath", "category", "size", "sha256", "mediaType", "health"],
       "properties": {
         "id": { "type": "string", "pattern": "^asset:[0-9a-f]{64}$" },
         "relativePath": { "type": "string", "minLength": 1, "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$)).+$" },
@@ -22,31 +23,61 @@
         "size": { "type": "integer", "minimum": 0 },
         "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
         "mediaType": { "type": "string", "minLength": 1 },
-        "updatedAt": { "type": "string", "format": "date-time" }
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "health": { "$ref": "#/$defs/healthEntry" }
       },
       "additionalProperties": false
     },
     "reference": {
       "type": "object",
-      "required": ["sourceAssetId", "sourcePath", "targetPath", "targetAssetId", "kind"],
+      "required": ["sourceAssetId", "sourcePath", "sourcePointer", "rawValue", "targetPath", "targetAssetId", "kind"],
       "properties": {
         "sourceAssetId": { "type": "string", "pattern": "^asset:[0-9a-f]{64}$" },
         "sourcePath": { "type": "string", "minLength": 1 },
+        "sourcePointer": { "type": "string" },
+        "rawValue": { "type": "string" },
+        "expectedPrefix": { "type": ["string", "null"] },
         "targetPath": { "type": "string", "minLength": 1 },
         "targetAssetId": { "type": "string", "pattern": "^asset:[0-9a-f]{64}$" },
         "kind": { "type": "string", "enum": ["RESOURCE_ID", "JSON_STRING"] }
       },
       "additionalProperties": false
     },
-    "diagnostic": {
+    "healthEntry": {
       "type": "object",
-      "required": ["code", "severity", "sourcePath", "targetPath", "message"],
+      "required": ["assetId", "relativePath", "status", "usageAssessed", "unused", "inboundCount", "outboundCount", "workspaceReferenceCount", "cleanupAssessed", "safeUnused", "duplicateContent", "duplicatePaths", "issueCodes"],
       "properties": {
-        "code": { "type": "string", "enum": ["INVALID_ASSET_DOCUMENT", "REFERENCE_PATH_ESCAPE", "MISSING_ASSET_REFERENCE"] },
-        "severity": { "type": "string", "enum": ["INFO", "WARNING", "ERROR"] },
-        "sourcePath": { "type": "string", "minLength": 1 },
-        "targetPath": { "type": ["string", "null"] },
-        "message": { "type": "string", "minLength": 1 }
+        "assetId": { "type": "string", "pattern": "^asset:[0-9a-f]{64}$" },
+        "relativePath": { "type": "string", "minLength": 1 },
+        "status": { "type": "string", "enum": ["READY", "WARNING", "ERROR"] },
+        "usageAssessed": { "type": "boolean" },
+        "unused": { "type": "boolean" },
+        "inboundCount": { "type": "integer", "minimum": 0 },
+        "outboundCount": { "type": "integer", "minimum": 0 },
+        "workspaceReferenceCount": { "type": "integer", "minimum": 0 },
+        "cleanupAssessed": { "type": "boolean" },
+        "safeUnused": { "type": "boolean" },
+        "duplicateContent": { "type": "boolean" },
+        "duplicatePaths": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "issueCodes": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+      },
+      "additionalProperties": false
+    },
+    "healthSummary": {
+      "type": "object",
+      "required": ["totalAssets", "readyAssets", "warningAssets", "errorAssets", "unusedAssets", "safeUnusedAssets", "duplicateAssets", "duplicateGroups", "missingReferences", "invalidDocuments", "pathEscapes"],
+      "properties": {
+        "totalAssets": { "type": "integer", "minimum": 0 },
+        "readyAssets": { "type": "integer", "minimum": 0 },
+        "warningAssets": { "type": "integer", "minimum": 0 },
+        "errorAssets": { "type": "integer", "minimum": 0 },
+        "unusedAssets": { "type": "integer", "minimum": 0 },
+        "safeUnusedAssets": { "type": "integer", "minimum": 0 },
+        "duplicateAssets": { "type": "integer", "minimum": 0 },
+        "duplicateGroups": { "type": "integer", "minimum": 0 },
+        "missingReferences": { "type": "integer", "minimum": 0 },
+        "invalidDocuments": { "type": "integer", "minimum": 0 },
+        "pathEscapes": { "type": "integer", "minimum": 0 }
       },
       "additionalProperties": false
     }
