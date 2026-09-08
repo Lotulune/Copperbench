@@ -133,13 +133,37 @@ Immutable Run 16 evidence:
 
 This is **windowed Chromium/JCEF X11 compatibility evidence on the GitHub-hosted Ubuntu/Xvfb environment**. It is not a substitute for the Stage 15 clean-installed GNOME Wayland/Xorg gates and does not promote Linux to formal support.
 
+### Packaged Fabric 1.21.1 X11 render preflight evidence
+
+GitHub Actions run `34270785109` executed the Stage 15 candidate workflow on Ubuntu 24.04.4 against commit `2b35a4ec14c323fb9de12b343ad94c51d35ee3e9` and completed the full candidate chain successfully. This run upgrades the earlier source-level/process-runner coverage into a real packaged Fabric client preflight:
+
+- a deterministic `fabric-1.21.1` workspace was created against the packaged candidate;
+- Copperbench's packaged headless Core performed the workspace `build`; the smoke did not bypass Copperbench by invoking `gradlew runClient` directly;
+- the same packaged Core started `run-client` under Xvfb using the candidate's bundled Java/Gradle path;
+- the real Minecraft client log reached Fabric Loader startup, the LWJGL Render thread/backend, resource-manager reload and `minecraft:textures/atlas/blocks.png-atlas` creation;
+- after those render markers, the Copperbench/runClient process group remained alive for an additional ten-second stability window and no GLFW/OpenGL/display-init/Render-thread fatal signature was present;
+- the same exact run then passed `.deb` verification, SPDX generation, immutable candidate-metadata verification, SHA-256 generation, six-subject GitHub/Sigstore provenance and artifact upload.
+
+Immutable Run 21 evidence:
+
+- candidate identity: `sha256:61d247d22b5df7c6fee09a350f44ffdd9ceb9cdfddbc75a1fe594a5fa6ac369d`;
+- portable tar SHA-256: `7639c79afc2c554731ff78d2f9ea2e53577b2a1e3c0a6dcb14f3e060fb537062`;
+- Debian package SHA-256: `18ec1462c950c240dc0d6a3906d6a7d1958019bcc6445f180b3a3cfb6f8232c9`;
+- SPDX SHA-256: `1e6961480c8f4e62963c83eca9977097c59ea6385d15dd51bda3af5f20381b86`;
+- frozen metadata SHA-256: `881632e2dd519d8f968af0dd042e4eb8dc15b9ee344a45385ace4a01d46b8b2c`;
+- candidate manifest SHA-256: `1952b06e6d7bc593fcec5b1c5fd24a2558d481aca0f5f22ff57c2461b2b319b7`;
+- uploaded artifact: `stage15-linux-candidate`, artifact ID `10074111529`, size `1854706014` bytes, artifact digest `sha256:26ac3471fb79789d311faa95f340a2aecab754516bee816f8ae5b3a357c68f42`;
+- GitHub provenance attestation ID `46064240`, Rekor transparency-log index `2761720727`.
+
+This is **real packaged Fabric/Minecraft render-path evidence under GitHub-hosted Ubuntu/Xvfb**. Xvfb did not expose a reliable user-visible child-window identity for Minecraft, so the gate intentionally uses application-level Render thread/LWJGL/resource/atlas evidence rather than window-manager metadata. It still does **not** prove that a user sees a stable Minecraft window in a clean GNOME Wayland/Xorg session; that remains an installed-desktop gate.
+
 ## Not yet proven
 
 The headless/package/supply-chain path now has real Ubuntu evidence. Still required before Stage 15 closure:
 
 - start the same bundled JBR/JCEF candidate on a clean installed GNOME Linux VM (the Xvfb/X11 CI compatibility path is now proven, but the clean-desktop gate is not);
 - create/open/save/reopen real workspaces without system Java/Gradle/Git;
-- verify Fabric/NeoForge generate/build and real graphical `runClient`;
+- verify Fabric/NeoForge generate/build and a user-visible graphical `runClient` on clean GNOME sessions; Fabric now has packaged Xvfb render-path evidence, while NeoForge packaged Xvfb/render and both loaders' clean-desktop window evidence remain pending;
 - verify the implemented Wayland/Xorg capability classification against real GNOME Wayland and GNOME on Xorg sessions, including actual JCEF/window behavior;
 - replay Desktop MCP and an independent external Agent on the installed Linux candidate, including descriptor permissions and credential cleanup;
 - exercise a real installed Blockbench binary on Linux through discovery, launch, lease/change detection and close rather than treating the deterministic managed-process regression as installed-tool evidence;
