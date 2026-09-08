@@ -28,7 +28,8 @@ Frozen target:
 - Linux `runClient` startup logs classify missing display, GLFW initialization and OpenGL initialization failures into stable task diagnostic codes before the readiness marker, while post-readiness exits remain generic runtime failures;
 - candidate SBOM/inventory with installed `jdk`, `jdk21` and packaged Gradle distributions;
 - Copperbench portable launcher, portable tar layout, Debian launcher/desktop entry and `.deb` build task;
-- Ubuntu 24.04 package-smoke workflow for Linux platform/generator regressions, portable/deb layout, executable bits, bundled runtimes and SHA-256 artifact hashes.
+- Ubuntu 24.04 package-smoke workflow for Linux platform/generator regressions, portable/deb layout, executable bits and bundled runtimes;
+- the same workflow now freezes an exact Linux development-candidate record binding the source commit to tar/.deb/SBOM/manifest SHA-256 values, emits an SPDX JSON SBOM, verifies the frozen record against the bytes, and requests GitHub build-provenance attestation.
 
 The generated candidate manifest deliberately reports:
 
@@ -61,7 +62,7 @@ Focused Gradle regressions passed for:
 - `WorkspaceEnvironmentContextTest`;
 - representative Fabric/NeoForge generator regressions, including the installed Java 21 sidecar contract.
 
-The real `writeLinuxCandidateManifest` Gradle task also completed successfully and materialized `build/reports/linux-candidate-manifest.json`.
+The real `writeLinuxCandidateManifest` Gradle task also completed successfully and materialized `build/reports/linux-candidate-manifest.json`. The cross-platform Linux candidate metadata contract has 5/5 Node tests passing, including post-freeze tamper rejection, premature-support-claim rejection, candidate-ID sensitivity to asset bytes, and workflow supply-chain wiring.
 
 The tests were run with `-x buildUiShell` because the stacked Stage 14 branch still carries an independent UI i18n completeness gate; Java compilation, test compilation and the focused tests completed successfully.
 
@@ -75,5 +76,5 @@ This checkpoint is not Linux runtime evidence. Still required before Stage 15 cl
 - verify Fabric/NeoForge generate/build and real graphical `runClient`;
 - verify the implemented Wayland/Xorg capability classification against real GNOME Wayland and GNOME on Xorg sessions, including actual JCEF/window behavior;
 - replay Desktop MCP and an independent external Agent on the installed Linux candidate, including descriptor permissions and credential cleanup;
-- bind Linux SHA-256/SBOM/release metadata/provenance into the immutable release-candidate chain;
+- run the new Ubuntu supply-chain path to obtain real SPDX/digest/metadata/provenance artifacts, then promote the attested development record into the existing formal exact-binary release-candidate chain only after the Linux product gates are satisfied;
 - rerun affected Windows installed-product gates after the cross-platform JDK/MCP/product-path changes.

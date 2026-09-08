@@ -17,6 +17,8 @@ on:
       - "src/main/java/net/mcreator/util/SingleAppHandler.java"
       - "src/main/java/dev/copperbench/platform/**"
       - "src/main/java/dev/copperbench/release/**"
+      - "scripts/*linux-candidate-metadata.mjs"
+      - "scripts/tests/linux-candidate-metadata.tests.mjs"
       - "src/main/java/net/mcreator/io/UserFolderManager.java"
       - ".github/workflows/stage15-linux-candidate.yml"
   push:
@@ -35,6 +37,8 @@ on:
       - "src/main/java/net/mcreator/util/SingleAppHandler.java"
       - "src/main/java/dev/copperbench/platform/**"
       - "src/main/java/dev/copperbench/release/**"
+      - "scripts/*linux-candidate-metadata.mjs"
+      - "scripts/tests/linux-candidate-metadata.tests.mjs"
       - ".github/workflows/stage15-linux-candidate.yml"
 
 permissions:
@@ -48,6 +52,10 @@ jobs:
   package-smoke:
     name: Ubuntu 24.04 package candidate smoke
     runs-on: ubuntu-24.04
+    permissions:
+      attestations: write
+      contents: read
+      id-token: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
@@ -90,6 +98,8 @@ jobs:
             --tests dev.copperbench.generator.neoforge.NeoForge1211GeneratorTest \
             --tests dev.copperbench.generator.neoforge.NeoForge1211TaskGatewayTest \
             --tests dev.copperbench.generator.resourcepack.ResourcePackWorkspaceTaskGatewayTest
+      - name: Run Linux candidate metadata contract tests
+        run: node --test scripts/tests/linux-candidate-metadata.tests.mjs
 
       - name: Build portable and deb candidates
         run: |
@@ -138,12 +148,54 @@ jobs:
           test -f build/stage15-deb-smoke/usr/share/applications/copperbench.desktop
           test -f build/stage15-deb-smoke/opt/copperbench/linux-candidate-manifest.json
 
+          portable_manifest="$(find build/stage15-linux-smoke -type f -name 'linux-candidate-manifest.json' -print -quit)"
+          test -n "$portable_manifest"
+          cmp "$portable_manifest" build/stage15-deb-smoke/opt/copperbench/linux-candidate-manifest.json
+
+      - name: Generate SPDX SBOM for Linux candidate
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
+        with:
+          path: build/stage15-linux-smoke
+          format: spdx-json
+          output-file: build/export/copperbench-linux.spdx.json
+          artifact-name: copperbench-linux-sbom.spdx.json
+          upload-artifact: false
+          upload-release-assets: false
+
+      - name: Freeze Linux candidate metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          manifest="$(find build/stage15-linux-smoke -type f -name 'linux-candidate-manifest.json' -print -quit)"
+          test -n "$manifest"
+          cp "$manifest" build/export/linux-candidate-manifest.json
+          node scripts/new-linux-candidate-metadata.mjs \
+            --export-dir build/export --source-commit "$GITHUB_SHA" --source-ref "$GITHUB_REF" \
+            --run-id "$GITHUB_RUN_ID" --run-attempt "$GITHUB_RUN_ATTEMPT"
+          node scripts/verify-linux-candidate-metadata.mjs \
+            --export-dir build/export --expected-commit "$GITHUB_SHA"
+
       - name: Write SHA-256 candidate hashes
         shell: bash
         run: |
           set -euo pipefail
-          find build/export -maxdepth 1 -type f \( -name '*Linux x86_64.tar.gz' -o -name 'copperbench_*_amd64.deb' \) -print0 \
+          find build/export -maxdepth 1 -type f \( \
+            -name '*Linux x86_64.tar.gz' -o -name 'copperbench_*_amd64.deb' -o \
+            -name 'copperbench-linux.spdx.json' -o -name 'linux-candidate-manifest.json' -o \
+            -name 'LINUX-CANDIDATE-METADATA.json' \) -print0 \
             | sort -z | xargs -0 sha256sum | tee build/export/linux-candidate-sha256.txt
+
+      - name: Attest Linux candidate provenance
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        uses: actions/attest-build-provenance@v3
+        with:
+          subject-path: |
+            build/export/*Linux x86_64.tar.gz
+            build/export/copperbench_*_amd64.deb
+            build/export/copperbench-linux.spdx.json
+            build/export/linux-candidate-manifest.json
+            build/export/LINUX-CANDIDATE-METADATA.json
+            build/export/linux-candidate-sha256.txt
 
       - name: Upload Linux candidate artifacts
         uses: actions/upload-artifact@v7
@@ -152,6 +204,9 @@ jobs:
           path: |
             build/export/*Linux x86_64.tar.gz
             build/export/copperbench_*_amd64.deb
+            build/export/copperbench-linux.spdx.json
+            build/export/linux-candidate-manifest.json
+            build/export/LINUX-CANDIDATE-METADATA.json
             build/export/linux-candidate-sha256.txt
           if-no-files-found: error
           retention-days: 14

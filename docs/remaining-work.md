@@ -19,7 +19,7 @@ The active roadmap remains `PRD-NEXT.md`. Stages 12, 13 and 14 are closed; **Sta
 
 The remaining roadmap work is:
 
-1. **Stage 15 — Linux formal platform support (in progress)**: Ubuntu 24.04 x86_64 baseline, platform/XDG/private-path adapters, bundled JBR25/JCEF + Java21 routing, development candidate manifest, portable tar and `.deb` packaging are implemented on the development line. Remaining proof is real Linux package execution, desktop/JCEF integration, Fabric/NeoForge build and graphical Run Client, Desktop MCP/external-Agent parity, clean-VM validation, Windows regression revalidation, and release/provenance closure.
+1. **Stage 15 — Linux formal platform support (in progress)**: Ubuntu 24.04 x86_64 baseline, platform/XDG/private-path adapters, bundled JBR25/JCEF + Java21 routing, portable tar/`.deb` packaging, stable Linux `runClient` environment diagnostics, and a development candidate digest/SBOM/metadata/provenance contract are implemented on the development line. Remaining proof is the real Ubuntu package/provenance workflow, desktop/JCEF integration, Fabric/NeoForge build and graphical Run Client, Desktop MCP/external-Agent parity, clean-VM validation, Windows regression revalidation, and final exact-binary release promotion.
 2. **Continuous maintenance**: Minecraft/loader/generator/toolchain compatibility and regression coverage, including the remaining independent semantic check for the historical Fabric Commands remap warning.
 
 ## Confirmed integrity/runtime follow-up
