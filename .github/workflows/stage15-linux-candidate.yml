@@ -25,6 +25,7 @@ on:
       - ".github/workflows/stage15-linux-candidate.yml"
   push:
     branches:
+      - codex/stage15-linux-support
       - main
     paths:
       - "platform/linux/**"
