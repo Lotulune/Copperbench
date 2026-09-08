@@ -25,6 +25,7 @@ Frozen target:
 - Stage 15-only Linux candidate admission using `copperbench.stage15LinuxCandidate=true`, without changing `currentHostSupported()` or the public support claim;
 - Wayland/X11/headless/unknown desktop-session classification is exposed through the shared workspace execution environment with explicit primary/compatibility/unverified certification roles;
 - `get_workspace_environment` gives headless/MCP/external-Agent clients the same host desktop capability facts without creating Linux-specific Core workspace semantics;
+- Desktop MCP remains explicitly bound to `127.0.0.1`, keeps credentials out of the connection descriptor, revokes workspace tokens and deletes the descriptor on close; its POSIX contract now asserts descriptor mode `0600` and parent-directory mode `0700` whenever POSIX attributes are available;
 - Linux `runClient` startup logs classify missing display, GLFW initialization and OpenGL initialization failures into stable task diagnostic codes before the readiness marker, while post-readiness exits remain generic runtime failures;
 - candidate SBOM/inventory with installed `jdk`, `jdk21` and packaged Gradle distributions;
 - Copperbench portable launcher, portable tar layout, Debian launcher/desktop entry and `.deb` build task;
@@ -60,11 +61,15 @@ Focused Gradle regressions passed for:
 - `ExecutableFilePermissionsTest`;
 - `LinuxDesktopPathIntegrationTest`;
 - `WorkspaceEnvironmentContextTest`;
+- `DesktopMcpRuntimeTest`;
+- `McpHttpServerTest`;
+- `DesktopMcpAgentLoopTest`;
+- `HeadlessProductLauncherTest`;
 - representative Fabric/NeoForge generator regressions, including the installed Java 21 sidecar contract.
 
 The real `writeLinuxCandidateManifest` Gradle task also completed successfully and materialized `build/reports/linux-candidate-manifest.json`. The cross-platform Linux candidate metadata contract has 5/5 Node tests passing, including post-freeze tamper rejection, premature-support-claim rejection, candidate-ID sensitivity to asset bytes, and workflow supply-chain wiring.
 
-The tests were run with `-x buildUiShell` because the stacked Stage 14 branch still carries an independent UI i18n completeness gate; Java compilation, test compilation and the focused tests completed successfully.
+The tests were run with `-x buildUiShell` because the stacked Stage 14 branch still carries an independent UI i18n completeness gate; Java compilation, test compilation and the focused tests completed successfully. The Stage 15 Ubuntu workflow now runs the Desktop MCP runtime/HTTP/Agent-loop and headless contracts as Linux tests, so the POSIX descriptor permission assertions will execute on the real Linux runner rather than being skipped by the Windows development filesystem.
 
 ## Not yet proven
 

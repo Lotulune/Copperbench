@@ -11,6 +11,8 @@ on:
       - "src/main/java/dev/copperbench/generator/**"
       - "src/main/java/dev/copperbench/headless/**"
       - "src/main/java/dev/copperbench/mcp/**"
+      - "src/test/java/dev/copperbench/mcp/**"
+      - "src/test/java/dev/copperbench/headless/**"
       - "src/main/java/net/mcreator/io/LoggingSystem.java"
       - "src/main/java/net/mcreator/preferences/PreferencesManager.java"
       - "src/main/java/net/mcreator/ui/chromium/CefUtils.java"
@@ -30,6 +32,8 @@ on:
       - "src/main/java/dev/copperbench/generator/**"
       - "src/main/java/dev/copperbench/headless/**"
       - "src/main/java/dev/copperbench/mcp/**"
+      - "src/test/java/dev/copperbench/mcp/**"
+      - "src/test/java/dev/copperbench/headless/**"
       - "src/main/java/net/mcreator/io/UserFolderManager.java"
       - "src/main/java/net/mcreator/io/LoggingSystem.java"
       - "src/main/java/net/mcreator/preferences/PreferencesManager.java"
@@ -93,6 +97,10 @@ jobs:
             --tests dev.copperbench.platform.UserDataPathsTest \
             --tests dev.copperbench.generator.BundledJdkLocatorTest \
             --tests dev.copperbench.generator.WorkspaceEnvironmentContextTest \
+            --tests dev.copperbench.mcp.DesktopMcpRuntimeTest \
+            --tests dev.copperbench.mcp.McpHttpServerTest \
+            --tests dev.copperbench.mcp.DesktopMcpAgentLoopTest \
+            --tests dev.copperbench.headless.HeadlessProductLauncherTest \
             --tests dev.copperbench.generator.fabric.Fabric1211ProcessRunnerTest \
             --tests dev.copperbench.generator.fabric.Fabric1211TaskGatewayTest \
             --tests dev.copperbench.generator.neoforge.NeoForge1211GeneratorTest \
