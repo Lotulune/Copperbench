@@ -187,12 +187,19 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 				}
 
 				@Override public void addLoadListener(Runnable listener) {
-					webView.addLoadListener(listener::run);
+					webView.addLoadListener(() -> {
+						listener.run();
+						GraphicalProductProbe.browserReady(session.workspaceId(), workspaceRoot, mcpRuntime);
+					});
 				}
 
 				@Override public void addRendererTerminationListener(Consumer<String> listener) {
-					webView.addRendererTerminationListener((status, errorCode, errorString) ->
-							listener.accept(status.name() + " (" + errorCode + ": " + errorString + ")"));
+					webView.addRendererTerminationListener((status, errorCode, errorString) -> {
+						String reason = status.name() + " (" + errorCode + ": " + errorString + ")";
+						GraphicalProductProbe.rendererTerminated(session.workspaceId(), workspaceRoot,
+								mcpRuntime, reason);
+						listener.accept(reason);
+					});
 				}
 
 				@Override public void forceLoad() {

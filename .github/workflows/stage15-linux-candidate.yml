@@ -17,6 +17,8 @@ on:
       - "src/main/java/dev/copperbench/mcp/**"
       - "src/test/java/dev/copperbench/mcp/**"
       - "src/test/java/dev/copperbench/headless/**"
+      - "src/main/java/dev/copperbench/shell/**"
+      - "src/test/java/dev/copperbench/shell/**"
       - "src/main/java/net/mcreator/io/LoggingSystem.java"
       - "src/main/java/net/mcreator/preferences/PreferencesManager.java"
       - "src/main/java/net/mcreator/ui/chromium/CefUtils.java"
@@ -26,6 +28,8 @@ on:
       - "ui-shell/**"
       - "scripts/*linux-candidate-metadata.mjs"
       - "scripts/tests/linux-candidate-metadata.tests.mjs"
+      - "scripts/stage15/**"
+      - "scripts/verify-stage15-linux-x11-ci-smoke.sh"
       - "src/main/java/net/mcreator/io/UserFolderManager.java"
       - ".github/workflows/stage15-linux-candidate.yml"
   push:
@@ -44,6 +48,8 @@ on:
       - "src/main/java/dev/copperbench/mcp/**"
       - "src/test/java/dev/copperbench/mcp/**"
       - "src/test/java/dev/copperbench/headless/**"
+      - "src/main/java/dev/copperbench/shell/**"
+      - "src/test/java/dev/copperbench/shell/**"
       - "src/main/java/net/mcreator/io/UserFolderManager.java"
       - "src/main/java/net/mcreator/io/LoggingSystem.java"
       - "src/main/java/net/mcreator/preferences/PreferencesManager.java"
@@ -54,6 +60,8 @@ on:
       - "ui-shell/**"
       - "scripts/*linux-candidate-metadata.mjs"
       - "scripts/tests/linux-candidate-metadata.tests.mjs"
+      - "scripts/stage15/**"
+      - "scripts/verify-stage15-linux-x11-ci-smoke.sh"
       - ".github/workflows/stage15-linux-candidate.yml"
 
 permissions:
@@ -112,6 +120,7 @@ jobs:
             --tests dev.copperbench.assets.BlockbenchExecutableLocatorTest \
             --tests dev.copperbench.assets.BlockbenchInstallationDetectorTest \
             --tests dev.copperbench.assets.BlockbenchProcessServiceTest \
+            --tests dev.copperbench.shell.GraphicalProductProbeTest \
             --tests dev.copperbench.mcp.DesktopMcpRuntimeTest \
             --tests dev.copperbench.mcp.McpHttpServerTest \
             --tests dev.copperbench.mcp.DesktopMcpAgentLoopTest \
@@ -202,6 +211,21 @@ jobs:
             test "${#installs[@]}" -ge 1
             test -f "${installs[0]}/bin/gradle"
           done
+
+      - name: Launch packaged JCEF product shell under Xvfb
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! command -v xvfb-run >/dev/null 2>&1 || ! command -v xdotool >/dev/null 2>&1; then
+            sudo apt-get update -qq
+            sudo apt-get install -y --no-install-recommends xvfb xdotool
+          fi
+          root="$(find build/stage15-linux-smoke -mindepth 1 -maxdepth 1 -type d -print -quit)"
+          smoke="$PWD/build/stage15-x11-smoke"
+          test -n "$root"
+          xvfb-run -a -s '-screen 0 1280x800x24' \
+            /usr/bin/bash "$GITHUB_WORKSPACE/scripts/verify-stage15-linux-x11-ci-smoke.sh" \
+            "$root" "$smoke"
 
       - name: Verify deb candidate layout
         shell: bash
