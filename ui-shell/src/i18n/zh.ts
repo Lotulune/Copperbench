@@ -55,6 +55,8 @@ export const zh: Record<string, string> = {
   'diagnostic.workspace_plan_target_mismatch': '重新验证后的目标状态与计划记录不一致，请重新生成计划。',
   'diagnostic.workspace_plan_step_rejected': '工作区计划中的某个步骤未通过校验，计划未执行。',
   'diagnostic.workspace_plan_persistence_failed': '工作区计划未能完整写入，所有变更均已回滚。',
+  'diagnostic.workspace_plan_source_conflict': '工作区计划与持久化源码管理状态冲突，请重新读取最新状态并生成计划。',
+  'diagnostic.workspace_environment_unavailable': '无法解析当前工作区的执行环境。',
   'diagnostic.workspace_root_unavailable': '当前工作区根目录不可用。',
   'diagnostic.workspace_task_failed': '{backend} 的 {task} 任务失败，请查看日志。',
   'diagnostic.bundled_jdk_missing': '未找到可用的 Copperbench Java 运行时；请查看日志中的解析路径。',
@@ -80,6 +82,14 @@ export const zh: Record<string, string> = {
   'diagnostic.registry_entry_name_conflict': '已存在同名注册表条目。',
   'diagnostic.registry_entry_name_invalid': '注册表条目名称格式无效。',
   'diagnostic.registry_entry_not_found': '请求的注册表条目不存在。',
+  'diagnostic.code_source_always_manual': '代码元素按定义始终由手动源码管理，不能重新附加到生成源码管理。',
+  'diagnostic.source_management_detached': '该元素源码当前由手动方式管理，请先重新附加到生成器，再编辑结构化内容。',
+  'diagnostic.source_reattach_approval_required': '重新附加源码管理会重新生成该元素，并可能覆盖手动源码编辑，因此需要明确批准。',
+  'diagnostic.source_content_conflict': '源码文件在此次编辑所基于的版本之后被 Copperbench 外部修改，请重新加载源码后重试。',
+  'diagnostic.local_template_create_failed': '无法创建本地可复用模板。',
+  'diagnostic.local_template_generator_mismatch': '本地模板的生成器与当前工作区不匹配。',
+  'diagnostic.local_template_invalid': '本地模板无效，无法实例化。',
+  'diagnostic.local_template_preview_failed': '无法预览本地模板。',
 
   /* ---- 诊断动作 (action.*) ---- */
   'action.open_field': '定位问题字段',
