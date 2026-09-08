@@ -18,6 +18,7 @@ import dev.copperbench.automation.security.WorkspaceToken;
 import dev.copperbench.automation.security.WorkspaceTokenService;
 import dev.copperbench.core.application.McpWorkspaceEntryAdapter;
 import dev.copperbench.core.contract.UiCore.PermissionProfile;
+import dev.copperbench.platform.PrivatePathPermissions;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -186,7 +187,7 @@ public final class DesktopMcpRuntime implements AutoCloseable {
 
 	private static void writeConnectionFile(Path connectionFile, String endpoint, UUID workspaceId,
 			PermissionProfile permission, Instant expiresAt) throws Exception {
-		Files.createDirectories(connectionFile.getParent());
+		PrivatePathPermissions.createPrivateDirectory(connectionFile.getParent());
 		JsonObject connection = new JsonObject();
 		connection.addProperty("schemaVersion", "1.0");
 		connection.addProperty("status", "listening");
@@ -197,11 +198,13 @@ public final class DesktopMcpRuntime implements AutoCloseable {
 		connection.addProperty("tokenDelivery", "ui-once");
 		Path temporary = connectionFile.resolveSibling(connectionFile.getFileName() + ".tmp");
 		Files.writeString(temporary, JSON.toJson(connection) + System.lineSeparator(), StandardCharsets.UTF_8);
+		PrivatePathPermissions.makePrivateFile(temporary);
 		try {
 			Files.move(temporary, connectionFile, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
 		} catch (java.nio.file.AtomicMoveNotSupportedException ignored) {
 			Files.move(temporary, connectionFile, StandardCopyOption.REPLACE_EXISTING);
 		}
+		PrivatePathPermissions.makePrivateFile(connectionFile);
 	}
 
 	private static String wire(PermissionProfile permission) {

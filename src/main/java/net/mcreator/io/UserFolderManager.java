@@ -18,6 +18,9 @@
 
 package net.mcreator.io;
 
+import dev.copperbench.platform.PrivatePathPermissions;
+import dev.copperbench.platform.UserDataPaths;
+
 import java.io.File;
 import java.nio.file.Files;
 
@@ -25,32 +28,72 @@ public class UserFolderManager {
 
 	private static final String GRADLE_HOME_PROPERTY = "copperbench.gradle.user.home";
 
-	private static File getUserFolder() {
-		if (System.getenv("MCREATOR_HOME") != null) {
-			return new File(System.getenv("MCREATOR_HOME"));
-		}
+	private static UserDataPaths paths() {
+		return UserDataPaths.current();
+	}
 
-		return new File(System.getProperty("user.home") + "/.copperbench/");
+	public static File getDataFolder() {
+		return paths().data().toFile();
+	}
+
+	public static File getConfigFolder() {
+		return paths().config().toFile();
+	}
+
+	public static File getCacheFolder() {
+		return paths().cache().toFile();
+	}
+
+	public static File getStateFolder() {
+		return paths().state().toFile();
+	}
+
+	public static File getRuntimeFolder() {
+		return paths().runtime().toFile();
 	}
 
 	public static boolean createUserFolderIfNotExists() {
-		getUserFolder().mkdirs();
-
-		// generate folder structure of user folder too
-		getGradleHome().mkdirs();
-
-		return getUserFolder().isDirectory() && Files.isWritable(getUserFolder().toPath());
+		try {
+			PrivatePathPermissions.createPrivateDirectory(getDataFolder().toPath());
+			PrivatePathPermissions.createPrivateDirectory(getConfigFolder().toPath());
+			PrivatePathPermissions.createPrivateDirectory(getCacheFolder().toPath());
+			PrivatePathPermissions.createPrivateDirectory(getStateFolder().toPath());
+			PrivatePathPermissions.createPrivateDirectory(getRuntimeFolder().toPath());
+			PrivatePathPermissions.createPrivateDirectory(getGradleHome().toPath());
+		} catch (java.io.IOException exception) {
+			return false;
+		}
+		return getDataFolder().isDirectory() && Files.isWritable(getDataFolder().toPath())
+				&& getConfigFolder().isDirectory() && Files.isWritable(getConfigFolder().toPath())
+				&& getCacheFolder().isDirectory() && Files.isWritable(getCacheFolder().toPath())
+				&& getStateFolder().isDirectory() && Files.isWritable(getStateFolder().toPath());
 	}
 
 	public static File getFileFromUserFolder(String path) {
-		return new File(getUserFolder(), path);
+		return new File(getDataFolder(), path);
+	}
+
+	public static File getFileFromConfigFolder(String path) {
+		return new File(getConfigFolder(), path);
+	}
+
+	public static File getFileFromCacheFolder(String path) {
+		return new File(getCacheFolder(), path);
+	}
+
+	public static File getFileFromStateFolder(String path) {
+		return new File(getStateFolder(), path);
+	}
+
+	public static File getFileFromRuntimeFolder(String path) {
+		return new File(getRuntimeFolder(), path);
 	}
 
 	public static File getGradleHome() {
 		String override = System.getProperty(GRADLE_HOME_PROPERTY);
 		if (override != null && !override.isBlank())
 			return new File(override);
-		return getFileFromUserFolder("/gradle/");
+		return getFileFromCacheFolder("gradle");
 	}
 
 }
