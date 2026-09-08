@@ -186,8 +186,9 @@ class WorkspaceTaskEventTest {
 					cancelPayload), new RequestContext(Actor.UI, PermissionProfile.WORKSPACE));
 			assertEquals("cancelled", cancelled.result().status());
 
-			List<UiCore.Event> replayed = new ArrayList<>();
+			List<UiCore.Event> replayed = new CopyOnWriteArrayList<>();
 			try (AutoCloseable reconnect = service.subscribeEvents(WORKSPACE_ID, disconnectSequence, replayed::add)) {
+				awaitEvent(replayed, "task_completed", cancelledTask);
 				assertFalse(replayed.isEmpty());
 				assertTrue(replayed.stream().allMatch(event -> event.sequence() > disconnectSequence));
 				assertTrue(replayed.stream().anyMatch(event -> event.event().equals("task_log_appended")));
@@ -220,11 +221,20 @@ class WorkspaceTaskEventTest {
 		long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
 		while (System.nanoTime() < deadline) {
 			if (events.stream().anyMatch(event -> event.event().equals(eventName)
-					&& event.payload().has("taskId")
-					&& event.payload().get("taskId").getAsString().equals(taskId.toString()))) return;
+					&& eventTaskId(event).map(taskId::equals).orElse(false))) return;
 			Thread.sleep(10);
 		}
 		throw new AssertionError("Task event did not arrive: " + eventName);
+	}
+
+	private static java.util.Optional<UUID> eventTaskId(UiCore.Event event) {
+		JsonObject payload = event.payload();
+		if (payload.has("taskId")) return java.util.Optional.of(UUID.fromString(payload.get("taskId").getAsString()));
+		if (payload.has("task") && payload.get("task").isJsonObject()) {
+			JsonObject task = payload.getAsJsonObject("task");
+			if (task.has("id")) return java.util.Optional.of(UUID.fromString(task.get("id").getAsString()));
+		}
+		return java.util.Optional.empty();
 	}
 
 	private static UUID uuid(long suffix) {
