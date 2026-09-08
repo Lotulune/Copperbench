@@ -142,8 +142,10 @@ jobs:
             --tests dev.copperbench.generator.neoforge.NeoForge1211TaskGatewayTest \
             --tests dev.copperbench.generator.resourcepack.ResourcePackWorkspaceTaskGatewayTest \
             --tests dev.copperbench.release.LinuxDistributionLayoutTest
-      - name: Run Linux candidate metadata contract tests
-        run: node --test scripts/tests/linux-candidate-metadata.tests.mjs
+      - name: Run Linux candidate and installed-gate contract tests
+        run: |
+          node --test scripts/tests/linux-candidate-metadata.tests.mjs
+          node --test scripts/tests/stage15-linux-installed-gate.tests.mjs
 
       - name: Build portable and deb candidates
         run: |
@@ -372,5 +374,15 @@ jobs:
             build/export/linux-candidate-manifest.json
             build/export/LINUX-CANDIDATE-METADATA.json
             build/export/linux-candidate-sha256.txt
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload clean GNOME installed-gate harness
+        uses: actions/upload-artifact@v7
+        with:
+          name: stage15-linux-installed-gate-harness
+          path: |
+            scripts/verify-stage15-linux-installed-guest.sh
+            scripts/stage15/Stage15GraphicalProbeVerifier.java
           if-no-files-found: error
           retention-days: 14

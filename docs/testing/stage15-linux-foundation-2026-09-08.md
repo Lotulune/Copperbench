@@ -179,6 +179,18 @@ Immutable Run 22 evidence:
 
 This is **same-candidate packaged Fabric and NeoForge render-path evidence under GitHub-hosted Ubuntu/Xvfb**. It strengthens FR-LINUX-03 pre-certification evidence, but still does not substitute for a clean installed GNOME Wayland/Xorg session with a user-visible Minecraft window.
 
+### Clean installed GNOME gate harness prepared
+
+The current Stage 15 branch now also carries `scripts/verify-stage15-linux-installed-guest.sh` as a maintainer gate for the next real clean-desktop replay. This is **harness readiness, not certification evidence**. The gate is deliberately stricter than the hosted-runner smoke:
+
+- it binds the replay to an exact `.deb` SHA-256 and verifies the installed candidate still declares `development-not-certified` / `formalSupportClaim=false`;
+- it requires Ubuntu 24.04 x86_64 and a GNOME Wayland or GNOME X11 session, recording the session/display facts as evidence;
+- before installation it requires system `java`, `gradle`, and `git` to be absent, so a passing replay cannot silently borrow the host toolchain;
+- it launches the installed JBR/JCEF product, verifies the Stage 15 graphical probe and private Desktop MCP descriptor permissions, then uses `/usr/bin/copperbench` for installed-Core build and Fabric/NeoForge `run-client` render readiness;
+- its machine result is intentionally `automated-preflight-passed-manual-gates-pending`. Workspace create/save/reopen through the installed UI, actual user-visible Copperbench/Minecraft windows, interactive Run Client lifetime until the user closes Minecraft, UI-authorized independent external-Agent MCP replay plus descriptor/old-connection cleanup, and real installed Blockbench open/edit/close remain explicit manual gates.
+
+The verifier also accepts an explicit expected `wayland` or `x11` target and checks the corresponding `stage15-primary-target` / `stage15-compatibility-target` role while still requiring `stage15CertificationPending=true`. The hosted Stage 15 workflow runs static contracts for this installed-gate harness and is configured to upload the gate script plus verifier as a separate `stage15-linux-installed-gate-harness` artifact, so the clean guest does not need Git merely to obtain the certification helper. That harness artifact is intentionally separate from the candidate binary/provenance subjects. The hosted workflow does not execute the installed gate on Xvfb or treat that environment as clean GNOME certification.
+
 ### Windows affected-source regression replay
 
 After the Stage 15 platform/JDK/MCP/headless/external-tool changes, the affected Windows source-level regression set was replayed successfully on the Windows development host. The focused set covered bundled-JDK routing, workspace environment/layout recovery, Fabric and NeoForge task/runClient paths, Desktop MCP and external-Agent loops, headless product entry points, Blockbench discovery/lifecycle, XDG/legacy Windows path behavior and executable-permission portability. The Gradle run completed successfully with no source-level Windows regression. This is only source/test evidence; the final installed-product Windows gates remain required on the promoted candidate.

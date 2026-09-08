@@ -63,6 +63,21 @@ class LinuxDistributionLayoutTest {
         assertTrue(gradle.contains("opt/copperbench"));
         assertTrue(Files.readString(Path.of("platform/linux/deb/copperbench.desktop")).contains("Name=Copperbench"));
 
+        String graphicalVerifier = Files.readString(Path.of("scripts/stage15/Stage15GraphicalProbeVerifier.java"));
+        assertTrue(graphicalVerifier.contains("[x11|wayland]"));
+        assertTrue(graphicalVerifier.contains("stage15-primary-target"));
+        assertTrue(graphicalVerifier.contains("stage15-compatibility-target"));
+        assertTrue(graphicalVerifier.contains("Expected desktop session must be x11 or wayland"));
+        assertTrue(graphicalVerifier.contains("Stage 15 graphical probe must keep formal certification pending"));
+
+        String installedGate = Files.readString(Path.of("scripts/verify-stage15-linux-installed-guest.sh"));
+        assertTrue(installedGate.contains("guest desktop is not GNOME"));
+        assertTrue(installedGate.contains("for tool in java gradle git"));
+        assertTrue(installedGate.contains("preinstall-system-tooling.txt"));
+        assertTrue(installedGate.contains("systemJavaGradleGitAbsentBeforeInstall\":true"));
+        assertTrue(installedGate.contains("confirm-interactive-runclient-remains-running-until-user-closes-minecraft"));
+        assertTrue(installedGate.contains("close-installed-product-and-confirm-descriptor-removed-old-connection-rejected"));
+
         String candidateInstructions = Files.readString(Path.of("platform/linux/LINUX-CANDIDATE.md"));
         assertTrue(candidateInstructions.contains("Stage 15 development candidate"));
         assertTrue(candidateInstructions.contains("sudo apt remove copperbench"));
@@ -96,6 +111,10 @@ class LinuxDistributionLayoutTest {
         assertTrue(workflow.contains("Run packaged Fabric 1.21.1 X11 render preflight under Xvfb"));
         assertTrue(workflow.contains("Run packaged NeoForge 1.21.1 X11 render preflight under Xvfb"));
         assertTrue(workflow.contains("verify-stage15-linux-runclient-ci-smoke.sh"));
+        assertTrue(workflow.contains("stage15-linux-installed-gate.tests.mjs"));
+        assertTrue(workflow.contains("stage15-linux-installed-gate-harness"));
+        assertTrue(workflow.contains("scripts/verify-stage15-linux-installed-guest.sh"));
+        assertTrue(workflow.contains("scripts/stage15/Stage15GraphicalProbeVerifier.java"));
         assertFalse(workflow.contains("verify-stage15-linux-fabric-runclient-ci-smoke.sh"));
         assertTrue(workflow.contains("\"fabric-1.21.1\""));
         assertTrue(workflow.contains("\"neoforge-1.21.1\""));
