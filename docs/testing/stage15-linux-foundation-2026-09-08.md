@@ -31,6 +31,7 @@ Frozen target:
 - Copperbench portable launcher, portable tar layout, Debian launcher/desktop entry and `.deb` build task;
 - Linux Blockbench discovery now rejects non-executable Unix candidates; because Windows PE file-version metadata is not available on Linux/macOS, an executable Blockbench with unavailable version metadata is admitted as `READY_UNVERIFIED` for the existing managed-launch/lease/change-detection lifecycle instead of being incorrectly reported as unavailable;
 - Ubuntu 24.04 package-smoke workflow for Linux platform/generator regressions, portable/deb layout, executable bits and bundled runtimes; after extracting the portable tar it also starts the packaged `bootstrap list-generators` entry with an isolated XDG home and a minimal `PATH` containing no system Java/Gradle/Git, then requires Fabric/NeoForge discovery and all three packaged Gradle runtimes to seed into the isolated cache;
+- the packaged candidate also has an opt-in graphical probe and Xvfb compatibility smoke that creates a deterministic resource-pack workspace, starts the real packaged product shell with windowed Chromium/JCEF, verifies the JCEF main frame and Desktop MCP reach ready/listening state, verifies the X11 workspace window is visible, and preserves Linux formal-support status as pending;
 - the same workflow now freezes an exact Linux development-candidate record binding the source commit to tar/.deb/SBOM/manifest SHA-256 values, emits an SPDX JSON SBOM, verifies the frozen record against the bytes, and requests GitHub build-provenance attestation.
 
 The generated candidate manifest deliberately reports:
@@ -107,11 +108,36 @@ Immutable Run 7 evidence:
 
 This closes the previously missing real Ubuntu package/headless/SBOM/digest/metadata/provenance workflow evidence. It does **not** change the candidate manifest's `development-not-certified` status or make Linux a formally supported platform.
 
+### Windowed X11/JCEF compatibility evidence
+
+GitHub Actions run `34250193650` executed the updated Stage 15 candidate workflow on Ubuntu 24.04.5 against commit `9890cf6042223dbc708281f443bbb0ec197a1836` and completed the full candidate chain successfully. This run adds a stronger graphical compatibility layer than the earlier headless/package evidence:
+
+- the Ubuntu regression set explicitly passed `GraphicalCiModeTest`, which keeps normal GitHub Actions Chromium headless behavior unchanged but permits the Stage 15 graphical smoke to opt into windowed Chromium;
+- the packaged product was launched under Xvfb with `-Dcopperbench.graphicalCi=true`, so `CefUtils` did **not** add Chromium `--headless` for this smoke;
+- the deterministic packaged workspace fixture committed successfully before product launch;
+- the packaged JBR/JCEF product shell emitted the machine-readable graphical probe;
+- the probe verifier confirmed `jcefMainFrameLoaded=true`, Linux x86_64/X11 classification, Desktop MCP `listening` state on loopback, and no credential material in the probe;
+- the smoke then confirmed a matching X11 Copperbench workspace window remained visible/alive before normal test cleanup;
+- the same exact run continued through `.deb` verification, SPDX generation, immutable candidate metadata, SHA-256 output, six-subject GitHub/Sigstore provenance and artifact upload.
+
+Immutable Run 16 evidence:
+
+- candidate identity: `sha256:a8031fcd446292871cdc8af6acaec435c6a1cdcba9836254d8b013179ee30d06`;
+- portable tar SHA-256: `b54cf72ced513395493e0ea617168c60767f2ed624fae6e3e83de59e75f2c8cd`;
+- Debian package SHA-256: `300efeeacb2757de2a3493b9a7b78c871abaedacfde26b2e23e37ae6d2b10e83`;
+- SPDX SHA-256: `47376d861415934869826d8d51e5f60b6670c7a30742ecdfb4cc116109a01a77`;
+- frozen metadata SHA-256: `5d952bc8f96d27c668b7a9fe1243643207439971bc983ec8504e0a1bb8cf2d18`;
+- candidate manifest SHA-256: `1952b06e6d7bc593fcec5b1c5fd24a2558d481aca0f5f22ff57c2461b2b319b7`;
+- uploaded artifact: `stage15-linux-candidate`, artifact ID `10065976853`, size `1854700291` bytes, artifact digest `sha256:04af0fea9a26949c97f52b9b119483a3096c8887c0cf1791aae5019567d7414c`;
+- GitHub provenance attestation ID `46019397`, Rekor transparency-log index `2760160360`.
+
+This is **windowed Chromium/JCEF X11 compatibility evidence on the GitHub-hosted Ubuntu/Xvfb environment**. It is not a substitute for the Stage 15 clean-installed GNOME Wayland/Xorg gates and does not promote Linux to formal support.
+
 ## Not yet proven
 
 The headless/package/supply-chain path now has real Ubuntu evidence. Still required before Stage 15 closure:
 
-- start bundled JBR/JCEF on a clean graphical Linux VM;
+- start the same bundled JBR/JCEF candidate on a clean installed GNOME Linux VM (the Xvfb/X11 CI compatibility path is now proven, but the clean-desktop gate is not);
 - create/open/save/reopen real workspaces without system Java/Gradle/Git;
 - verify Fabric/NeoForge generate/build and real graphical `runClient`;
 - verify the implemented Wayland/Xorg capability classification against real GNOME Wayland and GNOME on Xorg sessions, including actual JCEF/window behavior;
