@@ -10,8 +10,9 @@ import net.mcreator.util.MCreatorVersionNumber;
 import net.mcreator.util.TerribleModuleHacks;
 import net.mcreator.util.UTF8Forcer;
 
+import java.io.FileDescriptor;
+import java.io.FileOutputStream;
 import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.nio.file.Path;
 import java.util.Properties;
 
@@ -33,9 +34,9 @@ public final class Stage15GraphicalWorkspaceFixture {
 			throw new IllegalArgumentException("Usage: Stage15GraphicalWorkspaceFixture <workspace-folder>");
 
 		Path workspaceFolder = Path.of(args[0]).toAbsolutePath().normalize();
+		PrintWriter machineOutput = new PrintWriter(new FileOutputStream(FileDescriptor.out), true);
 		initializePackagedRuntime();
 
-		StringWriter payload = new StringWriter();
 		int exitCode = BootstrapProductLauncher.run(new String[] {
 				"create-workspace",
 				"--generator-id", "resourcepack-1.21.1",
@@ -43,9 +44,8 @@ public final class Stage15GraphicalWorkspaceFixture {
 				"--mod-id", "stage15_graphical_smoke",
 				"--workspace-folder", workspaceFolder.toString(),
 				"--version", "1.0.0"
-		}, new PrintWriter(payload, true), new WorkspaceCreationService(), request -> true);
+		}, machineOutput, new WorkspaceCreationService(), request -> true);
 
-		System.out.println(payload.toString().trim());
 		if (exitCode != HeadlessExitCode.SUCCESS.code())
 			System.exit(exitCode);
 

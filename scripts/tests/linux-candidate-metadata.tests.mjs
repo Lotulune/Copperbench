@@ -117,6 +117,8 @@ test('Stage 15 workflow carries the Linux supply-chain contract', () => {
   assert.doesNotMatch(graphicalSmoke, /xdotool key/);
   assert.doesNotMatch(graphicalSmoke, /xdotool windowfocus/);
   assert.match(graphicalFixture, /request -> true/);
+  assert.match(graphicalFixture, /FileDescriptor\.out/);
+  assert.doesNotMatch(graphicalFixture, /System\.out\.println/);
   assert.match(graphicalFixture, /ChinaMirrorService\.rememberChoice\(false\)/);
   assert.match(workflow, /BootstrapProductLauncherTest\.localApprovalCreatesResourcePackWorkspaceForGraphicalFixture/);
   assert.match(workflow, /BootstrapProductLauncherTest\.decliningLocalApprovalLeavesTheTargetUntouched/);
