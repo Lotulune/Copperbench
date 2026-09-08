@@ -157,13 +157,39 @@ Immutable Run 21 evidence:
 
 This is **real packaged Fabric/Minecraft render-path evidence under GitHub-hosted Ubuntu/Xvfb**. Xvfb did not expose a reliable user-visible child-window identity for Minecraft, so the gate intentionally uses application-level Render thread/LWJGL/resource/atlas evidence rather than window-manager metadata. It still does **not** prove that a user sees a stable Minecraft window in a clean GNOME Wayland/Xorg session; that remains an installed-desktop gate.
 
+### Packaged Fabric + NeoForge 1.21.1 X11 render evidence
+
+GitHub Actions run `34272333519` executed the same Stage 15 candidate workflow on Ubuntu 24.04.4 against commit `43fe1168cc6e2074e08d368052358047a88ebfa5` and completed the entire candidate chain successfully. This run adds NeoForge to the packaged render preflight while replaying Fabric against the exact same candidate bytes:
+
+- the packaged Copperbench Core created, generated and built a deterministic `neoforge-1.21.1` workspace, then launched `run-client` under Xvfb without bypassing Copperbench through a direct `gradlew runClient` invocation;
+- the NeoForge client reached `NeoForge 21.1.232 (neoforge)` discovery, the LWJGL Render thread/backend, resource-manager reload and `minecraft:textures/atlas/blocks.png-atlas` creation, then remained alive through the post-readiness stability window without a GLFW/OpenGL/display-init/Render-thread fatal signature;
+- the same candidate replayed the Fabric 1.21.1 packaged render preflight successfully with the same Core build/run-client path and render/stability checks;
+- portable contents, bundled runtimes, minimal-PATH headless bootstrap, windowed JCEF/X11 smoke, `.deb` layout, SPDX, immutable metadata, SHA-256 subjects, GitHub/Sigstore provenance and artifact upload all remained green in the same run.
+
+Immutable Run 22 evidence:
+
+- candidate identity: `sha256:b0da68ad63bdd3a2ec0b8c5ef5aea9e12becf0fc85aa3909aaaa45fc35816700`;
+- portable tar SHA-256: `293736d1de6d35a2c6a3aa58518f0538f3c33b0faf1cd66b4c89fe2b62f38abf`;
+- Debian package SHA-256: `93f02cdb312167e732d7f9e9e7df72e236b3e93cd71b18f52cddd3b20fd4fd9a`;
+- SPDX SHA-256: `2bd6bc3323d1ba3e3636fd15467e6b69fe4b0292e8eac1ee2619ad00e92574c4`;
+- frozen metadata SHA-256: `57d856787c7ec6a761062486eec47a2e89aa23dc21b222a432c41f1a1c3bc66c`;
+- candidate manifest SHA-256: `1952b06e6d7bc593fcec5b1c5fd24a2558d481aca0f5f22ff57c2461b2b319b7`;
+- uploaded artifact: `stage15-linux-candidate`, artifact ID `10074828705`, size `1854710910` bytes, artifact digest `sha256:452dc0f24d1c2f3b2d05f80e76c425827011d397a40308d281e03520bc6734f4`;
+- GitHub provenance attestation ID `46068061`, Rekor transparency-log index `2761806013`.
+
+This is **same-candidate packaged Fabric and NeoForge render-path evidence under GitHub-hosted Ubuntu/Xvfb**. It strengthens FR-LINUX-03 pre-certification evidence, but still does not substitute for a clean installed GNOME Wayland/Xorg session with a user-visible Minecraft window.
+
+### Windows affected-source regression replay
+
+After the Stage 15 platform/JDK/MCP/headless/external-tool changes, the affected Windows source-level regression set was replayed successfully on the Windows development host. The focused set covered bundled-JDK routing, workspace environment/layout recovery, Fabric and NeoForge task/runClient paths, Desktop MCP and external-Agent loops, headless product entry points, Blockbench discovery/lifecycle, XDG/legacy Windows path behavior and executable-permission portability. The Gradle run completed successfully with no source-level Windows regression. This is only source/test evidence; the final installed-product Windows gates remain required on the promoted candidate.
+
 ## Not yet proven
 
 The headless/package/supply-chain path now has real Ubuntu evidence. Still required before Stage 15 closure:
 
 - start the same bundled JBR/JCEF candidate on a clean installed GNOME Linux VM (the Xvfb/X11 CI compatibility path is now proven, but the clean-desktop gate is not);
 - create/open/save/reopen real workspaces without system Java/Gradle/Git;
-- verify Fabric/NeoForge generate/build and a user-visible graphical `runClient` on clean GNOME sessions; Fabric now has packaged Xvfb render-path evidence, while NeoForge packaged Xvfb/render and both loaders' clean-desktop window evidence remain pending;
+- verify Fabric/NeoForge generate/build and a user-visible graphical `runClient` on clean GNOME sessions; both loaders now have same-candidate packaged Xvfb render-path evidence, while both loaders' clean-desktop visible-window evidence remains pending;
 - verify the implemented Wayland/Xorg capability classification against real GNOME Wayland and GNOME on Xorg sessions, including actual JCEF/window behavior;
 - replay Desktop MCP and an independent external Agent on the installed Linux candidate, including descriptor permissions and credential cleanup;
 - exercise a real installed Blockbench binary on Linux through discovery, launch, lease/change detection and close rather than treating the deterministic managed-process regression as installed-tool evidence;
