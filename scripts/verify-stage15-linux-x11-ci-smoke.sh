@@ -14,26 +14,7 @@ probe="$smoke_root/evidence/graphical-product-probe.json"
 product_log="$smoke_root/evidence/product-shell.log"
 bootstrap_json="$smoke_root/evidence/bootstrap-create.json"
 bootstrap_log="$smoke_root/evidence/bootstrap-create.log"
-bootstrap_pid=""
 product_pid=""
-
-wait_for_exit() {
-  local pid="$1"
-  local limit="$2"
-  for ((attempt = 0; attempt < limit; attempt++)); do
-    if ! kill -0 "$pid" 2>/dev/null; then
-      return 0
-    fi
-    sleep 1
-  done
-  return 1
-}
-
-send_window_key() {
-  local window="$1"
-  shift
-  timeout 5s xdotool key --window "$window" --clearmodifiers "$@" 2>/dev/null || true
-}
 
 dump_bootstrap_failure() {
   echo "--- bootstrap stderr ---" >&2
@@ -52,10 +33,6 @@ dump_product_failure() {
 }
 
 cleanup() {
-  if [[ -n "$bootstrap_pid" ]] && kill -0 "$bootstrap_pid" 2>/dev/null; then
-    kill -TERM "$bootstrap_pid" 2>/dev/null || true
-    wait "$bootstrap_pid" 2>/dev/null || true
-  fi
   if [[ -n "$product_pid" ]] && kill -0 "$product_pid" 2>/dev/null; then
     kill -TERM "$product_pid" 2>/dev/null || true
     wait "$product_pid" 2>/dev/null || true
@@ -79,57 +56,18 @@ export XDG_STATE_HOME="$isolated_home/state"
 export XDG_RUNTIME_DIR="$isolated_home/runtime"
 export JAVA_TOOL_OPTIONS="-Duser.home=$isolated_home"
 
-echo "[stage15-x11] starting packaged workspace bootstrap"
-"$portable_root/copperbench.sh" bootstrap create-workspace \
-  --generator-id resourcepack-1.21.1 \
-  --mod-name "Stage15 Graphical Smoke" \
-  --mod-id stage15_graphical_smoke \
-  --workspace-folder "$workspace_root" \
-  --version 1.0.0 >"$bootstrap_json" 2>"$bootstrap_log" &
-bootstrap_pid=$!
-
-approval_window=""
-for ((attempt = 0; attempt < 60; attempt++)); do
-  approval_window="$(xdotool search --onlyvisible --name '^Copperbench workspace creation$' 2>/dev/null | head -n 1 || true)"
-  if [[ -n "$approval_window" ]]; then
-    break
-  fi
-  if ! kill -0 "$bootstrap_pid" 2>/dev/null; then
-    break
-  fi
-  sleep 1
-done
-if [[ -z "$approval_window" ]]; then
-  echo "Packaged bootstrap did not present the local workspace-creation approval dialog" >&2
+echo "[stage15-x11] preparing deterministic graphical workspace fixture"
+if ! timeout 120s "$portable_root/jdk/bin/java" \
+  --add-opens=java.base/java.lang=ALL-UNNAMED \
+  -cp "$portable_root/lib/copperbench.jar:$portable_root/lib/*" \
+  "$GITHUB_WORKSPACE/src/test/java/dev/copperbench/headless/Stage15GraphicalWorkspaceFixture.java" \
+  "$workspace_root" >"$bootstrap_json" 2>"$bootstrap_log"; then
+  echo "Stage 15 graphical workspace fixture failed" >&2
   dump_bootstrap_failure
   exit 1
 fi
-echo "[stage15-x11] approving local workspace creation in X11 window $approval_window"
-send_window_key "$approval_window" Return
-sleep 2
-remaining_approval="$(xdotool search --onlyvisible --name '^Copperbench workspace creation$' 2>/dev/null | head -n 1 || true)"
-if [[ -n "$remaining_approval" ]]; then
-  send_window_key "$remaining_approval" space
-  sleep 1
-fi
-remaining_approval="$(xdotool search --onlyvisible --name '^Copperbench workspace creation$' 2>/dev/null | head -n 1 || true)"
-if [[ -n "$remaining_approval" ]]; then
-  send_window_key "$remaining_approval" alt+y
-fi
-
-if ! wait_for_exit "$bootstrap_pid" 120; then
-  echo "Packaged bootstrap did not exit within 120 seconds after approval input" >&2
-  dump_bootstrap_failure
-  exit 1
-fi
-if ! wait "$bootstrap_pid"; then
-  echo "Packaged bootstrap failed after local workspace-creation approval" >&2
-  dump_bootstrap_failure
-  exit 1
-fi
-bootstrap_pid=""
 grep -q '"status":"committed"' "$bootstrap_json"
-echo "[stage15-x11] packaged workspace creation committed"
+echo "[stage15-x11] graphical workspace fixture committed"
 
 workspace_file="$(find "$workspace_root" -maxdepth 1 -type f -name '*.mcreator' -print -quit)"
 test -n "$workspace_file"
@@ -143,10 +81,6 @@ product_pid=$!
 for ((attempt = 0; attempt < 120; attempt++)); do
   if [[ -f "$probe" ]]; then
     break
-  fi
-  first_run_window="$(xdotool search --onlyvisible --name '^Copperbench$' 2>/dev/null | head -n 1 || true)"
-  if [[ -n "$first_run_window" ]]; then
-    send_window_key "$first_run_window" Return
   fi
   if ! kill -0 "$product_pid" 2>/dev/null; then
     echo "Packaged Copperbench exited before the graphical probe was written" >&2

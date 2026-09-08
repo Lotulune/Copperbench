@@ -126,6 +126,8 @@ jobs:
             --tests dev.copperbench.mcp.DesktopMcpAgentLoopTest \
             --tests dev.copperbench.headless.HeadlessProductLauncherTest \
             --tests dev.copperbench.headless.BootstrapProductLauncherTest.generatorDiscoveryWorksWithoutAnExistingWorkspace \
+            --tests dev.copperbench.headless.BootstrapProductLauncherTest.localApprovalCreatesResourcePackWorkspaceForGraphicalFixture \
+            --tests dev.copperbench.headless.BootstrapProductLauncherTest.decliningLocalApprovalLeavesTheTargetUntouched \
             --tests dev.copperbench.generator.fabric.Fabric1211ProcessRunnerTest \
             --tests dev.copperbench.generator.fabric.Fabric1211TaskGatewayTest \
             --tests dev.copperbench.generator.neoforge.NeoForge1211GeneratorTest \
@@ -227,6 +229,15 @@ jobs:
           xvfb-run -a -s '-screen 0 1280x800x24' \
             /usr/bin/bash "$GITHUB_WORKSPACE/scripts/verify-stage15-linux-x11-ci-smoke.sh" \
             "$root" "$smoke"
+
+      - name: Upload X11 graphical smoke diagnostics on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: stage15-x11-smoke-diagnostics
+          path: build/stage15-x11-smoke/evidence/**
+          if-no-files-found: warn
+          retention-days: 7
 
       - name: Verify deb candidate layout
         shell: bash
