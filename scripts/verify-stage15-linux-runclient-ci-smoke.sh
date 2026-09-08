@@ -1,15 +1,32 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [[ $# -ne 2 ]]; then
-  echo "Usage: verify-stage15-linux-fabric-runclient-ci-smoke.sh <portable-root> <smoke-root>" >&2
+if [[ $# -ne 3 ]]; then
+  echo "Usage: verify-stage15-linux-runclient-ci-smoke.sh <portable-root> <smoke-root> <generator-id>" >&2
   exit 2
 fi
 
 portable_root="$(cd -- "$1" && pwd)"
 smoke_root="$(mkdir -p -- "$2" && cd -- "$2" && pwd)"
+generator_id="$3"
+case "$generator_id" in
+  fabric-1.21.1)
+    loader_name="Fabric"
+    loader_marker="Loading Minecraft 1.21.1 with Fabric Loader"
+    mod_id="stage15_fabric_runclient"
+    ;;
+  neoforge-1.21.1)
+    loader_name="NeoForge"
+    loader_marker="NeoForge 21.1.232 (neoforge)"
+    mod_id="stage15_neoforge_runclient"
+    ;;
+  *)
+    echo "Unsupported Stage 15 runClient generator: $generator_id" >&2
+    exit 2
+    ;;
+esac
 isolated_home="$smoke_root/home"
-workspace_root="$isolated_home/MCreatorWorkspaces/fabric-runclient-smoke"
+workspace_root="$isolated_home/MCreatorWorkspaces/${loader_name,,}-runclient-smoke"
 evidence_root="$smoke_root/evidence"
 fixture_classes="$smoke_root/fixture-classes"
 bootstrap_json="$evidence_root/bootstrap-create.json"
@@ -88,13 +105,13 @@ export COPPERBENCH_GRADLE_USER_HOME="$isolated_home/cache/copperbench/gradle"
 export JAVA_TOOL_OPTIONS="-Duser.home=$isolated_home"
 export LIBGL_ALWAYS_SOFTWARE=1
 
-echo "[stage15-runclient] compiling deterministic Fabric workspace fixture"
+echo "[stage15-runclient] compiling deterministic $loader_name workspace fixture"
 if ! "$portable_root/jdk/bin/javac" \
   -cp "$portable_root/lib/copperbench.jar:$portable_root/lib/*" \
   -d "$fixture_classes" \
   "$GITHUB_WORKSPACE/src/test/java/dev/copperbench/headless/Stage15GraphicalWorkspaceFixture.java" \
   >"$evidence_root/fixture-javac.log" 2>&1; then
-  echo "Stage 15 Fabric workspace fixture did not compile against the packaged candidate" >&2
+  echo "Stage 15 $loader_name workspace fixture did not compile against the packaged candidate" >&2
   cat "$evidence_root/fixture-javac.log" >&2 || true
   exit 1
 fi
@@ -105,18 +122,18 @@ if ! (
     --add-opens=java.base/java.lang=ALL-UNNAMED \
     -cp "$fixture_classes:$portable_root/lib/copperbench.jar:$portable_root/lib/*" \
     dev.copperbench.headless.Stage15GraphicalWorkspaceFixture \
-    "$workspace_root" "fabric-1.21.1" "Stage15 Fabric RunClient" "stage15_fabric_runclient"
+    "$workspace_root" "$generator_id" "Stage15 $loader_name RunClient" "$mod_id"
 ) >"$bootstrap_json" 2>"$bootstrap_log"; then
-  echo "Stage 15 Fabric workspace fixture failed" >&2
+  echo "Stage 15 $loader_name workspace fixture failed" >&2
   dump_failure
   exit 1
 fi
 grep -q '"status":"committed"' "$bootstrap_json"
-grep -q '"generatorId":"fabric-1.21.1"' "$bootstrap_json"
+grep -Fq "\"generatorId\":\"$generator_id\"" "$bootstrap_json"
 workspace_file="$(find "$workspace_root" -maxdepth 1 -type f -name '*.mcreator' -print -quit)"
 test -n "$workspace_file"
 test -f "$workspace_file"
-echo "[stage15-runclient] Fabric workspace fixture committed"
+echo "[stage15-runclient] $loader_name workspace fixture committed"
 
 echo "[stage15-runclient] building through packaged headless Core"
 if ! timeout 600s /usr/bin/bash "$portable_root/copperbench.sh" \
@@ -139,7 +156,7 @@ client_log="$workspace_root/run/logs/latest.log"
 ready=0
 for ((attempt = 0; attempt < 480; attempt++)); do
   if [[ -f "$client_log" ]] \
-      && grep -q 'Loading Minecraft 1.21.1 with Fabric Loader' "$client_log" \
+      && grep -Fq -- "$loader_marker" "$client_log" \
       && grep -q 'Backend library: LWJGL version' "$client_log" \
       && grep -q 'Reloading ResourceManager:' "$client_log" \
       && grep -q 'minecraft:textures/atlas/blocks.png-atlas' "$client_log"; then
@@ -155,14 +172,18 @@ for ((attempt = 0; attempt < 480; attempt++)); do
 done
 
 if [[ "$ready" -ne 1 ]]; then
-  echo "Timed out waiting for Fabric 1.21.1 client loading/resource readiness" >&2
+  echo "Timed out waiting for $loader_name 1.21.1 client render readiness" >&2
   dump_failure
   exit 1
 fi
 copy_client_log
-grep -E 'Loading Minecraft 1\.21\.1 with Fabric Loader|Backend library: LWJGL version|Reloading ResourceManager:|minecraft:textures/atlas/blocks\.png-atlas' \
-  "$client_log" >"$render_proof"
-echo "[stage15-runclient] Minecraft/Fabric Render thread, LWJGL, resource reload and atlas markers observed"
+{
+  grep -F -- "$loader_marker" "$client_log"
+  grep -F 'Backend library: LWJGL version' "$client_log"
+  grep -F 'Reloading ResourceManager:' "$client_log"
+  grep -F 'minecraft:textures/atlas/blocks.png-atlas' "$client_log"
+} >"$render_proof"
+echo "[stage15-runclient] Minecraft/$loader_name Render thread, LWJGL, resource reload and atlas markers observed"
 
 kill -0 -- "$product_pid"
 for ((attempt = 0; attempt < 20; attempt++)); do
@@ -175,4 +196,4 @@ if grep -Eqi 'crash report|failed to start minecraft|exception in thread \"Rende
   exit 1
 fi
 copy_client_log
-echo "Stage 15 packaged Fabric 1.21.1 runClient X11 render preflight passed for process group $product_pid"
+echo "Stage 15 packaged $loader_name 1.21.1 runClient X11 render preflight passed for process group $product_pid"

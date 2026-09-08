@@ -84,12 +84,19 @@ class LinuxDistributionLayoutTest {
         assertTrue(workflow.contains("test -d \"$isolated_home/runtime/copperbench\""));
         assertTrue(workflow.contains("for version in 9.7.0 9.6.1 8.8; do"));
         assertTrue(workflow.contains("Run packaged Fabric 1.21.1 X11 render preflight under Xvfb"));
-        assertTrue(workflow.contains("verify-stage15-linux-fabric-runclient-ci-smoke.sh"));
+        assertTrue(workflow.contains("Run packaged NeoForge 1.21.1 X11 render preflight under Xvfb"));
+        assertTrue(workflow.contains("verify-stage15-linux-runclient-ci-smoke.sh"));
+        assertFalse(workflow.contains("verify-stage15-linux-fabric-runclient-ci-smoke.sh"));
+        assertTrue(workflow.contains("\"fabric-1.21.1\""));
+        assertTrue(workflow.contains("\"neoforge-1.21.1\""));
 
-        String runClientSmoke = Files.readString(Path.of("scripts/verify-stage15-linux-fabric-runclient-ci-smoke.sh"));
+        String runClientSmoke = Files.readString(Path.of("scripts/verify-stage15-linux-runclient-ci-smoke.sh"));
         assertTrue(runClientSmoke.contains("headless --workspace \"$workspace_file\" build"));
         assertTrue(runClientSmoke.contains("headless --workspace \"$workspace_file\" run-client"));
         assertTrue(runClientSmoke.contains("Loading Minecraft 1.21.1 with Fabric Loader"));
+        assertTrue(runClientSmoke.contains("NeoForge 21.1.232 (neoforge)"));
+        assertTrue(runClientSmoke.contains("grep -Fq -- \"$loader_marker\""));
+        assertTrue(runClientSmoke.contains("grep -F -- \"$loader_marker\""));
         assertTrue(runClientSmoke.contains("Backend library: LWJGL version"));
         assertTrue(runClientSmoke.contains("Reloading ResourceManager:"));
         assertTrue(runClientSmoke.contains("minecraft:textures/atlas/blocks.png-atlas"));
