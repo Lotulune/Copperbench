@@ -83,6 +83,17 @@ class LinuxDistributionLayoutTest {
         assertTrue(workflow.contains("test -d \"$isolated_home/cache/copperbench/gradle\""));
         assertTrue(workflow.contains("test -d \"$isolated_home/runtime/copperbench\""));
         assertTrue(workflow.contains("for version in 9.7.0 9.6.1 8.8; do"));
+        assertTrue(workflow.contains("Launch packaged Fabric 1.21.1 client under Xvfb"));
+        assertTrue(workflow.contains("verify-stage15-linux-fabric-runclient-ci-smoke.sh"));
+
+        String runClientSmoke = Files.readString(Path.of("scripts/verify-stage15-linux-fabric-runclient-ci-smoke.sh"));
+        assertTrue(runClientSmoke.contains("headless --workspace \"$workspace_file\" build"));
+        assertTrue(runClientSmoke.contains("headless --workspace \"$workspace_file\" run-client"));
+        assertTrue(runClientSmoke.contains("Loading Minecraft 1.21.1 with Fabric Loader"));
+        assertTrue(runClientSmoke.contains("Reloading ResourceManager:"));
+        assertTrue(runClientSmoke.contains("xdotool search --onlyvisible --name 'Minecraft'"));
+        assertTrue(runClientSmoke.contains("COPPERBENCH_GRADLE_USER_HOME"));
+        assertFalse(runClientSmoke.contains("./gradlew runClient"));
     }
 
     @Test void linuxSetupProvidesJava25JcefAndJava21Sidecar() throws Exception {

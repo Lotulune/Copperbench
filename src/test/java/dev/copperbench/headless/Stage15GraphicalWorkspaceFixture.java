@@ -20,9 +20,9 @@ import java.util.Properties;
  * Test-only source launcher used by the Stage 15 Xvfb compatibility smoke.
  *
  * <p>This is deliberately not packaged as a Copperbench product command. It uses the package-private
- * approval seam that the JUnit suite already exercises so the Xvfb smoke can prepare a deterministic
- * workspace without pretending that synthetic X11 key events are user approval. The actual packaged
- * graphical process is launched separately by verify-stage15-linux-x11-ci-smoke.sh.</p>
+ * approval seam that the JUnit suite already exercises so the Xvfb smokes can prepare deterministic
+ * workspaces without pretending that synthetic X11 key events are user approval. The actual packaged
+ * graphical/headless product processes are launched separately by the Stage 15 verification scripts.</p>
  */
 public final class Stage15GraphicalWorkspaceFixture {
 
@@ -30,18 +30,22 @@ public final class Stage15GraphicalWorkspaceFixture {
 	}
 
 	public static void main(String[] args) throws Exception {
-		if (args.length != 1)
-			throw new IllegalArgumentException("Usage: Stage15GraphicalWorkspaceFixture <workspace-folder>");
+		if (args.length != 1 && args.length != 4)
+			throw new IllegalArgumentException("Usage: Stage15GraphicalWorkspaceFixture <workspace-folder> "
+					+ "[<generator-id> <mod-name> <mod-id>]");
 
 		Path workspaceFolder = Path.of(args[0]).toAbsolutePath().normalize();
+		String generatorId = args.length == 4 ? args[1] : "resourcepack-1.21.1";
+		String modName = args.length == 4 ? args[2] : "Stage15 Graphical Smoke";
+		String modId = args.length == 4 ? args[3] : "stage15_graphical_smoke";
 		PrintWriter machineOutput = new PrintWriter(new FileOutputStream(FileDescriptor.out), true);
 		initializePackagedRuntime();
 
 		int exitCode = BootstrapProductLauncher.run(new String[] {
 				"create-workspace",
-				"--generator-id", "resourcepack-1.21.1",
-				"--mod-name", "Stage15 Graphical Smoke",
-				"--mod-id", "stage15_graphical_smoke",
+				"--generator-id", generatorId,
+				"--mod-name", modName,
+				"--mod-id", modId,
 				"--workspace-folder", workspaceFolder.toString(),
 				"--version", "1.0.0"
 		}, machineOutput, new WorkspaceCreationService(), request -> true);

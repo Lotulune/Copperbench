@@ -26,11 +26,13 @@ on:
       - "src/main/java/dev/copperbench/platform/**"
       - "src/test/java/dev/copperbench/platform/**"
       - "src/main/java/dev/copperbench/release/**"
+      - "src/test/java/dev/copperbench/release/**"
       - "ui-shell/**"
       - "scripts/*linux-candidate-metadata.mjs"
       - "scripts/tests/linux-candidate-metadata.tests.mjs"
       - "scripts/stage15/**"
       - "scripts/verify-stage15-linux-x11-ci-smoke.sh"
+      - "scripts/verify-stage15-linux-fabric-runclient-ci-smoke.sh"
       - "src/main/java/net/mcreator/io/UserFolderManager.java"
       - ".github/workflows/stage15-linux-candidate.yml"
   push:
@@ -59,11 +61,13 @@ on:
       - "src/main/java/dev/copperbench/platform/**"
       - "src/test/java/dev/copperbench/platform/**"
       - "src/main/java/dev/copperbench/release/**"
+      - "src/test/java/dev/copperbench/release/**"
       - "ui-shell/**"
       - "scripts/*linux-candidate-metadata.mjs"
       - "scripts/tests/linux-candidate-metadata.tests.mjs"
       - "scripts/stage15/**"
       - "scripts/verify-stage15-linux-x11-ci-smoke.sh"
+      - "scripts/verify-stage15-linux-fabric-runclient-ci-smoke.sh"
       - ".github/workflows/stage15-linux-candidate.yml"
 
 permissions:
@@ -127,6 +131,7 @@ jobs:
             --tests dev.copperbench.mcp.DesktopMcpRuntimeTest \
             --tests dev.copperbench.mcp.McpHttpServerTest \
             --tests dev.copperbench.mcp.DesktopMcpAgentLoopTest \
+            --tests dev.copperbench.headless.HeadlessCliTest \
             --tests dev.copperbench.headless.HeadlessProductLauncherTest \
             --tests dev.copperbench.headless.BootstrapProductLauncherTest.generatorDiscoveryWorksWithoutAnExistingWorkspace \
             --tests dev.copperbench.headless.BootstrapProductLauncherTest.localApprovalCreatesResourcePackWorkspaceForGraphicalFixture \
@@ -135,7 +140,8 @@ jobs:
             --tests dev.copperbench.generator.fabric.Fabric1211TaskGatewayTest \
             --tests dev.copperbench.generator.neoforge.NeoForge1211GeneratorTest \
             --tests dev.copperbench.generator.neoforge.NeoForge1211TaskGatewayTest \
-            --tests dev.copperbench.generator.resourcepack.ResourcePackWorkspaceTaskGatewayTest
+            --tests dev.copperbench.generator.resourcepack.ResourcePackWorkspaceTaskGatewayTest \
+            --tests dev.copperbench.release.LinuxDistributionLayoutTest
       - name: Run Linux candidate metadata contract tests
         run: node --test scripts/tests/linux-candidate-metadata.tests.mjs
 
@@ -239,6 +245,31 @@ jobs:
         with:
           name: stage15-x11-smoke-diagnostics
           path: build/stage15-x11-smoke/evidence/**
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Launch packaged Fabric 1.21.1 client under Xvfb
+        timeout-minutes: 30
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! command -v xvfb-run >/dev/null 2>&1 || ! command -v xdotool >/dev/null 2>&1; then
+            sudo apt-get update -qq
+            sudo apt-get install -y --no-install-recommends xvfb xdotool
+          fi
+          root="$(find build/stage15-linux-smoke -mindepth 1 -maxdepth 1 -type d -print -quit)"
+          smoke="$PWD/build/stage15-fabric-runclient"
+          test -n "$root"
+          xvfb-run -a -s '-screen 0 1280x800x24' \
+            /usr/bin/bash "$GITHUB_WORKSPACE/scripts/verify-stage15-linux-fabric-runclient-ci-smoke.sh" \
+            "$root" "$smoke"
+
+      - name: Upload Fabric runClient diagnostics on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: stage15-fabric-runclient-diagnostics
+          path: build/stage15-fabric-runclient/evidence/**
           if-no-files-found: warn
           retention-days: 7
 
