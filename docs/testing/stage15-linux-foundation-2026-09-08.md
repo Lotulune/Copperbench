@@ -29,6 +29,7 @@ Frozen target:
 - Linux `runClient` startup logs classify missing display, GLFW initialization and OpenGL initialization failures into stable task diagnostic codes before the readiness marker, while post-readiness exits remain generic runtime failures;
 - candidate SBOM/inventory with installed `jdk`, `jdk21` and packaged Gradle distributions;
 - Copperbench portable launcher, portable tar layout, Debian launcher/desktop entry and `.deb` build task;
+- Linux Blockbench discovery now rejects non-executable Unix candidates; because Windows PE file-version metadata is not available on Linux/macOS, an executable Blockbench with unavailable version metadata is admitted as `READY_UNVERIFIED` for the existing managed-launch/lease/change-detection lifecycle instead of being incorrectly reported as unavailable;
 - Ubuntu 24.04 package-smoke workflow for Linux platform/generator regressions, portable/deb layout, executable bits and bundled runtimes; after extracting the portable tar it also starts the packaged `bootstrap list-generators` entry with an isolated XDG home and a minimal `PATH` containing no system Java/Gradle/Git, then requires Fabric/NeoForge discovery and all three packaged Gradle runtimes to seed into the isolated cache;
 - the same workflow now freezes an exact Linux development-candidate record binding the source commit to tar/.deb/SBOM/manifest SHA-256 values, emits an SPDX JSON SBOM, verifies the frozen record against the bytes, and requests GitHub build-provenance attestation.
 
@@ -70,17 +71,51 @@ Focused Gradle regressions passed for:
 
 The real `writeLinuxCandidateManifest` Gradle task also completed successfully and materialized `build/reports/linux-candidate-manifest.json`. The cross-platform Linux candidate metadata contract has 5/5 Node tests passing, including post-freeze tamper rejection, premature-support-claim rejection, candidate-ID sensitivity to asset bytes, and workflow supply-chain wiring.
 
-The tests were run with `-x buildUiShell` because the stacked Stage 14 branch still carries an independent UI i18n completeness gate; Java compilation, test compilation and the focused tests completed successfully. The Stage 15 Ubuntu workflow now runs the Desktop MCP runtime/HTTP/Agent-loop and headless contracts as Linux tests, so the POSIX descriptor permission assertions will execute on the real Linux runner rather than being skipped by the Windows development filesystem.
+The focused local Java tests were run with `-x buildUiShell`; the real Ubuntu candidate workflow runs the complete UI production build as part of `exportLinuxCandidate`. The Stage 15 Ubuntu workflow also runs Desktop MCP runtime/HTTP/Agent-loop, headless, Blockbench and POSIX contracts as Linux tests, so the Linux-only permission paths execute on the real Linux filesystem rather than being inferred from the Windows development host.
+
+## Real Ubuntu 24.04 candidate evidence
+
+GitHub Actions run `34225972899` executed the Stage 15 candidate workflow on Ubuntu 24.04.4 against commit `c4dbd43719aa4065725c3d5b048d3599ad2f42d7` and completed every functional, packaging and supply-chain step successfully.
+
+The Linux-specific Blockbench regressions passed on the Ubuntu runner, including:
+
+- locating an executable `blockbench` through `PATH`;
+- rejecting a regular file that lacks POSIX execute permission;
+- rejecting a non-executable installation before version detection;
+- admitting an executable Linux installation as `READY_UNVERIFIED` when Windows file-version metadata is unavailable;
+- starting that `READY_UNVERIFIED` executable through the managed `BlockbenchProcessService` lifecycle.
+
+The same run then proved the packaged candidate path rather than only source-tree behavior:
+
+- full UI production build and `exportLinuxCandidate` succeeded;
+- portable `tar.gz` and Debian `.deb` candidates were produced;
+- portable launcher, `gradlew`, bundled JBR 25/JCEF helpers, Java 21 and the packaged Gradle 9.7.0 / 9.6.1 / 8.8 pools retained the required executable/layout contracts after extraction;
+- the packaged headless bootstrap succeeded from an isolated XDG home with a minimal `PATH` containing no system Java, Gradle or Git and discovered both Fabric and NeoForge generators;
+- `.deb` layout and the manifest identity shared with the portable candidate passed;
+- SPDX generation, immutable candidate-metadata freeze/verification, SHA-256 generation, six-subject GitHub/Sigstore provenance attestation and artifact upload all succeeded.
+
+Immutable Run 7 evidence:
+
+- candidate identity: `sha256:ff529a31d5c7095652d3dea215e453e2bd69063987c1238b468dacc00215789d`;
+- portable tar SHA-256: `4db79f533b56b5daf06e4989ac633235ac46197cefeb6f6ebc5b17009a4d5a5e`;
+- Debian package SHA-256: `f3c2c5d9a3748f1b447bd8dee601f3dabb3fc727cc7e25255d4f580b159dda82`;
+- SPDX SHA-256: `5f0091c69b05c91177e11d6ca2fa6284779cc4990314fbdb6e542d5ed436aae1`;
+- frozen metadata SHA-256: `4000d88ae0832e31949aae86743fc313739bc4da924480c107d5581539509e51`;
+- candidate manifest SHA-256: `1952b06e6d7bc593fcec5b1c5fd24a2558d481aca0f5f22ff57c2461b2b319b7`;
+- uploaded artifact: `stage15-linux-candidate`, artifact ID `10055932678`, size `1854685435` bytes, artifact digest `sha256:5f15cb64de2550d19347adf1d26d1df135eb4eeb2674e76532b894f8c5046cbe`;
+- GitHub provenance attestation ID `45961545`, Rekor transparency-log index `2757844528`.
+
+This closes the previously missing real Ubuntu package/headless/SBOM/digest/metadata/provenance workflow evidence. It does **not** change the candidate manifest's `development-not-certified` status or make Linux a formally supported platform.
 
 ## Not yet proven
 
-This checkpoint is not Linux runtime evidence. Still required before Stage 15 closure:
+The headless/package/supply-chain path now has real Ubuntu evidence. Still required before Stage 15 closure:
 
-- run the package workflow on Ubuntu 24.04 and inspect the actual tar/deb artifacts plus the packaged minimal-PATH bootstrap/XDG/Gradle-pool smoke result;
 - start bundled JBR/JCEF on a clean graphical Linux VM;
 - create/open/save/reopen real workspaces without system Java/Gradle/Git;
 - verify Fabric/NeoForge generate/build and real graphical `runClient`;
 - verify the implemented Wayland/Xorg capability classification against real GNOME Wayland and GNOME on Xorg sessions, including actual JCEF/window behavior;
 - replay Desktop MCP and an independent external Agent on the installed Linux candidate, including descriptor permissions and credential cleanup;
-- run the new Ubuntu supply-chain path to obtain real SPDX/digest/metadata/provenance artifacts, then promote the attested development record into the existing formal exact-binary release-candidate chain only after the Linux product gates are satisfied;
+- exercise a real installed Blockbench binary on Linux through discovery, launch, lease/change detection and close rather than treating the deterministic managed-process regression as installed-tool evidence;
+- promote the attested development record into the existing formal exact-binary release-candidate chain only after the Linux graphical/product gates are satisfied;
 - rerun affected Windows installed-product gates after the cross-platform JDK/MCP/product-path changes.
