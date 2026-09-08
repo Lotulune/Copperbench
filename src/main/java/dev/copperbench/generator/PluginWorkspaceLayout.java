@@ -62,6 +62,7 @@ public final class PluginWorkspaceLayout {
 		Path normalizedDistribution = distributionRoot.toAbsolutePath().normalize();
 		Path posixLauncher = normalizedRoot.resolve("gradlew");
 		copyIfMissing(posixLauncher, normalizedDistribution.resolve("gradlew"));
+		normalizePosixLauncherLineEndings(posixLauncher);
 		ensurePosixLauncherExecutable(posixLauncher);
 		copyIfMissing(normalizedRoot.resolve("gradlew.bat"), normalizedDistribution.resolve("gradlew.bat"));
 		copyIfMissing(normalizedRoot.resolve("gradle/wrapper/gradle-wrapper.jar"),
@@ -94,5 +95,12 @@ public final class PluginWorkspaceLayout {
 		if (java.io.File.separatorChar == '\\' || Files.isExecutable(launcher)) return;
 		if (!launcher.toFile().setExecutable(true, false) && !Files.isExecutable(launcher))
 			throw new IOException("Could not mark Gradle wrapper executable: " + launcher);
+	}
+
+	private static void normalizePosixLauncherLineEndings(Path launcher) throws IOException {
+		String content = Files.readString(launcher, StandardCharsets.UTF_8);
+		String normalized = content.replace("\r\n", "\n");
+		if (!content.equals(normalized))
+			Files.writeString(launcher, normalized, StandardCharsets.UTF_8);
 	}
 }
