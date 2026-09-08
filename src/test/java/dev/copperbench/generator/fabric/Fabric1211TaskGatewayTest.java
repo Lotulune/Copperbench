@@ -20,6 +20,7 @@ import dev.copperbench.core.contract.UiCore.PermissionProfile;
 import dev.copperbench.core.contract.UiCore.Query;
 import dev.copperbench.core.contract.UiCore.RequestContext;
 import dev.copperbench.core.workspace.RevisionedWorkspaceStore;
+import dev.copperbench.generator.GradleProcessRunner;
 import dev.copperbench.history.LocalHistoryService;
 import dev.copperbench.history.RecoveryPoint;
 import dev.copperbench.history.RecoveryPointRequest;
@@ -31,6 +32,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.api.parallel.ResourceLock;
 import org.junit.jupiter.api.parallel.Resources;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Clock;
@@ -83,6 +85,33 @@ class Fabric1211TaskGatewayTest {
 			assertFalse(taskProjection.getAsJsonArray("logs").isEmpty());
 			assertTrue(taskProjection.getAsJsonArray("logs").toString().contains("Fabric 1.21.1"));
 			assertTrue(Files.isRegularFile(generatedWorkspace.resolve("src/main/resources/fabric.mod.json")));
+		}
+	}
+
+	@Test void processStartupFailureExposesExecutableWorkspaceAndStableDiagnostic() throws Exception {
+		RevisionedWorkspaceStore store = new RevisionedWorkspaceStore();
+		store.register(Fabric1211GoldenWorkspace.create());
+		AtomicLong sequence = new AtomicLong(607);
+		Supplier<UUID> ids = () -> UUID.fromString("00000000-0000-4000-8000-" +
+				String.format("%012d", sequence.getAndIncrement()));
+		Fabric1211ProcessRunner runner = (root, arguments, timeout, output) -> {
+			throw new GradleProcessRunner.ProcessStartException("./gradlew", root,
+					new IOException("error=2, No such file or directory"));
+		};
+		try (Fabric1211WorkspaceTaskGateway tasks = new Fabric1211WorkspaceTaskGateway(store,
+				ignored -> generatedWorkspace, Path.of(".").toAbsolutePath().normalize(), CLOCK, ids, runner)) {
+			WorkspaceApplicationService service = new WorkspaceApplicationService(store, tasks, CLOCK, ids);
+
+			JsonObject build = startAndAwait(service, ids, Operation.BUILD_WORKSPACE);
+			assertEquals("failed", build.getAsJsonObject("task").get("state").getAsString());
+			JsonObject diagnostic = build.getAsJsonArray("diagnostics").get(0).getAsJsonObject();
+			assertEquals("FABRIC_BUILD_PROCESS_START_FAILED", diagnostic.get("code").getAsString());
+			JsonObject args = diagnostic.getAsJsonObject("message").getAsJsonObject("args");
+			assertEquals("./gradlew", args.get("executable").getAsString());
+			assertEquals(generatedWorkspace.toAbsolutePath().normalize().toString(),
+					args.get("workspaceRoot").getAsString());
+			assertTrue(args.get("reason").getAsString().contains("No such file or directory"));
+			assertTrue(build.getAsJsonArray("logs").toString().contains("Could not start Gradle executable"));
 		}
 	}
 

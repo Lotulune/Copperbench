@@ -24,6 +24,12 @@ public final class PluginWorkspaceLayout {
 	private PluginWorkspaceLayout() {
 	}
 
+	static void normalizeLauncherLineEndings(Path launcher) throws IOException {
+		String content = Files.readString(launcher, StandardCharsets.UTF_8);
+		if (content.indexOf('\r') < 0) return;
+		Files.writeString(launcher, content.replace("\r\n", "\n").replace('\r', '\n'), StandardCharsets.UTF_8);
+	}
+
 	public static boolean present(Path root) throws IOException {
 		if (root == null || !Files.isDirectory(root))
 			return false;
@@ -62,6 +68,8 @@ public final class PluginWorkspaceLayout {
 		Path normalizedRoot = root.toAbsolutePath().normalize();
 		Path normalizedDistribution = distributionRoot.toAbsolutePath().normalize();
 		copyIfMissing(normalizedRoot.resolve("gradlew"), normalizedDistribution.resolve("gradlew"));
+		if (ExecutableFilePermissions.posixSupported(normalizedRoot.resolve("gradlew")))
+			normalizeLauncherLineEndings(normalizedRoot.resolve("gradlew"));
 		ExecutableFilePermissions.ensureOwnerExecutable(normalizedRoot.resolve("gradlew"));
 		copyIfMissing(normalizedRoot.resolve("gradlew.bat"), normalizedDistribution.resolve("gradlew.bat"));
 		copyIfMissing(normalizedRoot.resolve("gradle/wrapper/gradle-wrapper.jar"),

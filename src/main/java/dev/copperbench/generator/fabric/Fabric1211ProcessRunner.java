@@ -8,9 +8,11 @@
  */
 
 package dev.copperbench.generator.fabric;
+import dev.copperbench.generator.GradleProcessRunner;
 import dev.copperbench.platform.RuntimePlatform;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
@@ -96,7 +98,12 @@ import java.util.function.Supplier;
 			if (configuredGradleUserHome != null && !configuredGradleUserHome.isBlank()) {
 				builder.environment().put("GRADLE_USER_HOME", configuredGradleUserHome);
 			}
-			Process process = builder.start();
+			Process process;
+			try {
+				process = builder.start();
+			} catch (IOException exception) {
+				throw new GradleProcessRunner.ProcessStartException(command.getFirst(), workspaceRoot, exception);
+			}
 			AtomicBoolean marker = new AtomicBoolean();
 			AtomicBoolean serverReady = new AtomicBoolean();
 			AtomicBoolean serverFatal = new AtomicBoolean();

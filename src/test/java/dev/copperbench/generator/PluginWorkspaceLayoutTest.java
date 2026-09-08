@@ -16,6 +16,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PluginWorkspaceLayoutTest {
@@ -34,5 +35,18 @@ class PluginWorkspaceLayoutTest {
 		Files.writeString(source, "class Example {}\n");
 		assertTrue(PluginWorkspaceLayout.present(temp));
 		assertTrue(PluginWorkspaceLayout.relativeSourcePaths(temp).contains("src/main/java/example/Example.java"));
+	}
+
+	@Test void preservedPluginGradleLauncherCanBeNormalizedFromCrlfWithoutChangingItsScript() throws Exception {
+		Path launcher = temp.resolve("gradlew");
+		Files.writeString(launcher, "#!/bin/sh\r\necho ready\r\n");
+
+		PluginWorkspaceLayout.normalizeLauncherLineEndings(launcher);
+
+		assertEquals("#!/bin/sh\necho ready\n", Files.readString(launcher));
+		assertTrue(Files.readString(Path.of("plugins/generator-1.21.1/fabric-1.21.1/workspacebase/gradlew"))
+				.startsWith("#!/usr/bin/env sh\r\n")
+				|| Files.readString(Path.of("plugins/generator-1.21.1/fabric-1.21.1/workspacebase/gradlew"))
+						.startsWith("#!/bin/sh\r\n"));
 	}
 }
