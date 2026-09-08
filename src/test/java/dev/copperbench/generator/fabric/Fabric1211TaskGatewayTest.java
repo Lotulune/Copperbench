@@ -23,6 +23,7 @@ import dev.copperbench.core.workspace.RevisionedWorkspaceStore;
 import dev.copperbench.history.LocalHistoryService;
 import dev.copperbench.history.RecoveryPoint;
 import dev.copperbench.history.RecoveryPointRequest;
+import dev.copperbench.platform.RuntimePlatform;
 import dev.copperbench.history.RestoreResult;
 import dev.copperbench.history.WorkspaceChange;
 import org.junit.jupiter.api.Test;
@@ -229,7 +230,9 @@ class Fabric1211TaskGatewayTest {
 			assertTrue(diagnostics.contains("BUNDLED_JDK_MISSING"));
 			String expectedJdkPath = distribution.resolve("jdk").toString().replace("\\", "\\\\");
 			assertTrue(diagnostics.contains(expectedJdkPath));
-			assertTrue(diagnostics.contains("jdk21_win_64"));
+			String sourceJavaHome = RuntimePlatform.current().sourceJavaHome(21);
+			assertTrue(sourceJavaHome != null && diagnostics.contains(Path.of(sourceJavaHome).getFileName().toString()),
+					diagnostics);
 			assertTrue(diagnostics.contains("not-a-java-home"));
 			UUID taskId = UUID.fromString(projection.getAsJsonObject("task").get("id").getAsString());
 			JsonObject failureDiagnostic = projection.getAsJsonArray("diagnostics").get(0).getAsJsonObject();
