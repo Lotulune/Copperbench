@@ -248,7 +248,7 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
 
-      - name: Launch packaged Fabric 1.21.1 client under Xvfb
+      - name: Run packaged Fabric 1.21.1 X11 render preflight under Xvfb
         timeout-minutes: 30
         shell: bash
         run: |

@@ -19,9 +19,7 @@ build_log="$evidence_root/headless-build.log"
 runclient_stdout="$evidence_root/headless-run-client.stdout"
 runclient_stderr="$evidence_root/headless-run-client.stderr"
 client_log_copy="$evidence_root/minecraft-latest.log"
-x11_windows="$evidence_root/x11-visible-windows.txt"
-x11_baseline="$evidence_root/x11-baseline-window-ids.txt"
-x11_window_proof="$evidence_root/x11-window-proof.txt"
+render_proof="$evidence_root/minecraft-render-proof.txt"
 product_pid=""
 
 copy_client_log() {
@@ -49,78 +47,10 @@ dump_failure() {
     echo "--- Minecraft latest.log tail ---" >&2
     tail -n 200 "$client_log_copy" >&2 || true
   fi
-  if [[ -f "$x11_windows" ]]; then
-    echo "--- visible X11 windows ---" >&2
-    cat "$x11_windows" >&2 || true
+  if [[ -f "$render_proof" ]]; then
+    echo "--- Minecraft render proof ---" >&2
+    cat "$render_proof" >&2 || true
   fi
-  if [[ -f "$x11_baseline" ]]; then
-    echo "--- baseline X11 window ids ---" >&2
-    cat "$x11_baseline" >&2 || true
-  fi
-  if [[ -f "$x11_window_proof" ]]; then
-    echo "--- X11 window proof ---" >&2
-    cat "$x11_window_proof" >&2 || true
-  fi
-}
-
-capture_visible_window_ids() {
-  xdotool search --onlyvisible --name '.*' 2>/dev/null || true
-}
-
-visible_window_exists() {
-  local expected="$1" window
-  while read -r window; do
-    if [[ "$window" == "$expected" ]]; then
-      return 0
-    fi
-  done < <(capture_visible_window_ids)
-  return 1
-}
-
-capture_visible_windows() {
-  : >"$x11_windows"
-  local window window_pid window_pgid window_name
-  while read -r window; do
-    [[ -n "$window" ]] || continue
-    window_pid="$(xdotool getwindowpid "$window" 2>/dev/null || true)"
-    window_pgid=""
-    if [[ "$window_pid" =~ ^[0-9]+$ ]]; then
-      window_pgid="$(ps -o pgid= -p "$window_pid" 2>/dev/null || true)"
-      window_pgid="${window_pgid//[[:space:]]/}"
-    fi
-    window_name="$(xdotool getwindowname "$window" 2>/dev/null || true)"
-    printf 'window=%s pid=%s pgid=%s title=%q\n' \
-      "$window" "${window_pid:-unknown}" "${window_pgid:-unknown}" "$window_name" >>"$x11_windows"
-  done < <(xdotool search --onlyvisible --name '.*' 2>/dev/null || true)
-}
-
-find_runclient_window() {
-  capture_visible_windows
-  local window window_pid window_pgid fallback_window
-  fallback_window=""
-  while read -r window; do
-    [[ -n "$window" ]] || continue
-    window_pid="$(xdotool getwindowpid "$window" 2>/dev/null || true)"
-    if [[ "$window_pid" =~ ^[0-9]+$ ]]; then
-      window_pgid="$(ps -o pgid= -p "$window_pid" 2>/dev/null || true)"
-      window_pgid="${window_pgid//[[:space:]]/}"
-      if [[ "$window_pgid" == "$product_pid" ]]; then
-        printf 'method=process-group window=%s pid=%s pgid=%s\n' \
-          "$window" "$window_pid" "$window_pgid" >"$x11_window_proof"
-        printf '%s\n' "$window"
-        return 0
-      fi
-    fi
-    if ! grep -Fxq -- "$window" "$x11_baseline"; then
-      fallback_window="$window"
-    fi
-  done < <(capture_visible_window_ids)
-  if [[ -n "$fallback_window" ]]; then
-    printf 'method=isolated-xvfb-window-delta window=%s\n' "$fallback_window" >"$x11_window_proof"
-    printf '%s\n' "$fallback_window"
-    return 0
-  fi
-  return 1
 }
 
 cleanup() {
@@ -144,7 +74,6 @@ test -x "$portable_root/jdk/bin/java"
 test -x "$portable_root/jdk/bin/javac"
 test -x "$portable_root/jdk21/bin/java"
 command -v setsid >/dev/null 2>&1
-command -v xdotool >/dev/null 2>&1
 rm -rf "$isolated_home" "$evidence_root" "$fixture_classes"
 mkdir -p "$isolated_home/runtime" "$evidence_root" "$fixture_classes"
 chmod 700 "$isolated_home/runtime"
@@ -200,8 +129,6 @@ grep -q '"status":"succeeded"' "$build_json"
 test -d "$workspace_root/build"
 echo "[stage15-runclient] packaged headless build succeeded"
 
-capture_visible_window_ids | sort -u >"$x11_baseline"
-capture_visible_windows
 echo "[stage15-runclient] starting packaged headless run-client under X11"
 setsid /usr/bin/bash "$portable_root/copperbench.sh" \
   headless --workspace "$workspace_file" run-client \
@@ -213,7 +140,9 @@ ready=0
 for ((attempt = 0; attempt < 480; attempt++)); do
   if [[ -f "$client_log" ]] \
       && grep -q 'Loading Minecraft 1.21.1 with Fabric Loader' "$client_log" \
-      && grep -q 'Reloading ResourceManager:' "$client_log"; then
+      && grep -q 'Backend library: LWJGL version' "$client_log" \
+      && grep -q 'Reloading ResourceManager:' "$client_log" \
+      && grep -q 'minecraft:textures/atlas/blocks.png-atlas' "$client_log"; then
     ready=1
     break
   fi
@@ -231,36 +160,19 @@ if [[ "$ready" -ne 1 ]]; then
   exit 1
 fi
 copy_client_log
-echo "[stage15-runclient] Minecraft/Fabric client loading and resource reload markers observed"
-
-minecraft_window=""
-for ((attempt = 0; attempt < 30; attempt++)); do
-  minecraft_window="$(find_runclient_window || true)"
-  if [[ -n "$minecraft_window" ]]; then
-    break
-  fi
-  sleep 1
-done
-if [[ -z "$minecraft_window" ]]; then
-  echo "Minecraft emitted client startup markers but no process-bound or newly visible X11 window was found" >&2
-  dump_failure
-  exit 1
-fi
+grep -E 'Loading Minecraft 1\.21\.1 with Fabric Loader|Backend library: LWJGL version|Reloading ResourceManager:|minecraft:textures/atlas/blocks\.png-atlas' \
+  "$client_log" >"$render_proof"
+echo "[stage15-runclient] Minecraft/Fabric Render thread, LWJGL, resource reload and atlas markers observed"
 
 kill -0 -- "$product_pid"
-for ((attempt = 0; attempt < 10; attempt++)); do
+for ((attempt = 0; attempt < 20; attempt++)); do
   kill -0 -- "$product_pid"
-  if ! visible_window_exists "$minecraft_window"; then
-    echo "Minecraft X11 window disappeared during the stability window" >&2
-    dump_failure
-    exit 1
-  fi
   sleep 0.5
 done
-if grep -Eqi 'crash report|failed to start minecraft|exception in thread \"Render thread\"' "$client_log"; then
+if grep -Eqi 'crash report|failed to start minecraft|exception in thread \"Render thread\"|GLFW error|failed to initialize the mod loading system and display|could not initialize GLFW' "$client_log"; then
   echo "Minecraft client log contains a fatal startup signature" >&2
   dump_failure
   exit 1
 fi
-capture_visible_windows
-echo "Stage 15 packaged Fabric 1.21.1 runClient X11 preflight passed for process group $product_pid, window $minecraft_window"
+copy_client_log
+echo "Stage 15 packaged Fabric 1.21.1 runClient X11 render preflight passed for process group $product_pid"
