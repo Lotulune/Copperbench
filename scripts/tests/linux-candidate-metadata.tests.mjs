@@ -88,6 +88,7 @@ test('candidate identity changes if an input artifact changes before freezing', 
 
 test('Stage 15 workflow carries the Linux supply-chain contract', () => {
   const workflow = readFileSync(resolve(root, '.github/workflows/stage15-linux-candidate.yml'), 'utf8');
+  const graphicalSmoke = readFileSync(resolve(root, 'scripts/verify-stage15-linux-x11-ci-smoke.sh'), 'utf8');
   assert.match(workflow, /attestations: write/);
   assert.match(workflow, /id-token: write/);
   assert.match(workflow, /Generate SPDX SBOM for Linux candidate/);
@@ -102,4 +103,10 @@ test('Stage 15 workflow carries the Linux supply-chain contract', () => {
   assert.match(workflow, /manifest\.formalSupportClaim !== false/);
   assert.doesNotMatch(workflow, /grep -q '\"status\" :/);
   assert.match(workflow, /cmp "\$portable_manifest" build\/stage15-deb-smoke\/opt\/copperbench\/linux-candidate-manifest\.json/);
+  assert.match(workflow, /Launch packaged JCEF product shell under Xvfb/);
+  assert.match(workflow, /timeout-minutes: 8/);
+  assert.match(graphicalSmoke, /wait_for_exit "\$bootstrap_pid" 120/);
+  assert.match(graphicalSmoke, /Timed out waiting for the packaged JCEF graphical probe/);
+  assert.match(graphicalSmoke, /dump_bootstrap_failure/);
+  assert.match(graphicalSmoke, /dump_product_failure/);
 });

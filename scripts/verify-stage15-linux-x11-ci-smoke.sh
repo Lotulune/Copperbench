@@ -17,6 +17,34 @@ bootstrap_log="$smoke_root/evidence/bootstrap-create.log"
 bootstrap_pid=""
 product_pid=""
 
+wait_for_exit() {
+  local pid="$1"
+  local limit="$2"
+  for ((attempt = 0; attempt < limit; attempt++)); do
+    if ! kill -0 "$pid" 2>/dev/null; then
+      return 0
+    fi
+    sleep 1
+  done
+  return 1
+}
+
+dump_bootstrap_failure() {
+  echo "--- bootstrap stderr ---" >&2
+  cat "$bootstrap_log" >&2 || true
+  echo "--- bootstrap stdout ---" >&2
+  cat "$bootstrap_json" >&2 || true
+}
+
+dump_product_failure() {
+  echo "--- product shell log ---" >&2
+  cat "$product_log" >&2 || true
+  if [[ -f "$probe" ]]; then
+    echo "--- graphical probe ---" >&2
+    cat "$probe" >&2 || true
+  fi
+}
+
 cleanup() {
   if [[ -n "$bootstrap_pid" ]] && kill -0 "$bootstrap_pid" 2>/dev/null; then
     kill -TERM "$bootstrap_pid" 2>/dev/null || true
@@ -45,6 +73,7 @@ export XDG_STATE_HOME="$isolated_home/state"
 export XDG_RUNTIME_DIR="$isolated_home/runtime"
 export JAVA_TOOL_OPTIONS="-Duser.home=$isolated_home"
 
+echo "[stage15-x11] starting packaged workspace bootstrap"
 "$portable_root/copperbench.sh" bootstrap create-workspace \
   --generator-id resourcepack-1.21.1 \
   --mod-name "Stage15 Graphical Smoke" \
@@ -66,25 +95,43 @@ for ((attempt = 0; attempt < 60; attempt++)); do
 done
 if [[ -z "$approval_window" ]]; then
   echo "Packaged bootstrap did not present the local workspace-creation approval dialog" >&2
-  cat "$bootstrap_log" >&2 || true
+  dump_bootstrap_failure
   exit 1
 fi
-xdotool windowfocus "$approval_window"
-xdotool key --window "$approval_window" Return
+echo "[stage15-x11] approving local workspace creation in X11 window $approval_window"
+xdotool windowfocus "$approval_window" 2>/dev/null || true
+xdotool key --window "$approval_window" --clearmodifiers Return 2>/dev/null || true
+sleep 2
+remaining_approval="$(xdotool search --onlyvisible --name '^Copperbench workspace creation$' 2>/dev/null | head -n 1 || true)"
+if [[ -n "$remaining_approval" ]]; then
+  xdotool key --window "$remaining_approval" --clearmodifiers space 2>/dev/null || true
+  sleep 1
+fi
+remaining_approval="$(xdotool search --onlyvisible --name '^Copperbench workspace creation$' 2>/dev/null | head -n 1 || true)"
+if [[ -n "$remaining_approval" ]]; then
+  xdotool key --window "$remaining_approval" --clearmodifiers alt+y 2>/dev/null || true
+fi
+
+if ! wait_for_exit "$bootstrap_pid" 120; then
+  echo "Packaged bootstrap did not exit within 120 seconds after approval input" >&2
+  dump_bootstrap_failure
+  exit 1
+fi
 if ! wait "$bootstrap_pid"; then
   echo "Packaged bootstrap failed after local workspace-creation approval" >&2
-  cat "$bootstrap_log" >&2 || true
-  cat "$bootstrap_json" >&2 || true
+  dump_bootstrap_failure
   exit 1
 fi
 bootstrap_pid=""
 grep -q '"status":"committed"' "$bootstrap_json"
+echo "[stage15-x11] packaged workspace creation committed"
 
 workspace_file="$(find "$workspace_root" -maxdepth 1 -type f -name '*.mcreator' -print -quit)"
 test -n "$workspace_file"
 test -f "$workspace_file"
 
 export COPPERBENCH_GRAPHICAL_PROBE_RESULT="$probe"
+echo "[stage15-x11] starting packaged graphical product shell"
 "$portable_root/copperbench.sh" "$workspace_file" >"$product_log" 2>&1 &
 product_pid=$!
 
@@ -99,7 +146,7 @@ for ((attempt = 0; attempt < 120; attempt++)); do
   fi
   if ! kill -0 "$product_pid" 2>/dev/null; then
     echo "Packaged Copperbench exited before the graphical probe was written" >&2
-    cat "$product_log" >&2 || true
+    dump_product_failure
     exit 1
   fi
   sleep 1
@@ -107,9 +154,10 @@ done
 
 if [[ ! -f "$probe" ]]; then
   echo "Timed out waiting for the packaged JCEF graphical probe" >&2
-  cat "$product_log" >&2 || true
+  dump_product_failure
   exit 1
 fi
+echo "[stage15-x11] graphical probe emitted"
 
 "$portable_root/jdk/bin/java" \
   -cp "$portable_root/lib/copperbench.jar:$portable_root/lib/*" \
@@ -127,7 +175,7 @@ kill -0 "$product_pid"
 main_window="$(xdotool search --onlyvisible --name '^Stage15 Graphical Smoke.*Copperbench' 2>/dev/null | head -n 1 || true)"
 if [[ -z "$main_window" ]]; then
   echo "The packaged product shell reported ready but no matching X11 workspace window is visible" >&2
-  cat "$product_log" >&2 || true
+  dump_product_failure
   exit 1
 fi
 
