@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://copperbench.dev/schema/experimental-extension-capabilities-0.1.json",
+  "title": "Copperbench experimental extension capability manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "manifestVersion",
+    "compatibilityLevel",
+    "extensionApiVersion",
+    "coreSchema",
+    "extension",
+    "capabilities",
+    "diagnosticBoundary"
+  ],
+  "properties": {
+    "manifestVersion": { "const": "0.1" },
+    "compatibilityLevel": { "const": "experimental" },
+    "extensionApiVersion": { "type": "string", "pattern": "^experimental-[0-9]+$" },
+    "coreSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["minimum", "maximumTested"],
+      "properties": {
+        "minimum": { "type": "string" },
+        "maximumTested": { "type": "string" }
+      }
+    },
+    "extension": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9_.-]+$" },
+        "kind": { "enum": ["generator", "plugin"] }
+      }
+    },
+    "capabilities": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "type": "string" }
+    },
+    "diagnosticBoundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["failureIsolation", "incompatibleBehavior"],
+      "properties": {
+        "failureIsolation": { "const": "plugin_loader" },
+        "incompatibleBehavior": { "const": "reject_unless_explicit_dev_override" }
+      }
+    }
+  }
+}

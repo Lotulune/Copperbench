@@ -19,6 +19,7 @@
 package net.mcreator;
 
 import dev.copperbench.headless.HeadlessProductLauncher;
+import dev.copperbench.headless.BootstrapProductLauncher;
 import dev.copperbench.ProductIdentity;
 import dev.copperbench.release.SupportedPlatform;
 import net.mcreator.io.LoggingSystem;
@@ -49,12 +50,14 @@ public class Launcher {
 
 	public static void main(String[] args) {
 		boolean headless = args.length > 0 && "headless".equalsIgnoreCase(args[0]);
-		PrintWriter headlessOutput = headless ? new PrintWriter(
+		boolean bootstrap = args.length > 0 && "bootstrap".equalsIgnoreCase(args[0]);
+		boolean machineReadable = headless || bootstrap;
+		PrintWriter machineOutput = machineReadable ? new PrintWriter(
 				new OutputStreamWriter(new FileOutputStream(FileDescriptor.out), StandardCharsets.UTF_8), true) : null;
 		if (headless)
 			System.setProperty("java.awt.headless", "true");
 		LoggingSystem.init();
-		if (headless)
+		if (machineReadable)
 			LoggingSystem.disableConsoleOutput();
 
 		TerribleModuleHacks.openAllFor(ClassLoader.getSystemClassLoader().getUnnamedModule());
@@ -111,8 +114,9 @@ public class Launcher {
 		WindowsPackage.initIfWindows();
 
 		if (!UserFolderManager.createUserFolderIfNotExists()) {
-			if (headless) {
-				headlessOutput.println("{\"schemaVersion\":\"1.0\",\"operation\":\"headless_product_start\","
+			if (machineReadable) {
+				machineOutput.println("{\"schemaVersion\":\"1.0\",\"operation\":\""
+						+ (headless ? "headless_product_start" : "bootstrap_product_start") + "\","
 						+ "\"status\":\"failed\",\"code\":\"USER_DIRECTORY_UNAVAILABLE\",\"exitCode\":10}");
 				System.exit(10);
 				return;
@@ -128,7 +132,13 @@ public class Launcher {
 
 		if (headless) {
 			int exitCode = HeadlessProductLauncher.run(Arrays.copyOfRange(args, 1, args.length),
-					headlessOutput);
+					machineOutput);
+			System.exit(exitCode);
+			return;
+		}
+
+		if (bootstrap) {
+			int exitCode = BootstrapProductLauncher.run(Arrays.copyOfRange(args, 1, args.length), machineOutput);
 			System.exit(exitCode);
 			return;
 		}

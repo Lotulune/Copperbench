@@ -59,6 +59,7 @@ public final class HeadlessCli {
 				commands.add("run-gametest");
 				commands.add("export");
 				commands.add("list-new-workspace-generators");
+				commands.add("environment");
 				commands.add("create-workspace");
 				commands.add("tracks");
 				commands.add("release");
@@ -141,7 +142,7 @@ public final class HeadlessCli {
 		if (arguments[0].equals("help") || arguments[0].equals("--help"))
 			return new ParsedCommand(null, 0, false, new JsonObject(), true, false);
 		boolean query = switch (arguments[0]) {
-			case "list-new-workspace-generators", "tracks", "release", "preview-migrate", "preview-import", "plugins",
+			case "list-new-workspace-generators", "environment", "tracks", "release", "preview-migrate", "preview-import", "plugins",
 					"elements", "upstream-tools", "procedure", "preview-procedure", "references", "registries",
 					"preview-registry-rename", "preview-datagen" -> true;
 			default -> false;
@@ -156,6 +157,7 @@ public final class HeadlessCli {
 			case "run-gametest" -> Operation.RUN_GAMETEST;
 			case "export" -> Operation.EXPORT_WORKSPACE;
 			case "list-new-workspace-generators" -> Operation.LIST_NEW_WORKSPACE_GENERATORS;
+			case "environment" -> Operation.GET_WORKSPACE_ENVIRONMENT;
 			case "create-workspace" -> Operation.CREATE_WORKSPACE;
 			case "tracks" -> Operation.GET_VERSION_TRACKS;
 			case "release" -> Operation.GET_RELEASE_NOTES;

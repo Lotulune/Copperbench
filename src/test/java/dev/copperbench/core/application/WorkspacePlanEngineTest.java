@@ -83,6 +83,32 @@ class WorkspacePlanEngineTest {
 		assertEquals(8, fixture.store().read(WORKSPACE_ID).orElseThrow().revision());
 	}
 
+	@Test void highImpactReviewDoesNotInventAiOnlyApprovalForWorkspaceAuthorizedPlan() {
+		Fixture fixture = fixture(false);
+		JsonObject plan = plan(fixture.service(), MCP, 7, "high-impact-local-creates",
+				createElement("item", "planned_item_1"), createElement("item", "planned_item_2"),
+				createElement("item", "planned_item_3"), createElement("item", "planned_item_4"),
+				createElement("item", "planned_item_5"));
+
+		JsonObject summary = plan.getAsJsonObject("review").getAsJsonObject("summary");
+		assertTrue(summary.get("highImpact").getAsBoolean());
+		assertEquals(5, summary.get("operationCount").getAsInt());
+		assertTrue(plan.getAsJsonObject("permission").get("allowed").getAsBoolean());
+		assertFalse(plan.has("userApproved"));
+
+		JsonObject previewPayload = new JsonObject();
+		previewPayload.add("plan", plan.deepCopy());
+		var preview = fixture.service().query(Query.of(uuid(13), WORKSPACE_ID,
+				Operation.PREVIEW_WORKSPACE_PLAN, previewPayload), MCP);
+		assertEquals("succeeded", preview.status());
+		assertTrue(preview.data().getAsJsonObject().get("wouldApply").getAsBoolean());
+
+		var applied = fixture.service().execute(applyCommand(14, 7, plan), MCP);
+		assertEquals("committed", applied.result().status(), applied.result().diagnostics().toString());
+		assertEquals(8, applied.result().newRevision());
+		assertEquals(5, fixture.store().read(WORKSPACE_ID).orElseThrow().elements().size());
+	}
+
 	@Test void batchProcedureResourceReplacementUpdatesMultipleCallersAsOneProtectedRevision() {
 		Fixture fixture = fixture(false);
 		RequestContext ui = new RequestContext(Actor.UI, PermissionProfile.WORKSPACE);

@@ -1,0 +1,5 @@
+The first server-probes.ps1 invocation failed before Gradle/JVM execution because
+the Tasks string started with -I and PowerShell treated it as a missing argument.
+Both project invocations reported: Missing an argument for parameter 'Tasks'.
+The test launcher was corrected by placing runServer before -I.
+This is an experiment-launcher error, not a mod or Copperbench runtime result.

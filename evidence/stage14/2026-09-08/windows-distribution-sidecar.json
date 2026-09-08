@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "stage14-windows-distribution-sidecar",
+  "capturedAt": "2026-09-07T19:21:11.8535449+00:00",
+  "exportRoot": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\build\\export\\win64",
+  "mainRuntime": {
+    "path": "build/export/win64/jdk",
+    "version": "openjdk version \"25.0.3\" 2026-04-21"
+  },
+  "java21Sidecar": {
+    "path": "build/export/win64/jdk21",
+    "version": "openjdk version \"21.0.12\" 2026-07-21 LTS"
+  },
+  "gradleBridge": {
+    "class": "net.mcreator.gradle.GradleSyncBuildAction",
+    "classMajor": 61,
+    "javaRelease": 17
+  },
+  "installer": {
+    "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\build\\export\\Copperbench 0.1.0 Windows 64bit.exe",
+    "bytes": 854786954,
+    "sha256": "6F6E151FBA8BC7763C01D2C057F5BC3DBD32B3D86CA7406B37400DC66AB6FA11",
+    "buildTask": "buildInstallerWin64",
+    "buildResult": "passed"
+  },
+  "claims": {
+    "mainApplicationRuntime": "JBR25",
+    "java17And21WorkspaceRuntime": "Temurin21 sidecar",
+    "toolingActionLoadableOnJava17Plus": true
+  }
+}

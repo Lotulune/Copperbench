@@ -31,6 +31,9 @@ import java.util.function.Supplier;
 public final class NeoForge1211WorkspaceTaskGateway implements WorkspaceTaskGateway, AutoCloseable {
 
 	private final GradleWorkspaceTaskGateway delegate;
+	private final Function<UUID, Path> workspaceRoots;
+	private final Path distributionRoot;
+	private final NeoForge1211Generator.Profile profile;
 
 	public NeoForge1211WorkspaceTaskGateway(RevisionedWorkspaceStore store, Function<UUID, Path> workspaceRoots,
 			Path distributionRoot, Clock clock, Supplier<UUID> ids) {
@@ -53,6 +56,9 @@ public final class NeoForge1211WorkspaceTaskGateway implements WorkspaceTaskGate
 	public NeoForge1211WorkspaceTaskGateway(RevisionedWorkspaceStore store, Function<UUID, Path> workspaceRoots,
 			Path distributionRoot, Clock clock, Supplier<UUID> ids, NeoForge1211Generator.Profile profile,
 			Fabric1211ProcessRunner processes) {
+		this.workspaceRoots = workspaceRoots;
+		this.distributionRoot = distributionRoot.toAbsolutePath().normalize();
+		this.profile = profile;
 		GradleProcessRunner processAdapter = (root, arguments, timeout, output) -> {
 			var result = processes.run(root, arguments, timeout, output);
 			return new GradleProcessRunner.ProcessResult(result.exitCode(), result.readinessMarkerSeen());
@@ -88,6 +94,39 @@ public final class NeoForge1211WorkspaceTaskGateway implements WorkspaceTaskGate
 
 	@Override public List<JsonObject> diagnostics(UUID workspaceId, UUID taskId) {
 		return delegate.diagnostics(workspaceId, taskId);
+	}
+
+	@Override public JsonObject environment(UUID workspaceId) {
+		Path root = workspaceRoots.apply(workspaceId).toAbsolutePath().normalize();
+		Path javaHome = BundledJdkLocator.locate(distributionRoot, profile.javaRelease()).toAbsolutePath().normalize();
+		JsonObject environment = new JsonObject();
+		environment.addProperty("generatorId", profile.generatorId());
+		environment.addProperty("loader", "neoforge");
+		environment.addProperty("minecraftVersion", profile.minecraftVersion());
+		environment.addProperty("loaderVersion", profile.neoForgeVersion());
+		environment.addProperty("loaderDependency", profile.loaderDependency());
+		environment.addProperty("workspaceRoot", root.toString());
+		environment.addProperty("sourceRoot", root.resolve("src/main/java").toString());
+		environment.addProperty("resourceRoot", root.resolve("src/main/resources").toString());
+		JsonObject java = new JsonObject();
+		java.addProperty("requiredRelease", profile.javaRelease());
+		java.addProperty("home", javaHome.toString());
+		java.addProperty("executable", javaHome.resolve("bin")
+				.resolve(System.getProperty("os.name", "").toLowerCase().contains("win") ? "java.exe" : "java").toString());
+		environment.add("java", java);
+		JsonObject gradle = new JsonObject();
+		gradle.addProperty("distribution", profile.fabricProfile().gradleWrapperZip());
+		gradle.addProperty("windowsLauncher", root.resolve("gradlew.bat").toString());
+		gradle.addProperty("posixLauncher", root.resolve("gradlew").toString());
+		JsonObject tasks = new JsonObject();
+		tasks.addProperty("build", "build");
+		tasks.addProperty("runClient", "runClient");
+		tasks.addProperty("runServer", "runServer");
+		tasks.addProperty("runDatagen", "runDatagen");
+		tasks.addProperty("runGameTest", "runGameTest");
+		gradle.add("tasks", tasks);
+		environment.add("gradle", gradle);
+		return environment;
 	}
 
 	@Override public Optional<JsonObject> sourcePreview(UUID workspaceId, UUID taskId, String sourcePath) {

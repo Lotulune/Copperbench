@@ -1,5 +1,7 @@
 package dev.copperbench.core.workspace.mcreator;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import dev.copperbench.core.workspace.ProductMetadataManager;
@@ -13,8 +15,11 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
@@ -49,12 +54,71 @@ public final class MCreatorWorkspaceStateMapper {
 		}
 		if (values == null)
 			values = new JsonObject();
+		if ("code".equals(element.getTypeString()))
+			values = refreshCodeValuesFromDisk(workspace, element, values);
 		Instant updatedAt = Files.isRegularFile(definitionFile)
 				? Files.getLastModifiedTime(definitionFile).toInstant() : Instant.EPOCH;
 		String displayName = values.has("displayName") && values.get("displayName").isJsonPrimitive()
 				? values.get("displayName").getAsString() : displayName(element.getName());
-		return new Element(id, element.getTypeString(), element.getRegistryName(), displayName, "valid", "generated",
+		return new Element(id, element.getTypeString(), element.getRegistryName(), displayName, "valid",
+				element.isCodeLocked() ? "manual" : "generated",
 				updatedAt, values);
+	}
+
+	private JsonObject refreshCodeValuesFromDisk(Workspace workspace, ModElement element, JsonObject stored)
+			throws IOException {
+		JsonObject values = stored.deepCopy();
+		Path workspaceRoot = workspace.getWorkspaceFolder().toPath().toAbsolutePath().normalize();
+		List<Path> bundlePaths = new ArrayList<>();
+		Object bundleMetadata = element.getMetadata(MCreatorWorkspaceMutationGateway.CODE_FILES_METADATA);
+		if (bundleMetadata instanceof List<?> paths) {
+			for (Object value : paths) {
+				Path path = workspaceRoot.resolve(value.toString()).toAbsolutePath().normalize();
+				if (path.startsWith(workspaceRoot)) bundlePaths.add(path);
+			}
+		}
+		Path primary = element.getAssociatedFiles().stream()
+				.map(java.io.File::toPath)
+				.map(path -> path.toAbsolutePath().normalize())
+				.filter(path -> path.getFileName().toString().endsWith(".java"))
+				.filter(path -> bundlePaths.stream().noneMatch(path::equals))
+				.findFirst().orElse(null);
+		if (primary == null || !Files.isRegularFile(primary)) return values;
+
+		values.addProperty("code", Files.readString(primary, StandardCharsets.UTF_8));
+		JsonObject fingerprints = new JsonObject();
+		fingerprints.addProperty("$primary", fingerprint(primary));
+		if (values.has("codeFiles") && values.get("codeFiles").isJsonArray()) {
+			JsonArray refreshed = new JsonArray();
+			Path base = primary.getParent();
+			for (JsonElement raw : values.getAsJsonArray("codeFiles")) {
+				if (!raw.isJsonObject()) {
+					refreshed.add(raw.deepCopy());
+					continue;
+				}
+				JsonObject file = raw.getAsJsonObject().deepCopy();
+				if (file.has("path") && file.get("path").isJsonPrimitive()) {
+					String relative = file.get("path").getAsString().replace('\\', '/');
+					Path target = base.resolve(relative).toAbsolutePath().normalize();
+					if (target.startsWith(base) && Files.isRegularFile(target)) {
+						file.addProperty("code", Files.readString(target, StandardCharsets.UTF_8));
+						fingerprints.addProperty(relative, fingerprint(target));
+					}
+				}
+				refreshed.add(file);
+			}
+			values.add("codeFiles", refreshed);
+		}
+		values.add("sourceFingerprints", fingerprints);
+		return values;
+	}
+
+	private static String fingerprint(Path path) throws IOException {
+		try {
+			return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(Files.readAllBytes(path)));
+		} catch (NoSuchAlgorithmException exception) {
+			throw new AssertionError("JVM must provide SHA-256", exception);
+		}
 	}
 
 	private JsonObject generator(Workspace workspace) {

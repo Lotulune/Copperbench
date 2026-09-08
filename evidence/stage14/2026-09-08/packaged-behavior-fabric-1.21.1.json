@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "1.1",
+  "kind": "stage14c-packaged-real-world-behavior",
+  "generatorId": "fabric-1.21.1",
+  "minecraftVersion": "1.21.1",
+  "loaderVersion": "0.19.3",
+  "java21Home": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\jdk\\jdk21_win_64",
+  "prepared": true,
+  "compiled": true,
+  "packagedJarLoaded": true,
+  "hostContainsSurveySources": false,
+  "initializerExecuted": true,
+  "eulaBoundaryStatus": "not_applicable_game_test_bypass",
+  "eulaAcceptedByHarness": false,
+  "serverReady": true,
+  "serverReadyMode": "fabric_headless_gametest_dedicated",
+  "worldBehaviorVerified": true,
+  "behaviorVerified": true,
+  "gameplayRuntimeExitCode": 0,
+  "gameplayRuntimeTimedOut": false,
+  "fatalSeen": false,
+  "packagedJarSha256": "d3260a653440f644b34afa3226cc26c651830bbf05223aff92cc6d2b964b0e81",
+  "behaviorScope": [
+    "real Minecraft ServerLevel in Fabric headless GameTest server",
+    "isolated generated GameTest world",
+    "controlled near/far ore placement",
+    "real ServerboundUseItemPacket through ServerGamePacketListenerImpl",
+    "Fabric UseItemCallback dispatch",
+    "ordinary radius 5 versus sneak radius 8",
+    "60-tick cooldown rejection and natural expiry",
+    "spectator rejection",
+    "two ServerPlayer cooldown isolation"
+  ],
+  "explicitlyNotClaimed": [
+    "ordinary EULA-accepted dedicated-server startup",
+    "physical OS mouse input",
+    "rendered client HUD/particle appearance"
+  ],
+  "logFile": "evidence/stage14/2026-09-08/packaged-behavior-fabric-1.21.1.log",
+  "durationSeconds": 157.297,
+  "passed": true,
+  "completedAt": "2026-09-08T02:33:49.605034500Z"
+}

@@ -1,0 +1,10 @@
+{
+  "track": "neoforge-1.21.1",
+  "label": "native-bootstrap",
+  "exitCode": -1,
+  "timedOut": true,
+  "elapsedMs": 150289,
+  "javaHome": "D:\\AICoding\\Minecraft_ModCreator\\jdk\\jdk21_win_64",
+  "gradleHome": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\build\\stage8-workspace-generator-gradle\\neoforge-1_21_1",
+  "completedAt": "2026-09-07T10:19:02.2510003+00:00"
+}

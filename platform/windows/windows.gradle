@@ -32,6 +32,7 @@ launch4j {
 
 tasks.register('exportWin64', Copy.class) {
     dependsOn downloadJDKWin64
+    dependsOn downloadJDK21Win64
     dependsOn createAllExecutables
     dependsOn jar
     dependsOn exportPlugins
@@ -54,6 +55,7 @@ tasks.register('exportWin64', Copy.class) {
     into('license') { from 'license' }
     into('user') { from file('docs/user/README.md') }
     into('jdk') { from 'jdk/jbr25_win_64' }
+    into('jdk21') { from 'jdk/jdk21_win_64' }
     def gradleDistSources = [
             file("${System.getProperty('user.home')}/.copperbench/gradle/wrapper/dists"),
             file("${System.getProperty('user.home')}/.gradle/wrapper/dists")

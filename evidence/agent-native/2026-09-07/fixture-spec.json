@@ -1,0 +1,34 @@
+{
+  "name": "Survey Pulse paired authoring trial",
+  "specificationOrigin": "Same feature set from the prior Copperbench trial, available before native authoring",
+  "modId": "survey_pulse",
+  "minecraft": "1.21.1",
+  "loader": "Fabric 0.19.3",
+  "mappings": "official Mojang",
+  "features": {
+    "item": "survey_wand",
+    "maxStackSize": 1,
+    "normalRadius": 5,
+    "sneakingRadius": 8,
+    "scanShape": "inclusive axis-aligned cube; loaded positions only",
+    "orePolicy": "registry path ends with _ore or equals ancient_debris",
+    "feedback": "count and nearest relative coordinates; no-ore message",
+    "cooldownTicks": 60,
+    "authority": "server",
+    "particle": "END_ROD, 12 particles at the nearest block",
+    "recipe": "amethyst_shard + copper_ingot -> 1 survey_wand",
+    "texture": "vanilla minecraft:item/amethyst_shard"
+  },
+  "acceptanceLayers": {
+    "packaged": "real remapped JAR with entrypoint, item model, language and recipe",
+    "pureLogic": "8 executable native scanner assertions; not in-game tests",
+    "preservation": "external helper edit hash survives display-name resource edit and build",
+    "gameplay": "not claimed without actual Minecraft interaction evidence"
+  },
+  "matchedBuilds": {
+    "order": ["native", "copperbench", "copperbench", "native"],
+    "tasks": "clean assemble",
+    "runner": "same JDK 21, Gradle 9.7.0 wrapper, --no-daemon; existing user dependency cache",
+    "limits": "two samples per project; scaffold and project-cache contents differ; not a statistical productivity benchmark"
+  }
+}

@@ -1,0 +1,40 @@
+plugins {
+    id 'net.fabricmc.fabric-loom-remap' version '1.17.19'
+}
+
+group = 'dev.example'
+version = '1.0'
+base.archivesName = 'survey_pulse'
+
+dependencies {
+    minecraft 'com.mojang:minecraft:1.21.1'
+    mappings loom.officialMojangMappings()
+    modImplementation 'net.fabricmc:fabric-loader:0.19.3'
+    modImplementation 'net.fabricmc.fabric-api:fabric-api:0.116.15+1.21.1'
+}
+
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(21)
+    withSourcesJar()
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 21
+}
+
+// Keep executable contract checks separate from Gradle's JUnit test discovery.
+sourceSets {
+    contractTest {
+        compileClasspath += sourceSets.main.output
+        runtimeClasspath += sourceSets.main.output
+    }
+}
+
+// These are pure scanner contract checks, not Minecraft runtime/gameplay tests.
+tasks.register('scannerContractTest', JavaExec) {
+    dependsOn contractTestClasses
+    classpath = sourceSets.contractTest.runtimeClasspath
+    mainClass = 'dev.example.surveypulse.ScannerContractTest'
+}
+check.dependsOn scannerContractTest

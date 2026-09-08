@@ -1,0 +1,224 @@
+[
+  {
+    "variant": "copperbench",
+    "path": "src/main/java/dev/example/surveypulse/OreScanner.java",
+    "bytes": 1619,
+    "sha256": "32DABC6ECE029E7968E73DE065D92268A719083AC16A31BF39815DFA1AE9F1AE"
+  },
+  {
+    "variant": "copperbench",
+    "path": "src/main/java/dev/example/surveypulse/pulse_runtime.java",
+    "bytes": 2446,
+    "sha256": "192BB90705CDDE79464AD993222E5092FF04CC12D685B788EE80BC3E1E170068"
+  },
+  {
+    "variant": "copperbench",
+    "path": "src/main/java/dev/example/surveypulse/ScanResult.java",
+    "bytes": 801,
+    "sha256": "E503C0C5E7F72B8F94E024FB6395EBDB317E979736452DF28DAFA68CF4999BE4"
+  },
+  {
+    "variant": "copperbench",
+    "path": "src/main/java/dev/example/surveypulse/SurveyPulseMod.java",
+    "bytes": 3145,
+    "sha256": "3EC3A60A56B6E4A62D489CFAF8AE856B7F5064374E9EAE9B9CE17C7124E7604F"
+  },
+  {
+    "variant": "copperbench",
+    "path": "src/main/java/dev/example/surveypulse/SurveyPulseModClient.java",
+    "bytes": 680,
+    "sha256": "8B47DAD9365B247CBB187DC9F0C205A8DE6821D53F67057E2FC5FD3C241E5FD4"
+  },
+  {
+    "variant": "copperbench",
+    "path": "src/main/java/dev/example/surveypulse/event/BlockEvents.java",
+    "bytes": 1385,
+    "sha256": "FEB9859277E5E965DF6DB9EBD9B83ED1B1ED738E04FDD07F51C3495047FB856B"
+  },
+  {
+    "variant": "copperbench",
+    "path": "src/main/java/dev/example/surveypulse/event/ItemEvents.java",
+    "bytes": 889,
+    "sha256": "C31A655DEFBB8A7D9D1381010FA4E25C10259D442A369ECC0675FBA0BF6EC16F"
+  },
+  {
+    "variant": "copperbench",
+    "path": "src/main/java/dev/example/surveypulse/event/LivingEntityEvents.java",
+    "bytes": 4086,
+    "sha256": "A8E0EB730464942259DC00999FCF821BDAD921A210B23D55D0D8BADCFCE24934"
+  },
+  {
+    "variant": "copperbench",
+    "path": "src/main/java/dev/example/surveypulse/event/MiscEvents.java",
+    "bytes": 719,
+    "sha256": "AC4BFB60E714EA282FF8D0D3AD0529DC0D28D912B4AA8F8B6E1371FB3F1AB398"
+  },
+  {
+    "variant": "copperbench",
+    "path": "src/main/java/dev/example/surveypulse/event/PlayerEvents.java",
+    "bytes": 1630,
+    "sha256": "B260E2D2B26A653E0BB3768AC673D4B565A2B56DC383D2589F958ACD2B6EF6C6"
+  },
+  {
+    "variant": "copperbench",
+    "path": "src/main/java/dev/example/surveypulse/init/SurveyPulseModItems.java",
+    "bytes": 1216,
+    "sha256": "7AE3B67D191B4D003840C93CC00B7C344EAC26A20E171D2DB73E5BB5E592591A"
+  },
+  {
+    "variant": "copperbench",
+    "path": "src/main/java/dev/example/surveypulse/item/survey_wandItem.java",
+    "bytes": 535,
+    "sha256": "62B08D88B4895E60487545AD4F7E4D7F457C57F72EB151D12A99B3F6910409AF"
+  },
+  {
+    "variant": "copperbench",
+    "path": "src/main/java/dev/example/surveypulse/mixin/BlockItemMixin.java",
+    "bytes": 1313,
+    "sha256": "FA84A0683008B3270F2F94B69FD6368546DBDBE3E1C363B015C69F857AE6F720"
+  },
+  {
+    "variant": "copperbench",
+    "path": "src/main/java/dev/example/surveypulse/mixin/BoneMealItemMixin.java",
+    "bytes": 1219,
+    "sha256": "96079B9F92E3FA5127E7D9B8D15A2EAC88C87A517651D66F9EBF0B9C2319BAB4"
+  },
+  {
+    "variant": "copperbench",
+    "path": "src/main/java/dev/example/surveypulse/mixin/CommandsMixin.java",
+    "bytes": 895,
+    "sha256": "485B934A769C1530C2B501BAEFDCFA5A524ABE7A7B136C31BA33068AAFA3A5E0"
+  },
+  {
+    "variant": "copperbench",
+    "path": "src/main/java/dev/example/surveypulse/mixin/ExperienceOrbMixin.java",
+    "bytes": 899,
+    "sha256": "596C3CCA9B16C4B2ACA00978D23CF7019817C8ABE9B72C7D2F1B974EFD8FC174"
+  },
+  {
+    "variant": "copperbench",
+    "path": "src/main/java/dev/example/surveypulse/mixin/ItemStackMixin.java",
+    "bytes": 1541,
+    "sha256": "AF976B79FB48A1BFC3DEE179E05262A3C3A10BAAC82F649A053CDDE6E2672A07"
+  },
+  {
+    "variant": "copperbench",
+    "path": "src/main/java/dev/example/surveypulse/mixin/LivingEntityMixin.java",
+    "bytes": 4414,
+    "sha256": "663C220250617023C33D27584F7C550F74112D39784CD91F0346317AF987643C"
+  },
+  {
+    "variant": "copperbench",
+    "path": "src/main/java/dev/example/surveypulse/mixin/PlayerMixin.java",
+    "bytes": 1033,
+    "sha256": "41760452458471F8201E066534FCCC0BD2FF67F9846C4276B72C2A98DF46A94D"
+  },
+  {
+    "variant": "copperbench",
+    "path": "src/main/java/dev/example/surveypulse/mixin/RepairItemRecipeMixin.java",
+    "bytes": 1105,
+    "sha256": "DD0DA6AA8C11E3873A2A008E0C2CF3D356FDAF69B645136AE73E3ACC03862B24"
+  },
+  {
+    "variant": "copperbench",
+    "path": "src/main/java/dev/example/surveypulse/mixin/ServerPlayerMixin.java",
+    "bytes": 696,
+    "sha256": "F133405D3774C1D363F767E50DF6FD1AB19B72D61E512AE928F1A11DF24C873F"
+  },
+  {
+    "variant": "copperbench",
+    "path": "src/main/resources/fabric.mod.json",
+    "bytes": 622,
+    "sha256": "583C879CDBB1015425385045EE73C5D73FC29EC54C7165755358421B225D8D5D"
+  },
+  {
+    "variant": "copperbench",
+    "path": "src/main/resources/pack.mcmeta",
+    "bytes": 64,
+    "sha256": "ED7ADA42029D051725639FCE55F7E31BE7481342BAAECB3FE925E67AFE03D36D"
+  },
+  {
+    "variant": "copperbench",
+    "path": "src/main/resources/survey_pulse.mixins.json",
+    "bytes": 462,
+    "sha256": "D758B4BCB3FCE700BE632697B4F32B853F5A981E3FCCA195115F0E7FAD123585"
+  },
+  {
+    "variant": "copperbench",
+    "path": "src/main/resources/assets/survey_pulse/lang/en_us.json",
+    "bytes": 52,
+    "sha256": "62F75FDF2E659DCF843F9437AB3EB035DE3FEFE2758D30CD9C31B2C62FE2867D"
+  },
+  {
+    "variant": "copperbench",
+    "path": "src/main/resources/assets/survey_pulse/models/item/survey_wand.json",
+    "bytes": 99,
+    "sha256": "3CD6469999B03E95351D58FED4F1EE2F5E51BCE7B0DFA145619D02F5B3EA284D"
+  },
+  {
+    "variant": "copperbench",
+    "path": "src/main/resources/data/survey_pulse/recipes/survey_wand.json",
+    "bytes": 180,
+    "sha256": "4E1EE671ABF42165DF9C97561A1A664766EC641A307F2604E3E7C257AB48F206"
+  },
+  {
+    "variant": "copperbench",
+    "path": "src/main/resources/META-INF/survey_pulse.classtweaker",
+    "bytes": 514,
+    "sha256": "0DA91026F7101E2E83C52818553DFD27BD674917E0ABDE19E2C96DE5047DC4FF"
+  },
+  {
+    "variant": "copperbench",
+    "path": "elements/survey_wand.mod.json",
+    "bytes": 1176,
+    "sha256": "E355163F7C1D1FB9C0912B79B326EE22A0C8E6C79C088EC5D5BF80652DBABA3B"
+  },
+  {
+    "variant": "native",
+    "path": "src/main/java/dev/example/surveypulse/OreScanner.java",
+    "bytes": 1594,
+    "sha256": "F6BBBDF14663D18397CDF98DF452DF74D539E14CB7401D120EAE68C8292155FF"
+  },
+  {
+    "variant": "native",
+    "path": "src/main/java/dev/example/surveypulse/pulse_runtime.java",
+    "bytes": 2446,
+    "sha256": "192BB90705CDDE79464AD993222E5092FF04CC12D685B788EE80BC3E1E170068"
+  },
+  {
+    "variant": "native",
+    "path": "src/main/java/dev/example/surveypulse/ScanResult.java",
+    "bytes": 801,
+    "sha256": "E503C0C5E7F72B8F94E024FB6395EBDB317E979736452DF28DAFA68CF4999BE4"
+  },
+  {
+    "variant": "native",
+    "path": "src/main/java/dev/example/surveypulse/SurveyPulseMod.java",
+    "bytes": 455,
+    "sha256": "51E6A141A8882A51FECA3244DAB1B034984AF600C8BBD353D24A42C69C6DE394"
+  },
+  {
+    "variant": "native",
+    "path": "src/main/resources/fabric.mod.json",
+    "bytes": 318,
+    "sha256": "BEB4CAD2CB2A02395ED741C637CF6E0A057F36711A3E85B53D2B03F36DF26503"
+  },
+  {
+    "variant": "native",
+    "path": "src/main/resources/assets/survey_pulse/lang/en_us.json",
+    "bytes": 47,
+    "sha256": "4D74C924E5A9ECF1CE938E261BF3375A14BA3BC23BFFAC2D87BCB3ED553CCAB1"
+  },
+  {
+    "variant": "native",
+    "path": "src/main/resources/assets/survey_pulse/models/item/survey_wand.json",
+    "bytes": 91,
+    "sha256": "9076C8347551DCD9818F79B79543BF99B4B34BAEBC941113767F9C27047DFA6D"
+  },
+  {
+    "variant": "native",
+    "path": "src/main/resources/data/survey_pulse/recipes/survey_wand.json",
+    "bytes": 180,
+    "sha256": "4E1EE671ABF42165DF9C97561A1A664766EC641A307F2604E3E7C257AB48F206"
+  }
+]

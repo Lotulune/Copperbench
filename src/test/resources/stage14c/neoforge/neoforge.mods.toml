@@ -1,0 +1,7 @@
+modLoader="javafml"
+loaderVersion="[4,)"
+license="All Rights Reserved"
+[[mods]]
+modId="stage14c_host"
+version="1.0.0"
+displayName="Stage 14C NeoForge Host"

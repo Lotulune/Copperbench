@@ -1,0 +1,23 @@
+{
+  "scope": "Fabric 1.21.1 development-source server bootstrap using the disposable Survey Pulse audit fixture",
+  "generatorFixes": [
+    "ServerPlayerMixin: drop(Z)V -> drop(Z)Z",
+    "RepairItemRecipeMixin: assemble(CraftingInput) -> assemble(CraftingInput, HolderLookup.Provider)"
+  ],
+  "runtime": {
+    "minecraft": "1.21.1",
+    "fabricLoader": "0.19.3",
+    "java": "21",
+    "modInitialized": true,
+    "initializationMarker": "SURVEY_PULSE_INITIALIZED",
+    "reachedUnacceptedEulaBoundary": true,
+    "gradleExitCode": 0,
+    "gradleResult": "BUILD SUCCESSFUL"
+  },
+  "notes": [
+    "The original ServerPlayerMixin failure was no longer reached after its template fix.",
+    "The next bootstrap exposed RepairItemRecipeMixin as an independent descriptor failure; after fixing it, the same probe reached the EULA boundary.",
+    "The probe intentionally kept eula=false and therefore did not create a world.",
+    "This does not validate packaged-JAR deployment, multiplayer/gameplay behavior, other generator tracks, or the earlier Commands remap warning."
+  ]
+}

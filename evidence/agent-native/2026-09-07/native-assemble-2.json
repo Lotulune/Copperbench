@@ -1,0 +1,10 @@
+{
+  "label": "native-assemble-2",
+  "project": "native",
+  "startedAt": "2026-09-07T05:43:10.1826408+00:00",
+  "elapsedMs": 23826,
+  "tasks": "clean assemble",
+  "exitCode": 0,
+  "timedOut": false,
+  "cache": "shared prewarmed user Gradle home; project-local cache state varies"
+}

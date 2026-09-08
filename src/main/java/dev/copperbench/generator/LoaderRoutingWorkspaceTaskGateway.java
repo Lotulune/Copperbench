@@ -156,6 +156,24 @@ public final class LoaderRoutingWorkspaceTaskGateway implements WorkspaceTaskGat
 		return owner == null ? List.of() : owner.diagnostics(workspaceId, taskId);
 	}
 
+	@Override public JsonObject environment(UUID workspaceId) {
+		String generatorId = store.read(workspaceId).map(state -> state.generator().get("id"))
+				.filter(value -> value != null && value.isJsonPrimitive()).map(value -> value.getAsString())
+				.orElseThrow(() -> new IllegalArgumentException("Workspace generator is missing"));
+		return switch (generatorId) {
+			case "fabric-1.21.1" -> fabric.environment(workspaceId);
+			case "fabric-26.1.2" -> fabric261.environment(workspaceId);
+			case "fabric-26.2" -> fabric262.environment(workspaceId);
+			case "fabric-1.20.1" -> fabric1201.environment(workspaceId);
+			case "neoforge-1.21.1" -> neoForge.environment(workspaceId);
+			case "neoforge-26.1.2" -> neoForge261.environment(workspaceId);
+			case "neoforge-26.2" -> neoForge262.environment(workspaceId);
+			case "neoforge-1.20.1" -> neoForge1201.environment(workspaceId);
+			case ResourcePackWorkspaceTaskGateway.GENERATOR_ID -> resourcePack.environment(workspaceId);
+			default -> new JsonObject();
+		};
+	}
+
 	@Override public Optional<JsonObject> previewDatagen(UUID workspaceId, UUID taskId) {
 		WorkspaceTaskGateway owner = owner(workspaceId, taskId);
 		return owner == null ? Optional.empty() : owner.previewDatagen(workspaceId, taskId);

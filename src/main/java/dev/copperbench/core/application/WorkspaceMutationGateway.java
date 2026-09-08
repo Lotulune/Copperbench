@@ -22,6 +22,28 @@ import java.util.List;
 			throws Exception {
 	}
 
+	/** Persists a validated workspace plan plus bounded file artifacts as one durable transaction. */
+	default void persistWorkspacePlan(WorkspaceState before, WorkspaceState after, List<Operation> operations,
+			List<WorkspacePlanArtifact> artifacts) throws Exception {
+		if (artifacts == null || artifacts.isEmpty()) {
+			persistWorkspacePlan(before, after, operations);
+			return;
+		}
+		throw new UnsupportedOperationException("This mutation gateway does not support workspace plan artifacts");
+	}
+
+	/** Performs mutation-backend preflight checks that must agree between plan, preview, and apply. */
+	default void validateWorkspacePlan(WorkspaceState before, WorkspaceState after) throws Exception {
+	}
+
+	/** Performs preflight for structured plan mutations plus bounded file artifacts. */
+	default void validateWorkspacePlan(WorkspaceState before, WorkspaceState after,
+			List<WorkspacePlanArtifact> artifacts) throws Exception {
+		validateWorkspacePlan(before, after);
+		if (artifacts != null && !artifacts.isEmpty())
+			throw new UnsupportedOperationException("This mutation gateway does not support workspace plan artifacts");
+	}
+
 	/** Synchronizes durable product metadata after local history replaced workspace files. */
 	default void persistRestoredRevision(WorkspaceState restored, long newRevision) throws Exception {
 	}

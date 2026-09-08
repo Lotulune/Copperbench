@@ -1,0 +1,542 @@
+diff --git a/plugins/generator-1.21.1/fabric-1.21.1/templates/mixin/repairitemrecipemixin.java.ftl b/plugins/generator-1.21.1/fabric-1.21.1/templates/mixin/repairitemrecipemixin.java.ftl
+index 5e0a0ec7..e398e9c9 100644
+--- a/plugins/generator-1.21.1/fabric-1.21.1/templates/mixin/repairitemrecipemixin.java.ftl
++++ b/plugins/generator-1.21.1/fabric-1.21.1/templates/mixin/repairitemrecipemixin.java.ftl
+@@ -21,12 +21,13 @@ package ${package}.mixin;
+ 
+ import com.google.common.collect.Lists;
+ import org.spongepowered.asm.mixin.injection.Constant;
++import net.minecraft.core.HolderLookup;
+ 
+ @Mixin(RepairItemRecipe.class)
+ public abstract class RepairItemRecipeMixin {
+ 
+-	@Inject(method = "assemble(Lnet/minecraft/world/item/crafting/CraftingInput;)Lnet/minecraft/world/item/ItemStack;", at = @At("HEAD"))
+-	public void assemble(CraftingInput input, CallbackInfoReturnable<ItemStack> cir) {
++	@Inject(method = "assemble(Lnet/minecraft/world/item/crafting/CraftingInput;Lnet/minecraft/core/HolderLookup$Provider;)Lnet/minecraft/world/item/ItemStack;", at = @At("HEAD"), cancellable = true)
++	public void assemble(CraftingInput input, HolderLookup.Provider registryAccess, CallbackInfoReturnable<ItemStack> cir) {
+ 		ItemStack itemStack, itemStack3;
+ 		ArrayList<ItemStack> list = Lists.newArrayList();
+ 		for (int i = 0; i < input.ingredientCount(); ++i) {
+diff --git a/plugins/generator-1.21.1/fabric-1.21.1/templates/mixin/serverplayer_mixin.java.ftl b/plugins/generator-1.21.1/fabric-1.21.1/templates/mixin/serverplayer_mixin.java.ftl
+index 15696317..a2d130aa 100644
+--- a/plugins/generator-1.21.1/fabric-1.21.1/templates/mixin/serverplayer_mixin.java.ftl
++++ b/plugins/generator-1.21.1/fabric-1.21.1/templates/mixin/serverplayer_mixin.java.ftl
+@@ -22,7 +22,7 @@ package ${package}.mixin;
+ 
+ @Mixin(ServerPlayer.class)
+ public abstract class ServerPlayerMixin {
+-    @ModifyExpressionValue(method = "drop(Z)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Inventory;removeFromSelected(Z)Lnet/minecraft/world/item/ItemStack;"))
++    @ModifyExpressionValue(method = "drop(Z)Z", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Inventory;removeFromSelected(Z)Lnet/minecraft/world/item/ItemStack;"))
+     private ItemStack drop(ItemStack removed, boolean all) {
+         ServerPlayer self = (ServerPlayer) (Object) this;
+ 
+diff --git a/src/main/java/dev/copperbench/core/application/WorkspaceMutationGateway.java b/src/main/java/dev/copperbench/core/application/WorkspaceMutationGateway.java
+index 14fbd608..e6d3e93d 100644
+--- a/src/main/java/dev/copperbench/core/application/WorkspaceMutationGateway.java
++++ b/src/main/java/dev/copperbench/core/application/WorkspaceMutationGateway.java
+@@ -22,6 +22,10 @@ import java.util.List;
+ 			throws Exception {
+ 	}
+ 
++	/** Performs mutation-backend preflight checks that must agree between plan, preview, and apply. */
++	default void validateWorkspacePlan(WorkspaceState before, WorkspaceState after) throws Exception {
++	}
++
+ 	/** Synchronizes durable product metadata after local history replaced workspace files. */
+ 	default void persistRestoredRevision(WorkspaceState restored, long newRevision) throws Exception {
+ 	}
+diff --git a/src/main/java/dev/copperbench/core/application/WorkspacePlanEngine.java b/src/main/java/dev/copperbench/core/application/WorkspacePlanEngine.java
+index 0b17dae8..da208a06 100644
+--- a/src/main/java/dev/copperbench/core/application/WorkspacePlanEngine.java
++++ b/src/main/java/dev/copperbench/core/application/WorkspacePlanEngine.java
+@@ -113,6 +113,8 @@ final class WorkspacePlanEngine {
+ 			Simulation simulation = simulate(state, operations);
+ 			if (!simulation.succeeded())
+ 				return queryFailure(query, state.revision(), simulation.diagnostic());
++			Diagnostic preflight = mutationPreflight(state, simulation.state());
++			if (preflight != null) return queryFailure(query, state.revision(), preflight);
+ 			JsonObject plan = buildPlan(query.workspaceId(), state, idempotencyKey, operations,
+ 					simulation.state(), context.permission(), requireRecoveryPoint);
+ 			return querySuccess(query, state.revision(), plan);
+@@ -353,6 +355,8 @@ final class WorkspacePlanEngine {
+ 			throw new PlanException(stalePlan(baseRevision, current.revision()));
+ 		Simulation simulation = simulate(current, normalized);
+ 		if (!simulation.succeeded()) throw new PlanException(simulation.diagnostic());
++		Diagnostic preflight = mutationPreflight(current, simulation.state());
++		if (preflight != null) throw new PlanException(preflight);
+ 		if (!workspaceDigest(simulation.state()).equals(targetDigest))
+ 			throw new PlanException(diagnostic("WORKSPACE_PLAN_TARGET_MISMATCH",
+ 					"diagnostic.workspace_plan_target_mismatch",
+@@ -375,6 +379,17 @@ final class WorkspacePlanEngine {
+ 		return new ValidatedPlan(false, simulation, plan);
+ 	}
+ 
++	private Diagnostic mutationPreflight(WorkspaceState before, WorkspaceState after) {
++		try {
++			mutations.validateWorkspacePlan(before, after);
++			return null;
++		} catch (Exception exception) {
++			String message = exception.getMessage();
++			if (message == null || message.isBlank()) message = "The workspace plan conflicts with durable source ownership.";
++			return diagnostic("WORKSPACE_PLAN_SOURCE_CONFLICT", "diagnostic.workspace_plan_source_conflict", message);
++		}
++	}
++
+ 	private JsonObject recoverySafety(JsonObject plan) {
+ 		JsonObject safety = new JsonObject();
+ 		boolean required = requiresRecoveryPoint(plan);
+diff --git a/src/main/java/dev/copperbench/core/workspace/mcreator/MCreatorWorkspaceMutationGateway.java b/src/main/java/dev/copperbench/core/workspace/mcreator/MCreatorWorkspaceMutationGateway.java
+index 7357cd83..289eb347 100644
+--- a/src/main/java/dev/copperbench/core/workspace/mcreator/MCreatorWorkspaceMutationGateway.java
++++ b/src/main/java/dev/copperbench/core/workspace/mcreator/MCreatorWorkspaceMutationGateway.java
+@@ -40,8 +40,11 @@ import java.awt.Color;
+ import java.nio.file.Files;
+ import java.nio.file.Path;
+ import java.util.LinkedHashMap;
++import java.util.LinkedHashSet;
++import java.util.Locale;
+ import java.util.Map;
+ import java.util.List;
++import java.util.Set;
+ import java.util.UUID;
+ import java.lang.reflect.Field;
+ import java.lang.reflect.Modifier;
+@@ -51,7 +54,7 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
+ 
+ 	public static final String ELEMENT_ID_METADATA = "dev.copperbench.elementId";
+ 	public static final String ELEMENT_VALUES_METADATA = "dev.copperbench.values";
+-	private static final String CODE_FILES_METADATA = "dev.copperbench.codeFiles";
++	static final String CODE_FILES_METADATA = "dev.copperbench.codeFiles";
+ 	private static final String EMPTY_PROCEDURE_XML = "<xml xmlns=\"https://developers.google.com/blockly/xml\">"
+ 			+ "<block type=\"event_trigger\" deletable=\"false\" x=\"40\" y=\"40\">"
+ 			+ "<field name=\"trigger\">no_ext_trigger</field></block></xml>";
+@@ -90,15 +93,76 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
+ 		this.observers = List.copyOf(observers);
+ 	}
+ 
++	@Override public void validateWorkspacePlan(WorkspaceState before, WorkspaceState after) {
++		Map<String, PlannedSourceOwner> claims = new LinkedHashMap<>();
++		Path workspaceRoot = workspace.getWorkspaceFolder().toPath().toAbsolutePath().normalize();
++		for (Element element : after.elements()) {
++			ModElement existing = find(element.id());
++			if (!"code".equals(element.type())) {
++				if (existing != null) {
++					for (File file : existing.getAssociatedFiles())
++						claimPlannedPath(claims, workspaceRoot, element, file.toPath());
++				}
++				continue;
++			}
++
++			Path primary;
++			if (existing != null) {
++				List<Path> managed = managedCodeBundlePaths(existing, workspaceRoot);
++				for (File file : existing.getAssociatedFiles()) {
++					Path path = file.toPath().toAbsolutePath().normalize();
++					if (managed.stream().noneMatch(managedPath -> pathKey(managedPath).equals(pathKey(path))))
++						claimPlannedPath(claims, workspaceRoot, element, path);
++				}
++				primary = primaryCodeSource(existing, managed);
++			} else {
++				if (workspace.getGenerator() == null || workspace.getGenerator().getSourceRoot() == null)
++					throw new IllegalStateException("A generator source root is required to validate code ownership");
++				primary = workspace.getGenerator().getSourceRoot().toPath().toAbsolutePath().normalize()
++						.resolve(workspace.getWorkspaceSettings().getModElementsPackage().replace('.', File.separatorChar))
++						.resolve(element.name() + ".java").normalize();
++				claimPlannedPath(claims, workspaceRoot, element, primary);
++			}
++
++			for (CodeBundleFile file : codeBundleFiles(element.values(), primary.getParent(), primary).values())
++				claimPlannedPath(claims, workspaceRoot, element, file.path());
++		}
++	}
++
++	private Path primaryCodeSource(ModElement modElement, List<Path> managedBundlePaths) {
++		return modElement.getAssociatedFiles().stream()
++				.map(File::toPath)
++				.map(path -> path.toAbsolutePath().normalize())
++				.filter(path -> path.getFileName().toString().endsWith(".java"))
++				.filter(path -> managedBundlePaths.stream()
++						.noneMatch(managed -> pathKey(managed).equals(pathKey(path))))
++				.findFirst()
++				.orElseThrow(() -> new IllegalStateException(
++						"The code element has no primary generated Java source: " + modElement.getName()));
++	}
++
++	private void claimPlannedPath(Map<String, PlannedSourceOwner> claims, Path workspaceRoot, Element owner,
++			Path path) {
++		Path normalized = path.toAbsolutePath().normalize();
++		String key = pathKey(normalized);
++		PlannedSourceOwner previous = claims.putIfAbsent(key, new PlannedSourceOwner(owner.id(), owner.name()));
++		if (previous == null || previous.elementId().equals(owner.id())) return;
++		String displayPath = normalized.startsWith(workspaceRoot)
++				? workspaceRoot.relativize(normalized).toString() : normalized.toString();
++		throw new IllegalStateException("Managed source path conflict between elements '" + previous.name()
++				+ "' and '" + owner.name() + "': " + displayPath);
++	}
++
+ 	@Override public void persist(WorkspaceState before, WorkspaceState after, Operation operation,
+ 			Element affectedElement) throws Exception {
+ 		ModElement existing = find(affectedElement.id());
++		Element previous = before.element(affectedElement.id());
+ 		String storedName = existing == null ? affectedElement.name() : existing.getName();
+ 		FileSnapshot snapshot = FileSnapshot.capture(workspace, storedName, existing);
+ 		try {
+ 			switch (operation) {
+ 				case CREATE_MOD_ELEMENT -> create(affectedElement);
+-				case UPDATE_MOD_ELEMENT, UPDATE_PROCEDURE -> update(existing, affectedElement);
++				case UPDATE_MOD_ELEMENT, UPDATE_PROCEDURE -> update(existing, previous, affectedElement);
+ 				case DELETE_MOD_ELEMENT -> {
+ 					delete(existing, true);
+ 					generateWorkspaceBaseIfReady();
+@@ -110,6 +174,13 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
+ 				observer.afterMutation(workspace, before, after, operation, affectedElement);
+ 			workspace.getFileManager().advanceProductRevision(before.id(), before.revision());
+ 		} catch (Exception exception) {
++			if (operation == Operation.CREATE_MOD_ELEMENT && existing == null) {
++				try {
++					cleanupFailedCreate(find(affectedElement.id()));
++				} catch (Exception cleanupFailure) {
++					exception.addSuppressed(cleanupFailure);
++				}
++			}
+ 			try {
+ 				snapshot.restore();
+ 				workspace.reloadFromFileSystem();
+@@ -120,6 +191,22 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
+ 		}
+ 	}
+ 
++	private void cleanupFailedCreate(ModElement failed) throws IOException {
++		if (failed == null) return;
++		Path workspaceRoot = workspace.getWorkspaceFolder().toPath().toAbsolutePath().normalize();
++		Set<String> protectedPaths = new LinkedHashSet<>();
++		for (ModElement other : workspace.getModElements()) {
++			if (other == failed) continue;
++			for (File file : other.getAssociatedFiles()) protectedPaths.add(pathKey(file.toPath()));
++			for (Path path : managedCodeBundlePaths(other, workspaceRoot)) protectedPaths.add(pathKey(path));
++		}
++		for (File file : failed.getAssociatedFiles()) {
++			Path path = file.toPath().toAbsolutePath().normalize();
++			if (!path.startsWith(workspaceRoot) || protectedPaths.contains(pathKey(path))) continue;
++			Files.deleteIfExists(path);
++		}
++	}
++
+ 	@Override public void persistWorkspacePlan(WorkspaceState before, WorkspaceState after, List<Operation> operations)
+ 			throws Exception {
+ 		FileSnapshot snapshot = FileSnapshot.capturePlan(workspace, before, after, workspaceId);
+@@ -137,7 +224,7 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
+ 			for (Element element : afterElements.values()) {
+ 				Element previous = beforeElements.get(element.id());
+ 				if (previous == null) create(element);
+-				else if (!sameContent(previous, element)) update(find(element.id()), element);
++				else if (!sameContent(previous, element)) update(find(element.id()), previous, element);
+ 			}
+ 			// Deletes remove element-owned files and localization/tag links immediately, but generator-owned
+ 			// base registries/imports are shared across the workspace. Refresh them once from the final plan
+@@ -175,7 +262,7 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
+ 			for (Element element : after.elements()) {
+ 				Element previous = before.element(element.id());
+ 				if (previous != null && !previous.values().equals(element.values()))
+-					update(find(element.id()), element);
++					update(find(element.id()), previous, element);
+ 			}
+ 			workspace.getFileManager().saveWorkspaceDirectlyAndWait();
+ 			workspace.getFileManager().advanceProductRevision(before.id(), before.revision(), after.registries());
+@@ -198,10 +285,10 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
+ 		storeProductMetadata(modElement, element);
+ 		GeneratableElement definition = newDefinition(modElement, element);
+ 		workspace.addModElement(modElement);
+-		persistGeneratedElement(modElement, element, definition);
++		persistGeneratedElement(modElement, null, element, definition);
+ 	}
+ 
+-	private void update(ModElement modElement, Element element) {
++	private void update(ModElement modElement, Element previous, Element element) {
+ 		if (modElement == null)
+ 			throw new IllegalStateException("Element is missing from upstream workspace: " + element.id());
+ 		GeneratableElement definition = modElement.getGeneratableElement();
+@@ -210,12 +297,13 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
+ 		storeProductMetadata(modElement, element);
+ 		updateDefinition(definition, element);
+ 		workspace.markDirty();
+-		persistGeneratedElement(modElement, element, definition);
++		persistGeneratedElement(modElement, previous, element, definition);
+ 	}
+ 
+-	private void persistGeneratedElement(ModElement modElement, Element element, GeneratableElement definition) {
++	private void persistGeneratedElement(ModElement modElement, Element previous, Element element,
++			GeneratableElement definition) {
+ 		if (definition instanceof CustomElement) {
+-			persistCustomCode(modElement, element, definition);
++			persistCustomCode(modElement, previous, element, definition);
+ 			generateWorkspaceBaseIfReady();
+ 			return;
+ 		}
+@@ -540,7 +628,8 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
+ 		}
+ 	}
+ 
+-	private void persistCustomCode(ModElement modElement, Element element, GeneratableElement definition) {
++	private void persistCustomCode(ModElement modElement, Element previous, Element element,
++			GeneratableElement definition) {
+ 		if (workspace.getGenerator() == null)
+ 			throw new IllegalStateException("A generator is required to persist a code element");
+ 		if (!generatorWorkspaceReady())
+@@ -552,28 +641,39 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
+ 				.orElseThrow(() -> new IllegalStateException("The code element has no generated Java source file"));
+ 		String code = element.values().has("code") && element.values().get("code").isJsonPrimitive()
+ 				? element.values().get("code").getAsString() : null;
+-		if (code != null) {
++		boolean primaryChanged = previous == null || !sameJsonMember(previous.values(), element.values(), "code");
++		if (primaryChanged && code != null) {
++			assertCodePathAvailable(modElement, source.toPath());
+ 			try {
+ 				Files.writeString(source.toPath(), code, java.nio.charset.StandardCharsets.UTF_8);
+ 			} catch (IOException exception) {
+ 				throw new IllegalStateException("Unable to write the code element source file", exception);
+ 			}
+ 		}
+-		persistCodeBundle(modElement, element, source.toPath(), associated);
++		persistCodeBundle(modElement, previous, element, source.toPath(), associated);
++		synchronizeCodeMetadataFromDisk(modElement, element, source.toPath());
+ 		modElement.setCodeLock(true);
+ 	}
+ 
+-	private void persistCodeBundle(ModElement modElement, Element element, Path primarySource, List<File> associated) {
++	private void persistCodeBundle(ModElement modElement, Element previousElement, Element element, Path primarySource,
++			List<File> associated) {
+ 		Path workspaceRoot = workspace.getWorkspaceFolder().toPath().toAbsolutePath().normalize();
+-		List<Path> previous = new java.util.ArrayList<>();
+-		Object stored = modElement.getMetadata(CODE_FILES_METADATA);
+-		if (stored instanceof List<?> paths) {
+-			for (Object value : paths) {
+-				Path path = workspaceRoot.resolve(value.toString()).normalize();
+-				if (path.startsWith(workspaceRoot)) previous.add(path);
+-			}
++		Path primary = primarySource.toAbsolutePath().normalize();
++		Path base = primary.getParent();
++		List<Path> previousManagedPaths = managedCodeBundlePaths(modElement, workspaceRoot);
++		Map<String, CodeBundleFile> previousFiles = previousElement == null ? Map.of()
++				: codeBundleFiles(previousElement.values(), base, primary);
++		Map<String, CodeBundleFile> nextFiles = codeBundleFiles(element.values(), base, primary);
++
++		// Validate the complete desired ownership set before deleting or writing anything. This makes an
++		// ownership conflict atomic even when the payload contains several helper files.
++		for (CodeBundleFile file : nextFiles.values()) assertCodePathAvailable(modElement, file.path());
++		for (Path path : previousManagedPaths) {
++			if (!nextFiles.containsKey(pathKey(path))) assertCodePathAvailable(modElement, path);
+ 		}
+-		for (Path path : previous) {
++
++		for (Path path : previousManagedPaths) {
++			if (nextFiles.containsKey(pathKey(path))) continue;
+ 			try {
+ 				Files.deleteIfExists(path);
+ 			} catch (IOException exception) {
+@@ -582,30 +682,118 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
+ 		}
+ 
+ 		List<File> retained = associated.stream()
+-				.filter(file -> previous.stream().noneMatch(path -> path.equals(file.toPath().toAbsolutePath().normalize())))
++				.filter(file -> previousManagedPaths.stream()
++						.noneMatch(path -> pathKey(path).equals(pathKey(file.toPath()))))
+ 				.collect(java.util.stream.Collectors.toCollection(java.util.ArrayList::new));
+ 		List<String> storedPaths = new java.util.ArrayList<>();
+-		JsonArray files = element.values().has("codeFiles") && element.values().get("codeFiles").isJsonArray()
+-				? element.values().getAsJsonArray("codeFiles") : new JsonArray();
+-		Path base = primarySource.toAbsolutePath().normalize().getParent();
+-		for (JsonElement raw : files) {
+-			JsonObject file = raw.getAsJsonObject();
+-			Path target = base.resolve(file.get("path").getAsString()).normalize();
+-			if (!target.startsWith(base) || target.equals(primarySource.toAbsolutePath().normalize()))
+-				throw new IllegalStateException("Code bundle path escapes the generated source package or replaces the primary source");
+-			try {
+-				Files.createDirectories(target.getParent());
+-				Files.writeString(target, file.get("code").getAsString(), java.nio.charset.StandardCharsets.UTF_8);
+-			} catch (IOException exception) {
+-				throw new IllegalStateException("Unable to write code bundle file " + target.getFileName(), exception);
++		for (var entry : nextFiles.entrySet()) {
++			CodeBundleFile file = entry.getValue();
++			CodeBundleFile old = previousFiles.get(entry.getKey());
++			if (old == null || !old.code().equals(file.code())) {
++				try {
++					Files.createDirectories(file.path().getParent());
++					Files.writeString(file.path(), file.code(), java.nio.charset.StandardCharsets.UTF_8);
++				} catch (IOException exception) {
++					throw new IllegalStateException("Unable to write code bundle file " + file.path().getFileName(), exception);
++				}
+ 			}
+-			retained.add(target.toFile());
+-			storedPaths.add(workspaceRoot.relativize(target).toString().replace(File.separator, "/"));
++			retained.add(file.path().toFile());
++			storedPaths.add(workspaceRoot.relativize(file.path()).toString().replace(File.separator, "/"));
+ 		}
+ 		modElement.setAssociatedFiles(retained);
+ 		modElement.putMetadata(CODE_FILES_METADATA, storedPaths);
+ 	}
+ 
++	private Map<String, CodeBundleFile> codeBundleFiles(JsonObject values, Path base, Path primarySource) {
++		Map<String, CodeBundleFile> result = new LinkedHashMap<>();
++		JsonArray files = values.has("codeFiles") && values.get("codeFiles").isJsonArray()
++				? values.getAsJsonArray("codeFiles") : new JsonArray();
++		for (JsonElement raw : files) {
++			if (!raw.isJsonObject()) throw new IllegalStateException("Each code bundle file must be an object");
++			JsonObject file = raw.getAsJsonObject();
++			if (!file.has("path") || !file.get("path").isJsonPrimitive()
++					|| !file.has("code") || !file.get("code").isJsonPrimitive())
++				throw new IllegalStateException("Each code bundle file requires path and code");
++			Path target = base.resolve(file.get("path").getAsString()).toAbsolutePath().normalize();
++			if (!target.startsWith(base) || pathKey(target).equals(pathKey(primarySource)))
++				throw new IllegalStateException(
++						"Code bundle path escapes the generated source package or replaces the primary source");
++			String key = pathKey(target);
++			if (result.containsKey(key))
++				throw new IllegalStateException("Multiple code bundle entries claim the same physical path: "
++						+ file.get("path").getAsString());
++			result.put(key, new CodeBundleFile(target, file.get("code").getAsString()));
++		}
++		return result;
++	}
++
++	private List<Path> managedCodeBundlePaths(ModElement modElement, Path workspaceRoot) {
++		List<Path> result = new java.util.ArrayList<>();
++		Object stored = modElement.getMetadata(CODE_FILES_METADATA);
++		if (stored instanceof List<?> paths) {
++			for (Object value : paths) {
++				Path path = workspaceRoot.resolve(value.toString()).toAbsolutePath().normalize();
++				if (path.startsWith(workspaceRoot)) result.add(path);
++			}
++		}
++		return result;
++	}
++
++	private void assertCodePathAvailable(ModElement owner, Path candidate) {
++		Path workspaceRoot = workspace.getWorkspaceFolder().toPath().toAbsolutePath().normalize();
++		String candidateKey = pathKey(candidate);
++		for (ModElement other : workspace.getModElements()) {
++			if (other == owner) continue;
++			Set<String> otherPaths = new LinkedHashSet<>();
++			for (File associated : other.getAssociatedFiles()) otherPaths.add(pathKey(associated.toPath()));
++			for (Path path : managedCodeBundlePaths(other, workspaceRoot)) otherPaths.add(pathKey(path));
++			if (otherPaths.contains(candidateKey))
++				throw new IllegalStateException("Managed source path is already owned by element '"
++						+ other.getName() + "': " + workspaceRoot.relativize(candidate.toAbsolutePath().normalize()));
++		}
++	}
++
++	private void synchronizeCodeMetadataFromDisk(ModElement modElement, Element element, Path primarySource) {
++		JsonObject liveValues = element.values().deepCopy();
++		try {
++			if (liveValues.has("code") && Files.isRegularFile(primarySource))
++				liveValues.addProperty("code", Files.readString(primarySource, java.nio.charset.StandardCharsets.UTF_8));
++			if (liveValues.has("codeFiles") && liveValues.get("codeFiles").isJsonArray()) {
++				Path base = primarySource.toAbsolutePath().normalize().getParent();
++				JsonArray refreshed = new JsonArray();
++				for (JsonElement raw : liveValues.getAsJsonArray("codeFiles")) {
++					JsonObject file = raw.getAsJsonObject().deepCopy();
++					Path target = base.resolve(file.get("path").getAsString()).toAbsolutePath().normalize();
++					if (Files.isRegularFile(target))
++						file.addProperty("code", Files.readString(target, java.nio.charset.StandardCharsets.UTF_8));
++					refreshed.add(file);
++				}
++				liveValues.add("codeFiles", refreshed);
++			}
++		} catch (IOException exception) {
++			throw new IllegalStateException("Unable to synchronize live code metadata from disk", exception);
++		}
++		modElement.putMetadata(ELEMENT_VALUES_METADATA,
++				WorkspaceFileManager.gson.fromJson(liveValues, Object.class));
++	}
++
++	private static boolean sameJsonMember(JsonObject left, JsonObject right, String key) {
++		JsonElement leftValue = left.has(key) ? left.get(key) : JsonNull.INSTANCE;
++		JsonElement rightValue = right.has(key) ? right.get(key) : JsonNull.INSTANCE;
++		return leftValue.equals(rightValue);
++	}
++
++	private static String pathKey(Path path) {
++		String normalized = path.toAbsolutePath().normalize().toString();
++		return File.separatorChar == '\\' ? normalized.toLowerCase(Locale.ROOT) : normalized;
++	}
++
++	private record CodeBundleFile(Path path, String code) {
++	}
++
++	private record PlannedSourceOwner(UUID elementId, String name) {
++	}
++
+ 	private void delete(ModElement modElement, boolean checkpoint) {
+ 		if (modElement == null)
+ 			throw new IllegalStateException("Element is missing from upstream workspace");
+diff --git a/src/main/java/dev/copperbench/core/workspace/mcreator/MCreatorWorkspaceStateMapper.java b/src/main/java/dev/copperbench/core/workspace/mcreator/MCreatorWorkspaceStateMapper.java
+index 8c4974b9..f38dbc04 100644
+--- a/src/main/java/dev/copperbench/core/workspace/mcreator/MCreatorWorkspaceStateMapper.java
++++ b/src/main/java/dev/copperbench/core/workspace/mcreator/MCreatorWorkspaceStateMapper.java
+@@ -1,5 +1,7 @@
+ package dev.copperbench.core.workspace.mcreator;
+ 
++import com.google.gson.JsonArray;
++import com.google.gson.JsonElement;
+ import com.google.gson.JsonObject;
+ import com.google.gson.JsonParser;
+ import dev.copperbench.core.workspace.ProductMetadataManager;
+@@ -49,6 +51,8 @@ public final class MCreatorWorkspaceStateMapper {
+ 		}
+ 		if (values == null)
+ 			values = new JsonObject();
++		if ("code".equals(element.getTypeString()))
++			values = refreshCodeValuesFromDisk(workspace, element, values);
+ 		Instant updatedAt = Files.isRegularFile(definitionFile)
+ 				? Files.getLastModifiedTime(definitionFile).toInstant() : Instant.EPOCH;
+ 		String displayName = values.has("displayName") && values.get("displayName").isJsonPrimitive()
+@@ -57,6 +61,48 @@ public final class MCreatorWorkspaceStateMapper {
+ 				updatedAt, values);
+ 	}
+ 
++	private JsonObject refreshCodeValuesFromDisk(Workspace workspace, ModElement element, JsonObject stored)
++			throws IOException {
++		JsonObject values = stored.deepCopy();
++		Path workspaceRoot = workspace.getWorkspaceFolder().toPath().toAbsolutePath().normalize();
++		List<Path> bundlePaths = new ArrayList<>();
++		Object bundleMetadata = element.getMetadata(MCreatorWorkspaceMutationGateway.CODE_FILES_METADATA);
++		if (bundleMetadata instanceof List<?> paths) {
++			for (Object value : paths) {
++				Path path = workspaceRoot.resolve(value.toString()).toAbsolutePath().normalize();
++				if (path.startsWith(workspaceRoot)) bundlePaths.add(path);
++			}
++		}
++		Path primary = element.getAssociatedFiles().stream()
++				.map(java.io.File::toPath)
++				.map(path -> path.toAbsolutePath().normalize())
++				.filter(path -> path.getFileName().toString().endsWith(".java"))
++				.filter(path -> bundlePaths.stream().noneMatch(path::equals))
++				.findFirst().orElse(null);
++		if (primary == null || !Files.isRegularFile(primary)) return values;
++
++		values.addProperty("code", Files.readString(primary, StandardCharsets.UTF_8));
++		if (values.has("codeFiles") && values.get("codeFiles").isJsonArray()) {
++			JsonArray refreshed = new JsonArray();
++			Path base = primary.getParent();
++			for (JsonElement raw : values.getAsJsonArray("codeFiles")) {
++				if (!raw.isJsonObject()) {
++					refreshed.add(raw.deepCopy());
++					continue;
++				}
++				JsonObject file = raw.getAsJsonObject().deepCopy();
++				if (file.has("path") && file.get("path").isJsonPrimitive()) {
++					Path target = base.resolve(file.get("path").getAsString()).toAbsolutePath().normalize();
++					if (target.startsWith(base) && Files.isRegularFile(target))
++						file.addProperty("code", Files.readString(target, StandardCharsets.UTF_8));
++				}
++				refreshed.add(file);
++			}
++			values.add("codeFiles", refreshed);
++		}
++		return values;
++	}
++
+ 	private JsonObject generator(Workspace workspace) {
+ 		String id = workspace.getWorkspaceSettings().getCurrentGenerator();
+ 		if (RESOURCE_PACK_GENERATOR_ID.equals(id))

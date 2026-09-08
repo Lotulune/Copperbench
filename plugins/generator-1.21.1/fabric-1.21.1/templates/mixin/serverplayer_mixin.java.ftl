@@ -22,7 +22,7 @@ package ${package}.mixin;
 
 @Mixin(ServerPlayer.class)
 public abstract class ServerPlayerMixin {
-    @ModifyExpressionValue(method = "drop(Z)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Inventory;removeFromSelected(Z)Lnet/minecraft/world/item/ItemStack;"))
+    @ModifyExpressionValue(method = "drop(Z)Z", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Inventory;removeFromSelected(Z)Lnet/minecraft/world/item/ItemStack;"))
     private ItemStack drop(ItemStack removed, boolean all) {
         ServerPlayer self = (ServerPlayer) (Object) this;
 

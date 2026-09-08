@@ -1,0 +1,41 @@
+{
+  "track": "fabric-1.20.1",
+  "startedAt": "2026-09-07T10:22:42.729663100Z",
+  "mode": "production source bootstrap/Core mutation; source-only task stub; real Gradle build/bootstrap recorded separately",
+  "minecraftVersion": "1.20.1",
+  "buildFileVersion": "0.92.2",
+  "gradleJavaHome": "D:\\AICoding\\Minecraft_ModCreator\\jdk\\jdk21_win_64",
+  "metadataOnlyPreservesPrimary": true,
+  "metadataOnlyPreservesHelper": true,
+  "ownershipConflictRejected": true,
+  "ownershipDiagnostics": [
+    {
+      "code": "WORKSPACE_PERSISTENCE_FAILED",
+      "severity": "error",
+      "message": {
+        "key": "diagnostic.workspace_persistence_failed",
+        "fallback": "The workspace change could not be stored and was rolled back.",
+        "args": {
+          "failureId": "49b710cd-93b7-4442-9663-fdf8b113e068"
+        }
+      },
+      "recoverable": true,
+      "actions": [
+        {
+          "id": "open_logs",
+          "label": {
+            "key": "action.open_logs",
+            "fallback": "View logs",
+            "args": {}
+          },
+          "kind": "open_logs",
+          "target": "49b710cd-93b7-4442-9663-fdf8b113e068"
+        }
+      ]
+    }
+  ],
+  "rejectedCreateLeavesNoOrphan": true,
+  "collisionPreservesExistingPrimary": true,
+  "failure": "java.lang.IllegalStateException: Workspace ID does not match product metadata",
+  "finishedAt": "2026-09-07T10:22:56.774834100Z"
+}
