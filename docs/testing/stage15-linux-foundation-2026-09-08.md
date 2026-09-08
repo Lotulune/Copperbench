@@ -16,13 +16,18 @@ Frozen target:
 
 - runtime platform detection for Windows/Linux/macOS architecture-aware paths;
 - Linux XDG data/config/cache/state/runtime paths while retaining the existing Windows user-root behavior;
+- logs and JCEF logs use state storage, preferences use config storage, JCEF persistent cache uses cache storage, and the single-instance lock uses runtime storage;
 - POSIX owner-only permissions for private runtime metadata where supported;
 - Linux Blockbench discovery through explicit configuration, `PATH`, common user paths and system paths;
 - bundled Java resolution that selects Linux JBR 25/JCEF and Java 21 sidecar paths without falling back to Windows source layouts;
+- Java executable and Gradle process selection now route through the shared `RuntimePlatform` adapter instead of inline Windows-name checks;
+- generated/restored Gradle wrappers explicitly regain owner-executable permission on POSIX filesystems;
 - Stage 15-only Linux candidate admission using `copperbench.stage15LinuxCandidate=true`, without changing `currentHostSupported()` or the public support claim;
+- Wayland/X11/headless/unknown desktop-session classification is exposed through the shared workspace execution environment with explicit primary/compatibility/unverified certification roles;
+- `get_workspace_environment` gives headless/MCP/external-Agent clients the same host desktop capability facts without creating Linux-specific Core workspace semantics;
 - candidate SBOM/inventory with installed `jdk`, `jdk21` and packaged Gradle distributions;
 - Copperbench portable launcher, portable tar layout, Debian launcher/desktop entry and `.deb` build task;
-- Ubuntu 24.04 package-smoke workflow for portable/deb layout, executable bits, bundled runtimes and SHA-256 artifact hashes.
+- Ubuntu 24.04 package-smoke workflow for Linux platform/generator regressions, portable/deb layout, executable bits, bundled runtimes and SHA-256 artifact hashes.
 
 The generated candidate manifest deliberately reports:
 
@@ -45,6 +50,11 @@ Focused Gradle regressions passed for:
 - `DevelopmentSbomTest`;
 - `LinuxCandidateManifestTest`;
 - `LinuxDistributionLayoutTest`.
+- `DesktopSessionCapabilitiesTest`;
+- `ExecutableFilePermissionsTest`;
+- `LinuxDesktopPathIntegrationTest`;
+- `WorkspaceEnvironmentContextTest`;
+- representative Fabric/NeoForge generator regressions, including the installed Java 21 sidecar contract.
 
 The real `writeLinuxCandidateManifest` Gradle task also completed successfully and materialized `build/reports/linux-candidate-manifest.json`.
 
@@ -58,7 +68,7 @@ This checkpoint is not Linux runtime evidence. Still required before Stage 15 cl
 - start bundled JBR/JCEF on a clean graphical Linux VM;
 - create/open/save/reopen real workspaces without system Java/Gradle/Git;
 - verify Fabric/NeoForge generate/build and real graphical `runClient`;
-- verify Wayland and Xorg behavior/diagnostics;
+- verify the implemented Wayland/Xorg capability classification against real GNOME Wayland and GNOME on Xorg sessions, including actual JCEF/window behavior;
 - replay Desktop MCP and an independent external Agent on the installed Linux candidate, including descriptor permissions and credential cleanup;
 - bind Linux SHA-256/SBOM/release metadata/provenance into the immutable release-candidate chain;
 - rerun affected Windows installed-product gates after the cross-platform JDK/MCP/product-path changes.

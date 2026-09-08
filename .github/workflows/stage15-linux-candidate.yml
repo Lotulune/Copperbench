@@ -8,7 +8,13 @@ on:
     paths:
       - "platform/linux/**"
       - "platform/setup.gradle"
-      - "src/main/java/dev/copperbench/generator/BundledJdkLocator.java"
+      - "src/main/java/dev/copperbench/generator/**"
+      - "src/main/java/dev/copperbench/headless/**"
+      - "src/main/java/dev/copperbench/mcp/**"
+      - "src/main/java/net/mcreator/io/LoggingSystem.java"
+      - "src/main/java/net/mcreator/preferences/PreferencesManager.java"
+      - "src/main/java/net/mcreator/ui/chromium/CefUtils.java"
+      - "src/main/java/net/mcreator/util/SingleAppHandler.java"
       - "src/main/java/dev/copperbench/platform/**"
       - "src/main/java/dev/copperbench/release/**"
       - "src/main/java/net/mcreator/io/UserFolderManager.java"
@@ -19,7 +25,14 @@ on:
     paths:
       - "platform/linux/**"
       - "platform/setup.gradle"
-      - "src/main/java/dev/copperbench/generator/BundledJdkLocator.java"
+      - "src/main/java/dev/copperbench/generator/**"
+      - "src/main/java/dev/copperbench/headless/**"
+      - "src/main/java/dev/copperbench/mcp/**"
+      - "src/main/java/net/mcreator/io/UserFolderManager.java"
+      - "src/main/java/net/mcreator/io/LoggingSystem.java"
+      - "src/main/java/net/mcreator/preferences/PreferencesManager.java"
+      - "src/main/java/net/mcreator/ui/chromium/CefUtils.java"
+      - "src/main/java/net/mcreator/util/SingleAppHandler.java"
       - "src/main/java/dev/copperbench/platform/**"
       - "src/main/java/dev/copperbench/release/**"
       - ".github/workflows/stage15-linux-candidate.yml"
@@ -61,6 +74,19 @@ jobs:
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
+
+      - name: Run Linux platform and generator regressions
+        run: |
+          chmod +x ./gradlew
+          ./gradlew --no-daemon test -x buildUiShell \
+            --tests dev.copperbench.platform.DesktopSessionCapabilitiesTest \
+            --tests dev.copperbench.platform.ExecutableFilePermissionsTest \
+            --tests dev.copperbench.platform.LinuxDesktopPathIntegrationTest \
+            --tests dev.copperbench.platform.UserDataPathsTest \
+            --tests dev.copperbench.generator.BundledJdkLocatorTest \
+            --tests dev.copperbench.generator.WorkspaceEnvironmentContextTest \
+            --tests dev.copperbench.generator.neoforge.NeoForge1211GeneratorTest
+            --tests dev.copperbench.generator.fabric.Fabric1211ProcessRunnerTest \
 
       - name: Build portable and deb candidates
         run: |

@@ -18,6 +18,7 @@ import dev.copperbench.generator.fabric.Fabric1211WorkspaceTaskGateway;
 import dev.copperbench.generator.neoforge.NeoForge1211Generator;
 import dev.copperbench.generator.neoforge.NeoForge1211WorkspaceTaskGateway;
 import dev.copperbench.generator.resourcepack.ResourcePackWorkspaceTaskGateway;
+import dev.copperbench.platform.DesktopSessionCapabilities;
 import dev.copperbench.tracks.VersionTrackCatalog;
 
 import java.nio.file.Path;
@@ -160,7 +161,7 @@ public final class LoaderRoutingWorkspaceTaskGateway implements WorkspaceTaskGat
 		String generatorId = store.read(workspaceId).map(state -> state.generator().get("id"))
 				.filter(value -> value != null && value.isJsonPrimitive()).map(value -> value.getAsString())
 				.orElseThrow(() -> new IllegalArgumentException("Workspace generator is missing"));
-		return switch (generatorId) {
+		JsonObject environment = switch (generatorId) {
 			case "fabric-1.21.1" -> fabric.environment(workspaceId);
 			case "fabric-26.1.2" -> fabric261.environment(workspaceId);
 			case "fabric-26.2" -> fabric262.environment(workspaceId);
@@ -172,6 +173,8 @@ public final class LoaderRoutingWorkspaceTaskGateway implements WorkspaceTaskGat
 			case ResourcePackWorkspaceTaskGateway.GENERATOR_ID -> resourcePack.environment(workspaceId);
 			default -> new JsonObject();
 		};
+		environment.add("host", DesktopSessionCapabilities.current().toJson());
+		return environment;
 	}
 
 	@Override public Optional<JsonObject> previewDatagen(UUID workspaceId, UUID taskId) {

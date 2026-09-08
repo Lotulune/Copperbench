@@ -9,6 +9,7 @@
 
 package dev.copperbench.generator.fabric;
 
+import dev.copperbench.platform.RuntimePlatform;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
@@ -59,9 +60,10 @@ class Fabric1211ProcessRunnerTest {
 	}
 
 	@Test void profilesSelectBundledJdkCompatibleWithTheirGradleRuntime() {
-		assertTrue(Fabric1211Generator.Profile.FABRIC_1201.jdkRelativePath().endsWith("jdk21_win_64"));
-		assertTrue(Fabric1211Generator.Profile.FABRIC_1211.jdkRelativePath().endsWith("jdk21_win_64"));
-		assertTrue(Fabric1211Generator.Profile.FABRIC_261.jdkRelativePath().endsWith("jbr25_win_64"));
-		assertTrue(Fabric1211Generator.Profile.FABRIC_262.jdkRelativePath().endsWith("jbr25_win_64"));
+		RuntimePlatform platform = RuntimePlatform.current();
+		assertTrue(Fabric1211Generator.Profile.FABRIC_1201.jdkRelativePath().equals(platform.sourceJavaHome(17)));
+		assertTrue(Fabric1211Generator.Profile.FABRIC_1211.jdkRelativePath().equals(platform.sourceJavaHome(21)));
+		assertTrue(Fabric1211Generator.Profile.FABRIC_261.jdkRelativePath().equals(platform.sourceJavaHome(25)));
+		assertTrue(Fabric1211Generator.Profile.FABRIC_262.jdkRelativePath().equals(platform.sourceJavaHome(25)));
 	}
 }

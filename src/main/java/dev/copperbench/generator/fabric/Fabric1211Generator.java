@@ -8,6 +8,8 @@
  */
 
 package dev.copperbench.generator.fabric;
+import dev.copperbench.platform.ExecutableFilePermissions;
+import dev.copperbench.platform.RuntimePlatform;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -69,7 +71,7 @@ public final class Fabric1211Generator {
 		}
 
 		public String jdkRelativePath() {
-			return javaRelease <= 21 ? "jdk/jdk21_win_64" : "jdk/jbr25_win_64";
+			return RuntimePlatform.current().sourceJavaHome(javaRelease);
 		}
 	}
 
@@ -293,6 +295,7 @@ public final class Fabric1211Generator {
 				zipStorePath=wrapper/dists
 				""".formatted(profile.gradleWrapperZip()), generated);
 		copy(root, "gradlew", distributionRoot.resolve("gradlew"), generated);
+		ExecutableFilePermissions.ensureOwnerExecutable(root.resolve("gradlew"));
 		copy(root, "gradlew.bat", distributionRoot.resolve("gradlew.bat"), generated);
 		copy(root, "gradle/wrapper/gradle-wrapper.jar",
 				distributionRoot.resolve("gradle/wrapper/gradle-wrapper.jar"), generated);

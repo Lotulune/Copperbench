@@ -8,6 +8,7 @@
  */
 
 package dev.copperbench.generator.neoforge;
+import dev.copperbench.platform.RuntimePlatform;
 
 import com.google.gson.JsonObject;
 import dev.copperbench.core.application.WorkspaceTaskGateway;
@@ -111,8 +112,7 @@ public final class NeoForge1211WorkspaceTaskGateway implements WorkspaceTaskGate
 		JsonObject java = new JsonObject();
 		java.addProperty("requiredRelease", profile.javaRelease());
 		java.addProperty("home", javaHome.toString());
-		java.addProperty("executable", javaHome.resolve("bin")
-				.resolve(System.getProperty("os.name", "").toLowerCase().contains("win") ? "java.exe" : "java").toString());
+		java.addProperty("executable", javaHome.resolve("bin").resolve(RuntimePlatform.current().javaExecutableName()).toString());
 		environment.add("java", java);
 		JsonObject gradle = new JsonObject();
 		gradle.addProperty("distribution", profile.fabricProfile().gradleWrapperZip());

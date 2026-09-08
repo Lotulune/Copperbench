@@ -8,6 +8,7 @@
  */
 
 package dev.copperbench.generator.fabric;
+import dev.copperbench.platform.RuntimePlatform;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -60,7 +61,8 @@ import java.util.function.Supplier;
 
 		@Override public ProcessResult run(Path workspaceRoot, List<String> arguments, Duration timeout,
 				Consumer<String> output) throws Exception {
-			boolean windows = System.getProperty("os.name", "").toLowerCase().contains("win");
+			boolean windows = RuntimePlatform.current().operatingSystem()
+					== RuntimePlatform.OperatingSystem.WINDOWS;
 			String configuredGradle = System.getenv("COPPERBENCH_STAGE5_GRADLE_EXECUTABLE");
 			List<String> command = new ArrayList<>();
 			if (windows) {

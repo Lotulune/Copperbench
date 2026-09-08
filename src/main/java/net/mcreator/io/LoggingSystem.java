@@ -31,7 +31,7 @@ import java.lang.management.ManagementFactory;
 public class LoggingSystem {
 
 	public static void init() {
-		System.setProperty("log_directory", UserFolderManager.getFileFromUserFolder("").getAbsolutePath());
+		System.setProperty("log_directory", UserFolderManager.getStateFolder().getAbsolutePath());
 
 		if (OS.getOS() == OS.WINDOWS && ManagementFactory.getRuntimeMXBean().getInputArguments().stream()
 				.noneMatch(arg -> arg.contains("idea_rt.jar"))) {

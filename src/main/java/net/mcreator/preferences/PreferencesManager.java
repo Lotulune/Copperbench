@@ -38,7 +38,7 @@ public class PreferencesManager {
 
 	public static final Logger LOG = LogManager.getLogger("Preferences Manager");
 
-	private static final File PREFERENCES_FILE = UserFolderManager.getFileFromUserFolder("userpreferences");
+	private static final File PREFERENCES_FILE = UserFolderManager.getFileFromConfigFolder("userpreferences");
 
 	public static final Gson gson = new GsonBuilder().setPrettyPrinting().setStrictness(Strictness.LENIENT).create();
 
@@ -63,7 +63,7 @@ public class PreferencesManager {
 	public static void init() {
 		PREFERENCES = new PreferencesData();
 
-		if (!PREFERENCES_FILE.isFile() && UserFolderManager.getFileFromUserFolder("preferences").exists()) {
+		if (!PREFERENCES_FILE.isFile() && UserFolderManager.getFileFromConfigFolder("preferences").exists()) {
 			LOG.info("Old preferences file found. Converting the file to the new format.");
 			convertOldPreferences();
 		}
@@ -158,7 +158,7 @@ public class PreferencesManager {
 	 * <p>A method to convert old MCreator's preferences from the old system to the new system.</p>
 	 */
 	private static void convertOldPreferences() {
-		File file = UserFolderManager.getFileFromUserFolder("preferences");
+		File file = UserFolderManager.getFileFromConfigFolder("preferences");
 		JsonObject oldPreferences = gson.fromJson(FileIO.readFileToString(file), JsonObject.class);
 		PREFERENCES_REGISTRY.get(PreferencesData.CORE_PREFERENCES_KEY).forEach(entry -> {
 			// if the entry section did not exist in old preferences, skip this entry and use its default value

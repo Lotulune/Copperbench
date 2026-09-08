@@ -218,13 +218,13 @@ public class CefUtils {
 			settings.persist_session_cookies = false;
 			settings.locale = L10N.getLocale().stripExtensions().toLanguageTag();
 
-			settings.log_file = UserFolderManager.getFileFromUserFolder("/cef_log.txt").toString();
+			settings.log_file = UserFolderManager.getFileFromStateFolder("cef_log.txt").toString();
 			if (System.getenv("MCREATOR_CEF_DEBUG") != null) {
 				settings.log_severity = CefSettings.LogSeverity.LOGSEVERITY_VERBOSE;
 			}
 
 			settings.cache_path = Objects.requireNonNullElseGet(getTmpCacheFolder(),
-					() -> UserFolderManager.getFileFromUserFolder("/cef/")).toString();
+					() -> UserFolderManager.getFileFromCacheFolder("cef")).toString();
 
 			CountDownLatch latch = new CountDownLatch(1);
 

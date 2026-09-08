@@ -8,6 +8,7 @@
  */
 
 package dev.copperbench.generator;
+import dev.copperbench.platform.ExecutableFilePermissions;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -61,6 +62,7 @@ public final class PluginWorkspaceLayout {
 		Path normalizedRoot = root.toAbsolutePath().normalize();
 		Path normalizedDistribution = distributionRoot.toAbsolutePath().normalize();
 		copyIfMissing(normalizedRoot.resolve("gradlew"), normalizedDistribution.resolve("gradlew"));
+		ExecutableFilePermissions.ensureOwnerExecutable(normalizedRoot.resolve("gradlew"));
 		copyIfMissing(normalizedRoot.resolve("gradlew.bat"), normalizedDistribution.resolve("gradlew.bat"));
 		copyIfMissing(normalizedRoot.resolve("gradle/wrapper/gradle-wrapper.jar"),
 				normalizedDistribution.resolve("gradle/wrapper/gradle-wrapper.jar"));
