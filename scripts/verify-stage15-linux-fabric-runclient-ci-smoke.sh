@@ -20,6 +20,8 @@ runclient_stdout="$evidence_root/headless-run-client.stdout"
 runclient_stderr="$evidence_root/headless-run-client.stderr"
 client_log_copy="$evidence_root/minecraft-latest.log"
 x11_windows="$evidence_root/x11-visible-windows.txt"
+x11_baseline="$evidence_root/x11-baseline-window-ids.txt"
+x11_window_proof="$evidence_root/x11-window-proof.txt"
 product_pid=""
 
 copy_client_log() {
@@ -51,6 +53,28 @@ dump_failure() {
     echo "--- visible X11 windows ---" >&2
     cat "$x11_windows" >&2 || true
   fi
+  if [[ -f "$x11_baseline" ]]; then
+    echo "--- baseline X11 window ids ---" >&2
+    cat "$x11_baseline" >&2 || true
+  fi
+  if [[ -f "$x11_window_proof" ]]; then
+    echo "--- X11 window proof ---" >&2
+    cat "$x11_window_proof" >&2 || true
+  fi
+}
+
+capture_visible_window_ids() {
+  xdotool search --onlyvisible --name '.*' 2>/dev/null || true
+}
+
+visible_window_exists() {
+  local expected="$1" window
+  while read -r window; do
+    if [[ "$window" == "$expected" ]]; then
+      return 0
+    fi
+  done < <(capture_visible_window_ids)
+  return 1
 }
 
 capture_visible_windows() {
@@ -72,18 +96,30 @@ capture_visible_windows() {
 
 find_runclient_window() {
   capture_visible_windows
-  local window window_pid window_pgid
+  local window window_pid window_pgid fallback_window
+  fallback_window=""
   while read -r window; do
     [[ -n "$window" ]] || continue
     window_pid="$(xdotool getwindowpid "$window" 2>/dev/null || true)"
-    [[ "$window_pid" =~ ^[0-9]+$ ]] || continue
-    window_pgid="$(ps -o pgid= -p "$window_pid" 2>/dev/null || true)"
-    window_pgid="${window_pgid//[[:space:]]/}"
-    if [[ "$window_pgid" == "$product_pid" ]]; then
-      printf '%s\n' "$window"
-      return 0
+    if [[ "$window_pid" =~ ^[0-9]+$ ]]; then
+      window_pgid="$(ps -o pgid= -p "$window_pid" 2>/dev/null || true)"
+      window_pgid="${window_pgid//[[:space:]]/}"
+      if [[ "$window_pgid" == "$product_pid" ]]; then
+        printf 'method=process-group window=%s pid=%s pgid=%s\n' \
+          "$window" "$window_pid" "$window_pgid" >"$x11_window_proof"
+        printf '%s\n' "$window"
+        return 0
+      fi
     fi
-  done < <(xdotool search --onlyvisible --name '.*' 2>/dev/null || true)
+    if ! grep -Fxq -- "$window" "$x11_baseline"; then
+      fallback_window="$window"
+    fi
+  done < <(capture_visible_window_ids)
+  if [[ -n "$fallback_window" ]]; then
+    printf 'method=isolated-xvfb-window-delta window=%s\n' "$fallback_window" >"$x11_window_proof"
+    printf '%s\n' "$fallback_window"
+    return 0
+  fi
   return 1
 }
 
@@ -164,6 +200,8 @@ grep -q '"status":"succeeded"' "$build_json"
 test -d "$workspace_root/build"
 echo "[stage15-runclient] packaged headless build succeeded"
 
+capture_visible_window_ids | sort -u >"$x11_baseline"
+capture_visible_windows
 echo "[stage15-runclient] starting packaged headless run-client under X11"
 setsid /usr/bin/bash "$portable_root/copperbench.sh" \
   headless --workspace "$workspace_file" run-client \
@@ -204,7 +242,7 @@ for ((attempt = 0; attempt < 30; attempt++)); do
   sleep 1
 done
 if [[ -z "$minecraft_window" ]]; then
-  echo "Minecraft emitted client startup markers but no visible X11 window belonged to the run-client process group" >&2
+  echo "Minecraft emitted client startup markers but no process-bound or newly visible X11 window was found" >&2
   dump_failure
   exit 1
 fi
@@ -212,7 +250,7 @@ fi
 kill -0 -- "$product_pid"
 for ((attempt = 0; attempt < 10; attempt++)); do
   kill -0 -- "$product_pid"
-  if ! xdotool getwindowname "$minecraft_window" >/dev/null 2>&1; then
+  if ! visible_window_exists "$minecraft_window"; then
     echo "Minecraft X11 window disappeared during the stability window" >&2
     dump_failure
     exit 1

@@ -96,6 +96,10 @@ class LinuxDistributionLayoutTest {
         assertTrue(runClientSmoke.contains("ps -o pgid= -p"));
         assertTrue(runClientSmoke.contains("window_pgid\" == \"$product_pid"));
         assertTrue(runClientSmoke.contains("x11-visible-windows.txt"));
+        assertTrue(runClientSmoke.contains("x11-baseline-window-ids.txt"));
+        assertTrue(runClientSmoke.contains("method=isolated-xvfb-window-delta"));
+        assertTrue(runClientSmoke.contains("grep -Fxq -- \"$window\" \"$x11_baseline\""));
+        assertTrue(runClientSmoke.contains("visible_window_exists \"$minecraft_window\""));
         assertFalse(runClientSmoke.contains("xdotool search --onlyvisible --name 'Minecraft'"));
         assertTrue(runClientSmoke.contains("COPPERBENCH_GRADLE_USER_HOME"));
         assertFalse(runClientSmoke.contains("./gradlew runClient"));
