@@ -1,0 +1,10 @@
+{
+  "track": "neoforge-26.1.2",
+  "label": "native-assemble",
+  "exitCode": 0,
+  "timedOut": false,
+  "elapsedMs": 20655,
+  "javaHome": "D:\\AICoding\\Minecraft_ModCreator\\jdk\\jbr25_win_64",
+  "gradleHome": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\build\\stage8-workspace-generator-gradle\\neoforge-26_1_2",
+  "completedAt": "2026-09-07T10:29:06.8568340+00:00"
+}

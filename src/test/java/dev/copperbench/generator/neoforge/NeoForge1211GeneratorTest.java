@@ -84,10 +84,10 @@ class NeoForge1211GeneratorTest {
 				Files.readString(workspace.resolve("src/main/java/example/UserCode.java")));
 	}
 
-	@Test void installedFlatJdkLayoutIsWrittenIntoGeneratedToolchainProperties() throws Exception {
+	@Test void installedJava21SidecarIsWrittenIntoGeneratedToolchainProperties() throws Exception {
 		Path distribution = output.resolve("distribution");
 		Path workspace = output.resolve("workspace");
-		Path installedJdk = distribution.resolve("jdk");
+		Path installedJdk = distribution.resolve("jdk21");
 		Files.createDirectories(installedJdk.resolve("bin"));
 		Files.write(installedJdk.resolve("bin/java.exe"), new byte[] { 0 });
 		Files.createDirectories(distribution.resolve("gradle/wrapper"));

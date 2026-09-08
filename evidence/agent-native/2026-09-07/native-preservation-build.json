@@ -1,0 +1,10 @@
+{
+  "label": "native-preservation-build",
+  "project": "native",
+  "startedAt": "2026-09-07T05:41:36.6972166+00:00",
+  "elapsedMs": 21378,
+  "tasks": "build",
+  "exitCode": 0,
+  "timedOut": false,
+  "cache": "shared prewarmed user Gradle home; project-local cache state varies"
+}

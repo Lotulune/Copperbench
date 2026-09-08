@@ -1,0 +1,50 @@
+{
+  "track": "fabric-26.1.2",
+  "startedAt": "2026-09-07T10:28:17.537612900Z",
+  "mode": "production source bootstrap/Core mutation; source-only task stub; real Gradle build/bootstrap recorded separately",
+  "minecraftVersion": "26.1.2",
+  "buildFileVersion": "0.155.2",
+  "gradleJavaHome": "D:\\AICoding\\Minecraft_ModCreator\\jdk\\jbr25_win_64",
+  "metadataOnlyPreservesPrimary": true,
+  "metadataOnlyPreservesHelper": true,
+  "ownershipConflictRejected": true,
+  "ownershipDiagnostics": [
+    {
+      "code": "WORKSPACE_PERSISTENCE_FAILED",
+      "severity": "error",
+      "message": {
+        "key": "diagnostic.workspace_persistence_failed",
+        "fallback": "The workspace change could not be stored and was rolled back.",
+        "args": {
+          "failureId": "b68c1387-9f1a-445f-8d36-1b11285e2c61"
+        }
+      },
+      "recoverable": true,
+      "actions": [
+        {
+          "id": "open_logs",
+          "label": {
+            "key": "action.open_logs",
+            "fallback": "View logs",
+            "args": {}
+          },
+          "kind": "open_logs",
+          "target": "b68c1387-9f1a-445f-8d36-1b11285e2c61"
+        }
+      ]
+    }
+  ],
+  "rejectedCreateLeavesNoOrphan": true,
+  "collisionPreservesExistingPrimary": true,
+  "canonicalStackSizeRequest": 1,
+  "canonicalStackSizeUpdateStatus": "committed",
+  "persistedStackSize": 64,
+  "stackSizeMatchesIntent": false,
+  "gradleModelLoaded": true,
+  "initHook": "marked generated-main user block",
+  "nativeToolchainReuse": "exact rendered build configuration and stock wrapper reused for matched dependency versions; independent native source, not a from-zero timing comparison",
+  "generatedSourceCount": 21,
+  "nativeSourceCount": 4,
+  "prepared": true,
+  "finishedAt": "2026-09-07T10:28:55.551225900Z"
+}

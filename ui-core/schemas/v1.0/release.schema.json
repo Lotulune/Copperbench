@@ -80,10 +80,11 @@
         "executable": { "type": "string" },
         "bundledJdk": {
           "type": "object",
-          "required": ["installed", "sourceTreeJava25", "sourceTreeJava21"],
+          "required": ["installed", "installedJava21", "sourceTreeJava25", "sourceTreeJava21"],
           "additionalProperties": false,
           "properties": {
             "installed": { "type": "string" },
+            "installedJava21": { "type": "string" },
             "sourceTreeJava25": { "type": "string" },
             "sourceTreeJava21": { "type": "string" }
           }

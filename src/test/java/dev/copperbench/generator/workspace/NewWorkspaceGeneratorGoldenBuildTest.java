@@ -79,6 +79,7 @@ class NewWorkspaceGeneratorGoldenBuildTest {
 	private static final String STAGE9_SELECTED_GENERATOR_PROPERTY = "copperbench.stage9.workspaceGeneratorId";
 	private static final String STAGE11_SELECTED_GENERATOR_PROPERTY = "copperbench.stage11.workspaceGeneratorId";
 	private static final String STAGE12_SELECTED_GENERATOR_PROPERTY = "copperbench.stage12.workspaceGeneratorId";
+	private static final String STAGE14B_SELECTED_GENERATOR_PROPERTY = "copperbench.stage14b.workspaceGeneratorId";
 	private static final String GRADLE_HOME_PROPERTY = "copperbench.gradle.user.home";
 	private static final String KEEP_WORKSPACE_PROPERTY = "copperbench.workspaceGeneratorKeepWorkspace";
 	private static final String MOJANG_NON_PROXY_HOSTS = "piston-data.mojang.com|piston-meta.mojang.com";
@@ -87,7 +88,110 @@ class NewWorkspaceGeneratorGoldenBuildTest {
 			"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=");
 
 	private enum Content {
-		EMPTY, STAGE9, STAGE11, STAGE12
+		EMPTY, STAGE9, STAGE11, STAGE12, STAGE14B
+	}
+
+	private static Stage14BNativeFixture createStage14BNativeModule(Workspace workspace, String generatorId)
+			throws IOException {
+		Path sourceRoot = workspace.getGenerator().getSourceRoot().toPath().toAbsolutePath().normalize();
+		List<Path> entryCandidates;
+		try (Stream<Path> files = Files.walk(sourceRoot)) {
+			entryCandidates = files.filter(Files::isRegularFile)
+					.filter(path -> path.getFileName().toString().endsWith(".java"))
+					.filter(path -> !path.getFileName().toString().toLowerCase(java.util.Locale.ROOT).contains("client"))
+					.filter(path -> {
+						try {
+							return Files.readString(path, StandardCharsets.UTF_8)
+									.contains("// Start of user code block mod init");
+						} catch (IOException exception) {
+							throw new UncheckedIOException(exception);
+						}
+					}).toList();
+		}
+		if (entryCandidates.size() != 1)
+			throw failure(generatorId, "stage14b-entry-hook",
+					"Expected exactly one common mod-init entry, found " + entryCandidates);
+
+		Path entry = entryCandidates.getFirst();
+		String source = Files.readString(entry, StandardCharsets.UTF_8);
+		String marker = "\t\t// Start of user code block mod init";
+		String hook = "\t\tdev.copperbench.stage14b.nativecode.NativeHooks.init();";
+		if (!source.contains(marker))
+			throw failure(generatorId, "stage14b-entry-hook", "Generated entry did not contain the stable mod-init marker");
+		String lineSeparator = source.contains("\r\n") ? "\r\n" : "\n";
+		Files.writeString(entry, source.replace(marker, marker + lineSeparator + hook), StandardCharsets.UTF_8);
+
+		Path nativeRoot = sourceRoot.resolve("dev/copperbench/stage14b/nativecode");
+		Files.createDirectories(nativeRoot);
+		Path state = nativeRoot.resolve("NativeState.java");
+		Path hooks = nativeRoot.resolve("NativeHooks.java");
+		String stateSource = """
+				package dev.copperbench.stage14b.nativecode;
+
+				final class NativeState {
+					private static boolean initialized;
+
+					private NativeState() {
+					}
+
+					static void markInitialized() {
+						initialized = true;
+					}
+
+					static boolean initialized() {
+						return initialized;
+					}
+				}
+				""";
+		String hooksSource = """
+				package dev.copperbench.stage14b.nativecode;
+
+				public final class NativeHooks {
+					private NativeHooks() {
+					}
+
+					public static void init() {
+						NativeState.markInitialized();
+					}
+				}
+				""";
+		Files.writeString(state, stateSource, StandardCharsets.UTF_8);
+		Files.writeString(hooks, hooksSource, StandardCharsets.UTF_8);
+		return new Stage14BNativeFixture(entry, nativeRoot, state, hooks,
+				stateSource.getBytes(StandardCharsets.UTF_8), hooksSource.getBytes(StandardCharsets.UTF_8), hook);
+	}
+
+	private static void assertStage14BNativeFixturePreserved(String generatorId, Stage14BNativeFixture fixture)
+			throws IOException {
+		if (!Files.isRegularFile(fixture.entry()) || !Files.readString(fixture.entry(), StandardCharsets.UTF_8)
+				.contains(fixture.hook()))
+			throw failure(generatorId, "stage14b-hook-preservation", "Regeneration removed the native mod-init hook");
+		if (!java.util.Arrays.equals(fixture.stateBytes(), Files.readAllBytes(fixture.state())))
+			throw failure(generatorId, "stage14b-native-preservation", "Regeneration changed NativeState.java bytes");
+		if (!java.util.Arrays.equals(fixture.hooksBytes(), Files.readAllBytes(fixture.hooks())))
+			throw failure(generatorId, "stage14b-native-preservation", "Regeneration changed NativeHooks.java bytes");
+	}
+
+	private static void validateStage14BNativeClasses(String generatorId, Path jar) throws IOException {
+		try (JarFile archive = new JarFile(jar.toFile())) {
+			for (String entry : List.of("dev/copperbench/stage14b/nativecode/NativeState.class",
+					"dev/copperbench/stage14b/nativecode/NativeHooks.class")) {
+				if (archive.getEntry(entry) == null)
+					throw failure(generatorId, "stage14b-jar", "Built JAR is missing native class " + entry);
+			}
+		}
+	}
+
+	@TestFactory @EnabledIfSystemProperty(named = "copperbench.stage14b.workspaceNativeBuild", matches = "true")
+	Stream<DynamicTest> stage14BNativeMultiFileModulesBuildAcrossEveryJavaTrack() {
+		String selected = System.getProperty(STAGE14B_SELECTED_GENERATOR_PROPERTY, "").trim();
+		List<String> generators = selected.isEmpty() ? GENERATOR_IDS
+				: GENERATOR_IDS.stream().filter(selected::equals).toList();
+		if (generators.isEmpty())
+			throw failure(selected, "catalog", "Unknown Stage 14B workspace generator id");
+		return generators.stream().map(generatorId -> DynamicTest.dynamicTest(
+				generatorId + " - Stage 14B native multi-file hook Gradle build",
+				() -> buildWorkspace(generatorId, Content.STAGE14B)));
 	}
 
 	private static void validateMixinClasses(String generatorId, Path jar) throws IOException {
@@ -179,6 +283,7 @@ class NewWorkspaceGeneratorGoldenBuildTest {
 			case STAGE9 -> "stage9";
 			case STAGE11 -> "stage11";
 			case STAGE12 -> "stage12";
+			case STAGE14B -> "stage14b";
 		};
 		Path workspaceRoot = Files.createTempDirectory("copperbench-" + stage + "-" + generatorId.replace('.', '_') + "-")
 				.toAbsolutePath().normalize();
@@ -200,6 +305,7 @@ class NewWorkspaceGeneratorGoldenBuildTest {
 				case STAGE9 -> "copperbench_stage9";
 				case STAGE11 -> "copperbench_stage11";
 				case STAGE12 -> "copperbench_stage12";
+				case STAGE14B -> "copperbench_stage14b";
 			};
 			WorkspaceSettings settings = new WorkspaceSettings(modId);
 			settings.setModName(switch (content) {
@@ -207,6 +313,7 @@ class NewWorkspaceGeneratorGoldenBuildTest {
 				case STAGE9 -> "Copperbench Stage 9 Golden";
 				case STAGE11 -> "Copperbench Stage 11 Golden";
 				case STAGE12 -> "Copperbench Stage 12 Golden";
+				case STAGE14B -> "Copperbench Stage 14B Native Golden";
 			});
 			settings.setVersion("1.0.0");
 			settings.setCurrentGenerator(generatorId);
@@ -215,6 +322,7 @@ class NewWorkspaceGeneratorGoldenBuildTest {
 				case STAGE9 -> "dev.copperbench.stage9";
 				case STAGE11 -> "dev.copperbench.stage11";
 				case STAGE12 -> "dev.copperbench.stage12";
+				case STAGE14B -> "dev.copperbench.stage14b";
 			});
 
 			try (Workspace workspace = Workspace.createWorkspace(
@@ -254,6 +362,18 @@ class NewWorkspaceGeneratorGoldenBuildTest {
 					JavaWriter.formatAndOrganiseImportsForFiles(workspace,
 							entries.filter(Files::isRegularFile).map(Path::toFile).toList(), null);
 				}
+				if (content == Content.STAGE14B) {
+					Stage14BNativeFixture nativeFixture = createStage14BNativeModule(workspace, generatorId);
+					workspace.getGenerator().generateBase(true);
+					assertStage14BNativeFixturePreserved(generatorId, nativeFixture);
+					try (Stream<Path> entries = Files.walk(workspace.getGenerator().getSourceRoot().toPath())) {
+						JavaWriter.formatAndOrganiseImportsForFiles(workspace,
+								entries.filter(Files::isRegularFile)
+										.filter(path -> !path.startsWith(nativeFixture.nativeRoot()))
+										.map(Path::toFile).toList(), null);
+					}
+					assertStage14BNativeFixturePreserved(generatorId, nativeFixture);
+				}
 			}
 
 			GradleRun gradle = runGradle(generatorId, workspaceRoot, gradleJavaHome, gradleHome);
@@ -274,6 +394,8 @@ class NewWorkspaceGeneratorGoldenBuildTest {
 						+ " but got " + jar.getFileName());
 			if (content == Content.STAGE11 || content == Content.STAGE12)
 				validateMixinClasses(generatorId, jar);
+			if (content == Content.STAGE14B)
+				validateStage14BNativeClasses(generatorId, jar);
 		} catch (AssertionError error) {
 			throw error;
 		} catch (Exception exception) {
@@ -643,14 +765,14 @@ class NewWorkspaceGeneratorGoldenBuildTest {
 
 	private static void seedGradleNetworkProperties(Path gradleHome) throws IOException {
 		Path userProperties = Path.of(System.getProperty("user.home"), ".gradle", "gradle.properties");
-		List<String> networkProperties = proxyPropertiesFromEnvironment();
+		List<String> networkProperties = new ArrayList<>(proxyPropertiesFromEnvironment());
 		if (Files.isRegularFile(userProperties)) {
 			List<String> userNetworkProperties = Files.readAllLines(userProperties, StandardCharsets.UTF_8).stream()
 					.filter(line -> line.startsWith("systemProp.http.proxy") || line.startsWith("systemProp.https.proxy")
 							|| line.startsWith("systemProp.http.nonProxyHosts"))
 					.toList();
 			if (networkProperties.isEmpty()) {
-				networkProperties = userNetworkProperties;
+				networkProperties.addAll(userNetworkProperties);
 			} else {
 				userNetworkProperties.stream().filter(line -> line.startsWith("systemProp.http.nonProxyHosts"))
 						.findFirst().ifPresent(networkProperties::add);
@@ -845,6 +967,10 @@ class NewWorkspaceGeneratorGoldenBuildTest {
 	}
 
 	private record GradleRun(boolean completed, int exitCode, String output) {
+	}
+
+	private record Stage14BNativeFixture(Path entry, Path nativeRoot, Path state, Path hooks,
+			byte[] stateBytes, byte[] hooksBytes, String hook) {
 	}
 
 	private record Stage12Mutation(String path, JsonElement value) {

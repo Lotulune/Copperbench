@@ -1,0 +1,26 @@
+{
+  "track": "neoforge-26.2",
+  "label": "copperbench-bootstrap-init-settings-no-assets",
+  "exitCode": 1,
+  "timedOut": false,
+  "elapsedMs": 22183,
+  "javaHome": "D:\\AICoding\\Minecraft_ModCreator\\jdk\\jbr25_win_64",
+  "gradleHome": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\build\\stage8-workspace-generator-gradle\\neoforge-26_2",
+  "arguments": [
+    "-Dfile.encoding=UTF-8",
+    "-Duser.language=en",
+    "-classpath",
+    "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\.tmp\\stage14-track-audit\\projects\\neoforge-26.2\\copperbench\\gradle\\wrapper\\gradle-wrapper.jar",
+    "org.gradle.wrapper.GradleWrapperMain",
+    "--no-daemon",
+    "--console=plain",
+    "--max-workers=2",
+    "-Dorg.gradle.jvmargs=-Xmx1536m -Dfile.encoding=UTF-8 -Duser.language=en",
+    "runServer",
+    "-I",
+    "D:/AICoding/Minecraft_ModCreator/.tmp/stage12a-depth/.tmp/stage14-track-audit/server-probe.init.gradle",
+    "-x",
+    "downloadAssets"
+  ],
+  "completedAt": "2026-09-07T10:44:29.8391331+00:00"
+}

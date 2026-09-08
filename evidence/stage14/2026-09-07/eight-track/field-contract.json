@@ -1,0 +1,82 @@
+[
+  {
+    "track": "fabric-1.20.1",
+    "publicContract": "docs/ai/agent-playbook.md initialValues.fields.maxStackSize; generator-repair fixture /fields/maxStackSize",
+    "createStatus": "committed",
+    "createRequested": 1,
+    "actualAfterCreate": 64,
+    "updateStatus": "committed",
+    "updateRequested": 7,
+    "actualAfterUpdate": 64
+  },
+  {
+    "track": "fabric-1.21.1",
+    "publicContract": "docs/ai/agent-playbook.md initialValues.fields.maxStackSize; generator-repair fixture /fields/maxStackSize",
+    "createStatus": "committed",
+    "createRequested": 1,
+    "actualAfterCreate": 64,
+    "updateStatus": "committed",
+    "updateRequested": 7,
+    "actualAfterUpdate": 64
+  },
+  {
+    "track": "fabric-26.1.2",
+    "publicContract": "docs/ai/agent-playbook.md initialValues.fields.maxStackSize; generator-repair fixture /fields/maxStackSize",
+    "createStatus": "committed",
+    "createRequested": 1,
+    "actualAfterCreate": 64,
+    "updateStatus": "committed",
+    "updateRequested": 7,
+    "actualAfterUpdate": 64
+  },
+  {
+    "track": "fabric-26.2",
+    "publicContract": "docs/ai/agent-playbook.md initialValues.fields.maxStackSize; generator-repair fixture /fields/maxStackSize",
+    "createStatus": "committed",
+    "createRequested": 1,
+    "actualAfterCreate": 64,
+    "updateStatus": "committed",
+    "updateRequested": 7,
+    "actualAfterUpdate": 64
+  },
+  {
+    "track": "neoforge-1.20.1",
+    "publicContract": "docs/ai/agent-playbook.md initialValues.fields.maxStackSize; generator-repair fixture /fields/maxStackSize",
+    "createStatus": "committed",
+    "createRequested": 1,
+    "actualAfterCreate": 64,
+    "updateStatus": "committed",
+    "updateRequested": 7,
+    "actualAfterUpdate": 64
+  },
+  {
+    "track": "neoforge-1.21.1",
+    "publicContract": "docs/ai/agent-playbook.md initialValues.fields.maxStackSize; generator-repair fixture /fields/maxStackSize",
+    "createStatus": "committed",
+    "createRequested": 1,
+    "actualAfterCreate": 64,
+    "updateStatus": "committed",
+    "updateRequested": 7,
+    "actualAfterUpdate": 64
+  },
+  {
+    "track": "neoforge-26.1.2",
+    "publicContract": "docs/ai/agent-playbook.md initialValues.fields.maxStackSize; generator-repair fixture /fields/maxStackSize",
+    "createStatus": "committed",
+    "createRequested": 1,
+    "actualAfterCreate": 64,
+    "updateStatus": "committed",
+    "updateRequested": 7,
+    "actualAfterUpdate": 64
+  },
+  {
+    "track": "neoforge-26.2",
+    "publicContract": "docs/ai/agent-playbook.md initialValues.fields.maxStackSize; generator-repair fixture /fields/maxStackSize",
+    "createStatus": "committed",
+    "createRequested": 1,
+    "actualAfterCreate": 64,
+    "updateStatus": "committed",
+    "updateRequested": 7,
+    "actualAfterUpdate": 64
+  }
+]

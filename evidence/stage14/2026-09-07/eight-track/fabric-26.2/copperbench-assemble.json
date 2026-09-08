@@ -1,0 +1,22 @@
+{
+  "track": "fabric-26.2",
+  "label": "copperbench-assemble",
+  "exitCode": 0,
+  "timedOut": false,
+  "elapsedMs": 11940,
+  "javaHome": "D:\\AICoding\\Minecraft_ModCreator\\jdk\\jbr25_win_64",
+  "gradleHome": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\build\\stage8-workspace-generator-gradle\\fabric-26_2",
+  "arguments": [
+    "-Dfile.encoding=UTF-8",
+    "-Duser.language=en",
+    "-classpath",
+    "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\.tmp\\stage14-track-audit\\projects\\fabric-26.2\\copperbench\\gradle\\wrapper\\gradle-wrapper.jar",
+    "org.gradle.wrapper.GradleWrapperMain",
+    "--no-daemon",
+    "--console=plain",
+    "--max-workers=2",
+    "-Dorg.gradle.jvmargs=-Xmx1536m -Dfile.encoding=UTF-8 -Duser.language=en",
+    "assemble"
+  ],
+  "completedAt": "2026-09-07T10:38:51.8643328+00:00"
+}

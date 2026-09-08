@@ -1,0 +1,29 @@
+{
+  "createdAt": "2026-09-07T05:38:16.3701416+00:00",
+  "sourceCommit": "eaf18606e683fcc37a395de83c53e538c947760e",
+  "mode": "ChatGPT with local coding tools; plain Fabric source and Gradle; not standalone Codex CLI",
+  "nativeDirectory": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\.tmp\\astra-native-comparison\\native",
+  "reused": [
+    "known feature specification",
+    "same installed JDK 21",
+    "existing user Gradle dependency cache",
+    "stock Gradle wrapper files"
+  ],
+  "notUsed": [
+    "Copperbench runtime",
+    "Copperbench MCP API",
+    "MCreator generator",
+    ".mcreator",
+    "mcreator.gradle",
+    "codeFiles metadata"
+  ],
+  "wrapperSha256": "55243EF57851F12B070AD14F7F5BB8302DACEEEBC5BCE5ECE5FA6EDB23E1145C",
+  "versions": {
+    "loom": "1.17.19",
+    "minecraft": "1.21.1",
+    "java": "21",
+    "gradle": "9.7.0",
+    "api": "0.116.15+1.21.1",
+    "loader": "0.19.3"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "track": "neoforge-1.20.1",
+  "stopped": [
+    25816
+  ],
+  "rule": "Only Java command lines containing this unique disposable track directory",
+  "checkedAt": "2026-09-07T10:41:49.2305721+00:00"
+}

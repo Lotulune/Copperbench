@@ -36,7 +36,7 @@ public final class BundledJdkLocator {
 		Path root = Objects.requireNonNull(distributionRoot).toAbsolutePath().normalize();
 		List<Path> attempted = new ArrayList<>();
 
-		Path installedLayout = root.resolve("jdk").normalize();
+		Path installedLayout = root.resolve(javaRelease > 21 ? "jdk" : "jdk21").normalize();
 		attempted.add(installedLayout);
 		if (isJavaHome(installedLayout)) return resolved(root, javaRelease, installedLayout, attempted);
 

@@ -1,0 +1,10 @@
+{
+  "track": "fabric-26.2",
+  "label": "prepare-process",
+  "exitCode": 0,
+  "timedOut": false,
+  "elapsedMs": 50115,
+  "javaHome": "D:\\AICoding\\Minecraft_ModCreator\\jdk\\jbr25_win_64",
+  "gradleHome": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\build\\stage8-workspace-generator-gradle\\fabric-26_2",
+  "completedAt": "2026-09-07T10:14:45.9331905+00:00"
+}

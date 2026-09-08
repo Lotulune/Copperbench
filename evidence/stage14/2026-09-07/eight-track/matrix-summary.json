@@ -1,0 +1,170 @@
+[
+  {
+    "track": "fabric-1.20.1",
+    "fiveSourceAssertionsPassed": true,
+    "publicField": {
+      "track": "fabric-1.20.1",
+      "publicContract": "docs/ai/agent-playbook.md initialValues.fields.maxStackSize; generator-repair fixture /fields/maxStackSize",
+      "createStatus": "committed",
+      "createRequested": 1,
+      "actualAfterCreate": 64,
+      "updateStatus": "committed",
+      "updateRequested": 7,
+      "actualAfterUpdate": 64
+    },
+    "upstreamStorageProbe": 64,
+    "generatedBuild": "passed",
+    "nativeBuild": "passed",
+    "generatedBootstrap": "failed (default)",
+    "nativeBootstrap": "initialized (default)",
+    "generatedWorldPresent": false,
+    "nativeWorldPresent": false
+  },
+  {
+    "track": "fabric-1.21.1",
+    "fiveSourceAssertionsPassed": true,
+    "publicField": {
+      "track": "fabric-1.21.1",
+      "publicContract": "docs/ai/agent-playbook.md initialValues.fields.maxStackSize; generator-repair fixture /fields/maxStackSize",
+      "createStatus": "committed",
+      "createRequested": 1,
+      "actualAfterCreate": 64,
+      "updateStatus": "committed",
+      "updateRequested": 7,
+      "actualAfterUpdate": 64
+    },
+    "upstreamStorageProbe": 64,
+    "generatedBuild": "passed",
+    "nativeBuild": "passed",
+    "generatedBootstrap": "initialized (default)",
+    "nativeBootstrap": "initialized (default)",
+    "generatedWorldPresent": false,
+    "nativeWorldPresent": false
+  },
+  {
+    "track": "fabric-26.1.2",
+    "fiveSourceAssertionsPassed": true,
+    "publicField": {
+      "track": "fabric-26.1.2",
+      "publicContract": "docs/ai/agent-playbook.md initialValues.fields.maxStackSize; generator-repair fixture /fields/maxStackSize",
+      "createStatus": "committed",
+      "createRequested": 1,
+      "actualAfterCreate": 64,
+      "updateStatus": "committed",
+      "updateRequested": 7,
+      "actualAfterUpdate": 64
+    },
+    "upstreamStorageProbe": 64,
+    "generatedBuild": "passed",
+    "nativeBuild": "passed",
+    "generatedBootstrap": "initialized (default)",
+    "nativeBootstrap": "initialized (default)",
+    "generatedWorldPresent": false,
+    "nativeWorldPresent": false
+  },
+  {
+    "track": "fabric-26.2",
+    "fiveSourceAssertionsPassed": true,
+    "publicField": {
+      "track": "fabric-26.2",
+      "publicContract": "docs/ai/agent-playbook.md initialValues.fields.maxStackSize; generator-repair fixture /fields/maxStackSize",
+      "createStatus": "committed",
+      "createRequested": 1,
+      "actualAfterCreate": 64,
+      "updateStatus": "committed",
+      "updateRequested": 7,
+      "actualAfterUpdate": 64
+    },
+    "upstreamStorageProbe": 64,
+    "generatedBuild": "passed",
+    "nativeBuild": "passed",
+    "generatedBootstrap": "initialized (default)",
+    "nativeBootstrap": "initialized (default)",
+    "generatedWorldPresent": false,
+    "nativeWorldPresent": false
+  },
+  {
+    "track": "neoforge-1.20.1",
+    "fiveSourceAssertionsPassed": true,
+    "publicField": {
+      "track": "neoforge-1.20.1",
+      "publicContract": "docs/ai/agent-playbook.md initialValues.fields.maxStackSize; generator-repair fixture /fields/maxStackSize",
+      "createStatus": "committed",
+      "createRequested": 1,
+      "actualAfterCreate": 64,
+      "updateStatus": "committed",
+      "updateRequested": 7,
+      "actualAfterUpdate": 64
+    },
+    "upstreamStorageProbe": 64,
+    "generatedBuild": "passed",
+    "nativeBuild": "passed",
+    "generatedBootstrap": "boundary only; initializer not observed (initSettings; client assets excluded)",
+    "nativeBootstrap": "boundary only; initializer not observed (initSettings; client assets excluded)",
+    "generatedWorldPresent": false,
+    "nativeWorldPresent": false
+  },
+  {
+    "track": "neoforge-1.21.1",
+    "fiveSourceAssertionsPassed": true,
+    "publicField": {
+      "track": "neoforge-1.21.1",
+      "publicContract": "docs/ai/agent-playbook.md initialValues.fields.maxStackSize; generator-repair fixture /fields/maxStackSize",
+      "createStatus": "committed",
+      "createRequested": 1,
+      "actualAfterCreate": 64,
+      "updateStatus": "committed",
+      "updateRequested": 7,
+      "actualAfterUpdate": 64
+    },
+    "upstreamStorageProbe": 64,
+    "generatedBuild": "passed",
+    "nativeBuild": "passed",
+    "generatedBootstrap": "boundary only; initializer not observed (initSettings; client assets excluded)",
+    "nativeBootstrap": "boundary only; initializer not observed (initSettings; client assets excluded)",
+    "generatedWorldPresent": false,
+    "nativeWorldPresent": false
+  },
+  {
+    "track": "neoforge-26.1.2",
+    "fiveSourceAssertionsPassed": true,
+    "publicField": {
+      "track": "neoforge-26.1.2",
+      "publicContract": "docs/ai/agent-playbook.md initialValues.fields.maxStackSize; generator-repair fixture /fields/maxStackSize",
+      "createStatus": "committed",
+      "createRequested": 1,
+      "actualAfterCreate": 64,
+      "updateStatus": "committed",
+      "updateRequested": 7,
+      "actualAfterUpdate": 64
+    },
+    "upstreamStorageProbe": 64,
+    "generatedBuild": "passed",
+    "nativeBuild": "passed",
+    "generatedBootstrap": "blocked_probe_incompatibility (initSettings; client assets excluded)",
+    "nativeBootstrap": "blocked_probe_incompatibility (initSettings; client assets excluded)",
+    "generatedWorldPresent": false,
+    "nativeWorldPresent": true
+  },
+  {
+    "track": "neoforge-26.2",
+    "fiveSourceAssertionsPassed": true,
+    "publicField": {
+      "track": "neoforge-26.2",
+      "publicContract": "docs/ai/agent-playbook.md initialValues.fields.maxStackSize; generator-repair fixture /fields/maxStackSize",
+      "createStatus": "committed",
+      "createRequested": 1,
+      "actualAfterCreate": 64,
+      "updateStatus": "committed",
+      "updateRequested": 7,
+      "actualAfterUpdate": 64
+    },
+    "upstreamStorageProbe": 64,
+    "generatedBuild": "passed",
+    "nativeBuild": "passed",
+    "generatedBootstrap": "blocked_probe_incompatibility (initSettings; client assets excluded)",
+    "nativeBootstrap": "blocked_probe_incompatibility (initSettings; client assets excluded)",
+    "generatedWorldPresent": false,
+    "nativeWorldPresent": false
+  }
+]

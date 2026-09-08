@@ -13,6 +13,8 @@ import com.google.gson.JsonObject;
 import dev.copperbench.core.application.InMemoryWorkspaceTaskGateway;
 import dev.copperbench.core.contract.UiCore.Command;
 import dev.copperbench.core.contract.UiCore.Operation;
+import dev.copperbench.core.workspace.ProductMetadataManager;
+import dev.copperbench.core.workspace.WorkspaceState;
 import dev.copperbench.testing.McreatorTestRuntime;
 import net.mcreator.workspace.Workspace;
 import net.mcreator.workspace.settings.WorkspaceSettings;
@@ -28,10 +30,13 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CodeElementPersistenceTest {
@@ -77,6 +82,75 @@ class CodeElementPersistenceTest {
 						.map(java.io.File::toPath)
 						.findFirst().orElseThrow();
 				assertEquals(sourceCode, Files.readString(source, StandardCharsets.UTF_8));
+			}
+		}
+	}
+
+	@Test void failedCodeUpdateRemovesNewHelperBeforeRetry() throws Exception {
+		WorkspaceSettings settings = new WorkspaceSettings("code_bundle_rollback");
+		settings.setModName("Code Bundle Rollback");
+		settings.setVersion("1.0.0");
+		settings.setCurrentGenerator("fabric-1.21.1");
+		Path workspaceFile = root.resolve("code_bundle_rollback.mcreator");
+		AtomicLong ids = new AtomicLong(270);
+		AtomicBoolean failUpdateOnce = new AtomicBoolean(true);
+		try (Workspace workspace = Workspace.createWorkspace(workspaceFile.toFile(), settings)) {
+			assertTrue(workspace.getGenerator().generateBase(), "Generator base must exist before persisting custom code");
+			WorkspaceMutationObserver observer = (_, _, _, operation, _) -> {
+				if (operation == Operation.UPDATE_MOD_ELEMENT && failUpdateOnce.getAndSet(false))
+					throw new IllegalStateException("synthetic observer failure after helper write");
+			};
+			try (MCreatorWorkspaceSession session = MCreatorWorkspaceSession.attach(workspace,
+					UUID.fromString("22222222-2222-4222-8222-222222222224"),
+					new InMemoryWorkspaceTaskGateway(CLOCK, () -> uuid(ids.incrementAndGet())), CLOCK,
+					() -> uuid(ids.incrementAndGet()), List.of(observer))) {
+				JsonObject values = new JsonObject();
+				values.addProperty("code", "package net.mcreator.code_bundle_rollback;\npublic final class RuntimeRoot {}\n");
+				JsonObject create = new JsonObject();
+				create.addProperty("clientMutationId", uuid(50).toString());
+				create.addProperty("elementType", "code");
+				create.addProperty("name", "runtime_root");
+				create.add("initialValues", values);
+				var created = session.uiEntry().execute(Command.of(uuid(51), session.workspaceId(), 0,
+						Operation.CREATE_MOD_ELEMENT, create));
+				assertEquals("committed", created.result().status(), created.result().diagnostics().toString());
+				String elementId = created.result().data().getAsJsonObject().getAsJsonObject("element")
+						.get("id").getAsString();
+				Path primary = workspace.getModElementByName("runtime_root").getAssociatedFiles().stream()
+						.filter(file -> file.getName().endsWith(".java")).map(java.io.File::toPath)
+						.findFirst().orElseThrow();
+				Path helper = primary.getParent().resolve("runtime/NewHelper.java");
+
+				com.google.gson.JsonArray files = new com.google.gson.JsonArray();
+				JsonObject helperFile = new JsonObject();
+				helperFile.addProperty("path", "runtime/NewHelper.java");
+				helperFile.addProperty("code",
+						"package net.mcreator.code_bundle_rollback.runtime;\npublic final class NewHelper {}\n");
+				files.add(helperFile);
+				JsonObject change = new JsonObject();
+				change.addProperty("path", "/codeFiles");
+				change.add("value", files);
+				com.google.gson.JsonArray changes = new com.google.gson.JsonArray();
+				changes.add(change);
+				JsonObject update = new JsonObject();
+				update.addProperty("clientMutationId", uuid(52).toString());
+				update.addProperty("elementId", elementId);
+				update.add("changes", changes);
+
+				var failed = session.uiEntry().execute(Command.of(uuid(53), session.workspaceId(), 1,
+						Operation.UPDATE_MOD_ELEMENT, update));
+				assertEquals("rejected", failed.result().status());
+				assertTrue(failed.result().diagnostics().stream().anyMatch(diagnostic ->
+						"WORKSPACE_PERSISTENCE_FAILED".equals(diagnostic.code())));
+				assertFalse(Files.exists(helper), "rollback must delete a helper that did not exist before the update");
+				assertFalse(workspace.getModElementByName("runtime_root").getAssociatedFiles().stream()
+						.anyMatch(file -> file.toPath().equals(helper)));
+
+				update.addProperty("clientMutationId", uuid(54).toString());
+				var retried = session.uiEntry().execute(Command.of(uuid(55), session.workspaceId(), 1,
+						Operation.UPDATE_MOD_ELEMENT, update));
+				assertEquals("committed", retried.result().status(), retried.result().diagnostics().toString());
+				assertTrue(Files.isRegularFile(helper));
 			}
 		}
 	}
@@ -150,6 +224,397 @@ class CodeElementPersistenceTest {
 				assertTrue(Files.isRegularFile(runtimeSource));
 				assertTrue(workspace.getModElementByName("runtime_root").getAssociatedFiles().stream()
 						.anyMatch(file -> file.toPath().equals(runtimeSource)));
+			}
+		}
+	}
+
+	@Test void metadataOnlyCodeUpdatePreservesExternallyEditedBundleSource() throws Exception {
+		WorkspaceSettings settings = new WorkspaceSettings("code_external_edit");
+		settings.setModName("Code External Edit");
+		settings.setVersion("1.0.0");
+		settings.setCurrentGenerator("fabric-1.21.1");
+		Path workspaceFile = root.resolve("code_external_edit.mcreator");
+		AtomicLong ids = new AtomicLong(280);
+		try (Workspace workspace = Workspace.createWorkspace(workspaceFile.toFile(), settings)) {
+			assertTrue(workspace.getGenerator().generateBase(), "Generator base must exist before persisting custom code");
+			try (MCreatorWorkspaceSession session = MCreatorWorkspaceSession.attach(workspace,
+					UUID.fromString("22222222-2222-4222-8222-222222222224"),
+					new InMemoryWorkspaceTaskGateway(CLOCK, () -> uuid(ids.incrementAndGet())), CLOCK,
+					() -> uuid(ids.incrementAndGet()))) {
+				JsonObject values = new JsonObject();
+				values.addProperty("code", "package net.mcreator.code_external_edit;\npublic final class RuntimeRoot {}\n");
+				com.google.gson.JsonArray files = new com.google.gson.JsonArray();
+				JsonObject helper = new JsonObject();
+				helper.addProperty("path", "runtime/ExternalHelper.java");
+				helper.addProperty("code", "package net.mcreator.code_external_edit.runtime;\npublic final class ExternalHelper {}\n");
+				files.add(helper);
+				values.add("codeFiles", files);
+				JsonObject create = new JsonObject();
+				create.addProperty("clientMutationId", uuid(50).toString());
+				create.addProperty("elementType", "code");
+				create.addProperty("name", "runtime_root");
+				create.add("initialValues", values);
+
+				var created = session.uiEntry().execute(Command.of(uuid(51), session.workspaceId(), 0,
+						Operation.CREATE_MOD_ELEMENT, create));
+				assertEquals("committed", created.result().status(), created.result().diagnostics().toString());
+				String elementId = created.result().data().getAsJsonObject().getAsJsonObject("element")
+						.get("id").getAsString();
+				Path primary = workspace.getModElementByName("runtime_root").getAssociatedFiles().stream()
+						.filter(file -> file.getName().endsWith(".java"))
+						.map(java.io.File::toPath).findFirst().orElseThrow();
+				Path helperSource = primary.getParent().resolve("runtime/ExternalHelper.java");
+				String primaryExternalEdit = "package net.mcreator.code_external_edit;\n"
+						+ "public final class RuntimeRoot { public static final int IDE_EDIT = 3; }\n";
+				String externalEdit = "package net.mcreator.code_external_edit.runtime;\n"
+						+ "public final class ExternalHelper { public static final int IDE_EDIT = 7; }\n";
+				Files.writeString(primary, primaryExternalEdit, StandardCharsets.UTF_8);
+				Files.writeString(helperSource, externalEdit, StandardCharsets.UTF_8);
+				var mapped = new MCreatorWorkspaceStateMapper().map(workspace,
+						new ProductMetadataManager.Metadata(1, session.workspaceId(), 1));
+				JsonObject mappedValues = mapped.element(UUID.fromString(elementId)).values();
+				assertEquals(primaryExternalEdit, mappedValues.get("code").getAsString(),
+						"Workspace projection must use the live primary source after an IDE edit");
+				assertEquals(externalEdit, mappedValues.getAsJsonArray("codeFiles").get(0).getAsJsonObject()
+						.get("code").getAsString(),
+						"Workspace projection must use the live bundle source after an IDE edit");
+				assertTrue(workspace.getGenerator().generateElement(
+						workspace.getModElementByName("runtime_root").getGeneratableElement()),
+						"Regenerating a code-locked custom element should remain a successful no-op");
+				assertEquals(primaryExternalEdit, Files.readString(primary, StandardCharsets.UTF_8),
+						"Regeneration must not reclaim an externally edited code-locked primary source");
+				assertEquals(externalEdit, Files.readString(helperSource, StandardCharsets.UTF_8),
+						"Regeneration must not reclaim an externally edited code-locked bundle source");
+
+				JsonObject change = new JsonObject();
+				change.addProperty("path", "/displayName");
+				change.addProperty("value", "Runtime Root Renamed");
+				com.google.gson.JsonArray changes = new com.google.gson.JsonArray();
+				changes.add(change);
+				JsonObject update = new JsonObject();
+				update.addProperty("clientMutationId", uuid(52).toString());
+				update.addProperty("elementId", elementId);
+				update.add("changes", changes);
+
+				var updated = session.uiEntry().execute(Command.of(uuid(53), session.workspaceId(), 1,
+						Operation.UPDATE_MOD_ELEMENT, update));
+				assertEquals("committed", updated.result().status(), updated.result().diagnostics().toString());
+				assertEquals(primaryExternalEdit, Files.readString(primary, StandardCharsets.UTF_8),
+						"Metadata-only changes must not replay stale primary-source metadata over IDE edits");
+				assertEquals(externalEdit, Files.readString(helperSource, StandardCharsets.UTF_8),
+						"Metadata-only changes must not replay stale codeFiles metadata over IDE edits");
+			}
+		}
+	}
+
+	@Test void recoveryPointRestoresLiveExternallyEditedPrimaryAndBundleBytes() throws Exception {
+		WorkspaceSettings settings = new WorkspaceSettings("code_recovery_bytes");
+		settings.setModName("Code Recovery Bytes");
+		settings.setVersion("1.0.0");
+		settings.setCurrentGenerator("fabric-1.21.1");
+		Path workspaceFile = root.resolve("code_recovery_bytes.mcreator");
+		AtomicLong ids = new AtomicLong(320);
+		try (Workspace workspace = Workspace.createWorkspace(workspaceFile.toFile(), settings)) {
+			assertTrue(workspace.getGenerator().generateBase(), "Generator base must exist before persisting custom code");
+			try (MCreatorWorkspaceSession session = MCreatorWorkspaceSession.attach(workspace,
+					store -> new InMemoryWorkspaceTaskGateway(CLOCK, () -> uuid(ids.incrementAndGet())), CLOCK,
+					() -> uuid(ids.incrementAndGet()))) {
+				JsonObject values = new JsonObject();
+				values.addProperty("code", "package net.mcreator.code_recovery_bytes;\npublic final class RuntimeRoot {}\n");
+				com.google.gson.JsonArray files = new com.google.gson.JsonArray();
+				JsonObject helper = new JsonObject();
+				helper.addProperty("path", "runtime/RecoveryHelper.java");
+				helper.addProperty("code", "package net.mcreator.code_recovery_bytes.runtime;\npublic final class RecoveryHelper {}\n");
+				files.add(helper);
+				values.add("codeFiles", files);
+				JsonObject create = new JsonObject();
+				create.addProperty("clientMutationId", uuid(70).toString());
+				create.addProperty("elementType", "code");
+				create.addProperty("name", "runtime_root");
+				create.add("initialValues", values);
+
+				var created = session.uiEntry().execute(Command.of(uuid(71), session.workspaceId(), 0,
+						Operation.CREATE_MOD_ELEMENT, create));
+				assertEquals("committed", created.result().status(), created.result().diagnostics().toString());
+				Path primary = workspace.getModElementByName("runtime_root").getAssociatedFiles().stream()
+						.filter(file -> file.getName().endsWith(".java"))
+						.map(java.io.File::toPath).findFirst().orElseThrow();
+				Path helperSource = primary.getParent().resolve("runtime/RecoveryHelper.java");
+				String recoveryPrimary = "package net.mcreator.code_recovery_bytes;\n"
+						+ "public final class RuntimeRoot { public static final int IDE_BASELINE = 11; }\n";
+				String recoveryHelper = "package net.mcreator.code_recovery_bytes.runtime;\n"
+						+ "public final class RecoveryHelper { public static final int IDE_BASELINE = 13; }\n";
+				Files.writeString(primary, recoveryPrimary, StandardCharsets.UTF_8);
+				Files.writeString(helperSource, recoveryHelper, StandardCharsets.UTF_8);
+
+				JsonObject pointPayload = new JsonObject();
+				pointPayload.addProperty("label", "External IDE baseline");
+				var point = session.uiEntry().execute(Command.of(uuid(72), session.workspaceId(), 1,
+						Operation.CREATE_RECOVERY_POINT, pointPayload));
+				assertEquals("committed", point.result().status(), point.result().diagnostics().toString());
+				String recoveryPointId = point.result().recoveryPointId();
+				assertTrue(recoveryPointId != null && !recoveryPointId.isBlank());
+
+				Files.writeString(primary, recoveryPrimary.replace("11", "21"), StandardCharsets.UTF_8);
+				Files.writeString(helperSource, recoveryHelper.replace("13", "23"), StandardCharsets.UTF_8);
+				Path addedAfterPoint = primary.getParent().resolve("runtime/AddedAfterPoint.java");
+				Files.writeString(addedAfterPoint,
+						"package net.mcreator.code_recovery_bytes.runtime;\npublic final class AddedAfterPoint {}\n",
+						StandardCharsets.UTF_8);
+
+				JsonObject restorePayload = new JsonObject();
+				restorePayload.addProperty("recoveryPointId", recoveryPointId);
+				restorePayload.addProperty("userApproved", true);
+				var restored = session.uiEntry().execute(Command.of(uuid(73), session.workspaceId(), 1,
+						Operation.RESTORE_RECOVERY_POINT, restorePayload));
+				assertEquals("committed", restored.result().status(), restored.result().diagnostics().toString());
+				assertEquals(2, restored.result().newRevision());
+				assertEquals(recoveryPrimary, Files.readString(primary, StandardCharsets.UTF_8),
+						"restore must replay the live external primary source bytes captured by the recovery point");
+				assertEquals(recoveryHelper, Files.readString(helperSource, StandardCharsets.UTF_8),
+						"restore must replay the live external helper source bytes captured by the recovery point");
+				assertFalse(Files.exists(addedAfterPoint),
+						"restore must remove a source file introduced after the target recovery point");
+			}
+		}
+	}
+
+	@Test void stalePrimarySourceWriteIsRejectedUntilCallerRefreshesItsFingerprint() throws Exception {
+		WorkspaceSettings settings = new WorkspaceSettings("code_stale_source");
+		settings.setModName("Code Stale Source");
+		settings.setVersion("1.0.0");
+		settings.setCurrentGenerator("fabric-1.21.1");
+		Path workspaceFile = root.resolve("code_stale_source.mcreator");
+		AtomicLong ids = new AtomicLong(360);
+		try (Workspace workspace = Workspace.createWorkspace(workspaceFile.toFile(), settings)) {
+			assertTrue(workspace.getGenerator().generateBase(), "Generator base must exist before persisting custom code");
+			try (MCreatorWorkspaceSession session = MCreatorWorkspaceSession.attach(workspace,
+					UUID.fromString("22222222-2222-4222-8222-222222222226"),
+					new InMemoryWorkspaceTaskGateway(CLOCK, () -> uuid(ids.incrementAndGet())), CLOCK,
+					() -> uuid(ids.incrementAndGet()))) {
+				String initial = "package net.mcreator.code_stale_source;\npublic final class RuntimeRoot {}\n";
+				JsonObject values = new JsonObject();
+				values.addProperty("code", initial);
+				JsonObject create = new JsonObject();
+				create.addProperty("clientMutationId", uuid(80).toString());
+				create.addProperty("elementType", "code");
+				create.addProperty("name", "runtime_root");
+				create.add("initialValues", values);
+				var created = session.uiEntry().execute(Command.of(uuid(81), session.workspaceId(), 0,
+						Operation.CREATE_MOD_ELEMENT, create));
+				assertEquals("committed", created.result().status(), created.result().diagnostics().toString());
+				String elementId = created.result().data().getAsJsonObject().getAsJsonObject("element")
+						.get("id").getAsString();
+				Path primary = workspace.getModElementByName("runtime_root").getAssociatedFiles().stream()
+						.filter(file -> file.getName().endsWith(".java"))
+						.map(java.io.File::toPath).findFirst().orElseThrow();
+
+				String external = "package net.mcreator.code_stale_source;\n"
+						+ "public final class RuntimeRoot { public static final int IDE_EDIT = 17; }\n";
+				Files.writeString(primary, external, StandardCharsets.UTF_8);
+				String agent = "package net.mcreator.code_stale_source;\n"
+						+ "public final class RuntimeRoot { public static final int AGENT_EDIT = 19; }\n";
+				JsonObject codeChange = new JsonObject();
+				codeChange.addProperty("path", "/code");
+				codeChange.addProperty("value", agent);
+				com.google.gson.JsonArray staleChanges = new com.google.gson.JsonArray();
+				staleChanges.add(codeChange);
+				JsonObject staleUpdate = new JsonObject();
+				staleUpdate.addProperty("clientMutationId", uuid(82).toString());
+				staleUpdate.addProperty("elementId", elementId);
+				staleUpdate.add("changes", staleChanges);
+				var stale = session.uiEntry().execute(Command.of(uuid(83), session.workspaceId(), 1,
+						Operation.UPDATE_MOD_ELEMENT, staleUpdate));
+
+				assertEquals("rejected", stale.result().status(), stale.result().diagnostics().toString());
+				assertEquals("SOURCE_CONTENT_CONFLICT", stale.result().diagnostics().getFirst().code());
+				assertTrue(stale.result().diagnostics().getFirst().path().endsWith("/code"));
+				assertEquals(external, Files.readString(primary, StandardCharsets.UTF_8),
+						"A stale Agent write must not overwrite the IDE edit");
+
+				var live = new MCreatorWorkspaceStateMapper().map(workspace,
+						new ProductMetadataManager.Metadata(1, session.workspaceId(), 1));
+				String liveFingerprint = live.element(UUID.fromString(elementId)).values()
+						.getAsJsonObject("sourceFingerprints").get("$primary").getAsString();
+				JsonObject fingerprintChange = new JsonObject();
+				fingerprintChange.addProperty("path", "/sourceFingerprints/$primary");
+				fingerprintChange.addProperty("value", liveFingerprint);
+				com.google.gson.JsonArray retryChanges = new com.google.gson.JsonArray();
+				retryChanges.add(fingerprintChange);
+				retryChanges.add(codeChange.deepCopy());
+				JsonObject retryUpdate = new JsonObject();
+				retryUpdate.addProperty("clientMutationId", uuid(84).toString());
+				retryUpdate.addProperty("elementId", elementId);
+				retryUpdate.add("changes", retryChanges);
+				var retried = session.uiEntry().execute(Command.of(uuid(85), session.workspaceId(), 1,
+						Operation.UPDATE_MOD_ELEMENT, retryUpdate));
+
+				assertEquals("committed", retried.result().status(), retried.result().diagnostics().toString());
+				assertEquals(2, retried.result().newRevision());
+				assertEquals(agent, Files.readString(primary, StandardCharsets.UTF_8));
+			}
+		}
+	}
+
+	@Test void unrelatedExternalHelperEditDoesNotBlockAnotherHelperButStaleTargetIsRejected() throws Exception {
+		WorkspaceSettings settings = new WorkspaceSettings("code_helper_fingerprints");
+		settings.setModName("Code Helper Fingerprints");
+		settings.setVersion("1.0.0");
+		settings.setCurrentGenerator("fabric-1.21.1");
+		Path workspaceFile = root.resolve("code_helper_fingerprints.mcreator");
+		AtomicLong ids = new AtomicLong(380);
+		try (Workspace workspace = Workspace.createWorkspace(workspaceFile.toFile(), settings)) {
+			assertTrue(workspace.getGenerator().generateBase(), "Generator base must exist before persisting custom code");
+			try (MCreatorWorkspaceSession session = MCreatorWorkspaceSession.attach(workspace,
+					UUID.fromString("22222222-2222-4222-8222-222222222227"),
+					new InMemoryWorkspaceTaskGateway(CLOCK, () -> uuid(ids.incrementAndGet())), CLOCK,
+					() -> uuid(ids.incrementAndGet()))) {
+				String helperA = "package net.mcreator.code_helper_fingerprints.runtime;\npublic final class HelperA {}\n";
+				String helperB = "package net.mcreator.code_helper_fingerprints.runtime;\npublic final class HelperB {}\n";
+				JsonObject values = new JsonObject();
+				values.addProperty("code", "package net.mcreator.code_helper_fingerprints;\npublic final class RuntimeRoot {}\n");
+				com.google.gson.JsonArray files = new com.google.gson.JsonArray();
+				JsonObject a = new JsonObject();
+				a.addProperty("path", "runtime/HelperA.java");
+				a.addProperty("code", helperA);
+				files.add(a);
+				JsonObject b = new JsonObject();
+				b.addProperty("path", "runtime/HelperB.java");
+				b.addProperty("code", helperB);
+				files.add(b);
+				values.add("codeFiles", files);
+				JsonObject create = new JsonObject();
+				create.addProperty("clientMutationId", uuid(90).toString());
+				create.addProperty("elementType", "code");
+				create.addProperty("name", "runtime_root");
+				create.add("initialValues", values);
+				var created = session.uiEntry().execute(Command.of(uuid(91), session.workspaceId(), 0,
+						Operation.CREATE_MOD_ELEMENT, create));
+				assertEquals("committed", created.result().status(), created.result().diagnostics().toString());
+				String elementId = created.result().data().getAsJsonObject().getAsJsonObject("element")
+						.get("id").getAsString();
+				Path primary = workspace.getModElementByName("runtime_root").getAssociatedFiles().stream()
+						.filter(file -> file.getName().endsWith(".java"))
+						.map(java.io.File::toPath).findFirst().orElseThrow();
+				Path helperASource = primary.getParent().resolve("runtime/HelperA.java");
+				Path helperBSource = primary.getParent().resolve("runtime/HelperB.java");
+
+				String externalA = helperA.replace("{}", "{ public static final int IDE_EDIT = 23; }");
+				Files.writeString(helperASource, externalA, StandardCharsets.UTF_8);
+				String agentB = helperB.replace("{}", "{ public static final int AGENT_EDIT = 29; }");
+				com.google.gson.JsonArray changeOnlyB = new com.google.gson.JsonArray();
+				changeOnlyB.add(a.deepCopy());
+				JsonObject changedB = b.deepCopy();
+				changedB.addProperty("code", agentB);
+				changeOnlyB.add(changedB);
+				JsonObject bundleChange = new JsonObject();
+				bundleChange.addProperty("path", "/codeFiles");
+				bundleChange.add("value", changeOnlyB);
+				com.google.gson.JsonArray changes = new com.google.gson.JsonArray();
+				changes.add(bundleChange);
+				JsonObject update = new JsonObject();
+				update.addProperty("clientMutationId", uuid(92).toString());
+				update.addProperty("elementId", elementId);
+				update.add("changes", changes);
+				var updated = session.uiEntry().execute(Command.of(uuid(93), session.workspaceId(), 1,
+						Operation.UPDATE_MOD_ELEMENT, update));
+
+				assertEquals("committed", updated.result().status(), updated.result().diagnostics().toString());
+				assertEquals(externalA, Files.readString(helperASource, StandardCharsets.UTF_8),
+						"An unrelated externally edited helper must not be rewritten or block another helper's update");
+				assertEquals(agentB, Files.readString(helperBSource, StandardCharsets.UTF_8));
+
+				String externalB = agentB.replace("29", "31");
+				Files.writeString(helperBSource, externalB, StandardCharsets.UTF_8);
+				com.google.gson.JsonArray staleBundle = new com.google.gson.JsonArray();
+				JsonObject liveA = a.deepCopy();
+				liveA.addProperty("code", externalA);
+				staleBundle.add(liveA);
+				JsonObject staleB = changedB.deepCopy();
+				staleB.addProperty("code", agentB.replace("29", "37"));
+				staleBundle.add(staleB);
+				JsonObject staleBundleChange = new JsonObject();
+				staleBundleChange.addProperty("path", "/codeFiles");
+				staleBundleChange.add("value", staleBundle);
+				com.google.gson.JsonArray staleChanges = new com.google.gson.JsonArray();
+				staleChanges.add(staleBundleChange);
+				JsonObject staleUpdate = new JsonObject();
+				staleUpdate.addProperty("clientMutationId", uuid(94).toString());
+				staleUpdate.addProperty("elementId", elementId);
+				staleUpdate.add("changes", staleChanges);
+				var stale = session.uiEntry().execute(Command.of(uuid(95), session.workspaceId(), 2,
+						Operation.UPDATE_MOD_ELEMENT, staleUpdate));
+
+				assertEquals("rejected", stale.result().status(), stale.result().diagnostics().toString());
+				assertEquals("SOURCE_CONTENT_CONFLICT", stale.result().diagnostics().getFirst().code());
+				assertTrue(stale.result().diagnostics().getFirst().path().endsWith("/codeFiles"));
+				assertEquals(externalB, Files.readString(helperBSource, StandardCharsets.UTF_8),
+						"A stale helper write must preserve the newer IDE edit");
+			}
+		}
+	}
+
+	@Test void codeBundleCannotClaimAnotherElementsPrimarySource() throws Exception {
+		WorkspaceSettings settings = new WorkspaceSettings("code_owner_collision");
+		settings.setModName("Code Owner Collision");
+		settings.setVersion("1.0.0");
+		settings.setCurrentGenerator("fabric-1.21.1");
+		Path workspaceFile = root.resolve("code_owner_collision.mcreator");
+		AtomicLong ids = new AtomicLong(340);
+		try (Workspace workspace = Workspace.createWorkspace(workspaceFile.toFile(), settings)) {
+			assertTrue(workspace.getGenerator().generateBase(), "Generator base must exist before persisting custom code");
+			try (MCreatorWorkspaceSession session = MCreatorWorkspaceSession.attach(workspace,
+					UUID.fromString("22222222-2222-4222-8222-222222222225"),
+					new InMemoryWorkspaceTaskGateway(CLOCK, () -> uuid(ids.incrementAndGet())), CLOCK,
+					() -> uuid(ids.incrementAndGet()))) {
+				String ownerASource = "package net.mcreator.code_owner_collision;\npublic final class OwnerA {}\n";
+				JsonObject ownerAValues = new JsonObject();
+				ownerAValues.addProperty("code", ownerASource);
+				JsonObject createA = new JsonObject();
+				createA.addProperty("clientMutationId", uuid(60).toString());
+				createA.addProperty("elementType", "code");
+				createA.addProperty("name", "owner_a");
+				createA.add("initialValues", ownerAValues);
+				var createdA = session.uiEntry().execute(Command.of(uuid(61), session.workspaceId(), 0,
+						Operation.CREATE_MOD_ELEMENT, createA));
+				assertEquals("committed", createdA.result().status(), createdA.result().diagnostics().toString());
+				Path ownerAPrimary = workspace.getModElementByName("owner_a").getAssociatedFiles().stream()
+						.filter(file -> file.getName().endsWith(".java"))
+						.map(java.io.File::toPath).findFirst().orElseThrow();
+
+				JsonObject ownerBValues = new JsonObject();
+				ownerBValues.addProperty("code", "package net.mcreator.code_owner_collision;\npublic final class OwnerB {}\n");
+				com.google.gson.JsonArray files = new com.google.gson.JsonArray();
+				JsonObject collision = new JsonObject();
+				collision.addProperty("path", ownerAPrimary.getFileName().toString());
+				collision.addProperty("code", "// must never overwrite owner A\n");
+				files.add(collision);
+				ownerBValues.add("codeFiles", files);
+				JsonObject createB = new JsonObject();
+				createB.addProperty("clientMutationId", uuid(62).toString());
+				createB.addProperty("elementType", "code");
+				createB.addProperty("name", "owner_b");
+				createB.add("initialValues", ownerBValues);
+
+				var beforePlan = new MCreatorWorkspaceStateMapper().map(workspace,
+						new ProductMetadataManager.Metadata(1, session.workspaceId(), 1));
+				var afterPlan = beforePlan.copy();
+				afterPlan.addElement(new WorkspaceState.Element(uuid(64), "code", "owner_b", "Owner B", "valid",
+						"generated", CLOCK.instant(), ownerBValues));
+				var preflightFailure = assertThrows(IllegalStateException.class,
+						() -> new MCreatorWorkspaceMutationGateway(workspace, session.workspaceId())
+								.validateWorkspacePlan(beforePlan, afterPlan));
+				assertTrue(preflightFailure.getMessage().contains("owner_a"), preflightFailure.getMessage());
+
+				var createdB = session.uiEntry().execute(Command.of(uuid(63), session.workspaceId(), 1,
+						Operation.CREATE_MOD_ELEMENT, createB));
+				assertEquals("rejected", createdB.result().status(),
+						"A second managed element must not claim another element's physical source file");
+				assertEquals(ownerASource, Files.readString(ownerAPrimary, StandardCharsets.UTF_8));
+				assertNull(workspace.getModElementByName("owner_b"),
+						"A rejected ownership conflict must roll the new element out of the upstream workspace");
+				assertFalse(Files.exists(ownerAPrimary.getParent().resolve("owner_b.java")),
+						"A rejected ownership conflict must not leave an orphan primary source behind");
 			}
 		}
 	}

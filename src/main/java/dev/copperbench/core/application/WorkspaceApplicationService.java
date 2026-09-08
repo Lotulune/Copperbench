@@ -142,6 +142,7 @@ public final class WorkspaceApplicationService {
 	private final InstalledPluginInventoryService installedPlugins;
 	private final WorkspaceCreationService workspaceCreation;
 	private final WorkspacePlanEngine plans;
+	private final LocalWorkspaceTemplateService localTemplates;
 	private final WorkspaceReferenceIndex references = new WorkspaceReferenceIndex();
 	private final Map<UUID, CopyOnWriteArrayList<Consumer<Event>>> eventListeners = new ConcurrentHashMap<>();
 	private final Map<UUID, Deque<Event>> taskEventHistory = new ConcurrentHashMap<>();
@@ -257,6 +258,20 @@ public final class WorkspaceApplicationService {
 		}
 		projection.add("recovery", recoveryHealth);
 		return projection;
+	}
+
+	private JsonObject sourceManagementProjection(Element element, RequestContext context) {
+		boolean writable = context.permission() != PermissionProfile.READ_ONLY;
+		boolean code = element.type().equals("code");
+		JsonObject source = new JsonObject();
+		source.addProperty("mode", element.ownership());
+		source.addProperty("generated", element.ownership().equals("generated"));
+		source.addProperty("manual", element.ownership().equals("manual"));
+		source.addProperty("canTakeOver", writable && element.ownership().equals("generated"));
+		source.addProperty("canReattach", writable && !code && element.ownership().equals("manual"));
+		source.addProperty("reattachRequiresApproval", !code);
+		source.addProperty("operation", "set_mod_element_source_management");
+		return source;
 	}
 
 	private JsonObject workspaceDiagnosticCounts(WorkspaceState state, JsonArray referenceDiagnostics,
@@ -463,6 +478,39 @@ public final class WorkspaceApplicationService {
 					"diagnostic.asset_import_preview_failed", exception.getMessage(), null, null));
 		} catch (RuntimeException exception) {
 			return queryFailure(query, state.revision(), invalidPayload(exception.getMessage()));
+		}
+	}
+
+	private QueryResult workspaceEnvironment(Query query, WorkspaceState state) {
+		try {
+			JsonObject projection = new JsonObject();
+			projection.addProperty("schemaVersion", UiCore.SCHEMA_VERSION);
+			projection.addProperty("workspaceId", state.id().toString());
+			projection.addProperty("workspaceName", state.name());
+			projection.addProperty("workspaceKind", state.kind());
+			projection.addProperty("revision", state.revision());
+			projection.add("generator", state.generator());
+			Path root = workspaceRoot(query.workspaceId());
+			if (root == null) projection.add("workspaceRoot", JsonNull.INSTANCE);
+			else projection.addProperty("workspaceRoot", root.toAbsolutePath().normalize().toString());
+
+			JsonObject execution = tasks.environment(query.workspaceId());
+			projection.add("execution", execution == null ? new JsonObject() : execution.deepCopy());
+
+			JsonObject workflow = new JsonObject();
+			workflow.addProperty("nativeFilesAuthoritative", true);
+			workflow.addProperty("structuredElementsOptional", true);
+			workflow.addProperty("validateOperation", "validate_workspace");
+			workflow.addProperty("buildOperation", "build_workspace");
+			workflow.addProperty("diagnosticsOperation", "get_task");
+			workflow.addProperty("healthOperation", "get_workspace_health");
+			workflow.addProperty("planOperation", "plan_workspace_changes");
+			projection.add("agentWorkflow", workflow);
+			return querySuccess(query, state.revision(), projection);
+		} catch (RuntimeException exception) {
+			return queryFailure(query, state.revision(), failureDiagnostic(query,
+					"WORKSPACE_ENVIRONMENT_UNAVAILABLE", "diagnostic.workspace_environment_unavailable",
+					"The workspace execution environment could not be resolved.", null, null, exception));
 		}
 	}
 
@@ -991,6 +1039,7 @@ public final class WorkspaceApplicationService {
 		this.installedPlugins = InstalledPluginInventoryService.productDefault();
 		this.workspaceCreation = new WorkspaceCreationService(this.tracks);
 		this.plans = new WorkspacePlanEngine(store, tasks, mutations, history, clock, ids);
+		this.localTemplates = LocalWorkspaceTemplateService.productDefault(clock);
 		if (subscribeTaskEvents)
 			tasks.subscribeTaskEvents(this::publishTaskEvent);
 	}
@@ -1268,6 +1317,7 @@ public final class WorkspaceApplicationService {
 			case CREATE_WORKSPACE -> createWorkspace(command, context);
 			case CREATE_MOD_ELEMENT -> create(command, context);
 			case UPDATE_MOD_ELEMENT -> update(command, context);
+			case SET_MOD_ELEMENT_SOURCE_MANAGEMENT -> setSourceManagement(command, context);
 			case DELETE_MOD_ELEMENT -> delete(command, context);
 			case UPDATE_PROCEDURE -> updateProcedure(command, context);
 			case CREATE_REGISTRY_ENTRY, UPDATE_REGISTRY_ENTRY, DELETE_REGISTRY_ENTRY, RENAME_REGISTRY_ENTRY ->
@@ -1277,6 +1327,7 @@ public final class WorkspaceApplicationService {
 					startTask(command);
 			case RUN_SERVER -> runServer(command, context);
 			case PUBLISH_DATAGEN_OUTPUT -> publishDatagenOutput(command, context);
+			case CREATE_LOCAL_TEMPLATE -> createLocalTemplate(command, context);
 			case CANCEL_TASK -> cancelTask(command);
 			case CREATE_RECOVERY_POINT -> createRecoveryPoint(command, context);
 			case RESTORE_RECOVERY_POINT -> restoreRecoveryPoint(command, context);
@@ -1300,6 +1351,7 @@ public final class WorkspaceApplicationService {
 		try {
 			return switch (query.operation()) {
 				case GET_WORKBENCH -> querySuccess(query, state.revision(), workbench(state, context));
+				case GET_WORKSPACE_ENVIRONMENT -> workspaceEnvironment(query, state);
 				case GET_WORKSPACE_HEALTH -> querySuccess(query, state.revision(), workspaceHealth(query, state));
 				case LIST_NEW_WORKSPACE_GENERATORS -> querySuccess(query, state.revision(), newWorkspaceGenerators());
 				case LIST_ASSETS -> listAssets(query, state);
@@ -1314,6 +1366,8 @@ public final class WorkspaceApplicationService {
 				case GET_WORKSPACE_REFERENCES -> workspaceReferences(query, state);
 				case LIST_WORKSPACE_REGISTRIES -> listRegistries(query, state);
 				case PREVIEW_REGISTRY_RENAME -> previewRegistryRename(query, state);
+				case LIST_LOCAL_TEMPLATES -> querySuccess(query, state.revision(), localTemplates.list());
+				case PREVIEW_LOCAL_TEMPLATE_INSTANTIATION -> previewLocalTemplateInstantiation(query, state, context);
 				case PLAN_PROCEDURE_REFACTOR -> planProcedureRefactor(query, state, context);
 				case PLAN_WORKSPACE_CHANGES -> plans.plan(query, context);
 				case PREVIEW_WORKSPACE_PLAN -> plans.preview(query, context);
@@ -1569,7 +1623,8 @@ public final class WorkspaceApplicationService {
 			UUID elementId = ids.get();
 			String displayName = normalizedValues.has("displayName") ? normalizedValues.get("displayName").getAsString()
 					: displayName(name);
-			Element element = new Element(elementId, type, name, displayName, "valid", "generated", clock.instant(),
+			Element element = new Element(elementId, type, name, displayName, "valid",
+					type.equals("code") ? "manual" : "generated", clock.instant(),
 					normalizedValues);
 			state.addElement(element);
 			Diagnostic persistenceFailure = persist(before, state, command, element);
@@ -1608,6 +1663,11 @@ public final class WorkspaceApplicationService {
 						"diagnostic.element_type_outside_first_party_slice",
 						"This element type is outside the supported Java catalog and cannot be updated in the new UI.",
 						"/elementId", elementId)));
+			if (existing.ownership().equals("manual") && !existing.type().equals("code"))
+				return Decision.abort(Mutation.rejected(diagnostic("SOURCE_MANAGEMENT_DETACHED",
+						"diagnostic.source_management_detached",
+						"This element source is manually managed. Reattach it to the generator before editing structured fields.",
+						elementPath(elementId) + "/ownership", elementId)));
 			JsonObject values = existing.values().deepCopy();
 			List<String> changedPaths = new ArrayList<>();
 			try {
@@ -1637,6 +1697,76 @@ public final class WorkspaceApplicationService {
 		return mutationOutcome(command, context, transaction, "mod_element_updated", recoveryPoint);
 	}
 
+	private CommandOutcome setSourceManagement(Command command, RequestContext context) {
+		UUID elementId;
+		String mode;
+		boolean userApproved;
+		try {
+			elementId = UUID.fromString(requiredString(command.payload(), "elementId"));
+			mode = requiredString(command.payload(), "mode").trim().toLowerCase(Locale.ROOT);
+			userApproved = command.payload().has("userApproved") && command.payload().get("userApproved").getAsBoolean();
+			if (!Set.of("manual", "generated").contains(mode))
+				throw new IllegalArgumentException("mode must be manual or generated");
+		} catch (RuntimeException exception) {
+			return failed(command, currentRevision(command.workspaceId()), invalidPayload(exception.getMessage()));
+		}
+		WorkspaceState current = store.read(command.workspaceId()).orElse(null);
+		if (current == null) return failed(command, 0, workspaceNotFound());
+		Element currentElement = current.element(elementId);
+		if (currentElement == null) return failed(command, current.revision(), elementNotFound(elementId));
+		if (currentElement.type().equals("code") && mode.equals("generated"))
+			return failed(command, current.revision(), diagnostic("CODE_SOURCE_ALWAYS_MANUAL",
+					"diagnostic.code_source_always_manual",
+					"Code elements are manual source by definition and cannot be reattached to generated source management.",
+					elementPath(elementId) + "/ownership", elementId));
+		if (currentElement.ownership().equals(mode)) {
+			JsonObject data = new JsonObject();
+			data.addProperty("elementId", elementId.toString());
+			data.addProperty("sourceManagement", mode);
+			data.addProperty("changed", false);
+			return new CommandOutcome(result(command, "committed", current.revision(), JsonNull.INSTANCE,
+					data, List.of(), JsonNull.INSTANCE, JsonNull.INSTANCE), List.of());
+		}
+		if (mode.equals("generated") && !userApproved)
+			return failed(command, current.revision(), diagnostic("SOURCE_REATTACH_APPROVAL_REQUIRED",
+					"diagnostic.source_reattach_approval_required",
+					"Reattaching source management regenerates this element and may overwrite manual source edits. Explicit approval is required.",
+					"/userApproved", elementId));
+
+		RecoveryPoint recoveryPoint;
+		try {
+			recoveryPoint = sourceManagementRecoveryPoint(command, context, mode);
+		} catch (LocalHistoryException exception) {
+			return automationRecoveryFailed(command, exception);
+		}
+		TransactionResult<Mutation> transaction = store.transact(command.workspaceId(), command.expectedRevision(), state -> {
+			WorkspaceState before = state.copy();
+			Element existing = state.element(elementId);
+			if (existing == null) return Decision.abort(Mutation.rejected(elementNotFound(elementId)));
+			Element updated = new Element(existing.id(), existing.type(), existing.name(), existing.displayName(),
+					existing.state(), mode, clock.instant(), existing.values());
+			state.replaceElement(updated);
+			Diagnostic persistenceFailure = persist(before, state, command, updated);
+			if (persistenceFailure != null) return Decision.abort(Mutation.rejected(persistenceFailure));
+			return Decision.commit(Mutation.success(updated, state.nextEventSequence()),
+					List.of(elementPath(elementId) + "/ownership"));
+		});
+		return mutationOutcome(command, context, transaction, "mod_element_source_management_changed", recoveryPoint);
+	}
+
+	private RecoveryPoint sourceManagementRecoveryPoint(Command command, RequestContext context, String mode)
+			throws LocalHistoryException {
+		RecoveryPoint automated = automationRecoveryPoint(command, context);
+		if (automated != null || history == null) return automated;
+		WorkspaceState current = store.read(command.workspaceId()).orElse(null);
+		if (current == null || current.revision() != command.expectedRevision()) return null;
+		String taskId = command.payload().has("clientMutationId")
+				? command.payload().get("clientMutationId").getAsString() : command.requestId().toString();
+		return history.createRecoveryPoint(new RecoveryPointRequest(
+				mode.equals("manual") ? "Before source takeover" : "Before source reattach", context.actor(), taskId,
+				RecoveryPointSource.MANUAL));
+	}
+
 	private CommandOutcome updateProcedure(Command command, RequestContext context) {
 		UUID elementId;
 		JsonArray edits;
@@ -1662,6 +1792,11 @@ public final class WorkspaceApplicationService {
 				return Decision.abort(Mutation.rejected(diagnostic("PROCEDURE_ELEMENT_REQUIRED",
 						"diagnostic.procedure_element_required", "The requested element is not a Procedure.",
 						"/elementId", elementId)));
+			if (existing.ownership().equals("manual"))
+				return Decision.abort(Mutation.rejected(diagnostic("SOURCE_MANAGEMENT_DETACHED",
+						"diagnostic.source_management_detached",
+						"This Procedure source is manually managed. Reattach it before editing the generated Procedure graph.",
+						elementPath(elementId) + "/ownership", elementId)));
 			ProcedureIr candidate;
 			try {
 				candidate = PROCEDURES.applyEdits(PROCEDURES.read(existing.values(), elementId), edits);
@@ -1745,6 +1880,14 @@ public final class WorkspaceApplicationService {
 		try {
 			mutations.persist(before, after, command.operation(), element);
 			return null;
+		} catch (WorkspaceSourceConflictException conflict) {
+			JsonObject args = new JsonObject();
+			args.addProperty("workspacePath", conflict.workspacePath());
+			args.addProperty("expectedFingerprint", conflict.expectedFingerprint());
+			args.addProperty("actualFingerprint", conflict.actualFingerprint());
+			return diagnostic("SOURCE_CONTENT_CONFLICT", "diagnostic.source_content_conflict",
+					"The source file changed outside Copperbench after this edit was based on it. Reload the source and retry.",
+					args, elementPath(element.id()) + conflict.fieldPath(), element.id());
 		} catch (Exception exception) {
 			return failureDiagnostic(command, "WORKSPACE_PERSISTENCE_FAILED", "diagnostic.workspace_persistence_failed",
 					"The workspace change could not be stored and was rolled back.", null, null, exception);
@@ -1809,6 +1952,59 @@ public final class WorkspaceApplicationService {
 					"diagnostic.task_cancel_failed", "The requested task could not be cancelled.", "/taskId", null,
 					exception));
 		}
+	}
+
+	private CommandOutcome createLocalTemplate(Command command, RequestContext context) {
+		Path root = workspaceRoot(command.workspaceId());
+		if (root == null)
+			return failed(command, currentRevision(command.workspaceId()), diagnostic("WORKSPACE_ROOT_UNAVAILABLE",
+					"diagnostic.workspace_root_unavailable", "The workspace root is not available.", null, null));
+		try {
+			TransactionResult<TemplateCreation> coordinated = store.coordinate(command.workspaceId(),
+					command.expectedRevision(), state -> {
+				JsonObject metadata = localTemplates.create(state, root, command.payload(), references.projection(state, ""));
+				return new TemplateCreation(metadata, state.nextEventSequence());
+			});
+			CommandOutcome conflict = checkFailure(command, coordinated);
+			if (conflict != null) return conflict;
+			JsonObject data = coordinated.value().metadata().deepCopy();
+			data.addProperty("complete", true);
+			Event event = event(command, coordinated.revision(), coordinated.value().sequence(),
+					"local_template_created", data.deepCopy());
+			return new CommandOutcome(result(command, "committed", coordinated.revision(), JsonNull.INSTANCE,
+					data, List.of(), JsonNull.INSTANCE, JsonNull.INSTANCE), List.of(event));
+		} catch (RuntimeException exception) {
+			return failed(command, currentRevision(command.workspaceId()), failureDiagnostic(command,
+					"LOCAL_TEMPLATE_CREATE_FAILED", "diagnostic.local_template_create_failed",
+					"The local reusable template could not be created.", null, null, exception));
+		}
+	}
+
+	private QueryResult previewLocalTemplateInstantiation(Query query, WorkspaceState state, RequestContext context) {
+		try {
+			String templateName = requiredString(query.payload(), "templateName");
+			LocalWorkspaceTemplateService.PreparedInstantiation prepared =
+					localTemplates.prepareInstantiation(templateName, state, ids);
+			return plans.planPrepared(query, context, prepared.operations(), prepared.artifacts(), prepared.metadata());
+		} catch (IllegalArgumentException exception) {
+			String message = exception.getMessage() == null ? "Local template is invalid." : exception.getMessage();
+			String code = message.startsWith("Template generator mismatch")
+					? "LOCAL_TEMPLATE_GENERATOR_MISMATCH" : "LOCAL_TEMPLATE_INVALID";
+			String key = code.equals("LOCAL_TEMPLATE_GENERATOR_MISMATCH")
+					? "diagnostic.local_template_generator_mismatch" : "diagnostic.local_template_invalid";
+			return queryFailure(query, state.revision(), diagnostic(code, key, message, null, null));
+		} catch (RuntimeException exception) {
+			return queryFailure(query, state.revision(), failureDiagnostic(query, "LOCAL_TEMPLATE_PREVIEW_FAILED",
+					"diagnostic.local_template_preview_failed", "The local template could not be previewed.",
+					null, null, exception));
+		}
+	}
+
+	private record TemplateCreation(JsonObject metadata, long sequence) {
+		private TemplateCreation {
+			metadata = metadata.deepCopy();
+		}
+		@Override public JsonObject metadata() { return metadata.deepCopy(); }
 	}
 
 	private CommandOutcome createRecoveryPoint(Command command, RequestContext context) {
@@ -2815,11 +3011,13 @@ public final class WorkspaceApplicationService {
 		if (element == null)
 			return queryFailure(query, state.revision(), elementNotFound(elementId));
 		boolean outsideSlice = !ElementCoverageCatalog.isFirstParty(element.type());
-		boolean readOnly = outsideSlice || context.permission() == PermissionProfile.READ_ONLY;
+		boolean detached = element.ownership().equals("manual") && !element.type().equals("code");
+		boolean readOnly = outsideSlice || detached || context.permission() == PermissionProfile.READ_ONLY;
 		JsonObject projection = new JsonObject();
 		projection.add("element", elementSummary(element));
 		projection.add("sections", editorSections(element, readOnly, state));
 		projection.add("capabilities", capabilities(context));
+		projection.add("sourceManagement", sourceManagementProjection(element, context));
 		if (!outsideSlice)
 			return querySuccess(query, state.revision(), projection);
 		return new QueryResult("query_result", UiCore.SCHEMA_VERSION, query.requestId(), query.workspaceId(),
@@ -2835,6 +3033,11 @@ public final class WorkspaceApplicationService {
 		Element element = state.element(elementId);
 		if (element == null)
 			return queryFailure(query, state.revision(), elementNotFound(elementId));
+		if (element.ownership().equals("manual") && !element.type().equals("code"))
+			return queryFailure(query, state.revision(), diagnostic("SOURCE_MANAGEMENT_DETACHED",
+					"diagnostic.source_management_detached",
+					"This element source is manually managed. Reattach it to the generator before editing structured fields.",
+					elementPath(elementId) + "/ownership", elementId));
 		JsonArray changes = query.payload().getAsJsonArray("changes");
 		if (changes == null || changes.isEmpty())
 			return queryFailure(query, state.revision(), invalidPayload("changes must not be empty"));
@@ -3330,6 +3533,11 @@ public final class WorkspaceApplicationService {
 			return queryFailure(query, state.revision(), diagnostic("PROCEDURE_ELEMENT_REQUIRED",
 					"diagnostic.procedure_element_required", "The requested element is not a Procedure.",
 					"/elementId", elementId));
+		if (element.ownership().equals("manual"))
+			return queryFailure(query, state.revision(), diagnostic("SOURCE_MANAGEMENT_DETACHED",
+					"diagnostic.source_management_detached",
+					"This Procedure source is manually managed. Reattach it before editing the generated Procedure graph.",
+					elementPath(elementId) + "/ownership", elementId));
 		ProcedureIr ir;
 		try {
 			ir = PROCEDURES.read(element.values(), elementId);
@@ -3875,12 +4083,14 @@ public final class WorkspaceApplicationService {
 		JsonObject projection = new JsonObject();
 		projection.add("element", elementSummary(element));
 		projection.addProperty("baseRevision", state.revision());
-		projection.addProperty("readOnly", context.permission() == PermissionProfile.READ_ONLY);
+		projection.addProperty("readOnly", context.permission() == PermissionProfile.READ_ONLY
+				|| element.ownership().equals("manual"));
 		projection.add("ir", PROCEDURES.toJson(ir));
 		projection.add("nodeCatalog", procedureNodeCatalog(state));
 		projection.add("symbols", procedureSymbols(state, ir));
 		projection.addProperty("sourcePreview", PROCEDURES.sourcePreview(ir));
-		projection.addProperty("sourceOwnership", "generated");
+		projection.addProperty("sourceOwnership", element.ownership());
+		projection.add("sourceManagement", sourceManagementProjection(element, context));
 		projection.add("references", references.projection(state, element.id().toString()));
 		projection.add("relationships", procedureRelationships(state, element.id()));
 		return projection;

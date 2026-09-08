@@ -31,6 +31,16 @@ class BundledJdkLocatorTest {
 				BundledJdkLocator.locate(root, 25, root.resolve("missing-fallback")));
 	}
 
+	@Test void installedJava21SidecarWinsForJava17And21Tracks() throws Exception {
+		javaHome(root.resolve("jdk"));
+		Path java21 = javaHome(root.resolve("jdk21"));
+
+		assertEquals(java21.toAbsolutePath().normalize(),
+				BundledJdkLocator.locate(root, 21, root.resolve("missing-fallback")));
+		assertEquals(java21.toAbsolutePath().normalize(),
+				BundledJdkLocator.locate(root, 17, root.resolve("missing-fallback")));
+	}
+
 	@Test void sourceLayoutsAreSelectedByRequiredJavaRelease() throws Exception {
 		Path java25 = javaHome(root.resolve("jdk/jbr25_win_64"));
 		assertEquals(java25.toAbsolutePath().normalize(),

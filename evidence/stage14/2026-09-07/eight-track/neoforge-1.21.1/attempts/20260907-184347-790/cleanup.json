@@ -1,0 +1,5 @@
+{
+  "track": "neoforge-1.21.1",
+  "stoppedOwnedSetupDaemonPids": [],
+  "guard": "new since this track began; PID/start time/type and unique fixture path in daemon log verified; invoke only after track worker exited"
+}

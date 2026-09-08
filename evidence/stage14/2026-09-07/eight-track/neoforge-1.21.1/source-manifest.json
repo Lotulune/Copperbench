@@ -1,0 +1,122 @@
+[
+  {
+    "variant": "copperbench",
+    "path": "src/main/java/dev/example/surveypulse/OreScanner.java",
+    "bytes": 1619,
+    "sha256": "32DABC6ECE029E7968E73DE065D92268A719083AC16A31BF39815DFA1AE9F1AE"
+  },
+  {
+    "variant": "copperbench",
+    "path": "src/main/java/dev/example/surveypulse/pulse_runtime.java",
+    "bytes": 2755,
+    "sha256": "DC78E356F2D9C1DF198754FFF94C624D2290EB183BFC61DF05BB84DF9C143FBC"
+  },
+  {
+    "variant": "copperbench",
+    "path": "src/main/java/dev/example/surveypulse/ScanResult.java",
+    "bytes": 801,
+    "sha256": "E503C0C5E7F72B8F94E024FB6395EBDB317E979736452DF28DAFA68CF4999BE4"
+  },
+  {
+    "variant": "copperbench",
+    "path": "src/main/java/dev/example/surveypulse/SurveyPulseMod.java",
+    "bytes": 2508,
+    "sha256": "01219D9111121CBE47FEA9D2F9D339907674FB04542B2EBDBF926AEF1CE12D0C"
+  },
+  {
+    "variant": "copperbench",
+    "path": "src/main/java/dev/example/surveypulse/init/SurveyPulseModItems.java",
+    "bytes": 751,
+    "sha256": "DFE7182C302D3DFEA952A65CE6B8D7B05049D197CD1E129C37B8150C26FF74D2"
+  },
+  {
+    "variant": "copperbench",
+    "path": "src/main/java/dev/example/surveypulse/item/survey_wandItem.java",
+    "bytes": 546,
+    "sha256": "5F6075834E4DBA979C8753FA3FC7EF4DF3341E94659D2798EEB92E712B25F3FA"
+  },
+  {
+    "variant": "copperbench",
+    "path": "src/main/resources/pack.mcmeta",
+    "bytes": 64,
+    "sha256": "5090FDDD4FA993867D086EDCD33B09285105FB1AE7B11322198CDB825905537D"
+  },
+  {
+    "variant": "copperbench",
+    "path": "src/main/resources/assets/survey_pulse/lang/en_us.json",
+    "bytes": 52,
+    "sha256": "62F75FDF2E659DCF843F9437AB3EB035DE3FEFE2758D30CD9C31B2C62FE2867D"
+  },
+  {
+    "variant": "copperbench",
+    "path": "src/main/resources/assets/survey_pulse/models/item/survey_wand.json",
+    "bytes": 99,
+    "sha256": "3CD6469999B03E95351D58FED4F1EE2F5E51BCE7B0DFA145619D02F5B3EA284D"
+  },
+  {
+    "variant": "copperbench",
+    "path": "src/main/resources/data/survey_pulse/recipe/survey_wand.json",
+    "bytes": 178,
+    "sha256": "AB28B6C4D9C863CE42B7576DC6699030D118675F4A7176F85E9F8FC0D360F4A6"
+  },
+  {
+    "variant": "copperbench",
+    "path": "src/main/resources/META-INF/neoforge.mods.toml",
+    "bytes": 839,
+    "sha256": "DB3D3035F7F74271B29C55C7BED76D182ADEF59CB68B6551E007810F48E57F53"
+  },
+  {
+    "variant": "copperbench",
+    "path": "elements/survey_wand.mod.json",
+    "bytes": 1176,
+    "sha256": "E355163F7C1D1FB9C0912B79B326EE22A0C8E6C79C088EC5D5BF80652DBABA3B"
+  },
+  {
+    "variant": "native",
+    "path": "src/main/java/dev/example/surveypulse/OreScanner.java",
+    "bytes": 1594,
+    "sha256": "F6BBBDF14663D18397CDF98DF452DF74D539E14CB7401D120EAE68C8292155FF"
+  },
+  {
+    "variant": "native",
+    "path": "src/main/java/dev/example/surveypulse/pulse_runtime.java",
+    "bytes": 2755,
+    "sha256": "DC78E356F2D9C1DF198754FFF94C624D2290EB183BFC61DF05BB84DF9C143FBC"
+  },
+  {
+    "variant": "native",
+    "path": "src/main/java/dev/example/surveypulse/ScanResult.java",
+    "bytes": 801,
+    "sha256": "E503C0C5E7F72B8F94E024FB6395EBDB317E979736452DF28DAFA68CF4999BE4"
+  },
+  {
+    "variant": "native",
+    "path": "src/main/java/dev/example/surveypulse/SurveyPulseMod.java",
+    "bytes": 509,
+    "sha256": "678B0A9F9814D2D5597BDD0C9297D3BE3D799EB19894C36A5CDDFF3F14322513"
+  },
+  {
+    "variant": "native",
+    "path": "src/main/resources/assets/survey_pulse/lang/en_us.json",
+    "bytes": 47,
+    "sha256": "4D74C924E5A9ECF1CE938E261BF3375A14BA3BC23BFFAC2D87BCB3ED553CCAB1"
+  },
+  {
+    "variant": "native",
+    "path": "src/main/resources/assets/survey_pulse/models/item/survey_wand.json",
+    "bytes": 91,
+    "sha256": "9076C8347551DCD9818F79B79543BF99B4B34BAEBC941113767F9C27047DFA6D"
+  },
+  {
+    "variant": "native",
+    "path": "src/main/resources/data/survey_pulse/recipe/survey_wand.json",
+    "bytes": 178,
+    "sha256": "AB28B6C4D9C863CE42B7576DC6699030D118675F4A7176F85E9F8FC0D360F4A6"
+  },
+  {
+    "variant": "native",
+    "path": "src/main/resources/META-INF/neoforge.mods.toml",
+    "bytes": 151,
+    "sha256": "89E364A4D2A3B271A05C48A26CB3F4961D54EF40E5309616D2B1B7AE1DF980D1"
+  }
+]

@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "survey_pulse",
+  "version": "1.0",
+  "name": "Survey Pulse",
+  "description": "An ore survey wand. Native-authoring comparison prototype.",
+  "authors": [
+    "Aiyo"
+  ],
+  "license": "MIT",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "dev.example.surveypulse.SurveyPulseMod"
+    ],
+    "fabric-gametest": [
+      "dev.example.surveypulse.SurveyPulseGameTest"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.19.3",
+    "minecraft": "~1.21.1",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
+}

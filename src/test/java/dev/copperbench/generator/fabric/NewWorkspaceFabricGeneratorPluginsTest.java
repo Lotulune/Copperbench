@@ -35,6 +35,15 @@ class NewWorkspaceFabricGeneratorPluginsTest {
 				.contains("status: lts"));
 	}
 
+	@Test void maintenance1201FabricLoaderMetadataMatchesBuildDependency() throws Exception {
+		Path build = Path.of("plugins/generator-1.20.1/fabric-1.20.1/workspacebase/build.gradle");
+		Path metadata = Path.of(
+				"plugins/generator-1.20.1/fabric-1.20.1/templates/modbase/fabric.mod.json.ftl");
+		assertTrue(Files.readString(build).contains("fabric-loader:0.15.11"), build.toString());
+		assertTrue(Files.readString(metadata).contains("\"fabricloader\": \">=0.15.11\""),
+				"generated metadata must not require a newer Loader than the generated build resolves");
+	}
+
 	@Test void advancementTemplatesIgnoreTheLegacyNoFunctionSentinel() throws Exception {
 		for (Path template : List.of(
 				Path.of("plugins/generator-1.21.1/datapack-1.21.1/templates/advancement.json.ftl"),
@@ -115,6 +124,33 @@ class NewWorkspaceFabricGeneratorPluginsTest {
 		assertTrue(Files.readString(Path.of(
 				"plugins/generator-1.21.1/fabric-1.21.1/templates/modbase/fabric.mod.json.ftl"))
 				.contains("\"java\": \">=21\""));
+	}
+
+	@Test void fabric1211ServerPlayerMixinTargetsTheBooleanDropSignature() throws Exception {
+		Path template = Path.of("plugins/generator-1.21.1/fabric-1.21.1/templates/mixin/serverplayer_mixin.java.ftl");
+		String source = Files.readString(template);
+		assertTrue(source.contains("method = \"drop(Z)Z\""), template.toString());
+		assertFalse(source.contains("method = \"drop(Z)V\""), template.toString());
+	}
+
+	@Test void fabric1211CommandsMixinTargetsTheVoidPerformCommandSignature() throws Exception {
+		Path template = Path.of("plugins/generator-1.21.1/fabric-1.21.1/templates/mixin/commands_mixin.java.ftl");
+		String source = Files.readString(template);
+		assertTrue(source.contains("performCommand(Lcom/mojang/brigadier/ParseResults;Ljava/lang/String;)V"),
+				template.toString());
+		assertTrue(source.contains("CallbackInfo ci"), template.toString());
+		assertTrue(source.contains("ci.cancel();"), template.toString());
+		assertFalse(source.contains("CallbackInfoReturnable<Integer>"), template.toString());
+		assertFalse(source.contains("Ljava/lang/String;)I"), template.toString());
+	}
+
+	@Test void fabric1211RepairItemRecipeMixinMatchesTheProviderAwareAssembleSignature() throws Exception {
+		Path template = Path.of(
+				"plugins/generator-1.21.1/fabric-1.21.1/templates/mixin/repairitemrecipemixin.java.ftl");
+		String source = Files.readString(template);
+		assertTrue(source.contains("CraftingInput;Lnet/minecraft/core/HolderLookup$Provider;)"), template.toString());
+		assertTrue(source.contains("HolderLookup.Provider registryAccess"), template.toString());
+		assertTrue(source.contains("cancellable = true"), template.toString());
 	}
 
 	@Test void maintenance1201OverridesModernDatapackPathsAndFormat() throws Exception {
@@ -238,6 +274,39 @@ class NewWorkspaceFabricGeneratorPluginsTest {
 					+ " || w.hasVariables()>"), template.toString());
 			assertTrue(text.contains("modEventBus.addListener(this::registerNetworking);"), template.toString());
 			assertTrue(text.contains("void addNetworkMessage("), template.toString());
+		}
+	}
+
+	@Test void modernNeoforgeOnlyRegistersMainClassWhenGeneratedEventHandlersExist() throws Exception {
+		for (Path template : List.of(
+				Path.of("plugins/generator-1.21.1/neoforge-1.21.1/templates/modbase/mod.java.ftl"),
+				Path.of("plugins/generator-26.1.x/neoforge-26.1.2/templates/modbase/mod.java.ftl"),
+				Path.of("plugins/generator-26.2/neoforge-26.2/templates/modbase/mod.java.ftl"))) {
+			String text = Files.readString(template);
+			int registration = text.indexOf("NeoForge.EVENT_BUS.register(this);");
+			assertTrue(registration >= 0, template + " is missing main event-bus registration");
+			int procedureGuard = text.lastIndexOf("<#if w.hasElementsOfType(\"procedure\")>", registration);
+			int guardEnd = text.indexOf("</#if>", registration);
+			assertTrue(procedureGuard >= 0 && guardEnd > registration,
+					template + " must not register an event-listener-free main class");
+		}
+	}
+
+	@Test void allEightJavaTracksExposeStableNativeHookUserCodeBlocks() throws Exception {
+		for (Path template : List.of(
+				Path.of("plugins/generator-1.20.1/fabric-1.20.1/templates/modbase/mod.java.ftl"),
+				Path.of("plugins/generator-1.20.1/neoforge-1.20.1/templates/modbase/mod.java.ftl"),
+				Path.of("plugins/generator-1.21.1/fabric-1.21.1/templates/modbase/mod.java.ftl"),
+				Path.of("plugins/generator-1.21.1/neoforge-1.21.1/templates/modbase/mod.java.ftl"),
+				Path.of("plugins/generator-fabric-26.1.2/fabric-26.1.2/templates/modbase/mod.java.ftl"),
+				Path.of("plugins/generator-26.1.x/neoforge-26.1.2/templates/modbase/mod.java.ftl"),
+				Path.of("plugins/generator-fabric-26.2/fabric-26.2/templates/modbase/mod.java.ftl"),
+				Path.of("plugins/generator-26.2/neoforge-26.2/templates/modbase/mod.java.ftl"))) {
+			String text = Files.readString(template);
+			for (String block : List.of("mod constructor", "mod init", "mod methods")) {
+				assertTrue(text.contains("// Start of user code block " + block), template + " missing " + block);
+				assertTrue(text.contains("// End of user code block " + block), template + " missing " + block);
+			}
 		}
 	}
 

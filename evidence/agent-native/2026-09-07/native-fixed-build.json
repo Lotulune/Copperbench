@@ -1,0 +1,10 @@
+{
+  "label": "native-fixed-build",
+  "project": "native",
+  "startedAt": "2026-09-07T05:40:48.8895335+00:00",
+  "elapsedMs": 23968,
+  "tasks": "clean build",
+  "exitCode": 0,
+  "timedOut": false,
+  "cache": "shared prewarmed user Gradle home; project-local cache state varies"
+}

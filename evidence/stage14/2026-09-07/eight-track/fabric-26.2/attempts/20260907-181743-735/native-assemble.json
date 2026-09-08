@@ -1,0 +1,10 @@
+{
+  "track": "fabric-26.2",
+  "label": "native-assemble",
+  "exitCode": 1,
+  "timedOut": false,
+  "elapsedMs": 23357,
+  "javaHome": "D:\\AICoding\\Minecraft_ModCreator\\jdk\\jbr25_win_64",
+  "gradleHome": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\build\\stage8-workspace-generator-gradle\\fabric-26_2",
+  "completedAt": "2026-09-07T10:16:33.6836103+00:00"
+}

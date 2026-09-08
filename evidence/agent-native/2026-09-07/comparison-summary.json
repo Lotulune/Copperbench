@@ -1,0 +1,256 @@
+{
+  "sourceCommit": "eaf18606e683fcc37a395de83c53e538c947760e",
+  "capturedAt": "2026-09-07T05:48:52.9527188+00:00",
+  "environment": {
+    "createdAt": "2026-09-07T13:38:16.3701416+08:00",
+    "sourceCommit": "eaf18606e683fcc37a395de83c53e538c947760e",
+    "mode": "ChatGPT with local coding tools; plain Fabric source and Gradle; not standalone Codex CLI",
+    "nativeDirectory": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\.tmp\\astra-native-comparison\\native",
+    "reused": [
+      "known feature specification",
+      "same installed JDK 21",
+      "existing user Gradle dependency cache",
+      "stock Gradle wrapper files"
+    ],
+    "notUsed": [
+      "Copperbench runtime",
+      "Copperbench MCP API",
+      "MCreator generator",
+      ".mcreator",
+      "mcreator.gradle",
+      "codeFiles metadata"
+    ],
+    "wrapperSha256": "55243EF57851F12B070AD14F7F5BB8302DACEEEBC5BCE5ECE5FA6EDB23E1145C",
+    "versions": {
+      "loom": "1.17.19",
+      "minecraft": "1.21.1",
+      "java": "21",
+      "gradle": "9.7.0",
+      "api": "0.116.15+1.21.1",
+      "loader": "0.19.3"
+    }
+  },
+  "specification": {
+    "name": "Survey Pulse paired authoring trial",
+    "specificationOrigin": "Same feature set from the prior Copperbench trial, available before native authoring",
+    "modId": "survey_pulse",
+    "minecraft": "1.21.1",
+    "loader": "Fabric 0.19.3",
+    "mappings": "official Mojang",
+    "features": {
+      "item": "survey_wand",
+      "maxStackSize": 1,
+      "normalRadius": 5,
+      "sneakingRadius": 8,
+      "scanShape": "inclusive axis-aligned cube; loaded positions only",
+      "orePolicy": "registry path ends with _ore or equals ancient_debris",
+      "feedback": "count and nearest relative coordinates; no-ore message",
+      "cooldownTicks": 60,
+      "authority": "server",
+      "particle": "END_ROD, 12 particles at the nearest block",
+      "recipe": "amethyst_shard + copper_ingot -> 1 survey_wand",
+      "texture": "vanilla minecraft:item/amethyst_shard"
+    },
+    "acceptanceLayers": {
+      "packaged": "real remapped JAR with entrypoint, item model, language and recipe",
+      "pureLogic": "8 executable native scanner assertions; not in-game tests",
+      "preservation": "external helper edit hash survives display-name resource edit and build",
+      "gameplay": "not claimed without actual Minecraft interaction evidence"
+    },
+    "matchedBuilds": {
+      "order": [
+        "native",
+        "copperbench",
+        "copperbench",
+        "native"
+      ],
+      "tasks": "clean assemble",
+      "runner": "same JDK 21, Gradle 9.7.0 wrapper, --no-daemon; existing user dependency cache",
+      "limits": "two samples per project; scaffold and project-cache contents differ; not a statistical productivity benchmark"
+    }
+  },
+  "runs": [
+    {
+      "label": "native-first-build",
+      "project": "native",
+      "startedAt": "2026-09-07T13:38:16.4566047+08:00",
+      "elapsedMs": 98944,
+      "tasks": "clean build",
+      "exitCode": 1,
+      "timedOut": false,
+      "cache": "shared prewarmed user Gradle home; project-local cache state varies"
+    },
+    {
+      "label": "native-fixed-build",
+      "project": "native",
+      "startedAt": "2026-09-07T13:40:48.8895335+08:00",
+      "elapsedMs": 23968,
+      "tasks": "clean build",
+      "exitCode": 0,
+      "timedOut": false,
+      "cache": "shared prewarmed user Gradle home; project-local cache state varies"
+    },
+    {
+      "label": "native-preservation-build",
+      "project": "native",
+      "startedAt": "2026-09-07T13:41:36.6972166+08:00",
+      "elapsedMs": 21378,
+      "tasks": "build",
+      "exitCode": 0,
+      "timedOut": false,
+      "cache": "shared prewarmed user Gradle home; project-local cache state varies"
+    },
+    {
+      "label": "native-assemble-1",
+      "project": "native",
+      "startedAt": "2026-09-07T13:41:58.7152777+08:00",
+      "elapsedMs": 22257,
+      "tasks": "clean assemble",
+      "exitCode": 0,
+      "timedOut": false,
+      "cache": "shared prewarmed user Gradle home; project-local cache state varies"
+    },
+    {
+      "label": "copperbench-assemble-1",
+      "project": "copperbench",
+      "startedAt": "2026-09-07T13:42:21.5264351+08:00",
+      "elapsedMs": 23617,
+      "tasks": "clean assemble",
+      "exitCode": 0,
+      "timedOut": false,
+      "cache": "shared prewarmed user Gradle home; project-local cache state varies"
+    },
+    {
+      "label": "copperbench-assemble-2",
+      "project": "copperbench",
+      "startedAt": "2026-09-07T13:42:45.7691755+08:00",
+      "elapsedMs": 23852,
+      "tasks": "clean assemble",
+      "exitCode": 0,
+      "timedOut": false,
+      "cache": "shared prewarmed user Gradle home; project-local cache state varies"
+    },
+    {
+      "label": "native-assemble-2",
+      "project": "native",
+      "startedAt": "2026-09-07T13:43:10.1826408+08:00",
+      "elapsedMs": 23826,
+      "tasks": "clean assemble",
+      "exitCode": 0,
+      "timedOut": false,
+      "cache": "shared prewarmed user Gradle home; project-local cache state varies"
+    },
+    {
+      "label": "native-server-probe",
+      "project": "native",
+      "startedAt": "2026-09-07T13:44:23.0193248+08:00",
+      "elapsedMs": 40570,
+      "tasks": "runServer --args=nogui -I D:/AICoding/Minecraft_ModCreator/.tmp/stage12a-depth/.tmp/astra-native-comparison/server-probe.init.gradle",
+      "exitCode": 0,
+      "timedOut": false,
+      "cache": "shared prewarmed user Gradle home; project-local cache state varies"
+    },
+    {
+      "label": "copperbench-server-probe",
+      "project": "copperbench",
+      "startedAt": "2026-09-07T13:45:04.7190349+08:00",
+      "elapsedMs": 36285,
+      "tasks": "runServer --args=nogui -I D:/AICoding/Minecraft_ModCreator/.tmp/stage12a-depth/.tmp/astra-native-comparison/server-probe.init.gradle",
+      "exitCode": 1,
+      "timedOut": false,
+      "cache": "shared prewarmed user Gradle home; project-local cache state varies"
+    }
+  ],
+  "native": {
+    "jarName": "survey_pulse-1.0.jar",
+    "jarBytes": 10378,
+    "jarSha256": "78206C8F77184158570ED789106C5748E6A9BD07D2116C72BEA7944544CEF9AB",
+    "javaSourceCount": 3,
+    "jarClassCount": 5,
+    "entrypointClassPresent": true,
+    "modId": "survey_pulse",
+    "mainEntrypoints": [
+      "dev.example.surveypulse.SurveyPulseMod"
+    ],
+    "recipeType": "minecraft:crafting_shapeless",
+    "recipeIngredients": [
+      "minecraft:amethyst_shard",
+      "minecraft:copper_ingot"
+    ],
+    "recipeOutput": "survey_pulse:survey_wand",
+    "recipeCount": 1,
+    "texture": "minecraft:item/amethyst_shard",
+    "itemName": "Survey Wand",
+    "loadedInGame": false,
+    "gameplayVerified": false
+  },
+  "copperbench": {
+    "jarName": "survey_pulse-1.0.jar",
+    "jarBytes": 45772,
+    "jarSha256": "41B6E014F5662B4210D61CD58427A0A6DCDECD3823D5A6FDB082EA42F6E33650",
+    "javaSourceCount": 22,
+    "jarClassCount": 39,
+    "entrypointClassPresent": true,
+    "modId": "survey_pulse",
+    "mainEntrypoints": [
+      "net.mcreator.survey_pulse.SurveyPulseMod"
+    ],
+    "recipeType": "minecraft:crafting_shapeless",
+    "recipeIngredients": [
+      "minecraft:amethyst_shard",
+      "minecraft:copper_ingot"
+    ],
+    "recipeOutput": "survey_pulse:survey_wand",
+    "recipeCount": 1,
+    "texture": "minecraft:item/amethyst_shard",
+    "itemName": "Survey Wand",
+    "loadedInGame": false,
+    "gameplayVerified": false
+  },
+  "scannerAssertionsPassed": 8,
+  "runtimeProbes": {
+    "scope": "Development-source-set server bootstrap only; neither packaged-JAR deployment nor world/gameplay testing",
+    "native": {
+      "reachedEulaBoundary": true,
+      "eulaAccepted": false,
+      "modInitialized": true,
+      "worldCreated": false
+    },
+    "copperbench": {
+      "reachedEulaBoundary": false,
+      "serverPlayerMixinInjectionFailure": true,
+      "modInitialized": false,
+      "worldCreated": false,
+      "eulaAccepted": false
+    },
+    "newDefect": "CB-AUDIT-03: generated Fabric 1.21.1 ServerPlayerMixin prevents bootstrap; confirmed on this source-generated fixture, not all generator tracks or installed releases"
+  },
+  "nativePreservation": {
+    "operation": "external source edit -> resource display-name edit -> Gradle build",
+    "nativeHasManagedMetadata": false,
+    "beforeExternalEditSha256": "C34D7BC60C534C1358C6A576BE17C6C03C12C0300ED186461FB0498DF350D5F6",
+    "expectedSourceSha256": "F6BBBDF14663D18397CDF98DF452DF74D539E14CB7401D120EAE68C8292155FF",
+    "afterMetadataAndBuildSha256": "F6BBBDF14663D18397CDF98DF452DF74D539E14CB7401D120EAE68C8292155FF",
+    "sourcePreserved": true,
+    "buildExitCode": 0,
+    "note": "Tests a plain-file workflow, not a native equivalent of Copperbench managed-element preview/recovery."
+  },
+  "priorCopperbench": {
+    "defectsFixedThisTurn": false,
+    "externalEditLostOnMetadataUpdate": true,
+    "buildCompletedAt": "2026-09-07T02:20:59.351859900Z",
+    "managedFileCollisionReproduced": true,
+    "buildSucceeded": true,
+    "buildStartedAt": "2026-09-07T02:20:07.268763Z"
+  },
+  "limits": [
+    "Same ChatGPT conversation and coding-tool host; not a separately launched Codex or Claude Code agent.",
+    "The native author already knew the specification, prior code and working dependency versions.",
+    "JDK, dependency cache and stock wrapper were reused; no user cache was cleared.",
+    "Matched runs execute raw Gradle on both existing source trees, not full Copperbench MCP/generator versus native authoring.",
+    "Project-local cache contents, source counts and features of generated scaffolding differ.",
+    "Two assembly samples per project are descriptive observations, not statistically established speedups.",
+    "Pure scanner tests are native-only and are not a matched behavioral acceptance or Minecraft runtime test.",
+    "No measured token/cost or full authoring-time result is available."
+  ]
+}

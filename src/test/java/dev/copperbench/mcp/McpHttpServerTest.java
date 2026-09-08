@@ -159,6 +159,7 @@ class McpHttpServerTest {
 					token.value(), sessionId, "http://localhost:5173");
 			assertEquals(200, tools.statusCode());
 			assertTrue(tools.body().contains("get_workspace"));
+			assertTrue(tools.body().contains("get_workspace_environment"));
 			assertTrue(tools.body().contains("list_new_workspace_generators"));
 			assertTrue(tools.body().contains("create_workspace"));
 			assertTrue(tools.body().contains("preview_mod_element_change"));
@@ -176,11 +177,15 @@ class McpHttpServerTest {
 			assertTrue(tools.body().contains("targetResource"));
 			assertTrue(tools.body().contains("plan_workspace_changes"));
 			assertTrue(tools.body().contains("requireRecoveryPoint"));
+			assertTrue(tools.body().contains("create_local_template"));
+			assertTrue(tools.body().contains("list_local_templates"));
+			assertTrue(tools.body().contains("preview_local_template_instantiation"));
 			assertTrue(tools.body().contains("create_registry_entry"));
 			assertTrue(tools.body().contains("rename_registry_entry"));
 			assertTrue(tools.body().contains("create_mod_element"));
 			assertTrue(tools.body().contains("livingentity"));
 			assertTrue(tools.body().contains("update_mod_element"));
+			assertTrue(tools.body().contains("set_mod_element_source_management"));
 			assertTrue(tools.body().contains("delete_mod_element"));
 			assertTrue(tools.body().contains("generate_workspace"));
 			assertTrue(tools.body().contains("build_workspace"));
@@ -210,6 +215,17 @@ class McpHttpServerTest {
 					token.value(), sessionId, "http://localhost:5173");
 			assertEquals(200, workspaceResult.statusCode());
 			assertTrue(workspaceResult.body().contains("Copper Trails"));
+
+			HttpResponse<String> environmentResult = post(endpoint,
+					"{\"jsonrpc\":\"2.0\",\"id\":36,\"method\":\"tools/call\",\"params\":{\"name\":\"get_workspace_environment\",\"arguments\":{}}}",
+					token.value(), sessionId, "http://localhost:5173");
+			JsonObject environment = toolResult(environmentResult);
+			assertEquals("succeeded", environment.get("status").getAsString());
+			assertTrue(environment.getAsJsonObject("data").has("execution"));
+			assertTrue(environment.getAsJsonObject("data").getAsJsonObject("agentWorkflow")
+					.get("nativeFilesAuthoritative").getAsBoolean());
+			assertTrue(environment.getAsJsonObject("data").getAsJsonObject("agentWorkflow")
+					.get("structuredElementsOptional").getAsBoolean());
 
 			HttpResponse<String> generatorsResult = post(endpoint,
 					"{\"jsonrpc\":\"2.0\",\"id\":33,\"method\":\"tools/call\",\"params\":{\"name\":\"list_new_workspace_generators\",\"arguments\":{}}}",

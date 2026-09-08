@@ -1,0 +1,49 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.7.0/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+> Configure project :
+Fabric Loom: 1.17.19
+
+> Task :compileJava
+
+> Task :processResources
+> Task :classes
+> Task :jar
+> Task :processIncludeJars UP-TO-DATE
+> Task :sourcesJar
+> Task :compileContractTestJava UP-TO-DATE
+> Task :processContractTestResources NO-SOURCE
+> Task :contractTestClasses UP-TO-DATE
+
+> Task :scannerContractTest
+PASS empty world
+PASS inclusive cube and ore-name policy
+PASS nearest ore
+PASS sneak radius includes 8 excludes 9
+PASS skip unavailable positions
+PASS bounded scan volume
+PASS relative feedback
+PASS empty feedback
+SCANNER_CONTRACT_PASSED=8
+
+> Task :compileTestJava NO-SOURCE
+> Task :processTestResources NO-SOURCE
+> Task :testClasses UP-TO-DATE
+> Task :test NO-SOURCE
+> Task :validateAccessWidener NO-SOURCE
+> Task :check
+> Task :remapJar
+> Task :remapSourcesJar
+> Task :assemble
+> Task :build
+
+[Incubating] Problems report is available at: file:///D:/AICoding/Minecraft_ModCreator/.tmp/stage12a-depth/.tmp/astra-native-comparison/native/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.7.0/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 21s
+9 actionable tasks: 7 executed, 2 up-to-date

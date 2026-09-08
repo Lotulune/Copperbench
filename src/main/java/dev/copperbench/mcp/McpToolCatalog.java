@@ -155,6 +155,9 @@ final class McpToolCatalog {
 		List<McpServerFeatures.SyncToolSpecification> tools = new ArrayList<>();
 		tools.add(queryTool("get_workspace", "Read workspace state", Operation.GET_WORKBENCH, EMPTY_SCHEMA,
 				arguments -> new JsonObject()));
+		tools.add(queryTool("get_workspace_environment",
+				"Read the active generator, Loader/JDK/Gradle context, source/resource roots and native-first workflow entry points",
+				Operation.GET_WORKSPACE_ENVIRONMENT, EMPTY_SCHEMA, arguments -> new JsonObject()));
 		tools.add(queryTool("list_new_workspace_generators", "List generators available for new workspaces",
 				Operation.LIST_NEW_WORKSPACE_GENERATORS, EMPTY_SCHEMA, arguments -> new JsonObject()));
 		tools.add(commandTool("create_workspace", "Create a new workspace after explicit user approval",
@@ -250,12 +253,45 @@ final class McpToolCatalog {
 		tools.add(commandTool("apply_workspace_plan",
 				"Apply a validated workspace plan as one revision with one recovery point and full rollback",
 				Operation.APPLY_WORKSPACE_PLAN, planEnvelopeSchema(true), McpToolCatalog::mutationPayload));
+		tools.add(commandTool("create_local_template",
+				"Create a local-only reusable bundle of selected elements, Procedures, and workspace assets",
+				Operation.CREATE_LOCAL_TEMPLATE,
+				requiredSchema(Map.of(
+						"templateName", Map.of("type", "string", "pattern", "^[a-z][a-z0-9_-]{0,63}$"),
+						"description", Map.of("type", "string", "maxLength", 512),
+						"elementIds", Map.of("type", "array", "items", Map.of("type", "string", "format", "uuid"), "maxItems", 50),
+						"assetPaths", Map.of("type", "array", "items", Map.of("type", "string"), "maxItems", 64),
+						"overwrite", Map.of("type", "boolean"),
+						"expectedRevision", Map.of("type", "integer", "minimum", 0)),
+						List.of("templateName", "expectedRevision")), McpToolCatalog::mutationPayload));
+		tools.add(queryTool("list_local_templates",
+				"List integrity-checked reusable templates stored only on this machine",
+				Operation.LIST_LOCAL_TEMPLATES, requiredSchema(Map.of(), List.of()),
+				arguments -> GSON.toJsonTree(arguments).getAsJsonObject()));
+		tools.add(queryTool("preview_local_template_instantiation",
+				"Instantiate a local template as a signed Workspace Plan for review; no workspace files are changed",
+				Operation.PREVIEW_LOCAL_TEMPLATE_INSTANTIATION,
+				requiredSchema(Map.of(
+						"templateName", Map.of("type", "string", "pattern", "^[a-z][a-z0-9_-]{0,63}$"),
+						"expectedRevision", Map.of("type", "integer", "minimum", 0),
+						"idempotencyKey", Map.of("type", "string", "minLength", 1, "maxLength", 128)),
+						List.of("templateName", "expectedRevision", "idempotencyKey")),
+				arguments -> GSON.toJsonTree(arguments).getAsJsonObject()));
 		tools.add(createModElementTool());
 		tools.add(commandTool("update_mod_element", "Update a mod element", Operation.UPDATE_MOD_ELEMENT,
 				requiredSchema(Map.of("elementId", Map.of("type", "string", "format", "uuid"), "changes",
 						Map.of("type", "array", "items", Map.of("type", "object"), "minItems", 1),
 						"expectedRevision", Map.of("type", "integer", "minimum", 0)),
 						List.of("elementId", "changes", "expectedRevision")), McpToolCatalog::mutationPayload));
+		tools.add(commandTool("set_mod_element_source_management",
+				"Take over generated source manually or reattach it to Copperbench generation",
+				Operation.SET_MOD_ELEMENT_SOURCE_MANAGEMENT,
+				requiredSchema(Map.of(
+						"elementId", Map.of("type", "string", "format", "uuid"),
+						"mode", Map.of("type", "string", "enum", List.of("manual", "generated")),
+						"userApproved", Map.of("type", "boolean"),
+						"expectedRevision", Map.of("type", "integer", "minimum", 0)),
+						List.of("elementId", "mode", "expectedRevision")), McpToolCatalog::mutationPayload));
 		tools.add(commandTool("update_procedure", "Commit structured Procedure graph edits",
 				Operation.UPDATE_PROCEDURE, procedureSchema(true), McpToolCatalog::mutationPayload));
 		tools.add(commandTool("create_registry_entry", "Create a variable, tag, or language key",

@@ -111,6 +111,7 @@ class HeadlessCliTest {
 
 		RunResult help = run(cli, "help");
 		assertTrue(help.json().getAsJsonArray("commands").toString().contains("list-new-workspace-generators"));
+		assertTrue(help.json().getAsJsonArray("commands").toString().contains("environment"));
 		assertTrue(help.json().getAsJsonArray("commands").toString().contains("create-workspace"));
 		assertTrue(help.json().getAsJsonArray("commands").toString().contains("preview-datagen"));
 		assertTrue(help.json().getAsJsonArray("commands").toString().contains("publish-datagen"));
@@ -122,6 +123,14 @@ class HeadlessCliTest {
 		assertEquals(9, generators.json().getAsJsonObject("data").getAsJsonArray("generators").size());
 		assertTrue(generators.json().getAsJsonObject("data").getAsJsonArray("generators").toString()
 				.contains("resourcepack-1.21.1"));
+
+		RunResult environment = run(cli, "environment");
+		assertEquals(HeadlessExitCode.SUCCESS.code(), environment.exitCode());
+		assertEquals("get_workspace_environment", environment.json().get("operation").getAsString());
+		assertEquals("succeeded", environment.json().get("status").getAsString());
+		assertTrue(environment.json().getAsJsonObject("data").has("execution"));
+		assertTrue(environment.json().getAsJsonObject("data").getAsJsonObject("agentWorkflow")
+				.get("nativeFilesAuthoritative").getAsBoolean());
 
 		RunResult unapproved = run(cli, "create-workspace", "--generator-id", "fabric-1.21.1", "--mod-name",
 				"Copper Trails", "--mod-id", "copper_trails", "--workspace-folder",
