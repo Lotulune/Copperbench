@@ -14,6 +14,7 @@ probe="$smoke_root/evidence/graphical-product-probe.json"
 product_log="$smoke_root/evidence/product-shell.log"
 bootstrap_json="$smoke_root/evidence/bootstrap-create.json"
 bootstrap_log="$smoke_root/evidence/bootstrap-create.log"
+fixture_classes="$smoke_root/fixture-classes"
 product_pid=""
 
 dump_bootstrap_failure() {
@@ -57,12 +58,23 @@ export XDG_RUNTIME_DIR="$isolated_home/runtime"
 export JAVA_TOOL_OPTIONS="-Duser.home=$isolated_home"
 
 echo "[stage15-x11] preparing deterministic graphical workspace fixture"
+rm -rf "$fixture_classes"
+mkdir -p "$fixture_classes"
+if ! "$portable_root/jdk/bin/javac" \
+  -cp "$portable_root/lib/copperbench.jar:$portable_root/lib/*" \
+  -d "$fixture_classes" \
+  "$GITHUB_WORKSPACE/src/test/java/dev/copperbench/headless/Stage15GraphicalWorkspaceFixture.java" \
+  >"$smoke_root/evidence/fixture-javac.log" 2>&1; then
+  echo "Stage 15 graphical workspace fixture did not compile against the packaged candidate" >&2
+  cat "$smoke_root/evidence/fixture-javac.log" >&2 || true
+  exit 1
+fi
 if ! (
   cd "$portable_root"
   timeout 120s "$portable_root/jdk/bin/java" \
     --add-opens=java.base/java.lang=ALL-UNNAMED \
-    -cp "$portable_root/lib/copperbench.jar:$portable_root/lib/*" \
-    "$GITHUB_WORKSPACE/src/test/java/dev/copperbench/headless/Stage15GraphicalWorkspaceFixture.java" \
+    -cp "$fixture_classes:$portable_root/lib/copperbench.jar:$portable_root/lib/*" \
+    dev.copperbench.headless.Stage15GraphicalWorkspaceFixture \
     "$workspace_root"
 ) >"$bootstrap_json" 2>"$bootstrap_log"; then
   echo "Stage 15 graphical workspace fixture failed" >&2

@@ -109,7 +109,10 @@ test('Stage 15 workflow carries the Linux supply-chain contract', () => {
   assert.match(workflow, /Upload X11 graphical smoke diagnostics on failure/);
   assert.match(workflow, /stage15-x11-smoke-diagnostics/);
   assert.match(graphicalSmoke, /Stage15GraphicalWorkspaceFixture\.java/);
+  assert.match(graphicalSmoke, /"\$portable_root\/jdk\/bin\/javac"/);
+  assert.match(graphicalSmoke, /-d "\$fixture_classes"/);
   assert.match(graphicalSmoke, /timeout 120s "\$portable_root\/jdk\/bin\/java"/);
+  assert.match(graphicalSmoke, /dev\.copperbench\.headless\.Stage15GraphicalWorkspaceFixture/);
   assert.match(graphicalSmoke, /cd "\$portable_root"/);
   assert.doesNotMatch(graphicalSmoke, /xdotool key/);
   assert.doesNotMatch(graphicalSmoke, /xdotool windowfocus/);
