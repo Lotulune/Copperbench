@@ -58,7 +58,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#method-summary" tabindex="0">Method Summary</a></li>
 <li><a href="#constructor-detail" tabindex="0">Constructor Details</a>
 <ol class="toc-list">
-<li><a href="#%3Cinit%3E(dev.copperbench.tracks.VersionTrackCatalog.LoaderId,java.lang.String,java.lang.String,dev.copperbench.tracks.VersionTrackCatalog.SupportStatus,java.lang.String,java.lang.String,java.lang.String)" tabindex="0">LoaderStatus(VersionTrackCatalog.LoaderId, String, String, VersionTrackCatalog.SupportStatus, String, String, String)</a></li>
+<li><a href="#%3Cinit%3E(dev.copperbench.tracks.VersionTrackCatalog.LoaderId,java.lang.String,java.lang.String,int,dev.copperbench.tracks.VersionTrackCatalog.SupportStatus,java.lang.String,java.lang.String,java.lang.String)" tabindex="0">LoaderStatus(VersionTrackCatalog.LoaderId, String, String, int, VersionTrackCatalog.SupportStatus, String, String, String)</a></li>
 </ol>
 </li>
 <li><a href="#method-detail" tabindex="0">Method Details</a>
@@ -69,6 +69,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#loader()" tabindex="0">loader()</a></li>
 <li><a href="#generatorId()" tabindex="0">generatorId()</a></li>
 <li><a href="#minecraftVersion()" tabindex="0">minecraftVersion()</a></li>
+<li><a href="#javaRelease()" tabindex="0">javaRelease()</a></li>
 <li><a href="#status()" tabindex="0">status()</a></li>
 <li><a href="#pluginId()" tabindex="0">pluginId()</a></li>
 <li><a href="#reasonCode()" tabindex="0">reasonCode()</a></li>
@@ -94,7 +95,7 @@ loadScripts(document, 'script');</script>
 </dl>
 <hr>
 <div class="horizontal-scroll">
-<div class="type-signature"><span class="modifiers">public static record </span><span class="element-name type-name-label">VersionTrackCatalog.LoaderStatus</span>(<a href="VersionTrackCatalog.LoaderId.html" title="enum class in dev.copperbench.tracks">VersionTrackCatalog.LoaderId</a>&nbsp;loader, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;generatorId, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;minecraftVersion, <a href="VersionTrackCatalog.SupportStatus.html" title="enum class in dev.copperbench.tracks">VersionTrackCatalog.SupportStatus</a>&nbsp;status, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;pluginId, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;reasonCode, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;notes)
+<div class="type-signature"><span class="modifiers">public static record </span><span class="element-name type-name-label">VersionTrackCatalog.LoaderStatus</span>(<a href="VersionTrackCatalog.LoaderId.html" title="enum class in dev.copperbench.tracks">VersionTrackCatalog.LoaderId</a>&nbsp;loader, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;generatorId, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;minecraftVersion, int&nbsp;javaRelease, <a href="VersionTrackCatalog.SupportStatus.html" title="enum class in dev.copperbench.tracks">VersionTrackCatalog.SupportStatus</a>&nbsp;status, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;pluginId, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;reasonCode, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;notes)
 <span class="extends-implements">extends <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Record.html" title="class or interface in java.lang" class="external-link">Record</a></span></div>
 </div>
 </section>
@@ -108,9 +109,10 @@ loadScripts(document, 'script');</script>
 <div class="summary-table two-column-summary">
 <div class="table-header col-first">Constructor</div>
 <div class="table-header col-last">Description</div>
-<div class="col-constructor-name even-row-color"><code><a href="#%3Cinit%3E(dev.copperbench.tracks.VersionTrackCatalog.LoaderId,java.lang.String,java.lang.String,dev.copperbench.tracks.VersionTrackCatalog.SupportStatus,java.lang.String,java.lang.String,java.lang.String)" class="member-name-link">LoaderStatus</a><wbr>(<a href="VersionTrackCatalog.LoaderId.html" title="enum class in dev.copperbench.tracks">VersionTrackCatalog.LoaderId</a>&nbsp;loader,
+<div class="col-constructor-name even-row-color"><code><a href="#%3Cinit%3E(dev.copperbench.tracks.VersionTrackCatalog.LoaderId,java.lang.String,java.lang.String,int,dev.copperbench.tracks.VersionTrackCatalog.SupportStatus,java.lang.String,java.lang.String,java.lang.String)" class="member-name-link">LoaderStatus</a><wbr>(<a href="VersionTrackCatalog.LoaderId.html" title="enum class in dev.copperbench.tracks">VersionTrackCatalog.LoaderId</a>&nbsp;loader,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;generatorId,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;minecraftVersion,
+ int&nbsp;javaRelease,
  <a href="VersionTrackCatalog.SupportStatus.html" title="enum class in dev.copperbench.tracks">VersionTrackCatalog.SupportStatus</a>&nbsp;status,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;pluginId,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;reasonCode,
@@ -147,39 +149,44 @@ loadScripts(document, 'script');</script>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Returns a hash code value for this object.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="VersionTrackCatalog.LoaderId.html" title="enum class in dev.copperbench.tracks">VersionTrackCatalog.LoaderId</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#loader()" class="member-name-link">loader</a>()</code></div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>int</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#javaRelease()" class="member-name-link">javaRelease</a>()</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Returns the value of the <code>javaRelease</code> record component.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="VersionTrackCatalog.LoaderId.html" title="enum class in dev.copperbench.tracks">VersionTrackCatalog.LoaderId</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#loader()" class="member-name-link">loader</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Returns the value of the <code>loader</code> record component.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#minecraftVersion()" class="member-name-link">minecraftVersion</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#minecraftVersion()" class="member-name-link">minecraftVersion</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Returns the value of the <code>minecraftVersion</code> record component.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#notes()" class="member-name-link">notes</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#notes()" class="member-name-link">notes</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Returns the value of the <code>notes</code> record component.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#pluginId()" class="member-name-link">pluginId</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#pluginId()" class="member-name-link">pluginId</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Returns the value of the <code>pluginId</code> record component.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#reasonCode()" class="member-name-link">reasonCode</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#reasonCode()" class="member-name-link">reasonCode</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Returns the value of the <code>reasonCode</code> record component.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="VersionTrackCatalog.SupportStatus.html" title="enum class in dev.copperbench.tracks">VersionTrackCatalog.SupportStatus</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#status()" class="member-name-link">status</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="VersionTrackCatalog.SupportStatus.html" title="enum class in dev.copperbench.tracks">VersionTrackCatalog.SupportStatus</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#status()" class="member-name-link">status</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Returns the value of the <code>status</code> record component.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#toString()" class="member-name-link">toString</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#toString()" class="member-name-link">toString</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Returns a string representation of this record class.</div>
 </div>
 </div>
@@ -200,12 +207,13 @@ loadScripts(document, 'script');</script>
 <h2>Constructor Details</h2>
 <ul class="member-list">
 <li>
-<section class="detail" id="&lt;init&gt;(dev.copperbench.tracks.VersionTrackCatalog.LoaderId,java.lang.String,java.lang.String,dev.copperbench.tracks.VersionTrackCatalog.SupportStatus,java.lang.String,java.lang.String,java.lang.String)">
+<section class="detail" id="&lt;init&gt;(dev.copperbench.tracks.VersionTrackCatalog.LoaderId,java.lang.String,java.lang.String,int,dev.copperbench.tracks.VersionTrackCatalog.SupportStatus,java.lang.String,java.lang.String,java.lang.String)">
 <h3>LoaderStatus</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="element-name">LoaderStatus</span><wbr><span class="parameters">(<a href="VersionTrackCatalog.LoaderId.html" title="enum class in dev.copperbench.tracks">VersionTrackCatalog.LoaderId</a>&nbsp;loader,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;generatorId,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;minecraftVersion,
+ int&nbsp;javaRelease,
  <a href="VersionTrackCatalog.SupportStatus.html" title="enum class in dev.copperbench.tracks">VersionTrackCatalog.SupportStatus</a>&nbsp;status,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;pluginId,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;reasonCode,
@@ -216,6 +224,7 @@ loadScripts(document, 'script');</script>
 <dd><code>loader</code> - the value for the <code>loader</code> record component</dd>
 <dd><code>generatorId</code> - the value for the <code>generatorId</code> record component</dd>
 <dd><code>minecraftVersion</code> - the value for the <code>minecraftVersion</code> record component</dd>
+<dd><code>javaRelease</code> - the value for the <code>javaRelease</code> record component</dd>
 <dd><code>status</code> - the value for the <code>status</code> record component</dd>
 <dd><code>pluginId</code> - the value for the <code>pluginId</code> record component</dd>
 <dd><code>reasonCode</code> - the value for the <code>reasonCode</code> record component</dd>
@@ -267,7 +276,7 @@ loadScripts(document, 'script');</script>
 <h3>equals</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public final</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">equals</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&nbsp;o)</span></div>
-<div class="block">Indicates whether some other object is "equal to" this one. The objects are equal if the other object is of the same class and if all the record components are equal. All components in this record class are compared with <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Objects.html#equals(java.lang.Object,java.lang.Object)" title="class or interface in java.util" class="external-link"><code>Objects::equals(Object,Object)</code></a>.</div>
+<div class="block">Indicates whether some other object is "equal to" this one. The objects are equal if the other object is of the same class and if all the record components are equal. Reference components are compared with <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Objects.html#equals(java.lang.Object,java.lang.Object)" title="class or interface in java.util" class="external-link"><code>Objects::equals(Object,Object)</code></a>; primitive components are compared with the <code>compare</code> method from their corresponding wrapper classes.</div>
 <dl class="notes">
 <dt>Specified by:</dt>
 <dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Record.html#equals(java.lang.Object)" title="class or interface in java.lang" class="external-link">equals</a></code>&nbsp;in class&nbsp;<code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Record.html" title="class or interface in java.lang" class="external-link">Record</a></code></dd>
@@ -314,6 +323,19 @@ loadScripts(document, 'script');</script>
 <dl class="notes">
 <dt>Returns:</dt>
 <dd>the value of the <code>minecraftVersion</code> record component</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="javaRelease()">
+<h3>javaRelease</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">int</span>&nbsp;<span class="element-name">javaRelease</span>()</div>
+<div class="block">Returns the value of the <code>javaRelease</code> record component.</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>the value of the <code>javaRelease</code> record component</dd>
 </dl>
 </div>
 </section>

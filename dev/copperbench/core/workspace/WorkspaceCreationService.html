@@ -66,12 +66,14 @@ loadScripts(document, 'script');</script>
 <ol class="toc-list">
 <li><a href="#%3Cinit%3E()" tabindex="0">WorkspaceCreationService()</a></li>
 <li><a href="#%3Cinit%3E(dev.copperbench.tracks.VersionTrackCatalog)" tabindex="0">WorkspaceCreationService(VersionTrackCatalog)</a></li>
+<li><a href="#%3Cinit%3E(dev.copperbench.tracks.VersionTrackCatalog,java.nio.file.Path)" tabindex="0">WorkspaceCreationService(VersionTrackCatalog, Path)</a></li>
 </ol>
 </li>
 <li><a href="#method-detail" tabindex="0">Method Details</a>
 <ol class="toc-list">
 <li><a href="#listGenerators()" tabindex="0">listGenerators()</a></li>
 <li><a href="#create(java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String)" tabindex="0">create(String, String, String, String, String, String)</a></li>
+<li><a href="#validateCreation(java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String)" tabindex="0">validateCreation(String, String, String, String, String)</a></li>
 <li><a href="#toProjection()" tabindex="0">toProjection()</a></li>
 </ol>
 </li>
@@ -143,6 +145,9 @@ produce identical workspace files.</div>
 <div class="col-last even-row-color">&nbsp;</div>
 <div class="col-constructor-name odd-row-color"><code><a href="#%3Cinit%3E(dev.copperbench.tracks.VersionTrackCatalog)" class="member-name-link">WorkspaceCreationService</a><wbr>(<a href="../../tracks/VersionTrackCatalog.html" title="class in dev.copperbench.tracks">VersionTrackCatalog</a>&nbsp;catalog)</code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
+<div class="col-constructor-name even-row-color"><code><a href="#%3Cinit%3E(dev.copperbench.tracks.VersionTrackCatalog,java.nio.file.Path)" class="member-name-link">WorkspaceCreationService</a><wbr>(<a href="../../tracks/VersionTrackCatalog.html" title="class in dev.copperbench.tracks">VersionTrackCatalog</a>&nbsp;catalog,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;distributionRoot)</code></div>
+<div class="col-last even-row-color">&nbsp;</div>
 </div>
 </section>
 </li>
@@ -176,6 +181,15 @@ produce identical workspace files.</div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#toProjection()" class="member-name-link">toProjection</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Projection used by the list_new_workspace_generators query.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a><wbr>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#validateCreation(java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String)" class="member-name-link">validateCreation</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;generatorId,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;modName,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;modId,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;packageName,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;workspaceFolderPath)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Performs the complete non-writing validation used by <a href="#create(java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String)"><code>create(String, String, String, String, String, String)</code></a>.</div>
 </div>
 </div>
 </div>
@@ -234,6 +248,15 @@ produce identical workspace files.</div>
 </div>
 </section>
 </li>
+<li>
+<section class="detail" id="&lt;init&gt;(dev.copperbench.tracks.VersionTrackCatalog,java.nio.file.Path)">
+<h3>WorkspaceCreationService</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="element-name">WorkspaceCreationService</span><wbr><span class="parameters">(<a href="../../tracks/VersionTrackCatalog.html" title="class in dev.copperbench.tracks">VersionTrackCatalog</a>&nbsp;catalog,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;distributionRoot)</span></div>
+</div>
+</section>
+</li>
 </ul>
 </section>
 </li>
@@ -264,6 +287,23 @@ produce identical workspace files.</div>
 <div class="block">Validates the form and creates the workspace. The caller supplies the raw
 form values; this method owns all domain rules so the UI never re-implements
 them.</div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="validateCreation(java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String)">
+<h3>validateCreation</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;</span>&nbsp;<span class="element-name">validateCreation</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;generatorId,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;modName,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;modId,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;packageName,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;workspaceFolderPath)</span></div>
+<div class="block">Performs the complete non-writing validation used by <a href="#create(java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String)"><code>create(String, String, String, String, String, String)</code></a>. Hosts
+that need a trusted user confirmation can call this before prompting, then
+call <code>create</code> only after the user approves. Keeping the preflight in
+this service prevents CLI/MCP/UI hosts from inventing divergent creation
+rules.</div>
 </div>
 </section>
 </li>

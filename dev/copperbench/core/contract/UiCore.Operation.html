@@ -62,6 +62,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#CREATE_WORKSPACE" tabindex="0">CREATE_WORKSPACE</a></li>
 <li><a href="#CREATE_MOD_ELEMENT" tabindex="0">CREATE_MOD_ELEMENT</a></li>
 <li><a href="#UPDATE_MOD_ELEMENT" tabindex="0">UPDATE_MOD_ELEMENT</a></li>
+<li><a href="#SET_MOD_ELEMENT_SOURCE_MANAGEMENT" tabindex="0">SET_MOD_ELEMENT_SOURCE_MANAGEMENT</a></li>
 <li><a href="#DELETE_MOD_ELEMENT" tabindex="0">DELETE_MOD_ELEMENT</a></li>
 <li><a href="#UPDATE_PROCEDURE" tabindex="0">UPDATE_PROCEDURE</a></li>
 <li><a href="#CREATE_REGISTRY_ENTRY" tabindex="0">CREATE_REGISTRY_ENTRY</a></li>
@@ -88,6 +89,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#IMPORT_ASSET_BATCH" tabindex="0">IMPORT_ASSET_BATCH</a></li>
 <li><a href="#MOVE_ASSET" tabindex="0">MOVE_ASSET</a></li>
 <li><a href="#GET_WORKBENCH" tabindex="0">GET_WORKBENCH</a></li>
+<li><a href="#GET_WORKSPACE_ENVIRONMENT" tabindex="0">GET_WORKSPACE_ENVIRONMENT</a></li>
 <li><a href="#GET_WORKSPACE_HEALTH" tabindex="0">GET_WORKSPACE_HEALTH</a></li>
 <li><a href="#LIST_NEW_WORKSPACE_GENERATORS" tabindex="0">LIST_NEW_WORKSPACE_GENERATORS</a></li>
 <li><a href="#LIST_ASSETS" tabindex="0">LIST_ASSETS</a></li>
@@ -104,6 +106,9 @@ loadScripts(document, 'script');</script>
 <li><a href="#PREVIEW_REGISTRY_RENAME" tabindex="0">PREVIEW_REGISTRY_RENAME</a></li>
 <li><a href="#PLAN_PROCEDURE_REFACTOR" tabindex="0">PLAN_PROCEDURE_REFACTOR</a></li>
 <li><a href="#PLAN_WORKSPACE_CHANGES" tabindex="0">PLAN_WORKSPACE_CHANGES</a></li>
+<li><a href="#CREATE_LOCAL_TEMPLATE" tabindex="0">CREATE_LOCAL_TEMPLATE</a></li>
+<li><a href="#LIST_LOCAL_TEMPLATES" tabindex="0">LIST_LOCAL_TEMPLATES</a></li>
+<li><a href="#PREVIEW_LOCAL_TEMPLATE_INSTANTIATION" tabindex="0">PREVIEW_LOCAL_TEMPLATE_INSTANTIATION</a></li>
 <li><a href="#PREVIEW_WORKSPACE_PLAN" tabindex="0">PREVIEW_WORKSPACE_PLAN</a></li>
 <li><a href="#APPLY_WORKSPACE_PLAN" tabindex="0">APPLY_WORKSPACE_PLAN</a></li>
 <li><a href="#GET_TASK" tabindex="0">GET_TASK</a></li>
@@ -181,45 +186,49 @@ loadScripts(document, 'script');</script>
 <div class="col-last odd-row-color">&nbsp;</div>
 <div class="col-first even-row-color"><code><a href="#CANCEL_TASK" class="member-name-link">CANCEL_TASK</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code><a href="#CREATE_MOD_ELEMENT" class="member-name-link">CREATE_MOD_ELEMENT</a></code></div>
+<div class="col-first odd-row-color"><code><a href="#CREATE_LOCAL_TEMPLATE" class="member-name-link">CREATE_LOCAL_TEMPLATE</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code><a href="#CREATE_PUBLISH_BATCH" class="member-name-link">CREATE_PUBLISH_BATCH</a></code></div>
+<div class="col-first even-row-color"><code><a href="#CREATE_MOD_ELEMENT" class="member-name-link">CREATE_MOD_ELEMENT</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code><a href="#CREATE_RECOVERY_POINT" class="member-name-link">CREATE_RECOVERY_POINT</a></code></div>
+<div class="col-first odd-row-color"><code><a href="#CREATE_PUBLISH_BATCH" class="member-name-link">CREATE_PUBLISH_BATCH</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code><a href="#CREATE_REGISTRY_ENTRY" class="member-name-link">CREATE_REGISTRY_ENTRY</a></code></div>
+<div class="col-first even-row-color"><code><a href="#CREATE_RECOVERY_POINT" class="member-name-link">CREATE_RECOVERY_POINT</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code><a href="#CREATE_WORKSPACE" class="member-name-link">CREATE_WORKSPACE</a></code></div>
+<div class="col-first odd-row-color"><code><a href="#CREATE_REGISTRY_ENTRY" class="member-name-link">CREATE_REGISTRY_ENTRY</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code><a href="#DELETE_MOD_ELEMENT" class="member-name-link">DELETE_MOD_ELEMENT</a></code></div>
+<div class="col-first even-row-color"><code><a href="#CREATE_WORKSPACE" class="member-name-link">CREATE_WORKSPACE</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code><a href="#DELETE_REGISTRY_ENTRY" class="member-name-link">DELETE_REGISTRY_ENTRY</a></code></div>
+<div class="col-first odd-row-color"><code><a href="#DELETE_MOD_ELEMENT" class="member-name-link">DELETE_MOD_ELEMENT</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code><a href="#EXECUTE_LOADER_MIGRATION" class="member-name-link">EXECUTE_LOADER_MIGRATION</a></code></div>
+<div class="col-first even-row-color"><code><a href="#DELETE_REGISTRY_ENTRY" class="member-name-link">DELETE_REGISTRY_ENTRY</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code><a href="#EXPORT_WORKSPACE" class="member-name-link">EXPORT_WORKSPACE</a></code></div>
+<div class="col-first odd-row-color"><code><a href="#EXECUTE_LOADER_MIGRATION" class="member-name-link">EXECUTE_LOADER_MIGRATION</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code><a href="#GENERATE_WORKSPACE" class="member-name-link">GENERATE_WORKSPACE</a></code></div>
+<div class="col-first even-row-color"><code><a href="#EXPORT_WORKSPACE" class="member-name-link">EXPORT_WORKSPACE</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code><a href="#GET_DIFF" class="member-name-link">GET_DIFF</a></code></div>
+<div class="col-first odd-row-color"><code><a href="#GENERATE_WORKSPACE" class="member-name-link">GENERATE_WORKSPACE</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code><a href="#GET_ELEMENT_COVERAGE" class="member-name-link">GET_ELEMENT_COVERAGE</a></code></div>
+<div class="col-first even-row-color"><code><a href="#GET_DIFF" class="member-name-link">GET_DIFF</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code><a href="#GET_HISTORY" class="member-name-link">GET_HISTORY</a></code></div>
+<div class="col-first odd-row-color"><code><a href="#GET_ELEMENT_COVERAGE" class="member-name-link">GET_ELEMENT_COVERAGE</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code><a href="#GET_MOD_ELEMENT_EDITOR" class="member-name-link">GET_MOD_ELEMENT_EDITOR</a></code></div>
+<div class="col-first even-row-color"><code><a href="#GET_HISTORY" class="member-name-link">GET_HISTORY</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code><a href="#GET_PROCEDURE_EDITOR" class="member-name-link">GET_PROCEDURE_EDITOR</a></code></div>
+<div class="col-first odd-row-color"><code><a href="#GET_MOD_ELEMENT_EDITOR" class="member-name-link">GET_MOD_ELEMENT_EDITOR</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code><a href="#GET_RELEASE_NOTES" class="member-name-link">GET_RELEASE_NOTES</a></code></div>
+<div class="col-first even-row-color"><code><a href="#GET_PROCEDURE_EDITOR" class="member-name-link">GET_PROCEDURE_EDITOR</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code><a href="#GET_TASK" class="member-name-link">GET_TASK</a></code></div>
+<div class="col-first odd-row-color"><code><a href="#GET_RELEASE_NOTES" class="member-name-link">GET_RELEASE_NOTES</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code><a href="#GET_UPSTREAM_TOOLS" class="member-name-link">GET_UPSTREAM_TOOLS</a></code></div>
+<div class="col-first even-row-color"><code><a href="#GET_TASK" class="member-name-link">GET_TASK</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code><a href="#GET_VERSION_TRACKS" class="member-name-link">GET_VERSION_TRACKS</a></code></div>
+<div class="col-first odd-row-color"><code><a href="#GET_UPSTREAM_TOOLS" class="member-name-link">GET_UPSTREAM_TOOLS</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code><a href="#GET_WORKBENCH" class="member-name-link">GET_WORKBENCH</a></code></div>
+<div class="col-first even-row-color"><code><a href="#GET_VERSION_TRACKS" class="member-name-link">GET_VERSION_TRACKS</a></code></div>
+<div class="col-last even-row-color">&nbsp;</div>
+<div class="col-first odd-row-color"><code><a href="#GET_WORKBENCH" class="member-name-link">GET_WORKBENCH</a></code></div>
+<div class="col-last odd-row-color">&nbsp;</div>
+<div class="col-first even-row-color"><code><a href="#GET_WORKSPACE_ENVIRONMENT" class="member-name-link">GET_WORKSPACE_ENVIRONMENT</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
 <div class="col-first odd-row-color"><code><a href="#GET_WORKSPACE_HEALTH" class="member-name-link">GET_WORKSPACE_HEALTH</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
@@ -235,33 +244,37 @@ loadScripts(document, 'script');</script>
 <div class="col-last even-row-color">&nbsp;</div>
 <div class="col-first odd-row-color"><code><a href="#LIST_INSTALLED_PLUGINS" class="member-name-link">LIST_INSTALLED_PLUGINS</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code><a href="#LIST_MOD_ELEMENTS" class="member-name-link">LIST_MOD_ELEMENTS</a></code></div>
+<div class="col-first even-row-color"><code><a href="#LIST_LOCAL_TEMPLATES" class="member-name-link">LIST_LOCAL_TEMPLATES</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code><a href="#LIST_NEW_WORKSPACE_GENERATORS" class="member-name-link">LIST_NEW_WORKSPACE_GENERATORS</a></code></div>
+<div class="col-first odd-row-color"><code><a href="#LIST_MOD_ELEMENTS" class="member-name-link">LIST_MOD_ELEMENTS</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code><a href="#LIST_OPERATION_APPROVALS" class="member-name-link">LIST_OPERATION_APPROVALS</a></code></div>
+<div class="col-first even-row-color"><code><a href="#LIST_NEW_WORKSPACE_GENERATORS" class="member-name-link">LIST_NEW_WORKSPACE_GENERATORS</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code><a href="#LIST_PUBLISH_BATCHES" class="member-name-link">LIST_PUBLISH_BATCHES</a></code></div>
+<div class="col-first odd-row-color"><code><a href="#LIST_OPERATION_APPROVALS" class="member-name-link">LIST_OPERATION_APPROVALS</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code><a href="#LIST_WORKSPACE_REGISTRIES" class="member-name-link">LIST_WORKSPACE_REGISTRIES</a></code></div>
+<div class="col-first even-row-color"><code><a href="#LIST_PUBLISH_BATCHES" class="member-name-link">LIST_PUBLISH_BATCHES</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code><a href="#MOVE_ASSET" class="member-name-link">MOVE_ASSET</a></code></div>
+<div class="col-first odd-row-color"><code><a href="#LIST_WORKSPACE_REGISTRIES" class="member-name-link">LIST_WORKSPACE_REGISTRIES</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code><a href="#PLAN_PROCEDURE_REFACTOR" class="member-name-link">PLAN_PROCEDURE_REFACTOR</a></code></div>
+<div class="col-first even-row-color"><code><a href="#MOVE_ASSET" class="member-name-link">MOVE_ASSET</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code><a href="#PLAN_WORKSPACE_CHANGES" class="member-name-link">PLAN_WORKSPACE_CHANGES</a></code></div>
+<div class="col-first odd-row-color"><code><a href="#PLAN_PROCEDURE_REFACTOR" class="member-name-link">PLAN_PROCEDURE_REFACTOR</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code><a href="#PREPARE_RESOURCE_PACK_CLIENT" class="member-name-link">PREPARE_RESOURCE_PACK_CLIENT</a></code></div>
+<div class="col-first even-row-color"><code><a href="#PLAN_WORKSPACE_CHANGES" class="member-name-link">PLAN_WORKSPACE_CHANGES</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code><a href="#PREVIEW_ASSET_IMPORT" class="member-name-link">PREVIEW_ASSET_IMPORT</a></code></div>
+<div class="col-first odd-row-color"><code><a href="#PREPARE_RESOURCE_PACK_CLIENT" class="member-name-link">PREPARE_RESOURCE_PACK_CLIENT</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code><a href="#PREVIEW_ASSET_IMPORT_BATCH" class="member-name-link">PREVIEW_ASSET_IMPORT_BATCH</a></code></div>
+<div class="col-first even-row-color"><code><a href="#PREVIEW_ASSET_IMPORT" class="member-name-link">PREVIEW_ASSET_IMPORT</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code><a href="#PREVIEW_ASSET_MOVE" class="member-name-link">PREVIEW_ASSET_MOVE</a></code></div>
+<div class="col-first odd-row-color"><code><a href="#PREVIEW_ASSET_IMPORT_BATCH" class="member-name-link">PREVIEW_ASSET_IMPORT_BATCH</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code><a href="#PREVIEW_DATAGEN_OUTPUT" class="member-name-link">PREVIEW_DATAGEN_OUTPUT</a></code></div>
+<div class="col-first even-row-color"><code><a href="#PREVIEW_ASSET_MOVE" class="member-name-link">PREVIEW_ASSET_MOVE</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code><a href="#PREVIEW_LOADER_MIGRATION" class="member-name-link">PREVIEW_LOADER_MIGRATION</a></code></div>
+<div class="col-first odd-row-color"><code><a href="#PREVIEW_DATAGEN_OUTPUT" class="member-name-link">PREVIEW_DATAGEN_OUTPUT</a></code></div>
+<div class="col-last odd-row-color">&nbsp;</div>
+<div class="col-first even-row-color"><code><a href="#PREVIEW_LOADER_MIGRATION" class="member-name-link">PREVIEW_LOADER_MIGRATION</a></code></div>
+<div class="col-last even-row-color">&nbsp;</div>
+<div class="col-first odd-row-color"><code><a href="#PREVIEW_LOCAL_TEMPLATE_INSTANTIATION" class="member-name-link">PREVIEW_LOCAL_TEMPLATE_INSTANTIATION</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
 <div class="col-first even-row-color"><code><a href="#PREVIEW_MOD_ELEMENT_CHANGE" class="member-name-link">PREVIEW_MOD_ELEMENT_CHANGE</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
@@ -291,14 +304,16 @@ loadScripts(document, 'script');</script>
 <div class="col-last even-row-color">&nbsp;</div>
 <div class="col-first odd-row-color"><code><a href="#RUN_SERVER" class="member-name-link">RUN_SERVER</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code><a href="#UPDATE_MOD_ELEMENT" class="member-name-link">UPDATE_MOD_ELEMENT</a></code></div>
+<div class="col-first even-row-color"><code><a href="#SET_MOD_ELEMENT_SOURCE_MANAGEMENT" class="member-name-link">SET_MOD_ELEMENT_SOURCE_MANAGEMENT</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code><a href="#UPDATE_PROCEDURE" class="member-name-link">UPDATE_PROCEDURE</a></code></div>
+<div class="col-first odd-row-color"><code><a href="#UPDATE_MOD_ELEMENT" class="member-name-link">UPDATE_MOD_ELEMENT</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code><a href="#UPDATE_REGISTRY_ENTRY" class="member-name-link">UPDATE_REGISTRY_ENTRY</a></code></div>
+<div class="col-first even-row-color"><code><a href="#UPDATE_PROCEDURE" class="member-name-link">UPDATE_PROCEDURE</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code><a href="#VALIDATE_WORKSPACE" class="member-name-link">VALIDATE_WORKSPACE</a></code></div>
+<div class="col-first odd-row-color"><code><a href="#UPDATE_REGISTRY_ENTRY" class="member-name-link">UPDATE_REGISTRY_ENTRY</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
+<div class="col-first even-row-color"><code><a href="#VALIDATE_WORKSPACE" class="member-name-link">VALIDATE_WORKSPACE</a></code></div>
+<div class="col-last even-row-color">&nbsp;</div>
 </div>
 </section>
 </li>
@@ -368,6 +383,15 @@ the order they are declared.</div>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="annotations">@SerializedName("update_mod_element")
 </span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="UiCore.Operation.html" title="enum class in dev.copperbench.core.contract">UiCore.Operation</a></span>&nbsp;<span class="element-name">UPDATE_MOD_ELEMENT</span></div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="SET_MOD_ELEMENT_SOURCE_MANAGEMENT">
+<h3>SET_MOD_ELEMENT_SOURCE_MANAGEMENT</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="annotations">@SerializedName("set_mod_element_source_management")
+</span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="UiCore.Operation.html" title="enum class in dev.copperbench.core.contract">UiCore.Operation</a></span>&nbsp;<span class="element-name">SET_MOD_ELEMENT_SOURCE_MANAGEMENT</span></div>
 </div>
 </section>
 </li>
@@ -606,6 +630,15 @@ the order they are declared.</div>
 </section>
 </li>
 <li>
+<section class="detail" id="GET_WORKSPACE_ENVIRONMENT">
+<h3>GET_WORKSPACE_ENVIRONMENT</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="annotations">@SerializedName("get_workspace_environment")
+</span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="UiCore.Operation.html" title="enum class in dev.copperbench.core.contract">UiCore.Operation</a></span>&nbsp;<span class="element-name">GET_WORKSPACE_ENVIRONMENT</span></div>
+</div>
+</section>
+</li>
+<li>
 <section class="detail" id="GET_WORKSPACE_HEALTH">
 <h3>GET_WORKSPACE_HEALTH</h3>
 <div class="horizontal-scroll">
@@ -746,6 +779,33 @@ the order they are declared.</div>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="annotations">@SerializedName("plan_workspace_changes")
 </span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="UiCore.Operation.html" title="enum class in dev.copperbench.core.contract">UiCore.Operation</a></span>&nbsp;<span class="element-name">PLAN_WORKSPACE_CHANGES</span></div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="CREATE_LOCAL_TEMPLATE">
+<h3>CREATE_LOCAL_TEMPLATE</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="annotations">@SerializedName("create_local_template")
+</span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="UiCore.Operation.html" title="enum class in dev.copperbench.core.contract">UiCore.Operation</a></span>&nbsp;<span class="element-name">CREATE_LOCAL_TEMPLATE</span></div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="LIST_LOCAL_TEMPLATES">
+<h3>LIST_LOCAL_TEMPLATES</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="annotations">@SerializedName("list_local_templates")
+</span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="UiCore.Operation.html" title="enum class in dev.copperbench.core.contract">UiCore.Operation</a></span>&nbsp;<span class="element-name">LIST_LOCAL_TEMPLATES</span></div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="PREVIEW_LOCAL_TEMPLATE_INSTANTIATION">
+<h3>PREVIEW_LOCAL_TEMPLATE_INSTANTIATION</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="annotations">@SerializedName("preview_local_template_instantiation")
+</span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="UiCore.Operation.html" title="enum class in dev.copperbench.core.contract">UiCore.Operation</a></span>&nbsp;<span class="element-name">PREVIEW_LOCAL_TEMPLATE_INSTANTIATION</span></div>
 </div>
 </section>
 </li>
