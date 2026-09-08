@@ -59,6 +59,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#constructor-detail" tabindex="0">Constructor Details</a>
 <ol class="toc-list">
 <li><a href="#%3Cinit%3E(dev.copperbench.assets.AssetWorkspaceService,java.nio.file.Path)" tabindex="0">BlockbenchProcessService(AssetWorkspaceService, Path)</a></li>
+<li><a href="#%3Cinit%3E(dev.copperbench.assets.AssetWorkspaceService,java.nio.file.Path,dev.copperbench.assets.BlockbenchProcessService.EditLifecycle)" tabindex="0">BlockbenchProcessService(AssetWorkspaceService, Path, BlockbenchProcessService.EditLifecycle)</a></li>
 </ol>
 </li>
 <li><a href="#method-detail" tabindex="0">Method Details</a>
@@ -103,11 +104,20 @@ implements <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base
 <div class="table-header col-second">Class</div>
 <div class="table-header col-last">Description</div>
 <div class="col-first even-row-color"><code>static final record&nbsp;</code></div>
-<div class="col-second even-row-color"><code><a href="BlockbenchProcessService.Snapshot.html" class="type-name-link" title="class in dev.copperbench.assets">BlockbenchProcessService.Snapshot</a></code></div>
+<div class="col-second even-row-color"><code><a href="BlockbenchProcessService.Completion.html" class="type-name-link" title="class in dev.copperbench.assets">BlockbenchProcessService.Completion</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code>static enum&nbsp;</code></div>
-<div class="col-second odd-row-color"><code><a href="BlockbenchProcessService.State.html" class="type-name-link" title="enum class in dev.copperbench.assets">BlockbenchProcessService.State</a></code></div>
+<div class="col-first odd-row-color"><code>static interface&nbsp;</code></div>
+<div class="col-second odd-row-color"><code><a href="BlockbenchProcessService.EditLifecycle.html" class="type-name-link" title="interface in dev.copperbench.assets">BlockbenchProcessService.EditLifecycle</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
+<div class="col-first even-row-color"><code>static final record&nbsp;</code></div>
+<div class="col-second even-row-color"><code><a href="BlockbenchProcessService.PreparedEdit.html" class="type-name-link" title="class in dev.copperbench.assets">BlockbenchProcessService.PreparedEdit</a></code></div>
+<div class="col-last even-row-color">&nbsp;</div>
+<div class="col-first odd-row-color"><code>static final record&nbsp;</code></div>
+<div class="col-second odd-row-color"><code><a href="BlockbenchProcessService.Snapshot.html" class="type-name-link" title="class in dev.copperbench.assets">BlockbenchProcessService.Snapshot</a></code></div>
+<div class="col-last odd-row-color">&nbsp;</div>
+<div class="col-first even-row-color"><code>static enum&nbsp;</code></div>
+<div class="col-second even-row-color"><code><a href="BlockbenchProcessService.State.html" class="type-name-link" title="enum class in dev.copperbench.assets">BlockbenchProcessService.State</a></code></div>
+<div class="col-last even-row-color">&nbsp;</div>
 </div>
 </section>
 </li>
@@ -122,6 +132,10 @@ implements <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base
 <div class="col-constructor-name even-row-color"><code><a href="#%3Cinit%3E(dev.copperbench.assets.AssetWorkspaceService,java.nio.file.Path)" class="member-name-link">BlockbenchProcessService</a><wbr>(<a href="AssetWorkspaceService.html" title="class in dev.copperbench.assets">AssetWorkspaceService</a>&nbsp;assets,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;executable)</code></div>
 <div class="col-last even-row-color">&nbsp;</div>
+<div class="col-constructor-name odd-row-color"><code><a href="#%3Cinit%3E(dev.copperbench.assets.AssetWorkspaceService,java.nio.file.Path,dev.copperbench.assets.BlockbenchProcessService.EditLifecycle)" class="member-name-link">BlockbenchProcessService</a><wbr>(<a href="AssetWorkspaceService.html" title="class in dev.copperbench.assets">AssetWorkspaceService</a>&nbsp;assets,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;executable,
+ <a href="BlockbenchProcessService.EditLifecycle.html" title="interface in dev.copperbench.assets">BlockbenchProcessService.EditLifecycle</a>&nbsp;lifecycle)</code></div>
+<div class="col-last odd-row-color">&nbsp;</div>
 </div>
 </section>
 </li>
@@ -168,6 +182,16 @@ implements <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="element-name">BlockbenchProcessService</span><wbr><span class="parameters">(<a href="AssetWorkspaceService.html" title="class in dev.copperbench.assets">AssetWorkspaceService</a>&nbsp;assets,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;executable)</span></div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="&lt;init&gt;(dev.copperbench.assets.AssetWorkspaceService,java.nio.file.Path,dev.copperbench.assets.BlockbenchProcessService.EditLifecycle)">
+<h3>BlockbenchProcessService</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="element-name">BlockbenchProcessService</span><wbr><span class="parameters">(<a href="AssetWorkspaceService.html" title="class in dev.copperbench.assets">AssetWorkspaceService</a>&nbsp;assets,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;executable,
+ <a href="BlockbenchProcessService.EditLifecycle.html" title="interface in dev.copperbench.assets">BlockbenchProcessService.EditLifecycle</a>&nbsp;lifecycle)</span></div>
 </div>
 </section>
 </li>

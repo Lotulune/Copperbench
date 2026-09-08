@@ -5,6 +5,7 @@ dev.copperbench.automation.security
 dev.copperbench.bridge
 dev.copperbench.core.application
 dev.copperbench.core.contract
+dev.copperbench.core.diagnostics
 dev.copperbench.core.plugin
 dev.copperbench.core.workspace
 dev.copperbench.core.workspace.mcreator

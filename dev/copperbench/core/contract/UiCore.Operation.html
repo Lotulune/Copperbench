@@ -84,9 +84,16 @@ loadScripts(document, 'script');</script>
 <li><a href="#IMPORT_UPSTREAM_WORKSPACE" tabindex="0">IMPORT_UPSTREAM_WORKSPACE</a></li>
 <li><a href="#CREATE_PUBLISH_BATCH" tabindex="0">CREATE_PUBLISH_BATCH</a></li>
 <li><a href="#PREPARE_RESOURCE_PACK_CLIENT" tabindex="0">PREPARE_RESOURCE_PACK_CLIENT</a></li>
+<li><a href="#IMPORT_ASSET" tabindex="0">IMPORT_ASSET</a></li>
+<li><a href="#IMPORT_ASSET_BATCH" tabindex="0">IMPORT_ASSET_BATCH</a></li>
+<li><a href="#MOVE_ASSET" tabindex="0">MOVE_ASSET</a></li>
 <li><a href="#GET_WORKBENCH" tabindex="0">GET_WORKBENCH</a></li>
+<li><a href="#GET_WORKSPACE_HEALTH" tabindex="0">GET_WORKSPACE_HEALTH</a></li>
 <li><a href="#LIST_NEW_WORKSPACE_GENERATORS" tabindex="0">LIST_NEW_WORKSPACE_GENERATORS</a></li>
 <li><a href="#LIST_ASSETS" tabindex="0">LIST_ASSETS</a></li>
+<li><a href="#PREVIEW_ASSET_IMPORT" tabindex="0">PREVIEW_ASSET_IMPORT</a></li>
+<li><a href="#PREVIEW_ASSET_IMPORT_BATCH" tabindex="0">PREVIEW_ASSET_IMPORT_BATCH</a></li>
+<li><a href="#PREVIEW_ASSET_MOVE" tabindex="0">PREVIEW_ASSET_MOVE</a></li>
 <li><a href="#LIST_MOD_ELEMENTS" tabindex="0">LIST_MOD_ELEMENTS</a></li>
 <li><a href="#GET_MOD_ELEMENT_EDITOR" tabindex="0">GET_MOD_ELEMENT_EDITOR</a></li>
 <li><a href="#PREVIEW_MOD_ELEMENT_CHANGE" tabindex="0">PREVIEW_MOD_ELEMENT_CHANGE</a></li>
@@ -95,6 +102,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#GET_WORKSPACE_REFERENCES" tabindex="0">GET_WORKSPACE_REFERENCES</a></li>
 <li><a href="#LIST_WORKSPACE_REGISTRIES" tabindex="0">LIST_WORKSPACE_REGISTRIES</a></li>
 <li><a href="#PREVIEW_REGISTRY_RENAME" tabindex="0">PREVIEW_REGISTRY_RENAME</a></li>
+<li><a href="#PLAN_PROCEDURE_REFACTOR" tabindex="0">PLAN_PROCEDURE_REFACTOR</a></li>
 <li><a href="#PLAN_WORKSPACE_CHANGES" tabindex="0">PLAN_WORKSPACE_CHANGES</a></li>
 <li><a href="#PREVIEW_WORKSPACE_PLAN" tabindex="0">PREVIEW_WORKSPACE_PLAN</a></li>
 <li><a href="#APPLY_WORKSPACE_PLAN" tabindex="0">APPLY_WORKSPACE_PLAN</a></li>
@@ -102,6 +110,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#PREVIEW_DATAGEN_OUTPUT" tabindex="0">PREVIEW_DATAGEN_OUTPUT</a></li>
 <li><a href="#GET_HISTORY" tabindex="0">GET_HISTORY</a></li>
 <li><a href="#GET_DIFF" tabindex="0">GET_DIFF</a></li>
+<li><a href="#PREVIEW_RECOVERY_RESTORE" tabindex="0">PREVIEW_RECOVERY_RESTORE</a></li>
 <li><a href="#LIST_OPERATION_APPROVALS" tabindex="0">LIST_OPERATION_APPROVALS</a></li>
 <li><a href="#RESOLVE_OPERATION_APPROVAL" tabindex="0">RESOLVE_OPERATION_APPROVAL</a></li>
 <li><a href="#GET_VERSION_TRACKS" tabindex="0">GET_VERSION_TRACKS</a></li>
@@ -212,27 +221,43 @@ loadScripts(document, 'script');</script>
 <div class="col-last odd-row-color">&nbsp;</div>
 <div class="col-first even-row-color"><code><a href="#GET_WORKBENCH" class="member-name-link">GET_WORKBENCH</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code><a href="#GET_WORKSPACE_REFERENCES" class="member-name-link">GET_WORKSPACE_REFERENCES</a></code></div>
+<div class="col-first odd-row-color"><code><a href="#GET_WORKSPACE_HEALTH" class="member-name-link">GET_WORKSPACE_HEALTH</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code><a href="#IMPORT_UPSTREAM_WORKSPACE" class="member-name-link">IMPORT_UPSTREAM_WORKSPACE</a></code></div>
+<div class="col-first even-row-color"><code><a href="#GET_WORKSPACE_REFERENCES" class="member-name-link">GET_WORKSPACE_REFERENCES</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code><a href="#LIST_ASSETS" class="member-name-link">LIST_ASSETS</a></code></div>
+<div class="col-first odd-row-color"><code><a href="#IMPORT_ASSET" class="member-name-link">IMPORT_ASSET</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code><a href="#LIST_INSTALLED_PLUGINS" class="member-name-link">LIST_INSTALLED_PLUGINS</a></code></div>
+<div class="col-first even-row-color"><code><a href="#IMPORT_ASSET_BATCH" class="member-name-link">IMPORT_ASSET_BATCH</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code><a href="#LIST_MOD_ELEMENTS" class="member-name-link">LIST_MOD_ELEMENTS</a></code></div>
+<div class="col-first odd-row-color"><code><a href="#IMPORT_UPSTREAM_WORKSPACE" class="member-name-link">IMPORT_UPSTREAM_WORKSPACE</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code><a href="#LIST_NEW_WORKSPACE_GENERATORS" class="member-name-link">LIST_NEW_WORKSPACE_GENERATORS</a></code></div>
+<div class="col-first even-row-color"><code><a href="#LIST_ASSETS" class="member-name-link">LIST_ASSETS</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code><a href="#LIST_OPERATION_APPROVALS" class="member-name-link">LIST_OPERATION_APPROVALS</a></code></div>
+<div class="col-first odd-row-color"><code><a href="#LIST_INSTALLED_PLUGINS" class="member-name-link">LIST_INSTALLED_PLUGINS</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code><a href="#LIST_PUBLISH_BATCHES" class="member-name-link">LIST_PUBLISH_BATCHES</a></code></div>
+<div class="col-first even-row-color"><code><a href="#LIST_MOD_ELEMENTS" class="member-name-link">LIST_MOD_ELEMENTS</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code><a href="#LIST_WORKSPACE_REGISTRIES" class="member-name-link">LIST_WORKSPACE_REGISTRIES</a></code></div>
+<div class="col-first odd-row-color"><code><a href="#LIST_NEW_WORKSPACE_GENERATORS" class="member-name-link">LIST_NEW_WORKSPACE_GENERATORS</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code><a href="#PLAN_WORKSPACE_CHANGES" class="member-name-link">PLAN_WORKSPACE_CHANGES</a></code></div>
+<div class="col-first even-row-color"><code><a href="#LIST_OPERATION_APPROVALS" class="member-name-link">LIST_OPERATION_APPROVALS</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code><a href="#PREPARE_RESOURCE_PACK_CLIENT" class="member-name-link">PREPARE_RESOURCE_PACK_CLIENT</a></code></div>
+<div class="col-first odd-row-color"><code><a href="#LIST_PUBLISH_BATCHES" class="member-name-link">LIST_PUBLISH_BATCHES</a></code></div>
+<div class="col-last odd-row-color">&nbsp;</div>
+<div class="col-first even-row-color"><code><a href="#LIST_WORKSPACE_REGISTRIES" class="member-name-link">LIST_WORKSPACE_REGISTRIES</a></code></div>
+<div class="col-last even-row-color">&nbsp;</div>
+<div class="col-first odd-row-color"><code><a href="#MOVE_ASSET" class="member-name-link">MOVE_ASSET</a></code></div>
+<div class="col-last odd-row-color">&nbsp;</div>
+<div class="col-first even-row-color"><code><a href="#PLAN_PROCEDURE_REFACTOR" class="member-name-link">PLAN_PROCEDURE_REFACTOR</a></code></div>
+<div class="col-last even-row-color">&nbsp;</div>
+<div class="col-first odd-row-color"><code><a href="#PLAN_WORKSPACE_CHANGES" class="member-name-link">PLAN_WORKSPACE_CHANGES</a></code></div>
+<div class="col-last odd-row-color">&nbsp;</div>
+<div class="col-first even-row-color"><code><a href="#PREPARE_RESOURCE_PACK_CLIENT" class="member-name-link">PREPARE_RESOURCE_PACK_CLIENT</a></code></div>
+<div class="col-last even-row-color">&nbsp;</div>
+<div class="col-first odd-row-color"><code><a href="#PREVIEW_ASSET_IMPORT" class="member-name-link">PREVIEW_ASSET_IMPORT</a></code></div>
+<div class="col-last odd-row-color">&nbsp;</div>
+<div class="col-first even-row-color"><code><a href="#PREVIEW_ASSET_IMPORT_BATCH" class="member-name-link">PREVIEW_ASSET_IMPORT_BATCH</a></code></div>
+<div class="col-last even-row-color">&nbsp;</div>
+<div class="col-first odd-row-color"><code><a href="#PREVIEW_ASSET_MOVE" class="member-name-link">PREVIEW_ASSET_MOVE</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
 <div class="col-first even-row-color"><code><a href="#PREVIEW_DATAGEN_OUTPUT" class="member-name-link">PREVIEW_DATAGEN_OUTPUT</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
@@ -242,36 +267,38 @@ loadScripts(document, 'script');</script>
 <div class="col-last even-row-color">&nbsp;</div>
 <div class="col-first odd-row-color"><code><a href="#PREVIEW_PROCEDURE_CHANGE" class="member-name-link">PREVIEW_PROCEDURE_CHANGE</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code><a href="#PREVIEW_REGISTRY_RENAME" class="member-name-link">PREVIEW_REGISTRY_RENAME</a></code></div>
+<div class="col-first even-row-color"><code><a href="#PREVIEW_RECOVERY_RESTORE" class="member-name-link">PREVIEW_RECOVERY_RESTORE</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code><a href="#PREVIEW_UPSTREAM_IMPORT" class="member-name-link">PREVIEW_UPSTREAM_IMPORT</a></code></div>
+<div class="col-first odd-row-color"><code><a href="#PREVIEW_REGISTRY_RENAME" class="member-name-link">PREVIEW_REGISTRY_RENAME</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code><a href="#PREVIEW_WORKSPACE_PLAN" class="member-name-link">PREVIEW_WORKSPACE_PLAN</a></code></div>
+<div class="col-first even-row-color"><code><a href="#PREVIEW_UPSTREAM_IMPORT" class="member-name-link">PREVIEW_UPSTREAM_IMPORT</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code><a href="#PUBLISH_DATAGEN_OUTPUT" class="member-name-link">PUBLISH_DATAGEN_OUTPUT</a></code></div>
+<div class="col-first odd-row-color"><code><a href="#PREVIEW_WORKSPACE_PLAN" class="member-name-link">PREVIEW_WORKSPACE_PLAN</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code><a href="#RENAME_REGISTRY_ENTRY" class="member-name-link">RENAME_REGISTRY_ENTRY</a></code></div>
+<div class="col-first even-row-color"><code><a href="#PUBLISH_DATAGEN_OUTPUT" class="member-name-link">PUBLISH_DATAGEN_OUTPUT</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code><a href="#RESOLVE_OPERATION_APPROVAL" class="member-name-link">RESOLVE_OPERATION_APPROVAL</a></code></div>
+<div class="col-first odd-row-color"><code><a href="#RENAME_REGISTRY_ENTRY" class="member-name-link">RENAME_REGISTRY_ENTRY</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code><a href="#RESTORE_RECOVERY_POINT" class="member-name-link">RESTORE_RECOVERY_POINT</a></code></div>
+<div class="col-first even-row-color"><code><a href="#RESOLVE_OPERATION_APPROVAL" class="member-name-link">RESOLVE_OPERATION_APPROVAL</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code><a href="#RUN_CLIENT" class="member-name-link">RUN_CLIENT</a></code></div>
+<div class="col-first odd-row-color"><code><a href="#RESTORE_RECOVERY_POINT" class="member-name-link">RESTORE_RECOVERY_POINT</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code><a href="#RUN_DATAGEN" class="member-name-link">RUN_DATAGEN</a></code></div>
+<div class="col-first even-row-color"><code><a href="#RUN_CLIENT" class="member-name-link">RUN_CLIENT</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code><a href="#RUN_GAMETEST" class="member-name-link">RUN_GAMETEST</a></code></div>
+<div class="col-first odd-row-color"><code><a href="#RUN_DATAGEN" class="member-name-link">RUN_DATAGEN</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code><a href="#RUN_SERVER" class="member-name-link">RUN_SERVER</a></code></div>
+<div class="col-first even-row-color"><code><a href="#RUN_GAMETEST" class="member-name-link">RUN_GAMETEST</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code><a href="#UPDATE_MOD_ELEMENT" class="member-name-link">UPDATE_MOD_ELEMENT</a></code></div>
+<div class="col-first odd-row-color"><code><a href="#RUN_SERVER" class="member-name-link">RUN_SERVER</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code><a href="#UPDATE_PROCEDURE" class="member-name-link">UPDATE_PROCEDURE</a></code></div>
+<div class="col-first even-row-color"><code><a href="#UPDATE_MOD_ELEMENT" class="member-name-link">UPDATE_MOD_ELEMENT</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code><a href="#UPDATE_REGISTRY_ENTRY" class="member-name-link">UPDATE_REGISTRY_ENTRY</a></code></div>
+<div class="col-first odd-row-color"><code><a href="#UPDATE_PROCEDURE" class="member-name-link">UPDATE_PROCEDURE</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code><a href="#VALIDATE_WORKSPACE" class="member-name-link">VALIDATE_WORKSPACE</a></code></div>
+<div class="col-first even-row-color"><code><a href="#UPDATE_REGISTRY_ENTRY" class="member-name-link">UPDATE_REGISTRY_ENTRY</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
+<div class="col-first odd-row-color"><code><a href="#VALIDATE_WORKSPACE" class="member-name-link">VALIDATE_WORKSPACE</a></code></div>
+<div class="col-last odd-row-color">&nbsp;</div>
 </div>
 </section>
 </li>
@@ -543,11 +570,47 @@ the order they are declared.</div>
 </section>
 </li>
 <li>
+<section class="detail" id="IMPORT_ASSET">
+<h3>IMPORT_ASSET</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="annotations">@SerializedName("import_asset")
+</span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="UiCore.Operation.html" title="enum class in dev.copperbench.core.contract">UiCore.Operation</a></span>&nbsp;<span class="element-name">IMPORT_ASSET</span></div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="IMPORT_ASSET_BATCH">
+<h3>IMPORT_ASSET_BATCH</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="annotations">@SerializedName("import_asset_batch")
+</span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="UiCore.Operation.html" title="enum class in dev.copperbench.core.contract">UiCore.Operation</a></span>&nbsp;<span class="element-name">IMPORT_ASSET_BATCH</span></div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="MOVE_ASSET">
+<h3>MOVE_ASSET</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="annotations">@SerializedName("move_asset")
+</span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="UiCore.Operation.html" title="enum class in dev.copperbench.core.contract">UiCore.Operation</a></span>&nbsp;<span class="element-name">MOVE_ASSET</span></div>
+</div>
+</section>
+</li>
+<li>
 <section class="detail" id="GET_WORKBENCH">
 <h3>GET_WORKBENCH</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="annotations">@SerializedName("get_workbench")
 </span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="UiCore.Operation.html" title="enum class in dev.copperbench.core.contract">UiCore.Operation</a></span>&nbsp;<span class="element-name">GET_WORKBENCH</span></div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="GET_WORKSPACE_HEALTH">
+<h3>GET_WORKSPACE_HEALTH</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="annotations">@SerializedName("get_workspace_health")
+</span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="UiCore.Operation.html" title="enum class in dev.copperbench.core.contract">UiCore.Operation</a></span>&nbsp;<span class="element-name">GET_WORKSPACE_HEALTH</span></div>
 </div>
 </section>
 </li>
@@ -566,6 +629,33 @@ the order they are declared.</div>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="annotations">@SerializedName("list_assets")
 </span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="UiCore.Operation.html" title="enum class in dev.copperbench.core.contract">UiCore.Operation</a></span>&nbsp;<span class="element-name">LIST_ASSETS</span></div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="PREVIEW_ASSET_IMPORT">
+<h3>PREVIEW_ASSET_IMPORT</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="annotations">@SerializedName("preview_asset_import")
+</span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="UiCore.Operation.html" title="enum class in dev.copperbench.core.contract">UiCore.Operation</a></span>&nbsp;<span class="element-name">PREVIEW_ASSET_IMPORT</span></div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="PREVIEW_ASSET_IMPORT_BATCH">
+<h3>PREVIEW_ASSET_IMPORT_BATCH</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="annotations">@SerializedName("preview_asset_import_batch")
+</span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="UiCore.Operation.html" title="enum class in dev.copperbench.core.contract">UiCore.Operation</a></span>&nbsp;<span class="element-name">PREVIEW_ASSET_IMPORT_BATCH</span></div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="PREVIEW_ASSET_MOVE">
+<h3>PREVIEW_ASSET_MOVE</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="annotations">@SerializedName("preview_asset_move")
+</span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="UiCore.Operation.html" title="enum class in dev.copperbench.core.contract">UiCore.Operation</a></span>&nbsp;<span class="element-name">PREVIEW_ASSET_MOVE</span></div>
 </div>
 </section>
 </li>
@@ -642,6 +732,15 @@ the order they are declared.</div>
 </section>
 </li>
 <li>
+<section class="detail" id="PLAN_PROCEDURE_REFACTOR">
+<h3>PLAN_PROCEDURE_REFACTOR</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="annotations">@SerializedName("plan_procedure_refactor")
+</span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="UiCore.Operation.html" title="enum class in dev.copperbench.core.contract">UiCore.Operation</a></span>&nbsp;<span class="element-name">PLAN_PROCEDURE_REFACTOR</span></div>
+</div>
+</section>
+</li>
+<li>
 <section class="detail" id="PLAN_WORKSPACE_CHANGES">
 <h3>PLAN_WORKSPACE_CHANGES</h3>
 <div class="horizontal-scroll">
@@ -701,6 +800,15 @@ the order they are declared.</div>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="annotations">@SerializedName("get_diff")
 </span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="UiCore.Operation.html" title="enum class in dev.copperbench.core.contract">UiCore.Operation</a></span>&nbsp;<span class="element-name">GET_DIFF</span></div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="PREVIEW_RECOVERY_RESTORE">
+<h3>PREVIEW_RECOVERY_RESTORE</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="annotations">@SerializedName("preview_recovery_restore")
+</span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="UiCore.Operation.html" title="enum class in dev.copperbench.core.contract">UiCore.Operation</a></span>&nbsp;<span class="element-name">PREVIEW_RECOVERY_RESTORE</span></div>
 </div>
 </section>
 </li>

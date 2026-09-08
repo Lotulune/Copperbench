@@ -56,10 +56,12 @@ loadScripts(document, 'script');</script>
 <li><a href="#method-summary" tabindex="0">Method Summary</a></li>
 <li><a href="#method-detail" tabindex="0">Method Details</a>
 <ol class="toc-list">
+<li><a href="#currentRecoveryPointId()" tabindex="0">currentRecoveryPointId()</a></li>
 <li><a href="#open(java.nio.file.Path,java.time.Clock)" tabindex="0">open(Path, Clock)</a></li>
 <li><a href="#createRecoveryPoint(dev.copperbench.history.RecoveryPointRequest)" tabindex="0">createRecoveryPoint(RecoveryPointRequest)</a></li>
 <li><a href="#listRecoveryPoints()" tabindex="0">listRecoveryPoints()</a></li>
 <li><a href="#compare(java.lang.String,java.lang.String)" tabindex="0">compare(String, String)</a></li>
+<li><a href="#previewRestore(java.lang.String)" tabindex="0">previewRestore(String)</a></li>
 <li><a href="#restore(java.lang.String)" tabindex="0">restore(String)</a></li>
 <li><a href="#close()" tabindex="0">close()</a></li>
 </ol>
@@ -109,13 +111,19 @@ implements <a href="LocalHistoryService.html" title="interface in dev.copperbenc
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="RecoveryPoint.html" title="class in dev.copperbench.history">RecoveryPoint</a></code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#createRecoveryPoint(dev.copperbench.history.RecoveryPointRequest)" class="member-name-link">createRecoveryPoint</a><wbr>(<a href="RecoveryPointRequest.html" title="class in dev.copperbench.history">RecoveryPointRequest</a>&nbsp;request)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a><wbr>&lt;<a href="RecoveryPoint.html" title="class in dev.copperbench.history">RecoveryPoint</a>&gt;</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#listRecoveryPoints()" class="member-name-link">listRecoveryPoints</a>()</code></div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#currentRecoveryPointId()" class="member-name-link">currentRecoveryPointId</a>()</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="JGitLocalHistoryService.html" title="class in dev.copperbench.history">JGitLocalHistoryService</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#open(java.nio.file.Path,java.time.Clock)" class="member-name-link">open</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;workspaceRoot,
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a><wbr>&lt;<a href="RecoveryPoint.html" title="class in dev.copperbench.history">RecoveryPoint</a>&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#listRecoveryPoints()" class="member-name-link">listRecoveryPoints</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="JGitLocalHistoryService.html" title="class in dev.copperbench.history">JGitLocalHistoryService</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#open(java.nio.file.Path,java.time.Clock)" class="member-name-link">open</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;workspaceRoot,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/Clock.html" title="class or interface in java.time" class="external-link">Clock</a>&nbsp;clock)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">&nbsp;</div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a><wbr>&lt;<a href="WorkspaceChange.html" title="class in dev.copperbench.history">WorkspaceChange</a>&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#previewRestore(java.lang.String)" class="member-name-link">previewRestore</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;recoveryPointId)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="RestoreResult.html" title="class in dev.copperbench.history">RestoreResult</a></code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#restore(java.lang.String)" class="member-name-link">restore</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;recoveryPointId)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
@@ -136,6 +144,21 @@ implements <a href="LocalHistoryService.html" title="interface in dev.copperbenc
 <section class="method-details" id="method-detail">
 <h2>Method Details</h2>
 <ul class="member-list">
+<li>
+<section class="detail" id="currentRecoveryPointId()">
+<h3>currentRecoveryPointId</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">currentRecoveryPointId</span>()
+                              throws <span class="exceptions"><a href="LocalHistoryException.html" title="class in dev.copperbench.history">LocalHistoryException</a></span></div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="LocalHistoryService.html#currentRecoveryPointId()">currentRecoveryPointId</a></code>&nbsp;in interface&nbsp;<code><a href="LocalHistoryService.html" title="interface in dev.copperbench.history">LocalHistoryService</a></code></dd>
+<dt>Throws:</dt>
+<dd><code><a href="LocalHistoryException.html" title="class in dev.copperbench.history">LocalHistoryException</a></code></dd>
+</dl>
+</div>
+</section>
+</li>
 <li>
 <section class="detail" id="open(java.nio.file.Path,java.time.Clock)">
 <h3>open</h3>
@@ -190,6 +213,21 @@ implements <a href="LocalHistoryService.html" title="interface in dev.copperbenc
 <dl class="notes">
 <dt>Specified by:</dt>
 <dd><code><a href="LocalHistoryService.html#compare(java.lang.String,java.lang.String)">compare</a></code>&nbsp;in interface&nbsp;<code><a href="LocalHistoryService.html" title="interface in dev.copperbench.history">LocalHistoryService</a></code></dd>
+<dt>Throws:</dt>
+<dd><code><a href="LocalHistoryException.html" title="class in dev.copperbench.history">LocalHistoryException</a></code></dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="previewRestore(java.lang.String)">
+<h3>previewRestore</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="WorkspaceChange.html" title="class in dev.copperbench.history">WorkspaceChange</a>&gt;</span>&nbsp;<span class="element-name">previewRestore</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;recoveryPointId)</span>
+                                     throws <span class="exceptions"><a href="LocalHistoryException.html" title="class in dev.copperbench.history">LocalHistoryException</a></span></div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="LocalHistoryService.html#previewRestore(java.lang.String)">previewRestore</a></code>&nbsp;in interface&nbsp;<code><a href="LocalHistoryService.html" title="interface in dev.copperbench.history">LocalHistoryService</a></code></dd>
 <dt>Throws:</dt>
 <dd><code><a href="LocalHistoryException.html" title="class in dev.copperbench.history">LocalHistoryException</a></code></dd>
 </dl>

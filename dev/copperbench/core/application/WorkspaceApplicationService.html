@@ -53,6 +53,7 @@ loadScripts(document, 'script');</script>
 <div class="toc-header">Contents&nbsp;<input type="text" class="filter-input" disabled placeholder="Filter contents (type .)" aria-label="Filter table of contents" autocomplete="off" spellcheck="false"><input type="reset" class="reset-filter" disabled tabindex="-1" value="Reset"></div>
 <ol class="toc-list" tabindex="-1">
 <li><a href="#" tabindex="0">Description</a></li>
+<li><a href="#nested-class-summary" tabindex="0">Nested Class Summary</a></li>
 <li><a href="#constructor-summary" tabindex="0">Constructor Summary</a></li>
 <li><a href="#method-summary" tabindex="0">Method Summary</a></li>
 <li><a href="#constructor-detail" tabindex="0">Constructor Details</a>
@@ -65,7 +66,10 @@ loadScripts(document, 'script');</script>
 </li>
 <li><a href="#method-detail" tabindex="0">Method Details</a>
 <ol class="toc-list">
+<li><a href="#grantAssetImportSources(java.util.List)" tabindex="0">grantAssetImportSources(List)</a></li>
 <li><a href="#subscribeEvents(java.util.UUID,long,java.util.function.Consumer)" tabindex="0">subscribeEvents(UUID, long, Consumer)</a></li>
+<li><a href="#blockbenchEditLifecycle(java.util.UUID)" tabindex="0">blockbenchEditLifecycle(UUID)</a></li>
+<li><a href="#grantAssetImportSource(java.nio.file.Path)" tabindex="0">grantAssetImportSource(Path)</a></li>
 <li><a href="#execute(dev.copperbench.core.contract.UiCore.Command,dev.copperbench.core.contract.UiCore.RequestContext)" tabindex="0">execute(UiCore.Command, UiCore.RequestContext)</a></li>
 <li><a href="#query(dev.copperbench.core.contract.UiCore.Query,dev.copperbench.core.contract.UiCore.RequestContext)" tabindex="0">query(UiCore.Query, UiCore.RequestContext)</a></li>
 </ol>
@@ -90,6 +94,21 @@ loadScripts(document, 'script');</script>
 </section>
 <section class="summary">
 <ul class="summary-list">
+<!-- ======== NESTED CLASS SUMMARY ======== -->
+<li>
+<section class="nested-class-summary" id="nested-class-summary">
+<h2>Nested Class Summary</h2>
+<div class="caption"><span>Nested Classes</span></div>
+<div class="summary-table three-column-summary">
+<div class="table-header col-first">Modifier and Type</div>
+<div class="table-header col-second">Class</div>
+<div class="table-header col-last">Description</div>
+<div class="col-first even-row-color"><code>static final record&nbsp;</code></div>
+<div class="col-second even-row-color"><code><a href="WorkspaceApplicationService.AssetImportSelectionGrant.html" class="type-name-link" title="class in dev.copperbench.core.application">WorkspaceApplicationService.AssetImportSelectionGrant</a></code></div>
+<div class="col-last even-row-color">&nbsp;</div>
+</div>
+</section>
+</li>
 <!-- ======== CONSTRUCTOR SUMMARY ======== -->
 <li>
 <section class="constructor-summary" id="constructor-summary">
@@ -140,19 +159,34 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-first">Modifier and Type</div>
 <div class="table-header col-second">Method</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../contract/UiCore.CommandOutcome.html" title="class in dev.copperbench.core.contract">UiCore.CommandOutcome</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#execute(dev.copperbench.core.contract.UiCore.Command,dev.copperbench.core.contract.UiCore.RequestContext)" class="member-name-link">execute</a><wbr>(<a href="../contract/UiCore.Command.html" title="class in dev.copperbench.core.contract">UiCore.Command</a>&nbsp;command,
- <a href="../contract/UiCore.RequestContext.html" title="class in dev.copperbench.core.contract">UiCore.RequestContext</a>&nbsp;context)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../contract/UiCore.QueryResult.html" title="class in dev.copperbench.core.contract">UiCore.QueryResult</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#query(dev.copperbench.core.contract.UiCore.Query,dev.copperbench.core.contract.UiCore.RequestContext)" class="member-name-link">query</a><wbr>(<a href="../contract/UiCore.Query.html" title="class in dev.copperbench.core.contract">UiCore.Query</a>&nbsp;query,
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../../assets/BlockbenchProcessService.EditLifecycle.html" title="interface in dev.copperbench.assets">BlockbenchProcessService.EditLifecycle</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#blockbenchEditLifecycle(java.util.UUID)" class="member-name-link">blockbenchEditLifecycle</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;workspaceId)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Managed lifecycle used by the desktop Blockbench bridge without giving the bridge direct history access.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../contract/UiCore.CommandOutcome.html" title="class in dev.copperbench.core.contract">UiCore.CommandOutcome</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#execute(dev.copperbench.core.contract.UiCore.Command,dev.copperbench.core.contract.UiCore.RequestContext)" class="member-name-link">execute</a><wbr>(<a href="../contract/UiCore.Command.html" title="class in dev.copperbench.core.contract">UiCore.Command</a>&nbsp;command,
  <a href="../contract/UiCore.RequestContext.html" title="class in dev.copperbench.core.contract">UiCore.RequestContext</a>&nbsp;context)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/AutoCloseable.html" title="class or interface in java.lang" class="external-link">AutoCloseable</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#subscribeEvents(java.util.UUID,long,java.util.function.Consumer)" class="member-name-link">subscribeEvents</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;workspaceId,
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="WorkspaceApplicationService.AssetImportSelectionGrant.html" title="class in dev.copperbench.core.application">WorkspaceApplicationService.AssetImportSelectionGrant</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#grantAssetImportSource(java.nio.file.Path)" class="member-name-link">grantAssetImportSource</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;source)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Creates a short-lived capability for a file explicitly selected by the native desktop host.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a><wbr>&lt;<a href="WorkspaceApplicationService.AssetImportSelectionGrant.html" title="class in dev.copperbench.core.application">WorkspaceApplicationService.AssetImportSelectionGrant</a>&gt;</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#grantAssetImportSources(java.util.List)" class="member-name-link">grantAssetImportSources</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&gt;&nbsp;sources)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Grants a bounded multi-selection without exposing any external absolute path to browser code.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../contract/UiCore.QueryResult.html" title="class in dev.copperbench.core.contract">UiCore.QueryResult</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#query(dev.copperbench.core.contract.UiCore.Query,dev.copperbench.core.contract.UiCore.RequestContext)" class="member-name-link">query</a><wbr>(<a href="../contract/UiCore.Query.html" title="class in dev.copperbench.core.contract">UiCore.Query</a>&nbsp;query,
+ <a href="../contract/UiCore.RequestContext.html" title="class in dev.copperbench.core.contract">UiCore.RequestContext</a>&nbsp;context)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/AutoCloseable.html" title="class or interface in java.lang" class="external-link">AutoCloseable</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#subscribeEvents(java.util.UUID,long,java.util.function.Consumer)" class="member-name-link">subscribeEvents</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;workspaceId,
  long&nbsp;afterSequence,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/function/Consumer.html" title="class or interface in java.util.function" class="external-link">Consumer</a>&lt;<a href="../contract/UiCore.Event.html" title="class in dev.copperbench.core.contract">UiCore.Event</a>&gt;&nbsp;listener)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Subscribes to retained asynchronous task events.</div>
 </div>
 </div>
@@ -233,6 +267,15 @@ loadScripts(document, 'script');</script>
 <h2>Method Details</h2>
 <ul class="member-list">
 <li>
+<section class="detail" id="grantAssetImportSources(java.util.List)">
+<h3>grantAssetImportSources</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="WorkspaceApplicationService.AssetImportSelectionGrant.html" title="class in dev.copperbench.core.application">WorkspaceApplicationService.AssetImportSelectionGrant</a>&gt;</span>&nbsp;<span class="element-name">grantAssetImportSources</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&gt;&nbsp;sources)</span></div>
+<div class="block">Grants a bounded multi-selection without exposing any external absolute path to browser code.</div>
+</div>
+</section>
+</li>
+<li>
 <section class="detail" id="subscribeEvents(java.util.UUID,long,java.util.function.Consumer)">
 <h3>subscribeEvents</h3>
 <div class="horizontal-scroll">
@@ -241,6 +284,25 @@ loadScripts(document, 'script');</script>
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/function/Consumer.html" title="class or interface in java.util.function" class="external-link">Consumer</a>&lt;<a href="../contract/UiCore.Event.html" title="class in dev.copperbench.core.contract">UiCore.Event</a>&gt;&nbsp;listener)</span></div>
 <div class="block">Subscribes to retained asynchronous task events. The returned handle is
 idempotent and may be closed when a browser page or client disconnects.</div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="blockbenchEditLifecycle(java.util.UUID)">
+<h3>blockbenchEditLifecycle</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="../../assets/BlockbenchProcessService.EditLifecycle.html" title="interface in dev.copperbench.assets">BlockbenchProcessService.EditLifecycle</a></span>&nbsp;<span class="element-name">blockbenchEditLifecycle</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;workspaceId)</span></div>
+<div class="block">Managed lifecycle used by the desktop Blockbench bridge without giving the bridge direct history access.</div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="grantAssetImportSource(java.nio.file.Path)">
+<h3>grantAssetImportSource</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="WorkspaceApplicationService.AssetImportSelectionGrant.html" title="class in dev.copperbench.core.application">WorkspaceApplicationService.AssetImportSelectionGrant</a></span>&nbsp;<span class="element-name">grantAssetImportSource</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;source)</span></div>
+<div class="block">Creates a short-lived capability for a file explicitly selected by the native desktop host.
+The returned grant never exposes the selected absolute path to browser code.</div>
 </div>
 </section>
 </li>

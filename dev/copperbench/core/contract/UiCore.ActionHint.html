@@ -59,6 +59,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#constructor-detail" tabindex="0">Constructor Details</a>
 <ol class="toc-list">
 <li><a href="#%3Cinit%3E(java.lang.String,dev.copperbench.core.contract.UiCore.LocalizedText,java.lang.String,java.lang.String)" tabindex="0">ActionHint(String, UiCore.LocalizedText, String, String)</a></li>
+<li><a href="#%3Cinit%3E(java.lang.String,dev.copperbench.core.contract.UiCore.LocalizedText,java.lang.String,java.lang.String,com.google.gson.JsonObject)" tabindex="0">ActionHint(String, UiCore.LocalizedText, String, String, JsonObject)</a></li>
 </ol>
 </li>
 <li><a href="#method-detail" tabindex="0">Method Details</a>
@@ -70,6 +71,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#label()" tabindex="0">label()</a></li>
 <li><a href="#kind()" tabindex="0">kind()</a></li>
 <li><a href="#target()" tabindex="0">target()</a></li>
+<li><a href="#payload()" tabindex="0">payload()</a></li>
 </ol>
 </li>
 </ol>
@@ -91,7 +93,7 @@ loadScripts(document, 'script');</script>
 </dl>
 <hr>
 <div class="horizontal-scroll">
-<div class="type-signature"><span class="modifiers">public static record </span><span class="element-name type-name-label">UiCore.ActionHint</span>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;id, <a href="UiCore.LocalizedText.html" title="class in dev.copperbench.core.contract">UiCore.LocalizedText</a>&nbsp;label, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;kind, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;target)
+<div class="type-signature"><span class="modifiers">public static record </span><span class="element-name type-name-label">UiCore.ActionHint</span>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;id, <a href="UiCore.LocalizedText.html" title="class in dev.copperbench.core.contract">UiCore.LocalizedText</a>&nbsp;label, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;kind, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;target, com.google.gson.JsonObject&nbsp;payload)
 <span class="extends-implements">extends <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Record.html" title="class or interface in java.lang" class="external-link">Record</a></span></div>
 </div>
 </section>
@@ -109,7 +111,13 @@ loadScripts(document, 'script');</script>
  <a href="UiCore.LocalizedText.html" title="class in dev.copperbench.core.contract">UiCore.LocalizedText</a>&nbsp;label,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;kind,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;target)</code></div>
-<div class="col-last even-row-color">
+<div class="col-last even-row-color">&nbsp;</div>
+<div class="col-constructor-name odd-row-color"><code><a href="#%3Cinit%3E(java.lang.String,dev.copperbench.core.contract.UiCore.LocalizedText,java.lang.String,java.lang.String,com.google.gson.JsonObject)" class="member-name-link">ActionHint</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;id,
+ <a href="UiCore.LocalizedText.html" title="class in dev.copperbench.core.contract">UiCore.LocalizedText</a>&nbsp;label,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;kind,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;target,
+ com.google.gson.JsonObject&nbsp;payload)</code></div>
+<div class="col-last odd-row-color">
 <div class="block">Creates an instance of a <code>ActionHint</code> record class.</div>
 </div>
 </div>
@@ -151,14 +159,19 @@ loadScripts(document, 'script');</script>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Returns the value of the <code>label</code> record component.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#target()" class="member-name-link">target</a>()</code></div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>com.google.gson.JsonObject</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#payload()" class="member-name-link">payload</a>()</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Returns the value of the <code>payload</code> record component.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#target()" class="member-name-link">target</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Returns the value of the <code>target</code> record component.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#toString()" class="member-name-link">toString</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#toString()" class="member-name-link">toString</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Returns a string representation of this record class.</div>
 </div>
 </div>
@@ -186,6 +199,18 @@ loadScripts(document, 'script');</script>
  <a href="UiCore.LocalizedText.html" title="class in dev.copperbench.core.contract">UiCore.LocalizedText</a>&nbsp;label,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;kind,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;target)</span></div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="&lt;init&gt;(java.lang.String,dev.copperbench.core.contract.UiCore.LocalizedText,java.lang.String,java.lang.String,com.google.gson.JsonObject)">
+<h3>ActionHint</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="element-name">ActionHint</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;id,
+ <a href="UiCore.LocalizedText.html" title="class in dev.copperbench.core.contract">UiCore.LocalizedText</a>&nbsp;label,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;kind,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;target,
+ com.google.gson.JsonObject&nbsp;payload)</span></div>
 <div class="block">Creates an instance of a <code>ActionHint</code> record class.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
@@ -193,6 +218,7 @@ loadScripts(document, 'script');</script>
 <dd><code>label</code> - the value for the <code>label</code> record component</dd>
 <dd><code>kind</code> - the value for the <code>kind</code> record component</dd>
 <dd><code>target</code> - the value for the <code>target</code> record component</dd>
+<dd><code>payload</code> - the value for the <code>payload</code> record component</dd>
 </dl>
 </div>
 </section>
@@ -300,6 +326,19 @@ loadScripts(document, 'script');</script>
 <dl class="notes">
 <dt>Returns:</dt>
 <dd>the value of the <code>target</code> record component</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="payload()">
+<h3>payload</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">com.google.gson.JsonObject</span>&nbsp;<span class="element-name">payload</span>()</div>
+<div class="block">Returns the value of the <code>payload</code> record component.</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>the value of the <code>payload</code> record component</dd>
 </dl>
 </div>
 </section>

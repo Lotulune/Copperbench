@@ -58,6 +58,7 @@ loadScripts(document, 'script');</script>
 <li><a href="dev/copperbench/bridge/package-tree.html">dev.copperbench.bridge</a>, </li>
 <li><a href="dev/copperbench/core/application/package-tree.html">dev.copperbench.core.application</a>, </li>
 <li><a href="dev/copperbench/core/contract/package-tree.html">dev.copperbench.core.contract</a>, </li>
+<li><a href="dev/copperbench/core/diagnostics/package-tree.html">dev.copperbench.core.diagnostics</a>, </li>
 <li><a href="dev/copperbench/core/plugin/package-tree.html">dev.copperbench.core.plugin</a>, </li>
 <li><a href="dev/copperbench/core/workspace/package-tree.html">dev.copperbench.core.workspace</a>, </li>
 <li><a href="dev/copperbench/core/workspace/mcreator/package-tree.html">dev.copperbench.core.workspace.mcreator</a>, </li>
@@ -515,6 +516,10 @@ loadScripts(document, 'script');</script>
 <li class="circle">net.mcreator.ui.init.<a href="net/mcreator/ui/init/AppIcon.html" class="type-name-link" title="class in net.mcreator.ui.init">AppIcon</a></li>
 <li class="circle">net.mcreator.ui.init.<a href="net/mcreator/ui/init/ArmorMakerTexturesCache.html" class="type-name-link" title="class in net.mcreator.ui.init">ArmorMakerTexturesCache</a></li>
 <li class="circle">net.mcreator.element.converter.v2022_2.<a href="net/mcreator/element/converter/v2022_2/ArmorTexturesConverter.html" class="type-name-link" title="class in net.mcreator.element.converter.v2022_2">ArmorTexturesConverter</a> (implements net.mcreator.element.converter.<a href="net/mcreator/element/converter/IConverter.html" title="interface in net.mcreator.element.converter">IConverter</a>)</li>
+<li class="circle">dev.copperbench.core.diagnostics.<a href="dev/copperbench/core/diagnostics/AssetDiagnosticProjection.html" class="type-name-link" title="class in dev.copperbench.core.diagnostics">AssetDiagnosticProjection</a></li>
+<li class="circle">dev.copperbench.assets.<a href="dev/copperbench/assets/AssetImportBatchService.html" class="type-name-link" title="class in dev.copperbench.assets">AssetImportBatchService</a></li>
+<li class="circle">dev.copperbench.assets.<a href="dev/copperbench/assets/AssetImportService.html" class="type-name-link" title="class in dev.copperbench.assets">AssetImportService</a></li>
+<li class="circle">dev.copperbench.assets.<a href="dev/copperbench/assets/AssetMoveService.html" class="type-name-link" title="class in dev.copperbench.assets">AssetMoveService</a></li>
 <li class="circle">dev.copperbench.assets.<a href="dev/copperbench/assets/AssetMutationHistoryBoundary.html" class="type-name-link" title="class in dev.copperbench.assets">AssetMutationHistoryBoundary</a></li>
 <li class="circle">dev.copperbench.assets.<a href="dev/copperbench/assets/AssetPublishBatchService.html" class="type-name-link" title="class in dev.copperbench.assets">AssetPublishBatchService</a></li>
 <li class="circle">dev.copperbench.assets.<a href="dev/copperbench/assets/AssetWorkspaceService.html" class="type-name-link" title="class in dev.copperbench.assets">AssetWorkspaceService</a></li>
@@ -604,6 +609,7 @@ loadScripts(document, 'script');</script>
 </li>
 <li class="circle">org.cef.handler.CefMessageRouterHandlerAdapter (implements org.cef.handler.CefMessageRouterHandler)
 <ul>
+<li class="circle">dev.copperbench.bridge.<a href="dev/copperbench/bridge/JcefAssetImportBridgeTransport.html" class="type-name-link" title="class in dev.copperbench.bridge">JcefAssetImportBridgeTransport</a> (implements java.io.<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/Closeable.html" title="class or interface in java.io" class="external-link">Closeable</a>)</li>
 <li class="circle">dev.copperbench.bridge.<a href="dev/copperbench/bridge/JcefBlockbenchBridgeTransport.html" class="type-name-link" title="class in dev.copperbench.bridge">JcefBlockbenchBridgeTransport</a> (implements java.io.<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/Closeable.html" title="class or interface in java.io" class="external-link">Closeable</a>)</li>
 <li class="circle">dev.copperbench.bridge.<a href="dev/copperbench/bridge/JcefCoreBridgeTransport.html" class="type-name-link" title="class in dev.copperbench.bridge">JcefCoreBridgeTransport</a> (implements java.io.<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/Closeable.html" title="class or interface in java.io" class="external-link">Closeable</a>)</li>
 <li class="circle">dev.copperbench.bridge.<a href="dev/copperbench/bridge/JcefDiagnosticsBridgeTransport.html" class="type-name-link" title="class in dev.copperbench.bridge">JcefDiagnosticsBridgeTransport</a> (implements java.io.<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/Closeable.html" title="class or interface in java.io" class="external-link">Closeable</a>)</li>
@@ -1979,6 +1985,8 @@ loadScripts(document, 'script');</script>
 <li class="circle">dev.copperbench.history.<a href="dev/copperbench/history/RecoverableOperationException.html" class="type-name-link" title="class in dev.copperbench.history">RecoverableOperationException</a></li>
 <li class="circle">java.lang.<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/RuntimeException.html" class="type-name-link external-link" title="class or interface in java.lang">RuntimeException</a>
 <ul>
+<li class="circle">dev.copperbench.assets.<a href="dev/copperbench/assets/AssetImportService.AssetImportException.html" class="type-name-link" title="class in dev.copperbench.assets">AssetImportService.AssetImportException</a></li>
+<li class="circle">dev.copperbench.assets.<a href="dev/copperbench/assets/AssetMoveService.AssetMoveException.html" class="type-name-link" title="class in dev.copperbench.assets">AssetMoveService.AssetMoveException</a></li>
 <li class="circle">dev.copperbench.assets.<a href="dev/copperbench/assets/BlockbenchBridgeException.html" class="type-name-link" title="class in dev.copperbench.assets">BlockbenchBridgeException</a></li>
 <li class="circle">java.lang.<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/IllegalArgumentException.html" class="type-name-link external-link" title="class or interface in java.lang">IllegalArgumentException</a>
 <ul>
@@ -2123,6 +2131,7 @@ loadScripts(document, 'script');</script>
 <li class="circle">dev.copperbench.history.<a href="dev/copperbench/history/LocalHistoryService.html" class="type-name-link" title="interface in dev.copperbench.history">LocalHistoryService</a></li>
 </ul>
 </li>
+<li class="circle">dev.copperbench.assets.<a href="dev/copperbench/assets/BlockbenchProcessService.EditLifecycle.html" class="type-name-link" title="interface in dev.copperbench.assets">BlockbenchProcessService.EditLifecycle</a></li>
 <li class="circle">net.mcreator.ui.blockly.<a href="net/mcreator/ui/blockly/BlocklyElementUtil.StringArrayEntrySelectorProvider.html" class="type-name-link" title="interface in net.mcreator.ui.blockly">BlocklyElementUtil.StringArrayEntrySelectorProvider</a></li>
 <li class="circle">net.mcreator.java.debug.<a href="net/mcreator/java/debug/Breakpoint.BreakpointListener.html" class="type-name-link" title="interface in net.mcreator.java.debug">Breakpoint.BreakpointListener</a></li>
 <li class="circle">net.mcreator.ui.chromium.<a href="net/mcreator/ui/chromium/CefUtils.RendererTerminationHandler.html" class="type-name-link" title="interface in net.mcreator.ui.chromium">CefUtils.RendererTerminationHandler</a></li>
@@ -2292,6 +2301,8 @@ loadScripts(document, 'script');</script>
 <li class="circle">net.mcreator.ui.init.<a href="net/mcreator/ui/init/ArmorMakerTexturesCache.ArmorTexturePart.html" class="type-name-link" title="enum class in net.mcreator.ui.init">ArmorMakerTexturesCache.ArmorTexturePart</a></li>
 <li class="circle">dev.copperbench.assets.<a href="dev/copperbench/assets/AssetCategory.html" class="type-name-link" title="enum class in dev.copperbench.assets">AssetCategory</a></li>
 <li class="circle">dev.copperbench.assets.<a href="dev/copperbench/assets/AssetDiagnostic.Severity.html" class="type-name-link" title="enum class in dev.copperbench.assets">AssetDiagnostic.Severity</a></li>
+<li class="circle">dev.copperbench.assets.<a href="dev/copperbench/assets/AssetHealthReport.Status.html" class="type-name-link" title="enum class in dev.copperbench.assets">AssetHealthReport.Status</a></li>
+<li class="circle">dev.copperbench.assets.<a href="dev/copperbench/assets/AssetImportPlan.Conflict.html" class="type-name-link" title="enum class in dev.copperbench.assets">AssetImportPlan.Conflict</a></li>
 <li class="circle">dev.copperbench.assets.<a href="dev/copperbench/assets/AssetReference.ReferenceKind.html" class="type-name-link" title="enum class in dev.copperbench.assets">AssetReference.ReferenceKind</a></li>
 <li class="circle">dev.copperbench.automation.security.<a href="dev/copperbench/automation/security/AutomationCapability.html" class="type-name-link" title="enum class in dev.copperbench.automation.security">AutomationCapability</a></li>
 <li class="circle">net.mcreator.element.<a href="net/mcreator/element/BaseType.html" class="type-name-link" title="enum class in net.mcreator.element">BaseType</a></li>
@@ -2321,6 +2332,7 @@ loadScripts(document, 'script');</script>
 <li class="circle">net.mcreator.workspace.resources.<a href="net/mcreator/workspace/resources/Model.Type.html" class="type-name-link" title="enum class in net.mcreator.workspace.resources">Model.Type</a></li>
 <li class="circle">dev.copperbench.core.plugin.<a href="dev/copperbench/core/plugin/PluginCompatibilityClassifier.Level.html" class="type-name-link" title="enum class in dev.copperbench.core.plugin">PluginCompatibilityClassifier.Level</a></li>
 <li class="circle">dev.copperbench.core.plugin.<a href="dev/copperbench/core/plugin/PluginCompatibilityClassifier.Route.html" class="type-name-link" title="enum class in dev.copperbench.core.plugin">PluginCompatibilityClassifier.Route</a></li>
+<li class="circle">dev.copperbench.history.<a href="dev/copperbench/history/RecoveryPointSource.html" class="type-name-link" title="enum class in dev.copperbench.history">RecoveryPointSource</a></li>
 <li class="circle">net.mcreator.minecraft.resourcepack.<a href="net/mcreator/minecraft/resourcepack/ResourcePackStructure.EntryType.html" class="type-name-link" title="enum class in net.mcreator.minecraft.resourcepack">ResourcePackStructure.EntryType</a></li>
 <li class="circle">dev.copperbench.core.workspace.<a href="dev/copperbench/core/workspace/RevisionedWorkspaceStore.TransactionResult.Status.html" class="type-name-link" title="enum class in dev.copperbench.core.workspace">RevisionedWorkspaceStore.TransactionResult.Status</a></li>
 <li class="circle">net.mcreator.ui.views.editor.image.canvas.<a href="net/mcreator/ui/views/editor/image/canvas/SelectedBorder.html" class="type-name-link" title="enum class in net.mcreator.ui.views.editor.image.canvas">SelectedBorder</a></li>
@@ -2360,6 +2372,17 @@ loadScripts(document, 'script');</script>
 <li class="circle">net.mcreator.blockly.<a href="net/mcreator/blockly/AdditionalCodeLinker.html" class="type-name-link" title="class in net.mcreator.blockly">AdditionalCodeLinker</a> (implements freemarker.template.TemplateDirectiveModel)</li>
 <li class="circle">dev.copperbench.assets.<a href="dev/copperbench/assets/AssetDescriptor.html" class="type-name-link" title="class in dev.copperbench.assets">AssetDescriptor</a></li>
 <li class="circle">dev.copperbench.assets.<a href="dev/copperbench/assets/AssetDiagnostic.html" class="type-name-link" title="class in dev.copperbench.assets">AssetDiagnostic</a></li>
+<li class="circle">dev.copperbench.assets.<a href="dev/copperbench/assets/AssetHealthReport.html" class="type-name-link" title="class in dev.copperbench.assets">AssetHealthReport</a></li>
+<li class="circle">dev.copperbench.assets.<a href="dev/copperbench/assets/AssetHealthReport.Entry.html" class="type-name-link" title="class in dev.copperbench.assets">AssetHealthReport.Entry</a></li>
+<li class="circle">dev.copperbench.assets.<a href="dev/copperbench/assets/AssetHealthReport.Summary.html" class="type-name-link" title="class in dev.copperbench.assets">AssetHealthReport.Summary</a></li>
+<li class="circle">dev.copperbench.assets.<a href="dev/copperbench/assets/AssetImportBatchPlan.html" class="type-name-link" title="class in dev.copperbench.assets">AssetImportBatchPlan</a></li>
+<li class="circle">dev.copperbench.assets.<a href="dev/copperbench/assets/AssetImportBatchService.ApplyResult.html" class="type-name-link" title="class in dev.copperbench.assets">AssetImportBatchService.ApplyResult</a></li>
+<li class="circle">dev.copperbench.assets.<a href="dev/copperbench/assets/AssetImportBatchService.Request.html" class="type-name-link" title="class in dev.copperbench.assets">AssetImportBatchService.Request</a></li>
+<li class="circle">dev.copperbench.assets.<a href="dev/copperbench/assets/AssetImportPlan.html" class="type-name-link" title="class in dev.copperbench.assets">AssetImportPlan</a></li>
+<li class="circle">dev.copperbench.assets.<a href="dev/copperbench/assets/AssetImportService.ApplyResult.html" class="type-name-link" title="class in dev.copperbench.assets">AssetImportService.ApplyResult</a></li>
+<li class="circle">dev.copperbench.assets.<a href="dev/copperbench/assets/AssetMovePlan.html" class="type-name-link" title="class in dev.copperbench.assets">AssetMovePlan</a></li>
+<li class="circle">dev.copperbench.assets.<a href="dev/copperbench/assets/AssetMovePlan.ReferenceRewrite.html" class="type-name-link" title="class in dev.copperbench.assets">AssetMovePlan.ReferenceRewrite</a></li>
+<li class="circle">dev.copperbench.assets.<a href="dev/copperbench/assets/AssetMoveService.ApplyResult.html" class="type-name-link" title="class in dev.copperbench.assets">AssetMoveService.ApplyResult</a></li>
 <li class="circle">dev.copperbench.assets.<a href="dev/copperbench/assets/AssetPublishBatchService.PublishBatch.html" class="type-name-link" title="class in dev.copperbench.assets">AssetPublishBatchService.PublishBatch</a></li>
 <li class="circle">dev.copperbench.assets.<a href="dev/copperbench/assets/AssetReference.html" class="type-name-link" title="class in dev.copperbench.assets">AssetReference</a></li>
 <li class="circle">dev.copperbench.assets.<a href="dev/copperbench/assets/AssetReferenceGraph.html" class="type-name-link" title="class in dev.copperbench.assets">AssetReferenceGraph</a></li>
@@ -2370,6 +2393,8 @@ loadScripts(document, 'script');</script>
 <li class="circle">dev.copperbench.assets.<a href="dev/copperbench/assets/BbmodelRoundTripService.RoundTripReport.html" class="type-name-link" title="class in dev.copperbench.assets">BbmodelRoundTripService.RoundTripReport</a></li>
 <li class="circle">dev.copperbench.assets.<a href="dev/copperbench/assets/BbmodelRoundTripService.Snapshot.html" class="type-name-link" title="class in dev.copperbench.assets">BbmodelRoundTripService.Snapshot</a></li>
 <li class="circle">dev.copperbench.assets.<a href="dev/copperbench/assets/BlockbenchInstallationDetector.Installation.html" class="type-name-link" title="class in dev.copperbench.assets">BlockbenchInstallationDetector.Installation</a></li>
+<li class="circle">dev.copperbench.assets.<a href="dev/copperbench/assets/BlockbenchProcessService.Completion.html" class="type-name-link" title="class in dev.copperbench.assets">BlockbenchProcessService.Completion</a></li>
+<li class="circle">dev.copperbench.assets.<a href="dev/copperbench/assets/BlockbenchProcessService.PreparedEdit.html" class="type-name-link" title="class in dev.copperbench.assets">BlockbenchProcessService.PreparedEdit</a></li>
 <li class="circle">dev.copperbench.assets.<a href="dev/copperbench/assets/BlockbenchProcessService.Snapshot.html" class="type-name-link" title="class in dev.copperbench.assets">BlockbenchProcessService.Snapshot</a></li>
 <li class="circle">net.mcreator.blockly.<a href="net/mcreator/blockly/BlocklyCompileNote.html" class="type-name-link" title="class in net.mcreator.blockly">BlocklyCompileNote</a> (implements java.lang.<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Comparable.html" title="class or interface in java.lang" class="external-link">Comparable</a>&lt;T&gt;)</li>
 <li class="circle">net.mcreator.ui.blockly.<a href="net/mcreator/ui/blockly/BlocklyEditorType.html" class="type-name-link" title="class in net.mcreator.ui.blockly">BlocklyEditorType</a></li>
@@ -2401,6 +2426,7 @@ loadScripts(document, 'script');</script>
 <li class="circle">net.mcreator.ui.help.<a href="net/mcreator/ui/help/HelpContextWithEntry.html" class="type-name-link" title="class in net.mcreator.ui.help">HelpContextWithEntry</a> (implements net.mcreator.ui.help.<a href="net/mcreator/ui/help/IHelpContext.html" title="interface in net.mcreator.ui.help">IHelpContext</a>)</li>
 <li class="circle">net.mcreator.workspace.localhistory.<a href="net/mcreator/workspace/localhistory/HistoryCheckpoint.html" class="type-name-link" title="class in net.mcreator.workspace.localhistory">HistoryCheckpoint</a></li>
 <li class="circle">net.mcreator.workspace.localhistory.<a href="net/mcreator/workspace/localhistory/HistoryCheckpoint.DiffEntry.html" class="type-name-link" title="class in net.mcreator.workspace.localhistory">HistoryCheckpoint.DiffEntry</a></li>
+<li class="circle">dev.copperbench.history.<a href="dev/copperbench/history/HistoryFieldChange.html" class="type-name-link" title="class in dev.copperbench.history">HistoryFieldChange</a></li>
 <li class="circle">net.mcreator.blockly.<a href="net/mcreator/blockly/IBlockGeneratorWithSections.Sections.html" class="type-name-link" title="class in net.mcreator.blockly">IBlockGeneratorWithSections.Sections</a></li>
 <li class="circle">net.mcreator.java.<a href="net/mcreator/java/JavaReleaseInfo.html" class="type-name-link" title="class in net.mcreator.java">JavaReleaseInfo</a></li>
 <li class="circle">net.mcreator.java.<a href="net/mcreator/java/LibraryInfoIterator.Entry.html" class="type-name-link" title="class in net.mcreator.java">LibraryInfoIterator.Entry</a></li>
@@ -2409,6 +2435,8 @@ loadScripts(document, 'script');</script>
 <li class="circle">dev.copperbench.mcp.<a href="dev/copperbench/mcp/McpServerConfiguration.html" class="type-name-link" title="class in dev.copperbench.mcp">McpServerConfiguration</a></li>
 <li class="circle">dev.copperbench.migration.<a href="dev/copperbench/migration/MigrationReport.html" class="type-name-link" title="class in dev.copperbench.migration">MigrationReport</a></li>
 <li class="circle">dev.copperbench.migration.<a href="dev/copperbench/migration/MigrationReport.MigrationItem.html" class="type-name-link" title="class in dev.copperbench.migration">MigrationReport.MigrationItem</a></li>
+<li class="circle">dev.copperbench.migration.<a href="dev/copperbench/migration/MigrationReport.SemanticChange.html" class="type-name-link" title="class in dev.copperbench.migration">MigrationReport.SemanticChange</a></li>
+<li class="circle">dev.copperbench.migration.<a href="dev/copperbench/migration/MigrationReport.SemanticComparison.html" class="type-name-link" title="class in dev.copperbench.migration">MigrationReport.SemanticComparison</a></li>
 <li class="circle">net.mcreator.generator.template.<a href="net/mcreator/generator/template/MinecraftCodeProvider.CodeString.html" class="type-name-link" title="class in net.mcreator.generator.template">MinecraftCodeProvider.CodeString</a> (implements java.lang.<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/CharSequence.html" title="class or interface in java.lang" class="external-link">CharSequence</a>)</li>
 <li class="circle">net.mcreator.plugin.modapis.<a href="net/mcreator/plugin/modapis/ModAPI.html" class="type-name-link" title="class in net.mcreator.plugin.modapis">ModAPI</a></li>
 <li class="circle">net.mcreator.plugin.modapis.<a href="net/mcreator/plugin/modapis/ModAPIImplementation.html" class="type-name-link" title="class in net.mcreator.plugin.modapis">ModAPIImplementation</a></li>
@@ -2470,6 +2498,7 @@ loadScripts(document, 'script');</script>
 <li class="circle">dev.copperbench.window.<a href="dev/copperbench/window/WindowChromeSnapshot.Bounds.html" class="type-name-link" title="class in dev.copperbench.window">WindowChromeSnapshot.Bounds</a></li>
 <li class="circle">dev.copperbench.window.<a href="dev/copperbench/window/WindowChromeSnapshot.Region.html" class="type-name-link" title="class in dev.copperbench.window">WindowChromeSnapshot.Region</a></li>
 <li class="circle">dev.copperbench.window.<a href="dev/copperbench/window/WindowChromeSnapshot.Viewport.html" class="type-name-link" title="class in dev.copperbench.window">WindowChromeSnapshot.Viewport</a></li>
+<li class="circle">dev.copperbench.core.application.<a href="dev/copperbench/core/application/WorkspaceApplicationService.AssetImportSelectionGrant.html" class="type-name-link" title="class in dev.copperbench.core.application">WorkspaceApplicationService.AssetImportSelectionGrant</a></li>
 <li class="circle">dev.copperbench.history.<a href="dev/copperbench/history/WorkspaceChange.html" class="type-name-link" title="class in dev.copperbench.history">WorkspaceChange</a></li>
 <li class="circle">dev.copperbench.core.workspace.<a href="dev/copperbench/core/workspace/WorkspaceCreationService.CreationResult.html" class="type-name-link" title="class in dev.copperbench.core.workspace">WorkspaceCreationService.CreationResult</a></li>
 <li class="circle">net.mcreator.workspace.misc.<a href="net/mcreator/workspace/misc/WorkspaceInfo.html" class="type-name-link" title="class in net.mcreator.workspace.misc">WorkspaceInfo</a></li>

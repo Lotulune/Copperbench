@@ -73,6 +73,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#subscribeTaskEvents(java.util.function.Consumer)" tabindex="0">subscribeTaskEvents(Consumer)</a></li>
 <li><a href="#logs(java.util.UUID,java.util.UUID)" tabindex="0">logs(UUID, UUID)</a></li>
 <li><a href="#diagnostics(java.util.UUID,java.util.UUID)" tabindex="0">diagnostics(UUID, UUID)</a></li>
+<li><a href="#sourcePreview(java.util.UUID,java.util.UUID,java.lang.String)" tabindex="0">sourcePreview(UUID, UUID, String)</a></li>
 <li><a href="#previewDatagen(java.util.UUID,java.util.UUID)" tabindex="0">previewDatagen(UUID, UUID)</a></li>
 <li><a href="#publishDatagen(java.util.UUID,java.util.UUID,com.google.gson.JsonObject)" tabindex="0">publishDatagen(UUID, UUID, JsonObject)</a></li>
 <li><a href="#completeDatagenPublish(java.util.UUID,java.util.UUID)" tabindex="0">completeDatagenPublish(UUID, UUID)</a></li>
@@ -203,14 +204,21 @@ implements <a href="../../core/application/WorkspaceTaskGateway.html" title="int
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#rollbackDatagenPublish(java.util.UUID,java.util.UUID)" class="member-name-link">rollbackDatagenPublish</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;workspaceId,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;taskId)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>com.google.gson.JsonObject</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#start(java.util.UUID,dev.copperbench.core.contract.UiCore.Operation,com.google.gson.JsonObject)" class="member-name-link">start</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;workspaceId,
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Optional.html" title="class or interface in java.util" class="external-link">Optional</a><wbr>&lt;com.google.gson.JsonObject&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#sourcePreview(java.util.UUID,java.util.UUID,java.lang.String)" class="member-name-link">sourcePreview</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;workspaceId,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;taskId,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sourcePath)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Returns a bounded read-only preview for a source file already referenced by a task diagnostic.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>com.google.gson.JsonObject</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#start(java.util.UUID,dev.copperbench.core.contract.UiCore.Operation,com.google.gson.JsonObject)" class="member-name-link">start</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;workspaceId,
  <a href="../../core/contract/UiCore.Operation.html" title="enum class in dev.copperbench.core.contract">UiCore.Operation</a>&nbsp;operation,
  com.google.gson.JsonObject&nbsp;payload)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/AutoCloseable.html" title="class or interface in java.lang" class="external-link">AutoCloseable</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#subscribeTaskEvents(java.util.function.Consumer)" class="member-name-link">subscribeTaskEvents</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/function/Consumer.html" title="class or interface in java.util.function" class="external-link">Consumer</a>&lt;<a href="../../core/application/WorkspaceTaskGateway.TaskEvent.html" title="class in dev.copperbench.core.application">WorkspaceTaskGateway.TaskEvent</a>&gt;&nbsp;listener)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/AutoCloseable.html" title="class or interface in java.lang" class="external-link">AutoCloseable</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#subscribeTaskEvents(java.util.function.Consumer)" class="member-name-link">subscribeTaskEvents</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/function/Consumer.html" title="class or interface in java.util.function" class="external-link">Consumer</a>&lt;<a href="../../core/application/WorkspaceTaskGateway.TaskEvent.html" title="class in dev.copperbench.core.application">WorkspaceTaskGateway.TaskEvent</a>&gt;&nbsp;listener)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Subscribes to asynchronous task state changes.</div>
 </div>
 </div>
@@ -383,6 +391,23 @@ compatibility path through <a href="../../core/application/WorkspaceTaskGateway.
 <dl class="notes">
 <dt>Specified by:</dt>
 <dd><code><a href="../../core/application/WorkspaceTaskGateway.html#diagnostics(java.util.UUID,java.util.UUID)">diagnostics</a></code>&nbsp;in interface&nbsp;<code><a href="../../core/application/WorkspaceTaskGateway.html" title="interface in dev.copperbench.core.application">WorkspaceTaskGateway</a></code></dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="sourcePreview(java.util.UUID,java.util.UUID,java.lang.String)">
+<h3>sourcePreview</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Optional.html" title="class or interface in java.util" class="external-link">Optional</a>&lt;com.google.gson.JsonObject&gt;</span>&nbsp;<span class="element-name">sourcePreview</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;workspaceId,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;taskId,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sourcePath)</span></div>
+<div class="block"><span class="description-from-type-label">Description copied from interface:&nbsp;<code><a href="../../core/application/WorkspaceTaskGateway.html#sourcePreview(java.util.UUID,java.util.UUID,java.lang.String)">WorkspaceTaskGateway</a></code></span></div>
+<div class="block">Returns a bounded read-only preview for a source file already referenced by a task diagnostic.
+Implementations must reject arbitrary filesystem paths and keep the read inside the task staging root.</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../../core/application/WorkspaceTaskGateway.html#sourcePreview(java.util.UUID,java.util.UUID,java.lang.String)">sourcePreview</a></code>&nbsp;in interface&nbsp;<code><a href="../../core/application/WorkspaceTaskGateway.html" title="interface in dev.copperbench.core.application">WorkspaceTaskGateway</a></code></dd>
 </dl>
 </div>
 </section>

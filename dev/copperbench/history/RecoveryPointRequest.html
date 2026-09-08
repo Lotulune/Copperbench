@@ -58,6 +58,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#constructor-detail" tabindex="0">Constructor Details</a>
 <ol class="toc-list">
 <li><a href="#%3Cinit%3E(java.lang.String,dev.copperbench.core.contract.UiCore.Actor,java.lang.String)" tabindex="0">RecoveryPointRequest(String, UiCore.Actor, String)</a></li>
+<li><a href="#%3Cinit%3E(java.lang.String,dev.copperbench.core.contract.UiCore.Actor,java.lang.String,dev.copperbench.history.RecoveryPointSource)" tabindex="0">RecoveryPointRequest(String, UiCore.Actor, String, RecoveryPointSource)</a></li>
 </ol>
 </li>
 <li><a href="#method-detail" tabindex="0">Method Details</a>
@@ -68,6 +69,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#label()" tabindex="0">label()</a></li>
 <li><a href="#actor()" tabindex="0">actor()</a></li>
 <li><a href="#taskId()" tabindex="0">taskId()</a></li>
+<li><a href="#source()" tabindex="0">source()</a></li>
 </ol>
 </li>
 </ol>
@@ -85,7 +87,7 @@ loadScripts(document, 'script');</script>
 <section class="class-description" id="class-description">
 <hr>
 <div class="horizontal-scroll">
-<div class="type-signature"><span class="modifiers">public record </span><span class="element-name type-name-label">RecoveryPointRequest</span>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;label, <a href="../core/contract/UiCore.Actor.html" title="enum class in dev.copperbench.core.contract">UiCore.Actor</a>&nbsp;actor, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;taskId)
+<div class="type-signature"><span class="modifiers">public record </span><span class="element-name type-name-label">RecoveryPointRequest</span>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;label, <a href="../core/contract/UiCore.Actor.html" title="enum class in dev.copperbench.core.contract">UiCore.Actor</a>&nbsp;actor, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;taskId, <a href="RecoveryPointSource.html" title="enum class in dev.copperbench.history">RecoveryPointSource</a>&nbsp;source)
 <span class="extends-implements">extends <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Record.html" title="class or interface in java.lang" class="external-link">Record</a></span></div>
 </div>
 </section>
@@ -102,7 +104,12 @@ loadScripts(document, 'script');</script>
 <div class="col-constructor-name even-row-color"><code><a href="#%3Cinit%3E(java.lang.String,dev.copperbench.core.contract.UiCore.Actor,java.lang.String)" class="member-name-link">RecoveryPointRequest</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;label,
  <a href="../core/contract/UiCore.Actor.html" title="enum class in dev.copperbench.core.contract">UiCore.Actor</a>&nbsp;actor,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;taskId)</code></div>
-<div class="col-last even-row-color">
+<div class="col-last even-row-color">&nbsp;</div>
+<div class="col-constructor-name odd-row-color"><code><a href="#%3Cinit%3E(java.lang.String,dev.copperbench.core.contract.UiCore.Actor,java.lang.String,dev.copperbench.history.RecoveryPointSource)" class="member-name-link">RecoveryPointRequest</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;label,
+ <a href="../core/contract/UiCore.Actor.html" title="enum class in dev.copperbench.core.contract">UiCore.Actor</a>&nbsp;actor,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;taskId,
+ <a href="RecoveryPointSource.html" title="enum class in dev.copperbench.history">RecoveryPointSource</a>&nbsp;source)</code></div>
+<div class="col-last odd-row-color">
 <div class="block">Creates an instance of a <code>RecoveryPointRequest</code> record class.</div>
 </div>
 </div>
@@ -139,14 +146,19 @@ loadScripts(document, 'script');</script>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Returns the value of the <code>label</code> record component.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#taskId()" class="member-name-link">taskId</a>()</code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="RecoveryPointSource.html" title="enum class in dev.copperbench.history">RecoveryPointSource</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#source()" class="member-name-link">source</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Returns the value of the <code>source</code> record component.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#taskId()" class="member-name-link">taskId</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Returns the value of the <code>taskId</code> record component.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#toString()" class="member-name-link">toString</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#toString()" class="member-name-link">toString</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Returns a string representation of this record class.</div>
 </div>
 </div>
@@ -173,12 +185,24 @@ loadScripts(document, 'script');</script>
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="element-name">RecoveryPointRequest</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;label,
  <a href="../core/contract/UiCore.Actor.html" title="enum class in dev.copperbench.core.contract">UiCore.Actor</a>&nbsp;actor,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;taskId)</span></div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="&lt;init&gt;(java.lang.String,dev.copperbench.core.contract.UiCore.Actor,java.lang.String,dev.copperbench.history.RecoveryPointSource)">
+<h3>RecoveryPointRequest</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="element-name">RecoveryPointRequest</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;label,
+ <a href="../core/contract/UiCore.Actor.html" title="enum class in dev.copperbench.core.contract">UiCore.Actor</a>&nbsp;actor,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;taskId,
+ <a href="RecoveryPointSource.html" title="enum class in dev.copperbench.history">RecoveryPointSource</a>&nbsp;source)</span></div>
 <div class="block">Creates an instance of a <code>RecoveryPointRequest</code> record class.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
 <dd><code>label</code> - the value for the <code>label</code> record component</dd>
 <dd><code>actor</code> - the value for the <code>actor</code> record component</dd>
 <dd><code>taskId</code> - the value for the <code>taskId</code> record component</dd>
+<dd><code>source</code> - the value for the <code>source</code> record component</dd>
 </dl>
 </div>
 </section>
@@ -273,6 +297,19 @@ loadScripts(document, 'script');</script>
 <dl class="notes">
 <dt>Returns:</dt>
 <dd>the value of the <code>taskId</code> record component</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="source()">
+<h3>source</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="RecoveryPointSource.html" title="enum class in dev.copperbench.history">RecoveryPointSource</a></span>&nbsp;<span class="element-name">source</span>()</div>
+<div class="block">Returns the value of the <code>source</code> record component.</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>the value of the <code>source</code> record component</dd>
 </dl>
 </div>
 </section>
