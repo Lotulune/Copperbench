@@ -30,7 +30,9 @@ on:
       - "ui-shell/**"
       - "scripts/*linux-candidate-metadata.mjs"
       - "scripts/tests/linux-candidate-metadata.tests.mjs"
+      - "scripts/tests/stage15-linux-installed-gate.tests.mjs"
       - "scripts/stage15/**"
+      - "scripts/verify-stage15-linux-installed-guest.sh"
       - "scripts/verify-stage15-linux-x11-ci-smoke.sh"
       - "scripts/verify-stage15-linux-runclient-ci-smoke.sh"
       - "src/main/java/net/mcreator/io/UserFolderManager.java"
@@ -65,7 +67,9 @@ on:
       - "ui-shell/**"
       - "scripts/*linux-candidate-metadata.mjs"
       - "scripts/tests/linux-candidate-metadata.tests.mjs"
+      - "scripts/tests/stage15-linux-installed-gate.tests.mjs"
       - "scripts/stage15/**"
+      - "scripts/verify-stage15-linux-installed-guest.sh"
       - "scripts/verify-stage15-linux-x11-ci-smoke.sh"
       - "scripts/verify-stage15-linux-runclient-ci-smoke.sh"
       - ".github/workflows/stage15-linux-candidate.yml"
@@ -377,12 +381,26 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+      - name: Package clean GNOME installed-gate harness
+        shell: bash
+        run: |
+          set -euo pipefail
+          harness_root="$PWD/build/stage15-linux-installed-gate-harness"
+          archive="$PWD/build/export/stage15-linux-installed-gate-harness.tar.gz"
+          rm -rf "$harness_root" "$archive"
+          mkdir -p "$harness_root/stage15"
+          cp scripts/verify-stage15-linux-installed-guest.sh "$harness_root/"
+          cp scripts/stage15/Stage15GraphicalProbeVerifier.java "$harness_root/stage15/"
+          chmod 755 "$harness_root/verify-stage15-linux-installed-guest.sh"
+          tar -C "$harness_root" -czf "$archive" .
+          tar -tzf "$archive" | grep -q '^./verify-stage15-linux-installed-guest.sh$'
+          tar -tzf "$archive" | grep -q '^./stage15/Stage15GraphicalProbeVerifier.java$'
+          test "$(tar -tvzf "$archive" | awk '$NF == "./verify-stage15-linux-installed-guest.sh" { print substr($1, 1, 10); exit }')" = "-rwxr-xr-x"
+
       - name: Upload clean GNOME installed-gate harness
         uses: actions/upload-artifact@v7
         with:
           name: stage15-linux-installed-gate-harness
-          path: |
-            scripts/verify-stage15-linux-installed-guest.sh
-            scripts/stage15/Stage15GraphicalProbeVerifier.java
+          path: build/export/stage15-linux-installed-gate-harness.tar.gz
           if-no-files-found: error
           retention-days: 14

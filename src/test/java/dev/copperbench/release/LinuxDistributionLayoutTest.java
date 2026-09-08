@@ -115,6 +115,9 @@ class LinuxDistributionLayoutTest {
         assertTrue(workflow.contains("stage15-linux-installed-gate-harness"));
         assertTrue(workflow.contains("scripts/verify-stage15-linux-installed-guest.sh"));
         assertTrue(workflow.contains("scripts/stage15/Stage15GraphicalProbeVerifier.java"));
+        assertTrue(workflow.contains("stage15-linux-installed-gate-harness.tar.gz"));
+        assertTrue(workflow.contains("tar -C \"$harness_root\" -czf \"$archive\" ."));
+        assertTrue(workflow.contains("-rwxr-xr-x"));
         assertFalse(workflow.contains("verify-stage15-linux-fabric-runclient-ci-smoke.sh"));
         assertTrue(workflow.contains("\"fabric-1.21.1\""));
         assertTrue(workflow.contains("\"neoforge-1.21.1\""));
