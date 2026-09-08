@@ -52,6 +52,10 @@ class LinuxDistributionLayoutTest {
         assertTrue(gradle.contains("linux-candidate-manifest.json"));
         assertTrue(gradle.contains("into('jdk21') { from 'jdk/jdk21_linux_64' }"));
         assertTrue(gradle.contains("Linux x86_64.tar.gz"));
+        assertTrue(gradle.contains("def applyExecPermissions = { spec ->"));
+        assertTrue(gradle.contains("applyExecPermissions(delegate)"));
+        assertFalse(gradle.contains("from('build/export/linux64/copperbench.sh', execPermissions)"));
+        assertFalse(gradle.contains("from('build/export/linux64/gradlew', execPermissions)"));
         assertFalse(gradle.contains("archiveFileName = 'MCreator"));
         assertTrue(gradle.contains("buildDebLinux64"));
         assertTrue(gradle.contains("dpkg-deb"));

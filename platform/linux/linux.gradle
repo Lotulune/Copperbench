@@ -69,8 +69,8 @@ tasks.register('exportLinux64', Copy.class) {
 tasks.register('tarLinux64', Tar.class) {
     dependsOn exportLinux64
 
-    def execPermissions = {
-        filePermissions {
+    def applyExecPermissions = { spec ->
+        spec.filePermissions {
             user { read = true; write = true; execute = true }
             group { read = true; execute = true }
             other { read = true; execute = true }
@@ -83,20 +83,21 @@ tasks.register('tarLinux64', Tar.class) {
                     "jdk21/lib/jspawnhelper", "jdk21/lib/jexec", "jdk/lib/jspawnhelper", "jdk/lib/jexec",
                     "jdk/lib/jcef_helper", "jdk/lib/cef_server"
         }
-        from('build/export/linux64/copperbench.sh', execPermissions)
-        from('build/export/linux64/gradlew', execPermissions)
-        from('build/export/linux64/gradle-dists/', execPermissions) {
+        from('build/export/linux64/copperbench.sh') { applyExecPermissions(delegate) }
+        from('build/export/linux64/gradlew') { applyExecPermissions(delegate) }
+        from('build/export/linux64/gradle-dists/') {
+            applyExecPermissions(delegate)
             include '**/bin/gradle'
             into 'gradle-dists/'
         }
-        from('build/export/linux64/jdk/bin/', execPermissions) into 'jdk/bin/'
-        from('build/export/linux64/jdk21/bin/', execPermissions) into 'jdk21/bin/'
-        from('build/export/linux64/jdk21/lib/jspawnhelper', execPermissions) into 'jdk21/lib/'
-        from('build/export/linux64/jdk21/lib/jexec', execPermissions) into 'jdk21/lib/'
-        from('build/export/linux64/jdk/lib/jspawnhelper', execPermissions) into 'jdk/lib/'
-        from('build/export/linux64/jdk/lib/jexec', execPermissions) into 'jdk/lib/'
-        from('build/export/linux64/jdk/lib/jcef_helper', execPermissions) into 'jdk/lib/'
-        from('build/export/linux64/jdk/lib/cef_server', execPermissions) into 'jdk/lib/'
+        from('build/export/linux64/jdk/bin/') { applyExecPermissions(delegate); into 'jdk/bin/' }
+        from('build/export/linux64/jdk21/bin/') { applyExecPermissions(delegate); into 'jdk21/bin/' }
+        from('build/export/linux64/jdk21/lib/jspawnhelper') { applyExecPermissions(delegate); into 'jdk21/lib/' }
+        from('build/export/linux64/jdk21/lib/jexec') { applyExecPermissions(delegate); into 'jdk21/lib/' }
+        from('build/export/linux64/jdk/lib/jspawnhelper') { applyExecPermissions(delegate); into 'jdk/lib/' }
+        from('build/export/linux64/jdk/lib/jexec') { applyExecPermissions(delegate); into 'jdk/lib/' }
+        from('build/export/linux64/jdk/lib/jcef_helper') { applyExecPermissions(delegate); into 'jdk/lib/' }
+        from('build/export/linux64/jdk/lib/cef_server') { applyExecPermissions(delegate); into 'jdk/lib/' }
     }
 
     destinationDirectory = file('build/export/')
