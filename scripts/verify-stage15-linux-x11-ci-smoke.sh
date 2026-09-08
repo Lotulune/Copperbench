@@ -29,6 +29,12 @@ wait_for_exit() {
   return 1
 }
 
+send_window_key() {
+  local window="$1"
+  shift
+  timeout 5s xdotool key --window "$window" --clearmodifiers "$@" 2>/dev/null || true
+}
+
 dump_bootstrap_failure() {
   echo "--- bootstrap stderr ---" >&2
   cat "$bootstrap_log" >&2 || true
@@ -99,17 +105,16 @@ if [[ -z "$approval_window" ]]; then
   exit 1
 fi
 echo "[stage15-x11] approving local workspace creation in X11 window $approval_window"
-xdotool windowfocus "$approval_window" 2>/dev/null || true
-xdotool key --window "$approval_window" --clearmodifiers Return 2>/dev/null || true
+send_window_key "$approval_window" Return
 sleep 2
 remaining_approval="$(xdotool search --onlyvisible --name '^Copperbench workspace creation$' 2>/dev/null | head -n 1 || true)"
 if [[ -n "$remaining_approval" ]]; then
-  xdotool key --window "$remaining_approval" --clearmodifiers space 2>/dev/null || true
+  send_window_key "$remaining_approval" space
   sleep 1
 fi
 remaining_approval="$(xdotool search --onlyvisible --name '^Copperbench workspace creation$' 2>/dev/null | head -n 1 || true)"
 if [[ -n "$remaining_approval" ]]; then
-  xdotool key --window "$remaining_approval" --clearmodifiers alt+y 2>/dev/null || true
+  send_window_key "$remaining_approval" alt+y
 fi
 
 if ! wait_for_exit "$bootstrap_pid" 120; then
@@ -141,8 +146,7 @@ for ((attempt = 0; attempt < 120; attempt++)); do
   fi
   first_run_window="$(xdotool search --onlyvisible --name '^Copperbench$' 2>/dev/null | head -n 1 || true)"
   if [[ -n "$first_run_window" ]]; then
-    xdotool windowfocus "$first_run_window" 2>/dev/null || true
-    xdotool key --window "$first_run_window" Return 2>/dev/null || true
+    send_window_key "$first_run_window" Return
   fi
   if ! kill -0 "$product_pid" 2>/dev/null; then
     echo "Packaged Copperbench exited before the graphical probe was written" >&2

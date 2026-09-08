@@ -106,6 +106,8 @@ test('Stage 15 workflow carries the Linux supply-chain contract', () => {
   assert.match(workflow, /Launch packaged JCEF product shell under Xvfb/);
   assert.match(workflow, /timeout-minutes: 8/);
   assert.match(graphicalSmoke, /wait_for_exit "\$bootstrap_pid" 120/);
+  assert.match(graphicalSmoke, /timeout 5s xdotool key --window/);
+  assert.doesNotMatch(graphicalSmoke, /xdotool windowfocus/);
   assert.match(graphicalSmoke, /Timed out waiting for the packaged JCEF graphical probe/);
   assert.match(graphicalSmoke, /dump_bootstrap_failure/);
   assert.match(graphicalSmoke, /dump_product_failure/);
