@@ -185,6 +185,7 @@ class McpHttpServerTest {
 			assertTrue(tools.body().contains("create_mod_element"));
 			assertTrue(tools.body().contains("livingentity"));
 			assertTrue(tools.body().contains("update_mod_element"));
+			assertTrue(tools.body().contains("set_mod_element_source_management"));
 			assertTrue(tools.body().contains("delete_mod_element"));
 			assertTrue(tools.body().contains("generate_workspace"));
 			assertTrue(tools.body().contains("build_workspace"));

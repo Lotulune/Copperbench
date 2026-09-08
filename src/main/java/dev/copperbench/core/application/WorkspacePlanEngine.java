@@ -396,7 +396,8 @@ final class WorkspacePlanEngine {
 			throw new PlanException(diagnostic("WORKSPACE_PLAN_INTEGRITY_FAILED",
 					"diagnostic.workspace_plan_integrity_failed",
 					"The workspace plan was not issued by the current Copperbench session."));
-		if (current.revision() == baseRevision + 1 && workspaceDigest(current).equals(targetDigest)) {
+		if (current.revision() == baseRevision + 1 && workspaceDigest(current).equals(targetDigest)
+				&& workspacePlanArtifactsAlreadyApplied(artifacts)) {
 			Diagnostic replayPreflight = mutationPreflight(current, current, artifacts);
 			if (replayPreflight != null) throw new PlanException(replayPreflight);
 			return new ValidatedPlan(true, null, plan);
@@ -427,6 +428,18 @@ final class WorkspacePlanEngine {
 		plan.addProperty("operationCount", normalized.size());
 		plan.add("safety", recoverySafety(plan));
 		return new ValidatedPlan(false, simulation, plan);
+	}
+
+	private boolean workspacePlanArtifactsAlreadyApplied(List<WorkspacePlanArtifact> artifacts) {
+		try {
+			return mutations.workspacePlanArtifactsAlreadyApplied(artifacts);
+		} catch (Exception exception) {
+			throw new PlanException(diagnostic("WORKSPACE_PLAN_SOURCE_CONFLICT",
+					"diagnostic.workspace_plan_source_conflict",
+					exception.getMessage() == null || exception.getMessage().isBlank()
+							? "The workspace plan artifacts could not be verified for replay."
+							: exception.getMessage()));
+		}
 	}
 
 	private Diagnostic mutationPreflight(WorkspaceState before, WorkspaceState after) {

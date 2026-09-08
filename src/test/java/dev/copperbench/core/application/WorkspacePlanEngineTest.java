@@ -83,6 +83,46 @@ class WorkspacePlanEngineTest {
 		assertEquals(8, fixture.store().read(WORKSPACE_ID).orElseThrow().revision());
 	}
 
+	@Test void differentArtifactOnlyPlanAtTheSameBaseRevisionIsStaleInsteadOfAFalseReplay() {
+		RevisionedWorkspaceStore store = new RevisionedWorkspaceStore();
+		JsonObject generator = new JsonObject();
+		generator.addProperty("id", "fabric-1.21.1");
+		store.register(new WorkspaceState(WORKSPACE_ID, "Artifact Replay", "mod", 7, false, generator,
+				new JsonObject(), List.of()));
+		AtomicLong sequence = new AtomicLong(500);
+		RecordingHistory history = new RecordingHistory();
+		RecordingGateway gateway = new RecordingGateway(false);
+		WorkspacePlanEngine engine = new WorkspacePlanEngine(store,
+				new InMemoryWorkspaceTaskGateway(CLOCK, () -> uuid(sequence.getAndIncrement())), gateway,
+				history, CLOCK, () -> uuid(sequence.getAndIncrement()));
+
+		JsonObject request = new JsonObject();
+		request.addProperty("expectedRevision", 7);
+		request.addProperty("idempotencyKey", "artifact-a");
+		WorkspacePlanArtifact artifactA = WorkspacePlanArtifact.of("assets/example/a.txt", "a".getBytes());
+		JsonObject planA = engine.planPrepared(Query.of(uuid(501), WORKSPACE_ID,
+				Operation.PREVIEW_LOCAL_TEMPLATE_INSTANTIATION, request), MCP, new JsonArray(),
+				List.of(artifactA), new JsonObject()).data().getAsJsonObject();
+
+		JsonObject secondRequest = request.deepCopy();
+		secondRequest.addProperty("idempotencyKey", "artifact-b");
+		WorkspacePlanArtifact artifactB = WorkspacePlanArtifact.of("assets/example/b.txt", "b".getBytes());
+		JsonObject planB = engine.planPrepared(Query.of(uuid(502), WORKSPACE_ID,
+				Operation.PREVIEW_LOCAL_TEMPLATE_INSTANTIATION, secondRequest), MCP, new JsonArray(),
+				List.of(artifactB), new JsonObject()).data().getAsJsonObject();
+
+		var first = engine.apply(applyCommand(503, 7, planA), MCP);
+		assertEquals("committed", first.result().status(), first.result().diagnostics().toString());
+		assertTrue(gateway.appliedArtifact(artifactA));
+
+		var second = engine.apply(applyCommand(504, 7, planB), MCP);
+		assertEquals("rejected", second.result().status());
+		assertTrue(second.result().diagnostics().stream().anyMatch(diagnostic ->
+				"WORKSPACE_PLAN_STALE".equals(diagnostic.code())));
+		assertFalse(gateway.appliedArtifact(artifactB));
+		assertEquals(1, gateway.planCalls);
+	}
+
 	@Test void highImpactReviewDoesNotInventAiOnlyApprovalForWorkspaceAuthorizedPlan() {
 		Fixture fixture = fixture(false);
 		JsonObject plan = plan(fixture.service(), MCP, 7, "high-impact-local-creates",
@@ -624,6 +664,7 @@ class WorkspacePlanEngineTest {
 
 	private static final class RecordingGateway implements WorkspaceMutationGateway {
 		private final boolean failPlanPersistence;
+		private final List<String> appliedArtifacts = new ArrayList<>();
 		private int planCalls;
 
 		private RecordingGateway(boolean failPlanPersistence) {
@@ -636,8 +677,31 @@ class WorkspacePlanEngineTest {
 
 		@Override public void persistWorkspacePlan(WorkspaceState before, WorkspaceState after,
 				List<Operation> operations) throws Exception {
+			persistWorkspacePlan(before, after, operations, List.of());
+		}
+
+		@Override public void persistWorkspacePlan(WorkspaceState before, WorkspaceState after,
+				List<Operation> operations, List<WorkspacePlanArtifact> artifacts) throws Exception {
 			planCalls++;
 			if (failPlanPersistence) throw new Exception("synthetic plan persistence failure");
+			if (artifacts != null) for (WorkspacePlanArtifact artifact : artifacts)
+				appliedArtifacts.add(artifactKey(artifact));
+		}
+
+		@Override public void validateWorkspacePlan(WorkspaceState before, WorkspaceState after,
+				List<WorkspacePlanArtifact> artifacts) {
+		}
+
+		@Override public boolean workspacePlanArtifactsAlreadyApplied(List<WorkspacePlanArtifact> artifacts) {
+			return artifacts == null || artifacts.stream().allMatch(this::appliedArtifact);
+		}
+
+		private boolean appliedArtifact(WorkspacePlanArtifact artifact) {
+			return appliedArtifacts.contains(artifactKey(artifact));
+		}
+
+		private static String artifactKey(WorkspacePlanArtifact artifact) {
+			return artifact.relativePath() + "=" + artifact.sha256();
 		}
 	}
 

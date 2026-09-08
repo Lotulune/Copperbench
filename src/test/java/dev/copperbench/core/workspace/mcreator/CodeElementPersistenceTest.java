@@ -30,6 +30,7 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -81,6 +82,75 @@ class CodeElementPersistenceTest {
 						.map(java.io.File::toPath)
 						.findFirst().orElseThrow();
 				assertEquals(sourceCode, Files.readString(source, StandardCharsets.UTF_8));
+			}
+		}
+	}
+
+	@Test void failedCodeUpdateRemovesNewHelperBeforeRetry() throws Exception {
+		WorkspaceSettings settings = new WorkspaceSettings("code_bundle_rollback");
+		settings.setModName("Code Bundle Rollback");
+		settings.setVersion("1.0.0");
+		settings.setCurrentGenerator("fabric-1.21.1");
+		Path workspaceFile = root.resolve("code_bundle_rollback.mcreator");
+		AtomicLong ids = new AtomicLong(270);
+		AtomicBoolean failUpdateOnce = new AtomicBoolean(true);
+		try (Workspace workspace = Workspace.createWorkspace(workspaceFile.toFile(), settings)) {
+			assertTrue(workspace.getGenerator().generateBase(), "Generator base must exist before persisting custom code");
+			WorkspaceMutationObserver observer = (_, _, _, operation, _) -> {
+				if (operation == Operation.UPDATE_MOD_ELEMENT && failUpdateOnce.getAndSet(false))
+					throw new IllegalStateException("synthetic observer failure after helper write");
+			};
+			try (MCreatorWorkspaceSession session = MCreatorWorkspaceSession.attach(workspace,
+					UUID.fromString("22222222-2222-4222-8222-222222222224"),
+					new InMemoryWorkspaceTaskGateway(CLOCK, () -> uuid(ids.incrementAndGet())), CLOCK,
+					() -> uuid(ids.incrementAndGet()), List.of(observer))) {
+				JsonObject values = new JsonObject();
+				values.addProperty("code", "package net.mcreator.code_bundle_rollback;\npublic final class RuntimeRoot {}\n");
+				JsonObject create = new JsonObject();
+				create.addProperty("clientMutationId", uuid(50).toString());
+				create.addProperty("elementType", "code");
+				create.addProperty("name", "runtime_root");
+				create.add("initialValues", values);
+				var created = session.uiEntry().execute(Command.of(uuid(51), session.workspaceId(), 0,
+						Operation.CREATE_MOD_ELEMENT, create));
+				assertEquals("committed", created.result().status(), created.result().diagnostics().toString());
+				String elementId = created.result().data().getAsJsonObject().getAsJsonObject("element")
+						.get("id").getAsString();
+				Path primary = workspace.getModElementByName("runtime_root").getAssociatedFiles().stream()
+						.filter(file -> file.getName().endsWith(".java")).map(java.io.File::toPath)
+						.findFirst().orElseThrow();
+				Path helper = primary.getParent().resolve("runtime/NewHelper.java");
+
+				com.google.gson.JsonArray files = new com.google.gson.JsonArray();
+				JsonObject helperFile = new JsonObject();
+				helperFile.addProperty("path", "runtime/NewHelper.java");
+				helperFile.addProperty("code",
+						"package net.mcreator.code_bundle_rollback.runtime;\npublic final class NewHelper {}\n");
+				files.add(helperFile);
+				JsonObject change = new JsonObject();
+				change.addProperty("path", "/codeFiles");
+				change.add("value", files);
+				com.google.gson.JsonArray changes = new com.google.gson.JsonArray();
+				changes.add(change);
+				JsonObject update = new JsonObject();
+				update.addProperty("clientMutationId", uuid(52).toString());
+				update.addProperty("elementId", elementId);
+				update.add("changes", changes);
+
+				var failed = session.uiEntry().execute(Command.of(uuid(53), session.workspaceId(), 1,
+						Operation.UPDATE_MOD_ELEMENT, update));
+				assertEquals("rejected", failed.result().status());
+				assertTrue(failed.result().diagnostics().stream().anyMatch(diagnostic ->
+						"WORKSPACE_PERSISTENCE_FAILED".equals(diagnostic.code())));
+				assertFalse(Files.exists(helper), "rollback must delete a helper that did not exist before the update");
+				assertFalse(workspace.getModElementByName("runtime_root").getAssociatedFiles().stream()
+						.anyMatch(file -> file.toPath().equals(helper)));
+
+				update.addProperty("clientMutationId", uuid(54).toString());
+				var retried = session.uiEntry().execute(Command.of(uuid(55), session.workspaceId(), 1,
+						Operation.UPDATE_MOD_ELEMENT, update));
+				assertEquals("committed", retried.result().status(), retried.result().diagnostics().toString());
+				assertTrue(Files.isRegularFile(helper));
 			}
 		}
 	}

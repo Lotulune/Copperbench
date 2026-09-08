@@ -251,6 +251,17 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 		}
 	}
 
+	@Override public boolean workspacePlanArtifactsAlreadyApplied(List<WorkspacePlanArtifact> artifacts) throws Exception {
+		if (artifacts == null || artifacts.isEmpty()) return true;
+		Path workspaceRoot = workspace.getWorkspaceFolder().toPath().toAbsolutePath().normalize();
+		for (WorkspacePlanArtifact artifact : artifacts) {
+			Path target = artifact.resolve(workspaceRoot);
+			assertArtifactTargetSafe(workspaceRoot, target);
+			if (!Files.isRegularFile(target) || !artifact.sha256().equals(fingerprint(target))) return false;
+		}
+		return true;
+	}
+
 	@Override public void validateWorkspacePlan(WorkspaceState before, WorkspaceState after,
 			List<WorkspacePlanArtifact> artifacts) throws Exception {
 		validateWorkspacePlan(before, after);
@@ -316,7 +327,8 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 		ModElement existing = find(affectedElement.id());
 		Element previous = before.element(affectedElement.id());
 		String storedName = existing == null ? affectedElement.name() : existing.getName();
-		FileSnapshot snapshot = FileSnapshot.capture(workspace, storedName, existing);
+		FileSnapshot snapshot = FileSnapshot.capture(workspace, storedName, existing,
+				plannedRollbackPaths(before, after));
 		try {
 			switch (operation) {
 				case CREATE_MOD_ELEMENT -> create(affectedElement);
@@ -1176,6 +1188,11 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 
 		private static FileSnapshot capture(Workspace workspace, String elementName, ModElement existing)
 				throws IOException {
+			return capture(workspace, elementName, existing, List.of());
+		}
+
+		private static FileSnapshot capture(Workspace workspace, String elementName, ModElement existing,
+				List<Path> plannedPaths) throws IOException {
 			Path root = workspace.getWorkspaceFolder().toPath().toAbsolutePath().normalize();
 			Map<Path, byte[]> files = new LinkedHashMap<>();
 			capture(files, root, workspace.getFileManager().getWorkspaceFile().toPath());
@@ -1185,6 +1202,8 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 				for (var associated : existing.getAssociatedFiles())
 					capture(files, root, associated.toPath());
 			}
+			if (plannedPaths != null)
+				for (Path planned : plannedPaths) capture(files, root, planned);
 			return new FileSnapshot(files);
 		}
 
