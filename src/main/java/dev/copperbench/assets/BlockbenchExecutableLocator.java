@@ -41,8 +41,13 @@ public final class BlockbenchExecutableLocator {
 			}
 			default -> addPathCandidates(candidates, environment.get("PATH"), "blockbench");
 		}
-		return candidates.stream().map(path -> path.toAbsolutePath().normalize()).filter(Files::isRegularFile)
-				.findFirst().orElse(null);
+		return candidates.stream().map(path -> path.toAbsolutePath().normalize())
+				.filter(path -> isRunnableCandidate(platform, path)).findFirst().orElse(null);
+	}
+
+	private static boolean isRunnableCandidate(RuntimePlatform platform, Path path) {
+		if (!Files.isRegularFile(path)) return false;
+		return platform.operatingSystem() == RuntimePlatform.OperatingSystem.WINDOWS || Files.isExecutable(path);
 	}
 
 	private static void addPathCandidates(List<Path> candidates, String pathValue, String executable) {

@@ -8,6 +8,7 @@ import com.sun.jna.Structure;
 import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.ptr.PointerByReference;
 import com.sun.jna.win32.W32APIOptions;
+import dev.copperbench.platform.RuntimePlatform;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -17,20 +18,31 @@ import java.util.Objects;
 
 /** Reads Blockbench installation metadata without launching the Electron application. */
 public final class BlockbenchInstallationDetector {
+	private final RuntimePlatform platform;
 	private final VersionReader versions;
 
 	public BlockbenchInstallationDetector() {
-		this(BlockbenchInstallationDetector::readWindowsFileVersion);
+		this(RuntimePlatform.current(), BlockbenchInstallationDetector::readWindowsFileVersion);
 	}
 
 	BlockbenchInstallationDetector(VersionReader versions) {
+		this(RuntimePlatform.current(), versions);
+	}
+
+	BlockbenchInstallationDetector(RuntimePlatform platform, VersionReader versions) {
+		this.platform = Objects.requireNonNull(platform);
 		this.versions = Objects.requireNonNull(versions);
 	}
 
 	public Installation detect(Path executable) {
 		if (executable == null || !Files.isRegularFile(executable))
 			return new Installation(State.UNAVAILABLE, executable, null, "BLOCKBENCH_NOT_CONFIGURED");
+		if (platform.operatingSystem() != RuntimePlatform.OperatingSystem.WINDOWS && !Files.isExecutable(executable))
+			return new Installation(State.UNAVAILABLE, executable, null, "BLOCKBENCH_NOT_EXECUTABLE");
 		String version = versions.read(executable);
+		if (version == null && (platform.operatingSystem() == RuntimePlatform.OperatingSystem.LINUX
+				|| platform.operatingSystem() == RuntimePlatform.OperatingSystem.MAC))
+			return new Installation(State.READY_UNVERIFIED, executable, null, null);
 		if (version == null)
 			return new Installation(State.UNKNOWN_VERSION, executable, null, "BLOCKBENCH_VERSION_UNAVAILABLE");
 		int separator = version.indexOf('.');
@@ -66,7 +78,7 @@ public final class BlockbenchInstallationDetector {
 		}
 	}
 
-	public enum State { UNAVAILABLE, UNKNOWN_VERSION, INCOMPATIBLE, READY }
+	public enum State { UNAVAILABLE, UNKNOWN_VERSION, INCOMPATIBLE, READY_UNVERIFIED, READY }
 
 	public record Installation(State state, Path executable, String version, String diagnosticCode) {
 	}

@@ -10,7 +10,9 @@ on:
       - "platform/setup.gradle"
       - "src/main/java/dev/copperbench/generator/**"
       - "src/test/java/dev/copperbench/generator/**"
-      - "src/test/java/dev/copperbench/generator/**"
+      - "src/main/java/dev/copperbench/assets/**"
+      - "src/test/java/dev/copperbench/assets/**"
+      - "src/main/java/dev/copperbench/core/workspace/WorkspaceCreationService.java"
       - "src/main/java/dev/copperbench/headless/**"
       - "src/main/java/dev/copperbench/mcp/**"
       - "src/test/java/dev/copperbench/mcp/**"
@@ -34,6 +36,10 @@ on:
       - "platform/linux/**"
       - "platform/setup.gradle"
       - "src/main/java/dev/copperbench/generator/**"
+      - "src/test/java/dev/copperbench/generator/**"
+      - "src/main/java/dev/copperbench/assets/**"
+      - "src/test/java/dev/copperbench/assets/**"
+      - "src/main/java/dev/copperbench/core/workspace/WorkspaceCreationService.java"
       - "src/main/java/dev/copperbench/headless/**"
       - "src/main/java/dev/copperbench/mcp/**"
       - "src/test/java/dev/copperbench/mcp/**"
@@ -103,6 +109,9 @@ jobs:
             --tests dev.copperbench.generator.BundledJdkLocatorTest \
             --tests dev.copperbench.generator.WorkspaceEnvironmentContextTest \
             --tests dev.copperbench.gradle.GradleDistributionPoolTest \
+            --tests dev.copperbench.assets.BlockbenchExecutableLocatorTest \
+            --tests dev.copperbench.assets.BlockbenchInstallationDetectorTest \
+            --tests dev.copperbench.assets.BlockbenchProcessServiceTest \
             --tests dev.copperbench.mcp.DesktopMcpRuntimeTest \
             --tests dev.copperbench.mcp.McpHttpServerTest \
             --tests dev.copperbench.mcp.DesktopMcpAgentLoopTest \

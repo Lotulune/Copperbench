@@ -118,7 +118,8 @@ public final class BlockbenchProcessService implements AutoCloseable {
 	}
 
 	private boolean isAvailable() {
-		return installation.state() == BlockbenchInstallationDetector.State.READY;
+		return installation.state() == BlockbenchInstallationDetector.State.READY
+				|| installation.state() == BlockbenchInstallationDetector.State.READY_UNVERIFIED;
 	}
 
 	private String currentHash(String relativePath) {
