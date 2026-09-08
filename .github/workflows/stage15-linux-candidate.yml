@@ -24,6 +24,7 @@ on:
       - "src/main/java/net/mcreator/ui/chromium/CefUtils.java"
       - "src/main/java/net/mcreator/util/SingleAppHandler.java"
       - "src/main/java/dev/copperbench/platform/**"
+      - "src/test/java/dev/copperbench/platform/**"
       - "src/main/java/dev/copperbench/release/**"
       - "ui-shell/**"
       - "scripts/*linux-candidate-metadata.mjs"
@@ -56,6 +57,7 @@ on:
       - "src/main/java/net/mcreator/ui/chromium/CefUtils.java"
       - "src/main/java/net/mcreator/util/SingleAppHandler.java"
       - "src/main/java/dev/copperbench/platform/**"
+      - "src/test/java/dev/copperbench/platform/**"
       - "src/main/java/dev/copperbench/release/**"
       - "ui-shell/**"
       - "scripts/*linux-candidate-metadata.mjs"
@@ -112,6 +114,7 @@ jobs:
           ./gradlew --no-daemon test -x buildUiShell \
             --tests dev.copperbench.platform.DesktopSessionCapabilitiesTest \
             --tests dev.copperbench.platform.ExecutableFilePermissionsTest \
+            --tests dev.copperbench.platform.GraphicalCiModeTest \
             --tests dev.copperbench.platform.LinuxDesktopPathIntegrationTest \
             --tests dev.copperbench.platform.UserDataPathsTest \
             --tests dev.copperbench.generator.BundledJdkLocatorTest \

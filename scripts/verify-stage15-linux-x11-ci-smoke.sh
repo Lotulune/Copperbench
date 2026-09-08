@@ -89,6 +89,7 @@ test -n "$workspace_file"
 test -f "$workspace_file"
 
 export COPPERBENCH_GRAPHICAL_PROBE_RESULT="$probe"
+export JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS -Dcopperbench.graphicalCi=true"
 echo "[stage15-x11] starting packaged graphical product shell"
 "$portable_root/copperbench.sh" "$workspace_file" >"$product_log" 2>&1 &
 product_pid=$!

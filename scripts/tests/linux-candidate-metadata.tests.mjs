@@ -90,6 +90,7 @@ test('Stage 15 workflow carries the Linux supply-chain contract', () => {
   const workflow = readFileSync(resolve(root, '.github/workflows/stage15-linux-candidate.yml'), 'utf8');
   const graphicalSmoke = readFileSync(resolve(root, 'scripts/verify-stage15-linux-x11-ci-smoke.sh'), 'utf8');
   const graphicalFixture = readFileSync(resolve(root, 'src/test/java/dev/copperbench/headless/Stage15GraphicalWorkspaceFixture.java'), 'utf8');
+  const cefUtils = readFileSync(resolve(root, 'src/main/java/net/mcreator/ui/chromium/CefUtils.java'), 'utf8');
   assert.match(workflow, /attestations: write/);
   assert.match(workflow, /id-token: write/);
   assert.match(workflow, /Generate SPDX SBOM for Linux candidate/);
@@ -114,6 +115,9 @@ test('Stage 15 workflow carries the Linux supply-chain contract', () => {
   assert.match(graphicalSmoke, /timeout 120s "\$portable_root\/jdk\/bin\/java"/);
   assert.match(graphicalSmoke, /dev\.copperbench\.headless\.Stage15GraphicalWorkspaceFixture/);
   assert.match(graphicalSmoke, /cd "\$portable_root"/);
+  assert.match(graphicalSmoke, /-Dcopperbench\.graphicalCi=true/);
+  assert.match(cefUtils, /GraphicalCiMode\.chromiumHeadlessRequired\(\)/);
+  assert.match(workflow, /dev\.copperbench\.platform\.GraphicalCiModeTest/);
   assert.doesNotMatch(graphicalSmoke, /xdotool key/);
   assert.doesNotMatch(graphicalSmoke, /xdotool windowfocus/);
   assert.match(graphicalFixture, /request -> true/);

@@ -159,7 +159,8 @@ public class CefUtils {
 
 			if (TestUtil.isRunningInGitHubActions()) {
 				// Flags for CI/CD as it is headless and without GPU
-				config.getAppArgsAsList().add("--headless");
+				if (dev.copperbench.platform.GraphicalCiMode.chromiumHeadlessRequired())
+					config.getAppArgsAsList().add("--headless");
 				config.getAppArgsAsList().add("--ignore-gpu-blocklist");
 				config.getAppArgsAsList().add("--no-sandbox");
 				config.getAppArgsAsList().add("--disable-setuid-sandbox");
