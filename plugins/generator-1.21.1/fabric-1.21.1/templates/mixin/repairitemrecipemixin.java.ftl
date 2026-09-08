@@ -21,12 +21,13 @@ package ${package}.mixin;
 
 import com.google.common.collect.Lists;
 import org.spongepowered.asm.mixin.injection.Constant;
+import net.minecraft.core.HolderLookup;
 
 @Mixin(RepairItemRecipe.class)
 public abstract class RepairItemRecipeMixin {
 
-	@Inject(method = "assemble(Lnet/minecraft/world/item/crafting/CraftingInput;)Lnet/minecraft/world/item/ItemStack;", at = @At("HEAD"))
-	public void assemble(CraftingInput input, CallbackInfoReturnable<ItemStack> cir) {
+	@Inject(method = "assemble(Lnet/minecraft/world/item/crafting/CraftingInput;Lnet/minecraft/core/HolderLookup$Provider;)Lnet/minecraft/world/item/ItemStack;", at = @At("HEAD"), cancellable = true)
+	public void assemble(CraftingInput input, HolderLookup.Provider registryAccess, CallbackInfoReturnable<ItemStack> cir) {
 		ItemStack itemStack, itemStack3;
 		ArrayList<ItemStack> list = Lists.newArrayList();
 		for (int i = 0; i < input.ingredientCount(); ++i) {

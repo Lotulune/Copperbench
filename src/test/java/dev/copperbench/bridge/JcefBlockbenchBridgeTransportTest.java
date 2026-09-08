@@ -21,10 +21,13 @@ class JcefBlockbenchBridgeTransportTest {
 	@Test void wireSnapshotUsesLowercaseStateAndExplicitNulls() {
 		String json = JcefBlockbenchBridgeTransport.toWireJson(new BlockbenchProcessService.Snapshot(
 				BlockbenchProcessService.State.UNAVAILABLE, null, null, null, null,
-				null, null, "5.1.6", "BLOCKBENCH_NOT_CONFIGURED"));
+				null, null, "5.1.6", "BLOCKBENCH_NOT_CONFIGURED", null, null, false));
 		assertTrue(json.contains("\"state\":\"unavailable\""));
 		assertTrue(json.contains("\"assetId\":null"));
 		assertTrue(json.contains("\"blockbenchVersion\":\"5.1.6\""));
 		assertTrue(json.contains("\"diagnosticCode\":\"BLOCKBENCH_NOT_CONFIGURED\""));
+		assertTrue(json.contains("\"recoveryPointId\":null"));
+		assertTrue(json.contains("\"workspaceRevision\":null"));
+		assertTrue(json.contains("\"changeCommitted\":false"));
 	}
 }

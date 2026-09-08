@@ -93,6 +93,23 @@ try {
 	$result.baseline = $baseline
 	$result.cleanGuest = -not ($baseline.tools | Where-Object { $_.present })
 
+	# Re-running the clean-guest smoke on the same long-lived VM can leave the
+	# previous product shell open. Stop only Copperbench-owned processes before
+	# invoking NSIS so an upgrade does not wait on locked installation files.
+	$result.preInstallCleanup = Invoke-Command -Session $session -ScriptBlock {
+		$targets = @(Get-Process copperbench, javaw, 'Copperbench-installer' -ErrorAction SilentlyContinue)
+		$stopped = @($targets | Select-Object Id, ProcessName, SessionId)
+		$targets | Stop-Process -Force -ErrorAction SilentlyContinue
+		Start-Sleep -Seconds 2
+		[pscustomobject]@{
+			stopped = $stopped
+			remaining = @(Get-Process copperbench, javaw, 'Copperbench-installer' -ErrorAction SilentlyContinue).Count
+		}
+	}
+	if ($result.preInstallCleanup.remaining -ne 0) {
+		throw 'Copperbench-owned processes remained before silent install.'
+	}
+
 	Invoke-Command -Session $session -ScriptBlock {
 		New-Item -ItemType Directory -Force -Path 'C:\Temp' | Out-Null
 	}

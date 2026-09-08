@@ -16,8 +16,10 @@ import dev.copperbench.automation.audit.AuditRecord;
 import dev.copperbench.automation.audit.JsonLineAuditLog;
 import dev.copperbench.assets.AssetCategory;
 import dev.copperbench.assets.AssetDescriptor;
+import dev.copperbench.assets.AssetHealthReport;
 import dev.copperbench.assets.AssetReferenceGraph;
 import dev.copperbench.assets.AssetWorkspaceService;
+import dev.copperbench.core.diagnostics.AssetDiagnosticProjection;
 import dev.copperbench.core.application.McpWorkspaceEntryAdapter;
 import dev.copperbench.core.contract.UiCore.Command;
 import dev.copperbench.core.contract.UiCore.Operation;
@@ -49,6 +51,21 @@ final class McpToolCatalog {
 
 	McpToolCatalog(UUID workspaceId, McpWorkspaceEntryAdapter adapter, JsonLineAuditLog audit, Clock clock) {
 		this(workspaceId, adapter, audit, clock, null);
+	}
+
+	private static Map<String, Object> procedureRefactorSchema() {
+		return requiredSchema(Map.of(
+				"kind", Map.of("type", "string", "enum", List.of("extract_node", "replace_call_target", "replace_resource_target")),
+				"expectedRevision", Map.of("type", "integer", "minimum", 0),
+				"idempotencyKey", Map.of("type", "string", "minLength", 1, "maxLength", 128),
+				"elementId", Map.of("type", "string", "format", "uuid"),
+				"nodeId", Map.of("type", "string", "format", "uuid"),
+				"newProcedureName", Map.of("type", "string", "minLength", 1),
+				"sourceProcedureId", Map.of("type", "string", "format", "uuid"),
+				"targetProcedureId", Map.of("type", "string", "format", "uuid"),
+				"sourceResource", Map.of("type", "string", "minLength", 1),
+				"targetResource", Map.of("type", "string", "minLength", 1)),
+				List.of("kind", "expectedRevision", "idempotencyKey"));
 	}
 
 	private McpServerFeatures.SyncToolSpecification createModElementTool() {
@@ -111,6 +128,7 @@ final class McpToolCatalog {
 		return requiredSchema(Map.of(
 				"expectedRevision", Map.of("type", "integer", "minimum", 0),
 				"idempotencyKey", Map.of("type", "string", "minLength", 1, "maxLength", 128),
+				"requireRecoveryPoint", Map.of("type", "boolean"),
 				"operations", Map.of("type", "array", "items", step, "minItems", 1, "maxItems", 100)),
 				List.of("expectedRevision", "idempotencyKey", "operations"));
 	}
@@ -137,6 +155,9 @@ final class McpToolCatalog {
 		List<McpServerFeatures.SyncToolSpecification> tools = new ArrayList<>();
 		tools.add(queryTool("get_workspace", "Read workspace state", Operation.GET_WORKBENCH, EMPTY_SCHEMA,
 				arguments -> new JsonObject()));
+		tools.add(queryTool("get_workspace_environment",
+				"Read the active generator, Loader/JDK/Gradle context, source/resource roots and native-first workflow entry points",
+				Operation.GET_WORKSPACE_ENVIRONMENT, EMPTY_SCHEMA, arguments -> new JsonObject()));
 		tools.add(queryTool("list_new_workspace_generators", "List generators available for new workspaces",
 				Operation.LIST_NEW_WORKSPACE_GENERATORS, EMPTY_SCHEMA, arguments -> new JsonObject()));
 		tools.add(commandTool("create_workspace", "Create a new workspace after explicit user approval",
@@ -171,6 +192,12 @@ final class McpToolCatalog {
 					if (!payload.has("filter")) payload.add("filter", new JsonObject());
 					return payload;
 				}));
+		tools.add(queryTool("preview_recovery_restore",
+				"Preview the exact current-workspace file impact before requesting a protected recovery-point restore",
+				Operation.PREVIEW_RECOVERY_RESTORE,
+				requiredSchema(Map.of("recoveryPointId", Map.of("type", "string", "minLength", 1)),
+						List.of("recoveryPointId")),
+				arguments -> GSON.toJsonTree(arguments).getAsJsonObject()));
 		tools.add(queryTool("read_mod_element", "Read a mod element", Operation.GET_MOD_ELEMENT_EDITOR,
 				elementSchema(false), arguments -> GSON.toJsonTree(arguments).getAsJsonObject()));
 		tools.add(queryTool("preview_mod_element_change", "Preview validated element changes without committing",
@@ -211,6 +238,10 @@ final class McpToolCatalog {
 				requiredSchema(Map.of("entryId", Map.of("type", "string", "format", "uuid"), "newName",
 						Map.of("type", "string", "minLength", 1)), List.of("entryId", "newName")),
 				arguments -> GSON.toJsonTree(arguments).getAsJsonObject()));
+		tools.add(queryTool("plan_procedure_refactor",
+				"Plan protected Procedure semantic refactors such as reusable-logic extraction or batch call replacement",
+				Operation.PLAN_PROCEDURE_REFACTOR, procedureRefactorSchema(),
+				arguments -> GSON.toJsonTree(arguments).getAsJsonObject()));
 		tools.add(queryTool("plan_workspace_changes",
 				"Plan an ordered set of workspace mutations against one base revision without changing the workspace",
 				Operation.PLAN_WORKSPACE_CHANGES, workspacePlanSchema(),
@@ -222,6 +253,30 @@ final class McpToolCatalog {
 		tools.add(commandTool("apply_workspace_plan",
 				"Apply a validated workspace plan as one revision with one recovery point and full rollback",
 				Operation.APPLY_WORKSPACE_PLAN, planEnvelopeSchema(true), McpToolCatalog::mutationPayload));
+		tools.add(commandTool("create_local_template",
+				"Create a local-only reusable bundle of selected elements, Procedures, and workspace assets",
+				Operation.CREATE_LOCAL_TEMPLATE,
+				requiredSchema(Map.of(
+						"templateName", Map.of("type", "string", "pattern", "^[a-z][a-z0-9_-]{0,63}$"),
+						"description", Map.of("type", "string", "maxLength", 512),
+						"elementIds", Map.of("type", "array", "items", Map.of("type", "string", "format", "uuid"), "maxItems", 50),
+						"assetPaths", Map.of("type", "array", "items", Map.of("type", "string"), "maxItems", 64),
+						"overwrite", Map.of("type", "boolean"),
+						"expectedRevision", Map.of("type", "integer", "minimum", 0)),
+						List.of("templateName", "expectedRevision")), McpToolCatalog::mutationPayload));
+		tools.add(queryTool("list_local_templates",
+				"List integrity-checked reusable templates stored only on this machine",
+				Operation.LIST_LOCAL_TEMPLATES, requiredSchema(Map.of(), List.of()),
+				arguments -> GSON.toJsonTree(arguments).getAsJsonObject()));
+		tools.add(queryTool("preview_local_template_instantiation",
+				"Instantiate a local template as a signed Workspace Plan for review; no workspace files are changed",
+				Operation.PREVIEW_LOCAL_TEMPLATE_INSTANTIATION,
+				requiredSchema(Map.of(
+						"templateName", Map.of("type", "string", "pattern", "^[a-z][a-z0-9_-]{0,63}$"),
+						"expectedRevision", Map.of("type", "integer", "minimum", 0),
+						"idempotencyKey", Map.of("type", "string", "minLength", 1, "maxLength", 128)),
+						List.of("templateName", "expectedRevision", "idempotencyKey")),
+				arguments -> GSON.toJsonTree(arguments).getAsJsonObject()));
 		tools.add(createModElementTool());
 		tools.add(commandTool("update_mod_element", "Update a mod element", Operation.UPDATE_MOD_ELEMENT,
 				requiredSchema(Map.of("elementId", Map.of("type", "string", "format", "uuid"), "changes",
@@ -341,11 +396,14 @@ final class McpToolCatalog {
 						"cursor", Map.of("type", "string"),
 						"limit", Map.of("type", "integer", "minimum", 1, "maximum", 200),
 						"sort", Map.of("type", "string", "enum", List.of("createdAt", "-createdAt", "label",
-								"-label", "actor", "-actor")),
+								"-label", "actor", "-actor", "source", "-source")),
 						"filter", Map.of("type", "object", "properties", Map.of(
 								"search", Map.of("type", "string"),
 								"actor", Map.of("type", "string", "enum", List.of("ui", "mcp", "headless",
-										"legacy_ui", "system"))), "additionalProperties", false),
+										"legacy_ui", "system")),
+								"source", Map.of("type", "string", "enum", List.of("manual", "automation",
+										"workspace_plan", "procedure", "asset", "datagen", "registry", "blockbench",
+										"restore_safety"))), "additionalProperties", false),
 						"fields", Map.of("type", "array", "items", Map.of("type", "string"), "uniqueItems", true))),
 				arguments -> {
 					JsonObject payload = GSON.toJsonTree(arguments).getAsJsonObject();
@@ -356,6 +414,9 @@ final class McpToolCatalog {
 				}));
 		tools.add(queryTool("get_version_tracks", "Read the four-track Fabric/NeoForge support matrix",
 				Operation.GET_VERSION_TRACKS, EMPTY_SCHEMA, arguments -> new JsonObject()));
+		tools.add(queryTool("get_workspace_health",
+				"Read explainable workspace health facts: element state, dangling references, assets, generator support, recent failed tasks, and recovery availability",
+				Operation.GET_WORKSPACE_HEALTH, EMPTY_SCHEMA, arguments -> new JsonObject()));
 		tools.add(queryTool("get_release_notes", "Read Stage 8 release notes, support matrix, and G7 status",
 				Operation.GET_RELEASE_NOTES, EMPTY_SCHEMA, arguments -> new JsonObject()));
 		tools.add(queryTool("list_installed_plugins",
@@ -421,6 +482,19 @@ final class McpToolCatalog {
 						Map.of("type", "string"), "expectedRevision", Map.of("type", "integer", "minimum", 0)),
 						List.of("sourceDirectory", "zipFileName", "expectedRevision")),
 				McpToolCatalog::mutationPayload));
+		tools.add(queryTool("preview_asset_move",
+				"Preview a reference-safe asset rename or move, including exact structured reference rewrites",
+				Operation.PREVIEW_ASSET_MOVE,
+				requiredSchema(Map.of("sourceAssetId", Map.of("type", "string", "minLength", 1),
+						"targetRelativePath", Map.of("type", "string", "minLength", 1)),
+						List.of("sourceAssetId", "targetRelativePath")),
+				arguments -> GSON.toJsonTree(arguments).getAsJsonObject()));
+		tools.add(commandTool("move_asset",
+				"Apply a reviewed asset move as one revision with pre-change recovery and exact reference rewrites",
+				Operation.MOVE_ASSET,
+				requiredSchema(Map.of("planToken", Map.of("type", "string", "minLength", 1),
+						"expectedRevision", Map.of("type", "integer", "minimum", 0)),
+						List.of("planToken", "expectedRevision")), McpToolCatalog::mutationPayload));
 		if (assets != null) {
 			tools.add(assetListTool());
 			tools.add(assetReferencesTool());
@@ -442,8 +516,16 @@ final class McpToolCatalog {
 						String search = request.arguments() == null ? "" : String.valueOf(request.arguments().getOrDefault("search", ""));
 						AssetCategory category = parseCategory(request.arguments() == null ? null : request.arguments().get("category"));
 						List<AssetDescriptor> result = assets.search(search, category);
+						AssetReferenceGraph graph = assets.buildReferenceGraph();
+						AssetHealthReport health = graph.healthReport();
+						var resultHealth = health.entries().stream()
+								.filter(entry -> result.stream().anyMatch(asset -> asset.id().equals(entry.assetId()))).toList();
+						var diagnostics = graph.diagnostics().stream()
+								.filter(diagnostic -> result.stream().anyMatch(asset -> asset.relativePath().equals(diagnostic.sourcePath())))
+								.map(AssetDiagnosticProjection::project).toList();
 						audit("list_assets", request.arguments(), "succeeded", 0, "");
-						return text(GSON.toJson(Map.of("status", "succeeded", "assets", result)), false);
+						return text(GSON.toJson(Map.of("status", "succeeded", "assets", result,
+								"assetHealth", resultHealth, "health", health.summary(), "diagnostics", diagnostics)), false);
 					} catch (AuditUnavailableException exception) {
 						return auditUnavailable();
 					} catch (RuntimeException exception) {
@@ -457,18 +539,23 @@ final class McpToolCatalog {
 				List.of("sourcePath"));
 		return McpServerFeatures.SyncToolSpecification.builder()
 				.tool(Tool.builder("inspect_asset_references", schema)
-						.description("Inspect outgoing references and diagnostics for one asset").build())
+						.description("Inspect incoming/outgoing references, diagnostics, and health for one asset").build())
 				.callHandler((exchange, request) -> {
 					try {
 						audit("inspect_asset_references", request.arguments(), "started", 0, "");
 						String sourcePath = String.valueOf(request.arguments().get("sourcePath"));
 						AssetReferenceGraph graph = assets.buildReferenceGraph();
 						var references = graph.outgoing(sourcePath);
+						var incoming = graph.incoming(sourcePath);
 						var diagnostics = graph.diagnostics().stream()
-								.filter(diagnostic -> diagnostic.sourcePath().equals(sourcePath)).toList();
+								.filter(diagnostic -> diagnostic.sourcePath().equals(sourcePath))
+								.map(AssetDiagnosticProjection::project).toList();
+						var health = graph.healthReport().entries().stream()
+								.filter(entry -> entry.relativePath().equals(sourcePath)).findFirst().orElse(null);
 						audit("inspect_asset_references", request.arguments(), "succeeded", 0, "");
 						return text(GSON.toJson(Map.of("status", "succeeded", "sourcePath", sourcePath,
-								"references", references, "diagnostics", diagnostics)), false);
+								"references", references, "incomingReferences", incoming, "diagnostics", diagnostics,
+								"health", health == null ? Map.of() : health)), false);
 					} catch (AuditUnavailableException exception) {
 						return auditUnavailable();
 					} catch (RuntimeException exception) {

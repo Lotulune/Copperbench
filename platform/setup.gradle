@@ -1,6 +1,8 @@
 import org.apache.tools.ant.taskdefs.condition.Os
 
 def jbr25_win_64 = 'jbrsdk_jcef-25.0.3-windows-x64-b329.124'
+def temurin21_win_64 = 'jdk-21.0.12+8'
+def temurin21_win_64_archive = 'OpenJDK21U-jdk_x64_windows_hotspot_21.0.12_8.zip'
 def jbr25_linux_64 = 'jbrsdk_jcef-25.0.2-linux-x64-b329.117'
 def jbr25_mac_x64 = 'jbrsdk_jcef-25.0.2-osx-x64-b329.117'
 def jbr25_mac_aarch64 = 'jbrsdk_jcef-25.0.2-osx-aarch64-b329.117'
@@ -29,6 +31,28 @@ tasks.register('downloadJDKWin64') {
 
             // Space saving
             delete fileTree('jdk/jbr25_win_64/jmods') { exclude 'java.base.jmod' }
+        }
+    }
+}
+
+tasks.register('downloadJDK21Win64') {
+    group = 'setup'
+    doLast {
+        if (!file('jdk/jdk21_win_64/bin/java.exe').exists()) {
+            mkdir 'jdk/jdk21_win_64'
+
+            download.run {
+                src "https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.12%2B8/${temurin21_win_64_archive}"
+                dest 'build/tmp/temurin21_win_64.zip'
+                overwrite true
+            }
+            copy { from zipTree('build/tmp/temurin21_win_64.zip') into file('build/tmp/temurin21_win_64') }
+            copy { from file("build/tmp/temurin21_win_64/${temurin21_win_64}") into file('jdk/jdk21_win_64/') }
+            delete 'build/tmp/temurin21_win_64.zip'
+            delete 'build/tmp/temurin21_win_64'
+
+            // Keep the runtime/compiler but discard jlink modules that workspace builds do not use.
+            delete fileTree('jdk/jdk21_win_64/jmods') { exclude 'java.base.jmod' }
         }
     }
 }
@@ -154,7 +178,7 @@ tasks.register('initialSetup') {
     group = 'setup'
 
     if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-        dependsOn downloadJDKWin64
+        dependsOn downloadJDKWin64, downloadJDK21Win64
     } else if (Os.isFamily(Os.FAMILY_MAC)) {
         dependsOn downloadJDKMacAarch64, downloadJDKMacX64
     } else if (Os.isFamily(Os.FAMILY_UNIX)) {

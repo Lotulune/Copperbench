@@ -1,0 +1,7 @@
+{
+  "baselineCommit": "eaf18606e683fcc37a395de83c53e538c947760e",
+  "sourceDeltaSha256": "86085C1C19D1E42AF9F397A8A6B88CF418217BF1144EB75DF540604A9F6CBDBE",
+  "scope": "Existing Stage14A dirty implementation captured during audit; final source-diff comparison determines whether it stayed unchanged",
+  "capturedAt": "2026-09-07T18:14:48.363411+08:00",
+  "runtime": "Windows coding-tool host; production source harness, not installed product or standalone Codex"
+}

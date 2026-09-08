@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-09-05T03:12:22.3023072+00:00",
+  "pass": true,
+  "sourceRevision": "24f7510d7bc8807b1c82f3ee4352eefdc8e78c89",
+  "product": {
+    "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\build\\export\\win64\\copperbench.exe",
+    "sha256": "c94f8a487e2c8eb5927cbbf52715153686b772f843d843c384cbd422e628d220",
+    "applicationJar": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\build\\export\\win64\\lib\\copperbench.jar",
+    "applicationJarSha256": "fafcd1f396f9aca6666aaab87ff2b2d85d237b359243dc1444b275746ff1b8d9"
+  },
+  "workspace": {
+    "source": "D:\\AICoding\\Minecraft_ModCreator\\build\\p0-export-replay-isolated\\workspace\\testmod2.mcreator",
+    "replay": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\build\\stage13-productivity-repair-replay\\workspace\\testmod2.mcreator"
+  },
+  "failure": {
+    "processExit": 10,
+    "status": "failed",
+    "taskState": "failed",
+    "diagnosticCode": "JAVA_COMPILE_ERROR",
+    "diagnosticPath": "/src/main/java/net/example/Stage13RepairProbe.java",
+    "diagnosticFallback": "Line 4: 找不到符号",
+    "diagnosticLine": 4,
+    "locatedFile": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\build\\stage13-productivity-repair-replay\\workspace\\src\\main\\java\\net\\example\\Stage13RepairProbe.java",
+    "stdout": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\build\\stage13-productivity-repair-replay\\failure.stdout.json",
+    "stderr": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\build\\stage13-productivity-repair-replay\\failure.stderr.txt"
+  },
+  "repair": {
+    "editedFromDiagnosticLocation": true,
+    "fixedSourceSha256": "10aa63fe381a0a285571a42c6c8115376fa28331a7fc2d3b841baf6fd3fc6773"
+  },
+  "rebuild": {
+    "processExit": 0,
+    "status": "succeeded",
+    "taskState": "succeeded",
+    "buildSuccessfulMarker": true,
+    "diagnostics": 0,
+    "stdout": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\build\\stage13-productivity-repair-replay\\rebuild.stdout.json",
+    "stderr": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\build\\stage13-productivity-repair-replay\\rebuild.stderr.txt"
+  }
+}

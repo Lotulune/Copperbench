@@ -37,7 +37,10 @@
       "jdk/bin/java.exe",
       "jdk/bin/jcef.dll",
       "lib/copperbench.jar",
-      "plugins"
+      "plugins",
+      "gradlew",
+      "gradlew.bat",
+      "gradle/wrapper/gradle-wrapper.jar"
     ]
   },
   "bundledPlugins": [

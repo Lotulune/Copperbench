@@ -1,0 +1,103 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "stage9-clean-windows11-product-shell",
+  "vmName": "Copperbench-G7",
+  "installerPath": "D:/AICoding/Minecraft_ModCreator/.tmp/stage13-final-inside/build/export/Copperbench 0.1.0 Windows 64bit.exe",
+  "installDir": "C:\\Copperbench-G9",
+  "startedAt": "2026-09-06T22:39:27.7321544+08:00",
+  "passed": true,
+  "cleanGuest": true,
+  "installPassed": true,
+  "productProcessStarted": true,
+  "ipcFailureDetected": false,
+  "screenshotCaptured": true,
+  "baseline": {
+    "caption": "Microsoft Windows 11 专业版",
+    "version": "10.0.26200",
+    "build": "26200",
+    "installDate": "08/28/2026 18:51:49",
+    "osArchitecture": "64 位",
+    "computerName": "COPPERBENCH-G7",
+    "userName": "g7admin",
+    "totalPhysicalMemory": 6441291776,
+    "pathBeforeInstall": "C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Windows\\System32\\OpenSSH\\;C:\\Users\\g7admin\\AppData\\Local\\Microsoft\\WindowsApps",
+    "tools": [
+      {
+        "name": "git",
+        "present": false
+      },
+      {
+        "name": "java",
+        "present": false
+      },
+      {
+        "name": "javac",
+        "present": false
+      },
+      {
+        "name": "gradle",
+        "present": false
+      },
+      {
+        "name": "code",
+        "present": false
+      },
+      {
+        "name": "idea64",
+        "present": false
+      },
+      {
+        "name": "devenv",
+        "present": false
+      },
+      {
+        "name": "studio64",
+        "present": false
+      }
+    ],
+    "PSComputerName": "Copperbench-G7",
+    "RunspaceId": "6e13fe0e-49d8-40d3-8695-20c9f6f14f09",
+    "PSShowComputerName": true
+  },
+  "preInstallCleanup": {
+    "stopped": [],
+    "remaining": 0,
+    "PSComputerName": "Copperbench-G7",
+    "RunspaceId": "6e13fe0e-49d8-40d3-8695-20c9f6f14f09",
+    "PSShowComputerName": true
+  },
+  "install": {
+    "exitCode": 0,
+    "disconnectedDuringInstall": false,
+    "exePresent": true,
+    "bundledJavaPresent": true,
+    "pathAfterInstall": "C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Windows\\System32\\OpenSSH\\;C:\\Users\\g7admin\\AppData\\Local\\Microsoft\\WindowsApps",
+    "PSComputerName": "Copperbench-G7",
+    "RunspaceId": "6e13fe0e-49d8-40d3-8695-20c9f6f14f09",
+    "PSShowComputerName": true
+  },
+  "desktop": {
+    "processes": [
+      {
+        "Id": 1648,
+        "ProcessName": "copperbench",
+        "SessionId": 1,
+        "StartTime": "2026-09-06T22:42:11.7399687+08:00"
+      },
+      {
+        "Id": 7912,
+        "ProcessName": "javaw",
+        "SessionId": 1,
+        "StartTime": "2026-09-06T22:42:11.8417626+08:00"
+      }
+    ],
+    "interactiveProcessCount": 2,
+    "screenshotPath": "C:\\Temp\\copperbench-g9-product-shell.png",
+    "screenshotPresent": true,
+    "ipcMatches": [],
+    "PSComputerName": "Copperbench-G7",
+    "RunspaceId": "6e13fe0e-49d8-40d3-8695-20c9f6f14f09",
+    "PSShowComputerName": true
+  },
+  "completedAt": "2026-09-06T22:42:35.6001830+08:00"
+}

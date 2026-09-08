@@ -1,0 +1,5 @@
+{
+  "track": "fabric-26.2",
+  "finishedAt": "2026-09-07T10:39:55.7008708+00:00",
+  "note": "Inspect individual phase JSON; orchestration completion does not mean all phases passed"
+}

@@ -1,0 +1,3 @@
+# Deliberately retained, credential-free Gradle/boot logs for this comparison.
+!*.stdout.log
+!*.stderr.log

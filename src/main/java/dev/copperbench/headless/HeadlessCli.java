@@ -24,6 +24,7 @@ import dev.copperbench.core.contract.UiCore.QueryResult;
 
 import java.io.PrintWriter;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -58,6 +59,7 @@ public final class HeadlessCli {
 				commands.add("run-gametest");
 				commands.add("export");
 				commands.add("list-new-workspace-generators");
+				commands.add("environment");
 				commands.add("create-workspace");
 				commands.add("tracks");
 				commands.add("release");
@@ -99,7 +101,19 @@ public final class HeadlessCli {
 			payload.addProperty("clientMutationId", ids.get().toString());
 			if (!payload.has("scope"))
 				payload.addProperty("scope", "workspace");
-			Command command = Command.of(ids.get(), workspaceId, parsed.revision(), parsed.operation(), payload);
+			long revision = parsed.revision();
+			if ((parsed.operation() == Operation.VALIDATE_WORKSPACE || parsed.operation() == Operation.BUILD_WORKSPACE)
+					&& !parsed.revisionExplicit()) {
+				JsonObject revisionProbe = new JsonObject();
+				revisionProbe.addProperty("limit", 1);
+				QueryResult current = adapter.query(Query.of(ids.get(), workspaceId, Operation.LIST_MOD_ELEMENTS,
+						revisionProbe));
+				if (!"succeeded".equals(current.status()))
+					throw new IllegalStateException("Could not resolve the current workspace revision for "
+							+ parsed.operation().name().toLowerCase(Locale.ROOT));
+				revision = current.revision();
+			}
+			Command command = Command.of(ids.get(), workspaceId, revision, parsed.operation(), payload);
 			CommandOutcome outcome = adapter.execute(command);
 			HeadlessExitCode exitCode = exitCode(outcome);
 			JsonObject response = GSON.toJsonTree(outcome.result()).getAsJsonObject();
@@ -126,9 +140,9 @@ public final class HeadlessCli {
 		if (arguments.length == 0)
 			throw new IllegalArgumentException("A command is required");
 		if (arguments[0].equals("help") || arguments[0].equals("--help"))
-			return new ParsedCommand(null, 0, new JsonObject(), true, false);
+			return new ParsedCommand(null, 0, false, new JsonObject(), true, false);
 		boolean query = switch (arguments[0]) {
-			case "list-new-workspace-generators", "tracks", "release", "preview-migrate", "preview-import", "plugins",
+			case "list-new-workspace-generators", "environment", "tracks", "release", "preview-migrate", "preview-import", "plugins",
 					"elements", "upstream-tools", "procedure", "preview-procedure", "references", "registries",
 					"preview-registry-rename", "preview-datagen" -> true;
 			default -> false;
@@ -143,6 +157,7 @@ public final class HeadlessCli {
 			case "run-gametest" -> Operation.RUN_GAMETEST;
 			case "export" -> Operation.EXPORT_WORKSPACE;
 			case "list-new-workspace-generators" -> Operation.LIST_NEW_WORKSPACE_GENERATORS;
+			case "environment" -> Operation.GET_WORKSPACE_ENVIRONMENT;
 			case "create-workspace" -> Operation.CREATE_WORKSPACE;
 			case "tracks" -> Operation.GET_VERSION_TRACKS;
 			case "release" -> Operation.GET_RELEASE_NOTES;
@@ -281,7 +296,7 @@ public final class HeadlessCli {
 			throw new IllegalArgumentException("publish-datagen requires --task-id and --manifest-hash");
 		if (operation == Operation.GET_TASK && !payload.has("afterLogSequence"))
 			payload.addProperty("afterLogSequence", 0);
-		return new ParsedCommand(operation, revision, payload, false, query);
+		return new ParsedCommand(operation, revision, options.containsKey("--revision"), payload, false, query);
 	}
 
 	private static HeadlessExitCode exitCode(CommandOutcome outcome) {
@@ -323,6 +338,7 @@ public final class HeadlessCli {
 		output.flush();
 	}
 
-	private record ParsedCommand(Operation operation, long revision, JsonObject payload, boolean help, boolean query) {
+	private record ParsedCommand(Operation operation, long revision, boolean revisionExplicit, JsonObject payload, boolean help,
+			boolean query) {
 	}
 }

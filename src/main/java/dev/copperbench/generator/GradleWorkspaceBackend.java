@@ -9,6 +9,7 @@
 
 package dev.copperbench.generator;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import dev.copperbench.core.contract.UiCore.Operation;
 import dev.copperbench.core.workspace.WorkspaceState;
@@ -64,6 +65,13 @@ public interface GradleWorkspaceBackend {
 		}
 	}
 
-	record ValidationIssue(String code, String message, String path, UUID elementId) {
+	record ValidationIssue(String code, String message, String path, UUID elementId, JsonElement repairValue) {
+		public ValidationIssue(String code, String message, String path, UUID elementId) {
+			this(code, message, path, elementId, null);
+		}
+
+		public ValidationIssue {
+			repairValue = repairValue == null ? null : repairValue.deepCopy();
+		}
 	}
 }

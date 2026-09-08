@@ -1,10 +1,20 @@
 # Copperbench PRD：Public Beta 基线、Stage 11 全量 Mod Element、安装产品 Agent 闭环与后续深化路线
 
-> 状态：Public Beta `v0.1.0-beta.4` 已发布；Stage 11 全量 Java Mod Element 与 2026-09-02 重新打开的 4 个安装产品 P0 门禁均已闭环，Stage 12～15 路线进入可执行状态
-> 版本：v1.8
-> 更新日期：2026-09-04
+> 状态：Public Beta `v0.1.0-beta.4` 已发布；Stage 12/13 保留对应范围的关闭证据；Stage 14A/14B/14C/14D 已在当前开发线上按各自 DoD 关闭，Stage 14 整体完成；下一产品开发阶段为 Stage 15 Linux 正式支持
+> 版本：v1.13
+> 更新日期：2026-09-08
 > 前置基线：[PRD.md](./PRD.md)、[PRD-STAGE-9.md](./PRD-STAGE-9.md)
 > 当前公开 Beta：`v0.1.0-beta.4`（release-control `29ac9cf2`，release run `33751421385`）；canonical EXE/ZIP/MSIX/SBOM 与签名候选 `v0.1.0-preview.8` 完全同 size/SHA-256；安装产品 P0 行为证据来自 `d0d96877`，其到 Preview 8 的 tracked delta 不含产品/runtime/build/SDK 实现变更
+
+## 2026-09-07 Stage 14 原生编码优先路线修订
+
+用户已批准将 Copperbench 明确定位为**通用 Agent 的 Minecraft 开发工作台**，而不是另一个通用 Agent 或强制性的低代码翻译层。可视化元素、Procedure 和模板是可选加速路径；复杂玩法允许使用原生 Java、标准资源文件和现有 IDE/Agent，不以平台是否已有对应 schema 作为表达能力上限。
+
+本次修订依据 `eaf18606` 上的代码审查、真实 MCP 源码运行时试作，以及同环境的原生 Fabric 对照。范围、原始结果与混杂因素见 [Survey Pulse 原生 Agent 对照](./docs/testing/native-agent-survey-pulse-comparison-2026-09-07.md)；架构决策见 [ADR-0017](./docs/adr/0017-native-first-agent-workbench.md)。这不是独立 Codex CLI 基准，也不是对特定模型性能的认证。
+
+Stage 12/13 的既有关闭记录仍是对应范围的历史证据。**代码包跨元素覆盖**与**仅修改元数据导致外部源码修改丢失**最初作为 P1 纳入 14A；截至 2026-09-08，直接写入/计划预检、磁盘源码权威、metadata-only 保留、内容指纹、恢复真实字节回放、generated/manual 接管、失败清理和 late rollback 已完成，并通过八轨 Core 生命周期矩阵以及安装产品 Desktop MCP 重放，**14A 按自身 DoD 独立关闭**。随后 14B 已补齐无工作区 generator discovery、本机批准的 bootstrap create、环境/JDK 路由、原生多文件“故意编译失败 → 修复 → 构建 → 重开”产品入口闭环及八轨 native multi-file golden；14D 已补齐 Workspace Plan 高影响审阅、权限/恢复/签名边界、实验扩展兼容声明，以及元素/Procedure/资产本地模板的跨工作区 preview → apply → rollback 闭环。14C 最终补齐 Fabric/NeoForge 八轨原生与生成工程的分层 packaged-JAR/server-ready/gameplay 矩阵，并在真实重放中修复现代 NeoForge 无监听器主类仍自注册事件总线的 `CB-AUDIT-07`。**14A、14B、14C、14D 现均按各自 DoD 关闭，Stage 14 整体完成**；NeoForge 1.20.1 两个玩法单元因 EULA 在 mod load 前检查而继续明确记录为 `blocked/not_run`，未被伪装成 gameplay passed。
+
+最初的 Fabric 1.21.1 bootstrap 对照复现 `CB-AUDIT-03`，修复后又发现 `CB-AUDIT-04`；两处模板已在后续 Stage 14A 工作中修复，并有该轨道 development-source 初始化/EULA 边界复演。首轮对照只覆盖一条线，不代表产品只支持这一条线。当前必须显式维护 Fabric/NeoForge 各四轨的验证矩阵，详见 FR-ADV-10 与[八轨 Survey Pulse 复测](./docs/testing/stage14-eight-track-survey-pulse-2026-09-07.md)；开发类路径启动不能替代已发布安装包或世界内玩法验收。
 
 ## 2026-09-03 Beta 4 安装产品闭环与发布收口
 
@@ -535,6 +545,7 @@ Bedrock Add-on 的 `bebiome`、`beblock`、`beentity`、`beitem`、`bescript` �
 4. **优先高频复杂类型。** `livingentity`、`biome`、`dimension`、`gui` 是 Stage 12 第一优先级；其它类型按对真实模组开发的价值继续分批深化。
 5. **复杂项目必须可恢复。** 批量修改、迁移、AI 操作和高级编辑器仍必须进入 revision / recovery-point / semantic diff 保护。
 6. **不为已明确排除的环境项重新制造发布阻断。** 第 11.7 节列出的专项认证不进入 Stage 12～14 DoD；Stage 15 的 Linux 平台工作按 11.5 自身 DoD 独立验收。真实用户已经复现的安装产品功能缺陷仍按正常 P0/P1 管理。
+7. **模型负责实现，工作台提供事实和可靠操作。** 不绑定单一模型或另造通用规划器；原生 Java/资源文件与结构化编辑共享工程，但不强迫任意代码转换为 Procedure、元素 schema 或自定义 DSL。对表达方式减少限制，对真实文件冲突、凭据、破坏性操作和结果真实性保留约束。
 
 ### 11.1 总体拆分
 
@@ -542,7 +553,7 @@ Bedrock Add-on 的 `bebiome`、`beblock`、`beentity`、`beitem`、`bescript` �
 | --- | --- | --- | --- | --- |
 | Stage 12：复杂元素编辑深度 | P0 | 把高价值复杂元素从“技术支持”提升为“专业创作体验” | 不依赖通用字段面板即可完成常见实体、世界生成和 GUI 场景 | 12A / 12B / 12C 三个可独立开发 Wave |
 | Stage 13：创作者生产力 | P1 | 深化 Procedure、资产、诊断、历史和迁移工作流 | 大型项目更快定位、修改、构建和恢复 | 可按 Procedure / Asset / Diagnostics 三条线并行 |
-| Stage 14：高级开发者与 AI-native 工作流 | P2 | 强化手写代码、IDE、批量重构、AI 计划审阅和扩展能力 | 高级作者能把 Copperbench 当作长期工程环境而非单次生成器 | API 稳定后逐项开放，不要求一次完成 |
+| Stage 14：高级开发者与 AI-native 工作流 | P1，14A 优先 | 源码安全共存、原生 Agent 编写闭环、真实验证，然后深化审阅与复用 | 模型自由编码不被元数据回灌或生成器破坏，作者保留可视化控制 | 14A / 14B / 14C / 14D 分波交付；真实收益由对照任务验证 |
 | Stage 15：Linux 正式平台扩展 | P1 | 将现有 Windows-first 产品能力迁移并验证到 Linux x86_64 桌面 | Linux 用户获得正式安装包、桌面工作流、构建/运行与 Agent 能力 | 独立平台候选；完成 clean Linux 安装与发布闭环后才宣称正式支持 |
 | Continuous：版本与兼容维护 | 持续 | 保持现有能力随 Minecraft、Loader、JDK/JCEF/Gradle 与上游工作区演进 | 已有项目不因平台升级快速失效 | 与每个功能版本并行执行 |
 
@@ -714,42 +725,70 @@ Stage 13 不增加新的 Mod Element 类型，目标是降低真实项目在“�
 
 #### 11.4.1 产品目标
 
-Stage 14 面向希望长期维护复杂项目、愿意使用 Java/IDE 或外部 AI 的高级模组作者。目标不是把 Copperbench 变成完整 IDE，而是让可视化创作、生成代码、手写扩展和 AI 修改能够在一个可审阅、可恢复的工程模型中协作。
+Stage 14 面向希望长期维护复杂项目、愿意使用 Java/IDE 或外部 AI 的高级模组作者，也保留不直接编码的创作者入口。目标是成为通用 Agent 的 Minecraft 开发工作台：Agent 负责理解需求、设计和修改代码，Copperbench 提供准确工程上下文、可视化资产、构建/运行反馈、冲突处理与恢复。不是完整 IDE、内置通用 Agent，也不与 Codex、Claude Code 等客户端争夺规划职责。
+
+**产品原则：原生代码是正式路径，结构化元素是可选加速路径。** 不要求任意 Java 无损映射回可视化图，也不承诺任意第三方 Gradle 工程立即获得完整元素级编辑能力。无已知 schema 的逻辑仍可由原生代码实现；未知引用或迁移能力必须显示覆盖限制，不得据此声称可安全清理或自动迁移。
+
+本节验收按 Wave 独立关闭；截至 2026-09-08，14A、14B、14C、14D 均已取得对应实现与回归并独立关闭，Stage 14 整体完成。实验中某个原生示例成功不等于 Copperbench 已支持该工作流，纯函数测试也不等于游戏行为验证；14C 的关闭来自独立 packaged-JAR/runtime/gameplay 矩阵而不是早期编译结果外推。
+
+#### 11.4.1.1 交付顺序与待修复问题
+
+| Wave | 需求 | 当前状态 | 关闭条件 |
+| --- | --- | --- | --- |
+| 14A 源码安全共存 | FR-ADV-01；CB-AUDIT-01/02 | **已关闭（2026-09-08）**；八轨逐轨通过 primary/helper 外改保留、冲突/失败清理、重开/再生成、恢复真实字节、接管与 stale-source 指纹；当前 Windows 候选安装包的真实 Desktop MCP 也通过 ownership / stale direct write / stale Workspace Plan 重放 | 文件归属冲突在写入前被发现；元数据修改不重写源码；外部修改、重开、再生成及恢复均有回归 |
+| 14B 原生编写闭环 | FR-ADV-02、FR-ADV-07；FR-ADV-04 最小组合工具 | **已关闭（2026-09-08）**；bootstrap 可在无现有工作区时发现 generator，并经本机用户批准创建真实工作区；environment 暴露 generator/Loader/Gradle/JDK/source/resource roots；产品入口完成原生多文件编写、故意编译失败、定位修复、重建和重开，八条 Java 轨道另有 native multi-file hook build/JAR preservation golden | 通用 Agent 从空目录完成初始化、上下文读取、原生修改、接入和构建，不需要内部测试入口 |
+| 14C 真实验证反馈 | FR-ADV-08、FR-ADV-09 | **已关闭（2026-09-08）**；Fabric 4 轨 × native/Copperbench 共 8 个 gameplay 单元全部通过；NeoForge 1.21.1/26.1.2/26.2 的 native/Copperbench 共 6 个 gameplay 单元通过，1.20.1 两个单元保持 EULA 授权 `blocked/not_run` 且矩阵 8/8 closure satisfied；packaged JAR、initializer、server-ready 与行为均独立记录 | 结果分层可追溯；代表性玩法有真实行为证据；同条件对照不以缓存差异冒充收益 |
+| 14D 审阅与复用 | FR-ADV-03、FR-ADV-04 深化、FR-ADV-05/06 | **已关闭（2026-09-08）**；Workspace Plan 支持真实 semantic diff/high-impact review、permission/recovery、HMAC plan token 与 stale/tamper 拒绝；实验扩展明确标记非稳定 ABI；本地模板可打包自包含元素/Procedure/资产，并以同一签名 Workspace Plan 跨工作区 preview/apply/rollback | 在既有安全基础上减少创作工作量，不让复杂审阅 UI、模板或实验 SDK 阻塞 14A～14C |
+
+`CB-AUDIT-01`：两个受管理 `code` 元素可以通过 `codeFiles` 同时认领同一物理文件，后写入者覆盖前者，计划未报告冲突。`CB-AUDIT-02`：外部改动代码包辅助文件后，仅更新 `/displayName` 也会把旧元数据代码写回磁盘。这是具体内容完整性缺陷，不要求为所有低风险编辑增加人工审批。历史实验曾返回恢复点，但没有证明这两类覆盖的恢复已经通过。
+
+`CB-AUDIT-03`：Fabric 1.21.1 默认生成骨架的 `ServerPlayerMixin` 曾错误指向 `drop(Z)V`。2026-09-07 已将 1.21.1 模板修为 `drop(Z)Z`；真实 `runServer` 随后越过该注入点，确认这不是仅靠静态模板断言关闭的问题。
+
+`CB-AUDIT-04`：在 `CB-AUDIT-03` 修复后的真实 bootstrap 中，第二个独立失败被定位为 `RepairItemRecipeMixin` 仍按单参数 `assemble(CraftingInput)` 注入，而 1.21.1 目标实际需要 `assemble(CraftingInput, HolderLookup.Provider)`。同日已修正 1.21.1 模板和 cancellable handler；再次运行相同 development-server probe 后 `SurveyPulseMod` 完成初始化并打印 `SURVEY_PULSE_INITIALIZED`，最终按测试设计停在未接受 EULA 的边界，Gradle `BUILD SUCCESSFUL`。此前 Commands remap 警告仍需独立语义核验；不得把本次 1.21.1 bootstrap 成功外推到其他 generator track、发布安装包或世界内行为。
+
+`CB-AUDIT-07`：14C 的现代 NeoForge packaged gameplay 首轮发现 `neoforge-1.21.1`、`neoforge-26.1.2`、`neoforge-26.2` 生成主类在没有任何 `@SubscribeEvent` 方法时仍无条件调用 `NeoForge.EVENT_BUS.register(this)`，导致 NeoForge 在构造 mod 时正确拒绝加载。三条模板现仅在存在 Procedure、因而实际生成订阅 tick handler 时注册主类；定向模板回归通过，三个 Copperbench fixture 均由生产 Core/生成器重新生成后重放并通过 initializer、packaged-JAR、server-ready 与 gameplay。详见 [Stage 14C runtime/gameplay closure evidence](./docs/testing/stage14-runtime-gameplay-closure-2026-09-08.md)。
 
 #### FR-ADV-01 Generated / Manual Source 工程边界
 
-- 对 generated source、manual source、generator-owned resource 建立清晰 ownership；
-- generated 文件只读展示并可查看“由哪个元素/字段生成”；
-- manual source 提供独立目录和生命周期，重新生成不得覆盖；
-- 当 manual code 引用被迁移/删除的元素时进入 reference/diagnostic 系统；
-- 生成前后可以查看源码差异，但源码 diff 不替代元素 semantic diff。
+- 对 generated source、native/manual source、generator-owned resource 建立清晰 ownership。一个受管物理路径只能有一个写入所有者；平台大小写语义、同一计划中新增文件及其他元素的主/辅助文件都进入冲突检查。
+- **先计算实际文件变更，再提交写入。** preview 与 apply 使用同一归属/冲突规则；失效计划或冲突不得留下部分文件修改。仅更改显示名等元数据时，不得重写、删除或重新格式化无关源码。
+- generated 文件展示来源；需要自由修改时提供明确的接管/脱离生成管理动作，而不是要求修改生成器内部。接管后不得在 regenerate 时静默夺回所有权；已有受保护用户代码块继续兼容。
+- native/manual source 以磁盘内容为权威来源，提供独立生命周期；平台可保存索引、归属和内容指纹，不维持一份会悄悄回灌的陈旧可写代码副本。既有 `code`/`codeFiles` API 必须有兼容迁移，不直接删除旧项目内容。
+- 外部 IDE/Agent 编辑后按变更批次更新诊断和历史；写入前比较相关文件内容状态，明确报告冲突。无需每个按键都推进全局 revision，也不应因无关文件变化阻塞所有原生修改。
+- native code 的引用分析应记录覆盖级别；不能解析的动态/反射引用不得当作“无引用”。资源清理、重命名、删除和迁移不能基于不完整索引宣称安全。
+- 元素改动显示 semantic diff；原生源码改动显示文件/源码 diff，不伪造元素映射，也不要求所有 Java 都生成元素级语义图。
+
+最低回归：两个元素的文件路径冲突、同一计划内路径冲突、辅助文件与他人主文件冲突、metadata-only 修改、外部编辑后更新/重开/重新生成，以及相应恢复点回放。直接命令和 Workspace Plan 两条写入路径都要覆盖。
 
 #### FR-ADV-02 IDE Bridge
 
-- 从工作区一键打开 IntelliJ IDEA / VS Code 等外部 IDE；
-- 传递正确的工作区、Wrapper、JDK 与 Gradle 环境信息；
-- 外部编辑后文件变化由 Copperbench 检测并更新诊断/历史；
+- 从工作区一键打开 IntelliJ IDEA / VS Code 等外部 IDE，并允许外部 Agent 使用其正常文件编辑工具；不强制通过 JSON 重新发送整个 Java 类。
+- 传递正确的工作区、Wrapper、JDK、Gradle、Minecraft、Loader、映射及依赖信息，区分检测事实和建议配置；必要的同步可由产品驱动，不要求外部客户端调用内部 Java 类。
+- 外部修改的发现、归属、冲突、诊断和历史遵循 FR-ADV-01；新建类、资源和测试文件无需先人为制造 Mod Element 包装。
+- 初始范围是 Copperbench 工作区中的原生源码协作。任意现有第三方 Fabric/NeoForge 工程的完整导入/可视化往返仍需独立设计，不通过本条隐式承诺。
 - 不承诺成为 IDE 调试器，也不复制 IDE 的代码智能功能。
 
 #### FR-ADV-03 AI Plan Review 工作台
 
 在现有 Workspace Plan / MCP 上增加面向创作者的审阅界面：
 
-- 按元素、字段、资产和 Procedure 节点展示 AI 计划；
-- 高风险操作分组显示并要求用户确认；
-- 应用前自动 recovery point；
-- 应用后展示实际结果与计划差异；
+- 按元素、字段、资产、Procedure 节点和原生文件展示真实影响；不得把仅包含元素数量的摘要当成原生代码覆盖检查。
+- preview 能力始终可用；是否暂停要求用户交互由明确权限档位和操作风险决定。已有受保护操作继续确认，常规非破坏性局部编码允许在用户批准的工作区授权内连续执行。
+- 修改前按批次建立恢复点，展示实际变更与计划的差异；外部改动必须进入真实快照，不以保存了旧元数据代替源码恢复。
+- 完整源码和计划可由工具/SDK 持有，向模型按需返回摘要、差异及认证句柄；句柄继续绑定版本、会话与内容，不能以减少传输为由取消 stale/幂等检查。
 - 长任务继续使用 Task Events / `get_task(afterLogSequence)` 可恢复模型，不创建第二套 AI 专用任务系统。
 
 #### FR-ADV-04 高层 MCP / 批量工程操作
 
-逐步把真实高频工程任务提升为高层工具，而不是要求 AI 连续调用大量低层 CRUD：
+先减少真实高频任务的机械调用，不替模型决定玩法架构，也不制造另一套通用 Agent：
 
 - 批量重命名与引用更新；
 - 模板化创建一组相关元素；
 - 项目健康检查与可修复问题计划；
 - 构建失败后的诊断收集与修复计划；
 - 大规模迁移/重构的 preview → apply → rollback。
+
+先交付“准备工程并返回真实上下文”“构建并返回第一批可定位诊断”“按任务获取增量结果”的最小组合能力。工具名和载荷以实现设计冻结，不要求为每种玩法另加一个专用工具。原始编译日志、源码和普通文件编辑路径必须仍可访问。
 
 所有高层工具必须落到同一 Core command/plan 模型，并保留权限、幂等、revision 和恢复语义。
 
@@ -759,6 +798,10 @@ Stage 14 面向希望长期维护复杂项目、愿意使用 Java/IDE 或外部 
 - 导入模板前检查名称、ID、资源和 generator capability 冲突；
 - 模板实例化通过 Workspace Plan 完成，可预览、可回滚；
 - 默认仅本地文件，不在本阶段引入账号、云市场或远程模板商店。
+
+模板可同时含结构化内容、已有 `code` 元素及明确资产/资源，导入后允许继续正常编码；任意自由原生 Java 文件树仍走 IDE/Agent + 版本控制的普通文件路径，本 Wave 不为“模板化”再造第二套源码包管理。模板不得成为唯一创建入口。
+
+实施状态（2026-09-08）：**已关闭**。`create_local_template` / `list_local_templates` / `preview_local_template_instantiation` 已进入 Core/MCP；模板默认保存到本机 `.copperbench/templates`，导出时拒绝悬空或模板外结构化依赖、越界/符号链接资产和异常 ownership，实例化要求 generator 一致并分配新 ID。元素/Procedure 与内嵌资产内容、路径、SHA-256 一并进入 `planId` / `planToken`、semantic diff、changed paths 和同一恢复事务；目标资产冲突在 preview 阶段拒绝，篡改模板或 Plan 在写入前拒绝，真实 MCreator 跨工作区 Procedure+资产复用、重开持久化和 rollback 边界均有回归。默认仍仅本地，不引入账号、云市场或远程模板商店。
 
 #### FR-ADV-06 扩展/生成器开发者入口
 
@@ -771,13 +814,62 @@ Stage 14 面向希望长期维护复杂项目、愿意使用 Java/IDE 或外部 
 
 任何“正式第三方插件 SDK”承诺必须先经过独立 ADR，明确兼容周期和破坏性变更策略；Stage 14 可以先改善内部/实验性开发入口，不因 SDK 尚未稳定阻塞其它高级功能。
 
+#### FR-ADV-07 原生源码与 CLI/MCP 从零创作闭环
+
+- 提供不依赖已有 `.mcreator` 文件的初始化入口；列出生成器/能力、创建工作区等引导操作不应要求先打开另一个工作区。
+- 普通外部 Agent 可以从空目录完成 create/open → environment/context → edit → build → diagnostics → repair；CLI 与 MCP 可有不同交互形式，但领域结果、权限、冲突与退出状态一致。不能要求读取内部测试 harness 才知道如何使用。
+- 支持多文件 Java、标准资源、测试和明确受支持的构建扩展；已有 schema 的元素可走结构化捷径，未覆盖逻辑不能因此被禁止。
+- 为常见初始化、事件注册、客户端/服务端边界提供清楚的原生接入方式；已写入的行为必须能被明确接入，不能把“生成了一个没有调用者的类”报告为玩法完成。
+- 默认构建只执行完成编译和正确生成所必需的准备；可选的完整反编译/IDE 索引应按需运行并可观察。现有生成器若确实依赖导入模型，应明确说明并优化其依赖，不能直接跳过后生成缺失 import 的代码。
+- 审计默认生成骨架中的版本敏感运行钩子，尽可能按实际内容需要生成；保留的通用钩子必须有对应 Loader/版本的装载回归。不要让简单原生玩法无条件承担不相关 Mixin 的故障。
+- 用户可继续使用原生 Gradle 工具。Copperbench 对直接外部修改记录为“已检测/待验证”等事实，不因未经过每一步结构化 CRUD 就阻止下一步，也不在未校验时宣称其已经通过。
+
+#### FR-ADV-08 运行证据与失败定位
+
+- 为每次修改保留分层状态：`written`（已写入）、`generated`（需要时已生成）、`compiled`（编译通过）、`loaded`（真实运行已装载）、`behavior_verified`（指定行为断言通过）。允许“不适用”，不把这些层级压成一个模糊 success。
+- 每个状态附源内容标识、环境版本、任务/命令、产物或日志定位；编译状态不得被用作玩法状态，过期证据不得自动附到新源码。
+- 特别区分正常的 EULA 边界退出、mod initializer 执行、服务器世界就绪和行为断言；即使 `runServer`/Gradle 返回 0，也不能仅据退出码宣称服务已运行。开发类路径启动与打包 JAR 部署验证也要分开记录。
+- 代表性验证至少含服务端权威交互、客户端/服务端装载边界，以及需要时的 GameTest/运行时断言。纯函数测试、空工程、readiness marker 或标题画面不能代替目标玩法。
+- 可提供结构化错误、原始日志、测试结果和可用环境下的截图。图形或协议环境不支持时明确标记 not-run，不重新引入与本次路径无关的专项环境认证。
+- 测试世界和测试进程隔离；不修改用户已有世界，不代用户接受新协议；只能清理本次启动的任务，不能按进程名称终止无关游戏/JDK。
+- 不假定 `eula=false` 在所有开发运行模式下都会阻止建世界；仅做装载检查的 harness 应使用已验证的早期退出/`--initSettings` 路径。若实际越过预设边界，必须停止本次隔离任务并记录事实，不能继续写“未创建世界”。开发模式启动、EULA 边界与真实玩法验收仍分别记录。
+- 不要求复制通用 IDE 调试器，优先提供模型能够利用的真实反馈和可重复任务。
+
+#### FR-ADV-09 同模型创作收益对照
+
+- 对比同一 Agent 的原生工程路径与 Copperbench 路径，不把“Copperbench 能做”直接等同于“比通用 Agent 更好”。记录准确宿主、模型可知信息、权限、工具版本和提示，不冒充独立 Codex/Claude Code 实测。
+- 使用相同玩法规格与 Minecraft/Loader/映射；记录已有知识、参考源码、脚手架复用、JDK 和依赖缓存。冷缓存、热缓存、从零创作、仅构建阶段分别记录；不清空用户缓存来制造对照。
+- 最小任务集含基础内容模组、多文件交互逻辑、外部源码编辑后再进行可视化/元数据修改。后续增加故意编译失败后的修复和资源引用变更。
+- 记录行为完成率、人工中断、返工/无效调用、源码损坏、环境准备与构建耗时；有真实计量来源时才记录 token/成本。轮询请求数、API 次数和模型决策次数不得混为一谈。
+- 性能对照使用相同任务、缓存分类和样本顺序；少量单次试验只作为诊断，不给出统计提升率。端到端验证标准在运行前定义，必须保留失败记录。
+- Wave 评审必须指出相对原生路径新增了哪些可验证收益。复杂代码任务若持续只有额外成本，优先缩小托管范围或作为可选工具，而不是通过堆功能数量证明价值。
+
+#### FR-ADV-10 八轨原生与生成工程验证矩阵
+
+- 本阶段范围为 `fabric-1.20.1`、`fabric-1.21.1`、`fabric-26.1.2`、`fabric-26.2`、`neoforge-1.20.1`、`neoforge-1.21.1`、`neoforge-26.1.2`、`neoforge-26.2`。这八轨来自既有支持矩阵，不是新增平台。资源包生成器不伪装成第九条 Java 模组轨道，继续按自身能力验证。
+- 每轨记录生成器 ID、实际 Loader/API/Gradle/JDK/映射版本、源码基线及未提交差异摘要、fixture 和任务/日志路径。版本带 SNAPSHOT 时同时记录实际解析结果；只有 HEAD 而没有本地变更摘要不能标识一次脏工作树验证。
+- 14A 的公共源码完整性用例逐轨执行：主文件/辅助文件外部修改后 metadata-only 保存、跨元素物理路径冲突、失败创建清理、重开与再生成、恢复点真实字节回放、接管和 stale-source 指纹。某些用例通过不代表该行全部通过；Core 直接调用、真实 MCP 与安装产品分别注明层级。
+- 14B 使用同一需求的多文件交互模组，按轨道适配真实 API，不把 1.21.1 的 Java/资源字段直接复制到 26.x 或旧 Forge 兼容轨道。结构化输入须检查“提交结果 → 上游持久化定义 → 生成资源/代码 → 运行值”；`committed`、投影保留和编译通过均不能替代参数生效。最小语义检查包括最大堆叠、冷却、范围、资源 ID 和配方输出。
+- 14C 对每轨单列原生与生成工程的 `prepared`、`compiled`、`initializer_executed`、`eula_boundary_reached`、`server_ready`、`packaged_jar_loaded`、`behavior_verified`；每格取 passed/failed/blocked/not_run/not_applicable，并链接证据。EULA 未接受而正常退出只证明相应边界，不提升为 server_ready 或玩法通过。
+- 从相同已解析构建配置创建原生对照，属于工程/运行兼容对照，不是“独立从零创作”评测；复用缓存、Wrapper、代码或配置须声明。公共 API 不应隐式依赖生成器注入的访问扩展；若依赖则列入该变体的实际配置。
+- 已知生成器缺陷、Agent 示例适配错误、测试驱动缺陷、网络/资源准备超时须分开归因。保留失败尝试，修复驱动后重跑再判断产品；禁止把 timeout 当成功、把一轨通过推广为八轨通过、把不同版本的单次耗时当性能排名。
+- CI 采用公共 Core 快回归 + 受影响轨道定向生成/构建/启动 + 周期或候选完整八轨矩阵，不要求每个无关界面修改重跑全部重型任务。涉及版本模板或 Loader 声明必须执行该轨真实装载；跨轨共享逻辑在关闭相应 Wave 前补全八轨该层证据。现有 14A 进度保留，不为扩表重做无关历史认证。
+- 真实 gameplay 验收最终逐轨检查右键、潜行范围、冷却、服务端权威性与多人隔离；因环境/授权未执行时保持 not_run，不能由纯函数测试或 EULA 探针补填 passed。所有测试在隔离工作区执行，不改用户世界、不自动接受协议、不清理无关进程或用户缓存。
+
+2026-09-07 复测新增的两项同期功能缺陷已在 2026-09-08 完成修复和对应层级重放：`CB-AUDIT-05` 将公开 `initialValues.fields.maxStackSize` / `/fields/maxStackSize` 正确映射到真实上游 `Item.stackSize`，当前源码八轨均验证 create=1、update=7、生成 `.stacksTo(1/7)` 且 reopen=7；这证明字段落盘/生成契约，不替代 14C gameplay。`CB-AUDIT-06` 将 Fabric 1.20.1 描述符要求改为与生成构建一致的 `fabricloader >=0.15.11`，真实 Loader 0.15.11 重放已加载并执行 `SurveyPulseMod` 初始化标记后到达预期 EULA 边界；这不提升为 server-ready、packaged-JAR-loaded 或 gameplay passed。后续 14C 已按独立矩阵补齐这些运行层证据，并修复 `CB-AUDIT-07`；详见八轨矩阵、Stage 14A 源码完整性证据与 [Stage 14C closure evidence](./docs/testing/stage14-runtime-gameplay-closure-2026-09-08.md)。
+
 #### 11.4.2 Stage 14 Definition of Done
 
-1. 可视化元素、generated source、manual source、AI plan 和外部 IDE 修改之间的 ownership 清晰且不会互相静默覆盖。
-2. AI 高层操作全部可以 preview、审批、应用、观察结果并恢复。
-3. 批量操作保持 revision / idempotency / permission profile / recovery point 约束。
-4. 外部 IDE 或 AI 不得绕过 Copperbench 的核心工作区完整性检查后直接宣称操作成功。
-5. 扩展能力若仍为实验性，必须显式标记兼容级别，不使用“稳定 SDK”措辞。
+1. 14A：CB-AUDIT-01/02 的最小复现转为通过的回归；路径归属、metadata-only 修改、外部修改后重新生成和恢复回放均通过，不静默覆盖。
+2. 14B：普通外部 Agent 从空目录完成带原生多文件逻辑的模组编写/修复/构建，入口有用户文档，不依赖内部测试驱动；重开后源码与归属仍一致。
+3. 14C：代表性玩法的编译、装载和行为结果分别具有对应证据。通过 FR-ADV-09 记录对照收益与限制；编译通过不冒充行为通过。
+4. 14D：计划可以预览、在权限范围内应用、观察和恢复。高风险边界继续确认，常规已授权局部编辑不因“AI”标签额外重复审批；复杂审阅 UI 不前置阻塞 14A～14C。
+5. 批量操作保持 revision / idempotency / permission profile / recovery point 语义；原生外部编辑采用真实文件变更检测与验证，不因绕过结构化入口而被误报成功或无效。
+6. 既有 MCreator 工作区、用户代码块、未知字段和已支持生成器不因原生优先重构被破坏；自定义代码的跨 Loader/版本迁移仍需各自证据。
+7. 扩展能力若仍为实验性，显式标记兼容级别，不使用“稳定 SDK”措辞。按 Wave 独立关闭需求，所有 Wave 关闭前不将 Stage 14 整体标记完成。
+8. 八轨按 FR-ADV-10 完成对应 Wave 的验证层级；未执行、环境阻断和功能失败不能合并成绿色。修复一轨只关闭该轨的相应缺陷；功能等价判断包含字段落盘和行为，不以“同名需求、都能编译”替代。
+
+当前 Wave 状态（2026-09-08）：14A、14B、14C、14D 已按上述条目独立关闭，因此 **Stage 14 整体完成**。14C 的 Fabric 矩阵为 8/8 gameplay passed；NeoForge 矩阵为 6 个 gameplay passed 加 2 个 1.20.1 明确 EULA `blocked/not_run` 单元，8/8 closure satisfied，未自动接受协议或把未运行玩法涂绿。关闭证据见 [Stage 14A closure evidence](./docs/testing/stage14-source-integrity-2026-09-07.md)、[Stage 14B/14D closure evidence](./docs/testing/stage14-native-authoring-review-reuse-2026-09-08.md) 与 [Stage 14C runtime/gameplay closure evidence](./docs/testing/stage14-runtime-gameplay-closure-2026-09-08.md)。
 
 ---
 
@@ -898,8 +990,8 @@ Stage 15 将 Linux 从“未来可能支持的平台”提升为明确的正式�
 3. **Stage 13A**：Procedure 2.0 与引用/诊断联动。
 4. **Stage 13B**：Asset Center 与 Diagnostics 2.0；这两项可以与 Stage 12C 部分并行。
 5. **Stage 12C / Stage 13C**：长尾类型专业化、本地历史与 Migration/Refactor 工作台收口。
-6. **Stage 14**：在 Core schema / plan / reference / recovery 模型稳定后推进 IDE、AI Plan Review、高层 MCP 和模板/扩展能力。
-7. **Stage 15**：Linux x86_64 正式平台扩展；冻结认证发行版和打包 ADR，完成 JDK/JCEF、桌面、`runClient`、MCP/Agent、clean-VM 与正式发布闭环。
+6. **Stage 14**：14A 源码安全共存、14B 原生/IDE/CLI 从零编写、14C 分层 packaged runtime/gameplay 验证和 14D 审阅/模板/实验扩展均已关闭；保留其证据作为后续兼容回归基线。
+7. **Stage 15（当前下一阶段）**：Linux x86_64 正式平台扩展；冻结认证发行版和打包 ADR，完成 JDK/JCEF、桌面、`runClient`、MCP/Agent、clean-VM 与正式发布闭环。
 
 优先级改变可以基于真实用户高频痛点、P0/P1 缺陷、Minecraft/Loader 生态版本变化或已经测得的工程阻塞；不因为“某项专项环境认证尚未做”自动把第 11.7 节排除项重新提升为 P0，但已经复现的功能正确性缺陷不适用这条排除规则。Stage 15 已是明确承诺的后续平台阶段，不再属于“无限期 deferred”的 Linux 事项。
 

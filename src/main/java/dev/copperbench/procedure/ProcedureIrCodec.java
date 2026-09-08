@@ -150,6 +150,16 @@ public final class ProcedureIrCodec {
 					nodes.put(nodeId, new Node(nodeId, current.type(), current.kind(), x, y, fields,
 							current.inputs(), current.next(), false, ""));
 				}
+				case "replace_node" -> {
+					UUID nodeId = UUID.fromString(requiredString(edit, "nodeId"));
+					Node current = requiredNode(nodes, nodeId);
+					if (current.unknown()) throw new IllegalArgumentException("Unknown nodes are read only");
+					JsonObject replacementJson = edit.getAsJsonObject("node").deepCopy();
+					replacementJson.addProperty("id", nodeId.toString());
+					Node replacement = nodeFromJson(replacementJson);
+					if (replacement.unknown()) throw new IllegalArgumentException("Replacement nodes must be supported");
+					nodes.put(nodeId, replacement);
+				}
 				case "move_node" -> {
 					UUID nodeId = UUID.fromString(requiredString(edit, "nodeId"));
 					Node current = requiredNode(nodes, nodeId);
@@ -430,6 +440,11 @@ public final class ProcedureIrCodec {
 			kind = "procedure";
 			name = ProcedureIr.string(node.fields(), "procedure", "");
 			target = ProcedureIr.string(node.fields(), "procedureId", name);
+		} else if (node.type().equals("mcitem_all") || node.type().equals("mcitem_allblocks")) {
+			kind = "resource";
+			name = ProcedureIr.string(node.fields(), "value", "");
+			dataType = "itemstack";
+			target = name;
 		} else if (node.type().contains("from_deps") || node.type().startsWith("coord_")) {
 			kind = "context";
 			name = node.type();

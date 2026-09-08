@@ -5,13 +5,16 @@ import { ScenarioDefinition } from '../types/contract';
 // re-exporting keeps the mock bridge and the JSON Schema validator aligned.
 import bridgeRecovery from '../../../ui-core/fixtures/v1.0/scenarios/bridge-recovery.json';
 import buildRunning from '../../../ui-core/fixtures/v1.0/scenarios/build-running.json';
+import compileDiagnostic from '../../../ui-core/fixtures/v1.0/scenarios/compile-diagnostic.json';
 import elementCreated from '../../../ui-core/fixtures/v1.0/scenarios/element-created.json';
 import emptyWorkspace from '../../../ui-core/fixtures/v1.0/scenarios/empty-workspace.json';
 import externalProcessExited from '../../../ui-core/fixtures/v1.0/scenarios/external-process-exited.json';
+import generatorRepair from '../../../ui-core/fixtures/v1.0/scenarios/generator-repair.json';
 import loadingWorkbench from '../../../ui-core/fixtures/v1.0/scenarios/loading-workbench.json';
 import offline from '../../../ui-core/fixtures/v1.0/scenarios/offline.json';
 import partialCapability from '../../../ui-core/fixtures/v1.0/scenarios/partial-capability.json';
 import permissionDenied from '../../../ui-core/fixtures/v1.0/scenarios/permission-denied.json';
+import procedureNodeDiagnostic from '../../../ui-core/fixtures/v1.0/scenarios/procedure-node-diagnostic.json';
 import ready from '../../../ui-core/fixtures/v1.0/scenarios/ready.json';
 import revisionConflict from '../../../ui-core/fixtures/v1.0/scenarios/revision-conflict.json';
 import schemaIncompatible from '../../../ui-core/fixtures/v1.0/scenarios/schema-incompatible.json';
@@ -22,13 +25,16 @@ import approvalRequired from '../../../ui-core/fixtures/v1.0/scenarios/approval-
 const fixtureList: unknown[] = [
   bridgeRecovery,
   buildRunning,
+  compileDiagnostic,
   elementCreated,
   emptyWorkspace,
   externalProcessExited,
+  generatorRepair,
   loadingWorkbench,
   offline,
   partialCapability,
   permissionDenied,
+  procedureNodeDiagnostic,
   ready,
   revisionConflict,
   schemaIncompatible,

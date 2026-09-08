@@ -26,6 +26,9 @@ class WindowsDistributionLayoutTest {
 		String gradle = Files.readString(Path.of("platform/windows/windows.gradle"));
 		assertTrue(gradle.contains("bundledJrePath = 'jdk'"));
 		assertTrue(gradle.contains("from 'jdk/jbr25_win_64'"));
+		assertTrue(gradle.contains("from 'jdk/jdk21_win_64'"));
+		assertTrue(gradle.contains("into('jdk21')"));
+		assertTrue(gradle.contains("dependsOn downloadJDK21Win64"));
 		assertTrue(gradle.contains("from file('LICENSE.txt')"));
 		assertTrue(gradle.contains("from file('LICENSE-ADDITIONAL-TERMS.md')"));
 		assertTrue(gradle.contains("into('plugins')"));
@@ -33,6 +36,10 @@ class WindowsDistributionLayoutTest {
 		assertTrue(gradle.contains("wantedGradleDists"));
 		assertTrue(gradle.contains(".copperbench/gradle/wrapper/dists"));
 		assertTrue(gradle.contains(".gradle/wrapper/dists"));
+		assertTrue(gradle.contains("from file('gradlew')"));
+		assertTrue(gradle.contains("from file('gradlew.bat')"));
+		assertTrue(gradle.contains("into('gradle/wrapper')"));
+		assertTrue(gradle.contains("from file('gradle/wrapper/gradle-wrapper.jar')"));
 		assertTrue(gradle.contains("into('license')"));
 		assertTrue(gradle.contains("docs/user/README.md"));
 		assertTrue(gradle.contains("copperbench.exe"));
@@ -42,10 +49,16 @@ class WindowsDistributionLayoutTest {
 	@Test void existingWin64ExportContainsTheRuntimeIfPresent() {
 		Path win64 = Path.of("build/export/win64");
 		Assumptions.assumeTrue(Files.isDirectory(win64), "Windows export has not been built in this checkout");
+		Assumptions.assumeTrue(Files.isRegularFile(win64.resolve("jdk21/bin/java.exe")),
+				"Existing Windows export predates the Stage 14B Java 21 sidecar; rebuild exportWin64 before validating it");
 		assertTrue(WindowsDistributionLayout.missing(win64).isEmpty(),
 				() -> "Missing: " + WindowsDistributionLayout.missing(win64));
 		assertEquals(win64.toAbsolutePath().normalize().resolve("jdk"),
 				BundledJdkLocator.locate(win64, 25));
+		assertEquals(win64.toAbsolutePath().normalize().resolve("jdk21"),
+				BundledJdkLocator.locate(win64, 21));
+		assertEquals(win64.toAbsolutePath().normalize().resolve("jdk21"),
+				BundledJdkLocator.locate(win64, 17));
 		assertFalse(Files.exists(win64.resolve("mcreator.exe")));
 		var missingPlugins = BundledPluginInventory.FIRST_PARTY.stream()
 				.map(plugin -> "plugins/" + plugin.packageName() + ".zip")
@@ -57,6 +70,7 @@ class WindowsDistributionLayoutTest {
 	@Test void releaseMetadataDistinguishesInstalledAndSourceTreeJdkLayouts() {
 		var bundledJdk = WindowsDistributionLayout.toJson().getAsJsonObject("bundledJdk");
 		assertEquals("jdk", bundledJdk.get("installed").getAsString());
+		assertEquals("jdk21", bundledJdk.get("installedJava21").getAsString());
 		assertEquals("jdk/jbr25_win_64", bundledJdk.get("sourceTreeJava25").getAsString());
 		assertEquals("jdk/jdk21_win_64", bundledJdk.get("sourceTreeJava21").getAsString());
 	}

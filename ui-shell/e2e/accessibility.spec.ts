@@ -13,6 +13,15 @@ test.describe('Accessibility baseline (NFR-UI-08)', () => {
     await page.waitForSelector('[data-testid="app-shell"]');
   });
 
+  test('AI and MCP navigation is reachable through its keyboard shortcut', async ({ page }) => {
+    const aiNavigation = page.locator('[data-testid="nav-ai"]');
+    await expect(aiNavigation).toHaveAttribute('aria-keyshortcuts', 'Control+Shift+M');
+
+    await page.keyboard.press('Control+Shift+m');
+    await expect(page.getByRole('heading', { name: 'AI 与 MCP' })).toBeVisible();
+    await expect(aiNavigation).toBeFocused();
+  });
+
   test('create modal moves focus in, traps Tab and closes on Escape', async ({ page }) => {
     const trigger = page.locator('[data-testid="empty-primary-action"]');
     await trigger.focus();

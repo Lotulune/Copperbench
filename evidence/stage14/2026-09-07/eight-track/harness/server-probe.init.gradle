@@ -1,0 +1,19 @@
+allprojects {
+    afterEvaluate { p ->
+        if (p == rootProject) {
+            if (p.extensions.findByName('loom') != null) {
+                p.loom.runs.named('server') { runDir 'build/track-bootstrap' }
+            } else if (p.extensions.findByName('neoForge') != null) {
+                p.neoForge.runs.named('server') {
+                    gameDirectory = p.file('build/track-bootstrap')
+                    programArgument '--initSettings'
+                }
+            } else if (p.extensions.findByName('runs') != null) {
+                p.runs.named('server') {
+                    workingDirectory = p.file('build/track-bootstrap')
+                    programArguments.add('--initSettings')
+                }
+            }
+        }
+    }
+}

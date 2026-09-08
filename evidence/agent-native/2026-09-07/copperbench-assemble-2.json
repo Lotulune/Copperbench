@@ -1,0 +1,10 @@
+{
+  "label": "copperbench-assemble-2",
+  "project": "copperbench",
+  "startedAt": "2026-09-07T05:42:45.7691755+00:00",
+  "elapsedMs": 23852,
+  "tasks": "clean assemble",
+  "exitCode": 0,
+  "timedOut": false,
+  "cache": "shared prewarmed user Gradle home; project-local cache state varies"
+}

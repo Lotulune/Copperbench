@@ -148,6 +148,7 @@ FunctionEnd
 Section "Uninstall"
   ;Delete Copperbench application folders
   RMDir /r "$INSTDIR\jdk\*.*"
+  RMDir /r "$INSTDIR\jdk21\*.*"
   RMDir /r "$INSTDIR\lib\*.*"
   RMDir /r "$INSTDIR\license\*.*"
   RMDir /r "$INSTDIR\plugins\*.*"
@@ -207,6 +208,8 @@ Function un.LockedListShow
   !insertmacro MUI_HEADER_TEXT 'Scanning for locked files' 'Clicking next will auto-close the programs listed below'
   LockedList::AddFile "$INSTDIR\jdk\bin\java.exe"
   LockedList::AddFile "$INSTDIR\jdk\bin\javaw.exe"
+  LockedList::AddFile "$INSTDIR\jdk21\bin\java.exe"
+  LockedList::AddFile "$INSTDIR\jdk21\bin\javaw.exe"
   LockedList::AddFolder "$INSTDIR\plugins"
   LockedList::AddFolder "$INSTDIR\lib"
   LockedList::Dialog /autonext /autoclosesilent

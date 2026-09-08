@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   LayoutDashboard,
   Box,
@@ -18,6 +18,18 @@ export const NavRail: React.FC = () => {
   const { activeView, setActiveView, state } = useWorkbench();
   const elementCount = state.elements.length;
   const permission = state.workbench?.permission?.profile ?? 'workspace';
+  const aiNavigationRef = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    const openAiNavigation = (event: KeyboardEvent) => {
+      if (!event.ctrlKey || !event.shiftKey || event.altKey || event.metaKey || event.key.toLowerCase() !== 'm') return;
+      event.preventDefault();
+      setActiveView('ai');
+      requestAnimationFrame(() => aiNavigationRef.current?.focus());
+    };
+    window.addEventListener('keydown', openAiNavigation);
+    return () => window.removeEventListener('keydown', openAiNavigation);
+  }, [setActiveView]);
 
   const navItems: {
     id: NavView;
@@ -75,9 +87,11 @@ export const NavRail: React.FC = () => {
           return (
             <button
               key={item.id}
+              ref={item.id === 'ai' ? aiNavigationRef : undefined}
               type="button"
               onClick={() => setActiveView(item.id)}
               aria-current={isActive ? 'page' : undefined}
+              aria-keyshortcuts={item.id === 'ai' ? 'Control+Shift+M' : undefined}
               data-testid={`nav-${item.id}`}
               style={{
                 display: 'flex',

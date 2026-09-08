@@ -69,16 +69,11 @@ public class ${JavaModName}Items {
 			<#elseif item.getModElement().getTypeString() == "livingentity">
 				${item.getModElement().getRegistryNameUpper()}_SPAWN_EGG = register("${item.getModElement().getRegistryName()}_spawn_egg", new SpawnEggItem(${JavaModName}Entities.${item.getModElement().getRegistryNameUpper()},
 						${item.spawnEggBaseColor.getRGB()}, ${item.spawnEggDotColor.getRGB()}, new Item.Properties()));
-				<#if item.creativeTab.getUnmappedValue() != "No creative tab entry">
-					ItemGroupEvents.modifyEntriesEvent(${item.creativeTab}).register(content -> content.accept(${item.getModElement().getRegistryNameUpper()}_SPAWN_EGG));
-				<#else>
+				<#if !item.creativeTabs?has_content>
 					ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.SPAWN_EGGS).register(content -> content.accept(${item.getModElement().getRegistryNameUpper()}_SPAWN_EGG));
 				</#if>
 			<#elseif item.getModElement().getTypeString() == "block" || item.getModElement().getTypeString() == "plant">
 				${item.getModElement().getRegistryNameUpper()} = register("${item.getModElement().getRegistryName()}", new BlockItem(${JavaModName}Blocks.${item.getModElement().getRegistryNameUpper()}, new Item.Properties()));
-					<#if item.creativeTab.getUnmappedValue() != "No creative tab entry">
-						ItemGroupEvents.modifyEntriesEvent(${item.creativeTab}).register(content -> content.accept(${item.getModElement().getRegistryNameUpper()}));
-					</#if>
 			<#else>
 				<#if item.getModElement().getTypeString() != "dimension">
 					${item.getModElement().getRegistryNameUpper()} = register("${item.getModElement().getRegistryName()}", new ${item.getModElement().getName()}Item());

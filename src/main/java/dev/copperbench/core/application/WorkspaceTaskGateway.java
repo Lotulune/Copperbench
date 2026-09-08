@@ -45,6 +45,23 @@ public interface WorkspaceTaskGateway {
 		return List.of();
 	}
 
+	/**
+	 * Returns read-only execution context from the same backend that owns build
+	 * and run tasks. Implementations should report facts rather than mutate or
+	 * prepare the workspace.
+	 */
+	default JsonObject environment(UUID workspaceId) {
+		return new JsonObject();
+	}
+
+	/**
+	 * Returns a bounded read-only preview for a source file already referenced by a task diagnostic.
+	 * Implementations must reject arbitrary filesystem paths and keep the read inside the task staging root.
+	 */
+	default Optional<JsonObject> sourcePreview(UUID workspaceId, UUID taskId, String sourcePath) {
+		return Optional.empty();
+	}
+
 	default Optional<JsonObject> previewDatagen(UUID workspaceId, UUID taskId) {
 		return Optional.empty();
 	}

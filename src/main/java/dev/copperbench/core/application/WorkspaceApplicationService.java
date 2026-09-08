@@ -5,6 +5,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import dev.copperbench.core.contract.UiCore;
 import dev.copperbench.core.contract.UiCore.ActionHint;
 import dev.copperbench.core.contract.UiCore.Command;
@@ -18,17 +19,28 @@ import dev.copperbench.core.contract.UiCore.PermissionProfile;
 import dev.copperbench.core.contract.UiCore.Query;
 import dev.copperbench.core.contract.UiCore.QueryResult;
 import dev.copperbench.core.contract.UiCore.RequestContext;
+import dev.copperbench.core.diagnostics.AssetDiagnosticProjection;
 import dev.copperbench.core.workspace.RevisionedWorkspaceStore;
 import dev.copperbench.core.workspace.RevisionedWorkspaceStore.Decision;
 import dev.copperbench.core.workspace.RevisionedWorkspaceStore.TransactionResult;
 import dev.copperbench.core.workspace.WorkspaceCreationService;
 import dev.copperbench.assets.AssetPublishBatchService;
+import dev.copperbench.assets.AssetImportBatchPlan;
+import dev.copperbench.assets.AssetImportBatchService;
+import dev.copperbench.assets.AssetImportPlan;
+import dev.copperbench.assets.AssetImportService;
+import dev.copperbench.assets.AssetImportService.AssetImportException;
+import dev.copperbench.assets.AssetMovePlan;
+import dev.copperbench.assets.AssetMoveService;
+import dev.copperbench.assets.AssetMoveService.AssetMoveException;
 import dev.copperbench.assets.AssetDescriptor;
-import dev.copperbench.assets.AssetDiagnostic;
+import dev.copperbench.assets.AssetHealthReport;
 import dev.copperbench.assets.AssetPathViolationException;
 import dev.copperbench.assets.AssetReference;
 import dev.copperbench.assets.AssetReferenceGraph;
 import dev.copperbench.assets.AssetWorkspaceService;
+import dev.copperbench.assets.BlockbenchBridgeException;
+import dev.copperbench.assets.BlockbenchProcessService;
 import dev.copperbench.assets.ResourcePackClientLoadService;
 import dev.copperbench.assets.ResourcePackExportService;
 import dev.copperbench.core.workspace.WorkspaceState;
@@ -37,11 +49,14 @@ import dev.copperbench.history.LocalHistoryException;
 import dev.copperbench.history.LocalHistoryService;
 import dev.copperbench.history.RecoveryPoint;
 import dev.copperbench.history.RecoveryPointRequest;
+import dev.copperbench.history.RecoveryPointSource;
 import dev.copperbench.history.RestoreResult;
 import dev.copperbench.history.WorkspaceChange;
 import dev.copperbench.migration.LoaderMigrationRebuildService;
 import dev.copperbench.migration.LoaderMigrationService;
 import dev.copperbench.migration.MigrationReport;
+import dev.copperbench.migration.MigrationReport.Disposition;
+import dev.copperbench.migration.MigrationReport.MigrationItem;
 import dev.copperbench.migration.UpstreamWorkspaceImportService;
 import dev.copperbench.core.plugin.InstalledPluginInventoryService;
 import dev.copperbench.release.ElementCoverageCatalog;
@@ -55,23 +70,43 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.Marker;
 import org.apache.logging.log4j.MarkerManager;
+import net.mcreator.element.types.Biome;
+import net.mcreator.element.types.Dimension;
+import net.mcreator.element.types.interfaces.LimitedOptions;
+import net.mcreator.element.types.interfaces.Numeric;
+import net.mcreator.element.types.interfaces.NonNullIf;
+import net.mcreator.workspace.references.ModElementReference;
+import net.mcreator.workspace.references.TextureReference;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.ArrayDeque;
 import java.util.Base64;
+import java.util.HashMap;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.Deque;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -107,13 +142,866 @@ public final class WorkspaceApplicationService {
 	private final InstalledPluginInventoryService installedPlugins;
 	private final WorkspaceCreationService workspaceCreation;
 	private final WorkspacePlanEngine plans;
+	private final LocalWorkspaceTemplateService localTemplates;
 	private final WorkspaceReferenceIndex references = new WorkspaceReferenceIndex();
 	private final Map<UUID, CopyOnWriteArrayList<Consumer<Event>>> eventListeners = new ConcurrentHashMap<>();
 	private final Map<UUID, Deque<Event>> taskEventHistory = new ConcurrentHashMap<>();
+	private final Map<String, AssetImportSourceGrant> assetImportSourceGrants = new ConcurrentHashMap<>();
+	private final Map<String, AssetImportPlanGrant> assetImportPlanGrants = new ConcurrentHashMap<>();
+	private final Map<String, AssetImportBatchPlanGrant> assetImportBatchPlanGrants = new ConcurrentHashMap<>();
+	private final Map<String, AssetMovePlanGrant> assetMovePlanGrants = new ConcurrentHashMap<>();
+	private static final Duration ASSET_IMPORT_GRANT_TTL = Duration.ofMinutes(10);
+	private static final Duration ASSET_MOVE_PLAN_TTL = Duration.ofMinutes(10);
 
 	public WorkspaceApplicationService(RevisionedWorkspaceStore store, WorkspaceTaskGateway tasks, Clock clock,
 			Supplier<UUID> ids) {
 		this(store, tasks, WorkspaceMutationGateway.noOp(), clock, ids);
+	}
+
+	private JsonObject workspaceHealth(Query query, WorkspaceState state) {
+		JsonObject projection = new JsonObject();
+		projection.addProperty("revision", state.revision());
+		projection.add("elements", elementCounts(state.elements()));
+
+		JsonObject referenceProjection = references.projection(state, "");
+		JsonObject referenceHealth = new JsonObject();
+		JsonObject referenceStats = referenceProjection.getAsJsonObject("stats");
+		JsonArray referenceDiagnostics = referenceProjection.getAsJsonArray("diagnostics");
+		referenceHealth.addProperty("edgeCount", referenceStats.get("edgeCount").getAsInt());
+		referenceHealth.addProperty("danglingCount", referenceDiagnostics.size());
+		referenceHealth.add("diagnostics", referenceDiagnostics.deepCopy());
+		projection.add("references", referenceHealth);
+
+		JsonObject assetHealth = new JsonObject();
+		List<Diagnostic> assetDiagnostics = List.of();
+		Path root = workspaceRoot(query.workspaceId());
+		if (root == null) {
+			assetHealth.addProperty("indexed", false);
+			assetHealth.addProperty("reasonCode", "ASSET_WORKSPACE_ROOT_UNAVAILABLE");
+		} else {
+			try {
+				AssetReferenceGraph graph = new AssetWorkspaceService(root).referenceGraph();
+				AssetHealthReport health = workspaceAssetHealth(graph, state);
+				assetDiagnostics = graph.diagnostics().stream().map(AssetDiagnosticProjection::project).toList();
+				assetHealth.addProperty("indexed", true);
+				assetHealth.add("summary", GSON.toJsonTree(health.summary()));
+				assetHealth.add("diagnostics", GSON.toJsonTree(assetDiagnostics));
+			} catch (RuntimeException exception) {
+				assetHealth.addProperty("indexed", false);
+				assetHealth.addProperty("reasonCode", "ASSET_QUERY_FAILED");
+			}
+		}
+		projection.add("assets", assetHealth);
+		projection.add("diagnostics", workspaceDiagnosticCounts(state, referenceDiagnostics, assetDiagnostics));
+
+		JsonObject generatorHealth = new JsonObject();
+		JsonObject generator = state.generator();
+		String generatorId = generator.has("id") && generator.get("id").isJsonPrimitive()
+				? generator.get("id").getAsString() : "";
+		var decision = tracks.decision(generatorId);
+		generatorHealth.add("generator", generator.deepCopy());
+		generatorHealth.addProperty("status", decision.status().name().toLowerCase(Locale.ROOT));
+		generatorHealth.addProperty("reasonCode", decision.reasonCode());
+		generatorHealth.addProperty("generatable", decision.generatable());
+		projection.add("generator", generatorHealth);
+
+		JsonObject risk = new JsonObject();
+		JsonObject migrationRisk = new JsonObject();
+		JsonArray migrationTargets = new JsonArray();
+		for (var track : tracks.tracks()) {
+			for (var loader : track.loaders()) {
+				if (tracks.migratable(generatorId, loader.generatorId())) migrationTargets.add(loader.generatorId());
+			}
+		}
+		migrationRisk.addProperty("requiresUserApproval", true);
+		migrationRisk.addProperty("copyOnly", true);
+		migrationRisk.add("availableTargetGeneratorIds", migrationTargets);
+		migrationRisk.addProperty("availableTargetCount", migrationTargets.size());
+		risk.add("loaderMigration", migrationRisk);
+		JsonObject aiBatchRisk = new JsonObject();
+		aiBatchRisk.addProperty("reviewModel", "workspace_plan");
+		aiBatchRisk.addProperty("maxOperations", WorkspacePlanEngine.maxOperations());
+		aiBatchRisk.addProperty("highImpactOperationThreshold", WorkspacePlanEngine.highImpactOperationThreshold());
+		aiBatchRisk.addProperty("highImpactObjectThreshold", WorkspacePlanEngine.highImpactObjectThreshold());
+		risk.add("aiBatchChanges", aiBatchRisk);
+		projection.add("risk", risk);
+
+		JsonObject taskHealth = new JsonObject();
+		taskHealth.addProperty("activeCount", tasks.active(query.workspaceId()).size());
+		taskHealth.addProperty("recentFailureScope", "current_session");
+		taskHealth.add("recentFailed", recentFailedTasks(query.workspaceId()));
+		projection.add("tasks", taskHealth);
+
+		JsonObject recoveryHealth = new JsonObject();
+		if (history == null) {
+			recoveryHealth.addProperty("available", false);
+			recoveryHealth.addProperty("reasonCode", "LOCAL_HISTORY_UNAVAILABLE");
+			recoveryHealth.addProperty("recoveryPointCount", 0);
+			recoveryHealth.add("currentRecoveryPointId", JsonNull.INSTANCE);
+			recoveryHealth.addProperty("currentStateMatchesRecoveryPoint", false);
+		} else {
+			try {
+				List<RecoveryPoint> recoveryPoints = history.listRecoveryPoints();
+				String currentRecoveryPointId = history.currentRecoveryPointId();
+				recoveryHealth.addProperty("available", true);
+				recoveryHealth.addProperty("recoveryPointCount", recoveryPoints.size());
+				if (currentRecoveryPointId == null) recoveryHealth.add("currentRecoveryPointId", JsonNull.INSTANCE);
+				else recoveryHealth.addProperty("currentRecoveryPointId", currentRecoveryPointId);
+				recoveryHealth.addProperty("currentStateMatchesRecoveryPoint", currentRecoveryPointId != null);
+			} catch (LocalHistoryException exception) {
+				recoveryHealth.addProperty("available", false);
+				recoveryHealth.addProperty("reasonCode", "HISTORY_READ_FAILED");
+				recoveryHealth.addProperty("recoveryPointCount", 0);
+				recoveryHealth.add("currentRecoveryPointId", JsonNull.INSTANCE);
+				recoveryHealth.addProperty("currentStateMatchesRecoveryPoint", false);
+			}
+		}
+		projection.add("recovery", recoveryHealth);
+		return projection;
+	}
+
+	private JsonObject sourceManagementProjection(Element element, RequestContext context) {
+		boolean writable = context.permission() != PermissionProfile.READ_ONLY;
+		boolean code = element.type().equals("code");
+		JsonObject source = new JsonObject();
+		source.addProperty("mode", element.ownership());
+		source.addProperty("generated", element.ownership().equals("generated"));
+		source.addProperty("manual", element.ownership().equals("manual"));
+		source.addProperty("canTakeOver", writable && element.ownership().equals("generated"));
+		source.addProperty("canReattach", writable && !code && element.ownership().equals("manual"));
+		source.addProperty("reattachRequiresApproval", !code);
+		source.addProperty("operation", "set_mod_element_source_management");
+		return source;
+	}
+
+	private JsonObject workspaceDiagnosticCounts(WorkspaceState state, JsonArray referenceDiagnostics,
+			List<Diagnostic> assetDiagnostics) {
+		int errors = 0;
+		int warnings = 0;
+		int info = 0;
+		for (Element element : state.elements()) {
+			Diagnostic diagnostic = validateElementValues(element.id(), element.type(), element.values());
+			if (diagnostic == null) continue;
+			switch (diagnostic.severity()) {
+				case ERROR -> errors++;
+				case WARNING -> warnings++;
+				case INFO -> info++;
+			}
+		}
+		for (JsonElement raw : referenceDiagnostics) {
+			String severity = raw.getAsJsonObject().has("severity")
+					? raw.getAsJsonObject().get("severity").getAsString() : "info";
+			switch (severity) {
+				case "error" -> errors++;
+				case "warning" -> warnings++;
+				default -> info++;
+			}
+		}
+		for (Diagnostic diagnostic : assetDiagnostics) {
+			switch (diagnostic.severity()) {
+				case ERROR -> errors++;
+				case WARNING -> warnings++;
+				case INFO -> info++;
+			}
+		}
+		JsonObject counts = new JsonObject();
+		counts.addProperty("total", errors + warnings + info);
+		counts.addProperty("error", errors);
+		counts.addProperty("warning", warnings);
+		counts.addProperty("info", info);
+		return counts;
+	}
+
+	private JsonArray recentFailedTasks(UUID workspaceId) {
+		JsonArray failed = new JsonArray();
+		Deque<Event> retained = taskEventHistory.get(workspaceId);
+		if (retained == null) return failed;
+		Set<String> seenTaskIds = new HashSet<>();
+		synchronized (retained) {
+			var iterator = retained.descendingIterator();
+			while (iterator.hasNext() && failed.size() < 5) {
+				Event event = iterator.next();
+				if (!"task_completed".equals(event.event()) || !event.payload().has("task")) continue;
+				JsonObject task = event.payload().getAsJsonObject("task");
+				if (!task.has("state") || !"failed".equals(task.get("state").getAsString())) continue;
+				String taskId = task.has("id") ? task.get("id").getAsString() : "";
+				if (!taskId.isBlank() && !seenTaskIds.add(taskId)) continue;
+				JsonObject item = task.deepCopy();
+				item.addProperty("observedAt", event.occurredAt());
+				failed.add(item);
+			}
+		}
+		return failed;
+	}
+
+	/** Grants a bounded multi-selection without exposing any external absolute path to browser code. */
+	public List<AssetImportSelectionGrant> grantAssetImportSources(List<Path> sources) {
+		Objects.requireNonNull(sources, "sources");
+		if (sources.isEmpty()) return List.of();
+		if (sources.size() > 64)
+			throw new AssetImportException("ASSET_IMPORT_BATCH_TOO_LARGE", "At most 64 assets can be imported at once");
+		List<Path> validated = new ArrayList<>(sources.size());
+		try {
+			for (Path source : sources) {
+				Path real = Objects.requireNonNull(source, "source").toRealPath();
+				if (!Files.isRegularFile(real))
+					throw new AssetImportException("ASSET_IMPORT_SOURCE_UNAVAILABLE",
+							"Selected import source is not a file");
+				validated.add(real);
+			}
+		} catch (AssetImportException exception) {
+			throw exception;
+		} catch (Exception exception) {
+			throw new AssetImportException("ASSET_IMPORT_SOURCE_UNAVAILABLE",
+					"One of the selected import sources is unavailable", exception);
+		}
+		return validated.stream().map(this::grantAssetImportSource).toList();
+	}
+
+	private CommandOutcome importAssetBatch(Command command, RequestContext context) {
+		if (history == null)
+			return failed(command, currentRevision(command.workspaceId()), diagnostic("ASSET_IMPORT_RECOVERY_UNAVAILABLE",
+					"diagnostic.asset_import_recovery_unavailable",
+					"Asset import requires local-history recovery, which is unavailable in this session.", null, null));
+		Path root = workspaceRoot(command.workspaceId());
+		if (root == null)
+			return failed(command, currentRevision(command.workspaceId()), diagnostic("ASSET_WORKSPACE_ROOT_UNAVAILABLE",
+					"diagnostic.asset_workspace_root_unavailable",
+					"The workspace root is not available for asset import.", null, null));
+		AssetImportBatchPlanGrant approved;
+		boolean confirmReplace;
+		try {
+			approved = assetImportBatchPlanGrant(requiredString(command.payload(), "planToken"), command.workspaceId());
+			confirmReplace = command.payload().has("confirmReplace") && command.payload().get("confirmReplace").isJsonPrimitive()
+					&& command.payload().getAsJsonPrimitive("confirmReplace").isBoolean()
+					&& command.payload().getAsJsonPrimitive("confirmReplace").getAsBoolean();
+		} catch (AssetImportException exception) {
+			return failed(command, currentRevision(command.workspaceId()), diagnostic(exception.code(),
+					"diagnostic.asset_import_failed", exception.getMessage(), null, null));
+		} catch (RuntimeException exception) {
+			return failed(command, currentRevision(command.workspaceId()), invalidPayload(exception.getMessage()));
+		}
+		if (approved.plan().replaceCount() > 0 && !confirmReplace)
+			return failed(command, currentRevision(command.workspaceId()), diagnostic(
+					"ASSET_IMPORT_REPLACE_CONFIRMATION_REQUIRED", "diagnostic.asset_import_replace_confirmation_required",
+					"Replacing existing assets in a batch requires explicit confirmation after preview.",
+					"/confirmReplace", null));
+		if (!approved.plan().canApply())
+			return failed(command, currentRevision(command.workspaceId()), diagnostic("ASSET_IMPORT_BATCH_NOT_APPLICABLE",
+					"diagnostic.asset_import_failed", "The reviewed asset import batch is blocked or has no changes.",
+					"/planToken", null));
+
+		AssetImportBatchService importer = new AssetImportBatchService(new AssetWorkspaceService(root), history);
+		TransactionResult<AssetImportBatchMutation> transaction = store.transact(command.workspaceId(),
+				command.expectedRevision(), state -> {
+			try {
+				AssetImportBatchService.ApplyResult applied = importer.apply(approved.plan(), context.actor(),
+						command.payload().has("clientMutationId") ? command.payload().get("clientMutationId").getAsString()
+								: command.requestId().toString());
+				return Decision.commit(AssetImportBatchMutation.success(applied, state.nextEventSequence()),
+						applied.assets().stream().map(asset -> "/" + asset.relativePath()).toList());
+			} catch (AssetImportException exception) {
+				return Decision.abort(AssetImportBatchMutation.rejected(diagnostic(exception.code(),
+						"diagnostic.asset_import_failed", exception.getMessage(), null, null)));
+			} catch (LocalHistoryException exception) {
+				return Decision.abort(AssetImportBatchMutation.rejected(failureDiagnostic(command,
+						"RECOVERY_POINT_FAILED", "diagnostic.recovery_point_failed",
+						"The required recovery point could not be created; the workspace was not changed.",
+						null, null, exception)));
+			}
+		});
+		CommandOutcome conflict = checkFailure(command, transaction);
+		if (conflict != null) return conflict;
+		AssetImportBatchMutation mutation = transaction.value();
+		if (transaction.status() == TransactionResult.Status.ABORTED)
+			return failed(command, transaction.revision(), mutation.diagnostic());
+
+		assetImportBatchPlanGrants.remove(approved.id());
+		approved.sourceGrantIds().forEach(assetImportSourceGrants::remove);
+		AssetReferenceGraph refreshed = new AssetWorkspaceService(root).referenceGraph();
+		AssetHealthReport refreshedHealth = workspaceAssetHealth(refreshed,
+				store.read(command.workspaceId()).orElseThrow());
+		JsonObject data = new JsonObject();
+		data.addProperty("complete", true);
+		data.addProperty("importedCount", mutation.applied().importedCount());
+		data.addProperty("skippedIdenticalCount", mutation.applied().skippedIdenticalCount());
+		data.addProperty("createCount", mutation.applied().createCount());
+		data.addProperty("replaceCount", mutation.applied().replaceCount());
+		JsonArray importedAssets = new JsonArray();
+		for (AssetDescriptor imported : mutation.applied().assets())
+			importedAssets.add(asset(imported, refreshedHealth.findById(imported.id()).orElseThrow()));
+		data.add("assets", importedAssets);
+		data.add("health", GSON.toJsonTree(refreshedHealth.summary()));
+		Event event = event(command, transaction.revision(), mutation.sequence(), "assets_imported", data.deepCopy());
+		return new CommandOutcome(result(command, "committed", transaction.revision(), mutation.applied().recoveryPoint(),
+				JsonNull.INSTANCE, data, List.of(), JsonNull.INSTANCE, JsonNull.INSTANCE), List.of(event));
+	}
+
+	private QueryResult previewAssetImportBatch(Query query, WorkspaceState state) {
+		if (history == null)
+			return queryFailure(query, state.revision(), diagnostic("ASSET_IMPORT_RECOVERY_UNAVAILABLE",
+					"diagnostic.asset_import_recovery_unavailable",
+					"Asset import requires local-history recovery, which is unavailable in this session.", null, null));
+		Path root = workspaceRoot(query.workspaceId());
+		if (root == null)
+			return queryFailure(query, state.revision(), diagnostic("ASSET_WORKSPACE_ROOT_UNAVAILABLE",
+					"diagnostic.asset_workspace_root_unavailable",
+					"The workspace root is not available for asset import.", null, null));
+		try {
+			JsonArray items = query.payload().has("items") && query.payload().get("items").isJsonArray()
+					? query.payload().getAsJsonArray("items") : new JsonArray();
+			if (items.isEmpty()) throw new IllegalArgumentException("items must not be empty");
+			if (items.size() > 64) throw new IllegalArgumentException("asset import batch may contain at most 64 items");
+			List<String> sourceGrantIds = new ArrayList<>(items.size());
+			List<AssetImportBatchService.Request> requests = new ArrayList<>(items.size());
+			for (JsonElement raw : items) {
+				if (!raw.isJsonObject()) throw new IllegalArgumentException("each batch item must be an object");
+				JsonObject item = raw.getAsJsonObject();
+				String grantId = requiredString(item, "sourceGrantId");
+				String target = requiredString(item, "targetRelativePath");
+				AssetImportSourceGrant grant = assetImportSourceGrant(grantId);
+				sourceGrantIds.add(grantId);
+				requests.add(new AssetImportBatchService.Request(grant.source(), target));
+			}
+			AssetImportBatchPlan plan = new AssetImportBatchService(new AssetWorkspaceService(root), history).preview(requests);
+			String planToken = ids.get().toString();
+			Instant expiresAt = clock.instant().plus(ASSET_IMPORT_GRANT_TTL);
+			assetImportBatchPlanGrants.put(planToken,
+					new AssetImportBatchPlanGrant(planToken, query.workspaceId(), sourceGrantIds, plan, expiresAt));
+			JsonObject data = plan.toJson();
+			data.addProperty("planToken", planToken);
+			data.addProperty("expiresAt", expiresAt.toString());
+			data.addProperty("requiresReplacementConfirmation", plan.replaceCount() > 0);
+			return querySuccess(query, state.revision(), data);
+		} catch (AssetImportException exception) {
+			return queryFailure(query, state.revision(), diagnostic(exception.code(),
+					"diagnostic.asset_import_preview_failed", exception.getMessage(), null, null));
+		} catch (RuntimeException exception) {
+			return queryFailure(query, state.revision(), invalidPayload(exception.getMessage()));
+		}
+	}
+
+	private QueryResult workspaceEnvironment(Query query, WorkspaceState state) {
+		try {
+			JsonObject projection = new JsonObject();
+			projection.addProperty("schemaVersion", UiCore.SCHEMA_VERSION);
+			projection.addProperty("workspaceId", state.id().toString());
+			projection.addProperty("workspaceName", state.name());
+			projection.addProperty("workspaceKind", state.kind());
+			projection.addProperty("revision", state.revision());
+			projection.add("generator", state.generator());
+			Path root = workspaceRoot(query.workspaceId());
+			if (root == null) projection.add("workspaceRoot", JsonNull.INSTANCE);
+			else projection.addProperty("workspaceRoot", root.toAbsolutePath().normalize().toString());
+
+			JsonObject execution = tasks.environment(query.workspaceId());
+			projection.add("execution", execution == null ? new JsonObject() : execution.deepCopy());
+
+			JsonObject workflow = new JsonObject();
+			workflow.addProperty("nativeFilesAuthoritative", true);
+			workflow.addProperty("structuredElementsOptional", true);
+			workflow.addProperty("validateOperation", "validate_workspace");
+			workflow.addProperty("buildOperation", "build_workspace");
+			workflow.addProperty("diagnosticsOperation", "get_task");
+			workflow.addProperty("healthOperation", "get_workspace_health");
+			workflow.addProperty("planOperation", "plan_workspace_changes");
+			projection.add("agentWorkflow", workflow);
+			return querySuccess(query, state.revision(), projection);
+		} catch (RuntimeException exception) {
+			return queryFailure(query, state.revision(), failureDiagnostic(query,
+					"WORKSPACE_ENVIRONMENT_UNAVAILABLE", "diagnostic.workspace_environment_unavailable",
+					"The workspace execution environment could not be resolved.", null, null, exception));
+		}
+	}
+
+	private QueryResult previewRecoveryRestore(Query query, WorkspaceState state) {
+		if (history == null)
+			return queryFailure(query, state.revision(), historyUnavailable());
+		String recoveryPointId;
+		try {
+			recoveryPointId = requiredString(query.payload(), "recoveryPointId");
+		} catch (RuntimeException exception) {
+			return queryFailure(query, state.revision(), invalidPayload(exception.getMessage()));
+		}
+		try {
+			List<WorkspaceChange> changes = history.previewRestore(recoveryPointId);
+			JsonObject projection = new JsonObject();
+			projection.addProperty("recoveryPointId", recoveryPointId);
+			projection.addProperty("baseRevision", state.revision());
+			JsonArray items = new JsonArray();
+			changes.forEach(change -> items.add(historyChange(change)));
+			projection.add("changes", items);
+			return querySuccess(query, state.revision(), projection);
+		} catch (LocalHistoryException exception) {
+			return queryFailure(query, state.revision(), failureDiagnostic(query, "HISTORY_RESTORE_PREVIEW_FAILED",
+					"diagnostic.history_restore_preview_failed", "The restore impact could not be previewed.", null, null,
+					exception));
+		}
+	}
+
+	private record AssetImportBatchMutation(AssetImportBatchService.ApplyResult applied, long sequence,
+			Diagnostic diagnostic) {
+		private static AssetImportBatchMutation success(AssetImportBatchService.ApplyResult applied, long sequence) {
+			return new AssetImportBatchMutation(applied, sequence, null);
+		}
+
+		private static AssetImportBatchMutation rejected(Diagnostic diagnostic) {
+			return new AssetImportBatchMutation(null, 0, diagnostic);
+		}
+	}
+
+	private record AssetMovePlanGrant(String id, UUID workspaceId, AssetMovePlan plan, Instant expiresAt) {
+	}
+
+	private record AssetMoveMutation(AssetMoveService.ApplyResult applied, long sequence, Diagnostic diagnostic) {
+		private static AssetMoveMutation success(AssetMoveService.ApplyResult applied, long sequence) {
+			return new AssetMoveMutation(applied, sequence, null);
+		}
+
+		private static AssetMoveMutation rejected(Diagnostic diagnostic) {
+			return new AssetMoveMutation(null, 0, diagnostic);
+		}
+	}
+
+	private void pruneAssetMovePlans() {
+		Instant now = clock.instant();
+		assetMovePlanGrants.entrySet().removeIf(entry -> !entry.getValue().expiresAt().isAfter(now));
+	}
+
+	private AssetMovePlanGrant assetMovePlanGrant(String id, UUID workspaceId) {
+		pruneAssetMovePlans();
+		AssetMovePlanGrant grant = assetMovePlanGrants.get(id);
+		if (grant == null)
+			throw new AssetMoveException("ASSET_MOVE_PLAN_INVALID", "The asset move plan is missing or expired");
+		if (!grant.workspaceId().equals(workspaceId))
+			throw new AssetMoveException("ASSET_MOVE_PLAN_WORKSPACE_MISMATCH",
+					"The asset move plan belongs to a different workspace");
+		return grant;
+	}
+
+	private AssetImportBatchPlanGrant assetImportBatchPlanGrant(String id, UUID workspaceId) {
+		pruneAssetImportGrants();
+		AssetImportBatchPlanGrant grant = assetImportBatchPlanGrants.get(id);
+		if (grant == null)
+			throw new AssetImportException("ASSET_IMPORT_BATCH_PLAN_INVALID",
+					"The asset import batch plan is missing or expired");
+		if (!grant.workspaceId().equals(workspaceId))
+			throw new AssetImportException("ASSET_IMPORT_BATCH_PLAN_WORKSPACE_MISMATCH",
+					"The asset import batch plan belongs to a different workspace");
+		return grant;
+	}
+
+	private QueryResult previewAssetMove(Query query, WorkspaceState state) {
+		if (history == null)
+			return queryFailure(query, state.revision(), diagnostic("ASSET_MOVE_RECOVERY_UNAVAILABLE",
+					"diagnostic.asset_move_recovery_unavailable",
+					"Asset move requires local-history recovery, which is unavailable in this session.", null, null));
+		Path root = workspaceRoot(query.workspaceId());
+		if (root == null)
+			return queryFailure(query, state.revision(), diagnostic("ASSET_WORKSPACE_ROOT_UNAVAILABLE",
+					"diagnostic.asset_workspace_root_unavailable",
+					"The workspace root is not available for asset move.", null, null));
+		try {
+			String sourceAssetId = requiredString(query.payload(), "sourceAssetId");
+			String targetRelativePath = requiredString(query.payload(), "targetRelativePath");
+			AssetMovePlan plan = new AssetMoveService(new AssetWorkspaceService(root), history)
+					.preview(sourceAssetId, targetRelativePath);
+			String planToken = ids.get().toString();
+			Instant expiresAt = clock.instant().plus(ASSET_MOVE_PLAN_TTL);
+			assetMovePlanGrants.put(planToken, new AssetMovePlanGrant(planToken, query.workspaceId(), plan, expiresAt));
+			pruneAssetMovePlans();
+			JsonObject data = plan.toJson();
+			data.addProperty("planToken", planToken);
+			data.addProperty("expiresAt", expiresAt.toString());
+			return querySuccess(query, state.revision(), data);
+		} catch (AssetMoveException exception) {
+			return queryFailure(query, state.revision(), diagnostic(exception.code(),
+					"diagnostic.asset_move_preview_failed", exception.getMessage(), null, null));
+		} catch (RuntimeException exception) {
+			return queryFailure(query, state.revision(), invalidPayload(exception.getMessage()));
+		}
+	}
+
+	private CommandOutcome moveAsset(Command command, RequestContext context) {
+		if (history == null)
+			return failed(command, currentRevision(command.workspaceId()), diagnostic("ASSET_MOVE_RECOVERY_UNAVAILABLE",
+					"diagnostic.asset_move_recovery_unavailable",
+					"Asset move requires local-history recovery, which is unavailable in this session.", null, null));
+		Path root = workspaceRoot(command.workspaceId());
+		if (root == null)
+			return failed(command, currentRevision(command.workspaceId()), diagnostic("ASSET_WORKSPACE_ROOT_UNAVAILABLE",
+					"diagnostic.asset_workspace_root_unavailable",
+					"The workspace root is not available for asset move.", null, null));
+		AssetMovePlanGrant approved;
+		try {
+			approved = assetMovePlanGrant(requiredString(command.payload(), "planToken"), command.workspaceId());
+		} catch (AssetMoveException exception) {
+			return failed(command, currentRevision(command.workspaceId()), diagnostic(exception.code(),
+					"diagnostic.asset_move_failed", exception.getMessage(), null, null));
+		} catch (RuntimeException exception) {
+			return failed(command, currentRevision(command.workspaceId()), invalidPayload(exception.getMessage()));
+		}
+		if (!approved.plan().canApply())
+			return failed(command, currentRevision(command.workspaceId()), diagnostic("ASSET_MOVE_NOT_APPLICABLE",
+					"diagnostic.asset_move_failed", "The reviewed asset move is blocked.", "/planToken", null));
+
+		AssetMoveService mover = new AssetMoveService(new AssetWorkspaceService(root), history);
+		TransactionResult<AssetMoveMutation> transaction = store.transact(command.workspaceId(),
+				command.expectedRevision(), state -> {
+			try {
+				AssetMoveService.ApplyResult applied = mover.apply(approved.plan(), context.actor(),
+						command.payload().has("clientMutationId") ? command.payload().get("clientMutationId").getAsString()
+								: command.requestId().toString());
+				return Decision.commit(AssetMoveMutation.success(applied, state.nextEventSequence()),
+						List.of("/" + approved.plan().sourceRelativePath(), "/" + applied.asset().relativePath()));
+			} catch (AssetMoveException exception) {
+				return Decision.abort(AssetMoveMutation.rejected(diagnostic(exception.code(),
+						"diagnostic.asset_move_failed", exception.getMessage(), null, null)));
+			} catch (LocalHistoryException exception) {
+				return Decision.abort(AssetMoveMutation.rejected(failureDiagnostic(command,
+						"RECOVERY_POINT_FAILED", "diagnostic.recovery_point_failed",
+						"The required recovery point could not be created; the workspace was not changed.",
+						null, null, exception)));
+			}
+		});
+		CommandOutcome conflict = checkFailure(command, transaction);
+		if (conflict != null) return conflict;
+		AssetMoveMutation mutation = transaction.value();
+		if (transaction.status() == TransactionResult.Status.ABORTED)
+			return failed(command, transaction.revision(), mutation.diagnostic());
+
+		assetMovePlanGrants.remove(approved.id());
+		AssetReferenceGraph refreshed = new AssetWorkspaceService(root).referenceGraph();
+		AssetHealthReport refreshedHealth = workspaceAssetHealth(refreshed,
+				store.read(command.workspaceId()).orElseThrow());
+		JsonObject data = new JsonObject();
+		data.addProperty("complete", true);
+		data.addProperty("sourceRelativePath", approved.plan().sourceRelativePath());
+		data.addProperty("targetRelativePath", mutation.applied().asset().relativePath());
+		data.addProperty("rewrittenReferences", mutation.applied().rewrittenReferences());
+		data.add("asset", asset(mutation.applied().asset(),
+				refreshedHealth.findById(mutation.applied().asset().id()).orElseThrow()));
+		data.add("health", GSON.toJsonTree(refreshedHealth.summary()));
+		Event event = event(command, transaction.revision(), mutation.sequence(), "asset_moved", data.deepCopy());
+		return new CommandOutcome(result(command, "committed", transaction.revision(), mutation.applied().recoveryPoint(),
+				JsonNull.INSTANCE, data, List.of(), JsonNull.INSTANCE, JsonNull.INSTANCE), List.of(event));
+	}
+
+	private QueryResult previewAssetImport(Query query, WorkspaceState state) {
+		if (history == null)
+			return queryFailure(query, state.revision(), diagnostic("ASSET_IMPORT_RECOVERY_UNAVAILABLE",
+					"diagnostic.asset_import_recovery_unavailable",
+					"Asset import requires local-history recovery, which is unavailable in this session.", null, null));
+		Path root = workspaceRoot(query.workspaceId());
+		if (root == null)
+			return queryFailure(query, state.revision(), diagnostic("ASSET_WORKSPACE_ROOT_UNAVAILABLE",
+					"diagnostic.asset_workspace_root_unavailable",
+					"The workspace root is not available for asset import.", null, null));
+		try {
+			String sourceGrantId = requiredString(query.payload(), "sourceGrantId");
+			String targetRelativePath = requiredString(query.payload(), "targetRelativePath");
+			AssetImportSourceGrant sourceGrant = assetImportSourceGrant(sourceGrantId);
+			AssetImportPlan plan = new AssetImportService(new AssetWorkspaceService(root), history)
+					.preview(sourceGrant.source(), targetRelativePath);
+			String planToken = ids.get().toString();
+			Instant expiresAt = clock.instant().plus(ASSET_IMPORT_GRANT_TTL);
+			assetImportPlanGrants.put(planToken,
+					new AssetImportPlanGrant(planToken, query.workspaceId(), sourceGrantId, plan, expiresAt));
+			JsonObject data = plan.toJson();
+			data.addProperty("planToken", planToken);
+			data.addProperty("expiresAt", expiresAt.toString());
+			data.addProperty("requiresReplacementConfirmation", plan.conflict() == AssetImportPlan.Conflict.REPLACE);
+			return querySuccess(query, state.revision(), data);
+		} catch (AssetImportException exception) {
+			return queryFailure(query, state.revision(), diagnostic(exception.code(),
+					"diagnostic.asset_import_preview_failed", exception.getMessage(), null, null));
+		} catch (RuntimeException exception) {
+			return queryFailure(query, state.revision(), invalidPayload(exception.getMessage()));
+		}
+	}
+
+	private CommandOutcome importAsset(Command command, RequestContext context) {
+		if (history == null)
+			return failed(command, currentRevision(command.workspaceId()), diagnostic("ASSET_IMPORT_RECOVERY_UNAVAILABLE",
+					"diagnostic.asset_import_recovery_unavailable",
+					"Asset import requires local-history recovery, which is unavailable in this session.", null, null));
+		Path root = workspaceRoot(command.workspaceId());
+		if (root == null)
+			return failed(command, currentRevision(command.workspaceId()), diagnostic("ASSET_WORKSPACE_ROOT_UNAVAILABLE",
+					"diagnostic.asset_workspace_root_unavailable",
+					"The workspace root is not available for asset import.", null, null));
+		AssetImportPlanGrant approved;
+		boolean confirmReplace;
+		try {
+			approved = assetImportPlanGrant(requiredString(command.payload(), "planToken"), command.workspaceId());
+			confirmReplace = command.payload().has("confirmReplace") && command.payload().get("confirmReplace").isJsonPrimitive()
+					&& command.payload().getAsJsonPrimitive("confirmReplace").isBoolean()
+					&& command.payload().getAsJsonPrimitive("confirmReplace").getAsBoolean();
+		} catch (AssetImportException exception) {
+			return failed(command, currentRevision(command.workspaceId()), diagnostic(exception.code(),
+					"diagnostic.asset_import_failed", exception.getMessage(), null, null));
+		} catch (RuntimeException exception) {
+			return failed(command, currentRevision(command.workspaceId()), invalidPayload(exception.getMessage()));
+		}
+		if (approved.plan().conflict() == AssetImportPlan.Conflict.REPLACE && !confirmReplace)
+			return failed(command, currentRevision(command.workspaceId()), diagnostic(
+					"ASSET_IMPORT_REPLACE_CONFIRMATION_REQUIRED", "diagnostic.asset_import_replace_confirmation_required",
+					"Replacing an existing asset requires explicit confirmation after preview.",
+					"/confirmReplace", null));
+
+		AssetImportService importer = new AssetImportService(new AssetWorkspaceService(root), history);
+		TransactionResult<AssetImportMutation> transaction = store.transact(command.workspaceId(),
+				command.expectedRevision(), state -> {
+			try {
+				AssetImportService.ApplyResult applied = importer.apply(approved.plan(), context.actor(),
+						command.payload().has("clientMutationId") ? command.payload().get("clientMutationId").getAsString()
+								: command.requestId().toString());
+				return Decision.commit(AssetImportMutation.success(applied, state.nextEventSequence()),
+						List.of("/" + applied.asset().relativePath()));
+			} catch (AssetImportException exception) {
+				return Decision.abort(AssetImportMutation.rejected(diagnostic(exception.code(),
+						"diagnostic.asset_import_failed", exception.getMessage(), null, null)));
+			} catch (LocalHistoryException exception) {
+				return Decision.abort(AssetImportMutation.rejected(failureDiagnostic(command,
+						"RECOVERY_POINT_FAILED", "diagnostic.recovery_point_failed",
+						"The required recovery point could not be created; the workspace was not changed.",
+						null, null, exception)));
+			}
+		});
+		CommandOutcome conflict = checkFailure(command, transaction);
+		if (conflict != null) return conflict;
+		AssetImportMutation mutation = transaction.value();
+		if (transaction.status() == TransactionResult.Status.ABORTED)
+			return failed(command, transaction.revision(), mutation.diagnostic());
+
+		assetImportPlanGrants.remove(approved.id());
+		assetImportSourceGrants.remove(approved.sourceGrantId());
+		AssetReferenceGraph refreshed = new AssetWorkspaceService(root).referenceGraph();
+		AssetHealthReport refreshedHealth = workspaceAssetHealth(refreshed,
+				store.read(command.workspaceId()).orElseThrow());
+		JsonObject data = new JsonObject();
+		data.addProperty("complete", true);
+		data.addProperty("conflict", mutation.applied().conflict().name());
+		data.add("asset", asset(mutation.applied().asset(),
+				refreshedHealth.findById(mutation.applied().asset().id()).orElseThrow()));
+		data.add("health", GSON.toJsonTree(refreshedHealth.summary()));
+		Event event = event(command, transaction.revision(), mutation.sequence(), "asset_imported", data.deepCopy());
+		return new CommandOutcome(result(command, "committed", transaction.revision(), mutation.applied().recoveryPoint(),
+				JsonNull.INSTANCE, data, List.of(), JsonNull.INSTANCE, JsonNull.INSTANCE), List.of(event));
+	}
+
+	private static boolean isElementReferenceField(String elementType, String fieldName) {
+		Field reflected = stage12Field(elementType, fieldName);
+		if (reflected != null) {
+			if (reflected.getType().getSimpleName().equals("MItemBlock")
+					|| reflected.getType().getSimpleName().equals("ProfessionEntry")) return true;
+			if (reflected.isAnnotationPresent(ModElementReference.class)
+					&& !Collection.class.isAssignableFrom(reflected.getType())) return true;
+		}
+		return switch (elementType) {
+			case "biome" -> Set.of("groundBlock", "undergroundBlock", "underwaterBlock", "treeStem", "treeBranch",
+					"treeVines", "treeFruits").contains(fieldName);
+			case "dimension" -> Set.of("mainFillerBlock", "fluidBlock", "portalFrame").contains(fieldName);
+			default -> false;
+		};
+	}
+
+	private static Class<?> structuredCollectionItem(Field field) {
+		if (field == null || !Collection.class.isAssignableFrom(field.getType())
+				|| simpleReferenceCollectionItem(field) != null) return null;
+		Class<?> itemClass = collectionItemClass(field);
+		if (itemClass == null || itemClass.getName().startsWith("java.")) return null;
+		return itemClass;
+	}
+
+	private static Class<?> stage12StorageClass(String elementType) {
+		return switch (elementType) {
+			case "biome" -> Biome.class;
+			case "dimension" -> Dimension.class;
+			case "livingentity" -> net.mcreator.element.types.LivingEntity.class;
+			case "gui" -> net.mcreator.element.types.GUI.class;
+			case "overlay" -> net.mcreator.element.types.Overlay.class;
+			case "projectile" -> net.mcreator.element.types.Projectile.class;
+			case "specialentity" -> net.mcreator.element.types.SpecialEntity.class;
+			case "feature" -> net.mcreator.element.types.Feature.class;
+			case "structure" -> net.mcreator.element.types.Structure.class;
+			case "fluid" -> net.mcreator.element.types.Fluid.class;
+			case "plant" -> net.mcreator.element.types.Plant.class;
+			case "armor" -> net.mcreator.element.types.Armor.class;
+			case "armortrim" -> net.mcreator.element.types.ArmorTrim.class;
+			case "tool" -> net.mcreator.element.types.Tool.class;
+			case "itemextension" -> net.mcreator.element.types.ItemExtension.class;
+			case "attribute" -> net.mcreator.element.types.Attribute.class;
+			case "bannerpattern" -> net.mcreator.element.types.BannerPattern.class;
+			case "command" -> net.mcreator.element.types.Command.class;
+			case "damagetype" -> net.mcreator.element.types.DamageType.class;
+			case "enchantment" -> net.mcreator.element.types.Enchantment.class;
+			case "gamerule" -> net.mcreator.element.types.GameRule.class;
+			case "keybind" -> net.mcreator.element.types.KeyBinding.class;
+			case "painting" -> net.mcreator.element.types.Painting.class;
+			case "particle" -> net.mcreator.element.types.Particle.class;
+			case "potion" -> net.mcreator.element.types.Potion.class;
+			case "potioneffect" -> net.mcreator.element.types.PotionEffect.class;
+			case "tab" -> net.mcreator.element.types.Tab.class;
+			case "villagerprofession" -> net.mcreator.element.types.VillagerProfession.class;
+			case "villagertrade" -> net.mcreator.element.types.VillagerTrade.class;
+			case "code" -> net.mcreator.element.types.CustomElement.class;
+			default -> null;
+		};
+	}
+
+	private static Field stage12Field(String elementType, String fieldName) {
+		Class<?> storageClass = stage12StorageClass(elementType);
+		if (storageClass == null) return null;
+		try {
+			Field field = storageClass.getField(fieldName);
+			return Modifier.isStatic(field.getModifiers()) ? null : field;
+		} catch (NoSuchFieldException ignored) {
+			return null;
+		}
+	}
+
+	private static Field conditionalField(String elementType, String fieldName) {
+		Field field = stage12Field(elementType, fieldName);
+		return field != null && field.isAnnotationPresent(NonNullIf.class) ? field : null;
+	}
+
+	private static Class<?> stage12ConditionalValidationClass(String elementType) {
+		return switch (elementType) {
+			case "biome" -> Biome.class;
+			case "dimension" -> Dimension.class;
+			case "structure" -> net.mcreator.element.types.Structure.class;
+			case "fluid" -> net.mcreator.element.types.Fluid.class;
+			case "plant" -> net.mcreator.element.types.Plant.class;
+			default -> null;
+		};
+	}
+
+	private void appendMissingStage12Fields(JsonObject values, JsonArray target, boolean readOnly, String elementType,
+			WorkspaceState state) {
+		Class<?> storageClass = stage12StorageClass(elementType);
+		if (storageClass == null) return;
+		Set<String> existing = new HashSet<>();
+		for (JsonElement raw : target)
+			existing.add(raw.getAsJsonObject().get("path").getAsString());
+		for (Field reflected : storageClass.getFields()) {
+			if (Modifier.isStatic(reflected.getModifiers()) || reflected.isSynthetic()) continue;
+			String path = "/" + reflected.getName();
+			if (existing.contains(path) || values.has(reflected.getName())) continue;
+			target.add(editorField(path, displayName(reflected.getName()), JsonNull.INSTANCE, readOnly, elementType, state));
+		}
+	}
+
+	private static JsonObject conditionalMetadata(String elementType, String fieldName) {
+		Field field = conditionalField(elementType, fieldName);
+		if (field == null) return null;
+		JsonObject condition = new JsonObject();
+		condition.addProperty("operator", "any_truthy");
+		JsonArray paths = new JsonArray();
+		JsonArray expressions = new JsonArray();
+		for (String expression : field.getAnnotation(NonNullIf.class).value()) {
+			expressions.add(expression);
+			String dependency = conditionFieldName(expression);
+			if (!dependency.isBlank()) paths.add("/" + dependency);
+		}
+		condition.add("paths", paths);
+		condition.add("expressions", expressions);
+		return condition;
+	}
+
+	private static boolean jsonTruthy(JsonElement value) {
+		if (value == null || value.isJsonNull()) return false;
+		if (!value.isJsonPrimitive()) return true;
+		if (value.getAsJsonPrimitive().isBoolean()) return value.getAsBoolean();
+		if (value.getAsJsonPrimitive().isNumber()) return value.getAsDouble() != 0;
+		return !value.getAsString().isBlank();
+	}
+
+	private static String conditionFieldName(String expression) {
+		String condition = expression == null ? "" : expression.trim();
+		if (condition.startsWith("!")) condition = condition.substring(1).trim();
+		for (String operator : List.of("#?=", "#=", "%=")) {
+			int index = condition.indexOf(operator);
+			if (index >= 0) return condition.substring(0, index).trim();
+		}
+		return condition;
+	}
+
+	private static boolean conditionExpressionMatches(JsonObject values, String expression) {
+		String condition = expression == null ? "" : expression.trim();
+		boolean negate = condition.startsWith("!");
+		if (negate) condition = condition.substring(1).trim();
+		boolean result;
+		try {
+			int index;
+			if ((index = condition.indexOf("#?=")) >= 0) {
+				JsonElement value = values.get(condition.substring(0, index).trim());
+				if (value == null || !value.isJsonPrimitive() || !value.getAsJsonPrimitive().isNumber()) result = false;
+				else {
+					int actual = value.getAsInt();
+					result = java.util.Arrays.stream(condition.substring(index + 3).trim().split(","))
+							.map(String::trim).mapToInt(Integer::parseInt).anyMatch(candidate -> candidate == actual);
+				}
+			} else if ((index = condition.indexOf("#=")) >= 0) {
+				JsonElement value = values.get(condition.substring(0, index).trim());
+				result = value != null && value.isJsonPrimitive() && value.getAsJsonPrimitive().isNumber()
+						&& value.getAsInt() == Integer.parseInt(condition.substring(index + 2).trim());
+			} else if ((index = condition.indexOf("%=")) >= 0) {
+				JsonElement value = values.get(condition.substring(0, index).trim());
+				result = value != null && value.isJsonPrimitive()
+						&& condition.substring(index + 2).trim().equals(value.getAsString());
+			} else {
+				result = jsonTruthy(values.get(condition));
+			}
+		} catch (RuntimeException ignored) {
+			result = false;
+		}
+		return negate ? !result : result;
+	}
+
+	private static boolean missingConditionalValue(JsonElement value) {
+		if (value == null || value.isJsonNull()) return true;
+		if (value.isJsonPrimitive() && value.getAsJsonPrimitive().isString()) return value.getAsString().isBlank();
+		if (value.isJsonArray()) return value.getAsJsonArray().isEmpty();
+		return false;
+	}
+
+	private static boolean isElementReferenceListField(String elementType, String fieldName) {
+		Field reflected = stage12Field(elementType, fieldName);
+		if (reflected != null && reflected.isAnnotationPresent(ModElementReference.class)
+				&& Collection.class.isAssignableFrom(reflected.getType())
+				&& simpleReferenceCollectionItem(reflected) != null) return true;
+		return elementType.equals("dimension")
+				&& Set.of("biomesInDimension", "biomesInDimensionCaves").contains(fieldName);
+	}
+
+	private static Class<?> collectionItemClass(Field field) {
+		if (field == null || !Collection.class.isAssignableFrom(field.getType())) return null;
+		Type genericType = field.getGenericType();
+		if (!(genericType instanceof ParameterizedType parameterizedType)) return null;
+		Type[] arguments = parameterizedType.getActualTypeArguments();
+		if (arguments.length != 1) return null;
+		return arguments[0] instanceof Class<?> itemClass ? itemClass : null;
+	}
+
+	private static Class<?> simpleReferenceCollectionItem(Field field) {
+		Class<?> itemClass = collectionItemClass(field);
+		if (itemClass == null) return null;
+		return switch (itemClass.getSimpleName()) {
+			case "String", "MItemBlock", "BiomeEntry", "EnchantmentEntry", "EntityEntry", "FluidEntry", "TabEntry" -> itemClass;
+			default -> null;
+		};
+	}
+
+	private static List<String> elementReferenceDefaults(String fieldName) {
+		return switch (fieldName) {
+			case "groundBlock" -> List.of("Blocks.GRASS", "Blocks.DIRT#0", "Blocks.STONE#0");
+			case "undergroundBlock" -> List.of("Blocks.DIRT#0", "Blocks.STONE#0");
+			case "underwaterBlock" -> List.of("Blocks.DIRT#0", "Blocks.GRAVEL", "Blocks.SAND");
+			case "fluidBlock" -> List.of("Blocks.WATER", "Blocks.LAVA");
+			case "mainFillerBlock", "portalFrame" -> List.of("Blocks.STONE#0", "Blocks.OBSIDIAN");
+			default -> List.of();
+		};
 	}
 
 	public WorkspaceApplicationService(RevisionedWorkspaceStore store, WorkspaceTaskGateway tasks,
@@ -151,6 +1039,7 @@ public final class WorkspaceApplicationService {
 		this.installedPlugins = InstalledPluginInventoryService.productDefault();
 		this.workspaceCreation = new WorkspaceCreationService(this.tracks);
 		this.plans = new WorkspacePlanEngine(store, tasks, mutations, history, clock, ids);
+		this.localTemplates = LocalWorkspaceTemplateService.productDefault(clock);
 		if (subscribeTaskEvents)
 			tasks.subscribeTaskEvents(this::publishTaskEvent);
 	}
@@ -181,6 +1070,179 @@ public final class WorkspaceApplicationService {
 			}
 		}
 		return () -> listeners.remove(listener);
+	}
+
+	/** Managed lifecycle used by the desktop Blockbench bridge without giving the bridge direct history access. */
+	public BlockbenchProcessService.EditLifecycle blockbenchEditLifecycle(UUID workspaceId) {
+		Objects.requireNonNull(workspaceId, "workspaceId");
+		if (store.read(workspaceId).isEmpty())
+			throw new IllegalArgumentException("Workspace not found: " + workspaceId);
+		return new BlockbenchProcessService.EditLifecycle() {
+			@Override public BlockbenchProcessService.PreparedEdit prepare(AssetDescriptor asset) {
+				return prepareBlockbenchEdit(workspaceId, asset);
+			}
+
+			@Override public BlockbenchProcessService.Completion complete(BlockbenchProcessService.PreparedEdit prepared,
+					AssetDescriptor current) {
+				return completeBlockbenchEdit(workspaceId, prepared, current);
+			}
+		};
+	}
+
+	private BlockbenchProcessService.PreparedEdit prepareBlockbenchEdit(UUID workspaceId, AssetDescriptor asset) {
+		if (history == null)
+			throw new BlockbenchBridgeException("BLOCKBENCH_RECOVERY_UNAVAILABLE",
+					"Blockbench editing requires local-history recovery");
+		Path root = workspaceRoot(workspaceId);
+		if (root == null)
+			throw new BlockbenchBridgeException("ASSET_WORKSPACE_ROOT_UNAVAILABLE",
+					"The workspace root is unavailable for Blockbench editing");
+		AssetDescriptor indexed = new AssetWorkspaceService(root).findById(asset.id()).orElseThrow(() ->
+				new BlockbenchBridgeException("ASSET_NOT_FOUND",
+						"The selected Blockbench asset is no longer indexed"));
+		if (!indexed.relativePath().equals(asset.relativePath()) || !indexed.sha256().equals(asset.sha256()))
+			throw new BlockbenchBridgeException("BLOCKBENCH_ASSET_STALE",
+					"The selected Blockbench asset changed before the editor was launched");
+		TransactionResult<BlockbenchPreparation> coordinated = null;
+		for (int attempt = 0; attempt < 3; attempt++) {
+			WorkspaceState state = store.read(workspaceId).orElseThrow(() ->
+					new BlockbenchBridgeException("WORKSPACE_NOT_FOUND",
+							"The workspace closed before the Blockbench edit could be prepared"));
+			try {
+				coordinated = store.coordinate(workspaceId, state.revision(), candidate -> {
+					try {
+						RecoveryPoint recovery = history.createRecoveryPoint(new RecoveryPointRequest(
+								"Before Blockbench edit: " + asset.relativePath(), UiCore.Actor.UI,
+								"blockbench:" + asset.id(), RecoveryPointSource.BLOCKBENCH));
+						return new BlockbenchPreparation(recovery, candidate.revision(), candidate.nextEventSequence());
+					} catch (LocalHistoryException exception) {
+						throw new BlockbenchPreparationException(exception);
+					}
+				});
+			} catch (BlockbenchPreparationException exception) {
+				throw new BlockbenchBridgeException("BLOCKBENCH_RECOVERY_FAILED",
+						"Could not create the required pre-Blockbench recovery point");
+			}
+			if (coordinated.status() == TransactionResult.Status.COORDINATED) break;
+			if (coordinated.status() != TransactionResult.Status.CONFLICT) break;
+		}
+		if (coordinated == null || coordinated.status() != TransactionResult.Status.COORDINATED)
+			throw new BlockbenchBridgeException("BLOCKBENCH_PREPARE_CONFLICT",
+					"Could not prepare the Blockbench edit against a stable workspace revision");
+
+		BlockbenchPreparation preparation = coordinated.value();
+		JsonObject payload = new JsonObject();
+		payload.add("recoveryPoint", recoveryPoint(preparation.recoveryPoint()));
+		publishRetainedEvent(new Event("event", UiCore.SCHEMA_VERSION, ids.get(), workspaceId, preparation.revision(),
+				preparation.sequence(), clock.instant().toString(), "recovery_point_created", null, payload));
+		return new BlockbenchProcessService.PreparedEdit(preparation.recoveryPoint().id(), preparation.revision(), asset.id(),
+				asset.relativePath(), asset.sha256());
+	}
+
+	private BlockbenchProcessService.Completion completeBlockbenchEdit(UUID workspaceId,
+			BlockbenchProcessService.PreparedEdit prepared, AssetDescriptor current) {
+		if (prepared == null)
+			throw new BlockbenchBridgeException("BLOCKBENCH_EDIT_NOT_PREPARED",
+					"The Blockbench edit has no prepared recovery state");
+		Objects.requireNonNull(current, "current");
+		if (!prepared.assetId().equals(current.id()) || !prepared.relativePath().equals(current.relativePath()))
+			throw new BlockbenchBridgeException("BLOCKBENCH_ASSET_IDENTITY_CHANGED",
+					"The Blockbench asset identity changed while the editor was open");
+		if (prepared.openedSha256().equals(current.sha256()))
+			return new BlockbenchProcessService.Completion(prepared.recoveryPointId(),
+					store.read(workspaceId).orElseThrow().revision());
+
+		Path root = workspaceRoot(workspaceId);
+		if (root == null)
+			throw new BlockbenchBridgeException("ASSET_WORKSPACE_ROOT_UNAVAILABLE",
+					"The workspace root is unavailable while completing the Blockbench edit");
+		AssetDescriptor indexed = new AssetWorkspaceService(root).findByRelativePath(current.relativePath())
+				.orElseThrow(() -> new BlockbenchBridgeException("ASSET_MISSING_AFTER_BLOCKBENCH",
+						"The edited Blockbench asset is no longer indexed"));
+		if (!indexed.sha256().equals(current.sha256()))
+			throw new BlockbenchBridgeException("BLOCKBENCH_ASSET_STALE",
+					"The edited asset changed again while its Blockbench result was being finalized");
+
+		TransactionResult<Long> committed = null;
+		for (int attempt = 0; attempt < 3; attempt++) {
+			WorkspaceState state = store.read(workspaceId).orElseThrow(() ->
+					new BlockbenchBridgeException("WORKSPACE_NOT_FOUND",
+							"The workspace closed before the Blockbench edit could be finalized"));
+			committed = store.transact(workspaceId, state.revision(), candidate ->
+					Decision.commit(candidate.nextEventSequence(), List.of("/" + current.relativePath())));
+			if (committed.status() == TransactionResult.Status.COMMITTED) break;
+			if (committed.status() != TransactionResult.Status.CONFLICT) break;
+		}
+		if (committed == null || committed.status() != TransactionResult.Status.COMMITTED)
+			throw new BlockbenchBridgeException("BLOCKBENCH_REVISION_COMMIT_FAILED",
+					"Could not register the external Blockbench edit as a workspace revision");
+
+		AssetReferenceGraph refreshed = new AssetWorkspaceService(root).referenceGraph();
+		AssetHealthReport health = workspaceAssetHealth(refreshed, store.read(workspaceId).orElseThrow());
+		AssetDescriptor refreshedAsset = refreshed.assets().stream()
+				.filter(asset -> asset.relativePath().equals(current.relativePath())).findFirst().orElseThrow();
+		JsonObject payload = new JsonObject();
+		payload.addProperty("assetId", refreshedAsset.id());
+		payload.addProperty("relativePath", refreshedAsset.relativePath());
+		payload.addProperty("openedSha256", prepared.openedSha256());
+		payload.addProperty("currentSha256", refreshedAsset.sha256());
+		payload.addProperty("recoveryPointId", prepared.recoveryPointId());
+		payload.add("asset", asset(refreshedAsset, health.findById(refreshedAsset.id()).orElseThrow()));
+		payload.add("health", GSON.toJsonTree(health.summary()));
+		publishRetainedEvent(new Event("event", UiCore.SCHEMA_VERSION, ids.get(), workspaceId, committed.revision(),
+				committed.value(), clock.instant().toString(), "asset_external_edit_committed", null, payload));
+		return new BlockbenchProcessService.Completion(prepared.recoveryPointId(), committed.revision());
+	}
+
+
+	/**
+	 * Creates a short-lived capability for a file explicitly selected by the native desktop host.
+	 * The returned grant never exposes the selected absolute path to browser code.
+	 */
+	public AssetImportSelectionGrant grantAssetImportSource(Path source) {
+		Objects.requireNonNull(source, "source");
+		try {
+			Path real = source.toRealPath();
+			if (!Files.isRegularFile(real))
+				throw new AssetImportException("ASSET_IMPORT_SOURCE_UNAVAILABLE", "Selected import source is not a file");
+			String id = ids.get().toString();
+			Instant expiresAt = clock.instant().plus(ASSET_IMPORT_GRANT_TTL);
+			assetImportSourceGrants.put(id, new AssetImportSourceGrant(id, real, expiresAt));
+			pruneAssetImportGrants();
+			return new AssetImportSelectionGrant(id, real.getFileName().toString(), Files.size(real), expiresAt.toString());
+		} catch (AssetImportException exception) {
+			throw exception;
+		} catch (Exception exception) {
+			throw new AssetImportException("ASSET_IMPORT_SOURCE_UNAVAILABLE", "Selected import source is unavailable",
+					exception);
+		}
+	}
+
+	private void pruneAssetImportGrants() {
+		Instant now = clock.instant();
+		assetImportSourceGrants.entrySet().removeIf(entry -> !entry.getValue().expiresAt().isAfter(now));
+		assetImportPlanGrants.entrySet().removeIf(entry -> !entry.getValue().expiresAt().isAfter(now));
+		assetImportBatchPlanGrants.entrySet().removeIf(entry -> !entry.getValue().expiresAt().isAfter(now));
+	}
+
+	private AssetImportSourceGrant assetImportSourceGrant(String id) {
+		pruneAssetImportGrants();
+		AssetImportSourceGrant grant = assetImportSourceGrants.get(id);
+		if (grant == null)
+			throw new AssetImportException("ASSET_IMPORT_SOURCE_GRANT_INVALID",
+					"The selected asset source grant is missing or expired");
+		return grant;
+	}
+
+	private AssetImportPlanGrant assetImportPlanGrant(String id, UUID workspaceId) {
+		pruneAssetImportGrants();
+		AssetImportPlanGrant grant = assetImportPlanGrants.get(id);
+		if (grant == null)
+			throw new AssetImportException("ASSET_IMPORT_PLAN_INVALID", "The asset import plan is missing or expired");
+		if (!grant.workspaceId().equals(workspaceId))
+			throw new AssetImportException("ASSET_IMPORT_PLAN_WORKSPACE_MISMATCH",
+					"The asset import plan belongs to a different workspace");
+		return grant;
 	}
 
 	private void publishTaskEvent(WorkspaceTaskGateway.TaskEvent taskEvent) {
@@ -221,8 +1283,12 @@ public final class WorkspaceApplicationService {
 			return;
 		Event event = new Event("event", UiCore.SCHEMA_VERSION, ids.get(), taskEvent.workspaceId(),
 				coordinated.revision(), coordinated.value(), clock.instant().toString(), taskEvent.event(), null, payload);
-		Deque<Event> history = taskEventHistory.computeIfAbsent(taskEvent.workspaceId(), ignored -> new ArrayDeque<>());
-		CopyOnWriteArrayList<Consumer<Event>> listeners = eventListeners.computeIfAbsent(taskEvent.workspaceId(),
+		publishRetainedEvent(event);
+	}
+
+	private void publishRetainedEvent(Event event) {
+		Deque<Event> history = taskEventHistory.computeIfAbsent(event.workspaceId(), ignored -> new ArrayDeque<>());
+		CopyOnWriteArrayList<Consumer<Event>> listeners = eventListeners.computeIfAbsent(event.workspaceId(),
 				ignored -> new CopyOnWriteArrayList<>());
 		List<Consumer<Event>> recipients;
 		synchronized (history) {
@@ -237,7 +1303,7 @@ public final class WorkspaceApplicationService {
 			try {
 				listener.accept(event);
 			} catch (RuntimeException exception) {
-				LOG.debug("Task event listener disconnected", exception);
+				LOG.debug("Workspace event listener disconnected", exception);
 			}
 		}
 	}
@@ -251,6 +1317,7 @@ public final class WorkspaceApplicationService {
 			case CREATE_WORKSPACE -> createWorkspace(command, context);
 			case CREATE_MOD_ELEMENT -> create(command, context);
 			case UPDATE_MOD_ELEMENT -> update(command, context);
+			case SET_MOD_ELEMENT_SOURCE_MANAGEMENT -> setSourceManagement(command, context);
 			case DELETE_MOD_ELEMENT -> delete(command, context);
 			case UPDATE_PROCEDURE -> updateProcedure(command, context);
 			case CREATE_REGISTRY_ENTRY, UPDATE_REGISTRY_ENTRY, DELETE_REGISTRY_ENTRY, RENAME_REGISTRY_ENTRY ->
@@ -260,6 +1327,7 @@ public final class WorkspaceApplicationService {
 					startTask(command);
 			case RUN_SERVER -> runServer(command, context);
 			case PUBLISH_DATAGEN_OUTPUT -> publishDatagenOutput(command, context);
+			case CREATE_LOCAL_TEMPLATE -> createLocalTemplate(command, context);
 			case CANCEL_TASK -> cancelTask(command);
 			case CREATE_RECOVERY_POINT -> createRecoveryPoint(command, context);
 			case RESTORE_RECOVERY_POINT -> restoreRecoveryPoint(command, context);
@@ -267,6 +1335,9 @@ public final class WorkspaceApplicationService {
 			case IMPORT_UPSTREAM_WORKSPACE -> importUpstreamWorkspace(command, context);
 			case CREATE_PUBLISH_BATCH -> createPublishBatch(command, context);
 			case PREPARE_RESOURCE_PACK_CLIENT -> prepareResourcePackClient(command, context);
+			case IMPORT_ASSET -> importAsset(command, context);
+			case IMPORT_ASSET_BATCH -> importAssetBatch(command, context);
+			case MOVE_ASSET -> moveAsset(command, context);
 			case APPLY_WORKSPACE_PLAN -> plans.apply(command, context);
 			default -> failed(command, 0, diagnostic("UNSUPPORTED_OPERATION", "diagnostic.unsupported_operation",
 					"The requested operation is not supported.", null, null));
@@ -280,8 +1351,13 @@ public final class WorkspaceApplicationService {
 		try {
 			return switch (query.operation()) {
 				case GET_WORKBENCH -> querySuccess(query, state.revision(), workbench(state, context));
+				case GET_WORKSPACE_ENVIRONMENT -> workspaceEnvironment(query, state);
+				case GET_WORKSPACE_HEALTH -> querySuccess(query, state.revision(), workspaceHealth(query, state));
 				case LIST_NEW_WORKSPACE_GENERATORS -> querySuccess(query, state.revision(), newWorkspaceGenerators());
 				case LIST_ASSETS -> listAssets(query, state);
+				case PREVIEW_ASSET_IMPORT -> previewAssetImport(query, state);
+				case PREVIEW_ASSET_IMPORT_BATCH -> previewAssetImportBatch(query, state);
+				case PREVIEW_ASSET_MOVE -> previewAssetMove(query, state);
 				case LIST_MOD_ELEMENTS -> querySuccess(query, state.revision(), elementList(state, query.payload()));
 				case GET_MOD_ELEMENT_EDITOR -> editor(query, state, context);
 				case PREVIEW_MOD_ELEMENT_CHANGE -> preview(query, state);
@@ -290,12 +1366,16 @@ public final class WorkspaceApplicationService {
 				case GET_WORKSPACE_REFERENCES -> workspaceReferences(query, state);
 				case LIST_WORKSPACE_REGISTRIES -> listRegistries(query, state);
 				case PREVIEW_REGISTRY_RENAME -> previewRegistryRename(query, state);
+				case LIST_LOCAL_TEMPLATES -> querySuccess(query, state.revision(), localTemplates.list());
+				case PREVIEW_LOCAL_TEMPLATE_INSTANTIATION -> previewLocalTemplateInstantiation(query, state, context);
+				case PLAN_PROCEDURE_REFACTOR -> planProcedureRefactor(query, state, context);
 				case PLAN_WORKSPACE_CHANGES -> plans.plan(query, context);
 				case PREVIEW_WORKSPACE_PLAN -> plans.preview(query, context);
 				case GET_TASK -> task(query, state);
 				case PREVIEW_DATAGEN_OUTPUT -> previewDatagenOutput(query, state);
 				case GET_HISTORY -> historyList(query, state);
 				case GET_DIFF -> historyDiff(query, state);
+				case PREVIEW_RECOVERY_RESTORE -> previewRecoveryRestore(query, state);
 				case GET_VERSION_TRACKS -> querySuccess(query, state.revision(), versionTracks(state));
 				case GET_RELEASE_NOTES -> querySuccess(query, state.revision(), ReleaseManifest.official());
 				case PREVIEW_LOADER_MIGRATION -> previewLoaderMigration(query, state);
@@ -311,6 +1391,7 @@ public final class WorkspaceApplicationService {
 			return queryFailure(query, state.revision(), diagnostic(exception.code(),
 					"diagnostic.list_cursor_invalid", exception.getMessage(), null, null));
 		} catch (RuntimeException exception) {
+			LOG.debug("Copperbench query payload rejected for {}", query.operation(), exception);
 			return queryFailure(query, state.revision(), invalidPayload(exception.getMessage()));
 		}
 	}
@@ -323,14 +1404,18 @@ public final class WorkspaceApplicationService {
 					"The workspace root is not available for asset indexing.", null, null));
 		try {
 			AssetReferenceGraph graph = new AssetWorkspaceService(root).referenceGraph();
+			AssetHealthReport health = workspaceAssetHealth(graph, state);
 			JsonObject projection = new JsonObject();
 			projection.addProperty("schemaVersion", UiCore.SCHEMA_VERSION);
-			projection.add("assets", GSON.toJsonTree(graph.assets().stream().map(WorkspaceApplicationService::asset).toList()));
+			projection.add("assets", GSON.toJsonTree(graph.assets().stream()
+					.map(descriptor -> asset(descriptor, health.findById(descriptor.id()).orElseThrow())).toList()));
 			projection.add("references", GSON.toJsonTree(graph.references().stream()
 					.map(WorkspaceApplicationService::assetReference).toList()));
-			projection.add("diagnostics", GSON.toJsonTree(graph.diagnostics().stream()
-					.map(WorkspaceApplicationService::assetDiagnostic).toList()));
-			return querySuccess(query, state.revision(), projection);
+			List<Diagnostic> diagnostics = graph.diagnostics().stream().map(AssetDiagnosticProjection::project).toList();
+			projection.add("diagnostics", GSON.toJsonTree(diagnostics));
+			projection.add("health", GSON.toJsonTree(health.summary()));
+			return new QueryResult("query_result", UiCore.SCHEMA_VERSION, query.requestId(), query.workspaceId(),
+					query.operation(), "succeeded", state.revision(), projection, diagnostics);
 		} catch (RuntimeException exception) {
 			return queryFailure(query, state.revision(), failureDiagnostic(query, "ASSET_QUERY_FAILED",
 					"diagnostic.asset_query_failed", "The workspace asset index could not be read.", null, null,
@@ -338,7 +1423,64 @@ public final class WorkspaceApplicationService {
 		}
 	}
 
-	private static JsonObject asset(AssetDescriptor descriptor) {
+	private AssetHealthReport workspaceAssetHealth(AssetReferenceGraph graph, WorkspaceState state) {
+		JsonObject referenceProjection = references.projection(state, "");
+		Map<String, Integer> resourceReferences = new HashMap<>();
+		for (JsonElement raw : referenceProjection.getAsJsonArray("edges")) {
+			JsonObject edge = raw.getAsJsonObject();
+			if (!edge.has("kind") || !edge.get("kind").getAsString().equals("resource") || !edge.has("target")) continue;
+			String target = edge.get("target").getAsString().trim().toLowerCase(Locale.ROOT);
+			if (!target.isBlank()) resourceReferences.merge(target, 1, Integer::sum);
+		}
+		Set<String> textSignals = new LinkedHashSet<>();
+		for (Element element : state.elements()) {
+			textSignals.add(element.name().toLowerCase(Locale.ROOT));
+			textSignals.add(element.displayName().toLowerCase(Locale.ROOT));
+			collectWorkspaceTextSignals(element.values(), textSignals);
+		}
+		collectWorkspaceTextSignals(state.generator(), textSignals);
+		collectWorkspaceTextSignals(state.upstreamDocument(), textSignals);
+		collectWorkspaceTextSignals(state.registries(), textSignals);
+		boolean workspaceUsageComplete = "mod".equals(state.kind()) && state.elements().stream()
+				.allMatch(element -> ElementCoverageCatalog.isFirstParty(element.type()) && !element.type().equals("code")
+						&& workspaceTextSignalsComplete(element.values()))
+				&& workspaceTextSignalsComplete(state.generator())
+				&& workspaceTextSignalsComplete(state.upstreamDocument());
+		return graph.healthReport(resourceReferences, textSignals, workspaceUsageComplete);
+	}
+
+	private static boolean workspaceTextSignalsComplete(JsonElement value) {
+		if (value == null || value.isJsonNull()) return true;
+		if (value.isJsonPrimitive()) {
+			return !value.getAsJsonPrimitive().isString() || value.getAsString().length() <= 512;
+		}
+		if (value.isJsonArray()) {
+			for (JsonElement child : value.getAsJsonArray())
+				if (!workspaceTextSignalsComplete(child)) return false;
+			return true;
+		}
+		for (JsonElement child : value.getAsJsonObject().asMap().values())
+			if (!workspaceTextSignalsComplete(child)) return false;
+		return true;
+	}
+
+	private static void collectWorkspaceTextSignals(JsonElement value, Set<String> target) {
+		if (value == null || value.isJsonNull()) return;
+		if (value.isJsonPrimitive()) {
+			if (value.getAsJsonPrimitive().isString()) {
+				String text = value.getAsString().trim().toLowerCase(Locale.ROOT);
+				if (!text.isBlank() && text.length() <= 512) target.add(text);
+			}
+			return;
+		}
+		if (value.isJsonArray()) {
+			for (JsonElement child : value.getAsJsonArray()) collectWorkspaceTextSignals(child, target);
+			return;
+		}
+		for (JsonElement child : value.getAsJsonObject().asMap().values()) collectWorkspaceTextSignals(child, target);
+	}
+
+	private static JsonObject asset(AssetDescriptor descriptor, AssetHealthReport.Entry health) {
 		JsonObject value = new JsonObject();
 		value.addProperty("id", descriptor.id());
 		value.addProperty("relativePath", descriptor.relativePath());
@@ -347,6 +1489,7 @@ public final class WorkspaceApplicationService {
 		value.addProperty("sha256", descriptor.sha256());
 		value.addProperty("mediaType", descriptor.mediaType());
 		value.addProperty("updatedAt", descriptor.updatedAt().toString());
+		value.add("health", GSON.toJsonTree(health));
 		return value;
 	}
 
@@ -354,22 +1497,13 @@ public final class WorkspaceApplicationService {
 		JsonObject value = new JsonObject();
 		value.addProperty("sourceAssetId", reference.sourceAssetId());
 		value.addProperty("sourcePath", reference.sourcePath());
+		value.addProperty("sourcePointer", reference.sourcePointer());
+		value.addProperty("rawValue", reference.rawValue());
+		if (reference.expectedPrefix() == null) value.add("expectedPrefix", JsonNull.INSTANCE);
+		else value.addProperty("expectedPrefix", reference.expectedPrefix());
 		value.addProperty("targetPath", reference.targetPath());
 		value.addProperty("targetAssetId", reference.targetAssetId());
 		value.addProperty("kind", reference.kind().name());
-		return value;
-	}
-
-	private static JsonObject assetDiagnostic(AssetDiagnostic diagnostic) {
-		JsonObject value = new JsonObject();
-		value.addProperty("code", diagnostic.code());
-		value.addProperty("severity", diagnostic.severity().name());
-		value.addProperty("sourcePath", diagnostic.sourcePath());
-		if (diagnostic.targetPath() == null)
-			value.add("targetPath", JsonNull.INSTANCE);
-		else
-			value.addProperty("targetPath", diagnostic.targetPath());
-		value.addProperty("message", diagnostic.message());
 		return value;
 	}
 
@@ -471,6 +1605,9 @@ public final class WorkspaceApplicationService {
 			return failed(command, currentRevision(command.workspaceId()), diagnostic("MOD_ELEMENT_INVALID_IDENTITY",
 					"diagnostic.mod_element_invalid_identity", "Element type or name is invalid.", "/name", null));
 		JsonObject normalizedValues = defaultElementValues(type, name, initialValues);
+		Diagnostic validation = validateElementValues(null, type, normalizedValues);
+		if (validation != null)
+			return failed(command, currentRevision(command.workspaceId()), validation);
 		RecoveryPoint recoveryPoint;
 		try {
 			recoveryPoint = automationRecoveryPoint(command, context);
@@ -486,7 +1623,8 @@ public final class WorkspaceApplicationService {
 			UUID elementId = ids.get();
 			String displayName = normalizedValues.has("displayName") ? normalizedValues.get("displayName").getAsString()
 					: displayName(name);
-			Element element = new Element(elementId, type, name, displayName, "draft", "generated", clock.instant(),
+			Element element = new Element(elementId, type, name, displayName, "valid",
+					type.equals("code") ? "manual" : "generated", clock.instant(),
 					normalizedValues);
 			state.addElement(element);
 			Diagnostic persistenceFailure = persist(before, state, command, element);
@@ -525,6 +1663,11 @@ public final class WorkspaceApplicationService {
 						"diagnostic.element_type_outside_first_party_slice",
 						"This element type is outside the supported Java catalog and cannot be updated in the new UI.",
 						"/elementId", elementId)));
+			if (existing.ownership().equals("manual") && !existing.type().equals("code"))
+				return Decision.abort(Mutation.rejected(diagnostic("SOURCE_MANAGEMENT_DETACHED",
+						"diagnostic.source_management_detached",
+						"This element source is manually managed. Reattach it to the generator before editing structured fields.",
+						elementPath(elementId) + "/ownership", elementId)));
 			JsonObject values = existing.values().deepCopy();
 			List<String> changedPaths = new ArrayList<>();
 			try {
@@ -538,7 +1681,7 @@ public final class WorkspaceApplicationService {
 			} catch (RuntimeException exception) {
 				return Decision.abort(Mutation.rejected(invalidPayload(exception.getMessage())));
 			}
-			Diagnostic validation = validateElementValues(elementId, values);
+			Diagnostic validation = validateElementValues(elementId, existing.type(), values);
 			if (validation != null)
 				return Decision.abort(Mutation.rejected(validation));
 			String updatedDisplayName = values.has("displayName") && values.get("displayName").isJsonPrimitive()
@@ -552,6 +1695,76 @@ public final class WorkspaceApplicationService {
 			return Decision.commit(Mutation.success(updated, state.nextEventSequence()), changedPaths);
 		});
 		return mutationOutcome(command, context, transaction, "mod_element_updated", recoveryPoint);
+	}
+
+	private CommandOutcome setSourceManagement(Command command, RequestContext context) {
+		UUID elementId;
+		String mode;
+		boolean userApproved;
+		try {
+			elementId = UUID.fromString(requiredString(command.payload(), "elementId"));
+			mode = requiredString(command.payload(), "mode").trim().toLowerCase(Locale.ROOT);
+			userApproved = command.payload().has("userApproved") && command.payload().get("userApproved").getAsBoolean();
+			if (!Set.of("manual", "generated").contains(mode))
+				throw new IllegalArgumentException("mode must be manual or generated");
+		} catch (RuntimeException exception) {
+			return failed(command, currentRevision(command.workspaceId()), invalidPayload(exception.getMessage()));
+		}
+		WorkspaceState current = store.read(command.workspaceId()).orElse(null);
+		if (current == null) return failed(command, 0, workspaceNotFound());
+		Element currentElement = current.element(elementId);
+		if (currentElement == null) return failed(command, current.revision(), elementNotFound(elementId));
+		if (currentElement.type().equals("code") && mode.equals("generated"))
+			return failed(command, current.revision(), diagnostic("CODE_SOURCE_ALWAYS_MANUAL",
+					"diagnostic.code_source_always_manual",
+					"Code elements are manual source by definition and cannot be reattached to generated source management.",
+					elementPath(elementId) + "/ownership", elementId));
+		if (currentElement.ownership().equals(mode)) {
+			JsonObject data = new JsonObject();
+			data.addProperty("elementId", elementId.toString());
+			data.addProperty("sourceManagement", mode);
+			data.addProperty("changed", false);
+			return new CommandOutcome(result(command, "committed", current.revision(), JsonNull.INSTANCE,
+					data, List.of(), JsonNull.INSTANCE, JsonNull.INSTANCE), List.of());
+		}
+		if (mode.equals("generated") && !userApproved)
+			return failed(command, current.revision(), diagnostic("SOURCE_REATTACH_APPROVAL_REQUIRED",
+					"diagnostic.source_reattach_approval_required",
+					"Reattaching source management regenerates this element and may overwrite manual source edits. Explicit approval is required.",
+					"/userApproved", elementId));
+
+		RecoveryPoint recoveryPoint;
+		try {
+			recoveryPoint = sourceManagementRecoveryPoint(command, context, mode);
+		} catch (LocalHistoryException exception) {
+			return automationRecoveryFailed(command, exception);
+		}
+		TransactionResult<Mutation> transaction = store.transact(command.workspaceId(), command.expectedRevision(), state -> {
+			WorkspaceState before = state.copy();
+			Element existing = state.element(elementId);
+			if (existing == null) return Decision.abort(Mutation.rejected(elementNotFound(elementId)));
+			Element updated = new Element(existing.id(), existing.type(), existing.name(), existing.displayName(),
+					existing.state(), mode, clock.instant(), existing.values());
+			state.replaceElement(updated);
+			Diagnostic persistenceFailure = persist(before, state, command, updated);
+			if (persistenceFailure != null) return Decision.abort(Mutation.rejected(persistenceFailure));
+			return Decision.commit(Mutation.success(updated, state.nextEventSequence()),
+					List.of(elementPath(elementId) + "/ownership"));
+		});
+		return mutationOutcome(command, context, transaction, "mod_element_source_management_changed", recoveryPoint);
+	}
+
+	private RecoveryPoint sourceManagementRecoveryPoint(Command command, RequestContext context, String mode)
+			throws LocalHistoryException {
+		RecoveryPoint automated = automationRecoveryPoint(command, context);
+		if (automated != null || history == null) return automated;
+		WorkspaceState current = store.read(command.workspaceId()).orElse(null);
+		if (current == null || current.revision() != command.expectedRevision()) return null;
+		String taskId = command.payload().has("clientMutationId")
+				? command.payload().get("clientMutationId").getAsString() : command.requestId().toString();
+		return history.createRecoveryPoint(new RecoveryPointRequest(
+				mode.equals("manual") ? "Before source takeover" : "Before source reattach", context.actor(), taskId,
+				RecoveryPointSource.MANUAL));
 	}
 
 	private CommandOutcome updateProcedure(Command command, RequestContext context) {
@@ -579,6 +1792,11 @@ public final class WorkspaceApplicationService {
 				return Decision.abort(Mutation.rejected(diagnostic("PROCEDURE_ELEMENT_REQUIRED",
 						"diagnostic.procedure_element_required", "The requested element is not a Procedure.",
 						"/elementId", elementId)));
+			if (existing.ownership().equals("manual"))
+				return Decision.abort(Mutation.rejected(diagnostic("SOURCE_MANAGEMENT_DETACHED",
+						"diagnostic.source_management_detached",
+						"This Procedure source is manually managed. Reattach it before editing the generated Procedure graph.",
+						elementPath(elementId) + "/ownership", elementId)));
 			ProcedureIr candidate;
 			try {
 				candidate = PROCEDURES.applyEdits(PROCEDURES.read(existing.values(), elementId), edits);
@@ -609,7 +1827,8 @@ public final class WorkspaceApplicationService {
 		if (current == null || current.revision() != command.expectedRevision()) return null;
 		String taskId = command.payload().has("clientMutationId")
 				? command.payload().get("clientMutationId").getAsString() : command.requestId().toString();
-		return history.createRecoveryPoint(new RecoveryPointRequest("Before large Procedure edit", context.actor(), taskId));
+		return history.createRecoveryPoint(new RecoveryPointRequest("Before large Procedure edit", context.actor(), taskId,
+				RecoveryPointSource.PROCEDURE));
 	}
 
 	private CommandOutcome delete(Command command, RequestContext context) {
@@ -647,7 +1866,8 @@ public final class WorkspaceApplicationService {
 		String taskId = command.payload().has("clientMutationId")
 				? command.payload().get("clientMutationId").getAsString() : command.requestId().toString();
 		return history.createRecoveryPoint(new RecoveryPointRequest(
-				"Before MCP " + command.operation().name().toLowerCase(Locale.ROOT), context.actor(), taskId));
+				"Before MCP " + command.operation().name().toLowerCase(Locale.ROOT), context.actor(), taskId,
+				RecoveryPointSource.AUTOMATION));
 	}
 
 	private CommandOutcome automationRecoveryFailed(Command command, Throwable cause) {
@@ -660,6 +1880,14 @@ public final class WorkspaceApplicationService {
 		try {
 			mutations.persist(before, after, command.operation(), element);
 			return null;
+		} catch (WorkspaceSourceConflictException conflict) {
+			JsonObject args = new JsonObject();
+			args.addProperty("workspacePath", conflict.workspacePath());
+			args.addProperty("expectedFingerprint", conflict.expectedFingerprint());
+			args.addProperty("actualFingerprint", conflict.actualFingerprint());
+			return diagnostic("SOURCE_CONTENT_CONFLICT", "diagnostic.source_content_conflict",
+					"The source file changed outside Copperbench after this edit was based on it. Reload the source and retry.",
+					args, elementPath(element.id()) + conflict.fieldPath(), element.id());
 		} catch (Exception exception) {
 			return failureDiagnostic(command, "WORKSPACE_PERSISTENCE_FAILED", "diagnostic.workspace_persistence_failed",
 					"The workspace change could not be stored and was rolled back.", null, null, exception);
@@ -726,6 +1954,59 @@ public final class WorkspaceApplicationService {
 		}
 	}
 
+	private CommandOutcome createLocalTemplate(Command command, RequestContext context) {
+		Path root = workspaceRoot(command.workspaceId());
+		if (root == null)
+			return failed(command, currentRevision(command.workspaceId()), diagnostic("WORKSPACE_ROOT_UNAVAILABLE",
+					"diagnostic.workspace_root_unavailable", "The workspace root is not available.", null, null));
+		try {
+			TransactionResult<TemplateCreation> coordinated = store.coordinate(command.workspaceId(),
+					command.expectedRevision(), state -> {
+				JsonObject metadata = localTemplates.create(state, root, command.payload(), references.projection(state, ""));
+				return new TemplateCreation(metadata, state.nextEventSequence());
+			});
+			CommandOutcome conflict = checkFailure(command, coordinated);
+			if (conflict != null) return conflict;
+			JsonObject data = coordinated.value().metadata().deepCopy();
+			data.addProperty("complete", true);
+			Event event = event(command, coordinated.revision(), coordinated.value().sequence(),
+					"local_template_created", data.deepCopy());
+			return new CommandOutcome(result(command, "committed", coordinated.revision(), JsonNull.INSTANCE,
+					data, List.of(), JsonNull.INSTANCE, JsonNull.INSTANCE), List.of(event));
+		} catch (RuntimeException exception) {
+			return failed(command, currentRevision(command.workspaceId()), failureDiagnostic(command,
+					"LOCAL_TEMPLATE_CREATE_FAILED", "diagnostic.local_template_create_failed",
+					"The local reusable template could not be created.", null, null, exception));
+		}
+	}
+
+	private QueryResult previewLocalTemplateInstantiation(Query query, WorkspaceState state, RequestContext context) {
+		try {
+			String templateName = requiredString(query.payload(), "templateName");
+			LocalWorkspaceTemplateService.PreparedInstantiation prepared =
+					localTemplates.prepareInstantiation(templateName, state, ids);
+			return plans.planPrepared(query, context, prepared.operations(), prepared.artifacts(), prepared.metadata());
+		} catch (IllegalArgumentException exception) {
+			String message = exception.getMessage() == null ? "Local template is invalid." : exception.getMessage();
+			String code = message.startsWith("Template generator mismatch")
+					? "LOCAL_TEMPLATE_GENERATOR_MISMATCH" : "LOCAL_TEMPLATE_INVALID";
+			String key = code.equals("LOCAL_TEMPLATE_GENERATOR_MISMATCH")
+					? "diagnostic.local_template_generator_mismatch" : "diagnostic.local_template_invalid";
+			return queryFailure(query, state.revision(), diagnostic(code, key, message, null, null));
+		} catch (RuntimeException exception) {
+			return queryFailure(query, state.revision(), failureDiagnostic(query, "LOCAL_TEMPLATE_PREVIEW_FAILED",
+					"diagnostic.local_template_preview_failed", "The local template could not be previewed.",
+					null, null, exception));
+		}
+	}
+
+	private record TemplateCreation(JsonObject metadata, long sequence) {
+		private TemplateCreation {
+			metadata = metadata.deepCopy();
+		}
+		@Override public JsonObject metadata() { return metadata.deepCopy(); }
+	}
+
 	private CommandOutcome createRecoveryPoint(Command command, RequestContext context) {
 		if (history == null)
 			return failed(command, currentRevision(command.workspaceId()), historyUnavailable());
@@ -786,15 +2067,17 @@ public final class WorkspaceApplicationService {
 					JsonNull.INSTANCE, JsonNull.INSTANCE, List.of(diagnostic), JsonNull.INSTANCE, denial), List.of());
 		}
 		TransactionResult<RevisionedWorkspaceStore.Replacement> transaction;
+		AtomicReference<List<Diagnostic>> restoreDiagnostics = new AtomicReference<>(List.of());
 		try {
 			transaction = store.restore(command.workspaceId(), command.expectedRevision(), newRevision -> {
 				RecoveryPoint safetyPoint = history.createRecoveryPoint(new RecoveryPointRequest(
-						"Before restoring " + pointId, context.actor(), ""));
+						"Before restoring " + pointId, context.actor(), "", RecoveryPointSource.RESTORE_SAFETY));
 				boolean restoreStarted = false;
 				try {
 					restoreStarted = true;
 					RestoreResult restored = history.restore(pointId);
 					WorkspaceState reloaded = reloader.reload(command.workspaceId());
+					restoreDiagnostics.set(validateRestoredState(reloaded));
 					mutations.persistRestoredRevision(reloaded, newRevision);
 					return new RevisionedWorkspaceStore.Restoration(reloaded, restored.changedPaths());
 				} catch (Exception exception) {
@@ -828,8 +2111,38 @@ public final class WorkspaceApplicationService {
 				payload);
 		CommandResult result = new CommandResult("command_result", UiCore.SCHEMA_VERSION, command.requestId(),
 				command.workspaceId(), command.operation(), "committed", transaction.revision(), pointId,
-				JsonNull.INSTANCE, payload.deepCopy(), List.of(), JsonNull.INSTANCE, JsonNull.INSTANCE);
+				JsonNull.INSTANCE, payload.deepCopy(), restoreDiagnostics.get(), JsonNull.INSTANCE, JsonNull.INSTANCE);
 		return new CommandOutcome(result, List.of(event));
+	}
+
+	private List<Diagnostic> validateRestoredState(WorkspaceState restored) {
+		LinkedHashMap<String, Diagnostic> diagnostics = new LinkedHashMap<>();
+		Set<UUID> invalidElements = new LinkedHashSet<>();
+		for (Element element : restored.elements()) {
+			Diagnostic diagnostic = validateElementValues(element.id(), element.type(), element.values());
+			if (diagnostic == null) continue;
+			addRestoreDiagnostic(diagnostics, diagnostic);
+			invalidElements.add(element.id());
+		}
+		JsonObject referenceProjection = references.projection(restored, "");
+		for (JsonElement raw : referenceProjection.getAsJsonArray("diagnostics")) {
+			Diagnostic diagnostic = GSON.fromJson(raw, Diagnostic.class);
+			addRestoreDiagnostic(diagnostics, diagnostic);
+			if (diagnostic.elementId() != null) invalidElements.add(diagnostic.elementId());
+		}
+		for (UUID elementId : invalidElements) {
+			Element element = restored.element(elementId);
+			if (element == null || element.state().equals("invalid")) continue;
+			restored.replaceElement(new Element(element.id(), element.type(), element.name(), element.displayName(),
+					"invalid", element.ownership(), element.updatedAt(), element.values()));
+		}
+		return List.copyOf(diagnostics.values());
+	}
+
+	private static void addRestoreDiagnostic(Map<String, Diagnostic> diagnostics, Diagnostic diagnostic) {
+		String key = diagnostic.code() + "\n" + String.valueOf(diagnostic.path()) + "\n"
+				+ String.valueOf(diagnostic.elementId());
+		diagnostics.putIfAbsent(key, diagnostic);
 	}
 
 	private CommandOutcome executeLoaderMigration(Command command, RequestContext context) {
@@ -1080,21 +2393,113 @@ public final class WorkspaceApplicationService {
 		Event event = event(command, revision, sequence, eventName, payload);
 		String status = report.complete() ? "committed" : "rejected";
 		List<Diagnostic> diagnostics = new ArrayList<>();
+		for (MigrationItem item : report.items()) {
+			if (item.disposition() != Disposition.SUPPORTED)
+				diagnostics.add(migrationDiagnostic(item));
+		}
 		if (!report.complete())
 			diagnostics.add(diagnostic("MIGRATION_INCOMPLETE", "diagnostic.migration_incomplete",
 					"The copy was created or previewed but is not a complete supported migration.", null, null));
-		if (rebuild != null && "failed".equals(rebuild.status())) {
-			Throwable cause = rebuild.cause() != null ? rebuild.cause()
-					: new IllegalStateException(rebuild.reasonCode() + ": " + rebuild.message());
-			diagnostics.add(failureDiagnostic(command, "MIGRATION_REBUILD_FAILED",
-					"diagnostic.migration_rebuild_failed",
-					"The migration target copy was created, but it could not be rebuilt.", null, null, cause));
-		}
+		if (rebuild != null && "failed".equals(rebuild.status()))
+			diagnostics.add(migrationRebuildDiagnostic(command, rebuild));
 		if (!report.complete() && report.targetDirectory() == null)
 			return new CommandOutcome(result(command, status, revision, JsonNull.INSTANCE, payload, diagnostics,
 					JsonNull.INSTANCE, JsonNull.INSTANCE), List.of());
 		return new CommandOutcome(result(command, "committed", revision, JsonNull.INSTANCE, payload, diagnostics,
 				JsonNull.INSTANCE, JsonNull.INSTANCE), List.of(event));
+	}
+
+	private Diagnostic migrationDiagnostic(MigrationItem item) {
+		UUID elementId = migrationElementId(item.path());
+		JsonObject args = new JsonObject();
+		args.addProperty("name", item.name());
+		args.addProperty("type", item.type());
+		args.addProperty("disposition", item.disposition().name().toLowerCase(Locale.ROOT));
+		args.addProperty("reasonCode", item.reasonCode());
+		args.addProperty("nextStep", item.nextStep());
+		UiCore.Severity severity = switch (item.disposition()) {
+			case BLOCKED, LOST -> UiCore.Severity.ERROR;
+			case MANUAL, SUBSTITUTE -> UiCore.Severity.WARNING;
+			case SUPPORTED -> UiCore.Severity.INFO;
+		};
+		List<ActionHint> actions = migrationLocationActions(item.path(), elementId);
+		return new Diagnostic(item.reasonCode(), severity,
+				LocalizedText.of("diagnostic.migration_item_review",
+						"{name} requires migration review: {nextStep}", args), item.path(), elementId, true, actions);
+	}
+
+	private Diagnostic migrationRebuildDiagnostic(Command command,
+			LoaderMigrationRebuildService.RebuildResult rebuild) {
+		if (rebuild.path() != null || rebuild.elementId() != null) {
+			JsonObject args = new JsonObject();
+			args.addProperty("message", rebuild.message());
+			return new Diagnostic(rebuild.reasonCode(), UiCore.Severity.ERROR,
+					LocalizedText.of("diagnostic." + rebuild.reasonCode().toLowerCase(Locale.ROOT), rebuild.message(), args),
+					rebuild.path(), rebuild.elementId(), true,
+					generatorValidationLocationActions(rebuild.path(), rebuild.elementId()));
+		}
+		Throwable cause = rebuild.cause() != null ? rebuild.cause()
+				: new IllegalStateException(rebuild.reasonCode() + ": " + rebuild.message());
+		return failureDiagnostic(command, "MIGRATION_REBUILD_FAILED",
+				"diagnostic.migration_rebuild_failed",
+				"The migration target copy was created, but it could not be rebuilt.", null, null, cause);
+	}
+
+	private List<ActionHint> generatorValidationLocationActions(String path, UUID elementId) {
+		if (elementId == null) return List.of();
+		ActionHint procedureAction = procedureLocationAction(path, elementId);
+		if (procedureAction != null) return List.of(procedureAction);
+		String base = elementPath(elementId);
+		if (path == null || !path.startsWith(base + "/"))
+			return List.of(new ActionHint("locate_element", LocalizedText.of("action.open_element", "Open element"),
+					"open_field", null));
+		String fieldTarget = path.substring(base.length());
+		if (fieldTarget.startsWith("/values/")) fieldTarget = fieldTarget.substring("/values".length());
+		return List.of(new ActionHint("locate_generator_field",
+				LocalizedText.of("action.open_field", "Locate invalid field"), "open_field", fieldTarget));
+	}
+
+	private ActionHint procedureLocationAction(String path, UUID elementId) {
+		if (path == null) return null;
+		String prefix = elementPath(elementId) + "/procedureIr/nodes/";
+		if (!path.startsWith(prefix)) return null;
+		String tail = path.substring(prefix.length());
+		int portSeparator = tail.indexOf("/ports/");
+		String nodeId = portSeparator >= 0 ? tail.substring(0, portSeparator) : tail;
+		try {
+			UUID.fromString(nodeId);
+		} catch (IllegalArgumentException exception) {
+			return null;
+		}
+		JsonObject payload = new JsonObject();
+		payload.addProperty("nodeId", nodeId);
+		if (portSeparator >= 0) {
+			String port = tail.substring(portSeparator + "/ports/".length());
+			if (!port.isBlank() && !port.contains("/")) payload.addProperty("port", port);
+		}
+		return new ActionHint("open_procedure_node", LocalizedText.of("action.open_procedure_node", "Locate node"),
+				"open_procedure_node", nodeId, payload);
+	}
+
+	private UUID migrationElementId(String path) {
+		if (path == null || !path.startsWith("/elements/")) return null;
+		String suffix = path.substring("/elements/".length());
+		int slash = suffix.indexOf('/');
+		String candidate = slash < 0 ? suffix : suffix.substring(0, slash);
+		try {
+			return UUID.fromString(candidate);
+		} catch (IllegalArgumentException exception) {
+			return null;
+		}
+	}
+
+	private List<ActionHint> migrationLocationActions(String path, UUID elementId) {
+		if (elementId == null) return List.of();
+		String elementPath = elementPath(elementId);
+		if (path.equals(elementPath))
+			return List.of(new ActionHint("open_migration_element",
+					LocalizedText.of("action.open_element", "Open element"), "open_field", null));
+		return fieldLocationActions(path, elementId);
 	}
 
 	private CommandOutcome approvalRequired(Command command, RequestContext context, String fallback) {
@@ -1159,10 +2564,13 @@ public final class WorkspaceApplicationService {
 			return queryFailure(query, state.revision(), historyUnavailable());
 		try {
 			List<RecoveryPoint> points = history.listRecoveryPoints();
+			String currentRecoveryPointId = history.currentRecoveryPointId();
 			JsonObject payload = query.payload();
 			if (!cursorListRequested(payload)) {
 				JsonObject projection = new JsonObject();
 				projection.addProperty("currentRevision", state.revision());
+				if (currentRecoveryPointId == null) projection.add("currentRecoveryPointId", JsonNull.INSTANCE);
+				else projection.addProperty("currentRecoveryPointId", currentRecoveryPointId);
 				JsonArray items = new JsonArray();
 				points.forEach(point -> items.add(recoveryPoint(point)));
 				projection.add("recoveryPoints", items);
@@ -1177,17 +2585,20 @@ public final class WorkspaceApplicationService {
 			String search = filter != null && filter.has("search")
 					? requiredString(filter, "search").toLowerCase(Locale.ROOT) : "";
 			String actor = filter != null && filter.has("actor") ? requiredString(filter, "actor") : "";
-			Set<String> fields = listFields(payload, Set.of("id", "label", "actor", "taskId", "createdAt"),
+			String source = filter != null && filter.has("source") ? requiredString(filter, "source") : "";
+			Set<String> fields = listFields(payload, Set.of("id", "label", "actor", "source", "taskId", "createdAt"),
 					"recovery point");
 			Comparator<RecoveryPoint> comparator = recoveryPointComparator(sort);
 			List<RecoveryPoint> filtered = points.stream()
 					.filter(point -> search.isBlank() || point.label().toLowerCase(Locale.ROOT).contains(search)
-							|| point.taskId().toLowerCase(Locale.ROOT).contains(search))
+							|| point.taskId().toLowerCase(Locale.ROOT).contains(search)
+							|| point.source().wireName().contains(search))
 					.filter(point -> actor.isBlank() || wire(point.actor()).equals(actor))
+					.filter(point -> source.isBlank() || point.source().wireName().equals(source))
 					.sorted(comparator).toList();
 			String dataset = points.stream().map(RecoveryPoint::id).sorted()
 					.reduce((left, right) -> left + "," + right).orElse("");
-			String signature = "history|" + dataset + "|" + search + "|" + actor + "|" + sort + "|"
+			String signature = "history|" + dataset + "|" + search + "|" + actor + "|" + source + "|" + sort + "|"
 					+ listFieldSignature(fields) + "|" + limit;
 			int from = listCursorOffset(payload, state.revision(), signature, filtered.size());
 			int to = Math.min(from + limit, filtered.size());
@@ -1195,6 +2606,8 @@ public final class WorkspaceApplicationService {
 			filtered.subList(from, to).forEach(point -> items.add(projectListFields(recoveryPoint(point), fields)));
 			JsonObject projection = cursorListProjection(items, filtered.size(), limit, state.revision(), to, signature);
 			projection.addProperty("currentRevision", state.revision());
+			if (currentRecoveryPointId == null) projection.add("currentRecoveryPointId", JsonNull.INSTANCE);
+			else projection.addProperty("currentRecoveryPointId", currentRecoveryPointId);
 			projection.add("recoveryPoints", projection.remove("items"));
 			return querySuccess(query, state.revision(), projection);
 		} catch (ListCursorException exception) {
@@ -1223,12 +2636,7 @@ public final class WorkspaceApplicationService {
 			projection.addProperty("toRecoveryPointId", to);
 			projection.addProperty("baseRevision", state.revision());
 			JsonArray items = new JsonArray();
-			changes.forEach(change -> {
-				JsonObject item = new JsonObject();
-				item.addProperty("type", change.type().name().toLowerCase(Locale.ROOT));
-				item.addProperty("path", change.path());
-				items.add(item);
-			});
+			changes.forEach(change -> items.add(historyChange(change)));
 			projection.add("changes", items);
 			return querySuccess(query, state.revision(), projection);
 		} catch (LocalHistoryException exception) {
@@ -1244,8 +2652,41 @@ public final class WorkspaceApplicationService {
 		json.addProperty("label", point.label());
 		json.addProperty("actor", wire(point.actor()));
 		json.addProperty("taskId", point.taskId());
+		json.addProperty("source", point.source().wireName());
 		json.addProperty("createdAt", point.createdAt().toString());
 		return json;
+	}
+
+	private JsonObject historyChange(WorkspaceChange change) {
+		JsonObject item = new JsonObject();
+		item.addProperty("type", change.type().name().toLowerCase(Locale.ROOT));
+		String path = change.path().replace('\\', '/');
+		item.addProperty("path", path);
+		if (!change.fieldChanges().isEmpty()) {
+			JsonArray fieldChanges = new JsonArray();
+			change.fieldChanges().forEach(fieldChange -> {
+				JsonObject field = new JsonObject();
+				field.addProperty("type", fieldChange.type().name().toLowerCase(Locale.ROOT));
+				field.addProperty("pointer", fieldChange.pointer());
+				fieldChanges.add(field);
+			});
+			item.add("fieldChanges", fieldChanges);
+		}
+		if ("workspace.mcreator".equals(path)) {
+			item.addProperty("objectKind", "workspace");
+			item.addProperty("objectName", "workspace");
+		} else if (path.startsWith("elements/") && path.endsWith(".mod.json")
+				&& path.indexOf('/', "elements/".length()) < 0) {
+			item.addProperty("objectKind", "mod_element");
+			item.addProperty("objectName", path.substring("elements/".length(), path.length() - ".mod.json".length()));
+		} else if (path.startsWith("src/main/resources/assets/")) {
+			item.addProperty("objectKind", "asset");
+			item.addProperty("objectName", path.substring("src/main/resources/assets/".length()));
+		} else if (path.startsWith("resources/assets/")) {
+			item.addProperty("objectKind", "asset");
+			item.addProperty("objectName", path.substring("resources/assets/".length()));
+		}
+		return item;
 	}
 
 	private Diagnostic historyUnavailable() {
@@ -1469,6 +2910,7 @@ public final class WorkspaceApplicationService {
 			case "createdAt" -> Comparator.comparing(RecoveryPoint::createdAt);
 			case "label" -> Comparator.comparing(RecoveryPoint::label, String.CASE_INSENSITIVE_ORDER);
 			case "actor" -> Comparator.comparing(point -> wire(point.actor()));
+			case "source" -> Comparator.comparing(point -> point.source().wireName());
 			default -> throw new IllegalArgumentException("Unsupported recovery point sort: " + sort);
 		};
 		if (descending) comparator = comparator.reversed();
@@ -1569,21 +3011,13 @@ public final class WorkspaceApplicationService {
 		if (element == null)
 			return queryFailure(query, state.revision(), elementNotFound(elementId));
 		boolean outsideSlice = !ElementCoverageCatalog.isFirstParty(element.type());
-		boolean readOnly = outsideSlice || context.permission() == PermissionProfile.READ_ONLY;
+		boolean detached = element.ownership().equals("manual") && !element.type().equals("code");
+		boolean readOnly = outsideSlice || detached || context.permission() == PermissionProfile.READ_ONLY;
 		JsonObject projection = new JsonObject();
 		projection.add("element", elementSummary(element));
-		JsonArray fields = new JsonArray();
-		flattenFields(element.values(), "", fields, readOnly, element.type());
-		if (fields.isEmpty())
-			fields.add(editorField("/displayName", "Display name", element.displayName(), readOnly, element.type()));
-		JsonObject section = new JsonObject();
-		section.addProperty("id", "general");
-		section.add("title", localized("editor.section.general", "General"));
-		section.add("fields", fields);
-		JsonArray sections = new JsonArray();
-		sections.add(section);
-		projection.add("sections", sections);
+		projection.add("sections", editorSections(element, readOnly, state));
 		projection.add("capabilities", capabilities(context));
+		projection.add("sourceManagement", sourceManagementProjection(element, context));
 		if (!outsideSlice)
 			return querySuccess(query, state.revision(), projection);
 		return new QueryResult("query_result", UiCore.SCHEMA_VERSION, query.requestId(), query.workspaceId(),
@@ -1599,18 +3033,33 @@ public final class WorkspaceApplicationService {
 		Element element = state.element(elementId);
 		if (element == null)
 			return queryFailure(query, state.revision(), elementNotFound(elementId));
+		if (element.ownership().equals("manual") && !element.type().equals("code"))
+			return queryFailure(query, state.revision(), diagnostic("SOURCE_MANAGEMENT_DETACHED",
+					"diagnostic.source_management_detached",
+					"This element source is manually managed. Reattach it to the generator before editing structured fields.",
+					elementPath(elementId) + "/ownership", elementId));
 		JsonArray changes = query.payload().getAsJsonArray("changes");
 		if (changes == null || changes.isEmpty())
 			return queryFailure(query, state.revision(), invalidPayload("changes must not be empty"));
 		JsonObject values = element.values().deepCopy();
 		JsonArray changedPaths = new JsonArray();
+		JsonArray changedFields = new JsonArray();
+		Set<String> changedSections = new java.util.LinkedHashSet<>();
 		for (JsonElement rawChange : changes) {
 			JsonObject change = rawChange.getAsJsonObject();
 			String pointer = requiredString(change, "path");
 			JsonPointerPatch.set(values, pointer, change.has("value") ? change.get("value") : JsonNull.INSTANCE);
 			changedPaths.add(elementPath(elementId) + pointer);
+			String sectionId = stage12SectionOrder(element.type()) == null ? "general"
+					: stage12SectionId(element.type(), pointer);
+			changedSections.add(sectionId);
+			JsonObject changedField = new JsonObject();
+			changedField.addProperty("path", pointer);
+			changedField.addProperty("field", editorFieldName(pointer));
+			changedField.addProperty("sectionId", sectionId);
+			changedFields.add(changedField);
 		}
-		Diagnostic diagnostic = validateElementValues(elementId, values);
+		Diagnostic diagnostic = validateElementValues(elementId, element.type(), values);
 		JsonObject projection = new JsonObject();
 		projection.addProperty("elementId", elementId.toString());
 		projection.addProperty("baseRevision", state.revision());
@@ -1621,7 +3070,341 @@ public final class WorkspaceApplicationService {
 		if (diagnostic != null)
 			diagnostics.add(GSON.toJsonTree(diagnostic));
 		projection.add("diagnostics", diagnostics);
+		JsonObject semanticSummary = new JsonObject();
+		semanticSummary.addProperty("changedFieldCount", changedFields.size());
+		semanticSummary.add("changedFields", changedFields);
+		semanticSummary.add("sections", GSON.toJsonTree(changedSections));
+		projection.add("semanticSummary", semanticSummary);
+		projection.add("generationImpact", generationImpact(state, element.type(), changedSections));
 		return querySuccess(query, state.revision(), projection);
+	}
+
+	/**
+	 * Stage 12 keeps the Stage 11 wire and persistence contract intact while adding a domain-oriented
+	 * projection for the high-complexity P0 types. Every leaf still appears exactly once, and fields
+	 * that Copperbench does not understand are deliberately collected under {@code advanced} instead
+	 * of being omitted. That makes the typed UI safe for upstream/newer-generator round trips.
+	 */
+	private JsonArray editorSections(Element element, boolean readOnly, WorkspaceState state) {
+		JsonArray fields = new JsonArray();
+		flattenFields(element.values(), "", fields, readOnly, element.type(), state);
+		appendMissingStage12Fields(element.values(), fields, readOnly, element.type(), state);
+		if (fields.isEmpty())
+			fields.add(editorField("/displayName", "Display name", element.displayName(), readOnly, element.type(), state));
+
+		List<String> order = stage12SectionOrder(element.type());
+		if (order == null)
+			return singleEditorSection("general", "General", fields);
+
+		List<JsonArray> grouped = new ArrayList<>();
+		for (int index = 0; index < order.size(); index++) grouped.add(new JsonArray());
+		for (JsonElement rawField : fields) {
+			JsonObject field = rawField.getAsJsonObject();
+			String sectionId = stage12SectionId(element.type(), field.get("path").getAsString());
+			int sectionIndex = order.indexOf(sectionId);
+			if (sectionIndex < 0) sectionIndex = order.indexOf("advanced");
+			grouped.get(sectionIndex).add(field);
+		}
+
+		JsonArray sections = new JsonArray();
+		for (int index = 0; index < order.size(); index++) {
+			if (grouped.get(index).isEmpty()) continue;
+			String id = order.get(index);
+			sections.add(editorSection(id, stage12SectionTitle(id), grouped.get(index)));
+		}
+		return sections;
+	}
+
+	private JsonObject generationImpact(WorkspaceState state, String elementType, Set<String> sections) {
+		JsonObject impact = new JsonObject();
+		impact.addProperty("scope", "element");
+		impact.addProperty("requiresRegeneration", true);
+		impact.addProperty("generatorId", state.generator().has("id") ? state.generator().get("id").getAsString() : "");
+		impact.addProperty("loader", state.generator().has("loader") ? state.generator().get("loader").getAsString() : "");
+		impact.addProperty("minecraftVersion", state.generator().has("minecraftVersion")
+				? state.generator().get("minecraftVersion").getAsString() : "");
+		Set<String> domains = new java.util.LinkedHashSet<>();
+		for (String section : sections) {
+			switch (elementType) {
+				case "livingentity" -> {
+					if (Set.of("appearance", "resources").contains(section)) domains.add("client_resources");
+					if (Set.of("behavior", "events", "spawning").contains(section)) domains.add("entity_behavior");
+					if (Set.of("attributes", "equipment").contains(section)) domains.add("entity_definition");
+				}
+				case "biome", "dimension" -> {
+					if (Set.of("generation", "spawning", "environment", "climate").contains(section)) domains.add("worldgen");
+					if (Set.of("appearance", "resources").contains(section)) domains.add("client_resources");
+				}
+				case "gui" -> {
+					if (Set.of("layout", "components", "behavior").contains(section)) domains.add("ui_layout");
+					if (section.equals("resources")) domains.add("client_resources");
+				}
+				case "overlay" -> {
+					if (Set.of("layout", "components", "behavior").contains(section)) domains.add("ui_overlay");
+					if (section.equals("resources")) domains.add("client_resources");
+				}
+				case "projectile", "specialentity" -> {
+					if (Set.of("appearance", "resources").contains(section)) domains.add("client_resources");
+					if (Set.of("behavior", "events", "spawning").contains(section)) domains.add("entity_behavior");
+					if (Set.of("attributes", "equipment").contains(section)) domains.add("entity_definition");
+				}
+				case "feature", "structure", "fluid", "plant" -> {
+					if (Set.of("generation", "behavior", "events", "attributes").contains(section)) domains.add("worldgen");
+					if (Set.of("appearance", "resources").contains(section)) domains.add("client_resources");
+				}
+				case "armor", "tool", "enchantment", "potion", "potioneffect", "damagetype", "attribute",
+						"itemextension" -> {
+					if (Set.of("appearance", "resources").contains(section)) domains.add("client_resources");
+					if (Set.of("attributes", "equipment").contains(section)) domains.add("combat_definition");
+					if (Set.of("behavior", "events").contains(section)) domains.add("element_behavior");
+				}
+				case "command", "gamerule", "keybind", "painting", "particle", "tab", "armortrim",
+						"bannerpattern", "villagerprofession", "villagertrade", "code" -> {
+					if (Set.of("appearance", "resources").contains(section)) domains.add("client_resources");
+					if (Set.of("attributes", "equipment").contains(section)) domains.add("element_definition");
+					if (Set.of("behavior", "events").contains(section)) domains.add("element_behavior");
+				}
+				default -> domains.add("element_source");
+			}
+		}
+		if (domains.isEmpty()) domains.add("element_source");
+		impact.add("affectedDomains", GSON.toJsonTree(domains));
+		return impact;
+	}
+
+	private JsonArray singleEditorSection(String id, String title, JsonArray fields) {
+		JsonArray sections = new JsonArray();
+		sections.add(editorSection(id, title, fields));
+		return sections;
+	}
+
+	private JsonObject editorSection(String id, String title, JsonArray fields) {
+		JsonObject section = new JsonObject();
+		section.addProperty("id", id);
+		section.add("title", localized(editorSectionKey(id), title));
+		section.add("fields", fields);
+		return section;
+	}
+
+	private String editorSectionKey(String id) {
+		return switch (id) {
+			case "general" -> "editor.section.general";
+			case "identity" -> "editor.section.identity";
+			case "appearance" -> "editor.section.appearance";
+			case "resources" -> "editor.section.resources";
+			case "attributes" -> "editor.section.attributes";
+			case "behavior" -> "editor.section.behavior";
+			case "equipment" -> "editor.section.equipment";
+			case "spawning" -> "editor.section.spawning";
+			case "events" -> "editor.section.events";
+			case "climate" -> "editor.section.climate";
+			case "generation" -> "editor.section.generation";
+			case "environment" -> "editor.section.environment";
+			case "layout" -> "editor.section.layout";
+			case "components" -> "editor.section.components";
+			case "advanced" -> "editor.section.advanced";
+			default -> "editor.section.general";
+		};
+	}
+
+	private List<String> stage12SectionOrder(String elementType) {
+		return switch (elementType) {
+			case "livingentity" -> List.of("identity", "appearance", "resources", "attributes", "behavior",
+					"equipment", "spawning", "events", "advanced");
+			case "biome" -> List.of("identity", "climate", "appearance", "generation", "spawning", "resources",
+					"advanced");
+			case "dimension" -> List.of("identity", "environment", "appearance", "generation", "resources",
+					"advanced");
+			case "gui" -> List.of("identity", "layout", "components", "behavior", "resources", "advanced");
+			case "overlay" -> List.of("layout", "components", "behavior", "resources", "advanced");
+			case "projectile", "specialentity" -> List.of("identity", "appearance", "resources", "attributes",
+					"equipment", "spawning", "behavior", "events", "advanced");
+			case "feature", "structure", "fluid", "plant" -> List.of("identity", "appearance", "resources",
+					"attributes", "generation", "behavior", "events", "advanced");
+			case "armor", "tool", "enchantment", "potion", "potioneffect", "damagetype", "attribute",
+					"itemextension" -> List.of("identity", "appearance", "resources", "attributes", "equipment",
+					"behavior", "events", "advanced");
+			case "command", "gamerule", "keybind", "painting", "particle", "tab", "armortrim",
+					"bannerpattern", "villagerprofession", "villagertrade", "code" -> List.of("identity",
+					"appearance", "resources", "attributes", "equipment", "behavior", "events", "advanced");
+			default -> null;
+		};
+	}
+
+	private String stage12SectionId(String elementType, String path) {
+		String field = editorFieldName(path).toLowerCase(Locale.ROOT);
+		if (Set.of("displayname", "name", "description", "mobname", "moblabel", "title").contains(field))
+			return "identity";
+
+		return switch (elementType) {
+			case "livingentity" -> livingEntitySection(field);
+			case "biome" -> biomeSection(field);
+			case "dimension" -> dimensionSection(field);
+			case "gui" -> guiSection(field);
+			case "overlay" -> overlaySection(field);
+			case "projectile", "specialentity" -> entitySupportSection(elementType, field);
+			case "feature", "structure", "fluid", "plant" -> worldgenSupportSection(elementType, field);
+			case "armor", "tool", "enchantment", "potion", "potioneffect", "damagetype", "attribute",
+					"itemextension" -> combatSupportSection(elementType, field);
+			case "command", "gamerule", "keybind", "painting", "particle", "tab", "armortrim",
+					"bannerpattern", "villagerprofession", "villagertrade", "code" -> systemSupportSection(elementType, field);
+			default -> "advanced";
+		};
+	}
+
+	private String livingEntitySection(String field) {
+		if (isResourceReferenceField(field)) return "resources";
+		if (Set.of("modelwidth", "modelheight", "modelshadowsize", "mountedyoffset", "visualscale",
+				"boundingboxscale", "transparentmodelcondition", "isshakingcondition", "solidboundingbox",
+				"hasspawnegg", "spawneggbasecolor", "spawneggdotcolor", "bossbarcolor", "bossbartype").contains(field)
+				|| field.contains("model")) return "appearance";
+		if (Set.of("attackstrength", "attackknockback", "knockbackresistance", "movementspeed", "stepheight",
+				"armorbasevalue", "trackingrange", "followrange", "health", "xpamount").contains(field))
+			return "attributes";
+		if (field.startsWith("equipment") || Set.of("mobdrop", "guiboundto", "inventorysize",
+				"inventorystacksize", "rangedattackitem", "breedtriggeritems", "creativetabs").contains(field))
+			return "equipment";
+		if (field.contains("spawn") || field.equals("restrictionbiomes") || field.equals("doesdespawnwhenidle"))
+			return "spawning";
+		if (isProcedureReferenceField(field)) return "events";
+		if (field.equals("aixml") || field.equals("aibase") || field.equals("hasai") || field.equals("ranged")
+				|| field.equals("rangeditemtype") || field.equals("rangedattackinterval")
+				|| field.equals("rangedattackradius") || field.equals("breedable") || field.equals("tameable")
+				|| field.equals("ridable") || field.startsWith("cancontrol") || field.startsWith("immuneto")
+				|| field.equals("watermob") || field.equals("flyingmob") || field.equals("disablecollisions")
+				|| field.equals("mobbehaviourtype") || field.equals("mobcreaturetype") || field.equals("isboss")
+				|| field.equals("entitydataentries") || field.equals("animations")
+				|| field.equals("sensitivetovibration") || field.equals("vibrationalevents")) return "behavior";
+		return "advanced";
+	}
+
+	private String overlaySection(String field) {
+		if (isResourceReferenceField(field)) return "resources";
+		if (field.equals("sx") || field.equals("sy") || field.equals("ox") || field.equals("oy")
+				|| field.equals("snapongrid")) return "layout";
+		if (field.equals("components")) return "components";
+		if (field.equals("priority") || field.equals("overlaytarget") || field.equals("displaycondition"))
+			return "behavior";
+		return "advanced";
+	}
+
+	private String biomeSection(String field) {
+		if (isResourceReferenceField(field)) return "resources";
+		if (field.contains("temperature") || field.contains("rain") || field.contains("downfall")
+				|| field.contains("climate") || field.contains("precipitation")) return "climate";
+		if (field.contains("color") || field.contains("fog") || field.contains("sky") || field.contains("grass")
+				|| field.contains("foliage") || field.contains("water") || field.contains("particle")
+				|| field.contains("ambient")) return "appearance";
+		if (field.contains("spawn") || field.contains("creature") || field.contains("mob")) return "spawning";
+		if (field.contains("feature") || field.contains("structure") || field.contains("ore")
+				|| field.contains("tree") || field.contains("carver") || field.contains("generation")
+				|| field.contains("surface")) return "generation";
+		return "advanced";
+	}
+
+	private String dimensionSection(String field) {
+		if (isResourceReferenceField(field)) return "resources";
+		if (field.contains("fog") || field.contains("sky") || field.contains("cloud") || field.contains("sun")
+				|| field.contains("moon") || field.contains("color")) return "appearance";
+		if (field.startsWith("generate") || field.contains("biome") || field.contains("structure")
+				|| field.contains("feature") || field.contains("worldgen") || field.contains("ore")) return "generation";
+		if (field.contains("height") || field.contains("scale") || field.contains("skylight")
+				|| field.contains("natural") || field.contains("bed") || field.contains("respawn")
+				|| field.contains("portal") || field.contains("infiniburn") || field.contains("ambientlight")
+				|| field.contains("ultrawarm") || field.contains("ceiling")) return "environment";
+		return "advanced";
+	}
+
+	private String guiSection(String field) {
+		if (isResourceReferenceField(field)) return "resources";
+		if (field.equals("width") || field.equals("height") || field.endsWith("x") || field.endsWith("y")
+				|| field.contains("anchor") || field.contains("offset") || field.contains("background")) return "layout";
+		if (field.contains("component") || field.contains("button") || field.contains("label")
+				|| field.contains("slot") || field.contains("checkbox") || field.contains("textfield")
+				|| field.contains("image") || field.contains("widget")) return "components";
+		if (field.contains("pause") || field.contains("container") || field.contains("inventory")
+				|| isProcedureReferenceField(field)) return "behavior";
+		return "advanced";
+	}
+
+	private String entitySupportSection(String elementType, String field) {
+		if (isResourceReferenceField(field)) return "resources";
+		if (isProcedureReferenceField(field)) return "events";
+		if (field.contains("model") || field.contains("render") || field.contains("texture")
+				|| field.contains("particle") || field.contains("color") || field.contains("transluc")) return "appearance";
+		if (field.contains("item") || field.contains("drop") || field.contains("inventory")
+				|| field.contains("equipment")) return "equipment";
+		if (field.contains("spawn") || field.contains("biome")) return "spawning";
+		if (field.contains("damage") || field.contains("power") || field.contains("knockback")
+				|| field.contains("speed") || field.contains("range") || field.contains("width")
+				|| field.contains("height") || field.contains("scale") || field.contains("health")) return "attributes";
+		if (elementType.equals("projectile") && field.equals("actionSound".toLowerCase(Locale.ROOT))) return "resources";
+		return "behavior";
+	}
+
+	private String worldgenSupportSection(String elementType, String field) {
+		if (isResourceReferenceField(field)) return "resources";
+		if (isProcedureReferenceField(field)) return "events";
+		if (field.contains("model") || field.contains("render") || field.contains("texture")
+				|| field.contains("particle") || field.contains("fog") || field.contains("color")
+				|| field.contains("emissive")) return "appearance";
+		if (field.contains("generation") || field.contains("placement") || field.contains("biome")
+				|| field.contains("structure") || field.contains("feature") || field.contains("pool")
+				|| field.contains("height") || field.contains("terrain") || field.contains("ore")) return "generation";
+		if (field.contains("hardness") || field.contains("resistance") || field.contains("luminance")
+				|| field.contains("speed") || field.contains("slipper") || field.contains("light")) return "attributes";
+		if (elementType.equals("plant") && (field.contains("drop") || field.contains("pickitem")
+				|| field.contains("strippingresult"))) return "resources";
+		return "behavior";
+	}
+
+	private String combatSupportSection(String elementType, String field) {
+		if (isResourceReferenceField(field)) return "resources";
+		if (isProcedureReferenceField(field)) return "events";
+		if (field.contains("model") || field.contains("render") || field.contains("texture")
+				|| field.contains("color") || field.contains("glow") || field.contains("transluc")) return "appearance";
+		if (field.contains("item") || field.contains("helmet") || field.contains("body")
+				|| field.contains("legging") || field.contains("boot") || field.contains("material")
+				|| field.contains("repair") || field.contains("ingredient")) return "equipment";
+		if (field.contains("damage") || field.contains("attack") || field.contains("speed")
+				|| field.contains("level") || field.contains("weight") || field.contains("duration")
+				|| field.contains("amplifier") || field.contains("value") || field.contains("power")
+				|| field.startsWith("min") || field.startsWith("max") || field.contains("count")) return "attributes";
+		if (elementType.equals("attribute") && field.contains("entity")) return "behavior";
+		return "behavior";
+	}
+
+	private String systemSupportSection(String elementType, String field) {
+		if (isResourceReferenceField(field)) return "resources";
+		if (isProcedureReferenceField(field)) return "events";
+		if (field.contains("model") || field.contains("render") || field.contains("texture")
+				|| field.contains("color") || field.contains("icon") || field.contains("particle")) return "appearance";
+		if (field.contains("item") || field.contains("price") || field.contains("offer")
+				|| field.contains("profession") || field.contains("pointofinterest")) return "equipment";
+		if (field.contains("value") || field.contains("level") || field.contains("duration")
+				|| field.contains("scale") || field.contains("size") || field.contains("count")) return "attributes";
+		if (elementType.equals("code") && field.equals("code")) return "behavior";
+		return "behavior";
+	}
+
+	private String stage12SectionTitle(String id) {
+		return switch (id) {
+			case "identity" -> "Identity";
+			case "appearance" -> "Appearance";
+			case "resources" -> "Resources";
+			case "attributes" -> "Attributes";
+			case "behavior" -> "Behavior";
+			case "equipment" -> "Equipment & Inventory";
+			case "spawning" -> "Spawning";
+			case "events" -> "Events & Procedures";
+			case "climate" -> "Climate";
+			case "generation" -> "Generation";
+			case "environment" -> "Environment";
+			case "layout" -> "Layout";
+			case "components" -> "Components";
+			case "advanced" -> "Advanced / Preserved";
+			default -> displayName(id);
+		};
 	}
 
 	private QueryResult previewDatagenOutput(Query query, WorkspaceState state) {
@@ -1693,7 +3476,7 @@ public final class WorkspaceApplicationService {
 		WorkspaceState current = store.read(command.workspaceId()).orElse(null);
 		if (current == null || current.revision() != command.expectedRevision()) return null;
 		return history.createRecoveryPoint(new RecoveryPointRequest("Before datagen publish", context.actor(),
-				taskId.toString()));
+				taskId.toString(), RecoveryPointSource.DATAGEN));
 	}
 
 	private CommandOutcome runServer(Command command, RequestContext context) {
@@ -1728,7 +3511,8 @@ public final class WorkspaceApplicationService {
 		if (current == null || current.revision() != command.expectedRevision()) return null;
 		String taskId = command.payload().has("clientMutationId")
 				? command.payload().get("clientMutationId").getAsString() : command.requestId().toString();
-		return history.createRecoveryPoint(new RecoveryPointRequest("Before registry mutation", context.actor(), taskId));
+		return history.createRecoveryPoint(new RecoveryPointRequest("Before registry mutation", context.actor(), taskId,
+				RecoveryPointSource.REGISTRY));
 	}
 
 	private Diagnostic persistWorkspaceData(WorkspaceState before, WorkspaceState after, Command command) {
@@ -1749,6 +3533,11 @@ public final class WorkspaceApplicationService {
 			return queryFailure(query, state.revision(), diagnostic("PROCEDURE_ELEMENT_REQUIRED",
 					"diagnostic.procedure_element_required", "The requested element is not a Procedure.",
 					"/elementId", elementId));
+		if (element.ownership().equals("manual"))
+			return queryFailure(query, state.revision(), diagnostic("SOURCE_MANAGEMENT_DETACHED",
+					"diagnostic.source_management_detached",
+					"This Procedure source is manually managed. Reattach it before editing the generated Procedure graph.",
+					elementPath(elementId) + "/ownership", elementId));
 		ProcedureIr ir;
 		try {
 			ir = PROCEDURES.read(element.values(), elementId);
@@ -1846,6 +3635,288 @@ public final class WorkspaceApplicationService {
 		data.addProperty("stableIds", true);
 		data.addProperty("referenceAwareRename", true);
 		return querySuccess(query, state.revision(), data);
+	}
+
+	private QueryResult planProcedureRefactor(Query query, WorkspaceState state, RequestContext context) {
+		JsonObject payload = query.payload();
+		String kind = requiredString(payload, "kind");
+		RefactorDraft draft = switch (kind) {
+			case "extract_node" -> extractProcedureNode(state, payload);
+			case "replace_call_target" -> replaceProcedureCallTarget(state, payload);
+			case "replace_resource_target" -> replaceProcedureResourceTarget(state, payload);
+			default -> RefactorDraft.failed(diagnostic("PROCEDURE_REFACTOR_KIND_UNSUPPORTED",
+					"diagnostic.procedure_refactor_kind_unsupported", "The requested Procedure refactor is not supported.",
+					"/kind", null));
+		};
+		if (draft.diagnostic() != null) return queryFailure(query, state.revision(), draft.diagnostic());
+		JsonObject planPayload = new JsonObject();
+		planPayload.addProperty("expectedRevision", requiredLong(payload, "expectedRevision"));
+		planPayload.addProperty("idempotencyKey", requiredString(payload, "idempotencyKey"));
+		planPayload.addProperty("requireRecoveryPoint", true);
+		planPayload.add("operations", draft.operations());
+		return plans.plan(Query.of(query.requestId(), query.workspaceId(), query.operation(), planPayload), context);
+	}
+
+	private RefactorDraft extractProcedureNode(WorkspaceState state, JsonObject payload) {
+		UUID elementId = UUID.fromString(requiredString(payload, "elementId"));
+		UUID nodeId = UUID.fromString(requiredString(payload, "nodeId"));
+		String newProcedureName = requiredString(payload, "newProcedureName");
+		Element source = state.element(elementId);
+		if (source == null) return RefactorDraft.failed(elementNotFound(elementId));
+		if (!source.type().equals("procedure")) return RefactorDraft.failed(diagnostic("PROCEDURE_ELEMENT_REQUIRED",
+				"diagnostic.procedure_element_required", "The requested element is not a Procedure.", "/elementId", elementId));
+		ProcedureIr ir = PROCEDURES.read(source.values(), elementId);
+		Map<UUID, ProcedureIr.Node> nodes = ir.nodeIndex();
+		ProcedureIr.Node root = nodes.get(nodeId);
+		if (root == null) return RefactorDraft.failed(diagnostic("PROCEDURE_REFACTOR_NODE_NOT_FOUND",
+				"diagnostic.procedure_refactor_node_not_found", "The selected Procedure node no longer exists.",
+				"/nodeId", elementId));
+		if (root.unknown() || root.type().equals("event_trigger") || !root.kind().equals("statement"))
+			return RefactorDraft.failed(diagnostic("PROCEDURE_REFACTOR_NODE_UNSUPPORTED",
+					"diagnostic.procedure_refactor_node_unsupported",
+					"Only supported statement nodes can be extracted into a reusable Procedure.", "/nodeId", elementId));
+
+		LinkedHashSet<UUID> closure = new LinkedHashSet<>();
+		collectProcedureExtraction(nodes, nodeId, false, closure);
+		if (closure.stream().map(nodes::get).anyMatch(node -> node == null || node.unknown()
+				|| node.type().equals("event_trigger") || node.type().equals("controls_flow_statements")
+				|| node.type().startsWith("return_")))
+			return RefactorDraft.failed(diagnostic("PROCEDURE_REFACTOR_CONTROL_FLOW_UNSAFE",
+					"diagnostic.procedure_refactor_control_flow_unsafe",
+					"The selected graph contains control flow that cannot be safely moved into another Procedure.",
+					"/nodeId", elementId));
+		for (ProcedureIr.Node candidate : ir.nodes()) {
+			if (closure.contains(candidate.id())) continue;
+			for (UUID target : candidate.inputs().values()) {
+				if (closure.contains(target) && !target.equals(nodeId))
+					return RefactorDraft.failed(sharedExtractionDiagnostic(elementId));
+			}
+			if (candidate.next() != null && closure.contains(candidate.next()) && !candidate.next().equals(nodeId))
+				return RefactorDraft.failed(sharedExtractionDiagnostic(elementId));
+		}
+
+		Map<UUID, UUID> clonedIds = new LinkedHashMap<>();
+		for (UUID id : closure) clonedIds.put(id, extractedNodeId(elementId, nodeId, newProcedureName, id));
+		List<ProcedureIr.Node> extractedNodes = new ArrayList<>();
+		UUID triggerId = UUID.nameUUIDFromBytes(("procedure-extract-trigger\n" + elementId + "\n" + nodeId + "\n"
+				+ newProcedureName).getBytes(StandardCharsets.UTF_8));
+		JsonObject triggerFields = new JsonObject();
+		triggerFields.addProperty("trigger", "no_ext_trigger");
+		extractedNodes.add(new ProcedureIr.Node(triggerId, "event_trigger", "statement", 40, 40, triggerFields,
+				Map.of(), clonedIds.get(nodeId), false, ""));
+		for (UUID id : closure) {
+			ProcedureIr.Node original = nodes.get(id);
+			Map<String, UUID> inputs = new LinkedHashMap<>();
+			original.inputs().forEach((name, target) -> {
+				if (clonedIds.containsKey(target)) inputs.put(name, clonedIds.get(target));
+			});
+			UUID next = !id.equals(nodeId) && original.next() != null && clonedIds.containsKey(original.next())
+					? clonedIds.get(original.next()) : null;
+			extractedNodes.add(new ProcedureIr.Node(clonedIds.get(id), original.type(), original.kind(),
+					original.x() + 120, original.y(), original.fields(), inputs, next, false, ""));
+		}
+		ProcedureIr extracted = PROCEDURES.applyEdits(new ProcedureIr(ProcedureIr.SCHEMA_VERSION, "no_ext_trigger",
+				extractedNodes, List.of(), new JsonObject()), new JsonArray());
+		List<ProcedureIr.ValidationIssue> extractedIssues = PROCEDURES.validate(extracted);
+		if (extractedIssues.stream().anyMatch(ProcedureIr.ValidationIssue::error))
+			return RefactorDraft.failed(diagnostic("PROCEDURE_REFACTOR_EXTRACT_INVALID",
+					"diagnostic.procedure_refactor_extract_invalid", "The extracted Procedure graph is not valid.",
+					"/nodeId", elementId));
+
+		JsonObject initialValues = new JsonObject();
+		initialValues.add("procedureIr", PROCEDURES.toJson(extracted));
+		initialValues.addProperty("procedurexml", PROCEDURES.toBlocklyXml(extracted));
+		initialValues.addProperty("displayName", displayName(newProcedureName));
+		JsonObject createPayload = new JsonObject();
+		createPayload.addProperty("elementType", "procedure");
+		createPayload.addProperty("name", newProcedureName);
+		createPayload.add("initialValues", initialValues);
+
+		JsonArray edits = new JsonArray();
+		JsonObject replacementFields = new JsonObject();
+		replacementFields.addProperty("procedureId", newProcedureName);
+		replacementFields.addProperty("procedure", newProcedureName);
+		JsonObject replacement = new JsonObject();
+		replacement.addProperty("id", nodeId.toString());
+		replacement.addProperty("type", "call_procedure");
+		replacement.addProperty("kind", "statement");
+		replacement.addProperty("x", root.x());
+		replacement.addProperty("y", root.y());
+		replacement.add("fields", replacementFields);
+		replacement.add("inputs", new JsonObject());
+		if (root.next() == null) replacement.add("next", JsonNull.INSTANCE);
+		else replacement.addProperty("next", root.next().toString());
+		replacement.addProperty("unknown", false);
+		JsonObject replace = new JsonObject();
+		replace.addProperty("operation", "replace_node");
+		replace.addProperty("nodeId", nodeId.toString());
+		replace.add("node", replacement);
+		edits.add(replace);
+		for (UUID id : closure) {
+			if (id.equals(nodeId)) continue;
+			JsonObject remove = new JsonObject();
+			remove.addProperty("operation", "delete_node");
+			remove.addProperty("nodeId", id.toString());
+			edits.add(remove);
+		}
+		JsonObject updatePayload = new JsonObject();
+		updatePayload.addProperty("elementId", elementId.toString());
+		updatePayload.add("edits", edits);
+
+		JsonArray operations = new JsonArray();
+		operations.add(planStep("create_mod_element", createPayload));
+		operations.add(planStep("update_procedure", updatePayload));
+		return RefactorDraft.success(operations);
+	}
+
+	private RefactorDraft replaceProcedureResourceTarget(WorkspaceState state, JsonObject payload) {
+		String sourceTarget = requiredString(payload, "sourceResource");
+		String targetTarget = requiredString(payload, "targetResource");
+		if (sourceTarget.equals(targetTarget)) return RefactorDraft.failed(diagnostic("PROCEDURE_REFACTOR_TARGET_UNCHANGED",
+				"diagnostic.procedure_refactor_target_unchanged", "Source and target resources must be different.",
+				"/targetResource", null));
+		JsonArray operations = new JsonArray();
+		int replacements = 0;
+		for (Element element : state.elements()) {
+			if (!element.type().equals("procedure")) continue;
+			ProcedureIr ir = PROCEDURES.read(element.values(), element.id());
+			JsonArray edits = new JsonArray();
+			for (ProcedureIr.Node node : ir.nodes()) {
+				if (!node.type().equals("mcitem_all") && !node.type().equals("mcitem_allblocks")) continue;
+				if (!sourceTarget.equals(string(node.fields(), "value", ""))) continue;
+				JsonObject fields = node.fields().deepCopy();
+				fields.addProperty("value", targetTarget);
+				JsonObject edit = new JsonObject();
+				edit.addProperty("operation", "update_node");
+				edit.addProperty("nodeId", node.id().toString());
+				edit.add("fields", fields);
+				edits.add(edit);
+				replacements++;
+			}
+			if (edits.isEmpty()) continue;
+			JsonObject updatePayload = new JsonObject();
+			updatePayload.addProperty("elementId", element.id().toString());
+			updatePayload.add("edits", edits);
+			operations.add(planStep("update_procedure", updatePayload));
+		}
+		if (replacements == 0) return RefactorDraft.failed(diagnostic("PROCEDURE_REFACTOR_NO_MATCHES",
+				"diagnostic.procedure_refactor_no_matches", "No Procedure resource references match the selected source.",
+				"/sourceResource", null));
+		if (operations.size() > 100) return RefactorDraft.failed(diagnostic("PROCEDURE_REFACTOR_TOO_LARGE",
+				"diagnostic.procedure_refactor_too_large", "The refactor affects more than 100 Procedures; narrow the operation.",
+				"/sourceResource", null));
+		return RefactorDraft.success(operations);
+	}
+
+	private RefactorDraft replaceProcedureCallTarget(WorkspaceState state, JsonObject payload) {
+		UUID sourceId = UUID.fromString(requiredString(payload, "sourceProcedureId"));
+		UUID targetId = UUID.fromString(requiredString(payload, "targetProcedureId"));
+		if (sourceId.equals(targetId)) return RefactorDraft.failed(diagnostic("PROCEDURE_REFACTOR_TARGET_UNCHANGED",
+				"diagnostic.procedure_refactor_target_unchanged", "Source and target Procedures must be different.",
+				"/targetProcedureId", targetId));
+		Element source = state.element(sourceId);
+		Element target = state.element(targetId);
+		if (source == null || !source.type().equals("procedure") || target == null || !target.type().equals("procedure"))
+			return RefactorDraft.failed(diagnostic("PROCEDURE_REFACTOR_PROCEDURE_REQUIRED",
+					"diagnostic.procedure_refactor_procedure_required",
+					"Both the source and replacement targets must be Procedures.", "/sourceProcedureId", null));
+		Set<String> sourceIdentities = new LinkedHashSet<>();
+		sourceIdentities.add(source.id().toString());
+		if (source.name() != null && !source.name().isBlank()) sourceIdentities.add(source.name());
+		if (source.displayName() != null && !source.displayName().isBlank()) sourceIdentities.add(source.displayName());
+		Map<String, UUID> procedureIdentities = new LinkedHashMap<>();
+		for (Element element : state.elements()) {
+			if (!element.type().equals("procedure")) continue;
+			procedureIdentities.put(element.id().toString(), element.id());
+			if (element.name() != null && !element.name().isBlank()) procedureIdentities.put(element.name(), element.id());
+			if (element.displayName() != null && !element.displayName().isBlank())
+				procedureIdentities.put(element.displayName(), element.id());
+		}
+		JsonArray operations = new JsonArray();
+		int replacements = 0;
+		Map<UUID, Set<UUID>> callGraph = new LinkedHashMap<>();
+		Set<UUID> modifiedCallers = new LinkedHashSet<>();
+		for (Element element : state.elements()) {
+			if (!element.type().equals("procedure")) continue;
+			ProcedureIr ir = PROCEDURES.read(element.values(), element.id());
+			JsonArray edits = new JsonArray();
+			Set<UUID> outgoing = new LinkedHashSet<>();
+			for (ProcedureIr.Node node : ir.nodes()) {
+				if (!node.type().equals("call_procedure")) continue;
+				String currentTarget = string(node.fields(), "procedureId", string(node.fields(), "procedure", ""));
+				UUID resolvedTarget = procedureIdentities.get(currentTarget);
+				if (!sourceIdentities.contains(currentTarget)) {
+					if (resolvedTarget != null) outgoing.add(resolvedTarget);
+					continue;
+				}
+				outgoing.add(targetId);
+				modifiedCallers.add(element.id());
+				JsonObject fields = node.fields().deepCopy();
+				fields.addProperty("procedureId", target.id().toString());
+				fields.addProperty("procedure", target.name());
+				JsonObject edit = new JsonObject();
+				edit.addProperty("operation", "update_node");
+				edit.addProperty("nodeId", node.id().toString());
+				edit.add("fields", fields);
+				edits.add(edit);
+				replacements++;
+			}
+			callGraph.put(element.id(), outgoing);
+			if (edits.isEmpty()) continue;
+			JsonObject updatePayload = new JsonObject();
+			updatePayload.addProperty("elementId", element.id().toString());
+			updatePayload.add("edits", edits);
+			operations.add(planStep("update_procedure", updatePayload));
+		}
+		if (replacements == 0) return RefactorDraft.failed(diagnostic("PROCEDURE_REFACTOR_NO_MATCHES",
+				"diagnostic.procedure_refactor_no_matches", "No Procedure calls reference the selected source Procedure.",
+				"/sourceProcedureId", sourceId));
+		if (operations.size() > 100) return RefactorDraft.failed(diagnostic("PROCEDURE_REFACTOR_TOO_LARGE",
+				"diagnostic.procedure_refactor_too_large", "The refactor affects more than 100 Procedures; narrow the operation.",
+				"/sourceProcedureId", sourceId));
+		for (UUID caller : modifiedCallers) {
+			if (reachesProcedure(callGraph, targetId, caller, new HashSet<>()))
+				return RefactorDraft.failed(diagnostic("PROCEDURE_REFACTOR_CALL_CYCLE",
+						"diagnostic.procedure_refactor_call_cycle",
+						"The replacement would introduce a circular Procedure call dependency.",
+						"/targetProcedureId", targetId));
+		}
+		return RefactorDraft.success(operations);
+	}
+
+	private static boolean reachesProcedure(Map<UUID, Set<UUID>> graph, UUID current, UUID target, Set<UUID> visited) {
+		if (current.equals(target)) return true;
+		if (!visited.add(current)) return false;
+		for (UUID next : graph.getOrDefault(current, Set.of()))
+			if (reachesProcedure(graph, next, target, visited)) return true;
+		return false;
+	}
+
+	private void collectProcedureExtraction(Map<UUID, ProcedureIr.Node> nodes, UUID nodeId, boolean includeNext,
+			LinkedHashSet<UUID> target) {
+		if (!target.add(nodeId)) return;
+		ProcedureIr.Node node = nodes.get(nodeId);
+		if (node == null) return;
+		for (UUID input : node.inputs().values()) collectProcedureExtraction(nodes, input, true, target);
+		if (includeNext && node.next() != null) collectProcedureExtraction(nodes, node.next(), true, target);
+	}
+
+	private static UUID extractedNodeId(UUID elementId, UUID rootId, String newProcedureName, UUID originalId) {
+		return UUID.nameUUIDFromBytes(("procedure-extract-node\n" + elementId + "\n" + rootId + "\n"
+				+ newProcedureName + "\n" + originalId).getBytes(StandardCharsets.UTF_8));
+	}
+
+	private static JsonObject planStep(String operation, JsonObject payload) {
+		JsonObject step = new JsonObject();
+		step.addProperty("operation", operation);
+		step.add("payload", payload);
+		return step;
+	}
+
+	private Diagnostic sharedExtractionDiagnostic(UUID elementId) {
+		return diagnostic("PROCEDURE_REFACTOR_SHARED_SUBGRAPH",
+				"diagnostic.procedure_refactor_shared_subgraph",
+				"The selected graph shares child nodes with code outside the extraction boundary.", "/nodeId", elementId);
 	}
 
 	private QueryResult previewRegistryRename(Query query, WorkspaceState state) {
@@ -1988,8 +4059,11 @@ public final class WorkspaceApplicationService {
 			JsonObject values = element.values().deepCopy();
 			if (!rewriteRegistryReferences(values, location.registry(), entryId.toString(), oldName, newName, ""))
 				continue;
-			if (element.type().equals("procedure") && values.has("procedureIr"))
-				values.addProperty("procedurexml", PROCEDURES.toBlocklyXml(PROCEDURES.read(values, element.id())));
+			if (element.type().equals("procedure") && values.has("procedureIr")) {
+				ProcedureIr rewritten = PROCEDURES.applyEdits(PROCEDURES.read(values, element.id()), new JsonArray());
+				values.add("procedureIr", PROCEDURES.toJson(rewritten));
+				values.addProperty("procedurexml", PROCEDURES.toBlocklyXml(rewritten));
+			}
 			state.replaceElement(new Element(element.id(), element.type(), element.name(), element.displayName(),
 					element.state(), element.ownership(), clock.instant(), values));
 			changedElements.add(element.id().toString());
@@ -2009,13 +4083,150 @@ public final class WorkspaceApplicationService {
 		JsonObject projection = new JsonObject();
 		projection.add("element", elementSummary(element));
 		projection.addProperty("baseRevision", state.revision());
-		projection.addProperty("readOnly", context.permission() == PermissionProfile.READ_ONLY);
+		projection.addProperty("readOnly", context.permission() == PermissionProfile.READ_ONLY
+				|| element.ownership().equals("manual"));
 		projection.add("ir", PROCEDURES.toJson(ir));
 		projection.add("nodeCatalog", procedureNodeCatalog(state));
+		projection.add("symbols", procedureSymbols(state, ir));
 		projection.addProperty("sourcePreview", PROCEDURES.sourcePreview(ir));
-		projection.addProperty("sourceOwnership", "generated");
+		projection.addProperty("sourceOwnership", element.ownership());
+		projection.add("sourceManagement", sourceManagementProjection(element, context));
 		projection.add("references", references.projection(state, element.id().toString()));
+		projection.add("relationships", procedureRelationships(state, element.id()));
 		return projection;
+	}
+
+	private JsonObject procedureRelationships(WorkspaceState state, UUID elementId) {
+		JsonObject graph = references.projection(state, "");
+		JsonArray inbound = new JsonArray();
+		JsonArray outbound = new JsonArray();
+		Map<String, Integer> byKind = new LinkedHashMap<>();
+		for (JsonElement raw : graph.getAsJsonArray("edges")) {
+			JsonObject edge = raw.getAsJsonObject();
+			String sourceId = string(edge, "sourceId", "");
+			String targetId = edge.has("targetId") && !edge.get("targetId").isJsonNull()
+					? edge.get("targetId").getAsString() : "";
+			boolean incoming = targetId.equals(elementId.toString());
+			boolean outgoing = sourceId.equals(elementId.toString());
+			if (!incoming && !outgoing) continue;
+			String kind = string(edge, "kind", "reference");
+			byKind.merge(kind, 1, Integer::sum);
+			if (incoming) {
+				JsonObject relation = edge.deepCopy();
+				relation.addProperty("direction", "inbound");
+				inbound.add(relation);
+			}
+			if (outgoing) {
+				JsonObject relation = edge.deepCopy();
+				relation.addProperty("direction", "outbound");
+				outbound.add(relation);
+			}
+		}
+		JsonObject kinds = new JsonObject();
+		byKind.forEach(kinds::addProperty);
+		JsonObject stats = new JsonObject();
+		stats.addProperty("inboundCount", inbound.size());
+		stats.addProperty("outboundCount", outbound.size());
+		stats.addProperty("totalCount", inbound.size() + outbound.size());
+		stats.add("byKind", kinds);
+		JsonObject result = new JsonObject();
+		result.add("inbound", inbound);
+		result.add("outbound", outbound);
+		result.add("stats", stats);
+		return result;
+	}
+
+	private JsonObject procedureSymbols(WorkspaceState state, ProcedureIr ir) {
+		JsonArray variables = new JsonArray();
+		JsonArray resources = new JsonArray();
+		JsonArray calls = new JsonArray();
+		JsonArray availableVariables = new JsonArray();
+		JsonArray availableProcedures = new JsonArray();
+		Map<String, JsonObject> registryVariables = new LinkedHashMap<>();
+		Map<String, Element> procedureIdentities = new LinkedHashMap<>();
+		for (JsonElement raw : state.registries().getAsJsonArray("variables")) {
+			JsonObject entry = raw.getAsJsonObject();
+			String name = string(entry, "name", "");
+			if (!name.isBlank()) registryVariables.put(name, entry);
+			JsonObject available = new JsonObject();
+			available.addProperty("id", string(entry, "id", ""));
+			available.addProperty("name", name);
+			available.addProperty("dataType", string(entry, "dataType", "unknown"));
+			available.addProperty("scope", string(entry, "scope", "global"));
+			availableVariables.add(available);
+		}
+		for (Element element : state.elements()) {
+			if (!element.type().equals("procedure")) continue;
+			procedureIdentities.put(element.id().toString(), element);
+			procedureIdentities.put(element.name(), element);
+			procedureIdentities.put(element.displayName(), element);
+			JsonObject available = new JsonObject();
+			available.addProperty("id", element.id().toString());
+			available.addProperty("name", element.name());
+			available.addProperty("displayName", element.displayName());
+			availableProcedures.add(available);
+		}
+		for (ProcedureIr.Node node : ir.nodes()) {
+			switch (node.type()) {
+				case "variables_get_number" -> variables.add(procedureVariableSymbol(node, "read", registryVariables));
+				case "variables_set_number" -> variables.add(procedureVariableSymbol(node, "write", registryVariables));
+				case "mcitem_all" -> {
+					JsonObject resource = new JsonObject();
+					resource.addProperty("nodeId", node.id().toString());
+					resource.addProperty("kind", "item");
+					resource.addProperty("target", string(node.fields(), "value", ""));
+					resources.add(resource);
+				}
+				case "call_procedure" -> {
+					JsonObject call = new JsonObject();
+					String rawTarget = string(node.fields(), "procedureId", string(node.fields(), "procedure", ""));
+					Element resolved = procedureIdentities.get(rawTarget);
+					call.addProperty("nodeId", node.id().toString());
+					call.addProperty("target", rawTarget);
+					if (resolved == null) {
+						call.add("targetId", JsonNull.INSTANCE);
+						call.addProperty("targetName", rawTarget);
+					} else {
+						call.addProperty("targetId", resolved.id().toString());
+						call.addProperty("targetName", resolved.name());
+					}
+					calls.add(call);
+				}
+				default -> {
+				}
+			}
+		}
+		JsonObject symbols = new JsonObject();
+		symbols.add("variables", variables);
+		symbols.add("availableVariables", availableVariables);
+		symbols.add("availableProcedures", availableProcedures);
+		symbols.add("resources", resources);
+		symbols.add("calls", calls);
+		JsonObject stats = new JsonObject();
+		stats.addProperty("variableCount", variables.size());
+		stats.addProperty("resourceCount", resources.size());
+		stats.addProperty("callCount", calls.size());
+		symbols.add("stats", stats);
+		return symbols;
+	}
+
+	private JsonObject procedureVariableSymbol(ProcedureIr.Node node, String access, Map<String, JsonObject> registryVariables) {
+		JsonObject variable = new JsonObject();
+		String name = string(node.fields(), "VAR", "");
+		variable.addProperty("nodeId", node.id().toString());
+		variable.addProperty("name", name);
+		variable.addProperty("access", access);
+		JsonObject registry = registryVariables.get(name);
+		if (registry == null) {
+			variable.add("registryEntryId", JsonNull.INSTANCE);
+			variable.add("dataType", JsonNull.INSTANCE);
+			variable.add("scope", JsonNull.INSTANCE);
+		} else {
+			variable.addProperty("registryEntryId", string(registry, "id", ""));
+			variable.addProperty("dataType", string(registry, "dataType", "unknown"));
+			variable.addProperty("scope", string(registry, "scope", "global"));
+		}
+		return variable;
 	}
 
 	private JsonArray procedureNodeCatalog(WorkspaceState state) {
@@ -2064,10 +4275,21 @@ public final class WorkspaceApplicationService {
 			JsonObject args = new JsonObject();
 			if (issue.nodeId() != null) args.addProperty("nodeId", issue.nodeId().toString());
 			if (issue.port() != null) args.addProperty("port", issue.port());
+			List<ActionHint> actions;
+			if (issue.nodeId() != null) {
+				JsonObject payload = new JsonObject();
+				payload.addProperty("nodeId", issue.nodeId().toString());
+				if (issue.port() != null) payload.addProperty("port", issue.port());
+				actions = List.of(new ActionHint("open_procedure_node",
+						LocalizedText.of("action.open_procedure_node", "Locate node"), "open_procedure_node",
+						issue.nodeId().toString(), payload));
+			} else {
+				actions = List.of(new ActionHint("open_procedure_element",
+						LocalizedText.of("action.open_element", "Open element"), "open_field", null));
+			}
 			diagnostics.add(new Diagnostic(issue.code(), issue.error() ? UiCore.Severity.ERROR : UiCore.Severity.WARNING,
 					LocalizedText.of("diagnostic." + issue.code().toLowerCase(Locale.ROOT), issue.message(), args),
-					path, elementId, true, List.of(new ActionHint("open_procedure_node",
-							LocalizedText.of("action.open_procedure_node", "Locate node"), "open_field", path))));
+					path, elementId, true, actions));
 		}
 		return List.copyOf(diagnostics);
 	}
@@ -2084,47 +4306,114 @@ public final class WorkspaceApplicationService {
 		projection.add("task", task);
 		projection.add("logs", GSON.toJsonTree(tasks.logsAfter(state.id(), taskId, afterLogSequence)));
 		projection.add("diagnostics", GSON.toJsonTree(tasks.diagnostics(state.id(), taskId)));
+		if (query.payload().has("sourcePath")) {
+			String sourcePath = requiredString(query.payload(), "sourcePath");
+			JsonObject source = tasks.sourcePreview(state.id(), taskId, sourcePath).orElse(null);
+			if (source == null)
+				return queryFailure(query, state.revision(), diagnostic("TASK_SOURCE_NOT_FOUND",
+						"diagnostic.task_source_not_found", "The requested task source preview is not available.",
+						"/sourcePath", null));
+			projection.add("source", source);
+		}
 		return querySuccess(query, state.revision(), projection);
 	}
 
-	private void flattenFields(JsonObject object, String base, JsonArray target, boolean readOnly, String elementType) {
+	private void flattenFields(JsonObject object, String base, JsonArray target, boolean readOnly, String elementType,
+			WorkspaceState state) {
 		for (String key : object.keySet()) {
 			JsonElement value = object.get(key);
 			String path = base + "/" + key.replace("~", "~0").replace("/", "~1");
 			if (value.isJsonObject())
-				flattenFields(value.getAsJsonObject(), path, target, readOnly, elementType);
+				flattenFields(value.getAsJsonObject(), path, target, readOnly, elementType, state);
 			else
-				target.add(editorField(path, displayName(key), value, readOnly, elementType));
+				target.add(editorField(path, displayName(key), value, readOnly, elementType, state));
 		}
 	}
 
-	private JsonObject editorField(String path, String label, Object value, boolean readOnly, String elementType) {
+	private JsonObject editorField(String path, String label, Object value, boolean readOnly, String elementType,
+			WorkspaceState state) {
 		JsonObject field = new JsonObject();
 		field.addProperty("path", path);
 		field.add("label", localized("field." + path.substring(path.lastIndexOf('/') + 1), label));
-		String fieldName = path.substring(path.lastIndexOf('/') + 1);
+		String fieldName = editorFieldName(path);
+		String normalizedFieldName = fieldName.toLowerCase(Locale.ROOT);
+		Field reflectedField = stage12Field(elementType, fieldName);
 		String control = value instanceof JsonElement element && element.isJsonArray() ? "json" : "text";
+		if (reflectedField != null && Collection.class.isAssignableFrom(reflectedField.getType())) control = "json";
+		if (isElementReferenceListField(elementType, fieldName)) control = "element_reference_list";
+		if (structuredCollectionItem(reflectedField) != null) control = "structured_list";
 		if (fieldName.equals("code") || fieldName.equals("description") || fieldName.equals("triggerxml"))
 			control = "textarea";
-		if (fieldName.equals("icon")) control = "resource_reference";
-		if (fieldName.equals("parent") || fieldName.equals("rewardFunction")) control = "procedure_reference";
+		if (isResourceReferenceField(normalizedFieldName) || isResourceReferenceStorage(reflectedField))
+			control = "resource_reference";
+		if (isProcedureReferenceField(normalizedFieldName) || isProcedureReferenceStorage(reflectedField))
+			control = "procedure_reference";
+		if (isElementReferenceField(elementType, fieldName)) control = "element_reference";
+		if (reflectedField != null && (reflectedField.isAnnotationPresent(LimitedOptions.class)
+				|| reflectedField.getType().isEnum() || reflectedField.getType().getSimpleName().equals("GenerationStep")))
+			control = "select";
+		if ((elementType.equals("tool") && Set.of("renderType", "blockingRenderType").contains(fieldName))
+				|| (elementType.equals("armor") && fieldName.endsWith("ItemRenderType"))) control = "select";
 		if (fieldName.equals("type") || fieldName.equals("frame") || fieldName.equals("toolType")
 				|| fieldName.equals("rarity") || fieldName.equals("sentiment") || fieldName.equals("priority")
-				|| fieldName.equals("entityType")) control = "select";
+				|| fieldName.equals("entityType") || (elementType.equals("livingentity")
+				&& Set.of("bossBarColor", "bossBarType", "mobBehaviourType", "mobCreatureType", "aiBase")
+						.contains(fieldName)) || (elementType.equals("biome")
+				&& Set.of("vanillaTreeType", "treeType", "villageType", "oceanRuinType", "spawnRuinedPortal")
+						.contains(fieldName)) || (elementType.equals("dimension")
+				&& Set.of("worldGenType", "defaultEffects", "skyType", "igniterRarity").contains(fieldName)))
+			control = "select";
 		if (value instanceof JsonElement element && element.isJsonPrimitive()
 				&& element.getAsJsonPrimitive().isBoolean()) control = "toggle";
 		if (value instanceof JsonElement element && element.isJsonPrimitive()
-				&& element.getAsJsonPrimitive().isNumber())
+				&& element.getAsJsonPrimitive().isNumber() && !control.equals("select"))
 			control = "number";
+		if (reflectedField != null && value instanceof JsonElement element && element.isJsonNull()) {
+			Class<?> javaType = reflectedField.getType();
+			if (javaType == boolean.class || javaType == Boolean.class) control = "toggle";
+			else if (javaType.isPrimitive() && javaType != char.class && javaType != boolean.class
+					|| Number.class.isAssignableFrom(javaType)) {
+				if (!control.equals("select")) control = "number";
+			}
+		}
 		field.addProperty("control", control);
-		field.addProperty("required", false);
+		boolean required = elementType.equals("livingentity")
+				&& Set.of("mobName", "mobLabel", "mobModelName", "mobModelTexture").contains(fieldName);
+		required |= elementType.equals("biome") && Set.of("groundBlock", "undergroundBlock").contains(fieldName);
+		required |= elementType.equals("dimension")
+				&& Set.of("biomesInDimension", "worldGenType", "mainFillerBlock", "fluidBlock").contains(fieldName);
+		field.addProperty("required", required);
 		field.addProperty("readOnly", readOnly);
 		if (value instanceof JsonElement element)
 			field.add("value", element.deepCopy());
 		else
 			field.addProperty("value", String.valueOf(value));
 		JsonArray options = new JsonArray();
-		if (fieldName.equals("frame")) {
+		if (reflectedField != null && reflectedField.isAnnotationPresent(LimitedOptions.class)) {
+			String[] limited = reflectedField.getAnnotation(LimitedOptions.class).value();
+			for (int index = 0; index < limited.length; index++) {
+				if (reflectedField.getType() == int.class || reflectedField.getType() == Integer.class)
+					options.add(fieldOption(index, limited[index]));
+				else
+					options.add(fieldOption(limited[index], limited[index]));
+			}
+		} else if (reflectedField != null && reflectedField.getType().isEnum()) {
+			for (Object option : reflectedField.getType().getEnumConstants())
+				options.add(fieldOption(enumName(option), enumName(option)));
+		} else if (reflectedField != null && reflectedField.getType().getSimpleName().equals("GenerationStep")) {
+			for (String option : List.of("RAW_GENERATION", "LAKES", "LOCAL_MODIFICATIONS", "UNDERGROUND_STRUCTURES",
+					"SURFACE_STRUCTURES", "STRONGHOLDS", "UNDERGROUND_ORES", "UNDERGROUND_DECORATION",
+					"FLUID_SPRINGS", "VEGETAL_DECORATION", "TOP_LAYER_MODIFICATION"))
+				options.add(fieldOption(option, option));
+		} else if ((elementType.equals("tool") && Set.of("renderType", "blockingRenderType").contains(fieldName))
+				|| (elementType.equals("armor") && fieldName.endsWith("ItemRenderType"))) {
+			options.add(fieldOption(0, "Built-in model"));
+			options.add(fieldOption(1, "JSON model"));
+			options.add(fieldOption(2, "OBJ model"));
+		} else if (elementType.equals("gui") && fieldName.equals("type")) {
+			options.add(fieldOption(0, "Without slots"));
+			options.add(fieldOption(1, "With slots"));
+		} else if (fieldName.equals("frame")) {
 			options.add(fieldOption("task", "Task"));
 			options.add(fieldOption("goal", "Goal"));
 			options.add(fieldOption("challenge", "Challenge"));
@@ -2146,10 +4435,376 @@ public final class WorkspaceApplicationService {
 			for (String option : List.of("NORMAL", "HIGH", "HIGHEST", "LOW", "LOWEST")) options.add(fieldOption(option, option));
 		} else if (fieldName.equals("entityType")) {
 			for (String option : List.of("Boat", "ChestBoat", "Raft", "ChestRaft")) options.add(fieldOption(option, option));
+		} else if (elementType.equals("livingentity") && fieldName.equals("bossBarColor")) {
+			for (String option : List.of("PINK", "BLUE", "RED", "GREEN", "YELLOW", "PURPLE", "WHITE"))
+				options.add(fieldOption(option, option));
+		} else if (elementType.equals("livingentity") && fieldName.equals("bossBarType")) {
+			for (String option : List.of("PROGRESS", "NOTCHED_6", "NOTCHED_10", "NOTCHED_12", "NOTCHED_20"))
+				options.add(fieldOption(option, option));
+		} else if (elementType.equals("livingentity") && fieldName.equals("mobBehaviourType")) {
+			for (String option : List.of("Mob", "Creature", "Raider")) options.add(fieldOption(option, option));
+		} else if (elementType.equals("livingentity") && fieldName.equals("mobCreatureType")) {
+			for (String option : List.of("UNDEFINED", "UNDEAD", "ARTHROPOD", "ILLAGER", "WATER"))
+				options.add(fieldOption(option, option));
+		} else if (elementType.equals("livingentity") && fieldName.equals("aiBase")) {
+			for (String option : List.of("(none)", "Bat", "Blaze", "Chicken", "Cow", "Creeper", "Enderman", "Horse",
+					"IronGolem", "MagmaCube", "Ocelot", "Pig", "Skeleton", "Slime", "Spider", "Squid",
+					"Villager", "Witch", "Wolf", "Zombie")) options.add(fieldOption(option, option));
+		} else if (elementType.equals("biome") && fieldName.equals("vanillaTreeType")) {
+			for (String option : List.of("Default", "Big trees", "Birch trees", "Savanna trees", "Mega pine trees",
+					"Mega spruce trees")) options.add(fieldOption(option, option));
+		} else if (elementType.equals("biome") && fieldName.equals("treeType")) {
+			options.add(fieldOption(0, "Vanilla trees"));
+			options.add(fieldOption(1, "Custom trees"));
+		} else if (elementType.equals("biome") && fieldName.equals("villageType")) {
+			for (String option : List.of("none", "desert", "plains", "savanna", "snowy", "taiga"))
+				options.add(fieldOption(option, option));
+		} else if (elementType.equals("biome") && fieldName.equals("oceanRuinType")) {
+			for (String option : List.of("NONE", "COLD", "WARM")) options.add(fieldOption(option, option));
+		} else if (elementType.equals("biome") && fieldName.equals("spawnRuinedPortal")) {
+			for (String option : List.of("NONE", "STANDARD", "DESERT", "JUNGLE", "SWAMP", "MOUNTAIN", "OCEAN", "NETHER"))
+				options.add(fieldOption(option, option));
+		} else if (elementType.equals("dimension") && fieldName.equals("worldGenType")) {
+			for (String option : List.of("Normal world gen", "Nether like gen", "End like gen"))
+				options.add(fieldOption(option, option));
+		} else if (elementType.equals("dimension") && fieldName.equals("defaultEffects")) {
+			for (String option : List.of("overworld", "the_nether", "the_end")) options.add(fieldOption(option, option));
+		} else if (elementType.equals("dimension") && fieldName.equals("skyType")) {
+			for (String option : List.of("NORMAL", "NONE", "END")) options.add(fieldOption(option, option));
+		} else if (elementType.equals("dimension") && fieldName.equals("igniterRarity")) {
+			for (String option : List.of("COMMON", "UNCOMMON", "RARE", "EPIC")) options.add(fieldOption(option, option));
+		} else if (control.equals("element_reference_list")) {
+			List<String> referenceTypes = elementReferenceTypes(elementType, fieldName);
+			if (referenceTypes.contains("biome"))
+				for (String tag : List.of("#is_overworld", "#is_nether", "#is_end")) options.add(fieldOption(tag, tag));
+			state.elements().stream()
+					.filter(candidate -> referenceTypes.isEmpty() || referenceTypes.contains(candidate.type()))
+					.sorted(Comparator.comparing(Element::displayName, String.CASE_INSENSITIVE_ORDER))
+					.forEach(candidate -> options.add(fieldOption("CUSTOM:" + candidate.name(),
+							candidate.displayName() + " · biome")));
+		} else if (control.equals("element_reference")) {
+			for (String vanilla : elementReferenceDefaults(fieldName)) options.add(fieldOption(vanilla, vanilla));
+			List<String> referenceTypes = elementReferenceTypes(elementType, fieldName);
+			state.elements().stream()
+					.filter(candidate -> referenceTypes.isEmpty() || referenceTypes.contains(candidate.type()))
+					.sorted(Comparator.comparing(Element::displayName, String.CASE_INSENSITIVE_ORDER))
+					.forEach(candidate -> options.add(fieldOption("CUSTOM:" + candidate.name(),
+							candidate.displayName() + " · " + candidate.type())));
+		} else if (control.equals("procedure_reference")) {
+			state.elements().stream()
+					.filter(candidate -> candidate.type().equals("procedure") || candidate.type().equals("function"))
+					.sorted(Comparator.comparing(Element::displayName, String.CASE_INSENSITIVE_ORDER))
+					.forEach(candidate -> options.add(fieldOption(candidate.name(),
+							candidate.displayName() + " · " + candidate.type())));
 		}
 		field.add("options", options);
+		List<String> referenceTypes = elementReferenceTypes(elementType, fieldName);
+		if (!referenceTypes.isEmpty()) field.add("referenceTypes", GSON.toJsonTree(referenceTypes));
+		if (reflectedField != null && reflectedField.isAnnotationPresent(TextureReference.class))
+			field.addProperty("resourceType", reflectedField.getAnnotation(TextureReference.class).value().getID());
+		if (control.equals("structured_list") && reflectedField != null) {
+			JsonArray itemFields = structuredItemFields(reflectedField, readOnly, state);
+			field.add("itemFields", itemFields);
+			JsonObject itemTemplate = new JsonObject();
+			for (JsonElement rawItemField : itemFields) {
+				JsonObject itemField = rawItemField.getAsJsonObject();
+				String itemPath = itemField.get("path").getAsString();
+				String itemName = editorFieldName(itemPath);
+				itemTemplate.add(itemName, itemField.get("value").deepCopy());
+			}
+			field.add("itemTemplate", itemTemplate);
+		}
+		JsonObject constraints = editorConstraints(elementType, fieldName);
+		if (constraints != null) field.add("constraints", constraints);
+		JsonObject condition = conditionalMetadata(elementType, fieldName);
+		if (condition != null) field.add("condition", condition);
 		field.add("diagnostics", new JsonArray());
 		return field;
+	}
+
+	private static String editorFieldName(String path) {
+		return path.substring(path.lastIndexOf('/') + 1).replace("~1", "/").replace("~0", "~");
+	}
+
+	private static boolean isResourceReferenceField(String fieldName) {
+		String field = fieldName.toLowerCase(Locale.ROOT);
+		return field.equals("icon") || field.contains("texture") || field.contains("sound") || field.contains("music")
+				|| field.contains("font") || field.equals("basetexture") || field.equals("armortexturefile");
+	}
+
+	private static boolean isProcedureReferenceField(String fieldName) {
+		String field = fieldName.toLowerCase(Locale.ROOT);
+		return field.equals("parent") || field.equals("rewardfunction") || field.startsWith("on")
+				|| field.startsWith("when") || field.endsWith("condition") || field.equals("breatheunderwater")
+				|| field.equals("pushedbyfluids") || field.equals("visualscale") || field.equals("boundingboxscale")
+				|| field.equals("solidboundingbox") || field.equals("vibrationsensitivityradius");
+	}
+
+	private static boolean isResourceReferenceStorage(Field field) {
+		return field != null && !Collection.class.isAssignableFrom(field.getType()) && (field.isAnnotationPresent(TextureReference.class)
+				|| field.getType().getSimpleName().equals("Sound"));
+	}
+
+	private static boolean isProcedureReferenceStorage(Field field) {
+		return field != null && field.getType().getSimpleName().endsWith("Procedure");
+	}
+
+	private static List<String> elementReferenceTypes(String elementType, String fieldName) {
+		Field field = stage12Field(elementType, fieldName);
+		if (field != null) {
+			Class<?> collectionItem = simpleReferenceCollectionItem(field);
+			if (collectionItem != null) {
+				List<String> accepted = acceptedReferenceTypes(field);
+				if (!accepted.isEmpty()) return accepted;
+				return switch (collectionItem.getSimpleName()) {
+					case "MItemBlock" -> List.of("block", "item", "armor", "tool", "plant", "fluid", "specialentity");
+					case "BiomeEntry" -> List.of("biome");
+					case "EnchantmentEntry" -> List.of("enchantment");
+					case "EntityEntry" -> List.of("livingentity", "specialentity");
+					case "FluidEntry" -> List.of("fluid");
+					case "TabEntry" -> List.of("tab");
+					default -> List.of();
+				};
+			}
+			if (field.getType().getSimpleName().equals("ProfessionEntry")) return List.of("villagerprofession");
+			if (field.getType().getSimpleName().equals("MItemBlock"))
+				return List.of("block", "item", "armor", "tool", "plant", "fluid", "specialentity");
+			if (field.isAnnotationPresent(ModElementReference.class)) {
+				List<String> accepted = acceptedReferenceTypes(field);
+				if (!accepted.isEmpty()) return accepted;
+				if (fieldName.toLowerCase(Locale.ROOT).contains("biome")) return List.of("biome");
+			}
+		}
+		if (elementType.equals("dimension") && Set.of("biomesInDimension", "biomesInDimensionCaves").contains(fieldName))
+			return List.of("biome");
+		if (isElementReferenceField(elementType, fieldName)) return List.of("block", "plant", "fluid");
+		return List.of();
+	}
+
+	private static List<String> acceptedReferenceTypes(Field field) {
+		ModElementReference reference = field == null ? null : field.getAnnotation(ModElementReference.class);
+		if (reference == null) return List.of();
+		List<String> accepted = new ArrayList<>();
+		for (Class<?> acceptedType : reference.acceptedTypes()) {
+			String type = stage12TypeForStorageClass(acceptedType);
+			if (type != null && !accepted.contains(type)) accepted.add(type);
+		}
+		return List.copyOf(accepted);
+	}
+
+	private JsonArray structuredItemFields(Field collectionField, boolean readOnly, WorkspaceState state) {
+		JsonArray fields = new JsonArray();
+		Class<?> itemClass = structuredCollectionItem(collectionField);
+		if (itemClass == null) return fields;
+		for (Field reflected : itemClass.getFields()) {
+			if (Modifier.isStatic(reflected.getModifiers()) || reflected.isSynthetic()) continue;
+			fields.add(structuredItemField(reflected, readOnly, state));
+		}
+		return fields;
+	}
+
+	private JsonObject structuredItemField(Field reflected, boolean readOnly, WorkspaceState state) {
+		String name = reflected.getName();
+		JsonObject field = new JsonObject();
+		field.addProperty("path", "/" + name);
+		field.add("label", localized("field." + name, displayName(name)));
+		String control = "text";
+		Class<?> type = reflected.getType();
+		if (Collection.class.isAssignableFrom(type)) control = "json";
+		if (type == boolean.class || type == Boolean.class) control = "toggle";
+		if (reflected.isAnnotationPresent(Numeric.class) || (type.isPrimitive() && type != boolean.class && type != char.class)
+				|| Number.class.isAssignableFrom(type)) control = "number";
+		if (reflected.isAnnotationPresent(LimitedOptions.class) || type.isEnum()) control = "select";
+		if (isReflectedElementReference(reflected)) control = "element_reference";
+		if (isResourceReferenceStorage(reflected)) control = "resource_reference";
+		if (isProcedureReferenceStorage(reflected)) control = "procedure_reference";
+		field.addProperty("control", control);
+		field.addProperty("required", false);
+		field.addProperty("readOnly", readOnly);
+		field.add("value", structuredItemDefault(reflected));
+		JsonArray options = new JsonArray();
+		if (reflected.isAnnotationPresent(LimitedOptions.class)) {
+			String[] limited = reflected.getAnnotation(LimitedOptions.class).value();
+			for (int index = 0; index < limited.length; index++) {
+				if (type == int.class || type == Integer.class) options.add(fieldOption(index, limited[index]));
+				else options.add(fieldOption(limited[index], limited[index]));
+			}
+		} else if (type.isEnum()) {
+			for (Object option : type.getEnumConstants()) options.add(fieldOption(enumName(option), enumName(option)));
+		}
+		List<String> referenceTypes = reflectedReferenceTypes(reflected);
+		if (reflected.isAnnotationPresent(TextureReference.class))
+			field.addProperty("resourceType", reflected.getAnnotation(TextureReference.class).value().getID());
+		if (control.equals("element_reference")) {
+			state.elements().stream()
+					.filter(candidate -> referenceTypes.isEmpty() || referenceTypes.contains(candidate.type()))
+					.sorted(Comparator.comparing(Element::displayName, String.CASE_INSENSITIVE_ORDER))
+					.forEach(candidate -> options.add(fieldOption("CUSTOM:" + candidate.name(),
+							candidate.displayName() + " �� " + candidate.type())));
+		} else if (control.equals("procedure_reference")) {
+			state.elements().stream()
+					.filter(candidate -> candidate.type().equals("procedure") || candidate.type().equals("function"))
+					.sorted(Comparator.comparing(Element::displayName, String.CASE_INSENSITIVE_ORDER))
+					.forEach(candidate -> options.add(fieldOption(candidate.name(),
+							candidate.displayName() + " �� " + candidate.type())));
+		}
+		field.add("options", options);
+		if (!referenceTypes.isEmpty()) field.add("referenceTypes", GSON.toJsonTree(referenceTypes));
+		if (reflected.isAnnotationPresent(Numeric.class)) {
+			Numeric numeric = reflected.getAnnotation(Numeric.class);
+			JsonObject constraints = new JsonObject();
+			constraints.addProperty("min", numeric.min());
+			constraints.addProperty("max", numeric.max());
+			constraints.addProperty("step", numeric.step());
+			field.add("constraints", constraints);
+		}
+		if (reflected.isAnnotationPresent(NonNullIf.class)) {
+			JsonObject condition = new JsonObject();
+			condition.addProperty("operator", "any_truthy");
+			JsonArray paths = new JsonArray();
+			for (String dependency : reflected.getAnnotation(NonNullIf.class).value()) paths.add("/" + dependency);
+			condition.add("paths", paths);
+			field.add("condition", condition);
+		}
+		field.add("diagnostics", new JsonArray());
+		return field;
+	}
+
+	private static boolean isReflectedElementReference(Field field) {
+		return field != null && !Collection.class.isAssignableFrom(field.getType())
+				&& (field.getType().getSimpleName().equals("MItemBlock")
+				|| field.getType().getSimpleName().equals("ProfessionEntry")
+				|| field.isAnnotationPresent(ModElementReference.class));
+	}
+
+	private static List<String> reflectedReferenceTypes(Field field) {
+		if (field == null) return List.of();
+		if (field.getType().getSimpleName().equals("ProfessionEntry")) return List.of("villagerprofession");
+		if (field.getType().getSimpleName().equals("MItemBlock"))
+			return List.of("block", "item", "armor", "tool", "plant", "fluid", "specialentity");
+		return acceptedReferenceTypes(field);
+	}
+
+	private static JsonElement structuredItemDefault(Field field) {
+		if (field.isAnnotationPresent(Numeric.class))
+			return new JsonPrimitive(field.getAnnotation(Numeric.class).init());
+		Class<?> type = field.getType();
+		if (type == boolean.class || type == Boolean.class) return new JsonPrimitive(false);
+		if (type == byte.class || type == short.class || type == int.class || type == long.class
+				|| type == float.class || type == double.class || Number.class.isAssignableFrom(type)) return new JsonPrimitive(0);
+		if (field.isAnnotationPresent(LimitedOptions.class)) {
+			String[] options = field.getAnnotation(LimitedOptions.class).value();
+			if (options.length > 0) return new JsonPrimitive(options[0]);
+		}
+		if (type == String.class) return new JsonPrimitive("");
+		if (Collection.class.isAssignableFrom(type)) return new JsonArray();
+		if (type.isEnum() && type.getEnumConstants().length > 0) return new JsonPrimitive(enumName(type.getEnumConstants()[0]));
+		return JsonNull.INSTANCE;
+	}
+
+	private static String enumName(Object value) {
+		return value instanceof Enum<?> enumValue ? enumValue.name() : String.valueOf(value);
+	}
+
+	private static String stage12TypeForStorageClass(Class<?> type) {
+		return switch (type.getSimpleName()) {
+			case "Armor" -> "armor";
+			case "ArmorTrim" -> "armortrim";
+			case "Attribute" -> "attribute";
+			case "BannerPattern" -> "bannerpattern";
+			case "Biome" -> "biome";
+			case "Block" -> "block";
+			case "Command" -> "command";
+			case "CustomElement" -> "code";
+			case "DamageType" -> "damagetype";
+			case "Dimension" -> "dimension";
+			case "Enchantment" -> "enchantment";
+			case "Feature" -> "feature";
+			case "Fluid" -> "fluid";
+			case "GameRule" -> "gamerule";
+			case "GUI" -> "gui";
+			case "Item" -> "item";
+			case "ItemExtension" -> "itemextension";
+			case "KeyBinding" -> "keybind";
+			case "LivingEntity" -> "livingentity";
+			case "Overlay" -> "overlay";
+			case "Painting" -> "painting";
+			case "Particle" -> "particle";
+			case "Plant" -> "plant";
+			case "Potion" -> "potion";
+			case "PotionEffect" -> "potioneffect";
+			case "Projectile" -> "projectile";
+			case "SpecialEntity" -> "specialentity";
+			case "Structure" -> "structure";
+			case "Tab" -> "tab";
+			case "Tool" -> "tool";
+			case "VillagerProfession" -> "villagerprofession";
+			case "VillagerTrade" -> "villagertrade";
+			default -> null;
+		};
+	}
+
+	private JsonObject editorConstraints(String elementType, String fieldName) {
+		Field reflected = stage12Field(elementType, fieldName);
+		if (reflected != null && reflected.isAnnotationPresent(Numeric.class)) {
+			Numeric numeric = reflected.getAnnotation(Numeric.class);
+			JsonObject constraints = new JsonObject();
+			constraints.addProperty("min", numeric.min());
+			constraints.addProperty("max", numeric.max());
+			constraints.addProperty("step", numeric.step());
+			return constraints;
+		}
+		double[] constraint = switch (elementType) {
+			case "livingentity" -> switch (fieldName) {
+				case "modelWidth", "modelHeight", "modelShadowSize" -> new double[] { 0, 16, 0.1 };
+				case "mountedYOffset" -> new double[] { -1024, 1024, 0.1 };
+				case "attackStrength" -> new double[] { 0, 10000, 1 };
+				case "attackKnockback", "knockbackResistance" -> new double[] { 0, 1000, 0.1 };
+				case "movementSpeed" -> new double[] { 0, 50, 0.1 };
+				case "stepHeight" -> new double[] { 0, 255, 0.1 };
+				case "armorBaseValue" -> new double[] { 0, 100, 0.1 };
+				case "trackingRange" -> new double[] { 0, 2048, 1 };
+				case "followRange", "health", "rangedAttackInterval" -> new double[] { 0, 1024, 1 };
+				case "xpAmount" -> new double[] { 0, 100000, 1 };
+				case "inventorySize" -> new double[] { 0, 256, 1 };
+				case "inventoryStackSize" -> new double[] { 1, 1024, 1 };
+				case "rangedAttackRadius" -> new double[] { 0, 1024, 0.1 };
+				case "spawningProbability" -> new double[] { 1, 1000, 1 };
+				case "minNumberOfMobsPerGroup", "maxNumberOfMobsPerGroup" -> new double[] { 1, 128, 1 };
+				default -> null;
+			};
+			case "biome" -> switch (fieldName) {
+				case "moodSoundDelay" -> new double[] { 1, 30000, 1 };
+				case "particlesProbability" -> new double[] { 0, 100, 0.1 };
+				case "rainingPossibility" -> new double[] { 0, 1, 0.1 };
+				case "temperature" -> new double[] { -1, 2, 0.1 };
+				case "genDepthMin", "genDepthMax" -> new double[] { 0, 1.5, 0.0001 };
+				case "treesPerChunk" -> new double[] { 0, 64, 1 };
+				case "minHeight" -> new double[] { 0, 32, 1 };
+				default -> null;
+			};
+			case "dimension" -> switch (fieldName) {
+				case "seaLevel" -> new double[] { -1024, 1024, 1 };
+				case "cloudHeight" -> new double[] { -2032, 2031, 16 };
+				case "ambientLight" -> new double[] { 0, 1, 0.01 };
+				case "fixedTimeValue" -> new double[] { 0, 24000, 1 };
+				case "coordinateScale" -> new double[] { 0.01, 1000, 0.01 };
+				case "minMonsterSpawnLightLimit", "maxMonsterSpawnLightLimit", "monsterSpawnBlockLightLimit",
+						"portalLuminance" -> new double[] { 0, 15, 1 };
+				default -> null;
+			};
+			case "gui" -> switch (fieldName) {
+				case "width", "height" -> new double[] { 0, 512, 1 };
+				default -> null;
+			};
+			default -> null;
+		};
+		if (constraint == null) return null;
+		JsonObject constraints = new JsonObject();
+		constraints.addProperty("min", constraint[0]);
+		constraints.addProperty("max", constraint[1]);
+		constraints.addProperty("step", constraint[2]);
+		return constraints;
 	}
 
 	private JsonObject fieldOption(String value, String label) {
@@ -2160,6 +4815,12 @@ public final class WorkspaceApplicationService {
 		option.add("label", localized("field.option", label, args));
 		option.addProperty("disabled", false);
 		option.add("reason", JsonNull.INSTANCE);
+		return option;
+	}
+
+	private JsonObject fieldOption(int value, String label) {
+		JsonObject option = fieldOption(String.valueOf(value), label);
+		option.addProperty("value", value);
 		return option;
 	}
 
@@ -2289,12 +4950,26 @@ public final class WorkspaceApplicationService {
 				if (!values.has("showSearch")) values.addProperty("showSearch", false);
 			}
 			case "biome" -> {
-				if (!values.has("spawnParticles")) values.addProperty("spawnParticles", true);
+				if (!values.has("groundBlock")) values.addProperty("groundBlock", "Blocks.GRASS");
+				if (!values.has("undergroundBlock")) values.addProperty("undergroundBlock", "Blocks.DIRT#0");
+				if (!values.has("spawnParticles")) values.addProperty("spawnParticles", false);
 				if (!values.has("spawnInCaves")) values.addProperty("spawnInCaves", false);
 			}
 			case "dimension" -> {
+				if (!values.has("biomesInDimension")) values.add("biomesInDimension", new JsonArray());
+				if (!values.has("biomesInDimensionCaves")) values.add("biomesInDimensionCaves", new JsonArray());
+				if (!values.has("worldGenType")) values.addProperty("worldGenType", "Normal world gen");
+				if (!values.has("mainFillerBlock")) values.addProperty("mainFillerBlock", "Blocks.STONE#0");
+				if (!values.has("fluidBlock")) values.addProperty("fluidBlock", "Blocks.WATER");
+				if (!values.has("seaLevel")) values.addProperty("seaLevel", 63);
 				if (!values.has("generateOreVeins")) values.addProperty("generateOreVeins", true);
 				if (!values.has("generateAquifers")) values.addProperty("generateAquifers", true);
+				if (!values.has("hasFixedTime")) values.addProperty("hasFixedTime", false);
+				if (!values.has("fixedTimeValue")) values.addProperty("fixedTimeValue", 0);
+				if (!values.has("enableCustomSkyboxTextures")) values.addProperty("enableCustomSkyboxTextures", false);
+				if (!values.has("enableCustomSunMoonTextures")) values.addProperty("enableCustomSunMoonTextures", false);
+				if (!values.has("enablePortal")) values.addProperty("enablePortal", false);
+				if (!values.has("enableIgniter")) values.addProperty("enableIgniter", false);
 			}
 			case "feature" -> {
 				if (!values.has("skipPlacement")) values.addProperty("skipPlacement", false);
@@ -2331,8 +5006,14 @@ public final class WorkspaceApplicationService {
 				if (!values.has("showParticles")) values.addProperty("showParticles", false);
 			}
 			case "gui" -> {
+				if (!values.has("type")) values.addProperty("type", 0);
+				if (!values.has("width")) values.addProperty("width", 176);
+				if (!values.has("height")) values.addProperty("height", 166);
+				if (!values.has("inventoryOffsetX")) values.addProperty("inventoryOffsetX", 0);
+				if (!values.has("inventoryOffsetY")) values.addProperty("inventoryOffsetY", 0);
 				if (!values.has("renderBgLayer")) values.addProperty("renderBgLayer", true);
 				if (!values.has("doesPauseGame")) values.addProperty("doesPauseGame", false);
+				if (!values.has("components")) values.add("components", new JsonArray());
 			}
 			case "armortrim" -> {
 				if (!values.has("armorTextureFile")) values.addProperty("armorTextureFile", name);
@@ -2352,6 +5033,18 @@ public final class WorkspaceApplicationService {
 			case "overlay" -> {
 				if (!values.has("priority")) values.addProperty("priority", "NORMAL");
 				if (!values.has("baseTexture")) values.addProperty("baseTexture", "");
+				if (!values.has("overlayTarget")) values.addProperty("overlayTarget", "Ingame");
+				if (!values.has("displayCondition")) values.add("displayCondition", JsonNull.INSTANCE);
+				if (!values.has("components")) values.add("components", new JsonArray());
+				if (!values.has("gridSettings")) {
+					JsonObject grid = new JsonObject();
+					grid.addProperty("sx", 18);
+					grid.addProperty("sy", 18);
+					grid.addProperty("ox", 11);
+					grid.addProperty("oy", 15);
+					grid.addProperty("snapOnGrid", false);
+					values.add("gridSettings", grid);
+				}
 			}
 			case "villagertrade" -> {
 				if (!values.has("villagerProfession")) values.addProperty("villagerProfession", "WANDERING_TRADER");
@@ -2390,7 +5083,7 @@ public final class WorkspaceApplicationService {
 		return values;
 	}
 
-	private Diagnostic validateElementValues(UUID elementId, JsonObject values) {
+	private Diagnostic validateElementValues(UUID elementId, String elementType, JsonObject values) {
 		if (values.has("fields") && values.get("fields").isJsonObject()) {
 			JsonObject fields = values.getAsJsonObject("fields");
 			if (fields.has("hardness") && fields.get("hardness").isJsonPrimitive()
@@ -2406,7 +5099,59 @@ public final class WorkspaceApplicationService {
 				}
 			}
 		}
+		if (elementType.equals("code") && values.has("codeFiles")) {
+			if (!values.get("codeFiles").isJsonArray())
+				return diagnostic("CODE_BUNDLE_INVALID", "diagnostic.code_bundle_invalid",
+						"codeFiles must be an array of Java source files.", null,
+						elementId == null ? "/initialValues/codeFiles" : elementPath(elementId) + "/codeFiles", elementId);
+			for (int index = 0; index < values.getAsJsonArray("codeFiles").size(); index++) {
+				JsonElement raw = values.getAsJsonArray("codeFiles").get(index);
+				if (!raw.isJsonObject())
+					return codeBundleDiagnostic(elementId, index, "Each codeFiles entry must be an object.");
+				JsonObject file = raw.getAsJsonObject();
+				if (!file.has("path") || !file.get("path").isJsonPrimitive()
+						|| !file.has("code") || !file.get("code").isJsonPrimitive())
+					return codeBundleDiagnostic(elementId, index, "Each codeFiles entry requires path and code strings.");
+				String path = file.get("path").getAsString();
+				try {
+					Path candidate = Path.of(path);
+					if (candidate.isAbsolute() || candidate.normalize().startsWith("..") || !path.endsWith(".java"))
+						return codeBundleDiagnostic(elementId, index,
+								"Code bundle paths must be relative .java paths inside the generated source package.");
+				} catch (RuntimeException exception) {
+					return codeBundleDiagnostic(elementId, index, "Code bundle path is invalid.");
+				}
+			}
+		}
+		Class<?> storageClass = stage12ConditionalValidationClass(elementType);
+		if (storageClass != null) {
+			for (Field reflected : storageClass.getFields()) {
+				NonNullIf condition = reflected.getAnnotation(NonNullIf.class);
+				if (condition == null) continue;
+				String activeDependency = null;
+				for (String dependency : condition.value()) {
+					if (conditionExpressionMatches(values, dependency)) {
+						activeDependency = dependency;
+						break;
+					}
+				}
+				if (activeDependency == null || !missingConditionalValue(values.get(reflected.getName()))) continue;
+				JsonObject args = new JsonObject();
+				args.addProperty("field", reflected.getName());
+				args.addProperty("condition", activeDependency);
+				String path = elementId == null ? "/initialValues/" + reflected.getName()
+						: elementPath(elementId) + "/" + reflected.getName();
+				return diagnostic("FIELD_REQUIRED_BY_CONDITION", "diagnostic.field_required_by_condition",
+						"{field} is required when {condition} is enabled.", args, path, elementId);
+			}
+		}
 		return null;
+	}
+
+	private Diagnostic codeBundleDiagnostic(UUID elementId, int index, String message) {
+		String path = elementId == null ? "/initialValues/codeFiles/" + index
+				: elementPath(elementId) + "/codeFiles/" + index;
+		return diagnostic("CODE_BUNDLE_INVALID", "diagnostic.code_bundle_invalid", message, path, elementId);
 	}
 
 	private CommandOutcome denied(Command command, PermissionProfile current, PermissionProfile required) {
@@ -2469,12 +5214,25 @@ public final class WorkspaceApplicationService {
 	}
 
 	private Diagnostic diagnostic(String code, String key, String fallback, String path, UUID elementId) {
-		return Diagnostic.error(code, key, fallback, path, elementId);
+		return new Diagnostic(code, UiCore.Severity.ERROR, LocalizedText.of(key, fallback), path, elementId, true,
+				fieldLocationActions(path, elementId));
 	}
 
 	private Diagnostic diagnostic(String code, String key, String fallback, JsonObject args, String path,
 			UUID elementId) {
-		return Diagnostic.error(code, key, fallback, args, path, elementId);
+		return new Diagnostic(code, UiCore.Severity.ERROR, LocalizedText.of(key, fallback, args), path, elementId, true,
+				fieldLocationActions(path, elementId));
+	}
+
+	private List<ActionHint> fieldLocationActions(String path, UUID elementId) {
+		if (path == null || elementId == null)
+			return List.of();
+		String elementPath = elementPath(elementId);
+		if (!path.startsWith(elementPath + "/"))
+			return List.of();
+		String fieldPath = path.substring(elementPath.length());
+		return List.of(new ActionHint("open_field", LocalizedText.of("action.open_field", "Locate invalid field"),
+				"open_field", fieldPath));
 	}
 
 	private Diagnostic failureDiagnostic(Command command, String code, String key, String fallback, String path,
@@ -2754,6 +5512,16 @@ public final class WorkspaceApplicationService {
 	private record RegistryEdit(JsonObject entry, JsonObject data, List<String> changedPaths) {
 	}
 
+	private record RefactorDraft(JsonArray operations, Diagnostic diagnostic) {
+		private static RefactorDraft success(JsonArray operations) {
+			return new RefactorDraft(operations.deepCopy(), null);
+		}
+
+		private static RefactorDraft failed(Diagnostic diagnostic) {
+			return new RefactorDraft(null, diagnostic);
+		}
+	}
+
 	private record RegistryMutation(JsonObject entry, long sequence, JsonObject data, Diagnostic diagnostic) {
 		private static RegistryMutation success(JsonObject entry, long sequence, JsonObject data) {
 			return new RegistryMutation(entry.deepCopy(), sequence, data.deepCopy(), null);
@@ -2771,6 +5539,48 @@ public final class WorkspaceApplicationService {
 
 		private static DatagenMutation rejected(Diagnostic diagnostic) {
 			return new DatagenMutation(null, 0, diagnostic);
+		}
+	}
+
+	public record AssetImportSelectionGrant(String id, String fileName, long size, String expiresAt) {
+		public AssetImportSelectionGrant {
+			Objects.requireNonNull(id, "id");
+			Objects.requireNonNull(fileName, "fileName");
+			Objects.requireNonNull(expiresAt, "expiresAt");
+			if (size < 0) throw new IllegalArgumentException("size must not be negative");
+		}
+	}
+
+	private record AssetImportSourceGrant(String id, Path source, Instant expiresAt) {
+	}
+
+	private record AssetImportPlanGrant(String id, UUID workspaceId, String sourceGrantId, AssetImportPlan plan,
+			Instant expiresAt) {
+	}
+
+	private record AssetImportBatchPlanGrant(String id, UUID workspaceId, List<String> sourceGrantIds,
+			AssetImportBatchPlan plan, Instant expiresAt) {
+		private AssetImportBatchPlanGrant {
+			sourceGrantIds = List.copyOf(sourceGrantIds);
+		}
+	}
+
+	private record AssetImportMutation(AssetImportService.ApplyResult applied, long sequence, Diagnostic diagnostic) {
+		private static AssetImportMutation success(AssetImportService.ApplyResult applied, long sequence) {
+			return new AssetImportMutation(applied, sequence, null);
+		}
+
+		private static AssetImportMutation rejected(Diagnostic diagnostic) {
+			return new AssetImportMutation(null, 0, diagnostic);
+		}
+	}
+
+	private record BlockbenchPreparation(RecoveryPoint recoveryPoint, long revision, long sequence) {
+	}
+
+	private static final class BlockbenchPreparationException extends RuntimeException {
+		private BlockbenchPreparationException(LocalHistoryException cause) {
+			super(cause);
 		}
 	}
 

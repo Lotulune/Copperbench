@@ -19,6 +19,7 @@
 package net.mcreator.generator.setup;
 
 import dev.copperbench.gradle.GradleDistributionPool;
+import dev.copperbench.gradle.MinecraftMappingsCacheRepair;
 import dev.copperbench.network.ChinaMirrorService;
 import freemarker.template.Template;
 import net.mcreator.generator.Generator;
@@ -176,6 +177,7 @@ public class WorkspaceGeneratorSetup {
 				LOG.error("Failed to copy workspace base file", e);
 			}
 		}
+		MinecraftMappingsCacheRepair.repairCorruptMappings(workspace.getWorkspaceFolder().toPath());
 		ChinaMirrorService.applyToWorkspace(workspace);
 		GradleDistributionPool.seedForWorkspace(workspace);
 	}

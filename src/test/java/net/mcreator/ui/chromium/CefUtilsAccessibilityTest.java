@@ -18,6 +18,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CefUtilsAccessibilityTest {
 
@@ -31,7 +32,9 @@ class CefUtilsAccessibilityTest {
 	}
 
 	@Test @EnabledOnOs(OS.WINDOWS)
-	void windowsUsesNativeWindowedRenderingForPlatformAccessibility() {
-		assertFalse(CefUtils.useOSR());
+	void windowsUsesWindowedRenderingNormallyAndOsrForSoftwareFallback() {
+		assertFalse(CefUtils.useOSROnWindows(true, false));
+		assertTrue(CefUtils.useOSROnWindows(false, false));
+		assertTrue(CefUtils.useOSROnWindows(true, true));
 	}
 }

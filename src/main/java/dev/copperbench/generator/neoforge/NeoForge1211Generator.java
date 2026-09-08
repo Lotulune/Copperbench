@@ -125,7 +125,7 @@ public final class NeoForge1211Generator implements GradleWorkspaceBackend {
 		}
 		return commonGenerator.validate(asFabricWorkspace(workspace)).stream()
 				.map(issue -> new ValidationIssue(issue.code().replaceFirst("^FABRIC_", "NEOFORGE_"),
-						issue.message().replace("Fabric", "NeoForge"), issue.path(), issue.elementId()))
+						issue.message().replace("Fabric", "NeoForge"), issue.path(), issue.elementId(), issue.repairValue()))
 				.toList();
 	}
 
@@ -144,9 +144,11 @@ public final class NeoForge1211Generator implements GradleWorkspaceBackend {
 		if (!issues.isEmpty()) throw new IllegalArgumentException(issues.getFirst().message());
 		Path root = Objects.requireNonNull(targetRoot).toAbsolutePath().normalize();
 		Descriptor descriptor = descriptor(workspace);
-		if (preservePluginWorkspace && PluginWorkspaceLayout.present(root))
+		if (preservePluginWorkspace && PluginWorkspaceLayout.present(root)) {
+			PluginWorkspaceLayout.ensureGradleRuntime(root, distributionRoot, profile.fabricProfile().gradleWrapperZip());
 			return new GenerationResult(profile.generatorId(), descriptor.modId(),
 					PluginWorkspaceLayout.relativeSourcePaths(root));
+		}
 		var common = preservePluginWorkspace
 				? commonGenerator.generate(root, asFabricWorkspace(workspace))
 				: commonGenerator.generateMigrationTarget(root, asFabricWorkspace(workspace));

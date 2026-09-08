@@ -80,6 +80,30 @@ class HeadlessCliTest {
 		assertEquals("rejected", denied.json().get("status").getAsString());
 	}
 
+	@Test void validateAndBuildUseCurrentRevisionWhenRevisionIsOmittedButPreserveExplicitConflictChecks() {
+		SequentialIds ids = new SequentialIds();
+		HeadlessCli cli = new HeadlessCli(
+				new HeadlessWorkspaceEntryAdapter(service(ids), PermissionProfile.WORKSPACE), WORKSPACE_ID, ids);
+
+		RunResult created = run(cli, "create-registry-entry", "--registry", "variables", "--entry-json",
+				"{\"name\":\"score\",\"dataType\":\"number\",\"scope\":\"global\"}");
+		assertEquals(HeadlessExitCode.SUCCESS.code(), created.exitCode());
+		assertEquals(1, created.json().get("newRevision").getAsLong());
+
+		assertSuccessful(cli, "validate", "validate_workspace");
+		assertSuccessful(cli, "build", "build_workspace");
+
+		RunResult stale = run(cli, "validate", "--revision", "0");
+		assertEquals(HeadlessExitCode.REVISION_CONFLICT.code(), stale.exitCode());
+		assertEquals("rejected", stale.json().get("status").getAsString());
+		assertEquals(1, stale.json().getAsJsonObject("conflict").get("actualRevision").getAsLong());
+
+		RunResult staleBuild = run(cli, "build", "--revision", "0");
+		assertEquals(HeadlessExitCode.REVISION_CONFLICT.code(), staleBuild.exitCode());
+		assertEquals("rejected", staleBuild.json().get("status").getAsString());
+		assertEquals(1, staleBuild.json().getAsJsonObject("conflict").get("actualRevision").getAsLong());
+	}
+
 	@Test void newWorkspaceQueryAndCreateCommandShareCoreApprovalRules() {
 		SequentialIds ids = new SequentialIds();
 		HeadlessCli cli = new HeadlessCli(
@@ -87,6 +111,7 @@ class HeadlessCliTest {
 
 		RunResult help = run(cli, "help");
 		assertTrue(help.json().getAsJsonArray("commands").toString().contains("list-new-workspace-generators"));
+		assertTrue(help.json().getAsJsonArray("commands").toString().contains("environment"));
 		assertTrue(help.json().getAsJsonArray("commands").toString().contains("create-workspace"));
 		assertTrue(help.json().getAsJsonArray("commands").toString().contains("preview-datagen"));
 		assertTrue(help.json().getAsJsonArray("commands").toString().contains("publish-datagen"));
@@ -98,6 +123,14 @@ class HeadlessCliTest {
 		assertEquals(9, generators.json().getAsJsonObject("data").getAsJsonArray("generators").size());
 		assertTrue(generators.json().getAsJsonObject("data").getAsJsonArray("generators").toString()
 				.contains("resourcepack-1.21.1"));
+
+		RunResult environment = run(cli, "environment");
+		assertEquals(HeadlessExitCode.SUCCESS.code(), environment.exitCode());
+		assertEquals("get_workspace_environment", environment.json().get("operation").getAsString());
+		assertEquals("succeeded", environment.json().get("status").getAsString());
+		assertTrue(environment.json().getAsJsonObject("data").has("execution"));
+		assertTrue(environment.json().getAsJsonObject("data").getAsJsonObject("agentWorkflow")
+				.get("nativeFilesAuthoritative").getAsBoolean());
 
 		RunResult unapproved = run(cli, "create-workspace", "--generator-id", "fabric-1.21.1", "--mod-name",
 				"Copper Trails", "--mod-id", "copper_trails", "--workspace-folder",

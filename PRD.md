@@ -7,6 +7,8 @@
 > 当前阶段：阶段 0–7 领域门禁已按证据关闭。阶段 8 收口项已完成，G7 已通过 Hyper-V Win11 客机最终复验。公开身份与分发已定为 Copperbench GitHub 未签名 GPL 衍生版；不部署产品网站、不购买 Authenticode。Windows 10 已移出支持范围。
 > 名称说明：`Copperbench` 是公开产品名；`Minecraft Mod Creator` 仅为 PRD 工作标题
 
+> 2026-09-07 路线说明：本文件继续保留为历史需求基线。当前已批准的“通用 Agent 工作台、原生代码正式支持、结构化入口可选”路线和 Stage 14A～14D 验收，以 [PRD-NEXT 第 11.4 节](./PRD-NEXT.md#114-stage-14高级开发者与-ai-native-工程工作流) 与 [ADR-0017](./docs/adr/0017-native-first-agent-workbench.md) 为准；规划批准不代表能力已实现。
+
 ## 0. AI 阅读协议
 
 本文件是**已关闭能力**的需求基线。阶段 8 剩余工作不以本文件当待办清单。

@@ -21,7 +21,9 @@ import java.util.List;
 public final class WindowsDistributionLayout {
 
 	public static final List<String> REQUIRED_ENTRIES = List.of("copperbench.exe", "LICENSE.txt",
-			"LICENSE-ADDITIONAL-TERMS.md", "jdk/bin/java.exe", "jdk/bin/jcef.dll", "lib/copperbench.jar", "plugins");
+			"LICENSE-ADDITIONAL-TERMS.md", "jdk/bin/java.exe", "jdk/bin/jcef.dll", "jdk21/bin/java.exe",
+			"jdk21/bin/javac.exe", "lib/copperbench.jar", "plugins",
+			"gradlew", "gradlew.bat", "gradle/wrapper/gradle-wrapper.jar");
 
 	private WindowsDistributionLayout() {
 	}
@@ -40,6 +42,7 @@ public final class WindowsDistributionLayout {
 		json.addProperty("executable", "copperbench.exe");
 		JsonObject bundledJdk = new JsonObject();
 		bundledJdk.addProperty("installed", "jdk");
+		bundledJdk.addProperty("installedJava21", "jdk21");
 		bundledJdk.addProperty("sourceTreeJava25", "jdk/jbr25_win_64");
 		bundledJdk.addProperty("sourceTreeJava21", "jdk/jdk21_win_64");
 		json.add("bundledJdk", bundledJdk);

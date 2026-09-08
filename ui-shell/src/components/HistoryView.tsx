@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
 import { useDialogA11y } from '../hooks/useDialogA11y';
-import type { RecoveryPoint, WorkspaceChange } from '../types/contract';
+import type { HistoryComparison, RecoveryPoint, RecoveryRestorePreview, WorkspaceChange } from '../types/contract';
 
 const actorLabels: Record<RecoveryPoint['actor'], string> = {
   ui: '界面',
@@ -21,6 +21,18 @@ const actorLabels: Record<RecoveryPoint['actor'], string> = {
   system: '系统'
 };
 
+const sourceLabels: Record<NonNullable<RecoveryPoint['source']>, string> = {
+  manual: '手动',
+  automation: '自动操作',
+  workspace_plan: '工作区计划',
+  procedure: 'Procedure',
+  asset: '资产',
+  datagen: 'Datagen',
+  registry: '注册表',
+  blockbench: 'Blockbench',
+  restore_safety: '还原保护'
+};
+
 const changeLabels: Record<WorkspaceChange['type'], string> = {
   add: '新增',
   modify: '修改',
@@ -28,6 +40,22 @@ const changeLabels: Record<WorkspaceChange['type'], string> = {
   rename: '重命名',
   copy: '复制'
 };
+
+const objectKindLabels: Record<NonNullable<WorkspaceChange['objectKind']>, string> = {
+  workspace: '工作区',
+  mod_element: 'Mod Element',
+  asset: '资产'
+};
+
+function changeText(change: WorkspaceChange): string {
+  const semantic = change.objectKind && change.objectName
+    ? `${objectKindLabels[change.objectKind]} ${change.objectName} · `
+    : '';
+  const fields = change.fieldChanges?.length
+    ? ` · 字段 ${change.fieldChanges.slice(0, 4).map((field) => field.pointer).join('、')}${change.fieldChanges.length > 4 ? ` 等 ${change.fieldChanges.length} 项` : ''}`
+    : '';
+  return `${semantic}${changeLabels[change.type]}${fields} · ${change.path}`;
+}
 
 function formatTime(value: string) {
   return new Intl.DateTimeFormat('zh-CN', {
@@ -40,26 +68,107 @@ function formatTime(value: string) {
 }
 
 export const HistoryView: React.FC = () => {
-  const { state, createRecoveryPoint, restoreRecoveryPoint } = useWorkbench();
+  const {
+    state,
+    createRecoveryPoint,
+    refreshHistory,
+    compareRecoveryPoints,
+    previewRecoveryRestore,
+    restoreRecoveryPoint
+  } = useWorkbench();
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [comparison, setComparison] = useState<HistoryComparison | null>(null);
+  const [comparisonLoading, setComparisonLoading] = useState(false);
+  const [restorePreview, setRestorePreview] = useState<RecoveryRestorePreview | null>(null);
+  const [restorePreviewLoading, setRestorePreviewLoading] = useState(false);
+  const [restorePreviewFailed, setRestorePreviewFailed] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [restoreOpen, setRestoreOpen] = useState(false);
   const [label, setLabel] = useState('');
   const [status, setStatus] = useState('');
+  const [search, setSearch] = useState('');
+  const [actorFilter, setActorFilter] = useState('');
+  const [sourceFilter, setSourceFilter] = useState('');
   const createDialogRef = useDialogA11y(createOpen, () => setCreateOpen(false));
   const restoreDialogRef = useDialogA11y(restoreOpen, () => setRestoreOpen(false));
 
   useEffect(() => {
-    if (!selectedId || !state.recoveryPoints.some((point) => point.id === selectedId)) {
-      setSelectedId(state.recoveryPoints[0]?.id ?? null);
+    void refreshHistory();
+  }, [refreshHistory]);
+
+  const filteredPoints = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    return state.recoveryPoints.filter((point) => {
+      const source = point.source ?? 'manual';
+      const matchesSearch = !query || point.label.toLowerCase().includes(query)
+        || point.taskId.toLowerCase().includes(query)
+        || source.toLowerCase().includes(query);
+      return matchesSearch
+        && (!actorFilter || point.actor === actorFilter)
+        && (!sourceFilter || source === sourceFilter);
+    });
+  }, [actorFilter, search, sourceFilter, state.recoveryPoints]);
+
+  useEffect(() => {
+    if (!selectedId || !filteredPoints.some((point) => point.id === selectedId)) {
+      setSelectedId(filteredPoints[0]?.id ?? null);
     }
-  }, [selectedId, state.recoveryPoints]);
+  }, [filteredPoints, selectedId]);
 
   const selected = useMemo(
     () => state.recoveryPoints.find((point) => point.id === selectedId) ?? null,
     [selectedId, state.recoveryPoints]
   );
-  const changes = state.historyComparison?.changes ?? [];
+  const changes = comparison?.changes ?? [];
+
+  useEffect(() => {
+    if (!selectedId) {
+      setComparison(null);
+      setComparisonLoading(false);
+      return;
+    }
+    const index = state.recoveryPoints.findIndex((point) => point.id === selectedId);
+    const previous = index >= 0 ? state.recoveryPoints[index + 1] : undefined;
+    if (!previous) {
+      setComparison(null);
+      setComparisonLoading(false);
+      return;
+    }
+    let cancelled = false;
+    setComparisonLoading(true);
+    void compareRecoveryPoints(previous.id, selectedId).then((result) => {
+      if (!cancelled) {
+        setComparison(result);
+        setComparisonLoading(false);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [compareRecoveryPoints, selectedId, state.recoveryPoints]);
+
+  useEffect(() => {
+    if (!restoreOpen || !selectedId) {
+      setRestorePreview(null);
+      setRestorePreviewLoading(false);
+      setRestorePreviewFailed(false);
+      return;
+    }
+    let cancelled = false;
+    setRestorePreview(null);
+    setRestorePreviewFailed(false);
+    setRestorePreviewLoading(true);
+    void previewRecoveryRestore(selectedId).then((result) => {
+      if (!cancelled) {
+        setRestorePreview(result);
+        setRestorePreviewFailed(result === null);
+        setRestorePreviewLoading(false);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [previewRecoveryRestore, restoreOpen, selectedId]);
 
   const createPoint = async () => {
     const trimmed = label.trim();
@@ -78,7 +187,10 @@ export const HistoryView: React.FC = () => {
     const result = await restoreRecoveryPoint(selected.id);
     if (result.status === 'committed') {
       setRestoreOpen(false);
-      setStatus(`已还原到“${selected.label}”，工作区将重新校验`);
+      const issueCount = result.diagnostics?.length ?? 0;
+      setStatus(issueCount > 0
+        ? `已还原到“${selected.label}”，重新校验发现 ${issueCount} 个需要处理的问题`
+        : `已还原到“${selected.label}”，重新校验通过`);
     }
   };
 
@@ -105,9 +217,42 @@ export const HistoryView: React.FC = () => {
 
       <div className="history-workspace">
         <aside className="history-timeline" aria-label="恢复点时间线">
-          <div className="history-section-label">恢复点</div>
+          <div className="history-filter-bar" aria-label="筛选恢复点">
+            <input
+              type="search"
+              data-testid="history-search"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="搜索恢复点"
+            />
+            <div className="history-filter-row">
+              <select
+                data-testid="history-source-filter"
+                aria-label="按来源筛选"
+                value={sourceFilter}
+                onChange={(event) => setSourceFilter(event.target.value)}
+              >
+                <option value="">全部来源</option>
+                {Object.entries(sourceLabels).map(([value, text]) => (
+                  <option value={value} key={value}>{text}</option>
+                ))}
+              </select>
+              <select
+                data-testid="history-actor-filter"
+                aria-label="按操作者筛选"
+                value={actorFilter}
+                onChange={(event) => setActorFilter(event.target.value)}
+              >
+                <option value="">全部操作者</option>
+                {Object.entries(actorLabels).map(([value, text]) => (
+                  <option value={value} key={value}>{text}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div className="history-section-label">恢复点 · {filteredPoints.length}/{state.recoveryPoints.length}</div>
           <div className="history-list">
-            {state.recoveryPoints.map((point) => {
+            {filteredPoints.map((point) => {
               const selectedPoint = point.id === selectedId;
               const current = point.id === state.currentRecoveryPointId;
               return (
@@ -126,13 +271,14 @@ export const HistoryView: React.FC = () => {
                       {current && <span className="history-current">当前</span>}
                     </span>
                     <span className="history-point-meta">
-                      {actorLabels[point.actor]} · {formatTime(point.createdAt)}
+                      {sourceLabels[point.source ?? 'manual']} · {actorLabels[point.actor]} · {formatTime(point.createdAt)}
                     </span>
                   </span>
                   <ChevronRight size={14} aria-hidden="true" />
                 </button>
               );
             })}
+            {filteredPoints.length === 0 && <div className="stage2-empty">没有匹配的恢复点</div>}
           </div>
         </aside>
 
@@ -162,13 +308,16 @@ export const HistoryView: React.FC = () => {
                   <FileDiff size={16} aria-hidden="true" />
                   <span>与上一恢复点比较</span>
                 </div>
-                <span>{changes.length} 个文件</span>
+                <span>{comparisonLoading ? '读取中…' : `${changes.length} 个文件`}</span>
               </div>
               <div className="history-change-list" aria-label="文件差异">
+                {!comparisonLoading && changes.length === 0 && (
+                  <div className="stage2-empty" data-testid="history-no-changes">没有可比较的文件变化</div>
+                )}
                 {changes.map((change) => (
                   <div className="history-change" data-testid="history-change" key={`${change.type}:${change.path}`}>
                     <span className={`change-badge change-${change.type}`}>{changeLabels[change.type]}</span>
-                    <code>{change.path}</code>
+                    <code>{changeText(change)}</code>
                   </div>
                 ))}
               </div>
@@ -249,8 +398,16 @@ export const HistoryView: React.FC = () => {
             </div>
             <div className="modal-body">
               <p>将工作区还原到“{selected.label}”。当前状态会先创建恢复点，然后重新校验工作区。</p>
+              <p>以下是从当前工作区还原到该恢复点将涉及的文件变化：</p>
               <div className="dialog-impact-list">
-                {changes.slice(0, 5).map((change) => <code key={change.path}>{change.path}</code>)}
+                {restorePreviewLoading && <span data-testid="restore-preview-loading">正在读取恢复影响…</span>}
+                {restorePreviewFailed && <span data-testid="restore-preview-failed">无法读取恢复影响，暂不能执行还原。</span>}
+                {!restorePreviewLoading && restorePreview && restorePreview.changes.length === 0 && (
+                  <span data-testid="restore-preview-empty">当前工作区与该恢复点没有文件差异。</span>
+                )}
+                {restorePreview?.changes.slice(0, 8).map((change) => (
+                  <code key={`${change.type}:${change.path}`}>{changeText(change)}</code>
+                ))}
               </div>
             </div>
             <div className="modal-footer">
@@ -259,6 +416,7 @@ export const HistoryView: React.FC = () => {
                 className="btn-danger"
                 type="button"
                 data-testid="confirm-restore-recovery"
+                disabled={restorePreviewLoading || restorePreview === null}
                 onClick={() => void restorePoint()}
               >
                 <RotateCcw size={15} aria-hidden="true" />

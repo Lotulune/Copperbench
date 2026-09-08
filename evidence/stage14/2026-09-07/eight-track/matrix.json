@@ -1,0 +1,1726 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-09-07T10:51:13.0248883+00:00",
+  "source": {
+    "baselineCommit": "eaf18606e683fcc37a395de83c53e538c947760e",
+    "sourceDeltaSha256": "86085C1C19D1E42AF9F397A8A6B88CF418217BF1144EB75DF540604A9F6CBDBE",
+    "scope": "Existing Stage14A dirty implementation captured during audit; final source-diff comparison determines whether it stayed unchanged",
+    "capturedAt": "2026-09-07T18:14:48.363411+08:00",
+    "runtime": "Windows coding-tool host; production source harness, not installed product or standalone Codex"
+  },
+  "sharedPureLogic": {
+    "scope": "Shared scanner logic only; identical helper files used in each track; no Minecraft interaction, item registration or network test",
+    "compileRelease": 17,
+    "runtime": 21,
+    "exitCode": 0,
+    "assertionsPassed": 8,
+    "finishedAt": "2026-09-07T18:34:32.9174993+08:00"
+  },
+  "documentedFieldContract": [
+    {
+      "track": "fabric-1.20.1",
+      "publicContract": "docs/ai/agent-playbook.md initialValues.fields.maxStackSize; generator-repair fixture /fields/maxStackSize",
+      "createStatus": "committed",
+      "createRequested": 1,
+      "actualAfterCreate": 64,
+      "updateStatus": "committed",
+      "updateRequested": 7,
+      "actualAfterUpdate": 64
+    },
+    {
+      "track": "fabric-1.21.1",
+      "publicContract": "docs/ai/agent-playbook.md initialValues.fields.maxStackSize; generator-repair fixture /fields/maxStackSize",
+      "createStatus": "committed",
+      "createRequested": 1,
+      "actualAfterCreate": 64,
+      "updateStatus": "committed",
+      "updateRequested": 7,
+      "actualAfterUpdate": 64
+    },
+    {
+      "track": "fabric-26.1.2",
+      "publicContract": "docs/ai/agent-playbook.md initialValues.fields.maxStackSize; generator-repair fixture /fields/maxStackSize",
+      "createStatus": "committed",
+      "createRequested": 1,
+      "actualAfterCreate": 64,
+      "updateStatus": "committed",
+      "updateRequested": 7,
+      "actualAfterUpdate": 64
+    },
+    {
+      "track": "fabric-26.2",
+      "publicContract": "docs/ai/agent-playbook.md initialValues.fields.maxStackSize; generator-repair fixture /fields/maxStackSize",
+      "createStatus": "committed",
+      "createRequested": 1,
+      "actualAfterCreate": 64,
+      "updateStatus": "committed",
+      "updateRequested": 7,
+      "actualAfterUpdate": 64
+    },
+    {
+      "track": "neoforge-1.20.1",
+      "publicContract": "docs/ai/agent-playbook.md initialValues.fields.maxStackSize; generator-repair fixture /fields/maxStackSize",
+      "createStatus": "committed",
+      "createRequested": 1,
+      "actualAfterCreate": 64,
+      "updateStatus": "committed",
+      "updateRequested": 7,
+      "actualAfterUpdate": 64
+    },
+    {
+      "track": "neoforge-1.21.1",
+      "publicContract": "docs/ai/agent-playbook.md initialValues.fields.maxStackSize; generator-repair fixture /fields/maxStackSize",
+      "createStatus": "committed",
+      "createRequested": 1,
+      "actualAfterCreate": 64,
+      "updateStatus": "committed",
+      "updateRequested": 7,
+      "actualAfterUpdate": 64
+    },
+    {
+      "track": "neoforge-26.1.2",
+      "publicContract": "docs/ai/agent-playbook.md initialValues.fields.maxStackSize; generator-repair fixture /fields/maxStackSize",
+      "createStatus": "committed",
+      "createRequested": 1,
+      "actualAfterCreate": 64,
+      "updateStatus": "committed",
+      "updateRequested": 7,
+      "actualAfterUpdate": 64
+    },
+    {
+      "track": "neoforge-26.2",
+      "publicContract": "docs/ai/agent-playbook.md initialValues.fields.maxStackSize; generator-repair fixture /fields/maxStackSize",
+      "createStatus": "committed",
+      "createRequested": 1,
+      "actualAfterCreate": 64,
+      "updateStatus": "committed",
+      "updateRequested": 7,
+      "actualAfterUpdate": 64
+    }
+  ],
+  "fieldProbeNamingNote": "canonicalStackSize in early preparation receipts refers to the upstream storage spelling, not a frozen public Core field. documentedFieldContract is the independent public fields.maxStackSize replay.",
+  "contract": "Eight existing Java generator tracks; same Survey Pulse intent, independent native source with matching rendered build config and stock Wrapper",
+  "sourceIntegrityScope": "Production Core/disk gateway, direct create/update collision and metadata-only byte preservation; not full MCP/UI/recovery/detach closure",
+  "limits": [
+    "No cold-start productivity or token measurement.",
+    "Native variants reuse exact toolchain configuration and known fixture logic.",
+    "Core source edits use an in-memory task stub; real Gradle assemble/bootstrap are separate measured child processes.",
+    "Development source-set EULA-boundary/initSettings probes are not deployed-JAR or gameplay validation.",
+    "All written EULA flags remained false; NeoForge 26.1.2 native development mode nevertheless initialized an isolated world. The session and uniquely identified runtime processes were stopped; this exception is preserved. Later NeoForge probes use --initSettings.",
+    "A standard stackSize update may commit without materializing its value; compiled does not mean semantically equivalent.",
+    "No-client-assets probes explicitly exclude downloadAssets; they do not certify the default runServer preparation path.",
+    "Preliminary failures and harness corrections are retained under per-track attempts."
+  ],
+  "tracks": [
+    {
+      "track": "fabric-1.20.1",
+      "preparation": {
+        "metadataOnlyPreservesPrimary": true,
+        "metadataOnlyPreservesHelper": true,
+        "ownershipConflictRejected": true,
+        "ownershipDiagnostics": [
+          {
+            "code": "WORKSPACE_PERSISTENCE_FAILED",
+            "severity": "error",
+            "message": {
+              "key": "diagnostic.workspace_persistence_failed",
+              "fallback": "The workspace change could not be stored and was rolled back.",
+              "args": {
+                "failureId": "49b710cd-93b7-4442-9663-fdf8b113e068"
+              }
+            },
+            "recoverable": true,
+            "actions": [
+              {
+                "id": "open_logs",
+                "label": {
+                  "key": "action.open_logs",
+                  "fallback": "View logs",
+                  "args": {}
+                },
+                "kind": "open_logs",
+                "target": "49b710cd-93b7-4442-9663-fdf8b113e068"
+              }
+            ]
+          }
+        ],
+        "rejectedCreateLeavesNoOrphan": true,
+        "collisionPreservesExistingPrimary": true,
+        "track": "fabric-1.20.1",
+        "startedAt": "2026-09-07T10:23:51.032569300Z",
+        "mode": "production source bootstrap/Core mutation; source-only task stub; real Gradle build/bootstrap recorded separately",
+        "minecraftVersion": "1.20.1",
+        "buildFileVersion": "0.92.2",
+        "gradleJavaHome": "D:\\AICoding\\Minecraft_ModCreator\\jdk\\jdk21_win_64",
+        "canonicalStackSizeRequest": 1,
+        "canonicalStackSizeUpdateStatus": "committed",
+        "persistedStackSize": 64,
+        "stackSizeMatchesIntent": false,
+        "gradleModelLoaded": true,
+        "initHook": "marked generated-main user block",
+        "nativeToolchainReuse": "exact rendered build configuration and stock wrapper reused for matched dependency versions; independent native source, not a from-zero timing comparison",
+        "generatedSourceCount": 21,
+        "nativeSourceCount": 4,
+        "prepared": true,
+        "finishedAt": "2026-09-07T10:25:27.110049700Z"
+      },
+      "variants": {
+        "copperbench": {
+          "assemble": {
+            "state": "passed",
+            "exitCode": 0,
+            "timedOut": false,
+            "elapsedMs": 29958,
+            "completedAt": "2026-09-07T18:25:57.4260303+08:00",
+            "arguments": null,
+            "failureHints": []
+          },
+          "defaultBootstrap": {
+            "state": "failed",
+            "exitCode": 1,
+            "timedOut": false,
+            "elapsedMs": 16117,
+            "completedAt": "2026-09-07T18:26:13.5633734+08:00",
+            "arguments": null,
+            "initializerExecuted": false,
+            "eulaBoundaryReached": false,
+            "worldReady": false,
+            "behaviorVerified": false,
+            "initSettingsProbe": false,
+            "failureHints": [
+              "[18:26:12] [main/ERROR] (FabricLoader) Incompatible mods found!",
+              "\t - Mod 'Survey Pulse' (survey_pulse) 1.0.0 requires version 0.19.3 or later of mod 'Fabric Loader' (fabricloader), but only the wrong version is present: 0.15.11!",
+              "* What went wrong:"
+            ]
+          },
+          "noClientAssetsBootstrap": {
+            "state": "not_run"
+          },
+          "initSettingsBootstrap": {
+            "state": "not_run"
+          },
+          "initSettingsNoClientAssetsBootstrap": {
+            "state": "not_run"
+          },
+          "packagedJarDeployment": "not_run",
+          "gameplay": "not_run",
+          "artifacts": [
+            {
+              "name": "survey_pulse-1.0-sources.jar",
+              "bytes": 22724,
+              "sha256": "BAB1D51ABB922332F46F5BE232D4958F254C7CCC2F03B8BAE65AE9FDB262A8D3"
+            },
+            {
+              "name": "survey_pulse-1.0.jar",
+              "bytes": 47870,
+              "sha256": "B73ACC6FB210A117457A58A182A259CDF1745AEE4D887DBCE241CA9D263237FA"
+            }
+          ],
+          "eulaAccepted": false,
+          "isolatedWorldPresent": false
+        },
+        "native": {
+          "assemble": {
+            "state": "passed",
+            "exitCode": 0,
+            "timedOut": false,
+            "elapsedMs": 82579,
+            "completedAt": "2026-09-07T18:27:36.1532696+08:00",
+            "arguments": null,
+            "failureHints": []
+          },
+          "defaultBootstrap": {
+            "state": "passed",
+            "exitCode": 0,
+            "timedOut": false,
+            "elapsedMs": 34447,
+            "completedAt": "2026-09-07T18:28:10.6150286+08:00",
+            "arguments": null,
+            "initializerExecuted": true,
+            "eulaBoundaryReached": true,
+            "worldReady": false,
+            "behaviorVerified": false,
+            "initSettingsProbe": false,
+            "failureHints": []
+          },
+          "noClientAssetsBootstrap": {
+            "state": "not_run"
+          },
+          "initSettingsBootstrap": {
+            "state": "not_run"
+          },
+          "initSettingsNoClientAssetsBootstrap": {
+            "state": "not_run"
+          },
+          "packagedJarDeployment": "not_run",
+          "gameplay": "not_run",
+          "artifacts": [
+            {
+              "name": "survey_pulse-1.0-sources.jar",
+              "bytes": 7100,
+              "sha256": "CB5E922C64FFEA6B8F57701A991A79E1723EE7694A829C96C55293D21C2DE7AE"
+            },
+            {
+              "name": "survey_pulse-1.0.jar",
+              "bytes": 10712,
+              "sha256": "99477023F9C9CB44B05413A249AE60D57056662C91BC4D5BDD8694B9D3368DD0"
+            }
+          ],
+          "eulaAccepted": false,
+          "isolatedWorldPresent": false
+        }
+      }
+    },
+    {
+      "track": "fabric-1.21.1",
+      "preparation": {
+        "track": "fabric-1.21.1",
+        "startedAt": "2026-09-07T10:32:25.244207Z",
+        "mode": "production source bootstrap/Core mutation; source-only task stub; real Gradle build/bootstrap recorded separately",
+        "minecraftVersion": "1.21.1",
+        "buildFileVersion": "0.116.15",
+        "gradleJavaHome": "D:\\AICoding\\Minecraft_ModCreator\\jdk\\jdk21_win_64",
+        "metadataOnlyPreservesPrimary": true,
+        "metadataOnlyPreservesHelper": true,
+        "ownershipConflictRejected": true,
+        "ownershipDiagnostics": [
+          {
+            "code": "WORKSPACE_PERSISTENCE_FAILED",
+            "severity": "error",
+            "message": {
+              "key": "diagnostic.workspace_persistence_failed",
+              "fallback": "The workspace change could not be stored and was rolled back.",
+              "args": {
+                "failureId": "2088b2c5-93bf-4852-86b3-8dd0cb4b6ee0"
+              }
+            },
+            "recoverable": true,
+            "actions": [
+              {
+                "id": "open_logs",
+                "label": {
+                  "key": "action.open_logs",
+                  "fallback": "View logs",
+                  "args": {}
+                },
+                "kind": "open_logs",
+                "target": "2088b2c5-93bf-4852-86b3-8dd0cb4b6ee0"
+              }
+            ]
+          }
+        ],
+        "rejectedCreateLeavesNoOrphan": true,
+        "collisionPreservesExistingPrimary": true,
+        "canonicalStackSizeRequest": 1,
+        "canonicalStackSizeUpdateStatus": "committed",
+        "persistedStackSize": 64,
+        "stackSizeMatchesIntent": false,
+        "gradleModelLoaded": true,
+        "initHook": "marked generated-main user block",
+        "nativeToolchainReuse": "exact rendered build configuration and stock wrapper reused for matched dependency versions; independent native source, not a from-zero timing comparison",
+        "generatedSourceCount": 21,
+        "nativeSourceCount": 4,
+        "prepared": true,
+        "finishedAt": "2026-09-07T10:34:08.525827600Z"
+      },
+      "variants": {
+        "copperbench": {
+          "assemble": {
+            "state": "passed",
+            "exitCode": 0,
+            "timedOut": false,
+            "elapsedMs": 35719,
+            "completedAt": "2026-09-07T18:34:44.5328369+08:00",
+            "arguments": [
+              "-Dfile.encoding=UTF-8",
+              "-Duser.language=en",
+              "-classpath",
+              "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\.tmp\\stage14-track-audit\\projects\\fabric-1.21.1\\copperbench\\gradle\\wrapper\\gradle-wrapper.jar",
+              "org.gradle.wrapper.GradleWrapperMain",
+              "--no-daemon",
+              "--console=plain",
+              "--max-workers=2",
+              "-Dorg.gradle.jvmargs=-Xmx1536m -Dfile.encoding=UTF-8 -Duser.language=en",
+              "assemble"
+            ],
+            "failureHints": []
+          },
+          "defaultBootstrap": {
+            "state": "passed",
+            "exitCode": 0,
+            "timedOut": false,
+            "elapsedMs": 32370,
+            "completedAt": "2026-09-07T18:35:16.9404178+08:00",
+            "arguments": [
+              "-Dfile.encoding=UTF-8",
+              "-Duser.language=en",
+              "-classpath",
+              "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\.tmp\\stage14-track-audit\\projects\\fabric-1.21.1\\copperbench\\gradle\\wrapper\\gradle-wrapper.jar",
+              "org.gradle.wrapper.GradleWrapperMain",
+              "--no-daemon",
+              "--console=plain",
+              "--max-workers=2",
+              "-Dorg.gradle.jvmargs=-Xmx1536m -Dfile.encoding=UTF-8 -Duser.language=en",
+              "runServer",
+              "-I",
+              "D:/AICoding/Minecraft_ModCreator/.tmp/stage12a-depth/.tmp/stage14-track-audit/server-probe.init.gradle"
+            ],
+            "initializerExecuted": true,
+            "eulaBoundaryReached": true,
+            "worldReady": false,
+            "behaviorVerified": false,
+            "initSettingsProbe": false,
+            "failureHints": []
+          },
+          "noClientAssetsBootstrap": {
+            "state": "not_run"
+          },
+          "initSettingsBootstrap": {
+            "state": "not_run"
+          },
+          "initSettingsNoClientAssetsBootstrap": {
+            "state": "not_run"
+          },
+          "packagedJarDeployment": "not_run",
+          "gameplay": "not_run",
+          "artifacts": [
+            {
+              "name": "survey_pulse-1.0-sources.jar",
+              "bytes": 19811,
+              "sha256": "6D64A5B57DE5F8DB397386EEDE6E712EADD97191EBCA4C6E6AA1B7DC8800AE74"
+            },
+            {
+              "name": "survey_pulse-1.0.jar",
+              "bytes": 47115,
+              "sha256": "AD65150692A7AB7448479EBC17CAD3DAC3C58E6400B469A52BA7EF71411BB92D"
+            }
+          ],
+          "eulaAccepted": false,
+          "isolatedWorldPresent": false
+        },
+        "native": {
+          "assemble": {
+            "state": "passed",
+            "exitCode": 0,
+            "timedOut": false,
+            "elapsedMs": 97250,
+            "completedAt": "2026-09-07T18:36:54.199474+08:00",
+            "arguments": [
+              "-Dfile.encoding=UTF-8",
+              "-Duser.language=en",
+              "-classpath",
+              "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\.tmp\\stage14-track-audit\\projects\\fabric-1.21.1\\native\\gradle\\wrapper\\gradle-wrapper.jar",
+              "org.gradle.wrapper.GradleWrapperMain",
+              "--no-daemon",
+              "--console=plain",
+              "--max-workers=2",
+              "-Dorg.gradle.jvmargs=-Xmx1536m -Dfile.encoding=UTF-8 -Duser.language=en",
+              "assemble"
+            ],
+            "failureHints": []
+          },
+          "defaultBootstrap": {
+            "state": "passed",
+            "exitCode": 0,
+            "timedOut": false,
+            "elapsedMs": 30918,
+            "completedAt": "2026-09-07T18:37:25.157291+08:00",
+            "arguments": [
+              "-Dfile.encoding=UTF-8",
+              "-Duser.language=en",
+              "-classpath",
+              "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\.tmp\\stage14-track-audit\\projects\\fabric-1.21.1\\native\\gradle\\wrapper\\gradle-wrapper.jar",
+              "org.gradle.wrapper.GradleWrapperMain",
+              "--no-daemon",
+              "--console=plain",
+              "--max-workers=2",
+              "-Dorg.gradle.jvmargs=-Xmx1536m -Dfile.encoding=UTF-8 -Duser.language=en",
+              "runServer",
+              "-I",
+              "D:/AICoding/Minecraft_ModCreator/.tmp/stage12a-depth/.tmp/stage14-track-audit/server-probe.init.gradle"
+            ],
+            "initializerExecuted": true,
+            "eulaBoundaryReached": true,
+            "worldReady": false,
+            "behaviorVerified": false,
+            "initSettingsProbe": false,
+            "failureHints": []
+          },
+          "noClientAssetsBootstrap": {
+            "state": "not_run"
+          },
+          "initSettingsBootstrap": {
+            "state": "not_run"
+          },
+          "initSettingsNoClientAssetsBootstrap": {
+            "state": "not_run"
+          },
+          "packagedJarDeployment": "not_run",
+          "gameplay": "not_run",
+          "artifacts": [
+            {
+              "name": "survey_pulse-1.0-sources.jar",
+              "bytes": 5809,
+              "sha256": "31EADB3666F4CCBDCC97E845B6A47DB728CE760645947A59EFD679B267654EC6"
+            },
+            {
+              "name": "survey_pulse-1.0.jar",
+              "bytes": 10720,
+              "sha256": "C5BCBDC1F1F0D27FC32ABB2B3963C3F110424B981AB159CB9557B4361C9B375C"
+            }
+          ],
+          "eulaAccepted": false,
+          "isolatedWorldPresent": false
+        }
+      }
+    },
+    {
+      "track": "fabric-26.1.2",
+      "preparation": {
+        "track": "fabric-26.1.2",
+        "startedAt": "2026-09-07T10:28:17.537612900Z",
+        "mode": "production source bootstrap/Core mutation; source-only task stub; real Gradle build/bootstrap recorded separately",
+        "minecraftVersion": "26.1.2",
+        "buildFileVersion": "0.155.2",
+        "gradleJavaHome": "D:\\AICoding\\Minecraft_ModCreator\\jdk\\jbr25_win_64",
+        "metadataOnlyPreservesPrimary": true,
+        "metadataOnlyPreservesHelper": true,
+        "ownershipConflictRejected": true,
+        "ownershipDiagnostics": [
+          {
+            "code": "WORKSPACE_PERSISTENCE_FAILED",
+            "severity": "error",
+            "message": {
+              "key": "diagnostic.workspace_persistence_failed",
+              "fallback": "The workspace change could not be stored and was rolled back.",
+              "args": {
+                "failureId": "b68c1387-9f1a-445f-8d36-1b11285e2c61"
+              }
+            },
+            "recoverable": true,
+            "actions": [
+              {
+                "id": "open_logs",
+                "label": {
+                  "key": "action.open_logs",
+                  "fallback": "View logs",
+                  "args": {}
+                },
+                "kind": "open_logs",
+                "target": "b68c1387-9f1a-445f-8d36-1b11285e2c61"
+              }
+            ]
+          }
+        ],
+        "rejectedCreateLeavesNoOrphan": true,
+        "collisionPreservesExistingPrimary": true,
+        "canonicalStackSizeRequest": 1,
+        "canonicalStackSizeUpdateStatus": "committed",
+        "persistedStackSize": 64,
+        "stackSizeMatchesIntent": false,
+        "gradleModelLoaded": true,
+        "initHook": "marked generated-main user block",
+        "nativeToolchainReuse": "exact rendered build configuration and stock wrapper reused for matched dependency versions; independent native source, not a from-zero timing comparison",
+        "generatedSourceCount": 21,
+        "nativeSourceCount": 4,
+        "prepared": true,
+        "finishedAt": "2026-09-07T10:28:55.551225900Z"
+      },
+      "variants": {
+        "copperbench": {
+          "assemble": {
+            "state": "passed",
+            "exitCode": 0,
+            "timedOut": false,
+            "elapsedMs": 21397,
+            "completedAt": "2026-09-07T18:29:17.2453136+08:00",
+            "arguments": [
+              "-Dfile.encoding=UTF-8",
+              "-Duser.language=en",
+              "-classpath",
+              "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\.tmp\\stage14-track-audit\\projects\\fabric-26.1.2\\copperbench\\gradle\\wrapper\\gradle-wrapper.jar",
+              "org.gradle.wrapper.GradleWrapperMain",
+              "--no-daemon",
+              "--console=plain",
+              "--max-workers=2",
+              "-Dorg.gradle.jvmargs=-Xmx1536m -Dfile.encoding=UTF-8 -Duser.language=en",
+              "assemble"
+            ],
+            "failureHints": []
+          },
+          "defaultBootstrap": {
+            "state": "passed",
+            "exitCode": 0,
+            "timedOut": false,
+            "elapsedMs": 24098,
+            "completedAt": "2026-09-07T18:29:41.3686307+08:00",
+            "arguments": [
+              "-Dfile.encoding=UTF-8",
+              "-Duser.language=en",
+              "-classpath",
+              "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\.tmp\\stage14-track-audit\\projects\\fabric-26.1.2\\copperbench\\gradle\\wrapper\\gradle-wrapper.jar",
+              "org.gradle.wrapper.GradleWrapperMain",
+              "--no-daemon",
+              "--console=plain",
+              "--max-workers=2",
+              "-Dorg.gradle.jvmargs=-Xmx1536m -Dfile.encoding=UTF-8 -Duser.language=en",
+              "runServer",
+              "-I",
+              "D:/AICoding/Minecraft_ModCreator/.tmp/stage12a-depth/.tmp/stage14-track-audit/server-probe.init.gradle"
+            ],
+            "initializerExecuted": true,
+            "eulaBoundaryReached": true,
+            "worldReady": false,
+            "behaviorVerified": false,
+            "initSettingsProbe": false,
+            "failureHints": []
+          },
+          "noClientAssetsBootstrap": {
+            "state": "not_run"
+          },
+          "initSettingsBootstrap": {
+            "state": "not_run"
+          },
+          "initSettingsNoClientAssetsBootstrap": {
+            "state": "not_run"
+          },
+          "packagedJarDeployment": "not_run",
+          "gameplay": "not_run",
+          "artifacts": [
+            {
+              "name": "survey_pulse-1.0-sources.jar",
+              "bytes": 19389,
+              "sha256": "092F1DEAB8A822FA0813273B4E895B9DC9377EF523DBA2215BB66DDD3AEF7EC0"
+            },
+            {
+              "name": "survey_pulse-1.0.jar",
+              "bytes": 47718,
+              "sha256": "854C5159E11E2F2090306AC7D6A9D6DFDC15D6D292C6BBA6952D22B458D79A7E"
+            }
+          ],
+          "eulaAccepted": false,
+          "isolatedWorldPresent": false
+        },
+        "native": {
+          "assemble": {
+            "state": "passed",
+            "exitCode": 0,
+            "timedOut": false,
+            "elapsedMs": 19662,
+            "completedAt": "2026-09-07T18:30:01.0379104+08:00",
+            "arguments": [
+              "-Dfile.encoding=UTF-8",
+              "-Duser.language=en",
+              "-classpath",
+              "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\.tmp\\stage14-track-audit\\projects\\fabric-26.1.2\\native\\gradle\\wrapper\\gradle-wrapper.jar",
+              "org.gradle.wrapper.GradleWrapperMain",
+              "--no-daemon",
+              "--console=plain",
+              "--max-workers=2",
+              "-Dorg.gradle.jvmargs=-Xmx1536m -Dfile.encoding=UTF-8 -Duser.language=en",
+              "assemble"
+            ],
+            "failureHints": []
+          },
+          "defaultBootstrap": {
+            "state": "passed",
+            "exitCode": 0,
+            "timedOut": false,
+            "elapsedMs": 22189,
+            "completedAt": "2026-09-07T18:30:23.2393706+08:00",
+            "arguments": [
+              "-Dfile.encoding=UTF-8",
+              "-Duser.language=en",
+              "-classpath",
+              "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\.tmp\\stage14-track-audit\\projects\\fabric-26.1.2\\native\\gradle\\wrapper\\gradle-wrapper.jar",
+              "org.gradle.wrapper.GradleWrapperMain",
+              "--no-daemon",
+              "--console=plain",
+              "--max-workers=2",
+              "-Dorg.gradle.jvmargs=-Xmx1536m -Dfile.encoding=UTF-8 -Duser.language=en",
+              "runServer",
+              "-I",
+              "D:/AICoding/Minecraft_ModCreator/.tmp/stage12a-depth/.tmp/stage14-track-audit/server-probe.init.gradle"
+            ],
+            "initializerExecuted": true,
+            "eulaBoundaryReached": true,
+            "worldReady": false,
+            "behaviorVerified": false,
+            "initSettingsProbe": false,
+            "failureHints": []
+          },
+          "noClientAssetsBootstrap": {
+            "state": "not_run"
+          },
+          "initSettingsBootstrap": {
+            "state": "not_run"
+          },
+          "initSettingsNoClientAssetsBootstrap": {
+            "state": "not_run"
+          },
+          "packagedJarDeployment": "not_run",
+          "gameplay": "not_run",
+          "artifacts": [
+            {
+              "name": "survey_pulse-1.0-sources.jar",
+              "bytes": 5783,
+              "sha256": "48043396E83656E6E9B03CE805C8B8434881332B10FC7C05027DA7917FBCCEBD"
+            },
+            {
+              "name": "survey_pulse-1.0.jar",
+              "bytes": 11379,
+              "sha256": "9191DFBEFA61319D0866A709809EDFE66F27ED9FEDCD3026B1DB7FB1004AF167"
+            }
+          ],
+          "eulaAccepted": false,
+          "isolatedWorldPresent": false
+        }
+      }
+    },
+    {
+      "track": "fabric-26.2",
+      "preparation": {
+        "metadataOnlyPreservesPrimary": true,
+        "metadataOnlyPreservesHelper": true,
+        "ownershipConflictRejected": true,
+        "ownershipDiagnostics": [
+          {
+            "code": "WORKSPACE_PERSISTENCE_FAILED",
+            "severity": "error",
+            "message": {
+              "key": "diagnostic.workspace_persistence_failed",
+              "fallback": "The workspace change could not be stored and was rolled back.",
+              "args": {
+                "failureId": "9d2d1e13-08a2-4cc3-a2c2-36905bd93920"
+              }
+            },
+            "recoverable": true,
+            "actions": [
+              {
+                "id": "open_logs",
+                "label": {
+                  "key": "action.open_logs",
+                  "fallback": "View logs",
+                  "args": {}
+                },
+                "kind": "open_logs",
+                "target": "9d2d1e13-08a2-4cc3-a2c2-36905bd93920"
+              }
+            ]
+          }
+        ],
+        "rejectedCreateLeavesNoOrphan": true,
+        "collisionPreservesExistingPrimary": true,
+        "track": "fabric-26.2",
+        "startedAt": "2026-09-07T10:38:10.399373300Z",
+        "mode": "production source bootstrap/Core mutation; source-only task stub; real Gradle build/bootstrap recorded separately",
+        "minecraftVersion": "26.2",
+        "buildFileVersion": "0.158.0",
+        "gradleJavaHome": "D:\\AICoding\\Minecraft_ModCreator\\jdk\\jbr25_win_64",
+        "canonicalStackSizeRequest": 1,
+        "canonicalStackSizeUpdateStatus": "committed",
+        "persistedStackSize": 64,
+        "stackSizeMatchesIntent": false,
+        "gradleModelLoaded": true,
+        "initHook": "preserved existing initialization call",
+        "nativeToolchainReuse": "exact rendered build configuration and stock wrapper reused for matched dependency versions; independent native source, not a from-zero timing comparison",
+        "generatedSourceCount": 21,
+        "nativeSourceCount": 4,
+        "prepared": true,
+        "finishedAt": "2026-09-07T10:38:39.624474600Z"
+      },
+      "variants": {
+        "copperbench": {
+          "assemble": {
+            "state": "passed",
+            "exitCode": 0,
+            "timedOut": false,
+            "elapsedMs": 11940,
+            "completedAt": "2026-09-07T18:38:51.8643328+08:00",
+            "arguments": [
+              "-Dfile.encoding=UTF-8",
+              "-Duser.language=en",
+              "-classpath",
+              "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\.tmp\\stage14-track-audit\\projects\\fabric-26.2\\copperbench\\gradle\\wrapper\\gradle-wrapper.jar",
+              "org.gradle.wrapper.GradleWrapperMain",
+              "--no-daemon",
+              "--console=plain",
+              "--max-workers=2",
+              "-Dorg.gradle.jvmargs=-Xmx1536m -Dfile.encoding=UTF-8 -Duser.language=en",
+              "assemble"
+            ],
+            "failureHints": []
+          },
+          "defaultBootstrap": {
+            "state": "passed",
+            "exitCode": 0,
+            "timedOut": false,
+            "elapsedMs": 22765,
+            "completedAt": "2026-09-07T18:39:14.6553359+08:00",
+            "arguments": [
+              "-Dfile.encoding=UTF-8",
+              "-Duser.language=en",
+              "-classpath",
+              "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\.tmp\\stage14-track-audit\\projects\\fabric-26.2\\copperbench\\gradle\\wrapper\\gradle-wrapper.jar",
+              "org.gradle.wrapper.GradleWrapperMain",
+              "--no-daemon",
+              "--console=plain",
+              "--max-workers=2",
+              "-Dorg.gradle.jvmargs=-Xmx1536m -Dfile.encoding=UTF-8 -Duser.language=en",
+              "runServer",
+              "-I",
+              "D:/AICoding/Minecraft_ModCreator/.tmp/stage12a-depth/.tmp/stage14-track-audit/server-probe.init.gradle"
+            ],
+            "initializerExecuted": true,
+            "eulaBoundaryReached": true,
+            "worldReady": false,
+            "behaviorVerified": false,
+            "initSettingsProbe": false,
+            "failureHints": []
+          },
+          "noClientAssetsBootstrap": {
+            "state": "not_run"
+          },
+          "initSettingsBootstrap": {
+            "state": "not_run"
+          },
+          "initSettingsNoClientAssetsBootstrap": {
+            "state": "not_run"
+          },
+          "packagedJarDeployment": "not_run",
+          "gameplay": "not_run",
+          "artifacts": [
+            {
+              "name": "survey_pulse-1.0-sources.jar",
+              "bytes": 19385,
+              "sha256": "8DE60ED76E6C25F99E1B91C5081FB991C9E828164614D3CA09F752D7D7052198"
+            },
+            {
+              "name": "survey_pulse-1.0.jar",
+              "bytes": 47719,
+              "sha256": "93B6BEBBD154C1C705F26F23077A94DA85CE6793BD7FE3FD979418669C0AC4D1"
+            }
+          ],
+          "eulaAccepted": false,
+          "isolatedWorldPresent": false
+        },
+        "native": {
+          "assemble": {
+            "state": "passed",
+            "exitCode": 0,
+            "timedOut": false,
+            "elapsedMs": 19526,
+            "completedAt": "2026-09-07T18:39:34.1900326+08:00",
+            "arguments": [
+              "-Dfile.encoding=UTF-8",
+              "-Duser.language=en",
+              "-classpath",
+              "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\.tmp\\stage14-track-audit\\projects\\fabric-26.2\\native\\gradle\\wrapper\\gradle-wrapper.jar",
+              "org.gradle.wrapper.GradleWrapperMain",
+              "--no-daemon",
+              "--console=plain",
+              "--max-workers=2",
+              "-Dorg.gradle.jvmargs=-Xmx1536m -Dfile.encoding=UTF-8 -Duser.language=en",
+              "assemble"
+            ],
+            "failureHints": []
+          },
+          "defaultBootstrap": {
+            "state": "passed",
+            "exitCode": 0,
+            "timedOut": false,
+            "elapsedMs": 21483,
+            "completedAt": "2026-09-07T18:39:55.6860063+08:00",
+            "arguments": [
+              "-Dfile.encoding=UTF-8",
+              "-Duser.language=en",
+              "-classpath",
+              "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\.tmp\\stage14-track-audit\\projects\\fabric-26.2\\native\\gradle\\wrapper\\gradle-wrapper.jar",
+              "org.gradle.wrapper.GradleWrapperMain",
+              "--no-daemon",
+              "--console=plain",
+              "--max-workers=2",
+              "-Dorg.gradle.jvmargs=-Xmx1536m -Dfile.encoding=UTF-8 -Duser.language=en",
+              "runServer",
+              "-I",
+              "D:/AICoding/Minecraft_ModCreator/.tmp/stage12a-depth/.tmp/stage14-track-audit/server-probe.init.gradle"
+            ],
+            "initializerExecuted": true,
+            "eulaBoundaryReached": true,
+            "worldReady": false,
+            "behaviorVerified": false,
+            "initSettingsProbe": false,
+            "failureHints": []
+          },
+          "noClientAssetsBootstrap": {
+            "state": "not_run"
+          },
+          "initSettingsBootstrap": {
+            "state": "not_run"
+          },
+          "initSettingsNoClientAssetsBootstrap": {
+            "state": "not_run"
+          },
+          "packagedJarDeployment": "not_run",
+          "gameplay": "not_run",
+          "artifacts": [
+            {
+              "name": "survey_pulse-1.0-sources.jar",
+              "bytes": 5778,
+              "sha256": "5839E8F100CAFBF4E6303E12FDF62449AE4871E310734B4A1110894200775493"
+            },
+            {
+              "name": "survey_pulse-1.0.jar",
+              "bytes": 11374,
+              "sha256": "6C354C5FF0070E59EA7C87D282DD1ADED5C2AC85563E0C035351D844BC378EC4"
+            }
+          ],
+          "eulaAccepted": false,
+          "isolatedWorldPresent": false
+        }
+      }
+    },
+    {
+      "track": "neoforge-1.20.1",
+      "preparation": {
+        "track": "neoforge-1.20.1",
+        "startedAt": "2026-09-07T10:32:15.569910100Z",
+        "mode": "production source bootstrap/Core mutation; source-only task stub; real Gradle build/bootstrap recorded separately",
+        "minecraftVersion": "1.20.1",
+        "buildFileVersion": "47.1.106",
+        "gradleJavaHome": "D:\\AICoding\\Minecraft_ModCreator\\jdk\\jdk21_win_64",
+        "metadataOnlyPreservesPrimary": true,
+        "metadataOnlyPreservesHelper": true,
+        "ownershipConflictRejected": true,
+        "ownershipDiagnostics": [
+          {
+            "code": "WORKSPACE_PERSISTENCE_FAILED",
+            "severity": "error",
+            "message": {
+              "key": "diagnostic.workspace_persistence_failed",
+              "fallback": "The workspace change could not be stored and was rolled back.",
+              "args": {
+                "failureId": "304d02ca-b4d7-4841-938f-1aff8fadc074"
+              }
+            },
+            "recoverable": true,
+            "actions": [
+              {
+                "id": "open_logs",
+                "label": {
+                  "key": "action.open_logs",
+                  "fallback": "View logs",
+                  "args": {}
+                },
+                "kind": "open_logs",
+                "target": "304d02ca-b4d7-4841-938f-1aff8fadc074"
+              }
+            ]
+          }
+        ],
+        "rejectedCreateLeavesNoOrphan": true,
+        "collisionPreservesExistingPrimary": true,
+        "canonicalStackSizeRequest": 1,
+        "canonicalStackSizeUpdateStatus": "committed",
+        "persistedStackSize": 64,
+        "stackSizeMatchesIntent": false,
+        "gradleModelLoaded": true,
+        "initHook": "source-fixture constructor patch; this old generator lacks the modern user block",
+        "nativeToolchainReuse": "exact rendered build configuration and stock wrapper reused for matched dependency versions; independent native source, not a from-zero timing comparison",
+        "generatedSourceCount": 6,
+        "nativeSourceCount": 4,
+        "prepared": true,
+        "finishedAt": "2026-09-07T10:34:16.611523500Z"
+      },
+      "variants": {
+        "copperbench": {
+          "assemble": {
+            "state": "passed",
+            "exitCode": 0,
+            "timedOut": false,
+            "elapsedMs": 122609,
+            "completedAt": "2026-09-07T18:36:19.5032997+08:00",
+            "arguments": [
+              "-Dfile.encoding=UTF-8",
+              "-Duser.language=en",
+              "-classpath",
+              "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\.tmp\\stage14-track-audit\\projects\\neoforge-1.20.1\\copperbench\\gradle\\wrapper\\gradle-wrapper.jar",
+              "org.gradle.wrapper.GradleWrapperMain",
+              "--no-daemon",
+              "--console=plain",
+              "--max-workers=2",
+              "-Dorg.gradle.jvmargs=-Xmx1536m -Dfile.encoding=UTF-8 -Duser.language=en",
+              "assemble"
+            ],
+            "failureHints": []
+          },
+          "defaultBootstrap": {
+            "state": "not_run"
+          },
+          "noClientAssetsBootstrap": {
+            "state": "not_run"
+          },
+          "initSettingsBootstrap": {
+            "state": "interrupted_no_exit_receipt",
+            "exitCode": null,
+            "timedOut": null,
+            "elapsedMs": null,
+            "completedAt": null,
+            "arguments": null,
+            "initializerExecuted": false,
+            "eulaBoundaryReached": false,
+            "worldReady": false,
+            "behaviorVerified": false,
+            "initSettingsProbe": true,
+            "failureHints": []
+          },
+          "initSettingsNoClientAssetsBootstrap": {
+            "state": "boundary_only_or_incomplete",
+            "exitCode": 0,
+            "timedOut": false,
+            "elapsedMs": 30937,
+            "completedAt": "2026-09-07T18:42:28.5461822+08:00",
+            "arguments": [
+              "-Dfile.encoding=UTF-8",
+              "-Duser.language=en",
+              "-classpath",
+              "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\.tmp\\stage14-track-audit\\projects\\neoforge-1.20.1\\copperbench\\gradle\\wrapper\\gradle-wrapper.jar",
+              "org.gradle.wrapper.GradleWrapperMain",
+              "--no-daemon",
+              "--console=plain",
+              "--max-workers=2",
+              "-Dorg.gradle.jvmargs=-Xmx1536m -Dfile.encoding=UTF-8 -Duser.language=en",
+              "runServer",
+              "-I",
+              "D:/AICoding/Minecraft_ModCreator/.tmp/stage12a-depth/.tmp/stage14-track-audit/server-probe.init.gradle",
+              "-x",
+              "neoFormJoined1.20.1-20230612.114412DownloadAssets"
+            ],
+            "initializerExecuted": false,
+            "eulaBoundaryReached": true,
+            "worldReady": false,
+            "behaviorVerified": false,
+            "initSettingsProbe": true,
+            "failureHints": [
+              "[18:42:22.969] [main/WARN] [loading.moddiscovery.ModFileParser/LOADING]: Mod file D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\build\\stage8-workspace-generator-gradle\\neoforge-1_20_1\\caches\\modules-2\\files-2.1\\net.neoforged.fancymodloader\\core\\47.2.2\\27c66a2985d8f0226d2b397fdd4bc5f6a5923ac2\\core-47.2.2.jar is missing mods.toml file ",
+              "[18:42:22.982] [main/WARN] [loading.moddiscovery.ModFileParser/LOADING]: Mod file D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\build\\stage8-workspace-generator-gradle\\neoforge-1_20_1\\caches\\modules-2\\files-2.1\\net.neoforged.fancymodloader\\language-java\\47.2.2\\8fdb1b51a9e5cb1ca82634263039012601b32317\\language-java-47.2.2.jar is missing mods.toml file ",
+              "[18:42:22.996] [main/WARN] [loading.moddiscovery.ModFileParser/LOADING]: Mod file D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\build\\stage8-workspace-generator-gradle\\neoforge-1_20_1\\caches\\modules-2\\files-2.1\\net.neoforged.fancymodloader\\language-lowcode\\47.2.2\\e8f72140a147fea3ca0d75e6548cc505c0b9cc9e\\language-lowcode-47.2.2.jar is missing mods.toml file ",
+              "[18:42:23.008] [main/WARN] [loading.moddiscovery.ModFileParser/LOADING]: Mod file D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\build\\stage8-workspace-generator-gradle\\neoforge-1_20_1\\caches\\modules-2\\files-2.1\\net.neoforged.fancymodloader\\language-minecraft\\47.2.2\\6b986e48b9fc90aaf550a0445e635983398a41c1\\language-minecraft-47.2.2.jar is missing mods.toml file "
+            ]
+          },
+          "packagedJarDeployment": "not_run",
+          "gameplay": "not_run",
+          "artifacts": [
+            {
+              "name": "survey_pulse-1.0.jar",
+              "bytes": 14891,
+              "sha256": "B3A88604986DBA92F7F1EC7A1BD7A75DE99312E80154F0261DE7E76CC55E4156"
+            }
+          ],
+          "eulaAccepted": false,
+          "isolatedWorldPresent": false
+        },
+        "native": {
+          "assemble": {
+            "state": "passed",
+            "exitCode": 0,
+            "timedOut": false,
+            "elapsedMs": 103694,
+            "completedAt": "2026-09-07T18:38:19.1411616+08:00",
+            "arguments": [
+              "-Dfile.encoding=UTF-8",
+              "-Duser.language=en",
+              "-classpath",
+              "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\.tmp\\stage14-track-audit\\projects\\neoforge-1.20.1\\native\\gradle\\wrapper\\gradle-wrapper.jar",
+              "org.gradle.wrapper.GradleWrapperMain",
+              "--no-daemon",
+              "--console=plain",
+              "--max-workers=2",
+              "-Dorg.gradle.jvmargs=-Xmx1536m -Dfile.encoding=UTF-8 -Duser.language=en",
+              "assemble"
+            ],
+            "failureHints": []
+          },
+          "defaultBootstrap": {
+            "state": "not_run"
+          },
+          "noClientAssetsBootstrap": {
+            "state": "not_run"
+          },
+          "initSettingsBootstrap": {
+            "state": "not_run"
+          },
+          "initSettingsNoClientAssetsBootstrap": {
+            "state": "boundary_only_or_incomplete",
+            "exitCode": 0,
+            "timedOut": false,
+            "elapsedMs": 33667,
+            "completedAt": "2026-09-07T18:43:02.2370854+08:00",
+            "arguments": [
+              "-Dfile.encoding=UTF-8",
+              "-Duser.language=en",
+              "-classpath",
+              "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\.tmp\\stage14-track-audit\\projects\\neoforge-1.20.1\\native\\gradle\\wrapper\\gradle-wrapper.jar",
+              "org.gradle.wrapper.GradleWrapperMain",
+              "--no-daemon",
+              "--console=plain",
+              "--max-workers=2",
+              "-Dorg.gradle.jvmargs=-Xmx1536m -Dfile.encoding=UTF-8 -Duser.language=en",
+              "runServer",
+              "-I",
+              "D:/AICoding/Minecraft_ModCreator/.tmp/stage12a-depth/.tmp/stage14-track-audit/server-probe.init.gradle",
+              "-x",
+              "neoFormJoined1.20.1-20230612.114412DownloadAssets"
+            ],
+            "initializerExecuted": false,
+            "eulaBoundaryReached": true,
+            "worldReady": false,
+            "behaviorVerified": false,
+            "initSettingsProbe": true,
+            "failureHints": [
+              "[18:42:56.808] [main/WARN] [loading.moddiscovery.ModFileParser/LOADING]: Mod file D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\build\\stage8-workspace-generator-gradle\\neoforge-1_20_1\\caches\\modules-2\\files-2.1\\net.neoforged.fancymodloader\\core\\47.2.2\\27c66a2985d8f0226d2b397fdd4bc5f6a5923ac2\\core-47.2.2.jar is missing mods.toml file ",
+              "[18:42:56.819] [main/WARN] [loading.moddiscovery.ModFileParser/LOADING]: Mod file D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\build\\stage8-workspace-generator-gradle\\neoforge-1_20_1\\caches\\modules-2\\files-2.1\\net.neoforged.fancymodloader\\language-java\\47.2.2\\8fdb1b51a9e5cb1ca82634263039012601b32317\\language-java-47.2.2.jar is missing mods.toml file ",
+              "[18:42:56.831] [main/WARN] [loading.moddiscovery.ModFileParser/LOADING]: Mod file D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\build\\stage8-workspace-generator-gradle\\neoforge-1_20_1\\caches\\modules-2\\files-2.1\\net.neoforged.fancymodloader\\language-lowcode\\47.2.2\\e8f72140a147fea3ca0d75e6548cc505c0b9cc9e\\language-lowcode-47.2.2.jar is missing mods.toml file ",
+              "[18:42:56.842] [main/WARN] [loading.moddiscovery.ModFileParser/LOADING]: Mod file D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\build\\stage8-workspace-generator-gradle\\neoforge-1_20_1\\caches\\modules-2\\files-2.1\\net.neoforged.fancymodloader\\language-minecraft\\47.2.2\\6b986e48b9fc90aaf550a0445e635983398a41c1\\language-minecraft-47.2.2.jar is missing mods.toml file "
+            ]
+          },
+          "packagedJarDeployment": "not_run",
+          "gameplay": "not_run",
+          "artifacts": [
+            {
+              "name": "survey_pulse-1.0.jar",
+              "bytes": 11114,
+              "sha256": "3D7FEAE1CD71082B3CF71DFBA7587702D9E84C319AD6F14B20A324FF392B0583"
+            }
+          ],
+          "eulaAccepted": false,
+          "isolatedWorldPresent": false
+        }
+      }
+    },
+    {
+      "track": "neoforge-1.21.1",
+      "preparation": {
+        "metadataOnlyPreservesPrimary": true,
+        "metadataOnlyPreservesHelper": true,
+        "ownershipConflictRejected": true,
+        "ownershipDiagnostics": [
+          {
+            "code": "WORKSPACE_PERSISTENCE_FAILED",
+            "severity": "error",
+            "message": {
+              "key": "diagnostic.workspace_persistence_failed",
+              "fallback": "The workspace change could not be stored and was rolled back.",
+              "args": {
+                "failureId": "0319fd9a-b72d-43f8-8762-c0967842fd9b"
+              }
+            },
+            "recoverable": true,
+            "actions": [
+              {
+                "id": "open_logs",
+                "label": {
+                  "key": "action.open_logs",
+                  "fallback": "View logs",
+                  "args": {}
+                },
+                "kind": "open_logs",
+                "target": "0319fd9a-b72d-43f8-8762-c0967842fd9b"
+              }
+            ]
+          }
+        ],
+        "rejectedCreateLeavesNoOrphan": true,
+        "collisionPreservesExistingPrimary": true,
+        "track": "neoforge-1.21.1",
+        "startedAt": "2026-09-07T10:43:48.231844Z",
+        "mode": "production source bootstrap/Core mutation; source-only task stub; real Gradle build/bootstrap recorded separately",
+        "minecraftVersion": "1.21.1",
+        "buildFileVersion": "21.1.232",
+        "gradleJavaHome": "D:\\AICoding\\Minecraft_ModCreator\\jdk\\jdk21_win_64",
+        "canonicalStackSizeRequest": 1,
+        "canonicalStackSizeUpdateStatus": "committed",
+        "persistedStackSize": 64,
+        "stackSizeMatchesIntent": false,
+        "gradleModelLoaded": true,
+        "initHook": "preserved existing initialization call",
+        "nativeToolchainReuse": "exact rendered build configuration and stock wrapper reused for matched dependency versions; independent native source, not a from-zero timing comparison",
+        "generatedSourceCount": 6,
+        "nativeSourceCount": 4,
+        "prepared": true,
+        "finishedAt": "2026-09-07T10:44:11.644945500Z"
+      },
+      "variants": {
+        "copperbench": {
+          "assemble": {
+            "state": "passed",
+            "exitCode": 0,
+            "timedOut": false,
+            "elapsedMs": 11358,
+            "completedAt": "2026-09-07T18:44:23.224873+08:00",
+            "arguments": [
+              "-Dfile.encoding=UTF-8",
+              "-Duser.language=en",
+              "-classpath",
+              "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\.tmp\\stage14-track-audit\\projects\\neoforge-1.21.1\\copperbench\\gradle\\wrapper\\gradle-wrapper.jar",
+              "org.gradle.wrapper.GradleWrapperMain",
+              "--no-daemon",
+              "--console=plain",
+              "--max-workers=2",
+              "-Dorg.gradle.jvmargs=-Xmx1536m -Dfile.encoding=UTF-8 -Duser.language=en",
+              "assemble"
+            ],
+            "failureHints": []
+          },
+          "defaultBootstrap": {
+            "state": "not_run"
+          },
+          "noClientAssetsBootstrap": {
+            "state": "not_run"
+          },
+          "initSettingsBootstrap": {
+            "state": "not_run"
+          },
+          "initSettingsNoClientAssetsBootstrap": {
+            "state": "boundary_only_or_incomplete",
+            "exitCode": 0,
+            "timedOut": false,
+            "elapsedMs": 32187,
+            "completedAt": "2026-09-07T18:44:55.4886695+08:00",
+            "arguments": [
+              "-Dfile.encoding=UTF-8",
+              "-Duser.language=en",
+              "-classpath",
+              "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\.tmp\\stage14-track-audit\\projects\\neoforge-1.21.1\\copperbench\\gradle\\wrapper\\gradle-wrapper.jar",
+              "org.gradle.wrapper.GradleWrapperMain",
+              "--no-daemon",
+              "--console=plain",
+              "--max-workers=2",
+              "-Dorg.gradle.jvmargs=-Xmx1536m -Dfile.encoding=UTF-8 -Duser.language=en",
+              "runServer",
+              "-I",
+              "D:/AICoding/Minecraft_ModCreator/.tmp/stage12a-depth/.tmp/stage14-track-audit/server-probe.init.gradle",
+              "-x",
+              "downloadAssets"
+            ],
+            "initializerExecuted": false,
+            "eulaBoundaryReached": false,
+            "worldReady": false,
+            "behaviorVerified": false,
+            "initSettingsProbe": true,
+            "failureHints": [
+              "[18:44:39] [main/DEBUG] [ne.ne.fm.lo.ModSorter/LOADING]: Found 0 mod requirements missing (0 mandatory, 0 optional)"
+            ]
+          },
+          "packagedJarDeployment": "not_run",
+          "gameplay": "not_run",
+          "artifacts": [
+            {
+              "name": "survey_pulse-1.0.jar",
+              "bytes": 15314,
+              "sha256": "C0EB05FC3D9982A8BDCFE60663959D9998A2BB59D87F7FD9987AFCDD5EAA759F"
+            }
+          ],
+          "eulaAccepted": false,
+          "isolatedWorldPresent": false
+        },
+        "native": {
+          "assemble": {
+            "state": "passed",
+            "exitCode": 0,
+            "timedOut": false,
+            "elapsedMs": 5678,
+            "completedAt": "2026-09-07T18:45:01.1718353+08:00",
+            "arguments": [
+              "-Dfile.encoding=UTF-8",
+              "-Duser.language=en",
+              "-classpath",
+              "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\.tmp\\stage14-track-audit\\projects\\neoforge-1.21.1\\native\\gradle\\wrapper\\gradle-wrapper.jar",
+              "org.gradle.wrapper.GradleWrapperMain",
+              "--no-daemon",
+              "--console=plain",
+              "--max-workers=2",
+              "-Dorg.gradle.jvmargs=-Xmx1536m -Dfile.encoding=UTF-8 -Duser.language=en",
+              "assemble"
+            ],
+            "failureHints": []
+          },
+          "defaultBootstrap": {
+            "state": "blocked_timeout",
+            "exitCode": -1,
+            "timedOut": true,
+            "elapsedMs": 150289,
+            "completedAt": "2026-09-07T18:19:02.2510003+08:00",
+            "arguments": null,
+            "initializerExecuted": false,
+            "eulaBoundaryReached": false,
+            "worldReady": false,
+            "behaviorVerified": false,
+            "initSettingsProbe": false,
+            "failureHints": []
+          },
+          "noClientAssetsBootstrap": {
+            "state": "not_run"
+          },
+          "initSettingsBootstrap": {
+            "state": "not_run"
+          },
+          "initSettingsNoClientAssetsBootstrap": {
+            "state": "boundary_only_or_incomplete",
+            "exitCode": 0,
+            "timedOut": false,
+            "elapsedMs": 31540,
+            "completedAt": "2026-09-07T18:45:32.7361388+08:00",
+            "arguments": [
+              "-Dfile.encoding=UTF-8",
+              "-Duser.language=en",
+              "-classpath",
+              "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\.tmp\\stage14-track-audit\\projects\\neoforge-1.21.1\\native\\gradle\\wrapper\\gradle-wrapper.jar",
+              "org.gradle.wrapper.GradleWrapperMain",
+              "--no-daemon",
+              "--console=plain",
+              "--max-workers=2",
+              "-Dorg.gradle.jvmargs=-Xmx1536m -Dfile.encoding=UTF-8 -Duser.language=en",
+              "runServer",
+              "-I",
+              "D:/AICoding/Minecraft_ModCreator/.tmp/stage12a-depth/.tmp/stage14-track-audit/server-probe.init.gradle",
+              "-x",
+              "downloadAssets"
+            ],
+            "initializerExecuted": false,
+            "eulaBoundaryReached": false,
+            "worldReady": false,
+            "behaviorVerified": false,
+            "initSettingsProbe": true,
+            "failureHints": [
+              "[18:45:15] [main/DEBUG] [ne.ne.fm.lo.ModSorter/LOADING]: Found 0 mod requirements missing (0 mandatory, 0 optional)"
+            ]
+          },
+          "packagedJarDeployment": "not_run",
+          "gameplay": "not_run",
+          "artifacts": [
+            {
+              "name": "survey_pulse-1.0.jar",
+              "bytes": 10904,
+              "sha256": "CC140AE92C5902DF6411D30BE30C3577986446286E5094C89FA412D6555B1895"
+            }
+          ],
+          "eulaAccepted": false,
+          "isolatedWorldPresent": false
+        }
+      }
+    },
+    {
+      "track": "neoforge-26.1.2",
+      "preparation": {
+        "metadataOnlyPreservesPrimary": true,
+        "metadataOnlyPreservesHelper": true,
+        "ownershipConflictRejected": true,
+        "ownershipDiagnostics": [
+          {
+            "code": "WORKSPACE_PERSISTENCE_FAILED",
+            "severity": "error",
+            "message": {
+              "key": "diagnostic.workspace_persistence_failed",
+              "fallback": "The workspace change could not be stored and was rolled back.",
+              "args": {
+                "failureId": "62080451-3856-4518-ab27-06a2826254c6"
+              }
+            },
+            "recoverable": true,
+            "actions": [
+              {
+                "id": "open_logs",
+                "label": {
+                  "key": "action.open_logs",
+                  "fallback": "View logs",
+                  "args": {}
+                },
+                "kind": "open_logs",
+                "target": "62080451-3856-4518-ab27-06a2826254c6"
+              }
+            ]
+          }
+        ],
+        "rejectedCreateLeavesNoOrphan": true,
+        "collisionPreservesExistingPrimary": true,
+        "track": "neoforge-26.1.2",
+        "startedAt": "2026-09-07T10:23:57.077084700Z",
+        "mode": "production source bootstrap/Core mutation; source-only task stub; real Gradle build/bootstrap recorded separately",
+        "minecraftVersion": "26.1.2",
+        "buildFileVersion": "26.1.2.95",
+        "gradleJavaHome": "D:\\AICoding\\Minecraft_ModCreator\\jdk\\jbr25_win_64",
+        "canonicalStackSizeRequest": 1,
+        "canonicalStackSizeUpdateStatus": "committed",
+        "persistedStackSize": 64,
+        "stackSizeMatchesIntent": false,
+        "gradleModelLoaded": true,
+        "initHook": "marked generated-main user block",
+        "nativeToolchainReuse": "exact rendered build configuration and stock wrapper reused for matched dependency versions; independent native source, not a from-zero timing comparison",
+        "generatedSourceCount": 6,
+        "nativeSourceCount": 4,
+        "prepared": true,
+        "finishedAt": "2026-09-07T10:24:25.417045600Z"
+      },
+      "variants": {
+        "copperbench": {
+          "assemble": {
+            "state": "passed",
+            "exitCode": 0,
+            "timedOut": false,
+            "elapsedMs": 20037,
+            "completedAt": "2026-09-07T18:24:45.8594667+08:00",
+            "arguments": null,
+            "failureHints": []
+          },
+          "defaultBootstrap": {
+            "state": "blocked_timeout",
+            "exitCode": -1,
+            "timedOut": true,
+            "elapsedMs": 240293,
+            "completedAt": "2026-09-07T18:28:46.179779+08:00",
+            "arguments": null,
+            "initializerExecuted": false,
+            "eulaBoundaryReached": false,
+            "worldReady": false,
+            "behaviorVerified": false,
+            "initSettingsProbe": false,
+            "failureHints": []
+          },
+          "noClientAssetsBootstrap": {
+            "state": "not_run"
+          },
+          "initSettingsBootstrap": {
+            "state": "not_run"
+          },
+          "initSettingsNoClientAssetsBootstrap": {
+            "state": "blocked_probe_incompatibility",
+            "exitCode": 1,
+            "timedOut": false,
+            "elapsedMs": 20867,
+            "completedAt": "2026-09-07T18:47:48.4345204+08:00",
+            "arguments": [
+              "-Dfile.encoding=UTF-8",
+              "-Duser.language=en",
+              "-classpath",
+              "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\.tmp\\stage14-track-audit\\projects\\neoforge-26.1.2\\copperbench\\gradle\\wrapper\\gradle-wrapper.jar",
+              "org.gradle.wrapper.GradleWrapperMain",
+              "--no-daemon",
+              "--console=plain",
+              "--max-workers=2",
+              "-Dorg.gradle.jvmargs=-Xmx1536m -Dfile.encoding=UTF-8 -Duser.language=en",
+              "runServer",
+              "-I",
+              "D:/AICoding/Minecraft_ModCreator/.tmp/stage12a-depth/.tmp/stage14-track-audit/server-probe.init.gradle",
+              "-x",
+              "downloadAssets"
+            ],
+            "initializerExecuted": false,
+            "eulaBoundaryReached": false,
+            "worldReady": false,
+            "behaviorVerified": false,
+            "initSettingsProbe": true,
+            "classification": "The launcher expects a server thread after --initSettings intentionally exits before creating one; regular world startup is not classified from this probe.",
+            "failureHints": [
+              "[18:47:38] [main/DEBUG] [ne.ne.fm.lo.ModSorter/LOADING]: Found 0 mod requirements missing (0 mandatory, 0 optional)",
+              "* What went wrong:"
+            ]
+          },
+          "packagedJarDeployment": "not_run",
+          "gameplay": "not_run",
+          "artifacts": [
+            {
+              "name": "survey_pulse-1.0.jar",
+              "bytes": 15873,
+              "sha256": "24424CFF7106B306C7F2E9CC54272B01CE1A1640A66DD0AF5A6130E132E2F107"
+            }
+          ],
+          "eulaAccepted": false,
+          "isolatedWorldPresent": false
+        },
+        "native": {
+          "assemble": {
+            "state": "passed",
+            "exitCode": 0,
+            "timedOut": false,
+            "elapsedMs": 20655,
+            "completedAt": "2026-09-07T18:29:06.856834+08:00",
+            "arguments": null,
+            "failureHints": []
+          },
+          "defaultBootstrap": {
+            "state": "interrupted_no_exit_receipt",
+            "exitCode": null,
+            "timedOut": null,
+            "elapsedMs": null,
+            "completedAt": null,
+            "arguments": null,
+            "initializerExecuted": true,
+            "eulaBoundaryReached": false,
+            "worldReady": true,
+            "behaviorVerified": false,
+            "initSettingsProbe": false,
+            "failureHints": [
+              "[18:30:18] [main/DEBUG] [ne.ne.fm.lo.ModSorter/LOADING]: Found 0 mod requirements missing (0 mandatory, 0 optional)"
+            ]
+          },
+          "noClientAssetsBootstrap": {
+            "state": "not_run"
+          },
+          "initSettingsBootstrap": {
+            "state": "not_run"
+          },
+          "initSettingsNoClientAssetsBootstrap": {
+            "state": "blocked_probe_incompatibility",
+            "exitCode": 1,
+            "timedOut": false,
+            "elapsedMs": 18622,
+            "completedAt": "2026-09-07T18:48:07.0969394+08:00",
+            "arguments": [
+              "-Dfile.encoding=UTF-8",
+              "-Duser.language=en",
+              "-classpath",
+              "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\.tmp\\stage14-track-audit\\projects\\neoforge-26.1.2\\native\\gradle\\wrapper\\gradle-wrapper.jar",
+              "org.gradle.wrapper.GradleWrapperMain",
+              "--no-daemon",
+              "--console=plain",
+              "--max-workers=2",
+              "-Dorg.gradle.jvmargs=-Xmx1536m -Dfile.encoding=UTF-8 -Duser.language=en",
+              "runServer",
+              "-I",
+              "D:/AICoding/Minecraft_ModCreator/.tmp/stage12a-depth/.tmp/stage14-track-audit/server-probe.init.gradle",
+              "-x",
+              "downloadAssets"
+            ],
+            "initializerExecuted": false,
+            "eulaBoundaryReached": false,
+            "worldReady": false,
+            "behaviorVerified": false,
+            "initSettingsProbe": true,
+            "classification": "The launcher expects a server thread after --initSettings intentionally exits before creating one; regular world startup is not classified from this probe.",
+            "failureHints": [
+              "[18:47:57] [main/DEBUG] [ne.ne.fm.lo.ModSorter/LOADING]: Found 0 mod requirements missing (0 mandatory, 0 optional)",
+              "* What went wrong:"
+            ]
+          },
+          "packagedJarDeployment": "not_run",
+          "gameplay": "not_run",
+          "artifacts": [
+            {
+              "name": "survey_pulse-1.0.jar",
+              "bytes": 11276,
+              "sha256": "07DAB5185098ED7800A47DFE1216062906291D09CB42A1DF8EA9AB392F75CBB4"
+            }
+          ],
+          "eulaAccepted": false,
+          "isolatedWorldPresent": true
+        }
+      }
+    },
+    {
+      "track": "neoforge-26.2",
+      "preparation": {
+        "metadataOnlyPreservesPrimary": true,
+        "metadataOnlyPreservesHelper": true,
+        "ownershipConflictRejected": true,
+        "ownershipDiagnostics": [
+          {
+            "code": "WORKSPACE_PERSISTENCE_FAILED",
+            "severity": "error",
+            "message": {
+              "key": "diagnostic.workspace_persistence_failed",
+              "fallback": "The workspace change could not be stored and was rolled back.",
+              "args": {
+                "failureId": "88f10a49-e270-4468-a5a5-ee4f9294112f"
+              }
+            },
+            "recoverable": true,
+            "actions": [
+              {
+                "id": "open_logs",
+                "label": {
+                  "key": "action.open_logs",
+                  "fallback": "View logs",
+                  "args": {}
+                },
+                "kind": "open_logs",
+                "target": "88f10a49-e270-4468-a5a5-ee4f9294112f"
+              }
+            ]
+          }
+        ],
+        "rejectedCreateLeavesNoOrphan": true,
+        "collisionPreservesExistingPrimary": true,
+        "track": "neoforge-26.2",
+        "startedAt": "2026-09-07T10:40:14.493686700Z",
+        "mode": "production source bootstrap/Core mutation; source-only task stub; real Gradle build/bootstrap recorded separately",
+        "minecraftVersion": "26.2",
+        "buildFileVersion": "26.2.0.63",
+        "gradleJavaHome": "D:\\AICoding\\Minecraft_ModCreator\\jdk\\jbr25_win_64",
+        "canonicalStackSizeRequest": 1,
+        "canonicalStackSizeUpdateStatus": "committed",
+        "persistedStackSize": 64,
+        "stackSizeMatchesIntent": false,
+        "gradleModelLoaded": true,
+        "initHook": "marked generated-main user block",
+        "nativeToolchainReuse": "exact rendered build configuration and stock wrapper reused for matched dependency versions; independent native source, not a from-zero timing comparison",
+        "generatedSourceCount": 6,
+        "nativeSourceCount": 4,
+        "prepared": true,
+        "finishedAt": "2026-09-07T10:40:33.828184500Z"
+      },
+      "variants": {
+        "copperbench": {
+          "assemble": {
+            "state": "passed",
+            "exitCode": 0,
+            "timedOut": false,
+            "elapsedMs": 15239,
+            "completedAt": "2026-09-07T18:40:49.2736812+08:00",
+            "arguments": [
+              "-Dfile.encoding=UTF-8",
+              "-Duser.language=en",
+              "-classpath",
+              "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\.tmp\\stage14-track-audit\\projects\\neoforge-26.2\\copperbench\\gradle\\wrapper\\gradle-wrapper.jar",
+              "org.gradle.wrapper.GradleWrapperMain",
+              "--no-daemon",
+              "--console=plain",
+              "--max-workers=2",
+              "-Dorg.gradle.jvmargs=-Xmx1536m -Dfile.encoding=UTF-8 -Duser.language=en",
+              "assemble"
+            ],
+            "failureHints": []
+          },
+          "defaultBootstrap": {
+            "state": "not_run"
+          },
+          "noClientAssetsBootstrap": {
+            "state": "not_run"
+          },
+          "initSettingsBootstrap": {
+            "state": "not_run"
+          },
+          "initSettingsNoClientAssetsBootstrap": {
+            "state": "blocked_probe_incompatibility",
+            "exitCode": 1,
+            "timedOut": false,
+            "elapsedMs": 22183,
+            "completedAt": "2026-09-07T18:44:29.8391331+08:00",
+            "arguments": [
+              "-Dfile.encoding=UTF-8",
+              "-Duser.language=en",
+              "-classpath",
+              "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\.tmp\\stage14-track-audit\\projects\\neoforge-26.2\\copperbench\\gradle\\wrapper\\gradle-wrapper.jar",
+              "org.gradle.wrapper.GradleWrapperMain",
+              "--no-daemon",
+              "--console=plain",
+              "--max-workers=2",
+              "-Dorg.gradle.jvmargs=-Xmx1536m -Dfile.encoding=UTF-8 -Duser.language=en",
+              "runServer",
+              "-I",
+              "D:/AICoding/Minecraft_ModCreator/.tmp/stage12a-depth/.tmp/stage14-track-audit/server-probe.init.gradle",
+              "-x",
+              "downloadAssets"
+            ],
+            "initializerExecuted": false,
+            "eulaBoundaryReached": false,
+            "worldReady": false,
+            "behaviorVerified": false,
+            "initSettingsProbe": true,
+            "classification": "The launcher expects a server thread after --initSettings intentionally exits before creating one; regular world startup is not classified from this probe.",
+            "failureHints": [
+              "[18:44:14] [main/DEBUG] [ne.ne.fm.lo.ModSorter/LOADING]: Found 0 mod requirements missing (0 mandatory, 0 optional)",
+              "* What went wrong:"
+            ]
+          },
+          "packagedJarDeployment": "not_run",
+          "gameplay": "not_run",
+          "artifacts": [
+            {
+              "name": "survey_pulse-1.0.jar",
+              "bytes": 15866,
+              "sha256": "7C7E5EFE63498E3682A4AD819891FB18D93752B99F8288964ACB486C2A6A4591"
+            }
+          ],
+          "eulaAccepted": false,
+          "isolatedWorldPresent": false
+        },
+        "native": {
+          "assemble": {
+            "state": "passed",
+            "exitCode": 0,
+            "timedOut": false,
+            "elapsedMs": 16552,
+            "completedAt": "2026-09-07T18:41:16.055685+08:00",
+            "arguments": [
+              "-Dfile.encoding=UTF-8",
+              "-Duser.language=en",
+              "-classpath",
+              "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\.tmp\\stage14-track-audit\\projects\\neoforge-26.2\\native\\gradle\\wrapper\\gradle-wrapper.jar",
+              "org.gradle.wrapper.GradleWrapperMain",
+              "--no-daemon",
+              "--console=plain",
+              "--max-workers=2",
+              "-Dorg.gradle.jvmargs=-Xmx1536m -Dfile.encoding=UTF-8 -Duser.language=en",
+              "assemble"
+            ],
+            "failureHints": []
+          },
+          "defaultBootstrap": {
+            "state": "not_run"
+          },
+          "noClientAssetsBootstrap": {
+            "state": "not_run"
+          },
+          "initSettingsBootstrap": {
+            "state": "not_run"
+          },
+          "initSettingsNoClientAssetsBootstrap": {
+            "state": "blocked_probe_incompatibility",
+            "exitCode": 1,
+            "timedOut": false,
+            "elapsedMs": 20321,
+            "completedAt": "2026-09-07T18:44:50.2174765+08:00",
+            "arguments": [
+              "-Dfile.encoding=UTF-8",
+              "-Duser.language=en",
+              "-classpath",
+              "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\.tmp\\stage14-track-audit\\projects\\neoforge-26.2\\native\\gradle\\wrapper\\gradle-wrapper.jar",
+              "org.gradle.wrapper.GradleWrapperMain",
+              "--no-daemon",
+              "--console=plain",
+              "--max-workers=2",
+              "-Dorg.gradle.jvmargs=-Xmx1536m -Dfile.encoding=UTF-8 -Duser.language=en",
+              "runServer",
+              "-I",
+              "D:/AICoding/Minecraft_ModCreator/.tmp/stage12a-depth/.tmp/stage14-track-audit/server-probe.init.gradle",
+              "-x",
+              "downloadAssets"
+            ],
+            "initializerExecuted": false,
+            "eulaBoundaryReached": false,
+            "worldReady": false,
+            "behaviorVerified": false,
+            "initSettingsProbe": true,
+            "classification": "The launcher expects a server thread after --initSettings intentionally exits before creating one; regular world startup is not classified from this probe.",
+            "failureHints": [
+              "[18:44:36] [main/DEBUG] [ne.ne.fm.lo.ModSorter/LOADING]: Found 0 mod requirements missing (0 mandatory, 0 optional)",
+              "* What went wrong:"
+            ]
+          },
+          "packagedJarDeployment": "not_run",
+          "gameplay": "not_run",
+          "artifacts": [
+            {
+              "name": "survey_pulse-1.0.jar",
+              "bytes": 11271,
+              "sha256": "8FAB889BEA952DDDA95316CAA784C3CA5EA1F25E8CFBE0078C646C06FF8EE654"
+            }
+          ],
+          "eulaAccepted": false,
+          "isolatedWorldPresent": false
+        }
+      }
+    }
+  ]
+}

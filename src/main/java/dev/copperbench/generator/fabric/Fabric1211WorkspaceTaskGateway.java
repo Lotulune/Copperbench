@@ -31,6 +31,9 @@ import java.util.function.Supplier;
 public final class Fabric1211WorkspaceTaskGateway implements WorkspaceTaskGateway, AutoCloseable {
 
 	private final GradleWorkspaceTaskGateway delegate;
+	private final Function<UUID, Path> workspaceRoots;
+	private final Path distributionRoot;
+	private final Fabric1211Generator.Profile profile;
 
 	public Fabric1211WorkspaceTaskGateway(RevisionedWorkspaceStore store, Function<UUID, Path> workspaceRoots,
 			Path distributionRoot, Clock clock, Supplier<UUID> ids) {
@@ -52,6 +55,9 @@ public final class Fabric1211WorkspaceTaskGateway implements WorkspaceTaskGatewa
 	public Fabric1211WorkspaceTaskGateway(RevisionedWorkspaceStore store, Function<UUID, Path> workspaceRoots,
 			Path distributionRoot, Clock clock, Supplier<UUID> ids, Fabric1211Generator.Profile profile,
 			Fabric1211ProcessRunner processes) {
+		this.workspaceRoots = workspaceRoots;
+		this.distributionRoot = distributionRoot.toAbsolutePath().normalize();
+		this.profile = profile;
 		Fabric1211Generator generator = new Fabric1211Generator(distributionRoot, profile);
 		GradleWorkspaceBackend backend = new GradleWorkspaceBackend() {
 			@Override public String displayName() {
@@ -64,7 +70,7 @@ public final class Fabric1211WorkspaceTaskGateway implements WorkspaceTaskGatewa
 
 			@Override public List<ValidationIssue> validate(dev.copperbench.core.workspace.WorkspaceState workspace) {
 				return generator.validate(workspace).stream().map(issue -> new ValidationIssue(issue.code(),
-						issue.message(), issue.path(), issue.elementId())).toList();
+						issue.message(), issue.path(), issue.elementId(), issue.repairValue())).toList();
 			}
 
 			@Override public GenerationResult generate(Path targetRoot,
@@ -106,6 +112,49 @@ public final class Fabric1211WorkspaceTaskGateway implements WorkspaceTaskGatewa
 
 	@Override public List<JsonObject> diagnostics(UUID workspaceId, UUID taskId) {
 		return delegate.diagnostics(workspaceId, taskId);
+	}
+
+	@Override public JsonObject environment(UUID workspaceId) {
+		Path root = workspaceRoots.apply(workspaceId).toAbsolutePath().normalize();
+		Path javaHome = BundledJdkLocator.locate(distributionRoot, profile.javaRelease()).toAbsolutePath().normalize();
+		JsonObject environment = commonEnvironment(root, javaHome);
+		environment.addProperty("loader", "fabric");
+		environment.addProperty("loaderVersion", profile.loaderVersion());
+		environment.addProperty("fabricApiVersion", profile.fabricApiVersion());
+		environment.addProperty("loomVersion", profile.loomVersion());
+		return environment;
+	}
+
+	private JsonObject commonEnvironment(Path root, Path javaHome) {
+		JsonObject environment = new JsonObject();
+		environment.addProperty("generatorId", profile.generatorId());
+		environment.addProperty("minecraftVersion", profile.minecraftVersion());
+		environment.addProperty("workspaceRoot", root.toString());
+		environment.addProperty("sourceRoot", root.resolve("src/main/java").toString());
+		environment.addProperty("resourceRoot", root.resolve("src/main/resources").toString());
+		JsonObject java = new JsonObject();
+		java.addProperty("requiredRelease", profile.javaRelease());
+		java.addProperty("home", javaHome.toString());
+		java.addProperty("executable", javaHome.resolve("bin")
+				.resolve(System.getProperty("os.name", "").toLowerCase().contains("win") ? "java.exe" : "java").toString());
+		environment.add("java", java);
+		JsonObject gradle = new JsonObject();
+		gradle.addProperty("distribution", profile.gradleWrapperZip());
+		gradle.addProperty("windowsLauncher", root.resolve("gradlew.bat").toString());
+		gradle.addProperty("posixLauncher", root.resolve("gradlew").toString());
+		JsonObject tasks = new JsonObject();
+		tasks.addProperty("build", "build");
+		tasks.addProperty("runClient", "runClient");
+		tasks.addProperty("runServer", "runServer");
+		tasks.addProperty("runDatagen", "runDatagen");
+		tasks.addProperty("runGameTest", "runGameTest");
+		gradle.add("tasks", tasks);
+		environment.add("gradle", gradle);
+		return environment;
+	}
+
+	@Override public Optional<JsonObject> sourcePreview(UUID workspaceId, UUID taskId, String sourcePath) {
+		return delegate.sourcePreview(workspaceId, taskId, sourcePath);
 	}
 
 	@Override public Optional<JsonObject> previewDatagen(UUID workspaceId, UUID taskId) {

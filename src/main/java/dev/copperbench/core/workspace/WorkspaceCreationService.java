@@ -11,10 +11,16 @@ package dev.copperbench.core.workspace;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import dev.copperbench.generator.BundledJdkLocator;
+import dev.copperbench.gradle.GradleDistributionPool;
+import dev.copperbench.gradle.MinecraftMappingsCacheRepair;
 import dev.copperbench.tracks.VersionTrackCatalog;
 import net.mcreator.generator.Generator;
 import net.mcreator.generator.GeneratorConfiguration;
 import net.mcreator.generator.setup.WorkspaceGeneratorSetup;
+import net.mcreator.gradle.GradleUtils;
+import net.mcreator.io.UserFolderManager;
+import net.mcreator.preferences.PreferencesManager;
 import net.mcreator.workspace.Workspace;
 import net.mcreator.workspace.settings.WorkspaceSettings;
 import net.mcreator.workspace.WorkspaceFolderManager;
@@ -42,10 +48,67 @@ import java.util.regex.Pattern;
 public final class WorkspaceCreationService {
 
 	public static final String RESOURCE_PACK_GENERATOR_ID = "resourcepack-1.21.1";
+	private static final Object GRADLE_SETUP_LOCK = new Object();
 
 	/** Result of a creation attempt; diagnostics are stable codes, never Java exception text. */
 	public record CreationResult(boolean complete, String workspaceFile, String generatorId,
 			List<String> diagnostics) {
+	}
+
+	private void setupJavaWorkspace(Workspace workspace, String generatorId) {
+		VersionTrackCatalog.LoaderStatus track = catalog.findGenerator(generatorId)
+				.orElseThrow(() -> new WorkspaceBaseGenerationException("UNSUPPORTED_GENERATOR"));
+		Path javaHome;
+		try {
+			javaHome = BundledJdkLocator.locate(distributionRoot, track.javaRelease());
+		} catch (RuntimeException exception) {
+			throw new WorkspaceBaseGenerationException("BUNDLED_JDK_MISSING");
+		}
+
+		GradleDistributionPool.seedForWorkspace(workspace);
+		synchronized (GRADLE_SETUP_LOCK) {
+			File previousJavaHome = PreferencesManager.PREFERENCES.hidden.java_home.get();
+			try {
+				PreferencesManager.PREFERENCES.hidden.java_home.set(javaExecutable(javaHome).toFile());
+				var connection = GradleUtils.getGradleProjectConnection(workspace);
+				if (connection == null)
+					throw new WorkspaceBaseGenerationException("WORKSPACE_GRADLE_SYNC_FAILED");
+				try {
+					GradleUtils.getGradleSyncLauncher(workspace.getGeneratorConfiguration(), connection).run();
+				} catch (RuntimeException firstFailure) {
+					int repaired = MinecraftMappingsCacheRepair.repairCorruptMappings(
+							workspace.getWorkspaceFolder().toPath());
+					if (repaired <= 0)
+						throw new WorkspaceBaseGenerationException("WORKSPACE_GRADLE_SYNC_FAILED");
+					GradleUtils.getGradleSyncLauncher(workspace.getGeneratorConfiguration(), connection).run();
+				}
+				try {
+					workspace.getGenerator().reloadGradleCaches();
+				} catch (RuntimeException exception) {
+					throw new WorkspaceBaseGenerationException("WORKSPACE_GRADLE_CACHE_FAILED");
+				}
+				if (!workspace.getGenerator().generateBase())
+					throw new WorkspaceBaseGenerationException("WORKSPACE_BASE_GENERATION_FAILED");
+				WorkspaceGeneratorSetup.completeSetup(workspace.getGenerator());
+				workspace.getGenerator().runResourceSetupTasks();
+			} finally {
+				PreferencesManager.PREFERENCES.hidden.java_home.set(previousJavaHome);
+			}
+		}
+	}
+
+	private static Path javaExecutable(Path javaHome) {
+		return javaHome.resolve("bin").resolve(System.getProperty("os.name", "").toLowerCase(Locale.ROOT)
+				.contains("win") ? "java.exe" : "java");
+	}
+
+	private static final class WorkspaceBaseGenerationException extends RuntimeException {
+		private static final long serialVersionUID = 1L;
+		private final String diagnostic;
+
+		private WorkspaceBaseGenerationException(String diagnostic) {
+			this.diagnostic = diagnostic;
+		}
 	}
 
 	private static final Pattern MOD_ID = Pattern.compile("^(?=.{2,32}$)[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$");
@@ -53,13 +116,19 @@ public final class WorkspaceCreationService {
 	private static final Pattern PACKAGE_NAME = Pattern.compile("^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$");
 
 	private final VersionTrackCatalog catalog;
+	private final Path distributionRoot;
 
 	public WorkspaceCreationService() {
-		this(VersionTrackCatalog.official());
+		this(VersionTrackCatalog.official(), Path.of(System.getProperty("user.dir")));
 	}
 
 	public WorkspaceCreationService(VersionTrackCatalog catalog) {
+		this(catalog, Path.of(System.getProperty("user.dir")));
+	}
+
+	public WorkspaceCreationService(VersionTrackCatalog catalog, Path distributionRoot) {
 		this.catalog = Objects.requireNonNull(catalog);
+		this.distributionRoot = Objects.requireNonNull(distributionRoot).toAbsolutePath().normalize();
 	}
 
 	/** Lists the generators offered by the visual new-workspace flow: catalog track first, then cache check. */
@@ -97,21 +166,12 @@ public final class WorkspaceCreationService {
 		Objects.requireNonNull(generatorId);
 		Objects.requireNonNull(modName);
 		Objects.requireNonNull(modId);
-		List<String> diagnostics = validate(generatorId, modName, modId, packageName, workspaceFolderPath);
+		List<String> diagnostics = validateCreation(generatorId, modName, modId, packageName, workspaceFolderPath);
 		if (!diagnostics.isEmpty())
 			return new CreationResult(false, null, generatorId, diagnostics);
 
 		Path workspaceFolder = Path.of(workspaceFolderPath).toAbsolutePath().normalize();
-		if (Files.exists(workspaceFolder) && !isEmptyDirectory(workspaceFolder))
-			return new CreationResult(false, null, generatorId, List.of("WORKSPACE_FOLDER_NOT_EMPTY"));
-
-		VersionTrackCatalog.CapabilityDecision decision = catalog.decision(generatorId);
-		if (!isResourcePackGenerator(generatorId) && !decision.generatable())
-			return new CreationResult(false, null, generatorId, List.of("UNSUPPORTED_GENERATOR"));
-
 		GeneratorConfiguration configuration = generatorConfiguration(generatorId);
-		if (configuration == null)
-			return new CreationResult(false, null, generatorId, List.of("GENERATOR_NOT_INSTALLED"));
 
 		WorkspaceSettings settings = new WorkspaceSettings(modId);
 		settings.setModName(modName);
@@ -125,18 +185,56 @@ public final class WorkspaceCreationService {
 		try (Workspace workspace = Workspace.createWorkspace(workspaceFile, settings)) {
 			try {
 				WorkspaceGeneratorSetup.setupWorkspaceBaseOrThrow(workspace);
+				GradleUtils.updateMCreatorBuildFile(workspace);
+				if (isResourcePackGenerator(generatorId))
+					setupResourcePackWorkspace(workspace, workspaceFolder);
+				else
+					setupJavaWorkspace(workspace, generatorId);
 			} catch (RuntimeException exception) {
+				if (exception instanceof WorkspaceBaseGenerationException)
+					throw exception;
 				throw new WorkspaceSkeletonSetupException(exception);
 			}
-			if (isResourcePackGenerator(generatorId))
-				setupResourcePackWorkspace(workspace, workspaceFolder);
 			return new CreationResult(true, workspaceFile.getAbsolutePath(), generatorId, List.of());
+		} catch (WorkspaceBaseGenerationException exception) {
+			return failedCreation(generatorId, workspaceFolder, preserveWorkspaceFolder,
+					exception.diagnostic);
 		} catch (WorkspaceSkeletonSetupException exception) {
 			return failedCreation(generatorId, workspaceFolder, preserveWorkspaceFolder,
 					"WORKSPACE_SKELETON_SETUP_FAILED");
 		} catch (RuntimeException exception) {
 			return failedCreation(generatorId, workspaceFolder, preserveWorkspaceFolder, "WORKSPACE_CREATE_FAILED");
 		}
+	}
+
+	/**
+	 * Performs the complete non-writing validation used by {@link #create}. Hosts
+	 * that need a trusted user confirmation can call this before prompting, then
+	 * call {@code create} only after the user approves. Keeping the preflight in
+	 * this service prevents CLI/MCP/UI hosts from inventing divergent creation
+	 * rules.
+	 */
+	public List<String> validateCreation(String generatorId, String modName, String modId, String packageName,
+			String workspaceFolderPath) {
+		Objects.requireNonNull(generatorId);
+		Objects.requireNonNull(modName);
+		Objects.requireNonNull(modId);
+		List<String> diagnostics = new ArrayList<>(
+				validate(generatorId, modName, modId, packageName, workspaceFolderPath));
+		if (!diagnostics.isEmpty())
+			return List.copyOf(diagnostics);
+
+		Path workspaceFolder = Path.of(workspaceFolderPath).toAbsolutePath().normalize();
+		if (Files.exists(workspaceFolder) && !isEmptyDirectory(workspaceFolder))
+			diagnostics.add("WORKSPACE_FOLDER_NOT_EMPTY");
+
+		VersionTrackCatalog.CapabilityDecision decision = catalog.decision(generatorId);
+		if (!isResourcePackGenerator(generatorId) && !decision.generatable())
+			diagnostics.add("UNSUPPORTED_GENERATOR");
+		else if (generatorConfiguration(generatorId) == null)
+			diagnostics.add("GENERATOR_NOT_INSTALLED");
+
+		return List.copyOf(diagnostics);
 	}
 
 	private static CreationResult failedCreation(String generatorId, Path workspaceFolder,
@@ -183,8 +281,6 @@ public final class WorkspaceCreationService {
 	}
 
 	private static void setupResourcePackWorkspace(Workspace workspace, Path workspaceFolder) {
-		if (!workspace.getGenerator().generateBase())
-			throw new WorkspaceSkeletonSetupException();
 		workspace.getGenerator().runResourceSetupTasks();
 		if (!Files.isRegularFile(workspaceFolder.resolve("src/main/pack.mcmeta"))
 				|| !Files.isRegularFile(workspaceFolder.resolve("src/main/pack.png")))

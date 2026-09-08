@@ -26,6 +26,17 @@ export interface AssetRecord {
   readonly source: 'workspace' | 'minecraft' | 'blockbench';
   readonly sourceLabel: string;
   readonly references: readonly string[];
+  readonly outgoingReferences?: readonly string[];
+  readonly usageAssessed?: boolean;
+  readonly unused?: boolean;
+  readonly workspaceReferenceCount?: number;
+  readonly cleanupAssessed?: boolean;
+  readonly safeUnused?: boolean;
+  readonly issueCodes?: readonly string[];
+  readonly inboundCount?: number;
+  readonly outboundCount?: number;
+  readonly duplicateContent?: boolean;
+  readonly duplicatePaths?: readonly string[];
   readonly validation: AssetValidationStatus;
   readonly validationLabel: string;
   readonly description: string;
@@ -64,15 +75,12 @@ function formatBytes(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function validationFor(path: string, projection: AssetProjection): Pick<AssetRecord, 'validation' | 'validationLabel'> {
-  const diagnostics = projection.diagnostics.filter(
-    (diagnostic) => diagnostic.sourcePath === path || diagnostic.targetPath === path
-  );
-  if (diagnostics.some((diagnostic) => diagnostic.severity === 'ERROR')) {
+function validationFor(asset: AssetProjection['assets'][number]): Pick<AssetRecord, 'validation' | 'validationLabel'> {
+  if (asset.health.status === 'ERROR') {
     return { validation: 'error', validationLabel: '有错误' };
   }
-  if (diagnostics.some((diagnostic) => diagnostic.severity === 'WARNING')) {
-    return { validation: 'warning', validationLabel: '需检查' };
+  if (asset.health.status === 'WARNING') {
+    return { validation: 'warning', validationLabel: '警告' };
   }
   return { validation: 'ready', validationLabel: '已校验' };
 }
@@ -84,7 +92,10 @@ export function assetRecordsFromProjection(projection: AssetProjection): AssetRe
     const references = projection.references
       .filter((reference) => reference.targetAssetId === asset.id)
       .map((reference) => reference.sourcePath);
-    const validation = validationFor(asset.relativePath, projection);
+    const outgoingReferences = projection.references
+      .filter((reference) => reference.sourceAssetId === asset.id)
+      .map((reference) => reference.targetPath);
+    const validation = validationFor(asset);
     return {
       id: asset.id,
       name: assetName(asset.relativePath),
@@ -98,6 +109,17 @@ export function assetRecordsFromProjection(projection: AssetProjection): AssetRe
       source: 'workspace',
       sourceLabel: '工作区',
       references,
+      outgoingReferences,
+      usageAssessed: asset.health.usageAssessed,
+      unused: asset.health.unused,
+      workspaceReferenceCount: asset.health.workspaceReferenceCount,
+      cleanupAssessed: asset.health.cleanupAssessed,
+      safeUnused: asset.health.safeUnused,
+      issueCodes: asset.health.issueCodes,
+      inboundCount: asset.health.inboundCount,
+      outboundCount: asset.health.outboundCount,
+      duplicateContent: asset.health.duplicateContent,
+      duplicatePaths: asset.health.duplicatePaths,
       ...validation,
       description: '工作区真实资产，由 AssetWorkspaceService 实时索引。',
       sha256: asset.sha256

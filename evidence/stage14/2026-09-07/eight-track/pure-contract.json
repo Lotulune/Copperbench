@@ -1,0 +1,8 @@
+{
+  "scope": "Shared scanner logic only; identical helper files used in each track; no Minecraft interaction, item registration or network test",
+  "compileRelease": 17,
+  "runtime": 21,
+  "exitCode": 0,
+  "assertionsPassed": 8,
+  "finishedAt": "2026-09-07T10:34:32.9174993+00:00"
+}

@@ -56,7 +56,7 @@ class DesktopMcpAgentLoopTest {
 
 	@TempDir Path workspace;
 
-	@Test void directCodeCreationSurfacesCompileVerificationDiagnosticsThroughGetTask() throws Exception {
+	@Test void externalAgentCanFailLocateRepairAndRebuildCodeThroughDesktopMcp() throws Exception {
 		Files.writeString(workspace.resolve("workspace.mcreator"), "{\"name\":\"Code Diagnostic Workspace\"}");
 		RevisionedWorkspaceStore store = new RevisionedWorkspaceStore();
 		JsonObject generator = new JsonObject();
@@ -70,7 +70,7 @@ class DesktopMcpAgentLoopTest {
 		AtomicLong sequence = new AtomicLong(7000);
 		Supplier<UUID> ids = () -> UUID.fromString("00000000-0000-4000-8000-" +
 				String.format("%012d", sequence.getAndIncrement()));
-		FailedCompileBuildGateway tasks = new FailedCompileBuildGateway(ids);
+		RepairLoopBuildGateway tasks = new RepairLoopBuildGateway(ids);
 
 		try (LocalHistoryService history = JGitLocalHistoryService.open(workspace, CLOCK)) {
 			WorkspaceApplicationService service = new WorkspaceApplicationService(store, tasks,
@@ -92,6 +92,7 @@ class DesktopMcpAgentLoopTest {
 				code.addProperty("expectedRevision", 0);
 				JsonObject created = call(endpoint, token, sessionId, 20, "create_mod_element", code);
 				assertEquals("committed", created.get("status").getAsString(), created.toString());
+				String elementId = created.getAsJsonObject("data").getAsJsonObject("element").get("id").getAsString();
 				JsonObject verification = created.getAsJsonObject("data").getAsJsonObject("compileVerification");
 				assertEquals("build_workspace", verification.get("operation").getAsString());
 				assertEquals("accepted", verification.get("status").getAsString());
@@ -107,6 +108,148 @@ class DesktopMcpAgentLoopTest {
 				assertTrue(diagnostics.contains("JAVA_COMPILE_ERROR"), diagnostics);
 				assertTrue(diagnostics.contains("/src/main/java/net/example/Broken.java"), diagnostics);
 				assertTrue(diagnostics.contains("Line 1: cannot find symbol"), diagnostics);
+				JsonObject taskFailure = task.getAsJsonArray("diagnostics").asList().stream()
+						.map(value -> value.getAsJsonObject())
+						.filter(value -> value.get("code").getAsString().equals("FABRIC_BUILD_FAILED"))
+						.findFirst().orElseThrow();
+				JsonObject failureLogs = taskFailure.getAsJsonArray("actions").get(0).getAsJsonObject();
+				assertEquals(taskId, failureLogs.getAsJsonObject("payload").get("taskId").getAsString());
+				assertEquals(taskFailure.getAsJsonObject("message").getAsJsonObject("args").get("failureId").getAsString(),
+						failureLogs.get("target").getAsString());
+
+				JsonObject repair = new JsonObject();
+				repair.addProperty("elementId", elementId);
+				JsonObject codeChange = new JsonObject();
+				codeChange.addProperty("path", "/code");
+				codeChange.addProperty("value", "package net.example; public final class Broken { public static void run() { } }");
+				JsonArray changes = new JsonArray();
+				changes.add(codeChange);
+				repair.add("changes", changes);
+				repair.addProperty("expectedRevision", 1);
+				JsonObject repaired = call(endpoint, token, sessionId, 22, "update_mod_element", repair);
+				assertEquals("committed", repaired.get("status").getAsString(), repaired.toString());
+				assertEquals(2, repaired.get("newRevision").getAsLong());
+
+				JsonObject rebuildArguments = new JsonObject();
+				rebuildArguments.addProperty("expectedRevision", 2);
+				JsonObject rebuild = call(endpoint, token, sessionId, 23, "build_workspace", rebuildArguments);
+				assertEquals("accepted", rebuild.get("status").getAsString(), rebuild.toString());
+				String rebuildTaskId = rebuild.getAsJsonObject("task").get("id").getAsString();
+				JsonObject rebuildTaskArguments = new JsonObject();
+				rebuildTaskArguments.addProperty("taskId", rebuildTaskId);
+				rebuildTaskArguments.addProperty("afterLogSequence", 0);
+				JsonObject rebuilt = call(endpoint, token, sessionId, 24, "get_task", rebuildTaskArguments)
+						.getAsJsonObject("data");
+				assertEquals("succeeded", rebuilt.getAsJsonObject("task").get("state").getAsString());
+				assertTrue(rebuilt.getAsJsonArray("logs").toString().contains("BUILD SUCCESSFUL"), rebuilt.toString());
+				assertTrue(rebuilt.getAsJsonArray("diagnostics").isEmpty(), rebuilt.toString());
+			} finally {
+				runtime.close();
+			}
+		}
+	}
+
+	@Test void externalAgentCanPlanAndApplyProtectedProcedureExtraction() throws Exception {
+		Files.writeString(workspace.resolve("workspace.mcreator"), "{\"name\":\"Procedure Refactor Workspace\"}");
+		RevisionedWorkspaceStore store = new RevisionedWorkspaceStore();
+		JsonObject generator = new JsonObject();
+		generator.addProperty("id", "fabric-26.1.2");
+		generator.addProperty("loader", "fabric");
+		generator.addProperty("minecraftVersion", "26.1.2");
+		generator.addProperty("displayName", "Fabric 26.1.2");
+		generator.addProperty("state", "ready");
+		store.register(new WorkspaceState(WORKSPACE_ID, "Procedure Refactor Workspace", "testmod2", 0, false,
+				generator, new JsonObject(), List.of()));
+		AtomicLong sequence = new AtomicLong(8000);
+		Supplier<UUID> ids = () -> UUID.fromString("00000000-0000-4000-8000-" +
+				String.format("%012d", sequence.getAndIncrement()));
+		CompletedBuildGateway tasks = new CompletedBuildGateway(ids);
+		UUID triggerId = UUID.fromString("11111111-1111-4111-8111-111111111101");
+		UUID statementId = UUID.fromString("11111111-1111-4111-8111-111111111102");
+		UUID diagnosticCallId = UUID.fromString("11111111-1111-4111-8111-111111111103");
+
+		try (LocalHistoryService history = JGitLocalHistoryService.open(workspace, CLOCK)) {
+			WorkspaceApplicationService service = new WorkspaceApplicationService(store, tasks,
+					WorkspaceMutationGateway.noOp(), history,
+					ignored -> store.read(WORKSPACE_ID).orElseThrow().copy(), CLOCK, ids);
+			DesktopMcpRuntime runtime = DesktopMcpRuntime.start(workspace, WORKSPACE_ID,
+					new McpWorkspaceEntryAdapter(service, PermissionProfile.WORKSPACE), CLOCK);
+			try {
+				String token = runtime.revealTokenOnce().orElseThrow();
+				URI endpoint = URI.create(runtime.state().url());
+				String sessionId = initialize(endpoint, token);
+
+				JsonObject create = new JsonObject();
+				create.addProperty("elementType", "procedure");
+				create.addProperty("name", "agent_source_logic");
+				create.addProperty("expectedRevision", 0);
+				JsonObject initialValues = new JsonObject();
+				initialValues.addProperty("procedurexml",
+						"<xml xmlns=\"https://developers.google.com/blockly/xml\"><block type=\"event_trigger\" id=\""
+								+ triggerId + "\"><field name=\"trigger\">no_ext_trigger</field><next>"
+								+ "<block type=\"text_print\" id=\"" + statementId + "\"></block>"
+								+ "</next></block></xml>");
+				create.add("initialValues", initialValues);
+				JsonObject created = call(endpoint, token, sessionId, 30, "create_mod_element", create);
+				assertEquals("committed", created.get("status").getAsString(), created.toString());
+				String sourceId = created.getAsJsonObject("data").getAsJsonObject("element").get("id").getAsString();
+
+				JsonObject diagnosticNode = new JsonObject();
+				diagnosticNode.addProperty("id", diagnosticCallId.toString());
+				diagnosticNode.addProperty("type", "call_procedure");
+				diagnosticNode.addProperty("kind", "statement");
+				diagnosticNode.addProperty("x", 240);
+				diagnosticNode.addProperty("y", 80);
+				diagnosticNode.add("fields", new JsonObject());
+				diagnosticNode.add("inputs", new JsonObject());
+				JsonObject addDiagnosticNode = new JsonObject();
+				addDiagnosticNode.addProperty("operation", "add_node");
+				addDiagnosticNode.add("node", diagnosticNode);
+				JsonArray diagnosticEdits = new JsonArray();
+				diagnosticEdits.add(addDiagnosticNode);
+				JsonObject diagnosticPreviewArgs = new JsonObject();
+				diagnosticPreviewArgs.addProperty("elementId", sourceId);
+				diagnosticPreviewArgs.add("edits", diagnosticEdits);
+				JsonObject diagnosticPreview = call(endpoint, token, sessionId, 35,
+						"preview_procedure_change", diagnosticPreviewArgs).getAsJsonObject("data");
+				JsonObject nodeDiagnostic = diagnosticPreview.getAsJsonArray("diagnostics").asList().stream()
+						.map(value -> value.getAsJsonObject())
+						.filter(value -> value.get("code").getAsString().equals("PROCEDURE_CALL_TARGET_REQUIRED"))
+						.findFirst().orElseThrow();
+				JsonObject nodeAction = nodeDiagnostic.getAsJsonArray("actions").get(0).getAsJsonObject();
+				assertEquals("open_procedure_node", nodeAction.get("kind").getAsString());
+				assertEquals(diagnosticCallId.toString(), nodeAction.get("target").getAsString());
+				assertEquals(diagnosticCallId.toString(), nodeAction.getAsJsonObject("payload").get("nodeId").getAsString());
+				assertEquals("procedureId", nodeAction.getAsJsonObject("payload").get("port").getAsString());
+
+				JsonObject refactor = new JsonObject();
+				refactor.addProperty("kind", "extract_node");
+				refactor.addProperty("expectedRevision", 1);
+				refactor.addProperty("idempotencyKey", "external-agent-extract");
+				refactor.addProperty("elementId", sourceId);
+				refactor.addProperty("nodeId", statementId.toString());
+				refactor.addProperty("newProcedureName", "agent_reusable_logic");
+				JsonObject plannedResult = call(endpoint, token, sessionId, 31, "plan_procedure_refactor", refactor);
+				assertEquals("succeeded", plannedResult.get("status").getAsString(), plannedResult.toString());
+				JsonObject plan = plannedResult.getAsJsonObject("data");
+				assertTrue(plan.get("requireRecoveryPoint").getAsBoolean());
+				assertTrue(plan.getAsJsonObject("safety").get("ready").getAsBoolean());
+				assertEquals(2, plan.get("operationCount").getAsInt());
+
+				JsonObject previewArgs = new JsonObject();
+				previewArgs.add("plan", plan.deepCopy());
+				JsonObject preview = call(endpoint, token, sessionId, 32, "preview_workspace_plan", previewArgs);
+				assertTrue(preview.getAsJsonObject("data").get("wouldApply").getAsBoolean(), preview.toString());
+
+				JsonObject applyArgs = new JsonObject();
+				applyArgs.add("plan", plan.deepCopy());
+				applyArgs.addProperty("expectedRevision", 1);
+				JsonObject applied = call(endpoint, token, sessionId, 33, "apply_workspace_plan", applyArgs);
+				assertEquals("committed", applied.get("status").getAsString(), applied.toString());
+				assertEquals(2, applied.get("newRevision").getAsLong());
+				assertFalse(applied.get("recoveryPointId").isJsonNull());
+				assertTrue(Files.readString(workspace.resolve(".copperbench/automation-audit.jsonl"))
+						.contains("plan_procedure_refactor"));
 			} finally {
 				runtime.close();
 			}
@@ -162,6 +305,7 @@ class DesktopMcpAgentLoopTest {
 				JsonObject planArguments = new JsonObject();
 				planArguments.addProperty("expectedRevision", 1);
 				planArguments.addProperty("idempotencyKey", "desktop-agent-code-plan");
+				planArguments.addProperty("requireRecoveryPoint", true);
 				JsonArray operations = new JsonArray();
 				JsonObject operation = new JsonObject();
 				operation.addProperty("operation", "create_mod_element");
@@ -175,6 +319,8 @@ class DesktopMcpAgentLoopTest {
 				JsonObject plannedResult = call(endpoint, token, sessionId, 5, "plan_workspace_changes", planArguments);
 				assertEquals("succeeded", plannedResult.get("status").getAsString(), plannedResult.toString());
 				JsonObject plan = plannedResult.getAsJsonObject("data");
+				assertTrue(plan.get("requireRecoveryPoint").getAsBoolean());
+				assertTrue(plan.getAsJsonObject("safety").get("ready").getAsBoolean());
 
 				JsonObject previewArguments = new JsonObject();
 				previewArguments.add("plan", plan.deepCopy());
@@ -187,6 +333,7 @@ class DesktopMcpAgentLoopTest {
 				JsonObject applied = call(endpoint, token, sessionId, 7, "apply_workspace_plan", applyArguments);
 				assertEquals("committed", applied.get("status").getAsString(), applied.toString());
 				assertEquals(2, applied.get("newRevision").getAsLong());
+				assertFalse(applied.get("recoveryPointId").isJsonNull(), applied.toString());
 
 				JsonObject firstPageArguments = new JsonObject();
 				firstPageArguments.addProperty("limit", 1);
@@ -372,18 +519,20 @@ class DesktopMcpAgentLoopTest {
 		}
 	}
 
-	private static final class FailedCompileBuildGateway implements WorkspaceTaskGateway {
+	private static final class RepairLoopBuildGateway implements WorkspaceTaskGateway {
 		private final Supplier<UUID> ids;
 		private final Map<UUID, JsonObject> tasks = new LinkedHashMap<>();
 		private final Map<UUID, List<JsonObject>> logs = new LinkedHashMap<>();
 		private final Map<UUID, List<JsonObject>> diagnostics = new LinkedHashMap<>();
+		private int starts;
 
-		private FailedCompileBuildGateway(Supplier<UUID> ids) {
+		private RepairLoopBuildGateway(Supplier<UUID> ids) {
 			this.ids = ids;
 		}
 
 		@Override public JsonObject start(UUID workspaceId, Operation operation, JsonObject payload) {
 			assertEquals(Operation.BUILD_WORKSPACE, operation);
+			if (starts++ > 0) return succeededTask();
 			UUID taskId = ids.get();
 			JsonObject task = new JsonObject();
 			task.addProperty("id", taskId.toString());
@@ -399,7 +548,7 @@ class DesktopMcpAgentLoopTest {
 			task.addProperty("startedAt", CLOCK.instant().toString());
 			task.addProperty("completedAt", CLOCK.instant().toString());
 			JsonObject counts = new JsonObject();
-			counts.addProperty("error", 1);
+			counts.addProperty("error", 2);
 			counts.addProperty("warning", 0);
 			counts.addProperty("info", 0);
 			task.add("diagnostics", counts);
@@ -416,7 +565,62 @@ class DesktopMcpAgentLoopTest {
 			message.addProperty("fallback", "Line 1: cannot find symbol");
 			message.add("args", new JsonObject());
 			diagnostic.add("message", message);
-			diagnostics.put(taskId, List.of(diagnostic));
+			JsonObject taskFailure = new JsonObject();
+			taskFailure.addProperty("code", "FABRIC_BUILD_FAILED");
+			taskFailure.addProperty("severity", "error");
+			taskFailure.add("path", com.google.gson.JsonNull.INSTANCE);
+			taskFailure.add("elementId", com.google.gson.JsonNull.INSTANCE);
+			taskFailure.addProperty("recoverable", true);
+			JsonObject failureArgs = new JsonObject();
+			failureArgs.addProperty("failureId", "failure-mcp-build-1");
+			JsonObject failureMessage = new JsonObject();
+			failureMessage.addProperty("key", "diagnostic.workspace_task_failed");
+			failureMessage.addProperty("fallback", "Fabric build failed.");
+			failureMessage.add("args", failureArgs);
+			taskFailure.add("message", failureMessage);
+			JsonObject failureAction = new JsonObject();
+			failureAction.addProperty("id", "open_logs");
+			failureAction.addProperty("kind", "open_logs");
+			failureAction.addProperty("target", "failure-mcp-build-1");
+			JsonObject actionLabel = new JsonObject();
+			actionLabel.addProperty("key", "action.open_logs");
+			actionLabel.addProperty("fallback", "View logs");
+			actionLabel.add("args", new JsonObject());
+			failureAction.add("label", actionLabel);
+			JsonObject failurePayload = new JsonObject();
+			failurePayload.addProperty("taskId", taskId.toString());
+			failureAction.add("payload", failurePayload);
+			JsonArray failureActions = new JsonArray();
+			failureActions.add(failureAction);
+			taskFailure.add("actions", failureActions);
+			diagnostics.put(taskId, List.of(diagnostic, taskFailure));
+			return task.deepCopy();
+		}
+
+		private JsonObject succeededTask() {
+			UUID taskId = ids.get();
+			JsonObject task = new JsonObject();
+			task.addProperty("id", taskId.toString());
+			task.addProperty("kind", "build");
+			task.addProperty("state", "succeeded");
+			task.addProperty("cancellable", false);
+			task.addProperty("progress", 1.0);
+			JsonObject stage = new JsonObject();
+			stage.addProperty("key", "task.completed");
+			stage.addProperty("fallback", "Build completed");
+			stage.add("args", new JsonObject());
+			task.add("stage", stage);
+			task.addProperty("startedAt", CLOCK.instant().toString());
+			task.addProperty("completedAt", CLOCK.instant().toString());
+			JsonObject counts = new JsonObject();
+			counts.addProperty("error", 0);
+			counts.addProperty("warning", 0);
+			counts.addProperty("info", 0);
+			task.add("diagnostics", counts);
+			tasks.put(taskId, task);
+			logs.put(taskId, List.of(CompletedBuildGateway.log(1, "Gradle build started"),
+					CompletedBuildGateway.log(2, "BUILD SUCCESSFUL")));
+			diagnostics.put(taskId, List.of());
 			return task.deepCopy();
 		}
 

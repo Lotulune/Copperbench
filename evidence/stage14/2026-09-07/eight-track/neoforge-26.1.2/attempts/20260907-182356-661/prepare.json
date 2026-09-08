@@ -1,0 +1,41 @@
+{
+  "track": "neoforge-26.1.2",
+  "startedAt": "2026-09-07T10:22:47.938701900Z",
+  "mode": "production source bootstrap/Core mutation; source-only task stub; real Gradle build/bootstrap recorded separately",
+  "minecraftVersion": "26.1.2",
+  "buildFileVersion": "26.1.2.95",
+  "gradleJavaHome": "D:\\AICoding\\Minecraft_ModCreator\\jdk\\jbr25_win_64",
+  "metadataOnlyPreservesPrimary": true,
+  "metadataOnlyPreservesHelper": true,
+  "ownershipConflictRejected": true,
+  "ownershipDiagnostics": [
+    {
+      "code": "WORKSPACE_PERSISTENCE_FAILED",
+      "severity": "error",
+      "message": {
+        "key": "diagnostic.workspace_persistence_failed",
+        "fallback": "The workspace change could not be stored and was rolled back.",
+        "args": {
+          "failureId": "62080451-3856-4518-ab27-06a2826254c6"
+        }
+      },
+      "recoverable": true,
+      "actions": [
+        {
+          "id": "open_logs",
+          "label": {
+            "key": "action.open_logs",
+            "fallback": "View logs",
+            "args": {}
+          },
+          "kind": "open_logs",
+          "target": "62080451-3856-4518-ab27-06a2826254c6"
+        }
+      ]
+    }
+  ],
+  "rejectedCreateLeavesNoOrphan": true,
+  "collisionPreservesExistingPrimary": true,
+  "failure": "java.lang.IllegalStateException: Workspace ID does not match product metadata",
+  "finishedAt": "2026-09-07T10:22:59.858474300Z"
+}

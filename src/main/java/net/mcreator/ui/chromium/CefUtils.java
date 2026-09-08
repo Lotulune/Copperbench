@@ -82,15 +82,21 @@ public class CefUtils {
 
 		//noinspection IfStatementWithIdenticalBranches
 		if (OS.isWindows()) {
-			// Chromium's native windowed renderer exposes its accessibility tree to
-			// Windows UI Automation. OSR only emits CefAccessibilityHandler events,
-			// which leaves Narrator and other platform assistive technology unable to
-			// discover the product shell without a custom UIA provider.
-			return false;
+			boolean softwareOnlyDisplay = WindowsDisplayAdapterProbe.requiresSoftwareRendering();
+			if (softwareOnlyDisplay)
+				LOG.warn("Using JCEF software rendering because Windows exposes only a non-accelerated display adapter");
+			return useOSROnWindows(PreferencesManager.PREFERENCES.blockly.useGPUAcceleration.get(), softwareOnlyDisplay);
 		}
 
 		// On linux, we need to use OSR due to several focus and keyboard transfer issues with WR
 		return true;
+	}
+
+	static boolean useOSROnWindows(boolean gpuAcceleration, boolean softwareOnlyDisplay) {
+		// Native WR keeps Windows UI Automation available on normal GPU-backed desktops.
+		// OSR is the proven fallback when acceleration is disabled or Windows exposes only
+		// Hyper-V/Basic Display, where Chromium's native compositor cannot create a surface.
+		return !gpuAcceleration || softwareOnlyDisplay;
 	}
 
 	public static CefBrowserSettings getCefBrowserSettings() {
@@ -172,11 +178,21 @@ public class CefUtils {
 				// Disable certain browser features
 				disabledFeatures.add("Vulkan");
 				disabledFeatures.add("UseSkiaRenderer");
-			} else if (!PreferencesManager.PREFERENCES.blockly.useGPUAcceleration.get()) {
-				config.getAppArgsAsList().add("--disable-gpu");
-				config.getAppArgsAsList().add("--disable-gpu-compositing");
-				config.getAppArgsAsList().add("--use-gl=swiftshader");
-			}
+			} else if (OS.isWindows() && useOSR()) {
+			// Windowless rendering still starts Chromium's GPU process. Force its
+			// software D3D11 WARP device instead of SwANGLE/Vulkan, which is absent
+			// on Hyper-V Video and Microsoft Basic Display adapters.
+			config.getAppArgsAsList().add("--use-gl=angle");
+			config.getAppArgsAsList().add("--use-angle=d3d11-warp");
+			config.getAppArgsAsList().add("--enable-features=AllowD3D11WarpFallback");
+			config.getAppArgsAsList().add("--disable-gpu-vsync");
+			disabledFeatures.add("Vulkan");
+		} else if (!PreferencesManager.PREFERENCES.blockly.useGPUAcceleration.get()) {
+			config.getAppArgsAsList().add("--disable-gpu");
+			config.getAppArgsAsList().add("--disable-gpu-compositing");
+			config.getAppArgsAsList().add("--disable-gpu-vsync");
+			config.getAppArgsAsList().add("--use-gl=swiftshader");
+		}
 
 			// Disable GPU compositing for OSR mode. Workaround for https://github.com/chromiumembedded/cef/issues/3826
 			if (useOSR()) {

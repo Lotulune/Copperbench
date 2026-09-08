@@ -1,0 +1,62 @@
+﻿{
+    "schemaVersion":  "1.0",
+    "kind":  "stage14-source-integrity-clean-windows11",
+    "candidateSourceHead":  "eaf18606e683fcc37a395de83c53e538c947760e",
+    "candidateSourceDirty":  true,
+    "candidateSourceDeltaSha256":  "0c75d518fb615946aede91e71b3e789b68cbf0c5ef89de38c5416e7f396993e6",
+    "candidateInstallerSha256":  "713c96ff924cdc848506d63305e78182b6e46373fd63de9685bd85a763d6f4c2",
+    "workspaceFile":  "C:\\Temp\\Copperbench-Stage14-SourceIntegrity\\workspace\\stage13_diagnostics.mcreator",
+    "startedAt":  "2026-09-08T00:32:15.4742547+08:00",
+    "passed":  true,
+    "steps":  [
+                  {
+                      "name":  "installed_generator_setup",
+                      "passed":  true,
+                      "observed":  true,
+                      "completed":  true,
+                      "waitMs":  87403
+                  },
+                  {
+                      "name":  "desktop_mcp_credential_from_real_ui",
+                      "passed":  true,
+                      "clipboardCleared":  true,
+                      "tokenPersisted":  false,
+                      "descriptorMatched":  true
+                  },
+                  {
+                      "name":  "desktop_mcp_unmanaged_source_ownership",
+                      "passed":  true,
+                      "diagnostics":  "{\"code\":\"WORKSPACE_PERSISTENCE_FAILED\",\"severity\":\"error\",\"message\":{\"key\":\"diagnostic.workspace_persistence_failed\",\"fallback\":\"The workspace change could not be stored and was rolled back.\",\"args\":{\"failureId\":\"8c8138d7-8824-4e18-a8df-1de1f1f26ae4\"}},\"path\":null,\"elementId\":null,\"recoverable\":true,\"actions\":[{\"id\":\"open_logs\",\"label\":{\"key\":\"action.open_logs\",\"fallback\":\"View logs\",\"args\":{}},\"kind\":\"open_logs\",\"target\":\"8c8138d7-8824-4e18-a8df-1de1f1f26ae4\",\"payload\":null}]}",
+                      "status":  "rejected",
+                      "sourceBytesPreserved":  true,
+                      "revisionPreserved":  true
+                  },
+                  {
+                      "name":  "desktop_mcp_metadata_preservation_and_stale_source",
+                      "passed":  true,
+                      "revisionPreserved":  true,
+                      "metadataStatus":  "committed",
+                      "sourceBytesPreserved":  true,
+                      "diagnostic":  "SOURCE_CONTENT_CONFLICT",
+                      "staleStatus":  "rejected"
+                  },
+                  {
+                      "name":  "desktop_mcp_workspace_plan_source_staleness",
+                      "passed":  true,
+                      "planIssued":  true,
+                      "diagnostic":  "WORKSPACE_PLAN_SOURCE_CONFLICT",
+                      "sourceBytesPreserved":  true,
+                      "previewStatus":  "failed",
+                      "applyStatus":  "rejected"
+                  },
+                  {
+                      "name":  "desktop_mcp_audit_secret_boundary",
+                      "passed":  true,
+                      "tokenAbsent":  true,
+                      "auditPresent":  true
+                  }
+              ],
+    "finalRevision":  4,
+    "clipboardEmptyAtEnd":  true,
+    "completedAt":  "2026-09-08T00:34:03.1731445+08:00"
+}

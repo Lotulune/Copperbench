@@ -21,7 +21,9 @@
 
 ## 模组元素
 
-新 UI / MCP / headless 的第一方可编辑类型为方块、物品、配方、Procedure、Function、Loot Table、Advancement。Procedure 使用内置 Blockly 工作台；未知上游节点只读显示并在往返保存时保留。其余迁入的上游类型会保留并只读列出，不能在新 UI / MCP 里创建或更新。
+新 UI / MCP / headless 现在共用 Stage 11/12 的 37 种第一方 Java Mod Element schema：除方块、物品、配方、Procedure、Function、Loot Table、Advancement 外，还包括装备/战斗、实体、世界生成、GUI/Overlay、村民、粒子、药水、命令、规则等类型。`livingentity`、`biome`、`dimension`、`gui` 以及 Stage 12B/12C 的相关复杂类型会按用途分组显示字段，并对数字范围、枚举、资源引用、元素引用和 Procedure 引用提供对应控件；结构化列表（例如 Villager Trade 的交易条目）可直接逐行增删和编辑，不需要手写原始 JSON。
+
+保存复杂元素时，未在当前编辑器中展示的字段和未知插件字段不会被静默删除；保存后重新打开工作区仍会保留。字段校验失败时，诊断会关联到具体元素和字段，支持直接定位到对应编辑控件。Procedure 继续使用内置 Blockly 工作台；未知上游 Blockly 节点只读显示并在往返保存时保留。Bedrock Add-on 类型仍不属于当前第一方 Java Mod Element 范围。
 
 变量、标签和语言位于「创作数据」视图，支持创建、编辑、引用计数以及重命名影响预览。语言工具支持 CSV/JSON 导入导出，以及 merge/keep/replace 冲突处理和缺失/重复键统计。
 

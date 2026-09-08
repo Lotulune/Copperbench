@@ -1,0 +1,14 @@
+allprojects {
+    afterEvaluate { p ->
+        if (p == rootProject) {
+            tasks.register('prepareTrackAuditRuntime') {
+                dependsOn tasks.named('compileJava')
+                doLast {
+                    def out = file('.tmp/stage14-track-audit/classpath.txt')
+                    out.parentFile.mkdirs()
+                    out.text = sourceSets.main.runtimeClasspath.asPath
+                }
+            }
+        }
+    }
+}

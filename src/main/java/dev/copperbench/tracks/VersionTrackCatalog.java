@@ -42,8 +42,8 @@ public final class VersionTrackCatalog {
 		SUPPORTED, PREVIEW, UNAVAILABLE, COINCIDES
 	}
 
-	public record LoaderStatus(LoaderId loader, String generatorId, String minecraftVersion, SupportStatus status,
-			String pluginId, String reasonCode, String notes) {
+	public record LoaderStatus(LoaderId loader, String generatorId, String minecraftVersion, int javaRelease,
+			SupportStatus status, String pluginId, String reasonCode, String notes) {
 		public LoaderStatus {
 			Objects.requireNonNull(loader);
 			Objects.requireNonNull(generatorId);
@@ -88,28 +88,28 @@ public final class VersionTrackCatalog {
 	}
 
 	public static VersionTrackCatalog official() {
-		LoaderStatus fabricLatest = new LoaderStatus(LoaderId.FABRIC, "fabric-26.2", LATEST_MINECRAFT,
+		LoaderStatus fabricLatest = new LoaderStatus(LoaderId.FABRIC, "fabric-26.2", LATEST_MINECRAFT, 25,
 				SupportStatus.SUPPORTED, "generator-fabric-26.2", "TRACK_SUPPORTED",
 				"Latest stable Minecraft 26.2. New Workspace generator retargeted from Goldorion Fabric 26.1.2 templates (Fabric API 0.158.0+26.2). First-party vertical slice also has compile and runClient evidence.");
-		LoaderStatus neoForgeLatest = new LoaderStatus(LoaderId.NEOFORGE, "neoforge-26.2", LATEST_MINECRAFT,
+		LoaderStatus neoForgeLatest = new LoaderStatus(LoaderId.NEOFORGE, "neoforge-26.2", LATEST_MINECRAFT, 25,
 				SupportStatus.SUPPORTED, "generator-26.2", "TRACK_SUPPORTED",
 				"Latest stable Minecraft 26.2. New Workspace generator retargeted from NeoForge 26.1.2 templates (NeoForge 26.2.0.63). First-party vertical slice also has compile and runClient evidence.");
-		LoaderStatus fabricPrevious = new LoaderStatus(LoaderId.FABRIC, "fabric-26.1.2", PREVIOUS_MINECRAFT,
+		LoaderStatus fabricPrevious = new LoaderStatus(LoaderId.FABRIC, "fabric-26.1.2", PREVIOUS_MINECRAFT, 25,
 				SupportStatus.SUPPORTED, "generator-fabric-26.1.2", "TRACK_SUPPORTED",
 				"Previous stable Minecraft 26.1.2. First-party Fabric vertical slice with compile and runClient evidence (unobfuscated Loom, Fabric API 0.155.2+26.1.2).");
-		LoaderStatus neoForgePrevious = new LoaderStatus(LoaderId.NEOFORGE, "neoforge-26.1.2", PREVIOUS_MINECRAFT,
+		LoaderStatus neoForgePrevious = new LoaderStatus(LoaderId.NEOFORGE, "neoforge-26.1.2", PREVIOUS_MINECRAFT, 25,
 				SupportStatus.SUPPORTED, "generator-26.1.x", "TRACK_SUPPORTED",
 				"Previous stable Minecraft 26.1.2. First-party NeoForge vertical slice with compile and runClient evidence (NeoForge 26.1.2.95).");
-		LoaderStatus fabric1211 = new LoaderStatus(LoaderId.FABRIC, "fabric-1.21.1", FIXED_1211,
+		LoaderStatus fabric1211 = new LoaderStatus(LoaderId.FABRIC, "fabric-1.21.1", FIXED_1211, 21,
 				SupportStatus.SUPPORTED, "generator-1.21.1", "TRACK_SUPPORTED",
 				"Maintenance track. New Workspace generator retargeted from Goldorion Fabric 26.1.2 templates to ResourceLocation/Java 21. First-party vertical slice has golden build and runClient evidence.");
-		LoaderStatus neoForge1211 = new LoaderStatus(LoaderId.NEOFORGE, "neoforge-1.21.1", FIXED_1211,
+		LoaderStatus neoForge1211 = new LoaderStatus(LoaderId.NEOFORGE, "neoforge-1.21.1", FIXED_1211, 21,
 				SupportStatus.SUPPORTED, "generator-1.21.1", "TRACK_SUPPORTED",
 				"Maintenance track. Copperbench-owned NeoForge 1.21.1 vertical slice with golden build and runClient evidence.");
-		LoaderStatus fabric1201 = new LoaderStatus(LoaderId.FABRIC, "fabric-1.20.1", FIXED_1201,
+		LoaderStatus fabric1201 = new LoaderStatus(LoaderId.FABRIC, "fabric-1.20.1", FIXED_1201, 17,
 				SupportStatus.SUPPORTED, "generator-1.20.1", "TRACK_SUPPORTED",
 				"Maintenance track. New Workspace generator retargeted to Java 17, Gradle 8.8 and loom 1.7.4. First-party vertical slice has compile and runClient evidence.");
-		LoaderStatus neoForge1201 = new LoaderStatus(LoaderId.NEOFORGE, "neoforge-1.20.1", FIXED_1201,
+		LoaderStatus neoForge1201 = new LoaderStatus(LoaderId.NEOFORGE, "neoforge-1.20.1", FIXED_1201, 17,
 				SupportStatus.SUPPORTED, "generator-1.20.1", "TRACK_SUPPORTED",
 				"Maintenance track. New Workspace generator retargeted to Forge 1.20.1-47.1.106 and userdev 7.0.165. First-party vertical slice has compile and runClient evidence.");
 		return new VersionTrackCatalog(List.of(
@@ -191,6 +191,7 @@ public final class VersionTrackCatalog {
 				loader.addProperty("loader", status.loader().name().toLowerCase(Locale.ROOT));
 				loader.addProperty("generatorId", status.generatorId());
 				loader.addProperty("minecraftVersion", status.minecraftVersion());
+				loader.addProperty("javaRelease", status.javaRelease());
 				loader.addProperty("status", status.status().name().toLowerCase(Locale.ROOT));
 				if (status.pluginId() == null)
 					loader.add("pluginId", com.google.gson.JsonNull.INSTANCE);

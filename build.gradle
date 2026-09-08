@@ -59,6 +59,37 @@ java {
     }
 }
 
+// Gradle Tooling API BuildAction implementations execute inside the target
+// workspace Gradle daemon, not only inside Copperbench's Java 25 process.
+// Keep that tiny transported boundary on a bytecode level accepted by the
+// oldest supported Java tracks while the main application remains Java 25.
+sourceSets {
+    gradleBridge {
+        java.srcDir 'src/gradleBridge/java'
+        compileClasspath = configurations.compileClasspath
+        runtimeClasspath = output + compileClasspath
+    }
+    main {
+        compileClasspath += gradleBridge.output
+        runtimeClasspath += gradleBridge.output
+    }
+    test {
+        compileClasspath += gradleBridge.output
+        runtimeClasspath += gradleBridge.output
+    }
+}
+
+tasks.named('compileGradleBridgeJava', JavaCompile) {
+    javaCompiler = javaToolchains.compilerFor {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+    options.release = 17
+}
+
+tasks.named('jar', Jar) {
+    from sourceSets.gradleBridge.output
+}
+
 idea {
     module {
         inheritOutputDirs = true
@@ -244,6 +275,30 @@ test {
 		System.getProperty('copperbench.stage11.workspaceGeneratorBuild', 'false')
 	systemProperty 'copperbench.stage11.workspaceGeneratorId',
 		System.getProperty('copperbench.stage11.workspaceGeneratorId', '')
+	systemProperty 'copperbench.stage12.workspaceGeneratorBuild',
+		System.getProperty('copperbench.stage12.workspaceGeneratorBuild', 'false')
+	systemProperty 'copperbench.stage12.workspaceGeneratorId',
+		System.getProperty('copperbench.stage12.workspaceGeneratorId', '')
+	systemProperty 'copperbench.stage14b.workspaceNativeBuild',
+		System.getProperty('copperbench.stage14b.workspaceNativeBuild', 'false')
+	systemProperty 'copperbench.stage14b.workspaceGeneratorId',
+		System.getProperty('copperbench.stage14b.workspaceGeneratorId', '')
+	systemProperty 'copperbench.stage14c.packagedBehavior',
+		System.getProperty('copperbench.stage14c.packagedBehavior', 'false')
+	systemProperty 'copperbench.stage14c.fabricPackagedMatrix',
+		System.getProperty('copperbench.stage14c.fabricPackagedMatrix', 'false')
+	systemProperty 'copperbench.stage14c.fabricPackagedMatrixResume',
+		System.getProperty('copperbench.stage14c.fabricPackagedMatrixResume', 'false')
+	systemProperty 'copperbench.stage14c.fabricGameplayMatrix',
+		System.getProperty('copperbench.stage14c.fabricGameplayMatrix', 'false')
+	systemProperty 'copperbench.stage14c.fabricGameplayMatrixResume',
+		System.getProperty('copperbench.stage14c.fabricGameplayMatrixResume', 'false')
+	systemProperty 'copperbench.stage14c.neoforgeGameplayMatrix',
+		System.getProperty('copperbench.stage14c.neoforgeGameplayMatrix', 'false')
+	systemProperty 'copperbench.stage14c.neoforgeGameplayMatrixResume',
+		System.getProperty('copperbench.stage14c.neoforgeGameplayMatrixResume', 'false')
+	systemProperty 'copperbench.workspaceGeneratorKeepWorkspace',
+		System.getProperty('copperbench.workspaceGeneratorKeepWorkspace', 'false')
 	systemProperty 'copperbench.stage9.realServer',
 		System.getProperty('copperbench.stage9.realServer', 'false')
 	systemProperty 'copperbench.stage9.realServerGeneratorId',

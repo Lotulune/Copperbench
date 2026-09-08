@@ -27,7 +27,9 @@ import org.apache.logging.log4j.Logger;
 		// Start of user code block mod constructor
 		// End of user code block mod constructor
 
+		<#if w.hasElementsOfType("procedure")>
 		NeoForge.EVENT_BUS.register(this);
+		</#if>
 
 		modEventBus.addListener(this::registerNetworking);
 

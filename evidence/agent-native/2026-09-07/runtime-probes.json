@@ -1,0 +1,17 @@
+{
+  "scope": "Development-source-set server bootstrap only; neither packaged-JAR deployment nor world/gameplay testing",
+  "native": {
+    "reachedEulaBoundary": true,
+    "eulaAccepted": false,
+    "modInitialized": true,
+    "worldCreated": false
+  },
+  "copperbench": {
+    "reachedEulaBoundary": false,
+    "serverPlayerMixinInjectionFailure": true,
+    "modInitialized": false,
+    "worldCreated": false,
+    "eulaAccepted": false
+  },
+  "newDefect": "CB-AUDIT-03: generated Fabric 1.21.1 ServerPlayerMixin prevents bootstrap; confirmed on this source-generated fixture, not all generator tracks or installed releases"
+}

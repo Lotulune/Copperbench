@@ -1,0 +1,128 @@
+[
+  {
+    "variant": "copperbench",
+    "path": "src/main/java/dev/example/surveypulse/OreScanner.java",
+    "bytes": 1619,
+    "sha256": "32DABC6ECE029E7968E73DE065D92268A719083AC16A31BF39815DFA1AE9F1AE"
+  },
+  {
+    "variant": "copperbench",
+    "path": "src/main/java/dev/example/surveypulse/pulse_runtime.java",
+    "bytes": 2753,
+    "sha256": "3B8291F786B37B984EDB5E0FB979276428754984A344512FCBF8F628F9B6890C"
+  },
+  {
+    "variant": "copperbench",
+    "path": "src/main/java/dev/example/surveypulse/ScanResult.java",
+    "bytes": 801,
+    "sha256": "E503C0C5E7F72B8F94E024FB6395EBDB317E979736452DF28DAFA68CF4999BE4"
+  },
+  {
+    "variant": "copperbench",
+    "path": "src/main/java/dev/example/surveypulse/SurveyPulseMod.java",
+    "bytes": 3269,
+    "sha256": "0C43BA87E8BB61DB1E5195EAAF1E2A3F4F5EDC45CF2FF859A2B3A57E0CBED7C2"
+  },
+  {
+    "variant": "copperbench",
+    "path": "src/main/java/dev/example/surveypulse/init/SurveyPulseModItems.java",
+    "bytes": 712,
+    "sha256": "9F002DD83C2D6A69BEF3296EF70B96E8B972FD94EC3917A70332556F5EE03C62"
+  },
+  {
+    "variant": "copperbench",
+    "path": "src/main/java/dev/example/surveypulse/item/survey_wandItem.java",
+    "bytes": 453,
+    "sha256": "8B2F61354F47849938DB1194644BDBB8D018178E115ACE526B01C0BA9EBB292A"
+  },
+  {
+    "variant": "copperbench",
+    "path": "src/main/resources/pack.mcmeta",
+    "bytes": 64,
+    "sha256": "ED7ADA42029D051725639FCE55F7E31BE7481342BAAECB3FE925E67AFE03D36D"
+  },
+  {
+    "variant": "copperbench",
+    "path": "src/main/resources/assets/survey_pulse/lang/en_us.json",
+    "bytes": 52,
+    "sha256": "62F75FDF2E659DCF843F9437AB3EB035DE3FEFE2758D30CD9C31B2C62FE2867D"
+  },
+  {
+    "variant": "copperbench",
+    "path": "src/main/resources/assets/survey_pulse/models/item/survey_wand.json",
+    "bytes": 99,
+    "sha256": "3CD6469999B03E95351D58FED4F1EE2F5E51BCE7B0DFA145619D02F5B3EA284D"
+  },
+  {
+    "variant": "copperbench",
+    "path": "src/main/resources/data/survey_pulse/recipes/survey_wand.json",
+    "bytes": 180,
+    "sha256": "4E1EE671ABF42165DF9C97561A1A664766EC641A307F2604E3E7C257AB48F206"
+  },
+  {
+    "variant": "copperbench",
+    "path": "src/main/resources/META-INF/mods.toml",
+    "bytes": 835,
+    "sha256": "5CAE8078A4DFA1D7C3087EA1F2E4889ECBFDAFFCE255CF56E121C9D937E7CC51"
+  },
+  {
+    "variant": "copperbench",
+    "path": "elements/survey_wand.mod.json",
+    "bytes": 1176,
+    "sha256": "E355163F7C1D1FB9C0912B79B326EE22A0C8E6C79C088EC5D5BF80652DBABA3B"
+  },
+  {
+    "variant": "native",
+    "path": "src/main/java/dev/example/surveypulse/OreScanner.java",
+    "bytes": 1594,
+    "sha256": "F6BBBDF14663D18397CDF98DF452DF74D539E14CB7401D120EAE68C8292155FF"
+  },
+  {
+    "variant": "native",
+    "path": "src/main/java/dev/example/surveypulse/pulse_runtime.java",
+    "bytes": 2753,
+    "sha256": "3B8291F786B37B984EDB5E0FB979276428754984A344512FCBF8F628F9B6890C"
+  },
+  {
+    "variant": "native",
+    "path": "src/main/java/dev/example/surveypulse/ScanResult.java",
+    "bytes": 801,
+    "sha256": "E503C0C5E7F72B8F94E024FB6395EBDB317E979736452DF28DAFA68CF4999BE4"
+  },
+  {
+    "variant": "native",
+    "path": "src/main/java/dev/example/surveypulse/SurveyPulseMod.java",
+    "bytes": 641,
+    "sha256": "4CF561A97B86433033D80779120574856F8C37C4B39B2846C74F5EE5785DD8F3"
+  },
+  {
+    "variant": "native",
+    "path": "src/main/resources/pack.mcmeta",
+    "bytes": 56,
+    "sha256": "CBF4B029526F8B7F774DC478251E4ADECCD29C973801E2A5DC5F2576B55BCEA0"
+  },
+  {
+    "variant": "native",
+    "path": "src/main/resources/assets/survey_pulse/lang/en_us.json",
+    "bytes": 47,
+    "sha256": "4D74C924E5A9ECF1CE938E261BF3375A14BA3BC23BFFAC2D87BCB3ED553CCAB1"
+  },
+  {
+    "variant": "native",
+    "path": "src/main/resources/assets/survey_pulse/models/item/survey_wand.json",
+    "bytes": 91,
+    "sha256": "9076C8347551DCD9818F79B79543BF99B4B34BAEBC941113767F9C27047DFA6D"
+  },
+  {
+    "variant": "native",
+    "path": "src/main/resources/data/survey_pulse/recipes/survey_wand.json",
+    "bytes": 180,
+    "sha256": "4E1EE671ABF42165DF9C97561A1A664766EC641A307F2604E3E7C257AB48F206"
+  },
+  {
+    "variant": "native",
+    "path": "src/main/resources/META-INF/mods.toml",
+    "bytes": 152,
+    "sha256": "CB9419A096F53B1976F7EBE5710F71CDCF6F370585A860D845DC3344995F0856"
+  }
+]

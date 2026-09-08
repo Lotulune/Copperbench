@@ -20,6 +20,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -127,6 +128,28 @@ class LoaderMigrationRebuildServiceTest {
 		assertFalse(rebuild.generated());
 		assertEquals("skipped", rebuild.status());
 		assertEquals("VERSION_TRACK_NOT_REBUILDABLE", rebuild.reasonCode());
+	}
+
+	@Test void validationFailurePreservesStableElementFieldAndRepairFact() {
+		WorkspaceState valid = Fabric1211GoldenWorkspace.create();
+		var elements = new ArrayList<>(valid.elements());
+		var item = elements.stream().filter(element -> element.type().equals("item")).findFirst().orElseThrow();
+		var values = item.values();
+		values.getAsJsonObject("fields").addProperty("maxStackSize", 0);
+		int itemIndex = elements.indexOf(item);
+		elements.set(itemIndex, new WorkspaceState.Element(item.id(), item.type(), item.name(), item.displayName(),
+				item.state(), item.ownership(), item.updatedAt(), values));
+		WorkspaceState broken = new WorkspaceState(valid.id(), valid.name(), valid.kind(), valid.revision(),
+				valid.dirty(), valid.generator(), valid.upstreamDocument(), elements);
+
+		var rebuild = rebuilds.rebuild(broken, "neoforge-1.21.1", temp.resolve("invalid-neoforge"));
+
+		assertEquals("failed", rebuild.status());
+		assertEquals("NEOFORGE_ITEM_STACK_INVALID", rebuild.reasonCode());
+		assertEquals(item.id(), rebuild.elementId());
+		assertEquals("/elements/" + item.id() + "/values/fields/maxStackSize", rebuild.path());
+		assertEquals(1, rebuild.repairValue().getAsInt());
+		assertEquals(null, rebuild.cause());
 	}
 
 	@Test void failedRebuildProjectionDoesNotExposeCauseDetails() {

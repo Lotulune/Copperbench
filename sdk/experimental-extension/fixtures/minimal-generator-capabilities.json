@@ -1,0 +1,23 @@
+{
+  "$schema": "../capability-manifest.schema.json",
+  "manifestVersion": "0.1",
+  "compatibilityLevel": "experimental",
+  "extensionApiVersion": "experimental-0",
+  "coreSchema": {
+    "minimum": "1.0",
+    "maximumTested": "1.0"
+  },
+  "extension": {
+    "id": "example.experimental-generator",
+    "kind": "generator"
+  },
+  "capabilities": [
+    "workspace_base",
+    "source_generation",
+    "structured_diagnostics"
+  ],
+  "diagnosticBoundary": {
+    "failureIsolation": "plugin_loader",
+    "incompatibleBehavior": "reject_unless_explicit_dev_override"
+  }
+}

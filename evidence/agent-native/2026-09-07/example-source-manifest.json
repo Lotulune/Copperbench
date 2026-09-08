@@ -1,0 +1,98 @@
+{
+  "source": "tested .tmp/astra-native-comparison/native tree",
+  "destination": "examples/agent-native/survey-pulse",
+  "copyByteVerified": true,
+  "buildAtDestinationRun": false,
+  "files": [
+    {
+      "path": ".gitignore",
+      "bytes": 69,
+      "sha256": "3E97CB3A2ADDA594E8ED66CFAEF1263B949368176C3164343D60EEFBE0CD9FBE"
+    },
+    {
+      "path": "build.gradle",
+      "bytes": 1121,
+      "sha256": "3820514A37843F0FAEBC9575BA764254D72589F3F95E4E4B123596ED3A44FE31"
+    },
+    {
+      "path": "gradle.properties",
+      "bytes": 129,
+      "sha256": "0EF550C89C168D68426AC8B614C3492FA2DBB91D3C48A32D36317732AEC747A1"
+    },
+    {
+      "path": "gradlew",
+      "bytes": 8902,
+      "sha256": "6D342D5765739FC2C34A15759035D0BC5BEEF0C039B7DDD68B78E7E637B8DD21"
+    },
+    {
+      "path": "gradlew.bat",
+      "bytes": 2896,
+      "sha256": "FEDAD02C18E266EC094995A5751B7FE1EB6E74F66BF75DB64FAE2E50EB22C234"
+    },
+    {
+      "path": "README.md",
+      "bytes": 2545,
+      "sha256": "648B3534E2E9D996E598466A75E0F5EA61FAFF83AA7924AE3A15DA6C3D70B8F7"
+    },
+    {
+      "path": "settings.gradle",
+      "bytes": 193,
+      "sha256": "E639F692CFECA0D5816DCBC5699968E1B4E49C43D098F7B74B701B4D14423C9D"
+    },
+    {
+      "path": "gradle/wrapper/gradle-wrapper.jar",
+      "bytes": 48966,
+      "sha256": "55243EF57851F12B070AD14F7F5BB8302DACEEEBC5BCE5ECE5FA6EDB23E1145C"
+    },
+    {
+      "path": "gradle/wrapper/gradle-wrapper.properties",
+      "bytes": 258,
+      "sha256": "31582545D6C50757B76EDB55D1C397334C6D2E0218C54A3283090DF5E1147DAA"
+    },
+    {
+      "path": "src/contractTest/java/dev/example/surveypulse/ScannerContractTest.java",
+      "bytes": 2078,
+      "sha256": "9ED2F8E0F07B80127807C60619D6130693663D6CCEAE1D6224FF7AEB6FD91B8C"
+    },
+    {
+      "path": "src/main/java/dev/example/surveypulse/OreScanner.java",
+      "bytes": 1594,
+      "sha256": "F6BBBDF14663D18397CDF98DF452DF74D539E14CB7401D120EAE68C8292155FF"
+    },
+    {
+      "path": "src/main/java/dev/example/surveypulse/ScanResult.java",
+      "bytes": 801,
+      "sha256": "E503C0C5E7F72B8F94E024FB6395EBDB317E979736452DF28DAFA68CF4999BE4"
+    },
+    {
+      "path": "src/main/java/dev/example/surveypulse/SurveyPulseMod.java",
+      "bytes": 2580,
+      "sha256": "4377A6FC476EFEA6A2DD79E9736832855ABD960DC8C35B89F394D0642C8FCC2A"
+    },
+    {
+      "path": "src/main/resources/fabric.mod.json",
+      "bytes": 432,
+      "sha256": "00F8C4E37D13C7396BEC2F2F4BF8F59DCFC793682D30A4E8EF4935115C5952A0"
+    },
+    {
+      "path": "src/main/resources/assets/survey_pulse/lang/en_us.json",
+      "bytes": 49,
+      "sha256": "E4415CCDB87D6C4E7A6C57C531998525FE3CAC1B378C282BC6D9859A69E752EC"
+    },
+    {
+      "path": "src/main/resources/assets/survey_pulse/lang/zh_cn.json",
+      "bytes": 47,
+      "sha256": "544196CA6BE7239674646C53857753E2AFFE7728608A5AAB6B44D56E83520DB1"
+    },
+    {
+      "path": "src/main/resources/assets/survey_pulse/models/item/survey_wand.json",
+      "bytes": 102,
+      "sha256": "616003273240F467B1A2097020F57187219E556C91D62D67384957617FB47B7F"
+    },
+    {
+      "path": "src/main/resources/data/survey_pulse/recipe/survey_wand.json",
+      "bytes": 198,
+      "sha256": "CF71A26A36BB79511627F098AD3C05464128C8F33E569E7669BA2D37E7B8FC30"
+    }
+  ]
+}

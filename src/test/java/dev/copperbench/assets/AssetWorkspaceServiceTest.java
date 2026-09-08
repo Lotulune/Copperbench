@@ -71,11 +71,48 @@ class AssetWorkspaceServiceTest {
 		assertEquals(1, graph.references().size());
 		AssetReference reference = graph.references().getFirst();
 		assertEquals("assets/copperbench/models/copper_lamp.json", reference.sourcePath());
+		assertEquals("/textures/all", reference.sourcePointer());
+		assertEquals("copperbench:textures/block/copper_lamp", reference.rawValue());
+		assertEquals("textures/", reference.expectedPrefix());
 		assertEquals("assets/copperbench/textures/block/copper_lamp.png", reference.targetPath());
 		assertNotNull(reference.targetAssetId());
 		assertTrue(graph.diagnostics().stream().anyMatch(diagnostic ->
 				diagnostic.code().equals("MISSING_ASSET_REFERENCE")
 						&& diagnostic.targetPath().endsWith("missing_lamp.png")));
+	}
+
+	@Test
+	void derivesReverseUsageAndHealthWithoutTreatingStaticOrphansAsErrors() {
+		AssetReferenceGraph graph = new AssetWorkspaceService(workspace).referenceGraph();
+		AssetHealthReport health = graph.healthReport();
+
+		assertEquals(1, graph.incoming("assets/copperbench/textures/block/copper_lamp.png").size());
+		AssetHealthReport.Entry texture = health.entries().stream()
+				.filter(entry -> entry.relativePath().endsWith("textures/block/copper_lamp.png"))
+				.findFirst().orElseThrow();
+		assertEquals(1, texture.inboundCount());
+		assertEquals(AssetHealthReport.Status.READY, texture.status());
+
+		AssetHealthReport.Entry model = health.entries().stream()
+				.filter(entry -> entry.relativePath().endsWith("models/copper_lamp.json"))
+				.findFirst().orElseThrow();
+		assertTrue(model.unused());
+		assertTrue(model.usageAssessed());
+		assertEquals(AssetHealthReport.Status.ERROR, model.status());
+		assertTrue(model.issueCodes().contains("MISSING_ASSET_REFERENCE"));
+
+		AssetHealthReport.Entry language = health.entries().stream()
+				.filter(entry -> entry.relativePath().endsWith("lang/en_us.json"))
+				.findFirst().orElseThrow();
+		assertFalse(language.usageAssessed());
+		assertFalse(language.unused());
+		assertEquals(AssetHealthReport.Status.READY, language.status());
+
+		assertEquals(3, health.summary().totalAssets());
+		assertEquals(1, health.summary().errorAssets());
+		assertEquals(0, health.summary().warningAssets());
+		assertEquals(1, health.summary().unusedAssets());
+		assertEquals(1, health.summary().missingReferences());
 	}
 
 	@Test
@@ -86,6 +123,28 @@ class AssetWorkspaceServiceTest {
 		assertThrows(AssetPathViolationException.class, () -> service.resolveAuthorizedPath(workspace.toString()));
 		assertThrows(AssetPathViolationException.class,
 				() -> service.resolveAuthorizedPath("assets/copperbench/models/unknown.json"));
+	}
+
+	@Test
+	void detectsExactDuplicateContentWithinTheSameMediaType() throws IOException {
+		Path original = workspace.resolve("assets/copperbench/textures/block/copper_lamp.png");
+		Path duplicate = workspace.resolve("assets/copperbench/textures/block/copper_lamp_copy.png");
+		Files.copy(original, duplicate);
+
+		AssetHealthReport report = new AssetWorkspaceService(workspace).referenceGraph().healthReport();
+		AssetHealthReport.Entry originalHealth = report.entries().stream()
+				.filter(entry -> entry.relativePath().endsWith("copper_lamp.png")).findFirst().orElseThrow();
+		AssetHealthReport.Entry duplicateHealth = report.entries().stream()
+				.filter(entry -> entry.relativePath().endsWith("copper_lamp_copy.png")).findFirst().orElseThrow();
+
+		assertTrue(originalHealth.duplicateContent());
+		assertTrue(duplicateHealth.duplicateContent());
+		assertEquals(List.of("assets/copperbench/textures/block/copper_lamp_copy.png"),
+				originalHealth.duplicatePaths());
+		assertTrue(originalHealth.issueCodes().contains("DUPLICATE_ASSET_CONTENT"));
+		assertEquals(AssetHealthReport.Status.WARNING, originalHealth.status());
+		assertEquals(2, report.summary().duplicateAssets());
+		assertEquals(1, report.summary().duplicateGroups());
 	}
 
 	@Test
@@ -120,6 +179,10 @@ class AssetWorkspaceServiceTest {
 		assertEquals(List.of("assets/copperbench/models/block/cube_all.json",
 				"assets/copperbench/textures/block/copper_lamp.png"),
 				outgoing.stream().map(AssetReference::targetPath).sorted().toList());
+		AssetReference parentReference = outgoing.stream()
+				.filter(reference -> reference.sourcePointer().equals("/parent")).findFirst().orElseThrow();
+		assertEquals("copperbench:block/cube_all", parentReference.rawValue());
+		assertEquals("models/", parentReference.expectedPrefix());
 	}
 
 	@Test
@@ -147,5 +210,15 @@ class AssetWorkspaceServiceTest {
 		assertFalse(graph.assets().stream().anyMatch(asset -> asset.relativePath().startsWith("build/")
 				|| asset.relativePath().startsWith("src/main/java/")));
 		assertFalse(graph.diagnostics().stream().anyMatch(diagnostic -> diagnostic.sourcePath().startsWith("build/")));
+	}
+
+	@Test void indexesLegacyLangAssetsWithConsistentMediaType() throws IOException {
+		Path legacy = workspace.resolve("assets/copperbench/lang/legacy.lang");
+		Files.writeString(legacy, "tile.copperbench.lamp=Copper Lamp");
+
+		AssetDescriptor descriptor = new AssetWorkspaceService(workspace).findByRelativePath(
+				"assets/copperbench/lang/legacy.lang").orElseThrow();
+		assertEquals(AssetCategory.LANGUAGE, descriptor.category());
+		assertEquals("text/plain", descriptor.mediaType());
 	}
 }

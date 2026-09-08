@@ -26,6 +26,7 @@ import dev.copperbench.history.LocalHistoryException;
 import dev.copperbench.history.LocalHistoryService;
 import dev.copperbench.history.RecoveryPoint;
 import dev.copperbench.history.RecoveryPointRequest;
+import dev.copperbench.history.RecoveryPointSource;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -38,6 +39,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.HexFormat;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -54,6 +56,8 @@ final class WorkspacePlanEngine {
 
 	private static final Gson GSON = UiCore.wireGson();
 	private static final int MAX_OPERATIONS = 100;
+	private static final int HIGH_IMPACT_OPERATION_THRESHOLD = 5;
+	private static final int HIGH_IMPACT_OBJECT_THRESHOLD = 5;
 	private static final Set<Operation> SUPPORTED = Set.of(
 			Operation.CREATE_MOD_ELEMENT,
 			Operation.UPDATE_MOD_ELEMENT,
@@ -104,12 +108,15 @@ final class WorkspacePlanEngine {
 			String idempotencyKey = requiredString(query.payload(), "idempotencyKey");
 			if (idempotencyKey.length() > 128)
 				throw new IllegalArgumentException("idempotencyKey must be at most 128 characters");
+			boolean requireRecoveryPoint = optionalBoolean(query.payload(), "requireRecoveryPoint", false);
 			JsonArray operations = normalizedOperations(query.payload(), true);
 			Simulation simulation = simulate(state, operations);
 			if (!simulation.succeeded())
 				return queryFailure(query, state.revision(), simulation.diagnostic());
+			Diagnostic preflight = mutationPreflight(state, simulation.state());
+			if (preflight != null) return queryFailure(query, state.revision(), preflight);
 			JsonObject plan = buildPlan(query.workspaceId(), state, idempotencyKey, operations,
-					simulation.state(), context.permission());
+					simulation.state(), context.permission(), requireRecoveryPoint);
 			return querySuccess(query, state.revision(), plan);
 		} catch (RuntimeException exception) {
 			return queryFailure(query, state.revision(), diagnostic("WORKSPACE_PLAN_INVALID",
@@ -117,6 +124,38 @@ final class WorkspacePlanEngine {
 		}
 	}
 
+	QueryResult planPrepared(Query query, RequestContext context, JsonArray preparedOperations,
+			List<WorkspacePlanArtifact> artifacts, JsonObject templateMetadata) {
+		WorkspaceState state = store.read(query.workspaceId()).orElse(null);
+		if (state == null) return queryFailure(query, 0, diagnostic("WORKSPACE_NOT_FOUND",
+				"diagnostic.workspace_not_found", "The workspace does not exist."));
+		try {
+			long expectedRevision = requiredLong(query.payload(), "expectedRevision");
+			if (expectedRevision != state.revision())
+				return queryFailure(query, state.revision(), stalePlan(expectedRevision, state.revision()));
+			String idempotencyKey = requiredString(query.payload(), "idempotencyKey");
+			if (idempotencyKey.length() > 128)
+				throw new IllegalArgumentException("idempotencyKey must be at most 128 characters");
+			List<WorkspacePlanArtifact> safeArtifacts = artifacts == null ? List.of() : List.copyOf(artifacts);
+			JsonObject envelope = new JsonObject();
+			envelope.add("operations", preparedOperations == null ? new JsonArray() : preparedOperations.deepCopy());
+			JsonArray operations = normalizedOperations(envelope, false, !safeArtifacts.isEmpty());
+			if (operations.isEmpty() && safeArtifacts.isEmpty())
+				throw new IllegalArgumentException("Template must instantiate at least one element or asset");
+			Simulation simulation = simulate(state, operations);
+			if (!simulation.succeeded()) return queryFailure(query, state.revision(), simulation.diagnostic());
+			Diagnostic preflight = mutationPreflight(state, simulation.state(), safeArtifacts);
+			if (preflight != null) return queryFailure(query, state.revision(), preflight);
+			JsonObject plan = buildPlan(query.workspaceId(), state, idempotencyKey, operations, simulation.state(),
+					context.permission(), true, safeArtifacts,
+					templateMetadata == null ? new JsonObject() : templateMetadata.deepCopy());
+			return querySuccess(query, state.revision(), plan);
+		} catch (RuntimeException exception) {
+			return queryFailure(query, state.revision(), diagnostic("WORKSPACE_PLAN_INVALID",
+
+					"diagnostic.workspace_plan_invalid", exception.getMessage()));
+		}
+	}
 	QueryResult preview(Query query, RequestContext context) {
 		WorkspaceState state = store.read(query.workspaceId()).orElse(null);
 		if (state == null) return queryFailure(query, 0, diagnostic("WORKSPACE_NOT_FOUND",
@@ -128,8 +167,10 @@ final class WorkspacePlanEngine {
 			projection.addProperty("currentRevision", state.revision());
 			projection.addProperty("alreadyApplied", validated.alreadyApplied());
 			projection.addProperty("wouldApply", !validated.alreadyApplied()
-					&& context.permission() != PermissionProfile.READ_ONLY);
+					&& context.permission() != PermissionProfile.READ_ONLY
+					&& (!requiresRecoveryPoint(validated.plan()) || history != null));
 			projection.add("permission", permission(context.permission()));
+			projection.add("safety", recoverySafety(validated.plan()));
 			return querySuccess(query, state.revision(), projection);
 		} catch (PlanException exception) {
 			return queryFailure(query, state.revision(), exception.diagnostic());
@@ -162,8 +203,13 @@ final class WorkspacePlanEngine {
 			return revisionConflict(command, current.revision(), List.of());
 		if (validated.alreadyApplied())
 			return idempotentReplay(command, current.revision(), plan);
+		if (requiresRecoveryPoint(plan) && history == null)
+			return rejected(command, current.revision(), diagnostic("RECOVERY_POINT_REQUIRED_UNAVAILABLE",
+					"diagnostic.recovery_point_required_unavailable",
+					"This protected workspace plan requires local history, but recovery points are unavailable."));
 
 		JsonArray operations = plan.getAsJsonArray("operations");
+		List<WorkspacePlanArtifact> artifacts = artifacts(plan);
 		Simulation simulation = validated.simulation();
 		TransactionResult<PlanMutation> transaction = store.transact(command.workspaceId(), command.expectedRevision(), state -> {
 			WorkspaceState before = state.copy();
@@ -173,7 +219,7 @@ final class WorkspacePlanEngine {
 				try {
 					recoveryPoint = history.createRecoveryPoint(new RecoveryPointRequest(
 							"Before workspace plan " + shortId(plan.get("planId").getAsString()), context.actor(),
-							plan.get("idempotencyKey").getAsString()));
+							plan.get("idempotencyKey").getAsString(), RecoveryPointSource.WORKSPACE_PLAN));
 				} catch (LocalHistoryException exception) {
 					return Decision.abort(PlanMutation.rejected(diagnostic("RECOVERY_POINT_FAILED",
 							"diagnostic.recovery_point_failed",
@@ -181,7 +227,7 @@ final class WorkspacePlanEngine {
 				}
 			}
 			try {
-				mutations.persistWorkspacePlan(before, state, operationKinds(operations));
+				mutations.persistWorkspacePlan(before, state, operationKinds(operations), artifacts);
 			} catch (Exception exception) {
 				return Decision.abort(PlanMutation.rejected(diagnostic("WORKSPACE_PLAN_PERSISTENCE_FAILED",
 						"diagnostic.workspace_plan_persistence_failed",
@@ -213,10 +259,14 @@ final class WorkspacePlanEngine {
 	}
 
 	private JsonArray normalizedOperations(JsonObject payload, boolean allocateIds) {
+		return normalizedOperations(payload, allocateIds, false);
+	}
+
+	private JsonArray normalizedOperations(JsonObject payload, boolean allocateIds, boolean allowEmpty) {
 		if (!payload.has("operations") || !payload.get("operations").isJsonArray())
 			throw new IllegalArgumentException("operations is required");
 		JsonArray source = payload.getAsJsonArray("operations");
-		if (source.isEmpty() || source.size() > MAX_OPERATIONS)
+		if ((!allowEmpty && source.isEmpty()) || source.size() > MAX_OPERATIONS)
 			throw new IllegalArgumentException("operations must contain between 1 and " + MAX_OPERATIONS + " items");
 		JsonArray normalized = new JsonArray();
 		for (JsonElement raw : source) {
@@ -282,20 +332,35 @@ final class WorkspacePlanEngine {
 	}
 
 	private JsonObject buildPlan(UUID workspaceId, WorkspaceState before, String idempotencyKey,
-			JsonArray operations, WorkspaceState after, PermissionProfile permissionProfile) {
+			JsonArray operations, WorkspaceState after, PermissionProfile permissionProfile,
+			boolean requireRecoveryPoint) {
+		return buildPlan(workspaceId, before, idempotencyKey, operations, after, permissionProfile,
+				requireRecoveryPoint, List.of(), new JsonObject());
+	}
+
+	private JsonObject buildPlan(UUID workspaceId, WorkspaceState before, String idempotencyKey,
+			JsonArray operations, WorkspaceState after, PermissionProfile permissionProfile,
+			boolean requireRecoveryPoint, List<WorkspacePlanArtifact> artifacts, JsonObject templateMetadata) {
 		JsonObject plan = new JsonObject();
 		plan.addProperty("schemaVersion", UiCore.SCHEMA_VERSION);
 		plan.addProperty("workspaceId", workspaceId.toString());
 		plan.addProperty("baseRevision", before.revision());
 		plan.addProperty("idempotencyKey", idempotencyKey);
+		plan.addProperty("requireRecoveryPoint", requireRecoveryPoint);
 		plan.add("operations", operations.deepCopy());
 		plan.addProperty("operationCount", operations.size());
 		plan.addProperty("targetDigest", workspaceDigest(after));
-		plan.add("semanticDiff", semanticDiff(before, after));
+		if (artifacts != null && !artifacts.isEmpty()) plan.add("templateAssets", artifactJson(artifacts));
+		if (templateMetadata != null && !templateMetadata.isEmpty()) plan.add("template", templateMetadata.deepCopy());
+		JsonArray semanticDiff = semanticDiff(before, after, artifacts);
+		plan.add("semanticDiff", semanticDiff);
+		List<String> changedPaths = changedPaths(before, after, artifacts);
 		JsonArray paths = new JsonArray();
-		changedPaths(before, after).forEach(paths::add);
+		changedPaths.forEach(paths::add);
 		plan.add("changedPaths", paths);
+		plan.add("review", planReview(operations, semanticDiff, changedPaths));
 		plan.add("permission", permission(permissionProfile));
+		plan.add("safety", recoverySafety(plan));
 		plan.addProperty("planId", planId(plan));
 		plan.addProperty("planToken", planToken(plan.get("planId").getAsString()));
 		return plan;
@@ -308,7 +373,9 @@ final class WorkspacePlanEngine {
 					"diagnostic.workspace_plan_wrong_workspace", "The workspace plan belongs to another workspace."));
 		long baseRevision = requiredLong(plan, "baseRevision");
 		requiredString(plan, "idempotencyKey");
-		JsonArray normalized = normalizedOperations(plan, false);
+		optionalBoolean(plan, "requireRecoveryPoint", false);
+		List<WorkspacePlanArtifact> artifacts = artifacts(plan);
+		JsonArray normalized = normalizedOperations(plan, false, !artifacts.isEmpty());
 		plan.add("operations", normalized);
 		int operationCount = requiredInt(plan, "operationCount");
 		if (operationCount != normalized.size())
@@ -317,6 +384,7 @@ final class WorkspacePlanEngine {
 					"The workspace plan operationCount does not match its ordered operations."));
 		JsonArray suppliedSemanticDiff = requiredArray(plan, "semanticDiff");
 		JsonArray suppliedChangedPaths = requiredArray(plan, "changedPaths");
+		JsonObject suppliedReview = requiredObject(plan, "review");
 		String suppliedPlanId = requiredString(plan, "planId");
 		String suppliedPlanToken = requiredString(plan, "planToken");
 		String targetDigest = requiredString(plan, "targetDigest");
@@ -328,27 +396,66 @@ final class WorkspacePlanEngine {
 			throw new PlanException(diagnostic("WORKSPACE_PLAN_INTEGRITY_FAILED",
 					"diagnostic.workspace_plan_integrity_failed",
 					"The workspace plan was not issued by the current Copperbench session."));
-		if (current.revision() == baseRevision + 1 && workspaceDigest(current).equals(targetDigest))
+		if (current.revision() == baseRevision + 1 && workspaceDigest(current).equals(targetDigest)) {
+			Diagnostic replayPreflight = mutationPreflight(current, current, artifacts);
+			if (replayPreflight != null) throw new PlanException(replayPreflight);
 			return new ValidatedPlan(true, null, plan);
+		}
 		if (current.revision() != baseRevision)
 			throw new PlanException(stalePlan(baseRevision, current.revision()));
 		Simulation simulation = simulate(current, normalized);
 		if (!simulation.succeeded()) throw new PlanException(simulation.diagnostic());
+		Diagnostic preflight = mutationPreflight(current, simulation.state(), artifacts);
+		if (preflight != null) throw new PlanException(preflight);
 		if (!workspaceDigest(simulation.state()).equals(targetDigest))
 			throw new PlanException(diagnostic("WORKSPACE_PLAN_TARGET_MISMATCH",
 					"diagnostic.workspace_plan_target_mismatch",
 					"The workspace plan no longer produces its recorded target state."));
-		JsonArray canonicalSemanticDiff = semanticDiff(current, simulation.state());
+		JsonArray canonicalSemanticDiff = semanticDiff(current, simulation.state(), artifacts);
+		List<String> canonicalPathList = changedPaths(current, simulation.state(), artifacts);
 		JsonArray canonicalChangedPaths = new JsonArray();
-		changedPaths(current, simulation.state()).forEach(canonicalChangedPaths::add);
-		if (!canonicalSemanticDiff.equals(suppliedSemanticDiff) || !canonicalChangedPaths.equals(suppliedChangedPaths))
+		canonicalPathList.forEach(canonicalChangedPaths::add);
+		JsonObject canonicalReview = planReview(normalized, canonicalSemanticDiff, canonicalPathList);
+		if (!canonicalSemanticDiff.equals(suppliedSemanticDiff) || !canonicalChangedPaths.equals(suppliedChangedPaths)
+				|| !canonicalReview.equals(suppliedReview))
 			throw new PlanException(diagnostic("WORKSPACE_PLAN_INTEGRITY_FAILED",
 					"diagnostic.workspace_plan_integrity_failed",
 					"The workspace plan derived diff does not match the validated target state."));
 		plan.add("semanticDiff", canonicalSemanticDiff);
 		plan.add("changedPaths", canonicalChangedPaths);
+		plan.add("review", canonicalReview);
 		plan.addProperty("operationCount", normalized.size());
+		plan.add("safety", recoverySafety(plan));
 		return new ValidatedPlan(false, simulation, plan);
+	}
+
+	private Diagnostic mutationPreflight(WorkspaceState before, WorkspaceState after) {
+		return mutationPreflight(before, after, List.of());
+	}
+
+	private Diagnostic mutationPreflight(WorkspaceState before, WorkspaceState after,
+			List<WorkspacePlanArtifact> artifacts) {
+		try {
+			mutations.validateWorkspacePlan(before, after, artifacts);
+			return null;
+		} catch (Exception exception) {
+			String message = exception.getMessage();
+			if (message == null || message.isBlank()) message = "The workspace plan conflicts with durable source ownership.";
+			return diagnostic("WORKSPACE_PLAN_SOURCE_CONFLICT", "diagnostic.workspace_plan_source_conflict", message);
+		}
+	}
+
+	private JsonObject recoverySafety(JsonObject plan) {
+		JsonObject safety = new JsonObject();
+		boolean required = requiresRecoveryPoint(plan);
+		safety.addProperty("requiresRecoveryPoint", required);
+		safety.addProperty("recoveryPointAvailable", history != null);
+		safety.addProperty("ready", !required || history != null);
+		return safety;
+	}
+
+	private static boolean requiresRecoveryPoint(JsonObject plan) {
+		return optionalBoolean(plan, "requireRecoveryPoint", false);
 	}
 
 	private static JsonObject permission(PermissionProfile profile) {
@@ -360,6 +467,10 @@ final class WorkspacePlanEngine {
 	}
 
 	private static JsonArray semanticDiff(WorkspaceState before, WorkspaceState after) {
+		return semanticDiff(before, after, List.of());
+	}
+
+	private static JsonArray semanticDiff(WorkspaceState before, WorkspaceState after, List<WorkspacePlanArtifact> artifacts) {
 		Map<UUID, Element> oldElements = byId(before.elements());
 		Map<UUID, Element> newElements = byId(after.elements());
 		Set<UUID> ids = new LinkedHashSet<>();
@@ -370,9 +481,9 @@ final class WorkspacePlanEngine {
 		for (UUID id : ordered) {
 			Element oldValue = oldElements.get(id);
 			Element newValue = newElements.get(id);
-			if (oldValue == null) diff.add(elementDiff("element_created", newValue));
-			else if (newValue == null) diff.add(elementDiff("element_deleted", oldValue));
-			else if (!sameElementContent(oldValue, newValue)) diff.add(elementDiff("element_updated", newValue));
+			if (oldValue == null) diff.add(elementDiff("element_created", null, newValue));
+			else if (newValue == null) diff.add(elementDiff("element_deleted", oldValue, null));
+			else if (!sameElementContent(oldValue, newValue)) diff.add(elementDiff("element_updated", oldValue, newValue));
 		}
 		JsonObject oldRegistries = before.registries();
 		JsonObject newRegistries = after.registries();
@@ -385,10 +496,86 @@ final class WorkspacePlanEngine {
 			item.addProperty("afterCount", newRegistries.getAsJsonArray(registry).size());
 			diff.add(item);
 		}
+		if (artifacts != null) for (WorkspacePlanArtifact artifact : artifacts) {
+			JsonObject item = new JsonObject();
+			item.addProperty("kind", "asset_imported");
+			item.addProperty("relativePath", artifact.relativePath());
+			item.addProperty("sha256", artifact.sha256());
+			item.addProperty("size", artifact.content().length);
+			diff.add(item);
+		}
 		return diff;
 	}
 
+	private static JsonObject planReview(JsonArray operations, JsonArray semanticDiff, List<String> changedPaths) {
+		Map<String, Integer> operationCounts = new LinkedHashMap<>();
+		for (JsonElement raw : operations) {
+			String operation = requiredString(raw.getAsJsonObject(), "operation");
+			operationCounts.merge(operation, 1, Integer::sum);
+		}
+		JsonArray operationGroups = new JsonArray();
+		operationCounts.forEach((operation, count) -> {
+			JsonObject group = new JsonObject();
+			group.addProperty("operation", operation);
+			group.addProperty("count", count);
+			operationGroups.add(group);
+		});
+		int affectedElements = 0;
+		int affectedRegistries = 0;
+		int affectedAssets = 0;
+		int creates = 0;
+		int updates = 0;
+		int deletes = 0;
+		for (JsonElement raw : semanticDiff) {
+			JsonObject item = raw.getAsJsonObject();
+			String kind = requiredString(item, "kind");
+			if (kind.startsWith("element_")) affectedElements++;
+			if (kind.equals("registry_updated")) affectedRegistries++;
+			if (kind.equals("asset_imported")) affectedAssets++;
+			if (kind.equals("element_created") || kind.equals("asset_imported")) creates++;
+			else if (kind.equals("element_deleted")) deletes++;
+			else if (!kind.equals("asset_imported")) updates++;
+		}
+		JsonObject summary = new JsonObject();
+		summary.addProperty("operationCount", operations.size());
+		summary.addProperty("affectedObjectCount", semanticDiff.size());
+		summary.addProperty("affectedElementCount", affectedElements);
+		summary.addProperty("affectedRegistryCount", affectedRegistries);
+		summary.addProperty("createCount", creates);
+		summary.addProperty("affectedAssetCount", affectedAssets);
+		summary.addProperty("updateCount", updates);
+		summary.addProperty("deleteCount", deletes);
+		summary.addProperty("changedPathCount", changedPaths.size());
+		summary.addProperty("scope", semanticDiff.size() > 1 ? "multi_object" : "single_object");
+		summary.addProperty("highImpact", semanticDiff.size() >= HIGH_IMPACT_OBJECT_THRESHOLD
+				|| operations.size() >= HIGH_IMPACT_OPERATION_THRESHOLD);
+		JsonObject review = new JsonObject();
+		review.add("summary", summary);
+		review.add("operationGroups", operationGroups);
+		review.add("affectedObjects", semanticDiff.deepCopy());
+		JsonArray paths = new JsonArray();
+		changedPaths.forEach(paths::add);
+		review.add("changedPaths", paths);
+		return review;
+	}
+
+	static int maxOperations() {
+		return MAX_OPERATIONS;
+	}
+
+	static int highImpactOperationThreshold() {
+		return HIGH_IMPACT_OPERATION_THRESHOLD;
+	}
+
+	static int highImpactObjectThreshold() {
+		return HIGH_IMPACT_OBJECT_THRESHOLD;
+	}
+
 	private static List<String> changedPaths(WorkspaceState before, WorkspaceState after) {
+		return changedPaths(before, after, List.of());
+	}
+
+	private static List<String> changedPaths(WorkspaceState before, WorkspaceState after, List<WorkspacePlanArtifact> artifacts) {
 		LinkedHashSet<String> paths = new LinkedHashSet<>();
 		Map<UUID, Element> oldElements = byId(before.elements());
 		Map<UUID, Element> newElements = byId(after.elements());
@@ -406,6 +593,8 @@ final class WorkspacePlanEngine {
 		for (String registry : List.of("variables", "tags", "languageKeys"))
 			if (!oldRegistries.getAsJsonArray(registry).equals(newRegistries.getAsJsonArray(registry)))
 				paths.add("/registries/" + registry);
+		if (artifacts != null) for (WorkspacePlanArtifact artifact : artifacts)
+			paths.add("/files/" + artifact.relativePath());
 		return List.copyOf(paths);
 	}
 
@@ -433,12 +622,21 @@ final class WorkspacePlanEngine {
 		core.addProperty("workspaceId", requiredString(plan, "workspaceId"));
 		core.addProperty("baseRevision", requiredLong(plan, "baseRevision"));
 		core.addProperty("idempotencyKey", requiredString(plan, "idempotencyKey"));
+		core.addProperty("requireRecoveryPoint", optionalBoolean(plan, "requireRecoveryPoint", false));
 		core.add("operations", plan.getAsJsonArray("operations").deepCopy());
 		core.addProperty("operationCount", requiredInt(plan, "operationCount"));
 		core.addProperty("targetDigest", requiredString(plan, "targetDigest"));
 		core.add("semanticDiff", requiredArray(plan, "semanticDiff").deepCopy());
+		if (plan.has("templateAssets")) core.add("templateAssets", plan.getAsJsonArray("templateAssets").deepCopy());
+		if (plan.has("template")) core.add("template", plan.getAsJsonObject("template").deepCopy());
 		core.add("changedPaths", requiredArray(plan, "changedPaths").deepCopy());
+		core.add("review", requiredObject(plan, "review").deepCopy());
 		return sha256(GSON.toJson(core));
+	}
+
+	private static boolean optionalBoolean(JsonObject object, String property, boolean fallback) {
+		if (object == null || !object.has(property) || !object.get(property).isJsonPrimitive()) return fallback;
+		return object.get(property).getAsBoolean();
 	}
 
 	private static String sha256(String value) {
@@ -462,19 +660,77 @@ final class WorkspacePlanEngine {
 				&& left.ownership().equals(right.ownership()) && left.values().equals(right.values());
 	}
 
-	private static JsonObject elementDiff(String kind, Element element) {
+	private static JsonObject elementDiff(String kind, Element before, Element after) {
+		Element element = after == null ? before : after;
 		JsonObject item = new JsonObject();
 		item.addProperty("kind", kind);
 		item.addProperty("elementId", element.id().toString());
 		item.addProperty("type", element.type());
 		item.addProperty("name", element.name());
+		item.addProperty("displayName", element.displayName());
+		JsonArray changedProperties = new JsonArray();
+		if (before != null && after != null) {
+			if (!before.name().equals(after.name())) changedProperties.add("/name");
+			if (!before.displayName().equals(after.displayName())) changedProperties.add("/displayName");
+			if (!before.state().equals(after.state())) changedProperties.add("/state");
+			if (!before.ownership().equals(after.ownership())) changedProperties.add("/ownership");
+			Set<String> keys = new LinkedHashSet<>();
+			keys.addAll(before.values().keySet());
+			keys.addAll(after.values().keySet());
+			keys.stream().sorted().forEach(key -> {
+				JsonElement oldValue = before.values().get(key);
+				JsonElement newValue = after.values().get(key);
+				if (java.util.Objects.equals(oldValue, newValue)) return;
+				String propertyPath = "/values/" + escapePointerSegment(key);
+				if (key.equals("fields") && oldValue != null && newValue != null
+						&& oldValue.isJsonObject() && newValue.isJsonObject())
+					collectFieldChanges(oldValue.getAsJsonObject(), newValue.getAsJsonObject(), propertyPath,
+							changedProperties);
+				else
+					changedProperties.add(propertyPath);
+			});
+		}
+		item.add("changedProperties", changedProperties);
 		return item;
+	}
+
+	private static void collectFieldChanges(JsonObject before, JsonObject after, String base, JsonArray target) {
+		Set<String> keys = new LinkedHashSet<>();
+		keys.addAll(before.keySet());
+		keys.addAll(after.keySet());
+		for (String key : keys.stream().sorted().toList()) {
+			JsonElement oldValue = before.get(key);
+			JsonElement newValue = after.get(key);
+			if (java.util.Objects.equals(oldValue, newValue)) continue;
+			String path = base + "/" + escapePointerSegment(key);
+			if (oldValue != null && newValue != null && oldValue.isJsonObject() && newValue.isJsonObject())
+				collectFieldChanges(oldValue.getAsJsonObject(), newValue.getAsJsonObject(), path, target);
+			else
+				target.add(path);
+		}
+	}
+
+	private static String escapePointerSegment(String value) {
+		return value.replace("~", "~0").replace("/", "~1");
 	}
 
 	private static List<Operation> operationKinds(JsonArray operations) {
 		List<Operation> result = new ArrayList<>();
 		operations.forEach(raw -> result.add(parseOperation(raw.getAsJsonObject().get("operation").getAsString())));
 		return List.copyOf(result);
+	}
+
+	private static JsonArray artifactJson(List<WorkspacePlanArtifact> artifacts) {
+		JsonArray array = new JsonArray();
+		if (artifacts != null) artifacts.forEach(artifact -> array.add(artifact.toJson()));
+		return array;
+	}
+
+	private static List<WorkspacePlanArtifact> artifacts(JsonObject plan) {
+		if (!plan.has("templateAssets")) return List.of();
+		if (!plan.get("templateAssets").isJsonArray())
+			throw new IllegalArgumentException("templateAssets must be an array");
+		return WorkspacePlanArtifact.fromJson(plan.getAsJsonArray("templateAssets"));
 	}
 
 	private static List<String> changedPaths(JsonObject plan) {
@@ -492,6 +748,9 @@ final class WorkspacePlanEngine {
 		data.addProperty("idempotentReplay", replay);
 		data.add("semanticDiff", plan.getAsJsonArray("semanticDiff").deepCopy());
 		data.add("changedPaths", plan.getAsJsonArray("changedPaths").deepCopy());
+		data.add("review", plan.getAsJsonObject("review").deepCopy());
+		if (plan.has("template")) data.add("template", plan.getAsJsonObject("template").deepCopy());
+		data.addProperty("artifactCount", plan.has("templateAssets") ? plan.getAsJsonArray("templateAssets").size() : 0);
 		return data;
 	}
 
@@ -541,6 +800,12 @@ final class WorkspacePlanEngine {
 		if (!object.has(key) || !object.get(key).isJsonArray())
 			throw new IllegalArgumentException(key + " is required");
 		return object.getAsJsonArray(key);
+	}
+
+	private static JsonObject requiredObject(JsonObject object, String key) {
+		if (!object.has(key) || !object.get(key).isJsonObject())
+			throw new IllegalArgumentException(key + " is required");
+		return object.getAsJsonObject(key);
 	}
 
 	private static String shortId(String value) {

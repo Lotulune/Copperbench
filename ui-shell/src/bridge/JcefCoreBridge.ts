@@ -101,6 +101,7 @@ const initialState = (): BridgeState => ({
   elementEditors: {},
   tasks: {},
   taskLogs: {},
+  taskDiagnostics: {},
   diagnostics: [],
   recoveryPoints: [],
   currentRecoveryPointId: null,
@@ -352,6 +353,7 @@ export class JcefCoreBridge implements CoreBridge {
       case 'get_task': {
         const projection = result.data as TaskProjection;
         this.state.tasks[projection.task.id] = projection.task;
+        this.state.taskDiagnostics[projection.task.id] = [...projection.diagnostics];
         const existing = this.state.taskLogs[projection.task.id] ?? [];
         const bySequence = new Map(existing.map((entry) => [entry.sequence, entry]));
         projection.logs.forEach((entry) => bySequence.set(entry.sequence, entry));
@@ -361,7 +363,7 @@ export class JcefCoreBridge implements CoreBridge {
       case 'get_history': {
         const history = result.data as HistoryProjection;
         this.state.recoveryPoints = [...history.recoveryPoints];
-        this.state.currentRecoveryPointId = history.recoveryPoints[0]?.id ?? null;
+        this.state.currentRecoveryPointId = history.currentRecoveryPointId;
         break;
       }
       case 'get_diff':
@@ -389,12 +391,15 @@ export class JcefCoreBridge implements CoreBridge {
       case 'mod_element_created':
       case 'mod_element_updated':
       case 'procedure_updated':
+        this.state.currentRecoveryPointId = null;
         this.upsertElement(event.payload.element);
         break;
       case 'registry_updated':
 		case 'datagen_published':
+        this.state.currentRecoveryPointId = null;
         break;
       case 'mod_element_deleted':
+        this.state.currentRecoveryPointId = null;
         this.state.elements = this.state.elements.filter((element) => element.id !== event.payload.elementId);
         delete this.state.elementEditors[event.payload.elementId];
         this.synchronizeElementProjection();
@@ -416,6 +421,10 @@ export class JcefCoreBridge implements CoreBridge {
       }
       case 'diagnostics_changed':
         this.state.diagnostics = [...event.payload.diagnostics];
+        this.state.taskDiagnostics = {
+          ...this.state.taskDiagnostics,
+          ...this.diagnosticsByTask(event.payload.diagnostics)
+        };
         break;
       case 'connectivity_changed':
         if (this.state.workbench) this.state.workbench.connection = event.payload;
@@ -429,6 +438,13 @@ export class JcefCoreBridge implements CoreBridge {
           ...this.state.recoveryPoints.filter((point) => point.id !== event.payload.recoveryPoint.id)
         ];
         this.state.currentRecoveryPointId = event.payload.recoveryPoint.id;
+        break;
+      case 'workspace_plan_applied':
+      case 'asset_imported':
+      case 'assets_imported':
+      case 'asset_moved':
+      case 'asset_external_edit_committed':
+        this.state.currentRecoveryPointId = null;
         break;
       case 'bridge_recovery_required':
         this.state.viewportState = 'recovery';
@@ -493,6 +509,22 @@ export class JcefCoreBridge implements CoreBridge {
     const activeTasks = this.state.workbench.activeTasks.filter((candidate) => candidate.id !== task.id);
     if (task.state === 'queued' || task.state === 'running') activeTasks.unshift(task);
     this.state.workbench.activeTasks = activeTasks;
+  }
+
+  private diagnosticsByTask(diagnostics: BridgeState['diagnostics']): BridgeState['taskDiagnostics'] {
+    const grouped: BridgeState['taskDiagnostics'] = {};
+    for (const diagnostic of diagnostics) {
+      for (const action of diagnostic.actions) {
+        if (action.kind !== 'open_logs') continue;
+        const payloadTaskId = typeof action.payload?.taskId === 'string' ? action.payload.taskId : null;
+        const taskId = payloadTaskId && this.state.tasks[payloadTaskId]
+          ? payloadTaskId
+          : action.target && this.state.tasks[action.target] ? action.target : null;
+        if (!taskId) continue;
+        grouped[taskId] = [...(grouped[taskId] ?? []), diagnostic];
+      }
+    }
+    return grouped;
   }
 
   private isStaleRevision(revision: number): boolean {

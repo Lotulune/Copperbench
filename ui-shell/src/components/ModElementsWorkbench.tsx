@@ -36,6 +36,14 @@ const AdvancementWorkbench = React.lazy(() => import('./AdvancementWorkbench').t
   default: module.AdvancementWorkbench
 })));
 
+const GuiWorkbench = React.lazy(() => import('./GuiWorkbench').then((module) => ({
+  default: module.GuiWorkbench
+})));
+
+const OverlayWorkbench = React.lazy(() => import('./OverlayWorkbench').then((module) => ({
+  default: module.OverlayWorkbench
+})));
+
 type SortOption = 'updated_desc' | 'updated_asc' | 'name_asc' | 'name_desc' | 'type_asc';
 
 const ELEMENT_LABELS: Partial<Record<ModElementType, string>> = {
@@ -131,6 +139,22 @@ export const ModElementsWorkbench: React.FC = () => {
     return (
       <React.Suspense fallback={<div className="procedure-route-loading">正在加载 Procedure 编辑器…</div>}>
         <ProcedureWorkbench element={selectedElement} onClose={() => setSelectedElementId(null)} />
+      </React.Suspense>
+    );
+  }
+
+  if (selectedElement?.type === 'overlay') {
+    return (
+      <React.Suspense fallback={<div className="procedure-route-loading">正在加载 Overlay 深度编辑器…</div>}>
+        <OverlayWorkbench element={selectedElement} onClose={() => setSelectedElementId(null)} />
+      </React.Suspense>
+    );
+  }
+
+  if (selectedElement?.type === 'gui') {
+    return (
+      <React.Suspense fallback={<div className="procedure-route-loading">正在加载 GUI 深度编辑器…</div>}>
+        <GuiWorkbench element={selectedElement} onClose={() => setSelectedElementId(null)} />
       </React.Suspense>
     );
   }

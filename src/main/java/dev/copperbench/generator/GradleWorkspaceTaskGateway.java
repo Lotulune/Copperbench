@@ -10,6 +10,7 @@
 package dev.copperbench.generator;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import dev.copperbench.core.application.WorkspaceTaskGateway;
@@ -29,6 +30,7 @@ import java.time.Clock;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.HexFormat;
 import java.util.List;
@@ -37,11 +39,13 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -53,6 +57,7 @@ import java.util.zip.ZipOutputStream;
 /** Runs loader-specific generation and Gradle tasks outside the workspace revision lock. */
 public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, AutoCloseable {
 	private static final Logger LOG = LogManager.getLogger(GradleWorkspaceTaskGateway.class);
+	private static final long MAX_SOURCE_PREVIEW_BYTES = 256L * 1024L;
 	private static final Pattern JAVA_COMPILE_ERROR = Pattern.compile(
 			"^(.+\\.java):(\\d+):\\s*(?:error|错误|錯誤|エラー|오류|fehler|erreur|errore|ошибка|erro):\\s*(.+)$",
 			Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
@@ -88,7 +93,14 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 		job.log("info", "Starting " + backend.displayName() + " " + taskKind(operation)
 				+ " from revision " + state.revision());
 		JsonObject taskPayload = payload == null ? new JsonObject() : payload.deepCopy();
-		job.future = executor.submit(() -> execute(workspaceId, state, operation, taskPayload, job));
+		job.future = executor.submit(() -> {
+			job.workerStarted();
+			try {
+				execute(workspaceId, state, operation, taskPayload, job);
+			} finally {
+				job.workerFinished();
+			}
+		});
 		return job.task();
 	}
 
@@ -101,6 +113,7 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 					: root;
 			job.executionRoot = executionRoot;
 			job.sourceRevision = state.revision();
+			job.sourceState = state;
 			if (isolated(operation)) {
 				if (!executionRoot.startsWith(root.toAbsolutePath().normalize()))
 					throw new IllegalStateException("Isolated task path escaped the workspace");
@@ -143,8 +156,14 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 				job.progress(0.55, "task.run_client.starting", "Starting Minecraft client");
 				var process = processes.run(executionRoot, backend.gradleArguments(operation), Duration.ZERO,
 						line -> job.log("info", line));
-				if (process.exitCode() != 0)
-					throw new IllegalStateException(backend.displayName() + " client exited " + process.exitCode());
+				if (process.exitCode() != 0) {
+					JsonObject args = new JsonObject();
+					args.addProperty("exitCode", process.exitCode());
+					failKnownTask(workspaceId, operation, job,
+							backend.diagnosticPrefix() + "_RUN_CLIENT_EXITED", "diagnostic.task_process_exited",
+							"The {backend} {task} task exited with code {exitCode}.", args);
+					return;
+				}
 			} else if (operation == Operation.RUN_SERVER) {
 				job.progress(0.55, "task.run_server.starting", "Starting dedicated server");
 				if (!payload.has("eulaAccepted") || !payload.get("eulaAccepted").getAsBoolean())
@@ -158,34 +177,64 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 				backend.prepareServerRun(executionRoot);
 				var process = processes.run(executionRoot, backend.gradleArguments(operation), Duration.ofMinutes(20),
 						line -> job.log("info", line));
-				if (process.exitCode() != 0 || !process.readinessMarkerSeen())
-					throw new IllegalStateException(backend.displayName() + " server did not reach the readiness marker");
+				if (process.exitCode() != 0) {
+					JsonObject args = new JsonObject();
+					args.addProperty("exitCode", process.exitCode());
+					failKnownTask(workspaceId, operation, job,
+							backend.diagnosticPrefix() + "_RUN_SERVER_EXITED", "diagnostic.task_process_exited",
+							"The {backend} {task} task exited with code {exitCode}.", args);
+					return;
+				}
+				if (!process.readinessMarkerSeen()) {
+					JsonObject args = new JsonObject();
+					args.addProperty("exitCode", process.exitCode());
+					failKnownTask(workspaceId, operation, job,
+							backend.diagnosticPrefix() + "_RUN_SERVER_NOT_READY",
+							"diagnostic.task_readiness_not_reached",
+							"The {backend} {task} task did not reach the readiness marker.", args);
+					return;
+				}
 			} else if (operation == Operation.RUN_DATAGEN || operation == Operation.RUN_GAMETEST) {
 				job.progress(0.55, "task." + taskKind(operation) + ".running", "Running managed task");
 				var process = processes.run(executionRoot, backend.gradleArguments(operation), Duration.ofMinutes(20),
 						line -> job.log("info", line));
-				if (process.exitCode() != 0)
-					throw new IllegalStateException(backend.displayName() + " " + taskKind(operation)
-							+ " exited " + process.exitCode());
+				if (process.exitCode() != 0) {
+					JsonObject args = new JsonObject();
+					args.addProperty("exitCode", process.exitCode());
+					failKnownTask(workspaceId, operation, job,
+							backend.diagnosticPrefix() + "_" + taskKind(operation).toUpperCase(Locale.ROOT) + "_EXITED",
+							"diagnostic.task_process_exited",
+							"The {backend} {task} task exited with code {exitCode}.", args);
+					return;
+				}
 				if (operation == Operation.RUN_DATAGEN) writeDatagenManifest(executionRoot, state, result, job);
 			}
 			job.succeed("task." + taskKind(operation) + ".completed",
 					backend.displayName() + " " + taskKind(operation) + " completed");
 		} catch (BundledJdkLocator.MissingJdkException exception) {
-			if (job.isCancelled()) return;
+			if (job.isCancelled() || job.cancellationRequested()) return;
 			String failureId = UUID.randomUUID().toString();
 			LOG.error("Workspace task failure {} (backend={}, operation={}, workspaceId={})", failureId,
 					backend.displayName(), operation, workspaceId, exception);
 			job.log("error", exception.getMessage());
 			job.fail(exception.diagnosticCode(), failureId, taskKind(operation), exception.getMessage());
 		} catch (Exception exception) {
-			if (job.isCancelled()) return;
+			if (job.isCancelled() || job.cancellationRequested()) return;
 			String failureId = UUID.randomUUID().toString();
 			LOG.error("Workspace task failure {} (backend={}, operation={}, workspaceId={})", failureId,
 					backend.displayName(), operation, workspaceId, exception);
 			job.fail(backend.diagnosticPrefix() + "_" + taskKind(operation).toUpperCase(Locale.ROOT) + "_FAILED",
 					failureId, taskKind(operation));
 		}
+	}
+
+	private void failKnownTask(UUID workspaceId, Operation operation, Job job, String code, String messageKey,
+			String fallback, JsonObject args) {
+		if (job.isCancelled()) return;
+		String failureId = UUID.randomUUID().toString();
+		LOG.error("Workspace task failure {} (backend={}, operation={}, workspaceId={}, code={}, args={})", failureId,
+				backend.displayName(), operation, workspaceId, code, args);
+		job.fail(code, failureId, taskKind(operation), messageKey, fallback, args);
 	}
 
 	static Path exportJar(Path root, JsonObject payload) throws Exception {
@@ -237,7 +286,8 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 	@Override public Optional<JsonObject> cancel(UUID workspaceId, UUID taskId) {
 		Job job = job(workspaceId, taskId);
 		if (job == null) return Optional.empty();
-		job.cancel();
+		if (!job.cancelAndAwait())
+			throw new IllegalStateException("Task cancellation did not finish process cleanup before the timeout");
 		return Optional.of(job.task());
 	}
 
@@ -264,6 +314,62 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 	@Override public List<JsonObject> diagnostics(UUID workspaceId, UUID taskId) {
 		Job job = job(workspaceId, taskId);
 		return job == null ? List.of() : job.diagnostics();
+	}
+
+	@Override public Optional<JsonObject> sourcePreview(UUID workspaceId, UUID taskId, String sourcePath) {
+		Job job = job(workspaceId, taskId);
+		if (job == null) return Optional.empty();
+		synchronized (job) {
+			String relative = diagnosticSourcePath(sourcePath);
+			String diagnosticPath = "/" + relative;
+			boolean owned = job.diagnostics().stream()
+					.anyMatch(diagnostic -> diagnostic.has("path") && !diagnostic.get("path").isJsonNull()
+							&& diagnosticPath.equals(diagnostic.get("path").getAsString()));
+			if (!owned)
+				throw new IllegalArgumentException("Source preview path is not referenced by this task diagnostic");
+			JsonObject preview = job.sourcePreviews.get(diagnosticPath);
+			return preview == null ? Optional.empty() : Optional.of(preview.deepCopy());
+		}
+	}
+
+	private static String diagnosticSourcePath(String sourcePath) {
+		if (sourcePath == null || sourcePath.isBlank() || sourcePath.indexOf('\0') >= 0)
+			throw new IllegalArgumentException("Diagnostic source path is required");
+		String candidate = sourcePath.replace('\\', '/');
+		while (candidate.startsWith("/")) candidate = candidate.substring(1);
+		Path relative = Path.of(candidate).normalize();
+		if (relative.isAbsolute() || relative.startsWith(".."))
+			throw new IllegalArgumentException("Diagnostic source path escaped task staging");
+		String normalized = relative.toString().replace('\\', '/');
+		if (!normalized.startsWith("src/main/java/") || !normalized.toLowerCase(Locale.ROOT).endsWith(".java"))
+			throw new IllegalArgumentException("Only generated Java diagnostic sources can be previewed");
+		return normalized;
+	}
+
+	private static JsonObject captureSourcePreview(Path executionRoot, String compilerSource, String diagnosticPath,
+			String lineNumber) {
+		try {
+			String relative = diagnosticSourcePath(diagnosticPath);
+			Path normalizedRoot = executionRoot.toAbsolutePath().normalize();
+			Path rawSource = Path.of(compilerSource);
+			Path source = rawSource.isAbsolute() ? rawSource.toAbsolutePath().normalize()
+					: normalizedRoot.resolve(rawSource).normalize();
+			if (!source.equals(resolveInside(normalizedRoot, relative)) || !Files.isRegularFile(source)) return null;
+			Path realRoot = normalizedRoot.toRealPath();
+			Path realSource = source.toRealPath();
+			if (!realSource.startsWith(realRoot)) return null;
+			long size = Files.size(realSource);
+			if (size > MAX_SOURCE_PREVIEW_BYTES) return null;
+			JsonObject preview = new JsonObject();
+			preview.addProperty("path", "/" + relative);
+			preview.addProperty("language", "java");
+			preview.addProperty("content", Files.readString(realSource, StandardCharsets.UTF_8));
+			preview.addProperty("size", size);
+			preview.addProperty("line", Integer.parseInt(lineNumber));
+			return preview;
+		} catch (java.io.IOException | RuntimeException exception) {
+			return null;
+		}
 	}
 
 	@Override public Optional<JsonObject> previewDatagen(UUID workspaceId, UUID taskId) {
@@ -556,12 +662,17 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 		private final JsonObject summary;
 		private final List<JsonObject> logEntries = new ArrayList<>();
 		private final List<JsonObject> diagnosticEntries = new ArrayList<>();
+		private final Map<String, JsonObject> sourcePreviews = new HashMap<>();
 		private final Set<String> javaCompileDiagnosticKeys = new HashSet<>();
 		private Future<?> future;
 		private Path executionRoot;
 		private long sourceRevision;
+		private WorkspaceState sourceState;
 		private PublishSession publishSession;
 		private boolean published;
+		private final CountDownLatch workerFinished = new CountDownLatch(1);
+		private boolean workerStarted;
+		private boolean cancellationRequested;
 
 		private Job(UUID workspaceId, JsonObject summary) {
 			this.workspaceId = workspaceId;
@@ -646,10 +757,16 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 		}
 
 		private void fail(String code, String failureId, String taskKind) {
-			fail(code, failureId, taskKind, null);
+			fail(code, failureId, taskKind, "diagnostic.workspace_task_failed",
+					"The {backend} {task} task failed.", null);
 		}
 
 		private void fail(String code, String failureId, String taskKind, String detail) {
+			fail(code, failureId, taskKind, "diagnostic.bundled_jdk_missing", detail, null);
+		}
+
+		private void fail(String code, String failureId, String taskKind, String messageKey, String fallback,
+				JsonObject extraArgs) {
 			synchronized (this) {
 				if (!isRunning()) return;
 			}
@@ -658,7 +775,7 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 			WorkspaceTaskGateway.TaskEvent completedEvent;
 			synchronized (this) {
 				if (!isRunning()) return;
-				addFailureDiagnostic(code, failureId, taskKind, detail);
+				addFailureDiagnostic(code, failureId, taskKind, messageKey, fallback, extraArgs);
 				completeFailure();
 				List<JsonObject> diagnostics = diagnostics();
 				diagnosticsEvent = new WorkspaceTaskGateway.TaskEvent(workspaceId, id(), "diagnostics_changed", summary,
@@ -670,17 +787,18 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 			publishTaskEvent(completedEvent);
 		}
 
-		private void addFailureDiagnostic(String code, String failureId, String taskKind, String detail) {
+		private void addFailureDiagnostic(String code, String failureId, String taskKind, String messageKey,
+				String fallback, JsonObject extraArgs) {
 			JsonObject args = new JsonObject();
 			args.addProperty("backend", backend.displayName());
 			args.addProperty("task", taskKind);
 			args.addProperty("failureId", failureId);
+			if (extraArgs != null)
+				extraArgs.entrySet().forEach(entry -> args.add(entry.getKey(), entry.getValue().deepCopy()));
 			JsonObject diagnostic = new JsonObject();
 			diagnostic.addProperty("code", code);
 			diagnostic.addProperty("severity", "error");
-			diagnostic.add("message", localized(detail == null ? "diagnostic.workspace_task_failed"
-					: "diagnostic.bundled_jdk_missing",
-					detail == null ? "The {backend} {task} task failed." : detail, args));
+			diagnostic.add("message", localized(messageKey, fallback, args));
 			diagnostic.add("path", JsonNull.INSTANCE);
 			diagnostic.add("elementId", JsonNull.INSTANCE);
 			diagnostic.addProperty("recoverable", true);
@@ -689,10 +807,34 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 			action.add("label", localized("action.open_logs", "View logs"));
 			action.addProperty("kind", "open_logs");
 			action.addProperty("target", failureId);
+			JsonObject actionPayload = new JsonObject();
+			actionPayload.addProperty("taskId", id().toString());
+			action.add("payload", actionPayload);
 			JsonArray actions = new JsonArray();
 			actions.add(action);
 			diagnostic.add("actions", actions);
 			diagnosticEntries.add(diagnostic);
+		}
+
+		private JsonObject procedureDiagnosticTarget(String path, UUID elementId) {
+			if (path == null) return null;
+			String prefix = "/elements/" + elementId + "/procedureIr/nodes/";
+			if (!path.startsWith(prefix)) return null;
+			String tail = path.substring(prefix.length());
+			int portSeparator = tail.indexOf("/ports/");
+			String nodeId = portSeparator >= 0 ? tail.substring(0, portSeparator) : tail;
+			try {
+				UUID.fromString(nodeId);
+			} catch (IllegalArgumentException exception) {
+				return null;
+			}
+			JsonObject target = new JsonObject();
+			target.addProperty("nodeId", nodeId);
+			if (portSeparator >= 0) {
+				String port = tail.substring(portSeparator + "/ports/".length());
+				if (!port.isBlank() && !port.contains("/")) target.addProperty("port", port);
+			}
+			return target;
 		}
 
 		private void captureJavaCompileDiagnostic(Path executionRoot, String line) {
@@ -705,10 +847,45 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 			String path = diagnosticPath(executionRoot, source);
 			String message = "Line " + lineNumber + ": " + compilerMessage;
 			String key = path + "\n" + message;
+			UUID elementId = resolveGeneratedElement(path);
+			JsonObject sourcePreview = captureSourcePreview(executionRoot, source, path, lineNumber);
 			synchronized (this) {
-				if (isRunning() && javaCompileDiagnosticKeys.add(key))
-					addDiagnostic("JAVA_COMPILE_ERROR", message, path, null);
+				if (isRunning() && javaCompileDiagnosticKeys.add(key)) {
+					addDiagnostic("JAVA_COMPILE_ERROR", message, path, elementId);
+					if (sourcePreview != null) sourcePreviews.put(path, sourcePreview);
+				}
 			}
+		}
+
+		private UUID resolveGeneratedElement(String path) {
+			WorkspaceState snapshot = sourceState;
+			if (snapshot == null || path == null || path.isBlank()) return null;
+			String fileName;
+			try {
+				fileName = Path.of(path.replace('/', java.io.File.separatorChar)).getFileName().toString();
+			} catch (RuntimeException exception) {
+				return null;
+			}
+			String stem = fileName.toLowerCase(Locale.ROOT).endsWith(".java")
+					? fileName.substring(0, fileName.length() - 5) : fileName;
+			String normalizedStem = normalizeGeneratedName(stem);
+			List<WorkspaceState.Element> matches = snapshot.elements().stream()
+					.filter(element -> generatedSourceMatches(element, normalizedStem)).toList();
+			return matches.size() == 1 ? matches.getFirst().id() : null;
+		}
+
+		private static boolean generatedSourceMatches(WorkspaceState.Element element, String normalizedStem) {
+			String name = normalizeGeneratedName(element.name());
+			return switch (element.type()) {
+				case "procedure" -> normalizedStem.equals(name + "procedure");
+				case "block", "item" -> false;
+				case "code" -> normalizedStem.equals(name) || normalizedStem.equals(name + "element");
+				default -> normalizedStem.equals(name + "element");
+			};
+		}
+
+		private static String normalizeGeneratedName(String value) {
+			return value == null ? "" : value.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]", "");
 		}
 
 		private static String diagnosticPath(Path executionRoot, String source) {
@@ -729,7 +906,8 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 			for (var issue : issues) {
 				log("error", issue.message());
 				synchronized (this) {
-					if (isRunning()) addDiagnostic(issue.code(), issue.message(), issue.path(), issue.elementId());
+					if (isRunning()) addDiagnostic(issue.code(), issue.message(), issue.path(), issue.elementId(),
+							issue.repairValue());
 				}
 			}
 			WorkspaceTaskGateway.TaskEvent diagnosticsEvent;
@@ -748,15 +926,89 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 		}
 
 		private void addDiagnostic(String code, String message, String path, UUID elementId) {
+			addDiagnostic(code, message, path, elementId, null);
+		}
+
+		private void addDiagnostic(String code, String message, String path, UUID elementId, JsonElement repairValue) {
 			JsonObject diagnostic = new JsonObject();
 			diagnostic.addProperty("code", code);
 			diagnostic.addProperty("severity", "error");
-			diagnostic.add("message", localized("diagnostic." + code.toLowerCase(Locale.ROOT), message));
+			JsonObject messageArgs = new JsonObject();
+			messageArgs.addProperty("message", message);
+			diagnostic.add("message", localized("diagnostic." + code.toLowerCase(Locale.ROOT), message, messageArgs));
 			if (path == null) diagnostic.add("path", JsonNull.INSTANCE); else diagnostic.addProperty("path", path);
 			if (elementId == null) diagnostic.add("elementId", JsonNull.INSTANCE);
 			else diagnostic.addProperty("elementId", elementId.toString());
 			diagnostic.addProperty("recoverable", true);
-			diagnostic.add("actions", new JsonArray());
+			JsonArray actions = new JsonArray();
+			if (elementId != null) {
+				String elementPath = "/elements/" + elementId;
+				JsonObject procedureTarget = procedureDiagnosticTarget(path, elementId);
+				String fieldTarget = procedureTarget == null && path != null && path.startsWith(elementPath + "/")
+						? path.substring(elementPath.length()) : null;
+				if (fieldTarget != null && fieldTarget.startsWith("/values/"))
+					fieldTarget = fieldTarget.substring("/values".length());
+				JsonObject locate = new JsonObject();
+				if (procedureTarget != null) {
+					locate.addProperty("id", "open_procedure_node");
+					locate.add("label", localized("action.open_procedure_node", "Locate node"));
+					locate.addProperty("kind", "open_procedure_node");
+					locate.addProperty("target", procedureTarget.get("nodeId").getAsString());
+					locate.add("payload", procedureTarget);
+				} else {
+					locate.addProperty("id", fieldTarget == null ? "locate_element" : "locate_generator_field");
+					locate.add("label", fieldTarget == null
+							? localized("action.open_element", "Open element")
+							: localized("action.open_field", "Locate invalid field"));
+					locate.addProperty("kind", "open_field");
+					if (fieldTarget == null) locate.add("target", JsonNull.INSTANCE);
+					else locate.addProperty("target", fieldTarget);
+				}
+				actions.add(locate);
+				if (procedureTarget == null && fieldTarget != null && repairValue != null) {
+					JsonObject change = new JsonObject();
+					change.addProperty("path", fieldTarget);
+					change.add("value", repairValue.deepCopy());
+					JsonArray changes = new JsonArray();
+					changes.add(change);
+					JsonObject updatePayload = new JsonObject();
+					updatePayload.addProperty("elementId", elementId.toString());
+					updatePayload.add("changes", changes);
+					JsonObject step = new JsonObject();
+					step.addProperty("operation", "update_mod_element");
+					step.add("payload", updatePayload);
+					JsonArray operations = new JsonArray();
+					operations.add(step);
+					JsonObject repairPayload = new JsonObject();
+					repairPayload.addProperty("expectedRevision", sourceRevision);
+					repairPayload.addProperty("requireRecoveryPoint", true);
+					repairPayload.add("operations", operations);
+					JsonObject repair = new JsonObject();
+					repair.addProperty("id", "preview_generator_repair");
+					repair.add("label", localized("action.preview_repair", "Preview safe repair"));
+					repair.addProperty("kind", "preview_repair");
+					repair.add("target", JsonNull.INSTANCE);
+					repair.add("payload", repairPayload);
+					actions.add(repair);
+				}
+			}
+			if (path != null) {
+				if (path.startsWith("/src/main/java/") && path.toLowerCase(Locale.ROOT).endsWith(".java")) {
+					JsonObject source = new JsonObject();
+					source.addProperty("id", "open_generated_source");
+					source.add("label", localized("action.open_source", "View generated source"));
+					source.addProperty("kind", "open_source");
+					source.addProperty("target", path);
+					actions.add(source);
+				}
+				JsonObject logs = new JsonObject();
+				logs.addProperty("id", "open_task_logs");
+				logs.add("label", localized("action.open_logs", "View task logs"));
+				logs.addProperty("kind", "open_logs");
+				logs.addProperty("target", id().toString());
+				actions.add(logs);
+			}
+			diagnostic.add("actions", actions);
 			diagnosticEntries.add(diagnostic);
 		}
 
@@ -771,21 +1023,66 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 			summary.add("diagnostics", counts(diagnosticEntries.size()));
 		}
 
-		private void cancel() {
-			WorkspaceTaskGateway.TaskEvent event;
+		private synchronized void workerStarted() {
+			workerStarted = true;
+		}
+
+		private void workerFinished() {
+			WorkspaceTaskGateway.TaskEvent event = null;
 			synchronized (this) {
-				if (!isRunning()) return;
-				if (future != null) future.cancel(true);
-				summary.addProperty("state", "cancelled");
-				summary.addProperty("cancellable", false);
-				summary.addProperty("progress", 1);
-				summary.add("stage", localized("task.cancelled", "Task cancelled"));
-				summary.addProperty("completedAt", clock.instant().toString());
-				event = new WorkspaceTaskGateway.TaskEvent(workspaceId, id(), "task_completed", summary,
-						List.of(), List.of());
+				if (cancellationRequested && isRunning()) event = completeCancelled();
 			}
-			log("warning", backend.displayName() + " task cancelled");
-			publishTaskEvent(event);
+			workerFinished.countDown();
+			if (event != null) {
+				log("warning", backend.displayName() + " task cancelled");
+				publishTaskEvent(event);
+			}
+		}
+
+		private boolean cancelAndAwait() {
+			Future<?> currentFuture;
+			boolean cancelledBeforeStart = false;
+			synchronized (this) {
+				if (!isRunning()) return isCancelled();
+				cancellationRequested = true;
+				currentFuture = future;
+				if (currentFuture == null) {
+					WorkspaceTaskGateway.TaskEvent event = completeCancelled();
+					workerFinished.countDown();
+					publishTaskEvent(event);
+					return true;
+				}
+				if (!workerStarted) cancelledBeforeStart = currentFuture.cancel(false);
+				if (!cancelledBeforeStart) currentFuture.cancel(true);
+			}
+			if (cancelledBeforeStart) {
+				WorkspaceTaskGateway.TaskEvent event;
+				synchronized (this) {
+					event = isRunning() ? completeCancelled() : null;
+				}
+				workerFinished.countDown();
+				if (event != null) {
+					log("warning", backend.displayName() + " task cancelled");
+					publishTaskEvent(event);
+				}
+				return true;
+			}
+			try {
+				return workerFinished.await(15, TimeUnit.SECONDS) && isCancelled();
+			} catch (InterruptedException exception) {
+				Thread.currentThread().interrupt();
+				return false;
+			}
+		}
+
+		private WorkspaceTaskGateway.TaskEvent completeCancelled() {
+			summary.addProperty("state", "cancelled");
+			summary.addProperty("cancellable", false);
+			summary.addProperty("progress", 1);
+			summary.add("stage", localized("task.cancelled", "Task cancelled"));
+			summary.addProperty("completedAt", clock.instant().toString());
+			return new WorkspaceTaskGateway.TaskEvent(workspaceId, id(), "task_completed", summary,
+					List.of(), List.of());
 		}
 
 		private boolean isRunning() {
@@ -794,6 +1091,10 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 
 		private synchronized boolean isCancelled() {
 			return summary.get("state").getAsString().equals("cancelled");
+		}
+
+		private synchronized boolean cancellationRequested() {
+			return cancellationRequested;
 		}
 	}
 }

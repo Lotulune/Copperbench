@@ -27,7 +27,7 @@ test.describe('Stage 9 creator core', () => {
     await expect(page.getByText('quest_score', { exact: true })).not.toBeVisible();
   });
 
-  test('creates a Procedure, adds a structured node, and commits once', async ({ page }) => {
+  test('uses Procedure 2.0 palette, recent nodes, graph search navigation, and shared symbols', async ({ page }) => {
     await page.click('[data-testid="nav-elements"]');
     await page.click('[data-testid="create-element-btn"]');
     await page.locator('[data-testid="create-element-modal"]').getByRole('button', { name: '过程', exact: true }).click();
@@ -35,10 +35,113 @@ test.describe('Stage 9 creator core', () => {
     await page.click('[data-testid="create-element-submit-btn"]');
 
     await expect(page.locator('[data-testid="procedure-workbench"]')).toBeVisible();
+    await page.getByLabel('筛选 Procedure 节点分类').selectOption('value');
     await page.getByLabel('搜索 Procedure 节点').fill('数值');
     await page.getByRole('button', { name: /^数值 value/ }).click();
+    await expect(page.locator('[data-testid="procedure-recent-nodes"]')).toContainText('数值');
+
+    await page.getByLabel('筛选 Procedure 节点分类').selectOption('variable');
+    await page.getByLabel('搜索 Procedure 节点').fill('读取变量');
+    await page.getByRole('button', { name: /^读取变量 variable/ }).click();
+
+    await page.getByLabel('搜索当前 Procedure 图').fill('数值');
+    await expect(page.locator('[data-testid="procedure-graph-navigation"]')).toContainText('1 个匹配');
+    await page.getByRole('button', { name: '下一个匹配节点' }).click();
+    await expect(page.locator('[data-testid="procedure-selected-location"]')).toContainText('数值');
+
+    await page.getByLabel('筛选 Procedure 节点分类').selectOption('procedure');
+    await page.getByLabel('搜索 Procedure 节点').fill('调用 Procedure');
+    await page.getByRole('button', { name: /^调用 Procedure procedure/ }).click();
+    await page.getByRole('tab', { name: /诊断/ }).click();
+    await expect(page.getByText('PROCEDURE_CALL_TARGET_REQUIRED')).toBeVisible();
+    await page.getByRole('button', { name: '定位节点' }).click();
+    await expect(page.locator('[data-testid="procedure-selected-location"]')).toContainText('调用 Procedure');
+
     await page.getByRole('button', { name: /保存/ }).click();
-    await expect(page.getByText(/已保存 1 项结构化变更/)).toBeVisible();
+    await expect(page.getByText(/已保存 3 项结构化变更/)).toBeVisible();
+
+    await page.getByRole('tab', { name: /引用/ }).click();
+    await expect(page.locator('[data-testid="procedure-symbol-summary"]')).toContainText('1 变量 · 0 资源 · 1 调用');
+    await expect(page.getByRole('button', { name: /变量 · 读取 player_energy number/ })).toBeVisible();
+    await page.getByRole('button', { name: '重命名变量 player_energy' }).click();
+    await page.getByLabel('新的变量名称').fill('player_stamina');
+    await page.getByRole('button', { name: '预览安全重命名' }).click();
+    await expect(page.locator('[data-testid="procedure-refactor-preview"]')).toContainText('1 个受影响元素 · 2 项语义变更');
+    await expect(page.locator('[data-testid="procedure-refactor-preview"]')).toContainText('应用前将强制创建 recovery point');
+    await page.getByRole('button', { name: '应用重构' }).click();
+    await expect(page.locator('.procedure-message')).toContainText('已安全重命名 player_energy → player_stamina');
+    await expect(page.locator('.procedure-message')).toContainText('恢复点 rec-');
+    await expect(page.getByRole('button', { name: /变量 · 读取 player_stamina number/ })).toBeVisible();
+  });
+
+  test('extracts selected Procedure logic through a protected semantic refactor plan', async ({ page }) => {
+    await page.click('[data-testid="nav-elements"]');
+    await page.click('[data-testid="create-element-btn"]');
+    await page.locator('[data-testid="create-element-modal"]').getByRole('button', { name: '过程', exact: true }).click();
+    await page.fill('[data-testid="create-element-name-input"]', 'extract_source');
+    await page.click('[data-testid="create-element-submit-btn"]');
+
+    await expect(page.locator('[data-testid="procedure-workbench"]')).toBeVisible();
+    await page.getByLabel('筛选 Procedure 节点分类').selectOption('variable');
+    await page.getByLabel('搜索 Procedure 节点').fill('设置变量');
+    await page.getByRole('button', { name: /^设置变量 variable/ }).click();
+    await page.getByRole('button', { name: /保存/ }).click();
+    await expect(page.locator('.procedure-message')).toContainText('已保存 1 项结构化变更');
+
+    await page.getByRole('tab', { name: /引用/ }).click();
+    await page.getByRole('button', { name: /变量 · 写入 player_energy/ }).click();
+    await page.getByRole('tab', { name: /源码/ }).click();
+    await page.locator('[data-testid="procedure-extract-start"]').click();
+    await page.getByLabel('提取后的 Procedure 名称').fill('shared_energy_logic');
+    await page.getByRole('button', { name: '预览提取计划' }).click();
+
+    await expect(page.locator('[data-testid="procedure-extract-preview"]')).toContainText('2 步原子计划');
+    await expect(page.locator('[data-testid="procedure-extract-preview"]')).toContainText('恢复保护可用');
+    await page.getByRole('button', { name: '应用提取' }).click();
+    await expect(page.locator('.procedure-message')).toContainText('已将 variables_set_number 提取为 shared_energy_logic');
+    await expect(page.locator('.procedure-message')).toContainText('恢复点 rec-');
+
+    await page.getByRole('tab', { name: /引用/ }).click();
+    await expect(page.locator('.procedure-symbol-row').filter({ hasText: 'shared_energy_logic' })).toBeVisible();
+  });
+
+  test('reviews Procedure relationships and batch-replaces resource references through a protected plan', async ({ page }) => {
+    await page.click('[data-testid="nav-elements"]');
+    await page.click('[data-testid="create-element-btn"]');
+    await page.click('[data-testid="create-element-type-procedure"]');
+    await page.fill('[data-testid="create-element-name-input"]', 'resource_refactor_source');
+    await page.click('[data-testid="create-element-submit-btn"]');
+
+    await expect(page.locator('[data-testid="procedure-workbench"]')).toBeVisible();
+    await page.locator('.procedure-palette-filter select').selectOption('context');
+    await page.locator('.procedure-search').first().locator('input').fill('');
+    await expect(page.locator('.procedure-node-list .procedure-node-button')).toHaveCount(5);
+    await page.locator('.procedure-node-list .procedure-node-button').nth(4).click();
+    await page.locator('.procedure-save').click();
+
+    await page.locator('#procedure-tab-references').click();
+    const relationships = page.locator('[data-testid="procedure-relationship-overview"]');
+    await expect(relationships).toBeVisible();
+    await expect(relationships).toContainText('resource');
+    await expect(relationships.locator('.procedure-relationship-row')).toHaveCount(1);
+
+    const resourceRow = page.locator('.procedure-symbol-refactor-row').filter({ hasText: 'minecraft:stone' });
+    await expect(resourceRow).toBeVisible();
+    await resourceRow.locator('.procedure-refactor-start').click();
+    const card = page.locator('[data-testid="procedure-resource-refactor"]');
+    await card.locator('input').fill('minecraft:diamond');
+    await card.locator('.procedure-refactor-actions button').nth(0).click();
+
+    const review = page.locator('[data-testid="procedure-resource-plan-review"]');
+    await expect(review).toBeVisible();
+    await expect(review).toContainText('update_procedure');
+    await expect(review).toContainText('1');
+    await expect(page.locator('[data-testid="procedure-resource-refactor-preview"]')).toContainText('revision');
+
+    await card.locator('.procedure-refactor-actions button').nth(1).click();
+    await expect(page.locator('.procedure-message')).toContainText('minecraft:diamond');
+    await expect(page.locator('.procedure-message')).toContainText('rec-');
+    await expect(page.locator('.procedure-symbol-refactor-row').filter({ hasText: 'minecraft:diamond' })).toBeVisible();
   });
 
   test('reviews and explicitly publishes isolated datagen output', async ({ page }) => {

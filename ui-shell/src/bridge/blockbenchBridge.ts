@@ -13,6 +13,9 @@ export interface BlockbenchSnapshot {
   readonly currentSha256: string | null;
   readonly blockbenchVersion: string | null;
   readonly diagnosticCode: string | null;
+  readonly recoveryPointId: string | null;
+  readonly workspaceRevision: number | null;
+  readonly changeCommitted: boolean;
 }
 
 export interface NativeBlockbenchHost {
@@ -43,7 +46,10 @@ const unavailable = (): BlockbenchSnapshot => ({
   openedSha256: null,
   currentSha256: null,
   blockbenchVersion: null,
-  diagnosticCode: 'BLOCKBENCH_NOT_CONFIGURED'
+  diagnosticCode: 'BLOCKBENCH_NOT_CONFIGURED',
+  recoveryPointId: null,
+  workspaceRevision: null,
+  changeCommitted: false
 });
 
 class NativeBridge implements BlockbenchBridge {

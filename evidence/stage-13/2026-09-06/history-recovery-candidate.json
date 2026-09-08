@@ -1,0 +1,12 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "stage13-history-recovery-candidate",
+  "createdAt": "2026-09-06T22:44:00+08:00",
+  "head": "b4eddaff4861d9d4a26031d99536cac140717f12",
+  "branch": "codex/stage13a-procedure-productivity",
+  "installer": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage13-final-inside\\build\\export\\Copperbench 0.1.0 Windows 64bit.exe",
+  "installerSha256": "1afe289a8c7b07b1736e0101090c02948c9056a9404e47b31810b2bd70659d3b",
+  "installerBytes": 722725347,
+  "cleanInstallEvidence": "evidence/stage-9/2026-09-06/clean-windows11-product-shell.json",
+  "historyRecoveryEvidence": "evidence/stage-13/2026-09-06/history-recovery-clean-windows11.json"
+}

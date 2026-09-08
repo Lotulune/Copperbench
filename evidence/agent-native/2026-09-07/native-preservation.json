@@ -1,0 +1,10 @@
+{
+  "operation": "external source edit -> resource display-name edit -> Gradle build",
+  "nativeHasManagedMetadata": false,
+  "beforeExternalEditSha256": "C34D7BC60C534C1358C6A576BE17C6C03C12C0300ED186461FB0498DF350D5F6",
+  "expectedSourceSha256": "F6BBBDF14663D18397CDF98DF452DF74D539E14CB7401D120EAE68C8292155FF",
+  "afterMetadataAndBuildSha256": "F6BBBDF14663D18397CDF98DF452DF74D539E14CB7401D120EAE68C8292155FF",
+  "sourcePreserved": true,
+  "buildExitCode": 0,
+  "note": "Tests a plain-file workflow, not a native equivalent of Copperbench managed-element preview/recovery."
+}

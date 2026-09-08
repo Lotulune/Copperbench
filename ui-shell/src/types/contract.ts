@@ -13,11 +13,75 @@ export interface LocalizedText {
   args?: Record<string, string | number | boolean | null>;
 }
 
+export interface AssetMoveReferenceRewrite {
+  sourceAssetId: string;
+  sourcePath: string;
+  sourceSha256: string;
+  sourcePointer: string;
+  oldRawValue: string;
+  newRawValue: string;
+  kind: 'JSON_STRING' | 'RESOURCE_ID';
+}
+
+export interface AssetMovePreview {
+  sourceAssetId: string;
+  sourceRelativePath: string;
+  sourceSha256: string;
+  category: AssetProjectionCategory;
+  targetRelativePath: string;
+  targetAssetId: string;
+  referenceCount: number;
+  rewrites: AssetMoveReferenceRewrite[];
+  canApply: boolean;
+  issueCodes: string[];
+  planToken: string;
+  expiresAt: string;
+}
+
+export interface WorkspacePlanReviewObject {
+  kind: string;
+  elementId?: UUID;
+  type?: string;
+  name?: string;
+  displayName?: string;
+  registry?: string;
+  beforeCount?: number;
+  afterCount?: number;
+  changedProperties?: string[];
+}
+
+export interface WorkspacePlanReview {
+  summary: {
+    operationCount: number;
+    affectedObjectCount: number;
+    affectedElementCount: number;
+    affectedRegistryCount: number;
+    createCount: number;
+    updateCount: number;
+    deleteCount: number;
+    changedPathCount: number;
+    scope: 'single_object' | 'multi_object';
+    highImpact: boolean;
+  };
+  operationGroups: Array<{ operation: WorkspacePlanOperation; count: number }>;
+  affectedObjects: WorkspacePlanReviewObject[];
+  changedPaths: string[];
+}
+
+export type ProcedureRefactorRequest =
+  | { kind: 'extract_node'; elementId: UUID; nodeId: UUID; newProcedureName: string }
+  | { kind: 'replace_call_target'; sourceProcedureId: UUID; targetProcedureId: UUID }
+  | { kind: 'replace_resource_target'; sourceResource: string; targetResource: string };
+
 export type ActionHintKind =
   | 'retry'
   | 'refresh'
   | 'open_field'
+  | 'open_asset'
+  | 'open_source'
   | 'open_logs'
+  | 'open_procedure_node'
+  | 'preview_repair'
   | 'request_permission'
   | 'dismiss';
 
@@ -26,6 +90,7 @@ export interface ActionHint {
   label: LocalizedText;
   kind: ActionHintKind;
   target?: string | null;
+  payload?: Record<string, unknown> | null;
 }
 
 export interface Diagnostic {
@@ -140,6 +205,60 @@ export interface ElementCounts {
   unsupported: number;
 }
 
+export interface WorkspaceHealthProjection {
+  revision: Revision;
+  elements: ElementCounts;
+  diagnostics: {
+    total: number;
+    error: number;
+    warning: number;
+    info: number;
+  };
+  references: {
+    edgeCount: number;
+    danglingCount: number;
+    diagnostics: Diagnostic[];
+  };
+  assets: {
+    indexed: boolean;
+    reasonCode?: string;
+    summary?: AssetProjectionHealthSummary;
+    diagnostics?: Diagnostic[];
+  };
+  generator: {
+    generator: GeneratorTarget;
+    status: TrackStatus;
+    reasonCode: string;
+    generatable: boolean;
+  };
+  risk: {
+    loaderMigration: {
+      requiresUserApproval: boolean;
+      copyOnly: boolean;
+      availableTargetGeneratorIds: string[];
+      availableTargetCount: number;
+    };
+    aiBatchChanges: {
+      reviewModel: 'workspace_plan';
+      maxOperations: number;
+      highImpactOperationThreshold: number;
+      highImpactObjectThreshold: number;
+    };
+  };
+  tasks: {
+    activeCount: number;
+    recentFailureScope: 'current_session';
+    recentFailed: Array<TaskSummary & { observedAt: Timestamp }>;
+  };
+  recovery: {
+    available: boolean;
+    reasonCode?: string;
+    recoveryPointCount: number;
+    currentRecoveryPointId: string | null;
+    currentStateMatchesRecoveryPoint: boolean;
+  };
+}
+
 export interface WorkbenchProjection {
   workspace: WorkspaceSummary;
   permission: PermissionProjection;
@@ -197,26 +316,92 @@ export interface ProcedureNodeCatalogItem {
   reasonCode?: string | null;
 }
 
+export interface ProcedureSymbols {
+  variables: Array<{
+    nodeId: UUID;
+    name: string;
+    access: 'read' | 'write';
+    registryEntryId: UUID | null;
+    dataType: string | null;
+    scope: string | null;
+  }>;
+  availableVariables: Array<{ id: UUID; name: string; dataType: string; scope: string }>;
+  availableProcedures: Array<{ id: UUID; name: string; displayName: string }>;
+  resources: Array<{ nodeId: UUID; kind: string; target: string }>;
+  calls: Array<{ nodeId: UUID; target: string; targetId: UUID | null; targetName: string }>;
+  stats: { variableCount: number; resourceCount: number; callCount: number };
+}
+
 export interface ProcedureEditorProjection {
   element: ModElementSummary;
   baseRevision: Revision;
   readOnly: boolean;
   ir: ProcedureIr;
   nodeCatalog: ProcedureNodeCatalogItem[];
+  symbols: ProcedureSymbols;
   sourcePreview: string;
   sourceOwnership: 'generated' | 'manual' | 'mixed';
   references: WorkspaceReferenceProjection;
+  relationships: ProcedureRelationships;
   diagnostics?: Diagnostic[];
+}
+
+export interface ProcedureChangePreview {
+  elementId: UUID;
+  baseRevision: Revision;
+  canSaveDraft: boolean;
+  canGenerate: boolean;
+  candidateIr: ProcedureIr;
+  sourcePreview: string;
+  diagnostics: Diagnostic[];
+  changedPaths: string[];
 }
 
 export type ProcedureEdit = Record<string, unknown> & { operation: string };
 
+export interface WorkspaceReferenceNode {
+  id: UUID;
+  kind: 'element' | 'registry';
+  type: string;
+  name: string;
+  displayName: string;
+}
+
+export interface WorkspaceReferenceEdge {
+  id: UUID;
+  sourceId: UUID;
+  sourcePath: string;
+  target: string;
+  targetId: UUID | null;
+  kind: string;
+  sourceKind?: string;
+  sourceType?: string;
+  sourceName?: string;
+  sourceDisplayName?: string;
+  targetKind?: string | null;
+  targetType?: string | null;
+  targetName?: string;
+  targetDisplayName?: string | null;
+  direction?: 'inbound' | 'outbound';
+}
+
 export interface WorkspaceReferenceProjection {
   revision: Revision;
-  nodes: Array<Record<string, unknown>>;
-  edges: Array<Record<string, unknown>>;
+  nodes: WorkspaceReferenceNode[];
+  edges: WorkspaceReferenceEdge[];
   diagnostics: Diagnostic[];
   stats: { indexedElements: number; edgeCount: number; incremental: boolean };
+}
+
+export interface ProcedureRelationships {
+  inbound: WorkspaceReferenceEdge[];
+  outbound: WorkspaceReferenceEdge[];
+  stats: {
+    inboundCount: number;
+    outboundCount: number;
+    totalCount: number;
+    byKind: Record<string, number>;
+  };
 }
 
 export interface RegistryEntry {
@@ -287,11 +472,18 @@ export interface EditorField {
     | 'toggle'
     | 'select'
     | 'resource_reference'
-    | 'procedure_reference';
+    | 'procedure_reference'
+    | 'element_reference'
+    | 'element_reference_list'
+    | 'structured_list';
   required: boolean;
   readOnly: boolean;
   value: unknown;
   options: FieldOption[];
+  referenceTypes?: ModElementType[];
+  resourceType?: string;
+  itemFields?: EditorField[];
+  itemTemplate?: Record<string, unknown>;
   constraints?: {
     min?: number;
     max?: number;
@@ -299,6 +491,11 @@ export interface EditorField {
     minLength?: number;
     maxLength?: number;
     pattern?: string;
+  };
+  condition?: {
+    operator: 'any_truthy';
+    paths: string[];
+    expressions?: string[];
   };
   diagnostics: Diagnostic[];
 }
@@ -315,6 +512,32 @@ export interface ModElementEditorProjection {
   capabilities: CapabilityDecision[];
 }
 
+export interface ModElementChangePreview {
+  elementId: UUID;
+  baseRevision: Revision;
+  canApply: boolean;
+  changedPaths: string[];
+  candidateValues: Record<string, unknown>;
+  diagnostics: Diagnostic[];
+  semanticSummary?: {
+    changedFieldCount: number;
+    changedFields: Array<{
+      path: string;
+      field: string;
+      sectionId: string;
+    }>;
+    sections: string[];
+  };
+  generationImpact?: {
+    scope: 'element' | string;
+    requiresRegeneration: boolean;
+    generatorId: string;
+    loader: string;
+    minecraftVersion: string;
+    affectedDomains: string[];
+  };
+}
+
 export interface TaskLogEntry {
   sequence: number;
   timestamp: Timestamp;
@@ -326,6 +549,15 @@ export interface TaskProjection {
   task: TaskSummary;
   logs: TaskLogEntry[];
   diagnostics: Diagnostic[];
+  source?: TaskSourcePreview | null;
+}
+
+export interface TaskSourcePreview {
+  path: string;
+  language: 'java';
+  content: string;
+  size: number;
+  line: number;
 }
 
 export type RecoveryPointActor = 'ui' | 'mcp' | 'headless' | 'legacy_ui' | 'system';
@@ -335,11 +567,13 @@ export interface RecoveryPoint {
   label: string;
   actor: RecoveryPointActor;
   taskId: string;
+  source?: 'manual' | 'automation' | 'workspace_plan' | 'procedure' | 'asset' | 'datagen' | 'registry' | 'blockbench' | 'restore_safety';
   createdAt: Timestamp;
 }
 
 export interface HistoryProjection {
   currentRevision: Revision;
+  currentRecoveryPointId: string | null;
   recoveryPoints: RecoveryPoint[];
   total?: number;
   pageSize?: number;
@@ -349,11 +583,23 @@ export interface HistoryProjection {
 export interface WorkspaceChange {
   type: 'add' | 'modify' | 'delete' | 'rename' | 'copy';
   path: string;
+  objectKind?: 'workspace' | 'mod_element' | 'asset';
+  objectName?: string;
+  fieldChanges?: {
+    type: 'add' | 'modify' | 'delete';
+    pointer: string;
+  }[];
 }
 
 export interface HistoryComparison {
   fromRecoveryPointId: string;
   toRecoveryPointId: string;
+  baseRevision: Revision;
+  changes: WorkspaceChange[];
+}
+
+export interface RecoveryRestorePreview {
+  recoveryPointId: string;
   baseRevision: Revision;
   changes: WorkspaceChange[];
 }
@@ -529,12 +775,19 @@ export interface WorkspacePlan {
   workspaceId: UUID;
   baseRevision: Revision;
   idempotencyKey: string;
+  requireRecoveryPoint: boolean;
   operations: WorkspacePlanStep[];
   operationCount: number;
   targetDigest: string;
   semanticDiff: Record<string, unknown>[];
   changedPaths: string[];
+  review: WorkspacePlanReview;
   permission: WorkspacePlanPermission;
+  safety: {
+    requiresRecoveryPoint: boolean;
+    recoveryPointAvailable: boolean;
+    ready: boolean;
+  };
   planId: string;
   planToken: string;
   currentRevision?: Revision;
@@ -545,6 +798,7 @@ export interface WorkspacePlan {
 export interface WorkspacePlanRequestPayload {
   expectedRevision: Revision;
   idempotencyKey: string;
+  requireRecoveryPoint?: boolean;
   operations: Array<Omit<WorkspacePlanStep, 'plannedId'>>;
 }
 
@@ -583,7 +837,10 @@ export type CommandOperation =
   | 'execute_loader_migration'
   | 'import_upstream_workspace'
   | 'create_publish_batch'
-  | 'prepare_resource_pack_client';
+  | 'prepare_resource_pack_client'
+  | 'import_asset'
+  | 'import_asset_batch'
+  | 'move_asset';
 
 export interface Command<T = unknown> {
   messageType: 'command';
@@ -644,6 +901,7 @@ export interface CommandResultData {
   blockedCount?: number;
   lostCount?: number;
   manualCount?: number;
+  semanticComparison?: MigrationSemanticComparison | null;
   batch?: PublishBatch;
   zipRelativePath?: string;
   packFormat?: number;
@@ -668,6 +926,17 @@ export interface CommandResultData {
   targetDigest?: string;
   semanticDiff?: Record<string, unknown>[];
   idempotentReplay?: boolean;
+  asset?: AssetProjectionAsset;
+  assets?: AssetProjectionAsset[];
+  conflict?: 'CREATE' | 'IDENTICAL' | 'REPLACE';
+  health?: AssetProjectionHealthSummary;
+  importedCount?: number;
+  skippedIdenticalCount?: number;
+  createCount?: number;
+  replaceCount?: number;
+  sourceRelativePath?: string;
+  targetRelativePath?: string;
+  rewrittenReferences?: number;
 }
 
 export interface CommandResult {
@@ -692,8 +961,12 @@ export interface CommandResult {
 
 export type QueryOperation =
   | 'get_workbench'
+  | 'get_workspace_health'
   | 'list_new_workspace_generators'
   | 'list_assets'
+  | 'preview_asset_import'
+  | 'preview_asset_import_batch'
+  | 'preview_asset_move'
   | 'list_mod_elements'
   | 'get_mod_element_editor'
   | 'preview_mod_element_change'
@@ -702,12 +975,14 @@ export type QueryOperation =
   | 'get_workspace_references'
   | 'list_workspace_registries'
   | 'preview_registry_rename'
+	| 'plan_procedure_refactor'
 	| 'plan_workspace_changes'
 	| 'preview_workspace_plan'
 	| 'preview_datagen_output'
   | 'get_task'
   | 'get_history'
   | 'get_diff'
+  | 'preview_recovery_restore'
   | 'list_operation_approvals'
   | 'get_version_tracks'
   | 'get_release_notes'
@@ -849,29 +1124,91 @@ export interface AssetProjectionAsset {
   sha256: string;
   mediaType: string;
   updatedAt?: string;
+  health: AssetProjectionHealthEntry;
+}
+
+export interface AssetProjectionHealthEntry {
+  assetId: string;
+  relativePath: string;
+  status: 'READY' | 'WARNING' | 'ERROR';
+  usageAssessed: boolean;
+  unused: boolean;
+  inboundCount: number;
+  outboundCount: number;
+  workspaceReferenceCount: number;
+  cleanupAssessed: boolean;
+  safeUnused: boolean;
+  duplicateContent: boolean;
+  duplicatePaths: string[];
+  issueCodes: string[];
+}
+
+export interface AssetProjectionHealthSummary {
+  totalAssets: number;
+  readyAssets: number;
+  warningAssets: number;
+  errorAssets: number;
+  unusedAssets: number;
+  safeUnusedAssets: number;
+  duplicateAssets: number;
+  duplicateGroups: number;
+  missingReferences: number;
+  invalidDocuments: number;
+  pathEscapes: number;
 }
 
 export interface AssetProjectionReference {
   sourceAssetId: string;
   sourcePath: string;
+  sourcePointer: string;
+  rawValue: string;
+  expectedPrefix: string | null;
   targetPath: string;
   targetAssetId: string;
   kind: 'RESOURCE_ID' | 'JSON_STRING';
-}
-
-export interface AssetProjectionDiagnostic {
-  code: 'INVALID_ASSET_DOCUMENT' | 'REFERENCE_PATH_ESCAPE' | 'MISSING_ASSET_REFERENCE';
-  severity: 'INFO' | 'WARNING' | 'ERROR';
-  sourcePath: string;
-  targetPath: string | null;
-  message: string;
 }
 
 export interface AssetProjection {
   schemaVersion: '1.0';
   assets: AssetProjectionAsset[];
   references: AssetProjectionReference[];
-  diagnostics: AssetProjectionDiagnostic[];
+  diagnostics: Diagnostic[];
+  health: AssetProjectionHealthSummary;
+}
+
+export interface AssetImportPreview {
+  sourceFileName: string;
+  sourceSize: number;
+  sourceSha256: string;
+  sourceMediaType: string;
+  category: AssetProjectionCategory;
+  targetRelativePath: string;
+  conflict: 'CREATE' | 'IDENTICAL' | 'REPLACE';
+  targetSha256: string | null;
+  duplicatePaths: string[];
+  canApply: boolean;
+  issueCodes: string[];
+  planToken: string;
+  expiresAt: string;
+  requiresReplacementConfirmation: boolean;
+}
+
+export type AssetImportBatchItemPreview = Omit<
+  AssetImportPreview,
+  'planToken' | 'expiresAt' | 'requiresReplacementConfirmation'
+>;
+
+export interface AssetImportBatchPreview {
+  items: AssetImportBatchItemPreview[];
+  createCount: number;
+  replaceCount: number;
+  identicalCount: number;
+  changedCount: number;
+  canApply: boolean;
+  issueCodes: string[];
+  planToken: string;
+  expiresAt: string;
+  requiresReplacementConfirmation: boolean;
 }
 
 export type MigrationDisposition = 'supported' | 'substitute' | 'lost' | 'blocked' | 'manual';
@@ -897,6 +1234,24 @@ export interface MigrationReport {
   blockedCount: number;
   lostCount: number;
   manualCount: number;
+  semanticComparison: MigrationSemanticComparison | null;
+}
+
+export interface MigrationSemanticChange {
+  path: string;
+  name: string;
+  type: string;
+  change: 'changed' | 'unexpected' | 'added' | 'removed' | string;
+}
+
+export interface MigrationSemanticComparison {
+  generatorChanged: boolean;
+  workspaceMetadataPreserved: boolean;
+  preservedElementCount: number;
+  changedElementCount: number;
+  addedElementCount: number;
+  removedElementCount: number;
+  changes: MigrationSemanticChange[];
 }
 
 export type LoaderMigrationPreview = MigrationReport;
@@ -985,7 +1340,11 @@ export type EventType =
   | 'loader_migration_executed'
   | 'upstream_workspace_imported'
   | 'publish_batch_created'
-  | 'resource_pack_client_prepared';
+  | 'resource_pack_client_prepared'
+  | 'asset_imported'
+  | 'assets_imported'
+  | 'asset_moved'
+  | 'asset_external_edit_committed';
 
 export interface BaseEvent<E extends EventType, P> {
   messageType: 'event';
@@ -1149,6 +1508,34 @@ export type ResourcePackClientPreparedEvent = BaseEvent<
   ClientLoadPreparation
 >;
 
+export type AssetImportedEvent = BaseEvent<
+  'asset_imported',
+  CommandResultData
+>;
+
+export type AssetsImportedEvent = BaseEvent<
+  'assets_imported',
+  CommandResultData
+>;
+
+export type AssetMovedEvent = BaseEvent<
+  'asset_moved',
+  CommandResultData
+>;
+
+export type AssetExternalEditCommittedEvent = BaseEvent<
+  'asset_external_edit_committed',
+  {
+    assetId: string;
+    relativePath: string;
+    openedSha256: string;
+    currentSha256: string;
+    recoveryPointId: string;
+    asset: AssetProjectionAsset;
+    health: AssetProjectionHealthSummary;
+  }
+>;
+
 export type CoreEvent =
   | RevisionAdvancedEvent
   | ModElementCreatedEvent
@@ -1170,7 +1557,11 @@ export type CoreEvent =
   | LoaderMigrationExecutedEvent
   | UpstreamWorkspaceImportedEvent
   | PublishBatchCreatedEvent
-  | ResourcePackClientPreparedEvent;
+  | ResourcePackClientPreparedEvent
+  | AssetImportedEvent
+  | AssetsImportedEvent
+  | AssetMovedEvent
+  | AssetExternalEditCommittedEvent;
 
 /* =========================================================================
  * Scenario Schema

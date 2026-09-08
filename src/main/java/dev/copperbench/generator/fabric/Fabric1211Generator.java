@@ -17,6 +17,7 @@ import com.google.gson.JsonObject;
 import dev.copperbench.core.workspace.WorkspaceState;
 import dev.copperbench.core.workspace.WorkspaceState.Element;
 import dev.copperbench.generator.PluginWorkspaceLayout;
+import dev.copperbench.procedure.ProcedureIrCodec;
 import dev.copperbench.release.ElementCoverageCatalog;
 
 import java.io.IOException;
@@ -76,6 +77,7 @@ public final class Fabric1211Generator {
 	private static final Pattern PACKAGE = Pattern.compile("^[a-z][a-z0-9_]*(?:\\.[a-z][a-z0-9_]*)+$");
 	private static final Pattern ELEMENT_NAME = Pattern.compile("^[a-z][a-z0-9_]{0,63}$");
 	private static final Gson JSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+	private static final ProcedureIrCodec PROCEDURES = new ProcedureIrCodec();
 	private static final byte[] FALLBACK_TEXTURE = Base64.getDecoder().decode(
 			"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=");
 
@@ -110,9 +112,11 @@ public final class Fabric1211Generator {
 		List<ValidationIssue> issues = validate(workspace);
 		if (!issues.isEmpty()) throw new IllegalArgumentException(issues.getFirst().message());
 		Descriptor descriptor = descriptor(workspace);
-		if (preservePluginWorkspace && PluginWorkspaceLayout.present(root))
+		if (preservePluginWorkspace && PluginWorkspaceLayout.present(root)) {
+			PluginWorkspaceLayout.ensureGradleRuntime(root, distributionRoot, profile.gradleWrapperZip());
 			return new GenerationResult(profile.generatorId(), descriptor.modId(),
 					PluginWorkspaceLayout.relativeSourcePaths(root));
+		}
 		List<String> generated = new ArrayList<>();
 		Files.createDirectories(root);
 		if (!preservePluginWorkspace) {
@@ -155,19 +159,38 @@ public final class Fabric1211Generator {
 									base, element));
 						if (luminance < 0 || luminance > 15)
 							issues.add(issue("FABRIC_BLOCK_LUMINANCE_INVALID", "Block luminance must be between 0 and 15.",
-									base + "/luminance", element));
+									base + "/luminance", element, JSON.toJsonTree(Math.max(0, Math.min(15, luminance)))));
 					}
 					case "item" -> {
 						int maxStack = integer(values, "maxStackSize", 64);
 						if (maxStack < 1 || maxStack > 64)
 							issues.add(issue("FABRIC_ITEM_STACK_INVALID", "Item stack size must be between 1 and 64.",
-									base + "/maxStackSize", element));
+									base + "/maxStackSize", element, JSON.toJsonTree(Math.max(1, Math.min(64, maxStack)))));
 					}
 					case "recipe" -> validateRecipe(values, availableResults, base, element, issues);
 					case "procedure" -> {
 						if (string(values, "message", "").isBlank())
 							issues.add(issue("FABRIC_PROCEDURE_MESSAGE_REQUIRED", "Procedure message is required.",
 									base + "/message", element));
+						JsonObject stored = element.values();
+						boolean hasIr = stored.has("procedureIr") && stored.get("procedureIr").isJsonObject();
+						boolean hasXml = stored.has("procedurexml") && stored.get("procedurexml").isJsonPrimitive()
+								&& !stored.get("procedurexml").getAsString().isBlank();
+						if (hasIr || hasXml) {
+							try {
+								var ir = PROCEDURES.read(stored, element.id());
+								for (var procedureIssue : PROCEDURES.validate(ir)) {
+									String path = "/elements/" + element.id() + "/procedureIr";
+									if (procedureIssue.nodeId() != null) path += "/nodes/" + procedureIssue.nodeId();
+									if (procedureIssue.port() != null) path += "/ports/" + procedureIssue.port();
+									issues.add(new ValidationIssue(procedureIssue.code(), procedureIssue.message(), path,
+											element.id()));
+								}
+							} catch (RuntimeException exception) {
+								issues.add(issue("FABRIC_PROCEDURE_IR_INVALID", "Procedure graph could not be parsed.",
+										"/elements/" + element.id() + "/procedureIr", element));
+							}
+						}
 					}
 					default -> { }
 				}
@@ -198,6 +221,11 @@ public final class Fabric1211Generator {
 
 	private static ValidationIssue issue(String code, String message, String path, Element element) {
 		return new ValidationIssue(code, message, path, element.id());
+	}
+
+	private static ValidationIssue issue(String code, String message, String path, Element element,
+			JsonElement repairValue) {
+		return new ValidationIssue(code, message, path, element.id(), repairValue);
 	}
 
 	private void writeBuildFiles(Path root, Descriptor descriptor, long revision, List<String> generated)
@@ -861,7 +889,14 @@ public final class Fabric1211Generator {
 		}
 	}
 
-	public record ValidationIssue(String code, String message, String path, UUID elementId) {
+	public record ValidationIssue(String code, String message, String path, UUID elementId, JsonElement repairValue) {
+		public ValidationIssue(String code, String message, String path, UUID elementId) {
+			this(code, message, path, elementId, null);
+		}
+
+		public ValidationIssue {
+			repairValue = repairValue == null ? null : repairValue.deepCopy();
+		}
 	}
 
 	private record Descriptor(String modId, String basePackage, String version, String displayName, String javaName) {

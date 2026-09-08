@@ -1,0 +1,10 @@
+{
+  "track": "neoforge-1.21.1",
+  "label": "copperbench-assemble",
+  "exitCode": 1,
+  "timedOut": false,
+  "elapsedMs": 22831,
+  "javaHome": "D:\\AICoding\\Minecraft_ModCreator\\jdk\\jdk21_win_64",
+  "gradleHome": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\build\\stage8-workspace-generator-gradle\\neoforge-1_21_1",
+  "completedAt": "2026-09-07T10:16:02.4105349+00:00"
+}
