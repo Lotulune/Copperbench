@@ -82,7 +82,8 @@ public final class Fabric1211WorkspaceTaskGateway implements WorkspaceTaskGatewa
 		};
 		GradleProcessRunner processAdapter = (root, arguments, timeout, output) -> {
 			var result = processes.run(root, arguments, timeout, output);
-			return new GradleProcessRunner.ProcessResult(result.exitCode(), result.readinessMarkerSeen());
+			return new GradleProcessRunner.ProcessResult(result.exitCode(), result.readinessMarkerSeen(),
+					result.runtimeFailureCode());
 		};
 		this.delegate = new GradleWorkspaceTaskGateway(store, workspaceRoots, backend, clock, ids, processAdapter);
 	}

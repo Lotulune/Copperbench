@@ -18,6 +18,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -46,7 +47,10 @@ import java.util.function.Supplier;
 		return new SystemProcessRunner(readinessMarker, javaHome);
 	}
 
-	record ProcessResult(int exitCode, boolean readinessMarkerSeen) {
+	record ProcessResult(int exitCode, boolean readinessMarkerSeen, String runtimeFailureCode) {
+		public ProcessResult(int exitCode, boolean readinessMarkerSeen) {
+			this(exitCode, readinessMarkerSeen, null);
+		}
 	}
 
 	final class SystemProcessRunner implements Fabric1211ProcessRunner {
@@ -61,8 +65,11 @@ import java.util.function.Supplier;
 
 		@Override public ProcessResult run(Path workspaceRoot, List<String> arguments, Duration timeout,
 				Consumer<String> output) throws Exception {
-			boolean windows = RuntimePlatform.current().operatingSystem()
-					== RuntimePlatform.OperatingSystem.WINDOWS;
+			RuntimePlatform platform = RuntimePlatform.current();
+			boolean windows = platform.operatingSystem() == RuntimePlatform.OperatingSystem.WINDOWS;
+			boolean linux = platform.operatingSystem() == RuntimePlatform.OperatingSystem.LINUX;
+			boolean clientRun = isClientRun(arguments);
+
 			String configuredGradle = System.getenv("COPPERBENCH_STAGE5_GRADLE_EXECUTABLE");
 			List<String> command = new ArrayList<>();
 			if (windows) {
@@ -94,6 +101,7 @@ import java.util.function.Supplier;
 			AtomicBoolean serverReady = new AtomicBoolean();
 			AtomicBoolean serverFatal = new AtomicBoolean();
 			AtomicReference<Exception> readFailure = new AtomicReference<>();
+			AtomicReference<String> runtimeFailureCode = new AtomicReference<>();
 			Thread reader = Thread.startVirtualThread(() -> {
 				try (BufferedReader lines = new BufferedReader(
 						new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
@@ -103,6 +111,10 @@ import java.util.function.Supplier;
 						if (line.contains(readinessMarker)) marker.set(true);
 						if (isMinecraftServerReadyLine(line)) serverReady.set(true);
 						if (isMinecraftServerFatalLine(line)) serverFatal.set(true);
+						if (clientRun && linux) {
+							String code = linuxGraphicalFailureCode(line);
+							if (code != null) runtimeFailureCode.compareAndSet(null, code);
+						}
 					}
 				} catch (Exception exception) {
 					readFailure.set(exception);
@@ -111,7 +123,6 @@ import java.util.function.Supplier;
 
 			boolean noTimeout = timeout == null || timeout.isZero() || timeout.isNegative();
 			Instant deadline = noTimeout ? null : Instant.now().plus(timeout);
-			boolean clientRun = isClientRun(arguments);
 			boolean serverRun = isServerRun(arguments);
 			Instant serverReadyAt = null;
 			while (process.isAlive() && (noTimeout || Instant.now().isBefore(deadline))) {
@@ -139,7 +150,7 @@ import java.util.function.Supplier;
 				destroy(process);
 				reader.join(Duration.ofSeconds(10));
 				return new ProcessResult(124, clientRun ? marker.get()
-						: serverRun && marker.get() && serverReady.get() && !serverFatal.get());
+						: serverRun && marker.get() && serverReady.get() && !serverFatal.get(), runtimeFailureCode.get());
 			}
 			reader.join(Duration.ofSeconds(10));
 			if (readFailure.get() != null) throw readFailure.get();
@@ -147,7 +158,7 @@ import java.util.function.Supplier;
 			return new ProcessResult(process.exitValue(),
 					clientRun ? marker.get()
 							: serverRun ? stableServerExit && marker.get() && serverReady.get() && !serverFatal.get()
-									: marker.get());
+									: marker.get(), runtimeFailureCode.get());
 		}
 
 		private static void destroy(Process process) {
@@ -208,5 +219,27 @@ import java.util.function.Supplier;
 				|| line.contains("Attempted to load class") && line.contains("DEDICATED_SERVER")
 				|| line.contains("Exception in server tick loop")
 				|| line.contains("Encountered an unexpected exception");
+	}
+
+	static String linuxGraphicalFailureCode(String line) {
+		if (line == null) return null;
+		String normalized = line.toLowerCase(Locale.ROOT);
+		if (normalized.contains("the display environment variable is missing")
+				|| normalized.contains("failed to open display")
+				|| normalized.contains("cannot open display")
+				|| normalized.contains("failed to connect to display")
+				|| normalized.contains("failed to connect to wayland display")
+				|| normalized.contains("glfw_platform_unavailable"))
+			return "LINUX_DISPLAY_UNAVAILABLE";
+		if (normalized.contains("libgl error")
+				|| normalized.contains("glxbadfbconfig")
+				|| normalized.contains("egl_bad")
+				|| normalized.contains("failed to create opengl context")
+				|| normalized.contains("could not create gl context")
+				|| normalized.contains("couldn't find a valid opengl pixel format"))
+			return "LINUX_OPENGL_INITIALIZATION_FAILED";
+		if (normalized.contains("failed to initialize glfw") || normalized.contains("glfw error"))
+			return "LINUX_GLFW_INITIALIZATION_FAILED";
+		return null;
 	}
 }

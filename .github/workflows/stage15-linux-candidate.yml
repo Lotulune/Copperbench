@@ -85,8 +85,11 @@ jobs:
             --tests dev.copperbench.platform.UserDataPathsTest \
             --tests dev.copperbench.generator.BundledJdkLocatorTest \
             --tests dev.copperbench.generator.WorkspaceEnvironmentContextTest \
-            --tests dev.copperbench.generator.neoforge.NeoForge1211GeneratorTest
             --tests dev.copperbench.generator.fabric.Fabric1211ProcessRunnerTest \
+            --tests dev.copperbench.generator.fabric.Fabric1211TaskGatewayTest \
+            --tests dev.copperbench.generator.neoforge.NeoForge1211GeneratorTest \
+            --tests dev.copperbench.generator.neoforge.NeoForge1211TaskGatewayTest \
+            --tests dev.copperbench.generator.resourcepack.ResourcePackWorkspaceTaskGatewayTest
 
       - name: Build portable and deb candidates
         run: |

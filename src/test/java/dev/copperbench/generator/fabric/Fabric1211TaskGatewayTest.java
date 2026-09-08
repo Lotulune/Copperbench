@@ -279,6 +279,51 @@ class Fabric1211TaskGatewayTest {
 		}
 	}
 
+	@Test void runtimeFailureSuffixBecomesAStableRunClientDiagnostic() throws Exception {
+		RevisionedWorkspaceStore store = new RevisionedWorkspaceStore();
+		store.register(Fabric1211GoldenWorkspace.create());
+		AtomicLong sequence = new AtomicLong(605);
+		Supplier<UUID> ids = () -> UUID.fromString("00000000-0000-4000-8000-" +
+				String.format("%012d", sequence.getAndIncrement()));
+		Fabric1211ProcessRunner runner = (root, arguments, timeout, output) -> {
+			assertEquals(List.of("runClient"), arguments);
+			output.accept("GLFW error 65550: X11: The DISPLAY environment variable is missing");
+			return new Fabric1211ProcessRunner.ProcessResult(1, false, "LINUX_DISPLAY_UNAVAILABLE");
+		};
+		try (Fabric1211WorkspaceTaskGateway tasks = new Fabric1211WorkspaceTaskGateway(store,
+				ignored -> generatedWorkspace, Path.of(".").toAbsolutePath().normalize(), CLOCK, ids, runner)) {
+			WorkspaceApplicationService service = new WorkspaceApplicationService(store, tasks, CLOCK, ids);
+
+			JsonObject client = startAndAwait(service, ids, Operation.RUN_CLIENT);
+			assertEquals("failed", client.getAsJsonObject("task").get("state").getAsString());
+			JsonObject diagnostic = client.getAsJsonArray("diagnostics").asList().stream()
+					.map(value -> value.getAsJsonObject())
+					.filter(value -> value.get("code").getAsString().equals("FABRIC_RUN_CLIENT_LINUX_DISPLAY_UNAVAILABLE"))
+					.findFirst().orElseThrow();
+			JsonObject args = diagnostic.getAsJsonObject("message").getAsJsonObject("args");
+			assertEquals(1, args.get("exitCode").getAsInt());
+			assertEquals("LINUX_DISPLAY_UNAVAILABLE", args.get("runtimeFailureCode").getAsString());
+		}
+	}
+
+	@Test void readinessPreventsGraphicalFailureMisclassification() throws Exception {
+		RevisionedWorkspaceStore store = new RevisionedWorkspaceStore();
+		store.register(Fabric1211GoldenWorkspace.create());
+		AtomicLong sequence = new AtomicLong(608);
+		Supplier<UUID> ids = () -> UUID.fromString("00000000-0000-4000-8000-" +
+				String.format("%012d", sequence.getAndIncrement()));
+		Fabric1211ProcessRunner runner = (root, arguments, timeout, output) ->
+				new Fabric1211ProcessRunner.ProcessResult(9, true, "LINUX_OPENGL_INITIALIZATION_FAILED");
+		try (Fabric1211WorkspaceTaskGateway tasks = new Fabric1211WorkspaceTaskGateway(store,
+				ignored -> generatedWorkspace, Path.of(".").toAbsolutePath().normalize(), CLOCK, ids, runner)) {
+			WorkspaceApplicationService service = new WorkspaceApplicationService(store, tasks, CLOCK, ids);
+			JsonObject client = startAndAwait(service, ids, Operation.RUN_CLIENT);
+			String diagnostics = client.getAsJsonArray("diagnostics").toString();
+			assertTrue(diagnostics.contains("FABRIC_RUN_CLIENT_EXITED"));
+			assertFalse(diagnostics.contains("FABRIC_RUN_CLIENT_LINUX_OPENGL_INITIALIZATION_FAILED"));
+		}
+	}
+
 	@Test void runtimeProcessFailuresExposeExitAndReadinessFactsWithoutGuessingElements() throws Exception {
 		RevisionedWorkspaceStore store = new RevisionedWorkspaceStore();
 		store.register(Fabric1211GoldenWorkspace.create());

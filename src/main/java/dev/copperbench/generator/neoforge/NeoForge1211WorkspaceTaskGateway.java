@@ -62,7 +62,8 @@ public final class NeoForge1211WorkspaceTaskGateway implements WorkspaceTaskGate
 		this.profile = profile;
 		GradleProcessRunner processAdapter = (root, arguments, timeout, output) -> {
 			var result = processes.run(root, arguments, timeout, output);
-			return new GradleProcessRunner.ProcessResult(result.exitCode(), result.readinessMarkerSeen());
+			return new GradleProcessRunner.ProcessResult(result.exitCode(), result.readinessMarkerSeen(),
+					result.runtimeFailureCode());
 		};
 		this.delegate = new GradleWorkspaceTaskGateway(store, workspaceRoots,
 				new NeoForge1211Generator(distributionRoot, profile,

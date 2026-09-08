@@ -159,8 +159,15 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 				if (process.exitCode() != 0) {
 					JsonObject args = new JsonObject();
 					args.addProperty("exitCode", process.exitCode());
+					String runtimeFailureCode = process.readinessMarkerSeen()
+							? null : process.runtimeFailureCode();
+					if (runtimeFailureCode != null && !runtimeFailureCode.isBlank())
+						args.addProperty("runtimeFailureCode", runtimeFailureCode);
+					String diagnosticCode = runtimeFailureCode == null || runtimeFailureCode.isBlank()
+							? backend.diagnosticPrefix() + "_RUN_CLIENT_EXITED"
+							: backend.diagnosticPrefix() + "_RUN_CLIENT_" + runtimeFailureCode;
 					failKnownTask(workspaceId, operation, job,
-							backend.diagnosticPrefix() + "_RUN_CLIENT_EXITED", "diagnostic.task_process_exited",
+							diagnosticCode, "diagnostic.task_process_exited",
 							"The {backend} {task} task exited with code {exitCode}.", args);
 					return;
 				}

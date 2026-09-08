@@ -20,6 +20,9 @@ import java.util.function.Consumer;
 	ProcessResult run(Path workspaceRoot, List<String> arguments, Duration timeout, Consumer<String> output)
 			throws Exception;
 
-	record ProcessResult(int exitCode, boolean readinessMarkerSeen) {
+	record ProcessResult(int exitCode, boolean readinessMarkerSeen, String runtimeFailureCode) {
+		public ProcessResult(int exitCode, boolean readinessMarkerSeen) {
+			this(exitCode, readinessMarkerSeen, null);
+		}
 	}
 }

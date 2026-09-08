@@ -25,6 +25,7 @@ Frozen target:
 - Stage 15-only Linux candidate admission using `copperbench.stage15LinuxCandidate=true`, without changing `currentHostSupported()` or the public support claim;
 - Wayland/X11/headless/unknown desktop-session classification is exposed through the shared workspace execution environment with explicit primary/compatibility/unverified certification roles;
 - `get_workspace_environment` gives headless/MCP/external-Agent clients the same host desktop capability facts without creating Linux-specific Core workspace semantics;
+- Linux `runClient` startup logs classify missing display, GLFW initialization and OpenGL initialization failures into stable task diagnostic codes before the readiness marker, while post-readiness exits remain generic runtime failures;
 - candidate SBOM/inventory with installed `jdk`, `jdk21` and packaged Gradle distributions;
 - Copperbench portable launcher, portable tar layout, Debian launcher/desktop entry and `.deb` build task;
 - Ubuntu 24.04 package-smoke workflow for Linux platform/generator regressions, portable/deb layout, executable bits, bundled runtimes and SHA-256 artifact hashes.
@@ -49,7 +50,11 @@ Focused Gradle regressions passed for:
 - `SupportedPlatformTest`;
 - `DevelopmentSbomTest`;
 - `LinuxCandidateManifestTest`;
-- `LinuxDistributionLayoutTest`.
+- `LinuxDistributionLayoutTest`;
+- `Fabric1211ProcessRunnerTest`;
+- `Fabric1211TaskGatewayTest`;
+- `NeoForge1211TaskGatewayTest`;
+- `ResourcePackWorkspaceTaskGatewayTest`;
 - `DesktopSessionCapabilitiesTest`;
 - `ExecutableFilePermissionsTest`;
 - `LinuxDesktopPathIntegrationTest`;
