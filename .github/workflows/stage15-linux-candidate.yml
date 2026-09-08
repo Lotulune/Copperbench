@@ -32,6 +32,7 @@ on:
       - "scripts/tests/linux-candidate-metadata.tests.mjs"
       - "scripts/tests/stage15-linux-installed-gate.tests.mjs"
       - "scripts/stage15/**"
+      - "scripts/verify-stage15-linux-installed-agent.py"
       - "scripts/verify-stage15-linux-installed-guest.sh"
       - "scripts/verify-stage15-linux-x11-ci-smoke.sh"
       - "scripts/verify-stage15-linux-runclient-ci-smoke.sh"
@@ -69,6 +70,7 @@ on:
       - "scripts/tests/linux-candidate-metadata.tests.mjs"
       - "scripts/tests/stage15-linux-installed-gate.tests.mjs"
       - "scripts/stage15/**"
+      - "scripts/verify-stage15-linux-installed-agent.py"
       - "scripts/verify-stage15-linux-installed-guest.sh"
       - "scripts/verify-stage15-linux-x11-ci-smoke.sh"
       - "scripts/verify-stage15-linux-runclient-ci-smoke.sh"
@@ -390,12 +392,21 @@ jobs:
           rm -rf "$harness_root" "$archive"
           mkdir -p "$harness_root/stage15"
           cp scripts/verify-stage15-linux-installed-guest.sh "$harness_root/"
+          cp scripts/verify-stage15-linux-installed-agent.py "$harness_root/"
           cp scripts/stage15/Stage15GraphicalProbeVerifier.java "$harness_root/stage15/"
+          cp scripts/stage15/INSTALLED-GATE.md "$harness_root/"
+          mkdir -p "$harness_root/sdk/python"
+          cp sdk/python/copperbench.py "$harness_root/sdk/python/"
           chmod 755 "$harness_root/verify-stage15-linux-installed-guest.sh"
+          chmod 755 "$harness_root/verify-stage15-linux-installed-agent.py"
           tar -C "$harness_root" -czf "$archive" .
           tar -tzf "$archive" | grep -q '^./verify-stage15-linux-installed-guest.sh$'
+          tar -tzf "$archive" | grep -q '^./verify-stage15-linux-installed-agent.py$'
           tar -tzf "$archive" | grep -q '^./stage15/Stage15GraphicalProbeVerifier.java$'
+          tar -tzf "$archive" | grep -q '^./INSTALLED-GATE.md$'
+          tar -tzf "$archive" | grep -q '^./sdk/python/copperbench.py$'
           test "$(tar -tvzf "$archive" | awk '$NF == "./verify-stage15-linux-installed-guest.sh" { print substr($1, 1, 10); exit }')" = "-rwxr-xr-x"
+          test "$(tar -tvzf "$archive" | awk '$NF == "./verify-stage15-linux-installed-agent.py" { print substr($1, 1, 10); exit }')" = "-rwxr-xr-x"
 
       - name: Upload clean GNOME installed-gate harness
         uses: actions/upload-artifact@v7
