@@ -37,4 +37,12 @@ class CefUtilsAccessibilityTest {
 		assertTrue(CefUtils.useOSROnWindows(false, false));
 		assertTrue(CefUtils.useOSROnWindows(true, true));
 	}
+
+	@Test void linuxX11OsrUsesSoftwareRenderingFallbackWithoutAffectingWayland() {
+		assertTrue(CefUtils.useSoftwareRenderingOnLinuxX11("x11", true));
+		assertTrue(CefUtils.useSoftwareRenderingOnLinuxX11("X11", true));
+		assertFalse(CefUtils.useSoftwareRenderingOnLinuxX11("wayland", true));
+		assertFalse(CefUtils.useSoftwareRenderingOnLinuxX11("x11", false));
+		assertFalse(CefUtils.useSoftwareRenderingOnLinuxX11(null, true));
+	}
 }

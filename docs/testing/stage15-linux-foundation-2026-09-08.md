@@ -264,6 +264,77 @@ It still does not claim that the external-Agent helper, its user-visible `run_cl
 Blockbench verifier has executed inside a clean GNOME guest; those results only become evidence after the real guest
 replay.
 
+### First clean-installed GNOME Wayland replay: Run 30 exposed an installed MCP base-directory defect
+
+The first real local clean-desktop replay has now reached the installed product rather than stopping at hosted/Xvfb
+evidence. A freshly installed Ubuntu 24.04.4 LTS x86_64 Hyper-V guest was booted into its real seat0 GNOME Wayland
+session. Before the candidate install, the guest reported no system `java`, `gradle`, or `git`. A temporary SSH service
+was added only as an operator transport after the user explicitly allowed it; the actual graphical product was still
+launched in the UID 1000 `stage15` seat0 session, which `loginctl` classified as `Type=wayland` and `State=active`.
+
+Run 30 candidate `95884ae0018e6adecb5b9de195b95d7d7a585afd` was bound to exact Debian SHA-256
+`6b3e9256e94378ef2a4bc01ae0d319dee2133fc96a8c1ea66b9436a861694fce`. A deterministic `fabric-1.21.1`
+workspace was created, the exact `.deb` was installed, and the real `/usr/bin/copperbench` graphical process started
+successfully under Wayland. The machine probe records `jcefMainFrameLoaded=true`, Linux `x86_64`,
+`sessionType=wayland`, `waylandDisplayPresent=true` and `x11DisplayPresent=true`. The captured probe is
+`evidence/stage15/2026-09-09/linux-wayland-run30-graphical-product-probe.json`.
+
+The same probe also exposed a real installed-product defect rather than an environment limitation: Desktop MCP did not
+reach listening state because embedded Tomcat attempted to create `/opt/copperbench/tomcat.0`. `CopperbenchMcpServer`
+called `Tomcat.getConnector()` before assigning its already-intended writable temporary base directory, so Tomcat
+initialized its default base from the installed working directory first. A normal desktop user cannot create that
+directory under `/opt/copperbench`.
+
+The defect is fixed in commit `22cba0fe39648e3a1ba16976d5570d4b920965f7` by assigning the private temporary
+Tomcat base before the first connector/server access. A regression test intentionally points `user.dir` and
+`catalina.base` at a regular file: it failed on the old ordering through the same `Tomcat.initBaseDir -> getConnector`
+path and passes after the fix. The complete `McpHttpServerTest` and `LinuxDistributionLayoutTest` suites, the Stage 15
+Windows product-regression gate contract, and whitespace checks all pass after the change.
+
+Run 30 is therefore retained as **defect-discovery evidence only** and is not eligible for the final clean-GNOME
+certification replay. The replacement exact candidate must be rebuilt from `22cba0fe` or later and replayed from the
+same package-absent / system-Java-Gradle-Git-absent guest baseline before any installed-GNOME pass is claimed.
+
+### Run 31 clean GNOME Wayland pass and real Xorg defect discovery
+
+GitHub Actions run `34345003881` rebuilt the Stage 15 candidate from commit
+`22cba0fe39648e3a1ba16976d5570d4b920965f7` after the installed Desktop MCP Tomcat-base fix. The hosted candidate
+chain completed green, including packaged JCEF/Desktop MCP, NeoForge and Fabric render preflights, Debian layout,
+SPDX, immutable metadata, SHA-256/provenance and both artifact uploads. The exact Debian candidate used for the local
+clean-GNOME replay is `c556cd9f10f9c327334ce8e5d858bab18a4771d82bbfa30104642a886d35f147`; the candidate artifact is
+`stage15-linux-candidate` / artifact ID `10101857574`, and its GitHub artifact digest is
+`sha256:adf805810fdaaa202e57c14ae081495a37e4a0567f0b004e376e558bc1525003`.
+
+The exact Run 31 `.deb` passed the automated installed-product preflight on the clean Ubuntu 24.04 x86_64 Hyper-V
+guest's real seat0 GNOME Wayland session. Before installation, system `java`, `gradle` and `git` were absent. The
+installed JBR/JCEF product wrote a `ready` graphical probe with `jcefMainFrameLoaded=true`, `sessionType=wayland`,
+and Desktop MCP `status=listening` / `permissionProfile=workspace`. The installed Copperbench Core then built a
+deterministic `fabric-1.21.1` workspace successfully and launched a real Minecraft client that reached the expected
+Fabric loader, LWJGL, ResourceManager reload and texture-atlas readiness markers. The machine result deliberately
+remains `automated-preflight-passed-manual-gates-pending` / `formalSupportClaim=false`. Machine-readable evidence is
+kept under `evidence/stage15/2026-09-09/run31-wayland-fabric/`.
+
+The same VM was then rebooted into a real GDM autologin GNOME on Xorg seat0 session. `loginctl` classified the desktop
+as `Type=x11`; the live `gnome-shell` environment recorded `DESKTOP_SESSION=ubuntu-xorg`, `DISPLAY=:0`,
+`XAUTHORITY=/run/user/1000/gdm/Xauthority`, and `XDG_SESSION_TYPE=x11`; `xdpyinfo` reached that X server successfully.
+The same exact Run 31 `.deb` nevertheless failed the installed graphical preflight before the JCEF probe. Chromium's
+GPU process exited during initialization and Copperbench subsequently logged `Failed to initialize JCEF in time` /
+`Failed to preload WebView in time`. The failed exact-binary evidence is retained under
+`evidence/stage15/2026-09-09/run31-xorg-fabric-failure/` and must not be relabelled as an Xorg pass.
+
+The current source change therefore adds a narrowly scoped Linux X11+OSR software-rendering fallback: Xorg uses
+`--disable-gpu`, `--disable-gpu-vsync`, SwiftShader and disables Vulkan, while Wayland remains on the existing
+accelerated path. A temporary **non-certification** classpath override containing only the patched `CefUtils` classes
+was replayed against the otherwise unchanged Run 31 installation on that same real Xorg seat0. It produced a ready
+graphical probe with `jcefMainFrameLoaded=true`, `sessionType=x11` and Desktop MCP listening, which validates the fix
+direction before spending another full candidate build. That diagnostic probe is explicitly named
+`noncert-xorg-override-graphical-probe.json`; formal Xorg evidence still requires a newly built exact candidate.
+
+The clean-guest NeoForge workspace bootstrap was also attempted. It reached the bundled Java 21 Gradle daemon but
+could not resolve `net.neoforged:neoform-runtime:2.0.18` because TLS connections from the guest to
+`maven.neoforged.net` were repeatedly reset. A direct Python HTTPS probe reproduced the same TLS handshake reset, so
+this attempt is recorded as an external repository/network block rather than a NeoForge product pass or failure.
+
 ### Windows affected-source regression replay
 
 After the Stage 15 platform/JDK/MCP/headless/external-tool changes, the affected Windows source-level regression set was replayed successfully on the Windows development host. The focused set covered bundled-JDK routing, workspace environment/layout recovery, Fabric and NeoForge task/runClient paths, Desktop MCP and external-Agent loops, headless product entry points, Blockbench discovery/lifecycle, XDG/legacy Windows path behavior and executable-permission portability. The Gradle run completed successfully with no source-level Windows regression.
@@ -280,10 +351,10 @@ The machine-readable result is `evidence/stage15/2026-09-09/windows-product-regr
 
 The headless/package/supply-chain path now has real Ubuntu evidence. Still required before Stage 15 closure:
 
-- start the same bundled JBR/JCEF candidate on a clean installed GNOME Linux VM (the Xvfb/X11 CI compatibility path is now proven, but the clean-desktop gate is not);
-- create/open/save/reopen real workspaces without system Java/Gradle/Git;
-- verify Fabric and NeoForge generate/build on the clean GNOME candidate and complete at least one user-visible interactive graphical `runClient` lifecycle there, matching FR-LINUX-03/05 rather than inventing a two-loader visible-window requirement; both loaders already have same-candidate packaged Xvfb render-path evidence;
-- verify the implemented Wayland/Xorg capability classification against real GNOME Wayland and GNOME on Xorg sessions, including actual JCEF/window behavior;
+- rebuild the Linux candidate with the Xorg JCEF software-rendering fix and replay the real GNOME on Xorg installed-product gate against that new exact binary; Run 31 is a clean Wayland pass but an exact-binary Xorg failure, while the patched classpath override is diagnostic evidence only;
+- create/save/reopen a disposable workspace through the installed UI; automated creation/build evidence exists, but the user-visible installed-UI persistence path is still manual;
+- complete the clean-guest NeoForge build/render cell after the guest can reach `maven.neoforged.net`; the attempted Run 31 bootstrap was externally blocked by repeatable TLS connection resets and is not counted as passed;
+- complete at least one user-visible interactive graphical `runClient` lifecycle through the external-Agent helper; the automated Wayland Fabric client already reached real render readiness, but its visible-window/normal-user-close observation remains manual;
 - execute the bundled external-Agent helper against the installed Linux candidate after authorizing its one-time token from the real UI; the helper is prepared to machine-check descriptor permissions, read/write/plan/build/conflict, interactive Run Client lifetime, credential redaction and normal-close endpoint cleanup, but none of those clean-guest results is claimed until the replay actually runs;
 - execute the bundled real-Blockbench verifier on the clean guest and separately confirm the installed Asset Center launches that real Blockbench binary; the helper is prepared to machine-check production discovery, managed launch, lease exclusion, save/change detection and normal close, but those installed-tool results are not yet evidence;
 - promote the attested development record into the existing formal exact-binary release-candidate chain only after the Linux graphical/product gates are satisfied.

@@ -99,6 +99,10 @@ public class CefUtils {
 		return !gpuAcceleration || softwareOnlyDisplay;
 	}
 
+	static boolean useSoftwareRenderingOnLinuxX11(String sessionType, boolean osr) {
+		return osr && sessionType != null && "x11".equalsIgnoreCase(sessionType);
+	}
+
 	public static CefBrowserSettings getCefBrowserSettings() {
 		if (settings == null) {
 			settings = new CefBrowserSettings();
@@ -187,6 +191,16 @@ public class CefUtils {
 			config.getAppArgsAsList().add("--use-angle=d3d11-warp");
 			config.getAppArgsAsList().add("--enable-features=AllowD3D11WarpFallback");
 			config.getAppArgsAsList().add("--disable-gpu-vsync");
+			disabledFeatures.add("Vulkan");
+		} else if (OS.isLinux()
+				&& useSoftwareRenderingOnLinuxX11(System.getenv("XDG_SESSION_TYPE"), useOSR())) {
+			// Linux uses OSR for both Wayland and X11. Real GNOME Xorg on virtual/basic
+			// display adapters can expose an X server successfully while Chromium's GPU
+			// process still fails during startup. Keep Wayland on the normal accelerated
+			// path, but make the Xorg compatibility path deterministic with SwiftShader.
+			config.getAppArgsAsList().add("--disable-gpu");
+			config.getAppArgsAsList().add("--disable-gpu-vsync");
+			config.getAppArgsAsList().add("--use-gl=swiftshader");
 			disabledFeatures.add("Vulkan");
 		} else if (!PreferencesManager.PREFERENCES.blockly.useGPUAcceleration.get()) {
 			config.getAppArgsAsList().add("--disable-gpu");

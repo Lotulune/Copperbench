@@ -1,0 +1,118 @@
+[37m2026-09-09-12:53:58[m [32m[main/INFO][m [34m[Launcher][m Starting Copperbench 0.1.0 with MCreator core 2026.2.99999 - 202600299999
+[37m2026-09-09-12:53:58[m [32m[main/INFO][m [34m[Launcher][m Java version: 25.0.2+10-b329.117, VM: OpenJDK 64-Bit Server VM, vendor: JetBrains s.r.o.
+[37m2026-09-09-12:53:58[m [32m[main/INFO][m [34m[Launcher][m Current JAVA_HOME for running instance: /opt/copperbench/jdk
+[37m2026-09-09-12:53:58[m [36m[main/DEBUG][m [34m[Preferences Manager][m Loading preferences from core
+[37m2026-09-09-12:53:58[m [32m[main/INFO][m [34m[Launcher][m Installation path: /opt/copperbench
+[37m2026-09-09-12:53:58[m [32m[main/INFO][m [34m[Launcher][m User data directory of Copperbench: /home/stage15/.local/share/copperbench
+[37m2026-09-09-12:54:00[m [36m[Application-Loader/DEBUG][m [34m[Plugin Loader][m Searching for plugins in: ./plugins
+[37m2026-09-09-12:54:00[m [36m[Application-Loader/DEBUG][m [34m[Plugin Loader][m Searching for plugins in: /home/stage15/.local/share/copperbench/plugins
+[37m2026-09-09-12:54:00[m [32m[Application-Loader/INFO][m [34m[Plugin Loader][m Loading plugin: generator-26.2 from ./plugins/generator-26.2.zip, weight: 13
+[37m2026-09-09-12:54:00[m [32m[Application-Loader/INFO][m [34m[Plugin Loader][m Loading plugin: generator-fabric-26.2 from ./plugins/generator-fabric-26.2.zip, weight: 12
+[37m2026-09-09-12:54:00[m [32m[Application-Loader/INFO][m [34m[Plugin Loader][m Loading plugin: generator-fabric-26.1.2 from ./plugins/generator-fabric-26.1.2.zip, weight: 11
+[37m2026-09-09-12:54:00[m [32m[Application-Loader/INFO][m [34m[Plugin Loader][m Loading plugin: themes from ./plugins/mcreator-themes.zip, weight: 10
+[37m2026-09-09-12:54:00[m [32m[Application-Loader/INFO][m [34m[Plugin Loader][m Loading plugin: generator-1.20.1 from ./plugins/generator-1.20.1.zip, weight: 10
+[37m2026-09-09-12:54:00[m [32m[Application-Loader/INFO][m [34m[Plugin Loader][m Loading plugin: core from ./plugins/mcreator-core.zip, weight: 10
+[37m2026-09-09-12:54:00[m [32m[Application-Loader/INFO][m [34m[Plugin Loader][m Loading plugin: localization from ./plugins/mcreator-localization.zip, weight: 10
+[37m2026-09-09-12:54:00[m [32m[Application-Loader/INFO][m [34m[Plugin Loader][m Loading plugin: generator-1.21.1 from ./plugins/generator-1.21.1.zip, weight: 0
+[37m2026-09-09-12:54:00[m [32m[Application-Loader/INFO][m [34m[Plugin Loader][m Loading plugin: mcreator-link from ./plugins/mcreator-link.zip, weight: 0
+[37m2026-09-09-12:54:00[m [32m[Application-Loader/INFO][m [34m[Plugin Loader][m Loading plugin: generator-26.1.x from ./plugins/generator-26.1.x.zip, weight: 0
+[37m2026-09-09-12:54:00[m [32m[Application-Loader/INFO][m [34m[Plugin Loader][m Loading plugin: generator-addon-26.1x from ./plugins/generator-addon-26.1x.zip, weight: 0
+[37m2026-09-09-12:54:00[m [36m[Application-Loader/DEBUG][m [34m[Theme Loader][m Loading UI themes
+[37m2026-09-09-12:54:00[m [32m[Application-Loader/INFO][m [34m[Theme Loader][m Using MCreator UI theme: default_dark
+[37m2026-09-09-12:54:01[m [36m[Application-Loader/DEBUG][m [34m[net.mcreator.ui.chromium.WebView][m Preloading CEF WebView
+[37m2026-09-09-12:54:01[m [32m[Application-Loader/INFO][m [34m[CEF][m Initializing JCEF in OSR (60 FPS) mode
+[37m2026-09-09-12:54:01[m [36m[Application-Loader/DEBUG][m [34m[CEF][m JCEF arguments: [--force-device-scale-factor=1.0, --disable-extensions, --disable-default-apps, --disable-sync, --disable-speech-api, --mute-audio, --disable-gaia-services, --force-renderer-accessibility=complete, --disable-gpu-compositing, --disable-features=TranslateUI,WebUSB,SpareRendererForSitePerProcess,WebBluetooth,WebSerial,MediaRouter,NewUsbBackend,WebHID]
+[3438:3438:0909/125401.259800:ERROR:components/viz/service/main/viz_main_impl.cc:183] Exiting GPU process due to errors during initialization
+[37m2026-09-09-12:54:06[m [1;31m[Application-Loader/ERROR][m [34m[CEF][m Failed to initialize JCEF in time. Things may not work properly.
+[37m2026-09-09-12:54:36[m [1;31m[Application-Loader/ERROR][m [34m[net.mcreator.ui.chromium.WebView][m Failed to preload WebView in time
+[37m2026-09-09-12:54:36[m [32m[Application-Loader/INFO][m [34m[L10N][m Setting default locale to: en_US; OS locale: en_US
+[37m2026-09-09-12:54:36[m [36m[Application-Loader/DEBUG][m [34m[Data List Loader][m Added damagesources datamap to cache
+[37m2026-09-09-12:54:36[m [36m[Application-Loader/DEBUG][m [34m[Data List Loader][m Added potions datamap to cache
+[37m2026-09-09-12:54:36[m [36m[Application-Loader/DEBUG][m [34m[Data List Loader][m Added itemtypes datamap to cache
+[37m2026-09-09-12:54:36[m [36m[Application-Loader/DEBUG][m [34m[Data List Loader][m Added defaultfeatures datamap to cache
+[37m2026-09-09-12:54:36[m [36m[Application-Loader/DEBUG][m [34m[Data List Loader][m Added configuredfeatures datamap to cache
+[37m2026-09-09-12:54:36[m [36m[Application-Loader/DEBUG][m [34m[Data List Loader][m Added be_biometags datamap to cache
+[37m2026-09-09-12:54:36[m [36m[Application-Loader/DEBUG][m [34m[Data List Loader][m Added blocksitems datamap to cache
+[37m2026-09-09-12:54:36[m [36m[Application-Loader/DEBUG][m [34m[Data List Loader][m Added tabs datamap to cache
+[37m2026-09-09-12:54:36[m [36m[Application-Loader/DEBUG][m [34m[Data List Loader][m Added projectiles datamap to cache
+[37m2026-09-09-12:54:36[m [36m[Application-Loader/DEBUG][m [34m[Data List Loader][m Added gameevents datamap to cache
+[37m2026-09-09-12:54:36[m [36m[Application-Loader/DEBUG][m [34m[Data List Loader][m Added itemuseanimations datamap to cache
+[37m2026-09-09-12:54:36[m [36m[Application-Loader/DEBUG][m [34m[Data List Loader][m Added fluids datamap to cache
+[37m2026-09-09-12:54:36[m [36m[Application-Loader/DEBUG][m [34m[Data List Loader][m Added planttypes datamap to cache
+[37m2026-09-09-12:54:36[m [36m[Application-Loader/DEBUG][m [34m[Data List Loader][m Added gamemodes datamap to cache
+[37m2026-09-09-12:54:36[m [36m[Application-Loader/DEBUG][m [34m[Data List Loader][m Added entities datamap to cache
+[37m2026-09-09-12:54:36[m [36m[Application-Loader/DEBUG][m [34m[Data List Loader][m Added eventparameters datamap to cache
+[37m2026-09-09-12:54:36[m [36m[Application-Loader/DEBUG][m [34m[Data List Loader][m Added attributes datamap to cache
+[37m2026-09-09-12:54:36[m [36m[Application-Loader/DEBUG][m [34m[Data List Loader][m Added stepsounds datamap to cache
+[37m2026-09-09-12:54:36[m [36m[Application-Loader/DEBUG][m [34m[Data List Loader][m Added biomes datamap to cache
+[37m2026-09-09-12:54:36[m [36m[Application-Loader/DEBUG][m [34m[Data List Loader][m Added soundcategories datamap to cache
+[37m2026-09-09-12:54:36[m [36m[Application-Loader/DEBUG][m [34m[Data List Loader][m Added blockstateproperties datamap to cache
+[37m2026-09-09-12:54:36[m [36m[Application-Loader/DEBUG][m [34m[Data List Loader][m Added mapcolors datamap to cache
+[37m2026-09-09-12:54:36[m [36m[Application-Loader/DEBUG][m [34m[Data List Loader][m Added pathnodetypes datamap to cache
+[37m2026-09-09-12:54:36[m [36m[Application-Loader/DEBUG][m [34m[Data List Loader][m Added dimensions datamap to cache
+[37m2026-09-09-12:54:36[m [36m[Application-Loader/DEBUG][m [34m[Data List Loader][m Added achievements datamap to cache
+[37m2026-09-09-12:54:36[m [36m[Application-Loader/DEBUG][m [34m[Data List Loader][m Added enchantments datamap to cache
+[37m2026-09-09-12:54:36[m [36m[Application-Loader/DEBUG][m [34m[Data List Loader][m Added particles datamap to cache
+[37m2026-09-09-12:54:36[m [36m[Application-Loader/DEBUG][m [34m[Data List Loader][m Added directions datamap to cache
+[37m2026-09-09-12:54:36[m [36m[Application-Loader/DEBUG][m [34m[Data List Loader][m Added equipmentslots datamap to cache
+[37m2026-09-09-12:54:36[m [36m[Application-Loader/DEBUG][m [34m[Data List Loader][m Added gamerules datamap to cache
+[37m2026-09-09-12:54:36[m [36m[Application-Loader/DEBUG][m [34m[Data List Loader][m Added noteblockinstruments datamap to cache
+[37m2026-09-09-12:54:36[m [36m[Application-Loader/DEBUG][m [34m[Data List Loader][m Added keybuttons datamap to cache
+[37m2026-09-09-12:54:36[m [36m[Application-Loader/DEBUG][m [34m[Data List Loader][m Added sounds datamap to cache
+[37m2026-09-09-12:54:36[m [36m[Application-Loader/DEBUG][m [34m[Data List Loader][m Added mobspawntypes datamap to cache
+[37m2026-09-09-12:54:36[m [36m[Application-Loader/DEBUG][m [34m[Data List Loader][m Added screens datamap to cache
+[37m2026-09-09-12:54:36[m [36m[Application-Loader/DEBUG][m [34m[Data List Loader][m Added villagerprofessions datamap to cache
+[37m2026-09-09-12:54:36[m [36m[Application-Loader/DEBUG][m [34m[Data List Loader][m Added be_biomes datamap to cache
+[37m2026-09-09-12:54:36[m [36m[Application-Loader/DEBUG][m [34m[Data List Loader][m Added generationsteps datamap to cache
+[37m2026-09-09-12:54:36[m [36m[Application-Loader/DEBUG][m [34m[Data List Loader][m Added effects datamap to cache
+[37m2026-09-09-12:54:36[m [36m[Application-Loader/DEBUG][m [34m[Data List Loader][m Added itemproperties datamap to cache
+[37m2026-09-09-12:54:36[m [36m[Application-Loader/DEBUG][m [34m[Data List Loader][m Added structures datamap to cache
+[37m2026-09-09-12:54:36[m [36m[Application-Loader/DEBUG][m [34m[Data List Loader][m Added suggestionproviders datamap to cache
+[37m2026-09-09-12:54:36[m [36m[Application-Loader/DEBUG][m [34m[Data List Loader][m Added animations datamap to cache
+[37m2026-09-09-12:54:36[m [36m[Application-Loader/DEBUG][m [34m[Mod API manager][m Loaded mod API definition: mcreator_link
+[37m2026-09-09-12:54:36[m [36m[Application-Loader/DEBUG][m [34m[Variable loader][m Loading variable types
+[37m2026-09-09-12:54:36[m [36m[Application-Loader/DEBUG][m [34m[Blockly JavaScript Files loader][m Loading Blockly JavaScript files from plugins
+[37m2026-09-09-12:54:36[m [36m[Application-Loader/DEBUG][m [34m[Blockly Toolboxes loader][m Loading Blockly toolboxes from plugins
+[37m2026-09-09-12:54:36[m [36m[Application-Loader/DEBUG][m [34m[Blockly loader][m Loading blocks for procedures
+[37m2026-09-09-12:54:37[m [36m[Application-Loader/DEBUG][m [34m[Blockly loader][m Loading blocks for aitasks
+[37m2026-09-09-12:54:37[m [36m[Application-Loader/DEBUG][m [34m[Blockly loader][m Loading blocks for jsontriggers
+[37m2026-09-09-12:54:37[m [36m[Application-Loader/DEBUG][m [34m[Blockly loader][m Loading blocks for cmdargs
+[37m2026-09-09-12:54:37[m [36m[Application-Loader/DEBUG][m [34m[Blockly loader][m Loading blocks for features
+[37m2026-09-09-12:54:37[m [36m[Application-Loader/DEBUG][m [34m[Blockly loader][m Loading blocks for scripts
+[37m2026-09-09-12:54:37[m [36m[Application-Loader/DEBUG][m [34m[Blockly loader][m Loading blocks for enchantmenteffects
+[37m2026-09-09-12:54:37[m [36m[Application-Loader/DEBUG][m [34m[Entity Animations Loader][m Loading entity animations
+[37m2026-09-09-12:54:37[m [32m[Application-Loader/INFO][m [34m[Application][m Loading generator: addon-26.1x/generator.yaml
+[37m2026-09-09-12:54:37[m [32m[Application-Loader/INFO][m [34m[Application][m Loading generator: datapack-1.20.1/generator.yaml
+[37m2026-09-09-12:54:37[m [36m[Application-Loader/DEBUG][m [34m[Data List Loader][m Added features datamap to cache
+[37m2026-09-09-12:54:37[m [32m[Application-Loader/INFO][m [34m[Application][m Loading generator: datapack-1.21.1/generator.yaml
+[37m2026-09-09-12:54:37[m [32m[Application-Loader/INFO][m [34m[Application][m Loading generator: datapack-26.1.x/generator.yaml
+[37m2026-09-09-12:54:37[m [32m[Application-Loader/INFO][m [34m[Application][m Loading generator: fabric-1.20.1/generator.yaml
+[37m2026-09-09-12:54:37[m [36m[Application-Loader/DEBUG][m [34m[Data List Loader][m Added types datamap to cache
+[37m2026-09-09-12:54:37[m [32m[Application-Loader/INFO][m [34m[Application][m Loading generator: fabric-1.21.1/generator.yaml
+[37m2026-09-09-12:54:37[m [32m[Application-Loader/INFO][m [34m[Application][m Loading generator: fabric-26.1.2/generator.yaml
+[37m2026-09-09-12:54:37[m [32m[Application-Loader/INFO][m [34m[Application][m Loading generator: fabric-26.2/generator.yaml
+[37m2026-09-09-12:54:37[m [32m[Application-Loader/INFO][m [34m[Application][m Loading generator: neoforge-1.20.1/generator.yaml
+[37m2026-09-09-12:54:37[m [32m[Application-Loader/INFO][m [34m[Application][m Loading generator: neoforge-1.21.1/generator.yaml
+[37m2026-09-09-12:54:37[m [32m[Application-Loader/INFO][m [34m[Application][m Loading generator: neoforge-26.1.2/generator.yaml
+[37m2026-09-09-12:54:37[m [32m[Application-Loader/INFO][m [34m[Application][m Loading generator: neoforge-26.2/generator.yaml
+[37m2026-09-09-12:54:37[m [32m[Application-Loader/INFO][m [34m[Application][m Loading generator: resourcepack-1.21.1/generator.yaml
+[37m2026-09-09-12:54:37[m [32m[Application-Loader/INFO][m [34m[Application][m Loading generator: resourcepack-26.1.x/generator.yaml
+[37m2026-09-09-12:54:37[m [36m[Application-Loader/DEBUG][m [34m[Application][m Application loader finished
+[37m2026-09-09-12:54:38[m [36m[AWT-EventQueue-0/DEBUG][m [34m[net.mcreator.workspace.localhistory.GitHistoryBackend][m Loading local history repository
+[37m2026-09-09-12:54:38[m [32m[AWT-EventQueue-0/INFO][m [34m[Generator fabric-1.21.1][m Gradle cache will be loaded from cache file
+[37m2026-09-09-12:54:38[m [36m[AWT-EventQueue-0/DEBUG][m [34m[net.mcreator.java.ProjectJarManager][m Loading JVM Eclipse Adoptium 21.0.12 info from /home/stage15/stage15-run31/extracted-deb/opt/copperbench/jdk21
+[37m2026-09-09-12:54:38[m [36m[AWT-EventQueue-0/DEBUG][m [34m[net.mcreator.java.ProjectJarManager][m Loaded JVM info of type ModulesFileLibraryInfo
+[37m2026-09-09-12:54:38[m [36m[GitHistoryBackend/DEBUG][m [34m[net.mcreator.workspace.localhistory.GitHistoryBackend][m Initialized local history repository in 76 ms
+[37m2026-09-09-12:54:38[m [32m[AWT-EventQueue-0/INFO][m [34m[Workspace][m Loaded workspace file /home/stage15/MCreatorWorkspaces/stage15-fabric-wayland-20260909T120955Z/stage15_fabric_wayland.mcreator
+[37m2026-09-09-12:54:38[m [32m[AWT-EventQueue-0/INFO][m [34m[MCreator][m Opening MCreator workspace: stage15_fabric_wayland
+[37m2026-09-09-12:54:39[m [1;31m[AWT-EventQueue-0/ERROR][m [34m[STDERR][m Sep 09, 2026 12:54:39 PM org.apache.coyote.AbstractProtocol init
+INFO: Initializing ProtocolHandler ["http-nio-127.0.0.1-auto-1"]
+[37m2026-09-09-12:54:39[m [1;31m[AWT-EventQueue-0/ERROR][m [34m[STDERR][m Sep 09, 2026 12:54:39 PM org.apache.catalina.core.StandardService startInternal
+INFO: Starting service [Tomcat]
+[37m2026-09-09-12:54:39[m [1;31m[AWT-EventQueue-0/ERROR][m [34m[STDERR][m Sep 09, 2026 12:54:39 PM org.apache.catalina.core.StandardEngine startInternal
+INFO: Starting Servlet engine: [Apache Tomcat/11.0.2]
+[37m2026-09-09-12:54:39[m [1;31m[AWT-EventQueue-0/ERROR][m [34m[STDERR][m Sep 09, 2026 12:54:39 PM org.apache.coyote.AbstractProtocol start
+INFO: Starting ProtocolHandler ["http-nio-127.0.0.1-auto-1-34577"]
+[37m2026-09-09-12:54:39[m [32m[AWT-EventQueue-0/INFO][m [34m[MCreator][m Copperbench product shell enabled for workspace stage15_fabric_wayland
+[37m2026-09-09-12:55:07[m [36m[Workspace-File-Manager/DEBUG][m [34m[Workspace File Manager/STAGE15_FABRIC_WAYLAND][m Workspace stored on the FS
+[37m2026-09-09-12:56:50[m [36m[AWT-EventQueue-0/DEBUG][m [34m[CEF][m CefApp initialized (JCEF: 137.0.17.1142.68de80bc86de497c8d0632ad0f8fe33625b33bff, CEF: 137.0.17, Chromium: 137.0.7151.104)
