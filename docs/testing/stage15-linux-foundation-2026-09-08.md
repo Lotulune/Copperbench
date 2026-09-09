@@ -237,6 +237,33 @@ Immutable Run 27 evidence:
 
 Run 27 therefore closes the **hosted Debian desktop-integration byte contract**. It does not prove that GNOME actually indexes the desktop entry, that a user can launch Copperbench from the GNOME application menu, or that the resulting window behaves correctly on real Wayland/Xorg; those remain clean-desktop observations.
 
+### Hosted installed external-tool lifecycle harness evidence
+
+GitHub Actions run `34284855979` replayed the complete Stage 15 hosted candidate chain against commit
+`98b24dfcc439c60465a67e3321fe918abc3ec82e` after the installed external-Agent helper gained the public MCP
+`run_client` lifecycle gate and the clean-guest harness gained the production-path Blockbench verifier. All seven
+installed-gate contracts passed. The same run also kept the packaged JCEF/X11 smoke, NeoForge 1.21.1 and Fabric 1.21.1
+render preflights, Debian desktop-entry/icon contract, SPDX generation, frozen metadata, SHA-256 output, provenance and
+both artifact uploads green. Harness packaging included `Stage15InstalledBlockbenchVerifier.java` and validated archive
+contents/modes from materialized tar listings, eliminating the earlier benign early-pipe/SIGPIPE noise.
+
+Immutable Run 28 evidence:
+
+- candidate identity: `sha256:8def61dc1b8508bbdc47cc784067550e75c23c6dc1958ceff7b3f8007fdec113`;
+- portable tar SHA-256: `10b213ea25495480562599fdc2a2c6a983e191d97bded682689cc8b89f37e88b`;
+- Debian package SHA-256: `1abdbbe5481739b405d0f39fef247964384389284a2c4e571b3b3fcf775159e5`;
+- SPDX SHA-256: `6086d8483b44d7e177a22b777175069247c469c17ca1e3907ea7c1f140cd2aa6`;
+- frozen metadata SHA-256: `4a76cc572e2aa6ffac5d7402887eaf4e1bdc596a77069faf28e3dd29bb7e941d`;
+- candidate manifest SHA-256: `1952b06e6d7bc593fcec5b1c5fd24a2558d481aca0f5f22ff57c2461b2b319b7`;
+- candidate artifact ID `10079565234`, artifact digest `sha256:3c8023086f7bbd3cdc910082ec891573837723e06407a4692de688fcf3065125`;
+- installed-gate harness artifact ID `10079565643`, artifact digest `sha256:fa5da01b4c39b3640784272498c88aba22f2188749e4977eedafc5047adae939`;
+- GitHub provenance attestation ID `46095634`, Rekor transparency-log index `2762749332`.
+
+Run 28 proves that the **final prepared helper bundle is reproducibly publishable with the same green candidate chain**.
+It still does not claim that the external-Agent helper, its user-visible `run_client` close lifecycle, or the real
+Blockbench verifier has executed inside a clean GNOME guest; those results only become evidence after the real guest
+replay.
+
 ### Windows affected-source regression replay
 
 After the Stage 15 platform/JDK/MCP/headless/external-tool changes, the affected Windows source-level regression set was replayed successfully on the Windows development host. The focused set covered bundled-JDK routing, workspace environment/layout recovery, Fabric and NeoForge task/runClient paths, Desktop MCP and external-Agent loops, headless product entry points, Blockbench discovery/lifecycle, XDG/legacy Windows path behavior and executable-permission portability. The Gradle run completed successfully with no source-level Windows regression. This is only source/test evidence; the final installed-product Windows gates remain required on the promoted candidate.
@@ -253,3 +280,21 @@ The headless/package/supply-chain path now has real Ubuntu evidence. Still requi
 - execute the bundled real-Blockbench verifier on the clean guest and separately confirm the installed Asset Center launches that real Blockbench binary; the helper is prepared to machine-check production discovery, managed launch, lease exclusion, save/change detection and normal close, but those installed-tool results are not yet evidence;
 - promote the attested development record into the existing formal exact-binary release-candidate chain only after the Linux graphical/product gates are satisfied;
 - rerun affected Windows installed-product gates after the cross-platform JDK/MCP/product-path changes.
+
+### Clean-guest host preparation
+
+The repository now also carries a host-side Hyper-V preparation path: `verify-stage15-linux-hyperv-ready.ps1` is a
+read-only probe for Hyper-V, an unused VM/VHD name, the selected virtual switch, an Ubuntu 24.04 Desktop amd64 ISO and
+an explicitly supplied SHA-256; `New-Stage15LinuxHyperVGuest.ps1` creates a Generation 2 guest only after re-hashing the
+ISO, retains Linux-compatible Secure Boot, disables automatic checkpoints, preserves the default Hyper-V integration-
+service state and refuses existing VM/VHD replacement.
+`New-Stage15LinuxAutoinstallSeed.ps1` can attach a credential-free NoCloud CIDATA disk that selects the standard Desktop
+source while leaving identity and the installer disk-write confirmation interactive; it disables optional driver,
+codec, OEM and SSH additions and fails rather than removing packages if Java/Gradle/Git unexpectedly appear. The detailed
+sequence is in `stage15-linux-hyperv-checklist.md`. These scripts intentionally stop at environment setup and guarded OS
+installation: they do not seed developer tooling or credentials and do not convert VM creation into certification.
+The read-only host probe was executed without installation media and recorded Hyper-V `Enabled`, the Hyper-V module and
+`Default Switch` available, the configured `D:` VHD root drive available, and both the target VM and VHD name unused.
+It returned `readyToCreateCleanVm=false` because no Ubuntu ISO or expected Canonical SHA-256 was supplied. No VM was
+created or modified. The actual clean-GNOME replay therefore remains pending on verified installation media rather than
+being simulated through SSH or Xvfb.

@@ -31,9 +31,13 @@ on:
       - "scripts/*linux-candidate-metadata.mjs"
       - "scripts/tests/linux-candidate-metadata.tests.mjs"
       - "scripts/tests/stage15-linux-installed-gate.tests.mjs"
+      - "scripts/tests/Stage15LinuxHyperVHarness.tests.ps1"
       - "scripts/stage15/**"
+      - "scripts/New-Stage15LinuxAutoinstallSeed.ps1"
+      - "scripts/New-Stage15LinuxHyperVGuest.ps1"
       - "scripts/verify-stage15-linux-installed-agent.py"
       - "scripts/verify-stage15-linux-installed-guest.sh"
+      - "scripts/verify-stage15-linux-hyperv-ready.ps1"
       - "scripts/verify-stage15-linux-x11-ci-smoke.sh"
       - "scripts/verify-stage15-linux-runclient-ci-smoke.sh"
       - "src/main/java/net/mcreator/io/UserFolderManager.java"
@@ -152,6 +156,7 @@ jobs:
         run: |
           node --test scripts/tests/linux-candidate-metadata.tests.mjs
           node --test scripts/tests/stage15-linux-installed-gate.tests.mjs
+          pwsh -NoProfile -File scripts/tests/Stage15LinuxHyperVHarness.tests.ps1
 
       - name: Build portable and deb candidates
         run: |
