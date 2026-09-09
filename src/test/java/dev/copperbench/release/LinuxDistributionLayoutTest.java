@@ -139,9 +139,12 @@ class LinuxDistributionLayoutTest {
         assertTrue(workflow.contains("verify-stage15-linux-runclient-ci-smoke.sh"));
         assertTrue(workflow.contains("stage15-linux-installed-gate.tests.mjs"));
         assertTrue(workflow.contains("Stage15LinuxHyperVHarness.tests.ps1"));
+        assertTrue(workflow.contains("Stage15WindowsProductRegressionGate.tests.ps1"));
         assertTrue(workflow.contains("pwsh -NoProfile -File scripts/tests/Stage15LinuxHyperVHarness.tests.ps1"));
+        assertTrue(workflow.contains("pwsh -NoProfile -File scripts/tests/Stage15WindowsProductRegressionGate.tests.ps1"));
         assertTrue(workflow.contains("scripts/New-Stage15LinuxHyperVGuest.ps1"));
         assertTrue(workflow.contains("scripts/New-Stage15LinuxAutoinstallSeed.ps1"));
+        assertTrue(workflow.contains("scripts/Invoke-Stage15WindowsProductRegressionGuestGate.ps1"));
         assertTrue(workflow.contains("scripts/verify-stage15-linux-hyperv-ready.ps1"));
         assertTrue(workflow.contains("stage15-linux-installed-gate-harness"));
         assertTrue(workflow.contains("scripts/verify-stage15-linux-installed-guest.sh"));

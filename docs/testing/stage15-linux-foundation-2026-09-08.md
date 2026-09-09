@@ -266,7 +266,15 @@ replay.
 
 ### Windows affected-source regression replay
 
-After the Stage 15 platform/JDK/MCP/headless/external-tool changes, the affected Windows source-level regression set was replayed successfully on the Windows development host. The focused set covered bundled-JDK routing, workspace environment/layout recovery, Fabric and NeoForge task/runClient paths, Desktop MCP and external-Agent loops, headless product entry points, Blockbench discovery/lifecycle, XDG/legacy Windows path behavior and executable-permission portability. The Gradle run completed successfully with no source-level Windows regression. This is only source/test evidence; the final installed-product Windows gates remain required on the promoted candidate.
+After the Stage 15 platform/JDK/MCP/headless/external-tool changes, the affected Windows source-level regression set was replayed successfully on the Windows development host. The focused set covered bundled-JDK routing, workspace environment/layout recovery, Fabric and NeoForge task/runClient paths, Desktop MCP and external-Agent loops, headless product entry points, Blockbench discovery/lifecycle, XDG/legacy Windows path behavior and executable-permission portability. The Gradle run completed successfully with no source-level Windows regression.
+
+### Windows installed-product regression revalidation
+
+The affected Windows installed-product path has now also been replayed on the existing clean Windows 11 Hyper-V guest against the exact Stage 15 Windows candidate installer `sha256:a58a3d947c686d518439d15b09442ab8f1a136a5da8c67b4464e6681d548edd2`. The replay is bound to source HEAD `c7f45bd0f260030039a19e5f07b8abf0b3a36ae5`, source-delta SHA-256 `a75e37f37734f795bd261511546cf1126c0adfc870b3a1902970591de125f6b0`, and the already-passing Stage 14 source-integrity baseline in `evidence/stage14/2026-09-09/source-integrity-clean-windows11.json`.
+
+The final gate completed successfully on 2026-09-09 and records `fullStage15WindowsRegressionPassed=true`. It respected the normal single-instance contract by binding to a newly created workspace HWND even when the installed JVM was reused. The real custom-titlebar Build and Test Client controls were resolved from the native window-chrome client-region snapshot, verified as `HTCLIENT`, and clicked with real mouse input rather than fixed historical coordinates. Build spawned `cmd.exe /c gradlew.bat --no-daemon build`, returned native exit code `0`, and produced two `build/libs` JARs. Test Client spawned `cmd.exe /c gradlew.bat --no-daemon runClient`; Minecraft ran from the installed bundled Java 25 runtime, stayed alive for the required 20-second stability window, then closed through `WM_CLOSE` without cancellation or process killing, after which Gradle returned native exit code `0`. Normal Copperbench close removed the workspace Desktop MCP descriptor.
+
+The machine-readable result is `evidence/stage15/2026-09-09/windows-product-regression-clean-windows11.json`. Candidate-local accessibility probes also confirmed that this JCEF/Windows setup does not expose the titlebar buttons through UI Automation, so the final gate intentionally uses the product's native window-chrome region contract instead of claiming unavailable UIA semantics.
 
 ## Not yet proven
 
@@ -278,8 +286,7 @@ The headless/package/supply-chain path now has real Ubuntu evidence. Still requi
 - verify the implemented Wayland/Xorg capability classification against real GNOME Wayland and GNOME on Xorg sessions, including actual JCEF/window behavior;
 - execute the bundled external-Agent helper against the installed Linux candidate after authorizing its one-time token from the real UI; the helper is prepared to machine-check descriptor permissions, read/write/plan/build/conflict, interactive Run Client lifetime, credential redaction and normal-close endpoint cleanup, but none of those clean-guest results is claimed until the replay actually runs;
 - execute the bundled real-Blockbench verifier on the clean guest and separately confirm the installed Asset Center launches that real Blockbench binary; the helper is prepared to machine-check production discovery, managed launch, lease exclusion, save/change detection and normal close, but those installed-tool results are not yet evidence;
-- promote the attested development record into the existing formal exact-binary release-candidate chain only after the Linux graphical/product gates are satisfied;
-- rerun affected Windows installed-product gates after the cross-platform JDK/MCP/product-path changes.
+- promote the attested development record into the existing formal exact-binary release-candidate chain only after the Linux graphical/product gates are satisfied.
 
 ### Clean-guest host preparation
 
@@ -298,3 +305,25 @@ The read-only host probe was executed without installation media and recorded Hy
 It returned `readyToCreateCleanVm=false` because no Ubuntu ISO or expected Canonical SHA-256 was supplied. No VM was
 created or modified. The actual clean-GNOME replay therefore remains pending on verified installation media rather than
 being simulated through SSH or Xvfb.
+
+GitHub Actions run `34293294517` replayed the complete Stage 15 candidate chain against commit
+`c7f45bd0f260030039a19e5f07b8abf0b3a36ae5` after the Hyper-V readiness/VM/NoCloud preparation scripts and their
+contracts were added. The hosted Ubuntu 24.04 job explicitly passed `Stage15LinuxHyperVHarness.tests.ps1` alongside the
+existing Linux platform, installed-gate and supply-chain contracts; packaged JCEF/X11, NeoForge 1.21.1 and Fabric 1.21.1
+render preflights, Debian desktop integration, provenance and both artifact uploads also remained green.
+
+Immutable Run 29 evidence:
+
+- candidate identity: `sha256:4cbb68520a35c69310fe74b9800f21b86585748e572bbd49bb6dd71e56dadb96`;
+- portable tar SHA-256: `a0a781cd5db90d8cd259bcbd860c141ede4c5c0bd20fec4c279c872547e073ca`;
+- Debian package SHA-256: `633529b6401aa58e9aa3cd90aedd5c3d7ee0be57d7a209b15dad845f6eff7645`;
+- SPDX SHA-256: `d741c89709daddd96df86260e45f8afb48ff69ffd1996b52ac26ac7607a926c8`;
+- frozen metadata SHA-256: `da475b5ab1b69bac2fe8dddd3d3ec5a02a389c0ddbde4a51a9c1f6f52eb80391`;
+- candidate manifest SHA-256: `1952b06e6d7bc593fcec5b1c5fd24a2558d481aca0f5f22ff57c2461b2b319b7`;
+- candidate artifact ID `10082581836`, artifact digest `sha256:0ae5190d3c7ca69c37df1e032e9377189032f65149af2605d75d91565ce72e12`;
+- installed-gate harness artifact ID `10082582456`, artifact digest `sha256:211bec0b15282ead8640a5d2e5d1ccb9318b27279e89bc12d1a98fa60e136604`;
+- GitHub provenance attestation ID `46111831`, Rekor transparency-log index `2763684433`.
+
+Run 29 proves the **host-preparation scripts and their refusal/safety contracts are continuously testable on the same
+green candidate line**. It is not Linux installation or GNOME certification evidence; the local readiness probe still
+refused VM creation because no verified Ubuntu ISO/hash was supplied.

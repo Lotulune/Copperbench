@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "stage14-source-integrity-clean-windows11",
+  "candidateSourceHead": "c7f45bd0f260030039a19e5f07b8abf0b3a36ae5",
+  "candidateSourceDirty": true,
+  "candidateSourceDeltaSha256": "a75e37f37734f795bd261511546cf1126c0adfc870b3a1902970591de125f6b0",
+  "candidateInstallerSha256": "a58a3d947c686d518439d15b09442ab8f1a136a5da8c67b4464e6681d548edd2",
+  "workspaceFile": "C:\\Temp\\Copperbench-Stage15-WindowsRegression-baseline\\workspace\\stage13_diagnostics.mcreator",
+  "startedAt": "2026-09-09T11:28:13.6973298+08:00",
+  "passed": true,
+  "steps": [
+    {
+      "name": "installed_generator_setup",
+      "passed": true,
+      "observed": true,
+      "completed": true,
+      "waitMs": 99059
+    },
+    {
+      "name": "desktop_mcp_credential_from_real_ui",
+      "passed": true,
+      "clipboardCleared": true,
+      "tokenPersisted": false,
+      "descriptorMatched": true
+    },
+    {
+      "name": "desktop_mcp_unmanaged_source_ownership",
+      "passed": true,
+      "diagnostics": "{\"code\":\"WORKSPACE_PERSISTENCE_FAILED\",\"severity\":\"error\",\"message\":{\"key\":\"diagnostic.workspace_persistence_failed\",\"fallback\":\"The workspace change could not be stored and was rolled back.\",\"args\":{\"failureId\":\"32adf675-c5f1-4dc1-a39e-d8efa9d026e9\"}},\"path\":null,\"elementId\":null,\"recoverable\":true,\"actions\":[{\"id\":\"open_logs\",\"label\":{\"key\":\"action.open_logs\",\"fallback\":\"View logs\",\"args\":{}},\"kind\":\"open_logs\",\"target\":\"32adf675-c5f1-4dc1-a39e-d8efa9d026e9\",\"payload\":null}]}",
+      "status": "rejected",
+      "sourceBytesPreserved": true,
+      "revisionPreserved": true
+    },
+    {
+      "name": "desktop_mcp_metadata_preservation_and_stale_source",
+      "passed": true,
+      "revisionPreserved": true,
+      "metadataStatus": "committed",
+      "sourceBytesPreserved": true,
+      "diagnostic": "SOURCE_CONTENT_CONFLICT",
+      "staleStatus": "rejected"
+    },
+    {
+      "name": "desktop_mcp_workspace_plan_source_staleness",
+      "passed": true,
+      "planIssued": true,
+      "diagnostic": "WORKSPACE_PLAN_SOURCE_CONFLICT",
+      "sourceBytesPreserved": true,
+      "previewStatus": "failed",
+      "applyStatus": "rejected"
+    },
+    {
+      "name": "desktop_mcp_audit_secret_boundary",
+      "passed": true,
+      "tokenAbsent": true,
+      "auditPresent": true
+    }
+  ],
+  "finalRevision": 4,
+  "clipboardEmptyAtEnd": true,
+  "completedAt": "2026-09-09T11:30:13.6570954+08:00",
+  "installVerification": {
+    "guestInstallerSha256": "a58a3d947c686d518439d15b09442ab8f1a136a5da8c67b4464e6681d548edd2",
+    "preClean": {
+      "registeredInstallDetected": false,
+      "uninstallAttempted": false,
+      "uninstallExitCode": null,
+      "staleRegistrationRemoved": false,
+      "uninstallRegistrationPresentAfterCleanup": false
+    },
+    "exitCode": 0,
+    "exePresent": true,
+    "javaPresent": true,
+    "java21Present": true
+  }
+}

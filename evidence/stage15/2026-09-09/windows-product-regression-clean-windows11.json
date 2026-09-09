@@ -1,0 +1,145 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "stage15-windows-product-regression-clean-windows11",
+  "candidateSourceHead": "c7f45bd0f260030039a19e5f07b8abf0b3a36ae5",
+  "candidateSourceDirty": true,
+  "candidateSourceDeltaSha256": "a75e37f37734f795bd261511546cf1126c0adfc870b3a1902970591de125f6b0",
+  "candidateInstallerSha256": "a58a3d947c686d518439d15b09442ab8f1a136a5da8c67b4464e6681d548edd2",
+  "sourceWorkspace": "C:\\Users\\g7admin\\MCreatorWorkspaces\\p0fabricfinald0d\\p0fabricfinald0d.mcreator",
+  "startedAt": "2026-09-09T13:24:46.0776392+08:00",
+  "passed": true,
+  "steps": [
+    {
+      "name": "installed_fabric_2612_workspace_open",
+      "passed": true,
+      "workspaceWindowTitle": "P0 Fabric Final d0d - Copperbench 0.1.0",
+      "launcherProcessId": 13096,
+      "generatorSetupObserved": true,
+      "freshWorkspaceWindow": true,
+      "waitMs": 48932,
+      "desktopProcessId": 3804,
+      "desktopProcessReused": true,
+      "workspaceWindowHandle": 1705010
+    },
+    {
+      "name": "desktop_mcp_descriptor_boundary",
+      "passed": true,
+      "tokenPersisted": false,
+      "listening": true
+    },
+    {
+      "name": "titlebar_build_click",
+      "passed": true,
+      "click": {
+        "action": "build",
+        "x": 428,
+        "y": 19,
+        "left": 394,
+        "right": 462,
+        "width": 69,
+        "regionIndex": 1,
+        "regionCount": 8,
+        "hitTest": "HTCLIENT",
+        "resolution": "native-titlebar-client-region-order",
+        "resolutionRoot": "wm-nchittest-window-chrome-snapshot"
+      },
+      "launchSurface": "native-window-chrome-click"
+    },
+    {
+      "name": "installed_fabric_2612_build",
+      "passed": true,
+      "exitCode": 0,
+      "gradleParentProcessId": 3804,
+      "bundledRuntimeProcessReused": false,
+      "artifactCount": 2,
+      "gradleCommandLine": "cmd.exe /c gradlew.bat --no-daemon build",
+      "gradleProcessId": 12264,
+      "bundledRuntimeProcessId": 1868,
+      "click": {
+        "action": "build",
+        "x": 428,
+        "y": 19,
+        "left": 394,
+        "right": 462,
+        "width": 69,
+        "regionIndex": 1,
+        "regionCount": 8,
+        "hitTest": "HTCLIENT",
+        "resolution": "native-titlebar-client-region-order",
+        "resolutionRoot": "wm-nchittest-window-chrome-snapshot"
+      },
+      "java21SidecarPresent": true,
+      "bundledRuntimeJavaRelease": 25,
+      "exitCodeObserved": true,
+      "launchSurface": "titlebar-build-native-window-chrome-click",
+      "bundledRuntimePath": "C:\\Copperbench-Stage15-WindowsRegression\\jdk\\bin\\java.exe"
+    },
+    {
+      "name": "titlebar_run_client_click",
+      "passed": true,
+      "click": {
+        "action": "runClient",
+        "x": 520,
+        "y": 19,
+        "left": 471,
+        "right": 570,
+        "width": 100,
+        "regionIndex": 2,
+        "regionCount": 8,
+        "hitTest": "HTCLIENT",
+        "resolution": "native-titlebar-client-region-order",
+        "resolutionRoot": "wm-nchittest-window-chrome-snapshot"
+      },
+      "launchSurface": "native-window-chrome-click"
+    },
+    {
+      "name": "interactive_run_client_lifecycle",
+      "passed": true,
+      "closeMethod": "WM_CLOSE",
+      "minecraftWindowTitle": "Minecraft",
+      "bundledRuntime": true,
+      "click": {
+        "action": "runClient",
+        "x": 520,
+        "y": 19,
+        "left": 471,
+        "right": 570,
+        "width": 100,
+        "regionIndex": 2,
+        "regionCount": 8,
+        "hitTest": "HTCLIENT",
+        "resolution": "native-titlebar-client-region-order",
+        "resolutionRoot": "wm-nchittest-window-chrome-snapshot"
+      },
+      "minecraftWindowClass": "#32770",
+      "gradleParentProcessId": 3804,
+      "java21SidecarPresent": true,
+      "stableRunningSeconds": 20,
+      "taskCancelled": false,
+      "minecraftProcessId": 13652,
+      "gradleExitCode": 0,
+      "gradleProcessId": 13952,
+      "gradleCommandLine": "cmd.exe /c gradlew.bat --no-daemon runClient",
+      "launchSurface": "titlebar-run-client-native-window-chrome-click",
+      "minecraftJavaPath": "C:\\Copperbench-Stage15-WindowsRegression\\jdk\\bin\\java.exe",
+      "gradleExitCodeObserved": true,
+      "processKilled": false,
+      "bundledRuntimeJavaRelease": 25
+    },
+    {
+      "name": "normal_product_close_cleanup",
+      "passed": true,
+      "descriptorRemoved": true,
+      "processKilled": false
+    }
+  ],
+  "disposableWorkspace": "C:\\Temp\\Copperbench-Stage15-WindowsRegression\\workspace-dd5d0bd6823c445ba1c85ed237633e8f\\p0fabricfinald0d.mcreator",
+  "completedAt": "2026-09-09T13:26:59.3566339+08:00",
+  "baselineGate": {
+    "passed": true,
+    "evidencePath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\evidence\\stage14\\2026-09-09\\source-integrity-clean-windows11.json",
+    "candidateSourceHead": "c7f45bd0f260030039a19e5f07b8abf0b3a36ae5",
+    "candidateInstallerSha256": "a58a3d947c686d518439d15b09442ab8f1a136a5da8c67b4464e6681d548edd2"
+  },
+  "fullStage15WindowsRegressionPassed": true
+}
