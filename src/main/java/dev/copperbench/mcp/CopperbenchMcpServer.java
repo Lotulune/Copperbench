@@ -60,14 +60,17 @@ public final class CopperbenchMcpServer implements AutoCloseable {
 				.capabilities(ServerCapabilities.builder().tools(true).build()).tools(catalog.tools())
 				.requestTimeout(Duration.ofSeconds(30)).build();
 
+		String baseDirectory = Files.createTempDirectory("copperbench-mcp-").toString();
 		Tomcat tomcat = new Tomcat();
+		// Tomcat initializes its default base directory on the first connector/server access. Installed products may
+		// run with user.dir inside a read-only application root (for example /opt/copperbench on Linux), so the
+		// writable private base must be configured before getConnector() can trigger that initialization.
+		tomcat.setBaseDir(baseDirectory);
 		tomcat.setHostname("127.0.0.1");
 		tomcat.setPort(configuration.port());
 		var connector = tomcat.getConnector();
 		connector.setProperty("address", "127.0.0.1");
 		connector.setAsyncTimeout(30_000);
-		String baseDirectory = Files.createTempDirectory("copperbench-mcp-").toString();
-		tomcat.setBaseDir(baseDirectory);
 		Context context = tomcat.addContext("", baseDirectory);
 		var wrapper = context.createWrapper();
 		wrapper.setName("copperbenchMcpServlet");

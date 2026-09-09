@@ -118,6 +118,36 @@ class McpHttpServerTest {
 
 	@TempDir Path workspace;
 
+	@Test void tomcatBaseDoesNotDependOnInstallWorkingDirectory() throws Exception {
+		Files.writeString(workspace.resolve("workspace.mcreator"), "{\"name\":\"Copper Trails\"}");
+		Path invalidInstallRoot = workspace.resolve("installed-product-root");
+		Files.writeString(invalidInstallRoot, "not a directory");
+		String previousUserDir = System.getProperty("user.dir");
+		String previousCatalinaBase = System.getProperty("catalina.base");
+		System.setProperty("user.dir", invalidInstallRoot.toString());
+		System.setProperty("catalina.base", invalidInstallRoot.toString());
+
+		WorkspaceTokenService tokens = new WorkspaceTokenService(CLOCK, Duration.ofMinutes(5));
+		Path auditPath = workspace.resolve(".copperbench/automation-audit.jsonl");
+		try (LocalHistoryService history = JGitLocalHistoryService.open(workspace, CLOCK);
+				CopperbenchMcpServer server = CopperbenchMcpServer.start(
+						new McpServerConfiguration(0, WORKSPACE_ID, PermissionProfile.WORKSPACE,
+								Set.of("http://localhost:5173"), CLOCK),
+						tokens, adapter(history), new JsonLineAuditLog(auditPath), new AssetWorkspaceService(workspace))) {
+			assertTrue(server.address().getAddress().isLoopbackAddress());
+			assertTrue(server.address().getPort() > 0);
+		} finally {
+			if (previousUserDir == null)
+				System.clearProperty("user.dir");
+			else
+				System.setProperty("user.dir", previousUserDir);
+			if (previousCatalinaBase == null)
+				System.clearProperty("catalina.base");
+			else
+				System.setProperty("catalina.base", previousCatalinaBase);
+		}
+	}
+
 	@Test void authenticatedLoopbackServerExposesSdkToolsAndRejectsUntrustedRequests() throws Exception {
 		Files.writeString(workspace.resolve("workspace.mcreator"), "{\"name\":\"Copper Trails\"}");
 		Path model = workspace.resolve("assets/coppertrails/models/block/copper_lamp.json");
