@@ -111,6 +111,8 @@ test('a release-only delta cannot conceal product or packaging changes', () => {
   assert.doesNotThrow(() => validateSourceDelta(['docs/testing/acceptance.md', '.github/workflows/linux-release-control.yml']));
   assert.throws(() => validateSourceDelta(['src/main/java/Changed.java']), /Build-affecting/);
   assert.throws(() => validateSourceDelta(['platform/linux/export.gradle']), /Build-affecting/);
+  assert.doesNotThrow(() => validateSourceDelta(['src/test/java/dev/copperbench/release/ReleaseManifestTest.java']));
+  assert.throws(() => validateSourceDelta(['src/test/java/dev/copperbench/release/UnreviewedTest.java']), /Build-affecting/);
 });
 
 test('a partial draft resumes only missing assets without clobbering existing files', () => {

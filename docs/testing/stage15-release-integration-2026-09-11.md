@@ -27,3 +27,5 @@ eligibility after validation. The workflow creates a draft without clobbering as
 and publishes only when explicitly requested and approved.
 
 Release-control validation: 12 Node authorization/resume/routing contracts passed, including rejection of pending records, wrong candidate/session, incomplete normal close, diagnostic overrides, modified evidence and public-release overwrites. The actual workflow YAML and all Bash steps passed syntax checks.
+
+Run37 (`34537005983`, source `f811483935ed682177494b205337843090dc040b`) passed packaging, both loader render preflights and provenance generation. The full PR Java job ran 554 tests (43 skipped) with one failure: the Windows UI fixture's development SBOM runtime paths differed from the Linux host paths. The test now adapts only those two expected paths before comparing the complete manifest. Product code and packaged inputs are unchanged; the exact test file is explicitly permitted in the post-candidate source delta, while unreviewed test files remain rejected. Focused manifest/SBOM/platform checks and all 12 release contracts pass locally. Linux CI confirmation and Run37 installed replay remain pending.

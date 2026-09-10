@@ -27,6 +27,7 @@ export function validateSourceDelta(paths) {
   const exact = new Set(['README.md', 'PRD-NEXT.md', 'product-status.json',
     '.github/workflows/linux-release-control.yml', '.github/workflows/deploy.yml',
     'scripts/verify-linux-release-authorization.mjs', 'scripts/tests/linux-release-authorization.tests.mjs',
+    'src/test/java/dev/copperbench/release/ReleaseManifestTest.java',
     'scripts/verify-stage15-linux-installed-guest.sh', 'scripts/tests/stage15-linux-installed-gate.tests.mjs',
     'scripts/tests/test_stage15_client_log_freshness.py', 'release-control/linux-candidate-authorization.json']);
   for (const path of paths) requireValue(exact.has(path) || /^(docs|evidence|scripts\/stage15)\//.test(path),

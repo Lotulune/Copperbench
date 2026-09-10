@@ -13,6 +13,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import dev.copperbench.tracks.VersionTrackCatalog;
+import dev.copperbench.platform.RuntimePlatform;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
@@ -28,6 +29,13 @@ class ReleaseManifestTest {
 		JsonObject actual = ReleaseManifest.official();
 		JsonObject fixture = JsonParser.parseString(Files.readString(
 				Path.of("ui-core/fixtures/v1.0/release/release-notes.json"))).getAsJsonObject();
+		// The shared UI fixture describes a Windows checkout; the development inventory follows this host.
+		JsonArray components = fixture.getAsJsonObject("developmentSbom").getAsJsonArray("components");
+		RuntimePlatform platform = RuntimePlatform.current();
+		components.get(1).getAsJsonObject().addProperty("path",
+				platform.sourceJavaHome(25) == null ? "jdk" : platform.sourceJavaHome(25));
+		components.get(2).getAsJsonObject().addProperty("path",
+				platform.sourceJavaHome(21) == null ? "jdk21" : platform.sourceJavaHome(21));
 		assertEquals(fixture, actual);
 		assertEquals(VersionTrackCatalog.official().toProjection(), actual.getAsJsonObject("versionTracks"));
 		assertFalse(actual.getAsJsonObject("privacy").get("implicitNetworkServices").getAsBoolean());
