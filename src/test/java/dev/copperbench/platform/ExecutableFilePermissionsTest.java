@@ -1,5 +1,8 @@
 package dev.copperbench.platform;
 
+import dev.copperbench.generator.PluginWorkspaceLayout;
+import dev.copperbench.generator.fabric.Fabric1211Generator;
+import dev.copperbench.generator.fabric.Fabric1211GoldenWorkspace;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -7,7 +10,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
+import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -29,9 +34,20 @@ class ExecutableFilePermissionsTest {
 	}
 
 	@Test void bothWorkspaceProvisioningPathsRestoreGradleWrapperExecution() throws Exception {
-		String fabric = Files.readString(Path.of("src/main/java/dev/copperbench/generator/fabric/Fabric1211Generator.java"));
-		assertTrue(fabric.contains("ExecutableFilePermissions.ensureOwnerExecutable(root.resolve(\"gradlew\"))"));
-		String plugin = Files.readString(Path.of("src/main/java/dev/copperbench/generator/PluginWorkspaceLayout.java"));
-		assertTrue(plugin.contains("ExecutableFilePermissions.ensureOwnerExecutable(normalizedRoot.resolve(\"gradlew\"))"));
+		Path distribution = Path.of(".").toAbsolutePath().normalize();
+		Path fabric = root.resolve("fabric");
+		new Fabric1211Generator(distribution).generate(fabric, Fabric1211GoldenWorkspace.create());
+		Path plugin = Files.createDirectories(root.resolve("plugin"));
+		Path existing = plugin.resolve("gradlew");
+		Files.writeString(existing, "#!/bin/sh\r\necho preserved\r\n");
+		if (ExecutableFilePermissions.posixSupported(existing))
+			Files.setPosixFilePermissions(existing, Set.of(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE));
+		PluginWorkspaceLayout.ensureGradleRuntime(plugin, distribution, "gradle-9.7.0-bin.zip");
+		assertEquals("#!/bin/sh\necho preserved\n", Files.readString(existing));
+		for (Path launcher : new Path[] { fabric.resolve("gradlew"), existing }) {
+			assertTrue(Files.isRegularFile(launcher));
+			if (ExecutableFilePermissions.posixSupported(launcher))
+				assertTrue(Files.getPosixFilePermissions(launcher).contains(PosixFilePermission.OWNER_EXECUTE));
+		}
 	}
 }

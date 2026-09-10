@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "linux-release-authorization",
+  "status": "pending-validation",
+  "releaseTag": "v0.1.0-linux-preview.1",
+  "releaseEligible": false,
+  "formalSupportClaim": false,
+  "candidateId": null,
+  "candidateSourceCommit": null,
+  "candidateWorkflowRunId": null,
+  "debSha256": null,
+  "portableSha256": null,
+  "installedProductJarSha256": null,
+  "validationReportPath": "docs/testing/stage15-release-integration-2026-09-11.md",
+  "validationReportSha256": null,
+  "acceptedEvidence": {}
+}
