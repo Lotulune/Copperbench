@@ -1,0 +1,16 @@
+{
+  "backup": "/home/stage15-operator/stage15-session-backup-20260910",
+  "changes": [
+    {
+      "path": "/etc/gdm3/custom.conf",
+      "beforeSha256": "e2039b4556ac29dbcae818a46ad0575a9804724943157ddcd9b0399b5880524a",
+      "afterSha256": "d2fb386e48e2badd33595691057a3e05f800df295fe173b400a9a66b3f65193e"
+    },
+    {
+      "path": "/var/lib/AccountsService/users/stage15",
+      "beforeSha256": "5208e53d2ae1854d9175327792a9de22f674fcf423b33563c46d639da482aff1",
+      "afterSha256": "4788cc54e9fc186efe940b898131c655bed3ca6d048456a9ce075c454f874503"
+    }
+  ],
+  "nextStep": "Reboot this guest to activate the Wayland session"
+}

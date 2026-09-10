@@ -9,6 +9,10 @@ This bundle is a maintainer verification harness. Passing it does not by itself 
 - The guest must not have system `java`, `gradle`, or `git` installed before the candidate is installed.
 - Transfer the exact Stage 15 `.deb`, its SHA-256 from `linux-candidate-sha256.txt`, and this harness bundle by browser or shared folder.
 - Use a disposable copy of the workspace. The external-Agent helper intentionally creates elements and runs real builds.
+- Unlock the GNOME login keyring through its normal authentication prompt before starting the timed graphical gate.
+  Automatic desktop login or administrator screen unlock does not necessarily unlock that keyring. Chromium can wait
+  in `secret_password_store_sync` while its native prompt is pending; a simultaneous GPU warning does not establish
+  the cause. Do not disable credential storage or change the keyring password to make the gate pass.
 
 ## Automated installed-product preflight
 
@@ -27,6 +31,8 @@ Use `neoforge-1.21.1` and a NeoForge workspace for the second loader. The script
 Ubuntu/GNOME session facts, absence of host Java/Gradle/Git, installed JBR/JCEF and Java 21, the graphical probe,
 private Desktop MCP metadata, installed-Core build, and real Minecraft render readiness. Its result deliberately
 remains `automated-preflight-passed-manual-gates-pending`.
+The run-client readiness check requires `latest.log` to be newer than a marker created before the current launch;
+old render markers from a previous run cannot establish a pass.
 
 ## Visible UI and external-Agent gate
 
@@ -75,6 +81,9 @@ Record evidence that a real user can create/save/reopen through the installed UI
 the helper-launched Minecraft window while the machine-checked Run Client task is still running, and complete the real
 installed Blockbench gate below. Repeat the desktop/window checks under GNOME Wayland and GNOME on Xorg. Do not change
 `formalSupportClaim` until all Stage 15 release gates are closed.
+On Wayland, use the actual desktop/VM display for native windows and pointer coordinates. XWayland window captures
+can omit GNOME authentication dialogs, and reported window origins can differ from their native desktop positions.
+Keep an unsuccessful or timed-out attempt separate from its later successful replay.
 
 ## Real installed Blockbench gate
 

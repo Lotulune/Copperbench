@@ -1,0 +1,34 @@
+{
+  "status": "passed",
+  "sourceProductDeltaFromRun34": false,
+  "junitSuites": [
+    {
+      "class": "net.mcreator.ui.chromium.CefUtilsAccessibilityTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "dev.copperbench.release.LinuxDistributionLayoutTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "dev.copperbench.mcp.DesktopMcpRuntimeTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "junitGradleTaskRestoredFromCache": true,
+  "nodeInstalledGateContractsPassed": 7,
+  "linuxReadinessPredicateBehavioralTestsPassed": 1,
+  "completeFrozenPayloadMetadataVerified": true,
+  "candidateId": "sha256:296da13bcd865af7b2b9f693609774f4a934ab9dda71709e8086c7cd6a13f13b",
+  "installedAndPortableProductJarSha256": "3b07984204453314a115613b8cdddfc0323979c0d119b083c9c6de2b562ab893",
+  "formalSupportClaim": false
+}

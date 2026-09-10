@@ -1,25 +1,41 @@
 {
   "schemaVersion": "1.0",
   "stage": 15,
-  "candidateSha256": "f897aadcfac5991114c2a89bf81e251ae58a25653d1a6b8f86fdd830aebee7c2",
+  "candidateSha256": "349ad8be1488de0ce9f8dcf5c4aff06a0b5f56dbefa11c7c3164f7070475505e",
   "formalSupportClaim": false,
-  "status": "in-progress",
+  "status": "candidate-validation-complete-release-pending",
   "gates": {
     "run33XorgFabricPreflight": "passed",
     "run33ExternalAgentLifecycle": "passed",
     "run32ManagedBlockbenchRecoveredEvidence": "passed",
     "run33AssetCenterVisibleBlockbenchLaunch": "passed",
     "run33InstalledUiCreateSaveReopen": "passed",
-    "jcefUnzipperNativeCrash": "compatibility-fix-implemented-diagnostic-passed-awaiting-candidate",
-    "cleanGuestNeoForgeBuildRender": "installed-build-passed-client-replay-running",
-    "finalCandidateWaylandGraphicalReplay": "pending",
-    "exactBinaryReleasePromotion": "pending"
+    "jcefUnzipperNativeCrash": "compatibility-fix-validated-bounded-run34-observations",
+    "cleanGuestNeoForgeBuildRender": "run34-xorg-and-wayland-passed",
+    "finalCandidateWaylandGraphicalReplay": "passed",
+    "exactBinaryReleasePromotion": "pending-authorization-and-release-control",
+    "run34XorgFabricFreshLogPreflight": "passed",
+    "run34XorgNeoForgeFreshLogPreflight": "passed",
+    "run34XorgExternalAgentLifecycle": "passed",
+    "run34XorgManagedBlockbench": "passed",
+    "run34WaylandExternalAgentLifecycle": "passed-replay2",
+    "run34InstalledUiCreateSaveReopen": "passed",
+    "run34PortableBundledBuild": "passed",
+    "run34AssetCenterVisibleBlockbenchLaunch": "passed"
   },
   "validation": {
     "focusedJUnitPassed": 7,
     "installedGateNodeContractsPassed": 7,
     "desktopLauncherLinuxTestsPassed": 2,
-    "jcefFixFocusedJUnitPassed": 10
+    "jcefFixFocusedJUnitPassed": 10,
+    "clientLogFreshnessLinuxBehavioralTestsPassed": 1
   },
-  "report": "docs/testing/stage15-installed-validation-2026-09-10.md"
+  "report": "docs/testing/stage15-closeout-2026-09-10.md",
+  "replacementCandidate": {
+    "workflowRunId": "34466884869",
+    "runNumber": 34,
+    "sourceCommit": "57897e74981156a32c071504fa5518585597dbfb",
+    "debSha256": "349ad8be1488de0ce9f8dcf5c4aff06a0b5f56dbefa11c7c3164f7070475505e",
+    "status": "installed-candidate-validation-complete"
+  }
 }

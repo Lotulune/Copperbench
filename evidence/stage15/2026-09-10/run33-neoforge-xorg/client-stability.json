@@ -1,0 +1,9 @@
+{
+  "gamePid": 25389,
+  "headlessProductPid": 25050,
+  "gameExecutable": "/opt/copperbench/jdk21/bin/java",
+  "observedSeconds": 10.501102685928345,
+  "aliveAtBothObservations": true,
+  "visibleMenu": "Minecraft 1.21.1 / NeoForge 21.1.232 (3 mods)",
+  "formalSupportClaim": false
+}

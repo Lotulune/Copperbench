@@ -166,12 +166,15 @@ timeout 900s /usr/bin/copperbench headless --workspace "$workspace_file" build >
 grep -q '"status":"succeeded"' "$build_json" || fail "installed Copperbench Core build did not succeed"
 
 echo "[stage15-installed] launching Minecraft through installed Copperbench Core"
+run_start_marker="$evidence_root/run-client-started.marker"
+touch "$run_start_marker"
 setsid /usr/bin/copperbench headless --workspace "$workspace_file" run-client >"$run_stdout" 2>"$run_stderr" &
 run_pid=$!
 client_log="$workspace_root/run/logs/latest.log"
 ready=0
 for ((attempt = 0; attempt < 600; attempt++)); do
   if [[ -f "$client_log" ]] \
+      && [[ "$client_log" -nt "$run_start_marker" ]] \
       && grep -Fq -- "$loader_marker" "$client_log" \
       && grep -Fq 'Backend library: LWJGL version' "$client_log" \
       && grep -Fq 'Reloading ResourceManager:' "$client_log" \

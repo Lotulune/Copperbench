@@ -1,0 +1,17 @@
+{
+  "status": "failed",
+  "candidateSha256": "349ad8be1488de0ce9f8dcf5c4aff06a0b5f56dbefa11c7c3164f7070475505e",
+  "sessionType": "wayland",
+  "observedWindow": "blank",
+  "graphicalProbeProduced": false,
+  "error": "JCEF initialization timeout; native CrBrowserMain waits in secret_password_store_sync while GNOME login keyring is locked",
+  "drmDevices": [
+    "card1"
+  ],
+  "accessibleRenderNodeAvailable": false,
+  "priorApportReportUnchanged": true,
+  "formalSupportClaim": false,
+  "gpuErrorAlsoObserved": true,
+  "gpuRootCauseEstablished": false,
+  "followUp": "Login keyring authenticated and Locked=false verified; replaying unchanged Run34 candidate. Unconfirmed rendering source edits withdrawn."
+}

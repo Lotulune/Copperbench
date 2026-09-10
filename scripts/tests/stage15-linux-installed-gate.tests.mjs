@@ -47,6 +47,8 @@ test('installed Linux guest gate uses installed Copperbench Core for build and r
   assert.match(gate, /Backend library: LWJGL version/);
   assert.match(gate, /Reloading ResourceManager:/);
   assert.match(gate, /minecraft:textures\/atlas\/blocks\.png-atlas/);
+  assert.match(gate, /\[\[ "\$client_log" -nt "\$run_start_marker" \]\]/);
+  assert.ok(gate.indexOf('touch "$run_start_marker"') < gate.indexOf('setsid /usr/bin/copperbench'));
 });
 
 test('installed Linux guest gate never turns automated preflight into formal certification', () => {

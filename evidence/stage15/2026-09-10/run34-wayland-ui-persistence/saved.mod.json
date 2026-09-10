@@ -1,0 +1,9 @@
+{
+  "_fv": 89,
+  "_type": "function",
+  "definition": {
+    "code": "# New Copperbench function\nsay Stage15 Run34 Wayland persistence",
+    "name": "wayland_saved_probe",
+    "namespace": "mod"
+  }
+}

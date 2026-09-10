@@ -1,0 +1,46 @@
+/usr/lib/python3.12/getpass.py:91: GetPassWarning: Can not control echo on the terminal.
+  passwd = fallback_getpass(prompt, stream)
+Warning: Password input may be echoed.
+Paste the one-time Desktop MCP token copied from Copperbench UI:
+Minecraft render readiness passed and run_client stayed running for 10 seconds.
+Confirm the Minecraft window is visibly usable, then close Minecraft normally; do not cancel the task.
+Agent loop passed. Close the installed Copperbench workspace window normally now; shutdown verification is waiting.
+{
+  "schemaVersion": "1.0",
+  "status": "passed",
+  "candidateSha256": "349ad8be1488de0ce9f8dcf5c4aff06a0b5f56dbefa11c7c3164f7070475505e",
+  "endpoint": "http://127.0.0.1:36899/mcp",
+  "permissionProfile": "workspace",
+  "tokenPersisted": false,
+  "automationAuditCredentialLeak": false,
+  "agentLoop": {
+    "initializeProtocolVersion": "2025-11-25",
+    "workspaceId": "9426259c-c2ec-4a0d-896f-222201506755",
+    "initialRevision": 6,
+    "finalRevision": 9,
+    "initialElementCount": 6,
+    "finalElementCount": 9,
+    "planPreviewWouldApply": true,
+    "firstBuildState": "succeeded",
+    "revisionConflictCode": "WORKSPACE_REVISION_CONFLICT",
+    "conflictRetryCommitted": true,
+    "finalBuildState": "succeeded",
+    "runClientLifecycle": {
+      "taskId": "bfbca9d5-8633-490d-8221-40ac59c0695c",
+      "renderMarkers": [
+        "Backend library: LWJGL version",
+        "Reloading ResourceManager:",
+        "minecraft:textures/atlas/blocks.png-atlas"
+      ],
+      "renderReady": true,
+      "stableBeforeUserCloseSeconds": 10,
+      "terminalStateAfterUserClose": "succeeded"
+    }
+  },
+  "shutdown": {
+    "descriptorRemoved": true,
+    "oldConnectionRejected": true,
+    "oldConnectionFailureCode": "MCP_TRANSPORT_FAILED"
+  },
+  "formalSupportClaim": false
+}

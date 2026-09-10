@@ -1,0 +1,10 @@
+Thread 50 (Thread 0x72cbea5fe6c0 (LWP 5939) "CrBrowserMain"):
+#0  0x000072cc8891b5fd in __GI___poll (fds=0x72cc141196c0, nfds=1, timeout=-1) at ../sysdeps/unix/sysv/linux/poll.c:29
+#1  0x000072cc5c6998ce in ?? () from /lib/x86_64-linux-gnu/libglib-2.0.so.0
+#2  0x000072cc5c63af47 in g_main_loop_run () from /lib/x86_64-linux-gnu/libglib-2.0.so.0
+#3  0x000072cbe8622962 in secret_password_storev_sync () from /lib/x86_64-linux-gnu/libsecret-1.so.0
+#4  0x000072cbe8622b7b in secret_password_store_sync () from /lib/x86_64-linux-gnu/libsecret-1.so.0
+#5  0x000072cbde0aae67 in ?? () from /opt/copperbench/jdk/lib/libcef.so
+#6  0x000072cbd746b30b in ?? () from /opt/copperbench/jdk/lib/libcef.so
+#7  0x000072cbd800c8c0 in ?? () from /opt/copperbench/jdk/lib/libcef.so
+#8  0x0000000000000000 in ?? ()
