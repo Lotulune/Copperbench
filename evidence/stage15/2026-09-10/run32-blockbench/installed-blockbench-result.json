@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "1.0",
+  "status": "passed",
+  "probe": "installed-blockbench-managed-process",
+  "executable": "/usr/bin/blockbench",
+  "assetRelativePath": "assets/copperbench/models/stage15_blockbench_probe_9842a3d5.bbmodel",
+  "processId": 12370,
+  "exitCode": 0,
+  "openedSha256": "9e84b3457ce2ca6601a72f3214cc148582980b6d8be8f9f3a4e2a34863620f48",
+  "currentSha256": "ca3ae563e82b6f1fc5cc52cb66c65c7e2145deda636a6eb5fc5c294800cc2c26",
+  "leaseConflictCode": "BLOCKBENCH_ASSET_LEASED",
+  "changeDiagnosticCode": "ASSET_CHANGED_EXTERNALLY",
+  "managedProcessStable": true,
+  "changeDetected": true,
+  "formalSupportClaim": false
+}

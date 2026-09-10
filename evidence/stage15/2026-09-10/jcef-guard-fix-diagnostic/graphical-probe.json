@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "1.0",
+  "probe": "graphical-product-shell",
+  "status": "ready",
+  "observedAt": "2026-09-10T09:50:29.129191519Z",
+  "formalSupportClaim": false,
+  "jcefMainFrameLoaded": true,
+  "workspaceId": "d2412b0d-a441-4261-b419-a21e1b605b1f",
+  "workspaceRoot": "/home/stage15/MCreatorWorkspaces/stage15_ui_xorg_0910",
+  "platform": {
+    "os": "linux",
+    "arch": "x86_64",
+    "desktop": {
+      "sessionType": "x11",
+      "waylandDisplayPresent": false,
+      "x11DisplayPresent": true,
+      "certificationRole": "stage15-compatibility-target",
+      "knownLimitations": [
+        "X11 requires compatibility evidence separate from the primary Wayland path."
+      ],
+      "stage15CertificationPending": true
+    }
+  },
+  "mcp": {
+    "status": "listening",
+    "url": "http://127.0.0.1:39405/mcp",
+    "workspaceId": "d2412b0d-a441-4261-b419-a21e1b605b1f",
+    "permissionProfile": "workspace",
+    "expiresAt": "2026-09-10T21:50:28.087261530Z",
+    "tokenAvailable": true
+  }
+}

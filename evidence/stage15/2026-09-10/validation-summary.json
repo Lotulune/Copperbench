@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "1.0",
+  "stage": 15,
+  "candidateSha256": "f897aadcfac5991114c2a89bf81e251ae58a25653d1a6b8f86fdd830aebee7c2",
+  "formalSupportClaim": false,
+  "status": "in-progress",
+  "gates": {
+    "run33XorgFabricPreflight": "passed",
+    "run33ExternalAgentLifecycle": "passed",
+    "run32ManagedBlockbenchRecoveredEvidence": "passed",
+    "run33AssetCenterVisibleBlockbenchLaunch": "passed",
+    "run33InstalledUiCreateSaveReopen": "passed",
+    "jcefUnzipperNativeCrash": "compatibility-fix-implemented-diagnostic-passed-awaiting-candidate",
+    "cleanGuestNeoForgeBuildRender": "installed-build-passed-client-replay-running",
+    "finalCandidateWaylandGraphicalReplay": "pending",
+    "exactBinaryReleasePromotion": "pending"
+  },
+  "validation": {
+    "focusedJUnitPassed": 7,
+    "installedGateNodeContractsPassed": 7,
+    "desktopLauncherLinuxTestsPassed": 2,
+    "jcefFixFocusedJUnitPassed": 10
+  },
+  "report": "docs/testing/stage15-installed-validation-2026-09-10.md"
+}

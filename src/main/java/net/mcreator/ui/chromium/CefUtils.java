@@ -137,6 +137,7 @@ public class CefUtils {
 			config.getAppArgsAsList().add("--mute-audio");
 			config.getAppArgsAsList().add("--disable-gaia-services");
 			addAccessibilityArguments(config.getAppArgsAsList());
+			addLinuxHelperCompatibilityArguments(config.getAppArgsAsList(), OS.isLinux());
 
 			Set<String> disabledFeatures = new HashSet<>();
 			// Get existing disabled features
@@ -275,6 +276,17 @@ public class CefUtils {
 		}
 
 		return cefApp;
+	}
+
+	static void addLinuxHelperCompatibilityArguments(List<String> arguments, boolean linux) {
+		if (!linux) return;
+		// The bundled Linux helper exhibited the Unzipper SIGABRT in CEF #3912.
+		// Upstream associates it with unannotated native frames around
+		// CefExecuteProcess and documents this compatibility workaround.
+		// Keep normal stack protection; disable only the incompatible fork reseeding.
+		// https://github.com/chromiumembedded/cef/issues/3912#issuecomment-2766842796
+		arguments.removeIf(argument -> argument.startsWith("--change-stack-guard-on-fork="));
+		arguments.add("--change-stack-guard-on-fork=disable");
 	}
 
 	static void addAccessibilityArguments(List<String> arguments) {

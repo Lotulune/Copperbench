@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "1.0",
+  "helperExitCode": 0,
+  "helperPath": "/home/stage15/stage15-run31/harness-20260909T120955Z/verify-stage15-linux-installed-agent.py",
+  "workspacePath": "/home/stage15/MCreatorWorkspaces/stage15-fabric-run33-agent/stage15_fabric_wayland.mcreator",
+  "candidateSha256": "f897aadcfac5991114c2a89bf81e251ae58a25653d1a6b8f86fdd830aebee7c2",
+  "notificationEvents": [
+    {
+      "stage": "minecraft-close-requested",
+      "at": "2026-09-10T06:57:33.911802+00:00"
+    },
+    {
+      "stage": "copperbench-close-requested",
+      "at": "2026-09-10T07:02:34.260369+00:00"
+    },
+    {
+      "stage": "verifier-finished",
+      "at": "2026-09-10T07:03:24.596910+00:00"
+    }
+  ],
+  "formalSupportClaim": false
+}

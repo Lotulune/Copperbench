@@ -1,0 +1,32 @@
+{
+  "status": "passed",
+  "baseCommit": "627910b14dd7e4d82f1e8ac7d3647ccb5e6cf4c3",
+  "sourceFiles": {
+    "src\\main\\java\\net\\mcreator\\ui\\chromium\\CefUtils.java": "003b8e3a905581dd6f53bf1e640c88210adae6878087a7d9959644e2df2a7ff8",
+    "src\\test\\java\\net\\mcreator\\ui\\chromium\\CefUtilsAccessibilityTest.java": "19ef0f8d5a1d16e8598db010f913bab3bf1ef457837b4fdaa1ca87feca3cf76d"
+  },
+  "suites": [
+    {
+      "name": "net.mcreator.ui.chromium.CefUtilsAccessibilityTest",
+      "tests": "5",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "dev.copperbench.release.LinuxDistributionLayoutTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "dev.copperbench.mcp.DesktopMcpRuntimeTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    }
+  ],
+  "formalSupportClaim": false
+}

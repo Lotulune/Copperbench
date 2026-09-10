@@ -45,4 +45,22 @@ class CefUtilsAccessibilityTest {
 		assertFalse(CefUtils.useSoftwareRenderingOnLinuxX11("x11", false));
 		assertFalse(CefUtils.useSoftwareRenderingOnLinuxX11(null, true));
 	}
+
+	@Test void linuxHelperDisablesOnlyForkCanaryReseedingAndNormalizesConflictingArguments() {
+		List<String> arguments = new ArrayList<>(List.of("--force-renderer-accessibility=complete",
+				"--change-stack-guard-on-fork=enable", "--disable-features=Vulkan",
+				"--change-stack-guard-on-fork=disable"));
+
+		CefUtils.addLinuxHelperCompatibilityArguments(arguments, true);
+		CefUtils.addLinuxHelperCompatibilityArguments(arguments, true);
+
+		assertEquals(List.of("--force-renderer-accessibility=complete", "--disable-features=Vulkan",
+				"--change-stack-guard-on-fork=disable"), arguments);
+	}
+
+	@Test void nonLinuxHelperArgumentsRemainUnchanged() {
+		List<String> arguments = new ArrayList<>(List.of("--change-stack-guard-on-fork=enable"));
+		CefUtils.addLinuxHelperCompatibilityArguments(arguments, false);
+		assertEquals(List.of("--change-stack-guard-on-fork=enable"), arguments);
+	}
 }

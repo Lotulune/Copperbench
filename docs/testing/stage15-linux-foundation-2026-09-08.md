@@ -347,7 +347,15 @@ The final gate completed successfully on 2026-09-09 and records `fullStage15Wind
 
 The machine-readable result is `evidence/stage15/2026-09-09/windows-product-regression-clean-windows11.json`. Candidate-local accessibility probes also confirmed that this JCEF/Windows setup does not expose the titlebar buttons through UI Automation, so the final gate intentionally uses the product's native window-chrome region contract instead of claiming unavailable UIA semantics.
 
-## Not yet proven
+## 2026-09-10 installed replay update
+
+The newer [installed-validation record](./stage15-installed-validation-2026-09-10.md) supersedes the Run 31-era
+open-item list below. Real Xorg exact-binary Fabric preflight now passes on Run 32 and Run 33. Run 33 additionally
+passes the UI-authorized external-Agent builds/conflict recovery/visible Minecraft normal-close/Copperbench shutdown
+loop. Run 32 managed Blockbench evidence was recovered, and Run 33's actual Asset Center button launched the real
+Blockbench model window. Evidence is under `evidence/stage15/2026-09-10/`. Formal Linux support remains false.
+
+## Not yet proven at the Run 31 checkpoint (historical)
 
 The headless/package/supply-chain path now has real Ubuntu evidence. Still required before Stage 15 closure:
 

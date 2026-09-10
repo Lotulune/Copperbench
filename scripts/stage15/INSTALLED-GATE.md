@@ -51,6 +51,24 @@ then close Minecraft normally when prompted. The helper requires the task to rea
 It also verifies audit redaction, descriptor cleanup, and old-connection rejection. When it later prints the Copperbench
 shutdown prompt, close the Copperbench workspace window normally. Do not terminate either product from another shell.
 
+If the terminal is hidden, use the optional source-tree desktop launcher
+`scripts/stage15/run-installed-agent-desktop.py` (transfer it separately when using an older harness archive):
+
+```bash
+python3 ./run-installed-agent-desktop.py \
+  --helper /path/to/published-harness/verify-stage15-linux-installed-agent.py \
+  --workspace /path/to/disposable-workspace/workspace.mcreator \
+  --candidate-sha256 <exact-deb-sha256> \
+  --output-directory ./evidence-agent-new-attempt
+```
+
+Run it in the active GNOME desktop session with `zenity` available. It takes the UI-copied token in a hidden
+desktop input and passes it to the unchanged verifier through a private stdin pipe. Desktop notifications repeat
+the verifier's Minecraft and Copperbench normal-close prompts. The verifier's five-minute Copperbench-close
+timeout and success requirements are unchanged. Each attempt requires a new output directory; prior evidence
+is never overwritten. `desktop-launcher-result.json` records notification times and the helper exit code,
+but only the helper's `external-agent-result.json` can establish an Agent pass.
+
 ## Manual evidence still required
 
 Record evidence that a real user can create/save/reopen through the installed UI, see the Copperbench window, see
