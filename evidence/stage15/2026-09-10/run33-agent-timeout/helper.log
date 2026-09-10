@@ -1,7 +1,7 @@
 /usr/lib/python3.12/getpass.py:91: GetPassWarning: Can not control echo on the terminal.
   passwd = fallback_getpass(prompt, stream)
 Warning: Password input may be echoed.
-Paste the one-time Desktop MCP token copied from Copperbench UI: 
+Paste the one-time Desktop MCP token copied from Copperbench UI:
 Minecraft render readiness passed and run_client stayed running for 10 seconds.
 Confirm the Minecraft window is visibly usable, then close Minecraft normally; do not cancel the task.
 Agent loop passed. Close the installed Copperbench workspace window normally now; shutdown verification is waiting.
