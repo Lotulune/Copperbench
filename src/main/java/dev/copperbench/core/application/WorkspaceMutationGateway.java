@@ -44,6 +44,11 @@ import java.util.List;
 			throw new UnsupportedOperationException("This mutation gateway does not support workspace plan artifacts");
 	}
 
+	/** Returns whether every bounded file artifact already has the exact durable bytes recorded by the plan. */
+	default boolean workspacePlanArtifactsAlreadyApplied(List<WorkspacePlanArtifact> artifacts) throws Exception {
+		return artifacts == null || artifacts.isEmpty();
+	}
+
 	/** Synchronizes durable product metadata after local history replaced workspace files. */
 	default void persistRestoredRevision(WorkspaceState restored, long newRevision) throws Exception {
 	}

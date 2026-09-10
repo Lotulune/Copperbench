@@ -283,6 +283,15 @@ final class McpToolCatalog {
 						Map.of("type", "array", "items", Map.of("type", "object"), "minItems", 1),
 						"expectedRevision", Map.of("type", "integer", "minimum", 0)),
 						List.of("elementId", "changes", "expectedRevision")), McpToolCatalog::mutationPayload));
+		tools.add(commandTool("set_mod_element_source_management",
+				"Take over generated source manually or reattach it to Copperbench generation",
+				Operation.SET_MOD_ELEMENT_SOURCE_MANAGEMENT,
+				requiredSchema(Map.of(
+						"elementId", Map.of("type", "string", "format", "uuid"),
+						"mode", Map.of("type", "string", "enum", List.of("manual", "generated")),
+						"userApproved", Map.of("type", "boolean"),
+						"expectedRevision", Map.of("type", "integer", "minimum", 0)),
+						List.of("elementId", "mode", "expectedRevision")), McpToolCatalog::mutationPayload));
 		tools.add(commandTool("update_procedure", "Commit structured Procedure graph edits",
 				Operation.UPDATE_PROCEDURE, procedureSchema(true), McpToolCatalog::mutationPayload));
 		tools.add(commandTool("create_registry_entry", "Create a variable, tag, or language key",

@@ -876,7 +876,10 @@ public final class Fabric1211Generator {
 		if (!Files.isRegularFile(source)) throw new IOException("Missing distribution file: " + source);
 		Path target = resolve(root, relative);
 		Files.createDirectories(target.getParent());
-		Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
+		Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.COPY_ATTRIBUTES);
+		if ("gradlew".equals(relative) && java.io.File.separatorChar != '\\'
+				&& !target.toFile().setExecutable(true, false) && !Files.isExecutable(target))
+			throw new IOException("Could not mark Gradle wrapper executable: " + target);
 		generated.add(relative);
 	}
 

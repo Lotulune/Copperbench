@@ -14,6 +14,8 @@ import org.junit.jupiter.api.io.TempDir;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermission;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -48,5 +50,26 @@ class PluginWorkspaceLayoutTest {
 				.startsWith("#!/usr/bin/env sh\r\n")
 				|| Files.readString(Path.of("plugins/generator-1.21.1/fabric-1.21.1/workspacebase/gradlew"))
 						.startsWith("#!/bin/sh\r\n"));
+	}
+
+	@Test void existingPosixGradleWrapperIsNormalizedAndMadeExecutableWithoutBeingReplaced() throws Exception {
+		Path distribution = temp.resolve("distribution");
+		Path workspace = temp.resolve("workspace");
+		Files.createDirectories(distribution.resolve("gradle/wrapper"));
+		Files.writeString(distribution.resolve("gradlew"), "distribution wrapper\n");
+		Files.writeString(distribution.resolve("gradlew.bat"), "distribution wrapper\r\n");
+		Files.write(distribution.resolve("gradle/wrapper/gradle-wrapper.jar"), new byte[] { 1 });
+
+		Files.createDirectories(workspace);
+		Path existing = workspace.resolve("gradlew");
+		Files.writeString(existing, "#!/bin/sh\r\necho workspace\r\n");
+		if (java.io.File.separatorChar != '\\')
+			Files.setPosixFilePermissions(existing,
+					Set.of(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE));
+
+		PluginWorkspaceLayout.ensureGradleRuntime(workspace, distribution, "gradle-9.2.1-bin.zip");
+
+		assertEquals("#!/bin/sh\necho workspace\n", Files.readString(existing));
+		if (java.io.File.separatorChar != '\\') assertTrue(Files.isExecutable(existing));
 	}
 }

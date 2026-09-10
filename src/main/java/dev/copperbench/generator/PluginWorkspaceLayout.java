@@ -67,10 +67,10 @@ public final class PluginWorkspaceLayout {
 			throws IOException {
 		Path normalizedRoot = root.toAbsolutePath().normalize();
 		Path normalizedDistribution = distributionRoot.toAbsolutePath().normalize();
-		copyIfMissing(normalizedRoot.resolve("gradlew"), normalizedDistribution.resolve("gradlew"));
-		if (ExecutableFilePermissions.posixSupported(normalizedRoot.resolve("gradlew")))
-			normalizeLauncherLineEndings(normalizedRoot.resolve("gradlew"));
-		ExecutableFilePermissions.ensureOwnerExecutable(normalizedRoot.resolve("gradlew"));
+		Path posixLauncher = normalizedRoot.resolve("gradlew");
+		copyIfMissing(posixLauncher, normalizedDistribution.resolve("gradlew"));
+		normalizeLauncherLineEndings(posixLauncher);
+		ExecutableFilePermissions.ensureOwnerExecutable(posixLauncher);
 		copyIfMissing(normalizedRoot.resolve("gradlew.bat"), normalizedDistribution.resolve("gradlew.bat"));
 		copyIfMissing(normalizedRoot.resolve("gradle/wrapper/gradle-wrapper.jar"),
 				normalizedDistribution.resolve("gradle/wrapper/gradle-wrapper.jar"));
@@ -97,4 +97,5 @@ public final class PluginWorkspaceLayout {
 		Files.createDirectories(target.getParent());
 		Files.copy(source, target, StandardCopyOption.COPY_ATTRIBUTES);
 	}
+
 }
