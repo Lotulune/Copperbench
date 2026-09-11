@@ -48,4 +48,13 @@ class GameTestRunDirectoryTest {
         assertEquals("GAMETEST_PATH_TOO_LONG", failure.code());
         assertFalse(Files.exists(deep));
     }
+
+    @Test void cacheOverrideInsideWorkspaceCannotBecomeSnapshotInput() {
+        Path root = temp.resolve("a".repeat(140));
+        var failure = assertThrows(GameTestSupport.TestSetupException.class, () ->
+                GameTestRunDirectory.select(root, UUID.randomUUID(), WINDOWS, root));
+        assertEquals("GAMETEST_PATH_TOO_LONG", failure.code());
+        assertTrue(failure.getMessage().contains("outside the workspace"));
+        assertFalse(Files.exists(root));
+    }
 }

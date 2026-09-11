@@ -104,6 +104,9 @@ try {
         $directory = $pendingDirectories.Dequeue()
         foreach ($entry in Get-ChildItem -LiteralPath $directory -Force) {
             $relative = [IO.Path]::GetRelativePath($sourceRoot, $entry.FullName)
+            $parts = $relative.Replace('\', '/').Split('/')
+            if ($parts.Length -gt 1 -and $parts[0] -eq '.mcreator' -and
+                @('localHistory', 'workspaceBackups', 'userSettings') -contains $parts[1]) { continue }
             if (($directory -eq $sourceRoot -and ($excludeRoot -contains $entry.Name -or $entry.Name.StartsWith('.env.'))) -or
                 @('.git', '.gradle', 'node_modules') -contains $entry.Name) { continue }
             if (($entry.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) { throw "Fixture contains a reparse point: $relative" }

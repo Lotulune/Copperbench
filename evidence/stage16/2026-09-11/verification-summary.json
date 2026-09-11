@@ -1,0 +1,186 @@
+{
+  "schemaVersion": "1.0",
+  "date": "2026-09-11",
+  "sourceCommit": "dabb36a4b91d53450a827ff3c7be2e1739a23059",
+  "phase": "Stage16-A first packaged replay",
+  "productScope": "Windows x64 portable ZIP, Fabric 1.21.1, supplied workspace and existing caches",
+  "javaRegressionPassed": 38,
+  "javaRegressionFailed": 0,
+  "javaRegressionSkipped": 0,
+  "replayPassed": true,
+  "humanInterventionsDuringReplay": 0,
+  "freshAgent": false,
+  "cleanMachine": false,
+  "publiclyReleased": false,
+  "expectedStepResults": [
+    {
+      "name": "01-discovery",
+      "status": "succeeded",
+      "exitCode": 0,
+      "elapsedMs": 7975,
+      "firstResponseMs": 7799,
+      "jsonMessages": 1
+    },
+    {
+      "name": "01b-no-prompt",
+      "status": "rejected",
+      "exitCode": 3,
+      "elapsedMs": 4553,
+      "firstResponseMs": 4388,
+      "jsonMessages": 1
+    },
+    {
+      "name": "02-environment",
+      "status": "succeeded",
+      "exitCode": 0,
+      "elapsedMs": 5971,
+      "firstResponseMs": 5169,
+      "jsonMessages": 1
+    },
+    {
+      "name": "03-compile-failure",
+      "status": "failed",
+      "exitCode": 10,
+      "elapsedMs": 109829,
+      "firstResponseMs": 1590,
+      "jsonMessages": 16
+    },
+    {
+      "name": "04-repaired-build",
+      "status": "succeeded",
+      "exitCode": 0,
+      "elapsedMs": 36044,
+      "firstResponseMs": 2047,
+      "jsonMessages": 17
+    },
+    {
+      "name": "05-insufficient-tests",
+      "status": "failed",
+      "exitCode": 10,
+      "elapsedMs": 302631,
+      "firstResponseMs": 1962,
+      "jsonMessages": 65
+    },
+    {
+      "name": "06-accepted",
+      "status": "succeeded",
+      "exitCode": 0,
+      "elapsedMs": 306500,
+      "firstResponseMs": 1963,
+      "jsonMessages": 59
+    }
+  ],
+  "windowsPaths": {
+    "legacyWrapperCharacters": 244,
+    "actualWrapperCharacters": 126,
+    "actualWrapperSha256": "497c8c2a7e5031f6aa847f88104aa80a93532ec32ee17bdb8d1d2f67a194a9c7",
+    "shortPathFallback": true
+  },
+  "artifactSha256": "80908fcd3ff291ec96c76a5d51deced464453f88d48f761901062006310e9df1",
+  "acceptanceExecuted": 2,
+  "acceptancePassed": 2,
+  "sourceCurrentAtCompletion": true,
+  "productionSourceFiles": [
+    {
+      "path": "src/gradleBridge/java/dev/copperbench/gradle/GradleLoopbackProbe.java",
+      "sha256": "6e66c52b3b8ea989c4171f0fa717e9027367f8d8a5955d31190073125556de5f"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/generator/GameTestRunDirectory.java",
+      "sha256": "466000a3645c8117c5410ae98e49ee558372e223e549fb64ce4720049c986c60"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/generator/GradleWorkspaceTaskGateway.java",
+      "sha256": "df20869a15d11f4c8544ef1220ccb9c51c12ed1e9f8e33db4743237b0f5e5988"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/generator/fabric/Fabric1211ProcessRunner.java",
+      "sha256": "dfde5466b40b5f8835d8858a2de3c7cfc9893cccc3f2483f9e0486910e2a19a6"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/gradle/GradleRuntimeCompatibility.java",
+      "sha256": "7c78dfe551fa60f0bb1b5f9e4afa6c5e9a7397ff765bdf42f4d5279d2110fde9"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/headless/BootstrapProductLauncher.java",
+      "sha256": "7ff6acf8fd945412507885c2d1fa8e0ebdb1260f7787774cf4252c031e6cfdc6"
+    }
+  ],
+  "evidenceFiles": [
+    {
+      "path": "candidate.json",
+      "sha256": "7312d44e6cd5f514d12288e176e7be2ff49718fd893308f631c42af651b6548e"
+    },
+    {
+      "path": "execution-location.json",
+      "sha256": "7ae00fdba3fb07d6feef32a8340200f26c4adb8849fdaca3beffac7b7d2d0966"
+    },
+    {
+      "path": "regression-summary.json",
+      "sha256": "b8fd6d1422812b85ff42768adb601d5ac1ec4a471941d3e4f3fcee56663fbfe8"
+    },
+    {
+      "path": "baseline-replay/01-discovery.jsonl",
+      "sha256": "c6aebed2f19e12332922b655746e63080fa8a0c80f5f39742152f130ed455831"
+    },
+    {
+      "path": "baseline-replay/02-environment.jsonl",
+      "sha256": "b57458611de502487eef07cf779a9701d2d06efad0db66239f30801881684204"
+    },
+    {
+      "path": "baseline-replay/03-compile-failure.jsonl",
+      "sha256": "ac6e288b60beee7238ae6b3cdb4a2b31c00ca98b1bf57ae249ba34d9c850b159"
+    },
+    {
+      "path": "baseline-replay/summary.json",
+      "sha256": "2730cde46682a8057ec34a915fc00ba4c4d65d2b54acfede049da5857a69b817"
+    },
+    {
+      "path": "fixed-replay/01-discovery.jsonl",
+      "sha256": "c6aebed2f19e12332922b655746e63080fa8a0c80f5f39742152f130ed455831"
+    },
+    {
+      "path": "fixed-replay/01b-no-prompt.jsonl",
+      "sha256": "c5609df340d0dc5d4d688739022ab4a7a30b4feb81bbfe30991523be27e1ce2a"
+    },
+    {
+      "path": "fixed-replay/02-environment.jsonl",
+      "sha256": "4bf72be1e095a010a9baf002237db2e8d721a42fe41ad8605eed0872ae9a05f6"
+    },
+    {
+      "path": "fixed-replay/03-compile-failure.jsonl",
+      "sha256": "345cda92d4270b623869aa51d90799cb380cc92e9ec9dff07b3a7ecc8ccc9694"
+    },
+    {
+      "path": "fixed-replay/04-repaired-build.jsonl",
+      "sha256": "a7b19c07119899151e66e528ce48e98d87c0ff1e44893136974baf6c220eabf3"
+    },
+    {
+      "path": "fixed-replay/05-insufficient-tests.jsonl",
+      "sha256": "cd34b4f6f3500078fb4ce716a019e595f46b0df5b9c698ca5e9884303061e19d"
+    },
+    {
+      "path": "fixed-replay/06-accepted.jsonl",
+      "sha256": "f6469ed656aedfd04b84e41a7a3a9da71b6965c6725299c2654c15035e04777b"
+    },
+    {
+      "path": "fixed-replay/gametest.xml",
+      "sha256": "661a60451e39bde42cc8bc9c4ad024f6410ece06d21c3cd0ff97722f30f5bfe6"
+    },
+    {
+      "path": "fixed-replay/source-manifest.json",
+      "sha256": "c4ccc9ab9e1eedb365a0e2d943d769cf450641dea6fe05a0ddf291c94fad8627"
+    },
+    {
+      "path": "fixed-replay/summary.json",
+      "sha256": "f1a769fb09779a247a871c7142e4725994328ca6612035455e5a04ea7321b001"
+    }
+  ],
+  "remainingScope": [
+    "fresh agent developing multiple different mods",
+    "initial user-issued grant and authorized creation from packaged UI",
+    "clean Windows and Ubuntu installation regression",
+    "real client input and save/rejoin acceptance",
+    "reduce complete acceptance-task startup cost"
+  ]
+}

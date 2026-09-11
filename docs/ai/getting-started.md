@@ -32,7 +32,7 @@ Workspace Plan、增量任务日志和 `code` 使用边界的可复制示例。
 
 ## 从空目录开始原生开发
 
-Stage 14B 提供不依赖已有 `.mcreator` 文件的产品级 bootstrap 入口。普通外部 Agent 可以先发现生成器，再让 Copperbench 在本机显示一次工作区创建确认；Agent 本身没有可伪造该确认的 `--approve` 参数：
+Stage 14B 提供不依赖已有 `.mcreator` 文件的产品级 bootstrap 入口。外部 agent 先发现生成器，再使用用户签发的[任务授权](./task-authorization-and-acceptance.md)创建工作区。传入 `--no-prompt true` 后，缺少授权会立即返回可审查的 `USER_APPROVAL_REQUIRED`，便于自动化客户端处理；本机交互创建仍可省略该参数显示确认窗口。Agent 没有可自行批准的 `--approve` 参数：
 
 ```powershell
 .\copperbench.exe bootstrap list-generators
@@ -40,7 +40,8 @@ Stage 14B 提供不依赖已有 `.mcreator` 文件的产品级 bootstrap 入口�
   --generator-id fabric-1.21.1 `
   --mod-name "Survey Pulse" `
   --mod-id survey_pulse `
-  --workspace-folder "$env:USERPROFILE\MCreatorWorkspaces\survey_pulse"
+  --workspace-folder "$env:USERPROFILE\MCreatorWorkspaces\survey_pulse" `
+  --task-authorization '<user-issued authorization ID>' --no-prompt true
 ```
 
 创建成功的 JSON 会返回新的 `.mcreator` 路径。随后使用正常 headless 或 Desktop MCP 入口读取真实工程环境；headless 形式为：

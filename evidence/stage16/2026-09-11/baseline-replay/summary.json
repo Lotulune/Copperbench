@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "stage16-packaged-agent-repair-loop",
+  "startedAt": "2026-09-11T09:03:09.7386010+00:00",
+  "productExeSha256": "d8bbb2570a7dcc955cf335df74440d171ced151a8c4acd78cc1d279000b3ee8b",
+  "applicationJarSha256": "e00464bd7d628193de6742c72927375d65591b2dd2803958e3eb93a59d9cc99a",
+  "execution": "packaged executable only; no repository classpath or injected authorization",
+  "cacheState": "existing machine caches; not a clean-machine certification",
+  "humanInterventionsDuringReplay": 0,
+  "bootstrapCreation": "not exercised; replay starts from a supplied workspace",
+  "freshAgent": false,
+  "passed": false,
+  "steps": [
+    {
+      "name": "01-discovery",
+      "exitCode": 0,
+      "status": "succeeded",
+      "elapsedMs": 5541,
+      "firstResponseMs": 5364,
+      "jsonMessages": 1,
+      "stdout": "01-discovery.jsonl"
+    },
+    {
+      "name": "02-environment",
+      "exitCode": 0,
+      "status": "succeeded",
+      "elapsedMs": 6316,
+      "firstResponseMs": 6103,
+      "jsonMessages": 1,
+      "stdout": "02-environment.jsonl"
+    },
+    {
+      "name": "03-compile-failure",
+      "exitCode": 10,
+      "status": "failed",
+      "elapsedMs": 8901,
+      "firstResponseMs": 1438,
+      "jsonMessages": 8,
+      "stdout": "03-compile-failure.jsonl"
+    }
+  ],
+  "generatorId": "fabric-1.21.1",
+  "bundledJava": {
+    "requiredRelease": 21,
+    "home": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\export\\win64\\jdk21",
+    "executable": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\export\\win64\\jdk21\\bin\\java.exe"
+  },
+  "failure": "Compiler failure did not produce an actionable source diagnostic.",
+  "completedAt": "2026-09-11T09:03:31.0174155+00:00"
+}

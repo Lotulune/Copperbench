@@ -63,6 +63,47 @@ class WorkspaceExecutionSnapshotTest {
         assertEquals("WORKSPACE_SNAPSHOT_CANCELLED", failure.code());
     }
 
+    @Test void historyAndUserSettingsCanChangeWithoutInvalidatingAuthoredInputs() throws Exception {
+        Path root = temp.resolve("history-active");
+        write(root.resolve("example.mcreator"), "workspace definition");
+        write(root.resolve("src/main/java/Native.java"), "native implementation");
+        write(root.resolve(".mcreator/custom-authoring.json"), "retain custom input");
+        var changes = new java.util.concurrent.atomic.AtomicInteger();
+        var snapshot = WorkspaceExecutionSnapshot.capture(root, root.resolve(".copperbench/task-runs/one/workspace"),
+                UUID.randomUUID(), 0, Clock.systemUTC(), () -> {
+                    try {
+                        String value = "internal update " + changes.incrementAndGet();
+                        write(root.resolve(".mcreator/localHistory/objects/temporary.tmp"), value);
+                        write(root.resolve(".mcreator/workspaceBackups/latest.backup"), value);
+                        write(root.resolve(".mcreator/userSettings"), value);
+                    } catch (Exception exception) { throw new RuntimeException(exception); }
+                    return false;
+                });
+        assertEquals(3, snapshot.files().size());
+        assertEquals("retain custom input", Files.readString(snapshot.root().resolve(".mcreator/custom-authoring.json")));
+        assertFalse(Files.exists(snapshot.root().resolve(".mcreator/localHistory")));
+        assertFalse(Files.exists(snapshot.root().resolve(".mcreator/workspaceBackups")));
+        assertFalse(Files.exists(snapshot.root().resolve(".mcreator/userSettings")));
+        write(root.resolve(".mcreator/userSettings"), "another background update");
+        assertEquals(snapshot.sha256(), WorkspaceExecutionSnapshot.fingerprint(root, () -> false));
+    }
+
+    @Test void disappearingRealSourceFailsWithRetryableSnapshotDiagnostic() throws Exception {
+        Path root = temp.resolve("source-removed");
+        Path source = root.resolve("Native.java");
+        write(source, "native");
+        Path target = root.resolve(".copperbench/task-runs/one/workspace");
+        var failure = assertThrows(WorkspaceExecutionSnapshot.SnapshotException.class, () ->
+                WorkspaceExecutionSnapshot.capture(root, target, UUID.randomUUID(), 0, Clock.systemUTC(), () -> {
+                    if (Files.isDirectory(target) && Files.exists(source)) {
+                        try { Files.delete(source); } catch (Exception exception) { throw new RuntimeException(exception); }
+                    }
+                    return false;
+                }));
+        assertEquals("WORKSPACE_SNAPSHOT_CHANGED", failure.code());
+        assertFalse(Files.exists(target.resolveSibling("source-manifest.json")));
+    }
+
     private static void write(Path path, String content) throws Exception {
         Files.createDirectories(path.getParent()); Files.writeString(path, content);
     }

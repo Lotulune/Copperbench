@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "wayfinder_bell",
+  "version": "${version}",
+  "name": "Wayfinder Bell",
+  "description": "A waypoint bell example for Copperbench agent development and gameplay acceptance.",
+  "environment": "*",
+  "license": "GPL-3.0-only",
+  "entrypoints": {
+    "main": [
+      "dev.copperbench.generated.wayfinder_bell.WayfinderBellMod",
+      "dev.wayfinder.WayfinderBell"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.19.3",
+    "minecraft": "~1.21.1",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
+}

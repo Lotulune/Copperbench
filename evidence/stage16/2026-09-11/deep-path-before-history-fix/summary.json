@@ -1,0 +1,26 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "stage16-windows-deep-unicode-path",
+  "sourceCommit": "dabb36a4b91d53450a827ff3c7be2e1739a23059",
+  "exitCode": 10,
+  "elapsedMs": 9318,
+  "projectedWrapperCharacters": 279,
+  "jsonMessages": 5,
+  "verification": {
+    "schemaVersion": "1.0",
+    "status": "failed",
+    "reasonCode": "FABRIC_RUN_GAMETEST_FAILED",
+    "discovered": 0,
+    "executed": 0,
+    "passed": 0,
+    "failed": 0,
+    "skipped": 0,
+    "frameworkTests": 0,
+    "acceptanceExecuted": 0,
+    "cases": [],
+    "taskId": "a97df51f-ba19-4fab-ae23-c29bdba126ae",
+    "workspaceId": "b8b4536a-2d1f-458d-a9bc-d75255b897d3",
+    "workspaceRevision": 0
+  },
+  "passed": false
+}

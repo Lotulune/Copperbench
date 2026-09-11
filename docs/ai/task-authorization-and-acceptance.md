@@ -102,6 +102,8 @@ Fabric 测试入口由 `entrypoints` 注册。NeoForge 1.20.1/1.21.1 使用 Game
 
 ## 被测内容与报告
 
+内部 `.mcreator/localHistory`、`.mcreator/workspaceBackups` 和 `.mcreator/userSettings` 不属于验收输入；历史服务的临时文件和用户设置更新不会干扰快照。根目录的 `*.mcreator` 工作区定义、真实源码以及 `.mcreator` 下其他自定义输入仍会进入指纹。真实输入在捕获期间消失或改变会返回 `WORKSPACE_SNAPSHOT_CHANGED`，需要从当前文件重试。
+
 `run_server`、`run_datagen`、`run_gametest` 都复制当前磁盘上的源码、资源、入口、构建脚本、测试和 `.mcreator` 文件。快照排除根目录的 `build`、`out`、`run`、`runs`、日志、IDE 状态、`.copperbench` 和 `.env` / `.env.*`，以及 Git/Gradle/Node 缓存。用户原有运行世界不会随这些目录复制。路径中的符号链接和重定向会被拒绝；复制前后文件清单或内容变化会返回 `WORKSPACE_SNAPSHOT_CHANGED`，不会继续验证混合版本。
 
 每次任务使用新的 `.copperbench/task-runs/<kind>/<taskId>/`，其中包含 `source-manifest.json`。GameTest 另写 `verification.json`，任务查询和 JSONL 事件也返回同一份结构化结果：

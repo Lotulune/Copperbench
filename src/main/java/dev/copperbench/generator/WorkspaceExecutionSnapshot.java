@@ -32,6 +32,7 @@ public final class WorkspaceExecutionSnapshot {
             ".git", ".gradle", ".copperbench", ".idea", ".vscode", "build", "out", "run", "runs",
             "logs", "node_modules", ".env");
     private static final Set<String> EXCLUDED_ANYWHERE = Set.of(".git", ".gradle", "node_modules");
+    private static final Set<String> LEGACY_RUNTIME_ENTRIES = Set.of("localHistory", "workspaceBackups", "userSettings");
     private static final int MAX_FILES = 100_000;
     private static final long MAX_BYTES = 2L * 1024 * 1024 * 1024;
 
@@ -56,6 +57,15 @@ public final class WorkspaceExecutionSnapshot {
     }
 
     public static Snapshot capture(Path source, Path target, UUID workspaceId, long revision, Clock clock,
+            BooleanSupplier cancelled) throws IOException {
+        try {
+            return captureInputs(source, target, workspaceId, revision, clock, cancelled);
+        } catch (java.nio.file.NoSuchFileException disappeared) {
+            throw changed();
+        }
+    }
+
+    private static Snapshot captureInputs(Path source, Path target, UUID workspaceId, long revision, Clock clock,
             BooleanSupplier cancelled) throws IOException {
         Path sourceRoot = source.toAbsolutePath().normalize();
         Path targetRoot = target.toAbsolutePath().normalize();
@@ -152,6 +162,8 @@ public final class WorkspaceExecutionSnapshot {
         if (relative.getNameCount() == 0) return false;
         String first = relative.getName(0).toString();
         if (EXCLUDED_ROOTS.contains(first) || first.startsWith(".env.")) return true;
+        if (first.equals(".mcreator") && relative.getNameCount() > 1
+                && LEGACY_RUNTIME_ENTRIES.contains(relative.getName(1).toString())) return true;
         for (Path component : relative) if (EXCLUDED_ANYWHERE.contains(component.toString())) return true;
         return false;
     }

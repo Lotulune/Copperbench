@@ -1,0 +1,16 @@
+{
+  "sourceCommit": "dabb36a4b91d53450a827ff3c7be2e1739a23059",
+  "applicationJarSha256": "e9b7431cebc354d3267c53ec6d05b101a90600e19272019e1dc1bbd040f8a8ae",
+  "arguments": [
+    "headless",
+    "--workspace",
+    "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage16-agent-reliability\\replays\\long-path-中文 空格-workspace-with-additional-depth-for-wrapper-regression\\wayfinder_bell.mcreator",
+    "run-gametest",
+    "--stream",
+    "true"
+  ],
+  "projectedWrapperCharacters": 279,
+  "sourceFixture": "examples/agent-native/wayfinder-bell",
+  "manualSocketOptions": false,
+  "manualHost": false
+}

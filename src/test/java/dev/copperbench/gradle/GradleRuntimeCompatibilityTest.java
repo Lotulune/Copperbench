@@ -59,7 +59,10 @@ class GradleRuntimeCompatibilityTest {
     @Test @EnabledOnOs(OS.WINDOWS) void bundledJdkCanOpenSelectorWithoutCallerWorkarounds() throws Exception {
         var environment = new HashMap<>(System.getenv());
         for (String option : new String[]{"JAVA_TOOL_OPTIONS", "JDK_JAVA_OPTIONS", "_JAVA_OPTIONS"}) environment.remove(option);
-        Path javaHome = dev.copperbench.generator.BundledJdkLocator.locate(Path.of("."), 21);
-        GradleRuntimeCompatibility.configure(javaHome, environment, _ -> {});
+        for (int release : new int[]{21, 25}) {
+            var childEnvironment = new HashMap<>(environment);
+            Path javaHome = dev.copperbench.generator.BundledJdkLocator.locate(Path.of("."), release);
+            GradleRuntimeCompatibility.configure(javaHome, childEnvironment, _ -> {});
+        }
     }
 }

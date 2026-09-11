@@ -1,0 +1,35 @@
+{
+  "mod_elements": [],
+  "variable_elements": [],
+  "sound_elements": [],
+  "tag_elements": {},
+  "tab_element_order": {},
+  "language_map": {
+    "en_us": {}
+  },
+  "foldersRoot": {
+    "name": "~",
+    "children": []
+  },
+  "workspaceSettings": {
+    "modid": "wayfinder_bell",
+    "modName": "Wayfinder Bell",
+    "version": "1.0.0",
+    "author": "Copperbench contributors",
+    "websiteURL": "",
+    "license": "GPL-3.0-only",
+    "serverSideOnly": false,
+    "requiredMods": [],
+    "dependencies": [],
+    "dependants": [],
+    "mcreatorDependencies": [],
+    "currentGenerator": "fabric-1.21.1",
+    "modElementsPackage": "net.mcreator.wayfinderbell"
+  },
+  "mcreatorVersion": 202600299999,
+  "dev.copperbench": {
+    "schemaVersion": 1,
+    "workspaceId": "b8b4536a-2d1f-458d-a9bc-d75255b897d3",
+    "revision": 0
+  }
+}

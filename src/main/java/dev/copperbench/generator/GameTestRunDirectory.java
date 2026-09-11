@@ -25,6 +25,9 @@ final class GameTestRunDirectory {
         if (platform.operatingSystem() != RuntimePlatform.OperatingSystem.WINDOWS || wrapperLength(local) < WINDOWS_WRAPPER_BUDGET)
             return local;
         Path shortened = cache.toAbsolutePath().normalize().resolve("task-runs").resolve(taskId.toString()).resolve("workspace");
+        if (shortened.startsWith(workspace.toAbsolutePath().normalize()))
+            throw new GameTestSupport.TestSetupException("GAMETEST_PATH_TOO_LONG",
+                    "The short task cache must be outside the workspace. Choose a shorter workspace or an external Copperbench data directory.");
         if (wrapperLength(shortened) >= WINDOWS_WRAPPER_BUDGET)
             throw new GameTestSupport.TestSetupException("GAMETEST_PATH_TOO_LONG",
                     "Both the workspace and Copperbench task cache paths are too deep for the Windows Gradle wrapper. Use a shorter workspace or Copperbench data directory.");

@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "1.0",
+  "mode": "packaged_jar",
+  "sourceDirectory": "src/gametest/java",
+  "resourceDirectory": "src/gametest/resources",
+  "minimumTests": 2,
+  "entrypoints": [
+    "copperbench.acceptance.AcceptanceTests",
+    "dev.wayfinder.acceptance.BellGameTest"
+  ]
+}

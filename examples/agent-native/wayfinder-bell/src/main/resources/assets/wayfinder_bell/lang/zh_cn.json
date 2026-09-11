@@ -1,0 +1,16 @@
+{
+  "item.wayfinder_bell.wayfinder_bell": "寻路铃",
+  "message.wayfinder_bell.saved": "已记录路标：%s，%s，%s",
+  "message.wayfinder_bell.empty": "潜行并右键，记录当前位置。",
+  "message.wayfinder_bell.dimension": "路标位于 %s，请返回该维度后寻路。",
+  "message.wayfinder_bell.direction": "%s | 水平距离 %s 格 | 高度差 %s",
+  "direction.wayfinder_bell.north": "北",
+  "direction.wayfinder_bell.northeast": "东北",
+  "direction.wayfinder_bell.east": "东",
+  "direction.wayfinder_bell.southeast": "东南",
+  "direction.wayfinder_bell.south": "南",
+  "direction.wayfinder_bell.southwest": "西南",
+  "direction.wayfinder_bell.west": "西",
+  "direction.wayfinder_bell.northwest": "西北",
+  "direction.wayfinder_bell.here": "就在此处"
+}

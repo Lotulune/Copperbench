@@ -1,0 +1,51 @@
+[
+  {
+    "name": "dev.copperbench.generator.fabric.Fabric1211ProcessRunnerTest",
+    "tests": "7",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0"
+  },
+  {
+    "name": "dev.copperbench.generator.GameTestRunDirectoryTest",
+    "tests": "4",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0"
+  },
+  {
+    "name": "dev.copperbench.generator.GameTestWorkflowTest",
+    "tests": "12",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0"
+  },
+  {
+    "name": "dev.copperbench.generator.Stage9ManagedTaskMatrixTest",
+    "tests": "1",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0"
+  },
+  {
+    "name": "dev.copperbench.generator.WorkspaceExecutionSnapshotTest",
+    "tests": "5",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0"
+  },
+  {
+    "name": "dev.copperbench.gradle.GradleRuntimeCompatibilityTest",
+    "tests": "4",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0"
+  },
+  {
+    "name": "dev.copperbench.headless.BootstrapProductLauncherTest",
+    "tests": "9",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0"
+  }
+]

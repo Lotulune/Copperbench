@@ -1,0 +1,28 @@
+{
+  "failureId": "78a6c8c9-5cc5-48f5-a8c8-420588d44355",
+  "exceptionLines": [
+    "2026-09-11-17:45:48 [/ERROR] [dev.copperbench.generator.GradleWorkspaceTaskGateway] Workspace task failure 78a6c8c9-5cc5-48f5-a8c8-420588d44355 (backend=Fabric 1.21.1, operation=RUN_GAMETEST, workspaceId=b8b4536a-2d1f-458d-a9bc-d75255b897d3)",
+    "java.nio.file.NoSuchFileException: D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage16-agent-reliability\\replays\\long-path-中文 空格-workspace-with-additional-depth-for-wrapper-regression\\.mcreator\\localHistory\\objects\\noz14500149381318733731.tmp",
+    "\tat java.base/sun.nio.fs.WindowsException.translateToIOException(WindowsException.java:87)",
+    "\tat java.base/sun.nio.fs.WindowsException.rethrowAsIOException(WindowsException.java:106)",
+    "\tat java.base/sun.nio.fs.WindowsException.rethrowAsIOException(WindowsException.java:112)",
+    "\tat java.base/sun.nio.fs.WindowsFileSystemProvider.newByteChannel(WindowsFileSystemProvider.java:231)",
+    "\tat java.base/java.nio.file.Files.newByteChannel(Files.java:357)",
+    "\tat java.base/java.nio.file.Files.newByteChannel(Files.java:399)",
+    "\tat java.base/java.nio.file.spi.FileSystemProvider.newInputStream(FileSystemProvider.java:371)",
+    "\tat java.base/java.nio.file.Files.newInputStream(Files.java:154)",
+    "\tat dev.copperbench.generator.WorkspaceExecutionSnapshot.sha256(WorkspaceExecutionSnapshot.java:181)",
+    "\tat dev.copperbench.generator.WorkspaceExecutionSnapshot$1.visitFile(WorkspaceExecutionSnapshot.java:139)",
+    "\tat dev.copperbench.generator.WorkspaceExecutionSnapshot$1.visitFile(WorkspaceExecutionSnapshot.java:120)",
+    "\tat java.base/java.nio.file.Files.walkFileTree(Files.java:2543)",
+    "\tat java.base/java.nio.file.Files.walkFileTree(Files.java:2609)",
+    "\tat dev.copperbench.generator.WorkspaceExecutionSnapshot.inventory(WorkspaceExecutionSnapshot.java:120)",
+    "\tat dev.copperbench.generator.WorkspaceExecutionSnapshot.capture(WorkspaceExecutionSnapshot.java:67)",
+    "\tat dev.copperbench.generator.GradleWorkspaceTaskGateway.execute(GradleWorkspaceTaskGateway.java:120)",
+    "\tat dev.copperbench.generator.GradleWorkspaceTaskGateway.lambda$start$2(GradleWorkspaceTaskGateway.java:99)",
+    "\tat java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:545)",
+    "\tat java.base/java.util.concurrent.FutureTask.run(FutureTask.java:328)",
+    "\tat java.base/java.util.concurrent.ThreadPerTaskExecutor$ThreadBoundFuture.run(ThreadPerTaskExecutor.java:323)",
+    "\tat java.base/java.lang.VirtualThread.run(VirtualThread.java:460)"
+  ]
+}
