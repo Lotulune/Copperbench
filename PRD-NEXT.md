@@ -1,6 +1,6 @@
 # Copperbench PRD：Public Beta 基线、Stage 11 全量 Mod Element、安装产品 Agent 闭环与后续深化路线
 
-> 状态：Public Beta `v0.1.0-beta.4` 已发布；Stage 12/13 保留对应范围的关闭证据；Stage 14A/14B/14C/14D 已在当前开发线上按各自 DoD 关闭，Stage 14 整体完成；下一产品开发阶段为 Stage 15 Linux 正式支持
+> 状态：Public Beta `v0.1.0-beta.4` 已发布；Stage 12/13 保留对应范围的关闭证据；Stage 14A/14B/14C/14D 已在当前开发线上按各自 DoD 关闭，Stage 14 整体完成；Stage 15 已完成 Ubuntu 24.04 GNOME x86_64 验收及 Linux Preview 2 公开发布；后续进入持续维护
 > 版本：v1.13
 > 更新日期：2026-09-08
 > 前置基线：[PRD.md](./PRD.md)、[PRD-STAGE-9.md](./PRD-STAGE-9.md)
@@ -22,7 +22,7 @@ Stage 12/13 的既有关闭记录仍是对应范围的历史证据。**代码包
 
 签名候选 `v0.1.0-preview.8` 随后从 `main@69469b8f` 构建并通过正式 release tests、Windows 三件套打包、SBOM、payload/provenance 与资产摘要校验。`v0.1.0-beta.4` 由 release-control `29ac9cf2` 通过 release run `33751421385` 采用 `promote-tested-candidate` 路径公开：Beta-tag job 仍运行常规 Windows package/SBOM 生成，但候选晋升步骤在发布前将 `build/release` 中这些临时产物替换为并校验 Preview 8 冻结资产；最终公开的 EXE、ZIP、MSIX 与 SBOM 与 Preview 8 逐字节一致，临时 Beta-tag 产物未被发布。详见 [Beta 4 publication evidence](./docs/testing/beta4-publication-2026-09-03.md)。
 
-因此 Stage 12～15 不再被 FR-PROD-01～04 阻断；但后续若修改对应的 JDK、Run Client、Desktop MCP 或 external-Agent 产品路径，或出现回归证据表明已验证行为发生变化，就必须重新打开并复验相应 gate。Linux 正式支持已明确进入 Stage 15，在 Stage 15 DoD 完成前当前正式平台仍仅为 Windows 11 x64。
+因此 Stage 12～15 不再被 FR-PROD-01～04 阻断；但后续若修改对应的 JDK、Run Client、Desktop MCP 或 external-Agent 产品路径，或出现回归证据表明已验证行为发生变化，就必须重新打开并复验相应 gate。Stage 15 DoD 已完成，正式平台范围为 Windows 11 x64 与 Ubuntu 24.04 LTS GNOME x86_64（Wayland/Xorg）；其它 Linux 范围不据此自动认证。
 
 ## 2026-08-31 Public Beta publication and metadata correction
 
@@ -875,6 +875,8 @@ Stage 14 面向希望长期维护复杂项目、愿意使用 Java/IDE 或外部 
 
 ### 11.5 Stage 15：Linux 正式平台扩展
 
+> 2026-09-11 已关闭：Run42 十项安装候选验收、两种旧偏好迁移、签名标签、production 审批与 `v0.1.0-linux-preview.2` 公开发布均完成。正式认证范围限定 Ubuntu 24.04 LTS、GNOME Wayland/Xorg、x86_64；版本通道仍为 Preview。见 [关闭证据](./docs/testing/stage15-closure-2026-09-11.md)。以下保留该阶段的需求与验收标准。
+
 #### 11.5.1 产品目标
 
 Stage 15 将 Linux 从“未来可能支持的平台”提升为明确的正式产品路线；该范围重启决策由 [ADR-0016](./docs/adr/0016-stage15-linux-formal-support.md) 记录，ADR-0014 继续保留为首期 Windows-only 的历史决策。Stage 15 开始前 Copperbench 的正式支持平台仍仅为 Windows 11 x64；只有满足本节 Definition of Done 并形成 Linux 候选/发布证据后，才能在 README、Release Notes、`product-status.json` 或安装包页面宣称 Linux 正式支持。
@@ -991,7 +993,7 @@ Stage 15 将 Linux 从“未来可能支持的平台”提升为明确的正式�
 4. **Stage 13B**：Asset Center 与 Diagnostics 2.0；这两项可以与 Stage 12C 部分并行。
 5. **Stage 12C / Stage 13C**：长尾类型专业化、本地历史与 Migration/Refactor 工作台收口。
 6. **Stage 14**：14A 源码安全共存、14B 原生/IDE/CLI 从零编写、14C 分层 packaged runtime/gameplay 验证和 14D 审阅/模板/实验扩展均已关闭；保留其证据作为后续兼容回归基线。
-7. **Stage 15（当前下一阶段）**：Linux x86_64 正式平台扩展；冻结认证发行版和打包 ADR，完成 JDK/JCEF、桌面、`runClient`、MCP/Agent、clean-VM 与正式发布闭环。
+7. **Stage 15（已完成）**：Ubuntu 24.04 GNOME x86_64 平台扩展；JDK/JCEF、桌面、`runClient`、MCP/Agent、clean-VM 与 Linux Preview 2 公开发布闭环已通过，后续进入持续维护。
 
 优先级改变可以基于真实用户高频痛点、P0/P1 缺陷、Minecraft/Loader 生态版本变化或已经测得的工程阻塞；不因为“某项专项环境认证尚未做”自动把第 11.7 节排除项重新提升为 P0，但已经复现的功能正确性缺陷不适用这条排除规则。Stage 15 已是明确承诺的后续平台阶段，不再属于“无限期 deferred”的 Linux 事项。
 
