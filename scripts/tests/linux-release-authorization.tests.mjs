@@ -4,7 +4,7 @@ import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync, mkdirSync, mkdtempSync, rmSync } from 'node:fs';
 import { dirname, resolve, join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { validateAuthorization, validateHeader, validateSourceDelta, planDraftUploads } from '../verify-linux-release-authorization.mjs';
+import { validateAuthorization, validateHeader, validateSourceDelta, planDraftUploads, releaseAssetName } from '../verify-linux-release-authorization.mjs';
 
 const repository = resolve(import.meta.dirname, '../..');
 const base = 'evidence/stage15/2026-09-10/run34-candidate/';
@@ -152,4 +152,22 @@ test('Linux publication keeps production review and excludes Linux tags from Win
   assert.ok(workflow.indexOf('cmp "$file"') < workflow.indexOf('--draft=false'));
   assert.doesNotMatch(workflow, /--clobber/);
   assert.match(windows, /"!v\*-linux-\*"/);
+});
+
+test('GitHub-normalized portable names resume without reupload and retain the original upload path', () => {
+  const original = 'Copperbench 0.1.0 Linux x86_64.tar.gz';
+  const published = 'Copperbench.0.1.0.Linux.x86_64.tar.gz';
+  assert.equal(releaseAssetName(original), published);
+  assert.equal(releaseAssetName('linux-candidate-manifest.json'), 'linux-candidate-manifest.json');
+  const files = [{ name: original, size: 968204286 }];
+  assert.deepEqual(planDraftUploads({ isDraft: true, assets: [] }, files), [original]);
+  assert.deepEqual(planDraftUploads({ isDraft: true, assets: [{ name: published, size: 968204286 }] }, files), []);
+  assert.throws(() => planDraftUploads({ isDraft: true, assets: [{ name: published, size: 1 }] }, files), /size mismatch/);
+});
+
+test('ambiguous normalized names and unsupported upload characters are rejected', () => {
+  assert.throws(() => planDraftUploads({ isDraft: true, assets: [] },
+    [{ name: 'a b.tar.gz', size: 1 }, { name: 'a.b.tar.gz', size: 1 }]), /collide/);
+  for (const name of ['../asset', 'name\nasset', '.hidden', 'trailing ', 'archive#label'])
+    assert.throws(() => releaseAssetName(name), /Unsupported/);
 });

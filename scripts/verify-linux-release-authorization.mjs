@@ -34,16 +34,24 @@ export function validateSourceDelta(paths) {
     `Build-affecting change after frozen candidate: ${path}`);
 }
 
+export function releaseAssetName(name) {
+  requireValue(typeof name === 'string' && /^[A-Za-z0-9][A-Za-z0-9._ -]*$/.test(name)
+    && !/[. ]$/.test(name), 'Unsupported release asset filename');
+  // GitHub's observed release upload normalizes the candidate portable name's spaces to dots.
+  return name.replaceAll(' ', '.');
+}
+
 export function planDraftUploads(release, files) {
   requireValue(release.isDraft === true, 'An existing public release cannot be changed');
-  const expected = new Map(files.map((file) => [file.name, file.size]));
+  const expected = new Map(files.map((file) => [releaseAssetName(file.name), file.size]));
+  requireValue(expected.size === files.length, 'Release asset names collide after normalization');
   const existing = new Set();
   for (const asset of release.assets ?? []) {
     requireValue(expected.has(asset.name) && !existing.has(asset.name), 'Unexpected or duplicate draft asset');
     requireValue(expected.get(asset.name) === asset.size, `Existing asset size mismatch: ${asset.name}`);
     existing.add(asset.name);
   }
-  return files.filter((file) => !existing.has(file.name)).map((file) => file.name);
+  return files.filter((file) => !existing.has(releaseAssetName(file.name))).map((file) => file.name);
 }
 
 function boundFile(root, entry, prefix) {
@@ -129,13 +137,15 @@ export function validateAuthorization(auth, metadata, root, tag) {
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   try {
     const { values } = parseArgs({ options: Object.fromEntries(['source-delta', 'authorization', 'payload', 'tag',
-      'github-env', 'draft-state', 'missing-list'].map((key) => [key, { type: 'string' }])) });
+      'github-env', 'draft-state', 'missing-list', 'asset-name'].map((key) => [key, { type: 'string' }])) });
     const value = (key) => {
       const result = values[key.slice(2)];
       requireValue(typeof result === 'string' && result.length > 0, `Missing required option: ${key}`);
       return result;
     };
-    if (values['source-delta']) {
+    if (values['asset-name']) {
+      console.log(releaseAssetName(value('--asset-name')));
+    } else if (values['source-delta']) {
       validateSourceDelta(readFileSync(value('--source-delta'), 'utf8').split(/\r?\n/).filter(Boolean));
     } else if (values['draft-state']) {
       const files = readdirSync(value('--payload')).map((name) => {
