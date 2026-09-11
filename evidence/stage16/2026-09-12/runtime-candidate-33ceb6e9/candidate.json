@@ -1,0 +1,16 @@
+{
+  "sourceCommit": "33ceb6e9a68aab2b2fcd9153d6c4f23f4d85e6c5",
+  "distributionDirectory": "C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\copperbench-stage16-33ceb6e9\\Copperbench010",
+  "productExe": "C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\copperbench-stage16-33ceb6e9\\Copperbench010\\copperbench.exe",
+  "productExeSha256": "203721a14453bdfe275a635cf56ea48e3ae9b914299dc5bbd6cd49fb3b7cbffd",
+  "applicationJarSha256": "1f049a071cfe709fba9c98ce22defb9bbe6688fc334f421b64ce802315758c01",
+  "startupHelperJarSha256": "cb0d76e1495694112374b4203ce1a0be4de77ecee69cd5f5da22897435fcbc29",
+  "published": false,
+  "archivePath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage16-agent-reliability\\Copperbench-33ceb6e9-windows.zip",
+  "installerPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage16-agent-reliability\\Copperbench-33ceb6e9-windows.exe",
+  "archiveSha256": "d1080b5a09b0ec4386165337938186873aa512adce53ab22675d72056065dccf",
+  "archiveBytes": 1184654937,
+  "installerSha256": "717d7de82a30209b15b086daf2af9d351e47f85967f5657001d85559492803e4",
+  "installerBytes": 855080138,
+  "installerBuild": "Standard exportWindowsZip and buildInstallerWin64 tasks; one unchanged payload shared by local ZIP, NSIS installer, and copied runtime"
+}

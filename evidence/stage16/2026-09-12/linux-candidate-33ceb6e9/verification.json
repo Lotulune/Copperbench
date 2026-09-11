@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "1.0",
+  "sourceCommit": "33ceb6e9a68aab2b2fcd9153d6c4f23f4d85e6c5",
+  "candidateId": "sha256:4e8ff8dd4bea52fd14341368b4c40dc72dd8c1c907d5f34ec873577eb76b8901",
+  "workflowRunId": "34615723771",
+  "allSixAttestationCommandsExitedZero": true,
+  "assets": [
+    {
+      "name": "Copperbench 0.1.0 Linux x86_64.tar.gz",
+      "bytes": 968275856,
+      "sha256": "5e1ae34cbc1734618d93837cb85c6487e8507d042ba967b79656af02832a1e05",
+      "verified": true,
+      "attestation": "attestations/Copperbench 0.1.0 Linux x86_64.tar.gz.json",
+      "attestationSha256": "6d804fbb14aae367e1bf1925f4bf903a407ff04ac63dbdcddf2cbc57606e19f9"
+    },
+    {
+      "name": "copperbench-linux.spdx.json",
+      "bytes": 4385128,
+      "sha256": "8ef3aa59cac1009702d68a13e40db5eea8e0fbb725fabc09c1e2367b58a8dcfe",
+      "verified": true,
+      "attestation": "attestations/copperbench-linux.spdx.json.json",
+      "attestationSha256": "6d804fbb14aae367e1bf1925f4bf903a407ff04ac63dbdcddf2cbc57606e19f9"
+    },
+    {
+      "name": "copperbench_0.1.0_amd64.deb",
+      "bytes": 888171988,
+      "sha256": "6ae06ca2033d3f40bb4c1401901de36fcaf3cad218ff9243d064968ea48668c0",
+      "verified": true,
+      "attestation": "attestations/copperbench_0.1.0_amd64.deb.json",
+      "attestationSha256": "6d804fbb14aae367e1bf1925f4bf903a407ff04ac63dbdcddf2cbc57606e19f9"
+    },
+    {
+      "name": "linux-candidate-manifest.json",
+      "bytes": 6509,
+      "sha256": "1952b06e6d7bc593fcec5b1c5fd24a2558d481aca0f5f22ff57c2461b2b319b7",
+      "verified": true,
+      "attestation": "attestations/linux-candidate-manifest.json.json",
+      "attestationSha256": "6d804fbb14aae367e1bf1925f4bf903a407ff04ac63dbdcddf2cbc57606e19f9"
+    },
+    {
+      "name": "LINUX-CANDIDATE-METADATA.json",
+      "bytes": 1762,
+      "sha256": "c16e31fef678e3c6d2b4ca2263fffd96bc55c290987ed530a2ea87a2eb2b125e",
+      "verified": true,
+      "attestation": "attestations/LINUX-CANDIDATE-METADATA.json.json",
+      "attestationSha256": "6d804fbb14aae367e1bf1925f4bf903a407ff04ac63dbdcddf2cbc57606e19f9"
+    },
+    {
+      "name": "linux-candidate-sha256.txt",
+      "bytes": 549,
+      "sha256": "540556e37f824b937025defbbe19392d48db3b745d36efc7fa726ce4601b4250",
+      "verified": true,
+      "attestation": "attestations/linux-candidate-sha256.txt.json",
+      "attestationSha256": "6d804fbb14aae367e1bf1925f4bf903a407ff04ac63dbdcddf2cbc57606e19f9"
+    }
+  ],
+  "installedGatePassed": false,
+  "published": false
+}

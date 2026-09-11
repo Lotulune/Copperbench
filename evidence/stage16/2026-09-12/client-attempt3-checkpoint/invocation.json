@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "1.0",
+  "startedAt": "2026-09-11T15:36:28.2516820+00:00",
+  "launcherPid": 47740,
+  "workspace": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\client_three_mods\\client_trial_host.mcreator",
+  "candidateSourceCommit": "33ceb6e9a68aab2b2fcd9153d6c4f23f4d85e6c5",
+  "productExeSha256": "203721a14453bdfe275a635cf56ea48e3ae9b914299dc5bbd6cd49fb3b7cbffd",
+  "applicationJarSha256": "1f049a071cfe709fba9c98ce22defb9bbe6688fc334f421b64ce802315758c01",
+  "callerRuntimeOptionsCleared": true,
+  "clientBehaviorVerified": false
+}

@@ -2,6 +2,8 @@
 
 状态：进行中。本文不能单独作为 Stage16 完成或发布批准。
 
+后续生命周期修复候选 `33ceb6e9`、完整回归和真实方块交互进度见[2026-09-12 检查点](./stage16-runtime-and-client-checkpoint-2026-09-12.md)。本文中的旧候选与失败记录保留其原有范围。
+
 ## 初始候选发现
 
 候选源码 `a3322c86256686edec5ac260dac2b8adaccf73d1`，Windows ZIP SHA-256 为 `3c4dded214d7ae36f347a34149753a72cdb9d69ba76996b3fe53ad8ea6c71837`。

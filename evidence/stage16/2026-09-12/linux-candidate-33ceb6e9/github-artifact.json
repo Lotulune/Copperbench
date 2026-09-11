@@ -1,0 +1,20 @@
+{
+  "id": 10270677359,
+  "node_id": "MDg6QXJ0aWZhY3QxMDI3MDY3NzM1OQ==",
+  "name": "stage15-linux-candidate",
+  "size_in_bytes": 1854899364,
+  "url": "https://api.github.com/repos/Lotulune/Copperbench/actions/artifacts/10270677359",
+  "archive_download_url": "https://api.github.com/repos/Lotulune/Copperbench/actions/artifacts/10270677359/zip",
+  "expired": false,
+  "digest": "sha256:df21c7f44e65fde286b4646f6c6f2769ce92663306d30753e3363a5a1b42056f",
+  "created_at": "2026-09-11T15:36:15Z",
+  "updated_at": "2026-09-11T15:36:15Z",
+  "expires_at": "2026-09-25T15:35:29Z",
+  "workflow_run": {
+    "id": 34615723771,
+    "repository_id": 1340939724,
+    "head_repository_id": 1340939724,
+    "head_branch": "codex/stage16-agent-reliability",
+    "head_sha": "33ceb6e9a68aab2b2fcd9153d6c4f23f4d85e6c5"
+  }
+}

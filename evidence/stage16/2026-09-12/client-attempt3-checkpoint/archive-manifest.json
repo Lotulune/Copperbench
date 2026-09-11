@@ -1,0 +1,166 @@
+{
+  "schemaVersion": "1.0",
+  "recordedAt": "2026-09-11T17:12:33.839987+00:00",
+  "files": [
+    {
+      "path": "artifact-identity-before.json",
+      "bytes": 199,
+      "sha256": "0bb0a23d7120ea9d59e5a114e820db815612c04f06cc9b2545784803303da22f"
+    },
+    {
+      "path": "checkpoint.json",
+      "bytes": 1299,
+      "sha256": "936d3c1915eedff821fdba76f1b7556c6b6d66d3aae6fc9d9127606a412f8d7a"
+    },
+    {
+      "path": "invocation.json",
+      "bytes": 572,
+      "sha256": "075e15b74ada89e3fa0930626216a67d9f8e4869a8dc3dfc6f6a231ce440f0b9"
+    },
+    {
+      "path": "minecraft-checkpoint.log",
+      "bytes": 1121,
+      "sha256": "bdc907c27083baff2f90026e1ceb1ed1461a39ffdbacdc52979455c073596212"
+    },
+    {
+      "path": "observed-player-cache.json",
+      "bytes": 111,
+      "sha256": "607ae713ab22606d0626f460eb4afde4587948b250af0038c49669c22857dd4d"
+    },
+    {
+      "path": "previous-failed-client-cleanup.json",
+      "bytes": 500,
+      "sha256": "c40140dbc2e7f1b1ca64c1c760d23ee151787a313f10c26800bcb5af01ddcf87"
+    },
+    {
+      "path": "product-checkpoint.jsonl",
+      "bytes": 46674,
+      "sha256": "687a2a633992a201c641745763971192c65a38a3cbcd9b9c15b7131f3429cf73"
+    },
+    {
+      "path": "screenshots/001-client-window.jpg",
+      "bytes": 241667,
+      "sha256": "ff8fed7ec143ad25358a7856d20f8404d63d241c60234b240449d6891adedc41"
+    },
+    {
+      "path": "screenshots/002-load-existing-fixture.jpg",
+      "bytes": 85116,
+      "sha256": "3ec67ea56b9abdf592f0592c6c3405a6b6b27e2cb405e5e9a77a939a7d20323a"
+    },
+    {
+      "path": "screenshots/003-hud-timing-setup.jpg",
+      "bytes": 162660,
+      "sha256": "867a0a1ed4428a41d15a58c2f86246c8d32e3bc44c5603f1db1a6f4e9f0eae0c"
+    },
+    {
+      "path": "screenshots/004-token-use-1.jpg",
+      "bytes": 164978,
+      "sha256": "3cc012a9ceb97aee3f89d2bb78ec501fd912cbee9f01d22a31601934e55048f1"
+    },
+    {
+      "path": "screenshots/005-token-use-2.jpg",
+      "bytes": 155846,
+      "sha256": "861e81d7a1ad3047f37d1ebe0b85131cb2791883b1bb4d60e326d294f4890120"
+    },
+    {
+      "path": "screenshots/006-tally-items-setup.jpg",
+      "bytes": 162452,
+      "sha256": "089f8b3970075ed2d213fd1ac73993980bc4a36226a1684f06e27fa2e91a5828"
+    },
+    {
+      "path": "screenshots/007-tally-viewpoint-a.jpg",
+      "bytes": 239308,
+      "sha256": "19cb5f31b0862fe0d743e7c08d6b75cd83bd9c2f4c2e735c7fe23ceac1e924cf"
+    },
+    {
+      "path": "screenshots/008-place-tally-a.jpg",
+      "bytes": 182665,
+      "sha256": "c646e5c4a73db765542819c855097bfc84277b2715217ab14b6a7b02d6f6a233"
+    },
+    {
+      "path": "screenshots/009-tally-a-placement-state.jpg",
+      "bytes": 328027,
+      "sha256": "9b895a1d2597c0c6a2ce0c3f00f73423904070fe71be98535d4f189c1d060974"
+    },
+    {
+      "path": "screenshots/010-tally-a-use-after-unsneak.jpg",
+      "bytes": 367306,
+      "sha256": "eb84a58c0f5a392a18f7aa696a0eb1b0440ba25064d18243a417b0d0b9cb13f3"
+    },
+    {
+      "path": "screenshots/011-tally-a-count-1.jpg",
+      "bytes": 367555,
+      "sha256": "67fac70302fe9264a4f4f5dc034296e5c73e67d4b1c73a2b6aa2e479d8625fbb"
+    },
+    {
+      "path": "screenshots/012-tally-a-count-2.jpg",
+      "bytes": 367725,
+      "sha256": "46b3fd4dce7b5866bdb46a29468af0833a910ee6ee515f2780f051241efe6120"
+    },
+    {
+      "path": "screenshots/013-tally-a-count-3.jpg",
+      "bytes": 367453,
+      "sha256": "c16d9ae3e61e765bb8f0c1dd79aea2ff719481daa5c0a758bb958277a09ef226"
+    },
+    {
+      "path": "screenshots/014-tally-viewpoint-b.jpg",
+      "bytes": 459294,
+      "sha256": "2294b32cddadf71785af405a8c0f54ee1da574786115ce2f9ed84929d744ad63"
+    },
+    {
+      "path": "screenshots/015-place-tally-b.jpg",
+      "bytes": 366130,
+      "sha256": "a42d88fd01646f202a759f529c85520edbb98e22f556c3584b1dde5fad2d9f1a"
+    },
+    {
+      "path": "screenshots/016-tally-b-count-1.jpg",
+      "bytes": 369837,
+      "sha256": "fd4b713b8412bc91fe8d1b3d02d5d5bf4f63850211622f51ac563c9eaf2ae8d2"
+    },
+    {
+      "path": "screenshots/017-tally-b-count-2.jpg",
+      "bytes": 370310,
+      "sha256": "c4fd57fee2432ee8e918c1e526e0fee0d6a0e99971fc97b6ce7322f3ec22e776"
+    },
+    {
+      "path": "screenshots/018-tally-b-count-3.jpg",
+      "bytes": 370123,
+      "sha256": "df423d12ab4055796208d3ce40c8994fdf501571a3400f5ed6d3982aecf0d7d2"
+    },
+    {
+      "path": "screenshots/019-tally-b-count-4.jpg",
+      "bytes": 363951,
+      "sha256": "fd92ad40c2240cb5ef350f314888e26ed9d65ce7e9ee8213e7646eb6bd8adf40"
+    },
+    {
+      "path": "screenshots/020-tally-b-count-5.jpg",
+      "bytes": 355741,
+      "sha256": "3294754d3b0d002cdc36fdd2e344e80b122f2ce507158560b72a6f3b72821c75"
+    },
+    {
+      "path": "screenshots/021-tally-b-count-6.jpg",
+      "bytes": 345733,
+      "sha256": "9cb59ad5a08607a3391e9c524cb20f6871b4365d8a5df439a685bbdce073481b"
+    },
+    {
+      "path": "screenshots/022-tally-b-count-7.jpg",
+      "bytes": 330680,
+      "sha256": "d747bb569a7fe2cee1569d2b66c10a585c6c64611084d664dde1ffdc984b4dd0"
+    },
+    {
+      "path": "screenshots/023-tally-independent-query.jpg",
+      "bytes": 329595,
+      "sha256": "741456e52756b08c04d1e2563fa1fc6ef5227729888f3edc63f62f8d29de636a"
+    },
+    {
+      "path": "screenshots/024-tally-return-a.jpg",
+      "bytes": 334114,
+      "sha256": "b8839fe18628446a61e260e24d097471cb59b0598a94acccd5f01bfc49aea5c6"
+    },
+    {
+      "path": "ui-events.jsonl",
+      "bytes": 8873,
+      "sha256": "024639279c02c8be1fb8df95f2878643cbb1b8848c81715b2272229a5cd9af15"
+    }
+  ]
+}

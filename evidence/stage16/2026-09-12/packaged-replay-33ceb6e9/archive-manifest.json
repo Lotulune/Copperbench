@@ -1,0 +1,101 @@
+{
+  "schemaVersion": "1.0",
+  "recordedAt": "2026-09-11T17:12:33.812981+00:00",
+  "files": [
+    {
+      "path": "01-discovery.jsonl",
+      "bytes": 2167,
+      "sha256": "c6aebed2f19e12332922b655746e63080fa8a0c80f5f39742152f130ed455831"
+    },
+    {
+      "path": "01-discovery.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "01b-no-prompt.jsonl",
+      "bytes": 691,
+      "sha256": "ab5b88a5b4d4a32d0cc4138220cceec86fd722f7855ed0b838d7fc32e68005a6"
+    },
+    {
+      "path": "01b-no-prompt.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "02-environment.jsonl",
+      "bytes": 2515,
+      "sha256": "865d37d2c8e0d7beaf112d2b36459805a24303e77bd9b84d62e08413e86aada1"
+    },
+    {
+      "path": "02-environment.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "03-compile-failure.jsonl",
+      "bytes": 17542,
+      "sha256": "1705a801a8286e90fcf1258f2965397551a7c8836a3032c2b1973c8e4d48cf79"
+    },
+    {
+      "path": "03-compile-failure.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "04-repaired-build.jsonl",
+      "bytes": 10916,
+      "sha256": "42b2a46e2a3efa86070e1fb70564efbb15d8d5d17130f8879a71d68f03bc4aed"
+    },
+    {
+      "path": "04-repaired-build.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "05-insufficient-tests.jsonl",
+      "bytes": 107618,
+      "sha256": "c3d83b88fcef02025aa1e9340a78d224b005287f07abea4845c173690656e40f"
+    },
+    {
+      "path": "05-insufficient-tests.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "06-accepted.jsonl",
+      "bytes": 109204,
+      "sha256": "c9a1650ee2d8d7150c1eb4d52290f76f92fade45a4aac9e65fcc91a0268af066"
+    },
+    {
+      "path": "06-accepted.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "context.json",
+      "bytes": 347,
+      "sha256": "9ab15bf57283a976732cefd3c1a37ed95659054a9b330e76fc3d58b335de9f5e"
+    },
+    {
+      "path": "gametest.xml",
+      "bytes": 784,
+      "sha256": "1cf3f6f67ccbe897da867c1a1a6a5edfff6d0b8cbb543b66aa9e2edafa22ccd5"
+    },
+    {
+      "path": "source-manifest.json",
+      "bytes": 6635,
+      "sha256": "5fcf70ca97f5fafd505b065416717d535645ff93065950134f1bd0253b5b6de2"
+    },
+    {
+      "path": "summary.json",
+      "bytes": 5943,
+      "sha256": "b2aa9927576cd35d0920cda2b51b1e3695e2b69d809e20388bfecc197fae812a"
+    },
+    {
+      "path": "tested-mod.jar",
+      "bytes": 39425,
+      "sha256": "e754c6e539f36acd16683e0dca334a97c0fef4eaa45f53ebffb39d98b2cdf52b"
+    }
+  ]
+}

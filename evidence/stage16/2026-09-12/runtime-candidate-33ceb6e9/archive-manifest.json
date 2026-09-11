@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "1.0",
+  "recordedAt": "2026-09-11T17:12:33.792460+00:00",
+  "files": [
+    {
+      "path": "candidate.json",
+      "bytes": 1310,
+      "sha256": "6c59f8c2b1e92ff6244b1c09af5d6bd7c054c0d2fa36567a791f8275fb6717fc"
+    },
+    {
+      "path": "ci-build-test.json",
+      "bytes": 13893,
+      "sha256": "16438754564ab2535f28f7adbb4cb17fc152cbd3926ed2111b912772d077019a"
+    },
+    {
+      "path": "ci-linux-candidate.json",
+      "bytes": 8882,
+      "sha256": "58397005f8ce52779ff2d88f50a7dde191b359c6426c5ad86c50f297213968b7"
+    },
+    {
+      "path": "ci-nightly.json",
+      "bytes": 43162,
+      "sha256": "c243d6e7e2c07bf7912f446a9cc3b898cc313cfc9ca9dcecad7fa7f34dc489ed"
+    },
+    {
+      "path": "windows-package.log",
+      "bytes": 3664,
+      "sha256": "7e86b2473a5998cd0e09340fa4a0219d5874e30b799e0af6d72cddca6670fae7"
+    },
+    {
+      "path": "windows-payload.json",
+      "bytes": 698432,
+      "sha256": "cd7b6876a295a547bcdf5dfcab3acd9f625886e7bcc3ecd862a4cb2489c5e3ad"
+    }
+  ]
+}

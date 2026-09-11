@@ -1,0 +1,428 @@
+{
+  "conclusion": "success",
+  "databaseId": 34615653591,
+  "event": "pull_request",
+  "headSha": "33ceb6e9a68aab2b2fcd9153d6c4f23f4d85e6c5",
+  "jobs": [
+    {
+      "completedAt": "2026-09-11T15:25:15Z",
+      "conclusion": "success",
+      "databaseId": 103316940686,
+      "name": "MCP conformance",
+      "startedAt": "2026-09-11T15:22:07Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-09-11T15:22:10Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-09-11T15:22:08Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:22:26Z",
+          "conclusion": "success",
+          "name": "Checkout repository",
+          "number": 2,
+          "startedAt": "2026-09-11T15:22:10Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:22:44Z",
+          "conclusion": "success",
+          "name": "Set up JDK 25 with JCEF",
+          "number": 3,
+          "startedAt": "2026-09-11T15:22:26Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:23:03Z",
+          "conclusion": "success",
+          "name": "Set up Node.js",
+          "number": 4,
+          "startedAt": "2026-09-11T15:22:44Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:23:18Z",
+          "conclusion": "success",
+          "name": "Install UI shell dependencies",
+          "number": 5,
+          "startedAt": "2026-09-11T15:23:03Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:23:22Z",
+          "conclusion": "success",
+          "name": "Set up Gradle",
+          "number": 6,
+          "startedAt": "2026-09-11T15:23:18Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:23:52Z",
+          "conclusion": "success",
+          "name": "Verify signed release-source gate",
+          "number": 7,
+          "startedAt": "2026-09-11T15:23:22Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:23:53Z",
+          "conclusion": "success",
+          "name": "Run Stage 9 clean Windows harness regression tests",
+          "number": 8,
+          "startedAt": "2026-09-11T15:23:52Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:23:54Z",
+          "conclusion": "success",
+          "name": "Verify Stage 15 Linux candidate metadata contract",
+          "number": 9,
+          "startedAt": "2026-09-11T15:23:53Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:25:10Z",
+          "conclusion": "success",
+          "name": "Run MCP conformance suite",
+          "number": 10,
+          "startedAt": "2026-09-11T15:23:54Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:25:11Z",
+          "conclusion": "success",
+          "name": "Upload MCP conformance report",
+          "number": 11,
+          "startedAt": "2026-09-11T15:25:10Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:25:12Z",
+          "conclusion": "success",
+          "name": "Post Set up Gradle",
+          "number": 19,
+          "startedAt": "2026-09-11T15:25:11Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:25:12Z",
+          "conclusion": "success",
+          "name": "Post Set up Node.js",
+          "number": 20,
+          "startedAt": "2026-09-11T15:25:12Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:25:12Z",
+          "conclusion": "success",
+          "name": "Post Set up JDK 25 with JCEF",
+          "number": 21,
+          "startedAt": "2026-09-11T15:25:12Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:25:14Z",
+          "conclusion": "success",
+          "name": "Post Checkout repository",
+          "number": 22,
+          "startedAt": "2026-09-11T15:25:12Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:25:14Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 23,
+          "startedAt": "2026-09-11T15:25:14Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/Lotulune/Copperbench/actions/runs/34615653591/job/103316940686"
+    },
+    {
+      "completedAt": "2026-09-11T15:23:41Z",
+      "conclusion": "success",
+      "databaseId": 103316940870,
+      "name": "UI contract, build, and smoke tests",
+      "startedAt": "2026-09-11T15:22:08Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-09-11T15:22:10Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-09-11T15:22:08Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:22:14Z",
+          "conclusion": "success",
+          "name": "Checkout repository",
+          "number": 2,
+          "startedAt": "2026-09-11T15:22:10Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:22:16Z",
+          "conclusion": "success",
+          "name": "Set up Node.js",
+          "number": 3,
+          "startedAt": "2026-09-11T15:22:14Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:22:17Z",
+          "conclusion": "success",
+          "name": "Set up Python",
+          "number": 4,
+          "startedAt": "2026-09-11T15:22:16Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:22:20Z",
+          "conclusion": "success",
+          "name": "Install UI contract dependencies",
+          "number": 5,
+          "startedAt": "2026-09-11T15:22:17Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:22:23Z",
+          "conclusion": "success",
+          "name": "Install UI shell dependencies",
+          "number": 6,
+          "startedAt": "2026-09-11T15:22:20Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:22:24Z",
+          "conclusion": "success",
+          "name": "Validate UI schemas",
+          "number": 7,
+          "startedAt": "2026-09-11T15:22:23Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:22:33Z",
+          "conclusion": "success",
+          "name": "Build UI shell",
+          "number": 8,
+          "startedAt": "2026-09-11T15:22:24Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:23:11Z",
+          "conclusion": "success",
+          "name": "Install Chromium",
+          "number": 9,
+          "startedAt": "2026-09-11T15:22:33Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:23:37Z",
+          "conclusion": "success",
+          "name": "Run fast product-shell smoke tests",
+          "number": 10,
+          "startedAt": "2026-09-11T15:23:11Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:23:38Z",
+          "conclusion": "success",
+          "name": "Test Python SDK connection metadata security",
+          "number": 11,
+          "startedAt": "2026-09-11T15:23:37Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:23:38Z",
+          "conclusion": "success",
+          "name": "Validate product status",
+          "number": 12,
+          "startedAt": "2026-09-11T15:23:38Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:23:38Z",
+          "conclusion": "success",
+          "name": "Check repository Markdown links",
+          "number": 13,
+          "startedAt": "2026-09-11T15:23:38Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:23:38Z",
+          "conclusion": "skipped",
+          "name": "Upload Playwright diagnostics",
+          "number": 14,
+          "startedAt": "2026-09-11T15:23:38Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:23:38Z",
+          "conclusion": "success",
+          "name": "Post Set up Python",
+          "number": 26,
+          "startedAt": "2026-09-11T15:23:38Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:23:38Z",
+          "conclusion": "success",
+          "name": "Post Set up Node.js",
+          "number": 27,
+          "startedAt": "2026-09-11T15:23:38Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:23:39Z",
+          "conclusion": "success",
+          "name": "Post Checkout repository",
+          "number": 28,
+          "startedAt": "2026-09-11T15:23:38Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:23:39Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 29,
+          "startedAt": "2026-09-11T15:23:39Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/Lotulune/Copperbench/actions/runs/34615653591/job/103316940870"
+    },
+    {
+      "completedAt": "2026-09-11T15:31:06Z",
+      "conclusion": "success",
+      "databaseId": 103316941091,
+      "name": "Java tests and Javadoc",
+      "startedAt": "2026-09-11T15:22:07Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-09-11T15:22:11Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-09-11T15:22:08Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:22:14Z",
+          "conclusion": "success",
+          "name": "Checkout repository",
+          "number": 2,
+          "startedAt": "2026-09-11T15:22:11Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:22:26Z",
+          "conclusion": "success",
+          "name": "Set up JDK 25 with JCEF",
+          "number": 3,
+          "startedAt": "2026-09-11T15:22:14Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:22:28Z",
+          "conclusion": "success",
+          "name": "Set up Node.js",
+          "number": 4,
+          "startedAt": "2026-09-11T15:22:26Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:22:32Z",
+          "conclusion": "success",
+          "name": "Install UI shell dependencies",
+          "number": 5,
+          "startedAt": "2026-09-11T15:22:28Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:22:37Z",
+          "conclusion": "success",
+          "name": "Set up Gradle",
+          "number": 6,
+          "startedAt": "2026-09-11T15:22:32Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:31:02Z",
+          "conclusion": "success",
+          "name": "Compile, test, and generate Javadoc",
+          "number": 7,
+          "startedAt": "2026-09-11T15:22:37Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:31:03Z",
+          "conclusion": "success",
+          "name": "Publish Java test report",
+          "number": 8,
+          "startedAt": "2026-09-11T15:31:02Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:31:03Z",
+          "conclusion": "skipped",
+          "name": "Upload Java diagnostics",
+          "number": 9,
+          "startedAt": "2026-09-11T15:31:03Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:31:03Z",
+          "conclusion": "success",
+          "name": "Post Set up Gradle",
+          "number": 15,
+          "startedAt": "2026-09-11T15:31:03Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:31:03Z",
+          "conclusion": "success",
+          "name": "Post Set up Node.js",
+          "number": 16,
+          "startedAt": "2026-09-11T15:31:03Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:31:04Z",
+          "conclusion": "success",
+          "name": "Post Set up JDK 25 with JCEF",
+          "number": 17,
+          "startedAt": "2026-09-11T15:31:03Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:31:04Z",
+          "conclusion": "success",
+          "name": "Post Checkout repository",
+          "number": 18,
+          "startedAt": "2026-09-11T15:31:04Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:31:04Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 19,
+          "startedAt": "2026-09-11T15:31:04Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/Lotulune/Copperbench/actions/runs/34615653591/job/103316941091"
+    }
+  ],
+  "name": "Build and test",
+  "status": "completed",
+  "url": "https://github.com/Lotulune/Copperbench/actions/runs/34615653591"
+}
