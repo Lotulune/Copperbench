@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "1.0",
+  "probe": "graphical-product-shell",
+  "status": "ready",
+  "observedAt": "2026-09-09T12:10:44.576453962Z",
+  "formalSupportClaim": false,
+  "jcefMainFrameLoaded": true,
+  "workspaceId": "c8789c4c-d9a3-4182-994c-92a148c10ed2",
+  "workspaceRoot": "/home/stage15/MCreatorWorkspaces/stage15-fabric-wayland-20260909T120955Z",
+  "platform": {
+    "os": "linux",
+    "arch": "x86_64",
+    "desktop": {
+      "sessionType": "wayland",
+      "waylandDisplayPresent": true,
+      "x11DisplayPresent": true,
+      "certificationRole": "stage15-primary-target",
+      "knownLimitations": [],
+      "stage15CertificationPending": true
+    }
+  },
+  "mcp": {
+    "status": "listening",
+    "url": "http://127.0.0.1:38979/mcp",
+    "workspaceId": "c8789c4c-d9a3-4182-994c-92a148c10ed2",
+    "permissionProfile": "workspace",
+    "expiresAt": "2026-09-10T00:10:43.724274480Z",
+    "tokenAvailable": true
+  }
+}

@@ -1,0 +1,16 @@
+[
+  {
+    "digest": "sha256:3508f32a63fc571a4fc06b7f9f0c74ed24a0c86e259f0eb34e79f81c7bcde42c",
+    "expired": false,
+    "id": 10148428186,
+    "name": "stage15-linux-installed-gate-harness",
+    "size_in_bytes": 15866
+  },
+  {
+    "digest": "sha256:04a368c8e47318f057b5d1656a8dca484e70eccfe2f01d3f2cecb5cf9d19b926",
+    "expired": false,
+    "id": 10148427737,
+    "name": "stage15-linux-candidate",
+    "size_in_bytes": 1854746518
+  }
+]

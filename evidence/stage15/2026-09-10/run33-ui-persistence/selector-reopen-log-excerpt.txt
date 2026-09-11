@@ -1,0 +1,6 @@
+*** stack smashing detected ***: terminated
+[37m2026-09-10-09:16:15[m [36m[AWT-EventQueue-0/DEBUG][m [34m[net.mcreator.java.ProjectJarManager][m Loading JVM Eclipse Adoptium 21.0.12 info from /opt/copperbench/jdk21
+[37m2026-09-10-09:16:15[m [32m[AWT-EventQueue-0/INFO][m [34m[Workspace][m Loaded workspace file /home/stage15/MCreatorWorkspaces/stage15_ui_xorg_0910/stage15_ui_xorg_0910.mcreator
+[37m2026-09-10-09:16:15[m [32m[AWT-EventQueue-0/INFO][m [34m[MCreator][m Opening MCreator workspace: stage15_ui_xorg_0910
+[37m2026-09-10-09:16:18[m [32m[AWT-EventQueue-0/INFO][m [34m[MCreator][m Copperbench product shell enabled for workspace stage15_ui_xorg_0910
+[37m2026-09-10-09:16:45[m [36m[Workspace-File-Manager/DEBUG][m [34m[Workspace File Manager/STAGE15_UI_XORG_0910][m Workspace stored on the FS

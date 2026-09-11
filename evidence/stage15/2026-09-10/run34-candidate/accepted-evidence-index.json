@@ -1,0 +1,47 @@
+{
+  "candidateId": "sha256:296da13bcd865af7b2b9f693609774f4a934ab9dda71709e8086c7cd6a13f13b",
+  "status": "candidate-validation-complete-release-pending",
+  "formalSupportClaim": false,
+  "acceptedEvidence": {
+    "xorgFabric": {
+      "path": "evidence/stage15/2026-09-10/run34-xorg-fabric-fresh-log/installed-gate-result.json",
+      "sha256": "a111365d786862108a2ef55acabab183ad299b7d688f935a014f4360ca74feaf"
+    },
+    "xorgNeoForge": {
+      "path": "evidence/stage15/2026-09-10/run34-xorg-neoforge-fresh-log/installed-gate-result.json",
+      "sha256": "46d30eea63fe300ce2a986f4bccdb34b6b8db9d96d21fc2fb873ecd0d92eacbd"
+    },
+    "waylandFabric": {
+      "path": "evidence/stage15/2026-09-10/run34-wayland-fabric-unlocked/installed-gate-result.json",
+      "sha256": "def793290c548a853a81732c5b34ea1e8f597592d93b45855b84a4c4cafa60db"
+    },
+    "waylandNeoForge": {
+      "path": "evidence/stage15/2026-09-10/run34-wayland-neoforge-unlocked/installed-gate-result.json",
+      "sha256": "247e17c87964113be0fbdc8fcdec6464be3c440b73b7ccd42a1629284e0f2e73"
+    },
+    "xorgAgent": {
+      "path": "evidence/stage15/2026-09-10/run34-xorg-desktop/external-agent-result.json",
+      "sha256": "4a24b633e0d5a89bfc3603b20d5e6e28388290ded2c2464555076e3fb9538b27"
+    },
+    "waylandAgent": {
+      "path": "evidence/stage15/2026-09-10/run34-wayland-agent-replay2/external-agent-result.json",
+      "sha256": "19de583e45d88d629245ca7155d1975027204ab98c4e5ac29018318aa3973ae1"
+    },
+    "managedBlockbench": {
+      "path": "evidence/stage15/2026-09-10/run34-xorg-blockbench/installed-blockbench-result.json",
+      "sha256": "a54302682e989704d3b5a58e6e0af4bfc9a6269f160f218ed3f9543e3ba1788a"
+    },
+    "assetCenter": {
+      "path": "evidence/stage15/2026-09-10/run34-wayland-desktop/runtime-observation.json",
+      "sha256": "399afd194ec7f049b7efa786ee8f8531637ec3074c13f7fdda4bf2019f8e3554"
+    },
+    "uiPersistence": {
+      "path": "evidence/stage15/2026-09-10/run34-wayland-ui-persistence/result.json",
+      "sha256": "59f533fd5f8fdd060ee764e6002d48d39f422e5849d7aeef5da5196c004b1a1d"
+    },
+    "portableBuild": {
+      "path": "evidence/stage15/2026-09-10/run34-portable/result.json",
+      "sha256": "13e730c27c8348aca55d7b44693971a77376b7db859b658682f0af3451ab764d"
+    }
+  }
+}

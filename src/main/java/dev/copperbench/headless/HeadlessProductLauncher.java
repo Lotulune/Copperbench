@@ -35,7 +35,7 @@ import java.util.Arrays;
 import java.util.UUID;
 import java.util.function.Supplier;
 
-/** Product-level {@code copperbench.exe headless --workspace ...} entry point. */
+/** Product-level {@code Copperbench launcher headless --workspace ...} entry point. */
 public final class HeadlessProductLauncher {
 
 	private static final Gson GSON = new GsonBuilder().disableHtmlEscaping().create();

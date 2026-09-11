@@ -1,0 +1,35 @@
+{
+  "status": "passed",
+  "sourceCommit": "627910b14dd7e4d82f1e8ac7d3647ccb5e6cf4c3",
+  "suites": [
+    {
+      "name": "dev.copperbench.generator.fabric.Fabric1211ProjectileTemplateRegressionTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "dev.copperbench.mcp.DesktopMcpRuntimeTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "dev.copperbench.mcp.DesktopMcpAgentLoopTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    }
+  ],
+  "desktopLauncherLinuxTests": {
+    "tests": 2,
+    "failures": 0
+  },
+  "installedGateContractTests": {
+    "tests": 7,
+    "failures": 0
+  }
+}

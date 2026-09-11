@@ -1,0 +1,10 @@
+{
+  "publishedHarnessArtifactId": "10148428186",
+  "replacementPreflightScript": "scripts/verify-stage15-linux-installed-guest.sh",
+  "replacementPreflightScriptSha256": "1b36de269c0a832a2c29dc825c5f4f05071c4cfd44f72a0a1421f22d26c81f49",
+  "change": "Require latest.log modification time after a marker created before this run-client launch",
+  "linuxBehavioralTestsPassed": 1,
+  "nodeContractsPassed": 7,
+  "candidateBinaryModified": false,
+  "originalPublishedHarnessRetained": true
+}

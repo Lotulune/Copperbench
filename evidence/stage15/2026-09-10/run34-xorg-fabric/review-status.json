@@ -1,0 +1,6 @@
+{
+  "status": "superseded-render-readiness-not-established",
+  "reason": "Published harness accepted prior-run Minecraft log markers before current run rendered. Original output retained; replay uses a separately identified helper freshness correction.",
+  "candidateBinaryModified": false,
+  "formalSupportClaim": false
+}

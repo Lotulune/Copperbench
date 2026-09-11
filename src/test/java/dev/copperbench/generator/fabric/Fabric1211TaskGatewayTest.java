@@ -20,9 +20,11 @@ import dev.copperbench.core.contract.UiCore.PermissionProfile;
 import dev.copperbench.core.contract.UiCore.Query;
 import dev.copperbench.core.contract.UiCore.RequestContext;
 import dev.copperbench.core.workspace.RevisionedWorkspaceStore;
+import dev.copperbench.generator.GradleProcessRunner;
 import dev.copperbench.history.LocalHistoryService;
 import dev.copperbench.history.RecoveryPoint;
 import dev.copperbench.history.RecoveryPointRequest;
+import dev.copperbench.platform.RuntimePlatform;
 import dev.copperbench.history.RestoreResult;
 import dev.copperbench.history.WorkspaceChange;
 import org.junit.jupiter.api.Test;
@@ -30,6 +32,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.api.parallel.ResourceLock;
 import org.junit.jupiter.api.parallel.Resources;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Clock;
@@ -82,6 +85,33 @@ class Fabric1211TaskGatewayTest {
 			assertFalse(taskProjection.getAsJsonArray("logs").isEmpty());
 			assertTrue(taskProjection.getAsJsonArray("logs").toString().contains("Fabric 1.21.1"));
 			assertTrue(Files.isRegularFile(generatedWorkspace.resolve("src/main/resources/fabric.mod.json")));
+		}
+	}
+
+	@Test void processStartupFailureExposesExecutableWorkspaceAndStableDiagnostic() throws Exception {
+		RevisionedWorkspaceStore store = new RevisionedWorkspaceStore();
+		store.register(Fabric1211GoldenWorkspace.create());
+		AtomicLong sequence = new AtomicLong(607);
+		Supplier<UUID> ids = () -> UUID.fromString("00000000-0000-4000-8000-" +
+				String.format("%012d", sequence.getAndIncrement()));
+		Fabric1211ProcessRunner runner = (root, arguments, timeout, output) -> {
+			throw new GradleProcessRunner.ProcessStartException("./gradlew", root,
+					new IOException("error=2, No such file or directory"));
+		};
+		try (Fabric1211WorkspaceTaskGateway tasks = new Fabric1211WorkspaceTaskGateway(store,
+				ignored -> generatedWorkspace, Path.of(".").toAbsolutePath().normalize(), CLOCK, ids, runner)) {
+			WorkspaceApplicationService service = new WorkspaceApplicationService(store, tasks, CLOCK, ids);
+
+			JsonObject build = startAndAwait(service, ids, Operation.BUILD_WORKSPACE);
+			assertEquals("failed", build.getAsJsonObject("task").get("state").getAsString());
+			JsonObject diagnostic = build.getAsJsonArray("diagnostics").get(0).getAsJsonObject();
+			assertEquals("FABRIC_BUILD_PROCESS_START_FAILED", diagnostic.get("code").getAsString());
+			JsonObject args = diagnostic.getAsJsonObject("message").getAsJsonObject("args");
+			assertEquals("./gradlew", args.get("executable").getAsString());
+			assertEquals(generatedWorkspace.toAbsolutePath().normalize().toString(),
+					args.get("workspaceRoot").getAsString());
+			assertTrue(args.get("reason").getAsString().contains("No such file or directory"));
+			assertTrue(build.getAsJsonArray("logs").toString().contains("Could not start Gradle executable"));
 		}
 	}
 
@@ -229,7 +259,9 @@ class Fabric1211TaskGatewayTest {
 			assertTrue(diagnostics.contains("BUNDLED_JDK_MISSING"));
 			String expectedJdkPath = distribution.resolve("jdk").toString().replace("\\", "\\\\");
 			assertTrue(diagnostics.contains(expectedJdkPath));
-			assertTrue(diagnostics.contains("jdk21_win_64"));
+			String sourceJavaHome = RuntimePlatform.current().sourceJavaHome(21);
+			assertTrue(sourceJavaHome != null && diagnostics.contains(Path.of(sourceJavaHome).getFileName().toString()),
+					diagnostics);
 			assertTrue(diagnostics.contains("not-a-java-home"));
 			UUID taskId = UUID.fromString(projection.getAsJsonObject("task").get("id").getAsString());
 			JsonObject failureDiagnostic = projection.getAsJsonArray("diagnostics").get(0).getAsJsonObject();
@@ -276,6 +308,51 @@ class Fabric1211TaskGatewayTest {
 			JsonObject runClient = startAndAwait(service, ids, Operation.RUN_CLIENT);
 			assertEquals("succeeded", runClient.getAsJsonObject("task").get("state").getAsString());
 			assertTrue(runClient.getAsJsonArray("logs").toString().contains("COPPERBENCH_STAGE3_READY"));
+		}
+	}
+
+	@Test void runtimeFailureSuffixBecomesAStableRunClientDiagnostic() throws Exception {
+		RevisionedWorkspaceStore store = new RevisionedWorkspaceStore();
+		store.register(Fabric1211GoldenWorkspace.create());
+		AtomicLong sequence = new AtomicLong(605);
+		Supplier<UUID> ids = () -> UUID.fromString("00000000-0000-4000-8000-" +
+				String.format("%012d", sequence.getAndIncrement()));
+		Fabric1211ProcessRunner runner = (root, arguments, timeout, output) -> {
+			assertEquals(List.of("runClient"), arguments);
+			output.accept("GLFW error 65550: X11: The DISPLAY environment variable is missing");
+			return new Fabric1211ProcessRunner.ProcessResult(1, false, "LINUX_DISPLAY_UNAVAILABLE");
+		};
+		try (Fabric1211WorkspaceTaskGateway tasks = new Fabric1211WorkspaceTaskGateway(store,
+				ignored -> generatedWorkspace, Path.of(".").toAbsolutePath().normalize(), CLOCK, ids, runner)) {
+			WorkspaceApplicationService service = new WorkspaceApplicationService(store, tasks, CLOCK, ids);
+
+			JsonObject client = startAndAwait(service, ids, Operation.RUN_CLIENT);
+			assertEquals("failed", client.getAsJsonObject("task").get("state").getAsString());
+			JsonObject diagnostic = client.getAsJsonArray("diagnostics").asList().stream()
+					.map(value -> value.getAsJsonObject())
+					.filter(value -> value.get("code").getAsString().equals("FABRIC_RUN_CLIENT_LINUX_DISPLAY_UNAVAILABLE"))
+					.findFirst().orElseThrow();
+			JsonObject args = diagnostic.getAsJsonObject("message").getAsJsonObject("args");
+			assertEquals(1, args.get("exitCode").getAsInt());
+			assertEquals("LINUX_DISPLAY_UNAVAILABLE", args.get("runtimeFailureCode").getAsString());
+		}
+	}
+
+	@Test void readinessPreventsGraphicalFailureMisclassification() throws Exception {
+		RevisionedWorkspaceStore store = new RevisionedWorkspaceStore();
+		store.register(Fabric1211GoldenWorkspace.create());
+		AtomicLong sequence = new AtomicLong(608);
+		Supplier<UUID> ids = () -> UUID.fromString("00000000-0000-4000-8000-" +
+				String.format("%012d", sequence.getAndIncrement()));
+		Fabric1211ProcessRunner runner = (root, arguments, timeout, output) ->
+				new Fabric1211ProcessRunner.ProcessResult(9, true, "LINUX_OPENGL_INITIALIZATION_FAILED");
+		try (Fabric1211WorkspaceTaskGateway tasks = new Fabric1211WorkspaceTaskGateway(store,
+				ignored -> generatedWorkspace, Path.of(".").toAbsolutePath().normalize(), CLOCK, ids, runner)) {
+			WorkspaceApplicationService service = new WorkspaceApplicationService(store, tasks, CLOCK, ids);
+			JsonObject client = startAndAwait(service, ids, Operation.RUN_CLIENT);
+			String diagnostics = client.getAsJsonArray("diagnostics").toString();
+			assertTrue(diagnostics.contains("FABRIC_RUN_CLIENT_EXITED"));
+			assertFalse(diagnostics.contains("FABRIC_RUN_CLIENT_LINUX_OPENGL_INITIALIZATION_FAILED"));
 		}
 	}
 

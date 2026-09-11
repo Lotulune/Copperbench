@@ -1,0 +1,248 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "stage15-linux-candidate",
+  "status": "development-not-certified",
+  "formalSupportClaim": false,
+  "productId": "dev.copperbench.studio",
+  "productVersion": "0.1.0",
+  "platform": {
+    "os": "linux",
+    "arch": "x86_64",
+    "certificationBaseline": "Ubuntu 24.04 LTS",
+    "primaryDesktopSession": "GNOME Wayland",
+    "compatibilityDesktopSession": "GNOME on Xorg"
+  },
+  "packaging": {
+    "status": "stage15-development",
+    "executable": "copperbench.sh",
+    "os": "linux",
+    "arch": "x86_64",
+    "certificationBaseline": "Ubuntu 24.04 LTS",
+    "portableFormat": "tar.gz",
+    "desktopPackageFormat": "deb",
+    "bundledJdk": {
+      "installed": "jdk",
+      "installedJava21": "jdk21",
+      "sourceTreeJava25": "jdk/jbr25_linux_64",
+      "sourceTreeJava21": "jdk/jdk21_linux_64"
+    },
+    "jcefBundledWithJdk": true,
+    "requiredEntries": [
+      "copperbench.sh",
+      "linux-candidate-manifest.json",
+      "LICENSE.txt",
+      "LICENSE-ADDITIONAL-TERMS.md",
+      "jdk/bin/java",
+      "jdk/lib/jcef_helper",
+      "jdk21/bin/java",
+      "jdk21/bin/javac",
+      "lib/copperbench.jar",
+      "plugins",
+      "gradlew",
+      "gradle/wrapper/gradle-wrapper.jar",
+      "gradle-dists"
+    ]
+  },
+  "candidateInventory": {
+    "schemaVersion": "1.0",
+    "kind": "candidate-inventory",
+    "productId": "dev.copperbench.studio",
+    "productVersion": "0.1.0",
+    "components": [
+      {
+        "name": "Copperbench",
+        "version": "0.1.0",
+        "type": "application",
+        "license": "GPL-3.0-only",
+        "path": "."
+      },
+      {
+        "name": "JetBrains Runtime JCEF",
+        "version": "25",
+        "type": "runtime",
+        "license": "GPL-2.0-with-classpath-exception",
+        "path": "jdk"
+      },
+      {
+        "name": "Bundled JDK 21",
+        "version": "21",
+        "type": "runtime",
+        "license": "GPL-2.0-with-classpath-exception",
+        "path": "jdk21"
+      },
+      {
+        "name": "Gradle",
+        "version": "9.7.0",
+        "type": "build-runtime",
+        "license": "Apache-2.0",
+        "path": "gradle-dists/gradle-9.7.0-bin"
+      },
+      {
+        "name": "Gradle",
+        "version": "9.6.1",
+        "type": "build-runtime",
+        "license": "Apache-2.0",
+        "path": "gradle-dists/gradle-9.6.1-bin"
+      },
+      {
+        "name": "Gradle",
+        "version": "8.8",
+        "type": "build-runtime",
+        "license": "Apache-2.0",
+        "path": "gradle-dists/gradle-8.8-bin"
+      },
+      {
+        "name": "core",
+        "version": "0.1.0",
+        "type": "plugin",
+        "license": "GPL-3.0-only",
+        "path": "plugins/mcreator-core"
+      },
+      {
+        "name": "generator-1.20.1",
+        "version": "0.1.0",
+        "type": "plugin",
+        "license": "GPL-3.0-only",
+        "path": "plugins/generator-1.20.1"
+      },
+      {
+        "name": "generator-1.21.1",
+        "version": "0.1.0",
+        "type": "plugin",
+        "license": "GPL-3.0-only",
+        "path": "plugins/generator-1.21.1"
+      },
+      {
+        "name": "generator-26.1.x",
+        "version": "0.1.0",
+        "type": "plugin",
+        "license": "GPL-3.0-only",
+        "path": "plugins/generator-26.1.x"
+      },
+      {
+        "name": "generator-26.2",
+        "version": "0.1.0",
+        "type": "plugin",
+        "license": "GPL-3.0-only",
+        "path": "plugins/generator-26.2"
+      },
+      {
+        "name": "generator-addon-26.1x",
+        "version": "0.1.0",
+        "type": "plugin",
+        "license": "GPL-3.0-only",
+        "path": "plugins/generator-addon-26.1x"
+      },
+      {
+        "name": "generator-fabric-26.1.2",
+        "version": "0.1.0",
+        "type": "plugin",
+        "license": "GPL-3.0-only",
+        "path": "plugins/generator-fabric-26.1.2"
+      },
+      {
+        "name": "generator-fabric-26.2",
+        "version": "0.1.0",
+        "type": "plugin",
+        "license": "GPL-3.0-only",
+        "path": "plugins/generator-fabric-26.2"
+      },
+      {
+        "name": "localization",
+        "version": "0.1.0",
+        "type": "plugin",
+        "license": "GPL-3.0-only",
+        "path": "plugins/mcreator-localization"
+      },
+      {
+        "name": "mcreator-link",
+        "version": "0.1.0",
+        "type": "plugin",
+        "license": "GPL-3.0-only",
+        "path": "plugins/mcreator-link"
+      },
+      {
+        "name": "themes",
+        "version": "0.1.0",
+        "type": "plugin",
+        "license": "GPL-3.0-only",
+        "path": "plugins/mcreator-themes"
+      },
+      {
+        "name": "commons-io",
+        "version": "2.22.0",
+        "type": "library",
+        "license": "Apache-2.0",
+        "path": "license/Apache Commons License.txt"
+      },
+      {
+        "name": "commons-lang3",
+        "version": "3.20.0",
+        "type": "library",
+        "license": "Apache-2.0",
+        "path": "license/Apache Commons License.txt"
+      },
+      {
+        "name": "log4j-core",
+        "version": "2.26.1",
+        "type": "library",
+        "license": "Apache-2.0",
+        "path": "license/Apache Log4j License.txt"
+      },
+      {
+        "name": "freemarker",
+        "version": "2.3.34",
+        "type": "library",
+        "license": "Apache-2.0",
+        "path": "license/FreeMarker License.txt"
+      },
+      {
+        "name": "gson",
+        "version": "2.14.0",
+        "type": "library",
+        "license": "Apache-2.0",
+        "path": "license/Gson License.txt"
+      },
+      {
+        "name": "guava",
+        "version": "33.6.0-jre",
+        "type": "library",
+        "license": "Apache-2.0",
+        "path": "license/Guava License.txt"
+      },
+      {
+        "name": "jgit",
+        "version": "7.7.0.202606012155-r",
+        "type": "library",
+        "license": "BSD-3-Clause",
+        "path": "license/JGit License.txt"
+      },
+      {
+        "name": "flatlaf",
+        "version": "3.7.1",
+        "type": "library",
+        "license": "Apache-2.0",
+        "path": "license/FlatLaf License.txt"
+      },
+      {
+        "name": "mcp",
+        "version": "2.0.0",
+        "type": "library",
+        "license": "MIT",
+        "path": "license/"
+      },
+      {
+        "name": "jna",
+        "version": "5.19.1",
+        "type": "library",
+        "license": "Apache-2.0 / LGPL-2.1",
+        "path": "license/JNA License.txt"
+      }
+    ]
+  },
+  "prerequisites": {
+    "systemJavaRequired": false,
+    "systemGradleRequired": false,
+    "systemGitRequiredForBaseline": false
+  }
+}

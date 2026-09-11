@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "1.0",
+  "probe": "graphical-product-shell",
+  "status": "ready",
+  "observedAt": "2026-09-11T01:48:24.585745064Z",
+  "formalSupportClaim": false,
+  "jcefMainFrameLoaded": true,
+  "workspaceId": "9426259c-c2ec-4a0d-896f-222201506755",
+  "workspaceRoot": "/home/stage15/MCreatorWorkspaces/stage15-fabric-run33-agent",
+  "platform": {
+    "os": "linux",
+    "arch": "x86_64",
+    "desktop": {
+      "sessionType": "x11",
+      "waylandDisplayPresent": false,
+      "x11DisplayPresent": true,
+      "certificationRole": "stage15-compatibility-target",
+      "knownLimitations": [
+        "X11 requires compatibility evidence separate from the primary Wayland path."
+      ],
+      "stage15CertificationPending": true
+    }
+  },
+  "mcp": {
+    "status": "listening",
+    "url": "http://127.0.0.1:46353/mcp",
+    "workspaceId": "9426259c-c2ec-4a0d-896f-222201506755",
+    "permissionProfile": "workspace",
+    "expiresAt": "2026-09-11T13:48:23.309539954Z",
+    "tokenAvailable": true
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "installedAndPortableProductJarSha256": "6a4164510525f7970371d07faa5ea358c364094e868d2ba9f742b1ef6da0928e",
+  "candidateMetadataVerified": true,
+  "allSixCandidateAssetAttestationsVerified": true,
+  "sourceCommit": "f811483935ed682177494b205337843090dc040b",
+  "completePrRegressionRunId": "34539008140",
+  "completePrRegressionConclusion": "success",
+  "finalTestOnlyCommit": "4f02c965a7c68d6ec6b0bd2969b04b54bb8a1d15",
+  "focusedManifestSbomPlatformTests": 4,
+  "releaseAuthorizationContracts": 12,
+  "formalSupportClaim": false
+}

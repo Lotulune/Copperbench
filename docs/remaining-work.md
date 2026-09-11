@@ -15,11 +15,11 @@ The historical Stage 9–11 evidence remains authoritative for the Beta 4 baseli
 
 ## Next product work
 
-The active roadmap remains `PRD-NEXT.md`. Stages 12, 13 and 14 are closed; **Stage 15 is now the next product-development stage**. Stage 13 closure is summarized in [Stage 13 closure evidence](./testing/stage13-closure-2026-09-07.md), and Stage 14 closure is split across [source integrity](./testing/stage14-source-integrity-2026-09-07.md), [native authoring/review/reuse](./testing/stage14-native-authoring-review-reuse-2026-09-08.md), and [runtime/gameplay](./testing/stage14-runtime-gameplay-closure-2026-09-08.md).
+The active roadmap remains `PRD-NEXT.md`. Stages 12, 13 and 14 are closed; **Stage 15 Linux formal-support work is now active**. The first platform/JDK/packaging foundation checkpoint is recorded in [Stage 15 Linux foundation evidence](./testing/stage15-linux-foundation-2026-09-08.md); this is development evidence only and does not yet make Linux a formally supported platform.
 
 The remaining roadmap work is:
 
-1. **Stage 15 — Linux formal platform support**: Linux x86_64 packaging, bundled JDK/JCEF, desktop integration, Gradle/Run Client, desktop MCP/external-Agent parity, clean-Linux VM validation, and release/provenance closure.
+1. **Stage 15 — Linux release closure pending**: frozen Run42 (`61f69bf1`, workflow `34547192490`) passes all ten Ubuntu 24.04 GNOME Wayland/Xorg acceptance gates plus installed old/modern preference migration. Both packages, all provenance and full PR regression pass. Separate release authorization binds the final evidence; original metadata remains unchanged. See [Run42 acceptance](./testing/stage15-run42-acceptance-2026-09-11.md). Remaining: signed-tag/production promotion, verified draft and explicit public publication. Formal Linux support remains false until that release boundary closes.
 2. **Continuous maintenance**: Minecraft/loader/generator/toolchain compatibility and regression coverage, including the remaining independent semantic check for the historical Fabric Commands remap warning.
 
 ## Confirmed integrity/runtime follow-up
@@ -37,7 +37,7 @@ The remaining roadmap work is:
 - **CB-AUDIT-07 — closed for modern NeoForge runtime generation**: `neoforge-1.21.1`, `neoforge-26.1.2`, and `neoforge-26.2` no longer register the generated main class on `NeoForge.EVENT_BUS` when it has no generated `@SubscribeEvent` method. The three failed Copperbench packaged gameplay cells were regenerated through the production generator path and now pass initializer, packaged-JAR load, server-ready and gameplay verification.
 - Cross-track Stage 14A source-integrity and the affected Windows installed-product Desktop MCP path have been revalidated. Stage 14C now records Fabric 8/8 behavior-passed cells and NeoForge 6 behavior-passed cells plus two explicit NeoForge 1.20.1 EULA authorization blocks; the NeoForge matrix is 8/8 closure-satisfied without accepting EULA or relabeling `not_run` gameplay as passed.
 - **Stage 14B/14D — closed on the current development line**: product bootstrap discovery/local approval, native multi-file failure-repair-build-reopen, Workspace Plan high-impact review/read-only/recovery/tamper gates, explicit experimental-extension compatibility boundaries, and real MCreator local-template Procedure+asset round-trip all pass targeted regression. Template target-path conflict and signed-plan tampering are rejected before mutation.
-- **Stage 14C / Stage 14 overall — closed on the current development line**: packaged runtime layers remain separate, the same-Agent comparison retains its cache/timing caveats, and the full closure rationale is recorded in [Stage 14C runtime/gameplay closure evidence](./testing/stage14-runtime-gameplay-closure-2026-09-08.md). Stage 15 is the next planned product-development stage.
+- **Stage 14C / Stage 14 overall — closed on the current development line**: packaged runtime layers remain separate, the same-Agent comparison retains its cache/timing caveats, and the full closure rationale is recorded in [Stage 14C runtime/gameplay closure evidence](./testing/stage14-runtime-gameplay-closure-2026-09-08.md). Stage 15 is now active on its isolated Linux-support branch.
 
 ## Non-blocking follow-up
 

@@ -109,7 +109,8 @@ public final class ResourcePackWorkspaceTaskGateway implements WorkspaceTaskGate
 		Fabric1211ProcessRunner delegate = Fabric1211ProcessRunner.system("COPPERBENCH_RESOURCE_PACK_READY");
 		return (root, arguments, timeout, output) -> {
 			Fabric1211ProcessRunner.ProcessResult result = delegate.run(root, arguments, timeout, output);
-			return new GradleProcessRunner.ProcessResult(result.exitCode(), result.readinessMarkerSeen());
+			return new GradleProcessRunner.ProcessResult(result.exitCode(), result.readinessMarkerSeen(),
+					result.runtimeFailureCode());
 		};
 	}
 

@@ -1,0 +1,18 @@
+/usr/lib/python3.12/getpass.py:91: GetPassWarning: Can not control echo on the terminal.
+  passwd = fallback_getpass(prompt, stream)
+Warning: Password input may be echoed.
+Paste the one-time Desktop MCP token copied from Copperbench UI:
+Minecraft render readiness passed and run_client stayed running for 10 seconds.
+Confirm the Minecraft window is visibly usable, then close Minecraft normally; do not cancel the task.
+Agent loop passed. Close the installed Copperbench workspace window normally now; shutdown verification is waiting.
+Traceback (most recent call last):
+  File "/home/stage15/stage15-run31/harness-20260909T120955Z/verify-stage15-linux-installed-agent.py", line 347, in <module>
+    main()
+  File "/home/stage15/stage15-run31/harness-20260909T120955Z/verify-stage15-linux-installed-agent.py", line 325, in main
+    shutdown = wait_for_shutdown(client, descriptor, max(30, args.shutdown_timeout_seconds))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/stage15/stage15-run31/harness-20260909T120955Z/verify-stage15-linux-installed-agent.py", line 271, in wait_for_shutdown
+    require(not descriptor.exists(), "Desktop MCP descriptor was not removed after Copperbench closed")
+  File "/home/stage15/stage15-run31/harness-20260909T120955Z/verify-stage15-linux-installed-agent.py", line 36, in require
+    raise RuntimeError(message)
+RuntimeError: Desktop MCP descriptor was not removed after Copperbench closed

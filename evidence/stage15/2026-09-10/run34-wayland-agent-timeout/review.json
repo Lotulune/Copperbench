@@ -1,0 +1,8 @@
+{
+  "status": "failed-helper-timeout",
+  "reason": "Actual Copperbench workspace close was not reached before the verifier shutdown deadline. Later native Hyper-V close succeeded and removed the descriptor. This does not establish an Agent pass.",
+  "normalCloseAfterDeadline": true,
+  "productExitCodeAfterNativeClose": 0,
+  "descriptorRemovedAfterNativeClose": true,
+  "formalSupportClaim": false
+}

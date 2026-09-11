@@ -8,6 +8,7 @@
  */
 
 package dev.copperbench.generator;
+import dev.copperbench.platform.ExecutableFilePermissions;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -21,6 +22,12 @@ import java.util.stream.Stream;
 public final class PluginWorkspaceLayout {
 
 	private PluginWorkspaceLayout() {
+	}
+
+	static void normalizeLauncherLineEndings(Path launcher) throws IOException {
+		String content = Files.readString(launcher, StandardCharsets.UTF_8);
+		if (content.indexOf('\r') < 0) return;
+		Files.writeString(launcher, content.replace("\r\n", "\n").replace('\r', '\n'), StandardCharsets.UTF_8);
 	}
 
 	public static boolean present(Path root) throws IOException {
@@ -62,8 +69,8 @@ public final class PluginWorkspaceLayout {
 		Path normalizedDistribution = distributionRoot.toAbsolutePath().normalize();
 		Path posixLauncher = normalizedRoot.resolve("gradlew");
 		copyIfMissing(posixLauncher, normalizedDistribution.resolve("gradlew"));
-		normalizePosixLauncherLineEndings(posixLauncher);
-		ensurePosixLauncherExecutable(posixLauncher);
+		normalizeLauncherLineEndings(posixLauncher);
+		ExecutableFilePermissions.ensureOwnerExecutable(posixLauncher);
 		copyIfMissing(normalizedRoot.resolve("gradlew.bat"), normalizedDistribution.resolve("gradlew.bat"));
 		copyIfMissing(normalizedRoot.resolve("gradle/wrapper/gradle-wrapper.jar"),
 				normalizedDistribution.resolve("gradle/wrapper/gradle-wrapper.jar"));
@@ -91,16 +98,4 @@ public final class PluginWorkspaceLayout {
 		Files.copy(source, target, StandardCopyOption.COPY_ATTRIBUTES);
 	}
 
-	private static void ensurePosixLauncherExecutable(Path launcher) throws IOException {
-		if (java.io.File.separatorChar == '\\' || Files.isExecutable(launcher)) return;
-		if (!launcher.toFile().setExecutable(true, false) && !Files.isExecutable(launcher))
-			throw new IOException("Could not mark Gradle wrapper executable: " + launcher);
-	}
-
-	private static void normalizePosixLauncherLineEndings(Path launcher) throws IOException {
-		String content = Files.readString(launcher, StandardCharsets.UTF_8);
-		String normalized = content.replace("\r\n", "\n");
-		if (!content.equals(normalized))
-			Files.writeString(launcher, normalized, StandardCharsets.UTF_8);
-	}
 }

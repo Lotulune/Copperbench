@@ -34,4 +34,24 @@ class SupportedPlatformTest {
 			System.setProperty("os.name", previousOs);
 		}
 	}
+
+	@Test void stage15LinuxCandidateCanRunWithoutBecomingFormallySupported() {
+		String oldOs = System.getProperty("os.name");
+		String oldArch = System.getProperty("os.arch");
+		String oldCandidate = System.getProperty(SupportedPlatform.STAGE15_LINUX_CANDIDATE_PROPERTY);
+		try {
+			System.setProperty("os.name", "Linux");
+			System.setProperty("os.arch", "x86_64");
+			System.setProperty(SupportedPlatform.STAGE15_LINUX_CANDIDATE_PROPERTY, "true");
+			assertFalse(SupportedPlatform.currentHostSupported());
+			assertTrue(SupportedPlatform.currentHostRunnable());
+			System.setProperty("os.arch", "aarch64");
+			assertFalse(SupportedPlatform.currentHostRunnable());
+		} finally {
+			if (oldOs == null) System.clearProperty("os.name"); else System.setProperty("os.name", oldOs);
+			if (oldArch == null) System.clearProperty("os.arch"); else System.setProperty("os.arch", oldArch);
+			if (oldCandidate == null) System.clearProperty(SupportedPlatform.STAGE15_LINUX_CANDIDATE_PROPERTY);
+			else System.setProperty(SupportedPlatform.STAGE15_LINUX_CANDIDATE_PROPERTY, oldCandidate);
+		}
+	}
 }

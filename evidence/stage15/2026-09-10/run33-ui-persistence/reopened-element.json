@@ -1,0 +1,9 @@
+{
+  "_fv": 89,
+  "_type": "function",
+  "definition": {
+    "code": "# New Copperbench function\nsay Stage15 UI persistence 0910",
+    "name": "ui_saved_probe",
+    "namespace": "mod"
+  }
+}

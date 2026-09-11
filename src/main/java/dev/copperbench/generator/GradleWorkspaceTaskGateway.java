@@ -159,8 +159,15 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 				if (process.exitCode() != 0) {
 					JsonObject args = new JsonObject();
 					args.addProperty("exitCode", process.exitCode());
+					String runtimeFailureCode = process.readinessMarkerSeen()
+							? null : process.runtimeFailureCode();
+					if (runtimeFailureCode != null && !runtimeFailureCode.isBlank())
+						args.addProperty("runtimeFailureCode", runtimeFailureCode);
+					String diagnosticCode = runtimeFailureCode == null || runtimeFailureCode.isBlank()
+							? backend.diagnosticPrefix() + "_RUN_CLIENT_EXITED"
+							: backend.diagnosticPrefix() + "_RUN_CLIENT_" + runtimeFailureCode;
 					failKnownTask(workspaceId, operation, job,
-							backend.diagnosticPrefix() + "_RUN_CLIENT_EXITED", "diagnostic.task_process_exited",
+							diagnosticCode, "diagnostic.task_process_exited",
 							"The {backend} {task} task exited with code {exitCode}.", args);
 					return;
 				}
@@ -218,6 +225,21 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 					backend.displayName(), operation, workspaceId, exception);
 			job.log("error", exception.getMessage());
 			job.fail(exception.diagnosticCode(), failureId, taskKind(operation), exception.getMessage());
+		} catch (GradleProcessRunner.ProcessStartException exception) {
+			if (job.isCancelled() || job.cancellationRequested()) return;
+			String failureId = UUID.randomUUID().toString();
+			String code = backend.diagnosticPrefix() + "_" + taskKind(operation).toUpperCase(Locale.ROOT)
+					+ "_PROCESS_START_FAILED";
+			LOG.error("Workspace task failure {} (backend={}, operation={}, workspaceId={}, code={})", failureId,
+					backend.displayName(), operation, workspaceId, code, exception);
+			job.log("error", exception.getMessage());
+			JsonObject args = new JsonObject();
+			args.addProperty("executable", exception.executable());
+			args.addProperty("workspaceRoot", exception.workspaceRoot().toString());
+			args.addProperty("reason", exception.getCause() == null ? exception.getMessage()
+					: exception.getCause().getMessage());
+			job.fail(code, failureId, taskKind(operation), "diagnostic.workspace_task_failed",
+					"The {backend} {task} task could not start its Gradle process.", args);
 		} catch (Exception exception) {
 			if (job.isCancelled() || job.cancellationRequested()) return;
 			String failureId = UUID.randomUUID().toString();

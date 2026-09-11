@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "linux-release-authorization",
+  "status": "approved",
+  "releaseTag": "v0.1.0-linux-preview.1",
+  "releaseEligible": true,
+  "formalSupportClaim": false,
+  "candidateId": "sha256:45e80ce44b0918215048e65fe8b2d45e45698d3f394453940918a1eee40eea09",
+  "candidateSourceCommit": "61f69bf1f8dfdd3efbcf379afbaafbbfb11d3466",
+  "candidateWorkflowRunId": "34547192490",
+  "debSha256": "ff1d2e3c3e7120165aece357d9a0b4a1fba93ff37e31e44dd8f733b0ba7dc473",
+  "portableSha256": "746e8795b90689fe2d2672bb059f01f2bd8cca5c0e6689b89e5842baa4e38644",
+  "installedProductJarSha256": "d4bcaa2831415500bf99da16f7ab34aaf3e093de35497932502416f3853afcde",
+  "validationReportPath": "docs/testing/stage15-run42-acceptance-2026-09-11.md",
+  "validationReportSha256": "1bfb8b2ad43920a40666ccf6fbe8733438e4ea9dedfb95e0a63b056b59597f0e",
+  "acceptedEvidence": {
+    "xorgFabric": {
+      "path": "evidence/stage15/2026-09-11/run42-xorg-fabric/installed-gate-result.json",
+      "sha256": "7c8d345d9a9df0b421f6d790b7cf5c470b42b3a12eb8c2cf6f5aa99e58c6d96a"
+    },
+    "xorgNeoForge": {
+      "path": "evidence/stage15/2026-09-11/run42-xorg-neoforge/installed-gate-result.json",
+      "sha256": "f255a8647ed0908eb0b75dc16e8ad778b5fafeeb110d1f44a92db40adde7cf8a"
+    },
+    "waylandFabric": {
+      "path": "evidence/stage15/2026-09-11/run42-wayland-fabric/installed-gate-result.json",
+      "sha256": "069e2bb57872f3ff4ce3ebff9f549849a3e15fec8800935cfddf7d106a69a606"
+    },
+    "waylandNeoForge": {
+      "path": "evidence/stage15/2026-09-11/run42-wayland-neoforge/installed-gate-result.json",
+      "sha256": "9f0b94df789fa9c5770a5fc38f985bdfb2bf4be893749031f4e20809758cc8bb"
+    },
+    "xorgAgent": {
+      "path": "evidence/stage15/2026-09-11/run42-xorg-agent/external-agent-result.json",
+      "sha256": "db234373edc52ebea60bfebe081e0c8d617858a60a68598f026f91b30109840d"
+    },
+    "waylandAgent": {
+      "path": "evidence/stage15/2026-09-11/run42-wayland-agent/external-agent-result.json",
+      "sha256": "96c5d7e4d284bb84cf6f73539e854803238d5ea0953032959901ab932c824433"
+    },
+    "managedBlockbench": {
+      "path": "evidence/stage15/2026-09-11/run42-wayland-blockbench/installed-blockbench-result.json",
+      "sha256": "4a3d9b9a7db327b236159851d734ded6f4369c3a58f18a3e28e2d9165ee3c29a",
+      "installedProductJarSha256": "d4bcaa2831415500bf99da16f7ab34aaf3e093de35497932502416f3853afcde"
+    },
+    "assetCenter": {
+      "path": "evidence/stage15/2026-09-11/run42-wayland-assets/result.json",
+      "sha256": "c9d45cca36a05987a056a03e598cdbc381fa611faa009f559476049dc574e178"
+    },
+    "uiPersistence": {
+      "path": "evidence/stage15/2026-09-11/run42-wayland-ui/result.json",
+      "sha256": "e3d9bdd0ebe2deb01e39f328c06e0e936f071a012f269ea3a5a310aa7ea42c32"
+    },
+    "portableBuild": {
+      "path": "evidence/stage15/2026-09-11/run42-portable/result.json",
+      "sha256": "401668f5fa5da9694ab03959c2bc486ecd807048907c62320b5efe0ce2f66300"
+    }
+  },
+  "legacyPreferencesMigration": {
+    "path": "evidence/stage15/2026-09-11/run42-preferences-migration/result.json",
+    "sha256": "b405460762a50722804841dfb1468e9407a81f54fa54a8a6df14af5d65579e8f"
+  }
+}

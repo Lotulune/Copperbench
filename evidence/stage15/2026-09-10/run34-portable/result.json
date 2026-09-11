@@ -1,0 +1,13 @@
+{
+  "status": "passed",
+  "portableSha256": "4d4ec753dc4928e5cf7e6f9b8491eb3f9f89ea84e691329e5a3c15ab82eebeb5",
+  "portableBytes": 968196540,
+  "localAndGuestSha256Matched": true,
+  "provenanceVerified": true,
+  "launcher": "/home/stage15/stage15-run34/portable/Copperbench010/copperbench.sh",
+  "invokedOutsideInstallationDirectory": true,
+  "generatorId": "neoforge-1.21.1",
+  "headlessBuildStatus": "succeeded",
+  "exitCode": 0,
+  "formalSupportClaim": false
+}

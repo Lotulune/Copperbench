@@ -1,0 +1,40 @@
+{
+  "normalization": "UTF-8, LF and trailing whitespace only; original guest logs retained",
+  "files": [
+    {
+      "path": "evidence/stage15/2026-09-10/run34-wayland-agent-replay2/helper.log",
+      "originalSha256": "41ee6257a983a5ae5b4758ca40c9cde5db19d32ca91de2fb94532c9b7a3dda67",
+      "transcriptSha256": "4781796ff93b7a79d69c77bdefaa16ae5bbbcd71c86789da16b75aa0f49d2f80"
+    },
+    {
+      "path": "evidence/stage15/2026-09-10/run34-wayland-agent-timeout/helper.log",
+      "originalSha256": "4ef27a843da72bd13c89eaa89076292095a1f5ef1ec16733e1f01e8331493d66",
+      "transcriptSha256": "2251c08d7c1a989f677f7a73b37d6413582ab3d04a78345aeff7c6db32b7eae5"
+    },
+    {
+      "path": "evidence/stage15/2026-09-10/run34-wayland-neoforge-unlocked/minecraft-latest.log",
+      "originalSha256": "c37d704f09ffbcee05e33da4dc60dbf1b6b0b87a8740ffbc47f26a84243a8eea",
+      "transcriptSha256": "a08b6fd966ab62027d76e990c8d1e5b66a8108ff31136d882da98b47415da321"
+    },
+    {
+      "path": "evidence/stage15/2026-09-10/run34-wayland-ui-persistence/reopened.mod.json",
+      "originalSha256": "3cd89b26c54a7a05ee3744464862ca67b75969f252b234a4f93ca38725ff6834",
+      "transcriptSha256": "9c52730a2eafb032ee50d9bec56116befe1ed430fc6564d8c50be94cb9f0321a"
+    },
+    {
+      "path": "evidence/stage15/2026-09-10/run34-wayland-ui-persistence/saved.mod.json",
+      "originalSha256": "3cd89b26c54a7a05ee3744464862ca67b75969f252b234a4f93ca38725ff6834",
+      "transcriptSha256": "9c52730a2eafb032ee50d9bec56116befe1ed430fc6564d8c50be94cb9f0321a"
+    },
+    {
+      "path": "evidence/stage15/2026-09-10/run34-xorg-desktop/helper.log",
+      "originalSha256": "978584d5b87278e1d52ed95f7cea5c6ff7ae6cb47a81ace8d9eec0c417d13f14",
+      "transcriptSha256": "9b31e3dfb7a6a3183a1b125f6205a12447208bfaae909b081e87e127c9a8c658"
+    },
+    {
+      "path": "evidence/stage15/2026-09-10/run34-xorg-neoforge-fresh-log/minecraft-latest.log",
+      "originalSha256": "c2bcc8abefffa9e0da8d0174d133dc6466c367c04f2059cdc933d2afe42ad10e",
+      "transcriptSha256": "c5b0ec250a9529915eb9d0bf1f2369b5bc1a11e337220b4ee770cfb0874b3de8"
+    }
+  ]
+}

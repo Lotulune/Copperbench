@@ -9,6 +9,7 @@
 
 package dev.copperbench.generator;
 
+import dev.copperbench.platform.RuntimePlatform;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -18,7 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-/** Resolves the Java home used by generated workspaces in source and installed Windows layouts. */
+/** Resolves the Java home used by generated workspaces in source and installed product layouts. */
 public final class BundledJdkLocator {
 	private static final Logger LOG = LogManager.getLogger(BundledJdkLocator.class);
 
@@ -33,17 +34,32 @@ public final class BundledJdkLocator {
 	}
 
 	static Path locate(Path distributionRoot, int javaRelease, Path fallbackJavaHome) {
+		return locate(distributionRoot, javaRelease, fallbackJavaHome, RuntimePlatform.current());
+	}
+
+	static Path locate(Path distributionRoot, int javaRelease, Path fallbackJavaHome, RuntimePlatform platform) {
 		Path root = Objects.requireNonNull(distributionRoot).toAbsolutePath().normalize();
+		RuntimePlatform runtimePlatform = Objects.requireNonNull(platform);
 		List<Path> attempted = new ArrayList<>();
 
-		Path installedLayout = root.resolve(javaRelease > 21 ? "jdk" : "jdk21").normalize();
-		attempted.add(installedLayout);
-		if (isJavaHome(installedLayout)) return resolved(root, javaRelease, installedLayout, attempted);
-
-		Path sourceLayout = root.resolve(javaRelease > 21 ? "jdk/jbr25_win_64" : "jdk/jdk21_win_64")
-				.normalize();
-		attempted.add(sourceLayout);
-		if (isJavaHome(sourceLayout)) return resolved(root, javaRelease, sourceLayout, attempted);
+		if (javaRelease <= 21) {
+			for (Path java21 : java21Candidates(root, runtimePlatform)) {
+				attempted.add(java21);
+				if (isJavaHome(java21)) return resolved(root, javaRelease, java21, attempted);
+			}
+		} else {
+			Path installedLayout = root.resolve("jdk").normalize();
+			attempted.add(installedLayout);
+			if (isJavaHome(installedLayout)) return resolved(root, javaRelease, installedLayout, attempted);
+			String sourceRelative = runtimePlatform.sourceJavaHome(javaRelease);
+			if (sourceRelative != null) {
+				Path sourceLayout = root.resolve(sourceRelative).normalize();
+				if (!attempted.contains(sourceLayout)) {
+					attempted.add(sourceLayout);
+					if (isJavaHome(sourceLayout)) return resolved(root, javaRelease, sourceLayout, attempted);
+				}
+			}
+		}
 
 		if (fallbackJavaHome != null) {
 			Path fallback = fallbackJavaHome.toAbsolutePath().normalize();
@@ -54,6 +70,21 @@ public final class BundledJdkLocator {
 		LOG.error("Bundled JDK resolution failed: distributionRoot={}, javaRelease={}, attempted={}, java.home={}, user.dir={}",
 				root, javaRelease, attempted, System.getProperty("java.home"), System.getProperty("user.dir"));
 		throw new MissingJdkException(root, javaRelease, attempted);
+	}
+
+	private static List<Path> java21Candidates(Path root, RuntimePlatform platform) {
+		List<Path> candidates = new ArrayList<>();
+		candidates.add(root.resolve("jdk21").normalize());
+		String sourceRelative = platform.sourceJavaHome(21);
+		if (sourceRelative == null) return candidates;
+		Path source = root.resolve(sourceRelative).normalize();
+		if (!candidates.contains(source)) candidates.add(source);
+		Path ancestor = root.getParent();
+		for (int depth = 0; ancestor != null && depth < 3; depth++, ancestor = ancestor.getParent()) {
+			Path candidate = ancestor.resolve(sourceRelative).normalize();
+			if (!candidates.contains(candidate)) candidates.add(candidate);
+		}
+		return candidates;
 	}
 
 	private static Path resolved(Path distributionRoot, int javaRelease, Path javaHome, List<Path> attempted) {

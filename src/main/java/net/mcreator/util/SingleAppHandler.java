@@ -60,7 +60,7 @@ public class SingleAppHandler implements Closeable {
 			ipcFactory = new DynamicPortSocketIpcFactory(InetAddress.getLoopbackAddress(), 3000);
 
 		this.lock = Unique4j.withConfig(
-				Unique4jConfig.createDefault(APP_ID).lockFolder(UserFolderManager.getFileFromUserFolder("/"))
+				Unique4jConfig.createDefault(APP_ID).lockFolder(UserFolderManager.getRuntimeFolder())
 						.ipcFactory(ipcFactory)).newLock(
 				// first instance, here we receive the args
 				firstInstanceClient -> {

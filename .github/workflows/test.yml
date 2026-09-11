@@ -149,6 +149,8 @@ jobs:
       - name: Run Stage 9 clean Windows harness regression tests
         shell: pwsh
         run: pwsh -NoProfile -File ./scripts/tests/Stage9CleanWindowsHarness.tests.ps1
+      - name: Verify Stage 15 Linux candidate metadata contract
+        run: node --test scripts/tests/linux-candidate-metadata.tests.mjs
       - name: Run MCP conformance suite
         shell: pwsh
         run: pwsh -NoProfile -File ./scripts/verify-mcp-conformance.ps1 -OutputDirectory build/mcp-conformance-results

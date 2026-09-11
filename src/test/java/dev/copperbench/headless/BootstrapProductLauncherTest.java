@@ -114,6 +114,35 @@ class BootstrapProductLauncherTest {
 		}
 	}
 
+	@Test void localApprovalCreatesResourcePackWorkspaceForGraphicalFixture() throws Exception {
+		Path root = WorkspaceFolderManager.getSuggestedWorkspaceFoldersRoot().toPath().toAbsolutePath().normalize();
+		String modId = "stage15_graphical_" + UUID.randomUUID().toString().replace("-", "").substring(0, 8);
+		Path workspaceFolder = root.resolve(modId);
+		AtomicBoolean prompted = new AtomicBoolean();
+		try {
+			RunResult result = run(new String[] { "create-workspace", "--generator-id", "resourcepack-1.21.1",
+					"--mod-name", "Stage15 Graphical Fixture", "--mod-id", modId, "--workspace-folder",
+					workspaceFolder.toString(), "--version", "1.0.0" }, request -> {
+				prompted.set(true);
+				assertEquals("resourcepack-1.21.1", request.generatorId());
+				assertEquals(workspaceFolder.toString(), request.workspaceFolderPath());
+				return true;
+			});
+
+			assertTrue(prompted.get());
+			assertEquals(HeadlessExitCode.SUCCESS.code(), result.exitCode());
+			assertEquals("committed", result.json().get("status").getAsString());
+			assertEquals("resourcepack-1.21.1",
+					result.json().getAsJsonObject("data").get("generatorId").getAsString());
+			Path workspaceFile = Path.of(result.json().getAsJsonObject("data").get("workspaceFile").getAsString());
+			assertTrue(Files.isRegularFile(workspaceFile));
+			assertEquals(workspaceFolder.resolve(modId + ".mcreator").toAbsolutePath().normalize(),
+					workspaceFile.toAbsolutePath().normalize());
+		} finally {
+			deleteRecursively(workspaceFolder);
+		}
+	}
+
 	@Test void decliningLocalApprovalLeavesTheTargetUntouched() throws Exception {
 		Path root = WorkspaceFolderManager.getSuggestedWorkspaceFoldersRoot().toPath().toAbsolutePath().normalize();
 		Path workspaceFolder = root.resolve("stage14b-denied-" + UUID.randomUUID());

@@ -1,0 +1,11 @@
+{
+  "candidateSha256": "ff1d2e3c3e7120165aece357d9a0b4a1fba93ff37e31e44dd8f733b0ba7dc473",
+  "assetCenterOpenedRealBlockbench": true,
+  "installedProductUnmodified": true,
+  "classpathOverrideUsed": false,
+  "blockbenchPid": 11272,
+  "blockbenchParentInstalledProductPid": 10777,
+  "model": "assets/copperbench/models/Stage15Probe.bbmodel",
+  "normalBlockbenchClose": "native window close button",
+  "formalSupportClaim": false
+}

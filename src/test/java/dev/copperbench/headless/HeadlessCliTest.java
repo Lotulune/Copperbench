@@ -45,7 +45,7 @@ class HeadlessCliTest {
 		System.setProperty("log_directory", System.getProperty("java.io.tmpdir"));
 	}
 
-	@Test void buildValidateAndExportUseTheSharedApplicationServiceAndStableJsonExitCodes() {
+	@Test void buildValidateRunClientAndExportUseTheSharedApplicationServiceAndStableJsonExitCodes() {
 		SequentialIds ids = new SequentialIds();
 		WorkspaceApplicationService service = service(ids);
 		HeadlessCli cli = new HeadlessCli(
@@ -53,6 +53,7 @@ class HeadlessCliTest {
 
 		assertSuccessful(cli, "validate", "validate_workspace");
 		assertSuccessful(cli, "build", "build_workspace");
+		assertSuccessful(cli, "run-client", "run_client");
 		assertSuccessful(cli, "export", "export_workspace", "--output", "exports/copper-trails.zip");
 		RunResult release = run(cli, "release");
 		assertEquals(HeadlessExitCode.SUCCESS.code(), release.exitCode());
@@ -102,6 +103,11 @@ class HeadlessCliTest {
 		assertEquals(HeadlessExitCode.REVISION_CONFLICT.code(), staleBuild.exitCode());
 		assertEquals("rejected", staleBuild.json().get("status").getAsString());
 		assertEquals(1, staleBuild.json().getAsJsonObject("conflict").get("actualRevision").getAsLong());
+
+		RunResult staleClient = run(cli, "run-client", "--revision", "0");
+		assertEquals(HeadlessExitCode.REVISION_CONFLICT.code(), staleClient.exitCode());
+		assertEquals("rejected", staleClient.json().get("status").getAsString());
+		assertEquals(1, staleClient.json().getAsJsonObject("conflict").get("actualRevision").getAsLong());
 	}
 
 	@Test void newWorkspaceQueryAndCreateCommandShareCoreApprovalRules() {
@@ -110,6 +116,7 @@ class HeadlessCliTest {
 				new HeadlessWorkspaceEntryAdapter(service(ids), PermissionProfile.WORKSPACE), WORKSPACE_ID, ids);
 
 		RunResult help = run(cli, "help");
+		assertTrue(help.json().getAsJsonArray("commands").toString().contains("run-client"));
 		assertTrue(help.json().getAsJsonArray("commands").toString().contains("list-new-workspace-generators"));
 		assertTrue(help.json().getAsJsonArray("commands").toString().contains("environment"));
 		assertTrue(help.json().getAsJsonArray("commands").toString().contains("create-workspace"));

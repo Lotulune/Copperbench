@@ -1,0 +1,9 @@
+{
+  "sourceCommit": "f811483935ed682177494b205337843090dc040b",
+  "workflowRunId": "34537005983",
+  "candidateArtifactId": 10176251384,
+  "candidateArtifactZipSha256": "d0bfdef2270964d46f7d12a39d23743bf6b7fbf3806e1e0afe507627d8e7451d",
+  "harnessArtifactId": 10176251766,
+  "harnessArtifactZipSha256": "745552522bfaf7aa37c1d36428acedf8dad2916e2eaaa2dd7cd3cb383b1869b6",
+  "status": "candidate-validation-complete-release-pending"
+}

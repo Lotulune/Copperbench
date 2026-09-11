@@ -1,0 +1,439 @@
+name: Stage 15 Linux candidate
+
+on:
+  workflow_dispatch: {}
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "platform/linux/**"
+      - "platform/setup.gradle"
+      - "src/main/java/dev/copperbench/generator/**"
+      - "src/test/java/dev/copperbench/generator/**"
+      - "src/main/java/dev/copperbench/assets/**"
+      - "src/test/java/dev/copperbench/assets/**"
+      - "src/main/java/dev/copperbench/core/workspace/WorkspaceCreationService.java"
+      - "src/main/java/dev/copperbench/headless/**"
+      - "src/main/java/dev/copperbench/mcp/**"
+      - "src/test/java/dev/copperbench/mcp/**"
+      - "src/test/java/dev/copperbench/headless/**"
+      - "src/main/java/dev/copperbench/shell/**"
+      - "src/test/java/dev/copperbench/shell/**"
+      - "src/main/java/net/mcreator/io/LoggingSystem.java"
+      - "src/main/java/net/mcreator/preferences/PreferencesManager.java"
+      - "src/main/java/net/mcreator/ui/chromium/CefUtils.java"
+      - "src/main/java/net/mcreator/util/SingleAppHandler.java"
+      - "src/main/java/dev/copperbench/platform/**"
+      - "src/test/java/dev/copperbench/platform/**"
+      - "src/main/java/dev/copperbench/release/**"
+      - "src/test/java/dev/copperbench/release/**"
+      - "ui-shell/**"
+      - "scripts/*linux-candidate-metadata.mjs"
+      - "scripts/tests/linux-candidate-metadata.tests.mjs"
+      - "scripts/tests/stage15-linux-installed-gate.tests.mjs"
+      - "scripts/tests/Stage15LinuxHyperVHarness.tests.ps1"
+      - "scripts/tests/Stage15WindowsProductRegressionGate.tests.ps1"
+      - "scripts/stage15/**"
+      - "scripts/New-Stage15LinuxAutoinstallSeed.ps1"
+      - "scripts/New-Stage15LinuxHyperVGuest.ps1"
+      - "scripts/Invoke-Stage15WindowsProductRegressionGuestGate.ps1"
+      - "scripts/verify-stage15-linux-installed-agent.py"
+      - "scripts/verify-stage15-linux-installed-guest.sh"
+      - "scripts/verify-stage15-linux-hyperv-ready.ps1"
+      - "scripts/verify-stage15-linux-x11-ci-smoke.sh"
+      - "scripts/verify-stage15-linux-runclient-ci-smoke.sh"
+      - "src/main/java/net/mcreator/io/UserFolderManager.java"
+      - ".github/workflows/stage15-linux-candidate.yml"
+  push:
+    branches:
+      - codex/stage15-linux-support
+      - main
+    paths:
+      - "platform/linux/**"
+      - "platform/setup.gradle"
+      - "src/main/java/dev/copperbench/generator/**"
+      - "src/test/java/dev/copperbench/generator/**"
+      - "src/main/java/dev/copperbench/assets/**"
+      - "src/test/java/dev/copperbench/assets/**"
+      - "src/main/java/dev/copperbench/core/workspace/WorkspaceCreationService.java"
+      - "src/main/java/dev/copperbench/headless/**"
+      - "src/main/java/dev/copperbench/mcp/**"
+      - "src/test/java/dev/copperbench/mcp/**"
+      - "src/test/java/dev/copperbench/headless/**"
+      - "src/main/java/dev/copperbench/shell/**"
+      - "src/test/java/dev/copperbench/shell/**"
+      - "src/main/java/net/mcreator/io/UserFolderManager.java"
+      - "src/main/java/net/mcreator/io/LoggingSystem.java"
+      - "src/main/java/net/mcreator/preferences/PreferencesManager.java"
+      - "src/main/java/net/mcreator/ui/chromium/CefUtils.java"
+      - "src/main/java/net/mcreator/util/SingleAppHandler.java"
+      - "src/main/java/dev/copperbench/platform/**"
+      - "src/test/java/dev/copperbench/platform/**"
+      - "src/main/java/dev/copperbench/release/**"
+      - "src/test/java/dev/copperbench/release/**"
+      - "ui-shell/**"
+      - "scripts/*linux-candidate-metadata.mjs"
+      - "scripts/tests/linux-candidate-metadata.tests.mjs"
+      - "scripts/tests/stage15-linux-installed-gate.tests.mjs"
+      - "scripts/stage15/**"
+      - "scripts/verify-stage15-linux-installed-agent.py"
+      - "scripts/verify-stage15-linux-installed-guest.sh"
+      - "scripts/verify-stage15-linux-x11-ci-smoke.sh"
+      - "scripts/verify-stage15-linux-runclient-ci-smoke.sh"
+      - ".github/workflows/stage15-linux-candidate.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: stage15-linux-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  package-smoke:
+    name: Ubuntu 24.04 package candidate smoke
+    runs-on: ubuntu-24.04
+    permissions:
+      attestations: write
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up build JDK 25 with JCEF
+        uses: actions/setup-java@v6
+        with:
+          java-version: "25.0.2"
+          distribution: jetbrains
+          java-package: jdk+jcef
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ui-shell/package-lock.json
+
+      - name: Install UI shell dependencies
+        working-directory: ui-shell
+        run: npm ci
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Run Linux platform and generator regressions
+        run: |
+          chmod +x ./gradlew
+          ./gradlew --no-daemon test -x buildUiShell \
+            --tests dev.copperbench.platform.DesktopSessionCapabilitiesTest \
+            --tests dev.copperbench.platform.ExecutableFilePermissionsTest \
+            --tests dev.copperbench.platform.GraphicalCiModeTest \
+            --tests dev.copperbench.platform.LinuxDesktopPathIntegrationTest \
+            --tests dev.copperbench.platform.UserDataPathsTest \
+            --tests dev.copperbench.generator.BundledJdkLocatorTest \
+            --tests dev.copperbench.generator.WorkspaceEnvironmentContextTest \
+            --tests dev.copperbench.gradle.GradleDistributionPoolTest \
+            --tests dev.copperbench.assets.BlockbenchExecutableLocatorTest \
+            --tests dev.copperbench.assets.BlockbenchInstallationDetectorTest \
+            --tests dev.copperbench.assets.BlockbenchProcessServiceTest \
+            --tests dev.copperbench.shell.GraphicalProductProbeTest \
+            --tests dev.copperbench.mcp.DesktopMcpRuntimeTest \
+            --tests dev.copperbench.mcp.McpHttpServerTest \
+            --tests dev.copperbench.mcp.DesktopMcpAgentLoopTest \
+            --tests dev.copperbench.headless.HeadlessCliTest \
+            --tests dev.copperbench.headless.HeadlessProductLauncherTest \
+            --tests dev.copperbench.headless.BootstrapProductLauncherTest.generatorDiscoveryWorksWithoutAnExistingWorkspace \
+            --tests dev.copperbench.headless.BootstrapProductLauncherTest.localApprovalCreatesResourcePackWorkspaceForGraphicalFixture \
+            --tests dev.copperbench.headless.BootstrapProductLauncherTest.decliningLocalApprovalLeavesTheTargetUntouched \
+            --tests dev.copperbench.generator.fabric.Fabric1211ProcessRunnerTest \
+            --tests dev.copperbench.generator.fabric.Fabric1211TaskGatewayTest \
+            --tests dev.copperbench.generator.neoforge.NeoForge1211GeneratorTest \
+            --tests dev.copperbench.generator.neoforge.NeoForge1211TaskGatewayTest \
+            --tests dev.copperbench.generator.resourcepack.ResourcePackWorkspaceTaskGatewayTest \
+            --tests dev.copperbench.release.LinuxDistributionLayoutTest
+      - name: Run Linux candidate and installed-gate contract tests
+        run: |
+          node --test scripts/tests/linux-candidate-metadata.tests.mjs
+          node --test scripts/tests/stage15-linux-installed-gate.tests.mjs
+          pwsh -NoProfile -File scripts/tests/Stage15LinuxHyperVHarness.tests.ps1
+          pwsh -NoProfile -File scripts/tests/Stage15WindowsProductRegressionGate.tests.ps1
+
+      - name: Build portable and deb candidates
+        run: |
+          chmod +x ./gradlew
+          ./gradlew --no-daemon exportLinuxCandidate
+
+      - name: Verify portable candidate contents and executable modes
+        shell: bash
+        run: |
+          set -euo pipefail
+          tarball="$(find build/export -maxdepth 1 -type f -name 'Copperbench*Linux x86_64.tar.gz' -print -quit)"
+          test -n "$tarball"
+          rm -rf build/stage15-linux-smoke
+          mkdir -p build/stage15-linux-smoke
+          tar -xzf "$tarball" -C build/stage15-linux-smoke
+          root="$(find build/stage15-linux-smoke -mindepth 1 -maxdepth 1 -type d -print -quit)"
+          test -n "$root"
+          test -x "$root/copperbench.sh"
+          test -x "$root/gradlew"
+          test -x "$root/jdk/bin/java"
+          test -x "$root/jdk/lib/jcef_helper"
+          test -x "$root/jdk21/bin/java"
+          test -x "$root/jdk21/bin/javac"
+          test -f "$root/LINUX-CANDIDATE.md"
+          test -d "$root/gradle-dists/gradle-9.7.0-bin"
+          test -d "$root/gradle-dists/gradle-9.6.1-bin"
+          test -d "$root/gradle-dists/gradle-8.8-bin"
+          test -f "$root/linux-candidate-manifest.json"
+          node -e '
+            const fs = require("node:fs");
+            const manifest = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+            if (manifest.status !== "development-not-certified" || manifest.formalSupportClaim !== false) {
+              console.error("Unexpected Linux candidate support claim", manifest.status, manifest.formalSupportClaim);
+              process.exit(1);
+            }
+          ' "$root/linux-candidate-manifest.json"
+          "$root/jdk/bin/java" -version
+          "$root/jdk21/bin/java" -version
+
+      - name: Launch packaged headless bootstrap without system Java Gradle or Git
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="$(find build/stage15-linux-smoke -mindepth 1 -maxdepth 1 -type d -print -quit)"
+          test -n "$root"
+          minimal_path="$PWD/build/stage15-minimal-path"
+          isolated_home="$PWD/build/stage15-isolated-home"
+          rm -rf "$minimal_path" "$isolated_home"
+          mkdir -p "$minimal_path" "$isolated_home/runtime"
+          chmod 700 "$isolated_home/runtime"
+          ln -s /usr/bin/dirname "$minimal_path/dirname"
+          test ! -e "$minimal_path/java"
+          test ! -e "$minimal_path/gradle"
+          test ! -e "$minimal_path/git"
+          env \
+            PATH="$minimal_path" \
+            HOME="$isolated_home" \
+            XDG_DATA_HOME="$isolated_home/data" \
+            XDG_CONFIG_HOME="$isolated_home/config" \
+            XDG_CACHE_HOME="$isolated_home/cache" \
+            XDG_STATE_HOME="$isolated_home/state" \
+            XDG_RUNTIME_DIR="$isolated_home/runtime" \
+            JAVA_TOOL_OPTIONS="-Djava.awt.headless=true" \
+            /usr/bin/bash "$root/copperbench.sh" bootstrap list-generators \
+            > build/stage15-packaged-bootstrap.json
+          grep -q '"status":"succeeded"' build/stage15-packaged-bootstrap.json
+          grep -q '"fabric-1.21.1"' build/stage15-packaged-bootstrap.json
+          grep -q '"neoforge-1.21.1"' build/stage15-packaged-bootstrap.json
+          test -d "$isolated_home/data/copperbench"
+          test -d "$isolated_home/config/copperbench"
+          test -d "$isolated_home/cache/copperbench/gradle"
+          test -d "$isolated_home/state/copperbench"
+          test -d "$isolated_home/runtime/copperbench"
+          shopt -s nullglob
+          for version in 9.7.0 9.6.1 8.8; do
+            installs=("$isolated_home/cache/copperbench/gradle/wrapper/dists/gradle-$version-bin"/*/"gradle-$version")
+            test "${#installs[@]}" -ge 1
+            test -f "${installs[0]}/bin/gradle"
+          done
+
+      - name: Launch packaged JCEF product shell under Xvfb
+        timeout-minutes: 8
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! command -v xvfb-run >/dev/null 2>&1 || ! command -v xdotool >/dev/null 2>&1; then
+            sudo apt-get update -qq
+            sudo apt-get install -y --no-install-recommends xvfb xdotool
+          fi
+          root="$(find build/stage15-linux-smoke -mindepth 1 -maxdepth 1 -type d -print -quit)"
+          smoke="$PWD/build/stage15-x11-smoke"
+          test -n "$root"
+          xvfb-run -a -s '-screen 0 1280x800x24' \
+            /usr/bin/bash "$GITHUB_WORKSPACE/scripts/verify-stage15-linux-x11-ci-smoke.sh" \
+            "$root" "$smoke"
+
+      - name: Upload X11 graphical smoke diagnostics on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: stage15-x11-smoke-diagnostics
+          path: build/stage15-x11-smoke/evidence/**
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Run packaged NeoForge 1.21.1 X11 render preflight under Xvfb
+        timeout-minutes: 30
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="$(find build/stage15-linux-smoke -mindepth 1 -maxdepth 1 -type d -print -quit)"
+          smoke="$PWD/build/stage15-neoforge-runclient"
+          test -n "$root"
+          xvfb-run -a -s '-screen 0 1280x800x24' \
+            /usr/bin/bash "$GITHUB_WORKSPACE/scripts/verify-stage15-linux-runclient-ci-smoke.sh" \
+            "$root" "$smoke" "neoforge-1.21.1"
+
+      - name: Upload NeoForge runClient diagnostics on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: stage15-neoforge-runclient-diagnostics
+          path: build/stage15-neoforge-runclient/evidence/**
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Run packaged Fabric 1.21.1 X11 render preflight under Xvfb
+        timeout-minutes: 30
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! command -v xvfb-run >/dev/null 2>&1 || ! command -v xdotool >/dev/null 2>&1; then
+            sudo apt-get update -qq
+            sudo apt-get install -y --no-install-recommends xvfb xdotool
+          fi
+          root="$(find build/stage15-linux-smoke -mindepth 1 -maxdepth 1 -type d -print -quit)"
+          smoke="$PWD/build/stage15-fabric-runclient"
+          test -n "$root"
+          xvfb-run -a -s '-screen 0 1280x800x24' \
+            /usr/bin/bash "$GITHUB_WORKSPACE/scripts/verify-stage15-linux-runclient-ci-smoke.sh" \
+            "$root" "$smoke" "fabric-1.21.1"
+
+      - name: Upload Fabric runClient diagnostics on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: stage15-fabric-runclient-diagnostics
+          path: build/stage15-fabric-runclient/evidence/**
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Verify deb candidate layout
+        shell: bash
+        run: |
+          set -euo pipefail
+          deb="$(find build/export -maxdepth 1 -type f -name 'copperbench_*_amd64.deb' -print -quit)"
+          test -n "$deb"
+          dpkg-deb --info "$deb"
+          rm -rf build/stage15-deb-smoke
+          dpkg-deb --extract "$deb" build/stage15-deb-smoke
+          test -x build/stage15-deb-smoke/usr/bin/copperbench
+          test -x build/stage15-deb-smoke/opt/copperbench/copperbench.sh
+          test -x build/stage15-deb-smoke/opt/copperbench/jdk/bin/java
+          test -x build/stage15-deb-smoke/opt/copperbench/jdk21/bin/java
+          desktop_entry="build/stage15-deb-smoke/usr/share/applications/copperbench.desktop"
+          desktop_icon="build/stage15-deb-smoke/usr/share/icons/hicolor/256x256/apps/copperbench.png"
+          test -f "$desktop_entry"
+          test -f "$desktop_icon"
+          grep -Fxq 'Type=Application' "$desktop_entry"
+          grep -Fxq 'Name=Copperbench' "$desktop_entry"
+          grep -Fxq 'Exec=/usr/bin/copperbench %F' "$desktop_entry"
+          grep -Fxq 'Icon=copperbench' "$desktop_entry"
+          grep -Fxq 'Terminal=false' "$desktop_entry"
+          test -f build/stage15-deb-smoke/opt/copperbench/LINUX-CANDIDATE.md
+          test -f build/stage15-deb-smoke/opt/copperbench/linux-candidate-manifest.json
+
+          portable_manifest="$(find build/stage15-linux-smoke -type f -name 'linux-candidate-manifest.json' -print -quit)"
+          test -n "$portable_manifest"
+          cmp "$portable_manifest" build/stage15-deb-smoke/opt/copperbench/linux-candidate-manifest.json
+
+      - name: Generate SPDX SBOM for Linux candidate
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
+        with:
+          path: build/stage15-linux-smoke
+          format: spdx-json
+          output-file: build/export/copperbench-linux.spdx.json
+          artifact-name: copperbench-linux-sbom.spdx.json
+          upload-artifact: false
+          upload-release-assets: false
+
+      - name: Freeze Linux candidate metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          manifest="$(find build/stage15-linux-smoke -type f -name 'linux-candidate-manifest.json' -print -quit)"
+          test -n "$manifest"
+          cp "$manifest" build/export/linux-candidate-manifest.json
+          node scripts/new-linux-candidate-metadata.mjs \
+            --export-dir build/export --source-commit "$GITHUB_SHA" --source-ref "$GITHUB_REF" \
+            --run-id "$GITHUB_RUN_ID" --run-attempt "$GITHUB_RUN_ATTEMPT"
+          node scripts/verify-linux-candidate-metadata.mjs \
+            --export-dir build/export --expected-commit "$GITHUB_SHA"
+
+      - name: Write SHA-256 candidate hashes
+        shell: bash
+        run: |
+          set -euo pipefail
+          find build/export -maxdepth 1 -type f \( \
+            -name '*Linux x86_64.tar.gz' -o -name 'copperbench_*_amd64.deb' -o \
+            -name 'copperbench-linux.spdx.json' -o -name 'linux-candidate-manifest.json' -o \
+            -name 'LINUX-CANDIDATE-METADATA.json' \) -print0 \
+            | sort -z | xargs -0 sha256sum | tee build/export/linux-candidate-sha256.txt
+
+      - name: Attest Linux candidate provenance
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        uses: actions/attest-build-provenance@v3
+        with:
+          subject-path: |
+            build/export/*Linux x86_64.tar.gz
+            build/export/copperbench_*_amd64.deb
+            build/export/copperbench-linux.spdx.json
+            build/export/linux-candidate-manifest.json
+            build/export/LINUX-CANDIDATE-METADATA.json
+            build/export/linux-candidate-sha256.txt
+
+      - name: Upload Linux candidate artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: stage15-linux-candidate
+          path: |
+            build/export/*Linux x86_64.tar.gz
+            build/export/copperbench_*_amd64.deb
+            build/export/copperbench-linux.spdx.json
+            build/export/linux-candidate-manifest.json
+            build/export/LINUX-CANDIDATE-METADATA.json
+            build/export/linux-candidate-sha256.txt
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Package clean GNOME installed-gate harness
+        shell: bash
+        run: |
+          set -euo pipefail
+          harness_root="$PWD/build/stage15-linux-installed-gate-harness"
+          archive="$PWD/build/export/stage15-linux-installed-gate-harness.tar.gz"
+          archive_contents="$PWD/build/stage15-linux-installed-gate-contents.txt"
+          archive_listing="$PWD/build/stage15-linux-installed-gate-listing.txt"
+          rm -rf "$harness_root" "$archive" "$archive_contents" "$archive_listing"
+          mkdir -p "$harness_root/stage15"
+          cp scripts/verify-stage15-linux-installed-guest.sh "$harness_root/"
+          cp scripts/verify-stage15-linux-installed-agent.py "$harness_root/"
+          cp scripts/stage15/Stage15GraphicalProbeVerifier.java "$harness_root/stage15/"
+          cp scripts/stage15/Stage15InstalledBlockbenchVerifier.java "$harness_root/stage15/"
+          cp scripts/stage15/INSTALLED-GATE.md "$harness_root/"
+          mkdir -p "$harness_root/sdk/python"
+          cp sdk/python/copperbench.py "$harness_root/sdk/python/"
+          chmod 755 "$harness_root/verify-stage15-linux-installed-guest.sh"
+          chmod 755 "$harness_root/verify-stage15-linux-installed-agent.py"
+          tar -C "$harness_root" -czf "$archive" .
+          tar -tzf "$archive" > "$archive_contents"
+          tar -tvzf "$archive" > "$archive_listing"
+          grep -Fxq './verify-stage15-linux-installed-guest.sh' "$archive_contents"
+          grep -Fxq './verify-stage15-linux-installed-agent.py' "$archive_contents"
+          grep -Fxq './stage15/Stage15GraphicalProbeVerifier.java' "$archive_contents"
+          grep -Fxq './stage15/Stage15InstalledBlockbenchVerifier.java' "$archive_contents"
+          grep -Fxq './INSTALLED-GATE.md' "$archive_contents"
+          grep -Fxq './sdk/python/copperbench.py' "$archive_contents"
+          test "$(awk '$NF == "./verify-stage15-linux-installed-guest.sh" { print substr($1, 1, 10); exit }' "$archive_listing")" = "-rwxr-xr-x"
+          test "$(awk '$NF == "./verify-stage15-linux-installed-agent.py" { print substr($1, 1, 10); exit }' "$archive_listing")" = "-rwxr-xr-x"
+
+      - name: Upload clean GNOME installed-gate harness
+        uses: actions/upload-artifact@v7
+        with:
+          name: stage15-linux-installed-gate-harness
+          path: build/export/stage15-linux-installed-gate-harness.tar.gz
+          if-no-files-found: error
+          retention-days: 14

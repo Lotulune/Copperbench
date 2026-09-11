@@ -1,0 +1,25 @@
+{
+  "minecraftWindow": "29360135",
+  "geometry": {
+    "WINDOW": "29360135",
+    "X": "99",
+    "Y": "193",
+    "WIDTH": "854",
+    "HEIGHT": "480",
+    "SCREEN": "0"
+  },
+  "quitGameClick": [
+    627,
+    598
+  ],
+  "productCloseClick": [
+    1007,
+    49
+  ],
+  "initialGeometryClickReachedQuitGame": false,
+  "correctedNativeScreenshotQuitGameClick": [
+    615,
+    549
+  ],
+  "coordinateNote": "XWayland-reported origin differed from actual native desktop position; final Quit Game was clicked using the observed Hyper-V frame."
+}

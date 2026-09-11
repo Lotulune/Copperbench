@@ -1,0 +1,6 @@
+os=ubuntu 24.04
+arch=x86_64
+desktop=ubuntu:GNOME
+session=wayland
+waylandDisplayPresent=true
+x11DisplayPresent=true

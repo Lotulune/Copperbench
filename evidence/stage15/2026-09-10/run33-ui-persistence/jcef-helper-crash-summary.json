@@ -1,0 +1,9 @@
+{
+  "ProblemType": "Crash",
+  "Date": "Thu Sep 10 07:55:06 2026",
+  "ExecutablePath": "/opt/copperbench/jdk/lib/jcef_helper",
+  "ExecutableTimestamp": "1789008584",
+  "ProcCmdline": "/opt/copperbench/jdk/lib/jcef_helper\\ --type=utility\\ --utility-sub-type=unzip.mojom.Unzipper\\ --lang=en-US\\ --service-sandbox-type=service\\ --no-sandbox\\ --use-gl=swiftshader\\ --mute-audio\\ --enable-crash-reporter=,\\ --change-stack-guard-on-fork=enable\\ --user-data-dir=/tmp/mcreator-cef-cache-5317460596999174144\\ --locales-dir-path=/opt/copperbench/jdk/lib/locales\\ --resources-dir-path=/opt/copperbench/jdk/lib\\ --disable-in-process-stack-traces\\ --shared-files=v8_context_snapshot_data:100\\ --field-trial-handle=3,i,17364623092275077040,17328699178282554739,262144\\ --disable-features=MediaRouter,NewUsbBackend,SpareRendererForSitePerProcess,TranslateUI,Vulkan,WebBluetooth,WebHID,WebSerial,WebUSB\\ --variations-seed-version\\ --log-file=/home/stage15/.local/state/copperbench/cef_log.txt",
+  "Signal": "6",
+  "SignalName": "SIGABRT"
+}

@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Copperbench
+Comment=AI-first Minecraft mod development studio
+Exec=/usr/bin/copperbench %F
+Icon=copperbench
+Terminal=false
+Categories=Development;IDE;
+StartupNotify=true

@@ -13,6 +13,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import dev.copperbench.core.workspace.WorkspaceState;
 import dev.copperbench.generator.BundledJdkLocator;
+import dev.copperbench.platform.RuntimePlatform;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 

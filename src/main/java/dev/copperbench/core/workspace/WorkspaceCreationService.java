@@ -14,6 +14,7 @@ import com.google.gson.JsonObject;
 import dev.copperbench.generator.BundledJdkLocator;
 import dev.copperbench.gradle.GradleDistributionPool;
 import dev.copperbench.gradle.MinecraftMappingsCacheRepair;
+import dev.copperbench.platform.RuntimePlatform;
 import dev.copperbench.tracks.VersionTrackCatalog;
 import net.mcreator.generator.Generator;
 import net.mcreator.generator.GeneratorConfiguration;
@@ -98,8 +99,7 @@ public final class WorkspaceCreationService {
 	}
 
 	private static Path javaExecutable(Path javaHome) {
-		return javaHome.resolve("bin").resolve(System.getProperty("os.name", "").toLowerCase(Locale.ROOT)
-				.contains("win") ? "java.exe" : "java");
+		return javaHome.resolve("bin").resolve(RuntimePlatform.current().javaExecutableName());
 	}
 
 	private static final class WorkspaceBaseGenerationException extends RuntimeException {
@@ -283,6 +283,7 @@ public final class WorkspaceCreationService {
 	private static void setupResourcePackWorkspace(Workspace workspace, Path workspaceFolder) {
 		if (!workspace.getGenerator().generateBase())
 			throw new WorkspaceSkeletonSetupException();
+		WorkspaceGeneratorSetup.completeSetup(workspace.getGenerator());
 		workspace.getGenerator().runResourceSetupTasks();
 		if (!Files.isRegularFile(workspaceFolder.resolve("src/main/pack.mcmeta"))
 				|| !Files.isRegularFile(workspaceFolder.resolve("src/main/pack.png")))

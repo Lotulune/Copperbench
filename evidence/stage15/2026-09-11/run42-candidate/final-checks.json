@@ -1,0 +1,11 @@
+{
+  "installedAndPortableProductJarSha256": "d4bcaa2831415500bf99da16f7ab34aaf3e093de35497932502416f3853afcde",
+  "candidateMetadataVerified": true,
+  "allSixCandidateAssetAttestationsVerified": true,
+  "sourceCommit": "61f69bf1f8dfdd3efbcf379afbaafbbfb11d3466",
+  "completePrRegressionRunId": "34547195549",
+  "completePrRegressionConclusion": "success",
+  "migrationAndPathTests": 10,
+  "releaseAuthorizationContracts": 13,
+  "formalSupportClaim": false
+}

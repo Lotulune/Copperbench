@@ -106,6 +106,10 @@ class WorkspaceEnvironmentContextTest {
 			assertEquals("fabric-1.21.1", data.getAsJsonObject("execution").get("generatorId").getAsString());
 			assertEquals(21, data.getAsJsonObject("execution").getAsJsonObject("java")
 					.get("requiredRelease").getAsInt());
+			assertTrue(data.getAsJsonObject("execution").has("host"));
+			assertTrue(data.getAsJsonObject("execution").getAsJsonObject("host").has("desktop"));
+			assertTrue(data.getAsJsonObject("execution").getAsJsonObject("host").getAsJsonObject("desktop")
+					.has("certificationRole"));
 			assertTrue(data.getAsJsonObject("agentWorkflow").get("nativeFilesAuthoritative").getAsBoolean());
 			assertTrue(data.getAsJsonObject("agentWorkflow").get("structuredElementsOptional").getAsBoolean());
 			assertEquals("build_workspace", data.getAsJsonObject("agentWorkflow").get("buildOperation").getAsString());

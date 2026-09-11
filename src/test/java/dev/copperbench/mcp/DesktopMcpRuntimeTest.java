@@ -17,6 +17,7 @@ import dev.copperbench.core.application.WorkspaceApplicationService;
 import dev.copperbench.core.contract.UiCore.PermissionProfile;
 import dev.copperbench.core.workspace.RevisionedWorkspaceStore;
 import dev.copperbench.core.workspace.WorkspaceState;
+import dev.copperbench.platform.PrivatePathPermissions;
 import dev.copperbench.history.JGitLocalHistoryService;
 import dev.copperbench.history.LocalHistoryService;
 import org.junit.jupiter.api.Test;
@@ -27,6 +28,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.Files;
+import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.Path;
 import java.time.Clock;
 import java.time.Duration;
@@ -34,6 +36,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
@@ -66,6 +69,14 @@ class DesktopMcpRuntimeTest {
 				assertTrue(Files.isRegularFile(connectionFile));
 				JsonObject connection = JsonParser.parseString(Files.readString(connectionFile)).getAsJsonObject();
 				assertEquals(state.url(), connection.get("url").getAsString());
+				if (PrivatePathPermissions.posixSupported(connectionFile)) {
+					assertEquals(Set.of(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE),
+							Files.getPosixFilePermissions(connectionFile));
+					assertEquals(Set.of(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE,
+							PosixFilePermission.OWNER_EXECUTE),
+							Files.getPosixFilePermissions(connectionFile.getParent()));
+				}
+
 				assertEquals(WORKSPACE_ID.toString(), connection.get("workspaceId").getAsString());
 				assertEquals("workspace", connection.get("permissionProfile").getAsString());
 				assertEquals("ui-once", connection.get("tokenDelivery").getAsString());

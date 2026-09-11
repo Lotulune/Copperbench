@@ -75,9 +75,9 @@ class GradleDistributionPoolTest {
 
 	@Test void seedsOfficialAndChinaHashesFromPackagedGradleDists(@TempDir Path temp) throws Exception {
 		Path packaged = temp.resolve("gradle-dists/gradle-9.7.0-bin/bundled");
-		Path bat = packaged.resolve("gradle-9.7.0/bin/gradle.bat");
-		Files.createDirectories(bat.getParent());
-		Files.writeString(bat, "@echo off\n", StandardCharsets.UTF_8);
+		Path launcher = packaged.resolve("gradle-9.7.0/bin/gradle");
+		Files.createDirectories(launcher.getParent());
+		Files.writeString(launcher, "#!/usr/bin/env sh\n", StandardCharsets.UTF_8);
 		Path gradleHome = temp.resolve("gradle-home");
 		assertEquals(2, GradleDistributionPool.seedPackagedDistributions(gradleHome, List.of(temp.resolve("gradle-dists")),
 				true));

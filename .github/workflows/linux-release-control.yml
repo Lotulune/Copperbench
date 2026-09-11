@@ -1,0 +1,118 @@
+name: Linux exact-binary release control
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/linux-release-control.yml
+      - .github/workflows/deploy.yml
+      - scripts/verify-linux-release-authorization.mjs
+      - scripts/tests/linux-release-authorization.tests.mjs
+      - release-control/linux-candidate-authorization.json
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Existing signed v*-linux-preview.* or v*-linux-beta.* tag on latest main
+        required: true
+        type: string
+      publish:
+        description: Publish the verified draft after production approval
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: linux-release-${{ github.event_name }}-${{ inputs.release_tag || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  contracts:
+    name: Linux release authorization contracts
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - run: node --test scripts/tests/linux-release-authorization.tests.mjs
+
+  promote:
+    if: github.event_name == 'workflow_dispatch'
+    needs: contracts
+    runs-on: ubuntu-24.04
+    environment: production
+    permissions:
+      actions: read
+      attestations: read
+      contents: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      RELEASE_TAG: ${{ inputs.release_tag }}
+      DISPATCH_REF: ${{ github.ref }}
+      AUTHORIZATION: release-control/linux-candidate-authorization.json
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.release_tag }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - name: Verify signed release tag on latest main
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-linux-(preview|beta)\.[0-9]+$ ]]
+          test "$DISPATCH_REF" = "refs/tags/$RELEASE_TAG"
+          test "$(git cat-file -t "$RELEASE_TAG")" = tag
+          git -c gpg.format=ssh -c gpg.ssh.allowedSignersFile=.github/release-signers verify-tag "$RELEASE_TAG"
+          test "$(git rev-parse HEAD)" = "$(gh api "repos/$GITHUB_REPOSITORY/commits/main" --jq .sha)"
+      - name: Load approved candidate identity and reject build-affecting drift
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/verify-linux-release-authorization.mjs --authorization "$AUTHORIZATION" \
+            --tag "$RELEASE_TAG" --github-env "$GITHUB_ENV"
+      - name: Verify source delta and retrieve immutable candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor "$CANDIDATE_COMMIT" HEAD
+          git diff --name-only "$CANDIDATE_COMMIT..HEAD" > release-delta.txt
+          node scripts/verify-linux-release-authorization.mjs --source-delta release-delta.txt
+          gh run download "$CANDIDATE_RUN" --repo "$GITHUB_REPOSITORY" --name stage15-linux-candidate --dir payload
+      - name: Verify every frozen asset and its source provenance
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/verify-linux-candidate-metadata.mjs --export-dir payload --expected-commit "$CANDIDATE_COMMIT"
+          for file in payload/*; do
+            gh attestation verify "$file" --repo "$GITHUB_REPOSITORY" --source-digest "$CANDIDATE_COMMIT" \
+              --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/stage15-linux-candidate.yml"
+          done
+          node scripts/verify-linux-release-authorization.mjs --authorization "$AUTHORIZATION" --tag "$RELEASE_TAG" --payload payload
+          cp "$AUTHORIZATION" payload/LINUX-RELEASE-AUTHORIZATION.json
+      - name: Create and verify a draft without overwriting any release asset
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json isDraft,assets > draft-state.json; then
+            gh release create "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --verify-tag --draft --prerelease \
+              --title "Copperbench $RELEASE_TAG — Linux x86_64" --notes-file docs/releases/linux-release-notes.md
+            gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json isDraft,assets > draft-state.json
+          fi
+          node scripts/verify-linux-release-authorization.mjs --draft-state draft-state.json --payload payload --missing-list missing-assets.txt
+          while IFS= read -r name; do gh release upload "$RELEASE_TAG" "payload/$name" --repo "$GITHUB_REPOSITORY"; done < missing-assets.txt
+          gh release download "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --dir downloaded-draft
+          for file in payload/*; do cmp "$file" "downloaded-draft/$(basename "$file")"; done
+      - name: Publish only the verified draft
+        if: inputs.publish
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$(gh api "repos/$GITHUB_REPOSITORY/commits/main" --jq .sha)"
+          gh release edit "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --draft=false

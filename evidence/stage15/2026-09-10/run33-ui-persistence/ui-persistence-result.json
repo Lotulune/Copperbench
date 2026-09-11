@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "1.0",
+  "status": "passed",
+  "candidateSha256": "f897aadcfac5991114c2a89bf81e251ae58a25653d1a6b8f86fdd830aebee7c2",
+  "sessionType": "x11",
+  "workspaceRoot": "/home/stage15/MCreatorWorkspaces/stage15_ui_xorg_0910",
+  "generatorId": "fabric-1.21.1",
+  "createdFromInstalledUi": true,
+  "createdElementFromInstalledUi": true,
+  "savedFromInstalledFunctionEditor": true,
+  "normalWorkspaceClose": true,
+  "descriptorRemovedAfterClose": true,
+  "reopenedFromInstalledRecentWorkspaceUi": true,
+  "visibleRevisionAfterReopen": 2,
+  "visibleElementCountAfterReopen": 1,
+  "elementName": "ui_saved_probe",
+  "visibleSavedText": "say Stage15 UI persistence 0910",
+  "savedAndReopenedElementBytesEqual": true,
+  "elementSha256": "f423c587e3ba9d7082953ae9c73570fdc8ecdee19dbe9c9ac6234959b176d929",
+  "runtimeWarning": "Independent JCEF Unzipper SIGABRT occurred earlier while selector remained alive; not cleared by this persistence pass.",
+  "formalSupportClaim": false
+}

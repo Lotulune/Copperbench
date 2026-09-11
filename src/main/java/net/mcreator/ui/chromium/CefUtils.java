@@ -99,6 +99,10 @@ public class CefUtils {
 		return !gpuAcceleration || softwareOnlyDisplay;
 	}
 
+	static boolean useSoftwareRenderingOnLinuxX11(String sessionType, boolean osr) {
+		return osr && sessionType != null && "x11".equalsIgnoreCase(sessionType);
+	}
+
 	public static CefBrowserSettings getCefBrowserSettings() {
 		if (settings == null) {
 			settings = new CefBrowserSettings();
@@ -133,6 +137,7 @@ public class CefUtils {
 			config.getAppArgsAsList().add("--mute-audio");
 			config.getAppArgsAsList().add("--disable-gaia-services");
 			addAccessibilityArguments(config.getAppArgsAsList());
+			addLinuxHelperCompatibilityArguments(config.getAppArgsAsList(), OS.isLinux());
 
 			Set<String> disabledFeatures = new HashSet<>();
 			// Get existing disabled features
@@ -159,7 +164,8 @@ public class CefUtils {
 
 			if (TestUtil.isRunningInGitHubActions()) {
 				// Flags for CI/CD as it is headless and without GPU
-				config.getAppArgsAsList().add("--headless");
+				if (dev.copperbench.platform.GraphicalCiMode.chromiumHeadlessRequired())
+					config.getAppArgsAsList().add("--headless");
 				config.getAppArgsAsList().add("--ignore-gpu-blocklist");
 				config.getAppArgsAsList().add("--no-sandbox");
 				config.getAppArgsAsList().add("--disable-setuid-sandbox");
@@ -186,6 +192,16 @@ public class CefUtils {
 			config.getAppArgsAsList().add("--use-angle=d3d11-warp");
 			config.getAppArgsAsList().add("--enable-features=AllowD3D11WarpFallback");
 			config.getAppArgsAsList().add("--disable-gpu-vsync");
+			disabledFeatures.add("Vulkan");
+		} else if (OS.isLinux()
+				&& useSoftwareRenderingOnLinuxX11(System.getenv("XDG_SESSION_TYPE"), useOSR())) {
+			// Linux uses OSR for both Wayland and X11. Real GNOME Xorg on virtual/basic
+			// display adapters can expose an X server successfully while Chromium's GPU
+			// process still fails during startup. Keep Wayland on the normal accelerated
+			// path, but make the Xorg compatibility path deterministic with SwiftShader.
+			config.getAppArgsAsList().add("--disable-gpu");
+			config.getAppArgsAsList().add("--disable-gpu-vsync");
+			config.getAppArgsAsList().add("--use-gl=swiftshader");
 			disabledFeatures.add("Vulkan");
 		} else if (!PreferencesManager.PREFERENCES.blockly.useGPUAcceleration.get()) {
 			config.getAppArgsAsList().add("--disable-gpu");
@@ -218,13 +234,13 @@ public class CefUtils {
 			settings.persist_session_cookies = false;
 			settings.locale = L10N.getLocale().stripExtensions().toLanguageTag();
 
-			settings.log_file = UserFolderManager.getFileFromUserFolder("/cef_log.txt").toString();
+			settings.log_file = UserFolderManager.getFileFromStateFolder("cef_log.txt").toString();
 			if (System.getenv("MCREATOR_CEF_DEBUG") != null) {
 				settings.log_severity = CefSettings.LogSeverity.LOGSEVERITY_VERBOSE;
 			}
 
 			settings.cache_path = Objects.requireNonNullElseGet(getTmpCacheFolder(),
-					() -> UserFolderManager.getFileFromUserFolder("/cef/")).toString();
+					() -> UserFolderManager.getFileFromCacheFolder("cef")).toString();
 
 			CountDownLatch latch = new CountDownLatch(1);
 
@@ -260,6 +276,17 @@ public class CefUtils {
 		}
 
 		return cefApp;
+	}
+
+	static void addLinuxHelperCompatibilityArguments(List<String> arguments, boolean linux) {
+		if (!linux) return;
+		// The bundled Linux helper exhibited the Unzipper SIGABRT in CEF #3912.
+		// Upstream associates it with unannotated native frames around
+		// CefExecuteProcess and documents this compatibility workaround.
+		// Keep normal stack protection; disable only the incompatible fork reseeding.
+		// https://github.com/chromiumembedded/cef/issues/3912#issuecomment-2766842796
+		arguments.removeIf(argument -> argument.startsWith("--change-stack-guard-on-fork="));
+		arguments.add("--change-stack-guard-on-fork=disable");
 	}
 
 	static void addAccessibilityArguments(List<String> arguments) {

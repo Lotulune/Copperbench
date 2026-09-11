@@ -1,0 +1,50 @@
+{
+  "reason": "Normalize transcript line endings/trailing whitespace; original guest files and frozen metadata are unchanged.",
+  "files": [
+    {
+      "path": "evidence/stage15/2026-09-11/run42-wayland-agent/helper.log",
+      "originalSha256": "2fc214a75761814ac6c1ad48f74811e0160c9214b095f584c40c061dc638c97c",
+      "normalizedSha256": "ce66dc55e9ae102ff13112a2de24dcd78caa1e1af3e2bb03af9d6ea1d3d4ee7b"
+    },
+    {
+      "path": "evidence/stage15/2026-09-11/run42-wayland-assets/process-binding.txt",
+      "originalSha256": "28af4b6a32bb3b21256ca5e86673c2f2522554221b7a121864f0a350748a5486",
+      "normalizedSha256": "289c6452688088865ca0bceadf01bb8b7ddfb3ab4d0839b38c019d903b744a00"
+    },
+    {
+      "path": "evidence/stage15/2026-09-11/run42-wayland-fabric/apt-install.log",
+      "originalSha256": "3b1a5f1eafb1949ddb8b619d1a8ad53a6df311cc8ea69dcb928c9b2adbd8abcd",
+      "normalizedSha256": "099f0796cbd4110889606581fb7389759571b40d1b2df4ee67e6559548faf50e"
+    },
+    {
+      "path": "evidence/stage15/2026-09-11/run42-wayland-neoforge/apt-install.log",
+      "originalSha256": "3b1a5f1eafb1949ddb8b619d1a8ad53a6df311cc8ea69dcb928c9b2adbd8abcd",
+      "normalizedSha256": "099f0796cbd4110889606581fb7389759571b40d1b2df4ee67e6559548faf50e"
+    },
+    {
+      "path": "evidence/stage15/2026-09-11/run42-wayland-neoforge/minecraft-latest.log",
+      "originalSha256": "a1c378136c2c57f8e877cee8f6ca31f0f48bab6ba69afcdd2bfe9e9af40448a8",
+      "normalizedSha256": "a2e7d7c6edb33f066caa18160e190474fecdf46ff7d822e40c07551a790426b9"
+    },
+    {
+      "path": "evidence/stage15/2026-09-11/run42-xorg-agent/helper.log",
+      "originalSha256": "b1586714f1c57395f677fec72ef189c37815ed0dd541b421d3101c9ac3331939",
+      "normalizedSha256": "c2b3576f12e995f63a76d59b735df32f3d2ce0e08b12443c80d8051d655105d4"
+    },
+    {
+      "path": "evidence/stage15/2026-09-11/run42-xorg-fabric/apt-install.log",
+      "originalSha256": "3b1a5f1eafb1949ddb8b619d1a8ad53a6df311cc8ea69dcb928c9b2adbd8abcd",
+      "normalizedSha256": "099f0796cbd4110889606581fb7389759571b40d1b2df4ee67e6559548faf50e"
+    },
+    {
+      "path": "evidence/stage15/2026-09-11/run42-xorg-neoforge/apt-install.log",
+      "originalSha256": "3b1a5f1eafb1949ddb8b619d1a8ad53a6df311cc8ea69dcb928c9b2adbd8abcd",
+      "normalizedSha256": "099f0796cbd4110889606581fb7389759571b40d1b2df4ee67e6559548faf50e"
+    },
+    {
+      "path": "evidence/stage15/2026-09-11/run42-xorg-neoforge/minecraft-latest.log",
+      "originalSha256": "6b9e471d2e283857ab13bd13bcbdd50ef5516a03baff4f1012e7dcf98c2e674a",
+      "normalizedSha256": "8e71ff35f27d3c2101cd1a84f9a98ef6b6390479dd4532ce6735d23411965618"
+    }
+  ]
+}

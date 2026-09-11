@@ -18,6 +18,7 @@ import dev.copperbench.generator.BundledJdkLocator;
 import dev.copperbench.generator.GradleWorkspaceBackend;
 import dev.copperbench.generator.PluginWorkspaceLayout;
 import dev.copperbench.generator.fabric.Fabric1211Generator;
+import dev.copperbench.platform.RuntimePlatform;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -42,22 +43,22 @@ public final class NeoForge1211Generator implements GradleWorkspaceBackend {
 	public static final String TEMPLATE_SOURCE = Profile.NEOFORGE_1211.templateSource();
 
 	public record Profile(String generatorId, String minecraftVersion, String neoForgeVersion, String moddevVersion,
-			int javaRelease, String readyMarker, String templateSource, String jdkRelativePath,
-			Fabric1211Generator.Profile fabricProfile, boolean modernDeferred) {
+			int javaRelease, String readyMarker, String templateSource, Fabric1211Generator.Profile fabricProfile,
+			boolean modernDeferred) {
 		public static final Profile NEOFORGE_1211 = new Profile("neoforge-1.21.1", "1.21.1", "21.1.232", "2.0.141",
-				21, "COPPERBENCH_STAGE5_NEOFORGE_READY", "plugins/generator-1.21.1/neoforge-1.21.1",
-				"jdk/jdk21_win_64", Fabric1211Generator.Profile.FABRIC_1211, true);
+				21, "COPPERBENCH_STAGE5_NEOFORGE_READY", "plugins/generator-1.21.1/neoforge-1.21.1", Fabric1211Generator.Profile.FABRIC_1211, true);
 		public static final Profile NEOFORGE_261 = new Profile("neoforge-26.1.2", "26.1.2", "26.1.2.95", "2.0.141",
-				25, "COPPERBENCH_STAGE7_NEOFORGE261_READY", "plugins/generator-26.1.x/neoforge-26.1.2",
-				"jdk/jbr25_win_64", Fabric1211Generator.Profile.FABRIC_261, true);
+				25, "COPPERBENCH_STAGE7_NEOFORGE261_READY", "plugins/generator-26.1.x/neoforge-26.1.2", Fabric1211Generator.Profile.FABRIC_261, true);
 		public static final Profile NEOFORGE_262 = new Profile("neoforge-26.2", "26.2", "26.2.0.63", "2.0.141",
-				25, "COPPERBENCH_STAGE7_NEOFORGE262_READY", "neoforge-26.2-first-party",
-				"jdk/jbr25_win_64", Fabric1211Generator.Profile.FABRIC_262, true);
+				25, "COPPERBENCH_STAGE7_NEOFORGE262_READY", "neoforge-26.2-first-party", Fabric1211Generator.Profile.FABRIC_262, true);
 		public static final Profile NEOFORGE_1201 = new Profile("neoforge-1.20.1", "1.20.1", "47.1.106", "7.0.165",
-				17, "COPPERBENCH_STAGE7_NEOFORGE1201_READY", "neoforge-1.20.1-maintenance",
-				"jdk/jdk21_win_64", Fabric1211Generator.Profile.FABRIC_1201, false);
+				17, "COPPERBENCH_STAGE7_NEOFORGE1201_READY", "neoforge-1.20.1-maintenance", Fabric1211Generator.Profile.FABRIC_1201, false);
 
 		/** 1.20.1 NeoForged publishes Forge-named artifacts, not net.neoforged:neoforge. */
+		public String jdkRelativePath() {
+			return RuntimePlatform.current().sourceJavaHome(javaRelease);
+		}
+
 		public String loaderDependency() {
 			return modernDeferred ? "net.neoforged:neoforge:" + neoForgeVersion
 					: "net.neoforged:forge:" + minecraftVersion + "-" + neoForgeVersion;

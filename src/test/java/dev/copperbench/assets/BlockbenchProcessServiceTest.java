@@ -1,5 +1,6 @@
 package dev.copperbench.assets;
 
+import dev.copperbench.platform.RuntimePlatform;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -19,6 +20,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -60,6 +62,26 @@ class BlockbenchProcessServiceTest {
 		assertThrows(BlockbenchBridgeException.class, () -> service.openAsset(model.id()));
 		service.close();
 		assertTrue(process.destroyed);
+	}
+
+	@Test void launchesLinuxExecutableWhenVersionMetadataIsUnavailable() throws IOException {
+		Path executable = temp.resolve("blockbench");
+		Files.write(executable, new byte[] { 1 });
+		executable.toFile().setExecutable(true, true);
+		AtomicReference<List<String>> command = new AtomicReference<>();
+		FakeProcess process = new FakeProcess(7789);
+		var detector = new BlockbenchInstallationDetector(RuntimePlatform.detect("Linux", "x86_64"), path -> null);
+		var service = new BlockbenchProcessService(new AssetWorkspaceService(workspace), executable, arguments -> {
+			command.set(arguments);
+			return process;
+		}, detector);
+
+		assertEquals(BlockbenchProcessService.State.READY, service.status().state());
+		var opened = service.openAsset(model.id());
+		assertEquals(BlockbenchProcessService.State.RUNNING, opened.state());
+		assertEquals(executable.toAbsolutePath().toString(), command.get().getFirst());
+		assertNull(opened.blockbenchVersion());
+		service.close();
 	}
 
 	@Test void rejectsAnIndexedNonBlockbenchAsset() throws IOException {

@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "1.0",
+  "probe": "graphical-product-shell",
+  "status": "ready",
+  "observedAt": "2026-09-11T01:15:54.665290404Z",
+  "formalSupportClaim": false,
+  "jcefMainFrameLoaded": true,
+  "workspaceId": "6f30dc5b-46c0-4daa-b28d-26e9b69e049d",
+  "workspaceRoot": "/home/stage15/MCreatorWorkspaces/stage15_neoforge_xorg_0910",
+  "platform": {
+    "os": "linux",
+    "arch": "x86_64",
+    "desktop": {
+      "sessionType": "wayland",
+      "waylandDisplayPresent": true,
+      "x11DisplayPresent": true,
+      "certificationRole": "stage15-primary-target",
+      "knownLimitations": [],
+      "stage15CertificationPending": true
+    }
+  },
+  "mcp": {
+    "status": "listening",
+    "url": "http://127.0.0.1:33865/mcp",
+    "workspaceId": "6f30dc5b-46c0-4daa-b28d-26e9b69e049d",
+    "permissionProfile": "workspace",
+    "expiresAt": "2026-09-11T13:15:53.695690069Z",
+    "tokenAvailable": true
+  }
+}

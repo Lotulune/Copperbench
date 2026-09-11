@@ -195,7 +195,7 @@ public class ${name}Entity extends AbstractArrow implements ItemSupplier {
 		</#if>
 
 		<#if !data.disableDiscarding>
-		if (this.isInGround())
+		if (this.inGround)
 			this.discard();
 		</#if>
 	}

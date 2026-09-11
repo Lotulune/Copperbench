@@ -1,0 +1,76 @@
+{
+  "status": "passed",
+  "mainCommit": "a3b868ee493d37420dad14b3bfe291fbd84311e5",
+  "stage15Parent": "d6b24d04931ec3916a2ef19cdf4fcfcc8922a52a",
+  "junitSuites": [
+    {
+      "class": "dev.copperbench.core.application.WorkspacePlanEngineTest",
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "dev.copperbench.core.application.WorkspaceTaskEventTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "dev.copperbench.core.workspace.mcreator.CodeElementPersistenceTest",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "dev.copperbench.generator.PluginWorkspaceLayoutTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "dev.copperbench.generator.fabric.Fabric1211GeneratorTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "dev.copperbench.generator.neoforge.NeoForge1211GeneratorTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "dev.copperbench.mcp.McpHttpServerTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "dev.copperbench.core.workspace.WorkspaceCreationServiceTest",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "net.mcreator.ui.chromium.CefUtilsAccessibilityTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "junitTotal": 56,
+  "uiCoreTestsPassed": 20,
+  "uiShellBuildPassed": true,
+  "i18nKeysPassed": 234,
+  "replacementInstalledCandidateRequired": true,
+  "formalSupportClaim": false
+}

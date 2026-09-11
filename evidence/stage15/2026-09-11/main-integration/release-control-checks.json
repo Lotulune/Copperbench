@@ -1,0 +1,12 @@
+{
+  "status": "passed",
+  "linuxReleaseContractsPassed": 12,
+  "wrapperPermissionTestsPassed": 7,
+  "workflowYamlParsed": true,
+  "workflowBashSyntaxPassed": true,
+  "pendingAuthorizationRejected": true,
+  "run36Status": "failed-before-packaging-static-source-text-assertion",
+  "runtimeSourceChangedToFixRun36": false,
+  "replacementCandidatePending": true,
+  "formalSupportClaim": false
+}

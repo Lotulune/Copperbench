@@ -52,6 +52,7 @@ public final class HeadlessCli {
 				JsonArray commands = new JsonArray();
 				commands.add("validate");
 				commands.add("build");
+				commands.add("run-client");
 				commands.add("run-server");
 				commands.add("run-datagen");
 				commands.add("preview-datagen");
@@ -102,7 +103,8 @@ public final class HeadlessCli {
 			if (!payload.has("scope"))
 				payload.addProperty("scope", "workspace");
 			long revision = parsed.revision();
-			if ((parsed.operation() == Operation.VALIDATE_WORKSPACE || parsed.operation() == Operation.BUILD_WORKSPACE)
+			if ((parsed.operation() == Operation.VALIDATE_WORKSPACE || parsed.operation() == Operation.BUILD_WORKSPACE
+					|| parsed.operation() == Operation.RUN_CLIENT)
 					&& !parsed.revisionExplicit()) {
 				JsonObject revisionProbe = new JsonObject();
 				revisionProbe.addProperty("limit", 1);
@@ -150,6 +152,7 @@ public final class HeadlessCli {
 		Operation operation = switch (arguments[0]) {
 			case "validate" -> Operation.VALIDATE_WORKSPACE;
 			case "build" -> Operation.BUILD_WORKSPACE;
+			case "run-client" -> Operation.RUN_CLIENT;
 			case "run-server" -> Operation.RUN_SERVER;
 			case "run-datagen" -> Operation.RUN_DATAGEN;
 			case "preview-datagen" -> Operation.PREVIEW_DATAGEN_OUTPUT;

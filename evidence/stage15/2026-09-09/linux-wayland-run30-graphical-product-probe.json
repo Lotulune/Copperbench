@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "1.0",
+  "probe": "graphical-product-shell",
+  "status": "ready",
+  "observedAt": "2026-09-09T11:15:42.511424025Z",
+  "formalSupportClaim": false,
+  "jcefMainFrameLoaded": true,
+  "workspaceId": "9426259c-c2ec-4a0d-896f-222201506755",
+  "workspaceRoot": "/home/stage15/MCreatorWorkspaces/stage15-fabric-wayland-20260909T111452Z",
+  "platform": {
+    "os": "linux",
+    "arch": "x86_64",
+    "desktop": {
+      "sessionType": "wayland",
+      "waylandDisplayPresent": true,
+      "x11DisplayPresent": true,
+      "certificationRole": "stage15-primary-target",
+      "knownLimitations": [],
+      "stage15CertificationPending": true
+    }
+  },
+  "mcp": {
+    "status": "not_started",
+    "workspaceId": "9426259c-c2ec-4a0d-896f-222201506755",
+    "permissionProfile": "workspace",
+    "tokenAvailable": false,
+    "failure": "IllegalStateException: Unable to create the directory [/opt/copperbench/tomcat.0] to use as the base directory"
+  }
+}
