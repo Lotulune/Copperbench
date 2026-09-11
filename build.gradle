@@ -42,6 +42,8 @@ tasks.register('buildUiShell', Exec) {
         exclude 'dist/**', 'node_modules/**', 'test-results/**', 'playwright-report/**'
     })
     inputs.dir 'ui-core/fixtures/v1.0'
+    // The localization gate also scans diagnostic keys declared in Java.
+    inputs.files(fileTree('src/main/java/dev/copperbench') { include '**/*.java' })
     outputs.dir 'ui-shell/dist'
 }
 

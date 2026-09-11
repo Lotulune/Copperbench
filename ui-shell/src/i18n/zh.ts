@@ -5,6 +5,7 @@
  */
 export const zh: Record<string, string> = {
   'diagnostic.gametest_not_verified': '测试未通过验收，请查看用例与报告。',
+  'diagnostic.gradle_loopback_unavailable': '工作区 Java 无法建立本机通信。请检查本机回环连接和随包 JDK 后重试；构建任务尚未启动。',
   'diagnostic.gametest_recovery_failed': '未能创建恢复点，测试模板尚未写入。',
   'diagnostic.gametest_setup_failed': '测试配置或宿主准备失败，请查看任务日志中的原因。',
   'diagnostic.task_authorization_denied': '任务授权不可用、已到期、已撤销或超出范围，请在 AI 与 MCP 中查看。',
