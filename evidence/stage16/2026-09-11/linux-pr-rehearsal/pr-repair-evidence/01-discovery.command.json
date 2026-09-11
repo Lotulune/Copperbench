@@ -1,0 +1,14 @@
+{
+  "label": "01-discovery",
+  "command": [
+    "/usr/bin/copperbench",
+    "bootstrap",
+    "list-generators"
+  ],
+  "startedAt": "2026-09-11T13:20:31.507708+00:00",
+  "callerRuntimeOptionsRemoved": [],
+  "firstOutputMs": 2438,
+  "processExitCode": 0,
+  "completedAt": "2026-09-11T13:20:33.963132+00:00",
+  "elapsedMs": 2455
+}

@@ -33,6 +33,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 /** Product-level {@code Copperbench launcher headless --workspace ...} entry point. */
@@ -49,19 +50,22 @@ public final class HeadlessProductLauncher {
 				&& response.getAsJsonObject("task").has("id");
 	}
 
-	private static int awaitTask(HeadlessWorkspaceEntryAdapter adapter, UUID workspaceId, Supplier<UUID> ids,
-			JsonObject response, PrintWriter output, boolean stream) throws InterruptedException {
+	static int awaitTask(Function<Query, QueryResult> queryTask, UUID workspaceId, Supplier<UUID> ids,
+			JsonObject response, PrintWriter output, boolean stream, Supplier<Instant> now) throws InterruptedException {
 		UUID taskId = UUID.fromString(response.getAsJsonObject("task").get("id").getAsString());
-		Instant deadline = Instant.now().plus(Duration.ofMinutes(45));
+		String operation = response.get("operation").getAsString();
+		// Interactive processes belong to the user's session and finish when the process closes.
+		boolean interactive = "run_client".equals(operation) || "run_server".equals(operation);
+		Instant deadline = interactive ? null : now.get().plus(Duration.ofMinutes(45));
 		long afterSequence = 0;
 		JsonArray allLogs = new JsonArray();
 		String lastTask = "";
 		if (stream) { output.println(GSON.toJson(response)); output.flush(); }
-		while (Instant.now().isBefore(deadline)) {
+		while (deadline == null || now.get().isBefore(deadline)) {
 			JsonObject payload = new JsonObject();
 			payload.addProperty("taskId", taskId.toString());
 			payload.addProperty("afterLogSequence", afterSequence);
-			QueryResult result = adapter.query(Query.of(ids.get(), workspaceId, Operation.GET_TASK, payload));
+			QueryResult result = queryTask.apply(Query.of(ids.get(), workspaceId, Operation.GET_TASK, payload));
 			if (!"succeeded".equals(result.status())) {
 				response.addProperty("status", "failed");
 				response.addProperty("code", "HEADLESS_TASK_QUERY_FAILED");
@@ -71,6 +75,7 @@ public final class HeadlessProductLauncher {
 			}
 			JsonObject projection = result.data().getAsJsonObject();
 			JsonObject task = projection.getAsJsonObject("task");
+			response.add("task", task.deepCopy());
 			JsonArray entries = projection.getAsJsonArray("logs");
 			for (var entry : entries) {
 				afterSequence = Math.max(afterSequence, entry.getAsJsonObject().get("sequence").getAsLong());
@@ -97,6 +102,7 @@ public final class HeadlessProductLauncher {
 		}
 		response.addProperty("status", "failed");
 		response.addProperty("code", "HEADLESS_TASK_TIMEOUT");
+		response.add("logs", allLogs);
 		response.addProperty("exitCode", HeadlessExitCode.INTERNAL_ERROR.code());
 		return HeadlessExitCode.INTERNAL_ERROR.code();
 	}
@@ -124,7 +130,7 @@ public final class HeadlessProductLauncher {
 				int exitCode = cli.run(invocation.commandArguments(), new PrintWriter(buffered, true));
 				JsonObject response = JsonParser.parseString(buffered.toString().trim()).getAsJsonObject();
 				if (exitCode == HeadlessExitCode.SUCCESS.code() && isAcceptedTask(response))
-					exitCode = awaitTask(adapter, session.workspaceId(), ids, response, output, stream);
+					exitCode = awaitTask(adapter::query, session.workspaceId(), ids, response, output, stream, Instant::now);
 				output.println(GSON.toJson(response));
 				output.flush();
 				return exitCode;

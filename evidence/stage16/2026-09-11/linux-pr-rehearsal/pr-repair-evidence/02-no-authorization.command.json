@@ -1,0 +1,24 @@
+{
+  "label": "02-no-authorization",
+  "command": [
+    "/usr/bin/copperbench",
+    "bootstrap",
+    "create-workspace",
+    "--generator-id",
+    "fabric-1.21.1",
+    "--mod-name",
+    "Stage16 Approval Probe",
+    "--mod-id",
+    "stage16_approval_probe",
+    "--workspace-folder",
+    "/home/stage15/stage16-3c0aa090/pr-repair-workspace/unapproved-child",
+    "--no-prompt",
+    "true"
+  ],
+  "startedAt": "2026-09-11T13:20:33.963441+00:00",
+  "callerRuntimeOptionsRemoved": [],
+  "firstOutputMs": 2086,
+  "processExitCode": 3,
+  "completedAt": "2026-09-11T13:20:36.068598+00:00",
+  "elapsedMs": 2105
+}

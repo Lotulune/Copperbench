@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "1.0",
+  "status": "passed",
+  "scope": "Source-level headless lifecycle and CLI regression; not a packaged client pass",
+  "sourceTests": 11,
+  "cliTests": 7,
+  "failures": 0,
+  "packagedClientVerified": false,
+  "controlledClock": true,
+  "runtimeOptions": "Process-local JDK socket compatibility option used for source Gradle tests"
+}

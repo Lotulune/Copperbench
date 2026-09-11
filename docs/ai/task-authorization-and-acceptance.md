@@ -129,6 +129,8 @@ Fabric 测试入口由 `entrypoints` 注册。NeoForge 1.20.1/1.21.1 使用 Game
 
 标准输出按行返回 JSON：初始化状态、任务接受结果、含增量日志的 `task_update`、最终结果。默认不加 `--stream true` 时仍返回原有单个最终 JSON。MCP/SDK 继续使用 `get_task(taskId, afterLogSequence)`；不要反复从 0 请求整段日志，也不要把任务已接受当成验收完成。
 
+`run-client` 和 `run-server` 持续观察实际运行任务，直到进程正常关闭、失败或取消；它们不套用有限构建／验收任务的 45 分钟等待上限。需要检查命令终态，不能用渲染就绪日志代替正常关闭证据。
+
 ## 无交互启动与 Windows 运行恢复
 
 外部 agent 创建工作区时应传入 `--no-prompt true`。没有任务授权时，产品立即返回 `USER_APPROVAL_REQUIRED`、请求的目录/模组/生成器和所需 `create` 范围，供用户审查；不会进入等待不可见弹窗的状态。拿到用户签发的授权 ID 后，保留该参数重试即可。默认不传此参数的本机创建命令仍显示原有确认窗口。

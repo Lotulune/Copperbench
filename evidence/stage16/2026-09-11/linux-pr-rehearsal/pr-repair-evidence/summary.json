@@ -1,0 +1,731 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "stage16-installed-cli-repair",
+  "status": "passed",
+  "startedAt": "2026-09-11T13:20:31.502949+00:00",
+  "candidateSha256": "65dafdee5f8e06b922ae336eb687aa955c3b43029f2f3feaca0deeeb18eca520",
+  "candidateSourceCommit": "94346b61d98ade884113f17dc3c1b6fc6edb79e4",
+  "productExecutable": "/usr/bin/copperbench",
+  "applicationJarSha256": "71e94c61ca0a807c09bfda0a85f0255eef209c0548c1779b0c6f3ec9eb3c4e67",
+  "freshAgent": false,
+  "authorizedCreationExercised": false,
+  "desktopAcceptanceExercised": false,
+  "clientBehaviorVerified": false,
+  "cacheState": "Existing guest Gradle and Minecraft caches; new workspace directory, not cold-cache certification",
+  "humanInterventionsDuringReplay": 0,
+  "steps": [
+    {
+      "label": "01-discovery",
+      "command": [
+        "/usr/bin/copperbench",
+        "bootstrap",
+        "list-generators"
+      ],
+      "startedAt": "2026-09-11T13:20:31.507708+00:00",
+      "callerRuntimeOptionsRemoved": [],
+      "firstOutputMs": 2438,
+      "processExitCode": 0,
+      "completedAt": "2026-09-11T13:20:33.963132+00:00",
+      "elapsedMs": 2455,
+      "result": {
+        "schemaVersion": "1.0",
+        "operation": "list_new_workspace_generators",
+        "status": "succeeded",
+        "exitCode": 0,
+        "data": {
+          "schemaVersion": "1.0",
+          "generators": [
+            {
+              "generatorId": "fabric-26.2",
+              "loader": "fabric",
+              "minecraftVersion": "26.2",
+              "trackId": "latest_stable",
+              "displayName": "fabric-26.2",
+              "dynamic": true,
+              "available": true,
+              "workspaceGeneratorName": "fabric-26.2"
+            },
+            {
+              "generatorId": "neoforge-26.2",
+              "loader": "neoforge",
+              "minecraftVersion": "26.2",
+              "trackId": "latest_stable",
+              "displayName": "neoforge-26.2",
+              "dynamic": true,
+              "available": true,
+              "workspaceGeneratorName": "neoforge-26.2"
+            },
+            {
+              "generatorId": "fabric-26.1.2",
+              "loader": "fabric",
+              "minecraftVersion": "26.1",
+              "trackId": "previous_stable",
+              "displayName": "fabric-26.1.2",
+              "dynamic": true,
+              "available": true,
+              "workspaceGeneratorName": "fabric-26.1.2"
+            },
+            {
+              "generatorId": "neoforge-26.1.2",
+              "loader": "neoforge",
+              "minecraftVersion": "26.1",
+              "trackId": "previous_stable",
+              "displayName": "neoforge-26.1.2",
+              "dynamic": true,
+              "available": true,
+              "workspaceGeneratorName": "neoforge-26.1.2"
+            },
+            {
+              "generatorId": "fabric-1.21.1",
+              "loader": "fabric",
+              "minecraftVersion": "1.21.1",
+              "trackId": "minecraft_1_21_1",
+              "displayName": "fabric-1.21.1",
+              "dynamic": false,
+              "available": true,
+              "workspaceGeneratorName": "fabric-1.21.1"
+            },
+            {
+              "generatorId": "neoforge-1.21.1",
+              "loader": "neoforge",
+              "minecraftVersion": "1.21.1",
+              "trackId": "minecraft_1_21_1",
+              "displayName": "neoforge-1.21.1",
+              "dynamic": false,
+              "available": true,
+              "workspaceGeneratorName": "neoforge-1.21.1"
+            },
+            {
+              "generatorId": "fabric-1.20.1",
+              "loader": "fabric",
+              "minecraftVersion": "1.20.1",
+              "trackId": "minecraft_1_20_1",
+              "displayName": "fabric-1.20.1",
+              "dynamic": false,
+              "available": true,
+              "workspaceGeneratorName": "fabric-1.20.1"
+            },
+            {
+              "generatorId": "neoforge-1.20.1",
+              "loader": "neoforge",
+              "minecraftVersion": "1.20.1",
+              "trackId": "minecraft_1_20_1",
+              "displayName": "neoforge-1.20.1",
+              "dynamic": false,
+              "available": true,
+              "workspaceGeneratorName": "neoforge-1.20.1"
+            },
+            {
+              "generatorId": "resourcepack-1.21.1",
+              "loader": "resource_pack",
+              "minecraftVersion": "1.21.1",
+              "trackId": "resource_pack",
+              "displayName": "Resource Pack 1.21.1",
+              "dynamic": false,
+              "available": true,
+              "workspaceGeneratorName": "resourcepack-1.21.1"
+            }
+          ],
+          "suggestedWorkspaceFoldersRoot": "/home/stage15/MCreatorWorkspaces"
+        },
+        "diagnostics": []
+      }
+    },
+    {
+      "label": "02-no-authorization",
+      "command": [
+        "/usr/bin/copperbench",
+        "bootstrap",
+        "create-workspace",
+        "--generator-id",
+        "fabric-1.21.1",
+        "--mod-name",
+        "Stage16 Approval Probe",
+        "--mod-id",
+        "stage16_approval_probe",
+        "--workspace-folder",
+        "/home/stage15/stage16-3c0aa090/pr-repair-workspace/unapproved-child",
+        "--no-prompt",
+        "true"
+      ],
+      "startedAt": "2026-09-11T13:20:33.963441+00:00",
+      "callerRuntimeOptionsRemoved": [],
+      "firstOutputMs": 2086,
+      "processExitCode": 3,
+      "completedAt": "2026-09-11T13:20:36.068598+00:00",
+      "elapsedMs": 2105,
+      "result": {
+        "schemaVersion": "1.0",
+        "operation": "create_workspace",
+        "status": "rejected",
+        "exitCode": 3,
+        "diagnostics": [
+          {
+            "code": "USER_APPROVAL_REQUIRED",
+            "severity": "error",
+            "message": "Creating a workspace is a protected operation and requires local user confirmation."
+          }
+        ],
+        "code": "USER_APPROVAL_REQUIRED",
+        "denial": {
+          "approvalRequired": true,
+          "protectedOperation": true,
+          "workspaceFolder": "/home/stage15/stage16-3c0aa090/pr-repair-workspace/unapproved-child",
+          "modName": "Stage16 Approval Probe",
+          "generatorId": "fabric-1.21.1",
+          "requiredCapability": "create",
+          "nextAction": "Ask the local user to grant this task in AI and MCP > Task authorization, then retry with --task-authorization <id>."
+        }
+      }
+    },
+    {
+      "label": "03-environment",
+      "command": [
+        "/usr/bin/copperbench",
+        "headless",
+        "--workspace",
+        "/home/stage15/stage16-3c0aa090/pr-repair-workspace/resonance_token.mcreator",
+        "environment"
+      ],
+      "startedAt": "2026-09-11T13:20:36.068944+00:00",
+      "callerRuntimeOptionsRemoved": [],
+      "firstOutputMs": 2311,
+      "processExitCode": 0,
+      "completedAt": "2026-09-11T13:20:38.449443+00:00",
+      "elapsedMs": 2381,
+      "result": {
+        "messageType": "query_result",
+        "schemaVersion": "1.0",
+        "requestId": "40113fbf-1d7b-4332-82bf-2eab28473041",
+        "workspaceId": "9b98a83d-fac1-4dc0-9cda-8b5f940e2587",
+        "operation": "get_workspace_environment",
+        "status": "succeeded",
+        "revision": 0,
+        "data": {
+          "schemaVersion": "1.0",
+          "workspaceId": "9b98a83d-fac1-4dc0-9cda-8b5f940e2587",
+          "workspaceName": "Resonance Token",
+          "workspaceKind": "mod",
+          "revision": 0,
+          "generator": {
+            "id": "fabric-1.21.1",
+            "loader": "fabric",
+            "minecraftVersion": "1.21.1",
+            "displayName": "Fabric 1.21.1",
+            "state": "ready"
+          },
+          "workspaceRoot": "/home/stage15/stage16-3c0aa090/pr-repair-workspace",
+          "execution": {
+            "generatorId": "fabric-1.21.1",
+            "minecraftVersion": "1.21.1",
+            "workspaceRoot": "/home/stage15/stage16-3c0aa090/pr-repair-workspace",
+            "sourceRoot": "/home/stage15/stage16-3c0aa090/pr-repair-workspace/src/main/java",
+            "resourceRoot": "/home/stage15/stage16-3c0aa090/pr-repair-workspace/src/main/resources",
+            "java": {
+              "requiredRelease": 21,
+              "home": "/opt/copperbench/jdk21",
+              "executable": "/opt/copperbench/jdk21/bin/java"
+            },
+            "gradle": {
+              "distribution": "gradle-9.7.0-bin.zip",
+              "windowsLauncher": "/home/stage15/stage16-3c0aa090/pr-repair-workspace/gradlew.bat",
+              "posixLauncher": "/home/stage15/stage16-3c0aa090/pr-repair-workspace/gradlew",
+              "tasks": {
+                "build": "build",
+                "runClient": "runClient",
+                "runServer": "runServer",
+                "runDatagen": "runDatagen",
+                "runGameTest": "runGameTest"
+              }
+            },
+            "loader": "fabric",
+            "loaderVersion": "0.19.3",
+            "fabricApiVersion": "0.116.15+1.21.1",
+            "loomVersion": "1.17.19",
+            "testing": {
+              "supported": true,
+              "configurationPath": "/home/stage15/stage16-3c0aa090/pr-repair-workspace/copperbench-tests.json",
+              "prepareOperation": "prepare_game_tests",
+              "state": "configured",
+              "mode": "packaged_jar",
+              "minimumTests": 5
+            },
+            "host": {
+              "os": "linux",
+              "arch": "x86_64",
+              "desktop": {
+                "sessionType": "headless",
+                "waylandDisplayPresent": false,
+                "x11DisplayPresent": false,
+                "certificationRole": "not-graphical",
+                "knownLimitations": [
+                  "Graphical JCEF and runClient cannot be certified in a headless session."
+                ],
+                "stage15CertificationPending": true
+              }
+            }
+          },
+          "agentWorkflow": {
+            "nativeFilesAuthoritative": true,
+            "structuredElementsOptional": true,
+            "validateOperation": "validate_workspace",
+            "buildOperation": "build_workspace",
+            "diagnosticsOperation": "get_task",
+            "healthOperation": "get_workspace_health",
+            "planOperation": "plan_workspace_changes"
+          }
+        },
+        "diagnostics": [],
+        "exitCode": 0
+      }
+    },
+    {
+      "label": "04-compile-failure",
+      "command": [
+        "/usr/bin/copperbench",
+        "headless",
+        "--workspace",
+        "/home/stage15/stage16-3c0aa090/pr-repair-workspace/resonance_token.mcreator",
+        "build",
+        "--stream",
+        "true"
+      ],
+      "startedAt": "2026-09-11T13:20:38.449877+00:00",
+      "callerRuntimeOptionsRemoved": [],
+      "firstOutputMs": 655,
+      "processExitCode": 10,
+      "completedAt": "2026-09-11T13:22:12.412074+00:00",
+      "elapsedMs": 93962,
+      "result": {
+        "messageType": "command_result",
+        "schemaVersion": "1.0",
+        "requestId": "12d94fb2-cefa-4f74-90c9-ef186fb60def",
+        "workspaceId": "9b98a83d-fac1-4dc0-9cda-8b5f940e2587",
+        "operation": "build_workspace",
+        "status": "failed",
+        "newRevision": 0,
+        "task": {
+          "id": "d189c389-7bac-49ef-b737-2710f3ed9c3b",
+          "kind": "build",
+          "state": "failed",
+          "cancellable": false,
+          "progress": 1,
+          "stage": {
+            "key": "task.failed",
+            "fallback": "Fabric 1.21.1 task failed",
+            "args": {
+              "backend": "Fabric 1.21.1"
+            }
+          },
+          "startedAt": "2026-09-11T13:20:40.846473447Z",
+          "completedAt": "2026-09-11T13:22:12.340524132Z",
+          "diagnostics": {
+            "error": 2,
+            "warning": 0,
+            "info": 0
+          }
+        },
+        "diagnostics": [
+          {
+            "code": "JAVA_COMPILE_ERROR",
+            "severity": "error",
+            "message": {
+              "key": "diagnostic.java_compile_error",
+              "fallback": "Line 1: cannot find symbol",
+              "args": {
+                "message": "Line 1: cannot find symbol"
+              }
+            },
+            "path": "/src/main/java/copperbench/trial/CompileFailureProbe.java",
+            "recoverable": true,
+            "actions": [
+              {
+                "id": "open_generated_source",
+                "label": {
+                  "key": "action.open_source",
+                  "fallback": "View generated source",
+                  "args": {}
+                },
+                "kind": "open_source",
+                "target": "/src/main/java/copperbench/trial/CompileFailureProbe.java"
+              },
+              {
+                "id": "open_task_logs",
+                "label": {
+                  "key": "action.open_logs",
+                  "fallback": "View task logs",
+                  "args": {}
+                },
+                "kind": "open_logs",
+                "target": "d189c389-7bac-49ef-b737-2710f3ed9c3b"
+              }
+            ]
+          },
+          {
+            "code": "FABRIC_BUILD_FAILED",
+            "severity": "error",
+            "message": {
+              "key": "diagnostic.workspace_task_failed",
+              "fallback": "The {backend} {task} task failed.",
+              "args": {
+                "backend": "Fabric 1.21.1",
+                "task": "build",
+                "failureId": "caa962e4-53ad-4907-b5bc-372517b80e9d"
+              }
+            },
+            "recoverable": true,
+            "actions": [
+              {
+                "id": "open_logs",
+                "label": {
+                  "key": "action.open_logs",
+                  "fallback": "View logs",
+                  "args": {}
+                },
+                "kind": "open_logs",
+                "target": "caa962e4-53ad-4907-b5bc-372517b80e9d",
+                "payload": {
+                  "taskId": "d189c389-7bac-49ef-b737-2710f3ed9c3b"
+                }
+              }
+            ]
+          }
+        ],
+        "exitCode": 10,
+        "logs": []
+      }
+    },
+    {
+      "label": "05-repaired-build",
+      "command": [
+        "/usr/bin/copperbench",
+        "headless",
+        "--workspace",
+        "/home/stage15/stage16-3c0aa090/pr-repair-workspace/resonance_token.mcreator",
+        "build",
+        "--stream",
+        "true"
+      ],
+      "startedAt": "2026-09-11T13:22:12.412483+00:00",
+      "callerRuntimeOptionsRemoved": [],
+      "firstOutputMs": 663,
+      "processExitCode": 0,
+      "completedAt": "2026-09-11T13:22:29.101063+00:00",
+      "elapsedMs": 16689,
+      "result": {
+        "messageType": "command_result",
+        "schemaVersion": "1.0",
+        "requestId": "27e1f082-85e6-4c7d-a23f-7f2097b6f082",
+        "workspaceId": "9b98a83d-fac1-4dc0-9cda-8b5f940e2587",
+        "operation": "build_workspace",
+        "status": "succeeded",
+        "newRevision": 0,
+        "task": {
+          "id": "da9548ec-58bf-4fe7-a400-10737fd3de86",
+          "kind": "build",
+          "state": "succeeded",
+          "cancellable": false,
+          "progress": 1,
+          "stage": {
+            "key": "task.build.completed",
+            "fallback": "Fabric 1.21.1 build completed",
+            "args": {
+              "backend": "Fabric 1.21.1"
+            }
+          },
+          "startedAt": "2026-09-11T13:22:15.408497151Z",
+          "completedAt": "2026-09-11T13:22:28.980295208Z",
+          "diagnostics": {
+            "error": 0,
+            "warning": 0,
+            "info": 0
+          }
+        },
+        "diagnostics": [],
+        "exitCode": 0,
+        "logs": []
+      }
+    },
+    {
+      "label": "06-accepted",
+      "command": [
+        "/usr/bin/copperbench",
+        "headless",
+        "--workspace",
+        "/home/stage15/stage16-3c0aa090/pr-repair-workspace/resonance_token.mcreator",
+        "run-gametest",
+        "--stream",
+        "true"
+      ],
+      "startedAt": "2026-09-11T13:22:29.104395+00:00",
+      "callerRuntimeOptionsRemoved": [],
+      "firstOutputMs": 667,
+      "processExitCode": 0,
+      "completedAt": "2026-09-11T13:24:05.075353+00:00",
+      "elapsedMs": 95971,
+      "result": {
+        "messageType": "command_result",
+        "schemaVersion": "1.0",
+        "requestId": "720f17ee-9bbc-457d-be05-55bb6dfa9bd7",
+        "workspaceId": "9b98a83d-fac1-4dc0-9cda-8b5f940e2587",
+        "operation": "run_gametest",
+        "status": "succeeded",
+        "newRevision": 0,
+        "task": {
+          "id": "676ee051-4a0c-4b97-b42e-b1ee24c9f010",
+          "kind": "run_gametest",
+          "state": "succeeded",
+          "cancellable": false,
+          "progress": 1,
+          "stage": {
+            "key": "task.run_gametest.completed",
+            "fallback": "Fabric 1.21.1 run_gametest completed",
+            "args": {
+              "backend": "Fabric 1.21.1"
+            }
+          },
+          "startedAt": "2026-09-11T13:22:31.797448678Z",
+          "completedAt": "2026-09-11T13:24:04.815414670Z",
+          "diagnostics": {
+            "error": 0,
+            "warning": 0,
+            "info": 0
+          },
+          "sourceSnapshot": {
+            "sha256": "f8b93c3b719dfd6090b216cfe62fc48ba158a0239d29538158ba45b557297604",
+            "fileCount": 35,
+            "bytes": 102102,
+            "manifestPath": "/home/stage15/stage16-3c0aa090/pr-repair-workspace/.copperbench/task-runs/run_gametest/676ee051-4a0c-4b97-b42e-b1ee24c9f010/source-manifest.json"
+          },
+          "verification": {
+            "schemaVersion": "1.0",
+            "status": "passed",
+            "reasonCode": "GAMETEST_PASSED",
+            "discovered": 5,
+            "executed": 5,
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0,
+            "frameworkTests": 0,
+            "acceptanceExecuted": 5,
+            "cases": [
+              {
+                "name": "acceptancetests.activeandinactivesurviveitemcodecroundtrip",
+                "className": "fabric-gametest-api-v1:empty",
+                "status": "passed",
+                "scope": "acceptance"
+              },
+              {
+                "name": "acceptancetests.cooldownrejectsuseuntilexactlytwentyticks",
+                "className": "fabric-gametest-api-v1:empty",
+                "status": "passed",
+                "scope": "acceptance"
+              },
+              {
+                "name": "acceptancetests.defaulttoggleandindependentstacks",
+                "className": "fabric-gametest-api-v1:empty",
+                "status": "passed",
+                "scope": "acceptance"
+              },
+              {
+                "name": "acceptancetests.feedbackusesactionbarforbothstates",
+                "className": "fabric-gametest-api-v1:empty",
+                "status": "passed",
+                "scope": "acceptance"
+              },
+              {
+                "name": "acceptancetests.unrelatedstackdatasurvivesbothdirections",
+                "className": "fabric-gametest-api-v1:empty",
+                "status": "passed",
+                "scope": "acceptance"
+              }
+            ],
+            "mode": "packaged_jar",
+            "minimumTests": 5,
+            "environment": {
+              "generatorId": "fabric-1.21.1",
+              "loader": "fabric",
+              "minecraftVersion": "1.21.1",
+              "loaderVersion": "0.19.3",
+              "fabricApiVersion": "0.116.15+1.21.1",
+              "javaRelease": 21,
+              "pluginId": "net.fabricmc.fabric-loom-remap",
+              "pluginVersion": "1.17.19"
+            },
+            "artifactPath": "/home/stage15/stage16-3c0aa090/pr-repair-workspace/.copperbench/task-runs/run_gametest/676ee051-4a0c-4b97-b42e-b1ee24c9f010/host/run/mods/resonance_token-1.0.jar",
+            "artifactSha256": "e754c6e539f36acd16683e0dca334a97c0fef4eaa45f53ebffb39d98b2cdf52b",
+            "reportPath": "/home/stage15/stage16-3c0aa090/pr-repair-workspace/.copperbench/task-runs/run_gametest/676ee051-4a0c-4b97-b42e-b1ee24c9f010/host/run/gametest-results.xml",
+            "reportSha256": "1b0debcea6d8ee3cb48803423de46c46465fef141b1de740606cd2280df697ac",
+            "startedAt": "2026-09-11T13:23:06.034927435Z",
+            "completedAt": "2026-09-11T13:24:04.660663167Z",
+            "processExitCode": 0,
+            "sourceCurrentAtCompletion": true,
+            "taskId": "676ee051-4a0c-4b97-b42e-b1ee24c9f010",
+            "workspaceId": "9b98a83d-fac1-4dc0-9cda-8b5f940e2587",
+            "workspaceRevision": 0,
+            "sourceSnapshot": {
+              "sha256": "f8b93c3b719dfd6090b216cfe62fc48ba158a0239d29538158ba45b557297604",
+              "fileCount": 35,
+              "bytes": 102102,
+              "manifestPath": "/home/stage15/stage16-3c0aa090/pr-repair-workspace/.copperbench/task-runs/run_gametest/676ee051-4a0c-4b97-b42e-b1ee24c9f010/source-manifest.json"
+            },
+            "verificationPath": "/home/stage15/stage16-3c0aa090/pr-repair-workspace/.copperbench/task-runs/run_gametest/676ee051-4a0c-4b97-b42e-b1ee24c9f010/verification.json"
+          }
+        },
+        "diagnostics": [],
+        "exitCode": 0,
+        "logs": []
+      }
+    }
+  ],
+  "environment": {
+    "schemaVersion": "1.0",
+    "workspaceId": "9b98a83d-fac1-4dc0-9cda-8b5f940e2587",
+    "workspaceName": "Resonance Token",
+    "workspaceKind": "mod",
+    "revision": 0,
+    "generator": {
+      "id": "fabric-1.21.1",
+      "loader": "fabric",
+      "minecraftVersion": "1.21.1",
+      "displayName": "Fabric 1.21.1",
+      "state": "ready"
+    },
+    "workspaceRoot": "/home/stage15/stage16-3c0aa090/pr-repair-workspace",
+    "execution": {
+      "generatorId": "fabric-1.21.1",
+      "minecraftVersion": "1.21.1",
+      "workspaceRoot": "/home/stage15/stage16-3c0aa090/pr-repair-workspace",
+      "sourceRoot": "/home/stage15/stage16-3c0aa090/pr-repair-workspace/src/main/java",
+      "resourceRoot": "/home/stage15/stage16-3c0aa090/pr-repair-workspace/src/main/resources",
+      "java": {
+        "requiredRelease": 21,
+        "home": "/opt/copperbench/jdk21",
+        "executable": "/opt/copperbench/jdk21/bin/java"
+      },
+      "gradle": {
+        "distribution": "gradle-9.7.0-bin.zip",
+        "windowsLauncher": "/home/stage15/stage16-3c0aa090/pr-repair-workspace/gradlew.bat",
+        "posixLauncher": "/home/stage15/stage16-3c0aa090/pr-repair-workspace/gradlew",
+        "tasks": {
+          "build": "build",
+          "runClient": "runClient",
+          "runServer": "runServer",
+          "runDatagen": "runDatagen",
+          "runGameTest": "runGameTest"
+        }
+      },
+      "loader": "fabric",
+      "loaderVersion": "0.19.3",
+      "fabricApiVersion": "0.116.15+1.21.1",
+      "loomVersion": "1.17.19",
+      "testing": {
+        "supported": true,
+        "configurationPath": "/home/stage15/stage16-3c0aa090/pr-repair-workspace/copperbench-tests.json",
+        "prepareOperation": "prepare_game_tests",
+        "state": "configured",
+        "mode": "packaged_jar",
+        "minimumTests": 5
+      },
+      "host": {
+        "os": "linux",
+        "arch": "x86_64",
+        "desktop": {
+          "sessionType": "headless",
+          "waylandDisplayPresent": false,
+          "x11DisplayPresent": false,
+          "certificationRole": "not-graphical",
+          "knownLimitations": [
+            "Graphical JCEF and runClient cannot be certified in a headless session."
+          ],
+          "stage15CertificationPending": true
+        }
+      }
+    },
+    "agentWorkflow": {
+      "nativeFilesAuthoritative": true,
+      "structuredElementsOptional": true,
+      "validateOperation": "validate_workspace",
+      "buildOperation": "build_workspace",
+      "diagnosticsOperation": "get_task",
+      "healthOperation": "get_workspace_health",
+      "planOperation": "plan_workspace_changes"
+    }
+  },
+  "verification": {
+    "schemaVersion": "1.0",
+    "status": "passed",
+    "reasonCode": "GAMETEST_PASSED",
+    "discovered": 5,
+    "executed": 5,
+    "passed": 5,
+    "failed": 0,
+    "skipped": 0,
+    "frameworkTests": 0,
+    "acceptanceExecuted": 5,
+    "cases": [
+      {
+        "name": "acceptancetests.activeandinactivesurviveitemcodecroundtrip",
+        "className": "fabric-gametest-api-v1:empty",
+        "status": "passed",
+        "scope": "acceptance"
+      },
+      {
+        "name": "acceptancetests.cooldownrejectsuseuntilexactlytwentyticks",
+        "className": "fabric-gametest-api-v1:empty",
+        "status": "passed",
+        "scope": "acceptance"
+      },
+      {
+        "name": "acceptancetests.defaulttoggleandindependentstacks",
+        "className": "fabric-gametest-api-v1:empty",
+        "status": "passed",
+        "scope": "acceptance"
+      },
+      {
+        "name": "acceptancetests.feedbackusesactionbarforbothstates",
+        "className": "fabric-gametest-api-v1:empty",
+        "status": "passed",
+        "scope": "acceptance"
+      },
+      {
+        "name": "acceptancetests.unrelatedstackdatasurvivesbothdirections",
+        "className": "fabric-gametest-api-v1:empty",
+        "status": "passed",
+        "scope": "acceptance"
+      }
+    ],
+    "mode": "packaged_jar",
+    "minimumTests": 5,
+    "environment": {
+      "generatorId": "fabric-1.21.1",
+      "loader": "fabric",
+      "minecraftVersion": "1.21.1",
+      "loaderVersion": "0.19.3",
+      "fabricApiVersion": "0.116.15+1.21.1",
+      "javaRelease": 21,
+      "pluginId": "net.fabricmc.fabric-loom-remap",
+      "pluginVersion": "1.17.19"
+    },
+    "artifactPath": "/home/stage15/stage16-3c0aa090/pr-repair-workspace/.copperbench/task-runs/run_gametest/676ee051-4a0c-4b97-b42e-b1ee24c9f010/host/run/mods/resonance_token-1.0.jar",
+    "artifactSha256": "e754c6e539f36acd16683e0dca334a97c0fef4eaa45f53ebffb39d98b2cdf52b",
+    "reportPath": "/home/stage15/stage16-3c0aa090/pr-repair-workspace/.copperbench/task-runs/run_gametest/676ee051-4a0c-4b97-b42e-b1ee24c9f010/host/run/gametest-results.xml",
+    "reportSha256": "1b0debcea6d8ee3cb48803423de46c46465fef141b1de740606cd2280df697ac",
+    "startedAt": "2026-09-11T13:23:06.034927435Z",
+    "completedAt": "2026-09-11T13:24:04.660663167Z",
+    "processExitCode": 0,
+    "sourceCurrentAtCompletion": true,
+    "taskId": "676ee051-4a0c-4b97-b42e-b1ee24c9f010",
+    "workspaceId": "9b98a83d-fac1-4dc0-9cda-8b5f940e2587",
+    "workspaceRevision": 0,
+    "sourceSnapshot": {
+      "sha256": "f8b93c3b719dfd6090b216cfe62fc48ba158a0239d29538158ba45b557297604",
+      "fileCount": 35,
+      "bytes": 102102,
+      "manifestPath": "/home/stage15/stage16-3c0aa090/pr-repair-workspace/.copperbench/task-runs/run_gametest/676ee051-4a0c-4b97-b42e-b1ee24c9f010/source-manifest.json"
+    },
+    "verificationPath": "/home/stage15/stage16-3c0aa090/pr-repair-workspace/.copperbench/task-runs/run_gametest/676ee051-4a0c-4b97-b42e-b1ee24c9f010/verification.json"
+  },
+  "sourceUnchanged": true,
+  "completedAt": "2026-09-11T13:24:05.124043+00:00"
+}

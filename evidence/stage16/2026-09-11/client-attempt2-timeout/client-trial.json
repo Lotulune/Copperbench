@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "packaged-client-trial",
+  "createdAt": "2026-09-11T13:36:22.077904+00:00",
+  "generatorId": "fabric-1.21.1",
+  "workspaceFile": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\client_three_mods\\client_trial_host.mcreator",
+  "productExecutable": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\copperbench-stage16-3c0aa090\\Copperbench010\\copperbench.exe",
+  "productExeSha256": "b4362ad2d744505a24964bc1b7948510f28a189242ccb7775df7403eac079db4",
+  "artifacts": [
+    {
+      "modId": "resonance_token",
+      "sourceArtifact": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\resonance_token\\.copperbench\\task-runs\\run_gametest\\4938e4c1-b94e-4910-ba87-aac5309cdc84\\host\\run\\mods\\resonance_token-1.0.jar",
+      "artifactSha256": "f3a1b4a3dd94f860eee2af0df034fcf556c380d2dbf5f423ea1a556f211c8939",
+      "sourceSnapshotSha256": "bd2032ca0e0c97d7b51c7e9c3e28107e5b05152ba79ae5881ddf82e0e84cfae1",
+      "serverVerification": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\artifacts\\resonance_token\\verification.json",
+      "serverVerificationSha256": "d259dd264630464f35974403f2b70524717a3a473e803a25f92c614f477f0ba8",
+      "serverReportSha256": "d05ec52f8f75243164dfa8ae4738bff957d7b2d28f88993582c3eb73434b70a0",
+      "serverAcceptanceExecuted": 5,
+      "deployedFile": "run/mods/resonance_token-verified.jar"
+    },
+    {
+      "modId": "tally_stone",
+      "sourceArtifact": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\tally_stone\\.copperbench\\task-runs\\run_gametest\\0da10389-4eec-4cb7-a1b9-255c40249eae\\host\\run\\mods\\tally_stone-1.0.jar",
+      "artifactSha256": "76296fa2e85bbeb98a5634802cab7bc06cda6445930baec1b0bcf0bb25ddf35c",
+      "sourceSnapshotSha256": "6ec2e942d8168355f7473490740165ab136b6f197eecea4528fc1c5fc8effe97",
+      "serverVerification": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\artifacts\\tally_stone\\verification.json",
+      "serverVerificationSha256": "cefc4d2f1d38a8d04eac9e1807f30102de602678b6a4bb0d4a5432abc231b504",
+      "serverReportSha256": "5375e0f3c5540133a3754834ef63ab25d4fca1e9b4a60f78083c5d011aca5f22",
+      "serverAcceptanceExecuted": 5,
+      "deployedFile": "run/mods/tally_stone-verified.jar"
+    },
+    {
+      "modId": "harvest_ledger",
+      "sourceArtifact": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\harvest_ledger\\.copperbench\\task-runs\\run_gametest\\2eb67432-703d-4b04-b4db-7b22e9449536\\host\\run\\mods\\harvest_ledger-1.0.jar",
+      "artifactSha256": "cd810e1121970525dd6e1d488849cc163fd49978bc6b5c1546c4fd4c8f95fc4f",
+      "sourceSnapshotSha256": "7153f97815d562cc07690c62995f876591548a6579b2f1ccbcf0f68acc669a2f",
+      "serverVerification": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\artifacts\\harvest_ledger\\verification.json",
+      "serverVerificationSha256": "0604a3a7a0b35e47f2b7b61e5ef895e3b58dc76424875bae7e356e282be75bc7",
+      "serverReportSha256": "634cbd1d40c8c2201c66376904bbf29ce4eebe0fecf1d7daf8b9bd3c25dda7a3",
+      "serverAcceptanceExecuted": 7,
+      "deployedFile": "run/mods/harvest_ledger-verified.jar"
+    }
+  ],
+  "clientBehaviorVerified": false,
+  "nextStep": "Use the product run-client operation. Record actual input, client feedback, normal save/quit and rejoin, then check artifact hashes again."
+}
