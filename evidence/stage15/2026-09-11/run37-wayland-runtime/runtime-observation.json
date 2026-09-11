@@ -1,0 +1,10 @@
+{
+  "candidateSha256": "3ca9873c0e59ef65a5626fbf304b4c1e1ad57f490e9eed947fcab6d6dc4d4d80",
+  "reviewedLogCount": 4,
+  "stackSmashingOrSigabrtFound": false,
+  "existingApportBytes": 159161848,
+  "existingApportMtimeEpoch": 1789026916,
+  "existingApportUnchanged": true,
+  "classpathOverrideUsed": false,
+  "formalSupportClaim": false
+}

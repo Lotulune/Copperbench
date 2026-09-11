@@ -1,0 +1,16 @@
+{
+  "status": "passed",
+  "candidateSha256": "3ca9873c0e59ef65a5626fbf304b4c1e1ad57f490e9eed947fcab6d6dc4d4d80",
+  "createdThroughInstalledUi": true,
+  "savedThroughInstalledUi": true,
+  "closedNormally": true,
+  "reopenedThroughRecentWorkspaceUi": true,
+  "savedAndReopenedBytesEqual": true,
+  "descriptorRemovedAfterClose": true,
+  "workspace": "/home/stage15/MCreatorWorkspaces/stage15_run37_ui/stage15_run37_ui.mcreator",
+  "element": "wayland_saved_probe",
+  "savedElementSha256": "1897c84d261b20bcc13fc330325302f309c22acab0dc52b3678ada5e940a89e0",
+  "revision": 2,
+  "observedText": "say Stage15 Run37 Wayland persistence",
+  "formalSupportClaim": false
+}

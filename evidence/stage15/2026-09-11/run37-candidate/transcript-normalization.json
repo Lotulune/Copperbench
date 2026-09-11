@@ -1,0 +1,80 @@
+{
+  "reason": "Normalize transcript line endings and trailing whitespace for repository storage; raw guest files remain unchanged. Frozen candidate metadata and digest manifests are not modified.",
+  "files": [
+    {
+      "path": "evidence/stage15/2026-09-11/run37-wayland-agent/helper.log",
+      "guestOrDownloadedBytesSha256": "9b7e48b395539fad7a8163798cb3f1784360a0e31846ec4b5eee6adf32ae8c93",
+      "normalizedSha256": "7641da262174916e74eaba2a38a8b1194208065f345411d500aeab8f56eed571"
+    },
+    {
+      "path": "evidence/stage15/2026-09-11/run37-wayland-assets/process-binding.txt",
+      "guestOrDownloadedBytesSha256": "3d8a81d7c6a34d18dcc399e920f70c7286000e5ef9a80a9c2af10072de44e48d",
+      "normalizedSha256": "bdda2dc47e45cf5ebfe87f3ba807c9422ea54a8ab5fc5a7f5868c93064e3c65f"
+    },
+    {
+      "path": "evidence/stage15/2026-09-11/run37-wayland-fabric/apt-install.log",
+      "guestOrDownloadedBytesSha256": "3e785b499a925d2e1562715fd7f694dca7c6c5386074d14b1be3dc4a4afe6d76",
+      "normalizedSha256": "8c5e25362a1f11e4245b379bb620d698a6740e1ec4701f34e95ced151ef6f86b"
+    },
+    {
+      "path": "evidence/stage15/2026-09-11/run37-wayland-neoforge/apt-install.log",
+      "guestOrDownloadedBytesSha256": "3e785b499a925d2e1562715fd7f694dca7c6c5386074d14b1be3dc4a4afe6d76",
+      "normalizedSha256": "8c5e25362a1f11e4245b379bb620d698a6740e1ec4701f34e95ced151ef6f86b"
+    },
+    {
+      "path": "evidence/stage15/2026-09-11/run37-wayland-neoforge/minecraft-latest.log",
+      "guestOrDownloadedBytesSha256": "ef68e0df1ea589f5515199f128a73f3d123196e625fb242aa3425d5814445c54",
+      "normalizedSha256": "a9f0417d4060437718d97194005396f74e0d481bad670cfda72533a857b437a4"
+    },
+    {
+      "path": "evidence/stage15/2026-09-11/run37-xorg-agent/helper.log",
+      "guestOrDownloadedBytesSha256": "e879ef66510e127a772ede571522181f3fb71a48ee18c00e0b2fe4c9be69a062",
+      "normalizedSha256": "aae91930edc7c4599be7b5db4cc87fb8b8f9f3d868a6c3d60df5eb327a727028"
+    },
+    {
+      "path": "evidence/stage15/2026-09-11/run37-xorg-fabric/apt-install.log",
+      "guestOrDownloadedBytesSha256": "3e785b499a925d2e1562715fd7f694dca7c6c5386074d14b1be3dc4a4afe6d76",
+      "normalizedSha256": "8c5e25362a1f11e4245b379bb620d698a6740e1ec4701f34e95ced151ef6f86b"
+    },
+    {
+      "path": "evidence/stage15/2026-09-11/run37-xorg-neoforge/apt-install.log",
+      "guestOrDownloadedBytesSha256": "3e785b499a925d2e1562715fd7f694dca7c6c5386074d14b1be3dc4a4afe6d76",
+      "normalizedSha256": "8c5e25362a1f11e4245b379bb620d698a6740e1ec4701f34e95ced151ef6f86b"
+    },
+    {
+      "path": "evidence/stage15/2026-09-11/run37-xorg-neoforge/minecraft-latest.log",
+      "guestOrDownloadedBytesSha256": "828c0f214dd1cce3ac1221bdde5498d51b0b9948fde87f10980266bd1c405011",
+      "normalizedSha256": "bad987acaedfa5b1b771ec6a0f35e550b32d59c55bbd1689e791c352140679d7"
+    },
+    {
+      "path": "evidence/stage15/2026-09-11/run37-candidate/pr-checks.json",
+      "guestOrDownloadedBytesSha256": "bdfd531c45340f93176cd9852a720b2d5e1f46d01573706571735d0ef7536060",
+      "normalizedSha256": "79a1f425e6c365bd9270d569a9d334cf1dadd4e5bf1b575b2d90bd1aa163aff7"
+    },
+    {
+      "path": "evidence/stage15/2026-09-11/run37-candidate/verification-harness.json",
+      "guestOrDownloadedBytesSha256": "1a881841b7615b2363a4ee6e37cd4c4063c7d5c8ab0dc79960930640785d46b5",
+      "normalizedSha256": "bfd05d84396dfbf2ce940a206f9fb26438def2d3f64d8425f3e3738a4c0bfae3"
+    },
+    {
+      "path": "evidence/stage15/2026-09-11/run37-portable/result.json",
+      "guestOrDownloadedBytesSha256": "b117b5876dfe1f41e37984e3f7af216819c685e4cfd4c1202c587a925fb2b999",
+      "normalizedSha256": "b3c12bce6c73e4296597929becb5a09e954164f2367e509be5c8f2ab87369788"
+    },
+    {
+      "path": "evidence/stage15/2026-09-11/run37-wayland-assets/result.json",
+      "guestOrDownloadedBytesSha256": "1e0263b75d5428f39699c5002112af22943901427b0e673bf2b54bc621f7c6a3",
+      "normalizedSha256": "a793f3baf947eebad9c7552d3f130c965340ed812647ff0899023972422f9a71"
+    },
+    {
+      "path": "evidence/stage15/2026-09-11/run37-wayland-runtime/runtime-observation.json",
+      "guestOrDownloadedBytesSha256": "13380b0c9e73082a225192cb21dc3843145bec625667449338c74005ca7e1074",
+      "normalizedSha256": "9530565f321fad8d00f158ded9d7b081e79e0573f6a8cd351d7561bd57b25915"
+    },
+    {
+      "path": "evidence/stage15/2026-09-11/run37-wayland-ui/result.json",
+      "guestOrDownloadedBytesSha256": "11070fa0a20c05299535d76153956fa00a6a78ee9179d96038c1914839c0431d",
+      "normalizedSha256": "4ad2778dc881901d097676f2d085c711bb1c21a1a4fb9a3c2934fe1287b9c6da"
+    }
+  ]
+}

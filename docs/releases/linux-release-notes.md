@@ -1,6 +1,6 @@
 # Copperbench Linux x86_64
 
-Release eligibility remains pending final-candidate validation and production approval.
+Run37 passed all ten clean-guest acceptance gates and has separate digest-bound release authorization. Public publication and formal-support classification remain subject to release approval.
 
 The Linux payload provides a Debian desktop package and a portable tarball with bundled JBR 25/JCEF and Java 21.
 The validation target is Ubuntu 24.04 LTS x86_64, GNOME Wayland and GNOME on Xorg. Other distributions are not certified

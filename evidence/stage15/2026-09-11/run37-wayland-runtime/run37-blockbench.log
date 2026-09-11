@@ -1,0 +1,5 @@
+Picked up JAVA_TOOL_OPTIONS: -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=23067 -Dhttp.proxyHost=127.0.0.1 -Dhttp.proxyPort=23067
+Stage 15 Blockbench gate: a real Blockbench window should now show stage15_blockbench_probe_899366ae.bbmodel.
+Add or rename a visible model element, save the .bbmodel, then close Blockbench normally.
+Do not edit the probe file from another program; this gate is specifically for Blockbench.
+Stage 15 installed Blockbench gate passed: /home/stage15/stage15-run37/evidence-blockbench-wayland/installed-blockbench-result.json

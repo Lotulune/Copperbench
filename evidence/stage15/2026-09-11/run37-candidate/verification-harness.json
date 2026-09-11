@@ -1,0 +1,9 @@
+{
+  "workflowRunId": "34537005983",
+  "modifiedPublishedHelper": false,
+  "sha256": "e954c7d0030d18a6f11ca78c9a69bfed1417efb4c86ad28987bb065a6596a8dd",
+  "rejectedAttempt": {
+    "directory": "evidence-wayland-fabric-preflight-1",
+    "reason": "Host-created expected-SHA text used CRLF; rejected before installation. Re-delivered expected digest with LF and passed separate attempt 2."
+  }
+}
