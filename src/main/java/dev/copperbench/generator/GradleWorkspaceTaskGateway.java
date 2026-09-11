@@ -107,7 +107,7 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 	private void execute(UUID workspaceId, WorkspaceState state, Operation operation, JsonObject payload, Job job) {
 		try {
 			Path root = workspaceRoots.apply(workspaceId).toAbsolutePath().normalize();
-			Path executionRoot = isolated(operation)
+			Path executionRoot = operation == Operation.RUN_GAMETEST ? GameTestRunDirectory.select(root, job.id()) : isolated(operation)
 					? root.resolve(".copperbench/task-runs").resolve(taskKind(operation))
 							.resolve(job.id().toString()).resolve("workspace").normalize()
 					: root;
@@ -115,13 +115,16 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 			job.sourceRevision = state.revision();
 			job.sourceState = state;
 			if (isolated(operation)) {
-				if (!executionRoot.startsWith(root.toAbsolutePath().normalize()))
+				if (operation != Operation.RUN_GAMETEST && !executionRoot.startsWith(root.toAbsolutePath().normalize()))
 					throw new IllegalStateException("Isolated task path escaped the workspace");
 				var snapshot = WorkspaceExecutionSnapshot.capture(root, executionRoot, workspaceId,
 						state.revision(), clock, job::cancellationRequested);
 				job.record("sourceSnapshot", snapshot.projection());
+				if (operation == Operation.RUN_GAMETEST) GameTestRunDirectory.record(root, job.id(), snapshot);
 				job.log("info", "Using isolated task directory "
-						+ root.relativize(executionRoot).toString().replace('\\', '/'));
+						+ executionRoot.toString().replace('\\', '/'));
+				if (!executionRoot.startsWith(root))
+					job.log("info", "GAMETEST_SHORT_PATH: using the Copperbench task cache to avoid the Windows wrapper path limit; execution-location.json remains in the workspace task directory.");
 			}
 			job.progress(0.15, "task." + taskKind(operation) + ".validating", "Validating workspace");
 			var validation = backend.validate(state);
@@ -243,6 +246,11 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 					backend.displayName(), operation, workspaceId, exception);
 			job.log("error", exception.getMessage());
 			job.fail(exception.diagnosticCode(), failureId, taskKind(operation), exception.getMessage());
+		} catch (dev.copperbench.gradle.GradleRuntimeCompatibility.LoopbackUnavailableException exception) {
+			if (job.isCancelled() || job.cancellationRequested()) return;
+			job.log("error", exception.getMessage());
+			job.fail("GRADLE_LOOPBACK_UNAVAILABLE", UUID.randomUUID().toString(), taskKind(operation),
+					"diagnostic.gradle_loopback_unavailable", exception.getMessage(), null);
 		} catch (GradleProcessRunner.ProcessStartException exception) {
 			if (job.isCancelled() || job.cancellationRequested()) return;
 			String failureId = UUID.randomUUID().toString();

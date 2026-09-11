@@ -35,7 +35,7 @@ $taskGrant = '<user-issued authorization ID>'
 .\copperbench.exe bootstrap create-workspace `
   --generator-id fabric-1.21.1 --mod-name "Wayfinder Bell" --mod-id wayfinder_bell `
   --workspace-folder "D:\ModProjects\BellTrial\wayfinder_bell" `
-  --task-authorization $taskGrant
+  --task-authorization $taskGrant --no-prompt true
 ```
 
 MCP 写请求使用可选字段 `taskAuthorizationId`。CLI 对应 `--task-authorization`。TypeScript SDK 的 `taskAuthorizationId` 选项和 Python SDK 的 `task_authorization_id` 选项会把 ID 附到相关写请求；查询、取消和撤销不依赖仍然有效的任务授权。
@@ -127,6 +127,14 @@ Fabric 测试入口由 `entrypoints` 注册。NeoForge 1.20.1/1.21.1 使用 Game
 
 标准输出按行返回 JSON：初始化状态、任务接受结果、含增量日志的 `task_update`、最终结果。默认不加 `--stream true` 时仍返回原有单个最终 JSON。MCP/SDK 继续使用 `get_task(taskId, afterLogSequence)`；不要反复从 0 请求整段日志，也不要把任务已接受当成验收完成。
 
+## 无交互启动与 Windows 运行恢复
+
+外部 agent 创建工作区时应传入 `--no-prompt true`。没有任务授权时，产品立即返回 `USER_APPROVAL_REQUIRED`、请求的目录/模组/生成器和所需 `create` 范围，供用户审查；不会进入等待不可见弹窗的状态。拿到用户签发的授权 ID 后，保留该参数重试即可。默认不传此参数的本机创建命令仍显示原有确认窗口。
+
+Windows 工作区 Gradle 启动前会用选定的 JDK 单独检查本地通信。如果 Unix-domain selector pipe 不可用、TCP 检查可用，产品只对该任务的子进程设置兼容选项，并记录 `GRADLE_IPC_TCP_FALLBACK`。两种方式均不可用时返回 `GRADLE_LOOPBACK_UNAVAILABLE`；该预检发生在用户构建任务之前，不会为了恢复连接而重复运行构建。它不修改系统环境变量，也不代表桌面 MCP 的安装回归已经完成。
+
+GameTest 在 Windows 的隔离目录过深时，自动改用 Copperbench 用户缓存下的 `task-runs/<taskId>`。源码快照、被测 JAR 和验收报告保留在该目录，原工作区的 `.copperbench/task-runs/run_gametest/<taskId>/execution-location.json` 记录位置与源码指纹。任务日志记录 `GAMETEST_SHORT_PATH`；若缓存路径本身也过深则返回 `GAMETEST_PATH_TOO_LONG`。清理缓存会删除其中的验收文件，需要留档时应先复制报告与被测产物。
+
 ## 已知运行限制
 
-Windows 的部分 Gradle Wrapper 启动方式仍受长路径限制。工作区本身路径很深时，隔离目录可能导致 wrapper JAR 无法启动；请选用较短的工作区路径。本次没有扩展 Windows 长路径支持。
+Windows 的一般长路径支持仍有限制。GameTest 已提供上述短目录回退；原工作区构建、Server 和 Datagen 的深路径仍需要选用较短的工作区目录。该修复不构成 Windows 任意长路径支持的承诺。

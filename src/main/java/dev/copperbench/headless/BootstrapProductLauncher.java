@@ -98,8 +98,9 @@ public final class BootstrapProductLauncher {
 		data.add("commands", commands);
 		data.addProperty("createUsage",
 				"bootstrap create-workspace --generator-id <id> --mod-name <name> --mod-id <id> "
-						+ "--workspace-folder <path> [--package-name <package>] [--version <version>] [--task-authorization <id>]");
+						+ "--workspace-folder <path> [--package-name <package>] [--version <version>] [--task-authorization <id>] [--no-prompt true]");
 		data.addProperty("approval", "Use a local UI confirmation or a user-issued task authorization covering the target directory.");
+		data.addProperty("nonInteractive", "External agents should pass --no-prompt true: missing authorization returns USER_APPROVAL_REQUIRED without opening a dialog.");
 		data.addProperty("authorizationUsage", "bootstrap authorize-task --root <absolute-directory> --label <task> [--capabilities create,edit,build,test,run_client] [--ttl-seconds 7200]");
 		response.add("data", data);
 		write(output, response);
@@ -138,6 +139,8 @@ public final class BootstrapProductLauncher {
 			if (!decision.allowed()) return fail(output, HeadlessExitCode.PERMISSION_DENIED, decision.code(),
 					"Task authority does not allow creating this workspace. Review the root, lifetime and create capability.");
 			approved = true;
+		} else if (Boolean.parseBoolean(options.getOrDefault("--no-prompt", "false"))) {
+			approved = false;
 		} else {
 			if (!GraphicsEnvironment.isHeadless())
 				new PrintWriter(new java.io.FileOutputStream(java.io.FileDescriptor.err), true)
@@ -152,6 +155,11 @@ public final class BootstrapProductLauncher {
 			JsonObject denial = new JsonObject();
 			denial.addProperty("approvalRequired", true);
 			denial.addProperty("protectedOperation", true);
+			denial.addProperty("workspaceFolder", workspaceFolder);
+			denial.addProperty("modName", modName);
+			denial.addProperty("generatorId", generatorId);
+			denial.addProperty("requiredCapability", "create");
+			denial.addProperty("nextAction", "Ask the local user to grant this task in AI and MCP > Task authorization, then retry with --task-authorization <id>.");
 			response.add("denial", denial);
 			write(output, response);
 			return HeadlessExitCode.PERMISSION_DENIED.code();
@@ -207,10 +215,13 @@ public final class BootstrapProductLauncher {
 				throw new IllegalArgumentException("Options must use --name value pairs");
 			String option = arguments[index];
 			if (!List.of("--generator-id", "--mod-name", "--mod-id", "--package-name", "--workspace-folder",
-					"--version", "--task-authorization").contains(option))
+					"--version", "--task-authorization", "--no-prompt").contains(option))
 				throw new IllegalArgumentException("Unknown option: " + option);
-			options.put(option, arguments[index + 1]);
+			if (options.put(option, arguments[index + 1]) != null)
+				throw new IllegalArgumentException("Duplicate option: " + option);
 		}
+		if (options.containsKey("--no-prompt") && !List.of("true", "false").contains(options.get("--no-prompt")))
+			throw new IllegalArgumentException("--no-prompt must be true or false");
 		return new Invocation(command, Map.copyOf(options));
 	}
 

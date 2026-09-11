@@ -12,7 +12,7 @@ Immutable source records are in [`UPSTREAM.md`](UPSTREAM.md) and [`compliance/ba
 
 ## Development
 
-Closed capabilities are specified in [`PRD.md`](PRD.md). Stages 12–15 are complete within their documented scope; ongoing work follows the [maintenance roadmap](PRD-NEXT.md). Domain terms are in [`CONTEXT.md`](CONTEXT.md).
+Closed capabilities are specified in [`PRD.md`](PRD.md). Stages 12–15 are complete within their documented scope; current development follows [Stage 16: agent reliability](docs/roadmap/stage-16-agent-reliability.md) and the [product roadmap](PRD-NEXT.md). Domain terms are in [`CONTEXT.md`](CONTEXT.md).
 
 Copperbench uses the checked-in Gradle Wrapper for building and packaging. CI covers Java, UI-Core schemas, the React shell, fast Playwright scenarios, MCP conformance, Javadoc, and local Markdown links. Packaging and publication rules are in the [Windows release process](docs/build/release-process.md).
 

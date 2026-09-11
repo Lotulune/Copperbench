@@ -98,6 +98,8 @@ import java.util.function.Supplier;
 			if (configuredGradleUserHome != null && !configuredGradleUserHome.isBlank()) {
 				builder.environment().put("GRADLE_USER_HOME", configuredGradleUserHome);
 			}
+			if (resolvedJavaHome != null)
+				dev.copperbench.gradle.GradleRuntimeCompatibility.configure(resolvedJavaHome, builder.environment(), output);
 			Process process;
 			try {
 				process = builder.start();
