@@ -1,14 +1,18 @@
 # Copperbench
 
-Copperbench is a Windows 11 desktop Minecraft mod-creation workbench. It is an independent `GPL-3.0-only` derivative of MCreator, with the Fabric generator included as a built-in plugin.
+Copperbench is a desktop Minecraft mod-creation workbench for Windows 11 x64 and Ubuntu 24.04 LTS x86_64 (GNOME Wayland or Xorg). It is an independent `GPL-3.0-only` derivative of MCreator, with the Fabric generator included as a built-in plugin.
 
 Public distribution is the GitHub repository [Lotulune/Copperbench](https://github.com/Lotulune/Copperbench) and unsigned GitHub Releases. There is no product website, app-store listing, or Authenticode-signed installer. Windows SmartScreen may warn on the unsigned binaries. The product ID `dev.copperbench.studio` is a reverse-DNS identifier, not a live website.
 
 Immutable source records are in [`UPSTREAM.md`](UPSTREAM.md) and [`compliance/baseline.lock.json`](compliance/baseline.lock.json). Start with the [development setup](docs/build/development-setup.md) or the [Windows clean-build baseline](docs/build/windows-clean-build.md).
 
+## Linux release
+
+[Linux Preview 2](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.0-linux-preview.2) provides a Debian package and portable archive with bundled JBR/JCEF and Java 21. Stage15 is complete for Ubuntu 24.04 LTS x86_64 with GNOME Wayland/Xorg; other distributions and architectures are not certified. The release channel remains Preview. See the [installation notes](docs/releases/linux-release-notes.md), [closure evidence](docs/testing/stage15-closure-2026-09-11.md), and [current support record](release-control/linux-platform-support.json). Windows Beta 4 remains the Windows published baseline.
+
 ## Development
 
-Closed capabilities are specified in [`PRD.md`](PRD.md). The next delivery is the [trusted preview and Stage 9 closure](PRD-NEXT.md). Domain terms are in [`CONTEXT.md`](CONTEXT.md).
+Closed capabilities are specified in [`PRD.md`](PRD.md). Stages 12–15 are complete within their documented scope; ongoing work follows the [maintenance roadmap](PRD-NEXT.md). Domain terms are in [`CONTEXT.md`](CONTEXT.md).
 
 Copperbench uses the checked-in Gradle Wrapper for building and packaging. CI covers Java, UI-Core schemas, the React shell, fast Playwright scenarios, MCP conformance, Javadoc, and local Markdown links. Packaging and publication rules are in the [Windows release process](docs/build/release-process.md).
 

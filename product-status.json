@@ -2,22 +2,68 @@
   "$schema": "./schemas/product-status.schema.json",
   "schemaVersion": "1.0",
   "snapshot": {
-    "date": "2026-09-03",
-    "lastVerifiedCommit": "29ac9cf23f9f029f2c1b671b91e9ae59410df40a",
+    "date": "2026-09-11",
+    "lastVerifiedCommit": "fa1489dd6d6713bf5b371eea4a2ba157da190364",
     "policy": "Only code, automated checks, and evidence tied to a commit can promote a gate."
   },
   "product": {
     "id": "dev.copperbench.studio",
     "name": "Copperbench",
     "version": "0.1.0",
-    "stage": 11,
+    "stage": 15,
     "channel": "beta",
-    "targetPlatforms": ["windows-11-x64"],
+    "targetPlatforms": ["windows-11-x64", "ubuntu-24.04-x86_64"],
     "license": "GPL-3.0-only",
     "additionalTerms": "LICENSE-ADDITIONAL-TERMS.md",
     "betaEligible": true
   },
   "delivery": {
+    "linuxRelease": {
+      "tag": "v0.1.0-linux-preview.2",
+      "status": "public-prerelease",
+      "channel": "preview",
+      "stage": 15,
+      "stageStatus": "complete",
+      "formalSupportClaim": true,
+      "releaseCommit": "fa1489dd6d6713bf5b371eea4a2ba157da190364",
+      "binarySourceCommit": "61f69bf1f8dfdd3efbcf379afbaafbbfb11d3466",
+      "releaseWorkflowRun": "https://github.com/Lotulune/Copperbench/actions/runs/34558497473",
+      "releaseUrl": "https://github.com/Lotulune/Copperbench/releases/tag/v0.1.0-linux-preview.2",
+      "supportRecord": "release-control/linux-platform-support.json",
+      "scope": {
+        "distribution": "Ubuntu",
+        "version": "24.04 LTS",
+        "architecture": "x86_64",
+        "desktop": "GNOME",
+        "sessions": [
+          "wayland",
+          "x11"
+        ],
+        "installedRuntimeTracks": [
+          "fabric-1.21.1",
+          "neoforge-1.21.1"
+        ],
+        "otherDistributionsCertified": false,
+        "otherArchitecturesCertified": false
+      },
+      "assets": {
+        "deb": {
+          "role": "deb",
+          "name": "copperbench_0.1.0_amd64.deb",
+          "mediaType": "application/vnd.debian.binary-package",
+          "size": 888099122,
+          "sha256": "ff1d2e3c3e7120165aece357d9a0b4a1fba93ff37e31e44dd8f733b0ba7dc473"
+        },
+        "portable": {
+          "role": "portable",
+          "name": "Copperbench.0.1.0.Linux.x86_64.tar.gz",
+          "candidateName": "Copperbench 0.1.0 Linux x86_64.tar.gz",
+          "mediaType": "application/gzip",
+          "size": 968204286,
+          "sha256": "746e8795b90689fe2d2672bb059f01f2bd8cca5c0e6689b89e5842baa4e38644"
+        }
+      }
+    },
     "publishedBaseline": {
       "tag": "v0.1.0-beta.4",
       "sourceCommit": "29ac9cf23f9f029f2c1b671b91e9ae59410df40a",
@@ -117,6 +163,7 @@
     "notApplicable": ["bebiome", "beblock", "beentity", "beitem", "bescript"]
   },
   "gates": [
+    {"id": "stage15-linux-support", "status": "passed", "betaBlocking": false, "evidence": ["docs/testing/stage15-closure-2026-09-11.md", "release-control/linux-platform-support.json", "evidence/stage15/2026-09-11/publication/public-release.json", "https://github.com/Lotulune/Copperbench/actions/runs/34558497473"]},
     {"id": "release-pipeline", "status": "passed", "betaBlocking": false, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/32838065932", "https://github.com/Lotulune/Copperbench/actions/runs/33330520467", "docs/testing/beta-candidate-preview6-2026-08-31.md", "https://github.com/Lotulune/Copperbench/actions/runs/33332537616", "docs/testing/beta1-publication-2026-08-31.md", "https://github.com/Lotulune/Copperbench/actions/runs/33334394466", "docs/testing/beta2-publication-2026-08-31.md", "https://github.com/Lotulune/Copperbench/actions/runs/33506364499", "https://github.com/Lotulune/Copperbench/actions/runs/33515908561", "https://github.com/Lotulune/Copperbench/actions/runs/33740746411", "docs/testing/beta-candidate-preview8-2026-09-03.md", "https://github.com/Lotulune/Copperbench/actions/runs/33751421385", "docs/testing/beta4-publication-2026-09-03.md"]},
     {"id": "fast-ci", "status": "passed", "betaBlocking": false, "evidence": ["https://github.com/Lotulune/Copperbench/actions/runs/32904346297", "https://github.com/Lotulune/Copperbench/actions/runs/32904844692", "https://github.com/Lotulune/Copperbench/actions/runs/32905419136", "https://github.com/Lotulune/Copperbench/actions/runs/33306183486", "https://github.com/Lotulune/Copperbench/actions/runs/33320875746", "https://github.com/Lotulune/Copperbench/actions/runs/33334020837", "https://github.com/Lotulune/Copperbench/actions/runs/33497929171", "https://github.com/Lotulune/Copperbench/actions/runs/33515069964", "https://github.com/Lotulune/Copperbench/actions/runs/33527164779", "https://github.com/Lotulune/Copperbench/actions/runs/33528964018", "https://github.com/Lotulune/Copperbench/actions/runs/33584248803"]},
     {"id": "product-status-source", "status": "passed", "betaBlocking": true, "evidence": ["product-status.json", "schemas/product-status.schema.json", "scripts/verify-product-status.mjs"]},
@@ -150,6 +197,7 @@
     "desktopLifecycle": "passed-ui-token-renewal-auth-and-shutdown"
   },
   "knownLimitations": [
+    "Linux formal support covers Ubuntu 24.04 LTS x86_64 with GNOME Wayland/Xorg; installed runtime replay covers Fabric and NeoForge 1.21.1. Other Linux distributions/architectures are not certified. The Linux release remains a Preview, and frozen candidate/pre-publication metadata retains its historical false support flags; current classification is in release-control/linux-platform-support.json.",
     "PR #56 post-review binary-source candidate d0d96877 passed Build and test #173, Nightly product gates #28, clean Windows 11 installation, bundled-JDK Run Client replay through the real desktop UI, visible one-time-token MCP authentication, the full external-Agent read/write/plan/build/conflict/code-compile loop, workspace-scoped descriptor cleanup, and old endpoint/token invalidation. Preview 8 was subsequently built and published from main@69469b8f; the tracked delta from d0d96877 is limited to product-status and its installed-product evidence document, with no product/runtime/build/SDK source changes. Beta 4 release workflow 33751421385 still generated transient Beta-tag packages/SBOM as part of the normal job, then replaced the release payload with the frozen Preview 8 EXE/ZIP/MSIX/SBOM after candidate hash verification and published those candidate bytes byte-for-byte. No additional G7 replay is claimed for the public Preview 8/Beta 4 bytes because the automation sandbox denied Hyper-V guest writes during the public-candidate replay attempt.",
     "Release Git Tags contain SSH signatures; GitHub reports unknown_key until the public signing key is registered.",
     "Stage 11 full Java element support remains complete. The installed-product JDK/runClient/MCP/Agent defects discovered after Beta 3 were closed by 29005125 and revalidated after review hardening by d0d96877; the resulting product code is now publicly represented by v0.1.0-beta.4 through the signed Preview 8 exact-binary promotion.",

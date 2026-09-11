@@ -2,25 +2,22 @@
 
 ## Current baseline
 
-- Public prerelease: `v0.1.0-beta.4`.
+- Public prereleases: Windows `v0.1.0-beta.4`; Linux `v0.1.0-linux-preview.2`.
 - Stage 11 / Public Beta V1 product closure is complete.
 - Stage 12 / complex element depth is complete in the current implementation line: all 37 first-party Java Mod Element types now share the structured editor/schema path, unknown fields survive save/reopen, field diagnostics can locate the affected editor field, and the eight supported Fabric/NeoForge generator tracks pass the Stage 12 edited-fixture golden build. See [Stage 12 closure evidence](./testing/stage12-complex-element-depth-2026-09-05.md).
 - Stage 13 / creator productivity is complete on the current development line. Procedure Workbench 2.0, Asset Center, Diagnostics 2.0, Local History/Recovery, Migration/Refactor and Workspace Health all satisfy the Stage 13 Definition of Done, including the final clean-installed Windows Explorer drag/drop and failure → location → recovery-protected repair → rebuild product replays. See [Stage 13 closure evidence](./testing/stage13-closure-2026-09-07.md).
 - The installed-product P0 hardening for bundled JDK resolution, real Run Client lifecycle, desktop MCP integration, and the external-Agent product loop is complete and represented by Beta 4.
 - All current beta-blocking gates in `product-status.json` are `passed`; `product.betaEligible=true`.
-- Current formal desktop platform support remains Windows 11 x64. Linux formal support is now an explicit Stage 15 deliverable and must not be advertised as completed before its own clean-Linux candidate evidence exists.
+- Formal desktop support covers Windows 11 x64 and Ubuntu 24.04 LTS x86_64 with GNOME Wayland/Xorg. Linux release and certification evidence is recorded in [Stage15 closure](./testing/stage15-closure-2026-09-11.md); the Linux channel remains Preview.
 - Stage 14 / native-first general-Agent workbench is complete on the current development line: 14A source integrity, 14B native bootstrap/authoring, 14C layered packaged runtime/gameplay evidence, and 14D review/reuse are all closed by their own DoD. See [Stage 14C runtime/gameplay closure evidence](./testing/stage14-runtime-gameplay-closure-2026-09-08.md).
 
 The historical Stage 9–11 evidence remains authoritative for the Beta 4 baseline. New development should reopen and revalidate the corresponding installed-product gate whenever it changes the validated JDK, Run Client, Desktop MCP, or external-Agent product path, or when regression evidence shows the validated behavior changed; otherwise the existing passed gate state remains the baseline.
 
 ## Next product work
 
-The active roadmap remains `PRD-NEXT.md`. Stages 12, 13 and 14 are closed; **Stage 15 Linux formal-support work is now active**. The first platform/JDK/packaging foundation checkpoint is recorded in [Stage 15 Linux foundation evidence](./testing/stage15-linux-foundation-2026-09-08.md); this is development evidence only and does not yet make Linux a formally supported platform.
+The active roadmap remains `PRD-NEXT.md`. Stages 12, 13, 14 and **Stage15 Linux formal-support work are complete** within their accepted scope. Stage15 closure binds Run42 installed evidence to the signed, production-approved public Linux Preview 2 and its unchanged binary digests.
 
-The remaining roadmap work is:
-
-1. **Stage 15 — Linux release closure pending**: frozen Run42 (`61f69bf1`, workflow `34547192490`) passes all ten Ubuntu 24.04 GNOME Wayland/Xorg acceptance gates plus installed old/modern preference migration. Both packages, all provenance and full PR regression pass. Separate release authorization binds the final evidence; original metadata remains unchanged. See [Run42 acceptance](./testing/stage15-run42-acceptance-2026-09-11.md). Remaining: signed-tag/production promotion, verified draft and explicit public publication. Formal Linux support remains false until that release boundary closes.
-2. **Continuous maintenance**: Minecraft/loader/generator/toolchain compatibility and regression coverage, including the remaining independent semantic check for the historical Fabric Commands remap warning.
+The remaining roadmap work is continuous maintenance: Minecraft/loader/generator/toolchain compatibility, regression coverage, and the independent semantic check for the historical Fabric Commands remap warning. Broader Linux distributions, architectures and installed game-version tracks need their own evidence before support expands.
 
 ## Confirmed integrity/runtime follow-up
 
@@ -37,7 +34,7 @@ The remaining roadmap work is:
 - **CB-AUDIT-07 — closed for modern NeoForge runtime generation**: `neoforge-1.21.1`, `neoforge-26.1.2`, and `neoforge-26.2` no longer register the generated main class on `NeoForge.EVENT_BUS` when it has no generated `@SubscribeEvent` method. The three failed Copperbench packaged gameplay cells were regenerated through the production generator path and now pass initializer, packaged-JAR load, server-ready and gameplay verification.
 - Cross-track Stage 14A source-integrity and the affected Windows installed-product Desktop MCP path have been revalidated. Stage 14C now records Fabric 8/8 behavior-passed cells and NeoForge 6 behavior-passed cells plus two explicit NeoForge 1.20.1 EULA authorization blocks; the NeoForge matrix is 8/8 closure-satisfied without accepting EULA or relabeling `not_run` gameplay as passed.
 - **Stage 14B/14D — closed on the current development line**: product bootstrap discovery/local approval, native multi-file failure-repair-build-reopen, Workspace Plan high-impact review/read-only/recovery/tamper gates, explicit experimental-extension compatibility boundaries, and real MCreator local-template Procedure+asset round-trip all pass targeted regression. Template target-path conflict and signed-plan tampering are rejected before mutation.
-- **Stage 14C / Stage 14 overall — closed on the current development line**: packaged runtime layers remain separate, the same-Agent comparison retains its cache/timing caveats, and the full closure rationale is recorded in [Stage 14C runtime/gameplay closure evidence](./testing/stage14-runtime-gameplay-closure-2026-09-08.md). Stage 15 is now active on its isolated Linux-support branch.
+- **Stage 14C / Stage 14 overall — closed on the current development line**: packaged runtime layers remain separate, the same-Agent comparison retains its cache/timing caveats, and the full closure rationale is recorded in [Stage 14C runtime/gameplay closure evidence](./testing/stage14-runtime-gameplay-closure-2026-09-08.md). Stage15 has subsequently completed its independent Linux acceptance and public release.
 
 ## Non-blocking follow-up
 
@@ -46,6 +43,6 @@ The following remain useful quality work but are not current Beta 4 release bloc
 - real JCEF accessibility certification on a physical or otherwise known-good Windows accessibility environment;
 - broader external-tester trials;
 - Authenticode signing;
-- macOS and any platform targets outside the current Windows 11 x64 baseline and the explicitly planned Stage 15 Linux x86_64 target.
+- macOS and platform targets outside Windows 11 x64 and the certified Ubuntu 24.04 GNOME x86_64 scope.
 
 These items must not be described as passed until their own evidence exists.

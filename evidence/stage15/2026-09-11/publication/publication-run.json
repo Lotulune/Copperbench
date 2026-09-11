@@ -1,0 +1,183 @@
+{
+  "conclusion": "success",
+  "headBranch": "v0.1.0-linux-preview.2",
+  "headSha": "fa1489dd6d6713bf5b371eea4a2ba157da190364",
+  "jobs": [
+    {
+      "completedAt": "2026-09-11T03:27:36Z",
+      "conclusion": "success",
+      "databaseId": 103136172299,
+      "name": "Linux release authorization contracts",
+      "startedAt": "2026-09-11T03:27:25Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-09-11T03:27:26Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-09-11T03:27:26Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T03:27:29Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@v7",
+          "number": 2,
+          "startedAt": "2026-09-11T03:27:26Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T03:27:33Z",
+          "conclusion": "success",
+          "name": "Run actions/setup-node@v6",
+          "number": 3,
+          "startedAt": "2026-09-11T03:27:29Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T03:27:33Z",
+          "conclusion": "success",
+          "name": "Run node --test scripts/tests/linux-release-authorization.tests.mjs",
+          "number": 4,
+          "startedAt": "2026-09-11T03:27:33Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T03:27:33Z",
+          "conclusion": "success",
+          "name": "Post Run actions/setup-node@v6",
+          "number": 7,
+          "startedAt": "2026-09-11T03:27:33Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T03:27:33Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@v7",
+          "number": 8,
+          "startedAt": "2026-09-11T03:27:33Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T03:27:34Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 9,
+          "startedAt": "2026-09-11T03:27:33Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/Lotulune/Copperbench/actions/runs/34558497473/job/103136172299"
+    },
+    {
+      "completedAt": "2026-09-11T03:33:13Z",
+      "conclusion": "success",
+      "databaseId": 103136219636,
+      "name": "promote",
+      "startedAt": "2026-09-11T03:30:44Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-09-11T03:30:46Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-09-11T03:30:45Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T03:30:51Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@v7",
+          "number": 2,
+          "startedAt": "2026-09-11T03:30:46Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T03:30:54Z",
+          "conclusion": "success",
+          "name": "Run actions/setup-node@v6",
+          "number": 3,
+          "startedAt": "2026-09-11T03:30:51Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T03:30:56Z",
+          "conclusion": "success",
+          "name": "Verify signed release tag on latest main",
+          "number": 4,
+          "startedAt": "2026-09-11T03:30:54Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T03:30:56Z",
+          "conclusion": "success",
+          "name": "Load approved candidate identity and reject build-affecting drift",
+          "number": 5,
+          "startedAt": "2026-09-11T03:30:56Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T03:32:17Z",
+          "conclusion": "success",
+          "name": "Verify source delta and retrieve immutable candidate",
+          "number": 6,
+          "startedAt": "2026-09-11T03:30:56Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T03:32:45Z",
+          "conclusion": "success",
+          "name": "Verify every frozen asset and its source provenance",
+          "number": 7,
+          "startedAt": "2026-09-11T03:32:17Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T03:33:09Z",
+          "conclusion": "success",
+          "name": "Create and verify a draft without overwriting any release asset",
+          "number": 8,
+          "startedAt": "2026-09-11T03:32:45Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T03:33:11Z",
+          "conclusion": "success",
+          "name": "Publish only the verified draft",
+          "number": 9,
+          "startedAt": "2026-09-11T03:33:09Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T03:33:11Z",
+          "conclusion": "success",
+          "name": "Post Run actions/setup-node@v6",
+          "number": 17,
+          "startedAt": "2026-09-11T03:33:11Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T03:33:11Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@v7",
+          "number": 18,
+          "startedAt": "2026-09-11T03:33:11Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T03:33:11Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 19,
+          "startedAt": "2026-09-11T03:33:11Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/Lotulune/Copperbench/actions/runs/34558497473/job/103136219636"
+    }
+  ],
+  "status": "completed",
+  "url": "https://github.com/Lotulune/Copperbench/actions/runs/34558497473"
+}
