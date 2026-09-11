@@ -16,6 +16,17 @@ public final class GradleRuntimeCompatibility {
 
     private GradleRuntimeCompatibility() {}
 
+    /** Must run before the application creates a selector (Desktop MCP and the Tooling API do). */
+    public static void configureApplicationRuntime(Consumer<String> output) throws IOException, InterruptedException {
+        if (RuntimePlatform.current().operatingSystem() != RuntimePlatform.OperatingSystem.WINDOWS) return;
+        Path executable = Path.of(System.getProperty("java.home"), "bin", "java.exe");
+        Map<String, String> environment = new HashMap<>(System.getenv());
+        configure(executable, environment, _ -> {
+            System.setProperty("jdk.net.unixdomain.tmpdir", executable.toAbsolutePath().normalize().toString());
+            output.accept("APPLICATION_IPC_TCP_FALLBACK: Windows local socket probe failed; using the verified JDK TCP wakeup pipe for this application process.");
+        }, GradleRuntimeCompatibility::probe, TCP_FALLBACK);
+    }
+
     public static void configure(Path javaHome, Map<String, String> environment, Consumer<String> output)
             throws IOException, InterruptedException {
         if (RuntimePlatform.current().operatingSystem() != RuntimePlatform.OperatingSystem.WINDOWS) return;

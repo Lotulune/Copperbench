@@ -53,12 +53,10 @@ final class TaskAuthorizationLauncher {
                             "Copperbench is waiting for task approval. Root: " + root + "; capabilities: " + capabilities + "; lifetime: " + ttl + " seconds.");
                     String text = "Task: " + label + "\nRoot: " + root + "\nCapabilities: " + String.join(", ", capabilities)
                             + "\nLifetime: " + ttl + " seconds\n\nAllow this task to continue through CLI and MCP until expiry or revocation?";
-                    boolean approved = JOptionPane.showConfirmDialog(null, text, "Copperbench task authorization",
-                            JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION;
+                    boolean approved = LocalApprovalWindow.confirm("Copperbench task authorization", text);
                     boolean eula = false;
-                    if (approved && capabilities.contains("run_server")) eula = JOptionPane.showConfirmDialog(null,
-                            "Dedicated server execution requires the Minecraft EULA: https://aka.ms/MinecraftEULA\nDo you accept it for servers created by this task?",
-                            "Copperbench server authorization", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION;
+                    if (approved && capabilities.contains("run_server")) eula = LocalApprovalWindow.confirm("Copperbench server authorization",
+                            "Dedicated server execution requires the Minecraft EULA: https://aka.ms/MinecraftEULA\nDo you accept it for servers created by this task?");
                     result.add("data", store.issue(Actor.UI, approved, label, root, capabilities, ttl, eula));
                 }
                 default -> throw new IllegalArgumentException("Unknown authorization command");

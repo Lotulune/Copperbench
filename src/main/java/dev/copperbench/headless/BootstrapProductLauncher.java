@@ -191,8 +191,7 @@ public final class BootstrapProductLauncher {
 				+ "Mod: " + escapeHtml(request.modName()) + " (" + escapeHtml(request.modId()) + ")<br>"
 				+ "Folder: " + escapeHtml(request.workspaceFolderPath()) + "<br><br>"
 				+ "An external tool may be waiting for this confirmation.</html>";
-		return JOptionPane.showConfirmDialog(null, message, ProductIdentity.NAME + " workspace creation",
-				JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION;
+        return LocalApprovalWindow.confirm(ProductIdentity.NAME + " workspace creation", message);
 	}
 
 	private static String escapeHtml(String value) {
