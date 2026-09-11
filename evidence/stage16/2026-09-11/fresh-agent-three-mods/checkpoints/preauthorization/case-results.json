@@ -1,0 +1,164 @@
+{
+  "status": "waiting_authorization",
+  "updatedAt": "2026-09-11T11:03:49.7578961+00:00",
+  "acceptanceExecuted": 0,
+  "cases": [
+    {
+      "status": "not_run",
+      "name": "defaultToggleAndIndependentStacks",
+      "mod": "resonance_token",
+      "reason": "Waiting for legitimate product task authorization; drafts only.",
+      "requirements": [
+        "R1",
+        "R4"
+      ]
+    },
+    {
+      "status": "not_run",
+      "name": "cooldownRejectsUseUntilExactlyTwentyTicks",
+      "mod": "resonance_token",
+      "reason": "Waiting for legitimate product task authorization; drafts only.",
+      "requirements": [
+        "R2"
+      ]
+    },
+    {
+      "status": "not_run",
+      "name": "feedbackUsesActionbarForBothStates",
+      "mod": "resonance_token",
+      "reason": "Waiting for legitimate product task authorization; drafts only.",
+      "requirements": [
+        "R3"
+      ]
+    },
+    {
+      "status": "not_run",
+      "name": "unrelatedStackDataSurvivesBothDirections",
+      "mod": "resonance_token",
+      "reason": "Waiting for legitimate product task authorization; drafts only.",
+      "requirements": [
+        "R4"
+      ]
+    },
+    {
+      "status": "not_run",
+      "name": "activeAndInactiveSurviveItemCodecRoundTrip",
+      "mod": "resonance_token",
+      "reason": "Waiting for legitimate product task authorization; drafts only.",
+      "requirements": [
+        "R5"
+      ]
+    },
+    {
+      "status": "not_run",
+      "name": "itemPlacesZeroCountBlock",
+      "mod": "tally_stone",
+      "reason": "Waiting for legitimate product task authorization; drafts only.",
+      "requirements": [
+        "T1"
+      ]
+    },
+    {
+      "status": "not_run",
+      "name": "normalUseIncrementsAndSaturatesAtFifteen",
+      "mod": "tally_stone",
+      "reason": "Waiting for legitimate product task authorization; drafts only.",
+      "requirements": [
+        "T2"
+      ]
+    },
+    {
+      "status": "not_run",
+      "name": "sneakingResetsIncludingAlreadyZero",
+      "mod": "tally_stone",
+      "reason": "Waiting for legitimate product task authorization; drafts only.",
+      "requirements": [
+        "T3"
+      ]
+    },
+    {
+      "status": "not_run",
+      "name": "positionsKeepIndependentCounts",
+      "mod": "tally_stone",
+      "reason": "Waiting for legitimate product task authorization; drafts only.",
+      "requirements": [
+        "T4"
+      ]
+    },
+    {
+      "status": "not_run",
+      "name": "chunkDiskSerializationRestoresCount",
+      "mod": "tally_stone",
+      "reason": "Waiting for legitimate product task authorization; drafts only.",
+      "requirements": [
+        "T5"
+      ]
+    },
+    {
+      "status": "not_run",
+      "name": "matureSuccessfulBreakCreditsExactlyOnce",
+      "mod": "harvest_ledger",
+      "reason": "Waiting for legitimate product task authorization; drafts only.",
+      "requirements": [
+        "H1"
+      ]
+    },
+    {
+      "status": "not_run",
+      "name": "immatureWheatAndOtherCropsDoNotCredit",
+      "mod": "harvest_ledger",
+      "reason": "Waiting for legitimate product task authorization; drafts only.",
+      "requirements": [
+        "H2"
+      ]
+    },
+    {
+      "status": "not_run",
+      "name": "creativeMatureBreakIsExcluded",
+      "mod": "harvest_ledger",
+      "reason": "Waiting for legitimate product task authorization; drafts only.",
+      "requirements": [
+        "H2"
+      ]
+    },
+    {
+      "status": "not_run",
+      "name": "cancelledBreakDoesNotCreditAndLaterSuccessDoes",
+      "mod": "harvest_ledger",
+      "reason": "Waiting for legitimate product task authorization; drafts only.",
+      "requirements": [
+        "H1",
+        "H2"
+      ]
+    },
+    {
+      "status": "not_run",
+      "name": "independentPlayersAccumulateOwnTotals",
+      "mod": "harvest_ledger",
+      "reason": "Waiting for legitimate product task authorization; drafts only.",
+      "requirements": [
+        "H3"
+      ]
+    },
+    {
+      "status": "not_run",
+      "name": "persistentStateLoadsActualWorldDataFile",
+      "mod": "harvest_ledger",
+      "reason": "Waiting for legitimate product task authorization; drafts only.",
+      "requirements": [
+        "H4"
+      ]
+    },
+    {
+      "status": "not_run",
+      "name": "reportCommandReturnsTotalWithoutMutatingIt",
+      "mod": "harvest_ledger",
+      "reason": "Waiting for legitimate product task authorization; drafts only.",
+      "requirements": [
+        "H5"
+      ]
+    }
+  ],
+  "schemaVersion": "1.0",
+  "acceptedAsPassed": 0
+}

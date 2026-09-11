@@ -1,0 +1,1666 @@
+{
+  "schemaVersion": "1.0",
+  "source": "Independent fresh agent trial; raw originals retained locally",
+  "redaction": "Only local task authorization IDs are replaced; all other bytes preserved",
+  "files": [
+    {
+      "path": "artifacts/harvest_ledger/artifact-index.json",
+      "originalBytes": 626,
+      "originalSha256": "00c6e442e962ad295f95b3bed2eb7393bff8e8a2d50b5d6abfcf1bf470f952b9",
+      "archivedSha256": "00c6e442e962ad295f95b3bed2eb7393bff8e8a2d50b5d6abfcf1bf470f952b9",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "artifacts/harvest_ledger/final-product-response.json",
+      "originalBytes": 5042,
+      "originalSha256": "be9b0d3fed109f105af4b2b0137f682aeab6e137193fa08a54b241335206b8fe",
+      "archivedSha256": "be9b0d3fed109f105af4b2b0137f682aeab6e137193fa08a54b241335206b8fe",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "artifacts/harvest_ledger/gametest-results.xml",
+      "originalBytes": 1048,
+      "originalSha256": "634cbd1d40c8c2201c66376904bbf29ce4eebe0fecf1d7daf8b9bd3c25dda7a3",
+      "archivedSha256": "634cbd1d40c8c2201c66376904bbf29ce4eebe0fecf1d7daf8b9bd3c25dda7a3",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "artifacts/harvest_ledger/harvest_ledger-1.0.jar",
+      "originalBytes": 39568,
+      "originalSha256": "cd810e1121970525dd6e1d488849cc163fd49978bc6b5c1546c4fd4c8f95fc4f",
+      "archivedSha256": "cd810e1121970525dd6e1d488849cc163fd49978bc6b5c1546c4fd4c8f95fc4f",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "artifacts/harvest_ledger/source-manifest.json",
+      "originalBytes": 6719,
+      "originalSha256": "f426c984ba412ddaeddc6f6d094d379fad0d2c72d051a4b523a2294c8b5e7945",
+      "archivedSha256": "f426c984ba412ddaeddc6f6d094d379fad0d2c72d051a4b523a2294c8b5e7945",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "artifacts/harvest_ledger/verification.json",
+      "originalBytes": 2871,
+      "originalSha256": "0604a3a7a0b35e47f2b7b61e5ef895e3b58dc76424875bae7e356e282be75bc7",
+      "archivedSha256": "0604a3a7a0b35e47f2b7b61e5ef895e3b58dc76424875bae7e356e282be75bc7",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "artifacts/resonance_token/artifact-index.json",
+      "originalBytes": 632,
+      "originalSha256": "14d901d83b0c0149dfd47646316de4d8163d929dddc744695cdb667277e385ed",
+      "archivedSha256": "14d901d83b0c0149dfd47646316de4d8163d929dddc744695cdb667277e385ed",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "artifacts/resonance_token/final-product-response.json",
+      "originalBytes": 4599,
+      "originalSha256": "673d9f8cfe310eda49486b11568713037cdb03ef24158e4c24987a6bad034c1d",
+      "archivedSha256": "673d9f8cfe310eda49486b11568713037cdb03ef24158e4c24987a6bad034c1d",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "artifacts/resonance_token/gametest-results.xml",
+      "originalBytes": 783,
+      "originalSha256": "d05ec52f8f75243164dfa8ae4738bff957d7b2d28f88993582c3eb73434b70a0",
+      "archivedSha256": "d05ec52f8f75243164dfa8ae4738bff957d7b2d28f88993582c3eb73434b70a0",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "artifacts/resonance_token/resonance_token-1.0.jar",
+      "originalBytes": 38752,
+      "originalSha256": "f3a1b4a3dd94f860eee2af0df034fcf556c380d2dbf5f423ea1a556f211c8939",
+      "archivedSha256": "f3a1b4a3dd94f860eee2af0df034fcf556c380d2dbf5f423ea1a556f211c8939",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "artifacts/resonance_token/source-manifest.json",
+      "originalBytes": 6766,
+      "originalSha256": "a749eb44354d075b516f9bbae9523732d582ffcd06c782e0c538a77528ddf2ad",
+      "archivedSha256": "a749eb44354d075b516f9bbae9523732d582ffcd06c782e0c538a77528ddf2ad",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "artifacts/resonance_token/verification.json",
+      "originalBytes": 2574,
+      "originalSha256": "d259dd264630464f35974403f2b70524717a3a473e803a25f92c614f477f0ba8",
+      "archivedSha256": "d259dd264630464f35974403f2b70524717a3a473e803a25f92c614f477f0ba8",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "artifacts/tally_stone/artifact-index.json",
+      "originalBytes": 628,
+      "originalSha256": "9dc4f401d3296676e645578b30764cdb4b51af614cb0ac954d58bc24f12a230e",
+      "archivedSha256": "9dc4f401d3296676e645578b30764cdb4b51af614cb0ac954d58bc24f12a230e",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "artifacts/tally_stone/final-product-response.json",
+      "originalBytes": 4554,
+      "originalSha256": "9ce0eb77471a2a3f5e62325701bc5a3640675e42916ad7f8c02f832906886fe0",
+      "archivedSha256": "9ce0eb77471a2a3f5e62325701bc5a3640675e42916ad7f8c02f832906886fe0",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "artifacts/tally_stone/gametest-results.xml",
+      "originalBytes": 762,
+      "originalSha256": "5375e0f3c5540133a3754834ef63ab25d4fca1e9b4a60f78083c5d011aca5f22",
+      "archivedSha256": "5375e0f3c5540133a3754834ef63ab25d4fca1e9b4a60f78083c5d011aca5f22",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "artifacts/tally_stone/source-manifest.json",
+      "originalBytes": 7465,
+      "originalSha256": "e92cac40ea90809491481b7aba9b1e9e793ee0f5c4c9c68281943d736648df9a",
+      "archivedSha256": "e92cac40ea90809491481b7aba9b1e9e793ee0f5c4c9c68281943d736648df9a",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "artifacts/tally_stone/tally_stone-1.0.jar",
+      "originalBytes": 40596,
+      "originalSha256": "76296fa2e85bbeb98a5634802cab7bc06cda6445930baec1b0bcf0bb25ddf35c",
+      "archivedSha256": "76296fa2e85bbeb98a5634802cab7bc06cda6445930baec1b0bcf0bb25ddf35c",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "artifacts/tally_stone/verification.json",
+      "originalBytes": 2530,
+      "originalSha256": "cefc4d2f1d38a8d04eac9e1807f30102de602678b6a4bb0d4a5432abc231b504",
+      "archivedSha256": "cefc4d2f1d38a8d04eac9e1807f30102de602678b6a4bb0d4a5432abc231b504",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "attempt3-inputs.json",
+      "originalBytes": 895,
+      "originalSha256": "5625ccc79b04cc0cdc3b34d5cd46b66f5a2847c51f76b5c5b693c37167b037ed",
+      "archivedSha256": "5625ccc79b04cc0cdc3b34d5cd46b66f5a2847c51f76b5c5b693c37167b037ed",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "case-results.json",
+      "originalBytes": 15452,
+      "originalSha256": "56c589285a5da77a3759c30facee492684d49d4eab5a6dd95c86e6b3478b84d7",
+      "archivedSha256": "56c589285a5da77a3759c30facee492684d49d4eab5a6dd95c86e6b3478b84d7",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "checkpoints/bootstrap-discovery-report/bootstrap-discovery-evidence-hashes.json",
+      "originalBytes": 3514,
+      "originalSha256": "0f54d87f4c02b6a58dc94945b0d50de06c335754ba34aecaa71ad0045cb8f220",
+      "archivedSha256": "0f54d87f4c02b6a58dc94945b0d50de06c335754ba34aecaa71ad0045cb8f220",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "checkpoints/bootstrap-discovery-report/experience-log.md",
+      "originalBytes": 5916,
+      "originalSha256": "68232c9871d132aeffedfa2125a7d1b9c03c75b534512ba0ab5d79fc9ec01245",
+      "archivedSha256": "68232c9871d132aeffedfa2125a7d1b9c03c75b534512ba0ab5d79fc9ec01245",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "checkpoints/bootstrap-discovery-report/fixed-retry-inputs.json",
+      "originalBytes": 1009,
+      "originalSha256": "4f2ac948af7bf734bba8cd0c0cbd787201b4b16f165060f8bb3224a6d659119f",
+      "archivedSha256": "4f2ac948af7bf734bba8cd0c0cbd787201b4b16f165060f8bb3224a6d659119f",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "checkpoints/harvest_ledger-generated/AcceptanceTests.java",
+      "originalBytes": 668,
+      "originalSha256": "50bd169e0481b03df4f7e1ac270c7bbdbdc5191938d7af3ac2880d3592e75767",
+      "archivedSha256": "50bd169e0481b03df4f7e1ac270c7bbdbdc5191938d7af3ac2880d3592e75767",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "checkpoints/harvest_ledger-generated/copperbench-tests.json",
+      "originalBytes": 236,
+      "originalSha256": "8cbf71a376a9dfc6960f43d0acfad1263e455a2bce94a9717287936a2bd8dc6f",
+      "archivedSha256": "8cbf71a376a9dfc6960f43d0acfad1263e455a2bce94a9717287936a2bd8dc6f",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "checkpoints/harvest_ledger-generated/fabric.mod.json",
+      "originalBytes": 642,
+      "originalSha256": "2190bf2dda8f76383eba7256d890cd4f56b9bf0b05568d0fca92e6c3e8842da2",
+      "archivedSha256": "2190bf2dda8f76383eba7256d890cd4f56b9bf0b05568d0fca92e6c3e8842da2",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "checkpoints/preauthorization/case-results.json",
+      "originalBytes": 4680,
+      "originalSha256": "7e74ee3fa682d579002b6ff6f2520e79817b1e9739540adc2bdbdf101b35039a",
+      "archivedSha256": "7e74ee3fa682d579002b6ff6f2520e79817b1e9739540adc2bdbdf101b35039a",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "checkpoints/preauthorization/experience-log.md",
+      "originalBytes": 4508,
+      "originalSha256": "3997bd0d004cad680673edea1a44edc8478579c21f2edd1237bf3892bf5a630c",
+      "archivedSha256": "3997bd0d004cad680673edea1a44edc8478579c21f2edd1237bf3892bf5a630c",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "checkpoints/preauthorization/preauthorization-evidence-hashes.json",
+      "originalBytes": 6298,
+      "originalSha256": "cdc5611fc60ad35807bba8a7e7cd677aceb7a7070586ff8848e5d1f66578d824",
+      "archivedSha256": "cdc5611fc60ad35807bba8a7e7cd677aceb7a7070586ff8848e5d1f66578d824",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "checkpoints/resonance_token-generated/AcceptanceTests.java",
+      "originalBytes": 669,
+      "originalSha256": "1bee91d0fd4bcb54f21e6fe0208797e189acb7a2e52222ef11c15fd9fa36e97a",
+      "archivedSha256": "1bee91d0fd4bcb54f21e6fe0208797e189acb7a2e52222ef11c15fd9fa36e97a",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "checkpoints/resonance_token-generated/copperbench-tests.json",
+      "originalBytes": 236,
+      "originalSha256": "8cbf71a376a9dfc6960f43d0acfad1263e455a2bce94a9717287936a2bd8dc6f",
+      "archivedSha256": "8cbf71a376a9dfc6960f43d0acfad1263e455a2bce94a9717287936a2bd8dc6f",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "checkpoints/resonance_token-generated/fabric.mod.json",
+      "originalBytes": 650,
+      "originalSha256": "8484badfa9fb533214557f3dade1757989b82c594915137a431564eacc43e820",
+      "archivedSha256": "8484badfa9fb533214557f3dade1757989b82c594915137a431564eacc43e820",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "checkpoints/tally-original-player-fixture/AcceptanceTests.java",
+      "originalBytes": 7857,
+      "originalSha256": "8696ba13c4f13a2e202d1bdeef0486d1782c0623c97afac9b2ded3037bb57522",
+      "archivedSha256": "8696ba13c4f13a2e202d1bdeef0486d1782c0623c97afac9b2ded3037bb57522",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "checkpoints/tally_stone-generated/AcceptanceTests.java",
+      "originalBytes": 665,
+      "originalSha256": "21c335fe75de21f177b1603c32fbe442a7701ea3eb425e7d1666fe1339367427",
+      "archivedSha256": "21c335fe75de21f177b1603c32fbe442a7701ea3eb425e7d1666fe1339367427",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "checkpoints/tally_stone-generated/copperbench-tests.json",
+      "originalBytes": 236,
+      "originalSha256": "8cbf71a376a9dfc6960f43d0acfad1263e455a2bce94a9717287936a2bd8dc6f",
+      "archivedSha256": "8cbf71a376a9dfc6960f43d0acfad1263e455a2bce94a9717287936a2bd8dc6f",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "checkpoints/tally_stone-generated/fabric.mod.json",
+      "originalBytes": 618,
+      "originalSha256": "1105df054b8efc2a7fb170231d16141702ad3ed09eea6d9b67d6008db633760c",
+      "archivedSha256": "1105df054b8efc2a7fb170231d16141702ad3ed09eea6d9b67d6008db633760c",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/00-generators.command.json",
+      "originalBytes": 937,
+      "originalSha256": "91002dcede0f6cc6fa6b317f8dbd89134121b9744e7a9e05cfa3f36f3e5dd610",
+      "archivedSha256": "91002dcede0f6cc6fa6b317f8dbd89134121b9744e7a9e05cfa3f36f3e5dd610",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/00-generators.events.jsonl",
+      "originalBytes": 2499,
+      "originalSha256": "9407de2ec76f4ccc8af25b64da65dcaa5ec46584c973a8049e60678000fe7bbd",
+      "archivedSha256": "9407de2ec76f4ccc8af25b64da65dcaa5ec46584c973a8049e60678000fe7bbd",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/00-generators.stderr.log",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archivedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/00-generators.stdout.log",
+      "originalBytes": 2167,
+      "originalSha256": "c6aebed2f19e12332922b655746e63080fa8a0c80f5f39742152f130ed455831",
+      "archivedSha256": "c6aebed2f19e12332922b655746e63080fa8a0c80f5f39742152f130ed455831",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/01-bootstrap-no-authorization.command.json",
+      "originalBytes": 1278,
+      "originalSha256": "8648346e635cc1f1568cd84483946f9e7660bb5cb5fcf5101c4a657e5f7e2489",
+      "archivedSha256": "8648346e635cc1f1568cd84483946f9e7660bb5cb5fcf5101c4a657e5f7e2489",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/01-bootstrap-no-authorization.events.jsonl",
+      "originalBytes": 780,
+      "originalSha256": "bd22508da00a190908f332061664e48b8f1ad7d3d0c5195b5f7e8285f3b6f343",
+      "archivedSha256": "bd22508da00a190908f332061664e48b8f1ad7d3d0c5195b5f7e8285f3b6f343",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/01-bootstrap-no-authorization.stderr.log",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archivedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/01-bootstrap-no-authorization.stdout.log",
+      "originalBytes": 666,
+      "originalSha256": "e07b75ee1e457d3def98aa452b3094c8f0833fe48acf8e866965f85062ee9eab",
+      "archivedSha256": "e07b75ee1e457d3def98aa452b3094c8f0833fe48acf8e866965f85062ee9eab",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/02-resonance-bootstrap-fixed.command.json",
+      "originalBytes": 1352,
+      "originalSha256": "9b06b6b56a439cd7343364273c56c18dd84bc9c4abf59d0c217ebb7ea97a5e79",
+      "archivedSha256": "954311c0c393c98cd329f2d96634b3c1d12fc45067a5afc8e50cbfb3e0600e45",
+      "localAuthorizationIdRedactions": 1
+    },
+    {
+      "path": "command-logs/02-resonance-bootstrap-fixed.events.jsonl",
+      "originalBytes": 330,
+      "originalSha256": "5cd5b2beff0a3516f88dd33fbf45fbc433a95be03dec6134b52ea5b6533f1387",
+      "archivedSha256": "5cd5b2beff0a3516f88dd33fbf45fbc433a95be03dec6134b52ea5b6533f1387",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/02-resonance-bootstrap-fixed.stderr.log",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archivedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/02-resonance-bootstrap-fixed.stdout.log",
+      "originalBytes": 251,
+      "originalSha256": "5e5b4e6a71c15e968e57f1aa8234a34b553c158292faad4fba241673420e1ebc",
+      "archivedSha256": "5e5b4e6a71c15e968e57f1aa8234a34b553c158292faad4fba241673420e1ebc",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/03-tally-bootstrap-fixed.command.json",
+      "originalBytes": 1324,
+      "originalSha256": "0f3f01ef96bf8eadd966e563ae8e8321bcdedc93e6051617da635b5e6b1c3909",
+      "archivedSha256": "964de5a63d35aee8adde7172066f446d0f4b6386f71f5510d38e8914ad207dbe",
+      "localAuthorizationIdRedactions": 1
+    },
+    {
+      "path": "command-logs/03-tally-bootstrap-fixed.events.jsonl",
+      "originalBytes": 330,
+      "originalSha256": "c0228aeaf2cf4514da4ee8c968cb5dc2899f9bcfb6bd9843e93c646fd280e437",
+      "archivedSha256": "c0228aeaf2cf4514da4ee8c968cb5dc2899f9bcfb6bd9843e93c646fd280e437",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/03-tally-bootstrap-fixed.stderr.log",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archivedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/03-tally-bootstrap-fixed.stdout.log",
+      "originalBytes": 251,
+      "originalSha256": "5e5b4e6a71c15e968e57f1aa8234a34b553c158292faad4fba241673420e1ebc",
+      "archivedSha256": "5e5b4e6a71c15e968e57f1aa8234a34b553c158292faad4fba241673420e1ebc",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/04-ledger-bootstrap-fixed.command.json",
+      "originalBytes": 1337,
+      "originalSha256": "a0ca50763d47892873828f5c6c6a23c6b62f01de3a00f4624fcd1d6e4b862714",
+      "archivedSha256": "bdac142b0ab3b5a2b61b0ca2d07303473998d3471e88d68d0dd058247144b941",
+      "localAuthorizationIdRedactions": 1
+    },
+    {
+      "path": "command-logs/04-ledger-bootstrap-fixed.events.jsonl",
+      "originalBytes": 330,
+      "originalSha256": "1de4c067c56a716cfd74a6fc52647c98d7e08edae3670c1bee7c62cc539b5593",
+      "archivedSha256": "1de4c067c56a716cfd74a6fc52647c98d7e08edae3670c1bee7c62cc539b5593",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/04-ledger-bootstrap-fixed.stderr.log",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archivedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/04-ledger-bootstrap-fixed.stdout.log",
+      "originalBytes": 251,
+      "originalSha256": "5e5b4e6a71c15e968e57f1aa8234a34b553c158292faad4fba241673420e1ebc",
+      "archivedSha256": "5e5b4e6a71c15e968e57f1aa8234a34b553c158292faad4fba241673420e1ebc",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/05-resonance-bootstrap-attempt3.command.json",
+      "originalBytes": 1363,
+      "originalSha256": "2783fc00da4238ef2a412e595942442cc35cf2de57b2a0e19a47544c40aaa104",
+      "archivedSha256": "a731beb4b79d526af91c278aaa31636318228335b6789e3a80efd70c9acfeda1",
+      "localAuthorizationIdRedactions": 1
+    },
+    {
+      "path": "command-logs/05-resonance-bootstrap-attempt3.events.jsonl",
+      "originalBytes": 384,
+      "originalSha256": "632e757300920893515d2100df0b34b56e7917104728f338f20944775aa76a51",
+      "archivedSha256": "632e757300920893515d2100df0b34b56e7917104728f338f20944775aa76a51",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/05-resonance-bootstrap-attempt3.stderr.log",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archivedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/05-resonance-bootstrap-attempt3.stdout.log",
+      "originalBytes": 295,
+      "originalSha256": "f29416b20223b8c33af2e3997e8f7bc70659ecd3af28ee803f0b5f11e540c3de",
+      "archivedSha256": "f29416b20223b8c33af2e3997e8f7bc70659ecd3af28ee803f0b5f11e540c3de",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/06-resonance-environment.command.json",
+      "originalBytes": 1109,
+      "originalSha256": "265d0bc9dcaa74d4e5bb9ef7122bab4439fcbcee62f98c061682256b5d2cab34",
+      "archivedSha256": "265d0bc9dcaa74d4e5bb9ef7122bab4439fcbcee62f98c061682256b5d2cab34",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/06-resonance-environment.events.jsonl",
+      "originalBytes": 2932,
+      "originalSha256": "6bb8d915e112b67cbd24db8ec5df4196d78760ec445369bbbdfbcd2adada8e7f",
+      "archivedSha256": "6bb8d915e112b67cbd24db8ec5df4196d78760ec445369bbbdfbcd2adada8e7f",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/06-resonance-environment.stderr.log",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archivedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/06-resonance-environment.stdout.log",
+      "originalBytes": 2526,
+      "originalSha256": "a58b8efeef068624a537ba13f03f1e6eddb6ea4b753a878d46f3c223f8dce27d",
+      "archivedSha256": "a58b8efeef068624a537ba13f03f1e6eddb6ea4b753a878d46f3c223f8dce27d",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/07-resonance-prepare-tests.command.json",
+      "originalBytes": 1198,
+      "originalSha256": "92ebcd82bd2415456dfbfe6112851d4f3f67d1059b690108ae695ce64c23b784",
+      "archivedSha256": "e18d358fe4a4541896b4672842750e62a3e08d93f1c7b2c85cde03cb5424fa7e",
+      "localAuthorizationIdRedactions": 1
+    },
+    {
+      "path": "command-logs/07-resonance-prepare-tests.events.jsonl",
+      "originalBytes": 1466,
+      "originalSha256": "97e4139c1c8d9b0009591c764a9a6e773a8b90bf11b9f9d11f725a5d346361b0",
+      "archivedSha256": "97e4139c1c8d9b0009591c764a9a6e773a8b90bf11b9f9d11f725a5d346361b0",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/07-resonance-prepare-tests.stderr.log",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archivedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/07-resonance-prepare-tests.stdout.log",
+      "originalBytes": 1278,
+      "originalSha256": "7768a455154f22a397030c561a2fddb154b81b2aba6c03a755dc892d186f47e9",
+      "archivedSha256": "7768a455154f22a397030c561a2fddb154b81b2aba6c03a755dc892d186f47e9",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/08-resonance-build.command.json",
+      "originalBytes": 1184,
+      "originalSha256": "d9f76259815d524f1527fd4d4d14684d1faf93ca71e096d9d3f5fa866854c536",
+      "archivedSha256": "df5204330838381144b223efa7a063a9b9520ec75ffcb1b578d4dab88175f672",
+      "localAuthorizationIdRedactions": 1
+    },
+    {
+      "path": "command-logs/08-resonance-build.events.jsonl",
+      "originalBytes": 13743,
+      "originalSha256": "4b9abfb40f3dd499d1feb296f3b8dae9094f83a7be496fa531b4bf41a8cabd71",
+      "archivedSha256": "4b9abfb40f3dd499d1feb296f3b8dae9094f83a7be496fa531b4bf41a8cabd71",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/08-resonance-build.stderr.log",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archivedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/08-resonance-build.stdout.log",
+      "originalBytes": 11326,
+      "originalSha256": "8c0021f7edbc425ddf4664d09a191be05d07aa6136f9b70ba986fc8456fdd10f",
+      "archivedSha256": "8c0021f7edbc425ddf4664d09a191be05d07aa6136f9b70ba986fc8456fdd10f",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/09-resonance-gametest.command.json",
+      "originalBytes": 1204,
+      "originalSha256": "f908233265be840acd56d9a4565fd079b3d4de3c1b3908f3d049d3cdb1625685",
+      "archivedSha256": "11fe1e386c11037643e86b1df107a5fef4b96d78ba782a2a80818cdac5f0030f",
+      "localAuthorizationIdRedactions": 1
+    },
+    {
+      "path": "command-logs/09-resonance-gametest.events.jsonl",
+      "originalBytes": 114674,
+      "originalSha256": "408d9757ca9a669d41009ae827c9c5b008ce0746cefd4c6f54a3fea682e54645",
+      "archivedSha256": "408d9757ca9a669d41009ae827c9c5b008ce0746cefd4c6f54a3fea682e54645",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/09-resonance-gametest.stderr.log",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archivedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/09-resonance-gametest.stdout.log",
+      "originalBytes": 100196,
+      "originalSha256": "dfd79d87df5c11d5b9be304f1896a33b59eb64ee12ab263f1b5b9e8574c0437a",
+      "archivedSha256": "dfd79d87df5c11d5b9be304f1896a33b59eb64ee12ab263f1b5b9e8574c0437a",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/10-tally-bootstrap-attempt3.command.json",
+      "originalBytes": 1335,
+      "originalSha256": "2cae47a0c6039a8c84bfc1acc19292f7108534b362d0252a48cbdbac74d05a6f",
+      "archivedSha256": "764b09fdfe19cfc7ca7da8bf12a6fd85505ab07b441908fac137e22a5af480b0",
+      "localAuthorizationIdRedactions": 1
+    },
+    {
+      "path": "command-logs/10-tally-bootstrap-attempt3.events.jsonl",
+      "originalBytes": 372,
+      "originalSha256": "d7c35383981f1148b00793a465ef99573e9b9eb9051873decf575b48a98615d0",
+      "archivedSha256": "d7c35383981f1148b00793a465ef99573e9b9eb9051873decf575b48a98615d0",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/10-tally-bootstrap-attempt3.stderr.log",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archivedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/10-tally-bootstrap-attempt3.stdout.log",
+      "originalBytes": 283,
+      "originalSha256": "fafb37cfde57c2e8cd8df303075047f8460d4203f8904b4318f41874656eafcd",
+      "archivedSha256": "fafb37cfde57c2e8cd8df303075047f8460d4203f8904b4318f41874656eafcd",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/11-tally-environment.command.json",
+      "originalBytes": 1085,
+      "originalSha256": "f3dd657c6ffdaf86f41712c14627f72b868ed9205045fc7a57e88fa553e6fc5e",
+      "archivedSha256": "f3dd657c6ffdaf86f41712c14627f72b868ed9205045fc7a57e88fa553e6fc5e",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/11-tally-environment.events.jsonl",
+      "originalBytes": 2900,
+      "originalSha256": "49d579d0168447c5fbcc15bd51b73e995d77b1f620d8f6786607b45b3c63bd47",
+      "archivedSha256": "49d579d0168447c5fbcc15bd51b73e995d77b1f620d8f6786607b45b3c63bd47",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/11-tally-environment.stderr.log",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archivedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/11-tally-environment.stdout.log",
+      "originalBytes": 2494,
+      "originalSha256": "33daffd5d2b36ddb0c3ceed3ba7bea59b36cd9f6a188892a56e8de67f3897619",
+      "archivedSha256": "33daffd5d2b36ddb0c3ceed3ba7bea59b36cd9f6a188892a56e8de67f3897619",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/12-tally-prepare-tests.command.json",
+      "originalBytes": 1174,
+      "originalSha256": "e697eaee8056e8b69dcac1cb772ed7321b02a64145b7fa728ac23911acc9a682",
+      "archivedSha256": "3e4c7c60b4d55aad2fc0b618f8611558c5162ed3c5e8a17916f49d5c57e22d06",
+      "localAuthorizationIdRedactions": 1
+    },
+    {
+      "path": "command-logs/12-tally-prepare-tests.events.jsonl",
+      "originalBytes": 1462,
+      "originalSha256": "0acdd2fefee0f300deb036e151d27040604baeacaadf4d58f1dedad142017d88",
+      "archivedSha256": "0acdd2fefee0f300deb036e151d27040604baeacaadf4d58f1dedad142017d88",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/12-tally-prepare-tests.stderr.log",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archivedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/12-tally-prepare-tests.stdout.log",
+      "originalBytes": 1274,
+      "originalSha256": "3e56b3da4d38fda7582c9a4f86428979d889ea39e2751e129f7fc8e84d036560",
+      "archivedSha256": "3e56b3da4d38fda7582c9a4f86428979d889ea39e2751e129f7fc8e84d036560",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/13-tally-build.command.json",
+      "originalBytes": 1160,
+      "originalSha256": "3aa900e4859886f989ac1a88a95353881d712aa298c46331ee68959e6f9e4f97",
+      "archivedSha256": "6d0c840f69d973cc46635964ff0b65602f6132537bd4858f53dce6daa64c5879",
+      "localAuthorizationIdRedactions": 1
+    },
+    {
+      "path": "command-logs/13-tally-build.events.jsonl",
+      "originalBytes": 13243,
+      "originalSha256": "ea63124e9a936516194cc4e22996c6e16a1ed5edeb9293716103d16872fab4a2",
+      "archivedSha256": "ea63124e9a936516194cc4e22996c6e16a1ed5edeb9293716103d16872fab4a2",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/13-tally-build.stderr.log",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archivedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/13-tally-build.stdout.log",
+      "originalBytes": 10930,
+      "originalSha256": "a03e3f36880693660eaf6f6ee30f0f68dbf9d26d82c86286d386ddaca6ad65bc",
+      "archivedSha256": "a03e3f36880693660eaf6f6ee30f0f68dbf9d26d82c86286d386ddaca6ad65bc",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/14-tally-gametest.command.json",
+      "originalBytes": 1180,
+      "originalSha256": "a819e28c03a91003f9b550b2e861b26475fa4b20509151cbe4b18c729c02fa99",
+      "archivedSha256": "79d6a8780a6006485c2f607e727db03934752f0c5b5f3bfcdb8f9901abf37b82",
+      "localAuthorizationIdRedactions": 1
+    },
+    {
+      "path": "command-logs/14-tally-gametest.events.jsonl",
+      "originalBytes": 129233,
+      "originalSha256": "225a7ae11c132bbaf4cde3998dbcabca90785da7ced78f084ed223d10c64de18",
+      "archivedSha256": "225a7ae11c132bbaf4cde3998dbcabca90785da7ced78f084ed223d10c64de18",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/14-tally-gametest.stderr.log",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archivedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/14-tally-gametest.stdout.log",
+      "originalBytes": 112949,
+      "originalSha256": "2bf5247e031d5bba61ac59dbf5922911c5737240571d2964d709ef880fe105fb",
+      "archivedSha256": "2bf5247e031d5bba61ac59dbf5922911c5737240571d2964d709ef880fe105fb",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/15-tally-gametest-real-player.command.json",
+      "originalBytes": 1228,
+      "originalSha256": "8a5e4eebf7003ec34892c30db8c7ad67e45ef83fb7eadaf8fcdc399c668070ca",
+      "archivedSha256": "d16c06db48d820f376a7a409d825c37780d518a71f38bb73c93f2d0489332357",
+      "localAuthorizationIdRedactions": 1
+    },
+    {
+      "path": "command-logs/15-tally-gametest-real-player.events.jsonl",
+      "originalBytes": 121049,
+      "originalSha256": "00646007e600554f81dada5a009a19ab529f29ce09490735b03b5bfefefb3562",
+      "archivedSha256": "00646007e600554f81dada5a009a19ab529f29ce09490735b03b5bfefefb3562",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/15-tally-gametest-real-player.stderr.log",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archivedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/15-tally-gametest-real-player.stdout.log",
+      "originalBytes": 105828,
+      "originalSha256": "4e4ca717ccf75e07ef3137bab751c660a4a874a3d9cbc81d9fd39b001ca6d4ec",
+      "archivedSha256": "4e4ca717ccf75e07ef3137bab751c660a4a874a3d9cbc81d9fd39b001ca6d4ec",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/16-ledger-bootstrap-attempt3.command.json",
+      "originalBytes": 1348,
+      "originalSha256": "68ff2e114b2e8316d3542d74fde40e958cfbe815a991c0ab38711155aa5ab12d",
+      "archivedSha256": "71df15cbf253428102f81440a7efa0488542bbc69da2e76f0dee6c17b6fad353",
+      "localAuthorizationIdRedactions": 1
+    },
+    {
+      "path": "command-logs/16-ledger-bootstrap-attempt3.events.jsonl",
+      "originalBytes": 381,
+      "originalSha256": "eabed82ee4624c4944e2093b7ba30863b568b43d8f24c1380b0fe3013a54c79f",
+      "archivedSha256": "eabed82ee4624c4944e2093b7ba30863b568b43d8f24c1380b0fe3013a54c79f",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/16-ledger-bootstrap-attempt3.stderr.log",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archivedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/16-ledger-bootstrap-attempt3.stdout.log",
+      "originalBytes": 292,
+      "originalSha256": "19f2cd38ed2d390dc2f807c5337ad3e845cb4429ddcd1ac68cc8362bf6ad50bb",
+      "archivedSha256": "19f2cd38ed2d390dc2f807c5337ad3e845cb4429ddcd1ac68cc8362bf6ad50bb",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/17-ledger-environment.command.json",
+      "originalBytes": 1095,
+      "originalSha256": "ad292589ea8e91a4c0650ebdf914f3b4a98d8c1fe6e6c4fb02b8b7247988bbbe",
+      "archivedSha256": "ad292589ea8e91a4c0650ebdf914f3b4a98d8c1fe6e6c4fb02b8b7247988bbbe",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/17-ledger-environment.events.jsonl",
+      "originalBytes": 2924,
+      "originalSha256": "e008f3d9128f0a532590c5e4cdcaa4c7c4e16291a931228a3742ce24bd89d2ac",
+      "archivedSha256": "e008f3d9128f0a532590c5e4cdcaa4c7c4e16291a931228a3742ce24bd89d2ac",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/17-ledger-environment.stderr.log",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archivedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/17-ledger-environment.stdout.log",
+      "originalBytes": 2518,
+      "originalSha256": "0967fb78bc7f8ff72fcdc81bef3b4a6b87bf2339ee75fd3ef2c39a648fc87cda",
+      "archivedSha256": "0967fb78bc7f8ff72fcdc81bef3b4a6b87bf2339ee75fd3ef2c39a648fc87cda",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/18-ledger-prepare-tests.command.json",
+      "originalBytes": 1184,
+      "originalSha256": "0c227228734f1f74e5096067ada30bfaeae226459c597e4599216fb2caa52eb3",
+      "archivedSha256": "2563099781702c2ac6b28154f19c265aafd911ac0964d306b5d9a94ce6bc4540",
+      "localAuthorizationIdRedactions": 1
+    },
+    {
+      "path": "command-logs/18-ledger-prepare-tests.events.jsonl",
+      "originalBytes": 1465,
+      "originalSha256": "a40036dee31a1269f26e9a0b434e6d6f64a5659e61359f1d5578ab6ea5c6f663",
+      "archivedSha256": "a40036dee31a1269f26e9a0b434e6d6f64a5659e61359f1d5578ab6ea5c6f663",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/18-ledger-prepare-tests.stderr.log",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archivedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/18-ledger-prepare-tests.stdout.log",
+      "originalBytes": 1277,
+      "originalSha256": "5774a1dfbf1a1e03bbfae710324284a942bd22a0aa2a82c900fdcfd12bfebd37",
+      "archivedSha256": "5774a1dfbf1a1e03bbfae710324284a942bd22a0aa2a82c900fdcfd12bfebd37",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/19-ledger-build.command.json",
+      "originalBytes": 1170,
+      "originalSha256": "49f09f3c916009aff2283d5763f7138f45c5697aaa84f61a0eed13a0c6220fbd",
+      "archivedSha256": "c46936091a061f33c27e816921c2b271a8a448ab21bdcb799d59e282864c33a2",
+      "localAuthorizationIdRedactions": 1
+    },
+    {
+      "path": "command-logs/19-ledger-build.events.jsonl",
+      "originalBytes": 14231,
+      "originalSha256": "ccfd354773d7162833b78065cc7cb2dc2c1d5b47045373db90fbabd7b779b51a",
+      "archivedSha256": "ccfd354773d7162833b78065cc7cb2dc2c1d5b47045373db90fbabd7b779b51a",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/19-ledger-build.stderr.log",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archivedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/19-ledger-build.stdout.log",
+      "originalBytes": 11707,
+      "originalSha256": "60b830535b57c26e33d39fa2c595ba8d5e68cf6bb9e1f4b8c37308d7c7bec5d4",
+      "archivedSha256": "60b830535b57c26e33d39fa2c595ba8d5e68cf6bb9e1f4b8c37308d7c7bec5d4",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/20-ledger-gametest.command.json",
+      "originalBytes": 1190,
+      "originalSha256": "25813e8710b40b22140c9f0704f0dbb75ecc983ebf5fe8004ce3aa3840750a47",
+      "archivedSha256": "3da3848503d2bf1c216b837c1782df321ebe09cb0f734e96cecdda188bfff1da",
+      "localAuthorizationIdRedactions": 1
+    },
+    {
+      "path": "command-logs/20-ledger-gametest.events.jsonl",
+      "originalBytes": 130045,
+      "originalSha256": "084fc5d35f13f762892d44ac03b355c187bf990b0d2edf3b0e76254b967acb47",
+      "archivedSha256": "084fc5d35f13f762892d44ac03b355c187bf990b0d2edf3b0e76254b967acb47",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/20-ledger-gametest.stderr.log",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archivedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "command-logs/20-ledger-gametest.stdout.log",
+      "originalBytes": 113828,
+      "originalSha256": "c82419af2868208f88cc65fe75962699a3ceb1e184ebae4654afcaff268d78d7",
+      "archivedSha256": "c82419af2868208f88cc65fe75962699a3ceb1e184ebae4654afcaff268d78d7",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "experience-log.md",
+      "originalBytes": 6482,
+      "originalSha256": "592ae9b4f6c00b04270702f00c24d1e1b56c0a019d08f8e6884e48efbc073738",
+      "archivedSha256": "592ae9b4f6c00b04270702f00c24d1e1b56c0a019d08f8e6884e48efbc073738",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "final-evidence-hashes.json",
+      "originalBytes": 56958,
+      "originalSha256": "359f30fa9d7b111eb782a4cef66defeb2b61ce1d3e36b76d1caec3e1aa189037",
+      "archivedSha256": "359f30fa9d7b111eb782a4cef66defeb2b61ce1d3e36b76d1caec3e1aa189037",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "fixed-retry-inputs.json",
+      "originalBytes": 1009,
+      "originalSha256": "4f2ac948af7bf734bba8cd0c0cbd787201b4b16f165060f8bb3224a6d659119f",
+      "archivedSha256": "4f2ac948af7bf734bba8cd0c0cbd787201b4b16f165060f8bb3224a6d659119f",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "requirements-and-test-plan.md",
+      "originalBytes": 5010,
+      "originalSha256": "06226e8991b6eba0d9499715e077a999c9984ffde63c42ca730e2cef730ba01b",
+      "archivedSha256": "06226e8991b6eba0d9499715e077a999c9984ffde63c42ca730e2cef730ba01b",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/harvest_ledger/build.gradle",
+      "originalBytes": 1267,
+      "originalSha256": "30066e7fe38f555f6561a00bc28879a2ff888a62c6ab3fcdf8933a496a056e19",
+      "archivedSha256": "30066e7fe38f555f6561a00bc28879a2ff888a62c6ab3fcdf8933a496a056e19",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/harvest_ledger/copperbench-tests.json",
+      "originalBytes": 246,
+      "originalSha256": "c86d17709219b009adb91769cf5531db8e9535f031c197e1610b63c54b8e7760",
+      "archivedSha256": "c86d17709219b009adb91769cf5531db8e9535f031c197e1610b63c54b8e7760",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/harvest_ledger/gradle/wrapper/gradle-wrapper.jar",
+      "originalBytes": 48966,
+      "originalSha256": "55243ef57851f12b070ad14f7f5bb8302daceeebc5bce5ece5fa6edb23e1145c",
+      "archivedSha256": "55243ef57851f12b070ad14f7f5bb8302daceeebc5bce5ece5fa6edb23e1145c",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/harvest_ledger/gradle/wrapper/gradle-wrapper.properties",
+      "originalBytes": 255,
+      "originalSha256": "dd6a23b9f2909d0084810df07670902287ef58dd41307abee720b31312395fc6",
+      "archivedSha256": "dd6a23b9f2909d0084810df07670902287ef58dd41307abee720b31312395fc6",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/harvest_ledger/gradle.properties",
+      "originalBytes": 247,
+      "originalSha256": "8596bccaa0222d0be226d5f79d62baff65671bcd248e6648bcf519222d48a66e",
+      "archivedSha256": "8596bccaa0222d0be226d5f79d62baff65671bcd248e6648bcf519222d48a66e",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/harvest_ledger/gradlew",
+      "originalBytes": 8654,
+      "originalSha256": "aed171fb114f82e6eaea4970a245a200e0582a7dcc8ec0891ca41b6e4a62b754",
+      "archivedSha256": "aed171fb114f82e6eaea4970a245a200e0582a7dcc8ec0891ca41b6e4a62b754",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/harvest_ledger/gradlew.bat",
+      "originalBytes": 2896,
+      "originalSha256": "fedad02c18e266ec094995a5751b7fe1eb6e74f66bf75db64fae2e50eb22c234",
+      "archivedSha256": "fedad02c18e266ec094995a5751b7fe1eb6e74f66bf75db64fae2e50eb22c234",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/harvest_ledger/harvest_ledger.mcreator",
+      "originalBytes": 2053,
+      "originalSha256": "49b72a15d68c4e2fa1da7dc79be423fdf63d054dac4c840ff0350626a2f34833",
+      "archivedSha256": "49b72a15d68c4e2fa1da7dc79be423fdf63d054dac4c840ff0350626a2f34833",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/harvest_ledger/mcreator.gradle",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archivedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/harvest_ledger/settings.gradle",
+      "originalBytes": 208,
+      "originalSha256": "6e007f2e9f9164724393a9cda9bf3c8faf56052e0d77b1d7f2ca917c9bdb41a4",
+      "archivedSha256": "6e007f2e9f9164724393a9cda9bf3c8faf56052e0d77b1d7f2ca917c9bdb41a4",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/harvest_ledger/src/gametest/java/copperbench/acceptance/AcceptanceTests.java",
+      "originalBytes": 8896,
+      "originalSha256": "a2a392fd3b9921bbaee94520ffd7081b209687d0de964e718ec53af0a1727b79",
+      "archivedSha256": "a2a392fd3b9921bbaee94520ffd7081b209687d0de964e718ec53af0a1727b79",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/harvest_ledger/src/gametest/java/copperbench/acceptance/RealTestPlayers.java",
+      "originalBytes": 1358,
+      "originalSha256": "ad79efea8bd1867b357abdb83431c89baf5f3b9d39b0af73595baeb0c2e34ed7",
+      "archivedSha256": "ad79efea8bd1867b357abdb83431c89baf5f3b9d39b0af73595baeb0c2e34ed7",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/harvest_ledger/src/gametest/README.md",
+      "originalBytes": 430,
+      "originalSha256": "5ed703a1923b220dc08990d3ab316afc40fbe5f67ca3a2d6dd015bd505c7590b",
+      "archivedSha256": "5ed703a1923b220dc08990d3ab316afc40fbe5f67ca3a2d6dd015bd505c7590b",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/harvest_ledger/src/main/java/net/mcreator/harvest_ledger/event/BlockEvents.java",
+      "originalBytes": 1389,
+      "originalSha256": "dc54962ad79855269dc1de8a022f4863db7b7c3f9681d13db9149173d571bc68",
+      "archivedSha256": "dc54962ad79855269dc1de8a022f4863db7b7c3f9681d13db9149173d571bc68",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/harvest_ledger/src/main/java/net/mcreator/harvest_ledger/event/ItemEvents.java",
+      "originalBytes": 893,
+      "originalSha256": "9d75ee1aa955b98f2bd00be9913d0cd967d8c3e814e6df60cb05b78b807081ea",
+      "archivedSha256": "9d75ee1aa955b98f2bd00be9913d0cd967d8c3e814e6df60cb05b78b807081ea",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/harvest_ledger/src/main/java/net/mcreator/harvest_ledger/event/LivingEntityEvents.java",
+      "originalBytes": 4092,
+      "originalSha256": "bab71fe4d9faed5bc0d95e3c9c602f29860b93241cad4a21a771bf5fbc0ab099",
+      "archivedSha256": "bab71fe4d9faed5bc0d95e3c9c602f29860b93241cad4a21a771bf5fbc0ab099",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/harvest_ledger/src/main/java/net/mcreator/harvest_ledger/event/MiscEvents.java",
+      "originalBytes": 723,
+      "originalSha256": "bbef9ed47b202f55c1428b04a70108103d582d91f35e78cc02b19d6628fe708c",
+      "archivedSha256": "bbef9ed47b202f55c1428b04a70108103d582d91f35e78cc02b19d6628fe708c",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/harvest_ledger/src/main/java/net/mcreator/harvest_ledger/event/PlayerEvents.java",
+      "originalBytes": 1634,
+      "originalSha256": "ac9182bd60bdab57051efb0a8b40b37378eab5bf00999f561648b0e027aab2e4",
+      "archivedSha256": "ac9182bd60bdab57051efb0a8b40b37378eab5bf00999f561648b0e027aab2e4",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/harvest_ledger/src/main/java/net/mcreator/harvest_ledger/HarvestLedgerMod.java",
+      "originalBytes": 3036,
+      "originalSha256": "49bcdb3209ca4f2e92f38263875b133372ad57dab32803ac05f6906b9dd9a879",
+      "archivedSha256": "49bcdb3209ca4f2e92f38263875b133372ad57dab32803ac05f6906b9dd9a879",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/harvest_ledger/src/main/java/net/mcreator/harvest_ledger/HarvestLedgerModClient.java",
+      "originalBytes": 568,
+      "originalSha256": "01c62ed8936534feb281e440fa80af30211b66d5fd3b01e828be851bbee60edc",
+      "archivedSha256": "01c62ed8936534feb281e440fa80af30211b66d5fd3b01e828be851bbee60edc",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/harvest_ledger/src/main/java/net/mcreator/harvest_ledger/mixin/BlockItemMixin.java",
+      "originalBytes": 1321,
+      "originalSha256": "c89168882c85893475216e23b9263b295d4d476321bb5ebd3bc18bc54a0d3355",
+      "archivedSha256": "c89168882c85893475216e23b9263b295d4d476321bb5ebd3bc18bc54a0d3355",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/harvest_ledger/src/main/java/net/mcreator/harvest_ledger/mixin/BoneMealItemMixin.java",
+      "originalBytes": 1227,
+      "originalSha256": "4690056d46b3f99dd0cb94cbd3b69b90c9a73d0f71b82c15eb3099471394ee57",
+      "archivedSha256": "4690056d46b3f99dd0cb94cbd3b69b90c9a73d0f71b82c15eb3099471394ee57",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/harvest_ledger/src/main/java/net/mcreator/harvest_ledger/mixin/CommandsMixin.java",
+      "originalBytes": 863,
+      "originalSha256": "0a4036f5502dcd168d5f84ec80d282329cd89329c083e9dd6f5a694ae8cce61a",
+      "archivedSha256": "0a4036f5502dcd168d5f84ec80d282329cd89329c083e9dd6f5a694ae8cce61a",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/harvest_ledger/src/main/java/net/mcreator/harvest_ledger/mixin/ExperienceOrbMixin.java",
+      "originalBytes": 907,
+      "originalSha256": "607977972c78b847eaaef39e3fd1314e58ee2cad88324791303bdceb09518aa7",
+      "archivedSha256": "607977972c78b847eaaef39e3fd1314e58ee2cad88324791303bdceb09518aa7",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/harvest_ledger/src/main/java/net/mcreator/harvest_ledger/mixin/ItemStackMixin.java",
+      "originalBytes": 1549,
+      "originalSha256": "4a7ea2fdad828c306b936b414576e596a163d01e3b6ecb195bdee926081c1d8e",
+      "archivedSha256": "4a7ea2fdad828c306b936b414576e596a163d01e3b6ecb195bdee926081c1d8e",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/harvest_ledger/src/main/java/net/mcreator/harvest_ledger/mixin/LivingEntityMixin.java",
+      "originalBytes": 4637,
+      "originalSha256": "f3b628bb7f9bb91c1c540ab402775347239f5bb619c1378b1fb8b180cac15aff",
+      "archivedSha256": "f3b628bb7f9bb91c1c540ab402775347239f5bb619c1378b1fb8b180cac15aff",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/harvest_ledger/src/main/java/net/mcreator/harvest_ledger/mixin/PlayerMixin.java",
+      "originalBytes": 1041,
+      "originalSha256": "799597fb63200d27e110ee3a4306601b34b32333b5cb16b1b43e00385c1fefbf",
+      "archivedSha256": "799597fb63200d27e110ee3a4306601b34b32333b5cb16b1b43e00385c1fefbf",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/harvest_ledger/src/main/java/trial/harvest/HarvestMod.java",
+      "originalBytes": 1543,
+      "originalSha256": "f7b8ad234ac3210d684d6ad808e6720dcebef97b6582fd0990d541492645684a",
+      "archivedSha256": "f7b8ad234ac3210d684d6ad808e6720dcebef97b6582fd0990d541492645684a",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/harvest_ledger/src/main/java/trial/harvest/LedgerState.java",
+      "originalBytes": 1772,
+      "originalSha256": "7d29b4b914e13f1d986e7e5b771f1bb0ecbb656c4bd277ac195b4483c7961ed6",
+      "archivedSha256": "7d29b4b914e13f1d986e7e5b771f1bb0ecbb656c4bd277ac195b4483c7961ed6",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/harvest_ledger/src/main/resources/assets/harvest_ledger/lang/en_us.json",
+      "originalBytes": 2,
+      "originalSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "archivedSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/harvest_ledger/src/main/resources/fabric.mod.json",
+      "originalBytes": 708,
+      "originalSha256": "30836e9eca75c112c1309db64c653fddfc8e74b404cd695705c7cdcfb79ed599",
+      "archivedSha256": "30836e9eca75c112c1309db64c653fddfc8e74b404cd695705c7cdcfb79ed599",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/harvest_ledger/src/main/resources/harvest_ledger.mixins.json",
+      "originalBytes": 414,
+      "originalSha256": "963072ecd4f675ad292bd44491f38575407bf02653bade96dd11bdc687d0a334",
+      "archivedSha256": "963072ecd4f675ad292bd44491f38575407bf02653bade96dd11bdc687d0a334",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/harvest_ledger/src/main/resources/META-INF/harvest_ledger.classtweaker",
+      "originalBytes": 516,
+      "originalSha256": "829e6b46f94cf3612f23f46b0c34107c3a763157888e47667fc795b15587f55c",
+      "archivedSha256": "829e6b46f94cf3612f23f46b0c34107c3a763157888e47667fc795b15587f55c",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/harvest_ledger/src/main/resources/pack.mcmeta",
+      "originalBytes": 64,
+      "originalSha256": "5090fddd4fa993867d086edcd33b09285105fb1ae7b11322198cdb825905537d",
+      "archivedSha256": "5090fddd4fa993867d086edcd33b09285105fb1ae7b11322198cdb825905537d",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/harvest_ledger-source-inventory.json",
+      "originalBytes": 7203,
+      "originalSha256": "346db2708bbdb2a72471eb48bb82c132362f5b17727dc35212276e6c9b975b7b",
+      "archivedSha256": "346db2708bbdb2a72471eb48bb82c132362f5b17727dc35212276e6c9b975b7b",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/README.md",
+      "originalBytes": 1873,
+      "originalSha256": "0cbb0d732aae958c753af170456486e40f76179ea17126e2843039bd43761718",
+      "archivedSha256": "0cbb0d732aae958c753af170456486e40f76179ea17126e2843039bd43761718",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/resonance_token/build.gradle",
+      "originalBytes": 1272,
+      "originalSha256": "4269b1849d5a14485e7e8fc164cd2a4164f91c89c494d26383233a11bef52c7c",
+      "archivedSha256": "4269b1849d5a14485e7e8fc164cd2a4164f91c89c494d26383233a11bef52c7c",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/resonance_token/copperbench-tests.json",
+      "originalBytes": 246,
+      "originalSha256": "6f74d25265654b25aaea720d6d6625e5b8052196c8ce884ec2b12da2ed44aa4e",
+      "archivedSha256": "6f74d25265654b25aaea720d6d6625e5b8052196c8ce884ec2b12da2ed44aa4e",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/resonance_token/gradle/wrapper/gradle-wrapper.jar",
+      "originalBytes": 48966,
+      "originalSha256": "55243ef57851f12b070ad14f7f5bb8302daceeebc5bce5ece5fa6edb23e1145c",
+      "archivedSha256": "55243ef57851f12b070ad14f7f5bb8302daceeebc5bce5ece5fa6edb23e1145c",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/resonance_token/gradle/wrapper/gradle-wrapper.properties",
+      "originalBytes": 255,
+      "originalSha256": "dd6a23b9f2909d0084810df07670902287ef58dd41307abee720b31312395fc6",
+      "archivedSha256": "dd6a23b9f2909d0084810df07670902287ef58dd41307abee720b31312395fc6",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/resonance_token/gradle.properties",
+      "originalBytes": 248,
+      "originalSha256": "14c6ba9940ba7cfa933665941dd2a6d7724e6df86f5cd89dd94302245a415261",
+      "archivedSha256": "14c6ba9940ba7cfa933665941dd2a6d7724e6df86f5cd89dd94302245a415261",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/resonance_token/gradlew",
+      "originalBytes": 8654,
+      "originalSha256": "aed171fb114f82e6eaea4970a245a200e0582a7dcc8ec0891ca41b6e4a62b754",
+      "archivedSha256": "aed171fb114f82e6eaea4970a245a200e0582a7dcc8ec0891ca41b6e4a62b754",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/resonance_token/gradlew.bat",
+      "originalBytes": 2896,
+      "originalSha256": "fedad02c18e266ec094995a5751b7fe1eb6e74f66bf75db64fae2e50eb22c234",
+      "archivedSha256": "fedad02c18e266ec094995a5751b7fe1eb6e74f66bf75db64fae2e50eb22c234",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/resonance_token/mcreator.gradle",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archivedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/resonance_token/resonance_token.mcreator",
+      "originalBytes": 2074,
+      "originalSha256": "1e7d19677964221a2668e437c7f12ad4018ea69308de33fc0db1f92e300d84d6",
+      "archivedSha256": "1e7d19677964221a2668e437c7f12ad4018ea69308de33fc0db1f92e300d84d6",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/resonance_token/settings.gradle",
+      "originalBytes": 208,
+      "originalSha256": "6e007f2e9f9164724393a9cda9bf3c8faf56052e0d77b1d7f2ca917c9bdb41a4",
+      "archivedSha256": "6e007f2e9f9164724393a9cda9bf3c8faf56052e0d77b1d7f2ca917c9bdb41a4",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/resonance_token/src/gametest/java/copperbench/acceptance/AcceptanceTests.java",
+      "originalBytes": 8345,
+      "originalSha256": "1c88e48a15dbb64fc3fd24219283aa2631cc45db2602e8d887df5c98402eaf6a",
+      "archivedSha256": "1c88e48a15dbb64fc3fd24219283aa2631cc45db2602e8d887df5c98402eaf6a",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/resonance_token/src/gametest/README.md",
+      "originalBytes": 430,
+      "originalSha256": "5ed703a1923b220dc08990d3ab316afc40fbe5f67ca3a2d6dd015bd505c7590b",
+      "archivedSha256": "5ed703a1923b220dc08990d3ab316afc40fbe5f67ca3a2d6dd015bd505c7590b",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/resonance_token/src/main/java/net/mcreator/resonance_token/event/BlockEvents.java",
+      "originalBytes": 1390,
+      "originalSha256": "3b675c156b4a37fdfb6997260045f4b537d581ee1cd0cec6a2be1a56c1847399",
+      "archivedSha256": "3b675c156b4a37fdfb6997260045f4b537d581ee1cd0cec6a2be1a56c1847399",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/resonance_token/src/main/java/net/mcreator/resonance_token/event/ItemEvents.java",
+      "originalBytes": 894,
+      "originalSha256": "15ed8ad71f9edfd5ac0fdf3986801c36c66b917962abbb4862fba6e26a46d76c",
+      "archivedSha256": "15ed8ad71f9edfd5ac0fdf3986801c36c66b917962abbb4862fba6e26a46d76c",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/resonance_token/src/main/java/net/mcreator/resonance_token/event/LivingEntityEvents.java",
+      "originalBytes": 4093,
+      "originalSha256": "7efaa70cfd87afef0f9f2c90264279a4592adf3296b02f91612f603ddcde6bfb",
+      "archivedSha256": "7efaa70cfd87afef0f9f2c90264279a4592adf3296b02f91612f603ddcde6bfb",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/resonance_token/src/main/java/net/mcreator/resonance_token/event/MiscEvents.java",
+      "originalBytes": 724,
+      "originalSha256": "5b679332d90be8799496207491c04383aac1f45d13307220ff57c09db96e47da",
+      "archivedSha256": "5b679332d90be8799496207491c04383aac1f45d13307220ff57c09db96e47da",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/resonance_token/src/main/java/net/mcreator/resonance_token/event/PlayerEvents.java",
+      "originalBytes": 1635,
+      "originalSha256": "1ec212ec9c2e34158da1fcbd9249d994d8275de311a12be7e24bb9e5ab4d3a3f",
+      "archivedSha256": "1ec212ec9c2e34158da1fcbd9249d994d8275de311a12be7e24bb9e5ab4d3a3f",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/resonance_token/src/main/java/net/mcreator/resonance_token/mixin/BlockItemMixin.java",
+      "originalBytes": 1323,
+      "originalSha256": "5683db48cffe0cc8775f5d4bc092d97fe62fba69f98b6eda1ad98d85b695a594",
+      "archivedSha256": "5683db48cffe0cc8775f5d4bc092d97fe62fba69f98b6eda1ad98d85b695a594",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/resonance_token/src/main/java/net/mcreator/resonance_token/mixin/BoneMealItemMixin.java",
+      "originalBytes": 1229,
+      "originalSha256": "76597e7fc2bfd2d00f317d8837f1bf5b32005de8a2703d074f32042593012254",
+      "archivedSha256": "76597e7fc2bfd2d00f317d8837f1bf5b32005de8a2703d074f32042593012254",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/resonance_token/src/main/java/net/mcreator/resonance_token/mixin/CommandsMixin.java",
+      "originalBytes": 865,
+      "originalSha256": "a4c65ebaceb0dfff2451b5a42000cace07a2c1d9b1468fd575b5cdd2cef63480",
+      "archivedSha256": "a4c65ebaceb0dfff2451b5a42000cace07a2c1d9b1468fd575b5cdd2cef63480",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/resonance_token/src/main/java/net/mcreator/resonance_token/mixin/ExperienceOrbMixin.java",
+      "originalBytes": 909,
+      "originalSha256": "da5eedc4a6140a5fc517b54dd550f11329717f25cd874a4c21da61b7539bd6ba",
+      "archivedSha256": "da5eedc4a6140a5fc517b54dd550f11329717f25cd874a4c21da61b7539bd6ba",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/resonance_token/src/main/java/net/mcreator/resonance_token/mixin/ItemStackMixin.java",
+      "originalBytes": 1551,
+      "originalSha256": "1909883b9c3d98ecdfc708c8a72854bcaf07934d125b8d95d0ff98f782b24952",
+      "archivedSha256": "1909883b9c3d98ecdfc708c8a72854bcaf07934d125b8d95d0ff98f782b24952",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/resonance_token/src/main/java/net/mcreator/resonance_token/mixin/LivingEntityMixin.java",
+      "originalBytes": 4639,
+      "originalSha256": "4624c97d1e9fd7ef28d093f78093e3b878b1f01b85a9157a3a21dc6bb0e6d748",
+      "archivedSha256": "4624c97d1e9fd7ef28d093f78093e3b878b1f01b85a9157a3a21dc6bb0e6d748",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/resonance_token/src/main/java/net/mcreator/resonance_token/mixin/PlayerMixin.java",
+      "originalBytes": 1043,
+      "originalSha256": "805f09c4df14b821c72ce94b1d5509d7aff7d94f0d2d9be449a28db1e6b546e4",
+      "archivedSha256": "805f09c4df14b821c72ce94b1d5509d7aff7d94f0d2d9be449a28db1e6b546e4",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/resonance_token/src/main/java/net/mcreator/resonance_token/ResonanceTokenMod.java",
+      "originalBytes": 3041,
+      "originalSha256": "89c2a1e171c44bb141326d8737d056c74f835d30cda8de216a0fd55307198e91",
+      "archivedSha256": "89c2a1e171c44bb141326d8737d056c74f835d30cda8de216a0fd55307198e91",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/resonance_token/src/main/java/net/mcreator/resonance_token/ResonanceTokenModClient.java",
+      "originalBytes": 570,
+      "originalSha256": "06cbc62654d49360bacb95a5240eb380aeed99343cc6f4af6e2cfca648dbc4a2",
+      "archivedSha256": "06cbc62654d49360bacb95a5240eb380aeed99343cc6f4af6e2cfca648dbc4a2",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/resonance_token/src/main/java/trial/resonance/ResonanceMod.java",
+      "originalBytes": 2596,
+      "originalSha256": "0a6a49b15f3cdf57c835aec8e20440fea47f3fd95cb75d4a27135ed79c354e6a",
+      "archivedSha256": "0a6a49b15f3cdf57c835aec8e20440fea47f3fd95cb75d4a27135ed79c354e6a",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/resonance_token/src/main/resources/assets/resonance_token/lang/en_us.json",
+      "originalBytes": 58,
+      "originalSha256": "95a906ed61c43f438bb34c675b8cebcd72574adf172e6051a004a2b0481b2824",
+      "archivedSha256": "95a906ed61c43f438bb34c675b8cebcd72574adf172e6051a004a2b0481b2824",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/resonance_token/src/main/resources/assets/resonance_token/lang/zh_cn.json",
+      "originalBytes": 55,
+      "originalSha256": "06cccc123391cfdfb09b70a39a5bd98f288872129655e9e8e18edfe66a7dbb76",
+      "archivedSha256": "06cccc123391cfdfb09b70a39a5bd98f288872129655e9e8e18edfe66a7dbb76",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/resonance_token/src/main/resources/assets/resonance_token/models/item/resonance_token.json",
+      "originalBytes": 91,
+      "originalSha256": "9076c8347551dcd9818f79b79543bf99b4b34baebc941113767f9c27047dfa6d",
+      "archivedSha256": "9076c8347551dcd9818f79b79543bf99b4b34baebc941113767f9c27047dfa6d",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/resonance_token/src/main/resources/fabric.mod.json",
+      "originalBytes": 720,
+      "originalSha256": "c5625be794212fa3fca56e365fa8c249e978f82c0e7dd8d52f090bff296a9fd8",
+      "archivedSha256": "c5625be794212fa3fca56e365fa8c249e978f82c0e7dd8d52f090bff296a9fd8",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/resonance_token/src/main/resources/META-INF/resonance_token.classtweaker",
+      "originalBytes": 516,
+      "originalSha256": "829e6b46f94cf3612f23f46b0c34107c3a763157888e47667fc795b15587f55c",
+      "archivedSha256": "829e6b46f94cf3612f23f46b0c34107c3a763157888e47667fc795b15587f55c",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/resonance_token/src/main/resources/pack.mcmeta",
+      "originalBytes": 64,
+      "originalSha256": "5090fddd4fa993867d086edcd33b09285105fb1ae7b11322198cdb825905537d",
+      "archivedSha256": "5090fddd4fa993867d086edcd33b09285105fb1ae7b11322198cdb825905537d",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/resonance_token/src/main/resources/resonance_token.mixins.json",
+      "originalBytes": 416,
+      "originalSha256": "fe45f717adcb3ac9f80e094001aea3f3d3b3f193f53de8608c80d375fc27c1c1",
+      "archivedSha256": "fe45f717adcb3ac9f80e094001aea3f3d3b3f193f53de8608c80d375fc27c1c1",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/resonance_token-source-inventory.json",
+      "originalBytes": 7253,
+      "originalSha256": "f12019f1e3cbf0337ea6c69f33e4b2ade4340a14f119919837c7afcfca9970a7",
+      "archivedSha256": "f12019f1e3cbf0337ea6c69f33e4b2ade4340a14f119919837c7afcfca9970a7",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/source-inventory.json",
+      "originalBytes": 1460,
+      "originalSha256": "269f0eb15df0e0549690a510a371a09badfc58dcfdd0deb0fbfb72a606281f9e",
+      "archivedSha256": "269f0eb15df0e0549690a510a371a09badfc58dcfdd0deb0fbfb72a606281f9e",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/tally_stone/build.gradle",
+      "originalBytes": 1252,
+      "originalSha256": "a0dff7335c132cb02b181801a2e77c3929085fedde71b8c95949d65b5523403f",
+      "archivedSha256": "a0dff7335c132cb02b181801a2e77c3929085fedde71b8c95949d65b5523403f",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/tally_stone/copperbench-tests.json",
+      "originalBytes": 246,
+      "originalSha256": "6f74d25265654b25aaea720d6d6625e5b8052196c8ce884ec2b12da2ed44aa4e",
+      "archivedSha256": "6f74d25265654b25aaea720d6d6625e5b8052196c8ce884ec2b12da2ed44aa4e",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/tally_stone/gradle/wrapper/gradle-wrapper.jar",
+      "originalBytes": 48966,
+      "originalSha256": "55243ef57851f12b070ad14f7f5bb8302daceeebc5bce5ece5fa6edb23e1145c",
+      "archivedSha256": "55243ef57851f12b070ad14f7f5bb8302daceeebc5bce5ece5fa6edb23e1145c",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/tally_stone/gradle/wrapper/gradle-wrapper.properties",
+      "originalBytes": 255,
+      "originalSha256": "dd6a23b9f2909d0084810df07670902287ef58dd41307abee720b31312395fc6",
+      "archivedSha256": "dd6a23b9f2909d0084810df07670902287ef58dd41307abee720b31312395fc6",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/tally_stone/gradle.properties",
+      "originalBytes": 244,
+      "originalSha256": "3c540489df1fa0c8768d84a1c8d8dfe1d66f2c997ce93e4d63ba6162b4820b3a",
+      "archivedSha256": "3c540489df1fa0c8768d84a1c8d8dfe1d66f2c997ce93e4d63ba6162b4820b3a",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/tally_stone/gradlew",
+      "originalBytes": 8654,
+      "originalSha256": "aed171fb114f82e6eaea4970a245a200e0582a7dcc8ec0891ca41b6e4a62b754",
+      "archivedSha256": "aed171fb114f82e6eaea4970a245a200e0582a7dcc8ec0891ca41b6e4a62b754",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/tally_stone/gradlew.bat",
+      "originalBytes": 2896,
+      "originalSha256": "fedad02c18e266ec094995a5751b7fe1eb6e74f66bf75db64fae2e50eb22c234",
+      "archivedSha256": "fedad02c18e266ec094995a5751b7fe1eb6e74f66bf75db64fae2e50eb22c234",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/tally_stone/mcreator.gradle",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archivedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/tally_stone/settings.gradle",
+      "originalBytes": 208,
+      "originalSha256": "6e007f2e9f9164724393a9cda9bf3c8faf56052e0d77b1d7f2ca917c9bdb41a4",
+      "archivedSha256": "6e007f2e9f9164724393a9cda9bf3c8faf56052e0d77b1d7f2ca917c9bdb41a4",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/tally_stone/src/gametest/java/copperbench/acceptance/AcceptanceTests.java",
+      "originalBytes": 7823,
+      "originalSha256": "8943aef502e8567b411fcdad84f303fd5f2c9f3464965adc60d3319c66046332",
+      "archivedSha256": "8943aef502e8567b411fcdad84f303fd5f2c9f3464965adc60d3319c66046332",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/tally_stone/src/gametest/java/copperbench/acceptance/RealTestPlayers.java",
+      "originalBytes": 1358,
+      "originalSha256": "ad79efea8bd1867b357abdb83431c89baf5f3b9d39b0af73595baeb0c2e34ed7",
+      "archivedSha256": "ad79efea8bd1867b357abdb83431c89baf5f3b9d39b0af73595baeb0c2e34ed7",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/tally_stone/src/gametest/README.md",
+      "originalBytes": 430,
+      "originalSha256": "5ed703a1923b220dc08990d3ab316afc40fbe5f67ca3a2d6dd015bd505c7590b",
+      "archivedSha256": "5ed703a1923b220dc08990d3ab316afc40fbe5f67ca3a2d6dd015bd505c7590b",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/tally_stone/src/main/java/net/mcreator/tally_stone/event/BlockEvents.java",
+      "originalBytes": 1386,
+      "originalSha256": "068d472f9323f9d867bb88ceb7193f0184222ab0214dc1ccca47f6fb09f48319",
+      "archivedSha256": "068d472f9323f9d867bb88ceb7193f0184222ab0214dc1ccca47f6fb09f48319",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/tally_stone/src/main/java/net/mcreator/tally_stone/event/ItemEvents.java",
+      "originalBytes": 890,
+      "originalSha256": "597b5261d1e5012c03beac6473ef5526dde5ecb517c164c3f2a6b016d48e11de",
+      "archivedSha256": "597b5261d1e5012c03beac6473ef5526dde5ecb517c164c3f2a6b016d48e11de",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/tally_stone/src/main/java/net/mcreator/tally_stone/event/LivingEntityEvents.java",
+      "originalBytes": 4089,
+      "originalSha256": "5819a08f9b3cb831d1ca059a781a9953c6daf5033eea5c6f00f3ac5a18b6e379",
+      "archivedSha256": "5819a08f9b3cb831d1ca059a781a9953c6daf5033eea5c6f00f3ac5a18b6e379",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/tally_stone/src/main/java/net/mcreator/tally_stone/event/MiscEvents.java",
+      "originalBytes": 720,
+      "originalSha256": "d3bf125837df01ea0ca48c193422971d1889a49c68a7cc78a1483054e3df4446",
+      "archivedSha256": "d3bf125837df01ea0ca48c193422971d1889a49c68a7cc78a1483054e3df4446",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/tally_stone/src/main/java/net/mcreator/tally_stone/event/PlayerEvents.java",
+      "originalBytes": 1631,
+      "originalSha256": "857ad3eb3014790f0e26f755b3cad2988dd17199220cf2f599442592118b6436",
+      "archivedSha256": "857ad3eb3014790f0e26f755b3cad2988dd17199220cf2f599442592118b6436",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/tally_stone/src/main/java/net/mcreator/tally_stone/mixin/BlockItemMixin.java",
+      "originalBytes": 1315,
+      "originalSha256": "929fc579b8cf216298e5fc7a5d45cfcc885a56bb91358dc1e73ac5366f152728",
+      "archivedSha256": "929fc579b8cf216298e5fc7a5d45cfcc885a56bb91358dc1e73ac5366f152728",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/tally_stone/src/main/java/net/mcreator/tally_stone/mixin/BoneMealItemMixin.java",
+      "originalBytes": 1221,
+      "originalSha256": "92fea66e174b4478eddd847f4562c438cd9dc9dda0e355c67a307c96c3bc6b21",
+      "archivedSha256": "92fea66e174b4478eddd847f4562c438cd9dc9dda0e355c67a307c96c3bc6b21",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/tally_stone/src/main/java/net/mcreator/tally_stone/mixin/CommandsMixin.java",
+      "originalBytes": 857,
+      "originalSha256": "22138b129fa68f5942f46817c42bcb98db0abfb3469a035a218bee1d8d685b2b",
+      "archivedSha256": "22138b129fa68f5942f46817c42bcb98db0abfb3469a035a218bee1d8d685b2b",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/tally_stone/src/main/java/net/mcreator/tally_stone/mixin/ExperienceOrbMixin.java",
+      "originalBytes": 901,
+      "originalSha256": "d860700d16023d875fe2828e23a1296b3a383076f95a768dc12755b9bd282e38",
+      "archivedSha256": "d860700d16023d875fe2828e23a1296b3a383076f95a768dc12755b9bd282e38",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/tally_stone/src/main/java/net/mcreator/tally_stone/mixin/ItemStackMixin.java",
+      "originalBytes": 1543,
+      "originalSha256": "f848abe56f80d027e77306f788c16cb6d0b1631874ccc1f26ee67764451297f5",
+      "archivedSha256": "f848abe56f80d027e77306f788c16cb6d0b1631874ccc1f26ee67764451297f5",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/tally_stone/src/main/java/net/mcreator/tally_stone/mixin/LivingEntityMixin.java",
+      "originalBytes": 4631,
+      "originalSha256": "b86943095c555e0f6b32fb60618c50f8337a9e4e3b1f337cfb05569ded8e0e93",
+      "archivedSha256": "b86943095c555e0f6b32fb60618c50f8337a9e4e3b1f337cfb05569ded8e0e93",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/tally_stone/src/main/java/net/mcreator/tally_stone/mixin/PlayerMixin.java",
+      "originalBytes": 1035,
+      "originalSha256": "f2787a41dabad22c0574b1f4f486d478ee90883d6c82cae77cfe66a34c9f040c",
+      "archivedSha256": "f2787a41dabad22c0574b1f4f486d478ee90883d6c82cae77cfe66a34c9f040c",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/tally_stone/src/main/java/net/mcreator/tally_stone/TallyStoneMod.java",
+      "originalBytes": 3021,
+      "originalSha256": "e08eeb61a6d1a1e033ab85e42cb481b27f07c3e1600b225b988943963d70129f",
+      "archivedSha256": "e08eeb61a6d1a1e033ab85e42cb481b27f07c3e1600b225b988943963d70129f",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/tally_stone/src/main/java/net/mcreator/tally_stone/TallyStoneModClient.java",
+      "originalBytes": 562,
+      "originalSha256": "f11fd90a65e21648aa77882ebe03c7d196b0a369cbcd9de7eca2d4284d4093cb",
+      "archivedSha256": "f11fd90a65e21648aa77882ebe03c7d196b0a369cbcd9de7eca2d4284d4093cb",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/tally_stone/src/main/java/trial/tally/TallyMod.java",
+      "originalBytes": 3207,
+      "originalSha256": "25e155f1f479768b66e3cc54078afe3f82230d14ec9452106b7bf9422f477d3b",
+      "archivedSha256": "25e155f1f479768b66e3cc54078afe3f82230d14ec9452106b7bf9422f477d3b",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/tally_stone/src/main/resources/assets/tally_stone/blockstates/tally_stone.json",
+      "originalBytes": 59,
+      "originalSha256": "bbdde0f6c2588cac306af22cd0c7768be68fe4b9d7e7751c292a200cc7328149",
+      "archivedSha256": "bbdde0f6c2588cac306af22cd0c7768be68fe4b9d7e7751c292a200cc7328149",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/tally_stone/src/main/resources/assets/tally_stone/lang/en_us.json",
+      "originalBytes": 47,
+      "originalSha256": "19309e3d3e956ed5bf403cc6406d30a98f5d809e41f75a7b5284cd255dbaff00",
+      "archivedSha256": "19309e3d3e956ed5bf403cc6406d30a98f5d809e41f75a7b5284cd255dbaff00",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/tally_stone/src/main/resources/assets/tally_stone/lang/zh_cn.json",
+      "originalBytes": 45,
+      "originalSha256": "2624bd1d6955a52309851a9795217fb9b48e2bfbbce6167eac61cb5782050150",
+      "archivedSha256": "2624bd1d6955a52309851a9795217fb9b48e2bfbbce6167eac61cb5782050150",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/tally_stone/src/main/resources/assets/tally_stone/models/block/tally_stone.json",
+      "originalBytes": 93,
+      "originalSha256": "9ddf409b03c07aded85802a826785ae8a2a009e443b5bb61e78419e0d4e7e045",
+      "archivedSha256": "9ddf409b03c07aded85802a826785ae8a2a009e443b5bb61e78419e0d4e7e045",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/tally_stone/src/main/resources/assets/tally_stone/models/item/tally_stone.json",
+      "originalBytes": 42,
+      "originalSha256": "420094095c6f5bbb28c6f30eb632a79c504b503e6e3983cce39321abfe24f87c",
+      "archivedSha256": "420094095c6f5bbb28c6f30eb632a79c504b503e6e3983cce39321abfe24f87c",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/tally_stone/src/main/resources/data/tally_stone/loot_table/blocks/tally_stone.json",
+      "originalBytes": 179,
+      "originalSha256": "900d6ec37ab350f8ffc97f6420de5d6e7e293bf98fd751b7c21c17cde36bf63a",
+      "archivedSha256": "900d6ec37ab350f8ffc97f6420de5d6e7e293bf98fd751b7c21c17cde36bf63a",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/tally_stone/src/main/resources/fabric.mod.json",
+      "originalBytes": 680,
+      "originalSha256": "72a86cb149b977d5cfd84c76d40541c68ec906e8455bd03fdd3d6e4b4f89fd60",
+      "archivedSha256": "72a86cb149b977d5cfd84c76d40541c68ec906e8455bd03fdd3d6e4b4f89fd60",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/tally_stone/src/main/resources/META-INF/tally_stone.classtweaker",
+      "originalBytes": 516,
+      "originalSha256": "829e6b46f94cf3612f23f46b0c34107c3a763157888e47667fc795b15587f55c",
+      "archivedSha256": "829e6b46f94cf3612f23f46b0c34107c3a763157888e47667fc795b15587f55c",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/tally_stone/src/main/resources/pack.mcmeta",
+      "originalBytes": 64,
+      "originalSha256": "5090fddd4fa993867d086edcd33b09285105fb1ae7b11322198cdb825905537d",
+      "archivedSha256": "5090fddd4fa993867d086edcd33b09285105fb1ae7b11322198cdb825905537d",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/tally_stone/src/main/resources/tally_stone.mixins.json",
+      "originalBytes": 408,
+      "originalSha256": "eecdc9e088ef32682aea1a79bab6350707100bb35f41e66d972a9add44cd9f03",
+      "archivedSha256": "eecdc9e088ef32682aea1a79bab6350707100bb35f41e66d972a9add44cd9f03",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/tally_stone/tally_stone.mcreator",
+      "originalBytes": 1990,
+      "originalSha256": "8625dcfe2b39571d6a47d4841d943585dcab06783e32ec428b8796182018863d",
+      "archivedSha256": "8625dcfe2b39571d6a47d4841d943585dcab06783e32ec428b8796182018863d",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "source-delivery/tally_stone-source-inventory.json",
+      "originalBytes": 7960,
+      "originalSha256": "0c54df091d3f833f5ed45d8e9437f9f38bde0db3abd5b78d6996775f67009806",
+      "archivedSha256": "0c54df091d3f833f5ed45d8e9437f9f38bde0db3abd5b78d6996775f67009806",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "trial-inputs.json",
+      "originalBytes": 1857,
+      "originalSha256": "84529586f83245f11da40019da827535fd41df8de460a48fcdf78b49494474e4",
+      "archivedSha256": "84529586f83245f11da40019da827535fd41df8de460a48fcdf78b49494474e4",
+      "localAuthorizationIdRedactions": 0
+    },
+    {
+      "path": "trial-summary.json",
+      "originalBytes": 24412,
+      "originalSha256": "f7e7ce9183c9eb2de49cdb15a97956a7f314cb395533ef1715ded0385519d372",
+      "archivedSha256": "f7e7ce9183c9eb2de49cdb15a97956a7f314cb395533ef1715ded0385519d372",
+      "localAuthorizationIdRedactions": 0
+    }
+  ]
+}

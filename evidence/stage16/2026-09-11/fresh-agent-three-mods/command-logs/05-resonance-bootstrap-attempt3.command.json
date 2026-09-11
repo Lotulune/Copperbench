@@ -1,0 +1,32 @@
+{
+  "label": "05-resonance-bootstrap-attempt3",
+  "executable": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\copperbench-stage16-3c0aa090\\Copperbench010\\copperbench.exe",
+  "arguments": [
+    "bootstrap",
+    "create-workspace",
+    "--generator-id",
+    "fabric-1.21.1",
+    "--mod-name",
+    "Resonance Token",
+    "--mod-id",
+    "resonance_token",
+    "--workspace-folder",
+    "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\resonance_token",
+    "--task-authorization",
+    "<redacted-local-task-authorization-id>",
+    "--no-prompt",
+    "true"
+  ],
+  "workingDirectory": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent",
+  "startedAt": "2026-09-11T12:21:44.2684671+00:00",
+  "status": "completed",
+  "exitCode": 0,
+  "completedAt": "2026-09-11T12:22:56.1163129+00:00",
+  "elapsedMs": 71845,
+  "firstOutputMs": 71708,
+  "firstStdoutMs": 71708,
+  "firstStderrMs": null,
+  "stdoutPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\05-resonance-bootstrap-attempt3.stdout.log",
+  "stderrPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\05-resonance-bootstrap-attempt3.stderr.log",
+  "eventsPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\05-resonance-bootstrap-attempt3.events.jsonl"
+}

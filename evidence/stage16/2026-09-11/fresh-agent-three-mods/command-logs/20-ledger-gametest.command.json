@@ -1,0 +1,26 @@
+{
+  "label": "20-ledger-gametest",
+  "executable": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\copperbench-stage16-3c0aa090\\Copperbench010\\copperbench.exe",
+  "arguments": [
+    "headless",
+    "--workspace",
+    "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\harvest_ledger\\harvest_ledger.mcreator",
+    "run-gametest",
+    "--task-authorization",
+    "<redacted-local-task-authorization-id>",
+    "--stream",
+    "true"
+  ],
+  "workingDirectory": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent",
+  "startedAt": "2026-09-11T12:47:48.3578265+00:00",
+  "status": "completed",
+  "exitCode": 0,
+  "completedAt": "2026-09-11T12:50:46.9957523+00:00",
+  "elapsedMs": 178634,
+  "firstOutputMs": 1905,
+  "firstStdoutMs": 1905,
+  "firstStderrMs": null,
+  "stdoutPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\20-ledger-gametest.stdout.log",
+  "stderrPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\20-ledger-gametest.stderr.log",
+  "eventsPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\20-ledger-gametest.events.jsonl"
+}

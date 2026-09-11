@@ -1,0 +1,10 @@
+{
+  "schemaVersion": "1.0",
+  "mode": "packaged_jar",
+  "sourceDirectory": "src/gametest/java",
+  "resourceDirectory": "src/gametest/resources",
+  "minimumTests": 5,
+  "entrypoints": [
+    "copperbench.acceptance.AcceptanceTests"
+  ]
+}

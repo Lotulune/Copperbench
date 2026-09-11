@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "id": "harvest_ledger",
+  "version": "1.0.0",
+  "name": "Harvest Ledger",
+  "contact": {
+    "homepage": "https://mcreator.net",
+    "sources": ""
+  },
+  "license": "Not specified",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "net.mcreator.harvest_ledger.HarvestLedgerMod"
+    ],
+    "client": [
+      "net.mcreator.harvest_ledger.HarvestLedgerModClient"
+    ]
+  },
+  "mixins": [
+    "harvest_ledger.mixins.json"
+  ],
+  "accessWidener": "META-INF/harvest_ledger.classtweaker",
+  "depends": {
+    "fabricloader": ">=0.19.3",
+    "minecraft": "~1.21.1",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
+}

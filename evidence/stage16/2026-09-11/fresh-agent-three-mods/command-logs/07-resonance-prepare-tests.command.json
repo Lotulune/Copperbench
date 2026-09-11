@@ -1,0 +1,24 @@
+{
+  "label": "07-resonance-prepare-tests",
+  "executable": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\copperbench-stage16-3c0aa090\\Copperbench010\\copperbench.exe",
+  "arguments": [
+    "headless",
+    "--workspace",
+    "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\resonance_token\\resonance_token.mcreator",
+    "prepare-game-tests",
+    "--task-authorization",
+    "<redacted-local-task-authorization-id>"
+  ],
+  "workingDirectory": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent",
+  "startedAt": "2026-09-11T12:24:16.8438470+00:00",
+  "status": "completed",
+  "exitCode": 0,
+  "completedAt": "2026-09-11T12:24:22.1386158+00:00",
+  "elapsedMs": 5292,
+  "firstOutputMs": 5186,
+  "firstStdoutMs": 5186,
+  "firstStderrMs": null,
+  "stdoutPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\07-resonance-prepare-tests.stdout.log",
+  "stderrPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\07-resonance-prepare-tests.stderr.log",
+  "eventsPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\07-resonance-prepare-tests.events.jsonl"
+}

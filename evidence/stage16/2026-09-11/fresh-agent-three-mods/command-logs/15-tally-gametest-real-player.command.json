@@ -1,0 +1,26 @@
+{
+  "label": "15-tally-gametest-real-player",
+  "executable": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\copperbench-stage16-3c0aa090\\Copperbench010\\copperbench.exe",
+  "arguments": [
+    "headless",
+    "--workspace",
+    "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\tally_stone\\tally_stone.mcreator",
+    "run-gametest",
+    "--task-authorization",
+    "<redacted-local-task-authorization-id>",
+    "--stream",
+    "true"
+  ],
+  "workingDirectory": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent",
+  "startedAt": "2026-09-11T12:41:19.5095697+00:00",
+  "status": "completed",
+  "exitCode": 0,
+  "completedAt": "2026-09-11T12:43:50.8405783+00:00",
+  "elapsedMs": 151327,
+  "firstOutputMs": 1567,
+  "firstStdoutMs": 1567,
+  "firstStderrMs": null,
+  "stdoutPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\15-tally-gametest-real-player.stdout.log",
+  "stderrPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\15-tally-gametest-real-player.stderr.log",
+  "eventsPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\15-tally-gametest-real-player.events.jsonl"
+}

@@ -1,0 +1,196 @@
+{
+  "schemaVersion": "1.0",
+  "mod": "harvest_ledger",
+  "sourceDirectory": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\harvest_ledger",
+  "acceptedSnapshotSha256": "7153f97815d562cc07690c62995f876591548a6579b2f1ccbcf0f68acc669a2f",
+  "sourceManifestPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\artifacts\\harvest_ledger\\source-manifest.json",
+  "excludedSnapshotPaths": [
+    ".mcreator/generatorGradleCache",
+    ".mcreator/setupInfo"
+  ],
+  "excludedCategories": [
+    "caches",
+    "history",
+    "credentials",
+    "task-runs",
+    "logs",
+    "IDE state",
+    "build artifacts",
+    "Minecraft worlds"
+  ],
+  "files": [
+    {
+      "path": "build.gradle",
+      "bytes": 1267,
+      "sha256": "30066e7fe38f555f6561a00bc28879a2ff888a62c6ab3fcdf8933a496a056e19"
+    },
+    {
+      "path": "copperbench-tests.json",
+      "bytes": 246,
+      "sha256": "c86d17709219b009adb91769cf5531db8e9535f031c197e1610b63c54b8e7760"
+    },
+    {
+      "path": "gradle.properties",
+      "bytes": 247,
+      "sha256": "8596bccaa0222d0be226d5f79d62baff65671bcd248e6648bcf519222d48a66e"
+    },
+    {
+      "path": "gradle/wrapper/gradle-wrapper.jar",
+      "bytes": 48966,
+      "sha256": "55243ef57851f12b070ad14f7f5bb8302daceeebc5bce5ece5fa6edb23e1145c"
+    },
+    {
+      "path": "gradle/wrapper/gradle-wrapper.properties",
+      "bytes": 255,
+      "sha256": "dd6a23b9f2909d0084810df07670902287ef58dd41307abee720b31312395fc6"
+    },
+    {
+      "path": "gradlew",
+      "bytes": 8654,
+      "sha256": "aed171fb114f82e6eaea4970a245a200e0582a7dcc8ec0891ca41b6e4a62b754"
+    },
+    {
+      "path": "gradlew.bat",
+      "bytes": 2896,
+      "sha256": "fedad02c18e266ec094995a5751b7fe1eb6e74f66bf75db64fae2e50eb22c234"
+    },
+    {
+      "path": "harvest_ledger.mcreator",
+      "bytes": 2053,
+      "sha256": "49b72a15d68c4e2fa1da7dc79be423fdf63d054dac4c840ff0350626a2f34833"
+    },
+    {
+      "path": "mcreator.gradle",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "settings.gradle",
+      "bytes": 208,
+      "sha256": "6e007f2e9f9164724393a9cda9bf3c8faf56052e0d77b1d7f2ca917c9bdb41a4"
+    },
+    {
+      "path": "src/gametest/README.md",
+      "bytes": 430,
+      "sha256": "5ed703a1923b220dc08990d3ab316afc40fbe5f67ca3a2d6dd015bd505c7590b"
+    },
+    {
+      "path": "src/gametest/java/copperbench/acceptance/AcceptanceTests.java",
+      "bytes": 8896,
+      "sha256": "a2a392fd3b9921bbaee94520ffd7081b209687d0de964e718ec53af0a1727b79"
+    },
+    {
+      "path": "src/gametest/java/copperbench/acceptance/RealTestPlayers.java",
+      "bytes": 1358,
+      "sha256": "ad79efea8bd1867b357abdb83431c89baf5f3b9d39b0af73595baeb0c2e34ed7"
+    },
+    {
+      "path": "src/main/java/net/mcreator/harvest_ledger/HarvestLedgerMod.java",
+      "bytes": 3036,
+      "sha256": "49bcdb3209ca4f2e92f38263875b133372ad57dab32803ac05f6906b9dd9a879"
+    },
+    {
+      "path": "src/main/java/net/mcreator/harvest_ledger/HarvestLedgerModClient.java",
+      "bytes": 568,
+      "sha256": "01c62ed8936534feb281e440fa80af30211b66d5fd3b01e828be851bbee60edc"
+    },
+    {
+      "path": "src/main/java/net/mcreator/harvest_ledger/event/BlockEvents.java",
+      "bytes": 1389,
+      "sha256": "dc54962ad79855269dc1de8a022f4863db7b7c3f9681d13db9149173d571bc68"
+    },
+    {
+      "path": "src/main/java/net/mcreator/harvest_ledger/event/ItemEvents.java",
+      "bytes": 893,
+      "sha256": "9d75ee1aa955b98f2bd00be9913d0cd967d8c3e814e6df60cb05b78b807081ea"
+    },
+    {
+      "path": "src/main/java/net/mcreator/harvest_ledger/event/LivingEntityEvents.java",
+      "bytes": 4092,
+      "sha256": "bab71fe4d9faed5bc0d95e3c9c602f29860b93241cad4a21a771bf5fbc0ab099"
+    },
+    {
+      "path": "src/main/java/net/mcreator/harvest_ledger/event/MiscEvents.java",
+      "bytes": 723,
+      "sha256": "bbef9ed47b202f55c1428b04a70108103d582d91f35e78cc02b19d6628fe708c"
+    },
+    {
+      "path": "src/main/java/net/mcreator/harvest_ledger/event/PlayerEvents.java",
+      "bytes": 1634,
+      "sha256": "ac9182bd60bdab57051efb0a8b40b37378eab5bf00999f561648b0e027aab2e4"
+    },
+    {
+      "path": "src/main/java/net/mcreator/harvest_ledger/mixin/BlockItemMixin.java",
+      "bytes": 1321,
+      "sha256": "c89168882c85893475216e23b9263b295d4d476321bb5ebd3bc18bc54a0d3355"
+    },
+    {
+      "path": "src/main/java/net/mcreator/harvest_ledger/mixin/BoneMealItemMixin.java",
+      "bytes": 1227,
+      "sha256": "4690056d46b3f99dd0cb94cbd3b69b90c9a73d0f71b82c15eb3099471394ee57"
+    },
+    {
+      "path": "src/main/java/net/mcreator/harvest_ledger/mixin/CommandsMixin.java",
+      "bytes": 863,
+      "sha256": "0a4036f5502dcd168d5f84ec80d282329cd89329c083e9dd6f5a694ae8cce61a"
+    },
+    {
+      "path": "src/main/java/net/mcreator/harvest_ledger/mixin/ExperienceOrbMixin.java",
+      "bytes": 907,
+      "sha256": "607977972c78b847eaaef39e3fd1314e58ee2cad88324791303bdceb09518aa7"
+    },
+    {
+      "path": "src/main/java/net/mcreator/harvest_ledger/mixin/ItemStackMixin.java",
+      "bytes": 1549,
+      "sha256": "4a7ea2fdad828c306b936b414576e596a163d01e3b6ecb195bdee926081c1d8e"
+    },
+    {
+      "path": "src/main/java/net/mcreator/harvest_ledger/mixin/LivingEntityMixin.java",
+      "bytes": 4637,
+      "sha256": "f3b628bb7f9bb91c1c540ab402775347239f5bb619c1378b1fb8b180cac15aff"
+    },
+    {
+      "path": "src/main/java/net/mcreator/harvest_ledger/mixin/PlayerMixin.java",
+      "bytes": 1041,
+      "sha256": "799597fb63200d27e110ee3a4306601b34b32333b5cb16b1b43e00385c1fefbf"
+    },
+    {
+      "path": "src/main/java/trial/harvest/HarvestMod.java",
+      "bytes": 1543,
+      "sha256": "f7b8ad234ac3210d684d6ad808e6720dcebef97b6582fd0990d541492645684a"
+    },
+    {
+      "path": "src/main/java/trial/harvest/LedgerState.java",
+      "bytes": 1772,
+      "sha256": "7d29b4b914e13f1d986e7e5b771f1bb0ecbb656c4bd277ac195b4483c7961ed6"
+    },
+    {
+      "path": "src/main/resources/META-INF/harvest_ledger.classtweaker",
+      "bytes": 516,
+      "sha256": "829e6b46f94cf3612f23f46b0c34107c3a763157888e47667fc795b15587f55c"
+    },
+    {
+      "path": "src/main/resources/assets/harvest_ledger/lang/en_us.json",
+      "bytes": 2,
+      "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "path": "src/main/resources/fabric.mod.json",
+      "bytes": 708,
+      "sha256": "30836e9eca75c112c1309db64c653fddfc8e74b404cd695705c7cdcfb79ed599"
+    },
+    {
+      "path": "src/main/resources/harvest_ledger.mixins.json",
+      "bytes": 414,
+      "sha256": "963072ecd4f675ad292bd44491f38575407bf02653bade96dd11bdc687d0a334"
+    },
+    {
+      "path": "src/main/resources/pack.mcmeta",
+      "bytes": 64,
+      "sha256": "5090fddd4fa993867d086edcd33b09285105fb1ae7b11322198cdb825905537d"
+    }
+  ],
+  "fileCount": 34,
+  "bytes": 104375.0,
+  "note": "Gradle wrapper JAR is retained as a reproducible build input; generated mod JARs and all caches are excluded."
+}

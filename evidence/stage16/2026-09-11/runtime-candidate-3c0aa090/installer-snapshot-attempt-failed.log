@@ -1,0 +1,33 @@
+Picked up JAVA_TOOL_OPTIONS: -Djdk.net.unixdomain.tmpdir=D:/AICoding/Minecraft_ModCreator/.tmp/stage15-agent-trial/socket-fallback
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.6.0/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :downloadNSIS
+
+> Task :buildInstallerWin64 FAILED
+Processing config: D:\AICoding\Minecraft_ModCreator\.tmp\stage15-linux\build\tools\nsis\nsisconf.nsh
+Usage: !searchreplace [/ignorecase] output_name source_string substring replacestring
+Processing script file: "build/export/install64.nsi" (ACP)
+Error in script "build/export/install64.nsi" on line 17 -- aborting creation process
+
+
+[Incubating] Problems report is available at: file:///D:/AICoding/Minecraft_ModCreator/.tmp/stage15-linux/build/reports/problems/problems-report.html
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':buildInstallerWin64' (registered in script 'platform\windows\windows.gradle').
+> Process 'command 'D:\AICoding\Minecraft_ModCreator\.tmp\stage15-linux\build\tools\nsis\makensis'' finished with non-zero exit value 1
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.6.0/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD FAILED in 8s
+2 actionable tasks: 2 executed

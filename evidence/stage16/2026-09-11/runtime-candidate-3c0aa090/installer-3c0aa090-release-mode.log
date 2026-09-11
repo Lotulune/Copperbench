@@ -1,0 +1,36 @@
+Picked up JAVA_TOOL_OPTIONS: -Djdk.net.unixdomain.tmpdir=D:/AICoding/Minecraft_ModCreator/.tmp/stage15-agent-trial/socket-fallback
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.6.0/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :downloadNSIS
+
+> Task :buildInstallerWin64
+Processing config: D:\AICoding\Minecraft_ModCreator\.tmp\stage15-linux\build\tools\nsis\nsisconf.nsh
+Processing script file: "build/export/install64.nsi" (ACP)
+
+Processed 1 file, writing output (x86-unicode):
+
+Output: "D:\AICoding\Minecraft_ModCreator\.tmp\stage15-linux\build\export\Copperbench 0.1.0 Windows 64bit.exe"
+Install: 5 pages (320 bytes), 1 section (1 required) (2072 bytes), 3879 instructions (108612 bytes), 1922 strings (173154 bytes), 1 language table (318 bytes).
+Uninstall: 5 pages (384 bytes), 1 section (2072 bytes), 437 instructions (12236 bytes), 205 strings (6530 bytes), 1 language table (290 bytes).
+Datablock optimizer saved 286298 KiB (~25.5%).
+
+Using bzip2 compression.
+
+EXE header size:               57856 / 38912 bytes
+Install code:                  41305 / 284940 bytes
+Install data:              854892917 / 1812820681 bytes
+Uninstall code+data:           87160 / 87152 bytes
+CRC (0x8F1F5C70):                  4 / 4 bytes
+
+Total size:                855079242 / 1813231689 bytes (47.1%)
+
+[Incubating] Problems report is available at: file:///D:/AICoding/Minecraft_ModCreator/.tmp/stage15-linux/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.6.0/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 3m 39s
+2 actionable tasks: 2 executed

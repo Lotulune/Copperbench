@@ -1,0 +1,32 @@
+{
+  "label": "04-ledger-bootstrap-fixed",
+  "executable": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\copperbench-stage16-a78274ce\\Copperbench010\\copperbench.exe",
+  "arguments": [
+    "bootstrap",
+    "create-workspace",
+    "--generator-id",
+    "fabric-1.21.1",
+    "--mod-name",
+    "Harvest Ledger",
+    "--mod-id",
+    "harvest_ledger",
+    "--workspace-folder",
+    "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\harvest_ledger",
+    "--task-authorization",
+    "<redacted-local-task-authorization-id>",
+    "--no-prompt",
+    "true"
+  ],
+  "workingDirectory": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent",
+  "startedAt": "2026-09-11T11:29:33.1919063+00:00",
+  "status": "completed",
+  "exitCode": 10,
+  "completedAt": "2026-09-11T11:29:44.7413147+00:00",
+  "elapsedMs": 11545,
+  "firstOutputMs": 11330,
+  "firstStdoutMs": 11330,
+  "firstStderrMs": null,
+  "stdoutPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\04-ledger-bootstrap-fixed.stdout.log",
+  "stderrPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\04-ledger-bootstrap-fixed.stderr.log",
+  "eventsPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\04-ledger-bootstrap-fixed.events.jsonl"
+}

@@ -1,0 +1,42 @@
+plugins {
+    id 'net.fabricmc.fabric-loom-remap' version '1.17.19'
+}
+
+version = '1.0'
+base.archivesName = "tally_stone"
+
+loom {
+    if (file("src/main/resources/META-INF/tally_stone.classtweaker").exists())
+        accessWidenerPath = file("src/main/resources/META-INF/tally_stone.classtweaker")
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:1.21.1"
+    mappings loom.officialMojangMappings()
+    modImplementation "net.fabricmc:fabric-loader:0.19.3"
+
+    // Fabric API
+    modImplementation "net.fabricmc.fabric-api:fabric-api:0.116.15+1.21.1"
+}
+
+// We need to do this because MCreator doesn't allow to split armor textures in multiple folders
+tasks.named('processResources', ProcessResources) {
+    doLast {
+        copy {
+            from(layout.buildDirectory.dir("resources/main/assets/tally_stone/textures/entity/equipment/humanoid"))
+            into(layout.buildDirectory.dir("resources/main/assets/tally_stone/textures/entity/equipment/humanoid_leggings"))
+        }
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    it.options.release = 21
+}
+
+java {
+    withSourcesJar()
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+apply from: 'mcreator.gradle'

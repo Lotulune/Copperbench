@@ -1,0 +1,20 @@
+{
+  "attempt": "fixed-package-retry",
+  "sourceCommit": "a78274ce09387d15274d7dd2a344b32471700369",
+  "packageZipSha256": "e6b8f82544a1bb331f46965b1d99070cef193fdfcc2274cf4252ca7183da1e02",
+  "applicationJarSha256": "c28bccddc6ffd792b8dfa3b0c3309daab3ba38192b8006b79edb8dde4ff9d7a2",
+  "executable": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\copperbench-stage16-a78274ce\\Copperbench010\\copperbench.exe",
+  "userAuthorizationCompletedAt": "2026-09-11T11:25:27Z",
+  "authorizationCapabilities": [
+    "build",
+    "create",
+    "edit",
+    "run_client",
+    "test"
+  ],
+  "authorizationExpiresAt": "2026-09-12T11:25:27Z",
+  "authorizationRoot": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent",
+  "previousAttempt": "See trial-inputs.json and preauthorization-evidence-hashes.json",
+  "cacheCondition": "Existing shared-machine caches retained; no claim of a cold-machine run",
+  "excludedSibling": "client_trial_host belongs to root agent and will not be touched"
+}

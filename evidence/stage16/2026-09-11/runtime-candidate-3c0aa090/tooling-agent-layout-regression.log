@@ -1,0 +1,97 @@
+Picked up JAVA_TOOL_OPTIONS: -Djdk.net.unixdomain.tmpdir=D:/AICoding/Minecraft_ModCreator/.tmp/stage15-agent-trial/socket-fallback
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.6.0/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+Directory 'D:\AICoding\Minecraft_ModCreator\.tmp\stage15-linux\jdk\jbr25_mac_aarch64\Contents\Home' (Gradle property 'org.gradle.java.installations.paths') used for java installations does not exist
+Directory 'D:\AICoding\Minecraft_ModCreator\.tmp\stage15-linux\jdk\jbr25_mac_x64\Contents\Home' (Gradle property 'org.gradle.java.installations.paths') used for java installations does not exist
+Directory 'D:\AICoding\Minecraft_ModCreator\.tmp\stage15-linux\jdk\jbr25_linux_64' (Gradle property 'org.gradle.java.installations.paths') used for java installations does not exist
+> Task :compileGradleBridgeJava UP-TO-DATE
+> Task :processGradleBridgeResources NO-SOURCE
+> Task :gradleBridgeClasses UP-TO-DATE
+> Task :compileJava
+
+> Task :buildUiShell
+
+> @mod-creator/ui-shell@0.1.0 build
+> npm run check:i18n && tsc && vite build
+
+
+> @mod-creator/ui-shell@0.1.0 check:i18n
+> node scripts/check-i18n.mjs
+
+Chinese localization gate passed: 245/245 referenced keys translated.
+vite v6.4.3 building for production...
+transforming...
+✓ 1892 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                 0.56 kB │ gzip:   0.36 kB
+dist/assets/index-BdkA9qGM.css                 51.61 kB │ gzip:   9.10 kB
+dist/assets/arrow-left-S69xMHc5.js              0.34 kB │ gzip:   0.27 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+dist/assets/code-xml-CGA58sPD.js                0.38 kB │ gzip:   0.28 kB
+dist/assets/FunctionWorkbench-BqhGojo9.js      17.21 kB │ gzip:   5.24 kB
+dist/assets/GuiWorkbench-BjDX_xCD.js           18.54 kB │ gzip:   6.20 kB
+dist/assets/OverlayWorkbench-giWS7Yz9.js       20.65 kB │ gzip:   6.08 kB
+dist/assets/LootTableWorkbench-DDYGOKVt.js     22.88 kB │ gzip:   6.01 kB
+dist/assets/AdvancementWorkbench-Dlj9OW1z.js   26.18 kB │ gzip:   6.99 kB
+dist/assets/index-1fV0Ks9d.js                 616.63 kB │ gzip: 163.90 kB
+dist/assets/ProcedureWorkbench-Bv9tOHQA.js    818.58 kB │ gzip: 217.49 kB
+✓ built in 3.74s
+
+> Task :processResources UP-TO-DATE
+> Task :classes
+> Task :localIpcAgentJar UP-TO-DATE
+> Task :jar
+> Task :compileTestJava
+> Task :processTestResources UP-TO-DATE
+> Task :testClasses
+
+> Task :test
+Picked up JAVA_TOOL_OPTIONS: -Djdk.net.unixdomain.tmpdir=D:/AICoding/Minecraft_ModCreator/.tmp/stage15-agent-trial/socket-fallback
+
+GradleRuntimeCompatibilityTest > healthyRuntimeKeepsUserOptionsAndCachesProbe() PASSED
+
+GradleRuntimeCompatibilityTest > bundledJdkCanOpenSelectorWithoutCallerWorkarounds() STANDARD_OUT
+    [37m2026-09-11-20:10:04[m [32m[Test worker/INFO][m [34m[dev.copperbench.generator.BundledJdkLocator][m Bundled JDK resolved: distributionRoot=D:\AICoding\Minecraft_ModCreator\.tmp\stage15-linux, javaRelease=21, resolvedJavaHome=D:\AICoding\Minecraft_ModCreator\.tmp\stage15-linux\jdk\jdk21_win_64, attempted=[D:\AICoding\Minecraft_ModCreator\.tmp\stage15-linux\jdk21, D:\AICoding\Minecraft_ModCreator\.tmp\stage15-linux\jdk\jdk21_win_64], java.home=D:\AICoding\Minecraft_ModCreator\.tmp\stage15-linux\jdk\jbr25_win_64, user.dir=D:\AICoding\Minecraft_ModCreator\.tmp\stage15-linux
+    [37m2026-09-11-20:10:05[m [32m[Test worker/INFO][m [34m[dev.copperbench.generator.BundledJdkLocator][m Bundled JDK resolved: distributionRoot=D:\AICoding\Minecraft_ModCreator\.tmp\stage15-linux, javaRelease=25, resolvedJavaHome=D:\AICoding\Minecraft_ModCreator\.tmp\stage15-linux\jdk\jbr25_win_64, attempted=[D:\AICoding\Minecraft_ModCreator\.tmp\stage15-linux\jdk, D:\AICoding\Minecraft_ModCreator\.tmp\stage15-linux\jdk\jbr25_win_64], java.home=D:\AICoding\Minecraft_ModCreator\.tmp\stage15-linux\jdk\jbr25_win_64, user.dir=D:\AICoding\Minecraft_ModCreator\.tmp\stage15-linux
+
+GradleRuntimeCompatibilityTest > bundledJdkCanOpenSelectorWithoutCallerWorkarounds() PASSED
+
+GradleRuntimeCompatibilityTest > startupHelperResolvesWrappedExecutableAndDirectJarLayouts() PASSED
+
+GradleRuntimeCompatibilityTest > startupHelperOpensSelectorsWithoutAnyCallerJavaOptions() STANDARD_OUT
+    [37m2026-09-11-20:10:05[m [32m[Test worker/INFO][m [34m[dev.copperbench.generator.BundledJdkLocator][m Bundled JDK resolved: distributionRoot=D:\AICoding\Minecraft_ModCreator\.tmp\stage15-linux, javaRelease=21, resolvedJavaHome=D:\AICoding\Minecraft_ModCreator\.tmp\stage15-linux\jdk\jdk21_win_64, attempted=[D:\AICoding\Minecraft_ModCreator\.tmp\stage15-linux\jdk21, D:\AICoding\Minecraft_ModCreator\.tmp\stage15-linux\jdk\jdk21_win_64], java.home=D:\AICoding\Minecraft_ModCreator\.tmp\stage15-linux\jdk\jbr25_win_64, user.dir=D:\AICoding\Minecraft_ModCreator\.tmp\stage15-linux
+    [37m2026-09-11-20:10:06[m [32m[Test worker/INFO][m [34m[dev.copperbench.generator.BundledJdkLocator][m Bundled JDK resolved: distributionRoot=D:\AICoding\Minecraft_ModCreator\.tmp\stage15-linux, javaRelease=25, resolvedJavaHome=D:\AICoding\Minecraft_ModCreator\.tmp\stage15-linux\jdk\jbr25_win_64, attempted=[D:\AICoding\Minecraft_ModCreator\.tmp\stage15-linux\jdk, D:\AICoding\Minecraft_ModCreator\.tmp\stage15-linux\jdk\jbr25_win_64], java.home=D:\AICoding\Minecraft_ModCreator\.tmp\stage15-linux\jdk\jbr25_win_64, user.dir=D:\AICoding\Minecraft_ModCreator\.tmp\stage15-linux
+
+GradleRuntimeCompatibilityTest > startupHelperOpensSelectorsWithoutAnyCallerJavaOptions() PASSED
+
+GradleRuntimeCompatibilityTest > failedTcpDoesNotMutateEnvironmentOrCacheSuccess() PASSED
+
+GradleRuntimeCompatibilityTest > verifiesTcpBeforeChangingOnlyChildEnvironment() PASSED
+
+> Task :createExe
+> Task :createAllExecutables
+> Task :downloadJDK21Win64
+> Task :downloadJDKWin64
+> Task :cleanupPlugins
+> Task :export_plugin_generator-1201
+> Task :export_plugin_generator-1211
+> Task :export_plugin_generator-261x
+> Task :export_plugin_generator-262
+> Task :export_plugin_generator-addon-261x
+> Task :export_plugin_generator-fabric-2612
+> Task :export_plugin_generator-fabric-262
+> Task :export_plugin_mcreator-core
+> Task :export_plugin_mcreator-link
+> Task :export_plugin_mcreator-localization
+> Task :export_plugin_mcreator-themes
+> Task :exportPlugins
+> Task :exportWin64
+
+BUILD SUCCESSFUL in 53s
+25 actionable tasks: 21 executed, 4 up-to-date
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.6.0/userguide/configuration_cache_enabling.html

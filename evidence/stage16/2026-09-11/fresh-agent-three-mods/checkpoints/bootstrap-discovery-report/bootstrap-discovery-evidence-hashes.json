@@ -1,0 +1,66 @@
+{
+  "recordedAt": "2026-09-11T11:30:55.7443999+00:00",
+  "status": "second_discovery_checkpoint",
+  "files": [
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\case-results.json",
+      "sha256": "21899151c60d29581a19034590837ab805c8c102a044c0c0352271441482bbec"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\experience-log.md",
+      "sha256": "68232c9871d132aeffedfa2125a7d1b9c03c75b534512ba0ab5d79fc9ec01245"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\fixed-retry-inputs.json",
+      "sha256": "4f2ac948af7bf734bba8cd0c0cbd787201b4b16f165060f8bb3224a6d659119f"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\04-ledger-bootstrap-fixed.stdout.log",
+      "sha256": "5e5b4e6a71c15e968e57f1aa8234a34b553c158292faad4fba241673420e1ebc"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\04-ledger-bootstrap-fixed.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\04-ledger-bootstrap-fixed.events.jsonl",
+      "sha256": "1de4c067c56a716cfd74a6fc52647c98d7e08edae3670c1bee7c62cc539b5593"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\04-ledger-bootstrap-fixed.command.json",
+      "sha256": "a0ca50763d47892873828f5c6c6a23c6b62f01de3a00f4624fcd1d6e4b862714"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\03-tally-bootstrap-fixed.stdout.log",
+      "sha256": "5e5b4e6a71c15e968e57f1aa8234a34b553c158292faad4fba241673420e1ebc"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\03-tally-bootstrap-fixed.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\03-tally-bootstrap-fixed.events.jsonl",
+      "sha256": "c0228aeaf2cf4514da4ee8c968cb5dc2899f9bcfb6bd9843e93c646fd280e437"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\03-tally-bootstrap-fixed.command.json",
+      "sha256": "0f3f01ef96bf8eadd966e563ae8e8321bcdedc93e6051617da635b5e6b1c3909"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\02-resonance-bootstrap-fixed.stdout.log",
+      "sha256": "5e5b4e6a71c15e968e57f1aa8234a34b553c158292faad4fba241673420e1ebc"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\02-resonance-bootstrap-fixed.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\02-resonance-bootstrap-fixed.events.jsonl",
+      "sha256": "5cd5b2beff0a3516f88dd33fbf45fbc433a95be03dec6134b52ea5b6533f1387"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\02-resonance-bootstrap-fixed.command.json",
+      "sha256": "9b06b6b56a439cd7343364273c56c18dd84bc9c4abf59d0c217ebb7ea97a5e79"
+    }
+  ]
+}

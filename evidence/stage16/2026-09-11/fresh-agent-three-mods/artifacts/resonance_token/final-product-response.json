@@ -1,0 +1,113 @@
+{
+  "messageType": "command_result",
+  "schemaVersion": "1.0",
+  "requestId": "40b26eb2-6f1d-4eb3-b74b-051fe0052504",
+  "workspaceId": "9b98a83d-fac1-4dc0-9cda-8b5f940e2587",
+  "operation": "run_gametest",
+  "status": "succeeded",
+  "newRevision": 0,
+  "task": {
+    "id": "4938e4c1-b94e-4910-ba87-aac5309cdc84",
+    "kind": "run_gametest",
+    "state": "succeeded",
+    "cancellable": false,
+    "progress": 1,
+    "stage": {
+      "key": "task.run_gametest.completed",
+      "fallback": "Fabric 1.21.1 run_gametest completed",
+      "args": {
+        "backend": "Fabric 1.21.1"
+      }
+    },
+    "startedAt": "2026-09-11T12:29:40.728226300Z",
+    "completedAt": "2026-09-11T12:32:28.442978Z",
+    "diagnostics": {
+      "error": 0,
+      "warning": 0,
+      "info": 0
+    },
+    "sourceSnapshot": {
+      "sha256": "bd2032ca0e0c97d7b51c7e9c3e28107e5b05152ba79ae5881ddf82e0e84cfae1",
+      "fileCount": 36,
+      "bytes": 1313124,
+      "manifestPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\resonance_token\\.copperbench\\task-runs\\run_gametest\\4938e4c1-b94e-4910-ba87-aac5309cdc84\\source-manifest.json"
+    },
+    "verification": {
+      "schemaVersion": "1.0",
+      "status": "passed",
+      "reasonCode": "GAMETEST_PASSED",
+      "discovered": 5,
+      "executed": 5,
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "frameworkTests": 0,
+      "acceptanceExecuted": 5,
+      "cases": [
+        {
+          "name": "acceptancetests.activeandinactivesurviveitemcodecroundtrip",
+          "className": "fabric-gametest-api-v1:empty",
+          "status": "passed",
+          "scope": "acceptance"
+        },
+        {
+          "name": "acceptancetests.cooldownrejectsuseuntilexactlytwentyticks",
+          "className": "fabric-gametest-api-v1:empty",
+          "status": "passed",
+          "scope": "acceptance"
+        },
+        {
+          "name": "acceptancetests.defaulttoggleandindependentstacks",
+          "className": "fabric-gametest-api-v1:empty",
+          "status": "passed",
+          "scope": "acceptance"
+        },
+        {
+          "name": "acceptancetests.feedbackusesactionbarforbothstates",
+          "className": "fabric-gametest-api-v1:empty",
+          "status": "passed",
+          "scope": "acceptance"
+        },
+        {
+          "name": "acceptancetests.unrelatedstackdatasurvivesbothdirections",
+          "className": "fabric-gametest-api-v1:empty",
+          "status": "passed",
+          "scope": "acceptance"
+        }
+      ],
+      "mode": "packaged_jar",
+      "minimumTests": 5,
+      "environment": {
+        "generatorId": "fabric-1.21.1",
+        "loader": "fabric",
+        "minecraftVersion": "1.21.1",
+        "loaderVersion": "0.19.3",
+        "fabricApiVersion": "0.116.15+1.21.1",
+        "javaRelease": 21,
+        "pluginId": "net.fabricmc.fabric-loom-remap",
+        "pluginVersion": "1.17.19"
+      },
+      "artifactPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\resonance_token\\.copperbench\\task-runs\\run_gametest\\4938e4c1-b94e-4910-ba87-aac5309cdc84\\host\\run\\mods\\resonance_token-1.0.jar",
+      "artifactSha256": "f3a1b4a3dd94f860eee2af0df034fcf556c380d2dbf5f423ea1a556f211c8939",
+      "reportPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\resonance_token\\.copperbench\\task-runs\\run_gametest\\4938e4c1-b94e-4910-ba87-aac5309cdc84\\host\\run\\gametest-results.xml",
+      "reportSha256": "d05ec52f8f75243164dfa8ae4738bff957d7b2d28f88993582c3eb73434b70a0",
+      "startedAt": "2026-09-11T12:30:51.426935300Z",
+      "completedAt": "2026-09-11T12:32:28.230393Z",
+      "processExitCode": 0,
+      "sourceCurrentAtCompletion": true,
+      "taskId": "4938e4c1-b94e-4910-ba87-aac5309cdc84",
+      "workspaceId": "9b98a83d-fac1-4dc0-9cda-8b5f940e2587",
+      "workspaceRevision": 0,
+      "sourceSnapshot": {
+        "sha256": "bd2032ca0e0c97d7b51c7e9c3e28107e5b05152ba79ae5881ddf82e0e84cfae1",
+        "fileCount": 36,
+        "bytes": 1313124,
+        "manifestPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\resonance_token\\.copperbench\\task-runs\\run_gametest\\4938e4c1-b94e-4910-ba87-aac5309cdc84\\source-manifest.json"
+      },
+      "verificationPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\resonance_token\\.copperbench\\task-runs\\run_gametest\\4938e4c1-b94e-4910-ba87-aac5309cdc84\\verification.json"
+    }
+  },
+  "diagnostics": [],
+  "exitCode": 0,
+  "logs": []
+}

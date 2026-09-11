@@ -133,7 +133,11 @@ Fabric 测试入口由 `entrypoints` 注册。NeoForge 1.20.1/1.21.1 使用 Game
 
 外部 agent 创建工作区时应传入 `--no-prompt true`。没有任务授权时，产品立即返回 `USER_APPROVAL_REQUIRED`、请求的目录/模组/生成器和所需 `create` 范围，供用户审查；不会进入等待不可见弹窗的状态。拿到用户签发的授权 ID 后，保留该参数重试即可。默认不传此参数的本机创建命令仍显示原有确认窗口。
 
+创建命令目前在 Gradle 初始化完成后一次返回最终 JSON，没有构建任务那样的中间流式进度。请保留 stdout、stderr 和耗时，不要把短时间无输出直接判定为完成或失败。创建失败时先检查稳定 `code` 和可用的 `detail` 原因，再决定修复或重试；不要自行签发授权或绕过产品入口。
+
 Windows 工作区 Gradle 启动前会用选定的 JDK 单独检查本地通信。如果 Unix-domain selector pipe 不可用、TCP 检查可用，产品只对该任务的子进程设置兼容选项，并记录 `GRADLE_IPC_TCP_FALLBACK`。两种方式均不可用时返回 `GRADLE_LOOPBACK_UNAVAILABLE`；该预检发生在用户构建任务之前，不会为了恢复连接而重复运行构建。它不修改系统环境变量，也不代表桌面 MCP 的安装回归已经完成。
+
+桌面和创建命令的应用 JVM 也执行相应检查；使用 Gradle Tooling API 时，随包启动辅助 JAR 将已验证的兼容设置应用于守护进程启动前。这些处理仍只作用于产品进程，不修改全局配置。分发包中的 `lib/copperbench-local-ipc-agent.jar` 应与应用一起保留，agent 无需手动添加 Java 环境补丁。
 
 GameTest 在 Windows 的隔离目录过深时，自动改用 Copperbench 用户缓存下的 `task-runs/<taskId>`。源码快照、被测 JAR 和验收报告保留在该目录，原工作区的 `.copperbench/task-runs/run_gametest/<taskId>/execution-location.json` 记录位置与源码指纹。任务日志记录 `GAMETEST_SHORT_PATH`；若缓存路径本身也过深则返回 `GAMETEST_PATH_TOO_LONG`。清理缓存会删除其中的验收文件，需要留档时应先复制报告与被测产物。
 

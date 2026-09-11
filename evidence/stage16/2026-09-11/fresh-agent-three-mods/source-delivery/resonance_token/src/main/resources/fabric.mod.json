@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "resonance_token",
+  "version": "1.0.0",
+  "name": "Resonance Token",
+  "contact": {
+    "homepage": "https://mcreator.net",
+    "sources": ""
+  },
+  "license": "Not specified",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "net.mcreator.resonance_token.ResonanceTokenMod",
+      "trial.resonance.ResonanceMod"
+    ],
+    "client": [
+      "net.mcreator.resonance_token.ResonanceTokenModClient"
+    ]
+  },
+  "mixins": [
+    "resonance_token.mixins.json"
+  ],
+  "accessWidener": "META-INF/resonance_token.classtweaker",
+  "depends": {
+    "fabricloader": ">=0.19.3",
+    "minecraft": "~1.21.1",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
+}

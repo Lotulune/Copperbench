@@ -1,0 +1,20 @@
+{
+  "label": "00-generators",
+  "executable": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\copperbench-stage16-a3322c86\\Copperbench010\\copperbench.exe",
+  "arguments": [
+    "bootstrap",
+    "list-generators"
+  ],
+  "workingDirectory": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent",
+  "startedAt": "2026-09-11T10:51:42.1012756+00:00",
+  "status": "completed",
+  "exitCode": 0,
+  "completedAt": "2026-09-11T10:51:49.9113973+00:00",
+  "elapsedMs": 7805,
+  "firstOutputMs": 7635,
+  "firstStdoutMs": 7635,
+  "firstStderrMs": null,
+  "stdoutPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\00-generators.stdout.log",
+  "stderrPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\00-generators.stderr.log",
+  "eventsPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\00-generators.events.jsonl"
+}

@@ -1,0 +1,29 @@
+{
+  "recordedAt": "2026-09-11T11:03:49.6659147+00:00",
+  "packageSourceCommit": "a3322c86256686edec5ac260dac2b8adaccf73d1",
+  "packageZipSha256": "3c4dded214d7ae36f347a34149753a72cdb9d69ba76996b3fe53ad8ea6c71837",
+  "applicationJarSha256": "8be5272520baf05d49366d5c41a2bea56a3f9804293a97a6427d819aa759947d",
+  "executable": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\copperbench-stage16-a3322c86\\Copperbench010\\copperbench.exe",
+  "executableSha256": "a902741dacd5f373dcea35d1b31f5c41d4b5500f92e54ad6d09bc0cfdc335b7f",
+  "requirementsBeforeImplementationSha256": "06226e8991b6eba0d9499715e077a999c9984ffde63c42ca730e2cef730ba01b",
+  "publicDocs": [
+    {
+      "sha256": "7eca0293811df664e751ced5cea52ea57dd23fc8205b7ddf56624d8a38d273f5",
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\public-docs\\security\\permission-model.md"
+    },
+    {
+      "sha256": "1c6257c842feca73a37186279a6bfb9e86cccd481957bf2f693c8c6b6ebe8a73",
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\public-docs\\ai\\agent-playbook.md"
+    },
+    {
+      "sha256": "2ad510a83e5b69d9e497db725136039c7430566376222e41355f8640b5538fab",
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\public-docs\\ai\\getting-started.md"
+    },
+    {
+      "sha256": "4dcfb4188176b506a0c641275f3369ee38979421433c180d599efa86b2ad79a9",
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\public-docs\\ai\\task-authorization-and-acceptance.md"
+    }
+  ],
+  "cacheConditions": "Fresh agent and new draft files; shared-machine dependency caches not cleared or claimed cold; no mod project exists yet.",
+  "measurements": "Elapsed timings use Stopwatch. firstOutputMs is the first complete stdout or stderr line observed, not raw first-byte latency."
+}

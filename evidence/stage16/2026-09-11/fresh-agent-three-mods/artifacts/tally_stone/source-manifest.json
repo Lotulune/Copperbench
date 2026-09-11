@@ -1,0 +1,209 @@
+{
+  "schemaVersion": "1.0",
+  "workspaceId": "8c0ee568-d8df-4c85-a66a-aa9bc5bf6c3c",
+  "revision": 0,
+  "capturedAt": "2026-09-11T12:41:25.283437200Z",
+  "sha256": "6ec2e942d8168355f7473490740165ab136b6f197eecea4528fc1c5fc8effe97",
+  "files": [
+    {
+      "path": ".mcreator/generatorGradleCache",
+      "bytes": 1211081,
+      "sha256": "e719ff6680f8906cb0396243327daffb3ea10ff1f306ea72c27219d0a8470537"
+    },
+    {
+      "path": ".mcreator/setupInfo",
+      "bytes": 27,
+      "sha256": "2a2f6cc9965de37df268cc67a7167e53459a42e1d1c19c9b3d2978a9cd8d99b2"
+    },
+    {
+      "path": "build.gradle",
+      "bytes": 1252,
+      "sha256": "a0dff7335c132cb02b181801a2e77c3929085fedde71b8c95949d65b5523403f"
+    },
+    {
+      "path": "copperbench-tests.json",
+      "bytes": 246,
+      "sha256": "6f74d25265654b25aaea720d6d6625e5b8052196c8ce884ec2b12da2ed44aa4e"
+    },
+    {
+      "path": "gradle.properties",
+      "bytes": 244,
+      "sha256": "3c540489df1fa0c8768d84a1c8d8dfe1d66f2c997ce93e4d63ba6162b4820b3a"
+    },
+    {
+      "path": "gradle/wrapper/gradle-wrapper.jar",
+      "bytes": 48966,
+      "sha256": "55243ef57851f12b070ad14f7f5bb8302daceeebc5bce5ece5fa6edb23e1145c"
+    },
+    {
+      "path": "gradle/wrapper/gradle-wrapper.properties",
+      "bytes": 255,
+      "sha256": "dd6a23b9f2909d0084810df07670902287ef58dd41307abee720b31312395fc6"
+    },
+    {
+      "path": "gradlew",
+      "bytes": 8654,
+      "sha256": "aed171fb114f82e6eaea4970a245a200e0582a7dcc8ec0891ca41b6e4a62b754"
+    },
+    {
+      "path": "gradlew.bat",
+      "bytes": 2896,
+      "sha256": "fedad02c18e266ec094995a5751b7fe1eb6e74f66bf75db64fae2e50eb22c234"
+    },
+    {
+      "path": "mcreator.gradle",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "settings.gradle",
+      "bytes": 208,
+      "sha256": "6e007f2e9f9164724393a9cda9bf3c8faf56052e0d77b1d7f2ca917c9bdb41a4"
+    },
+    {
+      "path": "src/gametest/README.md",
+      "bytes": 430,
+      "sha256": "5ed703a1923b220dc08990d3ab316afc40fbe5f67ca3a2d6dd015bd505c7590b"
+    },
+    {
+      "path": "src/gametest/java/copperbench/acceptance/AcceptanceTests.java",
+      "bytes": 7823,
+      "sha256": "8943aef502e8567b411fcdad84f303fd5f2c9f3464965adc60d3319c66046332"
+    },
+    {
+      "path": "src/gametest/java/copperbench/acceptance/RealTestPlayers.java",
+      "bytes": 1358,
+      "sha256": "ad79efea8bd1867b357abdb83431c89baf5f3b9d39b0af73595baeb0c2e34ed7"
+    },
+    {
+      "path": "src/main/java/net/mcreator/tally_stone/TallyStoneMod.java",
+      "bytes": 3021,
+      "sha256": "e08eeb61a6d1a1e033ab85e42cb481b27f07c3e1600b225b988943963d70129f"
+    },
+    {
+      "path": "src/main/java/net/mcreator/tally_stone/TallyStoneModClient.java",
+      "bytes": 562,
+      "sha256": "f11fd90a65e21648aa77882ebe03c7d196b0a369cbcd9de7eca2d4284d4093cb"
+    },
+    {
+      "path": "src/main/java/net/mcreator/tally_stone/event/BlockEvents.java",
+      "bytes": 1386,
+      "sha256": "068d472f9323f9d867bb88ceb7193f0184222ab0214dc1ccca47f6fb09f48319"
+    },
+    {
+      "path": "src/main/java/net/mcreator/tally_stone/event/ItemEvents.java",
+      "bytes": 890,
+      "sha256": "597b5261d1e5012c03beac6473ef5526dde5ecb517c164c3f2a6b016d48e11de"
+    },
+    {
+      "path": "src/main/java/net/mcreator/tally_stone/event/LivingEntityEvents.java",
+      "bytes": 4089,
+      "sha256": "5819a08f9b3cb831d1ca059a781a9953c6daf5033eea5c6f00f3ac5a18b6e379"
+    },
+    {
+      "path": "src/main/java/net/mcreator/tally_stone/event/MiscEvents.java",
+      "bytes": 720,
+      "sha256": "d3bf125837df01ea0ca48c193422971d1889a49c68a7cc78a1483054e3df4446"
+    },
+    {
+      "path": "src/main/java/net/mcreator/tally_stone/event/PlayerEvents.java",
+      "bytes": 1631,
+      "sha256": "857ad3eb3014790f0e26f755b3cad2988dd17199220cf2f599442592118b6436"
+    },
+    {
+      "path": "src/main/java/net/mcreator/tally_stone/mixin/BlockItemMixin.java",
+      "bytes": 1315,
+      "sha256": "929fc579b8cf216298e5fc7a5d45cfcc885a56bb91358dc1e73ac5366f152728"
+    },
+    {
+      "path": "src/main/java/net/mcreator/tally_stone/mixin/BoneMealItemMixin.java",
+      "bytes": 1221,
+      "sha256": "92fea66e174b4478eddd847f4562c438cd9dc9dda0e355c67a307c96c3bc6b21"
+    },
+    {
+      "path": "src/main/java/net/mcreator/tally_stone/mixin/CommandsMixin.java",
+      "bytes": 857,
+      "sha256": "22138b129fa68f5942f46817c42bcb98db0abfb3469a035a218bee1d8d685b2b"
+    },
+    {
+      "path": "src/main/java/net/mcreator/tally_stone/mixin/ExperienceOrbMixin.java",
+      "bytes": 901,
+      "sha256": "d860700d16023d875fe2828e23a1296b3a383076f95a768dc12755b9bd282e38"
+    },
+    {
+      "path": "src/main/java/net/mcreator/tally_stone/mixin/ItemStackMixin.java",
+      "bytes": 1543,
+      "sha256": "f848abe56f80d027e77306f788c16cb6d0b1631874ccc1f26ee67764451297f5"
+    },
+    {
+      "path": "src/main/java/net/mcreator/tally_stone/mixin/LivingEntityMixin.java",
+      "bytes": 4631,
+      "sha256": "b86943095c555e0f6b32fb60618c50f8337a9e4e3b1f337cfb05569ded8e0e93"
+    },
+    {
+      "path": "src/main/java/net/mcreator/tally_stone/mixin/PlayerMixin.java",
+      "bytes": 1035,
+      "sha256": "f2787a41dabad22c0574b1f4f486d478ee90883d6c82cae77cfe66a34c9f040c"
+    },
+    {
+      "path": "src/main/java/trial/tally/TallyMod.java",
+      "bytes": 3207,
+      "sha256": "25e155f1f479768b66e3cc54078afe3f82230d14ec9452106b7bf9422f477d3b"
+    },
+    {
+      "path": "src/main/resources/META-INF/tally_stone.classtweaker",
+      "bytes": 516,
+      "sha256": "829e6b46f94cf3612f23f46b0c34107c3a763157888e47667fc795b15587f55c"
+    },
+    {
+      "path": "src/main/resources/assets/tally_stone/blockstates/tally_stone.json",
+      "bytes": 59,
+      "sha256": "bbdde0f6c2588cac306af22cd0c7768be68fe4b9d7e7751c292a200cc7328149"
+    },
+    {
+      "path": "src/main/resources/assets/tally_stone/lang/en_us.json",
+      "bytes": 47,
+      "sha256": "19309e3d3e956ed5bf403cc6406d30a98f5d809e41f75a7b5284cd255dbaff00"
+    },
+    {
+      "path": "src/main/resources/assets/tally_stone/lang/zh_cn.json",
+      "bytes": 45,
+      "sha256": "2624bd1d6955a52309851a9795217fb9b48e2bfbbce6167eac61cb5782050150"
+    },
+    {
+      "path": "src/main/resources/assets/tally_stone/models/block/tally_stone.json",
+      "bytes": 93,
+      "sha256": "9ddf409b03c07aded85802a826785ae8a2a009e443b5bb61e78419e0d4e7e045"
+    },
+    {
+      "path": "src/main/resources/assets/tally_stone/models/item/tally_stone.json",
+      "bytes": 42,
+      "sha256": "420094095c6f5bbb28c6f30eb632a79c504b503e6e3983cce39321abfe24f87c"
+    },
+    {
+      "path": "src/main/resources/data/tally_stone/loot_table/blocks/tally_stone.json",
+      "bytes": 179,
+      "sha256": "900d6ec37ab350f8ffc97f6420de5d6e7e293bf98fd751b7c21c17cde36bf63a"
+    },
+    {
+      "path": "src/main/resources/fabric.mod.json",
+      "bytes": 680,
+      "sha256": "72a86cb149b977d5cfd84c76d40541c68ec906e8455bd03fdd3d6e4b4f89fd60"
+    },
+    {
+      "path": "src/main/resources/pack.mcmeta",
+      "bytes": 64,
+      "sha256": "5090fddd4fa993867d086edcd33b09285105fb1ae7b11322198cdb825905537d"
+    },
+    {
+      "path": "src/main/resources/tally_stone.mixins.json",
+      "bytes": 408,
+      "sha256": "eecdc9e088ef32682aea1a79bab6350707100bb35f41e66d972a9add44cd9f03"
+    },
+    {
+      "path": "tally_stone.mcreator",
+      "bytes": 1990,
+      "sha256": "8625dcfe2b39571d6a47d4841d943585dcab06783e32ec428b8796182018863d"
+    }
+  ]
+}

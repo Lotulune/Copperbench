@@ -52,6 +52,8 @@ Stage 14B 提供不依赖已有 `.mcreator` 文件的产品级 bootstrap 入口�
 
 `environment` / MCP `get_workspace_environment` 会返回当前 generator、Minecraft/Loader、Gradle、JDK、源码/资源根目录以及原生优先工作流提示。Windows 产品本身运行在随包 JBR 25 上；需要 Java 21 的 Minecraft/Gradle 轨道使用安装包内独立的 `jdk21` sidecar。外部 Agent 不应把应用 JVM 当成工作区 Java 版本。
 
+编码前还应检查实际生成的 `build.gradle` 中的映射声明。目前 `environment` 未单独返回映射方案；本阶段 Fabric 1.21.1 工程使用 `loom.officialMojangMappings()`，不能仅凭 Fabric 加载器推断为 Yarn 符号。依赖文档应与工程声明的映射和版本对应。
+
 之后可以直接用 IDE 或普通文件工具编辑工作区内 Java、资源和测试文件，再通过 `headless ... build`、Desktop MCP `build_workspace` / `get_task` 或原生 Gradle Wrapper 获取真实编译诊断。故意或意外产生的编译错误应按诊断定位、直接修复文件并重新构建；不需要把整段 Java 重新包装成结构化 JSON。外部文件修改仍受源码指纹、revision、归属冲突和 recovery point 保护，Copperbench 也不会仅因文件已经写入就把它报告成已编译或行为已验证。
 
 这个 bootstrap 入口用于创建 Copperbench 工作区；任意第三方 Fabric/NeoForge 工程的完整导入仍不是 Stage 14B 的隐含承诺。原生 `gradlew` 继续可直接使用，Copperbench 提供的是上下文、诊断、审阅、引用和恢复层，而不是替代通用 Agent 或 IDE。
