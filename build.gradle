@@ -92,6 +92,17 @@ tasks.named('jar', Jar) {
     from sourceSets.gradleBridge.output
 }
 
+// Tooling API transports ordinary -D properties after daemon startup. The tiny
+// Java 17 premain helper applies this verified Windows fallback before its first selector.
+tasks.register('localIpcAgentJar', Jar) {
+    archiveFileName = 'copperbench-local-ipc-agent.jar'
+    destinationDirectory = layout.buildDirectory.dir('libs')
+    from(sourceSets.gradleBridge.output) { include 'dev/copperbench/gradle/GradleLoopbackAgent.class' }
+    manifest { attributes('Premain-Class': 'dev.copperbench.gradle.GradleLoopbackAgent') }
+}
+tasks.named('jar') { dependsOn tasks.named('localIpcAgentJar') }
+tasks.named('test') { dependsOn tasks.named('localIpcAgentJar') }
+
 idea {
     module {
         inheritOutputDirs = true

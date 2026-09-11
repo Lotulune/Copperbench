@@ -16,6 +16,23 @@ public final class GradleRuntimeCompatibility {
 
     private GradleRuntimeCompatibility() {}
 
+    public static String daemonStartupOption() throws IOException {
+        Path location;
+        try { location = Path.of(GradleLoopbackProbe.class.getProtectionDomain().getCodeSource().getLocation().toURI()); }
+        catch (Exception exception) { throw new IOException("Could not locate the daemon startup helper", exception); }
+        Path agent = daemonAgentPath(location, Path.of(System.getProperty("user.dir")));
+        if (!Files.isRegularFile(agent)) throw new IOException("Bundled daemon startup helper is missing: " + agent);
+        return "-javaagent:" + agent.toAbsolutePath().normalize();
+    }
+
+    static Path daemonAgentPath(Path codeSource, Path workingDirectory) {
+        if (!Files.isRegularFile(codeSource)) return workingDirectory.resolve("build/libs/copperbench-local-ipc-agent.jar");
+        Path directory = codeSource.getParent();
+        // Launch4j loads the bridge from its wrapped EXE, whereas Linux/direct Java uses lib/copperbench.jar.
+        if (codeSource.getFileName().toString().toLowerCase(java.util.Locale.ROOT).endsWith(".exe")) directory = directory.resolve("lib");
+        return directory.resolve("copperbench-local-ipc-agent.jar");
+    }
+
     /** Must run before the application creates a selector (Desktop MCP and the Tooling API do). */
     public static void configureApplicationRuntime(Consumer<String> output) throws IOException, InterruptedException {
         if (RuntimePlatform.current().operatingSystem() != RuntimePlatform.OperatingSystem.WINDOWS) return;

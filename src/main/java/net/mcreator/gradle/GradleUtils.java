@@ -88,13 +88,13 @@ public class GradleUtils {
 		if (java_home != null) {
 			try {
 				T configuredLauncher = launcher;
+				java.util.List<String> compatibilityMessages = new java.util.ArrayList<>();
 				dev.copperbench.gradle.GradleRuntimeCompatibility.configure(java.nio.file.Path.of(java_home), environment, message -> {
 					LOG.warn(message);
-					// The Tooling API's build environment is applied after daemon startup.
-					// Its selector therefore also needs the verified option as an actual daemon JVM argument.
-					configuredLauncher.addJvmArguments("-Djdk.net.unixdomain.tmpdir="
-							+ java.nio.file.Path.of(java_home, "bin", "java.exe").toAbsolutePath().normalize());
+					compatibilityMessages.add(message);
 				});
+				if (!compatibilityMessages.isEmpty())
+					configuredLauncher.addJvmArguments(dev.copperbench.gradle.GradleRuntimeCompatibility.daemonStartupOption());
 			} catch (InterruptedException exception) {
 				Thread.currentThread().interrupt();
 				throw new IllegalStateException("Workspace Java local IPC probe interrupted", exception);

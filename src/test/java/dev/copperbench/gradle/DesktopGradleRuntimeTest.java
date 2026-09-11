@@ -40,7 +40,7 @@ class DesktopGradleRuntimeTest {
                     doLast {
                         def selector = java.nio.channels.Selector.open()
                         selector.close()
-                        file('result.txt').text = System.getProperty('java.home') + '\\n' + System.getProperty('jdk.net.unixdomain.tmpdir', '')
+                        file('result.txt').text = System.getProperty('java.home') + '\\n' + System.getProperty('jdk.net.unixdomain.tmpdir', '') + '\\n' + java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.join(' ')
                     }
                 }
                 """);
@@ -52,6 +52,9 @@ class DesktopGradleRuntimeTest {
         } finally { connector.disconnect(); }
         var result = java.nio.file.Files.readAllLines(project.resolve("result.txt"));
         assertEquals(javaHome.toRealPath(), Path.of(result.getFirst()).toRealPath());
-        if (!messages.isEmpty()) assertEquals(javaHome.resolve("bin/java.exe").toAbsolutePath().normalize().toString(), result.get(1));
+        if (!messages.isEmpty()) {
+            org.junit.jupiter.api.Assertions.assertTrue(result.get(2).contains(GradleRuntimeCompatibility.daemonStartupOption()),
+                    "The compatibility helper must be a startup argument, not a property delivered after startup");
+        }
     }
 }

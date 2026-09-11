@@ -89,7 +89,7 @@ class WorkspaceCreationServiceTest {
 			WorkspaceCreationService.CreationResult result = service.create("resourcepack-1.21.1", "Copper Pack",
 					"copper_pack", null, workspaceFolder.toString(), "1.0.0");
 
-			assertTrue(result.complete(), () -> "Creation failed: " + result.diagnostics());
+			assertTrue(result.complete(), () -> "Creation failed: " + result.diagnostics() + "\n" + result.detail());
 			assertEquals("resourcepack-1.21.1", result.generatorId());
 			assertTrue(Files.isRegularFile(workspaceFolder.resolve("copper_pack.mcreator")));
 			assertTrue(Files.isRegularFile(workspaceFolder.resolve("src/main/pack.mcmeta")));
@@ -116,7 +116,7 @@ class WorkspaceCreationServiceTest {
 			WorkspaceCreationService.CreationResult result = service.create("fabric-1.21.1", "Copper Trails",
 					"copper_trails", "net.mcreator.copper_trails", workspaceFolder.toString(), "1.2.3");
 
-			assertTrue(result.complete(), () -> "Creation failed: " + result.diagnostics());
+			assertTrue(result.complete(), () -> "Creation failed: " + result.diagnostics() + "\n" + result.detail());
 			Path workspaceFile = workspaceFolder.resolve("copper_trails.mcreator");
 			assertEquals(workspaceFile.toAbsolutePath().toString(), result.workspaceFile());
 			assertTrue(Files.isRegularFile(workspaceFile));

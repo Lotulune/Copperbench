@@ -17,6 +17,37 @@ import static org.junit.jupiter.api.Assertions.*;
 class GradleRuntimeCompatibilityTest {
     @TempDir Path temp;
 
+    @Test void startupHelperResolvesWrappedExecutableAndDirectJarLayouts() throws Exception {
+        Path root = java.nio.file.Files.createDirectory(temp.resolve("installed product"));
+        Path lib = java.nio.file.Files.createDirectory(root.resolve("lib"));
+        Path executable = java.nio.file.Files.writeString(root.resolve("copperbench.exe"), "fixture");
+        Path jar = java.nio.file.Files.writeString(lib.resolve("copperbench.jar"), "fixture");
+        Path expected = lib.resolve("copperbench-local-ipc-agent.jar");
+        assertEquals(expected, GradleRuntimeCompatibility.daemonAgentPath(executable, temp));
+        assertEquals(expected, GradleRuntimeCompatibility.daemonAgentPath(jar, temp));
+        assertEquals(temp.resolve("build/libs/copperbench-local-ipc-agent.jar"),
+                GradleRuntimeCompatibility.daemonAgentPath(temp.resolve("classes"), temp));
+    }
+
+    @Test @EnabledOnOs(OS.WINDOWS) void startupHelperOpensSelectorsWithoutAnyCallerJavaOptions() throws Exception {
+        Path classes = Path.of(GradleLoopbackProbe.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+        for (int release : new int[]{21, 25}) {
+            Path javaHome = dev.copperbench.generator.BundledJdkLocator.locate(Path.of("."), release);
+            ProcessBuilder builder = new ProcessBuilder(javaHome.resolve("bin/java.exe").toString(),
+                    GradleRuntimeCompatibility.daemonStartupOption(), "-cp", classes.toString(), GradleLoopbackProbe.class.getName());
+            for (String option : new String[]{"JAVA_TOOL_OPTIONS", "JDK_JAVA_OPTIONS", "_JAVA_OPTIONS", "JAVA_OPTS"})
+                builder.environment().remove(option);
+            builder.redirectErrorStream(true);
+            Process process = builder.start();
+            try {
+                assertTrue(process.waitFor(15, java.util.concurrent.TimeUnit.SECONDS));
+                String output = new String(process.getInputStream().readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+                assertEquals(0, process.exitValue(), output);
+                assertTrue(output.contains("GRADLE_LOOPBACK_READY"), output);
+            } finally { if (process.isAlive()) process.destroyForcibly(); }
+        }
+    }
+
     @Test void healthyRuntimeKeepsUserOptionsAndCachesProbe() throws Exception {
         Path java = Files.writeString(temp.resolve("java.exe"), "fixture");
         Map<String, String> environment = new HashMap<>(Map.of("JAVA_TOOL_OPTIONS", "-Duser.language=en"));
