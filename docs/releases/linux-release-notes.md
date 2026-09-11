@@ -17,3 +17,5 @@ immutable asset digests. Promotion does not rebuild the tested binaries.
 Install the Debian package with `sudo apt install ./copperbench_0.1.0_amd64.deb`, or extract the portable archive and run `Copperbench010/copperbench.sh`. The Debian package can be uninstalled with `sudo apt remove copperbench`.
 
 Existing pre-XDG Linux preference files are copied on first use only when no active XDG preference file exists. Originals are retained; explicit COPPERBENCH_HOME/MCREATOR_HOME roots remain isolated. The accepted runtime replay covers Fabric 1.21.1 and NeoForge 1.21.1.
+
+GitHub exposes the portable asset as `Copperbench.0.1.0.Linux.x86_64.tar.gz`. The immutable candidate manifest retains its original space-separated filename. To use the original candidate verifier locally, save the downloaded archive as `Copperbench 0.1.0 Linux x86_64.tar.gz`; its bytes and SHA-256 are unchanged.

@@ -1,0 +1,24 @@
+promote	Create and verify a draft without overwriting any release asset	﻿2026-09-11T02:36:30.5054699Z ##[group]Run set -euo pipefail
+promote	Create and verify a draft without overwriting any release asset	2026-09-11T02:36:30.5055046Z ^[[36;1mset -euo pipefail^[[0m
+promote	Create and verify a draft without overwriting any release asset	2026-09-11T02:36:30.5055543Z ^[[36;1mif ! gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json isDraft,assets > draft-state.json; then^[[0m
+promote	Create and verify a draft without overwriting any release asset	2026-09-11T02:36:30.5056260Z ^[[36;1m  gh release create "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --verify-tag --draft --prerelease \^[[0m
+promote	Create and verify a draft without overwriting any release asset	2026-09-11T02:36:30.5056969Z ^[[36;1m    --title "Copperbench $RELEASE_TAG — Linux x86_64" --notes-file docs/releases/linux-release-notes.md^[[0m
+promote	Create and verify a draft without overwriting any release asset	2026-09-11T02:36:30.5057695Z ^[[36;1m  gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json isDraft,assets > draft-state.json^[[0m
+promote	Create and verify a draft without overwriting any release asset	2026-09-11T02:36:30.5058161Z ^[[36;1mfi^[[0m
+promote	Create and verify a draft without overwriting any release asset	2026-09-11T02:36:30.5059139Z ^[[36;1mnode scripts/verify-linux-release-authorization.mjs --draft-state draft-state.json --payload payload --missing-list missing-assets.txt^[[0m
+promote	Create and verify a draft without overwriting any release asset	2026-09-11T02:36:30.5060116Z ^[[36;1mwhile IFS= read -r name; do gh release upload "$RELEASE_TAG" "payload/$name" --repo "$GITHUB_REPOSITORY"; done < missing-assets.txt^[[0m
+promote	Create and verify a draft without overwriting any release asset	2026-09-11T02:36:30.5060884Z ^[[36;1mgh release download "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --dir downloaded-draft^[[0m
+promote	Create and verify a draft without overwriting any release asset	2026-09-11T02:36:30.5061452Z ^[[36;1mfor file in payload/*; do cmp "$file" "downloaded-draft/$(basename "$file")"; done^[[0m
+promote	Create and verify a draft without overwriting any release asset	2026-09-11T02:36:30.5098210Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+promote	Create and verify a draft without overwriting any release asset	2026-09-11T02:36:30.5098822Z env:
+promote	Create and verify a draft without overwriting any release asset	2026-09-11T02:36:30.5101216Z   GH_TOKEN: ***
+promote	Create and verify a draft without overwriting any release asset	2026-09-11T02:36:30.5101445Z   RELEASE_TAG: v0.1.0-linux-preview.1
+promote	Create and verify a draft without overwriting any release asset	2026-09-11T02:36:30.5101758Z   DISPATCH_REF: refs/tags/v0.1.0-linux-preview.1
+promote	Create and verify a draft without overwriting any release asset	2026-09-11T02:36:30.5102160Z   AUTHORIZATION: release-control/linux-candidate-authorization.json
+promote	Create and verify a draft without overwriting any release asset	2026-09-11T02:36:30.5102603Z   CANDIDATE_COMMIT: 61f69bf1f8dfdd3efbcf379afbaafbbfb11d3466
+promote	Create and verify a draft without overwriting any release asset	2026-09-11T02:36:30.5102938Z   CANDIDATE_RUN: 34547192490
+promote	Create and verify a draft without overwriting any release asset	2026-09-11T02:36:30.5103182Z ##[endgroup]
+promote	Create and verify a draft without overwriting any release asset	2026-09-11T02:36:30.8999749Z release not found
+promote	Create and verify a draft without overwriting any release asset	2026-09-11T02:36:31.7409812Z https://github.com/Lotulune/Copperbench/releases/tag/untagged-e9b67f04f1ec8a928ec9
+promote	Create and verify a draft without overwriting any release asset	2026-09-11T02:38:18.2590624Z cmp: downloaded-draft/Copperbench 0.1.0 Linux x86_64.tar.gz: No such file or directory
+promote	Create and verify a draft without overwriting any release asset	2026-09-11T02:38:18.2603805Z ##[error]Process completed with exit code 2.

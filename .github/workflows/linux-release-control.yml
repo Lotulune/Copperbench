@@ -108,7 +108,10 @@ jobs:
           node scripts/verify-linux-release-authorization.mjs --draft-state draft-state.json --payload payload --missing-list missing-assets.txt
           while IFS= read -r name; do gh release upload "$RELEASE_TAG" "payload/$name" --repo "$GITHUB_REPOSITORY"; done < missing-assets.txt
           gh release download "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --dir downloaded-draft
-          for file in payload/*; do cmp "$file" "downloaded-draft/$(basename "$file")"; done
+          for file in payload/*; do
+            published_name="$(node scripts/verify-linux-release-authorization.mjs --asset-name "$(basename "$file")")"
+            cmp "$file" "downloaded-draft/$published_name"
+          done
       - name: Publish only the verified draft
         if: inputs.publish
         shell: bash

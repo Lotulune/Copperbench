@@ -1,0 +1,12 @@
+{
+  "firstReleaseWorkflowRunId": "34554830164",
+  "firstReleaseTag": "v0.1.0-linux-preview.1",
+  "firstReleaseRemainsDraft": true,
+  "githubAssetApiDigestsMatchedAllSevenPayloadFiles": true,
+  "failure": "Final cmp used the original portable filename while GitHub normalized spaces to dots",
+  "normalizedPortableName": "Copperbench.0.1.0.Linux.x86_64.tar.gz",
+  "originalPortableName": "Copperbench 0.1.0 Linux x86_64.tar.gz",
+  "correctedResumeMissingAssetCount": 0,
+  "replacementReleaseTag": "v0.1.0-linux-preview.2",
+  "productBinaryChanged": false
+}
