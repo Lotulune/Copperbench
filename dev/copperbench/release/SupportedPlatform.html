@@ -60,6 +60,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#MINIMUM_OS" tabindex="0">MINIMUM_OS</a></li>
 <li><a href="#MINIMUM_BUILD" tabindex="0">MINIMUM_BUILD</a></li>
 <li><a href="#UNSUPPORTED_MESSAGE" tabindex="0">UNSUPPORTED_MESSAGE</a></li>
+<li><a href="#STAGE15_LINUX_CANDIDATE_PROPERTY" tabindex="0">STAGE15_LINUX_CANDIDATE_PROPERTY</a></li>
 </ol>
 </li>
 <li><a href="#method-detail" tabindex="0">Method Details</a>
@@ -67,6 +68,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#isSupported(java.lang.String,int)" tabindex="0">isSupported(String, int)</a></li>
 <li><a href="#currentWindowsBuild()" tabindex="0">currentWindowsBuild()</a></li>
 <li><a href="#currentHostSupported()" tabindex="0">currentHostSupported()</a></li>
+<li><a href="#currentHostRunnable()" tabindex="0">currentHostRunnable()</a></li>
 <li><a href="#refuseIfUnsupported()" tabindex="0">refuseIfUnsupported()</a></li>
 </ol>
 </li>
@@ -106,8 +108,11 @@ loadScripts(document, 'script');</script>
 <div class="col-second odd-row-color"><code><a href="#MINIMUM_OS" class="member-name-link">MINIMUM_OS</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
 <div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second even-row-color"><code><a href="#UNSUPPORTED_MESSAGE" class="member-name-link">UNSUPPORTED_MESSAGE</a></code></div>
+<div class="col-second even-row-color"><code><a href="#STAGE15_LINUX_CANDIDATE_PROPERTY" class="member-name-link">STAGE15_LINUX_CANDIDATE_PROPERTY</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
+<div class="col-first odd-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color"><code><a href="#UNSUPPORTED_MESSAGE" class="member-name-link">UNSUPPORTED_MESSAGE</a></code></div>
+<div class="col-last odd-row-color">&nbsp;</div>
 </div>
 </section>
 </li>
@@ -123,18 +128,23 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-second">Method</div>
 <div class="table-header col-last">Description</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static boolean</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#currentHostSupported()" class="member-name-link">currentHostSupported</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static int</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#currentWindowsBuild()" class="member-name-link">currentWindowsBuild</a>()</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#currentHostRunnable()" class="member-name-link">currentHostRunnable</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="block">Runtime admission used by Stage 15 Linux candidates without changing the public support claim.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static boolean</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#currentHostSupported()" class="member-name-link">currentHostSupported</a>()</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static boolean</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#isSupported(java.lang.String,int)" class="member-name-link">isSupported</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;osName,
+<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static int</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#currentWindowsBuild()" class="member-name-link">currentWindowsBuild</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static boolean</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#isSupported(java.lang.String,int)" class="member-name-link">isSupported</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;osName,
  int&nbsp;buildNumber)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#refuseIfUnsupported()" class="member-name-link">refuseIfUnsupported</a>()</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#refuseIfUnsupported()" class="member-name-link">refuseIfUnsupported</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">&nbsp;</div>
 </div>
 </div>
 </div>
@@ -200,6 +210,22 @@ loadScripts(document, 'script');</script>
 </div>
 </section>
 </li>
+<li>
+<section class="detail" id="STAGE15_LINUX_CANDIDATE_PROPERTY">
+<h3>STAGE15_LINUX_CANDIDATE_PROPERTY</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">STAGE15_LINUX_CANDIDATE_PROPERTY</span></div>
+<dl class="notes">
+<dt>See Also:</dt>
+<dd>
+<ul class="tag-list">
+<li><a href="../../../constant-values.html#dev.copperbench.release.SupportedPlatform.STAGE15_LINUX_CANDIDATE_PROPERTY">Constant Field Values</a></li>
+</ul>
+</dd>
+</dl>
+</div>
+</section>
+</li>
 </ul>
 </section>
 </li>
@@ -230,6 +256,15 @@ loadScripts(document, 'script');</script>
 <h3>currentHostSupported</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">currentHostSupported</span>()</div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="currentHostRunnable()">
+<h3>currentHostRunnable</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">currentHostRunnable</span>()</div>
+<div class="block">Runtime admission used by Stage 15 Linux candidates without changing the public support claim.</div>
 </div>
 </section>
 </li>

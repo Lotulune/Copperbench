@@ -67,11 +67,12 @@ loadScripts(document, 'script');</script>
 </li>
 <li><a href="#constructor-detail" tabindex="0">Constructor Details</a>
 <ol class="toc-list">
-<li><a href="#%3Cinit%3E(java.lang.String,java.lang.String,java.lang.String,java.lang.String,int,java.lang.String,java.lang.String,java.lang.String,dev.copperbench.generator.fabric.Fabric1211Generator.Profile,boolean)" tabindex="0">Profile(String, String, String, String, int, String, String, String, Fabric1211Generator.Profile, boolean)</a></li>
+<li><a href="#%3Cinit%3E(java.lang.String,java.lang.String,java.lang.String,java.lang.String,int,java.lang.String,java.lang.String,dev.copperbench.generator.fabric.Fabric1211Generator.Profile,boolean)" tabindex="0">Profile(String, String, String, String, int, String, String, Fabric1211Generator.Profile, boolean)</a></li>
 </ol>
 </li>
 <li><a href="#method-detail" tabindex="0">Method Details</a>
 <ol class="toc-list">
+<li><a href="#jdkRelativePath()" tabindex="0">jdkRelativePath()</a></li>
 <li><a href="#loaderDependency()" tabindex="0">loaderDependency()</a></li>
 <li><a href="#modsTomlLoaderModId()" tabindex="0">modsTomlLoaderModId()</a></li>
 <li><a href="#fmlLoaderRange()" tabindex="0">fmlLoaderRange()</a></li>
@@ -85,7 +86,6 @@ loadScripts(document, 'script');</script>
 <li><a href="#javaRelease()" tabindex="0">javaRelease()</a></li>
 <li><a href="#readyMarker()" tabindex="0">readyMarker()</a></li>
 <li><a href="#templateSource()" tabindex="0">templateSource()</a></li>
-<li><a href="#jdkRelativePath()" tabindex="0">jdkRelativePath()</a></li>
 <li><a href="#fabricProfile()" tabindex="0">fabricProfile()</a></li>
 <li><a href="#modernDeferred()" tabindex="0">modernDeferred()</a></li>
 </ol>
@@ -109,7 +109,7 @@ loadScripts(document, 'script');</script>
 </dl>
 <hr>
 <div class="horizontal-scroll">
-<div class="type-signature"><span class="modifiers">public static record </span><span class="element-name type-name-label">NeoForge1211Generator.Profile</span>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;generatorId, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;minecraftVersion, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;neoForgeVersion, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;moddevVersion, int&nbsp;javaRelease, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;readyMarker, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;templateSource, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;jdkRelativePath, <a href="../fabric/Fabric1211Generator.Profile.html" title="class in dev.copperbench.generator.fabric">Fabric1211Generator.Profile</a>&nbsp;fabricProfile, boolean&nbsp;modernDeferred)
+<div class="type-signature"><span class="modifiers">public static record </span><span class="element-name type-name-label">NeoForge1211Generator.Profile</span>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;generatorId, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;minecraftVersion, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;neoForgeVersion, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;moddevVersion, int&nbsp;javaRelease, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;readyMarker, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;templateSource, <a href="../fabric/Fabric1211Generator.Profile.html" title="class in dev.copperbench.generator.fabric">Fabric1211Generator.Profile</a>&nbsp;fabricProfile, boolean&nbsp;modernDeferred)
 <span class="extends-implements">extends <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Record.html" title="class or interface in java.lang" class="external-link">Record</a></span></div>
 </div>
 </section>
@@ -147,14 +147,13 @@ loadScripts(document, 'script');</script>
 <div class="summary-table two-column-summary">
 <div class="table-header col-first">Constructor</div>
 <div class="table-header col-last">Description</div>
-<div class="col-constructor-name even-row-color"><code><a href="#%3Cinit%3E(java.lang.String,java.lang.String,java.lang.String,java.lang.String,int,java.lang.String,java.lang.String,java.lang.String,dev.copperbench.generator.fabric.Fabric1211Generator.Profile,boolean)" class="member-name-link">Profile</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;generatorId,
+<div class="col-constructor-name even-row-color"><code><a href="#%3Cinit%3E(java.lang.String,java.lang.String,java.lang.String,java.lang.String,int,java.lang.String,java.lang.String,dev.copperbench.generator.fabric.Fabric1211Generator.Profile,boolean)" class="member-name-link">Profile</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;generatorId,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;minecraftVersion,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;neoForgeVersion,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;moddevVersion,
  int&nbsp;javaRelease,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;readyMarker,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;templateSource,
- <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;jdkRelativePath,
  <a href="../fabric/Fabric1211Generator.Profile.html" title="class in dev.copperbench.generator.fabric">Fabric1211Generator.Profile</a>&nbsp;fabricProfile,
  boolean&nbsp;modernDeferred)</code></div>
 <div class="col-last even-row-color">
@@ -205,13 +204,11 @@ loadScripts(document, 'script');</script>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#jdkRelativePath()" class="member-name-link">jdkRelativePath</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">Returns the value of the <code>jdkRelativePath</code> record component.</div>
+<div class="block">1.20.1 NeoForged publishes Forge-named artifacts, not net.neoforged:neoforge.</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#loaderDependency()" class="member-name-link">loaderDependency</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">1.20.1 NeoForged publishes Forge-named artifacts, not net.neoforged:neoforge.</div>
-</div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#minecraftVersion()" class="member-name-link">minecraftVersion</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
@@ -308,7 +305,7 @@ loadScripts(document, 'script');</script>
 <h2>Constructor Details</h2>
 <ul class="member-list">
 <li>
-<section class="detail" id="&lt;init&gt;(java.lang.String,java.lang.String,java.lang.String,java.lang.String,int,java.lang.String,java.lang.String,java.lang.String,dev.copperbench.generator.fabric.Fabric1211Generator.Profile,boolean)">
+<section class="detail" id="&lt;init&gt;(java.lang.String,java.lang.String,java.lang.String,java.lang.String,int,java.lang.String,java.lang.String,dev.copperbench.generator.fabric.Fabric1211Generator.Profile,boolean)">
 <h3>Profile</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="element-name">Profile</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;generatorId,
@@ -318,7 +315,6 @@ loadScripts(document, 'script');</script>
  int&nbsp;javaRelease,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;readyMarker,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;templateSource,
- <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;jdkRelativePath,
  <a href="../fabric/Fabric1211Generator.Profile.html" title="class in dev.copperbench.generator.fabric">Fabric1211Generator.Profile</a>&nbsp;fabricProfile,
  boolean&nbsp;modernDeferred)</span></div>
 <div class="block">Creates an instance of a <code>Profile</code> record class.</div>
@@ -331,7 +327,6 @@ loadScripts(document, 'script');</script>
 <dd><code>javaRelease</code> - the value for the <code>javaRelease</code> record component</dd>
 <dd><code>readyMarker</code> - the value for the <code>readyMarker</code> record component</dd>
 <dd><code>templateSource</code> - the value for the <code>templateSource</code> record component</dd>
-<dd><code>jdkRelativePath</code> - the value for the <code>jdkRelativePath</code> record component</dd>
 <dd><code>fabricProfile</code> - the value for the <code>fabricProfile</code> record component</dd>
 <dd><code>modernDeferred</code> - the value for the <code>modernDeferred</code> record component</dd>
 </dl>
@@ -347,11 +342,19 @@ loadScripts(document, 'script');</script>
 <h2>Method Details</h2>
 <ul class="member-list">
 <li>
+<section class="detail" id="jdkRelativePath()">
+<h3>jdkRelativePath</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">jdkRelativePath</span>()</div>
+<div class="block">1.20.1 NeoForged publishes Forge-named artifacts, not net.neoforged:neoforge.</div>
+</div>
+</section>
+</li>
+<li>
 <section class="detail" id="loaderDependency()">
 <h3>loaderDependency</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">loaderDependency</span>()</div>
-<div class="block">1.20.1 NeoForged publishes Forge-named artifacts, not net.neoforged:neoforge.</div>
 </div>
 </section>
 </li>
@@ -505,19 +508,6 @@ loadScripts(document, 'script');</script>
 <dl class="notes">
 <dt>Returns:</dt>
 <dd>the value of the <code>templateSource</code> record component</dd>
-</dl>
-</div>
-</section>
-</li>
-<li>
-<section class="detail" id="jdkRelativePath()">
-<h3>jdkRelativePath</h3>
-<div class="horizontal-scroll">
-<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">jdkRelativePath</span>()</div>
-<div class="block">Returns the value of the <code>jdkRelativePath</code> record component.</div>
-<dl class="notes">
-<dt>Returns:</dt>
-<dd>the value of the <code>jdkRelativePath</code> record component</dd>
 </dl>
 </div>
 </section>

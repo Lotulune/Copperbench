@@ -21,6 +21,7 @@ dev.copperbench.mcp
 dev.copperbench.migration
 dev.copperbench.net
 dev.copperbench.network
+dev.copperbench.platform
 dev.copperbench.procedure
 dev.copperbench.references
 dev.copperbench.release
