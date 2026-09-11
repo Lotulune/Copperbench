@@ -128,9 +128,8 @@ class WorkspaceCreationServiceTest {
 		WorkspaceCreationService.CreationResult result = service.create("fabric-1.21.1", "Test Mod", "Invalid ID!",
 				"net.mcreator.test", temporaryFolder.resolve("ws").toString(), "1.0.0");
 		assertFalse(result.complete());
-		// 域校验报告全部命中的诊断（临时目录同时在建议根目录之外）
 		assertTrue(result.diagnostics().contains("MOD_ID_INVALID"));
-		assertTrue(result.diagnostics().contains("WORKSPACE_FOLDER_OUTSIDE_ROOT"));
+		assertFalse(Files.exists(temporaryFolder.resolve("ws")));
 	}
 
 	@Test void createRejectsUnsupportedGenerator() {
@@ -140,11 +139,12 @@ class WorkspaceCreationServiceTest {
 		assertTrue(result.diagnostics().contains("UNSUPPORTED_GENERATOR"));
 	}
 
-	@Test void createRejectsWorkspaceFolderOutsideSuggestedRoot() {
-		WorkspaceCreationService.CreationResult result = service.create("fabric-1.21.1", "Test Mod", "test_mod",
-				"net.mcreator.test", temporaryFolder.resolve("elsewhere").toString(), "1.0.0");
-		assertFalse(result.complete());
-		assertEquals(List.of("WORKSPACE_FOLDER_OUTSIDE_ROOT"), result.diagnostics());
+	@Test void absoluteWorkspaceFolderMayBeOutsideSuggestedRootButCannotBeARelativePathOrFilesystemRoot() {
+		assertEquals(List.of(), service.validateCreation("fabric-1.21.1", "Test Mod", "test_mod",
+				"net.mcreator.test", temporaryFolder.resolve("elsewhere").toString()));
+		for (String path : List.of("relative/path", temporaryFolder.toAbsolutePath().getRoot().toString()))
+			assertEquals(List.of("WORKSPACE_FOLDER_OUTSIDE_ROOT"), service.validateCreation("fabric-1.21.1", "Test Mod", "test_mod",
+					"net.mcreator.test", path));
 	}
 
 	@Test void createRejectsBlankModNameAndMissingPackage() {

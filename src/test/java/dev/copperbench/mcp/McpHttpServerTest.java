@@ -118,6 +118,33 @@ class McpHttpServerTest {
 
 	@TempDir Path workspace;
 
+	@Test void authenticatedMcpUsesAndRevokesUserIssuedTaskAuthority() throws Exception {
+		Files.writeString(workspace.resolve("workspace.mcreator"), "{}");
+		var authority = new dev.copperbench.automation.security.TaskAuthorizationStore(workspace.resolve("private-fixture"), CLOCK);
+		String id = authority.issue(dev.copperbench.core.contract.UiCore.Actor.UI, true, "Server test", workspace,
+				List.of("run_server", "test", "edit"), 3600, true).get("id").getAsString();
+		WorkspaceTokenService tokens = new WorkspaceTokenService(CLOCK, Duration.ofMinutes(5));
+		WorkspaceToken token = tokens.issue(WORKSPACE_ID, PermissionProfile.WORKSPACE);
+		Path auditPath = workspace.resolve(".copperbench/automation-audit.jsonl");
+		try (LocalHistoryService history = JGitLocalHistoryService.open(workspace, CLOCK);
+				CopperbenchMcpServer server = CopperbenchMcpServer.start(
+						new McpServerConfiguration(0, WORKSPACE_ID, PermissionProfile.WORKSPACE, Set.of("http://localhost:5173"), CLOCK),
+						tokens, adapter(history, workspace, authority), new JsonLineAuditLog(auditPath), new AssetWorkspaceService(workspace))) {
+			URI endpoint = URI.create("http://127.0.0.1:" + server.address().getPort() + "/mcp");
+			var initialized = post(endpoint, initializeBody(), token.value(), null, "http://localhost:5173");
+			String session = initialized.headers().firstValue("mcp-session-id").orElseThrow();
+			post(endpoint, "{\"jsonrpc\":\"2.0\",\"method\":\"notifications/initialized\"}", token.value(), session, "http://localhost:5173");
+			String run = "{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"tools/call\",\"params\":{\"name\":\"run_server\",\"arguments\":{\"expectedRevision\":0,\"taskAuthorizationId\":\"" + id + "\"}}}";
+			assertEquals("accepted", toolResult(post(endpoint, run, token.value(), session, "http://localhost:5173")).get("status").getAsString());
+			String revoke = "{\"jsonrpc\":\"2.0\",\"id\":3,\"method\":\"tools/call\",\"params\":{\"name\":\"revoke_task_authorization\",\"arguments\":{\"expectedRevision\":0,\"authorizationId\":\"" + id + "\"}}}";
+			assertEquals("completed", toolResult(post(endpoint, revoke, token.value(), session, "http://localhost:5173")).get("status").getAsString());
+			var rejected = toolResult(post(endpoint, run, token.value(), session, "http://localhost:5173"));
+			assertEquals("rejected", rejected.get("status").getAsString());
+			assertTrue(rejected.toString().contains("TASK_AUTHORIZATION_REVOKED"));
+			assertTrue(Files.readString(auditPath).contains(id));
+		}
+	}
+
 	@Test void tomcatBaseDoesNotDependOnInstallWorkingDirectory() throws Exception {
 		Files.writeString(workspace.resolve("workspace.mcreator"), "{\"name\":\"Copper Trails\"}");
 		Path invalidInstallRoot = workspace.resolve("installed-product-root");
@@ -435,6 +462,11 @@ class McpHttpServerTest {
 	}
 
 	private static McpWorkspaceEntryAdapter adapter(LocalHistoryService history, Path workspaceRoot) {
+		return adapter(history, workspaceRoot, dev.copperbench.automation.security.TaskAuthorizationStore.productDefault(CLOCK));
+	}
+
+	private static McpWorkspaceEntryAdapter adapter(LocalHistoryService history, Path workspaceRoot,
+			dev.copperbench.automation.security.TaskAuthorizationStore authority) {
 		RevisionedWorkspaceStore store = new RevisionedWorkspaceStore();
 		JsonObject generator = new JsonObject();
 		generator.addProperty("id", "fabric-1.21.1");
@@ -453,7 +485,7 @@ class McpHttpServerTest {
 						ignored -> store.read(WORKSPACE_ID).orElseThrow().copy(), CLOCK, ids)
 				: new WorkspaceApplicationService(store, new InMemoryWorkspaceTaskGateway(CLOCK, ids),
 						dev.copperbench.core.application.WorkspaceMutationGateway.noOp(), history,
-						ignored -> store.read(WORKSPACE_ID).orElseThrow().copy(), ignored -> workspaceRoot, CLOCK, ids);
+						ignored -> store.read(WORKSPACE_ID).orElseThrow().copy(), ignored -> workspaceRoot, CLOCK, ids, authority);
 		return new McpWorkspaceEntryAdapter(service, PermissionProfile.WORKSPACE);
 	}
 }

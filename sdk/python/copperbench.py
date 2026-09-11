@@ -18,12 +18,23 @@ class CopperbenchError(RuntimeError):
         self.details = details
 
 
+TASK_AUTHORIZED_TOOLS = {
+    "create_workspace", "create_mod_element", "update_mod_element", "delete_mod_element", "update_procedure",
+    "set_mod_element_source_management", "create_registry_entry", "update_registry_entry", "delete_registry_entry",
+    "rename_registry_entry", "apply_workspace_plan", "import_asset", "import_asset_batch", "move_asset",
+    "create_recovery_point", "restore_recovery_point", "publish_datagen_output", "prepare_game_tests",
+    "build_workspace", "generate_workspace", "validate_workspace", "run_gametest", "run_datagen", "run_client", "run_server",
+}
+
+
 class CopperbenchClient:
     def __init__(self, endpoint: str, token: str, workspace_id: str, timeout: float = 30.0,
-                 max_transport_retries: int = 2, retry_backoff_seconds: float = 0.1):
+                 max_transport_retries: int = 2, retry_backoff_seconds: float = 0.1,
+                 task_authorization_id: str | None = None):
         self.endpoint = endpoint
         self.token = token
         self.workspace_id = workspace_id
+        self.task_authorization_id = task_authorization_id
         self.timeout = timeout
         self.max_transport_retries = max(0, min(2, max_transport_retries))
         self.retry_backoff_seconds = max(0.0, retry_backoff_seconds)
@@ -127,6 +138,18 @@ class CopperbenchClient:
     def get_task(self, task_id: str, after_log_sequence: int = 0) -> dict[str, Any]:
         return self.call_tool("get_task", {"taskId": task_id, "afterLogSequence": after_log_sequence})
 
+    def prepare_game_tests(self, expected_revision: int) -> dict[str, Any]:
+        return self.call_tool("prepare_game_tests", {"expectedRevision": expected_revision})
+
+    def run_gametest(self, expected_revision: int) -> dict[str, Any]:
+        return self.call_tool("run_gametest", {"expectedRevision": expected_revision})
+
+    def list_task_authorizations(self) -> dict[str, Any]:
+        return self.call_tool("list_task_authorizations", {})
+
+    def revoke_task_authorization(self, authorization_id: str, expected_revision: int) -> dict[str, Any]:
+        return self.call_tool("revoke_task_authorization", {"authorizationId": authorization_id, "expectedRevision": expected_revision})
+
     def cancel_task(self, task_id: str, expected_revision: int) -> dict[str, Any]:
         return self.call_tool("cancel_task", {"taskId": task_id, "expectedRevision": expected_revision})
 
@@ -143,6 +166,8 @@ class CopperbenchClient:
         })
 
     def call_tool(self, name: str, arguments: dict[str, Any]) -> dict[str, Any]:
+        if self.task_authorization_id and name in TASK_AUTHORIZED_TOOLS:
+            arguments = {"taskAuthorizationId": self.task_authorization_id, **arguments}
         result = self._rpc("tools/call", {"name": name, "arguments": arguments})
         content = result.get("content") if isinstance(result.get("content"), list) else []
         text = next((item.get("text") for item in content if isinstance(item, dict) and item.get("type") == "text"), None)

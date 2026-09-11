@@ -13,6 +13,7 @@ import { useWorkbench } from '../context/WorkbenchContext';
 import { useDialogA11y } from '../hooks/useDialogA11y';
 import { t } from '../i18n';
 import type { ActionHint, DatagenPreview, Diagnostic, TaskSourcePreview, WorkspacePlan, WorkspacePlanStep } from '../types/contract';
+import './taskAuthorization.css';
 
 export const TaskDrawer: React.FC = () => {
   const {
@@ -21,6 +22,8 @@ export const TaskDrawer: React.FC = () => {
     activeTaskId,
     state,
     cancelTask,
+    prepareGameTests,
+    runGameTest,
     previewDatagenOutput,
     previewTaskSource,
     publishDatagenOutput,
@@ -196,7 +199,7 @@ export const TaskDrawer: React.FC = () => {
         right: 0,
         height: sourcePreview || sourceError || repairPlan || repairError || repairApplied
           ? '480px'
-          : datagenPreview || datagenError || diagnostics.length > 0 ? '360px' : '240px',
+          : datagenPreview || datagenError || diagnostics.length > 0 || activeTask?.verification || activeTask?.gameTestSetup ? '360px' : '240px',
         background: 'var(--drawer-bg)',
         borderTop: '1px solid var(--border-subtle)',
         display: 'flex',
@@ -241,6 +244,10 @@ export const TaskDrawer: React.FC = () => {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {activeTask?.kind === 'run_gametest' && activeTask.state === 'failed' &&
+            <button type="button" className="btn-secondary" onClick={() => void prepareGameTests()}>准备测试模板</button>}
+          {activeTask?.kind === 'prepare_game_tests' && activeTask.state === 'succeeded' &&
+            <button type="button" className="btn-primary" onClick={() => void runGameTest()}>运行测试</button>}
           {activeTask?.kind === 'run_datagen' && activeTask.state === 'succeeded' && !datagenPreview && (
             <button
               type="button"
@@ -278,6 +285,32 @@ export const TaskDrawer: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {activeTask?.verification && <section className="gametest-verification" aria-label="GameTest 验收报告">
+        <strong>{activeTask.verification.status === 'pending' ? '测试正在执行' : activeTask.verification.status === 'passed' ? '配置的测试已通过' : '测试尚未通过验收'}</strong>
+        <dl>{([
+          ['发现', activeTask.verification.discovered], ['执行', activeTask.verification.executed],
+          ['通过', activeTask.verification.passed], ['失败', activeTask.verification.failed], ['跳过', activeTask.verification.skipped]
+        ] as const).map(([name, count]) => <div key={name}><dt>{name}</dt><dd>{count}</dd></div>)}</dl>
+        {!!activeTask.verification.frameworkTests && <p>其中框架自检 {activeTask.verification.frameworkTests} 个；验收执行 {activeTask.verification.acceptanceExecuted ?? 0} 个。框架自检不计入最低验收数量。</p>}
+        <details><summary>用例与被测内容</summary>
+          <p>结果代码：<code>{activeTask.verification.reasonCode}</code></p>
+          {activeTask.verification.sourceCurrentAtCompletion === false && <p className="test-failure">测试期间工作区已变化，请针对当前内容重新验收。</p>}
+          {activeTask.sourceSnapshot && <p>源码 SHA-256：<code>{activeTask.sourceSnapshot.sha256}</code></p>}
+          {activeTask.verification.artifactSha256 && <p>被测 JAR SHA-256：<code>{activeTask.verification.artifactSha256}</code></p>}
+          {activeTask.verification.verificationPath && <p>报告：<code>{activeTask.verification.verificationPath}</code></p>}
+          <ul>{activeTask.verification.cases.slice(0, 100).map((test, index) => <li key={`${test.className}.${test.name}.${index}`}>
+            {test.status === 'passed' ? '通过' : test.status === 'failed' ? '失败' : '跳过'} · {test.className}.{test.name}
+            {test.scope === 'framework' && '（框架自检）'}
+            {test.message && <p className="test-failure">{test.message}</p>}
+          </li>)}</ul>
+          {activeTask.verification.cases.length > 100 && <p>此处显示前 100 个用例，完整结果见报告文件。</p>}
+        </details>
+      </section>}
+      {activeTask?.gameTestSetup && <section className="gametest-verification" aria-label="GameTest 模板">
+        <strong>测试入口已准备</strong><p>初始用例只检查模组加载。请补充玩法断言后，再将结果作为玩法验收证据。</p>
+        <code>{activeTask.gameTestSetup.configurationPath}</code>
+      </section>}
 
       {(datagenPreview || datagenError) && (
         <section

@@ -50,13 +50,17 @@ public final class HeadlessProductLauncher {
 	}
 
 	private static int awaitTask(HeadlessWorkspaceEntryAdapter adapter, UUID workspaceId, Supplier<UUID> ids,
-			JsonObject response) throws InterruptedException {
+			JsonObject response, PrintWriter output, boolean stream) throws InterruptedException {
 		UUID taskId = UUID.fromString(response.getAsJsonObject("task").get("id").getAsString());
-		Instant deadline = Instant.now().plus(Duration.ofMinutes(25));
+		Instant deadline = Instant.now().plus(Duration.ofMinutes(45));
+		long afterSequence = 0;
+		JsonArray allLogs = new JsonArray();
+		String lastTask = "";
+		if (stream) { output.println(GSON.toJson(response)); output.flush(); }
 		while (Instant.now().isBefore(deadline)) {
 			JsonObject payload = new JsonObject();
 			payload.addProperty("taskId", taskId.toString());
-			payload.addProperty("afterLogSequence", 0);
+			payload.addProperty("afterLogSequence", afterSequence);
 			QueryResult result = adapter.query(Query.of(ids.get(), workspaceId, Operation.GET_TASK, payload));
 			if (!"succeeded".equals(result.status())) {
 				response.addProperty("status", "failed");
@@ -67,10 +71,21 @@ public final class HeadlessProductLauncher {
 			}
 			JsonObject projection = result.data().getAsJsonObject();
 			JsonObject task = projection.getAsJsonObject("task");
+			JsonArray entries = projection.getAsJsonArray("logs");
+			for (var entry : entries) {
+				afterSequence = Math.max(afterSequence, entry.getAsJsonObject().get("sequence").getAsLong());
+				if (!stream) allLogs.add(entry.deepCopy());
+			}
+			if (stream && (!entries.isEmpty() || !lastTask.equals(task.toString()))) {
+				JsonObject update = new JsonObject(); update.addProperty("messageType", "task_update");
+				update.addProperty("schemaVersion", "1.0"); update.add("task", task.deepCopy());
+				update.add("logs", entries.deepCopy()); update.add("diagnostics", projection.getAsJsonArray("diagnostics").deepCopy());
+				output.println(GSON.toJson(update)); output.flush(); lastTask = task.toString();
+			}
 			String state = task.get("state").getAsString();
 			if (!"running".equals(state) && !"queued".equals(state)) {
 				response.add("task", task.deepCopy());
-				response.add("logs", projection.getAsJsonArray("logs").deepCopy());
+				response.add("logs", allLogs);
 				response.add("diagnostics", projection.getAsJsonArray("diagnostics").deepCopy());
 				boolean succeeded = "succeeded".equals(state);
 				response.addProperty("status", succeeded ? "succeeded" : state);
@@ -89,6 +104,11 @@ public final class HeadlessProductLauncher {
 	public static int run(String[] arguments, PrintWriter output) {
 		try {
 			Invocation invocation = parse(arguments);
+			boolean stream = false;
+			for (int index = 0; index < invocation.commandArguments().length; index++)
+				if (invocation.commandArguments()[index].equals("--stream") && index + 1 < invocation.commandArguments().length)
+					stream = Boolean.parseBoolean(invocation.commandArguments()[index + 1]);
+			if (stream) { output.println("{\"messageType\":\"task_update\",\"schemaVersion\":\"1.0\",\"status\":\"initializing\"}"); output.flush(); }
 			HeadlessRuntimeBootstrap.ensureInitialized();
 			File workspaceFile = invocation.workspace().toFile();
 			try (Workspace workspace = Workspace.readFromFS(workspaceFile, null);
@@ -104,7 +124,7 @@ public final class HeadlessProductLauncher {
 				int exitCode = cli.run(invocation.commandArguments(), new PrintWriter(buffered, true));
 				JsonObject response = JsonParser.parseString(buffered.toString().trim()).getAsJsonObject();
 				if (exitCode == HeadlessExitCode.SUCCESS.code() && isAcceptedTask(response))
-					exitCode = awaitTask(adapter, session.workspaceId(), ids, response);
+					exitCode = awaitTask(adapter, session.workspaceId(), ids, response, output, stream);
 				output.println(GSON.toJson(response));
 				output.flush();
 				return exitCode;

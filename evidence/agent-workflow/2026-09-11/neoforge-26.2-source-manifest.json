@@ -1,0 +1,99 @@
+{
+  "schemaVersion": "1.0",
+  "workspaceId": "39438f2c-d22f-45e7-9eb8-b97853a0b571",
+  "revision": 0,
+  "capturedAt": "2026-09-11T08:34:33.119320300Z",
+  "sha256": "3c25548292565a8ff54a36c18575a0b75ab840f07e8eb069bec1fb8dea52f179",
+  "files": [
+    {
+      "path": ".gitignore",
+      "bytes": 21,
+      "sha256": "07ebb1a51a91a553970b44b2a5b5332345f73335cf6d4dc8452bebe9d3469a02"
+    },
+    {
+      "path": "build.gradle",
+      "bytes": 522,
+      "sha256": "2c6889acdca8531bdaf232a21ab6ffc787220bbe307058483e1daa24ec4ffe44"
+    },
+    {
+      "path": "copperbench-tests.json",
+      "bytes": 236,
+      "sha256": "8cbf71a376a9dfc6960f43d0acfad1263e455a2bce94a9717287936a2bd8dc6f"
+    },
+    {
+      "path": "gradle.properties",
+      "bytes": 400,
+      "sha256": "fa726f56b99a2e3cd5069f577f79c2b83e1ee0be1bac7213a1195deb402d56a9"
+    },
+    {
+      "path": "gradle/wrapper/gradle-wrapper.jar",
+      "bytes": 48462,
+      "sha256": "497c8c2a7e5031f6aa847f88104aa80a93532ec32ee17bdb8d1d2f67a194a9c7"
+    },
+    {
+      "path": "gradle/wrapper/gradle-wrapper.properties",
+      "bytes": 279,
+      "sha256": "e39d0fa95a20368cd24ee56b35be7701994946dfd112bcec372643d2f852d36b"
+    },
+    {
+      "path": "gradlew",
+      "bytes": 8656,
+      "sha256": "a5a5c199ba02189ae8c46a334223371a20599d9c298ef65e7540ede4a3f72d59"
+    },
+    {
+      "path": "gradlew.bat",
+      "bytes": 2848,
+      "sha256": "d539676c48b596afda64c963ec8f7ee56c7b3fe7e3b81d1dbe2d1a1e3dd9e9f8"
+    },
+    {
+      "path": "host_smoke.mcreator",
+      "bytes": 2,
+      "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "path": "settings.gradle",
+      "bytes": 279,
+      "sha256": "604232bc35b2d5dae213c062fe232a3807c7cdfb302929319172d95a34dc48bb"
+    },
+    {
+      "path": "src/gametest/README.md",
+      "bytes": 430,
+      "sha256": "5ed703a1923b220dc08990d3ab316afc40fbe5f67ca3a2d6dd015bd505c7590b"
+    },
+    {
+      "path": "src/gametest/java/copperbench/acceptance/AcceptanceTests.java",
+      "bytes": 1809,
+      "sha256": "c4bc7acc05e572a8afb5b7b6e8a8cd942aaa9692d5e819e1a14f91444e11b820"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/generated/host_smoke/HostSmokeMod.java",
+      "bytes": 713,
+      "sha256": "facb922c3439cc5aca31d94d1cffe9d6035bfd82aeca139b7678afeb1f369d21"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/generated/host_smoke/init/ModBlocks.java",
+      "bytes": 501,
+      "sha256": "4131c94346a5cdde39298d0757ccacd74b973a6caae000ad206d62263df7b33e"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/generated/host_smoke/init/ModItems.java",
+      "bytes": 470,
+      "sha256": "deb5ee5bc9c09b6cfa48aacdf3d76409bdff746381535b1a938ea2ef69c5e7b4"
+    },
+    {
+      "path": "src/main/resources/META-INF/neoforge.mods.toml",
+      "bytes": 427,
+      "sha256": "3af4adb841403132203e05fa176e2865fd9a5b91589c1e767ede233d48847db8"
+    },
+    {
+      "path": "src/main/resources/assets/host_smoke/lang/en_us.json",
+      "bytes": 3,
+      "sha256": "ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356"
+    },
+    {
+      "path": "src/main/resources/pack.mcmeta",
+      "bytes": 85,
+      "sha256": "d357735853855e3a2d0fa43efccfe60af6d494e26d243d9cc5c6a8efc6f14217"
+    }
+  ]
+}

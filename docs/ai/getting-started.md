@@ -2,6 +2,8 @@
 
 本文面向本机 AI 客户端和自动化集成开发者。Copperbench MCP 当前为开发预览协议，版本、Schema 和工具字段仍可能在预览版间变化。
 
+当前源码新增了[任务授权与自动验收](./task-authorization-and-acceptance.md)：本机用户可以一次批准目录、操作和期限，agent 后续用授权 ID 连续开发；产品直接提供真实文件快照、GameTest 宿主和用例报告。使用这些接口需要包含改动的新构建。
+
 ## 安全边界
 
 - 服务仅绑定 `127.0.0.1`，入口为 `/mcp`。
@@ -26,7 +28,7 @@ Workspace Plan、增量任务日志和 `code` 使用边界的可复制示例。
 7. 运行校验或构建；长任务使用 `get_task` 查询状态和日志，并把最近收到的日志序号作为 `afterLogSequence` 传回以增量恢复。
 8. 修订冲突时重新读取并重新生成计划，不要自动重试覆盖。
 
-需要请求用户还原恢复点时，先调用 `preview_recovery_restore`。它比较当前工作树和目标恢复点，返回还原真正会涉及的文件；`restore_recovery_point` 仍然是受保护操作，MCP 客户端不能自行声明桌面用户已经批准。
+需要还原恢复点时，先调用 `preview_recovery_restore`。它比较当前工作树和目标恢复点，返回还原真正会涉及的文件；`restore_recovery_point` 接受用户签发的 `restore` 任务授权，或本机 UI 的明确批准，MCP 客户端不能自行声明桌面用户已经批准。
 
 ## 从空目录开始原生开发
 

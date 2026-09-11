@@ -127,6 +127,8 @@ public final class NeoForge1211WorkspaceTaskGateway implements WorkspaceTaskGate
 		tasks.addProperty("runGameTest", "runGameTest");
 		gradle.add("tasks", tasks);
 		environment.add("gradle", gradle);
+		environment.add("testing", dev.copperbench.generator.GameTestSupport.describe(root,
+				new NeoForge1211Generator(distributionRoot, profile).gameTestEnvironment()));
 		return environment;
 	}
 

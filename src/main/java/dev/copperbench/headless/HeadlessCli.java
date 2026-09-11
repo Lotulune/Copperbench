@@ -58,6 +58,12 @@ public final class HeadlessCli {
 				commands.add("preview-datagen");
 				commands.add("publish-datagen");
 				commands.add("run-gametest");
+				commands.add("prepare-game-tests");
+				commands.add("authorizations");
+				commands.add("revoke-authorization");
+				commands.add("create-recovery-point");
+				commands.add("preview-restore");
+				commands.add("restore");
 				commands.add("export");
 				commands.add("list-new-workspace-generators");
 				commands.add("environment");
@@ -104,7 +110,9 @@ public final class HeadlessCli {
 				payload.addProperty("scope", "workspace");
 			long revision = parsed.revision();
 			if ((parsed.operation() == Operation.VALIDATE_WORKSPACE || parsed.operation() == Operation.BUILD_WORKSPACE
-					|| parsed.operation() == Operation.RUN_CLIENT)
+						|| parsed.operation() == Operation.RUN_CLIENT || parsed.operation() == Operation.RUN_SERVER
+						|| parsed.operation() == Operation.RUN_DATAGEN || parsed.operation() == Operation.RUN_GAMETEST
+						|| parsed.operation() == Operation.PREPARE_GAME_TESTS)
 					&& !parsed.revisionExplicit()) {
 				JsonObject revisionProbe = new JsonObject();
 				revisionProbe.addProperty("limit", 1);
@@ -146,7 +154,7 @@ public final class HeadlessCli {
 		boolean query = switch (arguments[0]) {
 			case "list-new-workspace-generators", "environment", "tracks", "release", "preview-migrate", "preview-import", "plugins",
 					"elements", "upstream-tools", "procedure", "preview-procedure", "references", "registries",
-					"preview-registry-rename", "preview-datagen" -> true;
+					"preview-registry-rename", "preview-datagen", "authorizations", "preview-restore" -> true;
 			default -> false;
 		};
 		Operation operation = switch (arguments[0]) {
@@ -158,6 +166,12 @@ public final class HeadlessCli {
 			case "preview-datagen" -> Operation.PREVIEW_DATAGEN_OUTPUT;
 			case "publish-datagen" -> Operation.PUBLISH_DATAGEN_OUTPUT;
 			case "run-gametest" -> Operation.RUN_GAMETEST;
+			case "prepare-game-tests" -> Operation.PREPARE_GAME_TESTS;
+			case "authorizations" -> Operation.LIST_TASK_AUTHORIZATIONS;
+			case "revoke-authorization" -> Operation.REVOKE_TASK_AUTHORIZATION;
+			case "create-recovery-point" -> Operation.CREATE_RECOVERY_POINT;
+			case "preview-restore" -> Operation.PREVIEW_RECOVERY_RESTORE;
+			case "restore" -> Operation.RESTORE_RECOVERY_POINT;
 			case "export" -> Operation.EXPORT_WORKSPACE;
 			case "list-new-workspace-generators" -> Operation.LIST_NEW_WORKSPACE_GENERATORS;
 			case "environment" -> Operation.GET_WORKSPACE_ENVIRONMENT;
@@ -195,11 +209,13 @@ public final class HeadlessCli {
 				"--name", "--pack", "--source-directory", "--generator-id", "--mod-name", "--mod-id",
 				"--package-name", "--workspace-folder", "--version", "--element-id", "--edits-json", "--registry",
 				"--entry-json", "--entry-id", "--changes-json", "--new-name", "--force", "--task-id",
-				"--manifest-hash", "--after-log-sequence");
+				"--manifest-hash", "--after-log-sequence", "--task-authorization", "--authorization-id", "--label", "--recovery-point", "--stream");
 		for (String option : options.keySet()) {
 			if (!allowed.contains(option))
 				throw new IllegalArgumentException("Unknown option: " + option);
 		}
+		if (options.containsKey("--stream") && !Set.of("true", "false").contains(options.get("--stream")))
+			throw new IllegalArgumentException("--stream must be true or false");
 		long revision;
 		try {
 			revision = Long.parseLong(options.getOrDefault("--revision", "0"));
@@ -209,6 +225,10 @@ public final class HeadlessCli {
 		if (revision < 0)
 			throw new IllegalArgumentException("--revision must not be negative");
 		JsonObject payload = new JsonObject();
+		if (options.containsKey("--task-authorization")) payload.addProperty("taskAuthorizationId", options.get("--task-authorization"));
+		if (options.containsKey("--authorization-id")) payload.addProperty("authorizationId", options.get("--authorization-id"));
+		if (options.containsKey("--label")) payload.addProperty("label", options.get("--label"));
+		if (options.containsKey("--recovery-point")) payload.addProperty("recoveryPointId", options.get("--recovery-point"));
 		if (options.containsKey("--output"))
 			payload.addProperty("output", options.get("--output"));
 		if (options.containsKey("--target")) {

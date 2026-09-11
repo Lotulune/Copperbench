@@ -9,6 +9,7 @@ export interface CopperbenchClientOptions {
   endpoint: string;
   token: string;
   workspaceId: string;
+  taskAuthorizationId?: string;
   fetch?: typeof fetch;
   maxTransportRetries?: number;
   retryBackoffMs?: number;
@@ -166,6 +167,22 @@ export class CopperbenchClient {
     return this.callTool('get_task', { taskId, afterLogSequence });
   }
 
+  public prepareGameTests(expectedRevision: number): Promise<JsonObject> {
+    return this.callTool('prepare_game_tests', { expectedRevision });
+  }
+
+  public runGameTest(expectedRevision: number): Promise<JsonObject> {
+    return this.callTool('run_gametest', { expectedRevision });
+  }
+
+  public listTaskAuthorizations(): Promise<JsonObject> {
+    return this.callTool('list_task_authorizations', {});
+  }
+
+  public revokeTaskAuthorization(authorizationId: string, expectedRevision: number): Promise<JsonObject> {
+    return this.callTool('revoke_task_authorization', { authorizationId, expectedRevision });
+  }
+
   public cancelTask(taskId: string, expectedRevision: number): Promise<JsonObject> {
     return this.callTool('cancel_task', { taskId, expectedRevision });
   }
@@ -186,6 +203,9 @@ export class CopperbenchClient {
   }
 
   public callTool(name: string, argumentsValue: JsonObject): Promise<JsonObject> {
+    if (this.options.taskAuthorizationId && TASK_AUTHORIZED_TOOLS.has(name)) {
+      argumentsValue = { taskAuthorizationId: this.options.taskAuthorizationId, ...argumentsValue };
+    }
     return this.rpc('tools/call', { name, arguments: argumentsValue }).then((result) => {
       const content = Array.isArray(result.content) ? result.content : [];
       const textItem = content.find((item) => item && typeof item === 'object' && (item as JsonObject).type === 'text') as JsonObject | undefined;
@@ -237,6 +257,14 @@ export class CopperbenchClient {
     return (envelope.result ?? {}) as JsonObject;
   }
 }
+
+const TASK_AUTHORIZED_TOOLS = new Set([
+  'create_workspace', 'create_mod_element', 'update_mod_element', 'delete_mod_element', 'update_procedure',
+  'set_mod_element_source_management', 'create_registry_entry', 'update_registry_entry', 'delete_registry_entry',
+  'rename_registry_entry', 'apply_workspace_plan', 'import_asset', 'import_asset_batch', 'move_asset',
+  'create_recovery_point', 'restore_recovery_point', 'publish_datagen_output', 'prepare_game_tests',
+  'build_workspace', 'generate_workspace', 'validate_workspace', 'run_gametest', 'run_datagen', 'run_client', 'run_server'
+]);
 
 function parseRpcEnvelope(body: string): JsonObject {
   const trimmed = body.trim();

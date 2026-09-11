@@ -16,6 +16,8 @@ import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import dev.copperbench.ProductIdentity;
 import dev.copperbench.core.workspace.WorkspaceCreationService;
+import dev.copperbench.automation.security.TaskAuthorizationStore;
+import dev.copperbench.core.contract.UiCore.Operation;
 
 import javax.swing.JOptionPane;
 import java.awt.GraphicsEnvironment;
@@ -51,11 +53,18 @@ public final class BootstrapProductLauncher {
 	}
 
 	public static int run(String[] arguments, PrintWriter output) {
+		if (arguments.length > 0 && List.of("authorize-task", "list-authorizations", "revoke-authorization").contains(arguments[0]))
+			return TaskAuthorizationLauncher.run(arguments, output);
 		return run(arguments, output, new WorkspaceCreationService(), BootstrapProductLauncher::confirmLocally);
 	}
 
 	static int run(String[] arguments, PrintWriter output, WorkspaceCreationService service,
 			ApprovalPrompt approvalPrompt) {
+		return run(arguments, output, service, approvalPrompt, TaskAuthorizationStore.productDefault(java.time.Clock.systemUTC()));
+	}
+
+	static int run(String[] arguments, PrintWriter output, WorkspaceCreationService service,
+			ApprovalPrompt approvalPrompt, TaskAuthorizationStore authorizations) {
 		Objects.requireNonNull(output);
 		Objects.requireNonNull(service);
 		Objects.requireNonNull(approvalPrompt);
@@ -65,7 +74,7 @@ public final class BootstrapProductLauncher {
 			return switch (invocation.command()) {
 				case "help" -> help(output);
 				case "list-generators" -> listGenerators(output, service);
-				case "create-workspace" -> createWorkspace(output, service, approvalPrompt, invocation.options());
+				case "create-workspace" -> createWorkspace(output, service, approvalPrompt, invocation.options(), authorizations);
 				default -> throw new IllegalArgumentException("Unknown bootstrap command: " + invocation.command());
 			};
 		} catch (IllegalArgumentException exception) {
@@ -83,11 +92,15 @@ public final class BootstrapProductLauncher {
 		JsonArray commands = new JsonArray();
 		commands.add("list-generators");
 		commands.add("create-workspace");
+		commands.add("authorize-task");
+		commands.add("list-authorizations");
+		commands.add("revoke-authorization");
 		data.add("commands", commands);
 		data.addProperty("createUsage",
 				"bootstrap create-workspace --generator-id <id> --mod-name <name> --mod-id <id> "
-						+ "--workspace-folder <path> [--package-name <package>] [--version <version>]");
-		data.addProperty("approval", "Workspace creation requires confirmation in the local Copperbench UI.");
+						+ "--workspace-folder <path> [--package-name <package>] [--version <version>] [--task-authorization <id>]");
+		data.addProperty("approval", "Use a local UI confirmation or a user-issued task authorization covering the target directory.");
+		data.addProperty("authorizationUsage", "bootstrap authorize-task --root <absolute-directory> --label <task> [--capabilities create,edit,build,test,run_client] [--ttl-seconds 7200]");
 		response.add("data", data);
 		write(output, response);
 		return HeadlessExitCode.SUCCESS.code();
@@ -101,7 +114,7 @@ public final class BootstrapProductLauncher {
 	}
 
 	private static int createWorkspace(PrintWriter output, WorkspaceCreationService service,
-			ApprovalPrompt approvalPrompt, Map<String, String> options) {
+			ApprovalPrompt approvalPrompt, Map<String, String> options, TaskAuthorizationStore authorizations) {
 		String generatorId = required(options, "--generator-id");
 		String modName = required(options, "--mod-name");
 		String modId = required(options, "--mod-id");
@@ -118,7 +131,20 @@ public final class BootstrapProductLauncher {
 		if (!diagnostics.isEmpty())
 			return serviceFailure(output, diagnostics, HeadlessExitCode.VALIDATION_FAILED);
 
-		if (!approvalPrompt.approve(request)) {
+		boolean approved;
+		if (options.containsKey("--task-authorization")) {
+			var decision = authorizations.authorize(
+					options.get("--task-authorization"), java.nio.file.Path.of(workspaceFolder), Operation.CREATE_WORKSPACE);
+			if (!decision.allowed()) return fail(output, HeadlessExitCode.PERMISSION_DENIED, decision.code(),
+					"Task authority does not allow creating this workspace. Review the root, lifetime and create capability.");
+			approved = true;
+		} else {
+			if (!GraphicsEnvironment.isHeadless())
+				new PrintWriter(new java.io.FileOutputStream(java.io.FileDescriptor.err), true)
+						.println("Copperbench is waiting for local workspace creation approval: " + workspaceFolder);
+			approved = approvalPrompt.approve(request);
+		}
+		if (!approved) {
 			JsonObject response = envelope("create_workspace", "rejected", HeadlessExitCode.PERMISSION_DENIED);
 			response.addProperty("code", "USER_APPROVAL_REQUIRED");
 			response.add("diagnostics", diagnostics("USER_APPROVAL_REQUIRED",
@@ -181,7 +207,7 @@ public final class BootstrapProductLauncher {
 				throw new IllegalArgumentException("Options must use --name value pairs");
 			String option = arguments[index];
 			if (!List.of("--generator-id", "--mod-name", "--mod-id", "--package-name", "--workspace-folder",
-					"--version").contains(option))
+					"--version", "--task-authorization").contains(option))
 				throw new IllegalArgumentException("Unknown option: " + option);
 			options.put(option, arguments[index + 1]);
 		}
@@ -222,7 +248,7 @@ public final class BootstrapProductLauncher {
 			case "MOD_ID_INVALID" -> "The mod ID is invalid.";
 			case "PACKAGE_NAME_INVALID" -> "The Java package name is invalid.";
 			case "WORKSPACE_FOLDER_REQUIRED" -> "A workspace folder is required.";
-			case "WORKSPACE_FOLDER_OUTSIDE_ROOT" -> "The workspace folder is outside the allowed root.";
+			case "WORKSPACE_FOLDER_OUTSIDE_ROOT" -> "The workspace folder must be an absolute child directory without path redirects.";
 			case "WORKSPACE_FOLDER_NOT_EMPTY" -> "The workspace folder is not empty.";
 			case "WORKSPACE_SKELETON_SETUP_FAILED" -> "The generator could not prepare the workspace skeleton.";
 			case "WORKSPACE_BASE_GENERATION_FAILED" -> "The generator could not materialize the initial workspace source base.";

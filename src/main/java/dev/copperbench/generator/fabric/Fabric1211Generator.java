@@ -323,6 +323,19 @@ public final class Fabric1211Generator {
 		return profile.modernResourceLocation() ? "net.fabricmc.fabric-loom-remap" : "fabric-loom";
 	}
 
+	public JsonObject gameTestEnvironment() {
+		JsonObject value = new JsonObject();
+		value.addProperty("generatorId", profile.generatorId());
+		value.addProperty("loader", "fabric");
+		value.addProperty("minecraftVersion", profile.minecraftVersion());
+		value.addProperty("loaderVersion", profile.loaderVersion());
+		value.addProperty("fabricApiVersion", profile.fabricApiVersion());
+		value.addProperty("javaRelease", profile.javaRelease());
+		value.addProperty("pluginId", loomPluginId());
+		value.addProperty("pluginVersion", profile.loomVersion());
+		return value;
+	}
+
 	private String identifierImport() {
 		return profile.unobfuscated() ? "net.minecraft.resources.Identifier" : "net.minecraft.resources.ResourceLocation";
 	}

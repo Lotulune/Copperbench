@@ -107,6 +107,18 @@ public final class NeoForge1211Generator implements GradleWorkspaceBackend {
 		return "NEOFORGE";
 	}
 
+	@Override public JsonObject gameTestEnvironment() {
+		JsonObject value = new JsonObject();
+		value.addProperty("generatorId", profile.generatorId());
+		value.addProperty("loader", "neoforge");
+		value.addProperty("minecraftVersion", profile.minecraftVersion());
+		value.addProperty("loaderVersion", profile.neoForgeVersion());
+		value.addProperty("javaRelease", profile.javaRelease());
+		value.addProperty("pluginId", profile.modernDeferred() ? "net.neoforged.moddev" : "net.neoforged.gradle.userdev");
+		value.addProperty("pluginVersion", profile.moddevVersion());
+		return value;
+	}
+
 	@Override public Path serverRunDirectory(Path targetRoot) {
 		return profile.modernDeferred() ? targetRoot.resolve("run") : targetRoot.resolve("runs/server");
 	}

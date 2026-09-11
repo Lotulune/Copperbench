@@ -316,10 +316,12 @@ public final class WorkspaceCreationService {
 			diagnostics.add("WORKSPACE_FOLDER_REQUIRED");
 		else {
 			Path folder = Path.of(workspaceFolderPath).toAbsolutePath().normalize();
-			Path suggestedRoot = WorkspaceFolderManager.getSuggestedWorkspaceFoldersRoot().toPath().toAbsolutePath()
-					.normalize();
-			if (!folder.startsWith(suggestedRoot))
+			if (!Path.of(workspaceFolderPath).isAbsolute() || folder.getParent() == null)
 				diagnostics.add("WORKSPACE_FOLDER_OUTSIDE_ROOT");
+			else {
+				try { dev.copperbench.generator.WorkspaceExecutionSnapshot.rejectLinks(folder); }
+				catch (IOException exception) { diagnostics.add("WORKSPACE_FOLDER_OUTSIDE_ROOT"); }
+			}
 		}
 		return List.copyOf(diagnostics);
 	}

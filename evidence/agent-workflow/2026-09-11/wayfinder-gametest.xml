@@ -1,0 +1,1 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><testsuite><testsuite time="9.304" timestamp="2026-09-11T08:41:02.595565600Z"><testcase classname="fabric-gametest-api-v1:empty" name="acceptancetests.modloads" time="0.008"/><testcase classname="fabric-gametest-api-v1:empty" name="bellgametest.packagedbellbehavior" time="1.419"/></testsuite></testsuite>

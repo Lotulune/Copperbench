@@ -57,7 +57,9 @@
         "list_publish_batches",
         "list_installed_plugins",
         "get_element_coverage",
-        "get_upstream_tools"
+        "get_upstream_tools",
+        "list_task_authorizations",
+        "get_workspace_environment"
       ]
     },
     "status": {
@@ -302,6 +304,45 @@
         "properties": {
           "data": {
             "$ref": "urn:ui-core:1.0:common#/$defs/operationApprovalListProjection"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "list_task_authorizations"
+          },
+          "status": {
+            "const": "succeeded"
+          }
+        },
+        "required": [
+          "operation",
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": [
+              "schemaVersion",
+              "authorizations"
+            ],
+            "properties": {
+              "schemaVersion": {
+                "const": "1.0"
+              },
+              "authorizations": {
+                "type": "array",
+                "items": {
+                  "$ref": "urn:ui-core:1.0:common#/$defs/taskAuthorization"
+                }
+              }
+            },
+            "additionalProperties": false
           }
         }
       }

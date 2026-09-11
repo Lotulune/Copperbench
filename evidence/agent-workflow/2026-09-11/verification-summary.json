@@ -1,0 +1,482 @@
+{
+  "schemaVersion": "1.0",
+  "date": "2026-09-11",
+  "sourceBaselineCommit": "090b1a9d2343fd21e3367a4b8d24e6babbbf3c23",
+  "uncommittedImplementation": true,
+  "platform": "Windows x64",
+  "productionSourceFiles": [
+    {
+      "path": "sdk/python/copperbench.py",
+      "sha256": "7e990eca807e6dcaf507d8cadc016c71dd0b0beefc11c361419c99a97555fa04"
+    },
+    {
+      "path": "sdk/typescript/copperbench.ts",
+      "sha256": "8a5b4f4a6d2d5299e078c02c049692c92cc8e125e22dd6d9260e67c101b5049b"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/automation/security/TaskAuthorizationStore.java",
+      "sha256": "ba3a8ce009b5a722fc0d2f6699cf30ad4731ceda570c4433aa78675393caab5f"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/core/application/InMemoryWorkspaceTaskGateway.java",
+      "sha256": "3048a07f21a0df3ce336fc722d20364d3f2c5e30af9323145baa940c97330adb"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/core/application/WorkspaceApplicationService.java",
+      "sha256": "9279c95730dac864f59116db3311a90b323317e9b953bc2acaf81fba1ded167d"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/core/contract/UiCore.java",
+      "sha256": "902acba0c9b009dcec0ae1e79fad988bd0607770596862bb9f05d4821602e711"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/core/workspace/WorkspaceCreationService.java",
+      "sha256": "e718e533f8fe56bc2a82b59681c4645041a651ceba3066258d01b72774852d48"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/generator/GameTestReport.java",
+      "sha256": "adfdf8a1811477ebc4be329479b9425df26d6b6944420fa6dff23c5904a6f591"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/generator/GameTestSupport.java",
+      "sha256": "3d670a7839194795ee9d6a2c5157bc77ea5c4969f3a1bfa8a5c59fb9be2b7733"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/generator/GradleWorkspaceBackend.java",
+      "sha256": "00722fb377de78e9dcecda1afd86bd12bc446cc3cdff21ff8a8ef34d32b16d76"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/generator/GradleWorkspaceTaskGateway.java",
+      "sha256": "9bf44a869d445412d3da918423ebdc678f6c11cb91a1adda1f81ec96e2aaed35"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/generator/WorkspaceExecutionSnapshot.java",
+      "sha256": "e5e82e5d9012138cdb702a1d4dd26d1682b40eb205ab9a6d15ed53948edbeb3a"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/generator/fabric/Fabric1211Generator.java",
+      "sha256": "7d1b07f84a2c15ebb6fee31a3cb5683022d0ce362407345fdc9a1f7e168d6721"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/generator/fabric/Fabric1211WorkspaceTaskGateway.java",
+      "sha256": "3d1270a464009d29bd8243b4d77f4ae5b01c3c9f4581a987cb56c9368cbad5ce"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/generator/neoforge/NeoForge1211Generator.java",
+      "sha256": "dc7fb975e888bc00703e759f1b8ab9f1630e8e12d0276bcaf3734bcbc1fbacd2"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/generator/neoforge/NeoForge1211WorkspaceTaskGateway.java",
+      "sha256": "4da64ed3a97e8392ed10ff4965bec77c9ab4ce0d3938108225b3c841697489e2"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/headless/BootstrapProductLauncher.java",
+      "sha256": "bf732b930dac1909c56412c4dbabba4a324b1029e26ac287e91794498a408175"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/headless/HeadlessCli.java",
+      "sha256": "65a4246c58168af1041021d338312dfb62231230a2c0e74debf4b1bce14d71f6"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/headless/HeadlessProductLauncher.java",
+      "sha256": "76884de106f904c442571a2e79d39b71ae979dc22e75bf454e086cda228c21f8"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/headless/TaskAuthorizationLauncher.java",
+      "sha256": "5c22d02ce75760596bcc654cc073eab25e7d4ee8f30ecefe2686a09f894fdc1c"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/mcp/McpToolCatalog.java",
+      "sha256": "92ac5a79ea2b356a17023638c14a7bf351fd6c4cb581243fe1d6667b8e7e3873"
+    },
+    {
+      "path": "ui-core/schemas/v1.0/command-result.schema.json",
+      "sha256": "380cc1a3aecac34f393e9e780bf6a12d998adc3c3543ee95bd7ed7eee500bb50"
+    },
+    {
+      "path": "ui-core/schemas/v1.0/command.schema.json",
+      "sha256": "8500bfef9ab4e4e2773226462248235e450510106b00932a6c9fee08140c7aec"
+    },
+    {
+      "path": "ui-core/schemas/v1.0/common.schema.json",
+      "sha256": "45cec763f101a4ae7c5afe759d33ca471ab5d994ece0525bc209b543e704ca88"
+    },
+    {
+      "path": "ui-core/schemas/v1.0/query-result.schema.json",
+      "sha256": "0ea700e411889f3732fe8e01e02f9315de2109653da3eefb74e80cb5cc7caf88"
+    },
+    {
+      "path": "ui-core/schemas/v1.0/query.schema.json",
+      "sha256": "9f0e77fd8021befe388c7bb34ee4ce043636f0bdeb70d71c1c75f755a6a74c30"
+    },
+    {
+      "path": "ui-shell/src/components/AIControlView.tsx",
+      "sha256": "f0877d53c1587a98ded1efff6273ad21783c8c00a529b170c791bbf1d5b4b318"
+    },
+    {
+      "path": "ui-shell/src/components/TaskAuthorizationPanel.tsx",
+      "sha256": "a69e25de73af63dafad6a129416bb31122bd28cd9bfeb32c4185ee160446146d"
+    },
+    {
+      "path": "ui-shell/src/components/TaskDrawer.tsx",
+      "sha256": "0704a1bc00336d01d5c02c392ddcf61d10b9738d72b65efa591a0edc9430c40b"
+    },
+    {
+      "path": "ui-shell/src/components/taskAuthorization.css",
+      "sha256": "519241662111525a43080a29270562dac58c241b1a175d134c4c9baf9045b515"
+    },
+    {
+      "path": "ui-shell/src/context/WorkbenchContext.tsx",
+      "sha256": "dcd0b3c9953089113a8cb9aee3425713789bfe7d784d7def72144dca60b895df"
+    },
+    {
+      "path": "ui-shell/src/i18n/zh.ts",
+      "sha256": "039b9ba2bcd6ca72b2b719da43486d8433087fc04f0b3414ae0cc46f8ddc22ae"
+    },
+    {
+      "path": "ui-shell/src/mock/mockBridge.ts",
+      "sha256": "c3f8a0a4d26b680be2d2028bb8736a8318707f13a040dfa3947f1147128839a2"
+    },
+    {
+      "path": "ui-shell/src/types/contract.ts",
+      "sha256": "f89b1fe278b6c44140950b629eac52234014251abfbf097326863e7732de10a7"
+    }
+  ],
+  "checks": {
+    "javaCore": {
+      "passed": 58,
+      "failed": 0,
+      "skipped": 0,
+      "suites": [
+        {
+          "name": "dev.copperbench.automation.security.TaskAuthorizationStoreTest",
+          "tests": "5",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0"
+        },
+        {
+          "name": "dev.copperbench.core.TaskAuthorizationApplicationTest",
+          "tests": "3",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0"
+        },
+        {
+          "name": "dev.copperbench.core.workspace.WorkspaceCreationServiceTest",
+          "tests": "9",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0"
+        },
+        {
+          "name": "dev.copperbench.generator.GameTestReportTest",
+          "tests": "5",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0"
+        },
+        {
+          "name": "dev.copperbench.generator.GameTestWorkflowTest",
+          "tests": "12",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0"
+        },
+        {
+          "name": "dev.copperbench.generator.Stage9ManagedTaskMatrixTest",
+          "tests": "1",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0"
+        },
+        {
+          "name": "dev.copperbench.generator.WorkspaceExecutionSnapshotTest",
+          "tests": "3",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0"
+        },
+        {
+          "name": "dev.copperbench.headless.BootstrapProductLauncherTest",
+          "tests": "7",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0"
+        },
+        {
+          "name": "dev.copperbench.headless.HeadlessCliTest",
+          "tests": "7",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0"
+        },
+        {
+          "name": "dev.copperbench.mcp.McpHttpServerTest",
+          "tests": "6",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0"
+        }
+      ]
+    },
+    "uiCoreSchema": {
+      "passed": 22,
+      "failed": 0
+    },
+    "playwright": {
+      "passed": 12,
+      "failed": 0,
+      "viewports": [
+        "1920x1080",
+        "1366x768"
+      ],
+      "themes": [
+        "dark",
+        "light"
+      ]
+    },
+    "pythonSdk": {
+      "passed": 4,
+      "failed": 0
+    },
+    "hostCompilation": [
+      {
+        "generatorId": "fabric-1.20.1",
+        "kind": "host_compile_only",
+        "exitCode": 0,
+        "passed": true,
+        "log": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\agent-workflow-verification\\host-compile\\c58ee1cb-3188-41de-8d21-2f96a4ce6d99\\fabric-1.20.1\\compile.log"
+      },
+      {
+        "generatorId": "fabric-1.21.1",
+        "kind": "host_compile_only",
+        "exitCode": 0,
+        "passed": true,
+        "log": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\agent-workflow-verification\\host-compile\\c58ee1cb-3188-41de-8d21-2f96a4ce6d99\\fabric-1.21.1\\compile.log"
+      },
+      {
+        "generatorId": "fabric-26.1.2",
+        "kind": "host_compile_only",
+        "exitCode": 0,
+        "passed": true,
+        "log": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\agent-workflow-verification\\host-compile\\c58ee1cb-3188-41de-8d21-2f96a4ce6d99\\fabric-26.1.2\\compile.log"
+      },
+      {
+        "generatorId": "fabric-26.2",
+        "kind": "host_compile_only",
+        "exitCode": 0,
+        "passed": true,
+        "log": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\agent-workflow-verification\\host-compile\\c58ee1cb-3188-41de-8d21-2f96a4ce6d99\\fabric-26.2\\compile.log"
+      },
+      {
+        "generatorId": "neoforge-1.20.1",
+        "kind": "host_compile_only",
+        "exitCode": 0,
+        "passed": true,
+        "log": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\agent-workflow-verification\\host-compile\\c58ee1cb-3188-41de-8d21-2f96a4ce6d99\\neoforge-1.20.1\\compile.log",
+        "initialExitCode": 124,
+        "retryLog": "build\\agent-workflow-verification\\legacy-host-retry.log",
+        "retry": "Same host, completed dependency outputs retained, 2 GiB Gradle heap"
+      },
+      {
+        "generatorId": "neoforge-1.21.1",
+        "kind": "host_compile_only",
+        "exitCode": 0,
+        "passed": true,
+        "log": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\agent-workflow-verification\\host-compile\\c58ee1cb-3188-41de-8d21-2f96a4ce6d99\\neoforge-1.21.1\\compile.log"
+      },
+      {
+        "generatorId": "neoforge-26.1.2",
+        "kind": "host_compile_only",
+        "exitCode": 0,
+        "passed": true,
+        "log": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\agent-workflow-verification\\host-compile\\c58ee1cb-3188-41de-8d21-2f96a4ce6d99\\neoforge-26.1.2\\compile.log"
+      },
+      {
+        "generatorId": "neoforge-26.2",
+        "kind": "host_compile_only",
+        "exitCode": 0,
+        "passed": true,
+        "log": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\agent-workflow-verification\\host-compile\\c58ee1cb-3188-41de-8d21-2f96a4ce6d99\\neoforge-26.2\\compile.log"
+      }
+    ]
+  },
+  "wayfinder": {
+    "entry": "net.mcreator.Launcher headless run-gametest --stream true",
+    "jsonlRecords": 62,
+    "allStdoutLinesJson": true,
+    "status": "succeeded",
+    "verification": {
+      "schemaVersion": "1.0",
+      "status": "passed",
+      "reasonCode": "GAMETEST_PASSED",
+      "discovered": 2,
+      "executed": 2,
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "frameworkTests": 0,
+      "acceptanceExecuted": 2,
+      "cases": [
+        {
+          "name": "acceptancetests.modloads",
+          "className": "fabric-gametest-api-v1:empty",
+          "status": "passed",
+          "scope": "acceptance"
+        },
+        {
+          "name": "bellgametest.packagedbellbehavior",
+          "className": "fabric-gametest-api-v1:empty",
+          "status": "passed",
+          "scope": "acceptance"
+        }
+      ],
+      "mode": "packaged_jar",
+      "minimumTests": 2,
+      "environment": {
+        "generatorId": "fabric-1.21.1",
+        "loader": "fabric",
+        "minecraftVersion": "1.21.1",
+        "loaderVersion": "0.19.3",
+        "fabricApiVersion": "0.116.15+1.21.1",
+        "javaRelease": 21,
+        "pluginId": "net.fabricmc.fabric-loom-remap",
+        "pluginVersion": "1.17.19"
+      },
+      "artifactPath": "C:\\Users\\Administrator\\MCreatorWorkspaces\\wayfinder_bell\\.copperbench\\task-runs\\run_gametest\\4697c907-879c-4e79-8c1c-c37bb126644a\\host\\run\\mods\\wayfinder_bell-1.0.0.jar",
+      "artifactSha256": "5b622e704a4db3a33ef15e3de966f88fc1c0fb940bc6a5894ff171e61bd33de4",
+      "reportPath": "C:\\Users\\Administrator\\MCreatorWorkspaces\\wayfinder_bell\\.copperbench\\task-runs\\run_gametest\\4697c907-879c-4e79-8c1c-c37bb126644a\\host\\run\\gametest-results.xml",
+      "reportSha256": "763243e180de82ef5a4d5f552d3839af90b177073f304519c10cd9df98c78d84",
+      "startedAt": "2026-09-11T08:38:20.928082900Z",
+      "completedAt": "2026-09-11T08:41:16.264281400Z",
+      "processExitCode": 0,
+      "sourceCurrentAtCompletion": true,
+      "taskId": "4697c907-879c-4e79-8c1c-c37bb126644a",
+      "workspaceId": "b8b4536a-2d1f-458d-a9bc-d75255b897d3",
+      "workspaceRevision": 0,
+      "sourceSnapshot": {
+        "sha256": "5e55268a7656a53e762de17ad8a9cf6ca3b1f15ea5bc62077645d0d8ac9f88b8",
+        "fileCount": 42,
+        "bytes": 90882,
+        "manifestPath": "C:\\Users\\Administrator\\MCreatorWorkspaces\\wayfinder_bell\\.copperbench\\task-runs\\run_gametest\\4697c907-879c-4e79-8c1c-c37bb126644a\\source-manifest.json"
+      },
+      "verificationPath": "C:\\Users\\Administrator\\MCreatorWorkspaces\\wayfinder_bell\\.copperbench\\task-runs\\run_gametest\\4697c907-879c-4e79-8c1c-c37bb126644a\\verification.json"
+    },
+    "nativeImplementationUnchanged": true,
+    "snapshotInputsChangedByGeneration": []
+  },
+  "neoForgeRuntime": [
+    {
+      "schemaVersion": "1.0",
+      "status": "passed",
+      "reasonCode": "GAMETEST_PASSED",
+      "discovered": 1,
+      "executed": 1,
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "frameworkTests": 0,
+      "acceptanceExecuted": 1,
+      "cases": [
+        {
+          "name": "modloads",
+          "className": "minecraft:woodland_mansion/carpet_north",
+          "status": "passed",
+          "scope": "acceptance"
+        }
+      ],
+      "mode": "packaged_jar",
+      "minimumTests": 1,
+      "environment": {
+        "generatorId": "neoforge-1.21.1",
+        "loader": "neoforge",
+        "minecraftVersion": "1.21.1",
+        "loaderVersion": "21.1.232",
+        "javaRelease": 21,
+        "pluginId": "net.neoforged.moddev",
+        "pluginVersion": "2.0.141"
+      },
+      "artifactPath": "C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\junit-16976587837325376993\\neoforge-1.21.1\\.copperbench\\task-runs\\run_gametest\\94c92b47-9dc2-4fb4-8bef-06125abaa176\\host\\run\\mods\\host_smoke-1.0.0.jar",
+      "artifactSha256": "f14b658e7cc7f151a9eb780d31cba93afbbb33cbac18462cd286e6e321a94251",
+      "reportPath": "C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\junit-16976587837325376993\\neoforge-1.21.1\\.copperbench\\task-runs\\run_gametest\\94c92b47-9dc2-4fb4-8bef-06125abaa176\\host\\run\\gametest-results.xml",
+      "reportSha256": "06d48a2600a1f51cfaac8b0d4c071ce75809c417e4f6a8f5d498d707f4271310",
+      "startedAt": "2026-09-11T08:33:22.859572400Z",
+      "completedAt": "2026-09-11T08:34:24.957118600Z",
+      "processExitCode": 0,
+      "sourceCurrentAtCompletion": true,
+      "taskId": "94c92b47-9dc2-4fb4-8bef-06125abaa176",
+      "workspaceId": "aef44a7f-ec36-461b-8aab-c4cc97cc2d5f",
+      "workspaceRevision": 0,
+      "sourceSnapshot": {
+        "sha256": "7c76575374dff1a4690a11eb56da6181e5ff739577ae147d6a99353cf5b0e514",
+        "fileCount": 18,
+        "bytes": 64914,
+        "manifestPath": "C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\junit-16976587837325376993\\neoforge-1.21.1\\.copperbench\\task-runs\\run_gametest\\94c92b47-9dc2-4fb4-8bef-06125abaa176\\source-manifest.json"
+      },
+      "verificationPath": "C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\junit-16976587837325376993\\neoforge-1.21.1\\.copperbench\\task-runs\\run_gametest\\94c92b47-9dc2-4fb4-8bef-06125abaa176\\verification.json"
+    },
+    {
+      "schemaVersion": "1.0",
+      "status": "passed",
+      "reasonCode": "GAMETEST_PASSED",
+      "discovered": 2,
+      "executed": 2,
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "frameworkTests": 1,
+      "acceptanceExecuted": 1,
+      "cases": [
+        {
+          "name": "minecraft:always_pass",
+          "className": "minecraft:empty",
+          "status": "passed",
+          "scope": "framework"
+        },
+        {
+          "name": "copperbench_test_host:mod_loads",
+          "className": "minecraft:bastion/mobs/empty",
+          "status": "passed",
+          "scope": "acceptance"
+        }
+      ],
+      "mode": "packaged_jar",
+      "minimumTests": 1,
+      "environment": {
+        "generatorId": "neoforge-26.2",
+        "loader": "neoforge",
+        "minecraftVersion": "26.2",
+        "loaderVersion": "26.2.0.63",
+        "javaRelease": 25,
+        "pluginId": "net.neoforged.moddev",
+        "pluginVersion": "2.0.141"
+      },
+      "artifactPath": "C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\junit-16976587837325376993\\neoforge-26.2\\.copperbench\\task-runs\\run_gametest\\4a109050-0f15-4504-b287-7e7b249b5722\\host\\run\\mods\\host_smoke-1.0.0.jar",
+      "artifactSha256": "b593861fe55c822fc287ad9a2194433f16fc1e9ae079b372ba12d8cb999c1921",
+      "reportPath": "C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\junit-16976587837325376993\\neoforge-26.2\\.copperbench\\task-runs\\run_gametest\\4a109050-0f15-4504-b287-7e7b249b5722\\host\\run\\gametest-results.xml",
+      "reportSha256": "b889e38b2818bae68e2ab41c348fc05761162d1a2fadc0c8cde40f887f602078",
+      "startedAt": "2026-09-11T08:34:58.400235500Z",
+      "completedAt": "2026-09-11T08:35:52.256169Z",
+      "processExitCode": 0,
+      "sourceCurrentAtCompletion": true,
+      "taskId": "4a109050-0f15-4504-b287-7e7b249b5722",
+      "workspaceId": "39438f2c-d22f-45e7-9eb8-b97853a0b571",
+      "workspaceRevision": 0,
+      "sourceSnapshot": {
+        "sha256": "3c25548292565a8ff54a36c18575a0b75ab840f07e8eb069bec1fb8dea52f179",
+        "fileCount": 18,
+        "bytes": 66143,
+        "manifestPath": "C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\junit-16976587837325376993\\neoforge-26.2\\.copperbench\\task-runs\\run_gametest\\4a109050-0f15-4504-b287-7e7b249b5722\\source-manifest.json"
+      },
+      "verificationPath": "C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\junit-16976587837325376993\\neoforge-26.2\\.copperbench\\task-runs\\run_gametest\\4a109050-0f15-4504-b287-7e7b249b5722\\verification.json"
+    }
+  ],
+  "scopeNotes": [
+    "NeoForge runtime fixtures are loading smoke checks; Wayfinder includes a separate gameplay scenario with multiple assertions.",
+    "Template compilation covers eight tracks; runtime replay covers Fabric 1.21.1, NeoForge 1.21.1 and NeoForge 26.2.",
+    "NeoForge 1.20.1 was compiled only; no server EULA was accepted.",
+    "A 265-character Windows wrapper path exists using the extended path prefix but cannot be launched through the ordinary path; short test fixture paths were used. Long-path support is not changed.",
+    "No installed application update, release publication or Linux VM certification is included."
+  ]
+}

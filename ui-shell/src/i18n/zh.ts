@@ -4,6 +4,18 @@
  * 新增合同 key 时必须同步补齐词条，缺失时 UI 回退英文 fallback。
  */
 export const zh: Record<string, string> = {
+  'diagnostic.gametest_not_verified': '测试未通过验收，请查看用例与报告。',
+  'diagnostic.gametest_recovery_failed': '未能创建恢复点，测试模板尚未写入。',
+  'diagnostic.gametest_setup_failed': '测试配置或宿主准备失败，请查看任务日志中的原因。',
+  'diagnostic.task_authorization_denied': '任务授权不可用、已到期、已撤销或超出范围，请在 AI 与 MCP 中查看。',
+  'diagnostic.task_authorization_invalid': '任务授权配置无效，请检查目录、操作范围和有效期。',
+  'diagnostic.task_authorization_unavailable': '无法读取任务授权。',
+  'diagnostic.workspace_snapshot_failed': '无法冻结真实工作区，文件可能正在变化或含有不支持的路径。',
+  'task.prepare_game_tests.completed': '测试模板已准备，请补充玩法断言',
+  'task.prepare_game_tests.started': '正在准备测试模板',
+  'task.prepare_game_tests.validating': '正在校验测试环境',
+  'task.run_gametest.building': '正在构建冻结工作区中的模组',
+  'task.run_gametest.running': '正在运行验收测试',
   /* ---- 诊断 (diagnostic.*) ---- */
   'diagnostic.field_value_out_of_range': '硬度必须在 {min} 到 {max} 之间。',
   'diagnostic.code_bundle_invalid': '代码文件包无效：{message}',
@@ -291,7 +303,7 @@ export const zh: Record<string, string> = {
   'diagnostic.mod_id_invalid': '模组 ID 必须为 2-32 位小写字母、数字或下划线，且以小写字母开头。',
   'diagnostic.package_name_invalid': 'Java 包名无效，须为小写段以点号分隔（例如 net.example.mymod）。',
   'diagnostic.workspace_folder_required': '必须提供工作区文件夹路径。',
-  'diagnostic.workspace_folder_outside_root': '工作区文件夹必须位于建议的工作区根目录之下。',
+  'diagnostic.workspace_folder_outside_root': '工作区文件夹必须是安全的绝对路径，不能为磁盘根目录或链接路径。',
   'diagnostic.workspace_folder_not_empty': '目标文件夹已存在且不为空，请选择一个空文件夹。',
   'diagnostic.unsupported_generator': '所选生成器不在第一方支持列表中。',
   'diagnostic.generator_not_installed': '所选生成器插件未安装或未加载。',

@@ -193,6 +193,7 @@ function initialMockRegistries(): NonNullable<WorkspaceRegistriesProjection['reg
 }
 
 export class MockCoreBridge implements CoreBridge {
+  private taskAuthorizations: import('../types/contract').TaskAuthorization[] = [];
   private state: BridgeState = {
     currentScenarioId: 'ready',
     viewportState: 'ready',
@@ -1001,6 +1002,21 @@ export class MockCoreBridge implements CoreBridge {
     const newRevision = currentRevision + 1;
 
     switch (command.operation) {
+      case 'create_task_authorization':
+      case 'revoke_task_authorization': {
+        const payload = command.payload as unknown as import('../types/contract').TaskAuthorizationRequest & { authorizationId?: string };
+        const now = new Date();
+        const grant: import('../types/contract').TaskAuthorization | undefined = command.operation === 'create_task_authorization'
+          ? { label: payload.label, root: payload.root, capabilities: payload.capabilities, serverEulaAccepted: payload.serverEulaAccepted,
+              schemaVersion: '1.0', id: generateUUID(), issuedAt: now.toISOString(),
+              expiresAt: new Date(now.getTime() + payload.ttlSeconds * 1000).toISOString(), revoked: false, active: true }
+          : this.taskAuthorizations.find(item => item.id === payload.authorizationId);
+        if (grant && command.operation === 'create_task_authorization') this.taskAuthorizations.push(grant);
+        if (grant && command.operation === 'revoke_task_authorization') { grant.revoked = true; grant.active = false; }
+        return { messageType: 'command_result', schemaVersion: '1.0', requestId: command.requestId,
+          workspaceId, operation: command.operation, status: grant ? 'completed' : 'failed', newRevision: currentRevision,
+          data: grant as unknown as CommandResultData, diagnostics: [] };
+      }
       case 'create_mod_element': {
         const payload = command.payload as unknown as CreateModElementPayload;
         const newId = generateUUID();
@@ -1505,6 +1521,7 @@ export class MockCoreBridge implements CoreBridge {
 	  case 'run_client':
 	  case 'run_server':
 	  case 'run_datagen':
+      case 'prepare_game_tests':
       case 'run_gametest': {
 		const taskId = generateUUID();
 		const kind: TaskSummary['kind'] = command.operation === 'build_workspace' ? 'build'
@@ -1514,6 +1531,7 @@ export class MockCoreBridge implements CoreBridge {
           : command.operation === 'run_server' ? 'run_server'
           : command.operation === 'run_datagen' ? 'run_datagen'
           : command.operation === 'run_gametest' ? 'run_gametest'
+          : command.operation === 'prepare_game_tests' ? 'prepare_game_tests'
           : 'validate';
         const task: TaskSummary = {
           id: taskId,
@@ -1598,6 +1616,15 @@ export class MockCoreBridge implements CoreBridge {
         }, 800);
 
         const t2 = setTimeout(() => {
+          if (kind === 'prepare_game_tests') task.gameTestSetup = { state: 'configured', configurationPath: 'D:/MockWorkspace/copperbench-tests.json', starterScope: 'mod_loading_only' };
+          if (kind === 'run_gametest') {
+            task.sourceSnapshot = { sha256: 'a'.repeat(64), fileCount: 12, bytes: 2048, manifestPath: 'D:/MockWorkspace/source-manifest.json' };
+            task.verification = { schemaVersion: '1.0', status: 'passed', reasonCode: 'GAMETEST_PASSED', discovered: 3,
+              executed: 2, passed: 2, failed: 0, skipped: 1, frameworkTests: 1, acceptanceExecuted: 1, artifactSha256: 'b'.repeat(64),
+              cases: [{ name: 'modLoads', className: 'MockFixture', status: 'passed', scope: 'acceptance' },
+                { name: 'optional', className: 'MockFixture', status: 'skipped', scope: 'acceptance' },
+                { name: 'minecraft:always_pass', className: 'minecraft:empty', status: 'passed', scope: 'framework' }] };
+          }
           task.progress = 1.0;
           task.state = 'succeeded';
           task.cancellable = false;
@@ -2460,6 +2487,8 @@ export class MockCoreBridge implements CoreBridge {
 
     let data: unknown = null;
     switch (query.operation) {
+      case 'list_task_authorizations': data = { schemaVersion: '1.0', authorizations: this.taskAuthorizations.map(item => ({ ...item })) }; break;
+      case 'get_workspace_environment': data = { execution: { workspaceRoot: 'D:/MockWorkspace' } }; break;
       case 'get_workbench':
         data = this.state.workbench;
         break;

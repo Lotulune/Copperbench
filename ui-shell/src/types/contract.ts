@@ -187,7 +187,7 @@ export interface ModElementSummary {
 
 export interface TaskSummary {
   id: UUID;
-  kind: 'validate' | 'generate' | 'build' | 'export' | 'run_client' | 'run_server' | 'run_datagen' | 'run_gametest' | 'import';
+  kind: 'validate' | 'generate' | 'build' | 'export' | 'run_client' | 'run_server' | 'run_datagen' | 'run_gametest' | 'prepare_game_tests' | 'import';
   state: 'queued' | 'running' | 'succeeded' | 'failed' | 'cancelled';
   cancellable: boolean;
   progress: number | null;
@@ -195,6 +195,31 @@ export interface TaskSummary {
   startedAt: Timestamp;
   completedAt?: Timestamp | null;
   diagnostics: DiagnosticCounts;
+  sourceSnapshot?: { sha256: string; fileCount: number; bytes: number; manifestPath: string };
+  verification?: GameTestVerification;
+  gameTestSetup?: { state: string; configurationPath: string; starterScope?: 'mod_loading_only'; createdPaths?: string[] };
+}
+
+export interface GameTestVerification {
+  schemaVersion: '1.0';
+  status: 'pending' | 'passed' | 'failed';
+  reasonCode: string;
+  discovered: number; executed: number; passed: number; failed: number; skipped: number;
+  frameworkTests?: number; acceptanceExecuted?: number;
+  cases: { name: string; className: string; status: 'passed' | 'failed' | 'skipped'; message?: string; scope?: 'framework' | 'acceptance' }[];
+  artifactSha256?: string; artifactPath?: string; verificationPath?: string; reportPath?: string;
+  sourceSnapshot?: TaskSummary['sourceSnapshot'];
+  sourceCurrentAtCompletion?: boolean;
+  mode?: 'workspace' | 'packaged_jar';
+}
+
+export type TaskCapability = 'create' | 'edit' | 'build' | 'test' | 'run_client' | 'run_server' | 'restore';
+export interface TaskAuthorizationRequest {
+  label: string; root: string; capabilities: TaskCapability[]; ttlSeconds: number; serverEulaAccepted: boolean;
+}
+export interface TaskAuthorization {
+  schemaVersion: '1.0'; id: UUID; label: string; root: string; capabilities: TaskCapability[];
+  issuedAt: Timestamp; expiresAt: Timestamp; serverEulaAccepted: boolean; revoked: boolean; active: boolean;
 }
 
 export interface ElementCounts {
@@ -811,6 +836,9 @@ export interface ApplyWorkspacePlanPayload extends WorkspacePlanEnvelopePayload 
 }
 
 export type CommandOperation =
+  | 'prepare_game_tests'
+  | 'create_task_authorization'
+  | 'revoke_task_authorization'
   | 'create_workspace'
   | 'create_mod_element'
   | 'update_mod_element'
@@ -960,6 +988,8 @@ export interface CommandResult {
  * ========================================================================= */
 
 export type QueryOperation =
+  | 'list_task_authorizations'
+  | 'get_workspace_environment'
   | 'get_workbench'
   | 'get_workspace_health'
   | 'list_new_workspace_generators'

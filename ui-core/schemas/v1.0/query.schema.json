@@ -54,7 +54,9 @@
         "list_publish_batches",
         "list_installed_plugins",
         "get_element_coverage",
-        "get_upstream_tools"
+        "get_upstream_tools",
+        "list_task_authorizations",
+        "get_workspace_environment"
       ]
     },
     "payload": {
@@ -373,7 +375,9 @@
               "get_release_notes",
               "list_installed_plugins",
               "get_element_coverage",
-              "get_upstream_tools"
+              "get_upstream_tools",
+              "list_task_authorizations",
+              "get_workspace_environment"
             ]
           }
         },
