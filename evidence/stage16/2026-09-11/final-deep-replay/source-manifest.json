@@ -1,0 +1,154 @@
+{
+  "schemaVersion": "1.0",
+  "workspaceId": "b8b4536a-2d1f-458d-a9bc-d75255b897d3",
+  "revision": 0,
+  "capturedAt": "2026-09-11T10:21:49.779077200Z",
+  "sha256": "a8108ac1f6ad08194cc3dd07ee0969001d90b340582bf3b53e96ef5ba3928c0b",
+  "files": [
+    {
+      "path": ".gitignore",
+      "bytes": 46,
+      "sha256": "d2df845018a08339fe83f5cb4c89832fd7e6451c132e72bc3da7842e16f4b6ca"
+    },
+    {
+      "path": "README.md",
+      "bytes": 1057,
+      "sha256": "096ce226dbfb29e025f6d10c52b461df834b3ac38c686dd1f4b4f02fd8efd219"
+    },
+    {
+      "path": "build.gradle",
+      "bytes": 785,
+      "sha256": "11993cff610bf63f896fce4681bc17177ed46bd1749712208f2d5f09814efaf2"
+    },
+    {
+      "path": "copperbench-tests.json",
+      "bytes": 292,
+      "sha256": "b3d123dd5043a23b235360ca0c390c628d82442adca561a0b770c4e212873226"
+    },
+    {
+      "path": "gradle.properties",
+      "bytes": 285,
+      "sha256": "184efebbd8528b999fc3867f1b441e40f60c46f78d780b7308be0d25b5fee220"
+    },
+    {
+      "path": "gradle/wrapper/gradle-wrapper.jar",
+      "bytes": 48462,
+      "sha256": "497c8c2a7e5031f6aa847f88104aa80a93532ec32ee17bdb8d1d2f67a194a9c7"
+    },
+    {
+      "path": "gradle/wrapper/gradle-wrapper.properties",
+      "bytes": 279,
+      "sha256": "e39d0fa95a20368cd24ee56b35be7701994946dfd112bcec372643d2f852d36b"
+    },
+    {
+      "path": "gradlew",
+      "bytes": 8656,
+      "sha256": "a5a5c199ba02189ae8c46a334223371a20599d9c298ef65e7540ede4a3f72d59"
+    },
+    {
+      "path": "gradlew.bat",
+      "bytes": 2848,
+      "sha256": "d539676c48b596afda64c963ec8f7ee56c7b3fe7e3b81d1dbe2d1a1e3dd9e9f8"
+    },
+    {
+      "path": "mcreator.gradle",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "settings.gradle",
+      "bytes": 206,
+      "sha256": "2bc868b3c361cd2cdd57269d97c8f533002400eb96d4dbf38c60db04cf03dd48"
+    },
+    {
+      "path": "src/contractTest/java/dev/wayfinder/NavigationContractTest.java",
+      "bytes": 1314,
+      "sha256": "c9a38364f476cbfe503141f795069ffb358b1f2f37779600e792d38c084bccb0"
+    },
+    {
+      "path": "src/gametest/README.md",
+      "bytes": 430,
+      "sha256": "5ed703a1923b220dc08990d3ab316afc40fbe5f67ca3a2d6dd015bd505c7590b"
+    },
+    {
+      "path": "src/gametest/java/copperbench/acceptance/AcceptanceTests.java",
+      "bytes": 668,
+      "sha256": "f36a0723729eed533950e1f9de2ab4ca75da7c3bbe6893d7a69ffd73251bed2d"
+    },
+    {
+      "path": "src/gametest/java/dev/wayfinder/acceptance/BellGameTest.java",
+      "bytes": 8009,
+      "sha256": "ddb2f4e41b7a304c02246c7536d5de49eed089c531d15f5e0af01464e357caa6"
+    },
+    {
+      "path": "src/main/java/copperbench/trial/CompileFailureProbe.java",
+      "bytes": 86,
+      "sha256": "717c6f02429c09f46863eb555158a1a1ff5a88e7147c9cd434bba958d7c4eab4"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/generated/wayfinder_bell/WayfinderBellMod.java",
+      "bytes": 720,
+      "sha256": "9f6d1a8f532031fbc8875b30a2dacb2e2195dbf78b608f8bca58d4a86700f27c"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/generated/wayfinder_bell/init/ModBlocks.java",
+      "bytes": 1010,
+      "sha256": "408d71e80eaf5ba9d1e7555f5d4a962ad715b417b13277418c0a3964c28c7b9a"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/generated/wayfinder_bell/init/ModItems.java",
+      "bytes": 712,
+      "sha256": "0a332e67861f23f9644cd13b760f45e537914df6046f823667ecaea75bc10671"
+    },
+    {
+      "path": "src/main/java/dev/wayfinder/Navigation.java",
+      "bytes": 882,
+      "sha256": "4db6154f97ba499746e70701166ddf838b36b11c78bad079d16253fa60a5fd42"
+    },
+    {
+      "path": "src/main/java/dev/wayfinder/WayfinderBell.java",
+      "bytes": 928,
+      "sha256": "ecb23f389b31b1c99adc8512fcf40b01b07fa49571bc5fab841bce5834960b92"
+    },
+    {
+      "path": "src/main/java/dev/wayfinder/WayfinderBellItem.java",
+      "bytes": 3922,
+      "sha256": "29c1590d52169eca9f79edd1e48cb08f01af0e1b7aad9568383e2855493f5386"
+    },
+    {
+      "path": "src/main/resources/assets/wayfinder_bell/lang/en_us.json",
+      "bytes": 805,
+      "sha256": "f4755dbd2d2cf89e87c042b33a0b10af4eab21498d78c0a74c55ef131a30cd77"
+    },
+    {
+      "path": "src/main/resources/assets/wayfinder_bell/lang/zh_cn.json",
+      "bytes": 793,
+      "sha256": "3cdfa03dfe6c1d7386c42c49b6fd59a1803057ba4fefb21639d4a949992b8fac"
+    },
+    {
+      "path": "src/main/resources/assets/wayfinder_bell/models/item/wayfinder_bell.json",
+      "bytes": 98,
+      "sha256": "473916b2839bfbfcf32a2164b499a8cc62c9c714c9bca5b4ec3cbbd2b8ec2132"
+    },
+    {
+      "path": "src/main/resources/data/wayfinder_bell/recipe/wayfinder_bell.json",
+      "bytes": 317,
+      "sha256": "8c978e83203db5996b572669ae973a746e0f4e86e5ecc6031959e9ed1df8f20e"
+    },
+    {
+      "path": "src/main/resources/fabric.mod.json",
+      "bytes": 549,
+      "sha256": "8062a1ece0d552ede18d1d6ec0181ef2e6dd4f17b6db66c58fa42ce7c8ea84d8"
+    },
+    {
+      "path": "src/main/resources/pack.mcmeta",
+      "bytes": 89,
+      "sha256": "37ce79af3c176cc8a8e4b8c4016d2cba6dd78572abd51e2261c56b40a47d2d15"
+    },
+    {
+      "path": "wayfinder_bell.mcreator",
+      "bytes": 829,
+      "sha256": "5300386f66e92a653ddf99df243c72e1733cfe554e7bd33031d2e3b739d1e6ac"
+    }
+  ]
+}
