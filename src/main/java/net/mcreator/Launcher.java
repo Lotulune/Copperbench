@@ -70,7 +70,8 @@ public class Launcher {
 
 		final Logger LOG = LogManager.getLogger("Launcher"); // init logger after log directory is set
 
-		if (!machineReadable) {
+		// Bootstrap creation also uses the Tooling API in this JVM before Core tasks exist.
+		if (!machineReadable || (bootstrap && args.length > 1 && "create-workspace".equals(args[1]))) {
 			try {
 				dev.copperbench.gradle.GradleRuntimeCompatibility.configureApplicationRuntime(LOG::warn);
 			} catch (InterruptedException exception) {

@@ -1,0 +1,42 @@
+# Agent 客户端验收
+
+服务端 GameTest 和客户端验收分别留证据。具有桌面输入、截图和文件读取能力的 agent 可以验证真实点击、显示反馈及保存重进；美术质量、声音听感和趣味性仍需要人的判断。没有可操作的图形会话时，应明确记录阻断。
+
+## 用已验收的 JAR 建立独立客户端
+
+先通过产品的 `run-gametest` 得到 `packaged_jar` 验收结果。仓库公开工具只调用安装包 bootstrap，不加载 Copperbench 内部类；它创建一个空的 Fabric 1.21.1 工作区，再把报告绑定的实际模组 JAR 放进 `run/mods`。原模组的实现源码不会进入这个工作区。
+
+```powershell
+python scripts/prepare-client-trial.py `
+  --product '<installed Copperbench executable>' `
+  --workspace-folder '<new directory inside approved root>' `
+  --task-authorization '<user-issued task ID>' `
+  --verification '<verification.json or final JSONL output>'
+```
+
+可以重复传入 `--verification`，将多个模组放入同一客户端；它们必须都是 Fabric 1.21.1，且 mod ID 不能重复。报告必须通过、对应完成时的源文件、实际执行数量足够，JAR 和原 XML 的当前哈希必须仍与报告一致。现有工作区不会被覆盖。
+
+然后使用返回的工作区路径，通过产品 `headless ... run-client --stream true` 或 Desktop MCP `run_client` 启动。保留任务 ID、开始时间、增量日志和最终状态。桌面客户端不应在出现渲染日志后自动退出；要保留真实交互直到正常关闭。
+
+## 按需求取证
+
+测试前先写清每项操作、预期结果和判定方式。例如持久计数方块：放置两个方块，分别点击，检查它们的计数互不影响；保存退出并彻底关闭 Minecraft，再通过同一产品工作区启动、进入同一个存档，检查计数；最后执行重置并核对反馈。
+
+每个客观客户端断言至少记录：
+
+- 真正执行的输入及时间：使用桌面工具发送鼠标或键盘事件。把聊天命令、直接调用 Java 方法和真实右键分开记录。
+- 客户端观察：带时间的截图，以及可机器读取的当前客户端日志或游戏内查询结果。主菜单、启动日志和服务端模拟玩家不能证明真实输入生效。
+- 存档边界：同一世界目录、正常保存退出、原进程结束、重新启动后的进程与任务、重进后的观察。NBT 对象序列化单测单独记录。
+- 产物边界：开始和结束时都运行下面的哈希检查；保存报告、截图与日志的哈希。不要替换被测 JAR 后继续引用旧报告。
+
+```powershell
+python scripts/prepare-client-trial.py --check '<client host>/client-trial.json'
+```
+
+该检查的范围只是 `client_artifact_identity_only`，不会把文件存在或哈希一致报告为玩法通过。客户端输入与反馈必须另有真实证据，未操作、窗口不可见、超时或无法读取的结果均保持未验证。若测试中修改模组，重新运行服务端验收并创建新的客户端试作目录。
+
+## 结果表达
+
+报告分别列出构建、模组加载、服务端行为、客户端行为和待人工判断项。说明操作系统、安装包来源提交与哈希、是否首次使用、依赖缓存状态、人工介入次数和 agent 使用的桌面工具。
+
+客户端结论应引用具体观察，例如“正常右键后显示 Active；关闭进程后重进仍为 Active”，并指向对应截图、日志和输入记录。单个案例通过只覆盖该需求、平台和版本，不代表所有模组和所有 agent 都能完成客户端验收。
