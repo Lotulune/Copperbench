@@ -1,0 +1,2 @@
+Picked up JAVA_TOOL_OPTIONS: -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=23067 -Dhttp.proxyHost=127.0.0.1 -Dhttp.proxyPort=23067
+Stage 15 packaged wayland graphical probe verified: /home/stage15/stage15-run42/evidence-wayland-neoforge-preflight-1/graphical-product-probe.json

@@ -7,3 +7,5 @@ PR65 review identified a real upgrade-path omission: pre-XDG files in `~/.copper
 Four migration regressions plus four directory-resolution and two desktop-path integration checks pass locally. A dedicated installed-JAR verifier exercises actual PreferencesManager initialization, old-value preservation and new XDG writes for both legacy formats.
 
 Run37 remains accepted only for its own frozen source and is superseded for release by this product change. Its evidence remains unchanged. Release authorization is reset to pending-validation until the replacement candidate and installed migration checks pass. No tag, merge, production promotion or public release has occurred.
+
+Replacement Run42 has now passed all ten installed gates and both installed-JAR migration probes without classpath overrides. The release authorization requires the migration result digest in addition to the original ten gates. See [Run42 final acceptance](./stage15-run42-acceptance-2026-09-11.md). Source-overlay probe diagnostics remain non-certifying.

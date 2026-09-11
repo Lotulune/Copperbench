@@ -1,0 +1,5 @@
+746e8795b90689fe2d2672bb059f01f2bd8cca5c0e6689b89e5842baa4e38644  build/export/Copperbench 0.1.0 Linux x86_64.tar.gz
+d09802964585183a5b77d46fdf35cd2a42e1e3e8d12c558ea6b441a297a4349e  build/export/LINUX-CANDIDATE-METADATA.json
+e416b69a500d9c1f1e77d84939f10d6bca3d4456fc06a6f573e203ccbaf964ef  build/export/copperbench-linux.spdx.json
+ff1d2e3c3e7120165aece357d9a0b4a1fba93ff37e31e44dd8f733b0ba7dc473  build/export/copperbench_0.1.0_amd64.deb
+1952b06e6d7bc593fcec5b1c5fd24a2558d481aca0f5f22ff57c2461b2b319b7  build/export/linux-candidate-manifest.json

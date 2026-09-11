@@ -1,0 +1,20 @@
+{
+  "status": "passed",
+  "candidateSha256": "ff1d2e3c3e7120165aece357d9a0b4a1fba93ff37e31e44dd8f733b0ba7dc473",
+  "installedProductJarSha256": "d4bcaa2831415500bf99da16f7ab34aaf3e093de35497932502416f3853afcde",
+  "classpathOverrideUsed": false,
+  "modern": {
+    "newWritesUseXdg": true,
+    "status": "passed",
+    "mode": "modern",
+    "legacySourcePreserved": true,
+    "legacyValueLoaded": true
+  },
+  "old": {
+    "status": "passed",
+    "mode": "old",
+    "legacySourcePreserved": true,
+    "legacyValueLoaded": true,
+    "newWritesUseXdg": true
+  }
+}

@@ -38,6 +38,14 @@ function fixture(t) {
     validationReportPath: report, validationReportSha256: sha(readFileSync(resolve(root, report))), acceptedEvidence: entries
   };
   entries.managedBlockbench.installedProductJarSha256 = auth.installedProductJarSha256;
+  // Synthetic unit-test evidence for the additional migration contract, not an installed acceptance record.
+  const migrationPath = 'evidence/stage15/test/legacy-preferences.json';
+  const passedMigration = { status: 'passed', legacyValueLoaded: true, legacySourcePreserved: true, newWritesUseXdg: true };
+  mkdirSync(dirname(resolve(root, migrationPath)), { recursive: true });
+  writeFileSync(resolve(root, migrationPath), JSON.stringify({ status: 'passed', candidateSha256: auth.debSha256,
+    installedProductJarSha256: auth.installedProductJarSha256, classpathOverrideUsed: false,
+    modern: passedMigration, old: passedMigration }));
+  auth.legacyPreferencesMigration = { path: migrationPath, sha256: sha(readFileSync(resolve(root, migrationPath))) };
   const check = () => validateAuthorization(auth, metadata, root, tag);
   const mutate = (name, update) => {
     const entry = entries[name]; const path = resolve(root, entry.path); const data = read(path);
@@ -58,6 +66,18 @@ test('pending authorization and a Windows tag never reach release eligibility', 
   assert.throws(() => validateHeader(auth, 'v0.1.0-preview.9'), /dedicated Linux/);
   auth.status = 'pending-validation';
   assert.throws(() => validateHeader(auth, tag), /not approved/);
+});
+
+test('legacy preferences evidence cannot be omitted or replaced by a diagnostic override', (t) => {
+  const { root, auth, check } = fixture(t);
+  const entry = auth.legacyPreferencesMigration;
+  delete auth.legacyPreferencesMigration;
+  assert.throws(check, /legacy-preferences evidence required/);
+  auth.legacyPreferencesMigration = entry;
+  const path = resolve(root, entry.path);
+  const data = read(path); data.classpathOverrideUsed = true;
+  writeFileSync(path, JSON.stringify(data)); entry.sha256 = sha(readFileSync(path));
+  assert.throws(check, /installed candidate binding failed/);
 });
 
 test('candidate source or package substitution is rejected', (t) => {

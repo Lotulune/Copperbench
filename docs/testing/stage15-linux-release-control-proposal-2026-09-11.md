@@ -2,7 +2,7 @@
 
 用户已授权 Linux 发布 CI、独立授权记录、合入 main，并推进签名标签和 production 审批。实现位于 `.github/workflows/linux-release-control.yml`，复用现有 production 标签策略、审核者和 SSH 签名者名单。
 
-最终候选 Run37（`34537005983`，源提交 `f8114839`）通过十项 clean-guest 验收和完整 PR 回归。独立授权记录绑定候选 ID、安装包、产品 JAR、验收报告和十项证据摘要。详见 [最终验收报告](./stage15-release-integration-2026-09-11.md)。Run34 保留为历史证据。
+最终候选 Run42（`34547192490`，源提交 `61f69bf1`）通过十项 clean-guest 验收、两种旧偏好格式迁移和完整 PR 回归。独立授权记录绑定候选 ID、安装包、产品 JAR、验收报告和十项证据摘要。详见 [最终验收报告](./stage15-run42-acceptance-2026-09-11.md)。Run34 / Run37 保留为历史证据。
 
 原始 metadata 的 `development-not-certified`、`formalSupportClaim=false`、`exactBinaryPromotionEligible=false` 保持原样。专用 Linux 标签避免触发 Windows 发布工作流。标签必须签名并指向最新 main；流程拒绝候选之后的产品或构建改动。
 

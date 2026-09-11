@@ -1,0 +1,8 @@
+{
+  "sourceCommit": "61f69bf1f8dfdd3efbcf379afbaafbbfb11d3466",
+  "workflowRunId": "34547192490",
+  "runNumber": 42,
+  "candidateArtifactId": 10179823629,
+  "githubReportedArtifactZipSha256": "5fcac05e1a2534a3eca260a4dc282563d7ae826ad505b1c456873f2b10e37165",
+  "status": "candidate-validation-complete-release-pending"
+}

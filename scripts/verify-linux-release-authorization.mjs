@@ -114,6 +114,15 @@ export function validateAuthorization(auth, metadata, root, tag) {
         && result.headlessBuildStatus === 'succeeded' && result.provenanceVerified === true, 'Portable gate failed');
     }
   }
+  const migrationEntry = auth.legacyPreferencesMigration;
+  requireValue(migrationEntry && !paths.has(migrationEntry.path), 'Installed legacy-preferences evidence required');
+  const migration = JSON.parse(boundFile(root, migrationEntry, 'evidence/stage15/'));
+  requireValue(migration.status === 'passed' && migration.candidateSha256 === auth.debSha256
+    && migration.installedProductJarSha256 === auth.installedProductJarSha256
+    && migration.classpathOverrideUsed === false, 'Legacy-preferences installed candidate binding failed');
+  for (const mode of ['modern', 'old']) requireValue(migration[mode]?.status === 'passed'
+    && migration[mode].legacyValueLoaded === true && migration[mode].legacySourcePreserved === true
+    && migration[mode].newWritesUseXdg === true, `Legacy-preferences ${mode} migration failed`);
   return { candidateId: auth.candidateId, releaseTag: tag, gatesVerified: gateNames.length };
 }
 

@@ -1,0 +1,7 @@
+{
+  "workflowRunId": "34547192490",
+  "modifiedPublishedHelper": false,
+  "archiveSha256": "ff3a767cfe88c59c4769abb65999b9a4f188c5f303b4675ec05742a4270f1b5e",
+  "additionalMigrationVerifier": "scripts/stage15/Stage15LegacyPreferencesVerifier.java",
+  "additionalMigrationVerifierSha256": "8bfcaf184dcb44876a8911f00a10008a63a4f2ecdbeb033af4bd9c81c40cbc99"
+}

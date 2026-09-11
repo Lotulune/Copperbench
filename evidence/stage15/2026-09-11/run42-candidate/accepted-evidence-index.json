@@ -1,18 +1,7 @@
 {
-  "schemaVersion": "1.0",
-  "kind": "linux-release-authorization",
-  "status": "approved",
-  "releaseTag": "v0.1.0-linux-preview.1",
-  "releaseEligible": true,
-  "formalSupportClaim": false,
   "candidateId": "sha256:45e80ce44b0918215048e65fe8b2d45e45698d3f394453940918a1eee40eea09",
-  "candidateSourceCommit": "61f69bf1f8dfdd3efbcf379afbaafbbfb11d3466",
-  "candidateWorkflowRunId": "34547192490",
-  "debSha256": "ff1d2e3c3e7120165aece357d9a0b4a1fba93ff37e31e44dd8f733b0ba7dc473",
-  "portableSha256": "746e8795b90689fe2d2672bb059f01f2bd8cca5c0e6689b89e5842baa4e38644",
-  "installedProductJarSha256": "d4bcaa2831415500bf99da16f7ab34aaf3e093de35497932502416f3853afcde",
-  "validationReportPath": "docs/testing/stage15-run42-acceptance-2026-09-11.md",
-  "validationReportSha256": "1bfb8b2ad43920a40666ccf6fbe8733438e4ea9dedfb95e0a63b056b59597f0e",
+  "status": "candidate-validation-complete-release-pending",
+  "formalSupportClaim": false,
   "acceptedEvidence": {
     "xorgFabric": {
       "path": "evidence/stage15/2026-09-11/run42-xorg-fabric/installed-gate-result.json",
