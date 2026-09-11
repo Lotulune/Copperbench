@@ -35,8 +35,7 @@ public record UserDataPaths(Path data, Path config, Path cache, Path state, Path
         Objects.requireNonNull(environment);
         Path home = normalize(Objects.requireNonNull(userHome));
 
-        Path override = absoluteEnvironmentPath(environment, "COPPERBENCH_HOME");
-        if (override == null) override = absoluteEnvironmentPath(environment, "MCREATOR_HOME");
+        Path override = homeOverride(environment);
         if (override != null) return new UserDataPaths(override, override, override, override, override);
 
         if (platform.operatingSystem() != RuntimePlatform.OperatingSystem.LINUX) {
@@ -56,6 +55,11 @@ public record UserDataPaths(Path data, Path config, Path cache, Path state, Path
     private static Path xdg(Map<String, String> environment, String key, Path fallback) {
         Path value = absoluteEnvironmentPath(environment, key);
         return value == null ? normalize(fallback) : value;
+    }
+
+    static Path homeOverride(Map<String, String> environment) {
+        Path override = absoluteEnvironmentPath(environment, "COPPERBENCH_HOME");
+        return override != null ? override : absoluteEnvironmentPath(environment, "MCREATOR_HOME");
     }
 
     private static Path absoluteEnvironmentPath(Map<String, String> environment, String key) {

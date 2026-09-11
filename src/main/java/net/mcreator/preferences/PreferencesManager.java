@@ -20,6 +20,7 @@
 package net.mcreator.preferences;
 
 import com.google.gson.*;
+import dev.copperbench.platform.LegacyPreferencesMigration;
 import net.mcreator.io.FileIO;
 import net.mcreator.io.UserFolderManager;
 import net.mcreator.plugin.events.ApplicationLoadedEvent;
@@ -62,6 +63,12 @@ public class PreferencesManager {
 	 */
 	public static void init() {
 		PREFERENCES = new PreferencesData();
+
+		try {
+			LegacyPreferencesMigration.migrateCurrent();
+		} catch (java.io.IOException exception) {
+			throw new IllegalStateException("Could not import legacy Linux preferences; original files were retained", exception);
+		}
 
 		if (!PREFERENCES_FILE.isFile() && UserFolderManager.getFileFromConfigFolder("preferences").exists()) {
 			LOG.info("Old preferences file found. Converting the file to the new format.");
