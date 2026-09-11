@@ -37,6 +37,15 @@ class WorkspaceCreationServiceTest {
 
 	@TempDir Path temporaryFolder;
 
+	@Test void failureDetailsRetainCausesButRedactCredentialsAndStayBounded() {
+		String detail = WorkspaceCreationService.failureDetail(new IllegalStateException("Workspace setup failed",
+				new java.io.IOException("Cannot connect to https://user:password@example.invalid/; token=secret-value")));
+		assertTrue(detail.contains("Cannot connect"));
+		assertFalse(detail.contains("user:password"));
+		assertFalse(detail.contains("secret-value"));
+		assertTrue(WorkspaceCreationService.failureDetail(new RuntimeException("x".repeat(9000))).length() <= 4001);
+	}
+
 	private final WorkspaceCreationService service = new WorkspaceCreationService();
 
 	@BeforeAll static void initializeUpstreamRuntimeForPersistenceTest() throws Exception {

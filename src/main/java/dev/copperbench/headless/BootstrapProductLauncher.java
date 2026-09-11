@@ -170,7 +170,7 @@ public final class BootstrapProductLauncher {
 		if (!result.complete()) {
 			boolean validationFailure = result.diagnostics().stream().allMatch(BootstrapProductLauncher::validationCode);
 			return serviceFailure(output, result.diagnostics(),
-					validationFailure ? HeadlessExitCode.VALIDATION_FAILED : HeadlessExitCode.INTERNAL_ERROR);
+					validationFailure ? HeadlessExitCode.VALIDATION_FAILED : HeadlessExitCode.INTERNAL_ERROR, result.detail());
 		}
 
 		JsonObject response = envelope("create_workspace", "committed", HeadlessExitCode.SUCCESS);
@@ -232,11 +232,16 @@ public final class BootstrapProductLauncher {
 	}
 
 	private static int serviceFailure(PrintWriter output, List<String> codes, HeadlessExitCode exitCode) {
+		return serviceFailure(output, codes, exitCode, null);
+	}
+
+	private static int serviceFailure(PrintWriter output, List<String> codes, HeadlessExitCode exitCode, String detail) {
 		JsonObject response = envelope("create_workspace", "rejected", exitCode);
 		if (!codes.isEmpty()) response.addProperty("code", codes.getFirst());
 		JsonArray diagnostics = new JsonArray();
 		for (String code : codes) diagnostics.add(diagnostic(code, message(code)));
 		response.add("diagnostics", diagnostics);
+		if (detail != null && !detail.isBlank()) response.addProperty("detail", detail);
 		write(output, response);
 		return exitCode.code();
 	}
