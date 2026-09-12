@@ -242,6 +242,11 @@ public final class MCreatorApplication {
 
 				// Make sure splash screen is closed on the swing thread before we continue
 				splashScreen.dispose();
+				if (!ChinaMirrorService.hasBeenPrompted()) {
+					// First-run modal prompts need a visible owner in the taskbar before a workspace is opened.
+					workspaceSelector.setVisible(true);
+					workspaceSelector.toFront();
+				}
 				ChinaNetworkSetupDialog.promptIfNeeded(workspaceSelector);
 				ChinaMirrorService.syncUserHome();
 				GradleDistributionPool.seedPackagedDistributions();
