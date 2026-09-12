@@ -166,10 +166,14 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 				job.progress(0.55, "task.run_client.starting", "Starting Minecraft client");
 				var process = processes.run(executionRoot, backend.gradleArguments(operation), Duration.ZERO,
 						line -> job.log("info", line));
-				if (process.exitCode() != 0) {
+				// Minecraft can catch WindowInitFailed and return zero before opening a window.
+				// A mod's earlier readiness marker does not establish that OpenGL initialized.
+				boolean graphicsInitializationFailed = "WINDOWS_OPENGL_INITIALIZATION_FAILED"
+						.equals(process.runtimeFailureCode());
+				if (process.exitCode() != 0 || graphicsInitializationFailed) {
 					JsonObject args = new JsonObject();
 					args.addProperty("exitCode", process.exitCode());
-					String runtimeFailureCode = process.readinessMarkerSeen()
+					String runtimeFailureCode = process.readinessMarkerSeen() && !graphicsInitializationFailed
 							? null : process.runtimeFailureCode();
 					if (runtimeFailureCode != null && !runtimeFailureCode.isBlank())
 						args.addProperty("runtimeFailureCode", runtimeFailureCode);
@@ -177,8 +181,11 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 							? backend.diagnosticPrefix() + "_RUN_CLIENT_EXITED"
 							: backend.diagnosticPrefix() + "_RUN_CLIENT_" + runtimeFailureCode;
 					failKnownTask(workspaceId, operation, job,
-							diagnosticCode, "diagnostic.task_process_exited",
-							"The {backend} {task} task exited with code {exitCode}.", args);
+							diagnosticCode, graphicsInitializationFailed
+									? "diagnostic.task_client_opengl_initialization_failed" : "diagnostic.task_process_exited",
+							graphicsInitializationFailed
+									? "The {backend} client could not initialize OpenGL. Check graphics support and drivers."
+									: "The {backend} {task} task exited with code {exitCode}.", args);
 					return;
 				}
 			} else if (operation == Operation.RUN_SERVER) {

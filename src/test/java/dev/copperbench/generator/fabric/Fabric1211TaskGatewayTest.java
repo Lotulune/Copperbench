@@ -28,6 +28,8 @@ import dev.copperbench.platform.RuntimePlatform;
 import dev.copperbench.history.RestoreResult;
 import dev.copperbench.history.WorkspaceChange;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.api.parallel.ResourceLock;
 import org.junit.jupiter.api.parallel.Resources;
@@ -308,6 +310,34 @@ class Fabric1211TaskGatewayTest {
 			JsonObject runClient = startAndAwait(service, ids, Operation.RUN_CLIENT);
 			assertEquals("succeeded", runClient.getAsJsonObject("task").get("state").getAsString());
 			assertTrue(runClient.getAsJsonArray("logs").toString().contains("COPPERBENCH_STAGE3_READY"));
+		}
+	}
+
+	@ParameterizedTest @ValueSource(booleans = { false, true })
+	void windowsOpenGlFailureIsNotSuccessfulWithZeroExit(boolean modReadinessSeen) throws Exception {
+		RevisionedWorkspaceStore store = new RevisionedWorkspaceStore();
+		store.register(Fabric1211GoldenWorkspace.create());
+		AtomicLong sequence = new AtomicLong(1600);
+		Supplier<UUID> ids = () -> UUID.fromString("00000000-0000-4000-8000-" +
+				String.format("%012d", sequence.getAndIncrement()));
+		Fabric1211ProcessRunner runner = (root, arguments, timeout, output) -> {
+			output.accept("GLFW error 65542: WGL: The driver does not appear to support OpenGL");
+			output.accept("BUILD SUCCESSFUL");
+			return new Fabric1211ProcessRunner.ProcessResult(0, modReadinessSeen,
+					"WINDOWS_OPENGL_INITIALIZATION_FAILED");
+		};
+		try (Fabric1211WorkspaceTaskGateway tasks = new Fabric1211WorkspaceTaskGateway(store,
+				ignored -> generatedWorkspace, Path.of(".").toAbsolutePath().normalize(), CLOCK, ids, runner)) {
+			WorkspaceApplicationService service = new WorkspaceApplicationService(store, tasks, CLOCK, ids);
+			JsonObject client = startAndAwait(service, ids, Operation.RUN_CLIENT);
+			assertEquals("failed", client.getAsJsonObject("task").get("state").getAsString());
+			JsonObject diagnostic = client.getAsJsonArray("diagnostics").asList().stream()
+					.map(value -> value.getAsJsonObject())
+					.filter(value -> value.get("code").getAsString().equals("FABRIC_RUN_CLIENT_WINDOWS_OPENGL_INITIALIZATION_FAILED"))
+					.findFirst().orElseThrow();
+			assertEquals(0, diagnostic.getAsJsonObject("message").getAsJsonObject("args").get("exitCode").getAsInt());
+			assertEquals("diagnostic.task_client_opengl_initialization_failed",
+					diagnostic.getAsJsonObject("message").get("key").getAsString());
 		}
 	}
 

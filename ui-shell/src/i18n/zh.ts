@@ -82,6 +82,7 @@ export const zh: Record<string, string> = {
   'diagnostic.workspace_task_failed': '{backend} 的 {task} 任务失败，请查看日志。',
   'diagnostic.bundled_jdk_missing': '未找到可用的 Copperbench Java 运行时；请查看日志中的解析路径。',
   'diagnostic.task_process_exited': '{backend} 的 {task} 任务以退出码 {exitCode} 结束。',
+  'diagnostic.task_client_opengl_initialization_failed': '{backend} 客户端无法初始化 OpenGL，请检查显卡支持和驱动。',
   'diagnostic.task_readiness_not_reached': '{backend} 的 {task} 任务未达到就绪标记。',
   'diagnostic.procedure_element_required': '该操作只能用于 Procedure 元素。',
   'diagnostic.procedure_ir_invalid': 'Procedure 图数据无效，请修复节点或连接后重试。',
