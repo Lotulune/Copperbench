@@ -1,0 +1,42 @@
+{
+  "at": "2026-09-12T06:37:36.439018+00:00",
+  "candidateCommit": "33ceb6e9a68aab2b2fcd9153d6c4f23f4d85e6c5",
+  "installedAppJarSha256": "473f9b06af5ee6e2fdb95c6d7eb92c1a426f1ffddfa4672091fe79b976c7c058",
+  "artifactSha256": "be9bd3e3440351c9484d7d9fc8d1b16937e2de1c5d8e8d0984dd16dd2a6c7e5f",
+  "session": [
+    "Type=wayland",
+    "Active=yes",
+    "LockedHint=no"
+  ],
+  "meminfo": [
+    "MemTotal:        4020516 kB",
+    "MemFree:         1020868 kB",
+    "MemAvailable:    3156164 kB",
+    "Buffers:           20604 kB",
+    "Cached:          2296572 kB",
+    "SwapCached:        27100 kB",
+    "Active:          1245568 kB",
+    "Inactive:        1378876 kB",
+    "Active(anon):     172708 kB",
+    "Inactive(anon):   156412 kB",
+    "Active(file):    1072860 kB",
+    "Inactive(file):  1222464 kB",
+    "Unevictable:        3460 kB",
+    "Mlocked:              16 kB",
+    "SwapTotal:       4194300 kB",
+    "SwapFree:        3833532 kB",
+    "Zswap:                 0 kB"
+  ],
+  "descriptorAbsentAfterReopenClose": true,
+  "revokedCreateCode": "TASK_AUTHORIZATION_REVOKED",
+  "freshAgent": false,
+  "cacheState": "existing warm dependency caches; new workspace",
+  "tooling": {
+    "java": null,
+    "javac": null,
+    "gradle": null,
+    "git": null,
+    "python3": "/usr/bin/python3"
+  },
+  "humanInteraction": "User confirmed the displayed local task grant; agent operated native desktop and normal closes."
+}

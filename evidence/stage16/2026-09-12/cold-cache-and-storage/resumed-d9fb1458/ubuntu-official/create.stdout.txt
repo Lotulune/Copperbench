@@ -1,0 +1,1 @@
+{"schemaVersion":"1.0","operation":"create_workspace","status":"committed","exitCode":0,"data":{"workspaceFile":"/home/stage15/s16-cold-official2/workspace/stage16_cold.mcreator","generatorId":"fabric-1.21.1","modId":"stage16_cold"},"diagnostics":[]}

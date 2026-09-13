@@ -1,0 +1,198 @@
+Classfile /D:/AICoding/Minecraft_ModCreator/.tmp/stage15-linux/build/stage16-agent-reliability/cold-cache-c0178f6b-20260912/bytecode-comparison/before/AnonymousSwitch.class
+  Last modified 2026��9��12��; size 2389 bytes
+  SHA-256 checksum 9f979ba87a9c181f2affff6c52e04c9c3078125d3193345daa956573a3a78d78
+  Compiled from "WorkspaceDialogs.java"
+class net.mcreator.ui.dialogs.workspace.WorkspaceDialogs$WorkspaceDialogPanel$5 extends net.mcreator.ui.validation.validators.TextFieldValidator
+  minor version: 0
+  major version: 69
+  flags: (0x0020) ACC_SUPER
+  this_class: #8                          // net/mcreator/ui/dialogs/workspace/WorkspaceDialogs$WorkspaceDialogPanel$5
+  super_class: #14                        // net/mcreator/ui/validation/validators/TextFieldValidator
+  interfaces: 0, fields: 1, methods: 2, attributes: 4
+Constant pool:
+   #1 = Methodref          #2.#3          // java/util/Objects.requireNonNull:(Ljava/lang/Object;)Ljava/lang/Object;
+   #2 = Class              #4             // java/util/Objects
+   #3 = NameAndType        #5:#6          // requireNonNull:(Ljava/lang/Object;)Ljava/lang/Object;
+   #4 = Utf8               java/util/Objects
+   #5 = Utf8               requireNonNull
+   #6 = Utf8               (Ljava/lang/Object;)Ljava/lang/Object;
+   #7 = Fieldref           #8.#9          // net/mcreator/ui/dialogs/workspace/WorkspaceDialogs$WorkspaceDialogPanel$5.this$0:Lnet/mcreator/ui/dialogs/workspace/WorkspaceDialogs$WorkspaceDialogPanel;
+   #8 = Class              #10            // net/mcreator/ui/dialogs/workspace/WorkspaceDialogs$WorkspaceDialogPanel$5
+   #9 = NameAndType        #11:#12        // this$0:Lnet/mcreator/ui/dialogs/workspace/WorkspaceDialogs$WorkspaceDialogPanel;
+  #10 = Utf8               net/mcreator/ui/dialogs/workspace/WorkspaceDialogs$WorkspaceDialogPanel$5
+  #11 = Utf8               this$0
+  #12 = Utf8               Lnet/mcreator/ui/dialogs/workspace/WorkspaceDialogs$WorkspaceDialogPanel;
+  #13 = Methodref          #14.#15        // net/mcreator/ui/validation/validators/TextFieldValidator."<init>":(Lnet/mcreator/ui/validation/component/VTextField;Ljava/lang/String;)V
+  #14 = Class              #16            // net/mcreator/ui/validation/validators/TextFieldValidator
+  #15 = NameAndType        #17:#18        // "<init>":(Lnet/mcreator/ui/validation/component/VTextField;Ljava/lang/String;)V
+  #16 = Utf8               net/mcreator/ui/validation/validators/TextFieldValidator
+  #17 = Utf8               <init>
+  #18 = Utf8               (Lnet/mcreator/ui/validation/component/VTextField;Ljava/lang/String;)V
+  #19 = Fieldref           #20.#21        // net/mcreator/ui/dialogs/workspace/WorkspaceDialogs$WorkspaceDialogPanel.version:Lnet/mcreator/ui/validation/component/VTextField;
+  #20 = Class              #22            // net/mcreator/ui/dialogs/workspace/WorkspaceDialogs$WorkspaceDialogPanel
+  #21 = NameAndType        #23:#24        // version:Lnet/mcreator/ui/validation/component/VTextField;
+  #22 = Utf8               net/mcreator/ui/dialogs/workspace/WorkspaceDialogs$WorkspaceDialogPanel
+  #23 = Utf8               version
+  #24 = Utf8               Lnet/mcreator/ui/validation/component/VTextField;
+  #25 = Methodref          #26.#27        // net/mcreator/ui/validation/component/VTextField.getText:()Ljava/lang/String;
+  #26 = Class              #28            // net/mcreator/ui/validation/component/VTextField
+  #27 = NameAndType        #29:#30        // getText:()Ljava/lang/String;
+  #28 = Utf8               net/mcreator/ui/validation/component/VTextField
+  #29 = Utf8               getText
+  #30 = Utf8               ()Ljava/lang/String;
+  #31 = Methodref          #32.#33        // java/lang/module/ModuleDescriptor$Version.parse:(Ljava/lang/String;)Ljava/lang/module/ModuleDescriptor$Version;
+  #32 = Class              #34            // java/lang/module/ModuleDescriptor$Version
+  #33 = NameAndType        #35:#36        // parse:(Ljava/lang/String;)Ljava/lang/module/ModuleDescriptor$Version;
+  #34 = Utf8               java/lang/module/ModuleDescriptor$Version
+  #35 = Utf8               parse
+  #36 = Utf8               (Ljava/lang/String;)Ljava/lang/module/ModuleDescriptor$Version;
+  #37 = Class              #38            // java/lang/Exception
+  #38 = Utf8               java/lang/Exception
+  #39 = Class              #40            // net/mcreator/ui/validation/ValidationResult
+  #40 = Utf8               net/mcreator/ui/validation/ValidationResult
+  #41 = Fieldref           #42.#43        // net/mcreator/ui/validation/ValidationResult$Type.ERROR:Lnet/mcreator/ui/validation/ValidationResult$Type;
+  #42 = Class              #44            // net/mcreator/ui/validation/ValidationResult$Type
+  #43 = NameAndType        #45:#46        // ERROR:Lnet/mcreator/ui/validation/ValidationResult$Type;
+  #44 = Utf8               net/mcreator/ui/validation/ValidationResult$Type
+  #45 = Utf8               ERROR
+  #46 = Utf8               Lnet/mcreator/ui/validation/ValidationResult$Type;
+  #47 = String             #48            // dialog.workspace_settings.version.error2
+  #48 = Utf8               dialog.workspace_settings.version.error2
+  #49 = Class              #50            // java/lang/Object
+  #50 = Utf8               java/lang/Object
+  #51 = Methodref          #37.#52        // java/lang/Exception.getMessage:()Ljava/lang/String;
+  #52 = NameAndType        #53:#30        // getMessage:()Ljava/lang/String;
+  #53 = Utf8               getMessage
+  #54 = Methodref          #55.#56        // net/mcreator/ui/init/L10N.t:(Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/String;
+  #55 = Class              #57            // net/mcreator/ui/init/L10N
+  #56 = NameAndType        #58:#59        // t:(Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/String;
+  #57 = Utf8               net/mcreator/ui/init/L10N
+  #58 = Utf8               t
+  #59 = Utf8               (Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/String;
+  #60 = Methodref          #39.#61        // net/mcreator/ui/validation/ValidationResult."<init>":(Lnet/mcreator/ui/validation/ValidationResult$Type;Ljava/lang/String;)V
+  #61 = NameAndType        #17:#62        // "<init>":(Lnet/mcreator/ui/validation/ValidationResult$Type;Ljava/lang/String;)V
+  #62 = Utf8               (Lnet/mcreator/ui/validation/ValidationResult$Type;Ljava/lang/String;)V
+  #63 = Methodref          #14.#64        // net/mcreator/ui/validation/validators/TextFieldValidator.validate:()Lnet/mcreator/ui/validation/ValidationResult;
+  #64 = NameAndType        #65:#66        // validate:()Lnet/mcreator/ui/validation/ValidationResult;
+  #65 = Utf8               validate
+  #66 = Utf8               ()Lnet/mcreator/ui/validation/ValidationResult;
+  #67 = Utf8               (Lnet/mcreator/ui/dialogs/workspace/WorkspaceDialogs$WorkspaceDialogPanel;Lnet/mcreator/ui/validation/component/VTextField;Ljava/lang/String;)V
+  #68 = Utf8               Code
+  #69 = Utf8               LineNumberTable
+  #70 = Utf8               LocalVariableTable
+  #71 = Utf8               this
+  #72 = Utf8               Lnet/mcreator/ui/dialogs/workspace/WorkspaceDialogs$WorkspaceDialogPanel$5;
+  #73 = Utf8               holder
+  #74 = Utf8               emptyMessage
+  #75 = Utf8               Ljava/lang/String;
+  #76 = Utf8               MethodParameters
+  #77 = Utf8               e
+  #78 = Utf8               Ljava/lang/Exception;
+  #79 = Utf8               StackMapTable
+  #80 = Utf8               SourceFile
+  #81 = Utf8               WorkspaceDialogs.java
+  #82 = Utf8               EnclosingMethod
+  #83 = NameAndType        #17:#84        // "<init>":(Ljava/awt/Window;Lnet/mcreator/workspace/Workspace;)V
+  #84 = Utf8               (Ljava/awt/Window;Lnet/mcreator/workspace/Workspace;)V
+  #85 = Utf8               NestHost
+  #86 = Class              #87            // net/mcreator/ui/dialogs/workspace/WorkspaceDialogs
+  #87 = Utf8               net/mcreator/ui/dialogs/workspace/WorkspaceDialogs
+  #88 = Utf8               InnerClasses
+  #89 = Utf8               WorkspaceDialogPanel
+  #90 = Class              #91            // java/lang/module/ModuleDescriptor
+  #91 = Utf8               java/lang/module/ModuleDescriptor
+  #92 = Utf8               Version
+  #93 = Utf8               Type
+{
+  final net.mcreator.ui.dialogs.workspace.WorkspaceDialogs$WorkspaceDialogPanel this$0;
+    descriptor: Lnet/mcreator/ui/dialogs/workspace/WorkspaceDialogs$WorkspaceDialogPanel;
+    flags: (0x1010) ACC_FINAL, ACC_SYNTHETIC
+
+  net.mcreator.ui.dialogs.workspace.WorkspaceDialogs$WorkspaceDialogPanel$5(net.mcreator.ui.dialogs.workspace.WorkspaceDialogs$WorkspaceDialogPanel, net.mcreator.ui.validation.component.VTextField, java.lang.String);
+    descriptor: (Lnet/mcreator/ui/dialogs/workspace/WorkspaceDialogs$WorkspaceDialogPanel;Lnet/mcreator/ui/validation/component/VTextField;Ljava/lang/String;)V
+    flags: (0x0000)
+    Code:
+      stack=3, locals=4, args_size=4
+         0: aload_0
+         1: aload_1
+         2: dup
+         3: invokestatic  #1                  // Method java/util/Objects.requireNonNull:(Ljava/lang/Object;)Ljava/lang/Object;
+         6: pop
+         7: putfield      #7                  // Field this$0:Lnet/mcreator/ui/dialogs/workspace/WorkspaceDialogs$WorkspaceDialogPanel;
+        10: aload_0
+        11: aload_2
+        12: aload_3
+        13: invokespecial #13                 // Method net/mcreator/ui/validation/validators/TextFieldValidator."<init>":(Lnet/mcreator/ui/validation/component/VTextField;Ljava/lang/String;)V
+        16: return
+      LineNumberTable:
+        line 285: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      17     0  this   Lnet/mcreator/ui/dialogs/workspace/WorkspaceDialogs$WorkspaceDialogPanel$5;
+            0      17     1 this$0   Lnet/mcreator/ui/dialogs/workspace/WorkspaceDialogs$WorkspaceDialogPanel;
+            0      17     2 holder   Lnet/mcreator/ui/validation/component/VTextField;
+            0      17     3 emptyMessage   Ljava/lang/String;
+    MethodParameters:
+      Name                           Flags
+      <no name>                      final mandated
+      <no name>
+      <no name>
+
+  public net.mcreator.ui.validation.ValidationResult validate();
+    descriptor: ()Lnet/mcreator/ui/validation/ValidationResult;
+    flags: (0x0001) ACC_PUBLIC
+    Code:
+      stack=8, locals=2, args_size=1
+         0: aload_0
+         1: getfield      #7                  // Field this$0:Lnet/mcreator/ui/dialogs/workspace/WorkspaceDialogs$WorkspaceDialogPanel;
+         4: getfield      #19                 // Field net/mcreator/ui/dialogs/workspace/WorkspaceDialogs$WorkspaceDialogPanel.version:Lnet/mcreator/ui/validation/component/VTextField;
+         7: invokevirtual #25                 // Method net/mcreator/ui/validation/component/VTextField.getText:()Ljava/lang/String;
+        10: invokestatic  #31                 // Method java/lang/module/ModuleDescriptor$Version.parse:(Ljava/lang/String;)Ljava/lang/module/ModuleDescriptor$Version;
+        13: pop
+        14: goto          45
+        17: astore_1
+        18: new           #39                 // class net/mcreator/ui/validation/ValidationResult
+        21: dup
+        22: getstatic     #41                 // Field net/mcreator/ui/validation/ValidationResult$Type.ERROR:Lnet/mcreator/ui/validation/ValidationResult$Type;
+        25: ldc           #47                 // String dialog.workspace_settings.version.error2
+        27: iconst_1
+        28: anewarray     #49                 // class java/lang/Object
+        31: dup
+        32: iconst_0
+        33: aload_1
+        34: invokevirtual #51                 // Method java/lang/Exception.getMessage:()Ljava/lang/String;
+        37: aastore
+        38: invokestatic  #54                 // Method net/mcreator/ui/init/L10N.t:(Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/String;
+        41: invokespecial #60                 // Method net/mcreator/ui/validation/ValidationResult."<init>":(Lnet/mcreator/ui/validation/ValidationResult$Type;Ljava/lang/String;)V
+        44: areturn
+        45: aload_0
+        46: invokespecial #63                 // Method net/mcreator/ui/validation/validators/TextFieldValidator.validate:()Lnet/mcreator/ui/validation/ValidationResult;
+        49: areturn
+      Exception table:
+         from    to  target type
+             0    14    17   Class java/lang/Exception
+      LineNumberTable:
+        line 288: 0
+        line 292: 14
+        line 289: 17
+        line 290: 18
+        line 291: 34
+        line 290: 44
+        line 294: 45
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+           18      27     1     e   Ljava/lang/Exception;
+            0      50     0  this   Lnet/mcreator/ui/dialogs/workspace/WorkspaceDialogs$WorkspaceDialogPanel$5;
+      StackMapTable: number_of_entries = 2
+        frame_type = 81 /* same_locals_1_stack_item */
+          stack = [ class java/lang/Exception ]
+        frame_type = 27 /* same */
+}
+SourceFile: "WorkspaceDialogs.java"
+EnclosingMethod: #20.#83                // net.mcreator.ui.dialogs.workspace.WorkspaceDialogs$WorkspaceDialogPanel.<init>
+NestHost: class net/mcreator/ui/dialogs/workspace/WorkspaceDialogs
+InnerClasses:
+  static #89= #20 of #86;                 // WorkspaceDialogPanel=class net/mcreator/ui/dialogs/workspace/WorkspaceDialogs$WorkspaceDialogPanel of class net/mcreator/ui/dialogs/workspace/WorkspaceDialogs
+  #8;                                     // class net/mcreator/ui/dialogs/workspace/WorkspaceDialogs$WorkspaceDialogPanel$5
+  public static final #92= #32 of #90;    // Version=class java/lang/module/ModuleDescriptor$Version of class java/lang/module/ModuleDescriptor
+  public static final #93= #42 of #39;    // Type=class net/mcreator/ui/validation/ValidationResult$Type of class net/mcreator/ui/validation/ValidationResult

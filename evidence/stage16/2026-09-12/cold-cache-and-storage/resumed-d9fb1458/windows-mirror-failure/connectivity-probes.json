@@ -1,0 +1,23 @@
+{
+  "recordedAt": "2026-09-12T14:31:43.670592+00:00",
+  "tool": "curl.exe --location --max-time 25; responses discarded, no product cache prefill",
+  "results": [
+    {
+      "url": "https://repo.maven.apache.org/maven2/org/jetbrains/annotations/26.0.2/annotations-26.0.2.pom",
+      "httpStatus": 200,
+      "bytes": 1686
+    },
+    {
+      "url": "https://libraries.minecraft.net/org/jetbrains/annotations/26.0.2/annotations-26.0.2.pom",
+      "httpStatus": 404,
+      "bytes": 215
+    },
+    {
+      "url": "https://bmclapi2.bangbang93.com/maven/org/jetbrains/annotations/26.0.2/annotations-26.0.2.pom",
+      "httpStatus": 200,
+      "bytes": 1686,
+      "effectiveUrl": "https://cmcc.mirrors.ustc.edu.cn/bmclapi/org/jetbrains/annotations/26.0.2/annotations-26.0.2.pom"
+    }
+  ],
+  "limitation": "Later curl probes do not reproduce the Java process route or disprove its recorded connection refusal."
+}

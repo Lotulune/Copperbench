@@ -1,0 +1,2 @@
+Picked up JAVA_TOOL_OPTIONS: -Duser.home=D:\AICoding\testmod2\stage16-cold-c0178f6b\home
+Copperbench is waiting for task approval. Root: D:\AICoding\testmod2\stage16-cold-c0178f6b; capabilities: [create, edit, build, test, run_client]; lifetime: 14400 seconds.

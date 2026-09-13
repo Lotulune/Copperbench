@@ -1,0 +1,2 @@
+[37632:500:0912/171553.736:ERROR:net\base\network_change_notifier_win.cc:189] WSALookupServiceBegin failed with: 10108
+[37632:500:0912/171853.948:ERROR:services\on_device_model\public\cpp\service_client.cc:36] Unexpected on_device_model service disconnect: The device's GPU is not supported.

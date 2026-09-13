@@ -1,0 +1,13 @@
+{
+  "startedAtUtc": "2026-09-12T09:04:49.8971676Z",
+  "completedAtUtc": "2026-09-12T09:07:16.3513438Z",
+  "installerExitCode": 0,
+  "installerSha256": "4e1c70c7c7c99cb6853ece539232c17973bec0e09e2ad24d6af547967592b75d",
+  "sourceCommit": "c0178f6b933825921cc3fb3f8f8ef8aa0874e688",
+  "installedPath": "C:\\Program Files\\Copperbench",
+  "installedJarSha256": "3e68b305f5fe0364c776e08ad6624d49d21dd736f71b8f4ac6ddb623252962cc",
+  "installedExeSha256": "d78ccc105b609adc3eb964f5cca8105fabfeffb93e9795c3622d129b69fc7dab",
+  "recordedSelfJunctionRemovedBeforeUpgrade": true,
+  "userStateFilesUnchanged": 4,
+  "backupMetadata": "host-installed-backup.json"
+}

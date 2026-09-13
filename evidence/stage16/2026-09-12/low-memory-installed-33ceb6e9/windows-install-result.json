@@ -1,0 +1,14 @@
+{
+  "sourceCommit": "33ceb6e9a68aab2b2fcd9153d6c4f23f4d85e6c5",
+  "installerSha256": "717d7de82a30209b15b086daf2af9d351e47f85967f5657001d85559492803e4",
+  "startedAt": "2026-09-12T04:32:08.3398923+00:00",
+  "completedAt": "2026-09-12T04:34:02.6364441+00:00",
+  "installerExitCode": 0,
+  "installDirectory": "C:\\Copperbench-Stage16-33ceb6e9",
+  "oldInstallation": "C:\\Copperbench-Stage15-WindowsRegression\\uninstall.exe",
+  "productExeSha256": "203721a14453bdfe275a635cf56ea48e3ae9b914299dc5bbd6cd49fb3b7cbffd",
+  "applicationJarSha256": "1f049a071cfe709fba9c98ce22defb9bbe6688fc334f421b64ce802315758c01",
+  "PSComputerName": "Copperbench-G7",
+  "RunspaceId": "f1c888c2-7fe4-451e-8b49-82d1ff0c06ca",
+  "PSShowComputerName": true
+}

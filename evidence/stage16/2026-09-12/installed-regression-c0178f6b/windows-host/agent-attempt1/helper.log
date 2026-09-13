@@ -1,0 +1,44 @@
+Minecraft render readiness passed and run_client stayed running for 10 seconds.
+Confirm the Minecraft window is visibly usable, then close Minecraft normally; do not cancel the task.
+Agent loop passed. Close the installed Copperbench workspace window normally now; shutdown verification is waiting.
+{
+  "schemaVersion": "1.0",
+  "status": "passed",
+  "candidateSha256": "4e1c70c7c7c99cb6853ece539232c17973bec0e09e2ad24d6af547967592b75d",
+  "endpoint": "http://127.0.0.1:56308/mcp",
+  "permissionProfile": "workspace",
+  "tokenPersisted": false,
+  "automationAuditCredentialLeak": false,
+  "agentLoop": {
+    "initializeProtocolVersion": "2025-11-25",
+    "workspaceId": "62340421-6f48-4e08-92ee-130b39f9edb4",
+    "initialRevision": 0,
+    "finalRevision": 3,
+    "initialElementCount": 0,
+    "finalElementCount": 3,
+    "planPreviewWouldApply": true,
+    "firstBuildState": "succeeded",
+    "revisionConflictCode": "WORKSPACE_REVISION_CONFLICT",
+    "conflictRetryCommitted": true,
+    "finalBuildState": "succeeded",
+    "runClientLifecycle": {
+      "taskId": "ae22f086-439b-4cdb-b8ed-638b31d293f2",
+      "renderMarkers": [
+        "Backend library: LWJGL version",
+        "Reloading ResourceManager:",
+        "minecraft:textures/atlas/blocks.png-atlas"
+      ],
+      "renderReady": true,
+      "stableBeforeUserCloseSeconds": 10,
+      "terminalStateAfterUserClose": "succeeded"
+    }
+  },
+  "shutdown": {
+    "descriptorRemoved": true,
+    "oldConnectionRejected": true,
+    "oldConnectionFailureCode": "MCP_TRANSPORT_FAILED"
+  },
+  "formalSupportClaim": false
+}
+Reopen installed Copperbench now to verify the old token is rejected by the new session.
+Old token rejected by reopened session. Close installed Copperbench normally again.

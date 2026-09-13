@@ -1,0 +1,104 @@
+{
+  "at": "2026-09-12T16:02:27.474499+00:00",
+  "status": "passed",
+  "sourceCommit": "d9fb1458187110186c04e523d5044250637490bd",
+  "applicationJarSha256": "3d58f235c0609d4c18fd6d9b43680bbfd9c80c168dbccbe9eccc5b951b05ac19",
+  "fullColdCacheComplete": true,
+  "platforms": {
+    "windows-official": {
+      "status": "passed",
+      "createSeconds": 399.712,
+      "firstMcpResponseSeconds": 0.067502,
+      "tasks": [
+        {
+          "kind": "build",
+          "taskId": "e74e3505-b8e3-484e-8ce9-9ed5c53b87e8",
+          "startedAt": "2026-09-12T14:43:37.443778800Z",
+          "completedAt": "2026-09-12T14:44:28.187581900Z",
+          "seconds": 50.744,
+          "firstResponseSeconds": 0.022306
+        },
+        {
+          "kind": "build",
+          "taskId": "7663b0d3-0383-4ca0-9d76-513d45614f2a",
+          "startedAt": "2026-09-12T14:44:28.805077Z",
+          "completedAt": "2026-09-12T14:44:47.589684600Z",
+          "seconds": 18.785,
+          "firstResponseSeconds": 0.037762
+        },
+        {
+          "kind": "run_client",
+          "taskId": "4bd0a2c2-842a-4827-88ab-5ba4fe8ededf",
+          "startedAt": "2026-09-12T14:44:47.766948200Z",
+          "completedAt": "2026-09-12T14:56:19.601224800Z",
+          "seconds": 691.834,
+          "firstResponseSeconds": 0.030227
+        }
+      ],
+      "assetObjects": 3888,
+      "assetBytes": 824678547,
+      "screenshots": 6,
+      "freshAgent": false,
+      "newGameTestCases": 0,
+      "nativeAppExitCodes": [
+        0,
+        0
+      ],
+      "oldTokenStatus": 401
+    },
+    "ubuntu-official": {
+      "status": "passed",
+      "createSeconds": 299.512,
+      "firstMcpResponseSeconds": 0.037471,
+      "tasks": [
+        {
+          "kind": "build",
+          "taskId": "1dc2923d-6c12-4e6a-bd5e-28b55f605113",
+          "startedAt": "2026-09-12T15:40:59.259141569Z",
+          "completedAt": "2026-09-12T15:41:31.241526627Z",
+          "seconds": 31.982,
+          "firstResponseSeconds": 0.015481
+        },
+        {
+          "kind": "build",
+          "taskId": "53de3bab-cc38-4a5f-82d4-6a5d46d50c5a",
+          "startedAt": "2026-09-12T15:41:31.937037967Z",
+          "completedAt": "2026-09-12T15:41:45.758745783Z",
+          "seconds": 13.822,
+          "firstResponseSeconds": 0.007468
+        },
+        {
+          "kind": "run_client",
+          "taskId": "e79e4d7c-9f39-4578-a9e6-543792c83560",
+          "startedAt": "2026-09-12T15:41:46.163600090Z",
+          "completedAt": "2026-09-12T15:53:26.689623875Z",
+          "seconds": 700.526,
+          "firstResponseSeconds": 0.00493
+        }
+      ],
+      "assetObjects": 3888,
+      "assetBytes": 824678547,
+      "screenshots": 6,
+      "freshAgent": false,
+      "newGameTestCases": 0,
+      "nativeAppExitCodes": [
+        0,
+        0
+      ],
+      "oldTokenStatus": 401
+    }
+  },
+  "preservedFailedCreationTrials": [
+    "windows-mirror-failure",
+    "ubuntu-network-failure"
+  ],
+  "resourceSamples": 621,
+  "maxRunningVirtualMachines": 1,
+  "virtualMachineCapGiB": 4,
+  "minimumHostAvailableGiB": 0.479,
+  "finalDiskDFreeGiB": 41.897,
+  "archivedFiles": 243,
+  "newGameTestCases": 0,
+  "newFreshAgentTrials": 0,
+  "publicReleaseAuthorized": false
+}

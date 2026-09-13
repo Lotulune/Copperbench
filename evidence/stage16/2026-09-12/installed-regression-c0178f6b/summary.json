@@ -1,0 +1,84 @@
+{
+  "schemaVersion": "1.0",
+  "sourceCommit": "c0178f6b933825921cc3fb3f8f8ef8aa0874e688",
+  "status": "passed",
+  "scope": "fixed-candidate installed desktop regressions with existing caches",
+  "published": false,
+  "freshAgent": false,
+  "stage16Complete": false,
+  "windowsInstalledClientComplete": true,
+  "ubuntuInstalledClientComplete": true,
+  "completeColdCacheVerified": false,
+  "cases": {
+    "windows-vm": {
+      "result": "agent-attempt1/external-agent-result.json",
+      "status": "passed"
+    },
+    "windows-host": {
+      "result": "agent-attempt1/external-agent-result.json",
+      "status": "passed"
+    },
+    "ubuntu": {
+      "result": "agent-attempt2/external-agent-result.json",
+      "status": "passed"
+    }
+  },
+  "metrics": {
+    "windows-vm": {
+      "bootstrapCreateSeconds": 126.133,
+      "bootstrapFirstJsonSecondsApprox": 125.114,
+      "firstGetWorkspaceRoundTripSeconds": 0.040658,
+      "buildSeconds": [
+        47.143,
+        15.504
+      ],
+      "mcpToolCalls": 301,
+      "credentialTransportAttempts": 1,
+      "productRepairIterationsDuringThisReplay": 0,
+      "cacheState": "existing dependency and asset caches; new workspace",
+      "firstJsonMeasurement": "approximate stdout last-write time; bootstrap emitted one JSON result"
+    },
+    "windows-host": {
+      "bootstrapCreateSeconds": 232.369,
+      "bootstrapFirstJsonSecondsApprox": 232.173,
+      "firstGetWorkspaceRoundTripSeconds": 0.037912,
+      "buildSeconds": [
+        31.07,
+        15.472
+      ],
+      "mcpToolCalls": 550,
+      "credentialTransportAttempts": 1,
+      "productRepairIterationsDuringThisReplay": 0,
+      "cacheState": "existing dependency and asset caches; new workspace",
+      "firstJsonMeasurement": "approximate stdout last-write time; bootstrap emitted one JSON result"
+    },
+    "ubuntu": {
+      "bootstrapCreateSeconds": 30.302,
+      "bootstrapFirstJsonSecondsApprox": 28.982,
+      "firstGetWorkspaceRoundTripSeconds": 0.036991,
+      "buildSeconds": [
+        16.13,
+        10.063
+      ],
+      "mcpToolCalls": 1018,
+      "credentialTransportAttempts": 2,
+      "productRepairIterationsDuringThisReplay": 0,
+      "cacheState": "existing dependency and asset caches; new workspace",
+      "firstJsonMeasurement": "approximate stdout last-write time; bootstrap emitted one JSON result"
+    }
+  },
+  "limits": [
+    "Windows VM proves correct negative OpenGL diagnostics; physical host proves real rendering.",
+    "New default projectile fixtures have two missing-resource health diagnostics; no all-green health claim.",
+    "Ubuntu credential transport attempt 1 ended with empty input after screen locking; no MCP operations ran in that attempt.",
+    "No fresh-Agent cases or new GameTest cases are counted by this maintenance replay.",
+    "Full cold-cache acceptance and Stage16 closure are not claimed."
+  ],
+  "humanInteraction": {
+    "windowsVm": "Agent operated login, task grant, private token copy, native error acknowledgment, and normal closes under user authorization.",
+    "windowsHost": "User explicitly approved backup and upgrade; agent performed the scoped grant and normal desktop interactions.",
+    "ubuntu": "User unlocked the session and confirmed the task grant; agent later restored the authorized session, retried private clipboard transport, and completed normal closes."
+  },
+  "linuxBuild": "Standard tarLinux64 and prepareDebLinux64 outputs built on Windows; Debian archive sealed on Ubuntu with gzip -6 and one compressor thread; all 2681 installed file hashes and modes verified.",
+  "privacy": "Published evidence excludes account backups and full credentials; exact token absence in automation audit was checked while each successful verifier held the token in memory."
+}

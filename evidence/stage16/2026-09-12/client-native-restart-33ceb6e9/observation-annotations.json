@@ -1,0 +1,46 @@
+[
+  {
+    "run": "client-run-6",
+    "events": [
+      12,
+      13
+    ],
+    "correction": "Labels say tally-a, but the restored viewpoint targeted B at (2,-60,2). Native uses changed B from zero to 1 then 2. The successful simultaneous query at event 22 establishes A=3, B=2."
+  },
+  {
+    "run": "client-run-6",
+    "events": [
+      14
+    ],
+    "correction": "Label says third counter increment. A wandering trader displaced the player and the native Use action toggled the token to active instead; the screenshot shows Resonance: active. This is not a third counter increment."
+  },
+  {
+    "run": "client-run-6",
+    "events": [
+      18,
+      19
+    ],
+    "correction": "The initial A=2/B=7 read-only query produced no success feedback. The event-19 label ending in passed is an incorrect intended label, not a passed assertion. Event 22 is the successful A=3/B=2 query. Original event bytes are retained."
+  },
+  {
+    "run": "client-run-6",
+    "events": [
+      50
+    ],
+    "correction": "Initial planting did not succeed because the empty fixture farmland had reverted to dirt. The support was restored with a soil-only command; native planting at event 54 and native breaking at event 55 are the exercised immature-wheat case."
+  },
+  {
+    "run": "client-run-6",
+    "events": [
+      66
+    ],
+    "correction": "Screenshot records the title menu before Quit Game. Window disappearance and successful completion are evidenced separately by normal-exit-observation.json and product.jsonl."
+  },
+  {
+    "run": "client-run-7",
+    "events": [
+      13
+    ],
+    "correction": "Screenshot records the title menu before Quit Game. Window disappearance and successful completion are evidenced separately by normal-exit-observation.json and product.jsonl."
+  }
+]

@@ -1,0 +1,20 @@
+{
+  "recordedAt": "2026-09-12T05:05:03.1467029+00:00",
+  "descriptorRemoved": true,
+  "endpointClosed": true,
+  "desktopProcessExited": true,
+  "forcedTerminationUsed": false,
+  "logTail": [
+    "2026-09-12-13:01:41 [AWT-EventQueue-0/INFO] [Generator fabric-1.21.1] Closing Gradle project connection",
+    "2026-09-12-13:01:41 [AWT-EventQueue-0/INFO] [Workspace File Manager/RESONANCE_TOKEN] Saving the workspace by direct request",
+    "2026-09-12-13:01:41 [AWT-EventQueue-0/DEBUG] [Workspace File Manager/RESONANCE_TOKEN] Workspace stored on the FS",
+    "2026-09-12-13:01:41 [AWT-EventQueue-0/DEBUG] [Workspace user settings] Storing user workspace settings",
+    "2026-09-12-13:01:42 [AWT-EventQueue-0/DEBUG] [Application] Closing any potentially open MCreator windows",
+    "2026-09-12-13:01:42 [AWT-EventQueue-0/DEBUG] [Application] Performing exit tasks",
+    "2026-09-12-13:01:42 [AWT-EventQueue-0/DEBUG] [Application] Stopping AWT thread",
+    "2026-09-12-13:01:43 [AWT-EventQueue-0/DEBUG] [Application] Exiting Copperbench"
+  ],
+  "PSComputerName": "Copperbench-G7",
+  "RunspaceId": "55ea55d6-8cf1-43ae-bd12-03b55a782258",
+  "PSShowComputerName": true
+}

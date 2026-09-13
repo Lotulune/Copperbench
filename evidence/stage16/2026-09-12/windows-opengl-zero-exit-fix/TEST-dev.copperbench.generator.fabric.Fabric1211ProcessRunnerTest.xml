@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="dev.copperbench.generator.fabric.Fabric1211ProcessRunnerTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-09-12T07:59:05.754Z" hostname="RIMURU" time="0.072">
+  <properties/>
+  <testcase name="requiresTheFullServerStabilityWindow()" classname="dev.copperbench.generator.fabric.Fabric1211ProcessRunnerTest" time="0.028"/>
+  <testcase name="recognizesRootAndQualifiedRunServerTasks()" classname="dev.copperbench.generator.fabric.Fabric1211ProcessRunnerTest" time="0.008"/>
+  <testcase name="recognizesVanillaDedicatedServerReadinessLine()" classname="dev.copperbench.generator.fabric.Fabric1211ProcessRunnerTest" time="0.001"/>
+  <testcase name="recognizesRootAndQualifiedRunClientTasks()" classname="dev.copperbench.generator.fabric.Fabric1211ProcessRunnerTest" time="0.001"/>
+  <testcase name="recognizesTheObservedWindowsOpenGlDriverFailure()" classname="dev.copperbench.generator.fabric.Fabric1211ProcessRunnerTest" time="0.003"/>
+  <testcase name="classifiesLinuxGraphicalInitializationFailures()" classname="dev.copperbench.generator.fabric.Fabric1211ProcessRunnerTest" time="0.001"/>
+  <testcase name="recognizesImmediateDedicatedServerFatalLines()" classname="dev.copperbench.generator.fabric.Fabric1211ProcessRunnerTest" time="0.001"/>
+  <testcase name="profilesSelectBundledJdkCompatibleWithTheirGradleRuntime()" classname="dev.copperbench.generator.fabric.Fabric1211ProcessRunnerTest" time="0.005"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

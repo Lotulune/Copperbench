@@ -1,0 +1,10 @@
+{
+  "startedAt": "2026-09-12T09:48:12.180858+00:00",
+  "completedAt": "2026-09-12T09:48:23.464920+00:00",
+  "exitCode": 0,
+  "sourceCommit": "c0178f6b933825921cc3fb3f8f8ef8aa0874e688",
+  "installerSha256": "4308bd319c4382a1e281a4bd90fd5a8574027bc397d382aef9df6bc3e32f0d51",
+  "installedJarSha256": "ba2af8159d04236e127e34f00e3ca8fdb9d429b25663dbd12b0f62c7fb5b2a50",
+  "verifiedPayloadFiles": 2681,
+  "allPayloadHashesAndModesMatched": true
+}

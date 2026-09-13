@@ -1,0 +1,3 @@
+Picked up JAVA_TOOL_OPTIONS: -Duser.home=D:\AICoding\testmod2\s16-cold-official\home
+[16656:37924:0912/223606.241:ERROR:net\base\network_change_notifier_win.cc:189] WSALookupServiceBegin failed with: 10108
+[16656:37924:0912/223906.589:ERROR:services\on_device_model\public\cpp\service_client.cc:36] Unexpected on_device_model service disconnect: The device's GPU is not supported.

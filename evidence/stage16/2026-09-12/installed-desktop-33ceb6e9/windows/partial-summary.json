@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "1.0",
+  "status": "partial",
+  "candidateSha256": "717d7de82a30209b15b086daf2af9d351e47f85967f5657001d85559492803e4",
+  "permissionProfile": "workspace",
+  "tokenPersisted": false,
+  "automationAuditCredentialLeak": null,
+  "credentialEvidence": "Private stdin and token-redacted RPC capture; the exact-token audit comparison was not reached after the client gate failed.",
+  "agentLoop": {
+    "workspaceId": "259c3e5c-ffde-4154-b517-a5c7b35c88c9",
+    "initialRevision": 0,
+    "finalRevision": 3,
+    "initialElementCount": 0,
+    "finalElementCount": 3,
+    "planPreviewWouldApply": true,
+    "firstBuildState": "succeeded",
+    "finalBuildState": "succeeded",
+    "revisionConflictCode": "WORKSPACE_REVISION_CONFLICT",
+    "conflictRetryCommitted": true,
+    "runClientLifecycle": {
+      "taskId": "90a4da0e-17fb-4beb-8249-5d992d059477",
+      "renderReady": false,
+      "productReportedState": "succeeded",
+      "observedNativeError": "GLFW error 65542: WGL: The driver does not appear to support OpenGL",
+      "normalClientExitVerified": false,
+      "zeroExitFalseSuccessReproduced": true
+    }
+  },
+  "shutdown": {
+    "at": "2026-09-12T07:41:41.7295031+00:00",
+    "descriptorRemoved": true,
+    "endpointClosed": true,
+    "desktopProcessExited": true,
+    "forcedTerminationUsed": false,
+    "authenticatedOldTokenRejectionTested": false,
+    "endpoint": "http://127.0.0.1:57923/mcp",
+    "productExit": 0
+  },
+  "capturedClientResponse": "captured-run-client-response.json",
+  "authenticatedOldTokenCheckCompleted": false,
+  "formalSupportClaim": false,
+  "automationAuditExactTokenCheckCompleted": false
+}

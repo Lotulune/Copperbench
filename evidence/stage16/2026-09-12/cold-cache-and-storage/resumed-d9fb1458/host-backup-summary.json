@@ -1,0 +1,13 @@
+{
+  "startedUtc": "2026-09-12T14:08:19.444665Z",
+  "completedUtc": "2026-09-12T14:08:41.5812285Z",
+  "sourceDirectory": "C:\\Program Files\\Copperbench",
+  "backupDirectory": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage16-agent-reliability\\cold-cache-c0178f6b-20260912\\resumed-d9fb1458\\host-c0178f6b-backup\\Copperbench",
+  "verifiedFiles": 3203,
+  "verifiedBytes": 1812578536.0,
+  "allCopiedFileHashesMatched": true,
+  "userStateBackupCreated": true,
+  "userStatePublished": false,
+  "sourceJarSha256": "3e68b305f5fe0364c776e08ad6624d49d21dd736f71b8f4ac6ddb623252962cc",
+  "userStateFilesVerified": 5
+}

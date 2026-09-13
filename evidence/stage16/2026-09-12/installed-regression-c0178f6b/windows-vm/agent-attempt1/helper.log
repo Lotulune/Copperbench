@@ -1,0 +1,41 @@
+Expected native OpenGL failure correctly reported; exit zero did not produce success.
+Agent loop passed. Close the installed Copperbench workspace window normally now; shutdown verification is waiting.
+{
+  "schemaVersion": "1.0",
+  "status": "passed",
+  "candidateSha256": "4e1c70c7c7c99cb6853ece539232c17973bec0e09e2ad24d6af547967592b75d",
+  "endpoint": "http://127.0.0.1:58107/mcp",
+  "permissionProfile": "workspace",
+  "tokenPersisted": false,
+  "automationAuditCredentialLeak": false,
+  "agentLoop": {
+    "initializeProtocolVersion": "2025-11-25",
+    "workspaceId": "8852c29d-5ade-4b3d-a178-ec2f66cf082b",
+    "initialRevision": 0,
+    "finalRevision": 3,
+    "initialElementCount": 0,
+    "finalElementCount": 3,
+    "planPreviewWouldApply": true,
+    "firstBuildState": "succeeded",
+    "revisionConflictCode": "WORKSPACE_REVISION_CONFLICT",
+    "conflictRetryCommitted": true,
+    "finalBuildState": "succeeded",
+    "runClientLifecycle": {
+      "taskId": "c6005aac-f7f8-4a3d-9286-539f9489328c",
+      "renderReady": false,
+      "terminalStateAfterFailure": "failed",
+      "diagnosticCode": "FABRIC_RUN_CLIENT_WINDOWS_OPENGL_INITIALIZATION_FAILED",
+      "processExitCode": 0,
+      "normalClientExitVerified": false,
+      "negativeGraphicsRegressionPassed": true
+    }
+  },
+  "shutdown": {
+    "descriptorRemoved": true,
+    "oldConnectionRejected": true,
+    "oldConnectionFailureCode": "MCP_TRANSPORT_FAILED"
+  },
+  "formalSupportClaim": false
+}
+Reopen installed Copperbench now to verify the old token is rejected by the new session.
+Old token rejected by reopened session. Close installed Copperbench normally again.

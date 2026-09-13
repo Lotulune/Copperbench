@@ -1,0 +1,30 @@
+{
+  "os": {
+    "Caption": "Microsoft Windows 11 专业版",
+    "Version": "10.0.26100",
+    "BuildNumber": "26100",
+    "TotalVisibleMemorySize": 16433904
+  },
+  "graphics": [
+    {
+      "Name": "GameViewer Virtual Display Adapter",
+      "DriverVersion": "15.6.5.199"
+    },
+    {
+      "Name": "MuMu Virtual Display Adapter",
+      "DriverVersion": "20.36.41.498"
+    },
+    {
+      "Name": "Intel(R) Iris(R) Xe Graphics",
+      "DriverVersion": "32.0.101.7026"
+    },
+    {
+      "Name": "NVIDIA GeForce RTX 3060 Laptop GPU",
+      "DriverVersion": "32.0.16.1074"
+    }
+  ],
+  "installedJarSha256": "3e68b305f5fe0364c776e08ad6624d49d21dd736f71b8f4ac6ddb623252962cc",
+  "helperPython": "C:\\Python313\\python.exe",
+  "environmentKind": "physical-windows-host",
+  "verificationJavaOptionOverrides": null
+}

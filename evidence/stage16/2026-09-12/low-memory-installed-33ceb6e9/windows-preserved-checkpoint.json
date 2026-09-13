@@ -1,0 +1,10 @@
+{
+  "VMName": "Copperbench-G7",
+  "Name": "Stage16-Before-LowMemory-20260912",
+  "Id": "93acc9e8-1d2a-4ecc-af2d-8c3168134cf1",
+  "State": "Saved",
+  "SnapshotType": "Standard",
+  "MemoryStartup": 6442450944,
+  "ConfigurationLocation": null,
+  "SnapshotFileLocation": null
+}

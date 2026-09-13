@@ -1,0 +1,39 @@
+{
+  "at": "2026-09-12T16:01:40.4222480Z",
+  "availableBytes": 6353457152,
+  "diskDFreeBytes": 44986949632,
+  "javaProcessCount": 0,
+  "monitorStopped": true,
+  "validationConsoleStopped": true,
+  "virtualMachines": [
+    {
+      "state": "Off",
+      "assignedBytes": 0,
+      "maximumBytes": 4294967296,
+      "name": "Copperbench-G7"
+    },
+    {
+      "state": "Off",
+      "assignedBytes": 0,
+      "maximumBytes": 4294967296,
+      "name": "Copperbench-Stage15-Linux"
+    }
+  ],
+  "preservedCheckpoints": [
+    {
+      "id": "ee62584d-07cd-4447-bc2f-6e557994206d",
+      "vmName": "Copperbench-G7",
+      "name": "Before-G9-GPUP-20260829"
+    },
+    {
+      "id": "93acc9e8-1d2a-4ecc-af2d-8c3168134cf1",
+      "vmName": "Copperbench-G7",
+      "name": "Stage16-Before-LowMemory-20260912"
+    },
+    {
+      "id": "3bc9aff5-956b-44ad-83aa-7a349129a305",
+      "vmName": "Copperbench-Stage15-Linux",
+      "name": "Stage16-Before-LowMemory-20260912"
+    }
+  ]
+}

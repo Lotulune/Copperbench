@@ -1,0 +1,90 @@
+{
+  "schemaVersion": "1.0",
+  "archivedAt": "2026-09-12T07:54:01.519159+00:00",
+  "sourceCommit": "33ceb6e9a68aab2b2fcd9153d6c4f23f4d85e6c5",
+  "verifiedPlatforms": [
+    "ubuntu",
+    "windows"
+  ],
+  "resultFiles": {
+    "ubuntu": "agent-attempt1/external-agent-result.json",
+    "windows": "partial-summary.json"
+  },
+  "platformStatuses": {
+    "ubuntu": "passed",
+    "windows": "partial"
+  },
+  "stage16Complete": false,
+  "windowsInstalledClientComplete": false,
+  "roots": {
+    "ubuntu": "/home/stage15/s16-33ceb6e9",
+    "windows": "C:\\Temp\\S16-33ceb6e9"
+  },
+  "candidates": {
+    "ubuntu": {
+      "installerSha256": "6ae06ca2033d3f40bb4c1401901de36fcaf3cad218ff9243d064968ea48668c0",
+      "appJarSha256": "473f9b06af5ee6e2fdb95c6d7eb92c1a426f1ffddfa4672091fe79b976c7c058"
+    },
+    "windows": {
+      "installerSha256": "717d7de82a30209b15b086daf2af9d351e47f85967f5657001d85559492803e4",
+      "appJarSha256": "1f049a071cfe709fba9c98ce22defb9bbe6688fc334f421b64ce802315758c01"
+    }
+  },
+  "freshAgent": false,
+  "published": false,
+  "cacheState": "existing machine caches; independently created workspaces",
+  "finalState": {
+    "at": "2026-09-12T07:49:54.8126827+00:00",
+    "vms": [
+      {
+        "Name": "Copperbench-G7",
+        "State": "Off",
+        "MemoryAssigned": 0
+      },
+      {
+        "Name": "Copperbench-Stage15-Linux",
+        "State": "Off",
+        "MemoryAssigned": 0
+      }
+    ],
+    "hostAvailableBytes": 4664291328,
+    "profiles": [
+      {
+        "VMName": "Copperbench-G7",
+        "DynamicMemoryEnabled": true,
+        "Startup": 4294967296,
+        "Minimum": 3221225472,
+        "Maximum": 4294967296
+      },
+      {
+        "VMName": "Copperbench-Stage15-Linux",
+        "DynamicMemoryEnabled": true,
+        "Startup": 3221225472,
+        "Minimum": 2147483648,
+        "Maximum": 4294967296
+      }
+    ],
+    "checkpoints": [
+      {
+        "VMName": "Copperbench-G7",
+        "Id": "93acc9e8-1d2a-4ecc-af2d-8c3168134cf1",
+        "State": "Saved",
+        "SnapshotType": "Standard"
+      },
+      {
+        "VMName": "Copperbench-Stage15-Linux",
+        "Id": "3bc9aff5-956b-44ad-83aa-7a349129a305",
+        "State": "Saved",
+        "SnapshotType": "Standard"
+      }
+    ]
+  },
+  "maximumVmGiB": 4,
+  "oneVmAtATime": true,
+  "scope": "both installed grant/create/MCP/build/conflict; Ubuntu client and authenticated teardown passed; Windows client blocked and zero-exit false success reproduced",
+  "limits": [
+    "Does not establish entirely cold dependency cache performance.",
+    "Does not add distinct gameplay cases to Stage16 B.",
+    "The default projectile fixtures have resource diagnostics; this is a transport and lifecycle test."
+  ]
+}

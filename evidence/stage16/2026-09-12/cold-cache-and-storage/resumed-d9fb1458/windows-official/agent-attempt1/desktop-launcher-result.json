@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "1.0",
+  "helperExitCode": 0,
+  "notificationEvents": [
+    {
+      "stage": "minecraft-close-requested",
+      "at": "2026-09-12T14:53:35.146429+00:00"
+    },
+    {
+      "stage": "copperbench-close-requested",
+      "at": "2026-09-12T14:56:19.632803+00:00"
+    },
+    {
+      "stage": "copperbench-reopen-requested",
+      "at": "2026-09-12T14:58:49.220785+00:00"
+    },
+    {
+      "stage": "copperbench-second-close-requested",
+      "at": "2026-09-12T15:01:00.440245+00:00"
+    }
+  ],
+  "workspacePath": "D:\\AICoding\\testmod2\\s16-cold-official\\workspace\\stage16_cold.mcreator",
+  "tokenPersisted": false,
+  "formalSupportClaim": false
+}

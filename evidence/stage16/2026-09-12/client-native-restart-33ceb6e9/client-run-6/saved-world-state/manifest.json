@@ -1,0 +1,22 @@
+[
+  {
+    "path": "level.dat",
+    "bytes": 2589,
+    "sha256": "4cdc0f5332ef673e6360f522cb748232bf6480f91986333a61f629f7b36bfebc"
+  },
+  {
+    "path": "playerdata/8fb12eef-98f0-409b-a3c1-18abf66578f6.dat",
+    "bytes": 999,
+    "sha256": "75b44b69f936cc04b74b65d607ec97f78b8dbaaa5f446eb52274f7e04e002305"
+  },
+  {
+    "path": "data/harvest_ledger_totals.dat",
+    "bytes": 101,
+    "sha256": "6deb8b4dd33d008adc1df31f1340b959839d3a8ad0ef8de371248d337a318eb5"
+  },
+  {
+    "path": "region/r.0.0.mca",
+    "bytes": 3223552,
+    "sha256": "f7d3c85f1bb03e52e76363243d8e4edfc9c267a8c4275a099d483304d74f5cc0"
+  }
+]

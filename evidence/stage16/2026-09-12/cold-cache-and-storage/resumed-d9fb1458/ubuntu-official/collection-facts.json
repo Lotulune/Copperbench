@@ -1,0 +1,22 @@
+{
+  "at": "2026-09-12T15:58:38.264387+00:00",
+  "candidateCommit": "d9fb1458187110186c04e523d5044250637490bd",
+  "installerSha256": "977bf324cf9838539c0a5de655e51b22e2dd9e42e82f3cc78b0fb200c90f108a",
+  "installedAppJarSha256": "3d58f235c0609d4c18fd6d9b43680bbfd9c80c168dbccbe9eccc5b951b05ac19",
+  "artifactSha256": "e4a7a4df3a24fc56129d56f56e501f2c7865ed48a065eb3993db2758893bcbd7",
+  "descriptorAbsentAfterReopenClose": true,
+  "revokedCreateCode": "TASK_AUTHORIZATION_REVOKED",
+  "freshAgent": false,
+  "cacheState": "empty dependency and Minecraft asset caches; isolated low-memory profile",
+  "tooling": {
+    "java": null,
+    "javac": null,
+    "gradle": null,
+    "git": null,
+    "python3": "/usr/bin/python3"
+  },
+  "externalHelperPython": "/usr/bin/python3",
+  "validationKind": "installed-ubuntu-real-graphics-regression",
+  "ubuntuInstalledClientComplete": true,
+  "stage16Complete": false
+}

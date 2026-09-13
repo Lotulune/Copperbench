@@ -1,0 +1,99 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "stage16-low-memory-installed-replay",
+  "recordedAt": "2026-09-12T05:42:03.032097+00:00",
+  "sourceCommit": "33ceb6e9a68aab2b2fcd9153d6c4f23f4d85e6c5",
+  "status": "scoped-checks-passed-stage16-c-incomplete",
+  "stage16Complete": false,
+  "published": false,
+  "freshAgent": false,
+  "additionalFreshAgentCases": 0,
+  "additionalDistinctBehaviorCases": 0,
+  "platforms": {
+    "windows": {
+      "installedCliReplay": "passed",
+      "acceptanceExecuted": 5,
+      "sourceCurrentAtCompletion": true,
+      "sourceUnchanged": true,
+      "artifactSha256": "6d4b918a6de0c30a60fe8a395283f96a8db929f72bf8e3540e5f8f7b81fa9603",
+      "reportSha256": "7512253f375379f528a38ec2c67178b6da1b5fc3ac3069b5d6cbb3d81893014c",
+      "applicationJarSha256": "1f049a071cfe709fba9c98ce22defb9bbe6688fc334f421b64ce802315758c01",
+      "repairedBuildMs": 29043,
+      "gameTestMs": 182983
+    },
+    "ubuntu": {
+      "installedCliReplay": "passed",
+      "acceptanceExecuted": 5,
+      "sourceCurrentAtCompletion": true,
+      "sourceUnchanged": true,
+      "artifactSha256": "e754c6e539f36acd16683e0dca334a97c0fef4eaa45f53ebffb39d98b2cdf52b",
+      "reportSha256": "1487bec9b3732b757ec0810025cf928a2883264a1c586613e8b2c2fb541cc6e5",
+      "applicationJarSha256": "473f9b06af5ee6e2fdb95c6d7eb92c1a426f1ffddfa4672091fe79b976c7c058",
+      "repairedBuildMs": 12972,
+      "gameTestMs": 68623
+    }
+  },
+  "memoryProfiles": [
+    {
+      "VMName": "Copperbench-G7",
+      "DynamicMemoryEnabled": true,
+      "Startup": 4294967296,
+      "Minimum": 3221225472,
+      "Maximum": 4294967296,
+      "Buffer": 5,
+      "Priority": 50
+    },
+    {
+      "VMName": "Copperbench-Stage15-Linux",
+      "DynamicMemoryEnabled": true,
+      "Startup": 3221225472,
+      "Minimum": 2147483648,
+      "Maximum": 4294967296,
+      "Buffer": 5,
+      "Priority": 50
+    }
+  ],
+  "windowsDesktop": {
+    "nativeWorkspaceOpened": true,
+    "bundledJava21Selected": true,
+    "mcpListening": true,
+    "unauthenticatedInitializeHttpStatus": 401,
+    "nativeCloseObserved": true,
+    "descriptorRemoved": true,
+    "endpointClosed": true,
+    "authenticatedMcpLoopExercised": false,
+    "limitation": "The native-source fixture health panel displays two resource diagnostics; this observation is not a zero-diagnostic health signoff."
+  },
+  "ubuntuDesktop": {
+    "status": "not-exercised-authentication-screen",
+    "loginInputAutomated": false,
+    "nativeConsoleEvidence": "ubuntu-desktop-baseline.jpg"
+  },
+  "finalState": {
+    "recordedAt": "2026-09-12T05:35:39.2313663+00:00",
+    "vms": [
+      {
+        "Name": "Copperbench-G7",
+        "State": "Off",
+        "MemoryAssigned": 0
+      },
+      {
+        "Name": "Copperbench-Stage15-Linux",
+        "State": "Off",
+        "MemoryAssigned": 0
+      }
+    ],
+    "hostFreeBytes": 6013890560
+  },
+  "remaining": [
+    "Final-candidate user-issued task authorization and authorized workspace creation on the required installation baselines.",
+    "Authenticated installed Desktop MCP loop and installed Run Client regression within the required platform scope.",
+    "Ubuntu graphical desktop observations after manual login."
+  ],
+  "limits": [
+    "These are existing-cache replays of the same resonance-token requirements, not ten new requirements or fresh-agent cases.",
+    "Wall-clock timings include the constrained VM and existing host workloads; they are not performance baselines.",
+    "The old suspended sessions remain in standard Saved checkpoints; the working VMs were cold-booted with smaller memory limits and shut down normally afterward.",
+    "No product implementation, CI, public release state, commit, or push was changed."
+  ]
+}

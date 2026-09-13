@@ -1,0 +1,470 @@
+{
+  "schemaVersion": "1.0",
+  "recordedAt": "2026-09-12T05:42:03.032915+00:00",
+  "rawFileCount": 66,
+  "files": [
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/windows-installed-repair/01-discovery.jsonl",
+      "path": "windows-installed-repair/01-discovery.jsonl",
+      "bytes": 2161,
+      "sha256": "cb3537f0cee738f1313b9334b8430fc6791498960af3070cb130923a6909c5b5",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/windows-installed-repair/01-discovery.stderr.log",
+      "path": "windows-installed-repair/01-discovery.stderr.log.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/windows-installed-repair/02-no-authorization.jsonl",
+      "path": "windows-installed-repair/02-no-authorization.jsonl",
+      "bytes": 640,
+      "sha256": "21ea57ba1e81e791a9bde4bb6a3a93b4bf268465395a23cd961bebf0b6706235",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/windows-installed-repair/02-no-authorization.stderr.log",
+      "path": "windows-installed-repair/02-no-authorization.stderr.log.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/windows-installed-repair/03-environment.jsonl",
+      "path": "windows-installed-repair/03-environment.jsonl",
+      "bytes": 2230,
+      "sha256": "cf8b0ae2e530a50c8d84fb4bda52d787c22de9095b2085bca7ad59ec301d3e9c",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/windows-installed-repair/03-environment.stderr.log",
+      "path": "windows-installed-repair/03-environment.stderr.log.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/windows-installed-repair/04-compile-failure.jsonl",
+      "path": "windows-installed-repair/04-compile-failure.jsonl",
+      "bytes": 15659,
+      "sha256": "3188aa46af25d9d97dd202027cb9038c69a5797c21c1379f2cb3ccff4be9b84d",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/windows-installed-repair/04-compile-failure.stderr.log",
+      "path": "windows-installed-repair/04-compile-failure.stderr.log.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/windows-installed-repair/05-repaired-build.jsonl",
+      "path": "windows-installed-repair/05-repaired-build.jsonl",
+      "bytes": 10420,
+      "sha256": "dbfee7dab3846906ea2abb5bfa4a607b3cadbf2c916c3448a09c9ac723047fab",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/windows-installed-repair/05-repaired-build.stderr.log",
+      "path": "windows-installed-repair/05-repaired-build.stderr.log.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/windows-installed-repair/06-accepted.jsonl",
+      "path": "windows-installed-repair/06-accepted.jsonl",
+      "bytes": 99242,
+      "sha256": "4d4b0c7b3c49d26fba5087254124345d7fb12e7319a477a06e343007af4222bd",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/windows-installed-repair/06-accepted.stderr.log",
+      "path": "windows-installed-repair/06-accepted.stderr.log.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/windows-installed-repair/gametest.xml",
+      "path": "windows-installed-repair/gametest.xml",
+      "bytes": 783,
+      "sha256": "7512253f375379f528a38ec2c67178b6da1b5fc3ac3069b5d6cbb3d81893014c",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/windows-installed-repair/source-manifest.json",
+      "path": "windows-installed-repair/source-manifest.json",
+      "bytes": 6641,
+      "sha256": "97a88642db0ba7168f1f4888494e88fab59c3d9ce72eb233855b17b11fcbd192",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/windows-installed-repair/summary.json",
+      "path": "windows-installed-repair/summary.json",
+      "bytes": 17694,
+      "sha256": "9799a943d462d3a80ce4a8bf0087dfc299644d556fc2fa76282871a461c653ef",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/windows-installed-repair/tested-mod.jar",
+      "path": "windows-installed-repair/tested-mod.jar",
+      "bytes": 39442,
+      "sha256": "6d4b918a6de0c30a60fe8a395283f96a8db929f72bf8e3540e5f8f7b81fa9603",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/linux-installed-repair/after-replay.json",
+      "path": "linux-installed-repair/after-replay.json",
+      "bytes": 514,
+      "sha256": "09a6a45a21e87aee7cc52e3d7dacbf74368c2dffb4a0a772d88c7e6931f31149",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/linux-installed-repair/baseline.json",
+      "path": "linux-installed-repair/baseline.json",
+      "bytes": 1264,
+      "sha256": "6a349dbcc7b225d6b11b9c26911bafcfedfa65316c28bf56a3277b68264bc7a9",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/linux-installed-repair/install.log",
+      "path": "linux-installed-repair/install.log.txt",
+      "bytes": 1717,
+      "sha256": "0b9810b7bca099a35aaf292aa5b294e7d1d1973cc1cb8c96b668c86d12b9ca7b",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/linux-installed-repair/installation.json",
+      "path": "linux-installed-repair/installation.json",
+      "bytes": 441,
+      "sha256": "8cb88476b371dd4215b2f3f61daa476f9e8af1e250c654fa7cb7810a6241320b",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/linux-installed-repair/repair-evidence/01-discovery.command.json",
+      "path": "linux-installed-repair/repair-evidence/01-discovery.command.json",
+      "bytes": 328,
+      "sha256": "83ea76209281856b1aa5767789afc6ef5f2df5207b786d624377f8f421e4748f",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/linux-installed-repair/repair-evidence/01-discovery.jsonl",
+      "path": "linux-installed-repair/repair-evidence/01-discovery.jsonl",
+      "bytes": 2154,
+      "sha256": "0d8e7ef3efb4983cd2f3e1d80e805004ea98aa25bf9e690e6d9aaae74ff8154d",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/linux-installed-repair/repair-evidence/01-discovery.stderr.log",
+      "path": "linux-installed-repair/repair-evidence/01-discovery.stderr.log.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/linux-installed-repair/repair-evidence/02-no-authorization.command.json",
+      "path": "linux-installed-repair/repair-evidence/02-no-authorization.command.json",
+      "bytes": 609,
+      "sha256": "886462c437885c5efb43ba3f61cbb4e4dccd114edada682f994c6290ccf407d7",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/linux-installed-repair/repair-evidence/02-no-authorization.jsonl",
+      "path": "linux-installed-repair/repair-evidence/02-no-authorization.jsonl",
+      "bytes": 665,
+      "sha256": "b8d7a2404a3cbbc3ba4293df6c9a15d55beef0c9ec8437c3be1d02a5de514c63",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/linux-installed-repair/repair-evidence/02-no-authorization.stderr.log",
+      "path": "linux-installed-repair/repair-evidence/02-no-authorization.stderr.log.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/linux-installed-repair/repair-evidence/03-environment.command.json",
+      "path": "linux-installed-repair/repair-evidence/03-environment.command.json",
+      "bytes": 431,
+      "sha256": "b3cda5cd3ced79d0852ce9e5f6f3a94e1b86941e48e0c8eef90c529e196c226c",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/linux-installed-repair/repair-evidence/03-environment.jsonl",
+      "path": "linux-installed-repair/repair-evidence/03-environment.jsonl",
+      "bytes": 2294,
+      "sha256": "d61b44e866fcb81958c30154b61f92feb91b61ed8fa223fb3508e5858a014af2",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/linux-installed-repair/repair-evidence/03-environment.stderr.log",
+      "path": "linux-installed-repair/repair-evidence/03-environment.stderr.log.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/linux-installed-repair/repair-evidence/04-compile-failure.command.json",
+      "path": "linux-installed-repair/repair-evidence/04-compile-failure.command.json",
+      "bytes": 458,
+      "sha256": "0765794521535ca2b1dd863769130d05f577bab87e9c43380656b1d642c70d60",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/linux-installed-repair/repair-evidence/04-compile-failure.jsonl",
+      "path": "linux-installed-repair/repair-evidence/04-compile-failure.jsonl",
+      "bytes": 14955,
+      "sha256": "452e589542c1c5155259a9f991e07c7e7ff6c7086286780712f5c2a71691b13e",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/linux-installed-repair/repair-evidence/04-compile-failure.stderr.log",
+      "path": "linux-installed-repair/repair-evidence/04-compile-failure.stderr.log.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/linux-installed-repair/repair-evidence/05-repaired-build.command.json",
+      "path": "linux-installed-repair/repair-evidence/05-repaired-build.command.json",
+      "bytes": 456,
+      "sha256": "b378ee04f982d9e3e81be02a2fdaae66258f6a51feb1fe6dd406d21ebfa2f6f9",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/linux-installed-repair/repair-evidence/05-repaired-build.jsonl",
+      "path": "linux-installed-repair/repair-evidence/05-repaired-build.jsonl",
+      "bytes": 9261,
+      "sha256": "732792e1b7ffd5f22265a00ed4f37cd70c3d6b2a9c315372a8e98628f395b8b7",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/linux-installed-repair/repair-evidence/05-repaired-build.stderr.log",
+      "path": "linux-installed-repair/repair-evidence/05-repaired-build.stderr.log.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/linux-installed-repair/repair-evidence/06-accepted.command.json",
+      "path": "linux-installed-repair/repair-evidence/06-accepted.command.json",
+      "bytes": 457,
+      "sha256": "111afd3dc3bdae00bc886bd8b4f315bbf3c38189c2924357c0048cb8e3d57a6c",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/linux-installed-repair/repair-evidence/06-accepted.jsonl",
+      "path": "linux-installed-repair/repair-evidence/06-accepted.jsonl",
+      "bytes": 80152,
+      "sha256": "928f7aac8b87811e0a8b55a866ca68545fb579730b3e3196970b9bb885cf2a5a",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/linux-installed-repair/repair-evidence/06-accepted.stderr.log",
+      "path": "linux-installed-repair/repair-evidence/06-accepted.stderr.log.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/linux-installed-repair/repair-evidence/gametest-results.xml",
+      "path": "linux-installed-repair/repair-evidence/gametest-results.xml",
+      "bytes": 781,
+      "sha256": "1487bec9b3732b757ec0810025cf928a2883264a1c586613e8b2c2fb541cc6e5",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/linux-installed-repair/repair-evidence/input-source-hashes.json",
+      "path": "linux-installed-repair/repair-evidence/input-source-hashes.json",
+      "bytes": 4148,
+      "sha256": "eef4d80d3d6a2ba09a1d73dc029cec7af55fcbc1ffac285bec99ec237d1002b0",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/linux-installed-repair/repair-evidence/source-manifest.json",
+      "path": "linux-installed-repair/repair-evidence/source-manifest.json",
+      "bytes": 6635,
+      "sha256": "6e7a85fe77944d11c6d6e57124d5ec48c8c0724515dd266bf2dcca684e4acaef",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/linux-installed-repair/repair-evidence/summary.json",
+      "path": "linux-installed-repair/repair-evidence/summary.json",
+      "bytes": 27070,
+      "sha256": "8aba920ddd2ae635ffcfbe71159ffcbc73bd8900f4ea808e64c23ae48633a0d4",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/linux-installed-repair/repair-evidence/tested-mod.jar",
+      "path": "linux-installed-repair/repair-evidence/tested-mod.jar",
+      "bytes": 39425,
+      "sha256": "e754c6e539f36acd16683e0dca334a97c0fef4eaa45f53ebffb39d98b2cdf52b",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/linux-installed-repair/repair-evidence/verification.json",
+      "path": "linux-installed-repair/repair-evidence/verification.json",
+      "bytes": 2855,
+      "sha256": "ad4e1748a3a2484970268b89665138b8a35581b9b30fd9e30d21790dffd89316",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/original-vm-memory.json",
+      "path": "original-vm-memory.json",
+      "bytes": 422,
+      "sha256": "5870eb174f4a63d7450148314bf8e391fc675849c6f79af8619d007a0d943ef4",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/reduced-vm-memory.json",
+      "path": "reduced-vm-memory.json",
+      "bytes": 418,
+      "sha256": "1037372e764e156f65fae6a6ce828107bd33a2a659ea456e9d3d25ce0dbcedc8",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/windows-preserved-checkpoint.json",
+      "path": "windows-preserved-checkpoint.json",
+      "bytes": 284,
+      "sha256": "a0c8cc3b5876b05910b1f9c21060ede940e0c8c7c59e9b049d45c8808e51ac53",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/ubuntu-preserved-checkpoint.json",
+      "path": "ubuntu-preserved-checkpoint.json",
+      "bytes": 228,
+      "sha256": "ed56b7ac8b6d06486df9aed73310b703fb11cec292f6598cf6d61f20321ca06b",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/preserved-checkpoints-verified.json",
+      "path": "preserved-checkpoints-verified.json",
+      "bytes": 416,
+      "sha256": "68db9bbe02e291c970d2b4e7c9b3f985e6356088e22b49af424a2b795fc7863c",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/final-memory-state.json",
+      "path": "final-memory-state.json",
+      "bytes": 315,
+      "sha256": "eb1058a1939d4b3b3a388867517cf97df9eb0df7558ca91f1532141fe8a003d4",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/windows-before-install.json",
+      "path": "windows-before-install.json",
+      "bytes": 1104,
+      "sha256": "e2b2541bf5a6caeed744ddc0d1887ad7a8c98509c6cedf01e0f1f8895943a5b1",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/windows-install-result.json",
+      "path": "windows-install-result.json",
+      "bytes": 747,
+      "sha256": "f95d5e7255bdbd573b89e4e0456709034c230abba0e7a2a02e51af7d436105bb",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/windows-build-memory.json",
+      "path": "windows-build-memory.json",
+      "bytes": 209,
+      "sha256": "6e0f1b685a35ce84b58a370f442fd775397b33683696d48df08da36b6cab1d82",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/ubuntu-memory-after-replay.json",
+      "path": "ubuntu-memory-after-replay.json",
+      "bytes": 325,
+      "sha256": "0a65521ddf961a6b65f201b67ddcabbb2fc32d7a48777dcc9a2ea6e179f9e192",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/windows-desktop-startup.json",
+      "path": "windows-desktop-startup.json",
+      "bytes": 3337,
+      "sha256": "da1202f6659756a3d0a4125f8e051be07a54a23c3fdf4a3a1948f4962419762b",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/windows-desktop-close.json",
+      "path": "windows-desktop-close.json",
+      "bytes": 1184,
+      "sha256": "63a8728e82176cf49d6766deac9b408ace8894dcec0249551d98067180b8d397",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/source-transfer.json",
+      "path": "source-transfer.json",
+      "bytes": 282,
+      "sha256": "baf1e5c333e35714a81843696a81b82d8e47f9440e96fdf050ff3d2484de265c",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/resonance-token-source.zip",
+      "path": "resonance-token-source.zip",
+      "bytes": 68573,
+      "sha256": "8ddeb1cdf34bcba6a738ab3b8cbac7750160199356710049e9af700185523051",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/windows-workspace-ready.jpg",
+      "path": "windows-workspace-ready.jpg",
+      "bytes": 108849,
+      "sha256": "11731d3c299cea698c566ff397b8bf4caf2811cb009857629835e0f1ccd395fd",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/ubuntu-desktop-baseline.jpg",
+      "path": "ubuntu-desktop-baseline.jpg",
+      "bytes": 42987,
+      "sha256": "c359ad1d45249fda5a013f903b5de893ee11ccb555519a6e4da7499afe2fa829",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/Invoke-InstalledWindowsRepair.ps1",
+      "path": "Invoke-InstalledWindowsRepair.ps1",
+      "bytes": 8890,
+      "sha256": "a63a654e016b41595bf241bde0fe2e5a4e30dab2fc22bbe60c8c590d5912f971",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/run-linux-memory-replay.sh",
+      "path": "run-linux-memory-replay.sh",
+      "bytes": 3542,
+      "sha256": "8401ab2a93d37212957080b9beb59de4592d70da41581b69b4bfd63e6df070b9",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/low-memory-20260912/Trim-ValidationHostWorkingSets.ps1",
+      "path": "Trim-ValidationHostWorkingSets.ps1",
+      "bytes": 2917,
+      "sha256": "4486fcda4c588f5a6267d0a95ed5ad28bc01d2776108044b3cda3fdb7f976efc",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/verify-installed-repair.py",
+      "path": "verify-installed-repair.py",
+      "bytes": 9756,
+      "sha256": "12c511694d9f3ecd865c3afdb35b6fc33d0b9dd61cbe331823ad72f2b9856e3d",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/candidate-33ceb6e9.json",
+      "path": "windows-candidate.json",
+      "bytes": 1310,
+      "sha256": "6c59f8c2b1e92ff6244b1c09af5d6bd7c054c0d2fa36567a791f8275fb6717fc",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build/stage16-agent-reliability/linux-33ceb6e9-explicit/payload/LINUX-CANDIDATE-METADATA.json",
+      "path": "linux-candidate.json",
+      "bytes": 1762,
+      "sha256": "c16e31fef678e3c6d2b4ca2263fffd96bc55c290987ed530a2ea87a2eb2b125e",
+      "bytesChanged": false
+    }
+  ],
+  "logExtensionPolicy": "Raw .log bytes are copied with a .log.txt suffix to remain visible to git."
+}

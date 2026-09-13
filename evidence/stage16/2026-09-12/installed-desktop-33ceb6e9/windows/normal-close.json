@@ -1,0 +1,10 @@
+﻿{
+    "at":  "2026-09-12T07:41:41.7295031+00:00",
+    "descriptorRemoved":  true,
+    "endpointClosed":  true,
+    "desktopProcessExited":  true,
+    "forcedTerminationUsed":  false,
+    "authenticatedOldTokenRejectionTested":  false,
+    "endpoint":  "http://127.0.0.1:57923/mcp",
+    "productExit":  0
+}

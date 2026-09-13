@@ -1,0 +1,24 @@
+{
+  "at": "2026-09-12T15:25:08.303391+00:00",
+  "workspaceExists": false,
+  "dependencyCacheExists": false,
+  "wrapperCacheExists": false,
+  "minecraftAssetsExist": false,
+  "sourceCacheCopied": false,
+  "firstUseDefaultPreferences": false,
+  "profileReason": "Authorized low-memory profile and supported official repository preference",
+  "javaToolOptionsPurpose": "Only -Duser.home isolates historical Gradle distribution lookup",
+  "profileFiles": [
+    {
+      "path": "home/.copperbench/userpreferences",
+      "bytes": 62,
+      "sha256": "183c36c99c73158c9d28bdb9888f7f7e54610df7e7f8cfd02a66a9613ca07acb"
+    },
+    {
+      "path": "home/.copperbench/gradle/gradle.properties",
+      "bytes": 77,
+      "sha256": "b4a3b5ca72cfb7b1da8b01229bfb92f0ee953705455497e6062a311dc61b88ee"
+    }
+  ],
+  "originalUserDataRetained": true
+}

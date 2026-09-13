@@ -1,0 +1,10 @@
+{
+  "interruptedAttempt": "host-installed-backup/Copperbench",
+  "reason": "Pre-existing self-referential JDK junction caused recursive copies",
+  "linkPath": "C:\\Program Files\\Copperbench\\jdk\\jbr25_win_64",
+  "linkType": "Junction",
+  "target": "C:\\Program Files\\Copperbench\\jdk",
+  "sourceChanged": false,
+  "nextBackupExcludesJunctions": true,
+  "atUtc": "2026-09-12T08:43:46.1574738Z"
+}

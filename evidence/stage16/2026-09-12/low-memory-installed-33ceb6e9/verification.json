@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "1.0",
+  "status": "passed",
+  "scope": "evidence integrity and stated installed CLI/desktop-startup checks",
+  "rawFileCount": 66,
+  "behaviorCasesPerPlatform": {
+    "windows": 5,
+    "ubuntu": 5
+  },
+  "vmMaximumGiB": 4,
+  "bothWorkingVmsOff": true,
+  "originalSavedCheckpointsPreserved": true,
+  "stage16Complete": false,
+  "authenticatedDesktopMcpLoopVerified": false,
+  "ubuntuDesktopVerified": false,
+  "published": false
+}

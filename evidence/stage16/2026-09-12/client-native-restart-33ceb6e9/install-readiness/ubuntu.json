@@ -1,0 +1,12 @@
+{
+  "recordedAt": "2026-09-12T02:51:53.5926467+00:00",
+  "vmName": "Copperbench-Stage15-Linux",
+  "beforeState": "Saved",
+  "memoryRequiredBytes": 4294967296,
+  "availableBytes": 5653790720,
+  "configurationChanged": false,
+  "startAttempted": true,
+  "started": false,
+  "error": "“Copperbench-Stage15-Linux”无法还原。\n\n系统内存不足，无法启动虚拟机 Copperbench-Stage15-Linux。\n\n无法初始化内存: 内存资源不足，无法完成此操作。 (0x8007000E)。\r\n\r\n“Copperbench-Stage15-Linux”无法还原。(虚拟机 ID C6EB9B3C-1E54-4DE9-81B5-FDC599B88959)\n\n系统内存不足，无法启动虚拟机 Copperbench-Stage15-Linux，需要内存大小 5410 MB。(虚拟机 ID C6EB9B3C-1E54-4DE9-81B5-FDC599B88959)\n\n“Copperbench-Stage15-Linux”无法初始化内存: 内存资源不足，无法完成此操作。 (0x8007000E)。(虚拟机 ID C6EB9B3C-1E54-4DE9-81B5-FDC599B88959)",
+  "afterState": "Saved"
+}

@@ -1,0 +1,12 @@
+{
+  "at": "2026-09-12T14:26:59.773500+00:00",
+  "status": "failed",
+  "stage": "cold-workspace-create",
+  "exitCode": 10,
+  "code": "WORKSPACE_GRADLE_SYNC_FAILED",
+  "cause": "Connection refused at cmcc.mirrors.ustc.edu.cn after BMCLAPI redirect while resolving org.jetbrains:annotations:26.0.2",
+  "workspaceRolledBack": true,
+  "authorizationRevoked": true,
+  "fullColdCachePassed": false,
+  "nextTrial": "New empty cache with the supported official-source preference; no cache copy"
+}

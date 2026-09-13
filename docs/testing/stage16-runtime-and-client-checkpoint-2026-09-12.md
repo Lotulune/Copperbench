@@ -1,6 +1,8 @@
 # Stage16：生命周期修复候选与客户端检查点
 
-状态：进行中，尚不满足发布条件。Stage16 A/B 的独立行为证据保留，C/D 尚未全部关闭；没有发布新版安装包。
+历史检查点状态：当时进行中，C/D 尚未全部关闭；没有发布新版安装包。最终阶段结论见 [Stage16 路线图](../roadmap/stage-16-agent-reliability.md)。
+
+本文保留第三次运行的历史检查点。后续第六、七次运行已完成 D 段既定 Windows/Fabric 客户端验收，见[真实客户端交互与完整重启验收](./stage16-client-native-restart-2026-09-12.md)。随后 `c0178f6b` 的[Windows 与 Ubuntu 安装回归](./stage16-installed-regression-2026-09-12.md)及 `d9fb1458` 的[完整冷缓存](./stage16-cold-cache-2026-09-12.md)通过，单台 VM 最高 4 GiB，结束均关机。以下历史未完成状态不覆盖后续结果。
 
 ## 固定候选及回归
 

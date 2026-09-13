@@ -1,0 +1,12 @@
+{
+  "at": "2026-09-12T15:25:08.280389+00:00",
+  "status": "failed",
+  "createExitCode": 10,
+  "code": "WORKSPACE_GRADLE_SYNC_FAILED",
+  "cause": "Fabric Maven repository TLS handshake terminated by remote host",
+  "workspaceRolledBack": true,
+  "grantRevoked": true,
+  "desktopMcpReached": false,
+  "fullColdCachePassed": false,
+  "subsequentProbeProvesOriginalJavaRoute": false
+}

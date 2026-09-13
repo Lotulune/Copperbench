@@ -1,0 +1,19 @@
+{
+  "at": "2026-09-12T14:56:20.730199+00:00",
+  "status": "passed",
+  "indexes": [
+    {
+      "index": "home/.copperbench/gradle/caches/fabric-loom/assets/indexes/1.21.1-17.json",
+      "indexSha256": "7c8ed8932459b80250aa0b2bccf54438345689cfec93c452597a386abdaf75e4",
+      "uniqueObjects": 3888,
+      "expectedBytes": 824678547,
+      "mismatches": [],
+      "objectsPredatingTrial": []
+    }
+  ],
+  "allAssetHashesVerified": true,
+  "initialDependencyCacheEmpty": true,
+  "initialAssetsEmpty": true,
+  "bundledRuntimesPermitted": true,
+  "sameTrialSubsequentStepsReuseCache": true
+}

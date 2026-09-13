@@ -1,0 +1,36 @@
+{
+  "osRelease": "PRETTY_NAME=\"Ubuntu 24.04.4 LTS\"\nNAME=\"Ubuntu\"\nVERSION_ID=\"24.04\"\nVERSION=\"24.04.4 LTS (Noble Numbat)\"\nVERSION_CODENAME=noble\nID=ubuntu\nID_LIKE=debian\nHOME_URL=\"https://www.ubuntu.com/\"\nSUPPORT_URL=\"https://help.ubuntu.com/\"\nBUG_REPORT_URL=\"https://bugs.launchpad.net/ubuntu/\"\nPRIVACY_POLICY_URL=\"https://www.ubuntu.com/legal/terms-and-policies/privacy-policy\"\nUBUNTU_CODENAME=noble\nLOGO=ubuntu-logo\n",
+  "meminfo": [
+    "MemTotal:        4020516 kB",
+    "MemFree:          115740 kB",
+    "MemAvailable:    2961648 kB",
+    "Buffers:           16112 kB",
+    "Cached:          3035628 kB",
+    "SwapCached:            4 kB",
+    "Active:           146352 kB",
+    "Inactive:        3431848 kB",
+    "Active(anon):      76012 kB",
+    "Inactive(anon):   490640 kB",
+    "Active(file):      70340 kB",
+    "Inactive(file):  2941208 kB",
+    "Unevictable:        7060 kB",
+    "Mlocked:               0 kB",
+    "SwapTotal:       4194300 kB",
+    "SwapFree:        4194296 kB",
+    "Zswap:                 0 kB"
+  ],
+  "sessions": [
+    "1 1000 stage15          seat0 tty2 active no -",
+    "8 1001 stage15-operator -     -    active no -"
+  ],
+  "installedJarSha256": "3d58f235c0609d4c18fd6d9b43680bbfd9c80c168dbccbe9eccc5b951b05ac19",
+  "helperPython": "/usr/bin/python3",
+  "environmentKind": "ubuntu-vm",
+  "tooling": {
+    "java": null,
+    "javac": null,
+    "gradle": null,
+    "git": null,
+    "python3": "/usr/bin/python3"
+  }
+}

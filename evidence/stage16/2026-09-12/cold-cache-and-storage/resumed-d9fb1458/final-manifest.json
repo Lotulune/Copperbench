@@ -1,0 +1,1219 @@
+{
+  "files": [
+    {
+      "path": "archive-resumed-cold.py",
+      "bytes": 2172,
+      "sha256": "5baa4ef56e1e9bc88624ddcf82e119437924a675576ed8e9c51e7a15571df512"
+    },
+    {
+      "path": "final-resource-state.json",
+      "bytes": 1004,
+      "sha256": "e0e75c2d349b21433473144a94b17614512b11cf9d9ffe86cbe32770e2abf781"
+    },
+    {
+      "path": "host-backup-summary.json",
+      "bytes": 646,
+      "sha256": "d55623ece2f8c8c8c80d65a7b1837321efca1b5b561e3ded0b788e28d7d18a1f"
+    },
+    {
+      "path": "host-installation.json",
+      "bytes": 521,
+      "sha256": "b96d386e8135b7f9db840a427ee348f3a0e854d1bed82a5e75f202f078b1321a"
+    },
+    {
+      "path": "linux-install-candidate.json",
+      "bytes": 2023,
+      "sha256": "4da6c09ec2a5ad642193e8857789781327f6988cf4095ff9c354022f8769f4d8"
+    },
+    {
+      "path": "memory-after-validation.json",
+      "bytes": 4520,
+      "sha256": "6ec2e18079e374204c3036c3132ed70c043027ac120a8ff4bf6284c88c525b61"
+    },
+    {
+      "path": "memory-before-cold-client-render.json",
+      "bytes": 7278,
+      "sha256": "93f953277aadde81e8eb9ddcad2b890d6f7f0dfff3ed85c9609b8c2a48c17c2f"
+    },
+    {
+      "path": "memory-before-host-upgrade.json",
+      "bytes": 7037,
+      "sha256": "aa07ad9f6b4a3563dcbb57ac9701d60e8f6cc2a1b92b5d595358b03a558eb7c3"
+    },
+    {
+      "path": "memory-before-ubuntu-assets.json",
+      "bytes": 3836,
+      "sha256": "fba70feeb83c64516035c5805103a386a5933b34bfdc1de607fe97e94c59ae80"
+    },
+    {
+      "path": "memory-before-ubuntu-cold.json",
+      "bytes": 4506,
+      "sha256": "535ffa5d754d9f989c0eaba10a57045001822205530fd13713efc9975a0e2f94"
+    },
+    {
+      "path": "memory-before-ubuntu-render.json",
+      "bytes": 3820,
+      "sha256": "229d2c4bab31c953164f43e7c8322415c2faf7ea9b9f00fb7e81db8fc7c070ba"
+    },
+    {
+      "path": "memory-during-ubuntu-cold.json",
+      "bytes": 4276,
+      "sha256": "6142ff32b7543be7446670a0acad1ab72b95b6d228a330d2bdd0459ffaef2446"
+    },
+    {
+      "path": "Monitor-Resources.ps1",
+      "bytes": 924,
+      "sha256": "9ae3042df2f8307bfcee0c880ef0b72fecc5992b634329438a1615d407e40e3c"
+    },
+    {
+      "path": "prepare-ubuntu-cold-retry.py",
+      "bytes": 3633,
+      "sha256": "d6b1a3708a6d0b50eaf563384214f253a89c3bf5c132525d27561dac3a3cbf97"
+    },
+    {
+      "path": "resource-samples.jsonl",
+      "bytes": 218608,
+      "sha256": "5ad6081d39694226d2e7c785cc3fcddd1e7a970619069bcd8e07ec268a1ba218"
+    },
+    {
+      "path": "source-association.json",
+      "bytes": 417,
+      "sha256": "b6e994e31bab24eef05535465da3a5464c8ed78d7510a21e601a2463f6783e36"
+    },
+    {
+      "path": "ubuntu-backup-summary.json",
+      "bytes": 404,
+      "sha256": "ec6529de71b41ef71d4625821d23254cc65dc74755423a170d9ddd10a9fc511c"
+    },
+    {
+      "path": "ubuntu-network-failure/application-logs/mcreator.log",
+      "bytes": 643,
+      "sha256": "bd2352863e7bedb2cb1ed353095b38c59be25d8437246a8bb8cfd8c5efc8cfd4"
+    },
+    {
+      "path": "ubuntu-network-failure/application-logs/mcreator_2026_09_12-1.log",
+      "bytes": 643,
+      "sha256": "57c2c3739c9029a35c94447d7d9be73845df013e3ec554abece14c1e43cc3a95"
+    },
+    {
+      "path": "ubuntu-network-failure/application-logs/mcreator_2026_09_12-2.log",
+      "bytes": 10793,
+      "sha256": "9196c934eb040ba061c2b7ee3927a0bb69e8081d9da4c2b2993a0bc61823b928"
+    },
+    {
+      "path": "ubuntu-network-failure/cache-after-create.json",
+      "bytes": 935490,
+      "sha256": "614153fb2cdfd4e3b26b723f2ea7f6c8c0e7642554e82da3d5ab9322d875e99b"
+    },
+    {
+      "path": "ubuntu-network-failure/cache-after-grant.json",
+      "bytes": 663,
+      "sha256": "7de243247ec05c02db4138b45f7f37ddfc491c49a91d76d48ea633a3193fc1ef"
+    },
+    {
+      "path": "ubuntu-network-failure/cache-before-launch.json",
+      "bytes": 665,
+      "sha256": "64fd0951885e529ed12496cb947122f2a055f20bf3b9a6f258b1599555743911"
+    },
+    {
+      "path": "ubuntu-network-failure/candidate.json",
+      "bytes": 2023,
+      "sha256": "4da6c09ec2a5ad642193e8857789781327f6988cf4095ff9c354022f8769f4d8"
+    },
+    {
+      "path": "ubuntu-network-failure/cold-initial-state.json",
+      "bytes": 835,
+      "sha256": "6f55c1cca246a4c08191dae4f75a4681256a0326fbac30c938d30e999a48466c"
+    },
+    {
+      "path": "ubuntu-network-failure/cold_environment.py",
+      "bytes": 779,
+      "sha256": "fbe285c86cbf984b453bc9fb8d1e56b4f834bbb698a60268ca0753f659d24685"
+    },
+    {
+      "path": "ubuntu-network-failure/collect-cold-linux.py",
+      "bytes": 5853,
+      "sha256": "7903f745c5552d556292db96fe87799cc3ffd928540662a451cf1609b5117164"
+    },
+    {
+      "path": "ubuntu-network-failure/collect-linux-retest.py",
+      "bytes": 5506,
+      "sha256": "1116b962bfa84651395c1975425eecc83b7686f170b2ce9e4eba3d3525a210a7"
+    },
+    {
+      "path": "ubuntu-network-failure/connectivity-probe.json",
+      "bytes": 328,
+      "sha256": "db54a01d89a92b921ca7ff0dbe91b7af1e0c36a2e5e04dcfc8dce27cf63b2733"
+    },
+    {
+      "path": "ubuntu-network-failure/create.launch.json",
+      "bytes": 97,
+      "sha256": "0fe2bbfa3b9191fa3006002ed5af3543f4a3591d1976b35d13e476b23583b5a5"
+    },
+    {
+      "path": "ubuntu-network-failure/create.monitor.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "ubuntu-network-failure/create.monitor.stdout.txt",
+      "bytes": 254,
+      "sha256": "cb7dbc64461229636257c616bef1f583f54a812a45e245f4359f31f397efa964"
+    },
+    {
+      "path": "ubuntu-network-failure/create.process.json",
+      "bytes": 125,
+      "sha256": "818934ac12234c8e68d837d6b272106ca61cddda1d2bc2dbf4b3218661e5c768"
+    },
+    {
+      "path": "ubuntu-network-failure/create.stderr.txt",
+      "bytes": 75,
+      "sha256": "5396aed56d3272b58ce1d8736f85c0c4704b47572d5beb078f2597ebc090e893"
+    },
+    {
+      "path": "ubuntu-network-failure/create.stdout.txt",
+      "bytes": 1837,
+      "sha256": "f790352de4b78d71ce8526b8c3bb1ee14971208c82a9c08e43c134f42dce0485"
+    },
+    {
+      "path": "ubuntu-network-failure/failure-checkpoint.json",
+      "bytes": 381,
+      "sha256": "05ea1d14020da2bed6b08df77fc0385c9b1031a7ad52d7f23d3326025c275c0e"
+    },
+    {
+      "path": "ubuntu-network-failure/gradle-daemon/daemon-3736.out.log",
+      "bytes": 34107,
+      "sha256": "02915ac2423ba7d83c63cfca3e88c8a6a10f84cbacb10284e3a45473aca3cfc5"
+    },
+    {
+      "path": "ubuntu-network-failure/grant.launch.json",
+      "bytes": 96,
+      "sha256": "c2daf38b57bea93a509a621a9a70f502684a920486eb5cf52edb3460443bcb31"
+    },
+    {
+      "path": "ubuntu-network-failure/grant.monitor.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "ubuntu-network-failure/grant.monitor.stdout.txt",
+      "bytes": 243,
+      "sha256": "1c9484631a793f81e0b9d59bf9636287c513a09842efb3c76db32473f66d379d"
+    },
+    {
+      "path": "ubuntu-network-failure/grant.process.json",
+      "bytes": 124,
+      "sha256": "3f2cb423df7ac742c669475d2ff4cf90999729a7db645f4c130692c366660e20"
+    },
+    {
+      "path": "ubuntu-network-failure/grant.stderr.txt",
+      "bytes": 233,
+      "sha256": "d2ea48659425e497036b06d0f85112a90e02af8290fcff13fe35e2b3ae1fb740"
+    },
+    {
+      "path": "ubuntu-network-failure/grant.stdout.txt",
+      "bytes": 463,
+      "sha256": "7ab87618c6586e82a57d1d7fc498725499df2396a9f024b2538284244b5ea9ee"
+    },
+    {
+      "path": "ubuntu-network-failure/initialize-cold-profile.py",
+      "bytes": 1627,
+      "sha256": "07493c9915063b7c52d114d27e4053a21bfadfaf94667b412779cc96be8d4dc8"
+    },
+    {
+      "path": "ubuntu-network-failure/installation.json",
+      "bytes": 442,
+      "sha256": "1af48fbb04805d5585b972eeb49a0e9a39d6f1ade6d76751d28503dbc0343f4c"
+    },
+    {
+      "path": "ubuntu-network-failure/linux-desktop-session.py",
+      "bytes": 3959,
+      "sha256": "5055019bffef8a99836336676258c424f54d02f01baf11b2bb4a8b1e56dc2e88"
+    },
+    {
+      "path": "ubuntu-network-failure/monitor-process.py",
+      "bytes": 1032,
+      "sha256": "015a913b8de45a079939f5b09b8389169009d4d2111a32cb7e17c46d0b95dd60"
+    },
+    {
+      "path": "ubuntu-network-failure/observe-cache.py",
+      "bytes": 1753,
+      "sha256": "842f2f64987b79d7236111a22f482b8a44a9327dfb63d2eb6a7f706d34f34fd2"
+    },
+    {
+      "path": "ubuntu-network-failure/revoke-incomplete.stderr.txt",
+      "bytes": 75,
+      "sha256": "5396aed56d3272b58ce1d8736f85c0c4704b47572d5beb078f2597ebc090e893"
+    },
+    {
+      "path": "ubuntu-network-failure/revoke-incomplete.stdout.txt",
+      "bytes": 514,
+      "sha256": "e185e973eaad39d707c06c56c992b77f95d39f5619d7c8b9573f9d4ff30de4e7"
+    },
+    {
+      "path": "ubuntu-network-failure/runtime-facts.json",
+      "bytes": 1485,
+      "sha256": "71c8da2e1d1e29b3e0e442d2d1a99473bed0926aa4257da7f9def401969f04ae"
+    },
+    {
+      "path": "ubuntu-network-failure/verify-cold-downloads.py",
+      "bytes": 2473,
+      "sha256": "b7c0dad2f2dc63edc2eba98db50d359d93f1ea7e9082cf95b788ffd0874a7f96"
+    },
+    {
+      "path": "ubuntu-official/agent-attempt1/desktop-launcher-result.json",
+      "bytes": 909,
+      "sha256": "aefed8e1668b0c657bb566b0da4f2d579e4605e5700fef5476cd7a3312357f1e"
+    },
+    {
+      "path": "ubuntu-official/agent-attempt1/external-agent-result.json",
+      "bytes": 3382,
+      "sha256": "e562892a3b74d522124f0d219be2eb50b69d6e343a47d0aec1444be4234ae8d0"
+    },
+    {
+      "path": "ubuntu-official/agent-attempt1/helper.log",
+      "bytes": 1984,
+      "sha256": "8dacfb26d118268041a046ab0200f32f09789f978ab8d91ddb417532148b6546"
+    },
+    {
+      "path": "ubuntu-official/agent-attempt1/mcp-tool-events.jsonl",
+      "bytes": 1576098,
+      "sha256": "8c90ffb6cf1d24a91a9125b5cd7cb04234fb15da455e002ec6962e7c84ec09ed"
+    },
+    {
+      "path": "ubuntu-official/app-reopen.launch.json",
+      "bytes": 101,
+      "sha256": "d98e4e2996ea7ba9ca967483e79203cba698c79c450c0ce4abd6d6dea742600d"
+    },
+    {
+      "path": "ubuntu-official/app-reopen.monitor.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "ubuntu-official/app-reopen.monitor.stdout.txt",
+      "bytes": 267,
+      "sha256": "519120fafc8816431e0099a2edf81b32daf0daf41c3ed581f720c47e86bf5b7b"
+    },
+    {
+      "path": "ubuntu-official/app-reopen.process.json",
+      "bytes": 124,
+      "sha256": "d5fdb782df6273aa92f667a1e00acad5bd26da9aef975a64737e10e6c6d3d679"
+    },
+    {
+      "path": "ubuntu-official/app-reopen.stderr.txt",
+      "bytes": 223,
+      "sha256": "3ca246bb6614e2bba21131e7cfc091f3b15b118b8c19ba01b46566d247abf427"
+    },
+    {
+      "path": "ubuntu-official/app-reopen.stdout.txt",
+      "bytes": 17519,
+      "sha256": "054a03e52de861975a79703754abcd020ef22bd545f39d174fb912ad75e25bdc"
+    },
+    {
+      "path": "ubuntu-official/app.launch.json",
+      "bytes": 94,
+      "sha256": "c3d23a386dc6c34a3b6e6c5d27c13a30f5ec8bcc9893015728257653b7dbcc30"
+    },
+    {
+      "path": "ubuntu-official/app.monitor.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "ubuntu-official/app.monitor.stdout.txt",
+      "bytes": 267,
+      "sha256": "519120fafc8816431e0099a2edf81b32daf0daf41c3ed581f720c47e86bf5b7b"
+    },
+    {
+      "path": "ubuntu-official/app.process.json",
+      "bytes": 124,
+      "sha256": "aa5404c004fd5930b1cd164f24d79413939d7d651337dadb6dba07efc7c6a73f"
+    },
+    {
+      "path": "ubuntu-official/app.stderr.txt",
+      "bytes": 1361,
+      "sha256": "1d3e6f5f4c8ce53ab496a3aec3377c8837260612870e24b952ffe724a3e0a212"
+    },
+    {
+      "path": "ubuntu-official/app.stdout.txt",
+      "bytes": 19433,
+      "sha256": "7b8b2c817cd351caace3b69d8d3048e75006cc73d4be0491f07ff259787cabe9"
+    },
+    {
+      "path": "ubuntu-official/application-logs/mcreator.log",
+      "bytes": 7470,
+      "sha256": "d5c778038022263a76b05b562df525a909c92a1abba4016e92ab5fe836a055ca"
+    },
+    {
+      "path": "ubuntu-official/application-logs/mcreator_2026_09_12-1.log",
+      "bytes": 647,
+      "sha256": "6a1f918a30310848c9ad86326d8bea6c50b0c6bd27bf5f56e2f6f9e3ed3d8cc8"
+    },
+    {
+      "path": "ubuntu-official/application-logs/mcreator_2026_09_12-2.log",
+      "bytes": 11527,
+      "sha256": "aff63a662bc9b746d098bf9ea89657fdedd2d5115c701c77068984605ae0c164"
+    },
+    {
+      "path": "ubuntu-official/application-logs/mcreator_2026_09_12-3.log",
+      "bytes": 16201,
+      "sha256": "a3ac9601449f59870754e3597ba476726b8b0109661b06c4816f29705a5d4eea"
+    },
+    {
+      "path": "ubuntu-official/application-logs/mcreator_2026_09_12-4.log",
+      "bytes": 14503,
+      "sha256": "0fc75fd2ad897d18500402a1f4dc149d3bf3dca3ae0664c8b69f420b822871ee"
+    },
+    {
+      "path": "ubuntu-official/application-logs/mcreator_2026_09_12-5.log",
+      "bytes": 647,
+      "sha256": "b6aa46defa49f42abba29c812dc23407709b979dcf71c59246a737f9f69ba9b3"
+    },
+    {
+      "path": "ubuntu-official/automation-audit.jsonl",
+      "bytes": 763036,
+      "sha256": "de7caa853f32e6f09a5464e4a8a44d429c191165b27aa90cbb4df41214493dfd"
+    },
+    {
+      "path": "ubuntu-official/cache-after-app-reopen.json",
+      "bytes": 1834514,
+      "sha256": "fe197136a9c03f230a94208404eb2b0f5a77b96811bc9cade5226cc694a0392e"
+    },
+    {
+      "path": "ubuntu-official/cache-after-app.json",
+      "bytes": 1834507,
+      "sha256": "82836430d1669ae171d050444492edfc6a120d49f369b1cd703e748e5079a828"
+    },
+    {
+      "path": "ubuntu-official/cache-after-create.json",
+      "bytes": 1091141,
+      "sha256": "cdf1bb85b3887c2b1706d7b6b7ba8dc61ab54d2e945c1765914142a6e22a0c0f"
+    },
+    {
+      "path": "ubuntu-official/cache-after-grant.json",
+      "bytes": 663,
+      "sha256": "97f0d1ada66fcca7c225ff23e1d380ee664de853cacdf941d50fdbc42eac44c2"
+    },
+    {
+      "path": "ubuntu-official/cache-after-helper-launcher.json",
+      "bytes": 1834519,
+      "sha256": "2b17e1f7e2663c298a3718b01f9ae9a39939f915c0d96d8e6257211bae56c958"
+    },
+    {
+      "path": "ubuntu-official/cache-before-launch.json",
+      "bytes": 665,
+      "sha256": "ee537558511654298e86b58880f1e4db4f49d9e0f4853f414d8400ff18471f40"
+    },
+    {
+      "path": "ubuntu-official/cache-client-download-progress-1.json",
+      "bytes": 1137217,
+      "sha256": "194818756ec0dd5066cab40e8a79e63b7279d3313c34c5fc9900c16a7e323f67"
+    },
+    {
+      "path": "ubuntu-official/cache-completed.json",
+      "bytes": 1834507,
+      "sha256": "72cdb855dbc48bf2a0485d387168e72ef2d6d866f45f5090e2fd7dd388427983"
+    },
+    {
+      "path": "ubuntu-official/cache-create-progress-1.json",
+      "bytes": 1056594,
+      "sha256": "0af1eb15fd7f527e44926fc31fe8ba92f006f80fbd9a4c65a2427328473a66d1"
+    },
+    {
+      "path": "ubuntu-official/candidate.json",
+      "bytes": 1978,
+      "sha256": "6334b49fdf247a116f75e79ba9877559314d8cad33f94d20e5021657ebe9d7f7"
+    },
+    {
+      "path": "ubuntu-official/cold-download-verification.json",
+      "bytes": 588,
+      "sha256": "a2509d3a6dec44cc960bca658779c10226593de3e94049e5b1f8794cf0c83b86"
+    },
+    {
+      "path": "ubuntu-official/cold-initial-state.json",
+      "bytes": 835,
+      "sha256": "d5d6fa6e4526752fe306f6e7424f94dd28e41c69ac52ba038170532e265c74db"
+    },
+    {
+      "path": "ubuntu-official/cold_environment.py",
+      "bytes": 764,
+      "sha256": "6c17bc2adad5e7a2721674e456b87d24d563019c1053037487b68045e3ed517c"
+    },
+    {
+      "path": "ubuntu-official/collect-cold-linux.py",
+      "bytes": 5761,
+      "sha256": "9276c093bccb27c45a81fb0ad680308126a2400660a9405635ac19e046c07f02"
+    },
+    {
+      "path": "ubuntu-official/collect-linux-retest.py",
+      "bytes": 5420,
+      "sha256": "fc3c6b54bb87656a7defc3b7e20963556b507e89ec2bcee608829e951402a777"
+    },
+    {
+      "path": "ubuntu-official/collection-facts.json",
+      "bytes": 904,
+      "sha256": "2da15b884e3c637975b9be15a0aaf8a3e67886e8a8b1ceaf615c5b03c3847a88"
+    },
+    {
+      "path": "ubuntu-official/create.launch.json",
+      "bytes": 97,
+      "sha256": "f8cc9d7103a970239d033a751bbc7c7e5eca333ca9a2b1955c8d7dca84feccc6"
+    },
+    {
+      "path": "ubuntu-official/create.monitor.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "ubuntu-official/create.monitor.stdout.txt",
+      "bytes": 263,
+      "sha256": "c1f2990ee33c01af0064b783343ff3fdac4c28872ad0b88ae74a275036b1ce82"
+    },
+    {
+      "path": "ubuntu-official/create.process.json",
+      "bytes": 124,
+      "sha256": "d9c65f04d610ef351e24ff0b9573910095c6f61d45a802de77a7895758635d18"
+    },
+    {
+      "path": "ubuntu-official/create.stderr.txt",
+      "bytes": 79,
+      "sha256": "5e76d30417b44d76c1388679e4c0c1920935dd94954fe17272414c4b586e9cdb"
+    },
+    {
+      "path": "ubuntu-official/create.stdout.txt",
+      "bytes": 251,
+      "sha256": "323e645e3de6cf947c570bfd945f1cc6ec2a8b79d6fb40aa3c2df6c790378041"
+    },
+    {
+      "path": "ubuntu-official/final-source-manifest.json",
+      "bytes": 7583,
+      "sha256": "408fc3c684500016f69561f2417e5e67ae406c227c04427cfdddae01bddedcb4"
+    },
+    {
+      "path": "ubuntu-official/final-workspace-source.zip",
+      "bytes": 316422,
+      "sha256": "03339b69eff2900d9a5dccf12ec51208e1b86d8c2f1d2e1a4ae00edf34d8b10e"
+    },
+    {
+      "path": "ubuntu-official/first-use-visibility.json",
+      "bytes": 244,
+      "sha256": "0388b9f251c4b722cc824d1e4dad020d3f5594e657edbd25b0840096f7d5eeb9"
+    },
+    {
+      "path": "ubuntu-official/grant.launch.json",
+      "bytes": 96,
+      "sha256": "da43834bc25fb2efd7871eb86dc145916c24ce75db7b12550c37e7b519e65fb2"
+    },
+    {
+      "path": "ubuntu-official/grant.monitor.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "ubuntu-official/grant.monitor.stdout.txt",
+      "bytes": 243,
+      "sha256": "1c9484631a793f81e0b9d59bf9636287c513a09842efb3c76db32473f66d379d"
+    },
+    {
+      "path": "ubuntu-official/grant.process.json",
+      "bytes": 124,
+      "sha256": "225cc7aa1ea75718046740a3b2acf284672dfcffcc108dae661be87076a44e87"
+    },
+    {
+      "path": "ubuntu-official/grant.stderr.txt",
+      "bytes": 241,
+      "sha256": "f677c5d03f24ed9d75f9f399d424a744761a898d87e01682750ce2631a74c596"
+    },
+    {
+      "path": "ubuntu-official/grant.stdout.txt",
+      "bytes": 467,
+      "sha256": "5b090aa0798d656477598f09daa50cb61ddccf7f3715f10bb46794fccbdd1d51"
+    },
+    {
+      "path": "ubuntu-official/harness/run-installed-agent-desktop.py",
+      "bytes": 4802,
+      "sha256": "d27a8272849680f5bfd1a51efb59b933ebf61ddce762847aad1d49790ed18145"
+    },
+    {
+      "path": "ubuntu-official/harness/sdk/python/copperbench.py",
+      "bytes": 13841,
+      "sha256": "8089ee208ce4f1d2c56036463cc89322ac1043e93cb08451c1d6849d288dd123"
+    },
+    {
+      "path": "ubuntu-official/harness/verify-stage15-linux-installed-agent.py",
+      "bytes": 16169,
+      "sha256": "75f7e40e0248e315b4affb9833085f3d908a362908393aec1a41a1fee7d57ef7"
+    },
+    {
+      "path": "ubuntu-official/harness/verify-stage16-installed-agent.py",
+      "bytes": 7730,
+      "sha256": "c3862e85386c61b54ab7d81672f5b8b750e17aecf55be8440e9218059ff8565f"
+    },
+    {
+      "path": "ubuntu-official/helper-launcher.launch.json",
+      "bytes": 106,
+      "sha256": "92b1f7b612fa52fde604cf43f98200bc1becf26a6a6712a51bfb542f298687a9"
+    },
+    {
+      "path": "ubuntu-official/helper-launcher.monitor.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "ubuntu-official/helper-launcher.monitor.stdout.txt",
+      "bytes": 267,
+      "sha256": "519120fafc8816431e0099a2edf81b32daf0daf41c3ed581f720c47e86bf5b7b"
+    },
+    {
+      "path": "ubuntu-official/helper-launcher.process.json",
+      "bytes": 124,
+      "sha256": "7986684644051170c449eb26adf251ea03251d98683ccc0505a5ba032d70b38d"
+    },
+    {
+      "path": "ubuntu-official/helper-launcher.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "ubuntu-official/helper-launcher.stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "ubuntu-official/initialize-cold-profile.py",
+      "bytes": 1604,
+      "sha256": "6ebaa46e7f83d392f710b2bbc52818e2d65244a8cff5b62ba4b233b559224d5f"
+    },
+    {
+      "path": "ubuntu-official/installation.json",
+      "bytes": 442,
+      "sha256": "1af48fbb04805d5585b972eeb49a0e9a39d6f1ade6d76751d28503dbc0343f4c"
+    },
+    {
+      "path": "ubuntu-official/isolated-gradle.properties",
+      "bytes": 77,
+      "sha256": "b4a3b5ca72cfb7b1da8b01229bfb92f0ee953705455497e6062a311dc61b88ee"
+    },
+    {
+      "path": "ubuntu-official/isolated-userpreferences.json",
+      "bytes": 2212,
+      "sha256": "b4db3fb84d47a086dad165d9074102cc552def57d15f12dbe25ea922c2489d6c"
+    },
+    {
+      "path": "ubuntu-official/linux-desktop-session.py",
+      "bytes": 3890,
+      "sha256": "d2223163816773a9f4a1891519f8373c38578762434bb239405a2e141c6050bf"
+    },
+    {
+      "path": "ubuntu-official/minecraft-latest.log.txt",
+      "bytes": 62763,
+      "sha256": "7d4c2a7530ebacb7955d1c907dd6d79bacdf22dcb1369d91f76d8cbe0bd47549"
+    },
+    {
+      "path": "ubuntu-official/monitor-process.py",
+      "bytes": 1013,
+      "sha256": "5572d570777ee73c258473e10321c05cad6b437edba458757e8f8ef35a2e4af6"
+    },
+    {
+      "path": "ubuntu-official/observe-cache.py",
+      "bytes": 1715,
+      "sha256": "421858dd11fdf8300430d452400770191fbf521a0f79912286bfc39140a515d2"
+    },
+    {
+      "path": "ubuntu-official/retry-provenance.json",
+      "bytes": 301,
+      "sha256": "5312aab731bf0333a9e350ef44f1ecf0f19a78d8bb6521fa8770bec90edb326c"
+    },
+    {
+      "path": "ubuntu-official/revoke.process.json",
+      "bytes": 124,
+      "sha256": "c53eb1d94b0815b88bbc494d631d478b1750b167f90c2b90df172e69ba9a95e1"
+    },
+    {
+      "path": "ubuntu-official/revoke.stderr.txt",
+      "bytes": 79,
+      "sha256": "5e76d30417b44d76c1388679e4c0c1920935dd94954fe17272414c4b586e9cdb"
+    },
+    {
+      "path": "ubuntu-official/revoke.stdout.txt",
+      "bytes": 518,
+      "sha256": "5ea7c3b15bc1751643e4b8a8438356c147dca81fc8fc6deaa35a7b542c788618"
+    },
+    {
+      "path": "ubuntu-official/revoked-create.process.json",
+      "bytes": 124,
+      "sha256": "81718cec61265eb0a5aa18916eb59c7fa60c8ce80fe3a44d904807cbf034d852"
+    },
+    {
+      "path": "ubuntu-official/revoked-create.stderr.txt",
+      "bytes": 79,
+      "sha256": "5e76d30417b44d76c1388679e4c0c1920935dd94954fe17272414c4b586e9cdb"
+    },
+    {
+      "path": "ubuntu-official/revoked-create.stdout.txt",
+      "bytes": 318,
+      "sha256": "49d3819ef514232a194ab2dfdb3731fccce5f6950e866a055f57f0cd54dbc671"
+    },
+    {
+      "path": "ubuntu-official/runtime-facts.json",
+      "bytes": 1485,
+      "sha256": "71c8da2e1d1e29b3e0e442d2d1a99473bed0926aa4257da7f9def401969f04ae"
+    },
+    {
+      "path": "ubuntu-official/screenshots/01-scoped-task-grant.jpg",
+      "bytes": 67926,
+      "sha256": "ab4e324e8ce7f96a0257ec4b7253805c63f8416c90da61f91003a9c6edaca17b"
+    },
+    {
+      "path": "ubuntu-official/screenshots/02-installed-first-use-dialog.jpg",
+      "bytes": 102444,
+      "sha256": "9883eb435760ad782aa370b0c6c9dbb0eb64c1c337ca426afe133aea39f07c28"
+    },
+    {
+      "path": "ubuntu-official/screenshots/03-initial-installed-workspace.jpg",
+      "bytes": 99199,
+      "sha256": "b91d16a6ec153b19d702d90d88308a1921e469fe9d73d0a2f2555d49e1535464"
+    },
+    {
+      "path": "ubuntu-official/screenshots/04-minecraft-cold-main-menu.jpg",
+      "bytes": 135403,
+      "sha256": "ac3244126fbb620863728944b41f0701116c3bb91ff54bed9c8b525406709ad8"
+    },
+    {
+      "path": "ubuntu-official/screenshots/05-workspace-before-normal-close.jpg",
+      "bytes": 97582,
+      "sha256": "6488e0f93746bb2b7fcb79ef7e532ad34f08281c29297a733eb91d00d3b8623f"
+    },
+    {
+      "path": "ubuntu-official/screenshots/06-reopened-workspace-state.jpg",
+      "bytes": 97627,
+      "sha256": "e16f0870252d21892e86d36388ead889204cd56fedc69532a42f07c1c344a559"
+    },
+    {
+      "path": "ubuntu-official/stage16_cold-1.0.jar",
+      "bytes": 48619,
+      "sha256": "e4a7a4df3a24fc56129d56f56e501f2c7865ed48a065eb3993db2758893bcbd7"
+    },
+    {
+      "path": "ubuntu-official/verify-cold-downloads.py",
+      "bytes": 2427,
+      "sha256": "8460088739dc4f0d9035d6d40b6b8bad3fb4abd13874a0ff07d5b8381d385c09"
+    },
+    {
+      "path": "verify-resumed-cold.py",
+      "bytes": 10228,
+      "sha256": "c5c8ffc228e5664dfd3011b382a8a495db934f5efebf972d4a52bcafe3b6736c"
+    },
+    {
+      "path": "windows-install-candidate.json",
+      "bytes": 2078,
+      "sha256": "4cde041adff4d7c6da4d3b6753577b3b9afd265ae199a150a2c14ad6dae52d1b"
+    },
+    {
+      "path": "windows-mirror-failure/application-logs/mcreator.log",
+      "bytes": 679,
+      "sha256": "cda7338336c0ab4420a291ff9396773ae5fbd01f0fed8d00255df652db060ca0"
+    },
+    {
+      "path": "windows-mirror-failure/application-logs/mcreator_2026_09_12-1.log",
+      "bytes": 679,
+      "sha256": "51f884d9bba8637b145e3d8e210b79d3737c46d1e7f2d0f439410a3f52230c75"
+    },
+    {
+      "path": "windows-mirror-failure/application-logs/mcreator_2026_09_12-2.log",
+      "bytes": 12832,
+      "sha256": "abc564fdf1820d34856805a1d9861f2baf97fd10023ba5d44c9c8d4efe645a6c"
+    },
+    {
+      "path": "windows-mirror-failure/cache-after-create.json",
+      "bytes": 736302,
+      "sha256": "8e822a2d831c1048ffcd93adc4144a77ee531d2582c2bbc69aefd59f282de496"
+    },
+    {
+      "path": "windows-mirror-failure/cache-after-grant.json",
+      "bytes": 699,
+      "sha256": "0349fbfb5b7ba988bc149727e0b60d810a9f63dff42b20e476a01fcfe92309e9"
+    },
+    {
+      "path": "windows-mirror-failure/cache-before-launch.json",
+      "bytes": 701,
+      "sha256": "8670ffbc8b52c24ae83ef2b3b34310126a3df67704302f7057dd21941684b3cc"
+    },
+    {
+      "path": "windows-mirror-failure/cache-create-progress-1.json",
+      "bytes": 736307,
+      "sha256": "cea8e9c682b73be2afaf4c6427050f94724fbad0b0d03d708cdef41e7fc122d5"
+    },
+    {
+      "path": "windows-mirror-failure/candidate.json",
+      "bytes": 2078,
+      "sha256": "4cde041adff4d7c6da4d3b6753577b3b9afd265ae199a150a2c14ad6dae52d1b"
+    },
+    {
+      "path": "windows-mirror-failure/cold-initial-state.json",
+      "bytes": 910,
+      "sha256": "8dcf814c3e88ddc2fd0594f9c176faf6f98379eae2db5457726d0ca8d6271110"
+    },
+    {
+      "path": "windows-mirror-failure/cold-trial-checkpoint.json",
+      "bytes": 500,
+      "sha256": "7dfdbc643f52a291af9d36ba3ffd1fa89a2cf857bf366172bb321e02f23991ef"
+    },
+    {
+      "path": "windows-mirror-failure/cold_environment.py",
+      "bytes": 779,
+      "sha256": "fbe285c86cbf984b453bc9fb8d1e56b4f834bbb698a60268ca0753f659d24685"
+    },
+    {
+      "path": "windows-mirror-failure/collect-windows-retest.py",
+      "bytes": 5878,
+      "sha256": "cc85e43fc9cb4a60eb265680407e56152e8ff34ceacfcc20a88b4dcc37698192"
+    },
+    {
+      "path": "windows-mirror-failure/connectivity-probes.json",
+      "bytes": 931,
+      "sha256": "e04f9b4e2147302a091f004a7d0c07805388ad78249b5054a08a417339fb1c91"
+    },
+    {
+      "path": "windows-mirror-failure/create.launch.json",
+      "bytes": 116,
+      "sha256": "bf38454f4250fde15acbdefb439540975f1b2990eb07eea40ab75cd669bc9b5e"
+    },
+    {
+      "path": "windows-mirror-failure/create.process.json",
+      "bytes": 130,
+      "sha256": "209403750f8bbeb892b5c9f3a117d758ae598befbdbfcc92356cba2cca8800fa"
+    },
+    {
+      "path": "windows-mirror-failure/create.stderr.txt",
+      "bytes": 82,
+      "sha256": "4cd860f6b6ec63c138a9de8874fd9633a02f6b9216bacff3c04ac9e2f6f911b2"
+    },
+    {
+      "path": "windows-mirror-failure/create.stdout.txt",
+      "bytes": 1359,
+      "sha256": "5c545539bf29c25dec07e60adb1d48e6b8c6779875b75410c85fc2ebc52310bc"
+    },
+    {
+      "path": "windows-mirror-failure/daemon-36324.out.log",
+      "bytes": 53033,
+      "sha256": "100a74156c2e57f0ff90c77b0ce4070c935efeb0dba52cccc00705a0f44d442b"
+    },
+    {
+      "path": "windows-mirror-failure/desktop-bootstrap-failure.txt",
+      "bytes": 2057,
+      "sha256": "a5c145d57c0434d912cd7bfd021b8cbb283d1fa191dd62c5e400e3484674fe76"
+    },
+    {
+      "path": "windows-mirror-failure/grant.launch.json",
+      "bytes": 115,
+      "sha256": "ef3486cdf8f3a56bcfd0280dd3e0f5a892b11bf52666cd90cc79c8d10e8bbf4f"
+    },
+    {
+      "path": "windows-mirror-failure/grant.process.json",
+      "bytes": 129,
+      "sha256": "c44a207dc12ed7d681a524b47ca757b00ec871b9e2d714750ff63b34a1f0f6bf"
+    },
+    {
+      "path": "windows-mirror-failure/grant.stderr.txt",
+      "bytes": 248,
+      "sha256": "a01e5d89fe232e33e6a6807b7673aac14e9c5934da1bde91b86bf4fffe9d0ede"
+    },
+    {
+      "path": "windows-mirror-failure/grant.stdout.txt",
+      "bytes": 476,
+      "sha256": "ca7b7412c5c7d3b895cb0f43666a29f8372e017ab251df8002ccf1dafc4c55c2"
+    },
+    {
+      "path": "windows-mirror-failure/installation.json",
+      "bytes": 521,
+      "sha256": "b96d386e8135b7f9db840a427ee348f3a0e854d1bed82a5e75f202f078b1321a"
+    },
+    {
+      "path": "windows-mirror-failure/observe-cache.py",
+      "bytes": 1753,
+      "sha256": "842f2f64987b79d7236111a22f482b8a44a9327dfb63d2eb6a7f706d34f34fd2"
+    },
+    {
+      "path": "windows-mirror-failure/revoke-incomplete.stderr.txt",
+      "bytes": 82,
+      "sha256": "4cd860f6b6ec63c138a9de8874fd9633a02f6b9216bacff3c04ac9e2f6f911b2"
+    },
+    {
+      "path": "windows-mirror-failure/revoke-incomplete.stdout.txt",
+      "bytes": 527,
+      "sha256": "3e7703826521a90f31e972c147e980368a6e362cb0ee6865b1a5c09c10f50579"
+    },
+    {
+      "path": "windows-mirror-failure/verify-cold-downloads.py",
+      "bytes": 2473,
+      "sha256": "b7c0dad2f2dc63edc2eba98db50d359d93f1ea7e9082cf95b788ffd0874a7f96"
+    },
+    {
+      "path": "windows-mirror-failure/windows-agent-desktop.pyw",
+      "bytes": 3972,
+      "sha256": "97f58b1a19b7804eada8a4f57cd5f5c4d8f976829eea4038adecb3366ae077b4"
+    },
+    {
+      "path": "windows-mirror-failure/windows-installed-desktop.pyw",
+      "bytes": 3043,
+      "sha256": "46318d4cc26b469fd17ba4eb36b57edcdcf6f11ddbafebbfb4bbd170e85e6b93"
+    },
+    {
+      "path": "windows-mirror-failure/windows-reopen.pyw",
+      "bytes": 1140,
+      "sha256": "098b88ac6429f140a1415b137d5381b60a39f0c6aee577cb8b065118684fdc04"
+    },
+    {
+      "path": "windows-official/agent-attempt1/desktop-launcher-result.json",
+      "bytes": 693,
+      "sha256": "023ee8ed0d8ca286ef8436939ca059bad2bcab1654ce695581c22adc165cbfef"
+    },
+    {
+      "path": "windows-official/agent-attempt1/external-agent-result.json",
+      "bytes": 3072,
+      "sha256": "85fc1075547591a8f2a3122a0d501075160e873d166908b88cca1920bd62d63d"
+    },
+    {
+      "path": "windows-official/agent-attempt1/helper.log",
+      "bytes": 1790,
+      "sha256": "7b65b3360db0f058c9e6e8a1bb93fc0957d0bd0cf54decf05c3c70f352b619a8"
+    },
+    {
+      "path": "windows-official/agent-attempt1/mcp-tool-events.jsonl",
+      "bytes": 1458368,
+      "sha256": "add594d3e70074f3505ba361ccb64fb5359e8d93b28267619833279920b0f66d"
+    },
+    {
+      "path": "windows-official/app-reopen.launch.json",
+      "bytes": 58,
+      "sha256": "9cb28c8c2e42f405370b955a9399b2a88649ff6f3eac0a7ebcdc4295cd73596b"
+    },
+    {
+      "path": "windows-official/app-reopen.process.json",
+      "bytes": 117,
+      "sha256": "b06e09ddfb8c5a267a5add941f445d248aaf6ea9813bab946abefaa2bef64133"
+    },
+    {
+      "path": "windows-official/app-reopen.stderr.txt",
+      "bytes": 207,
+      "sha256": "f8e7f7b684d5730f4d0aefa650aed7629a82e88e6bab7b6a48aef3784f8db00f"
+    },
+    {
+      "path": "windows-official/app-reopen.stdout.txt",
+      "bytes": 17334,
+      "sha256": "961d6721b1208954a69df2df08be6fbf637dd1426adade022e5c9cc9fe762865"
+    },
+    {
+      "path": "windows-official/app.launch.json",
+      "bytes": 113,
+      "sha256": "20e5035a93525c5111cc8e75278e8619660501e2a2f07df7f207da5e80518311"
+    },
+    {
+      "path": "windows-official/app.process.json",
+      "bytes": 129,
+      "sha256": "aaf8001cfc755ea61f71b01049992f2ccdb8683f36a5b113f75422dc72183a38"
+    },
+    {
+      "path": "windows-official/app.stderr.txt",
+      "bytes": 383,
+      "sha256": "0ef6558e8808a03d604b2abf6623d69eefeecc49554c23ced71b09aedef0f553"
+    },
+    {
+      "path": "windows-official/app.stdout.txt",
+      "bytes": 20690,
+      "sha256": "fb84f78cac20f932ab6507b53c196e576c45dd36b58a5402839000d16fd475a0"
+    },
+    {
+      "path": "windows-official/application-logs/mcreator.log",
+      "bytes": 7762,
+      "sha256": "64ffef89e8470ac69d5f19921219980358c74308e097226a5f0775ee07d5016c"
+    },
+    {
+      "path": "windows-official/application-logs/mcreator_2026_09_12-1.log",
+      "bytes": 682,
+      "sha256": "37c298414e4e69e248a5a274e3ab69378737cee4d738d3e7640854468e2f62ad"
+    },
+    {
+      "path": "windows-official/application-logs/mcreator_2026_09_12-2.log",
+      "bytes": 13917,
+      "sha256": "715eaca9ec68daaff067750c3b185662937437fe6d99385fd527f314d507f380"
+    },
+    {
+      "path": "windows-official/application-logs/mcreator_2026_09_12-3.log",
+      "bytes": 20649,
+      "sha256": "443de258f62011e2ce9f7342b86e0576b3e38dc7134798ac123077f61522ed83"
+    },
+    {
+      "path": "windows-official/application-logs/mcreator_2026_09_12-4.log",
+      "bytes": 17293,
+      "sha256": "16bb5c4c3fd740f9e880be26299966b5fa9702eca0794b987113a7bd746ac6d1"
+    },
+    {
+      "path": "windows-official/application-logs/mcreator_2026_09_12-5.log",
+      "bytes": 682,
+      "sha256": "d964159fbe22d39be97daf9c99de4fda7c073cfe538b421ea9d8d94ce05ee346"
+    },
+    {
+      "path": "windows-official/automation-audit.jsonl",
+      "bytes": 767276,
+      "sha256": "d26938169cd6a68212803c532556860e49b9444dab6fe36aa720ed57aa2028af"
+    },
+    {
+      "path": "windows-official/cache-after-app.json",
+      "bytes": 1558172,
+      "sha256": "7203758f89d0db84cddf9f1d96894742611a28ad269483bb7c4c3397284f15dd"
+    },
+    {
+      "path": "windows-official/cache-after-create.json",
+      "bytes": 796509,
+      "sha256": "30f79937b7160234e356ccb194bee5b992415e9817a99639bb14bee30bd5c5c0"
+    },
+    {
+      "path": "windows-official/cache-after-grant.json",
+      "bytes": 699,
+      "sha256": "0ed90790920d01e48919a8a697d8a06d25b4b0206235504b42224af171ac8f53"
+    },
+    {
+      "path": "windows-official/cache-before-launch.json",
+      "bytes": 701,
+      "sha256": "50006d24b661896b57f3977e75edc2046bef109814e5e5a2158f1644caf22738"
+    },
+    {
+      "path": "windows-official/cache-client-download-progress-1.json",
+      "bytes": 1519282,
+      "sha256": "81920dbb329da3e1fc49e391a37ad5067e217afd0c9b617833d19265e8d18b94"
+    },
+    {
+      "path": "windows-official/cache-completed.json",
+      "bytes": 1558172,
+      "sha256": "517c119987adc4f84266d961ff0cdbca7d22bcd028deb7f1740e64464c1f1e59"
+    },
+    {
+      "path": "windows-official/candidate.json",
+      "bytes": 2183,
+      "sha256": "e6e650ceb7b484c839a10c1f7a9a15eb18ed7c7799f7503bba208185773b4484"
+    },
+    {
+      "path": "windows-official/cold-download-verification.json",
+      "bytes": 607,
+      "sha256": "711d25af014aefa29811dff81f970c92402033d036e56799fbef2a619a9aeb31"
+    },
+    {
+      "path": "windows-official/cold-initial-state.json",
+      "bytes": 969,
+      "sha256": "b26237c6a98d46de40d17ed55f9650735c14eb2a0368854b73c187f5678226fa"
+    },
+    {
+      "path": "windows-official/cold_environment.py",
+      "bytes": 779,
+      "sha256": "fbe285c86cbf984b453bc9fb8d1e56b4f834bbb698a60268ca0753f659d24685"
+    },
+    {
+      "path": "windows-official/collect-windows-retest.py",
+      "bytes": 5878,
+      "sha256": "cc85e43fc9cb4a60eb265680407e56152e8ff34ceacfcc20a88b4dcc37698192"
+    },
+    {
+      "path": "windows-official/collection-facts.json",
+      "bytes": 1041,
+      "sha256": "871d9b24140d615961b85946ae1ff707af275a8042911b72fffaa60976262c5c"
+    },
+    {
+      "path": "windows-official/create.launch.json",
+      "bytes": 116,
+      "sha256": "cf1b4d6aa42e5db213c2c1f1e65dfc4db097f043c102beaa9235f4b1b8c91e63"
+    },
+    {
+      "path": "windows-official/create.process.json",
+      "bytes": 129,
+      "sha256": "700fa74fb0b75243fbfee43a5896541c52d54a154c7c2996b203d6ffb0a69151"
+    },
+    {
+      "path": "windows-official/create.stderr.txt",
+      "bytes": 85,
+      "sha256": "7204add2701fe9318d1092e4647a23e65e024d218d98ba36dbc01624d9f80919"
+    },
+    {
+      "path": "windows-official/create.stdout.txt",
+      "bytes": 263,
+      "sha256": "3584f22c49412182bf99a52be5bc7fe9c19b6122a337f11f664c48234dd2c484"
+    },
+    {
+      "path": "windows-official/final-source-manifest.json",
+      "bytes": 7799,
+      "sha256": "af52ccc119cb945eecc4d6eced72a522378944aaf02eca523929bca4ee286a45"
+    },
+    {
+      "path": "windows-official/final-workspace-source.zip",
+      "bytes": 316476,
+      "sha256": "7e8797afd69a0a7e051ac2e3f4214f3ec23bebbe21e26c874cda7c950bbd178b"
+    },
+    {
+      "path": "windows-official/first-use-visibility.json",
+      "bytes": 248,
+      "sha256": "de472f4bbf45c2335b1d57ed868e008b85b9fa81f889d041ff0a9f58c1cceff1"
+    },
+    {
+      "path": "windows-official/grant.launch.json",
+      "bytes": 115,
+      "sha256": "948d74e3862ab03f6346e8ba429fb354c483d8fcd505adab944d409c0fc4e761"
+    },
+    {
+      "path": "windows-official/grant.process.json",
+      "bytes": 129,
+      "sha256": "0419886bed83f45bcee5e23effee50281c6bc1dad1800c0d57e73eb70685abcd"
+    },
+    {
+      "path": "windows-official/grant.stderr.txt",
+      "bytes": 254,
+      "sha256": "ff9a4e338a17eafd93d76cc2ad839ae6cfcee76021ddc12841e0bf12c08115f6"
+    },
+    {
+      "path": "windows-official/grant.stdout.txt",
+      "bytes": 473,
+      "sha256": "2a8dd24aa06b312b5ad83f2bce61ea97810c78f13133725877e61f4722d436cf"
+    },
+    {
+      "path": "windows-official/harness/sdk/python/copperbench.py",
+      "bytes": 13568,
+      "sha256": "7e990eca807e6dcaf507d8cadc016c71dd0b0beefc11c361419c99a97555fa04"
+    },
+    {
+      "path": "windows-official/harness/verify-stage15-linux-installed-agent.py",
+      "bytes": 16169,
+      "sha256": "75f7e40e0248e315b4affb9833085f3d908a362908393aec1a41a1fee7d57ef7"
+    },
+    {
+      "path": "windows-official/harness/verify-stage16-installed-agent.py",
+      "bytes": 7741,
+      "sha256": "f081adde1178e93db39dcaedeb5e82933223b8cf4d33ce97d7efe110d5916d75"
+    },
+    {
+      "path": "windows-official/host-os.json",
+      "bytes": 139,
+      "sha256": "05dce349bdf46e09cdef5e6055db917a3daaa172204ed1022631762394777d3f"
+    },
+    {
+      "path": "windows-official/installation.json",
+      "bytes": 521,
+      "sha256": "b96d386e8135b7f9db840a427ee348f3a0e854d1bed82a5e75f202f078b1321a"
+    },
+    {
+      "path": "windows-official/isolated-gradle.properties",
+      "bytes": 80,
+      "sha256": "412607d5c6a038fa516767066cc2a6642299c31a08496c65d646c3f11bda0a9a"
+    },
+    {
+      "path": "windows-official/isolated-userpreferences.json",
+      "bytes": 2213,
+      "sha256": "62afe4de00838f76ce50c0c109f986f2ae8cee53d3781677fc02fe45a428483b"
+    },
+    {
+      "path": "windows-official/mcp-helper-launch.json",
+      "bytes": 69,
+      "sha256": "12c929fd9fa89603cb60bd0fb447716cc06a6c0f46e4cf46bbdd9c5aa62a62cf"
+    },
+    {
+      "path": "windows-official/minecraft-latest.log.txt",
+      "bytes": 8213,
+      "sha256": "a76ced122e3aecb82d28fb35d3af70cae0d8fc2826a5c60dac8d96de5de3b9c5"
+    },
+    {
+      "path": "windows-official/observe-cache.py",
+      "bytes": 1753,
+      "sha256": "842f2f64987b79d7236111a22f482b8a44a9327dfb63d2eb6a7f706d34f34fd2"
+    },
+    {
+      "path": "windows-official/reopen-helper-launch.json",
+      "bytes": 70,
+      "sha256": "e882f1895e247d709728a08f9261f4f14e30bf54f2b6fcfff1d915abddaf5cdc"
+    },
+    {
+      "path": "windows-official/revoke.process.json",
+      "bytes": 129,
+      "sha256": "ee4b84a70426020253206e1eab01f5687b5eff8fa89f435f98f8108d80cbd7c5"
+    },
+    {
+      "path": "windows-official/revoke.stderr.txt",
+      "bytes": 86,
+      "sha256": "2ec480565e9d34f8cbbd7193cd72842af4e0b7cdb0ea49529f0f532e7305f814"
+    },
+    {
+      "path": "windows-official/revoke.stdout.txt",
+      "bytes": 524,
+      "sha256": "b1c5bcb6c68d33bac397621575e114e1296b30259e96223e135cd23cd2269359"
+    },
+    {
+      "path": "windows-official/revoked-create.process.json",
+      "bytes": 129,
+      "sha256": "cb67c32633eba922d4acd46c5004451b7c9ee9a6db276fe847e142dabf906a03"
+    },
+    {
+      "path": "windows-official/revoked-create.stderr.txt",
+      "bytes": 86,
+      "sha256": "2ec480565e9d34f8cbbd7193cd72842af4e0b7cdb0ea49529f0f532e7305f814"
+    },
+    {
+      "path": "windows-official/revoked-create.stdout.txt",
+      "bytes": 319,
+      "sha256": "1f504e24d4ca35ec793d3ede81ead8efb3b79f1f928686097e9fb6e9db74b17e"
+    },
+    {
+      "path": "windows-official/screenshots/01-scoped-task-grant.jpg",
+      "bytes": 18688,
+      "sha256": "233ab2464e786d913a297a131bd1c7220fc82640797d70a0da02ec64dda9a3c2"
+    },
+    {
+      "path": "windows-official/screenshots/02-installed-first-use-dialog.jpg",
+      "bytes": 52889,
+      "sha256": "807ebbc7a8b44959dbda7ae7956a11bc2b27e8604d1ccb0f9b5442d8620e54b0"
+    },
+    {
+      "path": "windows-official/screenshots/03-initial-installed-workspace.jpg",
+      "bytes": 98608,
+      "sha256": "9ad6f8d544531fb38fd752ef216f9378078a0f65cdcc2cc8a57453a24e13a804"
+    },
+    {
+      "path": "windows-official/screenshots/04-minecraft-cold-main-menu.jpg",
+      "bytes": 60026,
+      "sha256": "e0a7df61d9314f06af433297d144b8d1bace700e8b67d33357388435cc84b7c9"
+    },
+    {
+      "path": "windows-official/screenshots/05-workspace-before-normal-close.jpg",
+      "bytes": 135151,
+      "sha256": "2323d2b7ae8faf871a89749d271b41ec6968476ee3736f5d970cf15de24c65c7"
+    },
+    {
+      "path": "windows-official/screenshots/06-reopened-workspace-state.jpg",
+      "bytes": 113860,
+      "sha256": "931b00f49674ba6277942f515dec9c230d02fe495ecf2a18c623b49e95789cc6"
+    },
+    {
+      "path": "windows-official/stage16_cold-1.0.jar",
+      "bytes": 48608,
+      "sha256": "a78d54f0b9eb0b717085dd79b7f80028222a7536fac375336d5d5a877c3e4ca1"
+    },
+    {
+      "path": "windows-official/verify-cold-downloads.py",
+      "bytes": 2473,
+      "sha256": "b7c0dad2f2dc63edc2eba98db50d359d93f1ea7e9082cf95b788ffd0874a7f96"
+    },
+    {
+      "path": "windows-official/windows-agent-desktop.pyw",
+      "bytes": 3972,
+      "sha256": "97f58b1a19b7804eada8a4f57cd5f5c4d8f976829eea4038adecb3366ae077b4"
+    },
+    {
+      "path": "windows-official/windows-installed-desktop.pyw",
+      "bytes": 3043,
+      "sha256": "46318d4cc26b469fd17ba4eb36b57edcdcf6f11ddbafebbfb4bbd170e85e6b93"
+    },
+    {
+      "path": "windows-official/windows-reopen.pyw",
+      "bytes": 1140,
+      "sha256": "098b88ac6429f140a1415b137d5381b60a39f0c6aee577cb8b065118684fdc04"
+    }
+  ]
+}

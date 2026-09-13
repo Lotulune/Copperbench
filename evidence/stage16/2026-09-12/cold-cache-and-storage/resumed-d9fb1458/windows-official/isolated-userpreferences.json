@@ -1,0 +1,87 @@
+{
+  "core": {
+    "gradle": {
+      "buildOnSave": false,
+      "passLangToMinecraft": true,
+      "enablePerformanceMonitor": true,
+      "Xmx": 1024,
+      "offline": false,
+      "useChinaMirrors": false
+    },
+    "blockly": {
+      "useGPUAcceleration": true,
+      "translucentBackground": false,
+      "blockRenderer": "Thrasos",
+      "colorSaturation": 45,
+      "colorValue": 65,
+      "useSmartSort": true,
+      "expandCategories": "Default",
+      "enableComments": true,
+      "enableCollapse": true,
+      "enableTrashcan": true,
+      "maxTrashContents": 32,
+      "maxScale": 100,
+      "minScale": 40,
+      "startScale": 95,
+      "scaleSpeed": 105
+    },
+    "ui": {
+      "language": "en_US",
+      "interfaceAccentColor": {
+        "value": -7092917,
+        "falpha": 0.0
+      },
+      "backgroundSource": "All",
+      "useMacOSMenuBar": true,
+      "nativeFileChooser": true,
+      "expandSectionsByDefault": false,
+      "autoReloadTabs": true,
+      "remindOfUnsavedChanges": false
+    },
+    "bedrock": {
+      "silentReload": false
+    },
+    "hidden": {
+      "fullScreen": false,
+      "uiTheme": "default_dark",
+      "enableJavaPlugins": false,
+      "lastWebsiteNewsRead": "",
+      "chinaMirrorsPrompted": true
+    },
+    "imageEditor": {
+      "storeMetadata": true
+    },
+    "ide": {
+      "editorTheme": "MCreator",
+      "fontSize": 12,
+      "useLigatures": false,
+      "autocomplete": true,
+      "autocompleteMode": "Smart",
+      "autocompleteDocWindow": true,
+      "lineNumbers": true,
+      "errorInfoEnable": true
+    },
+    "integrations": {
+      "discordRichPresenceEnable": false,
+      "googleAnalyticsEnable": false
+    },
+    "notifications": {
+      "openWhatsNextPage": false,
+      "checkAndNotifyForUpdates": false,
+      "checkAndNotifyForPatches": false,
+      "showWebsiteNewsNotifications": false,
+      "checkAndNotifyForPluginUpdates": false
+    },
+    "codeStyle": {
+      "maximumImports": 5
+    },
+    "backups": {
+      "enableLocalHistory": true,
+      "localHistorySaveInterval": 5,
+      "workspaceAutosaveInterval": 30,
+      "automatedBackupInterval": 5,
+      "numberOfBackupsToStore": 10,
+      "backupOnVersionSwitch": true
+    }
+  }
+}

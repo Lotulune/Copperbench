@@ -1,0 +1,1 @@
+[8920:7848:0912/164545.972:ERROR:services\on_device_model\public\cpp\service_client.cc:36] Unexpected on_device_model service disconnect: The device's GPU is not supported.

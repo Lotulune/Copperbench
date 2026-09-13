@@ -1,0 +1,157 @@
+diff --git a/src/main/java/dev/copperbench/generator/GradleWorkspaceTaskGateway.java b/src/main/java/dev/copperbench/generator/GradleWorkspaceTaskGateway.java
+index 0e68df1a..a1ddbba0 100644
+--- a/src/main/java/dev/copperbench/generator/GradleWorkspaceTaskGateway.java
++++ b/src/main/java/dev/copperbench/generator/GradleWorkspaceTaskGateway.java
+@@ -166,10 +166,14 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
+ 				job.progress(0.55, "task.run_client.starting", "Starting Minecraft client");
+ 				var process = processes.run(executionRoot, backend.gradleArguments(operation), Duration.ZERO,
+ 						line -> job.log("info", line));
+-				if (process.exitCode() != 0) {
++				// Minecraft can catch WindowInitFailed and return zero before opening a window.
++				// A mod's earlier readiness marker does not establish that OpenGL initialized.
++				boolean graphicsInitializationFailed = "WINDOWS_OPENGL_INITIALIZATION_FAILED"
++						.equals(process.runtimeFailureCode());
++				if (process.exitCode() != 0 || graphicsInitializationFailed) {
+ 					JsonObject args = new JsonObject();
+ 					args.addProperty("exitCode", process.exitCode());
+-					String runtimeFailureCode = process.readinessMarkerSeen()
++					String runtimeFailureCode = process.readinessMarkerSeen() && !graphicsInitializationFailed
+ 							? null : process.runtimeFailureCode();
+ 					if (runtimeFailureCode != null && !runtimeFailureCode.isBlank())
+ 						args.addProperty("runtimeFailureCode", runtimeFailureCode);
+@@ -177,8 +181,11 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
+ 							? backend.diagnosticPrefix() + "_RUN_CLIENT_EXITED"
+ 							: backend.diagnosticPrefix() + "_RUN_CLIENT_" + runtimeFailureCode;
+ 					failKnownTask(workspaceId, operation, job,
+-							diagnosticCode, "diagnostic.task_process_exited",
+-							"The {backend} {task} task exited with code {exitCode}.", args);
++							diagnosticCode, graphicsInitializationFailed
++									? "diagnostic.task_client_opengl_initialization_failed" : "diagnostic.task_process_exited",
++							graphicsInitializationFailed
++									? "The {backend} client could not initialize OpenGL. Check graphics support and drivers."
++									: "The {backend} {task} task exited with code {exitCode}.", args);
+ 					return;
+ 				}
+ 			} else if (operation == Operation.RUN_SERVER) {
+diff --git a/src/main/java/dev/copperbench/generator/fabric/Fabric1211ProcessRunner.java b/src/main/java/dev/copperbench/generator/fabric/Fabric1211ProcessRunner.java
+index 7dc2498e..761f4328 100644
+--- a/src/main/java/dev/copperbench/generator/fabric/Fabric1211ProcessRunner.java
++++ b/src/main/java/dev/copperbench/generator/fabric/Fabric1211ProcessRunner.java
+@@ -69,7 +69,6 @@ import java.util.function.Supplier;
+ 				Consumer<String> output) throws Exception {
+ 			RuntimePlatform platform = RuntimePlatform.current();
+ 			boolean windows = platform.operatingSystem() == RuntimePlatform.OperatingSystem.WINDOWS;
+-			boolean linux = platform.operatingSystem() == RuntimePlatform.OperatingSystem.LINUX;
+ 			boolean clientRun = isClientRun(arguments);
+ 
+ 			String configuredGradle = System.getenv("COPPERBENCH_STAGE5_GRADLE_EXECUTABLE");
+@@ -120,8 +119,8 @@ import java.util.function.Supplier;
+ 						if (line.contains(readinessMarker)) marker.set(true);
+ 						if (isMinecraftServerReadyLine(line)) serverReady.set(true);
+ 						if (isMinecraftServerFatalLine(line)) serverFatal.set(true);
+-						if (clientRun && linux) {
+-							String code = linuxGraphicalFailureCode(line);
++						if (clientRun) {
++							String code = graphicalFailureCode(platform.operatingSystem(), line);
+ 							if (code != null) runtimeFailureCode.compareAndSet(null, code);
+ 						}
+ 					}
+@@ -230,6 +229,15 @@ import java.util.function.Supplier;
+ 				|| line.contains("Encountered an unexpected exception");
+ 	}
+ 
++	static String graphicalFailureCode(RuntimePlatform.OperatingSystem operatingSystem, String line) {
++		if (operatingSystem == RuntimePlatform.OperatingSystem.LINUX) return linuxGraphicalFailureCode(line);
++		if (operatingSystem == RuntimePlatform.OperatingSystem.WINDOWS
++				&& line != null && line.toLowerCase(Locale.ROOT)
++				.contains("wgl: the driver does not appear to support opengl"))
++			return "WINDOWS_OPENGL_INITIALIZATION_FAILED";
++		return null;
++	}
++
+ 	static String linuxGraphicalFailureCode(String line) {
+ 		if (line == null) return null;
+ 		String normalized = line.toLowerCase(Locale.ROOT);
+diff --git a/src/test/java/dev/copperbench/generator/fabric/Fabric1211ProcessRunnerTest.java b/src/test/java/dev/copperbench/generator/fabric/Fabric1211ProcessRunnerTest.java
+index 02c47e59..d0ba44aa 100644
+--- a/src/test/java/dev/copperbench/generator/fabric/Fabric1211ProcessRunnerTest.java
++++ b/src/test/java/dev/copperbench/generator/fabric/Fabric1211ProcessRunnerTest.java
+@@ -21,6 +21,18 @@ import static org.junit.jupiter.api.Assertions.assertNull;
+ import static org.junit.jupiter.api.Assertions.assertTrue;
+ 
+ class Fabric1211ProcessRunnerTest {
++	@Test void recognizesTheObservedWindowsOpenGlDriverFailure() {
++		assertEquals("WINDOWS_OPENGL_INITIALIZATION_FAILED", Fabric1211ProcessRunner.graphicalFailureCode(
++				RuntimePlatform.OperatingSystem.WINDOWS,
++				"Window$WindowInitFailed: GLFW error 65542: WGL: The driver does not appear to support OpenGL"));
++		assertNull(Fabric1211ProcessRunner.graphicalFailureCode(RuntimePlatform.OperatingSystem.WINDOWS,
++				"[Render thread/INFO] OpenGL vendor: NVIDIA"));
++		assertNull(Fabric1211ProcessRunner.graphicalFailureCode(RuntimePlatform.OperatingSystem.WINDOWS,
++				"GLFW error 65550: X11: The DISPLAY environment variable is missing"));
++		assertEquals("LINUX_DISPLAY_UNAVAILABLE", Fabric1211ProcessRunner.graphicalFailureCode(
++				RuntimePlatform.OperatingSystem.LINUX,
++				"GLFW error 65550: X11: The DISPLAY environment variable is missing"));
++	}
+ 
+ 	@Test void recognizesRootAndQualifiedRunClientTasks() {
+ 		assertTrue(Fabric1211ProcessRunner.isClientRun(List.of("runClient")));
+diff --git a/src/test/java/dev/copperbench/generator/fabric/Fabric1211TaskGatewayTest.java b/src/test/java/dev/copperbench/generator/fabric/Fabric1211TaskGatewayTest.java
+index 306870e5..bc31eeca 100644
+--- a/src/test/java/dev/copperbench/generator/fabric/Fabric1211TaskGatewayTest.java
++++ b/src/test/java/dev/copperbench/generator/fabric/Fabric1211TaskGatewayTest.java
+@@ -28,6 +28,8 @@ import dev.copperbench.platform.RuntimePlatform;
+ import dev.copperbench.history.RestoreResult;
+ import dev.copperbench.history.WorkspaceChange;
+ import org.junit.jupiter.api.Test;
++import org.junit.jupiter.params.ParameterizedTest;
++import org.junit.jupiter.params.provider.ValueSource;
+ import org.junit.jupiter.api.io.TempDir;
+ import org.junit.jupiter.api.parallel.ResourceLock;
+ import org.junit.jupiter.api.parallel.Resources;
+@@ -311,6 +313,34 @@ class Fabric1211TaskGatewayTest {
+ 		}
+ 	}
+ 
++	@ParameterizedTest @ValueSource(booleans = { false, true })
++	void windowsOpenGlFailureIsNotSuccessfulWithZeroExit(boolean modReadinessSeen) throws Exception {
++		RevisionedWorkspaceStore store = new RevisionedWorkspaceStore();
++		store.register(Fabric1211GoldenWorkspace.create());
++		AtomicLong sequence = new AtomicLong(1600);
++		Supplier<UUID> ids = () -> UUID.fromString("00000000-0000-4000-8000-" +
++				String.format("%012d", sequence.getAndIncrement()));
++		Fabric1211ProcessRunner runner = (root, arguments, timeout, output) -> {
++			output.accept("GLFW error 65542: WGL: The driver does not appear to support OpenGL");
++			output.accept("BUILD SUCCESSFUL");
++			return new Fabric1211ProcessRunner.ProcessResult(0, modReadinessSeen,
++					"WINDOWS_OPENGL_INITIALIZATION_FAILED");
++		};
++		try (Fabric1211WorkspaceTaskGateway tasks = new Fabric1211WorkspaceTaskGateway(store,
++				ignored -> generatedWorkspace, Path.of(".").toAbsolutePath().normalize(), CLOCK, ids, runner)) {
++			WorkspaceApplicationService service = new WorkspaceApplicationService(store, tasks, CLOCK, ids);
++			JsonObject client = startAndAwait(service, ids, Operation.RUN_CLIENT);
++			assertEquals("failed", client.getAsJsonObject("task").get("state").getAsString());
++			JsonObject diagnostic = client.getAsJsonArray("diagnostics").asList().stream()
++					.map(value -> value.getAsJsonObject())
++					.filter(value -> value.get("code").getAsString().equals("FABRIC_RUN_CLIENT_WINDOWS_OPENGL_INITIALIZATION_FAILED"))
++					.findFirst().orElseThrow();
++			assertEquals(0, diagnostic.getAsJsonObject("message").getAsJsonObject("args").get("exitCode").getAsInt());
++			assertEquals("diagnostic.task_client_opengl_initialization_failed",
++					diagnostic.getAsJsonObject("message").get("key").getAsString());
++		}
++	}
++
+ 	@Test void runtimeFailureSuffixBecomesAStableRunClientDiagnostic() throws Exception {
+ 		RevisionedWorkspaceStore store = new RevisionedWorkspaceStore();
+ 		store.register(Fabric1211GoldenWorkspace.create());
+diff --git a/ui-shell/src/i18n/zh.ts b/ui-shell/src/i18n/zh.ts
+index 139feab4..c299b5f9 100644
+--- a/ui-shell/src/i18n/zh.ts
++++ b/ui-shell/src/i18n/zh.ts
+@@ -82,6 +82,7 @@ export const zh: Record<string, string> = {
+   'diagnostic.workspace_task_failed': '{backend} 的 {task} 任务失败，请查看日志。',
+   'diagnostic.bundled_jdk_missing': '未找到可用的 Copperbench Java 运行时；请查看日志中的解析路径。',
+   'diagnostic.task_process_exited': '{backend} 的 {task} 任务以退出码 {exitCode} 结束。',
++  'diagnostic.task_client_opengl_initialization_failed': '{backend} 客户端无法初始化 OpenGL，请检查显卡支持和驱动。',
+   'diagnostic.task_readiness_not_reached': '{backend} 的 {task} 任务未达到就绪标记。',
+   'diagnostic.procedure_element_required': '该操作只能用于 Procedure 元素。',
+   'diagnostic.procedure_ir_invalid': 'Procedure 图数据无效，请修复节点或连接后重试。',

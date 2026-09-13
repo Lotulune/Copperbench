@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "1.0",
+  "helperExitCode": 0,
+  "helperPath": "/home/stage15/s16-c0178f6b/harness/verify-stage16-installed-agent.py",
+  "workspacePath": "/home/stage15/s16-c0178f6b/workspace/stage16_installed.mcreator",
+  "candidateSha256": "4308bd319c4382a1e281a4bd90fd5a8574027bc397d382aef9df6bc3e32f0d51",
+  "notificationEvents": [
+    {
+      "stage": "minecraft-close-requested",
+      "at": "2026-09-12T11:20:11.954658+00:00"
+    },
+    {
+      "stage": "copperbench-close-requested",
+      "at": "2026-09-12T11:27:42.405031+00:00"
+    },
+    {
+      "stage": "copperbench-reopen-requested",
+      "at": "2026-09-12T11:31:43.823700+00:00"
+    },
+    {
+      "stage": "copperbench-second-close-requested",
+      "at": "2026-09-12T11:34:01.955651+00:00"
+    },
+    {
+      "stage": "verifier-finished",
+      "at": "2026-09-12T11:37:59.758196+00:00"
+    }
+  ],
+  "formalSupportClaim": false
+}

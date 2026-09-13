@@ -1,0 +1,52 @@
+﻿{
+    "at":  "2026-09-12T07:02:02.9383459+00:00",
+    "os":  {
+               "Caption":  "Microsoft Windows 11 专业版",
+               "Version":  "10.0.26200",
+               "BuildNumber":  "26200",
+               "FreePhysicalMemory":  1701648,
+               "TotalVisibleMemorySize":  4193172
+           },
+    "desktopProcesses":  [
+                             {
+                                 "ProcessName":  "java",
+                                 "Id":  2556,
+                                 "SessionId":  2,
+                                 "WorkingSet64":  104243200
+                             },
+                             {
+                                 "ProcessName":  "java",
+                                 "Id":  9072,
+                                 "SessionId":  2,
+                                 "WorkingSet64":  82599936
+                             },
+                             {
+                                 "ProcessName":  "javaw",
+                                 "Id":  10520,
+                                 "SessionId":  2,
+                                 "WorkingSet64":  590184448
+                             },
+                             {
+                                 "ProcessName":  "pythonw",
+                                 "Id":  10132,
+                                 "SessionId":  2,
+                                 "WorkingSet64":  31031296
+                             },
+                             {
+                                 "ProcessName":  "pythonw",
+                                 "Id":  10792,
+                                 "SessionId":  2,
+                                 "WorkingSet64":  4018176
+                             }
+                         ],
+    "appLaunchPid":  5176,
+    "descriptor":  {
+                       "schemaVersion":  "1.0",
+                       "status":  "listening",
+                       "url":  "http://127.0.0.1:57923/mcp",
+                       "workspaceId":  "259c3e5c-ffde-4154-b517-a5c7b35c88c9",
+                       "permissionProfile":  "workspace",
+                       "expiresAt":  "2026-09-12T18:52:56.528169900Z",
+                       "tokenDelivery":  "ui-once"
+                   }
+}

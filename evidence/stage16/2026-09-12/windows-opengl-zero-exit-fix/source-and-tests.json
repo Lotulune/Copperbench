@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "1.0",
+  "baseCommit": "00d73c9faaef2013db766d445dd1e48f75533e2e",
+  "worktreeDirty": true,
+  "frozenCandidateCommit": "33ceb6e9a68aab2b2fcd9153d6c4f23f4d85e6c5",
+  "installedCandidateRetested": false,
+  "committed": false,
+  "published": false,
+  "tests": 26,
+  "failures": 0,
+  "testJvmMaximumMiB": 768,
+  "gradleJvmMaximumMiB": 768,
+  "gradleWorkers": 1,
+  "sourceFiles": [
+    {
+      "path": "src/main/java/dev/copperbench/generator/GradleWorkspaceTaskGateway.java",
+      "sha256": "dc27e9c5213c840e5ed4bfdc25ccffc0fa9aa1db2c5f703b6b071d3f06bbbc7e"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/generator/fabric/Fabric1211ProcessRunner.java",
+      "sha256": "040069a9f888dbf5c3c00ae6ec2cc365e0ea7645ed99940860da72fe3aedac53"
+    },
+    {
+      "path": "src/test/java/dev/copperbench/generator/fabric/Fabric1211ProcessRunnerTest.java",
+      "sha256": "a643b7b20173f184270bed07e8f8b9ae81d808e2fc9094d118a293ca5f483f4f"
+    },
+    {
+      "path": "src/test/java/dev/copperbench/generator/fabric/Fabric1211TaskGatewayTest.java",
+      "sha256": "3a65f5899d75d50e38038239a46ed26152374892701ff23e1e0c385d0afee298"
+    },
+    {
+      "path": "ui-shell/src/i18n/zh.ts",
+      "sha256": "5d2540bb18dad729bd0205611c95b8d5cef61ad99ad5f415030bb15f95f2aa7e"
+    }
+  ],
+  "initialVerificationLimits": [
+    "The first Gradle launch failed before tests due to the known local socket issue.",
+    "An exploratory native cmd.exe process probe was denied with CreateProcess error 5; it did not establish a pass.",
+    "The final in-process suite verifies the captured Windows failure classifier and task results for zero exit with and without mod readiness; the installed corrected package remains untested."
+  ]
+}

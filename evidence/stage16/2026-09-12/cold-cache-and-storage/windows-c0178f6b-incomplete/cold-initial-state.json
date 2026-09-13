@@ -1,0 +1,24 @@
+{
+  "at": "2026-09-12T12:36:00.644554+00:00",
+  "workspaceExists": false,
+  "dependencyCacheExists": false,
+  "wrapperCacheExists": false,
+  "minecraftAssetsExist": false,
+  "profileFiles": [
+    {
+      "path": "home\\.copperbench\\userpreferences",
+      "bytes": 62,
+      "sha256": "8904e53846260bb5e4f8509185a5e6c4a7757544c3ab7e5f981bc08adda665f8"
+    },
+    {
+      "path": "home\\.copperbench\\gradle\\gradle.properties",
+      "bytes": 80,
+      "sha256": "412607d5c6a038fa516767066cc2a6642299c31a08496c65d646c3f11bda0a9a"
+    }
+  ],
+  "sourceCacheCopied": false,
+  "firstUseDefaultPreferences": false,
+  "profileReason": "User requested low memory; selected supported China mirror preference for this isolated trial",
+  "javaToolOptionsPurpose": "Only -Duser.home isolates Gradle distribution lookup; no socket/agent patch injected",
+  "originalUserDataRetained": true
+}

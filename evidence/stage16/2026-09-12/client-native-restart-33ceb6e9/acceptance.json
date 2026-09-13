@@ -1,0 +1,115 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "stage16-client-native-restart-acceptance",
+  "recordedAt": "2026-09-12T03:04:09.993189+00:00",
+  "candidateSourceCommit": "33ceb6e9a68aab2b2fcd9153d6c4f23f4d85e6c5",
+  "generatorId": "fabric-1.21.1",
+  "clientBehaviorVerified": true,
+  "stage16Complete": false,
+  "published": false,
+  "freshAgent": false,
+  "additionalFreshAgentCases": 0,
+  "world": "Stage16 Agent Acceptance",
+  "playerName": "Stage16Trial",
+  "playerUuid": "8fb12eef-98f0-409b-a3c1-18abf66578f6",
+  "tickRate": 20,
+  "runs": [
+    {
+      "directory": "client-run-6",
+      "taskId": "21b159e3-7775-437e-8483-b02a6d424e24",
+      "launcherPid": 9164,
+      "startedAt": "2026-09-12T00:47:25.5153040+00:00",
+      "completedAt": "2026-09-12T02:04:10.6229821+00:00",
+      "durationSeconds": 4605.107678,
+      "exitCode": 0,
+      "taskState": "succeeded",
+      "nativeScreenshotCount": 66,
+      "normalExitObserved": true
+    },
+    {
+      "directory": "client-run-7",
+      "taskId": "9d7a3dee-1f26-4c70-8112-309f8ef8a95c",
+      "launcherPid": 33924,
+      "startedAt": "2026-09-12T02:09:56.6425140+00:00",
+      "completedAt": "2026-09-12T02:45:29.0276451+00:00",
+      "durationSeconds": 2132.385131,
+      "exitCode": 0,
+      "taskState": "succeeded",
+      "nativeScreenshotCount": 13,
+      "normalExitObserved": true
+    }
+  ],
+  "observations": {
+    "D1": {
+      "status": "passed",
+      "method": "Native Use Item input and directly inspected actionbar screenshots at 20 TPS",
+      "evidence": [
+        "client-run-6/screenshots/015-token-inactive-20tps.jpg",
+        "client-run-6/screenshots/016-token-active-20tps.jpg"
+      ]
+    },
+    "D2": {
+      "status": "passed",
+      "method": "Prior native placement/counting plus current read-only simultaneous query; A=3, B=2 after resetting B",
+      "evidence": [
+        "client-run-6/screenshots/022-query-a3-b2-submitted.jpg"
+      ]
+    },
+    "D3": {
+      "status": "passed",
+      "method": "Native toggle-sneak and Use input reset B to zero; repeated reset remains zero; subsequent normal uses produce 1 and 2",
+      "evidence": [
+        "client-run-6/screenshots/009-tally-reset-native-use.jpg",
+        "client-run-6/screenshots/010-tally-reset-zero-again.jpg",
+        "client-run-6/screenshots/013-tally-a-increment-2.jpg"
+      ]
+    },
+    "D4": {
+      "status": "passed",
+      "method": "Native Attack input: creative mature break 0->0, survival mature break 0->1; native seed planting and immature survival break 1->1; read-only harvestledger reports actual totals",
+      "evidence": [
+        "client-run-6/screenshots/038-creative-ledger-zero-result.jpg",
+        "client-run-6/screenshots/048-survival-ledger-one-result.jpg",
+        "client-run-6/screenshots/058-immature-ledger-remains-one.jpg"
+      ]
+    },
+    "D5": {
+      "status": "passed",
+      "method": "Native Save and Quit to Title then Quit Game; command succeeded and process absent; independent product invocation reopened same world/player; counter predicate returned ledger=1 and token data active=1b; second normal exit succeeded",
+      "evidence": [
+        "client-run-7/screenshots/007-restart-counter-ledger-restored.jpg",
+        "client-run-7/screenshots/010-restart-token-active-restored.jpg",
+        "client-run-6/normal-exit-observation.json",
+        "client-run-7/normal-exit-observation.json"
+      ]
+    }
+  },
+  "observedRestoredState": {
+    "tallyA": {
+      "position": [
+        0,
+        -60,
+        1
+      ],
+      "count": 3
+    },
+    "tallyB": {
+      "position": [
+        2,
+        -60,
+        2
+      ],
+      "count": 2
+    },
+    "tokenActive": true,
+    "harvestTotal": 1
+  },
+  "limitations": [
+    "This certifies the stated Windows/Fabric 1.21.1 client scenarios, not every generator or platform.",
+    "Screenshot contents were directly inspected by the operating agent; the verifier checks integrity and machine logs, not visual recognition.",
+    "Existing machine dependency caches were retained; elapsed times include interactive observation and are not performance benchmarks.",
+    "Original event-label mistakes and one failed planting attempt are retained and explained in observation-annotations.json.",
+    "Stage16 C remains open: Windows and Ubuntu saved validation guests could not restore due to insufficient host memory.",
+    "No commit, push, CI change, VM configuration change, or public release was performed in this continuation."
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "atUtc": "2026-09-12T08:46:18.2249327Z",
+  "removedPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage16-agent-reliability\\installed-retest-c0178f6b-20260912\\host-installed-backup",
+  "reason": "Remove only the incomplete self-recursing copy generated in this turn after verifying the safe backup",
+  "checkedDirectories": 421,
+  "originalInstallationTouched": false,
+  "safeBackupPreserved": true
+}

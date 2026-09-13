@@ -1,0 +1,1 @@
+{"gradle": {"exists": true, "files": 4746, "bytes": 1383543461}, "workspaceGradle": {"exists": true, "files": 167, "bytes": 73095128}, "workspaceRun": {"exists": true, "files": 3, "bytes": 996}, "isolatedDefaultGradle": {"exists": false, "files": 0, "bytes": 0}}

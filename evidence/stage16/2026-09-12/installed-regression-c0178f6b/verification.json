@@ -1,0 +1,16 @@
+{
+  "status": "passed",
+  "scope": "candidate provenance, installed regressions, negative diagnostics, and final memory release",
+  "cases": [
+    "windows-vm",
+    "windows-host",
+    "ubuntu"
+  ],
+  "rawFiles": 192,
+  "memorySamples": 1143,
+  "oneVmAtATime": true,
+  "maximumVmGiB": 4,
+  "windowsInstalledClientComplete": true,
+  "ubuntuInstalledClientComplete": true,
+  "stage16Complete": false
+}

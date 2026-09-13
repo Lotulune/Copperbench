@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "C:\Temp\S16-33ceb6e9\harness\verify-windows-post-failure.py", line 24, in <module>
+    assert any(e.get('result', {}).get('data', {}).get('task', {}).get('id') == task_id and
+           ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+               e['result']['data']['task']['state'] == 'succeeded' for e in events)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Temp\S16-33ceb6e9\harness\verify-windows-post-failure.py", line 24, in <genexpr>
+    assert any(e.get('result', {}).get('data', {}).get('task', {}).get('id') == task_id and
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'get'

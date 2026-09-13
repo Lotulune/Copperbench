@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "1.0",
+  "files": [
+    {
+      "path": "low-memory-tests.init.gradle.txt",
+      "bytes": 121,
+      "sha256": "1d4b6635a6cb9d509f4ef45074141028b5e8be7bf647480dcb7f7a6684bd8c5e"
+    },
+    {
+      "path": "source-and-tests.json",
+      "bytes": 1779,
+      "sha256": "cc00b99db9b4e493d161cd24bd28bd72e7f4da0b06a75761050b3a56a39415c2"
+    },
+    {
+      "path": "source-change.patch",
+      "bytes": 10069,
+      "sha256": "8a1d50e2c989e22835bd5bd14e9f9905e37bb689c3ab81c26ba54e6d7c6efdf5"
+    },
+    {
+      "path": "targeted-tests-final.log.txt",
+      "bytes": 39743,
+      "sha256": "36b5cf2dde484204ac881b17ac52eeba4509841bcb7c38edcc9641e697e8ec5a"
+    },
+    {
+      "path": "targeted-tests-tcp.log.txt",
+      "bytes": 41723,
+      "sha256": "0325c07e4bff42b9ac1db95d7cd89731578ccc17ab718dc419461d8ac9b83af5"
+    },
+    {
+      "path": "targeted-tests.log.txt",
+      "bytes": 617,
+      "sha256": "d8abfc32eb139c3241e1eee328162aa9bba5e16685121ea186104ae571efe889"
+    },
+    {
+      "path": "TEST-dev.copperbench.generator.fabric.Fabric1211ProcessRunnerTest.xml",
+      "bytes": 1590,
+      "sha256": "daf57ba655dd339786774d51024b6e253e0f09b5467c758b25e85df0bc30c236"
+    },
+    {
+      "path": "TEST-dev.copperbench.generator.fabric.Fabric1211TaskGatewayTest.xml",
+      "bytes": 34987,
+      "sha256": "1cb6707db8a34c04cacc1394f54cb60540b42bfd8647750a5ba546af9ec1df7c"
+    }
+  ]
+}

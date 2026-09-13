@@ -1,0 +1,9 @@
+{
+  "at": "2026-09-12T12:57:58.0493142Z",
+  "attempt2Reproduced": true,
+  "creationSucceeded": true,
+  "fullColdCachePassed": false,
+  "productDefect": "First-use modal owned by an invisible workspace selector",
+  "sourceFix": "Show the workspace selector before the first-run region modal",
+  "workspaceCacheRetained": true
+}

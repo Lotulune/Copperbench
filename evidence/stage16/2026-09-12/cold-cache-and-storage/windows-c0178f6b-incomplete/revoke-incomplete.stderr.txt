@@ -1,0 +1,1 @@
+Picked up JAVA_TOOL_OPTIONS: -Duser.home=D:\AICoding\testmod2\stage16-cold-c0178f6b\home

@@ -1,0 +1,36 @@
+{
+  "at": "2026-09-12T14:10:51.262487+00:00",
+  "label": "before-launch",
+  "folders": {
+    "gradle": {
+      "exists": true,
+      "files": 1,
+      "bytes": 80,
+      "entries": [
+        {
+          "path": "gradle.properties",
+          "bytes": 80,
+          "modifiedNs": 1789222251118454000
+        }
+      ]
+    },
+    "workspaceGradle": {
+      "exists": false,
+      "files": 0,
+      "bytes": 0,
+      "entries": []
+    },
+    "workspaceRun": {
+      "exists": false,
+      "files": 0,
+      "bytes": 0,
+      "entries": []
+    },
+    "isolatedDefaultGradle": {
+      "exists": false,
+      "files": 0,
+      "bytes": 0,
+      "entries": []
+    }
+  }
+}

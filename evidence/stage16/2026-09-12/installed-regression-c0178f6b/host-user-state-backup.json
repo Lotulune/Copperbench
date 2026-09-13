@@ -1,0 +1,12 @@
+{
+  "files": 4,
+  "bytes": 3290.0,
+  "allFileHashesMatched": true,
+  "excludedRegenerableDirectories": [
+    "gradle",
+    "logs",
+    "toolchains",
+    "task-runs"
+  ],
+  "appUpgraded": false
+}

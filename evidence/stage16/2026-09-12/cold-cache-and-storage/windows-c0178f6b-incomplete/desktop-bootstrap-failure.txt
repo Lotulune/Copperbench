@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "D:\AICoding\testmod2\stage16-cold-c0178f6b\windows-installed-desktop.pyw", line 52, in <module>
+    run('app', [creation['data']['workspaceFile']])
+    ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\AICoding\testmod2\stage16-cold-c0178f6b\windows-installed-desktop.pyw", line 36, in run
+    assert status == 0, status
+           ^^^^^^^^^^^
+AssertionError: 4294967295

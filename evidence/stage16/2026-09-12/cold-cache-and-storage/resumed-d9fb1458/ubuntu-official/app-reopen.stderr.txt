@@ -1,0 +1,2 @@
+Picked up JAVA_TOOL_OPTIONS: -Duser.home=/home/stage15/s16-cold-official2/home
+[10063:10063:0912/155600.899944:ERROR:components/viz/service/main/viz_main_impl.cc:183] Exiting GPU process due to errors during initialization

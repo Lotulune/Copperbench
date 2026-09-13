@@ -1,0 +1,1 @@
+{"schemaVersion":"1.0","operation":"bootstrap_product_start","status":"failed","exitCode":3,"diagnostics":[{"code":"TASK_AUTHORIZATION_REVOKED","severity":"error","message":"Task authority does not allow creating this workspace. Review the root, lifetime and create capability."}],"code":"TASK_AUTHORIZATION_REVOKED"}

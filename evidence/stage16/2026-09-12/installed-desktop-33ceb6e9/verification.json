@@ -1,0 +1,1 @@
+{"status": "passed", "scope": "evidence integrity and correctly bounded platform results", "verifiedPlatforms": ["ubuntu", "windows"], "platformStatuses": {"ubuntu": "passed", "windows": "partial"}, "rawFileCount": 118, "maxVmGiB": 4, "oneVmAtATime": true, "stage16Complete": false, "published": false}

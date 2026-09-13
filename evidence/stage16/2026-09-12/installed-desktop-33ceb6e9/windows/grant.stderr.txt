@@ -1,0 +1,1 @@
+Copperbench is waiting for task approval. Root: C:\Temp\S16-33ceb6e9; capabilities: [create, edit, build, test, run_client]; lifetime: 14400 seconds.

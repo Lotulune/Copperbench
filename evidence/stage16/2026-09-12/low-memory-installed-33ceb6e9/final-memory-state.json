@@ -1,0 +1,16 @@
+{
+  "recordedAt": "2026-09-12T05:35:39.2313663+00:00",
+  "vms": [
+    {
+      "Name": "Copperbench-G7",
+      "State": "Off",
+      "MemoryAssigned": 0
+    },
+    {
+      "Name": "Copperbench-Stage15-Linux",
+      "State": "Off",
+      "MemoryAssigned": 0
+    }
+  ],
+  "hostFreeBytes": 6013890560
+}

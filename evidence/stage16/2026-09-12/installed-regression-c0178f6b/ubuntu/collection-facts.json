@@ -1,0 +1,22 @@
+{
+  "at": "2026-09-12T11:40:17.298386+00:00",
+  "candidateCommit": "c0178f6b933825921cc3fb3f8f8ef8aa0874e688",
+  "installerSha256": "4308bd319c4382a1e281a4bd90fd5a8574027bc397d382aef9df6bc3e32f0d51",
+  "installedAppJarSha256": "ba2af8159d04236e127e34f00e3ca8fdb9d429b25663dbd12b0f62c7fb5b2a50",
+  "artifactSha256": "1f5e33a13cf54a6a72ef7b65f0471bcc22bd24666c70a12e748b6a8f71be4383",
+  "descriptorAbsentAfterReopenClose": true,
+  "revokedCreateCode": "TASK_AUTHORIZATION_REVOKED",
+  "freshAgent": false,
+  "cacheState": "existing warm dependency and asset caches; new workspace",
+  "tooling": {
+    "java": null,
+    "javac": null,
+    "gradle": null,
+    "git": null,
+    "python3": "/usr/bin/python3"
+  },
+  "externalHelperPython": "/usr/bin/python3",
+  "validationKind": "installed-ubuntu-real-graphics-regression",
+  "ubuntuInstalledClientComplete": true,
+  "stage16Complete": false
+}

@@ -1,0 +1,34 @@
+{
+  "recordedAt": "2026-09-12T04:57:04.6159942+00:00",
+  "descriptor": {
+    "schemaVersion": "1.0",
+    "status": "listening",
+    "url": "http://127.0.0.1:56574/mcp",
+    "workspaceId": "9b98a83d-fac1-4dc0-9cda-8b5f940e2587",
+    "permissionProfile": "workspace",
+    "expiresAt": "2026-09-12T16:52:50.627808300Z",
+    "tokenDelivery": "ui-once"
+  },
+  "unauthenticatedInitializeHttpStatus": 401,
+  "authenticatedMcpOperationsTested": false,
+  "logTail": [
+    "INFO: Starting Servlet engine: [Apache Tomcat/11.0.2]",
+    "2026-09-12-12:52:51 [AWT-EventQueue-0/ERROR] [STDERR] Sep 12, 2026 12:52:51 PM org.apache.coyote.AbstractProtocol start",
+    "INFO: Starting ProtocolHandler [\"http-nio-127.0.0.1-auto-1-56574\"]",
+    "2026-09-12-12:52:51 [AWT-EventQueue-0/DEBUG] [net.mcreator.ui.chromium.WebView] JCEF browser host does not expose setAccessibilityState; platform UIA may remain unavailable",
+    "2026-09-12-12:52:51 [AWT-EventQueue-0/INFO] [MCreator] Copperbench product shell enabled for workspace resonance_token",
+    "2026-09-12-12:52:52 [AWT-EventQueue-0/INFO] [dev.copperbench.window.WindowsWindowChromeController] Installed Windows product-shell chrome at 120 DPI",
+    "2026-09-12-12:53:03 [GeneratorSetup/INFO] [Gradle Console] Executing Gradle task: @sync",
+    "2026-09-12-12:53:04 [GeneratorSetup/INFO] [dev.copperbench.generator.BundledJdkLocator] Bundled JDK resolved: distributionRoot=C:\\Copperbench-Stage16-33ceb6e9, javaRelease=21, resolvedJavaHome=C:\\Copperbench-Stage16-33ceb6e9\\jdk21, attempted=[C:\\Copperbench-Stage16-33ceb6e9\\jdk21], java.home=C:\\Copperbench-Stage16-33ceb6e9\\jdk, user.dir=C:\\Copperbench-Stage16-33ceb6e9",
+    "2026-09-12-12:53:19 [Workspace-File-Manager/DEBUG] [Workspace File Manager/RESONANCE_TOKEN] Workspace stored on the FS",
+    "2026-09-12-12:55:25 [GeneratorSetupFinalizer/INFO] [Generator fabric-1.21.1] Reloading generator Gradle cache",
+    "2026-09-12-12:55:25 [GeneratorSetupFinalizer/INFO] [dev.copperbench.generator.BundledJdkLocator] Bundled JDK resolved: distributionRoot=C:\\Copperbench-Stage16-33ceb6e9, javaRelease=21, resolvedJavaHome=C:\\Copperbench-Stage16-33ceb6e9\\jdk21, attempted=[C:\\Copperbench-Stage16-33ceb6e9\\jdk21], java.home=C:\\Copperbench-Stage16-33ceb6e9\\jdk, user.dir=C:\\Copperbench-Stage16-33ceb6e9",
+    "2026-09-12-12:55:28 [GeneratorSetupFinalizer/DEBUG] [net.mcreator.java.ProjectJarManager] Processing classpath for project repair-workspace",
+    "2026-09-12-12:55:28 [GeneratorSetupFinalizer/INFO] [dev.copperbench.generator.BundledJdkLocator] Bundled JDK resolved: distributionRoot=C:\\Copperbench-Stage16-33ceb6e9, javaRelease=21, resolvedJavaHome=C:\\Copperbench-Stage16-33ceb6e9\\jdk21, attempted=[C:\\Copperbench-Stage16-33ceb6e9\\jdk21], java.home=C:\\Copperbench-Stage16-33ceb6e9\\jdk, user.dir=C:\\Copperbench-Stage16-33ceb6e9",
+    "2026-09-12-12:55:29 [GeneratorSetupFinalizer/DEBUG] [net.mcreator.java.ProjectJarManager] Loading JVM Eclipse Adoptium 21.0.12 info from C:\\Copperbench-Stage16-33ceb6e9\\jdk21",
+    "2026-09-12-12:55:29 [GeneratorSetupFinalizer/DEBUG] [net.mcreator.java.ProjectJarManager] Loaded JVM info of type ModulesFileLibraryInfo"
+  ],
+  "PSComputerName": "Copperbench-G7",
+  "RunspaceId": "cd42a4e7-833a-49de-8282-f1ff336b6f55",
+  "PSShowComputerName": true
+}

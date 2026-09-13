@@ -1,0 +1,13 @@
+{
+  "at": "2026-09-12T15:07:29.287480+00:00",
+  "previousAppJarSha256": "ba2af8159d04236e127e34f00e3ca8fdb9d429b25663dbd12b0f62c7fb5b2a50",
+  "allCopiedFileHashesMatched": true,
+  "verifiedFiles": 2678,
+  "verifiedBytes": 1465536832,
+  "userStateRootsBackedUp": [
+    ".config/copperbench",
+    ".local/share/copperbench",
+    ".local/state/copperbench"
+  ],
+  "userStatePublished": false
+}
