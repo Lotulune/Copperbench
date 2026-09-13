@@ -34,10 +34,7 @@ public interface GradleWorkspaceBackend {
 	default JsonObject gameTestEnvironment() { return new JsonObject(); }
 
 	default String gameTestModId(WorkspaceState workspace) {
-		JsonObject document = workspace.upstreamDocument();
-		if (document.has("copperbench") && document.getAsJsonObject("copperbench").has("modId"))
-			return document.getAsJsonObject("copperbench").get("modId").getAsString();
-		return workspace.name().toLowerCase(java.util.Locale.ROOT).replace(' ', '_');
+		return dev.copperbench.core.workspace.WorkspaceModIdentity.resolve(workspace);
 	}
 
 	/** Gradle arguments for the task operation; resource-pack generators use a nested client task. */

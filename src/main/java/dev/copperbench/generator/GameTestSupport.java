@@ -107,6 +107,7 @@ public final class GameTestSupport {
             throw exception;
         }
         JsonObject result = describe(root, environment);
+        result.addProperty("modId", modId);
         result.addProperty("starterScope", "mod_loading_only");
         JsonArray paths = new JsonArray(); created.forEach(path -> paths.add(root.relativize(path).toString().replace('\\', '/')));
         result.add("createdPaths", paths); return result;

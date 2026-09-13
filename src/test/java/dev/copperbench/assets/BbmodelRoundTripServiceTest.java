@@ -42,6 +42,10 @@ class BbmodelRoundTripServiceTest {
 	private Path copyFixture() throws IOException {
 		Path model = temp.resolve("assets/golden/copper_lamp.bbmodel");
 		Files.createDirectories(model.getParent());
+		Path textureRoot = temp.resolve("assets/copperbench/textures/block");
+		Files.createDirectories(textureRoot);
+		Files.write(textureRoot.resolve("copper_lamp.png"), new byte[] { 1 });
+		Files.write(textureRoot.resolve("copper_lamp_emissive.png"), new byte[] { 1 });
 		try (var input = getClass().getResourceAsStream("/assets/golden/copper_lamp.bbmodel")) {
 			Files.copy(input, model);
 		}

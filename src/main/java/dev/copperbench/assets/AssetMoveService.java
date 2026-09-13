@@ -77,8 +77,10 @@ public final class AssetMoveService {
 			}
 			try {
 				String replacement = replacement(reference, target);
-				String normalized = AssetWorkspaceService.normalizeReference(replacement, reference.sourcePath(),
-						reference.expectedPrefix());
+				String normalized = reference.kind() == AssetReference.ReferenceKind.FILE_PATH
+						? assets.workspaceRoot().relativize(assets.workspaceRoot().resolve(reference.sourcePath()).getParent()
+							.resolve(replacement).normalize()).toString().replace('\\', '/')
+						: AssetWorkspaceService.normalizeReference(replacement, reference.sourcePath(), reference.expectedPrefix());
 				if (!normalized.equals(target)) {
 					issues.add("ASSET_MOVE_REFERENCE_UNREWRITABLE");
 					continue;
@@ -88,6 +90,13 @@ public final class AssetMoveService {
 			} catch (RuntimeException exception) {
 				issues.add("ASSET_MOVE_REFERENCE_UNREWRITABLE");
 			}
+		}
+		// Moving a Blockbench document changes the base directory of its relative image paths.
+		for (AssetReference reference : graph.outgoing(source.relativePath())) {
+			if (reference.kind() != AssetReference.ReferenceKind.FILE_PATH || Path.of(reference.rawValue()).isAbsolute()) continue;
+			String replacement = Path.of(target).getParent().relativize(Path.of(reference.targetPath())).toString().replace('\\', '/');
+			if (!replacement.equals(reference.rawValue())) rewrites.add(new AssetMovePlan.ReferenceRewrite(source.id(),
+					source.relativePath(), source.sha256(), reference.sourcePointer(), reference.rawValue(), replacement, reference.kind()));
 		}
 		rewrites.sort(Comparator.comparing(AssetMovePlan.ReferenceRewrite::sourcePath)
 				.thenComparing(AssetMovePlan.ReferenceRewrite::sourcePointer));
@@ -127,9 +136,16 @@ public final class AssetMoveService {
 			if (danglingOldTarget || !refreshed.incoming(current.sourceRelativePath()).isEmpty())
 				throw new AssetMoveException("ASSET_MOVE_POSTCHECK_FAILED",
 						"Asset move left a reference to the old path");
-			if (refreshed.incoming(current.targetRelativePath()).size() < current.rewrites().size())
+			long inboundRewrites = current.rewrites().stream().filter(rewrite -> !rewrite.sourcePath().equals(current.sourceRelativePath())).count();
+			if (refreshed.incoming(current.targetRelativePath()).size() < inboundRewrites)
 				throw new AssetMoveException("ASSET_MOVE_POSTCHECK_FAILED",
 						"Not all previewed inbound references resolved to the moved asset");
+			for (var rewrite : current.rewrites()) {
+				if (rewrite.sourcePath().equals(current.sourceRelativePath()) && refreshed.outgoing(current.targetRelativePath()).stream()
+						.noneMatch(reference -> reference.sourcePointer().equals(rewrite.sourcePointer())
+								&& reference.rawValue().equals(rewrite.newRawValue())))
+					throw new AssetMoveException("ASSET_MOVE_POSTCHECK_FAILED", "Moved model lost a relative image reference");
+			}
 			return new ApplyResult(moved, recovery, current.rewrites().size());
 		} catch (Exception failure) {
 			try {
@@ -241,7 +257,13 @@ public final class AssetMoveService {
 		}
 	}
 
-	private static String replacement(AssetReference reference, String targetPath) {
+	private String replacement(AssetReference reference, String targetPath) {
+		if (reference.kind() == AssetReference.ReferenceKind.FILE_PATH) {
+			Path target = assets.workspaceRoot().resolve(targetPath);
+			return (Path.of(reference.rawValue()).isAbsolute() ? target
+					: assets.workspaceRoot().resolve(reference.sourcePath()).getParent().relativize(target))
+					.toString().replace('\\', '/');
+		}
 		String relativeTarget = stripResourceRoot(targetPath);
 		if (!relativeTarget.startsWith("assets/"))
 			throw new AssetMoveException("ASSET_MOVE_REFERENCE_UNREWRITABLE", "Target is not a namespaced asset");
