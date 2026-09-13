@@ -16,5 +16,5 @@ public record AssetReference(String sourceAssetId, String sourcePath, String sou
 			throw new IllegalArgumentException("sourcePointer must be a JSON Pointer");
 	}
 
-	public enum ReferenceKind { JSON_STRING, RESOURCE_ID }
+	public enum ReferenceKind { JSON_STRING, RESOURCE_ID, FILE_PATH }
 }

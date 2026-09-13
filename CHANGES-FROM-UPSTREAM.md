@@ -14,6 +14,8 @@ This distribution is based on MCreator `2026.2.33518` at commit `361429609b77203
 
 ## Build and test fixes
 
+- Added a shared structural Blockbench texture reader for the asset graph and round-trip inspection, including array textures, UUID/index face bindings, embedded images, local files and external references. Intentional deletions remain reviewable changes, not automatic import vetoes. Regression inputs include the original lantern review models and a native Blockbench 5.1.6 save.
+- Resolve generated metadata, GameTest starters and generation diagnostics from the persisted workspace mod ID before legacy projection defaults. A real Fabric 1.21.1 packaged-JAR smoke test covers `Copper Signal Lantern` / `copper_signal` with a newly generated loading assertion.
 - Increased the JCEF cold-start preload wait from 5 to 30 seconds.
 - Added the standard FlatLaf artifact to the test runtime so Windows native window resources are available to UI integration tests.
 - Corrected the Windows CopySpec so `lib/copperbench.jar` is included in ZIP, installer, and MSIX payloads.

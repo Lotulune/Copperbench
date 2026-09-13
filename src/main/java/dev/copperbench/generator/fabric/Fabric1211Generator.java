@@ -711,7 +711,7 @@ public final class Fabric1211Generator {
 		JsonObject document = workspace.upstreamDocument();
 		JsonObject product = document.has("copperbench") && document.get("copperbench").isJsonObject()
 				? document.getAsJsonObject("copperbench") : new JsonObject();
-		String modId = string(product, "modId", workspace.name().toLowerCase(Locale.ROOT).replace(' ', '_'));
+		String modId = dev.copperbench.core.workspace.WorkspaceModIdentity.resolve(workspace);
 		String basePackage = string(product, "basePackage", "dev.copperbench.generated." + modId);
 		String version = string(product, "version", "1.0.0");
 		if (!MOD_ID.matcher(modId).matches()) throw new IllegalArgumentException("Invalid modId: " + modId);
