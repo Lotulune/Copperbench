@@ -61,6 +61,8 @@ loadScripts(document, 'script');</script>
 <li><a href="#diagnosticPrefix()" tabindex="0">diagnosticPrefix()</a></li>
 <li><a href="#validate(dev.copperbench.core.workspace.WorkspaceState)" tabindex="0">validate(WorkspaceState)</a></li>
 <li><a href="#generate(java.nio.file.Path,dev.copperbench.core.workspace.WorkspaceState)" tabindex="0">generate(Path, WorkspaceState)</a></li>
+<li><a href="#gameTestEnvironment()" tabindex="0">gameTestEnvironment()</a></li>
+<li><a href="#gameTestModId(dev.copperbench.core.workspace.WorkspaceState)" tabindex="0">gameTestModId(WorkspaceState)</a></li>
 <li><a href="#gradleArguments(dev.copperbench.core.contract.UiCore.Operation)" tabindex="0">gradleArguments(UiCore.Operation)</a></li>
 <li><a href="#serverRunDirectory(java.nio.file.Path)" tabindex="0">serverRunDirectory(Path)</a></li>
 <li><a href="#prepareServerRun(java.nio.file.Path)" tabindex="0">prepareServerRun(Path)</a></li>
@@ -134,6 +136,14 @@ loadScripts(document, 'script');</script>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
 <div class="block">Copies the generator artifact to the requested output path.</div>
 </div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default com.google.gson.JsonObject</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#gameTestEnvironment()" class="member-name-link">gameTestEnvironment</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="block">Pinned loader coordinates used to create an independent acceptance-test host.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#gameTestModId(dev.copperbench.core.workspace.WorkspaceState)" class="member-name-link">gameTestModId</a><wbr>(<a href="../core/workspace/WorkspaceState.html" title="class in dev.copperbench.core.workspace">WorkspaceState</a>&nbsp;workspace)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">&nbsp;</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="GradleWorkspaceBackend.GenerationResult.html" title="class in dev.copperbench.generator">GradleWorkspaceBackend.GenerationResult</a></code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#generate(java.nio.file.Path,dev.copperbench.core.workspace.WorkspaceState)" class="member-name-link">generate</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;targetRoot,
  <a href="../core/workspace/WorkspaceState.html" title="class in dev.copperbench.core.workspace">WorkspaceState</a>&nbsp;workspace)</code></div>
@@ -203,6 +213,23 @@ loadScripts(document, 'script');</script>
 <dt>Throws:</dt>
 <dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Exception.html" title="class or interface in java.lang" class="external-link">Exception</a></code></dd>
 </dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="gameTestEnvironment()">
+<h3>gameTestEnvironment</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">default</span>&nbsp;<span class="return-type">com.google.gson.JsonObject</span>&nbsp;<span class="element-name">gameTestEnvironment</span>()</div>
+<div class="block">Pinned loader coordinates used to create an independent acceptance-test host.</div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="gameTestModId(dev.copperbench.core.workspace.WorkspaceState)">
+<h3>gameTestModId</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">default</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">gameTestModId</span><wbr><span class="parameters">(<a href="../core/workspace/WorkspaceState.html" title="class in dev.copperbench.core.workspace">WorkspaceState</a>&nbsp;workspace)</span></div>
 </div>
 </section>
 </li>
