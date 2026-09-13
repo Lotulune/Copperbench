@@ -224,7 +224,7 @@ class Stage9NativeJcefAccessibilityTest {
 					(function() {
 					    var modal = document.querySelector('[data-testid=create-element-modal]');
 					    var typeButton = Array.from(modal?.querySelectorAll('button') || [])
-					        .find(function(button) { return button.textContent?.trim() === '过程'; });
+					        .find(function(button) { return button.textContent?.trim() === '过程（Procedure）'; });
 					    typeButton?.click();
 					    var input = modal?.querySelector('[data-testid=create-element-name-input]');
 					    if (input) {
@@ -259,8 +259,8 @@ class Stage9NativeJcefAccessibilityTest {
 					    var canvas = document.querySelector('.procedure-canvas');
 					    var outline = document.querySelector('[data-testid=procedure-node-outline]');
 					    var nodes = Array.from(outline?.querySelectorAll('button') || []);
-					    return canvas?.getAttribute('aria-label') === 'Procedure 可视化画布'
-					        && outline?.getAttribute('aria-label') === 'Procedure 节点与端口'
+					    return canvas?.getAttribute('aria-label') === '过程可视化画布'
+					        && outline?.getAttribute('aria-label') === '过程节点与端口'
 					        && nodes.length >= 1
 					        && nodes.every(function(node) {
 					            var name = node.getAttribute('aria-label') || '';

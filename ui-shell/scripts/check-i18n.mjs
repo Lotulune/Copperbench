@@ -1,3 +1,4 @@
+import ts from 'typescript';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, extname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -13,7 +14,7 @@ const sourceRoots = [
 const sourceExtensions = new Set(['.java', '.json', '.ts', '.tsx']);
 const localizedPrefixes = [
   'action', 'approval', 'aria', 'capability', 'diagnostic', 'disposition', 'editor', 'field',
-  'material', 'notice', 'placeholder', 'reason', 'scenario', 'status', 'task'
+  'material', 'notice', 'placeholder', 'procedure', 'reason', 'scenario', 'status', 'task'
 ];
 const dynamicKeys = [
   'workspace.default_name',
@@ -50,7 +51,18 @@ const keyPattern = new RegExp(`["']((?:${prefixPattern})\\.[A-Za-z0-9_.-]+)["']`
 const referencedKeys = new Set(dynamicKeys);
 for (const file of files) {
   const source = readFileSync(file, 'utf8');
-  for (const match of source.matchAll(keyPattern)) referencedKeys.add(match[1]);
+  for (const match of source.matchAll(keyPattern)) {
+    if (!match[1].endsWith('.')) referencedKeys.add(match[1]);
+  }
+  if (file.endsWith('WorkspaceApplicationService.java')) {
+    // These UI keys are assembled at runtime, so literal-key scanning misses them.
+    const defaults = source.split('private JsonObject defaultElementValues(')[1]?.split('private Diagnostic validateElementValues(')[0] ?? '';
+    for (const match of defaults.matchAll(/values\.(?:addProperty|add)\("([^"]+)"/g)) referencedKeys.add(`field.${match[1]}`);
+    for (const match of source.matchAll(/procedureNode\(catalog, "([^"]+)"/g)) referencedKeys.add(`procedure.node.${match[1]}`);
+  }
+  if (file.endsWith('ProcedureIrCodec.java')) {
+    for (const match of source.matchAll(/new ValidationIssue\("([^"]+)"/g)) referencedKeys.add(`diagnostic.${match[1].toLowerCase()}`);
+  }
 }
 
 const missingKeys = [...referencedKeys].filter((key) => !catalogKeys.has(key)).sort();
@@ -61,7 +73,41 @@ const fallbackBypasses = files
     return source.includes('.fallback') ? [file] : [];
   });
 
+// Inspect rendered JSX and accessibility labels, not code, IDs or user content.
+const technicalLiterals = new Set([
+  'Copperbench', 'Minecraft', 'MCP:', 'SHA-256:', '&rarr;', '.mcreator', '.mcfunction', '.json',
+  'data/', '/functions/', '/tags/functions/', 'minecraft:diamond', 'mod', 'workspace_imported_copy', 'pack_v1'
+]);
+const untranslatedUi = [];
+for (const file of files.filter(file => file.endsWith('.tsx') && file.includes(join('src', 'components')))) {
+  const source = readFileSync(file, 'utf8');
+  const ast = ts.createSourceFile(file, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+  const visitNode = node => {
+    let text;
+    if (ts.isJsxText(node)) text = node.text.trim();
+    if (ts.isJsxAttribute(node) && ['title', 'aria-label', 'placeholder'].includes(node.name.text)
+        && node.initializer && ts.isStringLiteral(node.initializer)) text = node.initializer.text;
+    if (text && /[A-Za-z]{3}/.test(text) && !/[\u3400-\u9fff]/.test(text) && !technicalLiterals.has(text)) {
+      untranslatedUi.push(`${file.slice(projectRoot.length + 1)}:${ast.getLineAndCharacterOfPosition(node.pos).line + 1}: ${text}`);
+    }
+    ts.forEachChild(node, visitNode);
+  };
+  visitNode(ast);
+  if (/blockly\/msg\/en['"]|\.(?:kind|state|ownership)\.toUpperCase\(\)/.test(source)) {
+    untranslatedUi.push(`${file.slice(projectRoot.length + 1)}: untranslated locale or wire-value rendering`);
+  }
+}
+
 const failures = [];
+const blocklySource = readFileSync(join(projectRoot, 'ui-shell/node_modules/blockly/msg/zh-hans.js'), 'utf8');
+const blocklyOverrides = readFileSync(join(projectRoot, 'ui-shell/src/i18n/blocklyZh.ts'), 'utf8');
+for (const line of blocklySource.split('\n').filter(line => line.includes('// untranslated'))) {
+  const entry = line.match(/Blockly.Msg\["([^"]+)"\] = "(.*?)";/);
+  if (entry && !/_(KEY|HELPURL|SYMBOL)$/.test(entry[1]) && /[A-Za-z]/.test(entry[2])
+      && !blocklyOverrides.includes(`${entry[1]}:`)) failures.push(`Missing Blockly translation: ${entry[1]}`);
+}
+
+if (untranslatedUi.length) failures.push(`Untranslated interface text:\n  ${untranslatedUi.join("\n  ")}`);
 if (missingKeys.length > 0) failures.push(`Missing Chinese translations:\n  ${missingKeys.join('\n  ')}`);
 if (duplicateKeys.length > 0) failures.push(`Duplicate Chinese translation keys:\n  ${[...new Set(duplicateKeys)].join('\n  ')}`);
 if (fallbackBypasses.length > 0) {

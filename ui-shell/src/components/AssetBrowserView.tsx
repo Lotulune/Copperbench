@@ -1,3 +1,4 @@
+import { valueLabel } from '../i18n/labels';
 import React, { useDeferredValue, useEffect, useMemo, useState } from 'react';
 import {
   AlertCircle, AlertTriangle, Box, CheckCircle2, CircleDashed,
@@ -756,7 +757,7 @@ const AssetBatchImportReview: React.FC<{
                     onChange={(event) => onTargetChange(index, event.target.value)} disabled={state.busy} />
                 </label>
                 <div data-testid={`asset-batch-conflict-${index}`}>
-                  {itemPreview ? `${itemPreview.conflict} · ${itemPreview.category}` : '等待预览'}
+                  {itemPreview ? `${valueLabel(itemPreview.conflict)} · ${valueLabel(itemPreview.category)}` : '等待预览'}
                 </div>
               </div>
             );

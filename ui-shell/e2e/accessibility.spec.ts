@@ -218,7 +218,7 @@ test.describe('Accessibility baseline (NFR-UI-08)', () => {
   test('Procedure exposes keyboard-operable tabs and a readable node and port outline', async ({ page }) => {
     await page.click('[data-testid="nav-elements"]');
     await page.click('[data-testid="create-element-btn"]');
-    await page.locator('[data-testid="create-element-modal"]').getByRole('button', { name: '过程', exact: true }).click();
+    await page.locator('[data-testid="create-element-modal"]').getByRole('button', { name: '过程（Procedure）', exact: true }).click();
     await page.fill('[data-testid="create-element-name-input"]', 'accessible_flow');
     await page.click('[data-testid="create-element-submit-btn"]');
 
@@ -236,8 +236,8 @@ test.describe('Accessibility baseline (NFR-UI-08)', () => {
     await expect(outline).toBeVisible();
     await expect(outline.getByRole('button', { name: /入口触发器.*下一个/ })).toBeVisible();
 
-    await page.getByLabel('搜索 Procedure 节点').fill('数值');
-    await page.getByRole('button', { name: /^数值 value/ }).click();
+    await page.getByLabel('搜索过程节点').fill('数值');
+    await page.getByRole('button', { name: /^数值 值/ }).click();
     await page.getByRole('button', { name: /保存/ }).click();
     await expect(page.getByText(/已保存 1 项结构化变更/)).toBeVisible();
     await nodesTab.click();

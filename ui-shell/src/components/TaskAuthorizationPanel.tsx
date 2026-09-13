@@ -87,7 +87,7 @@ export const TaskAuthorizationPanel: React.FC = () => {
           onChange={event => setSelected(items => event.target.checked ? [...items, item.id] : items.filter(id => id !== item.id))} />{item.label}</label>)}
       </div></fieldset>
       {selected.includes('run_server') && <label className="task-authority-eula"><input type="checkbox" required checked={eula}
-        onChange={event => setEula(event.target.checked)} />我已阅读并接受 <a href="https://www.minecraft.net/eula" target="_blank" rel="noreferrer">Minecraft EULA</a>，允许此任务运行专用测试服务器。</label>}
+        onChange={event => setEula(event.target.checked)} />我已阅读并接受 <a href="https://www.minecraft.net/eula" target="_blank" rel="noreferrer">Minecraft 最终用户许可协议（EULA）</a>，允许此任务运行专用测试服务器。</label>}
       <p className="task-authority-note">目录范围用于 Copperbench 操作校验；Gradle 构建脚本仍以当前系统用户运行。到期或撤销会阻止新请求，已启动的任务需在任务面板取消。</p>
       <button type="submit" className="btn-primary" disabled={busy || !label.trim() || !root.trim()}>审查并创建授权</button>
     </form>
@@ -114,7 +114,7 @@ export const TaskAuthorizationPanel: React.FC = () => {
       <div className="modal-body"><strong>{review.label}</strong><dl className="approval-details">
         <div><dt>目录</dt><dd><code>{review.root}</code></dd></div><div><dt>操作</dt><dd>{names(review.capabilities)}</dd></div>
         <div><dt>有效期</dt><dd>{review.ttlSeconds / 3600} 小时</dd></div>
-        {review.capabilities.includes('run_server') && <div><dt>Minecraft EULA</dt><dd>已明确接受</dd></div>}
+        {review.capabilities.includes('run_server') && <div><dt>Minecraft 最终用户许可协议（EULA）</dt><dd>已明确接受</dd></div>}
       </dl></div><div className="modal-footer approval-actions">
         <button type="button" className="btn-secondary" disabled={busy} onClick={() => setReview(null)}>取消</button>
         <button type="button" className="btn-primary" disabled={busy} onClick={() => void issue()}>{busy ? '正在签发…' : '确认授权'}</button>

@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 import { CopperbenchClient } from '../../sdk/typescript/copperbench';
 
 test('user reviews bounded authority, cancels, issues and revokes it', async ({ page }, testInfo) => {
+  await page.emulateMedia({ colorScheme: 'dark' });
   await page.goto('/');
   await page.getByTestId('nav-ai').click();
   const panel = page.getByRole('region', { name: '任务授权', exact: true });
@@ -19,7 +20,7 @@ test('user reviews bounded authority, cancels, issues and revokes it', async ({ 
   await page.keyboard.press('Escape');
   await expect(dialog).not.toBeVisible();
   await expect(panel.getByText('暂无任务授权。')).toBeVisible();
-  await page.getByRole('button', { name: '切换到亮色主题', exact: true }).click();
+  await page.getByRole('button', { name: '当前跟随系统；切换到亮色主题', exact: true }).click();
   await panel.getByRole('button', { name: '审查并创建授权' }).click();
   await page.screenshot({ path: testInfo.outputPath('authority-review-light.png') });
   await dialog.getByRole('button', { name: '确认授权', exact: true }).click();

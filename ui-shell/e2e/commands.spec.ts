@@ -146,7 +146,7 @@ test.describe('Interactive UI-Core Commands & Mutations', () => {
     await page.click('[data-testid="gui-add-component-btn"]');
     await expect(page.locator('[data-testid="gui-component-5"]')).toContainText('outputslot_1');
     await page.selectOption('[data-testid="gui-type"]', '0');
-    await expect(page.locator('[data-testid="gui-layout-diagnostics"]')).toContainText('槽位组件要求 GUI 类型为 With slots');
+    await expect(page.locator('[data-testid="gui-layout-diagnostics"]')).toContainText('槽位组件要求界面类型为“含物品槽（With slots）”');
     await expect(page.locator('[data-testid="gui-save-btn"]')).toBeDisabled();
     await page.selectOption('[data-testid="gui-type"]', '1');
     await expect(page.locator('[data-testid="gui-layout-diagnostics"]')).not.toBeVisible();
@@ -335,12 +335,12 @@ test.describe('Interactive UI-Core Commands & Mutations', () => {
 
   test('MCP permission status does not fake elevation when the desktop runtime is unavailable', async ({ page }) => {
     const permBtn = page.locator('[data-testid="permission-alert"]');
-    await expect(permBtn).toContainText('MCP: WORKSPACE');
+    await expect(permBtn).toContainText('MCP: 工作区读写（Workspace）');
 
     await permBtn.click();
-    await expect(permBtn).toContainText('MCP: WORKSPACE');
+    await expect(permBtn).toContainText('MCP: 工作区读写（Workspace）');
 
     await permBtn.click();
-    await expect(permBtn).toContainText('MCP: WORKSPACE');
+    await expect(permBtn).toContainText('MCP: 工作区读写（Workspace）');
   });
 });

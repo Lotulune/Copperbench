@@ -1,3 +1,4 @@
+import { valueLabel } from '../i18n/labels';
 import React, { useState } from 'react';
 import { PlayCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
@@ -57,7 +58,7 @@ export const ScenarioSwitcher: React.FC = () => {
               letterSpacing: '0.5px'
             }}
           >
-            合同场景（13 个契约状态）
+            演示场景（{scenarioList.length} 种状态）
           </div>
 
           {scenarioList.map((id) => {
@@ -86,7 +87,7 @@ export const ScenarioSwitcher: React.FC = () => {
               >
                 <div style={{ fontSize: '12px' }}>{t(sc.title)}</div>
                 <div style={{ fontSize: '10px', color: 'var(--text-sub)' }}>
-                  状态：{sc.viewportState}
+                  状态：{valueLabel(sc.viewportState)}
                 </div>
               </button>
             );

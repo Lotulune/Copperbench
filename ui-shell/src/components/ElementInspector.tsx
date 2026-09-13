@@ -1,3 +1,4 @@
+import { elementLabel } from '../i18n/labels';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   X,
@@ -750,7 +751,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
               检查器
             </div>
             <div style={{ fontSize: '11px', color: 'var(--text-sub)' }}>
-              {element.type.toUpperCase()} · {element.name}
+              {elementLabel(element.type)} · {element.name}
             </div>
           </div>
         </div>

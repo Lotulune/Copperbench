@@ -144,7 +144,7 @@ public final class BootstrapProductLauncher {
 		} else {
 			if (!GraphicsEnvironment.isHeadless())
 				new PrintWriter(new java.io.FileOutputStream(java.io.FileDescriptor.err), true)
-						.println("Copperbench is waiting for local workspace creation approval: " + workspaceFolder);
+						.println("Copperbench 正在等待创建工作区的本机确认：" + workspaceFolder);
 			approved = approvalPrompt.approve(request);
 		}
 		if (!approved) {
@@ -186,12 +186,12 @@ public final class BootstrapProductLauncher {
 	private static boolean confirmLocally(CreateRequest request) {
 		if (GraphicsEnvironment.isHeadless())
 			return false;
-		String message = "<html><b>Allow Copperbench to create this workspace?</b><br><br>"
-				+ "Generator: " + escapeHtml(request.generatorId()) + "<br>"
-				+ "Mod: " + escapeHtml(request.modName()) + " (" + escapeHtml(request.modId()) + ")<br>"
-				+ "Folder: " + escapeHtml(request.workspaceFolderPath()) + "<br><br>"
-				+ "An external tool may be waiting for this confirmation.</html>";
-        return LocalApprovalWindow.confirm(ProductIdentity.NAME + " workspace creation", message);
+		String message = "<html><b>是否允许 Copperbench 创建此工作区？</b><br><br>"
+				+ "生成器（Generator）：" + escapeHtml(request.generatorId()) + "<br>"
+				+ "模组（Mod）：" + escapeHtml(request.modName()) + " (" + escapeHtml(request.modId()) + ")<br>"
+				+ "文件夹（Folder）：" + escapeHtml(request.workspaceFolderPath()) + "<br><br>"
+				+ "外部工具可能正在等待此次确认。确认后将在上述位置创建工作区文件。</html>";
+        return LocalApprovalWindow.confirm(ProductIdentity.NAME + " 工作区创建确认", message);
 	}
 
 	private static String escapeHtml(String value) {

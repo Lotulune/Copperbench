@@ -21,7 +21,7 @@ final class LocalApprovalWindow {
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame(title);
             try {
-                String allow = "Allow", cancel = "Cancel";
+                String allow = "允许（Allow）", cancel = "取消（Cancel）";
                 JOptionPane pane = new JOptionPane(message, JOptionPane.QUESTION_MESSAGE,
                         JOptionPane.YES_NO_OPTION, null, new Object[]{allow, cancel}, cancel);
                 frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);

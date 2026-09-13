@@ -43,9 +43,9 @@ export const NavRail: React.FC = () => {
     { id: 'data', label: '变量与数据', icon: Database, badge: '引用', badgeType: 'green' },
     { id: 'tracks', label: '版本与迁移', icon: Compass, badge: '4轨', badgeType: 'copper' },
     { id: 'new-workspace', label: '新建工作区', icon: Layers, badge: '4×2', badgeType: 'blue' },
-    { id: 'assets', label: '资产与模型', icon: Palette, badge: 'Stage 6', badgeType: 'blue' },
-    { id: 'history', label: '本地历史', icon: GitBranch, badge: 'JGit', badgeType: 'blue' },
-    { id: 'ai', label: 'AI 与 MCP', icon: Bot, badge: permission === 'workspace' ? 'WS' : permission === 'full_access' ? 'FULL' : 'RO', badgeType: 'green' },
+    { id: 'assets', label: '资产与模型', icon: Palette },
+    { id: 'history', label: '本地历史', icon: GitBranch },
+    { id: 'ai', label: 'AI 与 MCP', icon: Bot, badge: permission === 'workspace' ? '读写' : permission === 'full_access' ? '完全' : '只读', badgeType: 'green' },
     { id: 'plugins', label: '插件中心', icon: Plug, badge: 'A/B/C', badgeType: 'blue' },
     { id: 'help', label: '帮助与关于', icon: HelpCircle, badge: '0.1.0', badgeType: 'copper' }
   ];
@@ -90,6 +90,8 @@ export const NavRail: React.FC = () => {
               ref={item.id === 'ai' ? aiNavigationRef : undefined}
               type="button"
               onClick={() => setActiveView(item.id)}
+              aria-label={item.label}
+              title={item.label}
               aria-current={isActive ? 'page' : undefined}
               aria-keyshortcuts={item.id === 'ai' ? 'Control+Shift+M' : undefined}
               data-testid={`nav-${item.id}`}
@@ -140,7 +142,7 @@ export const NavRail: React.FC = () => {
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--accent-copper)', fontSize: '11px', fontWeight: 600 }}>
           <Sparkles size={12} />
-          <span>UI-Core 工作台</span>
+          <span>模组创作工作台</span>
         </div>
         <div style={{ fontSize: '10px', color: 'var(--text-sub)' }}>
           {state.currentScenarioId === 'native' ? 'JCEF 原生桥接 · 协议 v1.0' : 'Mock 桥接已连接 · 协议 v1.0'}

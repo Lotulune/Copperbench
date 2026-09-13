@@ -49,7 +49,7 @@ public class AboutAction extends BasicAction {
 	}
 
 	public static void showDialog(Window parent) {
-		Object[] options = { "使用说明", "Upstream source", "GPL-3.0 license", "Third-party licenses" };
+		Object[] options = { "使用说明", "上游源码", "GPL-3.0 许可证", "第三方许可证" };
 
 		JPanel logoPanel = new JPanel(new BorderLayout(24, 24));
 		logoPanel.add("North", new JLabel(AppIcon.getAppIcon(128, 128)));
@@ -62,16 +62,16 @@ public class AboutAction extends BasicAction {
 		}
 
 		JLabel aboutLabel = new JLabel("<html><b>" + ProductIdentity.NAME + " " + ProductIdentity.VERSION
-				+ "</b><br>Independent GPL-3.0 derivative based on MCreator " + Launcher.version.getFullString()
-				+ ".<br><br>Build: " + versionString + "<br>Architecture: " + OS.getArchitecture()
-				+ " / " + OS.getBundledJVMBits() + "-bit JVM<br><br>"
-				+ "MCreator and Pylo names and logos belong to their respective owners.</html>");
+				+ "</b><br>基于 MCreator " + Launcher.version.getFullString()
+				+ " 的独立 GPL-3.0 衍生项目。<br><br>构建版本：" + versionString + "<br>系统架构：" + OS.getArchitecture()
+				+ " / " + OS.getBundledJVMBits() + " 位 JVM<br><br>"
+				+ "MCreator 和 Pylo 的名称及标识归各自权利人所有。</html>");
 
 		JComponent dialogPanel = PanelUtils.westAndCenterElement(
 				PanelUtils.pullElementUp(PanelUtils.centerInPanel(logoPanel)), aboutLabel, 48, 48);
 		dialogPanel.setBorder(BorderFactory.createEmptyBorder(16, 0, 0, 32));
 
-		int n = JOptionPane.showOptionDialog(parent, dialogPanel, "About " + ProductIdentity.NAME,
+		int n = JOptionPane.showOptionDialog(parent, dialogPanel, "关于 " + ProductIdentity.NAME,
 				JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
 		if (n == 0) {
 			openUserGuide(parent);

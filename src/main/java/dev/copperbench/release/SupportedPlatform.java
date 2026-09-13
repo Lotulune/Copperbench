@@ -25,7 +25,7 @@ public final class SupportedPlatform {
 	public static final String MINIMUM_OS = "Windows 11";
 	public static final int MINIMUM_BUILD = 22000;
 	public static final String UNSUPPORTED_MESSAGE =
-			"Copperbench requires 64-bit Windows 11 (build 22000 or later). Windows 10 is not supported.";
+			"Copperbench 需要 64 位 Windows 11（系统内部版本 22000 或更高）。不支持 Windows 10。";
 	public static final String STAGE15_LINUX_CANDIDATE_PROPERTY = "copperbench.stage15LinuxCandidate";
 
 	private SupportedPlatform() {
@@ -77,7 +77,8 @@ public final class SupportedPlatform {
 		if (currentHostRunnable())
 			return;
 		if (!GraphicsEnvironment.isHeadless())
-			JOptionPane.showMessageDialog(null, UNSUPPORTED_MESSAGE, "Copperbench", JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showOptionDialog(null, UNSUPPORTED_MESSAGE, "Copperbench 系统要求",
+                    JOptionPane.DEFAULT_OPTION, JOptionPane.ERROR_MESSAGE, null, new Object[]{"确定"}, "确定");
 		throw new UnsupportedOperationException(UNSUPPORTED_MESSAGE);
 	}
 }

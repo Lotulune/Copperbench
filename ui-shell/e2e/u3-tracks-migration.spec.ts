@@ -85,7 +85,7 @@ test.describe('U3: Version Tracks, Loader Migration, Upstream Import, and Publis
     await page.click('[data-testid="execute-migration-btn"]');
     await expect(page.locator('[data-testid="migration-incomplete-banner"]')).toBeVisible();
     await expect(page.locator('[data-testid="migration-success-banner"]')).not.toBeVisible();
-    await expect(page.getByText('源工作区保持只读未受任何修改 (sourceUnchanged: true)')).toBeVisible();
+    await expect(page.getByText('迁移未完成，原工作区未修改。请检查迁移报告中的阻断项和手动处理项。')).toBeVisible();
   });
 
   test('upstream workspace import displays desktop full access notice, denies non-elevated import, and succeeds on full access', async ({ page }) => {

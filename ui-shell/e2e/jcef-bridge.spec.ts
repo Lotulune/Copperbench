@@ -346,7 +346,7 @@ test.describe('JCEF Bridge & Host Transport Integration', () => {
     await page.click('[data-testid="titlebar-run-btn"]');
     await expect.poll(() => page.evaluate(() => window.sessionStorage.getItem('lastCoreCommand')))
       .toBe('run_client');
-    await expect(page.locator('[data-testid="task-drawer"]')).toContainText('SUCCEEDED');
+    await expect(page.locator('[data-testid="task-drawer"]')).toContainText('已完成');
     await expect(page.locator('[data-testid="task-log-stream"]'))
       .toContainText('Minecraft client reached the readiness marker.');
 

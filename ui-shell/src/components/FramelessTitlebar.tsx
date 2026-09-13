@@ -5,6 +5,7 @@ import {
   Play,
   Sun,
   Moon,
+  Monitor,
   Minus,
   Square,
   Copy,
@@ -37,6 +38,7 @@ export const FramelessTitlebar: React.FC = () => {
   const {
     state,
     theme,
+    themePreference,
     toggleTheme,
     isMaximized,
     toggleMaximize,
@@ -243,13 +245,13 @@ export const FramelessTitlebar: React.FC = () => {
           type="button"
           className="btn-secondary titlebar-tool"
           onClick={toggleTheme}
-          title={theme === 'dark' ? '切换到亮色主题' : '切换到暗色主题'}
-          aria-label={theme === 'dark' ? '切换到亮色主题' : '切换到暗色主题'}
+          title={themePreference === 'system' ? '当前跟随系统；切换到亮色主题' : themePreference === 'light' ? '当前亮色主题；切换到暗色主题' : '当前暗色主题；切换为跟随系统'}
+          aria-label={themePreference === 'system' ? '当前跟随系统；切换到亮色主题' : themePreference === 'light' ? '当前亮色主题；切换到暗色主题' : '当前暗色主题；切换为跟随系统'}
           data-testid="theme-toggle-btn"
           data-window-chrome-kind="client"
           data-window-chrome-id="theme"
         >
-          {theme === 'dark' ? <Sun size={13} aria-hidden="true" /> : <Moon size={13} aria-hidden="true" />}
+          {themePreference === 'system' ? <Monitor size={13} aria-hidden="true" /> : theme === 'dark' ? <Sun size={13} aria-hidden="true" /> : <Moon size={13} aria-hidden="true" />}
         </button>
 
         <button

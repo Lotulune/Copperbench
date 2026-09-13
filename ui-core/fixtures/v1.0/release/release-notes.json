@@ -436,7 +436,7 @@
       {
         "id": "latest_stable",
         "minecraftVersion": "26.2",
-        "displayName": "Latest stable (Minecraft 26.2)",
+        "displayName": "最新稳定轨（Minecraft 26.2）",
         "dynamic": true,
         "loaders": [
           {
@@ -447,7 +447,7 @@
             "status": "supported",
             "pluginId": "generator-fabric-26.2",
             "reasonCode": "TRACK_SUPPORTED",
-            "notes": "Latest stable Minecraft 26.2. New Workspace generator retargeted from Goldorion Fabric 26.1.2 templates (Fabric API 0.158.0+26.2). First-party vertical slice also has compile and runClient evidence."
+            "notes": "最新稳定轨 Minecraft 26.2。新建工作区模板基于 Goldorion Fabric 26.1.2 适配，使用 Fabric API 0.158.0+26.2；内置功能范围已有编译和客户端启动（runClient）验证记录。"
           },
           {
             "loader": "neoforge",
@@ -457,14 +457,14 @@
             "status": "supported",
             "pluginId": "generator-26.2",
             "reasonCode": "TRACK_SUPPORTED",
-            "notes": "Latest stable Minecraft 26.2. New Workspace generator retargeted from NeoForge 26.1.2 templates (NeoForge 26.2.0.63). First-party vertical slice also has compile and runClient evidence."
+            "notes": "最新稳定轨 Minecraft 26.2。新建工作区模板基于 NeoForge 26.1.2 适配，使用 NeoForge 26.2.0.63；内置功能范围已有编译和客户端启动（runClient）验证记录。"
           }
         ]
       },
       {
         "id": "previous_stable",
         "minecraftVersion": "26.1",
-        "displayName": "Previous stable (Minecraft 26.1)",
+        "displayName": "前一稳定轨（Minecraft 26.1）",
         "dynamic": true,
         "loaders": [
           {
@@ -475,7 +475,7 @@
             "status": "supported",
             "pluginId": "generator-fabric-26.1.2",
             "reasonCode": "TRACK_SUPPORTED",
-            "notes": "Previous stable Minecraft 26.1.2. First-party Fabric vertical slice with compile and runClient evidence (unobfuscated Loom, Fabric API 0.155.2+26.1.2)."
+            "notes": "前一稳定轨 Minecraft 26.1.2。使用无混淆 Loom 和 Fabric API 0.155.2+26.1.2；内置功能范围已有编译和客户端启动（runClient）验证记录。"
           },
           {
             "loader": "neoforge",
@@ -485,14 +485,14 @@
             "status": "supported",
             "pluginId": "generator-26.1.x",
             "reasonCode": "TRACK_SUPPORTED",
-            "notes": "Previous stable Minecraft 26.1.2. First-party NeoForge vertical slice with compile and runClient evidence (NeoForge 26.1.2.95)."
+            "notes": "前一稳定轨 Minecraft 26.1.2。使用 NeoForge 26.1.2.95；内置功能范围已有编译和客户端启动（runClient）验证记录。"
           }
         ]
       },
       {
         "id": "minecraft_1_21_1",
         "minecraftVersion": "1.21.1",
-        "displayName": "Minecraft 1.21.1 (maintenance)",
+        "displayName": "维护轨（Minecraft 1.21.1）",
         "dynamic": false,
         "loaders": [
           {
@@ -503,7 +503,7 @@
             "status": "supported",
             "pluginId": "generator-1.21.1",
             "reasonCode": "TRACK_SUPPORTED",
-            "notes": "Maintenance track. New Workspace generator retargeted from Goldorion Fabric 26.1.2 templates to ResourceLocation/Java 21. First-party vertical slice has golden build and runClient evidence."
+            "notes": "维护轨 Minecraft 1.21.1。新建工作区模板基于 Goldorion Fabric 26.1.2 适配，使用 ResourceLocation 和 Java 21；内置功能范围已有基准构建（Golden Build）和客户端启动（runClient）验证记录。"
           },
           {
             "loader": "neoforge",
@@ -513,14 +513,14 @@
             "status": "supported",
             "pluginId": "generator-1.21.1",
             "reasonCode": "TRACK_SUPPORTED",
-            "notes": "Maintenance track. Copperbench-owned NeoForge 1.21.1 vertical slice with golden build and runClient evidence."
+            "notes": "维护轨 Minecraft 1.21.1。使用 Copperbench 维护的 NeoForge 生成器；内置功能范围已有基准构建（Golden Build）和客户端启动（runClient）验证记录。"
           }
         ]
       },
       {
         "id": "minecraft_1_20_1",
         "minecraftVersion": "1.20.1",
-        "displayName": "Minecraft 1.20.1 (maintenance)",
+        "displayName": "维护轨（Minecraft 1.20.1）",
         "dynamic": false,
         "loaders": [
           {
@@ -531,7 +531,7 @@
             "status": "supported",
             "pluginId": "generator-1.20.1",
             "reasonCode": "TRACK_SUPPORTED",
-            "notes": "Maintenance track. New Workspace generator retargeted to Java 17, Gradle 8.8 and loom 1.7.4. First-party vertical slice has compile and runClient evidence."
+            "notes": "维护轨 Minecraft 1.20.1。使用 Java 17、Gradle 8.8 和 Loom 1.7.4；内置功能范围已有编译和客户端启动（runClient）验证记录。"
           },
           {
             "loader": "neoforge",
@@ -541,7 +541,7 @@
             "status": "supported",
             "pluginId": "generator-1.20.1",
             "reasonCode": "TRACK_SUPPORTED",
-            "notes": "Maintenance track. New Workspace generator retargeted to Forge 1.20.1-47.1.106 and userdev 7.0.165. First-party vertical slice has compile and runClient evidence."
+            "notes": "维护轨 Minecraft 1.20.1。此轨道的新建工作区模板使用 Forge 1.20.1-47.1.106 和 userdev 7.0.165；内置功能范围已有编译和客户端启动（runClient）验证记录。"
           }
         ]
       }
@@ -579,27 +579,27 @@
   },
   "upstreamTools": {
     "schemaVersion": "1.0",
-    "notes": "Upstream Swing tools are either in the new UI, opened through the legacy plugin window, explicitly unsupported, or out of first-release scope. The legacy window is not a visual or accessibility promise.",
+    "notes": "此表说明 MCreator 工具在 Copperbench 中的入口和支持范围。旧版窗口的布局与无障碍支持可能与新工作台不同。",
     "tools": [
-      {"id": "workspace_open_create_import", "upstream": "File/Open, New, Import workspace", "surface": "new_ui", "notes": "Shared application service. Import copies to a sibling directory and preserves unknown fields."},
-      {"id": "mod_elements_first_party", "upstream": "Workspace/Mod elements for all 37 Java element types", "surface": "new_ui", "notes": "All Java types share the schema-driven editor and application-service CRUD; generator capability remains explicit per loader/version."},
-      {"id": "mod_elements_other", "upstream": "Living entity, GUI, plant, dimension, and other element editors", "surface": "new_ui", "notes": "Stage 11 promotes these Java types to first-party support. Bedrock-specific elements remain outside this tool surface."},
-      {"id": "assets_blockbench", "upstream": "Resources/3D models and animations via Blockbench", "surface": "new_ui", "notes": "Asset graph, leases, and the Blockbench process bridge. The editor is not embedded."},
-      {"id": "resource_pack_workspace", "upstream": "Resource pack maker and ZIP export", "surface": "new_ui", "notes": "Deterministic ZIP, publish batches, and prepare_resource_pack_client. Fabric 1.21.1 ResourceManager load is claimed."},
-      {"id": "textures_sounds_structures", "upstream": "Resources/Textures, Sounds, Structures, Screenshots", "surface": "legacy_window", "notes": "Native texture/sound/structure browsers stay in the legacy Swing window. Blockbench is the first-party model path."},
-      {"id": "image_armor_animation_makers", "upstream": "Tools/Image editor, Armor texture, Animated texture", "surface": "legacy_window", "notes": "Built-in image and armor makers remain Swing. They are not in the React shell."},
-      {"id": "tags_variables_localization", "upstream": "Workspace/Tags, Variables, Localization", "surface": "new_ui", "notes": "The Creator Data view provides stable-ID CRUD, reference counts, rename impact previews, language CSV/JSON import/export, conflict modes, and missing/duplicate translation statistics."},
-      {"id": "code_ide_and_file_browser", "upstream": "Code editor, workspace file browser, reformat/save", "surface": "legacy_window", "notes": "Hand-written source is an advanced exit, not a first-party React IDE."},
-      {"id": "pack_makers", "upstream": "Tools/Material, Ore, Tool, Armor, Wood pack makers", "surface": "legacy_window", "notes": "Wizard pack makers stay in Swing. They are not first-party MCP commands."},
-      {"id": "vanilla_data_lists", "upstream": "Tools/Entity IDs, item/block list, particles, sounds, loot tables", "surface": "legacy_window", "notes": "Read-only vanilla data browsers remain in the legacy window."},
-      {"id": "generate_build_run_client", "upstream": "Build, run client, regenerate code, export JAR", "surface": "new_ui", "notes": "Shared tasks. runClient evidence exists for all eight first-party generators."},
-      {"id": "run_server_debug_client", "upstream": "Run server, datagen, and existing GameTest", "surface": "new_ui", "notes": "Managed development-preview tasks use isolated run directories. Debug client and arbitrary Gradle task execution are not first-party commands."},
-      {"id": "workspace_settings_tab_order", "upstream": "Workspace settings, creative tab item order", "surface": "legacy_window", "notes": "Full generator/settings dialogs remain Swing."},
-      {"id": "preferences", "upstream": "Preferences dialog", "surface": "legacy_window", "notes": "Privacy defaults are product-owned. The full preference tree stays in Swing."},
-      {"id": "local_history", "upstream": "Local history panel", "surface": "new_ui", "notes": "Recovery points and restore through the shared history service. Git remotes are not rewritten."},
-      {"id": "plugin_manager", "upstream": "Plugins panel", "surface": "new_ui", "notes": "list_installed_plugins is first-party. Swing UI plugins still open in the legacy window. Java plugins stay opt-in."},
-      {"id": "website_community_publish_donate", "upstream": "Help/Website, community, publish, donate", "surface": "not_applicable", "notes": "No product accounts, store, or implicit network services."},
-      {"id": "check_for_updates", "upstream": "Help/Check for updates and plugin updates", "surface": "not_applicable", "notes": "Implicit network services are disabled. Update checks are not first-release behavior."}
+      {"id": "workspace_open_create_import", "upstream": "打开、新建、导入工作区（File / Workspace）", "surface": "new_ui", "notes": "导入时创建同级目录副本，并保留未知字段。"},
+      {"id": "mod_elements_first_party", "upstream": "模组元素（Mod Elements）：37 种 Java 元素类型", "surface": "new_ui", "notes": "所有 Java 元素类型均可通过通用编辑器管理；可生成的功能取决于加载器和版本。"},
+      {"id": "mod_elements_other", "upstream": "生物实体、界面、植物、维度等元素编辑器", "surface": "new_ui", "notes": "这些 Java 元素类型已纳入内置支持；基岩版专属元素不在此范围内。"},
+      {"id": "assets_blockbench", "upstream": "模型与动画（Blockbench）", "surface": "new_ui", "notes": "从资产视图打开独立的 Blockbench 编辑器，并跟踪资源引用。"},
+      {"id": "resource_pack_workspace", "upstream": "资源包制作与 ZIP 导出（Resource Pack）", "surface": "new_ui", "notes": "支持可复现 ZIP 导出、发布批次和客户端准备；已有 Fabric 1.21.1 资源管理器加载验证记录。"},
+      {"id": "textures_sounds_structures", "upstream": "纹理、声音、结构与截图（Resources）", "surface": "legacy_window", "notes": "纹理、声音和结构浏览器仍在旧版 Swing 窗口中；模型编辑使用 Blockbench。"},
+      {"id": "image_armor_animation_makers", "upstream": "图像编辑器、盔甲纹理与动态纹理（Tools）", "surface": "legacy_window", "notes": "这些制作工具仍在旧版 Swing 窗口中。"},
+      {"id": "tags_variables_localization", "upstream": "标签、变量与本地化（Tags / Variables / Localization）", "surface": "new_ui", "notes": "在“变量与数据”中管理条目、预览重命名影响、导入导出 CSV/JSON，并查看缺失或重复翻译。"},
+      {"id": "code_ide_and_file_browser", "upstream": "代码编辑器与工作区文件浏览器（Code Editor）", "surface": "legacy_window", "notes": "手写源码通过旧版编辑器维护；新工作台暂不提供完整代码开发环境。"},
+      {"id": "pack_makers", "upstream": "材料、矿石、工具、盔甲与木材套装向导（Pack Makers）", "surface": "legacy_window", "notes": "套装制作向导仍在旧版 Swing 窗口中，暂不提供对应 MCP 命令。"},
+      {"id": "vanilla_data_lists", "upstream": "原版实体、物品、方块、粒子、声音与战利品表列表", "surface": "legacy_window", "notes": "原版数据的只读浏览器仍在旧版窗口中。"},
+      {"id": "generate_build_run_client", "upstream": "构建、测试客户端、重新生成代码与导出 JAR", "surface": "new_ui", "notes": "可在工作台启动任务；八个内置生成器均已有客户端启动（runClient）验证记录。"},
+      {"id": "run_server_debug_client", "upstream": "测试服务端、数据生成（Datagen）与游戏测试（GameTest）", "surface": "new_ui", "notes": "预览任务使用隔离运行目录；暂不支持调试客户端或执行任意 Gradle 任务。"},
+      {"id": "workspace_settings_tab_order", "upstream": "工作区设置与创造模式标签页物品排序", "surface": "legacy_window", "notes": "完整的生成器和工作区设置对话框仍在旧版 Swing 窗口中。"},
+      {"id": "preferences", "upstream": "偏好设置（Preferences）", "surface": "legacy_window", "notes": "完整偏好设置仍在旧版 Swing 窗口中，隐私默认值由 Copperbench 管理。"},
+      {"id": "local_history", "upstream": "本地历史（Local History）", "surface": "new_ui", "notes": "支持创建恢复点和还原工作区，不改写 Git 远程配置。"},
+      {"id": "plugin_manager", "upstream": "插件管理（Plugins）", "surface": "new_ui", "notes": "可查看已安装插件；Swing 界面插件在旧版窗口打开，Java 插件需要手动启用。"},
+      {"id": "website_community_publish_donate", "upstream": "官网、社区、发布与捐赠（Help）", "surface": "not_applicable", "notes": "不提供产品账号、商店或自动联网服务。"},
+      {"id": "check_for_updates", "upstream": "检查产品和插件更新（Check for Updates）", "surface": "not_applicable", "notes": "自动联网服务已禁用，当前版本不提供更新检查。"}
     ]
   },
   "knownLimitations": [

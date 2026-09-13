@@ -1,3 +1,4 @@
+import { elementLabel, valueLabel } from '../i18n/labels';
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   Compass,
@@ -448,7 +449,7 @@ export const TracksAndMigrationView: React.FC = () => {
   return (
     <div className="tracks-migration-view animate-fade-in" data-testid="tracks-view" style={{ flex: 1, padding: '24px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '16px' }}>
+      <div className="track-view-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div style={{ padding: '8px', borderRadius: 'var(--radius-md)', background: 'var(--accent-copper-dim)', color: 'var(--accent-copper)' }}>
             <Compass size={24} />
@@ -462,7 +463,7 @@ export const TracksAndMigrationView: React.FC = () => {
         </div>
 
         {/* Tab Switcher */}
-        <div style={{ display: 'flex', gap: '6px', background: 'var(--bg-panel)', padding: '4px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
+        <div className="track-view-tabs" style={{ display: 'flex', gap: '6px', background: 'var(--bg-panel)', padding: '4px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
           <button
             type="button"
             className={`btn-ghost ${activeTab === 'matrix' ? 'is-active' : ''}`}
@@ -514,7 +515,7 @@ export const TracksAndMigrationView: React.FC = () => {
       {/* Tab 1: Version Track Matrix */}
       {activeTab === 'matrix' && (
         <div className="track-matrix-content animate-fade-in" data-testid="track-matrix-section" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--bg-panel)', padding: '12px 16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
+          <div className="track-workspace-summary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--bg-panel)', padding: '12px 16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px' }}>
               <Info size={16} color="var(--accent-copper)" />
               <span>当前工作区所用生成器：</span>
@@ -530,7 +531,7 @@ export const TracksAndMigrationView: React.FC = () => {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 360px), 1fr))', gap: '16px' }}>
             {tracksData?.tracks.map((track: VersionTrack) => (
               <div
                 key={track.id}
@@ -577,7 +578,7 @@ export const TracksAndMigrationView: React.FC = () => {
                       >
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <strong style={{ textTransform: 'capitalize', fontSize: '13px' }}>{loader.loader}</strong>
+                            <strong style={{ textTransform: 'capitalize', fontSize: '13px' }}>{loader.loader === 'resource_pack' ? '资源包（Resource Pack）' : loader.loader === 'neoforge' ? 'NeoForge' : 'Fabric'}</strong>
                             <code style={{ fontSize: '11px', color: 'var(--text-sub)' }}>{loader.generatorId}</code>
                             {isCurrent && <span className="badge badge-copper" style={{ fontSize: '9px' }}>当前工作区</span>}
                           </div>
@@ -626,7 +627,7 @@ export const TracksAndMigrationView: React.FC = () => {
           <div role="note" style={{ background: 'var(--badge-blue-bg)', border: '1px solid rgba(88, 166, 255, 0.4)', borderRadius: 'var(--radius-md)', padding: '12px 16px', display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
             <ShieldCheck size={18} color="var(--badge-blue)" style={{ flexShrink: 0, marginTop: '2px' }} />
             <div style={{ fontSize: '12px', color: 'var(--text-main)', lineHeight: 1.5 }}>
-              <strong>安全拷贝保证：</strong> 当前工作区完全只读，不会被修改或破坏。迁移结果将写入新的副本目录。即便目标生成器处于技术预览阶段（<code>complete=false</code>），原工作区仍完好无损（<code>sourceUnchanged: true</code>）。
+              <strong>安全拷贝保证：</strong> 迁移结果写入新副本，保留原工作区。请先预览差异，检查丢失、降级或需手动处理的内容。
             </div>
           </div>
 
@@ -741,7 +742,7 @@ export const TracksAndMigrationView: React.FC = () => {
                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                               <strong style={{ color: 'var(--text-main)' }}>{item.name}</strong>
                               <code style={{ fontSize: '10px', color: 'var(--text-sub)' }}>{item.path}</code>
-                              <span className="badge" style={{ fontSize: '10px' }}>{item.type}</span>
+                              <span className="badge" style={{ fontSize: '10px' }}>{elementLabel(item.type)}</span>
                               <span style={{ color: 'var(--accent-copper)', fontSize: '11px' }}>{item.reasonCode}</span>
                             </div>
                             <div style={{ fontSize: '11px', color: 'var(--text-sub)', maxWidth: '45%' }}>
@@ -832,7 +833,7 @@ export const TracksAndMigrationView: React.FC = () => {
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '8px' }}>
                 <div className="stage2-stat-card">
-                  <span>Generator</span>
+                  <span>生成器（Generator）</span>
                   <strong>{migrationResult.data.semanticComparison.generatorChanged ? '已按计划切换' : '需检查'}</strong>
                 </div>
                 <div className="stage2-stat-card">
@@ -884,7 +885,7 @@ export const TracksAndMigrationView: React.FC = () => {
               <div>
                 <strong style={{ fontSize: '13px', color: 'var(--text-main)' }}>目标生成器尚不支持完全自动迁移</strong>
                 <div style={{ fontSize: '12px', color: 'var(--text-sub)' }}>
-                  迁移未完成（complete=false），源工作区保持只读未受任何修改 (sourceUnchanged: true)。
+                  迁移未完成，原工作区未修改。请检查迁移报告中的阻断项和手动处理项。
                 </div>
               </div>
             </div>
@@ -915,7 +916,7 @@ export const TracksAndMigrationView: React.FC = () => {
                 fontSize: '12px'
               }}
             >
-              {refactorResult.status === 'committed' ? '重构已提交，并使用现有恢复机制保护。' : `重构未提交：${refactorResult.status}`}
+              {refactorResult.status === 'committed' ? '重构已提交，并使用现有恢复机制保护。' : `重构未提交：${valueLabel(refactorResult.status)}`}
             </div>
           )}
 
@@ -929,7 +930,7 @@ export const TracksAndMigrationView: React.FC = () => {
                 Registry 条目
                 <select data-testid="refactor-registry-select" value={selectedRegistryId} onChange={(event) => handleRegistrySelection(event.target.value)}>
                   {refactorRegistryEntries.map((entry) => (
-                    <option key={entry.id} value={entry.id}>{entry.name ?? entry.key ?? entry.id} · {entry.kind}</option>
+                    <option key={entry.id} value={entry.id}>{entry.name ?? entry.key ?? entry.id} · {valueLabel(entry.kind)}</option>
                   ))}
                 </select>
               </label>
@@ -1025,7 +1026,7 @@ export const TracksAndMigrationView: React.FC = () => {
           <div role="alert" style={{ background: 'var(--badge-amber-bg)', border: '1px solid rgba(210, 153, 34, 0.4)', borderRadius: 'var(--radius-md)', padding: '12px 16px', display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
             <AlertTriangle size={18} color="var(--badge-amber)" style={{ flexShrink: 0, marginTop: '2px' }} />
             <div style={{ fontSize: '12px', color: 'var(--text-main)', lineHeight: 1.5 }}>
-              <strong>环境约束说明：</strong> 迁入外部上游工作区需要桌面宿主提供的系统文件选择器与 Full Access 权限。在浏览器与模拟环境下，直接文件系统选择器处于禁用状态。
+              <strong>环境约束说明：</strong> 迁入外部上游工作区需要桌面宿主提供的系统文件选择器与完全访问（Full Access）权限。在浏览器与模拟环境下，直接文件系统选择器处于禁用状态。
             </div>
           </div>
 
@@ -1048,11 +1049,11 @@ export const TracksAndMigrationView: React.FC = () => {
                     className="btn-secondary"
                     data-testid="upstream-browse-btn"
                     disabled
-                    title="仅桌面 Full Access 宿主可用"
+                    title="仅桌面完全访问（Full Access）宿主可用"
                     style={{ fontSize: '12px', padding: '6px 12px', opacity: 0.6 }}
                   >
                     <Lock size={12} style={{ marginRight: '4px' }} />
-                    浏览… (仅桌面 Full Access)
+                    浏览… (仅桌面完全访问（Full Access）)
                   </button>
                 </div>
               </label>
@@ -1117,7 +1118,7 @@ export const TracksAndMigrationView: React.FC = () => {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <strong>{item.name}</strong>
                       <code style={{ fontSize: '10px', color: 'var(--text-sub)' }}>{item.path}</code>
-                      <span className="badge" style={{ fontSize: '10px' }}>{item.type}</span>
+                      <span className="badge" style={{ fontSize: '10px' }}>{elementLabel(item.type)}</span>
                       <span style={{ color: 'var(--accent-copper)', fontSize: '11px' }}>{item.reasonCode}</span>
                     </div>
                     <div style={{ fontSize: '11px', color: 'var(--text-sub)', maxWidth: '45%' }}>
@@ -1160,7 +1161,7 @@ export const TracksAndMigrationView: React.FC = () => {
                 <div>
                   <strong style={{ fontSize: '13px', color: 'var(--badge-red)' }}>权限不足（PERMISSION_DENIED）</strong>
                   <div style={{ fontSize: '12px', color: 'var(--text-sub)' }}>
-                    迁入上游工作区需要桌面 Full Access 权限（当前配置: {upstreamResult.denial.currentProfile}，所需配置: {upstreamResult.denial.requiredProfile}）。
+                    迁入上游工作区需要桌面 完全访问（Full Access）权限（当前配置: {valueLabel(upstreamResult.denial.currentProfile)}，所需配置: {valueLabel(upstreamResult.denial.requiredProfile)}）。
                   </div>
                 </div>
               </div>
@@ -1174,7 +1175,7 @@ export const TracksAndMigrationView: React.FC = () => {
                 }}
                 style={{ fontSize: '11px', padding: '4px 12px' }}
               >
-                提升至 Full Access
+                提升至完全访问（Full Access）
               </button>
             </div>
           )}

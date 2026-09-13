@@ -43,19 +43,27 @@ public class SwingJSDialogHandler extends CefJSDialogHandlerAdapter {
 		SwingUtilities.invokeLater(() -> {
 			switch (dialog_type) {
 			case JSDIALOGTYPE_ALERT:
-				JOptionPane.showMessageDialog(parent, message_text,
-						UIManager.getString("OptionPane.messageDialogTitle"), JOptionPane.WARNING_MESSAGE);
+				JOptionPane.showOptionDialog(parent, message_text, "提示", JOptionPane.DEFAULT_OPTION,
+						JOptionPane.WARNING_MESSAGE, null, new Object[]{"确定"}, "确定");
 				callback.Continue(true, "");
 				break;
 
 			case JSDIALOGTYPE_CONFIRM:
-				int result = JOptionPane.showConfirmDialog(parent, message_text, L10N.t("common.confirmation"),
-						JOptionPane.OK_CANCEL_OPTION);
+				int result = JOptionPane.showOptionDialog(parent, message_text, "确认",
+						JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null,
+						new Object[]{"确定", "取消"}, "取消");
 				callback.Continue(result == JOptionPane.OK_OPTION, "");
 				break;
 
 			case JSDIALOGTYPE_PROMPT:
-				String input = JOptionPane.showInputDialog(parent, message_text, default_prompt_text);
+				JOptionPane pane = new JOptionPane(message_text, JOptionPane.QUESTION_MESSAGE,
+                        JOptionPane.OK_CANCEL_OPTION, null, new Object[]{"确定", "取消"}, "取消");
+                pane.setWantsInput(true);
+                pane.setInitialSelectionValue(default_prompt_text);
+                JDialog dialog = pane.createDialog(parent, "请输入");
+                try { dialog.setVisible(true); } finally { dialog.dispose(); }
+                String input = "确定".equals(pane.getValue()) && pane.getInputValue() != JOptionPane.UNINITIALIZED_VALUE
+                        ? String.valueOf(pane.getInputValue()) : null;
 				if (input != null) {
 					callback.Continue(true, input);
 				} else {

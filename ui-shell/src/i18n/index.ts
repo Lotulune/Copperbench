@@ -1,11 +1,11 @@
 import { LocalizedText } from '../types/contract';
 import { zh } from './zh';
+import { valueLabel } from './labels';
 
 /**
  * 产品决策（2026-08-17）：界面主语言为中文。
  * 合同数据（诊断、字段标签、阶段文案）经 LocalizedText.key 查询词典渲染；
- * 缺失词条时回退 fallback（当前 fixtures 为英文）。技术标识（元素名、枚举、
- * 日志原文、MCP 档位名）保留英文原文，不做翻译。
+ * 缺失词条时回退 fallback（当前 fixtures 为英文）。用户数据、代码和日志保留原文；已知类型、枚举和权限档位由显示层翻译。
  */
 export const UI_LOCALE = 'zh' as const;
 
@@ -19,6 +19,9 @@ export function formatTemplate(template: string, args?: Record<string, unknown>)
 /** Render a contract LocalizedText in the UI locale, falling back to `fallback`. */
 export function t(localized: LocalizedText | null | undefined): string {
   if (!localized) return '';
+  if (localized.key === 'field.option' && typeof localized.args?.label === 'string') {
+    return valueLabel(localized.args.label);
+  }
   if (UI_LOCALE === 'zh') {
     const entry = zh[localized.key];
     if (entry) return formatTemplate(entry, localized.args);

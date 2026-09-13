@@ -6,7 +6,7 @@
     {
       "id": "latest_stable",
       "minecraftVersion": "26.2",
-      "displayName": "Latest stable (Minecraft 26.2)",
+      "displayName": "最新稳定轨（Minecraft 26.2）",
       "dynamic": true,
       "loaders": [
         {
@@ -17,7 +17,7 @@
           "status": "supported",
           "pluginId": "generator-fabric-26.2",
           "reasonCode": "TRACK_SUPPORTED",
-          "notes": "Latest stable Minecraft 26.2. New Workspace generator retargeted from Goldorion Fabric 26.1.2 templates (Fabric API 0.158.0+26.2). First-party vertical slice also has compile and runClient evidence."
+          "notes": "最新稳定轨 Minecraft 26.2。新建工作区模板基于 Goldorion Fabric 26.1.2 适配，使用 Fabric API 0.158.0+26.2；内置功能范围已有编译和客户端启动（runClient）验证记录。"
         },
         {
           "loader": "neoforge",
@@ -27,14 +27,14 @@
           "status": "supported",
           "pluginId": "generator-26.2",
           "reasonCode": "TRACK_SUPPORTED",
-          "notes": "Latest stable Minecraft 26.2. New Workspace generator retargeted from NeoForge 26.1.2 templates (NeoForge 26.2.0.63). First-party vertical slice also has compile and runClient evidence."
+          "notes": "最新稳定轨 Minecraft 26.2。新建工作区模板基于 NeoForge 26.1.2 适配，使用 NeoForge 26.2.0.63；内置功能范围已有编译和客户端启动（runClient）验证记录。"
         }
       ]
     },
     {
       "id": "previous_stable",
       "minecraftVersion": "26.1",
-      "displayName": "Previous stable (Minecraft 26.1)",
+      "displayName": "前一稳定轨（Minecraft 26.1）",
       "dynamic": true,
       "loaders": [
         {
@@ -45,7 +45,7 @@
           "status": "supported",
           "pluginId": "generator-fabric-26.1.2",
           "reasonCode": "TRACK_SUPPORTED",
-          "notes": "Previous stable Minecraft 26.1.2. First-party Fabric vertical slice with compile and runClient evidence (unobfuscated Loom, Fabric API 0.155.2+26.1.2)."
+          "notes": "前一稳定轨 Minecraft 26.1.2。使用无混淆 Loom 和 Fabric API 0.155.2+26.1.2；内置功能范围已有编译和客户端启动（runClient）验证记录。"
         },
         {
           "loader": "neoforge",
@@ -55,14 +55,14 @@
           "status": "supported",
           "pluginId": "generator-26.1.x",
           "reasonCode": "TRACK_SUPPORTED",
-          "notes": "Previous stable Minecraft 26.1.2. First-party NeoForge vertical slice with compile and runClient evidence (NeoForge 26.1.2.95)."
+          "notes": "前一稳定轨 Minecraft 26.1.2。使用 NeoForge 26.1.2.95；内置功能范围已有编译和客户端启动（runClient）验证记录。"
         }
       ]
     },
     {
       "id": "minecraft_1_21_1",
       "minecraftVersion": "1.21.1",
-      "displayName": "Minecraft 1.21.1 (maintenance)",
+      "displayName": "维护轨（Minecraft 1.21.1）",
       "dynamic": false,
       "loaders": [
         {
@@ -73,7 +73,7 @@
           "status": "supported",
           "pluginId": "generator-1.21.1",
           "reasonCode": "TRACK_SUPPORTED",
-          "notes": "Maintenance track. New Workspace generator retargeted from Goldorion Fabric 26.1.2 templates to ResourceLocation/Java 21. First-party vertical slice has golden build and runClient evidence."
+          "notes": "维护轨 Minecraft 1.21.1。新建工作区模板基于 Goldorion Fabric 26.1.2 适配，使用 ResourceLocation 和 Java 21；内置功能范围已有基准构建（Golden Build）和客户端启动（runClient）验证记录。"
         },
         {
           "loader": "neoforge",
@@ -83,14 +83,14 @@
           "status": "supported",
           "pluginId": "generator-1.21.1",
           "reasonCode": "TRACK_SUPPORTED",
-          "notes": "Maintenance track. Copperbench-owned NeoForge 1.21.1 vertical slice with golden build and runClient evidence."
+          "notes": "维护轨 Minecraft 1.21.1。使用 Copperbench 维护的 NeoForge 生成器；内置功能范围已有基准构建（Golden Build）和客户端启动（runClient）验证记录。"
         }
       ]
     },
     {
       "id": "minecraft_1_20_1",
       "minecraftVersion": "1.20.1",
-      "displayName": "Minecraft 1.20.1 (maintenance)",
+      "displayName": "维护轨（Minecraft 1.20.1）",
       "dynamic": false,
       "loaders": [
         {
@@ -101,7 +101,7 @@
           "status": "supported",
           "pluginId": "generator-1.20.1",
           "reasonCode": "TRACK_SUPPORTED",
-          "notes": "Maintenance track. New Workspace generator retargeted to Java 17, Gradle 8.8 and loom 1.7.4. First-party vertical slice has compile and runClient evidence."
+          "notes": "维护轨 Minecraft 1.20.1。使用 Java 17、Gradle 8.8 和 Loom 1.7.4；内置功能范围已有编译和客户端启动（runClient）验证记录。"
         },
         {
           "loader": "neoforge",
@@ -111,7 +111,7 @@
           "status": "supported",
           "pluginId": "generator-1.20.1",
           "reasonCode": "TRACK_SUPPORTED",
-          "notes": "Maintenance track. New Workspace generator retargeted to Forge 1.20.1-47.1.106 and userdev 7.0.165. First-party vertical slice has compile and runClient evidence."
+          "notes": "维护轨 Minecraft 1.20.1。此轨道的新建工作区模板使用 Forge 1.20.1-47.1.106 和 userdev 7.0.165；内置功能范围已有编译和客户端启动（runClient）验证记录。"
         }
       ]
     }
