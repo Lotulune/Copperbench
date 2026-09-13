@@ -1,7 +1,9 @@
+import { blocklyZh } from '../i18n/blocklyZh';
+import { valueLabel } from '../i18n/labels';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as Blockly from 'blockly/core';
 import 'blockly/blocks';
-import * as BlocklyEnglish from 'blockly/msg/en';
+import * as BlocklyChinese from 'blockly/msg/zh-hans';
 import {
   AlignStartVertical,
   ArrowLeft,
@@ -34,13 +36,13 @@ import {
 import { t } from '../i18n';
 
 let blocksRegistered = false;
-const blocklyEnglishMessages = Object.fromEntries(
-  Object.entries(BlocklyEnglish).filter(([key, value]) => key !== 'default' && typeof value === 'string')
+const blocklyChineseMessages = Object.fromEntries(
+  Object.entries(BlocklyChinese).filter(([key, value]) => key !== 'default' && typeof value === 'string')
 ) as Record<string, string>;
 
 function registerProcedureBlocks(): void {
   if (blocksRegistered) return;
-  Blockly.setLocale(blocklyEnglishMessages);
+  Blockly.setLocale({ ...blocklyChineseMessages, ...blocklyZh });
   Blockly.common.defineBlocksWithJsonArray([
     {
       type: 'event_trigger',
@@ -53,7 +55,7 @@ function registerProcedureBlocks(): void {
       ] }],
       nextStatement: null,
       colour: 24,
-      tooltip: 'Procedure 入口触发器'
+      tooltip: '过程入口触发器'
     },
     {
       type: 'controls_while',
@@ -120,7 +122,7 @@ function registerProcedureBlocks(): void {
     },
     {
       type: 'call_procedure',
-      message0: '调用 Procedure %1',
+      message0: '调用过程（Procedure） %1',
       args0: [{ type: 'field_input', name: 'procedureId', text: '' }],
       previousStatement: null,
       nextStatement: null,
@@ -178,7 +180,7 @@ const WorkspacePlanReview: React.FC<{ plan: WorkspacePlan; testId: string }> = (
         <ol className="procedure-plan-review-objects">
           {plan.review.affectedObjects.map((item, index) => (
             <li key={`${item.kind}-${item.elementId ?? item.registry ?? index}`}>
-              <span><strong>{item.displayName || item.name || item.registry || item.kind}</strong><code>{item.kind}</code></span>
+              <span><strong>{item.displayName || item.name || item.registry || item.kind}</strong><code>{valueLabel(item.kind)}</code></span>
               {item.changedProperties?.length ? <small>{item.changedProperties.join(' · ')}</small> : null}
             </li>
           ))}
@@ -328,7 +330,7 @@ const procedureCategoryLabels: Record<string, string> = {
   value: '值',
   variable: '变量',
   context: '上下文',
-  procedure: 'Procedure'
+  procedure: '过程（Procedure）'
 };
 
 function snapshotGraph(workspace: Blockly.WorkspaceSvg): ProcedureGraphNode[] {
@@ -663,7 +665,7 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
     if (!extractDraft) return;
     const newProcedureName = extractDraft.newProcedureName.trim();
     if (!newProcedureName) {
-      setMessage('请输入新 Procedure 名称。');
+      setMessage('请输入新过程名称（Procedure）。');
       return;
     }
     setRefactorBusy(true);
@@ -861,7 +863,7 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
     try {
       const result = await updateProcedure(element.id, edits);
       if (result.status !== 'committed') {
-        setMessage(result.diagnostics[0] ? t(result.diagnostics[0].message) : 'Procedure 保存失败。');
+        setMessage(result.diagnostics[0] ? t(result.diagnostics[0].message) : '过程保存失败。');
         return;
       }
       setDirty(false);
@@ -952,7 +954,7 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
         </button>
         <div className="procedure-title">
           <strong>{element.displayName}</strong>
-          <span>Procedure · {dirty ? '有未保存变更' : `r${projection?.baseRevision ?? '-'}`}</span>
+          <span>过程（Procedure）· {dirty ? '有未保存变更' : `r${projection?.baseRevision ?? '-'}`}</span>
         </div>
         <div className="procedure-toolbar-actions">
           <button className="procedure-icon-button" onClick={() => workspaceRef.current?.undo(false)} aria-label="撤销" title="撤销"><Undo2 size={15} /></button>
@@ -966,14 +968,14 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
 
       {message && <div className="procedure-message" role="status">{message}</div>}
       <div className="procedure-body">
-        <aside className="procedure-palette" aria-label="Procedure 节点面板">
+        <aside className="procedure-palette" aria-label="过程节点面板">
           <div className="procedure-search">
             <Search size={14} />
-            <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="搜索节点" aria-label="搜索 Procedure 节点" />
+            <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="搜索节点" aria-label="搜索过程节点" />
           </div>
           <div className="procedure-palette-filter">
             <Filter size={13} aria-hidden="true" />
-            <select value={category} onChange={(event) => setCategory(event.target.value)} aria-label="筛选 Procedure 节点分类">
+            <select value={category} onChange={(event) => setCategory(event.target.value)} aria-label="筛选过程节点分类">
               <option value="all">全部分类</option>
               {categories.map((item) => (
                 <option value={item} key={item}>{procedureCategoryLabels[item] ?? item}</option>
@@ -1003,23 +1005,23 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
                 className="procedure-node-button"
                 disabled={item.availability !== 'available' || projection?.readOnly}
                 onClick={() => addBlock(item)}
-                title={item.reasonCode ?? catalogLabel(item)}
+                title={item.reasonCode ? valueLabel(item.reasonCode) : catalogLabel(item)}
               >
                 <Braces size={14} />
-                <span><strong>{catalogLabel(item)}</strong><small>{item.category} · {item.output}</small></span>
+                <span><strong>{catalogLabel(item)}</strong><small>{valueLabel(item.category)} · {valueLabel(item.output)}</small></span>
               </button>
             ))}
           </div>
         </aside>
 
         <div className="procedure-canvas-wrap">
-          {loading && <div className="procedure-loading">正在加载 Procedure IR…</div>}
-          {!loading && !projection && <div className="procedure-loading"><CircleAlert size={20} />无法加载 Procedure。</div>}
-          <div ref={hostRef} className="procedure-canvas" aria-label="Procedure 可视化画布" />
+          {loading && <div className="procedure-loading">正在加载 过程图…</div>}
+          {!loading && !projection && <div className="procedure-loading"><CircleAlert size={20} />无法加载过程。</div>}
+          <div ref={hostRef} className="procedure-canvas" aria-label="过程可视化画布" />
         </div>
 
         <aside className="procedure-inspector">
-          <div className="procedure-tabs" role="tablist" aria-label="Procedure 检查面板">
+          <div className="procedure-tabs" role="tablist" aria-label="过程检查面板">
             <button type="button" id="procedure-tab-source" role="tab" aria-controls="procedure-panel-source" aria-selected={panel === 'source'} tabIndex={panel === 'source' ? 0 : -1} onClick={() => setPanel('source')} onKeyDown={handlePanelKeyDown}><Code2 size={13} aria-hidden="true" />源码</button>
             <button type="button" id="procedure-tab-diagnostics" role="tab" aria-controls="procedure-panel-diagnostics" aria-selected={panel === 'diagnostics'} tabIndex={panel === 'diagnostics' ? 0 : -1} onClick={() => setPanel('diagnostics')} onKeyDown={handlePanelKeyDown}><CircleAlert size={13} aria-hidden="true" />诊断</button>
             <button type="button" id="procedure-tab-references" role="tab" aria-controls="procedure-panel-references" aria-selected={panel === 'references'} tabIndex={panel === 'references' ? 0 : -1} onClick={() => setPanel('references')} onKeyDown={handlePanelKeyDown}><Link2 size={13} aria-hidden="true" />引用</button>
@@ -1032,7 +1034,7 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
                 value={graphSearch}
                 onChange={(event) => setGraphSearch(event.target.value)}
                 placeholder="查找当前图"
-                aria-label="搜索当前 Procedure 图"
+                aria-label="搜索当前过程图"
               />
             </div>
             <div className="procedure-search-controls">
@@ -1052,7 +1054,7 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
           {panel === 'source' && (
             <div id="procedure-panel-source" role="tabpanel" aria-labelledby="procedure-tab-source" className="procedure-panel-content">
               <div className="procedure-panel-meta">
-                <span className="badge badge-green">{projection?.sourceOwnership ?? 'generated'}</span>
+                <span className="badge badge-green">{valueLabel(projection?.sourceOwnership ?? 'generated')}</span>
                 <span>{dirty ? (liveCanGenerate === false ? '实时预览 · 存在阻断诊断' : '实时预览') : '只读'}</span>
               </div>
               {selectedIrNode && selectedIrNode.kind === 'statement' && selectedIrNode.type !== 'event_trigger' && !selectedIrNode.unknown && (
@@ -1062,16 +1064,16 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
                   data-testid="procedure-extract-start"
                   disabled={projection?.readOnly || dirty || refactorBusy}
                   onClick={beginExtraction}
-                  aria-label={`提取节点 ${selectedIrNode.type} 为 Procedure`}
-                >提取选中逻辑为 Procedure</button>
+                  aria-label={`提取节点 ${selectedIrNode.type} 为过程（Procedure）`}
+                >提取选中逻辑为过程（Procedure）</button>
               )}
               {extractDraft && (
                 <section className="procedure-refactor-card" data-testid="procedure-extract-refactor" aria-label="提取可复用 Procedure">
                   <div className="procedure-section-label">可复用逻辑提取 · {extractDraft.nodeType}</div>
                   <label>
-                    <span>新 Procedure 名称</span>
+                    <span>新过程名称（Procedure）</span>
                     <input
-                      aria-label="提取后的 Procedure 名称"
+                      aria-label="提取后的过程名称（Procedure）"
                       value={extractDraft.newProcedureName}
                       disabled={refactorBusy}
                       onChange={(event) => {
@@ -1133,17 +1135,17 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
                     {(projection?.relationships.inbound ?? []).map((edge) => (
                       <div className="procedure-relationship-row" key={`in-${edge.id}`}>
                         <span>{edge.sourceDisplayName || edge.sourceName || edge.sourceId}</span>
-                        <code>{edge.sourceType || 'element'} · {edge.kind}</code>
+                        <code>{edge.sourceType || 'element'} · {valueLabel(edge.kind)}</code>
                       </div>
                     ))}
                   </div>
                   <div>
-                    <strong>当前 Procedure 引用</strong>
+                    <strong>当前过程引用</strong>
                     {(projection?.relationships.outbound ?? []).length === 0 && <small>没有出站依赖</small>}
                     {(projection?.relationships.outbound ?? []).map((edge) => (
                       <div className="procedure-relationship-row" key={`out-${edge.id}`}>
                         <span>{edge.targetDisplayName || edge.targetName || edge.target}</span>
-                        <code>{edge.targetType || edge.kind} · {edge.kind}</code>
+                        <code>{edge.targetType || edge.kind} · {valueLabel(edge.kind)}</code>
                       </div>
                     ))}
                   </div>
@@ -1204,7 +1206,7 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
                       <strong>{refactorImpact.impactedElementCount} 个受影响元素 · {refactorPlan.semanticDiff.length} 项语义变更</strong>
                       <span>{refactorPlan.changedPaths.length} 条持久化路径</span>
                       <span>{refactorPlan.safety.ready
-                        ? '恢复保护可用：应用前将强制创建 recovery point。'
+                        ? '恢复保护可用：应用前将创建恢复点。'
                         : '恢复保护不可用：该重构被禁止应用。'}</span>
                       <code>{refactorPlan.planId}</code>
                       <WorkspacePlanReview plan={refactorPlan} testId="procedure-variable-plan-review" />
@@ -1225,7 +1227,7 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
                 </div>
               ))}
               {resourceRefactorDraft && (
-                <section className="procedure-refactor-card" data-testid="procedure-resource-refactor" aria-label="批量替换 Procedure 资源引用">
+                <section className="procedure-refactor-card" data-testid="procedure-resource-refactor" aria-label="批量替换 过程资源引用">
                   <div className="procedure-section-label">资源引用批量替换 · {resourceRefactorDraft.sourceResource}</div>
                   <label>
                     <span>替换为资源</span>
@@ -1253,22 +1255,22 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
               {(projection?.symbols?.calls ?? []).map((symbol) => (
                 <div className="procedure-symbol-refactor-row" key={`call-${symbol.nodeId}`}>
                   <button type="button" className="procedure-symbol-row" onClick={() => selectNode(symbol.nodeId)}>
-                    <span>Procedure 调用</span><code>{symbol.targetName || symbol.target || '(未设置)'}</code>
+                    <span>过程调用</span><code>{symbol.targetName || symbol.target || '(未设置)'}</code>
                     {symbol.targetId && <small>{symbol.targetId}</small>}
                   </button>
                   <button type="button" className="procedure-refactor-start"
                     disabled={!symbol.targetId || projection?.readOnly || (projection?.symbols.availableProcedures.length ?? 0) < 2}
                     onClick={() => beginCallRefactor(symbol.targetId, symbol.targetName || symbol.target)}
-                    aria-label={`批量替换 Procedure 调用 ${symbol.targetName || symbol.target}`}
+                    aria-label={`批量替换 过程调用 ${symbol.targetName || symbol.target}`}
                   >批量替换</button>
                 </div>
               ))}
               {callRefactorDraft && (
-                <section className="procedure-refactor-card" data-testid="procedure-call-refactor" aria-label="批量替换 Procedure 调用">
+                <section className="procedure-refactor-card" data-testid="procedure-call-refactor" aria-label="批量替换 过程调用">
                   <div className="procedure-section-label">批量替换调用 · {callRefactorDraft.sourceName}</div>
                   <label>
                     <span>替换为</span>
-                    <select aria-label="新的 Procedure 调用目标" value={callRefactorDraft.targetProcedureId} disabled={refactorBusy}
+                    <select aria-label="新的 过程调用目标" value={callRefactorDraft.targetProcedureId} disabled={refactorBusy}
                       onChange={(event) => {
                         setCallRefactorDraft({ ...callRefactorDraft, targetProcedureId: event.target.value });
                         setSemanticRefactorPlan(null);
@@ -1285,7 +1287,7 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
                   </div>
                   {semanticRefactorPlan && (
                     <div className={`procedure-refactor-preview ${semanticRefactorPlan.safety.ready ? 'ready' : 'blocked'}`} data-testid="procedure-call-refactor-preview">
-                      <strong>{semanticRefactorPlan.operationCount} 个受影响 Procedure · {semanticRefactorPlan.semanticDiff.length} 项语义变更</strong>
+                      <strong>{semanticRefactorPlan.operationCount} 个受影响 过程（Procedure）· {semanticRefactorPlan.semanticDiff.length} 项语义变更</strong>
                       <span>{semanticRefactorPlan.changedPaths.length} 条持久化路径</span>
                       <span>{semanticRefactorPlan.safety.ready ? '恢复保护可用：批量替换将作为单个 revision 提交。' : '恢复保护不可用：禁止应用。'}</span>
                       <code>{semanticRefactorPlan.planId}</code>
@@ -1302,7 +1304,7 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
           )}
           {panel === 'outline' && (
             <div id="procedure-panel-outline" role="tabpanel" aria-labelledby="procedure-tab-outline" className="procedure-panel-content procedure-list-content">
-              <ol className="procedure-node-outline" data-testid="procedure-node-outline" aria-label="Procedure 节点与端口">
+              <ol className="procedure-node-outline" data-testid="procedure-node-outline" aria-label="过程节点与端口">
                 {(projection?.ir.nodes ?? []).map((node) => (
                   <li key={node.id}>
                     <button type="button" onClick={() => selectNode(node.id)} aria-label={nodeAccessibleName(node)}>

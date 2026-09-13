@@ -1,3 +1,4 @@
+import { elementLabel, valueLabel } from '../i18n/labels';
 import React, { useState, useMemo, useEffect } from 'react';
 import {
   Box,
@@ -46,14 +47,6 @@ const OverlayWorkbench = React.lazy(() => import('./OverlayWorkbench').then((mod
 
 type SortOption = 'updated_desc' | 'updated_asc' | 'name_asc' | 'name_desc' | 'type_asc';
 
-const ELEMENT_LABELS: Partial<Record<ModElementType, string>> = {
-  block: '方块', item: '物品', recipe: '配方', procedure: '过程', function: '函数', loottable: '战利品表', achievement: '进度',
-  armor: '盔甲', armortrim: '盔甲纹饰', tool: '工具', itemextension: '物品扩展', attribute: '属性', bannerpattern: '旗帜图案',
-  command: '命令', damagetype: '伤害类型', enchantment: '附魔', gamerule: '游戏规则', keybind: '按键绑定', painting: '画', particle: '粒子',
-  potion: '药水', potioneffect: '药水效果', tab: '创造模式标签页', villagerprofession: '村民职业', villagertrade: '村民交易', biome: '生物群系',
-  dimension: '维度', feature: '世界特征', fluid: '流体', plant: '植物', structure: '结构', livingentity: '生物实体', specialentity: '特殊实体',
-  projectile: '投射物', gui: '界面', overlay: '覆盖层', code: '代码'
-};
 
 export const ModElementsWorkbench: React.FC = () => {
   const {
@@ -137,7 +130,7 @@ export const ModElementsWorkbench: React.FC = () => {
   // Dedicated full-screen workbenches for complex data-driven elements
   if (selectedElement?.type === 'procedure') {
     return (
-      <React.Suspense fallback={<div className="procedure-route-loading">正在加载 Procedure 编辑器…</div>}>
+      <React.Suspense fallback={<div className="procedure-route-loading">正在加载过程（Procedure）编辑器…</div>}>
         <ProcedureWorkbench element={selectedElement} onClose={() => setSelectedElementId(null)} />
       </React.Suspense>
     );
@@ -161,7 +154,7 @@ export const ModElementsWorkbench: React.FC = () => {
 
   if (selectedElement?.type === 'function') {
     return (
-      <React.Suspense fallback={<div className="procedure-route-loading">正在加载 Function 编辑器…</div>}>
+      <React.Suspense fallback={<div className="procedure-route-loading">正在加载函数（Function）编辑器…</div>}>
         <FunctionWorkbench element={selectedElement} onClose={() => setSelectedElementId(null)} />
       </React.Suspense>
     );
@@ -169,7 +162,7 @@ export const ModElementsWorkbench: React.FC = () => {
 
   if (selectedElement?.type === 'loottable') {
     return (
-      <React.Suspense fallback={<div className="procedure-route-loading">正在加载 Loot Table 编辑器…</div>}>
+      <React.Suspense fallback={<div className="procedure-route-loading">正在加载战利品表（Loot Table）编辑器…</div>}>
         <LootTableWorkbench element={selectedElement} onClose={() => setSelectedElementId(null)} />
       </React.Suspense>
     );
@@ -177,7 +170,7 @@ export const ModElementsWorkbench: React.FC = () => {
 
   if (selectedElement?.type === 'achievement') {
     return (
-      <React.Suspense fallback={<div className="procedure-route-loading">正在加载 Advancement 编辑器…</div>}>
+      <React.Suspense fallback={<div className="procedure-route-loading">正在加载进度（Advancement）编辑器…</div>}>
         <AdvancementWorkbench element={selectedElement} onClose={() => setSelectedElementId(null)} />
       </React.Suspense>
     );
@@ -251,7 +244,7 @@ export const ModElementsWorkbench: React.FC = () => {
                     color: selectedType === type ? 'var(--text-on-accent)' : 'var(--text-muted)'
                   }}
                 >
-                  {type === 'all' ? '全部' : ELEMENT_LABELS[type] ?? type}
+                  {type === 'all' ? '全部' : elementLabel(type)}
                 </button>
               ))}
             </div>
@@ -436,10 +429,10 @@ export const ModElementsWorkbench: React.FC = () => {
 
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         {elem.firstParty === false && (
-                          <span className="badge badge-amber" data-testid="element-outside-slice">切片外</span>
+                          <span className="badge badge-amber" data-testid="element-outside-slice">暂不支持编辑</span>
                         )}
                         <span className={`badge badge-${elem.state === 'valid' ? 'green' : elem.state === 'draft' ? 'amber' : 'red'}`}>
-                          {elem.state.toUpperCase()}
+                          {valueLabel(elem.state)}
                         </span>
                       </div>
                     </div>
@@ -466,8 +459,8 @@ export const ModElementsWorkbench: React.FC = () => {
                         color: 'var(--text-sub)'
                       }}
                     >
-                      <span>{elem.ownership.toUpperCase()}</span>
-                      <span className="badge badge-copper">{elem.type.toUpperCase()}</span>
+                      <span>{valueLabel(elem.ownership)}</span>
+                      <span className="badge badge-copper">{elementLabel(elem.type)}</span>
                     </div>
                   </button>
                 );
@@ -518,15 +511,15 @@ export const ModElementsWorkbench: React.FC = () => {
                           {elem.displayName} <span style={{ color: 'var(--text-sub)', fontWeight: 400 }}>({elem.name})</span>
                         </td>
                         <td style={{ padding: '10px 14px' }}>
-                          <span className="badge badge-copper">{elem.type.toUpperCase()}</span>
+                          <span className="badge badge-copper">{elementLabel(elem.type)}</span>
                         </td>
                         <td style={{ padding: '10px 14px' }}>
                           <span className={`badge badge-${elem.state === 'valid' ? 'green' : 'amber'}`}>
-                            {elem.state.toUpperCase()}
+                            {valueLabel(elem.state)}
                           </span>
                         </td>
                         <td style={{ padding: '10px 14px', color: 'var(--text-sub)' }}>
-                          {elem.ownership}
+                          {valueLabel(elem.ownership)}
                         </td>
                         <td style={{ padding: '10px 14px', color: 'var(--text-sub)' }}>
                           {elem.updatedAt.slice(0, 10)}

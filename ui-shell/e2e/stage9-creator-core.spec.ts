@@ -30,32 +30,32 @@ test.describe('Stage 9 creator core', () => {
   test('uses Procedure 2.0 palette, recent nodes, graph search navigation, and shared symbols', async ({ page }) => {
     await page.click('[data-testid="nav-elements"]');
     await page.click('[data-testid="create-element-btn"]');
-    await page.locator('[data-testid="create-element-modal"]').getByRole('button', { name: '过程', exact: true }).click();
+    await page.locator('[data-testid="create-element-modal"]').getByRole('button', { name: '过程（Procedure）', exact: true }).click();
     await page.fill('[data-testid="create-element-name-input"]', 'quest_tick');
     await page.click('[data-testid="create-element-submit-btn"]');
 
     await expect(page.locator('[data-testid="procedure-workbench"]')).toBeVisible();
-    await page.getByLabel('筛选 Procedure 节点分类').selectOption('value');
-    await page.getByLabel('搜索 Procedure 节点').fill('数值');
-    await page.getByRole('button', { name: /^数值 value/ }).click();
+    await page.getByLabel('筛选过程节点分类').selectOption('value');
+    await page.getByLabel('搜索过程节点').fill('数值');
+    await page.getByRole('button', { name: /^数值 值/ }).click();
     await expect(page.locator('[data-testid="procedure-recent-nodes"]')).toContainText('数值');
 
-    await page.getByLabel('筛选 Procedure 节点分类').selectOption('variable');
-    await page.getByLabel('搜索 Procedure 节点').fill('读取变量');
-    await page.getByRole('button', { name: /^读取变量 variable/ }).click();
+    await page.getByLabel('筛选过程节点分类').selectOption('variable');
+    await page.getByLabel('搜索过程节点').fill('读取变量');
+    await page.getByRole('button', { name: /^读取变量 变量/ }).click();
 
-    await page.getByLabel('搜索当前 Procedure 图').fill('数值');
+    await page.getByLabel('搜索当前过程图').fill('数值');
     await expect(page.locator('[data-testid="procedure-graph-navigation"]')).toContainText('1 个匹配');
     await page.getByRole('button', { name: '下一个匹配节点' }).click();
     await expect(page.locator('[data-testid="procedure-selected-location"]')).toContainText('数值');
 
-    await page.getByLabel('筛选 Procedure 节点分类').selectOption('procedure');
-    await page.getByLabel('搜索 Procedure 节点').fill('调用 Procedure');
-    await page.getByRole('button', { name: /^调用 Procedure procedure/ }).click();
+    await page.getByLabel('筛选过程节点分类').selectOption('procedure');
+    await page.getByLabel('搜索过程节点').fill('调用过程（Procedure）');
+    await page.getByRole('button', { name: /^调用过程（Procedure） 过程/ }).click();
     await page.getByRole('tab', { name: /诊断/ }).click();
     await expect(page.getByText('PROCEDURE_CALL_TARGET_REQUIRED')).toBeVisible();
     await page.getByRole('button', { name: '定位节点' }).click();
-    await expect(page.locator('[data-testid="procedure-selected-location"]')).toContainText('调用 Procedure');
+    await expect(page.locator('[data-testid="procedure-selected-location"]')).toContainText('调用过程（Procedure）');
 
     await page.getByRole('button', { name: /保存/ }).click();
     await expect(page.getByText(/已保存 3 项结构化变更/)).toBeVisible();
@@ -67,7 +67,7 @@ test.describe('Stage 9 creator core', () => {
     await page.getByLabel('新的变量名称').fill('player_stamina');
     await page.getByRole('button', { name: '预览安全重命名' }).click();
     await expect(page.locator('[data-testid="procedure-refactor-preview"]')).toContainText('1 个受影响元素 · 2 项语义变更');
-    await expect(page.locator('[data-testid="procedure-refactor-preview"]')).toContainText('应用前将强制创建 recovery point');
+    await expect(page.locator('[data-testid="procedure-refactor-preview"]')).toContainText('应用前将创建恢复点');
     await page.getByRole('button', { name: '应用重构' }).click();
     await expect(page.locator('.procedure-message')).toContainText('已安全重命名 player_energy → player_stamina');
     await expect(page.locator('.procedure-message')).toContainText('恢复点 rec-');
@@ -77,14 +77,14 @@ test.describe('Stage 9 creator core', () => {
   test('extracts selected Procedure logic through a protected semantic refactor plan', async ({ page }) => {
     await page.click('[data-testid="nav-elements"]');
     await page.click('[data-testid="create-element-btn"]');
-    await page.locator('[data-testid="create-element-modal"]').getByRole('button', { name: '过程', exact: true }).click();
+    await page.locator('[data-testid="create-element-modal"]').getByRole('button', { name: '过程（Procedure）', exact: true }).click();
     await page.fill('[data-testid="create-element-name-input"]', 'extract_source');
     await page.click('[data-testid="create-element-submit-btn"]');
 
     await expect(page.locator('[data-testid="procedure-workbench"]')).toBeVisible();
-    await page.getByLabel('筛选 Procedure 节点分类').selectOption('variable');
-    await page.getByLabel('搜索 Procedure 节点').fill('设置变量');
-    await page.getByRole('button', { name: /^设置变量 variable/ }).click();
+    await page.getByLabel('筛选过程节点分类').selectOption('variable');
+    await page.getByLabel('搜索过程节点').fill('设置变量');
+    await page.getByRole('button', { name: /^设置变量 变量/ }).click();
     await page.getByRole('button', { name: /保存/ }).click();
     await expect(page.locator('.procedure-message')).toContainText('已保存 1 项结构化变更');
 
@@ -92,7 +92,7 @@ test.describe('Stage 9 creator core', () => {
     await page.getByRole('button', { name: /变量 · 写入 player_energy/ }).click();
     await page.getByRole('tab', { name: /源码/ }).click();
     await page.locator('[data-testid="procedure-extract-start"]').click();
-    await page.getByLabel('提取后的 Procedure 名称').fill('shared_energy_logic');
+    await page.getByLabel('提取后的过程名称（Procedure）').fill('shared_energy_logic');
     await page.getByRole('button', { name: '预览提取计划' }).click();
 
     await expect(page.locator('[data-testid="procedure-extract-preview"]')).toContainText('2 步原子计划');
@@ -166,7 +166,7 @@ test.describe('Stage 9 creator core', () => {
   test('opens dedicated FunctionWorkbench, edits code and tags, and saves', async ({ page }) => {
     await page.click('[data-testid="nav-elements"]');
     await page.click('[data-testid="create-element-btn"]');
-    await page.locator('[data-testid="create-element-modal"]').getByRole('button', { name: '函数', exact: true }).click();
+    await page.locator('[data-testid="create-element-modal"]').getByRole('button', { name: '函数（Function）', exact: true }).click();
     await page.fill('[data-testid="create-element-name-input"]', 'spell_cast');
     await page.click('[data-testid="create-element-submit-btn"]');
 
@@ -199,7 +199,7 @@ test.describe('Stage 9 creator core', () => {
   test('opens dedicated LootTableWorkbench, configures pools, and saves', async ({ page }) => {
     await page.click('[data-testid="nav-elements"]');
     await page.click('[data-testid="create-element-btn"]');
-    await page.locator('[data-testid="create-element-modal"]').getByRole('button', { name: '战利品表', exact: true }).click();
+    await page.locator('[data-testid="create-element-modal"]').getByRole('button', { name: '战利品表（Loot Table）', exact: true }).click();
     await page.fill('[data-testid="create-element-name-input"]', 'copper_dungeon_chest');
     await page.click('[data-testid="create-element-submit-btn"]');
 
@@ -237,7 +237,7 @@ test.describe('Stage 9 creator core', () => {
 
     // 1. Create root advancement
     await page.click('[data-testid="create-element-btn"]');
-    await page.locator('[data-testid="create-element-modal"]').getByRole('button', { name: '进度', exact: true }).click();
+    await page.locator('[data-testid="create-element-modal"]').getByRole('button', { name: '进度（Advancement / achievement）', exact: true }).click();
     await page.fill('[data-testid="create-element-name-input"]', 'copper_root');
     await page.click('[data-testid="create-element-submit-btn"]');
     await expect(page.locator('[data-testid="advancement-workbench"]')).toBeVisible();
@@ -248,7 +248,7 @@ test.describe('Stage 9 creator core', () => {
 
     // 2. Create child advancement branch with parent = copper_root
     await page.click('[data-testid="create-element-btn"]');
-    await page.locator('[data-testid="create-element-modal"]').getByRole('button', { name: '进度', exact: true }).click();
+    await page.locator('[data-testid="create-element-modal"]').getByRole('button', { name: '进度（Advancement / achievement）', exact: true }).click();
     await page.fill('[data-testid="create-element-name-input"]', 'copper_branch');
     await page.click('[data-testid="create-element-submit-btn"]');
     await expect(page.locator('[data-testid="advancement-workbench"]')).toBeVisible();
@@ -259,7 +259,7 @@ test.describe('Stage 9 creator core', () => {
 
     // 3. Create leaf advancement with parent = copper_branch
     await page.click('[data-testid="create-element-btn"]');
-    await page.locator('[data-testid="create-element-modal"]').getByRole('button', { name: '进度', exact: true }).click();
+    await page.locator('[data-testid="create-element-modal"]').getByRole('button', { name: '进度（Advancement / achievement）', exact: true }).click();
     await page.fill('[data-testid="create-element-name-input"]', 'copper_leaf');
     await page.click('[data-testid="create-element-submit-btn"]');
     await expect(page.locator('[data-testid="advancement-workbench"]')).toBeVisible();

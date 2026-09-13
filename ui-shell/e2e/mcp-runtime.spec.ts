@@ -53,7 +53,7 @@ test.describe('Desktop MCP runtime state', () => {
     await expect(page.getByText('http://127.0.0.1:43123/mcp', { exact: true })).toBeVisible();
     await expect(page.getByText('11111111-1111-4111-8111-111111111111', { exact: true })).toBeVisible();
     await expect(page.getByText('已连接', { exact: true })).toHaveCount(0);
-    await expect(page.locator('[data-testid="permission-alert"]')).toContainText('MCP: WORKSPACE');
+    await expect(page.locator('[data-testid="permission-alert"]')).toContainText('MCP: 工作区读写（Workspace）');
 
     const reveal = page.getByRole('button', { name: '显示一次令牌' });
     await expect(reveal).toBeEnabled();

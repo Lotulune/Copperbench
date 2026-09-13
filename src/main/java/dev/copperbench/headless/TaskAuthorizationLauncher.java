@@ -51,12 +51,16 @@ final class TaskAuthorizationLauncher {
                         throw new IllegalArgumentException("Unknown capabilities or invalid lifetime");
                     new PrintWriter(new FileOutputStream(FileDescriptor.err), true).println(
                             "Copperbench is waiting for task approval. Root: " + root + "; capabilities: " + capabilities + "; lifetime: " + ttl + " seconds.");
-                    String text = "Task: " + label + "\nRoot: " + root + "\nCapabilities: " + String.join(", ", capabilities)
-                            + "\nLifetime: " + ttl + " seconds\n\nAllow this task to continue through CLI and MCP until expiry or revocation?";
-                    boolean approved = LocalApprovalWindow.confirm("Copperbench task authorization", text);
+                    String text = "任务：" + label + "\n授权目录（Root，包含子目录）：" + root
+                            + "\n允许的操作（Capabilities）：" + capabilities.stream().map(TaskAuthorizationLauncher::capabilityLabel)
+                                    .collect(java.util.stream.Collectors.joining("、"))
+                            + "\n有效期（Lifetime）：" + ttl + " 秒"
+                            + "\n\n是否允许此任务通过命令行（CLI）和 MCP 执行上述操作，直至授权到期或被撤销？"
+                            + "\n仅授权所列目录和操作，不扩大 MCP 连接本身的权限。";
+                    boolean approved = LocalApprovalWindow.confirm("Copperbench 任务授权", text);
                     boolean eula = false;
-                    if (approved && capabilities.contains("run_server")) eula = LocalApprovalWindow.confirm("Copperbench server authorization",
-                            "Dedicated server execution requires the Minecraft EULA: https://aka.ms/MinecraftEULA\nDo you accept it for servers created by this task?");
+                    if (approved && capabilities.contains("run_server")) eula = LocalApprovalWindow.confirm("Copperbench 服务器授权",
+                            "运行专用服务器需要接受 Minecraft 最终用户许可协议（EULA）：https://aka.ms/MinecraftEULA\n是否同意该协议，并将其用于此任务创建的服务器？");
                     result.add("data", store.issue(Actor.UI, approved, label, root, capabilities, ttl, eula));
                 }
                 default -> throw new IllegalArgumentException("Unknown authorization command");
@@ -70,6 +74,19 @@ final class TaskAuthorizationLauncher {
         }
         output.println(json.toJson(result)); output.flush(); return result.get("exitCode").getAsInt();
     }
+    private static String capabilityLabel(String capability) {
+        return switch (capability) {
+            case "create" -> "创建工作区（create）";
+            case "edit" -> "修改内容（edit）";
+            case "build" -> "生成与构建（build）";
+            case "test" -> "校验与测试（test）";
+            case "run_client" -> "运行客户端（run_client）";
+            case "run_server" -> "运行专用服务器（run_server）";
+            case "restore" -> "恢复历史版本（restore）";
+            default -> capability;
+        };
+    }
+
     private static String required(Map<String, String> options, String name) {
         String value = options.get(name);
         if (value == null || value.isBlank()) throw new IllegalArgumentException(name + " is required");

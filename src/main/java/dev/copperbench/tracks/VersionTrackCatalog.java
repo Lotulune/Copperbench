@@ -90,36 +90,36 @@ public final class VersionTrackCatalog {
 	public static VersionTrackCatalog official() {
 		LoaderStatus fabricLatest = new LoaderStatus(LoaderId.FABRIC, "fabric-26.2", LATEST_MINECRAFT, 25,
 				SupportStatus.SUPPORTED, "generator-fabric-26.2", "TRACK_SUPPORTED",
-				"Latest stable Minecraft 26.2. New Workspace generator retargeted from Goldorion Fabric 26.1.2 templates (Fabric API 0.158.0+26.2). First-party vertical slice also has compile and runClient evidence.");
+				"最新稳定轨 Minecraft 26.2。新建工作区模板基于 Goldorion Fabric 26.1.2 适配，使用 Fabric API 0.158.0+26.2；内置功能范围已有编译和客户端启动（runClient）验证记录。");
 		LoaderStatus neoForgeLatest = new LoaderStatus(LoaderId.NEOFORGE, "neoforge-26.2", LATEST_MINECRAFT, 25,
 				SupportStatus.SUPPORTED, "generator-26.2", "TRACK_SUPPORTED",
-				"Latest stable Minecraft 26.2. New Workspace generator retargeted from NeoForge 26.1.2 templates (NeoForge 26.2.0.63). First-party vertical slice also has compile and runClient evidence.");
+				"最新稳定轨 Minecraft 26.2。新建工作区模板基于 NeoForge 26.1.2 适配，使用 NeoForge 26.2.0.63；内置功能范围已有编译和客户端启动（runClient）验证记录。");
 		LoaderStatus fabricPrevious = new LoaderStatus(LoaderId.FABRIC, "fabric-26.1.2", PREVIOUS_MINECRAFT, 25,
 				SupportStatus.SUPPORTED, "generator-fabric-26.1.2", "TRACK_SUPPORTED",
-				"Previous stable Minecraft 26.1.2. First-party Fabric vertical slice with compile and runClient evidence (unobfuscated Loom, Fabric API 0.155.2+26.1.2).");
+				"前一稳定轨 Minecraft 26.1.2。使用无混淆 Loom 和 Fabric API 0.155.2+26.1.2；内置功能范围已有编译和客户端启动（runClient）验证记录。");
 		LoaderStatus neoForgePrevious = new LoaderStatus(LoaderId.NEOFORGE, "neoforge-26.1.2", PREVIOUS_MINECRAFT, 25,
 				SupportStatus.SUPPORTED, "generator-26.1.x", "TRACK_SUPPORTED",
-				"Previous stable Minecraft 26.1.2. First-party NeoForge vertical slice with compile and runClient evidence (NeoForge 26.1.2.95).");
+				"前一稳定轨 Minecraft 26.1.2。使用 NeoForge 26.1.2.95；内置功能范围已有编译和客户端启动（runClient）验证记录。");
 		LoaderStatus fabric1211 = new LoaderStatus(LoaderId.FABRIC, "fabric-1.21.1", FIXED_1211, 21,
 				SupportStatus.SUPPORTED, "generator-1.21.1", "TRACK_SUPPORTED",
-				"Maintenance track. New Workspace generator retargeted from Goldorion Fabric 26.1.2 templates to ResourceLocation/Java 21. First-party vertical slice has golden build and runClient evidence.");
+				"维护轨 Minecraft 1.21.1。新建工作区模板基于 Goldorion Fabric 26.1.2 适配，使用 ResourceLocation 和 Java 21；内置功能范围已有基准构建（Golden Build）和客户端启动（runClient）验证记录。");
 		LoaderStatus neoForge1211 = new LoaderStatus(LoaderId.NEOFORGE, "neoforge-1.21.1", FIXED_1211, 21,
 				SupportStatus.SUPPORTED, "generator-1.21.1", "TRACK_SUPPORTED",
-				"Maintenance track. Copperbench-owned NeoForge 1.21.1 vertical slice with golden build and runClient evidence.");
+				"维护轨 Minecraft 1.21.1。使用 Copperbench 维护的 NeoForge 生成器；内置功能范围已有基准构建（Golden Build）和客户端启动（runClient）验证记录。");
 		LoaderStatus fabric1201 = new LoaderStatus(LoaderId.FABRIC, "fabric-1.20.1", FIXED_1201, 17,
 				SupportStatus.SUPPORTED, "generator-1.20.1", "TRACK_SUPPORTED",
-				"Maintenance track. New Workspace generator retargeted to Java 17, Gradle 8.8 and loom 1.7.4. First-party vertical slice has compile and runClient evidence.");
+				"维护轨 Minecraft 1.20.1。使用 Java 17、Gradle 8.8 和 Loom 1.7.4；内置功能范围已有编译和客户端启动（runClient）验证记录。");
 		LoaderStatus neoForge1201 = new LoaderStatus(LoaderId.NEOFORGE, "neoforge-1.20.1", FIXED_1201, 17,
 				SupportStatus.SUPPORTED, "generator-1.20.1", "TRACK_SUPPORTED",
-				"Maintenance track. New Workspace generator retargeted to Forge 1.20.1-47.1.106 and userdev 7.0.165. First-party vertical slice has compile and runClient evidence.");
+				"维护轨 Minecraft 1.20.1。此轨道的新建工作区模板使用 Forge 1.20.1-47.1.106 和 userdev 7.0.165；内置功能范围已有编译和客户端启动（runClient）验证记录。");
 		return new VersionTrackCatalog(List.of(
-				new Track(TrackId.LATEST_STABLE, LATEST_MINECRAFT, "Latest stable (Minecraft 26.2)", true,
+				new Track(TrackId.LATEST_STABLE, LATEST_MINECRAFT, "最新稳定轨（Minecraft 26.2）", true,
 						List.of(fabricLatest, neoForgeLatest)),
-				new Track(TrackId.PREVIOUS_STABLE, PREVIOUS_MINECRAFT, "Previous stable (Minecraft 26.1)", true,
+				new Track(TrackId.PREVIOUS_STABLE, PREVIOUS_MINECRAFT, "前一稳定轨（Minecraft 26.1）", true,
 						List.of(fabricPrevious, neoForgePrevious)),
-				new Track(TrackId.MINECRAFT_1_21_1, FIXED_1211, "Minecraft 1.21.1 (maintenance)", false,
+				new Track(TrackId.MINECRAFT_1_21_1, FIXED_1211, "维护轨（Minecraft 1.21.1）", false,
 						List.of(fabric1211, neoForge1211)),
-				new Track(TrackId.MINECRAFT_1_20_1, FIXED_1201, "Minecraft 1.20.1 (maintenance)", false,
+				new Track(TrackId.MINECRAFT_1_20_1, FIXED_1201, "维护轨（Minecraft 1.20.1）", false,
 						List.of(fabric1201, neoForge1201))));
 	}
 
@@ -148,7 +148,7 @@ public final class VersionTrackCatalog {
 		return findGenerator(generatorId).map(status -> new CapabilityDecision(status.generatorId(), status.status(),
 				status.reasonCode(), status.notes())).orElseGet(() -> new CapabilityDecision(
 				generatorId == null ? "" : generatorId, SupportStatus.UNAVAILABLE, "UNSUPPORTED_GENERATOR",
-				"The requested generator is not in the version-track catalog."));
+				"所选生成器不在版本轨道目录中。"));
 	}
 
 	public boolean firstPartyGenerator(String generatorId) {

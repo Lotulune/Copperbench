@@ -3272,7 +3272,7 @@ export class MockCoreBridge implements CoreBridge {
                     },
                     {
                       path: '/namespace',
-                      label: { key: 'field.name', fallback: 'Namespace' },
+                      label: { key: 'field.namespace', fallback: 'Namespace' },
                       control: 'text',
                       required: true,
                       readOnly: false,
@@ -3282,7 +3282,7 @@ export class MockCoreBridge implements CoreBridge {
                     },
                     {
                       path: '/code',
-                      label: { key: 'field.name', fallback: 'Commands' },
+                      label: { key: 'field.code', fallback: 'Commands' },
                       control: 'textarea',
                       required: false,
                       readOnly: false,
@@ -3292,7 +3292,7 @@ export class MockCoreBridge implements CoreBridge {
                     },
                     {
                       path: '/tags',
-                      label: { key: 'field.name', fallback: 'Tags' },
+                      label: { key: 'field.tags', fallback: 'Tags' },
                       control: 'text',
                       required: false,
                       readOnly: false,
@@ -3335,7 +3335,7 @@ export class MockCoreBridge implements CoreBridge {
                     },
                     {
                       path: '/type',
-                      label: { key: 'field.material', fallback: 'Type' },
+                      label: { key: 'field.type', fallback: 'Type' },
                       control: 'select',
                       required: true,
                       readOnly: false,
@@ -3350,7 +3350,7 @@ export class MockCoreBridge implements CoreBridge {
                     },
                     {
                       path: '/pools',
-                      label: { key: 'field.name', fallback: 'Pools' },
+                      label: { key: 'field.pools', fallback: 'Pools' },
                       control: 'json',
                       required: false,
                       readOnly: false,
@@ -3424,7 +3424,7 @@ export class MockCoreBridge implements CoreBridge {
                     },
                     {
                       path: '/title',
-                      label: { key: 'field.displayName', fallback: 'Title' },
+                      label: { key: 'field.title', fallback: 'Title' },
                       control: 'text',
                       required: true,
                       readOnly: false,
@@ -3434,7 +3434,7 @@ export class MockCoreBridge implements CoreBridge {
                     },
                     {
                       path: '/description',
-                      label: { key: 'field.displayName', fallback: 'Description' },
+                      label: { key: 'field.description', fallback: 'Description' },
                       control: 'textarea',
                       required: false,
                       readOnly: false,
@@ -3444,7 +3444,7 @@ export class MockCoreBridge implements CoreBridge {
                     },
                     {
                       path: '/icon',
-                      label: { key: 'field.displayName', fallback: 'Icon' },
+                      label: { key: 'field.icon', fallback: 'Icon' },
                       control: 'resource_reference',
                       required: true,
                       readOnly: false,
@@ -3454,7 +3454,7 @@ export class MockCoreBridge implements CoreBridge {
                     },
                     {
                       path: '/frame',
-                      label: { key: 'field.material', fallback: 'Frame' },
+                      label: { key: 'field.frame', fallback: 'Frame' },
                       control: 'select',
                       required: true,
                       readOnly: false,
@@ -3468,7 +3468,7 @@ export class MockCoreBridge implements CoreBridge {
                     },
                     {
                       path: '/parent',
-                      label: { key: 'field.displayName', fallback: 'Parent' },
+                      label: { key: 'field.parent', fallback: 'Parent' },
                       control: 'procedure_reference',
                       required: false,
                       readOnly: false,
@@ -3478,7 +3478,7 @@ export class MockCoreBridge implements CoreBridge {
                     },
                     {
                       path: '/showPopup',
-                      label: { key: 'field.flammable', fallback: 'Show Popup' },
+                      label: { key: 'field.showPopup', fallback: 'Show Popup' },
                       control: 'toggle',
                       required: false,
                       readOnly: false,
@@ -3488,7 +3488,7 @@ export class MockCoreBridge implements CoreBridge {
                     },
                     {
                       path: '/announceToChat',
-                      label: { key: 'field.flammable', fallback: 'Announce Chat' },
+                      label: { key: 'field.announceToChat', fallback: 'Announce Chat' },
                       control: 'toggle',
                       required: false,
                       readOnly: false,
@@ -3498,7 +3498,7 @@ export class MockCoreBridge implements CoreBridge {
                     },
                     {
                       path: '/hideIfNotCompleted',
-                      label: { key: 'field.flammable', fallback: 'Hide' },
+                      label: { key: 'field.hideIfNotCompleted', fallback: 'Hide' },
                       control: 'toggle',
                       required: false,
                       readOnly: false,
@@ -3508,7 +3508,7 @@ export class MockCoreBridge implements CoreBridge {
                     },
                     {
                       path: '/disableDisplay',
-                      label: { key: 'field.flammable', fallback: 'Disable Display' },
+                      label: { key: 'field.disableDisplay', fallback: 'Disable Display' },
                       control: 'toggle',
                       required: false,
                       readOnly: false,
@@ -3518,7 +3518,7 @@ export class MockCoreBridge implements CoreBridge {
                     },
                     {
                       path: '/rewardXP',
-                      label: { key: 'field.hardness', fallback: 'Reward XP' },
+                      label: { key: 'field.rewardXP', fallback: 'Reward XP' },
                       control: 'number',
                       required: false,
                       readOnly: false,
@@ -3529,7 +3529,7 @@ export class MockCoreBridge implements CoreBridge {
                     },
                     {
                       path: '/rewardLoot',
-                      label: { key: 'field.name', fallback: 'Reward Loot' },
+                      label: { key: 'field.rewardLoot', fallback: 'Reward Loot' },
                       control: 'json',
                       required: false,
                       readOnly: false,
@@ -3539,7 +3539,7 @@ export class MockCoreBridge implements CoreBridge {
                     },
                     {
                       path: '/rewardRecipes',
-                      label: { key: 'field.name', fallback: 'Reward Recipes' },
+                      label: { key: 'field.rewardRecipes', fallback: 'Reward Recipes' },
                       control: 'json',
                       required: false,
                       readOnly: false,
@@ -3549,7 +3549,7 @@ export class MockCoreBridge implements CoreBridge {
                     },
                     {
                       path: '/rewardFunction',
-                      label: { key: 'field.name', fallback: 'Reward Function' },
+                      label: { key: 'field.rewardFunction', fallback: 'Reward Function' },
                       control: 'procedure_reference',
                       required: false,
                       readOnly: false,
@@ -3559,7 +3559,7 @@ export class MockCoreBridge implements CoreBridge {
                     },
                     {
                       path: '/criteria',
-                      label: { key: 'field.name', fallback: 'Criteria' },
+                      label: { key: 'field.criteria', fallback: 'Criteria' },
                       control: 'json',
                       required: false,
                       readOnly: false,
@@ -4204,7 +4204,7 @@ export class MockCoreBridge implements CoreBridge {
                     },
                     {
                       path: '/loaderExtensions/neoforge/fireSpreadSpeed',
-                      label: { key: 'field.fire_spread_speed', fallback: 'Fire Spread Speed (火焰蔓延速度)' },
+                      label: { key: 'field.fireSpreadSpeed', fallback: 'Fire Spread Speed (火焰蔓延速度)' },
                       help: {
                         key: 'field.loader_specific_preserved',
                         fallback: 'This NeoForge field is preserved but unavailable while Fabric is active.'

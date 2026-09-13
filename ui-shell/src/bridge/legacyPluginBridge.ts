@@ -30,7 +30,7 @@ class UnavailableLegacyPluginBridge implements LegacyPluginBridge {
   public readonly available = false;
 
   public open(): Promise<void> {
-    return Promise.reject(new Error('Legacy plugin window is only available in the desktop host'));
+    return Promise.reject(new Error('旧版插件窗口仅可在桌面应用中打开'));
   }
 }
 

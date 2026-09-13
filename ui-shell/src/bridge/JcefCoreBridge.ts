@@ -64,7 +64,7 @@ export function createBrowserJcefTransport(
     invoke(envelopeJson: string): Promise<string> {
       return new Promise<string>((resolve, reject) => {
         if (typeof window === 'undefined' || typeof window.cefQuery !== 'function') {
-          reject(new Error('JCEF native query transport (window.cefQuery) is not available'));
+          reject(new Error('桌面通信接口不可用（window.cefQuery）'));
           return;
         }
 
@@ -75,7 +75,7 @@ export function createBrowserJcefTransport(
             resolve(response);
           },
           onFailure: (errorCode: number, errorMessage: string) => {
-            reject(new Error(`Native bridge query failed [${errorCode}]: ${errorMessage}`));
+            reject(new Error(`桌面通信请求失败 [${errorCode}]: ${errorMessage}`));
           }
         });
       });
@@ -297,23 +297,23 @@ export class JcefCoreBridge implements CoreBridge {
             ? 'query_result'
             : null;
     if (expectedMessageType && response.messageType !== expectedMessageType) {
-      throw new Error(`JCEF bridge returned ${String(response.messageType)} for ${String(request.messageType)}`);
+      throw new Error(`桌面响应类型不匹配：请求 ${String(request.messageType)}，收到 ${String(response.messageType)}`);
     }
     if (response.requestId !== request.requestId) {
-      throw new Error('JCEF bridge response requestId does not match the request');
+      throw new Error('桌面响应的请求编号（requestId）不匹配');
     }
     if (request.workspaceId && response.workspaceId !== request.workspaceId) {
-      throw new Error('JCEF bridge response workspaceId does not match the request');
+      throw new Error('桌面响应的工作区编号（workspaceId）不匹配');
     }
     if (request.operation && response.operation !== request.operation) {
-      throw new Error('JCEF bridge response operation does not match the request');
+      throw new Error('桌面响应的操作（operation）不匹配');
     }
     return response as T;
   }
 
   private parse<T>(raw: string): T {
     const value: unknown = JSON.parse(raw);
-    if (!value || typeof value !== 'object') throw new Error('JCEF bridge returned a non-object envelope');
+    if (!value || typeof value !== 'object') throw new Error('桌面响应格式无效：消息不是对象');
     return value as T;
   }
 

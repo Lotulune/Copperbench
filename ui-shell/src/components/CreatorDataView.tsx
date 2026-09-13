@@ -1,3 +1,4 @@
+import { valueLabel } from '../i18n/labels';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Check,
@@ -52,8 +53,8 @@ function entryName(entry: RegistryEntry): string {
 }
 
 function entryDetails(tab: RegistryName, entry: RegistryEntry): string {
-  if (tab === 'variables') return `${entry.dataType ?? 'number'} · ${entry.scope ?? 'global'}`;
-  if (tab === 'tags') return `${entry.namespace ?? 'mod'}:${entry.name ?? ''} · ${entry.category ?? 'items'} · ${entry.members?.length ?? 0} 个成员`;
+  if (tab === 'variables') return `${valueLabel(entry.dataType ?? 'number')} · ${valueLabel(entry.scope ?? 'global')}`;
+  if (tab === 'tags') return `${entry.namespace ?? 'mod'}:${entry.name ?? ''} · ${valueLabel(entry.category ?? 'items')} · ${entry.members?.length ?? 0} 个成员`;
   const translations = entry.translations ?? {};
   return Object.entries(translations).map(([locale, value]) => `${locale}: ${value}`).join(' · ') || '尚无翻译';
 }
@@ -333,7 +334,7 @@ export const CreatorDataView: React.FC = () => {
       <header className="creator-data-header">
         <div>
           <h1><Database size={18} />工作区数据</h1>
-          <p>稳定 ID、引用感知重命名、语言翻译工具与悬空引用诊断</p>
+          <p>管理变量、标签和语言词条，查看引用及重命名影响</p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           {tab === 'languageKeys' && (
@@ -519,7 +520,7 @@ export const CreatorDataView: React.FC = () => {
                   <option value="global">全局</option>
                   <option value="player_persistent">玩家持久化</option>
                   <option value="world">地图 / 世界</option>
-                  <option value="local">本地 Procedure</option>
+                  <option value="local">过程局部（local）</option>
                 </select>
               </label>
             </>
@@ -621,7 +622,7 @@ export const CreatorDataView: React.FC = () => {
                       )}
                     </td>
                     <td>{entryDetails(tab, entry)}</td>
-                    <td><span className="badge badge-green">{entry.support?.state ?? 'supported'}</span></td>
+                    <td><span className="badge badge-green">{valueLabel(entry.support?.state ?? 'supported')}</span></td>
                     <td>
                       <div className="registry-row-actions">
                         <button
@@ -810,7 +811,7 @@ const ReferenceTable: React.FC<{ projection: WorkspaceReferenceProjection | null
             <tr key={String(edge.id ?? index)}>
               <td><code>{String(edge.sourceId ?? '')}</code></td>
               <td><code>{String(edge.sourcePath ?? '')}</code></td>
-              <td>{String(edge.kind ?? '')}</td>
+              <td>{valueLabel(String(edge.kind ?? ''))}</td>
               <td>
                 {String(edge.target ?? '')}
                 {edge.targetId == null && <span className="badge badge-red" style={{ marginLeft: '4px' }}>悬空</span>}

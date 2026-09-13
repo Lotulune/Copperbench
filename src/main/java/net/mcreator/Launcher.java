@@ -113,10 +113,11 @@ public class Launcher {
 
 		// check if proper version of MCreator per architecture is used
 		if (OS.getSystemBits() == OS.BIT32) {
-			JOptionPane.showMessageDialog(null,
-					"<html>You are trying to run 64-bit " + ProductIdentity.NAME + " on a 32-bit computer.<br>"
-							+ ProductIdentity.NAME + " does not support 32-bit platforms.",
-					ProductIdentity.NAME + " error", JOptionPane.WARNING_MESSAGE);
+			JOptionPane.showOptionDialog(null,
+					"<html>当前系统为 32 位，无法运行 64 位 " + ProductIdentity.NAME + "。<br>"
+							+ ProductIdentity.NAME + " 不支持 32 位系统。",
+					ProductIdentity.NAME + " 启动错误", JOptionPane.DEFAULT_OPTION,
+                    JOptionPane.WARNING_MESSAGE, null, new Object[]{"确定"}, "确定");
 			System.exit(-1);
 		}
 
@@ -133,12 +134,12 @@ public class Launcher {
 				System.exit(10);
 				return;
 			}
-			JOptionPane.showMessageDialog(null,
-					"<html><b>" + ProductIdentity.NAME + " failed to write to the user directory!</b><br><br>"
-							+ "Make sure the current user can read and write the application data directory:<br><br>"
+			JOptionPane.showOptionDialog(null,
+					"<html><b>" + ProductIdentity.NAME + " 无法写入用户数据目录！</b><br><br>"
+							+ "请确认当前用户具有以下应用数据目录的读取和写入权限：<br><br>"
 							+ UserFolderManager.getFileFromUserFolder("/") + "<br>",
-					ProductIdentity.NAME + " file system error",
-					JOptionPane.WARNING_MESSAGE);
+					ProductIdentity.NAME + " 文件系统错误", JOptionPane.DEFAULT_OPTION,
+                    JOptionPane.WARNING_MESSAGE, null, new Object[]{"确定"}, "确定");
 			System.exit(-2);
 		}
 

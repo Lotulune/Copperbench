@@ -1,3 +1,4 @@
+import { valueLabel } from '../i18n/labels';
 import React, { useMemo, useState } from 'react';
 import { Bot, Check, ChevronRight, Clipboard, KeyRound, LockKeyhole, ShieldAlert, ShieldCheck, X } from 'lucide-react';
 import { mcpRuntimeBridge } from '../bridge/mcpRuntimeBridge';
@@ -88,7 +89,7 @@ export const AIControlView: React.FC = () => {
             <div><dt>状态</dt><dd>{connectionLabel}</dd></div>
             <div><dt>地址</dt><dd><code>{mcp?.url ?? '—'}</code></dd></div>
             <div><dt>工作区</dt><dd><code>{mcp?.workspaceId || '—'}</code></dd></div>
-            <div><dt>权限</dt><dd>{mcp?.permissionProfile ?? 'workspace'}</dd></div>
+            <div><dt>权限</dt><dd>{valueLabel(mcp?.permissionProfile ?? 'workspace')}</dd></div>
             <div><dt>令牌到期</dt><dd>{mcp?.expiresAt ?? '—'}</dd></div>
           </dl>
           {mcp?.failure && <div className="stage2-status" role="status">{mcp.failure}</div>}
@@ -113,7 +114,7 @@ export const AIControlView: React.FC = () => {
           <div className="stage2-section-heading">
             <div>
               <h3 id="permission-heading">权限档位</h3>
-              <p>显示桌面 MCP runtime 实际签发的权限；当前版本不在前端伪切换令牌权限。</p>
+              <p>显示当前 MCP 连接的实际权限；更改任务授权不会扩大连接权限。</p>
             </div>
             <ShieldCheck size={18} aria-hidden="true" />
           </div>
@@ -156,7 +157,7 @@ export const AIControlView: React.FC = () => {
                 </div>
                 <div className="approval-copy">
                   <strong>{t(approval.title)}</strong>
-                  <span>{approval.requestedBy.toUpperCase()} · {approval.affectedPaths[0]}</span>
+                  <span>{valueLabel(approval.requestedBy)} · {approval.affectedPaths[0]}</span>
                   {!approval.canApprove && (
                     <span className="approval-blocked" data-testid="approval-blocked">AI 无权批准，必须在插件中心由用户操作</span>
                   )}
@@ -207,7 +208,7 @@ export const AIControlView: React.FC = () => {
             <div className="modal-body">
               <strong>{t(selected.title)}</strong>
               <dl className="approval-details">
-                <div><dt>请求方</dt><dd>{selected.requestedBy.toUpperCase()}</dd></div>
+                <div><dt>请求方</dt><dd>{valueLabel(selected.requestedBy)}</dd></div>
                 <div><dt>风险</dt><dd>{selected.risk === 'critical' ? '严重' : '高'}</dd></div>
                 <div><dt>策略</dt><dd>{selected.policyCode}</dd></div>
               </dl>

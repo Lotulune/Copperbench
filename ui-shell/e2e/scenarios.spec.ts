@@ -127,7 +127,7 @@ test.describe('UI-Core v1.0 Contract Scenarios', () => {
     await page.click('[data-testid="scenario-btn-offline"]');
 
     await expect(page.locator('[data-testid="offline-status"]')).toContainText('离线模式');
-    await expect(page.locator('[data-testid="core-status"]')).toContainText('核心：connected');
+    await expect(page.locator('[data-testid="core-status"]')).toContainText('核心：已连接');
   });
 
   test('scenario: build-running displays progress and log stream', async ({ page }) => {
@@ -158,12 +158,12 @@ test.describe('UI-Core v1.0 Contract Scenarios', () => {
     // Top-level diagnostic banner explains current vs required permission
     await expect(page.locator('[data-testid="global-diagnostics-banner"]')).toBeVisible();
     await expect(page.getByText('需要工作区写入权限才能执行构建。').first()).toBeVisible();
-    await expect(page.locator('[data-testid="permission-alert"]')).toContainText('MCP: READ_ONLY');
+    await expect(page.locator('[data-testid="permission-alert"]')).toContainText('MCP: 只读（Read Only）');
 
     // Request elevation resolves the denial
     await page.click('[data-testid="diag-action-request_workspace_permission"]');
     await expect(page.locator('[data-testid="global-diagnostics-banner"]')).not.toBeVisible();
-    await expect(page.locator('[data-testid="permission-alert"]')).toContainText('MCP: WORKSPACE');
+    await expect(page.locator('[data-testid="permission-alert"]')).toContainText('MCP: 工作区读写（Workspace）');
   });
 
   test('scenario: external-process-exited surfaces failure with log entry point', async ({ page }) => {
@@ -171,14 +171,14 @@ test.describe('UI-Core v1.0 Contract Scenarios', () => {
     await page.click('[data-testid="scenario-btn-external-process-exited"]');
 
     await expect(page.locator('[data-testid="task-failure"]')).toBeVisible();
-    await expect(page.getByText('RUN_CLIENT 任务失败').first()).toBeVisible();
+    await expect(page.getByText('测试客户端 任务失败').first()).toBeVisible();
     await expect(page.getByText('意外退出').first()).toBeVisible();
 
     // The task-level entry point opens the drawer and the payload taskId keeps the runtime diagnostic attached
     // even though open_logs.target remains the native application-log failureId.
     await page.click('[data-testid="open-failed-task-logs-btn"]');
     await expect(page.locator('[data-testid="task-drawer"]')).toBeVisible();
-    await expect(page.getByText('RUN_CLIENT').first()).toBeVisible();
+    await expect(page.getByText('测试客户端').first()).toBeVisible();
     await expect(page.locator('[data-testid="task-diagnostic-FABRIC_RUN_CLIENT_EXITED"]')).toBeVisible();
     await expect(page.locator('[data-testid="task-diag-action-open_client_logs"]')).toBeVisible();
   });
@@ -193,7 +193,7 @@ test.describe('UI-Core v1.0 Contract Scenarios', () => {
     await page.click('[data-testid="task-diag-action-open_procedure_node"]');
 
     await expect(page.locator('[data-testid="procedure-workbench"]')).toBeVisible();
-    await expect(page.locator('[data-testid="procedure-selected-location"]')).toContainText('调用 Procedure');
+    await expect(page.locator('[data-testid="procedure-selected-location"]')).toContainText('调用过程（Procedure）');
     await expect(page.locator('#procedure-tab-diagnostics')).toHaveAttribute('aria-selected', 'true');
   });
 

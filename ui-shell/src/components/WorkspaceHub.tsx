@@ -1,3 +1,4 @@
+import { elementLabel, valueLabel } from '../i18n/labels';
 import React from 'react';
 import {
   CheckCircle2,
@@ -124,7 +125,7 @@ export const WorkspaceHub: React.FC = () => {
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--badge-red)', fontSize: '12px', fontWeight: 600 }}>
                 <AlertTriangle size={15} />
                 <span>
-                  {failedTask.kind.toUpperCase()} 任务失败 — {t(failedTask.stage)}
+                  {valueLabel(failedTask.kind)} 任务失败 — {t(failedTask.stage)}
                 </span>
               </div>
               <button
@@ -213,7 +214,7 @@ export const WorkspaceHub: React.FC = () => {
             </span>
             <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
               <Cpu size={13} />
-              <span>兼容模式：{workspace?.compatibility.mode.toUpperCase()}（未知数据保留）</span>
+              <span>兼容模式：{valueLabel(workspace?.compatibility.mode ?? 'unknown')}（未知数据保留）</span>
             </span>
           </div>
         </div>
@@ -262,7 +263,7 @@ export const WorkspaceHub: React.FC = () => {
                   {t({
                     key: 'task.kind_label',
                     fallback: 'Task: {kind}',
-                    args: { kind: activeTasks[0].kind.toUpperCase() }
+                    args: { kind: valueLabel(activeTasks[0].kind) }
                   })}
                 </span>
                 <span className="badge badge-amber" style={{ fontSize: '10px' }}>
@@ -413,7 +414,7 @@ export const WorkspaceHub: React.FC = () => {
             <div>
               <h2 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-main)' }}>项目健康</h2>
               <div style={{ marginTop: '4px', fontSize: '11px', color: 'var(--text-sub)' }}>
-                仅汇总 Core 已确认的项目事实，不计算隐藏健康分。
+                汇总已确认的诊断、引用、资产和任务状态。
               </div>
             </div>
             <span className="badge badge-copper">修订 {workspaceHealth.revision}</span>
@@ -472,7 +473,7 @@ export const WorkspaceHub: React.FC = () => {
               style={{ justifyContent: 'space-between', minHeight: '58px' }}
             >
               <span>生成器</span>
-              <strong>{workspaceHealth.generator.status} · {workspaceHealth.generator.generatable ? '可生成' : '不可生成'}</strong>
+              <strong>{valueLabel(workspaceHealth.generator.status)} · {workspaceHealth.generator.generatable ? '可生成' : '不可生成'}</strong>
             </button>
             <button
               type="button"
@@ -610,17 +611,17 @@ export const WorkspaceHub: React.FC = () => {
                       {elem.displayName}
                     </div>
                     <div style={{ fontSize: '11px', color: 'var(--text-sub)' }}>
-                      {elem.name} · {elem.ownership.toUpperCase()}
+                      {elem.name} · {valueLabel(elem.ownership)}
                     </div>
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span className={`badge badge-${elem.state === 'valid' ? 'green' : elem.state === 'draft' ? 'amber' : 'red'}`}>
-                    {elem.state.toUpperCase()}
+                    {valueLabel(elem.state)}
                   </span>
                   <span className="badge badge-copper" style={{ fontSize: '10px' }}>
-                    {elem.type.toUpperCase()}
+                    {elementLabel(elem.type)}
                   </span>
                 </div>
               </button>

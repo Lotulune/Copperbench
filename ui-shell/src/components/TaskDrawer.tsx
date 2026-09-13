@@ -1,3 +1,4 @@
+import { valueLabel } from '../i18n/labels';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Terminal,
@@ -228,13 +229,13 @@ export const TaskDrawer: React.FC = () => {
           {activeTask && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span className="badge badge-copper" style={{ fontSize: '10px' }}>
-                {activeTask.kind.toUpperCase()}
+                {valueLabel(activeTask.kind)}
               </span>
               <span
                 className={`badge badge-${activeTask.state === 'succeeded' ? 'green' : activeTask.state === 'running' ? 'amber' : 'red'}`}
                 style={{ fontSize: '10px' }}
               >
-                {activeTask.state.toUpperCase()}
+                {valueLabel(activeTask.state)}
               </span>
               <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
                 {t(activeTask.stage)}
@@ -336,7 +337,7 @@ export const TaskDrawer: React.FC = () => {
                 {datagenPreview.files.map((file) => (
                   <div key={file.path} title={file.sha256} style={{ display: 'flex', gap: '8px' }}>
                     <span style={{ color: file.status === 'add' ? 'var(--badge-green)' : file.status === 'modify' ? 'var(--badge-amber)' : 'var(--text-sub)', width: '50px', flexShrink: 0 }}>
-                      {file.status.toUpperCase()}
+                      {valueLabel(file.status)}
                     </span>
                     <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.path}</span>
                   </div>
@@ -407,7 +408,7 @@ export const TaskDrawer: React.FC = () => {
       {diagnostics.length > 0 && (
         <section
           data-testid="task-diagnostics"
-          aria-label="Task diagnostics"
+          aria-label="任务诊断"
           style={{
             padding: '10px 16px',
             borderBottom: '1px solid var(--border-subtle)',
@@ -463,7 +464,7 @@ export const TaskDrawer: React.FC = () => {
       {(sourcePreview || sourceError) && (
         <section
           data-testid="task-source-preview"
-          aria-label="Generated source preview"
+          aria-label="生成源码预览"
           style={{
             borderBottom: '1px solid var(--border-subtle)',
             background: 'var(--bg-input)',

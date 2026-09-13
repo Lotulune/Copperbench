@@ -516,7 +516,7 @@ export const NewWorkspaceView: React.FC = () => {
                 style={{ padding: '8px 10px', borderRadius: 'var(--radius-sm)', border: fieldError('packageName') ? '1px solid var(--badge-red)' : '1px solid var(--border-subtle)', background: 'var(--bg-canvas)', color: 'var(--text-main)', fontSize: '12px' }}
               />
               <span id="new-workspace-package-help" style={{ fontSize: '10px', color: 'var(--text-sub)' }}>
-                留空时自动使用 net.mcreator.&lt;modid&gt;（与旧版对话框一致）。
+                留空时自动使用 net.mcreator.&lt;modid&gt;。
               </span>
               {fieldError('packageName') && (
                 <span id="new-workspace-package-error" role="alert" style={{ fontSize: '11px', color: 'var(--badge-red)' }}>
@@ -545,7 +545,7 @@ export const NewWorkspaceView: React.FC = () => {
                 className="btn-secondary"
                 data-testid="new-workspace-browse-btn"
                 disabled
-                title="仅桌面 Full Access 宿主可用；当前需手动输入路径"
+                title="当前无法浏览文件夹，请手动输入路径"
                 style={{ fontSize: '12px', padding: '6px 12px', opacity: 0.6, display: 'flex', alignItems: 'center', gap: '6px' }}
               >
                 <FolderOpen size={12} />
@@ -583,7 +583,7 @@ export const NewWorkspaceView: React.FC = () => {
         <div role="note" style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', fontSize: '12px', color: 'var(--text-main)', lineHeight: 1.5 }}>
           <ShieldCheck size={16} color="var(--badge-blue)" style={{ flexShrink: 0, marginTop: '2px' }} />
           <span>
-            创建工作区会写入新文件夹与 <code>.mcreator</code> 工作区文件。此命令走 <code>create_workspace</code> 审批门，需要显式确认后才会提交。
+            将在所选位置创建文件夹和 <code>.mcreator</code> 工作区文件，请核对路径后确认。
           </span>
         </div>
 

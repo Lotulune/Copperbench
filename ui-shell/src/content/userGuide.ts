@@ -156,7 +156,7 @@ export const USER_GUIDE_SECTIONS: readonly UserGuideSection[] = [
     id: 'mod-elements',
     title: '模组元素 (Mod Elements)',
     content: [
-      '可直接可视化创建和编辑：方块、物品、配方、Procedure。',
+      '可直接可视化创建和编辑：方块、物品、配方、过程（Procedure）。',
       '从上游迁入的其他类型元素会保留并只读显示，暂不能在新界面中修改。'
     ],
     linkView: 'elements',

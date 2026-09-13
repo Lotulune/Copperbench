@@ -1,3 +1,4 @@
+import { useTheme, ThemePreference } from '../hooks/useTheme';
 import React, { createContext, useContext, useEffect, useState, useMemo, useCallback } from 'react';
 import {
   UUID,
@@ -60,6 +61,7 @@ export interface ProcedureFocusRequest {
 interface WorkbenchContextType {
   state: BridgeState;
   theme: 'dark' | 'light';
+  themePreference: ThemePreference;
   toggleTheme: () => void;
   activeView: NavView;
   setActiveView: (view: NavView) => void;
@@ -191,7 +193,7 @@ function focusByContractSelector(selector: string): void {
 
 export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, setState] = useState<BridgeState>(coreBridge.getState());
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const { theme, themePreference, toggleTheme } = useTheme();
   const [activeView, setActiveView] = useState<NavView>('hub');
   const [selectedElementId, setSelectedElementId] = useState<UUID | null>(null);
   const [assetFocusId, setAssetFocusId] = useState<string | null>(null);
@@ -257,13 +259,6 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setIsConflictModalOpen(state.viewportState === 'conflict');
   }, [state.viewportState]);
 
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-  }, [theme]);
-
-  const toggleTheme = useCallback(() => {
-    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
-  }, []);
 
   const toggleMaximize = useCallback(() => {
     setIsMaximized((prev) => !prev);
@@ -1271,6 +1266,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     () => ({
       state,
       theme,
+      themePreference,
       toggleTheme,
       activeView,
       setActiveView,
@@ -1357,6 +1353,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     [
       state,
       theme,
+      themePreference,
       toggleTheme,
       activeView,
       selectedElementId,

@@ -2860,3 +2860,37 @@ input:disabled, select:disabled, textarea:disabled {
   flex-direction: column;
   gap: 4px;
 }
+
+/* Keep translated navigation and status text readable in narrow desktop windows. */
+@media (max-width: 900px) {
+  .track-view-header,
+  .track-workspace-summary {
+    flex-direction: column;
+    align-items: stretch !important;
+    gap: 12px;
+  }
+
+  .track-view-tabs { flex-wrap: wrap; }
+  .track-view-tabs button { flex: 1 0 40%; white-space: nowrap; }
+  .track-workspace-summary > div:first-child { flex-wrap: wrap; }
+  .track-workspace-summary code { overflow-wrap: anywhere; }
+}
+
+@media (max-width: 760px) {
+  .status-footer {
+    height: auto !important;
+    min-height: 58px;
+    flex-shrink: 0;
+    flex-direction: column;
+    align-items: stretch !important;
+    gap: 4px;
+    padding: 6px 12px !important;
+  }
+
+  .status-footer > div { flex-wrap: wrap; gap: 8px !important; }
+}
+
+@media (max-width: 760px) {
+  .scenario-switcher { bottom: 70px !important; left: 64px !important; }
+  .scenario-switcher > div { max-width: calc(100vw - 80px); }
+}

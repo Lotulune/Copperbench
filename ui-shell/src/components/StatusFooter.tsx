@@ -1,3 +1,4 @@
+import { valueLabel } from '../i18n/labels';
 import React from 'react';
 import {
   Wifi,
@@ -56,17 +57,17 @@ export const StatusFooter: React.FC = () => {
         <div
           style={{ display: 'flex', alignItems: 'center', gap: '5px' }}
           data-testid="core-status"
-          title={`Java Core: ${connection.core}`}
+          title={`Java 核心： ${valueLabel(connection.core)}`}
         >
           <Server size={12} color="var(--badge-green)" />
-          <span>核心：{connection.core}</span>
+          <span>核心：{valueLabel(connection.core)}</span>
         </div>
 
         {/* Network status */}
         <div
           style={{ display: 'flex', alignItems: 'center', gap: '5px' }}
           data-testid="offline-status"
-          title={`Network: ${connection.network}`}
+          title={`网络： ${valueLabel(connection.network)}`}
         >
           {connection.network === 'offline' ? (
             <>
@@ -87,7 +88,7 @@ export const StatusFooter: React.FC = () => {
           data-testid="bridge-status"
         >
           <Activity size={12} color="var(--accent-copper)" />
-          <span>桥接：{connection.bridge}</span>
+          <span>桥接：{valueLabel(connection.bridge)}</span>
         </div>
       </div>
 
@@ -148,7 +149,7 @@ export const StatusFooter: React.FC = () => {
           data-testid="permission-alert"
         >
           <Shield size={11} />
-          <span style={{ fontWeight: 600 }}>MCP: {permission.toUpperCase()}</span>
+          <span style={{ fontWeight: 600 }}>MCP: {valueLabel(permission)}</span>
         </div>
       </div>
     </footer>

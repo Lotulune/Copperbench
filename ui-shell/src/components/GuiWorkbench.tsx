@@ -1,3 +1,4 @@
+import { fieldLabel, valueLabel } from '../i18n/labels';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   AlertTriangle,
@@ -222,7 +223,7 @@ function layoutIssues(values: Record<string, unknown>, components: GuiComponentW
   const named = new Map<string, number>();
   components.forEach((component, index) => {
     if ((component.type === 'inputslot' || component.type === 'outputslot') && Number(values['/type'] ?? 0) !== 1) {
-      issues.push({ index, message: '槽位组件要求 GUI 类型为 With slots。' });
+      issues.push({ index, message: '槽位组件要求界面类型为“含物品槽（With slots）”。' });
     }
     const name = component.data.name;
     if (typeof name === 'string' && name.trim()) {
@@ -487,11 +488,11 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
                 onChange={(event) => setNewComponentType(event.target.value as typeof newComponentType)}
                 style={{ maxWidth: 112, fontSize: 9, padding: '4px 5px' }}
               >
-                <option value="button">Button</option>
-                <option value="label">Label</option>
-                <option value="image">Image</option>
-                <option value="inputslot">Input Slot</option>
-                <option value="outputslot">Output Slot</option>
+                <option value="button">按钮（Button）</option>
+                <option value="label">文本标签（Label）</option>
+                <option value="image">图片（Image）</option>
+                <option value="inputslot">输入槽（Input Slot）</option>
+                <option value="outputslot">输出槽（Output Slot）</option>
               </select>
               <button type="button" className="btn-secondary" onClick={addComponent} data-testid="gui-add-component-btn" aria-label="添加组件">
                 <Plus size={12} />
@@ -501,7 +502,7 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
           <div data-testid="gui-component-tree" style={{ flex: 1, overflowY: 'auto', padding: 8 }}>
             {components.length === 0 ? (
               <div style={{ padding: '24px 8px', fontSize: 10, color: 'var(--text-sub)', textAlign: 'center' }}>
-                当前 GUI 没有组件。可添加上游 Button、Label、Image 或 Slot 组件。
+                当前界面没有组件。可添加按钮、文本标签、图片或物品槽。
               </div>
             ) : components.map((component, index) => {
               const componentIssues = issues.filter((issue) => issue.index === index);
@@ -522,7 +523,7 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
                       fontWeight: 600, color: 'var(--text-main)' }}>{componentName(component, index)}</span>
                     {componentIssues.length > 0 && <AlertTriangle size={11} color="var(--badge-amber)" />}
                   </div>
-                  <div style={{ fontSize: 9, color: 'var(--text-sub)', marginTop: 3 }}>{component.type}</div>
+                  <div style={{ fontSize: 9, color: 'var(--text-sub)', marginTop: 3 }}>{valueLabel(component.type)}</div>
                 </button>
               );
             })}
@@ -540,8 +541,8 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
                 onChange={(event) => setValue('/type', Number(event.target.value))}
                 style={{ marginLeft: 5 }}
               >
-                <option value={0}>Without slots</option>
-                <option value={1}>With slots</option>
+                <option value={0}>无物品槽</option>
+                <option value={1}>含物品槽</option>
               </select>
             </label>
             <label style={{ fontSize: 10, color: 'var(--text-sub)' }}>
@@ -629,7 +630,7 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: 700, fontSize: 11, color: 'var(--text-main)' }}>{componentName(selected, selectedIndex)}</div>
-                  <div style={{ fontSize: 9, color: 'var(--text-sub)' }}>{selected.type}</div>
+                  <div style={{ fontSize: 9, color: 'var(--text-sub)' }}>{valueLabel(selected.type)}</div>
                 </div>
                 <button type="button" aria-label="上移组件" onClick={() => moveSelected(-1)} disabled={selectedIndex === 0} style={{ padding: 4 }}>
                   <ChevronUp size={12} />
@@ -645,7 +646,7 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
               {selected.type === 'label' && (
                 <>
                   <label style={{ display: 'block', marginBottom: 8, fontSize: 9, color: 'var(--text-sub)' }}>
-                    text · fixedValue
+                    固定文本（text.fixedValue）
                     <input
                       data-testid="gui-component-field-label-text"
                       value={labelText(selected)}
@@ -654,7 +655,7 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
                     />
                   </label>
                   <label style={{ display: 'block', marginBottom: 8, fontSize: 9, color: 'var(--text-sub)' }}>
-                    color
+                    颜色（color）
                     <input
                       data-testid="gui-component-field-label-color"
                       type="color"
@@ -671,10 +672,10 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
                 if (key === 'anchorPoint') {
                   return (
                     <label key={key} htmlFor={inputId} style={{ display: 'block', marginBottom: 8, fontSize: 9, color: 'var(--text-sub)' }}>
-                      anchorPoint
+                      锚点（anchorPoint）
                       <select id={inputId} value={String(value ?? '')} onChange={(event) => updateComponentField(key, event.target.value || null)}
                         style={{ width: '100%', marginTop: 3 }}>
-                        {ANCHORS.map((anchor) => <option key={anchor} value={anchor}>{anchor || '(none)'}</option>)}
+                        {ANCHORS.map((anchor) => <option key={anchor} value={anchor}>{anchor ? valueLabel(anchor) : '无'}</option>)}
                       </select>
                     </label>
                   );
@@ -684,14 +685,14 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
                     <label key={key} htmlFor={inputId} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8,
                       fontSize: 9, color: 'var(--text-sub)' }}>
                       <input id={inputId} type="checkbox" checked={value}
-                        onChange={(event) => updateComponentField(key, event.target.checked)} /> {key}
+                        onChange={(event) => updateComponentField(key, event.target.checked)} /> {fieldLabel(key)}
                     </label>
                   );
                 }
                 if (typeof value === 'number') {
                   return (
                     <label key={key} htmlFor={inputId} style={{ display: 'block', marginBottom: 8, fontSize: 9, color: 'var(--text-sub)' }}>
-                      {key}
+                      {fieldLabel(key)}
                       <input id={inputId} data-testid={`gui-component-field-${key}`} type="number" value={value}
                         onChange={(event) => updateComponentField(key, Number(event.target.value))}
                         style={{ width: '100%', marginTop: 3 }} />
@@ -701,7 +702,7 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
                 if (PROCEDURE_FIELDS.has(key)) {
                   return (
                     <label key={key} htmlFor={inputId} style={{ display: 'block', marginBottom: 8, fontSize: 9, color: 'var(--text-sub)' }}>
-                      {key} · Procedure
+                      {fieldLabel(key)} · 过程（Procedure）
                       <input id={inputId} list="gui-procedure-options" value={String(value ?? '')}
                         onChange={(event) => updateComponentField(key, event.target.value || null)} style={{ width: '100%', marginTop: 3 }} />
                     </label>
@@ -709,7 +710,7 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
                 }
                 return (
                   <label key={key} htmlFor={inputId} style={{ display: 'block', marginBottom: 8, fontSize: 9, color: 'var(--text-sub)' }}>
-                    {key}
+                    {fieldLabel(key)}
                     <input id={inputId} list={isAssetField(key) ? 'gui-texture-assets' : undefined} value={String(value ?? '')}
                       onChange={(event) => updateComponentField(key, event.target.value)} style={{ width: '100%', marginTop: 3 }} />
                   </label>

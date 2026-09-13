@@ -30,7 +30,7 @@ class UnavailableWorkspaceOpenBridge implements WorkspaceOpenBridge {
   public readonly available = false;
 
   public open(_workspaceFile: string): Promise<void> {
-    return Promise.reject(new Error('Opening a workspace in a new window is only available in the desktop host'));
+    return Promise.reject(new Error('仅桌面应用支持在新窗口中打开工作区'));
   }
 }
 

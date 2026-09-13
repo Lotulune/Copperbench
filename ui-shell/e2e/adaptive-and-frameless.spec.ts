@@ -6,17 +6,17 @@ test.describe('Adaptive Layout, Frameless Window & Theme Tests', () => {
     await page.waitForSelector('[data-testid="app-shell"]');
   });
 
-  test('theme toggle switches between dark and light modes', async ({ page }) => {
+  test('theme control cycles system, light, dark, and back to system', async ({ page }) => {
+    await page.emulateMedia({ colorScheme: 'dark' });
     const html = page.locator('html');
+    await expect(html).toHaveAttribute('data-theme-preference', 'system');
     await expect(html).toHaveAttribute('data-theme', 'dark');
-
-    // Click theme toggle
     await page.click('[data-testid="theme-toggle-btn"]');
     await expect(html).toHaveAttribute('data-theme', 'light');
-
-    // Click back to dark
     await page.click('[data-testid="theme-toggle-btn"]');
     await expect(html).toHaveAttribute('data-theme', 'dark');
+    await page.click('[data-testid="theme-toggle-btn"]');
+    await expect(html).toHaveAttribute('data-theme-preference', 'system');
   });
 
   test('system window frame fallback toggle hides custom window buttons (NFR-UI-06)', async ({ page }) => {
@@ -105,7 +105,7 @@ test.describe('Adaptive Layout, Frameless Window & Theme Tests', () => {
     await page.click('[data-testid="nav-plugins"]');
     await expect(page.getByText('MCreator 插件兼容中心')).toBeVisible();
     await expect(page.locator('[data-testid="installed-plugin-inventory"]')).toContainText('Generator 1.21.1');
-    await expect(page.locator('[data-testid="upstream-tool-catalog"]')).toContainText('legacy_window');
+    await expect(page.locator('[data-testid="upstream-tool-catalog"]')).toContainText('旧版窗口');
     await expect(page.locator('[data-testid="open-legacy-plugin-window"]')).toBeDisabled();
 
     await page.click('[data-testid="nav-help"]');

@@ -1,3 +1,4 @@
+import { valueLabel } from '../i18n/labels';
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   ArrowLeft,
@@ -27,7 +28,7 @@ type FunctionTab = 'editor' | 'tags' | 'preview';
 
 const SNIPPETS: Array<{ label: string; snippet: string; description: string }> = [
   {
-    label: 'execute as @a',
+    label: "execute 以所有玩家身份执行",
     snippet: 'execute as @a at @s run ',
     description: '针对所有在线玩家执行后续命令'
   },
@@ -280,7 +281,7 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
               <span
                 className={`badge badge-${element.state === 'valid' ? 'green' : 'amber'}`}
               >
-                {element.state.toUpperCase()}
+                {valueLabel(element.state)}
               </span>
               {isDirty && (
                 <span className="badge badge-amber" data-testid="function-dirty-badge">

@@ -1,3 +1,4 @@
+import { valueLabel } from '../i18n/labels';
 import React, { useEffect, useState } from 'react';
 import { ExternalLink, Plug, ShieldAlert } from 'lucide-react';
 import { legacyPluginBridge } from '../bridge/legacyPluginBridge';
@@ -117,7 +118,7 @@ export const PluginsView: React.FC = () => {
                   </td>
                   <td style={{ padding: '12px 8px', fontWeight: 700 }}>{plugin.level}</td>
                   <td style={{ padding: '12px 8px', color: 'var(--text-muted)' }}>{plugin.firstParty ? '第一方' : '用户/第三方'}</td>
-                  <td style={{ padding: '12px 8px', color: 'var(--text-muted)' }}>{plugin.route}</td>
+                  <td style={{ padding: '12px 8px', color: 'var(--text-muted)' }}>{valueLabel(plugin.route)}</td>
                 </tr>
               ))}
             </tbody>
@@ -143,7 +144,7 @@ export const PluginsView: React.FC = () => {
               {upstreamTools.tools.map((tool) => (
                 <tr key={tool.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
                   <td style={{ padding: '12px 8px' }}>{tool.upstream}</td>
-                  <td style={{ padding: '12px 8px', fontWeight: 700 }}>{tool.surface}</td>
+                  <td style={{ padding: '12px 8px', fontWeight: 700 }}>{valueLabel(tool.surface)}</td>
                   <td style={{ padding: '12px 8px', color: 'var(--text-muted)' }}>{tool.notes}</td>
                 </tr>
               ))}

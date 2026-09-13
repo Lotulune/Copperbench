@@ -108,8 +108,8 @@ test.describe('U3 asset browser', () => {
     await page.getByTestId('asset-batch-preview').click();
     await expect(page.getByTestId('asset-batch-create-count')).toHaveText('1');
     await expect(page.getByTestId('asset-batch-replace-count')).toHaveText('1');
-    await expect(page.getByTestId('asset-batch-conflict-0')).toContainText('CREATE');
-    await expect(page.getByTestId('asset-batch-conflict-1')).toContainText('REPLACE');
+    await expect(page.getByTestId('asset-batch-conflict-0')).toContainText('新增');
+    await expect(page.getByTestId('asset-batch-conflict-1')).toContainText('替换');
     await expect(page.getByTestId('asset-batch-commit')).toContainText('确认替换并批量导入');
 
     await page.getByTestId('asset-batch-commit').click();

@@ -1,3 +1,4 @@
+import { valueLabel } from '../i18n/labels';
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   ArrowLeft,
@@ -465,7 +466,7 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
               </span>
               <span className="badge badge-copper">战利品表</span>
               <span className={`badge badge-${element.state === 'valid' ? 'green' : 'amber'}`}>
-                {element.state.toUpperCase()}
+                {valueLabel(element.state)}
               </span>
               {isDirty && (
                 <span className="badge badge-amber" data-testid="loottable-dirty-badge">
@@ -997,7 +998,7 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
                   生成的 Minecraft 战利品表数据包格式
                 </h3>
                 <p style={{ fontSize: '11px', color: 'var(--text-sub)' }}>
-                  根据上述结构化设计实时生成的 Data Pack Loot Table JSON 规范。
+                  根据上述结构化设计实时生成的 数据包战利品表（Loot Table）JSON。
                 </p>
               </div>
             </div>

@@ -1,3 +1,4 @@
+import { valueLabel } from '../i18n/labels';
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   ArrowLeft,
@@ -463,7 +464,7 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
                     : 'green'
                 }`}
               >
-                {achievementType.toUpperCase()}
+                {valueLabel(achievementType)}
               </span>
               {isDirty && (
                 <span className="badge badge-amber" data-testid="advancement-dirty-badge">

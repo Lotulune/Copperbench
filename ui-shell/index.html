@@ -1,10 +1,22 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
+    <script>
+      // Resolve the theme before the first paint, including native JCEF reloads.
+      (() => {
+        let saved;
+        try { saved = localStorage.getItem('copperbench.theme'); } catch {}
+        const preference = saved === 'light' || saved === 'dark' ? saved : 'system';
+        const theme = preference === 'system' ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : preference;
+        document.documentElement.dataset.theme = theme;
+        document.documentElement.dataset.themePreference = preference;
+        document.documentElement.style.colorScheme = theme;
+      })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Copperbench · Minecraft Mod Creator</title>
-    <meta name="description" content="Visual creation workbench for Minecraft Java mods and resource packs" />
+    <meta name="description" content="Minecraft Java 模组与资源包的可视化创作工作台" />
   </head>
   <body>
     <div id="root"></div>
