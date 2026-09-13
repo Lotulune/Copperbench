@@ -430,7 +430,7 @@ export const OverlayWorkbench: React.FC<OverlayWorkbenchProps> = ({ element, onC
                 const y = Number(component.data.y ?? 0);
                 const size = componentSize(component);
                 return <button type="button" key={`preview-${component.type}-${index}`} data-testid={`overlay-preview-component-${index}`}
-                  onClick={() => setSelectedIndex(index)} title={`${component.type} @ ${x},${y}`}
+                  onClick={() => setSelectedIndex(index)} title={`${valueLabel(component.type)} @ ${x},${y}`}
                   style={{ position: 'absolute', left: x, top: y, width: size.width, height: size.height,
                     minWidth: 4, minHeight: 4, overflow: 'hidden', padding: 2, fontSize: 8,
                     border: `1px solid ${selectedIndex === index ? 'var(--accent-copper)' : 'var(--border-focus)'}`,

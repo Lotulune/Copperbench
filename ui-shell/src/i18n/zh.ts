@@ -461,4 +461,11 @@ export const zh: Record<string, string> = {
   'field.disablePickup': '禁止取出条件（disablePickup）',
   'field.disablePlacement': '禁止放入条件（disablePlacement）',
   'field.isCheckedProcedure': '勾选状态来源过程（isCheckedProcedure）',
+  'field.onOpen': '打开界面时（onOpen）',
+  'field.onTick': '每刻更新时（onTick）',
+  'field.onClosed': '关闭界面时（onClosed）',
+  'field.sx': '水平网格间距（sx）',
+  'field.sy': '垂直网格间距（sy）',
+  'field.ox': '水平网格偏移（ox）',
+  'field.oy': '垂直网格偏移（oy）',
 };

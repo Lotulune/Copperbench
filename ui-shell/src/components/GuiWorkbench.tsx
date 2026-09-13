@@ -452,7 +452,7 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
         <Layers3 size={17} color="var(--accent-copper)" />
         <div style={{ minWidth: 0, flex: 1 }}>
           <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--text-main)' }}>{element.displayName}</div>
-          <div style={{ fontSize: 10, color: 'var(--text-sub)' }}>GUI 深度编辑 · 同一 Core /components 语义</div>
+          <div style={{ fontSize: 10, color: 'var(--text-sub)' }}>界面（GUI）编辑 · 布局、组件与事件</div>
         </div>
         {impact.length > 0 && (
           <span className="badge badge-blue" data-testid="gui-generation-impact">
@@ -580,7 +580,7 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
                     key={`preview-${component.type}-${index}`}
                     data-testid={`gui-preview-component-${index}`}
                     onClick={() => setSelectedIndex(index)}
-                    title={`${component.type} @ ${x},${y}`}
+                    title={`${valueLabel(component.type)} @ ${x},${y}`}
                     style={{ position: 'absolute', left: x, top: y, width: size.width, height: size.height,
                       minWidth: 4, minHeight: 4, overflow: 'hidden', padding: 2, fontSize: 8,
                       border: `1px solid ${selectedIndex === index ? 'var(--accent-copper)' : 'var(--border-focus)'}`,
@@ -613,7 +613,7 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
           <div style={{ fontWeight: 700, fontSize: 11, color: 'var(--text-main)', marginBottom: 8 }}>GUI 事件绑定</div>
           {(['/onOpen', '/onTick', '/onClosed'] as const).map((path) => (
             <label key={path} style={{ display: 'block', fontSize: 9, color: 'var(--text-sub)', marginBottom: 7 }}>
-              {path.slice(1)}
+              {fieldLabel(path.slice(1))}
               <input list="gui-procedure-options" value={String(values[path] ?? '')}
                 onChange={(event) => setValue(path, event.target.value || null)} style={{ width: '100%', marginTop: 3 }} />
             </label>
