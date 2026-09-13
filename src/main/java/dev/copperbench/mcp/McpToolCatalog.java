@@ -76,7 +76,7 @@ final class McpToolCatalog {
 				"expectedRevision", Map.of("type", "integer", "minimum", 0)),
 				List.of("elementType", "name", "initialValues", "expectedRevision"));
 		return McpServerFeatures.SyncToolSpecification.builder()
-				.tool(Tool.builder("create_mod_element", schema)
+				.tool(Tool.builder("create_mod_element", authorizationSchema(schema))
 						.description("Create a mod element; code elements also schedule a real Gradle compile verification task")
 						.build())
 				.callHandler((exchange, request) -> {
@@ -92,6 +92,7 @@ final class McpToolCatalog {
 						JsonObject response = GSON.toJsonTree(result).getAsJsonObject();
 						if ("committed".equals(result.status()) && "code".equals(request.arguments().get("elementType"))) {
 							JsonObject buildPayload = workspacePayload(Map.of());
+							if (payload.has("taskAuthorizationId")) buildPayload.add("taskAuthorizationId", payload.get("taskAuthorizationId"));
 							buildPayload.addProperty("clientMutationId", UUID.randomUUID().toString());
 							var verification = adapter.execute(Command.of(UUID.randomUUID(), workspaceId, result.newRevision(),
 									Operation.BUILD_WORKSPACE, buildPayload)).result();
@@ -336,7 +337,7 @@ final class McpToolCatalog {
 		tools.add(commandTool("run_server", "Run an isolated dedicated server after desktop EULA approval",
 				Operation.RUN_SERVER,
 				requiredSchema(Map.of("expectedRevision", Map.of("type", "integer", "minimum", 0),
-						"userApproved", Map.of("type", "boolean")), List.of("expectedRevision", "userApproved")),
+						"userApproved", Map.of("type", "boolean")), List.of("expectedRevision")),
 				arguments -> {
 					JsonObject payload = mutationPayload(arguments);
 					payload.addProperty("scope", "workspace");
@@ -356,7 +357,16 @@ final class McpToolCatalog {
 						Map.of("type", "integer", "minimum", 0)),
 						List.of("taskId", "manifestHash", "expectedRevision")),
 				McpToolCatalog::mutationPayload));
-		tools.add(commandTool("run_gametest", "Run existing GameTests and collect their task logs",
+		tools.add(commandTool("prepare_game_tests", "Create a local test configuration and starter test without overwriting existing tests",
+				Operation.PREPARE_GAME_TESTS, revisionSchema(), McpToolCatalog::workspacePayload));
+		tools.add(queryTool("list_task_authorizations", "List user-issued task authority covering this workspace",
+				Operation.LIST_TASK_AUTHORIZATIONS, EMPTY_SCHEMA, arguments -> new JsonObject()));
+		tools.add(commandTool("revoke_task_authorization", "Revoke user-issued task authority covering this workspace",
+				Operation.REVOKE_TASK_AUTHORIZATION,
+				requiredSchema(Map.of("authorizationId", Map.of("type", "string", "format", "uuid"),
+						"expectedRevision", Map.of("type", "integer", "minimum", 0)), List.of("authorizationId", "expectedRevision")),
+				McpToolCatalog::mutationPayload));
+		tools.add(commandTool("run_gametest", "Run configured tests against a frozen workspace or packaged JAR and return verified test counts and hashes",
 				Operation.RUN_GAMETEST, revisionSchema(), McpToolCatalog::workspacePayload));
 		tools.add(queryTool("get_task", "Read task state, logs and diagnostics", Operation.GET_TASK,
 				requiredSchema(Map.of("taskId", Map.of("type", "string", "format", "uuid"),
@@ -367,35 +377,12 @@ final class McpToolCatalog {
 				requiredSchema(Map.of("taskId", Map.of("type", "string", "format", "uuid"),
 						"expectedRevision", Map.of("type", "integer", "minimum", 0)),
 						List.of("taskId", "expectedRevision")), McpToolCatalog::mutationPayload));
-		tools.add(McpServerFeatures.SyncToolSpecification.builder()
-				.tool(Tool.builder("create_recovery_point", Map.of("type", "object", "properties",
-						Map.of("label", Map.of("type", "string", "minLength", 1),
-								"expectedRevision", Map.of("type", "integer", "minimum", 0)),
-						"required", List.of("label", "expectedRevision")))
-						.description("Create a local recovery point").build())
-				.callHandler((exchange, request) -> {
-					try {
-						audit("create_recovery_point", request.arguments(), "started", 0, "");
-						String label = String.valueOf(request.arguments().get("label"));
-						long revision = ((Number) request.arguments().get("expectedRevision")).longValue();
-						JsonObject payload = new JsonObject();
-						payload.addProperty("clientMutationId", UUID.randomUUID().toString());
-						payload.addProperty("label", label);
-						var outcome = adapter.execute(Command.of(UUID.randomUUID(), workspaceId, revision,
-								Operation.CREATE_RECOVERY_POINT, payload));
-						var result = outcome.result();
-						boolean error = result.status().equals("rejected") || result.status().equals("failed");
-						audit("create_recovery_point", request.arguments(), result.status(), result.newRevision(),
-								result.recoveryPointId() == null ? "" : result.recoveryPointId());
-						return text(GSON.toJson(result), error);
-					} catch (AuditUnavailableException exception) {
-						return auditUnavailable();
-					} catch (RuntimeException exception) {
-						return text("{\"code\":\"RECOVERY_POINT_FAILED\"}", true);
-					}
-					}).build());
+		tools.add(commandTool("create_recovery_point", "Create a local recovery point", Operation.CREATE_RECOVERY_POINT,
+                requiredSchema(Map.of("label", Map.of("type", "string", "minLength", 1),
+                        "expectedRevision", Map.of("type", "integer", "minimum", 0)), List.of("label", "expectedRevision")),
+                McpToolCatalog::mutationPayload));
 		tools.add(commandTool("restore_recovery_point",
-				"Request a protected recovery-point restore; MCP clients cannot self-approve the desktop confirmation",
+				"Restore a recovery point using user-issued task authority; MCP clients cannot self-approve",
 				Operation.RESTORE_RECOVERY_POINT,
 				requiredSchema(Map.of("recoveryPointId", Map.of("type", "string", "minLength", 1),
 						"expectedRevision", Map.of("type", "integer", "minimum", 0)),
@@ -603,13 +590,15 @@ final class McpToolCatalog {
 	private McpServerFeatures.SyncToolSpecification commandTool(String name, String description, Operation operation,
 			Map<String, Object> schema, java.util.function.Function<Map<String, Object>, JsonObject> payloadFactory) {
 		return McpServerFeatures.SyncToolSpecification.builder()
-				.tool(Tool.builder(name, schema).description(description).build())
+				.tool(Tool.builder(name, authorizationSchema(schema)).description(description).build())
 				.callHandler((exchange, request) -> {
 					try {
 						audit(name, request.arguments(), "started", 0, "");
 						long revision = request.arguments().get("expectedRevision") instanceof Number number
 								? number.longValue() : 0;
 						JsonObject payload = payloadFactory.apply(request.arguments());
+						if (request.arguments().containsKey("taskAuthorizationId"))
+							payload.add("taskAuthorizationId", GSON.toJsonTree(request.arguments().get("taskAuthorizationId")));
 						payload.addProperty("clientMutationId", UUID.randomUUID().toString());
 						var result = adapter.execute(Command.of(UUID.randomUUID(), workspaceId, revision, operation, payload));
 						boolean error = result.result().status().equals("rejected")
@@ -648,6 +637,20 @@ final class McpToolCatalog {
 	private static Map<String, Object> requiredSchema(Map<String, Object> properties, List<String> required) {
 		return Map.of("type", "object", "properties", properties, "required", required,
 				"additionalProperties", false);
+	}
+
+	private static Map<String, Object> authorizationSchema(Map<String, Object> schema) {
+		Map<String, Object> result = new java.util.LinkedHashMap<>(schema);
+		Map<String, Object> properties = new java.util.LinkedHashMap<>();
+		if (schema.get("properties") instanceof Map<?, ?> existing)
+			existing.forEach((key, value) -> properties.put(String.valueOf(key), value));
+		properties.put("taskAuthorizationId", Map.of("type", "string", "format", "uuid"));
+		if (schema.get("required") instanceof List<?> required && required.contains("userApproved")) {
+			result.put("required", required.stream().filter(value -> !value.equals("userApproved")).toList());
+			result.put("anyOf", List.of(Map.of("properties", Map.of("userApproved", properties.get("userApproved")), "required", List.of("userApproved")),
+					Map.of("properties", Map.of("taskAuthorizationId", properties.get("taskAuthorizationId")), "required", List.of("taskAuthorizationId"))));
+		}
+		result.put("properties", properties); return result;
 	}
 
 	private void audit(String tool, Map<String, Object> arguments, String result, long revision, String recoveryPoint) {

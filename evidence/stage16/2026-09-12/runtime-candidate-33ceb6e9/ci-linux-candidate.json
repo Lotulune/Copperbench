@@ -1,0 +1,262 @@
+{
+  "conclusion": "success",
+  "databaseId": 34615723771,
+  "event": "workflow_dispatch",
+  "headSha": "33ceb6e9a68aab2b2fcd9153d6c4f23f4d85e6c5",
+  "jobs": [
+    {
+      "completedAt": "2026-09-11T15:36:19Z",
+      "conclusion": "success",
+      "databaseId": 103317045349,
+      "name": "Ubuntu 24.04 package candidate smoke",
+      "startedAt": "2026-09-11T15:22:27Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-09-11T15:22:35Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-09-11T15:22:28Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:22:38Z",
+          "conclusion": "success",
+          "name": "Checkout repository",
+          "number": 2,
+          "startedAt": "2026-09-11T15:22:35Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:22:49Z",
+          "conclusion": "success",
+          "name": "Set up build JDK 25 with JCEF",
+          "number": 3,
+          "startedAt": "2026-09-11T15:22:38Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:22:51Z",
+          "conclusion": "success",
+          "name": "Set up Node.js",
+          "number": 4,
+          "startedAt": "2026-09-11T15:22:49Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:22:55Z",
+          "conclusion": "success",
+          "name": "Install UI shell dependencies",
+          "number": 5,
+          "startedAt": "2026-09-11T15:22:51Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:23:02Z",
+          "conclusion": "success",
+          "name": "Set up Gradle",
+          "number": 6,
+          "startedAt": "2026-09-11T15:22:55Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:23:36Z",
+          "conclusion": "success",
+          "name": "Run Linux platform and generator regressions",
+          "number": 7,
+          "startedAt": "2026-09-11T15:23:02Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:23:42Z",
+          "conclusion": "success",
+          "name": "Run Linux candidate and installed-gate contract tests",
+          "number": 8,
+          "startedAt": "2026-09-11T15:23:36Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:28:03Z",
+          "conclusion": "success",
+          "name": "Build portable and deb candidates",
+          "number": 9,
+          "startedAt": "2026-09-11T15:23:42Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:28:11Z",
+          "conclusion": "success",
+          "name": "Verify portable candidate contents and executable modes",
+          "number": 10,
+          "startedAt": "2026-09-11T15:28:03Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:28:14Z",
+          "conclusion": "success",
+          "name": "Launch packaged headless bootstrap without system Java Gradle or Git",
+          "number": 11,
+          "startedAt": "2026-09-11T15:28:11Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:29:14Z",
+          "conclusion": "success",
+          "name": "Launch packaged JCEF product shell under Xvfb",
+          "number": 12,
+          "startedAt": "2026-09-11T15:28:14Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:29:14Z",
+          "conclusion": "skipped",
+          "name": "Upload X11 graphical smoke diagnostics on failure",
+          "number": 13,
+          "startedAt": "2026-09-11T15:29:14Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:32:44Z",
+          "conclusion": "success",
+          "name": "Run packaged NeoForge 1.21.1 X11 render preflight under Xvfb",
+          "number": 14,
+          "startedAt": "2026-09-11T15:29:14Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:32:44Z",
+          "conclusion": "skipped",
+          "name": "Upload NeoForge runClient diagnostics on failure",
+          "number": 15,
+          "startedAt": "2026-09-11T15:32:44Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:35:06Z",
+          "conclusion": "success",
+          "name": "Run packaged Fabric 1.21.1 X11 render preflight under Xvfb",
+          "number": 16,
+          "startedAt": "2026-09-11T15:32:44Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:35:06Z",
+          "conclusion": "skipped",
+          "name": "Upload Fabric runClient diagnostics on failure",
+          "number": 17,
+          "startedAt": "2026-09-11T15:35:06Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:35:08Z",
+          "conclusion": "success",
+          "name": "Verify deb candidate layout",
+          "number": 18,
+          "startedAt": "2026-09-11T15:35:06Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:35:19Z",
+          "conclusion": "success",
+          "name": "Generate SPDX SBOM for Linux candidate",
+          "number": 19,
+          "startedAt": "2026-09-11T15:35:08Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:35:24Z",
+          "conclusion": "success",
+          "name": "Freeze Linux candidate metadata",
+          "number": 20,
+          "startedAt": "2026-09-11T15:35:19Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:35:25Z",
+          "conclusion": "success",
+          "name": "Write SHA-256 candidate hashes",
+          "number": 21,
+          "startedAt": "2026-09-11T15:35:24Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:35:29Z",
+          "conclusion": "success",
+          "name": "Attest Linux candidate provenance",
+          "number": 22,
+          "startedAt": "2026-09-11T15:35:25Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:36:15Z",
+          "conclusion": "success",
+          "name": "Upload Linux candidate artifacts",
+          "number": 23,
+          "startedAt": "2026-09-11T15:35:29Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:36:15Z",
+          "conclusion": "success",
+          "name": "Package clean GNOME installed-gate harness",
+          "number": 24,
+          "startedAt": "2026-09-11T15:36:15Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:36:16Z",
+          "conclusion": "success",
+          "name": "Upload clean GNOME installed-gate harness",
+          "number": 25,
+          "startedAt": "2026-09-11T15:36:15Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:36:17Z",
+          "conclusion": "success",
+          "name": "Post Set up Gradle",
+          "number": 47,
+          "startedAt": "2026-09-11T15:36:16Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:36:17Z",
+          "conclusion": "success",
+          "name": "Post Set up Node.js",
+          "number": 48,
+          "startedAt": "2026-09-11T15:36:17Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:36:17Z",
+          "conclusion": "success",
+          "name": "Post Set up build JDK 25 with JCEF",
+          "number": 49,
+          "startedAt": "2026-09-11T15:36:17Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:36:17Z",
+          "conclusion": "success",
+          "name": "Post Checkout repository",
+          "number": 50,
+          "startedAt": "2026-09-11T15:36:17Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:36:17Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 51,
+          "startedAt": "2026-09-11T15:36:17Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/Lotulune/Copperbench/actions/runs/34615723771/job/103317045349"
+    }
+  ],
+  "name": "Stage 15 Linux candidate",
+  "status": "completed",
+  "url": "https://github.com/Lotulune/Copperbench/actions/runs/34615723771"
+}

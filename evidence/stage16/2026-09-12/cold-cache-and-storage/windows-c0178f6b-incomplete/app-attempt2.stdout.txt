@@ -1,0 +1,100 @@
+2026-09-12-20:53:36 [main/WARN] [Launcher] APPLICATION_IPC_TCP_FALLBACK: Windows local socket probe failed; using the verified JDK TCP wakeup pipe for this application process.
+2026-09-12-20:53:36 [main/INFO] [Launcher] Starting Copperbench 0.1.0 with MCreator core 2026.2.99999 - 202600299999
+2026-09-12-20:53:36 [main/INFO] [Launcher] Java version: 25.0.3+1-b329.124, VM: OpenJDK 64-Bit Server VM, vendor: JetBrains s.r.o.
+2026-09-12-20:53:36 [main/INFO] [Launcher] Current JAVA_HOME for running instance: C:\Program Files\Copperbench\jdk
+2026-09-12-20:53:36 [main/DEBUG] [Preferences Manager] Loading preferences from core
+2026-09-12-20:53:36 [main/INFO] [Launcher] Installation path: C:\Program Files\Copperbench
+2026-09-12-20:53:36 [main/INFO] [Launcher] User data directory of Copperbench: D:\AICoding\testmod2\stage16-cold-c0178f6b\home\.copperbench
+2026-09-12-20:53:40 [Application-Loader/DEBUG] [Plugin Loader] Searching for plugins in: .\plugins
+2026-09-12-20:53:40 [Application-Loader/DEBUG] [Plugin Loader] Searching for plugins in: D:\AICoding\testmod2\stage16-cold-c0178f6b\home\.copperbench\plugins
+2026-09-12-20:53:40 [Application-Loader/INFO] [Plugin Loader] Loading plugin: generator-26.2 from .\plugins\generator-26.2.zip, weight: 13
+2026-09-12-20:53:40 [Application-Loader/INFO] [Plugin Loader] Loading plugin: generator-fabric-26.2 from .\plugins\generator-fabric-26.2.zip, weight: 12
+2026-09-12-20:53:40 [Application-Loader/INFO] [Plugin Loader] Loading plugin: generator-fabric-26.1.2 from .\plugins\generator-fabric-26.1.2.zip, weight: 11
+2026-09-12-20:53:40 [Application-Loader/INFO] [Plugin Loader] Loading plugin: generator-1.20.1 from .\plugins\generator-1.20.1.zip, weight: 10
+2026-09-12-20:53:40 [Application-Loader/INFO] [Plugin Loader] Loading plugin: core from .\plugins\mcreator-core.zip, weight: 10
+2026-09-12-20:53:40 [Application-Loader/INFO] [Plugin Loader] Loading plugin: localization from .\plugins\mcreator-localization.zip, weight: 10
+2026-09-12-20:53:40 [Application-Loader/INFO] [Plugin Loader] Loading plugin: themes from .\plugins\mcreator-themes.zip, weight: 10
+2026-09-12-20:53:40 [Application-Loader/INFO] [Plugin Loader] Loading plugin: generator-1.21.1 from .\plugins\generator-1.21.1.zip, weight: 0
+2026-09-12-20:53:40 [Application-Loader/INFO] [Plugin Loader] Loading plugin: generator-26.1.x from .\plugins\generator-26.1.x.zip, weight: 0
+2026-09-12-20:53:40 [Application-Loader/INFO] [Plugin Loader] Loading plugin: generator-addon-26.1x from .\plugins\generator-addon-26.1x.zip, weight: 0
+2026-09-12-20:53:40 [Application-Loader/INFO] [Plugin Loader] Loading plugin: mcreator-link from .\plugins\mcreator-link.zip, weight: 0
+2026-09-12-20:53:40 [Application-Loader/DEBUG] [Theme Loader] Loading UI themes
+2026-09-12-20:53:41 [Application-Loader/INFO] [Theme Loader] Using MCreator UI theme: default_dark
+2026-09-12-20:53:41 [Application-Loader/DEBUG] [net.mcreator.ui.chromium.WebView] Preloading CEF WebView
+2026-09-12-20:53:41 [Application-Loader/INFO] [CEF] Initializing JCEF in WR mode
+2026-09-12-20:53:41 [Application-Loader/DEBUG] [CEF] JCEF arguments: [--disable-extensions, --disable-default-apps, --disable-sync, --disable-speech-api, --mute-audio, --disable-gaia-services, --force-renderer-accessibility=complete, --disable-features=TranslateUI,WebUSB,SpareRendererForSitePerProcess,WebBluetooth,WebSerial,MediaRouter,NewUsbBackend,WebHID]
+2026-09-12-20:53:41 [Application-Loader/DEBUG] [CEF] Deleting orphaned CEF cache folder C:\Users\ADMINI~1\AppData\Local\Temp\mcreator-cef-cache-12408132884714953508
+2026-09-12-20:53:42 [AWT-EventQueue-0/DEBUG] [CEF] CefApp initialized (JCEF: 137.0.17.1142.68de80bc86de497c8d0632ad0f8fe33625b33bff, CEF: 137.0.17, Chromium: 137.0.7151.104)
+2026-09-12-20:53:42 [Application-Loader/DEBUG] [net.mcreator.ui.chromium.WebView] JCEF browser host does not expose setAccessibilityState; platform UIA may remain unavailable
+2026-09-12-20:53:43 [Application-Loader/INFO] [L10N] Setting default locale to: en_US; OS locale: zh_CN
+2026-09-12-20:53:43 [Application-Loader/DEBUG] [Data List Loader] Added damagesources datamap to cache
+2026-09-12-20:53:43 [Application-Loader/DEBUG] [Data List Loader] Added potions datamap to cache
+2026-09-12-20:53:43 [Application-Loader/DEBUG] [Data List Loader] Added itemtypes datamap to cache
+2026-09-12-20:53:43 [Application-Loader/DEBUG] [Data List Loader] Added defaultfeatures datamap to cache
+2026-09-12-20:53:43 [Application-Loader/DEBUG] [Data List Loader] Added configuredfeatures datamap to cache
+2026-09-12-20:53:43 [Application-Loader/DEBUG] [Data List Loader] Added be_biometags datamap to cache
+2026-09-12-20:53:43 [Application-Loader/DEBUG] [Data List Loader] Added blocksitems datamap to cache
+2026-09-12-20:53:43 [Application-Loader/DEBUG] [Data List Loader] Added tabs datamap to cache
+2026-09-12-20:53:43 [Application-Loader/DEBUG] [Data List Loader] Added projectiles datamap to cache
+2026-09-12-20:53:43 [Application-Loader/DEBUG] [Data List Loader] Added gameevents datamap to cache
+2026-09-12-20:53:43 [Application-Loader/DEBUG] [Data List Loader] Added itemuseanimations datamap to cache
+2026-09-12-20:53:43 [Application-Loader/DEBUG] [Data List Loader] Added fluids datamap to cache
+2026-09-12-20:53:43 [Application-Loader/DEBUG] [Data List Loader] Added planttypes datamap to cache
+2026-09-12-20:53:43 [Application-Loader/DEBUG] [Data List Loader] Added gamemodes datamap to cache
+2026-09-12-20:53:43 [Application-Loader/DEBUG] [Data List Loader] Added entities datamap to cache
+2026-09-12-20:53:43 [Application-Loader/DEBUG] [Data List Loader] Added eventparameters datamap to cache
+2026-09-12-20:53:43 [Application-Loader/DEBUG] [Data List Loader] Added attributes datamap to cache
+2026-09-12-20:53:43 [Application-Loader/DEBUG] [Data List Loader] Added stepsounds datamap to cache
+2026-09-12-20:53:43 [Application-Loader/DEBUG] [Data List Loader] Added biomes datamap to cache
+2026-09-12-20:53:43 [Application-Loader/DEBUG] [Data List Loader] Added soundcategories datamap to cache
+2026-09-12-20:53:43 [Application-Loader/DEBUG] [Data List Loader] Added blockstateproperties datamap to cache
+2026-09-12-20:53:43 [Application-Loader/DEBUG] [Data List Loader] Added mapcolors datamap to cache
+2026-09-12-20:53:43 [Application-Loader/DEBUG] [Data List Loader] Added pathnodetypes datamap to cache
+2026-09-12-20:53:43 [Application-Loader/DEBUG] [Data List Loader] Added dimensions datamap to cache
+2026-09-12-20:53:43 [Application-Loader/DEBUG] [Data List Loader] Added achievements datamap to cache
+2026-09-12-20:53:43 [Application-Loader/DEBUG] [Data List Loader] Added enchantments datamap to cache
+2026-09-12-20:53:43 [Application-Loader/DEBUG] [Data List Loader] Added particles datamap to cache
+2026-09-12-20:53:43 [Application-Loader/DEBUG] [Data List Loader] Added directions datamap to cache
+2026-09-12-20:53:43 [Application-Loader/DEBUG] [Data List Loader] Added equipmentslots datamap to cache
+2026-09-12-20:53:43 [Application-Loader/DEBUG] [Data List Loader] Added gamerules datamap to cache
+2026-09-12-20:53:43 [Application-Loader/DEBUG] [Data List Loader] Added noteblockinstruments datamap to cache
+2026-09-12-20:53:43 [Application-Loader/DEBUG] [Data List Loader] Added keybuttons datamap to cache
+2026-09-12-20:53:43 [Application-Loader/DEBUG] [Data List Loader] Added sounds datamap to cache
+2026-09-12-20:53:43 [Application-Loader/DEBUG] [Data List Loader] Added mobspawntypes datamap to cache
+2026-09-12-20:53:43 [Application-Loader/DEBUG] [Data List Loader] Added screens datamap to cache
+2026-09-12-20:53:43 [Application-Loader/DEBUG] [Data List Loader] Added villagerprofessions datamap to cache
+2026-09-12-20:53:43 [Application-Loader/DEBUG] [Data List Loader] Added be_biomes datamap to cache
+2026-09-12-20:53:43 [Application-Loader/DEBUG] [Data List Loader] Added generationsteps datamap to cache
+2026-09-12-20:53:43 [Application-Loader/DEBUG] [Data List Loader] Added effects datamap to cache
+2026-09-12-20:53:43 [Application-Loader/DEBUG] [Data List Loader] Added itemproperties datamap to cache
+2026-09-12-20:53:43 [Application-Loader/DEBUG] [Data List Loader] Added structures datamap to cache
+2026-09-12-20:53:43 [Application-Loader/DEBUG] [Data List Loader] Added suggestionproviders datamap to cache
+2026-09-12-20:53:43 [Application-Loader/DEBUG] [Data List Loader] Added animations datamap to cache
+2026-09-12-20:53:43 [Application-Loader/DEBUG] [Mod API manager] Loaded mod API definition: mcreator_link
+2026-09-12-20:53:43 [Application-Loader/DEBUG] [Variable loader] Loading variable types
+2026-09-12-20:53:43 [Application-Loader/DEBUG] [Blockly JavaScript Files loader] Loading Blockly JavaScript files from plugins
+2026-09-12-20:53:43 [Application-Loader/DEBUG] [Blockly Toolboxes loader] Loading Blockly toolboxes from plugins
+2026-09-12-20:53:43 [Application-Loader/DEBUG] [Blockly loader] Loading blocks for procedures
+2026-09-12-20:53:43 [Application-Loader/DEBUG] [Blockly loader] Loading blocks for aitasks
+2026-09-12-20:53:43 [Application-Loader/DEBUG] [Blockly loader] Loading blocks for jsontriggers
+2026-09-12-20:53:43 [Application-Loader/DEBUG] [Blockly loader] Loading blocks for cmdargs
+2026-09-12-20:53:43 [Application-Loader/DEBUG] [Blockly loader] Loading blocks for features
+2026-09-12-20:53:43 [Application-Loader/DEBUG] [Blockly loader] Loading blocks for scripts
+2026-09-12-20:53:43 [Application-Loader/DEBUG] [Blockly loader] Loading blocks for enchantmenteffects
+2026-09-12-20:53:44 [Application-Loader/DEBUG] [Entity Animations Loader] Loading entity animations
+2026-09-12-20:53:44 [Application-Loader/INFO] [Application] Loading generator: addon-26.1x/generator.yaml
+2026-09-12-20:53:44 [Application-Loader/INFO] [Application] Loading generator: datapack-1.20.1/generator.yaml
+2026-09-12-20:53:44 [Application-Loader/DEBUG] [Data List Loader] Added features datamap to cache
+2026-09-12-20:53:44 [Application-Loader/INFO] [Application] Loading generator: datapack-1.21.1/generator.yaml
+2026-09-12-20:53:44 [Application-Loader/INFO] [Application] Loading generator: datapack-26.1.x/generator.yaml
+2026-09-12-20:53:44 [Application-Loader/INFO] [Application] Loading generator: fabric-1.20.1/generator.yaml
+2026-09-12-20:53:44 [Application-Loader/DEBUG] [Data List Loader] Added types datamap to cache
+2026-09-12-20:53:44 [Application-Loader/INFO] [Application] Loading generator: fabric-1.21.1/generator.yaml
+2026-09-12-20:53:44 [Application-Loader/INFO] [Application] Loading generator: fabric-26.1.2/generator.yaml
+2026-09-12-20:53:44 [Application-Loader/INFO] [Application] Loading generator: fabric-26.2/generator.yaml
+2026-09-12-20:53:44 [Application-Loader/INFO] [Application] Loading generator: neoforge-1.20.1/generator.yaml
+2026-09-12-20:53:44 [Application-Loader/INFO] [Application] Loading generator: neoforge-1.21.1/generator.yaml
+2026-09-12-20:53:44 [Application-Loader/INFO] [Application] Loading generator: neoforge-26.1.2/generator.yaml
+2026-09-12-20:53:44 [Application-Loader/INFO] [Application] Loading generator: neoforge-26.2/generator.yaml
+2026-09-12-20:53:44 [Application-Loader/INFO] [Application] Loading generator: resourcepack-1.21.1/generator.yaml
+2026-09-12-20:53:44 [Application-Loader/INFO] [Application] Loading generator: resourcepack-26.1.x/generator.yaml

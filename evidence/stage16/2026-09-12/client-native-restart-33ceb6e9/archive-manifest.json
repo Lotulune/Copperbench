@@ -1,0 +1,801 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "byte-preserved-client-evidence",
+  "recordedAt": "2026-09-12T03:04:09.993725+00:00",
+  "rawEvidenceFiles": 113,
+  "privateGrantIdScanPassed": true,
+  "logExtensionPolicy": "minecraft.log is archived as minecraft.log.txt; content is byte-identical.",
+  "files": [
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\invocation.json",
+      "path": "client-run-6/invocation.json",
+      "bytes": 571,
+      "sha256": "afbf0003e713f47234e705508b7e25ee16d6928f13f1782fe91f5dc4fd158821",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\minecraft.log",
+      "path": "client-run-6/minecraft.log.txt",
+      "bytes": 14080,
+      "sha256": "c8826b1f3bfcecbe80357581cf18e95038310837a475812866018a823bc0be9a",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\normal-exit-observation.json",
+      "path": "client-run-6/normal-exit-observation.json",
+      "bytes": 202,
+      "sha256": "2586de03e03f05033cf7f4d6726f8190b461f09518cde34596dad6ff21343116",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\product.jsonl",
+      "path": "client-run-6/product.jsonl",
+      "bytes": 57398,
+      "sha256": "f492fcc3c24228c935a0e53742fa21f70fc0007f3e6419f05c4b0f853e386ad3",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\quit-window-observation.json",
+      "path": "client-run-6/quit-window-observation.json",
+      "bytes": 316,
+      "sha256": "71d3a7d77bb7eada1a158e64f7d9de0e89e4f21b258d2a5e565d73505b2eeb2d",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\result.json",
+      "path": "client-run-6/result.json",
+      "bytes": 192,
+      "sha256": "30c0790f8ee8a81e917a364934631bc1550f68c30287134533aeab845981e4cf",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\saved-world-state\\data\\harvest_ledger_totals.dat",
+      "path": "client-run-6/saved-world-state/data/harvest_ledger_totals.dat",
+      "bytes": 101,
+      "sha256": "6deb8b4dd33d008adc1df31f1340b959839d3a8ad0ef8de371248d337a318eb5",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\saved-world-state\\level.dat",
+      "path": "client-run-6/saved-world-state/level.dat",
+      "bytes": 2589,
+      "sha256": "4cdc0f5332ef673e6360f522cb748232bf6480f91986333a61f629f7b36bfebc",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\saved-world-state\\manifest.json",
+      "path": "client-run-6/saved-world-state/manifest.json",
+      "bytes": 632,
+      "sha256": "72c6bf98d6e8e6155224cb0d342ace09c0d66803c4a7bb7932cca930ea0cd383",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\saved-world-state\\playerdata\\8fb12eef-98f0-409b-a3c1-18abf66578f6.dat",
+      "path": "client-run-6/saved-world-state/playerdata/8fb12eef-98f0-409b-a3c1-18abf66578f6.dat",
+      "bytes": 999,
+      "sha256": "75b44b69f936cc04b74b65d607ec97f78b8dbaaa5f446eb52274f7e04e002305",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\saved-world-state\\region\\r.0.0.mca",
+      "path": "client-run-6/saved-world-state/region/r.0.0.mca",
+      "bytes": 3223552,
+      "sha256": "f7d3c85f1bb03e52e76363243d8e4edfc9c267a8c4275a099d483304d74f5cc0",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\001-main-menu.jpg",
+      "path": "client-run-6/screenshots/001-main-menu.jpg",
+      "bytes": 57838,
+      "sha256": "da22e4d3fb096d16a3c8195fd5c3e4c6fc97f9baf414c38e65019210646b86ee",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\002-world-list.jpg",
+      "path": "client-run-6/screenshots/002-world-list.jpg",
+      "bytes": 36123,
+      "sha256": "f293b38210dd1e99a48acd3241a8531a592d088ed8767c1ae76fb2c322811f9f",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\003-load-world.jpg",
+      "path": "client-run-6/screenshots/003-load-world.jpg",
+      "bytes": 17994,
+      "sha256": "bde46e930ac028676e9e9aee12e47210501ebe8ebce27115b3eefed1ab59f37e",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\004-world-loaded.jpg",
+      "path": "client-run-6/screenshots/004-world-loaded.jpg",
+      "bytes": 51501,
+      "sha256": "2464e54f6d2b72d30bb333336a489197fd37ea99b55402fda661f7081595e592",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\005-chat-focus-for-rate.jpg",
+      "path": "client-run-6/screenshots/005-chat-focus-for-rate.jpg",
+      "bytes": 51575,
+      "sha256": "311cd787f56686fcc128452d5f04b19d201d218a390b845355a145bf19420a41",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\006-restore-normal-rate-command.jpg",
+      "path": "client-run-6/screenshots/006-restore-normal-rate-command.jpg",
+      "bytes": 52791,
+      "sha256": "c645ee3ef4988561abd9b77226da372ce370612b1a5b928958aa802ee6bed701",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\007-normal-rate-restored.jpg",
+      "path": "client-run-6/screenshots/007-normal-rate-restored.jpg",
+      "bytes": 54811,
+      "sha256": "30bfa5db733708e2915d8a30c4e91b92a22d9837870931c519b84d38c2f341a9",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\008-sneak-for-reset.jpg",
+      "path": "client-run-6/screenshots/008-sneak-for-reset.jpg",
+      "bytes": 49142,
+      "sha256": "37bd1b3bfac3739cb50485c62798017f084a506018c2dc406186aff101a74d43",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\009-tally-reset-native-use.jpg",
+      "path": "client-run-6/screenshots/009-tally-reset-native-use.jpg",
+      "bytes": 48916,
+      "sha256": "ae2b0bdf6c2fcdf9bbd5e8dbd1ee85f56984b4bc87bf293e1d1c4df3ccc5998b",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\010-tally-reset-zero-again.jpg",
+      "path": "client-run-6/screenshots/010-tally-reset-zero-again.jpg",
+      "bytes": 48603,
+      "sha256": "7d710ec293c4c2bd03b1476aa78861806089a99baffc4deb75697e24d6a56cd0",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\011-leave-sneak-mode.jpg",
+      "path": "client-run-6/screenshots/011-leave-sneak-mode.jpg",
+      "bytes": 49856,
+      "sha256": "0bd3cdd4680f3b5e9af5fb83871db0734cbcface2fb425f7846eb7244b27b416",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\012-tally-a-increment-1.jpg",
+      "path": "client-run-6/screenshots/012-tally-a-increment-1.jpg",
+      "bytes": 48762,
+      "sha256": "edd74f04eb75ae0d754d7e58fdc12406aed92acd5625172ca43e5458a80ec1e9",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\013-tally-a-increment-2.jpg",
+      "path": "client-run-6/screenshots/013-tally-a-increment-2.jpg",
+      "bytes": 42962,
+      "sha256": "33896d375de555ab44dd6fe4058170356da5b2d02265ec8353b6ccf135349390",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\014-tally-a-increment-3.jpg",
+      "path": "client-run-6/screenshots/014-tally-a-increment-3.jpg",
+      "bytes": 38948,
+      "sha256": "13d1c4ce8831a53107505af091aaea3b0ca1fa0d40ef23c211ec3ff6ea314e37",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\015-token-inactive-20tps.jpg",
+      "path": "client-run-6/screenshots/015-token-inactive-20tps.jpg",
+      "bytes": 33997,
+      "sha256": "59243ee07ba1fa48833d54120d0aa41cf7922d96d557981af06312f5e5c032ed",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\016-token-active-20tps.jpg",
+      "path": "client-run-6/screenshots/016-token-active-20tps.jpg",
+      "bytes": 33903,
+      "sha256": "89ca883fd694e9a4c2f9b38d4951d3351b2db4a952b725c1874cfa71234dbef7",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\017-chat-focus-query-counter.jpg",
+      "path": "client-run-6/screenshots/017-chat-focus-query-counter.jpg",
+      "bytes": 35703,
+      "sha256": "b77b82e28f37b87ca0f5600da5defb00ff0f5828639d8427375b0c8e7d363282",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\018-counter-query-entry.jpg",
+      "path": "client-run-6/screenshots/018-counter-query-entry.jpg",
+      "bytes": 41330,
+      "sha256": "3396edf7f8ac4391f6c121a5e85eb8b1176dcce37f08ffacc1be424ebd998668",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\019-counter-query-a2-b7-passed.jpg",
+      "path": "client-run-6/screenshots/019-counter-query-a2-b7-passed.jpg",
+      "bytes": 32648,
+      "sha256": "d7594fe3a62861ae4fa33bdf010132f30a03e46a9d40b7304e79d5ce6f0ad606",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\020-chat-focus-ledger-baseline.jpg",
+      "path": "client-run-6/screenshots/020-chat-focus-ledger-baseline.jpg",
+      "bytes": 35690,
+      "sha256": "c4de05fae0c737df4a4d888ce0b434a065941d05354497f84227bd04448c42b2",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\021-query-observed-reset-target.jpg",
+      "path": "client-run-6/screenshots/021-query-observed-reset-target.jpg",
+      "bytes": 41325,
+      "sha256": "7f7a7a6ccde65261066102be3760baa3ce897254c1ed0db61f13dd23031b2cdc",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\022-query-a3-b2-submitted.jpg",
+      "path": "client-run-6/screenshots/022-query-a3-b2-submitted.jpg",
+      "bytes": 35825,
+      "sha256": "dd47fbb1fc873c37fbd94b9be7528bc8378e7fa56a23871314cfb71090905095",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\023-ledger-baseline-focus.jpg",
+      "path": "client-run-6/screenshots/023-ledger-baseline-focus.jpg",
+      "bytes": 46891,
+      "sha256": "8ee7c8bf02a11732114e9e40b77a7ec1f3f3a1a5c7f3b28fddcaf92d6ad28921",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\024-ledger-baseline-query.jpg",
+      "path": "client-run-6/screenshots/024-ledger-baseline-query.jpg",
+      "bytes": 57217,
+      "sha256": "ee3c532ea0832857618db97810bc602a50b6545b473a53d35a06318a65ea3056",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\025-ledger-baseline-result.jpg",
+      "path": "client-run-6/screenshots/025-ledger-baseline-result.jpg",
+      "bytes": 53585,
+      "sha256": "36d9431b4961d7b76b28f79548b9b160dd7f820371e32016e668496e41283840",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\026-fixture-farmland-focus.jpg",
+      "path": "client-run-6/screenshots/026-fixture-farmland-focus.jpg",
+      "bytes": 55145,
+      "sha256": "aad1a6d98317063f34e360767b356e0316674f3f2e48ea863c52f011b76a2411",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\027-fixture-farmland-entry.jpg",
+      "path": "client-run-6/screenshots/027-fixture-farmland-entry.jpg",
+      "bytes": 46145,
+      "sha256": "00b1f09b5c8ada640492605c001008282f4770635ad8034c2f81181966324dae",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\028-fixture-farmland-created.jpg",
+      "path": "client-run-6/screenshots/028-fixture-farmland-created.jpg",
+      "bytes": 35152,
+      "sha256": "3bdd610857d411a09bdf8bee269e602b7381b3523dd0705a2430c63c94442d45",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\029-fixture-crop-focus.jpg",
+      "path": "client-run-6/screenshots/029-fixture-crop-focus.jpg",
+      "bytes": 41977,
+      "sha256": "5f0a2af53c6f54ff4a3a86d0504d1565c78d070d71a6fc4912447a7e17590543",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\030-fixture-mature-crops-entry.jpg",
+      "path": "client-run-6/screenshots/030-fixture-mature-crops-entry.jpg",
+      "bytes": 49964,
+      "sha256": "651726e4528f15b6acc46b1bf3e798bc36e062f20eda0cf59c1d3a724538a0a1",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\031-fixture-mature-crops-created.jpg",
+      "path": "client-run-6/screenshots/031-fixture-mature-crops-created.jpg",
+      "bytes": 45079,
+      "sha256": "eb5ee212a0e2c21c131605ba21b0f87ae64d6f51eca94efc55df55042ae88505",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\032-fixture-position-focus.jpg",
+      "path": "client-run-6/screenshots/032-fixture-position-focus.jpg",
+      "bytes": 57384,
+      "sha256": "fac89e16a171b2e95388b7a759b3bdc74cb22a9c832bc327b36691c242c34777",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\033-fixture-crop-viewpoint-entry.jpg",
+      "path": "client-run-6/screenshots/033-fixture-crop-viewpoint-entry.jpg",
+      "bytes": 62884,
+      "sha256": "add8df2c18ffb6b1b8784072cf5f3093ced4a0a17aa347f38fcad4032fb0dd32",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\034-fixture-crop-viewpoint-ready.jpg",
+      "path": "client-run-6/screenshots/034-fixture-crop-viewpoint-ready.jpg",
+      "bytes": 65594,
+      "sha256": "027b1cf8e4dd24368dbd400c0fc29cdf1885f36a661dfb2b6ad261d8d5f3711c",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\035-mature-wheat-creative-break.jpg",
+      "path": "client-run-6/screenshots/035-mature-wheat-creative-break.jpg",
+      "bytes": 58104,
+      "sha256": "eeedbd7a52bb9ba12111f1a602fa281a13039fc1bb16e9fc257122e56e221b68",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\036-creative-ledger-query-focus.jpg",
+      "path": "client-run-6/screenshots/036-creative-ledger-query-focus.jpg",
+      "bytes": 68356,
+      "sha256": "533f5ad213d73f176099f036898d1d1d778d91c57040847fe90f406169a43fa4",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\037-creative-ledger-query-entry.jpg",
+      "path": "client-run-6/screenshots/037-creative-ledger-query-entry.jpg",
+      "bytes": 69218,
+      "sha256": "42b58f8fc7cf008e9c64d5cb026720c7305467bd67a547e3e91ad92fbf7334aa",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\038-creative-ledger-zero-result.jpg",
+      "path": "client-run-6/screenshots/038-creative-ledger-zero-result.jpg",
+      "bytes": 59986,
+      "sha256": "d45d4290e2731fabb273d46b88bdc234568fb01a299d46643efb5e400bbe963f",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\039-survival-mode-focus.jpg",
+      "path": "client-run-6/screenshots/039-survival-mode-focus.jpg",
+      "bytes": 69431,
+      "sha256": "d6fad37a4db16a2732c79165a541675186c3df1b7fbc573dc91092bd0e25b212",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\040-survival-mode-entry.jpg",
+      "path": "client-run-6/screenshots/040-survival-mode-entry.jpg",
+      "bytes": 71770,
+      "sha256": "0681657d5559bdff462f80967f9709afd2ddaa6f554754bf092508267a479c45",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\041-survival-mode-confirmed.jpg",
+      "path": "client-run-6/screenshots/041-survival-mode-confirmed.jpg",
+      "bytes": 62851,
+      "sha256": "11305172ea6d44b88fda6ba4478834a7cb1b70309b0570fe16866780f824119b",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\042-survival-crop-position-focus.jpg",
+      "path": "client-run-6/screenshots/042-survival-crop-position-focus.jpg",
+      "bytes": 73112,
+      "sha256": "6634a596220ff014cc00febe28c535ff3d52a8e987709504fb998e5c4bdd73b2",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\043-survival-crop-position-entry.jpg",
+      "path": "client-run-6/screenshots/043-survival-crop-position-entry.jpg",
+      "bytes": 75078,
+      "sha256": "69784359438e7e4f6cf356a0d39195025498e0e7520e0bbcb3292879909cc5e4",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\044-survival-mature-crop-visible.jpg",
+      "path": "client-run-6/screenshots/044-survival-mature-crop-visible.jpg",
+      "bytes": 68139,
+      "sha256": "2448f77d08b4d995dd7bc91a94b5b2a41f3d07b944f15ab406d493e7a1bc9e56",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\045-survival-mature-wheat-break.jpg",
+      "path": "client-run-6/screenshots/045-survival-mature-wheat-break.jpg",
+      "bytes": 62281,
+      "sha256": "5ad433aae4e41a431b04136cea0beab43f4a45d2b5a7b7bfcdce0f877a7fa82f",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\046-survival-ledger-result-focus.jpg",
+      "path": "client-run-6/screenshots/046-survival-ledger-result-focus.jpg",
+      "bytes": 76734,
+      "sha256": "86a626858d9e2ed5c7ec88cb61d9473a9505f2f16563284b238adf211ebe9686",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\047-survival-ledger-query-entry.jpg",
+      "path": "client-run-6/screenshots/047-survival-ledger-query-entry.jpg",
+      "bytes": 77579,
+      "sha256": "b57f61c5d80c5a98ca27435a66e68b1468ee7e62ea1081fde00f3d8d7409194a",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\048-survival-ledger-one-result.jpg",
+      "path": "client-run-6/screenshots/048-survival-ledger-one-result.jpg",
+      "bytes": 63342,
+      "sha256": "5f2e9785c3fe0e5e3a6d01b0c3d42fa93d9b800d88cb1fd9111210a80712e431",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\049-select-seeds-for-negative-case.jpg",
+      "path": "client-run-6/screenshots/049-select-seeds-for-negative-case.jpg",
+      "bytes": 58392,
+      "sha256": "66f1f716814bb452ad900416529d075112a0b3f71a3a7209a772fbc809241232",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\050-native-plant-immature-wheat.jpg",
+      "path": "client-run-6/screenshots/050-native-plant-immature-wheat.jpg",
+      "bytes": 40139,
+      "sha256": "39be114c10fbb7622a348683ad7e6def2424b3e7702c08109a5894ef8a302864",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\051-restore-crop-support-focus.jpg",
+      "path": "client-run-6/screenshots/051-restore-crop-support-focus.jpg",
+      "bytes": 63128,
+      "sha256": "b8854fc51c3a44d5dabb9c28170cfd7bdef1490de2a91fa66eef2fe41f9c5682",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\052-restore-crop-support-entry.jpg",
+      "path": "client-run-6/screenshots/052-restore-crop-support-entry.jpg",
+      "bytes": 67624,
+      "sha256": "d7775af75b3a3a79e2843a6ccd0092e05e219bdde6dc6eeca6251e8a68f240cf",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\053-crop-support-restored.jpg",
+      "path": "client-run-6/screenshots/053-crop-support-restored.jpg",
+      "bytes": 62566,
+      "sha256": "980ceaef12c9923536e31e00a5b5edb61123b19904bddb6cef9004278de03522",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\054-immature-wheat-planted.jpg",
+      "path": "client-run-6/screenshots/054-immature-wheat-planted.jpg",
+      "bytes": 65130,
+      "sha256": "75d1add38f0179db7b5f2079c9047f02c92377519e6c21db02e118604c7634be",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\055-immature-wheat-native-break.jpg",
+      "path": "client-run-6/screenshots/055-immature-wheat-native-break.jpg",
+      "bytes": 58480,
+      "sha256": "c6898729e94652045eba8183645269742b68896cf919cb0c4baaa2912ee5c148",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\056-immature-ledger-query-focus.jpg",
+      "path": "client-run-6/screenshots/056-immature-ledger-query-focus.jpg",
+      "bytes": 80451,
+      "sha256": "e1459c8175bee4c971c3c7023f873b9f9062945d3b7939f91439911af64ece97",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\057-immature-ledger-query-entry.jpg",
+      "path": "client-run-6/screenshots/057-immature-ledger-query-entry.jpg",
+      "bytes": 81079,
+      "sha256": "98c759585776b306fe39928112dd396a7ad763b559f6fff622d505dc6c4a7594",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\058-immature-ledger-remains-one.jpg",
+      "path": "client-run-6/screenshots/058-immature-ledger-remains-one.jpg",
+      "bytes": 42612,
+      "sha256": "a972d126bb159fd59ce0e6a3afe570a29ddbff697b30f488e430056e044d4288",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\059-select-active-token-before-save.jpg",
+      "path": "client-run-6/screenshots/059-select-active-token-before-save.jpg",
+      "bytes": 41442,
+      "sha256": "a7cf7bc93b34c086df5d5c5def8fea7a625f277b2adb35034a1e3cd6b08bb10f",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\060-token-persistence-query-focus.jpg",
+      "path": "client-run-6/screenshots/060-token-persistence-query-focus.jpg",
+      "bytes": 70466,
+      "sha256": "34803b57b612de6b8992e27243f349a84293a31c184f1bef2e9bdda55e7b761f",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\061-token-state-query-entry.jpg",
+      "path": "client-run-6/screenshots/061-token-state-query-entry.jpg",
+      "bytes": 74483,
+      "sha256": "4d9fb62f52e762c900a1efe0327195277552d7cd953ead4e7f29e4c915e6aa13",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\062-token-active-data-before-save.jpg",
+      "path": "client-run-6/screenshots/062-token-active-data-before-save.jpg",
+      "bytes": 57235,
+      "sha256": "de544ac85f0dd0c166fa14fb2baac96630dd24ffa92517a7b88c63e5285dd04c",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\063-pause-before-normal-save.jpg",
+      "path": "client-run-6/screenshots/063-pause-before-normal-save.jpg",
+      "bytes": 38632,
+      "sha256": "72ebd3f72906b3667f2d374c272d927b957519054988366cddc70df4e791cadf",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\064-normal-save-quit-to-title.jpg",
+      "path": "client-run-6/screenshots/064-normal-save-quit-to-title.jpg",
+      "bytes": 23661,
+      "sha256": "f221b02482d3415fcd0a4bf2d83cc4b5247fc0d6568604286ddd1079d64c23da",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\065-normal-save-complete-title.jpg",
+      "path": "client-run-6/screenshots/065-normal-save-complete-title.jpg",
+      "bytes": 59376,
+      "sha256": "1115caa9f248d87fcb31519e238e91a98844e02225af42e372046fa8cf7c9ca3",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\screenshots\\066-quit-game-request.jpg",
+      "path": "client-run-6/screenshots/066-quit-game-request.jpg",
+      "bytes": 59376,
+      "sha256": "1115caa9f248d87fcb31519e238e91a98844e02225af42e372046fa8cf7c9ca3",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\stderr.txt",
+      "path": "client-run-6/stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\ui-events.jsonl",
+      "path": "client-run-6/ui-events.jsonl",
+      "bytes": 22323,
+      "sha256": "3f48ebf5515a5d13d3090b02aadd5673665f0721a88d9df9f3caf6a67b42c464",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-6\\usercache.json",
+      "path": "client-run-6/usercache.json",
+      "bytes": 111,
+      "sha256": "c92c21b8a2a4deb81af94329066565a92e965f1c81e3e6b696ca063fa44119df",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-7\\invocation.json",
+      "path": "client-run-7/invocation.json",
+      "bytes": 572,
+      "sha256": "88a007a8a6bda2b40cda3ae3625ad16968ca690e6617d3fbec4ddc896d045185",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-7\\minecraft.log",
+      "path": "client-run-7/minecraft.log.txt",
+      "bytes": 11891,
+      "sha256": "7587a3f62d63ae79b328fc55bdb445a4cf587e710c9410fb195a1a25b608a969",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-7\\normal-exit-observation.json",
+      "path": "client-run-7/normal-exit-observation.json",
+      "bytes": 204,
+      "sha256": "a51aa42e7624f7c16d02a94d947119659ef0da9256154b43bc4081abd606f75c",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-7\\product.jsonl",
+      "path": "client-run-7/product.jsonl",
+      "bytes": 46304,
+      "sha256": "32bd544764528b93c311c074643b705afb3ee116e29f547e5a4562fe1b925d55",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-7\\quit-window-observation.json",
+      "path": "client-run-7/quit-window-observation.json",
+      "bytes": 316,
+      "sha256": "6a0bff0cf2c8ae0fc36bba138f9bd8051bb521a72d26530119c1837d2f03f8be",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-7\\result.json",
+      "path": "client-run-7/result.json",
+      "bytes": 192,
+      "sha256": "91b77316f58ca2bb9c13a3760cc178ac207d7653493c276f3945963c9168c758",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-7\\saved-world-state\\data\\harvest_ledger_totals.dat",
+      "path": "client-run-7/saved-world-state/data/harvest_ledger_totals.dat",
+      "bytes": 101,
+      "sha256": "6deb8b4dd33d008adc1df31f1340b959839d3a8ad0ef8de371248d337a318eb5",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-7\\saved-world-state\\level.dat",
+      "path": "client-run-7/saved-world-state/level.dat",
+      "bytes": 2587,
+      "sha256": "b39db6bce1963f3d6b8b0894d8ebce06682a28d05be4397ed71ffa62e703f5ce",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-7\\saved-world-state\\manifest.json",
+      "path": "client-run-7/saved-world-state/manifest.json",
+      "bytes": 632,
+      "sha256": "b16ac3c5b5ef1c8489e3c627e6a0b833183baab3a1387b81f92310381afd2545",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-7\\saved-world-state\\playerdata\\8fb12eef-98f0-409b-a3c1-18abf66578f6.dat",
+      "path": "client-run-7/saved-world-state/playerdata/8fb12eef-98f0-409b-a3c1-18abf66578f6.dat",
+      "bytes": 998,
+      "sha256": "d4ef200f8938bd6ef20b9eab99d6bb83317ce86ad2806015355c99448b66aeed",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-7\\saved-world-state\\region\\r.0.0.mca",
+      "path": "client-run-7/saved-world-state/region/r.0.0.mca",
+      "bytes": 3223552,
+      "sha256": "737fe0b40816ad03b533794e693f2208179dc9b236ea97d8e9410a19d63fa5ac",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-7\\screenshots\\001-restarted-main-menu.jpg",
+      "path": "client-run-7/screenshots/001-restarted-main-menu.jpg",
+      "bytes": 58675,
+      "sha256": "80ebf3693524529b8bcd5e6246aca9c5ceed52df866221b969ab9c99b1751233",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-7\\screenshots\\002-restarted-world-list.jpg",
+      "path": "client-run-7/screenshots/002-restarted-world-list.jpg",
+      "bytes": 36138,
+      "sha256": "a747c5569a10e48e24cd882ccc7d97573a6e0c9a5e090841d376e3948daf8047",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-7\\screenshots\\003-rejoin-same-world.jpg",
+      "path": "client-run-7/screenshots/003-rejoin-same-world.jpg",
+      "bytes": 18067,
+      "sha256": "b38294beba1d75eed8a4a52059740109382ff44b712ddce79415a61eff18daa6",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-7\\screenshots\\004-rejoined-world-visible.jpg",
+      "path": "client-run-7/screenshots/004-rejoined-world-visible.jpg",
+      "bytes": 59947,
+      "sha256": "00fd6306d27e3509aa24cf88d81e69d3375cc4457244ba9857cbc6f4c0dc2cee",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-7\\screenshots\\005-restart-state-query-focus.jpg",
+      "path": "client-run-7/screenshots/005-restart-state-query-focus.jpg",
+      "bytes": 60248,
+      "sha256": "d65f93ba6c21e6d187813e4ba13d3193a71590ee82a9a83473a07c2c75829783",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-7\\screenshots\\006-restart-counter-ledger-query.jpg",
+      "path": "client-run-7/screenshots/006-restart-counter-ledger-query.jpg",
+      "bytes": 47758,
+      "sha256": "85f2a7410ec45f2b06cd8a25d6733692831a45dad67557088c8882e13c7533f0",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-7\\screenshots\\007-restart-counter-ledger-restored.jpg",
+      "path": "client-run-7/screenshots/007-restart-counter-ledger-restored.jpg",
+      "bytes": 41958,
+      "sha256": "3d6b41451fe0d34bd8bcdc902f25fb52f24569f824bd6646f18f37066bc8f235",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-7\\screenshots\\008-restart-token-query-focus.jpg",
+      "path": "client-run-7/screenshots/008-restart-token-query-focus.jpg",
+      "bytes": 41496,
+      "sha256": "06e05250ed9dad91cb4c3a3d9273e7df283f0b8912ddeaf32700e3e812186a9e",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-7\\screenshots\\009-restart-token-query-entry.jpg",
+      "path": "client-run-7/screenshots/009-restart-token-query-entry.jpg",
+      "bytes": 44333,
+      "sha256": "6535de2225b5637598b5e0f9075ff9f10e6f24f67ac202044b225fcc4d386452",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-7\\screenshots\\010-restart-token-active-restored.jpg",
+      "path": "client-run-7/screenshots/010-restart-token-active-restored.jpg",
+      "bytes": 66827,
+      "sha256": "ca7b5dc389657b502f102cd4be905ff02689f9ebb6bca4312af7e7380c71f4b8",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-7\\screenshots\\011-restart-pause-before-save.jpg",
+      "path": "client-run-7/screenshots/011-restart-pause-before-save.jpg",
+      "bytes": 39927,
+      "sha256": "cbb29e567bc42567977cb8b2f83eabc083fc2c65685e2faeff4e19abce5023a4",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-7\\screenshots\\012-restart-save-quit-to-title.jpg",
+      "path": "client-run-7/screenshots/012-restart-save-quit-to-title.jpg",
+      "bytes": 59789,
+      "sha256": "c11b2aba61cd3343d5937fd0d80c076041028714d86d268a32cfef38e9630ab0",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-7\\screenshots\\013-restart-quit-game-request.jpg",
+      "path": "client-run-7/screenshots/013-restart-quit-game-request.jpg",
+      "bytes": 59789,
+      "sha256": "c11b2aba61cd3343d5937fd0d80c076041028714d86d268a32cfef38e9630ab0",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-7\\stderr.txt",
+      "path": "client-run-7/stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-7\\ui-events.jsonl",
+      "path": "client-run-7/ui-events.jsonl",
+      "bytes": 4538,
+      "sha256": "6dfdd68f9e8e1f354afbdedd6f3aa5f594885ac255c4eb7692d5e7b1b020a77e",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-run-7\\usercache.json",
+      "path": "client-run-7/usercache.json",
+      "bytes": 111,
+      "sha256": "2cbbcd571eaf136e2d45498a1a1dfff9454bbecf1a10ab85bf56e2fa563ed4e8",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\candidate-33ceb6e9.json",
+      "path": "candidate.json",
+      "bytes": 1310,
+      "sha256": "6c59f8c2b1e92ff6244b1c09af5d6bd7c054c0d2fa36567a791f8275fb6717fc",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-final-artifact-check.json",
+      "path": "artifact-identity-after.json",
+      "bytes": 199,
+      "sha256": "0bb0a23d7120ea9d59e5a114e820db815612c04f06cc9b2545784803303da22f",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\client-host-system.json",
+      "path": "host-system.json",
+      "bytes": 193,
+      "sha256": "dd8b8d18d8bd49b56b931f00679c67fcd91f51fb91714e4da6efb98de96c19db",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\client_three_mods\\client-trial.json",
+      "path": "mod-artifact-manifest.json",
+      "bytes": 3436,
+      "sha256": "4fc686a872ce7e5e8ab6650d63c9c5181d314c4ce7e1e2318250d31c9e705c73",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\install-readiness-20260912\\windows.json",
+      "path": "install-readiness/windows.json",
+      "bytes": 714,
+      "sha256": "0529d03ad358418178ffb2781cbb5200ef925c0717b9c7ba84ddeef98c7f40ae",
+      "bytesChanged": false
+    },
+    {
+      "sourcePath": "build\\stage16-agent-reliability\\install-readiness-20260912\\ubuntu.json",
+      "path": "install-readiness/ubuntu.json",
+      "bytes": 962,
+      "sha256": "630a0ddcee21eab970fdc03a13bc5d8e985530fc1fc463a9e15f3661fcc9fb70",
+      "bytesChanged": false
+    }
+  ]
+}

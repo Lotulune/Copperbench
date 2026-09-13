@@ -1,0 +1,196 @@
+{
+  "schemaVersion": "1.0",
+  "mod": "resonance_token",
+  "sourceDirectory": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\resonance_token",
+  "acceptedSnapshotSha256": "bd2032ca0e0c97d7b51c7e9c3e28107e5b05152ba79ae5881ddf82e0e84cfae1",
+  "sourceManifestPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\artifacts\\resonance_token\\source-manifest.json",
+  "excludedSnapshotPaths": [
+    ".mcreator/generatorGradleCache",
+    ".mcreator/setupInfo"
+  ],
+  "excludedCategories": [
+    "caches",
+    "history",
+    "credentials",
+    "task-runs",
+    "logs",
+    "IDE state",
+    "build artifacts",
+    "Minecraft worlds"
+  ],
+  "files": [
+    {
+      "path": "build.gradle",
+      "bytes": 1272,
+      "sha256": "4269b1849d5a14485e7e8fc164cd2a4164f91c89c494d26383233a11bef52c7c"
+    },
+    {
+      "path": "copperbench-tests.json",
+      "bytes": 246,
+      "sha256": "6f74d25265654b25aaea720d6d6625e5b8052196c8ce884ec2b12da2ed44aa4e"
+    },
+    {
+      "path": "gradle.properties",
+      "bytes": 248,
+      "sha256": "14c6ba9940ba7cfa933665941dd2a6d7724e6df86f5cd89dd94302245a415261"
+    },
+    {
+      "path": "gradle/wrapper/gradle-wrapper.jar",
+      "bytes": 48966,
+      "sha256": "55243ef57851f12b070ad14f7f5bb8302daceeebc5bce5ece5fa6edb23e1145c"
+    },
+    {
+      "path": "gradle/wrapper/gradle-wrapper.properties",
+      "bytes": 255,
+      "sha256": "dd6a23b9f2909d0084810df07670902287ef58dd41307abee720b31312395fc6"
+    },
+    {
+      "path": "gradlew",
+      "bytes": 8654,
+      "sha256": "aed171fb114f82e6eaea4970a245a200e0582a7dcc8ec0891ca41b6e4a62b754"
+    },
+    {
+      "path": "gradlew.bat",
+      "bytes": 2896,
+      "sha256": "fedad02c18e266ec094995a5751b7fe1eb6e74f66bf75db64fae2e50eb22c234"
+    },
+    {
+      "path": "mcreator.gradle",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "resonance_token.mcreator",
+      "bytes": 2074,
+      "sha256": "1e7d19677964221a2668e437c7f12ad4018ea69308de33fc0db1f92e300d84d6"
+    },
+    {
+      "path": "settings.gradle",
+      "bytes": 208,
+      "sha256": "6e007f2e9f9164724393a9cda9bf3c8faf56052e0d77b1d7f2ca917c9bdb41a4"
+    },
+    {
+      "path": "src/gametest/README.md",
+      "bytes": 430,
+      "sha256": "5ed703a1923b220dc08990d3ab316afc40fbe5f67ca3a2d6dd015bd505c7590b"
+    },
+    {
+      "path": "src/gametest/java/copperbench/acceptance/AcceptanceTests.java",
+      "bytes": 8345,
+      "sha256": "1c88e48a15dbb64fc3fd24219283aa2631cc45db2602e8d887df5c98402eaf6a"
+    },
+    {
+      "path": "src/main/java/net/mcreator/resonance_token/ResonanceTokenMod.java",
+      "bytes": 3041,
+      "sha256": "89c2a1e171c44bb141326d8737d056c74f835d30cda8de216a0fd55307198e91"
+    },
+    {
+      "path": "src/main/java/net/mcreator/resonance_token/ResonanceTokenModClient.java",
+      "bytes": 570,
+      "sha256": "06cbc62654d49360bacb95a5240eb380aeed99343cc6f4af6e2cfca648dbc4a2"
+    },
+    {
+      "path": "src/main/java/net/mcreator/resonance_token/event/BlockEvents.java",
+      "bytes": 1390,
+      "sha256": "3b675c156b4a37fdfb6997260045f4b537d581ee1cd0cec6a2be1a56c1847399"
+    },
+    {
+      "path": "src/main/java/net/mcreator/resonance_token/event/ItemEvents.java",
+      "bytes": 894,
+      "sha256": "15ed8ad71f9edfd5ac0fdf3986801c36c66b917962abbb4862fba6e26a46d76c"
+    },
+    {
+      "path": "src/main/java/net/mcreator/resonance_token/event/LivingEntityEvents.java",
+      "bytes": 4093,
+      "sha256": "7efaa70cfd87afef0f9f2c90264279a4592adf3296b02f91612f603ddcde6bfb"
+    },
+    {
+      "path": "src/main/java/net/mcreator/resonance_token/event/MiscEvents.java",
+      "bytes": 724,
+      "sha256": "5b679332d90be8799496207491c04383aac1f45d13307220ff57c09db96e47da"
+    },
+    {
+      "path": "src/main/java/net/mcreator/resonance_token/event/PlayerEvents.java",
+      "bytes": 1635,
+      "sha256": "1ec212ec9c2e34158da1fcbd9249d994d8275de311a12be7e24bb9e5ab4d3a3f"
+    },
+    {
+      "path": "src/main/java/net/mcreator/resonance_token/mixin/BlockItemMixin.java",
+      "bytes": 1323,
+      "sha256": "5683db48cffe0cc8775f5d4bc092d97fe62fba69f98b6eda1ad98d85b695a594"
+    },
+    {
+      "path": "src/main/java/net/mcreator/resonance_token/mixin/BoneMealItemMixin.java",
+      "bytes": 1229,
+      "sha256": "76597e7fc2bfd2d00f317d8837f1bf5b32005de8a2703d074f32042593012254"
+    },
+    {
+      "path": "src/main/java/net/mcreator/resonance_token/mixin/CommandsMixin.java",
+      "bytes": 865,
+      "sha256": "a4c65ebaceb0dfff2451b5a42000cace07a2c1d9b1468fd575b5cdd2cef63480"
+    },
+    {
+      "path": "src/main/java/net/mcreator/resonance_token/mixin/ExperienceOrbMixin.java",
+      "bytes": 909,
+      "sha256": "da5eedc4a6140a5fc517b54dd550f11329717f25cd874a4c21da61b7539bd6ba"
+    },
+    {
+      "path": "src/main/java/net/mcreator/resonance_token/mixin/ItemStackMixin.java",
+      "bytes": 1551,
+      "sha256": "1909883b9c3d98ecdfc708c8a72854bcaf07934d125b8d95d0ff98f782b24952"
+    },
+    {
+      "path": "src/main/java/net/mcreator/resonance_token/mixin/LivingEntityMixin.java",
+      "bytes": 4639,
+      "sha256": "4624c97d1e9fd7ef28d093f78093e3b878b1f01b85a9157a3a21dc6bb0e6d748"
+    },
+    {
+      "path": "src/main/java/net/mcreator/resonance_token/mixin/PlayerMixin.java",
+      "bytes": 1043,
+      "sha256": "805f09c4df14b821c72ce94b1d5509d7aff7d94f0d2d9be449a28db1e6b546e4"
+    },
+    {
+      "path": "src/main/java/trial/resonance/ResonanceMod.java",
+      "bytes": 2596,
+      "sha256": "0a6a49b15f3cdf57c835aec8e20440fea47f3fd95cb75d4a27135ed79c354e6a"
+    },
+    {
+      "path": "src/main/resources/META-INF/resonance_token.classtweaker",
+      "bytes": 516,
+      "sha256": "829e6b46f94cf3612f23f46b0c34107c3a763157888e47667fc795b15587f55c"
+    },
+    {
+      "path": "src/main/resources/assets/resonance_token/lang/en_us.json",
+      "bytes": 58,
+      "sha256": "95a906ed61c43f438bb34c675b8cebcd72574adf172e6051a004a2b0481b2824"
+    },
+    {
+      "path": "src/main/resources/assets/resonance_token/lang/zh_cn.json",
+      "bytes": 55,
+      "sha256": "06cccc123391cfdfb09b70a39a5bd98f288872129655e9e8e18edfe66a7dbb76"
+    },
+    {
+      "path": "src/main/resources/assets/resonance_token/models/item/resonance_token.json",
+      "bytes": 91,
+      "sha256": "9076c8347551dcd9818f79b79543bf99b4b34baebc941113767f9c27047dfa6d"
+    },
+    {
+      "path": "src/main/resources/fabric.mod.json",
+      "bytes": 720,
+      "sha256": "c5625be794212fa3fca56e365fa8c249e978f82c0e7dd8d52f090bff296a9fd8"
+    },
+    {
+      "path": "src/main/resources/pack.mcmeta",
+      "bytes": 64,
+      "sha256": "5090fddd4fa993867d086edcd33b09285105fb1ae7b11322198cdb825905537d"
+    },
+    {
+      "path": "src/main/resources/resonance_token.mixins.json",
+      "bytes": 416,
+      "sha256": "fe45f717adcb3ac9f80e094001aea3f3d3b3f193f53de8608c80d375fc27c1c1"
+    }
+  ],
+  "fileCount": 34,
+  "bytes": 102016.0,
+  "note": "Gradle wrapper JAR is retained as a reproducible build input; generated mod JARs and all caches are excluded."
+}

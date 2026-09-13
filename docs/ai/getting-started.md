@@ -2,6 +2,8 @@
 
 本文面向本机 AI 客户端和自动化集成开发者。Copperbench MCP 当前为开发预览协议，版本、Schema 和工具字段仍可能在预览版间变化。
 
+当前源码新增了[任务授权与自动验收](./task-authorization-and-acceptance.md)：本机用户可以一次批准目录、操作和期限，agent 后续用授权 ID 连续开发；产品直接提供真实文件快照、GameTest 宿主和用例报告。使用这些接口需要包含改动的新构建。
+
 ## 安全边界
 
 - 服务仅绑定 `127.0.0.1`，入口为 `/mcp`。
@@ -26,11 +28,11 @@ Workspace Plan、增量任务日志和 `code` 使用边界的可复制示例。
 7. 运行校验或构建；长任务使用 `get_task` 查询状态和日志，并把最近收到的日志序号作为 `afterLogSequence` 传回以增量恢复。
 8. 修订冲突时重新读取并重新生成计划，不要自动重试覆盖。
 
-需要请求用户还原恢复点时，先调用 `preview_recovery_restore`。它比较当前工作树和目标恢复点，返回还原真正会涉及的文件；`restore_recovery_point` 仍然是受保护操作，MCP 客户端不能自行声明桌面用户已经批准。
+需要还原恢复点时，先调用 `preview_recovery_restore`。它比较当前工作树和目标恢复点，返回还原真正会涉及的文件；`restore_recovery_point` 接受用户签发的 `restore` 任务授权，或本机 UI 的明确批准，MCP 客户端不能自行声明桌面用户已经批准。
 
 ## 从空目录开始原生开发
 
-Stage 14B 提供不依赖已有 `.mcreator` 文件的产品级 bootstrap 入口。普通外部 Agent 可以先发现生成器，再让 Copperbench 在本机显示一次工作区创建确认；Agent 本身没有可伪造该确认的 `--approve` 参数：
+Stage 14B 提供不依赖已有 `.mcreator` 文件的产品级 bootstrap 入口。外部 agent 先发现生成器，再使用用户签发的[任务授权](./task-authorization-and-acceptance.md)创建工作区。传入 `--no-prompt true` 后，缺少授权会立即返回可审查的 `USER_APPROVAL_REQUIRED`，便于自动化客户端处理；本机交互创建仍可省略该参数显示确认窗口。Agent 没有可自行批准的 `--approve` 参数：
 
 ```powershell
 .\copperbench.exe bootstrap list-generators
@@ -38,7 +40,8 @@ Stage 14B 提供不依赖已有 `.mcreator` 文件的产品级 bootstrap 入口�
   --generator-id fabric-1.21.1 `
   --mod-name "Survey Pulse" `
   --mod-id survey_pulse `
-  --workspace-folder "$env:USERPROFILE\MCreatorWorkspaces\survey_pulse"
+  --workspace-folder "$env:USERPROFILE\MCreatorWorkspaces\survey_pulse" `
+  --task-authorization '<user-issued authorization ID>' --no-prompt true
 ```
 
 创建成功的 JSON 会返回新的 `.mcreator` 路径。随后使用正常 headless 或 Desktop MCP 入口读取真实工程环境；headless 形式为：
@@ -48,6 +51,8 @@ Stage 14B 提供不依赖已有 `.mcreator` 文件的产品级 bootstrap 入口�
 ```
 
 `environment` / MCP `get_workspace_environment` 会返回当前 generator、Minecraft/Loader、Gradle、JDK、源码/资源根目录以及原生优先工作流提示。Windows 产品本身运行在随包 JBR 25 上；需要 Java 21 的 Minecraft/Gradle 轨道使用安装包内独立的 `jdk21` sidecar。外部 Agent 不应把应用 JVM 当成工作区 Java 版本。
+
+编码前还应检查实际生成的 `build.gradle` 中的映射声明。目前 `environment` 未单独返回映射方案；本阶段 Fabric 1.21.1 工程使用 `loom.officialMojangMappings()`，不能仅凭 Fabric 加载器推断为 Yarn 符号。依赖文档应与工程声明的映射和版本对应。
 
 之后可以直接用 IDE 或普通文件工具编辑工作区内 Java、资源和测试文件，再通过 `headless ... build`、Desktop MCP `build_workspace` / `get_task` 或原生 Gradle Wrapper 获取真实编译诊断。故意或意外产生的编译错误应按诊断定位、直接修复文件并重新构建；不需要把整段 Java 重新包装成结构化 JSON。外部文件修改仍受源码指纹、revision、归属冲突和 recovery point 保护，Copperbench 也不会仅因文件已经写入就把它报告成已编译或行为已验证。
 

@@ -1,0 +1,9 @@
+{
+  "at": "2026-09-12T12:53:31.0181785Z",
+  "reason": "First-use China network dialog is modal in the thread dump but absent from automation inventory and user observation",
+  "javaPid": 20216,
+  "parentPid": 25816,
+  "sourceChanged": false,
+  "cachePreserved": true,
+  "nextAction": "Retry desktop launch with an explicit normal show state to distinguish harness visibility from product behavior"
+}

@@ -42,6 +42,8 @@ tasks.register('buildUiShell', Exec) {
         exclude 'dist/**', 'node_modules/**', 'test-results/**', 'playwright-report/**'
     })
     inputs.dir 'ui-core/fixtures/v1.0'
+    // The localization gate also scans diagnostic keys declared in Java.
+    inputs.files(fileTree('src/main/java/dev/copperbench') { include '**/*.java' })
     outputs.dir 'ui-shell/dist'
 }
 
@@ -89,6 +91,17 @@ tasks.named('compileGradleBridgeJava', JavaCompile) {
 tasks.named('jar', Jar) {
     from sourceSets.gradleBridge.output
 }
+
+// Tooling API transports ordinary -D properties after daemon startup. The tiny
+// Java 17 premain helper applies this verified Windows fallback before its first selector.
+tasks.register('localIpcAgentJar', Jar) {
+    archiveFileName = 'copperbench-local-ipc-agent.jar'
+    destinationDirectory = layout.buildDirectory.dir('libs')
+    from(sourceSets.gradleBridge.output) { include 'dev/copperbench/gradle/GradleLoopbackAgent.class' }
+    manifest { attributes('Premain-Class': 'dev.copperbench.gradle.GradleLoopbackAgent') }
+}
+tasks.named('jar') { dependsOn tasks.named('localIpcAgentJar') }
+tasks.named('test') { dependsOn tasks.named('localIpcAgentJar') }
 
 idea {
     module {

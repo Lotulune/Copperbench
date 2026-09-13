@@ -1,0 +1,8 @@
+{
+  "status": "passed",
+  "sourceCommit": "c0178f6b933825921cc3fb3f8f8ef8aa0874e688",
+  "archiveApplicationAndNativeLauncherHashesMatch": true,
+  "compiledWindowsGraphicsClassificationPresent": true,
+  "compiledZeroExitFailureHandlingPresent": true,
+  "scope": "packaged byte provenance, not a runtime test"
+}

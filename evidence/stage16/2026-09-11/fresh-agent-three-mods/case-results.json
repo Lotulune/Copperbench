@@ -1,0 +1,284 @@
+{
+  "status": "automated_acceptance_passed",
+  "updatedAt": "2026-09-11T20:52:32.3892862+08:00",
+  "acceptanceExecuted": 17,
+  "cases": [
+    {
+      "status": "passed",
+      "name": "defaultToggleAndIndependentStacks",
+      "mod": "resonance_token",
+      "reason": "Product packaged_jar verification completed successfully; original artifact and report hashes independently checked.",
+      "requirements": [
+        "R1",
+        "R4"
+      ],
+      "productTestName": "acceptancetests.defaulttoggleandindependentstacks",
+      "verificationPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\artifacts\\resonance_token\\verification.json",
+      "artifactSha256": "f3a1b4a3dd94f860eee2af0df034fcf556c380d2dbf5f423ea1a556f211c8939",
+      "reportSha256": "d05ec52f8f75243164dfa8ae4738bff957d7b2d28f88993582c3eb73434b70a0",
+      "verificationScope": "server_gameplay_entrypoint_and_state_assertions",
+      "clientInteractionVerified": false,
+      "fullProcessWorldReloadVerified": false
+    },
+    {
+      "status": "passed",
+      "name": "cooldownRejectsUseUntilExactlyTwentyTicks",
+      "mod": "resonance_token",
+      "reason": "Product packaged_jar verification completed successfully; original artifact and report hashes independently checked.",
+      "requirements": [
+        "R2"
+      ],
+      "productTestName": "acceptancetests.cooldownrejectsuseuntilexactlytwentyticks",
+      "verificationPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\artifacts\\resonance_token\\verification.json",
+      "artifactSha256": "f3a1b4a3dd94f860eee2af0df034fcf556c380d2dbf5f423ea1a556f211c8939",
+      "reportSha256": "d05ec52f8f75243164dfa8ae4738bff957d7b2d28f88993582c3eb73434b70a0",
+      "verificationScope": "server_gameplay_entrypoint_and_state_assertions",
+      "clientInteractionVerified": false,
+      "fullProcessWorldReloadVerified": false
+    },
+    {
+      "status": "passed",
+      "name": "feedbackUsesActionbarForBothStates",
+      "mod": "resonance_token",
+      "reason": "Product packaged_jar verification completed successfully; original artifact and report hashes independently checked.",
+      "requirements": [
+        "R3"
+      ],
+      "productTestName": "acceptancetests.feedbackusesactionbarforbothstates",
+      "verificationPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\artifacts\\resonance_token\\verification.json",
+      "artifactSha256": "f3a1b4a3dd94f860eee2af0df034fcf556c380d2dbf5f423ea1a556f211c8939",
+      "reportSha256": "d05ec52f8f75243164dfa8ae4738bff957d7b2d28f88993582c3eb73434b70a0",
+      "verificationScope": "server_actionbar_api_parameters",
+      "clientInteractionVerified": false,
+      "fullProcessWorldReloadVerified": false
+    },
+    {
+      "status": "passed",
+      "name": "unrelatedStackDataSurvivesBothDirections",
+      "mod": "resonance_token",
+      "reason": "Product packaged_jar verification completed successfully; original artifact and report hashes independently checked.",
+      "requirements": [
+        "R4"
+      ],
+      "productTestName": "acceptancetests.unrelatedstackdatasurvivesbothdirections",
+      "verificationPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\artifacts\\resonance_token\\verification.json",
+      "artifactSha256": "f3a1b4a3dd94f860eee2af0df034fcf556c380d2dbf5f423ea1a556f211c8939",
+      "reportSha256": "d05ec52f8f75243164dfa8ae4738bff957d7b2d28f88993582c3eb73434b70a0",
+      "verificationScope": "server_gameplay_entrypoint_and_state_assertions",
+      "clientInteractionVerified": false,
+      "fullProcessWorldReloadVerified": false
+    },
+    {
+      "status": "passed",
+      "name": "activeAndInactiveSurviveItemCodecRoundTrip",
+      "mod": "resonance_token",
+      "reason": "Product packaged_jar verification completed successfully; original artifact and report hashes independently checked.",
+      "requirements": [
+        "R5"
+      ],
+      "productTestName": "acceptancetests.activeandinactivesurviveitemcodecroundtrip",
+      "verificationPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\artifacts\\resonance_token\\verification.json",
+      "artifactSha256": "f3a1b4a3dd94f860eee2af0df034fcf556c380d2dbf5f423ea1a556f211c8939",
+      "reportSha256": "d05ec52f8f75243164dfa8ae4738bff957d7b2d28f88993582c3eb73434b70a0",
+      "verificationScope": "vanilla_itemstack_codec_round_trip",
+      "clientInteractionVerified": false,
+      "fullProcessWorldReloadVerified": false
+    },
+    {
+      "status": "passed",
+      "name": "itemPlacesZeroCountBlock",
+      "mod": "tally_stone",
+      "reason": "Product packaged_jar verification completed successfully; original artifact and report hashes independently checked.",
+      "requirements": [
+        "T1"
+      ],
+      "productTestName": "acceptancetests.itemplaceszerocountblock",
+      "verificationPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\artifacts\\tally_stone\\verification.json",
+      "artifactSha256": "76296fa2e85bbeb98a5634802cab7bc06cda6445930baec1b0bcf0bb25ddf35c",
+      "reportSha256": "5375e0f3c5540133a3754834ef63ab25d4fca1e9b4a60f78083c5d011aca5f22",
+      "verificationScope": "server_gameplay_entrypoint_and_state_assertions",
+      "clientInteractionVerified": false,
+      "fullProcessWorldReloadVerified": false
+    },
+    {
+      "status": "passed",
+      "name": "normalUseIncrementsAndSaturatesAtFifteen",
+      "mod": "tally_stone",
+      "reason": "Product packaged_jar verification completed successfully; original artifact and report hashes independently checked.",
+      "requirements": [
+        "T2"
+      ],
+      "productTestName": "acceptancetests.normaluseincrementsandsaturatesatfifteen",
+      "verificationPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\artifacts\\tally_stone\\verification.json",
+      "artifactSha256": "76296fa2e85bbeb98a5634802cab7bc06cda6445930baec1b0bcf0bb25ddf35c",
+      "reportSha256": "5375e0f3c5540133a3754834ef63ab25d4fca1e9b4a60f78083c5d011aca5f22",
+      "verificationScope": "server_gameplay_entrypoint_and_state_assertions",
+      "clientInteractionVerified": false,
+      "fullProcessWorldReloadVerified": false
+    },
+    {
+      "status": "passed",
+      "name": "sneakingResetsIncludingAlreadyZero",
+      "mod": "tally_stone",
+      "reason": "Product packaged_jar verification completed successfully; original artifact and report hashes independently checked.",
+      "requirements": [
+        "T3"
+      ],
+      "productTestName": "acceptancetests.sneakingresetsincludingalreadyzero",
+      "verificationPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\artifacts\\tally_stone\\verification.json",
+      "artifactSha256": "76296fa2e85bbeb98a5634802cab7bc06cda6445930baec1b0bcf0bb25ddf35c",
+      "reportSha256": "5375e0f3c5540133a3754834ef63ab25d4fca1e9b4a60f78083c5d011aca5f22",
+      "verificationScope": "server_gameplay_entrypoint_and_state_assertions",
+      "clientInteractionVerified": false,
+      "fullProcessWorldReloadVerified": false
+    },
+    {
+      "status": "passed",
+      "name": "positionsKeepIndependentCounts",
+      "mod": "tally_stone",
+      "reason": "Product packaged_jar verification completed successfully; original artifact and report hashes independently checked.",
+      "requirements": [
+        "T4"
+      ],
+      "productTestName": "acceptancetests.positionskeepindependentcounts",
+      "verificationPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\artifacts\\tally_stone\\verification.json",
+      "artifactSha256": "76296fa2e85bbeb98a5634802cab7bc06cda6445930baec1b0bcf0bb25ddf35c",
+      "reportSha256": "5375e0f3c5540133a3754834ef63ab25d4fca1e9b4a60f78083c5d011aca5f22",
+      "verificationScope": "server_gameplay_entrypoint_and_state_assertions",
+      "clientInteractionVerified": false,
+      "fullProcessWorldReloadVerified": false
+    },
+    {
+      "status": "passed",
+      "name": "chunkDiskSerializationRestoresCount",
+      "mod": "tally_stone",
+      "reason": "Product packaged_jar verification completed successfully; original artifact and report hashes independently checked.",
+      "requirements": [
+        "T5"
+      ],
+      "productTestName": "acceptancetests.chunkdiskserializationrestorescount",
+      "verificationPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\artifacts\\tally_stone\\verification.json",
+      "artifactSha256": "76296fa2e85bbeb98a5634802cab7bc06cda6445930baec1b0bcf0bb25ddf35c",
+      "reportSha256": "5375e0f3c5540133a3754834ef63ab25d4fca1e9b4a60f78083c5d011aca5f22",
+      "verificationScope": "minecraft_chunk_disk_write_and_deserialize",
+      "clientInteractionVerified": false,
+      "fullProcessWorldReloadVerified": false
+    },
+    {
+      "status": "passed",
+      "name": "matureSuccessfulBreakCreditsExactlyOnce",
+      "mod": "harvest_ledger",
+      "reason": "Product packaged_jar verification completed successfully; original artifact and report hashes independently checked.",
+      "requirements": [
+        "H1"
+      ],
+      "productTestName": "acceptancetests.maturesuccessfulbreakcreditsexactlyonce",
+      "verificationPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\artifacts\\harvest_ledger\\verification.json",
+      "artifactSha256": "cd810e1121970525dd6e1d488849cc163fd49978bc6b5c1546c4fd4c8f95fc4f",
+      "reportSha256": "634cbd1d40c8c2201c66376904bbf29ce4eebe0fecf1d7daf8b9bd3c25dda7a3",
+      "verificationScope": "server_gameplay_entrypoint_and_state_assertions",
+      "clientInteractionVerified": false,
+      "fullProcessWorldReloadVerified": false
+    },
+    {
+      "status": "passed",
+      "name": "immatureWheatAndOtherCropsDoNotCredit",
+      "mod": "harvest_ledger",
+      "reason": "Product packaged_jar verification completed successfully; original artifact and report hashes independently checked.",
+      "requirements": [
+        "H2"
+      ],
+      "productTestName": "acceptancetests.immaturewheatandothercropsdonotcredit",
+      "verificationPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\artifacts\\harvest_ledger\\verification.json",
+      "artifactSha256": "cd810e1121970525dd6e1d488849cc163fd49978bc6b5c1546c4fd4c8f95fc4f",
+      "reportSha256": "634cbd1d40c8c2201c66376904bbf29ce4eebe0fecf1d7daf8b9bd3c25dda7a3",
+      "verificationScope": "server_gameplay_entrypoint_and_state_assertions",
+      "clientInteractionVerified": false,
+      "fullProcessWorldReloadVerified": false
+    },
+    {
+      "status": "passed",
+      "name": "creativeMatureBreakIsExcluded",
+      "mod": "harvest_ledger",
+      "reason": "Product packaged_jar verification completed successfully; original artifact and report hashes independently checked.",
+      "requirements": [
+        "H2"
+      ],
+      "productTestName": "acceptancetests.creativematurebreakisexcluded",
+      "verificationPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\artifacts\\harvest_ledger\\verification.json",
+      "artifactSha256": "cd810e1121970525dd6e1d488849cc163fd49978bc6b5c1546c4fd4c8f95fc4f",
+      "reportSha256": "634cbd1d40c8c2201c66376904bbf29ce4eebe0fecf1d7daf8b9bd3c25dda7a3",
+      "verificationScope": "server_gameplay_entrypoint_and_state_assertions",
+      "clientInteractionVerified": false,
+      "fullProcessWorldReloadVerified": false
+    },
+    {
+      "status": "passed",
+      "name": "cancelledBreakDoesNotCreditAndLaterSuccessDoes",
+      "mod": "harvest_ledger",
+      "reason": "Product packaged_jar verification completed successfully; original artifact and report hashes independently checked.",
+      "requirements": [
+        "H1",
+        "H2"
+      ],
+      "productTestName": "acceptancetests.cancelledbreakdoesnotcreditandlatersuccessdoes",
+      "verificationPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\artifacts\\harvest_ledger\\verification.json",
+      "artifactSha256": "cd810e1121970525dd6e1d488849cc163fd49978bc6b5c1546c4fd4c8f95fc4f",
+      "reportSha256": "634cbd1d40c8c2201c66376904bbf29ce4eebe0fecf1d7daf8b9bd3c25dda7a3",
+      "verificationScope": "server_gameplay_entrypoint_and_state_assertions",
+      "clientInteractionVerified": false,
+      "fullProcessWorldReloadVerified": false
+    },
+    {
+      "status": "passed",
+      "name": "independentPlayersAccumulateOwnTotals",
+      "mod": "harvest_ledger",
+      "reason": "Product packaged_jar verification completed successfully; original artifact and report hashes independently checked.",
+      "requirements": [
+        "H3"
+      ],
+      "productTestName": "acceptancetests.independentplayersaccumulateowntotals",
+      "verificationPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\artifacts\\harvest_ledger\\verification.json",
+      "artifactSha256": "cd810e1121970525dd6e1d488849cc163fd49978bc6b5c1546c4fd4c8f95fc4f",
+      "reportSha256": "634cbd1d40c8c2201c66376904bbf29ce4eebe0fecf1d7daf8b9bd3c25dda7a3",
+      "verificationScope": "server_gameplay_entrypoint_and_state_assertions",
+      "clientInteractionVerified": false,
+      "fullProcessWorldReloadVerified": false
+    },
+    {
+      "status": "passed",
+      "name": "persistentStateLoadsActualWorldDataFile",
+      "mod": "harvest_ledger",
+      "reason": "Product packaged_jar verification completed successfully; original artifact and report hashes independently checked.",
+      "requirements": [
+        "H4"
+      ],
+      "productTestName": "acceptancetests.persistentstateloadsactualworlddatafile",
+      "verificationPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\artifacts\\harvest_ledger\\verification.json",
+      "artifactSha256": "cd810e1121970525dd6e1d488849cc163fd49978bc6b5c1546c4fd4c8f95fc4f",
+      "reportSha256": "634cbd1d40c8c2201c66376904bbf29ce4eebe0fecf1d7daf8b9bd3c25dda7a3",
+      "verificationScope": "world_saveddata_disk_save_and_fresh_storage_read",
+      "clientInteractionVerified": false,
+      "fullProcessWorldReloadVerified": false
+    },
+    {
+      "status": "passed",
+      "name": "reportCommandReturnsTotalWithoutMutatingIt",
+      "mod": "harvest_ledger",
+      "reason": "Product packaged_jar verification completed successfully; original artifact and report hashes independently checked.",
+      "requirements": [
+        "H5"
+      ],
+      "productTestName": "acceptancetests.reportcommandreturnstotalwithoutmutatingit",
+      "verificationPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\artifacts\\harvest_ledger\\verification.json",
+      "artifactSha256": "cd810e1121970525dd6e1d488849cc163fd49978bc6b5c1546c4fd4c8f95fc4f",
+      "reportSha256": "634cbd1d40c8c2201c66376904bbf29ce4eebe0fecf1d7daf8b9bd3c25dda7a3",
+      "verificationScope": "server_gameplay_entrypoint_and_state_assertions",
+      "clientInteractionVerified": false,
+      "fullProcessWorldReloadVerified": false
+    }
+  ],
+  "schemaVersion": "1.0",
+  "acceptedAsPassed": 17,
+  "scopeNote": "All results are packaged-JAR server GameTests. Client rendering/input and full process/world restart remain separate parent-task gates."
+}

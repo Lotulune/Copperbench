@@ -1,0 +1,49 @@
+Compiled from "WorkspaceDialogs.java"
+class net.mcreator.ui.dialogs.workspace.WorkspaceDialogs$WorkspaceDialogPanel$5 extends net.mcreator.ui.validation.validators.TextFieldValidator {
+  final net.mcreator.ui.dialogs.workspace.WorkspaceDialogs$WorkspaceDialogPanel this$0;
+
+  net.mcreator.ui.dialogs.workspace.WorkspaceDialogs$WorkspaceDialogPanel$5(net.mcreator.ui.dialogs.workspace.WorkspaceDialogs$WorkspaceDialogPanel, net.mcreator.ui.validation.component.VTextField, java.lang.String);
+    Code:
+         0: aload_0
+         1: aload_1
+         2: dup
+         3: invokestatic  #1                  // Method java/util/Objects.requireNonNull:(Ljava/lang/Object;)Ljava/lang/Object;
+         6: pop
+         7: putfield      #7                  // Field this$0:Lnet/mcreator/ui/dialogs/workspace/WorkspaceDialogs$WorkspaceDialogPanel;
+        10: aload_0
+        11: aload_2
+        12: aload_3
+        13: invokespecial #13                 // Method net/mcreator/ui/validation/validators/TextFieldValidator."<init>":(Lnet/mcreator/ui/validation/component/VTextField;Ljava/lang/String;)V
+        16: return
+
+  public net.mcreator.ui.validation.ValidationResult validate();
+    Code:
+         0: aload_0
+         1: getfield      #7                  // Field this$0:Lnet/mcreator/ui/dialogs/workspace/WorkspaceDialogs$WorkspaceDialogPanel;
+         4: getfield      #19                 // Field net/mcreator/ui/dialogs/workspace/WorkspaceDialogs$WorkspaceDialogPanel.version:Lnet/mcreator/ui/validation/component/VTextField;
+         7: invokevirtual #25                 // Method net/mcreator/ui/validation/component/VTextField.getText:()Ljava/lang/String;
+        10: invokestatic  #31                 // Method java/lang/module/ModuleDescriptor$Version.parse:(Ljava/lang/String;)Ljava/lang/module/ModuleDescriptor$Version;
+        13: pop
+        14: goto          45
+        17: astore_1
+        18: new           #39                 // class net/mcreator/ui/validation/ValidationResult
+        21: dup
+        22: getstatic     #41                 // Field net/mcreator/ui/validation/ValidationResult$Type.ERROR:Lnet/mcreator/ui/validation/ValidationResult$Type;
+        25: ldc           #47                 // String dialog.workspace_settings.version.error2
+        27: iconst_1
+        28: anewarray     #49                 // class java/lang/Object
+        31: dup
+        32: iconst_0
+        33: aload_1
+        34: invokevirtual #51                 // Method java/lang/Exception.getMessage:()Ljava/lang/String;
+        37: aastore
+        38: invokestatic  #54                 // Method net/mcreator/ui/init/L10N.t:(Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/String;
+        41: invokespecial #60                 // Method net/mcreator/ui/validation/ValidationResult."<init>":(Lnet/mcreator/ui/validation/ValidationResult$Type;Ljava/lang/String;)V
+        44: areturn
+        45: aload_0
+        46: invokespecial #63                 // Method net/mcreator/ui/validation/validators/TextFieldValidator.validate:()Lnet/mcreator/ui/validation/ValidationResult;
+        49: areturn
+      Exception table:
+         from    to  target type
+             0    14    17   Class java/lang/Exception
+}

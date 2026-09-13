@@ -1,0 +1,5 @@
+{
+  "schemaVersion": "1.0",
+  "scope": "derived summary only; raw product responses and logs unchanged",
+  "fieldCorrection": "Windows exact-token audit comparison did not complete; its leak status is unknown, not a verified false result."
+}

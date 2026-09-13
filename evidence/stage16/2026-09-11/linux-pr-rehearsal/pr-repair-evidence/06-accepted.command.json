@@ -1,0 +1,18 @@
+{
+  "label": "06-accepted",
+  "command": [
+    "/usr/bin/copperbench",
+    "headless",
+    "--workspace",
+    "/home/stage15/stage16-3c0aa090/pr-repair-workspace/resonance_token.mcreator",
+    "run-gametest",
+    "--stream",
+    "true"
+  ],
+  "startedAt": "2026-09-11T13:22:29.104395+00:00",
+  "callerRuntimeOptionsRemoved": [],
+  "firstOutputMs": 667,
+  "processExitCode": 0,
+  "completedAt": "2026-09-11T13:24:05.075353+00:00",
+  "elapsedMs": 95971
+}

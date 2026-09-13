@@ -1,0 +1,9 @@
+{
+  "recordedAt": "2026-09-12T04:41:03.8146907+00:00",
+  "guest": {
+    "Name": "Copperbench-G7",
+    "MemoryAssigned": 4294967296,
+    "MemoryDemand": 4165992448
+  },
+  "hostFreeBytes": 1318678528
+}

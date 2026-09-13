@@ -24,6 +24,7 @@ import dev.copperbench.core.workspace.RevisionedWorkspaceStore;
 import dev.copperbench.core.workspace.RevisionedWorkspaceStore.Decision;
 import dev.copperbench.core.workspace.RevisionedWorkspaceStore.TransactionResult;
 import dev.copperbench.core.workspace.WorkspaceCreationService;
+import dev.copperbench.automation.security.TaskAuthorizationStore;
 import dev.copperbench.assets.AssetPublishBatchService;
 import dev.copperbench.assets.AssetImportBatchPlan;
 import dev.copperbench.assets.AssetImportBatchService;
@@ -143,6 +144,7 @@ public final class WorkspaceApplicationService {
 	private final WorkspaceCreationService workspaceCreation;
 	private final WorkspacePlanEngine plans;
 	private final LocalWorkspaceTemplateService localTemplates;
+	private final TaskAuthorizationStore taskAuthorizations;
 	private final WorkspaceReferenceIndex references = new WorkspaceReferenceIndex();
 	private final Map<UUID, CopyOnWriteArrayList<Consumer<Event>>> eventListeners = new ConcurrentHashMap<>();
 	private final Map<UUID, Deque<Event>> taskEventHistory = new ConcurrentHashMap<>();
@@ -1024,6 +1026,20 @@ public final class WorkspaceApplicationService {
 	WorkspaceApplicationService(RevisionedWorkspaceStore store, WorkspaceTaskGateway tasks,
 			WorkspaceMutationGateway mutations, LocalHistoryService history, WorkspaceStateReloader reloader,
 			Function<UUID, Path> workspaceRoots, Clock clock, Supplier<UUID> ids, boolean subscribeTaskEvents) {
+		this(store, tasks, mutations, history, reloader, workspaceRoots, clock, ids, subscribeTaskEvents,
+				TaskAuthorizationStore.productDefault(clock));
+	}
+
+	public WorkspaceApplicationService(RevisionedWorkspaceStore store, WorkspaceTaskGateway tasks,
+			WorkspaceMutationGateway mutations, LocalHistoryService history, WorkspaceStateReloader reloader,
+			Function<UUID, Path> workspaceRoots, Clock clock, Supplier<UUID> ids, TaskAuthorizationStore authorizations) {
+		this(store, tasks, mutations, history, reloader, workspaceRoots, clock, ids, true, authorizations);
+	}
+
+	private WorkspaceApplicationService(RevisionedWorkspaceStore store, WorkspaceTaskGateway tasks,
+			WorkspaceMutationGateway mutations, LocalHistoryService history, WorkspaceStateReloader reloader,
+			Function<UUID, Path> workspaceRoots, Clock clock, Supplier<UUID> ids, boolean subscribeTaskEvents,
+			TaskAuthorizationStore authorizations) {
 		this.store = store;
 		this.tasks = tasks;
 		this.mutations = mutations;
@@ -1040,6 +1056,7 @@ public final class WorkspaceApplicationService {
 		this.workspaceCreation = new WorkspaceCreationService(this.tracks);
 		this.plans = new WorkspacePlanEngine(store, tasks, mutations, history, clock, ids);
 		this.localTemplates = LocalWorkspaceTemplateService.productDefault(clock);
+		this.taskAuthorizations = Objects.requireNonNull(authorizations);
 		if (subscribeTaskEvents)
 			tasks.subscribeTaskEvents(this::publishTaskEvent);
 	}
@@ -1312,8 +1329,15 @@ public final class WorkspaceApplicationService {
 		if (context.permission() == PermissionProfile.READ_ONLY
 				&& command.operation() != Operation.VALIDATE_WORKSPACE)
 			return denied(command, context.permission(), PermissionProfile.WORKSPACE);
+		if (command.payload().has("taskAuthorizationId") && command.operation() != Operation.CANCEL_TASK
+				&& command.operation() != Operation.REVOKE_TASK_AUTHORIZATION) {
+			var decision = taskAuthorization(command);
+			if (!decision.allowed()) return taskAuthorizationDenied(command, context, decision.code());
+		}
 
 		return switch (command.operation()) {
+			case CREATE_TASK_AUTHORIZATION -> createTaskAuthorization(command, context);
+			case REVOKE_TASK_AUTHORIZATION -> revokeTaskAuthorization(command, context);
 			case CREATE_WORKSPACE -> createWorkspace(command, context);
 			case CREATE_MOD_ELEMENT -> create(command, context);
 			case UPDATE_MOD_ELEMENT -> update(command, context);
@@ -1322,9 +1346,10 @@ public final class WorkspaceApplicationService {
 			case UPDATE_PROCEDURE -> updateProcedure(command, context);
 			case CREATE_REGISTRY_ENTRY, UPDATE_REGISTRY_ENTRY, DELETE_REGISTRY_ENTRY, RENAME_REGISTRY_ENTRY ->
 					mutateRegistry(command, context);
-			case VALIDATE_WORKSPACE, GENERATE_WORKSPACE, BUILD_WORKSPACE, EXPORT_WORKSPACE, RUN_CLIENT, RUN_DATAGEN,
-					RUN_GAMETEST ->
+			case VALIDATE_WORKSPACE, GENERATE_WORKSPACE, BUILD_WORKSPACE, EXPORT_WORKSPACE, RUN_CLIENT, RUN_DATAGEN ->
 					startTask(command);
+			case RUN_GAMETEST -> runGameTest(command, context);
+			case PREPARE_GAME_TESTS -> prepareGameTests(command, context);
 			case RUN_SERVER -> runServer(command, context);
 			case PUBLISH_DATAGEN_OUTPUT -> publishDatagenOutput(command, context);
 			case CREATE_LOCAL_TEMPLATE -> createLocalTemplate(command, context);
@@ -1350,6 +1375,7 @@ public final class WorkspaceApplicationService {
 			return queryFailure(query, 0, workspaceNotFound());
 		try {
 			return switch (query.operation()) {
+				case LIST_TASK_AUTHORIZATIONS -> listTaskAuthorizations(query, state, context);
 				case GET_WORKBENCH -> querySuccess(query, state.revision(), workbench(state, context));
 				case GET_WORKSPACE_ENVIRONMENT -> workspaceEnvironment(query, state);
 				case GET_WORKSPACE_HEALTH -> querySuccess(query, state.revision(), workspaceHealth(query, state));
@@ -1571,7 +1597,7 @@ public final class WorkspaceApplicationService {
 			case "MOD_ID_INVALID" -> "The mod ID is invalid.";
 			case "PACKAGE_NAME_INVALID" -> "The Java package name is invalid.";
 			case "WORKSPACE_FOLDER_REQUIRED" -> "A workspace folder is required.";
-			case "WORKSPACE_FOLDER_OUTSIDE_ROOT" -> "The workspace folder is outside the allowed root.";
+			case "WORKSPACE_FOLDER_OUTSIDE_ROOT" -> "The workspace folder must be an absolute child directory without path redirects.";
 			case "WORKSPACE_FOLDER_NOT_EMPTY" -> "The workspace folder is not empty.";
 			default -> "The new workspace form is invalid: " + code + ".";
 		};
@@ -2514,12 +2540,91 @@ public final class WorkspaceApplicationService {
 				JsonNull.INSTANCE, JsonNull.INSTANCE, List.of(diagnostic), JsonNull.INSTANCE, denial), List.of());
 	}
 
-	private static boolean approved(Command command, RequestContext context) {
+	private boolean approved(Command command, RequestContext context) {
 		boolean trustedActor = context.actor() == UiCore.Actor.UI || context.actor() == UiCore.Actor.LEGACY_UI;
+		if (!trustedActor && command.payload().has("taskAuthorizationId")) {
+			var decision = taskAuthorization(command);
+			return decision.allowed() && (command.operation() != Operation.RUN_SERVER || decision.serverEulaAccepted());
+		}
 		return trustedActor && command.payload().has("userApproved")
 				&& command.payload().get("userApproved").isJsonPrimitive()
 				&& command.payload().getAsJsonPrimitive("userApproved").isBoolean()
 				&& command.payload().getAsJsonPrimitive("userApproved").getAsBoolean();
+	}
+
+	private TaskAuthorizationStore.Decision taskAuthorization(Command command) {
+		try {
+			Path target = command.operation() == Operation.CREATE_WORKSPACE
+					? Path.of(requiredString(command.payload(), "workspaceFolderPath")) : workspaceRoot(command.workspaceId());
+			return taskAuthorizations.authorize(requiredString(command.payload(), "taskAuthorizationId"), target, command.operation());
+		} catch (RuntimeException exception) {
+			return new TaskAuthorizationStore.Decision(false, "TASK_AUTHORIZATION_INVALID", false);
+		}
+	}
+
+	private CommandOutcome taskAuthorizationDenied(Command command, RequestContext context, String code) {
+		JsonObject denial = new JsonObject();
+		denial.addProperty("currentProfile", wire(context.permission()));
+		denial.addProperty("requiredProfile", wire(context.permission()));
+		denial.addProperty("approvalRequired", true); denial.addProperty("protectedOperation", true);
+		return new CommandOutcome(result(command, "rejected", currentRevision(command.workspaceId()),
+				JsonNull.INSTANCE, JsonNull.INSTANCE, List.of(diagnostic(code, "diagnostic.task_authorization_denied",
+				"Task authority is unavailable, expired, revoked or outside its approved scope. Review it in AI and MCP.",
+				"/taskAuthorizationId", null)), JsonNull.INSTANCE, denial), List.of());
+	}
+
+	private CommandOutcome createTaskAuthorization(Command command, RequestContext context) {
+		if (context.actor() != UiCore.Actor.UI && context.actor() != UiCore.Actor.LEGACY_UI)
+			return taskAuthorizationDenied(command, context, "TASK_AUTHORIZATION_USER_ONLY");
+		try {
+			if (!approved(command, context)) return taskAuthorizationDenied(command, context, "USER_APPROVAL_REQUIRED");
+			Path root = command.payload().has("root") ? Path.of(requiredString(command.payload(), "root"))
+					: workspaceRoot(command.workspaceId());
+			List<String> capabilities = command.payload().getAsJsonArray("capabilities").asList().stream()
+					.map(JsonElement::getAsString).toList();
+			var transaction = store.coordinate(command.workspaceId(), command.expectedRevision(), state -> {
+				try {
+					return taskAuthorizations.issue(context.actor(), true, requiredString(command.payload(), "label"), root,
+							capabilities, command.payload().get("ttlSeconds").getAsLong(),
+							command.payload().has("serverEulaAccepted") && command.payload().get("serverEulaAccepted").getAsBoolean());
+				} catch (java.io.IOException exception) { throw new java.io.UncheckedIOException(exception); }
+			});
+			var conflict = checkFailure(command, transaction); if (conflict != null) return conflict;
+			return new CommandOutcome(result(command, "completed", transaction.revision(), JsonNull.INSTANCE,
+					transaction.value(), List.of(), JsonNull.INSTANCE, JsonNull.INSTANCE), List.of());
+		} catch (Exception exception) {
+			return failed(command, currentRevision(command.workspaceId()), diagnostic("TASK_AUTHORIZATION_INVALID",
+					"diagnostic.task_authorization_invalid", exception.getMessage(), null, null));
+		}
+	}
+
+	private CommandOutcome revokeTaskAuthorization(Command command, RequestContext context) {
+		try {
+			boolean localUser = context.actor() == UiCore.Actor.UI || context.actor() == UiCore.Actor.LEGACY_UI;
+			if (!localUser && workspaceRoot(command.workspaceId()) == null) throw new IllegalStateException("Workspace root is unavailable");
+			var transaction = store.coordinate(command.workspaceId(), command.expectedRevision(), state -> {
+				try { return taskAuthorizations.revoke(requiredString(command.payload(), "authorizationId"), localUser ? null : workspaceRoot(command.workspaceId())); }
+				catch (java.io.IOException exception) { throw new java.io.UncheckedIOException(exception); }
+			});
+			var conflict = checkFailure(command, transaction); if (conflict != null) return conflict;
+			return new CommandOutcome(result(command, "completed", transaction.revision(), JsonNull.INSTANCE,
+					transaction.value(), List.of(), JsonNull.INSTANCE, JsonNull.INSTANCE), List.of());
+		} catch (Exception exception) {
+			return taskAuthorizationDenied(command, context, "TASK_AUTHORIZATION_INVALID");
+		}
+	}
+
+	private QueryResult listTaskAuthorizations(Query query, WorkspaceState state, RequestContext context) {
+		try {
+			boolean localUser = context.actor() == UiCore.Actor.UI || context.actor() == UiCore.Actor.LEGACY_UI;
+			if (!localUser && workspaceRoot(query.workspaceId()) == null) throw new IllegalStateException("Workspace root is unavailable");
+			JsonObject data = new JsonObject(); data.addProperty("schemaVersion", "1.0");
+			data.add("authorizations", GSON.toJsonTree(taskAuthorizations.list(localUser ? null : workspaceRoot(query.workspaceId()))));
+			return querySuccess(query, state.revision(), data);
+		} catch (Exception exception) {
+			return queryFailure(query, state.revision(), diagnostic("TASK_AUTHORIZATION_UNAVAILABLE",
+					"diagnostic.task_authorization_unavailable", "Task authorizations could not be read", null, null));
+		}
 	}
 
 	private Path workspaceRoot(UUID workspaceId) {
@@ -3488,6 +3593,32 @@ public final class WorkspaceApplicationService {
 		Command approved = Command.of(command.requestId(), command.workspaceId(), command.expectedRevision(),
 				command.operation(), payload);
 		return startTask(approved);
+	}
+
+	private CommandOutcome runGameTest(Command command, RequestContext context) {
+		JsonObject payload = command.payload().deepCopy();
+		// Caller-supplied EULA flags are never authority. Legacy GameTest hosts may need a server grant.
+		payload.remove("serverEulaAuthorized");
+		boolean accepted = (context.actor() == UiCore.Actor.UI || context.actor() == UiCore.Actor.LEGACY_UI)
+				&& payload.has("serverEulaAccepted") && payload.get("serverEulaAccepted").getAsBoolean();
+		if (!accepted && payload.has("taskAuthorizationId")) {
+			var decision = taskAuthorizations.authorize(payload.get("taskAuthorizationId").getAsString(),
+					workspaceRoot(command.workspaceId()), "run_server");
+			accepted = decision.allowed() && decision.serverEulaAccepted();
+		}
+		payload.addProperty("serverEulaAuthorized", accepted);
+		return startTask(Command.of(command.requestId(), command.workspaceId(), command.expectedRevision(), command.operation(), payload));
+	}
+
+	private CommandOutcome prepareGameTests(Command command, RequestContext context) {
+		try {
+			if (history != null && currentRevision(command.workspaceId()) == command.expectedRevision())
+				history.createRecoveryPoint(new RecoveryPointRequest("Before GameTest setup", context.actor(), ""));
+			return startTask(command);
+		} catch (LocalHistoryException exception) {
+			return failed(command, currentRevision(command.workspaceId()), diagnostic("GAMETEST_RECOVERY_FAILED",
+					"diagnostic.gametest_recovery_failed", "GameTest setup could not create its recovery point.", null, null));
+		}
 	}
 
 	private CommandOutcome registryMutationOutcome(Command command, TransactionResult<RegistryMutation> transaction,

@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "stage16-client-evidence-integrity",
+  "verifiedAt": "2026-09-12T03:14:34.767997+00:00",
+  "status": "passed",
+  "rawEvidenceFiles": 113,
+  "screenshots": 79,
+  "independentSuccessfulInvocations": 2,
+  "runningBeyond45MinutesObserved": true,
+  "samePlayerUuid": "8fb12eef-98f0-409b-a3c1-18abf66578f6",
+  "ledgerBytesPreservedAcrossRestart": true,
+  "machineLogAndArtifactChecksPassed": true,
+  "automatedVisualRecognitionPerformed": false,
+  "visualEvidenceSource": "Native screenshots directly inspected by the operating agent; see acceptance.json and observation-annotations.json.",
+  "stage16Complete": false,
+  "remainingStage": "C: installed Windows and Ubuntu regression"
+}

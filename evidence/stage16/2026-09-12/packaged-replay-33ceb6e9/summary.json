@@ -1,0 +1,160 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "stage16-packaged-agent-repair-loop",
+  "startedAt": "2026-09-11T15:30:09.2663589+00:00",
+  "productExeSha256": "203721a14453bdfe275a635cf56ea48e3ae9b914299dc5bbd6cd49fb3b7cbffd",
+  "applicationJarSha256": "1f049a071cfe709fba9c98ce22defb9bbe6688fc334f421b64ce802315758c01",
+  "execution": "packaged executable only; no repository classpath or injected authorization",
+  "cacheState": "existing machine caches; not a clean-machine certification",
+  "humanInterventionsDuringReplay": 0,
+  "bootstrapCreation": "missing-authorization request verified without a dialog; authorized creation not exercised",
+  "freshAgent": false,
+  "passed": true,
+  "steps": [
+    {
+      "name": "01-discovery",
+      "exitCode": 0,
+      "status": "succeeded",
+      "elapsedMs": 13902,
+      "firstResponseMs": 13660,
+      "jsonMessages": 1,
+      "stdout": "01-discovery.jsonl"
+    },
+    {
+      "name": "01b-no-prompt",
+      "exitCode": 3,
+      "status": "rejected",
+      "elapsedMs": 9928,
+      "firstResponseMs": 9767,
+      "jsonMessages": 1,
+      "stdout": "01b-no-prompt.jsonl"
+    },
+    {
+      "name": "02-environment",
+      "exitCode": 0,
+      "status": "succeeded",
+      "elapsedMs": 10120,
+      "firstResponseMs": 9133,
+      "jsonMessages": 1,
+      "stdout": "02-environment.jsonl"
+    },
+    {
+      "name": "03-compile-failure",
+      "exitCode": 10,
+      "status": "failed",
+      "elapsedMs": 145651,
+      "firstResponseMs": 2542,
+      "jsonMessages": 16,
+      "stdout": "03-compile-failure.jsonl"
+    },
+    {
+      "name": "04-repaired-build",
+      "exitCode": 0,
+      "status": "succeeded",
+      "elapsedMs": 35319,
+      "firstResponseMs": 1864,
+      "jsonMessages": 18,
+      "stdout": "04-repaired-build.jsonl"
+    },
+    {
+      "name": "05-insufficient-tests",
+      "exitCode": 10,
+      "status": "failed",
+      "elapsedMs": 292294,
+      "firstResponseMs": 1573,
+      "jsonMessages": 56,
+      "stdout": "05-insufficient-tests.jsonl"
+    },
+    {
+      "name": "06-accepted",
+      "exitCode": 0,
+      "status": "succeeded",
+      "elapsedMs": 303972,
+      "firstResponseMs": 2199,
+      "jsonMessages": 58,
+      "stdout": "06-accepted.jsonl"
+    }
+  ],
+  "generatorId": "fabric-1.21.1",
+  "bundledJava": {
+    "requiredRelease": 21,
+    "home": "C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\copperbench-stage16-33ceb6e9\\Copperbench010\\jdk21",
+    "executable": "C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\copperbench-stage16-33ceb6e9\\Copperbench010\\jdk21\\bin\\java.exe"
+  },
+  "verification": {
+    "schemaVersion": "1.0",
+    "status": "passed",
+    "reasonCode": "GAMETEST_PASSED",
+    "discovered": 5,
+    "executed": 5,
+    "passed": 5,
+    "failed": 0,
+    "skipped": 0,
+    "frameworkTests": 0,
+    "acceptanceExecuted": 5,
+    "cases": [
+      {
+        "name": "acceptancetests.activeandinactivesurviveitemcodecroundtrip",
+        "className": "fabric-gametest-api-v1:empty",
+        "status": "passed",
+        "scope": "acceptance"
+      },
+      {
+        "name": "acceptancetests.cooldownrejectsuseuntilexactlytwentyticks",
+        "className": "fabric-gametest-api-v1:empty",
+        "status": "passed",
+        "scope": "acceptance"
+      },
+      {
+        "name": "acceptancetests.defaulttoggleandindependentstacks",
+        "className": "fabric-gametest-api-v1:empty",
+        "status": "passed",
+        "scope": "acceptance"
+      },
+      {
+        "name": "acceptancetests.feedbackusesactionbarforbothstates",
+        "className": "fabric-gametest-api-v1:empty",
+        "status": "passed",
+        "scope": "acceptance"
+      },
+      {
+        "name": "acceptancetests.unrelatedstackdatasurvivesbothdirections",
+        "className": "fabric-gametest-api-v1:empty",
+        "status": "passed",
+        "scope": "acceptance"
+      }
+    ],
+    "mode": "packaged_jar",
+    "minimumTests": 5,
+    "environment": {
+      "generatorId": "fabric-1.21.1",
+      "loader": "fabric",
+      "minecraftVersion": "1.21.1",
+      "loaderVersion": "0.19.3",
+      "fabricApiVersion": "0.116.15+1.21.1",
+      "javaRelease": 21,
+      "pluginId": "net.fabricmc.fabric-loom-remap",
+      "pluginVersion": "1.17.19"
+    },
+    "artifactPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\replay_33ceb6e9\\.copperbench\\task-runs\\run_gametest\\58239105-20b4-479b-a345-aa7ec6806319\\host\\run\\mods\\resonance_token-1.0.jar",
+    "artifactSha256": "e754c6e539f36acd16683e0dca334a97c0fef4eaa45f53ebffb39d98b2cdf52b",
+    "reportPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\replay_33ceb6e9\\.copperbench\\task-runs\\run_gametest\\58239105-20b4-479b-a345-aa7ec6806319\\host\\run\\gametest-results.xml",
+    "reportSha256": "1cf3f6f67ccbe897da867c1a1a6a5edfff6d0b8cbb543b66aa9e2edafa22ccd5",
+    "startedAt": "2026-09-11T15:40:36.863650300Z",
+    "completedAt": "2026-09-11T15:43:39.902904600Z",
+    "processExitCode": 0,
+    "sourceCurrentAtCompletion": true,
+    "taskId": "58239105-20b4-479b-a345-aa7ec6806319",
+    "workspaceId": "9b98a83d-fac1-4dc0-9cda-8b5f940e2587",
+    "workspaceRevision": 0,
+    "sourceSnapshot": {
+      "sha256": "f8b93c3b719dfd6090b216cfe62fc48ba158a0239d29538158ba45b557297604",
+      "fileCount": 35,
+      "bytes": 102102,
+      "manifestPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\replay_33ceb6e9\\.copperbench\\task-runs\\run_gametest\\58239105-20b4-479b-a345-aa7ec6806319\\source-manifest.json"
+    },
+    "verificationPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\replay_33ceb6e9\\.copperbench\\task-runs\\run_gametest\\58239105-20b4-479b-a345-aa7ec6806319\\verification.json"
+  },
+  "sourceWorkspaceUnchanged": true,
+  "completedAt": "2026-09-11T15:43:41.4380468+00:00"
+}

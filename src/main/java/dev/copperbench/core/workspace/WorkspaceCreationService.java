@@ -53,7 +53,10 @@ public final class WorkspaceCreationService {
 
 	/** Result of a creation attempt; diagnostics are stable codes, never Java exception text. */
 	public record CreationResult(boolean complete, String workspaceFile, String generatorId,
-			List<String> diagnostics) {
+			List<String> diagnostics, String detail) {
+		public CreationResult(boolean complete, String workspaceFile, String generatorId, List<String> diagnostics) {
+			this(complete, workspaceFile, generatorId, diagnostics, null);
+		}
 	}
 
 	private void setupJavaWorkspace(Workspace workspace, String generatorId) {
@@ -80,13 +83,13 @@ public final class WorkspaceCreationService {
 					int repaired = MinecraftMappingsCacheRepair.repairCorruptMappings(
 							workspace.getWorkspaceFolder().toPath());
 					if (repaired <= 0)
-						throw new WorkspaceBaseGenerationException("WORKSPACE_GRADLE_SYNC_FAILED");
+						throw new WorkspaceBaseGenerationException("WORKSPACE_GRADLE_SYNC_FAILED", firstFailure);
 					GradleUtils.getGradleSyncLauncher(workspace.getGeneratorConfiguration(), connection).run();
 				}
 				try {
 					workspace.getGenerator().reloadGradleCaches();
 				} catch (RuntimeException exception) {
-					throw new WorkspaceBaseGenerationException("WORKSPACE_GRADLE_CACHE_FAILED");
+					throw new WorkspaceBaseGenerationException("WORKSPACE_GRADLE_CACHE_FAILED", exception);
 				}
 				if (!workspace.getGenerator().generateBase())
 					throw new WorkspaceBaseGenerationException("WORKSPACE_BASE_GENERATION_FAILED");
@@ -107,6 +110,11 @@ public final class WorkspaceCreationService {
 		private final String diagnostic;
 
 		private WorkspaceBaseGenerationException(String diagnostic) {
+			this.diagnostic = diagnostic;
+		}
+
+		private WorkspaceBaseGenerationException(String diagnostic, Throwable cause) {
+			super(cause);
 			this.diagnostic = diagnostic;
 		}
 	}
@@ -198,12 +206,12 @@ public final class WorkspaceCreationService {
 			return new CreationResult(true, workspaceFile.getAbsolutePath(), generatorId, List.of());
 		} catch (WorkspaceBaseGenerationException exception) {
 			return failedCreation(generatorId, workspaceFolder, preserveWorkspaceFolder,
-					exception.diagnostic);
+					exception.diagnostic, exception);
 		} catch (WorkspaceSkeletonSetupException exception) {
 			return failedCreation(generatorId, workspaceFolder, preserveWorkspaceFolder,
-					"WORKSPACE_SKELETON_SETUP_FAILED");
+					"WORKSPACE_SKELETON_SETUP_FAILED", exception);
 		} catch (RuntimeException exception) {
-			return failedCreation(generatorId, workspaceFolder, preserveWorkspaceFolder, "WORKSPACE_CREATE_FAILED");
+			return failedCreation(generatorId, workspaceFolder, preserveWorkspaceFolder, "WORKSPACE_CREATE_FAILED", exception);
 		}
 	}
 
@@ -238,7 +246,7 @@ public final class WorkspaceCreationService {
 	}
 
 	private static CreationResult failedCreation(String generatorId, Path workspaceFolder,
-			boolean preserveWorkspaceFolder, String diagnostic) {
+			boolean preserveWorkspaceFolder, String diagnostic, Throwable failure) {
 		List<String> diagnostics = new ArrayList<>();
 		diagnostics.add(diagnostic);
 		try {
@@ -246,7 +254,20 @@ public final class WorkspaceCreationService {
 		} catch (IOException exception) {
 			diagnostics.add("WORKSPACE_CLEANUP_FAILED");
 		}
-		return new CreationResult(false, null, generatorId, List.copyOf(diagnostics));
+		return new CreationResult(false, null, generatorId, List.copyOf(diagnostics), failureDetail(failure));
+	}
+
+	static String failureDetail(Throwable failure) {
+		StringBuilder details = new StringBuilder();
+		var seen = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<Throwable, Boolean>());
+		for (Throwable current = failure; current != null && seen.add(current) && seen.size() <= 8; current = current.getCause()) {
+			if (current.getMessage() == null || current.getMessage().isBlank()) continue;
+			if (!details.isEmpty()) details.append("\nCaused by: ");
+			details.append(current.getMessage());
+		}
+		String safe = dev.copperbench.automation.audit.SensitiveDataRedactor.redact(details.toString())
+				.replaceAll("(?i)(https?://)[^\\s/@]+:[^\\s/@]+@", "$1[REDACTED]@");
+		return safe.length() > 4000 ? safe.substring(0, 4000) + "…" : safe;
 	}
 
 	private static void cleanupPartialWorkspace(Path workspaceFolder, boolean preserveWorkspaceFolder)
@@ -316,10 +337,12 @@ public final class WorkspaceCreationService {
 			diagnostics.add("WORKSPACE_FOLDER_REQUIRED");
 		else {
 			Path folder = Path.of(workspaceFolderPath).toAbsolutePath().normalize();
-			Path suggestedRoot = WorkspaceFolderManager.getSuggestedWorkspaceFoldersRoot().toPath().toAbsolutePath()
-					.normalize();
-			if (!folder.startsWith(suggestedRoot))
+			if (!Path.of(workspaceFolderPath).isAbsolute() || folder.getParent() == null)
 				diagnostics.add("WORKSPACE_FOLDER_OUTSIDE_ROOT");
+			else {
+				try { dev.copperbench.generator.WorkspaceExecutionSnapshot.rejectLinks(folder); }
+				catch (IOException exception) { diagnostics.add("WORKSPACE_FOLDER_OUTSIDE_ROOT"); }
+			}
 		}
 		return List.copyOf(diagnostics);
 	}

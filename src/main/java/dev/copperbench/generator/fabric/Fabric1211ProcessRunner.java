@@ -69,7 +69,6 @@ import java.util.function.Supplier;
 				Consumer<String> output) throws Exception {
 			RuntimePlatform platform = RuntimePlatform.current();
 			boolean windows = platform.operatingSystem() == RuntimePlatform.OperatingSystem.WINDOWS;
-			boolean linux = platform.operatingSystem() == RuntimePlatform.OperatingSystem.LINUX;
 			boolean clientRun = isClientRun(arguments);
 
 			String configuredGradle = System.getenv("COPPERBENCH_STAGE5_GRADLE_EXECUTABLE");
@@ -98,6 +97,8 @@ import java.util.function.Supplier;
 			if (configuredGradleUserHome != null && !configuredGradleUserHome.isBlank()) {
 				builder.environment().put("GRADLE_USER_HOME", configuredGradleUserHome);
 			}
+			if (resolvedJavaHome != null)
+				dev.copperbench.gradle.GradleRuntimeCompatibility.configure(resolvedJavaHome, builder.environment(), output);
 			Process process;
 			try {
 				process = builder.start();
@@ -118,8 +119,8 @@ import java.util.function.Supplier;
 						if (line.contains(readinessMarker)) marker.set(true);
 						if (isMinecraftServerReadyLine(line)) serverReady.set(true);
 						if (isMinecraftServerFatalLine(line)) serverFatal.set(true);
-						if (clientRun && linux) {
-							String code = linuxGraphicalFailureCode(line);
+						if (clientRun) {
+							String code = graphicalFailureCode(platform.operatingSystem(), line);
 							if (code != null) runtimeFailureCode.compareAndSet(null, code);
 						}
 					}
@@ -226,6 +227,15 @@ import java.util.function.Supplier;
 				|| line.contains("Attempted to load class") && line.contains("DEDICATED_SERVER")
 				|| line.contains("Exception in server tick loop")
 				|| line.contains("Encountered an unexpected exception");
+	}
+
+	static String graphicalFailureCode(RuntimePlatform.OperatingSystem operatingSystem, String line) {
+		if (operatingSystem == RuntimePlatform.OperatingSystem.LINUX) return linuxGraphicalFailureCode(line);
+		if (operatingSystem == RuntimePlatform.OperatingSystem.WINDOWS
+				&& line != null && line.toLowerCase(Locale.ROOT)
+				.contains("wgl: the driver does not appear to support opengl"))
+			return "WINDOWS_OPENGL_INITIALIZATION_FAILED";
+		return null;
 	}
 
 	static String linuxGraphicalFailureCode(String line) {

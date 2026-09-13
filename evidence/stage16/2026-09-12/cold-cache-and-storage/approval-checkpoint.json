@@ -1,0 +1,26 @@
+{
+  "at": "2026-09-12T13:45:36.1515456Z",
+  "availableBytes": 6455267328,
+  "diskDFreeBytes": 54746935296,
+  "totalObservedStorageReclaimedBytes": 43495919616,
+  "virtualMachines": [
+    {
+      "name": "Copperbench-G7",
+      "state": "Off",
+      "assignedBytes": 0,
+      "maximumBytes": 4294967296
+    },
+    {
+      "name": "Copperbench-Stage15-Linux",
+      "state": "Off",
+      "assignedBytes": 0,
+      "maximumBytes": 4294967296
+    }
+  ],
+  "javaProcessCount": 0,
+  "sourceHead": "c0178f6b933825921cc3fb3f8f8ef8aa0874e688",
+  "sourceFixCommitted": false,
+  "fixedCandidatesInstalled": false,
+  "approvalPending": true,
+  "fullColdCacheComplete": false
+}

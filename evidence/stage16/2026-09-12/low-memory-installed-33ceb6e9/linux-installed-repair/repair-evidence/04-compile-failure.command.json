@@ -1,0 +1,18 @@
+{
+  "label": "04-compile-failure",
+  "command": [
+    "/usr/bin/copperbench",
+    "headless",
+    "--workspace",
+    "/home/stage15/stage16-lowmem-33ceb6e9/repair-workspace/resonance_token.mcreator",
+    "build",
+    "--stream",
+    "true"
+  ],
+  "startedAt": "2026-09-12T05:27:34.806325+00:00",
+  "callerRuntimeOptionsRemoved": [],
+  "firstOutputMs": 585,
+  "processExitCode": 10,
+  "completedAt": "2026-09-12T05:28:02.235685+00:00",
+  "elapsedMs": 27429
+}

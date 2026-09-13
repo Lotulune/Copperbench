@@ -1,0 +1,12 @@
+{
+  "schemaVersion": "1.0",
+  "candidateSourceCommit": "94346b61d98ade884113f17dc3c1b6fc6edb79e4",
+  "sourceRef": "refs/pull/68/merge",
+  "equivalentBranchCommit": "3c0aa090c3c4a53c0700d3bb173522e81ae91477",
+  "bothGitTrees": "fc7a3452d5ad5507b37c43b21a0f2585e1da116b",
+  "candidateWorkflowRunId": "34598244943",
+  "artifactZipSha256": "50ec401830e16fec8a138f23afced223433ec4fdcaa3a3d83f3c22897e0b1101",
+  "purpose": "Development rehearsal; temporary merge candidate is not the selected public release candidate",
+  "releaseEligible": false,
+  "stage16Complete": false
+}

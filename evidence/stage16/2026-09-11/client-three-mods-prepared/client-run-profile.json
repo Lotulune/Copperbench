@@ -1,0 +1,12 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "stage16-client-run-profile",
+  "username": "Stage16Trial",
+  "uuid": "8fb12eef-98f0-409b-a3c1-18abf66578f6",
+  "profileFile": "stage16-client.gradle",
+  "profileSha256": "5f9ecb9eff71d5721da47dd193b8196e0b241c7da10661a7d494f7f4bbde1002",
+  "buildGradleSha256": "d6030d96feaed9964935e5de367e71014bc3f464a48b5c2ae00e92f872224b20",
+  "reason": "Default client attempt used Player262; persistence assertions need a fixed player identity",
+  "runtimeIdentityObserved": false,
+  "clientBehaviorVerified": false
+}

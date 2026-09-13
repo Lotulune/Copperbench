@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="dev.copperbench.headless.HeadlessCliTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-09-11T15:15:44.344Z" hostname="RIMURU" time="0.839">
+  <properties/>
+  <testcase name="buildValidateRunClientAndExportUseTheSharedApplicationServiceAndStableJsonExitCodes()" classname="dev.copperbench.headless.HeadlessCliTest" time="0.732"/>
+  <testcase name="readOnlyHeadlessAllowsValidationButRejectsBuild()" classname="dev.copperbench.headless.HeadlessCliTest" time="0.005"/>
+  <testcase name="datagenPublicationCommandsRequireStagingIdentityAndManifestHash()" classname="dev.copperbench.headless.HeadlessCliTest" time="0.004"/>
+  <testcase name="procedureQueriesAndStructuredUpdatesUseTheSharedCoreContract()" classname="dev.copperbench.headless.HeadlessCliTest" time="0.032"/>
+  <testcase name="validateAndBuildUseCurrentRevisionWhenRevisionIsOmittedButPreserveExplicitConflictChecks()" classname="dev.copperbench.headless.HeadlessCliTest" time="0.008"/>
+  <testcase name="registryCrudIsAvailableToHeadlessWithoutBypassingCoreRevisions()" classname="dev.copperbench.headless.HeadlessCliTest" time="0.004"/>
+  <testcase name="newWorkspaceQueryAndCreateCommandShareCoreApprovalRules()" classname="dev.copperbench.headless.HeadlessCliTest" time="0.012"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

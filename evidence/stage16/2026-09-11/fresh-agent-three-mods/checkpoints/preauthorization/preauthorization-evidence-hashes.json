@@ -1,0 +1,106 @@
+{
+  "recordedAt": "2026-09-11T11:09:22.1795054+00:00",
+  "files": [
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\case-results.json",
+      "sha256": "7e74ee3fa682d579002b6ff6f2520e79817b1e9739540adc2bdbdf101b35039a"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\00-generators.command.json",
+      "sha256": "91002dcede0f6cc6fa6b317f8dbd89134121b9744e7a9e05cfa3f36f3e5dd610"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\00-generators.events.jsonl",
+      "sha256": "9407de2ec76f4ccc8af25b64da65dcaa5ec46584c973a8049e60678000fe7bbd"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\01-bootstrap-no-authorization.command.json",
+      "sha256": "8648346e635cc1f1568cd84483946f9e7660bb5cb5fcf5101c4a657e5f7e2489"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\01-bootstrap-no-authorization.events.jsonl",
+      "sha256": "bd22508da00a190908f332061664e48b8f1ad7d3d0c5195b5f7e8285f3b6f343"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\draft\\harvest_ledger\\src\\gametest\\java\\copperbench\\acceptance\\AcceptanceTests.java",
+      "sha256": "db34bb2fecea2bc92c71df12f2098d31508c3eea9d533e0e3054ed59a9e829ff"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\draft\\harvest_ledger\\src\\main\\java\\trial\\harvest\\HarvestMod.java",
+      "sha256": "6f765bf58f42e9b80994d92f0adda99667ae5974e490b5a0e3bbd9bb45c47b63"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\draft\\harvest_ledger\\src\\main\\java\\trial\\harvest\\LedgerState.java",
+      "sha256": "56822ca96104c8e46aff0dc1020dd727d2d15d282d40dfed4083074f8121beff"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\draft\\resonance_token\\src\\gametest\\java\\copperbench\\acceptance\\AcceptanceTests.java",
+      "sha256": "0ef0da65ae389d241d17afcdc29c5e1896caf7589c7871710919245e571a75fe"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\draft\\resonance_token\\src\\main\\java\\trial\\resonance\\ResonanceMod.java",
+      "sha256": "291c95c7190e1f37dfdc3a295074e9cda0c0061ab44d6c9b9f611b467467d633"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\draft\\resonance_token\\src\\main\\resources\\assets\\resonance_token\\lang\\en_us.json",
+      "sha256": "95a906ed61c43f438bb34c675b8cebcd72574adf172e6051a004a2b0481b2824"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\draft\\resonance_token\\src\\main\\resources\\assets\\resonance_token\\lang\\zh_cn.json",
+      "sha256": "06cccc123391cfdfb09b70a39a5bd98f288872129655e9e8e18edfe66a7dbb76"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\draft\\resonance_token\\src\\main\\resources\\assets\\resonance_token\\models\\item\\resonance_token.json",
+      "sha256": "9076c8347551dcd9818f79b79543bf99b4b34baebc941113767f9c27047dfa6d"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\draft\\tally_stone\\src\\gametest\\java\\copperbench\\acceptance\\AcceptanceTests.java",
+      "sha256": "0e617ab22e8b8e7c84660a5ba2be6109690b48d9a559da5167a00898ea552676"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\draft\\tally_stone\\src\\main\\java\\trial\\tally\\TallyMod.java",
+      "sha256": "d83bcc77b8387f54403935071f9c78381a47a4b4ec012ab6bfd95e0a92742558"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\draft\\tally_stone\\src\\main\\resources\\assets\\tally_stone\\blockstates\\tally_stone.json",
+      "sha256": "bbdde0f6c2588cac306af22cd0c7768be68fe4b9d7e7751c292a200cc7328149"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\draft\\tally_stone\\src\\main\\resources\\assets\\tally_stone\\lang\\en_us.json",
+      "sha256": "19309e3d3e956ed5bf403cc6406d30a98f5d809e41f75a7b5284cd255dbaff00"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\draft\\tally_stone\\src\\main\\resources\\assets\\tally_stone\\lang\\zh_cn.json",
+      "sha256": "2624bd1d6955a52309851a9795217fb9b48e2bfbbce6167eac61cb5782050150"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\draft\\tally_stone\\src\\main\\resources\\assets\\tally_stone\\models\\block\\tally_stone.json",
+      "sha256": "9ddf409b03c07aded85802a826785ae8a2a009e443b5bb61e78419e0d4e7e045"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\draft\\tally_stone\\src\\main\\resources\\assets\\tally_stone\\models\\item\\tally_stone.json",
+      "sha256": "420094095c6f5bbb28c6f30eb632a79c504b503e6e3983cce39321abfe24f87c"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\draft\\tally_stone\\src\\main\\resources\\data\\tally_stone\\loot_table\\blocks\\tally_stone.json",
+      "sha256": "900d6ec37ab350f8ffc97f6420de5d6e7e293bf98fd751b7c21c17cde36bf63a"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\experience-log.md",
+      "sha256": "3997bd0d004cad680673edea1a44edc8478579c21f2edd1237bf3892bf5a630c"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\invoke-product.ps1",
+      "sha256": "2bc3c9f773b4c9e69f48f2746510229b01e32499d5ca1950e43354f1489f8a3b"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\requirements-and-test-plan.md",
+      "sha256": "06226e8991b6eba0d9499715e077a999c9984ffde63c42ca730e2cef730ba01b"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\trial-inputs.json",
+      "sha256": "84529586f83245f11da40019da827535fd41df8de460a48fcdf78b49494474e4"
+    }
+  ],
+  "status": "preauthorization_checkpoint"
+}

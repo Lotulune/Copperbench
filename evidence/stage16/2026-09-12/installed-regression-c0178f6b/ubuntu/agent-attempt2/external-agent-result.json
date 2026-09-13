@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "1.0",
+  "status": "passed",
+  "candidateSha256": "4308bd319c4382a1e281a4bd90fd5a8574027bc397d382aef9df6bc3e32f0d51",
+  "endpoint": "http://127.0.0.1:34043/mcp",
+  "permissionProfile": "workspace",
+  "tokenPersisted": false,
+  "automationAuditCredentialLeak": false,
+  "agentLoop": {
+    "initializeProtocolVersion": "2025-11-25",
+    "workspaceId": "0d639881-fa92-4d45-bd19-3ef113a8dc03",
+    "initialRevision": 0,
+    "finalRevision": 3,
+    "initialElementCount": 0,
+    "finalElementCount": 3,
+    "planPreviewWouldApply": true,
+    "firstBuildState": "succeeded",
+    "revisionConflictCode": "WORKSPACE_REVISION_CONFLICT",
+    "conflictRetryCommitted": true,
+    "finalBuildState": "succeeded",
+    "runClientLifecycle": {
+      "taskId": "b21f196a-6ab1-44d9-b3f9-26f7b058fe60",
+      "renderMarkers": [
+        "Backend library: LWJGL version",
+        "Reloading ResourceManager:",
+        "minecraft:textures/atlas/blocks.png-atlas"
+      ],
+      "renderReady": true,
+      "stableBeforeUserCloseSeconds": 10,
+      "terminalStateAfterUserClose": "succeeded"
+    }
+  },
+  "shutdown": {
+    "descriptorRemoved": true,
+    "oldConnectionRejected": true,
+    "oldConnectionFailureCode": "MCP_TRANSPORT_FAILED"
+  },
+  "formalSupportClaim": false,
+  "reopen": {
+    "descriptorCreated": true,
+    "workspaceIdPreserved": true,
+    "oldTokenRejectedOnNewEndpoint": true,
+    "oldTokenFailure": {
+      "code": "HTTP_401",
+      "details": "<!doctype html><html lang=\"en\"><head><title>HTTP Status 401 – Unauthorized</title><style type=\"text/css\">body {font-family:Tahoma,Arial,sans-serif;} h1, h2, h3, b {color:white;background-color:#525D76;} h1 {font-size:22px;} h2 {font-size:16px;} h3 {font-size:14px;} p {font-size:12px;} a {color:black;} .line {height:1px;background-color:#525D76;border:none;}</style></head><body><h1>HTTP Status 401 – Unauthorized</h1><hr class=\"line\" /><p><b>Type</b> Status Report</p><p><b>Message</b> TOKEN_INVALID</p><p><b>Description</b> The request has not been applied to the target resource because it lacks valid authentication credentials for that resource.</p><hr class=\"line\" /><h3>Apache Tomcat/11.0.2</h3></body></html>"
+    },
+    "descriptorRemovedAfterSecondClose": true
+  },
+  "validationKind": "installed-ubuntu-real-graphics-regression",
+  "stage16Complete": false,
+  "ubuntuInstalledClientComplete": true,
+  "automationAuditExactTokenCheckCompleted": true,
+  "sourceCommit": "c0178f6b933825921cc3fb3f8f8ef8aa0874e688"
+}

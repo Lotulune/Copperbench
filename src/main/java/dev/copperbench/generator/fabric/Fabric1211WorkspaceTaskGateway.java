@@ -69,6 +69,8 @@ public final class Fabric1211WorkspaceTaskGateway implements WorkspaceTaskGatewa
 				return "FABRIC";
 			}
 
+			@Override public JsonObject gameTestEnvironment() { return generator.gameTestEnvironment(); }
+
 			@Override public List<ValidationIssue> validate(dev.copperbench.core.workspace.WorkspaceState workspace) {
 				return generator.validate(workspace).stream().map(issue -> new ValidationIssue(issue.code(),
 						issue.message(), issue.path(), issue.elementId(), issue.repairValue())).toList();
@@ -124,6 +126,8 @@ public final class Fabric1211WorkspaceTaskGateway implements WorkspaceTaskGatewa
 		environment.addProperty("loaderVersion", profile.loaderVersion());
 		environment.addProperty("fabricApiVersion", profile.fabricApiVersion());
 		environment.addProperty("loomVersion", profile.loomVersion());
+		environment.add("testing", dev.copperbench.generator.GameTestSupport.describe(root,
+				new Fabric1211Generator(distributionRoot, profile).gameTestEnvironment()));
 		return environment;
 	}
 

@@ -1,0 +1,142 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "stage16-packaged-agent-repair-loop",
+  "startedAt": "2026-09-11T09:28:33.2912321+00:00",
+  "productExeSha256": "854a1d2f5ff05935802afb30e7f6f8e7e5b331c182c0679eb0cf7a6b0c6f2400",
+  "applicationJarSha256": "e9b7431cebc354d3267c53ec6d05b101a90600e19272019e1dc1bbd040f8a8ae",
+  "execution": "packaged executable only; no repository classpath or injected authorization",
+  "cacheState": "existing machine caches; not a clean-machine certification",
+  "humanInterventionsDuringReplay": 0,
+  "bootstrapCreation": "missing-authorization request verified without a dialog; authorized creation not exercised",
+  "freshAgent": false,
+  "passed": true,
+  "steps": [
+    {
+      "name": "01-discovery",
+      "exitCode": 0,
+      "status": "succeeded",
+      "elapsedMs": 7975,
+      "firstResponseMs": 7799,
+      "jsonMessages": 1,
+      "stdout": "01-discovery.jsonl"
+    },
+    {
+      "name": "01b-no-prompt",
+      "exitCode": 3,
+      "status": "rejected",
+      "elapsedMs": 4553,
+      "firstResponseMs": 4388,
+      "jsonMessages": 1,
+      "stdout": "01b-no-prompt.jsonl"
+    },
+    {
+      "name": "02-environment",
+      "exitCode": 0,
+      "status": "succeeded",
+      "elapsedMs": 5971,
+      "firstResponseMs": 5169,
+      "jsonMessages": 1,
+      "stdout": "02-environment.jsonl"
+    },
+    {
+      "name": "03-compile-failure",
+      "exitCode": 10,
+      "status": "failed",
+      "elapsedMs": 109829,
+      "firstResponseMs": 1590,
+      "jsonMessages": 16,
+      "stdout": "03-compile-failure.jsonl"
+    },
+    {
+      "name": "04-repaired-build",
+      "exitCode": 0,
+      "status": "succeeded",
+      "elapsedMs": 36044,
+      "firstResponseMs": 2047,
+      "jsonMessages": 17,
+      "stdout": "04-repaired-build.jsonl"
+    },
+    {
+      "name": "05-insufficient-tests",
+      "exitCode": 10,
+      "status": "failed",
+      "elapsedMs": 302631,
+      "firstResponseMs": 1962,
+      "jsonMessages": 65,
+      "stdout": "05-insufficient-tests.jsonl"
+    },
+    {
+      "name": "06-accepted",
+      "exitCode": 0,
+      "status": "succeeded",
+      "elapsedMs": 306500,
+      "firstResponseMs": 1963,
+      "jsonMessages": 59,
+      "stdout": "06-accepted.jsonl"
+    }
+  ],
+  "generatorId": "fabric-1.21.1",
+  "bundledJava": {
+    "requiredRelease": 21,
+    "home": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\copperbench-stage16-dabb36a4\\Copperbench010\\jdk21",
+    "executable": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\copperbench-stage16-dabb36a4\\Copperbench010\\jdk21\\bin\\java.exe"
+  },
+  "verification": {
+    "schemaVersion": "1.0",
+    "status": "passed",
+    "reasonCode": "GAMETEST_PASSED",
+    "discovered": 2,
+    "executed": 2,
+    "passed": 2,
+    "failed": 0,
+    "skipped": 0,
+    "frameworkTests": 0,
+    "acceptanceExecuted": 2,
+    "cases": [
+      {
+        "name": "acceptancetests.modloads",
+        "className": "fabric-gametest-api-v1:empty",
+        "status": "passed",
+        "scope": "acceptance"
+      },
+      {
+        "name": "bellgametest.packagedbellbehavior",
+        "className": "fabric-gametest-api-v1:empty",
+        "status": "passed",
+        "scope": "acceptance"
+      }
+    ],
+    "mode": "packaged_jar",
+    "minimumTests": 2,
+    "environment": {
+      "generatorId": "fabric-1.21.1",
+      "loader": "fabric",
+      "minecraftVersion": "1.21.1",
+      "loaderVersion": "0.19.3",
+      "fabricApiVersion": "0.116.15+1.21.1",
+      "javaRelease": 21,
+      "pluginId": "net.fabricmc.fabric-loom-remap",
+      "pluginVersion": "1.17.19"
+    },
+    "artifactPath": "C:\\Users\\Administrator\\.copperbench\\task-runs\\db86c186-ef07-4a8e-947e-cd34ffe07d92\\host\\run\\mods\\wayfinder_bell-1.0.0.jar",
+    "artifactSha256": "80908fcd3ff291ec96c76a5d51deced464453f88d48f761901062006310e9df1",
+    "reportPath": "C:\\Users\\Administrator\\.copperbench\\task-runs\\db86c186-ef07-4a8e-947e-cd34ffe07d92\\host\\run\\gametest-results.xml",
+    "reportSha256": "661a60451e39bde42cc8bc9c4ad024f6410ece06d21c3cd0ff97722f30f5bfe6",
+    "startedAt": "2026-09-11T09:38:31.807095600Z",
+    "completedAt": "2026-09-11T09:41:23.986766400Z",
+    "processExitCode": 0,
+    "sourceCurrentAtCompletion": true,
+    "taskId": "db86c186-ef07-4a8e-947e-cd34ffe07d92",
+    "workspaceId": "b8b4536a-2d1f-458d-a9bc-d75255b897d3",
+    "workspaceRevision": 0,
+    "sourceSnapshot": {
+      "sha256": "9977de074cd1506dfb51ad1cdd8c2f684649476f05811bf505c9a5ab818c9587",
+      "fileCount": 99,
+      "bytes": 151849,
+      "manifestPath": "C:\\Users\\Administrator\\.copperbench\\task-runs\\db86c186-ef07-4a8e-947e-cd34ffe07d92\\source-manifest.json"
+    },
+    "verificationPath": "C:\\Users\\Administrator\\.copperbench\\task-runs\\db86c186-ef07-4a8e-947e-cd34ffe07d92\\verification.json"
+  },
+  "sourceWorkspaceUnchanged": true,
+  "completedAt": "2026-09-11T09:41:27.7924904+00:00"
+}

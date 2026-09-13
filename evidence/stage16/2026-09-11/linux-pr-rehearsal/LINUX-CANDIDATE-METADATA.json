@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "stage15-linux-immutable-candidate",
+  "status": "development-not-certified",
+  "formalSupportClaim": false,
+  "exactBinaryPromotionEligible": false,
+  "candidateId": "sha256:ab2b111758432e868c8df860ab1f2784f437f3511e83c6a53fa9aa3eaf0b71b8",
+  "productId": "dev.copperbench.studio",
+  "productVersion": "0.1.0",
+  "platform": {
+    "os": "linux",
+    "arch": "x86_64",
+    "certificationBaseline": "Ubuntu 24.04 LTS",
+    "primaryDesktopSession": "GNOME Wayland",
+    "compatibilityDesktopSession": "GNOME on Xorg"
+  },
+  "source": {
+    "commit": "94346b61d98ade884113f17dc3c1b6fc6edb79e4",
+    "ref": "refs/pull/68/merge",
+    "workflowRunId": "34598244943",
+    "workflowRunAttempt": "1"
+  },
+  "assets": {
+    "portable": {
+      "role": "portable",
+      "name": "Copperbench 0.1.0 Linux x86_64.tar.gz",
+      "mediaType": "application/gzip",
+      "size": 968275443,
+      "sha256": "fb3cdca3d8bf9b4eb948c9ab209eb872d52097b244e8c62afac2efff1cbccfea"
+    },
+    "deb": {
+      "role": "deb",
+      "name": "copperbench_0.1.0_amd64.deb",
+      "mediaType": "application/vnd.debian.binary-package",
+      "size": 888181536,
+      "sha256": "65dafdee5f8e06b922ae336eb687aa955c3b43029f2f3feaca0deeeb18eca520"
+    },
+    "sbom": {
+      "role": "sbom",
+      "name": "copperbench-linux.spdx.json",
+      "mediaType": "application/spdx+json",
+      "size": 4385128,
+      "sha256": "a71f2f429b58caaee720265fd2907e9b484ab447bb054c55c2c673e22a8c5d26"
+    },
+    "manifest": {
+      "role": "manifest",
+      "name": "linux-candidate-manifest.json",
+      "mediaType": "application/json",
+      "size": 6509,
+      "sha256": "1952b06e6d7bc593fcec5b1c5fd24a2558d481aca0f5f22ff57c2461b2b319b7"
+    }
+  }
+}

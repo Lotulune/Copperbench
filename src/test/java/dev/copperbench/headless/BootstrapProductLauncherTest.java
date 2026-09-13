@@ -36,8 +36,49 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class BootstrapProductLauncherTest {
 
+	@Test void scopedTaskAuthorityCreatesOutsideSuggestedRootWithoutAnotherPromptAndRejectsReuseAfterRevocation(
+			@org.junit.jupiter.api.io.TempDir Path temporary) throws Exception {
+		Path scope = temporary.resolve("task");
+		var authority = new dev.copperbench.automation.security.TaskAuthorizationStore(temporary.resolve("private"), java.time.Clock.systemUTC());
+		String id = authority.issue(dev.copperbench.core.contract.UiCore.Actor.UI, true, "Mod trial", scope,
+				java.util.List.of("create"), 3600, false).get("id").getAsString();
+		Path target = scope.resolve("first");
+		String[] args = { "create-workspace", "--generator-id", "resourcepack-1.21.1", "--mod-name", "Delegated Trial",
+				"--mod-id", "delegated_trial", "--workspace-folder", target.toString(), "--task-authorization", id, "--no-prompt", "true" };
+		StringWriter output = new StringWriter();
+		assertEquals(HeadlessExitCode.SUCCESS.code(), BootstrapProductLauncher.run(args, new PrintWriter(output, true),
+				new WorkspaceCreationService(), request -> { throw new AssertionError("A valid task grant must not request another prompt"); }, authority), output.toString());
+		assertTrue(Files.isRegularFile(target.resolve("delegated_trial.mcreator")));
+		authority.revoke(id, scope);
+		args[8] = scope.resolve("second").toString(); output = new StringWriter();
+		assertEquals(HeadlessExitCode.PERMISSION_DENIED.code(), BootstrapProductLauncher.run(args, new PrintWriter(output, true),
+				new WorkspaceCreationService(), request -> { throw new AssertionError("Revoked grants must fail closed"); }, authority));
+		assertTrue(output.toString().contains("TASK_AUTHORIZATION_REVOKED"));
+		assertFalse(Files.exists(scope.resolve("second")));
+	}
+
 	@BeforeAll static void initializeUpstreamRuntime() throws Exception {
 		McreatorTestRuntime.ensureInitialized();
+	}
+
+	@Test void nonInteractiveCreationReturnsConcreteApprovalRequestWithoutShowingDialog(
+			@org.junit.jupiter.api.io.TempDir Path temporary) throws Exception {
+		Path target = temporary.resolve("unapproved");
+		RunResult result = run(new String[]{"create-workspace", "--generator-id", "fabric-1.21.1",
+				"--mod-name", "Fresh Agent Trial", "--mod-id", "fresh_agent_trial", "--workspace-folder", target.toString(),
+				"--no-prompt", "true"}, _ -> { throw new AssertionError("Non-interactive calls must not open a dialog"); });
+		assertEquals(HeadlessExitCode.PERMISSION_DENIED.code(), result.exitCode());
+		assertEquals("USER_APPROVAL_REQUIRED", result.json().get("code").getAsString());
+		assertEquals(target.toString(), result.json().getAsJsonObject("denial").get("workspaceFolder").getAsString());
+		assertEquals("create", result.json().getAsJsonObject("denial").get("requiredCapability").getAsString());
+		assertFalse(Files.exists(target));
+	}
+
+	@Test void ambiguousPromptOptionsAreRejected() {
+		assertThrows(IllegalArgumentException.class, () -> BootstrapProductLauncher.parse(new String[]{
+				"create-workspace", "--no-prompt", "maybe"}));
+		assertThrows(IllegalArgumentException.class, () -> BootstrapProductLauncher.parse(new String[]{
+				"create-workspace", "--no-prompt", "true", "--no-prompt", "false"}));
 	}
 
 	@Test void generatorDiscoveryWorksWithoutAnExistingWorkspace() {

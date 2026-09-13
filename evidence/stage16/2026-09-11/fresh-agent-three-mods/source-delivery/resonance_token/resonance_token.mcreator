@@ -1,0 +1,54 @@
+{
+  "mod_elements": [],
+  "variable_elements": [],
+  "sound_elements": [],
+  "tag_elements": {},
+  "tab_element_order": {},
+  "language_map": {
+    "en_us": {}
+  },
+  "foldersRoot": {
+    "name": "~",
+    "children": []
+  },
+  "workspaceSettings": {
+    "modid": "resonance_token",
+    "modName": "Resonance Token",
+    "version": "1.0.0",
+    "serverSideOnly": false,
+    "requiredMods": [],
+    "dependencies": [],
+    "dependants": [],
+    "mcreatorDependencies": [],
+    "currentGenerator": "fabric-1.21.1",
+    "modElementsPackage": "net.mcreator.resonance_token"
+  },
+  "mcreatorVersion": 202600299999,
+  "metadata": {
+    "files": [
+      "src/main/java/net/mcreator/resonance_token/event/ItemEvents.java",
+      "src/main/java/net/mcreator/resonance_token/mixin/ItemStackMixin.java",
+      "src/main/resources/META-INF/resonance_token.classtweaker",
+      "src/main/java/net/mcreator/resonance_token/ResonanceTokenModClient.java",
+      "src/main/resources/fabric.mod.json",
+      "src/main/java/net/mcreator/resonance_token/mixin/PlayerMixin.java",
+      "src/main/java/net/mcreator/resonance_token/ResonanceTokenMod.java",
+      "src/main/resources/resonance_token.mixins.json",
+      "src/main/java/net/mcreator/resonance_token/event/LivingEntityEvents.java",
+      "src/main/java/net/mcreator/resonance_token/mixin/BoneMealItemMixin.java",
+      "src/main/java/net/mcreator/resonance_token/mixin/CommandsMixin.java",
+      "src/main/java/net/mcreator/resonance_token/mixin/BlockItemMixin.java",
+      "src/main/java/net/mcreator/resonance_token/event/BlockEvents.java",
+      "src/main/resources/pack.mcmeta",
+      "src/main/java/net/mcreator/resonance_token/mixin/ExperienceOrbMixin.java",
+      "src/main/java/net/mcreator/resonance_token/mixin/LivingEntityMixin.java",
+      "src/main/java/net/mcreator/resonance_token/event/MiscEvents.java",
+      "src/main/java/net/mcreator/resonance_token/event/PlayerEvents.java"
+    ]
+  },
+  "dev.copperbench": {
+    "schemaVersion": 1,
+    "workspaceId": "9b98a83d-fac1-4dc0-9cda-8b5f940e2587",
+    "revision": 0
+  }
+}

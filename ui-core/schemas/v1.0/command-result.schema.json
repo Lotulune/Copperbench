@@ -60,7 +60,10 @@
         "execute_loader_migration",
         "import_upstream_workspace",
         "create_publish_batch",
-        "prepare_resource_pack_client"
+        "prepare_resource_pack_client",
+        "prepare_game_tests",
+        "create_task_authorization",
+        "revoke_task_authorization"
       ]
     },
     "status": {
@@ -330,6 +333,32 @@
         "properties": {
           "data": {
             "$ref": "#/$defs/approvalDecisionResult"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "enum": [
+              "create_task_authorization",
+              "revoke_task_authorization"
+            ]
+          },
+          "status": {
+            "const": "completed"
+          }
+        },
+        "required": [
+          "operation",
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "data": {
+            "$ref": "urn:ui-core:1.0:common#/$defs/taskAuthorization"
           }
         }
       }

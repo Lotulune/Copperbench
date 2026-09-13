@@ -1,0 +1,13 @@
+{
+  "sourceCommit": "c0178f6b933825921cc3fb3f8f8ef8aa0874e688",
+  "authorizedCommitFiles": [
+    "src/main/java/dev/copperbench/generator/GradleWorkspaceTaskGateway.java",
+    "src/main/java/dev/copperbench/generator/fabric/Fabric1211ProcessRunner.java",
+    "src/test/java/dev/copperbench/generator/fabric/Fabric1211ProcessRunnerTest.java",
+    "src/test/java/dev/copperbench/generator/fabric/Fabric1211TaskGatewayTest.java",
+    "ui-shell/src/i18n/zh.ts"
+  ],
+  "createdAtUtc": "2026-09-12T08:23:03.7069541Z",
+  "published": false,
+  "buildSourceDirtyForDocsOnly": true
+}

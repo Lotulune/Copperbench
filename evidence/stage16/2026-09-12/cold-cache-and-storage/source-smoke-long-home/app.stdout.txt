@@ -1,0 +1,175 @@
+2026-09-12-21:02:20 [main/WARN] [Launcher] APPLICATION_IPC_TCP_FALLBACK: Windows local socket probe failed; using the verified JDK TCP wakeup pipe for this application process.
+2026-09-12-21:02:20 [main/INFO] [Launcher] Starting Copperbench 0.1.0 with MCreator core 2026.2.99999 - 202600299999
+2026-09-12-21:02:20 [main/INFO] [Launcher] Java version: 25.0.3+1-b329.124, VM: OpenJDK 64-Bit Server VM, vendor: JetBrains s.r.o.
+2026-09-12-21:02:20 [main/INFO] [Launcher] Current JAVA_HOME for running instance: C:\Program Files\Copperbench\jdk
+2026-09-12-21:02:20 [main/DEBUG] [Preferences Manager] Loading preferences from core
+2026-09-12-21:02:20 [main/INFO] [Preferences Manager] Preferences with identifier core have no saved values. Default values will be used.
+2026-09-12-21:02:20 [main/INFO] [Launcher] Installation path: C:\Program Files\Copperbench
+2026-09-12-21:02:20 [main/INFO] [Launcher] User data directory of Copperbench: D:\AICoding\Minecraft_ModCreator\.tmp\stage15-linux\build\stage16-agent-reliability\cold-cache-c0178f6b-20260912\dialog-fix-source-smoke\home\.copperbench
+2026-09-12-21:02:21 [AWT-EventQueue-0/ERROR] [net.mcreator.util.SingleAppHandler] Failed to handle app lock
+java.net.SocketException: Unix domain path too long
+	at java.base/sun.nio.ch.UnixDomainSockets.bind0(Native Method)
+	at java.base/sun.nio.ch.UnixDomainSockets.bind(UnixDomainSockets.java:101)
+	at java.base/sun.nio.ch.ServerSocketChannelImpl.unixBind(ServerSocketChannelImpl.java:321)
+	at java.base/sun.nio.ch.ServerSocketChannelImpl.bind(ServerSocketChannelImpl.java:295)
+	at java.base/java.nio.channels.ServerSocketChannel.bind(ServerSocketChannel.java:221)
+	at in.pratanumandal.unique4j.unixsocketchannel.UnixSocketChannelIpcFactory.createServerSocket(UnixSocketChannelIpcFactory.java:40)
+	at in.pratanumandal.unique4j.unixsocketchannel.UnixSocketChannelIpcFactory.createIpcServer(UnixSocketChannelIpcFactory.java:19)
+	at in.pratanumandal.unique4j.Unique4jIpcLock.startServer(Unique4jIpcLock.java:118)
+	at in.pratanumandal.unique4j.Unique4jIpcLock.tryLock(Unique4jIpcLock.java:78)
+	at net.mcreator.util.SingleAppHandler.tryAcquireLock(SingleAppHandler.java:98)
+	at net.mcreator.ui.MCreatorApplication.<init>(MCreatorApplication.java:113)
+	at net.mcreator.ui.MCreatorApplication.lambda$createApplication$0(MCreatorApplication.java:291)
+	at java.desktop/java.awt.event.InvocationEvent.dispatch(InvocationEvent.java:323)
+	at java.desktop/java.awt.EventQueue.dispatchEventImpl(EventQueue.java:732)
+	at java.desktop/java.awt.EventQueue.dispatchEvent(EventQueue.java:711)
+	at java.desktop/java.awt.EventDispatchThread.pumpOneEventForFilters(EventDispatchThread.java:207)
+	at java.desktop/java.awt.EventDispatchThread.pumpEventsForFilter(EventDispatchThread.java:128)
+	at java.desktop/java.awt.EventDispatchThread.pumpEventsForHierarchy(EventDispatchThread.java:117)
+	at java.desktop/java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:113)
+	at java.desktop/java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:105)
+	at java.desktop/java.awt.EventDispatchThread.run(EventDispatchThread.java:92)
+2026-09-12-21:02:25 [Application-Loader/DEBUG] [Plugin Loader] Searching for plugins in: .\plugins
+2026-09-12-21:02:25 [Application-Loader/DEBUG] [Plugin Loader] Searching for plugins in: D:\AICoding\Minecraft_ModCreator\.tmp\stage15-linux\build\stage16-agent-reliability\cold-cache-c0178f6b-20260912\dialog-fix-source-smoke\home\.copperbench\plugins
+2026-09-12-21:02:25 [Application-Loader/INFO] [Plugin Loader] Loading plugin: generator-26.2 from .\plugins\generator-26.2.zip, weight: 13
+2026-09-12-21:02:25 [Application-Loader/INFO] [Plugin Loader] Loading plugin: generator-fabric-26.2 from .\plugins\generator-fabric-26.2.zip, weight: 12
+2026-09-12-21:02:25 [Application-Loader/INFO] [Plugin Loader] Loading plugin: generator-fabric-26.1.2 from .\plugins\generator-fabric-26.1.2.zip, weight: 11
+2026-09-12-21:02:25 [Application-Loader/INFO] [Plugin Loader] Loading plugin: generator-1.20.1 from .\plugins\generator-1.20.1.zip, weight: 10
+2026-09-12-21:02:25 [Application-Loader/INFO] [Plugin Loader] Loading plugin: core from .\plugins\mcreator-core.zip, weight: 10
+2026-09-12-21:02:25 [Application-Loader/INFO] [Plugin Loader] Loading plugin: localization from .\plugins\mcreator-localization.zip, weight: 10
+2026-09-12-21:02:25 [Application-Loader/INFO] [Plugin Loader] Loading plugin: themes from .\plugins\mcreator-themes.zip, weight: 10
+2026-09-12-21:02:25 [Application-Loader/INFO] [Plugin Loader] Loading plugin: generator-1.21.1 from .\plugins\generator-1.21.1.zip, weight: 0
+2026-09-12-21:02:25 [Application-Loader/INFO] [Plugin Loader] Loading plugin: generator-26.1.x from .\plugins\generator-26.1.x.zip, weight: 0
+2026-09-12-21:02:25 [Application-Loader/INFO] [Plugin Loader] Loading plugin: generator-addon-26.1x from .\plugins\generator-addon-26.1x.zip, weight: 0
+2026-09-12-21:02:25 [Application-Loader/INFO] [Plugin Loader] Loading plugin: mcreator-link from .\plugins\mcreator-link.zip, weight: 0
+2026-09-12-21:02:25 [Application-Loader/DEBUG] [Theme Loader] Loading UI themes
+2026-09-12-21:02:25 [Application-Loader/INFO] [Theme Loader] Using MCreator UI theme: default_dark
+2026-09-12-21:02:25 [Application-Loader/DEBUG] [net.mcreator.ui.chromium.WebView] Preloading CEF WebView
+2026-09-12-21:02:25 [Application-Loader/INFO] [CEF] Initializing JCEF in WR mode
+2026-09-12-21:02:25 [Application-Loader/DEBUG] [CEF] JCEF arguments: [--disable-extensions, --disable-default-apps, --disable-sync, --disable-speech-api, --mute-audio, --disable-gaia-services, --force-renderer-accessibility=complete, --disable-features=TranslateUI,WebUSB,SpareRendererForSitePerProcess,WebBluetooth,WebSerial,MediaRouter,NewUsbBackend,WebHID]
+2026-09-12-21:02:26 [Application-Loader/DEBUG] [CEF] Deleting orphaned CEF cache folder C:\Users\ADMINI~1\AppData\Local\Temp\mcreator-cef-cache-12857865924449370224
+2026-09-12-21:02:26 [AWT-EventQueue-0/DEBUG] [CEF] CefApp initialized (JCEF: 137.0.17.1142.68de80bc86de497c8d0632ad0f8fe33625b33bff, CEF: 137.0.17, Chromium: 137.0.7151.104)
+2026-09-12-21:02:26 [Application-Loader/DEBUG] [net.mcreator.ui.chromium.WebView] JCEF browser host does not expose setAccessibilityState; platform UIA may remain unavailable
+2026-09-12-21:02:27 [Application-Loader/INFO] [L10N] Setting default locale to: en_US; OS locale: zh_CN
+2026-09-12-21:02:27 [Application-Loader/DEBUG] [Data List Loader] Added damagesources datamap to cache
+2026-09-12-21:02:27 [Application-Loader/DEBUG] [Data List Loader] Added potions datamap to cache
+2026-09-12-21:02:27 [Application-Loader/DEBUG] [Data List Loader] Added itemtypes datamap to cache
+2026-09-12-21:02:27 [Application-Loader/DEBUG] [Data List Loader] Added defaultfeatures datamap to cache
+2026-09-12-21:02:27 [Application-Loader/DEBUG] [Data List Loader] Added configuredfeatures datamap to cache
+2026-09-12-21:02:27 [Application-Loader/DEBUG] [Data List Loader] Added be_biometags datamap to cache
+2026-09-12-21:02:28 [Application-Loader/DEBUG] [Data List Loader] Added blocksitems datamap to cache
+2026-09-12-21:02:28 [Application-Loader/DEBUG] [Data List Loader] Added tabs datamap to cache
+2026-09-12-21:02:28 [Application-Loader/DEBUG] [Data List Loader] Added projectiles datamap to cache
+2026-09-12-21:02:28 [Application-Loader/DEBUG] [Data List Loader] Added gameevents datamap to cache
+2026-09-12-21:02:28 [Application-Loader/DEBUG] [Data List Loader] Added itemuseanimations datamap to cache
+2026-09-12-21:02:28 [Application-Loader/DEBUG] [Data List Loader] Added fluids datamap to cache
+2026-09-12-21:02:28 [Application-Loader/DEBUG] [Data List Loader] Added planttypes datamap to cache
+2026-09-12-21:02:28 [Application-Loader/DEBUG] [Data List Loader] Added gamemodes datamap to cache
+2026-09-12-21:02:28 [Application-Loader/DEBUG] [Data List Loader] Added entities datamap to cache
+2026-09-12-21:02:28 [Application-Loader/DEBUG] [Data List Loader] Added eventparameters datamap to cache
+2026-09-12-21:02:28 [Application-Loader/DEBUG] [Data List Loader] Added attributes datamap to cache
+2026-09-12-21:02:28 [Application-Loader/DEBUG] [Data List Loader] Added stepsounds datamap to cache
+2026-09-12-21:02:28 [Application-Loader/DEBUG] [Data List Loader] Added biomes datamap to cache
+2026-09-12-21:02:28 [Application-Loader/DEBUG] [Data List Loader] Added soundcategories datamap to cache
+2026-09-12-21:02:28 [Application-Loader/DEBUG] [Data List Loader] Added blockstateproperties datamap to cache
+2026-09-12-21:02:28 [Application-Loader/DEBUG] [Data List Loader] Added mapcolors datamap to cache
+2026-09-12-21:02:28 [Application-Loader/DEBUG] [Data List Loader] Added pathnodetypes datamap to cache
+2026-09-12-21:02:28 [Application-Loader/DEBUG] [Data List Loader] Added dimensions datamap to cache
+2026-09-12-21:02:28 [Application-Loader/DEBUG] [Data List Loader] Added achievements datamap to cache
+2026-09-12-21:02:28 [Application-Loader/DEBUG] [Data List Loader] Added enchantments datamap to cache
+2026-09-12-21:02:28 [Application-Loader/DEBUG] [Data List Loader] Added particles datamap to cache
+2026-09-12-21:02:28 [Application-Loader/DEBUG] [Data List Loader] Added directions datamap to cache
+2026-09-12-21:02:28 [Application-Loader/DEBUG] [Data List Loader] Added equipmentslots datamap to cache
+2026-09-12-21:02:28 [Application-Loader/DEBUG] [Data List Loader] Added gamerules datamap to cache
+2026-09-12-21:02:28 [Application-Loader/DEBUG] [Data List Loader] Added noteblockinstruments datamap to cache
+2026-09-12-21:02:28 [Application-Loader/DEBUG] [Data List Loader] Added keybuttons datamap to cache
+2026-09-12-21:02:28 [Application-Loader/DEBUG] [Data List Loader] Added sounds datamap to cache
+2026-09-12-21:02:28 [Application-Loader/DEBUG] [Data List Loader] Added mobspawntypes datamap to cache
+2026-09-12-21:02:28 [Application-Loader/DEBUG] [Data List Loader] Added screens datamap to cache
+2026-09-12-21:02:28 [Application-Loader/DEBUG] [Data List Loader] Added villagerprofessions datamap to cache
+2026-09-12-21:02:28 [Application-Loader/DEBUG] [Data List Loader] Added be_biomes datamap to cache
+2026-09-12-21:02:28 [Application-Loader/DEBUG] [Data List Loader] Added generationsteps datamap to cache
+2026-09-12-21:02:28 [Application-Loader/DEBUG] [Data List Loader] Added effects datamap to cache
+2026-09-12-21:02:28 [Application-Loader/DEBUG] [Data List Loader] Added itemproperties datamap to cache
+2026-09-12-21:02:28 [Application-Loader/DEBUG] [Data List Loader] Added structures datamap to cache
+2026-09-12-21:02:28 [Application-Loader/DEBUG] [Data List Loader] Added suggestionproviders datamap to cache
+2026-09-12-21:02:28 [Application-Loader/DEBUG] [Data List Loader] Added animations datamap to cache
+2026-09-12-21:02:28 [Application-Loader/DEBUG] [Mod API manager] Loaded mod API definition: mcreator_link
+2026-09-12-21:02:28 [Application-Loader/DEBUG] [Variable loader] Loading variable types
+2026-09-12-21:02:28 [Application-Loader/DEBUG] [Blockly JavaScript Files loader] Loading Blockly JavaScript files from plugins
+2026-09-12-21:02:28 [Application-Loader/DEBUG] [Blockly Toolboxes loader] Loading Blockly toolboxes from plugins
+2026-09-12-21:02:28 [Application-Loader/DEBUG] [Blockly loader] Loading blocks for procedures
+2026-09-12-21:02:28 [Application-Loader/DEBUG] [Blockly loader] Loading blocks for aitasks
+2026-09-12-21:02:28 [Application-Loader/DEBUG] [Blockly loader] Loading blocks for jsontriggers
+2026-09-12-21:02:28 [Application-Loader/DEBUG] [Blockly loader] Loading blocks for cmdargs
+2026-09-12-21:02:28 [Application-Loader/DEBUG] [Blockly loader] Loading blocks for features
+2026-09-12-21:02:28 [Application-Loader/DEBUG] [Blockly loader] Loading blocks for scripts
+2026-09-12-21:02:28 [Application-Loader/DEBUG] [Blockly loader] Loading blocks for enchantmenteffects
+2026-09-12-21:02:28 [Application-Loader/DEBUG] [Entity Animations Loader] Loading entity animations
+2026-09-12-21:02:28 [Application-Loader/INFO] [Application] Loading generator: addon-26.1x/generator.yaml
+2026-09-12-21:02:28 [Application-Loader/INFO] [Application] Loading generator: datapack-1.20.1/generator.yaml
+2026-09-12-21:02:28 [Application-Loader/DEBUG] [Data List Loader] Added features datamap to cache
+2026-09-12-21:02:28 [Application-Loader/INFO] [Application] Loading generator: datapack-1.21.1/generator.yaml
+2026-09-12-21:02:28 [Application-Loader/INFO] [Application] Loading generator: datapack-26.1.x/generator.yaml
+2026-09-12-21:02:28 [Application-Loader/INFO] [Application] Loading generator: fabric-1.20.1/generator.yaml
+2026-09-12-21:02:28 [Application-Loader/DEBUG] [Data List Loader] Added types datamap to cache
+2026-09-12-21:02:28 [Application-Loader/INFO] [Application] Loading generator: fabric-1.21.1/generator.yaml
+2026-09-12-21:02:28 [Application-Loader/INFO] [Application] Loading generator: fabric-26.1.2/generator.yaml
+2026-09-12-21:02:28 [Application-Loader/INFO] [Application] Loading generator: fabric-26.2/generator.yaml
+2026-09-12-21:02:29 [Application-Loader/INFO] [Application] Loading generator: neoforge-1.20.1/generator.yaml
+2026-09-12-21:02:29 [Application-Loader/INFO] [Application] Loading generator: neoforge-1.21.1/generator.yaml
+2026-09-12-21:02:29 [Application-Loader/INFO] [Application] Loading generator: neoforge-26.1.2/generator.yaml
+2026-09-12-21:02:29 [Application-Loader/INFO] [Application] Loading generator: neoforge-26.2/generator.yaml
+2026-09-12-21:02:29 [Application-Loader/INFO] [Application] Loading generator: resourcepack-1.21.1/generator.yaml
+2026-09-12-21:02:29 [Application-Loader/INFO] [Application] Loading generator: resourcepack-26.1.x/generator.yaml
+2026-09-12-21:05:14 [AWT-EventQueue-0/INFO] [dev.copperbench.gradle.GradleDistributionPool] Reused Gradle 9.7.0 from C:\Program Files\Copperbench\gradle-dists\gradle-9.7.0-bin\6lo5v7m69k2fyj2mb4v455sou into D:\AICoding\Minecraft_ModCreator\.tmp\stage15-linux\build\stage16-agent-reliability\cold-cache-c0178f6b-20260912\dialog-fix-source-smoke\home\.copperbench\gradle\wrapper\dists\gradle-9.7.0-bin\d4tj7w02tcgubx9zk9hbippn6
+2026-09-12-21:05:15 [AWT-EventQueue-0/INFO] [dev.copperbench.gradle.GradleDistributionPool] Reused Gradle 9.7.0 from D:\AICoding\Minecraft_ModCreator\.tmp\stage15-linux\build\stage16-agent-reliability\cold-cache-c0178f6b-20260912\dialog-fix-source-smoke\home\.copperbench\gradle\wrapper\dists\gradle-9.7.0-bin\d4tj7w02tcgubx9zk9hbippn6 into D:\AICoding\Minecraft_ModCreator\.tmp\stage15-linux\build\stage16-agent-reliability\cold-cache-c0178f6b-20260912\dialog-fix-source-smoke\home\.copperbench\gradle\wrapper\dists\gradle-9.7.0-bin\6lo5v7m69k2fyj2mb4v455sou
+2026-09-12-21:05:16 [AWT-EventQueue-0/INFO] [dev.copperbench.gradle.GradleDistributionPool] Reused Gradle 8.8 from C:\Program Files\Copperbench\gradle-dists\gradle-8.8-bin\dl7vupf4psengwqhwktix4v1 into D:\AICoding\Minecraft_ModCreator\.tmp\stage15-linux\build\stage16-agent-reliability\cold-cache-c0178f6b-20260912\dialog-fix-source-smoke\home\.copperbench\gradle\wrapper\dists\gradle-8.8-bin\dl7vupf4psengwqhwktix4v1
+2026-09-12-21:05:16 [AWT-EventQueue-0/INFO] [dev.copperbench.gradle.GradleDistributionPool] Reused Gradle 8.8 from D:\AICoding\Minecraft_ModCreator\.tmp\stage15-linux\build\stage16-agent-reliability\cold-cache-c0178f6b-20260912\dialog-fix-source-smoke\home\.copperbench\gradle\wrapper\dists\gradle-8.8-bin\dl7vupf4psengwqhwktix4v1 into D:\AICoding\Minecraft_ModCreator\.tmp\stage15-linux\build\stage16-agent-reliability\cold-cache-c0178f6b-20260912\dialog-fix-source-smoke\home\.copperbench\gradle\wrapper\dists\gradle-8.8-bin\rjimvpy5n4loeuv6cnojwm02
+2026-09-12-21:05:16 [Application-Loader/DEBUG] [Application] Application loader finished
+2026-09-12-21:06:07 [AWT-EventQueue-0/DEBUG] [Application] Closing any potentially open MCreator windows
+2026-09-12-21:06:07 [AWT-EventQueue-0/DEBUG] [Application] Performing exit tasks
+2026-09-12-21:06:07 [AWT-EventQueue-0/DEBUG] [Application] Stopping AWT thread
+2026-09-12-21:06:07 [AWT-EventQueue-0/ERROR] [Exception] Uncaught exception in AWT-EventQueue-0
+java.lang.UnsupportedOperationException: Lock wasn't acquired by this app instance
+	at in.pratanumandal.unique4j.Unique4jIpcLock.unlock(Unique4jIpcLock.java:215)
+	at net.mcreator.util.SingleAppHandler.close(SingleAppHandler.java:108)
+	at net.mcreator.ui.MCreatorApplication.closeApplication(MCreatorApplication.java:439)
+	at net.mcreator.ui.workspace.selector.WorkspaceSelector$1.windowClosing(WorkspaceSelector.java:107)
+	at java.desktop/java.awt.AWTEventMulticaster.windowClosing(AWTEventMulticaster.java:359)
+	at java.desktop/java.awt.AWTEventMulticaster.windowClosing(AWTEventMulticaster.java:359)
+	at java.desktop/java.awt.Window.processWindowEvent(Window.java:2037)
+	at java.desktop/javax.swing.JFrame.processWindowEvent(JFrame.java:298)
+	at java.desktop/java.awt.Window.processEvent(Window.java:1996)
+	at java.desktop/java.awt.Component.dispatchEventImpl(Component.java:5008)
+	at java.desktop/java.awt.Container.dispatchEventImpl(Container.java:2318)
+	at java.desktop/java.awt.Window.dispatchEventImpl(Window.java:2713)
+	at java.desktop/java.awt.Component.dispatchEvent(Component.java:4836)
+	at com.formdev.flatlaf.ui.FlatTitlePane.close(FlatTitlePane.java:986)
+	at com.formdev.flatlaf.ui.FlatTitlePane.lambda$createButtons$3(FlatTitlePane.java:370)
+	at java.desktop/javax.swing.AbstractButton.fireActionPerformed(AbstractButton.java:1972)
+	at java.desktop/javax.swing.AbstractButton$Handler.actionPerformed(AbstractButton.java:2314)
+	at java.desktop/javax.swing.DefaultButtonModel.fireActionPerformed(DefaultButtonModel.java:407)
+	at java.desktop/javax.swing.DefaultButtonModel.setPressed(DefaultButtonModel.java:262)
+	at java.desktop/javax.swing.plaf.basic.BasicButtonListener.mouseReleased(BasicButtonListener.java:279)
+	at java.desktop/java.awt.Component.processMouseEvent(Component.java:6631)
+	at java.desktop/javax.swing.JComponent.processMouseEvent(JComponent.java:3400)
+	at java.desktop/java.awt.Component.processEvent(Component.java:6396)
+	at java.desktop/java.awt.Container.processEvent(Container.java:2260)
+	at java.desktop/java.awt.Component.dispatchEventImpl(Component.java:5008)
+	at java.desktop/java.awt.Container.dispatchEventImpl(Container.java:2318)
+	at java.desktop/java.awt.Component.dispatchEvent(Component.java:4836)
+	at java.desktop/java.awt.LightweightDispatcher.retargetMouseEvent(Container.java:4932)
+	at java.desktop/java.awt.LightweightDispatcher.processMouseEvent(Container.java:4562)
+	at java.desktop/java.awt.LightweightDispatcher.dispatchEvent(Container.java:4503)
+	at java.desktop/java.awt.Container.dispatchEventImpl(Container.java:2304)
+	at java.desktop/java.awt.Window.dispatchEventImpl(Window.java:2713)
+	at java.desktop/java.awt.Component.dispatchEvent(Component.java:4836)
+	at java.desktop/java.awt.EventQueue.dispatchEventImpl(EventQueue.java:734)
+	at java.desktop/java.awt.EventQueue.dispatchEvent(EventQueue.java:711)
+	at java.desktop/java.awt.EventDispatchThread.pumpOneEventForFilters(EventDispatchThread.java:207)
+	at java.desktop/java.awt.EventDispatchThread.pumpEventsForFilter(EventDispatchThread.java:128)
+	at java.desktop/java.awt.EventDispatchThread.pumpEventsForHierarchy(EventDispatchThread.java:117)
+	at java.desktop/java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:113)
+	at java.desktop/java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:105)
+	at java.desktop/java.awt.EventDispatchThread.run(EventDispatchThread.java:92)

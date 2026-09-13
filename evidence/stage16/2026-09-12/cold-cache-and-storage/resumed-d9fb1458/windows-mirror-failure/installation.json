@@ -1,0 +1,10 @@
+{
+  "startedUtc": "2026-09-12T14:12:02.5719904Z",
+  "completedUtc": "2026-09-12T14:14:09.9453852Z",
+  "exitCode": 0,
+  "installedDirectory": "C:\\Program Files\\Copperbench",
+  "sourceCommit": "d9fb1458187110186c04e523d5044250637490bd",
+  "installerSha256": "2cb006da0f47564c385e3192dcd8aef565f06673db71e0f411527e5231bde11f",
+  "installedJarSha256": "3d58f235c0609d4c18fd6d9b43680bbfd9c80c168dbccbe9eccc5b951b05ac19",
+  "installedExeSha256": "2a3016fff05005f4d9ca15bc6f09d79b404a3229ffe0895db2233a6bf69a12e1"
+}

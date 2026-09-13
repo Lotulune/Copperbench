@@ -1,0 +1,33 @@
+{
+  "atUtc": "2026-09-12T11:42:39.2025853Z",
+  "vms": [
+    {
+      "name": "Copperbench-G7",
+      "state": "Off",
+      "assignedBytes": 0,
+      "minimumBytes": 3221225472,
+      "maximumBytes": 4294967296
+    },
+    {
+      "name": "Copperbench-Stage15-Linux",
+      "state": "Off",
+      "assignedBytes": 0,
+      "minimumBytes": 2147483648,
+      "maximumBytes": 4294967296
+    }
+  ],
+  "originalSavedCheckpoints": [
+    {
+      "VMName": "Copperbench-G7",
+      "Name": "Stage16-Before-LowMemory-20260912",
+      "Id": "93acc9e8-1d2a-4ecc-af2d-8c3168134cf1",
+      "State": 6
+    },
+    {
+      "VMName": "Copperbench-Stage15-Linux",
+      "Name": "Stage16-Before-LowMemory-20260912",
+      "Id": "3bc9aff5-956b-44ad-83aa-7a349129a305",
+      "State": 6
+    }
+  ]
+}

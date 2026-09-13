@@ -44,3 +44,11 @@ it does not claim that a networkless checkout has run those live scenarios.
 
 Protocol retry, idempotency, revision-conflict, and preview-version rules are
 specified in [protocol.md](protocol.md).
+
+The source tree also provides user-issued task authorization and packaged-JAR
+GameTest acceptance. Both clients accept an optional task authorization ID and
+expose `prepare_game_tests` / `prepareGameTests`, `run_gametest` / `runGameTest`,
+authorization listing and revocation. Read the [task authorization and acceptance
+guide](../docs/ai/task-authorization-and-acceptance.md) for the one-time local
+approval, configuration, structured report, and JSONL CLI workflow. A loading
+smoke test proves loading only; add assertions for the mod's behavior.

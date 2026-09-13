@@ -1,0 +1,22 @@
+{
+  "at": "2026-09-12T09:34:51.933284+00:00",
+  "candidateCommit": "c0178f6b933825921cc3fb3f8f8ef8aa0874e688",
+  "installerSha256": "4e1c70c7c7c99cb6853ece539232c17973bec0e09e2ad24d6af547967592b75d",
+  "installedAppJarSha256": "3e68b305f5fe0364c776e08ad6624d49d21dd736f71b8f4ac6ddb623252962cc",
+  "artifactSha256": "39a5e8b8be150d097ebe8ea12a71e0334e9a6dd151f354bcef5dac2579bab8dc",
+  "descriptorAbsentAfterReopenClose": true,
+  "revokedCreateCode": "TASK_AUTHORIZATION_REVOKED",
+  "freshAgent": false,
+  "cacheState": "existing warm dependency and asset caches; new workspace",
+  "tooling": {
+    "java": null,
+    "javac": null,
+    "gradle": null,
+    "git": "C:\\Program Files\\Git\\cmd\\git.EXE",
+    "python3": "C:\\Users\\Administrator\\AppData\\Local\\Microsoft\\WindowsApps\\python3.EXE"
+  },
+  "externalHelperPython": "C:\\Python313\\python.exe",
+  "validationKind": "installed-windows-real-graphics-positive-regression",
+  "windowsInstalledClientComplete": true,
+  "stage16Complete": false
+}

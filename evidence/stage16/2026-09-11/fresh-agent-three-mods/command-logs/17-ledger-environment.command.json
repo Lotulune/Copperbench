@@ -1,0 +1,22 @@
+{
+  "label": "17-ledger-environment",
+  "executable": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\copperbench-stage16-3c0aa090\\Copperbench010\\copperbench.exe",
+  "arguments": [
+    "headless",
+    "--workspace",
+    "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\harvest_ledger\\harvest_ledger.mcreator",
+    "environment"
+  ],
+  "workingDirectory": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent",
+  "startedAt": "2026-09-11T12:45:51.5793349+00:00",
+  "status": "completed",
+  "exitCode": 0,
+  "completedAt": "2026-09-11T12:45:58.8693272+00:00",
+  "elapsedMs": 7286,
+  "firstOutputMs": 7171,
+  "firstStdoutMs": 7171,
+  "firstStderrMs": null,
+  "stdoutPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\17-ledger-environment.stdout.log",
+  "stderrPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\17-ledger-environment.stderr.log",
+  "eventsPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\17-ledger-environment.events.jsonl"
+}

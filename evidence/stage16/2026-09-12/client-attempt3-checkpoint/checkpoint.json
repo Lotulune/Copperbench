@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "1.0",
+  "recordedAt": "2026-09-11T17:12:33.783335+00:00",
+  "status": "incomplete-desktop-input-unavailable",
+  "candidateSourceCommit": "33ceb6e9a68aab2b2fcd9153d6c4f23f4d85e6c5",
+  "taskId": "e882d901-fa63-4cd8-957c-4154e202354f",
+  "clientBehaviorVerified": false,
+  "observations": {
+    "D1": "Native R input produced inactive then active token feedback at 5 TPS",
+    "D2": "Native placement and Use Item inputs produced A=3 at (0,-60,1), B=7 at (2,-60,2); a read-only conditional command confirmed both simultaneously",
+    "D3": "Not completed; the first attempt to toggle sneak for reset returned an activation error",
+    "D4": "Not started",
+    "D5": "Not started; no successful normal process exit and restart is claimed"
+  },
+  "desktopErrors": [
+    "failed to activate captured window",
+    "GetCursorPos failed: 拒绝访问。 (0x80070005)"
+  ],
+  "desktopInputAfterError": false,
+  "userAssistanceRequested": true,
+  "normalCloseObserved": false,
+  "processWasLeftRunningForContinuation": true,
+  "world": "Stage16 Agent Acceptance",
+  "playerName": "Stage16Trial",
+  "playerUuid": "8fb12eef-98f0-409b-a3c1-18abf66578f6",
+  "tickRate": 5,
+  "tickRateMustBeRestoredTo20BeforeFinalSave": true,
+  "caseCountDoesNotIncrease": true
+}

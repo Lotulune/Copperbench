@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "1.0",
+  "recordedAt": "2026-09-11T17:12:33.803091+00:00",
+  "files": [
+    {
+      "path": "attestations/Copperbench 0.1.0 Linux x86_64.tar.gz.json",
+      "bytes": 16745,
+      "sha256": "6d804fbb14aae367e1bf1925f4bf903a407ff04ac63dbdcddf2cbc57606e19f9"
+    },
+    {
+      "path": "attestations/copperbench-linux.spdx.json.json",
+      "bytes": 16745,
+      "sha256": "6d804fbb14aae367e1bf1925f4bf903a407ff04ac63dbdcddf2cbc57606e19f9"
+    },
+    {
+      "path": "attestations/copperbench_0.1.0_amd64.deb.json",
+      "bytes": 16745,
+      "sha256": "6d804fbb14aae367e1bf1925f4bf903a407ff04ac63dbdcddf2cbc57606e19f9"
+    },
+    {
+      "path": "attestations/linux-candidate-manifest.json.json",
+      "bytes": 16745,
+      "sha256": "6d804fbb14aae367e1bf1925f4bf903a407ff04ac63dbdcddf2cbc57606e19f9"
+    },
+    {
+      "path": "attestations/LINUX-CANDIDATE-METADATA.json.json",
+      "bytes": 16745,
+      "sha256": "6d804fbb14aae367e1bf1925f4bf903a407ff04ac63dbdcddf2cbc57606e19f9"
+    },
+    {
+      "path": "attestations/linux-candidate-sha256.txt.json",
+      "bytes": 16745,
+      "sha256": "6d804fbb14aae367e1bf1925f4bf903a407ff04ac63dbdcddf2cbc57606e19f9"
+    },
+    {
+      "path": "github-artifact.json",
+      "bytes": 825,
+      "sha256": "1118772dc4366e490114e30039718f4055bbb8963fca243f69748730ec7c4d55"
+    },
+    {
+      "path": "linux-candidate-manifest.json",
+      "bytes": 6509,
+      "sha256": "1952b06e6d7bc593fcec5b1c5fd24a2558d481aca0f5f22ff57c2461b2b319b7"
+    },
+    {
+      "path": "LINUX-CANDIDATE-METADATA.json",
+      "bytes": 1762,
+      "sha256": "c16e31fef678e3c6d2b4ca2263fffd96bc55c290987ed530a2ea87a2eb2b125e"
+    },
+    {
+      "path": "linux-candidate-sha256.txt",
+      "bytes": 549,
+      "sha256": "540556e37f824b937025defbbe19392d48db3b745d36efc7fa726ce4601b4250"
+    },
+    {
+      "path": "verification.json",
+      "bytes": 2539,
+      "sha256": "d0041ee836f9d15013030c4ae6e1b6ab64858ff9904a3cd337a89f6a973a15bb"
+    }
+  ]
+}

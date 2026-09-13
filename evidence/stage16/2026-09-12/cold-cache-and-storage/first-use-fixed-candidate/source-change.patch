@@ -1,0 +1,22 @@
+diff --git a/src/main/java/net/mcreator/ui/MCreatorApplication.java b/src/main/java/net/mcreator/ui/MCreatorApplication.java
+index 3d211b05..fd3abdf0 100644
+--- a/src/main/java/net/mcreator/ui/MCreatorApplication.java
++++ b/src/main/java/net/mcreator/ui/MCreatorApplication.java
+@@ -240,9 +240,14 @@ public final class MCreatorApplication {
+ 				// Prepare workspace selector on swing thread before closing splash screen
+ 				workspaceSelector = new WorkspaceSelector(this, this::openWorkspaceInMCreator);
+ 
+-				// Make sure splash screen is closed on the swing thread before we continue
+-				splashScreen.dispose();
+-				ChinaNetworkSetupDialog.promptIfNeeded(workspaceSelector);
++				// Make sure splash screen is closed on the swing thread before we continue
++				splashScreen.dispose();
++				if (!ChinaMirrorService.hasBeenPrompted()) {
++					// First-run modal prompts need a visible owner in the taskbar before a workspace is opened.
++					workspaceSelector.setVisible(true);
++					workspaceSelector.toFront();
++				}
++				ChinaNetworkSetupDialog.promptIfNeeded(workspaceSelector);
+ 				ChinaMirrorService.syncUserHome();
+ 				GradleDistributionPool.seedPackagedDistributions();
+ 			});

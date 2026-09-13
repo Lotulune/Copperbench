@@ -107,7 +107,7 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 	private void execute(UUID workspaceId, WorkspaceState state, Operation operation, JsonObject payload, Job job) {
 		try {
 			Path root = workspaceRoots.apply(workspaceId).toAbsolutePath().normalize();
-			Path executionRoot = isolated(operation)
+			Path executionRoot = operation == Operation.RUN_GAMETEST ? GameTestRunDirectory.select(root, job.id()) : isolated(operation)
 					? root.resolve(".copperbench/task-runs").resolve(taskKind(operation))
 							.resolve(job.id().toString()).resolve("workspace").normalize()
 					: root;
@@ -115,11 +115,16 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 			job.sourceRevision = state.revision();
 			job.sourceState = state;
 			if (isolated(operation)) {
-				if (!executionRoot.startsWith(root.toAbsolutePath().normalize()))
+				if (operation != Operation.RUN_GAMETEST && !executionRoot.startsWith(root.toAbsolutePath().normalize()))
 					throw new IllegalStateException("Isolated task path escaped the workspace");
-				Files.createDirectories(executionRoot);
+				var snapshot = WorkspaceExecutionSnapshot.capture(root, executionRoot, workspaceId,
+						state.revision(), clock, job::cancellationRequested);
+				job.record("sourceSnapshot", snapshot.projection());
+				if (operation == Operation.RUN_GAMETEST) GameTestRunDirectory.record(root, job.id(), snapshot);
 				job.log("info", "Using isolated task directory "
-						+ root.relativize(executionRoot).toString().replace('\\', '/'));
+						+ executionRoot.toString().replace('\\', '/'));
+				if (!executionRoot.startsWith(root))
+					job.log("info", "GAMETEST_SHORT_PATH: using the Copperbench task cache to avoid the Windows wrapper path limit; execution-location.json remains in the workspace task directory.");
 			}
 			job.progress(0.15, "task." + taskKind(operation) + ".validating", "Validating workspace");
 			var validation = backend.validate(state);
@@ -130,6 +135,11 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 			if (operation == Operation.VALIDATE_WORKSPACE) {
 				job.log("info", backend.displayName() + " validation completed without errors");
 				job.succeed("task.validate.completed", backend.displayName() + " validation completed");
+				return;
+			}
+			if (operation == Operation.PREPARE_GAME_TESTS) {
+				job.record("gameTestSetup", GameTestSupport.prepare(root, backend.gameTestEnvironment(), backend.gameTestModId(state)));
+				job.succeed("task.prepare_game_tests.completed", "GameTest starter prepared; add behavior assertions before acceptance");
 				return;
 			}
 			job.progress(0.35, "task." + taskKind(operation) + ".generating", "Generating workspace sources");
@@ -156,10 +166,14 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 				job.progress(0.55, "task.run_client.starting", "Starting Minecraft client");
 				var process = processes.run(executionRoot, backend.gradleArguments(operation), Duration.ZERO,
 						line -> job.log("info", line));
-				if (process.exitCode() != 0) {
+				// Minecraft can catch WindowInitFailed and return zero before opening a window.
+				// A mod's earlier readiness marker does not establish that OpenGL initialized.
+				boolean graphicsInitializationFailed = "WINDOWS_OPENGL_INITIALIZATION_FAILED"
+						.equals(process.runtimeFailureCode());
+				if (process.exitCode() != 0 || graphicsInitializationFailed) {
 					JsonObject args = new JsonObject();
 					args.addProperty("exitCode", process.exitCode());
-					String runtimeFailureCode = process.readinessMarkerSeen()
+					String runtimeFailureCode = process.readinessMarkerSeen() && !graphicsInitializationFailed
 							? null : process.runtimeFailureCode();
 					if (runtimeFailureCode != null && !runtimeFailureCode.isBlank())
 						args.addProperty("runtimeFailureCode", runtimeFailureCode);
@@ -167,8 +181,11 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 							? backend.diagnosticPrefix() + "_RUN_CLIENT_EXITED"
 							: backend.diagnosticPrefix() + "_RUN_CLIENT_" + runtimeFailureCode;
 					failKnownTask(workspaceId, operation, job,
-							diagnosticCode, "diagnostic.task_process_exited",
-							"The {backend} {task} task exited with code {exitCode}.", args);
+							diagnosticCode, graphicsInitializationFailed
+									? "diagnostic.task_client_opengl_initialization_failed" : "diagnostic.task_process_exited",
+							graphicsInitializationFailed
+									? "The {backend} client could not initialize OpenGL. Check graphics support and drivers."
+									: "The {backend} {task} task exited with code {exitCode}.", args);
 					return;
 				}
 			} else if (operation == Operation.RUN_SERVER) {
@@ -201,7 +218,9 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 							"The {backend} {task} task did not reach the readiness marker.", args);
 					return;
 				}
-			} else if (operation == Operation.RUN_DATAGEN || operation == Operation.RUN_GAMETEST) {
+			} else if (operation == Operation.RUN_GAMETEST) {
+				if (!runGameTests(executionRoot, state, payload, job)) return;
+			} else if (operation == Operation.RUN_DATAGEN) {
 				job.progress(0.55, "task." + taskKind(operation) + ".running", "Running managed task");
 				var process = processes.run(executionRoot, backend.gradleArguments(operation), Duration.ofMinutes(20),
 						line -> job.log("info", line));
@@ -218,6 +237,15 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 			}
 			job.succeed("task." + taskKind(operation) + ".completed",
 					backend.displayName() + " " + taskKind(operation) + " completed");
+		} catch (GameTestSupport.TestSetupException exception) {
+			if (job.isCancelled() || job.cancellationRequested()) return;
+			job.log("error", exception.getMessage());
+			job.fail(exception.code(), UUID.randomUUID().toString(), taskKind(operation),
+					"diagnostic.gametest_setup_failed", exception.getMessage(), null);
+		} catch (WorkspaceExecutionSnapshot.SnapshotException exception) {
+			if (job.isCancelled() || job.cancellationRequested()) return;
+			job.fail(exception.code(), UUID.randomUUID().toString(), taskKind(operation),
+					"diagnostic.workspace_snapshot_failed", exception.getMessage(), null);
 		} catch (BundledJdkLocator.MissingJdkException exception) {
 			if (job.isCancelled() || job.cancellationRequested()) return;
 			String failureId = UUID.randomUUID().toString();
@@ -225,6 +253,11 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 					backend.displayName(), operation, workspaceId, exception);
 			job.log("error", exception.getMessage());
 			job.fail(exception.diagnosticCode(), failureId, taskKind(operation), exception.getMessage());
+		} catch (dev.copperbench.gradle.GradleRuntimeCompatibility.LoopbackUnavailableException exception) {
+			if (job.isCancelled() || job.cancellationRequested()) return;
+			job.log("error", exception.getMessage());
+			job.fail("GRADLE_LOOPBACK_UNAVAILABLE", UUID.randomUUID().toString(), taskKind(operation),
+					"diagnostic.gradle_loopback_unavailable", exception.getMessage(), null);
 		} catch (GradleProcessRunner.ProcessStartException exception) {
 			if (job.isCancelled() || job.cancellationRequested()) return;
 			String failureId = UUID.randomUUID().toString();
@@ -248,6 +281,65 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 			job.fail(backend.diagnosticPrefix() + "_" + taskKind(operation).toUpperCase(Locale.ROOT) + "_FAILED",
 					failureId, taskKind(operation));
 		}
+	}
+
+	private boolean runGameTests(Path snapshot, WorkspaceState state, JsonObject payload, Job job) throws Exception {
+		var configuration = GameTestSupport.configuration(snapshot);
+		JsonObject verification = GameTestReport.empty("GAMETEST_NOT_COMPLETED");
+		verification.addProperty("mode", configuration.mode());
+		verification.addProperty("status", "pending");
+		verification.addProperty("minimumTests", configuration.minimumTests());
+		verification.add("environment", backend.gameTestEnvironment());
+		job.record("verification", verification);
+		Path runRoot = snapshot, report = GameTestSupport.safePath(snapshot, configuration.reportPath());
+		List<String> arguments = List.of(configuration.task());
+		if (configuration.mode().equals("packaged_jar")) {
+			boolean serverAuthorized = payload.has("serverEulaAuthorized") && payload.get("serverEulaAuthorized").getAsBoolean();
+			GameTestSupport.requireServerAuthorization(backend.gameTestEnvironment(), serverAuthorized);
+			job.progress(0.45, "task.run_gametest.building", "Building the frozen workspace for acceptance");
+			var build = processes.run(snapshot, backend.gradleArguments(Operation.BUILD_WORKSPACE), Duration.ofMinutes(20), line -> {
+				job.log("info", line); job.captureJavaCompileDiagnostic(snapshot, line);
+			});
+			if (build.exitCode() != 0) throw new GameTestSupport.TestSetupException("GAMETEST_BUILD_FAILED", "Tested mod build exited " + build.exitCode());
+			var host = GameTestSupport.host(snapshot, snapshot.resolveSibling("host"), configuration, backend.gameTestEnvironment());
+			if (GameTestSupport.requiresServerEula(backend.gameTestEnvironment()))
+				Files.writeString(host.root().resolve("run/eula.txt"), "eula=true\n", StandardCharsets.UTF_8, java.nio.file.StandardOpenOption.CREATE_NEW);
+			runRoot = host.root(); report = host.report(); arguments = List.of("runGameTest");
+			verification.addProperty("artifactPath", host.jar().toString());
+			verification.addProperty("artifactSha256", host.jarSha256());
+			job.record("verification", verification);
+			job.log("info", "Testing packaged JAR SHA-256 " + host.jarSha256());
+		}
+		// A report present before this invocation cannot be acceptance evidence.
+		if (Files.exists(report)) throw new GameTestSupport.TestSetupException("GAMETEST_REPORT_STALE", "Report already exists before test execution");
+		job.progress(0.65, "task.run_gametest.running", "Running acceptance tests");
+		var startedAt = clock.instant();
+		var process = processes.run(runRoot, arguments, Duration.ofMinutes(20), line -> job.log("info", line));
+		JsonObject parsed = GameTestReport.read(report, startedAt, configuration.minimumTests());
+		for (var entry : parsed.entrySet()) verification.add(entry.getKey(), entry.getValue());
+		verification.addProperty("startedAt", startedAt.toString());
+		verification.addProperty("completedAt", clock.instant().toString());
+		verification.addProperty("processExitCode", process.exitCode());
+		if (process.exitCode() != 0) GameTestReport.reason(verification, "GAMETEST_PROCESS_EXITED");
+		if (configuration.mode().equals("packaged_jar") && !verification.get("artifactSha256").getAsString()
+				.equals(WorkspaceExecutionSnapshot.sha256(Path.of(verification.get("artifactPath").getAsString()))))
+			GameTestReport.reason(verification, "GAMETEST_ARTIFACT_CHANGED");
+		boolean sourceCurrent = store.read(state.id()).map(current -> current.revision() == state.revision()).orElse(false)
+				&& job.task().getAsJsonObject("sourceSnapshot").get("sha256").getAsString().equals(
+				WorkspaceExecutionSnapshot.fingerprint(workspaceRoots.apply(state.id()), job::cancellationRequested));
+		verification.addProperty("sourceCurrentAtCompletion", sourceCurrent);
+		if (!sourceCurrent) GameTestReport.reason(verification, "GAMETEST_SOURCE_CHANGED");
+		job.record("verification", verification);
+		job.persistVerification();
+		verification = job.task().getAsJsonObject("verification");
+		if (!verification.get("status").getAsString().equals("passed")) {
+			job.fail(verification.get("reasonCode").getAsString(), UUID.randomUUID().toString(), "run_gametest",
+					"diagnostic.gametest_not_verified", "GameTest acceptance failed; inspect the structured test report.", null);
+			return false;
+		}
+		job.log("info", "GameTest: " + verification.get("passed") + " passed, " + verification.get("failed")
+				+ " failed, " + verification.get("skipped") + " skipped");
+		return true;
 	}
 
 	private void failKnownTask(UUID workspaceId, Operation operation, Job job, String code, String messageKey,
@@ -517,6 +609,8 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 			files.add(item);
 		}
 		long currentRevision = store.read(workspaceId).map(WorkspaceState::revision).orElse(-1L);
+		boolean sourceChanged = job.summary.has("sourceSnapshot") && !job.summary.getAsJsonObject("sourceSnapshot").get("sha256").getAsString()
+				.equals(WorkspaceExecutionSnapshot.fingerprint(root, () -> false));
 		JsonObject preview = new JsonObject();
 		preview.addProperty("taskId", job.id().toString());
 		preview.addProperty("sourceRevision", job.sourceRevision);
@@ -524,9 +618,9 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 		preview.addProperty("manifestHash", HexFormat.of().formatHex(manifestDigest.digest()));
 		preview.add("files", files);
 		preview.addProperty("changeCount", changes);
-		preview.addProperty("stale", currentRevision != job.sourceRevision);
+		preview.addProperty("stale", currentRevision != job.sourceRevision || sourceChanged);
 		preview.addProperty("published", job.published);
-		preview.addProperty("canPublish", changes > 0 && currentRevision == job.sourceRevision && !job.published);
+		preview.addProperty("canPublish", changes > 0 && currentRevision == job.sourceRevision && !sourceChanged && !job.published);
 		return preview;
 	}
 
@@ -607,7 +701,7 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 		return operation == Operation.VALIDATE_WORKSPACE || operation == Operation.GENERATE_WORKSPACE
 				|| operation == Operation.BUILD_WORKSPACE || operation == Operation.EXPORT_WORKSPACE
 				|| operation == Operation.RUN_CLIENT || operation == Operation.RUN_SERVER
-				|| operation == Operation.RUN_DATAGEN || operation == Operation.RUN_GAMETEST;
+				|| operation == Operation.RUN_DATAGEN || operation == Operation.RUN_GAMETEST || operation == Operation.PREPARE_GAME_TESTS;
 	}
 
 	private static boolean isolated(Operation operation) {
@@ -625,6 +719,7 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 			case RUN_SERVER -> "run_server";
 			case RUN_DATAGEN -> "run_datagen";
 			case RUN_GAMETEST -> "run_gametest";
+			case PREPARE_GAME_TESTS -> "prepare_game_tests";
 			default -> throw new IllegalArgumentException("Operation is not a Gradle task: " + operation);
 		};
 	}
@@ -705,6 +800,10 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 			return summary.deepCopy();
 		}
 
+		private synchronized void record(String key, JsonObject value) {
+			summary.add(key, value.deepCopy());
+		}
+
 		private UUID id() {
 			return UUID.fromString(summary.get("id").getAsString());
 		}
@@ -714,6 +813,7 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 				case "run_datagen" -> Operation.RUN_DATAGEN;
 				case "run_server" -> Operation.RUN_SERVER;
 				case "run_gametest" -> Operation.RUN_GAMETEST;
+				case "prepare_game_tests" -> Operation.PREPARE_GAME_TESTS;
 				case "run_client" -> Operation.RUN_CLIENT;
 				case "validate" -> Operation.VALIDATE_WORKSPACE;
 				case "generate" -> Operation.GENERATE_WORKSPACE;
@@ -725,6 +825,25 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 
 		private synchronized List<JsonObject> logs() {
 			return logEntries.stream().map(JsonObject::deepCopy).toList();
+		}
+
+		private synchronized void persistVerification() {
+			if (operation() != Operation.RUN_GAMETEST || !summary.has("verification")) return;
+			JsonObject verification = summary.getAsJsonObject("verification");
+			verification.addProperty("taskId", id().toString());
+			verification.addProperty("workspaceId", workspaceId.toString());
+			verification.addProperty("workspaceRevision", sourceRevision);
+			if (summary.has("sourceSnapshot")) verification.add("sourceSnapshot", summary.get("sourceSnapshot").deepCopy());
+			if (executionRoot == null || !Files.isDirectory(executionRoot)) return;
+			Path path = executionRoot.resolveSibling("verification.json");
+			try {
+				WorkspaceExecutionSnapshot.rejectLinks(path);
+				verification.addProperty("verificationPath", path.toString());
+				Files.writeString(path, verification.toString() + "\n", StandardCharsets.UTF_8);
+			} catch (java.io.IOException exception) {
+				verification.remove("verificationPath");
+				GameTestReport.reason(verification, "GAMETEST_EVIDENCE_WRITE_FAILED");
+			}
 		}
 
 		private synchronized List<JsonObject> diagnostics() {
@@ -791,6 +910,7 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 				JsonObject extraArgs) {
 			synchronized (this) {
 				if (!isRunning()) return;
+				failVerification(code);
 			}
 			log("error", "Task failed. Error ID: " + failureId);
 			WorkspaceTaskGateway.TaskEvent diagnosticsEvent;
@@ -807,6 +927,13 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 			}
 			publishTaskEvent(diagnosticsEvent);
 			publishTaskEvent(completedEvent);
+		}
+
+		private synchronized void failVerification(String code) {
+			if (operation() != Operation.RUN_GAMETEST) return;
+			if (!summary.has("verification")) summary.add("verification", GameTestReport.empty(code));
+			else GameTestReport.reason(summary.getAsJsonObject("verification"), code);
+			persistVerification();
 		}
 
 		private void addFailureDiagnostic(String code, String failureId, String taskKind, String messageKey,
@@ -925,6 +1052,7 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 		}
 
 		private void failValidation(List<GradleWorkspaceBackend.ValidationIssue> issues) {
+			failVerification("GAMETEST_WORKSPACE_INVALID");
 			for (var issue : issues) {
 				log("error", issue.message());
 				synchronized (this) {
@@ -1098,6 +1226,7 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 		}
 
 		private WorkspaceTaskGateway.TaskEvent completeCancelled() {
+			failVerification("GAMETEST_CANCELLED");
 			summary.addProperty("state", "cancelled");
 			summary.addProperty("cancellable", false);
 			summary.addProperty("progress", 1);

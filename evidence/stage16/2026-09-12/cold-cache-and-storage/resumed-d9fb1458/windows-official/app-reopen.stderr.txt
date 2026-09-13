@@ -1,0 +1,2 @@
+Picked up JAVA_TOOL_OPTIONS: -Duser.home=D:\AICoding\testmod2\s16-cold-official\home
+[11636:37232:0912/230054.374:ERROR:net\base\network_change_notifier_win.cc:189] WSALookupServiceBegin failed with: 10108

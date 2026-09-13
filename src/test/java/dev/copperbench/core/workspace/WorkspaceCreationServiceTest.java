@@ -37,6 +37,15 @@ class WorkspaceCreationServiceTest {
 
 	@TempDir Path temporaryFolder;
 
+	@Test void failureDetailsRetainCausesButRedactCredentialsAndStayBounded() {
+		String detail = WorkspaceCreationService.failureDetail(new IllegalStateException("Workspace setup failed",
+				new java.io.IOException("Cannot connect to https://user:password@example.invalid/; token=secret-value")));
+		assertTrue(detail.contains("Cannot connect"));
+		assertFalse(detail.contains("user:password"));
+		assertFalse(detail.contains("secret-value"));
+		assertTrue(WorkspaceCreationService.failureDetail(new RuntimeException("x".repeat(9000))).length() <= 4001);
+	}
+
 	private final WorkspaceCreationService service = new WorkspaceCreationService();
 
 	@BeforeAll static void initializeUpstreamRuntimeForPersistenceTest() throws Exception {
@@ -80,7 +89,7 @@ class WorkspaceCreationServiceTest {
 			WorkspaceCreationService.CreationResult result = service.create("resourcepack-1.21.1", "Copper Pack",
 					"copper_pack", null, workspaceFolder.toString(), "1.0.0");
 
-			assertTrue(result.complete(), () -> "Creation failed: " + result.diagnostics());
+			assertTrue(result.complete(), () -> "Creation failed: " + result.diagnostics() + "\n" + result.detail());
 			assertEquals("resourcepack-1.21.1", result.generatorId());
 			assertTrue(Files.isRegularFile(workspaceFolder.resolve("copper_pack.mcreator")));
 			assertTrue(Files.isRegularFile(workspaceFolder.resolve("src/main/pack.mcmeta")));
@@ -107,7 +116,7 @@ class WorkspaceCreationServiceTest {
 			WorkspaceCreationService.CreationResult result = service.create("fabric-1.21.1", "Copper Trails",
 					"copper_trails", "net.mcreator.copper_trails", workspaceFolder.toString(), "1.2.3");
 
-			assertTrue(result.complete(), () -> "Creation failed: " + result.diagnostics());
+			assertTrue(result.complete(), () -> "Creation failed: " + result.diagnostics() + "\n" + result.detail());
 			Path workspaceFile = workspaceFolder.resolve("copper_trails.mcreator");
 			assertEquals(workspaceFile.toAbsolutePath().toString(), result.workspaceFile());
 			assertTrue(Files.isRegularFile(workspaceFile));
@@ -128,9 +137,8 @@ class WorkspaceCreationServiceTest {
 		WorkspaceCreationService.CreationResult result = service.create("fabric-1.21.1", "Test Mod", "Invalid ID!",
 				"net.mcreator.test", temporaryFolder.resolve("ws").toString(), "1.0.0");
 		assertFalse(result.complete());
-		// 域校验报告全部命中的诊断（临时目录同时在建议根目录之外）
 		assertTrue(result.diagnostics().contains("MOD_ID_INVALID"));
-		assertTrue(result.diagnostics().contains("WORKSPACE_FOLDER_OUTSIDE_ROOT"));
+		assertFalse(Files.exists(temporaryFolder.resolve("ws")));
 	}
 
 	@Test void createRejectsUnsupportedGenerator() {
@@ -140,11 +148,12 @@ class WorkspaceCreationServiceTest {
 		assertTrue(result.diagnostics().contains("UNSUPPORTED_GENERATOR"));
 	}
 
-	@Test void createRejectsWorkspaceFolderOutsideSuggestedRoot() {
-		WorkspaceCreationService.CreationResult result = service.create("fabric-1.21.1", "Test Mod", "test_mod",
-				"net.mcreator.test", temporaryFolder.resolve("elsewhere").toString(), "1.0.0");
-		assertFalse(result.complete());
-		assertEquals(List.of("WORKSPACE_FOLDER_OUTSIDE_ROOT"), result.diagnostics());
+	@Test void absoluteWorkspaceFolderMayBeOutsideSuggestedRootButCannotBeARelativePathOrFilesystemRoot() {
+		assertEquals(List.of(), service.validateCreation("fabric-1.21.1", "Test Mod", "test_mod",
+				"net.mcreator.test", temporaryFolder.resolve("elsewhere").toString()));
+		for (String path : List.of("relative/path", temporaryFolder.toAbsolutePath().getRoot().toString()))
+			assertEquals(List.of("WORKSPACE_FOLDER_OUTSIDE_ROOT"), service.validateCreation("fabric-1.21.1", "Test Mod", "test_mod",
+					"net.mcreator.test", path));
 	}
 
 	@Test void createRejectsBlankModNameAndMissingPackage() {

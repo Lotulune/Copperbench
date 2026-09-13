@@ -1,0 +1,32 @@
+{
+  "label": "10-tally-bootstrap-attempt3",
+  "executable": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\copperbench-stage16-3c0aa090\\Copperbench010\\copperbench.exe",
+  "arguments": [
+    "bootstrap",
+    "create-workspace",
+    "--generator-id",
+    "fabric-1.21.1",
+    "--mod-name",
+    "Tally Stone",
+    "--mod-id",
+    "tally_stone",
+    "--workspace-folder",
+    "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\tally_stone",
+    "--task-authorization",
+    "<redacted-local-task-authorization-id>",
+    "--no-prompt",
+    "true"
+  ],
+  "workingDirectory": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent",
+  "startedAt": "2026-09-11T12:33:34.7572471+00:00",
+  "status": "completed",
+  "exitCode": 0,
+  "completedAt": "2026-09-11T12:34:48.5596734+00:00",
+  "elapsedMs": 73799,
+  "firstOutputMs": 73588,
+  "firstStdoutMs": 73588,
+  "firstStderrMs": null,
+  "stdoutPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\10-tally-bootstrap-attempt3.stdout.log",
+  "stderrPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\10-tally-bootstrap-attempt3.stderr.log",
+  "eventsPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\10-tally-bootstrap-attempt3.events.jsonl"
+}

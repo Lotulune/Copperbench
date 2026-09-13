@@ -1,0 +1,15 @@
+{
+  "sourceCommit": "a3322c86256686edec5ac260dac2b8adaccf73d1",
+  "archivePath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\export\\Copperbench 0.1.0 Windows 64bit.zip",
+  "archiveSha256": "3c4dded214d7ae36f347a34149753a72cdb9d69ba76996b3fe53ad8ea6c71837",
+  "archiveBytes": 1184639099,
+  "productExe": "C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\copperbench-stage16-a3322c86\\Copperbench010\\copperbench.exe",
+  "applicationJarSha256": "8be5272520baf05d49366d5c41a2bea56a3f9804293a97a6427d819aa759947d",
+  "javaClasses": {
+    "classes": 2113,
+    "sha256": "aa7d1dcfa410051a01a7d3de4cd53a93bedfdac0a39ce1f7f0689c12a095b578"
+  },
+  "javaClassesEqualRuntimeCandidate": true,
+  "runtimeCandidateCommit": "eb34ad5f38c3c4321948073ea5bdb6bb12bf1fa5",
+  "published": false
+}

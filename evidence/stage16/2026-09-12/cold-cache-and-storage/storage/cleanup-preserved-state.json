@@ -1,0 +1,40 @@
+{
+  "recordedAt": "2026-09-12T12:52:28.2167521Z",
+  "cleanupComplete": true,
+  "sourceHead": "c0178f6b933825921cc3fb3f8f8ef8aa0874e688",
+  "currentWindowsInstaller": true,
+  "currentLinuxInstaller": true,
+  "hostRollbackBackup": true,
+  "hostUserStateBackup": true,
+  "virtualMachines": [
+    {
+      "Name": "Copperbench-G7",
+      "State": 3,
+      "MemoryAssigned": 0,
+      "MemoryMaximum": 4294967296
+    },
+    {
+      "Name": "Copperbench-Stage15-Linux",
+      "State": 3,
+      "MemoryAssigned": 0,
+      "MemoryMaximum": 4294967296
+    }
+  ],
+  "checkpoints": [
+    {
+      "VMName": "Copperbench-G7",
+      "Name": "Before-G9-GPUP-20260829",
+      "Id": "ee62584d-07cd-4447-bc2f-6e557994206d"
+    },
+    {
+      "VMName": "Copperbench-G7",
+      "Name": "Stage16-Before-LowMemory-20260912",
+      "Id": "93acc9e8-1d2a-4ecc-af2d-8c3168134cf1"
+    },
+    {
+      "VMName": "Copperbench-Stage15-Linux",
+      "Name": "Stage16-Before-LowMemory-20260912",
+      "Id": "3bc9aff5-956b-44ad-83aa-7a349129a305"
+    }
+  ]
+}

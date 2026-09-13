@@ -2,6 +2,8 @@
 
 本文给通过本机 MCP 操作 Copperbench 工作区的 AI Agent 使用。目标是让 Agent 在不绕过 revision、权限、恢复点和任务日志的前提下完成“读取 → 修改 → 构建 → 修复冲突”的闭环。
 
+使用包含 Stage 15 后改动的新构建时，先阅读[任务授权与自动验收](./task-authorization-and-acceptance.md)。它说明如何携带用户签发的任务授权、准备版本对应的 GameTest、在真实工程快照中测试最终 JAR，以及按用例数和内容哈希读取验收结果。
+
 ## 1. 连接规则
 
 打开工作区后，桌面 Copperbench 会在工作区写入：

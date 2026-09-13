@@ -1,0 +1,22 @@
+{
+  "at": "2026-09-12T15:04:00.220375+00:00",
+  "candidateCommit": "d9fb1458187110186c04e523d5044250637490bd",
+  "installerSha256": "2cb006da0f47564c385e3192dcd8aef565f06673db71e0f411527e5231bde11f",
+  "installedAppJarSha256": "3d58f235c0609d4c18fd6d9b43680bbfd9c80c168dbccbe9eccc5b951b05ac19",
+  "artifactSha256": "a78d54f0b9eb0b717085dd79b7f80028222a7536fac375336d5d5a877c3e4ca1",
+  "descriptorAbsentAfterReopenClose": true,
+  "revokedCreateCode": "TASK_AUTHORIZATION_REVOKED",
+  "freshAgent": false,
+  "cacheState": "empty dependency and Minecraft asset caches; isolated low-memory profile",
+  "tooling": {
+    "java": null,
+    "javac": null,
+    "gradle": null,
+    "git": "C:\\Program Files\\Git\\cmd\\git.EXE",
+    "python3": "C:\\Users\\Administrator\\AppData\\Local\\Microsoft\\WindowsApps\\python3.EXE"
+  },
+  "externalHelperPython": "C:\\Python313\\python.exe",
+  "validationKind": "installed-windows-real-graphics-positive-regression",
+  "windowsInstalledClientComplete": true,
+  "stage16Complete": false
+}

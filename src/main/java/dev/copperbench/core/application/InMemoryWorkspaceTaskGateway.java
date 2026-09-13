@@ -70,6 +70,7 @@ public final class InMemoryWorkspaceTaskGateway implements WorkspaceTaskGateway 
 			case RUN_SERVER -> "run_server";
 			case RUN_DATAGEN -> "run_datagen";
 			case RUN_GAMETEST -> "run_gametest";
+			case PREPARE_GAME_TESTS -> "prepare_game_tests";
 			default -> throw new IllegalArgumentException("Operation does not start a task: " + operation);
 		});
 		task.addProperty("state", "running");

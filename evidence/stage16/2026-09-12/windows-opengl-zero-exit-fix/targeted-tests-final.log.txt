@@ -1,0 +1,391 @@
+Picked up JAVA_TOOL_OPTIONS: -Djdk.net.unixdomain.tmpdir=D:\AICoding\Minecraft_ModCreator\.tmp\stage15-linux\jdk\jbr25_win_64\bin\java.exe
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.6.0/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+Directory 'D:\AICoding\Minecraft_ModCreator\.tmp\stage15-linux\jdk\jbr25_mac_aarch64\Contents\Home' (Gradle property 'org.gradle.java.installations.paths') used for java installations does not exist
+Directory 'D:\AICoding\Minecraft_ModCreator\.tmp\stage15-linux\jdk\jbr25_linux_64' (Gradle property 'org.gradle.java.installations.paths') used for java installations does not exist
+Directory 'D:\AICoding\Minecraft_ModCreator\.tmp\stage15-linux\jdk\jbr25_mac_x64\Contents\Home' (Gradle property 'org.gradle.java.installations.paths') used for java installations does not exist
+> Task :compileGradleBridgeJava UP-TO-DATE
+> Task :processGradleBridgeResources NO-SOURCE
+> Task :gradleBridgeClasses UP-TO-DATE
+> Task :localIpcAgentJar UP-TO-DATE
+> Task :compileJava
+
+> Task :buildUiShell
+
+> @mod-creator/ui-shell@0.1.0 build
+> npm run check:i18n && tsc && vite build
+
+
+> @mod-creator/ui-shell@0.1.0 check:i18n
+> node scripts/check-i18n.mjs
+
+Chinese localization gate passed: 246/246 referenced keys translated.
+vite v6.4.3 building for production...
+transforming...
+✓ 1892 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                 0.56 kB │ gzip:   0.36 kB
+dist/assets/index-BdkA9qGM.css                 51.61 kB │ gzip:   9.10 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+dist/assets/arrow-left-DDUkvOt8.js              0.34 kB │ gzip:   0.27 kB
+dist/assets/code-xml-v_N5cm5v.js                0.38 kB │ gzip:   0.28 kB
+dist/assets/FunctionWorkbench-BMlw5ui0.js      17.21 kB │ gzip:   5.24 kB
+- Using dynamic import() to code-split the application
+dist/assets/GuiWorkbench-PMAnNt5n.js           18.54 kB │ gzip:   6.20 kB
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+dist/assets/OverlayWorkbench-CGAN8NPY.js       20.65 kB │ gzip:   6.08 kB
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+dist/assets/LootTableWorkbench-B3d-xJpt.js     22.88 kB │ gzip:   6.01 kB
+dist/assets/AdvancementWorkbench-BpEwfRjB.js   26.18 kB │ gzip:   6.99 kB
+dist/assets/index-BPZKIp96.js                 616.76 kB │ gzip: 163.95 kB
+dist/assets/ProcedureWorkbench-CUdT-GCx.js    818.58 kB │ gzip: 217.49 kB
+✓ built in 5.58s
+
+> Task :processResources UP-TO-DATE
+> Task :classes
+> Task :compileTestJava
+> Task :processTestResources UP-TO-DATE
+> Task :testClasses
+
+> Task :test
+Picked up JAVA_TOOL_OPTIONS: -Djdk.net.unixdomain.tmpdir=D:\AICoding\Minecraft_ModCreator\.tmp\stage15-linux\jdk\jbr25_win_64\bin\java.exe
+
+Fabric1211ProcessRunnerTest > requiresTheFullServerStabilityWindow() PASSED
+
+Fabric1211ProcessRunnerTest > recognizesRootAndQualifiedRunServerTasks() PASSED
+
+Fabric1211ProcessRunnerTest > recognizesVanillaDedicatedServerReadinessLine() PASSED
+
+Fabric1211ProcessRunnerTest > recognizesRootAndQualifiedRunClientTasks() PASSED
+
+Fabric1211ProcessRunnerTest > recognizesTheObservedWindowsOpenGlDriverFailure() PASSED
+
+Fabric1211ProcessRunnerTest > classifiesLinuxGraphicalInitializationFailures() PASSED
+
+Fabric1211ProcessRunnerTest > recognizesImmediateDedicatedServerFatalLines() PASSED
+
+Fabric1211ProcessRunnerTest > profilesSelectBundledJdkCompatibleWithTheirGradleRuntime() PASSED
+
+Fabric1211TaskGatewayTest > cancellationCannotBeOverwrittenByTheInterruptedWorker() PASSED
+
+Fabric1211TaskGatewayTest > runtimeProcessFailuresExposeExitAndReadinessFactsWithoutGuessingElements() STANDARD_OUT
+    [37m2026-09-12-15:59:06[m [1;31m[/ERROR][m [34m[dev.copperbench.generator.GradleWorkspaceTaskGateway][m Workspace task failure c0023723-4beb-44d1-acb3-dcfe797a20c8 (backend=Fabric 1.21.1, operation=RUN_CLIENT, workspaceId=11111111-1111-4111-8111-111111111111, code=FABRIC_RUN_CLIENT_EXITED, args={"exitCode":7})
+    [37m2026-09-12-15:59:12[m [1;31m[/ERROR][m [34m[dev.copperbench.generator.GradleWorkspaceTaskGateway][m Workspace task failure 38b637a1-a736-4551-b8f8-676bb413ffad (backend=Fabric 1.21.1, operation=RUN_SERVER, workspaceId=11111111-1111-4111-8111-111111111111, code=FABRIC_RUN_SERVER_NOT_READY, args={"exitCode":0})
+
+Fabric1211TaskGatewayTest > runtimeProcessFailuresExposeExitAndReadinessFactsWithoutGuessingElements() PASSED
+
+Fabric1211TaskGatewayTest > windowsOpenGlFailureIsNotSuccessfulWithZeroExit(boolean) > [1] false STANDARD_OUT
+    [37m2026-09-12-15:59:12[m [1;31m[/ERROR][m [34m[dev.copperbench.generator.GradleWorkspaceTaskGateway][m Workspace task failure 6dc67258-dde0-4776-9506-4bf9ed8e9a16 (backend=Fabric 1.21.1, operation=RUN_CLIENT, workspaceId=11111111-1111-4111-8111-111111111111, code=FABRIC_RUN_CLIENT_WINDOWS_OPENGL_INITIALIZATION_FAILED, args={"exitCode":0,"runtimeFailureCode":"WINDOWS_OPENGL_INITIALIZATION_FAILED"})
+
+Fabric1211TaskGatewayTest > windowsOpenGlFailureIsNotSuccessfulWithZeroExit(boolean) > [1] false PASSED
+
+Fabric1211TaskGatewayTest > windowsOpenGlFailureIsNotSuccessfulWithZeroExit(boolean) > [2] true STANDARD_OUT
+    [37m2026-09-12-15:59:12[m [1;31m[/ERROR][m [34m[dev.copperbench.generator.GradleWorkspaceTaskGateway][m Workspace task failure 16340170-f9e7-4c7e-9ec8-30425d0be3f6 (backend=Fabric 1.21.1, operation=RUN_CLIENT, workspaceId=11111111-1111-4111-8111-111111111111, code=FABRIC_RUN_CLIENT_WINDOWS_OPENGL_INITIALIZATION_FAILED, args={"exitCode":0,"runtimeFailureCode":"WINDOWS_OPENGL_INITIALIZATION_FAILED"})
+
+Fabric1211TaskGatewayTest > windowsOpenGlFailureIsNotSuccessfulWithZeroExit(boolean) > [2] true PASSED
+
+Fabric1211TaskGatewayTest > generateCommandCompletesAndExposesTaskLogsThroughTheApplicationService() PASSED
+
+Fabric1211TaskGatewayTest > processStartupFailureExposesExecutableWorkspaceAndStableDiagnostic() STANDARD_OUT
+    [37m2026-09-12-15:59:13[m [1;31m[/ERROR][m [34m[dev.copperbench.generator.GradleWorkspaceTaskGateway][m Workspace task failure 24b9d240-7144-43e3-89cd-9ed78e551a8d (backend=Fabric 1.21.1, operation=BUILD_WORKSPACE, workspaceId=11111111-1111-4111-8111-111111111111, code=FABRIC_BUILD_PROCESS_START_FAILED)
+    dev.copperbench.generator.GradleProcessRunner$ProcessStartException: Could not start Gradle executable ./gradlew in C:\Users\ADMINI~1\AppData\Local\Temp\junit-6287766382823050338: error=2, No such file or directory
+    	at dev.copperbench.generator.fabric.Fabric1211TaskGatewayTest.lambda$processStartupFailureExposesExecutableWorkspaceAndStableDiagnostic$1(Fabric1211TaskGatewayTest.java:100)
+    	at dev.copperbench.generator.fabric.Fabric1211WorkspaceTaskGateway.lambda$new$1(Fabric1211WorkspaceTaskGateway.java:86)
+    	at dev.copperbench.generator.GradleWorkspaceTaskGateway.execute(GradleWorkspaceTaskGateway.java:151)
+    	at dev.copperbench.generator.GradleWorkspaceTaskGateway.lambda$start$2(GradleWorkspaceTaskGateway.java:99)
+    	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:545)
+    	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:328)
+    	at java.base/java.util.concurrent.ThreadPerTaskExecutor$ThreadBoundFuture.run(ThreadPerTaskExecutor.java:323)
+    	at java.base/java.lang.VirtualThread.run(VirtualThread.java:460)
+    Caused by: java.io.IOException: error=2, No such file or directory
+    	... 8 more
+
+Fabric1211TaskGatewayTest > processStartupFailureExposesExecutableWorkspaceAndStableDiagnostic() PASSED
+
+Fabric1211TaskGatewayTest > runtimeFailureSuffixBecomesAStableRunClientDiagnostic() STANDARD_OUT
+    [37m2026-09-12-15:59:13[m [1;31m[/ERROR][m [34m[dev.copperbench.generator.GradleWorkspaceTaskGateway][m Workspace task failure e0d8f56d-0074-42b9-8c8a-3d3f0f4ae4f1 (backend=Fabric 1.21.1, operation=RUN_CLIENT, workspaceId=11111111-1111-4111-8111-111111111111, code=FABRIC_RUN_CLIENT_LINUX_DISPLAY_UNAVAILABLE, args={"exitCode":1,"runtimeFailureCode":"LINUX_DISPLAY_UNAVAILABLE"})
+
+Fabric1211TaskGatewayTest > runtimeFailureSuffixBecomesAStableRunClientDiagnostic() PASSED
+
+Fabric1211TaskGatewayTest > validationReportsElementDiagnosticsWithoutGeneratingFiles() PASSED
+
+Fabric1211TaskGatewayTest > exportBuildsArchiveAndRejectsPathsOutsideTheWorkspace() STANDARD_OUT
+    [37m2026-09-12-15:59:13[m [1;31m[/ERROR][m [34m[dev.copperbench.generator.GradleWorkspaceTaskGateway][m Workspace task failure 3801666d-a5ce-441b-ac9d-e441322f64a6 (backend=Fabric 1.21.1, operation=EXPORT_WORKSPACE, workspaceId=11111111-1111-4111-8111-111111111111)
+    java.lang.IllegalArgumentException: Export path escapes the workspace
+    	at dev.copperbench.generator.GradleWorkspaceTaskGateway.exportJar(GradleWorkspaceTaskGateway.java:360)
+    	at dev.copperbench.generator.GradleWorkspaceBackend.export(GradleWorkspaceBackend.java:69)
+    	at dev.copperbench.generator.GradleWorkspaceTaskGateway.execute(GradleWorkspaceTaskGateway.java:161)
+    	at dev.copperbench.generator.GradleWorkspaceTaskGateway.lambda$start$2(GradleWorkspaceTaskGateway.java:99)
+    	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:545)
+    	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:328)
+    	at java.base/java.util.concurrent.ThreadPerTaskExecutor$ThreadBoundFuture.run(ThreadPerTaskExecutor.java:323)
+    	at java.base/java.lang.VirtualThread.run(VirtualThread.java:460)
+
+Fabric1211TaskGatewayTest > exportBuildsArchiveAndRejectsPathsOutsideTheWorkspace() PASSED
+
+Fabric1211TaskGatewayTest > failedBuildExtractsJavaCompilerErrorsIntoStructuredDiagnostics() STANDARD_OUT
+    [37m2026-09-12-15:59:13[m [1;31m[/ERROR][m [34m[dev.copperbench.generator.GradleWorkspaceTaskGateway][m Workspace task failure 3335ae34-6eed-46f7-b58b-d8142118cabb (backend=Fabric 1.21.1, operation=BUILD_WORKSPACE, workspaceId=11111111-1111-4111-8111-111111111111)
+    java.lang.IllegalStateException: Fabric 1.21.1 build exited 1
+    	at dev.copperbench.generator.GradleWorkspaceTaskGateway.execute(GradleWorkspaceTaskGateway.java:157)
+    	at dev.copperbench.generator.GradleWorkspaceTaskGateway.lambda$start$2(GradleWorkspaceTaskGateway.java:99)
+    	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:545)
+    	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:328)
+    	at java.base/java.util.concurrent.ThreadPerTaskExecutor$ThreadBoundFuture.run(ThreadPerTaskExecutor.java:323)
+    	at java.base/java.lang.VirtualThread.run(VirtualThread.java:460)
+    [37m2026-09-12-15:59:14[m [36m[Test worker/DEBUG][m [34m[dev.copperbench.core.application.WorkspaceApplicationService][m Copperbench query payload rejected for GET_TASK
+    java.lang.IllegalArgumentException: Source preview path is not referenced by this task diagnostic
+    	at dev.copperbench.generator.GradleWorkspaceTaskGateway.sourcePreview(GradleWorkspaceTaskGateway.java:443)
+    	at dev.copperbench.generator.fabric.Fabric1211WorkspaceTaskGateway.sourcePreview(Fabric1211WorkspaceTaskGateway.java:162)
+    	at dev.copperbench.core.application.WorkspaceApplicationService.task(WorkspaceApplicationService.java:4442)
+    	at dev.copperbench.core.application.WorkspaceApplicationService.query(WorkspaceApplicationService.java:1400)
+    	at dev.copperbench.generator.fabric.Fabric1211TaskGatewayTest.failedBuildExtractsJavaCompilerErrorsIntoStructuredDiagnostics(Fabric1211TaskGatewayTest.java:499)
+    	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+    	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+    	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:700)
+    	at org.junit.platform.commons.support.ReflectionSupport.invokeMethod(ReflectionSupport.java:528)
+    	at org.junit.jupiter.engine.support.MethodReflectionUtils.invoke(MethodReflectionUtils.java:53)
+    	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:61)
+    	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:124)
+    	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:163)
+    	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:148)
+    	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:86)
+    	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:124)
+    	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:105)
+    	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:99)
+    	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:66)
+    	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:47)
+    	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:39)
+    	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:104)
+    	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:98)
+    	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invokeVoid(InterceptingExecutableInvoker.java:71)
+    	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$0(TestMethodTestDescriptor.java:219)
+    	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+    	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:215)
+    	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:157)
+    	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:70)
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$2(NodeTestTask.java:176)
+    	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$1(NodeTestTask.java:166)
+    	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:139)
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$0(NodeTestTask.java:164)
+    	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:163)
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:116)
+    	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+    	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:42)
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$2(NodeTestTask.java:180)
+    	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$1(NodeTestTask.java:166)
+    	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:139)
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$0(NodeTestTask.java:164)
+    	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:163)
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:116)
+    	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+    	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:42)
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$2(NodeTestTask.java:180)
+    	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$1(NodeTestTask.java:166)
+    	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:139)
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$0(NodeTestTask.java:164)
+    	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:163)
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:116)
+    	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:36)
+    	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:52)
+    	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:58)
+    	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.executeEngine(EngineExecutionOrchestrator.java:256)
+    	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.failOrExecuteEngine(EngineExecutionOrchestrator.java:228)
+    	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:189)
+    	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:109)
+    	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:66)
+    	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:168)
+    	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:65)
+    	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:137)
+    	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:126)
+    	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:100)
+    	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:57)
+    	at org.junit.platform.launcher.core.InterceptingLauncher.lambda$execute$0(InterceptingLauncher.java:46)
+    	at org.junit.platform.launcher.core.ClasspathAlignmentCheckingLauncherInterceptor.intercept(ClasspathAlignmentCheckingLauncherInterceptor.java:25)
+    	at org.junit.platform.launcher.core.InterceptingLauncher.execute(InterceptingLauncher.java:45)
+    	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:57)
+    	at org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestDefinitionProcessor$CollectThenExecuteTestDefinitionConsumer.processAllTestDefinitions(JUnitPlatformTestDefinitionProcessor.java:205)
+    	at org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestDefinitionProcessor$CollectThenExecuteTestDefinitionConsumer.access$000(JUnitPlatformTestDefinitionProcessor.java:122)
+    	at org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestDefinitionProcessor.stop(JUnitPlatformTestDefinitionProcessor.java:116)
+    	at org.gradle.api.internal.tasks.testing.SuiteTestDefinitionProcessor.stop(SuiteTestDefinitionProcessor.java:63)
+    	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+    	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+    	at org.gradle.internal.dispatch.MethodInvocation.invokeOn(MethodInvocation.java:77)
+    	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:28)
+    	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:19)
+    	at org.gradle.internal.dispatch.ContextClassLoaderDispatch.dispatch(ContextClassLoaderDispatch.java:33)
+    	at org.gradle.internal.dispatch.ProxyDispatchAdapter$DispatchingInvocationHandler.invoke(ProxyDispatchAdapter.java:88)
+    	at jdk.proxy1/jdk.proxy1.$Proxy4.stop(Unknown Source)
+    	at org.gradle.api.internal.tasks.testing.worker.TestWorker$3.run(TestWorker.java:195)
+    	at org.gradle.api.internal.tasks.testing.worker.TestWorker.executeAndMaintainThreadName(TestWorker.java:126)
+    	at org.gradle.api.internal.tasks.testing.worker.TestWorker.execute(TestWorker.java:103)
+    	at org.gradle.api.internal.tasks.testing.worker.TestWorker.execute(TestWorker.java:63)
+    	at org.gradle.process.internal.worker.child.ActionExecutionWorker.execute(ActionExecutionWorker.java:56)
+    	at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:122)
+    	at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:72)
+    	at worker.org.gradle.process.internal.worker.GradleWorkerMain.run(GradleWorkerMain.java:69)
+    	at worker.org.gradle.process.internal.worker.GradleWorkerMain.main(GradleWorkerMain.java:74)
+
+Fabric1211TaskGatewayTest > failedBuildExtractsJavaCompilerErrorsIntoStructuredDiagnostics() PASSED
+
+Fabric1211TaskGatewayTest > unresolvedCompilerSourceKeepsFileAndLogsButNeverGuessesAnElement() STANDARD_OUT
+    [37m2026-09-12-15:59:14[m [1;31m[/ERROR][m [34m[dev.copperbench.generator.GradleWorkspaceTaskGateway][m Workspace task failure abf680d5-8e77-49af-ae14-d80be5fe0edd (backend=Fabric 1.21.1, operation=BUILD_WORKSPACE, workspaceId=11111111-1111-4111-8111-111111111111)
+    java.lang.IllegalStateException: Fabric 1.21.1 build exited 1
+    	at dev.copperbench.generator.GradleWorkspaceTaskGateway.execute(GradleWorkspaceTaskGateway.java:157)
+    	at dev.copperbench.generator.GradleWorkspaceTaskGateway.lambda$start$2(GradleWorkspaceTaskGateway.java:99)
+    	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:545)
+    	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:328)
+    	at java.base/java.util.concurrent.ThreadPerTaskExecutor$ThreadBoundFuture.run(ThreadPerTaskExecutor.java:323)
+    	at java.base/java.lang.VirtualThread.run(VirtualThread.java:460)
+
+Fabric1211TaskGatewayTest > unresolvedCompilerSourceKeepsFileAndLogsButNeverGuessesAnElement() PASSED
+
+Fabric1211TaskGatewayTest > missingBundledJdkBecomesStructuredTaskDiagnostic() STANDARD_OUT
+    [37m2026-09-12-15:59:14[m [1;31m[/ERROR][m [34m[dev.copperbench.generator.BundledJdkLocator][m Bundled JDK resolution failed: distributionRoot=C:\Users\ADMINI~1\AppData\Local\Temp\junit-6692013452544610499\distribution, javaRelease=21, attempted=[C:\Users\ADMINI~1\AppData\Local\Temp\junit-6692013452544610499\distribution\jdk21, C:\Users\ADMINI~1\AppData\Local\Temp\junit-6692013452544610499\distribution\jdk\jdk21_win_64, C:\Users\ADMINI~1\AppData\Local\Temp\junit-6692013452544610499\jdk\jdk21_win_64, C:\Users\ADMINI~1\AppData\Local\Temp\jdk\jdk21_win_64, C:\Users\ADMINI~1\AppData\Local\jdk\jdk21_win_64, C:\Users\ADMINI~1\AppData\Local\Temp\junit-6692013452544610499\not-a-java-home], java.home=C:\Users\ADMINI~1\AppData\Local\Temp\junit-6692013452544610499\not-a-java-home, user.dir=D:\AICoding\Minecraft_ModCreator\.tmp\stage15-linux
+    [37m2026-09-12-15:59:14[m [1;31m[/ERROR][m [34m[dev.copperbench.generator.GradleWorkspaceTaskGateway][m Workspace task failure 39262f40-3069-47af-894c-7c1b22c3b0d2 (backend=Fabric 1.21.1, operation=RUN_CLIENT, workspaceId=11111111-1111-4111-8111-111111111111)
+    dev.copperbench.generator.BundledJdkLocator$MissingJdkException: No usable Java home found for Java 21 under C:\Users\ADMINI~1\AppData\Local\Temp\junit-6692013452544610499\distribution. Tried: [C:\Users\ADMINI~1\AppData\Local\Temp\junit-6692013452544610499\distribution\jdk21, C:\Users\ADMINI~1\AppData\Local\Temp\junit-6692013452544610499\distribution\jdk\jdk21_win_64, C:\Users\ADMINI~1\AppData\Local\Temp\junit-6692013452544610499\jdk\jdk21_win_64, C:\Users\ADMINI~1\AppData\Local\Temp\jdk\jdk21_win_64, C:\Users\ADMINI~1\AppData\Local\jdk\jdk21_win_64, C:\Users\ADMINI~1\AppData\Local\Temp\junit-6692013452544610499\not-a-java-home]
+    	at dev.copperbench.generator.BundledJdkLocator.locate(BundledJdkLocator.java:72)
+    	at dev.copperbench.generator.BundledJdkLocator.locate(BundledJdkLocator.java:37)
+    	at dev.copperbench.generator.BundledJdkLocator.locate(BundledJdkLocator.java:33)
+    	at dev.copperbench.generator.fabric.Fabric1211WorkspaceTaskGateway.lambda$new$0(Fabric1211WorkspaceTaskGateway.java:48)
+    	at dev.copperbench.generator.fabric.Fabric1211ProcessRunner$SystemProcessRunner.run(Fabric1211ProcessRunner.java:87)
+    	at dev.copperbench.generator.fabric.Fabric1211WorkspaceTaskGateway.lambda$new$1(Fabric1211WorkspaceTaskGateway.java:86)
+    	at dev.copperbench.generator.GradleWorkspaceTaskGateway.execute(GradleWorkspaceTaskGateway.java:167)
+    	at dev.copperbench.generator.GradleWorkspaceTaskGateway.lambda$start$2(GradleWorkspaceTaskGateway.java:99)
+    	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:545)
+    	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:328)
+    	at java.base/java.util.concurrent.ThreadPerTaskExecutor$ThreadBoundFuture.run(ThreadPerTaskExecutor.java:323)
+    	at java.base/java.lang.VirtualThread.run(VirtualThread.java:460)
+
+Fabric1211TaskGatewayTest > missingBundledJdkBecomesStructuredTaskDiagnostic() PASSED
+
+Fabric1211TaskGatewayTest > modernProcedureValidationPreservesNodeAndPortThroughTaskDiagnostics() PASSED
+
+Fabric1211TaskGatewayTest > deterministicValidationRepairPreviewsAndAppliesThroughRecoveryProtectedWorkspacePlan() PASSED
+
+Fabric1211TaskGatewayTest > serverRequiresDesktopEulaApprovalAndDatagenStaysInTaskStaging() STANDARD_OUT
+    [37m2026-09-12-15:59:15[m [1;31m[Test worker/ERROR][m [34m[dev.copperbench.core.application.WorkspaceApplicationService][m Copperbench failure 0cff03fd-5be5-44b1-ae76-b8c4422f45c3 (code=DATAGEN_PUBLISH_FAILED, requestId=00000000-0000-4000-8000-000000000677, workspaceId=11111111-1111-4111-8111-111111111111)
+    java.lang.IllegalStateException: Could not publish staged datagen output
+    	at dev.copperbench.generator.GradleWorkspaceTaskGateway.publishDatagen(GradleWorkspaceTaskGateway.java:558)
+    	at dev.copperbench.generator.fabric.Fabric1211WorkspaceTaskGateway.publishDatagen(Fabric1211WorkspaceTaskGateway.java:170)
+    	at dev.copperbench.core.application.WorkspaceApplicationService.lambda$publishDatagenOutput$0(WorkspaceApplicationService.java:3544)
+    	at dev.copperbench.core.workspace.RevisionedWorkspaceStore.transact(RevisionedWorkspaceStore.java:53)
+    	at dev.copperbench.core.application.WorkspaceApplicationService.publishDatagenOutput(WorkspaceApplicationService.java:3539)
+    	at dev.copperbench.core.application.WorkspaceApplicationService.execute(WorkspaceApplicationService.java:1354)
+    	at dev.copperbench.generator.fabric.Fabric1211TaskGatewayTest.serverRequiresDesktopEulaApprovalAndDatagenStaysInTaskStaging(Fabric1211TaskGatewayTest.java:605)
+    	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+    	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+    	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:700)
+    	at org.junit.platform.commons.support.ReflectionSupport.invokeMethod(ReflectionSupport.java:528)
+    	at org.junit.jupiter.engine.support.MethodReflectionUtils.invoke(MethodReflectionUtils.java:53)
+    	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:61)
+    	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:124)
+    	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:163)
+    	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:148)
+    	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:86)
+    	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:124)
+    	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:105)
+    	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:99)
+    	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:66)
+    	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:47)
+    	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:39)
+    	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:104)
+    	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:98)
+    	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invokeVoid(InterceptingExecutableInvoker.java:71)
+    	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$0(TestMethodTestDescriptor.java:219)
+    	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+    	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:215)
+    	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:157)
+    	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:70)
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$2(NodeTestTask.java:176)
+    	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$1(NodeTestTask.java:166)
+    	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:139)
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$0(NodeTestTask.java:164)
+    	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:163)
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:116)
+    	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+    	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:42)
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$2(NodeTestTask.java:180)
+    	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$1(NodeTestTask.java:166)
+    	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:139)
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$0(NodeTestTask.java:164)
+    	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:163)
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:116)
+    	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+    	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:42)
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$2(NodeTestTask.java:180)
+    	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$1(NodeTestTask.java:166)
+    	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:139)
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$0(NodeTestTask.java:164)
+    	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:163)
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:116)
+    	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:36)
+    	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:52)
+    	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:58)
+    	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.executeEngine(EngineExecutionOrchestrator.java:256)
+    	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.failOrExecuteEngine(EngineExecutionOrchestrator.java:228)
+    	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:189)
+    	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:109)
+    	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:66)
+    	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:168)
+    	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:65)
+    	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:137)
+    	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:126)
+    	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:100)
+    	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:57)
+    	at org.junit.platform.launcher.core.InterceptingLauncher.lambda$execute$0(InterceptingLauncher.java:46)
+    	at org.junit.platform.launcher.core.ClasspathAlignmentCheckingLauncherInterceptor.intercept(ClasspathAlignmentCheckingLauncherInterceptor.java:25)
+    	at org.junit.platform.launcher.core.InterceptingLauncher.execute(InterceptingLauncher.java:45)
+    	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:57)
+    	at org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestDefinitionProcessor$CollectThenExecuteTestDefinitionConsumer.processAllTestDefinitions(JUnitPlatformTestDefinitionProcessor.java:205)
+    	at org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestDefinitionProcessor$CollectThenExecuteTestDefinitionConsumer.access$000(JUnitPlatformTestDefinitionProcessor.java:122)
+    	at org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestDefinitionProcessor.stop(JUnitPlatformTestDefinitionProcessor.java:116)
+    	at org.gradle.api.internal.tasks.testing.SuiteTestDefinitionProcessor.stop(SuiteTestDefinitionProcessor.java:63)
+    	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+    	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+    	at org.gradle.internal.dispatch.MethodInvocation.invokeOn(MethodInvocation.java:77)
+    	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:28)
+    	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:19)
+    	at org.gradle.internal.dispatch.ContextClassLoaderDispatch.dispatch(ContextClassLoaderDispatch.java:33)
+    	at org.gradle.internal.dispatch.ProxyDispatchAdapter$DispatchingInvocationHandler.invoke(ProxyDispatchAdapter.java:88)
+    	at jdk.proxy1/jdk.proxy1.$Proxy4.stop(Unknown Source)
+    	at org.gradle.api.internal.tasks.testing.worker.TestWorker$3.run(TestWorker.java:195)
+    	at org.gradle.api.internal.tasks.testing.worker.TestWorker.executeAndMaintainThreadName(TestWorker.java:126)
+    	at org.gradle.api.internal.tasks.testing.worker.TestWorker.execute(TestWorker.java:103)
+    	at org.gradle.api.internal.tasks.testing.worker.TestWorker.execute(TestWorker.java:63)
+    	at org.gradle.process.internal.worker.child.ActionExecutionWorker.execute(ActionExecutionWorker.java:56)
+    	at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:122)
+    	at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:72)
+    	at worker.org.gradle.process.internal.worker.GradleWorkerMain.run(GradleWorkerMain.java:69)
+    	at worker.org.gradle.process.internal.worker.GradleWorkerMain.main(GradleWorkerMain.java:74)
+    Caused by: java.lang.IllegalArgumentException: Datagen preview hash is stale
+    	at dev.copperbench.generator.GradleWorkspaceTaskGateway.publishDatagen(GradleWorkspaceTaskGateway.java:510)
+    	... 97 more
+
+Fabric1211TaskGatewayTest > serverRequiresDesktopEulaApprovalAndDatagenStaysInTaskStaging() PASSED
+
+Fabric1211TaskGatewayTest > buildAndRunClientCommandsExposeGradleOutputAndReadiness() PASSED
+
+Fabric1211TaskGatewayTest > runClientRemainsRunningAfterMarkerUntilTheClientProcessExits() PASSED
+
+Fabric1211TaskGatewayTest > readinessPreventsGraphicalFailureMisclassification() STANDARD_OUT
+    [37m2026-09-12-15:59:16[m [1;31m[/ERROR][m [34m[dev.copperbench.generator.GradleWorkspaceTaskGateway][m Workspace task failure 267a5e77-e1e3-4a71-be86-6c3322e092ad (backend=Fabric 1.21.1, operation=RUN_CLIENT, workspaceId=11111111-1111-4111-8111-111111111111, code=FABRIC_RUN_CLIENT_EXITED, args={"exitCode":9})
+
+Fabric1211TaskGatewayTest > readinessPreventsGraphicalFailureMisclassification() PASSED
+
+BUILD SUCCESSFUL in 44s
+8 actionable tasks: 4 executed, 4 up-to-date
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.6.0/userguide/configuration_cache_enabling.html

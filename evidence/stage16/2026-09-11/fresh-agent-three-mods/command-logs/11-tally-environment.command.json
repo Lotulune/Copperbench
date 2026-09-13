@@ -1,0 +1,22 @@
+{
+  "label": "11-tally-environment",
+  "executable": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\copperbench-stage16-3c0aa090\\Copperbench010\\copperbench.exe",
+  "arguments": [
+    "headless",
+    "--workspace",
+    "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\tally_stone\\tally_stone.mcreator",
+    "environment"
+  ],
+  "workingDirectory": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent",
+  "startedAt": "2026-09-11T12:35:53.9519151+00:00",
+  "status": "completed",
+  "exitCode": 0,
+  "completedAt": "2026-09-11T12:35:58.8151936+00:00",
+  "elapsedMs": 4860,
+  "firstOutputMs": 4691,
+  "firstStdoutMs": 4691,
+  "firstStderrMs": null,
+  "stdoutPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\11-tally-environment.stdout.log",
+  "stderrPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\11-tally-environment.stderr.log",
+  "eventsPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\11-tally-environment.events.jsonl"
+}

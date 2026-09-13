@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "1.0",
+  "recordedAt": "2026-09-12T05:27:13.300292+00:00",
+  "osRelease": "PRETTY_NAME=\"Ubuntu 24.04.4 LTS\"\nNAME=\"Ubuntu\"\nVERSION_ID=\"24.04\"\nVERSION=\"24.04.4 LTS (Noble Numbat)\"\nVERSION_CODENAME=noble\nID=ubuntu\nID_LIKE=debian\nHOME_URL=\"https://www.ubuntu.com/\"\nSUPPORT_URL=\"https://help.ubuntu.com/\"\nBUG_REPORT_URL=\"https://bugs.launchpad.net/ubuntu/\"\nPRIVACY_POLICY_URL=\"https://www.ubuntu.com/legal/terms-and-policies/privacy-policy\"\nUBUNTU_CODENAME=noble\nLOGO=ubuntu-logo\n",
+  "architecture": "x86_64",
+  "systemTools": {
+    "java": null,
+    "javac": null,
+    "gradle": null,
+    "git": null
+  },
+  "memory": "               total        used        free      shared  buff/cache   available\nMem:      4117008384  1120567296   382124032    35840000  2895151104  2996441088\nSwap:     4294963200           0  4294963200\n",
+  "sessions": " 1 1000 stage15          seat0 tty2 active yes 16min ago\n11 1001 stage15-operator -     -    active no  -\n",
+  "existingApplicationJarSha256": "71e94c61ca0a807c09bfda0a85f0255eef209c0548c1779b0c6f3ec9eb3c4e67",
+  "cacheState": "Existing certification guest caches; no caches cleared",
+  "memoryProfile": "Hyper-V dynamic startup 3 GiB, minimum 2 GiB, maximum 4 GiB"
+}

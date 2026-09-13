@@ -1,0 +1,11 @@
+{
+  "recordedAt": "2026-09-12T02:04:09.169Z",
+  "requestedWindowId": 262412,
+  "remainingGameWindows": [
+    {
+      "app": "process:C:\\Users\\Administrator\\AppData\\Local\\Temp\\copperbench-stage16-33ceb6e9\\Copperbench010\\jdk21\\bin\\java.exe",
+      "id": 262412,
+      "title": "Minecraft* 1.21.1"
+    }
+  ]
+}

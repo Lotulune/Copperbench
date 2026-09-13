@@ -1,0 +1,39 @@
+{
+  "sourceCommit": "c0178f6b933825921cc3fb3f8f8ef8aa0874e688",
+  "archivePath": "/home/stage15-operator/s16-c0178f6b-package/Copperbench-c0178f6b-linux.tar.gz",
+  "archiveSha256": "31feb17d5e4ac619459b37e592d3be5fdaa90714ff9d0de9dbc31b1dfe0502ae",
+  "archiveBytes": 968298082,
+  "applicationJarSha256": "ba2af8159d04236e127e34f00e3ca8fdb9d429b25663dbd12b0f62c7fb5b2a50",
+  "scaffoldSha256": "6206aad266cbb7190b1324df942f7e5fe948eed60547ba02f29fddafb6c97861",
+  "buildTasks": [
+    "tarLinux64",
+    "prepareDebLinux64"
+  ],
+  "buildHost": "Windows",
+  "debSealingPending": false,
+  "published": false,
+  "guestRoot": "/home/stage15/s16-c0178f6b",
+  "guestProductExe": "/usr/bin/copperbench",
+  "installedDirectory": "/opt/copperbench",
+  "installerSha256": "4308bd319c4382a1e281a4bd90fd5a8574027bc397d382aef9df6bc3e32f0d51",
+  "installerBytes": 968416582,
+  "installerPath": "/home/stage15-operator/s16-c0178f6b-package/copperbench_0.1.0_amd64.deb",
+  "debSealingHost": "Ubuntu",
+  "debCompression": "gzip -6",
+  "debBuildCommand": [
+    "dpkg-deb",
+    "--build",
+    "--root-owner-group",
+    "--threads-max=1",
+    "-Zgzip",
+    "-z6",
+    "/home/stage15-operator/s16-c0178f6b-package/deb-root",
+    "/home/stage15-operator/s16-c0178f6b-package/copperbench_0.1.0_amd64.deb"
+  ],
+  "debBuildStartedAt": "2026-09-12T09:45:04.258390+00:00",
+  "debBuildCompletedAt": "2026-09-12T09:45:43.233333+00:00",
+  "payloadFiles": 2681,
+  "payloadManifestSha256": "fa20ee977ba6b72d62e77c8b1359ede4ce30a815da172fa6aee431de0815dd33",
+  "environmentKind": "ubuntu-vm",
+  "formalSupportClaim": false
+}

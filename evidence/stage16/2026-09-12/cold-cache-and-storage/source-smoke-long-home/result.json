@@ -1,0 +1,13 @@
+{
+  "at": "2026-09-12T13:08:44.6423757Z",
+  "status": "partial",
+  "visibleOwnerObserved": true,
+  "regionDialogVisible": true,
+  "nativeClickOnYes": true,
+  "mirrorChoicePersisted": true,
+  "selectorVisibleAfterChoice": true,
+  "normalExitPassed": false,
+  "failure": "The deeply nested fixture home exceeded the Unix-domain socket path limit; close then attempted to release an unacquired lock",
+  "nextAction": "Replay the UI smoke in a shorter isolated fixture home",
+  "installedProductValidation": false
+}

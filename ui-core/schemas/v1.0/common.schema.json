@@ -91,11 +91,20 @@
         },
         "state": {
           "type": "string",
-          "enum": ["valid", "invalid", "draft", "unsupported"]
+          "enum": [
+            "valid",
+            "invalid",
+            "draft",
+            "unsupported"
+          ]
         },
         "ownership": {
           "type": "string",
-          "enum": ["generated", "manual", "mixed"]
+          "enum": [
+            "generated",
+            "manual",
+            "mixed"
+          ]
         },
         "updatedAt": {
           "$ref": "#/$defs/timestamp"
@@ -779,7 +788,8 @@
             "run_server",
             "run_datagen",
             "run_gametest",
-            "import"
+            "import",
+            "prepare_game_tests"
           ]
         },
         "state": {
@@ -821,6 +831,62 @@
         },
         "diagnostics": {
           "$ref": "#/$defs/diagnosticCounts"
+        },
+        "sourceSnapshot": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/sourceSnapshot"
+        },
+        "verification": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/gameTestVerification"
+        },
+        "gameTestSetup": {
+          "type": "object",
+          "required": [
+            "supported",
+            "configurationPath",
+            "prepareOperation",
+            "state"
+          ],
+          "properties": {
+            "supported": {
+              "type": "boolean"
+            },
+            "configurationPath": {
+              "type": "string"
+            },
+            "prepareOperation": {
+              "const": "prepare_game_tests"
+            },
+            "state": {
+              "enum": [
+                "configured",
+                "not_configured",
+                "invalid_configuration"
+              ]
+            },
+            "mode": {
+              "enum": [
+                "workspace",
+                "packaged_jar"
+              ]
+            },
+            "minimumTests": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "detail": {
+              "type": "string"
+            },
+            "starterScope": {
+              "const": "mod_loading_only"
+            },
+            "createdPaths": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -934,7 +1000,10 @@
           "minimum": 0
         },
         "nextCursor": {
-          "type": ["string", "null"],
+          "type": [
+            "string",
+            "null"
+          ],
           "maxLength": 512
         },
         "availableTypes": {
@@ -1292,7 +1361,11 @@
         },
         "objectKind": {
           "type": "string",
-          "enum": ["workspace", "mod_element", "asset"]
+          "enum": [
+            "workspace",
+            "mod_element",
+            "asset"
+          ]
         },
         "objectName": {
           "type": "string",
@@ -1302,11 +1375,18 @@
           "type": "array",
           "items": {
             "type": "object",
-            "required": ["type", "pointer"],
+            "required": [
+              "type",
+              "pointer"
+            ],
             "properties": {
               "type": {
                 "type": "string",
-                "enum": ["add", "modify", "delete"]
+                "enum": [
+                  "add",
+                  "modify",
+                  "delete"
+                ]
               },
               "pointer": {
                 "type": "string",
@@ -1427,6 +1507,237 @@
           "items": {
             "$ref": "#/$defs/operationApproval"
           }
+        }
+      },
+      "additionalProperties": false
+    },
+    "sourceSnapshot": {
+      "type": "object",
+      "required": [
+        "sha256",
+        "fileCount",
+        "bytes",
+        "manifestPath"
+      ],
+      "properties": {
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "fileCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "manifestPath": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "taskAuthorization": {
+      "type": "object",
+      "required": [
+        "schemaVersion",
+        "id",
+        "label",
+        "root",
+        "capabilities",
+        "issuedAt",
+        "expiresAt",
+        "serverEulaAccepted",
+        "revoked",
+        "active"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": "1.0"
+        },
+        "id": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+        },
+        "label": {
+          "type": "string"
+        },
+        "root": {
+          "type": "string"
+        },
+        "capabilities": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "create",
+              "edit",
+              "build",
+              "test",
+              "run_client",
+              "run_server",
+              "restore"
+            ]
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "issuedAt": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/timestamp"
+        },
+        "expiresAt": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/timestamp"
+        },
+        "serverEulaAccepted": {
+          "type": "boolean"
+        },
+        "revoked": {
+          "type": "boolean"
+        },
+        "active": {
+          "type": "boolean"
+        },
+        "revokedAt": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "gameTestVerification": {
+      "type": "object",
+      "required": [
+        "schemaVersion",
+        "status",
+        "reasonCode",
+        "discovered",
+        "executed",
+        "passed",
+        "failed",
+        "skipped",
+        "cases"
+      ],
+      "properties": {
+        "acceptanceExecuted": { "type": "integer", "minimum": 0 },
+        "frameworkTests": { "type": "integer", "minimum": 0 },
+        "sourceCurrentAtCompletion": { "type": "boolean" },
+        "schemaVersion": {
+          "const": "1.0"
+        },
+        "status": {
+          "enum": [
+            "pending",
+            "passed",
+            "failed"
+          ]
+        },
+        "reasonCode": {
+          "type": "string"
+        },
+        "discovered": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "executed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "passed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "failed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "skipped": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "cases": {
+          "type": "array",
+          "maxItems": 10000,
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "className",
+              "status"
+            ],
+            "properties": {
+              "scope": { "enum": ["acceptance", "framework"] },
+              "name": {
+                "type": "string"
+              },
+              "className": {
+                "type": "string"
+              },
+              "status": {
+                "enum": [
+                  "passed",
+                  "failed",
+                  "skipped"
+                ]
+              },
+              "message": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "reportPath": {
+          "type": "string"
+        },
+        "reportSha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "artifactPath": {
+          "type": "string"
+        },
+        "artifactSha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "verificationPath": {
+          "type": "string"
+        },
+        "mode": {
+          "enum": [
+            "workspace",
+            "packaged_jar"
+          ]
+        },
+        "minimumTests": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "environment": {
+          "type": "object"
+        },
+        "taskId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+        },
+        "workspaceId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+        },
+        "workspaceRevision": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/revision"
+        },
+        "sourceSnapshot": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/sourceSnapshot"
+        },
+        "startedAt": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/timestamp"
+        },
+        "completedAt": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/timestamp"
+        },
+        "processExitCode": {
+          "type": "integer"
+        },
+        "detail": {
+          "type": "string"
         }
       },
       "additionalProperties": false

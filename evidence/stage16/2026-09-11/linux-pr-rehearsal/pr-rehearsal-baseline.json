@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "stage16-linux-pr-rehearsal-baseline",
+  "osRelease": "PRETTY_NAME=\"Ubuntu 24.04.4 LTS\"\nNAME=\"Ubuntu\"\nVERSION_ID=\"24.04\"\nVERSION=\"24.04.4 LTS (Noble Numbat)\"\nVERSION_CODENAME=noble\nID=ubuntu\nID_LIKE=debian\nHOME_URL=\"https://www.ubuntu.com/\"\nSUPPORT_URL=\"https://help.ubuntu.com/\"\nBUG_REPORT_URL=\"https://bugs.launchpad.net/ubuntu/\"\nPRIVACY_POLICY_URL=\"https://www.ubuntu.com/legal/terms-and-policies/privacy-policy\"\nUBUNTU_CODENAME=noble\nLOGO=ubuntu-logo\n",
+  "arch": "x86_64",
+  "systemTools": {
+    "java": null,
+    "javac": null,
+    "gradle": null,
+    "git": null
+  },
+  "session": "Type=wayland\nActive=yes\nState=active\n",
+  "previousApplicationJarSha256": "d4bcaa2831415500bf99da16f7ab34aaf3e093de35497932502416f3853afcde",
+  "desktopInputExercised": false,
+  "cacheState": "Existing Stage15 certification guest caches; not cold-cache certification",
+  "purpose": "Development rehearsal of the public repair collector; not the final release candidate"
+}

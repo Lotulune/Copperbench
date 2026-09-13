@@ -1,0 +1,12 @@
+{
+  "mod": "tally_stone",
+  "artifactPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\artifacts\\tally_stone\\tally_stone-1.0.jar",
+  "artifactSha256": "76296fa2e85bbeb98a5634802cab7bc06cda6445930baec1b0bcf0bb25ddf35c",
+  "reportSha256": "5375e0f3c5540133a3754834ef63ab25d4fca1e9b4a60f78083c5d011aca5f22",
+  "acceptanceExecuted": 5,
+  "sourceSnapshotSha256": "6ec2e942d8168355f7473490740165ab136b6f197eecea4528fc1c5fc8effe97",
+  "sourceCurrentAtCompletion": true,
+  "mode": "packaged_jar",
+  "taskId": "0da10389-4eec-4cb7-a1b9-255c40249eae",
+  "commandLabel": "15-tally-gametest-real-player"
+}

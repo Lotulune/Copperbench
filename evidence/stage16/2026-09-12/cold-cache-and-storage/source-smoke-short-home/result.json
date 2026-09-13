@@ -1,0 +1,14 @@
+{
+  "at": "2026-09-12T13:14:29.5206040Z",
+  "status": "passed",
+  "validationKind": "development-classpath-first-use-dialog-smoke",
+  "visibleOwnerObserved": true,
+  "regionDialogVisible": true,
+  "nativeKeyboardChoice": true,
+  "mirrorChoicePersisted": true,
+  "selectorVisibleAfterChoice": true,
+  "normalExitCode": 0,
+  "installedProductValidation": false,
+  "sourceBaseCommit": "c0178f6b933825921cc3fb3f8f8ef8aa0874e688",
+  "sourceFileSha256": "b0a718bafa571197e007a24876bc63295a6241d15fbffe410e4fbbbbbd7a6178"
+}

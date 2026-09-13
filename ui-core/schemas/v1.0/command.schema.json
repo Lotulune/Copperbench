@@ -57,7 +57,10 @@
         "execute_loader_migration",
         "import_upstream_workspace",
         "create_publish_batch",
-        "prepare_resource_pack_client"
+        "prepare_resource_pack_client",
+        "prepare_game_tests",
+        "create_task_authorization",
+        "revoke_task_authorization"
       ]
     },
     "payload": {
@@ -67,20 +70,40 @@
   "allOf": [
     {
       "if": {
-        "properties": {"operation": {"const": "apply_workspace_plan"}},
-        "required": ["operation"]
+        "properties": {
+          "operation": {
+            "const": "apply_workspace_plan"
+          }
+        },
+        "required": [
+          "operation"
+        ]
       },
       "then": {
-        "properties": {"payload": {"$ref": "#/$defs/workspacePlanApplyPayload"}}
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/workspacePlanApplyPayload"
+          }
+        }
       }
     },
     {
       "if": {
-        "properties": {"operation": {"const": "publish_datagen_output"}},
-        "required": ["operation"]
+        "properties": {
+          "operation": {
+            "const": "publish_datagen_output"
+          }
+        },
+        "required": [
+          "operation"
+        ]
       },
       "then": {
-        "properties": {"payload": {"$ref": "#/$defs/publishDatagenPayload"}}
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/publishDatagenPayload"
+          }
+        }
       }
     },
     {
@@ -211,9 +234,10 @@
               "generate_workspace",
               "build_workspace",
               "export_workspace",
-              "run_client"
-              ,"run_datagen"
-              ,"run_gametest"
+              "run_client",
+              "run_datagen",
+              "run_gametest",
+              "prepare_game_tests"
             ]
           }
         },
@@ -231,11 +255,21 @@
     },
     {
       "if": {
-        "properties": {"operation": {"const": "run_server"}},
-        "required": ["operation"]
+        "properties": {
+          "operation": {
+            "const": "run_server"
+          }
+        },
+        "required": [
+          "operation"
+        ]
       },
       "then": {
-        "properties": {"payload": {"$ref": "#/$defs/serverTaskPayload"}}
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/serverTaskPayload"
+          }
+        }
       }
     },
     {
@@ -389,15 +423,63 @@
           }
         }
       }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "create_task_authorization"
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/createTaskAuthorizationPayload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "revoke_task_authorization"
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/revokeTaskAuthorizationPayload"
+          }
+        }
+      }
     }
   ],
   "$defs": {
     "workspacePlanApplyPayload": {
       "type": "object",
-      "required": ["clientMutationId", "plan"],
+      "required": [
+        "clientMutationId",
+        "plan"
+      ],
       "properties": {
-        "clientMutationId": {"$ref": "urn:ui-core:1.0:common#/$defs/uuid"},
-        "plan": {"$ref": "urn:ui-core:1.0:query#/$defs/workspacePlan"}
+        "clientMutationId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+        },
+        "plan": {
+          "$ref": "urn:ui-core:1.0:query#/$defs/workspacePlan"
+        },
+        "taskAuthorizationId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+        }
       },
       "additionalProperties": false
     },
@@ -408,8 +490,7 @@
         "generatorId",
         "modName",
         "modId",
-        "workspaceFolderPath",
-        "userApproved"
+        "workspaceFolderPath"
       ],
       "properties": {
         "clientMutationId": {
@@ -445,9 +526,34 @@
         },
         "userApproved": {
           "type": "boolean"
+        },
+        "taskAuthorizationId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "required": [
+            "userApproved"
+          ],
+          "properties": {
+            "userApproved": {
+              "type": "boolean"
+            }
+          }
+        },
+        {
+          "required": [
+            "taskAuthorizationId"
+          ],
+          "properties": {
+            "taskAuthorizationId": {
+              "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+            }
+          }
+        }
+      ]
     },
     "createModElementPayload": {
       "type": "object",
@@ -470,6 +576,9 @@
         },
         "initialValues": {
           "type": "object"
+        },
+        "taskAuthorizationId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
         }
       },
       "additionalProperties": false
@@ -510,6 +619,9 @@
           },
           "minItems": 1,
           "maxItems": 200
+        },
+        "taskAuthorizationId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
         }
       },
       "additionalProperties": false
@@ -525,6 +637,9 @@
           "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
         },
         "elementId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+        },
+        "taskAuthorizationId": {
           "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
         }
       },
@@ -603,6 +718,9 @@
           },
           "minItems": 1,
           "maxItems": 2000
+        },
+        "taskAuthorizationId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
         }
       },
       "additionalProperties": false
@@ -611,41 +729,92 @@
       "oneOf": [
         {
           "type": "object",
-          "required": ["clientMutationId", "registry", "entry"],
+          "required": [
+            "clientMutationId",
+            "registry",
+            "entry"
+          ],
           "properties": {
-            "clientMutationId": {"$ref": "urn:ui-core:1.0:common#/$defs/uuid"},
-            "registry": {"type": "string", "enum": ["variables", "tags", "languageKeys"]},
-            "entry": {"type": "object"}
+            "clientMutationId": {
+              "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+            },
+            "registry": {
+              "type": "string",
+              "enum": [
+                "variables",
+                "tags",
+                "languageKeys"
+              ]
+            },
+            "entry": {
+              "type": "object"
+            }
           },
           "additionalProperties": false
         },
         {
           "type": "object",
-          "required": ["clientMutationId", "entryId", "changes"],
+          "required": [
+            "clientMutationId",
+            "entryId",
+            "changes"
+          ],
           "properties": {
-            "clientMutationId": {"$ref": "urn:ui-core:1.0:common#/$defs/uuid"},
-            "entryId": {"$ref": "urn:ui-core:1.0:common#/$defs/uuid"},
-            "changes": {"type": "array", "minItems": 1, "maxItems": 200, "items": {"type": "object"}}
+            "clientMutationId": {
+              "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+            },
+            "entryId": {
+              "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+            },
+            "changes": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 200,
+              "items": {
+                "type": "object"
+              }
+            }
           },
           "additionalProperties": false
         },
         {
           "type": "object",
-          "required": ["clientMutationId", "entryId"],
+          "required": [
+            "clientMutationId",
+            "entryId"
+          ],
           "properties": {
-            "clientMutationId": {"$ref": "urn:ui-core:1.0:common#/$defs/uuid"},
-            "entryId": {"$ref": "urn:ui-core:1.0:common#/$defs/uuid"},
-            "force": {"type": "boolean"}
+            "clientMutationId": {
+              "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+            },
+            "entryId": {
+              "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+            },
+            "force": {
+              "type": "boolean"
+            }
           },
           "additionalProperties": false
         },
         {
           "type": "object",
-          "required": ["clientMutationId", "entryId", "newName"],
+          "required": [
+            "clientMutationId",
+            "entryId",
+            "newName"
+          ],
           "properties": {
-            "clientMutationId": {"$ref": "urn:ui-core:1.0:common#/$defs/uuid"},
-            "entryId": {"$ref": "urn:ui-core:1.0:common#/$defs/uuid"},
-            "newName": {"type": "string", "minLength": 1, "maxLength": 256}
+            "clientMutationId": {
+              "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+            },
+            "entryId": {
+              "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+            },
+            "newName": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
           },
           "additionalProperties": false
         }
@@ -678,29 +847,83 @@
             "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
           },
           "uniqueItems": true
+        },
+        "taskAuthorizationId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+        },
+        "serverEulaAccepted": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false
     },
     "publishDatagenPayload": {
       "type": "object",
-      "required": ["clientMutationId", "taskId", "manifestHash"],
+      "required": [
+        "clientMutationId",
+        "taskId",
+        "manifestHash"
+      ],
       "properties": {
-        "clientMutationId": {"$ref": "urn:ui-core:1.0:common#/$defs/uuid"},
-        "taskId": {"$ref": "urn:ui-core:1.0:common#/$defs/uuid"},
-        "manifestHash": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        "clientMutationId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+        },
+        "taskId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+        },
+        "manifestHash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "taskAuthorizationId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+        }
       },
       "additionalProperties": false
     },
     "serverTaskPayload": {
       "type": "object",
-      "required": ["clientMutationId", "scope", "userApproved"],
+      "required": [
+        "clientMutationId",
+        "scope"
+      ],
       "properties": {
-        "clientMutationId": {"$ref": "urn:ui-core:1.0:common#/$defs/uuid"},
-        "scope": {"const": "workspace"},
-        "userApproved": {"type": "boolean"}
+        "clientMutationId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+        },
+        "scope": {
+          "const": "workspace"
+        },
+        "userApproved": {
+          "type": "boolean"
+        },
+        "taskAuthorizationId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+        }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "required": [
+            "userApproved"
+          ],
+          "properties": {
+            "userApproved": {
+              "type": "boolean"
+            }
+          }
+        },
+        {
+          "required": [
+            "taskAuthorizationId"
+          ],
+          "properties": {
+            "taskAuthorizationId": {
+              "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+            }
+          }
+        }
+      ]
     },
     "cancelTaskPayload": {
       "type": "object",
@@ -713,6 +936,9 @@
           "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
         },
         "taskId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+        },
+        "taskAuthorizationId": {
           "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
         }
       },
@@ -732,6 +958,9 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 160
+        },
+        "taskAuthorizationId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
         }
       },
       "additionalProperties": false
@@ -740,8 +969,7 @@
       "type": "object",
       "required": [
         "clientMutationId",
-        "recoveryPointId",
-        "userApproved"
+        "recoveryPointId"
       ],
       "properties": {
         "clientMutationId": {
@@ -753,9 +981,34 @@
         },
         "userApproved": {
           "type": "boolean"
+        },
+        "taskAuthorizationId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "required": [
+            "userApproved"
+          ],
+          "properties": {
+            "userApproved": {
+              "type": "boolean"
+            }
+          }
+        },
+        {
+          "required": [
+            "taskAuthorizationId"
+          ],
+          "properties": {
+            "taskAuthorizationId": {
+              "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+            }
+          }
+        }
+      ]
     },
     "resolveApprovalPayload": {
       "type": "object",
@@ -777,6 +1030,9 @@
             "approve",
             "deny"
           ]
+        },
+        "taskAuthorizationId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
         }
       },
       "additionalProperties": false
@@ -804,6 +1060,9 @@
         },
         "userApproved": {
           "type": "boolean"
+        },
+        "taskAuthorizationId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
         }
       },
       "additionalProperties": false
@@ -831,6 +1090,9 @@
         },
         "userApproved": {
           "type": "boolean"
+        },
+        "taskAuthorizationId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
         }
       },
       "additionalProperties": false
@@ -860,6 +1122,9 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 260
+        },
+        "taskAuthorizationId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
         }
       },
       "additionalProperties": false
@@ -883,6 +1148,84 @@
         "zipFileName": {
           "type": "string",
           "pattern": "^[a-zA-Z0-9._-]{1,80}\\.zip$"
+        },
+        "taskAuthorizationId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+        }
+      },
+      "additionalProperties": false
+    },
+    "createTaskAuthorizationPayload": {
+      "type": "object",
+      "required": [
+        "clientMutationId",
+        "label",
+        "root",
+        "capabilities",
+        "ttlSeconds",
+        "serverEulaAccepted",
+        "userApproved"
+      ],
+      "properties": {
+        "clientMutationId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "root": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "capabilities": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "create",
+              "edit",
+              "build",
+              "test",
+              "run_client",
+              "run_server",
+              "restore"
+            ]
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "ttlSeconds": {
+          "type": "integer",
+          "minimum": 60,
+          "maximum": 86400
+        },
+        "serverEulaAccepted": {
+          "type": "boolean"
+        },
+        "userApproved": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "revokeTaskAuthorizationPayload": {
+      "type": "object",
+      "required": [
+        "clientMutationId",
+        "authorizationId"
+      ],
+      "properties": {
+        "clientMutationId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+        },
+        "authorizationId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
+        },
+        "taskAuthorizationId": {
+          "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
         }
       },
       "additionalProperties": false

@@ -1,0 +1,19 @@
+{
+  "status": "passed",
+  "changedClassFiles": [
+    "net/mcreator/ui/MCreatorApplication.class",
+    "net/mcreator/ui/dialogs/workspace/WorkspaceDialogs$WorkspaceDialogPanel$5.class"
+  ],
+  "behaviorChangedClasses": [
+    "net/mcreator/ui/MCreatorApplication.class"
+  ],
+  "debugMetadataOnlyClasses": [
+    "net/mcreator/ui/dialogs/workspace/WorkspaceDialogs$WorkspaceDialogPanel$5.class"
+  ],
+  "debugMetadataDifference": "Anonymous validator constructor local-variable names changed from holder/emptyMessage to arg0/arg1; javap -c -p output is byte-identical",
+  "allRemainingClassFilesUnchanged": true,
+  "packagedMainClassMatchesObservedSourceSmoke": true,
+  "packagedMainClassSha256": "b337e78ece90741c27828baada4c0c75cde57176c9ba0f5a712c893e3e4de3d0",
+  "applicationJarSha256": "3d58f235c0609d4c18fd6d9b43680bbfd9c80c168dbccbe9eccc5b951b05ac19",
+  "sourceFileSha256": "b0a718bafa571197e007a24876bc63295a6241d15fbffe410e4fbbbbbd7a6178"
+}

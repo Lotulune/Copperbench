@@ -1,0 +1,12 @@
+{
+  "mod": "resonance_token",
+  "artifactPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\artifacts\\resonance_token\\resonance_token-1.0.jar",
+  "artifactSha256": "f3a1b4a3dd94f860eee2af0df034fcf556c380d2dbf5f423ea1a556f211c8939",
+  "reportSha256": "d05ec52f8f75243164dfa8ae4738bff957d7b2d28f88993582c3eb73434b70a0",
+  "acceptanceExecuted": 5,
+  "sourceSnapshotSha256": "bd2032ca0e0c97d7b51c7e9c3e28107e5b05152ba79ae5881ddf82e0e84cfae1",
+  "sourceCurrentAtCompletion": true,
+  "mode": "packaged_jar",
+  "taskId": "4938e4c1-b94e-4910-ba87-aac5309cdc84",
+  "commandLabel": "09-resonance-gametest"
+}

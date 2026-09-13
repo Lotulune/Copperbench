@@ -37,6 +37,7 @@ import {
   RecoveryRestorePreview,
   WorkspaceHealthProjection
 } from '../types/contract';
+import type { TaskAuthorization, TaskAuthorizationRequest, CommandOperation } from '../types/contract';
 import {
   coreBridge,
   BridgeState,
@@ -113,6 +114,11 @@ interface WorkbenchContextType {
   previewTaskSource: (taskId: UUID, sourcePath: string) => Promise<TaskSourcePreview | null>;
   publishDatagenOutput: (taskId: UUID, manifestHash: string) => Promise<CommandResult>;
   runGameTest: () => Promise<CommandResult>;
+  prepareGameTests: () => Promise<CommandResult>;
+  listTaskAuthorizations: () => Promise<TaskAuthorization[]>;
+  getWorkspaceRoot: () => Promise<string>;
+  createTaskAuthorization: (request: TaskAuthorizationRequest) => Promise<CommandResult>;
+  revokeTaskAuthorization: (authorizationId: UUID) => Promise<CommandResult>;
   cancelTask: (taskId: UUID) => Promise<CommandResult>;
   createRecoveryPoint: (label: string) => Promise<CommandResult>;
   refreshHistory: () => Promise<HistoryProjection | null>;
@@ -704,7 +710,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   }, [state.workbench]);
 
   const runWorkspaceTask = useCallback(async (
-    operation: 'run_server' | 'run_datagen' | 'run_gametest',
+    operation: 'run_server' | 'run_datagen' | 'run_gametest' | 'prepare_game_tests',
     userApproved?: boolean
   ): Promise<CommandResult> => {
     const workspaceId = state.workbench?.workspace.id || generateUUID();
@@ -733,6 +739,34 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     [runWorkspaceTask]);
   const runDatagen = useCallback(() => runWorkspaceTask('run_datagen'), [runWorkspaceTask]);
   const runGameTest = useCallback(() => runWorkspaceTask('run_gametest'), [runWorkspaceTask]);
+  const prepareGameTests = useCallback(() => runWorkspaceTask('prepare_game_tests'), [runWorkspaceTask]);
+
+  const listTaskAuthorizations = useCallback(async (): Promise<TaskAuthorization[]> => {
+    const result = await coreBridge.sendQuery<{ authorizations: TaskAuthorization[] }>({
+      messageType: 'query', schemaVersion: '1.0', requestId: generateUUID(),
+      workspaceId: state.workbench?.workspace.id || generateUUID(), operation: 'list_task_authorizations', payload: {}
+    });
+    if (result.status !== 'succeeded' || !result.data) throw new Error(t(result.diagnostics[0]?.message ?? '无法读取任务授权'));
+    return result.data.authorizations;
+  }, [state.workbench?.workspace.id]);
+
+  const getWorkspaceRoot = useCallback(async (): Promise<string> => {
+    const result = await coreBridge.sendQuery<{ execution: { workspaceRoot?: string } }>({
+      messageType: 'query', schemaVersion: '1.0', requestId: generateUUID(),
+      workspaceId: state.workbench?.workspace.id || generateUUID(), operation: 'get_workspace_environment', payload: {}
+    });
+    return result.data?.execution?.workspaceRoot ?? '';
+  }, [state.workbench?.workspace.id]);
+
+  const taskAuthorizationCommand = useCallback((operation: CommandOperation, payload: object): Promise<CommandResult> =>
+    coreBridge.sendCommand({ messageType: 'command', schemaVersion: '1.0', requestId: generateUUID(),
+      workspaceId: state.workbench?.workspace.id || generateUUID(), expectedRevision: state.workbench?.workspace.revision ?? 0,
+      operation, payload: { clientMutationId: generateUUID(), ...payload }
+    }), [state.workbench]);
+  const createTaskAuthorization = useCallback((request: TaskAuthorizationRequest) =>
+    taskAuthorizationCommand('create_task_authorization', { ...request, userApproved: true }), [taskAuthorizationCommand]);
+  const revokeTaskAuthorization = useCallback((authorizationId: UUID) =>
+    taskAuthorizationCommand('revoke_task_authorization', { authorizationId }), [taskAuthorizationCommand]);
 
   const previewDatagenOutput = useCallback(async (taskId: UUID): Promise<DatagenPreview | null> => {
     const res = await coreBridge.sendQuery<DatagenPreview>({
@@ -1288,6 +1322,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       previewTaskSource,
       publishDatagenOutput,
       runGameTest,
+      prepareGameTests, listTaskAuthorizations, getWorkspaceRoot, createTaskAuthorization, revokeTaskAuthorization,
       cancelTask,
       createRecoveryPoint,
       refreshHistory,
@@ -1366,6 +1401,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       previewTaskSource,
       publishDatagenOutput,
       runGameTest,
+      prepareGameTests, listTaskAuthorizations, getWorkspaceRoot, createTaskAuthorization, revokeTaskAuthorization,
       cancelTask,
       createRecoveryPoint,
       refreshHistory,

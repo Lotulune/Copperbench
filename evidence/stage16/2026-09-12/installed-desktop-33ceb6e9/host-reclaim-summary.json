@@ -1,0 +1,38 @@
+[
+  {
+    "file": "host-trim-141218.json",
+    "recordedAt": "2026-09-12T06:12:21.1324765+00:00",
+    "method": "Windows EmptyWorkingSet on enumerated non-system desktop applications",
+    "processesClosed": 0,
+    "processesSuspended": 0,
+    "persistentSettingsChanged": false,
+    "freeBytesBefore": 3923849216,
+    "freeBytesAfter": 6856785920,
+    "processCount": 33,
+    "successfulTrimCount": 33
+  },
+  {
+    "file": "host-trim-before-desktop.json",
+    "recordedAt": "2026-09-12T06:23:46.1567361+00:00",
+    "method": "Windows EmptyWorkingSet on enumerated non-system desktop applications",
+    "processesClosed": 0,
+    "processesSuspended": 0,
+    "persistentSettingsChanged": false,
+    "freeBytesBefore": 931192832,
+    "freeBytesAfter": 1927888896,
+    "processCount": 20,
+    "successfulTrimCount": 20
+  },
+  {
+    "file": "host-trim-before-windows.json",
+    "recordedAt": "2026-09-12T06:38:34.9873131+00:00",
+    "method": "Windows EmptyWorkingSet on enumerated non-system desktop applications",
+    "processesClosed": 0,
+    "processesSuspended": 0,
+    "persistentSettingsChanged": false,
+    "freeBytesBefore": 5731717120,
+    "freeBytesAfter": 6322147328,
+    "processCount": 20,
+    "successfulTrimCount": 20
+  }
+]

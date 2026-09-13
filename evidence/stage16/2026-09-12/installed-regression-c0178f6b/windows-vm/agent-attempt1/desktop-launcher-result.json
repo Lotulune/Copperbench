@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "1.0",
+  "helperExitCode": 0,
+  "notificationEvents": [
+    {
+      "stage": "copperbench-close-requested",
+      "at": "2026-09-12T08:53:36.798961+00:00"
+    },
+    {
+      "stage": "copperbench-reopen-requested",
+      "at": "2026-09-12T08:57:04.321470+00:00"
+    },
+    {
+      "stage": "copperbench-second-close-requested",
+      "at": "2026-09-12T08:59:09.110534+00:00"
+    }
+  ],
+  "workspacePath": "C:\\Temp\\S16-c0178f6b\\workspace\\stage16_installed.mcreator",
+  "tokenPersisted": false,
+  "formalSupportClaim": false
+}

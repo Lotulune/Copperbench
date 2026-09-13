@@ -1,0 +1,8 @@
+[5268:5268:0912/095630.099732:ERROR:components/viz/service/main/viz_main_impl.cc:183] Exiting GPU process due to errors during initialization
+[5271:5276:0912/095735.415715:ERROR:net/socket/ssl_client_socket_impl.cc:878] handshake failed; returned -1, SSL error code 1, net_error -101
+[5271:5276:0912/095735.811657:ERROR:net/socket/ssl_client_socket_impl.cc:878] handshake failed; returned -1, SSL error code 1, net_error -101
+[5434:5434:0912/095930.058548:ERROR:services/on_device_model/ml/gpu_blocklist.cc:120] Unable to get gpu adapter
+[5154:5247:0912/095930.058828:ERROR:services/on_device_model/public/cpp/service_client.cc:36] Unexpected on_device_model service disconnect: The device's GPU is not supported.
+[5271:5276:0912/100955.394686:ERROR:net/socket/ssl_client_socket_impl.cc:878] handshake failed; returned -1, SSL error code 1, net_error -101
+[5271:5276:0912/101108.298123:ERROR:net/socket/ssl_client_socket_impl.cc:878] handshake failed; returned -1, SSL error code 1, net_error -101
+[5271:5276:0912/101113.361120:ERROR:net/socket/ssl_client_socket_impl.cc:878] handshake failed; returned -1, SSL error code 1, net_error -101

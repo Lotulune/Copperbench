@@ -1,0 +1,14 @@
+{
+  "at": "2026-09-12T13:47:24.043283+00:00",
+  "status": "passed",
+  "verificationScope": "Evidence integrity and truthful incomplete validation checkpoint",
+  "archivedFiles": 99,
+  "memorySamples": 390,
+  "maxRunningVirtualMachines": 1,
+  "virtualMachineCapGiB": 4,
+  "fullColdCacheComplete": false,
+  "approvalPending": true,
+  "initialColdCreationPassed": true,
+  "firstUseSourceFixSmokePassed": true,
+  "fixedCandidateInstallValidationPassed": false
+}

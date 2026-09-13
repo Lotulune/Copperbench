@@ -1,0 +1,16 @@
+{
+  "label": "03-environment",
+  "command": [
+    "/usr/bin/copperbench",
+    "headless",
+    "--workspace",
+    "/home/stage15/stage16-3c0aa090/pr-repair-workspace/resonance_token.mcreator",
+    "environment"
+  ],
+  "startedAt": "2026-09-11T13:20:36.068944+00:00",
+  "callerRuntimeOptionsRemoved": [],
+  "firstOutputMs": 2311,
+  "processExitCode": 0,
+  "completedAt": "2026-09-11T13:20:38.449443+00:00",
+  "elapsedMs": 2381
+}

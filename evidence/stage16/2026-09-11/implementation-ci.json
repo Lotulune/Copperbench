@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0",
+  "sourceCommit": "a3322c86256686edec5ac260dac2b8adaccf73d1",
+  "runs": [
+    {
+      "conclusion": "success",
+      "databaseId": 34588551646,
+      "headSha": "a3322c86256686edec5ac260dac2b8adaccf73d1",
+      "status": "completed",
+      "url": "https://github.com/Lotulune/Copperbench/actions/runs/34588551646"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 34588551765,
+      "headSha": "a3322c86256686edec5ac260dac2b8adaccf73d1",
+      "status": "completed",
+      "url": "https://github.com/Lotulune/Copperbench/actions/runs/34588551765"
+    }
+  ],
+  "checks": [
+    {
+      "link": "https://github.com/Lotulune/Copperbench/runs/103230577156",
+      "name": "JUnit Test Report",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/Lotulune/Copperbench/actions/runs/34588551646/job/103228289980",
+      "name": "Java tests and Javadoc",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/Lotulune/Copperbench/actions/runs/34588551765/job/103228289860",
+      "name": "Ubuntu 24.04 package candidate smoke",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/Lotulune/Copperbench/actions/runs/34588551646/job/103228290071",
+      "name": "UI contract, build, and smoke tests",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/Lotulune/Copperbench/actions/runs/34588551646/job/103228290483",
+      "name": "MCP conformance",
+      "state": "SUCCESS"
+    }
+  ],
+  "cleanGnomeCertification": false,
+  "publicRelease": false
+}

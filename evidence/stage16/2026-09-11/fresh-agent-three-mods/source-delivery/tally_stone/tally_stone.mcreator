@@ -1,0 +1,54 @@
+{
+  "mod_elements": [],
+  "variable_elements": [],
+  "sound_elements": [],
+  "tag_elements": {},
+  "tab_element_order": {},
+  "language_map": {
+    "en_us": {}
+  },
+  "foldersRoot": {
+    "name": "~",
+    "children": []
+  },
+  "workspaceSettings": {
+    "modid": "tally_stone",
+    "modName": "Tally Stone",
+    "version": "1.0.0",
+    "serverSideOnly": false,
+    "requiredMods": [],
+    "dependencies": [],
+    "dependants": [],
+    "mcreatorDependencies": [],
+    "currentGenerator": "fabric-1.21.1",
+    "modElementsPackage": "net.mcreator.tally_stone"
+  },
+  "mcreatorVersion": 202600299999,
+  "metadata": {
+    "files": [
+      "src/main/java/net/mcreator/tally_stone/TallyStoneMod.java",
+      "src/main/resources/tally_stone.mixins.json",
+      "src/main/java/net/mcreator/tally_stone/mixin/ItemStackMixin.java",
+      "src/main/resources/pack.mcmeta",
+      "src/main/java/net/mcreator/tally_stone/TallyStoneModClient.java",
+      "src/main/resources/fabric.mod.json",
+      "src/main/java/net/mcreator/tally_stone/mixin/BlockItemMixin.java",
+      "src/main/java/net/mcreator/tally_stone/event/MiscEvents.java",
+      "src/main/java/net/mcreator/tally_stone/mixin/PlayerMixin.java",
+      "src/main/java/net/mcreator/tally_stone/event/PlayerEvents.java",
+      "src/main/java/net/mcreator/tally_stone/mixin/BoneMealItemMixin.java",
+      "src/main/java/net/mcreator/tally_stone/event/ItemEvents.java",
+      "src/main/java/net/mcreator/tally_stone/event/LivingEntityEvents.java",
+      "src/main/resources/META-INF/tally_stone.classtweaker",
+      "src/main/java/net/mcreator/tally_stone/mixin/LivingEntityMixin.java",
+      "src/main/java/net/mcreator/tally_stone/mixin/ExperienceOrbMixin.java",
+      "src/main/java/net/mcreator/tally_stone/mixin/CommandsMixin.java",
+      "src/main/java/net/mcreator/tally_stone/event/BlockEvents.java"
+    ]
+  },
+  "dev.copperbench": {
+    "schemaVersion": 1,
+    "workspaceId": "8c0ee568-d8df-4c85-a66a-aa9bc5bf6c3c",
+    "revision": 0
+  }
+}

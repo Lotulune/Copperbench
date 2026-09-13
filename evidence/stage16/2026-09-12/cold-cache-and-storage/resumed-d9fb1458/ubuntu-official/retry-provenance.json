@@ -1,0 +1,12 @@
+{
+  "at": "2026-09-12T15:25:08.284027+00:00",
+  "previousTrial": "/home/stage15/s16-cold-fixed",
+  "copied": [
+    "verification scripts",
+    "candidate metadata",
+    "installation metadata"
+  ],
+  "sourceCacheCopied": false,
+  "userDataCopied": false,
+  "networkProfile": "official repositories"
+}

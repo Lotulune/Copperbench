@@ -1,0 +1,182 @@
+2026-09-12-22:36:01 [main/WARN] [Launcher] APPLICATION_IPC_TCP_FALLBACK: Windows local socket probe failed; using the verified JDK TCP wakeup pipe for this application process.
+2026-09-12-22:36:01 [main/INFO] [Launcher] Starting Copperbench 0.1.0 with MCreator core 2026.2.99999 - 202600299999
+2026-09-12-22:36:01 [main/INFO] [Launcher] Java version: 25.0.3+1-b329.124, VM: OpenJDK 64-Bit Server VM, vendor: JetBrains s.r.o.
+2026-09-12-22:36:01 [main/INFO] [Launcher] Current JAVA_HOME for running instance: C:\Program Files\Copperbench\jdk
+2026-09-12-22:36:01 [main/DEBUG] [Preferences Manager] Loading preferences from core
+2026-09-12-22:36:01 [main/INFO] [Launcher] Installation path: C:\Program Files\Copperbench
+2026-09-12-22:36:01 [main/INFO] [Launcher] User data directory of Copperbench: D:\AICoding\testmod2\s16-cold-official\home\.copperbench
+2026-09-12-22:36:04 [Application-Loader/DEBUG] [Plugin Loader] Searching for plugins in: .\plugins
+2026-09-12-22:36:04 [Application-Loader/DEBUG] [Plugin Loader] Searching for plugins in: D:\AICoding\testmod2\s16-cold-official\home\.copperbench\plugins
+2026-09-12-22:36:04 [Application-Loader/INFO] [Plugin Loader] Loading plugin: generator-26.2 from .\plugins\generator-26.2.zip, weight: 13
+2026-09-12-22:36:04 [Application-Loader/INFO] [Plugin Loader] Loading plugin: generator-fabric-26.2 from .\plugins\generator-fabric-26.2.zip, weight: 12
+2026-09-12-22:36:04 [Application-Loader/INFO] [Plugin Loader] Loading plugin: generator-fabric-26.1.2 from .\plugins\generator-fabric-26.1.2.zip, weight: 11
+2026-09-12-22:36:04 [Application-Loader/INFO] [Plugin Loader] Loading plugin: generator-1.20.1 from .\plugins\generator-1.20.1.zip, weight: 10
+2026-09-12-22:36:04 [Application-Loader/INFO] [Plugin Loader] Loading plugin: core from .\plugins\mcreator-core.zip, weight: 10
+2026-09-12-22:36:04 [Application-Loader/INFO] [Plugin Loader] Loading plugin: localization from .\plugins\mcreator-localization.zip, weight: 10
+2026-09-12-22:36:04 [Application-Loader/INFO] [Plugin Loader] Loading plugin: themes from .\plugins\mcreator-themes.zip, weight: 10
+2026-09-12-22:36:04 [Application-Loader/INFO] [Plugin Loader] Loading plugin: generator-1.21.1 from .\plugins\generator-1.21.1.zip, weight: 0
+2026-09-12-22:36:04 [Application-Loader/INFO] [Plugin Loader] Loading plugin: generator-26.1.x from .\plugins\generator-26.1.x.zip, weight: 0
+2026-09-12-22:36:04 [Application-Loader/INFO] [Plugin Loader] Loading plugin: generator-addon-26.1x from .\plugins\generator-addon-26.1x.zip, weight: 0
+2026-09-12-22:36:04 [Application-Loader/INFO] [Plugin Loader] Loading plugin: mcreator-link from .\plugins\mcreator-link.zip, weight: 0
+2026-09-12-22:36:04 [Application-Loader/DEBUG] [Theme Loader] Loading UI themes
+2026-09-12-22:36:04 [Application-Loader/INFO] [Theme Loader] Using MCreator UI theme: default_dark
+2026-09-12-22:36:04 [Application-Loader/DEBUG] [net.mcreator.ui.chromium.WebView] Preloading CEF WebView
+2026-09-12-22:36:04 [Application-Loader/INFO] [CEF] Initializing JCEF in WR mode
+2026-09-12-22:36:04 [Application-Loader/DEBUG] [CEF] JCEF arguments: [--disable-extensions, --disable-default-apps, --disable-sync, --disable-speech-api, --mute-audio, --disable-gaia-services, --force-renderer-accessibility=complete, --disable-features=TranslateUI,WebUSB,SpareRendererForSitePerProcess,WebBluetooth,WebSerial,MediaRouter,NewUsbBackend,WebHID]
+2026-09-12-22:36:05 [Application-Loader/DEBUG] [CEF] Deleting orphaned CEF cache folder C:\Users\ADMINI~1\AppData\Local\Temp\mcreator-cef-cache-10009585516035459526
+2026-09-12-22:36:06 [AWT-EventQueue-0/DEBUG] [CEF] CefApp initialized (JCEF: 137.0.17.1142.68de80bc86de497c8d0632ad0f8fe33625b33bff, CEF: 137.0.17, Chromium: 137.0.7151.104)
+2026-09-12-22:36:06 [Application-Loader/DEBUG] [net.mcreator.ui.chromium.WebView] JCEF browser host does not expose setAccessibilityState; platform UIA may remain unavailable
+2026-09-12-22:36:09 [Application-Loader/INFO] [L10N] Setting default locale to: en_US; OS locale: zh_CN
+2026-09-12-22:36:09 [Application-Loader/DEBUG] [Data List Loader] Added damagesources datamap to cache
+2026-09-12-22:36:09 [Application-Loader/DEBUG] [Data List Loader] Added potions datamap to cache
+2026-09-12-22:36:09 [Application-Loader/DEBUG] [Data List Loader] Added itemtypes datamap to cache
+2026-09-12-22:36:09 [Application-Loader/DEBUG] [Data List Loader] Added defaultfeatures datamap to cache
+2026-09-12-22:36:09 [Application-Loader/DEBUG] [Data List Loader] Added configuredfeatures datamap to cache
+2026-09-12-22:36:09 [Application-Loader/DEBUG] [Data List Loader] Added be_biometags datamap to cache
+2026-09-12-22:36:09 [Application-Loader/DEBUG] [Data List Loader] Added blocksitems datamap to cache
+2026-09-12-22:36:09 [Application-Loader/DEBUG] [Data List Loader] Added tabs datamap to cache
+2026-09-12-22:36:09 [Application-Loader/DEBUG] [Data List Loader] Added projectiles datamap to cache
+2026-09-12-22:36:09 [Application-Loader/DEBUG] [Data List Loader] Added gameevents datamap to cache
+2026-09-12-22:36:09 [Application-Loader/DEBUG] [Data List Loader] Added itemuseanimations datamap to cache
+2026-09-12-22:36:09 [Application-Loader/DEBUG] [Data List Loader] Added fluids datamap to cache
+2026-09-12-22:36:09 [Application-Loader/DEBUG] [Data List Loader] Added planttypes datamap to cache
+2026-09-12-22:36:09 [Application-Loader/DEBUG] [Data List Loader] Added gamemodes datamap to cache
+2026-09-12-22:36:09 [Application-Loader/DEBUG] [Data List Loader] Added entities datamap to cache
+2026-09-12-22:36:09 [Application-Loader/DEBUG] [Data List Loader] Added eventparameters datamap to cache
+2026-09-12-22:36:09 [Application-Loader/DEBUG] [Data List Loader] Added attributes datamap to cache
+2026-09-12-22:36:09 [Application-Loader/DEBUG] [Data List Loader] Added stepsounds datamap to cache
+2026-09-12-22:36:09 [Application-Loader/DEBUG] [Data List Loader] Added biomes datamap to cache
+2026-09-12-22:36:09 [Application-Loader/DEBUG] [Data List Loader] Added soundcategories datamap to cache
+2026-09-12-22:36:09 [Application-Loader/DEBUG] [Data List Loader] Added blockstateproperties datamap to cache
+2026-09-12-22:36:09 [Application-Loader/DEBUG] [Data List Loader] Added mapcolors datamap to cache
+2026-09-12-22:36:09 [Application-Loader/DEBUG] [Data List Loader] Added pathnodetypes datamap to cache
+2026-09-12-22:36:09 [Application-Loader/DEBUG] [Data List Loader] Added dimensions datamap to cache
+2026-09-12-22:36:09 [Application-Loader/DEBUG] [Data List Loader] Added achievements datamap to cache
+2026-09-12-22:36:09 [Application-Loader/DEBUG] [Data List Loader] Added enchantments datamap to cache
+2026-09-12-22:36:09 [Application-Loader/DEBUG] [Data List Loader] Added particles datamap to cache
+2026-09-12-22:36:09 [Application-Loader/DEBUG] [Data List Loader] Added directions datamap to cache
+2026-09-12-22:36:09 [Application-Loader/DEBUG] [Data List Loader] Added equipmentslots datamap to cache
+2026-09-12-22:36:09 [Application-Loader/DEBUG] [Data List Loader] Added gamerules datamap to cache
+2026-09-12-22:36:09 [Application-Loader/DEBUG] [Data List Loader] Added noteblockinstruments datamap to cache
+2026-09-12-22:36:09 [Application-Loader/DEBUG] [Data List Loader] Added keybuttons datamap to cache
+2026-09-12-22:36:09 [Application-Loader/DEBUG] [Data List Loader] Added sounds datamap to cache
+2026-09-12-22:36:09 [Application-Loader/DEBUG] [Data List Loader] Added mobspawntypes datamap to cache
+2026-09-12-22:36:09 [Application-Loader/DEBUG] [Data List Loader] Added screens datamap to cache
+2026-09-12-22:36:09 [Application-Loader/DEBUG] [Data List Loader] Added villagerprofessions datamap to cache
+2026-09-12-22:36:09 [Application-Loader/DEBUG] [Data List Loader] Added be_biomes datamap to cache
+2026-09-12-22:36:09 [Application-Loader/DEBUG] [Data List Loader] Added generationsteps datamap to cache
+2026-09-12-22:36:09 [Application-Loader/DEBUG] [Data List Loader] Added effects datamap to cache
+2026-09-12-22:36:09 [Application-Loader/DEBUG] [Data List Loader] Added itemproperties datamap to cache
+2026-09-12-22:36:09 [Application-Loader/DEBUG] [Data List Loader] Added structures datamap to cache
+2026-09-12-22:36:09 [Application-Loader/DEBUG] [Data List Loader] Added suggestionproviders datamap to cache
+2026-09-12-22:36:09 [Application-Loader/DEBUG] [Data List Loader] Added animations datamap to cache
+2026-09-12-22:36:09 [Application-Loader/DEBUG] [Mod API manager] Loaded mod API definition: mcreator_link
+2026-09-12-22:36:09 [Application-Loader/DEBUG] [Variable loader] Loading variable types
+2026-09-12-22:36:09 [Application-Loader/DEBUG] [Blockly JavaScript Files loader] Loading Blockly JavaScript files from plugins
+2026-09-12-22:36:09 [Application-Loader/DEBUG] [Blockly Toolboxes loader] Loading Blockly toolboxes from plugins
+2026-09-12-22:36:09 [Application-Loader/DEBUG] [Blockly loader] Loading blocks for procedures
+2026-09-12-22:36:09 [Application-Loader/DEBUG] [Blockly loader] Loading blocks for aitasks
+2026-09-12-22:36:09 [Application-Loader/DEBUG] [Blockly loader] Loading blocks for jsontriggers
+2026-09-12-22:36:09 [Application-Loader/DEBUG] [Blockly loader] Loading blocks for cmdargs
+2026-09-12-22:36:09 [Application-Loader/DEBUG] [Blockly loader] Loading blocks for features
+2026-09-12-22:36:09 [Application-Loader/DEBUG] [Blockly loader] Loading blocks for scripts
+2026-09-12-22:36:09 [Application-Loader/DEBUG] [Blockly loader] Loading blocks for enchantmenteffects
+2026-09-12-22:36:09 [Application-Loader/DEBUG] [Entity Animations Loader] Loading entity animations
+2026-09-12-22:36:10 [Application-Loader/INFO] [Application] Loading generator: addon-26.1x/generator.yaml
+2026-09-12-22:36:10 [Application-Loader/INFO] [Application] Loading generator: datapack-1.20.1/generator.yaml
+2026-09-12-22:36:10 [Application-Loader/DEBUG] [Data List Loader] Added features datamap to cache
+2026-09-12-22:36:10 [Application-Loader/INFO] [Application] Loading generator: datapack-1.21.1/generator.yaml
+2026-09-12-22:36:10 [Application-Loader/INFO] [Application] Loading generator: datapack-26.1.x/generator.yaml
+2026-09-12-22:36:10 [Application-Loader/INFO] [Application] Loading generator: fabric-1.20.1/generator.yaml
+2026-09-12-22:36:10 [Application-Loader/DEBUG] [Data List Loader] Added types datamap to cache
+2026-09-12-22:36:10 [Application-Loader/INFO] [Application] Loading generator: fabric-1.21.1/generator.yaml
+2026-09-12-22:36:10 [Application-Loader/INFO] [Application] Loading generator: fabric-26.1.2/generator.yaml
+2026-09-12-22:36:10 [Application-Loader/INFO] [Application] Loading generator: fabric-26.2/generator.yaml
+2026-09-12-22:36:10 [Application-Loader/INFO] [Application] Loading generator: neoforge-1.20.1/generator.yaml
+2026-09-12-22:36:10 [Application-Loader/INFO] [Application] Loading generator: neoforge-1.21.1/generator.yaml
+2026-09-12-22:36:10 [Application-Loader/INFO] [Application] Loading generator: neoforge-26.1.2/generator.yaml
+2026-09-12-22:36:10 [Application-Loader/INFO] [Application] Loading generator: neoforge-26.2/generator.yaml
+2026-09-12-22:36:10 [Application-Loader/INFO] [Application] Loading generator: resourcepack-1.21.1/generator.yaml
+2026-09-12-22:36:10 [Application-Loader/INFO] [Application] Loading generator: resourcepack-26.1.x/generator.yaml
+2026-09-12-22:37:28 [Application-Loader/DEBUG] [Application] Application loader finished
+2026-09-12-22:37:30 [AWT-EventQueue-0/DEBUG] [net.mcreator.workspace.localhistory.GitHistoryBackend] Loading local history repository
+2026-09-12-22:37:30 [AWT-EventQueue-0/INFO] [Generator fabric-1.21.1] Gradle cache will be loaded from cache file
+2026-09-12-22:37:30 [AWT-EventQueue-0/DEBUG] [net.mcreator.java.ProjectJarManager] Loading JVM Eclipse Adoptium 21.0.12 info from C:\Program Files\Copperbench\jdk21
+2026-09-12-22:37:30 [AWT-EventQueue-0/DEBUG] [net.mcreator.java.ProjectJarManager] Loaded JVM info of type ModulesFileLibraryInfo
+2026-09-12-22:37:30 [GitHistoryBackend/WARN] [net.mcreator.workspace.localhistory.GitHistoryBackend] Failed to save initial checkpoint
+org.eclipse.jgit.api.errors.JGitInternalException: Exception caught during execution of add command
+	at org.eclipse.jgit.api.AddCommand.call(AddCommand.java:322)
+	at net.mcreator.workspace.localhistory.GitHistoryBackend.stageChanges(GitHistoryBackend.java:337)
+	at net.mcreator.workspace.localhistory.GitHistoryBackend.lambda$new$2(GitHistoryBackend.java:121)
+	at net.mcreator.workspace.localhistory.GitHistoryBackend.lambda$runGitTask$0(GitHistoryBackend.java:414)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:545)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:328)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1090)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:614)
+	at java.base/java.lang.Thread.run(Thread.java:1474)
+Caused by: java.io.IOException: 另一个程序已锁定文件的一部分，进程无法访问。
+	at java.base/sun.nio.ch.FileDispatcherImpl.read0(Native Method)
+	at java.base/sun.nio.ch.FileDispatcherImpl.read(FileDispatcherImpl.java:60)
+	at java.base/sun.nio.ch.IOUtil.readIntoNativeBuffer(IOUtil.java:341)
+	at java.base/sun.nio.ch.IOUtil.read(IOUtil.java:307)
+	at java.base/sun.nio.ch.IOUtil.read(IOUtil.java:284)
+	at java.base/sun.nio.ch.FileChannelImpl.implRead(FileChannelImpl.java:273)
+	at java.base/sun.nio.ch.FileChannelImpl.read(FileChannelImpl.java:253)
+	at java.base/java.io.FileInputStream.implRead(FileInputStream.java:357)
+	at java.base/java.io.FileInputStream.read(FileInputStream.java:348)
+	at java.base/java.io.InputStream.readNBytes(InputStream.java:508)
+	at org.eclipse.jgit.util.IO.readFully(IO.java:212)
+	at org.eclipse.jgit.internal.storage.file.ObjectDirectoryInserter.insert(ObjectDirectoryInserter.java:117)
+	at org.eclipse.jgit.internal.storage.file.ObjectDirectoryInserter.insert(ObjectDirectoryInserter.java:92)
+	at org.eclipse.jgit.api.AddCommand.call(AddCommand.java:304)
+	... 8 more
+2026-09-12-22:37:30 [AWT-EventQueue-0/INFO] [Workspace] Loaded workspace file D:\AICoding\testmod2\s16-cold-official\workspace\stage16_cold.mcreator
+2026-09-12-22:37:30 [AWT-EventQueue-0/INFO] [MCreator] Opening MCreator workspace: stage16_cold
+2026-09-12-22:37:33 [AWT-EventQueue-0/ERROR] [STDERR] Sep 12, 2026 10:37:33 PM org.apache.coyote.AbstractProtocol init
+INFO: Initializing ProtocolHandler ["http-nio-127.0.0.1-auto-1"]
+2026-09-12-22:37:33 [AWT-EventQueue-0/ERROR] [STDERR] Sep 12, 2026 10:37:33 PM org.apache.catalina.core.StandardService startInternal
+INFO: Starting service [Tomcat]
+2026-09-12-22:37:33 [AWT-EventQueue-0/ERROR] [STDERR] Sep 12, 2026 10:37:33 PM org.apache.catalina.core.StandardEngine startInternal
+INFO: Starting Servlet engine: [Apache Tomcat/11.0.2]
+2026-09-12-22:37:34 [AWT-EventQueue-0/ERROR] [STDERR] Sep 12, 2026 10:37:34 PM org.apache.coyote.AbstractProtocol start
+INFO: Starting ProtocolHandler ["http-nio-127.0.0.1-auto-1-58313"]
+2026-09-12-22:37:34 [AWT-EventQueue-0/DEBUG] [net.mcreator.ui.chromium.WebView] JCEF browser host does not expose setAccessibilityState; platform UIA may remain unavailable
+2026-09-12-22:37:34 [AWT-EventQueue-0/INFO] [MCreator] Copperbench product shell enabled for workspace stage16_cold
+2026-09-12-22:37:34 [AWT-EventQueue-0/INFO] [dev.copperbench.window.WindowsWindowChromeController] Installed Windows product-shell chrome at 120 DPI
+2026-09-12-22:37:59 [Workspace-File-Manager/DEBUG] [Workspace File Manager/STAGE16_COLD] Workspace stored on the FS
+2026-09-12-22:39:24 [Thread-229/INFO] [dev.copperbench.generator.BundledJdkLocator] Bundled JDK resolved: distributionRoot=C:\Program Files\Copperbench, javaRelease=21, resolvedJavaHome=C:\Program Files\Copperbench\jdk21, attempted=[C:\Program Files\Copperbench\jdk21], java.home=C:\Program Files\Copperbench\jdk, user.dir=C:\Program Files\Copperbench
+2026-09-12-22:43:35 [boundedElastic-2/INFO] [Workspace File Manager/STAGE16_COLD] Saving the workspace by direct request
+2026-09-12-22:43:35 [boundedElastic-2/DEBUG] [Workspace File Manager/STAGE16_COLD] Workspace stored on the FS
+2026-09-12-22:43:35 [GitHistoryBackend/WARN] [net.mcreator.workspace.localhistory.GitHistoryBackend] Failed to save local history checkpoint: Exception caught during execution of add command
+2026-09-12-22:43:36 [boundedElastic-2/INFO] [Workspace File Manager/STAGE16_COLD] Saving the workspace by direct request
+2026-09-12-22:43:36 [boundedElastic-2/DEBUG] [Workspace File Manager/STAGE16_COLD] Workspace stored on the FS
+2026-09-12-22:43:37 [boundedElastic-2/INFO] [Workspace File Manager/STAGE16_COLD] Saving the workspace by direct request
+2026-09-12-22:43:37 [boundedElastic-2/DEBUG] [Workspace File Manager/STAGE16_COLD] Workspace stored on the FS
+2026-09-12-22:43:37 [GitHistoryBackend/WARN] [net.mcreator.workspace.localhistory.GitHistoryBackend] Failed to save local history checkpoint: Exception caught during execution of add command
+2026-09-12-22:43:37 [boundedElastic-2/INFO] [Workspace File Manager/STAGE16_COLD] Saving the workspace by direct request
+2026-09-12-22:43:37 [boundedElastic-2/DEBUG] [Workspace File Manager/STAGE16_COLD] Workspace stored on the FS
+2026-09-12-22:43:37 [/INFO] [dev.copperbench.generator.BundledJdkLocator] Bundled JDK resolved: distributionRoot=C:\Program Files\Copperbench, javaRelease=21, resolvedJavaHome=C:\Program Files\Copperbench\jdk21, attempted=[C:\Program Files\Copperbench\jdk21], java.home=C:\Program Files\Copperbench\jdk, user.dir=C:\Program Files\Copperbench
+2026-09-12-22:44:28 [boundedElastic-2/INFO] [Workspace File Manager/STAGE16_COLD] Saving the workspace by direct request
+2026-09-12-22:44:28 [boundedElastic-2/DEBUG] [Workspace File Manager/STAGE16_COLD] Workspace stored on the FS
+2026-09-12-22:44:28 [boundedElastic-2/INFO] [Workspace File Manager/STAGE16_COLD] Saving the workspace by direct request
+2026-09-12-22:44:28 [boundedElastic-2/DEBUG] [Workspace File Manager/STAGE16_COLD] Workspace stored on the FS
+2026-09-12-22:44:28 [GitHistoryBackend/WARN] [net.mcreator.workspace.localhistory.GitHistoryBackend] Failed to save local history checkpoint: Exception caught during execution of add command
+2026-09-12-22:44:28 [/INFO] [dev.copperbench.generator.BundledJdkLocator] Bundled JDK resolved: distributionRoot=C:\Program Files\Copperbench, javaRelease=21, resolvedJavaHome=C:\Program Files\Copperbench\jdk21, attempted=[C:\Program Files\Copperbench\jdk21], java.home=C:\Program Files\Copperbench\jdk, user.dir=C:\Program Files\Copperbench
+2026-09-12-22:44:47 [/INFO] [dev.copperbench.generator.BundledJdkLocator] Bundled JDK resolved: distributionRoot=C:\Program Files\Copperbench, javaRelease=21, resolvedJavaHome=C:\Program Files\Copperbench\jdk21, attempted=[C:\Program Files\Copperbench\jdk21], java.home=C:\Program Files\Copperbench\jdk, user.dir=C:\Program Files\Copperbench
+2026-09-12-22:58:42 [AWT-EventQueue-0/INFO] [MCreator] Closing MCreator window ...
+2026-09-12-22:58:42 [AWT-EventQueue-0/ERROR] [STDERR] Sep 12, 2026 10:58:42 PM org.apache.coyote.AbstractProtocol pause
+INFO: Pausing ProtocolHandler ["http-nio-127.0.0.1-auto-1-58313"]
+2026-09-12-22:58:42 [AWT-EventQueue-0/ERROR] [STDERR] Sep 12, 2026 10:58:42 PM org.apache.catalina.core.StandardService stopInternal
+INFO: Stopping service [Tomcat]
+2026-09-12-22:58:42 [AWT-EventQueue-0/ERROR] [STDERR] Sep 12, 2026 10:58:42 PM org.apache.coyote.AbstractProtocol stop
+INFO: Stopping ProtocolHandler ["http-nio-127.0.0.1-auto-1-58313"]
+2026-09-12-22:58:42 [AWT-EventQueue-0/ERROR] [STDERR] Sep 12, 2026 10:58:42 PM org.apache.coyote.AbstractProtocol destroy
+INFO: Destroying ProtocolHandler ["http-nio-127.0.0.1-auto-1-58313"]
+2026-09-12-22:58:42 [AWT-EventQueue-0/INFO] [Workspace] Closing workspace
+2026-09-12-22:58:42 [AWT-EventQueue-0/INFO] [Workspace File Manager/STAGE16_COLD] Saving the workspace by direct request
+2026-09-12-22:58:42 [AWT-EventQueue-0/DEBUG] [Workspace File Manager/STAGE16_COLD] Workspace stored on the FS
+2026-09-12-22:58:42 [AWT-EventQueue-0/DEBUG] [Workspace user settings] Storing user workspace settings
+2026-09-12-22:58:42 [AWT-EventQueue-0/DEBUG] [Application] Closing any potentially open MCreator windows
+2026-09-12-22:58:42 [AWT-EventQueue-0/DEBUG] [Application] Performing exit tasks
+2026-09-12-22:58:42 [AWT-EventQueue-0/DEBUG] [Application] Stopping AWT thread
+2026-09-12-22:58:43 [AWT-EventQueue-0/DEBUG] [Application] Exiting Copperbench

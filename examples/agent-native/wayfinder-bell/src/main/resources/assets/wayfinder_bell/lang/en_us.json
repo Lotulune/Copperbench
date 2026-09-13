@@ -1,0 +1,16 @@
+{
+  "item.wayfinder_bell.wayfinder_bell": "Wayfinder Bell",
+  "message.wayfinder_bell.saved": "Anchor saved: %s, %s, %s",
+  "message.wayfinder_bell.empty": "Sneak and right-click to save an anchor.",
+  "message.wayfinder_bell.dimension": "Your anchor is in %s. Return there to navigate.",
+  "message.wayfinder_bell.direction": "%s | %s blocks away | height difference %s",
+  "direction.wayfinder_bell.north": "North",
+  "direction.wayfinder_bell.northeast": "Northeast",
+  "direction.wayfinder_bell.east": "East",
+  "direction.wayfinder_bell.southeast": "Southeast",
+  "direction.wayfinder_bell.south": "South",
+  "direction.wayfinder_bell.southwest": "Southwest",
+  "direction.wayfinder_bell.west": "West",
+  "direction.wayfinder_bell.northwest": "Northwest",
+  "direction.wayfinder_bell.here": "Here"
+}

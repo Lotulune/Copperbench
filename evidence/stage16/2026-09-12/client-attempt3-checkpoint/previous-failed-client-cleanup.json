@@ -1,0 +1,12 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "failed-trial-owned-process-cleanup",
+  "recordedAt": "2026-09-11T15:32:57.0272714Z",
+  "taskId": "4428fdfd-529a-4ced-bfd1-31d087582965",
+  "minecraftPid": 43652,
+  "parentPid": 35724,
+  "reason": "Public command already exited with HEADLESS_TASK_TIMEOUT while the owned client remained alive; end the failed trial before retrying the fixed product",
+  "normalClose": false,
+  "userApplicationsAffected": false,
+  "processAbsentAfterCleanup": true
+}

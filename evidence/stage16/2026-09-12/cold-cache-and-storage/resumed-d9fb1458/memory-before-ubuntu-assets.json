@@ -1,0 +1,147 @@
+{
+  "schemaVersion": "1.0",
+  "recordedAt": "2026-09-12T15:44:10.2050021+00:00",
+  "method": "Windows EmptyWorkingSet on enumerated non-system desktop applications",
+  "processesClosed": 0,
+  "processesSuspended": 0,
+  "persistentSettingsChanged": false,
+  "freeBytesBefore": 1668816896,
+  "freeBytesAfter": 2488324096,
+  "processes": [
+    {
+      "processId": 4844,
+      "processName": "chrome",
+      "workingSetBeforeBytes": 68222976,
+      "succeeded": true,
+      "errorCode": 0,
+      "stillRunning": true,
+      "workingSetAfterBytes": 0
+    },
+    {
+      "processId": 7172,
+      "processName": "chrome",
+      "workingSetBeforeBytes": 173641728,
+      "succeeded": true,
+      "errorCode": 0,
+      "stillRunning": true,
+      "workingSetAfterBytes": 0
+    },
+    {
+      "processId": 17028,
+      "processName": "chrome",
+      "workingSetBeforeBytes": 36917248,
+      "succeeded": true,
+      "errorCode": 0,
+      "stillRunning": true,
+      "workingSetAfterBytes": 0
+    },
+    {
+      "processId": 36164,
+      "processName": "chrome",
+      "workingSetBeforeBytes": 333639680,
+      "succeeded": true,
+      "errorCode": 0,
+      "stillRunning": true,
+      "workingSetAfterBytes": 0
+    },
+    {
+      "processId": 37804,
+      "processName": "chrome",
+      "workingSetBeforeBytes": 48939008,
+      "succeeded": true,
+      "errorCode": 0,
+      "stillRunning": true,
+      "workingSetAfterBytes": 0
+    },
+    {
+      "processId": 33728,
+      "processName": "Everything",
+      "workingSetBeforeBytes": 83841024,
+      "succeeded": true,
+      "errorCode": 0,
+      "stillRunning": true,
+      "workingSetAfterBytes": 0
+    },
+    {
+      "processId": 17492,
+      "processName": "msedgewebview2",
+      "workingSetBeforeBytes": 35504128,
+      "succeeded": true,
+      "errorCode": 0,
+      "stillRunning": true,
+      "workingSetAfterBytes": 0
+    },
+    {
+      "processId": 21916,
+      "processName": "msedgewebview2",
+      "workingSetBeforeBytes": 204247040,
+      "succeeded": true,
+      "errorCode": 0,
+      "stillRunning": true,
+      "workingSetAfterBytes": 9768960
+    },
+    {
+      "processId": 6692,
+      "processName": "QQ",
+      "workingSetBeforeBytes": 147562496,
+      "succeeded": true,
+      "errorCode": 0,
+      "stillRunning": true,
+      "workingSetAfterBytes": 0
+    },
+    {
+      "processId": 10768,
+      "processName": "QQ",
+      "workingSetBeforeBytes": 117751808,
+      "succeeded": true,
+      "errorCode": 0,
+      "stillRunning": true,
+      "workingSetAfterBytes": 172032
+    },
+    {
+      "processId": 13004,
+      "processName": "steamwebhelper",
+      "workingSetBeforeBytes": 43982848,
+      "succeeded": true,
+      "errorCode": 0,
+      "stillRunning": true,
+      "workingSetAfterBytes": 69632
+    },
+    {
+      "processId": 18556,
+      "processName": "steamwebhelper",
+      "workingSetBeforeBytes": 1094225920,
+      "succeeded": true,
+      "errorCode": 0,
+      "stillRunning": true,
+      "workingSetAfterBytes": 131997696
+    },
+    {
+      "processId": 19524,
+      "processName": "steamwebhelper",
+      "workingSetBeforeBytes": 67960832,
+      "succeeded": true,
+      "errorCode": 0,
+      "stillRunning": true,
+      "workingSetAfterBytes": 0
+    },
+    {
+      "processId": 37388,
+      "processName": "steamwebhelper",
+      "workingSetBeforeBytes": 35987456,
+      "succeeded": true,
+      "errorCode": 0,
+      "stillRunning": true,
+      "workingSetAfterBytes": 0
+    },
+    {
+      "processId": 23460,
+      "processName": "Weixin",
+      "workingSetBeforeBytes": 76288000,
+      "succeeded": true,
+      "errorCode": 0,
+      "stillRunning": true,
+      "workingSetAfterBytes": 1425408
+    }
+  ]
+}

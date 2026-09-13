@@ -1,0 +1,67 @@
+Picked up JAVA_TOOL_OPTIONS: -Djdk.net.unixdomain.tmpdir=D:\AICoding\Minecraft_ModCreator\.tmp\stage15-linux\jdk\jbr25_win_64\bin\java.exe
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.6.0/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+Directory 'D:\AICoding\Minecraft_ModCreator\.tmp\stage15-linux\jdk\jbr25_mac_aarch64\Contents\Home' (Gradle property 'org.gradle.java.installations.paths') used for java installations does not exist
+Path for java installation 'D:\AICoding\Minecraft_ModCreator\.tmp\stage15-linux\jdk\jbr25_linux_64' (Gradle property 'org.gradle.java.installations.paths') does not contain a java executable
+Directory 'D:\AICoding\Minecraft_ModCreator\.tmp\stage15-linux\jdk\jbr25_mac_x64\Contents\Home' (Gradle property 'org.gradle.java.installations.paths') used for java installations does not exist
+> Task :compileGradleBridgeJava UP-TO-DATE
+> Task :processGradleBridgeResources NO-SOURCE
+> Task :gradleBridgeClasses UP-TO-DATE
+> Task :compileJava UP-TO-DATE
+> Task :buildUiShell UP-TO-DATE
+> Task :processResources UP-TO-DATE
+> Task :classes UP-TO-DATE
+> Task :localIpcAgentJar UP-TO-DATE
+> Task :jar
+> Task :createExe
+> Task :createAllExecutables
+> Task :downloadJDK21Win64
+> Task :downloadJDKWin64
+> Task :cleanupPlugins
+> Task :export_plugin_generator-1201
+> Task :export_plugin_generator-1211
+> Task :export_plugin_generator-261x
+> Task :export_plugin_generator-262
+> Task :export_plugin_generator-addon-261x
+> Task :export_plugin_generator-fabric-2612
+> Task :export_plugin_generator-fabric-262
+> Task :export_plugin_mcreator-core
+> Task :export_plugin_mcreator-link
+> Task :export_plugin_mcreator-localization
+> Task :export_plugin_mcreator-themes
+> Task :exportPlugins
+> Task :exportWin64
+> Task :exportWindowsZip
+> Task :downloadNSIS
+
+> Task :buildInstallerWin64
+Processing config: D:\AICoding\Minecraft_ModCreator\.tmp\stage15-linux\build\tools\nsis\nsisconf.nsh
+Processing script file: "build/export/install64.nsi" (ACP)
+
+Processed 1 file, writing output (x86-unicode):
+
+Output: "D:\AICoding\Minecraft_ModCreator\.tmp\stage15-linux\build\export\Copperbench 0.1.0 Windows 64bit.exe"
+Install: 5 pages (320 bytes), 1 section (1 required) (2072 bytes), 3879 instructions (108612 bytes), 1922 strings (173154 bytes), 1 language table (318 bytes).
+Uninstall: 5 pages (384 bytes), 1 section (2072 bytes), 437 instructions (12236 bytes), 205 strings (6530 bytes), 1 language table (290 bytes).
+Datablock optimizer saved 286298 KiB (~25.5%).
+
+Using bzip2 compression.
+
+EXE header size:               57856 / 38912 bytes
+Install code:                  41447 / 284940 bytes
+Install data:              854895193 / 1812822427 bytes
+Uninstall code+data:           87160 / 87152 bytes
+CRC (0xCCA4596F):                  4 / 4 bytes
+
+Total size:                855081660 / 1813233435 bytes (47.1%)
+
+[Incubating] Problems report is available at: file:///D:/AICoding/Minecraft_ModCreator/.tmp/stage15-linux/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.6.0/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 6m 32s
+25 actionable tasks: 20 executed, 5 up-to-date

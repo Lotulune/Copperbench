@@ -16,6 +16,8 @@ import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import dev.copperbench.ProductIdentity;
 import dev.copperbench.core.workspace.WorkspaceCreationService;
+import dev.copperbench.automation.security.TaskAuthorizationStore;
+import dev.copperbench.core.contract.UiCore.Operation;
 
 import javax.swing.JOptionPane;
 import java.awt.GraphicsEnvironment;
@@ -51,11 +53,18 @@ public final class BootstrapProductLauncher {
 	}
 
 	public static int run(String[] arguments, PrintWriter output) {
+		if (arguments.length > 0 && List.of("authorize-task", "list-authorizations", "revoke-authorization").contains(arguments[0]))
+			return TaskAuthorizationLauncher.run(arguments, output);
 		return run(arguments, output, new WorkspaceCreationService(), BootstrapProductLauncher::confirmLocally);
 	}
 
 	static int run(String[] arguments, PrintWriter output, WorkspaceCreationService service,
 			ApprovalPrompt approvalPrompt) {
+		return run(arguments, output, service, approvalPrompt, TaskAuthorizationStore.productDefault(java.time.Clock.systemUTC()));
+	}
+
+	static int run(String[] arguments, PrintWriter output, WorkspaceCreationService service,
+			ApprovalPrompt approvalPrompt, TaskAuthorizationStore authorizations) {
 		Objects.requireNonNull(output);
 		Objects.requireNonNull(service);
 		Objects.requireNonNull(approvalPrompt);
@@ -65,7 +74,7 @@ public final class BootstrapProductLauncher {
 			return switch (invocation.command()) {
 				case "help" -> help(output);
 				case "list-generators" -> listGenerators(output, service);
-				case "create-workspace" -> createWorkspace(output, service, approvalPrompt, invocation.options());
+				case "create-workspace" -> createWorkspace(output, service, approvalPrompt, invocation.options(), authorizations);
 				default -> throw new IllegalArgumentException("Unknown bootstrap command: " + invocation.command());
 			};
 		} catch (IllegalArgumentException exception) {
@@ -83,11 +92,16 @@ public final class BootstrapProductLauncher {
 		JsonArray commands = new JsonArray();
 		commands.add("list-generators");
 		commands.add("create-workspace");
+		commands.add("authorize-task");
+		commands.add("list-authorizations");
+		commands.add("revoke-authorization");
 		data.add("commands", commands);
 		data.addProperty("createUsage",
 				"bootstrap create-workspace --generator-id <id> --mod-name <name> --mod-id <id> "
-						+ "--workspace-folder <path> [--package-name <package>] [--version <version>]");
-		data.addProperty("approval", "Workspace creation requires confirmation in the local Copperbench UI.");
+						+ "--workspace-folder <path> [--package-name <package>] [--version <version>] [--task-authorization <id>] [--no-prompt true]");
+		data.addProperty("approval", "Use a local UI confirmation or a user-issued task authorization covering the target directory.");
+		data.addProperty("nonInteractive", "External agents should pass --no-prompt true: missing authorization returns USER_APPROVAL_REQUIRED without opening a dialog.");
+		data.addProperty("authorizationUsage", "bootstrap authorize-task --root <absolute-directory> --label <task> [--capabilities create,edit,build,test,run_client] [--ttl-seconds 7200]");
 		response.add("data", data);
 		write(output, response);
 		return HeadlessExitCode.SUCCESS.code();
@@ -101,7 +115,7 @@ public final class BootstrapProductLauncher {
 	}
 
 	private static int createWorkspace(PrintWriter output, WorkspaceCreationService service,
-			ApprovalPrompt approvalPrompt, Map<String, String> options) {
+			ApprovalPrompt approvalPrompt, Map<String, String> options, TaskAuthorizationStore authorizations) {
 		String generatorId = required(options, "--generator-id");
 		String modName = required(options, "--mod-name");
 		String modId = required(options, "--mod-id");
@@ -118,7 +132,22 @@ public final class BootstrapProductLauncher {
 		if (!diagnostics.isEmpty())
 			return serviceFailure(output, diagnostics, HeadlessExitCode.VALIDATION_FAILED);
 
-		if (!approvalPrompt.approve(request)) {
+		boolean approved;
+		if (options.containsKey("--task-authorization")) {
+			var decision = authorizations.authorize(
+					options.get("--task-authorization"), java.nio.file.Path.of(workspaceFolder), Operation.CREATE_WORKSPACE);
+			if (!decision.allowed()) return fail(output, HeadlessExitCode.PERMISSION_DENIED, decision.code(),
+					"Task authority does not allow creating this workspace. Review the root, lifetime and create capability.");
+			approved = true;
+		} else if (Boolean.parseBoolean(options.getOrDefault("--no-prompt", "false"))) {
+			approved = false;
+		} else {
+			if (!GraphicsEnvironment.isHeadless())
+				new PrintWriter(new java.io.FileOutputStream(java.io.FileDescriptor.err), true)
+						.println("Copperbench is waiting for local workspace creation approval: " + workspaceFolder);
+			approved = approvalPrompt.approve(request);
+		}
+		if (!approved) {
 			JsonObject response = envelope("create_workspace", "rejected", HeadlessExitCode.PERMISSION_DENIED);
 			response.addProperty("code", "USER_APPROVAL_REQUIRED");
 			response.add("diagnostics", diagnostics("USER_APPROVAL_REQUIRED",
@@ -126,6 +155,11 @@ public final class BootstrapProductLauncher {
 			JsonObject denial = new JsonObject();
 			denial.addProperty("approvalRequired", true);
 			denial.addProperty("protectedOperation", true);
+			denial.addProperty("workspaceFolder", workspaceFolder);
+			denial.addProperty("modName", modName);
+			denial.addProperty("generatorId", generatorId);
+			denial.addProperty("requiredCapability", "create");
+			denial.addProperty("nextAction", "Ask the local user to grant this task in AI and MCP > Task authorization, then retry with --task-authorization <id>.");
 			response.add("denial", denial);
 			write(output, response);
 			return HeadlessExitCode.PERMISSION_DENIED.code();
@@ -136,7 +170,7 @@ public final class BootstrapProductLauncher {
 		if (!result.complete()) {
 			boolean validationFailure = result.diagnostics().stream().allMatch(BootstrapProductLauncher::validationCode);
 			return serviceFailure(output, result.diagnostics(),
-					validationFailure ? HeadlessExitCode.VALIDATION_FAILED : HeadlessExitCode.INTERNAL_ERROR);
+					validationFailure ? HeadlessExitCode.VALIDATION_FAILED : HeadlessExitCode.INTERNAL_ERROR, result.detail());
 		}
 
 		JsonObject response = envelope("create_workspace", "committed", HeadlessExitCode.SUCCESS);
@@ -157,8 +191,7 @@ public final class BootstrapProductLauncher {
 				+ "Mod: " + escapeHtml(request.modName()) + " (" + escapeHtml(request.modId()) + ")<br>"
 				+ "Folder: " + escapeHtml(request.workspaceFolderPath()) + "<br><br>"
 				+ "An external tool may be waiting for this confirmation.</html>";
-		return JOptionPane.showConfirmDialog(null, message, ProductIdentity.NAME + " workspace creation",
-				JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION;
+        return LocalApprovalWindow.confirm(ProductIdentity.NAME + " workspace creation", message);
 	}
 
 	private static String escapeHtml(String value) {
@@ -181,10 +214,13 @@ public final class BootstrapProductLauncher {
 				throw new IllegalArgumentException("Options must use --name value pairs");
 			String option = arguments[index];
 			if (!List.of("--generator-id", "--mod-name", "--mod-id", "--package-name", "--workspace-folder",
-					"--version").contains(option))
+					"--version", "--task-authorization", "--no-prompt").contains(option))
 				throw new IllegalArgumentException("Unknown option: " + option);
-			options.put(option, arguments[index + 1]);
+			if (options.put(option, arguments[index + 1]) != null)
+				throw new IllegalArgumentException("Duplicate option: " + option);
 		}
+		if (options.containsKey("--no-prompt") && !List.of("true", "false").contains(options.get("--no-prompt")))
+			throw new IllegalArgumentException("--no-prompt must be true or false");
 		return new Invocation(command, Map.copyOf(options));
 	}
 
@@ -196,11 +232,16 @@ public final class BootstrapProductLauncher {
 	}
 
 	private static int serviceFailure(PrintWriter output, List<String> codes, HeadlessExitCode exitCode) {
+		return serviceFailure(output, codes, exitCode, null);
+	}
+
+	private static int serviceFailure(PrintWriter output, List<String> codes, HeadlessExitCode exitCode, String detail) {
 		JsonObject response = envelope("create_workspace", "rejected", exitCode);
 		if (!codes.isEmpty()) response.addProperty("code", codes.getFirst());
 		JsonArray diagnostics = new JsonArray();
 		for (String code : codes) diagnostics.add(diagnostic(code, message(code)));
 		response.add("diagnostics", diagnostics);
+		if (detail != null && !detail.isBlank()) response.addProperty("detail", detail);
 		write(output, response);
 		return exitCode.code();
 	}
@@ -222,7 +263,7 @@ public final class BootstrapProductLauncher {
 			case "MOD_ID_INVALID" -> "The mod ID is invalid.";
 			case "PACKAGE_NAME_INVALID" -> "The Java package name is invalid.";
 			case "WORKSPACE_FOLDER_REQUIRED" -> "A workspace folder is required.";
-			case "WORKSPACE_FOLDER_OUTSIDE_ROOT" -> "The workspace folder is outside the allowed root.";
+			case "WORKSPACE_FOLDER_OUTSIDE_ROOT" -> "The workspace folder must be an absolute child directory without path redirects.";
 			case "WORKSPACE_FOLDER_NOT_EMPTY" -> "The workspace folder is not empty.";
 			case "WORKSPACE_SKELETON_SETUP_FAILED" -> "The generator could not prepare the workspace skeleton.";
 			case "WORKSPACE_BASE_GENERATION_FAILED" -> "The generator could not materialize the initial workspace source base.";

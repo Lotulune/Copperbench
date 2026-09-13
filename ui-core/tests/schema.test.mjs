@@ -409,3 +409,46 @@ test('protected operation decisions are explicit and bounded', async () => {
   });
   assert.equal(valid, false);
 });
+
+test('task authority schemas accept scoped grants and reject invalid lifetime or untrusted internal flags', async () => {
+  const { ajv } = await createValidator();
+  const validate = ajv.getSchema('urn:ui-core:1.0:command');
+  const command = {
+    messageType: 'command', schemaVersion: '1.0', requestId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa41',
+    workspaceId: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', expectedRevision: 3,
+    operation: 'create_task_authorization', payload: {
+      clientMutationId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa42', label: 'Mod trial', root: 'D:/ModProjects/trial',
+      capabilities: ['edit', 'build', 'test'], ttlSeconds: 3600, serverEulaAccepted: false, userApproved: true
+    }
+  };
+  assert.equal(validate(command), true, JSON.stringify(validate.errors));
+  command.payload.ttlSeconds = 86401;
+  assert.equal(validate(command), false);
+  command.operation = 'run_server';
+  command.payload = { clientMutationId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa42', scope: 'workspace',
+    taskAuthorizationId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa43' };
+  assert.equal(validate(command), true, JSON.stringify(validate.errors));
+  command.operation = 'run_gametest'; command.payload.serverEulaAuthorized = true;
+  assert.equal(validate(command), false);
+});
+
+test('task summaries carry bounded verification and source identity including pending and stale evidence', async () => {
+  const { ajv } = await createValidator();
+  const validate = ajv.compile({ $ref: 'urn:ui-core:1.0:common#/$defs/taskSummary' });
+  const task = {
+    id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa44', kind: 'run_gametest', state: 'failed', cancellable: false,
+    progress: 1, stage: { key: 'task.failed', fallback: 'Failed' }, startedAt: '2026-09-11T03:00:00Z',
+    diagnostics: { error: 1, warning: 0, info: 0 },
+    sourceSnapshot: { sha256: 'a'.repeat(64), fileCount: 5, bytes: 512, manifestPath: 'D:/trial/source-manifest.json' },
+    verification: { schemaVersion: '1.0', status: 'failed', reasonCode: 'GAMETEST_SOURCE_CHANGED', discovered: 1,
+      executed: 1, passed: 1, failed: 0, skipped: 0, cases: [{ name: 'behavior', className: 'Acceptance', status: 'passed' }],
+      artifactSha256: 'b'.repeat(64), sourceCurrentAtCompletion: false }
+  };
+  assert.equal(validate(task), true, JSON.stringify(validate.errors));
+  task.verification.status = 'pending';
+  assert.equal(validate(task), true, JSON.stringify(validate.errors));
+  task.verification.executed = -1;
+  assert.equal(validate(task), false);
+  task.verification.executed = 1; task.verification.artifactSha256 = 'unbound';
+  assert.equal(validate(task), false);
+});

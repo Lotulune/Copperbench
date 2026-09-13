@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "1.0",
+  "recordedAt": "2026-09-12T05:27:27.661245+00:00",
+  "sourceCommit": "33ceb6e9a68aab2b2fcd9153d6c4f23f4d85e6c5",
+  "candidateSha256": "6ae06ca2033d3f40bb4c1401901de36fcaf3cad218ff9243d064968ea48668c0",
+  "installedVersion": "0.1.0",
+  "installedApplicationJarSha256": "473f9b06af5ee6e2fdb95c6d7eb92c1a426f1ffddfa4672091fe79b976c7c058",
+  "dpkgVerifyExitCode": 0,
+  "dpkgVerifyOutput": "",
+  "status": "passed"
+}

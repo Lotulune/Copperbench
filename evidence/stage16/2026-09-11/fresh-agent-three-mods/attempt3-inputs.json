@@ -1,0 +1,13 @@
+{
+  "attempt": 3,
+  "sourceCommit": "3c0aa090c3c4a53c0700d3bb173522e81ae91477",
+  "executable": "C:\\Users\\Administrator\\AppData\\Local\\Temp\\copperbench-stage16-3c0aa090\\Copperbench010\\copperbench.exe",
+  "executableSha256": "b4362ad2d744505a24964bc1b7948510f28a189242ccb7775df7403eac079db4",
+  "applicationJarSha256": "2891c3c219c52b33b6194e75328d1cf7572978d57f15f1f508c3e66c5deb78e7",
+  "startupHelperJarSha256": "cb0d76e1495694112374b4203ce1a0be4de77ecee69cd5f5da22897435fcbc29",
+  "packageZipSha256": "c62e96a26cbf3f5641012e4f1006933c64615fce5f67b6cca375bd8e483d9dc6",
+  "authorization": "Same real user authorization issued 2026-09-11T11:25:27Z",
+  "cacheCondition": "Shared-machine Gradle/Minecraft caches retained; parent successfully validated product bootstrap before this trial",
+  "startedAt": "2026-09-11T20:22:20.2188355+08:00",
+  "packageZipBytes": 1184654365
+}

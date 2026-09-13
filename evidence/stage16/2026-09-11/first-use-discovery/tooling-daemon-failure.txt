@@ -1,0 +1,35 @@
+2026-09-11T19:36:41.589+0800 [ERROR] [org.gradle.internal.remote.internal.inet.TcpIncomingConnector] Could not accept remote connection.
+java.io.UncheckedIOException: java.io.IOException: Unable to establish loopback connection
+	at org.gradle.internal.UncheckedException.throwAsUncheckedException(UncheckedException.java:63)
+	at org.gradle.internal.UncheckedException.throwAsUncheckedException(UncheckedException.java:42)
+	at org.gradle.internal.remote.internal.inet.SocketConnection.<init>(SocketConnection.java:64)
+	at org.gradle.internal.remote.internal.inet.SocketConnectCompletion.create(SocketConnectCompletion.java:40)
+	at org.gradle.launcher.daemon.server.DaemonTcpServerConnector$1.execute(DaemonTcpServerConnector.java:78)
+	at org.gradle.launcher.daemon.server.DaemonTcpServerConnector$1.execute(DaemonTcpServerConnector.java:73)
+	at org.gradle.internal.remote.internal.inet.TcpIncomingConnector$Receiver.run(TcpIncomingConnector.java:135)
+	at org.gradle.internal.concurrent.ExecutorPolicy$CatchAndRecordFailures.onExecute(ExecutorPolicy.java:65)
+	at org.gradle.internal.concurrent.AbstractManagedExecutor$1.run(AbstractManagedExecutor.java:47)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+Caused by: java.io.IOException: Unable to establish loopback connection
+	at java.base/sun.nio.ch.PipeImpl$Initializer.run(PipeImpl.java:103)
+	at java.base/sun.nio.ch.PipeImpl$Initializer.run(PipeImpl.java:67)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:571)
+	at java.base/sun.nio.ch.PipeImpl.<init>(PipeImpl.java:197)
+	at java.base/sun.nio.ch.WEPollSelectorImpl.<init>(WEPollSelectorImpl.java:79)
+	at java.base/sun.nio.ch.WEPollSelectorProvider.openSelector(WEPollSelectorProvider.java:33)
+	at java.base/java.nio.channels.Selector.open(Selector.java:295)
+	at org.gradle.internal.remote.internal.inet.SocketConnection$SocketInputStream.<init>(SocketConnection.java:164)
+	at org.gradle.internal.remote.internal.inet.SocketConnection.<init>(SocketConnection.java:62)
+	... 9 more
+Caused by: java.net.SocketException: Invalid argument: connect
+	at java.base/sun.nio.ch.UnixDomainSockets.connect0(Native Method)
+	at java.base/sun.nio.ch.UnixDomainSockets.connect(UnixDomainSockets.java:154)
+	at java.base/sun.nio.ch.UnixDomainSockets.connect(UnixDomainSockets.java:150)
+	at java.base/sun.nio.ch.SocketChannelImpl.connect(SocketChannelImpl.java:878)
+	at java.base/java.nio.channels.SocketChannel.open(SocketChannel.java:285)
+	at java.base/sun.nio.ch.PipeImpl$Initializer$LoopbackConnector.run(PipeImpl.java:132)
+	at java.base/sun.nio.ch.PipeImpl$Initializer.run(PipeImpl.java:85)
+	... 17 more
+2026-09-11T19:36:41.590+0800 [DEBUG] [org.gradle.launcher.daemon.server.Daemon] stop() called on daemon

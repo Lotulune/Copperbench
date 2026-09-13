@@ -70,6 +70,18 @@ public class Launcher {
 
 		final Logger LOG = LogManager.getLogger("Launcher"); // init logger after log directory is set
 
+		// Bootstrap creation also uses the Tooling API in this JVM before Core tasks exist.
+		if (!machineReadable || (bootstrap && args.length > 1 && "create-workspace".equals(args[1]))) {
+			try {
+				dev.copperbench.gradle.GradleRuntimeCompatibility.configureApplicationRuntime(LOG::warn);
+			} catch (InterruptedException exception) {
+				Thread.currentThread().interrupt();
+				throw new IllegalStateException("Application local IPC probe interrupted", exception);
+			} catch (IOException exception) {
+				LOG.error("Application local IPC is unavailable; networking features may not start", exception);
+			}
+		}
+
 		try {
 			Properties conf = new Properties();
 			conf.load(Launcher.class.getResourceAsStream("/mcreator.conf"));

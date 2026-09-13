@@ -1,0 +1,12 @@
+{
+  "mod": "harvest_ledger",
+  "artifactPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\artifacts\\harvest_ledger\\harvest_ledger-1.0.jar",
+  "artifactSha256": "cd810e1121970525dd6e1d488849cc163fd49978bc6b5c1546c4fd4c8f95fc4f",
+  "reportSha256": "634cbd1d40c8c2201c66376904bbf29ce4eebe0fecf1d7daf8b9bd3c25dda7a3",
+  "acceptanceExecuted": 7,
+  "sourceSnapshotSha256": "7153f97815d562cc07690c62995f876591548a6579b2f1ccbcf0f68acc669a2f",
+  "sourceCurrentAtCompletion": true,
+  "mode": "packaged_jar",
+  "taskId": "2eb67432-703d-4b04-b4db-7b22e9449536",
+  "commandLabel": "20-ledger-gametest"
+}

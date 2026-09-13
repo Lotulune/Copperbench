@@ -79,12 +79,30 @@ public class GradleUtils {
 		// make sure Gradle reports in English so our error decoder works properly
 		launcher.addJvmArguments("-Duser.language=en");
 
-		String java_home = getJavaHome();
+		String java_home = getJavaHome(generatorConfiguration.getGeneratorName());
 		if (java_home != null) // make sure detected JAVA_HOME is not null
 			launcher = launcher.setJavaHome(new File(java_home));
 
 		// use custom set of environment variables to prevent system overrides
-		launcher.setEnvironmentVariables(getEnvironment(java_home));
+		Map<String, String> environment = getEnvironment(java_home);
+		if (java_home != null) {
+			try {
+				T configuredLauncher = launcher;
+				java.util.List<String> compatibilityMessages = new java.util.ArrayList<>();
+				dev.copperbench.gradle.GradleRuntimeCompatibility.configure(java.nio.file.Path.of(java_home), environment, message -> {
+					LOG.warn(message);
+					compatibilityMessages.add(message);
+				});
+				if (!compatibilityMessages.isEmpty())
+					configuredLauncher.addJvmArguments(dev.copperbench.gradle.GradleRuntimeCompatibility.daemonStartupOption());
+			} catch (InterruptedException exception) {
+				Thread.currentThread().interrupt();
+				throw new IllegalStateException("Workspace Java local IPC probe interrupted", exception);
+			} catch (java.io.IOException exception) {
+				throw new java.io.UncheckedIOException(exception);
+			}
+		}
+		launcher.setEnvironmentVariables(environment);
 
 		if (java_home != null)
 			launcher.withArguments(Arrays.asList("-Porg.gradle.java.installations.auto-detect=false",
@@ -97,6 +115,10 @@ public class GradleUtils {
 	}
 
 	public static String getJavaHome() {
+		return getJavaHome(null);
+	}
+
+	public static String getJavaHome(String generatorId) {
 		// check if JAVA_HOME was overwritten in preferences and return this one in such case
 		if (PreferencesManager.PREFERENCES.hidden.java_home.get() != null
 				&& PreferencesManager.PREFERENCES.hidden.java_home.get().isFile()) {
@@ -108,7 +130,13 @@ public class GradleUtils {
 				LOG.error("Java home override from preferences is not valid!");
 		}
 
-		// otherwise, we try to set JAVA_HOME to the same Java as MCreator is launched with
+		// First-party workspace setup must use the same Java track as Core build/run tasks.
+		var track = dev.copperbench.tracks.VersionTrackCatalog.official().findGenerator(generatorId);
+		if (track.isPresent())
+			return dev.copperbench.generator.BundledJdkLocator.locate(java.nio.file.Path.of("."),
+					track.get().javaRelease()).toString();
+
+		// Unknown plugin generators retain their existing application-JVM fallback.
 		return System.getProperty("java.home");
 	}
 

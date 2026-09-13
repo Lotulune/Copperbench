@@ -1,0 +1,18 @@
+{
+  "at": "2026-09-12T13:38:11.7045849Z",
+  "installation": "unchanged c0178f6b",
+  "files": [
+    {
+      "path": "C:\\Program Files\\Copperbench\\lib\\copperbench.jar",
+      "bytes": 7175754,
+      "sha256": "3e68b305f5fe0364c776e08ad6624d49d21dd736f71b8f4ac6ddb623252962cc"
+    },
+    {
+      "path": "C:\\Program Files\\Copperbench\\copperbench.exe",
+      "bytes": 7376458,
+      "sha256": "d78ccc105b609adc3eb964f5cca8105fabfeffb93e9795c3622d129b69fc7dab"
+    }
+  ],
+  "newCandidateInstalled": false,
+  "approvalPending": true
+}

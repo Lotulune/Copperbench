@@ -1,0 +1,587 @@
+{
+  "schemaVersion": "1.0",
+  "startedUtc": "2026-09-12T12:31:22.2933580Z",
+  "completedUtc": "2026-09-12T12:34:57.7791353Z",
+  "plannedTargetCount": 95,
+  "removedTargetCount": 95,
+  "diskFreeBefore": 28089958400,
+  "diskFreeAfter": 63819894784,
+  "observedDiskSpaceReclaimed": 35729936384,
+  "removed": [
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\build\\stage8-workspace-generator-gradle\\fabric-1_20_1\\caches",
+      "logicalBytes": 426928665,
+      "reason": "Regenerable dependency cache from completed Stage8/14 verification",
+      "removedUtc": "2026-09-12T12:31:31.7333253Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\build\\stage8-workspace-generator-gradle\\fabric-1_21_1\\caches",
+      "logicalBytes": 462246306,
+      "reason": "Regenerable dependency cache from completed Stage8/14 verification",
+      "removedUtc": "2026-09-12T12:31:38.9853648Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\build\\stage8-workspace-generator-gradle\\fabric-26_1_2\\caches",
+      "logicalBytes": 457022999,
+      "reason": "Regenerable dependency cache from completed Stage8/14 verification",
+      "removedUtc": "2026-09-12T12:31:45.8354893Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\build\\stage8-workspace-generator-gradle\\fabric-26_2\\caches",
+      "logicalBytes": 489943713,
+      "reason": "Regenerable dependency cache from completed Stage8/14 verification",
+      "removedUtc": "2026-09-12T12:31:53.0211401Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\build\\stage8-workspace-generator-gradle\\neoforge-1_20_1\\caches",
+      "logicalBytes": 2786960278,
+      "reason": "Regenerable dependency cache from completed Stage8/14 verification",
+      "removedUtc": "2026-09-12T12:33:19.7343432Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\build\\stage8-workspace-generator-gradle\\neoforge-1_21_1\\caches",
+      "logicalBytes": 1649327599,
+      "reason": "Regenerable dependency cache from completed Stage8/14 verification",
+      "removedUtc": "2026-09-12T12:33:32.2344922Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\build\\stage8-workspace-generator-gradle\\neoforge-26_1_2\\caches",
+      "logicalBytes": 1288460697,
+      "reason": "Regenerable dependency cache from completed Stage8/14 verification",
+      "removedUtc": "2026-09-12T12:33:46.0066099Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\build\\stage8-workspace-generator-gradle\\neoforge-26_2\\caches",
+      "logicalBytes": 824407557,
+      "reason": "Regenerable dependency cache from completed Stage8/14 verification",
+      "removedUtc": "2026-09-12T12:33:52.7922314Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\build\\stage8-workspace-generator-gradle\\fabric-1_20_1\\caches",
+      "logicalBytes": 405074745,
+      "reason": "Regenerable dependency cache from completed Stage8/14 verification",
+      "removedUtc": "2026-09-12T12:33:58.6708552Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\build\\stage8-workspace-generator-gradle\\fabric-1_21_1\\caches",
+      "logicalBytes": 458288731,
+      "reason": "Regenerable dependency cache from completed Stage8/14 verification",
+      "removedUtc": "2026-09-12T12:34:04.6800863Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\build\\stage8-workspace-generator-gradle\\fabric-26_1_2\\caches",
+      "logicalBytes": 454590283,
+      "reason": "Regenerable dependency cache from completed Stage8/14 verification",
+      "removedUtc": "2026-09-12T12:34:10.2800464Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\build\\stage8-workspace-generator-gradle\\fabric-26_2\\caches",
+      "logicalBytes": 486917489,
+      "reason": "Regenerable dependency cache from completed Stage8/14 verification",
+      "removedUtc": "2026-09-12T12:34:15.6881692Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\build\\stage8-workspace-generator-gradle\\neoforge-1_21_1\\caches",
+      "logicalBytes": 687093164,
+      "reason": "Regenerable dependency cache from completed Stage8/14 verification",
+      "removedUtc": "2026-09-12T12:34:20.4309415Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\build\\stage8-workspace-generator-gradle\\neoforge-26_1_2\\caches",
+      "logicalBytes": 680674227,
+      "reason": "Regenerable dependency cache from completed Stage8/14 verification",
+      "removedUtc": "2026-09-12T12:34:25.2472657Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\build\\stage8-workspace-generator-gradle\\neoforge-26_2\\caches",
+      "logicalBytes": 716122542,
+      "reason": "Regenerable dependency cache from completed Stage8/14 verification",
+      "removedUtc": "2026-09-12T12:34:30.1481795Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\build\\p0-export-replay-isolated\\home\\.copperbench\\gradle\\caches",
+      "logicalBytes": 881275725,
+      "reason": "Regenerable previous isolated build dependency cache",
+      "removedUtc": "2026-09-12T12:34:44.0404868Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\build\\export",
+      "logicalBytes": 1276368888,
+      "reason": "Regenerable packaging output; frozen candidate installers and backup retained separately",
+      "removedUtc": "2026-09-12T12:34:48.0378495Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\export",
+      "logicalBytes": 3899455247,
+      "reason": "Regenerable packaging output; frozen candidate installers and backup retained separately",
+      "removedUtc": "2026-09-12T12:34:57.1459362Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run42\\deb-chunks",
+      "logicalBytes": 888038163,
+      "reason": "Completed download transfer fragments; final payload retained",
+      "removedUtc": "2026-09-12T12:34:57.2471921Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run42\\portable-chunks",
+      "logicalBytes": 966381171,
+      "reason": "Completed download transfer fragments; final payload retained",
+      "removedUtc": "2026-09-12T12:34:57.3201759Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run37\\deb-chunks",
+      "logicalBytes": 888033537,
+      "reason": "Completed download transfer fragments; final payload retained",
+      "removedUtc": "2026-09-12T12:34:57.4095491Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run37\\portable-chunks",
+      "logicalBytes": 966376060,
+      "reason": "Completed download transfer fragments; final payload retained",
+      "removedUtc": "2026-09-12T12:34:57.5123569Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run33\\transfer",
+      "logicalBytes": 888107620,
+      "reason": "Completed download transfer fragments; final payload retained",
+      "removedUtc": "2026-09-12T12:34:57.5232344Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run31\\deb.part1",
+      "logicalBytes": 222008607,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.5290127Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run31\\deb.part2",
+      "logicalBytes": 222008607,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.5376949Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run31\\deb.part2.rest",
+      "logicalBytes": 188560671,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.5444243Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run31\\deb.part3",
+      "logicalBytes": 222008607,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.5523045Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run31\\deb.part3.rest",
+      "logicalBytes": 187221279,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.5598399Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run31\\deb.part4",
+      "logicalBytes": 222008605,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.5646065Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run31\\deb.part4.rest",
+      "logicalBytes": 183297309,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.5719451Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-000.bin",
+      "logicalBytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.5742886Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-001.bin",
+      "logicalBytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.5771005Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-002.bin",
+      "logicalBytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.5794130Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-003.bin",
+      "logicalBytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.5821042Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-004.bin",
+      "logicalBytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.5851649Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-005.bin",
+      "logicalBytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.5876052Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-006.bin",
+      "logicalBytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.5896755Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-007.bin",
+      "logicalBytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.5916999Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-008.bin",
+      "logicalBytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.5940936Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-009.bin",
+      "logicalBytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.5958565Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-010.bin",
+      "logicalBytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.5976040Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-011.bin",
+      "logicalBytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.6000974Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-012.bin",
+      "logicalBytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.6018491Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-013.bin",
+      "logicalBytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.6035863Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-014.bin",
+      "logicalBytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.6061084Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-015.bin",
+      "logicalBytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.6079088Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-016.bin",
+      "logicalBytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.6099218Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-017.bin",
+      "logicalBytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.6122415Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-018.bin",
+      "logicalBytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.6141495Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-019.bin",
+      "logicalBytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.6163397Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-020.bin",
+      "logicalBytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.6181739Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-021.bin",
+      "logicalBytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.6201967Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-022.bin",
+      "logicalBytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.6221383Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-023.bin",
+      "logicalBytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.6238672Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-024.bin",
+      "logicalBytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.6259364Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-025.bin",
+      "logicalBytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.6278242Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-026.bin",
+      "logicalBytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.6297851Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-027.bin",
+      "logicalBytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.6314422Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-028.bin",
+      "logicalBytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.6331826Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-029.bin",
+      "logicalBytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.6355675Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-030.bin",
+      "logicalBytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.6374743Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-031.bin",
+      "logicalBytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.6398966Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-032.bin",
+      "logicalBytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.6418061Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-033.bin",
+      "logicalBytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.6437038Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-034.bin",
+      "logicalBytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.6465879Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-035.bin",
+      "logicalBytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.6485090Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-036.bin",
+      "logicalBytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.6503882Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-037.bin",
+      "logicalBytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.6527899Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-038.bin",
+      "logicalBytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.6545239Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-039.bin",
+      "logicalBytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.6566617Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-040.bin",
+      "logicalBytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.6593018Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-041.bin",
+      "logicalBytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.6611701Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-042.bin",
+      "logicalBytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.6631934Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-043.bin",
+      "logicalBytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.6650082Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-044.bin",
+      "logicalBytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.6666317Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-045.bin",
+      "logicalBytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.6683750Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-046.bin",
+      "logicalBytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.6705646Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-047.bin",
+      "logicalBytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.6725118Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-048.bin",
+      "logicalBytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.6744733Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-049.bin",
+      "logicalBytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.6765871Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-050.bin",
+      "logicalBytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.6784795Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-051.bin",
+      "logicalBytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.6804745Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-052.bin",
+      "logicalBytes": 15622287,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.6825702Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage16-agent-reliability\\linux-33ceb6e9-explicit\\part-0",
+      "logicalBytes": 463724841,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.6859068Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage16-agent-reliability\\linux-33ceb6e9-explicit\\part-1",
+      "logicalBytes": 463724841,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.6886807Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage16-agent-reliability\\linux-33ceb6e9-explicit\\part-2",
+      "logicalBytes": 463724841,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.6908080Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage16-agent-reliability\\linux-33ceb6e9-explicit\\part-3",
+      "logicalBytes": 463724841,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.6932226Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage16-agent-reliability\\linux-b62d6709-explicit\\part-0",
+      "logicalBytes": 463716963,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.6966854Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage16-agent-reliability\\linux-b62d6709-explicit\\part-1",
+      "logicalBytes": 463716964,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.6991823Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage16-agent-reliability\\linux-b62d6709-explicit\\part-2",
+      "logicalBytes": 463716963,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.7010792Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage16-agent-reliability\\linux-b62d6709-explicit\\part-3",
+      "logicalBytes": 463716964,
+      "reason": "Completed download fragment; full candidate payload retained",
+      "removedUtc": "2026-09-12T12:34:57.7029052Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run31\\stage15-linux-candidate.zip",
+      "logicalBytes": 1854742740,
+      "reason": "Redundant archive container; both embedded final packages hash-match retained payloads",
+      "removedUtc": "2026-09-12T12:34:57.7148115Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage16-agent-reliability\\linux-33ceb6e9-explicit\\artifact.zip",
+      "logicalBytes": 1854899364,
+      "reason": "Redundant archive container; both embedded final packages hash-match retained payloads",
+      "removedUtc": "2026-09-12T12:34:57.7200563Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage16-agent-reliability\\linux-b62d6709-explicit\\artifact.zip",
+      "logicalBytes": 1854867854,
+      "reason": "Redundant archive container; both embedded final packages hash-match retained payloads",
+      "removedUtc": "2026-09-12T12:34:57.7241186Z"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage16-agent-reliability\\linux-3c0aa090.artifact.zip",
+      "logicalBytes": 1854873576,
+      "reason": "Redundant archive container; both embedded final packages hash-match retained payloads",
+      "removedUtc": "2026-09-12T12:34:57.7681086Z"
+    }
+  ],
+  "virtualDisksDeleted": false,
+  "checkpointsDeleted": false,
+  "sourceFilesDeleted": false,
+  "candidateInstallersRetained": true,
+  "rollbackBackupsRetained": true
+}

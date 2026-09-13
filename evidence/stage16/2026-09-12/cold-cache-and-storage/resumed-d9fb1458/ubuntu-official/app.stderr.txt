@@ -1,0 +1,10 @@
+Picked up JAVA_TOOL_OPTIONS: -Duser.home=/home/stage15/s16-cold-official2/home
+[7951:7951:0912/153658.222869:ERROR:components/viz/service/main/viz_main_impl.cc:183] Exiting GPU process due to errors during initialization
+[7954:7960:0912/153740.941149:ERROR:net/socket/ssl_client_socket_impl.cc:878] handshake failed; returned -1, SSL error code 1, net_error -101
+[7954:7960:0912/153741.114042:ERROR:net/socket/ssl_client_socket_impl.cc:878] handshake failed; returned -1, SSL error code 1, net_error -101
+[7954:7960:0912/153803.276380:ERROR:net/socket/ssl_client_socket_impl.cc:878] handshake failed; returned -1, SSL error code 1, net_error -101
+[7954:7960:0912/153803.387925:ERROR:net/socket/ssl_client_socket_impl.cc:878] handshake failed; returned -1, SSL error code 1, net_error -101
+[7954:7960:0912/153903.375053:ERROR:net/socket/ssl_client_socket_impl.cc:878] handshake failed; returned -1, SSL error code 1, net_error -101
+[7954:7960:0912/153903.460001:ERROR:net/socket/ssl_client_socket_impl.cc:878] handshake failed; returned -1, SSL error code 1, net_error -101
+[8219:8219:0912/153958.149695:ERROR:services/on_device_model/ml/gpu_blocklist.cc:120] Unable to get gpu adapter
+[7790:7928:0912/153958.150054:ERROR:services/on_device_model/public/cpp/service_client.cc:36] Unexpected on_device_model service disconnect: The device's GPU is not supported.

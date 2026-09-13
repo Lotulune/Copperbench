@@ -61,6 +61,9 @@ class Stage9ManagedTaskMatrixTest {
 					output.accept("COPPERBENCH_STAGE9_DATAGEN_DONE " + track.generatorId);
 				} else {
 					assertEquals(List.of("runGameTest"), arguments);
+					Files.createDirectories(workingDirectory.resolve("run"));
+					Files.writeString(workingDirectory.resolve("run/gametest-results.xml"),
+							"<testsuite><testcase name=\"managed_contract_fixture\" classname=\"Fixture\"/></testsuite>");
 					output.accept("COPPERBENCH_STAGE9_GAMETEST_DONE " + track.generatorId);
 				}
 				return new Fabric1211ProcessRunner.ProcessResult(0, false);
@@ -82,6 +85,13 @@ class Stage9ManagedTaskMatrixTest {
 				assertEquals(1, preview.get("changeCount").getAsInt());
 				assertTrue(preview.get("canPublish").getAsBoolean());
 				assertFalse(Files.exists(target.resolve("src/generated")));
+				Path nativeSource = target.resolve("src/main/java/custom/Native.java");
+				Files.createDirectories(nativeSource.getParent());
+				Files.writeString(nativeSource, "package custom; final class Native {}\n");
+				JsonObject changedPreview = service.query(Query.of(UUID.randomUUID(), workspaceId,
+						Operation.PREVIEW_DATAGEN_OUTPUT, previewPayload), UI).data().getAsJsonObject();
+				assertTrue(changedPreview.get("stale").getAsBoolean(), "Native edits must invalidate staging even without a revision change");
+				assertFalse(changedPreview.get("canPublish").getAsBoolean());
 				datagenPassed.add(track.generatorId);
 
 				JsonObject gameTest = start(service, workspaceId, Operation.RUN_GAMETEST);

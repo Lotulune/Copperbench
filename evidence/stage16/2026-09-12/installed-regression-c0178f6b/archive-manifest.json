@@ -1,0 +1,966 @@
+{
+  "schemaVersion": "1.0",
+  "rawFileCount": 192,
+  "files": [
+    {
+      "path": "candidate-byte-verification.json",
+      "bytes": 318,
+      "sha256": "9a7b4554434c23d18e2f281d2515643fdb649f367c42d510c0c84e9534f06b4f"
+    },
+    {
+      "path": "candidate.json",
+      "bytes": 1312,
+      "sha256": "26e23c5efcbb568b1bfaf041875aab4961c71890cbc2737e0c55a891bae15705"
+    },
+    {
+      "path": "final-host-state.json",
+      "bytes": 198,
+      "sha256": "63c99fa5f61a133e6f781e24911c1e7edbda0accc3e2a316ffb71ed827a31502"
+    },
+    {
+      "path": "final-vm-state.json",
+      "bytes": 806,
+      "sha256": "16b774104cdfafbca5c012f3481a55023162fc54a878328abc5b991a46a6e805"
+    },
+    {
+      "path": "host-backup-recovery.json",
+      "bytes": 408,
+      "sha256": "bc56e59aa7e72a7481096869b3ea5f6f13446bb647cb13d59f846df50875308c"
+    },
+    {
+      "path": "host-installation.json",
+      "bytes": 666,
+      "sha256": "4eb25d8a072bc3c0e6fa7acb3788fef7a98022241daac717f865e1c2cbc06d3e"
+    },
+    {
+      "path": "host-installed-backup.json",
+      "bytes": 475,
+      "sha256": "837220c854950ffad59cb16fbac76c36bcd7b9a8653bd82cfb331091c9c038b2"
+    },
+    {
+      "path": "host-memory.jsonl",
+      "bytes": 330020,
+      "sha256": "660a09012b460e4bd38087f6aac04282e27f85a3fc2ceaa0c290602f27b1a4c3"
+    },
+    {
+      "path": "host-partial-backup-cleanup.json",
+      "bytes": 440,
+      "sha256": "0927585f5ce4358a464d15111662a5513e17c058369a38a94b01b51e68b79520"
+    },
+    {
+      "path": "host-user-state-backup.json",
+      "bytes": 207,
+      "sha256": "aa6e455f80c26b8fc5fbc4398948db359438fdeae5f1a43c9151c293878921c8"
+    },
+    {
+      "path": "linux-candidate-before-deb.json",
+      "bytes": 838,
+      "sha256": "2398943ba2ed74e2e45a37d10352302607406b95282e4d30d7c6c90d7758c704"
+    },
+    {
+      "path": "linux-cross-build.log",
+      "bytes": 2791,
+      "sha256": "c859d8a69dd6a74f1ffe17c76b2171621b4d98b459145aaa04213d0510964588"
+    },
+    {
+      "path": "linux-package/candidate.json",
+      "bytes": 1588,
+      "sha256": "c9a46569fa45330fb36aa9910af8e7008b8b3f2ea0a989eb56eb9c54d870ae1c"
+    },
+    {
+      "path": "linux-package/deb-build.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "linux-package/deb-build.stdout",
+      "bytes": 119,
+      "sha256": "29f3a388b0d0685ccb383fa3b889cb8695a57a515a1d08147effd9b18b0a3ad6"
+    },
+    {
+      "path": "linux-package/install-linux-retest.py",
+      "bytes": 2815,
+      "sha256": "ed17eeaecc6a26e48bf5d054c1836a57c8e98ae8105862ae06340a6e0d10a53f"
+    },
+    {
+      "path": "linux-package/linux-payload-manifest.json",
+      "bytes": 605609,
+      "sha256": "fa20ee977ba6b72d62e77c8b1359ede4ce30a815da172fa6aee431de0815dd33"
+    },
+    {
+      "path": "linux-package/reuse-linux-build-runtime.py",
+      "bytes": 2867,
+      "sha256": "fcc534f8d349f878b74fcaa4fcb1994cb54f34f874c91dde73bc449c4a3a90b7"
+    },
+    {
+      "path": "linux-package/seal-linux-deb.py",
+      "bytes": 3977,
+      "sha256": "b75383f0639a7629698485b7ce82e20e374d43505432f35b8ad05ab11fd9bbe6"
+    },
+    {
+      "path": "linux-package/verify-candidate-bytes.py",
+      "bytes": 1757,
+      "sha256": "f7c131137a6b805e59a94e2254953e6cf6d466ae2e865c178ebeeb1e8fdd7fd7"
+    },
+    {
+      "path": "screenshots/01-windows-task-grant.png",
+      "bytes": 245694,
+      "sha256": "fd2b56e0d8c7d5210944d1d1e7373e5acbd787131c59d433d8ea421cd114f94d"
+    },
+    {
+      "path": "screenshots/02-windows-created-workspace.png",
+      "bytes": 115009,
+      "sha256": "a65dc9987933d31186aa2be8d9b37689e3a5e64bff7067e22a14b5d1ff39a7ef"
+    },
+    {
+      "path": "screenshots/03-windows-native-opengl-failure.png",
+      "bytes": 239644,
+      "sha256": "b30827174429d29ac4d594aa7e6deabc05d3336f59831fe59d7173f5c8ef221d"
+    },
+    {
+      "path": "screenshots/04-windows-error-count-and-final-revision.png",
+      "bytes": 111681,
+      "sha256": "8547e22f9d01d6cab6a456a2eff67a245ade4569a301176585d1ecc5e88e8d85"
+    },
+    {
+      "path": "screenshots/05-windows-reopened-old-token-rejected.png",
+      "bytes": 128013,
+      "sha256": "13ae1d4501cfb9d4ddde1d01583ff95216478eef7615ce8ea4ab8c00508fe0a2"
+    },
+    {
+      "path": "screenshots/06-host-task-grant.png",
+      "bytes": 19301,
+      "sha256": "c0ae5f439c8e63522da33a414e8d7395882b23e1a5d861517414cdc70ea1eca8"
+    },
+    {
+      "path": "screenshots/07-host-created-workspace.png",
+      "bytes": 98192,
+      "sha256": "11c922122c68ced6664fe25826a0ef67d9bb651def2659a9db005b60adc15d9b"
+    },
+    {
+      "path": "screenshots/08-host-minecraft-rendered-main-menu.png",
+      "bytes": 57975,
+      "sha256": "85bb1a1a4001082ad51263cfef1e91ecfc106452c19e5c1dbf676307b569af4a"
+    },
+    {
+      "path": "screenshots/09-host-final-workspace-before-close.png",
+      "bytes": 113287,
+      "sha256": "c33cc22687f31bce7aeb96a68521ea8ee932a03dde7016f7459f0a79ce9f2eab"
+    },
+    {
+      "path": "screenshots/10-host-reopened-workspace.png",
+      "bytes": 113495,
+      "sha256": "77ace0bfa5380bd8ba45f43f6acdab5a5dd12fcdbb5bebdb4e3e45c0c2cce4e3"
+    },
+    {
+      "path": "screenshots/11-ubuntu-created-workspace.png",
+      "bytes": 98023,
+      "sha256": "6414baa2dc80cf38fa4c3aaaa0694dae5e18a29f80f8be96cc2bcd12ce1d1206"
+    },
+    {
+      "path": "screenshots/12-ubuntu-minecraft-rendered-main-menu.png",
+      "bytes": 124235,
+      "sha256": "13ba9431305234c6e14128bd471088c4999e52e3bf30a1eda72fb4e3f1dedeac"
+    },
+    {
+      "path": "screenshots/13-ubuntu-reopened-workspace.png",
+      "bytes": 97593,
+      "sha256": "11db3d21c54c69926040dbba51423d028d795ee613adb5b1cb40e9d8f5e8828f"
+    },
+    {
+      "path": "source.json",
+      "bytes": 587,
+      "sha256": "444e5cf2b43c9b6cb7b7507aef7b40adf9b323517728934112e27f7deeb7b002"
+    },
+    {
+      "path": "summary.json",
+      "bytes": 3845,
+      "sha256": "f3435ccf098e140a9b303903eb2a2475a5c9a956af7d7e060aa9436f2298e7df"
+    },
+    {
+      "path": "ubuntu/agent-attempt2/desktop-launcher-result.json",
+      "bytes": 902,
+      "sha256": "de4f71b5fceabb48e6f5542dbc2cda204378eb1177956bd484533062da41940b"
+    },
+    {
+      "path": "ubuntu/agent-attempt2/external-agent-result.json",
+      "bytes": 2501,
+      "sha256": "7582ac3ae975c295b6196b8939ee981d6e002f0b03fa396650713fc78e674e24"
+    },
+    {
+      "path": "ubuntu/agent-attempt2/helper.log",
+      "bytes": 1984,
+      "sha256": "ff6ca04560d39a144f219096208e646abbda4f8046b3b1808ee2062427665b02"
+    },
+    {
+      "path": "ubuntu/agent-attempt2/mcp-tool-events.jsonl",
+      "bytes": 1113429,
+      "sha256": "3520f7137e809629152dbb1086453e3e26f8f53c8135ae946e7b1c686a82deb8"
+    },
+    {
+      "path": "ubuntu/app-reopen.launch.json",
+      "bytes": 101,
+      "sha256": "8fadf608244d9da596abeeaf824f37584ef4affe6a4fc31365c0a91a41355f49"
+    },
+    {
+      "path": "ubuntu/app-reopen.monitor.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "ubuntu/app-reopen.monitor.stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "ubuntu/app-reopen.process.json",
+      "bytes": 124,
+      "sha256": "474e7000f70e85a664f3521781341117f9b32d07449e55d1db79d70e8627cf16"
+    },
+    {
+      "path": "ubuntu/app-reopen.stderr.txt",
+      "bytes": 572,
+      "sha256": "9808cf0cf2cc1af0be680792391f44d71404d7785c4531d85f23481a70b411b8"
+    },
+    {
+      "path": "ubuntu/app-reopen.stdout.txt",
+      "bytes": 17528,
+      "sha256": "ef18d62dc252037c72b6e25a7cb8e64ec3282b435b1a582d61cdc81ad7e67848"
+    },
+    {
+      "path": "ubuntu/app.launch.json",
+      "bytes": 94,
+      "sha256": "51b6c225d609ed0416d26aff68f9dcbe965cd3efc1e209bb63ea2208899ea800"
+    },
+    {
+      "path": "ubuntu/app.monitor.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "ubuntu/app.monitor.stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "ubuntu/app.process.json",
+      "bytes": 124,
+      "sha256": "088c25024244821a3bdecd47a2f4b2bd833713475cae4d032e661cf954c11a64"
+    },
+    {
+      "path": "ubuntu/app.stderr.txt",
+      "bytes": 1140,
+      "sha256": "922d60bdcad8df1fd53d09cc3011242aca7e370322ec4f4b2f5118786c89122f"
+    },
+    {
+      "path": "ubuntu/app.stdout.txt",
+      "bytes": 19968,
+      "sha256": "5f0d9718c8bc0121c4ad07e863eb26fd562aa6a08b93be6d5c0809e932e11355"
+    },
+    {
+      "path": "ubuntu/automation-audit.jsonl",
+      "bytes": 520077,
+      "sha256": "050876ddfa4bec11aca8d96c703858fb8a7515425d571a30d201c4faaa28b278"
+    },
+    {
+      "path": "ubuntu/candidate.json",
+      "bytes": 1588,
+      "sha256": "c9a46569fa45330fb36aa9910af8e7008b8b3f2ea0a989eb56eb9c54d870ae1c"
+    },
+    {
+      "path": "ubuntu/collect-linux-retest-final.py",
+      "bytes": 5573,
+      "sha256": "2769c0dff0ebf1342fcd4586c4613005a411b540b2587095cdc372d7a164662d"
+    },
+    {
+      "path": "ubuntu/collect-linux-retest.py",
+      "bytes": 5506,
+      "sha256": "1116b962bfa84651395c1975425eecc83b7686f170b2ce9e4eba3d3525a210a7"
+    },
+    {
+      "path": "ubuntu/collection-facts.json",
+      "bytes": 888,
+      "sha256": "1033c8bc5b500a3e24f07547424dfa0d633e44ff8747fbca793c0a4eb71e5756"
+    },
+    {
+      "path": "ubuntu/create.launch.json",
+      "bytes": 97,
+      "sha256": "bda918a33cdb0b886d528aae46c86b13dc655a4ba658edca60e4af7a7b5ca0e2"
+    },
+    {
+      "path": "ubuntu/create.monitor.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "ubuntu/create.monitor.stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "ubuntu/create.process.json",
+      "bytes": 124,
+      "sha256": "c0f982028da020ead82de991320c66e7ae9c37e40d82d2fa92e309541d6a530a"
+    },
+    {
+      "path": "ubuntu/create.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "ubuntu/create.stdout.txt",
+      "bytes": 255,
+      "sha256": "112a2bc65acd03debd3e658265fbb1b9d635c0e8ddfc2dcbaba1ad424aad87b2"
+    },
+    {
+      "path": "ubuntu/final-source-manifest.json",
+      "bytes": 7742,
+      "sha256": "4b3a4754e0d29d333fb41b64869ec0ff7164cc834d60d9ddd88772a97700c4f6"
+    },
+    {
+      "path": "ubuntu/final-workspace-source.zip",
+      "bytes": 316758,
+      "sha256": "0e8a793ef6cb8b26be7abccef0578f8840af04d54cfbf97ad5a3391c5ebedbb6"
+    },
+    {
+      "path": "ubuntu/grant.launch.json",
+      "bytes": 96,
+      "sha256": "21a9dd12b02dd2676cfa1ceeeead38b07d6b95c0eed322c3a70b8c48e992983c"
+    },
+    {
+      "path": "ubuntu/grant.monitor.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "ubuntu/grant.monitor.stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "ubuntu/grant.process.json",
+      "bytes": 124,
+      "sha256": "a378b6ca00895909b495eac82853a8d48e2322596d3b7ec9fcbc361ab880af66"
+    },
+    {
+      "path": "ubuntu/grant.stderr.txt",
+      "bytes": 156,
+      "sha256": "2c50cc95a15bde9610a4ba8e1d79d485c2e9700713eabdc3d82914e32477b956"
+    },
+    {
+      "path": "ubuntu/grant.stdout.txt",
+      "bytes": 460,
+      "sha256": "2bd147edb038b0d22bcf9d68a9bef6e597b8b10df777e9a1fb167194a5079369"
+    },
+    {
+      "path": "ubuntu/harness/run-installed-agent-desktop.py",
+      "bytes": 4802,
+      "sha256": "b34aa5a05cea49d55ed8dd6a68e739bff62be47e39e037c3de54a1d43644f946"
+    },
+    {
+      "path": "ubuntu/harness/sdk/python/copperbench.py",
+      "bytes": 13568,
+      "sha256": "7e990eca807e6dcaf507d8cadc016c71dd0b0beefc11c361419c99a97555fa04"
+    },
+    {
+      "path": "ubuntu/harness/verify-stage15-linux-installed-agent.py",
+      "bytes": 15819,
+      "sha256": "2f17702d661254701d9a95460a19d335e10c087f2bac98d3654343aa055c5d8e"
+    },
+    {
+      "path": "ubuntu/harness/verify-stage16-installed-agent.py",
+      "bytes": 7217,
+      "sha256": "544d2ad847204b51e9fbad603a800df82a4fd5f9f740b322a96cdc5501749400"
+    },
+    {
+      "path": "ubuntu/helper-launcher-attempt2.launch.json",
+      "bytes": 115,
+      "sha256": "6830e22d41080ee9ea49813cfe0fca053005b122d255883ce82748f21accc1f3"
+    },
+    {
+      "path": "ubuntu/helper-launcher-attempt2.monitor.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "ubuntu/helper-launcher-attempt2.monitor.stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "ubuntu/helper-launcher-attempt2.process.json",
+      "bytes": 124,
+      "sha256": "a0c5f93f4e4dde12729a3bc2e36414a871935ded38118465f45c3e31130cd9d0"
+    },
+    {
+      "path": "ubuntu/helper-launcher-attempt2.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "ubuntu/helper-launcher-attempt2.stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "ubuntu/helper-launcher.launch.json",
+      "bytes": 106,
+      "sha256": "21244986268b6ba179a4bfcaa90d703f87c63c9f5bfdb83788d3af16c52cd7f8"
+    },
+    {
+      "path": "ubuntu/helper-launcher.monitor.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "ubuntu/helper-launcher.monitor.stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "ubuntu/helper-launcher.process.json",
+      "bytes": 124,
+      "sha256": "32cff8c82ee93fda06faa0643f3d67e421fcc0b81a2adbdb6821f74802905a8b"
+    },
+    {
+      "path": "ubuntu/helper-launcher.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "ubuntu/helper-launcher.stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "ubuntu/idle-inhibitor.json",
+      "bytes": 233,
+      "sha256": "e555368b4483599ef643f972934b04da763124d197c826983cea658a5aa34d4b"
+    },
+    {
+      "path": "ubuntu/idle-inhibitor.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "ubuntu/idle-inhibitor.stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "ubuntu/installation.json",
+      "bytes": 442,
+      "sha256": "932b4be66df842f656b9a43448efd8abaa567bdca2bb3a60d8f5a624bf0cdbad"
+    },
+    {
+      "path": "ubuntu/linux-desktop-session-attempt2.py",
+      "bytes": 3927,
+      "sha256": "8e13e8511c1b12918d0c165b8c49a0717098ac026e4ef414425c6c191e2d3911"
+    },
+    {
+      "path": "ubuntu/linux-desktop-session.py",
+      "bytes": 3816,
+      "sha256": "5a9b9bdf47a5d877e9925f760d2391851e1671dab89c4df421bf2b79741e69db"
+    },
+    {
+      "path": "ubuntu/minecraft-latest.log.txt",
+      "bytes": 57218,
+      "sha256": "c99bcca47b2486c9c6dbfe918461576fcddb5ef230af0cd104730bc90c24ff44"
+    },
+    {
+      "path": "ubuntu/monitor-process.py",
+      "bytes": 941,
+      "sha256": "f73920d06db22a1d96b1a9eb751bd138351aa0036ac4a038d2eeecb2b6cd7adf"
+    },
+    {
+      "path": "ubuntu/revoke.process.json",
+      "bytes": 124,
+      "sha256": "bdb2d48ff97da8fc3798d60090cbcf52615ac0fe4f28605c6a6d6b4d5e7b7ec6"
+    },
+    {
+      "path": "ubuntu/revoke.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "ubuntu/revoke.stdout.txt",
+      "bytes": 511,
+      "sha256": "2089caf3708690f70ced7137f91f589b3227ca6dd0f0b377790f4e22329e45b8"
+    },
+    {
+      "path": "ubuntu/revoked-create.process.json",
+      "bytes": 124,
+      "sha256": "2d515794e3a018c770e639567e3644ac5bf8fee046126bf124580d901f2b9e49"
+    },
+    {
+      "path": "ubuntu/revoked-create.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "ubuntu/revoked-create.stdout.txt",
+      "bytes": 318,
+      "sha256": "49d3819ef514232a194ab2dfdb3731fccce5f6950e866a055f57f0cd54dbc671"
+    },
+    {
+      "path": "ubuntu/runtime-facts.json",
+      "bytes": 1500,
+      "sha256": "d6b3d852109175caefe6116dad9114f1ce3fa75cb80bd2fef107197bd3d1bc95"
+    },
+    {
+      "path": "ubuntu/stage16_installed-1.0.jar",
+      "bytes": 49304,
+      "sha256": "1f5e33a13cf54a6a72ef7b65f0471bcc22bd24666c70a12e748b6a8f71be4383"
+    },
+    {
+      "path": "ubuntu/start-linux-idle-inhibitor.py",
+      "bytes": 2264,
+      "sha256": "ae5f9fa968ebcbef103786a9439df81fc8539f83ae2d6545bee606650ce6ebca"
+    },
+    {
+      "path": "ubuntu/watch-verifier.py",
+      "bytes": 149,
+      "sha256": "0bf7d34857d0adb32be0681afaa557e14afc6ee5b52f2d9291a455a325ee8e05"
+    },
+    {
+      "path": "verify.py",
+      "bytes": 8223,
+      "sha256": "387cc19650e526cf5c79c2544f7abc170df0421649cf998567535fb9181a5b25"
+    },
+    {
+      "path": "windows-build.log",
+      "bytes": 3672,
+      "sha256": "406f87cd48f317a5b16e1ac5e0dd361453a1d6cdc54235240e73b6b3a7b630cf"
+    },
+    {
+      "path": "windows-host/agent-attempt1/desktop-launcher-result.json",
+      "bytes": 707,
+      "sha256": "fbcf620f2aef2a2c4fad7044b6a0dbb33ae62c9e0e0befc0dce1937894e47e1a"
+    },
+    {
+      "path": "windows-host/agent-attempt1/external-agent-result.json",
+      "bytes": 2566,
+      "sha256": "15f8fc1d4d8f8c99ef5daeea2fa3bedec988b3c43880b912b6d64654712e6f5e"
+    },
+    {
+      "path": "windows-host/agent-attempt1/helper.log",
+      "bytes": 1790,
+      "sha256": "838743468035b1d78f7e94f99b63698772879820b2892c982db95a246badd1c9"
+    },
+    {
+      "path": "windows-host/agent-attempt1/mcp-tool-events.jsonl",
+      "bytes": 570207,
+      "sha256": "dab6e4efce6f59d8b5f743d8c44bffa081d26c1493d0fe41a9167111b7711e72"
+    },
+    {
+      "path": "windows-host/app-reopen.launch.json",
+      "bytes": 58,
+      "sha256": "e72787c942fed769a25ca980ec5a758e9f916c97f5fe74561b2bcf787f3dd2d7"
+    },
+    {
+      "path": "windows-host/app-reopen.process.json",
+      "bytes": 117,
+      "sha256": "98e89ba3ca4241012c713091b334cb2cd954b0726a6b1c1d782a234d7009ffeb"
+    },
+    {
+      "path": "windows-host/app-reopen.stderr.txt",
+      "bytes": 121,
+      "sha256": "78b41ddaa9a9d0e9f1d20b0fe52aff9996f2c0c3be8ade4abe220c38fbde6fc2"
+    },
+    {
+      "path": "windows-host/app-reopen.stdout.txt",
+      "bytes": 17379,
+      "sha256": "38febfe9363bc5668f800a6b7449adb3478fb413e020a54b9320540175e63d41"
+    },
+    {
+      "path": "windows-host/app.launch.json",
+      "bytes": 113,
+      "sha256": "88476d5c6cd5c59490eded0ab9a79563ba68c45ff5f105886d175ae19bc66429"
+    },
+    {
+      "path": "windows-host/app.process.json",
+      "bytes": 129,
+      "sha256": "f4b7d95d766baa85bccd7f0b4771552ac77557eaf14f17d257dac07dd5e9fc72"
+    },
+    {
+      "path": "windows-host/app.stderr.txt",
+      "bytes": 294,
+      "sha256": "eb76b1ddf0b4d8062a3422a74e503b4c5c38eb61cd961f4dd2578e028f3517a8"
+    },
+    {
+      "path": "windows-host/app.stdout.txt",
+      "bytes": 20795,
+      "sha256": "18dbd751d8c80267c3cc7b52c796ab1101716e576d785e0536e6951de83f73be"
+    },
+    {
+      "path": "windows-host/automation-audit.jsonl",
+      "bytes": 285097,
+      "sha256": "e7b82737d4d894509af477bd5183eb12bddefa754b5322acdcf58716373a792e"
+    },
+    {
+      "path": "windows-host/candidate.json",
+      "bytes": 1405,
+      "sha256": "de2516ff2c947f3a31274fc1538b315bc5f3fbbbc92f3f9f8baf6cf58aa932ab"
+    },
+    {
+      "path": "windows-host/collect-windows-retest.py",
+      "bytes": 5533,
+      "sha256": "742b13d7b07f7c9bd5f6664c0cef6f61ed8903d00658190fd6f217054f1c1aa9"
+    },
+    {
+      "path": "windows-host/collection-facts.json",
+      "bytes": 1025,
+      "sha256": "d501bf4f4701c7271cc5e8b2cdbfcaa123796f0db1ab385f8da7f80a3d28f24c"
+    },
+    {
+      "path": "windows-host/create.launch.json",
+      "bytes": 116,
+      "sha256": "21d04fb8327e349b0d7dc115fc79b56b4b7f8eb8de622c09e39a8706bd2f4997"
+    },
+    {
+      "path": "windows-host/create.process.json",
+      "bytes": 129,
+      "sha256": "bc250962106b1c1f0bfe998273742a0c98cb263422c439509b74a0994b4b1283"
+    },
+    {
+      "path": "windows-host/create.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "windows-host/create.stdout.txt",
+      "bytes": 282,
+      "sha256": "a01fafb7e65aa3958bc9c83596f5e3d9aba0e7264d66a8324b7b1f94ae0f4605"
+    },
+    {
+      "path": "windows-host/final-source-manifest.json",
+      "bytes": 7958,
+      "sha256": "53c1c78ed3298299dfea320e550ac43bdf41f6b6f74e62bc8ce78b59660f7eb1"
+    },
+    {
+      "path": "windows-host/final-workspace-source.zip",
+      "bytes": 316936,
+      "sha256": "48dd4976d4f7fb955531507cc4422e29d7e6bce1801e06c77c233664b2e88609"
+    },
+    {
+      "path": "windows-host/grant.launch.json",
+      "bytes": 115,
+      "sha256": "2cc10935387dca460aa7366d78e71c40e9e738778ceb22f8202c673b14c133b8"
+    },
+    {
+      "path": "windows-host/grant.process.json",
+      "bytes": 129,
+      "sha256": "56d6bdfe81123050b2063348fd069ba63d343c776109383a373b3adff027f730"
+    },
+    {
+      "path": "windows-host/grant.stderr.txt",
+      "bytes": 178,
+      "sha256": "6619ffc59758b3a1e98abad72b425d7d957eedf049a604664951e494d690b832"
+    },
+    {
+      "path": "windows-host/grant.stdout.txt",
+      "bytes": 492,
+      "sha256": "db3de7ae601a0018b5799dc8636fd0fa693422b669f82bdd138421679af35f34"
+    },
+    {
+      "path": "windows-host/harness/sdk/python/copperbench.py",
+      "bytes": 13568,
+      "sha256": "7e990eca807e6dcaf507d8cadc016c71dd0b0beefc11c361419c99a97555fa04"
+    },
+    {
+      "path": "windows-host/harness/verify-stage15-linux-installed-agent.py",
+      "bytes": 15819,
+      "sha256": "2f17702d661254701d9a95460a19d335e10c087f2bac98d3654343aa055c5d8e"
+    },
+    {
+      "path": "windows-host/harness/verify-stage16-installed-agent.py",
+      "bytes": 7228,
+      "sha256": "eabb78966ce1a7767409c15f07b722f9541369be12fb659edd1c4d2e9f046b82"
+    },
+    {
+      "path": "windows-host/host-bootstrap-launcher.json",
+      "bytes": 143,
+      "sha256": "6fa1dc82d4327057591fbf0272499c18f169bcc839fec43e1ce14e439ac19ac4"
+    },
+    {
+      "path": "windows-host/installation.json",
+      "bytes": 666,
+      "sha256": "4eb25d8a072bc3c0e6fa7acb3788fef7a98022241daac717f865e1c2cbc06d3e"
+    },
+    {
+      "path": "windows-host/minecraft-latest.log.txt",
+      "bytes": 8223,
+      "sha256": "089a04c7c0db4f5f71f2f53df64780d494b8b2a5dc6c32b16bf830f6ac91e603"
+    },
+    {
+      "path": "windows-host/revoke.process.json",
+      "bytes": 129,
+      "sha256": "379f5a9681f62ee57289036d3a26dc04d5a139dbca790039d76a749b1a19ec7c"
+    },
+    {
+      "path": "windows-host/revoke.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "windows-host/revoke.stdout.txt",
+      "bytes": 543,
+      "sha256": "1d12c387d963be84f5ed704916f3f00087415e3a3d0e3290d63f132bf4ca7394"
+    },
+    {
+      "path": "windows-host/revoked-create.process.json",
+      "bytes": 129,
+      "sha256": "6488c51dbfbc509005640fa91d83ff9503628c699482cb6f676d39f8dad11429"
+    },
+    {
+      "path": "windows-host/revoked-create.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "windows-host/revoked-create.stdout.txt",
+      "bytes": 319,
+      "sha256": "1f504e24d4ca35ec793d3ede81ead8efb3b79f1f928686097e9fb6e9db74b17e"
+    },
+    {
+      "path": "windows-host/runtime-facts.json",
+      "bytes": 840,
+      "sha256": "8f4b06399acde2cc0c2eb2097c33e1a0da11ada4031e27881b35c2dabd544563"
+    },
+    {
+      "path": "windows-host/stage16_installed-1.0.jar",
+      "bytes": 49283,
+      "sha256": "39a5e8b8be150d097ebe8ea12a71e0334e9a6dd151f354bcef5dac2579bab8dc"
+    },
+    {
+      "path": "windows-host/windows-agent-desktop.pyw",
+      "bytes": 3919,
+      "sha256": "495402a2c8cffb0e4ca8162be5031b6f4fb857edb225ce094a94de28c511f5fc"
+    },
+    {
+      "path": "windows-host/windows-installed-desktop.pyw",
+      "bytes": 2817,
+      "sha256": "9c7dc5d72a21a2513cfe10e386dc8c0404936ff2c0b6803b614142c74a9c4471"
+    },
+    {
+      "path": "windows-host/windows-reopen.pyw",
+      "bytes": 1087,
+      "sha256": "e24611cd6ab0743c0ea861946ff2bebeb84a6bbcf7636868df58325eddb53d6c"
+    },
+    {
+      "path": "windows-vm/agent-attempt1/desktop-launcher-result.json",
+      "bytes": 571,
+      "sha256": "92bb2d30dcff12f7038671f4f7b84171895c5c4a4cc923c716b41b53a2ab5b5e"
+    },
+    {
+      "path": "windows-vm/agent-attempt1/external-agent-result.json",
+      "bytes": 2555,
+      "sha256": "9c1716593dab1775b95f44bc3b6530aaf5aa17d331f42a285397a596c411030a"
+    },
+    {
+      "path": "windows-vm/agent-attempt1/helper.log",
+      "bytes": 1677,
+      "sha256": "3c82cc90ac64de54fa8be3537bcb6b8f4359e51fd45fb776bc7faa2986c8a727"
+    },
+    {
+      "path": "windows-vm/agent-attempt1/mcp-tool-events.jsonl",
+      "bytes": 316531,
+      "sha256": "ec6c6eb0a149208fa3bc9ed39ae843ff208b8a6c17fbc4e01bb6e35973dc76aa"
+    },
+    {
+      "path": "windows-vm/agent-attempt1/run-client-complete-response.json",
+      "bytes": 24036,
+      "sha256": "b395f45dc05db20f205c80f7c8cbd92e70479cf59a808dd269dedd53d19c943b"
+    },
+    {
+      "path": "windows-vm/app-reopen.launch.json",
+      "bytes": 57,
+      "sha256": "393e3be35a8a80f3dc8bf2f773666dc9816556527401718f544684b1e5f4cabd"
+    },
+    {
+      "path": "windows-vm/app-reopen.process.json",
+      "bytes": 117,
+      "sha256": "55cef076e91dc416b556927ba312b424ce6a6e6ea2fde88f5cf33c849c536bd3"
+    },
+    {
+      "path": "windows-vm/app-reopen.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "windows-vm/app-reopen.stdout.txt",
+      "bytes": 17114,
+      "sha256": "b01a7e4dc12c03b41412b663a11f0f27fc9287952b35ed81edbd078ec0167565"
+    },
+    {
+      "path": "windows-vm/app.launch.json",
+      "bytes": 106,
+      "sha256": "4a4cc08a72d2d0d981530e14928269d294286af1b6c3fab47828ba1c880411bb"
+    },
+    {
+      "path": "windows-vm/app.process.json",
+      "bytes": 129,
+      "sha256": "f699d34daf047039e7f9dd849a5680fb218cbdd5774901ea677ba55840666d71"
+    },
+    {
+      "path": "windows-vm/app.stderr.txt",
+      "bytes": 174,
+      "sha256": "5578ff36113caa861cf365b4cc5f62d36419e2139c580cfa181e97c37f9b1ec0"
+    },
+    {
+      "path": "windows-vm/app.stdout.txt",
+      "bytes": 20972,
+      "sha256": "e3f5841ebf0904eee8860ba2459c247d0e2d4076c63ff4bc325b37a8d71071d9"
+    },
+    {
+      "path": "windows-vm/automation-audit.jsonl",
+      "bytes": 158967,
+      "sha256": "4263ad8c9d707ee1368602d0f68e859635c09930b18529de2cd1a6712363085c"
+    },
+    {
+      "path": "windows-vm/candidate.json",
+      "bytes": 1312,
+      "sha256": "26e23c5efcbb568b1bfaf041875aab4961c71890cbc2737e0c55a891bae15705"
+    },
+    {
+      "path": "windows-vm/collect-windows-retest.py",
+      "bytes": 5377,
+      "sha256": "757a782ff9390ea239a94cf549d06c0aac10d63743f28e5d710497aedfa958a4"
+    },
+    {
+      "path": "windows-vm/collection-facts.json",
+      "bytes": 1006,
+      "sha256": "98f5cb8d277574208edf7563c80c4824bcccc64c8cf6f33a8d4271f67af41edf"
+    },
+    {
+      "path": "windows-vm/create.launch.json",
+      "bytes": 109,
+      "sha256": "4dc0bf1558f0940505721ff81173b60fa27d657f4f7318fde5c62ea75906131c"
+    },
+    {
+      "path": "windows-vm/create.process.json",
+      "bytes": 129,
+      "sha256": "bb3139dc7523e04bc56ddd9d76a4608386f462dc1d10ef343abecd304ae6d524"
+    },
+    {
+      "path": "windows-vm/create.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "windows-vm/create.stdout.txt",
+      "bytes": 254,
+      "sha256": "e80a260bb02e08e24086d509517c313e06f12371a174e8fe689632957e167cdd"
+    },
+    {
+      "path": "windows-vm/final-source-manifest.json",
+      "bytes": 7959,
+      "sha256": "48a829de07d5565601aaeeb7f81c2386bd311d29cb5559c94d467ca7adeeae83"
+    },
+    {
+      "path": "windows-vm/final-workspace-source.zip",
+      "bytes": 316989,
+      "sha256": "9545d5a0574aa31d860f4cc6120baddf63eb5e9d4d87ec003852d4d8f7750431"
+    },
+    {
+      "path": "windows-vm/grant.launch.json",
+      "bytes": 108,
+      "sha256": "c88cb3d5ede2c9b627fe4806e57aac6e0c1893cff9298c3fa267ba4efb908d3e"
+    },
+    {
+      "path": "windows-vm/grant.process.json",
+      "bytes": 129,
+      "sha256": "11eb51a3aa41e9738196cee33466f74c0701d90faa9d1cd41f5a28e2a8108d35"
+    },
+    {
+      "path": "windows-vm/grant.stderr.txt",
+      "bytes": 151,
+      "sha256": "7fe5abfa0d4d7aeb1bb610a834e771e50bf7ff64881a26ce7ac574d65da36a94"
+    },
+    {
+      "path": "windows-vm/grant.stdout.txt",
+      "bytes": 457,
+      "sha256": "69383a11e3a1002e977db2128c9dfcc51f76d8fd9aa8444a2b8c5a28b34f9f22"
+    },
+    {
+      "path": "windows-vm/harness/sdk/python/copperbench.py",
+      "bytes": 13568,
+      "sha256": "7e990eca807e6dcaf507d8cadc016c71dd0b0beefc11c361419c99a97555fa04"
+    },
+    {
+      "path": "windows-vm/harness/verify-stage15-linux-installed-agent.py",
+      "bytes": 15819,
+      "sha256": "2f17702d661254701d9a95460a19d335e10c087f2bac98d3654343aa055c5d8e"
+    },
+    {
+      "path": "windows-vm/harness/verify-stage16-installed-agent.py",
+      "bytes": 7161,
+      "sha256": "fca42996038769a5bddc48bbfc263255281a75a7238bf9faa3d45b25a22cead6"
+    },
+    {
+      "path": "windows-vm/installation.json",
+      "bytes": 452,
+      "sha256": "6b53bcbd0d7ef9e8c6bfb8d9ab10da97dc42a6b3bcd72f0bb7b4c5aadb5a6697"
+    },
+    {
+      "path": "windows-vm/minecraft-latest.log.txt",
+      "bytes": 6135,
+      "sha256": "6d63c5b1685246327678eb0d8bd6cf276a1f2a5bcfd8999b86a8649d44879f30"
+    },
+    {
+      "path": "windows-vm/revoke.process.json",
+      "bytes": 129,
+      "sha256": "c57bb7d5848bda42b4a57c848ee50318395a836e651fdac61782d3a38c61747a"
+    },
+    {
+      "path": "windows-vm/revoke.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "windows-vm/revoke.stdout.txt",
+      "bytes": 508,
+      "sha256": "be09728bd89c2aa03fec2d6d0533cf57bc3ed0657714373d63085988eb061a0e"
+    },
+    {
+      "path": "windows-vm/revoked-create.process.json",
+      "bytes": 129,
+      "sha256": "e56dc9c3903ee4509245e5a7fa23da7ed0e71708a0be5eb517fb3859f3ccadeb"
+    },
+    {
+      "path": "windows-vm/revoked-create.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "windows-vm/revoked-create.stdout.txt",
+      "bytes": 319,
+      "sha256": "1f504e24d4ca35ec793d3ede81ead8efb3b79f1f928686097e9fb6e9db74b17e"
+    },
+    {
+      "path": "windows-vm/runtime-facts.json",
+      "bytes": 786,
+      "sha256": "b4ac38973d997c8e2dfbfd9423aa64845455acc62db96ac7531f7763726fd427"
+    },
+    {
+      "path": "windows-vm/stage16_installed-1.0.jar",
+      "bytes": 49315,
+      "sha256": "8da6958c7ade79c80951ee08c07b3247ceb883f3f844773ebe8f83539812171b"
+    },
+    {
+      "path": "windows-vm/windows-agent-desktop.pyw",
+      "bytes": 3908,
+      "sha256": "adcd253ce55ab7e47bc51f2a8cb6f95a3588fd595d8383784a2909fddf531012"
+    },
+    {
+      "path": "windows-vm/windows-installed-desktop.pyw",
+      "bytes": 2810,
+      "sha256": "c3488063521d227acd1fd7de83770acd02fad1dafd4984e4b206e09d3cdd1233"
+    },
+    {
+      "path": "windows-vm/windows-reopen.pyw",
+      "bytes": 1087,
+      "sha256": "e24611cd6ab0743c0ea861946ff2bebeb84a6bbcf7636868df58325eddb53d6c"
+    }
+  ]
+}

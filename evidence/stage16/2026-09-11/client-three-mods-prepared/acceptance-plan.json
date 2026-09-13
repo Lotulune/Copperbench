@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "stage16-client-acceptance-plan",
+  "status": "pending-unlocked-desktop",
+  "hostManifestSha256": "4fc686a872ce7e5e8ab6650d63c9c5181d314c4ce7e1e2318250d31c9e705c73",
+  "scope": "Real mouse/keyboard input, rendered feedback, and a full Minecraft process restart; setup/chat queries are labeled separately from gameplay input",
+  "profile": {
+    "username": "Stage16Trial",
+    "uuid": "8fb12eef-98f0-409b-a3c1-18abf66578f6",
+    "runtimeIdentityObserved": false
+  },
+  "cases": [
+    {
+      "id": "D1",
+      "mod": "resonance_token",
+      "input": "Use the held token with a real right mouse click in a newly created local test world",
+      "expect": "Visible active, inactive, then active feedback from successive permitted clicks; leave a nondefault active token for the save/restart test",
+      "status": "not_run"
+    },
+    {
+      "id": "D2",
+      "mod": "tally_stone",
+      "input": "Place two stones with actual BlockItem right clicks; increment their counts separately",
+      "expect": "Visible feedback and independent world block counts, targeting A=3 and B=7; record exact world positions",
+      "status": "not_run"
+    },
+    {
+      "id": "D3",
+      "mod": "tally_stone",
+      "input": "Perform actual sneak-right-click on one nonzero stone",
+      "expect": "Stone A visibly resets to zero; stone B remains at the recorded nonzero count 7",
+      "status": "not_run"
+    },
+    {
+      "id": "D4",
+      "mod": "harvest_ledger",
+      "input": "As the fixed survival player, break mature wheat with a real left mouse click; invoke the read-only ledger command",
+      "expect": "A successful mature break increases the displayed total from zero to one for the fixed player; retain this nonzero total for restart",
+      "status": "not_run"
+    },
+    {
+      "id": "D5",
+      "mod": "all",
+      "input": "Use Save and Quit, then Quit Game; wait for the public product task to finish; start a new product run-client task and rejoin the same world",
+      "expect": "Old process exits normally, a new process/task joins the same world as the same player, stone B restores 7, the token restores active state, and the ledger restores its recorded nonzero total",
+      "status": "not_run"
+    }
+  ],
+  "evidenceRequired": [
+    "Input type, target and timestamp from actual desktop tool calls",
+    "Screenshots of the actual feedback and read-only in-game state queries",
+    "Current-run client logs and product JSONL task boundaries",
+    "World path and fixed player identity before/after restart",
+    "Before/after verified JAR set and hashes"
+  ],
+  "excludedClaims": [
+    "A title screen or render-ready log is not a client behavior pass",
+    "Server mock/codec tests are not full client restart proof",
+    "Artwork, audio quality and fun remain subjective judgments"
+  ]
+}

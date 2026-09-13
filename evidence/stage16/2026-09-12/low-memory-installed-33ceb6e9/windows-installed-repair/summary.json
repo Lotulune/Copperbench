@@ -1,0 +1,274 @@
+{
+    "schemaVersion":  "1.0",
+    "kind":  "stage16-installed-windows-low-memory-repair",
+    "sourceCommit":  "33ceb6e9a68aab2b2fcd9153d6c4f23f4d85e6c5",
+    "startedAt":  "2026-09-12T04:36:58.2913731+00:00",
+    "status":  "passed",
+    "productExe":  "C:\\Copperbench-Stage16-33ceb6e9\\copperbench.exe",
+    "productExeSha256":  "203721a14453bdfe275a635cf56ea48e3ae9b914299dc5bbd6cd49fb3b7cbffd",
+    "applicationJarSha256":  "1f049a071cfe709fba9c98ce22defb9bbe6688fc334f421b64ce802315758c01",
+    "freshAgent":  false,
+    "authorizedCreationExercised":  false,
+    "desktopAcceptanceExercised":  false,
+    "cacheState":  "Existing guest caches, new source copy; not cold-cache certification",
+    "memoryProfile":  "Hyper-V dynamic: startup/max 4 GiB, minimum 3 GiB",
+    "steps":  [
+                  {
+                      "name":  "01-discovery",
+                      "arguments":  [
+                                        "bootstrap",
+                                        "list-generators"
+                                    ],
+                      "startedAt":  "2026-09-12T04:36:58.3673151+00:00",
+                      "firstOutputMs":  4483,
+                      "callerRuntimeOptionsCleared":  true,
+                      "processId":  6708,
+                      "completedAt":  "2026-09-12T04:37:03.0250640+00:00",
+                      "elapsedMs":  4658,
+                      "processExitCode":  0
+                  },
+                  {
+                      "name":  "02-no-authorization",
+                      "arguments":  [
+                                        "bootstrap",
+                                        "create-workspace",
+                                        "--generator-id",
+                                        "fabric-1.21.1",
+                                        "--mod-name",
+                                        "Stage16ApprovalProbe",
+                                        "--mod-id",
+                                        "stage16_approval_probe",
+                                        "--workspace-folder",
+                                        "C:\\Temp\\Stage16LowMemory-33ceb6e9\\unapproved",
+                                        "--no-prompt",
+                                        "true"
+                                    ],
+                      "startedAt":  "2026-09-12T04:37:03.0449928+00:00",
+                      "firstOutputMs":  3751,
+                      "callerRuntimeOptionsCleared":  true,
+                      "processId":  3324,
+                      "completedAt":  "2026-09-12T04:37:06.9977358+00:00",
+                      "elapsedMs":  3944,
+                      "processExitCode":  3
+                  },
+                  {
+                      "name":  "03-environment",
+                      "arguments":  [
+                                        "headless",
+                                        "--workspace",
+                                        "C:\\Temp\\Stage16LowMemory-33ceb6e9\\repair-workspace\\resonance_token.mcreator",
+                                        "environment"
+                                    ],
+                      "startedAt":  "2026-09-12T04:37:07.0063061+00:00",
+                      "firstOutputMs":  3738,
+                      "callerRuntimeOptionsCleared":  true,
+                      "processId":  6556,
+                      "completedAt":  "2026-09-12T04:37:10.8773320+00:00",
+                      "elapsedMs":  3871,
+                      "processExitCode":  0
+                  },
+                  {
+                      "name":  "04-compile-failure",
+                      "arguments":  [
+                                        "headless",
+                                        "--workspace",
+                                        "C:\\Temp\\Stage16LowMemory-33ceb6e9\\repair-workspace\\resonance_token.mcreator",
+                                        "build",
+                                        "--stream",
+                                        "true"
+                                    ],
+                      "startedAt":  "2026-09-12T04:37:10.8969110+00:00",
+                      "firstOutputMs":  1069,
+                      "callerRuntimeOptionsCleared":  true,
+                      "processId":  3332,
+                      "completedAt":  "2026-09-12T04:39:19.9556079+00:00",
+                      "elapsedMs":  129059,
+                      "processExitCode":  10
+                  },
+                  {
+                      "name":  "05-repaired-build",
+                      "arguments":  [
+                                        "headless",
+                                        "--workspace",
+                                        "C:\\Temp\\Stage16LowMemory-33ceb6e9\\repair-workspace\\resonance_token.mcreator",
+                                        "build",
+                                        "--stream",
+                                        "true"
+                                    ],
+                      "startedAt":  "2026-09-12T04:39:20.1798426+00:00",
+                      "firstOutputMs":  1286,
+                      "callerRuntimeOptionsCleared":  true,
+                      "processId":  6548,
+                      "completedAt":  "2026-09-12T04:39:49.2170807+00:00",
+                      "elapsedMs":  29043,
+                      "processExitCode":  0
+                  },
+                  {
+                      "name":  "06-accepted",
+                      "arguments":  [
+                                        "headless",
+                                        "--workspace",
+                                        "C:\\Temp\\Stage16LowMemory-33ceb6e9\\repair-workspace\\resonance_token.mcreator",
+                                        "run-gametest",
+                                        "--stream",
+                                        "true"
+                                    ],
+                      "startedAt":  "2026-09-12T04:39:49.2328683+00:00",
+                      "firstOutputMs":  1101,
+                      "callerRuntimeOptionsCleared":  true,
+                      "processId":  12320,
+                      "completedAt":  "2026-09-12T04:42:52.2150586+00:00",
+                      "elapsedMs":  182983,
+                      "processExitCode":  0
+                  }
+              ],
+    "environment":  {
+                        "schemaVersion":  "1.0",
+                        "workspaceId":  "9b98a83d-fac1-4dc0-9cda-8b5f940e2587",
+                        "workspaceName":  "Resonance Token",
+                        "workspaceKind":  "mod",
+                        "revision":  0,
+                        "generator":  {
+                                          "id":  "fabric-1.21.1",
+                                          "loader":  "fabric",
+                                          "minecraftVersion":  "1.21.1",
+                                          "displayName":  "Fabric 1.21.1",
+                                          "state":  "ready"
+                                      },
+                        "workspaceRoot":  "C:\\Temp\\Stage16LowMemory-33ceb6e9\\repair-workspace",
+                        "execution":  {
+                                          "generatorId":  "fabric-1.21.1",
+                                          "minecraftVersion":  "1.21.1",
+                                          "workspaceRoot":  "C:\\Temp\\Stage16LowMemory-33ceb6e9\\repair-workspace",
+                                          "sourceRoot":  "C:\\Temp\\Stage16LowMemory-33ceb6e9\\repair-workspace\\src\\main\\java",
+                                          "resourceRoot":  "C:\\Temp\\Stage16LowMemory-33ceb6e9\\repair-workspace\\src\\main\\resources",
+                                          "java":  {
+                                                       "requiredRelease":  21,
+                                                       "home":  "C:\\Copperbench-Stage16-33ceb6e9\\jdk21",
+                                                       "executable":  "C:\\Copperbench-Stage16-33ceb6e9\\jdk21\\bin\\java.exe"
+                                                   },
+                                          "gradle":  {
+                                                         "distribution":  "gradle-9.7.0-bin.zip",
+                                                         "windowsLauncher":  "C:\\Temp\\Stage16LowMemory-33ceb6e9\\repair-workspace\\gradlew.bat",
+                                                         "posixLauncher":  "C:\\Temp\\Stage16LowMemory-33ceb6e9\\repair-workspace\\gradlew",
+                                                         "tasks":  {
+                                                                       "build":  "build",
+                                                                       "runClient":  "runClient",
+                                                                       "runServer":  "runServer",
+                                                                       "runDatagen":  "runDatagen",
+                                                                       "runGameTest":  "runGameTest"
+                                                                   }
+                                                     },
+                                          "loader":  "fabric",
+                                          "loaderVersion":  "0.19.3",
+                                          "fabricApiVersion":  "0.116.15+1.21.1",
+                                          "loomVersion":  "1.17.19",
+                                          "testing":  {
+                                                          "supported":  true,
+                                                          "configurationPath":  "C:\\Temp\\Stage16LowMemory-33ceb6e9\\repair-workspace\\copperbench-tests.json",
+                                                          "prepareOperation":  "prepare_game_tests",
+                                                          "state":  "configured",
+                                                          "mode":  "packaged_jar",
+                                                          "minimumTests":  5
+                                                      },
+                                          "host":  {
+                                                       "os":  "windows",
+                                                       "arch":  "x86_64",
+                                                       "desktop":  {
+                                                                       "sessionType":  "native",
+                                                                       "waylandDisplayPresent":  false,
+                                                                       "x11DisplayPresent":  false,
+                                                                       "certificationRole":  "not-applicable",
+                                                                       "knownLimitations":  [
+
+                                                                                            ]
+                                                                   }
+                                                   }
+                                      },
+                        "agentWorkflow":  {
+                                              "nativeFilesAuthoritative":  true,
+                                              "structuredElementsOptional":  true,
+                                              "validateOperation":  "validate_workspace",
+                                              "buildOperation":  "build_workspace",
+                                              "diagnosticsOperation":  "get_task",
+                                              "healthOperation":  "get_workspace_health",
+                                              "planOperation":  "plan_workspace_changes"
+                                          }
+                    },
+    "verification":  {
+                         "schemaVersion":  "1.0",
+                         "status":  "passed",
+                         "reasonCode":  "GAMETEST_PASSED",
+                         "discovered":  5,
+                         "executed":  5,
+                         "passed":  5,
+                         "failed":  0,
+                         "skipped":  0,
+                         "frameworkTests":  0,
+                         "acceptanceExecuted":  5,
+                         "cases":  [
+                                       {
+                                           "name":  "acceptancetests.activeandinactivesurviveitemcodecroundtrip",
+                                           "className":  "fabric-gametest-api-v1:empty",
+                                           "status":  "passed",
+                                           "scope":  "acceptance"
+                                       },
+                                       {
+                                           "name":  "acceptancetests.cooldownrejectsuseuntilexactlytwentyticks",
+                                           "className":  "fabric-gametest-api-v1:empty",
+                                           "status":  "passed",
+                                           "scope":  "acceptance"
+                                       },
+                                       {
+                                           "name":  "acceptancetests.defaulttoggleandindependentstacks",
+                                           "className":  "fabric-gametest-api-v1:empty",
+                                           "status":  "passed",
+                                           "scope":  "acceptance"
+                                       },
+                                       {
+                                           "name":  "acceptancetests.feedbackusesactionbarforbothstates",
+                                           "className":  "fabric-gametest-api-v1:empty",
+                                           "status":  "passed",
+                                           "scope":  "acceptance"
+                                       },
+                                       {
+                                           "name":  "acceptancetests.unrelatedstackdatasurvivesbothdirections",
+                                           "className":  "fabric-gametest-api-v1:empty",
+                                           "status":  "passed",
+                                           "scope":  "acceptance"
+                                       }
+                                   ],
+                         "mode":  "packaged_jar",
+                         "minimumTests":  5,
+                         "environment":  {
+                                             "generatorId":  "fabric-1.21.1",
+                                             "loader":  "fabric",
+                                             "minecraftVersion":  "1.21.1",
+                                             "loaderVersion":  "0.19.3",
+                                             "fabricApiVersion":  "0.116.15+1.21.1",
+                                             "javaRelease":  21,
+                                             "pluginId":  "net.fabricmc.fabric-loom-remap",
+                                             "pluginVersion":  "1.17.19"
+                                         },
+                         "artifactPath":  "C:\\Temp\\Stage16LowMemory-33ceb6e9\\repair-workspace\\.copperbench\\task-runs\\run_gametest\\2befc7b8-8c61-456a-b525-6179de39a88b\\host\\run\\mods\\resonance_token-1.0.jar",
+                         "artifactSha256":  "6d4b918a6de0c30a60fe8a395283f96a8db929f72bf8e3540e5f8f7b81fa9603",
+                         "reportPath":  "C:\\Temp\\Stage16LowMemory-33ceb6e9\\repair-workspace\\.copperbench\\task-runs\\run_gametest\\2befc7b8-8c61-456a-b525-6179de39a88b\\host\\run\\gametest-results.xml",
+                         "reportSha256":  "7512253f375379f528a38ec2c67178b6da1b5fc3ac3069b5d6cbb3d81893014c",
+                         "startedAt":  "2026-09-12T04:41:15.959989600Z",
+                         "completedAt":  "2026-09-12T04:42:51.639277800Z",
+                         "processExitCode":  0,
+                         "sourceCurrentAtCompletion":  true,
+                         "taskId":  "2befc7b8-8c61-456a-b525-6179de39a88b",
+                         "workspaceId":  "9b98a83d-fac1-4dc0-9cda-8b5f940e2587",
+                         "workspaceRevision":  0,
+                         "sourceSnapshot":  {
+                                                "sha256":  "b214761340d15f48a9a2879cd0e850a2376108e06630dd754aefd7660320c863",
+                                                "fileCount":  35,
+                                                "bytes":  102107,
+                                                "manifestPath":  "C:\\Temp\\Stage16LowMemory-33ceb6e9\\repair-workspace\\.copperbench\\task-runs\\run_gametest\\2befc7b8-8c61-456a-b525-6179de39a88b\\source-manifest.json"
+                                            },
+                         "verificationPath":  "C:\\Temp\\Stage16LowMemory-33ceb6e9\\repair-workspace\\.copperbench\\task-runs\\run_gametest\\2befc7b8-8c61-456a-b525-6179de39a88b\\verification.json"
+                     },
+    "sourceUnchanged":  true,
+    "completedAt":  "2026-09-12T04:42:52.7713661+00:00"
+}

@@ -1,0 +1,10 @@
+{
+  "status": "failed",
+  "kind": "overly-strict-verifier-assumption",
+  "assumption": "Only MCreatorApplication-prefixed class files may differ byte for byte",
+  "observed": [
+    "net/mcreator/ui/MCreatorApplication.class",
+    "net/mcreator/ui/dialogs/workspace/WorkspaceDialogs$WorkspaceDialogPanel$5.class"
+  ],
+  "followup": "Disassembly inspection found only constructor debug local-variable names differed in the other class; executable disassembly is identical; corrected verification passed"
+}

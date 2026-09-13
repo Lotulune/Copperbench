@@ -1,0 +1,20 @@
+[
+  {
+    "VMName": "Copperbench-G7",
+    "DynamicMemoryEnabled": true,
+    "Startup": 4294967296,
+    "Minimum": 3221225472,
+    "Maximum": 4294967296,
+    "Buffer": 5,
+    "Priority": 50
+  },
+  {
+    "VMName": "Copperbench-Stage15-Linux",
+    "DynamicMemoryEnabled": true,
+    "Startup": 3221225472,
+    "Minimum": 2147483648,
+    "Maximum": 4294967296,
+    "Buffer": 5,
+    "Priority": 50
+  }
+]

@@ -1,0 +1,9 @@
+﻿{
+    "startedAtUtc":  "2026-09-12T08:34:17.1297648Z",
+    "completedAtUtc":  "2026-09-12T08:36:17.5883653Z",
+    "exitCode":  0,
+    "installedJarSha256":  "3e68b305f5fe0364c776e08ad6624d49d21dd736f71b8f4ac6ddb623252962cc",
+    "expectedJarSha256":  "3e68b305f5fe0364c776e08ad6624d49d21dd736f71b8f4ac6ddb623252962cc",
+    "previousInstallPath":  "C:\\Copperbench-Stage16-33ceb6e9",
+    "installPath":  "C:\\Copperbench-Stage16-c0178f6b"
+}

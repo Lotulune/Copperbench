@@ -1,0 +1,15 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "stage16-client-attempt",
+  "taskId": "2d999160-4f29-4935-b8c5-02b0fd11fca0",
+  "candidateSourceCommit": "3c0aa090c3c4a53c0700d3bb173522e81ae91477",
+  "status": "blocked_then_aborted",
+  "reason": "Native screenshot confirmed host Windows lock screen; desktop input paused and user asked to unlock",
+  "successfulGameplayInputs": 0,
+  "worldCreated": false,
+  "normalClientClose": false,
+  "clientBehaviorVerified": false,
+  "terminatedOwnedGamePid": 39924,
+  "endedAt": "2026-09-11T12:54:41.0772023+00:00",
+  "purpose": "Release memory for independent installed-product regression"
+}

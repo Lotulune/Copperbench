@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "candidate-download-and-attestation-verification",
+  "recordedAt": "2026-09-11T15:08:15.2930161Z",
+  "sourceCommit": "b62d67095c2c915db95ecd7383f7eeffe6c4fd09",
+  "workflowRunId": "34603469756",
+  "candidateId": "sha256:1e29be761163f48d4c47623bf4447940bf4ab86b81565ae8f136db107dd2198f",
+  "verificationCommand": "gh attestation verify <asset> --repo Lotulune/Copperbench --source-digest b62d67095c2c915db95ecd7383f7eeffe6c4fd09 --signer-workflow Lotulune/Copperbench/.github/workflows/stage15-linux-candidate.yml --format=json",
+  "allSixCommandsExitedZero": true,
+  "assets": [
+    {
+      "name": "Copperbench 0.1.0 Linux x86_64.tar.gz",
+      "bytes": 968275405,
+      "sha256": "7d7c7958cf0fc563fdabc29df8f4bd9f33cd8606cf7c7af696b0c3f7b494dcfd",
+      "attestation": "attestations/Copperbench 0.1.0 Linux x86_64.tar.gz.json",
+      "attestationSha256": "7f360a7bf05433ee0095fc1169b06da9dbf32ec081c46f334d8cf58581ecaa0a",
+      "verified": true
+    },
+    {
+      "name": "copperbench_0.1.0_amd64.deb",
+      "bytes": 888176050,
+      "sha256": "248f9c6b2eeb091a98c27f14f5dcaf2bebe2216f3ef0a2842caabda4709de882",
+      "attestation": "attestations/copperbench_0.1.0_amd64.deb.json",
+      "attestationSha256": "7f360a7bf05433ee0095fc1169b06da9dbf32ec081c46f334d8cf58581ecaa0a",
+      "verified": true
+    },
+    {
+      "name": "copperbench-linux.spdx.json",
+      "bytes": 4385128,
+      "sha256": "b698ec0fd92ea16b6c8f1b00bb4d6fb6ecab993829477c7e342750911ee6f782",
+      "attestation": "attestations/copperbench-linux.spdx.json.json",
+      "attestationSha256": "7f360a7bf05433ee0095fc1169b06da9dbf32ec081c46f334d8cf58581ecaa0a",
+      "verified": true
+    },
+    {
+      "name": "linux-candidate-manifest.json",
+      "bytes": 6509,
+      "sha256": "1952b06e6d7bc593fcec5b1c5fd24a2558d481aca0f5f22ff57c2461b2b319b7",
+      "attestation": "attestations/linux-candidate-manifest.json.json",
+      "attestationSha256": "7f360a7bf05433ee0095fc1169b06da9dbf32ec081c46f334d8cf58581ecaa0a",
+      "verified": true
+    },
+    {
+      "name": "LINUX-CANDIDATE-METADATA.json",
+      "bytes": 1762,
+      "sha256": "a6e8bb1c369e4b1621f696defda68688e1234185c3c393e26648fb5c120a4850",
+      "attestation": "attestations/LINUX-CANDIDATE-METADATA.json.json",
+      "attestationSha256": "7f360a7bf05433ee0095fc1169b06da9dbf32ec081c46f334d8cf58581ecaa0a",
+      "verified": true
+    },
+    {
+      "name": "linux-candidate-sha256.txt",
+      "bytes": 549,
+      "sha256": "0c7d569c8457c64a34a4e752b71a59ec6f008aacf3c1ae756d93962a30c295ba",
+      "attestation": "attestations/linux-candidate-sha256.txt.json",
+      "attestationSha256": "7f360a7bf05433ee0095fc1169b06da9dbf32ec081c46f334d8cf58581ecaa0a",
+      "verified": true
+    }
+  ],
+  "installedGatePassed": false,
+  "published": false
+}

@@ -1,0 +1,9 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "ui-localization-incremental-input",
+  "baselineSucceeded": true,
+  "javaOnlyMutationRejected": true,
+  "javaSourceRestored": true,
+  "restoredBuildSucceeded": true,
+  "workflowConfigurationChanged": false
+}

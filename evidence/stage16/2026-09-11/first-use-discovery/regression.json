@@ -1,0 +1,35 @@
+{
+  "kind": "stage16-first-use-source-regression",
+  "passed": true,
+  "realUserAuthorizationIssued": false,
+  "suites": [
+    {
+      "name": "dev.copperbench.headless.BootstrapProductLauncherTest",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.headless.LocalApprovalWindowTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.gradle.DesktopGradleRuntimeTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.gradle.GradleRuntimeCompatibilityTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ]
+}

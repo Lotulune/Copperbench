@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "stage16-runtime-candidate",
+  "sourceCommit": "3c0aa090c3c4a53c0700d3bb173522e81ae91477",
+  "published": false,
+  "archiveSha256": "c62e96a26cbf3f5641012e4f1006933c64615fce5f67b6cca375bd8e483d9dc6",
+  "archiveBytes": 1184654365,
+  "productExeSha256": "b4362ad2d744505a24964bc1b7948510f28a189242ccb7775df7403eac079db4",
+  "applicationJarSha256": "2891c3c219c52b33b6194e75328d1cf7572978d57f15f1f508c3e66c5deb78e7",
+  "startupHelperJarSha256": "cb0d76e1495694112374b4203ce1a0be4de77ecee69cd5f5da22897435fcbc29",
+  "distribution": "Windows x86_64 portable",
+  "cacheState": "Existing host Gradle and Minecraft caches; not cold-machine certification",
+  "clientAcceptance": "pending; host locked before any successful gameplay input",
+  "stage16Complete": false,
+  "installerSha256": "bf1b4305fc22849e80414fac138235118e7f86e505afedabee2dadf9ca19d5b0",
+  "installerBytes": 855079242,
+  "payloadFileCount": 3202,
+  "payloadBytes": 1812450927
+}

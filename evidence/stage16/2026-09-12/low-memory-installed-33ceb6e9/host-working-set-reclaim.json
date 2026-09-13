@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "1.0",
+  "recordedAt": "2026-09-12T03:59:32.9837590+00:00",
+  "method": "Windows EmptyWorkingSet on enumerated non-system desktop applications",
+  "freeBytesBefore": 2047537152,
+  "freeBytesAfter": 4592447488,
+  "successfulProcesses": 37,
+  "processesClosed": 0,
+  "processesSuspended": 0,
+  "persistentHostSettingsChanged": false,
+  "sourceSha256": "a264033baad4662357cf720048d1fd5a89fea2fade96bbe4e2116e1991a66444",
+  "privacy": "The detailed host application/process inventory is retained locally in build, not copied into this archive."
+}

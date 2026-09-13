@@ -1,0 +1,2 @@
+Picked up JAVA_TOOL_OPTIONS: -Duser.home=/home/stage15/s16-cold-official2/home
+Copperbench is waiting for task approval. Root: /home/stage15/s16-cold-official2; capabilities: [create, edit, build, test, run_client]; lifetime: 14400 seconds.

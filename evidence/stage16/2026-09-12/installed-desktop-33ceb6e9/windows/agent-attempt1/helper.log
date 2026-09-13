@@ -1,0 +1,14 @@
+Traceback (most recent call last):
+  File "C:\Temp\S16-33ceb6e9\harness\verify-stage16-installed-agent.py", line 47, in <module>
+    gate.main()
+    ~~~~~~~~~^^
+  File "C:\Temp\S16-33ceb6e9\harness\verify-stage15-linux-installed-agent.py", line 320, in main
+    loop = run_agent_loop(client, connection["workspaceId"])
+  File "C:\Temp\S16-33ceb6e9\harness\verify-stage15-linux-installed-agent.py", line 248, in run_agent_loop
+    run_client_lifecycle = wait_interactive_run_client(client, final_revision)
+  File "C:\Temp\S16-33ceb6e9\harness\verify-stage15-linux-installed-agent.py", line 118, in wait_interactive_run_client
+    require(all(markers.values()), f"run_client did not reach render readiness: {markers}")
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Temp\S16-33ceb6e9\harness\verify-stage15-linux-installed-agent.py", line 36, in require
+    raise RuntimeError(message)
+RuntimeError: run_client did not reach render readiness: {'Backend library: LWJGL version': True, 'Reloading ResourceManager:': False, 'minecraft:textures/atlas/blocks.png-atlas': False}

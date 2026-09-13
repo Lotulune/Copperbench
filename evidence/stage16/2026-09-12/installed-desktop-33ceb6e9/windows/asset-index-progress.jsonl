@@ -1,0 +1,2 @@
+{"at": "2026-09-12T07:10:11.838058+00:00", "index": "1.21.1-17.json", "expectedUniqueObjects": 3888, "availableUniqueObjects": 3811, "missingUniqueObjects": 77, "expectedBytes": 824678547, "availableBytes": 807581193}
+{"at": "2026-09-12T07:11:43.601011+00:00", "index": "1.21.1-17.json", "expectedUniqueObjects": 3888, "availableUniqueObjects": 3888, "missingUniqueObjects": 0, "expectedBytes": 824678547, "availableBytes": 824678547}

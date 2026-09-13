@@ -1,0 +1,14 @@
+{
+  "recordedAt": "2026-09-12T05:35:34.2977895+00:00",
+  "vm": {
+    "Name": "Copperbench-Stage15-Linux",
+    "MemoryAssigned": 4294967296,
+    "MemoryDemand": 5024776192
+  },
+  "profile": {
+    "DynamicMemoryEnabled": true,
+    "Startup": 3221225472,
+    "Minimum": 2147483648,
+    "Maximum": 4294967296
+  }
+}

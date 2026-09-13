@@ -1,0 +1,6 @@
+2026-09-12-15:58:35 [main/INFO] [Launcher] Starting Copperbench 0.1.0 with MCreator core 2026.2.99999 - 202600299999
+2026-09-12-15:58:35 [main/INFO] [Launcher] Java version: 25.0.2+10-b329.117, VM: OpenJDK 64-Bit Server VM, vendor: JetBrains s.r.o.
+2026-09-12-15:58:35 [main/INFO] [Launcher] Current JAVA_HOME for running instance: /opt/copperbench/jdk
+2026-09-12-15:58:35 [main/DEBUG] [Preferences Manager] Loading preferences from core
+2026-09-12-15:58:35 [main/INFO] [Launcher] Installation path: /opt/copperbench
+2026-09-12-15:58:35 [main/INFO] [Launcher] User data directory of Copperbench: /home/stage15/s16-cold-official2/home/.copperbench

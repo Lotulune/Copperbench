@@ -1,0 +1,635 @@
+{
+  "schemaVersion": "1.0",
+  "authorizedBy": "User requested local build/cache/VM storage cleanup before full cold-cache validation",
+  "workspaceBoundary": "D:\\AICoding\\Minecraft_ModCreator",
+  "targets": [
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\build\\stage8-workspace-generator-gradle\\fabric-1_20_1\\caches",
+      "kind": "directory",
+      "bytes": 426928665,
+      "reason": "Regenerable dependency cache from completed Stage8/14 verification"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\build\\stage8-workspace-generator-gradle\\fabric-1_21_1\\caches",
+      "kind": "directory",
+      "bytes": 462246306,
+      "reason": "Regenerable dependency cache from completed Stage8/14 verification"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\build\\stage8-workspace-generator-gradle\\fabric-26_1_2\\caches",
+      "kind": "directory",
+      "bytes": 457022999,
+      "reason": "Regenerable dependency cache from completed Stage8/14 verification"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\build\\stage8-workspace-generator-gradle\\fabric-26_2\\caches",
+      "kind": "directory",
+      "bytes": 489943713,
+      "reason": "Regenerable dependency cache from completed Stage8/14 verification"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\build\\stage8-workspace-generator-gradle\\neoforge-1_20_1\\caches",
+      "kind": "directory",
+      "bytes": 2786960278,
+      "reason": "Regenerable dependency cache from completed Stage8/14 verification"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\build\\stage8-workspace-generator-gradle\\neoforge-1_21_1\\caches",
+      "kind": "directory",
+      "bytes": 1649327599,
+      "reason": "Regenerable dependency cache from completed Stage8/14 verification"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\build\\stage8-workspace-generator-gradle\\neoforge-26_1_2\\caches",
+      "kind": "directory",
+      "bytes": 1288460697,
+      "reason": "Regenerable dependency cache from completed Stage8/14 verification"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage12a-depth\\build\\stage8-workspace-generator-gradle\\neoforge-26_2\\caches",
+      "kind": "directory",
+      "bytes": 824407557,
+      "reason": "Regenerable dependency cache from completed Stage8/14 verification"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\build\\stage8-workspace-generator-gradle\\fabric-1_20_1\\caches",
+      "kind": "directory",
+      "bytes": 405074745,
+      "reason": "Regenerable dependency cache from completed Stage8/14 verification"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\build\\stage8-workspace-generator-gradle\\fabric-1_21_1\\caches",
+      "kind": "directory",
+      "bytes": 458288731,
+      "reason": "Regenerable dependency cache from completed Stage8/14 verification"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\build\\stage8-workspace-generator-gradle\\fabric-26_1_2\\caches",
+      "kind": "directory",
+      "bytes": 454590283,
+      "reason": "Regenerable dependency cache from completed Stage8/14 verification"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\build\\stage8-workspace-generator-gradle\\fabric-26_2\\caches",
+      "kind": "directory",
+      "bytes": 486917489,
+      "reason": "Regenerable dependency cache from completed Stage8/14 verification"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\build\\stage8-workspace-generator-gradle\\neoforge-1_21_1\\caches",
+      "kind": "directory",
+      "bytes": 687093164,
+      "reason": "Regenerable dependency cache from completed Stage8/14 verification"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\build\\stage8-workspace-generator-gradle\\neoforge-26_1_2\\caches",
+      "kind": "directory",
+      "bytes": 680674227,
+      "reason": "Regenerable dependency cache from completed Stage8/14 verification"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\build\\stage8-workspace-generator-gradle\\neoforge-26_2\\caches",
+      "kind": "directory",
+      "bytes": 716122542,
+      "reason": "Regenerable dependency cache from completed Stage8/14 verification"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\build\\p0-export-replay-isolated\\home\\.copperbench\\gradle\\caches",
+      "kind": "directory",
+      "bytes": 881275725,
+      "reason": "Regenerable previous isolated build dependency cache"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\build\\export",
+      "kind": "directory",
+      "bytes": 1276368888,
+      "reason": "Regenerable packaging output; frozen candidate installers and backup retained separately"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\export",
+      "kind": "directory",
+      "bytes": 3899455247,
+      "reason": "Regenerable packaging output; frozen candidate installers and backup retained separately"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run42\\deb-chunks",
+      "kind": "directory",
+      "bytes": 888038163,
+      "reason": "Completed download transfer fragments; final payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run42\\portable-chunks",
+      "kind": "directory",
+      "bytes": 966381171,
+      "reason": "Completed download transfer fragments; final payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run37\\deb-chunks",
+      "kind": "directory",
+      "bytes": 888033537,
+      "reason": "Completed download transfer fragments; final payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run37\\portable-chunks",
+      "kind": "directory",
+      "bytes": 966376060,
+      "reason": "Completed download transfer fragments; final payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run33\\transfer",
+      "kind": "directory",
+      "bytes": 888107620,
+      "reason": "Completed download transfer fragments; final payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run31\\deb.part1",
+      "kind": "file",
+      "bytes": 222008607,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run31\\deb.part2",
+      "kind": "file",
+      "bytes": 222008607,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run31\\deb.part2.rest",
+      "kind": "file",
+      "bytes": 188560671,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run31\\deb.part3",
+      "kind": "file",
+      "bytes": 222008607,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run31\\deb.part3.rest",
+      "kind": "file",
+      "bytes": 187221279,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run31\\deb.part4",
+      "kind": "file",
+      "bytes": 222008605,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run31\\deb.part4.rest",
+      "kind": "file",
+      "bytes": 183297309,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-000.bin",
+      "kind": "file",
+      "bytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-001.bin",
+      "kind": "file",
+      "bytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-002.bin",
+      "kind": "file",
+      "bytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-003.bin",
+      "kind": "file",
+      "bytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-004.bin",
+      "kind": "file",
+      "bytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-005.bin",
+      "kind": "file",
+      "bytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-006.bin",
+      "kind": "file",
+      "bytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-007.bin",
+      "kind": "file",
+      "bytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-008.bin",
+      "kind": "file",
+      "bytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-009.bin",
+      "kind": "file",
+      "bytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-010.bin",
+      "kind": "file",
+      "bytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-011.bin",
+      "kind": "file",
+      "bytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-012.bin",
+      "kind": "file",
+      "bytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-013.bin",
+      "kind": "file",
+      "bytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-014.bin",
+      "kind": "file",
+      "bytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-015.bin",
+      "kind": "file",
+      "bytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-016.bin",
+      "kind": "file",
+      "bytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-017.bin",
+      "kind": "file",
+      "bytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-018.bin",
+      "kind": "file",
+      "bytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-019.bin",
+      "kind": "file",
+      "bytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-020.bin",
+      "kind": "file",
+      "bytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-021.bin",
+      "kind": "file",
+      "bytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-022.bin",
+      "kind": "file",
+      "bytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-023.bin",
+      "kind": "file",
+      "bytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-024.bin",
+      "kind": "file",
+      "bytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-025.bin",
+      "kind": "file",
+      "bytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-026.bin",
+      "kind": "file",
+      "bytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-027.bin",
+      "kind": "file",
+      "bytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-028.bin",
+      "kind": "file",
+      "bytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-029.bin",
+      "kind": "file",
+      "bytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-030.bin",
+      "kind": "file",
+      "bytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-031.bin",
+      "kind": "file",
+      "bytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-032.bin",
+      "kind": "file",
+      "bytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-033.bin",
+      "kind": "file",
+      "bytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-034.bin",
+      "kind": "file",
+      "bytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-035.bin",
+      "kind": "file",
+      "bytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-036.bin",
+      "kind": "file",
+      "bytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-037.bin",
+      "kind": "file",
+      "bytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-038.bin",
+      "kind": "file",
+      "bytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-039.bin",
+      "kind": "file",
+      "bytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-040.bin",
+      "kind": "file",
+      "bytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-041.bin",
+      "kind": "file",
+      "bytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-042.bin",
+      "kind": "file",
+      "bytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-043.bin",
+      "kind": "file",
+      "bytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-044.bin",
+      "kind": "file",
+      "bytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-045.bin",
+      "kind": "file",
+      "bytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-046.bin",
+      "kind": "file",
+      "bytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-047.bin",
+      "kind": "file",
+      "bytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-048.bin",
+      "kind": "file",
+      "bytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-049.bin",
+      "kind": "file",
+      "bytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-050.bin",
+      "kind": "file",
+      "bytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-051.bin",
+      "kind": "file",
+      "bytes": 16777216,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run34\\chunk-052.bin",
+      "kind": "file",
+      "bytes": 15622287,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage16-agent-reliability\\linux-33ceb6e9-explicit\\part-0",
+      "kind": "file",
+      "bytes": 463724841,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage16-agent-reliability\\linux-33ceb6e9-explicit\\part-1",
+      "kind": "file",
+      "bytes": 463724841,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage16-agent-reliability\\linux-33ceb6e9-explicit\\part-2",
+      "kind": "file",
+      "bytes": 463724841,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage16-agent-reliability\\linux-33ceb6e9-explicit\\part-3",
+      "kind": "file",
+      "bytes": 463724841,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage16-agent-reliability\\linux-b62d6709-explicit\\part-0",
+      "kind": "file",
+      "bytes": 463716963,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage16-agent-reliability\\linux-b62d6709-explicit\\part-1",
+      "kind": "file",
+      "bytes": 463716964,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage16-agent-reliability\\linux-b62d6709-explicit\\part-2",
+      "kind": "file",
+      "bytes": 463716963,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage16-agent-reliability\\linux-b62d6709-explicit\\part-3",
+      "kind": "file",
+      "bytes": 463716964,
+      "reason": "Completed download fragment; full candidate payload retained"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run31\\stage15-linux-candidate.zip",
+      "kind": "file",
+      "bytes": 1854742740,
+      "reason": "Redundant archive container; both embedded final packages hash-match retained payloads"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage16-agent-reliability\\linux-33ceb6e9-explicit\\artifact.zip",
+      "kind": "file",
+      "bytes": 1854899364,
+      "reason": "Redundant archive container; both embedded final packages hash-match retained payloads"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage16-agent-reliability\\linux-b62d6709-explicit\\artifact.zip",
+      "kind": "file",
+      "bytes": 1854867854,
+      "reason": "Redundant archive container; both embedded final packages hash-match retained payloads"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage16-agent-reliability\\linux-3c0aa090.artifact.zip",
+      "kind": "file",
+      "bytes": 1854873576,
+      "reason": "Redundant archive container; both embedded final packages hash-match retained payloads"
+    }
+  ],
+  "duplicatePayloadVerification": [
+    {
+      "archive": "stage15-linux-hyperv/run31/stage15-linux-candidate.zip",
+      "member": "Copperbench 0.1.0 Linux x86_64.tar.gz",
+      "retained": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run31\\candidate\\Copperbench 0.1.0 Linux x86_64.tar.gz",
+      "sha256": "e13f728e53088827a9b9a725a1c70c45392110d123b48b96aa7064dd7bc56032"
+    },
+    {
+      "archive": "stage15-linux-hyperv/run31/stage15-linux-candidate.zip",
+      "member": "copperbench_0.1.0_amd64.deb",
+      "retained": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage15-linux-hyperv\\run31\\candidate\\copperbench_0.1.0_amd64.deb",
+      "sha256": "c556cd9f10f9c327334ce8e5d858bab18a4771d82bbfa30104642a886d35f147"
+    },
+    {
+      "archive": "stage16-agent-reliability/linux-33ceb6e9-explicit/artifact.zip",
+      "member": "Copperbench 0.1.0 Linux x86_64.tar.gz",
+      "retained": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage16-agent-reliability\\linux-33ceb6e9-explicit\\payload\\Copperbench 0.1.0 Linux x86_64.tar.gz",
+      "sha256": "5e1ae34cbc1734618d93837cb85c6487e8507d042ba967b79656af02832a1e05"
+    },
+    {
+      "archive": "stage16-agent-reliability/linux-33ceb6e9-explicit/artifact.zip",
+      "member": "copperbench_0.1.0_amd64.deb",
+      "retained": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage16-agent-reliability\\linux-33ceb6e9-explicit\\payload\\copperbench_0.1.0_amd64.deb",
+      "sha256": "6ae06ca2033d3f40bb4c1401901de36fcaf3cad218ff9243d064968ea48668c0"
+    },
+    {
+      "archive": "stage16-agent-reliability/linux-b62d6709-explicit/artifact.zip",
+      "member": "Copperbench 0.1.0 Linux x86_64.tar.gz",
+      "retained": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage16-agent-reliability\\linux-b62d6709-explicit\\payload\\Copperbench 0.1.0 Linux x86_64.tar.gz",
+      "sha256": "7d7c7958cf0fc563fdabc29df8f4bd9f33cd8606cf7c7af696b0c3f7b494dcfd"
+    },
+    {
+      "archive": "stage16-agent-reliability/linux-b62d6709-explicit/artifact.zip",
+      "member": "copperbench_0.1.0_amd64.deb",
+      "retained": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage16-agent-reliability\\linux-b62d6709-explicit\\payload\\copperbench_0.1.0_amd64.deb",
+      "sha256": "248f9c6b2eeb091a98c27f14f5dcaf2bebe2216f3ef0a2842caabda4709de882"
+    },
+    {
+      "archive": "stage16-agent-reliability/linux-3c0aa090.artifact.zip",
+      "member": "Copperbench 0.1.0 Linux x86_64.tar.gz",
+      "retained": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage16-agent-reliability\\linux-3c0aa090\\Copperbench 0.1.0 Linux x86_64.tar.gz",
+      "sha256": "fb3cdca3d8bf9b4eb948c9ab209eb872d52097b244e8c62afac2efff1cbccfea"
+    },
+    {
+      "archive": "stage16-agent-reliability/linux-3c0aa090.artifact.zip",
+      "member": "copperbench_0.1.0_amd64.deb",
+      "retained": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\stage16-agent-reliability\\linux-3c0aa090\\copperbench_0.1.0_amd64.deb",
+      "sha256": "65dafdee5f8e06b922ae336eb687aa955c3b43029f2f3feaca0deeeb18eca520"
+    }
+  ],
+  "logicalBytes": 36392397362,
+  "protected": [
+    "All virtual machine disks and checkpoints",
+    "All source worktrees and Git state",
+    "All evidence and reports",
+    "All final candidate packages except verified duplicate containers",
+    "Host installation rollback backup and user state backup"
+  ]
+}

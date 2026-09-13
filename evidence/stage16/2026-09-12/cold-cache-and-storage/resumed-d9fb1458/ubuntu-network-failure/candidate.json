@@ -1,0 +1,49 @@
+{
+  "sourceBaseCommit": "c0178f6b933825921cc3fb3f8f8ef8aa0874e688",
+  "sourceCommitted": true,
+  "sourceFileSha256": "b0a718bafa571197e007a24876bc63295a6241d15fbffe410e4fbbbbbd7a6178",
+  "archivePath": "/home/stage15-operator/s16-first-use-fix-package/Copperbench-first-use-fix-linux.tar.gz",
+  "archiveSha256": "9058fc97fcb96f2cd2fed2dec7bad30f4a9e9cad0c541e23bd6543c9d24659fa",
+  "archiveBytes": 968298218,
+  "applicationJarSha256": "3d58f235c0609d4c18fd6d9b43680bbfd9c80c168dbccbe9eccc5b951b05ac19",
+  "scaffoldSha256": "c7dc040b13179cdfa6fcefee9ebbe89dd90dfddc83fd189e2a584a6758d3492f",
+  "buildTasks": [
+    "tarLinux64",
+    "prepareDebLinux64"
+  ],
+  "buildHost": "Windows",
+  "debSealingPending": false,
+  "published": false,
+  "guestRoot": "/home/stage15/s16-cold-fixed",
+  "guestProductExe": "/usr/bin/copperbench",
+  "installedDirectory": "/opt/copperbench",
+  "installerSha256": "977bf324cf9838539c0a5de655e51b22e2dd9e42e82f3cc78b0fb200c90f108a",
+  "installerBytes": 968416422,
+  "installerPath": "/home/stage15-operator/s16-first-use-fix-package/copperbench_0.1.0_amd64.deb",
+  "debSealingHost": "Ubuntu",
+  "debCompression": "gzip -6",
+  "debBuildCommand": [
+    "dpkg-deb",
+    "--build",
+    "--root-owner-group",
+    "--threads-max=1",
+    "-Zgzip",
+    "-z6",
+    "/home/stage15-operator/s16-first-use-fix-package/deb-root",
+    "/home/stage15-operator/s16-first-use-fix-package/copperbench_0.1.0_amd64.deb"
+  ],
+  "debBuildStartedAt": "2026-09-12T13:31:54.490559+00:00",
+  "debBuildCompletedAt": "2026-09-12T13:32:32.455201+00:00",
+  "payloadFiles": 2681,
+  "payloadManifestSha256": "07ebcbeada79e560629f145bfd0e1df85cf191ef1150ff5a803b44d96c4c1e53",
+  "environmentKind": "ubuntu-vm",
+  "formalSupportClaim": false,
+  "sourceCommit": "d9fb1458187110186c04e523d5044250637490bd",
+  "builtBeforeCommit": true,
+  "coldCacheTrial": true,
+  "lowMemoryProfile": {
+    "gradleHeapMiB": 1024,
+    "maxWorkers": 1
+  },
+  "networkProfile": "official repositories"
+}

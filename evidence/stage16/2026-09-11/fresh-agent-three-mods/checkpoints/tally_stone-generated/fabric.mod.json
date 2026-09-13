@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "id": "tally_stone",
+  "version": "1.0.0",
+  "name": "Tally Stone",
+  "contact": {
+    "homepage": "https://mcreator.net",
+    "sources": ""
+  },
+  "license": "Not specified",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "net.mcreator.tally_stone.TallyStoneMod"
+    ],
+    "client": [
+      "net.mcreator.tally_stone.TallyStoneModClient"
+    ]
+  },
+  "mixins": [
+    "tally_stone.mixins.json"
+  ],
+  "accessWidener": "META-INF/tally_stone.classtweaker",
+  "depends": {
+    "fabricloader": ">=0.19.3",
+    "minecraft": "~1.21.1",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
+}

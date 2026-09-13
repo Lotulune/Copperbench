@@ -1,0 +1,1068 @@
+{
+  "schemaVersion": "1.0",
+  "scope": "Agent-owned final reports, raw commands, archived JAR/XML evidence, source delivery and preserved discovery checkpoints. Does not enumerate the parent-owned client_trial_host.",
+  "fileCount": 212,
+  "files": [
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\adapt-drafts-to-project.ps1",
+      "bytes": 9117,
+      "sha256": "36b8b9ebbae41637be4a13d600c1c5d06a14a168d62d6479e312310c5a68efe1"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\archive-acceptance.ps1",
+      "bytes": 3519,
+      "sha256": "297bf1fbcd2ca86c395b4f46725aa91039a034e3223801f2dea8cb999cb559e8"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\artifacts\\harvest_ledger\\artifact-index.json",
+      "bytes": 626,
+      "sha256": "00c6e442e962ad295f95b3bed2eb7393bff8e8a2d50b5d6abfcf1bf470f952b9"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\artifacts\\harvest_ledger\\final-product-response.json",
+      "bytes": 5042,
+      "sha256": "be9b0d3fed109f105af4b2b0137f682aeab6e137193fa08a54b241335206b8fe"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\artifacts\\harvest_ledger\\gametest-results.xml",
+      "bytes": 1048,
+      "sha256": "634cbd1d40c8c2201c66376904bbf29ce4eebe0fecf1d7daf8b9bd3c25dda7a3"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\artifacts\\harvest_ledger\\harvest_ledger-1.0.jar",
+      "bytes": 39568,
+      "sha256": "cd810e1121970525dd6e1d488849cc163fd49978bc6b5c1546c4fd4c8f95fc4f"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\artifacts\\harvest_ledger\\source-manifest.json",
+      "bytes": 6719,
+      "sha256": "f426c984ba412ddaeddc6f6d094d379fad0d2c72d051a4b523a2294c8b5e7945"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\artifacts\\harvest_ledger\\verification.json",
+      "bytes": 2871,
+      "sha256": "0604a3a7a0b35e47f2b7b61e5ef895e3b58dc76424875bae7e356e282be75bc7"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\artifacts\\resonance_token\\artifact-index.json",
+      "bytes": 632,
+      "sha256": "14d901d83b0c0149dfd47646316de4d8163d929dddc744695cdb667277e385ed"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\artifacts\\resonance_token\\final-product-response.json",
+      "bytes": 4599,
+      "sha256": "673d9f8cfe310eda49486b11568713037cdb03ef24158e4c24987a6bad034c1d"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\artifacts\\resonance_token\\gametest-results.xml",
+      "bytes": 783,
+      "sha256": "d05ec52f8f75243164dfa8ae4738bff957d7b2d28f88993582c3eb73434b70a0"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\artifacts\\resonance_token\\resonance_token-1.0.jar",
+      "bytes": 38752,
+      "sha256": "f3a1b4a3dd94f860eee2af0df034fcf556c380d2dbf5f423ea1a556f211c8939"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\artifacts\\resonance_token\\source-manifest.json",
+      "bytes": 6766,
+      "sha256": "a749eb44354d075b516f9bbae9523732d582ffcd06c782e0c538a77528ddf2ad"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\artifacts\\resonance_token\\verification.json",
+      "bytes": 2574,
+      "sha256": "d259dd264630464f35974403f2b70524717a3a473e803a25f92c614f477f0ba8"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\artifacts\\tally_stone\\artifact-index.json",
+      "bytes": 628,
+      "sha256": "9dc4f401d3296676e645578b30764cdb4b51af614cb0ac954d58bc24f12a230e"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\artifacts\\tally_stone\\final-product-response.json",
+      "bytes": 4554,
+      "sha256": "9ce0eb77471a2a3f5e62325701bc5a3640675e42916ad7f8c02f832906886fe0"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\artifacts\\tally_stone\\gametest-results.xml",
+      "bytes": 762,
+      "sha256": "5375e0f3c5540133a3754834ef63ab25d4fca1e9b4a60f78083c5d011aca5f22"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\artifacts\\tally_stone\\source-manifest.json",
+      "bytes": 7465,
+      "sha256": "e92cac40ea90809491481b7aba9b1e9e793ee0f5c4c9c68281943d736648df9a"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\artifacts\\tally_stone\\tally_stone-1.0.jar",
+      "bytes": 40596,
+      "sha256": "76296fa2e85bbeb98a5634802cab7bc06cda6445930baec1b0bcf0bb25ddf35c"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\artifacts\\tally_stone\\verification.json",
+      "bytes": 2530,
+      "sha256": "cefc4d2f1d38a8d04eac9e1807f30102de602678b6a4bb0d4a5432abc231b504"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\attempt3-inputs.json",
+      "bytes": 895,
+      "sha256": "5625ccc79b04cc0cdc3b34d5cd46b66f5a2847c51f76b5c5b693c37167b037ed"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\bootstrap-discovery-evidence-hashes.json",
+      "bytes": 3514,
+      "sha256": "0f54d87f4c02b6a58dc94945b0d50de06c335754ba34aecaa71ad0045cb8f220"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\case-results.json",
+      "bytes": 15452,
+      "sha256": "56c589285a5da77a3759c30facee492684d49d4eab5a6dd95c86e6b3478b84d7"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\checkpoints\\bootstrap-discovery-report\\bootstrap-discovery-evidence-hashes.json",
+      "bytes": 3514,
+      "sha256": "0f54d87f4c02b6a58dc94945b0d50de06c335754ba34aecaa71ad0045cb8f220"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\checkpoints\\bootstrap-discovery-report\\experience-log.md",
+      "bytes": 5916,
+      "sha256": "68232c9871d132aeffedfa2125a7d1b9c03c75b534512ba0ab5d79fc9ec01245"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\checkpoints\\bootstrap-discovery-report\\fixed-retry-inputs.json",
+      "bytes": 1009,
+      "sha256": "4f2ac948af7bf734bba8cd0c0cbd787201b4b16f165060f8bb3224a6d659119f"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\checkpoints\\harvest_ledger-generated\\AcceptanceTests.java",
+      "bytes": 668,
+      "sha256": "50bd169e0481b03df4f7e1ac270c7bbdbdc5191938d7af3ac2880d3592e75767"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\checkpoints\\harvest_ledger-generated\\copperbench-tests.json",
+      "bytes": 236,
+      "sha256": "8cbf71a376a9dfc6960f43d0acfad1263e455a2bce94a9717287936a2bd8dc6f"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\checkpoints\\harvest_ledger-generated\\fabric.mod.json",
+      "bytes": 642,
+      "sha256": "2190bf2dda8f76383eba7256d890cd4f56b9bf0b05568d0fca92e6c3e8842da2"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\checkpoints\\preauthorization\\case-results.json",
+      "bytes": 4680,
+      "sha256": "7e74ee3fa682d579002b6ff6f2520e79817b1e9739540adc2bdbdf101b35039a"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\checkpoints\\preauthorization\\experience-log.md",
+      "bytes": 4508,
+      "sha256": "3997bd0d004cad680673edea1a44edc8478579c21f2edd1237bf3892bf5a630c"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\checkpoints\\preauthorization\\preauthorization-evidence-hashes.json",
+      "bytes": 6298,
+      "sha256": "cdc5611fc60ad35807bba8a7e7cd677aceb7a7070586ff8848e5d1f66578d824"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\checkpoints\\resonance_token-generated\\AcceptanceTests.java",
+      "bytes": 669,
+      "sha256": "1bee91d0fd4bcb54f21e6fe0208797e189acb7a2e52222ef11c15fd9fa36e97a"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\checkpoints\\resonance_token-generated\\copperbench-tests.json",
+      "bytes": 236,
+      "sha256": "8cbf71a376a9dfc6960f43d0acfad1263e455a2bce94a9717287936a2bd8dc6f"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\checkpoints\\resonance_token-generated\\fabric.mod.json",
+      "bytes": 650,
+      "sha256": "8484badfa9fb533214557f3dade1757989b82c594915137a431564eacc43e820"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\checkpoints\\tally_stone-generated\\AcceptanceTests.java",
+      "bytes": 665,
+      "sha256": "21c335fe75de21f177b1603c32fbe442a7701ea3eb425e7d1666fe1339367427"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\checkpoints\\tally_stone-generated\\copperbench-tests.json",
+      "bytes": 236,
+      "sha256": "8cbf71a376a9dfc6960f43d0acfad1263e455a2bce94a9717287936a2bd8dc6f"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\checkpoints\\tally_stone-generated\\fabric.mod.json",
+      "bytes": 618,
+      "sha256": "1105df054b8efc2a7fb170231d16141702ad3ed09eea6d9b67d6008db633760c"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\checkpoints\\tally-original-player-fixture\\AcceptanceTests.java",
+      "bytes": 7857,
+      "sha256": "8696ba13c4f13a2e202d1bdeef0486d1782c0623c97afac9b2ded3037bb57522"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\00-generators.command.json",
+      "bytes": 937,
+      "sha256": "91002dcede0f6cc6fa6b317f8dbd89134121b9744e7a9e05cfa3f36f3e5dd610"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\00-generators.events.jsonl",
+      "bytes": 2499,
+      "sha256": "9407de2ec76f4ccc8af25b64da65dcaa5ec46584c973a8049e60678000fe7bbd"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\01-bootstrap-no-authorization.command.json",
+      "bytes": 1278,
+      "sha256": "8648346e635cc1f1568cd84483946f9e7660bb5cb5fcf5101c4a657e5f7e2489"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\01-bootstrap-no-authorization.events.jsonl",
+      "bytes": 780,
+      "sha256": "bd22508da00a190908f332061664e48b8f1ad7d3d0c5195b5f7e8285f3b6f343"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\02-resonance-bootstrap-fixed.command.json",
+      "bytes": 1352,
+      "sha256": "9b06b6b56a439cd7343364273c56c18dd84bc9c4abf59d0c217ebb7ea97a5e79"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\02-resonance-bootstrap-fixed.events.jsonl",
+      "bytes": 330,
+      "sha256": "5cd5b2beff0a3516f88dd33fbf45fbc433a95be03dec6134b52ea5b6533f1387"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\03-tally-bootstrap-fixed.command.json",
+      "bytes": 1324,
+      "sha256": "0f3f01ef96bf8eadd966e563ae8e8321bcdedc93e6051617da635b5e6b1c3909"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\03-tally-bootstrap-fixed.events.jsonl",
+      "bytes": 330,
+      "sha256": "c0228aeaf2cf4514da4ee8c968cb5dc2899f9bcfb6bd9843e93c646fd280e437"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\04-ledger-bootstrap-fixed.command.json",
+      "bytes": 1337,
+      "sha256": "a0ca50763d47892873828f5c6c6a23c6b62f01de3a00f4624fcd1d6e4b862714"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\04-ledger-bootstrap-fixed.events.jsonl",
+      "bytes": 330,
+      "sha256": "1de4c067c56a716cfd74a6fc52647c98d7e08edae3670c1bee7c62cc539b5593"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\05-resonance-bootstrap-attempt3.command.json",
+      "bytes": 1363,
+      "sha256": "2783fc00da4238ef2a412e595942442cc35cf2de57b2a0e19a47544c40aaa104"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\05-resonance-bootstrap-attempt3.events.jsonl",
+      "bytes": 384,
+      "sha256": "632e757300920893515d2100df0b34b56e7917104728f338f20944775aa76a51"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\06-resonance-environment.command.json",
+      "bytes": 1109,
+      "sha256": "265d0bc9dcaa74d4e5bb9ef7122bab4439fcbcee62f98c061682256b5d2cab34"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\06-resonance-environment.events.jsonl",
+      "bytes": 2932,
+      "sha256": "6bb8d915e112b67cbd24db8ec5df4196d78760ec445369bbbdfbcd2adada8e7f"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\07-resonance-prepare-tests.command.json",
+      "bytes": 1198,
+      "sha256": "92ebcd82bd2415456dfbfe6112851d4f3f67d1059b690108ae695ce64c23b784"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\07-resonance-prepare-tests.events.jsonl",
+      "bytes": 1466,
+      "sha256": "97e4139c1c8d9b0009591c764a9a6e773a8b90bf11b9f9d11f725a5d346361b0"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\08-resonance-build.command.json",
+      "bytes": 1184,
+      "sha256": "d9f76259815d524f1527fd4d4d14684d1faf93ca71e096d9d3f5fa866854c536"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\08-resonance-build.events.jsonl",
+      "bytes": 13743,
+      "sha256": "4b9abfb40f3dd499d1feb296f3b8dae9094f83a7be496fa531b4bf41a8cabd71"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\09-resonance-gametest.command.json",
+      "bytes": 1204,
+      "sha256": "f908233265be840acd56d9a4565fd079b3d4de3c1b3908f3d049d3cdb1625685"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\09-resonance-gametest.events.jsonl",
+      "bytes": 114674,
+      "sha256": "408d9757ca9a669d41009ae827c9c5b008ce0746cefd4c6f54a3fea682e54645"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\10-tally-bootstrap-attempt3.command.json",
+      "bytes": 1335,
+      "sha256": "2cae47a0c6039a8c84bfc1acc19292f7108534b362d0252a48cbdbac74d05a6f"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\10-tally-bootstrap-attempt3.events.jsonl",
+      "bytes": 372,
+      "sha256": "d7c35383981f1148b00793a465ef99573e9b9eb9051873decf575b48a98615d0"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\11-tally-environment.command.json",
+      "bytes": 1085,
+      "sha256": "f3dd657c6ffdaf86f41712c14627f72b868ed9205045fc7a57e88fa553e6fc5e"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\11-tally-environment.events.jsonl",
+      "bytes": 2900,
+      "sha256": "49d579d0168447c5fbcc15bd51b73e995d77b1f620d8f6786607b45b3c63bd47"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\12-tally-prepare-tests.command.json",
+      "bytes": 1174,
+      "sha256": "e697eaee8056e8b69dcac1cb772ed7321b02a64145b7fa728ac23911acc9a682"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\12-tally-prepare-tests.events.jsonl",
+      "bytes": 1462,
+      "sha256": "0acdd2fefee0f300deb036e151d27040604baeacaadf4d58f1dedad142017d88"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\13-tally-build.command.json",
+      "bytes": 1160,
+      "sha256": "3aa900e4859886f989ac1a88a95353881d712aa298c46331ee68959e6f9e4f97"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\13-tally-build.events.jsonl",
+      "bytes": 13243,
+      "sha256": "ea63124e9a936516194cc4e22996c6e16a1ed5edeb9293716103d16872fab4a2"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\14-tally-gametest.command.json",
+      "bytes": 1180,
+      "sha256": "a819e28c03a91003f9b550b2e861b26475fa4b20509151cbe4b18c729c02fa99"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\14-tally-gametest.events.jsonl",
+      "bytes": 129233,
+      "sha256": "225a7ae11c132bbaf4cde3998dbcabca90785da7ced78f084ed223d10c64de18"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\15-tally-gametest-real-player.command.json",
+      "bytes": 1228,
+      "sha256": "8a5e4eebf7003ec34892c30db8c7ad67e45ef83fb7eadaf8fcdc399c668070ca"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\15-tally-gametest-real-player.events.jsonl",
+      "bytes": 121049,
+      "sha256": "00646007e600554f81dada5a009a19ab529f29ce09490735b03b5bfefefb3562"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\16-ledger-bootstrap-attempt3.command.json",
+      "bytes": 1348,
+      "sha256": "68ff2e114b2e8316d3542d74fde40e958cfbe815a991c0ab38711155aa5ab12d"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\16-ledger-bootstrap-attempt3.events.jsonl",
+      "bytes": 381,
+      "sha256": "eabed82ee4624c4944e2093b7ba30863b568b43d8f24c1380b0fe3013a54c79f"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\17-ledger-environment.command.json",
+      "bytes": 1095,
+      "sha256": "ad292589ea8e91a4c0650ebdf914f3b4a98d8c1fe6e6c4fb02b8b7247988bbbe"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\17-ledger-environment.events.jsonl",
+      "bytes": 2924,
+      "sha256": "e008f3d9128f0a532590c5e4cdcaa4c7c4e16291a931228a3742ce24bd89d2ac"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\18-ledger-prepare-tests.command.json",
+      "bytes": 1184,
+      "sha256": "0c227228734f1f74e5096067ada30bfaeae226459c597e4599216fb2caa52eb3"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\18-ledger-prepare-tests.events.jsonl",
+      "bytes": 1465,
+      "sha256": "a40036dee31a1269f26e9a0b434e6d6f64a5659e61359f1d5578ab6ea5c6f663"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\19-ledger-build.command.json",
+      "bytes": 1170,
+      "sha256": "49f09f3c916009aff2283d5763f7138f45c5697aaa84f61a0eed13a0c6220fbd"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\19-ledger-build.events.jsonl",
+      "bytes": 14231,
+      "sha256": "ccfd354773d7162833b78065cc7cb2dc2c1d5b47045373db90fbabd7b779b51a"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\20-ledger-gametest.command.json",
+      "bytes": 1190,
+      "sha256": "25813e8710b40b22140c9f0704f0dbb75ecc983ebf5fe8004ce3aa3840750a47"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\command-logs\\20-ledger-gametest.events.jsonl",
+      "bytes": 130045,
+      "sha256": "084fc5d35f13f762892d44ac03b355c187bf990b0d2edf3b0e76254b967acb47"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\experience-log.md",
+      "bytes": 6482,
+      "sha256": "592ae9b4f6c00b04270702f00c24d1e1b56c0a019d08f8e6884e48efbc073738"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\export-source-inventory.ps1",
+      "bytes": 3083,
+      "sha256": "e3326911ce65231e4fe9b5875adddcfee798835acdfc85272547013b5af4d730"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\fixed-retry-inputs.json",
+      "bytes": 1009,
+      "sha256": "4f2ac948af7bf734bba8cd0c0cbd787201b4b16f165060f8bb3224a6d659119f"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\implementation-notes.md",
+      "bytes": 4859,
+      "sha256": "d8c86382b3de64e879427e2a0ee0ae8db9f8c04e8bd585801bf2cb0d5ee1f096"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\install-authored-mod.ps1",
+      "bytes": 2169,
+      "sha256": "425a3a6f80014bc399a926730bcf446c7de4946ab35f8bc34226837ced133336"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\invoke-product.ps1",
+      "bytes": 4415,
+      "sha256": "2bc3c9f773b4c9e69f48f2746510229b01e32499d5ca1950e43354f1489f8a3b"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\minecraft-dependency-api.txt",
+      "bytes": 73984,
+      "sha256": "adf22d051cf821cfea3d0fe445858967aca63a34355987aafec5c2c458a6e36a"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\minecraft-game-mode-api.txt",
+      "bytes": 1363,
+      "sha256": "b3f4790dfa3f7c49230e6268a9bff036bc9f522165bff23dec978ccd800b4830"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\minecraft-gametest-helper-bytecode.txt",
+      "bytes": 161325,
+      "sha256": "28dd0600fddae843ac4ca9a45ff6b5b058940ead3cf291248a5d6eddcad768e0"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\minecraft-mock-server-player-bytecode.txt",
+      "bytes": 979,
+      "sha256": "eff31fa36340a7b1eaadd3f48fe28017ed011dce31d08481d87dcc66b656d4de"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\preauthorization-evidence-hashes.json",
+      "bytes": 6298,
+      "sha256": "cdc5611fc60ad35807bba8a7e7cd677aceb7a7070586ff8848e5d1f66578d824"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\public-docs\\ai\\agent-playbook.md",
+      "bytes": 10302,
+      "sha256": "1c6257c842feca73a37186279a6bfb9e86cccd481957bf2f693c8c6b6ebe8a73"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\public-docs\\ai\\getting-started.md",
+      "bytes": 10132,
+      "sha256": "2ad510a83e5b69d9e497db725136039c7430566376222e41355f8640b5538fab"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\public-docs\\ai\\task-authorization-and-acceptance.md",
+      "bytes": 11175,
+      "sha256": "4dcfb4188176b506a0c641275f3369ee38979421433c180d599efa86b2ad79a9"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\public-docs\\security\\permission-model.md",
+      "bytes": 3150,
+      "sha256": "7eca0293811df664e751ced5cea52ea57dd23fc8205b7ddf56624d8a38d273f5"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\requirements-and-test-plan.md",
+      "bytes": 5010,
+      "sha256": "06226e8991b6eba0d9499715e077a999c9984ffde63c42ca730e2cef730ba01b"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\harvest_ledger-source-inventory.json",
+      "bytes": 7203,
+      "sha256": "346db2708bbdb2a72471eb48bb82c132362f5b17727dc35212276e6c9b975b7b"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\harvest_ledger\\build.gradle",
+      "bytes": 1267,
+      "sha256": "30066e7fe38f555f6561a00bc28879a2ff888a62c6ab3fcdf8933a496a056e19"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\harvest_ledger\\copperbench-tests.json",
+      "bytes": 246,
+      "sha256": "c86d17709219b009adb91769cf5531db8e9535f031c197e1610b63c54b8e7760"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\harvest_ledger\\gradle.properties",
+      "bytes": 247,
+      "sha256": "8596bccaa0222d0be226d5f79d62baff65671bcd248e6648bcf519222d48a66e"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\harvest_ledger\\gradle\\wrapper\\gradle-wrapper.jar",
+      "bytes": 48966,
+      "sha256": "55243ef57851f12b070ad14f7f5bb8302daceeebc5bce5ece5fa6edb23e1145c"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\harvest_ledger\\gradle\\wrapper\\gradle-wrapper.properties",
+      "bytes": 255,
+      "sha256": "dd6a23b9f2909d0084810df07670902287ef58dd41307abee720b31312395fc6"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\harvest_ledger\\gradlew",
+      "bytes": 8654,
+      "sha256": "aed171fb114f82e6eaea4970a245a200e0582a7dcc8ec0891ca41b6e4a62b754"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\harvest_ledger\\gradlew.bat",
+      "bytes": 2896,
+      "sha256": "fedad02c18e266ec094995a5751b7fe1eb6e74f66bf75db64fae2e50eb22c234"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\harvest_ledger\\harvest_ledger.mcreator",
+      "bytes": 2053,
+      "sha256": "49b72a15d68c4e2fa1da7dc79be423fdf63d054dac4c840ff0350626a2f34833"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\harvest_ledger\\mcreator.gradle",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\harvest_ledger\\settings.gradle",
+      "bytes": 208,
+      "sha256": "6e007f2e9f9164724393a9cda9bf3c8faf56052e0d77b1d7f2ca917c9bdb41a4"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\harvest_ledger\\src\\gametest\\java\\copperbench\\acceptance\\AcceptanceTests.java",
+      "bytes": 8896,
+      "sha256": "a2a392fd3b9921bbaee94520ffd7081b209687d0de964e718ec53af0a1727b79"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\harvest_ledger\\src\\gametest\\java\\copperbench\\acceptance\\RealTestPlayers.java",
+      "bytes": 1358,
+      "sha256": "ad79efea8bd1867b357abdb83431c89baf5f3b9d39b0af73595baeb0c2e34ed7"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\harvest_ledger\\src\\gametest\\README.md",
+      "bytes": 430,
+      "sha256": "5ed703a1923b220dc08990d3ab316afc40fbe5f67ca3a2d6dd015bd505c7590b"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\harvest_ledger\\src\\main\\java\\net\\mcreator\\harvest_ledger\\event\\BlockEvents.java",
+      "bytes": 1389,
+      "sha256": "dc54962ad79855269dc1de8a022f4863db7b7c3f9681d13db9149173d571bc68"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\harvest_ledger\\src\\main\\java\\net\\mcreator\\harvest_ledger\\event\\ItemEvents.java",
+      "bytes": 893,
+      "sha256": "9d75ee1aa955b98f2bd00be9913d0cd967d8c3e814e6df60cb05b78b807081ea"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\harvest_ledger\\src\\main\\java\\net\\mcreator\\harvest_ledger\\event\\LivingEntityEvents.java",
+      "bytes": 4092,
+      "sha256": "bab71fe4d9faed5bc0d95e3c9c602f29860b93241cad4a21a771bf5fbc0ab099"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\harvest_ledger\\src\\main\\java\\net\\mcreator\\harvest_ledger\\event\\MiscEvents.java",
+      "bytes": 723,
+      "sha256": "bbef9ed47b202f55c1428b04a70108103d582d91f35e78cc02b19d6628fe708c"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\harvest_ledger\\src\\main\\java\\net\\mcreator\\harvest_ledger\\event\\PlayerEvents.java",
+      "bytes": 1634,
+      "sha256": "ac9182bd60bdab57051efb0a8b40b37378eab5bf00999f561648b0e027aab2e4"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\harvest_ledger\\src\\main\\java\\net\\mcreator\\harvest_ledger\\HarvestLedgerMod.java",
+      "bytes": 3036,
+      "sha256": "49bcdb3209ca4f2e92f38263875b133372ad57dab32803ac05f6906b9dd9a879"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\harvest_ledger\\src\\main\\java\\net\\mcreator\\harvest_ledger\\HarvestLedgerModClient.java",
+      "bytes": 568,
+      "sha256": "01c62ed8936534feb281e440fa80af30211b66d5fd3b01e828be851bbee60edc"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\harvest_ledger\\src\\main\\java\\net\\mcreator\\harvest_ledger\\mixin\\BlockItemMixin.java",
+      "bytes": 1321,
+      "sha256": "c89168882c85893475216e23b9263b295d4d476321bb5ebd3bc18bc54a0d3355"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\harvest_ledger\\src\\main\\java\\net\\mcreator\\harvest_ledger\\mixin\\BoneMealItemMixin.java",
+      "bytes": 1227,
+      "sha256": "4690056d46b3f99dd0cb94cbd3b69b90c9a73d0f71b82c15eb3099471394ee57"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\harvest_ledger\\src\\main\\java\\net\\mcreator\\harvest_ledger\\mixin\\CommandsMixin.java",
+      "bytes": 863,
+      "sha256": "0a4036f5502dcd168d5f84ec80d282329cd89329c083e9dd6f5a694ae8cce61a"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\harvest_ledger\\src\\main\\java\\net\\mcreator\\harvest_ledger\\mixin\\ExperienceOrbMixin.java",
+      "bytes": 907,
+      "sha256": "607977972c78b847eaaef39e3fd1314e58ee2cad88324791303bdceb09518aa7"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\harvest_ledger\\src\\main\\java\\net\\mcreator\\harvest_ledger\\mixin\\ItemStackMixin.java",
+      "bytes": 1549,
+      "sha256": "4a7ea2fdad828c306b936b414576e596a163d01e3b6ecb195bdee926081c1d8e"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\harvest_ledger\\src\\main\\java\\net\\mcreator\\harvest_ledger\\mixin\\LivingEntityMixin.java",
+      "bytes": 4637,
+      "sha256": "f3b628bb7f9bb91c1c540ab402775347239f5bb619c1378b1fb8b180cac15aff"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\harvest_ledger\\src\\main\\java\\net\\mcreator\\harvest_ledger\\mixin\\PlayerMixin.java",
+      "bytes": 1041,
+      "sha256": "799597fb63200d27e110ee3a4306601b34b32333b5cb16b1b43e00385c1fefbf"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\harvest_ledger\\src\\main\\java\\trial\\harvest\\HarvestMod.java",
+      "bytes": 1543,
+      "sha256": "f7b8ad234ac3210d684d6ad808e6720dcebef97b6582fd0990d541492645684a"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\harvest_ledger\\src\\main\\java\\trial\\harvest\\LedgerState.java",
+      "bytes": 1772,
+      "sha256": "7d29b4b914e13f1d986e7e5b771f1bb0ecbb656c4bd277ac195b4483c7961ed6"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\harvest_ledger\\src\\main\\resources\\assets\\harvest_ledger\\lang\\en_us.json",
+      "bytes": 2,
+      "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\harvest_ledger\\src\\main\\resources\\fabric.mod.json",
+      "bytes": 708,
+      "sha256": "30836e9eca75c112c1309db64c653fddfc8e74b404cd695705c7cdcfb79ed599"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\harvest_ledger\\src\\main\\resources\\harvest_ledger.mixins.json",
+      "bytes": 414,
+      "sha256": "963072ecd4f675ad292bd44491f38575407bf02653bade96dd11bdc687d0a334"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\harvest_ledger\\src\\main\\resources\\META-INF\\harvest_ledger.classtweaker",
+      "bytes": 516,
+      "sha256": "829e6b46f94cf3612f23f46b0c34107c3a763157888e47667fc795b15587f55c"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\harvest_ledger\\src\\main\\resources\\pack.mcmeta",
+      "bytes": 64,
+      "sha256": "5090fddd4fa993867d086edcd33b09285105fb1ae7b11322198cdb825905537d"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\README.md",
+      "bytes": 1873,
+      "sha256": "0cbb0d732aae958c753af170456486e40f76179ea17126e2843039bd43761718"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\resonance_token-source-inventory.json",
+      "bytes": 7253,
+      "sha256": "f12019f1e3cbf0337ea6c69f33e4b2ade4340a14f119919837c7afcfca9970a7"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\resonance_token\\build.gradle",
+      "bytes": 1272,
+      "sha256": "4269b1849d5a14485e7e8fc164cd2a4164f91c89c494d26383233a11bef52c7c"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\resonance_token\\copperbench-tests.json",
+      "bytes": 246,
+      "sha256": "6f74d25265654b25aaea720d6d6625e5b8052196c8ce884ec2b12da2ed44aa4e"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\resonance_token\\gradle.properties",
+      "bytes": 248,
+      "sha256": "14c6ba9940ba7cfa933665941dd2a6d7724e6df86f5cd89dd94302245a415261"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\resonance_token\\gradle\\wrapper\\gradle-wrapper.jar",
+      "bytes": 48966,
+      "sha256": "55243ef57851f12b070ad14f7f5bb8302daceeebc5bce5ece5fa6edb23e1145c"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\resonance_token\\gradle\\wrapper\\gradle-wrapper.properties",
+      "bytes": 255,
+      "sha256": "dd6a23b9f2909d0084810df07670902287ef58dd41307abee720b31312395fc6"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\resonance_token\\gradlew",
+      "bytes": 8654,
+      "sha256": "aed171fb114f82e6eaea4970a245a200e0582a7dcc8ec0891ca41b6e4a62b754"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\resonance_token\\gradlew.bat",
+      "bytes": 2896,
+      "sha256": "fedad02c18e266ec094995a5751b7fe1eb6e74f66bf75db64fae2e50eb22c234"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\resonance_token\\mcreator.gradle",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\resonance_token\\resonance_token.mcreator",
+      "bytes": 2074,
+      "sha256": "1e7d19677964221a2668e437c7f12ad4018ea69308de33fc0db1f92e300d84d6"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\resonance_token\\settings.gradle",
+      "bytes": 208,
+      "sha256": "6e007f2e9f9164724393a9cda9bf3c8faf56052e0d77b1d7f2ca917c9bdb41a4"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\resonance_token\\src\\gametest\\java\\copperbench\\acceptance\\AcceptanceTests.java",
+      "bytes": 8345,
+      "sha256": "1c88e48a15dbb64fc3fd24219283aa2631cc45db2602e8d887df5c98402eaf6a"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\resonance_token\\src\\gametest\\README.md",
+      "bytes": 430,
+      "sha256": "5ed703a1923b220dc08990d3ab316afc40fbe5f67ca3a2d6dd015bd505c7590b"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\resonance_token\\src\\main\\java\\net\\mcreator\\resonance_token\\event\\BlockEvents.java",
+      "bytes": 1390,
+      "sha256": "3b675c156b4a37fdfb6997260045f4b537d581ee1cd0cec6a2be1a56c1847399"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\resonance_token\\src\\main\\java\\net\\mcreator\\resonance_token\\event\\ItemEvents.java",
+      "bytes": 894,
+      "sha256": "15ed8ad71f9edfd5ac0fdf3986801c36c66b917962abbb4862fba6e26a46d76c"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\resonance_token\\src\\main\\java\\net\\mcreator\\resonance_token\\event\\LivingEntityEvents.java",
+      "bytes": 4093,
+      "sha256": "7efaa70cfd87afef0f9f2c90264279a4592adf3296b02f91612f603ddcde6bfb"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\resonance_token\\src\\main\\java\\net\\mcreator\\resonance_token\\event\\MiscEvents.java",
+      "bytes": 724,
+      "sha256": "5b679332d90be8799496207491c04383aac1f45d13307220ff57c09db96e47da"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\resonance_token\\src\\main\\java\\net\\mcreator\\resonance_token\\event\\PlayerEvents.java",
+      "bytes": 1635,
+      "sha256": "1ec212ec9c2e34158da1fcbd9249d994d8275de311a12be7e24bb9e5ab4d3a3f"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\resonance_token\\src\\main\\java\\net\\mcreator\\resonance_token\\mixin\\BlockItemMixin.java",
+      "bytes": 1323,
+      "sha256": "5683db48cffe0cc8775f5d4bc092d97fe62fba69f98b6eda1ad98d85b695a594"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\resonance_token\\src\\main\\java\\net\\mcreator\\resonance_token\\mixin\\BoneMealItemMixin.java",
+      "bytes": 1229,
+      "sha256": "76597e7fc2bfd2d00f317d8837f1bf5b32005de8a2703d074f32042593012254"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\resonance_token\\src\\main\\java\\net\\mcreator\\resonance_token\\mixin\\CommandsMixin.java",
+      "bytes": 865,
+      "sha256": "a4c65ebaceb0dfff2451b5a42000cace07a2c1d9b1468fd575b5cdd2cef63480"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\resonance_token\\src\\main\\java\\net\\mcreator\\resonance_token\\mixin\\ExperienceOrbMixin.java",
+      "bytes": 909,
+      "sha256": "da5eedc4a6140a5fc517b54dd550f11329717f25cd874a4c21da61b7539bd6ba"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\resonance_token\\src\\main\\java\\net\\mcreator\\resonance_token\\mixin\\ItemStackMixin.java",
+      "bytes": 1551,
+      "sha256": "1909883b9c3d98ecdfc708c8a72854bcaf07934d125b8d95d0ff98f782b24952"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\resonance_token\\src\\main\\java\\net\\mcreator\\resonance_token\\mixin\\LivingEntityMixin.java",
+      "bytes": 4639,
+      "sha256": "4624c97d1e9fd7ef28d093f78093e3b878b1f01b85a9157a3a21dc6bb0e6d748"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\resonance_token\\src\\main\\java\\net\\mcreator\\resonance_token\\mixin\\PlayerMixin.java",
+      "bytes": 1043,
+      "sha256": "805f09c4df14b821c72ce94b1d5509d7aff7d94f0d2d9be449a28db1e6b546e4"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\resonance_token\\src\\main\\java\\net\\mcreator\\resonance_token\\ResonanceTokenMod.java",
+      "bytes": 3041,
+      "sha256": "89c2a1e171c44bb141326d8737d056c74f835d30cda8de216a0fd55307198e91"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\resonance_token\\src\\main\\java\\net\\mcreator\\resonance_token\\ResonanceTokenModClient.java",
+      "bytes": 570,
+      "sha256": "06cbc62654d49360bacb95a5240eb380aeed99343cc6f4af6e2cfca648dbc4a2"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\resonance_token\\src\\main\\java\\trial\\resonance\\ResonanceMod.java",
+      "bytes": 2596,
+      "sha256": "0a6a49b15f3cdf57c835aec8e20440fea47f3fd95cb75d4a27135ed79c354e6a"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\resonance_token\\src\\main\\resources\\assets\\resonance_token\\lang\\en_us.json",
+      "bytes": 58,
+      "sha256": "95a906ed61c43f438bb34c675b8cebcd72574adf172e6051a004a2b0481b2824"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\resonance_token\\src\\main\\resources\\assets\\resonance_token\\lang\\zh_cn.json",
+      "bytes": 55,
+      "sha256": "06cccc123391cfdfb09b70a39a5bd98f288872129655e9e8e18edfe66a7dbb76"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\resonance_token\\src\\main\\resources\\assets\\resonance_token\\models\\item\\resonance_token.json",
+      "bytes": 91,
+      "sha256": "9076c8347551dcd9818f79b79543bf99b4b34baebc941113767f9c27047dfa6d"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\resonance_token\\src\\main\\resources\\fabric.mod.json",
+      "bytes": 720,
+      "sha256": "c5625be794212fa3fca56e365fa8c249e978f82c0e7dd8d52f090bff296a9fd8"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\resonance_token\\src\\main\\resources\\META-INF\\resonance_token.classtweaker",
+      "bytes": 516,
+      "sha256": "829e6b46f94cf3612f23f46b0c34107c3a763157888e47667fc795b15587f55c"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\resonance_token\\src\\main\\resources\\pack.mcmeta",
+      "bytes": 64,
+      "sha256": "5090fddd4fa993867d086edcd33b09285105fb1ae7b11322198cdb825905537d"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\resonance_token\\src\\main\\resources\\resonance_token.mixins.json",
+      "bytes": 416,
+      "sha256": "fe45f717adcb3ac9f80e094001aea3f3d3b3f193f53de8608c80d375fc27c1c1"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\source-inventory.json",
+      "bytes": 1460,
+      "sha256": "269f0eb15df0e0549690a510a371a09badfc58dcfdd0deb0fbfb72a606281f9e"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\tally_stone-source-inventory.json",
+      "bytes": 7960,
+      "sha256": "0c54df091d3f833f5ed45d8e9437f9f38bde0db3abd5b78d6996775f67009806"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\tally_stone\\build.gradle",
+      "bytes": 1252,
+      "sha256": "a0dff7335c132cb02b181801a2e77c3929085fedde71b8c95949d65b5523403f"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\tally_stone\\copperbench-tests.json",
+      "bytes": 246,
+      "sha256": "6f74d25265654b25aaea720d6d6625e5b8052196c8ce884ec2b12da2ed44aa4e"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\tally_stone\\gradle.properties",
+      "bytes": 244,
+      "sha256": "3c540489df1fa0c8768d84a1c8d8dfe1d66f2c997ce93e4d63ba6162b4820b3a"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\tally_stone\\gradle\\wrapper\\gradle-wrapper.jar",
+      "bytes": 48966,
+      "sha256": "55243ef57851f12b070ad14f7f5bb8302daceeebc5bce5ece5fa6edb23e1145c"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\tally_stone\\gradle\\wrapper\\gradle-wrapper.properties",
+      "bytes": 255,
+      "sha256": "dd6a23b9f2909d0084810df07670902287ef58dd41307abee720b31312395fc6"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\tally_stone\\gradlew",
+      "bytes": 8654,
+      "sha256": "aed171fb114f82e6eaea4970a245a200e0582a7dcc8ec0891ca41b6e4a62b754"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\tally_stone\\gradlew.bat",
+      "bytes": 2896,
+      "sha256": "fedad02c18e266ec094995a5751b7fe1eb6e74f66bf75db64fae2e50eb22c234"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\tally_stone\\mcreator.gradle",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\tally_stone\\settings.gradle",
+      "bytes": 208,
+      "sha256": "6e007f2e9f9164724393a9cda9bf3c8faf56052e0d77b1d7f2ca917c9bdb41a4"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\tally_stone\\src\\gametest\\java\\copperbench\\acceptance\\AcceptanceTests.java",
+      "bytes": 7823,
+      "sha256": "8943aef502e8567b411fcdad84f303fd5f2c9f3464965adc60d3319c66046332"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\tally_stone\\src\\gametest\\java\\copperbench\\acceptance\\RealTestPlayers.java",
+      "bytes": 1358,
+      "sha256": "ad79efea8bd1867b357abdb83431c89baf5f3b9d39b0af73595baeb0c2e34ed7"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\tally_stone\\src\\gametest\\README.md",
+      "bytes": 430,
+      "sha256": "5ed703a1923b220dc08990d3ab316afc40fbe5f67ca3a2d6dd015bd505c7590b"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\tally_stone\\src\\main\\java\\net\\mcreator\\tally_stone\\event\\BlockEvents.java",
+      "bytes": 1386,
+      "sha256": "068d472f9323f9d867bb88ceb7193f0184222ab0214dc1ccca47f6fb09f48319"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\tally_stone\\src\\main\\java\\net\\mcreator\\tally_stone\\event\\ItemEvents.java",
+      "bytes": 890,
+      "sha256": "597b5261d1e5012c03beac6473ef5526dde5ecb517c164c3f2a6b016d48e11de"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\tally_stone\\src\\main\\java\\net\\mcreator\\tally_stone\\event\\LivingEntityEvents.java",
+      "bytes": 4089,
+      "sha256": "5819a08f9b3cb831d1ca059a781a9953c6daf5033eea5c6f00f3ac5a18b6e379"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\tally_stone\\src\\main\\java\\net\\mcreator\\tally_stone\\event\\MiscEvents.java",
+      "bytes": 720,
+      "sha256": "d3bf125837df01ea0ca48c193422971d1889a49c68a7cc78a1483054e3df4446"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\tally_stone\\src\\main\\java\\net\\mcreator\\tally_stone\\event\\PlayerEvents.java",
+      "bytes": 1631,
+      "sha256": "857ad3eb3014790f0e26f755b3cad2988dd17199220cf2f599442592118b6436"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\tally_stone\\src\\main\\java\\net\\mcreator\\tally_stone\\mixin\\BlockItemMixin.java",
+      "bytes": 1315,
+      "sha256": "929fc579b8cf216298e5fc7a5d45cfcc885a56bb91358dc1e73ac5366f152728"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\tally_stone\\src\\main\\java\\net\\mcreator\\tally_stone\\mixin\\BoneMealItemMixin.java",
+      "bytes": 1221,
+      "sha256": "92fea66e174b4478eddd847f4562c438cd9dc9dda0e355c67a307c96c3bc6b21"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\tally_stone\\src\\main\\java\\net\\mcreator\\tally_stone\\mixin\\CommandsMixin.java",
+      "bytes": 857,
+      "sha256": "22138b129fa68f5942f46817c42bcb98db0abfb3469a035a218bee1d8d685b2b"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\tally_stone\\src\\main\\java\\net\\mcreator\\tally_stone\\mixin\\ExperienceOrbMixin.java",
+      "bytes": 901,
+      "sha256": "d860700d16023d875fe2828e23a1296b3a383076f95a768dc12755b9bd282e38"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\tally_stone\\src\\main\\java\\net\\mcreator\\tally_stone\\mixin\\ItemStackMixin.java",
+      "bytes": 1543,
+      "sha256": "f848abe56f80d027e77306f788c16cb6d0b1631874ccc1f26ee67764451297f5"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\tally_stone\\src\\main\\java\\net\\mcreator\\tally_stone\\mixin\\LivingEntityMixin.java",
+      "bytes": 4631,
+      "sha256": "b86943095c555e0f6b32fb60618c50f8337a9e4e3b1f337cfb05569ded8e0e93"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\tally_stone\\src\\main\\java\\net\\mcreator\\tally_stone\\mixin\\PlayerMixin.java",
+      "bytes": 1035,
+      "sha256": "f2787a41dabad22c0574b1f4f486d478ee90883d6c82cae77cfe66a34c9f040c"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\tally_stone\\src\\main\\java\\net\\mcreator\\tally_stone\\TallyStoneMod.java",
+      "bytes": 3021,
+      "sha256": "e08eeb61a6d1a1e033ab85e42cb481b27f07c3e1600b225b988943963d70129f"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\tally_stone\\src\\main\\java\\net\\mcreator\\tally_stone\\TallyStoneModClient.java",
+      "bytes": 562,
+      "sha256": "f11fd90a65e21648aa77882ebe03c7d196b0a369cbcd9de7eca2d4284d4093cb"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\tally_stone\\src\\main\\java\\trial\\tally\\TallyMod.java",
+      "bytes": 3207,
+      "sha256": "25e155f1f479768b66e3cc54078afe3f82230d14ec9452106b7bf9422f477d3b"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\tally_stone\\src\\main\\resources\\assets\\tally_stone\\blockstates\\tally_stone.json",
+      "bytes": 59,
+      "sha256": "bbdde0f6c2588cac306af22cd0c7768be68fe4b9d7e7751c292a200cc7328149"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\tally_stone\\src\\main\\resources\\assets\\tally_stone\\lang\\en_us.json",
+      "bytes": 47,
+      "sha256": "19309e3d3e956ed5bf403cc6406d30a98f5d809e41f75a7b5284cd255dbaff00"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\tally_stone\\src\\main\\resources\\assets\\tally_stone\\lang\\zh_cn.json",
+      "bytes": 45,
+      "sha256": "2624bd1d6955a52309851a9795217fb9b48e2bfbbce6167eac61cb5782050150"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\tally_stone\\src\\main\\resources\\assets\\tally_stone\\models\\block\\tally_stone.json",
+      "bytes": 93,
+      "sha256": "9ddf409b03c07aded85802a826785ae8a2a009e443b5bb61e78419e0d4e7e045"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\tally_stone\\src\\main\\resources\\assets\\tally_stone\\models\\item\\tally_stone.json",
+      "bytes": 42,
+      "sha256": "420094095c6f5bbb28c6f30eb632a79c504b503e6e3983cce39321abfe24f87c"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\tally_stone\\src\\main\\resources\\data\\tally_stone\\loot_table\\blocks\\tally_stone.json",
+      "bytes": 179,
+      "sha256": "900d6ec37ab350f8ffc97f6420de5d6e7e293bf98fd751b7c21c17cde36bf63a"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\tally_stone\\src\\main\\resources\\fabric.mod.json",
+      "bytes": 680,
+      "sha256": "72a86cb149b977d5cfd84c76d40541c68ec906e8455bd03fdd3d6e4b4f89fd60"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\tally_stone\\src\\main\\resources\\META-INF\\tally_stone.classtweaker",
+      "bytes": 516,
+      "sha256": "829e6b46f94cf3612f23f46b0c34107c3a763157888e47667fc795b15587f55c"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\tally_stone\\src\\main\\resources\\pack.mcmeta",
+      "bytes": 64,
+      "sha256": "5090fddd4fa993867d086edcd33b09285105fb1ae7b11322198cdb825905537d"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\tally_stone\\src\\main\\resources\\tally_stone.mixins.json",
+      "bytes": 408,
+      "sha256": "eecdc9e088ef32682aea1a79bab6350707100bb35f41e66d972a9add44cd9f03"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\tally_stone\\tally_stone.mcreator",
+      "bytes": 1990,
+      "sha256": "8625dcfe2b39571d6a47d4841d943585dcab06783e32ec428b8796182018863d"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\summarize-trial.ps1",
+      "bytes": 5947,
+      "sha256": "58fb9ec07820c2b516327a40628eeb3451b9faacc7c690e601d255c4d78f6ff9"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\test-support\\RealTestPlayers.java",
+      "bytes": 1358,
+      "sha256": "ad79efea8bd1867b357abdb83431c89baf5f3b9d39b0af73595baeb0c2e34ed7"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\trial-inputs.json",
+      "bytes": 1857,
+      "sha256": "84529586f83245f11da40019da827535fd41df8de460a48fcdf78b49494474e4"
+    },
+    {
+      "path": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\trial-summary.json",
+      "bytes": 24412,
+      "sha256": "f7e7ce9183c9eb2de49cdb15a97956a7f314cb395533ef1715ded0385519d372"
+    }
+  ],
+  "recordedAt": "2026-09-11T12:59:56.2149258+00:00"
+}

@@ -1,0 +1,10 @@
+{
+  "at": "2026-09-12T13:41:49.3356684Z",
+  "target": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage15-linux\\build\\export",
+  "reason": "Duplicate packaging output after all four frozen candidate artifacts were SHA-256 verified",
+  "logicalBytes": 7751645851,
+  "diskFreeBefore": 46970474496,
+  "diskFreeAfter": 54736457728,
+  "observedDiskSpaceReclaimed": 7765983232,
+  "frozenArtifactsVerified": 4
+}

@@ -21,6 +21,18 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class Fabric1211ProcessRunnerTest {
+	@Test void recognizesTheObservedWindowsOpenGlDriverFailure() {
+		assertEquals("WINDOWS_OPENGL_INITIALIZATION_FAILED", Fabric1211ProcessRunner.graphicalFailureCode(
+				RuntimePlatform.OperatingSystem.WINDOWS,
+				"Window$WindowInitFailed: GLFW error 65542: WGL: The driver does not appear to support OpenGL"));
+		assertNull(Fabric1211ProcessRunner.graphicalFailureCode(RuntimePlatform.OperatingSystem.WINDOWS,
+				"[Render thread/INFO] OpenGL vendor: NVIDIA"));
+		assertNull(Fabric1211ProcessRunner.graphicalFailureCode(RuntimePlatform.OperatingSystem.WINDOWS,
+				"GLFW error 65550: X11: The DISPLAY environment variable is missing"));
+		assertEquals("LINUX_DISPLAY_UNAVAILABLE", Fabric1211ProcessRunner.graphicalFailureCode(
+				RuntimePlatform.OperatingSystem.LINUX,
+				"GLFW error 65550: X11: The DISPLAY environment variable is missing"));
+	}
 
 	@Test void recognizesRootAndQualifiedRunClientTasks() {
 		assertTrue(Fabric1211ProcessRunner.isClientRun(List.of("runClient")));

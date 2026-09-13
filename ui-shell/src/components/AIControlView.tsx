@@ -6,6 +6,7 @@ import { useDialogA11y } from '../hooks/useDialogA11y';
 import { useMcpRuntimeState } from '../hooks/useMcpRuntimeState';
 import { t } from '../i18n';
 import type { OperationApproval, PermissionProfile } from '../types/contract';
+import { TaskAuthorizationPanel } from './TaskAuthorizationPanel';
 
 const profiles: { id: PermissionProfile; title: string; desc: string }[] = [
   { id: 'read_only', title: '只读', desc: '查询与快照校验' },
@@ -135,6 +136,8 @@ export const AIControlView: React.FC = () => {
             })}
           </div>
         </section>
+
+        <TaskAuthorizationPanel />
 
         <section className="approval-panel" data-testid="approval-queue" aria-labelledby="approval-heading" tabIndex={-1}>
           <div className="stage2-section-heading">

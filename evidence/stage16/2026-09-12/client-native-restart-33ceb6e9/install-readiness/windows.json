@@ -1,0 +1,12 @@
+{
+  "recordedAt": "2026-09-12T02:48:41.0740701+00:00",
+  "vmName": "Copperbench-G7",
+  "beforeState": "Saved",
+  "memoryRequiredBytes": 6442450944,
+  "availableBytes": 4992684032,
+  "configurationChanged": false,
+  "startAttempted": true,
+  "started": false,
+  "error": "“Copperbench-G7”无法还原。\n\n无法分配 6144 MB 的 RAM: 系统资源不足，无法完成请求的服务。 (0x800705AA)。\r\n\r\n“Copperbench-G7”无法还原。(虚拟机 ID 9038D85F-4E7E-41B6-855B-D249C4FB7F31)\n\n“Copperbench-G7”无法分配 6144 MB 的 RAM: 系统资源不足，无法完成请求的服务。 (0x800705AA)。(虚拟机 ID 9038D85F-4E7E-41B6-855B-D249C4FB7F31)",
+  "afterState": "Saved"
+}

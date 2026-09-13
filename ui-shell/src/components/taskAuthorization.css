@@ -1,0 +1,23 @@
+.task-authority-panel { grid-column: 1 / -1; min-width: 0; }
+.task-authority-form { display: grid; gap: 8px; }
+.task-authority-form input:not([type="checkbox"]), .task-authority-form select {
+  width: 100%; min-width: 0; min-height: 34px; padding: 6px 9px;
+  color: var(--text-primary); background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 4px;
+}
+.task-authority-form fieldset { padding: 10px; border: 1px solid var(--border-subtle); border-radius: 4px; }
+.task-authority-capabilities { display: flex; gap: 8px 20px; flex-wrap: wrap; }
+.task-authority-capabilities label { display: flex; align-items: center; gap: 6px; min-height: 28px; }
+.task-authority-eula { line-height: 1.7; }
+.task-authority-note { color: var(--text-secondary); font-size: 12px; line-height: 1.6; }
+.task-authority-form > button { justify-self: start; }
+.task-authority-list { list-style: none; padding: 0; margin: 12px 0 0; display: grid; gap: 12px; }
+.task-authority-list li { padding: 12px; border: 1px solid var(--border-subtle); display: grid; gap: 6px; min-width: 0; }
+.task-authority-list code, .task-authority-panel dd { overflow-wrap: anywhere; }
+.task-authority-error { color: var(--badge-red); padding: 8px 0; }
+.gametest-verification { padding: 10px 16px; border-bottom: 1px solid var(--border-subtle); font-size: 12px; max-height: 200px; overflow: auto; }
+.gametest-verification dl { display: flex; flex-wrap: wrap; gap: 8px 20px; margin: 8px 0; }
+.gametest-verification dl div { display: flex; gap: 6px; }
+.gametest-verification dd { margin: 0; font-variant-numeric: tabular-nums; }
+.gametest-verification code { overflow-wrap: anywhere; }
+.gametest-verification summary { cursor: pointer; min-height: 26px; }
+.gametest-verification .test-failure { white-space: pre-wrap; color: var(--badge-red); }

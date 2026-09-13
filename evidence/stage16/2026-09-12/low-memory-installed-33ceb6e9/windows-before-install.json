@@ -1,0 +1,48 @@
+{
+  "recordedAt": "2026-09-12T04:19:55.6130375+00:00",
+  "os": {
+    "Caption": "Microsoft Windows 11 专业版",
+    "Version": "10.0.26200",
+    "FreePhysicalMemory": 366752,
+    "TotalVisibleMemorySize": 3144596
+  },
+  "tools": [
+    {
+      "name": "java",
+      "path": null
+    },
+    {
+      "name": "javac",
+      "path": null
+    },
+    {
+      "name": "gradle",
+      "path": null
+    },
+    {
+      "name": "git",
+      "path": null
+    },
+    {
+      "name": "pwsh",
+      "path": null
+    },
+    {
+      "name": "python",
+      "path": "C:\\Users\\g7admin\\AppData\\Local\\Microsoft\\WindowsApps\\python.exe"
+    }
+  ],
+  "previousInstallation": [
+    {
+      "DisplayName": "Copperbench 0.1.0",
+      "DisplayVersion": "0.1.0",
+      "UninstallString": "C:\\Copperbench-Stage15-WindowsRegression\\uninstall.exe"
+    }
+  ],
+  "candidateDirectoryExists": false,
+  "trialDirectoryExists": false,
+  "activeExplorer": [],
+  "PSComputerName": "Copperbench-G7",
+  "RunspaceId": "77054809-16a9-4674-841f-7a2ee0457c5d",
+  "PSShowComputerName": true
+}

@@ -1,0 +1,1326 @@
+{
+  "conclusion": "success",
+  "databaseId": 34615812721,
+  "event": "workflow_dispatch",
+  "headSha": "33ceb6e9a68aab2b2fcd9153d6c4f23f4d85e6c5",
+  "jobs": [
+    {
+      "completedAt": "2026-09-11T15:45:45Z",
+      "conclusion": "success",
+      "databaseId": 103317336434,
+      "name": "Nightly product regression",
+      "startedAt": "2026-09-11T15:23:19Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-09-11T15:23:21Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-09-11T15:23:19Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:23:33Z",
+          "conclusion": "success",
+          "name": "Checkout repository",
+          "number": 2,
+          "startedAt": "2026-09-11T15:23:21Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:23:48Z",
+          "conclusion": "success",
+          "name": "Set up JDK 25 with JCEF",
+          "number": 3,
+          "startedAt": "2026-09-11T15:23:33Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:24:04Z",
+          "conclusion": "success",
+          "name": "Set up Node.js",
+          "number": 4,
+          "startedAt": "2026-09-11T15:23:48Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:24:19Z",
+          "conclusion": "success",
+          "name": "Install UI dependencies",
+          "number": 5,
+          "startedAt": "2026-09-11T15:24:04Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:24:28Z",
+          "conclusion": "success",
+          "name": "Set up Gradle",
+          "number": 6,
+          "startedAt": "2026-09-11T15:24:19Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:37:51Z",
+          "conclusion": "success",
+          "name": "Run full Java, Javadoc, and scale regression",
+          "number": 7,
+          "startedAt": "2026-09-11T15:24:28Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:38:12Z",
+          "conclusion": "success",
+          "name": "Run UI contract and production build",
+          "number": 8,
+          "startedAt": "2026-09-11T15:37:51Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:44:52Z",
+          "conclusion": "success",
+          "name": "Run full Playwright suite",
+          "number": 9,
+          "startedAt": "2026-09-11T15:38:12Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:45:38Z",
+          "conclusion": "success",
+          "name": "Verify status, documentation, and MCP",
+          "number": 10,
+          "startedAt": "2026-09-11T15:44:52Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:45:40Z",
+          "conclusion": "success",
+          "name": "Upload nightly regression evidence",
+          "number": 11,
+          "startedAt": "2026-09-11T15:45:38Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:45:41Z",
+          "conclusion": "success",
+          "name": "Post Set up Gradle",
+          "number": 19,
+          "startedAt": "2026-09-11T15:45:40Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:45:41Z",
+          "conclusion": "success",
+          "name": "Post Set up Node.js",
+          "number": 20,
+          "startedAt": "2026-09-11T15:45:41Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:45:41Z",
+          "conclusion": "success",
+          "name": "Post Set up JDK 25 with JCEF",
+          "number": 21,
+          "startedAt": "2026-09-11T15:45:41Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:45:44Z",
+          "conclusion": "success",
+          "name": "Post Checkout repository",
+          "number": 22,
+          "startedAt": "2026-09-11T15:45:41Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:45:44Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 23,
+          "startedAt": "2026-09-11T15:45:44Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/Lotulune/Copperbench/actions/runs/34615812721/job/103317336434"
+    },
+    {
+      "completedAt": "2026-09-11T15:30:52Z",
+      "conclusion": "success",
+      "databaseId": 103317336790,
+      "name": "Stage 9 generator golden (neoforge-26.2)",
+      "startedAt": "2026-09-11T15:23:19Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-09-11T15:23:22Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-09-11T15:23:20Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:23:34Z",
+          "conclusion": "success",
+          "name": "Checkout repository",
+          "number": 2,
+          "startedAt": "2026-09-11T15:23:22Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:23:34Z",
+          "conclusion": "success",
+          "name": "Set up JDK 21",
+          "number": 3,
+          "startedAt": "2026-09-11T15:23:34Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:23:35Z",
+          "conclusion": "success",
+          "name": "Record JDK 21 home",
+          "number": 4,
+          "startedAt": "2026-09-11T15:23:34Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:23:51Z",
+          "conclusion": "success",
+          "name": "Set up JDK 25 with JCEF",
+          "number": 5,
+          "startedAt": "2026-09-11T15:23:35Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:23:51Z",
+          "conclusion": "success",
+          "name": "Expose JDK 21 to legacy generators",
+          "number": 6,
+          "startedAt": "2026-09-11T15:23:51Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:24:10Z",
+          "conclusion": "success",
+          "name": "Set up Node.js",
+          "number": 7,
+          "startedAt": "2026-09-11T15:23:51Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:24:26Z",
+          "conclusion": "success",
+          "name": "Install UI shell dependencies",
+          "number": 8,
+          "startedAt": "2026-09-11T15:24:10Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:24:31Z",
+          "conclusion": "success",
+          "name": "Set up Gradle",
+          "number": 9,
+          "startedAt": "2026-09-11T15:24:26Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:30:45Z",
+          "conclusion": "success",
+          "name": "Generate Stage 9 content and build workspace",
+          "number": 10,
+          "startedAt": "2026-09-11T15:24:31Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:30:47Z",
+          "conclusion": "success",
+          "name": "Upload generator diagnostics",
+          "number": 11,
+          "startedAt": "2026-09-11T15:30:45Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:30:47Z",
+          "conclusion": "success",
+          "name": "Post Set up Gradle",
+          "number": 18,
+          "startedAt": "2026-09-11T15:30:47Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:30:48Z",
+          "conclusion": "success",
+          "name": "Post Set up Node.js",
+          "number": 19,
+          "startedAt": "2026-09-11T15:30:47Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:30:48Z",
+          "conclusion": "success",
+          "name": "Post Set up JDK 25 with JCEF",
+          "number": 20,
+          "startedAt": "2026-09-11T15:30:48Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:30:48Z",
+          "conclusion": "success",
+          "name": "Post Set up JDK 21",
+          "number": 21,
+          "startedAt": "2026-09-11T15:30:48Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:30:50Z",
+          "conclusion": "success",
+          "name": "Post Checkout repository",
+          "number": 22,
+          "startedAt": "2026-09-11T15:30:48Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:30:50Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 23,
+          "startedAt": "2026-09-11T15:30:50Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/Lotulune/Copperbench/actions/runs/34615812721/job/103317336790"
+    },
+    {
+      "completedAt": "2026-09-11T15:43:01Z",
+      "conclusion": "success",
+      "databaseId": 103317337072,
+      "name": "Stage 9 generator golden (fabric-1.21.1)",
+      "startedAt": "2026-09-11T15:36:04Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-09-11T15:36:07Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-09-11T15:36:05Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:36:20Z",
+          "conclusion": "success",
+          "name": "Checkout repository",
+          "number": 2,
+          "startedAt": "2026-09-11T15:36:07Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:36:20Z",
+          "conclusion": "success",
+          "name": "Set up JDK 21",
+          "number": 3,
+          "startedAt": "2026-09-11T15:36:20Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:36:20Z",
+          "conclusion": "success",
+          "name": "Record JDK 21 home",
+          "number": 4,
+          "startedAt": "2026-09-11T15:36:20Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:36:39Z",
+          "conclusion": "success",
+          "name": "Set up JDK 25 with JCEF",
+          "number": 5,
+          "startedAt": "2026-09-11T15:36:20Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:36:40Z",
+          "conclusion": "success",
+          "name": "Expose JDK 21 to legacy generators",
+          "number": 6,
+          "startedAt": "2026-09-11T15:36:39Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:36:57Z",
+          "conclusion": "success",
+          "name": "Set up Node.js",
+          "number": 7,
+          "startedAt": "2026-09-11T15:36:40Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:37:10Z",
+          "conclusion": "success",
+          "name": "Install UI shell dependencies",
+          "number": 8,
+          "startedAt": "2026-09-11T15:36:57Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:37:17Z",
+          "conclusion": "success",
+          "name": "Set up Gradle",
+          "number": 9,
+          "startedAt": "2026-09-11T15:37:10Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:42:53Z",
+          "conclusion": "success",
+          "name": "Generate Stage 9 content and build workspace",
+          "number": 10,
+          "startedAt": "2026-09-11T15:37:17Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:42:55Z",
+          "conclusion": "success",
+          "name": "Upload generator diagnostics",
+          "number": 11,
+          "startedAt": "2026-09-11T15:42:53Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:42:55Z",
+          "conclusion": "success",
+          "name": "Post Set up Gradle",
+          "number": 18,
+          "startedAt": "2026-09-11T15:42:55Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:42:55Z",
+          "conclusion": "success",
+          "name": "Post Set up Node.js",
+          "number": 19,
+          "startedAt": "2026-09-11T15:42:55Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:42:56Z",
+          "conclusion": "success",
+          "name": "Post Set up JDK 25 with JCEF",
+          "number": 20,
+          "startedAt": "2026-09-11T15:42:55Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:42:56Z",
+          "conclusion": "success",
+          "name": "Post Set up JDK 21",
+          "number": 21,
+          "startedAt": "2026-09-11T15:42:56Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:42:58Z",
+          "conclusion": "success",
+          "name": "Post Checkout repository",
+          "number": 22,
+          "startedAt": "2026-09-11T15:42:56Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:42:58Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 23,
+          "startedAt": "2026-09-11T15:42:58Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/Lotulune/Copperbench/actions/runs/34615812721/job/103317337072"
+    },
+    {
+      "completedAt": "2026-09-11T15:36:01Z",
+      "conclusion": "success",
+      "databaseId": 103317337097,
+      "name": "Stage 9 generator golden (fabric-26.1.2)",
+      "startedAt": "2026-09-11T15:29:43Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-09-11T15:29:48Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-09-11T15:29:44Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:30:07Z",
+          "conclusion": "success",
+          "name": "Checkout repository",
+          "number": 2,
+          "startedAt": "2026-09-11T15:29:48Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:30:07Z",
+          "conclusion": "success",
+          "name": "Set up JDK 21",
+          "number": 3,
+          "startedAt": "2026-09-11T15:30:07Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:30:08Z",
+          "conclusion": "success",
+          "name": "Record JDK 21 home",
+          "number": 4,
+          "startedAt": "2026-09-11T15:30:07Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:30:25Z",
+          "conclusion": "success",
+          "name": "Set up JDK 25 with JCEF",
+          "number": 5,
+          "startedAt": "2026-09-11T15:30:08Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:30:25Z",
+          "conclusion": "success",
+          "name": "Expose JDK 21 to legacy generators",
+          "number": 6,
+          "startedAt": "2026-09-11T15:30:25Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:30:44Z",
+          "conclusion": "success",
+          "name": "Set up Node.js",
+          "number": 7,
+          "startedAt": "2026-09-11T15:30:25Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:30:56Z",
+          "conclusion": "success",
+          "name": "Install UI shell dependencies",
+          "number": 8,
+          "startedAt": "2026-09-11T15:30:44Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:31:02Z",
+          "conclusion": "success",
+          "name": "Set up Gradle",
+          "number": 9,
+          "startedAt": "2026-09-11T15:30:56Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:35:53Z",
+          "conclusion": "success",
+          "name": "Generate Stage 9 content and build workspace",
+          "number": 10,
+          "startedAt": "2026-09-11T15:31:02Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:35:55Z",
+          "conclusion": "success",
+          "name": "Upload generator diagnostics",
+          "number": 11,
+          "startedAt": "2026-09-11T15:35:53Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:35:55Z",
+          "conclusion": "success",
+          "name": "Post Set up Gradle",
+          "number": 18,
+          "startedAt": "2026-09-11T15:35:55Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:35:55Z",
+          "conclusion": "success",
+          "name": "Post Set up Node.js",
+          "number": 19,
+          "startedAt": "2026-09-11T15:35:55Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:35:55Z",
+          "conclusion": "success",
+          "name": "Post Set up JDK 25 with JCEF",
+          "number": 20,
+          "startedAt": "2026-09-11T15:35:55Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:35:56Z",
+          "conclusion": "success",
+          "name": "Post Set up JDK 21",
+          "number": 21,
+          "startedAt": "2026-09-11T15:35:55Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:35:58Z",
+          "conclusion": "success",
+          "name": "Post Checkout repository",
+          "number": 22,
+          "startedAt": "2026-09-11T15:35:56Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:35:58Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 23,
+          "startedAt": "2026-09-11T15:35:58Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/Lotulune/Copperbench/actions/runs/34615812721/job/103317337097"
+    },
+    {
+      "completedAt": "2026-09-11T15:59:10Z",
+      "conclusion": "success",
+      "databaseId": 103317337131,
+      "name": "Stage 9 generator golden (neoforge-1.20.1)",
+      "startedAt": "2026-09-11T15:47:15Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-09-11T15:47:19Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-09-11T15:47:16Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:47:35Z",
+          "conclusion": "success",
+          "name": "Checkout repository",
+          "number": 2,
+          "startedAt": "2026-09-11T15:47:19Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:47:35Z",
+          "conclusion": "success",
+          "name": "Set up JDK 21",
+          "number": 3,
+          "startedAt": "2026-09-11T15:47:35Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:47:36Z",
+          "conclusion": "success",
+          "name": "Record JDK 21 home",
+          "number": 4,
+          "startedAt": "2026-09-11T15:47:35Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:47:52Z",
+          "conclusion": "success",
+          "name": "Set up JDK 25 with JCEF",
+          "number": 5,
+          "startedAt": "2026-09-11T15:47:36Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:47:53Z",
+          "conclusion": "success",
+          "name": "Expose JDK 21 to legacy generators",
+          "number": 6,
+          "startedAt": "2026-09-11T15:47:52Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:48:19Z",
+          "conclusion": "success",
+          "name": "Set up Node.js",
+          "number": 7,
+          "startedAt": "2026-09-11T15:47:53Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:48:31Z",
+          "conclusion": "success",
+          "name": "Install UI shell dependencies",
+          "number": 8,
+          "startedAt": "2026-09-11T15:48:19Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:48:38Z",
+          "conclusion": "success",
+          "name": "Set up Gradle",
+          "number": 9,
+          "startedAt": "2026-09-11T15:48:31Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:59:02Z",
+          "conclusion": "success",
+          "name": "Generate Stage 9 content and build workspace",
+          "number": 10,
+          "startedAt": "2026-09-11T15:48:38Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:59:03Z",
+          "conclusion": "success",
+          "name": "Upload generator diagnostics",
+          "number": 11,
+          "startedAt": "2026-09-11T15:59:02Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:59:04Z",
+          "conclusion": "success",
+          "name": "Post Set up Gradle",
+          "number": 18,
+          "startedAt": "2026-09-11T15:59:03Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:59:04Z",
+          "conclusion": "success",
+          "name": "Post Set up Node.js",
+          "number": 19,
+          "startedAt": "2026-09-11T15:59:04Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:59:04Z",
+          "conclusion": "success",
+          "name": "Post Set up JDK 25 with JCEF",
+          "number": 20,
+          "startedAt": "2026-09-11T15:59:04Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:59:05Z",
+          "conclusion": "success",
+          "name": "Post Set up JDK 21",
+          "number": 21,
+          "startedAt": "2026-09-11T15:59:04Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:59:07Z",
+          "conclusion": "success",
+          "name": "Post Checkout repository",
+          "number": 22,
+          "startedAt": "2026-09-11T15:59:05Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:59:07Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 23,
+          "startedAt": "2026-09-11T15:59:07Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/Lotulune/Copperbench/actions/runs/34615812721/job/103317337131"
+    },
+    {
+      "completedAt": "2026-09-11T15:50:13Z",
+      "conclusion": "success",
+      "databaseId": 103317337141,
+      "name": "Stage 9 generator golden (fabric-1.20.1)",
+      "startedAt": "2026-09-11T15:43:04Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-09-11T15:43:07Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-09-11T15:43:05Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:43:19Z",
+          "conclusion": "success",
+          "name": "Checkout repository",
+          "number": 2,
+          "startedAt": "2026-09-11T15:43:07Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:43:20Z",
+          "conclusion": "success",
+          "name": "Set up JDK 21",
+          "number": 3,
+          "startedAt": "2026-09-11T15:43:19Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:43:20Z",
+          "conclusion": "success",
+          "name": "Record JDK 21 home",
+          "number": 4,
+          "startedAt": "2026-09-11T15:43:20Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:43:36Z",
+          "conclusion": "success",
+          "name": "Set up JDK 25 with JCEF",
+          "number": 5,
+          "startedAt": "2026-09-11T15:43:20Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:43:37Z",
+          "conclusion": "success",
+          "name": "Expose JDK 21 to legacy generators",
+          "number": 6,
+          "startedAt": "2026-09-11T15:43:36Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:43:55Z",
+          "conclusion": "success",
+          "name": "Set up Node.js",
+          "number": 7,
+          "startedAt": "2026-09-11T15:43:37Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:44:14Z",
+          "conclusion": "success",
+          "name": "Install UI shell dependencies",
+          "number": 8,
+          "startedAt": "2026-09-11T15:43:55Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:44:19Z",
+          "conclusion": "success",
+          "name": "Set up Gradle",
+          "number": 9,
+          "startedAt": "2026-09-11T15:44:14Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:50:06Z",
+          "conclusion": "success",
+          "name": "Generate Stage 9 content and build workspace",
+          "number": 10,
+          "startedAt": "2026-09-11T15:44:19Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:50:08Z",
+          "conclusion": "success",
+          "name": "Upload generator diagnostics",
+          "number": 11,
+          "startedAt": "2026-09-11T15:50:06Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:50:08Z",
+          "conclusion": "success",
+          "name": "Post Set up Gradle",
+          "number": 18,
+          "startedAt": "2026-09-11T15:50:08Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:50:09Z",
+          "conclusion": "success",
+          "name": "Post Set up Node.js",
+          "number": 19,
+          "startedAt": "2026-09-11T15:50:08Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:50:09Z",
+          "conclusion": "success",
+          "name": "Post Set up JDK 25 with JCEF",
+          "number": 20,
+          "startedAt": "2026-09-11T15:50:09Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:50:09Z",
+          "conclusion": "success",
+          "name": "Post Set up JDK 21",
+          "number": 21,
+          "startedAt": "2026-09-11T15:50:09Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:50:12Z",
+          "conclusion": "success",
+          "name": "Post Checkout repository",
+          "number": 22,
+          "startedAt": "2026-09-11T15:50:09Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:50:12Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 23,
+          "startedAt": "2026-09-11T15:50:12Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/Lotulune/Copperbench/actions/runs/34615812721/job/103317337141"
+    },
+    {
+      "completedAt": "2026-09-11T15:29:39Z",
+      "conclusion": "success",
+      "databaseId": 103317337144,
+      "name": "Stage 9 generator golden (fabric-26.2)",
+      "startedAt": "2026-09-11T15:23:19Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-09-11T15:23:23Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-09-11T15:23:20Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:23:37Z",
+          "conclusion": "success",
+          "name": "Checkout repository",
+          "number": 2,
+          "startedAt": "2026-09-11T15:23:23Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:23:37Z",
+          "conclusion": "success",
+          "name": "Set up JDK 21",
+          "number": 3,
+          "startedAt": "2026-09-11T15:23:37Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:23:38Z",
+          "conclusion": "success",
+          "name": "Record JDK 21 home",
+          "number": 4,
+          "startedAt": "2026-09-11T15:23:37Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:23:55Z",
+          "conclusion": "success",
+          "name": "Set up JDK 25 with JCEF",
+          "number": 5,
+          "startedAt": "2026-09-11T15:23:38Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:23:55Z",
+          "conclusion": "success",
+          "name": "Expose JDK 21 to legacy generators",
+          "number": 6,
+          "startedAt": "2026-09-11T15:23:55Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:24:13Z",
+          "conclusion": "success",
+          "name": "Set up Node.js",
+          "number": 7,
+          "startedAt": "2026-09-11T15:23:55Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:24:25Z",
+          "conclusion": "success",
+          "name": "Install UI shell dependencies",
+          "number": 8,
+          "startedAt": "2026-09-11T15:24:13Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:24:32Z",
+          "conclusion": "success",
+          "name": "Set up Gradle",
+          "number": 9,
+          "startedAt": "2026-09-11T15:24:25Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:29:31Z",
+          "conclusion": "success",
+          "name": "Generate Stage 9 content and build workspace",
+          "number": 10,
+          "startedAt": "2026-09-11T15:24:32Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:29:32Z",
+          "conclusion": "success",
+          "name": "Upload generator diagnostics",
+          "number": 11,
+          "startedAt": "2026-09-11T15:29:31Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:29:33Z",
+          "conclusion": "success",
+          "name": "Post Set up Gradle",
+          "number": 18,
+          "startedAt": "2026-09-11T15:29:32Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:29:33Z",
+          "conclusion": "success",
+          "name": "Post Set up Node.js",
+          "number": 19,
+          "startedAt": "2026-09-11T15:29:33Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:29:33Z",
+          "conclusion": "success",
+          "name": "Post Set up JDK 25 with JCEF",
+          "number": 20,
+          "startedAt": "2026-09-11T15:29:33Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:29:33Z",
+          "conclusion": "success",
+          "name": "Post Set up JDK 21",
+          "number": 21,
+          "startedAt": "2026-09-11T15:29:33Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:29:35Z",
+          "conclusion": "success",
+          "name": "Post Checkout repository",
+          "number": 22,
+          "startedAt": "2026-09-11T15:29:33Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:29:35Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 23,
+          "startedAt": "2026-09-11T15:29:35Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/Lotulune/Copperbench/actions/runs/34615812721/job/103317337144"
+    },
+    {
+      "completedAt": "2026-09-11T15:39:02Z",
+      "conclusion": "success",
+      "databaseId": 103317337227,
+      "name": "Stage 9 generator golden (neoforge-26.1.2)",
+      "startedAt": "2026-09-11T15:30:55Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-09-11T15:31:00Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-09-11T15:30:56Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:31:16Z",
+          "conclusion": "success",
+          "name": "Checkout repository",
+          "number": 2,
+          "startedAt": "2026-09-11T15:31:00Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:31:16Z",
+          "conclusion": "success",
+          "name": "Set up JDK 21",
+          "number": 3,
+          "startedAt": "2026-09-11T15:31:16Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:31:19Z",
+          "conclusion": "success",
+          "name": "Record JDK 21 home",
+          "number": 4,
+          "startedAt": "2026-09-11T15:31:16Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:31:40Z",
+          "conclusion": "success",
+          "name": "Set up JDK 25 with JCEF",
+          "number": 5,
+          "startedAt": "2026-09-11T15:31:19Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:31:41Z",
+          "conclusion": "success",
+          "name": "Expose JDK 21 to legacy generators",
+          "number": 6,
+          "startedAt": "2026-09-11T15:31:40Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:31:55Z",
+          "conclusion": "success",
+          "name": "Set up Node.js",
+          "number": 7,
+          "startedAt": "2026-09-11T15:31:41Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:32:07Z",
+          "conclusion": "success",
+          "name": "Install UI shell dependencies",
+          "number": 8,
+          "startedAt": "2026-09-11T15:31:55Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:32:12Z",
+          "conclusion": "success",
+          "name": "Set up Gradle",
+          "number": 9,
+          "startedAt": "2026-09-11T15:32:07Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:38:55Z",
+          "conclusion": "success",
+          "name": "Generate Stage 9 content and build workspace",
+          "number": 10,
+          "startedAt": "2026-09-11T15:32:12Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:38:57Z",
+          "conclusion": "success",
+          "name": "Upload generator diagnostics",
+          "number": 11,
+          "startedAt": "2026-09-11T15:38:55Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:38:57Z",
+          "conclusion": "success",
+          "name": "Post Set up Gradle",
+          "number": 18,
+          "startedAt": "2026-09-11T15:38:57Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:38:58Z",
+          "conclusion": "success",
+          "name": "Post Set up Node.js",
+          "number": 19,
+          "startedAt": "2026-09-11T15:38:57Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:38:58Z",
+          "conclusion": "success",
+          "name": "Post Set up JDK 25 with JCEF",
+          "number": 20,
+          "startedAt": "2026-09-11T15:38:58Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:38:58Z",
+          "conclusion": "success",
+          "name": "Post Set up JDK 21",
+          "number": 21,
+          "startedAt": "2026-09-11T15:38:58Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:39:00Z",
+          "conclusion": "success",
+          "name": "Post Checkout repository",
+          "number": 22,
+          "startedAt": "2026-09-11T15:38:58Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:39:00Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 23,
+          "startedAt": "2026-09-11T15:39:00Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/Lotulune/Copperbench/actions/runs/34615812721/job/103317337227"
+    },
+    {
+      "completedAt": "2026-09-11T15:47:10Z",
+      "conclusion": "success",
+      "databaseId": 103317337341,
+      "name": "Stage 9 generator golden (neoforge-1.21.1)",
+      "startedAt": "2026-09-11T15:39:05Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-09-11T15:39:08Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-09-11T15:39:06Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:39:21Z",
+          "conclusion": "success",
+          "name": "Checkout repository",
+          "number": 2,
+          "startedAt": "2026-09-11T15:39:08Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:39:21Z",
+          "conclusion": "success",
+          "name": "Set up JDK 21",
+          "number": 3,
+          "startedAt": "2026-09-11T15:39:21Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:39:22Z",
+          "conclusion": "success",
+          "name": "Record JDK 21 home",
+          "number": 4,
+          "startedAt": "2026-09-11T15:39:21Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:39:40Z",
+          "conclusion": "success",
+          "name": "Set up JDK 25 with JCEF",
+          "number": 5,
+          "startedAt": "2026-09-11T15:39:22Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:39:40Z",
+          "conclusion": "success",
+          "name": "Expose JDK 21 to legacy generators",
+          "number": 6,
+          "startedAt": "2026-09-11T15:39:40Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:39:54Z",
+          "conclusion": "success",
+          "name": "Set up Node.js",
+          "number": 7,
+          "startedAt": "2026-09-11T15:39:40Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:40:08Z",
+          "conclusion": "success",
+          "name": "Install UI shell dependencies",
+          "number": 8,
+          "startedAt": "2026-09-11T15:39:54Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:40:14Z",
+          "conclusion": "success",
+          "name": "Set up Gradle",
+          "number": 9,
+          "startedAt": "2026-09-11T15:40:08Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:47:04Z",
+          "conclusion": "success",
+          "name": "Generate Stage 9 content and build workspace",
+          "number": 10,
+          "startedAt": "2026-09-11T15:40:14Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:47:05Z",
+          "conclusion": "success",
+          "name": "Upload generator diagnostics",
+          "number": 11,
+          "startedAt": "2026-09-11T15:47:04Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:47:06Z",
+          "conclusion": "success",
+          "name": "Post Set up Gradle",
+          "number": 18,
+          "startedAt": "2026-09-11T15:47:05Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:47:06Z",
+          "conclusion": "success",
+          "name": "Post Set up Node.js",
+          "number": 19,
+          "startedAt": "2026-09-11T15:47:06Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:47:06Z",
+          "conclusion": "success",
+          "name": "Post Set up JDK 25 with JCEF",
+          "number": 20,
+          "startedAt": "2026-09-11T15:47:06Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:47:06Z",
+          "conclusion": "success",
+          "name": "Post Set up JDK 21",
+          "number": 21,
+          "startedAt": "2026-09-11T15:47:06Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:47:09Z",
+          "conclusion": "success",
+          "name": "Post Checkout repository",
+          "number": 22,
+          "startedAt": "2026-09-11T15:47:06Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T15:47:09Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 23,
+          "startedAt": "2026-09-11T15:47:09Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/Lotulune/Copperbench/actions/runs/34615812721/job/103317337341"
+    }
+  ],
+  "name": "Nightly product gates",
+  "status": "completed",
+  "url": "https://github.com/Lotulune/Copperbench/actions/runs/34615812721"
+}

@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "1.0",
+  "projects": [
+    {
+      "mod": "resonance_token",
+      "inventoryPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\resonance_token-source-inventory.json",
+      "inventorySha256": "f12019f1e3cbf0337ea6c69f33e4b2ade4340a14f119919837c7afcfca9970a7",
+      "fileCount": 34,
+      "bytes": 102016.0,
+      "excludedSnapshotPaths": [
+        ".mcreator/generatorGradleCache",
+        ".mcreator/setupInfo"
+      ]
+    },
+    {
+      "mod": "tally_stone",
+      "inventoryPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\tally_stone-source-inventory.json",
+      "inventorySha256": "0c54df091d3f833f5ed45d8e9437f9f38bde0db3abd5b78d6996775f67009806",
+      "fileCount": 38,
+      "bytes": 103464.0,
+      "excludedSnapshotPaths": [
+        ".mcreator/generatorGradleCache",
+        ".mcreator/setupInfo"
+      ]
+    },
+    {
+      "mod": "harvest_ledger",
+      "inventoryPath": "D:\\AICoding\\Minecraft_ModCreator\\.tmp\\stage16-fresh-agent\\source-delivery\\harvest_ledger-source-inventory.json",
+      "inventorySha256": "346db2708bbdb2a72471eb48bb82c132362f5b17727dc35212276e6c9b975b7b",
+      "fileCount": 34,
+      "bytes": 104375.0,
+      "excludedSnapshotPaths": [
+        ".mcreator/generatorGradleCache",
+        ".mcreator/setupInfo"
+      ]
+    }
+  ],
+  "recordedAt": "2026-09-11T12:54:31.4319185+00:00"
+}

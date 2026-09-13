@@ -1,0 +1,54 @@
+{
+  "mod_elements": [],
+  "variable_elements": [],
+  "sound_elements": [],
+  "tag_elements": {},
+  "tab_element_order": {},
+  "language_map": {
+    "en_us": {}
+  },
+  "foldersRoot": {
+    "name": "~",
+    "children": []
+  },
+  "workspaceSettings": {
+    "modid": "harvest_ledger",
+    "modName": "Harvest Ledger",
+    "version": "1.0.0",
+    "serverSideOnly": false,
+    "requiredMods": [],
+    "dependencies": [],
+    "dependants": [],
+    "mcreatorDependencies": [],
+    "currentGenerator": "fabric-1.21.1",
+    "modElementsPackage": "net.mcreator.harvest_ledger"
+  },
+  "mcreatorVersion": 202600299999,
+  "metadata": {
+    "files": [
+      "src/main/resources/harvest_ledger.mixins.json",
+      "src/main/java/net/mcreator/harvest_ledger/mixin/ItemStackMixin.java",
+      "src/main/java/net/mcreator/harvest_ledger/mixin/ExperienceOrbMixin.java",
+      "src/main/java/net/mcreator/harvest_ledger/event/MiscEvents.java",
+      "src/main/java/net/mcreator/harvest_ledger/HarvestLedgerModClient.java",
+      "src/main/java/net/mcreator/harvest_ledger/event/PlayerEvents.java",
+      "src/main/java/net/mcreator/harvest_ledger/mixin/PlayerMixin.java",
+      "src/main/java/net/mcreator/harvest_ledger/mixin/BoneMealItemMixin.java",
+      "src/main/resources/pack.mcmeta",
+      "src/main/java/net/mcreator/harvest_ledger/mixin/BlockItemMixin.java",
+      "src/main/java/net/mcreator/harvest_ledger/mixin/LivingEntityMixin.java",
+      "src/main/java/net/mcreator/harvest_ledger/HarvestLedgerMod.java",
+      "src/main/java/net/mcreator/harvest_ledger/event/LivingEntityEvents.java",
+      "src/main/resources/META-INF/harvest_ledger.classtweaker",
+      "src/main/java/net/mcreator/harvest_ledger/mixin/CommandsMixin.java",
+      "src/main/resources/fabric.mod.json",
+      "src/main/java/net/mcreator/harvest_ledger/event/BlockEvents.java",
+      "src/main/java/net/mcreator/harvest_ledger/event/ItemEvents.java"
+    ]
+  },
+  "dev.copperbench": {
+    "schemaVersion": 1,
+    "workspaceId": "3bfaa18a-e57e-438b-ad8d-292a3a8228fb",
+    "revision": 0
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "required": true,
+  "package": "net.mcreator.tally_stone.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "refmap": "tally_stone.refmap.json",
+  "mixins": [
+    "LivingEntityMixin",
+    "PlayerMixin",
+    "ItemStackMixin",
+    "BlockItemMixin",
+    "BoneMealItemMixin",
+    "CommandsMixin",
+    "ExperienceOrbMixin"
+  ],
+  "client": [],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "minVersion": "0.8.4"
+}

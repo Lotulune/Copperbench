@@ -1,0 +1,26 @@
+{
+  "at": "2026-09-12T14:26:59.796415+00:00",
+  "workspaceExists": false,
+  "dependencyCacheExists": false,
+  "wrapperCacheExists": false,
+  "minecraftAssetsExist": false,
+  "sourceCacheCopied": false,
+  "firstUseDefaultPreferences": false,
+  "profileReason": "Low memory and supported official repositories after the mirror connection failure",
+  "javaToolOptionsPurpose": "Only -Duser.home isolates historical distribution lookup",
+  "originalUserDataRetained": true,
+  "sourceCommit": "d9fb1458187110186c04e523d5044250637490bd",
+  "profileFiles": [
+    {
+      "path": "home/.copperbench/userpreferences",
+      "bytes": 63,
+      "sha256": "d38ed9abf96409750d9dbbf33e54be7b9a2ce880111e683a869c9fcef42e9519"
+    },
+    {
+      "path": "home/.copperbench/gradle/gradle.properties",
+      "bytes": 80,
+      "sha256": "412607d5c6a038fa516767066cc2a6642299c31a08496c65d646c3f11bda0a9a"
+    }
+  ],
+  "networkProfile": "official repositories"
+}

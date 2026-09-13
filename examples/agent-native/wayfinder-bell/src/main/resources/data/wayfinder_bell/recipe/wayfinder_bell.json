@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "equipment",
+  "ingredients": [
+    {"item": "minecraft:compass"},
+    {"item": "minecraft:amethyst_shard"},
+    {"item": "minecraft:copper_ingot"},
+    {"item": "minecraft:copper_ingot"}
+  ],
+  "result": {"id": "wayfinder_bell:wayfinder_bell", "count": 1}
+}

@@ -1,0 +1,233 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "stage16-real-client-attempt",
+  "recordedAt": "2026-09-11T15:18:42.094731+00:00",
+  "status": "failed-product-wait-timeout",
+  "clientBehaviorVerified": false,
+  "candidateSourceCommit": "3c0aa090c3c4a53c0700d3bb173522e81ae91477",
+  "taskId": "4428fdfd-529a-4ced-bfd1-31d087582965",
+  "processExitCode": 10,
+  "commandCode": "HEADLESS_TASK_TIMEOUT",
+  "lastReportedTaskState": "running",
+  "minecraftProcessAtInvestigation": 43652,
+  "normalClientCloseObserved": false,
+  "restartObserved": false,
+  "observations": {
+    "worldEntered": true,
+    "threeAcceptedModIdsLoaded": true,
+    "playerName": "Stage16Trial",
+    "playerUuid": "8fb12eef-98f0-409b-a3c1-18abf66578f6",
+    "tokenActualRightClickFeedback": [
+      "active",
+      "inactive",
+      "active"
+    ],
+    "feedbackScreenshotTickRate": 5,
+    "defaultTickRateFeedbackReadabilityVerified": false,
+    "tickRateRestoredBeforeSave": false,
+    "tallyBlockInteractionVerified": false,
+    "harvestEventInputVerified": false,
+    "nativeControlsConfigured": {
+      "use": "R",
+      "attack": "V",
+      "sneak": "toggle"
+    }
+  },
+  "limits": [
+    "The command timed out after 45 minutes while its Minecraft process remained alive.",
+    "No full process restart or persistence assertion was completed.",
+    "Absolute mouse input moved the camera; native key bindings were configured for subsequent input.",
+    "The later window activation failure is separate from the product command timeout."
+  ],
+  "files": [
+    {
+      "path": "product.jsonl",
+      "bytes": 43932,
+      "originalSha256": "35c2a37e097fc22f41cb97274aea307954efcb049f6bd8f52b3f6b331517710b",
+      "archivedSha256": "35c2a37e097fc22f41cb97274aea307954efcb049f6bd8f52b3f6b331517710b",
+      "redacted": false
+    },
+    {
+      "path": "stderr.txt",
+      "bytes": 2,
+      "originalSha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
+      "archivedSha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
+      "redacted": false
+    },
+    {
+      "path": "invocation.json",
+      "bytes": 323,
+      "originalSha256": "85bcc90f5b7fce380c86f5fccdb203fbe403c04583fa1011810901dd0fd0990f",
+      "archivedSha256": "85bcc90f5b7fce380c86f5fccdb203fbe403c04583fa1011810901dd0fd0990f",
+      "redacted": false
+    },
+    {
+      "path": "ui-events.jsonl",
+      "bytes": 7117,
+      "originalSha256": "bfccd91f17a744e9520abc4a91cc87c9b6e837fbe35acb27694689aed8b7e1e9",
+      "archivedSha256": "bfccd91f17a744e9520abc4a91cc87c9b6e837fbe35acb27694689aed8b7e1e9",
+      "redacted": false
+    },
+    {
+      "path": "screenshots/001-singleplayer.jpg",
+      "bytes": 179711,
+      "originalSha256": "1b34a06f8f6c6606ad1bb6d878803409826af88b59d26c246cdefbd3cafd650f",
+      "archivedSha256": "1b34a06f8f6c6606ad1bb6d878803409826af88b59d26c246cdefbd3cafd650f",
+      "redacted": false
+    },
+    {
+      "path": "screenshots/002-world-name-input-retry.jpg",
+      "bytes": 159584,
+      "originalSha256": "399c5289548cec8e58594ed0d15053aadcd8e87fd58dc51d2a11729eb34f225d",
+      "archivedSha256": "399c5289548cec8e58594ed0d15053aadcd8e87fd58dc51d2a11729eb34f225d",
+      "redacted": false
+    },
+    {
+      "path": "screenshots/003-keyboard-name-probe.jpg",
+      "bytes": 159581,
+      "originalSha256": "db7fd8d36125d1f4d2652189715f9b0ecd7e0c3abf396c77c9803400d7ac342b",
+      "archivedSha256": "db7fd8d36125d1f4d2652189715f9b0ecd7e0c3abf396c77c9803400d7ac342b",
+      "redacted": false
+    },
+    {
+      "path": "screenshots/004-world-name-latin.jpg",
+      "bytes": 170349,
+      "originalSha256": "6c1d23ee47e96d4701bd88df4550bcbbefc4488954b96a91a9c82ddae0f232c8",
+      "archivedSha256": "6c1d23ee47e96d4701bd88df4550bcbbefc4488954b96a91a9c82ddae0f232c8",
+      "redacted": false
+    },
+    {
+      "path": "screenshots/005-world-configuration.jpg",
+      "bytes": 184333,
+      "originalSha256": "5d5ca6b4c62770df9cc1652a21be73a1c70b817f43a861357626a1dc69531d0e",
+      "archivedSha256": "5d5ca6b4c62770df9cc1652a21be73a1c70b817f43a861357626a1dc69531d0e",
+      "redacted": false
+    },
+    {
+      "path": "screenshots/006-create-world.jpg",
+      "bytes": 88472,
+      "originalSha256": "94204f8cb1bb815f17d9c8ff426749388484fb5e511b09c1a4eb64a0bfe31375",
+      "archivedSha256": "94204f8cb1bb815f17d9c8ff426749388484fb5e511b09c1a4eb64a0bfe31375",
+      "redacted": false
+    },
+    {
+      "path": "screenshots/007-world-first-load.jpg",
+      "bytes": 213547,
+      "originalSha256": "eddd6a74a8973ad21dafac9641d1e33d0c0fabd3c339f69e6db07747c3ce862a",
+      "archivedSha256": "eddd6a74a8973ad21dafac9641d1e33d0c0fabd3c339f69e6db07747c3ce862a",
+      "redacted": false
+    },
+    {
+      "path": "screenshots/008-token-setup.jpg",
+      "bytes": 205599,
+      "originalSha256": "14053429f23adb906f49a8f8f3e4d433e79a6a678df9c157da11459f99195d74",
+      "archivedSha256": "14053429f23adb906f49a8f8f3e4d433e79a6a678df9c157da11459f99195d74",
+      "redacted": false
+    },
+    {
+      "path": "screenshots/009-token-active-click.jpg",
+      "bytes": 199637,
+      "originalSha256": "b57e2872bbd4336100c9b5316efe71d0faf94b9b66f758533b6e4b9c9bf5cc8a",
+      "archivedSha256": "b57e2872bbd4336100c9b5316efe71d0faf94b9b66f758533b6e4b9c9bf5cc8a",
+      "redacted": false
+    },
+    {
+      "path": "screenshots/010-token-second-click.jpg",
+      "bytes": 172204,
+      "originalSha256": "32c3a39d49536e8a3238b84bfa0d089438a8a127e6d80bd8cf813d0be7f7a1bb",
+      "archivedSha256": "32c3a39d49536e8a3238b84bfa0d089438a8a127e6d80bd8cf813d0be7f7a1bb",
+      "redacted": false
+    },
+    {
+      "path": "screenshots/011-token-state-query-after-clicks.jpg",
+      "bytes": 193973,
+      "originalSha256": "09ed5607e185973c24dc2b072c3c160038d94b0331dd38072da33531051ff95a",
+      "archivedSha256": "09ed5607e185973c24dc2b072c3c160038d94b0331dd38072da33531051ff95a",
+      "redacted": false
+    },
+    {
+      "path": "screenshots/012-observation-tick-rate.jpg",
+      "bytes": 120269,
+      "originalSha256": "e07e0893ad25ae0319187bdc1ec7d8e393c6158ff39498a3668c3d1b7445f168",
+      "archivedSha256": "e07e0893ad25ae0319187bdc1ec7d8e393c6158ff39498a3668c3d1b7445f168",
+      "redacted": false
+    },
+    {
+      "path": "screenshots/013-token-click-slow-tick.jpg",
+      "bytes": 114035,
+      "originalSha256": "d6cfb6dd28c01391f4015228a31f872b1ded30cc397c849acf3360ecad555c65",
+      "archivedSha256": "d6cfb6dd28c01391f4015228a31f872b1ded30cc397c849acf3360ecad555c65",
+      "redacted": false
+    },
+    {
+      "path": "screenshots/014-token-inactive-visible.jpg",
+      "bytes": 117040,
+      "originalSha256": "da5aeeae35452cb843edabb13dcc42cd28b3dc292fb4a7be6ac0eb896a6ef2e2",
+      "archivedSha256": "da5aeeae35452cb843edabb13dcc42cd28b3dc292fb4a7be6ac0eb896a6ef2e2",
+      "redacted": false
+    },
+    {
+      "path": "screenshots/015-token-before-save-click.jpg",
+      "bytes": 112831,
+      "originalSha256": "59865ef0acd725e9bd11698d1097cd4d0ed700e194465da41d79488402a31302",
+      "archivedSha256": "59865ef0acd725e9bd11698d1097cd4d0ed700e194465da41d79488402a31302",
+      "redacted": false
+    },
+    {
+      "path": "screenshots/016-sneak-toggle-control.jpg",
+      "bytes": 138748,
+      "originalSha256": "e66e6fcb4d1142f707ceb3b03dd508fde472382d0490d2ea9edeb014b8b867a4",
+      "archivedSha256": "e66e6fcb4d1142f707ceb3b03dd508fde472382d0490d2ea9edeb014b8b867a4",
+      "redacted": false
+    },
+    {
+      "path": "screenshots/017-attack-key-binding.jpg",
+      "bytes": 166189,
+      "originalSha256": "5a4dd63daac4685e82c1c8369370812acb99866a7eb154a6a080444425a1a9aa",
+      "archivedSha256": "5a4dd63daac4685e82c1c8369370812acb99866a7eb154a6a080444425a1a9aa",
+      "redacted": false
+    },
+    {
+      "path": "screenshots/018-use-key-binding.jpg",
+      "bytes": 178055,
+      "originalSha256": "b4b6e503d7c83f20fd8761ae5d7d1f78dcb76908206022223f6c0bc5a7a1af4f",
+      "archivedSha256": "b4b6e503d7c83f20fd8761ae5d7d1f78dcb76908206022223f6c0bc5a7a1af4f",
+      "redacted": false
+    },
+    {
+      "path": "minecraft-before-close.log",
+      "bytes": 11834,
+      "originalSha256": "90cff77f2c01b152835950b9f9a78b3a3ce4c8984b8e14dbfffe6251f9e73fcd",
+      "archivedSha256": "90cff77f2c01b152835950b9f9a78b3a3ce4c8984b8e14dbfffe6251f9e73fcd",
+      "redacted": false
+    },
+    {
+      "path": "observed-player-cache.json",
+      "bytes": 111,
+      "originalSha256": "4029e24ac251fcdb7ac7a3d7ab3007a64fe023a35c6020482625d4688e440b35",
+      "archivedSha256": "4029e24ac251fcdb7ac7a3d7ab3007a64fe023a35c6020482625d4688e440b35",
+      "redacted": false
+    },
+    {
+      "path": "observed-options.txt",
+      "bytes": 3555,
+      "originalSha256": "d88ea3b9f5046991c900a3c5799d86ee8d7ab639aaee98846c4e255b0fc9b5a1",
+      "archivedSha256": "d88ea3b9f5046991c900a3c5799d86ee8d7ab639aaee98846c4e255b0fc9b5a1",
+      "redacted": false
+    },
+    {
+      "path": "acceptance-plan.json",
+      "bytes": 2908,
+      "originalSha256": "834e5ae63ce293363e0764e268b4155135b93c4bd1f881a737b190c4e800891e",
+      "archivedSha256": "834e5ae63ce293363e0764e268b4155135b93c4bd1f881a737b190c4e800891e",
+      "redacted": false
+    },
+    {
+      "path": "client-trial.json",
+      "bytes": 3436,
+      "originalSha256": "4fc686a872ce7e5e8ab6650d63c9c5181d314c4ce7e1e2318250d31c9e705c73",
+      "archivedSha256": "4fc686a872ce7e5e8ab6650d63c9c5181d314c4ce7e1e2318250d31c9e705c73",
+      "redacted": false
+    }
+  ]
+}
