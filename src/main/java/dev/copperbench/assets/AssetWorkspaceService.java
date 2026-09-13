@@ -136,7 +136,9 @@ public final class AssetWorkspaceService {
 			Path file = root.resolve(source.relativePath());
 			try {
 				JsonElement document = JsonParser.parseString(Files.readString(file));
-				collectStrings(document, null, "",
+				if (source.relativePath().toLowerCase(Locale.ROOT).endsWith(".bbmodel"))
+					collectBbmodel(source, BbmodelDocument.parse(document.getAsJsonObject()), byPath, references, diagnostics);
+				else collectStrings(document, null, "",
 						candidate -> addReference(source, candidate, byPath, references, diagnostics));
 			} catch (Exception exception) {
 				diagnostics.add(new AssetDiagnostic("INVALID_ASSET_DOCUMENT", AssetDiagnostic.Severity.ERROR,
@@ -151,6 +153,80 @@ public final class AssetWorkspaceService {
 
 	public AssetReferenceGraph buildReferenceGraph() {
 		return referenceGraph();
+	}
+
+	List<AssetDiagnostic> bbmodelDiagnostics(AssetDescriptor source, BbmodelDocument model) {
+		Map<String, AssetDescriptor> byPath = new HashMap<>();
+		list().forEach(asset -> byPath.put(asset.relativePath(), asset));
+		List<AssetDiagnostic> diagnostics = new ArrayList<>();
+		collectBbmodel(source, model, byPath, new ArrayList<>(), diagnostics);
+		return List.copyOf(diagnostics);
+	}
+
+	private void collectBbmodel(AssetDescriptor source, BbmodelDocument model, Map<String, AssetDescriptor> byPath,
+			List<AssetReference> references, List<AssetDiagnostic> diagnostics) {
+		for (var issue : model.issues()) diagnostics.add(new AssetDiagnostic(issue.code(),
+				issue.code().endsWith("REVIEW_REQUIRED") ? AssetDiagnostic.Severity.WARNING : AssetDiagnostic.Severity.ERROR,
+				source.relativePath(), issue.location(), "Blockbench structure requires review: " + issue.location()));
+		for (var texture : model.textures()) {
+			boolean embedded = texture.images().stream().anyMatch(image -> image.kind() == BbmodelDocument.ReferenceKind.EMBEDDED
+					&& !image.value().equals("invalid"));
+			boolean resolved = false;
+			List<AssetDiagnostic> unresolved = new ArrayList<>();
+			for (var image : texture.images()) {
+				if (image.kind() == BbmodelDocument.ReferenceKind.EMBEDDED) continue;
+				String targetPath;
+				if (image.kind() == BbmodelDocument.ReferenceKind.EXTERNAL_URI) {
+					unresolved.add(new AssetDiagnostic("EXTERNAL_ASSET_REFERENCE", AssetDiagnostic.Severity.WARNING,
+							source.relativePath(), image.value(), "External image cannot be verified in this workspace"));
+					continue;
+				}
+				try {
+					if (image.kind() == BbmodelDocument.ReferenceKind.RESOURCE_ID)
+						targetPath = normalizeReference(image.value(), source.relativePath(), "textures/");
+					else {
+						Path path = Path.of(image.value());
+						if (!path.isAbsolute()) path = root.resolve(source.relativePath()).getParent().resolve(path);
+						path = path.normalize();
+						// Never read files outside the workspace, including through symlinks.
+						if (!path.startsWith(root) || (Files.exists(path) && !path.toRealPath().startsWith(root))
+								|| image.value().matches("^[a-zA-Z]:/.*") && !Path.of(image.value()).isAbsolute()) {
+							unresolved.add(new AssetDiagnostic("EXTERNAL_ASSET_REFERENCE", AssetDiagnostic.Severity.WARNING,
+									source.relativePath(), image.value(), "Texture file is outside the workspace; availability is unknown"));
+							continue;
+						}
+						targetPath = root.relativize(path).toString().replace('\\', '/');
+					}
+				} catch (RuntimeException | IOException exception) {
+					unresolved.add(new AssetDiagnostic("REFERENCE_PATH_ESCAPE", AssetDiagnostic.Severity.ERROR,
+							source.relativePath(), image.value(), "Invalid Blockbench image path"));
+					continue;
+				}
+				AssetDescriptor target = byPath.get(targetPath);
+				if (target == null && image.kind() == BbmodelDocument.ReferenceKind.LOCAL_FILE
+						&& Files.isRegularFile(root.resolve(targetPath))) target = descriptor(root.resolve(targetPath));
+				if (target != null) {
+					resolved = true;
+					references.add(new AssetReference(source.id(), source.relativePath(), image.pointer(), image.value(),
+							image.kind() == BbmodelDocument.ReferenceKind.RESOURCE_ID ? "textures/" : null,
+							targetPath, target.id(), image.kind() == BbmodelDocument.ReferenceKind.RESOURCE_ID
+							? AssetReference.ReferenceKind.RESOURCE_ID : AssetReference.ReferenceKind.FILE_PATH));
+				} else {
+					boolean external = image.kind() == BbmodelDocument.ReferenceKind.RESOURCE_ID
+							&& !image.value().substring(0, image.value().indexOf(':')).equals(namespace(source.relativePath()))
+							&& byPath.keySet().stream().noneMatch(path -> namespace(path).equals(
+									image.value().substring(0, image.value().indexOf(':'))));
+					unresolved.add(new AssetDiagnostic(external ? "EXTERNAL_ASSET_REFERENCE" : "MISSING_ASSET_REFERENCE",
+							external ? AssetDiagnostic.Severity.WARNING : AssetDiagnostic.Severity.ERROR,
+							source.relativePath(), targetPath, external ? "Resource namespace is not available locally"
+							: "Referenced Blockbench image does not exist"));
+				}
+			}
+			// A missing preferred path is recoverable when another path or the embedded fallback is available.
+			for (var issue : unresolved) diagnostics.add(embedded || resolved
+					? new AssetDiagnostic("BBMODEL_TEXTURE_FALLBACK_AVAILABLE", AssetDiagnostic.Severity.INFO,
+						issue.sourcePath(), issue.targetPath(), "Texture has an available fallback; " + issue.message()) : issue);
+		}
 	}
 
 	private AssetDescriptor descriptor(Path path) {

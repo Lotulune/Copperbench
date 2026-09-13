@@ -39,7 +39,7 @@
         "expectedPrefix": { "type": ["string", "null"] },
         "targetPath": { "type": "string", "minLength": 1 },
         "targetAssetId": { "type": "string", "pattern": "^asset:[0-9a-f]{64}$" },
-        "kind": { "type": "string", "enum": ["RESOURCE_ID", "JSON_STRING"] }
+        "kind": { "type": "string", "enum": ["RESOURCE_ID", "JSON_STRING", "FILE_PATH"] }
       },
       "additionalProperties": false
     },

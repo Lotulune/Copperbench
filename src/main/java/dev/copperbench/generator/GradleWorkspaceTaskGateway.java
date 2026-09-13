@@ -145,7 +145,7 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 			job.progress(0.35, "task." + taskKind(operation) + ".generating", "Generating workspace sources");
 			var result = backend.generate(executionRoot, state);
 			job.log("info", backend.displayName() + " generation completed: " + result.generatedPaths().size()
-					+ " files");
+					+ " files; modId=" + result.modId());
 			if (operation == Operation.BUILD_WORKSPACE || operation == Operation.EXPORT_WORKSPACE) {
 				job.progress(0.55, "task." + taskKind(operation) + ".building", "Running Gradle build");
 				var process = processes.run(executionRoot, backend.gradleArguments(operation), Duration.ofMinutes(15),

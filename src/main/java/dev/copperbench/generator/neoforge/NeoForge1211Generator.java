@@ -503,7 +503,7 @@ public final class NeoForge1211Generator implements GradleWorkspaceBackend {
 		JsonObject document = workspace.upstreamDocument();
 		JsonObject product = document.has("copperbench") && document.get("copperbench").isJsonObject()
 				? document.getAsJsonObject("copperbench") : new JsonObject();
-		String modId = string(product, "modId", workspace.name().toLowerCase(Locale.ROOT).replace(' ', '_'));
+		String modId = dev.copperbench.core.workspace.WorkspaceModIdentity.resolve(workspace);
 		return new Descriptor(modId, string(product, "basePackage", "dev.copperbench.generated." + modId),
 				string(product, "version", "1.0.0"), workspace.name(), javaName(workspace.name()));
 	}

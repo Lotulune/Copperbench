@@ -20,7 +20,7 @@ export interface AssetMoveReferenceRewrite {
   sourcePointer: string;
   oldRawValue: string;
   newRawValue: string;
-  kind: 'JSON_STRING' | 'RESOURCE_ID';
+  kind: 'JSON_STRING' | 'RESOURCE_ID' | 'FILE_PATH';
 }
 
 export interface AssetMovePreview {
@@ -1195,7 +1195,7 @@ export interface AssetProjectionReference {
   expectedPrefix: string | null;
   targetPath: string;
   targetAssetId: string;
-  kind: 'RESOURCE_ID' | 'JSON_STRING';
+  kind: 'RESOURCE_ID' | 'JSON_STRING' | 'FILE_PATH';
 }
 
 export interface AssetProjection {
