@@ -2894,3 +2894,7 @@ input:disabled, select:disabled, textarea:disabled {
   .scenario-switcher { bottom: 70px !important; left: 64px !important; }
   .scenario-switcher > div { max-width: calc(100vw - 80px); }
 }
+html[data-window-resize-cursor="ew-resize"] *, html[data-window-resize-cursor="ew-resize"] { cursor: ew-resize !important; }
+html[data-window-resize-cursor="ns-resize"] *, html[data-window-resize-cursor="ns-resize"] { cursor: ns-resize !important; }
+html[data-window-resize-cursor="nwse-resize"] *, html[data-window-resize-cursor="nwse-resize"] { cursor: nwse-resize !important; }
+html[data-window-resize-cursor="nesw-resize"] *, html[data-window-resize-cursor="nesw-resize"] { cursor: nesw-resize !important; }

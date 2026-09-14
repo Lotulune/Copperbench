@@ -201,6 +201,16 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [isTaskDrawerOpen, setIsTaskDrawerOpen] = useState(false);
   const [activeTaskId, setActiveTaskId] = useState<UUID | null>(null);
   const [isMaximized, setIsMaximized] = useState(false);
+  useEffect(() => {
+    const updateWindowState = (event: Event) => {
+      const maximized = (event as CustomEvent<{ maximized?: boolean }>).detail?.maximized;
+      if (typeof maximized === 'boolean') setIsMaximized(maximized);
+    };
+    const initial = window.__COPPERBENCH_WINDOW_HOST__?.maximized;
+    if (typeof initial === 'boolean') setIsMaximized(initial);
+    window.addEventListener('copperbench:window-state', updateWindowState);
+    return () => window.removeEventListener('copperbench:window-state', updateWindowState);
+  }, []);
   const [systemFrameFallback, setSystemFrameFallback] = useState(windowBridge.systemFrame);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isConflictModalOpen, setIsConflictModalOpen] = useState(false);

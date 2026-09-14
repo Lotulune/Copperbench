@@ -20,6 +20,29 @@ class WindowChromeHitTestTest {
 	private static final WindowChromeHitTest.WindowBounds WINDOW =
 			new WindowChromeHitTest.WindowBounds(100, 200, 1100, 900);
 
+	@Test void movingPreservesSizeAndAllowsNegativeMonitorCoordinates() {
+		assertEquals(new WindowChromeHitTest.WindowBounds(-200, 100, 800, 800),
+				WindowChromeHitTest.dragBounds(WINDOW, HitTarget.CAPTION, -300, -100, 500, 600));
+	}
+
+	@Test void resizingAllEdgesAndCornersKeepsOppositeEdgesFixed() {
+		var cases = java.util.Map.of(
+				HitTarget.LEFT, new WindowChromeHitTest.WindowBounds(120, 200, 1100, 900),
+				HitTarget.RIGHT, new WindowChromeHitTest.WindowBounds(100, 200, 1120, 900),
+				HitTarget.TOP, new WindowChromeHitTest.WindowBounds(100, 230, 1100, 900),
+				HitTarget.BOTTOM, new WindowChromeHitTest.WindowBounds(100, 200, 1100, 930),
+				HitTarget.TOP_LEFT, new WindowChromeHitTest.WindowBounds(120, 230, 1100, 900),
+				HitTarget.TOP_RIGHT, new WindowChromeHitTest.WindowBounds(100, 230, 1120, 900),
+				HitTarget.BOTTOM_LEFT, new WindowChromeHitTest.WindowBounds(120, 200, 1100, 930),
+				HitTarget.BOTTOM_RIGHT, new WindowChromeHitTest.WindowBounds(100, 200, 1120, 930));
+		cases.forEach((target, expected) -> assertEquals(expected,
+				WindowChromeHitTest.dragBounds(WINDOW, target, 20, 30, 500, 600), target.name()));
+		assertEquals(new WindowChromeHitTest.WindowBounds(600, 300, 1100, 900),
+				WindowChromeHitTest.dragBounds(WINDOW, HitTarget.TOP_LEFT, 900, 900, 500, 600));
+		assertEquals(new WindowChromeHitTest.WindowBounds(100, 200, 600, 800),
+				WindowChromeHitTest.dragBounds(WINDOW, HitTarget.BOTTOM_RIGHT, -900, -900, 500, 600));
+	}
+
 	@Test void interactiveRegionsOverrideTheContainingCaptionAndExposeSnapMaximize() {
 		WindowChromeSnapshot snapshot = WindowChromeSnapshot.parse("""
 				{"schemaVersion":"1.0","sequence":7,"coordinateSpace":"css_viewport","devicePixelRatio":1.0,
