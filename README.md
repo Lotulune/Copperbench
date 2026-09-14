@@ -1,71 +1,106 @@
-# Copperbench
+<div align="center">
+  <img src="assets/branding/copperbench-icon-source.png" alt="Copperbench" width="96">
+  <h1>Copperbench</h1>
+  <p><strong>Create, build, and test Minecraft Java mods on your desktop.</strong></p>
+  <p><strong>English</strong> · <a href="README.zh-CN.md">简体中文</a></p>
+  <p>
+    <a href="https://github.com/Lotulune/Copperbench/releases">Downloads</a> ·
+    <a href="#showcase">Screenshots</a> ·
+    <a href="#getting-started">Getting started</a> ·
+    <a href="#development">Run from source</a>
+  </p>
+</div>
 
-Copperbench is a desktop Minecraft mod-creation workbench for Windows 11 x64 and Ubuntu 24.04 LTS x86_64 (GNOME Wayland or Xorg). It is an independent `GPL-3.0-only` derivative of MCreator, with the Fabric generator included as a built-in plugin.
+Copperbench is built on MCreator, with mod element editors, Blockly logic, model and texture management, local history, and an MCP interface for external AI tools. It supports Fabric and NeoForge.
 
-Public distribution is the GitHub repository [Lotulune/Copperbench](https://github.com/Lotulune/Copperbench) and unsigned GitHub Releases. There is no product website, app-store listing, or Authenticode-signed installer. Windows SmartScreen may warn on the unsigned binaries. The product ID `dev.copperbench.studio` is a reverse-DNS identifier, not a live website.
+<a id="showcase"></a>
 
-Immutable source records are in [`UPSTREAM.md`](UPSTREAM.md) and [`compliance/baseline.lock.json`](compliance/baseline.lock.json). Start with the [development setup](docs/build/development-setup.md) or the [Windows clean-build baseline](docs/build/windows-clean-build.md).
+## See it in use
 
-## Linux release
+**Workbench** — View mod elements, project diagnostics, and build controls.
 
-[Linux Preview 2](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.0-linux-preview.2) provides a Debian package and portable archive with bundled JBR/JCEF and Java 21. Stage15 is complete for Ubuntu 24.04 LTS x86_64 with GNOME Wayland/Xorg; other distributions and architectures are not certified. The release channel remains Preview. See the [installation notes](docs/releases/linux-release-notes.md), [closure evidence](docs/testing/stage15-closure-2026-09-11.md), and [current support record](release-control/linux-platform-support.json). Windows Beta 4 remains the Windows published baseline.
+![Copperbench workbench with mod elements and project status](evidence/stage16/2026-09-12/installed-regression-c0178f6b/screenshots/09-host-final-workspace-before-close.png)
 
-## Development
+<table>
+  <tr>
+    <td width="50%"><img src="evidence/stage15/2026-09-11/run42-wayland-ui/function-reopened.png" alt="Function editor on Ubuntu" width="480"></td>
+    <td width="50%"><img src="evidence/stage15/2026-09-11/run42-wayland-assets/real-blockbench-model.png" alt="Model and texture in external Blockbench" width="480"></td>
+  </tr>
+  <tr>
+    <td><strong>Edit functions</strong><br>Write mcfunction commands, check syntax diagnostics, and save your work.</td>
+    <td><strong>Work on models</strong><br>Edit models and textures in external Blockbench for use with workspace assets.</td>
+  </tr>
+  <tr>
+    <td><img src="evidence/stage16/2026-09-12/client-native-restart-33ceb6e9/client-run-6/screenshots/016-token-active-20tps.jpg" alt="Active Resonance Token test item in Minecraft" width="480"></td>
+    <td><img src="evidence/stage-13/2026-09-06/history-recovery-before-confirm.png" alt="File changes shown before restoring a recovery point" width="480"></td>
+  </tr>
+  <tr>
+    <td><strong>Test in game</strong><br>The test mod's Resonance Token displays its active state in Minecraft.</td>
+    <td><strong>Restore a workspace</strong><br>Review affected files before confirming a restore.</td>
+  </tr>
+</table>
 
-Closed capabilities are specified in [`PRD.md`](PRD.md). Stages 12–16 have completed their documented validation scope; [Stage 16: agent reliability](docs/roadmap/stage-16-agent-reliability.md) includes Windows and Ubuntu cold-cache validation, with no new public release. Ongoing work follows the [product roadmap](PRD-NEXT.md). Domain terms are in [`CONTEXT.md`](CONTEXT.md).
+<sub>Screenshots are from Windows / Ubuntu tests in September 2026; later builds may look different. Blockbench is installed separately.</sub>
 
-Copperbench uses the checked-in Gradle Wrapper for building and packaging. CI covers Java, UI-Core schemas, the React shell, fast Playwright scenarios, MCP conformance, Javadoc, and local Markdown links. Packaging and publication rules are in the [Windows release process](docs/build/release-process.md).
+## What you can do
 
-User documentation starts with [Getting Started](docs/user/getting-started.md) and [Troubleshooting](docs/user/troubleshooting.md). Local AI integrations start with the [MCP guide](docs/ai/getting-started.md). Minimal TypeScript/Python clients and the AI evaluation coverage contract are in [SDK and evals](sdk/README.md).
+| Feature | In practice |
+| --- | --- |
+| Mods | Edit blocks, items, recipes, entities, and more; build procedures with Blockly. |
+| Assets | Manage models, textures, tags, and translations; export resource pack ZIPs. |
+| Builds | Build projects, launch test clients or dedicated servers, and inspect task logs. |
+| History | Create local recovery points and preview the files a restore will change. |
+| Migration | Preview same-version Fabric ↔ NeoForge migration into a new workspace. |
+| Automation | Read projects, make changes, and run builds through local MCP or headless interfaces. |
 
-Windows packages include JetBrains Runtime with JCEF `25.0.3+1-b329.124`. Automatic news, update, analytics, and Discord connections are disabled.
+See the [user guide](docs/user/README.md) for supported features. Source builds may include features absent from downloads; Bedrock Add-ons are outside the current first-party editing scope.
 
-The `net.mcreator` packages, `.mcreator` workspace extension, and MCreator core version remain intact where compatibility requires them. Product-owned Java code uses the `dev.copperbench` namespace.
+<a id="getting-started"></a>
 
-> [!TIP]
-> It is recommended to use Intellij IDEA for development and testing. Learn more about the development process, and 
-tips on [MCreator developers wiki](https://github.com/MCreator/MCreator/wiki).
+## Getting started
 
-## Upstream and attribution
+| Platform | Packages | Installation |
+| --- | --- | --- |
+| Windows 11 x64 | EXE installer · Portable ZIP | [Windows quick start](docs/user/getting-started.md) |
+| Ubuntu 24.04 LTS x86_64 | Debian `.deb` · Portable `.tar.gz` | [Linux installation notes](docs/releases/linux-release-notes.md) |
 
-Inherited contribution guidance remains in [`CONTRIBUTING.md`](CONTRIBUTING.md). The pinned upstream source is MCreator `2026.2.33518` at `361429609b772039a3eb9ab81662c25b225f1d0d`.
+Ubuntu testing covers GNOME Wayland and Xorg. Other Linux distributions and architectures have not been validated.
 
-Big thanks to [all the people](https://github.com/MCreator/MCreator/graphs/contributors) who already contributed to MCreator! 💚
+1. **Download and install** — Choose the package for your system on [GitHub Releases](https://github.com/Lotulune/Copperbench/releases) and verify it against the checksum manifest attached to that release (`SHA256SUMS.txt` for Windows; `linux-candidate-sha256.txt` for Linux Preview 2).
+2. **Create a workspace** — Choose Fabric or NeoForge and a Minecraft version, then enter a mod name and workspace folder.
+3. **Make an item** — Add an item, save and build the project, then launch the test client.
 
-<a href="https://github.com/MCreator/MCreator/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=MCreator/MCreator" width="615"/>
-</a>
+Packages are preview / beta builds. Windows installers are unsigned and may trigger SmartScreen. The first build needs an internet connection to download dependencies.
 
-### Translations
+## Documentation
 
-> [!TIP]
-> If you would like to help us translate MCreator to your language, join us on [translate.mcreator.net](https://translate.mcreator.net/)! If your language is not on the list yet, feel free to suggest us to add it.
+Most of the detailed guides below are currently written in Chinese.
 
-## License and trademark
+- [User guide](docs/user/README.md) · [Troubleshooting](docs/user/troubleshooting.md)
+- [MCP setup](docs/ai/getting-started.md) · [Agent examples](docs/ai/agent-playbook.md) · [SDK](sdk/README.md)
+- [Development setup](docs/build/development-setup.md) · [Clean Windows build](docs/build/windows-clean-build.md)
+- [Roadmap](PRD-NEXT.md) · [Contributing](CONTRIBUTING.md)
 
-The repository uses the SPDX identifier `GPL-3.0-only`. The standard license text is in [`LICENSE.txt`](./LICENSE.txt); inherited Section 7 permissions, template permissions, trademark terms, and mappings notices are retained in [`LICENSE-ADDITIONAL-TERMS.md`](./LICENSE-ADDITIONAL-TERMS.md). Copyright 2020 Pylo and [contributors](https://github.com/MCreator/MCreator/graphs/contributors).
+<a id="development"></a>
 
-MCreator is a trademark of Pylo. Custom distributions of this software may not include Pylo or MCreator trademark (trademark name and logo) to not confuse the software with the official distribution of MCreator project.
+## Run from source
 
-Copperbench is the public product name of this unofficial derivative. It must not be presented as official MCreator, or as a Minecraft / Mojang product.
-MCreator and Pylo brand files in this repository are not covered by the GPL-3.0 license.
+Requires JDK 25 (JetBrains Runtime with JCEF is recommended for the desktop app), Node.js 22, npm, and Git. The Windows commands below use PowerShell 7. Configure your JDK using the [development setup guide](docs/build/development-setup.md) first.
 
-MCreator uses several third-party libraries and projects. License files, attributions, and credits for these projects are located in the `license` subdirectory.
+```powershell
+git clone https://github.com/Lotulune/Copperbench.git
+Set-Location Copperbench
+npm ci --prefix ui-core
+npm ci --prefix ui-shell
+.\gradlew.bat runProductShell
+```
 
-Some code generators use official Minecraft mappings. 
-The use of these mappings is covered under a license by Microsoft. You should
-be fully aware of this license and the fact your mod may use these mappings.
-At the time of writing, the license is:
+On Linux, use `./gradlew runProductShell`. Builds use the Gradle Wrapper included in the repository.
 
-> © 2020 Microsoft Corporation. These mappings are provided "as-is" and you bear 
-> the risk of using them. You may copy and use the mappings for development purposes, 
-> but you may not redistribute the mappings complete and unmodified. 
-> Microsoft makes no warranties, express or implied, with respect to the mappings 
-> provided here.  Use and modification of this document or the source code (in any form) 
-> of Minecraft: Java Edition is governed by the Minecraft End User License Agreement 
-> available at https://account.mojang.com/documents/minecraft_eula.
+## Credits and license
 
-## Notice
+Copperbench is an independent derivative of MCreator, licensed under [GPL-3.0-only](LICENSE.txt). Thanks to Pylo and the [MCreator contributors](https://github.com/MCreator/MCreator/graphs/contributors). See [UPSTREAM.md](UPSTREAM.md) for the pinned upstream version and source records.
 
-> [!IMPORTANT]
-> NOT AN OFFICIAL MINECRAFT PRODUCT. NOT APPROVED BY OR ASSOCIATED WITH MOJANG OR MICROSOFT.
+[Additional terms](LICENSE-ADDITIONAL-TERMS.md) retain the template exception, trademark terms, and Minecraft mappings notice. Third-party licenses and credits are in [license](license/) and [compliance](compliance/). MCreator is a trademark of Pylo; its names and logos are not licensed under the GPL.
+
+**Not an official MCreator or Minecraft product. Not approved by or associated with Mojang or Microsoft.**
