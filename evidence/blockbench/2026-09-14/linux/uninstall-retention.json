@@ -1,0 +1,23 @@
+{
+  "method": "remove isolated TAR installation directory",
+  "target": "/home/stage15/blockbench-r7/installed/Copperbench010",
+  "installationRemoved": true,
+  "changedProtectedFiles": [],
+  "before": {
+    "/opt/Blockbench/blockbench": "dd26283323ad5a57135ca25f3925876b3a4c496d5533b602ae32895c0f27ef3f",
+    "/home/stage15/.config/Blockbench/Preferences": "cbfce9baa025a2c8fcf6776ddde0367b143b439fc0dc8c56c4fe1aebd5ab8013",
+    "/home/stage15/blockbench-r7/mcp.js": "b97f921968701df4d20103f1e7ab85823341eb2981358392d6f7921eb6d840db",
+    "/home/stage15/blockbench-r7/workspace/bb_gate_linux.mcreator": "e4f2a3da6950837389019fa904f7f4b06bc69962d2285198da9e7203b4d77177",
+    "/home/stage15/blockbench-r7/workspace/models/blockbench/linux_lamp.bbmodel": "1617c71b4f23c2455e9b08b9ed77b70942fccbbba196d612a888d5563ce2747e",
+    "/home/stage15/blockbench-r7/workspace/.copperbench/modeling-tasks/a25514c5-0663-462f-bcf7-5921db3b0a0c/edit/model.bbmodel": "c05ed16826cf6cece764c918614e48b8123102a99748a3c078599d304c66abc8"
+  },
+  "after": {
+    "/opt/Blockbench/blockbench": "dd26283323ad5a57135ca25f3925876b3a4c496d5533b602ae32895c0f27ef3f",
+    "/home/stage15/.config/Blockbench/Preferences": "cbfce9baa025a2c8fcf6776ddde0367b143b439fc0dc8c56c4fe1aebd5ab8013",
+    "/home/stage15/blockbench-r7/mcp.js": "b97f921968701df4d20103f1e7ab85823341eb2981358392d6f7921eb6d840db",
+    "/home/stage15/blockbench-r7/workspace/bb_gate_linux.mcreator": "e4f2a3da6950837389019fa904f7f4b06bc69962d2285198da9e7203b4d77177",
+    "/home/stage15/blockbench-r7/workspace/models/blockbench/linux_lamp.bbmodel": "1617c71b4f23c2455e9b08b9ed77b70942fccbbba196d612a888d5563ce2747e",
+    "/home/stage15/blockbench-r7/workspace/.copperbench/modeling-tasks/a25514c5-0663-462f-bcf7-5921db3b0a0c/edit/model.bbmodel": "c05ed16826cf6cece764c918614e48b8123102a99748a3c078599d304c66abc8"
+  },
+  "existingOptCopperbenchPreserved": true
+}

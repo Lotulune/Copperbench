@@ -30,6 +30,14 @@ MCreator 插件页面曾显示 LGPLv3，与固定仓库文件不一致。产品�
 
 固定 MCreator 源码的 `license/` 目录包含 Apache Commons、Log4j、Blockly、FlatLaf、FreeMarker、Gradle、Gson、Guava、JGit、JNA、OpenJDK、RSyntaxTextArea、SnakeYAML Engine 等依赖的许可或通知。此文件仅作为阶段 0 索引，不替代完整许可证正文，也不表示未来 JCEF/React 依赖已完成审计。
 
+## 可选外部建模工具（2026-09-13）
+
+- [Blockbench](https://github.com/JannisX11/blockbench)：GPLv3；官方说明允许插件/主题采用独立许可，原创输出归创作者所有。
+- [Blockbench MCP 社区插件](https://github.com/jasonjgardner/blockbench-mcp-plugin)：独立社区项目，GPLv3；不是 Blockbench 官方 MCP。
+- 当前 Copperbench 提供安装说明、进程/文件往返、建模任务与回导及可选本机 MCP 发现，不分发这两个项目的二进制或插件代码。社区插件 `1.7.0` 候选源码固定为 `b187b4b056f0efafcc573335400ecbb21ad26ecc` 供隔离验证使用，尚未宣称该版本已通过真实插件验收。
+- 未来随产品分发任何上游产物前，需记录精确版本/提交、保留许可证及版权、标记修改，并提供对应源码及构建材料的有效获取方式。插件许可例外不能替代社区插件自身的 GPL 义务。
+- 不暗示官方合作或背书。产品流程与验收范围记录在源码仓库的 `PRD-BLOCKBENCH.md`。
+
 ## 修改记录要求
 
 - 任何修改后的上游文件必须在项目变更记录中注明修改日期与目的。
