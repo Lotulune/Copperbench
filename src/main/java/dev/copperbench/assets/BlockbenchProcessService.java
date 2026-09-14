@@ -8,14 +8,31 @@ import java.util.Objects;
 /** Manages one external Blockbench process without exposing arbitrary paths or arguments. */
 public final class BlockbenchProcessService implements AutoCloseable {
 	private final AssetWorkspaceService assets;
-	private final Path executable;
+	private Path executable;
 	private final ProcessStarter starter;
-	private final BlockbenchInstallationDetector.Installation installation;
+	private BlockbenchInstallationDetector.Installation installation;
+	private final BlockbenchInstallationDetector detector;
+	private java.util.function.Supplier<Path> executableResolver;
 	private final EditLifecycle lifecycle;
 	private Process process;
 	private AssetTaskLease lease;
 	private Snapshot snapshot;
 	private PreparedEdit preparedEdit;
+
+	/** The product reuses the same locator as setup diagnostics, including installs made after startup. */
+	public static BlockbenchProcessService autoDetected(AssetWorkspaceService assets, EditLifecycle lifecycle) {
+		return autoDetected(assets, lifecycle, BlockbenchExecutableLocator::locate,
+				command -> new ProcessBuilder(command).directory(assets.workspaceRoot().toFile())
+						.redirectErrorStream(true).redirectOutput(ProcessBuilder.Redirect.DISCARD).start(),
+				new BlockbenchInstallationDetector());
+	}
+
+	static BlockbenchProcessService autoDetected(AssetWorkspaceService assets, EditLifecycle lifecycle,
+			java.util.function.Supplier<Path> resolver, ProcessStarter starter, BlockbenchInstallationDetector detector) {
+		var service = new BlockbenchProcessService(assets, resolver.get(), starter, detector, lifecycle);
+		service.executableResolver = resolver;
+		return service;
+	}
 
 	public BlockbenchProcessService(AssetWorkspaceService assets, Path executable) {
 		this(assets, executable, command -> new ProcessBuilder(command).directory(assets.workspaceRoot().toFile())
@@ -43,7 +60,8 @@ public final class BlockbenchProcessService implements AutoCloseable {
 		this.assets = Objects.requireNonNull(assets, "assets");
 		this.executable = executable == null ? null : executable.toAbsolutePath().normalize();
 		this.starter = Objects.requireNonNull(starter, "starter");
-		this.installation = Objects.requireNonNull(detector, "detector").detect(this.executable);
+		this.detector = Objects.requireNonNull(detector, "detector");
+		this.installation = detector.detect(this.executable);
 		this.lifecycle = Objects.requireNonNull(lifecycle, "lifecycle");
 		this.snapshot = availabilitySnapshot();
 	}
@@ -82,6 +100,10 @@ public final class BlockbenchProcessService implements AutoCloseable {
 		Snapshot current = status();
 		if (current.state() == State.RUNNING)
 			throw new BlockbenchBridgeException("BLOCKBENCH_ALREADY_RUNNING", "A Blockbench asset task is already running");
+		if (executableResolver != null) {
+			executable = executableResolver.get();
+			installation = detector.detect(executable);
+		}
 		if (!isAvailable()) {
 			snapshot = availabilitySnapshot();
 			return snapshot;

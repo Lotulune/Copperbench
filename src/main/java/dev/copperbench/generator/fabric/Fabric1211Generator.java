@@ -116,6 +116,7 @@ public final class Fabric1211Generator {
 		Descriptor descriptor = descriptor(workspace);
 		if (preservePluginWorkspace && PluginWorkspaceLayout.present(root)) {
 			PluginWorkspaceLayout.ensureGradleRuntime(root, distributionRoot, profile.gradleWrapperZip());
+			applyModelBindings(root, workspace);
 			return new GenerationResult(profile.generatorId(), descriptor.modId(),
 					PluginWorkspaceLayout.relativeSourcePaths(root));
 		}
@@ -674,11 +675,11 @@ public final class Fabric1211Generator {
 			state.add("variants", variants);
 			writeJson(root, assets + "/blockstates/" + block.name() + ".json", state, generated);
 			writeJson(root, assets + "/models/block/" + block.name() + ".json",
-					model("minecraft:block/cube_all", "all", descriptor.modId() + ":block/" + block.name()), generated);
+					boundModel(root, block, descriptor.modId(), model("minecraft:block/cube_all", "all", descriptor.modId() + ":block/" + block.name())), generated);
 			JsonObject itemModel = new JsonObject();
 			itemModel.addProperty("parent", descriptor.modId() + ":block/" + block.name());
 			writeJson(root, assets + "/models/item/" + block.name() + ".json", itemModel, generated);
-			writeTexture(root, assets + "/textures/block/" + block.name() + ".png", fields(block), generated);
+			if (!block.values().has("modelResource")) writeTexture(root, assets + "/textures/block/" + block.name() + ".png", fields(block), generated);
 			writeJson(root, data + "/loot_table/blocks/" + block.name() + ".json",
 					blockLootTable(descriptor.modId(), block.name()), generated);
 		}
@@ -686,8 +687,8 @@ public final class Fabric1211Generator {
 		for (Element item : ofType(elements, "item")) {
 			language.put("item." + descriptor.modId() + "." + item.name(), item.displayName());
 			writeJson(root, assets + "/models/item/" + item.name() + ".json",
-					model("minecraft:item/generated", "layer0", descriptor.modId() + ":item/" + item.name()), generated);
-			writeTexture(root, assets + "/textures/item/" + item.name() + ".png", fields(item), generated);
+					boundModel(root, item, descriptor.modId(), model("minecraft:item/generated", "layer0", descriptor.modId() + ":item/" + item.name())), generated);
+			if (!item.values().has("modelResource")) writeTexture(root, assets + "/textures/item/" + item.name() + ".png", fields(item), generated);
 		}
 
 		for (Element recipe : ofType(elements, "recipe"))
@@ -813,6 +814,37 @@ public final class Fabric1211Generator {
 	private static List<Element> ofType(List<Element> elements, String type) {
 		return elements.stream().filter(element -> element.type().equals(type))
 				.sorted(Comparator.comparing(Element::name)).toList();
+	}
+
+	/** Applies only explicitly bound model wrappers to a materialized plugin workspace. */
+	public static void applyModelBindings(Path root, WorkspaceState workspace) throws IOException {
+		String modId = dev.copperbench.core.workspace.WorkspaceModIdentity.resolve(workspace);
+		for (Element element : workspace.elements()) {
+			if (!Set.of("block", "item").contains(element.type()) || !element.values().has("modelResource") || element.ownership().equals("manual")) continue;
+			JsonObject reference = boundModel(root, element, modId, new JsonObject());
+			String resource = element.values().get("modelResource").getAsString();
+			if (resource.equals(modId + ":" + element.type() + "/" + element.name())) throw new IllegalArgumentException("Bound model refers to its own generated wrapper");
+			writeJson(root, "src/main/resources/assets/" + modId + "/models/" + element.type() + "/" + element.name() + ".json", reference, new ArrayList<>());
+			if (element.type().equals("block")) {
+				JsonObject itemReference = new JsonObject();
+				itemReference.addProperty("parent", modId + ":block/" + element.name());
+				writeJson(root, "src/main/resources/assets/" + modId + "/models/item/" + element.name() + ".json", itemReference, new ArrayList<>());
+			}
+		}
+	}
+
+	private static JsonObject boundModel(Path root, Element element, String modId, JsonObject ordinary) {
+		if (!element.values().has("modelResource")) return ordinary;
+		String resource = element.values().get("modelResource").getAsString();
+		if (Set.of(modId + ":block/" + element.name(), modId + ":item/" + element.name()).contains(resource))
+			throw new IllegalArgumentException("Bound model would reference its own generated wrapper");
+		if (!resource.matches("[a-z0-9_.-]+:[a-z0-9_./-]+") || resource.contains("..") || resource.contains("//"))
+			throw new IllegalArgumentException("Invalid bound model resource for " + element.name());
+		String[] parts = resource.split(":", 2);
+		Path model = root.resolve("src/main/resources/assets/" + parts[0] + "/models/" + parts[1] + ".json");
+		if (!java.nio.file.Files.isRegularFile(model)) throw new IllegalArgumentException("Bound model is missing: " + resource);
+		JsonObject reference = new JsonObject(); reference.addProperty("parent", resource);
+		return reference;
 	}
 
 	private static JsonObject fields(Element element) {

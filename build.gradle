@@ -400,6 +400,16 @@ tasks.register('runMcpConformanceServer', JavaExec.class) {
     mainClass.set('dev.copperbench.mcp.McpConformanceServerMain')
 }
 
+tasks.register('runNativePythonSmoke', JavaExec.class) {
+    group = 'verification'
+    description = 'Runs an external Python script against the real local Core API without MCP.'
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED', '--enable-native-access=ALL-UNNAMED,jcef'
+    mainClass.set('dev.copperbench.headless.NativePythonSmokeMain')
+    args providers.gradleProperty('nativePythonExecutable').getOrElse('python')
+}
+
 apply from: 'platform/setup.gradle'
 tasks.register('writeLinuxCandidateManifest', JavaExec) {
     group = 'export'

@@ -108,6 +108,10 @@ public final class HeadlessProductLauncher {
 	}
 
 	public static int run(String[] arguments, PrintWriter output) {
+		return run(arguments, output, new java.io.InputStreamReader(System.in, java.nio.charset.StandardCharsets.UTF_8));
+	}
+
+	static int run(String[] arguments, PrintWriter output, java.io.Reader input) {
 		try {
 			Invocation invocation = parse(arguments);
 			boolean stream = false;
@@ -125,6 +129,11 @@ public final class HeadlessProductLauncher {
 									Clock.systemUTC(), UUID::randomUUID), Clock.systemUTC(), UUID::randomUUID)) {
 				Supplier<UUID> ids = UUID::randomUUID;
 				HeadlessWorkspaceEntryAdapter adapter = session.headlessEntry(PermissionProfile.WORKSPACE);
+				if ("api".equals(invocation.commandArguments()[0])) {
+					if (invocation.commandArguments().length != 1)
+						throw new IllegalArgumentException("Usage: headless --workspace <path.mcreator> api");
+					return new NativeApiSession(adapter, session.workspaceId()).serve(input, output);
+				}
 				HeadlessCli cli = new HeadlessCli(adapter, session.workspaceId(), ids);
 				StringWriter buffered = new StringWriter();
 				int exitCode = cli.run(invocation.commandArguments(), new PrintWriter(buffered, true));
@@ -139,6 +148,10 @@ public final class HeadlessProductLauncher {
 			return fail(output, HeadlessExitCode.INVALID_ARGUMENTS, "HEADLESS_INVALID_ARGUMENTS",
 					exception.getMessage());
 		} catch (Exception | LinkageError exception) {
+			for (Throwable cause = exception; cause != null; cause = cause.getCause()) {
+				if (cause instanceof dev.copperbench.core.workspace.WorkspaceWriteLockedException)
+					return fail(output, HeadlessExitCode.PERMISSION_DENIED, "WORKSPACE_WRITE_LOCKED", cause.getMessage());
+			}
 			return fail(output, HeadlessExitCode.INTERNAL_ERROR, "HEADLESS_PRODUCT_START_FAILED",
 					exception.getMessage() == null ? exception.getClass().getSimpleName() : exception.getMessage());
 		}

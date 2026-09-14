@@ -7,11 +7,71 @@ async function schema(name) {
   return JSON.parse(await readFile(new URL(`../schemas/v1.0/${name}.schema.json`, import.meta.url), 'utf8'));
 }
 
+test('Blockbench discovery accepts explicit probing and rejects unexpected execution options', async () => {
+  const { ajv } = await createValidator();
+  const validate = ajv.getSchema('urn:ui-core:1.0:query');
+  const query = {
+    messageType: 'query', schemaVersion: '1.0',
+    requestId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa31',
+    workspaceId: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+    operation: 'get_blockbench_environment', payload: {}
+  };
+  assert.equal(validate(query), true, JSON.stringify(validate.errors));
+  query.payload = { probeMcp: true, endpoint: 'http://127.0.0.1:3000/bb-mcp' };
+  assert.equal(validate(query), true, JSON.stringify(validate.errors));
+  query.payload.probeMcp = 'true';
+  assert.equal(validate(query), false);
+  query.payload = { launch: true };
+  assert.equal(validate(query), false);
+});
+
+test('modeling tasks require a single source and a saved file hash for completion', async () => {
+  const { ajv } = await createValidator();
+  const validate = ajv.getSchema('urn:ui-core:1.0:command');
+  const request = { messageType: 'command', schemaVersion: '1.0', requestId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa31',
+    workspaceId: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', expectedRevision: 0, operation: 'begin_blockbench_task',
+    payload: { taskId: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', targetRelativePath: 'models/test.bbmodel' } };
+  assert.equal(validate(request), true, JSON.stringify(validate.errors));
+  request.payload.assetId = 'asset:example';
+  assert.equal(validate(request), false);
+  delete request.payload.targetRelativePath;
+  assert.equal(validate(request), true, JSON.stringify(validate.errors));
+  request.operation = 'finish_blockbench_task';
+  delete request.payload.assetId;
+  assert.equal(validate(request), false);
+  request.payload.savedSha256 = 'a'.repeat(64);
+  assert.equal(validate(request), true, JSON.stringify(validate.errors));
+  request.payload.launch = true;
+  assert.equal(validate(request), false);
+});
+
 test('all UI-Core schemas compile and all mock scenarios validate', async () => {
   const result = await validateAll();
   assert.ok(result.schemaCount >= 9);
   assert.ok(result.fixtureCount >= 13);
   assert.deepEqual(result.failures, []);
+});
+
+test('modeling imports require concrete mappings, a preview token, and typed replacement consent', async () => {
+  const { ajv } = await createValidator();
+  const query = { messageType: 'query', schemaVersion: '1.0', requestId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa31',
+    workspaceId: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', operation: 'preview_blockbench_import',
+    payload: { taskId: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', outputs: [] } };
+  const validateQuery = ajv.getSchema('urn:ui-core:1.0:query');
+  assert.equal(validateQuery(query), false);
+  query.payload.outputs.push({ sourceRelativePath: 'export/lamp.json', targetRelativePath: 'src/main/resources/assets/test/models/custom/lamp.json' });
+  assert.equal(validateQuery(query), true, JSON.stringify(validateQuery.errors));
+  query.payload.outputs[0].execute = 'export';
+  assert.equal(validateQuery(query), false);
+  const command = { ...query, messageType: 'command', expectedRevision: 0, operation: 'import_blockbench_task',
+    payload: { taskId: query.payload.taskId } };
+  const validateCommand = ajv.getSchema('urn:ui-core:1.0:command');
+  assert.equal(validateCommand(command), false);
+  command.payload.planToken = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd';
+  command.payload.confirmReplace = true;
+  assert.equal(validateCommand(command), true, JSON.stringify(validateCommand.errors));
+  command.payload.confirmReplace = 'true';
+  assert.equal(validateCommand(command), false);
 });
 
 test('command and query result operation sets match their request envelopes', async () => {

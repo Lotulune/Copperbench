@@ -1,0 +1,28 @@
+.blockbench-setup {
+  flex: 0 0 auto;
+  margin: 8px 16px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--bg-panel);
+  color: var(--text-main);
+  font-size: 13px;
+}
+.blockbench-setup summary { cursor: pointer; padding: 12px; min-height: 44px; box-sizing: border-box; }
+.blockbench-setup-content { padding: 0 12px 12px; max-height: 48vh; overflow: auto; }
+.blockbench-setup-content p, .blockbench-setup-content li { line-height: 1.65; }
+.blockbench-setup-content ol { padding-left: 22px; }
+.blockbench-setup-status { display: flex; flex-wrap: wrap; gap: 8px 24px; margin: 12px 0; }
+.blockbench-setup-actions, .blockbench-setup-link { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+.blockbench-setup-actions input { flex: 1 1 260px; min-width: 0; padding: 10px; border: 1px solid var(--border-subtle); border-radius: var(--radius-xs); background: var(--bg-input); color: var(--text-main); }
+.blockbench-setup button { min-height: 44px; }
+.blockbench-setup-link code { overflow-wrap: anywhere; user-select: text; }
+.blockbench-setup-note { color: var(--text-muted); }
+.blockbench-setup-message { min-height: 1.65em; }
+.blockbench-task { padding: 12px 0; border-top: 1px solid var(--border-subtle); }
+.blockbench-task code, .blockbench-task strong { overflow-wrap: anywhere; user-select: text; }
+.blockbench-setup-actions label { display: flex; flex: 1 1 280px; flex-direction: column; gap: 6px; }
+.blockbench-setup-actions label input { flex: none; }
+.blockbench-setup select { padding: 10px; background: var(--bg-input); color: var(--text-main); border: 1px solid var(--border-subtle); border-radius: var(--radius-xs); min-width: 0; }
+.modeling-import-review { padding-top: 8px; }
+.modeling-import-review li { overflow-wrap: anywhere; }
+.blockbench-setup :is(summary, button, input):focus-visible { outline: 2px solid var(--border-focus); outline-offset: 2px; }

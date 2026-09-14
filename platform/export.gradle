@@ -122,3 +122,15 @@ tasks.register('exportAll') {
 apply from: 'platform/windows/windows.gradle'
 apply from: 'platform/linux/linux.gradle'
 apply from: 'platform/mac/mac.gradle'
+
+// Ship the independent Python Core API alongside the optional MCP client.
+tasks.withType(Copy).matching { it.name in ['exportWin64', 'exportLinux64', 'exportMacX64', 'exportMacAarch64'] }.configureEach {
+    into('user') { from('docs/user') { include 'blockbench-*.md' } }
+    into('license') { from 'compliance/THIRD_PARTY_NOTICES.md' }
+    into('sdk/python') {
+        from('sdk/python') {
+            include '*.py', 'pyproject.toml', 'README.md', 'examples/*.py'
+            exclude 'test_*.py', 'native_smoke.py', 'native_desktop_smoke.py'
+        }
+    }
+}

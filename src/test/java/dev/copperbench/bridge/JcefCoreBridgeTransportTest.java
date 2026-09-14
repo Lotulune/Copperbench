@@ -114,6 +114,25 @@ class JcefCoreBridgeTransportTest {
 		assertEquals(-1, callback.failureCode);
 	}
 
+	@Test void blockbenchDiscoveryCompletesOffTheBrowserCallbackThread() throws Exception {
+		Thread caller = Thread.currentThread();
+		var completed = new java.util.concurrent.CompletableFuture<String>();
+		CefQueryCallback callback = new CefQueryCallback() {
+			@Override public void success(String response) {
+				if (Thread.currentThread() == caller) completed.completeExceptionally(new AssertionError("Browser callback thread was used"));
+				else completed.complete(response);
+			}
+			@Override public void failure(int code, String message) { completed.completeExceptionally(new AssertionError(message)); }
+		};
+		String envelope = UiCore.wireGson().toJson(Query.of(idSupplier.get(), WORKSPACE_ID,
+				Operation.GET_BLOCKBENCH_ENVIRONMENT, new JsonObject()));
+		assertTrue(transport.onQuery(null, null, 99, JcefCoreBridgeTransport.DEFAULT_QUERY_PREFIX + envelope, false, callback));
+		JsonObject response = JsonParser.parseString(completed.get(5, java.util.concurrent.TimeUnit.SECONDS)).getAsJsonObject();
+		assertEquals("succeeded", response.get("status").getAsString());
+		assertEquals("not_checked", response.getAsJsonObject("data").getAsJsonObject("mcp").get("state").getAsString());
+		transport.close();
+	}
+
 	@Test
 	void mapsExceptionsToQueryFailures() {
 		TestQueryCallback callback = new TestQueryCallback();

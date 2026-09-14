@@ -31,6 +31,12 @@
     "operation": {
       "type": "string",
       "enum": [
+        "import_blockbench_task",
+        "recover_blockbench_import",
+        "bind_blockbench_model",
+        "begin_blockbench_task",
+        "finish_blockbench_task",
+        "cancel_blockbench_task",
         "create_workspace",
         "create_mod_element",
         "update_mod_element",
@@ -68,6 +74,12 @@
     }
   },
   "allOf": [
+    {"if": {"properties": {"operation": {"const": "import_blockbench_task"}}, "required": ["operation"]}, "then": {"properties": {"payload": {"type": "object", "properties": {"taskId": {"type": "string", "format": "uuid"}, "clientMutationId": {"type": "string", "format": "uuid"}, "taskAuthorizationId": {"type": "string"}, "planToken": {"type": "string", "minLength": 1}, "confirmReplace": {"type": "boolean"}}, "required": ["taskId", "planToken"], "additionalProperties": false}}}},
+    {"if": {"properties": {"operation": {"const": "recover_blockbench_import"}}, "required": ["operation"]}, "then": {"properties": {"payload": {"type": "object", "properties": {"taskId": {"type": "string", "format": "uuid"}, "clientMutationId": {"type": "string", "format": "uuid"}, "taskAuthorizationId": {"type": "string"}}, "required": ["taskId"], "additionalProperties": false}}}},
+    {"if": {"properties": {"operation": {"const": "bind_blockbench_model"}}, "required": ["operation"]}, "then": {"properties": {"payload": {"type": "object", "properties": {"taskId": {"type": "string", "format": "uuid"}, "clientMutationId": {"type": "string", "format": "uuid"}, "taskAuthorizationId": {"type": "string"}, "elementId": {"type": "string", "format": "uuid"}, "modelResource": {"type": "string", "minLength": 1}}, "required": ["taskId", "elementId", "modelResource"], "additionalProperties": false}}}},
+    {"if": {"properties": {"operation": {"const": "begin_blockbench_task"}}, "required": ["operation"]}, "then": {"properties": {"payload": {"type": "object", "properties": {"taskId": {"type": "string", "format": "uuid"}, "clientMutationId": {"type": "string", "format": "uuid"}, "taskAuthorizationId": {"type": "string"}, "assetId": {"type": "string", "minLength": 1}, "targetRelativePath": {"type": "string", "minLength": 1}}, "required": ["taskId"], "additionalProperties": false, "oneOf": [{"properties": {"assetId": {"type": "string"}}, "required": ["assetId"]}, {"properties": {"targetRelativePath": {"type": "string"}}, "required": ["targetRelativePath"]}]}}}},
+    {"if": {"properties": {"operation": {"const": "finish_blockbench_task"}}, "required": ["operation"]}, "then": {"properties": {"payload": {"type": "object", "properties": {"taskId": {"type": "string", "format": "uuid"}, "clientMutationId": {"type": "string", "format": "uuid"}, "taskAuthorizationId": {"type": "string"}, "savedSha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}, "required": ["taskId", "savedSha256"], "additionalProperties": false}}}},
+    {"if": {"properties": {"operation": {"const": "cancel_blockbench_task"}}, "required": ["operation"]}, "then": {"properties": {"payload": {"type": "object", "properties": {"taskId": {"type": "string", "format": "uuid"}, "clientMutationId": {"type": "string", "format": "uuid"}, "taskAuthorizationId": {"type": "string"}}, "required": ["taskId"], "additionalProperties": false}}}},
     {
       "if": {
         "properties": {

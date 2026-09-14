@@ -868,6 +868,12 @@ export type CommandOperation =
   | 'prepare_resource_pack_client'
   | 'import_asset'
   | 'import_asset_batch'
+  | 'begin_blockbench_task'
+  | 'finish_blockbench_task'
+  | 'cancel_blockbench_task'
+  | 'import_blockbench_task'
+  | 'recover_blockbench_import'
+  | 'bind_blockbench_model'
   | 'move_asset';
 
 export interface Command<T = unknown> {
@@ -990,6 +996,10 @@ export interface CommandResult {
 export type QueryOperation =
   | 'list_task_authorizations'
   | 'get_workspace_environment'
+  | 'get_blockbench_environment'
+  | 'get_blockbench_task'
+  | 'list_blockbench_tasks'
+  | 'preview_blockbench_import'
   | 'get_workbench'
   | 'get_workspace_health'
   | 'list_new_workspace_generators'

@@ -22,6 +22,7 @@ import {
   WINDOW_CHROME_SCHEMA_VERSION,
   WindowChromeRegion,
   WindowChromeRegionKind,
+  WindowPointerGesture,
   windowBridge
 } from '../bridge/windowBridge';
 
@@ -54,6 +55,95 @@ export const FramelessTitlebar: React.FC = () => {
 
   const workspace = state.workbench?.workspace;
   const generator = workspace?.generator;
+
+  const maximizedRef = useRef(isMaximized);
+  maximizedRef.current = isMaximized;
+
+  useEffect(() => {
+    if (systemFrameFallback || !windowBridge.supportsChromeRegions) return;
+    const root = document.documentElement;
+    const captureTarget = titlebarRef.current ?? root;
+    let captionPress = false;
+    let pointerId: number | null = null;
+    let latest: PointerEvent | null = null;
+    let frame = 0;
+    const send = (event: PointerEvent, phase: WindowPointerGesture['phase']) => {
+      windowBridge.pointerGesture({ phase, x: event.clientX, y: event.clientY,
+        screenX: event.screenX, screenY: event.screenY });
+    };
+    const resizeCursor = (event: PointerEvent) => {
+      if (maximizedRef.current) return '';
+      const left = event.clientX < 8, right = event.clientX >= window.innerWidth - 8;
+      const top = event.clientY < 8, bottom = event.clientY >= window.innerHeight - 8;
+      if ((left && top) || (right && bottom)) return 'nwse-resize';
+      if ((left && bottom) || (right && top)) return 'nesw-resize';
+      return left || right ? 'ew-resize' : top || bottom ? 'ns-resize' : '';
+    };
+    const onPointerDown = (event: PointerEvent) => {
+      if (event.button !== 0 || !event.isPrimary) return;
+      const element = event.target instanceof Element ? event.target : null;
+      const edge = resizeCursor(event);
+      const caption = !!element?.closest('[data-window-chrome-root]')
+        && !element.closest('[data-window-chrome-kind], button, input, a, select, textarea, [role="button"]');
+      if (!edge && !caption) return;
+      captionPress = caption && !edge;
+      event.stopPropagation();
+      pointerId = event.pointerId;
+      latest = event;
+      captureTarget.setPointerCapture(pointerId);
+      send(event, 'begin');
+    };
+    const onPointerMove = (event: PointerEvent) => {
+      if (pointerId === null) {
+        const cursor = resizeCursor(event);
+        if (cursor) root.dataset.windowResizeCursor = cursor;
+        else delete root.dataset.windowResizeCursor;
+        return;
+      }
+      if (pointerId !== event.pointerId) return;
+      latest = event;
+      if (!frame) frame = window.requestAnimationFrame(() => {
+        frame = 0;
+        if (latest) send(latest, 'update');
+      });
+    };
+    const finish = (event: PointerEvent) => {
+      if (event.pointerId !== pointerId) return;
+      window.cancelAnimationFrame(frame);
+      frame = 0;
+      send(event, event.type === 'pointerup' ? 'end' : 'cancel');
+      const captured = pointerId;
+      pointerId = null;
+      latest = null;
+      if (captureTarget.hasPointerCapture(captured)) captureTarget.releasePointerCapture(captured);
+      delete root.dataset.windowResizeCursor;
+    };
+    const onDoubleClick = (event: MouseEvent) => {
+      const element = event.target instanceof Element ? event.target : null;
+      if (captionPress && element?.closest('[data-window-chrome-root]')
+        && !element.closest('[data-window-chrome-kind], button, input, a, select, textarea, [role="button"]'))
+        toggleMaximize();
+    };
+    document.addEventListener('pointerdown', onPointerDown, true);
+    document.addEventListener('pointermove', onPointerMove, true);
+    document.addEventListener('pointerup', finish, true);
+    document.addEventListener('pointercancel', finish, true);
+    captureTarget.addEventListener('lostpointercapture', finish);
+    document.addEventListener('dblclick', onDoubleClick);
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown, true);
+      document.removeEventListener('pointermove', onPointerMove, true);
+      document.removeEventListener('pointerup', finish, true);
+      document.removeEventListener('pointercancel', finish, true);
+      captureTarget.removeEventListener('lostpointercapture', finish);
+      document.removeEventListener('dblclick', onDoubleClick);
+      window.cancelAnimationFrame(frame);
+      if (latest) send(latest, 'cancel');
+      if (pointerId !== null && captureTarget.hasPointerCapture(pointerId)) captureTarget.releasePointerCapture(pointerId);
+      delete root.dataset.windowResizeCursor;
+    };
+  }, [systemFrameFallback, toggleMaximize]);
+
 
   useEffect(() => {
     const titlebar = titlebarRef.current;

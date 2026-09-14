@@ -158,6 +158,7 @@ public final class NeoForge1211Generator implements GradleWorkspaceBackend {
 		Path root = Objects.requireNonNull(targetRoot).toAbsolutePath().normalize();
 		Descriptor descriptor = descriptor(workspace);
 		if (preservePluginWorkspace && PluginWorkspaceLayout.present(root)) {
+			Fabric1211Generator.applyModelBindings(root, workspace);
 			PluginWorkspaceLayout.ensureGradleRuntime(root, distributionRoot, profile.fabricProfile().gradleWrapperZip());
 			return new GenerationResult(profile.generatorId(), descriptor.modId(),
 					PluginWorkspaceLayout.relativeSourcePaths(root));

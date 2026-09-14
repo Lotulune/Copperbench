@@ -29,9 +29,19 @@ export interface WindowChromeSnapshot {
 
 export interface NativeWindowHost {
   readonly systemFrame: boolean;
+  readonly maximized?: boolean;
   readonly chromeRegionSchemaVersion?: typeof WINDOW_CHROME_SCHEMA_VERSION;
   invoke(action: 'minimize' | 'toggle_maximize' | 'close'): Promise<void>;
   reportChromeRegions?(snapshot: WindowChromeSnapshot): Promise<void>;
+  pointerGesture?(gesture: WindowPointerGesture): void;
+}
+
+export interface WindowPointerGesture {
+  phase: 'begin' | 'update' | 'end' | 'cancel';
+  x: number;
+  y: number;
+  screenX: number;
+  screenY: number;
 }
 
 declare global {
@@ -48,6 +58,7 @@ export interface WindowBridge {
   toggleMaximize(): void;
   close(): void;
   reportChromeRegions(snapshot: WindowChromeSnapshot): void;
+  pointerGesture(gesture: WindowPointerGesture): void;
 }
 
 class JcefWindowBridge implements WindowBridge {
@@ -81,6 +92,10 @@ class JcefWindowBridge implements WindowBridge {
     });
   }
 
+  public pointerGesture(gesture: WindowPointerGesture): void {
+    this.host.pointerGesture?.(gesture);
+  }
+
   private invoke(action: 'minimize' | 'toggle_maximize' | 'close'): void {
     void this.host.invoke(action).catch((error: unknown) => {
       console.warn('[Copperbench Window Bridge] Native action failed:', error);
@@ -109,6 +124,8 @@ class MockWindowBridge implements WindowBridge {
   public reportChromeRegions(_snapshot: WindowChromeSnapshot): void {
     // Browser previews do not own a native non-client area.
   }
+
+  public pointerGesture(_gesture: WindowPointerGesture): void {}
 }
 
 const nativeWindowHost = typeof window === 'undefined' ? undefined : window.__COPPERBENCH_WINDOW_HOST__;

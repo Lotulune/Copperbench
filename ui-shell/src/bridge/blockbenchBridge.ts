@@ -21,6 +21,8 @@ export interface BlockbenchSnapshot {
 export interface NativeBlockbenchHost {
   readonly schemaVersion: typeof BLOCKBENCH_BRIDGE_SCHEMA_VERSION;
   status(): Promise<BlockbenchSnapshot>;
+  selectExecutable?(): Promise<{ cancelled: boolean }>;
+  dismissSetup?(): Promise<void>;
   openAsset(assetId: string): Promise<BlockbenchSnapshot>;
 }
 
@@ -33,6 +35,8 @@ declare global {
 export interface BlockbenchBridge {
   readonly available: boolean;
   status(): Promise<BlockbenchSnapshot>;
+  selectExecutable(): Promise<{ cancelled: boolean }>;
+  dismissSetup(): Promise<void>;
   openAsset(assetId: string): Promise<BlockbenchSnapshot>;
 }
 
@@ -56,6 +60,10 @@ class NativeBridge implements BlockbenchBridge {
   public readonly available = true;
   public constructor(private readonly host: NativeBlockbenchHost) {}
   public status(): Promise<BlockbenchSnapshot> { return this.host.status(); }
+  public selectExecutable(): Promise<{ cancelled: boolean }> {
+    return this.host.selectExecutable?.() ?? Promise.reject(new Error('当前桌面版本不支持安装路径选择。'));
+  }
+  public dismissSetup(): Promise<void> { return this.host.dismissSetup?.() ?? Promise.reject(new Error('当前桌面版本不支持保存引导偏好。')); }
   public openAsset(assetId: string): Promise<BlockbenchSnapshot> {
     if (!/^asset:[0-9a-f]{64}$/.test(assetId)) {
       return Promise.reject(new Error('INVALID_ASSET_ID'));
@@ -67,6 +75,8 @@ class NativeBridge implements BlockbenchBridge {
 class PreviewBridge implements BlockbenchBridge {
   public readonly available = false;
   public async status(): Promise<BlockbenchSnapshot> { return unavailable(); }
+  public selectExecutable(): Promise<{ cancelled: boolean }> { return Promise.reject(new Error('请在桌面产品中选择安装位置。')); }
+  public dismissSetup(): Promise<void> { return Promise.resolve(); }
   public async openAsset(_assetId: string): Promise<BlockbenchSnapshot> { return unavailable(); }
 }
 

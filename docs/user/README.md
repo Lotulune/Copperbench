@@ -21,6 +21,8 @@
 
 ## 模组元素
 
+应用内脚本编辑、持久控制台与当前工程 Python 对象接口见 [Python 工作台](./python-workbench.md)。
+
 新 UI / MCP / headless 现在共用 Stage 11/12 的 37 种第一方 Java Mod Element schema：除方块、物品、配方、Procedure、Function、Loot Table、Advancement 外，还包括装备/战斗、实体、世界生成、GUI/Overlay、村民、粒子、药水、命令、规则等类型。`livingentity`、`biome`、`dimension`、`gui` 以及 Stage 12B/12C 的相关复杂类型会按用途分组显示字段，并对数字范围、枚举、资源引用、元素引用和 Procedure 引用提供对应控件；结构化列表（例如 Villager Trade 的交易条目）可直接逐行增删和编辑，不需要手写原始 JSON。
 
 保存复杂元素时，未在当前编辑器中展示的字段和未知插件字段不会被静默删除；保存后重新打开工作区仍会保留。字段校验失败时，诊断会关联到具体元素和字段，支持直接定位到对应编辑控件。Procedure 继续使用内置 Blockly 工作台；未知上游 Blockly 节点只读显示并在往返保存时保留。Bedrock Add-on 类型仍不属于当前第一方 Java Mod Element 范围。
@@ -38,6 +40,8 @@
 本机 MCP 三档：只读、工作区、完全访问。删除工作区、导出凭据、对外发布、启用 Java 插件必须你亲自确认。AI 不能替你打开 Java 插件。
 
 ## Blockbench 与资源包
+
+可选安装、社区 MCP 连接测试和当前自动建模边界见 [连接 Blockbench](./blockbench-setup.md)。
 
 模型和纹理可以往返 Blockbench。资源包可以导出 ZIP，并准备到 `run/resourcepacks`。产品不会自动启动 Minecraft。Fabric 1.21.1 测试客户端已验证 ResourceManager 会加载该包。
 

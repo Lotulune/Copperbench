@@ -34,6 +34,12 @@
     "operation": {
       "type": "string",
       "enum": [
+        "import_blockbench_task",
+        "recover_blockbench_import",
+        "bind_blockbench_model",
+        "begin_blockbench_task",
+        "finish_blockbench_task",
+        "cancel_blockbench_task",
         "create_workspace",
         "create_mod_element",
         "update_mod_element",

@@ -172,6 +172,15 @@ public final class WorkspaceSelector extends JFrame implements DropTargetListene
 
 		JComponent southSubComponent = PanelUtils.westAndEastElement(southcenterleft, southcenter);
 
+		// Copperbench 2026-09-13: optional modeling setup must also exist before a workspace is opened.
+		JPanel optionalTools = new JPanel(new BorderLayout(0, 8));
+		optionalTools.setOpaque(false);
+		optionalTools.add(new dev.copperbench.shell.BlockbenchStartupPanel(
+				dev.copperbench.assets.BlockbenchConfiguration.productDefault(),
+				() -> dev.copperbench.shell.BlockbenchStartupPanel.showGuide(this)), BorderLayout.CENTER);
+		optionalTools.add(southSubComponent, BorderLayout.SOUTH);
+		southSubComponent = optionalTools;
+
 		southSubComponent.setBorder(BorderFactory.createEmptyBorder(0, 25, 20, 25));
 
 		JComponent centerComponent = PanelUtils.centerAndSouthElement(

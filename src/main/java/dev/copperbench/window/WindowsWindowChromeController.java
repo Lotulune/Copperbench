@@ -45,6 +45,7 @@ public final class WindowsWindowChromeController implements AutoCloseable {
 	private static final int WM_CANCELMODE = 0x001F;
 	private static final int WM_NCCALCSIZE = 0x0083;
 	private static final int WM_NCHITTEST = 0x0084;
+	private static final int WM_NCLBUTTONDOWN = 0x00A1;
 	private static final int WM_NCLBUTTONDBLCLK = 0x00A3;
 	private static final int WM_NCRBUTTONUP = 0x00A5;
 	private static final int WM_SYSKEYDOWN = 0x0104;
@@ -75,7 +76,79 @@ public final class WindowsWindowChromeController implements AutoCloseable {
 	private Pointer previousWindowProc;
 	private boolean installed;
 	private volatile int dpi = 96;
+	private PointerDrag pointerDrag;
 
+	/** Screen positions are CSS pixels, including negative coordinates on secondary displays. */
+	public record PointerGesture(String phase, double x, double y, double screenX, double screenY) {
+		public PointerGesture {
+			if (!List.of("begin", "update", "end", "cancel").contains(phase)
+					|| !Double.isFinite(x) || !Double.isFinite(y)
+					|| !Double.isFinite(screenX) || !Double.isFinite(screenY)
+					|| Math.abs(screenX) > 100_000 || Math.abs(screenY) > 100_000)
+				throw new IllegalArgumentException("Invalid window pointer gesture");
+		}
+	}
+
+	private record PointerDrag(WindowChromeHitTest.WindowBounds bounds, HitTarget target,
+			double screenX, double screenY, double scale) {}
+
+	/** Serialize the complete browser gesture on the EDT, even when a quick press is already released. */
+	public void pointerGesture(PointerGesture gesture) {
+		SwingUtilities.invokeLater(() -> applyPointerGesture(gesture));
+	}
+
+	private void applyPointerGesture(PointerGesture gesture) {
+		if (!installed || !customFrame.get() || hwnd == null) {
+			pointerDrag = null;
+			return;
+		}
+		if ("begin".equals(gesture.phase())) {
+			pointerDrag = null;
+			WindowChromeSnapshot snapshot = chromeSnapshot.get();
+			if (snapshot == null || gesture.x() < 0 || gesture.y() < 0
+					|| gesture.x() >= snapshot.viewport().width() || gesture.y() >= snapshot.viewport().height())
+				return;
+			WindowChromeHitTest.WindowBounds bounds = nativeBoundsForTesting();
+			double scale = snapshot.devicePixelRatio();
+			int currentDpi = getDpi(hwnd);
+			int border = Math.max(systemMetricForDpi(SM_CXSIZEFRAME, currentDpi),
+					systemMetricForDpi(SM_CYSIZEFRAME, currentDpi)) + systemMetricForDpi(SM_CXPADDEDBORDER, currentDpi);
+			HitTarget target = WindowChromeHitTest.hitTest(bounds.left() + (int) Math.round(gesture.x() * scale),
+					bounds.top() + (int) Math.round(gesture.y() * scale), bounds, border,
+					User32.INSTANCE.IsZoomed(hwnd), snapshot);
+			if (target == HitTarget.CLIENT || target == HitTarget.MINIMIZE || target == HitTarget.MAXIMIZE
+					|| target == HitTarget.CLOSE) return;
+			pointerDrag = new PointerDrag(bounds, target, gesture.screenX(), gesture.screenY(), scale);
+			return;
+		}
+		PointerDrag drag = pointerDrag;
+		if (drag == null) return;
+		boolean cancel = "cancel".equals(gesture.phase());
+		int dx = cancel ? 0 : (int) Math.round((gesture.screenX() - drag.screenX()) * drag.scale());
+		int dy = cancel ? 0 : (int) Math.round((gesture.screenY() - drag.screenY()) * drag.scale());
+		if (User32.INSTANCE.IsZoomed(hwnd)) {
+			if (cancel || (Math.abs(dx) < 4 && Math.abs(dy) < 4)) {
+				if (!"update".equals(gesture.phase())) pointerDrag = null;
+				return;
+			}
+			User32.INSTANCE.ShowWindow(hwnd, 9); // SW_RESTORE before dragging a maximized caption.
+			WindowChromeHitTest.WindowBounds restored = nativeBoundsForTesting();
+			int width = restored.right() - restored.left();
+			int height = restored.bottom() - restored.top();
+			double fraction = (drag.screenX() * drag.scale() - drag.bounds().left())
+					/ (drag.bounds().right() - drag.bounds().left());
+			int left = (int) Math.round(drag.screenX() * drag.scale() - width * Math.clamp(fraction, 0, 1));
+			int top = (int) Math.round(drag.screenY() * drag.scale()) - scaleForDpi(18, getDpi(hwnd));
+			drag = new PointerDrag(new WindowChromeHitTest.WindowBounds(left, top, left + width, top + height),
+					drag.target(), drag.screenX(), drag.screenY(), drag.scale());
+			pointerDrag = drag;
+		}
+		WindowChromeHitTest.WindowBounds next = WindowChromeHitTest.dragBounds(drag.bounds(), drag.target(), dx, dy,
+				scaleForDpi(MINIMUM_WIDTH_CSS, getDpi(hwnd)), scaleForDpi(MINIMUM_HEIGHT_CSS, getDpi(hwnd)));
+		User32.INSTANCE.SetWindowPos(hwnd, null, next.left(), next.top(), next.right() - next.left(),
+				next.bottom() - next.top(), SWP_NOZORDER);
+		if (!"update".equals(gesture.phase())) pointerDrag = null;
+	}
 	private WindowsWindowChromeController(JFrame window) {
 		this.window = window;
 	}
@@ -222,6 +295,12 @@ public final class WindowsWindowChromeController implements AutoCloseable {
 	private long windowProc(Pointer callbackHwnd, int message, long wParam, long lParam) {
 		try {
 			return switch (message) {
+				// AWT's undecorated-frame procedure does not own the custom non-client area.
+				case WM_NCLBUTTONDOWN, WM_NCLBUTTONDBLCLK ->
+						User32.INSTANCE.DefWindowProcW(callbackHwnd, message, wParam, lParam);
+				case WM_SYSCOMMAND -> (wParam & 0xfff0) == 0xf010 || (wParam & 0xfff0) == 0xf000
+						? User32.INSTANCE.DefWindowProcW(callbackHwnd, message, wParam, lParam)
+						: callPrevious(callbackHwnd, message, wParam, lParam);
 				case WM_NCCALCSIZE -> wParam != 0 ? 0 : callPrevious(callbackHwnd, message, wParam, lParam);
 				case WM_NCHITTEST -> hitTest(callbackHwnd, message, wParam, lParam);
 				case WM_GETMINMAXINFO -> applyMinMaxInfo(callbackHwnd, lParam);
@@ -407,6 +486,7 @@ public final class WindowsWindowChromeController implements AutoCloseable {
 		boolean SetWindowPos(Pointer hwnd, Pointer insertAfter, int x, int y, int width, int height, int flags);
 		boolean GetWindowRect(Pointer hwnd, Rect rect);
 		boolean IsZoomed(Pointer hwnd);
+		boolean ShowWindow(Pointer hwnd, int command);
 		int GetDpiForWindow(Pointer hwnd);
 		int GetSystemMetricsForDpi(int index, int dpi);
 		int GetSystemMetrics(int index);

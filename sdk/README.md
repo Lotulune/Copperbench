@@ -1,5 +1,15 @@
 # Copperbench SDK and AI evals
 
+Python supports live desktop scripting with `Workspace.connect(...)`, and
+independent scripting with `Workspace.open(...)`. Both call the same Core
+without MCP; named element handles provide field reads and committed updates.
+`CopperbenchClient.from_workspace(...)` retains the optional MCP connection.
+The desktop Python workbench manages a persistent CPython worker and exposes
+`cb.context`, `cb.data`, `cb.ops`, custom operators, timers and change handlers.
+See the [Python Core API guide](python/README.md) for installation, scripting,
+workspace locking, task lifetime and authorization. The MCP-specific sections
+below describe `CopperbenchClient`, not `Workspace`.
+
 > **Compatibility boundary:** the MCP protocol clients in this directory are the
 > supported Preview client surface described below. Generator/plugin extension
 > authoring is **experimental**, is not a stable third-party ABI/SDK, and may

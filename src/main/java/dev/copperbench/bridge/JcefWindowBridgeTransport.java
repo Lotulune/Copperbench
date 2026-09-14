@@ -11,6 +11,7 @@ package dev.copperbench.bridge;
 
 import com.google.gson.Gson;
 import dev.copperbench.window.WindowChromeSnapshot;
+import dev.copperbench.window.WindowsWindowChromeController.PointerGesture;
 import net.mcreator.ui.chromium.WebView;
 import org.cef.browser.CefBrowser;
 import org.cef.browser.CefFrame;
@@ -20,6 +21,7 @@ import org.cef.handler.CefMessageRouterHandlerAdapter;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.WindowStateListener;
 import java.io.Closeable;
 import java.util.Objects;
 import java.util.Set;
@@ -32,6 +34,7 @@ public final class JcefWindowBridgeTransport extends CefMessageRouterHandlerAdap
 
 	public static final String QUERY_PREFIX = "copperbench:window:";
 	public static final String REGION_QUERY_PREFIX = "copperbench:window-regions:";
+	public static final String GESTURE_QUERY_PREFIX = "copperbench:window-gesture:";
 	private static final Set<String> ACTIONS = Set.of("minimize", "toggle_maximize", "close");
 	private static final Gson JSON = new Gson();
 
@@ -40,6 +43,8 @@ public final class JcefWindowBridgeTransport extends CefMessageRouterHandlerAdap
 	private final Runnable closeAction;
 	private final Consumer<WindowChromeSnapshot> chromeRegionConsumer;
 	private final BooleanSupplier nativeChromeAvailable;
+	private final Consumer<PointerGesture> pointerGestureConsumer;
+	private final WindowStateListener windowStateListener;
 	private final CefBrowser expectedBrowser;
 	private final CefMessageRouter router;
 	private final WebView.PageLoadListener loadStartListener;
@@ -47,11 +52,15 @@ public final class JcefWindowBridgeTransport extends CefMessageRouterHandlerAdap
 	private final AtomicBoolean closed = new AtomicBoolean(false);
 
 	private JcefWindowBridgeTransport(WebView webView, JFrame window, Runnable closeAction,
-			Consumer<WindowChromeSnapshot> chromeRegionConsumer, BooleanSupplier nativeChromeAvailable) {
+			Consumer<WindowChromeSnapshot> chromeRegionConsumer, BooleanSupplier nativeChromeAvailable,
+			Consumer<PointerGesture> pointerGestureConsumer) {
 		this.webView = Objects.requireNonNull(webView, "webView must not be null");
 		this.window = Objects.requireNonNull(window, "window must not be null");
 		this.closeAction = Objects.requireNonNull(closeAction, "closeAction must not be null");
 		this.chromeRegionConsumer = chromeRegionConsumer;
+		this.pointerGestureConsumer = pointerGestureConsumer;
+		this.windowStateListener = event -> publishWindowState();
+		window.addWindowStateListener(windowStateListener);
 		this.nativeChromeAvailable = Objects.requireNonNull(nativeChromeAvailable,
 				"nativeChromeAvailable must not be null");
 		this.expectedBrowser = webView.getBrowser();
@@ -65,20 +74,37 @@ public final class JcefWindowBridgeTransport extends CefMessageRouterHandlerAdap
 	}
 
 	public static JcefWindowBridgeTransport attach(WebView webView, JFrame window, Runnable closeAction) {
-		return new JcefWindowBridgeTransport(webView, window, closeAction, null, () -> false);
+		return new JcefWindowBridgeTransport(webView, window, closeAction, null, () -> false, null);
 	}
 
 	public static JcefWindowBridgeTransport attach(WebView webView, JFrame window, Runnable closeAction,
 			Consumer<WindowChromeSnapshot> chromeRegionConsumer, BooleanSupplier nativeChromeAvailable) {
 		return new JcefWindowBridgeTransport(webView, window, closeAction, chromeRegionConsumer,
-				nativeChromeAvailable);
+				nativeChromeAvailable, null);
+	}
+
+	public static JcefWindowBridgeTransport attach(WebView webView, JFrame window, Runnable closeAction,
+			Consumer<WindowChromeSnapshot> chromeRegionConsumer, BooleanSupplier nativeChromeAvailable,
+			Consumer<PointerGesture> pointerGestureConsumer) {
+		return new JcefWindowBridgeTransport(webView, window, closeAction, chromeRegionConsumer,
+				nativeChromeAvailable, pointerGestureConsumer);
 	}
 
 	private void installHost() {
 		if (!closed.get()) {
 			boolean nativeChrome = nativeChromeActive();
 			webView.executeScriptAsync(generateBootstrapScript(!nativeChrome, nativeChrome));
+			publishWindowState();
 		}
+	}
+
+	private void publishWindowState() {
+		if (closed.get()) return;
+		boolean maximized = (window.getExtendedState() & Frame.MAXIMIZED_BOTH) == Frame.MAXIMIZED_BOTH;
+		webView.executeScriptAsync("if (window.__COPPERBENCH_WINDOW_HOST__) { "
+				+ "window.__COPPERBENCH_WINDOW_HOST__.maximized = " + maximized + ";"
+				+ "window.dispatchEvent(new CustomEvent('copperbench:window-state', {detail:{maximized:"
+				+ maximized + "}})); }");
 	}
 
 	private boolean nativeChromeActive() {
@@ -89,7 +115,8 @@ public final class JcefWindowBridgeTransport extends CefMessageRouterHandlerAdap
 			boolean persistent, CefQueryCallback callback) {
 		boolean actionRequest = request != null && request.startsWith(QUERY_PREFIX);
 		boolean regionRequest = request != null && request.startsWith(REGION_QUERY_PREFIX);
-		if (!actionRequest && !regionRequest)
+		boolean gestureRequest = request != null && request.startsWith(GESTURE_QUERY_PREFIX);
+		if (!actionRequest && !regionRequest && !gestureRequest)
 			return false;
 		if (closed.get()) {
 			callback.failure(503, "Window bridge is closed");
@@ -99,6 +126,22 @@ public final class JcefWindowBridgeTransport extends CefMessageRouterHandlerAdap
 			return false;
 		if (frame != null && !frame.isMain()) {
 			callback.failure(403, "Window bridge is only available to the main frame");
+			return true;
+		}
+
+		if (gestureRequest) {
+			if (!nativeChromeActive() || pointerGestureConsumer == null) {
+				callback.failure(409, "Native window gestures are not active");
+				return true;
+			}
+			try {
+				PointerGesture gesture = JSON.fromJson(request.substring(GESTURE_QUERY_PREFIX.length()), PointerGesture.class);
+				if (gesture == null) throw new IllegalArgumentException("Missing window pointer position");
+				pointerGestureConsumer.accept(gesture);
+				callback.success("{}");
+			} catch (RuntimeException exception) {
+				callback.failure(400, "Invalid window pointer gesture");
+			}
 			return true;
 		}
 
@@ -149,6 +192,12 @@ public final class JcefWindowBridgeTransport extends CefMessageRouterHandlerAdap
 	public static String generateBootstrapScript(boolean systemFrame, boolean chromeRegions) {
 		String chromeProperties = chromeRegions ? """
 				        chromeRegionSchemaVersion: %s,
+				        pointerGesture: function(gesture) {
+				            window.cefQuery({ request: %s + JSON.stringify(gesture), persistent: false,
+				                onSuccess: function() {}, onFailure: function(code, message) {
+				                    console.warn('Native window gesture failed [' + code + ']: ' + message);
+				                } });
+				        },
 				        reportChromeRegions: function(snapshot) {
 				            return new Promise(function(resolve, reject) {
 				                if (typeof window.cefQuery !== 'function') {
@@ -165,7 +214,8 @@ public final class JcefWindowBridgeTransport extends CefMessageRouterHandlerAdap
 				                });
 				            });
 				        },
-				""".formatted(JSON.toJson(WindowChromeSnapshot.SCHEMA_VERSION), JSON.toJson(REGION_QUERY_PREFIX)) : "";
+				""".formatted(JSON.toJson(WindowChromeSnapshot.SCHEMA_VERSION), JSON.toJson(GESTURE_QUERY_PREFIX),
+				JSON.toJson(REGION_QUERY_PREFIX)) : "";
 		return """
 				(function() {
 				    window.__COPPERBENCH_WINDOW_HOST__ = {
@@ -196,6 +246,7 @@ public final class JcefWindowBridgeTransport extends CefMessageRouterHandlerAdap
 		if (!closed.compareAndSet(false, true))
 			return;
 		webView.removeLoadStartListener(loadStartListener);
+		window.removeWindowStateListener(windowStateListener);
 		webView.removeCloseListener(closeListener);
 		try {
 			router.removeHandler(this);

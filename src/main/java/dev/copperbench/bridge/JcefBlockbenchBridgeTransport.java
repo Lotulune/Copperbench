@@ -69,6 +69,24 @@ public final class JcefBlockbenchBridgeTransport extends CefMessageRouterHandler
 		try {
 			JsonObject payload = JsonParser.parseString(request.substring(QUERY_PREFIX.length())).getAsJsonObject();
 			String operation = payload.has("operation") ? payload.get("operation").getAsString() : "";
+			if (operation.equals("dismiss_setup")) {
+				dev.copperbench.assets.BlockbenchConfiguration.productDefault().dismissOnboarding();
+				callback.success("{\"dismissed\":true}");
+				return true;
+			}
+			if (operation.equals("select_executable")) {
+				javax.swing.SwingUtilities.invokeLater(() -> {
+					if (closed.get()) { callback.failure(503, "Blockbench bridge is closed"); return; }
+					try {
+						var owner = javax.swing.SwingUtilities.getWindowAncestor(webView.getBrowser().getUIComponent());
+						var file = net.mcreator.ui.dialogs.file.FileDialogs.getOpenDialog(owner, new String[] {});
+						if (file == null) { callback.success("{\"cancelled\":true}"); return; }
+						dev.copperbench.assets.BlockbenchConfiguration.productDefault().select(file.toPath());
+						callback.success("{\"cancelled\":false}");
+					} catch (RuntimeException exception) { callback.failure(400, "Could not configure the selected Blockbench executable"); }
+				});
+				return true;
+			}
 			BlockbenchProcessService.Snapshot snapshot = switch (operation) {
 				case "status" -> service.status();
 				case "open_asset" -> service.openAsset(requiredString(payload, "assetId"));
@@ -141,6 +159,8 @@ public final class JcefBlockbenchBridgeTransport extends CefMessageRouterHandler
 				    window.__COPPERBENCH_BLOCKBENCH_HOST__ = {
 				        schemaVersion: %s,
 				        status: function() { return invoke({ operation: 'status' }); },
+				        selectExecutable: function() { return invoke({ operation: 'select_executable' }); },
+				        dismissSetup: function() { return invoke({ operation: 'dismiss_setup' }); },
 				        openAsset: function(assetId) { return invoke({ operation: 'open_asset', assetId: assetId }); }
 				    };
 				})();

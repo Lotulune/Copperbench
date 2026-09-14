@@ -1,5 +1,7 @@
 # Copperbench PRD：Public Beta 基线、Stage 11 全量 Mod Element、安装产品 Agent 闭环与后续深化路线
 
+> 新执行入口（2026-09-13）：[Blockbench 自动建模与可选工具接入 PRD](./PRD-BLOCKBENCH.md)。独立跟踪连接检测、安装引导、建模任务和回导验收，不改变既有阶段的历史完成状态。
+
 > 状态：Public Beta `v0.1.0-beta.4` 已发布；Stage 12/13 保留对应范围的关闭证据；Stage 14A/14B/14C/14D 已在当前开发线上按各自 DoD 关闭，Stage 14 整体完成；Stage 15 已完成 Ubuntu 24.04 GNOME x86_64 验收及 Linux Preview 2 公开发布；[Stage 16：Agent 任务成功率与自动验收](./docs/roadmap/stage-16-agent-reliability.md) 已完成既定 A–D 验证范围，包含 Windows/Ubuntu 完整冷缓存，尚未公开发布本轮候选；既有阶段进入持续维护
 > 版本：v1.13
 > 更新日期：2026-09-08

@@ -10,7 +10,6 @@
 package dev.copperbench.shell;
 
 import dev.copperbench.assets.AssetWorkspaceService;
-import dev.copperbench.assets.BlockbenchExecutableLocator;
 import dev.copperbench.assets.BlockbenchProcessService;
 import dev.copperbench.bridge.JcefBlockbenchBridgeTransport;
 import dev.copperbench.bridge.JcefAssetImportBridgeTransport;
@@ -49,6 +48,8 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 
 	private final MCreatorWorkspaceSession session;
 	private final DesktopMcpRuntime mcpRuntime;
+	private final dev.copperbench.headless.DesktopPythonRuntime pythonRuntime;
+	private final dev.copperbench.headless.PythonConsoleService pythonConsole;
 	private final RecoverableBrowserHost browserHost;
 	private final KeyEventDispatcher keyboardShortcutDispatcher;
 	private final AtomicBoolean closed = new AtomicBoolean(false);
@@ -68,18 +69,34 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 		Path workspaceRoot = workspace.getWorkspaceFolder().toPath().toAbsolutePath().normalize();
 		DesktopMcpRuntime createdMcpRuntime = DesktopMcpRuntime.start(workspaceRoot, createdSession.workspaceId(),
 				createdSession.mcpEntry(UiCore.PermissionProfile.WORKSPACE), clock);
+		dev.copperbench.headless.DesktopPythonRuntime createdPythonRuntime = null;
+		try {
+			createdPythonRuntime = dev.copperbench.headless.DesktopPythonRuntime.start(
+					workspace.getFileManager().getWorkspaceFile().toPath(), createdSession.workspaceId(),
+					createdSession.headlessEntry(UiCore.PermissionProfile.WORKSPACE));
+		} catch (IOException | RuntimeException exception) {
+			org.apache.logging.log4j.LogManager.getLogger(CopperbenchProductShell.class)
+					.warn("Could not start local Python access", exception);
+		}
+		var createdPythonConsole = createdPythonRuntime == null ? null : new dev.copperbench.headless.PythonConsoleService(
+				workspace.getFileManager().getWorkspaceFile().toPath(), distributionRoot.resolve("sdk/python"),
+				createdPythonRuntime.context());
 		RecoverableBrowserHost createdBrowserHost;
 		try {
 			createdBrowserHost = new RecoverableBrowserHost(
 					() -> createBrowser(createdSession, owner, closeAction, openLegacyPluginWindow,
-							openWorkspaceAction, windowChromeController, workspaceRoot, createdMcpRuntime), closeAction);
+							openWorkspaceAction, windowChromeController, workspaceRoot, createdMcpRuntime, createdPythonConsole), closeAction);
 		} catch (RuntimeException exception) {
+			if (createdPythonConsole != null) createdPythonConsole.close();
+			if (createdPythonRuntime != null) createdPythonRuntime.close();
 			createdMcpRuntime.close();
 			createdSession.close();
 			throw exception;
 		}
 		this.session = createdSession;
 		this.mcpRuntime = createdMcpRuntime;
+		this.pythonRuntime = createdPythonRuntime;
+		this.pythonConsole = createdPythonConsole;
 		this.browserHost = createdBrowserHost;
 		this.keyboardShortcutDispatcher = event -> dispatchDesktopShortcut(owner, event);
 		KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(keyboardShortcutDispatcher);
@@ -120,6 +137,18 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 			else failure.addSuppressed(exception);
 		}
 		try {
+			if (pythonConsole != null) pythonConsole.close();
+		} catch (RuntimeException exception) {
+			if (failure == null) failure = exception;
+			else failure.addSuppressed(exception);
+		}
+		try {
+			if (pythonRuntime != null) pythonRuntime.close();
+		} catch (RuntimeException exception) {
+			if (failure == null) failure = exception;
+			else failure.addSuppressed(exception);
+		}
+		try {
 			session.close();
 		} catch (RuntimeException exception) {
 			if (failure == null) failure = exception;
@@ -145,7 +174,8 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 
 	private static RecoverableBrowserHost.BrowserHandle createBrowser(MCreatorWorkspaceSession session, JFrame owner,
 			Runnable closeAction, Runnable openLegacyPluginWindow, Consumer<File> openWorkspaceAction,
-			WindowsWindowChromeController windowChromeController, Path workspaceRoot, DesktopMcpRuntime mcpRuntime) {
+			WindowsWindowChromeController windowChromeController, Path workspaceRoot, DesktopMcpRuntime mcpRuntime,
+			dev.copperbench.headless.PythonConsoleService pythonConsole) {
 		WebView webView = new WebView(UI_URL);
 		JcefCoreBridgeTransport coreTransport = null;
 		JcefWindowBridgeTransport windowTransport = null;
@@ -155,11 +185,12 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 		JcefWorkspaceOpenBridgeTransport workspaceOpenTransport = null;
 		JcefDiagnosticsBridgeTransport diagnosticsTransport = null;
 		JcefMcpBridgeTransport mcpTransport = null;
+		dev.copperbench.bridge.JcefPythonBridgeTransport pythonTransport = null;
 		try {
 			coreTransport = webView.attachCoreBridge(session.workspaceId(), session.uiEntry());
 			windowTransport = windowChromeController != null
 					? JcefWindowBridgeTransport.attach(webView, owner, closeAction, windowChromeController::accept,
-							windowChromeController::isUsingCustomFrame)
+							windowChromeController::isUsingCustomFrame, windowChromeController::pointerGesture)
 					: JcefWindowBridgeTransport.attach(webView, owner, closeAction);
 			legacyPluginTransport = JcefLegacyPluginBridgeTransport.attach(webView, openLegacyPluginWindow);
 			workspaceOpenTransport = openWorkspaceAction != null
@@ -169,9 +200,10 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 					new DiagnosticBundleService(UserFolderManager.getFileFromUserFolder("diagnostics").toPath(),
 							logRoot(), workspaceRoot, () -> diagnosticSnapshot(session), Clock.systemUTC()));
 			mcpTransport = JcefMcpBridgeTransport.attach(webView, mcpRuntime);
+			if (pythonConsole != null) pythonTransport = dev.copperbench.bridge.JcefPythonBridgeTransport.attach(webView, pythonConsole);
 			blockbenchTransport = JcefBlockbenchBridgeTransport.attach(webView,
-					new BlockbenchProcessService(new AssetWorkspaceService(workspaceRoot),
-							BlockbenchExecutableLocator.locate(), session.service().blockbenchEditLifecycle(session.workspaceId())));
+					BlockbenchProcessService.autoDetected(new AssetWorkspaceService(workspaceRoot),
+							session.service().blockbenchEditLifecycle(session.workspaceId())));
 			assetImportTransport = JcefAssetImportBridgeTransport.attach(webView, owner, session.service());
 			JcefCoreBridgeTransport attachedCore = coreTransport;
 			JcefWindowBridgeTransport attachedWindow = windowTransport;
@@ -181,6 +213,7 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 			JcefWorkspaceOpenBridgeTransport attachedWorkspaceOpen = workspaceOpenTransport;
 			JcefDiagnosticsBridgeTransport attachedDiagnostics = diagnosticsTransport;
 			JcefMcpBridgeTransport attachedMcp = mcpTransport;
+			var attachedPython = pythonTransport;
 			return new RecoverableBrowserHost.BrowserHandle() {
 				@Override public Component component() {
 					return webView;
@@ -215,6 +248,7 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 				}
 
 				@Override public void close() {
+					if (attachedPython != null) attachedPython.close();
 					attachedAssetImport.close();
 					attachedBlockbench.close();
 					attachedMcp.close();
@@ -228,6 +262,7 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 				}
 			};
 		} catch (RuntimeException exception) {
+			if (pythonTransport != null) pythonTransport.close();
 			if (assetImportTransport != null)
 				assetImportTransport.close();
 			if (blockbenchTransport != null)

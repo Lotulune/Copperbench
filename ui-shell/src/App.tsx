@@ -19,10 +19,12 @@ import { BridgeRecoveryView } from './components/BridgeRecoveryView';
 import { SchemaIncompatibleView } from './components/SchemaIncompatibleView';
 import { StartupFailureView } from './components/StartupFailureView';
 import { ScenarioSwitcher } from './components/ScenarioSwitcher';
+import { PythonWorkbench } from './components/PythonWorkbench';
+import { PythonContextSync } from './components/PythonContextSync';
 import './styles/global.css';
 
 const ShellContent: React.FC = () => {
-  const { activeView, announcement } = useWorkbench();
+  const { activeView, announcement, state } = useWorkbench();
 
   return (
     <div className="app-shell" data-testid="app-shell">
@@ -49,6 +51,7 @@ const ShellContent: React.FC = () => {
           {activeView === 'ai' && <AIControlView />}
           {activeView === 'plugins' && <PluginsView />}
           {activeView === 'help' && <HelpView />}
+          {state.workbench && <PythonWorkbench key={state.workbench.workspace.id} visible={activeView === 'python'} />}
 
           <TaskDrawer />
         </main>
@@ -66,6 +69,7 @@ const ShellContent: React.FC = () => {
 
       {/* Multi-scenario testing switcher */}
       <ScenarioSwitcher />
+      <PythonContextSync />
     </div>
   );
 };

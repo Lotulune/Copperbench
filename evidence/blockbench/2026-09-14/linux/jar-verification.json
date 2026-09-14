@@ -1,0 +1,25 @@
+{
+  "jar": "/home/stage15/blockbench-r7/workspace/build/libs/bb_gate_linux-1.0.jar",
+  "jarSha256": "baf99054b71f872db6bab81656eca78066c720d1a75db36ab0d2823f6d58c3d5",
+  "checks": [
+    {
+      "entry": "assets/bb_gate_linux/models/custom/linux_lamp.json",
+      "exactBytes": true,
+      "sha256": "24336f2e829f4aac31d91a2d4f71bd1bcc4743206a8b65640ddaf90efd4e6a4d"
+    },
+    {
+      "entry": "assets/bb_gate_linux/textures/block/linux_lamp.png",
+      "exactBytes": true,
+      "sha256": "89f87126036f7b8d91c30c56283b6dc2ab39b21097daf4cb799b41049bba9ead"
+    }
+  ],
+  "parents": {
+    "block": "bb_gate_linux:custom/linux_lamp",
+    "item": "bb_gate_linux:block/linux_lamp"
+  },
+  "manualCapTo": [
+    15,
+    14,
+    15
+  ]
+}

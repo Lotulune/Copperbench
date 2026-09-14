@@ -47,6 +47,37 @@ test.describe('Adaptive Layout, Frameless Window & Theme Tests', () => {
     await expect(maxBtn).toHaveAttribute('title', '最大化');
   });
 
+  test('forwards real caption and eight-way border presses without stealing client controls', async ({ page }) => {
+    await page.addInitScript(() => {
+      window.__COPPERBENCH_WINDOW_HOST__ = {
+        systemFrame: false,
+        chromeRegionSchemaVersion: '1.0',
+        invoke: async () => undefined,
+        reportChromeRegions: async () => undefined,
+        pointerGesture: ({ phase, x, y }) => {
+          if (phase !== 'begin') return;
+          const gestures = JSON.parse(sessionStorage.getItem('gestures') ?? '[]');
+          sessionStorage.setItem('gestures', JSON.stringify([...gestures, { x, y }]));
+        }
+      };
+    });
+    await page.reload();
+    const brand = page.locator('.titlebar-brand');
+    await brand.click();
+    const gestures = () => page.evaluate(() => JSON.parse(sessionStorage.getItem('gestures') ?? '[]'));
+    await expect.poll(async () => (await gestures()).length).toBe(1);
+    await page.getByTestId('theme-toggle-btn').click();
+    await page.getByTestId('window-minimize-btn').click();
+    await brand.click({ button: 'right' });
+    await page.mouse.click(350, 200);
+    expect((await gestures()).length).toBe(1);
+    const { width, height } = page.viewportSize()!;
+    const edges = [[2, 2], [width / 2, 2], [width - 2, 2], [2, height / 2],
+      [width - 2, height / 2], [2, height - 2], [width / 2, height - 2], [width - 2, height - 2]];
+    for (const [x, y] of edges) await page.mouse.click(x, y);
+    expect((await gestures()).slice(1)).toEqual(edges.map(([x, y]) => ({ x, y })));
+  });
+
   test('reports typed chrome regions to a compatible native host', async ({ page }) => {
     await page.addInitScript(() => {
       window.__COPPERBENCH_WINDOW_HOST__ = {
@@ -77,6 +108,37 @@ test.describe('Adaptive Layout, Frameless Window & Theme Tests', () => {
     expect(snapshot.regions.find((region: { id: string }) => region.id === 'maximize').kind).toBe('maximize');
     expect(snapshot.regions.every((region: { bounds: { width: number; height: number } }) =>
       region.bounds.width > 0 && region.bounds.height > 0)).toBe(true);
+  });
+
+  test('completes quick captured drags and double-clicks while reflecting native maximize changes', async ({ page }) => {
+    await page.addInitScript(() => {
+      window.__COPPERBENCH_WINDOW_HOST__ = {
+        systemFrame: false, chromeRegionSchemaVersion: '1.0', maximized: false,
+        invoke: async () => undefined, reportChromeRegions: async () => undefined,
+        pointerGesture: (gesture) => {
+          const list = JSON.parse(sessionStorage.getItem('pointerPhases') ?? '[]');
+          sessionStorage.setItem('pointerPhases', JSON.stringify([...list, gesture]));
+        }
+      };
+    });
+    await page.reload();
+    const brand = page.locator('.titlebar-brand');
+    const box = (await brand.boundingBox())!;
+    await page.mouse.move(box.x + 15, box.y + 15);
+    await page.mouse.down();
+    await page.mouse.move(box.x + 65, box.y + 45);
+    await page.mouse.up();
+    const gestures = await page.evaluate(() => JSON.parse(sessionStorage.getItem('pointerPhases')!));
+    expect(gestures[0].phase).toBe('begin');
+    expect(gestures.at(-1).phase).toBe('end');
+    expect(gestures.at(-1).screenX - gestures[0].screenX).toBe(50);
+    expect(gestures.at(-1).screenY - gestures[0].screenY).toBe(30);
+    await brand.dblclick();
+    await expect(page.getByTestId('window-maximize-btn')).toHaveAttribute('title', '恢复');
+    await page.evaluate(() => window.dispatchEvent(new CustomEvent('copperbench:window-state', {
+      detail: { maximized: false }
+    })));
+    await expect(page.getByTestId('window-maximize-btn')).toHaveAttribute('title', '最大化');
   });
 
   test('keeps titlebar controls usable at the 500px snap target', async ({ page }) => {

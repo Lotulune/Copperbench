@@ -15,8 +15,10 @@ public final class BlockbenchExecutableLocator {
 	}
 
 	public static Path locate() {
-		return locate(RuntimePlatform.current(), System.getenv(),
-				System.getProperty("copperbench.blockbench.executable", "").trim());
+		String override = System.getProperty("copperbench.blockbench.executable", "").trim();
+		if (!override.isBlank()) return Path.of(override).toAbsolutePath().normalize();
+		Path selected = BlockbenchConfiguration.productDefault().executable();
+		return selected != null ? selected : locate(RuntimePlatform.current(), System.getenv(), null);
 	}
 
 	static Path locate(RuntimePlatform platform, Map<String, String> environment, String configured) {

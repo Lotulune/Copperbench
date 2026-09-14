@@ -1,0 +1,250 @@
+{
+  "runtime": "JBR 25 / JCEF 137, Windows 125% DPI",
+  "surface": "real product React + JCEF + native window; in-memory workspace",
+  "originalInstalledReproduction": {
+    "dragUnchanged": true,
+    "resizeUnchanged": true
+  },
+  "dragEvidence": {
+    "before": [
+      {
+        "height": 760,
+        "id": "screenshot-0",
+        "originX": 312,
+        "originY": 175,
+        "width": 1100,
+        "zIndex": 0
+      }
+    ],
+    "after": [
+      {
+        "height": 760,
+        "id": "screenshot-0",
+        "originX": 412,
+        "originY": 250,
+        "width": 1100,
+        "zIndex": 0
+      }
+    ]
+  },
+  "resizeEvidence": {
+    "before": [
+      {
+        "height": 760,
+        "id": "screenshot-0",
+        "originX": 412,
+        "originY": 250,
+        "width": 1100,
+        "zIndex": 0
+      }
+    ],
+    "after": [
+      {
+        "height": 690,
+        "id": "screenshot-0",
+        "originX": 412,
+        "originY": 250,
+        "width": 1020,
+        "zIndex": 0
+      }
+    ]
+  },
+  "checks": [
+    {
+      "action": "caption-double-click-maximize",
+      "bounds": [
+        {
+          "height": 1104,
+          "id": "screenshot-0",
+          "originX": 0,
+          "originY": 0,
+          "width": 2048,
+          "zIndex": 0
+        }
+      ]
+    },
+    {
+      "action": "caption-double-click-restore",
+      "bounds": [
+        {
+          "height": 760,
+          "id": "screenshot-0",
+          "originX": 312,
+          "originY": 175,
+          "width": 1100,
+          "zIndex": 0
+        }
+      ]
+    },
+    {
+      "action": "top-left-resize",
+      "bounds": [
+        {
+          "height": 730,
+          "id": "screenshot-0",
+          "originX": 350,
+          "originY": 213,
+          "width": 1070,
+          "zIndex": 0
+        }
+      ]
+    },
+    {
+      "action": "top-right-resize",
+      "bounds": [
+        {
+          "height": 710,
+          "id": "screenshot-0",
+          "originX": 350,
+          "originY": 238,
+          "width": 1039,
+          "zIndex": 0
+        }
+      ]
+    },
+    {
+      "action": "bottom-left-resize",
+      "bounds": [
+        {
+          "height": 690,
+          "id": "screenshot-0",
+          "originX": 375,
+          "originY": 238,
+          "width": 1019,
+          "zIndex": 0
+        }
+      ]
+    },
+    {
+      "action": "bottom-right-grow",
+      "bounds": [
+        {
+          "height": 695,
+          "id": "screenshot-0",
+          "originX": 375,
+          "originY": 238,
+          "width": 1025,
+          "zIndex": 0
+        }
+      ]
+    },
+    {
+      "action": "left-resize",
+      "bounds": [
+        {
+          "height": 695,
+          "id": "screenshot-0",
+          "originX": 400,
+          "originY": 238,
+          "width": 1005,
+          "zIndex": 0
+        }
+      ]
+    },
+    {
+      "action": "right-resize",
+      "bounds": [
+        {
+          "height": 695,
+          "id": "screenshot-0",
+          "originX": 400,
+          "originY": 238,
+          "width": 985,
+          "zIndex": 0
+        }
+      ]
+    },
+    {
+      "action": "top-resize",
+      "bounds": [
+        {
+          "height": 675,
+          "id": "screenshot-0",
+          "originX": 400,
+          "originY": 263,
+          "width": 985,
+          "zIndex": 0
+        }
+      ]
+    },
+    {
+      "action": "bottom-resize",
+      "bounds": [
+        {
+          "height": 655,
+          "id": "screenshot-0",
+          "originX": 400,
+          "originY": 263,
+          "width": 985,
+          "zIndex": 0
+        }
+      ]
+    },
+    {
+      "action": "minimum-size-clamp",
+      "bounds": [
+        {
+          "height": 600,
+          "id": "screenshot-0",
+          "originX": 400,
+          "originY": 263,
+          "width": 500,
+          "zIndex": 0
+        }
+      ]
+    },
+    {
+      "action": "maximize-button",
+      "bounds": [
+        {
+          "height": 1104,
+          "id": "screenshot-0",
+          "originX": 0,
+          "originY": 0,
+          "width": 2048,
+          "zIndex": 0
+        }
+      ]
+    },
+    {
+      "action": "drag-maximized-window-to-restore",
+      "bounds": [
+        {
+          "height": 600,
+          "id": "screenshot-0",
+          "originX": 1120,
+          "originY": 152,
+          "width": 500,
+          "zIndex": 0
+        }
+      ]
+    },
+    {
+      "action": "drag-after-maximized-restore",
+      "before": [
+        {
+          "height": 600,
+          "id": "screenshot-0",
+          "originX": 1120,
+          "originY": 152,
+          "width": 500,
+          "zIndex": 0
+        }
+      ],
+      "bounds": [
+        {
+          "height": 600,
+          "id": "screenshot-0",
+          "originX": 1195,
+          "originY": 227,
+          "width": 500,
+          "zIndex": 0
+        }
+      ]
+    },
+    {
+      "action": "native-system-menu",
+      "result": "opened with Alt+Space and dismissed with Escape"
+    }
+  ]
+}

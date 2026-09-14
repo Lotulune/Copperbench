@@ -149,6 +149,8 @@ public final class WorkspaceApplicationService {
 	private final Map<UUID, CopyOnWriteArrayList<Consumer<Event>>> eventListeners = new ConcurrentHashMap<>();
 	private final Map<UUID, Deque<Event>> taskEventHistory = new ConcurrentHashMap<>();
 	private final Map<String, AssetImportSourceGrant> assetImportSourceGrants = new ConcurrentHashMap<>();
+	private final Map<String, ModelingImportGrant> modelingImportGrants = new ConcurrentHashMap<>();
+	private record ModelingImportGrant(UUID workspaceId, dev.copperbench.assets.BlockbenchImportService.Plan plan, Instant expiresAt) {}
 	private final Map<String, AssetImportPlanGrant> assetImportPlanGrants = new ConcurrentHashMap<>();
 	private final Map<String, AssetImportBatchPlanGrant> assetImportBatchPlanGrants = new ConcurrentHashMap<>();
 	private final Map<String, AssetMovePlanGrant> assetMovePlanGrants = new ConcurrentHashMap<>();
@@ -1325,6 +1327,13 @@ public final class WorkspaceApplicationService {
 		}
 	}
 
+	/** External scripting commands must notify existing desktop event subscribers too. */
+	public CommandOutcome executeAndPublish(Command command, RequestContext context) {
+		CommandOutcome outcome = execute(command, context);
+		outcome.events().forEach(this::publishRetainedEvent);
+		return outcome;
+	}
+
 	public CommandOutcome execute(Command command, RequestContext context) {
 		if (context.permission() == PermissionProfile.READ_ONLY
 				&& command.operation() != Operation.VALIDATE_WORKSPACE)
@@ -1361,6 +1370,10 @@ public final class WorkspaceApplicationService {
 			case CREATE_PUBLISH_BATCH -> createPublishBatch(command, context);
 			case PREPARE_RESOURCE_PACK_CLIENT -> prepareResourcePackClient(command, context);
 			case IMPORT_ASSET -> importAsset(command, context);
+			case BEGIN_BLOCKBENCH_TASK, FINISH_BLOCKBENCH_TASK, CANCEL_BLOCKBENCH_TASK -> modelingTask(command, context);
+			case IMPORT_BLOCKBENCH_TASK -> importModelingTask(command, context);
+			case RECOVER_BLOCKBENCH_IMPORT -> recoverModelingImport(command, context);
+			case BIND_BLOCKBENCH_MODEL -> bindModelingResult(command, context);
 			case IMPORT_ASSET_BATCH -> importAssetBatch(command, context);
 			case MOVE_ASSET -> moveAsset(command, context);
 			case APPLY_WORKSPACE_PLAN -> plans.apply(command, context);
@@ -1378,9 +1391,20 @@ public final class WorkspaceApplicationService {
 				case LIST_TASK_AUTHORIZATIONS -> listTaskAuthorizations(query, state, context);
 				case GET_WORKBENCH -> querySuccess(query, state.revision(), workbench(state, context));
 				case GET_WORKSPACE_ENVIRONMENT -> workspaceEnvironment(query, state);
+				case GET_BLOCKBENCH_ENVIRONMENT -> {
+					JsonObject environment = new dev.copperbench.assets.BlockbenchEnvironmentService().inspect(query.payload());
+					environment.addProperty("managedModelingTasksAvailable", history != null && workspaceRoot(query.workspaceId()) != null);
+					environment.addProperty("modelingTaskScope", "java_block_export_import");
+					environment.addProperty("automaticModelImportAvailable", history != null && workspaceRoot(query.workspaceId()) != null);
+					yield querySuccess(query, state.revision(), environment);
+				}
 				case GET_WORKSPACE_HEALTH -> querySuccess(query, state.revision(), workspaceHealth(query, state));
 				case LIST_NEW_WORKSPACE_GENERATORS -> querySuccess(query, state.revision(), newWorkspaceGenerators());
 				case LIST_ASSETS -> listAssets(query, state);
+				case GET_BLOCKBENCH_TASK -> querySuccess(query, state.revision(), modeling(query.workspaceId()).get(
+						UUID.fromString(requiredString(query.payload(), "taskId"))));
+				case LIST_BLOCKBENCH_TASKS -> querySuccess(query, state.revision(), modeling(query.workspaceId()).list());
+				case PREVIEW_BLOCKBENCH_IMPORT -> previewModelingImport(query, state);
 				case PREVIEW_ASSET_IMPORT -> previewAssetImport(query, state);
 				case PREVIEW_ASSET_IMPORT_BATCH -> previewAssetImportBatch(query, state);
 				case PREVIEW_ASSET_MOVE -> previewAssetMove(query, state);
@@ -1413,12 +1437,181 @@ public final class WorkspaceApplicationService {
 				default -> queryFailure(query, state.revision(), diagnostic("UNSUPPORTED_OPERATION",
 						"diagnostic.unsupported_operation", "The requested operation is not supported.", null, null));
 			};
+		} catch (BlockbenchBridgeException exception) {
+			return queryFailure(query, state.revision(), diagnostic(exception.code(),
+					"diagnostic.blockbench_task_failed", exception.getMessage(), null, null));
 		} catch (ListCursorException exception) {
 			return queryFailure(query, state.revision(), diagnostic(exception.code(),
 					"diagnostic.list_cursor_invalid", exception.getMessage(), null, null));
 		} catch (RuntimeException exception) {
 			LOG.debug("Copperbench query payload rejected for {}", query.operation(), exception);
 			return queryFailure(query, state.revision(), invalidPayload(exception.getMessage()));
+		}
+	}
+
+	private dev.copperbench.assets.BlockbenchModelingService modeling(UUID workspaceId) {
+		Path root = workspaceRoot(workspaceId);
+		if (root == null) throw new BlockbenchBridgeException("MODEL_WORKSPACE_UNAVAILABLE", "The modeling workspace is unavailable");
+		return new dev.copperbench.assets.BlockbenchModelingService(root, workspaceId, history, clock);
+	}
+
+	private dev.copperbench.assets.BlockbenchImportService modelingImporter(UUID workspaceId) {
+		Path root = workspaceRoot(workspaceId);
+		if (root == null) throw new BlockbenchBridgeException("MODEL_WORKSPACE_UNAVAILABLE", "The modeling workspace is unavailable");
+		return new dev.copperbench.assets.BlockbenchImportService(root, workspaceId, history, clock);
+	}
+
+	private QueryResult previewModelingImport(Query query, WorkspaceState state) {
+		modelingImportGrants.entrySet().removeIf(entry -> !entry.getValue().expiresAt().isAfter(clock.instant()));
+		if (modelingImportGrants.size() >= 128) throw new BlockbenchBridgeException("MODEL_PREVIEW_LIMIT", "Too many active previews; retry after they expire");
+		var plan = modelingImporter(query.workspaceId()).preview(UUID.fromString(requiredString(query.payload(), "taskId")),
+				query.payload().getAsJsonArray("outputs"));
+		Instant expiresAt = clock.instant().plus(Duration.ofMinutes(15));
+		modelingImportGrants.put(plan.token(), new ModelingImportGrant(query.workspaceId(), plan, expiresAt));
+		JsonObject data = plan.toJson(); data.addProperty("expiresAt", expiresAt.toString());
+		return querySuccess(query, state.revision(), data);
+	}
+
+	private CommandOutcome importModelingTask(Command command, RequestContext context) {
+		try {
+			UUID id = UUID.fromString(requiredString(command.payload(), "taskId"));
+			String token = requiredString(command.payload(), "planToken");
+			var importer = modelingImporter(command.workspaceId());
+			if ("imported".equals(modeling(command.workspaceId()).get(id).get("state").getAsString())) {
+				JsonObject receipt = importer.replay(id, token); receipt.addProperty("idempotentReplay", true);
+				return modelingImportOutcome(command, "completed", currentRevision(command.workspaceId()), receipt, List.of());
+			}
+			ModelingImportGrant grant = modelingImportGrants.get(token);
+			if (grant == null || !grant.workspaceId().equals(command.workspaceId()) || !grant.plan().taskId().equals(id)
+					|| !grant.expiresAt().isAfter(clock.instant())) throw new BlockbenchBridgeException("MODEL_PREVIEW_EXPIRED", "Preview this task import again");
+			if (grant.plan().batch().replaceCount() > 0 && !(command.payload().has("confirmReplace")
+					&& command.payload().get("confirmReplace").isJsonPrimitive()
+					&& command.payload().getAsJsonPrimitive("confirmReplace").isBoolean()
+					&& command.payload().get("confirmReplace").getAsBoolean()))
+				throw new BlockbenchBridgeException("MODEL_REPLACEMENT_CONFIRMATION", "Explicitly confirm the replacements shown in the preview");
+			AtomicReference<Diagnostic> rejection = new AtomicReference<>();
+			AtomicReference<Long> sequence = new AtomicReference<>();
+			var transaction = store.transact(command.workspaceId(), command.expectedRevision(), state -> {
+				try {
+					JsonObject imported = importer.apply(grant.plan(), context.actor(), state.revision() + 1,
+							modelingRevisionCommit(state));
+					sequence.set(state.nextEventSequence());
+					return Decision.commit(imported, grant.plan().batch().items().stream().map(item -> "/" + item.targetRelativePath()).toList());
+				} catch (BlockbenchBridgeException exception) {
+					rejection.set(diagnostic(exception.code(), "diagnostic.blockbench_task_failed", exception.getMessage(), null, null));
+					return Decision.abort(new JsonObject());
+				}
+			});
+			CommandOutcome conflict = checkFailure(command, transaction); if (conflict != null) return conflict;
+			if (rejection.get() != null) return failed(command, transaction.revision(), rejection.get());
+			modelingImportGrants.remove(token);
+			JsonObject data = transaction.value();
+			AssetReferenceGraph graph = new AssetWorkspaceService(workspaceRoot(command.workspaceId())).referenceGraph();
+			AssetHealthReport health = workspaceAssetHealth(graph, store.read(command.workspaceId()).orElseThrow());
+			JsonArray importedAssets = new JsonArray();
+			for (AssetDescriptor asset : graph.assets()) if (grant.plan().batch().items().stream().anyMatch(item -> item.targetRelativePath().equals(asset.relativePath())))
+				importedAssets.add(asset(asset, health.findById(asset.id()).orElseThrow()));
+			data.add("assets", importedAssets); data.add("health", GSON.toJsonTree(health.summary()));
+			data.addProperty("complete", true); data.addProperty("importedCount", grant.plan().batch().changedCount());
+			data.addProperty("createCount", grant.plan().batch().createCount()); data.addProperty("replaceCount", grant.plan().batch().replaceCount());
+			data.addProperty("skippedIdenticalCount", grant.plan().batch().identicalCount());
+			return modelingImportOutcome(command, "committed", transaction.revision(), data,
+					List.of(event(command, transaction.revision(), sequence.get(), "assets_imported", data.deepCopy())));
+		} catch (BlockbenchBridgeException exception) {
+			return failed(command, currentRevision(command.workspaceId()), diagnostic(exception.code(), "diagnostic.blockbench_task_failed", exception.getMessage(), null, null));
+		} catch (RuntimeException exception) { return failed(command, currentRevision(command.workspaceId()), invalidPayload(exception.getMessage())); }
+	}
+
+	private CommandOutcome bindModelingResult(Command command, RequestContext context) {
+		try {
+			UUID taskId = UUID.fromString(requiredString(command.payload(), "taskId"));
+			UUID elementId = UUID.fromString(requiredString(command.payload(), "elementId"));
+			String resource = requiredString(command.payload(), "modelResource");
+			if (!modelingImporter(command.workspaceId()).modelResources(taskId).contains(resource))
+				throw new BlockbenchBridgeException("MODEL_BINDING_NOT_IMPORTED", "Select a game model from this task's verified import receipt");
+			String[] modelParts = resource.split(":", 2);
+			Path gameModel = workspaceRoot(command.workspaceId()).resolve("src/main/resources/assets/" + modelParts[0] + "/models/" + modelParts[1] + ".json");
+			if (!Files.isRegularFile(gameModel)) throw new BlockbenchBridgeException("MODEL_BINDING_LAYOUT", "Element binding requires imports under src/main/resources/assets");
+			WorkspaceState state = store.read(command.workspaceId()).orElseThrow();
+			Element element = state.element(elementId);
+			if (element == null || !Set.of("block", "item").contains(element.type()))
+				throw new BlockbenchBridgeException("MODEL_BINDING_ELEMENT", "Bind Java block/item models to a block or item element");
+			String modId = dev.copperbench.core.workspace.WorkspaceModIdentity.resolve(state);
+			if (Set.of(modId + ":block/" + element.name(), modId + ":item/" + element.name()).contains(resource))
+				throw new BlockbenchBridgeException("MODEL_BINDING_SELF_REFERENCE", "Import the custom model under a distinct name, for example custom/lamp, to avoid a generated model referring to itself");
+			if (element.values().has("modelResource") && resource.equals(element.values().get("modelResource").getAsString())) {
+				JsonObject data = new JsonObject(); data.addProperty("elementId", elementId.toString()); data.addProperty("modelResource", resource);
+				return modelingImportOutcome(command, "completed", state.revision(), data, List.of());
+			}
+			JsonObject payload = new JsonObject(); payload.addProperty("elementId", elementId.toString());
+			payload.addProperty("clientMutationId", command.requestId().toString());
+			if (command.payload().has("taskAuthorizationId")) payload.add("taskAuthorizationId", command.payload().get("taskAuthorizationId"));
+			JsonObject change = new JsonObject(); change.addProperty("path", "/modelResource"); change.addProperty("value", resource);
+			JsonArray changes = new JsonArray(); changes.add(change); payload.add("changes", changes);
+			return update(Command.of(command.requestId(), command.workspaceId(), command.expectedRevision(), command.operation(), payload), context);
+		} catch (BlockbenchBridgeException exception) {
+			return failed(command, currentRevision(command.workspaceId()), diagnostic(exception.code(), "diagnostic.blockbench_task_failed", exception.getMessage(), null, null));
+		} catch (RuntimeException exception) { return failed(command, currentRevision(command.workspaceId()), invalidPayload(exception.getMessage())); }
+	}
+
+	private CommandOutcome recoverModelingImport(Command command, RequestContext context) {
+		try {
+			var transaction = store.transact(command.workspaceId(), command.expectedRevision(), state -> {
+				JsonObject result = modelingImporter(command.workspaceId()).recover(UUID.fromString(requiredString(command.payload(), "taskId")),
+						context.actor(), modelingRevisionCommit(state));
+				return Decision.commit(result, List.of("/assets"));
+			});
+			CommandOutcome conflict = checkFailure(command, transaction); if (conflict != null) return conflict;
+			return modelingImportOutcome(command, "committed", transaction.revision(), transaction.value(), List.of());
+		} catch (BlockbenchBridgeException exception) {
+			return failed(command, currentRevision(command.workspaceId()), diagnostic(exception.code(), "diagnostic.blockbench_task_failed", exception.getMessage(), null, null));
+		} catch (RuntimeException exception) { return failed(command, currentRevision(command.workspaceId()), invalidPayload(exception.getMessage())); }
+	}
+
+	private CommandOutcome modelingImportOutcome(Command command, String status, long revision, JsonObject data, List<Event> events) {
+		return new CommandOutcome(new CommandResult("command_result", UiCore.SCHEMA_VERSION, command.requestId(), command.workspaceId(),
+				command.operation(), status, revision, data.has("importRecoveryPointId") ? data.get("importRecoveryPointId").getAsString() : null,
+				JsonNull.INSTANCE, data, List.of(), JsonNull.INSTANCE, JsonNull.INSTANCE), events);
+	}
+
+	private dev.copperbench.assets.BlockbenchImportService.RevisionCommit modelingRevisionCommit(WorkspaceState state) {
+		long previousRevision = state.revision();
+		return new dev.copperbench.assets.BlockbenchImportService.RevisionCommit() {
+			public void commit() throws Exception { mutations.persistRestoredRevision(state, previousRevision + 1); }
+			public void rollback() throws Exception { mutations.persistRestoredRevision(state, previousRevision); }
+		};
+	}
+
+	private CommandOutcome modelingTask(Command command, RequestContext context) {
+		try {
+			Set<String> allowed = new HashSet<>(Set.of("taskId", "clientMutationId", "taskAuthorizationId"));
+			if (command.operation() == Operation.BEGIN_BLOCKBENCH_TASK) allowed.addAll(Set.of("assetId", "targetRelativePath"));
+			if (command.operation() == Operation.FINISH_BLOCKBENCH_TASK) allowed.add("savedSha256");
+			if (!allowed.containsAll(command.payload().keySet())) throw new IllegalArgumentException("Unsupported modeling task property");
+			UUID taskId = UUID.fromString(requiredString(command.payload(), "taskId"));
+			var transaction = store.coordinate(command.workspaceId(), command.expectedRevision(), state -> {
+				var service = modeling(command.workspaceId());
+				return switch (command.operation()) {
+					case BEGIN_BLOCKBENCH_TASK -> service.begin(taskId,
+							command.payload().has("assetId") ? requiredString(command.payload(), "assetId") : null,
+							command.payload().has("targetRelativePath") ? requiredString(command.payload(), "targetRelativePath") : null,
+							state.revision(), context.actor());
+					case FINISH_BLOCKBENCH_TASK -> service.finish(taskId, requiredString(command.payload(), "savedSha256"), context.actor());
+					case CANCEL_BLOCKBENCH_TASK -> service.cancel(taskId, context.actor());
+					default -> throw new IllegalArgumentException("Unsupported modeling operation");
+				};
+			});
+			CommandOutcome conflict = checkFailure(command, transaction);
+			if (conflict != null) return conflict;
+			JsonObject data = transaction.value();
+			return new CommandOutcome(new CommandResult("command_result", UiCore.SCHEMA_VERSION, command.requestId(),
+					command.workspaceId(), command.operation(), "completed", transaction.revision(),
+					data.get("recoveryPointId").getAsString(), JsonNull.INSTANCE, data, List.of(), JsonNull.INSTANCE, JsonNull.INSTANCE), List.of());
+		} catch (BlockbenchBridgeException exception) {
+			return failed(command, currentRevision(command.workspaceId()), diagnostic(exception.code(),
+					"diagnostic.blockbench_task_failed", exception.getMessage(), null, null));
+		} catch (RuntimeException exception) {
+			return failed(command, currentRevision(command.workspaceId()), invalidPayload(exception.getMessage()));
 		}
 	}
 

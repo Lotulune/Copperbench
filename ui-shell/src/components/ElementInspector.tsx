@@ -161,6 +161,15 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [localErrors, setLocalErrors] = useState<string[]>([]);
   const [referenceDrafts, setReferenceDrafts] = useState<Record<string, string>>({});
+  const [externalChange, setExternalChange] = useState(false);
+  const [reloadVersion, setReloadVersion] = useState(0);
+  const forceReload = useRef(false);
+  const baseRevision = useRef(state.workbench?.workspace.revision ?? 0);
+  const revisionRef = useRef(baseRevision.current);
+  revisionRef.current = state.workbench?.workspace.revision ?? 0;
+  const pending = useMemo(() => collectFieldChanges(editor, values), [editor, values]);
+  const draftRef = useRef({ editor, pending, isSaving });
+  draftRef.current = { editor, pending, isSaving };
 
   // Keep the latest query dispatcher without re-running the projection fetch
   // on unrelated bridge state changes.
@@ -172,7 +181,18 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
   listAssetsRef.current = listAssets;
 
   useEffect(() => {
+    const draft = draftRef.current;
+    if (draft.editor?.element.id === element.id && !forceReload.current) {
+      if (draft.isSaving) return;
+      if (draft.pending.invalidJson || draft.pending.changes.length > 0) {
+        setExternalChange(true);
+        return;
+      }
+    }
+    forceReload.current = false;
     let cancelled = false;
+    const observedRevision = revisionRef.current;
+    setExternalChange(false);
     setEditor(null);
     setValues({});
     setAssets(null);
@@ -182,6 +202,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
     getEditorRef.current(element.id)
       .then((projection) => {
         if (cancelled || !projection) return;
+        baseRevision.current = observedRevision;
         setEditor(projection);
         setValues(
           Object.fromEntries(
@@ -197,7 +218,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
     return () => {
       cancelled = true;
     };
-  }, [element.id]);
+  }, [element.id, element.updatedAt, reloadVersion]);
 
   useEffect(() => {
     if (!editor?.sections.some((section) => section.fields.some((field) => field.control === 'resource_reference'))) {
@@ -216,8 +237,6 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
       cancelled = true;
     };
   }, [editor?.element.id]);
-
-  const pending = useMemo(() => collectFieldChanges(editor, values), [editor, values]);
 
   useEffect(() => {
     if (!editor || pending.invalidJson || pending.changes.length === 0) {
@@ -270,7 +289,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
 
     let result;
     try {
-      result = await updateModElement(element.id, changes);
+      result = await updateModElement(element.id, changes, baseRevision.current);
     } catch {
       setLocalErrors(['保存失败，工作区未发生更改。']);
       setIsSaving(false);
@@ -279,6 +298,8 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
     setIsSaving(false);
 
     if (result.status === 'committed') {
+      baseRevision.current = result.newRevision;
+      setExternalChange(false);
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 2000);
       // Refresh the projection, but keep the values the user just committed
@@ -307,6 +328,8 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
       } catch {
         setLocalErrors(['元素已保存，但无法刷新编辑器投影。']);
       }
+    } else if (result.conflict) {
+      setExternalChange(true);
     } else if (result.diagnostics.length > 0) {
       setLocalErrors(result.diagnostics.map((d) => t(d.message)));
     }
@@ -780,6 +803,17 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
         }}
       >
         {/* Validation Errors Notice */}
+        {externalChange && (
+          <div role="alert" data-testid="inspector-external-change">
+            <p>此元素或工作区已被其他操作修改。当前草稿已保留，请核对最新内容后再编辑。</p>
+            <button type="button" className="btn-secondary" onClick={() => {
+              forceReload.current = true;
+              setReloadVersion((version) => version + 1);
+            }} data-testid="inspector-reload-latest">
+              丢弃草稿并加载最新内容
+            </button>
+          </div>
+        )}
         {errorMessagesToDisplay.length > 0 && (
           <div
             role="alert"
@@ -1049,7 +1083,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
           <button
             className="btn-primary"
             onClick={handleSave}
-            disabled={isSaving || !editor || pending.invalidJson || pending.changes.length === 0 || Boolean(preview && !preview.canApply)}
+            disabled={externalChange || isSaving || !editor || pending.invalidJson || pending.changes.length === 0 || Boolean(preview && !preview.canApply)}
             data-testid="inspector-save-btn"
           >
             <Save size={13} />

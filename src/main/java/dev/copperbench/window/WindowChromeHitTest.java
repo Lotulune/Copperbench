@@ -60,6 +60,23 @@ public final class WindowChromeHitTest {
 		}
 	}
 
+	/** Resize from the initial bounds so clamping never moves the opposite edge. */
+	public static WindowBounds dragBounds(WindowBounds bounds, HitTarget target, int dx, int dy,
+			int minimumWidth, int minimumHeight) {
+		int left = bounds.left(), top = bounds.top(), right = bounds.right(), bottom = bounds.bottom();
+		if (target == HitTarget.CAPTION)
+			return new WindowBounds(left + dx, top + dy, right + dx, bottom + dy);
+		if (target == HitTarget.LEFT || target == HitTarget.TOP_LEFT || target == HitTarget.BOTTOM_LEFT)
+			left = Math.min(left + dx, right - minimumWidth);
+		if (target == HitTarget.RIGHT || target == HitTarget.TOP_RIGHT || target == HitTarget.BOTTOM_RIGHT)
+			right = Math.max(right + dx, left + minimumWidth);
+		if (target == HitTarget.TOP || target == HitTarget.TOP_LEFT || target == HitTarget.TOP_RIGHT)
+			top = Math.min(top + dy, bottom - minimumHeight);
+		if (target == HitTarget.BOTTOM || target == HitTarget.BOTTOM_LEFT || target == HitTarget.BOTTOM_RIGHT)
+			bottom = Math.max(bottom + dy, top + minimumHeight);
+		return new WindowBounds(left, top, right, bottom);
+	}
+
 	public enum HitTarget {
 		CLIENT, CAPTION, MINIMIZE, MAXIMIZE, CLOSE,
 		LEFT, RIGHT, TOP, BOTTOM, TOP_LEFT, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_RIGHT

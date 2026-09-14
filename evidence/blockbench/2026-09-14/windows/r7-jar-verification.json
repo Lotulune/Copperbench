@@ -1,0 +1,19 @@
+{
+  "jarSha": "22621F3ED8C97D57C249EBF67EA983EED2B268A0DFAE53842346F38E648A38F4",
+  "parents": {
+    "block": "bb_gate_win:custom/verification_lamp_r7",
+    "item": "bb_gate_win:block/verification_lamp"
+  },
+  "exports": [
+    {
+      "exactBytes": true,
+      "entry": "assets/bb_gate_win/models/custom/verification_lamp_r7.json",
+      "sha": "E1908B813B9557AC4BE03A283ECDDACE1ABBC1BCEE4BFACE3423D7502528CA64"
+    },
+    {
+      "exactBytes": true,
+      "entry": "assets/bb_gate_win/textures/block/native_texture.png",
+      "sha": "89F87126036F7B8D91C30C56283B6DC2AB39B21097DAF4CB799B41049BBA9EAD"
+    }
+  ]
+}

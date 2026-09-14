@@ -118,6 +118,132 @@ class McpHttpServerTest {
 
 	@TempDir Path workspace;
 
+	@Test void modelingImportAndElementBindingUseRealMcpRevisionsAndIdempotentReceipts() throws Exception {
+		var tokens = new WorkspaceTokenService(CLOCK, Duration.ofMinutes(5));
+		var token = tokens.issue(WORKSPACE_ID, PermissionProfile.WORKSPACE);
+		try (var history = JGitLocalHistoryService.open(workspace, CLOCK)) {
+			var tasks = new dev.copperbench.assets.BlockbenchModelingService(workspace, WORKSPACE_ID, history, CLOCK);
+			UUID taskId = UUID.randomUUID();
+			var task = tasks.begin(taskId, null, "models/import_test.bbmodel", 0, dev.copperbench.core.contract.UiCore.Actor.MCP);
+			Path edit = Path.of(task.get("editPath").getAsString());
+			Files.writeString(edit, "{\"meta\":{\"model_format\":\"java_block\"},\"elements\":[{\"from\":[0,0,0],\"to\":[16,16,16]}],\"textures\":[]}");
+			tasks.finish(taskId, tasks.get(taskId).get("editSha256").getAsString(), dev.copperbench.core.contract.UiCore.Actor.MCP);
+			Files.writeString(edit.resolveSibling("export.json"), "{\"parent\":\"minecraft:block/cube_all\",\"textures\":{\"all\":\"minecraft:block/stone\"}}");
+			try (var server = CopperbenchMcpServer.start(new McpServerConfiguration(0, WORKSPACE_ID, PermissionProfile.WORKSPACE,
+					Set.of("http://localhost:5173"), CLOCK), tokens, adapter(history, workspace), new JsonLineAuditLog(workspace.resolve("audit.jsonl")))) {
+				URI endpoint = URI.create("http://127.0.0.1:" + server.address().getPort() + "/mcp");
+				String session = post(endpoint, initializeBody(), token.value(), null, "http://localhost:5173").headers().firstValue("mcp-session-id").orElseThrow();
+				post(endpoint, "{\"jsonrpc\":\"2.0\",\"method\":\"notifications/initialized\"}", token.value(), session, "http://localhost:5173");
+				JsonObject preview = JsonParser.parseString("{\"taskId\":\"" + taskId + "\",\"outputs\":[{\"sourceRelativePath\":\"export.json\",\"targetRelativePath\":\"src/main/resources/assets/copper_trails/models/custom/import_test.json\"}]}").getAsJsonObject();
+				var plan = modelingCall(endpoint, session, token.value(), "preview_blockbench_import", preview);
+				assertEquals("succeeded", plan.get("status").getAsString(), plan::toString);
+				JsonObject apply = new JsonObject(); apply.addProperty("taskId", taskId.toString()); apply.add("planToken", plan.getAsJsonObject("data").get("planToken")); apply.addProperty("expectedRevision", 0);
+				var imported = modelingCall(endpoint, session, token.value(), "import_blockbench_task", apply);
+				assertEquals("committed", imported.get("status").getAsString(), imported::toString);
+				assertEquals(1, imported.get("newRevision").getAsLong());
+				assertTrue(imported.getAsJsonObject("data").get("imported").getAsBoolean());
+				JsonObject create = JsonParser.parseString("{\"elementType\":\"block\",\"name\":\"bound_lamp\",\"initialValues\":{},\"expectedRevision\":1}").getAsJsonObject();
+				var created = modelingCall(endpoint, session, token.value(), "create_mod_element", create);
+				assertEquals("committed", created.get("status").getAsString(), created::toString);
+				String elementId = created.getAsJsonObject("data").getAsJsonObject("element").get("id").getAsString();
+				JsonObject bind = JsonParser.parseString("{\"taskId\":\"" + taskId + "\",\"elementId\":\"" + elementId + "\",\"modelResource\":\"copper_trails:custom/import_test\",\"expectedRevision\":2}").getAsJsonObject();
+				var bound = modelingCall(endpoint, session, token.value(), "bind_blockbench_model", bind);
+				assertEquals("committed", bound.get("status").getAsString(), bound::toString);
+				assertEquals(3, bound.get("newRevision").getAsLong());
+				assertEquals("completed", modelingCall(endpoint, session, token.value(), "bind_blockbench_model", bind).get("status").getAsString());
+				var replay = modelingCall(endpoint, session, token.value(), "import_blockbench_task", apply);
+				assertEquals("completed", replay.get("status").getAsString());
+				assertEquals(3, replay.get("newRevision").getAsLong());
+				assertTrue(replay.getAsJsonObject("data").get("idempotentReplay").getAsBoolean());
+			}
+		}
+	}
+
+	@Test void agentCanCreateInspectFinishAndCancelAModelingCandidateThroughMcp() throws Exception {
+		var tokens = new WorkspaceTokenService(CLOCK, Duration.ofMinutes(5));
+		var token = tokens.issue(WORKSPACE_ID, PermissionProfile.WORKSPACE);
+		Path auditPath = workspace.resolve(".copperbench/automation-audit.jsonl");
+		try (var history = JGitLocalHistoryService.open(workspace, CLOCK);
+				var server = CopperbenchMcpServer.start(new McpServerConfiguration(0, WORKSPACE_ID, PermissionProfile.WORKSPACE,
+						Set.of("http://localhost:5173"), CLOCK), tokens, adapter(history, workspace), new JsonLineAuditLog(auditPath))) {
+			URI endpoint = URI.create("http://127.0.0.1:" + server.address().getPort() + "/mcp");
+			String session = post(endpoint, initializeBody(), token.value(), null, "http://localhost:5173")
+					.headers().firstValue("mcp-session-id").orElseThrow();
+			post(endpoint, "{\"jsonrpc\":\"2.0\",\"method\":\"notifications/initialized\"}", token.value(), session, "http://localhost:5173");
+			JsonObject arguments = new JsonObject();
+			String id = UUID.randomUUID().toString();
+			arguments.addProperty("taskId", id);
+			arguments.addProperty("targetRelativePath", "models/agent_model.bbmodel");
+			arguments.addProperty("expectedRevision", 1);
+			var conflict = modelingCall(endpoint, session, token.value(), "begin_blockbench_task", arguments);
+			assertEquals("rejected", conflict.get("status").getAsString());
+			assertFalse(Files.exists(workspace.resolve(".copperbench/modeling-tasks/" + id)));
+			arguments.addProperty("expectedRevision", 0);
+			var started = modelingCall(endpoint, session, token.value(), "begin_blockbench_task", arguments);
+			assertEquals("completed", started.get("status").getAsString(), started::toString);
+			Path edit = Path.of(started.getAsJsonObject("data").get("editPath").getAsString());
+			Files.writeString(edit, "{\"meta\":{\"format_version\":\"5.0\",\"model_format\":\"java_block\"},\"elements\":[{\"from\":[0,0,0],\"to\":[16,16,16]}],\"textures\":[]}");
+			JsonObject query = new JsonObject(); query.addProperty("taskId", id);
+			var inspected = modelingCall(endpoint, session, token.value(), "get_blockbench_task", query);
+			JsonObject finish = query.deepCopy();
+			finish.addProperty("expectedRevision", 0);
+			finish.add("savedSha256", inspected.getAsJsonObject("data").get("editSha256"));
+			var finished = modelingCall(endpoint, session, token.value(), "finish_blockbench_task", finish);
+			assertEquals("completed", finished.get("status").getAsString(), finished::toString);
+			assertEquals("ready_to_import", finished.getAsJsonObject("data").get("state").getAsString());
+			assertEquals(0, finished.get("newRevision").getAsLong());
+			assertFalse(Files.exists(workspace.resolve("models/agent_model.bbmodel")));
+			assertEquals(finished.get("data"), modelingCall(endpoint, session, token.value(), "finish_blockbench_task", finish).get("data"));
+			finish.remove("savedSha256");
+			var cancelled = modelingCall(endpoint, session, token.value(), "cancel_blockbench_task", finish);
+			assertEquals("cancelled", cancelled.getAsJsonObject("data").get("state").getAsString());
+			assertTrue(Files.exists(edit));
+			assertTrue(Files.readString(auditPath).contains("finish_blockbench_task"));
+			assertEquals(1, history.listRecoveryPoints().size());
+		}
+	}
+
+	private static JsonObject modelingCall(URI endpoint, String session, String token, String name, JsonObject arguments) throws Exception {
+		JsonObject request = new JsonObject(); request.addProperty("jsonrpc", "2.0"); request.addProperty("id", 81);
+		request.addProperty("method", "tools/call");
+		JsonObject params = new JsonObject(); params.addProperty("name", name); params.add("arguments", arguments); request.add("params", params);
+		return toolResult(post(endpoint, request.toString(), token, session, "http://localhost:5173"));
+	}
+
+	@Test void blockbenchEnvironmentIsDiscoverableThroughReadOnlyMcpWithoutChangingRevision() throws Exception {
+		WorkspaceTokenService tokens = new WorkspaceTokenService(CLOCK, Duration.ofMinutes(5));
+		WorkspaceToken token = tokens.issue(WORKSPACE_ID, PermissionProfile.READ_ONLY);
+		Path auditPath = workspace.resolve(".copperbench/automation-audit.jsonl");
+		try (LocalHistoryService history = JGitLocalHistoryService.open(workspace, CLOCK);
+				CopperbenchMcpServer server = CopperbenchMcpServer.start(
+						new McpServerConfiguration(0, WORKSPACE_ID, PermissionProfile.READ_ONLY,
+								Set.of("http://localhost:5173"), CLOCK), tokens,
+						adapter(history, workspace, dev.copperbench.automation.security.TaskAuthorizationStore.productDefault(CLOCK), PermissionProfile.READ_ONLY),
+						new JsonLineAuditLog(auditPath))) {
+			URI endpoint = URI.create("http://127.0.0.1:" + server.address().getPort() + "/mcp");
+			var initialized = post(endpoint, initializeBody(), token.value(), null, "http://localhost:5173");
+			String session = initialized.headers().firstValue("mcp-session-id").orElseThrow();
+			post(endpoint, "{\"jsonrpc\":\"2.0\",\"method\":\"notifications/initialized\"}", token.value(), session, "http://localhost:5173");
+			var listing = post(endpoint, "{\"jsonrpc\":\"2.0\",\"id\":70,\"method\":\"tools/list\"}", token.value(), session, "http://localhost:5173");
+			assertTrue(listing.body().contains("get_blockbench_environment"));
+			JsonObject result = toolResult(post(endpoint,
+					"{\"jsonrpc\":\"2.0\",\"id\":71,\"method\":\"tools/call\",\"params\":{\"name\":\"get_blockbench_environment\",\"arguments\":{}}}",
+					token.value(), session, "http://localhost:5173"));
+			assertEquals("succeeded", result.get("status").getAsString(), result::toString);
+			assertEquals(0, result.get("revision").getAsLong());
+			assertEquals("not_checked", result.getAsJsonObject("data").getAsJsonObject("mcp").get("state").getAsString());
+			assertTrue(result.getAsJsonObject("data").get("managedModelingTasksAvailable").getAsBoolean());
+			assertTrue(result.getAsJsonObject("data").get("automaticModelImportAvailable").getAsBoolean());
+			assertTrue(history.listRecoveryPoints().isEmpty());
+			JsonObject begin = new JsonObject(); begin.addProperty("taskId", UUID.randomUUID().toString());
+			begin.addProperty("targetRelativePath", "models/denied.bbmodel"); begin.addProperty("expectedRevision", 0);
+			assertEquals("rejected", modelingCall(endpoint, session, token.value(), "begin_blockbench_task", begin).get("status").getAsString());
+			assertFalse(Files.exists(workspace.resolve(".copperbench/modeling-tasks")));
+			assertTrue(Files.readString(auditPath).contains("get_blockbench_environment"));
+			assertFalse(Files.readString(auditPath).contains(token.value()));
+		}
+	}
+
 	@Test void authenticatedMcpUsesAndRevokesUserIssuedTaskAuthority() throws Exception {
 		Files.writeString(workspace.resolve("workspace.mcreator"), "{}");
 		var authority = new dev.copperbench.automation.security.TaskAuthorizationStore(workspace.resolve("private-fixture"), CLOCK);
@@ -467,6 +593,11 @@ class McpHttpServerTest {
 
 	private static McpWorkspaceEntryAdapter adapter(LocalHistoryService history, Path workspaceRoot,
 			dev.copperbench.automation.security.TaskAuthorizationStore authority) {
+		return adapter(history, workspaceRoot, authority, PermissionProfile.WORKSPACE);
+	}
+
+	private static McpWorkspaceEntryAdapter adapter(LocalHistoryService history, Path workspaceRoot,
+			dev.copperbench.automation.security.TaskAuthorizationStore authority, PermissionProfile permission) {
 		RevisionedWorkspaceStore store = new RevisionedWorkspaceStore();
 		JsonObject generator = new JsonObject();
 		generator.addProperty("id", "fabric-1.21.1");
@@ -486,6 +617,6 @@ class McpHttpServerTest {
 				: new WorkspaceApplicationService(store, new InMemoryWorkspaceTaskGateway(CLOCK, ids),
 						dev.copperbench.core.application.WorkspaceMutationGateway.noOp(), history,
 						ignored -> store.read(WORKSPACE_ID).orElseThrow().copy(), ignored -> workspaceRoot, CLOCK, ids, authority);
-		return new McpWorkspaceEntryAdapter(service, PermissionProfile.WORKSPACE);
+		return new McpWorkspaceEntryAdapter(service, permission);
 	}
 }
