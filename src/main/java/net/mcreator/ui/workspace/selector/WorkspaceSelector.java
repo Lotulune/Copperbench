@@ -175,9 +175,19 @@ public final class WorkspaceSelector extends JFrame implements DropTargetListene
 		// Copperbench 2026-09-13: optional modeling setup must also exist before a workspace is opened.
 		JPanel optionalTools = new JPanel(new BorderLayout(0, 8));
 		optionalTools.setOpaque(false);
-		optionalTools.add(new dev.copperbench.shell.BlockbenchStartupPanel(
+		JPanel alignedModelingSetup = new JPanel(new BorderLayout()) {
+			@Override public Insets getInsets() {
+				Insets insets = super.getInsets();
+				// Match the left edge of the centered workspace actions above.
+				insets.left += Math.max(0, (getWidth() - actions.getPreferredSize().width) / 2);
+				return insets;
+			}
+		};
+		alignedModelingSetup.setOpaque(false);
+		alignedModelingSetup.add(new dev.copperbench.shell.BlockbenchStartupPanel(
 				dev.copperbench.assets.BlockbenchConfiguration.productDefault(),
 				() -> dev.copperbench.shell.BlockbenchStartupPanel.showGuide(this)), BorderLayout.CENTER);
+		optionalTools.add(alignedModelingSetup, BorderLayout.CENTER);
 		optionalTools.add(southSubComponent, BorderLayout.SOUTH);
 		southSubComponent = optionalTools;
 
