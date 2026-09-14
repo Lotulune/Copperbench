@@ -1,3 +1,4 @@
+import { tr } from '../i18n/locale';
 import React from 'react';
 import { ShieldX, RotateCcw } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
@@ -30,14 +31,13 @@ export const SchemaIncompatibleView: React.FC = () => {
         <div className="modal-header" style={{ background: 'var(--badge-red-bg)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--badge-red)', fontWeight: 700 }}>
             <ShieldX size={18} aria-hidden="true" />
-            <span id="schema-incompatible-title">UI-Core 协议不兼容</span>
+            <span id="schema-incompatible-title">{tr("UI-Core 协议不兼容")}</span>
           </div>
         </div>
 
         <div className="modal-body">
           <div style={{ fontSize: '13px', color: 'var(--text-main)', lineHeight: '1.6' }}>
-            启动时的协议版本协商失败。为避免数据损坏，不会回退到无类型的 JSON 通信。
-          </div>
+            {tr("启动时的协议版本协商失败。为避免数据损坏，不会回退到无类型的 JSON 通信。")}</div>
 
           <div
             style={{
@@ -52,10 +52,10 @@ export const SchemaIncompatibleView: React.FC = () => {
               fontFamily: 'var(--font-mono)'
             }}
           >
-            <div><strong>UI 协议版本：</strong>{String(incompatDiagnostic?.message.args?.ui ?? '未知')}</div>
-            <div><strong>Core 协议版本：</strong>{String(incompatDiagnostic?.message.args?.core ?? '未知')}</div>
+            <div><strong>{tr("UI 协议版本：")}</strong>{String(incompatDiagnostic?.message.args?.ui ?? tr("未知"))}</div>
+            <div><strong>{tr("Core 协议版本：")}</strong>{String(incompatDiagnostic?.message.args?.core ?? tr("未知"))}</div>
             <div style={{ color: 'var(--badge-red)' }}>
-              错误：{incompatDiagnostic ? t(incompatDiagnostic.message) : 'UI_CORE_SCHEMA_INCOMPATIBLE'}
+              {tr("错误：")}{incompatDiagnostic ? t(incompatDiagnostic.message) : 'UI_CORE_SCHEMA_INCOMPATIBLE'}
             </div>
           </div>
         </div>
@@ -66,7 +66,7 @@ export const SchemaIncompatibleView: React.FC = () => {
             onClick={() => loadScenario('ready')}
           >
             <RotateCcw size={14} />
-            <span>重置为兼容协议（v1.0）</span>
+            <span>{tr("重置为兼容协议（v1.0）")}</span>
           </button>
         </div>
       </div>

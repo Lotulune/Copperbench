@@ -1,3 +1,4 @@
+import { tr } from '../i18n/locale';
 export const WINDOW_CHROME_SCHEMA_VERSION = '1.0' as const;
 
 export type WindowChromeRegionKind = 'caption' | 'client' | 'minimize' | 'maximize' | 'close';
@@ -93,7 +94,7 @@ class JcefWindowBridge implements WindowBridge {
   public openPreferences(): Promise<void> {
     return this.canOpenPreferences
       ? this.host.invoke('open_preferences')
-      : Promise.reject(new Error('当前桌面版本不支持打开设置，请更新程序。'));
+      : Promise.reject(new Error(tr("当前桌面版本不支持打开设置，请更新程序。")));
   }
 
   public reportChromeRegions(snapshot: WindowChromeSnapshot): void {
@@ -118,7 +119,7 @@ class MockWindowBridge implements WindowBridge {
   public readonly canOpenPreferences = false;
 
   public openPreferences(): Promise<void> {
-    return Promise.reject(new Error('请在桌面应用中打开设置。'));
+    return Promise.reject(new Error(tr("请在桌面应用中打开设置。")));
   }
   public readonly systemFrame = false;
   public readonly canToggleFrame = true;

@@ -1,3 +1,4 @@
+import { tr } from '../i18n/locale';
 import { valueLabel } from '../i18n/labels';
 import React, { useState, useEffect, useMemo } from 'react';
 import {
@@ -35,22 +36,22 @@ interface CriteriaEntry {
 }
 
 const TRIGGER_TYPES = [
-  { value: 'minecraft:inventory_changed', label: '获得指定物品 (inventory_changed)' },
-  { value: 'minecraft:impossible', label: '由函数/命令手动触发 (impossible)' },
-  { value: 'minecraft:player_killed_entity', label: '击杀实体 (player_killed_entity)' },
-  { value: 'minecraft:tick', label: '每刻持续检测 (tick)' },
-  { value: 'minecraft:recipe_unlocked', label: '解锁配方 (recipe_unlocked)' },
-  { value: 'minecraft:consume_item', label: '食用/使用物品 (consume_item)' },
-  { value: 'minecraft:location', label: '到达指定地点/群系 (location)' },
-  { value: 'minecraft:hero_of_the_village', label: '村庄英雄 (hero_of_the_village)' }
+  { value: 'minecraft:inventory_changed', label: tr("获得指定物品 (inventory_changed)") },
+  { value: 'minecraft:impossible', label: tr("由函数/命令手动触发 (impossible)") },
+  { value: 'minecraft:player_killed_entity', label: tr("击杀实体 (player_killed_entity)") },
+  { value: 'minecraft:tick', label: tr("每刻持续检测 (tick)") },
+  { value: 'minecraft:recipe_unlocked', label: tr("解锁配方 (recipe_unlocked)") },
+  { value: 'minecraft:consume_item', label: tr("食用/使用物品 (consume_item)") },
+  { value: 'minecraft:location', label: tr("到达指定地点/群系 (location)") },
+  { value: 'minecraft:hero_of_the_village', label: tr("村庄英雄 (hero_of_the_village)") }
 ];
 
 const BACKGROUND_PRESETS = [
-  { value: 'Default', label: '默认石质背景' },
-  { value: 'textures/gui/advancements/backgrounds/adventure.png', label: '冒险纹理 (Adventure)' },
-  { value: 'textures/gui/advancements/backgrounds/nether.png', label: '下界纹理 (Nether)' },
-  { value: 'textures/gui/advancements/backgrounds/end.png', label: '末地纹理 (End)' },
-  { value: 'textures/gui/advancements/backgrounds/stone.png', label: '平滑石头 (Stone)' }
+  { value: 'Default', label: tr("默认石质背景") },
+  { value: 'textures/gui/advancements/backgrounds/adventure.png', label: tr("冒险纹理 (Adventure)") },
+  { value: 'textures/gui/advancements/backgrounds/nether.png', label: tr("下界纹理 (Nether)") },
+  { value: 'textures/gui/advancements/backgrounds/end.png', label: tr("末地纹理 (End)") },
+  { value: 'textures/gui/advancements/backgrounds/stone.png', label: tr("平滑石头 (Stone)") }
 ];
 
 /**
@@ -187,8 +188,8 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
   const { updateModElement, getModElementEditor, state } = useWorkbench();
 
   const [activeTab, setActiveTab] = useState<AdvancementTab>('display');
-  const [achievementName, setAchievementName] = useState<string>(element.displayName || '新进度');
-  const [achievementDescription, setAchievementDescription] = useState<string>('探索未知领域并制作你的第一个铜制工具。');
+  const [achievementName, setAchievementName] = useState<string>(element.displayName || tr("新进度"));
+  const [achievementDescription, setAchievementDescription] = useState<string>(tr("探索未知领域并制作你的第一个铜制工具。"));
   const [achievementIcon, setAchievementIcon] = useState<string>('minecraft:diamond');
   const [achievementType, setAchievementType] = useState<'task' | 'goal' | 'challenge'>('task');
   const [background, setBackground] = useState<string>('Default');
@@ -296,21 +297,21 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
   const diagnostics = useMemo(() => {
     const diags: string[] = [];
     if (!achievementName.trim()) {
-      diags.push('进度名称 (Title) 不能为空。');
+      diags.push(tr("进度名称 (Title) 不能为空。"));
     }
     if (!achievementIcon.trim()) {
-      diags.push('进度图标 (Icon) 不能为空。');
+      diags.push(tr("进度图标 (Icon) 不能为空。"));
     }
     if (criteria.length === 0) {
-      diags.push('进度必须包含至少一个触发条件 (Criteria)。');
+      diags.push(tr("进度必须包含至少一个触发条件 (Criteria)。"));
     }
     criteria.forEach((crit, idx) => {
       if (!crit.name.trim()) {
-        diags.push(`第 ${idx + 1} 个条件未设置标识符。`);
+        diags.push(tr("第 {0} 个条件未设置标识符。", [idx + 1]));
       }
     });
     if (isParentCycle) {
-      diags.push('检测到循环父级进度依赖，不能将自身或其子级设为父级。');
+      diags.push(tr("检测到循环父级进度依赖，不能将自身或其子级设为父级。"));
     }
     return diags;
   }, [achievementName, achievementIcon, criteria, isParentCycle]);
@@ -328,7 +329,7 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
 
   const handleRemoveCriteria = (critId: string) => {
     if (criteria.length <= 1) {
-      setMessage('进度必须保留至少一个触发条件。');
+      setMessage(tr("进度必须保留至少一个触发条件。"));
       return;
     }
     setCriteria(criteria.filter((c) => c.id !== critId));
@@ -352,7 +353,7 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
 
   const handleSave = async () => {
     if (diagnostics.length > 0) {
-      setMessage(`请先修复配置错误：${diagnostics[0]}`);
+      setMessage(tr("请先修复配置错误：{0}", [diagnostics[0]]));
       return;
     }
 
@@ -386,11 +387,11 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
         setIsDirty(false);
         setTimeout(() => setSaveSuccess(false), 2500);
       } else {
-        setMessage(result.diagnostics[0] ? t(result.diagnostics[0].message) : '保存进度失败。');
+        setMessage(result.diagnostics[0] ? t(result.diagnostics[0].message) : tr("保存进度失败。"));
       }
     } catch {
       setIsSaving(false);
-      setMessage('保存进度时发生错误。');
+      setMessage(tr("保存进度时发生错误。"));
     }
   };
 
@@ -426,12 +427,12 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
             type="button"
             className="btn-secondary"
             onClick={onClose}
-            aria-label="返回元素列表"
+            aria-label={tr("返回元素列表")}
             data-testid="advancement-back-btn"
             style={{ padding: '5px 10px', fontSize: '12px' }}
           >
             <ArrowLeft size={14} />
-            <span>返回</span>
+            <span>{tr("返回")}</span>
           </button>
 
           <div
@@ -454,7 +455,7 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
               <span style={{ fontWeight: 700, fontSize: '14px', color: 'var(--text-main)' }}>
                 {achievementName}
               </span>
-              <span className="badge badge-copper">进度</span>
+              <span className="badge badge-copper">{tr("进度")}</span>
               <span
                 className={`badge badge-${
                   achievementType === 'challenge'
@@ -468,12 +469,11 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
               </span>
               {isDirty && (
                 <span className="badge badge-amber" data-testid="advancement-dirty-badge">
-                  未保存更改
-                </span>
+                  {tr("未保存更改")}</span>
               )}
             </div>
             <div style={{ fontSize: '11px', color: 'var(--text-sub)', fontFamily: 'var(--font-mono)' }}>
-              {element.name} · 父级: {parent === 'root' ? '根进度 (Root)' : parent}
+              {element.name} {tr(" · 父级: ")}{parent === 'root' ? tr("根进度 (Root)") : parent}
             </div>
           </div>
         </div>
@@ -508,7 +508,7 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
             }}
           >
             <Settings size={13} />
-            <span>显示与框架</span>
+            <span>{tr("显示与框架")}</span>
           </button>
 
           <button
@@ -529,7 +529,7 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
             }}
           >
             <Sparkles size={13} />
-            <span>触发条件 ({criteria.length})</span>
+            <span>{tr("触发条件 (")}{criteria.length})</span>
           </button>
 
           <button
@@ -550,7 +550,7 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
             }}
           >
             <Award size={13} />
-            <span>奖励配置</span>
+            <span>{tr("奖励配置")}</span>
           </button>
 
           <button
@@ -571,7 +571,7 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
             }}
           >
             <Eye size={13} />
-            <span>游戏卡片预览</span>
+            <span>{tr("游戏卡片预览")}</span>
           </button>
         </div>
 
@@ -587,8 +587,7 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
                 gap: '4px'
               }}
             >
-              <Check size={14} /> 已保存
-            </span>
+              <Check size={14} /> {tr(" 已保存")}</span>
           )}
           <button
             type="button"
@@ -599,7 +598,7 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
             style={{ fontSize: '12px', minWidth: '90px' }}
           >
             <Save size={14} />
-            <span>{isSaving ? '保存中…' : '保存进度'}</span>
+            <span>{isSaving ? tr("保存中…") : tr("保存进度")}</span>
           </button>
         </div>
       </header>
@@ -655,8 +654,7 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
         {activeTab === 'display' && (
           <div style={{ maxWidth: '780px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <h2 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-main)' }}>
-              显示属性与框架类型
-            </h2>
+              {tr("显示属性与框架类型")}</h2>
 
             {/* Parent Selection with Cycle Protection */}
             <div
@@ -676,11 +674,10 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
                   style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '6px' }}
                 >
                   <Layers size={14} color="var(--accent-copper)" />
-                  <span>父级进度 (Parent Advancement)</span>
+                  <span>{tr("父级进度 (Parent Advancement)")}</span>
                 </label>
                 <span style={{ fontSize: '10px', color: 'var(--text-sub)' }}>
-                  具备循环引用防护
-                </span>
+                  {tr("具备循环引用防护")}</span>
               </div>
               <select
                 id="adv-parent-select"
@@ -692,7 +689,7 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
                 data-testid="advancement-parent-select"
                 style={{ fontSize: '12px' }}
               >
-                <option value="root">根进度 (Root - 无父级，作为标签页起点)</option>
+                <option value="root">{tr("根进度 (Root - 无父级，作为标签页起点)")}</option>
                 {workspaceAdvancements.map((adv) => (
                   <option key={adv.id} value={adv.name}>
                     {adv.displayName} ({adv.name})
@@ -714,7 +711,7 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
               }}
             >
               <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '11px', color: 'var(--text-sub)' }}>
-                <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>进度标题 (Title)</span>
+                <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>{tr("进度标题 (Title)")}</span>
                 <input
                   type="text"
                   value={achievementName}
@@ -727,7 +724,7 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
               </label>
 
               <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '11px', color: 'var(--text-sub)' }}>
-                <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>进度描述 (Description)</span>
+                <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>{tr("进度描述 (Description)")}</span>
                 <textarea
                   rows={3}
                   value={achievementDescription}
@@ -741,7 +738,7 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '14px' }}>
                 <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '11px', color: 'var(--text-sub)' }}>
-                  <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>图标物品 (Icon Item ID)</span>
+                  <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>{tr("图标物品 (Icon Item ID)")}</span>
                   <input
                     type="text"
                     value={achievementIcon}
@@ -756,7 +753,7 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
                 </label>
 
                 <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '11px', color: 'var(--text-sub)' }}>
-                  <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>框架类型 (Frame Type)</span>
+                  <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>{tr("框架类型 (Frame Type)")}</span>
                   <select
                     value={achievementType}
                     onChange={(e) => {
@@ -765,16 +762,16 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
                     }}
                     data-testid="advancement-type-select"
                   >
-                    <option value="task">普通任务 (Task - 方形边框)</option>
-                    <option value="goal">阶段目标 (Goal - 圆角金边)</option>
-                    <option value="challenge">极限挑战 (Challenge - 尖角紫金框)</option>
+                    <option value="task">{tr("普通任务 (Task - 方形边框)")}</option>
+                    <option value="goal">{tr("阶段目标 (Goal - 圆角金边)")}</option>
+                    <option value="challenge">{tr("极限挑战 (Challenge - 尖角紫金框)")}</option>
                   </select>
                 </label>
               </div>
 
               {parent === 'root' && (
                 <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '11px', color: 'var(--text-sub)' }}>
-                  <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>根进度背景纹理 (Background Texture)</span>
+                  <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>{tr("根进度背景纹理 (Background Texture)")}</span>
                   <select
                     value={background}
                     onChange={(e) => {
@@ -815,7 +812,7 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
                   }}
                   data-testid="advancement-popup-toggle"
                 />
-                <span>达成时在右上角弹出通知 (showPopup)</span>
+                <span>{tr("达成时在右上角弹出通知 (showPopup)")}</span>
               </label>
 
               <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', cursor: 'pointer' }}>
@@ -828,7 +825,7 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
                   }}
                   data-testid="advancement-chat-toggle"
                 />
-                <span>在聊天栏通报给全服玩家 (announceToChat)</span>
+                <span>{tr("在聊天栏通报给全服玩家 (announceToChat)")}</span>
               </label>
 
               <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', cursor: 'pointer' }}>
@@ -841,7 +838,7 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
                   }}
                   data-testid="advancement-hidden-toggle"
                 />
-                <span>未达成前隐藏此进度 (hideIfNotCompleted)</span>
+                <span>{tr("未达成前隐藏此进度 (hideIfNotCompleted)")}</span>
               </label>
 
               <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', cursor: 'pointer' }}>
@@ -854,7 +851,7 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
                   }}
                   data-testid="advancement-disable-toggle"
                 />
-                <span>隐藏界面显示（仅作为逻辑条件）</span>
+                <span>{tr("隐藏界面显示（仅作为逻辑条件）")}</span>
               </label>
             </div>
           </div>
@@ -865,11 +862,9 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
                 <h2 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-main)' }}>
-                  触发条件 (Criteria & Triggers)
-                </h2>
+                  {tr("触发条件 (Criteria & Triggers)")}</h2>
                 <p style={{ fontSize: '11px', color: 'var(--text-sub)' }}>
-                  定义玩家如何达成此进度。多个条件默认需要全部满足。
-                </p>
+                  {tr("定义玩家如何达成此进度。多个条件默认需要全部满足。")}</p>
               </div>
               <button
                 type="button"
@@ -879,7 +874,7 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
                 style={{ padding: '4px 10px', fontSize: '11px' }}
               >
                 <Plus size={13} />
-                <span>添加条件</span>
+                <span>{tr("添加条件")}</span>
               </button>
             </div>
 
@@ -901,13 +896,13 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent-copper)' }}>
-                        条件 #{idx + 1}
+                        {tr("条件 #")}{idx + 1}
                       </span>
                       <input
                         type="text"
                         value={crit.name}
                         onChange={(e) => handleUpdateCriteria(crit.id, { name: e.target.value })}
-                        placeholder="条件标识符"
+                        placeholder={tr("条件标识符")}
                         data-testid={`criteria-name-input-${idx}`}
                         style={{ fontSize: '11px', width: '180px', fontFamily: 'var(--font-mono)' }}
                       />
@@ -930,7 +925,7 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
 
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                     <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '10px', color: 'var(--text-sub)' }}>
-                      <span>触发器类型 (Trigger Type)</span>
+                      <span>{tr("触发器类型 (Trigger Type)")}</span>
                       <select
                         value={crit.trigger}
                         onChange={(e) => handleUpdateCriteria(crit.id, { trigger: e.target.value })}
@@ -947,12 +942,12 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
 
                     {crit.trigger === 'minecraft:inventory_changed' && (
                       <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '10px', color: 'var(--text-sub)' }}>
-                        <span>物品要求 (Item ID)</span>
+                        <span>{tr("物品要求 (Item ID)")}</span>
                         <input
                           type="text"
                           value={crit.item || ''}
                           onChange={(e) => handleUpdateCriteria(crit.id, { item: e.target.value })}
-                          placeholder="例如 minecraft:copper_ingot"
+                          placeholder={tr("例如 minecraft:copper_ingot")}
                           data-testid={`criteria-item-input-${idx}`}
                           style={{ fontFamily: 'var(--font-mono)', fontSize: '11px' }}
                         />
@@ -969,11 +964,9 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
           <div style={{ maxWidth: '780px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <div>
               <h2 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-main)' }}>
-                达成奖励 (Advancement Rewards)
-              </h2>
+                {tr("达成奖励 (Advancement Rewards)")}</h2>
               <p style={{ fontSize: '11px', color: 'var(--text-sub)' }}>
-                当玩家达成此进度时，游戏将自动发放经验值、战利品、解锁配方或调用函数。
-              </p>
+                {tr("当玩家达成此进度时，游戏将自动发放经验值、战利品、解锁配方或调用函数。")}</p>
             </div>
 
             <div
@@ -989,7 +982,7 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
             >
               {/* Experience XP */}
               <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '11px', color: 'var(--text-sub)' }}>
-                <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>奖励经验值 (XP)</span>
+                <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>{tr("奖励经验值 (XP)")}</span>
                 <input
                   type="number"
                   min={0}
@@ -1006,7 +999,7 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
 
               {/* Reward Function */}
               <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '11px', color: 'var(--text-sub)' }}>
-                <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>奖励执行函数 (Reward Function)</span>
+                <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>{tr("奖励执行函数 (Reward Function)")}</span>
                 <input
                   type="text"
                   value={rewardFunction}
@@ -1014,7 +1007,7 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
                     setRewardFunction(e.target.value);
                     setIsDirty(true);
                   }}
-                  placeholder="例如 copperbench:reward_celebration"
+                  placeholder={tr("例如 copperbench:reward_celebration")}
                   data-testid="advancement-reward-function-input"
                   style={{ fontFamily: 'var(--font-mono)' }}
                 />
@@ -1023,12 +1016,11 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
               {/* Reward Loot Tables */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-main)' }}>
-                  奖励战利品表 (Reward Loot Tables)
-                </span>
+                  {tr("奖励战利品表 (Reward Loot Tables)")}</span>
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <input
                     type="text"
-                    placeholder="例如 copperbench:chests/bonus_reward"
+                    placeholder={tr("例如 copperbench:chests/bonus_reward")}
                     value={newRewardLoot}
                     onChange={(e) => setNewRewardLoot(e.target.value)}
                     onKeyDown={(e) => {
@@ -1045,7 +1037,7 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
                     data-testid="advancement-reward-loot-add-btn"
                   >
                     <Plus size={13} />
-                    <span>添加战利品表</span>
+                    <span>{tr("添加战利品表")}</span>
                   </button>
                 </div>
 
@@ -1079,11 +1071,9 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
           <div style={{ maxWidth: '640px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <div>
               <h2 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-main)' }}>
-                游戏内进度通知卡片模拟
-              </h2>
+                {tr("游戏内进度通知卡片模拟")}</h2>
               <p style={{ fontSize: '11px', color: 'var(--text-sub)' }}>
-                玩家达成进度时在屏幕右上角弹出的 Toast 视觉预览。
-              </p>
+                {tr("玩家达成进度时在屏幕右上角弹出的 Toast 视觉预览。")}</p>
             </div>
 
             {/* Simulated Minecraft Toast */}
@@ -1144,10 +1134,10 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
                   }}
                 >
                   {achievementType === 'challenge'
-                    ? '极限挑战达成！'
+                    ? tr("极限挑战达成！")
                     : achievementType === 'goal'
-                    ? '目标达成！'
-                    : '进度达成！'}
+                    ? tr("目标达成！")
+                    : tr("进度达成！")}
                 </span>
                 <span style={{ fontSize: '13px', fontWeight: 700, color: '#f5f2ec' }}>
                   {achievementName}

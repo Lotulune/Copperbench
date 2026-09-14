@@ -1,3 +1,4 @@
+import { tr } from '../i18n/locale';
 export const BLOCKBENCH_BRIDGE_SCHEMA_VERSION = '1.0' as const;
 
 export type BlockbenchState = 'unavailable' | 'ready' | 'running' | 'exited' | 'failed';
@@ -61,9 +62,9 @@ class NativeBridge implements BlockbenchBridge {
   public constructor(private readonly host: NativeBlockbenchHost) {}
   public status(): Promise<BlockbenchSnapshot> { return this.host.status(); }
   public selectExecutable(): Promise<{ cancelled: boolean }> {
-    return this.host.selectExecutable?.() ?? Promise.reject(new Error('当前桌面版本不支持安装路径选择。'));
+    return this.host.selectExecutable?.() ?? Promise.reject(new Error(tr("当前桌面版本不支持安装路径选择。")));
   }
-  public dismissSetup(): Promise<void> { return this.host.dismissSetup?.() ?? Promise.reject(new Error('当前桌面版本不支持保存引导偏好。')); }
+  public dismissSetup(): Promise<void> { return this.host.dismissSetup?.() ?? Promise.reject(new Error(tr("当前桌面版本不支持保存引导偏好。"))); }
   public openAsset(assetId: string): Promise<BlockbenchSnapshot> {
     if (!/^asset:[0-9a-f]{64}$/.test(assetId)) {
       return Promise.reject(new Error('INVALID_ASSET_ID'));
@@ -75,7 +76,7 @@ class NativeBridge implements BlockbenchBridge {
 class PreviewBridge implements BlockbenchBridge {
   public readonly available = false;
   public async status(): Promise<BlockbenchSnapshot> { return unavailable(); }
-  public selectExecutable(): Promise<{ cancelled: boolean }> { return Promise.reject(new Error('请在桌面产品中选择安装位置。')); }
+  public selectExecutable(): Promise<{ cancelled: boolean }> { return Promise.reject(new Error(tr("请在桌面产品中选择安装位置。"))); }
   public dismissSetup(): Promise<void> { return Promise.resolve(); }
   public async openAsset(_assetId: string): Promise<BlockbenchSnapshot> { return unavailable(); }
 }

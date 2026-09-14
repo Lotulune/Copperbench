@@ -1,3 +1,4 @@
+import { tr, UI_LOCALE } from '../i18n/locale';
 import { elementLabel, valueLabel } from '../i18n/labels';
 import React from 'react';
 import {
@@ -73,11 +74,9 @@ export const WorkspaceHub: React.FC = () => {
         <div style={{ animation: 'pulseGlow 1.5s infinite', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
           <Sparkles size={36} color="var(--accent-copper)" />
           <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-main)' }}>
-            正在加载工作区投影…
-          </div>
+            {tr("正在加载工作区投影…")}</div>
           <div style={{ fontSize: '12px', color: 'var(--text-sub)' }}>
-            正在协商 UI-Core 协议 v1.0
-          </div>
+            {tr("正在协商 UI-Core 协议 v1.0")}</div>
         </div>
       </div>
     );
@@ -128,7 +127,7 @@ export const WorkspaceHub: React.FC = () => {
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--badge-red)', fontSize: '12px', fontWeight: 600 }}>
                 <AlertTriangle size={15} />
                 <span>
-                  {valueLabel(failedTask.kind)} 任务失败 — {t(failedTask.stage)}
+                  {valueLabel(failedTask.kind)} {tr(" 任务失败 — ")}{t(failedTask.stage)}
                 </span>
               </div>
               <button
@@ -139,8 +138,7 @@ export const WorkspaceHub: React.FC = () => {
                 }}
                 data-testid="open-failed-task-logs-btn"
               >
-                查看任务日志
-              </button>
+                {tr("查看任务日志")}</button>
             </div>
           )}
 
@@ -155,7 +153,7 @@ export const WorkspaceHub: React.FC = () => {
                   {t(diagnostic.message)}
                   {diagnostic.message.args?.failureId != null && (
                     <code style={{ marginLeft: '8px', fontSize: '10px', color: 'var(--text-sub)' }}>
-                      错误编号：{String(diagnostic.message.args.failureId)}
+                      {tr("错误编号：")}{String(diagnostic.message.args.failureId)}
                     </code>
                   )}
                 </div>
@@ -198,26 +196,26 @@ export const WorkspaceHub: React.FC = () => {
             <h1 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-main)' }}>
               {workspace?.name || t({ key: 'workspace.default_name', fallback: 'Minecraft Mod Workspace' })}
             </h1>
-            <span className="badge badge-copper">修订 {workspace?.revision ?? 0}</span>
+            <span className="badge badge-copper">{tr("修订 ")}{workspace?.revision ?? 0}</span>
             <button
               type="button"
               className="badge badge-blue"
               data-testid="hub-tracks-badge"
               onClick={() => setActiveView('tracks')}
               style={{ cursor: 'pointer', border: '1px solid rgba(88, 166, 255, 0.3)' }}
-              title="查看版本轨道与迁移矩阵"
+              title={tr("查看版本轨道与迁移矩阵")}
             >
-              {workspace?.generator?.displayName || '生成器信息不可用'}
+              {workspace?.generator?.displayName || tr("生成器信息不可用")}
             </button>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '12px', color: 'var(--text-muted)' }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
               <Lock size={13} color="var(--badge-green)" />
-              <span>写入锁：{workspace?.lock.state === 'write_available' ? '可用（本机可写）' : '已锁定'}</span>
+              <span>{tr("写入锁：")}{workspace?.lock.state === 'write_available' ? tr("可用（本机可写）") : tr("已锁定")}</span>
             </span>
             <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
               <Cpu size={13} />
-              <span>兼容模式：{valueLabel(workspace?.compatibility.mode ?? 'unknown')}（未知数据保留）</span>
+              <span>{tr("兼容模式：")}{valueLabel(workspace?.compatibility.mode ?? 'unknown')}{tr("（未知数据保留）")}</span>
             </span>
           </div>
         </div>
@@ -230,7 +228,7 @@ export const WorkspaceHub: React.FC = () => {
             data-testid="empty-primary-action"
           >
             <Plus size={14} />
-            <span>新建元素</span>
+            <span>{tr("新建元素")}</span>
           </button>
 
           <button
@@ -239,7 +237,7 @@ export const WorkspaceHub: React.FC = () => {
             data-testid="hub-build-btn"
           >
             <Hammer size={14} />
-            <span>构建模组</span>
+            <span>{tr("构建模组")}</span>
           </button>
         </div>
       </div>
@@ -294,16 +292,14 @@ export const WorkspaceHub: React.FC = () => {
               style={{ fontSize: '11px', padding: '4px 10px' }}
               onClick={() => setIsTaskDrawerOpen(true)}
             >
-              打开控制台日志
-            </button>
+              {tr("打开控制台日志")}</button>
             {activeTasks[0].cancellable && (
               <button
                 className="btn-danger"
                 style={{ fontSize: '11px', padding: '4px 10px' }}
                 onClick={() => cancelTask(activeTasks[0].id)}
               >
-                取消任务
-              </button>
+                {tr("取消任务")}</button>
             )}
           </div>
         </div>
@@ -324,8 +320,7 @@ export const WorkspaceHub: React.FC = () => {
         >
           <div>
             <div style={{ fontSize: '11px', color: 'var(--text-sub)', fontWeight: 600, textTransform: 'uppercase' }}>
-              元素总数
-            </div>
+              {tr("元素总数")}</div>
             <div style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text-main)', marginTop: '4px' }}>
               {elementCounts.total}
             </div>
@@ -346,8 +341,7 @@ export const WorkspaceHub: React.FC = () => {
         >
           <div>
             <div style={{ fontSize: '11px', color: 'var(--text-sub)', fontWeight: 600, textTransform: 'uppercase' }}>
-              有效就绪
-            </div>
+              {tr("有效就绪")}</div>
             <div style={{ fontSize: '24px', fontWeight: 700, color: 'var(--badge-green)', marginTop: '4px' }}>
               {elementCounts.valid}
             </div>
@@ -368,8 +362,7 @@ export const WorkspaceHub: React.FC = () => {
         >
           <div>
             <div style={{ fontSize: '11px', color: 'var(--text-sub)', fontWeight: 600, textTransform: 'uppercase' }}>
-              草稿进行中
-            </div>
+              {tr("草稿进行中")}</div>
             <div style={{ fontSize: '24px', fontWeight: 700, color: 'var(--badge-amber)', marginTop: '4px' }}>
               {elementCounts.draft}
             </div>
@@ -390,8 +383,7 @@ export const WorkspaceHub: React.FC = () => {
         >
           <div>
             <div style={{ fontSize: '11px', color: 'var(--text-sub)', fontWeight: 600, textTransform: 'uppercase' }}>
-              诊断 / 错误
-            </div>
+              {tr("诊断 / 错误")}</div>
             <div style={{ fontSize: '24px', fontWeight: 700, color: elementCounts.invalid > 0 ? 'var(--badge-red)' : 'var(--text-sub)', marginTop: '4px' }}>
               {elementCounts.invalid}
             </div>
@@ -415,15 +407,14 @@ export const WorkspaceHub: React.FC = () => {
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
             <div>
-              <h2 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-main)' }}>项目健康</h2>
+              <h2 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-main)' }}>{tr("项目健康")}</h2>
               <div style={{ marginTop: '4px', fontSize: '11px', color: 'var(--text-sub)' }}>
-                汇总已确认的诊断、引用、资产和任务状态。
-              </div>
+                {tr("汇总已确认的诊断、引用、资产和任务状态。")}</div>
             </div>
-            <span className="badge badge-copper">修订 {workspaceHealth.revision}</span>
+            <span className="badge badge-copper">{tr("修订 ")}{workspaceHealth.revision}</span>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '10px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: UI_LOCALE === 'en' ? 'repeat(auto-fit, minmax(290px, 1fr))' : 'repeat(auto-fit, minmax(220px, 1fr))', gap: '10px' }}>
             <div
               data-testid="workspace-health-diagnostics"
               style={{
@@ -431,8 +422,8 @@ export const WorkspaceHub: React.FC = () => {
                 borderRadius: 'var(--radius-sm)', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
               }}
             >
-              <span>诊断</span>
-              <strong>{workspaceHealth.diagnostics.total} 条 · {workspaceHealth.diagnostics.error} 错误</strong>
+              <span>{tr("诊断")}</span>
+              <strong>{workspaceHealth.diagnostics.total} {tr(" 条 · ")}{workspaceHealth.diagnostics.error} {tr(" 错误")}</strong>
             </div>
             <button
               type="button"
@@ -441,8 +432,8 @@ export const WorkspaceHub: React.FC = () => {
               onClick={() => setActiveView('elements')}
               style={{ justifyContent: 'space-between', minHeight: '58px' }}
             >
-              <span>元素状态</span>
-              <strong>{workspaceHealth.elements.invalid} 无效 · {workspaceHealth.elements.draft} 草稿</strong>
+              <span>{tr("元素状态")}</span>
+              <strong>{workspaceHealth.elements.invalid} {tr(" 无效 · ")}{workspaceHealth.elements.draft} {tr(" 草稿")}</strong>
             </button>
             <button
               type="button"
@@ -451,8 +442,8 @@ export const WorkspaceHub: React.FC = () => {
               onClick={() => setActiveView('data')}
               style={{ justifyContent: 'space-between', minHeight: '58px' }}
             >
-              <span>结构化引用</span>
-              <strong>{workspaceHealth.references.danglingCount} 个断引用</strong>
+              <span>{tr("结构化引用")}</span>
+              <strong>{workspaceHealth.references.danglingCount} {tr(" 个断引用")}</strong>
             </button>
             <button
               type="button"
@@ -461,11 +452,11 @@ export const WorkspaceHub: React.FC = () => {
               onClick={() => setActiveView('assets')}
               style={{ justifyContent: 'space-between', minHeight: '58px' }}
             >
-              <span>资产</span>
+              <span>{tr("资产")}</span>
               <strong>
                 {workspaceHealth.assets.indexed && workspaceHealth.assets.summary
-                  ? `${workspaceHealth.assets.summary.missingReferences} 缺失 · ${workspaceHealth.assets.summary.unusedAssets} 未使用`
-                  : workspaceHealth.assets.reasonCode ?? '未建立索引'}
+                  ? tr("{0} 缺失 · {1} 未使用", [workspaceHealth.assets.summary.missingReferences, workspaceHealth.assets.summary.unusedAssets])
+                  : workspaceHealth.assets.reasonCode ?? tr("未建立索引")}
               </strong>
             </button>
             <button
@@ -475,8 +466,8 @@ export const WorkspaceHub: React.FC = () => {
               onClick={() => setActiveView('tracks')}
               style={{ justifyContent: 'space-between', minHeight: '58px' }}
             >
-              <span>生成器</span>
-              <strong>{valueLabel(workspaceHealth.generator.status)} · {workspaceHealth.generator.generatable ? '可生成' : '不可生成'}</strong>
+              <span>{tr("生成器")}</span>
+              <strong>{valueLabel(workspaceHealth.generator.status)} · {workspaceHealth.generator.generatable ? tr("可生成") : tr("不可生成")}</strong>
             </button>
             <button
               type="button"
@@ -485,8 +476,8 @@ export const WorkspaceHub: React.FC = () => {
               onClick={() => setIsTaskDrawerOpen(true)}
               style={{ justifyContent: 'space-between', minHeight: '58px' }}
             >
-              <span>当前会话任务</span>
-              <strong>{workspaceHealth.tasks.activeCount} 运行中 · {workspaceHealth.tasks.recentFailed.length} 最近失败</strong>
+              <span>{tr("当前会话任务")}</span>
+              <strong>{workspaceHealth.tasks.activeCount} {tr(" 运行中 · ")}{workspaceHealth.tasks.recentFailed.length} {tr(" 最近失败")}</strong>
             </button>
             <button
               type="button"
@@ -495,11 +486,11 @@ export const WorkspaceHub: React.FC = () => {
               onClick={() => setActiveView('history')}
               style={{ justifyContent: 'space-between', minHeight: '58px' }}
             >
-              <span>本地恢复</span>
+              <span>{tr("本地恢复")}</span>
               <strong>
                 {workspaceHealth.recovery.available
-                  ? `${workspaceHealth.recovery.recoveryPointCount} 个恢复点`
-                  : workspaceHealth.recovery.reasonCode ?? '不可用'}
+                  ? tr("{0} 个恢复点", [workspaceHealth.recovery.recoveryPointCount])
+                  : workspaceHealth.recovery.reasonCode ?? tr("不可用")}
               </strong>
             </button>
             <button
@@ -509,11 +500,9 @@ export const WorkspaceHub: React.FC = () => {
               onClick={() => setActiveView('tracks')}
               style={{ justifyContent: 'space-between', minHeight: '58px' }}
             >
-              <span>高风险变更</span>
+              <span>{tr("高风险变更")}</span>
               <strong>
-                {workspaceHealth.risk.loaderMigration.availableTargetCount} 个迁移目标 ·
-                {workspaceHealth.risk.aiBatchChanges.highImpactOperationThreshold}+ 操作标记高影响
-              </strong>
+                {workspaceHealth.risk.loaderMigration.availableTargetCount} {tr(" 个迁移目标 ·")}{workspaceHealth.risk.aiBatchChanges.highImpactOperationThreshold}{tr("+ 操作标记高影响")}</strong>
             </button>
           </div>
         </div>
@@ -535,8 +524,7 @@ export const WorkspaceHub: React.FC = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Clock size={16} color="var(--accent-copper)" />
             <h2 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-main)' }}>
-              近期元素
-            </h2>
+              {tr("近期元素")}</h2>
           </div>
 
           <button
@@ -544,7 +532,7 @@ export const WorkspaceHub: React.FC = () => {
             style={{ fontSize: '11px', padding: '4px 10px' }}
             onClick={() => setActiveView('elements')}
           >
-            <span>查看全部元素</span>
+            <span>{tr("查看全部元素")}</span>
             <ArrowRight size={12} />
           </button>
         </div>
@@ -558,8 +546,7 @@ export const WorkspaceHub: React.FC = () => {
               fontSize: '13px'
             }}
           >
-            此工作区还没有模组元素。点击<strong>新建元素</strong>创建你的第一个方块或物品！
-          </div>
+            {tr("此工作区还没有模组元素。点击")}<strong>{tr("新建元素")}</strong>{tr("创建你的第一个方块或物品！")}</div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {recentElements.map((elem) => (

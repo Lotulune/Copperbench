@@ -1,3 +1,4 @@
+import { tr } from '../i18n/locale';
 import React from 'react';
 import { RotateCcw, AlertTriangle } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
@@ -23,22 +24,20 @@ export const BridgeRecoveryView: React.FC = () => {
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
-        aria-label="渲染桥接异常恢复"
+        aria-label={tr("渲染桥接异常恢复")}
         className="modal-card animate-fade-in"
         style={{ width: '480px' }}
       >
         <div className="modal-header" style={{ background: 'var(--badge-amber-bg)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--badge-amber)', fontWeight: 700 }}>
             <AlertTriangle size={18} />
-            <span>渲染桥接异常恢复</span>
+            <span>{tr("渲染桥接异常恢复")}</span>
           </div>
         </div>
 
         <div className="modal-body">
           <div style={{ fontSize: '13px', color: 'var(--text-main)', lineHeight: '1.6' }}>
-            桌面渲染桥接发生异常重启（{recovery.reasonCode}）。
-            工作区正在按最后一次提交的快照安全恢复，未提交的操作不会被视为已保存。
-          </div>
+            {tr("桌面渲染桥接发生异常重启（")}{recovery.reasonCode}{tr("）。 工作区正在按最后一次提交的快照安全恢复，未提交的操作不会被视为已保存。")}</div>
 
           <div
             style={{
@@ -52,11 +51,10 @@ export const BridgeRecoveryView: React.FC = () => {
               fontSize: '11px'
             }}
           >
-            <div><strong>最后提交修订：</strong> {recovery.lastCommittedRevision}</div>
-            <div><strong>已丢弃的未提交请求：</strong> {recovery.uncommittedRequestIds.length}</div>
+            <div><strong>{tr("最后提交修订：")}</strong> {recovery.lastCommittedRevision}</div>
+            <div><strong>{tr("已丢弃的未提交请求：")}</strong> {recovery.uncommittedRequestIds.length}</div>
             <div style={{ color: 'var(--text-sub)' }}>
-              已提交的数据没有丢失。崩溃前尚未提交的输入已被安全丢弃。
-            </div>
+              {tr("已提交的数据没有丢失。崩溃前尚未提交的输入已被安全丢弃。")}</div>
           </div>
         </div>
 
@@ -67,7 +65,7 @@ export const BridgeRecoveryView: React.FC = () => {
             data-testid="recovery-reconcile-btn"
           >
             <RotateCcw size={14} />
-            <span>恢复并继续工作</span>
+            <span>{tr("恢复并继续工作")}</span>
           </button>
         </div>
       </div>

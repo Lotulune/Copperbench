@@ -1,3 +1,4 @@
+import { tr } from '../i18n/locale';
 import { valueLabel } from '../i18n/labels';
 import React, { useEffect, useRef, useState } from 'react';
 import {
@@ -121,13 +122,13 @@ export const TaskDrawer: React.FC = () => {
       const preview = await previewTaskSource(activeTask.id, action.target);
       if (!preview) {
         setSourcePreview(null);
-        setSourceError('生成源码预览不可用。');
+        setSourceError(tr("生成源码预览不可用。"));
         return;
       }
       setSourcePreview(preview);
     } catch {
       setSourcePreview(null);
-      setSourceError('生成源码预览不可用。');
+      setSourceError(tr("生成源码预览不可用。"));
     } finally {
       setSourceBusy(false);
     }
@@ -159,10 +160,10 @@ export const TaskDrawer: React.FC = () => {
     setDatagenError(null);
     try {
       const preview = await previewDatagenOutput(activeTask.id);
-      if (!preview) setDatagenError('无法读取暂存结果，请确认任务已成功完成。');
+      if (!preview) setDatagenError(tr("无法读取暂存结果，请确认任务已成功完成。"));
       setDatagenPreview(preview);
     } catch {
-      setDatagenError('无法读取暂存结果，请查看任务日志。');
+      setDatagenError(tr("无法读取暂存结果，请查看任务日志。"));
     } finally {
       setDatagenBusy(false);
     }
@@ -178,10 +179,10 @@ export const TaskDrawer: React.FC = () => {
       if (result.status === 'committed' && result.data) {
         setDatagenPreview(result.data as DatagenPreview);
       } else {
-        setDatagenError(result.diagnostics[0] ? t(result.diagnostics[0].message) : '发布失败，工作区未变更。');
+        setDatagenError(result.diagnostics[0] ? t(result.diagnostics[0].message) : tr("发布失败，工作区未变更。"));
       }
     } catch {
-      setDatagenError('发布失败，工作区未变更。');
+      setDatagenError(tr("发布失败，工作区未变更。"));
     } finally {
       setDatagenBusy(false);
     }
@@ -223,7 +224,7 @@ export const TaskDrawer: React.FC = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600, fontSize: '12px', color: 'var(--accent-copper)' }}>
             <Terminal size={14} />
-            <span>任务控制台与日志流</span>
+            <span>{tr("任务控制台与日志流")}</span>
           </div>
 
           {activeTask && (
@@ -246,9 +247,9 @@ export const TaskDrawer: React.FC = () => {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           {activeTask?.kind === 'run_gametest' && activeTask.state === 'failed' &&
-            <button type="button" className="btn-secondary" onClick={() => void prepareGameTests()}>准备测试模板</button>}
+            <button type="button" className="btn-secondary" onClick={() => void prepareGameTests()}>{tr("准备测试模板")}</button>}
           {activeTask?.kind === 'prepare_game_tests' && activeTask.state === 'succeeded' &&
-            <button type="button" className="btn-primary" onClick={() => void runGameTest()}>运行测试</button>}
+            <button type="button" className="btn-primary" onClick={() => void runGameTest()}>{tr("运行测试")}</button>}
           {activeTask?.kind === 'run_datagen' && activeTask.state === 'succeeded' && !datagenPreview && (
             <button
               type="button"
@@ -259,7 +260,7 @@ export const TaskDrawer: React.FC = () => {
               data-testid="datagen-preview-btn"
             >
               {datagenBusy ? <LoaderCircle className="spin" size={13} /> : <FileDiff size={13} />}
-              <span>查看暂存差异</span>
+              <span>{tr("查看暂存差异")}</span>
             </button>
           )}
           {activeTask?.cancellable && (
@@ -270,16 +271,16 @@ export const TaskDrawer: React.FC = () => {
               data-testid="task-cancel-btn"
             >
               <Ban size={12} />
-              <span>取消</span>
+              <span>{tr("取消")}</span>
             </button>
           )}
 
           <button
             type="button"
-            aria-label="关闭日志抽屉"
+            aria-label={tr("关闭日志抽屉")}
             onClick={() => setIsTaskDrawerOpen(false)}
             style={{ padding: '2px 6px', color: 'var(--text-muted)' }}
-            title="关闭日志抽屉"
+            title={tr("关闭日志抽屉")}
             data-testid="task-drawer-close"
           >
             <X size={14} />
@@ -287,29 +288,29 @@ export const TaskDrawer: React.FC = () => {
         </div>
       </div>
 
-      {activeTask?.verification && <section className="gametest-verification" aria-label="GameTest 验收报告">
-        <strong>{activeTask.verification.status === 'pending' ? '测试正在执行' : activeTask.verification.status === 'passed' ? '配置的测试已通过' : '测试尚未通过验收'}</strong>
+      {activeTask?.verification && <section className="gametest-verification" aria-label={tr("GameTest 验收报告")}>
+        <strong>{activeTask.verification.status === 'pending' ? tr("测试正在执行") : activeTask.verification.status === 'passed' ? tr("配置的测试已通过") : tr("测试尚未通过验收")}</strong>
         <dl>{([
-          ['发现', activeTask.verification.discovered], ['执行', activeTask.verification.executed],
-          ['通过', activeTask.verification.passed], ['失败', activeTask.verification.failed], ['跳过', activeTask.verification.skipped]
+          [tr("发现"), activeTask.verification.discovered], [tr("执行"), activeTask.verification.executed],
+          [tr("通过"), activeTask.verification.passed], [tr("失败"), activeTask.verification.failed], [tr("跳过"), activeTask.verification.skipped]
         ] as const).map(([name, count]) => <div key={name}><dt>{name}</dt><dd>{count}</dd></div>)}</dl>
-        {!!activeTask.verification.frameworkTests && <p>其中框架自检 {activeTask.verification.frameworkTests} 个；验收执行 {activeTask.verification.acceptanceExecuted ?? 0} 个。框架自检不计入最低验收数量。</p>}
-        <details><summary>用例与被测内容</summary>
-          <p>结果代码：<code>{activeTask.verification.reasonCode}</code></p>
-          {activeTask.verification.sourceCurrentAtCompletion === false && <p className="test-failure">测试期间工作区已变化，请针对当前内容重新验收。</p>}
-          {activeTask.sourceSnapshot && <p>源码 SHA-256：<code>{activeTask.sourceSnapshot.sha256}</code></p>}
-          {activeTask.verification.artifactSha256 && <p>被测 JAR SHA-256：<code>{activeTask.verification.artifactSha256}</code></p>}
-          {activeTask.verification.verificationPath && <p>报告：<code>{activeTask.verification.verificationPath}</code></p>}
+        {!!activeTask.verification.frameworkTests && <p>{tr("其中框架自检 ")}{activeTask.verification.frameworkTests} {tr(" 个；验收执行 ")}{activeTask.verification.acceptanceExecuted ?? 0} {tr(" 个。框架自检不计入最低验收数量。")}</p>}
+        <details><summary>{tr("用例与被测内容")}</summary>
+          <p>{tr("结果代码：")}<code>{activeTask.verification.reasonCode}</code></p>
+          {activeTask.verification.sourceCurrentAtCompletion === false && <p className="test-failure">{tr("测试期间工作区已变化，请针对当前内容重新验收。")}</p>}
+          {activeTask.sourceSnapshot && <p>{tr("源码 SHA-256：")}<code>{activeTask.sourceSnapshot.sha256}</code></p>}
+          {activeTask.verification.artifactSha256 && <p>{tr("被测 JAR SHA-256：")}<code>{activeTask.verification.artifactSha256}</code></p>}
+          {activeTask.verification.verificationPath && <p>{tr("报告：")}<code>{activeTask.verification.verificationPath}</code></p>}
           <ul>{activeTask.verification.cases.slice(0, 100).map((test, index) => <li key={`${test.className}.${test.name}.${index}`}>
-            {test.status === 'passed' ? '通过' : test.status === 'failed' ? '失败' : '跳过'} · {test.className}.{test.name}
-            {test.scope === 'framework' && '（框架自检）'}
+            {test.status === 'passed' ? tr("通过") : test.status === 'failed' ? tr("失败") : tr("跳过")} · {test.className}.{test.name}
+            {test.scope === 'framework' && tr("（框架自检）")}
             {test.message && <p className="test-failure">{test.message}</p>}
           </li>)}</ul>
-          {activeTask.verification.cases.length > 100 && <p>此处显示前 100 个用例，完整结果见报告文件。</p>}
+          {activeTask.verification.cases.length > 100 && <p>{tr("此处显示前 100 个用例，完整结果见报告文件。")}</p>}
         </details>
       </section>}
-      {activeTask?.gameTestSetup && <section className="gametest-verification" aria-label="GameTest 模板">
-        <strong>测试入口已准备</strong><p>初始用例只检查模组加载。请补充玩法断言后，再将结果作为玩法验收证据。</p>
+      {activeTask?.gameTestSetup && <section className="gametest-verification" aria-label={tr("GameTest 模板")}>
+        <strong>{tr("测试入口已准备")}</strong><p>{tr("初始用例只检查模组加载。请补充玩法断言后，再将结果作为玩法验收证据。")}</p>
         <code>{activeTask.gameTestSetup.configurationPath}</code>
       </section>}
 
@@ -329,8 +330,8 @@ export const TaskDrawer: React.FC = () => {
           <div style={{ minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: 600 }}>
               {datagenPreview?.published ? <CheckCircle2 size={14} color="var(--badge-green)" /> : <FileDiff size={14} />}
-              <span>{datagenPreview?.published ? '生成结果已发布' : `暂存差异 ${datagenPreview?.changeCount ?? 0} 项`}</span>
-              {datagenPreview?.stale && <span className="badge badge-red">修订已过期</span>}
+              <span>{datagenPreview?.published ? tr("生成结果已发布") : tr("暂存差异 {0} 项", [datagenPreview?.changeCount ?? 0])}</span>
+              {datagenPreview?.stale && <span className="badge badge-red">{tr("修订已过期")}</span>}
             </div>
             {datagenPreview && (
               <div style={{ marginTop: '6px', maxHeight: '48px', overflowY: 'auto', fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--text-muted)' }}>
@@ -353,10 +354,10 @@ export const TaskDrawer: React.FC = () => {
               onClick={() => setConfirmPublish(true)}
               disabled={datagenBusy || datagenPreview.stale}
               data-testid="datagen-publish-btn"
-              title="校验当前修订与预览哈希后写入工作区"
+              title={tr("校验当前修订与预览哈希后写入工作区")}
             >
               {datagenBusy ? <LoaderCircle className="spin" size={14} /> : <Upload size={14} />}
-              <span>发布到工作区</span>
+              <span>{tr("发布到工作区")}</span>
             </button>
           )}
         </section>
@@ -408,7 +409,7 @@ export const TaskDrawer: React.FC = () => {
       {diagnostics.length > 0 && (
         <section
           data-testid="task-diagnostics"
-          aria-label="任务诊断"
+          aria-label={tr("任务诊断")}
           style={{
             padding: '10px 16px',
             borderBottom: '1px solid var(--border-subtle)',
@@ -464,7 +465,7 @@ export const TaskDrawer: React.FC = () => {
       {(sourcePreview || sourceError) && (
         <section
           data-testid="task-source-preview"
-          aria-label="生成源码预览"
+          aria-label={tr("生成源码预览")}
           style={{
             borderBottom: '1px solid var(--border-subtle)',
             background: 'var(--bg-input)',
@@ -476,7 +477,7 @@ export const TaskDrawer: React.FC = () => {
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', padding: '7px 12px', borderBottom: '1px solid var(--border-subtle)' }}>
             <div style={{ minWidth: 0, fontSize: '11px' }}>
-              <strong>生成源码</strong>
+              <strong>{tr("生成源码")}</strong>
               {sourcePreview && (
                 <code style={{ marginLeft: '8px', color: 'var(--text-sub)' }}>
                   {sourcePreview.path}{sourcePreview.line > 0 ? `:${sourcePreview.line}` : ''}
@@ -490,8 +491,7 @@ export const TaskDrawer: React.FC = () => {
               data-testid="task-source-preview-close"
               style={{ minHeight: '32px', padding: '4px 9px' }}
             >
-              关闭
-            </button>
+              {tr("关闭")}</button>
           </div>
           {sourceError ? (
             <div data-testid="task-source-error" style={{ padding: '12px', color: 'var(--badge-red)', fontSize: '11px' }}>{sourceError}</div>
@@ -527,8 +527,7 @@ export const TaskDrawer: React.FC = () => {
       >
         {logs.length === 0 ? (
           <div style={{ color: 'var(--text-sub)', fontStyle: 'italic' }}>
-            暂无任务输出日志。
-          </div>
+            {tr("暂无任务输出日志。")}</div>
         ) : (
           logs.map((entry, idx) => (
             <div
@@ -594,12 +593,11 @@ export const TaskDrawer: React.FC = () => {
               padding: '18px'
             }}
           >
-            <h2 id="datagen-publish-title" style={{ margin: 0, fontSize: '16px' }}>发布数据生成结果</h2>
+            <h2 id="datagen-publish-title" style={{ margin: 0, fontSize: '16px' }}>{tr("发布数据生成结果")}</h2>
             <p style={{ margin: '10px 0 16px', color: 'var(--text-muted)', fontSize: '12px', lineHeight: 1.6 }}>
-              将 {datagenPreview.changeCount} 个暂存文件写入当前工作区。发布前会创建恢复点，并再次校验工作区修订和清单哈希。
-            </p>
+              {tr("将 ")}{datagenPreview.changeCount} {tr(" 个暂存文件写入当前工作区。发布前会创建恢复点，并再次校验工作区修订和清单哈希。")}</p>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-              <button type="button" className="btn-secondary" onClick={() => setConfirmPublish(false)}>取消</button>
+              <button type="button" className="btn-secondary" onClick={() => setConfirmPublish(false)}>{tr("取消")}</button>
               <button
                 type="button"
                 className="btn-primary"
@@ -607,7 +605,7 @@ export const TaskDrawer: React.FC = () => {
                 data-testid="datagen-confirm-publish"
               >
                 <Upload size={14} />
-                <span>确认发布</span>
+                <span>{tr("确认发布")}</span>
               </button>
             </div>
           </div>

@@ -1,3 +1,4 @@
+import { tr } from '../i18n/locale';
 export interface NativeDiagnosticsHost {
   readonly available: boolean;
   openLogs(failureId: string): Promise<void>;
@@ -44,11 +45,11 @@ class UnavailableDiagnosticsBridge implements DiagnosticsBridge {
   public readonly available = false;
 
   public openLogs(_failureId: string): Promise<void> {
-    return Promise.reject(new Error('应用日志仅可在桌面宿主中打开'));
+    return Promise.reject(new Error(tr("应用日志仅可在桌面宿主中打开")));
   }
 
   public exportBundle(_includeWorkspaceFiles: boolean, _failureId?: string): Promise<DiagnosticBundleResult> {
-    return Promise.reject(new Error('诊断包仅可在桌面宿主中导出'));
+    return Promise.reject(new Error(tr("诊断包仅可在桌面宿主中导出")));
   }
 }
 

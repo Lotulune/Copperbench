@@ -1,3 +1,4 @@
+import { tr } from '../i18n/locale';
 import { useTheme, ThemePreference } from '../hooks/useTheme';
 import React, { createContext, useContext, useEffect, useState, useMemo, useCallback } from 'react';
 import {
@@ -347,7 +348,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       });
       if (res.status !== 'succeeded' || !res.data) {
         const diagnostic = res.diagnostics[0];
-        throw new Error(diagnostic ? t(diagnostic.message) : '资产批量导入预览失败。');
+        throw new Error(diagnostic ? t(diagnostic.message) : tr("资产批量导入预览失败。"));
       }
       return res.data as AssetImportBatchPreview;
     },
@@ -384,7 +385,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       });
       if (res.status !== 'succeeded' || !res.data) {
         const diagnostic = res.diagnostics[0];
-        throw new Error(diagnostic ? t(diagnostic.message) : '资产移动预览失败。');
+        throw new Error(diagnostic ? t(diagnostic.message) : tr("资产移动预览失败。"));
       }
       return res.data as AssetMovePreview;
     },
@@ -751,7 +752,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       messageType: 'query', schemaVersion: '1.0', requestId: generateUUID(),
       workspaceId: state.workbench?.workspace.id || generateUUID(), operation: 'list_task_authorizations', payload: {}
     });
-    if (result.status !== 'succeeded' || !result.data) throw new Error(t(result.diagnostics[0]?.message ?? '无法读取任务授权'));
+    if (result.status !== 'succeeded' || !result.data) throw new Error(t(result.diagnostics[0]?.message ?? tr("无法读取任务授权")));
     return result.data.authorizations;
   }, [state.workbench?.workspace.id]);
 
@@ -1085,7 +1086,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       });
       if (res.status !== 'succeeded' || !res.data) {
         const diagnostic = res.diagnostics[0];
-        throw new Error(diagnostic ? t(diagnostic.message) : '资产导入预览失败。');
+        throw new Error(diagnostic ? t(diagnostic.message) : tr("资产导入预览失败。"));
       }
       return res.data as AssetImportPreview;
     },
@@ -1169,7 +1170,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     });
     if (res.status !== 'succeeded' || !res.data) {
       const diagnostic = res.diagnostics[0];
-      throw new Error(diagnostic ? t(diagnostic.message) : '生成器目录无法加载。');
+      throw new Error(diagnostic ? t(diagnostic.message) : tr("生成器目录无法加载。"));
     }
     return res.data as NewWorkspaceGeneratorCatalog;
     },
@@ -1225,10 +1226,10 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           } else {
             const failureId = action.target ?? String(diagnostic.message.args?.failureId ?? '');
             void diagnosticsBridge.openLogs(failureId)
-              .then(() => setAnnouncement(`已打开应用日志，请搜索错误编号 ${failureId}`))
+              .then(() => setAnnouncement(tr("已打开应用日志，请搜索错误编号 {0}", [failureId])))
               .catch(() => {
                 if (failureId && navigator.clipboard) void navigator.clipboard.writeText(failureId);
-                setAnnouncement(`无法在当前宿主中打开应用日志，错误编号 ${failureId} 已复制`);
+                setAnnouncement(tr("无法在当前宿主中打开应用日志，错误编号 {0} 已复制", [failureId]));
               });
           }
           break;

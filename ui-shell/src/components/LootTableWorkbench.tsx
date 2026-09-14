@@ -1,3 +1,4 @@
+import { tr } from '../i18n/locale';
 import { valueLabel } from '../i18n/labels';
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
@@ -24,16 +25,16 @@ interface LootTableWorkbenchProps {
 }
 
 const LOOT_TYPES = [
-  { value: 'Block', label: '方块掉落 (Block)' },
-  { value: 'Entity', label: '实体掉落 (Entity)' },
-  { value: 'Chest', label: '战利品箱 (Chest)' },
-  { value: 'Generic', label: '通用 (Generic)' },
-  { value: 'Fishing', label: '钓鱼收获 (Fishing)' },
-  { value: 'Advancement reward', label: '进度奖励 (Advancement reward)' },
-  { value: 'Gift', label: '村民/猫礼物 (Gift)' },
-  { value: 'Barter', label: '猪灵以物易物 (Barter)' },
-  { value: 'Archaeology', label: '考古刷取 (Archaeology)' },
-  { value: 'Empty', label: '空战利品表 (Empty)' }
+  { value: 'Block', label: tr("方块掉落 (Block)") },
+  { value: 'Entity', label: tr("实体掉落 (Entity)") },
+  { value: 'Chest', label: tr("战利品箱 (Chest)") },
+  { value: 'Generic', label: tr("通用 (Generic)") },
+  { value: 'Fishing', label: tr("钓鱼收获 (Fishing)") },
+  { value: 'Advancement reward', label: tr("进度奖励 (Advancement reward)") },
+  { value: 'Gift', label: tr("村民/猫礼物 (Gift)") },
+  { value: 'Barter', label: tr("猪灵以物易物 (Barter)") },
+  { value: 'Archaeology', label: tr("考古刷取 (Archaeology)") },
+  { value: 'Empty', label: tr("空战利品表 (Empty)") }
 ];
 
 const COMMON_ITEMS = [
@@ -79,7 +80,7 @@ interface LootPool {
   entries: LootEntry[];
 }
 
-function createDefaultPool(name = '战利品池 1'): LootPool {
+function createDefaultPool(name = tr("战利品池 1")): LootPool {
   return {
     id: 'pool_' + Math.random().toString(36).substring(2, 9),
     name,
@@ -134,7 +135,7 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
       if (poolsField && Array.isArray(poolsField.value) && poolsField.value.length > 0) {
         const normalized = (poolsField.value as Array<Record<string, unknown>>).map((p, idx) => ({
           id: typeof p.id === 'string' ? p.id : `pool_${idx + 1}`,
-          name: typeof p.name === 'string' ? p.name : `战利品池 ${idx + 1}`,
+          name: typeof p.name === 'string' ? p.name : tr("战利品池 {0}", [idx + 1]),
           minrolls: typeof p.minrolls === 'number' ? p.minrolls : (typeof p.minRolls === 'number' ? p.minRolls : 1),
           maxrolls: typeof p.maxrolls === 'number' ? p.maxrolls : (typeof p.maxRolls === 'number' ? p.maxRolls : 1),
           hasbonusrolls: typeof p.hasbonusrolls === 'boolean' ? p.hasbonusrolls : (typeof p.hasBonusRolls === 'boolean' ? p.hasBonusRolls : false),
@@ -160,27 +161,27 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
   const diagnostics = useMemo(() => {
     const diags: string[] = [];
     if (pools.length === 0) {
-      diags.push('战利品表必须包含至少一个战利品池。');
+      diags.push(tr("战利品表必须包含至少一个战利品池。"));
     }
     pools.forEach((pool, pIdx) => {
       if (pool.minrolls > pool.maxrolls) {
-        diags.push(`池「${pool.name}」（第 ${pIdx + 1} 个）：最大掷骰次数 (${pool.maxrolls}) 不能小于最小掷骰次数 (${pool.minrolls})。`);
+        diags.push(tr("池「{0}」（第 {1} 个）：最大掷骰次数 ({2}) 不能小于最小掷骰次数 ({3})。", [pool.name, pIdx + 1, pool.maxrolls, pool.minrolls]));
       }
       if (pool.hasbonusrolls && pool.minbonusrolls > pool.maxbonusrolls) {
-        diags.push(`池「${pool.name}」：额外掷骰最大值不能小于最小值。`);
+        diags.push(tr("池「{0}」：额外掷骰最大值不能小于最小值。", [pool.name]));
       }
       if (pool.entries.length === 0) {
-        diags.push(`池「${pool.name}」必须包含至少一个物品条目。`);
+        diags.push(tr("池「{0}」必须包含至少一个物品条目。", [pool.name]));
       }
       pool.entries.forEach((entry, eIdx) => {
         if (!entry.item.trim()) {
-          diags.push(`池「${pool.name}」的第 ${eIdx + 1} 个条目未指定物品标识符。`);
+          diags.push(tr("池「{0}」的第 {1} 个条目未指定物品标识符。", [pool.name, eIdx + 1]));
         }
         if (entry.weight < 1) {
-          diags.push(`池「${pool.name}」的条目「${entry.item}」权重必须大于等于 1。`);
+          diags.push(tr("池「{0}」的条目「{1}」权重必须大于等于 1。", [pool.name, entry.item]));
         }
         if (entry.minCount > entry.maxCount) {
-          diags.push(`池「${pool.name}」的条目「${entry.item}」最大数量不能小于最小数量。`);
+          diags.push(tr("池「{0}」的条目「{1}」最大数量不能小于最小数量。", [pool.name, entry.item]));
         }
       });
     });
@@ -198,7 +199,7 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
   }, []);
 
   const handleAddPool = () => {
-    const newP = createDefaultPool(`战利品池 ${pools.length + 1}`);
+    const newP = createDefaultPool(tr("战利品池 {0}", [pools.length + 1]));
     setPools([...pools, newP]);
     setSelectedPoolIndex(pools.length);
     setIsDirty(true);
@@ -210,7 +211,7 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
     const duplicated: LootPool = {
       ...JSON.parse(JSON.stringify(target)),
       id: 'pool_' + Math.random().toString(36).substring(2, 9),
-      name: `${target.name} (副本)`
+      name: tr("{0} (副本)", [target.name])
     };
     setPools([...pools, duplicated]);
     setSelectedPoolIndex(pools.length);
@@ -219,7 +220,7 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
 
   const handleDeletePool = (index: number) => {
     if (pools.length <= 1) {
-      setMessage('战利品表必须保留至少一个战利品池。');
+      setMessage(tr("战利品表必须保留至少一个战利品池。"));
       return;
     }
     const filtered = pools.filter((_, i) => i !== index);
@@ -251,7 +252,7 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
 
   const handleDeleteEntry = (entryId: string) => {
     if (!selectedPool || selectedPool.entries.length <= 1) {
-      setMessage('每个战利品池必须保留至少一个条目。');
+      setMessage(tr("每个战利品池必须保留至少一个条目。"));
       return;
     }
     updatePool(selectedPoolIndex, (p: LootPool) => ({
@@ -361,7 +362,7 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
 
   const handleSave = async () => {
     if (diagnostics.length > 0) {
-      setMessage(`请先解决配置错误：${diagnostics[0]}`);
+      setMessage(tr("请先解决配置错误：{0}", [diagnostics[0]]));
       return;
     }
 
@@ -396,11 +397,11 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
         setIsDirty(false);
         setTimeout(() => setSaveSuccess(false), 2500);
       } else {
-        setMessage(result.diagnostics[0] ? t(result.diagnostics[0].message) : '保存战利品表失败。');
+        setMessage(result.diagnostics[0] ? t(result.diagnostics[0].message) : tr("保存战利品表失败。"));
       }
     } catch {
       setIsSaving(false);
-      setMessage('保存战利品表时发生错误。');
+      setMessage(tr("保存战利品表时发生错误。"));
     }
   };
 
@@ -436,12 +437,12 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
             type="button"
             className="btn-secondary"
             onClick={onClose}
-            aria-label="返回元素列表"
+            aria-label={tr("返回元素列表")}
             data-testid="loottable-back-btn"
             style={{ padding: '5px 10px', fontSize: '12px' }}
           >
             <ArrowLeft size={14} />
-            <span>返回</span>
+            <span>{tr("返回")}</span>
           </button>
 
           <div
@@ -464,14 +465,13 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
               <span style={{ fontWeight: 700, fontSize: '14px', color: 'var(--text-main)' }}>
                 {element.displayName}
               </span>
-              <span className="badge badge-copper">战利品表</span>
+              <span className="badge badge-copper">{tr("战利品表")}</span>
               <span className={`badge badge-${element.state === 'valid' ? 'green' : 'amber'}`}>
                 {valueLabel(element.state)}
               </span>
               {isDirty && (
                 <span className="badge badge-amber" data-testid="loottable-dirty-badge">
-                  未保存更改
-                </span>
+                  {tr("未保存更改")}</span>
               )}
             </div>
             <div style={{ fontSize: '11px', color: 'var(--text-sub)', fontFamily: 'var(--font-mono)' }}>
@@ -484,8 +484,7 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <span style={{ fontSize: '11px', color: 'var(--text-sub)', fontWeight: 600 }}>
-              掉落类型:
-            </span>
+              {tr("掉落类型:")}</span>
             <select
               value={lootType}
               onChange={(e) => {
@@ -531,7 +530,7 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
               }}
             >
               <Sliders size={13} />
-              <span>结构化设计器</span>
+              <span>{tr("结构化设计器")}</span>
             </button>
             <button
               type="button"
@@ -551,7 +550,7 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
               }}
             >
               <Code2 size={13} />
-              <span>JSON 预览</span>
+              <span>{tr("JSON 预览")}</span>
             </button>
           </div>
         </div>
@@ -568,8 +567,7 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
                 gap: '4px'
               }}
             >
-              <Check size={14} /> 已保存
-            </span>
+              <Check size={14} /> {tr(" 已保存")}</span>
           )}
           <button
             type="button"
@@ -580,7 +578,7 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
             style={{ fontSize: '12px', minWidth: '90px' }}
           >
             <Save size={14} />
-            <span>{isSaving ? '保存中…' : '保存战利品表'}</span>
+            <span>{isSaving ? tr("保存中…") : tr("保存战利品表")}</span>
           </button>
         </div>
       </header>
@@ -656,7 +654,7 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
               >
                 <div style={{ fontWeight: 700, fontSize: '12px', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <Layers size={14} />
-                  <span>战利品池 ({pools.length})</span>
+                  <span>{tr("战利品池 (")}{pools.length})</span>
                 </div>
                 <button
                   type="button"
@@ -666,7 +664,7 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
                   style={{ padding: '3px 8px', fontSize: '11px' }}
                 >
                   <Plus size={13} />
-                  <span>添加池</span>
+                  <span>{tr("添加池")}</span>
                 </button>
               </div>
 
@@ -697,12 +695,10 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
                           {pool.name}
                         </span>
                         <span className="badge badge-copper" style={{ fontSize: '9px' }}>
-                          {pool.entries.length} 个条目
-                        </span>
+                          {pool.entries.length} {tr(" 个条目")}</span>
                       </div>
                       <div style={{ fontSize: '10px', color: 'var(--text-sub)' }}>
-                        掷骰: {pool.minrolls === pool.maxrolls ? pool.minrolls : `${pool.minrolls} ~ ${pool.maxrolls}`} 次
-                      </div>
+                        {tr("掷骰: ")}{pool.minrolls === pool.maxrolls ? pool.minrolls : `${pool.minrolls} ~ ${pool.maxrolls}`} {tr(" 次")}</div>
                     </button>
                   );
                 })}
@@ -727,8 +723,7 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <span style={{ fontWeight: 700, fontSize: '13px', color: 'var(--text-main)' }}>
-                        池配置
-                      </span>
+                        {tr("池配置")}</span>
                       <input
                         type="text"
                         value={selectedPool.name}
@@ -742,23 +737,23 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
                         type="button"
                         className="btn-secondary"
                         onClick={() => handleDuplicatePool(selectedPoolIndex)}
-                        title="复制此战利品池"
+                        title={tr("复制此战利品池")}
                         data-testid="duplicate-pool-btn"
                         style={{ padding: '3px 8px', fontSize: '11px' }}
                       >
                         <Copy size={12} />
-                        <span>复制池</span>
+                        <span>{tr("复制池")}</span>
                       </button>
                       <button
                         type="button"
                         className="btn-danger"
                         onClick={() => handleDeletePool(selectedPoolIndex)}
-                        title="删除此战利品池"
+                        title={tr("删除此战利品池")}
                         data-testid="delete-pool-btn"
                         style={{ padding: '3px 8px', fontSize: '11px' }}
                       >
                         <Trash2 size={12} />
-                        <span>删除池</span>
+                        <span>{tr("删除池")}</span>
                       </button>
                     </div>
                   </div>
@@ -766,7 +761,7 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
                   {/* Rolls configuration */}
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
                     <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '11px', color: 'var(--text-sub)' }}>
-                      <span>最小掷骰次数 (minrolls)</span>
+                      <span>{tr("最小掷骰次数 (minrolls)")}</span>
                       <input
                         type="number"
                         min={0}
@@ -778,7 +773,7 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
                     </label>
 
                     <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '11px', color: 'var(--text-sub)' }}>
-                      <span>最大掷骰次数 (maxrolls)</span>
+                      <span>{tr("最大掷骰次数 (maxrolls)")}</span>
                       <input
                         type="number"
                         min={0}
@@ -796,13 +791,13 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
                         onChange={(e) => updatePool(selectedPoolIndex, (p: LootPool) => ({ ...p, hasbonusrolls: e.target.checked }))}
                         data-testid="pool-hasbonusrolls-toggle"
                       />
-                      <span>启用额外掷骰 (Bonus Rolls)</span>
+                      <span>{tr("启用额外掷骰 (Bonus Rolls)")}</span>
                     </label>
 
                     {selectedPool.hasbonusrolls && (
                       <div style={{ display: 'flex', gap: '8px' }}>
                         <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '11px', color: 'var(--text-sub)' }}>
-                          <span>最小额外 (min)</span>
+                          <span>{tr("最小额外 (min)")}</span>
                           <input
                             type="number"
                             min={0}
@@ -811,7 +806,7 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
                           />
                         </label>
                         <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '11px', color: 'var(--text-sub)' }}>
-                          <span>最大额外 (max)</span>
+                          <span>{tr("最大额外 (max)")}</span>
                           <input
                             type="number"
                             min={0}
@@ -829,11 +824,10 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div>
                       <h3 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-main)' }}>
-                        物品掉落条目 ({selectedPool.entries.length})
+                        {tr("物品掉落条目 (")}{selectedPool.entries.length})
                       </h3>
                       <p style={{ fontSize: '11px', color: 'var(--text-sub)' }}>
-                        池掷骰时将根据权重随机选择物品条目发放。
-                      </p>
+                        {tr("池掷骰时将根据权重随机选择物品条目发放。")}</p>
                     </div>
                     <button
                       type="button"
@@ -843,7 +837,7 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
                       style={{ padding: '4px 10px', fontSize: '11px' }}
                     >
                       <Plus size={13} />
-                      <span>添加物品条目</span>
+                      <span>{tr("添加物品条目")}</span>
                     </button>
                   </div>
 
@@ -871,14 +865,13 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
                             </span>
                             <div style={{ display: 'flex', flexDirection: 'column', flex: 1, gap: '3px' }}>
                               <label style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-sub)' }}>
-                                物品标识符 (Item ID)
-                              </label>
+                                {tr("物品标识符 (Item ID)")}</label>
                               <input
                                 type="text"
                                 list="common-items-list"
                                 value={entry.item}
                                 onChange={(e) => handleUpdateEntry(entry.id, { item: e.target.value })}
-                                placeholder="minecraft:diamond 或 mod:copper_item"
+                                placeholder={tr("minecraft:diamond 或 mod:copper_item")}
                                 data-testid={`entry-item-input-${eIdx}`}
                                 style={{ fontFamily: 'var(--font-mono)', fontSize: '12px' }}
                               />
@@ -891,7 +884,7 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
                           </div>
 
                           <label style={{ display: 'flex', flexDirection: 'column', gap: '3px', width: '90px', fontSize: '10px', color: 'var(--text-sub)' }}>
-                            <span>权重 (Weight)</span>
+                            <span>{tr("权重 (Weight)")}</span>
                             <input
                               type="number"
                               min={1}
@@ -905,7 +898,7 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
                           <button
                             type="button"
                             onClick={() => handleDeleteEntry(entry.id)}
-                            aria-label={`删除条目 ${entry.item}`}
+                            aria-label={tr("删除条目 {0}", [entry.item])}
                             data-testid={`entry-delete-btn-${eIdx}`}
                             style={{
                               background: 'none',
@@ -924,7 +917,7 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
                         {/* Middle row: Count range & Enchantment level */}
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px' }}>
                           <label style={{ display: 'flex', flexDirection: 'column', gap: '3px', fontSize: '10px', color: 'var(--text-sub)' }}>
-                            <span>最小数量 (minCount)</span>
+                            <span>{tr("最小数量 (minCount)")}</span>
                             <input
                               type="number"
                               min={1}
@@ -936,7 +929,7 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
                           </label>
 
                           <label style={{ display: 'flex', flexDirection: 'column', gap: '3px', fontSize: '10px', color: 'var(--text-sub)' }}>
-                            <span>最大数量 (maxCount)</span>
+                            <span>{tr("最大数量 (maxCount)")}</span>
                             <input
                               type="number"
                               min={1}
@@ -948,16 +941,16 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
                           </label>
 
                           <label style={{ display: 'flex', flexDirection: 'column', gap: '3px', fontSize: '10px', color: 'var(--text-sub)' }}>
-                            <span>精准采集模式</span>
+                            <span>{tr("精准采集模式")}</span>
                             <select
                               value={entry.silkTouchMode}
                               onChange={(e) => handleUpdateEntry(entry.id, { silkTouchMode: parseInt(e.target.value) || 0 })}
                               data-testid={`entry-silktouch-${eIdx}`}
                               style={{ fontSize: '11px' }}
                             >
-                              <option value={0}>忽略精准采集</option>
-                              <option value={1}>仅精准采集时掉落</option>
-                              <option value={2}>仅非精准采集时掉落</option>
+                              <option value={0}>{tr("忽略精准采集")}</option>
+                              <option value={1}>{tr("仅精准采集时掉落")}</option>
+                              <option value={2}>{tr("仅非精准采集时掉落")}</option>
                             </select>
                           </label>
 
@@ -969,7 +962,7 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
                                 onChange={(e) => handleUpdateEntry(entry.id, { affectedByFortune: e.target.checked })}
                                 data-testid={`entry-fortune-${eIdx}`}
                               />
-                              <span>受时运影响 (Fortune)</span>
+                              <span>{tr("受时运影响 (Fortune)")}</span>
                             </label>
                             <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', cursor: 'pointer' }}>
                               <input
@@ -978,7 +971,7 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
                                 onChange={(e) => handleUpdateEntry(entry.id, { explosionDecay: e.target.checked })}
                                 data-testid={`entry-explosion-${eIdx}`}
                               />
-                              <span>爆炸衰减 (Explosion)</span>
+                              <span>{tr("爆炸衰减 (Explosion)")}</span>
                             </label>
                           </div>
                         </div>
@@ -995,11 +988,9 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
                 <h3 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-main)' }}>
-                  生成的 Minecraft 战利品表数据包格式
-                </h3>
+                  {tr("生成的 Minecraft 战利品表数据包格式")}</h3>
                 <p style={{ fontSize: '11px', color: 'var(--text-sub)' }}>
-                  根据上述结构化设计实时生成的 数据包战利品表（Loot Table）JSON。
-                </p>
+                  {tr("根据上述结构化设计实时生成的 数据包战利品表（Loot Table）JSON。")}</p>
               </div>
             </div>
             <pre

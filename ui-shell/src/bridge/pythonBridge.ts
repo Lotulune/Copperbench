@@ -1,3 +1,4 @@
+import { tr } from '../i18n/locale';
 export interface PythonContextState {
   workspaceId: string;
   activeElementId: string | null;
@@ -30,7 +31,7 @@ export const pythonBridge = {
   get available() { return typeof window !== 'undefined' && Boolean(window.__COPPERBENCH_PYTHON_HOST__); },
   async invoke<T>(payload: Record<string, unknown>): Promise<T> {
     const host = window.__COPPERBENCH_PYTHON_HOST__;
-    if (!host) throw new Error('Python 工作台需要支持此功能的桌面版本');
+    if (!host) throw new Error(tr("Python 工作台需要支持此功能的桌面版本"));
     return await host.invoke(payload) as T;
   }
 };

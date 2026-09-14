@@ -1,3 +1,4 @@
+import { tr } from '../i18n/locale';
 import { valueLabel } from '../i18n/labels';
 import React from 'react';
 import {
@@ -57,27 +58,27 @@ export const StatusFooter: React.FC = () => {
         <div
           style={{ display: 'flex', alignItems: 'center', gap: '5px' }}
           data-testid="core-status"
-          title={`Java 核心： ${valueLabel(connection.core)}`}
+          title={tr("Java 核心： {0}", [valueLabel(connection.core)])}
         >
           <Server size={12} color="var(--badge-green)" />
-          <span>核心：{valueLabel(connection.core)}</span>
+          <span>{tr("核心：")}{valueLabel(connection.core)}</span>
         </div>
 
         {/* Network status */}
         <div
           style={{ display: 'flex', alignItems: 'center', gap: '5px' }}
           data-testid="offline-status"
-          title={`网络： ${valueLabel(connection.network)}`}
+          title={tr("网络： {0}", [valueLabel(connection.network)])}
         >
           {connection.network === 'offline' ? (
             <>
               <WifiOff size={12} color="var(--badge-amber)" />
-              <span style={{ color: 'var(--badge-amber)', fontWeight: 600 }}>离线模式（本地可用）</span>
+              <span style={{ color: 'var(--badge-amber)', fontWeight: 600 }}>{tr("离线模式（本地可用）")}</span>
             </>
           ) : (
             <>
               <Wifi size={12} color="var(--badge-green)" />
-              <span>在线</span>
+              <span>{tr("在线")}</span>
             </>
           )}
         </div>
@@ -88,7 +89,7 @@ export const StatusFooter: React.FC = () => {
           data-testid="bridge-status"
         >
           <Activity size={12} color="var(--accent-copper)" />
-          <span>桥接：{valueLabel(connection.bridge)}</span>
+          <span>{tr("桥接：")}{valueLabel(connection.bridge)}</span>
         </div>
       </div>
 
@@ -130,7 +131,7 @@ export const StatusFooter: React.FC = () => {
           data-testid="diagnostics-badge"
         >
           <AlertCircle size={12} />
-          <span>{errorCount} 错误，{warningCount} 警告</span>
+          <span>{errorCount} {tr(" 错误，")}{warningCount} {tr(" 警告")}</span>
         </div>
 
         {/* MCP Permission Pill */}
@@ -145,7 +146,7 @@ export const StatusFooter: React.FC = () => {
             borderRadius: 'var(--radius-full)',
             color: permission === 'workspace' ? 'var(--badge-green)' : permission === 'full_access' ? 'var(--accent-copper)' : 'var(--badge-amber)'
           }}
-          title={mcp?.status === 'listening' ? `MCP 服务已启动：${permission}` : 'MCP 服务未启动'}
+          title={mcp?.status === 'listening' ? tr("MCP 服务已启动：{0}", [permission]) : tr("MCP 服务未启动")}
           data-testid="permission-alert"
         >
           <Shield size={11} />

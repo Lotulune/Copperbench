@@ -1,3 +1,4 @@
+import { tr } from '../i18n/locale';
 import { valueLabel } from '../i18n/labels';
 import React, { useState } from 'react';
 import { PlayCircle, ChevronDown, ChevronUp } from 'lucide-react';
@@ -58,8 +59,7 @@ export const ScenarioSwitcher: React.FC = () => {
               letterSpacing: '0.5px'
             }}
           >
-            演示场景（{scenarioList.length} 种状态）
-          </div>
+            {tr("演示场景（")}{scenarioList.length} {tr(" 种状态）")}</div>
 
           {scenarioList.map((id) => {
             const sc = SCENARIOS[id];
@@ -87,7 +87,7 @@ export const ScenarioSwitcher: React.FC = () => {
               >
                 <div style={{ fontSize: '12px' }}>{t(sc.title)}</div>
                 <div style={{ fontSize: '10px', color: 'var(--text-sub)' }}>
-                  状态：{valueLabel(sc.viewportState)}
+                  {tr("状态：")}{valueLabel(sc.viewportState)}
                 </div>
               </button>
             );
@@ -113,7 +113,7 @@ export const ScenarioSwitcher: React.FC = () => {
         data-testid="scenario-switcher-trigger"
       >
         <PlayCircle size={15} />
-        <span>场景：{t(current.title)}</span>
+        <span>{tr("场景：")}{t(current.title)}</span>
         {isOpen ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
       </button>
     </div>

@@ -10,6 +10,7 @@
 package dev.copperbench.bridge;
 
 import com.google.gson.Gson;
+import dev.copperbench.shell.UiLocalePreferences;
 import dev.copperbench.window.WindowChromeSnapshot;
 import dev.copperbench.window.WindowsWindowChromeController.PointerGesture;
 import net.mcreator.ui.chromium.WebView;
@@ -36,7 +37,7 @@ public final class JcefWindowBridgeTransport extends CefMessageRouterHandlerAdap
 	public static final String QUERY_PREFIX = "copperbench:window:";
 	public static final String REGION_QUERY_PREFIX = "copperbench:window-regions:";
 	public static final String GESTURE_QUERY_PREFIX = "copperbench:window-gesture:";
-	private static final Set<String> ACTIONS = Set.of("minimize", "toggle_maximize", "close", "open_preferences");
+	private static final Set<String> ACTIONS = Set.of("minimize", "toggle_maximize", "close", "open_preferences", "set_locale_en", "set_locale_zh");
 	private static final Gson JSON = new Gson();
 
 	private final WebView webView;
@@ -94,7 +95,7 @@ public final class JcefWindowBridgeTransport extends CefMessageRouterHandlerAdap
 	private void installHost() {
 		if (!closed.get()) {
 			boolean nativeChrome = nativeChromeActive();
-			webView.executeScriptAsync(generateBootstrapScript(!nativeChrome, nativeChrome));
+			webView.executeScriptAsync(generateLocaleBootstrapScript(UiLocalePreferences.read()) + generateBootstrapScript(!nativeChrome, nativeChrome));
 			publishWindowState();
 		}
 	}
@@ -165,6 +166,11 @@ public final class JcefWindowBridgeTransport extends CefMessageRouterHandlerAdap
 			callback.failure(400, "Unsupported window action");
 			return true;
 		}
+		if (action.startsWith("set_locale_")) {
+			try { UiLocalePreferences.save(action.substring("set_locale_".length())); callback.success("{}"); }
+			catch (java.io.IOException | SecurityException exception) { callback.failure(500, "Could not save the UI language preference"); }
+			return true;
+		}
 		callback.success("{}");
 		SwingUtilities.invokeLater(() -> perform(action));
 		return true;
@@ -185,6 +191,14 @@ public final class JcefWindowBridgeTransport extends CefMessageRouterHandlerAdap
 	}
 
 	@Override public void onQueryCanceled(CefBrowser browser, CefFrame frame, long queryId) {
+	}
+
+	public static String generateLocaleBootstrapScript(String locale) {
+		return "window.__COPPERBENCH_UI_LOCALE__ = " + JSON.toJson("en".equals(locale) ? "en" : "zh") + ";"
+				+ "window.__COPPERBENCH_SET_LOCALE__ = function(locale) { return new Promise(function(resolve, reject) {"
+				+ "if (locale !== 'en' && locale !== 'zh') { reject(new Error('Unsupported locale')); return; }"
+				+ "window.cefQuery({request:'copperbench:window:set_locale_' + locale,persistent:false,"
+				+ "onSuccess:resolve,onFailure:function(code,message){reject(new Error(message));}}); }); };";
 	}
 
 	public static String generateBootstrapScript(boolean systemFrame) {

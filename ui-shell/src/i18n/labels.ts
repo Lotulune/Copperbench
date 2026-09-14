@@ -1,4 +1,5 @@
 import { zh } from './zh';
+import { UI_LOCALE } from './locale';
 import type { ModElementType } from '../types/contract';
 
 // Display labels only: persisted identifiers and generated code remain unchanged.
@@ -11,7 +12,15 @@ export const ELEMENT_LABELS: Record<ModElementType, string> = {
   projectile: '投射物', gui: '界面', overlay: '覆盖层', code: '代码'
 };
 
+const englishElementLabels: Record<string, string> = {
+ block: 'Block', item: 'Item', recipe: 'Recipe', procedure: 'Procedure', function: 'Function', loottable: 'Loot table', achievement: 'Advancement', armor: 'Armor', armortrim: 'Armor trim', tool: 'Tool', itemextension: 'Item extension', attribute: 'Attribute', bannerpattern: 'Banner pattern', command: 'Command', damagetype: 'Damage type', enchantment: 'Enchantment', gamerule: 'Game rule', keybind: 'Key binding', painting: 'Painting', particle: 'Particle', potion: 'Potion', potioneffect: 'Potion effect', tab: 'Creative tab', villagerprofession: 'Villager profession', villagertrade: 'Villager trade', biome: 'Biome', dimension: 'Dimension', feature: 'Feature', fluid: 'Fluid', plant: 'Plant', structure: 'Structure', livingentity: 'Living entity', specialentity: 'Special entity', projectile: 'Projectile', gui: 'GUI', overlay: 'Overlay', code: 'Code'
+};
+function readableIdentifier(value: string): string {
+ const words = value.replace(/([a-z0-9])([A-Z])/g, '$1 $2').replace(/_/g, ' ');
+ return words.charAt(0).toUpperCase() + words.slice(1).toLowerCase();
+}
 export function elementLabel(value: string): string {
+  if (UI_LOCALE === 'en') return englishElementLabels[value] ?? value;
   const label = ELEMENT_LABELS[value as ModElementType];
   const english = value === 'achievement' ? 'Advancement / achievement' : value === 'loottable' ? 'Loot Table' : value === 'procedure' ? 'Procedure' : value === 'function' ? 'Function' : value;
   return label ? `${label}（${english}）` : value;
@@ -162,10 +171,11 @@ const labels: Record<string, string> = {
 
 /** Unknown extension values stay visible for diagnosis. */
 export function valueLabel(value: string): string {
+  if (UI_LOCALE === 'en') return labels[value] ? readableIdentifier(value) : value;
   return labels[value] ?? value;
 }
 
 /** Labels for schema fields; extension properties remain identifiable. */
 export function fieldLabel(key: string): string {
-  return zh[`field.${key}`] ?? key;
+  return UI_LOCALE === 'en' ? readableIdentifier(key) : zh[`field.${key}`] ?? key;
 }
