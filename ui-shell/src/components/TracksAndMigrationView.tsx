@@ -1,3 +1,4 @@
+import { tr } from '../i18n/locale';
 import { elementLabel, valueLabel } from '../i18n/labels';
 import React, { useState, useEffect, useMemo } from 'react';
 import {
@@ -140,7 +141,7 @@ export const TracksAndMigrationView: React.FC = () => {
                 {t(diagnostic.message)}
                 {diagnostic.message.args?.failureId != null && (
                   <code style={{ marginLeft: '8px', fontSize: '10px', color: 'var(--text-sub)', overflowWrap: 'anywhere' }}>
-                    错误编号：{String(diagnostic.message.args.failureId)}
+                    {tr("错误编号：")}{String(diagnostic.message.args.failureId)}
                   </code>
                 )}
               </div>
@@ -407,7 +408,7 @@ export const TracksAndMigrationView: React.FC = () => {
     if (result.status === 'committed') {
       const prep = result.data as ClientLoadPreparation | undefined;
       if (prep?.clientLaunched === false) {
-        setClientPreparationNotice('已就绪，尚未启动客户端');
+        setClientPreparationNotice(tr("已就绪，尚未启动客户端"));
       }
     }
   };
@@ -415,13 +416,13 @@ export const TracksAndMigrationView: React.FC = () => {
   const getStatusBadge = (status: TrackStatus) => {
     switch (status) {
       case 'supported':
-        return <span className="badge badge-green" data-testid="status-supported">正式支持</span>;
+        return <span className="badge badge-green" data-testid="status-supported">{tr("正式支持")}</span>;
       case 'preview':
-        return <span className="badge badge-amber" data-testid="status-preview">技术预览</span>;
+        return <span className="badge badge-amber" data-testid="status-preview">{tr("技术预览")}</span>;
       case 'unavailable':
-        return <span className="badge badge-red" data-testid="status-unavailable">暂不可用</span>;
+        return <span className="badge badge-red" data-testid="status-unavailable">{tr("暂不可用")}</span>;
       case 'coincides':
-        return <span className="badge badge-blue" data-testid="status-coincides">并轨共用</span>;
+        return <span className="badge badge-blue" data-testid="status-coincides">{tr("并轨共用")}</span>;
       default:
         return <span className="badge">{status}</span>;
     }
@@ -430,15 +431,15 @@ export const TracksAndMigrationView: React.FC = () => {
   const getDispositionLabel = (disp: MigrationDisposition) => {
     switch (disp) {
       case 'supported':
-        return { label: '完全支持', badgeClass: 'badge-green' };
+        return { label: tr("完全支持"), badgeClass: 'badge-green' };
       case 'substitute':
-        return { label: '等价替换', badgeClass: 'badge-blue' };
+        return { label: tr("等价替换"), badgeClass: 'badge-blue' };
       case 'lost':
-        return { label: '丢失 / 降级', badgeClass: 'badge-amber' };
+        return { label: tr("丢失 / 降级"), badgeClass: 'badge-amber' };
       case 'blocked':
-        return { label: '阻断', badgeClass: 'badge-red' };
+        return { label: tr("阻断"), badgeClass: 'badge-red' };
       case 'manual':
-        return { label: '需手动处理', badgeClass: 'badge-copper' };
+        return { label: tr("需手动处理"), badgeClass: 'badge-copper' };
     }
   };
 
@@ -455,10 +456,9 @@ export const TracksAndMigrationView: React.FC = () => {
             <Compass size={24} />
           </div>
           <div>
-            <h2 style={{ fontSize: '18px', fontWeight: 700, margin: 0 }}>版本轨道与工作区迁移</h2>
+            <h2 style={{ fontSize: '18px', fontWeight: 700, margin: 0 }}>{tr("版本轨道与工作区迁移")}</h2>
             <p style={{ fontSize: '12px', color: 'var(--text-sub)', margin: '4px 0 0 0' }}>
-              Minecraft 4轨版本矩阵 · 跨加载器副本迁移 · 上游迁入与资源包发布
-            </p>
+              {tr("Minecraft 4轨版本矩阵 · 跨加载器副本迁移 · 上游迁入与资源包发布")}</p>
           </div>
         </div>
 
@@ -471,8 +471,7 @@ export const TracksAndMigrationView: React.FC = () => {
             onClick={() => setActiveTab('matrix')}
             style={{ fontSize: '12px', padding: '6px 12px', borderRadius: 'var(--radius-sm)', background: activeTab === 'matrix' ? 'var(--accent-copper-dim)' : 'transparent', color: activeTab === 'matrix' ? 'var(--accent-copper)' : 'var(--text-main)', fontWeight: activeTab === 'matrix' ? 600 : 400 }}
           >
-            版本轨道矩阵
-          </button>
+            {tr("版本轨道矩阵")}</button>
           <button
             type="button"
             className={`btn-ghost ${activeTab === 'migration' ? 'is-active' : ''}`}
@@ -480,8 +479,7 @@ export const TracksAndMigrationView: React.FC = () => {
             onClick={() => setActiveTab('migration')}
             style={{ fontSize: '12px', padding: '6px 12px', borderRadius: 'var(--radius-sm)', background: activeTab === 'migration' ? 'var(--accent-copper-dim)' : 'transparent', color: activeTab === 'migration' ? 'var(--accent-copper)' : 'var(--text-main)', fontWeight: activeTab === 'migration' ? 600 : 400 }}
           >
-            加载器迁移
-          </button>
+            {tr("加载器迁移")}</button>
           <button
             type="button"
             className={`btn-ghost ${activeTab === 'upstream' ? 'is-active' : ''}`}
@@ -489,8 +487,7 @@ export const TracksAndMigrationView: React.FC = () => {
             onClick={() => setActiveTab('upstream')}
             style={{ fontSize: '12px', padding: '6px 12px', borderRadius: 'var(--radius-sm)', background: activeTab === 'upstream' ? 'var(--accent-copper-dim)' : 'transparent', color: activeTab === 'upstream' ? 'var(--accent-copper)' : 'var(--text-main)', fontWeight: activeTab === 'upstream' ? 600 : 400 }}
           >
-            上游工作区迁入
-          </button>
+            {tr("上游工作区迁入")}</button>
           <button
             type="button"
             className={`btn-ghost ${activeTab === 'refactor' ? 'is-active' : ''}`}
@@ -498,8 +495,7 @@ export const TracksAndMigrationView: React.FC = () => {
             onClick={() => setActiveTab('refactor')}
             style={{ fontSize: '12px', padding: '6px 12px', borderRadius: 'var(--radius-sm)', background: activeTab === 'refactor' ? 'var(--accent-copper-dim)' : 'transparent', color: activeTab === 'refactor' ? 'var(--accent-copper)' : 'var(--text-main)', fontWeight: activeTab === 'refactor' ? 600 : 400 }}
           >
-            重构工作台
-          </button>
+            {tr("重构工作台")}</button>
           <button
             type="button"
             className={`btn-ghost ${activeTab === 'publish' ? 'is-active' : ''}`}
@@ -507,8 +503,7 @@ export const TracksAndMigrationView: React.FC = () => {
             onClick={() => setActiveTab('publish')}
             style={{ fontSize: '12px', padding: '6px 12px', borderRadius: 'var(--radius-sm)', background: activeTab === 'publish' ? 'var(--accent-copper-dim)' : 'transparent', color: activeTab === 'publish' ? 'var(--accent-copper)' : 'var(--text-main)', fontWeight: activeTab === 'publish' ? 600 : 400 }}
           >
-            资源包发布批次
-          </button>
+            {tr("资源包发布批次")}</button>
         </div>
       </div>
 
@@ -518,16 +513,16 @@ export const TracksAndMigrationView: React.FC = () => {
           <div className="track-workspace-summary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--bg-panel)', padding: '12px 16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px' }}>
               <Info size={16} color="var(--accent-copper)" />
-              <span>当前工作区所用生成器：</span>
+              <span>{tr("当前工作区所用生成器：")}</span>
               <code style={{ background: 'var(--bg-canvas)', padding: '2px 8px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', fontWeight: 600 }}>
-                {tracksData?.currentWorkspace?.generator?.displayName ?? state.workbench?.workspace.generator.displayName ?? '生成器信息不可用'}
+                {tracksData?.currentWorkspace?.generator?.displayName ?? state.workbench?.workspace.generator.displayName ?? tr("生成器信息不可用")}
                 {' '}({tracksData?.currentWorkspace?.generator?.id ?? state.workbench?.workspace.generator.id ?? 'unknown'})
               </code>
             </div>
             <div style={{ fontSize: '12px', color: 'var(--text-sub)' }}>
               {tracksData
-                ? `版本策略：最新稳定轨 ${tracksData.latestMinecraftVersion} · 前一稳定轨 ${tracksData.previousMinecraftVersion} · 维护轨`
-                : '正在读取版本轨道策略…'}
+                ? tr("版本策略：最新稳定轨 {0} · 前一稳定轨 {1} · 维护轨", [tracksData.latestMinecraftVersion, tracksData.previousMinecraftVersion])
+                : tr("正在读取版本轨道策略…")}
             </div>
           </div>
 
@@ -551,7 +546,7 @@ export const TracksAndMigrationView: React.FC = () => {
                   <div>
                     <h3 style={{ fontSize: '14px', fontWeight: 700, margin: 0 }}>{track.displayName}</h3>
                     <div style={{ fontSize: '11px', color: 'var(--text-sub)', marginTop: '2px' }}>
-                      Minecraft {track.minecraftVersion} {track.dynamic && '· 动态轨'}
+                      Minecraft {track.minecraftVersion} {track.dynamic && tr("· 动态轨")}
                     </div>
                   </div>
                   <span className={`badge ${track.dynamic ? 'badge-copper' : 'badge-blue'}`} style={{ fontSize: '10px' }}>
@@ -578,9 +573,9 @@ export const TracksAndMigrationView: React.FC = () => {
                       >
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <strong style={{ textTransform: 'capitalize', fontSize: '13px' }}>{loader.loader === 'resource_pack' ? '资源包（Resource Pack）' : loader.loader === 'neoforge' ? 'NeoForge' : 'Fabric'}</strong>
+                            <strong style={{ textTransform: 'capitalize', fontSize: '13px' }}>{loader.loader === 'resource_pack' ? tr("资源包（Resource Pack）") : loader.loader === 'neoforge' ? 'NeoForge' : 'Fabric'}</strong>
                             <code style={{ fontSize: '11px', color: 'var(--text-sub)' }}>{loader.generatorId}</code>
-                            {isCurrent && <span className="badge badge-copper" style={{ fontSize: '9px' }}>当前工作区</span>}
+                            {isCurrent && <span className="badge badge-copper" style={{ fontSize: '9px' }}>{tr("当前工作区")}</span>}
                           </div>
                           {getStatusBadge(loader.status)}
                         </div>
@@ -591,7 +586,7 @@ export const TracksAndMigrationView: React.FC = () => {
 
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px', paddingTop: '4px', borderTop: '1px dashed var(--border-subtle)' }}>
                           <span style={{ fontSize: '10px', color: 'var(--text-sub)' }}>
-                            代码: <code style={{ color: 'var(--accent-copper)' }}>{loader.reasonCode}</code>
+                            {tr("代码: ")}<code style={{ color: 'var(--accent-copper)' }}>{loader.reasonCode}</code>
                           </span>
                           {loader.status !== 'unavailable' && !isCurrent && (
                             <button
@@ -606,8 +601,7 @@ export const TracksAndMigrationView: React.FC = () => {
                                 void handlePreviewMigration(loader.generatorId);
                               }}
                             >
-                              准备迁移至此加载器 &rarr;
-                            </button>
+                              {tr("准备迁移至此加载器 &rarr;")}</button>
                           )}
                         </div>
                       </div>
@@ -627,18 +621,16 @@ export const TracksAndMigrationView: React.FC = () => {
           <div role="note" style={{ background: 'var(--badge-blue-bg)', border: '1px solid rgba(88, 166, 255, 0.4)', borderRadius: 'var(--radius-md)', padding: '12px 16px', display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
             <ShieldCheck size={18} color="var(--badge-blue)" style={{ flexShrink: 0, marginTop: '2px' }} />
             <div style={{ fontSize: '12px', color: 'var(--text-main)', lineHeight: 1.5 }}>
-              <strong>安全拷贝保证：</strong> 迁移结果写入新副本，保留原工作区。请先预览差异，检查丢失、降级或需手动处理的内容。
-            </div>
+              <strong>{tr("安全拷贝保证：")}</strong> {tr(" 迁移结果写入新副本，保留原工作区。请先预览差异，检查丢失、降级或需手动处理的内容。")}</div>
           </div>
 
           {/* Configuration Form */}
           <div style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            <h3 style={{ fontSize: '14px', fontWeight: 700, margin: 0 }}>选择迁移目标生成器</h3>
+            <h3 style={{ fontSize: '14px', fontWeight: 700, margin: 0 }}>{tr("选择迁移目标生成器")}</h3>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
               <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px', fontWeight: 600 }}>
-                目标生成器
-                <select
+                {tr("目标生成器")}<select
                   data-testid="migration-target-select"
                   value={targetGeneratorId}
                   onChange={(e) => {
@@ -654,17 +646,16 @@ export const TracksAndMigrationView: React.FC = () => {
                   {migrationTargets.map(({ loader, track }) => (
                     <option key={loader.generatorId} value={loader.generatorId}>
                       {loader.loader === 'neoforge' ? 'NeoForge' : 'Fabric'} {loader.minecraftVersion}
-                      {' · '}{track.id === 'latest_stable' ? '最新稳定轨' : track.id === 'previous_stable' ? '前一稳定轨' : '维护轨'}
-                      {' · '}{loader.status === 'supported' ? '正式支持' : loader.status === 'preview' ? '技术预览' : '并轨共用'}
+                      {' · '}{track.id === 'latest_stable' ? tr("最新稳定轨") : track.id === 'previous_stable' ? tr("前一稳定轨") : tr("维护轨")}
+                      {' · '}{loader.status === 'supported' ? tr("正式支持") : loader.status === 'preview' ? tr("技术预览") : tr("并轨共用")}
                     </option>
                   ))}
-                  {migrationTargets.length === 0 && <option value="">没有可用的迁移目标</option>}
+                  {migrationTargets.length === 0 && <option value="">{tr("没有可用的迁移目标")}</option>}
                 </select>
               </label>
 
               <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px', fontWeight: 600 }}>
-                新工作区副本名称
-                <input
+                {tr("新工作区副本名称")}<input
                   type="text"
                   data-testid="migration-output-name-input"
                   value={migrationOutputName}
@@ -684,7 +675,7 @@ export const TracksAndMigrationView: React.FC = () => {
                 disabled={migrationLoading || !targetGeneratorId}
                 style={{ fontSize: '12px', padding: '6px 14px' }}
               >
-                {migrationLoading ? '正在分析差异…' : '分析跨加载器迁移差异'}
+                {migrationLoading ? tr("正在分析差异…") : tr("分析跨加载器迁移差异")}
               </button>
             </div>
           </div>
@@ -695,17 +686,17 @@ export const TracksAndMigrationView: React.FC = () => {
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '10px' }}>
                 <div>
                   <h4 style={{ fontSize: '14px', fontWeight: 700, margin: 0 }}>
-                    迁移可行性报告：{migrationPreview.sourceGeneratorId} &rarr; {migrationPreview.targetGeneratorId}
+                    {tr("迁移可行性报告：")}{migrationPreview.sourceGeneratorId} &rarr; {migrationPreview.targetGeneratorId}
                   </h4>
                   <div style={{ fontSize: '11px', color: 'var(--text-sub)', marginTop: '2px' }}>
-                    源工作区保持只读未受影响（SHA-256: {migrationPreview.sourceHash ? migrationPreview.sourceHash.slice(0, 16) + '…' : '已校验'}）
+                    {tr("源工作区保持只读未受影响（SHA-256: ")}{migrationPreview.sourceHash ? migrationPreview.sourceHash.slice(0, 16) + '…' : tr("已校验")}）
                   </div>
                 </div>
                 <div>
                   {migrationPreview.complete ? (
-                    <span className="badge badge-green" data-testid="preview-complete-badge">可完全迁移</span>
+                    <span className="badge badge-green" data-testid="preview-complete-badge">{tr("可完全迁移")}</span>
                   ) : (
-                    <span className="badge badge-amber" data-testid="preview-incomplete-badge">部分特性需适配</span>
+                    <span className="badge badge-amber" data-testid="preview-incomplete-badge">{tr("部分特性需适配")}</span>
                   )}
                 </div>
               </div>
@@ -765,7 +756,7 @@ export const TracksAndMigrationView: React.FC = () => {
                     checked={migrationConfirmed}
                     onChange={(e) => setMigrationConfirmed(e.target.checked)}
                   />
-                  <span>我已知晓目标生成器差异，并确认执行迁移并写入新副本目录</span>
+                  <span>{tr("我已知晓目标生成器差异，并确认执行迁移并写入新副本目录")}</span>
                 </label>
 
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -777,12 +768,11 @@ export const TracksAndMigrationView: React.FC = () => {
                     onClick={() => void handleExecuteMigration()}
                     style={{ fontSize: '12px', padding: '6px 16px' }}
                   >
-                    {migrationLoading ? '正在执行迁移…' : '执行加载器迁移并生成新副本'}
+                    {migrationLoading ? tr("正在执行迁移…") : tr("执行加载器迁移并生成新副本")}
                   </button>
                   {!migrationConfirmed && (
                     <span style={{ fontSize: '11px', color: 'var(--badge-amber)' }}>
-                      必须勾选确认后方可执行迁移
-                    </span>
+                      {tr("必须勾选确认后方可执行迁移")}</span>
                   )}
                 </div>
               </div>
@@ -796,10 +786,9 @@ export const TracksAndMigrationView: React.FC = () => {
             <div data-testid="migration-success-banner" style={{ background: 'var(--badge-green-bg)', border: '1px solid rgba(63, 185, 80, 0.4)', borderRadius: 'var(--radius-md)', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: '12px' }}>
               <CheckCircle2 size={20} color="var(--badge-green)" />
               <div>
-                <strong style={{ fontSize: '13px', color: 'var(--text-main)' }}>加载器迁移已完成！</strong>
+                <strong style={{ fontSize: '13px', color: 'var(--text-main)' }}>{tr("加载器迁移已完成！")}</strong>
                 <div style={{ fontSize: '12px', color: 'var(--text-sub)' }}>
-                  新工作区已生成至 <code>{migrationResult.data?.targetDirectory ?? `workspaces/${migrationOutputName}`}</code>，源工作区保持只读未受任何修改。
-                </div>
+                  {tr("新工作区已生成至 ")}<code>{migrationResult.data?.targetDirectory ?? `workspaces/${migrationOutputName}`}</code>{tr("，源工作区保持只读未受任何修改。")}</div>
               </div>
             </div>
           )}
@@ -819,33 +808,32 @@ export const TracksAndMigrationView: React.FC = () => {
             >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
                 <div>
-                  <strong style={{ fontSize: '13px' }}>源工作区 → 迁移结果语义对比</strong>
+                  <strong style={{ fontSize: '13px' }}>{tr("源工作区 → 迁移结果语义对比")}</strong>
                   <div style={{ marginTop: '3px', fontSize: '11px', color: 'var(--text-sub)' }}>
-                    只比较 generator、工作区元数据与 Mod Element 定义；生成源码和构建产物不计入语义变化。
-                  </div>
+                    {tr("只比较 generator、工作区元数据与 Mod Element 定义；生成源码和构建产物不计入语义变化。")}</div>
                 </div>
                 {migrationResult.data.semanticComparison.workspaceMetadataPreserved ? (
-                  <span className="badge badge-green" data-testid="migration-metadata-preserved">元数据保持</span>
+                  <span className="badge badge-green" data-testid="migration-metadata-preserved">{tr("元数据保持")}</span>
                 ) : (
-                  <span className="badge badge-amber" data-testid="migration-metadata-changed">元数据有额外变化</span>
+                  <span className="badge badge-amber" data-testid="migration-metadata-changed">{tr("元数据有额外变化")}</span>
                 )}
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '8px' }}>
                 <div className="stage2-stat-card">
-                  <span>生成器（Generator）</span>
-                  <strong>{migrationResult.data.semanticComparison.generatorChanged ? '已按计划切换' : '需检查'}</strong>
+                  <span>{tr("生成器（Generator）")}</span>
+                  <strong>{migrationResult.data.semanticComparison.generatorChanged ? tr("已按计划切换") : tr("需检查")}</strong>
                 </div>
                 <div className="stage2-stat-card">
-                  <span>元素保持</span>
+                  <span>{tr("元素保持")}</span>
                   <strong data-testid="migration-preserved-elements">{migrationResult.data.semanticComparison.preservedElementCount}</strong>
                 </div>
                 <div className="stage2-stat-card">
-                  <span>元素修改</span>
+                  <span>{tr("元素修改")}</span>
                   <strong>{migrationResult.data.semanticComparison.changedElementCount}</strong>
                 </div>
                 <div className="stage2-stat-card">
-                  <span>新增 / 移除</span>
+                  <span>{tr("新增 / 移除")}</span>
                   <strong>{migrationResult.data.semanticComparison.addedElementCount} / {migrationResult.data.semanticComparison.removedElementCount}</strong>
                 </div>
               </div>
@@ -883,10 +871,9 @@ export const TracksAndMigrationView: React.FC = () => {
             <div data-testid="migration-incomplete-banner" style={{ background: 'var(--badge-amber-bg)', border: '1px solid rgba(210, 153, 34, 0.4)', borderRadius: 'var(--radius-md)', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: '12px' }}>
               <AlertTriangle size={20} color="var(--badge-amber)" />
               <div>
-                <strong style={{ fontSize: '13px', color: 'var(--text-main)' }}>目标生成器尚不支持完全自动迁移</strong>
+                <strong style={{ fontSize: '13px', color: 'var(--text-main)' }}>{tr("目标生成器尚不支持完全自动迁移")}</strong>
                 <div style={{ fontSize: '12px', color: 'var(--text-sub)' }}>
-                  迁移未完成，原工作区未修改。请检查迁移报告中的阻断项和手动处理项。
-                </div>
+                  {tr("迁移未完成，原工作区未修改。请检查迁移报告中的阻断项和手动处理项。")}</div>
               </div>
             </div>
           )}
@@ -899,10 +886,9 @@ export const TracksAndMigrationView: React.FC = () => {
           <div role="note" style={{ background: 'var(--badge-blue-bg)', border: '1px solid rgba(88, 166, 255, 0.4)', borderRadius: 'var(--radius-md)', padding: '12px 16px', display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
             <GitBranch size={18} color="var(--badge-blue)" style={{ flexShrink: 0, marginTop: '2px' }} />
             <div style={{ fontSize: '12px', lineHeight: 1.5 }}>
-              <strong>统一影响预览，不新增第二套重构引擎。</strong>
+              <strong>{tr("统一影响预览，不新增第二套重构引擎。")}</strong>
               <div style={{ color: 'var(--text-sub)', marginTop: '3px' }}>
-                Registry 重命名复用 protected WorkspacePlan；资产移动复用 Asset Center 的引用图与 recovery。Procedure 调用/资源批量替换继续使用同一 Core 的 Procedure Refactor Plan。
-              </div>
+                {tr("Registry 重命名复用 protected WorkspacePlan；资产移动复用 Asset Center 的引用图与 recovery。Procedure 调用/资源批量替换继续使用同一 Core 的 Procedure Refactor Plan。")}</div>
             </div>
           </div>
 
@@ -916,85 +902,78 @@ export const TracksAndMigrationView: React.FC = () => {
                 fontSize: '12px'
               }}
             >
-              {refactorResult.status === 'committed' ? '重构已提交，并使用现有恢复机制保护。' : `重构未提交：${valueLabel(refactorResult.status)}`}
+              {refactorResult.status === 'committed' ? tr("重构已提交，并使用现有恢复机制保护。") : tr("重构未提交：{0}", [valueLabel(refactorResult.status)])}
             </div>
           )}
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '16px' }}>
             <section data-testid="refactor-registry-card" style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div>
-                <h3 style={{ margin: 0, fontSize: '14px' }}>Registry 引用感知重命名</h3>
-                <p style={{ margin: '4px 0 0', color: 'var(--text-sub)', fontSize: '11px' }}>先看引用影响，再生成 recovery-protected WorkspacePlan；应用时仍走共享 Core。</p>
+                <h3 style={{ margin: 0, fontSize: '14px' }}>{tr("Registry 引用感知重命名")}</h3>
+                <p style={{ margin: '4px 0 0', color: 'var(--text-sub)', fontSize: '11px' }}>{tr("先看引用影响，再生成 recovery-protected WorkspacePlan；应用时仍走共享 Core。")}</p>
               </div>
               <label style={{ display: 'flex', flexDirection: 'column', gap: '5px', fontSize: '11px' }}>
-                Registry 条目
-                <select data-testid="refactor-registry-select" value={selectedRegistryId} onChange={(event) => handleRegistrySelection(event.target.value)}>
+                {tr("Registry 条目")}<select data-testid="refactor-registry-select" value={selectedRegistryId} onChange={(event) => handleRegistrySelection(event.target.value)}>
                   {refactorRegistryEntries.map((entry) => (
                     <option key={entry.id} value={entry.id}>{entry.name ?? entry.key ?? entry.id} · {valueLabel(entry.kind)}</option>
                   ))}
                 </select>
               </label>
               <label style={{ display: 'flex', flexDirection: 'column', gap: '5px', fontSize: '11px' }}>
-                新名称
-                <input data-testid="refactor-registry-new-name" value={registryNewName} onChange={(event) => {
+                {tr("新名称")}<input data-testid="refactor-registry-new-name" value={registryNewName} onChange={(event) => {
                   setRegistryNewName(event.target.value);
                   setRegistryRenamePreview(null);
                   setRegistryRenamePlan(null);
                 }} />
               </label>
               <button type="button" className="btn-secondary" data-testid="preview-registry-refactor" disabled={refactorBusy || !selectedRegistryId || !registryNewName.trim()} onClick={() => void handlePreviewRegistryRefactor()}>
-                生成影响图与计划
-              </button>
+                {tr("生成影响图与计划")}</button>
 
               {registryRenamePreview && registryRenamePlan && (
                 <div data-testid="registry-refactor-impact" style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
-                    <div className="stage2-stat-card"><span>受影响元素</span><strong>{registryRenamePreview.impactedElementCount}</strong></div>
-                    <div className="stage2-stat-card"><span>引用边</span><strong>{registryRenamePreview.references.edges.length}</strong></div>
-                    <div className="stage2-stat-card"><span>持久化路径</span><strong>{registryRenamePlan.changedPaths.length}</strong></div>
+                    <div className="stage2-stat-card"><span>{tr("受影响元素")}</span><strong>{registryRenamePreview.impactedElementCount}</strong></div>
+                    <div className="stage2-stat-card"><span>{tr("引用边")}</span><strong>{registryRenamePreview.references.edges.length}</strong></div>
+                    <div className="stage2-stat-card"><span>{tr("持久化路径")}</span><strong>{registryRenamePlan.changedPaths.length}</strong></div>
                   </div>
                   <div style={{ fontSize: '11px', color: 'var(--text-sub)' }}>
                     {registryRenamePreview.oldName} <MoveRight size={12} style={{ verticalAlign: '-2px' }} /> {registryRenamePreview.newName}
                   </div>
                   <div style={{ fontSize: '11px', color: registryRenamePlan.safety.ready ? 'var(--badge-green)' : 'var(--badge-red)' }}>
-                    {registryRenamePlan.safety.ready ? '恢复保护就绪，可应用计划。' : '恢复保护不可用，计划不可应用。'}
+                    {registryRenamePlan.safety.ready ? tr("恢复保护就绪，可应用计划。") : tr("恢复保护不可用，计划不可应用。")}
                   </div>
                   <button type="button" className="btn-primary" data-testid="apply-registry-refactor" disabled={refactorBusy || !registryRenamePreview.canApply || !registryRenamePlan.safety.ready} onClick={() => void handleApplyRegistryRefactor()}>
-                    应用已审阅计划
-                  </button>
+                    {tr("应用已审阅计划")}</button>
                 </div>
               )}
             </section>
 
             <section data-testid="refactor-asset-card" style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div>
-                <h3 style={{ margin: 0, fontSize: '14px' }}>资产重命名 / 移动</h3>
-                <p style={{ margin: '4px 0 0', color: 'var(--text-sub)', fontSize: '11px' }}>复用 Asset Center 的引用图，预览精确 JSON Pointer rewrite 后再移动。</p>
+                <h3 style={{ margin: 0, fontSize: '14px' }}>{tr("资产重命名 / 移动")}</h3>
+                <p style={{ margin: '4px 0 0', color: 'var(--text-sub)', fontSize: '11px' }}>{tr("复用 Asset Center 的引用图，预览精确 JSON Pointer rewrite 后再移动。")}</p>
               </div>
               <label style={{ display: 'flex', flexDirection: 'column', gap: '5px', fontSize: '11px' }}>
-                源资产
-                <select data-testid="refactor-asset-select" value={selectedAssetId} onChange={(event) => handleAssetSelection(event.target.value)}>
+                {tr("源资产")}<select data-testid="refactor-asset-select" value={selectedAssetId} onChange={(event) => handleAssetSelection(event.target.value)}>
                   {(refactorAssets?.assets ?? []).map((asset) => (
                     <option key={asset.id} value={asset.id}>{asset.relativePath}</option>
                   ))}
                 </select>
               </label>
               <label style={{ display: 'flex', flexDirection: 'column', gap: '5px', fontSize: '11px' }}>
-                目标路径
-                <input data-testid="refactor-asset-target" value={assetTargetPath} onChange={(event) => {
+                {tr("目标路径")}<input data-testid="refactor-asset-target" value={assetTargetPath} onChange={(event) => {
                   setAssetTargetPath(event.target.value);
                   setAssetMovePreview(null);
                 }} />
               </label>
               <button type="button" className="btn-secondary" data-testid="preview-asset-refactor" disabled={refactorBusy || !selectedAssetId || !assetTargetPath.trim()} onClick={() => void handlePreviewAssetRefactor()}>
-                预览移动与引用重写
-              </button>
+                {tr("预览移动与引用重写")}</button>
 
               {assetMovePreview && (
                 <div data-testid="asset-refactor-impact" style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
-                    <div className="stage2-stat-card"><span>入站引用</span><strong>{assetMovePreview.referenceCount}</strong></div>
-                    <div className="stage2-stat-card"><span>精确重写</span><strong>{assetMovePreview.rewrites.length}</strong></div>
+                    <div className="stage2-stat-card"><span>{tr("入站引用")}</span><strong>{assetMovePreview.referenceCount}</strong></div>
+                    <div className="stage2-stat-card"><span>{tr("精确重写")}</span><strong>{assetMovePreview.rewrites.length}</strong></div>
                   </div>
                   <code style={{ fontSize: '10px', overflowWrap: 'anywhere' }}>{assetMovePreview.sourceRelativePath} → {assetMovePreview.targetRelativePath}</code>
                   {assetMovePreview.issueCodes.length > 0 && (
@@ -1006,16 +985,14 @@ export const TracksAndMigrationView: React.FC = () => {
                     </div>
                   ))}
                   <button type="button" className="btn-primary" data-testid="apply-asset-refactor" disabled={refactorBusy || !assetMovePreview.canApply} onClick={() => void handleApplyAssetRefactor()}>
-                    应用移动与引用重写
-                  </button>
+                    {tr("应用移动与引用重写")}</button>
                 </div>
               )}
             </section>
           </div>
 
           <div data-testid="refactor-procedure-note" style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '12px 16px', fontSize: '11px', color: 'var(--text-sub)' }}>
-            Procedure 的批量调用目标替换、资源引用替换与逻辑抽取继续在 Procedure Workbench 中执行；它们已经共享 protected WorkspacePlan，因此这里不复制第二套编辑器。
-          </div>
+            {tr("Procedure 的批量调用目标替换、资源引用替换与逻辑抽取继续在 Procedure Workbench 中执行；它们已经共享 protected WorkspacePlan，因此这里不复制第二套编辑器。")}</div>
         </div>
       )}
 
@@ -1026,17 +1003,15 @@ export const TracksAndMigrationView: React.FC = () => {
           <div role="alert" style={{ background: 'var(--badge-amber-bg)', border: '1px solid rgba(210, 153, 34, 0.4)', borderRadius: 'var(--radius-md)', padding: '12px 16px', display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
             <AlertTriangle size={18} color="var(--badge-amber)" style={{ flexShrink: 0, marginTop: '2px' }} />
             <div style={{ fontSize: '12px', color: 'var(--text-main)', lineHeight: 1.5 }}>
-              <strong>环境约束说明：</strong> 迁入外部上游工作区需要桌面宿主提供的系统文件选择器与完全访问（Full Access）权限。在浏览器与模拟环境下，直接文件系统选择器处于禁用状态。
-            </div>
+              <strong>{tr("环境约束说明：")}</strong> {tr(" 迁入外部上游工作区需要桌面宿主提供的系统文件选择器与完全访问（Full Access）权限。在浏览器与模拟环境下，直接文件系统选择器处于禁用状态。")}</div>
           </div>
 
           <div style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            <h3 style={{ fontSize: '14px', fontWeight: 700, margin: 0 }}>上游工作区迁入配置</h3>
+            <h3 style={{ fontSize: '14px', fontWeight: 700, margin: 0 }}>{tr("上游工作区迁入配置")}</h3>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px', fontWeight: 600 }}>
-                上游工作区路径（模拟夹具固定路径）
-                <div style={{ display: 'flex', gap: '8px' }}>
+                {tr("上游工作区路径（模拟夹具固定路径）")}<div style={{ display: 'flex', gap: '8px' }}>
                   <input
                     type="text"
                     data-testid="upstream-path-input"
@@ -1049,18 +1024,16 @@ export const TracksAndMigrationView: React.FC = () => {
                     className="btn-secondary"
                     data-testid="upstream-browse-btn"
                     disabled
-                    title="仅桌面完全访问（Full Access）宿主可用"
+                    title={tr("仅桌面完全访问（Full Access）宿主可用")}
                     style={{ fontSize: '12px', padding: '6px 12px', opacity: 0.6 }}
                   >
                     <Lock size={12} style={{ marginRight: '4px' }} />
-                    浏览… (仅桌面完全访问（Full Access）)
-                  </button>
+                    {tr("浏览… (仅桌面完全访问（Full Access）)")}</button>
                 </div>
               </label>
 
               <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px', fontWeight: 600 }}>
-                新工作区副本名称
-                <input
+                {tr("新工作区副本名称")}<input
                   type="text"
                   data-testid="upstream-output-name-input"
                   value={upstreamOutputName}
@@ -1080,7 +1053,7 @@ export const TracksAndMigrationView: React.FC = () => {
                 disabled={upstreamLoading}
                 style={{ fontSize: '12px', padding: '6px 14px' }}
               >
-                {upstreamLoading ? '正在分析上游工作区…' : '分析上游工程兼容性'}
+                {upstreamLoading ? tr("正在分析上游工作区…") : tr("分析上游工程兼容性")}
               </button>
             </div>
           </div>
@@ -1091,13 +1064,13 @@ export const TracksAndMigrationView: React.FC = () => {
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '10px' }}>
                 <div>
                   <h4 style={{ fontSize: '14px', fontWeight: 700, margin: 0 }}>
-                    检测到上游格式：{upstreamPreview.sourceGeneratorId}
+                    {tr("检测到上游格式：")}{upstreamPreview.sourceGeneratorId}
                   </h4>
                   <div style={{ fontSize: '11px', color: 'var(--text-sub)', marginTop: '2px' }}>
-                    源工作区保持只读未受影响（SHA-256: {upstreamPreview.sourceHash ? upstreamPreview.sourceHash.slice(0, 16) + '…' : '已校验'}）
+                    {tr("源工作区保持只读未受影响（SHA-256: ")}{upstreamPreview.sourceHash ? upstreamPreview.sourceHash.slice(0, 16) + '…' : tr("已校验")}）
                   </div>
                 </div>
-                <span className="badge badge-green">可安全迁入</span>
+                <span className="badge badge-green">{tr("可安全迁入")}</span>
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -1135,7 +1108,7 @@ export const TracksAndMigrationView: React.FC = () => {
                   checked={upstreamConfirmed}
                   onChange={(e) => setUpstreamConfirmed(e.target.checked)}
                 />
-                <span>确认迁入上游工程至新副本</span>
+                <span>{tr("确认迁入上游工程至新副本")}</span>
               </label>
 
               <button
@@ -1146,7 +1119,7 @@ export const TracksAndMigrationView: React.FC = () => {
                 onClick={() => void handleExecuteUpstreamImport()}
                 style={{ fontSize: '12px', padding: '6px 16px', alignSelf: 'flex-start' }}
               >
-                {upstreamLoading ? '正在迁入…' : '开始迁入并创建独立副本'}
+                {upstreamLoading ? tr("正在迁入…") : tr("开始迁入并创建独立副本")}
               </button>
             </div>
           )}
@@ -1159,9 +1132,9 @@ export const TracksAndMigrationView: React.FC = () => {
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <AlertTriangle size={20} color="var(--badge-red)" />
                 <div>
-                  <strong style={{ fontSize: '13px', color: 'var(--badge-red)' }}>权限不足（PERMISSION_DENIED）</strong>
+                  <strong style={{ fontSize: '13px', color: 'var(--badge-red)' }}>{tr("权限不足（PERMISSION_DENIED）")}</strong>
                   <div style={{ fontSize: '12px', color: 'var(--text-sub)' }}>
-                    迁入上游工作区需要桌面 完全访问（Full Access）权限（当前配置: {valueLabel(upstreamResult.denial.currentProfile)}，所需配置: {valueLabel(upstreamResult.denial.requiredProfile)}）。
+                    {tr("迁入上游工作区需要桌面 完全访问（Full Access）权限（当前配置: ")}{valueLabel(upstreamResult.denial.currentProfile)}{tr("，所需配置: ")}{valueLabel(upstreamResult.denial.requiredProfile)}）。
                   </div>
                 </div>
               </div>
@@ -1175,8 +1148,7 @@ export const TracksAndMigrationView: React.FC = () => {
                 }}
                 style={{ fontSize: '11px', padding: '4px 12px' }}
               >
-                提升至完全访问（Full Access）
-              </button>
+                {tr("提升至完全访问（Full Access）")}</button>
             </div>
           )}
 
@@ -1185,9 +1157,9 @@ export const TracksAndMigrationView: React.FC = () => {
             <div data-testid="upstream-success-banner" style={{ background: 'var(--badge-green-bg)', border: '1px solid rgba(63, 185, 80, 0.4)', borderRadius: 'var(--radius-md)', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: '12px' }}>
               <CheckCircle2 size={20} color="var(--badge-green)" />
               <div>
-                <strong style={{ fontSize: '13px', color: 'var(--text-main)' }}>上游工作区迁入成功！</strong>
+                <strong style={{ fontSize: '13px', color: 'var(--text-main)' }}>{tr("上游工作区迁入成功！")}</strong>
                 <div style={{ fontSize: '12px', color: 'var(--text-sub)' }}>
-                  已创建新副本至 <code>{upstreamResult.data?.targetDirectory ?? `workspaces/${upstreamOutputName}`}</code>。
+                  {tr("已创建新副本至 ")}<code>{upstreamResult.data?.targetDirectory ?? `workspaces/${upstreamOutputName}`}</code>。
                 </div>
               </div>
             </div>
@@ -1200,10 +1172,9 @@ export const TracksAndMigrationView: React.FC = () => {
         <div className="publish-batches-content animate-fade-in" data-testid="publish-batches-section" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
-              <h3 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>资源包发布与分发批次</h3>
+              <h3 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>{tr("资源包发布与分发批次")}</h3>
               <p style={{ fontSize: '12px', color: 'var(--text-sub)', margin: '2px 0 0 0' }}>
-                打包与验证独立资源包 · 支持导出与测试客户端挂载
-              </p>
+                {tr("打包与验证独立资源包 · 支持导出与测试客户端挂载")}</p>
             </div>
             <button
               type="button"
@@ -1213,7 +1184,7 @@ export const TracksAndMigrationView: React.FC = () => {
               style={{ fontSize: '12px', padding: '6px 14px', display: 'flex', alignItems: 'center', gap: '6px' }}
             >
               <Plus size={14} />
-              <span>新建发布批次</span>
+              <span>{tr("新建发布批次")}</span>
             </button>
           </div>
 
@@ -1241,10 +1212,9 @@ export const TracksAndMigrationView: React.FC = () => {
               }}
             >
               <FileArchive size={36} color="var(--accent-copper)" />
-              <strong style={{ fontSize: '14px', color: 'var(--text-main)' }}>暂无资源包发布批次</strong>
+              <strong style={{ fontSize: '14px', color: 'var(--text-main)' }}>{tr("暂无资源包发布批次")}</strong>
               <p style={{ fontSize: '12px', color: 'var(--text-sub)', maxWidth: '400px', margin: 0 }}>
-                创建发布批次以打包和验证独立资源包，支持生成 distribution zip 并装载到测试客户端。
-              </p>
+                {tr("创建发布批次以打包和验证独立资源包，支持生成 distribution zip 并装载到测试客户端。")}</p>
               <button
                 type="button"
                 className="btn-secondary"
@@ -1252,8 +1222,7 @@ export const TracksAndMigrationView: React.FC = () => {
                 onClick={() => setIsNewBatchModalOpen(true)}
                 style={{ fontSize: '12px', padding: '6px 14px' }}
               >
-                新建第一个发布批次
-              </button>
+                {tr("新建第一个发布批次")}</button>
             </div>
           ) : (
             <div data-testid="publish-batch-list" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -1275,7 +1244,7 @@ export const TracksAndMigrationView: React.FC = () => {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                       <FileArchive size={18} color="var(--accent-copper)" />
                       <strong style={{ fontSize: '14px' }}>{batch.name}</strong>
-                      <span className="badge">资源数: {batch.assetCount}</span>
+                      <span className="badge">{tr("资源数: ")}{batch.assetCount}</span>
                     </div>
                     <div style={{ fontSize: '11px', color: 'var(--text-sub)' }}>
                       {batch.createdAt}
@@ -1283,14 +1252,14 @@ export const TracksAndMigrationView: React.FC = () => {
                   </div>
 
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '10px', fontSize: '12px', color: 'var(--text-sub)' }}>
-                    <div>源目录: <code>{batch.sourceDirectory}</code></div>
-                    <div>输出: <code>{batch.outputPath}</code></div>
+                    <div>{tr("源目录: ")}<code>{batch.sourceDirectory}</code></div>
+                    <div>{tr("输出: ")}<code>{batch.outputPath}</code></div>
                     <div>SHA-256: <code>{batch.sha256 ? batch.sha256.slice(0, 16) + '…' : ''}</code></div>
                   </div>
 
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--border-subtle)', paddingTop: '10px' }}>
                     <div style={{ fontSize: '12px', color: 'var(--text-main)' }}>
-                      客户端状态：<span data-testid={`batch-client-status-${batch.id}`} style={{ color: 'var(--accent-copper)', fontWeight: 600 }}>已就绪，尚未启动客户端</span>
+                      {tr("客户端状态：")}<span data-testid={`batch-client-status-${batch.id}`} style={{ color: 'var(--accent-copper)', fontWeight: 600 }}>{tr("已就绪，尚未启动客户端")}</span>
                     </div>
                     <button
                       type="button"
@@ -1300,7 +1269,7 @@ export const TracksAndMigrationView: React.FC = () => {
                       style={{ fontSize: '11px', padding: '4px 10px', display: 'flex', alignItems: 'center', gap: '6px' }}
                     >
                       <Play size={12} />
-                      <span>准备测试客户端</span>
+                      <span>{tr("准备测试客户端")}</span>
                     </button>
                   </div>
                 </div>
@@ -1343,12 +1312,11 @@ export const TracksAndMigrationView: React.FC = () => {
                   gap: '16px'
                 }}
               >
-                <h3 id="new-batch-title" style={{ fontSize: '16px', fontWeight: 700, margin: 0 }}>新建资源包发布批次</h3>
+                <h3 id="new-batch-title" style={{ fontSize: '16px', fontWeight: 700, margin: 0 }}>{tr("新建资源包发布批次")}</h3>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '12px', fontWeight: 600 }}>
-                    批次标识名称
-                    <input
+                    {tr("批次标识名称")}<input
                       type="text"
                       data-testid="new-batch-name-input"
                       value={newBatchName}
@@ -1359,8 +1327,7 @@ export const TracksAndMigrationView: React.FC = () => {
                   </label>
 
                   <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '12px', fontWeight: 600 }}>
-                    资源源目录
-                    <input
+                    {tr("资源源目录")}<input
                       type="text"
                       data-testid="new-batch-source-input"
                       value={newBatchSourceDir}
@@ -1370,8 +1337,7 @@ export const TracksAndMigrationView: React.FC = () => {
                   </label>
 
                   <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '12px', fontWeight: 600 }}>
-                    发布输出目标 (.zip)
-                    <input
+                    {tr("发布输出目标 (.zip)")}<input
                       type="text"
                       data-testid="new-batch-output-input"
                       value={newBatchOutput}
@@ -1388,8 +1354,7 @@ export const TracksAndMigrationView: React.FC = () => {
                     onClick={() => setIsNewBatchModalOpen(false)}
                     style={{ fontSize: '12px', padding: '6px 14px' }}
                   >
-                    取消
-                  </button>
+                    {tr("取消")}</button>
                   <button
                     type="button"
                     className="btn-primary"
@@ -1397,8 +1362,7 @@ export const TracksAndMigrationView: React.FC = () => {
                     onClick={() => void handleCreateBatch()}
                     style={{ fontSize: '12px', padding: '6px 14px' }}
                   >
-                    确认创建
-                  </button>
+                    {tr("确认创建")}</button>
                 </div>
               </div>
             </div>

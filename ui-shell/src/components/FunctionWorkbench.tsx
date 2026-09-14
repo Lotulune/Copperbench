@@ -1,3 +1,4 @@
+import { tr } from '../i18n/locale';
 import { valueLabel } from '../i18n/labels';
 import React, { useState, useEffect, useMemo } from 'react';
 import {
@@ -28,39 +29,39 @@ type FunctionTab = 'editor' | 'tags' | 'preview';
 
 const SNIPPETS: Array<{ label: string; snippet: string; description: string }> = [
   {
-    label: "execute 以所有玩家身份执行",
+    label: tr("execute 以所有玩家身份执行"),
     snippet: 'execute as @a at @s run ',
-    description: '针对所有在线玩家执行后续命令'
+    description: tr("针对所有在线玩家执行后续命令")
   },
   {
-    label: 'title 显示标题',
+    label: tr("title 显示标题"),
     snippet: 'title @a title {"text":"欢迎来到冒险世界！","color":"gold","bold":true}',
-    description: '在屏幕中央向玩家显示全屏大标题'
+    description: tr("在屏幕中央向玩家显示全屏大标题")
   },
   {
-    label: 'give 给予物品',
+    label: tr("give 给予物品"),
     snippet: 'give @p minecraft:diamond 1',
-    description: '向最近的玩家发放指定数量的物品'
+    description: tr("向最近的玩家发放指定数量的物品")
   },
   {
-    label: 'particle 生成粒子',
+    label: tr("particle 生成粒子"),
     snippet: 'particle minecraft:happy_villager ~ ~1 ~ 0.5 0.5 0.5 0.1 20',
-    description: '在当前坐标周围生成粒子视觉效果'
+    description: tr("在当前坐标周围生成粒子视觉效果")
   },
   {
-    label: 'scoreboard 计分板',
+    label: tr("scoreboard 计分板"),
     snippet: 'scoreboard players add @s points 1',
-    description: '为当前实体的计分项增加数值'
+    description: tr("为当前实体的计分项增加数值")
   },
   {
-    label: 'tag 标签操作',
+    label: tr("tag 标签操作"),
     snippet: 'tag @s add quest_completed',
-    description: '为实体添加自定义标识标签'
+    description: tr("为实体添加自定义标识标签")
   },
   {
-    label: '# 注释说明',
+    label: tr("# 注释说明"),
     snippet: '# 这是函数逻辑的注释说明',
-    description: '添加说明注释（以 # 开头）'
+    description: tr("添加说明注释（以 # 开头）")
   }
 ];
 
@@ -123,7 +124,7 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
       if (trimmed.startsWith('/')) {
         diagnostics.push({
           line: index + 1,
-          message: `第 ${index + 1} 行：Minecraft 函数文件中的命令不应包含开头的 '/'。`,
+          message: tr("第 {0} 行：Minecraft 函数文件中的命令不应包含开头的 '/'。", [index + 1]),
           severity: 'warning'
         });
       }
@@ -172,7 +173,7 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
     });
     setCode(fixed.join('\n'));
     setIsDirty(true);
-    setMessage(`已自动移除 ${fixCount} 处命令开头的 '/' 斜杠。`);
+    setMessage(tr("已自动移除 {0} 处命令开头的 '/' 斜杠。", [fixCount]));
   };
 
   const handleAddTag = () => {
@@ -209,11 +210,11 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
         setIsDirty(false);
         setTimeout(() => setSaveSuccess(false), 2500);
       } else {
-        setMessage(result.diagnostics[0] ? t(result.diagnostics[0].message) : '保存函数失败。');
+        setMessage(result.diagnostics[0] ? t(result.diagnostics[0].message) : tr("保存函数失败。"));
       }
     } catch {
       setIsSaving(false);
-      setMessage('保存函数时发生网络或宿主错误。');
+      setMessage(tr("保存函数时发生网络或宿主错误。"));
     }
   };
 
@@ -249,12 +250,12 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
             type="button"
             className="btn-secondary"
             onClick={onClose}
-            aria-label="返回元素列表"
+            aria-label={tr("返回元素列表")}
             data-testid="function-back-btn"
             style={{ padding: '5px 10px', fontSize: '12px' }}
           >
             <ArrowLeft size={14} />
-            <span>返回</span>
+            <span>{tr("返回")}</span>
           </button>
 
           <div
@@ -277,7 +278,7 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
               <span style={{ fontWeight: 700, fontSize: '14px', color: 'var(--text-main)' }}>
                 {element.displayName}
               </span>
-              <span className="badge badge-copper">函数</span>
+              <span className="badge badge-copper">{tr("函数")}</span>
               <span
                 className={`badge badge-${element.state === 'valid' ? 'green' : 'amber'}`}
               >
@@ -285,8 +286,7 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
               </span>
               {isDirty && (
                 <span className="badge badge-amber" data-testid="function-dirty-badge">
-                  未保存更改
-                </span>
+                  {tr("未保存更改")}</span>
               )}
             </div>
             <div
@@ -331,7 +331,7 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
             }}
           >
             <Code2 size={13} />
-            <span>命令编辑器</span>
+            <span>{tr("命令编辑器")}</span>
           </button>
 
           <button
@@ -352,7 +352,7 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
             }}
           >
             <Tags size={13} />
-            <span>函数标签 ({tags.length})</span>
+            <span>{tr("函数标签 (")}{tags.length})</span>
           </button>
 
           <button
@@ -373,7 +373,7 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
             }}
           >
             <FolderTree size={13} />
-            <span>数据包结构预览</span>
+            <span>{tr("数据包结构预览")}</span>
           </button>
         </div>
 
@@ -384,12 +384,12 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
               type="button"
               className="btn-secondary"
               onClick={handleStripLeadingSlashes}
-              title="自动移除命令开头的斜杠 /"
+              title={tr("自动移除命令开头的斜杠 /")}
               data-testid="function-clean-slashes-btn"
               style={{ fontSize: '11px', color: 'var(--badge-amber)' }}
             >
               <RotateCcw size={13} />
-              <span>清理斜杠 ({lineDiagnostics.length})</span>
+              <span>{tr("清理斜杠 (")}{lineDiagnostics.length})</span>
             </button>
           )}
 
@@ -403,8 +403,7 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
                 gap: '4px'
               }}
             >
-              <Check size={14} /> 已保存
-            </span>
+              <Check size={14} /> {tr(" 已保存")}</span>
           )}
 
           <button
@@ -416,7 +415,7 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
             style={{ fontSize: '12px', minWidth: '90px' }}
           >
             <Save size={14} />
-            <span>{isSaving ? '保存中…' : '保存函数'}</span>
+            <span>{isSaving ? tr("保存中…") : tr("保存函数")}</span>
           </button>
         </div>
       </header>
@@ -475,8 +474,7 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
                 }}
               >
                 <Sparkles size={13} />
-                快速插入片段：
-              </span>
+                {tr("快速插入片段：")}</span>
               {SNIPPETS.map((snip) => (
                 <button
                   key={snip.label}
@@ -544,7 +542,7 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
               <textarea
                 value={code}
                 onChange={(e) => handleCodeChange(e.target.value)}
-                placeholder="# 输入 Minecraft 命令（每行一条，支持 # 注释）..."
+                placeholder={tr("# 输入 Minecraft 命令（每行一条，支持 # 注释）...")}
                 spellCheck={false}
                 data-testid="function-code-editor"
                 style={{
@@ -579,8 +577,8 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                <span>总行数：{lineCount}</span>
-                <span>有效命令数：{commandCount}</span>
+                <span>{tr("总行数：")}{lineCount}</span>
+                <span>{tr("有效命令数：")}{commandCount}</span>
                 {lineDiagnostics.length > 0 ? (
                   <span
                     style={{
@@ -592,8 +590,7 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
                     }}
                     data-testid="function-lint-warnings"
                   >
-                    <AlertTriangle size={13} /> {lineDiagnostics.length} 处命令格式提示
-                  </span>
+                    <AlertTriangle size={13} /> {lineDiagnostics.length} {tr(" 处命令格式提示")}</span>
                 ) : (
                   <span
                     style={{
@@ -603,13 +600,12 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
                       gap: '4px'
                     }}
                   >
-                    <Check size={13} /> 语法检查通过
-                  </span>
+                    <Check size={13} /> {tr(" 语法检查通过")}</span>
                 )}
               </div>
 
               <div>
-                <span>命名空间：</span>
+                <span>{tr("命名空间：")}</span>
                 <input
                   type="text"
                   value={namespace}
@@ -645,22 +641,19 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
           >
             <div>
               <h2 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-main)' }}>
-                函数标签 (Function Tags)
-              </h2>
+                {tr("函数标签 (Function Tags)")}</h2>
               <p style={{ fontSize: '12px', color: 'var(--text-sub)', marginTop: '4px' }}>
-                将此函数注册到特定标签中，以便在游戏循环（#minecraft:tick）或世界加载（#minecraft:load）时自动调用。
-              </p>
+                {tr("将此函数注册到特定标签中，以便在游戏循环（#minecraft:tick）或世界加载（#minecraft:load）时自动调用。")}</p>
             </div>
 
             {/* Quick Presets */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-sub)' }}>
-                常用标准标签：
-              </span>
+                {tr("常用标准标签：")}</span>
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 {[
-                  { tag: 'minecraft:load', desc: '世界启动 / 重载 (/reload) 时执行一次' },
-                  { tag: 'minecraft:tick', desc: '每个游戏刻 (20次/秒) 持续循环执行' }
+                  { tag: 'minecraft:load', desc: tr("世界启动 / 重载 (/reload) 时执行一次") },
+                  { tag: 'minecraft:tick', desc: tr("每个游戏刻 (20次/秒) 持续循环执行") }
                 ].map((preset) => {
                   const isAssigned = tags.includes(preset.tag);
                   return (
@@ -699,12 +692,11 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
             {/* Custom Tag Input */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-sub)' }}>
-                添加自定义函数标签：
-              </span>
+                {tr("添加自定义函数标签：")}</span>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <input
                   type="text"
-                  placeholder="例如 copperbench:custom_tick 或 mod:events/on_kill"
+                  placeholder={tr("例如 copperbench:custom_tick 或 mod:events/on_kill")}
                   value={newTag}
                   onChange={(e) => setNewTag(e.target.value)}
                   onKeyDown={(e) => {
@@ -721,7 +713,7 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
                   data-testid="function-add-tag-btn"
                 >
                   <Plus size={14} />
-                  <span>添加标签</span>
+                  <span>{tr("添加标签")}</span>
                 </button>
               </div>
             </div>
@@ -729,8 +721,7 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
             {/* Assigned Tags List */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-sub)' }}>
-                已分配的标签列表：
-              </span>
+                {tr("已分配的标签列表：")}</span>
               {tags.length === 0 ? (
                 <div
                   style={{
@@ -742,8 +733,7 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
                     color: 'var(--text-muted)'
                   }}
                 >
-                  尚未为此函数分配任何标签。
-                </div>
+                  {tr("尚未为此函数分配任何标签。")}</div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   {tags.map((tag) => (
@@ -774,7 +764,7 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
                       <button
                         type="button"
                         onClick={() => handleRemoveTag(tag)}
-                        aria-label={`移除标签 ${tag}`}
+                        aria-label={tr("移除标签 {0}", [tag])}
                         style={{
                           background: 'none',
                           border: 'none',
@@ -807,11 +797,9 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
           >
             <div>
               <h2 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-main)' }}>
-                数据包结构映射预览
-              </h2>
+                {tr("数据包结构映射预览")}</h2>
               <p style={{ fontSize: '12px', color: 'var(--text-sub)', marginTop: '4px' }}>
-                在生成或编译时，此函数将按照 Minecraft Data Pack 规范输出为以下文件：
-              </p>
+                {tr("在生成或编译时，此函数将按照 Minecraft Data Pack 规范输出为以下文件：")}</p>
             </div>
 
             {/* mcfunction file preview */}
@@ -861,8 +849,7 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
             {tags.length > 0 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-sub)' }}>
-                  生成的函数标签 JSON：
-                </span>
+                  {tr("生成的函数标签 JSON：")}</span>
                 {tags.map((tag) => {
                   const parts = tag.split(':');
                   const tagNs = parts.length > 1 ? parts[0] : 'minecraft';

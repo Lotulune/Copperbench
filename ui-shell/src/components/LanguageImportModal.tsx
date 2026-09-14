@@ -1,3 +1,4 @@
+import { tr } from '../i18n/locale';
 import React, { useState, useMemo } from 'react';
 import {
   X,
@@ -143,7 +144,7 @@ export function parseCsvLanguageEntries(input: string): { entries: ParsedLanguag
         en_us: en
       });
     } else if (parts.length > 0 && parts.some((p) => p.length > 0)) {
-      errors.push(`第 ${i + 1} 行不是有效的 CSV 格式。`);
+      errors.push(tr("第 {0} 行不是有效的 CSV 格式。", [i + 1]));
     }
   }
 
@@ -174,10 +175,10 @@ export function parseJsonLanguageEntries(parsed: unknown): { entries: ParsedLang
             en_us: en || zh
           });
         } else {
-          errors.push(`第 ${idx + 1} 个 JSON 项缺少有效的 key 字段。`);
+          errors.push(tr("第 {0} 个 JSON 项缺少有效的 key 字段。", [idx + 1]));
         }
       } else {
-        errors.push(`第 ${idx + 1} 个 JSON 项不是有效对象。`);
+        errors.push(tr("第 {0} 个 JSON 项不是有效对象。", [idx + 1]));
       }
     });
     return { entries, errors };
@@ -278,14 +279,14 @@ export function parseJsonLanguageEntries(parsed: unknown): { entries: ParsedLang
           en_us: en || zh
         });
       } else {
-        errors.push(`键 "${trimmedKey}" 的值不是有效的文本或翻译对象。`);
+        errors.push(tr("键 \"{0}\" 的值不是有效的文本或翻译对象。", [trimmedKey]));
       }
     }
 
     return { entries, errors };
   }
 
-  errors.push('JSON 必须是对象或数组。');
+  errors.push(tr("JSON 必须是对象或数组。"));
   return { entries, errors };
 }
 
@@ -301,7 +302,7 @@ export function parseLanguageText(rawText: string): { entries: ParsedLanguageEnt
     } catch (err) {
       return {
         entries: [],
-        errors: [`JSON 解析错误: ${err instanceof Error ? err.message : String(err)}`]
+        errors: [tr("JSON 解析错误: {0}", [err instanceof Error ? err.message : String(err)])]
       };
     }
   } else {
@@ -358,14 +359,14 @@ export const LanguageImportModal: React.FC<LanguageImportModalProps> = ({
       }
     };
     reader.onerror = () => {
-      setError('无法读取所选文件。');
+      setError(tr("无法读取所选文件。"));
     };
     reader.readAsText(file);
   };
 
   const handleApplyImport = async () => {
     if (parseResult.entries.length === 0) {
-      setError('没有可导入的语言词条。');
+      setError(tr("没有可导入的语言词条。"));
       return;
     }
 
@@ -377,7 +378,7 @@ export const LanguageImportModal: React.FC<LanguageImportModalProps> = ({
       onClose();
     } catch (err) {
       setIsProcessing(false);
-      setError(err instanceof Error ? err.message : '导入语言包时发生错误。');
+      setError(err instanceof Error ? err.message : tr("导入语言包时发生错误。"));
     }
   };
 
@@ -387,18 +388,18 @@ export const LanguageImportModal: React.FC<LanguageImportModalProps> = ({
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
-        aria-label="导入语言词条"
+        aria-label={tr("导入语言词条")}
         className="modal-card animate-fade-in"
         style={{ width: '560px', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}
       >
         <div className="modal-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700, fontSize: '14px', color: 'var(--text-main)' }}>
             <Upload size={16} color="var(--accent-copper)" />
-            <span>导入语言词条 (CSV / JSON)</span>
+            <span>{tr("导入语言词条 (CSV / JSON)")}</span>
           </div>
           <button
             type="button"
-            aria-label="关闭导入对话框"
+            aria-label={tr("关闭导入对话框")}
             onClick={onClose}
             style={{ color: 'var(--text-muted)' }}
           >
@@ -420,11 +421,9 @@ export const LanguageImportModal: React.FC<LanguageImportModalProps> = ({
               <FileSpreadsheet size={24} color="var(--accent-copper)" />
               <div>
                 <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-main)' }}>
-                  从本地文件导入
-                </div>
+                  {tr("从本地文件导入")}</div>
                 <div style={{ fontSize: '10px', color: 'var(--text-sub)' }}>
-                  支持 .csv（key,zh_cn,en_us）与 .json 格式文件
-                </div>
+                  {tr("支持 .csv（key,zh_cn,en_us）与 .json 格式文件")}</div>
               </div>
             </div>
             <label
@@ -432,7 +431,7 @@ export const LanguageImportModal: React.FC<LanguageImportModalProps> = ({
               style={{ padding: '6px 12px', fontSize: '11px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
             >
               <Upload size={13} />
-              <span>选择文件</span>
+              <span>{tr("选择文件")}</span>
               <input
                 type="file"
                 accept=".csv,.json,text/csv,application/json"
@@ -446,13 +445,12 @@ export const LanguageImportModal: React.FC<LanguageImportModalProps> = ({
           {/* Paste / Direct input */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)' }}>
-              或在此处粘贴 CSV / JSON 文本：
-            </label>
+              {tr("或在此处粘贴 CSV / JSON 文本：")}</label>
             <textarea
               rows={6}
               value={rawText}
               onChange={(e) => setRawText(e.target.value)}
-              placeholder="key,zh_cn,en_us&#10;item.copperbench.ruby,红宝石,Ruby&#10;block.copperbench.copper_lamp,铜灯,Copper Lamp"
+              placeholder={tr("key,zh_cn,en_us&#10;item.copperbench.ruby,红宝石,Ruby&#10;block.copperbench.copper_lamp,铜灯,Copper Lamp")}
               data-testid="language-paste-input"
               style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', resize: 'vertical' }}
             />
@@ -473,14 +471,12 @@ export const LanguageImportModal: React.FC<LanguageImportModalProps> = ({
               data-testid="import-diff-summary"
             >
               <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-main)' }}>
-                解析结果统计：
-              </div>
+                {tr("解析结果统计：")}</div>
               <div style={{ display: 'flex', gap: '12px', fontSize: '11px', flexWrap: 'wrap' }}>
                 <span style={{ color: 'var(--badge-green)', fontWeight: 600 }}>
-                  ✓ 成功解析 {parseResult.entries.length} 个词条
-                </span>
-                <span className="badge badge-copper">新增 {parseResult.newCount} 项</span>
-                <span className="badge badge-amber">更新 {parseResult.updateCount} 项</span>
+                  {tr("✓ 成功解析 ")}{parseResult.entries.length} {tr(" 个词条")}</span>
+                <span className="badge badge-copper">{tr("新增 ")}{parseResult.newCount} {tr(" 项")}</span>
+                <span className="badge badge-amber">{tr("更新 ")}{parseResult.updateCount} {tr(" 项")}</span>
               </div>
             </div>
           )}
@@ -488,13 +484,12 @@ export const LanguageImportModal: React.FC<LanguageImportModalProps> = ({
           {/* Conflict Strategy */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)' }}>
-              冲突处理策略：
-            </label>
+              {tr("冲突处理策略：")}</label>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
               {[
-                { mode: 'merge', title: '合并并覆盖', desc: '更新匹配词条并添加新词条' },
-                { mode: 'keep', title: '保留现有', desc: '已有词条不变，仅添加新词条' },
-                { mode: 'replace', title: '全量替换', desc: '清空当前注册表并应用新列表' }
+                { mode: 'merge', title: tr("合并并覆盖"), desc: tr("更新匹配词条并添加新词条") },
+                { mode: 'keep', title: tr("保留现有"), desc: tr("已有词条不变，仅添加新词条") },
+                { mode: 'replace', title: tr("全量替换"), desc: tr("清空当前注册表并应用新列表") }
               ].map((strat) => {
                 const isSel = conflictMode === strat.mode;
                 return (
@@ -527,8 +522,7 @@ export const LanguageImportModal: React.FC<LanguageImportModalProps> = ({
 
         <div className="modal-footer">
           <button type="button" className="btn-secondary" onClick={onClose}>
-            取消
-          </button>
+            {tr("取消")}</button>
           <button
             type="button"
             className="btn-primary"
@@ -537,7 +531,7 @@ export const LanguageImportModal: React.FC<LanguageImportModalProps> = ({
             data-testid="confirm-language-import-btn"
           >
             <Check size={14} />
-            <span>{isProcessing ? '正在导入…' : `确认导入 (${parseResult.entries.length} 项)`}</span>
+            <span>{isProcessing ? tr("正在导入…") : tr("确认导入 ({0} 项)", [parseResult.entries.length])}</span>
           </button>
         </div>
       </div>

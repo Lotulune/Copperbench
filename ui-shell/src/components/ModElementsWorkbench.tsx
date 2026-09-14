@@ -1,3 +1,4 @@
+import { tr } from '../i18n/locale';
 import { elementLabel, valueLabel } from '../i18n/labels';
 import React, { useState, useMemo, useEffect } from 'react';
 import {
@@ -130,7 +131,7 @@ export const ModElementsWorkbench: React.FC = () => {
   // Dedicated full-screen workbenches for complex data-driven elements
   if (selectedElement?.type === 'procedure') {
     return (
-      <React.Suspense fallback={<div className="procedure-route-loading">正在加载过程（Procedure）编辑器…</div>}>
+      <React.Suspense fallback={<div className="procedure-route-loading">{tr("正在加载过程（Procedure）编辑器…")}</div>}>
         <ProcedureWorkbench element={selectedElement} onClose={() => setSelectedElementId(null)} />
       </React.Suspense>
     );
@@ -138,7 +139,7 @@ export const ModElementsWorkbench: React.FC = () => {
 
   if (selectedElement?.type === 'overlay') {
     return (
-      <React.Suspense fallback={<div className="procedure-route-loading">正在加载 Overlay 深度编辑器…</div>}>
+      <React.Suspense fallback={<div className="procedure-route-loading">{tr("正在加载 Overlay 深度编辑器…")}</div>}>
         <OverlayWorkbench element={selectedElement} onClose={() => setSelectedElementId(null)} />
       </React.Suspense>
     );
@@ -146,7 +147,7 @@ export const ModElementsWorkbench: React.FC = () => {
 
   if (selectedElement?.type === 'gui') {
     return (
-      <React.Suspense fallback={<div className="procedure-route-loading">正在加载 GUI 深度编辑器…</div>}>
+      <React.Suspense fallback={<div className="procedure-route-loading">{tr("正在加载 GUI 深度编辑器…")}</div>}>
         <GuiWorkbench element={selectedElement} onClose={() => setSelectedElementId(null)} />
       </React.Suspense>
     );
@@ -154,7 +155,7 @@ export const ModElementsWorkbench: React.FC = () => {
 
   if (selectedElement?.type === 'function') {
     return (
-      <React.Suspense fallback={<div className="procedure-route-loading">正在加载函数（Function）编辑器…</div>}>
+      <React.Suspense fallback={<div className="procedure-route-loading">{tr("正在加载函数（Function）编辑器…")}</div>}>
         <FunctionWorkbench element={selectedElement} onClose={() => setSelectedElementId(null)} />
       </React.Suspense>
     );
@@ -162,7 +163,7 @@ export const ModElementsWorkbench: React.FC = () => {
 
   if (selectedElement?.type === 'loottable') {
     return (
-      <React.Suspense fallback={<div className="procedure-route-loading">正在加载战利品表（Loot Table）编辑器…</div>}>
+      <React.Suspense fallback={<div className="procedure-route-loading">{tr("正在加载战利品表（Loot Table）编辑器…")}</div>}>
         <LootTableWorkbench element={selectedElement} onClose={() => setSelectedElementId(null)} />
       </React.Suspense>
     );
@@ -170,7 +171,7 @@ export const ModElementsWorkbench: React.FC = () => {
 
   if (selectedElement?.type === 'achievement') {
     return (
-      <React.Suspense fallback={<div className="procedure-route-loading">正在加载进度（Advancement）编辑器…</div>}>
+      <React.Suspense fallback={<div className="procedure-route-loading">{tr("正在加载进度（Advancement）编辑器…")}</div>}>
         <AdvancementWorkbench element={selectedElement} onClose={() => setSelectedElementId(null)} />
       </React.Suspense>
     );
@@ -244,7 +245,7 @@ export const ModElementsWorkbench: React.FC = () => {
                     color: selectedType === type ? 'var(--text-on-accent)' : 'var(--text-muted)'
                   }}
                 >
-                  {type === 'all' ? '全部' : elementLabel(type)}
+                  {type === 'all' ? tr("全部") : elementLabel(type)}
                 </button>
               ))}
             </div>
@@ -265,7 +266,7 @@ export const ModElementsWorkbench: React.FC = () => {
                     color: selectedState === st ? 'var(--text-main)' : 'var(--text-sub)'
                   }}
                 >
-                  {st === 'all' ? '全部状态' : st === 'valid' ? '有效' : '草稿'}
+                  {st === 'all' ? tr("全部状态") : st === 'valid' ? tr("有效") : tr("草稿")}
                 </button>
               ))}
             </div>
@@ -279,11 +280,11 @@ export const ModElementsWorkbench: React.FC = () => {
                 data-testid="elements-sort-select"
                 style={{ padding: '3px 6px', fontSize: '11px' }}
               >
-                <option value="updated_desc">最新更新</option>
-                <option value="updated_asc">最早更新</option>
-                <option value="name_asc">名称 (A-Z)</option>
-                <option value="name_desc">名称 (Z-A)</option>
-                <option value="type_asc">类型</option>
+                <option value="updated_desc">{tr("最新更新")}</option>
+                <option value="updated_asc">{tr("最早更新")}</option>
+                <option value="name_asc">{tr("名称 (A-Z)")}</option>
+                <option value="name_desc">{tr("名称 (Z-A)")}</option>
+                <option value="type_asc">{tr("类型")}</option>
               </select>
             </div>
           </div>
@@ -294,28 +295,28 @@ export const ModElementsWorkbench: React.FC = () => {
               <button
                 onClick={() => setViewMode('grid')}
                 aria-pressed={viewMode === 'grid'}
-                aria-label="卡片网格视图"
+                aria-label={tr("卡片网格视图")}
                 style={{
                   padding: '4px 6px',
                   borderRadius: 'var(--radius-xs)',
                   background: viewMode === 'grid' ? 'var(--bg-hover)' : 'transparent',
                   color: viewMode === 'grid' ? 'var(--accent-copper)' : 'var(--text-sub)'
                 }}
-                title="卡片网格视图"
+                title={tr("卡片网格视图")}
               >
                 <LayoutGrid size={14} />
               </button>
               <button
                 onClick={() => setViewMode('table')}
                 aria-pressed={viewMode === 'table'}
-                aria-label="紧凑表格视图"
+                aria-label={tr("紧凑表格视图")}
                 style={{
                   padding: '4px 6px',
                   borderRadius: 'var(--radius-xs)',
                   background: viewMode === 'table' ? 'var(--bg-hover)' : 'transparent',
                   color: viewMode === 'table' ? 'var(--accent-copper)' : 'var(--text-sub)'
                 }}
-                title="紧凑表格视图"
+                title={tr("紧凑表格视图")}
               >
                 <ListIcon size={14} />
               </button>
@@ -327,7 +328,7 @@ export const ModElementsWorkbench: React.FC = () => {
               data-testid="create-element-btn"
             >
               <Plus size={14} />
-              <span>新建元素</span>
+              <span>{tr("新建元素")}</span>
             </button>
           </div>
         </div>
@@ -348,18 +349,16 @@ export const ModElementsWorkbench: React.FC = () => {
             >
               <Box size={40} color="var(--border-active)" />
               <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-main)' }}>
-                没有匹配的模组元素
-              </div>
+                {tr("没有匹配的模组元素")}</div>
               <div style={{ fontSize: '12px', color: 'var(--text-sub)' }}>
-                创建方块、物品、配方、过程或数据驱动元素开始创作。
-              </div>
+                {tr("创建方块、物品、配方、过程或数据驱动元素开始创作。")}</div>
               <button
                 className="btn-primary"
                 onClick={() => setIsCreateModalOpen(true)}
                 data-testid="empty-primary-action"
               >
                 <Plus size={14} />
-                <span>新建模组元素</span>
+                <span>{tr("新建模组元素")}</span>
               </button>
             </div>
           ) : viewMode === 'grid' ? (
@@ -429,7 +428,7 @@ export const ModElementsWorkbench: React.FC = () => {
 
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         {elem.firstParty === false && (
-                          <span className="badge badge-amber" data-testid="element-outside-slice">暂不支持编辑</span>
+                          <span className="badge badge-amber" data-testid="element-outside-slice">{tr("暂不支持编辑")}</span>
                         )}
                         <span className={`badge badge-${elem.state === 'valid' ? 'green' : elem.state === 'draft' ? 'amber' : 'red'}`}>
                           {valueLabel(elem.state)}
@@ -478,11 +477,11 @@ export const ModElementsWorkbench: React.FC = () => {
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
                 <thead>
                   <tr style={{ background: 'var(--bg-panel)', borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-sub)', textAlign: 'left' }}>
-                    <th style={{ padding: '10px 14px' }}>名称 / 标识符</th>
-                    <th style={{ padding: '10px 14px' }}>类型</th>
-                    <th style={{ padding: '10px 14px' }}>状态</th>
-                    <th style={{ padding: '10px 14px' }}>所有权</th>
-                    <th style={{ padding: '10px 14px' }}>更新时间</th>
+                    <th style={{ padding: '10px 14px' }}>{tr("名称 / 标识符")}</th>
+                    <th style={{ padding: '10px 14px' }}>{tr("类型")}</th>
+                    <th style={{ padding: '10px 14px' }}>{tr("状态")}</th>
+                    <th style={{ padding: '10px 14px' }}>{tr("所有权")}</th>
+                    <th style={{ padding: '10px 14px' }}>{tr("更新时间")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -550,20 +549,19 @@ export const ModElementsWorkbench: React.FC = () => {
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <span>
-                显示第 {(currentPage - 1) * pageSize + 1} - {Math.min(currentPage * pageSize, filteredAndSortedElements.length)} 项，共 {filteredAndSortedElements.length} 个元素
-              </span>
+                {tr("显示第 ")}{(currentPage - 1) * pageSize + 1} - {Math.min(currentPage * pageSize, filteredAndSortedElements.length)} {tr(" 项，共 ")}{filteredAndSortedElements.length} {tr(" 个元素")}</span>
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <span>每页：</span>
+                <span>{tr("每页：")}</span>
                 <select
                   value={pageSize}
                   onChange={(e) => setPageSize(parseInt(e.target.value) || 24)}
                   data-testid="elements-page-size-select"
                   style={{ padding: '2px 6px', fontSize: '11px' }}
                 >
-                  <option value={24}>24 项</option>
-                  <option value={48}>48 项</option>
-                  <option value={96}>96 项</option>
-                  <option value={200}>200 项</option>
+                  <option value={24}>{tr("24 项")}</option>
+                  <option value={48}>{tr("48 项")}</option>
+                  <option value={96}>{tr("96 项")}</option>
+                  <option value={200}>{tr("200 项")}</option>
                 </select>
               </div>
             </div>
@@ -578,7 +576,7 @@ export const ModElementsWorkbench: React.FC = () => {
                 style={{ padding: '3px 8px' }}
               >
                 <ChevronLeft size={13} />
-                <span>上一页</span>
+                <span>{tr("上一页")}</span>
               </button>
               <span style={{ fontWeight: 600, color: 'var(--text-main)', padding: '0 4px' }}>
                 {currentPage} / {totalPages}
@@ -591,7 +589,7 @@ export const ModElementsWorkbench: React.FC = () => {
                 data-testid="elements-next-page-btn"
                 style={{ padding: '3px 8px' }}
               >
-                <span>下一页</span>
+                <span>{tr("下一页")}</span>
                 <ChevronRight size={13} />
               </button>
             </div>

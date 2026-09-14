@@ -1,3 +1,4 @@
+import { tr } from '../i18n/locale';
 import React, { useEffect, useState } from 'react';
 import { coreBridge, isNativeHostPresent } from '../bridge';
 import { safeRandomUUID } from '../bridge/JcefCoreBridge';
@@ -20,13 +21,13 @@ export const BlockbenchOnboarding: React.FC = () => {
   }, [workspaceId]);
   if (!show) return null;
   return <aside className="blockbench-setup" data-testid="blockbench-onboarding" style={{ padding: 14, margin: 0 }}>
-    <strong>可选建模工具：Blockbench</strong>
-    <p>需要自定义模型时，可连接独立的 Blockbench 编辑器及社区 MCP。现在可以跳过，之后从资产中心进入设置。</p>
+    <strong>{tr("可选建模工具：Blockbench")}</strong>
+    <p>{tr("需要自定义模型时，可连接独立的 Blockbench 编辑器及社区 MCP。现在可以跳过，之后从资产中心进入设置。")}</p>
     <div className="blockbench-setup-actions">
-      <button className="btn-secondary" type="button" onClick={() => setActiveView('assets')}>查看建模工具设置</button>
+      <button className="btn-secondary" type="button" onClick={() => setActiveView('assets')}>{tr("查看建模工具设置")}</button>
       <button className="btn-secondary" type="button" disabled={busy} onClick={() => {
-        setBusy(true); void blockbenchBridge.dismissSetup().then(() => setShow(false)).catch(() => setError('偏好保存失败，请稍后重试。')).finally(() => setBusy(false));
-      }}>稍后设置，继续制作模组</button>
+        setBusy(true); void blockbenchBridge.dismissSetup().then(() => setShow(false)).catch(() => setError(tr("偏好保存失败，请稍后重试。"))).finally(() => setBusy(false));
+      }}>{tr("稍后设置，继续制作模组")}</button>
     </div>
     {error && <p role="alert">{error}</p>}
   </aside>;

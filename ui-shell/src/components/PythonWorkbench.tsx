@@ -1,3 +1,4 @@
+import { tr } from '../i18n/locale';
 import React, { useEffect, useRef, useState } from 'react';
 import { Play, Square, RotateCcw, FolderOpen, Save, Terminal, FileCode } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
@@ -11,8 +12,8 @@ const examples = {
   events: `import copperbench as cb\n\ndef on_change(context):\n    print("工作区已更新：", context.workspace.revision)\n\ncb.app.handlers.workspace_update.append(on_change)\nprint("已订阅；移除时使用 cb.app.handlers.workspace_update.remove(on_change)")\n`
 };
 
-const stateLabels = { stopped: '未启动', starting: '启动中', running: '执行中', ready: '就绪', failed: '解释器已退出' };
-const resultLabels = { idle: '', running: '脚本执行中', succeeded: '脚本成功', failed: '脚本失败', incomplete: '等待后续输入', cancelled: '脚本已停止' };
+const stateLabels = { stopped: tr("未启动"), starting: tr("启动中"), running: tr("执行中"), ready: tr("就绪"), failed: tr("解释器已退出") };
+const resultLabels = { idle: '', running: tr("脚本执行中"), succeeded: tr("脚本成功"), failed: tr("脚本失败"), incomplete: tr("等待后续输入"), cancelled: tr("脚本已停止") };
 
 export function PythonWorkbench({ visible }: { visible: boolean }) {
   const { state, selectedElement } = useWorkbench();
@@ -127,7 +128,7 @@ export function PythonWorkbench({ visible }: { visible: boolean }) {
     requestAnimationFrame(() => { field.focus(); field.setSelectionRange(target.start + text.length, target.start + text.length); });
   };
   const chooseFile = async (operation: 'open_script' | 'save_script' | 'select_python') => {
-    if (operation === 'open_script' && source !== savedSource && !window.confirm('打开脚本会替换当前未保存的草稿，是否继续？')) return;
+    if (operation === 'open_script' && source !== savedSource && !window.confirm(tr("打开脚本会替换当前未保存的草稿，是否继续？"))) return;
     try {
       const result = await pythonBridge.invoke<{ cancelled: boolean; path: string; source?: string }>({ operation, source });
       if (result.cancelled) return;
@@ -163,41 +164,41 @@ export function PythonWorkbench({ visible }: { visible: boolean }) {
   };
 
   return <section className="python-workbench" hidden={!visible} data-testid="python-workbench">
-    <header className="python-heading"><div><h1><Terminal size={22} /> Python 工作台</h1><p>当前工程直接可用 · 变量跨运行保留 · MCP 为可选入口</p></div>
+    <header className="python-heading"><div><h1><Terminal size={22} /> {tr(" Python 工作台")}</h1><p>{tr("当前工程直接可用 · 变量跨运行保留 · MCP 为可选入口")}</p></div>
       <span role="status">{stateLabels[status?.state ?? 'stopped']}{status?.lastResult && status.lastResult !== 'idle' ? ` · ${resultLabels[status.lastResult]}` : ''}</span></header>
-    {!pythonBridge.available && <p role="alert">请在支持 Python 工作台的桌面版本中打开工程；浏览器预览不会执行脚本。</p>}
-    {error && <p role="alert" className="python-error">{error}。无法启动时，请选择 Python 3.11 或更新版本的解释器。</p>}
-    <div className="python-runtime"><label>Python 解释器<input aria-label="Python 解释器路径" value={python} onChange={event => setPython(event.target.value)} placeholder="留空自动查找，也可选择解释器路径" disabled={busy} /></label>
-      <button onClick={() => void chooseFile('select_python')} disabled={!pythonBridge.available || busy}>选择解释器</button>
-      <button onClick={() => void invoke({ operation: 'start' })} disabled={!pythonBridge.available || busy || status?.state === 'ready'}>启动会话</button>
-      <button onClick={() => void invoke({ operation: 'stop' })} disabled={!pythonBridge.available} title="清空解释器变量，保留已提交的工程修改"><RotateCcw size={14} />重置会话</button></div>
+    {!pythonBridge.available && <p role="alert">{tr("请在支持 Python 工作台的桌面版本中打开工程；浏览器预览不会执行脚本。")}</p>}
+    {error && <p role="alert" className="python-error">{error}{tr("。无法启动时，请选择 Python 3.11 或更新版本的解释器。")}</p>}
+    <div className="python-runtime"><label>{tr("Python 解释器")}<input aria-label={tr("Python 解释器路径")} value={python} onChange={event => setPython(event.target.value)} placeholder={tr("留空自动查找，也可选择解释器路径")} disabled={busy} /></label>
+      <button onClick={() => void chooseFile('select_python')} disabled={!pythonBridge.available || busy}>{tr("选择解释器")}</button>
+      <button onClick={() => void invoke({ operation: 'start' })} disabled={!pythonBridge.available || busy || status?.state === 'ready'}>{tr("启动会话")}</button>
+      <button onClick={() => void invoke({ operation: 'stop' })} disabled={!pythonBridge.available} title={tr("清空解释器变量，保留已提交的工程修改")}><RotateCcw size={14} />{tr("重置会话")}</button></div>
     <div className="python-grid"><div className="python-main">
-      <div className="python-toolbar"><span><FileCode size={15} /> {filename.split(/[\\/]/).pop()}{source !== savedSource ? ' · 未保存' : ''}</span>
-        <button onClick={() => void chooseFile('open_script')} disabled={!pythonBridge.available}><FolderOpen size={14} />打开</button>
-        <button onClick={() => void chooseFile('save_script')} disabled={!pythonBridge.available}><Save size={14} />另存脚本</button>
-        <button className="btn-primary" onClick={runScript} disabled={!pythonBridge.available || busy || !source.trim()} data-testid="python-run"><Play size={14} />运行脚本</button>
-        <button onClick={() => void invoke({ operation: 'stop' })} disabled={!pythonBridge.available || (!busy && (!status || status.state === 'stopped'))} title="停止解释器及其定时回调" data-testid="python-stop"><Square size={14} />停止</button></div>
-      <textarea ref={editor} className="python-source" aria-label="Python 脚本编辑器" spellCheck={false} value={source}
+      <div className="python-toolbar"><span><FileCode size={15} /> {filename.split(/[\\/]/).pop()}{source !== savedSource ? tr(" · 未保存") : ''}</span>
+        <button onClick={() => void chooseFile('open_script')} disabled={!pythonBridge.available}><FolderOpen size={14} />{tr("打开")}</button>
+        <button onClick={() => void chooseFile('save_script')} disabled={!pythonBridge.available}><Save size={14} />{tr("另存脚本")}</button>
+        <button className="btn-primary" onClick={runScript} disabled={!pythonBridge.available || busy || !source.trim()} data-testid="python-run"><Play size={14} />{tr("运行脚本")}</button>
+        <button onClick={() => void invoke({ operation: 'stop' })} disabled={!pythonBridge.available || (!busy && (!status || status.state === 'stopped'))} title={tr("停止解释器及其定时回调")} data-testid="python-stop"><Square size={14} />{tr("停止")}</button></div>
+      <textarea ref={editor} className="python-source" aria-label={tr("Python 脚本编辑器")} spellCheck={false} value={source}
         onChange={event => { setSource(event.target.value); setSuggestions([]); }} onKeyDown={event => keyboard(event, 'script')} data-testid="python-source" />
-      <div className="python-editor-footer"><span>共 {source.split('\n').length} 行 · Ctrl+Enter 运行 · Ctrl+空格补全 · Ctrl+Tab 缩进</span>
+      <div className="python-editor-footer"><span>{tr("共 ")}{source.split('\n').length} {tr(" 行 · Ctrl+Enter 运行 · Ctrl+空格补全 · Ctrl+Tab 缩进")}</span>
         {status?.errorLine && lastMode.current === 'script' && <button onClick={() => {
           const offset = source.split('\n').slice(0, status.errorLine! - 1).reduce((sum, line) => sum + line.length + 1, 0);
           editor.current?.focus(); editor.current?.setSelectionRange(offset, offset + (source.split('\n')[status.errorLine! - 1]?.length ?? 0));
-        }}>定位第 {status.errorLine} 行异常</button>}</div>
-      {suggestions.length > 0 && <div className="python-completions" aria-label="代码补全候选">{suggestions.map(text => <button key={text} onClick={() => acceptCompletion(text)}>{text}</button>)}</div>}
-      <div className="python-console-title"><strong>交互控制台</strong>{truncated && <span>较早输出已截断</span>}<button onClick={() => { setOutput([]); setTruncated(false); retainedEntries.current = 0; }}>清空输出</button></div>
+        }}>{tr("定位第 ")}{status.errorLine} {tr(" 行异常")}</button>}</div>
+      {suggestions.length > 0 && <div className="python-completions" aria-label={tr("代码补全候选")}>{suggestions.map(text => <button key={text} onClick={() => acceptCompletion(text)}>{text}</button>)}</div>}
+      <div className="python-console-title"><strong>{tr("交互控制台")}</strong>{truncated && <span>{tr("较早输出已截断")}</span>}<button onClick={() => { setOutput([]); setTruncated(false); retainedEntries.current = 0; }}>{tr("清空输出")}</button></div>
       <div ref={log} role="log" aria-live="polite" className="python-output" data-testid="python-output"><pre>{output.map(entry => <span key={entry.sequence} className={`python-output-${entry.channel}`}>{entry.channel === 'input' ? '>>> ' : ''}{entry.text}{entry.channel === 'input' && !entry.text.endsWith('\n') ? '\n' : ''}</span>)}</pre></div>
-      <div className="python-console-input"><span aria-hidden="true">&gt;&gt;&gt;</span><textarea ref={consoleEditor} value={consoleInput} aria-label="Python 控制台输入" spellCheck={false}
-        onChange={event => { setConsoleInput(event.target.value); setSuggestions([]); }} onKeyDown={event => keyboard(event, 'console')} placeholder="Enter 执行，Shift+Enter 换行，上下键查看历史" data-testid="python-console-input" />
-        <button onClick={() => runConsole()} disabled={!pythonBridge.available || busy || !consoleInput.trim()}>执行输入</button></div>
-    </div><aside className="python-sidebar"><h2>当前上下文</h2><p>{state.workbench?.workspace.name}</p><p>选中元素：{selectedElement?.name ?? '无'}</p>
-      <p className="python-hint">在模组元素页选择对象后回来，或通过 cb.context.active_element 设置选择。</p>
-      <h2>脚本示例</h2>{([['inspect', '读取选中元素'], ['operator', '注册自定义操作'], ['timer', '注册定时器'], ['events', '订阅工程变化']] as const).map(([key, label]) =>
-        <button key={key} onClick={() => { if (source !== savedSource && !window.confirm('替换当前未保存的草稿？')) return; setSource(examples[key]); }}>{label}</button>)}
-      <h2>已注册操作</h2>{status?.operators.length ? status.operators.map(operator => <button key={operator.idname} disabled={busy} onClick={() => runConsole(`cb.ops.${operator.idname}()`)}>{operator.label}</button>) : <p>运行注册脚本后，操作会显示在这里。</p>}
-      <h2>接口帮助</h2><button disabled={!pythonBridge.available || busy} onClick={() => runConsole('print(cb.api_help())')}>显示接口概览</button>
-      <p className="python-hint">cb.context：当前上下文<br />cb.data：工程对象<br />cb.ops：核心及自定义操作<br />cb.app：定时器与回调</p>
-      <p className="python-hint">每次写入会立即提交；脚本报错不会撤销此前修改。历史恢复仍通过产品的审批流程。</p>
+      <div className="python-console-input"><span aria-hidden="true">&gt;&gt;&gt;</span><textarea ref={consoleEditor} value={consoleInput} aria-label={tr("Python 控制台输入")} spellCheck={false}
+        onChange={event => { setConsoleInput(event.target.value); setSuggestions([]); }} onKeyDown={event => keyboard(event, 'console')} placeholder={tr("Enter 执行，Shift+Enter 换行，上下键查看历史")} data-testid="python-console-input" />
+        <button onClick={() => runConsole()} disabled={!pythonBridge.available || busy || !consoleInput.trim()}>{tr("执行输入")}</button></div>
+    </div><aside className="python-sidebar"><h2>{tr("当前上下文")}</h2><p>{state.workbench?.workspace.name}</p><p>{tr("选中元素：")}{selectedElement?.name ?? tr("无")}</p>
+      <p className="python-hint">{tr("在模组元素页选择对象后回来，或通过 cb.context.active_element 设置选择。")}</p>
+      <h2>{tr("脚本示例")}</h2>{([['inspect', tr("读取选中元素")], ['operator', tr("注册自定义操作")], ['timer', tr("注册定时器")], ['events', tr("订阅工程变化")]] as const).map(([key, label]) =>
+        <button key={key} onClick={() => { if (source !== savedSource && !window.confirm(tr("替换当前未保存的草稿？"))) return; setSource(examples[key]); }}>{label}</button>)}
+      <h2>{tr("已注册操作")}</h2>{status?.operators.length ? status.operators.map(operator => <button key={operator.idname} disabled={busy} onClick={() => runConsole(`cb.ops.${operator.idname}()`)}>{operator.label}</button>) : <p>{tr("运行注册脚本后，操作会显示在这里。")}</p>}
+      <h2>{tr("接口帮助")}</h2><button disabled={!pythonBridge.available || busy} onClick={() => runConsole('print(cb.api_help())')}>{tr("显示接口概览")}</button>
+      <p className="python-hint">{tr("cb.context：当前上下文")}<br />{tr("cb.data：工程对象")}<br />{tr("cb.ops：核心及自定义操作")}<br />{tr("cb.app：定时器与回调")}</p>
+      <p className="python-hint">{tr("每次写入会立即提交；脚本报错不会撤销此前修改。历史恢复仍通过产品的审批流程。")}</p>
       <p className="python-version">{status?.pythonVersion}</p></aside></div>
   </section>;
 }

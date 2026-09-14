@@ -1,3 +1,4 @@
+import { tr } from '../i18n/locale';
 import React, { useState } from 'react';
 import {
   HelpCircle,
@@ -37,9 +38,9 @@ export const HelpView: React.FC = () => {
     setDiagnosticExportStatus(null);
     try {
       const result = await diagnosticsBridge.exportBundle(includeWorkspaceFiles);
-      setDiagnosticExportStatus(`已导出 ${result.fileName}${result.includedWorkspaceFiles ? `，附加 ${result.reproductionFileCount} 个复现文件` : ''}。`);
+      setDiagnosticExportStatus(tr("已导出 {0}{1}。", [result.fileName, result.includedWorkspaceFiles ? `，附加 ${result.reproductionFileCount} 个复现文件` : '']));
     } catch (error) {
-      setDiagnosticExportStatus(error instanceof Error ? error.message : '诊断包导出失败。');
+      setDiagnosticExportStatus(error instanceof Error ? error.message : tr("诊断包导出失败。"));
     } finally {
       setExportingDiagnostics(false);
     }
@@ -110,18 +111,15 @@ export const HelpView: React.FC = () => {
             </div>
             <div>
               <h1 style={{ fontSize: '20px', fontWeight: 700, margin: 0, color: 'var(--text-main)' }}>
-                帮助与使用说明
-              </h1>
+                {tr("帮助与使用说明")}</h1>
               <p style={{ fontSize: '12px', color: 'var(--text-sub)', margin: '4px 0 0 0' }}>
-                Copperbench 0.1.0 使用指南
-              </p>
+                {tr("Copperbench 0.1.0 使用指南")}</p>
             </div>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span className="badge badge-blue" style={{ fontSize: '11px', padding: '3px 8px' }}>
-              开发测试版
-            </span>
+              {tr("开发测试版")}</span>
           </div>
         </div>
       </div>
@@ -143,7 +141,7 @@ export const HelpView: React.FC = () => {
         <div style={{ minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <FileArchive size={18} color="var(--accent-copper)" aria-hidden="true" />
-            <h2 id="diagnostic-support-heading" style={{ margin: 0, fontSize: '15px' }}>诊断与反馈</h2>
+            <h2 id="diagnostic-support-heading" style={{ margin: 0, fontSize: '15px' }}>{tr("诊断与反馈")}</h2>
           </div>
           <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '10px', fontSize: '12px', color: 'var(--text-muted)' }}>
             <input
@@ -152,7 +150,7 @@ export const HelpView: React.FC = () => {
               onChange={(event) => setIncludeWorkspaceFiles(event.target.checked)}
               data-testid="diagnostic-include-workspace"
             />
-            <span>附加最小复现文件（可能包含工作区源码与内容）</span>
+            <span>{tr("附加最小复现文件（可能包含工作区源码与内容）")}</span>
           </label>
           <div role="status" aria-live="polite" data-testid="diagnostic-export-status" style={{ minHeight: '18px', marginTop: '6px', fontSize: '11px', color: 'var(--text-sub)' }}>
             {diagnosticExportStatus}
@@ -164,10 +162,10 @@ export const HelpView: React.FC = () => {
           onClick={() => void exportDiagnostics()}
           disabled={!diagnosticsBridge.available || exportingDiagnostics}
           data-testid="diagnostic-export-btn"
-          title={diagnosticsBridge.available ? '将诊断包保存到本机并打开文件位置' : '仅桌面宿主可导出诊断包'}
+          title={diagnosticsBridge.available ? tr("将诊断包保存到本机并打开文件位置") : tr("仅桌面宿主可导出诊断包")}
         >
           {exportingDiagnostics ? <LoaderCircle className="spin" size={14} aria-hidden="true" /> : <FileArchive size={14} aria-hidden="true" />}
-          <span>{exportingDiagnostics ? '正在导出' : '导出脱敏诊断包'}</span>
+          <span>{exportingDiagnostics ? tr("正在导出") : tr("导出脱敏诊断包")}</span>
         </button>
       </section>
 
@@ -191,12 +189,10 @@ export const HelpView: React.FC = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <ShieldCheck size={18} color="var(--accent-copper)" aria-hidden="true" />
             <h2 id="about-panel-heading" style={{ fontSize: '16px', fontWeight: 700, margin: 0, color: 'var(--text-main)' }}>
-              关于 Copperbench
-            </h2>
+              {tr("关于 Copperbench")}</h2>
           </div>
           <span className="badge badge-copper" style={{ fontSize: '11px' }}>
-            产品事实
-          </span>
+            {tr("产品事实")}</span>
         </div>
 
         {/* Facts Grid */}
@@ -252,8 +248,7 @@ export const HelpView: React.FC = () => {
         >
           <ShieldAlert size={16} color="var(--badge-amber)" style={{ flexShrink: 0, marginTop: '2px' }} aria-hidden="true" />
           <div style={{ lineHeight: 1.5 }}>
-            <strong>版本声明：</strong> Copperbench 0.1.0 采用 GPL-3.0-only 协议开源，独立衍生自 MCreator 2026.2.33518。当前为开发测试版，安装包未做生产代码签名，通过 GitHub 分发。
-          </div>
+            <strong>{tr("版本声明：")}</strong> {tr(" Copperbench 0.1.0 采用 GPL-3.0-only 协议开源，独立衍生自 MCreator 2026.2.33518。当前为开发测试版，安装包未做生产代码签名，通过 GitHub 分发。")}</div>
         </div>
       </section>
 
@@ -275,8 +270,7 @@ export const HelpView: React.FC = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Compass size={18} color="var(--accent-copper)" aria-hidden="true" />
             <h2 id="tracks-honest-heading" style={{ fontSize: '15px', fontWeight: 700, margin: 0, color: 'var(--text-main)' }}>
-              版本轨道支持状态
-            </h2>
+              {tr("版本轨道支持状态")}</h2>
           </div>
 
           <button
@@ -286,14 +280,13 @@ export const HelpView: React.FC = () => {
             data-testid="help-to-tracks-btn"
             style={{ fontSize: '11px', padding: '4px 10px', display: 'flex', alignItems: 'center', gap: '6px' }}
           >
-            <span>进入版本与迁移工作台</span>
+            <span>{tr("进入版本与迁移工作台")}</span>
             <ArrowRight size={12} aria-hidden="true" />
           </button>
         </div>
 
         <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0, lineHeight: 1.5 }}>
-          各轨道的支持状态与「版本轨道」页面保持一致。新项目建议优先选择标记为正式支持的轨道，实际可用的 Fabric / NeoForge 版本以「新建工作区」页面为准。仅支持 Windows 11 x64。
-        </p>
+          {tr("各轨道的支持状态与「版本轨道」页面保持一致。新项目建议优先选择标记为正式支持的轨道，实际可用的 Fabric / NeoForge 版本以「新建工作区」页面为准。仅支持 Windows 11 x64。")}</p>
 
         <div style={{ overflowX: 'auto' }}>
           <table
@@ -306,10 +299,10 @@ export const HelpView: React.FC = () => {
           >
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border-active)', textAlign: 'left' }}>
-                <th style={{ padding: '8px 10px', width: '130px' }}>轨道名称</th>
-                <th style={{ padding: '8px 10px', width: '110px' }}>Minecraft 版本</th>
-                <th style={{ padding: '8px 10px', width: '220px' }}>支持状态</th>
-                <th style={{ padding: '8px 10px' }}>说明</th>
+                <th style={{ padding: '8px 10px', width: '130px' }}>{tr("轨道名称")}</th>
+                <th style={{ padding: '8px 10px', width: '110px' }}>{tr("Minecraft 版本")}</th>
+                <th style={{ padding: '8px 10px', width: '220px' }}>{tr("支持状态")}</th>
+                <th style={{ padding: '8px 10px' }}>{tr("说明")}</th>
               </tr>
             </thead>
             <tbody>
@@ -356,8 +349,7 @@ export const HelpView: React.FC = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Layers size={18} color="var(--accent-copper)" aria-hidden="true" />
           <h2 id="user-guide-sections-heading" style={{ fontSize: '16px', fontWeight: 700, margin: 0, color: 'var(--text-main)' }}>
-            功能使用指南
-          </h2>
+            {tr("功能使用指南")}</h2>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '16px' }}>

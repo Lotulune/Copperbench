@@ -1,3 +1,4 @@
+import { tr } from '../i18n/locale';
 import { useCallback, useEffect, useState } from 'react';
 import { mcpRuntimeBridge, type McpRuntimeState } from '../bridge/mcpRuntimeBridge';
 
@@ -18,7 +19,7 @@ export const useMcpRuntimeState = () => {
     try {
       setMcp(await mcpRuntimeBridge.getState());
     } catch (error) {
-      setMcp(unavailable(error instanceof Error ? error.message : '桌面 MCP 状态不可用'));
+      setMcp(unavailable(error instanceof Error ? error.message : tr("桌面 MCP 状态不可用")));
     }
   }, []);
 

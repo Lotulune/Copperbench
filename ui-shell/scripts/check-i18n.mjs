@@ -68,7 +68,7 @@ const fallbackBypasses = files
 
 // Inspect rendered JSX and accessibility labels, not code, IDs or user content.
 const technicalLiterals = new Set([
-  'Copperbench', 'Minecraft', 'MCP:', 'SHA-256:', '&rarr;', '.mcreator', '.mcfunction', '.json',
+  'English', 'Copperbench', 'Minecraft', 'MCP:', 'SHA-256:', '&rarr;', '.mcreator', '.mcfunction', '.json',
   'data/', '/functions/', '/tags/functions/', 'minecraft:diamond', 'mod', 'workspace_imported_copy', 'pack_v1'
 ]);
 const untranslatedUi = [];
@@ -86,12 +86,40 @@ for (const file of files.filter(file => file.endsWith('.tsx') && file.includes(j
     ts.forEachChild(node, visitNode);
   };
   visitNode(ast);
-  if (/blockly\/msg\/en['"]|\.(?:kind|state|ownership)\.toUpperCase\(\)/.test(source)) {
+  if (/\.(?:kind|state|ownership)\.toUpperCase\(\)/.test(source)) {
     untranslatedUi.push(`${file.slice(projectRoot.length + 1)}: untranslated locale or wire-value rendering`);
   }
 }
 
 const failures = [];
+// Every authored UI literal must have an English counterpart with matching arguments.
+const englishSource = readFileSync(join(projectRoot, 'ui-shell/src/i18n/enUi.ts'), 'utf8');
+const englishAst = ts.createSourceFile('enUi.ts', englishSource, ts.ScriptTarget.Latest, true);
+const englishMessages = new Map();
+const readEnglish = node => {
+  if (ts.isPropertyAssignment(node) && ts.isStringLiteral(node.name) && ts.isStringLiteral(node.initializer)) {
+    if (englishMessages.has(node.name.text)) failures.push(`Duplicate English message: ${node.name.text}`);
+    englishMessages.set(node.name.text, node.initializer.text);
+  }
+  ts.forEachChild(node, readEnglish);
+};
+readEnglish(englishAst);
+for (const file of files.filter(file => /\.tsx?$/.test(file) && file.includes(join('ui-shell', 'src')))) {
+  const ast = ts.createSourceFile(file, readFileSync(file, 'utf8'), ts.ScriptTarget.Latest, true,
+    file.endsWith('.tsx') ? ts.ScriptKind.TSX : ts.ScriptKind.TS);
+  const visit = node => {
+    if (ts.isCallExpression(node) && ts.isIdentifier(node.expression) && node.expression.text === 'tr'
+        && node.arguments[0] && ts.isStringLiteral(node.arguments[0]) && !englishMessages.has(node.arguments[0].text)) {
+      failures.push(`Missing English translation in ${file}: ${node.arguments[0].text}`);
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(ast);
+}
+const placeholders = text => (text.match(/\{\d+\}/g) ?? []).sort().join(',');
+for (const [source, translated] of englishMessages) {
+  if (placeholders(source) !== placeholders(translated)) failures.push(`English placeholder mismatch: ${source}`);
+}
 const blocklySource = readFileSync(join(projectRoot, 'ui-shell/node_modules/blockly/msg/zh-hans.js'), 'utf8');
 const blocklyOverrides = readFileSync(join(projectRoot, 'ui-shell/src/i18n/blocklyZh.ts'), 'utf8');
 for (const line of blocklySource.split('\n').filter(line => line.includes('// untranslated'))) {
@@ -113,3 +141,4 @@ if (failures.length > 0) {
 }
 
 console.log(`Chinese localization gate passed: ${referencedKeys.size}/${referencedKeys.size} referenced keys translated.`);
+console.log(`English localization gate passed: ${englishMessages.size} messages; source coverage and placeholders verified.`);

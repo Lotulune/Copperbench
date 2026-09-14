@@ -1,3 +1,4 @@
+import { tr, UI_LOCALE } from '../i18n/locale';
 import React, { useEffect, useRef } from 'react';
 import {
   LayoutDashboard,
@@ -39,17 +40,17 @@ export const NavRail: React.FC = () => {
     badge?: string | number;
     badgeType?: 'copper' | 'blue' | 'green';
   }[] = [
-    { id: 'hub', label: '总览', icon: LayoutDashboard },
-    { id: 'elements', label: '模组元素', icon: Box, badge: elementCount, badgeType: 'copper' },
-    { id: 'data', label: '变量与数据', icon: Database, badge: '引用', badgeType: 'green' },
-    { id: 'tracks', label: '版本与迁移', icon: Compass, badge: '4轨', badgeType: 'copper' },
-    { id: 'new-workspace', label: '新建工作区', icon: Layers, badge: '4×2', badgeType: 'blue' },
-    { id: 'assets', label: '资产与模型', icon: Palette },
-    { id: 'python', label: 'Python 工作台', icon: Terminal },
-    { id: 'history', label: '本地历史', icon: GitBranch },
-    { id: 'ai', label: 'AI 与 MCP', icon: Bot, badge: permission === 'workspace' ? '读写' : permission === 'full_access' ? '完全' : '只读', badgeType: 'green' },
-    { id: 'plugins', label: '插件中心', icon: Plug, badge: 'A/B/C', badgeType: 'blue' },
-    { id: 'help', label: '帮助与关于', icon: HelpCircle, badge: '0.1.0', badgeType: 'copper' }
+    { id: 'hub', label: tr("总览"), icon: LayoutDashboard },
+    { id: 'elements', label: tr("模组元素"), icon: Box, badge: elementCount, badgeType: 'copper' },
+    { id: 'data', label: tr("变量与数据"), icon: Database, badge: tr("引用"), badgeType: 'green' },
+    { id: 'tracks', label: tr("版本与迁移"), icon: Compass, badge: tr("4轨"), badgeType: 'copper' },
+    { id: 'new-workspace', label: tr("新建工作区"), icon: Layers, badge: '4×2', badgeType: 'blue' },
+    { id: 'assets', label: tr("资产与模型"), icon: Palette },
+    { id: 'python', label: tr("Python 工作台"), icon: Terminal },
+    { id: 'history', label: tr("本地历史"), icon: GitBranch },
+    { id: 'ai', label: tr("AI 与 MCP"), icon: Bot, badge: permission === 'workspace' ? tr("读写") : permission === 'full_access' ? tr("完全") : tr("只读"), badgeType: 'green' },
+    { id: 'plugins', label: tr("插件中心"), icon: Plug, badge: 'A/B/C', badgeType: 'blue' },
+    { id: 'help', label: tr("帮助与关于"), icon: HelpCircle, badge: '0.1.0', badgeType: 'copper' }
   ];
 
   return (
@@ -57,7 +58,7 @@ export const NavRail: React.FC = () => {
       className="nav-rail"
       data-testid="nav-rail"
       style={{
-        width: '190px',
+        width: UI_LOCALE === 'en' ? '232px' : '190px',
         background: 'var(--navrail-bg)',
         borderRight: '1px solid var(--border-subtle)',
         display: 'flex',
@@ -80,8 +81,7 @@ export const NavRail: React.FC = () => {
             color: 'var(--text-sub)'
           }}
         >
-          导航
-        </div>
+          {tr("导航")}</div>
 
         {navItems.map((item) => {
           const Icon = item.icon;
@@ -144,10 +144,10 @@ export const NavRail: React.FC = () => {
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--accent-copper)', fontSize: '11px', fontWeight: 600 }}>
           <Sparkles size={12} />
-          <span>模组创作工作台</span>
+          <span>{tr("模组创作工作台")}</span>
         </div>
         <div style={{ fontSize: '10px', color: 'var(--text-sub)' }}>
-          {state.currentScenarioId === 'native' ? 'JCEF 原生桥接 · 协议 v1.0' : 'Mock 桥接已连接 · 协议 v1.0'}
+          {state.currentScenarioId === 'native' ? tr("JCEF 原生桥接 · 协议 v1.0") : tr("Mock 桥接已连接 · 协议 v1.0")}
         </div>
       </div>
     </aside>

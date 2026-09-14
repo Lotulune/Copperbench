@@ -1,3 +1,4 @@
+import { tr } from '../i18n/locale';
 import { valueLabel } from '../i18n/labels';
 import React, { useEffect, useState } from 'react';
 import { ExternalLink, Plug, ShieldAlert } from 'lucide-react';
@@ -9,25 +10,25 @@ import { InstalledPluginInventory, UpstreamToolCatalogProjection } from '../type
 export const AssetsView: React.FC = () => <AssetBrowserView />;
 
 const compatibilityRows = [
-  ['A', '资源与生成器', '经兼容测试后在产品工作流中运行'],
-  ['B', 'Java 逻辑', '通过 Java 兼容 API 和事件适配运行'],
-  ['C', 'Swing 界面', '在独立旧版插件窗口中尽力兼容'],
-  ['X', '内部 API 依赖', '拒绝加载或标记为不兼容']
+  ['A', tr("资源与生成器"), tr("经兼容测试后在产品工作流中运行")],
+  ['B', tr("Java 逻辑"), tr("通过 Java 兼容 API 和事件适配运行")],
+  ['C', tr("Swing 界面"), tr("在独立旧版插件窗口中尽力兼容")],
+  ['X', tr("内部 API 依赖"), tr("拒绝加载或标记为不兼容")]
 ] as const;
 
 /** 内置（第一方）插件的中文显示名；原始英文名作为副标题保留，便于对照。 */
 const FIRST_PARTY_PLUGIN_LABELS: Record<string, string> = {
-  core: 'MCreator 核心插件',
-  localization: 'MCreator 本地化插件',
-  themes: 'MCreator 界面主题插件',
-  'mcreator-link': 'MCreator Link 支持',
-  'generator-1.20.1': 'Minecraft 1.20.1 生成器（Fabric / NeoForge）',
-  'generator-1.21.1': 'Minecraft 1.21.1 生成器（Fabric / NeoForge）',
-  'generator-26.1.x': 'Minecraft 26.1.x 生成器',
-  'generator-26.2': 'Minecraft 26.2 生成器',
-  'generator-addon-26.1x': 'Minecraft 26.1x 基岩版生成器',
-  'generator-fabric-26.1.2': 'Minecraft Fabric 26.1.2 生成器（第三方）',
-  'generator-fabric-26.2': 'Minecraft Fabric 26.2 生成器'
+  core: tr("MCreator 核心插件"),
+  localization: tr("MCreator 本地化插件"),
+  themes: tr("MCreator 界面主题插件"),
+  'mcreator-link': tr("MCreator Link 支持"),
+  'generator-1.20.1': tr("Minecraft 1.20.1 生成器（Fabric / NeoForge）"),
+  'generator-1.21.1': tr("Minecraft 1.21.1 生成器（Fabric / NeoForge）"),
+  'generator-26.1.x': tr("Minecraft 26.1.x 生成器"),
+  'generator-26.2': tr("Minecraft 26.2 生成器"),
+  'generator-addon-26.1x': tr("Minecraft 26.1x 基岩版生成器"),
+  'generator-fabric-26.1.2': tr("Minecraft Fabric 26.1.2 生成器（第三方）"),
+  'generator-fabric-26.2': tr("Minecraft Fabric 26.2 生成器")
 };
 
 export const PluginsView: React.FC = () => {
@@ -47,7 +48,7 @@ export const PluginsView: React.FC = () => {
       })
       .catch((error: unknown) => {
         if (!cancelled)
-          setInventoryError(error instanceof Error ? error.message : '插件清单无法加载');
+          setInventoryError(error instanceof Error ? error.message : tr("插件清单无法加载"));
       });
     void getUpstreamTools()
       .then((result) => {
@@ -66,7 +67,7 @@ export const PluginsView: React.FC = () => {
     try {
       await legacyPluginBridge.open();
     } catch (error) {
-      setOpenError(error instanceof Error ? error.message : '旧版插件窗口无法打开');
+      setOpenError(error instanceof Error ? error.message : tr("旧版插件窗口无法打开"));
     } finally {
       setOpening(false);
     }
@@ -76,29 +77,28 @@ export const PluginsView: React.FC = () => {
     <div className="animate-fade-in" style={{ flex: 1, padding: '32px', display: 'flex', flexDirection: 'column', gap: '20px', overflow: 'auto' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
         <Plug size={24} color="var(--accent-copper)" aria-hidden="true" />
-        <h2 style={{ fontSize: '18px', fontWeight: 700 }}>MCreator 插件兼容中心</h2>
+        <h2 style={{ fontSize: '18px', fontWeight: 700 }}>{tr("MCreator 插件兼容中心")}</h2>
       </div>
 
       <p style={{ color: 'var(--text-muted)', lineHeight: '1.6', maxWidth: '760px' }}>
-        插件按其依赖的扩展点分级。Java 插件默认禁用，启用或版本哈希变化仍需要用户明确确认。清单只做静态扫描，不会加载 Java 代码。
-      </p>
+        {tr("插件按其依赖的扩展点分级。Java 插件默认禁用，启用或版本哈希变化仍需要用户明确确认。清单只做静态扫描，不会加载 Java 代码。")}</p>
 
       <div data-testid="installed-plugin-inventory">
-        <h3 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '8px' }}>已安装插件</h3>
+        <h3 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '8px' }}>{tr("已安装插件")}</h3>
         {inventoryError && (
           <div role="alert" style={{ color: 'var(--badge-red)', fontSize: '12px' }}>{inventoryError}</div>
         )}
         {!inventory && !inventoryError && (
-          <div style={{ color: 'var(--text-muted)', fontSize: '12px' }}>正在读取插件清单…</div>
+          <div style={{ color: 'var(--text-muted)', fontSize: '12px' }}>{tr("正在读取插件清单…")}</div>
         )}
         {inventory && (
           <table style={{ borderCollapse: 'collapse', width: 'min(960px, 100%)', fontSize: '13px' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border-active)', textAlign: 'left' }}>
-                <th style={{ padding: '10px 8px' }}>插件</th>
-                <th style={{ padding: '10px 8px', width: '72px' }}>等级</th>
-                <th style={{ padding: '10px 8px' }}>来源</th>
-                <th style={{ padding: '10px 8px' }}>路由</th>
+                <th style={{ padding: '10px 8px' }}>{tr("插件")}</th>
+                <th style={{ padding: '10px 8px', width: '72px' }}>{tr("等级")}</th>
+                <th style={{ padding: '10px 8px' }}>{tr("来源")}</th>
+                <th style={{ padding: '10px 8px' }}>{tr("路由")}</th>
               </tr>
             </thead>
             <tbody>
@@ -117,7 +117,7 @@ export const PluginsView: React.FC = () => {
                     )}
                   </td>
                   <td style={{ padding: '12px 8px', fontWeight: 700 }}>{plugin.level}</td>
-                  <td style={{ padding: '12px 8px', color: 'var(--text-muted)' }}>{plugin.firstParty ? '第一方' : '用户/第三方'}</td>
+                  <td style={{ padding: '12px 8px', color: 'var(--text-muted)' }}>{plugin.firstParty ? tr("第一方") : tr("用户/第三方")}</td>
                   <td style={{ padding: '12px 8px', color: 'var(--text-muted)' }}>{valueLabel(plugin.route)}</td>
                 </tr>
               ))}
@@ -128,16 +128,16 @@ export const PluginsView: React.FC = () => {
 
       {upstreamTools && (
         <div data-testid="upstream-tool-catalog">
-          <h3 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '8px' }}>上游工具去向</h3>
+          <h3 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '8px' }}>{tr("上游工具去向")}</h3>
           <p style={{ color: 'var(--text-muted)', fontSize: '12px', lineHeight: '1.5', maxWidth: '960px' }}>
             {upstreamTools.notes}
           </p>
           <table style={{ borderCollapse: 'collapse', width: 'min(960px, 100%)', fontSize: '13px', marginTop: '8px' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border-active)', textAlign: 'left' }}>
-                <th style={{ padding: '10px 8px' }}>上游入口</th>
-                <th style={{ padding: '10px 8px', width: '120px' }}>去向</th>
-                <th style={{ padding: '10px 8px' }}>说明</th>
+                <th style={{ padding: '10px 8px' }}>{tr("上游入口")}</th>
+                <th style={{ padding: '10px 8px', width: '120px' }}>{tr("去向")}</th>
+                <th style={{ padding: '10px 8px' }}>{tr("说明")}</th>
               </tr>
             </thead>
             <tbody>
@@ -156,9 +156,9 @@ export const PluginsView: React.FC = () => {
       <table style={{ borderCollapse: 'collapse', width: 'min(760px, 100%)', fontSize: '13px' }}>
         <thead>
           <tr style={{ borderBottom: '1px solid var(--border-active)', textAlign: 'left' }}>
-            <th style={{ padding: '10px 8px', width: '72px' }}>等级</th>
-            <th style={{ padding: '10px 8px', width: '180px' }}>类型</th>
-            <th style={{ padding: '10px 8px' }}>处理方式</th>
+            <th style={{ padding: '10px 8px', width: '72px' }}>{tr("等级")}</th>
+            <th style={{ padding: '10px 8px', width: '180px' }}>{tr("类型")}</th>
+            <th style={{ padding: '10px 8px' }}>{tr("处理方式")}</th>
           </tr>
         </thead>
         <tbody>
@@ -175,8 +175,7 @@ export const PluginsView: React.FC = () => {
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', maxWidth: '760px', color: 'var(--badge-amber)' }}>
         <ShieldAlert size={18} aria-hidden="true" style={{ flex: '0 0 auto', marginTop: '2px' }} />
         <span style={{ color: 'var(--text-muted)', lineHeight: '1.6' }}>
-          旧版窗口运行上游 Swing 扩展点，不继承新工作台的视觉与布局保证。关闭窗口不会卸载插件逻辑。
-        </span>
+          {tr("旧版窗口运行上游 Swing 扩展点，不继承新工作台的视觉与布局保证。关闭窗口不会卸载插件逻辑。")}</span>
       </div>
 
       <div>
@@ -185,16 +184,15 @@ export const PluginsView: React.FC = () => {
           className="btn-primary"
           data-testid="open-legacy-plugin-window"
           disabled={!legacyPluginBridge.available || opening}
-          title={legacyPluginBridge.available ? '在独立系统窗口中打开' : '桌面宿主中可用'}
+          title={legacyPluginBridge.available ? tr("在独立系统窗口中打开") : tr("桌面宿主中可用")}
           onClick={() => void openLegacyWindow()}
         >
           <ExternalLink size={15} aria-hidden="true" />
-          <span>{opening ? '正在打开...' : '打开旧版插件窗口'}</span>
+          <span>{opening ? tr("正在打开...") : tr("打开旧版插件窗口")}</span>
         </button>
         {!legacyPluginBridge.available && (
           <div style={{ marginTop: '8px', color: 'var(--text-muted)', fontSize: '12px' }}>
-            当前浏览器预览不连接 Swing 宿主。
-          </div>
+            {tr("当前浏览器预览不连接 Swing 宿主。")}</div>
         )}
         {openError && (
           <div role="alert" style={{ marginTop: '8px', color: 'var(--badge-red)', fontSize: '12px' }}>

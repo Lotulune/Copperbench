@@ -1,3 +1,4 @@
+import { tr } from '../i18n/locale';
 export interface NativeWorkspaceOpenHost {
   readonly available: boolean;
   open(workspaceFile: string): Promise<void>;
@@ -30,7 +31,7 @@ class UnavailableWorkspaceOpenBridge implements WorkspaceOpenBridge {
   public readonly available = false;
 
   public open(_workspaceFile: string): Promise<void> {
-    return Promise.reject(new Error('仅桌面应用支持在新窗口中打开工作区'));
+    return Promise.reject(new Error(tr("仅桌面应用支持在新窗口中打开工作区")));
   }
 }
 

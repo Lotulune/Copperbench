@@ -1,3 +1,4 @@
+import { tr } from '../i18n/locale';
 import { valueLabel } from '../i18n/labels';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
@@ -40,10 +41,10 @@ const EMPTY_REGISTRIES: Record<RegistryName, RegistryEntry[]> = {
 };
 
 const TAB_ITEMS: Array<{ id: DataTab; label: string; icon: React.ComponentType<{ size: number }> }> = [
-  { id: 'variables', label: '变量', icon: Variable },
-  { id: 'tags', label: '标签', icon: Tags },
-  { id: 'languageKeys', label: '语言', icon: Languages },
-  { id: 'references', label: '引用图', icon: Link2 }
+  { id: 'variables', label: tr("变量"), icon: Variable },
+  { id: 'tags', label: tr("标签"), icon: Tags },
+  { id: 'languageKeys', label: tr("语言"), icon: Languages },
+  { id: 'references', label: tr("引用图"), icon: Link2 }
 ];
 
 const PAGE_SIZE = 25;
@@ -54,9 +55,9 @@ function entryName(entry: RegistryEntry): string {
 
 function entryDetails(tab: RegistryName, entry: RegistryEntry): string {
   if (tab === 'variables') return `${valueLabel(entry.dataType ?? 'number')} · ${valueLabel(entry.scope ?? 'global')}`;
-  if (tab === 'tags') return `${entry.namespace ?? 'mod'}:${entry.name ?? ''} · ${valueLabel(entry.category ?? 'items')} · ${entry.members?.length ?? 0} 个成员`;
+  if (tab === 'tags') return tr("{0}:{1} · {2} · {3} 个成员", [entry.namespace ?? 'mod', entry.name ?? '', valueLabel(entry.category ?? 'items'), entry.members?.length ?? 0]);
   const translations = entry.translations ?? {};
-  return Object.entries(translations).map(([locale, value]) => `${locale}: ${value}`).join(' · ') || '尚无翻译';
+  return Object.entries(translations).map(([locale, value]) => `${locale}: ${value}`).join(' · ') || tr("尚无翻译");
 }
 
 export const CreatorDataView: React.FC = () => {
@@ -154,10 +155,10 @@ export const CreatorDataView: React.FC = () => {
     }
     const result = await createRegistryEntry(tab, entry);
     if (result.status !== 'committed') {
-      setMessage(result.diagnostics[0] ? t(result.diagnostics[0].message) : '创建注册表条目失败。');
+      setMessage(result.diagnostics[0] ? t(result.diagnostics[0].message) : tr("创建注册表条目失败。"));
       return;
     }
-    setMessage(`已创建 ${name.trim()}，稳定 ID 为 ${result.data?.entry?.id ?? '-'}`);
+    setMessage(tr("已创建 {0}，稳定 ID 为 {1}", [name.trim(), result.data?.entry?.id ?? '-']));
     resetForm();
     await refresh();
   };
@@ -166,7 +167,7 @@ export const CreatorDataView: React.FC = () => {
     if (!renameDraft?.value.trim()) return;
     const preview = await previewRegistryRename(renameDraft.entryId, renameDraft.value.trim());
     if (!preview) {
-      setMessage('无法生成重命名影响预览。');
+      setMessage(tr("无法生成重命名影响预览。"));
       return;
     }
     setRenamePreview(preview);
@@ -176,10 +177,10 @@ export const CreatorDataView: React.FC = () => {
     if (!renamePreview) return;
     const result = await renameRegistryEntry(renamePreview.entryId, renamePreview.newName);
     if (result.status !== 'committed') {
-      setMessage(result.diagnostics[0] ? t(result.diagnostics[0].message) : '重命名失败。');
+      setMessage(result.diagnostics[0] ? t(result.diagnostics[0].message) : tr("重命名失败。"));
       return;
     }
-    setMessage(`已将 ${renamePreview.oldName} 重命名为 ${renamePreview.newName}，并更新 ${result.data?.changedElementIds?.length ?? 0} 个元素。`);
+    setMessage(tr("已将 {0} 重命名为 {1}，并更新 {2} 个元素。", [renamePreview.oldName, renamePreview.newName, result.data?.changedElementIds?.length ?? 0]));
     setRenameDraft(null);
     setRenamePreview(null);
     await refresh();
@@ -188,18 +189,18 @@ export const CreatorDataView: React.FC = () => {
   const removeEntry = async (entry: RegistryEntry) => {
     const impacted = await getWorkspaceReferences(entry.id);
     if ((impacted?.edges.length ?? 0) > 0) {
-      setMessage(`${entryName(entry)} 仍被 ${impacted?.edges.length} 处引用，已阻止删除。`);
+      setMessage(tr("{0} 仍被 {1} 处引用，已阻止删除。", [entryName(entry), impacted?.edges.length]));
       setReferences(impacted);
       setTab('references');
       return;
     }
-    if (!window.confirm(`确定删除“${entryName(entry)}”吗？删除前会创建本地恢复点。`)) return;
+    if (!window.confirm(tr("确定删除“{0}”吗？删除前会创建本地恢复点。", [entryName(entry)]))) return;
     const result = await deleteRegistryEntry(entry.id);
     if (result.status !== 'committed') {
-      setMessage(result.diagnostics[0] ? t(result.diagnostics[0].message) : '删除失败。');
+      setMessage(result.diagnostics[0] ? t(result.diagnostics[0].message) : tr("删除失败。"));
       return;
     }
-    setMessage(`已删除 ${entryName(entry)}。`);
+    setMessage(tr("已删除 {0}。", [entryName(entry)]));
     await refresh();
   };
 
@@ -234,7 +235,7 @@ export const CreatorDataView: React.FC = () => {
       }
     }
 
-    setMessage(`语言词条导入完成：新增 ${addedCount} 项，更新 ${updatedCount} 项。`);
+    setMessage(tr("语言词条导入完成：新增 {0} 项，更新 {1} 项。", [addedCount, updatedCount]));
     await refresh();
   };
 
@@ -258,7 +259,7 @@ export const CreatorDataView: React.FC = () => {
     a.download = `translations_${state.workbench?.workspace.name || 'workspace'}.csv`;
     a.click();
     URL.revokeObjectURL(url);
-    setMessage(`已导出 ${keys.length} 个语言词条为 CSV 文件。`);
+    setMessage(tr("已导出 {0} 个语言词条为 CSV 文件。", [keys.length]));
   };
 
   const handleExportJSON = () => {
@@ -284,7 +285,7 @@ export const CreatorDataView: React.FC = () => {
     a.download = `translations_${state.workbench?.workspace.name || 'workspace'}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    setMessage(`已导出 ${keys.length} 个语言词条为 JSON 字典。`);
+    setMessage(tr("已导出 {0} 个语言词条为 JSON 字典。", [keys.length]));
   };
 
   // Filtered and paginated entries
@@ -333,8 +334,8 @@ export const CreatorDataView: React.FC = () => {
     <section className="creator-data-view" data-testid="creator-data-view">
       <header className="creator-data-header">
         <div>
-          <h1><Database size={18} />工作区数据</h1>
-          <p>管理变量、标签和语言词条，查看引用及重命名影响</p>
+          <h1><Database size={18} />{tr("工作区数据")}</h1>
+          <p>{tr("管理变量、标签和语言词条，查看引用及重命名影响")}</p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           {tab === 'languageKeys' && (
@@ -347,7 +348,7 @@ export const CreatorDataView: React.FC = () => {
                 style={{ fontSize: '11px' }}
               >
                 <Upload size={13} />
-                <span>导入词条</span>
+                <span>{tr("导入词条")}</span>
               </button>
               <button
                 type="button"
@@ -355,10 +356,10 @@ export const CreatorDataView: React.FC = () => {
                 onClick={handleExportCSV}
                 data-testid="language-export-csv-btn"
                 style={{ fontSize: '11px' }}
-                title="导出为 CSV 电子表格格式"
+                title={tr("导出为 CSV 电子表格格式")}
               >
                 <FileSpreadsheet size={13} />
-                <span>导出 CSV</span>
+                <span>{tr("导出 CSV")}</span>
               </button>
               <button
                 type="button"
@@ -366,20 +367,19 @@ export const CreatorDataView: React.FC = () => {
                 onClick={handleExportJSON}
                 data-testid="language-export-json-btn"
                 style={{ fontSize: '11px' }}
-                title="导出为 JSON 语言文件"
+                title={tr("导出为 JSON 语言文件")}
               >
                 <FileCode size={13} />
-                <span>导出 JSON</span>
+                <span>{tr("导出 JSON")}</span>
               </button>
             </>
           )}
           <button className="btn-secondary" onClick={() => void refresh()} disabled={loading}>
-            <RefreshCw size={14} className={loading ? 'spin' : undefined} />刷新
-          </button>
+            <RefreshCw size={14} className={loading ? 'spin' : undefined} />{tr("刷新")}</button>
         </div>
       </header>
 
-      <nav className="creator-data-tabs" aria-label="工作区数据类型">
+      <nav className="creator-data-tabs" aria-label={tr("工作区数据类型")}>
         {TAB_ITEMS.map((item) => {
           const Icon = item.icon;
           const count = item.id === 'references' ? references?.stats.edgeCount : registries[item.id].length;
@@ -405,7 +405,7 @@ export const CreatorDataView: React.FC = () => {
       {message && (
         <div className="creator-data-message" role="status">
           {message}
-          <button onClick={() => setMessage(null)} aria-label="关闭消息">
+          <button onClick={() => setMessage(null)} aria-label={tr("关闭消息")}>
             <X size={13} />
           </button>
         </div>
@@ -414,13 +414,12 @@ export const CreatorDataView: React.FC = () => {
       {renamePreview && (
         <div className="registry-confirmation" role="alert">
           <div>
-            <strong>确认重命名：{renamePreview.oldName} → {renamePreview.newName}</strong>
-            <span>将影响 {renamePreview.impactedElementCount} 个元素、{renamePreview.references.edges.length} 条引用；提交前会创建恢复点。</span>
+            <strong>{tr("确认重命名：")}{renamePreview.oldName} → {renamePreview.newName}</strong>
+            <span>{tr("将影响 ")}{renamePreview.impactedElementCount} {tr(" 个元素、")}{renamePreview.references.edges.length} {tr(" 条引用；提交前会创建恢复点。")}</span>
           </div>
-          <button className="btn-secondary" onClick={() => setRenamePreview(null)}>返回编辑</button>
+          <button className="btn-secondary" onClick={() => setRenamePreview(null)}>{tr("返回编辑")}</button>
           <button className="btn-primary" onClick={() => void applyRename()} disabled={!renamePreview.canApply}>
-            <Check size={14} />确认提交
-          </button>
+            <Check size={14} />{tr("确认提交")}</button>
         </div>
       )}
 
@@ -433,7 +432,7 @@ export const CreatorDataView: React.FC = () => {
               <Search size={13} style={{ position: 'absolute', left: '8px', top: '8px', color: 'var(--text-sub)' }} />
               <input
                 type="text"
-                placeholder={`搜索${TAB_ITEMS.find((t) => t.id === tab)?.label}…`}
+                placeholder={tr("搜索{0}…", [TAB_ITEMS.find((t) => t.id === tab)?.label])}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 data-testid="registry-search-input"
@@ -458,7 +457,7 @@ export const CreatorDataView: React.FC = () => {
                     color: langFilter === 'all' ? 'var(--text-on-accent)' : 'var(--text-muted)'
                   }}
                 >
-                  全部 ({registries.languageKeys.length})
+                  {tr("全部 (")}{registries.languageKeys.length})
                 </button>
                 <button
                   type="button"
@@ -474,7 +473,7 @@ export const CreatorDataView: React.FC = () => {
                     color: langFilter === 'missing' ? 'var(--badge-amber)' : 'var(--text-muted)'
                   }}
                 >
-                  缺失翻译 ({projection?.languageStats.missingTranslationCount ?? 0})
+                  {tr("缺失翻译 (")}{projection?.languageStats.missingTranslationCount ?? 0})
                 </button>
               </div>
             )}
@@ -486,7 +485,7 @@ export const CreatorDataView: React.FC = () => {
             data-testid="registry-create-btn"
           >
             <Plus size={14} />
-            <span>新建条目</span>
+            <span>{tr("新建条目")}</span>
           </button>
         </div>
       )}
@@ -494,7 +493,7 @@ export const CreatorDataView: React.FC = () => {
       {showCreate && tab !== 'references' && (
         <div className="registry-create-band">
           <label>
-            <span>{tab === 'languageKeys' ? '语言键' : '名称'}</span>
+            <span>{tab === 'languageKeys' ? tr("语言键") : tr("名称")}</span>
             <input
               value={name}
               onChange={(event) => setName(event.target.value)}
@@ -506,21 +505,21 @@ export const CreatorDataView: React.FC = () => {
           {tab === 'variables' && (
             <>
               <label>
-                <span>数据类型</span>
+                <span>{tr("数据类型")}</span>
                 <select value={dataType} onChange={(event) => setDataType(event.target.value)}>
-                  <option value="number">数值</option>
-                  <option value="logic">布尔</option>
-                  <option value="string">文本</option>
-                  <option value="itemstack">物品栈</option>
+                  <option value="number">{tr("数值")}</option>
+                  <option value="logic">{tr("布尔")}</option>
+                  <option value="string">{tr("文本")}</option>
+                  <option value="itemstack">{tr("物品栈")}</option>
                 </select>
               </label>
               <label>
-                <span>作用域</span>
+                <span>{tr("作用域")}</span>
                 <select value={scope} onChange={(event) => setScope(event.target.value)}>
-                  <option value="global">全局</option>
-                  <option value="player_persistent">玩家持久化</option>
-                  <option value="world">地图 / 世界</option>
-                  <option value="local">过程局部（local）</option>
+                  <option value="global">{tr("全局")}</option>
+                  <option value="player_persistent">{tr("玩家持久化")}</option>
+                  <option value="world">{tr("地图 / 世界")}</option>
+                  <option value="local">{tr("过程局部（local）")}</option>
                 </select>
               </label>
             </>
@@ -528,17 +527,17 @@ export const CreatorDataView: React.FC = () => {
           {tab === 'tags' && (
             <>
               <label>
-                <span>命名空间</span>
+                <span>{tr("命名空间")}</span>
                 <input value={secondary} onChange={(event) => setSecondary(event.target.value)} placeholder="mod" />
               </label>
               <label>
-                <span>类别</span>
+                <span>{tr("类别")}</span>
                 <select value={category} onChange={(event) => setCategory(event.target.value)}>
-                  <option value="blocks">方块</option>
-                  <option value="items">物品</option>
-                  <option value="entities">实体</option>
-                  <option value="fluids">流体</option>
-                  <option value="functions">函数</option>
+                  <option value="blocks">{tr("方块")}</option>
+                  <option value="items">{tr("物品")}</option>
+                  <option value="entities">{tr("实体")}</option>
+                  <option value="fluids">{tr("流体")}</option>
+                  <option value="functions">{tr("函数")}</option>
                 </select>
               </label>
             </>
@@ -546,35 +545,34 @@ export const CreatorDataView: React.FC = () => {
           {tab === 'languageKeys' && (
             <>
               <label>
-                <span>主语言 zh_cn</span>
+                <span>{tr("主语言 zh_cn")}</span>
                 <input
                   value={secondary}
                   onChange={(event) => setSecondary(event.target.value)}
-                  placeholder="中文显示名称"
+                  placeholder={tr("中文显示名称")}
                   data-testid="registry-new-zh-input"
                 />
               </label>
               <label>
-                <span>回退 en_us</span>
+                <span>{tr("回退 en_us")}</span>
                 <input
                   value={fallback}
                   onChange={(event) => setFallback(event.target.value)}
-                  placeholder="英文显示名称"
+                  placeholder={tr("英文显示名称")}
                   data-testid="registry-new-en-input"
                 />
               </label>
             </>
           )}
           <div className="registry-create-actions">
-            <button className="btn-secondary" onClick={resetForm}>取消</button>
+            <button className="btn-secondary" onClick={resetForm}>{tr("取消")}</button>
             <button
               className="btn-primary"
               onClick={() => void createEntry()}
               disabled={!name.trim()}
               data-testid="registry-create-confirm-btn"
             >
-              <Check size={14} />创建
-            </button>
+              <Check size={14} />{tr("创建")}</button>
           </div>
         </div>
       )}
@@ -587,10 +585,10 @@ export const CreatorDataView: React.FC = () => {
             <table className="registry-table" data-testid="registry-table">
               <thead>
                 <tr>
-                  <th>标识</th>
-                  <th>配置 / 翻译</th>
-                  <th>支持状态</th>
-                  <th aria-label="操作" />
+                  <th>{tr("标识")}</th>
+                  <th>{tr("配置 / 翻译")}</th>
+                  <th>{tr("支持状态")}</th>
+                  <th aria-label={tr("操作")} />
                 </tr>
               </thead>
               <tbody>
@@ -607,10 +605,10 @@ export const CreatorDataView: React.FC = () => {
                             }}
                             autoFocus
                           />
-                          <button onClick={() => void reviewRename()} aria-label="预览重命名" title="预览重命名">
+                          <button onClick={() => void reviewRename()} aria-label={tr("预览重命名")} title={tr("预览重命名")}>
                             <Check size={14} />
                           </button>
-                          <button onClick={() => setRenameDraft(null)} aria-label="取消重命名" title="取消">
+                          <button onClick={() => setRenameDraft(null)} aria-label={tr("取消重命名")} title={tr("取消")}>
                             <X size={14} />
                           </button>
                         </div>
@@ -627,16 +625,16 @@ export const CreatorDataView: React.FC = () => {
                       <div className="registry-row-actions">
                         <button
                           onClick={() => setRenameDraft({ entryId: entry.id, value: entryName(entry) })}
-                          aria-label={`重命名 ${entryName(entry)}`}
-                          title="重命名"
+                          aria-label={tr("重命名 {0}", [entryName(entry)])}
+                          title={tr("重命名")}
                         >
                           <Pencil size={14} />
                         </button>
                         <button
                           className="danger"
                           onClick={() => void removeEntry(entry)}
-                          aria-label={`删除 ${entryName(entry)}`}
-                          title="删除"
+                          aria-label={tr("删除 {0}", [entryName(entry)])}
+                          title={tr("删除")}
                         >
                           <Trash2 size={14} />
                         </button>
@@ -647,7 +645,7 @@ export const CreatorDataView: React.FC = () => {
                 {!loading && filteredEntries.length === 0 && (
                   <tr>
                     <td colSpan={4} className="registry-empty">
-                      {searchQuery ? '没有找到匹配的条目。' : '当前注册表没有条目。'}
+                      {searchQuery ? tr("没有找到匹配的条目。") : tr("当前注册表没有条目。")}
                     </td>
                   </tr>
                 )}
@@ -669,8 +667,7 @@ export const CreatorDataView: React.FC = () => {
                 data-testid="registry-pagination"
               >
                 <span>
-                  显示第 {(currentPage - 1) * PAGE_SIZE + 1} - {Math.min(currentPage * PAGE_SIZE, filteredEntries.length)} 项，共 {filteredEntries.length} 项
-                </span>
+                  {tr("显示第 ")}{(currentPage - 1) * PAGE_SIZE + 1} - {Math.min(currentPage * PAGE_SIZE, filteredEntries.length)} {tr(" 项，共 ")}{filteredEntries.length} {tr(" 项")}</span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <button
                     type="button"
@@ -681,7 +678,7 @@ export const CreatorDataView: React.FC = () => {
                     style={{ padding: '3px 8px' }}
                   >
                     <ChevronLeft size={13} />
-                    <span>上一页</span>
+                    <span>{tr("上一页")}</span>
                   </button>
                   <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>
                     {currentPage} / {totalPages}
@@ -694,7 +691,7 @@ export const CreatorDataView: React.FC = () => {
                     data-testid="registry-next-page-btn"
                     style={{ padding: '3px 8px' }}
                   >
-                    <span>下一页</span>
+                    <span>{tr("下一页")}</span>
                     <ChevronRight size={13} />
                   </button>
                 </div>
@@ -706,14 +703,12 @@ export const CreatorDataView: React.FC = () => {
 
       {tab === 'languageKeys' && projection && (
         <footer className="language-stats" data-testid="language-health-footer">
-          <span>{projection.languageStats.keyCount} 个键</span>
-          <span>{projection.languageStats.languageCount} 种语言</span>
+          <span>{projection.languageStats.keyCount} {tr(" 个键")}</span>
+          <span>{projection.languageStats.languageCount} {tr(" 种语言")}</span>
           <span className={projection.languageStats.missingTranslationCount ? 'warning' : ''}>
-            {projection.languageStats.missingTranslationCount} 处缺失翻译
-          </span>
+            {projection.languageStats.missingTranslationCount} {tr(" 处缺失翻译")}</span>
           <span className={projection.languageStats.duplicateKeyCount ? 'error' : ''}>
-            {projection.languageStats.duplicateKeyCount} 个重复键
-          </span>
+            {projection.languageStats.duplicateKeyCount} {tr(" 个重复键")}</span>
         </footer>
       )}
 
@@ -760,12 +755,11 @@ const ReferenceTable: React.FC<{ projection: WorkspaceReferenceProjection | null
   return (
     <div className="reference-table-wrap" data-testid="reference-table-wrap">
       <div className="reference-summary" style={{ flexWrap: 'wrap', gap: '10px' }}>
-        <span>{projection?.stats.indexedElements ?? 0} 个元素已索引</span>
-        <span>{projection?.stats.edgeCount ?? 0} 条引用边</span>
+        <span>{projection?.stats.indexedElements ?? 0} {tr(" 个元素已索引")}</span>
+        <span>{projection?.stats.edgeCount ?? 0} {tr(" 条引用边")}</span>
         <span style={{ color: (projection?.diagnostics.length ?? 0) > 0 ? 'var(--badge-red)' : 'inherit' }}>
-          {projection?.diagnostics.length ?? 0} 个悬空引用
-        </span>
-        <span>{projection?.stats.incremental ? '增量索引' : '完整索引'}</span>
+          {projection?.diagnostics.length ?? 0} {tr(" 个悬空引用")}</span>
+        <span>{projection?.stats.incremental ? tr("增量索引") : tr("完整索引")}</span>
 
         {/* Filter controls */}
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -773,7 +767,7 @@ const ReferenceTable: React.FC<{ projection: WorkspaceReferenceProjection | null
             <Search size={12} style={{ position: 'absolute', left: '6px', top: '7px', color: 'var(--text-sub)' }} />
             <input
               type="text"
-              placeholder="搜索引用边…"
+              placeholder={tr("搜索引用边…")}
               value={refSearch}
               onChange={(e) => {
                 setRefSearch(e.target.value);
@@ -792,7 +786,7 @@ const ReferenceTable: React.FC<{ projection: WorkspaceReferenceProjection | null
                 setPage(1);
               }}
             />
-            <span>仅看悬空引用</span>
+            <span>{tr("仅看悬空引用")}</span>
           </label>
         </div>
       </div>
@@ -800,10 +794,10 @@ const ReferenceTable: React.FC<{ projection: WorkspaceReferenceProjection | null
       <table className="registry-table">
         <thead>
           <tr>
-            <th>来源</th>
-            <th>路径</th>
-            <th>类型</th>
-            <th>目标</th>
+            <th>{tr("来源")}</th>
+            <th>{tr("路径")}</th>
+            <th>{tr("类型")}</th>
+            <th>{tr("目标")}</th>
           </tr>
         </thead>
         <tbody>
@@ -814,14 +808,14 @@ const ReferenceTable: React.FC<{ projection: WorkspaceReferenceProjection | null
               <td>{valueLabel(String(edge.kind ?? ''))}</td>
               <td>
                 {String(edge.target ?? '')}
-                {edge.targetId == null && <span className="badge badge-red" style={{ marginLeft: '4px' }}>悬空</span>}
+                {edge.targetId == null && <span className="badge badge-red" style={{ marginLeft: '4px' }}>{tr("悬空")}</span>}
               </td>
             </tr>
           ))}
           {filteredEdges.length === 0 && (
             <tr>
               <td colSpan={4} className="registry-empty">
-                {refSearch || onlyDangling ? '没有匹配的引用边。' : '当前没有引用边。'}
+                {refSearch || onlyDangling ? tr("没有匹配的引用边。") : tr("当前没有引用边。")}
               </td>
             </tr>
           )}
@@ -839,7 +833,7 @@ const ReferenceTable: React.FC<{ projection: WorkspaceReferenceProjection | null
             color: 'var(--text-sub)'
           }}
         >
-          <span>共 {filteredEdges.length} 条引用</span>
+          <span>{tr("共 ")}{filteredEdges.length} {tr(" 条引用")}</span>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <button
               type="button"
@@ -848,8 +842,7 @@ const ReferenceTable: React.FC<{ projection: WorkspaceReferenceProjection | null
               disabled={page <= 1}
               style={{ padding: '2px 6px', fontSize: '10px' }}
             >
-              上一页
-            </button>
+              {tr("上一页")}</button>
             <span>{page} / {totalPages}</span>
             <button
               type="button"
@@ -858,8 +851,7 @@ const ReferenceTable: React.FC<{ projection: WorkspaceReferenceProjection | null
               disabled={page >= totalPages}
               style={{ padding: '2px 6px', fontSize: '10px' }}
             >
-              下一页
-            </button>
+              {tr("下一页")}</button>
           </div>
         </div>
       )}

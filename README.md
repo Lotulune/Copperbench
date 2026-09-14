@@ -19,28 +19,28 @@ Copperbench is built on MCreator, with mod element editors, Blockly logic, model
 
 **Workbench** — View mod elements, project diagnostics, and build controls.
 
-![Copperbench workbench with mod elements and project status](evidence/stage16/2026-09-12/installed-regression-c0178f6b/screenshots/09-host-final-workspace-before-close.png)
+![Copperbench workbench with mod elements and project status](assets/screenshots/en/workbench.png)
 
 <table>
   <tr>
-    <td width="50%"><img src="evidence/stage15/2026-09-11/run42-wayland-ui/function-reopened.png" alt="Function editor on Ubuntu" width="480"></td>
-    <td width="50%"><img src="evidence/stage15/2026-09-11/run42-wayland-assets/real-blockbench-model.png" alt="Model and texture in external Blockbench" width="480"></td>
+    <td width="50%"><img src="assets/screenshots/en/function.png" alt="Function editor in English" width="480"></td>
+    <td width="50%"><img src="assets/screenshots/en/procedure.png" alt="Blockly procedure editor in English" width="480"></td>
   </tr>
   <tr>
     <td><strong>Edit functions</strong><br>Write mcfunction commands, check syntax diagnostics, and save your work.</td>
-    <td><strong>Work on models</strong><br>Edit models and textures in external Blockbench for use with workspace assets.</td>
+    <td><strong>Build procedures</strong><br>Connect Blockly nodes and inspect the resulting logic.</td>
   </tr>
   <tr>
-    <td><img src="evidence/stage16/2026-09-12/client-native-restart-33ceb6e9/client-run-6/screenshots/016-token-active-20tps.jpg" alt="Active Resonance Token test item in Minecraft" width="480"></td>
-    <td><img src="evidence/stage-13/2026-09-06/history-recovery-before-confirm.png" alt="File changes shown before restoring a recovery point" width="480"></td>
+    <td><img src="assets/screenshots/en/assets.png" alt="Workspace assets and reference details in English" width="480"></td>
+    <td><img src="assets/screenshots/en/history.png" alt="Recovery points and file changes in English" width="480"></td>
   </tr>
   <tr>
-    <td><strong>Test in game</strong><br>The test mod's Resonance Token displays its active state in Minecraft.</td>
-    <td><strong>Restore a workspace</strong><br>Review affected files before confirming a restore.</td>
+    <td><strong>Manage assets</strong><br>Browse textures, check references, and find duplicate files.</td>
+    <td><strong>Review local history</strong><br>Compare recovery points and see which files changed.</td>
   </tr>
 </table>
 
-<sub>Screenshots are from Windows / Ubuntu tests in September 2026; later builds may look different. Blockbench is installed separately.</sub>
+<sub>Captured from a Windows desktop development build on September 14, 2026, using the Mossglow example workspace. Downloaded releases may differ. Blockbench is installed separately.</sub>
 
 ## What you can do
 
@@ -58,6 +58,8 @@ See the [user guide](docs/user/README.md) for supported features. Source builds 
 <a id="getting-started"></a>
 
 ## Getting started
+
+The workbench supports English and Simplified Chinese. Use the language selector in the title bar; save your edits before confirming the reload.
 
 | Platform | Packages | Installation |
 | --- | --- | --- |

@@ -1,3 +1,4 @@
+import { tr } from '../i18n/locale';
 import type {
   Command,
   CommandResult,
@@ -68,6 +69,6 @@ export class UnavailableCoreBridge implements CoreBridge {
   }
 
   private unavailableError(): Error {
-    return new Error('UI_CORE_HOST_UNAVAILABLE：未连接原生 JCEF 宿主，无法打开工作台');
+    return new Error(tr("UI_CORE_HOST_UNAVAILABLE：未连接原生 JCEF 宿主，无法打开工作台"));
   }
 }
