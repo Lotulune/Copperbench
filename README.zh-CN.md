@@ -66,7 +66,7 @@ Copperbench 基于 MCreator，提供模组元素编辑、Blockly 逻辑、模型
 
 Ubuntu 已验证 GNOME Wayland 和 Xorg。其他 Linux 发行版和架构尚未验证。
 
-1. **下载安装** — 在 [GitHub Releases](https://github.com/Lotulune/Copperbench/releases) 选择系统对应的包，对照同页 `SHA256SUMS.txt` 校验。
+1. **下载安装** — 在 [GitHub Releases](https://github.com/Lotulune/Copperbench/releases) 选择系统对应的包，对照该版本附带的校验文件核验下载包（Windows 为 `SHA256SUMS.txt`；Linux Preview 2 为 `linux-candidate-sha256.txt`）。
 2. **新建工作区** — 选择 Fabric 或 NeoForge 及 Minecraft 版本，填写模组名称与目录。
 3. **做一个物品** — 新建物品、保存并构建，然后启动测试客户端。
 
