@@ -94,6 +94,16 @@ loadScripts(document, 'script');</script>
 <li><a href="#MOVE_ASSET" tabindex="0">MOVE_ASSET</a></li>
 <li><a href="#GET_WORKBENCH" tabindex="0">GET_WORKBENCH</a></li>
 <li><a href="#GET_WORKSPACE_ENVIRONMENT" tabindex="0">GET_WORKSPACE_ENVIRONMENT</a></li>
+<li><a href="#GET_BLOCKBENCH_ENVIRONMENT" tabindex="0">GET_BLOCKBENCH_ENVIRONMENT</a></li>
+<li><a href="#BEGIN_BLOCKBENCH_TASK" tabindex="0">BEGIN_BLOCKBENCH_TASK</a></li>
+<li><a href="#FINISH_BLOCKBENCH_TASK" tabindex="0">FINISH_BLOCKBENCH_TASK</a></li>
+<li><a href="#CANCEL_BLOCKBENCH_TASK" tabindex="0">CANCEL_BLOCKBENCH_TASK</a></li>
+<li><a href="#GET_BLOCKBENCH_TASK" tabindex="0">GET_BLOCKBENCH_TASK</a></li>
+<li><a href="#LIST_BLOCKBENCH_TASKS" tabindex="0">LIST_BLOCKBENCH_TASKS</a></li>
+<li><a href="#PREVIEW_BLOCKBENCH_IMPORT" tabindex="0">PREVIEW_BLOCKBENCH_IMPORT</a></li>
+<li><a href="#IMPORT_BLOCKBENCH_TASK" tabindex="0">IMPORT_BLOCKBENCH_TASK</a></li>
+<li><a href="#RECOVER_BLOCKBENCH_IMPORT" tabindex="0">RECOVER_BLOCKBENCH_IMPORT</a></li>
+<li><a href="#BIND_BLOCKBENCH_MODEL" tabindex="0">BIND_BLOCKBENCH_MODEL</a></li>
 <li><a href="#GET_WORKSPACE_HEALTH" tabindex="0">GET_WORKSPACE_HEALTH</a></li>
 <li><a href="#LIST_NEW_WORKSPACE_GENERATORS" tabindex="0">LIST_NEW_WORKSPACE_GENERATORS</a></li>
 <li><a href="#LIST_ASSETS" tabindex="0">LIST_ASSETS</a></li>
@@ -186,33 +196,45 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-last">Description</div>
 <div class="col-first even-row-color"><code><a href="#APPLY_WORKSPACE_PLAN" class="member-name-link">APPLY_WORKSPACE_PLAN</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
+<div class="col-first odd-row-color"><code><a href="#BEGIN_BLOCKBENCH_TASK" class="member-name-link">BEGIN_BLOCKBENCH_TASK</a></code></div>
+<div class="col-last odd-row-color">&nbsp;</div>
+<div class="col-first even-row-color"><code><a href="#BIND_BLOCKBENCH_MODEL" class="member-name-link">BIND_BLOCKBENCH_MODEL</a></code></div>
+<div class="col-last even-row-color">&nbsp;</div>
 <div class="col-first odd-row-color"><code><a href="#BUILD_WORKSPACE" class="member-name-link">BUILD_WORKSPACE</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code><a href="#CANCEL_TASK" class="member-name-link">CANCEL_TASK</a></code></div>
+<div class="col-first even-row-color"><code><a href="#CANCEL_BLOCKBENCH_TASK" class="member-name-link">CANCEL_BLOCKBENCH_TASK</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code><a href="#CREATE_LOCAL_TEMPLATE" class="member-name-link">CREATE_LOCAL_TEMPLATE</a></code></div>
+<div class="col-first odd-row-color"><code><a href="#CANCEL_TASK" class="member-name-link">CANCEL_TASK</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code><a href="#CREATE_MOD_ELEMENT" class="member-name-link">CREATE_MOD_ELEMENT</a></code></div>
+<div class="col-first even-row-color"><code><a href="#CREATE_LOCAL_TEMPLATE" class="member-name-link">CREATE_LOCAL_TEMPLATE</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code><a href="#CREATE_PUBLISH_BATCH" class="member-name-link">CREATE_PUBLISH_BATCH</a></code></div>
+<div class="col-first odd-row-color"><code><a href="#CREATE_MOD_ELEMENT" class="member-name-link">CREATE_MOD_ELEMENT</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code><a href="#CREATE_RECOVERY_POINT" class="member-name-link">CREATE_RECOVERY_POINT</a></code></div>
+<div class="col-first even-row-color"><code><a href="#CREATE_PUBLISH_BATCH" class="member-name-link">CREATE_PUBLISH_BATCH</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code><a href="#CREATE_REGISTRY_ENTRY" class="member-name-link">CREATE_REGISTRY_ENTRY</a></code></div>
+<div class="col-first odd-row-color"><code><a href="#CREATE_RECOVERY_POINT" class="member-name-link">CREATE_RECOVERY_POINT</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code><a href="#CREATE_TASK_AUTHORIZATION" class="member-name-link">CREATE_TASK_AUTHORIZATION</a></code></div>
+<div class="col-first even-row-color"><code><a href="#CREATE_REGISTRY_ENTRY" class="member-name-link">CREATE_REGISTRY_ENTRY</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code><a href="#CREATE_WORKSPACE" class="member-name-link">CREATE_WORKSPACE</a></code></div>
+<div class="col-first odd-row-color"><code><a href="#CREATE_TASK_AUTHORIZATION" class="member-name-link">CREATE_TASK_AUTHORIZATION</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code><a href="#DELETE_MOD_ELEMENT" class="member-name-link">DELETE_MOD_ELEMENT</a></code></div>
+<div class="col-first even-row-color"><code><a href="#CREATE_WORKSPACE" class="member-name-link">CREATE_WORKSPACE</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code><a href="#DELETE_REGISTRY_ENTRY" class="member-name-link">DELETE_REGISTRY_ENTRY</a></code></div>
+<div class="col-first odd-row-color"><code><a href="#DELETE_MOD_ELEMENT" class="member-name-link">DELETE_MOD_ELEMENT</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code><a href="#EXECUTE_LOADER_MIGRATION" class="member-name-link">EXECUTE_LOADER_MIGRATION</a></code></div>
+<div class="col-first even-row-color"><code><a href="#DELETE_REGISTRY_ENTRY" class="member-name-link">DELETE_REGISTRY_ENTRY</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code><a href="#EXPORT_WORKSPACE" class="member-name-link">EXPORT_WORKSPACE</a></code></div>
+<div class="col-first odd-row-color"><code><a href="#EXECUTE_LOADER_MIGRATION" class="member-name-link">EXECUTE_LOADER_MIGRATION</a></code></div>
+<div class="col-last odd-row-color">&nbsp;</div>
+<div class="col-first even-row-color"><code><a href="#EXPORT_WORKSPACE" class="member-name-link">EXPORT_WORKSPACE</a></code></div>
+<div class="col-last even-row-color">&nbsp;</div>
+<div class="col-first odd-row-color"><code><a href="#FINISH_BLOCKBENCH_TASK" class="member-name-link">FINISH_BLOCKBENCH_TASK</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
 <div class="col-first even-row-color"><code><a href="#GENERATE_WORKSPACE" class="member-name-link">GENERATE_WORKSPACE</a></code></div>
+<div class="col-last even-row-color">&nbsp;</div>
+<div class="col-first odd-row-color"><code><a href="#GET_BLOCKBENCH_ENVIRONMENT" class="member-name-link">GET_BLOCKBENCH_ENVIRONMENT</a></code></div>
+<div class="col-last odd-row-color">&nbsp;</div>
+<div class="col-first even-row-color"><code><a href="#GET_BLOCKBENCH_TASK" class="member-name-link">GET_BLOCKBENCH_TASK</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
 <div class="col-first odd-row-color"><code><a href="#GET_DIFF" class="member-name-link">GET_DIFF</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
@@ -244,9 +266,13 @@ loadScripts(document, 'script');</script>
 <div class="col-last even-row-color">&nbsp;</div>
 <div class="col-first odd-row-color"><code><a href="#IMPORT_ASSET_BATCH" class="member-name-link">IMPORT_ASSET_BATCH</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code><a href="#IMPORT_UPSTREAM_WORKSPACE" class="member-name-link">IMPORT_UPSTREAM_WORKSPACE</a></code></div>
+<div class="col-first even-row-color"><code><a href="#IMPORT_BLOCKBENCH_TASK" class="member-name-link">IMPORT_BLOCKBENCH_TASK</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code><a href="#LIST_ASSETS" class="member-name-link">LIST_ASSETS</a></code></div>
+<div class="col-first odd-row-color"><code><a href="#IMPORT_UPSTREAM_WORKSPACE" class="member-name-link">IMPORT_UPSTREAM_WORKSPACE</a></code></div>
+<div class="col-last odd-row-color">&nbsp;</div>
+<div class="col-first even-row-color"><code><a href="#LIST_ASSETS" class="member-name-link">LIST_ASSETS</a></code></div>
+<div class="col-last even-row-color">&nbsp;</div>
+<div class="col-first odd-row-color"><code><a href="#LIST_BLOCKBENCH_TASKS" class="member-name-link">LIST_BLOCKBENCH_TASKS</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
 <div class="col-first even-row-color"><code><a href="#LIST_INSTALLED_PLUGINS" class="member-name-link">LIST_INSTALLED_PLUGINS</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
@@ -280,25 +306,29 @@ loadScripts(document, 'script');</script>
 <div class="col-last even-row-color">&nbsp;</div>
 <div class="col-first odd-row-color"><code><a href="#PREVIEW_ASSET_MOVE" class="member-name-link">PREVIEW_ASSET_MOVE</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code><a href="#PREVIEW_DATAGEN_OUTPUT" class="member-name-link">PREVIEW_DATAGEN_OUTPUT</a></code></div>
+<div class="col-first even-row-color"><code><a href="#PREVIEW_BLOCKBENCH_IMPORT" class="member-name-link">PREVIEW_BLOCKBENCH_IMPORT</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code><a href="#PREVIEW_LOADER_MIGRATION" class="member-name-link">PREVIEW_LOADER_MIGRATION</a></code></div>
+<div class="col-first odd-row-color"><code><a href="#PREVIEW_DATAGEN_OUTPUT" class="member-name-link">PREVIEW_DATAGEN_OUTPUT</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code><a href="#PREVIEW_LOCAL_TEMPLATE_INSTANTIATION" class="member-name-link">PREVIEW_LOCAL_TEMPLATE_INSTANTIATION</a></code></div>
+<div class="col-first even-row-color"><code><a href="#PREVIEW_LOADER_MIGRATION" class="member-name-link">PREVIEW_LOADER_MIGRATION</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code><a href="#PREVIEW_MOD_ELEMENT_CHANGE" class="member-name-link">PREVIEW_MOD_ELEMENT_CHANGE</a></code></div>
+<div class="col-first odd-row-color"><code><a href="#PREVIEW_LOCAL_TEMPLATE_INSTANTIATION" class="member-name-link">PREVIEW_LOCAL_TEMPLATE_INSTANTIATION</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code><a href="#PREVIEW_PROCEDURE_CHANGE" class="member-name-link">PREVIEW_PROCEDURE_CHANGE</a></code></div>
+<div class="col-first even-row-color"><code><a href="#PREVIEW_MOD_ELEMENT_CHANGE" class="member-name-link">PREVIEW_MOD_ELEMENT_CHANGE</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code><a href="#PREVIEW_RECOVERY_RESTORE" class="member-name-link">PREVIEW_RECOVERY_RESTORE</a></code></div>
+<div class="col-first odd-row-color"><code><a href="#PREVIEW_PROCEDURE_CHANGE" class="member-name-link">PREVIEW_PROCEDURE_CHANGE</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code><a href="#PREVIEW_REGISTRY_RENAME" class="member-name-link">PREVIEW_REGISTRY_RENAME</a></code></div>
+<div class="col-first even-row-color"><code><a href="#PREVIEW_RECOVERY_RESTORE" class="member-name-link">PREVIEW_RECOVERY_RESTORE</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code><a href="#PREVIEW_UPSTREAM_IMPORT" class="member-name-link">PREVIEW_UPSTREAM_IMPORT</a></code></div>
+<div class="col-first odd-row-color"><code><a href="#PREVIEW_REGISTRY_RENAME" class="member-name-link">PREVIEW_REGISTRY_RENAME</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code><a href="#PREVIEW_WORKSPACE_PLAN" class="member-name-link">PREVIEW_WORKSPACE_PLAN</a></code></div>
+<div class="col-first even-row-color"><code><a href="#PREVIEW_UPSTREAM_IMPORT" class="member-name-link">PREVIEW_UPSTREAM_IMPORT</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code><a href="#PUBLISH_DATAGEN_OUTPUT" class="member-name-link">PUBLISH_DATAGEN_OUTPUT</a></code></div>
+<div class="col-first odd-row-color"><code><a href="#PREVIEW_WORKSPACE_PLAN" class="member-name-link">PREVIEW_WORKSPACE_PLAN</a></code></div>
+<div class="col-last odd-row-color">&nbsp;</div>
+<div class="col-first even-row-color"><code><a href="#PUBLISH_DATAGEN_OUTPUT" class="member-name-link">PUBLISH_DATAGEN_OUTPUT</a></code></div>
+<div class="col-last even-row-color">&nbsp;</div>
+<div class="col-first odd-row-color"><code><a href="#RECOVER_BLOCKBENCH_IMPORT" class="member-name-link">RECOVER_BLOCKBENCH_IMPORT</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
 <div class="col-first even-row-color"><code><a href="#RENAME_REGISTRY_ENTRY" class="member-name-link">RENAME_REGISTRY_ENTRY</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
@@ -683,6 +713,96 @@ the order they are declared.</div>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="annotations">@SerializedName("get_workspace_environment")
 </span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="UiCore.Operation.html" title="enum class in dev.copperbench.core.contract">UiCore.Operation</a></span>&nbsp;<span class="element-name">GET_WORKSPACE_ENVIRONMENT</span></div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="GET_BLOCKBENCH_ENVIRONMENT">
+<h3>GET_BLOCKBENCH_ENVIRONMENT</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="annotations">@SerializedName("get_blockbench_environment")
+</span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="UiCore.Operation.html" title="enum class in dev.copperbench.core.contract">UiCore.Operation</a></span>&nbsp;<span class="element-name">GET_BLOCKBENCH_ENVIRONMENT</span></div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="BEGIN_BLOCKBENCH_TASK">
+<h3>BEGIN_BLOCKBENCH_TASK</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="annotations">@SerializedName("begin_blockbench_task")
+</span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="UiCore.Operation.html" title="enum class in dev.copperbench.core.contract">UiCore.Operation</a></span>&nbsp;<span class="element-name">BEGIN_BLOCKBENCH_TASK</span></div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="FINISH_BLOCKBENCH_TASK">
+<h3>FINISH_BLOCKBENCH_TASK</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="annotations">@SerializedName("finish_blockbench_task")
+</span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="UiCore.Operation.html" title="enum class in dev.copperbench.core.contract">UiCore.Operation</a></span>&nbsp;<span class="element-name">FINISH_BLOCKBENCH_TASK</span></div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="CANCEL_BLOCKBENCH_TASK">
+<h3>CANCEL_BLOCKBENCH_TASK</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="annotations">@SerializedName("cancel_blockbench_task")
+</span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="UiCore.Operation.html" title="enum class in dev.copperbench.core.contract">UiCore.Operation</a></span>&nbsp;<span class="element-name">CANCEL_BLOCKBENCH_TASK</span></div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="GET_BLOCKBENCH_TASK">
+<h3>GET_BLOCKBENCH_TASK</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="annotations">@SerializedName("get_blockbench_task")
+</span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="UiCore.Operation.html" title="enum class in dev.copperbench.core.contract">UiCore.Operation</a></span>&nbsp;<span class="element-name">GET_BLOCKBENCH_TASK</span></div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="LIST_BLOCKBENCH_TASKS">
+<h3>LIST_BLOCKBENCH_TASKS</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="annotations">@SerializedName("list_blockbench_tasks")
+</span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="UiCore.Operation.html" title="enum class in dev.copperbench.core.contract">UiCore.Operation</a></span>&nbsp;<span class="element-name">LIST_BLOCKBENCH_TASKS</span></div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="PREVIEW_BLOCKBENCH_IMPORT">
+<h3>PREVIEW_BLOCKBENCH_IMPORT</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="annotations">@SerializedName("preview_blockbench_import")
+</span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="UiCore.Operation.html" title="enum class in dev.copperbench.core.contract">UiCore.Operation</a></span>&nbsp;<span class="element-name">PREVIEW_BLOCKBENCH_IMPORT</span></div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="IMPORT_BLOCKBENCH_TASK">
+<h3>IMPORT_BLOCKBENCH_TASK</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="annotations">@SerializedName("import_blockbench_task")
+</span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="UiCore.Operation.html" title="enum class in dev.copperbench.core.contract">UiCore.Operation</a></span>&nbsp;<span class="element-name">IMPORT_BLOCKBENCH_TASK</span></div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="RECOVER_BLOCKBENCH_IMPORT">
+<h3>RECOVER_BLOCKBENCH_IMPORT</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="annotations">@SerializedName("recover_blockbench_import")
+</span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="UiCore.Operation.html" title="enum class in dev.copperbench.core.contract">UiCore.Operation</a></span>&nbsp;<span class="element-name">RECOVER_BLOCKBENCH_IMPORT</span></div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="BIND_BLOCKBENCH_MODEL">
+<h3>BIND_BLOCKBENCH_MODEL</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="annotations">@SerializedName("bind_blockbench_model")
+</span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="UiCore.Operation.html" title="enum class in dev.copperbench.core.contract">UiCore.Operation</a></span>&nbsp;<span class="element-name">BIND_BLOCKBENCH_MODEL</span></div>
 </div>
 </section>
 </li>
