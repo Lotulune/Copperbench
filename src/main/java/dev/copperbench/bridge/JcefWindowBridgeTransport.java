@@ -14,6 +14,7 @@ import dev.copperbench.shell.UiLocalePreferences;
 import dev.copperbench.window.WindowChromeSnapshot;
 import dev.copperbench.window.WindowsWindowChromeController.PointerGesture;
 import net.mcreator.ui.chromium.WebView;
+import net.mcreator.ui.dialogs.preferences.PreferencesDialog;
 import org.cef.browser.CefBrowser;
 import org.cef.browser.CefFrame;
 import org.cef.browser.CefMessageRouter;
@@ -36,7 +37,7 @@ public final class JcefWindowBridgeTransport extends CefMessageRouterHandlerAdap
 	public static final String QUERY_PREFIX = "copperbench:window:";
 	public static final String REGION_QUERY_PREFIX = "copperbench:window-regions:";
 	public static final String GESTURE_QUERY_PREFIX = "copperbench:window-gesture:";
-	private static final Set<String> ACTIONS = Set.of("minimize", "toggle_maximize", "close", "set_locale_en", "set_locale_zh");
+	private static final Set<String> ACTIONS = Set.of("minimize", "toggle_maximize", "close", "open_preferences", "set_locale_en", "set_locale_zh");
 	private static final Gson JSON = new Gson();
 
 	private final WebView webView;
@@ -184,6 +185,7 @@ public final class JcefWindowBridgeTransport extends CefMessageRouterHandlerAdap
 						? state & ~Frame.MAXIMIZED_BOTH : state | Frame.MAXIMIZED_BOTH);
 			}
 			case "close" -> closeAction.run();
+			case "open_preferences" -> new PreferencesDialog(window);
 			default -> throw new IllegalArgumentException("Unsupported window action: " + action);
 		}
 	}
@@ -234,6 +236,7 @@ public final class JcefWindowBridgeTransport extends CefMessageRouterHandlerAdap
 				(function() {
 				    window.__COPPERBENCH_WINDOW_HOST__ = {
 				        systemFrame: %s,
+				        preferencesAvailable: true,
 				%s
 				        invoke: function(action) {
 				            return new Promise(function(resolve, reject) {

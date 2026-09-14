@@ -15,12 +15,13 @@ public final class BlockbenchStartupPanel extends JPanel {
 		setOpaque(false);
 		JLabel introduction = new JLabel("自定义模型可使用独立的 Blockbench，也可稍后设置。");
 		introduction.setName("blockbench-startup-introduction");
-		JPanel actions = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
+		JPanel actions = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
 		actions.setOpaque(false);
 		JButton guide = new JButton("建模工具设置 · 可选");
 		guide.setName("blockbench-startup-guide");
 		guide.addActionListener(_ -> openGuide.run());
 		actions.add(guide);
+		actions.add(Box.createHorizontalStrut(6));
 		JButton skip = new JButton("稍后设置");
 		skip.setName("blockbench-startup-skip");
 		skip.addActionListener(_ -> {

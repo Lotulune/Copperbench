@@ -1,3 +1,4 @@
+import { tr } from '../i18n/locale';
 export const WINDOW_CHROME_SCHEMA_VERSION = '1.0' as const;
 
 export type WindowChromeRegionKind = 'caption' | 'client' | 'minimize' | 'maximize' | 'close';
@@ -30,8 +31,9 @@ export interface WindowChromeSnapshot {
 export interface NativeWindowHost {
   readonly systemFrame: boolean;
   readonly maximized?: boolean;
+  readonly preferencesAvailable?: boolean;
   readonly chromeRegionSchemaVersion?: typeof WINDOW_CHROME_SCHEMA_VERSION;
-  invoke(action: 'minimize' | 'toggle_maximize' | 'close'): Promise<void>;
+  invoke(action: 'minimize' | 'toggle_maximize' | 'close' | 'open_preferences'): Promise<void>;
   reportChromeRegions?(snapshot: WindowChromeSnapshot): Promise<void>;
   pointerGesture?(gesture: WindowPointerGesture): void;
 }
@@ -51,6 +53,8 @@ declare global {
 }
 
 export interface WindowBridge {
+  readonly canOpenPreferences: boolean;
+  openPreferences(): Promise<void>;
   readonly systemFrame: boolean;
   readonly canToggleFrame: boolean;
   readonly supportsChromeRegions: boolean;
@@ -62,11 +66,13 @@ export interface WindowBridge {
 }
 
 class JcefWindowBridge implements WindowBridge {
+  public readonly canOpenPreferences: boolean;
   public readonly systemFrame: boolean;
   public readonly canToggleFrame = false;
   public readonly supportsChromeRegions: boolean;
 
   public constructor(private readonly host: NativeWindowHost) {
+    this.canOpenPreferences = host.preferencesAvailable === true;
     this.systemFrame = host.systemFrame;
     this.supportsChromeRegions = !host.systemFrame
       && host.chromeRegionSchemaVersion === WINDOW_CHROME_SCHEMA_VERSION
@@ -83,6 +89,12 @@ class JcefWindowBridge implements WindowBridge {
 
   public close(): void {
     this.invoke('close');
+  }
+
+  public openPreferences(): Promise<void> {
+    return this.canOpenPreferences
+      ? this.host.invoke('open_preferences')
+      : Promise.reject(new Error(tr("当前桌面版本不支持打开设置，请更新程序。")));
   }
 
   public reportChromeRegions(snapshot: WindowChromeSnapshot): void {
@@ -104,6 +116,11 @@ class JcefWindowBridge implements WindowBridge {
 }
 
 class MockWindowBridge implements WindowBridge {
+  public readonly canOpenPreferences = false;
+
+  public openPreferences(): Promise<void> {
+    return Promise.reject(new Error(tr("请在桌面应用中打开设置。")));
+  }
   public readonly systemFrame = false;
   public readonly canToggleFrame = true;
   public readonly supportsChromeRegions = false;

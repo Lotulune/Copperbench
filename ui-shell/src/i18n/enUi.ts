@@ -1663,5 +1663,10 @@ export const enUi: Record<string, string> = {
   "工作区真实资产，由 AssetWorkspaceService 实时索引。": "Workspace asset, indexed from files on disk.",
   "回导预览失败": "Round-trip import preview failed",
   "未知错误": "Unknown error",
-  "任务未完成。": "Task incomplete."
+  "任务未完成。": "Task incomplete.",
+  "设置": "Settings",
+  "无法打开设置，请重试或重新启动应用。": "Could not open settings. Try again or restart the app.",
+  "设置仅在支持此功能的桌面应用中可用": "Settings require a supported desktop build",
+  "当前桌面版本不支持打开设置，请更新程序。": "This desktop version cannot open settings. Update the app.",
+  "请在桌面应用中打开设置。": "Open settings in the desktop app."
 };

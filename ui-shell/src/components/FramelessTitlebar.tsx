@@ -13,13 +13,13 @@ import {
   Copy,
   X,
   Layers,
-  Sparkles,
   ShieldCheck,
   Server,
   DatabaseZap,
   TestTube2
 } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
+import productIcon from '../../../src/main/resources/net/mcreator/ui/res/icon.png';
 import {
   WINDOW_CHROME_SCHEMA_VERSION,
   WindowChromeRegion,
@@ -228,7 +228,7 @@ export const FramelessTitlebar: React.FC = () => {
       {/* Left: Brand & Workspace Pill */}
       <div className="titlebar-left">
         <div className="titlebar-brand">
-          <Sparkles size={16} aria-hidden="true" />
+          <img src={productIcon} alt="" width={24} height={24} draggable={false} data-testid="product-brand-icon" />
           <span>Copperbench</span>
         </div>
 
