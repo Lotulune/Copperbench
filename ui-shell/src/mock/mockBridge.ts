@@ -2489,6 +2489,16 @@ export class MockCoreBridge implements CoreBridge {
     switch (query.operation) {
       case 'list_task_authorizations': data = { schemaVersion: '1.0', authorizations: this.taskAuthorizations.map(item => ({ ...item })) }; break;
       case 'get_workspace_environment': data = { execution: { workspaceRoot: 'D:/MockWorkspace' } }; break;
+      case 'get_blockbench_environment': {
+        const payload = query.payload as { probeMcp?: boolean; endpoint?: string };
+        data = {
+          editor: { state: 'unavailable', available: false },
+          mcp: { state: payload.probeMcp ? 'preview_unavailable' : 'not_checked', endpoint: String(payload.endpoint ?? 'http://127.0.0.1:3000/bb-mcp') },
+          managedModelingTasksAvailable: false, workflow: 'external_agent_two_servers'
+        };
+        break;
+      }
+      case 'list_blockbench_tasks': data = { tasks: [] }; break;
       case 'get_workbench':
         data = this.state.workbench;
         break;

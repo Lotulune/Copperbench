@@ -21,7 +21,7 @@ export interface JcefHostTransport {
   onEvent(listener: (eventJson: string) => void): () => void;
 }
 
-function safeRandomUUID(): string {
+export function safeRandomUUID(): string {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
     return crypto.randomUUID();
   }

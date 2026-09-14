@@ -30,6 +30,33 @@ class Fabric1211GeneratorTest {
 
 	@TempDir Path output;
 
+	@Test void boundBlockAndItemModelsSurviveRepeatedGenerationWithoutOverwritingImportedTextures() throws Exception {
+		WorkspaceState workspace = Fabric1211GoldenWorkspace.create();
+		String resource = "copper_trails:custom/lantern";
+		for (Element element : workspace.elements()) if (element.type().equals("block") || element.type().equals("item")) {
+			element.values().addProperty("modelResource", resource);
+			workspace.replaceElement(element);
+		}
+		Path custom = output.resolve("src/main/resources/assets/copper_trails/models/custom/lantern.json");
+		Files.createDirectories(custom.getParent());
+		String exported = "{\"parent\":\"minecraft:block/cube_all\",\"textures\":{\"all\":\"copper_trails:block/trail_lamp\"}}";
+		Files.writeString(custom, exported);
+		Path texture = output.resolve("src/main/resources/assets/copper_trails/textures/block/trail_lamp.png");
+		Files.createDirectories(texture.getParent()); Files.write(texture, new byte[] { 11, 22, 33 });
+		Fabric1211Generator generator = new Fabric1211Generator(Path.of(".").toAbsolutePath().normalize());
+		generator.generate(output, workspace);
+		Files.writeString(output.resolve("project.mcreator"), "{}");
+		Files.writeString(output.resolve("src/main/resources/assets/copper_trails/models/block/trail_lamp.json"), "{\"parent\":\"minecraft:block/cube_all\"}");
+		Files.delete(output.resolve("src/main/resources/assets/copper_trails/models/item/trail_lamp.json"));
+		generator.generate(output, workspace);
+		assertEquals(exported, Files.readString(custom));
+		org.junit.jupiter.api.Assertions.assertArrayEquals(new byte[] { 11, 22, 33 }, Files.readAllBytes(texture));
+		assertTrue(Files.readString(output.resolve("src/main/resources/assets/copper_trails/models/block/trail_lamp.json")).contains(resource));
+		assertTrue(Files.readString(output.resolve("src/main/resources/assets/copper_trails/models/item/trail_compass.json")).contains(resource));
+		assertEquals("copper_trails:block/trail_lamp", com.google.gson.JsonParser.parseString(Files.readString(
+				output.resolve("src/main/resources/assets/copper_trails/models/item/trail_lamp.json"))).getAsJsonObject().get("parent").getAsString());
+	}
+
 	@Test void generatesTheStageThreeBlockItemRecipeProcedureAndResources() throws Exception {
 		WorkspaceState workspace = Fabric1211GoldenWorkspace.create();
 		Fabric1211Generator generator = new Fabric1211Generator(Path.of(".").toAbsolutePath().normalize());

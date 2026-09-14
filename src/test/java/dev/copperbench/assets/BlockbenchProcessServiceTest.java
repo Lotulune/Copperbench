@@ -44,6 +44,24 @@ class BlockbenchProcessServiceTest {
 		assertEquals("BLOCKBENCH_NOT_CONFIGURED", service.status().diagnosticCode());
 	}
 
+	@Test void detectsAnInstallationAddedAfterTheProductStarted() throws IOException {
+		AtomicReference<Path> installed = new AtomicReference<>();
+		AtomicReference<List<String>> command = new AtomicReference<>();
+		try (var service = BlockbenchProcessService.autoDetected(new AssetWorkspaceService(workspace),
+				BlockbenchProcessService.EditLifecycle.noOp(), installed::get, arguments -> {
+					command.set(arguments);
+					return new FakeProcess(7780);
+				}, new BlockbenchInstallationDetector(path -> "5.1.6"))) {
+			assertEquals(BlockbenchProcessService.State.UNAVAILABLE, service.status().state());
+			Path executable = temp.resolve("Blockbench.exe");
+			Files.write(executable, new byte[] { 1 });
+			executable.toFile().setExecutable(true);
+			installed.set(executable);
+			assertEquals(BlockbenchProcessService.State.RUNNING, service.openAsset(model.id()).state());
+			assertEquals(executable.toString(), command.get().getFirst());
+		}
+	}
+
 	@Test void launchesOnlyTheConfiguredExecutableAndAuthorizedIndexedModel() throws IOException {
 		Path executable = temp.resolve("Blockbench.exe");
 		Files.write(executable, new byte[] { 1 });

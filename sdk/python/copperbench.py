@@ -8,7 +8,26 @@ import urllib.error
 import urllib.parse
 import time
 import urllib.request
-from typing import Any, Iterator
+from typing import Any, Iterator, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from copperbench_native import Workspace, NativeApiError
+
+
+def __getattr__(name: str) -> Any:
+    # Preserve standalone copies of this MCP client used by existing harnesses.
+    if name in {"Workspace", "NativeApiError"}:
+        import copperbench_native
+        return getattr(copperbench_native, name)
+    if name in {'context', 'data', 'ops', 'utils', 'types', 'app', 'use_workspace', 'api_help'}:
+        import copperbench_scripting
+        return getattr(copperbench_scripting, name)
+    raise AttributeError(name)
+
+
+def __dir__():
+    return sorted(set(globals()) | {'Workspace', 'NativeApiError', 'context', 'data', 'ops',
+                                   'utils', 'types', 'app', 'use_workspace', 'api_help'})
 
 
 class CopperbenchError(RuntimeError):

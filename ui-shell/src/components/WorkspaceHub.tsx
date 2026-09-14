@@ -18,6 +18,7 @@ import {
 import { useWorkbench } from '../context/WorkbenchContext';
 import { TaskSummary, WorkspaceHealthProjection } from '../types/contract';
 import { t } from '../i18n';
+import { BlockbenchOnboarding } from './BlockbenchOnboarding';
 
 export const WorkspaceHub: React.FC = () => {
   const {
@@ -95,6 +96,8 @@ export const WorkspaceHub: React.FC = () => {
         gap: '24px'
       }}
     >
+      <BlockbenchOnboarding />
+
       {/* Top-level operational diagnostics banner (permission denials, process exits) */}
       {(topLevelDiagnostics.length > 0 || failedTask) && (
         <div

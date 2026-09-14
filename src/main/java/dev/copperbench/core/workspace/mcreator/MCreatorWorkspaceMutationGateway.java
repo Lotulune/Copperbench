@@ -332,7 +332,7 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 		try {
 			switch (operation) {
 				case CREATE_MOD_ELEMENT -> create(affectedElement);
-				case UPDATE_MOD_ELEMENT, SET_MOD_ELEMENT_SOURCE_MANAGEMENT, UPDATE_PROCEDURE ->
+				case UPDATE_MOD_ELEMENT, BIND_BLOCKBENCH_MODEL, SET_MOD_ELEMENT_SOURCE_MANAGEMENT, UPDATE_PROCEDURE ->
 						update(existing, previous, affectedElement);
 				case DELETE_MOD_ELEMENT -> {
 					delete(existing, true);
@@ -675,6 +675,8 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 		block.colorOnMap = new MapColor(workspace, "DEFAULT");
 		block.noteBlockInstrument = new NoteBlockInstrument(workspace, "harp");
 		block.aiPathNodeType = new AIPathNodeType(workspace, "DEFAULT");
+		block.soundOnStep = new net.mcreator.element.parts.StepSound(workspace, "STONE");
+		block.luminance = new net.mcreator.element.parts.procedure.NumberProcedure(null, 0);
 		block.boundingBoxes.clear();
 		block.inventoryStackSize = 99;
 		block.frequencyPerChunks = 10;

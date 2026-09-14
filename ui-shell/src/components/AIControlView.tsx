@@ -8,6 +8,7 @@ import { useMcpRuntimeState } from '../hooks/useMcpRuntimeState';
 import { t } from '../i18n';
 import type { OperationApproval, PermissionProfile } from '../types/contract';
 import { TaskAuthorizationPanel } from './TaskAuthorizationPanel';
+import { BlockbenchSetupPanel } from './BlockbenchSetupPanel';
 
 const profiles: { id: PermissionProfile; title: string; desc: string }[] = [
   { id: 'read_only', title: '只读', desc: '查询与快照校验' },
@@ -76,6 +77,7 @@ export const AIControlView: React.FC = () => {
         </span>
       </header>
 
+      <BlockbenchSetupPanel />
       <div className="ai-control-layout">
         <section className="permission-panel" aria-labelledby="mcp-runtime-heading">
           <div className="stage2-section-heading">

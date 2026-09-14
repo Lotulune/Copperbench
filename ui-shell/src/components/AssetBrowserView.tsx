@@ -13,6 +13,8 @@ import type { AssetImportPreview, AssetImportBatchPreview, AssetMovePreview, Ass
 import { blockbenchBridge } from '../bridge/blockbenchBridge';
 import { assetImportBridge, type AssetImportSelectionGrant } from '../bridge/assetImportBridge';
 import { t } from '../i18n';
+import { BlockbenchSetupPanel } from './BlockbenchSetupPanel';
+import { BlockbenchTasksPanel } from './BlockbenchTasksPanel';
 
 type BrowserMode = 'ready' | 'empty' | 'loading' | 'error';
 type CategoryFilter = 'all' | AssetCategory;
@@ -409,7 +411,7 @@ export const AssetBrowserView: React.FC = () => {
         setBlockbenchSessionAssetId(asset.id);
         setNotice(`Blockbench 桥接就绪：已打开模型 ${asset.name}。`);
       } else if (result.diagnosticCode === 'BLOCKBENCH_NOT_CONFIGURED') {
-        setNotice('尚未配置 Blockbench，可在应用设置中选择安装位置。');
+        setNotice('尚未配置 Blockbench，请展开上方“连接 Blockbench”查看安装与检测说明。');
       } else {
         setNotice(`Blockbench 无法打开该资产（${result.diagnosticCode ?? result.state}）。`);
       }
@@ -478,6 +480,8 @@ export const AssetBrowserView: React.FC = () => {
         filteredCount={filteredAssets.length}
       />
 
+      <BlockbenchSetupPanel />
+      <BlockbenchTasksPanel source={selectedAsset} />
       <div className="asset-browser-body">
         {/* Left Category Rail */}
         <aside className="asset-category-panel" aria-label="资产分类">
@@ -1043,6 +1047,8 @@ const AssetStateView: React.FC<{
         </div>
       </header>
 
+      <BlockbenchSetupPanel />
+      <BlockbenchTasksPanel />
       <div
         className={`asset-state-panel${mode === 'error' ? ' asset-state-error' : ''}`}
         data-testid={`asset-browser-${mode}`}

@@ -30,6 +30,9 @@
     "operation": {
       "type": "string",
       "enum": [
+        "preview_blockbench_import",
+        "get_blockbench_task",
+        "list_blockbench_tasks",
         "get_workbench",
         "get_workspace_health",
         "list_new_workspace_generators",
@@ -59,7 +62,8 @@
         "get_element_coverage",
         "get_upstream_tools",
         "list_task_authorizations",
-        "get_workspace_environment"
+        "get_workspace_environment",
+        "get_blockbench_environment"
       ]
     },
     "status": {

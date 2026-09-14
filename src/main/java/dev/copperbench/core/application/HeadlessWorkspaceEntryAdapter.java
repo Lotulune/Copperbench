@@ -18,7 +18,7 @@ public final class HeadlessWorkspaceEntryAdapter {
 	}
 
 	public CommandOutcome execute(Command command) {
-		return delegate.execute(command);
+		return delegate.executeAndPublish(command);
 	}
 
 	public QueryResult query(Query query) {

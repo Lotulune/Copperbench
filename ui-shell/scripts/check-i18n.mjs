@@ -2,6 +2,7 @@ import ts from 'typescript';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, extname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { collectLocalizationKeys } from './localization-keys.mjs';
 
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
 const projectRoot = resolve(scriptDirectory, '../..');
@@ -12,10 +13,6 @@ const sourceRoots = [
   join(projectRoot, 'ui-core/fixtures/v1.0')
 ];
 const sourceExtensions = new Set(['.java', '.json', '.ts', '.tsx']);
-const localizedPrefixes = [
-  'action', 'approval', 'aria', 'capability', 'diagnostic', 'disposition', 'editor', 'field',
-  'material', 'notice', 'placeholder', 'procedure', 'reason', 'scenario', 'status', 'task'
-];
 const dynamicKeys = [
   'workspace.default_name',
   'task.validate.started',
@@ -46,14 +43,10 @@ const duplicateKeys = catalogEntries
   .map((match) => match[1])
   .filter((key, index, all) => all.indexOf(key) !== index);
 
-const prefixPattern = localizedPrefixes.join('|');
-const keyPattern = new RegExp(`["']((?:${prefixPattern})\\.[A-Za-z0-9_.-]+)["']`, 'g');
 const referencedKeys = new Set(dynamicKeys);
 for (const file of files) {
   const source = readFileSync(file, 'utf8');
-  for (const match of source.matchAll(keyPattern)) {
-    if (!match[1].endsWith('.')) referencedKeys.add(match[1]);
-  }
+  for (const key of collectLocalizationKeys(source, extname(file))) referencedKeys.add(key);
   if (file.endsWith('WorkspaceApplicationService.java')) {
     // These UI keys are assembled at runtime, so literal-key scanning misses them.
     const defaults = source.split('private JsonObject defaultElementValues(')[1]?.split('private Diagnostic validateElementValues(')[0] ?? '';

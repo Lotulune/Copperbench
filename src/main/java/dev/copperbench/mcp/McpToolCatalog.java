@@ -154,6 +154,49 @@ final class McpToolCatalog {
 
 	List<McpServerFeatures.SyncToolSpecification> tools() {
 		List<McpServerFeatures.SyncToolSpecification> tools = new ArrayList<>();
+		tools.add(commandTool("bind_blockbench_model", "Bind a block/item element to a model verified in a successful modeling import receipt. Uses an existing element; does not create duplicates. Avoid generated model names; prefer namespace:custom/name.",
+				Operation.BIND_BLOCKBENCH_MODEL, requiredSchema(Map.of("taskId", Map.of("type", "string", "format", "uuid"),
+						"elementId", Map.of("type", "string", "format", "uuid"), "modelResource", Map.of("type", "string"),
+						"expectedRevision", Map.of("type", "integer", "minimum", 0)), List.of("taskId", "elementId", "modelResource", "expectedRevision")), McpToolCatalog::mutationPayload));
+		tools.add(queryTool("preview_blockbench_import", "Review a finished candidate plus actual Blockbench game exports. Map files inside task edit/ to workspace asset paths; validates game model/texture references.",
+				Operation.PREVIEW_BLOCKBENCH_IMPORT, requiredSchema(Map.of("taskId", Map.of("type", "string", "format", "uuid"),
+						"outputs", Map.of("type", "array", "minItems", 1, "maxItems", 63, "items", Map.of("type", "object", "properties", Map.of(
+								"sourceRelativePath", Map.of("type", "string"), "targetRelativePath", Map.of("type", "string")),
+								"required", List.of("sourceRelativePath", "targetRelativePath"), "additionalProperties", false))), List.of("taskId", "outputs")),
+				arguments -> GSON.toJsonTree(arguments).getAsJsonObject()));
+		tools.add(commandTool("import_blockbench_task", "Apply the reviewed game exports and bbmodel together with recovery. Confirm replacements shown by preview. Repeated successful planToken is idempotent.",
+				Operation.IMPORT_BLOCKBENCH_TASK, requiredSchema(Map.of("taskId", Map.of("type", "string", "format", "uuid"),
+						"planToken", Map.of("type", "string"), "confirmReplace", Map.of("type", "boolean"),
+						"expectedRevision", Map.of("type", "integer", "minimum", 0)), List.of("taskId", "planToken", "expectedRevision")), McpToolCatalog::mutationPayload));
+		tools.add(commandTool("recover_blockbench_import", "Restore only journaled files after an interrupted modeling import. Rejects unrelated destination edits and preserves candidate and backups.",
+				Operation.RECOVER_BLOCKBENCH_IMPORT, requiredSchema(Map.of("taskId", Map.of("type", "string", "format", "uuid"),
+						"expectedRevision", Map.of("type", "integer", "minimum", 0)), List.of("taskId", "expectedRevision")), McpToolCatalog::mutationPayload));
+		tools.add(commandTool("begin_blockbench_task", "Create or resume a durable java_block editing copy. Supply a stable UUID taskId and either assetId or a new targetRelativePath. Does not launch or import.",
+				Operation.BEGIN_BLOCKBENCH_TASK, requiredSchema(Map.of(
+						"taskId", Map.of("type", "string", "format", "uuid"), "assetId", Map.of("type", "string"),
+						"targetRelativePath", Map.of("type", "string"), "expectedRevision", Map.of("type", "integer", "minimum", 0)),
+						List.of("taskId", "expectedRevision")), McpToolCatalog::mutationPayload));
+		tools.add(commandTool("finish_blockbench_task", "Validate the saved editing file and freeze a portable candidate. Pass editSha256 from get_blockbench_task as savedSha256. Does not import or require editor exit.",
+				Operation.FINISH_BLOCKBENCH_TASK, requiredSchema(Map.of(
+						"taskId", Map.of("type", "string", "format", "uuid"), "savedSha256", Map.of("type", "string", "pattern", "^[0-9a-f]{64}$"),
+						"expectedRevision", Map.of("type", "integer", "minimum", 0)), List.of("taskId", "savedSha256", "expectedRevision")), McpToolCatalog::mutationPayload));
+		tools.add(commandTool("cancel_blockbench_task", "Cancel a modeling task while preserving its editing and candidate files; does not close Blockbench.",
+				Operation.CANCEL_BLOCKBENCH_TASK, requiredSchema(Map.of("taskId", Map.of("type", "string", "format", "uuid"),
+						"expectedRevision", Map.of("type", "integer", "minimum", 0)), List.of("taskId", "expectedRevision")), McpToolCatalog::mutationPayload));
+		tools.add(queryTool("get_blockbench_task", "Read saved file hash, source conflict and durable modeling task state; does not inspect unsaved editor memory.",
+				Operation.GET_BLOCKBENCH_TASK, requiredSchema(Map.of("taskId", Map.of("type", "string", "format", "uuid")), List.of("taskId")),
+				arguments -> GSON.toJsonTree(arguments).getAsJsonObject()));
+		tools.add(queryTool("list_blockbench_tasks", "List durable modeling tasks, including preserved cancelled tasks and candidates awaiting import.",
+				Operation.LIST_BLOCKBENCH_TASKS, EMPTY_SCHEMA, arguments -> new JsonObject()));
+		tools.add(queryTool("get_blockbench_environment",
+				"Inspect optional Blockbench installation. Set probeMcp=true to initialize a loopback MCP server and list tools; "
+						+ "does not launch, install, model or import. Tool discovery does not prove a managed modeling workflow.",
+				Operation.GET_BLOCKBENCH_ENVIRONMENT,
+				Map.of("type", "object", "properties", Map.of(
+						"probeMcp", Map.of("type", "boolean", "default", false),
+						"endpoint", Map.of("type", "string", "maxLength", 512,
+								"description", "HTTP loopback URL, default http://127.0.0.1:3000/bb-mcp")),
+						"additionalProperties", false), arguments -> GSON.toJsonTree(arguments).getAsJsonObject()));
 		tools.add(queryTool("get_workspace", "Read workspace state", Operation.GET_WORKBENCH, EMPTY_SCHEMA,
 				arguments -> new JsonObject()));
 		tools.add(queryTool("get_workspace_environment",

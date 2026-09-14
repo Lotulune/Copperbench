@@ -49,7 +49,7 @@ import { windowBridge } from '../bridge/windowBridge';
 import { diagnosticsBridge } from '../bridge/diagnosticsBridge';
 import { t } from '../i18n';
 
-export type NavView = 'hub' | 'elements' | 'data' | 'assets' | 'history' | 'ai' | 'plugins' | 'tracks' | 'new-workspace' | 'help';
+export type NavView = 'hub' | 'elements' | 'data' | 'assets' | 'history' | 'ai' | 'plugins' | 'tracks' | 'new-workspace' | 'help' | 'python';
 
 export interface ProcedureFocusRequest {
   elementId: UUID;
@@ -105,7 +105,7 @@ interface WorkbenchContextType {
   renameRegistryEntry: (entryId: UUID, newName: string) => Promise<CommandResult>;
   deleteRegistryEntry: (entryId: UUID) => Promise<CommandResult>;
   createModElement: (type: ModElementType, name: string) => Promise<CommandResult>;
-  updateModElement: (elementId: UUID, changes: FieldChange[]) => Promise<CommandResult>;
+  updateModElement: (elementId: UUID, changes: FieldChange[], expectedRevision?: number) => Promise<CommandResult>;
   deleteModElement: (elementId: UUID) => Promise<CommandResult>;
   generateWorkspace: () => Promise<CommandResult>;
   buildWorkspace: () => Promise<CommandResult>;
@@ -604,7 +604,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   );
 
   const updateModElement = useCallback(
-    async (elementId: UUID, changes: FieldChange[]): Promise<CommandResult> => {
+    async (elementId: UUID, changes: FieldChange[], expectedRevision?: number): Promise<CommandResult> => {
       const workspaceId = state.workbench?.workspace.id || generateUUID();
       const revision = state.workbench?.workspace.revision ?? 0;
       return coreBridge.sendCommand({
@@ -612,7 +612,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         schemaVersion: '1.0',
         requestId: generateUUID(),
         workspaceId,
-        expectedRevision: revision,
+        expectedRevision: expectedRevision ?? revision,
         operation: 'update_mod_element',
         payload: {
           clientMutationId: generateUUID(),

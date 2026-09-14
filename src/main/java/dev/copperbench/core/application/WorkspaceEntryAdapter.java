@@ -24,6 +24,10 @@ public final class WorkspaceEntryAdapter {
 		return service.execute(command, context);
 	}
 
+	public CommandOutcome executeAndPublish(Command command) {
+		return service.executeAndPublish(command, context);
+	}
+
 	public QueryResult query(Query query) {
 		return service.query(query, context);
 	}

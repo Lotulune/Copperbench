@@ -7,13 +7,15 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class JcefBlockbenchBridgeTransportTest {
-	@Test void bootstrapExposesOnlyStatusAndAssetIdOpenOperations() {
+	@Test void bootstrapExposesNativePickerButNoCallerSuppliedExecutableOrCommand() {
 		String bootstrap = JcefBlockbenchBridgeTransport.generateBootstrapScript();
 		assertTrue(bootstrap.contains("window.__COPPERBENCH_BLOCKBENCH_HOST__"));
 		assertTrue(bootstrap.contains("schemaVersion: \"1.0\""));
 		assertTrue(bootstrap.contains("openAsset"));
 		assertTrue(bootstrap.contains(JcefBlockbenchBridgeTransport.QUERY_PREFIX));
-		assertFalse(bootstrap.contains("executable"));
+		assertTrue(bootstrap.contains("selectExecutable: function()"));
+		assertFalse(bootstrap.contains("executable:"));
+		assertFalse(bootstrap.contains("setExecutable"));
 		assertFalse(bootstrap.contains("command"));
 		assertFalse(bootstrap.contains("filesystem"));
 	}

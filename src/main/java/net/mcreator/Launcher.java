@@ -54,6 +54,9 @@ public class Launcher {
 		boolean machineReadable = headless || bootstrap;
 		PrintWriter machineOutput = machineReadable ? new PrintWriter(
 				new OutputStreamWriter(new FileOutputStream(FileDescriptor.out), StandardCharsets.UTF_8), true) : null;
+		// Keep the native API pipe free of incidental stdout from plugins and runtime initialization.
+		if (headless && args.length == 4 && "api".equals(args[3]))
+			System.setOut(System.err);
 		if (headless)
 			System.setProperty("java.awt.headless", "true");
 		LoggingSystem.init();
