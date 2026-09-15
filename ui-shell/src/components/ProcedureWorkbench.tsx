@@ -973,7 +973,7 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
         <aside className="procedure-palette" aria-label={tr("过程节点面板")}>
           <div className="procedure-search">
             <Search size={14} />
-            <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder={tr("搜索节点")} aria-label={tr("搜索过程节点")} />
+            <input data-testid="procedure-palette-search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder={tr("搜索节点")} aria-label={tr("搜索过程节点")} />
           </div>
           <div className="procedure-palette-filter">
             <Filter size={13} aria-hidden="true" />
