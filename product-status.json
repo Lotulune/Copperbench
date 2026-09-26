@@ -2,8 +2,8 @@
   "$schema": "./schemas/product-status.schema.json",
   "schemaVersion": "1.0",
   "snapshot": {
-    "date": "2026-09-11",
-    "lastVerifiedCommit": "fa1489dd6d6713bf5b371eea4a2ba157da190364",
+    "date": "2026-09-26",
+    "lastVerifiedCommit": "6907855ca8670d65514f2ba3125f265592c760db",
     "policy": "Only code, automated checks, and evidence tied to a commit can promote a gate."
   },
   "product": {
@@ -21,7 +21,8 @@
     "stableRelease": {
       "tag": "v0.1.0",
       "linuxTag": "v0.1.0-linux-stable",
-      "status": "pending-validation",
+      "status": "ready",
+      "linuxStatus": "pending-installed-validation",
       "decision": "approved",
       "decisionDate": "2026-09-26",
       "scope": "Windows 11 x64 and Ubuntu 24.04 x86_64 GNOME; existing explicit certification exclusions remain exclusions.",
@@ -176,7 +177,7 @@
   "gates": [
     {
       "id": "stage17-release-integration",
-      "status": "pending",
+      "status": "passed",
       "betaBlocking": false,
       "stableBlocking": true,
       "evidence": [
