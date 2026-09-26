@@ -12,7 +12,7 @@
   "portableSha256": "d1feb9803ba5ebc1f57134d23bf870aaad1a8e56844a9c5908bd738a5d34f5d1",
   "installedProductJarSha256": "b96e68dbc697230ca98d82339edbd5cb4c3b12ee7124b861053208d06e270bb8",
   "validationReportPath": "docs/testing/stage17-stable-installed-acceptance-2026-09-27.md",
-  "validationReportSha256": "c3d69497dba3f17a68dd9385ee49b2044d97a2c4da5ed14b4f3e32c7ef72992b",
+  "validationReportSha256": "8dbb57ab5f81b71db84bee250b29aede99bc289618ac0e43fd611af97f0327d3",
   "acceptedEvidence": {
     "xorgFabric": {
       "path": "evidence/stage15/2026-09-27/stable-011-b813/xorgFabric/result.json",
