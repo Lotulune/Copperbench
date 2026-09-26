@@ -1,0 +1,19 @@
+{
+  "status": "known-interface-regression",
+  "nightlyRun": "https://github.com/Lotulune/Copperbench/actions/runs/36265473220",
+  "candidateSource": "b813e6cf19cbc0af43b645608e0d7dc5d7e0f243",
+  "originalTest": "ui-shell/e2e/blockbench-import.spec.ts:8",
+  "originalTestLocalReplays": {
+    "passed": 0,
+    "failed": 3
+  },
+  "reopenDiagnostic": {
+    "passed": 1,
+    "scope": "Browser native-host fixture; reopening panel exposes imported files and permits model binding; does not replace original failing continuity assertion",
+    "failed": 0
+  },
+  "rootCause": "AssetBrowserView switches to AssetStateView during revision-triggered loading, unmounting BlockbenchTasksPanel and losing expanded state",
+  "originalAssertionRetained": true,
+  "packageBytesChanged": false,
+  "classification": "Non-destructive UI continuity issue, disclosed in release notes"
+}

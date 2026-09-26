@@ -2,18 +2,18 @@
   "schemaVersion": "1.0",
   "kind": "linux-post-publication-support",
   "status": "approved",
-  "stage": 15,
+  "stage": 17,
   "stageStatus": "complete",
   "formalSupportClaim": true,
-  "effectiveAt": "2026-09-11T03:33:10Z",
-  "authorization": "Explicit user approval to publish the verified preview and complete Stage15 status updates",
-  "releaseTag": "v0.1.0-linux-preview.2",
-  "releaseUrl": "https://github.com/Lotulune/Copperbench/releases/tag/v0.1.0-linux-preview.2",
-  "releaseChannel": "preview",
-  "releaseCommit": "fa1489dd6d6713bf5b371eea4a2ba157da190364",
-  "publicationWorkflowRunId": "34558497473",
-  "candidateId": "sha256:45e80ce44b0918215048e65fe8b2d45e45698d3f394453940918a1eee40eea09",
-  "candidateSourceCommit": "61f69bf1f8dfdd3efbcf379afbaafbbfb11d3466",
+  "effectiveAt": "2026-09-26T20:39:20Z",
+  "authorization": "User explicitly authorized non-prerelease stable publication; all installed gates and protected publication checks passed.",
+  "releaseTag": "v0.1.1-linux-stable",
+  "releaseUrl": "https://github.com/Lotulune/Copperbench/releases/tag/v0.1.1-linux-stable",
+  "releaseChannel": "stable",
+  "releaseCommit": "9bf1b78b0936352596acb67809ffb3866be87751",
+  "publicationWorkflowRunId": "36269931890",
+  "candidateId": "sha256:ceb87d913c04e1ee3a2fc44c902b56acd96301c9b75351d94678b589e794aae3",
+  "candidateSourceCommit": "b813e6cf19cbc0af43b645608e0d7dc5d7e0f243",
   "scope": {
     "distribution": "Ubuntu",
     "version": "24.04 LTS",
@@ -30,67 +30,71 @@
     "otherDistributionsCertified": false,
     "otherArchitecturesCertified": false
   },
-  "debSha256": "ff1d2e3c3e7120165aece357d9a0b4a1fba93ff37e31e44dd8f733b0ba7dc473",
-  "portableSha256": "746e8795b90689fe2d2672bb059f01f2bd8cca5c0e6689b89e5842baa4e38644",
-  "installedProductJarSha256": "d4bcaa2831415500bf99da16f7ab34aaf3e093de35497932502416f3853afcde",
-  "validationReportPath": "docs/testing/stage15-run42-acceptance-2026-09-11.md",
-  "validationReportSha256": "15d9ae41378b87a1f6849d2ef6a29a70e440e3a2affd492192b56ab105d05309",
+  "debSha256": "8ce8acf5af8fe74623201fc10e278042bfd755d4f060c30f6409250296b97744",
+  "portableSha256": "d1feb9803ba5ebc1f57134d23bf870aaad1a8e56844a9c5908bd738a5d34f5d1",
+  "installedProductJarSha256": "b96e68dbc697230ca98d82339edbd5cb4c3b12ee7124b861053208d06e270bb8",
+  "validationReportPath": "docs/testing/stage17-stable-installed-acceptance-2026-09-27.md",
+  "validationReportSha256": "8dbb57ab5f81b71db84bee250b29aede99bc289618ac0e43fd611af97f0327d3",
   "acceptedEvidence": {
     "xorgFabric": {
-      "path": "evidence/stage15/2026-09-11/run42-xorg-fabric/installed-gate-result.json",
-      "sha256": "7c8d345d9a9df0b421f6d790b7cf5c470b42b3a12eb8c2cf6f5aa99e58c6d96a"
+      "path": "evidence/stage15/2026-09-27/stable-011-b813/xorgFabric/result.json",
+      "sha256": "ee06c65440a8ad460fa2784624f966f0d02a2612ca44cfa13545c7ca05a645f7"
     },
     "xorgNeoForge": {
-      "path": "evidence/stage15/2026-09-11/run42-xorg-neoforge/installed-gate-result.json",
-      "sha256": "f255a8647ed0908eb0b75dc16e8ad778b5fafeeb110d1f44a92db40adde7cf8a"
+      "path": "evidence/stage15/2026-09-27/stable-011-b813/xorgNeoForge/result.json",
+      "sha256": "edcc165f8054c35b55ea04843d830f7b017902d336ee31a9a4cfff584d339952"
     },
     "waylandFabric": {
-      "path": "evidence/stage15/2026-09-11/run42-wayland-fabric/installed-gate-result.json",
-      "sha256": "069e2bb57872f3ff4ce3ebff9f549849a3e15fec8800935cfddf7d106a69a606"
+      "path": "evidence/stage15/2026-09-27/stable-011-b813/waylandFabric/result.json",
+      "sha256": "d415dd7c71307366e5cccc23f7a28110ea0fe7e8b3b9efcb2f7d82588e855c51"
     },
     "waylandNeoForge": {
-      "path": "evidence/stage15/2026-09-11/run42-wayland-neoforge/installed-gate-result.json",
-      "sha256": "9f0b94df789fa9c5770a5fc38f985bdfb2bf4be893749031f4e20809758cc8bb"
+      "path": "evidence/stage15/2026-09-27/stable-011-b813/waylandNeoForge/result.json",
+      "sha256": "4f6a8926e7d5ad4b0ca5c139482f963673799fe2822e3f4ba901e44b191747c2"
     },
     "xorgAgent": {
-      "path": "evidence/stage15/2026-09-11/run42-xorg-agent/external-agent-result.json",
-      "sha256": "db234373edc52ebea60bfebe081e0c8d617858a60a68598f026f91b30109840d"
+      "path": "evidence/stage15/2026-09-27/stable-011-b813/xorgAgent/result.json",
+      "sha256": "fdfad4cbcbeed035ab2242992ca4fd00fa3e658819a5fed49858b43383a8d2c9"
     },
     "waylandAgent": {
-      "path": "evidence/stage15/2026-09-11/run42-wayland-agent/external-agent-result.json",
-      "sha256": "96c5d7e4d284bb84cf6f73539e854803238d5ea0953032959901ab932c824433"
+      "path": "evidence/stage15/2026-09-27/stable-011-b813/waylandAgent/result.json",
+      "sha256": "48656fa9b801c2326d7df6cab48338fe6934e68a44bfa0d011ba0a465290a8dd"
     },
     "managedBlockbench": {
-      "path": "evidence/stage15/2026-09-11/run42-wayland-blockbench/installed-blockbench-result.json",
-      "sha256": "4a3d9b9a7db327b236159851d734ded6f4369c3a58f18a3e28e2d9165ee3c29a",
-      "installedProductJarSha256": "d4bcaa2831415500bf99da16f7ab34aaf3e093de35497932502416f3853afcde"
+      "path": "evidence/stage15/2026-09-27/stable-011-b813/managedBlockbench/result.json",
+      "sha256": "c04089885d1390159d17fd7ed76f26b3b94e85ef1e25a72c794bef7f49f32737",
+      "installedProductJarSha256": "b96e68dbc697230ca98d82339edbd5cb4c3b12ee7124b861053208d06e270bb8"
     },
     "assetCenter": {
-      "path": "evidence/stage15/2026-09-11/run42-wayland-assets/result.json",
-      "sha256": "c9d45cca36a05987a056a03e598cdbc381fa611faa009f559476049dc574e178"
+      "path": "evidence/stage15/2026-09-27/stable-011-b813/assetCenter/result.json",
+      "sha256": "1880d9a376187b32a2d42aab33f3dc1c8824cf9d5dcb32a4e2d1ab6296bea1c0"
     },
     "uiPersistence": {
-      "path": "evidence/stage15/2026-09-11/run42-wayland-ui/result.json",
-      "sha256": "e3d9bdd0ebe2deb01e39f328c06e0e936f071a012f269ea3a5a310aa7ea42c32"
+      "path": "evidence/stage15/2026-09-27/stable-011-b813/uiPersistence/result.json",
+      "sha256": "b4aa674b160a83545596964ab5803c79d032df1e435b1e62d9628dce160e519a"
     },
     "portableBuild": {
-      "path": "evidence/stage15/2026-09-11/run42-portable/result.json",
-      "sha256": "401668f5fa5da9694ab03959c2bc486ecd807048907c62320b5efe0ce2f66300"
+      "path": "evidence/stage15/2026-09-27/stable-011-b813/portableBuild/result.json",
+      "sha256": "55f2030cbb91a839f7bd03ae2809a917e53490b1f8e18993949373aa235bd2ad"
     }
   },
   "legacyPreferencesMigration": {
-    "path": "evidence/stage15/2026-09-11/run42-preferences-migration/result.json",
-    "sha256": "b405460762a50722804841dfb1468e9407a81f54fa54a8a6df14af5d65579e8f"
+    "sha256": "0f5ab45a1312e5e5c05330033d4c8fcc084b2f2ea6f11060a4a20c8b217327ab",
+    "path": "evidence/stage15/2026-09-27/stable-011-b813/preferences-migration/result.json"
   },
-  "promotionAuthorizationPath": "evidence/stage15/2026-09-27/stable-011-b813/previous-preview2-authorization.json",
-  "promotionAuthorizationSha256": "909844dfa9d6a74b9f98fed928a83db9183cc9bd8d3d4a4b24d2f1981e4bf423",
+  "promotionAuthorizationPath": "release-control/linux-candidate-authorization.json",
+  "promotionAuthorizationSha256": "aba2e4cbbcb4bd04deb76d56fa68700e32c6c27615f08a8d87abc805eec4a8b0",
   "publicReleaseReceipt": {
-    "path": "evidence/stage15/2026-09-11/publication/public-release.json",
-    "sha256": "93188262878e5967e912ffa5d335364a1ba39ee836530ba6b5697513bcb6dae5"
+    "path": "evidence/stage17/2026-09-27/stable-publication/linux/public-release.json",
+    "sha256": "ac40c50250b3f6e21d036ab8bd08c25061fde37c70b113a30ab328b12bb2eb1b"
   },
   "publicationWorkflowReceipt": {
-    "path": "evidence/stage15/2026-09-11/publication/publication-run.json",
-    "sha256": "458867442b2e447b53fe4463bc81f38c855d6ff4aa9e4ff975b9530d8a00ebc2"
+    "path": "evidence/stage17/2026-09-27/stable-publication/linux/publication-run.json",
+    "sha256": "d264b32724f3ed22693d492cbc7b8985c3bb2606fa7000f6bd000e8ff967c220"
   },
-  "historicalMetadataPolicy": "Candidate and pre-publication authorization flags remain unchanged. This record adds the post-publication support classification for the same verified bytes."
+  "previousSupportRecord": {
+    "path": "evidence/stage17/2026-09-27/stable-publication/preview2-support-record.json",
+    "sha256": "fcdd7b846f9791fe0f2ffb5f0dce0455135e7814aad341173e6418423211b6c1"
+  },
+  "historicalMetadataPolicy": "Frozen candidate and uploaded promotion authorization retain their pre-publication false support flags. This separate record classifies the published verified bytes within the stated scope; the prior Preview support record remains archived and hash-bound."
 }
