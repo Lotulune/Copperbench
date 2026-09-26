@@ -113,11 +113,11 @@
     },
     "fastCi": {
       "status": "passed",
-      "run": "https://github.com/Lotulune/Copperbench/actions/runs/33528964018",
+      "run": "https://github.com/Lotulune/Copperbench/actions/runs/36269845361",
       "latestAttempt": {
         "status": "passed",
-        "run": "https://github.com/Lotulune/Copperbench/actions/runs/33704752654",
-        "reason": "PR #56 merged as 69469b8f after the d0d96877 installed-product replay; merged-main Build and test #176 passed. Preview 8 then passed the signed release-source check, release tests, package build, SBOM, payload verification, provenance, draft-asset verification, and publication in Build Windows release run 33740746411. The only tracked delta from d0d96877 to the Preview 8 release source is product-status plus its candidate evidence document, so the installed-product P0 behavior evidence remains tied to unchanged product/runtime code."
+        "run": "https://github.com/Lotulune/Copperbench/actions/runs/36269845361",
+        "reason": "Merged-main Java/Javadoc, UI contract/build/smoke and MCP conformance passed for release source 9bf1b78b. Independent protected Windows and Linux publication workflows also succeeded; the separate nightly UI continuity failure remains explicitly recorded below."
       },
       "runs": [
         "https://github.com/Lotulune/Copperbench/actions/runs/33515069964",
@@ -125,7 +125,8 @@
         "https://github.com/Lotulune/Copperbench/actions/runs/33528964018",
         "https://github.com/Lotulune/Copperbench/actions/runs/33676088550",
         "https://github.com/Lotulune/Copperbench/actions/runs/33696803966",
-        "https://github.com/Lotulune/Copperbench/actions/runs/33704752654"
+        "https://github.com/Lotulune/Copperbench/actions/runs/33704752654",
+        "https://github.com/Lotulune/Copperbench/actions/runs/36269845361"
       ],
       "consecutiveGreenMainRuns": 3,
       "consecutiveGreenTarget": 3,
