@@ -1,0 +1,31 @@
+{
+  "status": "passed",
+  "candidateSha256": "8ce8acf5af8fe74623201fc10e278042bfd755d4f060c30f6409250296b97744",
+  "assetCenterOpenedRealBlockbench": true,
+  "installedProductUnmodified": true,
+  "classpathOverrideUsed": false,
+  "installedProductJarSha256": "b96e68dbc697230ca98d82339edbd5cb4c3b12ee7124b861053208d06e270bb8",
+  "productPid": 177134,
+  "blockbenchPid": 177385,
+  "blockbenchParentPid": 177134,
+  "productArguments": [
+    "/opt/copperbench/jdk/bin/java",
+    "--add-opens=java.base/java.lang=ALL-UNNAMED",
+    "--enable-native-access=ALL-UNNAMED,jcef",
+    "-Dcopperbench.productShell=true",
+    "-Dcopperbench.stage15LinuxCandidate=true",
+    "net.mcreator.Launcher",
+    "/home/stage17/stable-b813e6cf/fabric-1.21.1/structured_forge.mcreator"
+  ],
+  "blockbenchArguments": [
+    "/usr/bin/blockbench",
+    "/home/stage17/stable-b813e6cf/fabric-1.21.1/assets/copperbench/models/stage15_blockbench_probe_2e867d0d.bbmodel"
+  ],
+  "observation": "Planner observed installed Asset Center open button, clicked it, and inspected the real Blockbench window displaying the selected saved mesh",
+  "screenshots": [
+    "b813-asset-open-button.png",
+    "b813-asset-model-opened.png",
+    "b813-asset-final-observed.png"
+  ],
+  "formalSupportClaim": false
+}

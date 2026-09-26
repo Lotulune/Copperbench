@@ -1,35 +1,13 @@
 {
   "schemaVersion": "1.0",
-  "kind": "linux-post-publication-support",
+  "kind": "linux-release-authorization",
   "status": "approved",
-  "stage": 15,
-  "stageStatus": "complete",
-  "formalSupportClaim": true,
-  "effectiveAt": "2026-09-11T03:33:10Z",
-  "authorization": "Explicit user approval to publish the verified preview and complete Stage15 status updates",
   "releaseTag": "v0.1.0-linux-preview.2",
-  "releaseUrl": "https://github.com/Lotulune/Copperbench/releases/tag/v0.1.0-linux-preview.2",
-  "releaseChannel": "preview",
-  "releaseCommit": "fa1489dd6d6713bf5b371eea4a2ba157da190364",
-  "publicationWorkflowRunId": "34558497473",
+  "releaseEligible": true,
+  "formalSupportClaim": false,
   "candidateId": "sha256:45e80ce44b0918215048e65fe8b2d45e45698d3f394453940918a1eee40eea09",
   "candidateSourceCommit": "61f69bf1f8dfdd3efbcf379afbaafbbfb11d3466",
-  "scope": {
-    "distribution": "Ubuntu",
-    "version": "24.04 LTS",
-    "architecture": "x86_64",
-    "desktop": "GNOME",
-    "sessions": [
-      "wayland",
-      "x11"
-    ],
-    "installedRuntimeTracks": [
-      "fabric-1.21.1",
-      "neoforge-1.21.1"
-    ],
-    "otherDistributionsCertified": false,
-    "otherArchitecturesCertified": false
-  },
+  "candidateWorkflowRunId": "34547192490",
   "debSha256": "ff1d2e3c3e7120165aece357d9a0b4a1fba93ff37e31e44dd8f733b0ba7dc473",
   "portableSha256": "746e8795b90689fe2d2672bb059f01f2bd8cca5c0e6689b89e5842baa4e38644",
   "installedProductJarSha256": "d4bcaa2831415500bf99da16f7ab34aaf3e093de35497932502416f3853afcde",
@@ -81,16 +59,5 @@
   "legacyPreferencesMigration": {
     "path": "evidence/stage15/2026-09-11/run42-preferences-migration/result.json",
     "sha256": "b405460762a50722804841dfb1468e9407a81f54fa54a8a6df14af5d65579e8f"
-  },
-  "promotionAuthorizationPath": "evidence/stage15/2026-09-27/stable-011-b813/previous-preview2-authorization.json",
-  "promotionAuthorizationSha256": "909844dfa9d6a74b9f98fed928a83db9183cc9bd8d3d4a4b24d2f1981e4bf423",
-  "publicReleaseReceipt": {
-    "path": "evidence/stage15/2026-09-11/publication/public-release.json",
-    "sha256": "93188262878e5967e912ffa5d335364a1ba39ee836530ba6b5697513bcb6dae5"
-  },
-  "publicationWorkflowReceipt": {
-    "path": "evidence/stage15/2026-09-11/publication/publication-run.json",
-    "sha256": "458867442b2e447b53fe4463bc81f38c855d6ff4aa9e4ff975b9530d8a00ebc2"
-  },
-  "historicalMetadataPolicy": "Candidate and pre-publication authorization flags remain unchanged. This record adds the post-publication support classification for the same verified bytes."
+  }
 }

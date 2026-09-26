@@ -3,7 +3,7 @@
   "schemaVersion": "1.0",
   "snapshot": {
     "date": "2026-09-26",
-    "lastVerifiedCommit": "6907855ca8670d65514f2ba3125f265592c760db",
+    "lastVerifiedCommit": "b813e6cf19cbc0af43b645608e0d7dc5d7e0f243",
     "policy": "Only code, automated checks, and evidence tied to a commit can promote a gate."
   },
   "product": {
@@ -21,8 +21,8 @@
     "stableRelease": {
       "tag": "v0.1.1",
       "linuxTag": "v0.1.1-linux-stable",
-      "status": "pending-installed-validation",
-      "linuxStatus": "pending-installed-validation",
+      "status": "ready",
+      "linuxStatus": "ready",
       "decision": "approved",
       "decisionDate": "2026-09-26",
       "scope": "Windows 11 x64 and Ubuntu 24.04 x86_64 GNOME; existing explicit certification exclusions remain exclusions.",
@@ -178,10 +178,10 @@
   "gates": [
     {
       "id": "stage17-installed-function-save",
-      "status": "in-progress",
+      "status": "passed",
       "betaBlocking": false,
       "stableBlocking": true,
-      "evidence": ["docs/testing/stage17-function-save-release-blocker-2026-09-27.md"]
+      "evidence": ["docs/testing/stage17-function-save-release-blocker-2026-09-27.md", "docs/testing/stage17-stable-installed-acceptance-2026-09-27.md"]
     },
     {
       "id": "stage17-release-integration",

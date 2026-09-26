@@ -1,0 +1,16 @@
+{
+  "status": "passed",
+  "portableSha256": "d1feb9803ba5ebc1f57134d23bf870aaad1a8e56844a9c5908bd738a5d34f5d1",
+  "portableBytes": 968868584,
+  "localAndGuestSha256Matched": true,
+  "provenanceVerified": true,
+  "launcher": "/home/stage17/stable-b813e6cf/portable/Copperbench011/copperbench.sh",
+  "invokedOutsideInstallationDirectory": true,
+  "workingDirectory": "/tmp",
+  "generatorId": "fabric-1.21.1",
+  "headlessBuildStatus": "succeeded",
+  "exitCode": 0,
+  "productJarSha256": "b96e68dbc697230ca98d82339edbd5cb4c3b12ee7124b861053208d06e270bb8",
+  "formalSupportClaim": false,
+  "cacheScope": "Warmed guest caches; no cold-cache or default-network certification"
+}

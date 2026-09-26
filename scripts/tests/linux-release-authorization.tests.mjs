@@ -133,6 +133,8 @@ test('a release-only delta cannot conceal product or packaging changes', () => {
   assert.throws(() => validateSourceDelta(['src/main/java/Changed.java']), /Build-affecting/);
   assert.throws(() => validateSourceDelta(['platform/linux/export.gradle']), /Build-affecting/);
   assert.doesNotThrow(() => validateSourceDelta(['src/test/java/dev/copperbench/release/ReleaseManifestTest.java']));
+  assert.doesNotThrow(() => validateSourceDelta(['release-control/linux-platform-support.json']));
+  assert.throws(() => validateSourceDelta(['release-control/unreviewed-packaging.json']), /Build-affecting/);
   assert.throws(() => validateSourceDelta(['src/test/java/dev/copperbench/release/UnreviewedTest.java']), /Build-affecting/);
 });
 
