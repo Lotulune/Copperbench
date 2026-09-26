@@ -72,7 +72,7 @@ Ubuntu testing covers GNOME Wayland and Xorg. Other Linux distributions and arch
 2. **Create a workspace** — Choose Fabric or NeoForge and a Minecraft version, then enter a mod name and workspace folder.
 3. **Make an item** — Add an item, save and build the project, then launch the test client.
 
-Packages are preview / beta builds. Windows installers are unsigned and may trigger SmartScreen. The first build needs an internet connection to download dependencies.
+Copperbench 0.1.1 is available as a stable release for Windows and Linux. Windows installers are unsigned and may trigger SmartScreen. The first build needs an internet connection to download dependencies. Known interface issues are listed in the release notes.
 
 ## Documentation
 

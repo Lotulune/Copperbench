@@ -136,12 +136,13 @@
       ]
     },
     "nightly": {
-      "status": "passed",
+      "status": "failed",
       "workflow": ".github/workflows/nightly.yml",
-      "run": "https://github.com/Lotulune/Copperbench/actions/runs/33697324598",
-      "sourceCommit": "d0d96877afdc00c98cdfeab20524f2f2551b73f9",
-      "productRegression": "passed",
-      "generatorGolden": "8/8 passed"
+      "run": "https://github.com/Lotulune/Copperbench/actions/runs/36265473220",
+      "sourceCommit": "b813e6cf19cbc0af43b645608e0d7dc5d7e0f243",
+      "productRegression": "failed: Blockbench import-panel continuity; 189 passed, 1 failed",
+      "generatorGolden": "8/8 passed",
+      "evidence": "docs/testing/stage17-stable-publication-2026-09-27.md"
     },
     "repositoryGovernance": {
       "licenseDetection": "GPL-3.0",
