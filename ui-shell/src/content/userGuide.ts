@@ -38,12 +38,12 @@ export interface TrackHonestFact {
 
 export const USER_GUIDE_METADATA = {
   sourceDoc: 'docs/user/README.md',
-  sourceNotice: '源文档是 docs/user/README.md。本说明为开发测试版说明，不是商店发行手册。产品名 Copperbench 是公开名称。公开分发走 GitHub，安装包未签名。',
+  sourceNotice: '源文档是 docs/user/README.md。本说明为稳定版说明，不是商店发行手册。产品名 Copperbench 是公开名称。公开分发走 GitHub，安装包未签名。',
   productName: 'Copperbench',
-  version: '0.1.0',
+  version: '0.1.1',
   license: 'GPL-3.0-only',
   upstreamOrigin: 'MCreator 2026.2.33518',
-  buildStatus: '开发测试版 (Development / Test Build)',
+  buildStatus: '稳定版 (Stable Release)',
   signingStatus: '未生产签名 (Not Production-Signed)',
   schemaVersion: '1.0'
 } as const;
@@ -51,8 +51,8 @@ export const USER_GUIDE_METADATA = {
 export const ABOUT_FACTS: readonly AboutFact[] = [
   {
     label: '产品名称与版本',
-    value: 'Copperbench 0.1.0',
-    badge: '0.1.0',
+    value: 'Copperbench 0.1.1',
+    badge: '0.1.1',
     badgeType: 'copper',
     description: '公开产品名。GitHub GPL 衍生版，采用 UI-Core 1.0 协议'
   },
@@ -72,8 +72,8 @@ export const ABOUT_FACTS: readonly AboutFact[] = [
   },
   {
     label: '构建与发行类型',
-    value: '开发测试版 (Development / Test Build)',
-    badge: 'Dev/Test',
+    value: '稳定版 (Stable Release)',
+    badge: 'Stable',
     badgeType: 'amber',
     description: '供开发者与创作者进行功能与兼容性验证'
   },

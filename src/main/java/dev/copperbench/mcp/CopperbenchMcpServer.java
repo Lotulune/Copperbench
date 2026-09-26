@@ -56,7 +56,7 @@ public final class CopperbenchMcpServer implements AutoCloseable {
 				.securityValidator(securityBuilder.build()).build();
 		McpToolCatalog catalog = new McpToolCatalog(configuration.workspaceId(), adapter, audit,
 				configuration.clock(), assets);
-		McpSyncServer mcpServer = McpServer.sync(transport).serverInfo("copperbench", "0.1.0")
+		McpSyncServer mcpServer = McpServer.sync(transport).serverInfo("copperbench", dev.copperbench.ProductIdentity.VERSION)
 				.capabilities(ServerCapabilities.builder().tools(true).build()).tools(catalog.tools())
 				.requestTimeout(Duration.ofSeconds(30)).build();
 

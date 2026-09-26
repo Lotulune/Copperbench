@@ -9,7 +9,7 @@
   "product": {
     "id": "dev.copperbench.studio",
     "name": "Copperbench",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "stage": 17,
     "channel": "stable",
     "targetPlatforms": ["windows-11-x64", "ubuntu-24.04-x86_64"],
@@ -19,8 +19,8 @@
   },
   "delivery": {
     "stableRelease": {
-      "tag": "v0.1.0",
-      "linuxTag": "v0.1.0-linux-stable",
+      "tag": "v0.1.1",
+      "linuxTag": "v0.1.1-linux-stable",
       "status": "ready",
       "linuxStatus": "pending-installed-validation",
       "decision": "approved",
@@ -91,6 +91,7 @@
       "publicStateSource": "https://api.github.com/repos/Lotulune/Copperbench/releases/tags/v0.1.0-beta.4"
     },
     "betaRelease": {
+      "historical": true,
       "tag": "v0.1.0-beta.4",
       "status": "public-prerelease",
       "candidateRelease": {

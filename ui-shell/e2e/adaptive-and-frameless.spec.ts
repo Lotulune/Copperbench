@@ -173,7 +173,7 @@ test.describe('Adaptive Layout, Frameless Window & Theme Tests', () => {
     await page.click('[data-testid="nav-help"]');
     await expect(page.locator('[data-testid="help-view"]')).toBeVisible();
     await expect(page.locator('[data-testid="about-panel"]')).toBeVisible();
-    await expect(page.locator('[data-testid="about-panel"]')).toContainText('Copperbench 0.1.0');
+    await expect(page.locator('[data-testid="about-panel"]')).toContainText('Copperbench 0.1.1');
 
     await page.click('[data-testid="nav-hub"]');
     await expect(page.locator('[data-testid="workbench-main"]')).toBeVisible();
@@ -186,15 +186,15 @@ test.describe('Adaptive Layout, Frameless Window & Theme Tests', () => {
 
     // Header and dev-build badge
     await expect(helpView).toContainText('帮助与使用说明');
-    await expect(helpView).toContainText('开发测试版');
+    await expect(helpView).toContainText('稳定版');
 
     // About panel facts
     const aboutPanel = page.locator('[data-testid="about-panel"]');
     await expect(aboutPanel).toBeVisible();
-    await expect(aboutPanel).toContainText('Copperbench 0.1.0');
+    await expect(aboutPanel).toContainText('Copperbench 0.1.1');
     await expect(aboutPanel).toContainText('GPL-3.0');
     await expect(aboutPanel).toContainText('MCreator 2026.2.33518');
-    await expect(aboutPanel).toContainText('开发测试版');
+    await expect(aboutPanel).toContainText('稳定版');
     await expect(aboutPanel).toContainText('未生产签名');
 
     // Honest version tracks table
