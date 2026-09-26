@@ -29,3 +29,7 @@ This closes the integrated-source gate. Stable Windows readiness is approved for
 Main-branch replay and documentation checks must pass before publishing the signed release tag. New packages must retain their own source commit, SHA-256, SBOM and provenance. Linux publication additionally requires fresh installed evidence bound to the exact CI candidate; previous run42 and local v38 receipts cannot authorize different bytes.
 
 The [v38 development acceptance](stage-17-v38-closeout-2026-09-26.md) remains historical, scoped evidence: 924 Java passes, 59 conditional skips, installed/default probes and bounded Minecraft process-boundary persistence. Integration changes the UI and native locale bridge, so that acceptance does not certify the rebuilt release binaries. No fixed-player UUID inventory continuity, cold-cache/offline dependency coverage, new external trial, or new screen-reader certification is inferred.
+
+## Packaging failure propagation
+
+The Windows release workflow explicitly checks the exit code after each native dependency, Java test, UI test/build and packaging command. A local PowerShell probe confirmed that `ErrorActionPreference=Stop` alone continues after a native exit code of 7; a subsequent successful native command could otherwise hide that failure. All existing release checks remain enabled.

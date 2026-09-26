@@ -72,20 +72,26 @@ jobs:
         shell: pwsh
         run: |
           npm ci --prefix ui-core
+          if ($LASTEXITCODE -ne 0) { throw 'UI contract dependency installation failed' }
           npm ci --prefix ui-shell
+          if ($LASTEXITCODE -ne 0) { throw 'UI shell dependency installation failed' }
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
       - name: Run release tests
         shell: pwsh
         run: |
           .\gradlew.bat --no-daemon --no-build-cache clean test javadoc
+          if ($LASTEXITCODE -ne 0) { throw 'Release Java tests and Javadoc failed' }
           npm test --prefix ui-core
+          if ($LASTEXITCODE -ne 0) { throw 'Release UI contract tests failed' }
           npm run build --prefix ui-shell
+          if ($LASTEXITCODE -ne 0) { throw 'Release UI build failed' }
       - name: Build unsigned Windows packages
         shell: pwsh
         run: |
           $buildDate = Get-Date -Format 'yyyyMMddHHmm'
           .\gradlew.bat --no-daemon --no-build-cache exportWindowsZip buildInstallerWin64 buildMsixWin64 "-Pbuilddate=$buildDate"
+          if ($LASTEXITCODE -ne 0) { throw 'Windows package build failed' }
       - name: Collect release binaries
         shell: pwsh
         run: |
