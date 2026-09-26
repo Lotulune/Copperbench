@@ -171,3 +171,13 @@ test('ambiguous normalized names and unsupported upload characters are rejected'
   for (const name of ['../asset', 'name\nasset', '.hidden', 'trailing ', 'archive#label'])
     assert.throws(() => releaseAssetName(name), /Unsupported/);
 });
+
+test('stable Linux tags retain exact binary and installed acceptance gates', (t) => {
+  const { auth, metadata, root } = fixture(t);
+  const stableTag = 'v0.1.0-linux-stable';
+  auth.releaseTag = stableTag;
+  assert.equal(validateAuthorization(auth, metadata, root, stableTag).gatesVerified, 10);
+  auth.debSha256 = '0'.repeat(64);
+  assert.throws(() => validateAuthorization(auth, metadata, root, stableTag), /Package digest mismatch/);
+  assert.throws(() => validateHeader(auth, 'v0.1.0-linux-unknown'), /dedicated Linux/);
+});

@@ -32,7 +32,7 @@ v29 导出包的公开探针随后暴露第二个问题：两个合法过程已�
 - 两平台主 JAR SHA-256：`5384e1df86d3535d6d3a2da84f3857ab141f09170d003b413f08d9e7ea56e3af`。
 - 22 个随包文件、24 条文档链接、640 次 Schema 引用通过，两平台主 JAR／生成器 ZIP 一致，冻结源码未变化；`D:/Hyper-V/Stage17-Linux/candidate-v30-proof.json`。
 
-[Windows 探针](../../output/minecraft-validation/stage17-v30-procedure-call.py)只调用导出 EXE 与随包 SDK，在原建模测试工程的新副本 `D:/Hyper-V/Stage17-Linux/procedure-call-v30/windows` 创建两个过程。目标通过 `text_print` 输出唯一标记 `PRD17_V30_UUID_CALL_REACHED`，没有外部触发器；调用方使用 `mod_serverload`，其调用块携带真实目标 UUID 和故意过期的名称提示。未手写 Java 替换被测调用。
+本地 Windows 探针 `output/minecraft-validation/stage17-v30-procedure-call.py`（原始验证文件未随源码发布）只调用导出 EXE 与随包 SDK，在原建模测试工程的新副本 `D:/Hyper-V/Stage17-Linux/procedure-call-v30/windows` 创建两个过程。目标通过 `text_print` 输出唯一标记 `PRD17_V30_UUID_CALL_REACHED`，没有外部触发器；调用方使用 `mod_serverload`，其调用块携带真实目标 UUID 和故意过期的名称提示。未手写 Java 替换被测调用。
 
 公开生成任务 `0d1aba2a-7917-47e4-9c3c-ff44f1a285de` 成功，生成 37 个文件；构建任务 `fe14e12c-14f8-4996-aacc-8f722d3f3597` 成功，Gradle 用时 57 秒。探针核对实际调用源码指向 `stage17_targetProcedure.execute(...)`，不包含 UUID 或过期提示；目标源码包含唯一标记。关闭重开后引用与这两份源码哈希保持一致。证据 `output/minecraft-validation/stage17-v30-call-runtime/` 的 `generate-final.json`、`build-final.json`、`prepared.json`。
 

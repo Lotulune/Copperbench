@@ -331,6 +331,46 @@ try {
 		throw "Beta release with an open blocker was not rejected:`n$($openGateBeta.Output)"
 	}
 
+	$stableStatus = @{
+		product = @{ channel = 'stable' }
+		delivery = @{ stableRelease = @{ tag = 'v0.1.0'; status = 'ready'; decision = 'approved' } }
+		gates = @(@{ id = 'release-integration'; stableBlocking = $true; status = 'passed'; evidence = @('src/main/resources/mcreator.conf') })
+	}
+	$stableStatus | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath (Join-Path $repository 'product-status.json') -Encoding utf8
+	Invoke-TestGit -Arguments @('add', 'product-status.json')
+	Invoke-TestGit -Arguments @('commit', '-m', 'test-only approved stable declaration')
+	$stableHead = (& git -C $repository rev-parse HEAD).Trim()
+	& git -C $repository -c gpg.format=ssh -c "user.signingkey=$keyPath" tag -s v0.1.0 -m 'signed stable test'
+	if ($LASTEXITCODE -ne 0) { throw 'Unable to sign stable test tag' }
+	$validStable = Invoke-Verifier -Tag 'v0.1.0' -MainCommit $stableHead
+	if ($validStable.ExitCode -ne 0) { throw "Approved stable release was rejected: $($validStable.Output)" }
+	$stableStatus.delivery.stableRelease.tag = 'v0.1.0'
+	$stableStatus.gates[0].status = 'pending'
+	$stableStatus | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath (Join-Path $repository 'product-status.json') -Encoding utf8
+	Invoke-TestGit -Arguments @('add', 'product-status.json')
+	Invoke-TestGit -Arguments @('commit', '-m', 'test-only pending stable gate')
+	$pendingStableHead = (& git -C $repository rev-parse HEAD).Trim()
+	# A distinct stable tag tests declaration mismatch without rewriting the valid tag.
+	& git -C $repository -c gpg.format=ssh -c "user.signingkey=$keyPath" tag -s v0.1.00 -m 'invalid stable declaration test'
+	if ($LASTEXITCODE -ne 0) { throw 'Unable to sign invalid stable test tag' }
+	$invalidStable = Invoke-Verifier -Tag 'v0.1.00' -MainCommit $pendingStableHead
+	if ($invalidStable.ExitCode -eq 0 -or $invalidStable.Output -notmatch 'matching approved ready') {
+		throw 'Stable tag without matching release declaration was not rejected'
+	}
+	# A separate isolated repository ref permits testing the open gate using an unchanged signed tag.
+	$stableStatus.delivery.stableRelease.tag = 'v0.1.1'
+	$stableStatus | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath (Join-Path $repository 'product-status.json') -Encoding utf8
+	Set-Content -LiteralPath (Join-Path $repository 'src/main/resources/mcreator.conf') -Value 'product.version=0.1.1' -Encoding utf8
+	Invoke-TestGit -Arguments @('add', '.')
+	Invoke-TestGit -Arguments @('commit', '-m', 'test-only stable open gate')
+	$openStableHead = (& git -C $repository rev-parse HEAD).Trim()
+	& git -C $repository -c gpg.format=ssh -c "user.signingkey=$keyPath" tag -s v0.1.1 -m 'blocked stable test'
+	if ($LASTEXITCODE -ne 0) { throw 'Unable to sign blocked stable test tag' }
+	$blockedStable = Invoke-Verifier -Tag 'v0.1.1' -MainCommit $openStableHead
+	if ($blockedStable.ExitCode -eq 0 -or $blockedStable.Output -notmatch 'stableBlocking gates') {
+		throw 'Stable release with a pending gate was not rejected'
+	}
+
 	Invoke-TestGit -Arguments @('checkout', '--detach', $head)
 	Invoke-TestGit -Arguments @('update-ref', 'refs/remotes/origin/main', $head)
 	$invalidChannel = Invoke-Verifier -Tag 'v0.1.0-rc.1' -MainCommit $head

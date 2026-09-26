@@ -11,7 +11,7 @@ const digest = (bytes) => createHash('sha256').update(bytes).digest('hex');
 const requireValue = (condition, message) => assert.ok(condition, message);
 
 export function validateHeader(auth, tag) {
-  requireValue(/^v\d+\.\d+\.\d+-linux-(preview|beta)\.\d+$/.test(tag), 'Expected a dedicated Linux release tag');
+  requireValue(/^v\d+\.\d+\.\d+-linux-(?:(?:preview|beta)\.\d+|stable)$/.test(tag), 'Expected a dedicated Linux release tag');
   requireValue(auth.schemaVersion === '1.0' && auth.kind === 'linux-release-authorization', 'Invalid authorization schema');
   requireValue(auth.status === 'approved' && auth.releaseEligible === true, 'Linux release authorization is not approved');
   requireValue(auth.releaseTag === tag, 'Authorization tag mismatch');
