@@ -70,6 +70,10 @@ loadScripts(document, 'script');</script>
 </li>
 <li><a href="#method-detail" tabindex="0">Method Details</a>
 <ol class="toc-list">
+<li><a href="#procedureContextIssues(dev.copperbench.procedure.ProcedureIr)" tabindex="0">procedureContextIssues(ProcedureIr)</a></li>
+<li><a href="#procedureTriggerCatalog()" tabindex="0">procedureTriggerCatalog()</a></li>
+<li><a href="#elementIdentity(dev.copperbench.core.workspace.WorkspaceState.Element)" tabindex="0">elementIdentity(WorkspaceState.Element)</a></li>
+<li><a href="#elementConfiguration(dev.copperbench.core.workspace.WorkspaceState.Element)" tabindex="0">elementConfiguration(WorkspaceState.Element)</a></li>
 <li><a href="#validateWorkspacePlan(dev.copperbench.core.workspace.WorkspaceState,dev.copperbench.core.workspace.WorkspaceState)" tabindex="0">validateWorkspacePlan(WorkspaceState, WorkspaceState)</a></li>
 <li><a href="#workspacePlanArtifactsAlreadyApplied(java.util.List)" tabindex="0">workspacePlanArtifactsAlreadyApplied(List)</a></li>
 <li><a href="#validateWorkspacePlan(dev.copperbench.core.workspace.WorkspaceState,dev.copperbench.core.workspace.WorkspaceState,java.util.List)" tabindex="0">validateWorkspacePlan(WorkspaceState, WorkspaceState, List)</a></li>
@@ -152,6 +156,16 @@ implements <a href="../../application/WorkspaceMutationGateway.html" title="inte
 <div class="table-header col-first">Modifier and Type</div>
 <div class="table-header col-second">Method</div>
 <div class="table-header col-last">Description</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>com.google.gson.JsonObject</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#elementConfiguration(dev.copperbench.core.workspace.WorkspaceState.Element)" class="member-name-link">elementConfiguration</a><wbr>(<a href="../WorkspaceState.Element.html" title="class in dev.copperbench.core.workspace">WorkspaceState.Element</a>&nbsp;element)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Read-only comparison with the durable definition; implementations may expose reviewed reconciliation data.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>com.google.gson.JsonObject</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#elementIdentity(dev.copperbench.core.workspace.WorkspaceState.Element)" class="member-name-link">elementIdentity</a><wbr>(<a href="../WorkspaceState.Element.html" title="class in dev.copperbench.core.workspace">WorkspaceState.Element</a>&nbsp;element)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Read-only durable generator identity; a resource ID is not proof of runtime registration.</div>
+</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#persist(dev.copperbench.core.workspace.WorkspaceState,dev.copperbench.core.workspace.WorkspaceState,dev.copperbench.core.contract.UiCore.Operation,dev.copperbench.core.workspace.WorkspaceState.Element)" class="member-name-link">persist</a><wbr>(<a href="../WorkspaceState.html" title="class in dev.copperbench.core.workspace">WorkspaceState</a>&nbsp;before,
  <a href="../WorkspaceState.html" title="class in dev.copperbench.core.workspace">WorkspaceState</a>&nbsp;after,
@@ -185,6 +199,16 @@ implements <a href="../../application/WorkspaceMutationGateway.html" title="inte
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="../../application/WorkspacePlanArtifact.html" title="class in dev.copperbench.core.application">WorkspacePlanArtifact</a>&gt;&nbsp;artifacts)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Persists a validated workspace plan plus bounded file artifacts as one durable transaction.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a><wbr>&lt;<a href="../../../procedure/ProcedureIr.ValidationIssue.html" title="class in dev.copperbench.procedure">ProcedureIr.ValidationIssue</a>&gt;</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#procedureContextIssues(dev.copperbench.procedure.ProcedureIr)" class="member-name-link">procedureContextIssues</a><wbr>(<a href="../../../procedure/ProcedureIr.html" title="class in dev.copperbench.procedure">ProcedureIr</a>&nbsp;ir)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Additional read-only Procedure checks using the backend's active generator/plugin metadata.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>com.google.gson.JsonArray</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#procedureTriggerCatalog()" class="member-name-link">procedureTriggerCatalog</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Read-only external triggers available to the active generator with its enabled APIs.</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#validateWorkspacePlan(dev.copperbench.core.workspace.WorkspaceState,dev.copperbench.core.workspace.WorkspaceState)" class="member-name-link">validateWorkspacePlan</a><wbr>(<a href="../WorkspaceState.html" title="class in dev.copperbench.core.workspace">WorkspaceState</a>&nbsp;before,
@@ -288,6 +312,62 @@ implements <a href="../../application/WorkspaceMutationGateway.html" title="inte
 <section class="method-details" id="method-detail">
 <h2>Method Details</h2>
 <ul class="member-list">
+<li>
+<section class="detail" id="procedureContextIssues(dev.copperbench.procedure.ProcedureIr)">
+<h3>procedureContextIssues</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="../../../procedure/ProcedureIr.ValidationIssue.html" title="class in dev.copperbench.procedure">ProcedureIr.ValidationIssue</a>&gt;</span>&nbsp;<span class="element-name">procedureContextIssues</span><wbr><span class="parameters">(<a href="../../../procedure/ProcedureIr.html" title="class in dev.copperbench.procedure">ProcedureIr</a>&nbsp;ir)</span></div>
+<div class="block"><span class="description-from-type-label">Description copied from interface:&nbsp;<code><a href="../../application/WorkspaceMutationGateway.html#procedureContextIssues(dev.copperbench.procedure.ProcedureIr)">WorkspaceMutationGateway</a></code></span></div>
+<div class="block">Additional read-only Procedure checks using the backend's active generator/plugin metadata.</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../../application/WorkspaceMutationGateway.html#procedureContextIssues(dev.copperbench.procedure.ProcedureIr)">procedureContextIssues</a></code>&nbsp;in interface&nbsp;<code><a href="../../application/WorkspaceMutationGateway.html" title="interface in dev.copperbench.core.application">WorkspaceMutationGateway</a></code></dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="procedureTriggerCatalog()">
+<h3>procedureTriggerCatalog</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">com.google.gson.JsonArray</span>&nbsp;<span class="element-name">procedureTriggerCatalog</span>()</div>
+<div class="block"><span class="description-from-type-label">Description copied from interface:&nbsp;<code><a href="../../application/WorkspaceMutationGateway.html#procedureTriggerCatalog()">WorkspaceMutationGateway</a></code></span></div>
+<div class="block">Read-only external triggers available to the active generator with its enabled APIs.</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../../application/WorkspaceMutationGateway.html#procedureTriggerCatalog()">procedureTriggerCatalog</a></code>&nbsp;in interface&nbsp;<code><a href="../../application/WorkspaceMutationGateway.html" title="interface in dev.copperbench.core.application">WorkspaceMutationGateway</a></code></dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="elementIdentity(dev.copperbench.core.workspace.WorkspaceState.Element)">
+<h3>elementIdentity</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">com.google.gson.JsonObject</span>&nbsp;<span class="element-name">elementIdentity</span><wbr><span class="parameters">(<a href="../WorkspaceState.Element.html" title="class in dev.copperbench.core.workspace">WorkspaceState.Element</a>&nbsp;element)</span></div>
+<div class="block"><span class="description-from-type-label">Description copied from interface:&nbsp;<code><a href="../../application/WorkspaceMutationGateway.html#elementIdentity(dev.copperbench.core.workspace.WorkspaceState.Element)">WorkspaceMutationGateway</a></code></span></div>
+<div class="block">Read-only durable generator identity; a resource ID is not proof of runtime registration.</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../../application/WorkspaceMutationGateway.html#elementIdentity(dev.copperbench.core.workspace.WorkspaceState.Element)">elementIdentity</a></code>&nbsp;in interface&nbsp;<code><a href="../../application/WorkspaceMutationGateway.html" title="interface in dev.copperbench.core.application">WorkspaceMutationGateway</a></code></dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="elementConfiguration(dev.copperbench.core.workspace.WorkspaceState.Element)">
+<h3>elementConfiguration</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">com.google.gson.JsonObject</span>&nbsp;<span class="element-name">elementConfiguration</span><wbr><span class="parameters">(<a href="../WorkspaceState.Element.html" title="class in dev.copperbench.core.workspace">WorkspaceState.Element</a>&nbsp;element)</span></div>
+<div class="block"><span class="description-from-type-label">Description copied from interface:&nbsp;<code><a href="../../application/WorkspaceMutationGateway.html#elementConfiguration(dev.copperbench.core.workspace.WorkspaceState.Element)">WorkspaceMutationGateway</a></code></span></div>
+<div class="block">Read-only comparison with the durable definition; implementations may expose reviewed reconciliation data.</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../../application/WorkspaceMutationGateway.html#elementConfiguration(dev.copperbench.core.workspace.WorkspaceState.Element)">elementConfiguration</a></code>&nbsp;in interface&nbsp;<code><a href="../../application/WorkspaceMutationGateway.html" title="interface in dev.copperbench.core.application">WorkspaceMutationGateway</a></code></dd>
+</dl>
+</div>
+</section>
+</li>
 <li>
 <section class="detail" id="validateWorkspacePlan(dev.copperbench.core.workspace.WorkspaceState,dev.copperbench.core.workspace.WorkspaceState)">
 <h3>validateWorkspacePlan</h3>

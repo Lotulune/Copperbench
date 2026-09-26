@@ -63,9 +63,11 @@ loadScripts(document, 'script');</script>
 </li>
 <li><a href="#method-detail" tabindex="0">Method Details</a>
 <ol class="toc-list">
+<li><a href="#setGenerationPreparation(dev.copperbench.core.application.WorkspaceTaskGateway.GenerationPreparation)" tabindex="0">setGenerationPreparation(WorkspaceTaskGateway.GenerationPreparation)</a></li>
 <li><a href="#start(java.util.UUID,dev.copperbench.core.contract.UiCore.Operation,com.google.gson.JsonObject)" tabindex="0">start(UUID, UiCore.Operation, JsonObject)</a></li>
 <li><a href="#find(java.util.UUID,java.util.UUID)" tabindex="0">find(UUID, UUID)</a></li>
 <li><a href="#active(java.util.UUID)" tabindex="0">active(UUID)</a></li>
+<li><a href="#recent(java.util.UUID)" tabindex="0">recent(UUID)</a></li>
 <li><a href="#cancel(java.util.UUID,java.util.UUID)" tabindex="0">cancel(UUID, UUID)</a></li>
 <li><a href="#subscribeTaskEvents(java.util.function.Consumer)" tabindex="0">subscribeTaskEvents(Consumer)</a></li>
 <li><a href="#logs(java.util.UUID,java.util.UUID)" tabindex="0">logs(UUID, UUID)</a></li>
@@ -109,7 +111,7 @@ implements <a href="../core/application/WorkspaceTaskGateway.html" title="interf
 <h2>Nested Class Summary</h2>
 <div class="inherited-list">
 <h3 id="nested-classes-inherited-from-class-dev.copperbench.core.application.WorkspaceTaskGateway">Nested classes/interfaces inherited from interface&nbsp;<a href="../core/application/WorkspaceTaskGateway.html#nested-class-summary" title="interface in dev.copperbench.core.application">WorkspaceTaskGateway</a></h3>
-<code><a href="../core/application/WorkspaceTaskGateway.TaskEvent.html" title="class in dev.copperbench.core.application">WorkspaceTaskGateway.TaskEvent</a></code></div>
+<code><a href="../core/application/WorkspaceTaskGateway.GenerationPreparation.html" title="interface in dev.copperbench.core.application">WorkspaceTaskGateway.GenerationPreparation</a>, <a href="../core/application/WorkspaceTaskGateway.GenerationPreparationException.html" title="class in dev.copperbench.core.application">WorkspaceTaskGateway.GenerationPreparationException</a>, <a href="../core/application/WorkspaceTaskGateway.TaskEvent.html" title="class in dev.copperbench.core.application">WorkspaceTaskGateway.TaskEvent</a></code></div>
 </section>
 </li>
 <!-- ======== CONSTRUCTOR SUMMARY ======== -->
@@ -181,9 +183,17 @@ and run tasks.</div>
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;taskId,
  com.google.gson.JsonObject&nbsp;payload)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#rollbackDatagenPublish(java.util.UUID,java.util.UUID)" class="member-name-link">rollbackDatagenPublish</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;workspaceId,
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a><wbr>&lt;com.google.gson.JsonObject&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#recent(java.util.UUID)" class="member-name-link">recent</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;workspaceId)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Bounded observations for task discovery, including terminal tasks retained across sessions.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#rollbackDatagenPublish(java.util.UUID,java.util.UUID)" class="member-name-link">rollbackDatagenPublish</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;workspaceId,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;taskId)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setGenerationPreparation(dev.copperbench.core.application.WorkspaceTaskGateway.GenerationPreparation)" class="member-name-link">setGenerationPreparation</a><wbr>(<a href="../core/application/WorkspaceTaskGateway.GenerationPreparation.html" title="interface in dev.copperbench.core.application">WorkspaceTaskGateway.GenerationPreparation</a>&nbsp;preparation)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>com.google.gson.JsonObject</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#start(java.util.UUID,dev.copperbench.core.contract.UiCore.Operation,com.google.gson.JsonObject)" class="member-name-link">start</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;workspaceId,
@@ -236,6 +246,18 @@ and run tasks.</div>
 <h2>Method Details</h2>
 <ul class="member-list">
 <li>
+<section class="detail" id="setGenerationPreparation(dev.copperbench.core.application.WorkspaceTaskGateway.GenerationPreparation)">
+<h3>setGenerationPreparation</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">setGenerationPreparation</span><wbr><span class="parameters">(<a href="../core/application/WorkspaceTaskGateway.GenerationPreparation.html" title="interface in dev.copperbench.core.application">WorkspaceTaskGateway.GenerationPreparation</a>&nbsp;preparation)</span></div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../core/application/WorkspaceTaskGateway.html#setGenerationPreparation(dev.copperbench.core.application.WorkspaceTaskGateway.GenerationPreparation)">setGenerationPreparation</a></code>&nbsp;in interface&nbsp;<code><a href="../core/application/WorkspaceTaskGateway.html" title="interface in dev.copperbench.core.application">WorkspaceTaskGateway</a></code></dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
 <section class="detail" id="start(java.util.UUID,dev.copperbench.core.contract.UiCore.Operation,com.google.gson.JsonObject)">
 <h3>start</h3>
 <div class="horizontal-scroll">
@@ -270,6 +292,20 @@ and run tasks.</div>
 <dl class="notes">
 <dt>Specified by:</dt>
 <dd><code><a href="../core/application/WorkspaceTaskGateway.html#active(java.util.UUID)">active</a></code>&nbsp;in interface&nbsp;<code><a href="../core/application/WorkspaceTaskGateway.html" title="interface in dev.copperbench.core.application">WorkspaceTaskGateway</a></code></dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="recent(java.util.UUID)">
+<h3>recent</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;com.google.gson.JsonObject&gt;</span>&nbsp;<span class="element-name">recent</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;workspaceId)</span></div>
+<div class="block"><span class="description-from-type-label">Description copied from interface:&nbsp;<code><a href="../core/application/WorkspaceTaskGateway.html#recent(java.util.UUID)">WorkspaceTaskGateway</a></code></span></div>
+<div class="block">Bounded observations for task discovery, including terminal tasks retained across sessions.</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../core/application/WorkspaceTaskGateway.html#recent(java.util.UUID)">recent</a></code>&nbsp;in interface&nbsp;<code><a href="../core/application/WorkspaceTaskGateway.html" title="interface in dev.copperbench.core.application">WorkspaceTaskGateway</a></code></dd>
 </dl>
 </div>
 </section>

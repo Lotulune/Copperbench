@@ -63,7 +63,9 @@ loadScripts(document, 'script');</script>
 <li><a href="#method-detail" tabindex="0">Method Details</a>
 <ol class="toc-list">
 <li><a href="#begin(java.util.UUID,java.lang.String,java.lang.String,long,dev.copperbench.core.contract.UiCore.Actor)" tabindex="0">begin(UUID, String, String, long, UiCore.Actor)</a></li>
+<li><a href="#begin(java.util.UUID,java.lang.String,java.lang.String,long,dev.copperbench.core.contract.UiCore.Actor,com.google.gson.JsonObject)" tabindex="0">begin(UUID, String, String, long, UiCore.Actor, JsonObject)</a></li>
 <li><a href="#get(java.util.UUID)" tabindex="0">get(UUID)</a></li>
+<li><a href="#editingFile(java.util.UUID)" tabindex="0">editingFile(UUID)</a></li>
 <li><a href="#list()" tabindex="0">list()</a></li>
 <li><a href="#finish(java.util.UUID,java.lang.String,dev.copperbench.core.contract.UiCore.Actor)" tabindex="0">finish(UUID, String, UiCore.Actor)</a></li>
 <li><a href="#cancel(java.util.UUID,dev.copperbench.core.contract.UiCore.Actor)" tabindex="0">cancel(UUID, UiCore.Actor)</a></li>
@@ -124,8 +126,19 @@ loadScripts(document, 'script');</script>
  <a href="../core/contract/UiCore.Actor.html" title="enum class in dev.copperbench.core.contract">UiCore.Actor</a>&nbsp;actor)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>com.google.gson.JsonObject</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#cancel(java.util.UUID,dev.copperbench.core.contract.UiCore.Actor)" class="member-name-link">cancel</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;taskId,
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#begin(java.util.UUID,java.lang.String,java.lang.String,long,dev.copperbench.core.contract.UiCore.Actor,com.google.gson.JsonObject)" class="member-name-link">begin</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;taskId,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;assetId,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;requestedTarget,
+ long&nbsp;revision,
+ <a href="../core/contract/UiCore.Actor.html" title="enum class in dev.copperbench.core.contract">UiCore.Actor</a>&nbsp;actor,
+ com.google.gson.JsonObject&nbsp;elementContext)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>com.google.gson.JsonObject</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#cancel(java.util.UUID,dev.copperbench.core.contract.UiCore.Actor)" class="member-name-link">cancel</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;taskId,
  <a href="../core/contract/UiCore.Actor.html" title="enum class in dev.copperbench.core.contract">UiCore.Actor</a>&nbsp;actor)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#editingFile(java.util.UUID)" class="member-name-link">editingFile</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;taskId)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>com.google.gson.JsonObject</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#finish(java.util.UUID,java.lang.String,dev.copperbench.core.contract.UiCore.Actor)" class="member-name-link">finish</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;taskId,
@@ -187,10 +200,31 @@ loadScripts(document, 'script');</script>
 </section>
 </li>
 <li>
+<section class="detail" id="begin(java.util.UUID,java.lang.String,java.lang.String,long,dev.copperbench.core.contract.UiCore.Actor,com.google.gson.JsonObject)">
+<h3>begin</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">com.google.gson.JsonObject</span>&nbsp;<span class="element-name">begin</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;taskId,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;assetId,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;requestedTarget,
+ long&nbsp;revision,
+ <a href="../core/contract/UiCore.Actor.html" title="enum class in dev.copperbench.core.contract">UiCore.Actor</a>&nbsp;actor,
+ com.google.gson.JsonObject&nbsp;elementContext)</span></div>
+</div>
+</section>
+</li>
+<li>
 <section class="detail" id="get(java.util.UUID)">
 <h3>get</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">com.google.gson.JsonObject</span>&nbsp;<span class="element-name">get</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;taskId)</span></div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="editingFile(java.util.UUID)">
+<h3>editingFile</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a></span>&nbsp;<span class="element-name">editingFile</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;taskId)</span></div>
 </div>
 </section>
 </li>

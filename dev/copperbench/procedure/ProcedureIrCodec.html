@@ -63,6 +63,9 @@ loadScripts(document, 'script');</script>
 <li><a href="#method-detail" tabindex="0">Method Details</a>
 <ol class="toc-list">
 <li><a href="#read(com.google.gson.JsonObject,java.util.UUID)" tabindex="0">read(JsonObject, UUID)</a></li>
+<li><a href="#hasOpaqueBlockPayload(java.lang.String,java.lang.String)" tabindex="0">hasOpaqueBlockPayload(String, String)</a></li>
+<li><a href="#equivalentExports(java.lang.String,java.lang.String)" tabindex="0">equivalentExports(String, String)</a></li>
+<li><a href="#structuredEditingBlocker(java.lang.String)" tabindex="0">structuredEditingBlocker(String)</a></li>
 <li><a href="#fromBlocklyXml(java.lang.String,java.util.UUID)" tabindex="0">fromBlocklyXml(String, UUID)</a></li>
 <li><a href="#applyEdits(dev.copperbench.procedure.ProcedureIr,com.google.gson.JsonArray)" tabindex="0">applyEdits(ProcedureIr, JsonArray)</a></li>
 <li><a href="#validate(dev.copperbench.procedure.ProcedureIr)" tabindex="0">validate(ProcedureIr)</a></li>
@@ -70,6 +73,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#fromJson(com.google.gson.JsonObject)" tabindex="0">fromJson(JsonObject)</a></li>
 <li><a href="#toBlocklyXml(dev.copperbench.procedure.ProcedureIr)" tabindex="0">toBlocklyXml(ProcedureIr)</a></li>
 <li><a href="#sourcePreview(dev.copperbench.procedure.ProcedureIr)" tabindex="0">sourcePreview(ProcedureIr)</a></li>
+<li><a href="#callTarget(com.google.gson.JsonObject)" tabindex="0">callTarget(JsonObject)</a></li>
 </ol>
 </li>
 </ol>
@@ -110,7 +114,7 @@ loadScripts(document, 'script');</script>
 <section class="method-summary" id="method-summary">
 <h2>Method Summary</h2>
 <div id="method-summary-table">
-<div class="table-tabs" role="tablist" aria-orientation="horizontal"><button id="method-summary-table-tab0" role="tab" aria-selected="true" aria-controls="method-summary-table.tabpanel" tabindex="0" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table', 3)" class="active-table-tab">All Methods</button><button id="method-summary-table-tab2" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab2', 3)" class="table-tab">Instance Methods</button><button id="method-summary-table-tab4" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab4', 3)" class="table-tab">Concrete Methods</button></div>
+<div class="table-tabs" role="tablist" aria-orientation="horizontal"><button id="method-summary-table-tab0" role="tab" aria-selected="true" aria-controls="method-summary-table.tabpanel" tabindex="0" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table', 3)" class="active-table-tab">All Methods</button><button id="method-summary-table-tab1" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab1', 3)" class="table-tab">Static Methods</button><button id="method-summary-table-tab2" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab2', 3)" class="table-tab">Instance Methods</button><button id="method-summary-table-tab4" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab4', 3)" class="table-tab">Concrete Methods</button></div>
 <div id="method-summary-table.tabpanel" role="tabpanel" aria-labelledby="method-summary-table-tab0">
 <div class="summary-table three-column-summary">
 <div class="table-header col-first">Modifier and Type</div>
@@ -120,6 +124,17 @@ loadScripts(document, 'script');</script>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#applyEdits(dev.copperbench.procedure.ProcedureIr,com.google.gson.JsonArray)" class="member-name-link">applyEdits</a><wbr>(<a href="ProcedureIr.html" title="class in dev.copperbench.procedure">ProcedureIr</a>&nbsp;original,
  com.google.gson.JsonArray&nbsp;edits)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#callTarget(com.google.gson.JsonObject)" class="member-name-link">callTarget</a><wbr>(com.google.gson.JsonObject&nbsp;fields)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="block">Stable identity takes precedence over a stale name hint; legacy named calls remain supported.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>boolean</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#equivalentExports(java.lang.String,java.lang.String)" class="member-name-link">equivalentExports</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;left,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;right)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Compare exported block structure; generated editor ids are local to a graph, not gameplay values.</div>
+</div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="ProcedureIr.html" title="class in dev.copperbench.procedure">ProcedureIr</a></code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#fromBlocklyXml(java.lang.String,java.util.UUID)" class="member-name-link">fromBlocklyXml</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;xml,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;elementId)</code></div>
@@ -127,13 +142,22 @@ loadScripts(document, 'script');</script>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="ProcedureIr.html" title="class in dev.copperbench.procedure">ProcedureIr</a></code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#fromJson(com.google.gson.JsonObject)" class="member-name-link">fromJson</a><wbr>(com.google.gson.JsonObject&nbsp;json)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="ProcedureIr.html" title="class in dev.copperbench.procedure">ProcedureIr</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#read(com.google.gson.JsonObject,java.util.UUID)" class="member-name-link">read</a><wbr>(com.google.gson.JsonObject&nbsp;values,
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>boolean</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#hasOpaqueBlockPayload(java.lang.String,java.lang.String)" class="member-name-link">hasOpaqueBlockPayload</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;payload,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;type)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="ProcedureIr.html" title="class in dev.copperbench.procedure">ProcedureIr</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#read(com.google.gson.JsonObject,java.util.UUID)" class="member-name-link">read</a><wbr>(com.google.gson.JsonObject&nbsp;values,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;elementId)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#sourcePreview(dev.copperbench.procedure.ProcedureIr)" class="member-name-link">sourcePreview</a><wbr>(<a href="ProcedureIr.html" title="class in dev.copperbench.procedure">ProcedureIr</a>&nbsp;ir)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#sourcePreview(dev.copperbench.procedure.ProcedureIr)" class="member-name-link">sourcePreview</a><wbr>(<a href="ProcedureIr.html" title="class in dev.copperbench.procedure">ProcedureIr</a>&nbsp;ir)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#structuredEditingBlocker(java.lang.String)" class="member-name-link">structuredEditingBlocker</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;xml)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">A conservative capability check: opaque blocks are retained, unsupported known-node data is not.</div>
+</div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#toBlocklyXml(dev.copperbench.procedure.ProcedureIr)" class="member-name-link">toBlocklyXml</a><wbr>(<a href="ProcedureIr.html" title="class in dev.copperbench.procedure">ProcedureIr</a>&nbsp;ir)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
@@ -182,6 +206,34 @@ loadScripts(document, 'script');</script>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="ProcedureIr.html" title="class in dev.copperbench.procedure">ProcedureIr</a></span>&nbsp;<span class="element-name">read</span><wbr><span class="parameters">(com.google.gson.JsonObject&nbsp;values,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;elementId)</span></div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="hasOpaqueBlockPayload(java.lang.String,java.lang.String)">
+<h3>hasOpaqueBlockPayload</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">hasOpaqueBlockPayload</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;payload,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;type)</span></div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="equivalentExports(java.lang.String,java.lang.String)">
+<h3>equivalentExports</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">equivalentExports</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;left,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;right)</span></div>
+<div class="block">Compare exported block structure; generated editor ids are local to a graph, not gameplay values.</div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="structuredEditingBlocker(java.lang.String)">
+<h3>structuredEditingBlocker</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">structuredEditingBlocker</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;xml)</span></div>
+<div class="block">A conservative capability check: opaque blocks are retained, unsupported known-node data is not.</div>
 </div>
 </section>
 </li>
@@ -240,6 +292,15 @@ loadScripts(document, 'script');</script>
 <h3>sourcePreview</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">sourcePreview</span><wbr><span class="parameters">(<a href="ProcedureIr.html" title="class in dev.copperbench.procedure">ProcedureIr</a>&nbsp;ir)</span></div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="callTarget(com.google.gson.JsonObject)">
+<h3>callTarget</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">callTarget</span><wbr><span class="parameters">(com.google.gson.JsonObject&nbsp;fields)</span></div>
+<div class="block">Stable identity takes precedence over a stale name hint; legacy named calls remain supported.</div>
 </div>
 </section>
 </li>

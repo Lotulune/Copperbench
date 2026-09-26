@@ -64,6 +64,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#method-detail" tabindex="0">Method Details</a>
 <ol class="toc-list">
 <li><a href="#preview(java.util.UUID,com.google.gson.JsonArray)" tabindex="0">preview(UUID, JsonArray)</a></li>
+<li><a href="#suggestOutputs(java.util.UUID,java.lang.String,java.lang.String)" tabindex="0">suggestOutputs(UUID, String, String)</a></li>
 <li><a href="#apply(dev.copperbench.assets.BlockbenchImportService.Plan,dev.copperbench.core.contract.UiCore.Actor,long)" tabindex="0">apply(BlockbenchImportService.Plan, UiCore.Actor, long)</a></li>
 <li><a href="#apply(dev.copperbench.assets.BlockbenchImportService.Plan,dev.copperbench.core.contract.UiCore.Actor,long,dev.copperbench.assets.BlockbenchImportService.RevisionCommit)" tabindex="0">apply(BlockbenchImportService.Plan, UiCore.Actor, long, BlockbenchImportService.RevisionCommit)</a></li>
 <li><a href="#replay(java.util.UUID,java.lang.String)" tabindex="0">replay(UUID, String)</a></li>
@@ -170,6 +171,13 @@ loadScripts(document, 'script');</script>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#replay(java.util.UUID,java.lang.String)" class="member-name-link">replay</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;taskId,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;token)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>com.google.gson.JsonArray</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#suggestOutputs(java.util.UUID,java.lang.String,java.lang.String)" class="member-name-link">suggestOutputs</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;taskId,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;namespace,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;elementName)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Discover only unique files within this task's edit directory; this never imports or rewrites exports.</div>
+</div>
 </div>
 </div>
 </div>
@@ -212,6 +220,17 @@ loadScripts(document, 'script');</script>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="BlockbenchImportService.Plan.html" title="class in dev.copperbench.assets">BlockbenchImportService.Plan</a></span>&nbsp;<span class="element-name">preview</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;taskId,
  com.google.gson.JsonArray&nbsp;outputs)</span></div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="suggestOutputs(java.util.UUID,java.lang.String,java.lang.String)">
+<h3>suggestOutputs</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">com.google.gson.JsonArray</span>&nbsp;<span class="element-name">suggestOutputs</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&nbsp;taskId,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;namespace,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;elementName)</span></div>
+<div class="block">Discover only unique files within this task's edit directory; this never imports or rewrites exports.</div>
 </div>
 </section>
 </li>
