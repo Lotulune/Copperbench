@@ -1,0 +1,17 @@
+{
+  "status": "passed",
+  "candidateSha256": "8ce8acf5af8fe74623201fc10e278042bfd755d4f060c30f6409250296b97744",
+  "candidateSourceCommit": "b813e6cf19cbc0af43b645608e0d7dc5d7e0f243",
+  "packageVersion": "0.1.1",
+  "installedProductJarSha256": "b96e68dbc697230ca98d82339edbd5cb4c3b12ee7124b861053208d06e270bb8",
+  "installedAndPortableJarsMatch": true,
+  "dpkgVerifyClean": true,
+  "protectedResourcesUnchanged": true,
+  "protectedResources": {
+    "/home/stage17/fixtures/fabric-1.21.1/models/blockbench/resonance_forge_linux.bbmodel": "fac1b2e080b22e908449aa2fa4da0f31c21ae365a074baddababef2f0218c4a8",
+    "/home/stage17/fixtures/fabric-1.21.1/src/main/resources/assets/structured_forge/models/custom/resonance_forge.json": "c939f0bba616d44a73b25f3cf8b4aa466be6f0809d2d4ac6a3e86a5dd05d53c3",
+    "/home/stage17/fixtures/fabric-1.21.1/src/main/resources/assets/structured_forge/textures/block/atlas_export.png": "2193d992e0b19a20f34a09745431cf24c01e1b8e544543a60299ad4355a67d67",
+    "/home/stage17/fixtures/fabric-1.21.1/build/libs/structured_forge-1.0.jar": "cb05312ba4cee03d4e800c078962f71e4a241dcad227aed5c6153ba89b343c47"
+  },
+  "capturedAt": "2026-09-26T16:34:53.196605+00:00"
+}

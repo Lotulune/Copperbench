@@ -1,0 +1,29 @@
+{
+  "status": "passed",
+  "candidateSha256": "8ce8acf5af8fe74623201fc10e278042bfd755d4f060c30f6409250296b97744",
+  "installedProductJarSha256": "b96e68dbc697230ca98d82339edbd5cb4c3b12ee7124b861053208d06e270bb8",
+  "createdThroughInstalledUi": true,
+  "savedThroughInstalledUi": true,
+  "closedNormally": true,
+  "reopenedThroughRecentWorkspaceUi": true,
+  "savedAndReopenedBytesEqual": true,
+  "descriptorRemovedAfterClose": true,
+  "normalProductCloseExitCodes": [
+    0,
+    0
+  ],
+  "definitionSha256": "e9398cd4e4c796fddb0df3db8b14d9d4a29eb00de82940a2ea1bc21116c34f7d",
+  "generatorId": "fabric-1.21.1",
+  "sessionType": "wayland",
+  "workspace": "/home/stage17/MCreatorWorkspaces/stable_011_ui_fixed",
+  "commandObservedAfterReopen": "say Stage17 stable 0.1.1 persistence",
+  "screenshots": [
+    "fixed-ui-workspace-open.png",
+    "fixed-ui-save-result.png",
+    "fixed-ui-workspace-closed.png",
+    "fixed-ui-recent-workspaces.png",
+    "fixed-ui-reopened-function.png",
+    "fixed-ui-reopen-closed.png"
+  ],
+  "formalSupportClaim": false
+}

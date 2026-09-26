@@ -1,0 +1,33 @@
+{
+  "receipts": [
+    {
+      "at": "2026-09-26T19:33:23.9522168Z",
+      "vm": "Copperbench-Stage17-Linux",
+      "before": "agent-clean-client-progress.png",
+      "after": "agent-wayland-game-quit.png",
+      "x": 612,
+      "y": 548,
+      "inputAndSettleMs": 2368,
+      "totalMs": 3014,
+      "mechanism": "Hyper-V guest input; not Minecraft MCP"
+    },
+    {
+      "at": "2026-09-26T19:46:57.8358486Z",
+      "vm": "Copperbench-Stage17-Linux",
+      "before": "agent-xorg-progress.png",
+      "after": "agent-xorg-game-quit.png",
+      "x": 612,
+      "y": 548,
+      "inputAndSettleMs": 2356,
+      "totalMs": 2887,
+      "mechanism": "Hyper-V guest input; not Minecraft MCP"
+    }
+  ],
+  "timingScope": "Each receipt records input+settle and total input/capture milliseconds; observed flow time additionally includes planner screenshot review",
+  "jevCalls": 0,
+  "rejectedGameBatches": 0,
+  "gameInputCalls": 2,
+  "vm": "Copperbench-Stage17-Linux",
+  "mechanism": "Explicitly authorized Hyper-V guest title-menu exit; not Minecraft MCP",
+  "worldEntered": false
+}

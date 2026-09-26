@@ -1,6 +1,6 @@
 # Installed function save correction — 2026-09-27
 
-Stable publication remains pending. During installed Ubuntu acceptance, a newly created Fabric 1.21.1 function could not save its edited code: the product rejected `/tags` with `FIELD_UNSUPPORTED`. The saved definition retained `# New Copperbench function` while the UI retained the unsaved `say Stage17 stable 0.1.1 persistence` draft. The observation occurred on September 26 UTC / September 27 Asia/Tokyo.
+The installed blocker is resolved by the rebuilt `b813e6cf` candidate; see the [completed installed acceptance](stage17-stable-installed-acceptance-2026-09-27.md). Public publication remains a separate protected workflow step. The original failure below remains historical evidence: during installed Ubuntu acceptance, a newly created Fabric 1.21.1 function could not save its edited code because the product rejected `/tags` with `FIELD_UNSUPPORTED`. The saved definition retained `# New Copperbench function` while the UI retained the unsaved `say Stage17 stable 0.1.1 persistence` draft. The observation occurred on September 26 UTC / September 27 Asia/Tokyo.
 
 ## Exact candidate and evidence
 
@@ -18,4 +18,4 @@ Four regression cases first failed against the old UI. After correction, five pr
 
 ## Release consequence
 
-This correction changes shipped UI resources. The old Linux candidate cannot be promoted for the corrected release, and the source-delta guard must continue rejecting it. A new immutable candidate must be built and its installed gates completed. No source-delta allowlist exception, release approval, or pass result is substituted for that verification. The unpublished Windows tag also must not be promoted at the pre-fix source. Existing tag-repair authorization is still pending; the earlier proposed `d9adfb77` target no longer includes all required fixes.
+This correction changes shipped UI resources. The old Linux candidate cannot be promoted for the corrected release, and the source-delta guard continues rejecting it. The new immutable `b813e6cf` candidate has now passed all ten installed gates and both preference migrations. No source-delta allowlist exception or substituted pass result was used. The user authorized archiving and repairing the unpublished Windows tag, and its original signed object was preserved as `archive/v0.1.1-before-windows-fixture-fix`. Publication must use the corrected source plus the committed acceptance declaration on latest main.

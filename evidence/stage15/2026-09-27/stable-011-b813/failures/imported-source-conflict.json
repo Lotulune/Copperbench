@@ -1,0 +1,20 @@
+{
+  "status": "failed",
+  "code": "WORKSPACE_PLAN_SOURCE_CONFLICT",
+  "diagnostics": [
+    {
+      "code": "WORKSPACE_PLAN_SOURCE_CONFLICT",
+      "severity": "error",
+      "message": {
+        "key": "diagnostic.workspace_plan_source_conflict",
+        "fallback": "Generated path already exists outside Copperbench ownership: src/main/resources/assets/structured_forge/models/block/resonance_forge.json",
+        "args": {}
+      },
+      "path": null,
+      "elementId": null,
+      "recoverable": true,
+      "actions": []
+    }
+  ],
+  "revision": 6
+}
