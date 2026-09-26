@@ -69,6 +69,105 @@ public final class ProcedureIrCodec {
 		return fromBlocklyXml(xml, elementId);
 	}
 
+	public boolean hasOpaqueBlockPayload(String payload, String type) {
+		try {
+			Element root = parse("<xml>" + payload + "</xml>").getDocumentElement();
+			List<Element> children = childElements(root);
+			return children.size() == 1 && children.getFirst().getTagName().equals("block")
+					&& children.getFirst().getAttribute("type").equals(type);
+		} catch (Exception exception) { return false; }
+	}
+
+	/** Compare exported block structure; generated editor ids are local to a graph, not gameplay values. */
+	public boolean equivalentExports(String left, String right) {
+		try { return sameXml(parse(left).getDocumentElement(), parse(right).getDocumentElement()); }
+		catch (Exception exception) { return false; }
+	}
+
+	/** A conservative capability check: opaque blocks are retained, unsupported known-node data is not. */
+	public String structuredEditingBlocker(String xml) {
+		try {
+			Element root = parse(xml).getDocumentElement();
+			if (!root.getTagName().equals("xml")) return "Expected a Blockly xml root.";
+			return unsupportedXml(root, "/xml", new HashSet<>());
+		} catch (Exception exception) { return "Blockly XML could not be inspected safely."; }
+	}
+
+	private String unsupportedXml(Element element, String path, Set<String> identities) {
+		String tag = element.getTagName();
+		if (tag.equals("block")) {
+			String identity = identity(element.getAttribute("type"), element.getAttribute("id"));
+			boolean unknown = !KNOWN_TYPES.contains(element.getAttribute("type"));
+			if (!identities.add(identity) && (unknown || !element.getAttribute("id").isBlank())) return path + ": duplicate block identity.";
+			if (unknown) return null; // Raw subtree is preserved verbatim.
+		}
+		Set<String> allowed = switch (tag) {
+			case "xml", "next" -> Set.of();
+			case "block" -> Set.of("type", "id", "x", "y");
+			case "field", "value", "statement" -> Set.of("name");
+			default -> Set.of();
+		};
+		var attributes = element.getAttributes();
+		for (int i = 0; i < attributes.getLength(); i++) {
+			var attribute = attributes.item(i);
+			if (attribute.getNodeName().equals("xmlns") && attribute.getNodeValue().equals("https://developers.google.com/blockly/xml")) continue;
+			if (tag.equals("block") && element.getAttribute("type").equals("event_trigger")
+					&& attribute.getNodeName().equals("deletable") && attribute.getNodeValue().equals("false")) continue;
+			if (!allowed.contains(attribute.getNodeName())) return path + "/@" + attribute.getNodeName() + ": attribute is not represented by structured editing.";
+		}
+		Set<String> slots = new HashSet<>();
+		int childBlocks = 0;
+		NodeList children = element.getChildNodes();
+		for (int i = 0; i < children.getLength(); i++) {
+			var child = children.item(i);
+			if (!(child instanceof Element nested)) {
+				if (child.getNodeType() == org.w3c.dom.Node.TEXT_NODE || child.getNodeType() == org.w3c.dom.Node.CDATA_SECTION_NODE) {
+					if (tag.equals("field") || child.getTextContent().isBlank()) continue;
+				}
+				return path + ": non-element content is not preserved by structured editing.";
+			}
+			String childTag = nested.getTagName();
+			boolean supported = switch (tag) {
+				case "xml", "value", "statement", "next" -> childTag.equals("block");
+				case "block" -> Set.of("field", "value", "statement", "next").contains(childTag);
+				default -> false;
+			};
+			if (!supported) return path + "/" + childTag + ": content is not represented by structured editing.";
+			if (childTag.equals("block")) childBlocks++;
+			if (Set.of("value", "statement").contains(tag)
+					&& !tag.equals(outputKind(nested).equals("statement") ? "statement" : "value"))
+				return path + ": connection kind would change during IR export.";
+			if (tag.equals("block") && !slots.add((childTag.equals("statement") ? "value" : childTag) + ":" + nested.getAttribute("name")))
+				return path + "/" + childTag + ": duplicate field or connection slot.";
+			String issue = unsupportedXml(nested, path + "/" + childTag + "[" + i + "]", identities);
+			if (issue != null) return issue;
+		}
+		if (Set.of("value", "statement", "next").contains(tag) && childBlocks != 1)
+			return path + ": connection must contain exactly one supported block.";
+		return null;
+	}
+
+	private boolean sameXml(org.w3c.dom.Node left, org.w3c.dom.Node right) {
+		if (left.getNodeType() != right.getNodeType() || !java.util.Objects.equals(left.getNodeName(), right.getNodeName())
+				|| !java.util.Objects.equals(left.getNodeValue(), right.getNodeValue())) return false;
+		if (left instanceof Element a && right instanceof Element b && !exportAttributes(a).equals(exportAttributes(b))) return false;
+		NodeList a = left.getChildNodes(), b = right.getChildNodes();
+		if (a.getLength() != b.getLength()) return false;
+		for (int i = 0; i < a.getLength(); i++) if (!sameXml(a.item(i), b.item(i))) return false;
+		return true;
+	}
+
+	private Map<String, String> exportAttributes(Element element) {
+		Map<String, String> attributes = new java.util.TreeMap<>();
+		var raw = element.getAttributes();
+		for (int i = 0; i < raw.getLength(); i++) {
+			var attribute = raw.item(i);
+			if ((element.getTagName().equals("block") || element.getTagName().equals("shadow")) && attribute.getNodeName().equals("id")) continue;
+			attributes.put(attribute.getNodeName(), attribute.getNodeValue());
+		}
+		return attributes;
+	}
+
 	public ProcedureIr fromBlocklyXml(String xml, UUID elementId) {
 		try {
 			Document document = parse(xml);
@@ -77,6 +176,7 @@ public final class ProcedureIrCodec {
 			Map<String, String> rawByIdentity = rawBlocks(xml);
 			String trigger = "no_ext_trigger";
 			Element root = document.getDocumentElement();
+			if (!root.getTagName().equals("xml")) throw new IllegalArgumentException("Expected a Blockly xml root");
 			int[] ordinal = { 0 };
 			for (Element block : directChildren(root, "block")) {
 				Node parsed = readBlock(block, elementId, "root/" + ordinal[0]++, nodes, dependencies, rawByIdentity);
@@ -195,9 +295,10 @@ public final class ProcedureIrCodec {
 					issues.add(new ValidationIssue("PROCEDURE_DANGLING_CONTROL_FLOW",
 							"Control flow references a missing node.", node.id(), "next", true));
 			}
-			if (node.type().equals("call_procedure") && ProcedureIr.string(node.fields(), "procedureId", "").isBlank())
+			if (node.type().equals("call_procedure") && callTarget(node.fields()).isBlank())
 				issues.add(new ValidationIssue("PROCEDURE_CALL_TARGET_REQUIRED", "Procedure call target is required.",
 						node.id(), "procedureId", true));
+			validateReturnValue(node, nodes, issues);
 		}
 		if (ir.nodes().stream().noneMatch(node -> node.type().equals("event_trigger")))
 			issues.add(new ValidationIssue("PROCEDURE_TRIGGER_NODE_REQUIRED", "A trigger node is required.", null,
@@ -206,6 +307,39 @@ public final class ProcedureIrCodec {
 			issues.add(new ValidationIssue("PROCEDURE_GRAPH_CYCLE", "Procedure graph contains an invalid connection cycle.",
 					null, null, true));
 		return List.copyOf(issues);
+	}
+
+	private static void validateReturnValue(Node node, Map<UUID, Node> nodes, List<ValidationIssue> issues) {
+		if (node.unknown() || !node.type().startsWith("return_")) return;
+		if (node.inputs().isEmpty()) {
+			issues.add(new ValidationIssue("PROCEDURE_RETURN_VALUE_REQUIRED", "A return node requires a value.",
+					node.id(), "VALUE", true));
+			return;
+		}
+		String expected = node.type().substring("return_".length());
+		for (var input : node.inputs().entrySet()) {
+			Node value = nodes.get(input.getValue());
+			String actual = knownOutputType(value);
+			if (actual != null && !expected.equals(actual))
+				issues.add(new ValidationIssue("PROCEDURE_RETURN_TYPE_MISMATCH",
+						"Return value must have type " + expected + ", but the connected node produces " + actual + ".",
+						node.id(), input.getKey(), true));
+		}
+	}
+
+	/** Only infer built-in output types; preserved plugin blocks need their generator's own validation. */
+	private static String knownOutputType(Node node) {
+		if (node == null || node.unknown()) return null;
+		if (node.type().startsWith("variables_get_")) return node.type().substring("variables_get_".length());
+		return switch (node.type()) {
+			case "math_number", "math_binary_ops", "math_dual_ops", "math_singular_ops", "coord_x", "coord_y", "coord_z" -> "number";
+			case "logic_boolean", "logic_negate", "logic_binary_ops" -> "logic";
+			case "text", "text_join" -> "string";
+			case "entity_from_deps", "source_entity_from_deps", "immediate_source_entity_from_deps", "entity_iterator" -> "entity";
+			case "mcitem_all" -> "itemstack";
+			case "mcitem_allblocks" -> "blockstate";
+			default -> null;
+		};
 	}
 
 	public JsonObject toJson(ProcedureIr ir) {
@@ -297,8 +431,8 @@ public final class ProcedureIrCodec {
 			return;
 		}
 		xml.append("<block type=\"").append(escape(node.type())).append("\" id=\"").append(node.id()).append("\"");
-		if (node.x() != 0) xml.append(" x=\"").append(Math.round(node.x())).append("\"");
-		if (node.y() != 0) xml.append(" y=\"").append(Math.round(node.y())).append("\"");
+		xml.append(" x=\"").append(node.x()).append("\"");
+		xml.append(" y=\"").append(node.y()).append("\"");
 		if (node.type().equals("event_trigger")) xml.append(" deletable=\"false\"");
 		xml.append('>');
 		JsonObject fields = node.fields().deepCopy();
@@ -426,6 +560,12 @@ public final class ProcedureIrCodec {
 		return List.copyOf(dependencies);
 	}
 
+	/** Stable identity takes precedence over a stale name hint; legacy named calls remain supported. */
+	public static String callTarget(JsonObject fields) {
+		String id = ProcedureIr.string(fields, "procedureId", "");
+		return id.isBlank() ? ProcedureIr.string(fields, "procedure", "") : id;
+	}
+
 	private void collectDependency(Node node, List<Dependency> dependencies) {
 		String kind = null;
 		String name = "";
@@ -439,7 +579,7 @@ public final class ProcedureIrCodec {
 		} else if (node.type().equals("call_procedure")) {
 			kind = "procedure";
 			name = ProcedureIr.string(node.fields(), "procedure", "");
-			target = ProcedureIr.string(node.fields(), "procedureId", name);
+			target = callTarget(node.fields());
 		} else if (node.type().equals("mcitem_all") || node.type().equals("mcitem_allblocks")) {
 			kind = "resource";
 			name = ProcedureIr.string(node.fields(), "value", "");

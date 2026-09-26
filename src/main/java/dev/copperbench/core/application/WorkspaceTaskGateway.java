@@ -11,11 +11,30 @@ import java.util.function.Consumer;
 /** Port for validation, generation and build processes managed outside workspace transactions. */
 public interface WorkspaceTaskGateway {
 
+	/** Session-owned source preparation, invoked only by explicit generation/build/run tasks. */
+	@FunctionalInterface interface GenerationPreparation {
+		void prepare(dev.copperbench.core.workspace.WorkspaceState state, java.nio.file.Path executionRoot,
+				Operation operation, Consumer<String> output) throws Exception;
+	}
+
+	default void setGenerationPreparation(GenerationPreparation preparation) { }
+
+	final class GenerationPreparationException extends java.io.IOException {
+		private final String code;
+		public GenerationPreparationException(String code, String message, Throwable cause) {
+			super(message, cause); this.code = code;
+		}
+		public String code() { return code; }
+	}
+
 	JsonObject start(UUID workspaceId, Operation operation, JsonObject payload);
 
 	Optional<JsonObject> find(UUID workspaceId, UUID taskId);
 
 	List<JsonObject> active(UUID workspaceId);
+
+	/** Bounded observations for task discovery, including terminal tasks retained across sessions. */
+	default List<JsonObject> recent(UUID workspaceId) { return active(workspaceId); }
 
 	Optional<JsonObject> cancel(UUID workspaceId, UUID taskId);
 

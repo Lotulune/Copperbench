@@ -13,6 +13,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ProcedureIrCodecTest {
 
+	@Test void legacyNamedCallsAndBlankIdAliasesAgreeWithDependencyResolution() {
+		var codec = new ProcedureIrCodec();
+		for (String extra : java.util.List.of("", "<field name=\"procedureId\"></field>")) {
+			var ir = codec.fromBlocklyXml("<xml><block type=\"event_trigger\"><field name=\"trigger\">no_ext_trigger</field><next>"
+					+ "<block type=\"call_procedure\"><field name=\"procedure\">target_proc</field>" + extra + "</block></next></block></xml>", ELEMENT_ID);
+			assertFalse(codec.validate(ir).stream().anyMatch(issue -> issue.code().equals("PROCEDURE_CALL_TARGET_REQUIRED")));
+			assertEquals("target_proc", ir.dependencies().getFirst().target());
+		}
+	}
+
 	private static final UUID ELEMENT_ID = UUID.fromString("11111111-1111-4111-8111-111111111111");
 	private static final UUID TRIGGER_ID = UUID.fromString("22222222-2222-4222-8222-222222222222");
 	private static final UUID UNKNOWN_ID = UUID.fromString("33333333-3333-4333-8333-333333333333");

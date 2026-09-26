@@ -1,3 +1,4 @@
+import { useSyncExternalStore } from 'react';
 import { enUi } from './enUi';
 
 export type UiLocale = 'zh' | 'en';
@@ -26,7 +27,26 @@ function browserLocale(): UiLocale {
   } catch { return 'zh'; }
 }
 
-export const UI_LOCALE: UiLocale = browserLocale();
+export let UI_LOCALE: UiLocale = browserLocale();
+const subscribers = new Set<() => void>();
+const snapshot = () => UI_LOCALE;
+const subscribe = (listener: () => void) => {
+  subscribers.add(listener);
+  return () => { subscribers.delete(listener); };
+};
+function updateDocumentLanguage() {
+  if (typeof document !== 'undefined') document.documentElement.lang = UI_LOCALE === 'zh' ? 'zh-CN' : 'en';
+}
+updateDocumentLanguage();
+export function useUiLocale(): UiLocale {
+  return useSyncExternalStore(subscribe, snapshot, () => 'zh');
+}
+export function uiText(chinese: string, english: string): string {
+  return UI_LOCALE === 'en' ? english : chinese;
+}
+export function englishCount(count: number, singular: string, plural = `${singular}s`): string {
+  return `${count} ${count === 1 ? singular : plural}`;
+}
 
 /** Only authored interface literals go through this catalog, never user data. */
 export function tr(source: string, args: readonly unknown[] = []): string {
@@ -39,21 +59,25 @@ export function tr(source: string, args: readonly unknown[] = []): string {
   );
 }
 
-/** Reload only after the user has explicitly accepted the draft-loss warning. */
-export async function changeLocale(locale: UiLocale): Promise<boolean> {
+/** Persist the native preference before notifying editors, without remounting or losing drafts. */
+export async function setUiLocale(locale: UiLocale): Promise<boolean> {
   if (locale !== 'zh' && locale !== 'en') return false;
   if (locale === UI_LOCALE) return false;
-  const warning = UI_LOCALE === 'zh'
-    ? '切换语言需要重新加载界面，未保存的编辑内容会丢失。请先保存。现在重新加载？'
-    : 'Changing language reloads the interface. Unsaved edits will be lost. Save your work first. Reload now?';
-  if (!window.confirm(warning)) return false;
   try {
     if (window.__COPPERBENCH_SET_LOCALE__) await window.__COPPERBENCH_SET_LOCALE__(locale);
-    else window.localStorage.setItem(LOCALE_STORAGE_KEY, locale);
+    else {
+      try { window.localStorage.setItem(LOCALE_STORAGE_KEY, locale); }
+      catch { /* Browser-only fallback: keep the preference for this session. */ }
+    }
   } catch {
-    window.alert(UI_LOCALE === 'zh' ? '无法保存语言设置，界面未重新加载。' : 'Could not save the language preference. The interface has not reloaded.');
+    window.alert(uiText('无法保存语言设置，当前语言与草稿已保留。', 'Could not save the language preference. Your current language and drafts are unchanged.'));
     return false;
   }
-  window.location.reload();
+  UI_LOCALE = locale;
+  if (window.__COPPERBENCH_UI_LOCALE__ !== undefined) window.__COPPERBENCH_UI_LOCALE__ = locale;
+  updateDocumentLanguage();
+  subscribers.forEach(listener => listener());
   return true;
 }
+
+export const changeLocale = setUiLocale;

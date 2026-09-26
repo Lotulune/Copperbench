@@ -21,6 +21,55 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class Fabric1211ProcessRunnerTest {
+	@Test void renderingObservationRequiresAnActualAtlasCreationLogOnTheRenderThread() {
+		assertTrue(Fabric1211ProcessRunner.isMinecraftClientRenderingLine(
+				"[22:10:04] [Render thread/INFO] (Minecraft) Created: 1024x512x4 minecraft:textures/atlas/blocks.png-atlas"));
+		assertTrue(Fabric1211ProcessRunner.isMinecraftClientRenderingLine(
+				"[Render thread/INFO] [minecraft/TextureAtlas]: Created: 256x128x0 minecraft:blocks-atlas"));
+		for (String line : List.of("[Render thread/INFO] COPPERBENCH_STAGE3_READY",
+				"[Render thread/INFO] OpenAL initialized", "[Render thread/INFO] Sound engine started",
+				"[Server thread/INFO] Created: 1024x512x4 minecraft:textures/atlas/blocks.png-atlas",
+				"[Render thread/INFO] Created: 0x512x4 minecraft:textures/atlas/blocks.png-atlas",
+				"[Render thread/ERROR] Created: 1024x512x4 minecraft:textures/atlas/blocks.png-atlas"))
+			assertFalse(Fabric1211ProcessRunner.isMinecraftClientRenderingLine(line), line);
+		assertFalse(Fabric1211ProcessRunner.isMinecraftClientRenderingLine(null));
+	}
+
+	@Test void managedBuildUsesTheSetupCacheAndMirrorScriptWhilePreservingExplicitOverrides(
+			@org.junit.jupiter.api.io.TempDir java.nio.file.Path root) throws Exception {
+		java.nio.file.Path productHome = root.resolve("product-cache");
+		dev.copperbench.network.ChinaMirrorService.applyUserHome(productHome, true);
+		var environment = new java.util.HashMap<String, String>();
+		Fabric1211ProcessRunner.SystemProcessRunner.configureGradleHome(environment, productHome);
+		java.nio.file.Path effective = java.nio.file.Path.of(environment.get("GRADLE_USER_HOME"));
+		assertEquals(productHome, effective);
+		String init = java.nio.file.Files.readString(effective.resolve("init.d")
+				.resolve(dev.copperbench.network.ChinaMirrorService.INIT_SCRIPT_NAME));
+		assertTrue(init.contains("maven.aliyun.com"));
+		environment.put("GRADLE_USER_HOME", root.resolve("external-cache").toString());
+		Fabric1211ProcessRunner.SystemProcessRunner.configureGradleHome(environment, productHome);
+		assertEquals(root.resolve("external-cache").toString(), environment.get("GRADLE_USER_HOME"));
+		environment.put("COPPERBENCH_GRADLE_USER_HOME", root.resolve("explicit-cache").toString());
+		Fabric1211ProcessRunner.SystemProcessRunner.configureGradleHome(environment, productHome);
+		assertEquals(root.resolve("explicit-cache").toString(), environment.get("GRADLE_USER_HOME"));
+	}
+
+	@Test void externalGradleProcessReceivesTheSameUserHomeAsGuiSetup() throws Exception {
+		org.junit.jupiter.api.Assumptions.assumeTrue(System.getenv("COPPERBENCH_STAGE5_GRADLE_EXECUTABLE") == null);
+		java.nio.file.Path root = java.nio.file.Files.createTempDirectory(java.nio.file.Path.of("build").toAbsolutePath(), "stage17-process-home-");
+		boolean windows = RuntimePlatform.current().operatingSystem() == RuntimePlatform.OperatingSystem.WINDOWS;
+		java.nio.file.Path wrapper = root.resolve(windows ? "gradlew.bat" : "gradlew");
+		java.nio.file.Files.writeString(wrapper, windows ? "@echo off\r\necho OBSERVED_GRADLE_HOME=%GRADLE_USER_HOME%\r\n"
+				: "#!/bin/sh\nprintf 'OBSERVED_GRADLE_HOME=%s\\n' \"$GRADLE_USER_HOME\"\n");
+		if (!windows) assertTrue(wrapper.toFile().setExecutable(true));
+		List<String> output = new java.util.concurrent.CopyOnWriteArrayList<>();
+		var result = Fabric1211ProcessRunner.system().run(root, List.of("build"), java.time.Duration.ofSeconds(15), output::add);
+		assertEquals(0, result.exitCode());
+		var expected = new java.util.HashMap<>(System.getenv());
+		Fabric1211ProcessRunner.SystemProcessRunner.configureGradleHome(expected, net.mcreator.io.UserFolderManager.getGradleHome().toPath());
+		assertTrue(output.contains("OBSERVED_GRADLE_HOME=" + expected.get("GRADLE_USER_HOME")), output.toString());
+	}
+
 	@Test void recognizesTheObservedWindowsOpenGlDriverFailure() {
 		assertEquals("WINDOWS_OPENGL_INITIALIZATION_FAILED", Fabric1211ProcessRunner.graphicalFailureCode(
 				RuntimePlatform.OperatingSystem.WINDOWS,

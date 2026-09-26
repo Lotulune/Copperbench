@@ -71,6 +71,11 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 	private final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
 	private final Map<UUID, Map<UUID, Job>> jobs = new ConcurrentHashMap<>();
 	private final CopyOnWriteArrayList<Consumer<WorkspaceTaskGateway.TaskEvent>> taskEventListeners = new CopyOnWriteArrayList<>();
+	private GenerationPreparation generationPreparation = (state, root, operation, output) -> { };
+
+	@Override public void setGenerationPreparation(GenerationPreparation preparation) {
+		this.generationPreparation = java.util.Objects.requireNonNull(preparation);
+	}
 
 	public GradleWorkspaceTaskGateway(RevisionedWorkspaceStore store, Function<UUID, Path> workspaceRoots,
 			GradleWorkspaceBackend backend, Clock clock, Supplier<UUID> ids, GradleProcessRunner processes) {
@@ -89,7 +94,10 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 			throw new IllegalArgumentException(backend.displayName() + " task is not implemented yet: " + operation);
 		UUID taskId = ids.get();
 		Job job = new Job(workspaceId, task(taskId, operation));
+		job.summary.addProperty("backendIdentity", backend.displayName());
 		jobs.computeIfAbsent(workspaceId, ignored -> new ConcurrentHashMap<>()).put(taskId, job);
+		try { WorkspaceTaskRecords.save(workspaceRoots.apply(workspaceId), workspaceId, job.task(), List.of(), List.of()); }
+		catch (java.io.IOException exception) { LOG.warn("Could not persist task start {}", taskId, exception); }
 		job.log("info", "Starting " + backend.displayName() + " " + taskKind(operation)
 				+ " from revision " + state.revision());
 		JsonObject taskPayload = payload == null ? new JsonObject() : payload.deepCopy();
@@ -114,6 +122,17 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 			job.executionRoot = executionRoot;
 			job.sourceRevision = state.revision();
 			job.sourceState = state;
+			if (operation == Operation.EXPORT_WORKSPACE && payload.has("verifiedTaskId")) {
+				UUID verifiedId;
+				try { verifiedId = UUID.fromString(payload.get("verifiedTaskId").getAsString()); }
+				catch (RuntimeException invalid) { throw new VerifiedArtifactExporter.VerificationException("VERIFIED_TASK_ID_INVALID: Select an acceptance task UUID."); }
+				JsonObject verified = find(workspaceId, verifiedId).orElseThrow(() ->
+						new VerifiedArtifactExporter.VerificationException("VERIFIED_TASK_NOT_FOUND: No acceptance task with this ID was recorded for this workspace."));
+				job.record("verifiedExport", VerifiedArtifactExporter.export(root, verified, job.id(),
+						payload.has("allowHistorical") && payload.get("allowHistorical").getAsBoolean()));
+				job.succeed("task.export.completed", "Verified acceptance artifact exported");
+				return;
+			}
 			if (isolated(operation)) {
 				if (operation != Operation.RUN_GAMETEST && !executionRoot.startsWith(root.toAbsolutePath().normalize()))
 					throw new IllegalStateException("Isolated task path escaped the workspace");
@@ -142,6 +161,9 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 				job.succeed("task.prepare_game_tests.completed", "GameTest starter prepared; add behavior assertions before acceptance");
 				return;
 			}
+			job.progress(0.25, "task.sources.preparing", "Preparing generator dependencies and sources");
+			generationPreparation.prepare(state, executionRoot, operation, line -> job.log("info", line));
+			if (job.cancellationRequested()) throw new InterruptedException("Source preparation cancelled");
 			job.progress(0.35, "task." + taskKind(operation) + ".generating", "Generating workspace sources");
 			var result = backend.generate(executionRoot, state);
 			job.log("info", backend.displayName() + " generation completed: " + result.generatedPaths().size()
@@ -164,26 +186,33 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 				}
 			} else if (operation == Operation.RUN_CLIENT) {
 				job.progress(0.55, "task.run_client.starting", "Starting Minecraft client");
+				var renderingObserved = new java.util.concurrent.atomic.AtomicBoolean();
 				var process = processes.run(executionRoot, backend.gradleArguments(operation), Duration.ZERO,
-						line -> job.log("info", line));
+						line -> {
+							job.log("info", line);
+							if (dev.copperbench.generator.fabric.Fabric1211ProcessRunner.isMinecraftClientRenderingLine(line)
+									&& renderingObserved.compareAndSet(false, true))
+								job.progress(0.7, "task.run_client.rendering", "Client graphics initialized; inspect the game window and close it normally when finished");
+						});
 				// Minecraft can catch WindowInitFailed and return zero before opening a window.
 				// A mod's earlier readiness marker does not establish that OpenGL initialized.
-				boolean graphicsInitializationFailed = "WINDOWS_OPENGL_INITIALIZATION_FAILED"
-						.equals(process.runtimeFailureCode());
+				boolean graphicsInitializationFailed = !renderingObserved.get() && process.runtimeFailureCode() != null
+						&& !process.runtimeFailureCode().isBlank();
 				if (process.exitCode() != 0 || graphicsInitializationFailed) {
 					JsonObject args = new JsonObject();
 					args.addProperty("exitCode", process.exitCode());
-					String runtimeFailureCode = process.readinessMarkerSeen() && !graphicsInitializationFailed
-							? null : process.runtimeFailureCode();
+					String runtimeFailureCode = graphicsInitializationFailed ? process.runtimeFailureCode() : null;
 					if (runtimeFailureCode != null && !runtimeFailureCode.isBlank())
 						args.addProperty("runtimeFailureCode", runtimeFailureCode);
 					String diagnosticCode = runtimeFailureCode == null || runtimeFailureCode.isBlank()
 							? backend.diagnosticPrefix() + "_RUN_CLIENT_EXITED"
 							: backend.diagnosticPrefix() + "_RUN_CLIENT_" + runtimeFailureCode;
+					boolean displayUnavailable = "LINUX_DISPLAY_UNAVAILABLE".equals(runtimeFailureCode);
 					failKnownTask(workspaceId, operation, job,
-							diagnosticCode, graphicsInitializationFailed
+							diagnosticCode, displayUnavailable ? "diagnostic.task_client_display_unavailable" : graphicsInitializationFailed
 									? "diagnostic.task_client_opengl_initialization_failed" : "diagnostic.task_process_exited",
-							graphicsInitializationFailed
+							displayUnavailable ? "The {backend} client could not connect to a graphical session. Run it from the local graphical desktop."
+									: graphicsInitializationFailed
 									? "The {backend} client could not initialize OpenGL. Check graphics support and drivers."
 									: "The {backend} {task} task exited with code {exitCode}.", args);
 					return;
@@ -237,6 +266,25 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 			}
 			job.succeed("task." + taskKind(operation) + ".completed",
 					backend.displayName() + " " + taskKind(operation) + " completed");
+		} catch (WorkspaceTaskGateway.GenerationPreparationException exception) {
+			if (job.isCancelled() || job.cancellationRequested()) return;
+			String failureId = UUID.randomUUID().toString();
+			LOG.error("Generator source preparation failed {}", failureId, exception);
+			job.log("error", exception.code() + ": " + exception.getMessage());
+			JsonObject args = new JsonObject(); args.addProperty("reason", exception.getMessage());
+            if (exception.code().equals("GENERATOR_LOCAL_IPC_UNAVAILABLE"))
+				job.fail(exception.code(), failureId, taskKind(operation), "diagnostic.generator_local_ipc_unavailable",
+                        "Loom could not access its local IPC file. Retry from the desktop product or a normal local terminal; dependency mirrors do not repair local IPC.", args);
+            else if (exception.code().equals("GENERATOR_DECOMPILATION_FAILED"))
+                job.fail(exception.code(), failureId, taskKind(operation), "diagnostic.generator_decompilation_failed",
+                        "Minecraft source decompilation failed. Inspect the decompiler and system logs for memory pressure, process termination or another cause; a download failure is not established.", args);
+			else job.fail(exception.code(), failureId, taskKind(operation), "diagnostic.generator_preparation_failed",
+					"Generator preparation failed: {reason}", args);
+		} catch (VerifiedArtifactExporter.VerificationException exception) {
+			job.log("error", exception.getMessage());
+			JsonObject args = new JsonObject(); args.addProperty("reason", exception.getMessage());
+			job.fail(exception.code(), UUID.randomUUID().toString(), taskKind(operation),
+					"diagnostic.verified_export_failed", "Verified artifact export was rejected: {reason}", args);
 		} catch (GameTestSupport.TestSetupException exception) {
 			if (job.isCancelled() || job.cancellationRequested()) return;
 			job.log("error", exception.getMessage());
@@ -385,7 +433,10 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 
 	@Override public Optional<JsonObject> find(UUID workspaceId, UUID taskId) {
 		Job job = job(workspaceId, taskId);
-		return Optional.ofNullable(job == null ? null : job.task());
+		return job == null ? WorkspaceTaskRecords.read(workspaceRoots.apply(workspaceId), workspaceId, taskId)
+				.map(record -> record.getAsJsonObject("task"))
+				.filter(task -> task.has("backendIdentity") && backend.displayName().equals(task.get("backendIdentity").getAsString()))
+				: Optional.of(job.task());
 	}
 
 	@Override public List<JsonObject> active(UUID workspaceId) {
@@ -395,6 +446,18 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 			if (state.equals("queued") || state.equals("running")) result.add(job.task());
 		}
 		return List.copyOf(result);
+	}
+
+	@Override public List<JsonObject> recent(UUID workspaceId) {
+		Map<String, JsonObject> observations = new java.util.LinkedHashMap<>();
+		WorkspaceTaskRecords.recent(workspaceRoots.apply(workspaceId), workspaceId).stream()
+				.filter(task -> task.has("backendIdentity") && backend.displayName().equals(task.get("backendIdentity").getAsString()))
+				.forEach(task -> observations.put(task.get("id").getAsString(), task));
+		for (Job job : jobs.getOrDefault(workspaceId, Map.of()).values()) {
+			JsonObject task = job.task(); observations.put(task.get("id").getAsString(), task);
+		}
+		return observations.values().stream().sorted(java.util.Comparator.comparing(
+				(JsonObject task) -> task.has("startedAt") ? task.get("startedAt").getAsString() : "").reversed()).limit(100).toList();
 	}
 
 	@Override public Optional<JsonObject> cancel(UUID workspaceId, UUID taskId) {
@@ -411,6 +474,14 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 	}
 
 	private void publishTaskEvent(WorkspaceTaskGateway.TaskEvent event) {
+		Job observed = job(event.workspaceId(), event.taskId());
+		if (observed != null && !event.event().equals("task_log_appended")) {
+			synchronized (observed) {
+				try { WorkspaceTaskRecords.save(workspaceRoots.apply(event.workspaceId()), event.workspaceId(),
+						observed.task(), observed.logs(), observed.diagnostics()); }
+				catch (java.io.IOException | RuntimeException exception) { LOG.warn("Could not persist task observation {}", event.taskId(), exception); }
+			}
+		}
 		for (Consumer<WorkspaceTaskGateway.TaskEvent> listener : taskEventListeners) {
 			try {
 				listener.accept(event);
@@ -422,12 +493,18 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 
 	@Override public List<JsonObject> logs(UUID workspaceId, UUID taskId) {
 		Job job = job(workspaceId, taskId);
-		return job == null ? List.of() : job.logs();
+		return job == null ? restoredEntries(workspaceId, taskId, "logs") : job.logs();
 	}
 
 	@Override public List<JsonObject> diagnostics(UUID workspaceId, UUID taskId) {
 		Job job = job(workspaceId, taskId);
-		return job == null ? List.of() : job.diagnostics();
+		return job == null ? restoredEntries(workspaceId, taskId, "diagnostics") : job.diagnostics();
+	}
+
+	private List<JsonObject> restoredEntries(UUID workspaceId, UUID taskId, String name) {
+		return WorkspaceTaskRecords.read(workspaceRoots.apply(workspaceId), workspaceId, taskId)
+				.map(record -> record.getAsJsonArray(name).asList().stream().map(JsonElement::getAsJsonObject).toList())
+				.orElse(List.of());
 	}
 
 	@Override public Optional<JsonObject> sourcePreview(UUID workspaceId, UUID taskId, String sourcePath) {
@@ -766,6 +843,10 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 
 	@Override public void close() {
 		executor.shutdownNow();
+		try {
+			if (!executor.awaitTermination(10, TimeUnit.SECONDS))
+				LOG.warn("Task workers did not finish cleanup before the close budget expired");
+		} catch (InterruptedException exception) { Thread.currentThread().interrupt(); }
 	}
 
 	private record FileBackup(Path destination, Path backup, boolean existed) {
@@ -860,6 +941,8 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 				entry.addProperty("level", level);
 				entry.addProperty("text", text);
 				logEntries.add(entry);
+				try { WorkspaceTaskRecords.appendLog(workspaceRoots.apply(workspaceId), id(), entry); }
+				catch (java.io.IOException | RuntimeException exception) { LOG.warn("Could not persist task log {}", id(), exception); }
 				event = new WorkspaceTaskGateway.TaskEvent(workspaceId, id(), "task_log_appended", summary,
 						List.of(entry), List.of());
 			}
@@ -1182,7 +1265,18 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 			synchronized (this) {
 				if (cancellationRequested && isRunning()) event = completeCancelled();
 			}
-			workerFinished.countDown();
+			try {
+				if (event != null) {
+					WorkspaceTaskRecords.save(workspaceRoots.apply(workspaceId), workspaceId,
+							task(), logs(), diagnostics());
+				}
+			} catch (java.io.IOException | RuntimeException exception) {
+				LOG.warn("Could not persist task cancellation {}", id(), exception);
+			} finally {
+				// Persist before replying, but release the waiter before invoking listeners: the
+				// cancelling command can hold the workspace lock needed by those listeners.
+				workerFinished.countDown();
+			}
 			if (event != null) {
 				log("warning", backend.displayName() + " task cancelled");
 				publishTaskEvent(event);

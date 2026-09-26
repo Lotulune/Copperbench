@@ -25,6 +25,24 @@ class BlockbenchModelingServiceTest {
 	}
 	@AfterEach void close() { history.close(); }
 
+	@Test void elementContextSurvivesReopeningAndTaskIdentityCannotBeRetargeted() {
+		UUID taskId = UUID.randomUUID();
+		JsonObject context = new JsonObject();
+		context.addProperty("elementId", UUID.randomUUID().toString());
+		context.addProperty("namespace", "fixture");
+		var task = service.begin(taskId, null, "models/probe.bbmodel", 0, Actor.UI, context);
+		assertEquals(context, task.getAsJsonObject("elementContext"));
+		context.addProperty("namespace", "tampered");
+		var reopened = new BlockbenchModelingService(root, workspaceId, history, Clock.systemUTC());
+		assertEquals("fixture", reopened.get(taskId).getAsJsonObject("elementContext").get("namespace").getAsString());
+		assertEquals(Path.of(task.get("editPath").getAsString()), reopened.editingFile(taskId));
+		context.addProperty("elementId", UUID.randomUUID().toString());
+		assertCode("MODEL_TASK_ID_REUSED", () -> reopened.begin(taskId, null, "models/probe.bbmodel", 0, Actor.UI, context));
+		reopened.cancel(taskId, Actor.UI);
+		assertCode("MODEL_TASK_NOT_EDITING", () -> reopened.editingFile(taskId));
+		assertTrue(Files.exists(Path.of(task.get("editPath").getAsString())));
+	}
+
 	@Test void newModelIsDurableAndFinishesWithoutLaunchingOrImporting() throws Exception {
 		UUID id = UUID.randomUUID();
 		var task = service.begin(id, null, "models/example.bbmodel", 4, Actor.MCP);

@@ -1,0 +1,52 @@
+{
+  "scope": "MCP launch, diagnostic and Jev API connectivity; no gameplay input",
+  "tool_count": 10,
+  "tools": [
+    "mc_attach",
+    "mc_detach",
+    "mc_doctor",
+    "mc_jev_choose",
+    "mc_list_windows",
+    "mc_observe",
+    "mc_read_logs",
+    "mc_record_verification",
+    "mc_step",
+    "mc_stop"
+  ],
+  "doctor": {
+    "platform": "windows",
+    "status": "available",
+    "capabilities": {
+      "screenshots": true,
+      "relative_mouse": true,
+      "keyboard": true,
+      "ascii_text": true,
+      "game_telemetry": false,
+      "background_control": false
+    },
+    "max_step_ms": 2000,
+    "emergency_key": "F8",
+    "requirements": [
+      "foreground unobscured game window",
+      "same desktop and privilege level"
+    ],
+    "note": "Backend initialized; actual capture/input/F8 are verified at attach and in live tests"
+  },
+  "jev": {
+    "choice": "WAIT",
+    "confidence": 1.0,
+    "probabilities": {
+      "WAIT": 1.0,
+      "USE": 0.0
+    },
+    "model": "jev-1.13.0",
+    "elapsed_ms": 674.41,
+    "usage": {
+      "input_tokens": 434,
+      "output_tokens": 31
+    },
+    "observation_source": "caller_supplied_text",
+    "executed": false,
+    "frame_id": "connectivity-probe-not-a-game-frame"
+  }
+}

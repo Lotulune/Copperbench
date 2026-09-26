@@ -1,0 +1,12 @@
+{
+  "runtimeSourceUnchanged": true,
+  "windowsAndInstalledLinuxApplicationSha256": "6797747dbd09c2cbaf9a383784f751ff65ddcc27e4e18ec775b36c68ab594879",
+  "changedSinceFreeze": [
+    "PRD-STAGE-17.md",
+    "docs/testing/stage-17-closeout-ledger-2026-09-24.md",
+    "docs/testing/stage-17-closeout-review-2026-09-26.md",
+    "docs/testing/stage-17-final-gate-review-2026-09-25.md",
+    "src/test/java/net/mcreator/workspace/WorkspacePersistenceCompatibilityTest.java"
+  ],
+  "testSourceSha256": "590cb4354cb64f8890bed6e5113412038ffa1de4d9103b8530087fb9507cf8eb"
+}

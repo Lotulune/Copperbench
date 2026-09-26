@@ -2,6 +2,11 @@ package dev.copperbench.core.workspace.mcreator;
 
 import com.google.gson.*;
 import dev.copperbench.core.application.WorkspaceMutationGateway;
+import dev.copperbench.core.application.BlockFieldContract;
+import dev.copperbench.core.application.ElementFieldException;
+import dev.copperbench.core.application.ElementMappingSupport;
+import dev.copperbench.core.application.LootTableFieldContract;
+import dev.copperbench.core.application.GenericFieldInputContract;
 import dev.copperbench.core.application.WorkspacePlanArtifact;
 import dev.copperbench.core.application.WorkspaceSourceConflictException;
 import dev.copperbench.core.contract.UiCore.Operation;
@@ -86,6 +91,7 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 					}
 				});
 		RetvalProcedure.GSON_ADAPTERS.forEach(builder::registerTypeAdapter);
+		builder.registerTypeAdapter(net.mcreator.ui.minecraft.states.StateMap.class, new net.mcreator.ui.minecraft.states.StateMap.GSONAdapter());
 		builder.registerTypeHierarchyAdapter(MappableElement.class, new MappableElement.GSONAdapter());
 		return builder.create();
 	}
@@ -116,6 +122,8 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 		for (Element element : after.elements()) {
 			Element previous = before.element(element.id());
 			if (previous != null && sameContent(previous, element)) continue;
+			// Path prediction constructs definitions too; reject invalid input before that conversion.
+			validateSupportedChanges(previous, element);
 			ModElement existing = find(element.id());
 			if ("code".equals(element.type())) {
 				Path primary;
@@ -206,11 +214,133 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 		this.observers = List.copyOf(observers);
 	}
 
+	@Override public List<dev.copperbench.procedure.ProcedureIr.ValidationIssue> procedureContextIssues(dev.copperbench.procedure.ProcedureIr ir) {
+		return MCreatorProcedureContextValidation.validate(workspace, ir);
+	}
+
+	@Override public JsonArray procedureTriggerCatalog() {
+		return MCreatorProcedureContextValidation.catalog(workspace);
+	}
+
+	@Override public JsonObject elementIdentity(Element element) {
+		ModElement existing = find(element.id());
+		JsonObject identity = new JsonObject();
+		if (existing == null) return identity;
+		identity.addProperty("internalName", existing.getName());
+		identity.addProperty("registryName", existing.getRegistryName());
+		identity.addProperty("source", "generator_definition");
+		if (!existing.isCodeLocked() && Set.of("block", "item").contains(existing.getTypeString())) {
+			String namespace = workspace.getWorkspaceSettings().getModID();
+			identity.addProperty("namespace", namespace);
+			identity.addProperty("resourceId", namespace + ":" + existing.getRegistryName());
+		}
+		return identity;
+	}
+
+	@Override public JsonObject elementConfiguration(Element element) {
+		JsonObject result = new JsonObject();
+		if (!element.type().equals("block") || element.ownership().equals("manual")) return result;
+		ModElement existing = find(element.id());
+		if (existing == null) return result;
+		result.addProperty("generationState", MCreatorGenerationPreparation.deferred(workspace) ? "pending" : "ready");
+		Path path = workspace.getFolderManager().getModElementsDir().toPath().resolve(existing.getName() + ".mod.json");
+		try {
+			JsonObject definition = JsonParser.parseString(Files.readString(path)).getAsJsonObject().getAsJsonObject("definition");
+			JsonObject declared = BlockFieldContract.merged(element.values());
+			JsonObject effective = element.values().deepCopy();
+			JsonArray differences = new JsonArray();
+			for (String name : BlockFieldContract.DEFINITION_FIELDS) {
+				JsonElement actual = definition.has(name) ? definition.get(name) : JsonNull.INSTANCE;
+				if (declared.has(name) && !sameBlockValue(name, declared.get(name), actual)) {
+					JsonObject difference = new JsonObject();
+					difference.addProperty("path", BlockFieldContract.path(element.values(), name));
+					difference.add("declared", declared.get(name).deepCopy());
+					difference.add("effective", actual.deepCopy());
+					differences.add(difference);
+				}
+				if (effective.has("fields") && effective.get("fields").isJsonObject() && effective.getAsJsonObject("fields").has(name))
+					effective.getAsJsonObject("fields").add(name, actual.deepCopy());
+				if ((effective.has(name) || !declared.has(name)) && (!actual.isJsonNull() || declared.has(name)))
+					effective.add(name, actual.deepCopy());
+			}
+			if (declared.has("displayName") && !declared.get("displayName").equals(definition.get("name"))) {
+				JsonObject difference = new JsonObject();
+				difference.addProperty("path", "/displayName");
+				difference.add("declared", declared.get("displayName").deepCopy());
+				difference.add("effective", definition.get("name").deepCopy());
+				differences.add(difference);
+			}
+			effective.add("displayName", definition.get("name").deepCopy());
+			result.addProperty("status", differences.isEmpty() ? "consistent" : "drift");
+			result.addProperty("sourceFingerprint", configurationFingerprint(existing));
+			result.add("differences", differences);
+			result.add("declaredValues", element.values().deepCopy());
+			result.add("effectiveValues", effective);
+		} catch (IOException | RuntimeException exception) {
+			result.addProperty("status", "unverified");
+			result.addProperty("reason", "The durable block definition could not be compared; inspect it before editing.");
+		}
+		return result;
+	}
+
+	private static boolean sameBlockValue(String name, JsonElement left, JsonElement right) {
+		try {
+			var type = BlockFieldContract.field(name).getGenericType();
+			return GENERIC_FIELD_GSON.toJsonTree(GENERIC_FIELD_GSON.fromJson(left, type))
+					.equals(GENERIC_FIELD_GSON.toJsonTree(GENERIC_FIELD_GSON.fromJson(right, type)));
+		} catch (RuntimeException exception) { return false; }
+	}
+
+	private String configurationFingerprint(ModElement element) throws IOException {
+		List<Path> paths = new java.util.ArrayList<>(associatedPaths(element));
+		paths.add(workspace.getFolderManager().getModElementsDir().toPath().resolve(element.getName() + ".mod.json"));
+		StringBuilder content = new StringBuilder();
+		for (Path path : paths.stream().distinct().sorted().toList())
+			content.append(path.toAbsolutePath().normalize()).append('\n')
+					.append(Files.isRegularFile(path) ? fingerprint(path) : "missing").append('\n');
+		return fingerprint(content.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));
+	}
+
+	private boolean reconciliationRequested(Element previous, Element next) {
+		return next.values().has("configurationResolution") && (previous == null
+				|| !sameJsonMember(previous.values(), next.values(), "configurationResolution"));
+	}
+
+	private void validateReconciliation(ModElement existing, Element previous, Element next) {
+		if (!reconciliationRequested(previous, next)) return;
+		if (existing == null || existing.isCodeLocked() || !next.type().equals("block"))
+			throw new IllegalStateException("Configuration reconciliation requires a generated block.");
+		JsonObject resolution = next.values().getAsJsonObject("configurationResolution");
+		String mode = string(resolution, "mode", "");
+		if (!Set.of("adopt_definition", "reapply_declared").contains(mode))
+			throw new IllegalArgumentException("Unknown configuration resolution mode");
+		try {
+			String expected = string(resolution, "sourceFingerprint", "");
+			String actual = configurationFingerprint(existing);
+			if (!expected.equals(actual)) throw new WorkspaceSourceConflictException("/configurationResolution",
+					"elements/" + existing.getName() + ".mod.json", expected, actual);
+		} catch (IOException exception) { throw new IllegalStateException("Cannot verify configuration sources", exception); }
+		if (mode.equals("adopt_definition")) {
+			JsonObject actual = elementConfiguration(previous).getAsJsonObject("effectiveValues");
+			JsonObject target = next.values().deepCopy();
+			target.remove("configurationResolution"); actual.remove("configurationResolution");
+			if (!target.equals(actual)) throw new IllegalArgumentException("Adopt-definition values must match the reviewed effective values.");
+		}
+	}
+
 	@Override public void validateWorkspacePlan(WorkspaceState before, WorkspaceState after) {
 		Map<String, PlannedSourceOwner> claims = new LinkedHashMap<>();
 		Path workspaceRoot = workspace.getWorkspaceFolder().toPath().toAbsolutePath().normalize();
 		for (Element element : after.elements()) {
 			ModElement existing = find(element.id());
+			validateSupportedChanges(before.element(element.id()), element);
+			validateReconciliation(existing, before.element(element.id()), element);
+			Element previousDefinition = before.element(element.id());
+			if (previousDefinition != null && !previousDefinition.values().equals(element.values())
+					&& !reconciliationRequested(previousDefinition, element)
+					&& "drift".equals(string(elementConfiguration(previousDefinition), "status", "")))
+				throw new ElementFieldException("CONFIGURATION_DRIFT", "/configuration", element.id(),
+						"Review adopt_definition or reapply_declared before editing this block.");
 			if (!"code".equals(element.type())) {
 				List<Path> planned = element.ownership().equals("manual") && existing != null
 						? associatedPaths(existing) : predictedGeneratedPaths(element);
@@ -327,9 +457,10 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 		ModElement existing = find(affectedElement.id());
 		Element previous = before.element(affectedElement.id());
 		String storedName = existing == null ? affectedElement.name() : existing.getName();
-		FileSnapshot snapshot = FileSnapshot.capture(workspace, storedName, existing,
-				plannedSingleElementRollbackPaths(existing, affectedElement));
+		List<Path> pendingPaths = plannedRollbackPaths(before, after);
+		FileSnapshot snapshot = FileSnapshot.capture(workspace, storedName, existing, pendingPaths);
 		try {
+			MCreatorGenerationPreparation.verifyPending(workspace);
 			switch (operation) {
 				case CREATE_MOD_ELEMENT -> create(affectedElement);
 				case UPDATE_MOD_ELEMENT, BIND_BLOCKBENCH_MODEL, SET_MOD_ELEMENT_SOURCE_MANAGEMENT, UPDATE_PROCEDURE ->
@@ -342,6 +473,7 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 			}
 			if ("code".equals(affectedElement.type()) && after.element(affectedElement.id()) != null)
 				after.replaceElement(affectedElement);
+			MCreatorGenerationPreparation.recordPending(workspace, pendingPaths, List.of(affectedElement.name()));
 			workspace.getFileManager().saveWorkspaceDirectlyAndWait();
 			for (WorkspaceMutationObserver observer : observers)
 				observer.afterMutation(workspace, before, after, operation, affectedElement);
@@ -411,6 +543,7 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 		FileSnapshot snapshot = FileSnapshot.capturePlan(workspace, before, after, workspaceId,
 				plannedPaths);
 		try {
+			MCreatorGenerationPreparation.verifyPending(workspace);
 			if (!before.registries().equals(after.registries()))
 				MCreatorWorkspaceRegistryMapper.synchronize(workspace, after.registries());
 
@@ -434,6 +567,9 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 			generateWorkspaceBaseIfReady();
 			if (artifacts != null) for (WorkspacePlanArtifact artifact : artifacts)
 				writePlanArtifact(artifact);
+			MCreatorGenerationPreparation.recordPending(workspace, plannedPaths, after.elements().stream()
+					.filter(element -> before.element(element.id()) == null || !sameContent(before.element(element.id()), element))
+					.map(Element::name).toList());
 
 			workspace.getFileManager().saveWorkspaceDirectlyAndWait();
 			workspace.getFileManager().advanceProductRevision(before.id(), before.revision(), after.registries());
@@ -516,6 +652,7 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 	}
 
 	private void create(Element element) {
+		validateSupportedChanges(null, element);
 		if (workspace.getModElementByName(element.name()) != null)
 			throw new IllegalStateException("Element already exists in upstream workspace: " + element.name());
 		if ("code".equals(element.type())) {
@@ -537,11 +674,26 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 	}
 
 	private void update(ModElement modElement, Element previous, Element element) {
+		validateSupportedChanges(previous, element);
 		if (modElement == null)
 			throw new IllegalStateException("Element is missing from upstream workspace: " + element.id());
 		GeneratableElement definition = modElement.getGeneratableElement();
 		if (definition == null || !element.type().equals(modElement.getTypeString()))
 			throw new IllegalStateException("Element type does not match the upstream definition: " + element.id());
+		validateReconciliation(modElement, previous, element);
+		if (reconciliationRequested(previous, element)) {
+			modElement.putMetadata("dev.copperbench.previousDeclaredValues",
+					WorkspaceFileManager.gson.fromJson(previous.values(), Object.class));
+			if (element.values().getAsJsonObject("configurationResolution").get("mode").getAsString().equals("adopt_definition")) {
+				storeProductMetadata(modElement, element);
+				workspace.markDirty();
+				return;
+			}
+		} else if (previous != null && element.type().equals("block") && !modElement.isCodeLocked()
+				&& "drift".equals(string(elementConfiguration(previous), "status", ""))) {
+			throw new ElementFieldException("CONFIGURATION_DRIFT", "/configuration", element.id(),
+					"Review adopt_definition or reapply_declared before editing this block.");
+		}
 		if (!element.type().equals("code") && !element.ownership().equals("manual"))
 			validateGeneratedUpdatePaths(modElement, element);
 		storeProductMetadata(modElement, element);
@@ -572,6 +724,7 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 		}
 		workspace.getModElementManager().storeModElement(definition);
 		generateRegisteredSources(definition);
+		if (definition instanceof Block block) verifyBlockDefinition(block, element);
 	}
 
 	private void generateRegisteredSources(GeneratableElement definition) {
@@ -588,6 +741,7 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 			throw new IllegalStateException("Upstream element validation failed for "
 					+ definition.getModElement().getName(), exception);
 		}
+		if (MCreatorGenerationPreparation.deferred(workspace)) return;
 		try {
 			workspace.getGenerator().generateBase();
 			if (!workspace.getGenerator().generateElement(definition)) {
@@ -611,7 +765,7 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 	}
 
 	private void generateWorkspaceBaseIfReady() {
-		if (generatorWorkspaceReady())
+		if (generatorWorkspaceReady() && !MCreatorGenerationPreparation.deferred(workspace))
 			workspace.getGenerator().generateBase();
 	}
 
@@ -639,6 +793,7 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 	}
 
 	private GeneratableElement newDefinition(ModElement modElement, Element element) {
+		element = withMergedValues(element);
 		return switch (element.type()) {
 			case "block" -> newBlock(modElement, element);
 			case "item" -> newItem(modElement, element);
@@ -671,18 +826,65 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 		Block block = new Block(modElement);
 		block.name = element.displayName();
 		block.customModelName = "Normal";
+		block.renderType = 10;
+		block.texture = new TextureHolder(workspace, "minecraft:stone");
 		block.transparencyType = "SOLID";
 		block.colorOnMap = new MapColor(workspace, "DEFAULT");
 		block.noteBlockInstrument = new NoteBlockInstrument(workspace, "harp");
 		block.aiPathNodeType = new AIPathNodeType(workspace, "DEFAULT");
 		block.soundOnStep = new net.mcreator.element.parts.StepSound(workspace, "STONE");
 		block.luminance = new net.mcreator.element.parts.procedure.NumberProcedure(null, 0);
-		block.boundingBoxes.clear();
 		block.inventoryStackSize = 99;
 		block.frequencyPerChunks = 10;
 		block.frequencyOnChunk = 16;
 		block.maxGenerateHeight = 64;
+		applyBlock(block, element);
 		return block;
+	}
+
+	private void applyBlock(Block block, Element element) {
+		var issue = BlockFieldContract.validate(element.values());
+		if (issue != null) throw new ElementFieldException(issue.code(), issue.path(), element.id(), issue.message());
+		JsonObject values = BlockFieldContract.merged(element.values());
+		for (String name : BlockFieldContract.DEFINITION_FIELDS) {
+			if (!values.has(name)) continue;
+			Field field = BlockFieldContract.field(name);
+			try {
+				Object value = GENERIC_FIELD_GSON.fromJson(values.get(name), field.getGenericType());
+				IWorkspaceDependent.processWorkspaceDependentObjects(value, part -> part.setWorkspace(workspace));
+				field.set(block, value);
+			} catch (RuntimeException | IllegalAccessException exception) {
+				throw new ElementFieldException("FIELD_CONVERSION_FAILED", BlockFieldContract.path(element.values(), name),
+						element.id(), "Expected " + field.getGenericType().getTypeName() + "; the definition was not saved.");
+			}
+		}
+		block.name = element.displayName();
+		if (block.guiBoundTo != null && !block.guiBoundTo.isBlank()) {
+			ModElement gui = workspace.getModElementByName(block.guiBoundTo);
+			if (gui == null || !gui.getTypeString().equals("gui"))
+				throw new ElementFieldException("FIELD_REFERENCE_INVALID", "/guiBoundTo", element.id(), "Select an existing GUI element.");
+		}
+	}
+
+	/** Read the bytes actually stored by the upstream writer before advancing the product revision. */
+	private void verifyBlockDefinition(Block block, Element element) {
+		Path file = workspace.getFolderManager().getModElementsDir().toPath().resolve(element.name() + ".mod.json");
+		try {
+			JsonObject actual = JsonParser.parseString(Files.readString(file)).getAsJsonObject().getAsJsonObject("definition");
+			JsonObject values = BlockFieldContract.merged(element.values());
+			for (String name : BlockFieldContract.DEFINITION_FIELDS) {
+				if (!values.has(name)) continue;
+				Field field = BlockFieldContract.field(name);
+				Object persisted = GENERIC_FIELD_GSON.fromJson(actual.get(name), field.getGenericType());
+				Object requested = GENERIC_FIELD_GSON.fromJson(values.get(name), field.getGenericType());
+				if (!GENERIC_FIELD_GSON.toJsonTree(persisted).equals(GENERIC_FIELD_GSON.toJsonTree(requested)))
+					throw new IllegalStateException("Persisted block field differs from the request: " + name);
+			}
+			if (!element.displayName().equals(actual.get("name").getAsString()))
+				throw new IllegalStateException("Persisted block display name differs from the request");
+		} catch (IOException exception) {
+			throw new IllegalStateException("Cannot verify the stored block definition", exception);
+		}
 	}
 
 	private Item newItem(ModElement modElement, Element element) {
@@ -697,6 +899,7 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 
 	private void applyItem(Item item, Element element) {
 		JsonObject values = element.values();
+		applyGenericValues(item, element);
 		item.name = element.displayName();
 		item.texture = new TextureHolder(workspace, string(values, "texture", "minecraft:barrier"));
 		int stackSize = integer(values, "stackSize", item.stackSize);
@@ -748,6 +951,8 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 		for (int index = 0; index < recipe.recipeSlots.length; index++)
 			recipe.recipeSlots[index] = new MItemBlock(workspace, "");
 		recipe.recipeReturnStack = new MItemBlock(workspace, "");
+		applyGenericValues(recipe, element);
+		recipe.name = element.name();
 		return recipe;
 	}
 
@@ -762,9 +967,7 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 		function.name = string(values, "name", element.name()).toLowerCase(java.util.Locale.ROOT);
 		function.namespace = string(values, "namespace", "mod");
 		if (values.has("commands") && values.get("commands").isJsonArray()) {
-			List<String> commands = new java.util.ArrayList<>();
-			values.getAsJsonArray("commands").forEach(command -> commands.add(command.getAsString()));
-			function.code = String.join("\n", commands) + (commands.isEmpty() ? "" : "\n");
+			function.code = dev.copperbench.core.application.FunctionFieldContract.body(values.getAsJsonArray("commands"));
 		} else function.code = string(values, "code", "# New Copperbench function\n");
 	}
 
@@ -835,10 +1038,11 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 	}
 
 	private void updateDefinition(GeneratableElement definition, Element element) {
+		element = withMergedValues(element);
 			switch (definition) {
-			case Block block -> block.name = element.displayName();
+			case Block block -> applyBlock(block, element);
 			case Item item -> applyItem(item, element);
-			case Recipe recipe -> recipe.name = element.name();
+			case Recipe recipe -> { applyGenericValues(recipe, element); recipe.name = element.name(); }
 			case Procedure procedure -> procedure.procedurexml = procedureXml(element.values());
 			case Projectile projectile -> applyProjectileDefaults(projectile, element);
 			case Function function -> applyFunction(function, element);
@@ -846,6 +1050,68 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 			case Achievement achievement -> applyAchievement(achievement, element);
 			default -> applyGenericValues(definition, element);
 		}
+	}
+
+	private void validateSupportedChanges(Element previous, Element element) {
+		if (previous != null && previous.values().equals(element.values())) return;
+		var issue = ElementMappingSupport.unsupportedChange(element.type(), previous == null ? new JsonObject() : previous.values(), element.values());
+		if (issue != null) throw new ElementFieldException(issue.code(), issue.path(), element.id(), issue.message());
+		if (previous != null && !Set.of("function", "loottable").contains(element.type())
+				&& !java.util.Objects.equals(BlockFieldContract.merged(previous.values()).get("name"), BlockFieldContract.merged(element.values()).get("name")))
+			throw new ElementFieldException("FIELD_READ_ONLY", "/name", element.id(), "Internal names are not changed by field edits.");
+		JsonObject values = element.values();
+		if (values.has("fields")) {
+			if (!values.get("fields").isJsonObject()) throw new ElementFieldException("FIELD_TYPE_INVALID", "/fields", element.id(), "fields must be an object.");
+			for (var entry : values.getAsJsonObject("fields").entrySet())
+				if (values.has(entry.getKey()) && !values.get(entry.getKey()).equals(entry.getValue()))
+					throw new ElementFieldException("FIELD_ALIAS_CONFLICT", "/fields/" + entry.getKey(), element.id(), "Conflicting field spellings.");
+		}
+		if (previous != null && element.type().equals("loottable")) validateLootTablePreservation(element);
+		if (GenericFieldInputContract.appliesTo(element.type())) {
+			JsonObject merged = BlockFieldContract.merged(element.values());
+			for (Field field : modElementType(element.type()).getModElementStorageClass().getFields()) {
+				if (Modifier.isStatic(field.getModifiers()) || Modifier.isFinal(field.getModifiers())
+						|| Modifier.isTransient(field.getModifiers()) || !merged.has(field.getName())) continue;
+				var inputIssue = GenericFieldInputContract.validate(field, merged.get(field.getName()), BlockFieldContract.path(element.values(), field.getName()));
+				if (inputIssue != null) throw new ElementFieldException(inputIssue.code(), inputIssue.path(), element.id(), inputIssue.message());
+			}
+			if (previous != null) validateGenericFieldPreservation(element);
+		}
+	}
+
+	private void validateGenericFieldPreservation(Element element) {
+		ModElement existing = find(element.id());
+		if (existing == null) return;
+		Path path = workspace.getFolderManager().getModElementsDir().toPath().resolve(existing.getName() + ".mod.json");
+		if (!Files.isRegularFile(path)) return;
+		try {
+			JsonObject raw = JsonParser.parseString(Files.readString(path)).getAsJsonObject();
+			JsonObject definition = raw.has("definition") && raw.get("definition").isJsonObject() ? raw.getAsJsonObject("definition") : raw;
+			var issue = GenericFieldInputContract.preservationIssue(existing.getType().getModElementStorageClass(), definition);
+			if (issue != null) throw new ElementFieldException(issue.code(), issue.path(), element.id(), issue.message());
+		} catch (IOException exception) {
+			throw new IllegalStateException("Cannot inspect imported nested fields before writing", exception);
+		}
+	}
+
+	private void validateLootTablePreservation(Element element) {
+		ModElement existing = find(element.id());
+		if (existing == null) return;
+		Path path = workspace.getFolderManager().getModElementsDir().toPath().resolve(existing.getName() + ".mod.json");
+		if (!Files.isRegularFile(path)) return;
+		try {
+			JsonObject raw = JsonParser.parseString(Files.readString(path)).getAsJsonObject();
+			JsonObject definition = raw.has("definition") && raw.get("definition").isJsonObject() ? raw.getAsJsonObject("definition") : raw;
+			var issue = LootTableFieldContract.preservationIssue(definition);
+			if (issue != null) throw new ElementFieldException(issue.code(), issue.path(), element.id(), issue.message());
+		} catch (IOException exception) {
+			throw new IllegalStateException("Cannot inspect imported loot table fields before writing", exception);
+		}
+	}
+
+	private static Element withMergedValues(Element element) {
+		return new Element(element.id(), element.type(), element.name(), element.displayName(), element.state(), element.ownership(),
+				element.updatedAt(), BlockFieldContract.merged(element.values()));
 	}
 
 	/**
@@ -856,18 +1122,25 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 	private void applyGenericValues(GeneratableElement definition, Element element) {
 		JsonObject values = element.values();
 		for (Field field : definition.getClass().getFields()) {
-			if (Modifier.isStatic(field.getModifiers())) continue;
+			if (Modifier.isStatic(field.getModifiers()) || Modifier.isFinal(field.getModifiers()) || Modifier.isTransient(field.getModifiers())) continue;
 			com.google.gson.JsonElement raw = values.get(field.getName());
+			if (raw != null && values.has("fields") && values.get("fields").isJsonObject()
+					&& values.getAsJsonObject("fields").has(field.getName())
+					&& !raw.equals(values.getAsJsonObject("fields").get(field.getName())))
+				throw new ElementFieldException("FIELD_ALIAS_CONFLICT", "/fields/" + field.getName(), element.id(),
+						"Supply one spelling of this field or equal values in both forms.");
 			if ((raw == null || raw.isJsonNull()) && values.has("fields") && values.get("fields").isJsonObject())
 				raw = values.getAsJsonObject("fields").get(field.getName());
-			if (raw == null || raw.isJsonNull()) continue;
+			if (raw == null) continue;
+			validatePrimitiveInput(field, raw, element);
 			try {
 				Object value = GENERIC_FIELD_GSON.fromJson(raw, field.getGenericType());
 				IWorkspaceDependent.processWorkspaceDependentObjects(value,
 						workspaceDependent -> workspaceDependent.setWorkspace(workspace));
 				field.set(definition, value);
-			} catch (RuntimeException | IllegalAccessException ignored) {
-				// Complex workspace-dependent values retain the upstream default; raw values stay in metadata.
+			} catch (RuntimeException | IllegalAccessException exception) {
+				throw new ElementFieldException("FIELD_CONVERSION_FAILED", BlockFieldContract.path(values, field.getName()),
+						element.id(), "Expected " + field.getGenericType().getTypeName() + "; no changes were saved.");
 			}
 		}
 		try {
@@ -881,6 +1154,34 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 			// Some upstream types intentionally do not expose a name field.
 		}
 		fillMissingStringDefaults(definition);
+	}
+
+	private static void validatePrimitiveInput(Field field, JsonElement raw, Element element) {
+		Class<?> type = field.getType();
+		String path = BlockFieldContract.path(element.values(), field.getName());
+		if (raw.isJsonNull()) {
+			if (type.isPrimitive()) throw new ElementFieldException("FIELD_TYPE_INVALID", path, element.id(), "Primitive fields cannot be null.");
+			return;
+		}
+		if ((type == boolean.class || type == Boolean.class) && (!raw.isJsonPrimitive() || !raw.getAsJsonPrimitive().isBoolean())
+				|| type == String.class && (!raw.isJsonPrimitive() || !raw.getAsJsonPrimitive().isString()))
+			throw new ElementFieldException("FIELD_TYPE_INVALID", path, element.id(), "Expected " + type.getSimpleName() + ".");
+		if (type.isPrimitive() && type != boolean.class && type != char.class || Number.class.isAssignableFrom(type)) {
+			if (!raw.isJsonPrimitive() || !raw.getAsJsonPrimitive().isNumber() || !Double.isFinite(raw.getAsDouble()))
+				throw new ElementFieldException("FIELD_TYPE_INVALID", path, element.id(), "Expected a finite number.");
+			double value = raw.getAsDouble();
+			var numeric = field.getAnnotation(net.mcreator.element.types.interfaces.Numeric.class);
+			boolean integer = type == byte.class || type == short.class || type == int.class || type == long.class
+					|| type == Byte.class || type == Short.class || type == Integer.class || type == Long.class;
+			if (integer && !BlockFieldContract.isIntegerInStorageRange(raw, type)
+					|| (type == float.class || type == Float.class) && !Float.isFinite(raw.getAsFloat())
+					|| numeric != null && (value < numeric.min() || value > numeric.max()))
+				throw new ElementFieldException("FIELD_VALUE_OUT_OF_RANGE", path, element.id(), "The value is outside the field's declared numeric range or is not an integer.");
+		}
+		var options = field.getAnnotation(net.mcreator.element.types.interfaces.LimitedOptions.class);
+		if (options != null && (type == int.class ? raw.getAsInt() < 0 || raw.getAsInt() >= options.value().length
+				: type == String.class && !java.util.Arrays.asList(options.value()).contains(raw.getAsString())))
+			throw new ElementFieldException("FIELD_ENUM_INVALID", path, element.id(), "Choose one of " + java.util.Arrays.toString(options.value()));
 	}
 
 	private void fillMissingStringDefaults(GeneratableElement definition) {
@@ -902,8 +1203,6 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 			GeneratableElement definition) {
 		if (workspace.getGenerator() == null)
 			throw new IllegalStateException("A generator is required to persist a code element");
-		if (!generatorWorkspaceReady())
-			return;
 		if (modElement.getAssociatedFiles().isEmpty() && !workspace.getGenerator().generateElement(definition))
 			throw new IllegalStateException("The generator could not create the code element source file");
 		List<File> associated = new java.util.ArrayList<>(modElement.getAssociatedFiles());
@@ -991,7 +1290,7 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 			if (!file.has("path") || !file.get("path").isJsonPrimitive()
 					|| !file.has("code") || !file.get("code").isJsonPrimitive())
 				throw new IllegalStateException("Each code bundle file requires path and code");
-			Path target = base.resolve(file.get("path").getAsString()).toAbsolutePath().normalize();
+			Path target = base.resolve(file.get("path").getAsString().replace('\\', '/')).toAbsolutePath().normalize();
 			if (!target.startsWith(base) || pathKey(target).equals(pathKey(primarySource)))
 				throw new IllegalStateException(
 						"Code bundle path escapes the generated source package or replaces the primary source");
@@ -1057,6 +1356,7 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 			throw new IllegalStateException("Unable to synchronize live code metadata from disk", exception);
 		}
 		liveValues.add("sourceFingerprints", fingerprints);
+		dev.copperbench.core.application.CodeFieldContract.refreshStoredAliases(liveValues);
 		element.values().entrySet().clear();
 		for (var entry : liveValues.entrySet()) element.values().add(entry.getKey(), entry.getValue().deepCopy());
 		modElement.putMetadata(ELEMENT_VALUES_METADATA,

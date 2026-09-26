@@ -789,6 +789,11 @@ export class MockCoreBridge implements CoreBridge {
       baseRevision: this.state.workbench?.workspace.revision ?? 42,
       readOnly: this.state.workbench?.permission.profile === 'read_only',
       ir,
+      triggerCatalog: [
+        { id: 'mod_serverload', label: { key: 'trigger.mod_serverload', fallback: '服务器启动' }, dependencies: [] },
+        { id: 'player_ticks', label: { key: 'trigger.player_ticks', fallback: '玩家更新' },
+          dependencies: [{ name: 'entity', type: 'entity' }, { name: 'x', type: 'number' }, { name: 'y', type: 'number' }, { name: 'z', type: 'number' }] }
+      ],
       nodeCatalog: [
         ['controls_if', 'control', '条件', 'statement'],
         ['controls_repeat_ext', 'control', '重复循环', 'statement'],

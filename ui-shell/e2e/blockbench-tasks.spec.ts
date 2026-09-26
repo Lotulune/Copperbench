@@ -5,13 +5,15 @@ test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => Object.defineProperty(crypto, 'randomUUID', { value: undefined }));
 });
 
-test('native task UI refreshes a saved hash before completion and preserves cancelled tasks', async ({ page }, testInfo) => {
+test('native task UI preserves racing-save rejection without replaying writes and keeps cancelled tasks', async ({ page }, testInfo) => {
   await page.addInitScript(() => {
     const listeners = new Set<(raw: string) => void>();
     const modulePath = '/src/mock/mockBridge.ts';
     const ready = import(modulePath).then(({ MockCoreBridge }) => new MockCoreBridge());
     let task: any = null;
     let hash = 'a'.repeat(64);
+    let raceAfterRead = true;
+    (window as any).finishRequests = 0;
     (window as any).saveModel = () => { hash = 'b'.repeat(64); };
     (window as any).changeCandidate = () => { task.candidateChanged = true; };
     window.copperbenchHost = {
@@ -24,7 +26,14 @@ test('native task UI refreshes a saved hash before completion and preserves canc
           messageType: 'query_result', schemaVersion: '1.0', requestId: request.requestId, workspaceId: request.workspaceId,
           operation: request.operation, status: 'succeeded', revision: 42, diagnostics: [], data: { tasks: task ? [{ ...task, editSha256: hash }] : [] }
         });
+        if (request.operation === 'get_blockbench_task') {
+          const observed = { ...task, editSha256: hash };
+          if (raceAfterRead) { hash = 'c'.repeat(64); raceAfterRead = false; }
+          return JSON.stringify({ messageType: 'query_result', schemaVersion: '1.0', requestId: request.requestId,
+            workspaceId: request.workspaceId, operation: request.operation, status: 'succeeded', revision: 42, diagnostics: [], data: observed });
+        }
         if (['begin_blockbench_task', 'finish_blockbench_task', 'cancel_blockbench_task'].includes(request.operation)) {
+          if (request.operation === 'finish_blockbench_task') (window as any).finishRequests++;
           const stale = request.operation === 'finish_blockbench_task' && request.payload.savedSha256 !== hash;
           if (request.operation === 'begin_blockbench_task') task = {
             taskId: request.payload.taskId, targetRelativePath: request.payload.targetRelativePath,
@@ -36,7 +45,7 @@ test('native task UI refreshes a saved hash before completion and preserves canc
           return JSON.stringify({ messageType: 'command_result', schemaVersion: '1.0', requestId: request.requestId,
             workspaceId: request.workspaceId, operation: request.operation, status: stale ? 'failed' : 'completed', newRevision: 42,
             recoveryPointId: 'recovery-modeling-test', task: null, conflict: null, denial: null, data: task,
-            diagnostics: stale ? [{ code: 'MODEL_EDIT_CHANGED', severity: 'error', message: { key: 'diagnostic.blockbench_task_failed', fallback: '', args: {} }, path: null, elementId: null, recoverable: true, actions: [] }] : []
+            diagnostics: stale ? [{ code: 'MODEL_EDIT_CHANGED', severity: 'error', message: { key: 'diagnostic.model_edit_changed', fallback: 'Saved file changed; refresh', args: {} }, path: null, elementId: null, recoverable: true, actions: [] }] : []
           });
         }
         return JSON.stringify(request.messageType === 'handshake' ? await core.negotiateHandshake(request)
@@ -53,9 +62,11 @@ test('native task UI refreshes a saved hash before completion and preserves canc
   await page.evaluate(() => (window as any).saveModel());
   await panel.getByRole('button', { name: '确认磁盘保存并生成候选' }).click();
   await expect(panel.getByRole('status')).toContainText('MODEL_EDIT_CHANGED');
+  expect(await page.evaluate(() => (window as any).finishRequests)).toBe(1);
   await panel.getByRole('button', { name: '刷新任务与保存状态' }).click();
   await panel.getByRole('button', { name: '确认磁盘保存并生成候选' }).click();
   await expect(panel).toContainText('候选已保存，待回导');
+  expect(await page.evaluate(() => (window as any).finishRequests)).toBe(2);
   await expect(panel).toContainText('尚未导出或回导到游戏');
   await page.screenshot({ path: testInfo.outputPath('modeling-candidate.png') });
   await page.evaluate(() => (window as any).changeCandidate());

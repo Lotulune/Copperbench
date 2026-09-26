@@ -568,7 +568,7 @@ block_base_properties:
   HangingSign: [ attached, facing, rotation, waterlogged ] # includes both ceiling sign and wall sign properties
 
 localizationkeys:
-  - key: item.@modid.@registryname
+  - key: block.@modid.@registryname
     mapto: name
   - fromlist: data.getFixedSpecialInformation()
     key: block.@modid.@registryname.description_@item_index

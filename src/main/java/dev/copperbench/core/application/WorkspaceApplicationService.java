@@ -178,6 +178,7 @@ public final class WorkspaceApplicationService {
 
 		JsonObject assetHealth = new JsonObject();
 		List<Diagnostic> assetDiagnostics = List.of();
+		String assetSnapshot = "unavailable";
 		Path root = workspaceRoot(query.workspaceId());
 		if (root == null) {
 			assetHealth.addProperty("indexed", false);
@@ -187,6 +188,7 @@ public final class WorkspaceApplicationService {
 				AssetReferenceGraph graph = new AssetWorkspaceService(root).referenceGraph();
 				AssetHealthReport health = workspaceAssetHealth(graph, state);
 				assetDiagnostics = graph.diagnostics().stream().map(AssetDiagnosticProjection::project).toList();
+				assetSnapshot = GSON.toJson(graph.assets()) + GSON.toJson(graph.references());
 				assetHealth.addProperty("indexed", true);
 				assetHealth.add("summary", GSON.toJsonTree(health.summary()));
 				assetHealth.add("diagnostics", GSON.toJsonTree(assetDiagnostics));
@@ -196,7 +198,14 @@ public final class WorkspaceApplicationService {
 			}
 		}
 		projection.add("assets", assetHealth);
-		projection.add("diagnostics", workspaceDiagnosticCounts(state, referenceDiagnostics, assetDiagnostics));
+		JsonObject diagnosticSummary = workspaceDiagnosticCounts(state, referenceDiagnostics, assetDiagnostics);
+		diagnosticSummary.addProperty("scope", "workspace_current");
+		boolean unverifiedAssets = assetDiagnostics.stream().anyMatch(diagnostic -> diagnostic.code().equals("EXTERNAL_ASSET_REFERENCE_UNVERIFIED")
+				|| diagnostic.code().equals("EXTERNAL_ASSET_REFERENCE"));
+		diagnosticSummary.addProperty("collectionState", assetHealth.get("indexed").getAsBoolean() && !unverifiedAssets ? "complete" : "partial");
+		diagnosticSummary.addProperty("snapshotId", UUID.nameUUIDFromBytes((state.revision() + "\n" + assetSnapshot + "\n" + diagnosticSummary)
+				.getBytes(StandardCharsets.UTF_8)).toString());
+		projection.add("diagnostics", diagnosticSummary);
 
 		JsonObject generatorHealth = new JsonObject();
 		JsonObject generator = state.generator();
@@ -280,39 +289,39 @@ public final class WorkspaceApplicationService {
 
 	private JsonObject workspaceDiagnosticCounts(WorkspaceState state, JsonArray referenceDiagnostics,
 			List<Diagnostic> assetDiagnostics) {
-		int errors = 0;
-		int warnings = 0;
-		int info = 0;
+		Map<String, Diagnostic> unique = new LinkedHashMap<>();
 		for (Element element : state.elements()) {
 			Diagnostic diagnostic = validateElementValues(element.id(), element.type(), element.values());
-			if (diagnostic == null) continue;
-			switch (diagnostic.severity()) {
-				case ERROR -> errors++;
-				case WARNING -> warnings++;
-				case INFO -> info++;
+			if (diagnostic != null) unique.put(GSON.toJson(diagnostic), diagnostic);
+			if (diagnostic == null && element.type().equals("procedure") && !element.ownership().equals("manual")) {
+				try {
+					var ir = PROCEDURES.read(BlockFieldContract.merged(element.values()), element.id());
+					for (Diagnostic procedureIssue : procedureDiagnostics(element.id(), procedureIssues(ir)))
+						unique.put(GSON.toJson(procedureIssue), procedureIssue);
+				} catch (RuntimeException invalidGraph) {
+					Diagnostic invalid = diagnostic("PROCEDURE_IR_INVALID", "diagnostic.procedure_ir_invalid",
+							"The Procedure graph could not be parsed.", elementPath(element.id()) + "/procedureIr", element.id());
+					unique.put(GSON.toJson(invalid), invalid);
+				}
+			}
+			JsonObject configuration = mutations.elementConfiguration(element);
+			if ("drift".equals(optionalString(configuration, "status"))) {
+				Diagnostic drift = diagnostic("CONFIGURATION_DRIFT", "diagnostic.configuration_drift",
+						"Declared configuration differs from the effective definition. Review both values before editing.",
+						elementPath(element.id()), element.id());
+				unique.put(GSON.toJson(drift), drift);
 			}
 		}
 		for (JsonElement raw : referenceDiagnostics) {
-			String severity = raw.getAsJsonObject().has("severity")
-					? raw.getAsJsonObject().get("severity").getAsString() : "info";
-			switch (severity) {
-				case "error" -> errors++;
-				case "warning" -> warnings++;
-				default -> info++;
-			}
+			Diagnostic diagnostic = GSON.fromJson(raw, Diagnostic.class);
+			unique.put(GSON.toJson(diagnostic), diagnostic);
 		}
-		for (Diagnostic diagnostic : assetDiagnostics) {
-			switch (diagnostic.severity()) {
-				case ERROR -> errors++;
-				case WARNING -> warnings++;
-				case INFO -> info++;
-			}
-		}
+		for (Diagnostic diagnostic : assetDiagnostics) unique.put(GSON.toJson(diagnostic), diagnostic);
 		JsonObject counts = new JsonObject();
-		counts.addProperty("total", errors + warnings + info);
-		counts.addProperty("error", errors);
-		counts.addProperty("warning", warnings);
-		counts.addProperty("info", info);
+		counts.addProperty("total", unique.size());
+		for (UiCore.Severity severity : UiCore.Severity.values())
+			counts.addProperty(severity.name().toLowerCase(Locale.ROOT), unique.values().stream().filter(d -> d.severity() == severity).count());
+		counts.add("items", GSON.toJsonTree(unique.values()));
 		return counts;
 	}
 
@@ -494,6 +503,18 @@ public final class WorkspaceApplicationService {
 			projection.addProperty("workspaceKind", state.kind());
 			projection.addProperty("revision", state.revision());
 			projection.add("generator", state.generator());
+			JsonObject fieldContracts = new JsonObject();
+			fieldContracts.add("block", BlockFieldContract.capabilities(optionalString(state.generator(), "id")));
+			fieldContracts.add("loottable", LootTableFieldContract.capabilities());
+			fieldContracts.add("function", FunctionFieldContract.capabilities());
+			fieldContracts.add("projectile", SpecializedFieldContract.capabilities("projectile"));
+			fieldContracts.add("achievement", SpecializedFieldContract.capabilities("achievement"));
+			fieldContracts.add("generic", GenericFieldInputContract.capabilities());
+			fieldContracts.add("custom", CustomFieldInputContract.capabilities());
+			fieldContracts.add("code", CodeFieldContract.capabilities());
+			fieldContracts.add("procedure", ProcedureFieldContract.capabilities());
+			projection.add("fieldContracts", fieldContracts);
+			projection.add("application", ApplicationBuildIdentity.inspect());
 			Path root = workspaceRoot(query.workspaceId());
 			if (root == null) projection.add("workspaceRoot", JsonNull.INSTANCE);
 			else projection.addProperty("workspaceRoot", root.toAbsolutePath().normalize().toString());
@@ -855,6 +876,8 @@ public final class WorkspaceApplicationService {
 	}
 
 	private static Field stage12Field(String elementType, String fieldName) {
+		if (elementType.equals("block") && BlockFieldContract.DEFINITION_FIELDS.contains(fieldName))
+			return BlockFieldContract.field(fieldName);
 		Class<?> storageClass = stage12StorageClass(elementType);
 		if (storageClass == null) return null;
 		try {
@@ -1097,6 +1120,8 @@ public final class WorkspaceApplicationService {
 		if (store.read(workspaceId).isEmpty())
 			throw new IllegalArgumentException("Workspace not found: " + workspaceId);
 		return new BlockbenchProcessService.EditLifecycle() {
+			@Override public Path modelingEdit(UUID taskId) { return modeling(workspaceId).editingFile(taskId); }
+
 			@Override public BlockbenchProcessService.PreparedEdit prepare(AssetDescriptor asset) {
 				return prepareBlockbenchEdit(workspaceId, asset);
 			}
@@ -1401,9 +1426,13 @@ public final class WorkspaceApplicationService {
 				case GET_WORKSPACE_HEALTH -> querySuccess(query, state.revision(), workspaceHealth(query, state));
 				case LIST_NEW_WORKSPACE_GENERATORS -> querySuccess(query, state.revision(), newWorkspaceGenerators());
 				case LIST_ASSETS -> listAssets(query, state);
-				case GET_BLOCKBENCH_TASK -> querySuccess(query, state.revision(), modeling(query.workspaceId()).get(
-						UUID.fromString(requiredString(query.payload(), "taskId"))));
-				case LIST_BLOCKBENCH_TASKS -> querySuccess(query, state.revision(), modeling(query.workspaceId()).list());
+				case GET_BLOCKBENCH_TASK -> querySuccess(query, state.revision(), modelingTaskProjection(state, modeling(query.workspaceId()).get(
+						UUID.fromString(requiredString(query.payload(), "taskId")))));
+				case LIST_BLOCKBENCH_TASKS -> {
+					JsonObject result = modeling(query.workspaceId()).list();
+					for (JsonElement task : result.getAsJsonArray("tasks")) modelingTaskProjection(state, task.getAsJsonObject());
+					yield querySuccess(query, state.revision(), result);
+				}
 				case PREVIEW_BLOCKBENCH_IMPORT -> previewModelingImport(query, state);
 				case PREVIEW_ASSET_IMPORT -> previewAssetImport(query, state);
 				case PREVIEW_ASSET_IMPORT_BATCH -> previewAssetImportBatch(query, state);
@@ -1438,8 +1467,7 @@ public final class WorkspaceApplicationService {
 						"diagnostic.unsupported_operation", "The requested operation is not supported.", null, null));
 			};
 		} catch (BlockbenchBridgeException exception) {
-			return queryFailure(query, state.revision(), diagnostic(exception.code(),
-					"diagnostic.blockbench_task_failed", exception.getMessage(), null, null));
+			return queryFailure(query, state.revision(), modelingDiagnostic(exception));
 		} catch (ListCursorException exception) {
 			return queryFailure(query, state.revision(), diagnostic(exception.code(),
 					"diagnostic.list_cursor_invalid", exception.getMessage(), null, null));
@@ -1455,6 +1483,54 @@ public final class WorkspaceApplicationService {
 		return new dev.copperbench.assets.BlockbenchModelingService(root, workspaceId, history, clock);
 	}
 
+	private JsonObject modelingTaskProjection(WorkspaceState state, JsonObject task) {
+		if (!task.has("elementContext")) return task;
+		JsonObject context = task.getAsJsonObject("elementContext");
+		Element element = state.element(UUID.fromString(context.get("elementId").getAsString()));
+		JsonObject binding = new JsonObject();
+		binding.addProperty("state", element == null ? "element_missing" : element.ownership().equals("manual") ? "manual" : "unbound");
+		if (element != null && !element.ownership().equals("manual") && element.values().has("modelResource")
+				&& !element.values().get("modelResource").isJsonNull()) {
+			String resource = element.values().get("modelResource").getAsString();
+			binding.addProperty("modelResource", resource);
+			if ("imported".equals(task.get("state").getAsString()) && task.has("importFiles")) {
+				for (JsonElement raw : task.getAsJsonArray("importFiles")) {
+					String path = raw.getAsJsonObject().get("targetRelativePath").getAsString();
+					String expected = "src/main/resources/assets/" + resource.replace(":", "/models/") + ".json";
+					if (path.equals(expected)) binding.addProperty("state", "bound");
+				}
+			}
+		}
+		task.add("binding", binding);
+		return task;
+	}
+
+	private Diagnostic modelingDiagnostic(BlockbenchBridgeException exception) {
+		JsonObject args = new JsonObject();
+		args.addProperty("detail", exception.getMessage());
+		String key = switch (exception.code()) {
+			case "MODEL_EDIT_CHANGED" -> "diagnostic.model_edit_changed";
+			case "MODEL_TEXTURE_ATLAS_PATH" -> "diagnostic.model_texture_atlas_path";
+			default -> "diagnostic.blockbench_task_detail";
+		};
+		return diagnostic(exception.code(), key, exception.getMessage(), args, null, null);
+	}
+
+	private JsonObject modelingElementContext(WorkspaceState state, UUID elementId) {
+		Element element = state.element(elementId);
+		if (element == null || !Set.of("block", "item").contains(element.type()) || element.ownership().equals("manual"))
+			throw new BlockbenchBridgeException("MODEL_BINDING_UNSUPPORTED", "Select a generated block or item; handwritten elements require explicit model registration in their source");
+		String namespace = dev.copperbench.core.workspace.WorkspaceModIdentity.resolve(state);
+		JsonObject context = new JsonObject();
+		context.addProperty("elementId", elementId.toString());
+		context.addProperty("name", element.name());
+		context.addProperty("type", element.type());
+		context.addProperty("namespace", namespace);
+		context.addProperty("modelResource", namespace + ":custom/" + element.name());
+		context.addProperty("textureDirectory", "src/main/resources/assets/" + namespace + "/textures/" + element.type());
+		return context;
+	}
+
 	private dev.copperbench.assets.BlockbenchImportService modelingImporter(UUID workspaceId) {
 		Path root = workspaceRoot(workspaceId);
 		if (root == null) throw new BlockbenchBridgeException("MODEL_WORKSPACE_UNAVAILABLE", "The modeling workspace is unavailable");
@@ -1464,8 +1540,19 @@ public final class WorkspaceApplicationService {
 	private QueryResult previewModelingImport(Query query, WorkspaceState state) {
 		modelingImportGrants.entrySet().removeIf(entry -> !entry.getValue().expiresAt().isAfter(clock.instant()));
 		if (modelingImportGrants.size() >= 128) throw new BlockbenchBridgeException("MODEL_PREVIEW_LIMIT", "Too many active previews; retry after they expire");
-		var plan = modelingImporter(query.workspaceId()).preview(UUID.fromString(requiredString(query.payload(), "taskId")),
-				query.payload().getAsJsonArray("outputs"));
+		var importer = modelingImporter(query.workspaceId());
+		UUID taskId = UUID.fromString(requiredString(query.payload(), "taskId"));
+		JsonArray outputs = query.payload().getAsJsonArray("outputs");
+		JsonObject task = modeling(query.workspaceId()).get(taskId);
+		String elementId = query.payload().has("elementId") ? requiredString(query.payload(), "elementId")
+				: task.has("elementContext") ? task.getAsJsonObject("elementContext").get("elementId").getAsString() : null;
+		if (outputs == null && elementId != null) {
+			Element target = state.element(UUID.fromString(elementId));
+			if (target == null || !Set.of("block", "item").contains(target.type()) || target.ownership().equals("manual"))
+				throw new BlockbenchBridgeException("MODEL_BINDING_UNSUPPORTED", "Select a generated block or item before previewing automatic export mappings");
+			outputs = importer.suggestOutputs(taskId, dev.copperbench.core.workspace.WorkspaceModIdentity.resolve(state), target.name());
+		}
+		var plan = importer.preview(taskId, outputs);
 		Instant expiresAt = clock.instant().plus(Duration.ofMinutes(15));
 		modelingImportGrants.put(plan.token(), new ModelingImportGrant(query.workspaceId(), plan, expiresAt));
 		JsonObject data = plan.toJson(); data.addProperty("expiresAt", expiresAt.toString());
@@ -1498,7 +1585,7 @@ public final class WorkspaceApplicationService {
 					sequence.set(state.nextEventSequence());
 					return Decision.commit(imported, grant.plan().batch().items().stream().map(item -> "/" + item.targetRelativePath()).toList());
 				} catch (BlockbenchBridgeException exception) {
-					rejection.set(diagnostic(exception.code(), "diagnostic.blockbench_task_failed", exception.getMessage(), null, null));
+					rejection.set(modelingDiagnostic(exception));
 					return Decision.abort(new JsonObject());
 				}
 			});
@@ -1518,7 +1605,7 @@ public final class WorkspaceApplicationService {
 			return modelingImportOutcome(command, "committed", transaction.revision(), data,
 					List.of(event(command, transaction.revision(), sequence.get(), "assets_imported", data.deepCopy())));
 		} catch (BlockbenchBridgeException exception) {
-			return failed(command, currentRevision(command.workspaceId()), diagnostic(exception.code(), "diagnostic.blockbench_task_failed", exception.getMessage(), null, null));
+			return failed(command, currentRevision(command.workspaceId()), modelingDiagnostic(exception));
 		} catch (RuntimeException exception) { return failed(command, currentRevision(command.workspaceId()), invalidPayload(exception.getMessage())); }
 	}
 
@@ -1536,6 +1623,8 @@ public final class WorkspaceApplicationService {
 			Element element = state.element(elementId);
 			if (element == null || !Set.of("block", "item").contains(element.type()))
 				throw new BlockbenchBridgeException("MODEL_BINDING_ELEMENT", "Bind Java block/item models to a block or item element");
+			if (element.ownership().equals("manual"))
+				throw new BlockbenchBridgeException("MODEL_BINDING_UNSUPPORTED", "Handwritten elements require explicit model registration in their source");
 			String modId = dev.copperbench.core.workspace.WorkspaceModIdentity.resolve(state);
 			if (Set.of(modId + ":block/" + element.name(), modId + ":item/" + element.name()).contains(resource))
 				throw new BlockbenchBridgeException("MODEL_BINDING_SELF_REFERENCE", "Import the custom model under a distinct name, for example custom/lamp, to avoid a generated model referring to itself");
@@ -1550,7 +1639,7 @@ public final class WorkspaceApplicationService {
 			JsonArray changes = new JsonArray(); changes.add(change); payload.add("changes", changes);
 			return update(Command.of(command.requestId(), command.workspaceId(), command.expectedRevision(), command.operation(), payload), context);
 		} catch (BlockbenchBridgeException exception) {
-			return failed(command, currentRevision(command.workspaceId()), diagnostic(exception.code(), "diagnostic.blockbench_task_failed", exception.getMessage(), null, null));
+			return failed(command, currentRevision(command.workspaceId()), modelingDiagnostic(exception));
 		} catch (RuntimeException exception) { return failed(command, currentRevision(command.workspaceId()), invalidPayload(exception.getMessage())); }
 	}
 
@@ -1564,7 +1653,7 @@ public final class WorkspaceApplicationService {
 			CommandOutcome conflict = checkFailure(command, transaction); if (conflict != null) return conflict;
 			return modelingImportOutcome(command, "committed", transaction.revision(), transaction.value(), List.of());
 		} catch (BlockbenchBridgeException exception) {
-			return failed(command, currentRevision(command.workspaceId()), diagnostic(exception.code(), "diagnostic.blockbench_task_failed", exception.getMessage(), null, null));
+			return failed(command, currentRevision(command.workspaceId()), modelingDiagnostic(exception));
 		} catch (RuntimeException exception) { return failed(command, currentRevision(command.workspaceId()), invalidPayload(exception.getMessage())); }
 	}
 
@@ -1585,17 +1674,22 @@ public final class WorkspaceApplicationService {
 	private CommandOutcome modelingTask(Command command, RequestContext context) {
 		try {
 			Set<String> allowed = new HashSet<>(Set.of("taskId", "clientMutationId", "taskAuthorizationId"));
-			if (command.operation() == Operation.BEGIN_BLOCKBENCH_TASK) allowed.addAll(Set.of("assetId", "targetRelativePath"));
+			if (command.operation() == Operation.BEGIN_BLOCKBENCH_TASK) allowed.addAll(Set.of("assetId", "targetRelativePath", "elementId"));
 			if (command.operation() == Operation.FINISH_BLOCKBENCH_TASK) allowed.add("savedSha256");
 			if (!allowed.containsAll(command.payload().keySet())) throw new IllegalArgumentException("Unsupported modeling task property");
 			UUID taskId = UUID.fromString(requiredString(command.payload(), "taskId"));
 			var transaction = store.coordinate(command.workspaceId(), command.expectedRevision(), state -> {
 				var service = modeling(command.workspaceId());
 				return switch (command.operation()) {
-					case BEGIN_BLOCKBENCH_TASK -> service.begin(taskId,
-							command.payload().has("assetId") ? requiredString(command.payload(), "assetId") : null,
-							command.payload().has("targetRelativePath") ? requiredString(command.payload(), "targetRelativePath") : null,
-							state.revision(), context.actor());
+					case BEGIN_BLOCKBENCH_TASK -> {
+						JsonObject elementContext = command.payload().has("elementId")
+								? modelingElementContext(state, UUID.fromString(requiredString(command.payload(), "elementId"))) : null;
+						String assetId = command.payload().has("assetId") ? requiredString(command.payload(), "assetId") : null;
+						String target = command.payload().has("targetRelativePath") ? requiredString(command.payload(), "targetRelativePath") : null;
+						if (assetId == null && target == null && elementContext != null)
+							target = "models/blockbench/" + elementContext.get("name").getAsString() + ".bbmodel";
+						yield service.begin(taskId, assetId, target, state.revision(), context.actor(), elementContext);
+					}
 					case FINISH_BLOCKBENCH_TASK -> service.finish(taskId, requiredString(command.payload(), "savedSha256"), context.actor());
 					case CANCEL_BLOCKBENCH_TASK -> service.cancel(taskId, context.actor());
 					default -> throw new IllegalArgumentException("Unsupported modeling operation");
@@ -1608,8 +1702,7 @@ public final class WorkspaceApplicationService {
 					command.workspaceId(), command.operation(), "completed", transaction.revision(),
 					data.get("recoveryPointId").getAsString(), JsonNull.INSTANCE, data, List.of(), JsonNull.INSTANCE, JsonNull.INSTANCE), List.of());
 		} catch (BlockbenchBridgeException exception) {
-			return failed(command, currentRevision(command.workspaceId()), diagnostic(exception.code(),
-					"diagnostic.blockbench_task_failed", exception.getMessage(), null, null));
+			return failed(command, currentRevision(command.workspaceId()), modelingDiagnostic(exception));
 		} catch (RuntimeException exception) {
 			return failed(command, currentRevision(command.workspaceId()), invalidPayload(exception.getMessage()));
 		}
@@ -1722,6 +1815,9 @@ public final class WorkspaceApplicationService {
 		else value.addProperty("expectedPrefix", reference.expectedPrefix());
 		value.addProperty("targetPath", reference.targetPath());
 		value.addProperty("targetAssetId", reference.targetAssetId());
+		value.addProperty("resolution", reference.resolution());
+		value.addProperty("resourceSource", reference.resourceSource());
+		value.addProperty("resourceVersion", reference.resourceVersion());
 		value.addProperty("kind", reference.kind().name());
 		return value;
 	}
@@ -1824,9 +1920,20 @@ public final class WorkspaceApplicationService {
 			return failed(command, currentRevision(command.workspaceId()), diagnostic("MOD_ELEMENT_INVALID_IDENTITY",
 					"diagnostic.mod_element_invalid_identity", "Element type or name is invalid.", "/name", null));
 		JsonObject normalizedValues = defaultElementValues(type, name, initialValues);
+		if (type.equals("block")) {
+			for (String field : BlockFieldContract.merged(initialValues).keySet()) {
+				if (!BlockFieldContract.DEFINITION_FIELDS.contains(field) && !BlockFieldContract.PRODUCT_FIELDS.contains(field))
+					return failed(command, currentRevision(command.workspaceId()), blockFieldDiagnostic(null,
+							new BlockFieldContract.Issue("FIELD_UNSUPPORTED", BlockFieldContract.path(initialValues, field),
+									"This field is not writable through the structured block contract.")));
+			}
+		}
 		Diagnostic validation = validateElementValues(null, type, normalizedValues);
 		if (validation != null)
 			return failed(command, currentRevision(command.workspaceId()), validation);
+		if (type.equals("block") && !name.equals(BlockFieldContract.merged(normalizedValues).get("name").getAsString()))
+			return failed(command, currentRevision(command.workspaceId()), blockFieldDiagnostic(null,
+					new BlockFieldContract.Issue("FIELD_ALIAS_CONFLICT", "/name", "initialValues.name must match the element's internal name.")));
 		RecoveryPoint recoveryPoint;
 		try {
 			recoveryPoint = automationRecoveryPoint(command, context);
@@ -1840,9 +1947,12 @@ public final class WorkspaceApplicationService {
 				return Decision.abort(Mutation.rejected(diagnostic("MOD_ELEMENT_NAME_CONFLICT",
 						"diagnostic.mod_element_name_conflict", "An element with this name already exists.", "/name", null)));
 			UUID elementId = ids.get();
+			if (type.equals("procedure")) ProcedureFieldContract.normalize(normalizedValues, elementId);
 			String displayName = normalizedValues.has("displayName") ? normalizedValues.get("displayName").getAsString()
 					: displayName(name);
-			Element element = new Element(elementId, type, name, displayName, "valid",
+			String validity = type.equals("procedure") && procedureIssues(PROCEDURES.read(normalizedValues, elementId))
+					.stream().anyMatch(ProcedureIr.ValidationIssue::error) ? "invalid" : "valid";
+			Element element = new Element(elementId, type, name, displayName, validity,
 					type.equals("code") ? "manual" : "generated", clock.instant(),
 					normalizedValues);
 			state.addElement(element);
@@ -1900,13 +2010,43 @@ public final class WorkspaceApplicationService {
 			} catch (RuntimeException exception) {
 				return Decision.abort(Mutation.rejected(invalidPayload(exception.getMessage())));
 			}
+			if (existing.type().equals("function")) FunctionFieldContract.reconcileEditedAliases(values, changes);
+			if (existing.type().equals("code")) CodeFieldContract.reconcileEditedAliases(values, changes);
+			if (existing.type().equals("procedure")) ProcedureFieldContract.reconcileEditedAliases(values, changes);
+			if (existing.type().equals("procedure")) {
+				var preservation = ProcedureFieldContract.irEditIssue(existing.values(), changes);
+				if (preservation != null) return Decision.abort(Mutation.rejected(blockFieldDiagnostic(elementId, preservation)));
+			}
+			SpecializedFieldContract.reconcileEditedAliases(existing.type(), values, changes);
+			GenericFieldInputContract.reconcileEditedAliases(existing.type(), values, changes);
 			Diagnostic validation = validateElementValues(elementId, existing.type(), values);
+			if (existing.type().equals("block")) {
+				BlockFieldContract.reconcileEditedAliases(values, changes);
+				validation = validateElementValues(elementId, existing.type(), values);
+				if (!Objects.equals(BlockFieldContract.merged(existing.values()).get("name"), BlockFieldContract.merged(values).get("name")))
+					return Decision.abort(Mutation.rejected(blockFieldDiagnostic(elementId,
+							new BlockFieldContract.Issue("FIELD_READ_ONLY", "/name", "Internal names cannot be changed through field edits."))));
+			}
+			if (existing.type().equals("block")) {
+				JsonObject previousFields = BlockFieldContract.merged(existing.values());
+				for (var entry : BlockFieldContract.merged(values).entrySet()) {
+					String name = entry.getKey();
+					if (BlockFieldContract.DEFINITION_FIELDS.contains(name) || BlockFieldContract.PRODUCT_FIELDS.contains(name)
+							|| name.equals("configurationResolution") || entry.getValue().equals(previousFields.get(name))) continue;
+					return Decision.abort(Mutation.rejected(blockFieldDiagnostic(elementId,
+							new BlockFieldContract.Issue("FIELD_UNSUPPORTED", BlockFieldContract.path(values, name),
+									"Unknown imported fields are preserved read-only."))));
+				}
+			}
 			if (validation != null)
 				return Decision.abort(Mutation.rejected(validation));
+			if (existing.type().equals("procedure")) ProcedureFieldContract.normalize(values, elementId);
 			String updatedDisplayName = values.has("displayName") && values.get("displayName").isJsonPrimitive()
 					? values.get("displayName").getAsString() : existing.displayName();
+			String validity = existing.type().equals("procedure") && !existing.ownership().equals("manual")
+					&& procedureIssues(PROCEDURES.read(values, elementId)).stream().anyMatch(ProcedureIr.ValidationIssue::error) ? "invalid" : "valid";
 			Element updated = new Element(existing.id(), existing.type(), existing.name(), updatedDisplayName,
-					"valid", existing.ownership(), clock.instant(), values);
+					validity, existing.ownership(), clock.instant(), values);
 			state.replaceElement(updated);
 			Diagnostic persistenceFailure = persist(before, state, command, updated);
 			if (persistenceFailure != null)
@@ -2017,15 +2157,18 @@ public final class WorkspaceApplicationService {
 						"This Procedure source is manually managed. Reattach it before editing the generated Procedure graph.",
 						elementPath(elementId) + "/ownership", elementId)));
 			ProcedureIr candidate;
+			var preservation = ProcedureFieldContract.structuredEditIssue(existing.values());
+			if (preservation != null) return Decision.abort(Mutation.rejected(blockFieldDiagnostic(elementId, preservation)));
 			try {
 				candidate = PROCEDURES.applyEdits(PROCEDURES.read(existing.values(), elementId), edits);
 			} catch (RuntimeException exception) {
 				return Decision.abort(Mutation.rejected(invalidPayload(exception.getMessage())));
 			}
-			List<ProcedureIr.ValidationIssue> issues = PROCEDURES.validate(candidate);
+			List<ProcedureIr.ValidationIssue> issues = procedureIssues(candidate);
 			JsonObject values = existing.values().deepCopy();
 			values.add("procedureIr", PROCEDURES.toJson(candidate));
 			values.addProperty("procedurexml", PROCEDURES.toBlocklyXml(candidate));
+			ProcedureFieldContract.refreshAliases(values);
 			Element updated = new Element(existing.id(), existing.type(), existing.name(), existing.displayName(),
 					issues.stream().anyMatch(ProcedureIr.ValidationIssue::error) ? "invalid" : "valid",
 					existing.ownership(), clock.instant(), values);
@@ -2099,6 +2242,8 @@ public final class WorkspaceApplicationService {
 		try {
 			mutations.persist(before, after, command.operation(), element);
 			return null;
+		} catch (ElementFieldException field) {
+			return blockFieldDiagnostic(element.id(), new BlockFieldContract.Issue(field.code(), field.path(), field.getMessage()));
 		} catch (WorkspaceSourceConflictException conflict) {
 			JsonObject args = new JsonObject();
 			args.addProperty("workspacePath", conflict.workspacePath());
@@ -3073,6 +3218,7 @@ public final class WorkspaceApplicationService {
 		projection.add("connection", connection);
 		projection.add("elementCounts", elementCounts(state.elements()));
 		projection.add("activeTasks", toArray(tasks.active(state.id())));
+		projection.add("recentTasks", toArray(tasks.recent(state.id())));
 		projection.add("capabilities", capabilities(context));
 		JsonArray recent = new JsonArray();
 		state.recentElements(12).forEach(element -> recent.add(elementSummary(element)));
@@ -3231,7 +3377,7 @@ public final class WorkspaceApplicationService {
 
 	private static Set<String> listFields(JsonObject payload) {
 		return listFields(payload, Set.of("id", "type", "name", "displayName", "state", "ownership",
-				"updatedAt", "firstParty", "diagnostics"), "mod element summary");
+				"updatedAt", "firstParty", "diagnostics", "identity"), "mod element summary");
 	}
 
 	private static Comparator<Element> elementListComparator(String sort) {
@@ -3253,7 +3399,7 @@ public final class WorkspaceApplicationService {
 		JsonObject summary = elementSummary(element);
 		if (fields.isEmpty()) return summary;
 		JsonObject projected = new JsonObject();
-		fields.stream().sorted().forEach(field -> projected.add(field, summary.get(field)));
+		fields.stream().sorted().filter(summary::has).forEach(field -> projected.add(field, summary.get(field)));
 		return projected;
 	}
 
@@ -3304,6 +3450,11 @@ public final class WorkspaceApplicationService {
 	}
 
 	private QueryResult editor(Query query, WorkspaceState state, RequestContext context) {
+		if (!query.payload().has("elementId") && "block".equals(optionalString(query.payload(), "elementType"))) {
+			JsonObject projection = new JsonObject();
+			projection.add("fieldContract", BlockFieldContract.capabilities(state.generator().get("id").getAsString()));
+			return querySuccess(query, state.revision(), projection);
+		}
 		UUID elementId = UUID.fromString(requiredString(query.payload(), "elementId"));
 		Element element = state.element(elementId);
 		if (element == null)
@@ -3313,9 +3464,40 @@ public final class WorkspaceApplicationService {
 		boolean readOnly = outsideSlice || detached || context.permission() == PermissionProfile.READ_ONLY;
 		JsonObject projection = new JsonObject();
 		projection.add("element", elementSummary(element));
-		projection.add("sections", editorSections(element, readOnly, state));
+		JsonObject configuration = mutations.elementConfiguration(element);
+		Element displayed = element;
+		if (configuration.has("effectiveValues")) {
+			JsonObject effective = configuration.getAsJsonObject("effectiveValues");
+			displayed = new Element(element.id(), element.type(), element.name(), effective.get("displayName").getAsString(),
+					element.state(), element.ownership(), element.updatedAt(), effective);
+			if ("drift".equals(optionalString(configuration, "status"))) {
+				JsonObject choices = new JsonObject();
+				for (String mode : List.of("adopt_definition", "reapply_declared")) {
+					JsonObject candidate = mode.equals("adopt_definition") ? effective.deepCopy() : element.values().deepCopy();
+					JsonObject resolution = new JsonObject();
+					resolution.addProperty("mode", mode);
+					resolution.add("sourceFingerprint", configuration.get("sourceFingerprint").deepCopy());
+					candidate.add("configurationResolution", resolution);
+					JsonArray changes = new JsonArray();
+					candidate.entrySet().forEach(entry -> {
+						JsonObject change = new JsonObject();
+						change.addProperty("path", "/" + entry.getKey().replace("~", "~0").replace("/", "~1"));
+						change.add("value", entry.getValue().deepCopy()); changes.add(change);
+					});
+					JsonObject payload = new JsonObject();
+					payload.addProperty("elementId", element.id().toString()); payload.add("changes", changes);
+					JsonObject operation = new JsonObject(); operation.addProperty("operation", "update_mod_element");
+					operation.add("payload", payload); choices.add(mode, operation);
+				}
+				configuration.add("planOperations", choices);
+			}
+		}
+		projection.add("configuration", configuration);
+		projection.add("sections", editorSections(displayed, readOnly || "drift".equals(optionalString(configuration, "status")), state));
 		projection.add("capabilities", capabilities(context));
 		projection.add("sourceManagement", sourceManagementProjection(element, context));
+		if (element.type().equals("block"))
+			projection.add("fieldContract", BlockFieldContract.capabilities(state.generator().get("id").getAsString()));
 		if (!outsideSlice)
 			return querySuccess(query, state.revision(), projection);
 		return new QueryResult("query_result", UiCore.SCHEMA_VERSION, query.requestId(), query.workspaceId(),
@@ -3357,7 +3539,34 @@ public final class WorkspaceApplicationService {
 			changedField.addProperty("sectionId", sectionId);
 			changedFields.add(changedField);
 		}
+		if (element.type().equals("function")) FunctionFieldContract.reconcileEditedAliases(values, changes);
+		if (element.type().equals("code")) CodeFieldContract.reconcileEditedAliases(values, changes);
+		if (element.type().equals("procedure")) ProcedureFieldContract.reconcileEditedAliases(values, changes);
+		SpecializedFieldContract.reconcileEditedAliases(element.type(), values, changes);
+		GenericFieldInputContract.reconcileEditedAliases(element.type(), values, changes);
 		Diagnostic diagnostic = validateElementValues(elementId, element.type(), values);
+		if (element.type().equals("procedure")) {
+			var preservation = ProcedureFieldContract.irEditIssue(element.values(), changes);
+			if (preservation != null) diagnostic = blockFieldDiagnostic(elementId, preservation);
+		}
+		if (element.type().equals("block")) {
+			BlockFieldContract.reconcileEditedAliases(values, changes);
+			diagnostic = validateElementValues(elementId, element.type(), values);
+		}
+		if (diagnostic == null) {
+			if (element.type().equals("procedure")) ProcedureFieldContract.normalize(values, elementId);
+			WorkspaceState candidate = state.copy();
+			String name = values.has("displayName") && values.get("displayName").isJsonPrimitive()
+					? values.get("displayName").getAsString() : element.displayName();
+			candidate.replaceElement(new Element(element.id(), element.type(), element.name(), name, element.state(),
+					element.ownership(), element.updatedAt(), values));
+			try { mutations.validateWorkspacePlan(state, candidate); }
+			catch (ElementFieldException exception) {
+				diagnostic = blockFieldDiagnostic(elementId, new BlockFieldContract.Issue(exception.code(), exception.path(), exception.getMessage()));
+			} catch (Exception exception) {
+				diagnostic = blockFieldDiagnostic(elementId, new BlockFieldContract.Issue("ELEMENT_PREVIEW_REJECTED", "/configuration", exception.getMessage()));
+			}
+		}
 		JsonObject projection = new JsonObject();
 		projection.addProperty("elementId", elementId.toString());
 		projection.addProperty("baseRevision", state.revision());
@@ -3871,7 +4080,12 @@ public final class WorkspaceApplicationService {
 					elementPath(elementId) + "/procedurexml", elementId));
 		}
 		JsonObject projection = procedureProjection(state, element, ir, context);
-		List<Diagnostic> diagnostics = procedureDiagnostics(elementId, PROCEDURES.validate(ir));
+		List<Diagnostic> diagnostics = procedureDiagnostics(elementId, procedureIssues(ir));
+		var preservation = ProcedureFieldContract.structuredEditIssue(element.values());
+		if (preservation != null) {
+			diagnostics = new ArrayList<>(diagnostics);
+			diagnostics.add(blockFieldDiagnostic(elementId, preservation));
+		}
 		return new QueryResult("query_result", UiCore.SCHEMA_VERSION, query.requestId(), query.workspaceId(),
 				query.operation(), "succeeded", state.revision(), projection, diagnostics);
 	}
@@ -3887,9 +4101,11 @@ public final class WorkspaceApplicationService {
 		JsonArray edits = query.payload().getAsJsonArray("edits");
 		if (edits == null || edits.isEmpty())
 			return queryFailure(query, state.revision(), invalidPayload("edits must not be empty"));
+		var preservation = ProcedureFieldContract.structuredEditIssue(element.values());
+		if (preservation != null) return queryFailure(query, state.revision(), blockFieldDiagnostic(elementId, preservation));
 		ProcedureIr current = PROCEDURES.read(element.values(), elementId);
 		ProcedureIr candidate = PROCEDURES.applyEdits(current, edits);
-		List<ProcedureIr.ValidationIssue> issues = PROCEDURES.validate(candidate);
+		List<ProcedureIr.ValidationIssue> issues = procedureIssues(candidate);
 		JsonObject projection = new JsonObject();
 		projection.addProperty("elementId", elementId.toString());
 		projection.addProperty("baseRevision", state.revision());
@@ -4041,7 +4257,7 @@ public final class WorkspaceApplicationService {
 		}
 		ProcedureIr extracted = PROCEDURES.applyEdits(new ProcedureIr(ProcedureIr.SCHEMA_VERSION, "no_ext_trigger",
 				extractedNodes, List.of(), new JsonObject()), new JsonArray());
-		List<ProcedureIr.ValidationIssue> extractedIssues = PROCEDURES.validate(extracted);
+		List<ProcedureIr.ValidationIssue> extractedIssues = procedureIssues(extracted);
 		if (extractedIssues.stream().anyMatch(ProcedureIr.ValidationIssue::error))
 			return RefactorDraft.failed(diagnostic("PROCEDURE_REFACTOR_EXTRACT_INVALID",
 					"diagnostic.procedure_refactor_extract_invalid", "The extracted Procedure graph is not valid.",
@@ -4252,6 +4468,13 @@ public final class WorkspaceApplicationService {
 		Diagnostic validation = validateRegistryName(location.registry(), location.entry(), newName,
 				state.registries(), entryId);
 		if (validation != null) return queryFailure(query, state.revision(), validation);
+		for (Element element : state.elements()) {
+			if (!element.type().equals("procedure")) continue;
+			JsonObject rewritten = element.values().deepCopy();
+			if (!rewriteRegistryReferences(rewritten, location.registry(), entryId.toString(), registryName(location.registry(), location.entry()), newName, "")) continue;
+			var preservation = ProcedureFieldContract.structuredEditIssue(element.values());
+			if (preservation != null) return queryFailure(query, state.revision(), blockFieldDiagnostic(element.id(), preservation));
+		}
 		JsonObject data = new JsonObject();
 		data.addProperty("entryId", entryId.toString());
 		data.addProperty("registry", location.registry());
@@ -4384,9 +4607,12 @@ public final class WorkspaceApplicationService {
 			if (!rewriteRegistryReferences(values, location.registry(), entryId.toString(), oldName, newName, ""))
 				continue;
 			if (element.type().equals("procedure") && values.has("procedureIr")) {
+				var preservation = ProcedureFieldContract.structuredEditIssue(element.values());
+				if (preservation != null) throw new RegistryValidationException(blockFieldDiagnostic(element.id(), preservation));
 				ProcedureIr rewritten = PROCEDURES.applyEdits(PROCEDURES.read(values, element.id()), new JsonArray());
 				values.add("procedureIr", PROCEDURES.toJson(rewritten));
 				values.addProperty("procedurexml", PROCEDURES.toBlocklyXml(rewritten));
+				ProcedureFieldContract.refreshAliases(values);
 			}
 			state.replaceElement(new Element(element.id(), element.type(), element.name(), element.displayName(),
 					element.state(), element.ownership(), clock.instant(), values));
@@ -4408,9 +4634,10 @@ public final class WorkspaceApplicationService {
 		projection.add("element", elementSummary(element));
 		projection.addProperty("baseRevision", state.revision());
 		projection.addProperty("readOnly", context.permission() == PermissionProfile.READ_ONLY
-				|| element.ownership().equals("manual"));
+				|| element.ownership().equals("manual") || ProcedureFieldContract.structuredEditIssue(element.values()) != null);
 		projection.add("ir", PROCEDURES.toJson(ir));
 		projection.add("nodeCatalog", procedureNodeCatalog(state));
+		projection.add("triggerCatalog", mutations.procedureTriggerCatalog());
 		projection.add("symbols", procedureSymbols(state, ir));
 		projection.addProperty("sourcePreview", PROCEDURES.sourcePreview(ir));
 		projection.addProperty("sourceOwnership", element.ownership());
@@ -4590,6 +4817,12 @@ public final class WorkspaceApplicationService {
 		target.add(node);
 	}
 
+	private List<ProcedureIr.ValidationIssue> procedureIssues(ProcedureIr ir) {
+		List<ProcedureIr.ValidationIssue> issues = new ArrayList<>(PROCEDURES.validate(ir));
+		issues.addAll(mutations.procedureContextIssues(ir));
+		return List.copyOf(issues);
+	}
+
 	private List<Diagnostic> procedureDiagnostics(UUID elementId, List<ProcedureIr.ValidationIssue> issues) {
 		List<Diagnostic> diagnostics = new ArrayList<>();
 		for (ProcedureIr.ValidationIssue issue : issues) {
@@ -4707,7 +4940,18 @@ public final class WorkspaceApplicationService {
 		required |= elementType.equals("dimension")
 				&& Set.of("biomesInDimension", "worldGenType", "mainFillerBlock", "fluidBlock").contains(fieldName);
 		field.addProperty("required", required);
-		field.addProperty("readOnly", readOnly);
+		field.addProperty("readOnly", readOnly || elementType.equals("block") && !BlockFieldContract.writable(path));
+		if (!elementType.equals("block")) {
+			String rootField = path.replaceFirst("^/fields/", "/").split("/", -1)[1];
+			Field fallbackField = stage12Field(elementType, rootField);
+			boolean mapped = ElementMappingSupport.fields(elementType).contains(rootField)
+					|| !ElementMappingSupport.specialized(elementType) && fallbackField != null
+					&& !java.lang.reflect.Modifier.isTransient(fallbackField.getModifiers())
+					&& !java.lang.reflect.Modifier.isStatic(fallbackField.getModifiers())
+					&& !java.lang.reflect.Modifier.isFinal(fallbackField.getModifiers());
+			field.addProperty("readOnly", readOnly || !mapped || rootField.equals("name") && !Set.of("function", "loottable").contains(elementType));
+			if (!mapped) field.addProperty("writeSupport", "preserved_read_only");
+		}
 		if (value instanceof JsonElement element)
 			field.add("value", element.deepCopy());
 		else
@@ -5189,6 +5433,8 @@ public final class WorkspaceApplicationService {
 		summary.addProperty("updatedAt", element.updatedAt().toString());
 		summary.addProperty("firstParty", ElementCoverageCatalog.isFirstParty(element.type()));
 		summary.add("diagnostics", counts());
+		JsonObject identity = mutations.elementIdentity(element);
+		if (!identity.isEmpty()) summary.add("identity", identity);
 		return summary;
 	}
 
@@ -5202,6 +5448,11 @@ public final class WorkspaceApplicationService {
 
 	private JsonObject defaultElementValues(String type, String name, JsonObject supplied) {
 		JsonObject values = supplied.deepCopy();
+		if (supplied.has("fields") && supplied.get("fields").isJsonObject()) {
+			for (String identity : supplied.getAsJsonObject("fields").keySet())
+				if (!values.has(identity) && supplied.getAsJsonObject("fields").has(identity))
+					values.add(identity, supplied.getAsJsonObject("fields").get(identity).deepCopy());
+		}
 		if (!values.has("displayName")) values.addProperty("displayName", displayName(name));
 		// Every Stage 11 type gets a stable editable identity and description field. Type-specific
 		// values supplied by an imported workspace are retained and rendered below these fields.
@@ -5264,7 +5515,7 @@ public final class WorkspaceApplicationService {
 			}
 			case "potion" -> {
 				if (!values.has("potionName")) values.addProperty("potionName", displayName(name));
-				if (!values.has("duration")) values.addProperty("duration", 3600);
+				if (!values.has("effects")) values.add("effects", new JsonArray());
 			}
 			case "potioneffect" -> {
 				if (!values.has("effectName")) values.addProperty("effectName", displayName(name));
@@ -5303,12 +5554,17 @@ public final class WorkspaceApplicationService {
 				if (!values.has("generateBucket")) values.addProperty("generateBucket", true);
 			}
 			case "plant" -> {
-				if (!values.has("renderType")) values.addProperty("renderType", 0);
+				if (!values.has("renderType")) values.addProperty("renderType", 12);
+				if (!values.has("plantType")) values.addProperty("plantType", "normal");
+				if (!values.has("soundOnStep")) values.addProperty("soundOnStep", "PLANT");
+				if (!values.has("colorOnMap")) values.addProperty("colorOnMap", "DEFAULT");
+				if (!values.has("growapableSpawnType")) values.addProperty("growapableSpawnType", "Plains");
+				if (!values.has("aiPathNodeType")) values.addProperty("aiPathNodeType", "DEFAULT");
+				if (!values.has("customDrop")) values.addProperty("customDrop", "");
 				if (!values.has("unbreakable")) values.addProperty("unbreakable", false);
 			}
 			case "structure" -> {
 				if (!values.has("useStartHeight")) values.addProperty("useStartHeight", false);
-				if (!values.has("poolName")) values.addProperty("poolName", name);
 			}
 			case "livingentity" -> {
 				if (!values.has("mobName")) values.addProperty("mobName", name);
@@ -5344,7 +5600,7 @@ public final class WorkspaceApplicationService {
 			}
 			case "keybind" -> {
 				if (!values.has("keyBindingName")) values.addProperty("keyBindingName", displayName(name));
-				if (!values.has("keyBindingCategoryKey")) values.addProperty("keyBindingCategoryKey", "key.categories.misc");
+				if (!values.has("keyBindingCategoryKey")) values.addProperty("keyBindingCategoryKey", "misc");
 			}
 			case "villagerprofession" -> {
 				if (!values.has("displayName")) values.addProperty("displayName", displayName(name));
@@ -5408,7 +5664,19 @@ public final class WorkspaceApplicationService {
 	}
 
 	private Diagnostic validateElementValues(UUID elementId, String elementType, JsonObject values) {
-		if (values.has("fields") && values.get("fields").isJsonObject()) {
+		if (elementType.equals("procedure")) {
+			var issue = ProcedureFieldContract.validate(values);
+			if (issue != null) return blockFieldDiagnostic(elementId, issue);
+		}
+		if (elementType.equals("code")) {
+			var issue = CodeFieldContract.validate(values);
+			if (issue != null) return blockFieldDiagnostic(elementId, issue);
+		}
+		if (elementType.equals("block")) {
+			BlockFieldContract.Issue issue = BlockFieldContract.validate(values);
+			if (issue != null) return blockFieldDiagnostic(elementId, issue);
+		}
+		if (!elementType.equals("block") && values.has("fields") && values.get("fields").isJsonObject()) {
 			JsonObject fields = values.getAsJsonObject("fields");
 			if (fields.has("hardness") && fields.get("hardness").isJsonPrimitive()
 					&& fields.getAsJsonPrimitive("hardness").isNumber()) {
@@ -5420,30 +5688,6 @@ public final class WorkspaceApplicationService {
 					return diagnostic("FIELD_VALUE_OUT_OF_RANGE", "diagnostic.field_value_out_of_range",
 							"Hardness must be between {min} and {max}.", args,
 							elementPath(elementId) + "/fields/hardness", elementId);
-				}
-			}
-		}
-		if (elementType.equals("code") && values.has("codeFiles")) {
-			if (!values.get("codeFiles").isJsonArray())
-				return diagnostic("CODE_BUNDLE_INVALID", "diagnostic.code_bundle_invalid",
-						"codeFiles must be an array of Java source files.", null,
-						elementId == null ? "/initialValues/codeFiles" : elementPath(elementId) + "/codeFiles", elementId);
-			for (int index = 0; index < values.getAsJsonArray("codeFiles").size(); index++) {
-				JsonElement raw = values.getAsJsonArray("codeFiles").get(index);
-				if (!raw.isJsonObject())
-					return codeBundleDiagnostic(elementId, index, "Each codeFiles entry must be an object.");
-				JsonObject file = raw.getAsJsonObject();
-				if (!file.has("path") || !file.get("path").isJsonPrimitive()
-						|| !file.has("code") || !file.get("code").isJsonPrimitive())
-					return codeBundleDiagnostic(elementId, index, "Each codeFiles entry requires path and code strings.");
-				String path = file.get("path").getAsString();
-				try {
-					Path candidate = Path.of(path);
-					if (candidate.isAbsolute() || candidate.normalize().startsWith("..") || !path.endsWith(".java"))
-						return codeBundleDiagnostic(elementId, index,
-								"Code bundle paths must be relative .java paths inside the generated source package.");
-				} catch (RuntimeException exception) {
-					return codeBundleDiagnostic(elementId, index, "Code bundle path is invalid.");
 				}
 			}
 		}
@@ -5469,13 +5713,24 @@ public final class WorkspaceApplicationService {
 						"{field} is required when {condition} is enabled.", args, path, elementId);
 			}
 		}
+		if (elementType.equals("plant")) {
+			JsonObject effective = BlockFieldContract.merged(values);
+			JsonElement renderType = effective.get("renderType");
+			if (renderType != null && renderType.isJsonPrimitive() && renderType.getAsJsonPrimitive().isNumber()
+					&& Set.of(12, 14).contains(renderType.getAsInt()) && missingConditionalValue(effective.get("texture")))
+				return blockFieldDiagnostic(elementId, new BlockFieldContract.Issue("FIELD_REQUIRED",
+						BlockFieldContract.path(values, "texture"), "Select a block texture for the cross or crop plant model."));
+			if (!jsonTruthy(effective.get("isCustomSoundType")) && missingConditionalValue(effective.get("soundOnStep")))
+				return blockFieldDiagnostic(elementId, new BlockFieldContract.Issue("FIELD_REQUIRED",
+						BlockFieldContract.path(values, "soundOnStep"), "Select a step sound or provide the custom sound fields."));
+		}
 		return null;
 	}
 
-	private Diagnostic codeBundleDiagnostic(UUID elementId, int index, String message) {
-		String path = elementId == null ? "/initialValues/codeFiles/" + index
-				: elementPath(elementId) + "/codeFiles/" + index;
-		return diagnostic("CODE_BUNDLE_INVALID", "diagnostic.code_bundle_invalid", message, path, elementId);
+	private Diagnostic blockFieldDiagnostic(UUID elementId, BlockFieldContract.Issue issue) {
+		JsonObject args = new JsonObject(); args.addProperty("reason", issue.message()); args.addProperty("field", issue.path());
+		return diagnostic(issue.code(), "diagnostic.field_contract_invalid", "{field}: {reason}", args,
+				(elementId == null ? "/initialValues" : elementPath(elementId)) + issue.path(), elementId);
 	}
 
 	private CommandOutcome denied(Command command, PermissionProfile current, PermissionProfile required) {

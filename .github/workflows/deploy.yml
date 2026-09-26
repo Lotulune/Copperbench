@@ -12,7 +12,7 @@ on:
         required: true
         type: string
       publish:
-        description: Publish a verified GitHub prerelease after packaging
+        description: Publish a verified GitHub release after packaging
         required: true
         default: false
         type: boolean
@@ -121,7 +121,7 @@ jobs:
           if-no-files-found: error
           compression-level: 0
           retention-days: 30
-      - name: Create draft prerelease and upload payload
+      - name: Create draft release and upload payload
         if: env.SHOULD_PUBLISH == 'true'
         shell: pwsh
         env:
@@ -137,7 +137,9 @@ jobs:
             $release = $existing | ConvertFrom-Json
             if (-not $release.isDraft) { throw "Release $env:RELEASE_TAG is already public and cannot be overwritten" }
           } else {
-            gh release create $env:RELEASE_TAG --verify-tag --draft --prerelease --title "Copperbench $env:RELEASE_TAG" --notes-file docs/releases/preview-template.md
+            $stable = $env:RELEASE_TAG -match '^v\d+\.\d+\.\d+$'
+            $notes = if ($stable) { 'docs/releases/v0.1.0.md' } else { 'docs/releases/preview-template.md' }
+            gh release create $env:RELEASE_TAG --verify-tag --draft "--prerelease=$(!$stable)" --title "Copperbench $env:RELEASE_TAG" --notes-file $notes
             if ($LASTEXITCODE -ne 0) { throw "Failed to create draft release $env:RELEASE_TAG" }
           }
           Get-ChildItem build/release -File | ForEach-Object {
@@ -150,7 +152,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: pwsh -NoProfile -File ./scripts/Test-ReleaseAssets.ps1 -Tag $env:RELEASE_TAG
-      - name: Publish verified prerelease
+      - name: Publish verified release
         if: env.SHOULD_PUBLISH == 'true'
         shell: pwsh
         env:
@@ -162,4 +164,6 @@ jobs:
           if ($LASTEXITCODE -ne 0 -or $tagCommit -ne $mainCommit -or $metadataCommit -ne $mainCommit) {
             throw "Release source changed before publication: main=$mainCommit tag=$tagCommit metadata=$metadataCommit"
           }
-          gh release edit $env:RELEASE_TAG --draft=false --prerelease
+          $stable = $env:RELEASE_TAG -match '^v\d+\.\d+\.\d+$'
+          gh release edit $env:RELEASE_TAG --draft=false "--prerelease=$(!$stable)"
+          if ($LASTEXITCODE -ne 0) { throw 'Failed to publish verified release' }

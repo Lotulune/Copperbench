@@ -1,0 +1,2656 @@
+{
+  "totals": {
+    "tests": 983,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 59,
+    "passed": 924
+  },
+  "suites": [
+    {
+      "name": "dev.copperbench.assets.AssetImportBatchServiceTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "1fe0ac668bc183fe7e72d0c543e7c08693e8c13327f770eea3a8314863a3d6f9",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.assets.AssetImportServiceTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "366441a51edc3ad93b6d6d976a7d7cb20177ce135c7e6d2a57b3c42900c54cb7",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.assets.AssetMoveServiceTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "4cc28614019233e5177095acf667ac6f595038e5eadea52c2d82600130637d41",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.assets.AssetMutationHistoryBoundaryTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "56bf4396d45bc1426f02fd9fac6eb8842073dba276c091d39986b844757cc192",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.assets.AssetPublishBatchServiceTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "d657c3954400c2e5fc026e62b24885cbf88e0a1586efcc7b9bbbe67fd63dc777",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.assets.AssetWorkspaceServiceTest",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "344ddf8aaf2a7ed952a7f42d33bc7f684f9cdffc81e4f5a8d12d99b5a1a85184",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.assets.BbmodelRoundTripServiceTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "541564bd632e7548bbe306ae768479f72460ce3c16cbd57bff1bae77d9526795",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.assets.BlockbenchConfigurationTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "4beb927f9347e5d8cbfeabad3270e1aba7875c55b3a80c01d3603ea86bb2b72c",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.assets.BlockbenchEnvironmentServiceTest",
+      "tests": 15,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "0075145904e6f4dee929516ca305b71fc02e80c68f15902727d4cf496d48528d",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.assets.BlockbenchExecutableLocatorTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "sha256": "98a5d66b0585b84eb4ac5a4c0ac71be501cf9f4ce89db4b9d19f4c407121cfed",
+      "failedCases": [],
+      "skippedCases": [
+        {
+          "name": "linuxSkipsFilesWithoutExecutePermission()",
+          "reason": "org.opentest4j.TestAbortedException: Assumption failed: assumption is not true"
+        }
+      ]
+    },
+    {
+      "name": "dev.copperbench.assets.BlockbenchImportServiceTest",
+      "tests": 18,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "2b9f3785a478a6bb573c92053fd4d7118ee7ba052abee3e50a416d9972dca3b1",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.assets.BlockbenchInstallationDetectorTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "sha256": "ecf8dddc167cf70c3e7d944d0a48037746210f89e580aa22a0300c08630f04d5",
+      "failedCases": [],
+      "skippedCases": [
+        {
+          "name": "linuxNonExecutableIsRejectedBeforeVersionDetection()",
+          "reason": "org.opentest4j.TestAbortedException: Assumption failed: assumption is not true"
+        },
+        {
+          "name": "linuxExecutableWithoutWindowsVersionMetadataIsLaunchableButUnverified()",
+          "reason": "org.opentest4j.TestAbortedException: Assumption failed: assumption is not true"
+        }
+      ]
+    },
+    {
+      "name": "dev.copperbench.assets.BlockbenchModelingServiceTest",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "a8d612f1b405b0895a7c446a104f001106cca0eae54f9f63b5feada7adf3663e",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.assets.BlockbenchProcessServiceTest",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "sha256": "3488e95132f69bbf586ea3c3518e92d333e48b5ce15a7b3a39c902c4e913bab2",
+      "failedCases": [],
+      "skippedCases": [
+        {
+          "name": "startsAndStopsTheInstalledBlockbenchExecutable()",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "name": "dev.copperbench.assets.BlockbenchSemanticsTest",
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "4e9c0a9222d28c9b6cc5111eada2e8c8f548dcf2dab86c53488d6ad5d9a7905e",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.assets.DependencyResourceIndexTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "228b2956837075c273d60c509535188dbdf8602ee14c61c1ec652f7c2bb14a80",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.assets.ResourcePack1211ClientLoadProbeTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "sha256": "553e08f9ef9ff20169c7efeefe18910adf7ea92a57fbc9dede29d0991f792692",
+      "failedCases": [],
+      "skippedCases": [
+        {
+          "name": "preparedResourcePackLoadsInTheFabric1211Client()",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "name": "dev.copperbench.assets.ResourcePackClientLoadServiceTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "0662a2b37419a00ab780b149f51b02a964356b2b7a3d72dee60b942fb4bb1d4d",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.assets.ResourcePackExportServiceTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "9a9895c798f44e8b77ee66cc2dd4b98a21713644441dc4eaec333720e011e9cb",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.assets.Stage17RealItemReferencesTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "sha256": "e5971db67a93650cf20de527f7726795b511054d14fc528ff780886aa4b80b4a",
+      "failedCases": [],
+      "skippedCases": [
+        {
+          "name": "actualModernItemBranchesResolveAcrossBothLoaderContexts()",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "name": "dev.copperbench.assets.Stage17RealResourceCatalogTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "sha256": "4b9d357136c82fab660db180c7a721b051047896a64fd77faf639f585164b25e",
+      "failedCases": [],
+      "skippedCases": [
+        {
+          "name": "originalFiveVanillaParentsResolveAgainstRealArchivesAcrossEightTrackContexts()",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "name": "dev.copperbench.assets.Stage17ResourceResolutionTest",
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "2969c61a53e3a275844e803ab13cee1c7fb7a9c6790ef8c190a8f3256b710070",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.assets.Stage17RuntimeDependencyCaptureTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "sha256": "e8afa45c9342b25cb79cab8c9ed8475a8cd37b35e06277df5555243a6d59d8d1",
+      "failedCases": [],
+      "skippedCases": [
+        {
+          "name": "realOfflineGradleRuntimeConfigurationIncludesRuntimeOnlyAndExcludesCompileOnly()",
+          "reason": null
+        },
+        {
+          "name": "existingFabricAndNeoForgeProjectsCaptureRealRuntimeArtifactsWithoutChangingTheirJars()",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "name": "dev.copperbench.automation.AutomationSecurityTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "6c1898d27f36c0857990f8abf53653acdb4a09ff841c6a83241edd41c79deeed",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.automation.security.TaskAuthorizationStoreTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "2e8480798b53c7e622917f2b57a2bdd8d78b5de0d50e9a638c7678fc761b8078",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.bridge.JcefAssetImportBridgeTransportTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "2dfec24e6693d3c34d1b1bfc7d3a1fae8f8d4399cee8fcbdf1138f28da6ce055",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.bridge.JcefBlockbenchBridgeTransportTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "af0c08223e4e11ee15addff18dd1e2b5b5a6c8aadc6fdf896fc1d59538fca484",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.bridge.JcefBridgeEndpointTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "e485485f953d38204fda76ada77db521f3317f0460ffa415f46e8e25fbe24224",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.bridge.JcefCoreBridgeTransportTest",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "bbdabdbf8bcbdf67dbc4b2914bb474ae902fc33cc6d255c6099487a38c7d0a17",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.bridge.JcefDiagnosticsBridgeTransportTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "a270d44760138feb2e6a9e580afebbf7efc35da60606cc9b2ae301c1e9e2113a",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.bridge.JcefLegacyPluginBridgeTransportTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "4c2023aa818545ddae8a3003c3b31e5fbf4a8b0be2d6117f35c845b55cea0b62",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.bridge.JcefMcpBridgeTransportTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "a254ef3c6cd0e2c7e93c8742917d9767f8f4469f3c9ac396b8aacb7b85d9e75c",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.bridge.JcefPythonBridgeTransportTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "22eb93b660a313b186b6a4bef5b91245d7aa555dada239cc9210d1e685d4af1f",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.bridge.JcefWindowBridgeTransportTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "2f71287b7473f919a797f659d61af3cd5b614de469b284e37628650a53e89107",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.core.application.BlockFieldContractTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "88a1a9f9eecbe1dc52e838b7cf4419867f5c2e16a7d00fa554451a9e00af8282",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.core.application.CustomFieldInputContractTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "dff6d5418e4bddd9d28e89028cd8126c788015e3ad0cd1dd84852aada4e3f9bb",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.core.application.HistoryListCursorTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "04841414483760ccbfa2338ae69d40900249a098eb7dd541e35fc8f268d87765",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.core.application.LocalWorkspaceTemplateServiceTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "08a67425c8f6697816a73c2a11b15e18da8241c99d550d08f80b620d9475de56",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.core.application.ProcedureFieldContractTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "1f4a7f825a021d1beb40a7b6372192227b7ae5ab999384c8207ba0f6b06b2ddf",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.core.application.SecondaryListCursorTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "c6ddce57e8aac5d474e1e0f68c0ca3400be728f781e3529109283456815a956b",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.core.application.WorkspaceElementListCursorTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "be34cc0aa58ee24a38c37efd9058f179df9d223fcf4156485ddcebf4073363f0",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.core.application.WorkspaceHealthScaleTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "sha256": "753d7dc0a7b493399fa4f5f945063422756e245f7f5862090ea53397c94fed64",
+      "failedCases": [],
+      "skippedCases": [
+        {
+          "name": "aggregatesTwoThousandElementsAndTenThousandReferencesWithinNightlyCeiling()",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "name": "dev.copperbench.core.application.WorkspacePlanEngineTest",
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "f81f99376ab66f640fd5d7ec73cd1626a433a53ebca7f189343a9d15fda341c8",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.core.application.WorkspaceTaskEventTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "32da46f4d93995c9a9ac9d87a3cf7ed9e2ba406bdc27ad37edc807b02240946c",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.core.AssetImportApplicationServiceTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "9a062be267ba425b545b152c04764ba6e2122e21cc40e75b7b78522a749d1528",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.core.AssetMoveApplicationServiceTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "d11197f082f10be3df3d340ca33c2c8b3d4b2a563675cb934af66b961328ba67",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.core.AssetQueryProjectionTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "f591d49c7e604f23d1fe0a7c7967516c5f4962cd6ef2db2745ecd627a7379fe7",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.core.BlockbenchEditApplicationServiceTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "314a30936d777c5a8530da6552caf1548012836e0cc478eaafc5f0f5f38a0551",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.core.HistoryContractTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "44c86b726332f64e44788a0b6f372a1c5a6684075ed2be0027a48f0255709a22",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.core.plugin.InstalledPluginInventoryServiceTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "2eee1a9ffd818ba1fa75aa03c85100ff12cc9284558c7afeb4107eab5ecb4b8d",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.core.PluginCompatibilityClassifierTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "c33c2ef93cadec0436abf33af6a42a4b8e0101cdd0914abd77835d440f314a48",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.core.SchemaNegotiatorTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "af5d71d77eda1e917d1ace42b4b5fe0f5df5907ec74b5d6ce25a57fb6107da8f",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.core.Stage17ModelingWorkflowTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "5c11c6576c15294654481e84ae58e72a1d00dfc2469ff9594176836136228312",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.core.Stage67ApplicationServiceTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "e271a9050ac4cc44e6a85fc73b2eb63fbe6e5b16a01a871b0e0c7336631d95fa",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.core.Stage7G6GateTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "059f254e57dabd7c31e8d7426c2b1a9eff28b2ae216a22d909d66dbd2cc6889c",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.core.Stage8G7GateTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "e7625e1e29bb3cb05c1a81568c90a6ceb0e86a4f8f99d353670c9c840d5aa36d",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.core.TaskAuthorizationApplicationTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "b75244345b144ca323185e6c5f9ecb99b6cba098a2e2a004db8e59d56cddce66",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.core.workspace.mcreator.BiomeDimensionPersistenceTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "bc8c6d80b676b2995963975eb3063c019b3443f0d0f7cfd1b96fe74b2c1204ce",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.core.workspace.mcreator.CodeElementPersistenceTest",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "bf75a96676be7191a639cf1a20f8d627ba0a5d4be8223b9c3696f5a30d87b541",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.core.workspace.mcreator.FirstPartyDataElementPersistenceTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "4d107c05e3df8a9bb89baa81732fe4ad0bed7b74d94d317676f66c72165605fd",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.core.workspace.mcreator.GuiElementPersistenceTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "d0a7bbf15d5e4aea5816883eec21eb27af0eba991497f2da7f84f8ee0bb9dae5",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.core.workspace.mcreator.MCreatorGenerationPreparationTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "e71799ac1b7674eab2da2c9b071055cc345bb540037573258580fb0fe811aaeb",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.core.workspace.mcreator.MCreatorWorkspaceStateMapperTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "ac34a29465da5d128efc4ab0dc6cc9a9aac41721e56d2ba56927ca855feed4fd",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.core.workspace.mcreator.OverlayElementPersistenceTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "1b83321f24ba07af97d13ed95b5874c8968a79d1183f615e2ba54a97f1417c6f",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.core.workspace.mcreator.ProjectileLifecyclePersistenceTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "0e55dfa4b82fe221d83623fe6e79c44e6e7086b1892efe856517b0fe6e1de31f",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.core.workspace.mcreator.Stage17BlockConsistencyTest",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "401c351a42bf032fa5b2d5ff51c08da3cd250dc9caca395fa486b1eac35cd6f4",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.core.workspace.mcreator.Stage17CodeFieldContractTest",
+      "tests": 17,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "efc4a11a704455eb8b0b107ca86c70dab01bc3d33e907aea7e9c6bb35391fc0a",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.core.workspace.mcreator.Stage17ColdWorkspaceProbeTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 3,
+      "sha256": "4b283fce50b14c180a0ad8914d5f99dd949e0dd3ac1b3263b48ce3e3ce4926e0",
+      "failedCases": [],
+      "skippedCases": [
+        {
+          "name": "testWhetherExplicitSetupAndRegenerationRepairsTheIndependentColdInput(String)",
+          "reason": null
+        },
+        {
+          "name": "coldMutationThenManagedBuildPreparesImportsWithoutOverwritingManualSources(String)",
+          "reason": null
+        },
+        {
+          "name": "legacyModelWorkspaceBuildPreparesImportsAndRetainsImportedAssetsWithoutPendingMetadata()",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "name": "dev.copperbench.core.workspace.mcreator.Stage17CustomAdapterContractTest",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "0fbf2d3123ef1e75663f58e0918728dfaee97abb339ad94ca439f5b8d4b1d002",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.core.workspace.mcreator.Stage17ElementIdentityTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "3a50a3beda58c96125e3fe408a22ade5c82679be3e746b70f8078222c23655f0",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.core.workspace.mcreator.Stage17LootTableContractTest",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "5602146fbd222cd62e1f3e1ed28d992c6cc44a8f9b2eab64fdb3ed11e2bca6c5",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.core.workspace.mcreator.Stage17MappedTypesTest",
+      "tests": 19,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "619b98bae9c5c5de7c8a166d82c4abe5cf75ec059172e138f7825cf99d350828",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.core.workspace.mcreator.Stage17NestedFieldContractTest",
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "254aab8f21768b3834eabe3d78fb4dd32c75ad42c8fc2f5a6f5220ef29104b71",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.core.workspace.mcreator.Stage17NestedReferenceContractTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "cdd1702e6e778ffb688715cd588a9f7e135d6d85e100b145814b6635b098ab44",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.core.workspace.mcreator.Stage17ProcedureBodyContractTest",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "7bb406bf3293a13240f68d762519a24249a6ebbdd975a2e2288c84c707fbed42",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.core.workspace.mcreator.Stage17ProcedureCallGenerationTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "4a79eba25c3be7d858e5ccbbfdcc85775cd639961fc03bcc1922d1f3bf912939",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.core.workspace.mcreator.Stage17ProcedureContextTest",
+      "tests": 20,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "8a99469be1ea07f9247575aabbca15c69031ecb25e629399c0105ee39afe685e",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.core.workspace.mcreator.Stage17ProcedurePreservationTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "d680527d2f1d6fced75e20d9b39d38f88ae66df7365bdbdfd8649b8e48c66f04",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.core.workspace.mcreator.Stage17ProcedureReturnCallGenerationTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "ba88453c1a5abf1b28e689a896cb93de15967df3122fe887b7d5d526395795a3",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.core.workspace.mcreator.Stage17ProcedureTriggerCatalogTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "026ea2813f49c37f4e82d917cf0ae648742e5a99688bbad6789ee016f498d7f6",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.core.workspace.mcreator.Stage17RecoveryPersistenceTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "8023aac2fa78ce3b65bbec1174f17a226d22dfabcb28d7b8e2bb59343f8a5074",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.core.workspace.mcreator.Stage17SpecializedFieldContractTest",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "b2b36833b41a376bbd9a18fe04c5603018b8f29018f77b452eb98f446612f803",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.core.workspace.WorkspaceCreationServiceTest",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "f7f547c0f5d78367978cef44dd24c93e48f5978e2ea636cf18ed0be3d5047019",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.core.WorkspaceApplicationServiceTest",
+      "tests": 25,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "9bef6b43f6bc996d2a509678f05277093f90f2316883b53ce691df278e32af94",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.core.WorkspacePersistenceFoundationTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "c08574e3537de1605492585e60545de390fb17f082f56d0ff65f0729778a7200",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.core.WorkspaceRegistryContractTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "c330ce5e2836a2179a93a8d7dec88aa593229e721e29709126497e807332220e",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.diagnostics.DiagnosticBundleServiceTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "16e5fe420369bea60f176b14c1931662aa1ee87832010cac1313a64ff6245f39",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.diagnostics.Stage13DiagnosticsFixtureExportTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "sha256": "24f0984c55184aae5cb2e927d67caad4b4b864ba9d44cf54a192e8189e8b3be1",
+      "failedCases": [],
+      "skippedCases": [
+        {
+          "name": "exportsProductReadableValidAndBrokenWorkspaces()",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "name": "dev.copperbench.generator.BundledJdkLocatorTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "8e57ffe88c73606c5de2a0af78601bf08ed0a7331bb22b3911c473f82a499daa",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.generator.fabric.Fabric1201CompileProbeTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "sha256": "fed361e49f11ed894bf3c3dda6287015067219ac898c8315f254d39d3776f6ec",
+      "failedCases": [],
+      "skippedCases": [
+        {
+          "name": "recordsHonestFabric1201CompileOutcomeWithoutPromotingSupport()",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "name": "dev.copperbench.generator.fabric.Fabric1201GeneratorTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "0e767e771536356343aa93df6f39db51b90b19fd1b812dcb6afb140c0657b700",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.generator.fabric.Fabric1201RunClientProbeTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "sha256": "7994cc407d62a9a07665c461161e2c6929e6f343c76420bfb5004f10ee2b98c5",
+      "failedCases": [],
+      "skippedCases": [
+        {
+          "name": "recordsHonestFabric1201RunClientOutcomeWithoutPromotingSupport()",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "name": "dev.copperbench.generator.fabric.Fabric1211GeneratorTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "7eae36e3e042104987937b85f1b058d26c49d9518891b50ce8f3a26925eeff95",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.generator.fabric.Fabric1211GoldenBuildTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "sha256": "fbe560c6e9c893f89e01ad1da114ed08c063191afdeade549f16bbbb4a1e7b6b",
+      "failedCases": [],
+      "skippedCases": [
+        {
+          "name": "generatedGoldenWorkspaceBuildsARemappedFabricJar()",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "name": "dev.copperbench.generator.fabric.Fabric1211GoldenRunClientTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "sha256": "582b82b6b4175627538fcaf12de279e05d93ce561053cef3bec2be706723d3a8",
+      "failedCases": [],
+      "skippedCases": [
+        {
+          "name": "generatedGoldenWorkspaceLoadsInTheFabricClient()",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "name": "dev.copperbench.generator.fabric.Fabric1211ProcessRunnerTest",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "a4a65018c13fca53b4be8c9a9028db0c20b50f5d6f459ca8cdebbbe15f2cbe34",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.generator.fabric.Fabric1211ProjectileTemplateRegressionTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "8732ab376eb4a579eedce159cef0d8782267a625a1fd7a3d3dfe3f1497294fd0",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.generator.fabric.Fabric1211RestoreBuildTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "afd139ff87ddc0b2bca361927cb9409c779e1e0533d115528d98f453bc5288f2",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.generator.fabric.Fabric1211TaskGatewayTest",
+      "tests": 21,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "e0c6f862df5ec2adc33427af66123b1ec5688cccfcfdc6fb567bc3ac7b33aa49",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.generator.fabric.Fabric261CompileProbeTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "sha256": "e690d4f55d2646f674b717740017c095bef4de1562c76c252c2884b83ed8a703",
+      "failedCases": [],
+      "skippedCases": [
+        {
+          "name": "recordsHonestFabric261CompileOutcome()",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "name": "dev.copperbench.generator.fabric.Fabric261GeneratorTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "d2ccb3a8c899de6dfafb7e15c7bf254064c707cda54d9a76e5562de3e8f3dcb1",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.generator.fabric.Fabric261RunClientProbeTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "sha256": "44e1e5960ba5bc59901ffa07ee200415a22b7a2f761c7fbb1875f2184fa3fe86",
+      "failedCases": [],
+      "skippedCases": [
+        {
+          "name": "recordsHonestFabric261RunClientOutcome()",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "name": "dev.copperbench.generator.fabric.Fabric262CompileProbeTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "sha256": "4cbe29a66b5f7d4ef6994be6883bd6c0a526574e5e7fe1ff25c55a93e5871a8b",
+      "failedCases": [],
+      "skippedCases": [
+        {
+          "name": "recordsHonestFabric262CompileOutcomeWithoutPromotingSupport()",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "name": "dev.copperbench.generator.fabric.Fabric262GeneratorTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "d1fa1cfd50f239e83145e1c5affa22fef2132279a5302edcc44a08827595178f",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.generator.fabric.Fabric262RunClientProbeTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "sha256": "136e94d4f2bf554b7b0f35504ace834c3bca50da8218927a4477f8f03565295e",
+      "failedCases": [],
+      "skippedCases": [
+        {
+          "name": "recordsHonestFabric262RunClientOutcome()",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "name": "dev.copperbench.generator.fabric.NewWorkspaceFabricGeneratorPluginsTest",
+      "tests": 22,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "9872393681587ef149c94c391b46c85601ffc3cbdb3d3ef8c3884eba572e92a9",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.generator.fabric.Stage17ProcessLifecycleTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "094c5ca3f4ef1e28f48d2024722db3d08214c07a271abac88cadb1008c277650",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.generator.GameTestHostCompilationTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "sha256": "9f32a625f255d825868be94fd9d75d2888f780feb4c935b4e1511c962d7aaaaa",
+      "failedCases": [],
+      "skippedCases": [
+        {
+          "name": "generatedHostAndReporterCompileAgainstAllSupportedJavaTracks()",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "name": "dev.copperbench.generator.GameTestModIdentitySmokeTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "sha256": "b9ea2173945807dfd1f320b0e79ad8ddb727afb9908695eb1a29e462c00cb91c",
+      "failedCases": [],
+      "skippedCases": [
+        {
+          "name": "newlyPreparedTestLoadsTheOriginalCopperSignalJar(Path)",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "name": "dev.copperbench.generator.GameTestPackagedHostSmokeTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "sha256": "2f6eae02d479ad9502e9ad798ae2064629f6bbc23a0d33f64034f93ae69d1f88",
+      "failedCases": [],
+      "skippedCases": [
+        {
+          "name": "packagedNeoForgeModsLoadAndProduceCountedReports(Path)",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "name": "dev.copperbench.generator.GameTestReportTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "212464c9d33082830a1612178cd05b54b2eb7cd4d6c79b59095354a4975359d1",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.generator.GameTestRunDirectoryTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "d6bfc06c55ad0a84329e65ff67f121a16b3cbad5457115e806b74baa34890a20",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.generator.GameTestWorkflowTest",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "23caf80ba168be7aafd71528a7bbe1c30c85d269d009e2acd0f9fff7d5a7187c",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.generator.neoforge.LoaderRoutingWorkspaceTaskGatewayTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "7bd920ca6deb71f880129f9cc3a9ef2acaaeee50f8d8b7f402a602fe398a363b",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.generator.neoforge.NeoForge1201CompileProbeTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "sha256": "4b3f6421780d9624e7e2f802a06fdaaf51a803e1b83d6011612194b780f54c08",
+      "failedCases": [],
+      "skippedCases": [
+        {
+          "name": "recordsHonestNeoForge1201CompileOutcomeWithoutPromotingSupport()",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "name": "dev.copperbench.generator.neoforge.NeoForge1201GeneratorTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "f76530f6d6dc6ad68fef7703f70e40309172e6e9b8d40386bc7bfa2f75d85681",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.generator.neoforge.NeoForge1201RunClientProbeTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "sha256": "14aa4209b53cded03b4ef713dc2e794316059c846e8e1f1ae5080391c9916d2f",
+      "failedCases": [],
+      "skippedCases": [
+        {
+          "name": "recordsHonestNeoForge1201RunClientOutcome()",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "name": "dev.copperbench.generator.neoforge.NeoForge1211GeneratorTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "f7bbf9e3ee879c141b1b5c8e90cd4f31aa50460c17d6baabe256fd0c17cce342",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.generator.neoforge.NeoForge1211GoldenBuildTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "sha256": "337b17758386286edc3fbb0498904915906ba00e06c0ad2bc09b75bbcef59b08",
+      "failedCases": [],
+      "skippedCases": [
+        {
+          "name": "generatedGoldenWorkspaceBuildsANeoForgeJar()",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "name": "dev.copperbench.generator.neoforge.NeoForge1211GoldenRunClientTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "sha256": "483aeb9dd76b69cb321416ce2009d7ad5a350f9e0d3020b2ebca200392cef34b",
+      "failedCases": [],
+      "skippedCases": [
+        {
+          "name": "generatedGoldenWorkspaceLoadsInTheNeoForgeClient()",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "name": "dev.copperbench.generator.neoforge.NeoForge1211TaskGatewayTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "97b23ac70c95f2715fff41c3b0a438dcd74fd634dfb78175684cfd654ce1b8a5",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.generator.neoforge.NeoForge261CompileProbeTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "sha256": "21116f0f419276b016f7ce40f1d273a4c4a26290add5a6089dd43efc28108d33",
+      "failedCases": [],
+      "skippedCases": [
+        {
+          "name": "recordsHonestNeoForge261CompileOutcome()",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "name": "dev.copperbench.generator.neoforge.NeoForge261GeneratorTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "eba4f4c398379bf17e05eed57751a603de8451ed916eb21965d635977633cd82",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.generator.neoforge.NeoForge261RunClientProbeTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "sha256": "b64d44205ba43eacc761420150b533637ed975dc0423dbe6e76014b425384035",
+      "failedCases": [],
+      "skippedCases": [
+        {
+          "name": "recordsHonestNeoForge261RunClientOutcome()",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "name": "dev.copperbench.generator.neoforge.NeoForge262CompileProbeTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "sha256": "51fba3d7ab9b3eea07695069d0acdd9342d2cbb95eab6a638877fcdcbac76927",
+      "failedCases": [],
+      "skippedCases": [
+        {
+          "name": "recordsHonestNeoForge262CompileOutcome()",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "name": "dev.copperbench.generator.neoforge.NeoForge262GeneratorTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "6c65767307445bfd393b2432a46af39767f50dddff936488d0ed4ddf5e851a81",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.generator.neoforge.NeoForge262RunClientProbeTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "sha256": "eda273773bf4149a5f55a9f042dc024d24b46ece3dc650ad5a9ec4731f4862ea",
+      "failedCases": [],
+      "skippedCases": [
+        {
+          "name": "recordsHonestNeoForge262RunClientOutcome()",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "name": "dev.copperbench.generator.PluginWorkspaceLayoutTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "b209293fa7699525c28bd950247805b43c45ad7e45ddb717251d544c2c9acc5a",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.generator.resourcepack.ResourcePackWorkspaceTaskGatewayTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "b9f963cdd3f1abe977d7327fa6360b456fd82406783d322d291d9713182ab743",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.generator.Stage14CFabricGameplayMatrixTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "sha256": "b909d036f0db0ddb10ee0ac7488415a315b17e890d9ed81dd3e731eba35679bc",
+      "failedCases": [],
+      "skippedCases": [
+        {
+          "name": "packagedGameplayAcrossFabricMatrix()",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "name": "dev.copperbench.generator.Stage14CFabricPackagedMatrixTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "sha256": "08e472b9eabe55bbf7dd143341652fa7c3360ccef6615eb49d11d1d6e17d5847",
+      "failedCases": [],
+      "skippedCases": [
+        {
+          "name": "packagedJarLoadsAndReachesServerReadyAcrossFabricMatrix()",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "name": "dev.copperbench.generator.Stage14CNeoForgeGameplayMatrixTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "sha256": "426712ac28e5676b55dc4e7bb5a8976ae043ba77b95a973d4a04425bb9ef3763",
+      "failedCases": [],
+      "skippedCases": [
+        {
+          "name": "packagedGameplayAcrossNeoForgeMatrixWithExplicitEulaBlock()",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "name": "dev.copperbench.generator.Stage14CPackagedBehaviorTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "sha256": "61fc69df009d8cc2d951aa889b068d6b78ad5c2b065d2d18b3a89718c3eadda1",
+      "failedCases": [],
+      "skippedCases": [
+        {
+          "name": "packagedJarLoadsAndExecutesRealWorldBehavior()",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "name": "dev.copperbench.generator.Stage17PackagedBlockGameTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "sha256": "fc7ac181367c077c69d7b8463eff89617bdf3228012617188016345d55155f3b",
+      "failedCases": [],
+      "skippedCases": [
+        {
+          "name": "packagedBlockBehavior(String)",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "name": "dev.copperbench.generator.Stage17ProcedureTaskValidationTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "9d3f23a026ad61021093f1afc3d32cbaeb8d24df37c94994c86986e4c322e0d7",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.generator.Stage17TaskSessionRecoveryTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "891b0ec5468f842b89e260c51f2124a0b9cdd9b76a63220678268ef38d88be6a",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.generator.Stage9ManagedTaskMatrixTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "f3a380c5ef84423fc4ba9a9ee05ad405084f478aaf27e840748c5ff630cb9fab",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.generator.Stage9RealServerReadinessProbeTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "sha256": "002ccf6c36595a45a8146f87bc09b2b77c4a6e90db09c7d53d2cce699dce88d3",
+      "failedCases": [],
+      "skippedCases": [
+        {
+          "name": "allEightSupportedTracksReachRealDedicatedServerReadiness()",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "name": "dev.copperbench.generator.Stage9ServerReadinessContractTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "3d6dd23ee0b685335a241671daa798c73f8d55ee9c6cfb21412873f609e08233",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.generator.VerifiedArtifactExporterTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "60fd4116fe9909bd37719daa8f6da0b32f875d7fdf81e2aa240904454bc93833",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.generator.workspace.NewWorkspaceGeneratorGoldenBuildTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 5,
+      "sha256": "a52ed1c2bd8b311e2e5f3bcb907736afcb6ddccfe68279b0143de817a26e8216",
+      "failedCases": [],
+      "skippedCases": [
+        {
+          "name": "stage9DataElementsBuildIntoJars()",
+          "reason": null
+        },
+        {
+          "name": "stage11JavaElementsBuildIntoJars()",
+          "reason": null
+        },
+        {
+          "name": "stage12CopperbenchEditedComplexElementsBuildIntoJars()",
+          "reason": null
+        },
+        {
+          "name": "stage14BNativeMultiFileModulesBuildAcrossEveryJavaTrack()",
+          "reason": null
+        },
+        {
+          "name": "emptyWorkspaceGeneratorsBuildIntoJars()",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "name": "dev.copperbench.generator.workspace.WorkspaceIdentityTemplateTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "9089cc00d700ed0801423ae3628e3a19a5524bc8d72d5c64fb71b38235841ba2",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.generator.WorkspaceEnvironmentContextTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "e372043fb4463da7ade3151b7cdc31948ba4f02351bd9357cf271368b48c1de1",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.generator.WorkspaceExecutionSnapshotTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "da5bbc1b62653755eb6c693a7b136e90cc5469d110a202315c11d62ba48fd411",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.generator.WorkspaceModIdentityTest",
+      "tests": 16,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "ef67cc739cfaa92cc91010dab57bd6f3e45ec212309b235406e912ecd693df5d",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.gradle.DesktopGradleRuntimeTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "48ba1970101883121d095462a613f3bf33a88d387ffaaa408c438da391aadddf",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.gradle.GradleDistributionPoolTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "f72f1e43b540f5023812a4e701bebd8d3f3661e09d8837c9e71c4aab00b3f1fe",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.gradle.GradleDownloadProgressTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "3f8cbbd467192944d590b50d7da08f4428075ca7bbd57501a2c82321e734d847",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.gradle.GradleRuntimeCompatibilityTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "71d2e7738519bc30d1f4ff769a20025089a67e39210502a723499482c58c0e12",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.gradle.GradleSyncBuildActionCompatibilityTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "f0911e5bcc8389637542f96b184c4386f94884367ca6bbace919037f55569c62",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.gradle.MinecraftMappingsCacheRepairTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "7e7fc51b5ec4a918a8384263cd3716f60b80fedf8da0fa52409f4ca2c65b12eb",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.headless.BlockbenchNativeElementTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "06f811c1f59beaadf2fc8795437a504ec4e22a031d51cf6d82f5644e65919e4f",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.headless.BootstrapProductLauncherTest",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "6b8f0d2395044bdbffb8bca047eeb1229dccb8a49d2f7991f16e14f1c7085b6a",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.headless.DesktopPythonRuntimeTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "ea424afdc694eb8d84f1961d448944cdfd5c9a4114edbb547bd35f4e426f0c90",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.headless.HeadlessCliTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "f3fd179d0200565f9897e2009398754127b99ba0287296d03058e20e223d2e31",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.headless.HeadlessProductLauncherTest",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "b4386cbfa01b9645611168dbcb17ed89b5f8deb83c70cb8210c26713e8b0843c",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.headless.LocalApprovalWindowTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 3,
+      "sha256": "11af914f125bd0c81db944da94a1aa03749f5c44ed991b51024a50706bebfc4f",
+      "failedCases": [],
+      "skippedCases": [
+        {
+          "name": "explicitAllowReturnsTrue()",
+          "reason": null
+        },
+        {
+          "name": "cancelIsDefaultAndReturnsFalse()",
+          "reason": null
+        },
+        {
+          "name": "closingTheWindowReturnsFalse()",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "name": "dev.copperbench.headless.NativeApiProductTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "6713e2b8fd911d59be8a82d8bb8b7a465ac9e318f9d5a377796a07f367dec74f",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.headless.NativeApiSessionTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "504df2f1d22681241f67ae00f7a7c5ceb698094e36d6b13f56c75638abb6e21e",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.headless.Stage14BNativeAuthoringLoopTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "2aeac4fb907908a025380461cc08bc8a4126a607ef62bb6e5ec155b14e182ef4",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.history.LocalHistoryServiceTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "c21576800df0fd897ba297a28d5a648c589497cc685c16236ea2f558213bf12f",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.mcp.DesktopMcpAgentLoopTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "f44bb0df27872722d9c214e3de2f84d2d3278f9d601e24c06d087b016cefe0eb",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.mcp.DesktopMcpRuntimeTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "13492055dc5fa608961a4880761cae82a9d1f4af23e75877c2966b2111bc281b",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.mcp.McpHttpServerTest",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "63396b2b7165eb5d4538eba1e10d6fbfa7e8ec390947987f4d082b76edcdcd36",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.migration.LoaderMigrationRebuildServiceTest",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "sha256": "4fdba7ac30169d4c47e7e1836903fdb40748880634489ae4708c5020b8495130",
+      "failedCases": [],
+      "skippedCases": [
+        {
+          "name": "rebuiltNeoForgeCopyBuildsAJar()",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "name": "dev.copperbench.migration.LoaderMigrationServiceTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "163ccc3db490626c03d58841122b7c5b7ebc9fe9233fecee21e7a48da1a39807",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.migration.UpstreamWorkspaceImportServiceTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "c8325b2c2bfcdb7bcfa12119d835823af53b063e93c836f8ac5d178d266ace7e",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.network.ChinaMirrorServiceTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "26099e32c73e82c0352cc997b8288bcfd962cb27ae80c18df53ed2444a1039d0",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.platform.DesktopSessionCapabilitiesTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "301f5b30fb331bb3be0420390f9416f359b625264e8bb29568a315fbaf247c84",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.platform.ExecutableFilePermissionsTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "bf924589f88c432ecbbf3cc1fa26c1cb59306bd242555d4c823d340691104dff",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.platform.GraphicalCiModeTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "3bd94d6dc55f32909080c5b2eda33298e573ac482de4733f49f27d7ab0a5c8ed",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.platform.LegacyPreferencesMigrationTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "d66f9cf9471619072f06031dfe167fd9c8951360b58c7ca33eb7fb0cffb3250c",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.platform.LinuxDesktopPathIntegrationTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "29de0672d4755fe4d7c821ff168841eefffea6295cc19921f132115886dfb089",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.platform.PrivatePathPermissionsTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "777c1525149c7bf2b2314fa78b7a6d636a556d6887b6ae05093e6819f0b53d11",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.platform.RuntimePlatformTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "636052646cb39ffad64b05cc937fe83424790e9cb9b9f5aa4032cdd05c86a8d1",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.platform.UserDataPathsTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "91fc34e47778b822ae7ed0589585b06e06a7c66a06e21afd13dcd09da088c530",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.procedure.ProcedureIrCodecTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "5942abf297702802fee21850b4e0d7efb4fcf2c9a0fb2d9152d26b08cf0414f3",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.procedure.ProcedureIrScaleGateTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "sha256": "f6ee75887347bb79d3e7a83a0b11471165c01c15ac6b97601c20ed84f95f7f09",
+      "failedCases": [],
+      "skippedCases": [
+        {
+          "name": "validatesAndRoundTripsFiveHundredNodeProcedure()",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "name": "dev.copperbench.procedure.Stage17ProcedureReturnValidationTest",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "9955bb191acf03ee7e92da4723bd7df36bc011c5778c4333285a122cec9d58eb",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.ProductIdentityTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "2969779bde1cf5abf67072b5baaa8921bc14bcea1526dca5ff578dd7b21faa9e",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.references.WorkspaceReferenceIndexScaleTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "sha256": "c86b879d5f2dcceeb96ff3208d17fea67e6d233c0a58bd58cdf367285dacaf59",
+      "failedCases": [],
+      "skippedCases": [
+        {
+          "name": "indexesTwoThousandElementsAndTenThousandReferencesWithoutLoss()",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "name": "dev.copperbench.references.WorkspaceReferenceIndexTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "29558cdc6610a01ad0161d5312c65a6462b4a68a29fd9a4e5f10e217471d7875",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.release.BundledPluginInventoryTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "d9f78b24674c627d4ed31546765302dc71e4f2878cb1ae7e6210b0ee5bd1b70e",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.release.DevelopmentSbomTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "aff40b0bc65b7d1ff1869bc58f7991de5af355cfb126cd128e0a75daeea05ea7",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.release.ElementCoverageCatalogTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "58b5fb39facd472fb893aa4f157ad95ddcf3d3c0e77249bf6a6d2320099cc243",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.release.FeatureCoverageCatalogTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "ed8facd682e97ebfb63902fbcc0d455135fe97576a11447e3aa6dec90bfff043",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.release.GeneratorElementCapabilityCatalogTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "7bba1febabdaab03add150bd0f1a51eb98bbd1b86e764ddc0789b2e216226a83",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.release.LinuxCandidateManifestTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "f1bd161307f886cbe640d40e65c87abdb7d6ec3e4c416573750452279a454990",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.release.LinuxDistributionLayoutTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "50e25fb9edfa0e163fd51a7952d42baac28aad5e0cd15351add7456d441b6cab",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.release.OfflineCachedBuildTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "sha256": "1be6bfb90229140b83fef1169738a5f7616509cd47b1a3ae746d2761c3b35a5a",
+      "failedCases": [],
+      "skippedCases": [
+        {
+          "name": "generatedFabric1211WorkspaceBuildsOfflineFromCachedDependencies()",
+          "reason": null
+        },
+        {
+          "name": "generatedNeoForge1211WorkspaceBuildsOfflineFromCachedDependencies()",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "name": "dev.copperbench.release.OfflineLocalOperationsTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "9a6d6fba41092345a656eb3b1af3bdc8dcff4e8c9e2f112409f47ff3031ce7f9",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.release.ReleaseManifestTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "33d01693a071b5136dd49d0fe6622f88e7c4dd5b10c26e1b80c0fb3f7f59cc43",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.release.SourceDistributionCompletenessTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "5ee02a7aae3ba8994659508df461110f4200706774eebf5d74fb8a960c1763b9",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.release.SupportedPlatformTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "fbde0745eb52541c48fd3e299222e576620b2eaae824683c05c6dbb4242b21d1",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.release.UpstreamToolCatalogTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "4588668e85749c1df815221d638a6149fa1d0d22a08dab58d60916a49562cc79",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.release.UserGuideLocatorTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "10842f811b9a95c6bbeb2bc228cdcacb421ac10602c7ed95104db57dc49a0046",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.release.WindowsDistributionLayoutTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "fd60106853f51e6a3205a59686e578f3389b935b5ac03af37037590c494e5f8c",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.release.WindowsInstallerSafetyTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "9644c9e71b5cefaaf9c3f9d1a484f27aa6587887d92c81899244612ac0ccc326",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.release.WindowsInstallRehearsalSafetyTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "1aa5a6e41c4af2b4fe718e500be0633470d9c9c4428e2a1fe76c4ae1a77a38b3",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.release.WindowsReleaseReadinessTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "b4b0a857db52acf36a818b69380fb925df0ba635d712cb849b3d6effd8500d02",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.sdk.ExperimentalExtensionManifestTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "2fe17555427357a3ae44f57cdf7bdacd5e28bd84570edae780d9d1e73fe8aa13",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.shell.BlockbenchStartupPanelTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "1da5cb62a9f8a3127aa84ca729fd42c52cdbcfefd3b4956bc6724b62bbf62619",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.shell.CopperbenchProductShellJcefSmokeTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 3,
+      "sha256": "cb8e0d38eb8280ce1ac5d041d9a02c22f2ea52afd26d197705514753327a9732",
+      "failedCases": [],
+      "skippedCases": [
+        {
+          "name": "recoversFromARealRendererCrashWithoutReplacingCommittedWorkspaceState()",
+          "reason": null
+        },
+        {
+          "name": "loadsOfflineReactShellAndCompletesNativeHandshake()",
+          "reason": null
+        },
+        {
+          "name": "workspaceOpenBridgeRejectsMissingFilesAndAcceptsPersistedMcreatorFiles()",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "name": "dev.copperbench.shell.CopperbenchProductShellResourceTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "1f6c73d65e38b10706c2c45515b93e1b7752d7360d9f435b9e5a506ba1681dc7",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.shell.GraphicalProductProbeTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "552c37e8ef9bfb41640403a4a71c05d8cdfcbc08fc94f0382feeea6d9276020a",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.shell.LegacyPluginWindowTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "a01a1717e6d1d40a2c1a3c20686702209da90b9cd911193d07a3b8f885287c3b",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.shell.ProductShellSettingsTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "28521e06fe158bc1bf896d76af5ac225e8486be3718d191d44ea457fc0311fa3",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.shell.RecoverableBrowserHostTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "0e7435c0ef19ec236cd1c2babe6bc4e2b1b87e2cf3179d1ac61d2cd4bd5ffd7e",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.shell.Stage10NativeJcefDiagnosticsBundleTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "45a8640042c2dd69e7543d4e62f2da91e0395425d081297310fe89c580e92a0d",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.shell.Stage10NativeJcefTaskReconnectTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "590c2b752f5140abf009acd79804e9972b15b7a81a7f0aaec2a4bee44117eb0f",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.shell.Stage9NativeJcefAccessibilityTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "4acb71a7ea9cc01d2d576234668e29cb42f6894d5518b04124d20f63bd921aa6",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.shell.Stage9NativeJcefScaleGateTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "sha256": "132addb0bdd0f2a5571dd89d83d9563e1670e02ca0fbd6ce3f639fa84c9a1fb6",
+      "failedCases": [],
+      "skippedCases": [
+        {
+          "name": "fixedHardwareProductShellMeetsStage9ScaleTargets()",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "name": "dev.copperbench.tracks.VersionTrackCatalogTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "b54a3355793c12f86294853b3a0f3bc1b4ab10b708c0dacba980e1e22d95c259",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.window.ProductShellJcefSnapDpiSmokeTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "sha256": "eb2e35b3d9a45d50e75470f8df0330090899d6556082b54b3337b63bf89bb8ac",
+      "failedCases": [],
+      "skippedCases": [
+        {
+          "name": "realJcefShellReportsChromeRegionsAndExposesSnapAndDpi()",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "name": "dev.copperbench.window.WindowChromeHitTestTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "3b95ceb74696c25538a1e0379f7dc9a9d8a9150af849d9ed622207cee4b2d1dc",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "dev.copperbench.window.WindowsWindowChromeControllerSmokeTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "sha256": "3cd066d9b9655a2103c6e6c553c0857cdc9bea7432885acf7251bc91f17a4a4a",
+      "failedCases": [],
+      "skippedCases": [
+        {
+          "name": "installsNativeHitTestingAndCanRestoreTheSystemFrame()",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "name": "net.mcreator.integration.generator.GeneratorsTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "sha256": "b81d83d04f2230eef66845e26991f299aba48c1f045183d63c9028c1fb746ddf",
+      "failedCases": [],
+      "skippedCases": [
+        {
+          "name": "External Gradle integration is explicitly disabled",
+          "reason": "org.opentest4j.TestAbortedException: Assumption failed: Use -Dcopperbench.generatorIntegrationProfile=offline or external to run it"
+        }
+      ]
+    },
+    {
+      "name": "net.mcreator.integration.ui.DialogsTest",
+      "tests": 24,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "e29dbcafbfdccd8bc6cd64dd588333d8c612a1b1f7f483379304e503fd4af285",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "net.mcreator.integration.ui.ImageMakerTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "3bdd51b55326e1ebf8052d6b6891ee5b2b18b17c7c30c20f2e7f90e25b9b557b",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "net.mcreator.integration.ui.ModElementUITest$AddonGeneratorTests",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "604877b011e7c4145be88f98a9ecd695358e8d05506980e5e7ecebdf0076ee41",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "net.mcreator.integration.ui.ModElementUITest$JavaGeneratorTests",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "43e861c821b51d9feab02674f27edc7191421ab84d1e8b874b4f0e5311dd498d",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "net.mcreator.integration.workspace.ReferencesFinderTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "4458595dbe2ed485f7fb1d574eb2c19399c7f79e18cee0b029bbf54f277fac72",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "net.mcreator.integration.WorkspaceConvertersTest",
+      "tests": 15,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "6a1c19797eb36fde61932079acead9d151352cbeb31ab8fce487306a5833a0d9",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "net.mcreator.io.LoggingConfigurationTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "44c5dbdbe4cd7d90bebf7f5bcec60e6a81e6e19051fe9bd34d1db9dc5b7727fa",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "net.mcreator.io.zip.ZipIOWindowsPublishTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "0dbbbe5d2f43a19a4b94a3d8e5b9cce6056165dd427e5a83e236532382cb61d5",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "net.mcreator.io.ZipIOTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "9a99b16aa9de952d4639db073fda0459494b4c0b487918f80ac296ebc0a41484",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "net.mcreator.plugin.PluginLoaderSwingFixtureTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "aa528e8f950b1d1b8c298b2e5acef283cfeddce6a437a1527809de32f72747e1",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "net.mcreator.ui.chromium.CefUtilsAccessibilityTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "fb9b7282c2144c2f77b5cbda216311b31b092c95da9d8bbbd0a714471200a083",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "net.mcreator.ui.chromium.WindowsDisplayAdapterProbeTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "b59511d4dd006d602f9109a3847c99f485d67fefa128bc2e091a6b8080650c20",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "net.mcreator.unit.io.EncryptUtilsTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "e2e9759a244b6bbb54efcb7c5b0d5d2d76189aa0436a9d686d74561f694f67ed",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "net.mcreator.unit.io.TransliterationTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "8363b5615539d3c9fc4e65cc5126951594d3b00c332408f4413caa5cbafa1d7f",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "net.mcreator.unit.java.JavaConventionsTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "8e5028a574e200f7e8b39d2addfb99576bd7de9035b8d5fd65a38c8b1dd60803",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "net.mcreator.unit.util.diff.ListDiffTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "c8d3fc036cca87985891248d1428f68934d73f51adab908673264a586c9af355",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "net.mcreator.unit.util.GSONUtilsTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "7903d2894963ebf132ad03e36d366c52c1162da8d70a8922a0f0e0594755c2c9",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "net.mcreator.workspace.LocalTemplateWorkspacePlanIntegrationTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "0d9957f520eb51af28e77479f66cffeb2522751747af359ae23478bbd4cbf98f",
+      "failedCases": [],
+      "skippedCases": []
+    },
+    {
+      "name": "net.mcreator.workspace.WorkspacePersistenceCompatibilityTest",
+      "tests": 24,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "d079bcfdca4151f7409fb2904b3f680660da10eca4163304d5ba572803015569",
+      "failedCases": [],
+      "skippedCases": []
+    }
+  ],
+  "command": "pwsh -NoProfile -File scripts/run-gradle-external.ps1 test --no-daemon",
+  "log": "output/stage17-v38/resumed/full-regression-final.log",
+  "scope": "Current workspace full default Gradle test suite; conditional skips are not acceptance passes."
+}

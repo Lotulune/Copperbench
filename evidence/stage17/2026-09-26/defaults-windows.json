@@ -1,0 +1,768 @@
+{
+  "scope": "Packaged public SDK default create, rejection and reopen across eight generators; not gameplay",
+  "applicationSha256": "6797747dbd09c2cbaf9a383784f751ff65ddcc27e4e18ec775b36c68ab594879",
+  "status": "passed",
+  "tracks": [
+    {
+      "track": "fabric-1.20.1",
+      "status": "passed",
+      "revision": 2,
+      "rejections": [
+        {
+          "kind": "structure",
+          "diagnostic": {
+            "code": "FIELD_UNSUPPORTED",
+            "severity": "error",
+            "message": {
+              "key": "diagnostic.field_contract_invalid",
+              "fallback": "{field}: {reason}",
+              "args": {
+                "reason": "This field has no supported structure definition adapter; imported values are preserved read-only.",
+                "field": "/poolName"
+              }
+            },
+            "path": "/elements/c55cafa9-2dee-4fa8-9a37-bc2da022702c/poolName",
+            "elementId": "c55cafa9-2dee-4fa8-9a37-bc2da022702c",
+            "recoverable": true,
+            "actions": [
+              {
+                "id": "open_field",
+                "label": {
+                  "key": "action.open_field",
+                  "fallback": "Locate invalid field",
+                  "args": {}
+                },
+                "kind": "open_field",
+                "target": "/poolName",
+                "payload": null
+              }
+            ]
+          },
+          "revisionUnchanged": true
+        },
+        {
+          "kind": "keybind",
+          "diagnostic": {
+            "code": "FIELD_UNSUPPORTED",
+            "severity": "error",
+            "message": {
+              "key": "diagnostic.field_contract_invalid",
+              "fallback": "{field}: {reason}",
+              "args": {
+                "reason": "This field has no supported keybind definition adapter; imported values are preserved read-only.",
+                "field": "/pluginFutureField"
+              }
+            },
+            "path": "/elements/79ce0f42-add3-403f-af33-3fc3dd4f23c3/pluginFutureField",
+            "elementId": "79ce0f42-add3-403f-af33-3fc3dd4f23c3",
+            "recoverable": true,
+            "actions": [
+              {
+                "id": "open_field",
+                "label": {
+                  "key": "action.open_field",
+                  "fallback": "Locate invalid field",
+                  "args": {}
+                },
+                "kind": "open_field",
+                "target": "/pluginFutureField",
+                "payload": null
+              }
+            ]
+          },
+          "revisionUnchanged": true
+        }
+      ],
+      "definitions": {
+        "structure": {
+          "structure": "",
+          "projection": "rigid",
+          "ignoredBlocks": [],
+          "spacing": 0,
+          "separation": 0,
+          "restrictionBiomes": [],
+          "terrainAdaptation": "none",
+          "surfaceDetectionType": "WORLD_SURFACE_WG",
+          "useStartHeight": false,
+          "startHeightProviderType": "UNIFORM",
+          "startHeightMin": 0,
+          "startHeightMax": 128,
+          "size": 1,
+          "maxDistanceFromCenter": 64,
+          "jigsawPools": []
+        },
+        "keybind": {
+          "triggerKey": "K",
+          "keyBindingName": "Default Keybind",
+          "keyBindingCategoryKey": "misc"
+        }
+      }
+    },
+    {
+      "track": "neoforge-1.20.1",
+      "status": "passed",
+      "revision": 2,
+      "rejections": [
+        {
+          "kind": "structure",
+          "diagnostic": {
+            "code": "FIELD_UNSUPPORTED",
+            "severity": "error",
+            "message": {
+              "key": "diagnostic.field_contract_invalid",
+              "fallback": "{field}: {reason}",
+              "args": {
+                "reason": "This field has no supported structure definition adapter; imported values are preserved read-only.",
+                "field": "/poolName"
+              }
+            },
+            "path": "/elements/b7edb58d-8a06-4c87-822f-f1cedb371c53/poolName",
+            "elementId": "b7edb58d-8a06-4c87-822f-f1cedb371c53",
+            "recoverable": true,
+            "actions": [
+              {
+                "id": "open_field",
+                "label": {
+                  "key": "action.open_field",
+                  "fallback": "Locate invalid field",
+                  "args": {}
+                },
+                "kind": "open_field",
+                "target": "/poolName",
+                "payload": null
+              }
+            ]
+          },
+          "revisionUnchanged": true
+        },
+        {
+          "kind": "keybind",
+          "diagnostic": {
+            "code": "FIELD_UNSUPPORTED",
+            "severity": "error",
+            "message": {
+              "key": "diagnostic.field_contract_invalid",
+              "fallback": "{field}: {reason}",
+              "args": {
+                "reason": "This field has no supported keybind definition adapter; imported values are preserved read-only.",
+                "field": "/pluginFutureField"
+              }
+            },
+            "path": "/elements/82e4a68f-5b87-4bb1-825e-8a27d949e014/pluginFutureField",
+            "elementId": "82e4a68f-5b87-4bb1-825e-8a27d949e014",
+            "recoverable": true,
+            "actions": [
+              {
+                "id": "open_field",
+                "label": {
+                  "key": "action.open_field",
+                  "fallback": "Locate invalid field",
+                  "args": {}
+                },
+                "kind": "open_field",
+                "target": "/pluginFutureField",
+                "payload": null
+              }
+            ]
+          },
+          "revisionUnchanged": true
+        }
+      ],
+      "definitions": {
+        "structure": {
+          "structure": "",
+          "projection": "rigid",
+          "ignoredBlocks": [],
+          "spacing": 0,
+          "separation": 0,
+          "restrictionBiomes": [],
+          "terrainAdaptation": "none",
+          "surfaceDetectionType": "WORLD_SURFACE_WG",
+          "useStartHeight": false,
+          "startHeightProviderType": "UNIFORM",
+          "startHeightMin": 0,
+          "startHeightMax": 128,
+          "size": 1,
+          "maxDistanceFromCenter": 64,
+          "jigsawPools": []
+        },
+        "keybind": {
+          "triggerKey": "K",
+          "keyBindingName": "Default Keybind",
+          "keyBindingCategoryKey": "misc"
+        }
+      }
+    },
+    {
+      "track": "fabric-1.21.1",
+      "status": "passed",
+      "revision": 2,
+      "rejections": [
+        {
+          "kind": "structure",
+          "diagnostic": {
+            "code": "FIELD_UNSUPPORTED",
+            "severity": "error",
+            "message": {
+              "key": "diagnostic.field_contract_invalid",
+              "fallback": "{field}: {reason}",
+              "args": {
+                "reason": "This field has no supported structure definition adapter; imported values are preserved read-only.",
+                "field": "/poolName"
+              }
+            },
+            "path": "/elements/bdafcd6b-d37b-4c2f-a3c1-9dfa089cb9dd/poolName",
+            "elementId": "bdafcd6b-d37b-4c2f-a3c1-9dfa089cb9dd",
+            "recoverable": true,
+            "actions": [
+              {
+                "id": "open_field",
+                "label": {
+                  "key": "action.open_field",
+                  "fallback": "Locate invalid field",
+                  "args": {}
+                },
+                "kind": "open_field",
+                "target": "/poolName",
+                "payload": null
+              }
+            ]
+          },
+          "revisionUnchanged": true
+        },
+        {
+          "kind": "keybind",
+          "diagnostic": {
+            "code": "FIELD_UNSUPPORTED",
+            "severity": "error",
+            "message": {
+              "key": "diagnostic.field_contract_invalid",
+              "fallback": "{field}: {reason}",
+              "args": {
+                "reason": "This field has no supported keybind definition adapter; imported values are preserved read-only.",
+                "field": "/pluginFutureField"
+              }
+            },
+            "path": "/elements/d60d0b93-9327-48d4-a18d-243de715cf41/pluginFutureField",
+            "elementId": "d60d0b93-9327-48d4-a18d-243de715cf41",
+            "recoverable": true,
+            "actions": [
+              {
+                "id": "open_field",
+                "label": {
+                  "key": "action.open_field",
+                  "fallback": "Locate invalid field",
+                  "args": {}
+                },
+                "kind": "open_field",
+                "target": "/pluginFutureField",
+                "payload": null
+              }
+            ]
+          },
+          "revisionUnchanged": true
+        }
+      ],
+      "definitions": {
+        "structure": {
+          "structure": "",
+          "projection": "rigid",
+          "ignoredBlocks": [],
+          "spacing": 0,
+          "separation": 0,
+          "restrictionBiomes": [],
+          "terrainAdaptation": "none",
+          "surfaceDetectionType": "WORLD_SURFACE_WG",
+          "useStartHeight": false,
+          "startHeightProviderType": "UNIFORM",
+          "startHeightMin": 0,
+          "startHeightMax": 128,
+          "size": 1,
+          "maxDistanceFromCenter": 64,
+          "jigsawPools": []
+        },
+        "keybind": {
+          "triggerKey": "K",
+          "keyBindingName": "Default Keybind",
+          "keyBindingCategoryKey": "misc"
+        }
+      }
+    },
+    {
+      "track": "neoforge-1.21.1",
+      "status": "passed",
+      "revision": 2,
+      "rejections": [
+        {
+          "kind": "structure",
+          "diagnostic": {
+            "code": "FIELD_UNSUPPORTED",
+            "severity": "error",
+            "message": {
+              "key": "diagnostic.field_contract_invalid",
+              "fallback": "{field}: {reason}",
+              "args": {
+                "reason": "This field has no supported structure definition adapter; imported values are preserved read-only.",
+                "field": "/poolName"
+              }
+            },
+            "path": "/elements/7596fdd3-2135-4ab7-ba3c-b962e9e418ea/poolName",
+            "elementId": "7596fdd3-2135-4ab7-ba3c-b962e9e418ea",
+            "recoverable": true,
+            "actions": [
+              {
+                "id": "open_field",
+                "label": {
+                  "key": "action.open_field",
+                  "fallback": "Locate invalid field",
+                  "args": {}
+                },
+                "kind": "open_field",
+                "target": "/poolName",
+                "payload": null
+              }
+            ]
+          },
+          "revisionUnchanged": true
+        },
+        {
+          "kind": "keybind",
+          "diagnostic": {
+            "code": "FIELD_UNSUPPORTED",
+            "severity": "error",
+            "message": {
+              "key": "diagnostic.field_contract_invalid",
+              "fallback": "{field}: {reason}",
+              "args": {
+                "reason": "This field has no supported keybind definition adapter; imported values are preserved read-only.",
+                "field": "/pluginFutureField"
+              }
+            },
+            "path": "/elements/c27a4f76-fba4-4f01-9731-64fc98f37a9f/pluginFutureField",
+            "elementId": "c27a4f76-fba4-4f01-9731-64fc98f37a9f",
+            "recoverable": true,
+            "actions": [
+              {
+                "id": "open_field",
+                "label": {
+                  "key": "action.open_field",
+                  "fallback": "Locate invalid field",
+                  "args": {}
+                },
+                "kind": "open_field",
+                "target": "/pluginFutureField",
+                "payload": null
+              }
+            ]
+          },
+          "revisionUnchanged": true
+        }
+      ],
+      "definitions": {
+        "structure": {
+          "structure": "",
+          "projection": "rigid",
+          "ignoredBlocks": [],
+          "spacing": 0,
+          "separation": 0,
+          "restrictionBiomes": [],
+          "terrainAdaptation": "none",
+          "surfaceDetectionType": "WORLD_SURFACE_WG",
+          "useStartHeight": false,
+          "startHeightProviderType": "UNIFORM",
+          "startHeightMin": 0,
+          "startHeightMax": 128,
+          "size": 1,
+          "maxDistanceFromCenter": 64,
+          "jigsawPools": []
+        },
+        "keybind": {
+          "triggerKey": "K",
+          "keyBindingName": "Default Keybind",
+          "keyBindingCategoryKey": "misc"
+        }
+      }
+    },
+    {
+      "track": "fabric-26.1.2",
+      "status": "passed",
+      "revision": 2,
+      "rejections": [
+        {
+          "kind": "structure",
+          "diagnostic": {
+            "code": "FIELD_UNSUPPORTED",
+            "severity": "error",
+            "message": {
+              "key": "diagnostic.field_contract_invalid",
+              "fallback": "{field}: {reason}",
+              "args": {
+                "reason": "This field has no supported structure definition adapter; imported values are preserved read-only.",
+                "field": "/poolName"
+              }
+            },
+            "path": "/elements/274544a8-0db5-470b-90c1-7fd114757328/poolName",
+            "elementId": "274544a8-0db5-470b-90c1-7fd114757328",
+            "recoverable": true,
+            "actions": [
+              {
+                "id": "open_field",
+                "label": {
+                  "key": "action.open_field",
+                  "fallback": "Locate invalid field",
+                  "args": {}
+                },
+                "kind": "open_field",
+                "target": "/poolName",
+                "payload": null
+              }
+            ]
+          },
+          "revisionUnchanged": true
+        },
+        {
+          "kind": "keybind",
+          "diagnostic": {
+            "code": "FIELD_UNSUPPORTED",
+            "severity": "error",
+            "message": {
+              "key": "diagnostic.field_contract_invalid",
+              "fallback": "{field}: {reason}",
+              "args": {
+                "reason": "This field has no supported keybind definition adapter; imported values are preserved read-only.",
+                "field": "/pluginFutureField"
+              }
+            },
+            "path": "/elements/e6c34951-bdf4-461e-9847-09c732e293ab/pluginFutureField",
+            "elementId": "e6c34951-bdf4-461e-9847-09c732e293ab",
+            "recoverable": true,
+            "actions": [
+              {
+                "id": "open_field",
+                "label": {
+                  "key": "action.open_field",
+                  "fallback": "Locate invalid field",
+                  "args": {}
+                },
+                "kind": "open_field",
+                "target": "/pluginFutureField",
+                "payload": null
+              }
+            ]
+          },
+          "revisionUnchanged": true
+        }
+      ],
+      "definitions": {
+        "structure": {
+          "structure": "",
+          "projection": "rigid",
+          "ignoredBlocks": [],
+          "spacing": 0,
+          "separation": 0,
+          "restrictionBiomes": [],
+          "terrainAdaptation": "none",
+          "surfaceDetectionType": "WORLD_SURFACE_WG",
+          "useStartHeight": false,
+          "startHeightProviderType": "UNIFORM",
+          "startHeightMin": 0,
+          "startHeightMax": 128,
+          "size": 1,
+          "maxDistanceFromCenter": 64,
+          "jigsawPools": []
+        },
+        "keybind": {
+          "triggerKey": "K",
+          "keyBindingName": "Default Keybind",
+          "keyBindingCategoryKey": "misc"
+        }
+      }
+    },
+    {
+      "track": "neoforge-26.1.2",
+      "status": "passed",
+      "revision": 2,
+      "rejections": [
+        {
+          "kind": "structure",
+          "diagnostic": {
+            "code": "FIELD_UNSUPPORTED",
+            "severity": "error",
+            "message": {
+              "key": "diagnostic.field_contract_invalid",
+              "fallback": "{field}: {reason}",
+              "args": {
+                "reason": "This field has no supported structure definition adapter; imported values are preserved read-only.",
+                "field": "/poolName"
+              }
+            },
+            "path": "/elements/e97015ba-0d90-4803-8153-aedda705914b/poolName",
+            "elementId": "e97015ba-0d90-4803-8153-aedda705914b",
+            "recoverable": true,
+            "actions": [
+              {
+                "id": "open_field",
+                "label": {
+                  "key": "action.open_field",
+                  "fallback": "Locate invalid field",
+                  "args": {}
+                },
+                "kind": "open_field",
+                "target": "/poolName",
+                "payload": null
+              }
+            ]
+          },
+          "revisionUnchanged": true
+        },
+        {
+          "kind": "keybind",
+          "diagnostic": {
+            "code": "FIELD_UNSUPPORTED",
+            "severity": "error",
+            "message": {
+              "key": "diagnostic.field_contract_invalid",
+              "fallback": "{field}: {reason}",
+              "args": {
+                "reason": "This field has no supported keybind definition adapter; imported values are preserved read-only.",
+                "field": "/pluginFutureField"
+              }
+            },
+            "path": "/elements/79663b61-fb52-4fef-be51-857476049a6c/pluginFutureField",
+            "elementId": "79663b61-fb52-4fef-be51-857476049a6c",
+            "recoverable": true,
+            "actions": [
+              {
+                "id": "open_field",
+                "label": {
+                  "key": "action.open_field",
+                  "fallback": "Locate invalid field",
+                  "args": {}
+                },
+                "kind": "open_field",
+                "target": "/pluginFutureField",
+                "payload": null
+              }
+            ]
+          },
+          "revisionUnchanged": true
+        }
+      ],
+      "definitions": {
+        "structure": {
+          "structure": "",
+          "projection": "rigid",
+          "ignoredBlocks": [],
+          "spacing": 0,
+          "separation": 0,
+          "restrictionBiomes": [],
+          "terrainAdaptation": "none",
+          "surfaceDetectionType": "WORLD_SURFACE_WG",
+          "useStartHeight": false,
+          "startHeightProviderType": "UNIFORM",
+          "startHeightMin": 0,
+          "startHeightMax": 128,
+          "size": 1,
+          "maxDistanceFromCenter": 64,
+          "jigsawPools": []
+        },
+        "keybind": {
+          "triggerKey": "K",
+          "keyBindingName": "Default Keybind",
+          "keyBindingCategoryKey": "misc"
+        }
+      }
+    },
+    {
+      "track": "fabric-26.2",
+      "status": "passed",
+      "revision": 2,
+      "rejections": [
+        {
+          "kind": "structure",
+          "diagnostic": {
+            "code": "FIELD_UNSUPPORTED",
+            "severity": "error",
+            "message": {
+              "key": "diagnostic.field_contract_invalid",
+              "fallback": "{field}: {reason}",
+              "args": {
+                "reason": "This field has no supported structure definition adapter; imported values are preserved read-only.",
+                "field": "/poolName"
+              }
+            },
+            "path": "/elements/eee81cfa-b1ba-43b3-86f0-1200cb45373b/poolName",
+            "elementId": "eee81cfa-b1ba-43b3-86f0-1200cb45373b",
+            "recoverable": true,
+            "actions": [
+              {
+                "id": "open_field",
+                "label": {
+                  "key": "action.open_field",
+                  "fallback": "Locate invalid field",
+                  "args": {}
+                },
+                "kind": "open_field",
+                "target": "/poolName",
+                "payload": null
+              }
+            ]
+          },
+          "revisionUnchanged": true
+        },
+        {
+          "kind": "keybind",
+          "diagnostic": {
+            "code": "FIELD_UNSUPPORTED",
+            "severity": "error",
+            "message": {
+              "key": "diagnostic.field_contract_invalid",
+              "fallback": "{field}: {reason}",
+              "args": {
+                "reason": "This field has no supported keybind definition adapter; imported values are preserved read-only.",
+                "field": "/pluginFutureField"
+              }
+            },
+            "path": "/elements/fd31de3c-32a4-4ef4-8a1b-720d7d9779ec/pluginFutureField",
+            "elementId": "fd31de3c-32a4-4ef4-8a1b-720d7d9779ec",
+            "recoverable": true,
+            "actions": [
+              {
+                "id": "open_field",
+                "label": {
+                  "key": "action.open_field",
+                  "fallback": "Locate invalid field",
+                  "args": {}
+                },
+                "kind": "open_field",
+                "target": "/pluginFutureField",
+                "payload": null
+              }
+            ]
+          },
+          "revisionUnchanged": true
+        }
+      ],
+      "definitions": {
+        "structure": {
+          "structure": "",
+          "projection": "rigid",
+          "ignoredBlocks": [],
+          "spacing": 0,
+          "separation": 0,
+          "restrictionBiomes": [],
+          "terrainAdaptation": "none",
+          "surfaceDetectionType": "WORLD_SURFACE_WG",
+          "useStartHeight": false,
+          "startHeightProviderType": "UNIFORM",
+          "startHeightMin": 0,
+          "startHeightMax": 128,
+          "size": 1,
+          "maxDistanceFromCenter": 64,
+          "jigsawPools": []
+        },
+        "keybind": {
+          "triggerKey": "K",
+          "keyBindingName": "Default Keybind",
+          "keyBindingCategoryKey": "misc"
+        }
+      }
+    },
+    {
+      "track": "neoforge-26.2",
+      "status": "passed",
+      "revision": 2,
+      "rejections": [
+        {
+          "kind": "structure",
+          "diagnostic": {
+            "code": "FIELD_UNSUPPORTED",
+            "severity": "error",
+            "message": {
+              "key": "diagnostic.field_contract_invalid",
+              "fallback": "{field}: {reason}",
+              "args": {
+                "reason": "This field has no supported structure definition adapter; imported values are preserved read-only.",
+                "field": "/poolName"
+              }
+            },
+            "path": "/elements/df244897-f3ba-4ca9-9abc-e24b2071d1f6/poolName",
+            "elementId": "df244897-f3ba-4ca9-9abc-e24b2071d1f6",
+            "recoverable": true,
+            "actions": [
+              {
+                "id": "open_field",
+                "label": {
+                  "key": "action.open_field",
+                  "fallback": "Locate invalid field",
+                  "args": {}
+                },
+                "kind": "open_field",
+                "target": "/poolName",
+                "payload": null
+              }
+            ]
+          },
+          "revisionUnchanged": true
+        },
+        {
+          "kind": "keybind",
+          "diagnostic": {
+            "code": "FIELD_UNSUPPORTED",
+            "severity": "error",
+            "message": {
+              "key": "diagnostic.field_contract_invalid",
+              "fallback": "{field}: {reason}",
+              "args": {
+                "reason": "This field has no supported keybind definition adapter; imported values are preserved read-only.",
+                "field": "/pluginFutureField"
+              }
+            },
+            "path": "/elements/40a88a01-425d-47d4-befd-3200bfbafc49/pluginFutureField",
+            "elementId": "40a88a01-425d-47d4-befd-3200bfbafc49",
+            "recoverable": true,
+            "actions": [
+              {
+                "id": "open_field",
+                "label": {
+                  "key": "action.open_field",
+                  "fallback": "Locate invalid field",
+                  "args": {}
+                },
+                "kind": "open_field",
+                "target": "/pluginFutureField",
+                "payload": null
+              }
+            ]
+          },
+          "revisionUnchanged": true
+        }
+      ],
+      "definitions": {
+        "structure": {
+          "structure": "",
+          "projection": "rigid",
+          "ignoredBlocks": [],
+          "spacing": 0,
+          "separation": 0,
+          "restrictionBiomes": [],
+          "terrainAdaptation": "none",
+          "surfaceDetectionType": "WORLD_SURFACE_WG",
+          "useStartHeight": false,
+          "startHeightProviderType": "UNIFORM",
+          "startHeightMin": 0,
+          "startHeightMax": 128,
+          "size": 1,
+          "maxDistanceFromCenter": 64,
+          "jigsawPools": []
+        },
+        "keybind": {
+          "triggerKey": "K",
+          "keyBindingName": "Default Keybind",
+          "keyBindingCategoryKey": "misc"
+        }
+      }
+    }
+  ],
+  "originalProofSha256": "cea18f656ff1baf1e2ceb8bef9b8a87d91074378533aadde62c21b765a2222b6"
+}

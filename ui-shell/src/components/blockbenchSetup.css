@@ -25,4 +25,14 @@
 .blockbench-setup select { padding: 10px; background: var(--bg-input); color: var(--text-main); border: 1px solid var(--border-subtle); border-radius: var(--radius-xs); min-width: 0; }
 .modeling-import-review { padding-top: 8px; }
 .modeling-import-review li { overflow-wrap: anywhere; }
-.blockbench-setup :is(summary, button, input):focus-visible { outline: 2px solid var(--border-focus); outline-offset: 2px; }
+.blockbench-setup :is(summary, button, input, select):focus-visible { outline: 2px solid var(--border-focus); outline-offset: 2px; }
+.element-inspector .blockbench-setup { margin: 0; min-width: 0; }
+.element-inspector .blockbench-setup-content { max-height: none; overflow: visible; }
+.modeling-task-message:not(:empty) { position: sticky; top: 0; z-index: 1; padding: 8px; background: var(--bg-panel); border: 1px solid var(--border-subtle); border-radius: var(--radius-xs); }
+.modeling-task-message:empty { display: none; }
+.modeling-task-details { margin-top: 12px; padding: 0 8px 8px; background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: var(--radius-xs); }
+.modeling-extra-task { margin: 8px 0; border-bottom: 1px solid var(--border-subtle); }
+.modeling-context { overflow-wrap: anywhere; }
+.modeling-steps [aria-current="step"] { font-weight: 700; color: var(--text-main); }
+.blockbench-setup-actions > label { min-width: 0; max-width: 100%; }
+.blockbench-setup-content { overflow-wrap: anywhere; }

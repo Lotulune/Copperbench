@@ -112,6 +112,19 @@
         "firstParty": {
           "type": "boolean"
         },
+        "identity": {
+          "description": "Durable generator identity. resourceId is available for generated blocks/items and does not prove runtime registration.",
+          "type": "object",
+          "required": ["internalName", "registryName", "source"],
+          "properties": {
+            "internalName": { "type": "string", "minLength": 1 },
+            "registryName": { "type": "string", "minLength": 1 },
+            "source": { "const": "generator_definition" },
+            "namespace": { "type": "string", "pattern": "^[a-z0-9_.-]+$" },
+            "resourceId": { "type": "string", "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$" }
+          },
+          "additionalProperties": false
+        },
         "diagnostics": {
           "$ref": "#/$defs/diagnosticCounts"
         }
@@ -757,6 +770,9 @@
         },
         "diagnostics": {
           "$ref": "#/$defs/diagnosticCounts"
+        },
+        "identity": {
+          "$ref": "#/$defs/modElementListItem/properties/identity"
         }
       },
       "additionalProperties": false
@@ -837,6 +853,31 @@
         },
         "verification": {
           "$ref": "urn:ui-core:1.0:common#/$defs/gameTestVerification"
+        },
+        "backendIdentity": { "type": "string" },
+        "restoredFromHistory": { "type": "boolean" },
+        "resultObservation": { "const": "unconfirmed_after_session_loss" },
+        "verifiedExport": {
+          "type": "object",
+          "required": ["schemaVersion", "taskId", "status", "artifactPath", "reportPath", "artifactSha256", "reportSha256", "exportDirectory", "scope", "environment"],
+          "properties": {
+            "schemaVersion": { "const": "1.0" },
+            "taskId": { "$ref": "#/$defs/uuid" },
+            "status": { "enum": ["passed_current_input", "passed_historical_input"] },
+            "artifactPath": { "type": "string" },
+            "reportPath": { "type": "string" },
+            "exportDirectory": { "type": "string" },
+            "scope": { "type": "string" },
+            "artifactSha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+            "reportSha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+            "sourceSha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+            "environment": { "type": "object" },
+            "passed": { "type": "integer", "minimum": 0 },
+            "failed": { "type": "integer", "minimum": 0 },
+            "skipped": { "type": "integer", "minimum": 0 },
+            "acceptanceExecuted": { "type": "integer", "minimum": 0 }
+          },
+          "additionalProperties": false
         },
         "gameTestSetup": {
           "type": "object",
@@ -953,6 +994,11 @@
           "items": {
             "$ref": "#/$defs/taskSummary"
           }
+        },
+        "recentTasks": {
+          "type": "array",
+          "maxItems": 100,
+          "items": { "$ref": "#/$defs/taskSummary" }
         },
         "capabilities": {
           "type": "array",

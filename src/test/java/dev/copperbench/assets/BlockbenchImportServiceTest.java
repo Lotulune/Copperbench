@@ -34,6 +34,18 @@ class BlockbenchImportServiceTest {
 		mapping("game.json", MODEL_TARGET); mapping("lamp.png", "src/main/resources/assets/test/textures/block/lamp.png");
 	}
 	@AfterEach void close() { history.close(); }
+	@Test void discoversUniqueExportsWithoutTargetPathTypingAndStopsOnAmbiguity() throws Exception {
+		JsonArray suggested = imports.suggestOutputs(taskId, "test", "lamp");
+		assertEquals(outputs, suggested);
+		assertTrue(imports.preview(taskId, suggested).batch().issueCodes().isEmpty());
+		Files.writeString(edit.resolve("second.json"), GAME);
+		code("MODEL_EXPORT_AMBIGUOUS", () -> imports.suggestOutputs(taskId, "test", "lamp"));
+	}
+	@Test void automaticMappingRejectsNamespaceMismatchAndMissingTexture() throws Exception {
+		code("MODEL_NAMESPACE_MISMATCH", () -> imports.suggestOutputs(taskId, "other", "lamp"));
+		Files.writeString(edit.resolve("game.json"), GAME.replace("test:block/lamp", "test:block/missing"));
+		code("MODEL_TEXTURE_AMBIGUOUS", () -> imports.suggestOutputs(taskId, "test", "lamp"));
+	}
 	void mapping(String source, String target) { JsonObject map = new JsonObject(); map.addProperty("sourceRelativePath", source); map.addProperty("targetRelativePath", target); outputs.add(map); }
 	@Test void importsSourceGameModelAndPngTogetherAndReplaysAfterReopen() throws Exception {
 		var plan = imports.preview(taskId, outputs);
@@ -166,6 +178,45 @@ class BlockbenchImportServiceTest {
 	@Test void rejectsAmbiguousResourceIdsAcrossAssetRoots() {
 		mapping("game.json", "assets/test/models/custom/lamp.json");
 		code("MODEL_OUTPUT_PATH", () -> imports.preview(taskId, outputs));
+	}
+	@Test void vanillaTyposAndColdCatalogsUseTheSameResolutionAsWorkspaceHealth() throws Exception {
+		Files.writeString(edit.resolve("game.json"), "{\"parent\":\"minecraft:block/cube_all_typo\"}");
+		code("MODEL_RESOURCE_UNVERIFIED", () -> imports.preview(taskId, outputs));
+		Path parent = root.resolve("assets/minecraft/models/block/cube_all_typo.json");
+		Files.createDirectories(parent.getParent());
+		Files.writeString(parent, GAME);
+		assertEquals(3, imports.preview(taskId, outputs).batch().items().size());
+		// A workspace override supplies an actual model; arbitrary minecraft: strings are never exempt.
+		Files.writeString(edit.resolve("game.json"), GAME.replace("test:block/lamp", "minecraft:block/missing_png"));
+		code("MODEL_RESOURCE_UNVERIFIED", () -> imports.preview(taskId, outputs));
+		Files.writeString(root.resolve("test.mcreator"), "{\"workspaceSettings\":{\"currentGenerator\":\"fabric-1.21.1\"}}");
+		Path jar = root.resolve(".gradle/caches/fabric-loom/1.21.1/minecraft-client.jar");
+		Files.createDirectories(jar.getParent());
+		try (var zip = new java.util.zip.ZipOutputStream(Files.newOutputStream(jar))) {
+			for (var entry : java.util.Map.of("version.json", "{\"id\":\"1.21.1\"}",
+					"assets/minecraft/models/block/cube_all.json", "{}", "assets/minecraft/models/item/generated.json", "{}").entrySet()) {
+				zip.putNextEntry(new java.util.zip.ZipEntry(entry.getKey()));
+				zip.write(entry.getValue().getBytes(java.nio.charset.StandardCharsets.UTF_8)); zip.closeEntry();
+			}
+		}
+		code("MODEL_TEXTURE_MISSING", () -> imports.preview(taskId, outputs));
+		Files.writeString(edit.resolve("game.json"), "{\"parent\":\"minecraft:block/definite_typo\"}");
+		code("MODEL_PARENT_MISSING", () -> imports.preview(taskId, outputs));
+		Files.createDirectories(root.resolve(MODEL_TARGET).getParent());
+		Files.copy(edit.resolve("game.json"), root.resolve(MODEL_TARGET));
+		assertTrue(new AssetWorkspaceService(root).referenceGraph().diagnostics().stream()
+				.anyMatch(issue -> issue.code().equals("MISSING_ASSET_REFERENCE") && issue.targetPath().endsWith("definite_typo.json")));
+	}
+
+	@Test void aValidParentChangedAfterPreviewRejectsImportEvenWhenExportBytesAreUnchanged() throws Exception {
+		Path parent = root.resolve("src/main/resources/assets/test/models/custom/base.json");
+		Files.createDirectories(parent.getParent()); Files.writeString(parent, GAME);
+		Files.writeString(edit.resolve("game.json"), "{\"parent\":\"test:custom/base\"}");
+		var plan = imports.preview(taskId, outputs);
+		Files.writeString(parent, GAME.replace("16,16,16", "8,8,8"));
+		code("MODEL_IMPORT_STALE", () -> imports.apply(plan, Actor.MCP, 1));
+		assertFalse(Files.exists(root.resolve(MODEL_TARGET)));
+		assertEquals("ready_to_import", tasks.get(taskId).get("state").getAsString());
 	}
 	private static void code(String code, org.junit.jupiter.api.function.Executable action) { assertEquals(code, assertThrows(BlockbenchBridgeException.class, action).code()); }
 	private static final class SimulatedExit extends Error {}

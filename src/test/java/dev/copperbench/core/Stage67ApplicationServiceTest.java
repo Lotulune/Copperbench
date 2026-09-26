@@ -128,6 +128,28 @@ class Stage67ApplicationServiceTest {
 		assertTrue(Files.isRegularFile(temp.resolve("copied-neoforge/src/main/java/dev/copperbench/generated/copper_trails/CopperTrailsMod.java")));
 	}
 
+	@Test void unresolvedResourceContextsArePartialAndNativeFileChangesRefreshTheSnapshotWithoutRevisionChanges() throws Exception {
+		Path root = temp.resolve("resource-health");
+		Path child = root.resolve("assets/probe/models/block/child.json");
+		Files.createDirectories(child.getParent()); Files.writeString(child, "{\"parent\":\"dependency:block/base\"}");
+		WorkspaceApplicationService service = service(id -> root);
+		var initial = service.query(Query.of(uuid(31), WORKSPACE_ID, Operation.GET_WORKSPACE_HEALTH, new JsonObject()), uiWorkspace()).data().getAsJsonObject();
+		assertEquals("partial", initial.getAsJsonObject("diagnostics").get("collectionState").getAsString());
+		assertTrue(initial.getAsJsonObject("diagnostics").get("warning").getAsInt() > 0);
+		Path parent = root.resolve("assets/dependency/models/block/base.json");
+		Files.createDirectories(parent.getParent()); Files.writeString(parent, "{}");
+		var resolved = service.query(Query.of(uuid(32), WORKSPACE_ID, Operation.GET_WORKSPACE_HEALTH, new JsonObject()), uiWorkspace()).data().getAsJsonObject();
+		assertEquals("complete", resolved.getAsJsonObject("diagnostics").get("collectionState").getAsString());
+		assertEquals(0, resolved.getAsJsonObject("diagnostics").get("total").getAsInt());
+		String before = resolved.getAsJsonObject("diagnostics").get("snapshotId").getAsString();
+		var timestamp = Files.getLastModifiedTime(parent);
+		Files.writeString(parent, "{\"ambientocclusion\":false}"); Files.setLastModifiedTime(parent, timestamp);
+		var changed = service.query(Query.of(uuid(33), WORKSPACE_ID, Operation.GET_WORKSPACE_HEALTH, new JsonObject()), uiWorkspace()).data().getAsJsonObject();
+		assertEquals(resolved.get("revision"), changed.get("revision"));
+		assertEquals(0, changed.getAsJsonObject("diagnostics").get("total").getAsInt());
+		assertFalse(before.equals(changed.getAsJsonObject("diagnostics").get("snapshotId").getAsString()));
+	}
+
 	@Test void loaderMigrationSurfacesManualItemsAsElementAddressableDiagnostics() throws Exception {
 		Path source = temp.resolve("manual-source");
 		Files.createDirectories(source);

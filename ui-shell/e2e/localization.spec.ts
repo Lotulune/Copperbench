@@ -1,21 +1,19 @@
 import { test, expect } from '@playwright/test';
 
-test('language change can be cancelled without losing a draft, then persists after reload', async ({ page }) => {
+test('language change preserves a draft without reloading and persists after reload', async ({ page }) => {
   await page.goto('/');
   await page.getByTestId('nav-new-workspace').click();
   await page.getByTestId('new-workspace-mod-name-input').fill('My unsaved project');
-  page.once('dialog', dialog => dialog.dismiss());
-  await page.getByTestId('language-select').selectOption('en');
-  await expect(page.getByTestId('language-select')).toHaveValue('zh');
+  await page.evaluate(() => { (window as unknown as { draftSession: string }).draftSession = 'original'; });
+  await page.getByTestId('ui-language-select').selectOption('en');
+  await expect(page.getByTestId('ui-language-select')).toHaveValue('en');
   await expect(page.getByTestId('new-workspace-mod-name-input')).toHaveValue('My unsaved project');
-  page.once('dialog', dialog => dialog.accept());
-  await page.getByTestId('language-select').selectOption('en');
+  expect(await page.evaluate(() => (window as unknown as { draftSession: string }).draftSession)).toBe('original');
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   await expect(page.getByTestId('nav-hub')).toHaveText('Overview');
   await page.reload();
-  await expect(page.getByTestId('language-select')).toHaveValue('en');
-  page.once('dialog', dialog => dialog.accept());
-  await page.getByTestId('language-select').selectOption('zh');
+  await expect(page.getByTestId('ui-language-select')).toHaveValue('en');
+  await page.getByTestId('ui-language-select').selectOption('zh');
   await expect(page.getByTestId('nav-hub')).toHaveText('总览');
 });
 
@@ -59,7 +57,24 @@ test('native language overrides browser cache and failed persistence does not re
   await page.getByTestId('nav-new-workspace').click();
   await page.getByTestId('new-workspace-mod-name-input').fill('Keep this draft');
   page.on('dialog', dialog => dialog.accept());
-  await page.getByTestId('language-select').selectOption('zh');
-  await expect(page.getByTestId('language-select')).toHaveValue('en');
+  await page.getByTestId('ui-language-select').selectOption('zh');
+  await expect(page.getByTestId('ui-language-select')).toHaveValue('en');
   await expect(page.getByTestId('new-workspace-mod-name-input')).toHaveValue('Keep this draft');
+});
+
+test('native persistence completes before switching and preserves the editor session', async ({ page }) => {
+  await page.addInitScript(() => {
+    window.__COPPERBENCH_UI_LOCALE__ = 'zh';
+    window.__COPPERBENCH_SET_LOCALE__ = async locale => {
+      await new Promise(resolve => setTimeout(resolve, 100));
+      localStorage.setItem('native-locale-test', locale);
+    };
+  });
+  await page.goto('/');
+  await page.getByTestId('nav-new-workspace').click();
+  await page.getByTestId('new-workspace-mod-name-input').fill('Native draft');
+  await page.getByTestId('ui-language-select').selectOption('en');
+  await expect(page.getByTestId('ui-language-select')).toHaveValue('en');
+  expect(await page.evaluate(() => localStorage.getItem('native-locale-test'))).toBe('en');
+  await expect(page.getByTestId('new-workspace-mod-name-input')).toHaveValue('Native draft');
 });

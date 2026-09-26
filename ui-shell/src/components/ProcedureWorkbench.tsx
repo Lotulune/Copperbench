@@ -35,7 +35,7 @@ import {
   RegistryRenamePreview,
   WorkspacePlan
 } from '../types/contract';
-import { t } from '../i18n';
+import { t, uiText } from '../i18n';
 
 let blocksRegistered = false;
 const blocklyChineseMessages = Object.fromEntries(
@@ -50,10 +50,7 @@ function registerProcedureBlocks(): void {
       type: 'event_trigger',
       message0: tr("触发器 %1"),
       args0: [{ type: 'field_dropdown', name: 'trigger', options: [
-        [tr("无外部触发器"), 'no_ext_trigger'],
-        [tr("方块右键"), 'on_block_right_clicked'],
-        [tr("物品右键"), 'on_item_right_clicked'],
-        [tr("实体更新"), 'on_entity_tick_update']
+        ['无外部触发器', 'no_ext_trigger']
       ] }],
       nextStatement: null,
       colour: 24,
@@ -130,13 +127,18 @@ function registerProcedureBlocks(): void {
       nextStatement: null,
       colour: 285
     },
-    {
-      type: 'return_number',
-      message0: tr("返回数值 %1"),
-      args0: [{ type: 'input_value', name: 'VALUE', check: 'Number' }],
+    ...[
+      ['return_number', uiText('返回数值', 'Return number')], ['return_logic', uiText('返回逻辑值', 'Return boolean')], ['return_string', uiText('返回文本', 'Return text')],
+      ['return_itemstack', uiText('返回物品堆叠', 'Return item stack')], ['return_entity', uiText('返回实体', 'Return entity')]
+    ].map(([type, label]) => ({
+      type,
+      message0: `${label} %1`,
+      // Invalid drafts must stay connected when opened. Core supplies type diagnostics;
+      // Blockly must not silently detach an existing value before an unrelated save.
+      args0: [{ type: 'input_value', name: 'VALUE' }],
       previousStatement: null,
       colour: 285
-    }
+    }))
   ]);
   blocksRegistered = true;
 }
@@ -145,6 +147,18 @@ interface VariableRefactorDraft {
   entryId: string;
   oldName: string;
   newName: string;
+}
+
+function procedureTriggerOptions(projection: ProcedureEditorProjection): [string, string][] {
+  const options = new Map<string, string>([['no_ext_trigger', uiText('无外部触发器', 'No external trigger')]]);
+  for (const trigger of projection.triggerCatalog ?? []) {
+    if (trigger.id !== 'no_ext_trigger') options.set(trigger.id, `${t(trigger.label)} (${trigger.id})`);
+  }
+  // Blockly rejects values absent from its menu. Preserve legacy/plugin values before loading any fields.
+  if (!options.has(projection.ir.trigger)) {
+    options.set(projection.ir.trigger, `${uiText('当前不可用', 'Currently unavailable')} (${projection.ir.trigger})`);
+  }
+  return Array.from(options, ([value, label]) => [label, value]);
 }
 
 interface ExtractRefactorDraft {
@@ -382,6 +396,7 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
   const [liveDiagnostics, setLiveDiagnostics] = useState<Diagnostic[] | null>(null);
   const [liveSourcePreview, setLiveSourcePreview] = useState<string | null>(null);
   const [liveCanGenerate, setLiveCanGenerate] = useState<boolean | null>(null);
+  const [selectedTrigger, setSelectedTrigger] = useState('no_ext_trigger');
   const [refactorDraft, setRefactorDraft] = useState<VariableRefactorDraft | null>(null);
   const [refactorImpact, setRefactorImpact] = useState<RegistryRenamePreview | null>(null);
   const [refactorPlan, setRefactorPlan] = useState<WorkspacePlan | null>(null);
@@ -392,6 +407,7 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
   const [refactorBusy, setRefactorBusy] = useState(false);
   const [panel, setPanel] = useState<ProcedurePanel>('source');
   const [message, setMessage] = useState<string | null>(null);
+  const [canvasError, setCanvasError] = useState<string | null>(null);
   const previewSequenceRef = useRef(0);
 
   const load = useCallback(async () => {
@@ -414,55 +430,71 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
     setLiveDiagnostics(null);
     setLiveSourcePreview(null);
     setLiveCanGenerate(null);
+    setCanvasError(null);
+    setDirty(false);
+    setGraphNodes([]);
     registerProcedureBlocks();
     projection.ir.nodes.filter((node) => node.unknown).forEach(defineUnknownBlock);
-    const workspace = Blockly.inject(hostRef.current, {
-      readOnly: projection.readOnly,
-      trashcan: !projection.readOnly,
-      renderer: 'zelos',
-      move: { scrollbars: true, drag: true, wheel: true },
-      zoom: { controls: true, wheel: true, startScale: 0.88, maxScale: 1.5, minScale: 0.45, scaleSpeed: 1.1 },
-      grid: { spacing: 24, length: 2, colour: '#3a414d', snap: false }
-    });
-    workspaceRef.current = workspace;
-    Blockly.Events.disable();
+    let workspace: Blockly.WorkspaceSvg | null = null;
     try {
-      const byId = new Map<string, Blockly.BlockSvg>();
-      for (const node of projection.ir.nodes) {
-        const block = workspace.newBlock(node.type, node.id);
-        block.initSvg();
-        for (const [name, value] of Object.entries(node.fields)) {
-          if (block.getField(name)) block.setFieldValue(String(value), name);
+      workspace = Blockly.inject(hostRef.current, {
+        readOnly: projection.readOnly,
+        trashcan: !projection.readOnly,
+        renderer: 'zelos',
+        move: { scrollbars: true, drag: true, wheel: true },
+        zoom: { controls: true, wheel: true, startScale: 0.88, maxScale: 1.5, minScale: 0.45, scaleSpeed: 1.1 },
+        grid: { spacing: 24, length: 2, colour: '#3a414d', snap: false }
+      });
+      workspaceRef.current = workspace;
+      Blockly.Events.disable();
+      try {
+        const byId = new Map<string, Blockly.BlockSvg>();
+        for (const node of projection.ir.nodes) {
+          const block = workspace.newBlock(node.type, node.id);
+          if (node.type === 'event_trigger') {
+            (block.getField('trigger') as Blockly.FieldDropdown).setOptions(() => procedureTriggerOptions(projection));
+          }
+          block.initSvg();
+          for (const [name, value] of Object.entries(node.fields)) {
+            if (block.getField(name)) block.setFieldValue(String(value), name);
+          }
+          if (node.type === 'event_trigger') {
+            block.setFieldValue(projection.ir.trigger, 'trigger');
+            setSelectedTrigger(projection.ir.trigger);
+            block.setDeletable(false);
+          }
+          if (node.unknown) block.setEditable(false);
+          block.render();
+          block.moveBy(node.x, node.y);
+          byId.set(node.id, block);
         }
-        if (node.type === 'event_trigger') {
-          block.setFieldValue(projection.ir.trigger, 'trigger');
-          block.setDeletable(false);
-        }
-        if (node.unknown) block.setEditable(false);
-        block.render();
-        block.moveBy(node.x, node.y);
-        byId.set(node.id, block);
-      }
-      for (const node of projection.ir.nodes) {
-        const source = byId.get(node.id);
-        if (!source) continue;
-        for (const [port, targetId] of Object.entries(node.inputs)) {
-          const target = byId.get(targetId);
-          const sourceConnection = source.getInput(port)?.connection;
-          const targetConnection = target?.outputConnection ?? target?.previousConnection;
-          if (sourceConnection && targetConnection && !sourceConnection.isConnected() && !targetConnection.isConnected()) {
-            sourceConnection.connect(targetConnection);
+        for (const node of projection.ir.nodes) {
+          const source = byId.get(node.id);
+          if (!source) continue;
+          for (const [port, targetId] of Object.entries(node.inputs)) {
+            const target = byId.get(targetId);
+            const sourceConnection = source.getInput(port)?.connection;
+            const targetConnection = target?.outputConnection ?? target?.previousConnection;
+            if (sourceConnection && targetConnection && !sourceConnection.isConnected() && !targetConnection.isConnected()) {
+              sourceConnection.connect(targetConnection);
+            }
+          }
+          const next = node.next ? byId.get(node.next) : undefined;
+          if (source.nextConnection && next?.previousConnection
+            && !source.nextConnection.isConnected() && !next.previousConnection.isConnected()) {
+            source.nextConnection.connect(next.previousConnection);
           }
         }
-        const next = node.next ? byId.get(node.next) : undefined;
-        if (source.nextConnection && next?.previousConnection
-          && !source.nextConnection.isConnected() && !next.previousConnection.isConnected()) {
-          source.nextConnection.connect(next.previousConnection);
-        }
+      } finally {
+        Blockly.Events.enable();
       }
-    } finally {
-      Blockly.Events.enable();
+    } catch (error) {
+      workspace?.dispose();
+      workspaceRef.current = null;
+      setCanvasError(error instanceof Error ? error.message : String(error));
+      return;
     }
+    const loadedWorkspace = workspace;
     setGraphNodes(snapshotGraph(workspace));
     const listener = (event: Blockly.Events.Abstract) => {
       if (event.type === 'selected') {
@@ -470,15 +502,18 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
         setSelectedNodeId(selected ?? null);
       }
       if (!event.isUiEvent) {
+        const triggerBlock = loadedWorkspace.getAllBlocks(false).find(block => block.type === 'event_trigger');
+        if (triggerBlock) setSelectedTrigger(String(triggerBlock.getFieldValue('trigger')));
         setDirty(true);
-        setGraphNodes(snapshotGraph(workspace));
+        setGraphNodes(snapshotGraph(loadedWorkspace));
       }
     };
     workspace.addChangeListener(listener);
-    window.setTimeout(() => Blockly.svgResize(workspace), 0);
+    const resizeTimer = window.setTimeout(() => Blockly.svgResize(loadedWorkspace), 0);
     return () => {
-      workspace.removeChangeListener(listener);
-      workspace.dispose();
+      window.clearTimeout(resizeTimer);
+      loadedWorkspace.removeChangeListener(listener);
+      loadedWorkspace.dispose();
       workspaceRef.current = null;
     };
   }, [projection]);
@@ -914,7 +949,9 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
   };
 
   const nodeLabel = (node: ProcedureNode) => {
-    return nodeTypeLabel(node.type);
+    if (node.type === 'event_trigger') return nodeTypeLabel(node.type);
+    const item = projection?.nodeCatalog.find(candidate => candidate.type === node.type);
+    return item ? catalogLabel(item) : node.unknown ? `未知节点 ${node.type}` : node.type;
   };
 
   const nodeAccessibleName = (node: ProcedureNode) => {
@@ -962,13 +999,25 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
           <button className="procedure-icon-button" onClick={() => workspaceRef.current?.undo(false)} aria-label={tr("撤销")} title={tr("撤销")}><Undo2 size={15} /></button>
           <button className="procedure-icon-button" onClick={() => workspaceRef.current?.undo(true)} aria-label={tr("重做")} title={tr("重做")}><Redo2 size={15} /></button>
           <button className="procedure-icon-button" onClick={() => workspaceRef.current?.cleanUp()} aria-label={tr("自动布局")} title={tr("自动布局")}><AlignStartVertical size={15} /></button>
-          <button className="btn-primary procedure-save" onClick={() => void save()} disabled={!dirty || saving || projection?.readOnly}>
-            <Save size={14} /><span>{saving ? tr("保存中") : tr("保存")}</span>
+          <button className="btn-primary procedure-save" onClick={() => void save()} disabled={!dirty || saving || projection?.readOnly || !!canvasError}>
+            <Save size={14} /><span>{saving ? tr('保存中') : tr('保存')}</span>
           </button>
         </div>
       </header>
 
       {message && <div className="procedure-message" role="status">{message}</div>}
+      {canvasError && <div className="procedure-message" role="alert" data-testid="procedure-render-error">
+        {uiText('此过程暂时无法在可视化画布中打开，原始内容未修改。可查看源码和诊断，或返回元素列表。',
+          'This procedure cannot be opened on the visual canvas. Its contents are unchanged. Review the source and diagnostics, or return to the element list.')}
+        <details><summary>{uiText('错误详情', 'Error details')}</summary><code>{canvasError}</code></details>
+      </div>}
+      {projection && selectedTrigger !== 'no_ext_trigger' && !projection.triggerCatalog?.some(trigger => trigger.id === selectedTrigger) && (
+        <div className="procedure-message" role="status" data-testid="procedure-trigger-notice">
+          {uiText('当前触发器不在可用目录中，已保留原值。请选择受支持的触发器，或检查生成器与插件配置：',
+            'The current trigger is absent from the available catalog and its value is preserved. Select a supported trigger or check the generator and plugins: ')}
+          <code>{selectedTrigger}</code>
+        </div>
+      )}
       <div className="procedure-body">
         <aside className="procedure-palette" aria-label={tr("过程节点面板")}>
           <div className="procedure-search">
@@ -992,7 +1041,7 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
                   key={`recent-${item.type}`}
                   type="button"
                   className="procedure-recent-button"
-                  disabled={item.availability !== 'available' || projection?.readOnly}
+                  disabled={item.availability !== 'available' || projection?.readOnly || !!canvasError}
                   onClick={() => addBlock(item)}
                 >
                   {catalogLabel(item)}
@@ -1005,7 +1054,7 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
               <button
                 key={item.type}
                 className="procedure-node-button"
-                disabled={item.availability !== 'available' || projection?.readOnly}
+                disabled={item.availability !== 'available' || projection?.readOnly || !!canvasError}
                 onClick={() => addBlock(item)}
                 title={item.reasonCode ? valueLabel(item.reasonCode) : catalogLabel(item)}
               >

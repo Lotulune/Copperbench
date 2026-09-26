@@ -24,7 +24,6 @@ public final class BlockbenchImportService {
 		public void rollback() {}
 	};
 	private static final Pattern OUTPUT = Pattern.compile("(?:src/main/resources/|src/main/)?assets/([a-z0-9_.-]+)/(models|textures|blockstates|items)/([a-z0-9_./-]+)\\.(json|png)");
-	private static final Pattern RESOURCE = Pattern.compile("[a-z0-9_.-]+:[a-z0-9_./-]+");
 	private final Path root;
 	private final BlockbenchModelingService tasks;
 	private final LocalHistoryService history;
@@ -37,7 +36,7 @@ public final class BlockbenchImportService {
 		this.history = history;
 	}
 
-	public record Plan(UUID taskId, String token, AssetImportBatchPlan batch, JsonArray outputs) {
+	public record Plan(UUID taskId, String token, AssetImportBatchPlan batch, JsonArray outputs, String resourceContextFingerprint) {
 		public JsonObject toJson() {
 			JsonObject value = batch.toJson();
 			value.addProperty("canApply", batch.issueCodes().isEmpty());
@@ -45,6 +44,7 @@ public final class BlockbenchImportService {
 			value.addProperty("taskId", taskId.toString()); value.addProperty("planToken", token);
 			value.addProperty("requiresReplacementConfirmation", batch.replaceCount() > 0);
 			value.add("outputs", outputs.deepCopy());
+			value.addProperty("resourceContextFingerprint", resourceContextFingerprint);
 			return value;
 		}
 	}
@@ -100,11 +100,67 @@ public final class BlockbenchImportService {
 			requests.add(new AssetImportBatchService.Request(input, destination));
 		}
 		if (models.isEmpty()) throw fail("MODEL_GAME_EXPORT_REQUIRED", "Include a Minecraft game model JSON; the bbmodel source is not a game export");
-		for (var model : models.entrySet()) validateModel(model.getKey(), model.getValue(), models, textures, new HashSet<>());
-		for (JsonObject definition : references) validateModelLinks(definition, models);
+		MinecraftModelResolver resolver = new MinecraftModelResolver(root, LocalResourceIndex.discover(root), assets.list(), models, textures);
+		for (var model : models.entrySet()) validateModel(model.getKey(), model.getValue(), models, resolver);
+		for (JsonObject definition : references) validateModelLinks(definition, models, resolver);
 		AssetImportBatchPlan batch = new AssetImportBatchService(assets, history).preview(requests);
 		if (!batch.issueCodes().isEmpty()) throw fail("MODEL_OUTPUT_CONFLICT", "The export mappings conflict");
-		return new Plan(taskId, UUID.randomUUID().toString(), batch, outputs.deepCopy());
+		return new Plan(taskId, UUID.randomUUID().toString(), batch, outputs.deepCopy(), resolver.fingerprint());
+	}
+
+	/** Discover only unique files within this task's edit directory; this never imports or rewrites exports. */
+	public JsonArray suggestOutputs(UUID taskId, String namespace, String elementName) {
+		if (!namespace.matches("[a-z0-9_.-]+") || !elementName.matches("[a-z][a-z0-9_]{0,63}"))
+			throw fail("MODEL_OUTPUT_PATH", "A valid target namespace and element name are required");
+		tasks.get(taskId);
+		Path edit = tasks.safe(tasks.taskDirectory(taskId).resolve("edit"));
+		List<Path> files;
+		try (var walk = Files.walk(edit, 6)) {
+			files = walk.filter(Files::isRegularFile).limit(257).map(tasks::safe).toList();
+		} catch (java.io.IOException exception) { throw fail("MODEL_EXPORT_SCAN_FAILED", "Could not scan the task edit directory"); }
+		if (files.size() > 256) throw fail("MODEL_EXPORT_SCAN_LIMIT", "Use an edit directory containing at most 256 exported files");
+		Map<Path, JsonObject> models = new LinkedHashMap<>();
+		for (Path file : files) {
+			if (!file.getFileName().toString().endsWith(".json")) continue;
+			try {
+				JsonObject model = JsonParser.parseString(new String(tasks.bytes(file), java.nio.charset.StandardCharsets.UTF_8)).getAsJsonObject();
+				if (model.has("elements") || model.has("parent")) models.put(file, model);
+			} catch (RuntimeException exception) { throw fail("MODEL_OUTPUT_JSON", "An exported JSON file is invalid: " + file.getFileName()); }
+		}
+		if (models.size() != 1) throw fail("MODEL_EXPORT_AMBIGUOUS", "Export exactly one game model JSON or supply explicit mappings; found " + models.size());
+		var model = models.entrySet().iterator().next();
+		JsonArray outputs = new JsonArray();
+		outputs.add(output(edit.relativize(model.getKey()).toString().replace('\\', '/'),
+				"src/main/resources/assets/" + namespace + "/models/custom/" + elementName + ".json"));
+		Set<String> textures = new LinkedHashSet<>();
+		MinecraftModelResolver resolver = new MinecraftModelResolver(root, LocalResourceIndex.discover(root), assets.list());
+		if (model.getValue().has("textures")) for (var entry : model.getValue().getAsJsonObject("textures").entrySet()) {
+			String raw = entry.getValue().getAsString();
+			if (raw.startsWith("#")) continue;
+			String id = resource(raw);
+			if (id.startsWith("minecraft:")) {
+				requireAvailable(resolver.lookup("textures", id, "src/main/resources/assets/" + namespace + "/models/custom/" + elementName + ".json"), "textures");
+				continue;
+			}
+			if (!id.startsWith(namespace + ":")) throw fail("MODEL_NAMESPACE_MISMATCH", "Exported texture namespace differs from the selected element: " + id);
+			validateTextureAtlasPath(id); textures.add(id.substring(id.indexOf(':') + 1));
+		}
+		for (String texture : textures) {
+			String relative = texture + ".png";
+			List<Path> exact = files.stream().filter(file -> edit.relativize(file).toString().replace('\\', '/').endsWith("textures/" + relative)
+					|| edit.relativize(file).toString().replace('\\', '/').equals(relative)).toList();
+			List<Path> candidates = exact.isEmpty() ? files.stream()
+					.filter(file -> file.getFileName().toString().equals(Path.of(relative).getFileName().toString())).toList() : exact;
+			if (candidates.size() != 1) throw fail("MODEL_TEXTURE_AMBIGUOUS", "Expected one PNG for " + texture + "; found " + candidates.size());
+			outputs.add(output(edit.relativize(candidates.getFirst()).toString().replace('\\', '/'),
+					"src/main/resources/assets/" + namespace + "/textures/" + relative));
+		}
+		return outputs;
+	}
+
+	private static JsonObject output(String source, String target) {
+		JsonObject result = new JsonObject(); result.addProperty("sourceRelativePath", source);
+		result.addProperty("targetRelativePath", target); return result;
 	}
 
 	public JsonObject apply(Plan plan, Actor actor, long committedRevision) { return apply(plan, actor, committedRevision, NO_REVISION); }
@@ -121,7 +177,8 @@ public final class BlockbenchImportService {
 		JsonObject task = tasks.read(plan.taskId());
 		if ("imported".equals(task.get("state").getAsString())) return replay(plan.taskId(), plan.token());
 		Plan current = preview(plan.taskId(), plan.outputs());
-		if (!current.batch().toJson().equals(plan.batch().toJson())) throw fail("MODEL_IMPORT_STALE", "Exported files or destinations changed after preview");
+		if (!current.batch().toJson().equals(plan.batch().toJson()) || !current.resourceContextFingerprint().equals(plan.resourceContextFingerprint()))
+			throw fail("MODEL_IMPORT_STALE", "Exported files, destinations or referenced resources changed after preview");
 		Path directory = tasks.taskDirectory(plan.taskId());
 		JsonArray journal = new JsonArray();
 		boolean revisionAttempted = false;
@@ -263,8 +320,21 @@ public final class BlockbenchImportService {
 		return tasks.safe(directory.resolve("import-backup/" + index));
 	}
 
-	private void validateModel(String id, JsonObject model, Map<String, JsonObject> models, Set<String> textures, Set<String> visiting) {
-		model = inheritedModel(id, model, models, visiting);
+	private void validateModel(String id, JsonObject model, Map<String, JsonObject> models, MinecraftModelResolver resolver) {
+		String path = "src/main/resources/assets/" + id.substring(0, id.indexOf(':')) + "/models/" + id.substring(id.indexOf(':') + 1) + ".json";
+		var inspection = resolver.inspect(id, model, path, true);
+		for (var issue : inspection.issues()) {
+			String code = switch (issue.code()) {
+				case "EXTERNAL_ASSET_REFERENCE_UNVERIFIED" -> "MODEL_RESOURCE_UNVERIFIED";
+				case "MISSING_ASSET_REFERENCE" -> issue.kind().equals("models") ? "MODEL_PARENT_MISSING" : "MODEL_TEXTURE_MISSING";
+				case "MODEL_TEXTURE_VARIABLE_MISSING" -> "MODEL_TEXTURE_MISSING";
+				case "INVALID_RESOURCE_NAME" -> "MODEL_RESOURCE_INVALID";
+				case "INVALID_ASSET_DOCUMENT" -> "MODEL_OUTPUT_JSON";
+				default -> issue.code();
+			};
+			throw fail(code, issue.message() + " at " + issue.pointer());
+		}
+		model = inspection.model();
 		if (model.has("textures")) for (var entry : model.getAsJsonObject("textures").entrySet()) {
 			String value = entry.getValue().getAsString(); Set<String> aliases = new HashSet<>();
 			while (value.startsWith("#")) {
@@ -275,7 +345,6 @@ public final class BlockbenchImportService {
 			}
 			String texture = resource(value);
 			validateTextureAtlasPath(texture);
-			if (!textures.contains(texture) && !exists("textures", texture, ".png")) throw fail("MODEL_TEXTURE_MISSING", "An exported texture is missing: " + texture);
 		}
 		if (model.has("elements")) {
 			if (!model.get("elements").isJsonArray() || model.getAsJsonArray("elements").isEmpty()) throw fail("MODEL_GAME_GEOMETRY", "Exported geometry must be a nonempty array");
@@ -293,7 +362,6 @@ public final class BlockbenchImportService {
 					String texture = face.getValue().getAsJsonObject().get("texture").getAsString();
 					String resolved = resolveTexture(texture, model, models, new HashSet<>());
 					validateTextureAtlasPath(resolved);
-					if (!textures.contains(resolved) && !exists("textures", resolved, ".png")) throw fail("MODEL_TEXTURE_MISSING", "An exported face texture is missing: " + resolved);
 				}
 			}
 		}
@@ -303,30 +371,6 @@ public final class BlockbenchImportService {
 		String path = texture.substring(texture.indexOf(':') + 1);
 		if (!path.startsWith("block/") && !path.startsWith("item/"))
 			throw fail("MODEL_TEXTURE_ATLAS_PATH", "Export custom model textures under textures/block/ or textures/item/ and update their model references; custom atlas definitions are not supported by this workflow: " + texture);
-	}
-	private JsonObject inheritedModel(String id, JsonObject model, Map<String, JsonObject> models, Set<String> visiting) {
-		if (!visiting.add(id)) throw fail("MODEL_PARENT_CYCLE", "Exported models have cyclic parents");
-		if (visiting.size() > 64) throw fail("MODEL_PARENT_DEPTH", "Model inheritance exceeds 64 levels");
-		JsonObject result = model.deepCopy();
-		if (model.has("parent")) {
-			String parent = resource(model.get("parent").getAsString());
-			JsonObject parentModel = models.get(parent);
-			if (parentModel == null && !parent.startsWith("minecraft:")) {
-				Path file = existingResource("models", parent, ".json");
-				if (file == null) throw fail("MODEL_PARENT_MISSING", "A custom parent model is missing: " + parent);
-				try { parentModel = JsonParser.parseString(new String(tasks.bytes(file), java.nio.charset.StandardCharsets.UTF_8)).getAsJsonObject(); }
-				catch (RuntimeException exception) { throw fail("MODEL_OUTPUT_JSON", "A custom parent is not a valid JSON object: " + parent); }
-			}
-			if (parentModel != null) {
-				JsonObject inherited = inheritedModel(parent, parentModel, models, visiting);
-				JsonObject merged = inherited.has("textures") ? inherited.getAsJsonObject("textures").deepCopy() : new JsonObject();
-				if (model.has("textures")) model.getAsJsonObject("textures").entrySet().forEach(entry -> merged.add(entry.getKey(), entry.getValue().deepCopy()));
-				result.add("textures", merged);
-				if (!model.has("elements") && inherited.has("elements")) result.add("elements", inherited.get("elements").deepCopy());
-			}
-		}
-		visiting.remove(id);
-		return result;
 	}
 	private String resolveTexture(String texture, JsonObject model, Map<String, JsonObject> models, Set<String> seen) {
 		if (!texture.startsWith("#")) return resource(texture);
@@ -339,32 +383,25 @@ public final class BlockbenchImportService {
 		}
 		throw fail("MODEL_TEXTURE_MISSING", "An exported face texture variable is unresolved: " + name);
 	}
-	private void validateModelLinks(JsonElement value, Map<String, JsonObject> models) {
-		if (value.isJsonArray()) value.getAsJsonArray().forEach(child -> validateModelLinks(child, models));
+	private void validateModelLinks(JsonElement value, Map<String, JsonObject> models, MinecraftModelResolver resolver) {
+		if (value.isJsonArray()) value.getAsJsonArray().forEach(child -> validateModelLinks(child, models, resolver));
 		if (value.isJsonObject()) for (var entry : value.getAsJsonObject().entrySet()) {
 			if (entry.getKey().equals("model") && entry.getValue().isJsonPrimitive()) {
 				String id = resource(entry.getValue().getAsString());
-				if (!models.containsKey(id) && !exists("models", id, ".json")) throw fail("MODEL_REFERENCE_MISSING", "A blockstate/item model reference is missing: " + id);
-			} else validateModelLinks(entry.getValue(), models);
+				if (!models.containsKey(id)) requireAvailable(resolver.lookup("models", id, "src/main/resources/assets/"
+						+ models.keySet().iterator().next().split(":")[0] + "/blockstates/import.json"), "models");
+			} else validateModelLinks(entry.getValue(), models, resolver);
 		}
 	}
-	private boolean exists(String kind, String id, String extension) {
-		if (id.startsWith("minecraft:")) return true;
-		return existingResource(kind, id, extension) != null;
-	}
-	private Path existingResource(String kind, String id, String extension) {
-		String path = id.replace(':', '/'); int separator = path.indexOf('/');
-		String relative = "assets/" + path.substring(0, separator) + "/" + kind + "/" + path.substring(separator + 1) + extension;
-		for (String prefix : List.of("src/main/resources/", "src/main/", "")) {
-			Path file = tasks.safe(root.resolve(prefix + relative));
-			if (Files.isRegularFile(file)) return file;
-		}
-		return null;
+	private static void requireAvailable(MinecraftModelResolver.Resource resource, String kind) {
+		if (resource.resolved()) return;
+		throw fail(resource.state().equals("unverified") ? "MODEL_RESOURCE_UNVERIFIED"
+				: kind.equals("models") ? "MODEL_REFERENCE_MISSING" : "MODEL_TEXTURE_MISSING",
+				"Resource " + resource.path() + " is " + resource.state() + " in " + resource.source());
 	}
 	private static String resource(String value) {
-		String id = value.contains(":") ? value : "minecraft:" + value;
-		if (!RESOURCE.matcher(id).matches() || id.contains("..") || id.contains("//")) throw fail("MODEL_RESOURCE_INVALID", "An exported resource identifier is invalid");
-		return id;
+		try { return MinecraftModelResolver.resourceId(value); }
+		catch (IllegalArgumentException exception) { throw fail("MODEL_RESOURCE_INVALID", "An exported resource identifier is invalid"); }
 	}
 	private static BlockbenchBridgeException fail(String code, String message) { return new BlockbenchBridgeException(code, message); }
 }

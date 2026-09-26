@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: Existing signed v*-linux-preview.* or v*-linux-beta.* tag on latest main
+        description: Existing signed Linux preview, beta, or stable tag on latest main
         required: true
         type: string
       publish:
@@ -66,7 +66,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-linux-(preview|beta)\.[0-9]+$ ]]
+          [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-linux-((preview|beta)\.[0-9]+|stable)$ ]]
           test "$DISPATCH_REF" = "refs/tags/$RELEASE_TAG"
           test "$(git cat-file -t "$RELEASE_TAG")" = tag
           git -c gpg.format=ssh -c gpg.ssh.allowedSignersFile=.github/release-signers verify-tag "$RELEASE_TAG"
@@ -101,7 +101,9 @@ jobs:
         run: |
           set -euo pipefail
           if ! gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json isDraft,assets > draft-state.json; then
-            gh release create "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --verify-tag --draft --prerelease \
+            prerelease=true
+            [[ "$RELEASE_TAG" != *-linux-stable ]] || prerelease=false
+            gh release create "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --verify-tag --draft "--prerelease=$prerelease" \
               --title "Copperbench $RELEASE_TAG — Linux x86_64" --notes-file docs/releases/linux-release-notes.md
             gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json isDraft,assets > draft-state.json
           fi
@@ -118,4 +120,6 @@ jobs:
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$(gh api "repos/$GITHUB_REPOSITORY/commits/main" --jq .sha)"
-          gh release edit "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --draft=false
+          prerelease=true
+          [[ "$RELEASE_TAG" != *-linux-stable ]] || prerelease=false
+          gh release edit "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --draft=false "--prerelease=$prerelease"

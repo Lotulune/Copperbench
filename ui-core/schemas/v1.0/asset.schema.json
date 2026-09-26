@@ -13,6 +13,77 @@
   },
   "additionalProperties": false,
   "$defs": {
+    "modelingElementContext": {
+      "type": "object",
+      "description": "Target selected when the modeling task began; these are suggested resources, not proof of import or binding.",
+      "required": ["elementId", "name", "type", "namespace", "modelResource", "textureDirectory"],
+      "properties": {
+        "elementId": { "$ref": "urn:ui-core:1.0:common#/$defs/uuid" },
+        "name": { "type": "string", "minLength": 1 },
+        "type": { "enum": ["block", "item"] },
+        "namespace": { "type": "string", "pattern": "^[a-z0-9_.-]+$" },
+        "modelResource": { "type": "string", "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$" },
+        "textureDirectory": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "modelingBinding": {
+      "type": "object",
+      "description": "Current element projection, separate from task state. Bound does not imply a successful build or game verification.",
+      "required": ["state"],
+      "properties": {
+        "state": { "enum": ["unbound", "bound", "manual", "element_missing"] },
+        "modelResource": { "type": "string", "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$" }
+      },
+      "allOf": [{
+        "if": { "properties": { "state": { "const": "bound" } }, "required": ["state"] },
+        "then": { "properties": { "modelResource": {} }, "required": ["modelResource"] }
+      }],
+      "additionalProperties": false
+    },
+    "modelingTask": {
+      "type": "object",
+      "description": "Persisted modeling task plus current file observations. Older tasks may omit elementContext and binding. Extra receipt fields are retained for forward compatibility.",
+      "required": ["taskId", "workspaceId", "targetRelativePath", "openedRevision", "state"],
+      "properties": {
+        "taskId": { "$ref": "urn:ui-core:1.0:common#/$defs/uuid" },
+        "workspaceId": { "$ref": "urn:ui-core:1.0:common#/$defs/uuid" },
+        "sourceAssetId": { "type": ["string", "null"] },
+        "targetRelativePath": { "type": "string", "minLength": 1 },
+        "openedRevision": { "$ref": "urn:ui-core:1.0:common#/$defs/revision" },
+        "state": { "enum": ["editing", "ready_to_import", "importing", "imported", "cancelled"] },
+        "elementContext": { "$ref": "#/$defs/modelingElementContext" },
+        "binding": { "$ref": "#/$defs/modelingBinding" },
+        "editPath": { "type": "string" },
+        "candidatePath": { "type": ["string", "null"] },
+        "sourceSha256": { "$ref": "#/$defs/nullableModelingHash" },
+        "initialEditSha256": { "$ref": "#/$defs/nullableModelingHash" },
+        "editSha256": { "$ref": "#/$defs/nullableModelingHash" },
+        "finishedEditSha256": { "$ref": "#/$defs/nullableModelingHash" },
+        "candidateSha256": { "$ref": "#/$defs/nullableModelingHash" },
+        "hasSavedChanges": { "type": "boolean" },
+        "sourceChanged": { "type": "boolean" },
+        "candidateChanged": { "type": "boolean" },
+        "imported": { "type": "boolean" },
+        "recoveryRequired": { "type": "boolean" },
+        "importedRevision": { "$ref": "urn:ui-core:1.0:common#/$defs/revision" },
+        "importFiles": {
+          "type": "array",
+          "items": {
+            "type": "object", "required": ["targetRelativePath", "sha256", "index"],
+            "properties": {
+              "targetRelativePath": { "type": "string" },
+              "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+              "oldSha256": { "$ref": "#/$defs/nullableModelingHash" },
+              "index": { "type": "integer", "minimum": 0 }
+            },
+            "additionalProperties": true
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "nullableModelingHash": { "type": ["string", "null"], "pattern": "^[0-9a-f]{64}$" },
     "asset": {
       "type": "object",
       "required": ["id", "relativePath", "category", "size", "sha256", "mediaType", "health"],
@@ -38,7 +109,10 @@
         "rawValue": { "type": "string" },
         "expectedPrefix": { "type": ["string", "null"] },
         "targetPath": { "type": "string", "minLength": 1 },
-        "targetAssetId": { "type": "string", "pattern": "^asset:[0-9a-f]{64}$" },
+        "targetAssetId": { "type": ["string", "null"], "pattern": "^asset:[0-9a-f]{64}$" },
+        "resolution": { "enum": ["workspace_resolved", "vanilla_resolved", "dependency_resolved", "missing", "unverified", "invalid"] },
+        "resourceSource": { "type": ["string", "null"] },
+        "resourceVersion": { "type": ["string", "null"] },
         "kind": { "type": "string", "enum": ["RESOURCE_ID", "JSON_STRING", "FILE_PATH"] }
       },
       "additionalProperties": false

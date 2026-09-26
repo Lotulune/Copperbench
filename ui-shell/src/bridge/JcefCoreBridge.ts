@@ -309,6 +309,10 @@ export class JcefCoreBridge implements CoreBridge {
     if (request.operation && response.operation !== request.operation) {
       throw new Error(tr("桌面响应的操作（operation）不匹配"));
     }
+    if (request.messageType === 'command'
+      && (!Number.isSafeInteger(response.newRevision) || Number(response.newRevision) < 0)) {
+      throw new Error('Invalid desktop command response: newRevision must be a non-negative safe integer.');
+    }
     return response as T;
   }
 
@@ -341,6 +345,7 @@ export class JcefCoreBridge implements CoreBridge {
     switch (result.operation) {
       case 'get_workbench':
         this.state.workbench = result.data as WorkbenchProjection;
+        for (const task of this.state.workbench.recentTasks ?? []) this.state.tasks[task.id] = task;
         this.state.viewportState = 'ready';
         break;
       case 'list_mod_elements':

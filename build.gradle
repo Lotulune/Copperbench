@@ -232,6 +232,21 @@ dependencies {
 
 test {
     useJUnitPlatform()
+    // The process/session recovery fixture starts a separate JVM with this exact test runtime.
+    systemProperty 'copperbench.test.runtimeClasspath', sourceSets.test.runtimeClasspath.asPath
+    systemProperty 'copperbench.stage17.coldWorkspaceRoot', System.getProperty('copperbench.stage17.coldWorkspaceRoot', '')
+    systemProperty 'copperbench.stage17.buildTracks', System.getProperty('copperbench.stage17.buildTracks', '')
+    systemProperty 'copperbench.stage17.gradleProxy', System.getProperty('copperbench.stage17.gradleProxy', '')
+	systemProperty 'copperbench.stage17.structuredBuild',
+		System.getProperty('copperbench.stage17.structuredBuild', 'false')
+	systemProperty 'copperbench.stage17.gameTest',
+		System.getProperty('copperbench.stage17.gameTest', 'false')
+	systemProperty 'copperbench.stage17.assetProperties',
+		System.getProperty('copperbench.stage17.assetProperties', '')
+	systemProperty 'copperbench.stage17.resourceCatalogProbe',
+		System.getProperty('copperbench.stage17.resourceCatalogProbe', 'false')
+	systemProperty 'copperbench.stage17.runtimeDependencyProbe',
+		System.getProperty('copperbench.stage17.runtimeDependencyProbe', 'false')
 	systemProperty 'copperbench.stage3.fabricBuild',
 		System.getProperty('copperbench.stage3.fabricBuild', 'false')
 	systemProperty 'copperbench.stage3.fabricRunClient',

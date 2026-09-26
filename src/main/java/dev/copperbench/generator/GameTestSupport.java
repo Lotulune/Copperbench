@@ -197,6 +197,10 @@ public final class GameTestSupport {
         return base + "java.toolchain.languageVersion = JavaLanguageVersion.of(17)\n"
                 + "runs { gameTestServer { server(); systemProperty 'forge.gameTestServer', 'true'; workingDirectory = file('run') } }\n"
                 + "dependencies { implementation " + quote("net.neoforged:forge:1.20.1-" + env.get("loaderVersion").getAsString()) + " }\n"
+                // This generated host only runs a dedicated server. NG 7 also schedules client assets,
+                // whose cache stages clear the shared objects directory even with caching disabled.
+                // Keep compilation, server libraries and the real GameTest task; omit client-only data.
+                + "tasks.withType(net.neoforged.gradle.common.runtime.tasks.DownloadAssets).configureEach { enabled = false }\n"
                 + "tasks.register('runGameTest') { dependsOn 'runGameTestServer' }\n";
     }
 

@@ -1,0 +1,34 @@
+{
+  "sessionId": "4dea8899-4d3c-4512-9c9d-8f187449a65a",
+  "verifiedEvidenceFiles": 44,
+  "steps": 6,
+  "completedSteps": 5,
+  "interruptedSteps": 1,
+  "rejectedSteps": 0,
+  "completedActions": 13,
+  "inputMs": 2562.87,
+  "captureCount": 35,
+  "captureMs": 2404.88,
+  "menuFlows": [
+    {
+      "flow": "enter_world",
+      "status": "completed",
+      "elapsedMs": 9734.21
+    },
+    {
+      "flow": "save_and_quit",
+      "status": "blocked",
+      "elapsedMs": 1572.96
+    }
+  ],
+  "jevCalls": 0,
+  "taskId": "fec60b90-d36c-4c6a-ad6f-ea5c15907a76",
+  "startedAt": "2026-09-26T06:05:25.220844Z",
+  "completedAt": "2026-09-26T10:59:43.748588500Z",
+  "taskElapsedSeconds": 17658.527744,
+  "taskState": "succeeded",
+  "reopenedTaskState": "succeeded",
+  "processExited": true,
+  "productAndSourceUnchanged": true,
+  "scope": "World/model state restored in a new v37 process; menu save/quit plus task recovery verified. Player429 differs from prior Player369; no fixed-player inventory continuity claim."
+}

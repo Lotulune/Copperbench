@@ -25,7 +25,6 @@ import net.mcreator.blockly.data.Dependency;
 import net.mcreator.element.parts.procedure.Procedure;
 import net.mcreator.generator.template.TemplateGeneratorException;
 import net.mcreator.ui.init.L10N;
-import net.mcreator.util.XMLUtil;
 import net.mcreator.workspace.elements.VariableType;
 import net.mcreator.workspace.elements.VariableTypeLoader;
 import org.apache.commons.lang3.Strings;
@@ -46,11 +45,15 @@ public class ProcedureRetvalBlock implements IBlockGenerator {
 
 	@Override public void generateBlock(BlocklyToCode master, Element block) throws TemplateGeneratorException {
 		String type = Strings.CS.removeStart(block.getAttribute("type"), "procedure_retval_");
-		Element procedureField = XMLUtil.getFirstChildrenWithName(block, "field");
-
-		if (procedureField != null && procedureField.getTextContent() != null && !procedureField.getTextContent()
-				.isEmpty()) {
-			Procedure procedure = new Procedure(procedureField.getTextContent());
+		String requestedTarget = dev.copperbench.procedure.WorkspaceProcedureTargets.requestedTarget(block);
+		if (!requestedTarget.isBlank()) {
+			String resolvedName = dev.copperbench.procedure.WorkspaceProcedureTargets.resolveName(master.getWorkspace(), requestedTarget);
+			if (resolvedName == null) {
+				master.addCompileNote(new BlocklyCompileNote(BlocklyCompileNote.Type.ERROR,
+						L10N.t("blockly.errors.procedure_retval.nonexistent", requestedTarget)));
+				return;
+			}
+			Procedure procedure = new Procedure(resolvedName);
 			List<Dependency> dependencies = procedure.getDependencies(master.getWorkspace());
 
 			// If the procedure doesn't actually exist, add compile error

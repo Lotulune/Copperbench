@@ -1,4 +1,3 @@
-import { tr } from '../i18n/locale';
 import { elementLabel } from '../i18n/labels';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
@@ -22,8 +21,10 @@ import {
   EditorField,
   Diagnostic,
   ModElementType
+  , WorkspacePlan
 } from '../types/contract';
-import { t } from '../i18n';
+import { t, uiText, uiMessage, renderUiMessage, englishCount, type UiMessage } from '../i18n';
+import { BlockbenchTasksPanel } from './BlockbenchTasksPanel';
 
 interface ElementInspectorProps {
   element: ModElementSummary;
@@ -119,12 +120,12 @@ function resourceStorageIdentifier(asset: AssetProjection['assets'][number], fie
 
 function generationDomainLabel(domain: string): string {
   switch (domain) {
-    case 'client_resources': return tr("客户端资源");
-    case 'entity_behavior': return tr("实体行为");
-    case 'entity_definition': return tr("实体定义");
-    case 'worldgen': return tr("世界生成");
-    case 'ui_layout': return tr("界面布局");
-    default: return tr("元素生成源码");
+    case 'client_resources': return uiText("客户端资源", "Client resources");
+    case 'entity_behavior': return uiText("实体行为", "Entity behavior");
+    case 'entity_definition': return uiText("实体定义", "Entity definition");
+    case 'worldgen': return uiText("世界生成", "World generation");
+    case 'ui_layout': return uiText("界面布局", "UI layout");
+    default: return uiText("元素生成源码", "Generated element sources");
   }
 }
 
@@ -151,16 +152,19 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
     previewModElementChange,
     listAssets,
     runDiagnosticAction,
+    planWorkspaceChanges,
+    applyWorkspacePlan,
     state
   } = useWorkbench();
   const [editor, setEditor] = useState<ModElementEditorProjection | null>(null);
+  const [configurationPlan, setConfigurationPlan] = useState<WorkspacePlan | null>(null);
   const [values, setValues] = useState<Record<string, unknown>>({});
   const [assets, setAssets] = useState<AssetProjection | null>(null);
   const [preview, setPreview] = useState<ModElementChangePreview | null>(null);
   const [isPreviewing, setIsPreviewing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
-  const [localErrors, setLocalErrors] = useState<string[]>([]);
+  const [localErrors, setLocalErrors] = useState<UiMessage[]>([]);
   const [referenceDrafts, setReferenceDrafts] = useState<Record<string, string>>({});
   const [externalChange, setExternalChange] = useState(false);
   const [reloadVersion, setReloadVersion] = useState(0);
@@ -181,6 +185,20 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
   const listAssetsRef = useRef(listAssets);
   listAssetsRef.current = listAssets;
 
+  const preparationCompletions = Object.values(state.tasks)
+    .filter(task => ['generate', 'build', 'export', 'run_client', 'run_server', 'run_datagen', 'run_gametest'].includes(task.kind)
+      && !['queued', 'running'].includes(task.state))
+    .map(task => `${task.id}:${task.state}:${task.completedAt ?? ''}`).sort().join('|');
+  useEffect(() => {
+    if (!preparationCompletions) return;
+    let cancelled = false;
+    getEditorRef.current(element.id).then(projection => {
+      if (!cancelled && projection) setEditor(current => current?.element.id === element.id
+        ? { ...current, configuration: projection.configuration } : current);
+    }).catch(() => { /* Keep the last observation until the next successful query. */ });
+    return () => { cancelled = true; };
+  }, [element.id, preparationCompletions]);
+
   useEffect(() => {
     const draft = draftRef.current;
     if (draft.editor?.element.id === element.id && !forceReload.current) {
@@ -195,6 +213,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
     const observedRevision = revisionRef.current;
     setExternalChange(false);
     setEditor(null);
+    setConfigurationPlan(null);
     setValues({});
     setAssets(null);
     setPreview(null);
@@ -214,7 +233,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
         );
       })
       .catch(() => {
-        if (!cancelled) setLocalErrors([tr("无法加载元素编辑器，请重试。")]);
+        if (!cancelled) setLocalErrors([uiMessage("无法加载元素编辑器，请重试。", "Could not load the element editor. Please try again.")]);
       });
     return () => {
       cancelled = true;
@@ -278,7 +297,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
     setLocalErrors([]);
 
     if (pending.invalidJson) {
-      setLocalErrors([tr("JSON 字段格式无效；请修正括号、引号或逗号后再保存。")]);
+      setLocalErrors([uiMessage("JSON 字段格式无效；请修正括号、引号或逗号后再保存。", "Invalid JSON field. Check brackets, quotes and commas before saving.")]);
       setIsSaving(false);
       return;
     }
@@ -292,7 +311,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
     try {
       result = await updateModElement(element.id, changes, baseRevision.current);
     } catch {
-      setLocalErrors([tr("保存失败，工作区未发生更改。")]);
+      setLocalErrors([uiMessage("保存失败，工作区未发生更改。", "Save failed. The workspace was not changed.")]);
       setIsSaving(false);
       return;
     }
@@ -327,23 +346,23 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
           setPreview(null);
         }
       } catch {
-        setLocalErrors([tr("元素已保存，但无法刷新编辑器投影。")]);
+        setLocalErrors([uiMessage("元素已保存，但无法刷新编辑器投影。", "The element was saved, but the editor could not be refreshed.")]);
       }
     } else if (result.conflict) {
       setExternalChange(true);
     } else if (result.diagnostics.length > 0) {
-      setLocalErrors(result.diagnostics.map((d) => t(d.message)));
+      setLocalErrors(result.diagnostics.map((d) => d.message));
     }
   };
 
   const handleDelete = async () => {
-    if (window.confirm(tr("确定要删除「{0}」吗？", [element.displayName]))) {
+    if (window.confirm(uiText(`确定要删除「${element.displayName}」吗？`, `Delete "${element.displayName}"?`))) {
       try {
         const result = await deleteModElement(element.id);
         if (result.status === 'committed') onClose();
-        else setLocalErrors(result.diagnostics.map((diagnostic) => t(diagnostic.message)));
+        else setLocalErrors(result.diagnostics.map((diagnostic) => diagnostic.message));
       } catch {
-        setLocalErrors([tr("删除失败，元素未被移除。")]);
+        setLocalErrors([uiMessage("删除失败，元素未被移除。", "Delete failed. The element was not removed.")]);
       }
     }
   };
@@ -352,7 +371,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
     localErrors.length > 0
       ? localErrors
       : pending.invalidJson
-        ? [tr("JSON 字段格式无效；请修正括号、引号或逗号后再保存。")]
+        ? [uiText("JSON 字段格式无效；请修正括号、引号或逗号后再保存。", "Invalid JSON field. Check brackets, quotes and commas before saving.")]
         : preview && !preview.canApply
           ? preview.diagnostics.filter((d) => d.severity === 'error').map((d) => t(d.message))
       : elementDiagnostics.filter((d) => d.severity === 'error').map((d) => t(d.message));
@@ -402,22 +421,22 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
       const candidates = referenceCandidates(field);
       const missing = current.find((entry) => entry.startsWith('CUSTOM:')
         && !candidates.some((candidate) => candidate.value === entry));
-      return missing ? tr("工作区中未找到引用的元素：{0}", [missing]) : null;
+      return missing ? uiText(`工作区中未找到引用的元素：${missing}`, `Referenced element not found in this workspace: ${missing}`) : null;
     }
     const value = String(values[field.path] ?? '').trim();
     if (!value || ['root', 'none', '(none)', 'null'].includes(value.toLowerCase())) return null;
     const candidates = referenceCandidates(field);
     if (field.control === 'procedure_reference' && candidates.length > 0
       && !candidates.some((candidate) => candidate.value === value)) {
-      return tr("未找到引用的 Procedure / Function：{0}", [value]);
+      return uiText(`未找到引用的 Procedure / Function：${value}`, `Referenced Procedure / Function not found: ${value}`);
     }
     if (field.control === 'element_reference' && value.startsWith('CUSTOM:') && candidates.length > 0
       && !candidates.some((candidate) => candidate.value === value)) {
-      return tr("工作区中未找到引用的元素：{0}", [value]);
+      return uiText(`工作区中未找到引用的元素：${value}`, `Referenced element not found in this workspace: ${value}`);
     }
     if (field.control === 'resource_reference' && assets && looksLikeWorkspaceAssetReference(value)
       && !assets.assets.some((asset) => asset.relativePath.replace(/\\/g, '/') === value.replace(/\\/g, '/'))) {
-      return tr("工作区中未找到资源：{0}", [value]);
+      return uiText(`工作区中未找到资源：${value}`, `Resource not found in this workspace: ${value}`);
     }
     return null;
   };
@@ -470,7 +489,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
               style={commonStyle}
               data-testid={`field-${fieldTestSuffix(field.path)}`}
             />
-            <span>{value ? tr("启用") : tr("关闭")}</span>
+            <span>{value ? uiText('启用', 'Enabled') : uiText('关闭', 'Disabled')}</span>
           </label>
         );
       case 'select':
@@ -544,11 +563,11 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
               </div>
               <div style={{ fontSize: '10px', color: 'var(--text-sub)' }}>
                 {field.control === 'resource_reference'
-                  ? tr("资源选择器")
+                  ? uiText("资源选择器", "Resource picker")
                   : field.control === 'element_reference'
-                    ? tr("方块 / 元素引用选择器")
-                    : tr("元素引用选择器")}
-                {candidates.length > 0 ? tr(" · {0} 个候选", [candidates.length]) : tr(" · 可输入完整引用")}
+                    ? uiText("方块 / 元素引用选择器", "Block / element reference picker")
+                    : uiText("元素引用选择器", "Element reference picker")}
+                {candidates.length > 0 ? uiText(` · ${candidates.length} 个候选`, ` · Candidates: ${candidates.length}`) : uiText(" · 可输入完整引用", " · Enter a full reference")}
               </div>
             </div>
           );
@@ -659,7 +678,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
                       {!disabled && (
                         <button
                           type="button"
-                          aria-label={tr("移除 {0}", [entry])}
+                          aria-label={uiText(`移除 ${entry}`, `Remove ${entry}`)}
                           onClick={() => setValues((prev) => ({
                             ...prev,
                             [field.path]: current.filter((candidate) => candidate !== entry)
@@ -681,7 +700,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
                   value={draft}
                   disabled={disabled}
                   readOnly={disabled}
-                  placeholder={tr("选择候选或输入完整 Biome 引用")}
+                  placeholder={uiText("选择候选或输入完整 Biome 引用", "Select a candidate or enter a full Biome reference")}
                   onChange={(e) => setReferenceDrafts((prev) => ({ ...prev, [field.path]: e.target.value }))}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
@@ -693,7 +712,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
                   data-testid={`field-${fieldTestSuffix(field.path)}`}
                 />
                 <button type="button" className="btn-secondary" disabled={disabled || !draft.trim()} onClick={addReference}>
-                  {tr("添加")}</button>
+                  {uiText("添加", "Add")}</button>
                 {candidates.length > 0 && (
                   <datalist id={listId}>
                     {candidates.map((candidate) => (
@@ -703,7 +722,8 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
                 )}
               </div>
               <div style={{ fontSize: '10px', color: 'var(--text-sub)' }}>
-                {tr("Biome 引用列表 · ")}{candidates.length} {tr(" 个候选 · 支持 CUSTOM:、标签或完整上游引用")}</div>
+                {uiText(`Biome 引用列表 · ${candidates.length} 个候选 · 支持 CUSTOM:、标签或完整上游引用`, `Biome references · Candidates: ${candidates.length} · Supports CUSTOM:, tags and full upstream references`)}
+              </div>
             </div>
           );
         }
@@ -770,7 +790,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
           </div>
           <div>
             <div style={{ fontWeight: 700, fontSize: '13px', color: 'var(--text-main)' }}>
-              {tr("检查器")}</div>
+              {uiText("检查器", "Inspector")}</div>
             <div style={{ fontSize: '11px', color: 'var(--text-sub)' }}>
               {elementLabel(element.type)} · {element.name}
             </div>
@@ -779,10 +799,10 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
 
         <button
           type="button"
-          aria-label={tr("关闭元素检查器")}
+          aria-label={uiText("关闭元素检查器", "Close element inspector")}
           onClick={onClose}
           style={{ padding: '4px', borderRadius: 'var(--radius-xs)', color: 'var(--text-muted)' }}
-          title={tr("关闭检查器")}
+          title={uiText("关闭检查器", "Close inspector")}
           data-testid="inspector-close-btn"
         >
           <X size={16} />
@@ -801,14 +821,52 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
         }}
       >
         {/* Validation Errors Notice */}
+        {(element.type === 'block' || element.type === 'item') && <BlockbenchTasksPanel key={element.id} element={editor?.element ?? element} />}
+        {editor?.configuration?.generationState === 'pending' && <p role="status" data-testid="generation-pending-notice">
+          {t({ key: 'editor.generation_pending', fallback: 'Definition saved; source generation is pending. Run Generate or Build to prepare dependencies and update managed sources.' })}
+        </p>}
+        {editor?.configuration?.status === 'drift' && <section aria-label={uiText("配置差异", "Configuration differences")} style={{ fontSize: '13px' }}>
+          <strong>{uiText("配置与生成定义不一致", "Configuration differs from the generated definition")}</strong>
+          <p>{uiText("下方字段显示实际定义。请先审查差异，再预览处理方式。", "The fields below show the actual definition. Review the differences before previewing a resolution.")}</p>
+          <ul>{editor.configuration.differences?.map(difference => <li key={difference.path}>
+            <code>{difference.path}</code>{uiText('：声明 ', ': declared ')}{JSON.stringify(difference.declared)}{uiText('；实际 ', '; actual ')}{JSON.stringify(difference.effective)}
+          </li>)}</ul>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+            {(['adopt_definition', 'reapply_declared'] as const).map(mode => <button key={mode} disabled={isSaving}
+              onClick={async () => {
+                const operation = editor.configuration?.planOperations?.[mode];
+                if (!operation) return;
+                setIsSaving(true);
+                try {
+                  const plan = await planWorkspaceChanges([operation], true, baseRevision.current);
+                  setConfigurationPlan(plan);
+                  if (!plan) setLocalErrors([uiMessage("无法生成差异处理计划，请查看诊断并重新加载。", "Could not create a resolution plan. Review the diagnostics and reload.")]);
+                } catch { setLocalErrors([uiMessage("无法预览配置处理计划。", "Could not preview the configuration resolution plan.")]); }
+                finally { setIsSaving(false); }
+              }}>{mode === 'adopt_definition' ? uiText("预览：采用当前定义", "Preview: adopt current definition") : uiText("预览：重新应用声明配置", "Preview: reapply declared configuration")}</button>)}
+          </div>
+          {configurationPlan && <div>
+            <p>{uiText(`已生成修订 ${configurationPlan.baseRevision} 的处理计划。应用前将再次核对源文件并创建恢复点。`, `Resolution plan prepared for revision ${configurationPlan.baseRevision}. Source files will be checked again and a recovery point created before applying it.`)}</p>
+            <details><summary>{uiText("查看变更详情", "View change details")}</summary><pre style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{JSON.stringify(configurationPlan.semanticDiff, null, 2)}</pre></details>
+            <button disabled={isSaving} onClick={async () => {
+              setIsSaving(true);
+              try {
+                const result = await applyWorkspacePlan(configurationPlan);
+                if (result.status === 'committed') { forceReload.current = true; setReloadVersion(v => v + 1); }
+                else setLocalErrors(result.diagnostics.map(d => d.message));
+              } catch { setLocalErrors([uiMessage("配置处理未完成，请重新加载后核对。", "Configuration resolution did not complete. Reload and check the result.")]); }
+              finally { setIsSaving(false); setConfigurationPlan(null); }
+            }}>{uiText("应用已审查的处理计划", "Apply reviewed resolution plan")}</button>
+          </div>}
+        </section>}
         {externalChange && (
           <div role="alert" data-testid="inspector-external-change">
-            <p>{tr("此元素或工作区已被其他操作修改。当前草稿已保留，请核对最新内容后再编辑。")}</p>
+            <p>{uiText("此元素或工作区已被其他操作修改。当前草稿已保留，请核对最新内容后再编辑。", "Another operation changed this element or workspace. Your draft is preserved. Review the latest content before continuing.")}</p>
             <button type="button" className="btn-secondary" onClick={() => {
               forceReload.current = true;
               setReloadVersion((version) => version + 1);
             }} data-testid="inspector-reload-latest">
-              {tr("丢弃草稿并加载最新内容")}</button>
+              {uiText("丢弃草稿并加载最新内容", "Discard draft and load latest content")}</button>
           </div>
         )}
         {errorMessagesToDisplay.length > 0 && (
@@ -827,11 +885,11 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--badge-red)', fontWeight: 600, fontSize: '12px' }}>
               <AlertTriangle size={15} />
-              <span>{tr("校验未通过")}</span>
+              <span>{uiText("校验未通过", "Validation failed")}</span>
             </div>
             {errorMessagesToDisplay.map((msg, idx) => (
               <div key={idx} style={{ fontSize: '11px', color: 'var(--text-main)' }}>
-                • {msg}
+                • {renderUiMessage(msg)}
               </div>
             ))}
           </div>
@@ -851,30 +909,30 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
-              <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-main)' }}>{tr("更改影响预览")}</span>
+              <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-main)' }}>{uiText("更改影响预览", "Change impact preview")}</span>
               <span className="badge badge-blue" style={{ fontSize: '9px' }}>
-                {preview?.semanticSummary?.changedFieldCount ?? pending.changes.length} {tr(" 个字段")}</span>
+                {uiText(`${preview?.semanticSummary?.changedFieldCount ?? pending.changes.length} 个字段`, englishCount(preview?.semanticSummary?.changedFieldCount ?? pending.changes.length, 'field'))}</span>
             </div>
             {isPreviewing ? (
-              <div style={{ fontSize: '10px', color: 'var(--text-sub)' }}>{tr("正在分析语义与生成影响…")}</div>
+              <div style={{ fontSize: '10px', color: 'var(--text-sub)' }}>{uiText("正在分析语义与生成影响…", "Analyzing semantic and generation impact…")}</div>
             ) : preview ? (
               <>
                 <div style={{ fontSize: '10px', color: 'var(--text-sub)' }}>
-                  {tr("分区：")}{(preview.semanticSummary?.sections ?? [])
+                  {uiText("分区：", "Sections: ")}{(preview.semanticSummary?.sections ?? [])
                     .map((id) => editor.sections.find((section) => section.id === id))
                     .filter(Boolean)
                     .map((section) => t(section!.title))
-                    .join('、') || tr("通用属性")}
+                    .join(uiText('、', ', ')) || uiText("通用属性", "General attributes")}
                 </div>
                 {preview.generationImpact && (
                   <div style={{ fontSize: '10px', color: 'var(--badge-blue)' }}>
-                    {tr("保存后需重新生成当前元素 · ")}{preview.generationImpact.affectedDomains.map(generationDomainLabel).join('、')}
+                    {uiText("保存后需重新生成当前元素 · ", "Regenerate this element after saving · ")}{preview.generationImpact.affectedDomains.map(generationDomainLabel).join(uiText('、', ', '))}
                     {preview.generationImpact.generatorId ? ` · ${preview.generationImpact.generatorId}` : ''}
                   </div>
                 )}
               </>
             ) : (
-              <div style={{ fontSize: '10px', color: 'var(--badge-amber)' }}>{tr("暂时无法读取生成影响，保存仍会走 Core 校验。")}</div>
+              <div style={{ fontSize: '10px', color: 'var(--badge-amber)' }}>{uiText("暂时无法读取生成影响，保存仍会走 Core 校验。", "Generation impact is unavailable. Saving will still run Core validation.")}</div>
             )}
           </div>
         )}
@@ -893,7 +951,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
               fontSize: '12px'
             }}
           >
-            {tr("正在加载编辑器投影…")}</div>
+            {uiText("正在加载编辑器投影…", "Loading editor…")}</div>
         ) : (
           editor.sections.map((section) => (
             <div key={section.id} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -914,7 +972,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
                     {renderControl(field)}
                     {field.constraints && field.control === 'number' && (
                       <div style={{ fontSize: '10px', color: 'var(--text-sub)' }}>
-                        {tr("范围：")}{field.constraints.min} - {field.constraints.max}
+                        {uiText("范围：", "Range: ")}{field.constraints.min} - {field.constraints.max}
                       </div>
                     )}
                     {field.condition && (
@@ -922,7 +980,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
                         data-testid={`field-condition-${fieldTestSuffix(field.path)}`}
                         style={{ fontSize: '10px', color: enabledByCondition ? 'var(--badge-blue)' : 'var(--text-sub)' }}
                       >
-                        {enabledByCondition ? tr("条件已启用 · 当前字段必填") : tr("条件未启用 · 当前字段不会参与生成")}
+                        {enabledByCondition ? uiText("条件已启用 · 当前字段必填", "Condition enabled · This field is required") : uiText("条件未启用 · 当前字段不会参与生成", "Condition disabled · This field will not affect generation")}
                       </div>
                     )}
                     {pickerIssue && (
@@ -993,9 +1051,9 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
                     >
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--badge-blue)' }}>
-                          {extensionName} {tr(" 加载器扩展")}</span>
+                          {extensionName} {uiText("加载器扩展", "loader extension")}</span>
                         <span className="badge badge-amber" style={{ fontSize: '9px' }}>
-                          {tr("只读保留")}</span>
+                          {uiText("只读保留", "Preserved, read only")}</span>
                       </div>
 
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -1010,7 +1068,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
                         <span>
                           {field.help
                             ? t(field.help)
-                            : tr("该字段已保留在工作区元数据中，但当前活动生成器下不可用。")}
+                            : uiText("该字段已保留在工作区元数据中，但当前活动生成器下不可用。", "This field is preserved in workspace metadata but is unavailable for the active generator.")}
                         </span>
                       </div>
                     </div>
@@ -1033,7 +1091,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
                       {(field.required || (field.condition && enabledByCondition)) && <span style={{ color: 'var(--badge-red)' }}> *</span>}
                       {field.readOnly && (
                         <span className="badge badge-amber" style={{ fontSize: '9px', marginLeft: '6px' }}>
-                          {tr("只读保留")}</span>
+                          {uiText("只读保留", "Preserved, read only")}</span>
                       )}
                     </label>
                     {controlBlock}
@@ -1063,13 +1121,13 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
           data-testid="inspector-delete-btn"
         >
           <Trash2 size={13} />
-          <span>{tr("删除")}</span>
+          <span>{uiText("删除", "Delete")}</span>
         </button>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           {saveSuccess && (
             <span style={{ color: 'var(--badge-green)', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <Check size={13} /> {tr(" 已保存")}</span>
+              <Check size={13} /> {uiText("已保存", "Saved")}</span>
           )}
           <button
             className="btn-primary"
@@ -1078,7 +1136,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
             data-testid="inspector-save-btn"
           >
             <Save size={13} />
-            <span>{isSaving ? tr("保存中…") : tr("应用更改")}</span>
+            <span>{isSaving ? uiText("保存中…", "Saving…") : uiText("应用更改", "Apply changes")}</span>
           </button>
         </div>
       </div>

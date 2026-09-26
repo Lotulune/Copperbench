@@ -275,7 +275,8 @@ public class ${name}Block extends
 			return Shapes.empty();
 		<#else>
 			<#if !data.shouldDisableOffset()>Vec3 offset = state.getOffset(world, pos);</#if>
-			<@boundingBoxWithRotation data.positiveBoundingBoxes() data.negativeBoundingBoxes() data.shouldDisableOffset() data.rotationMode data.enablePitch/>
+			VoxelShape shape = <@boundingBoxWithRotation data data.rotationMode data.enablePitch/>;
+			return shape<#if !data.shouldDisableOffset()>.move(offset.x, offset.y, offset.z)</#if>;
 		</#if>
 	}
 	</#if>

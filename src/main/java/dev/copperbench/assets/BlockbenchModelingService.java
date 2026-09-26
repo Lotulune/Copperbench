@@ -27,12 +27,18 @@ public final class BlockbenchModelingService {
 	}
 
 	public JsonObject begin(UUID taskId, String assetId, String requestedTarget, long revision, Actor actor) {
+		return begin(taskId, assetId, requestedTarget, revision, actor, null);
+	}
+
+	public JsonObject begin(UUID taskId, String assetId, String requestedTarget, long revision, Actor actor, JsonObject elementContext) {
 		if ((assetId == null) == (requestedTarget == null)) throw problem("MODEL_TASK_INPUT", "Specify either assetId or targetRelativePath");
 		Path directory = taskDirectory(taskId);
 		Path manifest = safe(directory.resolve("task.json"));
 		if (Files.exists(manifest)) {
 			JsonObject saved = read(taskId);
 			if (!Objects.equals(text(saved, "sourceAssetId"), assetId)
+					|| !Objects.equals(saved.has("elementContext") ? text(saved.getAsJsonObject("elementContext"), "elementId") : null,
+						elementContext == null ? null : text(elementContext, "elementId"))
 					|| (requestedTarget != null && !target(requestedTarget).equals(text(saved, "targetRelativePath"))))
 				throw problem("MODEL_TASK_ID_REUSED", "This task ID belongs to a different modeling request");
 			return projection(saved);
@@ -76,6 +82,7 @@ public final class BlockbenchModelingService {
 			saved.addProperty("taskId", taskId.toString());
 			saved.addProperty("workspaceId", workspaceId.toString());
 			saved.addProperty("sourceAssetId", assetId);
+			if (elementContext != null) saved.add("elementContext", elementContext.deepCopy());
 			saved.addProperty("targetRelativePath", relative);
 			saved.addProperty("sourceSha256", sourceHash);
 			saved.addProperty("openedRevision", revision);
@@ -93,6 +100,15 @@ public final class BlockbenchModelingService {
 	}
 
 	public JsonObject get(UUID taskId) { return projection(read(taskId)); }
+
+	public Path editingFile(UUID taskId) {
+		JsonObject task = get(taskId);
+		if (!"editing".equals(text(task, "state"))) throw problem("MODEL_TASK_NOT_EDITING", "Only an active editing copy can be opened; completed candidates remain preserved");
+		if (task.get("sourceChanged").getAsBoolean()) throw problem("MODEL_SOURCE_CONFLICT", "Resolve the source conflict before continuing this task");
+		Path file = safe(taskDirectory(taskId).resolve("edit/model.bbmodel"));
+		if (!Files.isRegularFile(file)) throw problem("MODEL_EDIT_MISSING", "The editing copy is missing");
+		return file;
+	}
 
 	public JsonObject list() {
 		JsonArray result = new JsonArray();

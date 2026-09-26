@@ -1,4 +1,4 @@
-import { tr, UI_LOCALE } from '../i18n/locale';
+import { UI_LOCALE } from '../i18n/locale';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   LayoutDashboard,
@@ -17,13 +17,14 @@ import {
 } from 'lucide-react';
 import { useWorkbench, NavView } from '../context/WorkbenchContext';
 import { windowBridge } from '../bridge/windowBridge';
+import { uiText } from '../i18n';
 
 export const NavRail: React.FC = () => {
   const { activeView, setActiveView, state } = useWorkbench();
   const elementCount = state.elements.length;
   const permission = state.workbench?.permission?.profile ?? 'workspace';
   const aiNavigationRef = useRef<HTMLButtonElement | null>(null);
-  const [settingsError, setSettingsError] = useState('');
+  const [settingsError, setSettingsError] = useState(false);
 
   useEffect(() => {
     const openAiNavigation = (event: KeyboardEvent) => {
@@ -43,18 +44,18 @@ export const NavRail: React.FC = () => {
     badge?: string | number;
     badgeType?: 'copper' | 'blue' | 'green';
   }[] = [
-    { id: 'hub', label: tr("总览"), icon: LayoutDashboard },
-    { id: 'elements', label: tr("模组元素"), icon: Box, badge: elementCount, badgeType: 'copper' },
-    { id: 'data', label: tr("变量与数据"), icon: Database, badge: tr("引用"), badgeType: 'green' },
-    { id: 'tracks', label: tr("版本与迁移"), icon: Compass, badge: tr("4轨"), badgeType: 'copper' },
-    { id: 'new-workspace', label: tr("新建工作区"), icon: Layers, badge: '4×2', badgeType: 'blue' },
-    { id: 'assets', label: tr("资产与模型"), icon: Palette },
-    { id: 'python', label: tr("Python 工作台"), icon: Terminal },
-    { id: 'history', label: tr("本地历史"), icon: GitBranch },
-    { id: 'ai', label: tr("AI 与 MCP"), icon: Bot, badge: permission === 'workspace' ? tr("读写") : permission === 'full_access' ? tr("完全") : tr("只读"), badgeType: 'green' },
-    { id: 'plugins', label: tr("插件中心"), icon: Plug, badge: 'A/B/C', badgeType: 'blue' },
-    { id: 'help', label: tr("帮助与关于"), icon: HelpCircle, badge: '0.1.0', badgeType: 'copper' },
-    { id: 'settings', label: tr("设置"), icon: Settings }
+    { id: 'hub', label: uiText('总览', 'Overview'), icon: LayoutDashboard },
+    { id: 'elements', label: uiText('模组元素', 'Mod elements'), icon: Box, badge: elementCount, badgeType: 'copper' },
+    { id: 'data', label: uiText('变量与数据', 'Variables & data'), icon: Database, badge: uiText('引用', 'Refs'), badgeType: 'green' },
+    { id: 'tracks', label: uiText('版本与迁移', 'Version tracks'), icon: Compass, badge: uiText('4轨', '4'), badgeType: 'copper' },
+    { id: 'new-workspace', label: uiText('新建工作区', 'New workspace'), icon: Layers, badge: '4×2', badgeType: 'blue' },
+    { id: 'assets', label: uiText('资产与模型', 'Assets & models'), icon: Palette },
+    { id: 'python', label: uiText('Python 工作台', 'Python workbench'), icon: Terminal },
+    { id: 'history', label: uiText('本地历史', 'Local history'), icon: GitBranch },
+    { id: 'ai', label: uiText('AI 与 MCP', 'AI & MCP'), icon: Bot, badge: permission === 'workspace' ? uiText('读写', 'RW') : permission === 'full_access' ? uiText('完全', 'Full') : uiText('只读', 'RO'), badgeType: 'green' },
+    { id: 'plugins', label: uiText('插件中心', 'Plugins'), icon: Plug, badge: 'A/B/C', badgeType: 'blue' },
+    { id: 'help', label: uiText('帮助与关于', 'Help & about'), icon: HelpCircle, badge: '0.1.0', badgeType: 'copper' },
+    { id: 'settings', label: uiText('设置', 'Settings'), icon: Settings }
   ];
 
   return (
@@ -85,7 +86,8 @@ export const NavRail: React.FC = () => {
             color: 'var(--text-sub)'
           }}
         >
-          {tr("导航")}</div>
+          {uiText('导航', 'Navigation')}
+        </div>
 
         {navItems.map((item) => {
           const Icon = item.icon;
@@ -97,13 +99,13 @@ export const NavRail: React.FC = () => {
               type="button"
               onClick={() => {
                 if (item.id === 'settings') {
-                  setSettingsError('');
-                  void windowBridge.openPreferences().catch(() => setSettingsError(tr("无法打开设置，请重试或重新启动应用。")));
+                  setSettingsError(false);
+                  void windowBridge.openPreferences().catch(() => setSettingsError(true));
                 } else setActiveView(item.id);
               }}
               disabled={item.id === 'settings' && !windowBridge.canOpenPreferences}
               aria-label={item.label}
-              title={item.id === 'settings' && !windowBridge.canOpenPreferences ? tr("设置仅在支持此功能的桌面应用中可用") : item.label}
+              title={item.id === 'settings' && !windowBridge.canOpenPreferences ? uiText('设置仅在支持此功能的桌面应用中可用', 'Settings are available in supported desktop hosts') : item.label}
               aria-current={isActive ? 'page' : undefined}
               aria-keyshortcuts={item.id === 'ai' ? 'Control+Shift+M' : undefined}
               data-testid={`nav-${item.id}`}
@@ -137,7 +139,7 @@ export const NavRail: React.FC = () => {
             </button>
           );
         })}
-        {settingsError && <div role="alert" style={{ padding: '8px', fontSize: '12px' }}>{settingsError}</div>}
+        {settingsError && <div role="alert" style={{ padding: '8px', fontSize: '12px' }}>{uiText('无法打开设置，请重试或重新启动应用。', 'Could not open settings. Retry or restart the app.')}</div>}
       </div>
 
       {/* Bottom Info Card */}
@@ -155,10 +157,10 @@ export const NavRail: React.FC = () => {
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--accent-copper)', fontSize: '11px', fontWeight: 600 }}>
           <Sparkles size={12} />
-          <span>{tr("模组创作工作台")}</span>
+          <span>{uiText('模组创作工作台', 'Mod creation workbench')}</span>
         </div>
         <div style={{ fontSize: '10px', color: 'var(--text-sub)' }}>
-          {state.currentScenarioId === 'native' ? tr("JCEF 原生桥接 · 协议 v1.0") : tr("Mock 桥接已连接 · 协议 v1.0")}
+          {state.currentScenarioId === 'native' ? uiText('JCEF 原生桥接 · 协议 v1.0', 'JCEF bridge · Protocol v1.0') : uiText('Mock 桥接已连接 · 协议 v1.0', 'Mock bridge · Protocol v1.0')}
         </div>
       </div>
     </aside>

@@ -1,6 +1,6 @@
-# Windows 预览版发布流程
+# Windows 发布流程
 
-Copperbench 当前只发布未签名的 Windows 11 x64 预览包。Linux、macOS、商店发布和 Authenticode 不在当前发布范围。
+Copperbench 发布未签名的 Windows 11 x64 安装包。稳定版使用 `vX.Y.Z`，预发布使用 `-preview.N` 或 `-beta.N`；Linux 由独立的 exact-binary 工作流发布。macOS、商店发布和 Authenticode 不在当前范围。
 
 ## 发布前提
 
@@ -13,7 +13,7 @@ Copperbench 当前只发布未签名的 Windows 11 x64 预览包。Linux、macOS
 ## 触发方式
 
 - 推送 `v*` Tag 会执行发布流程。
-- 也可手动运行 `Build Windows release`，填写一个已存在的 Tag；`publish=false` 只生成工作流产物，`publish=true` 才创建 GitHub prerelease。
+- 也可手动运行 `Build Windows release`，填写一个已存在的 Tag；`publish=false` 只生成工作流产物，`publish=true` 才创建 GitHub Release 草稿。
 
 工作流会从 Tag 重新检出源码，通过 GitHub API 解析最新 `main`，并执行 `scripts/verify-release-source.ps1`。Tag 未通过允许签名者验签、不匹配 `HEAD`/最新 `main`、版本不一致或工作树不干净时立即失败；上传草稿前会再次确认 Tag 仍等于最新 `main`。
 
@@ -26,7 +26,7 @@ Copperbench 当前只发布未签名的 Windows 11 x64 预览包。Linux、macOS
 3. 生成 SPDX JSON SBOM、`SHA256SUMS.txt` 和 `RELEASE-METADATA.json`。
 4. 为发布载荷生成 GitHub Artifact Attestation provenance。
 5. 上传一份 30 天保留的 Actions artifact。
-6. 需要公开发布时，先创建草稿 prerelease 并上传全部文件。
+6. 需要公开发布时，先创建草稿并上传全部文件；稳定标签设置 `prerelease=false`，其它通道保持预发布。
 7. `Test-ReleaseAssets.ps1` 确认二进制、哈希、元数据和 SBOM 均实际存在。
 8. 只有验证通过后，才解除草稿状态。
 
@@ -41,3 +41,9 @@ Get-FileHash '.\Copperbench 0.1.0 Windows 64bit.zip' -Algorithm SHA256
 ```
 
 GitHub 的 provenance 可使用 GitHub CLI 验证，具体命令以 Release 页面显示的 attestation 指引为准。
+
+## Stable release gate
+
+A stable Windows tag also requires `product.channel=stable`, an approved matching `delivery.stableRelease` with `status=ready`, and passed `stableBlocking` gates with tracked evidence. Pending gates cannot be bypassed by removing a preview suffix. The same production review, signature, latest-main, build, payload and uploaded-asset checks remain mandatory. Release notes: [0.1.0](../releases/v0.1.0.md).
+
+Linux uses `vX.Y.Z-linux-stable` for a non-prerelease release. Its ten installed candidate gates, legacy migration evidence, exact SHA-256 binding, provenance and downloaded draft comparison remain required. A stable channel does not extend distribution, architecture, accessibility or offline claims beyond recorded evidence.

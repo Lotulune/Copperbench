@@ -1,0 +1,42 @@
+package __PACKAGE__;
+
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.Container;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Level;
+
+/** Minecraft 1.21.1 / NeoForge. Explicitly call init() from the generated mod init keep section. */
+public final class Stage17MachineRuntime {
+    private static boolean initialized;
+    private Stage17MachineRuntime() {}
+
+    public static synchronized void init() {
+        if (initialized) return;
+        NeoForge.EVENT_BUS.addListener(Stage17MachineRuntime::rightClick);
+        initialized = true;
+    }
+
+    private static void rightClick(PlayerInteractEvent.RightClickBlock event) {
+        if (event.getEntity().isSpectator() || event.getLevel().isClientSide()) return;
+        if (activate(event.getLevel(), event.getPos())) {
+            event.setCanceled(true);
+            event.setCancellationResult(InteractionResult.SUCCESS);
+        }
+    }
+
+    public static boolean activate(Level level, BlockPos pos) {
+        if (level.isClientSide() || !BuiltInRegistries.BLOCK.getKey(level.getBlockState(pos).getBlock()).toString().equals("__BLOCK_ID__")) return false;
+        if (!(level.getBlockEntity(pos) instanceof Container inventory) || inventory.getContainerSize() < 1) return false;
+        ItemStack current = inventory.getItem(0);
+        if (!current.isEmpty() && !current.is(Items.COBBLESTONE)) return false;
+        if (current.getCount() >= Math.min(inventory.getMaxStackSize(), Items.COBBLESTONE.getDefaultMaxStackSize())) return false;
+        inventory.setItem(0, new ItemStack(Items.COBBLESTONE, current.getCount() + 1));
+        inventory.setChanged();
+        return true;
+    }
+}

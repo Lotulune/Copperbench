@@ -59,6 +59,30 @@ try {
 	if ($Tag -notlike "v$productVersion*") {
 		throw "Tag $Tag does not match product version $productVersion"
 	}
+	if ($Tag -match '^v\d+\.\d+\.\d+$') {
+		$statusPath = Join-Path $repositoryRoot 'product-status.json'
+		if (-not (Test-Path -LiteralPath $statusPath -PathType Leaf)) { throw 'Stable release requires product-status.json' }
+		$status = Get-Content -LiteralPath $statusPath -Raw | ConvertFrom-Json -Depth 32
+		$stable = $status.delivery.stableRelease
+		if ($Tag -ne "v$productVersion" -or $status.product.channel -ne 'stable' -or
+			$stable.tag -ne $Tag -or $stable.status -ne 'ready' -or $stable.decision -ne 'approved') {
+			throw 'Stable release requires a matching approved ready stable release declaration'
+		}
+		$gates = @($status.gates | Where-Object { $_.stableBlocking -eq $true })
+		if ($gates.Count -eq 0 -or @($gates | Where-Object { $_.status -ne 'passed' }).Count -gt 0) {
+			throw 'Stable release requires all stableBlocking gates to pass'
+		}
+		foreach ($gate in $gates) {
+			if (@($gate.evidence).Count -eq 0) { throw "Stable gate $($gate.id) has no evidence" }
+			foreach ($evidence in $gate.evidence) {
+				if ([string]$evidence -match '^https://') { continue }
+				& git ls-files --error-unmatch -- $evidence 2>$null | Out-Null
+				if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $evidence -PathType Leaf)) {
+					throw "Stable gate $($gate.id) references missing or untracked evidence: $evidence"
+				}
+			}
+		}
+	}
 	if ($Tag -match '-beta\.\d+$') {
 		$productStatusPath = Join-Path $repositoryRoot 'product-status.json'
 		if (-not (Test-Path -LiteralPath $productStatusPath -PathType Leaf)) {

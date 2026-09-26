@@ -36,7 +36,11 @@ $request | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath $requestPath -Enco
 
 $pwsh = (Get-Command pwsh -ErrorAction Stop).Source
 $commandLine = '"{0}" -NoLogo -NoProfile -ExecutionPolicy Bypass -File "{1}" -RequestFile "{2}"' -f $pwsh, $childScript, $requestPath
-$created = Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{ CommandLine = $commandLine }
+$startup = New-CimInstance -ClassName Win32_ProcessStartup -ClientOnly -Property @{ ShowWindow = [uint16]0 }
+$created = Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{
+    CommandLine = $commandLine
+    ProcessStartupInformation = $startup
+}
 if ($created.ReturnValue -ne 0) {
     throw "Could not create the external Gradle process (WMI return code $($created.ReturnValue))."
 }

@@ -73,7 +73,7 @@ public class ${JavaModName}Items {
 					ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.SPAWN_EGGS).register(content -> content.accept(${item.getModElement().getRegistryNameUpper()}_SPAWN_EGG));
 				</#if>
 			<#elseif item.getModElement().getTypeString() == "block" || item.getModElement().getTypeString() == "plant">
-				${item.getModElement().getRegistryNameUpper()} = register("${item.getModElement().getRegistryName()}", new BlockItem(${JavaModName}Blocks.${item.getModElement().getRegistryNameUpper()}, new Item.Properties()));
+				${item.getModElement().getRegistryNameUpper()} = register("${item.getModElement().getRegistryName()}", new BlockItem(${JavaModName}Blocks.${item.getModElement().getRegistryNameUpper()}, <@blockItemProperties item/>));
 			<#else>
 				<#if item.getModElement().getTypeString() != "dimension">
 					${item.getModElement().getRegistryNameUpper()} = register("${item.getModElement().getRegistryName()}", new ${item.getModElement().getName()}Item());
@@ -119,4 +119,10 @@ public class ${JavaModName}Items {
 
 }
 </#compress>
+<#macro blockItemProperties block>
+new Item.Properties()
+<#if block.maxStackSize != 64>.stacksTo(${block.maxStackSize})</#if>
+<#if block.rarity != "COMMON">.rarity(Rarity.${block.rarity})</#if>
+<#if block.immuneToFire>.fireResistant()</#if>
+</#macro>
 <#-- @formatter:on -->

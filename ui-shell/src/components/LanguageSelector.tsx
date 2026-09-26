@@ -1,24 +1,25 @@
-import React from 'react';
-import { UI_LOCALE, changeLocale, type UiLocale } from '../i18n/locale';
+import React, { useState } from 'react';
+import { setUiLocale, useUiLocale, uiText, type UiLocale } from '../i18n/locale';
 
-export const LanguageSelector: React.FC = () => (
-  <select
-    aria-label={UI_LOCALE === 'zh' ? '界面语言' : 'Interface language'}
-    title={UI_LOCALE === 'zh' ? '切换语言（需要重新加载）' : 'Change language (reload required)'}
-    value={UI_LOCALE}
+export const LanguageSelector: React.FC = () => {
+  const locale = useUiLocale();
+  const [saving, setSaving] = useState(false);
+  return <select
+    aria-label={uiText('界面语言', 'Interface language')}
+    title={uiText('切换语言并保留草稿', 'Change language and keep drafts')}
+    value={locale}
+    disabled={saving}
     onChange={async event => {
-      const select = event.currentTarget;
-      select.disabled = true;
-      const changed = await changeLocale(select.value as UiLocale);
-      if (!changed) { select.value = UI_LOCALE; select.disabled = false; }
+      const next = event.currentTarget.value as UiLocale;
+      setSaving(true);
+      try { await setUiLocale(next); } finally { setSaving(false); }
     }}
-    className="btn-secondary titlebar-tool"
-    style={{ width: 'auto', minWidth: 94, padding: '4px 8px', flexShrink: 0 }}
-    data-testid="language-select"
+    style={{ width: '86px', minHeight: '28px', fontSize: '12px', WebkitAppRegion: 'no-drag' } as React.CSSProperties}
+    data-testid="ui-language-select"
     data-window-chrome-kind="client"
     data-window-chrome-id="language"
   >
-    <option value="zh">简体中文</option>
+    <option value="zh">中文</option>
     <option value="en">English</option>
-  </select>
-);
+  </select>;
+};

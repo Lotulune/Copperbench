@@ -1,4 +1,3 @@
-import { tr } from '../i18n/locale';
 import { valueLabel } from '../i18n/labels';
 import React from 'react';
 import {
@@ -13,10 +12,10 @@ import {
 } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
 import { useMcpRuntimeState } from '../hooks/useMcpRuntimeState';
-import { t } from '../i18n';
+import { t, uiText, englishCount } from '../i18n';
 
 export const StatusFooter: React.FC = () => {
-  const { state, setIsTaskDrawerOpen, isTaskDrawerOpen } = useWorkbench();
+  const { state, workspaceHealth, setActiveView, setIsTaskDrawerOpen, isTaskDrawerOpen } = useWorkbench();
   const { mcp } = useMcpRuntimeState();
 
   const connection = state.workbench?.connection ?? {
@@ -31,8 +30,8 @@ export const StatusFooter: React.FC = () => {
   const activeTasks = state.workbench?.activeTasks ?? [];
   const runningTask = activeTasks.find((t) => t.state === 'running' || t.state === 'queued');
 
-  const errorCount = state.diagnostics.filter((d) => d.severity === 'error').length;
-  const warningCount = state.diagnostics.filter((d) => d.severity === 'warning').length;
+  const errorCount = workspaceHealth?.diagnostics.error ?? 0;
+  const warningCount = workspaceHealth?.diagnostics.warning ?? 0;
 
   return (
     <footer
@@ -58,27 +57,27 @@ export const StatusFooter: React.FC = () => {
         <div
           style={{ display: 'flex', alignItems: 'center', gap: '5px' }}
           data-testid="core-status"
-          title={tr("Java 核心： {0}", [valueLabel(connection.core)])}
+          title={`${uiText('Java 核心', 'Java Core')}: ${valueLabel(connection.core)}`}
         >
           <Server size={12} color="var(--badge-green)" />
-          <span>{tr("核心：")}{valueLabel(connection.core)}</span>
+          <span>{uiText('核心：', 'Core: ')}{valueLabel(connection.core)}</span>
         </div>
 
         {/* Network status */}
         <div
           style={{ display: 'flex', alignItems: 'center', gap: '5px' }}
           data-testid="offline-status"
-          title={tr("网络： {0}", [valueLabel(connection.network)])}
+          title={`${uiText('网络', 'Network')}: ${valueLabel(connection.network)}`}
         >
           {connection.network === 'offline' ? (
             <>
               <WifiOff size={12} color="var(--badge-amber)" />
-              <span style={{ color: 'var(--badge-amber)', fontWeight: 600 }}>{tr("离线模式（本地可用）")}</span>
+              <span style={{ color: 'var(--badge-amber)', fontWeight: 600 }}>{uiText('离线模式（本地可用）', 'Offline (local work available)')}</span>
             </>
           ) : (
             <>
               <Wifi size={12} color="var(--badge-green)" />
-              <span>{tr("在线")}</span>
+              <span>{uiText('在线', 'Online')}</span>
             </>
           )}
         </div>
@@ -89,7 +88,7 @@ export const StatusFooter: React.FC = () => {
           data-testid="bridge-status"
         >
           <Activity size={12} color="var(--accent-copper)" />
-          <span>{tr("桥接：")}{valueLabel(connection.bridge)}</span>
+          <span>{uiText('桥接：', 'Bridge: ')}{valueLabel(connection.bridge)}</span>
         </div>
       </div>
 
@@ -120,19 +119,33 @@ export const StatusFooter: React.FC = () => {
           </button>
         )}
 
+        {!runningTask && Object.keys(state.tasks).length > 0 && <button
+          data-testid="recent-tasks-button" onClick={() => setIsTaskDrawerOpen(!isTaskDrawerOpen)}
+          style={{ color: 'var(--text-sub)', whiteSpace: 'nowrap' }}>
+          {t({ key: 'task.recent_selector', fallback: 'Recent tasks' })}
+        </button>}
+
         {/* Diagnostics Badge */}
-        <div
+        <button
+          onClick={() => {
+            setActiveView('hub');
+            requestAnimationFrame(() => document.getElementById('workspace-health-panel')?.focus());
+          }}
+          aria-label={uiText('查看当前工作区诊断', 'View current workspace diagnostics')}
           style={{
             display: 'flex',
             alignItems: 'center',
             gap: '4px',
+            whiteSpace: 'nowrap',
             color: errorCount > 0 ? 'var(--badge-red)' : 'var(--text-sub)'
           }}
           data-testid="diagnostics-badge"
         >
           <AlertCircle size={12} />
-          <span>{errorCount} {tr(" 错误，")}{warningCount} {tr(" 警告")}</span>
-        </div>
+          <span role="status" aria-atomic="true">{!workspaceHealth ? uiText('诊断检查中…', 'Checking diagnostics…')
+            : uiText(`${errorCount} 错误，${warningCount} 警告${workspaceHealth.diagnostics.collectionState === 'partial' ? '（部分检查）' : ''}`,
+              `${englishCount(errorCount, 'error')}, ${englishCount(warningCount, 'warning')}${workspaceHealth.diagnostics.collectionState === 'partial' ? ' (partial checks)' : ''}`)}</span>
+        </button>
 
         {/* MCP Permission Pill */}
         <div
@@ -146,7 +159,7 @@ export const StatusFooter: React.FC = () => {
             borderRadius: 'var(--radius-full)',
             color: permission === 'workspace' ? 'var(--badge-green)' : permission === 'full_access' ? 'var(--accent-copper)' : 'var(--badge-amber)'
           }}
-          title={mcp?.status === 'listening' ? tr("MCP 服务已启动：{0}", [permission]) : tr("MCP 服务未启动")}
+          title={mcp?.status === 'listening' ? `${uiText('MCP 服务已启动', 'MCP server listening')}: ${permission}` : uiText('MCP 服务未启动', 'MCP server is not running')}
           data-testid="permission-alert"
         >
           <Shield size={11} />

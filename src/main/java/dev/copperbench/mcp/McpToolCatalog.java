@@ -160,9 +160,10 @@ final class McpToolCatalog {
 						"expectedRevision", Map.of("type", "integer", "minimum", 0)), List.of("taskId", "elementId", "modelResource", "expectedRevision")), McpToolCatalog::mutationPayload));
 		tools.add(queryTool("preview_blockbench_import", "Review a finished candidate plus actual Blockbench game exports. Map files inside task edit/ to workspace asset paths; validates game model/texture references.",
 				Operation.PREVIEW_BLOCKBENCH_IMPORT, requiredSchema(Map.of("taskId", Map.of("type", "string", "format", "uuid"),
+						"elementId", Map.of("type", "string", "format", "uuid"),
 						"outputs", Map.of("type", "array", "minItems", 1, "maxItems", 63, "items", Map.of("type", "object", "properties", Map.of(
 								"sourceRelativePath", Map.of("type", "string"), "targetRelativePath", Map.of("type", "string")),
-								"required", List.of("sourceRelativePath", "targetRelativePath"), "additionalProperties", false))), List.of("taskId", "outputs")),
+								"required", List.of("sourceRelativePath", "targetRelativePath"), "additionalProperties", false))), List.of("taskId")),
 				arguments -> GSON.toJsonTree(arguments).getAsJsonObject()));
 		tools.add(commandTool("import_blockbench_task", "Apply the reviewed game exports and bbmodel together with recovery. Confirm replacements shown by preview. Repeated successful planToken is idempotent.",
 				Operation.IMPORT_BLOCKBENCH_TASK, requiredSchema(Map.of("taskId", Map.of("type", "string", "format", "uuid"),
@@ -171,10 +172,11 @@ final class McpToolCatalog {
 		tools.add(commandTool("recover_blockbench_import", "Restore only journaled files after an interrupted modeling import. Rejects unrelated destination edits and preserves candidate and backups.",
 				Operation.RECOVER_BLOCKBENCH_IMPORT, requiredSchema(Map.of("taskId", Map.of("type", "string", "format", "uuid"),
 						"expectedRevision", Map.of("type", "integer", "minimum", 0)), List.of("taskId", "expectedRevision")), McpToolCatalog::mutationPayload));
-		tools.add(commandTool("begin_blockbench_task", "Create or resume a durable java_block editing copy. Supply a stable UUID taskId and either assetId or a new targetRelativePath. Does not launch or import.",
+		tools.add(commandTool("begin_blockbench_task", "Create or resume a durable java_block editing copy. Supply a stable UUID taskId and a generated elementId for default paths, or assetId/targetRelativePath. Optional elementId preserves the target and resource suggestions across reopening. Does not launch or import.",
 				Operation.BEGIN_BLOCKBENCH_TASK, requiredSchema(Map.of(
 						"taskId", Map.of("type", "string", "format", "uuid"), "assetId", Map.of("type", "string"),
-						"targetRelativePath", Map.of("type", "string"), "expectedRevision", Map.of("type", "integer", "minimum", 0)),
+						"targetRelativePath", Map.of("type", "string"), "elementId", Map.of("type", "string", "format", "uuid"),
+						"expectedRevision", Map.of("type", "integer", "minimum", 0)),
 						List.of("taskId", "expectedRevision")), McpToolCatalog::mutationPayload));
 		tools.add(commandTool("finish_blockbench_task", "Validate the saved editing file and freeze a portable candidate. Pass editSha256 from get_blockbench_task as savedSha256. Does not import or require editor exit.",
 				Operation.FINISH_BLOCKBENCH_TASK, requiredSchema(Map.of(
@@ -375,6 +377,10 @@ final class McpToolCatalog {
 				requiredSchema(Map.of("output", Map.of("type", "string", "minLength", 1), "expectedRevision",
 						Map.of("type", "integer", "minimum", 0)), List.of("output", "expectedRevision")),
 				McpToolCatalog::workspaceArgumentsPayload));
+		tools.add(commandTool("export_verified_artifact", "Export the exact JAR and report from a passed acceptance task; verify both hashes",
+				Operation.EXPORT_WORKSPACE, requiredSchema(Map.of("verifiedTaskId", Map.of("type", "string", "format", "uuid"),
+						"allowHistorical", Map.of("type", "boolean"), "expectedRevision", Map.of("type", "integer", "minimum", 0)),
+						List.of("verifiedTaskId", "expectedRevision")), McpToolCatalog::workspaceArgumentsPayload));
 		tools.add(commandTool("run_client", "Run the Fabric client smoke test", Operation.RUN_CLIENT,
 				revisionSchema(), McpToolCatalog::workspacePayload));
 		tools.add(commandTool("run_server", "Run an isolated dedicated server after desktop EULA approval",

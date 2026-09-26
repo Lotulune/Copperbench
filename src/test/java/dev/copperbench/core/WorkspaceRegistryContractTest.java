@@ -76,6 +76,30 @@ class WorkspaceRegistryContractTest {
 		assertEquals(1, store.read(WORKSPACE_ID).orElseThrow().revision());
 	}
 
+	@Test void renameDoesNotDiscardUnsupportedProcedureXmlData() {
+		WorkspaceState initial = state();
+		var element = initial.element(PROCEDURE_ID);
+		JsonObject values = element.values().deepCopy();
+		String xml = new dev.copperbench.procedure.ProcedureIrCodec().toBlocklyXml(
+				new dev.copperbench.procedure.ProcedureIrCodec().read(values, PROCEDURE_ID));
+		values.addProperty("procedurexml", xml.replace("</xml>", "<variables><variable id=\"v\">score</variable></variables></xml>"));
+		initial.replaceElement(new WorkspaceState.Element(element.id(), element.type(), element.name(), element.displayName(),
+				element.state(), element.ownership(), element.updatedAt(), values));
+		RevisionedWorkspaceStore store = new RevisionedWorkspaceStore(); store.register(initial);
+		WorkspaceApplicationService service = new WorkspaceApplicationService(store,
+				new InMemoryWorkspaceTaskGateway(CLOCK, UUID::randomUUID), CLOCK, UUID::randomUUID);
+		JsonObject payload = new JsonObject(); payload.addProperty("entryId", VARIABLE_ID.toString()); payload.addProperty("newName", "renamed_score");
+		var preview = service.query(Query.of(UUID.randomUUID(), WORKSPACE_ID, Operation.PREVIEW_REGISTRY_RENAME, payload),
+				new RequestContext(Actor.UI, PermissionProfile.WORKSPACE));
+		assertEquals("rejected", preview.status()); assertEquals("PROCEDURE_XML_PRESERVATION_REQUIRED", preview.diagnostics().getFirst().code());
+		var result = service.execute(Command.of(UUID.randomUUID(), WORKSPACE_ID, 0, Operation.RENAME_REGISTRY_ENTRY, payload),
+				new RequestContext(Actor.UI, PermissionProfile.WORKSPACE)).result();
+		assertEquals("rejected", result.status()); assertEquals("PROCEDURE_XML_PRESERVATION_REQUIRED", result.diagnostics().getFirst().code());
+		assertEquals(0, store.read(WORKSPACE_ID).orElseThrow().revision());
+		assertEquals("score", store.read(WORKSPACE_ID).orElseThrow().registries().getAsJsonArray("variables").get(0).getAsJsonObject().get("name").getAsString());
+		assertEquals(values, store.read(WORKSPACE_ID).orElseThrow().element(PROCEDURE_ID).values());
+	}
+
 	private static WorkspaceState state() {
 		JsonObject variable = new JsonObject();
 		variable.addProperty("id", VARIABLE_ID.toString());

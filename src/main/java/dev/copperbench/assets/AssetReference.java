@@ -4,7 +4,13 @@ import java.util.Objects;
 
 /** One normalized edge in the workspace asset graph, including the exact structured-document source location. */
 public record AssetReference(String sourceAssetId, String sourcePath, String sourcePointer, String rawValue,
-		String expectedPrefix, String targetPath, String targetAssetId, ReferenceKind kind) {
+		String expectedPrefix, String targetPath, String targetAssetId, ReferenceKind kind,
+		String resolution, String resourceSource, String resourceVersion) {
+	public AssetReference(String sourceAssetId, String sourcePath, String sourcePointer, String rawValue,
+			String expectedPrefix, String targetPath, String targetAssetId, ReferenceKind kind) {
+		this(sourceAssetId, sourcePath, sourcePointer, rawValue, expectedPrefix, targetPath, targetAssetId, kind,
+				"workspace_resolved", "workspace", null);
+	}
 	public AssetReference {
 		Objects.requireNonNull(sourceAssetId, "sourceAssetId");
 		Objects.requireNonNull(sourcePath, "sourcePath");
