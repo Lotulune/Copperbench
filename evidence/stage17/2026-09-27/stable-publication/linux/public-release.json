@@ -1,0 +1,59 @@
+{
+  "assets": [
+    {
+      "browser_download_url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.1-linux-stable/copperbench-linux.spdx.json",
+      "digest": "sha256:8e94387a2038dd7a712c4e2fa94ea44c3795289fc4abf6c7cbe95e978b1e699a",
+      "id": 591415030,
+      "name": "copperbench-linux.spdx.json",
+      "size": 4390155
+    },
+    {
+      "browser_download_url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.1-linux-stable/Copperbench.0.1.1.Linux.x86_64.tar.gz",
+      "digest": "sha256:d1feb9803ba5ebc1f57134d23bf870aaad1a8e56844a9c5908bd738a5d34f5d1",
+      "id": 591413967,
+      "name": "Copperbench.0.1.1.Linux.x86_64.tar.gz",
+      "size": 968868584
+    },
+    {
+      "browser_download_url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.1-linux-stable/copperbench_0.1.1_amd64.deb",
+      "digest": "sha256:8ce8acf5af8fe74623201fc10e278042bfd755d4f060c30f6409250296b97744",
+      "id": 591415070,
+      "name": "copperbench_0.1.1_amd64.deb",
+      "size": 888617650
+    },
+    {
+      "browser_download_url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.1-linux-stable/linux-candidate-manifest.json",
+      "digest": "sha256:8193d7c809515c1ec089d44d0f836b38602ca0f9afe118e8e42fe432d6e109f4",
+      "id": 591415968,
+      "name": "linux-candidate-manifest.json",
+      "size": 6509
+    },
+    {
+      "browser_download_url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.1-linux-stable/LINUX-CANDIDATE-METADATA.json",
+      "digest": "sha256:0926c780d8e8f249fdd2ae8bb72a22d8172fa783fc3f11aa7aea462040a3d0a7",
+      "id": 591414973,
+      "name": "LINUX-CANDIDATE-METADATA.json",
+      "size": 1735
+    },
+    {
+      "browser_download_url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.1-linux-stable/linux-candidate-sha256.txt",
+      "digest": "sha256:6111e7388cbe59f251650202b9deacc27d6dbc0a5ad2d93fb5ddea597cf237cc",
+      "id": 591415998,
+      "name": "linux-candidate-sha256.txt",
+      "size": 549
+    },
+    {
+      "browser_download_url": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.1-linux-stable/LINUX-RELEASE-AUTHORIZATION.json",
+      "digest": "sha256:aba2e4cbbcb4bd04deb76d56fa68700e32c6c27615f08a8d87abc805eec4a8b0",
+      "id": 591414990,
+      "name": "LINUX-RELEASE-AUTHORIZATION.json",
+      "size": 3252
+    }
+  ],
+  "draft": false,
+  "html_url": "https://github.com/Lotulune/Copperbench/releases/tag/v0.1.1-linux-stable",
+  "id": 397387352,
+  "prerelease": false,
+  "published_at": "2026-09-26T20:39:20Z",
+  "tag_name": "v0.1.1-linux-stable"
+}

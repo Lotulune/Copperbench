@@ -1,0 +1,20 @@
+# Stage17 stable publication — 2026-09-27
+
+Copperbench 0.1.1 is publicly released on both platforms, with `draft=false` and `prerelease=false` confirmed through the GitHub API. The signed release source is `9bf1b78b0936352596acb67809ffb3866be87751` (PR #81); required PR and merged-main CI passed.
+
+| Platform | Public release | Protected workflow | Assets |
+| --- | --- | --- | --- |
+| Windows 11 x64 | [v0.1.1](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.1) | [36269926810](https://github.com/Lotulune/Copperbench/actions/runs/36269926810) | 10 |
+| Ubuntu 24.04 x86_64 GNOME | [v0.1.1-linux-stable](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.1-linux-stable) | [36269931890](https://github.com/Lotulune/Copperbench/actions/runs/36269931890) | 7 |
+
+Both workflows received the explicitly authorized production approval. Windows passed release tests, packaging, SBOM, provenance, payload validation and draft-asset digest validation before publication. The downloaded `RELEASE-METADATA.json` identifies the signed release commit; its attestation and the `SHA256SUMS.txt` attestation both verify against the release source and Windows workflow. Every public Windows asset matches the checksum manifest and API digest. Executables remain unsigned by Authenticode as disclosed in the release notes.
+
+Linux promotes the exact `b813e6cf` candidate accepted in the [installed report](stage17-stable-installed-acceptance-2026-09-27.md). Its workflow reverified all six original assets and provenance, the ten distinct installed gates and both preference migrations, then downloaded and byte-compared uploaded files before publication. The public Debian digest is `8ce8acf5af8fe74623201fc10e278042bfd755d4f060c30f6409250296b97744`; the portable digest is `d1feb9803ba5ebc1f57134d23bf870aaad1a8e56844a9c5908bd738a5d34f5d1`. The public authorization digest also matches the committed authorization. Frozen candidate and authorization classification flags remain unchanged; the separate post-publication support record binds the actual published release.
+
+[Publication receipts and verification](../../evidence/stage17/2026-09-27/stable-publication/) retain both public asset inventories, workflow conclusions, source metadata, provenance and the combined verification result. The previous Preview 2 support record is archived there with its original authorization still hash-bound. Old `v0.1.0` was untouched; the original unpublished `v0.1.1` signed object remains at `archive/v0.1.1-before-windows-fixture-fix`. The authorized repair used an exact old-object force-with-lease. Subsequent readiness changes contain evidence, release declarations, documentation and narrowly scoped release-control metadata handling, with no change to the frozen Linux binaries.
+
+## Known interface regression
+
+The scheduled [nightly run 36265473220](https://github.com/Lotulune/Copperbench/actions/runs/36265473220) passed all eight generator golden jobs but failed one of 190 full Playwright cases. The original `blockbench-import.spec.ts` continuity assertion also failed in three local replays. Applying an import changes the workspace revision; the asset browser temporarily switches to its loading component and unmounts the expanded modeling-task panel. The panel consequently collapses instead of retaining the in-progress view.
+
+A separate browser native-host-fixture replay reopened the panel, confirmed the imported files remained available and completed model binding. This diagnostic does not replace or mark the original failing assertion as passed. No product patch or assertion weakening was applied during publication. The issue is disclosed in both public release notes and the [retained finding](../../evidence/stage17/2026-09-27/stable-publication/blockbench-panel-known-issue.json). The workaround is to reopen the modeling-task panel after import. The ten installed gate receipts remain valid for their stated checks; this publication does not claim the full nightly suite is green.

@@ -17,3 +17,7 @@ Install the Debian package with `sudo apt install ./copperbench_0.1.1_amd64.deb`
 Existing pre-XDG Linux preference files are copied on first use only when no active XDG preference file exists. Originals are retained; explicit COPPERBENCH_HOME/MCREATOR_HOME roots remain isolated. The accepted runtime replay covers Fabric 1.21.1 and NeoForge 1.21.1.
 
 GitHub exposes the portable asset as `Copperbench.0.1.1.Linux.x86_64.tar.gz`. The immutable candidate manifest retains its original space-separated filename. To use the original candidate verifier locally, save the downloaded archive as `Copperbench 0.1.1 Linux x86_64.tar.gz`; its bytes and SHA-256 are unchanged. Build validation used warmed caches and does not certify cold-cache or default-network behavior.
+
+## Known interface issue
+
+After applying a Blockbench model import, the asset refresh can collapse the modeling-task panel. Reopen the panel to continue model binding. The original full-suite continuity test remains failing; a separate browser replay verified that imported files remain available and binding continues after reopening. This does not change the package hashes or the ten installed acceptance receipts. Tracking evidence: https://github.com/Lotulune/Copperbench/actions/runs/36265473220.

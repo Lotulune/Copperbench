@@ -1,0 +1,10 @@
+{
+  "status": "passed",
+  "releaseCommit": "9bf1b78b0936352596acb67809ffb3866be87751",
+  "windowsRun": "36269926810",
+  "linuxRun": "36269931890",
+  "publicNonPrerelease": true,
+  "windowsChecksumManifestMatchesAllAssets": true,
+  "linuxExactPayloadMatchesAllAssets": true,
+  "checkedAt": "2026-09-26T20:58:28.830Z"
+}

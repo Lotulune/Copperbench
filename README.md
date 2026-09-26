@@ -68,11 +68,11 @@ The workbench supports English and Simplified Chinese. Use the language selector
 
 Ubuntu testing covers GNOME Wayland and Xorg. Other Linux distributions and architectures have not been validated.
 
-1. **Download and install** — Choose the package for your system on [GitHub Releases](https://github.com/Lotulune/Copperbench/releases) and verify it against the checksum manifest attached to that release (`SHA256SUMS.txt` for Windows; `linux-candidate-sha256.txt` for Linux Preview 2).
+1. **Download and install** — Choose the package for your system on [GitHub Releases](https://github.com/Lotulune/Copperbench/releases) and verify it against the checksum manifest attached to that release (`SHA256SUMS.txt` for Windows; `linux-candidate-sha256.txt` for Linux releases).
 2. **Create a workspace** — Choose Fabric or NeoForge and a Minecraft version, then enter a mod name and workspace folder.
 3. **Make an item** — Add an item, save and build the project, then launch the test client.
 
-Packages are preview / beta builds. Windows installers are unsigned and may trigger SmartScreen. The first build needs an internet connection to download dependencies.
+Copperbench 0.1.1 is available as a stable release for Windows and Linux. Windows installers are unsigned and may trigger SmartScreen. The first build needs an internet connection to download dependencies. Known interface issues are listed in the release notes.
 
 ## Documentation
 
