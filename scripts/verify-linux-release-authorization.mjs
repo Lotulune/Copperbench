@@ -30,7 +30,8 @@ export function validateSourceDelta(paths) {
     'src/test/java/dev/copperbench/release/ReleaseManifestTest.java',
     'src/test/java/dev/copperbench/assets/BlockbenchProcessServiceTest.java',
     'scripts/verify-stage15-linux-installed-guest.sh', 'scripts/tests/stage15-linux-installed-gate.tests.mjs',
-    'scripts/tests/test_stage15_client_log_freshness.py', 'release-control/linux-candidate-authorization.json']);
+    'scripts/tests/test_stage15_client_log_freshness.py', 'release-control/linux-candidate-authorization.json',
+    'release-control/linux-platform-support.json']);
   for (const path of paths) requireValue(exact.has(path) || /^(docs|evidence|scripts\/stage15)\//.test(path),
     `Build-affecting change after frozen candidate: ${path}`);
 }
