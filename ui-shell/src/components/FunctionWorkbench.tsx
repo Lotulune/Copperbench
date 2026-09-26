@@ -17,7 +17,7 @@ import {
   RotateCcw
 } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
-import { ModElementSummary, FieldChange } from '../types/contract';
+import { ModElementSummary, FieldChange, EditorField } from '../types/contract';
 import { t } from '../i18n';
 
 interface FunctionWorkbenchProps {
@@ -65,19 +65,18 @@ const SNIPPETS: Array<{ label: string; snippet: string; description: string }> =
   }
 ];
 
-const DEFAULT_CODE = `# 函数: 初始化事件
-# 在加载或触发时按顺序执行以下命令
-tellraw @a {"text":"[Copperbench] 函数已触发","color":"aqua"}
-particle minecraft:totem_of_undying ~ ~1 ~ 0.5 0.5 0.5 0.2 30
-`;
-
 export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, onClose }) => {
   const { updateModElement, getModElementEditor } = useWorkbench();
 
   const [activeTab, setActiveTab] = useState<FunctionTab>('editor');
-  const [code, setCode] = useState<string>(DEFAULT_CODE);
-  const [tags, setTags] = useState<string[]>(['minecraft:load']);
-  const [namespace, setNamespace] = useState<string>('copperbench');
+  const [code, setCode] = useState<string>('');
+  const [tags, setTags] = useState<string[]>([]);
+  const [namespace, setNamespace] = useState<string>('');
+  const [fields, setFields] = useState<{ code?: EditorField; tags?: EditorField; namespace?: EditorField }>({});
+  const [projectionLoaded, setProjectionLoaded] = useState(false);
+  const canEditCode = projectionLoaded && fields.code?.readOnly === false;
+  const canEditTags = projectionLoaded && fields.tags?.readOnly === false;
+  const canEditNamespace = projectionLoaded && fields.namespace?.readOnly === false;
   const [newTag, setNewTag] = useState<string>('');
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -87,12 +86,18 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
   // Load initial field values from editor projection if available
   useEffect(() => {
     let cancelled = false;
+    setProjectionLoaded(false);
+    setFields({});
+    setCode(''); setTags([]); setNamespace('');
+    setMessage(null); setIsDirty(false); setSaveSuccess(false);
     getModElementEditor(element.id).then((projection) => {
-      if (cancelled || !projection) return;
+      if (cancelled) return;
+      if (!projection) throw new Error('Editor projection unavailable');
       const allFields = projection.sections.flatMap((s) => s.fields);
       const codeField = allFields.find((f) => f.path === '/code' || f.path === '/fields/code');
       const tagsField = allFields.find((f) => f.path === '/tags' || f.path === '/fields/tags');
       const nsField = allFields.find((f) => f.path === '/namespace' || f.path === '/fields/namespace');
+      setFields({ code: codeField, tags: tagsField, namespace: nsField });
 
       if (codeField && typeof codeField.value === 'string') {
         setCode(codeField.value);
@@ -104,8 +109,9 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
         setNamespace(nsField.value);
       }
       setIsDirty(false);
+      setProjectionLoaded(true);
     }).catch(() => {
-      // Fallback to default
+      if (!cancelled) setMessage(tr("无法加载函数编辑信息，请返回后重试。"));
     });
     return () => {
       cancelled = true;
@@ -145,12 +151,14 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
   }, [code]);
 
   const handleCodeChange = (newText: string) => {
+    if (!canEditCode) return;
     setCode(newText);
     setIsDirty(true);
     setSaveSuccess(false);
   };
 
   const handleInsertSnippet = (snippetText: string) => {
+    if (!canEditCode) return;
     setCode((prev) => {
       const endsWithNewline = prev.endsWith('\n') || prev === '';
       const updated = prev + (endsWithNewline ? '' : '\n') + snippetText + '\n';
@@ -160,6 +168,7 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
   };
 
   const handleStripLeadingSlashes = () => {
+    if (!canEditCode) return;
     const lines = code.split('\n');
     let fixCount = 0;
     const fixed = lines.map((line) => {
@@ -177,6 +186,7 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
   };
 
   const handleAddTag = () => {
+    if (!canEditTags) return;
     const tag = newTag.trim();
     if (!tag) return;
     if (!tags.includes(tag)) {
@@ -187,20 +197,22 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
   };
 
   const handleRemoveTag = (tagToRemove: string) => {
+    if (!canEditTags) return;
     setTags(tags.filter((t) => t !== tagToRemove));
     setIsDirty(true);
   };
 
   const handleSave = async () => {
+    if (!projectionLoaded || isSaving || !isDirty) return;
     setIsSaving(true);
     setMessage(null);
     setSaveSuccess(false);
 
-    const changes: FieldChange[] = [
-      { path: '/code', value: code },
-      { path: '/tags', value: tags },
-      { path: '/namespace', value: namespace }
-    ];
+    // The native projection owns both the writable field set and its exact paths.
+    const changes: FieldChange[] = [];
+    if (canEditCode && fields.code) changes.push({ path: fields.code.path, value: code });
+    if (canEditTags && fields.tags) changes.push({ path: fields.tags.path, value: tags });
+    if (canEditNamespace && fields.namespace) changes.push({ path: fields.namespace.path, value: namespace });
 
     try {
       const result = await updateModElement(element.id, changes);
@@ -384,6 +396,7 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
               type="button"
               className="btn-secondary"
               onClick={handleStripLeadingSlashes}
+              disabled={!canEditCode}
               title={tr("自动移除命令开头的斜杠 /")}
               data-testid="function-clean-slashes-btn"
               style={{ fontSize: '11px', color: 'var(--badge-amber)' }}
@@ -410,7 +423,7 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
             type="button"
             className="btn-primary"
             onClick={handleSave}
-            disabled={isSaving}
+            disabled={isSaving || !projectionLoaded || !isDirty || !(canEditCode || canEditTags || canEditNamespace)}
             data-testid="function-save-btn"
             style={{ fontSize: '12px', minWidth: '90px' }}
           >
@@ -480,6 +493,7 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
                   key={snip.label}
                   type="button"
                   onClick={() => handleInsertSnippet(snip.snippet)}
+                  disabled={!canEditCode}
                   title={snip.description}
                   data-testid={`snippet-${snip.label.split(' ')[0]}`}
                   style={{
@@ -541,6 +555,7 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
               {/* Text Area */}
               <textarea
                 value={code}
+                readOnly={!canEditCode}
                 onChange={(e) => handleCodeChange(e.target.value)}
                 placeholder={tr("# 输入 Minecraft 命令（每行一条，支持 # 注释）...")}
                 spellCheck={false}
@@ -609,6 +624,7 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
                 <input
                   type="text"
                   value={namespace}
+                  readOnly={!canEditNamespace}
                   onChange={(e) => {
                     setNamespace(e.target.value);
                     setIsDirty(true);
@@ -639,6 +655,7 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
               maxWidth: '720px'
             }}
           >
+            {!canEditTags && <p role="status">{tr("当前工作区不支持编辑函数标签；已有值保持只读。")}</p>}
             <div>
               <h2 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-main)' }}>
                 {tr("函数标签 (Function Tags)")}</h2>
@@ -660,6 +677,7 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
                     <button
                       key={preset.tag}
                       type="button"
+                      disabled={!canEditTags}
                       onClick={() => {
                         if (isAssigned) handleRemoveTag(preset.tag);
                         else setTags([...tags, preset.tag]);
@@ -698,6 +716,7 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
                   type="text"
                   placeholder={tr("例如 copperbench:custom_tick 或 mod:events/on_kill")}
                   value={newTag}
+                  disabled={!canEditTags}
                   onChange={(e) => setNewTag(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') handleAddTag();
@@ -709,7 +728,7 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
                   type="button"
                   className="btn-primary"
                   onClick={handleAddTag}
-                  disabled={!newTag.trim()}
+                  disabled={!canEditTags || !newTag.trim()}
                   data-testid="function-add-tag-btn"
                 >
                   <Plus size={14} />
@@ -763,6 +782,7 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
                       </div>
                       <button
                         type="button"
+                        disabled={!canEditTags}
                         onClick={() => handleRemoveTag(tag)}
                         aria-label={tr("移除标签 {0}", [tag])}
                         style={{
@@ -846,7 +866,7 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
             </div>
 
             {/* tags json preview */}
-            {tags.length > 0 && (
+            {canEditTags && tags.length > 0 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-sub)' }}>
                   {tr("生成的函数标签 JSON：")}</span>

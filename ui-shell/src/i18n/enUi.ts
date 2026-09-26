@@ -1668,5 +1668,7 @@ export const enUi: Record<string, string> = {
   "无法打开设置，请重试或重新启动应用。": "Could not open settings. Try again or restart the app.",
   "设置仅在支持此功能的桌面应用中可用": "Settings require a supported desktop build",
   "当前桌面版本不支持打开设置，请更新程序。": "This desktop version cannot open settings. Update the app.",
-  "请在桌面应用中打开设置。": "Open settings in the desktop app."
+  "请在桌面应用中打开设置。": "Open settings in the desktop app.",
+  "无法加载函数编辑信息，请返回后重试。": "Could not load the function editor. Go back and try again.",
+  "当前工作区不支持编辑函数标签；已有值保持只读。": "This workspace does not support editing function tags. Existing values are read-only."
 };

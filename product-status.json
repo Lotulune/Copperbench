@@ -21,7 +21,7 @@
     "stableRelease": {
       "tag": "v0.1.1",
       "linuxTag": "v0.1.1-linux-stable",
-      "status": "ready",
+      "status": "pending-installed-validation",
       "linuxStatus": "pending-installed-validation",
       "decision": "approved",
       "decisionDate": "2026-09-26",
@@ -176,6 +176,13 @@
     "notApplicable": ["bebiome", "beblock", "beentity", "beitem", "bescript"]
   },
   "gates": [
+    {
+      "id": "stage17-installed-function-save",
+      "status": "in-progress",
+      "betaBlocking": false,
+      "stableBlocking": true,
+      "evidence": ["docs/testing/stage17-function-save-release-blocker-2026-09-27.md"]
+    },
     {
       "id": "stage17-release-integration",
       "status": "passed",

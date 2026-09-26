@@ -1,0 +1,44 @@
+{
+  "status": "release-blocked-pending-rebuilt-candidate-validation",
+  "candidateSource": "bef9a7ee72b048a040ec3f7ad0ff8913f92382fa",
+  "candidateRun": 36245988459,
+  "debSha256": "640d52064d0a486bf1487b370d39383f982dc1c02bb9d187ef399ce90629e675",
+  "installedProductJarSha256": "3c25834fe8b2a8a712dba85043622fd65a4d309d046bbd69085add7e0e850aaa",
+  "passedForOldCandidate": [
+    "portableBuild",
+    "modernPreferencesMigration",
+    "oldPreferencesMigration",
+    "managedBlockbench",
+    "assetCenter",
+    "waylandFabricPreflight",
+    "waylandNeoForgePreflight"
+  ],
+  "failedGate": "uiPersistence",
+  "failure": {
+    "persistedCodeUnchanged": "# New Copperbench function",
+    "unsavedDraft": "say Stage17 stable 0.1.1 persistence",
+    "code": "FIELD_UNSUPPORTED",
+    "screenshot": "evidence/stage17/2026-09-27/function-save-rejected.png",
+    "path": "/tags",
+    "screenshotSha256": "95bdc6c81a8da950456a7c6b6dc25c0c154f9f643500c1aa6e64fdd0d9855b38"
+  },
+  "protectedOriginalResourcesUnchanged": true,
+  "browserRegression": {
+    "before": {
+      "project": "chromium",
+      "failed": 4
+    },
+    "after": {
+      "failed": 0,
+      "passed": 12,
+      "projects": [
+        "chromium",
+        "compact-1366"
+      ]
+    }
+  },
+  "productionUiBuild": "passed",
+  "fixedInstalledCandidateValidation": "pending",
+  "newImmutableCandidateRequired": true,
+  "publicReleaseCreated": false
+}
