@@ -1,0 +1,19 @@
+{
+  "red": {
+    "tests": 1,
+    "failures": 1,
+    "errors": 0,
+    "skipped": 0,
+    "xmlSha256": "feab2f8dab5854cb276ca6c371ce1c47aeb32d538074e23128f95770948c52a0"
+  },
+  "green": {
+    "tests": 12,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 1,
+    "xmlSha256": "72aed9918b2d4726ddce765732febd7de3db9fcff873b8ab8ccb02196304083a"
+  },
+  "failure": "MODEL_PATH_INVALID: The task does not resolve to its editing copy",
+  "reproduction": "JUnit java.io.tmpdir set to a real Windows 8.3 temporary-directory alias",
+  "fix": "Canonicalize only the fake lifecycle workspace in the test fixture; production validation is unchanged"
+}

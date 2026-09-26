@@ -34,6 +34,8 @@ class BlockbenchProcessServiceTest {
 		Path modelFile = workspace.resolve("assets/copperbench/models/copper_lamp.bbmodel");
 		Files.createDirectories(modelFile.getParent());
 		Files.writeString(modelFile, "{}");
+		// Match the production lifecycle, which resolves task paths from the canonical asset root.
+		workspace = workspace.toRealPath();
 		model = new AssetWorkspaceService(workspace).list().getFirst();
 	}
 

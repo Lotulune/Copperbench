@@ -128,6 +128,7 @@ test('Blockbench evidence requires the installed product JAR binding', (t) => {
 });
 
 test('a release-only delta cannot conceal product or packaging changes', () => {
+  validateSourceDelta(['src/test/java/dev/copperbench/assets/BlockbenchProcessServiceTest.java']);
   assert.doesNotThrow(() => validateSourceDelta(['docs/testing/acceptance.md', '.github/workflows/linux-release-control.yml']));
   assert.throws(() => validateSourceDelta(['src/main/java/Changed.java']), /Build-affecting/);
   assert.throws(() => validateSourceDelta(['platform/linux/export.gradle']), /Build-affecting/);
