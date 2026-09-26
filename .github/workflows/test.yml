@@ -104,7 +104,9 @@ jobs:
       - name: Test Python SDK connection metadata security
         run: python sdk/python/test_connection_security.py
       - name: Validate product status
-        run: node scripts/verify-product-status.mjs
+        run: |
+          node --test scripts/tests/product-release-history.tests.mjs
+          node scripts/verify-product-status.mjs
       - name: Check repository Markdown links
         run: node scripts/verify-markdown-links.mjs
       - name: Upload Playwright diagnostics

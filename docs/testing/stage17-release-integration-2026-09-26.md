@@ -33,3 +33,7 @@ The [v38 development acceptance](stage-17-v38-closeout-2026-09-26.md) remains hi
 ## Packaging failure propagation
 
 The Windows release workflow explicitly checks the exit code after each native dependency, Java test, UI test/build and packaging command. A local PowerShell probe confirmed that `ErrorActionPreference=Stop` alone continues after a native exit code of 7; a subsequent successful native command could otherwise hide that failure. All existing release checks remain enabled.
+
+## Stable version identity
+
+The existing `v0.1.0` tag is an unsigned annotated preview from 2026-08-21, pointing to `f1046de6b63bdb2999d703b12ead3b2a6d30f609`. It remains unchanged. The new stable version is `0.1.1`, with tags `v0.1.1` and `v0.1.1-linux-stable`. Configuration, the first-party release fixture, UI identification and MCP server identity use the new version. Historical Beta and Preview records retain their original version and exact digests. Versioned packages must be rebuilt; the 0.1.0 candidate is not promoted as 0.1.1.

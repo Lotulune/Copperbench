@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { betaHistoryVersion } from './product-release-history.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (path) => readFileSync(resolve(root, path), 'utf8');
@@ -43,16 +44,16 @@ if (!previewOnlyScope && status.product.betaEligible === openBetaGate) fail('bet
 if (previewOnlyScope && status.product.betaEligible) fail('scope-excluded Preview cannot be beta eligible');
 
 const betaRelease = status.delivery?.betaRelease;
-if (!betaRelease || !new RegExp(`^v${status.product.version.replaceAll('.', '\\.')}\\-beta\\.\\d+$`).test(betaRelease.tag ?? '')) {
-  fail('delivery.betaRelease.tag must be a Beta tag for product.version');
-}
+let betaVersion;
+try { betaVersion = betaHistoryVersion(status.product, betaRelease); }
+catch (error) { fail(error.message); }
 const candidateRelease = betaRelease.candidateRelease;
 if (status.product.betaEligible && !candidateRelease) {
   fail('betaEligible requires delivery.betaRelease.candidateRelease');
 }
 if (candidateRelease) {
-  if (!new RegExp(`^v${status.product.version.replaceAll('.', '\\.')}\\-preview\\.\\d+$`).test(candidateRelease.tag ?? '')) {
-    fail('candidateRelease.tag must be a Preview tag for product.version');
+  if (!new RegExp(`^v${betaVersion.replaceAll('.', '\\.')}\\-preview\\.\\d+$`).test(candidateRelease.tag ?? '')) {
+    fail('candidateRelease.tag must be a Preview tag for its Beta version');
   }
   if (!/^[0-9a-f]{40}$/.test(candidateRelease.sourceCommit ?? '')) {
     fail('candidateRelease.sourceCommit must be a full lowercase SHA');

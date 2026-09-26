@@ -44,6 +44,6 @@ GitHub 的 provenance 可使用 GitHub CLI 验证，具体命令以 Release 页�
 
 ## Stable release gate
 
-A stable Windows tag also requires `product.channel=stable`, an approved matching `delivery.stableRelease` with `status=ready`, and passed `stableBlocking` gates with tracked evidence. Pending gates cannot be bypassed by removing a preview suffix. The same production review, signature, latest-main, build, payload and uploaded-asset checks remain mandatory. Release notes: [0.1.0](../releases/v0.1.0.md).
+A stable Windows tag also requires `product.channel=stable`, an approved matching `delivery.stableRelease` with `status=ready`, and passed `stableBlocking` gates with tracked evidence. Pending gates cannot be bypassed by removing a preview suffix. The same production review, signature, latest-main, build, payload and uploaded-asset checks remain mandatory. Release notes: [0.1.1](../releases/v0.1.1.md).
 
 Linux uses `vX.Y.Z-linux-stable` for a non-prerelease release. Its ten installed candidate gates, legacy migration evidence, exact SHA-256 binding, provenance and downloaded draft comparison remain required. A stable channel does not extend distribution, architecture, accessibility or offline claims beyond recorded evidence.

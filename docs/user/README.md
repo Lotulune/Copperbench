@@ -1,6 +1,6 @@
-# Copperbench 使用说明（开发测试版）
+# Copperbench 使用说明（稳定版）
 
-这是开发测试版说明，不是商店发行手册。产品名 `Copperbench` 是公开名称。公开分发走 GitHub，安装包未签名。
+这是稳定版说明，不是商店发行手册。产品名 `Copperbench` 是公开名称。公开分发走 GitHub，安装包未签名。
 
 ## 工作区
 
