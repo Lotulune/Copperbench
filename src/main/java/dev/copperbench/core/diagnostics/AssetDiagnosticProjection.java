@@ -31,16 +31,19 @@ public final class AssetDiagnosticProjection {
 		args.addProperty("sourcePath", diagnostic.sourcePath());
 		if (diagnostic.targetPath() != null) args.addProperty("targetPath", diagnostic.targetPath());
 		args.addProperty("detail", diagnostic.message());
+		if (!diagnostic.sourcePointer().isEmpty()) args.addProperty("sourcePointer", diagnostic.sourcePointer());
 		String key = switch (diagnostic.code()) {
 			case "INVALID_ASSET_DOCUMENT" -> "diagnostic.asset_invalid_document";
 			case "REFERENCE_PATH_ESCAPE" -> "diagnostic.asset_reference_path_escape";
 			case "MISSING_ASSET_REFERENCE" -> "diagnostic.asset_missing_reference";
+			case "ASSET_RENDERER_REFERENCES_UNVERIFIED" -> "diagnostic.asset_renderer_unverified";
 			default -> "diagnostic.asset_issue";
 		};
 		String fallback = switch (diagnostic.code()) {
 			case "INVALID_ASSET_DOCUMENT" -> "Asset document {sourcePath} is invalid: {detail}";
 			case "REFERENCE_PATH_ESCAPE" -> "Asset {sourcePath} contains a reference outside the workspace: {targetPath}";
 			case "MISSING_ASSET_REFERENCE" -> "Asset {sourcePath} references missing asset {targetPath}.";
+			case "ASSET_RENDERER_REFERENCES_UNVERIFIED" -> "Renderer resources in {sourcePath} at {sourcePointer} remain unverified; inspect the renderer's resource rules or verify them in the client.";
 			default -> "Asset {sourcePath} requires review: {detail}";
 		};
 		UiCore.Severity severity = switch (diagnostic.severity()) {
@@ -49,7 +52,7 @@ public final class AssetDiagnosticProjection {
 			case ERROR -> UiCore.Severity.ERROR;
 		};
 		return new Diagnostic(diagnostic.code(), severity, LocalizedText.of(key, fallback, args),
-				"/assets/" + assetId, null, true,
+				"/assets/" + assetId + diagnostic.sourcePointer(), null, true,
 				List.of(new ActionHint("open_asset", LocalizedText.of("action.open_asset", "Open asset"),
 						"open_asset", assetId)));
 	}

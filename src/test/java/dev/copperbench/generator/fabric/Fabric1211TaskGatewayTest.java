@@ -64,6 +64,57 @@ class Fabric1211TaskGatewayTest {
 
 	@TempDir Path generatedWorkspace;
 
+	@Test void decompilationPreparationFailureKeepsItsStageAndActionableDiagnostic() throws Exception {
+		RevisionedWorkspaceStore store = new RevisionedWorkspaceStore();
+		store.register(Fabric1211GoldenWorkspace.create());
+		try (var tasks = new Fabric1211WorkspaceTaskGateway(store, ignored -> generatedWorkspace,
+				Path.of(".").toAbsolutePath(), CLOCK, UUID::randomUUID)) {
+			tasks.setGenerationPreparation((state, root, operation, output) -> {
+				output.accept("> Task :neoFormDecompile FAILED");
+				throw new dev.copperbench.core.application.WorkspaceTaskGateway.GenerationPreparationException(
+						"GENERATOR_DECOMPILATION_FAILED", "Decompilation failed; inspect stage logs", new IOException("setup exited 1"));
+			});
+			var service = new WorkspaceApplicationService(store, tasks, CLOCK, UUID::randomUUID);
+			JsonObject payload = new JsonObject(); payload.addProperty("scope", "workspace");
+			payload.addProperty("clientMutationId", UUID.randomUUID().toString());
+			var accepted = service.execute(Command.of(UUID.randomUUID(), WORKSPACE_ID, 4, Operation.GENERATE_WORKSPACE, payload), UI);
+			UUID id = UUID.fromString(accepted.result().task().getAsJsonObject().get("id").getAsString());
+			var result = awaitTask(service, id);
+			assertEquals("failed", result.getAsJsonObject("task").get("state").getAsString());
+			var diagnostic = result.getAsJsonArray("diagnostics").get(0).getAsJsonObject();
+			assertEquals("GENERATOR_DECOMPILATION_FAILED", diagnostic.get("code").getAsString());
+			assertEquals("diagnostic.generator_decompilation_failed", diagnostic.getAsJsonObject("message").get("key").getAsString());
+			assertTrue(result.getAsJsonArray("logs").toString().contains("neoFormDecompile FAILED"));
+			assertEquals("open_logs", diagnostic.getAsJsonArray("actions").get(0).getAsJsonObject().get("kind").getAsString());
+		}
+	}
+
+	@Test void exportFailuresAreSpecificAndRecentTasksSurviveRoutingAndReopen() throws Exception {
+		RevisionedWorkspaceStore store = new RevisionedWorkspaceStore();
+		store.register(Fabric1211GoldenWorkspace.create());
+		try (var tasks = new dev.copperbench.generator.LoaderRoutingWorkspaceTaskGateway(store,
+				ignored -> generatedWorkspace, Path.of(".").toAbsolutePath(), CLOCK, UUID::randomUUID)) {
+			var service = new WorkspaceApplicationService(store, tasks, CLOCK, UUID::randomUUID);
+			for (String invalid : List.of(UUID.randomUUID().toString(), "not-a-uuid")) {
+				JsonObject payload = new JsonObject(); payload.addProperty("verifiedTaskId", invalid);
+				payload.addProperty("scope", "workspace"); payload.addProperty("clientMutationId", UUID.randomUUID().toString());
+				var accepted = service.execute(Command.of(UUID.randomUUID(), WORKSPACE_ID, 4, Operation.EXPORT_WORKSPACE, payload), UI);
+				assertEquals("accepted", accepted.result().status());
+				UUID taskId = UUID.fromString(accepted.result().task().getAsJsonObject().get("id").getAsString());
+				var task = awaitTask(service, taskId);
+				assertEquals("failed", task.getAsJsonObject("task").get("state").getAsString());
+				assertTrue(task.getAsJsonArray("diagnostics").toString().contains(invalid.equals("not-a-uuid")
+						? "VERIFIED_TASK_ID_INVALID" : "VERIFIED_TASK_NOT_FOUND"));
+			}
+		}
+		try (var reopened = new dev.copperbench.generator.LoaderRoutingWorkspaceTaskGateway(store,
+				ignored -> generatedWorkspace, Path.of(".").toAbsolutePath(), CLOCK, UUID::randomUUID)) {
+			assertEquals(2, reopened.recent(WORKSPACE_ID).size());
+			assertTrue(reopened.recent(WORKSPACE_ID).stream().allMatch(task -> task.get("restoredFromHistory").getAsBoolean()));
+			assertTrue(reopened.active(WORKSPACE_ID).isEmpty());
+		}
+	}
+
 	@Test void generateCommandCompletesAndExposesTaskLogsThroughTheApplicationService() throws Exception {
 		RevisionedWorkspaceStore store = new RevisionedWorkspaceStore();
 		store.register(Fabric1211GoldenWorkspace.create());
@@ -209,12 +260,17 @@ class Fabric1211TaskGatewayTest {
 		Supplier<UUID> ids = () -> UUID.fromString("00000000-0000-4000-8000-" +
 				String.format("%012d", sequence.getAndIncrement()));
 		CountDownLatch markerSeen = new CountDownLatch(1);
+		CountDownLatch initializeRenderer = new CountDownLatch(1);
+		CountDownLatch rendererSeen = new CountDownLatch(1);
 		CountDownLatch closeClient = new CountDownLatch(1);
 		Fabric1211ProcessRunner runner = (root, arguments, timeout, output) -> {
 			assertEquals(List.of("runClient"), arguments);
 			assertTrue(timeout.isZero(), "interactive runClient must not use the CI smoke timeout");
 			output.accept("[Render thread/INFO] COPPERBENCH_STAGE3_READY");
 			markerSeen.countDown();
+			initializeRenderer.await();
+			output.accept("[22:10:04] [Render thread/INFO] (Minecraft) Created: 1024x512x4 minecraft:textures/atlas/blocks.png-atlas");
+			rendererSeen.countDown();
 			closeClient.await();
 			return new Fabric1211ProcessRunner.ProcessResult(0, true);
 		};
@@ -229,6 +285,18 @@ class Fabric1211TaskGatewayTest {
 
 			assertTrue(markerSeen.await(5, TimeUnit.SECONDS));
 			assertEquals("running", task(service, taskId).getAsJsonObject("task").get("state").getAsString());
+			assertEquals("task.run_client.starting", task(service, taskId).getAsJsonObject("task").getAsJsonObject("stage").get("key").getAsString(),
+					"The mod initialization marker alone is not rendering evidence");
+			initializeRenderer.countDown();
+			assertTrue(rendererSeen.await(5, TimeUnit.SECONDS));
+			JsonObject rendering = task(service, taskId).getAsJsonObject("task");
+			assertEquals("running", rendering.get("state").getAsString());
+			assertTrue(rendering.get("progress").getAsDouble() < 1);
+			assertEquals("task.run_client.rendering", rendering.getAsJsonObject("stage").get("key").getAsString());
+			JsonObject persisted = com.google.gson.JsonParser.parseString(Files.readString(generatedWorkspace
+					.resolve(".copperbench/task-records/" + taskId + ".json"))).getAsJsonObject().getAsJsonObject("task");
+			assertEquals("running", persisted.get("state").getAsString());
+			assertEquals("task.run_client.rendering", persisted.getAsJsonObject("stage").get("key").getAsString());
 			closeClient.countDown();
 			assertEquals("succeeded", awaitTask(service, taskId).getAsJsonObject("task").get("state").getAsString());
 		}
@@ -368,14 +436,16 @@ class Fabric1211TaskGatewayTest {
 		}
 	}
 
-	@Test void readinessPreventsGraphicalFailureMisclassification() throws Exception {
+	@Test void renderingPreventsEarlyGraphicalFailureMisclassification() throws Exception {
 		RevisionedWorkspaceStore store = new RevisionedWorkspaceStore();
 		store.register(Fabric1211GoldenWorkspace.create());
 		AtomicLong sequence = new AtomicLong(608);
 		Supplier<UUID> ids = () -> UUID.fromString("00000000-0000-4000-8000-" +
 				String.format("%012d", sequence.getAndIncrement()));
-		Fabric1211ProcessRunner runner = (root, arguments, timeout, output) ->
-				new Fabric1211ProcessRunner.ProcessResult(9, true, "LINUX_OPENGL_INITIALIZATION_FAILED");
+		Fabric1211ProcessRunner runner = (root, arguments, timeout, output) -> {
+			output.accept("[Render thread/INFO] Created: 1024x512x4 minecraft:textures/atlas/blocks.png-atlas");
+			return new Fabric1211ProcessRunner.ProcessResult(9, true, "LINUX_OPENGL_INITIALIZATION_FAILED");
+		};
 		try (Fabric1211WorkspaceTaskGateway tasks = new Fabric1211WorkspaceTaskGateway(store,
 				ignored -> generatedWorkspace, Path.of(".").toAbsolutePath().normalize(), CLOCK, ids, runner)) {
 			WorkspaceApplicationService service = new WorkspaceApplicationService(store, tasks, CLOCK, ids);
@@ -383,6 +453,25 @@ class Fabric1211TaskGatewayTest {
 			String diagnostics = client.getAsJsonArray("diagnostics").toString();
 			assertTrue(diagnostics.contains("FABRIC_RUN_CLIENT_EXITED"));
 			assertFalse(diagnostics.contains("FABRIC_RUN_CLIENT_LINUX_OPENGL_INITIALIZATION_FAILED"));
+		}
+	}
+
+	@Test void caughtGraphicsFailuresCannotBecomeSuccessFromZeroExitOrModInitializationMarker() throws Exception {
+		for (String failureCode : List.of("LINUX_DISPLAY_UNAVAILABLE", "LINUX_OPENGL_INITIALIZATION_FAILED")) {
+			RevisionedWorkspaceStore store = new RevisionedWorkspaceStore();
+			store.register(Fabric1211GoldenWorkspace.create());
+			Supplier<UUID> ids = UUID::randomUUID;
+			Fabric1211ProcessRunner runner = (root, arguments, timeout, output) -> {
+				output.accept("[Render thread/INFO] COPPERBENCH_STAGE3_READY");
+				return new Fabric1211ProcessRunner.ProcessResult(0, true, failureCode);
+			};
+			try (Fabric1211WorkspaceTaskGateway tasks = new Fabric1211WorkspaceTaskGateway(store,
+					ignored -> generatedWorkspace.resolve(failureCode), Path.of(".").toAbsolutePath().normalize(), CLOCK, ids, runner)) {
+				var service = new WorkspaceApplicationService(store, tasks, CLOCK, ids);
+				JsonObject client = startAndAwait(service, ids, Operation.RUN_CLIENT);
+				assertEquals("failed", client.getAsJsonObject("task").get("state").getAsString(), failureCode);
+				assertTrue(client.getAsJsonArray("diagnostics").toString().contains("FABRIC_RUN_CLIENT_" + failureCode));
+			}
 		}
 	}
 
@@ -768,6 +857,9 @@ class Fabric1211TaskGatewayTest {
 
 			assertEquals("cancelled", cancelled.result().status());
 			assertTrue(cleanedUp.get(), "cancel_task must not report cancelled before external cleanup finishes");
+			var durable = com.google.gson.JsonParser.parseString(Files.readString(generatedWorkspace
+					.resolve(".copperbench/task-records/" + taskId + ".json"))).getAsJsonObject().getAsJsonObject("task");
+			assertEquals("cancelled", durable.get("state").getAsString(), "cancellation must be durable before its reply");
 			assertTrue(exited.await(2, TimeUnit.SECONDS));
 			JsonObject projection = task(service, taskId);
 			assertEquals("cancelled", projection.getAsJsonObject("task").get("state").getAsString());

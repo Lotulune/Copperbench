@@ -16,8 +16,8 @@ import {
   Sparkles
 } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
-import { TaskSummary, WorkspaceHealthProjection } from '../types/contract';
-import { t } from '../i18n';
+import { TaskSummary } from '../types/contract';
+import { t, uiText, englishCount } from '../i18n';
 import { BlockbenchOnboarding } from './BlockbenchOnboarding';
 
 export const WorkspaceHub: React.FC = () => {
@@ -30,10 +30,9 @@ export const WorkspaceHub: React.FC = () => {
     cancelTask,
     setIsTaskDrawerOpen,
     runDiagnosticAction,
-    getWorkspaceHealth
+    workspaceHealth
   } = useWorkbench();
 
-  const [workspaceHealth, setWorkspaceHealth] = React.useState<WorkspaceHealthProjection | null>(null);
 
   const workspace = state.workbench?.workspace;
   const elementCounts = state.workbench?.elementCounts ?? { total: 0, valid: 0, draft: 0, invalid: 0, unsupported: 0 };
@@ -46,15 +45,6 @@ export const WorkspaceHub: React.FC = () => {
   const failedTask: TaskSummary | null =
     Object.values(state.tasks).find((t) => t.state === 'failed') ?? null;
 
-  React.useEffect(() => {
-    let active = true;
-    void getWorkspaceHealth().then((health) => {
-      if (active) setWorkspaceHealth(health);
-    });
-    return () => {
-      active = false;
-    };
-  }, [getWorkspaceHealth, workspace?.revision]);
 
   if (state.viewportState === 'loading') {
     return (
@@ -73,10 +63,10 @@ export const WorkspaceHub: React.FC = () => {
         <div style={{ animation: 'pulseGlow 1.5s infinite', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
           <Sparkles size={36} color="var(--accent-copper)" />
           <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-main)' }}>
-            正在加载工作区投影…
+            {uiText('正在加载工作区投影…', 'Loading workspace…')}
           </div>
           <div style={{ fontSize: '12px', color: 'var(--text-sub)' }}>
-            正在协商 UI-Core 协议 v1.0
+            {uiText('正在协商 UI-Core 协议 v1.0', 'Connecting to UI-Core protocol v1.0')}
           </div>
         </div>
       </div>
@@ -128,7 +118,7 @@ export const WorkspaceHub: React.FC = () => {
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--badge-red)', fontSize: '12px', fontWeight: 600 }}>
                 <AlertTriangle size={15} />
                 <span>
-                  {valueLabel(failedTask.kind)} 任务失败 — {t(failedTask.stage)}
+                  {valueLabel(failedTask.kind)} {uiText('任务失败', 'task failed')} — {t(failedTask.stage)}
                 </span>
               </div>
               <button
@@ -139,7 +129,7 @@ export const WorkspaceHub: React.FC = () => {
                 }}
                 data-testid="open-failed-task-logs-btn"
               >
-                查看任务日志
+                {uiText('查看任务日志', 'View task logs')}
               </button>
             </div>
           )}
@@ -155,7 +145,7 @@ export const WorkspaceHub: React.FC = () => {
                   {t(diagnostic.message)}
                   {diagnostic.message.args?.failureId != null && (
                     <code style={{ marginLeft: '8px', fontSize: '10px', color: 'var(--text-sub)' }}>
-                      错误编号：{String(diagnostic.message.args.failureId)}
+                      {uiText('错误编号：', 'Error ID: ')}{String(diagnostic.message.args.failureId)}
                     </code>
                   )}
                 </div>
@@ -198,26 +188,26 @@ export const WorkspaceHub: React.FC = () => {
             <h1 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-main)' }}>
               {workspace?.name || t({ key: 'workspace.default_name', fallback: 'Minecraft Mod Workspace' })}
             </h1>
-            <span className="badge badge-copper">修订 {workspace?.revision ?? 0}</span>
+            <span className="badge badge-copper">{uiText('修订', 'Revision')} {workspace?.revision ?? 0}</span>
             <button
               type="button"
               className="badge badge-blue"
               data-testid="hub-tracks-badge"
               onClick={() => setActiveView('tracks')}
               style={{ cursor: 'pointer', border: '1px solid rgba(88, 166, 255, 0.3)' }}
-              title="查看版本轨道与迁移矩阵"
+              title={uiText('查看版本轨道与迁移矩阵', 'View version tracks and migration matrix')}
             >
-              {workspace?.generator?.displayName || '生成器信息不可用'}
+              {workspace?.generator?.displayName || uiText('生成器信息不可用', 'Generator information unavailable')}
             </button>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '12px', color: 'var(--text-muted)' }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
               <Lock size={13} color="var(--badge-green)" />
-              <span>写入锁：{workspace?.lock.state === 'write_available' ? '可用（本机可写）' : '已锁定'}</span>
+              <span>{uiText('写入锁：', 'Write lock: ')}{workspace?.lock.state === 'write_available' ? uiText('可用（本机可写）', 'Available (local write access)') : uiText('已锁定', 'Locked')}</span>
             </span>
             <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
               <Cpu size={13} />
-              <span>兼容模式：{valueLabel(workspace?.compatibility.mode ?? 'unknown')}（未知数据保留）</span>
+              <span>{uiText('兼容模式：', 'Compatibility: ')}{valueLabel(workspace?.compatibility.mode ?? 'unknown')}{uiText('（未知数据保留）', ' (unknown data preserved)')}</span>
             </span>
           </div>
         </div>
@@ -230,7 +220,7 @@ export const WorkspaceHub: React.FC = () => {
             data-testid="empty-primary-action"
           >
             <Plus size={14} />
-            <span>新建元素</span>
+            <span>{uiText('新建元素', 'New element')}</span>
           </button>
 
           <button
@@ -239,7 +229,7 @@ export const WorkspaceHub: React.FC = () => {
             data-testid="hub-build-btn"
           >
             <Hammer size={14} />
-            <span>构建模组</span>
+            <span>{uiText('构建模组', 'Build mod')}</span>
           </button>
         </div>
       </div>
@@ -294,7 +284,7 @@ export const WorkspaceHub: React.FC = () => {
               style={{ fontSize: '11px', padding: '4px 10px' }}
               onClick={() => setIsTaskDrawerOpen(true)}
             >
-              打开控制台日志
+              {uiText('打开控制台日志', 'Open console logs')}
             </button>
             {activeTasks[0].cancellable && (
               <button
@@ -302,7 +292,7 @@ export const WorkspaceHub: React.FC = () => {
                 style={{ fontSize: '11px', padding: '4px 10px' }}
                 onClick={() => cancelTask(activeTasks[0].id)}
               >
-                取消任务
+                {uiText('取消任务', 'Cancel task')}
               </button>
             )}
           </div>
@@ -324,7 +314,7 @@ export const WorkspaceHub: React.FC = () => {
         >
           <div>
             <div style={{ fontSize: '11px', color: 'var(--text-sub)', fontWeight: 600, textTransform: 'uppercase' }}>
-              元素总数
+              {uiText('元素总数', 'Total elements')}
             </div>
             <div style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text-main)', marginTop: '4px' }}>
               {elementCounts.total}
@@ -346,7 +336,7 @@ export const WorkspaceHub: React.FC = () => {
         >
           <div>
             <div style={{ fontSize: '11px', color: 'var(--text-sub)', fontWeight: 600, textTransform: 'uppercase' }}>
-              有效就绪
+              {uiText('有效就绪', 'Valid and ready')}
             </div>
             <div style={{ fontSize: '24px', fontWeight: 700, color: 'var(--badge-green)', marginTop: '4px' }}>
               {elementCounts.valid}
@@ -368,7 +358,7 @@ export const WorkspaceHub: React.FC = () => {
         >
           <div>
             <div style={{ fontSize: '11px', color: 'var(--text-sub)', fontWeight: 600, textTransform: 'uppercase' }}>
-              草稿进行中
+              {uiText('草稿进行中', 'Drafts in progress')}
             </div>
             <div style={{ fontSize: '24px', fontWeight: 700, color: 'var(--badge-amber)', marginTop: '4px' }}>
               {elementCounts.draft}
@@ -390,19 +380,23 @@ export const WorkspaceHub: React.FC = () => {
         >
           <div>
             <div style={{ fontSize: '11px', color: 'var(--text-sub)', fontWeight: 600, textTransform: 'uppercase' }}>
-              诊断 / 错误
+              {uiText('当前工作区 / 错误诊断', 'Current workspace / errors')}
             </div>
-            <div style={{ fontSize: '24px', fontWeight: 700, color: elementCounts.invalid > 0 ? 'var(--badge-red)' : 'var(--text-sub)', marginTop: '4px' }}>
-              {elementCounts.invalid}
+            <div style={{ fontSize: '24px', fontWeight: 700, color: (workspaceHealth?.diagnostics.error ?? 0) > 0 ? 'var(--badge-red)' : 'var(--text-sub)', marginTop: '4px' }}>
+              {workspaceHealth ? workspaceHealth.diagnostics.error : uiText('检查中…', 'Checking…')}
             </div>
           </div>
-          <AlertCircle size={28} color={elementCounts.invalid > 0 ? 'var(--badge-red)' : 'var(--text-sub)'} />
+          <AlertCircle size={28} color={(workspaceHealth?.diagnostics.error ?? 0) > 0 ? 'var(--badge-red)' : 'var(--text-sub)'} />
         </div>
       </div>
 
       {workspaceHealth && (
         <div
           data-testid="workspace-health-panel"
+          id="workspace-health-panel"
+          tabIndex={-1}
+          role="region"
+          aria-label={uiText('项目健康', 'Workspace health')}
           style={{
             background: 'var(--bg-surface)',
             border: '1px solid var(--border-subtle)',
@@ -415,24 +409,24 @@ export const WorkspaceHub: React.FC = () => {
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
             <div>
-              <h2 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-main)' }}>项目健康</h2>
+              <h2 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-main)' }}>{uiText('项目健康', 'Workspace health')}</h2>
               <div style={{ marginTop: '4px', fontSize: '11px', color: 'var(--text-sub)' }}>
-                汇总已确认的诊断、引用、资产和任务状态。
+                {uiText('汇总已确认的诊断、引用、资产和任务状态。', 'Confirmed diagnostics, references, assets and task status.')}
               </div>
             </div>
-            <span className="badge badge-copper">修订 {workspaceHealth.revision}</span>
+            <span className="badge badge-copper">{uiText('修订', 'Revision')} {workspaceHealth.revision}</span>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '10px' }}>
+          <div className="workspace-health-grid">
             <div
               data-testid="workspace-health-diagnostics"
               style={{
                 minHeight: '58px', padding: '8px 12px', border: '1px solid var(--border-subtle)',
-                borderRadius: 'var(--radius-sm)', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                borderRadius: 'var(--radius-sm)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start'
               }}
             >
-              <span>诊断</span>
-              <strong>{workspaceHealth.diagnostics.total} 条 · {workspaceHealth.diagnostics.error} 错误</strong>
+              <span>{uiText('诊断', 'Diagnostics')}</span>
+              <strong>{uiText(`${workspaceHealth.diagnostics.total} 条 · ${workspaceHealth.diagnostics.error} 错误`, `${workspaceHealth.diagnostics.total} total · ${englishCount(workspaceHealth.diagnostics.error, 'error')}`)}</strong>
             </div>
             <button
               type="button"
@@ -441,8 +435,8 @@ export const WorkspaceHub: React.FC = () => {
               onClick={() => setActiveView('elements')}
               style={{ justifyContent: 'space-between', minHeight: '58px' }}
             >
-              <span>元素状态</span>
-              <strong>{workspaceHealth.elements.invalid} 无效 · {workspaceHealth.elements.draft} 草稿</strong>
+              <span>{uiText('元素状态', 'Element status')}</span>
+              <strong>{uiText(`${workspaceHealth.elements.invalid} 无效 · ${workspaceHealth.elements.draft} 草稿`, `${workspaceHealth.elements.invalid} invalid · ${englishCount(workspaceHealth.elements.draft, 'draft')}`)}</strong>
             </button>
             <button
               type="button"
@@ -451,8 +445,8 @@ export const WorkspaceHub: React.FC = () => {
               onClick={() => setActiveView('data')}
               style={{ justifyContent: 'space-between', minHeight: '58px' }}
             >
-              <span>结构化引用</span>
-              <strong>{workspaceHealth.references.danglingCount} 个断引用</strong>
+              <span>{uiText('结构化引用', 'Structured references')}</span>
+              <strong>{uiText(`${workspaceHealth.references.danglingCount} 个断引用`, englishCount(workspaceHealth.references.danglingCount, 'broken reference'))}</strong>
             </button>
             <button
               type="button"
@@ -461,11 +455,11 @@ export const WorkspaceHub: React.FC = () => {
               onClick={() => setActiveView('assets')}
               style={{ justifyContent: 'space-between', minHeight: '58px' }}
             >
-              <span>资产</span>
+              <span>{uiText('资产', 'Assets')}</span>
               <strong>
                 {workspaceHealth.assets.indexed && workspaceHealth.assets.summary
-                  ? `${workspaceHealth.assets.summary.missingReferences} 缺失 · ${workspaceHealth.assets.summary.unusedAssets} 未使用`
-                  : workspaceHealth.assets.reasonCode ?? '未建立索引'}
+                  ? uiText(`${workspaceHealth.assets.summary.missingReferences} 缺失 · ${workspaceHealth.assets.summary.unusedAssets} 未使用`, `${workspaceHealth.assets.summary.missingReferences} missing · ${workspaceHealth.assets.summary.unusedAssets} unused`)
+                  : workspaceHealth.assets.reasonCode ?? uiText('未建立索引', 'Not indexed')}
               </strong>
             </button>
             <button
@@ -475,8 +469,8 @@ export const WorkspaceHub: React.FC = () => {
               onClick={() => setActiveView('tracks')}
               style={{ justifyContent: 'space-between', minHeight: '58px' }}
             >
-              <span>生成器</span>
-              <strong>{valueLabel(workspaceHealth.generator.status)} · {workspaceHealth.generator.generatable ? '可生成' : '不可生成'}</strong>
+              <span>{uiText('生成器', 'Generator')}</span>
+              <strong>{valueLabel(workspaceHealth.generator.status)} · {workspaceHealth.generator.generatable ? uiText('可生成', 'Can generate') : uiText('不可生成', 'Cannot generate')}</strong>
             </button>
             <button
               type="button"
@@ -485,8 +479,8 @@ export const WorkspaceHub: React.FC = () => {
               onClick={() => setIsTaskDrawerOpen(true)}
               style={{ justifyContent: 'space-between', minHeight: '58px' }}
             >
-              <span>当前会话任务</span>
-              <strong>{workspaceHealth.tasks.activeCount} 运行中 · {workspaceHealth.tasks.recentFailed.length} 最近失败</strong>
+              <span>{uiText('当前会话任务', 'Current session tasks')}</span>
+              <strong>{uiText(`${workspaceHealth.tasks.activeCount} 运行中 · ${workspaceHealth.tasks.recentFailed.length} 最近失败`, `${workspaceHealth.tasks.activeCount} active · ${englishCount(workspaceHealth.tasks.recentFailed.length, 'recent failure')}`)}</strong>
             </button>
             <button
               type="button"
@@ -495,11 +489,11 @@ export const WorkspaceHub: React.FC = () => {
               onClick={() => setActiveView('history')}
               style={{ justifyContent: 'space-between', minHeight: '58px' }}
             >
-              <span>本地恢复</span>
+              <span>{uiText('本地恢复', 'Local recovery')}</span>
               <strong>
                 {workspaceHealth.recovery.available
-                  ? `${workspaceHealth.recovery.recoveryPointCount} 个恢复点`
-                  : workspaceHealth.recovery.reasonCode ?? '不可用'}
+                  ? uiText(`${workspaceHealth.recovery.recoveryPointCount} 个恢复点`, englishCount(workspaceHealth.recovery.recoveryPointCount, 'recovery point'))
+                  : workspaceHealth.recovery.reasonCode ?? uiText('不可用', 'Unavailable')}
               </strong>
             </button>
             <button
@@ -509,13 +503,23 @@ export const WorkspaceHub: React.FC = () => {
               onClick={() => setActiveView('tracks')}
               style={{ justifyContent: 'space-between', minHeight: '58px' }}
             >
-              <span>高风险变更</span>
+              <span>{uiText('高风险变更', 'High-impact changes')}</span>
               <strong>
-                {workspaceHealth.risk.loaderMigration.availableTargetCount} 个迁移目标 ·
-                {workspaceHealth.risk.aiBatchChanges.highImpactOperationThreshold}+ 操作标记高影响
+                {uiText(`${workspaceHealth.risk.loaderMigration.availableTargetCount} 个迁移目标 · ${workspaceHealth.risk.aiBatchChanges.highImpactOperationThreshold}+ 操作标记高影响`,
+                  `${englishCount(workspaceHealth.risk.loaderMigration.availableTargetCount, 'migration target')} · ${workspaceHealth.risk.aiBatchChanges.highImpactOperationThreshold}+ operations flagged as high impact`)}
               </strong>
             </button>
           </div>
+
+          {workspaceHealth.diagnostics.collectionState === 'partial' && <p role="status">{uiText('部分检查尚未完成，当前数量仅包含已采集的诊断。', 'Some checks are incomplete. Counts include only collected diagnostics.')}</p>}
+          {!!workspaceHealth.diagnostics.items?.length && <details>
+            <summary>{uiText(`查看当前工作区诊断（${workspaceHealth.diagnostics.total} 条）`, `View current workspace diagnostics (${workspaceHealth.diagnostics.total})`)}</summary>
+            <ul>{workspaceHealth.diagnostics.items.map((diagnostic, index) => <li key={`${diagnostic.code}-${index}`}>
+              {t(diagnostic.message)}{' '}
+              {diagnostic.actions.map(action => <button type="button" key={`${action.kind}-${action.target}`}
+                onClick={() => runDiagnosticAction(action, diagnostic)}>{t(action.label)}</button>)}
+            </li>)}</ul>
+          </details>}
         </div>
       )}
 
@@ -535,7 +539,7 @@ export const WorkspaceHub: React.FC = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Clock size={16} color="var(--accent-copper)" />
             <h2 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-main)' }}>
-              近期元素
+              {uiText('近期元素', 'Recent elements')}
             </h2>
           </div>
 
@@ -544,7 +548,7 @@ export const WorkspaceHub: React.FC = () => {
             style={{ fontSize: '11px', padding: '4px 10px' }}
             onClick={() => setActiveView('elements')}
           >
-            <span>查看全部元素</span>
+            <span>{uiText('查看全部元素', 'View all elements')}</span>
             <ArrowRight size={12} />
           </button>
         </div>
@@ -558,7 +562,7 @@ export const WorkspaceHub: React.FC = () => {
               fontSize: '13px'
             }}
           >
-            此工作区还没有模组元素。点击<strong>新建元素</strong>创建你的第一个方块或物品！
+            {uiText('此工作区还没有模组元素。点击', 'This workspace has no mod elements. Select ')}<strong>{uiText('新建元素', 'New element')}</strong>{uiText('创建你的第一个方块或物品！', ' to create your first block or item.')}
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>

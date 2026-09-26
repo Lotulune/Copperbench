@@ -28,7 +28,7 @@ class AssetWorkspaceServiceTest {
 		Files.createDirectories(model.getParent());
 		Files.createDirectories(texture.getParent());
 		Files.createDirectories(language.getParent());
-		Files.writeString(model, "{\"textures\":{\"all\":\"copperbench:textures/block/copper_lamp\"},"
+		Files.writeString(model, "{\"textures\":{\"all\":\"copperbench:block/copper_lamp\"},"
 				+ "\"missing\":\"copperbench:textures/block/missing_lamp\"}");
 		Files.write(texture, new byte[] { 0, 1, 2, 3, 4 });
 		Files.writeString(language, "{\"block.copperbench.copper_lamp\":\"Copper Lamp\"}");
@@ -68,11 +68,11 @@ class AssetWorkspaceServiceTest {
 	void buildsReferencesAndReportsMissingTargets() {
 		AssetReferenceGraph graph = new AssetWorkspaceService(workspace).referenceGraph();
 
-		assertEquals(1, graph.references().size());
+		assertEquals(2, graph.references().size());
 		AssetReference reference = graph.references().getFirst();
 		assertEquals("assets/copperbench/models/copper_lamp.json", reference.sourcePath());
 		assertEquals("/textures/all", reference.sourcePointer());
-		assertEquals("copperbench:textures/block/copper_lamp", reference.rawValue());
+		assertEquals("copperbench:block/copper_lamp", reference.rawValue());
 		assertEquals("textures/", reference.expectedPrefix());
 		assertEquals("assets/copperbench/textures/block/copper_lamp.png", reference.targetPath());
 		assertNotNull(reference.targetAssetId());

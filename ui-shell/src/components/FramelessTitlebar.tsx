@@ -17,6 +17,7 @@ import {
   TestTube2
 } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
+import { uiText, useUiLocale, setUiLocale } from '../i18n';
 import productIcon from '../../../src/main/resources/net/mcreator/ui/res/icon.png';
 import {
   WINDOW_CHROME_SCHEMA_VERSION,
@@ -34,6 +35,7 @@ const toBounds = (rect: DOMRect): WindowChromeRegion['bounds'] => ({
 });
 
 export const FramelessTitlebar: React.FC = () => {
+  const locale = useUiLocale();
   const titlebarRef = useRef<HTMLElement>(null);
   const reportSequence = useRef(0);
   const {
@@ -213,7 +215,7 @@ export const FramelessTitlebar: React.FC = () => {
       if (cleanupDpr) cleanupDpr();
       window.cancelAnimationFrame(animationFrame);
     };
-  }, [generator?.displayName, systemFrameFallback, workspace?.id, workspace?.name, workspace?.revision]);
+  }, [generator?.displayName, systemFrameFallback, workspace?.id, workspace?.name, workspace?.revision, locale]);
 
   return (
     <header
@@ -233,13 +235,13 @@ export const FramelessTitlebar: React.FC = () => {
         {workspace && (
           <div
             className="titlebar-workspace"
-            title={`${workspace.name}，修订 ${workspace.revision}${generator ? `，${generator.displayName}` : ''}`}
+            title={`${workspace.name}, ${uiText('修订', 'revision')} ${workspace.revision}${generator ? `, ${generator.displayName}` : ''}`}
             data-testid="titlebar-workspace"
           >
             <Layers size={12} color="var(--text-muted)" aria-hidden="true" />
             <span className="titlebar-workspace-name">{workspace.name}</span>
             <span className="badge badge-copper titlebar-revision">
-              修订 {workspace.revision}
+              {uiText('修订', 'Rev.')} {workspace.revision}
             </span>
             {generator && (
               <span className="badge badge-blue titlebar-generator">
@@ -256,50 +258,50 @@ export const FramelessTitlebar: React.FC = () => {
           type="button"
           className="btn-secondary titlebar-action"
           onClick={() => generateWorkspace()}
-          title={`生成工作区源码${generator ? `（${generator.displayName}）` : ''}`}
+          title={`${uiText('生成工作区源码', 'Generate workspace sources')}${generator ? ` (${generator.displayName})` : ''}`}
           data-testid="titlebar-generate-btn"
           data-window-chrome-kind="client"
           data-window-chrome-id="generate"
         >
           <Cog size={13} aria-hidden="true" />
-          <span className="titlebar-action-label">生成</span>
+          <span className="titlebar-action-label">{uiText('生成', 'Generate')}</span>
         </button>
 
         <button
           type="button"
           className="btn-primary titlebar-action"
           onClick={() => buildWorkspace()}
-          title={`构建工作区${generator ? `（${generator.displayName}）` : ''}`}
+          title={`${uiText('构建工作区', 'Build workspace')}${generator ? ` (${generator.displayName})` : ''}`}
           data-testid="titlebar-build-btn"
           data-window-chrome-kind="client"
           data-window-chrome-id="build"
         >
           <Hammer size={13} aria-hidden="true" />
-          <span className="titlebar-action-label">构建</span>
+          <span className="titlebar-action-label">{uiText('构建', 'Build')}</span>
         </button>
 
         <button
           type="button"
           className="btn-secondary titlebar-action"
           onClick={() => runClient()}
-          title="运行 Minecraft 测试客户端"
+          title={uiText('运行 Minecraft 测试客户端', 'Run the Minecraft test client')}
           data-testid="titlebar-run-btn"
           data-window-chrome-kind="client"
           data-window-chrome-id="run-client"
         >
           <Play size={13} aria-hidden="true" />
-          <span className="titlebar-action-label">测试客户端</span>
+          <span className="titlebar-action-label">{uiText('测试客户端', 'Test client')}</span>
         </button>
 
         <button
           type="button"
           className="btn-secondary titlebar-tool"
           onClick={() => {
-            const accepted = window.confirm('仅在隔离测试目录启动专用服务端。确认接受 Minecraft EULA 并继续？');
+            const accepted = window.confirm(uiText('仅在隔离测试目录启动专用服务端。确认接受 Minecraft EULA 并继续？', 'Start a dedicated server in the isolated test directory. Accept the Minecraft EULA and continue?'));
             if (accepted) void runServer(true);
           }}
-          title="运行隔离专用服务端"
-          aria-label="运行隔离专用服务端"
+          title={uiText('运行隔离专用服务端', 'Run isolated dedicated server')}
+          aria-label={uiText('运行隔离专用服务端', 'Run isolated dedicated server')}
           data-window-chrome-kind="client"
           data-window-chrome-id="run-server"
         >
@@ -309,8 +311,8 @@ export const FramelessTitlebar: React.FC = () => {
           type="button"
           className="btn-secondary titlebar-tool"
           onClick={() => void runDatagen()}
-          title="在暂存区运行数据生成"
-          aria-label="在暂存区运行数据生成"
+          title={uiText('在暂存区运行数据生成', 'Run staged data generation')}
+          aria-label={uiText('在暂存区运行数据生成', 'Run staged data generation')}
           data-window-chrome-kind="client"
           data-window-chrome-id="run-datagen"
         >
@@ -320,8 +322,8 @@ export const FramelessTitlebar: React.FC = () => {
           type="button"
           className="btn-secondary titlebar-tool"
           onClick={() => void runGameTest()}
-          title="运行已有 GameTest"
-          aria-label="运行已有 GameTest"
+          title={uiText('运行已有 GameTest', 'Run existing GameTests')}
+          aria-label={uiText('运行已有 GameTest', 'Run existing GameTests')}
           data-window-chrome-kind="client"
           data-window-chrome-id="run-gametest"
         >
@@ -331,12 +333,24 @@ export const FramelessTitlebar: React.FC = () => {
 
       {/* Right: Tools & Window Controls */}
       <div className="titlebar-tools">
+        <select
+          aria-label={uiText('界面语言', 'Interface language')}
+          data-testid="ui-language-select"
+          data-window-chrome-kind="client"
+          data-window-chrome-id="language"
+          value={locale}
+          onChange={event => setUiLocale(event.target.value === 'en' ? 'en' : 'zh')}
+          style={{ width: '86px', minHeight: '28px', fontSize: '12px', WebkitAppRegion: 'no-drag' } as React.CSSProperties}
+        >
+          <option value="zh">中文</option>
+          <option value="en">{uiText('English', 'English')}</option>
+        </select>
         <button
           type="button"
           className="btn-secondary titlebar-tool"
           onClick={toggleTheme}
-          title={themePreference === 'system' ? '当前跟随系统；切换到亮色主题' : themePreference === 'light' ? '当前亮色主题；切换到暗色主题' : '当前暗色主题；切换为跟随系统'}
-          aria-label={themePreference === 'system' ? '当前跟随系统；切换到亮色主题' : themePreference === 'light' ? '当前亮色主题；切换到暗色主题' : '当前暗色主题；切换为跟随系统'}
+          title={themePreference === 'system' ? uiText('当前跟随系统；切换到亮色主题', 'System theme; switch to light') : themePreference === 'light' ? uiText('当前亮色主题；切换到暗色主题', 'Light theme; switch to dark') : uiText('当前暗色主题；切换为跟随系统', 'Dark theme; follow system')}
+          aria-label={themePreference === 'system' ? uiText('当前跟随系统；切换到亮色主题', 'System theme; switch to light') : themePreference === 'light' ? uiText('当前亮色主题；切换到暗色主题', 'Light theme; switch to dark') : uiText('当前暗色主题；切换为跟随系统', 'Dark theme; follow system')}
           data-testid="theme-toggle-btn"
           data-window-chrome-kind="client"
           data-window-chrome-id="theme"
@@ -349,13 +363,13 @@ export const FramelessTitlebar: React.FC = () => {
           className={`btn-secondary titlebar-fallback${systemFrameFallback ? ' is-active' : ''}`}
           onClick={toggleSystemFrameFallback}
           disabled={!windowBridge.canToggleFrame}
-          title={windowBridge.canToggleFrame ? '切换系统窗口框架回退（NFR-UI-06）' : '当前使用系统窗口框架'}
+          title={windowBridge.canToggleFrame ? uiText('切换系统窗口框架回退（NFR-UI-06）', 'Toggle system window frame (NFR-UI-06)') : uiText('当前使用系统窗口框架', 'Using the system window frame')}
           data-testid="system-fallback-toggle-btn"
           data-window-chrome-kind="client"
           data-window-chrome-id="system-frame-fallback"
         >
           <ShieldCheck size={13} aria-hidden="true" />
-          <span className="titlebar-fallback-label">{systemFrameFallback ? '系统窗口' : '自绘窗口'}</span>
+          <span className="titlebar-fallback-label">{systemFrameFallback ? uiText('系统窗口', 'System frame') : uiText('自绘窗口', 'Custom frame')}</span>
         </button>
 
         {/* Windows Standard Frameless Window Buttons (Hidden when systemFrameFallback is true) */}
@@ -365,8 +379,8 @@ export const FramelessTitlebar: React.FC = () => {
               type="button"
               className="titlebar-window-button"
               onClick={() => windowBridge.minimize()}
-              title="最小化"
-              aria-label="最小化"
+              title={uiText('最小化', 'Minimize')}
+              aria-label={uiText('最小化', 'Minimize')}
               data-testid="window-minimize-btn"
               data-window-chrome-kind="minimize"
               data-window-chrome-id="minimize"
@@ -378,8 +392,8 @@ export const FramelessTitlebar: React.FC = () => {
               type="button"
               className="titlebar-window-button"
               onClick={toggleMaximize}
-              title={isMaximized ? '恢复' : '最大化'}
-              aria-label={isMaximized ? '恢复' : '最大化'}
+              title={isMaximized ? uiText('恢复', 'Restore') : uiText('最大化', 'Maximize')}
+              aria-label={isMaximized ? uiText('恢复', 'Restore') : uiText('最大化', 'Maximize')}
               data-testid="window-maximize-btn"
               data-window-chrome-kind="maximize"
               data-window-chrome-id="maximize"
@@ -391,8 +405,8 @@ export const FramelessTitlebar: React.FC = () => {
               type="button"
               className="titlebar-window-button titlebar-close-button"
               onClick={() => windowBridge.close()}
-              title="关闭"
-              aria-label="关闭"
+              title={uiText('关闭', 'Close')}
+              aria-label={uiText('关闭', 'Close')}
               data-testid="window-close-btn"
               data-window-chrome-kind="close"
               data-window-chrome-id="close"

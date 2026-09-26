@@ -126,6 +126,19 @@ apply from: 'platform/mac/mac.gradle'
 // Ship the independent Python Core API alongside the optional MCP client.
 tasks.withType(Copy).matching { it.name in ['exportWin64', 'exportLinux64', 'exportMacX64', 'exportMacAarch64'] }.configureEach {
     into('user') { from('docs/user') { include 'blockbench-*.md' } }
+    into('docs') { from('docs') { include 'stage-17-agent-workflow.md', 'user/python-workbench.md',
+            'ai/task-authorization-and-acceptance.md', 'ai/client-acceptance.md' } }
+    into('scripts') { from('scripts') { include 'prepare-client-trial.py' } }
+    into('ui-core/schemas/v1.0') { from('ui-core/schemas/v1.0') { include '*.json' } }
+    into('examples/agent-native/lifecycle-1.21.1') {
+        from('examples/agent-native/lifecycle-1.21.1') { include 'README.md', 'render.py', '*.java.template' }
+    }
+    into('examples/agent-native/wayfinder-bell') {
+        from('examples/agent-native/wayfinder-bell') {
+            include 'README.md', '*.mcreator', '*.gradle', 'gradle.properties', 'gradlew', 'gradlew.bat',
+                    'copperbench-tests.json', 'gradle/wrapper/*', 'src/**', 'elements/**'
+        }
+    }
     into('license') { from 'compliance/THIRD_PARTY_NOTICES.md' }
     into('sdk/python') {
         from('sdk/python') {

@@ -1,14 +1,22 @@
 import { LocalizedText } from '../types/contract';
 import { zh } from './zh';
+import { en } from './en';
 import { valueLabel } from './labels';
+import { UI_LOCALE, uiText } from './locale';
+export { UI_LOCALE, setUiLocale, useUiLocale, uiText, englishCount } from './locale';
+
+/** Store messages without choosing a language until they are rendered. */
+export type UiMessage = string | LocalizedText | { zh: string; en: string };
+export const uiMessage = (zh: string, en: string): UiMessage => ({ zh, en });
+export function renderUiMessage(message: UiMessage): string {
+  return typeof message === 'string' ? message : 'key' in message ? t(message) : uiText(message.zh, message.en);
+}
 
 /**
- * 产品决策（2026-08-17）：界面主语言为中文。
+ * 中文为默认界面语言；用户可切换到英文，保留当前编辑草稿。
  * 合同数据（诊断、字段标签、阶段文案）经 LocalizedText.key 查询词典渲染；
  * 缺失词条时回退 fallback（当前 fixtures 为英文）。用户数据、代码和日志保留原文；已知类型、枚举和权限档位由显示层翻译。
  */
-export const UI_LOCALE = 'zh' as const;
-
 export function formatTemplate(template: string, args?: Record<string, unknown>): string {
   if (!args) return template;
   return template.replace(/\{(\w+)\}/g, (match, name: string) =>
@@ -24,6 +32,9 @@ export function t(localized: LocalizedText | null | undefined): string {
   }
   if (UI_LOCALE === 'zh') {
     const entry = zh[localized.key];
+    if (entry) return formatTemplate(entry, localized.args);
+  } else {
+    const entry = en[localized.key];
     if (entry) return formatTemplate(entry, localized.args);
   }
   return formatTemplate(localized.fallback, localized.args);

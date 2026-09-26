@@ -24,6 +24,7 @@ export interface NativeBlockbenchHost {
   selectExecutable?(): Promise<{ cancelled: boolean }>;
   dismissSetup?(): Promise<void>;
   openAsset(assetId: string): Promise<BlockbenchSnapshot>;
+  openTask?(taskId: string): Promise<BlockbenchSnapshot>;
 }
 
 declare global {
@@ -38,6 +39,7 @@ export interface BlockbenchBridge {
   selectExecutable(): Promise<{ cancelled: boolean }>;
   dismissSetup(): Promise<void>;
   openAsset(assetId: string): Promise<BlockbenchSnapshot>;
+  openTask(taskId: string): Promise<BlockbenchSnapshot>;
 }
 
 const unavailable = (): BlockbenchSnapshot => ({
@@ -60,6 +62,9 @@ class NativeBridge implements BlockbenchBridge {
   public readonly available = true;
   public constructor(private readonly host: NativeBlockbenchHost) {}
   public status(): Promise<BlockbenchSnapshot> { return this.host.status(); }
+  public openTask(taskId: string): Promise<BlockbenchSnapshot> {
+    return this.host.openTask?.(taskId) ?? Promise.reject(new Error('当前桌面版本不支持打开任务副本，请复制路径后在 Blockbench 中打开。'));
+  }
   public selectExecutable(): Promise<{ cancelled: boolean }> {
     return this.host.selectExecutable?.() ?? Promise.reject(new Error('当前桌面版本不支持安装路径选择。'));
   }
@@ -75,6 +80,7 @@ class NativeBridge implements BlockbenchBridge {
 class PreviewBridge implements BlockbenchBridge {
   public readonly available = false;
   public async status(): Promise<BlockbenchSnapshot> { return unavailable(); }
+  public async openTask(_taskId: string): Promise<BlockbenchSnapshot> { return unavailable(); }
   public selectExecutable(): Promise<{ cancelled: boolean }> { return Promise.reject(new Error('请在桌面产品中选择安装位置。')); }
   public dismissSetup(): Promise<void> { return Promise.resolve(); }
   public async openAsset(_assetId: string): Promise<BlockbenchSnapshot> { return unavailable(); }

@@ -451,6 +451,10 @@ final class WorkspacePlanEngine {
 		try {
 			mutations.validateWorkspacePlan(before, after, artifacts);
 			return null;
+		} catch (ElementFieldException exception) {
+			JsonObject args = new JsonObject(); args.addProperty("field", exception.path()); args.addProperty("reason", exception.getMessage());
+			return Diagnostic.error(exception.code(), "diagnostic.field_contract_invalid", "{field}: {reason}", args,
+					"/elements/" + exception.elementId() + exception.path(), exception.elementId());
 		} catch (Exception exception) {
 			String message = exception.getMessage();
 			if (message == null || message.isBlank()) message = "The workspace plan conflicts with durable source ownership.";

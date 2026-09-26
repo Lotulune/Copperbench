@@ -1,5 +1,6 @@
 import { useTheme, ThemePreference } from '../hooks/useTheme';
 import React, { createContext, useContext, useEffect, useState, useMemo, useCallback } from 'react';
+import { useUiLocale } from '../i18n/locale';
 import {
   UUID,
   ModElementType,
@@ -60,6 +61,7 @@ export interface ProcedureFocusRequest {
 
 interface WorkbenchContextType {
   state: BridgeState;
+  workspaceHealth: WorkspaceHealthProjection | null;
   theme: 'dark' | 'light';
   themePreference: ThemePreference;
   toggleTheme: () => void;
@@ -109,6 +111,7 @@ interface WorkbenchContextType {
   deleteModElement: (elementId: UUID) => Promise<CommandResult>;
   generateWorkspace: () => Promise<CommandResult>;
   buildWorkspace: () => Promise<CommandResult>;
+  exportVerifiedArtifact: (taskId: UUID, allowHistorical: boolean) => Promise<CommandResult>;
   runClient: () => Promise<CommandResult>;
   runServer: (userApproved: boolean) => Promise<CommandResult>;
   runDatagen: () => Promise<CommandResult>;
@@ -215,6 +218,21 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isConflictModalOpen, setIsConflictModalOpen] = useState(false);
   const [announcement, setAnnouncement] = useState<string | null>(null);
+  const [workspaceHealth, setWorkspaceHealth] = useState<WorkspaceHealthProjection | null>(null);
+  const [assetHealthRefresh, setAssetHealthRefresh] = useState(0);
+  const [assetIndexRequests, setAssetIndexRequests] = useState(0);
+  // A task can replace the resource context without changing workspace revision.
+  // Use terminal values because the native bridge updates its task map in place.
+  const completedTaskHealthKey = Object.values(state.tasks)
+    .filter(task => task.state !== 'queued' && task.state !== 'running')
+    .map(task => `${task.id}:${task.state}:${task.completedAt ?? ''}`).sort().join('|');
+  const visibleTaskId = activeTaskId ?? Object.keys(state.tasks)[0] ?? null;
+  const taskWorkspaceId = state.workbench?.workspace.id;
+  useEffect(() => {
+    if (!isTaskDrawerOpen || !visibleTaskId || !taskWorkspaceId) return;
+    void coreBridge.sendQuery({ messageType: 'query', schemaVersion: '1.0', requestId: generateUUID(),
+      workspaceId: taskWorkspaceId, operation: 'get_task', payload: { taskId: visibleTaskId, afterLogSequence: 0 } });
+  }, [isTaskDrawerOpen, visibleTaskId, taskWorkspaceId]);
 
   useEffect(() => {
     const unsub = coreBridge.onStateChange((newState) => {
@@ -417,6 +435,25 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     });
     return res.status === 'succeeded' ? res.data : null;
   }, [state.workbench]);
+
+  useEffect(() => {
+    let active = true;
+    let requestNumber = 0;
+    if (assetIndexRequests > 0) {
+      setWorkspaceHealth(null);
+      return;
+    }
+    const refresh = () => {
+      const request = ++requestNumber;
+      setWorkspaceHealth(null);
+      void getWorkspaceHealth().then(health => {
+        if (active && request === requestNumber) setWorkspaceHealth(health);
+      }).catch(() => { if (active && request === requestNumber) setWorkspaceHealth(null); });
+    };
+    refresh();
+    window.addEventListener('focus', refresh);
+    return () => { active = false; window.removeEventListener('focus', refresh); };
+  }, [getWorkspaceHealth, state.workbench?.workspace.revision, activeView, assetHealthRefresh, assetIndexRequests, completedTaskHealthKey]);
 
   const previewModElementChange = useCallback(
     async (elementId: UUID, changes: FieldChange[]): Promise<ModElementChangePreview | null> => {
@@ -712,6 +749,14 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       setIsTaskDrawerOpen(true);
     }
     return res;
+  }, [state.workbench]);
+
+  const exportVerifiedArtifact = useCallback(async (taskId: UUID, allowHistorical: boolean): Promise<CommandResult> => {
+    const result = await coreBridge.sendCommand({ messageType: 'command', schemaVersion: '1.0', requestId: generateUUID(),
+      workspaceId: state.workbench?.workspace.id ?? '', expectedRevision: state.workbench?.workspace.revision ?? 0,
+      operation: 'export_workspace', payload: { verifiedTaskId: taskId, allowHistorical } });
+    if (result.task?.id) { setActiveTaskId(result.task.id); setIsTaskDrawerOpen(true); }
+    return result;
   }, [state.workbench]);
 
   const runWorkspaceTask = useCallback(async (
@@ -1061,15 +1106,24 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const listAssets = useCallback(async (): Promise<AssetProjection | null> => {
     const workspaceId = state.workbench?.workspace.id || generateUUID();
-    const res = await coreBridge.sendQuery<AssetProjection>({
-      messageType: 'query',
-      schemaVersion: '1.0',
-      requestId: generateUUID(),
-      workspaceId,
-      operation: 'list_assets',
-      payload: {}
-    });
-    return (res.data as AssetProjection | null) ?? null;
+    // External model edits can change the asset snapshot without a workspace revision.
+    // Keep global counts pending until the index query finishes and health is recollected.
+    setAssetIndexRequests(value => value + 1);
+    setWorkspaceHealth(null);
+    try {
+      const res = await coreBridge.sendQuery<AssetProjection>({
+        messageType: 'query',
+        schemaVersion: '1.0',
+        requestId: generateUUID(),
+        workspaceId,
+        operation: 'list_assets',
+        payload: {}
+      });
+      return (res.data as AssetProjection | null) ?? null;
+    } finally {
+      setAssetIndexRequests(value => value - 1);
+      setAssetHealthRefresh(value => value + 1);
+    }
   }, [state.workbench]);
 
   const previewAssetImport = useCallback(
@@ -1275,6 +1329,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const value = useMemo(
     () => ({
       state,
+      workspaceHealth,
       theme,
       themePreference,
       toggleTheme,
@@ -1321,6 +1376,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       deleteModElement,
       generateWorkspace,
       buildWorkspace,
+      exportVerifiedArtifact,
       runClient,
       runServer,
       runDatagen,
@@ -1362,6 +1418,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }),
     [
       state,
+      workspaceHealth,
       theme,
       themePreference,
       toggleTheme,
@@ -1401,6 +1458,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       deleteModElement,
       generateWorkspace,
       buildWorkspace,
+      exportVerifiedArtifact,
       runClient,
       runServer,
       runDatagen,
@@ -1446,6 +1504,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 };
 
 export const useWorkbench = () => {
+  useUiLocale();
   const context = useContext(WorkbenchContext);
   if (!context) {
     throw new Error('useWorkbench must be used within WorkbenchProvider');

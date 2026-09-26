@@ -20,6 +20,7 @@ import dev.copperbench.release.ElementCoverageCatalog;
 import dev.copperbench.testing.McreatorTestRuntime;
 import net.mcreator.element.ModElementType;
 import net.mcreator.element.ModElementTypeLoader;
+import net.mcreator.element.util.GEValidator;
 import net.mcreator.element.types.Function;
 import net.mcreator.element.types.Item;
 import net.mcreator.generator.Generator;
@@ -48,6 +49,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class WorkspacePersistenceCompatibilityTest {
 
 	@TempDir Path temporaryDirectory;
+	private final List<String> fixtureValidationNotices = new java.util.ArrayList<>();
 
 	@BeforeAll static void initializeUpstreamRuntimeMinimum() throws Exception {
 		McreatorTestRuntime.ensureInitialized();
@@ -1084,13 +1086,14 @@ class WorkspacePersistenceCompatibilityTest {
 	@Test void upstreamBackedSessionPersistsEveryFirstPartyElementType() throws Exception {
 		WorkspaceSettings settings = new WorkspaceSettings("first_party_slice_test");
 		settings.setModName("First Party Slice Test");
+		settings.setVersion("1.0.0");
 		settings.setCurrentGenerator("neoforge-1.21.1");
 		Workspace workspace = Workspace.createWorkspace(
 				temporaryDirectory.resolve("first_party_slice_test.mcreator").toFile(), settings);
 		UUID workspaceId = UUID.fromString("11111111-1111-4111-8111-111111111180");
 		AtomicLong sequence = new AtomicLong(1000);
 		java.util.function.Supplier<UUID> ids = () -> uuid(sequence.incrementAndGet());
-		try {
+		try (var templateErrors = captureFixtureTemplateErrors()) {
 			MCreatorWorkspaceSession session = MCreatorWorkspaceSession.attach(workspace, workspaceId,
 					new InMemoryWorkspaceTaskGateway(Clock.systemUTC(), ids), Clock.systemUTC(), ids);
 			var entry = session.headlessEntry(PermissionProfile.WORKSPACE);
@@ -1105,14 +1108,12 @@ class WorkspacePersistenceCompatibilityTest {
 				createPayload.addProperty("clientMutationId", ids.get().toString());
 				createPayload.addProperty("elementType", type);
 				createPayload.addProperty("name", name);
-				JsonObject values = new JsonObject();
-				values.addProperty("source", "compatibility-test");
-				if (type.equals("procedure")) values.addProperty("procedurexml", emptyProcedureXml("no_ext_trigger"));
+				JsonObject values = firstPartyPersistenceValues(type);
 				createPayload.add("initialValues", values);
 
 				var created = entry.execute(Command.of(ids.get(), workspaceId, revision,
 						Operation.CREATE_MOD_ELEMENT, createPayload));
-				assertEquals("committed", created.result().status());
+				assertEquals("committed", created.result().status(), type + ": " + created.result().diagnostics());
 				revision++;
 				String elementId = created.result().data().getAsJsonObject().getAsJsonObject("element")
 						.get("id").getAsString();
@@ -1120,6 +1121,12 @@ class WorkspacePersistenceCompatibilityTest {
 				assertNotNull(upstream);
 				assertEquals(upstreamTypes.get(index), upstream.getType());
 				assertNotNull(upstream.getGeneratableElement());
+				validatePersistenceFixture(upstream);
+				if (type.equals("keybind"))
+					assertEquals("misc", ((net.mcreator.element.types.KeyBinding) upstream.getGeneratableElement())
+							.keyBindingCategoryKey);
+				if (type.equals("structure"))
+					assertFalse(created.result().data().toString().contains("poolName"));
 				if (!type.equals("code"))
 					assertTrue(Files.isRegularFile(temporaryDirectory.resolve("elements/" + name + ".mod.json")));
 
@@ -1127,9 +1134,9 @@ class WorkspacePersistenceCompatibilityTest {
 				updatePayload.addProperty("clientMutationId", ids.get().toString());
 				updatePayload.addProperty("elementId", elementId);
 				JsonObject change = new JsonObject();
-				change.addProperty("path", type.equals("procedure") ? "/procedurexml" : "/customFlag");
+				change.addProperty("path", type.equals("procedure") ? "/procedurexml" : "/displayName");
 				change.addProperty("value", type.equals("procedure")
-						? emptyProcedureXml("no_ext_trigger_updated") : "updated");
+						? emptyProcedureXml("no_ext_trigger_updated") : "Updated " + type);
 				com.google.gson.JsonArray changes = new com.google.gson.JsonArray();
 				changes.add(change);
 				updatePayload.add("changes", changes);
@@ -1140,11 +1147,12 @@ class WorkspacePersistenceCompatibilityTest {
 				assertTrue(WorkspaceFileManager.gson.toJson(
 						upstream.getMetadata(dev.copperbench.core.workspace.mcreator.MCreatorWorkspaceMutationGateway
 								.ELEMENT_VALUES_METADATA)).contains(type.equals("procedure")
-								? "no_ext_trigger_updated" : "customFlag"));
+								? "no_ext_trigger_updated" : "Updated " + type));
 				assertTrue(Files.readString(workspace.getFileManager().getWorkspaceFile().toPath())
 						.contains("session_" + type), type);
 			}
 			assertEquals(types.size() * 2L, revision);
+			assertTrue(fixtureValidationNotices.isEmpty(), fixtureValidationNotices.toString());
 
 			String savedWorkspace = Files.readString(workspace.getFileManager().getWorkspaceFile().toPath(),
 					StandardCharsets.UTF_8);
@@ -1295,70 +1303,166 @@ class WorkspacePersistenceCompatibilityTest {
 	@Test void copperbenchSavePreservesUnknownFieldsForEveryFirstPartyType() throws Exception {
 		WorkspaceSettings settings = new WorkspaceSettings("stage11_roundtrip");
 		settings.setModName("Stage 11 Round Trip");
+		settings.setVersion("1.0.0");
 		settings.setCurrentGenerator("fabric-1.21.1");
 		Workspace workspace = Workspace.createWorkspace(
 				temporaryDirectory.resolve("stage11_roundtrip.mcreator").toFile(), settings);
 		UUID workspaceId = UUID.fromString("11111111-1111-4111-8111-111111111181");
 		AtomicLong sequence = new AtomicLong(2000);
 		java.util.function.Supplier<UUID> ids = () -> uuid(sequence.incrementAndGet());
-		try (MCreatorWorkspaceSession session = MCreatorWorkspaceSession.attach(workspace, workspaceId,
-				new InMemoryWorkspaceTaskGateway(Clock.systemUTC(), ids), Clock.systemUTC(), ids)) {
-			var entry = session.headlessEntry(PermissionProfile.WORKSPACE);
+		try (var templateErrors = captureFixtureTemplateErrors()) {
 			long revision = 0;
 			for (String type : ElementCoverageCatalog.FIRST_PARTY_SLICE) {
-				String name = "roundtrip_" + type;
-				JsonObject createPayload = new JsonObject();
-				createPayload.addProperty("clientMutationId", ids.get().toString());
-				createPayload.addProperty("elementType", type);
-				createPayload.addProperty("name", name);
-				JsonObject values = new JsonObject();
-				values.addProperty("pluginFutureField", "keep-" + type);
-				if (type.equals("procedure"))
-					values.addProperty("procedurexml", emptyProcedureXml("no_ext_trigger"));
-				createPayload.add("initialValues", values);
-				var created = entry.execute(Command.of(ids.get(), workspaceId, revision,
-						Operation.CREATE_MOD_ELEMENT, createPayload));
-				assertEquals("committed", created.result().status(), created.result().diagnostics().toString());
-				revision++;
-				String elementId = created.result().data().getAsJsonObject().getAsJsonObject("element")
-						.get("id").getAsString();
-				Path definitionFile = temporaryDirectory.resolve("elements/" + name + ".mod.json");
-				if (!type.equals("code")) {
-					assertTrue(Files.isRegularFile(definitionFile));
-					JsonObject definition = JsonParser.parseString(Files.readString(definitionFile)).getAsJsonObject();
-					definition.addProperty("pluginOpaque", "keep-disk-" + type);
-					Files.writeString(definitionFile, WorkspaceFileManager.gson.toJson(definition),
-							StandardCharsets.UTF_8);
-				}
+				try (MCreatorWorkspaceSession session = MCreatorWorkspaceSession.attach(workspace, workspaceId,
+						new InMemoryWorkspaceTaskGateway(Clock.systemUTC(), ids), Clock.systemUTC(), ids)) {
+					var entry = session.headlessEntry(PermissionProfile.WORKSPACE);
+					String name = "roundtrip_" + type;
+					JsonObject createPayload = new JsonObject();
+					createPayload.addProperty("clientMutationId", ids.get().toString());
+					createPayload.addProperty("elementType", type);
+					createPayload.addProperty("name", name);
+					JsonObject values = firstPartyPersistenceValues(type);
+					createPayload.add("initialValues", values);
+					var created = entry.execute(Command.of(ids.get(), workspaceId, revision,
+							Operation.CREATE_MOD_ELEMENT, createPayload));
+					assertEquals("committed", created.result().status(), created.result().diagnostics().toString());
+					revision++;
+					String elementId = created.result().data().getAsJsonObject().getAsJsonObject("element")
+							.get("id").getAsString();
+					// Simulate imported legacy/plugin metadata on disk, not an unsupported public write.
+					ModElement imported = workspace.getModElementByName(name);
+					validatePersistenceFixture(imported);
+					String metadataKey = dev.copperbench.core.workspace.mcreator.MCreatorWorkspaceMutationGateway
+							.ELEMENT_VALUES_METADATA;
+					JsonObject importedValues = WorkspaceFileManager.gson.toJsonTree(imported.getMetadata(metadataKey))
+							.getAsJsonObject();
+					importedValues.addProperty("pluginFutureField", "keep-" + type);
+					imported.putMetadata(metadataKey, WorkspaceFileManager.gson.fromJson(importedValues, Object.class));
+					workspace.markDirty();
+					workspace.getFileManager().saveWorkspaceDirectlyAndWait();
+					Path definitionFile = temporaryDirectory.resolve("elements/" + name + ".mod.json");
+					if (!type.equals("code")) {
+						assertTrue(Files.isRegularFile(definitionFile));
+						JsonObject definition = JsonParser.parseString(Files.readString(definitionFile)).getAsJsonObject();
+						definition.addProperty("pluginOpaque", "keep-disk-" + type);
+						Files.writeString(definitionFile, WorkspaceFileManager.gson.toJson(definition),
+								StandardCharsets.UTF_8);
+					}
 
-				JsonObject updatePayload = new JsonObject();
-				updatePayload.addProperty("clientMutationId", ids.get().toString());
-				updatePayload.addProperty("elementId", elementId);
-				JsonObject change = new JsonObject();
-				change.addProperty("path", "/displayName");
-				change.addProperty("value", "Updated " + type);
-				com.google.gson.JsonArray changes = new com.google.gson.JsonArray();
-				changes.add(change);
-				updatePayload.add("changes", changes);
-				var updated = entry.execute(Command.of(ids.get(), workspaceId, revision,
-						Operation.UPDATE_MOD_ELEMENT, updatePayload));
-				assertEquals("committed", updated.result().status(), updated.result().diagnostics().toString());
-				revision++;
-				workspace.reloadFromFileSystem();
+					JsonObject updatePayload = new JsonObject();
+					updatePayload.addProperty("clientMutationId", ids.get().toString());
+					updatePayload.addProperty("elementId", elementId);
+					JsonObject change = new JsonObject();
+					change.addProperty("path", "/displayName");
+					change.addProperty("value", "Updated " + type);
+					com.google.gson.JsonArray changes = new com.google.gson.JsonArray();
+					changes.add(change);
+					updatePayload.add("changes", changes);
+					workspace.reloadFromFileSystem();
+					try (MCreatorWorkspaceSession importedSession = MCreatorWorkspaceSession.attach(workspace, workspaceId,
+							new InMemoryWorkspaceTaskGateway(Clock.systemUTC(), ids), Clock.systemUTC(), ids)) {
+						JsonObject unsupportedUpdate = updatePayload.deepCopy();
+						unsupportedUpdate.addProperty("clientMutationId", ids.get().toString());
+						JsonObject unsupportedChange = unsupportedUpdate.getAsJsonArray("changes").get(0).getAsJsonObject();
+						unsupportedChange.addProperty("path", "/pluginFutureField");
+						unsupportedChange.addProperty("value", "overwrite");
+						var rejected = importedSession.headlessEntry(PermissionProfile.WORKSPACE).execute(
+								Command.of(ids.get(), workspaceId, revision, Operation.UPDATE_MOD_ELEMENT, unsupportedUpdate));
+						assertEquals("rejected", rejected.result().status(), type);
+						assertEquals("FIELD_UNSUPPORTED", rejected.result().diagnostics().getFirst().code(), type);
+						assertEquals(revision, rejected.result().newRevision(), type);
+						var updated = importedSession.headlessEntry(PermissionProfile.WORKSPACE).execute(
+								Command.of(ids.get(), workspaceId, revision, Operation.UPDATE_MOD_ELEMENT, updatePayload));
+						assertEquals("committed", updated.result().status(), type + ": " + updated.result().diagnostics());
+					}
+					revision++;
+					workspace.reloadFromFileSystem();
 
-				ModElement upstream = workspace.getModElementByName(name);
-				assertNotNull(upstream);
-				assertTrue(WorkspaceFileManager.gson.toJson(upstream.getMetadata(
-						dev.copperbench.core.workspace.mcreator.MCreatorWorkspaceMutationGateway
-								.ELEMENT_VALUES_METADATA)).contains("keep-" + type));
-				if (!type.equals("code")) {
-					JsonObject saved = JsonParser.parseString(Files.readString(definitionFile)).getAsJsonObject();
-					assertEquals("keep-disk-" + type, saved.get("pluginOpaque").getAsString());
+					ModElement upstream = workspace.getModElementByName(name);
+					assertNotNull(upstream);
+					assertEquals("keep-" + type, WorkspaceFileManager.gson.toJsonTree(upstream.getMetadata(metadataKey))
+							.getAsJsonObject().get("pluginFutureField").getAsString());
+					if (!type.equals("code")) {
+						JsonObject saved = JsonParser.parseString(Files.readString(definitionFile)).getAsJsonObject();
+						assertEquals("keep-disk-" + type, saved.get("pluginOpaque").getAsString());
+					}
 				}
 			}
+			assertTrue(fixtureValidationNotices.isEmpty(), fixtureValidationNotices.toString());
 		} finally {
 			workspace.close();
 		}
+	}
+
+	private static JsonObject firstPartyPersistenceValues(String type) {
+		JsonObject values = new JsonObject();
+		// Use actual Blockly defaults so reloading exercises valid definitions.
+		for (var field : ModElementTypeLoader.getModElementType(type).getModElementStorageClass().getFields()) {
+			var xml = field.getAnnotation(net.mcreator.blockly.data.BlocklyXML.class);
+			if (xml != null) values.addProperty(field.getName(), xml.defaultXML());
+			// Generic numeric fixtures use declared valid initial values. Blocks have a narrower,
+			// explicitly supported contract whose defaults are supplied by the block adapter.
+			var numeric = field.getAnnotation(net.mcreator.element.types.interfaces.Numeric.class);
+			if (!type.equals("block") && numeric != null && field.getType().isPrimitive()
+					&& numeric.min() > 0 && !numeric.optional())
+				values.addProperty(field.getName(), numeric.init());
+		}
+		if (type.equals("procedure")) values.addProperty("procedurexml", emptyProcedureXml("no_ext_trigger"));
+		if (type.equals("keybind")) values.addProperty("triggerKey", "K");
+		if (type.equals("armor")) {
+			// Enabled pieces must also be valid when reloaded under the upstream strict validator.
+			values.addProperty("enchantability", 10);
+			for (String piece : List.of("Helmet", "Body", "Leggings", "Boots"))
+				values.addProperty("texture" + piece, "minecraft:barrier");
+			for (String piece : List.of("helmet", "body", "leggings", "boots"))
+				values.addProperty(piece + "PiglinNeutral", false);
+		}
+		if (type.equals("villagerprofession")) {
+			values.addProperty("pointOfInterest", "Blocks.STONE");
+			values.addProperty("actionSound", "entity.villager.work_armorer");
+		}
+		if (type.equals("enchantment")) values.addProperty("supportedSlots", "any");
+		if (type.equals("feature")) values.addProperty("generationStep", "VEGETAL_DECORATION");
+		if (type.equals("fluid")) {
+			values.addProperty("type", "WATER");
+			values.addProperty("colorOnMap", "DEFAULT");
+		}
+		if (type.equals("livingentity")) {
+			values.addProperty("mobModelName", "Biped");
+			values.addProperty("mobSpawningType", "creature");
+			values.addProperty("spawnEggBaseColor", -1);
+			values.addProperty("spawnEggDotColor", -16777216);
+		}
+		if (type.equals("plant")) {
+			values.addProperty("texture", "minecraft:poppy");
+			values.addProperty("suspiciousStewEffect", "SPEED");
+		}
+		return values;
+	}
+
+	private void validatePersistenceFixture(ModElement element) throws Exception {
+		GEValidator.validateAndTryToCorrect(element.getGeneratableElement(), fixtureValidationNotices::add);
+	}
+
+	private static AutoCloseable captureFixtureTemplateErrors() {
+		var errors = new java.util.concurrent.CopyOnWriteArrayList<String>();
+		var logger = (org.apache.logging.log4j.core.Logger) org.apache.logging.log4j.LogManager
+				.getLogger("Template Generator");
+		var appender = new org.apache.logging.log4j.core.appender.AbstractAppender(
+				"PersistenceFixtureErrors-" + UUID.randomUUID(), null, null, true,
+				org.apache.logging.log4j.core.config.Property.EMPTY_ARRAY) {
+			@Override public void append(org.apache.logging.log4j.core.LogEvent event) {
+				if (event.getLevel().isMoreSpecificThan(org.apache.logging.log4j.Level.ERROR))
+					errors.add(event.getMessage().getFormattedMessage() + ": " + event.getThrown());
+			}
+		};
+		appender.start();
+		logger.addAppender(appender);
+		return () -> {
+			logger.removeAppender(appender);
+			appender.stop();
+			assertTrue(errors.isEmpty(), "Persistence fixtures produced template errors: " + errors);
+		};
 	}
 
 	@Test void upstreamBackedMutationRestoresFilesWhenMetadataCommitConflicts() throws Exception {

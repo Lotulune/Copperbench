@@ -142,6 +142,12 @@ public class GradleUtils {
 
 	public static void updateMCreatorBuildFile(Workspace workspace) {
 		if (workspace != null) {
+			FileIO.writeStringToFile(mcreatorBuildFileContent(workspace),
+					new File(workspace.getWorkspaceFolder(), "mcreator.gradle"));
+		}
+	}
+
+	public static String mcreatorBuildFileContent(Workspace workspace) {
 			StringBuilder mcreatorGradleConfBuilder = new StringBuilder();
 
 			if (workspace.getWorkspaceSettings() != null
@@ -155,9 +161,7 @@ public class GradleUtils {
 				}
 			}
 
-			FileIO.writeStringToFile(mcreatorGradleConfBuilder.toString(),
-					new File(workspace.getWorkspaceFolder(), "mcreator.gradle"));
-		}
+			return mcreatorGradleConfBuilder.toString();
 	}
 
 	public static Map<String, String> getEnvironment(String java_home) {

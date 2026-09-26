@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "minecraft-control-bridge"
+version = "0.2.0"
+description = "Local, evidence-producing Minecraft desktop control for an LLM and its operator agent"
+requires-python = ">=3.11"
+dependencies = [
+  "mss>=10,<11",
+  "Pillow>=11,<13",
+  "mcp>=1.26,<2",
+  "httpx>=0.28,<1",
+  "python-xlib>=0.33,<0.34; sys_platform == 'linux'",
+]
+
+[project.scripts]
+minecraft-control-bridge = "minecraft_control_bridge.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

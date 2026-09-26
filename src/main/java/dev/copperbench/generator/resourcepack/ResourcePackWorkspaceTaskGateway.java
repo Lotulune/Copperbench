@@ -128,6 +128,7 @@ public final class ResourcePackWorkspaceTaskGateway implements WorkspaceTaskGate
 	@Override public List<JsonObject> active(UUID workspaceId) {
 		return delegate.active(workspaceId);
 	}
+	@Override public List<JsonObject> recent(UUID workspaceId) { return delegate.recent(workspaceId); }
 
 	@Override public Optional<JsonObject> cancel(UUID workspaceId, UUID taskId) {
 		return delegate.cancel(workspaceId, taskId);

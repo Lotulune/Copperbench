@@ -120,6 +120,10 @@ public final class Fabric1211Generator {
 			return new GenerationResult(profile.generatorId(), descriptor.modId(),
 					PluginWorkspaceLayout.relativeSourcePaths(root));
 		}
+		for (Element element : workspace.elements()) {
+			if (element.type().equals("procedure") && hasProcedureBody(fields(element)))
+				throw new IllegalArgumentException("Structured Procedure bodies require the workspace's plugin generator; refusing to replace the body with a message-only placeholder.");
+		}
 		List<String> generated = new ArrayList<>();
 		Files.createDirectories(root);
 		if (!preservePluginWorkspace) {
@@ -157,7 +161,8 @@ public final class Fabric1211Generator {
 						double hardness = number(values, "hardness", 2.0);
 						double resistance = number(values, "resistance", Math.max(hardness, 2.0));
 						int luminance = integer(values, "luminance", 0);
-						if (hardness < 0 || hardness > 100 || resistance < 0)
+						if (!Double.isFinite(hardness) || hardness < -1 || hardness > 64000
+								|| !Double.isFinite(resistance) || resistance < 0 || resistance > Integer.MAX_VALUE)
 							issues.add(issue("FABRIC_BLOCK_STRENGTH_INVALID", "Block strength is outside the supported range.",
 									base, element));
 						if (luminance < 0 || luminance > 15)
@@ -172,10 +177,10 @@ public final class Fabric1211Generator {
 					}
 					case "recipe" -> validateRecipe(values, availableResults, base, element, issues);
 					case "procedure" -> {
-						if (string(values, "message", "").isBlank())
+						if (!hasProcedureBody(values) && string(values, "message", "").isBlank())
 							issues.add(issue("FABRIC_PROCEDURE_MESSAGE_REQUIRED", "Procedure message is required.",
 									base + "/message", element));
-						JsonObject stored = element.values();
+						JsonObject stored = values;
 						boolean hasIr = stored.has("procedureIr") && stored.get("procedureIr").isJsonObject();
 						boolean hasXml = stored.has("procedurexml") && stored.get("procedurexml").isJsonPrimitive()
 								&& !stored.get("procedurexml").getAsString().isBlank();
@@ -202,6 +207,12 @@ public final class Fabric1211Generator {
 			}
 		}
 		return List.copyOf(issues);
+	}
+
+	private static boolean hasProcedureBody(JsonObject values) {
+		return values.has("procedureIr") && values.get("procedureIr").isJsonObject()
+				|| values.has("procedurexml") && values.get("procedurexml").isJsonPrimitive()
+				&& !values.get("procedurexml").getAsString().isBlank();
 	}
 
 	private static void validateRecipe(JsonObject values, Set<String> availableResults, String base, Element element,
@@ -849,8 +860,7 @@ public final class Fabric1211Generator {
 
 	private static JsonObject fields(Element element) {
 		JsonObject values = element.values();
-		return values.has("fields") && values.get("fields").isJsonObject()
-				? values.getAsJsonObject("fields") : values;
+		return dev.copperbench.core.application.BlockFieldContract.merged(values);
 	}
 
 	private static String string(JsonObject object, String name, String fallback) {

@@ -62,8 +62,8 @@ class McpHttpServerTest {
 		Path texture = workspace.resolve("assets/coppertrails/textures/block/copper_lamp.png");
 		Files.createDirectories(model.getParent());
 		Files.createDirectories(texture.getParent());
-		Files.writeString(model, "{\"textures\":{\"all\":\"coppertrails:textures/block/copper_lamp\","
-				+ "\"missing\":\"coppertrails:textures/block/missing_lamp\"}}");
+		Files.writeString(model, "{\"textures\":{\"all\":\"coppertrails:block/copper_lamp\","
+				+ "\"missing\":\"coppertrails:block/missing_lamp\"}}");
 		Files.write(texture, new byte[] { 0, 1, 2 });
 
 		WorkspaceTokenService tokens = new WorkspaceTokenService(CLOCK, Duration.ofMinutes(5));
@@ -136,6 +136,15 @@ class McpHttpServerTest {
 				post(endpoint, "{\"jsonrpc\":\"2.0\",\"method\":\"notifications/initialized\"}", token.value(), session, "http://localhost:5173");
 				JsonObject preview = JsonParser.parseString("{\"taskId\":\"" + taskId + "\",\"outputs\":[{\"sourceRelativePath\":\"export.json\",\"targetRelativePath\":\"src/main/resources/assets/copper_trails/models/custom/import_test.json\"}]}").getAsJsonObject();
 				var plan = modelingCall(endpoint, session, token.value(), "preview_blockbench_import", preview);
+				assertEquals("rejected", plan.get("status").getAsString());
+				assertEquals("MODEL_RESOURCE_UNVERIFIED", plan.getAsJsonArray("diagnostics").get(0).getAsJsonObject().get("code").getAsString());
+				// The cold workspace has no vanilla catalog. Supply real local resource overrides, then retry.
+				Path parent = workspace.resolve("assets/minecraft/models/block/cube_all.json");
+				Path stone = workspace.resolve("assets/minecraft/textures/block/stone.png");
+				Files.createDirectories(parent.getParent()); Files.createDirectories(stone.getParent());
+				Files.writeString(parent, "{}");
+				javax.imageio.ImageIO.write(new java.awt.image.BufferedImage(2, 2, java.awt.image.BufferedImage.TYPE_INT_ARGB), "png", stone.toFile());
+				plan = modelingCall(endpoint, session, token.value(), "preview_blockbench_import", preview);
 				assertEquals("succeeded", plan.get("status").getAsString(), plan::toString);
 				JsonObject apply = new JsonObject(); apply.addProperty("taskId", taskId.toString()); apply.add("planToken", plan.getAsJsonObject("data").get("planToken")); apply.addProperty("expectedRevision", 0);
 				var imported = modelingCall(endpoint, session, token.value(), "import_blockbench_task", apply);
@@ -443,7 +452,7 @@ class McpHttpServerTest {
 					token.value(), sessionId, "http://localhost:5173");
 			JsonObject references = toolResult(referencesResult);
 			assertEquals("succeeded", references.get("status").getAsString());
-			assertEquals(1, references.getAsJsonArray("references").size());
+			assertEquals(2, references.getAsJsonArray("references").size());
 			assertTrue(references.has("incomingReferences"));
 			assertTrue(references.has("health"));
 			assertTrue(references.getAsJsonArray("diagnostics").toString().contains("MISSING_ASSET_REFERENCE"));

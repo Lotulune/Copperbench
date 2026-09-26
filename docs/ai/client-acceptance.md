@@ -4,7 +4,9 @@
 
 ## 用已验收的 JAR 建立独立客户端
 
-先通过产品的 `run-gametest` 得到 `packaged_jar` 验收结果。仓库公开工具只调用安装包 bootstrap，不加载 Copperbench 内部类；它创建一个空的 Fabric 1.21.1 工作区，再把报告绑定的实际模组 JAR 放进 `run/mods`。原模组的实现源码不会进入这个工作区。
+先通过产品的 `run-gametest` 得到 `packaged_jar` 验收结果。随包公开工具 [prepare-client-trial.py](../../scripts/prepare-client-trial.py) 只调用安装包 bootstrap，不加载 Copperbench 内部类；它创建一个空的 Fabric 1.21.1 工作区，再把报告绑定的实际模组 JAR 放进 `run/mods`。原模组的实现源码不会进入这个工作区。
+
+需要 Python 3.11 或更新版本，无第三方 Python 依赖。以下命令从发行包根目录执行（Ubuntu deb 默认为 `/opt/copperbench`）；若当前目录不同，给脚本传绝对路径。源码仓库也提供同一路径。
 
 ```powershell
 python scripts/prepare-client-trial.py `

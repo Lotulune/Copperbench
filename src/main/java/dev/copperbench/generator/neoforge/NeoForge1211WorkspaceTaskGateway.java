@@ -30,6 +30,9 @@ import java.util.function.Supplier;
 
 /** NeoForge 1.21.1 adapter for the shared Gradle workspace task gateway. */
 public final class NeoForge1211WorkspaceTaskGateway implements WorkspaceTaskGateway, AutoCloseable {
+	@Override public void setGenerationPreparation(GenerationPreparation preparation) {
+		delegate.setGenerationPreparation(preparation);
+	}
 
 	private final GradleWorkspaceTaskGateway delegate;
 	private final Function<UUID, Path> workspaceRoots;
@@ -81,6 +84,7 @@ public final class NeoForge1211WorkspaceTaskGateway implements WorkspaceTaskGate
 	@Override public List<JsonObject> active(UUID workspaceId) {
 		return delegate.active(workspaceId);
 	}
+	@Override public List<JsonObject> recent(UUID workspaceId) { return delegate.recent(workspaceId); }
 
 	@Override public Optional<JsonObject> cancel(UUID workspaceId, UUID taskId) {
 		return delegate.cancel(workspaceId, taskId);

@@ -1,11 +1,11 @@
 # 项目文档导航
 
-已关闭能力读根目录 [PRD](../PRD.md)。下一阶段交付读 [PRD-NEXT.md](../PRD-NEXT.md)。本目录保存开发、用户、AI、ADR、架构和阶段证据。
+已关闭能力读根目录 [PRD](../PRD.md)。当前下一阶段交付读 [Stage 17 PRD](../PRD-STAGE-17.md)，历史深化路线读 [PRD-NEXT.md](../PRD-NEXT.md)。本目录保存开发、用户、AI、ADR、架构和阶段证据。
 
 ## 从这里开始
 
 1. 已关闭能力：根目录 [PRD](../PRD.md)。
-2. 下一阶段可信预览发布：根目录 [PRD-NEXT.md](../PRD-NEXT.md)；历史状态索引 [剩余完善清单](./remaining-work.md)。
+2. 下一阶段：[Stage 17 PRD](../PRD-STAGE-17.md)；依据：[共鸣工坊试作发现](./testing/resonance-forge-findings-2026-09-20.md)。历史路线见 [PRD-NEXT.md](../PRD-NEXT.md)；历史状态索引 [剩余完善清单](./remaining-work.md)。
 3. 术语存在歧义时查询 [领域词汇表](../CONTEXT.md)。
 4. 只有遇到专项问题时，才从本页选择对应附件。
 
@@ -69,4 +69,4 @@
 
 ## 执行前确认
 
-[执行期未决事项](./open-decisions.md)仅记录必须基于原型、固定提交或实际兼容测试才能确定的内容。已由 ADR 固化的决策不得在任务实现中被隐式改写。下一阶段实现以 [PRD-NEXT.md](../PRD-NEXT.md) 为准。
+[执行期未决事项](./open-decisions.md)仅记录必须基于原型、固定提交或实际兼容测试才能确定的内容。已由 ADR 固化的决策不得在任务实现中被隐式改写。下一阶段实现以 [Stage 17 PRD](../PRD-STAGE-17.md) 为准，并遵守 [PRD-NEXT.md](../PRD-NEXT.md) 保留的兼容与发布门禁。

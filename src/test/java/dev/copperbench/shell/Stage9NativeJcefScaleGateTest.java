@@ -286,7 +286,7 @@ class Stage9NativeJcefScaleGateTest {
 	private static double measureProcedureSearch(WebView webView, String query) throws Exception {
 		assertEquals("true", js(webView, """
 				(function(query) {
-				    var input = document.querySelector('input[aria-label="搜索 Procedure 节点"]');
+				    var input = document.querySelector('[data-testid=procedure-palette-search]');
 				    var root = document.querySelector('.procedure-node-list');
 				    if (!input || !root) return false;
 				    window.__cbScaleProcedureSearch = null;
@@ -306,7 +306,7 @@ class Stage9NativeJcefScaleGateTest {
 				    input.dispatchEvent(new Event('input', { bubbles: true }));
 				    return true;
 				})(%s)
-				""".formatted(JSON.toJson(query))));
+				""".formatted(JSON.toJson(query))), "Procedure palette search input or node list is missing");
 		return awaitMetric(webView, "__cbScaleProcedureSearch", 10);
 	}
 

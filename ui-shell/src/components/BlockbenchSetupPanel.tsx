@@ -9,13 +9,18 @@ import './blockbenchSetup.css';
 
 interface Environment {
   editor: { state: string; available: boolean; version?: string; diagnosticCode?: string };
-  mcp: { state: string; endpoint: string; toolCount?: number; hasMoreTools?: boolean; checkedAt?: string };
+  mcp: { state: string; endpoint: string; toolCount?: number; hasMoreTools?: boolean; checkedAt?: string;
+    diagnosticCode?: string; failurePhase?: string; cleanupDiagnosticCode?: string };
+  inspectionState?: string;
+  application?: { sourceState?: string; version?: string; javaVersion?: string; javaVendor?: string;
+    mcpSdkVersion?: string; applicationSha256?: string };
   managedModelingTasksAvailable: boolean;
 }
 
 const editorLabels: Record<string, string> = {
   ready: '已检测到编辑器', ready_unverified: '已找到编辑器，版本未确认',
-  unavailable: '尚未检测到编辑器', unknown_version: '编辑器版本无法确认', incompatible: '编辑器版本不兼容'
+  unavailable: '尚未检测到编辑器', unknown_version: '编辑器版本无法确认', incompatible: '编辑器版本不兼容',
+  unverified: '本次安装检测未完成，请重试', not_checked: '尚未检测'
 };
 const downloadUrl = 'https://www.blockbench.net/';
 const pluginUrl = 'https://github.com/jasonjgardner/blockbench-mcp-plugin';
@@ -25,6 +30,8 @@ const mcpLabels: Record<string, string> = {
   protocol_error: 'MCP 协议检测失败，请核对地址、插件状态及认证要求',
   authentication_required: '服务要求认证；请在 Agent 中配置，本页不会转发 Copperbench 凭据',
   busy: '已有连接检测正在运行，请稍后重试',
+  initialization_error: '连接组件初始化失败，请查看运行详情及本机日志',
+  cancelled: '连接检测已中断，可以重新测试',
   preview_unavailable: '预览模式无法检测本机服务'
 };
 
@@ -54,7 +61,9 @@ export const BlockbenchSetupPanel: React.FC = () => {
       if (result.status !== 'succeeded' || !result.data?.editor || !result.data?.mcp)
         throw new Error(t(result.diagnostics[0]?.message) || '检测不可用，请确认桌面产品已更新。');
       setEnvironment(result.data);
-      setMessage(probeMcp ? '连接检测完成。' : '编辑器检测完成；尚未测试 MCP 连接。');
+      setMessage(result.data.inspectionState && result.data.inspectionState !== 'completed'
+        ? '本次检测未完成；已获取的信息保留，可稍后重试。'
+        : probeMcp ? '连接检测完成。' : '编辑器检测完成；尚未测试 MCP 连接。');
     } catch (error) {
       if (sequence === requestSequence.current)
         setMessage(error instanceof Error ? error.message : '检测失败，请重试。');
@@ -78,6 +87,18 @@ export const BlockbenchSetupPanel: React.FC = () => {
         <span>AI 建模连接：{environment ? mcpLabels[environment.mcp.state] ?? '状态未知' : '尚未测试连接'}
           {environment?.mcp.toolCount != null ? `（本页 ${environment.mcp.toolCount} 个工具）` : ''}</span>
       </div>
+      {environment && <details className="blockbench-setup-note">
+        <summary>检测与运行详情</summary>
+        {environment.mcp.diagnosticCode && <p>连接诊断：<code>{environment.mcp.diagnosticCode}</code>
+          {environment.mcp.failurePhase && <> · <code>{environment.mcp.failurePhase}</code></>}</p>}
+        {environment.mcp.cleanupDiagnosticCode && <p>关闭诊断：<code>{environment.mcp.cleanupDiagnosticCode}</code></p>}
+        {environment.editor.diagnosticCode && <p>安装诊断：<code>{environment.editor.diagnosticCode}</code></p>}
+        <p>构建来源：{environment.application?.sourceState === 'packaged_binary' ? '已打包程序' : '开发构建或来源未确认'}
+          {environment.application?.version && <> · {environment.application.version}</>}</p>
+        {environment.application?.applicationSha256 && <p>程序 SHA-256：<code style={{ overflowWrap: 'anywhere' }}>{environment.application.applicationSha256}</code></p>}
+        {environment.application?.javaVersion && <p>{t({ key: 'blockbench.runtime.java', fallback: 'Java: ' })}{environment.application.javaVersion} · {environment.application.javaVendor}</p>}
+        {environment.application?.mcpSdkVersion && <p>{t({ key: 'blockbench.runtime.sdk', fallback: 'MCP SDK: ' })}{environment.application.mcpSdkVersion}</p>}
+      </details>}
       <div className="blockbench-setup-actions">
         <button className="btn-secondary" type="button" disabled={busy} onClick={() => {
           setBusy(true);

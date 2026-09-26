@@ -124,7 +124,10 @@ public final class AssetWorkspaceService {
 	}
 
 	public AssetReferenceGraph referenceGraph() {
+		LocalResourceIndex externalResources = LocalResourceIndex.discover(root);
 		List<AssetDescriptor> assets = list();
+		MinecraftModelResolver modelResolver = new MinecraftModelResolver(root, externalResources, assets);
+		Map<String, JsonObject> models = new HashMap<>();
 		Map<String, AssetDescriptor> byPath = new HashMap<>();
 		for (AssetDescriptor asset : assets)
 			byPath.put(asset.relativePath(), asset);
@@ -138,11 +141,46 @@ public final class AssetWorkspaceService {
 				JsonElement document = JsonParser.parseString(Files.readString(file));
 				if (source.relativePath().toLowerCase(Locale.ROOT).endsWith(".bbmodel"))
 					collectBbmodel(source, BbmodelDocument.parse(document.getAsJsonObject()), byPath, references, diagnostics);
-				else collectStrings(document, null, "",
-						candidate -> addReference(source, candidate, byPath, references, diagnostics));
+				else if (MinecraftRenderReferences.isDocument(source.relativePath(), "items")
+						|| MinecraftRenderReferences.isDocument(source.relativePath(), "blockstates")) {
+					var collector = new MinecraftRenderReferences(source.relativePath(), reference -> addReference(source,
+							new ReferenceCandidate(reference.value(), "models/", reference.pointer()), byPath,
+							references, diagnostics, externalResources, modelResolver), diagnostics::add);
+					if (MinecraftRenderReferences.isDocument(source.relativePath(), "items")) collector.item(document);
+					else collector.blockstate(document);
+				}
+				else {
+					if (MinecraftModelResolver.modelId(source.relativePath()) != null && document.isJsonObject())
+						models.put(source.relativePath(), document.getAsJsonObject());
+					collectStrings(document, null, "",
+							candidate -> addReference(source, candidate, byPath, references, diagnostics, externalResources, modelResolver));
+				}
 			} catch (Exception exception) {
 				diagnostics.add(new AssetDiagnostic("INVALID_ASSET_DOCUMENT", AssetDiagnostic.Severity.ERROR,
 						source.relativePath(), null, "Asset document is not valid JSON"));
+			}
+		}
+		Set<String> parentTemplates = new HashSet<>();
+		Set<String> renderedModels = new HashSet<>();
+		for (AssetReference reference : references) {
+			if (reference.sourcePointer().equals("/parent")) parentTemplates.add(reference.targetPath());
+			else if ("models/".equals(reference.expectedPrefix())) renderedModels.add(reference.targetPath());
+		}
+		for (var entry : models.entrySet()) {
+			try {
+				var inspected = modelResolver.inspect(MinecraftModelResolver.modelId(entry.getKey()), entry.getValue(),
+						entry.getKey(), !parentTemplates.contains(entry.getKey()) || renderedModels.contains(entry.getKey()));
+				for (var issue : inspected.issues()) {
+					boolean alreadyReported = diagnostics.stream().anyMatch(existing -> existing.sourcePath().equals(entry.getKey())
+							&& existing.code().equals(issue.code()) && existing.sourcePointer().equals(issue.pointer())
+							&& Objects.equals(existing.targetPath(), issue.target()));
+					if (!alreadyReported) diagnostics.add(new AssetDiagnostic(issue.code(), issue.unverified()
+							? AssetDiagnostic.Severity.WARNING : AssetDiagnostic.Severity.ERROR, entry.getKey(), issue.target(),
+							issue.message(), issue.pointer()));
+				}
+			} catch (IllegalArgumentException exception) {
+				diagnostics.add(new AssetDiagnostic("INVALID_RESOURCE_NAME", AssetDiagnostic.Severity.ERROR,
+						entry.getKey(), null, "Model path is not a valid Minecraft resource identifier"));
 			}
 		}
 		references.sort(Comparator.comparing(AssetReference::sourcePath).thenComparing(AssetReference::targetPath));
@@ -275,8 +313,15 @@ public final class AssetWorkspaceService {
 
 	private static void addReference(AssetDescriptor source, ReferenceCandidate candidate,
 			Map<String, AssetDescriptor> byPath,
-			List<AssetReference> references, List<AssetDiagnostic> diagnostics) {
+			List<AssetReference> references, List<AssetDiagnostic> diagnostics, LocalResourceIndex externalResources,
+			MinecraftModelResolver modelResolver) {
 		String value = candidate.rawValue() == null ? "" : candidate.rawValue().trim();
+		if (candidate.expectedPrefix() != null && value.contains(":") && !URI.matcher(value).matches()
+				&& !value.matches("[a-z0-9_.-]+:[a-z0-9_./-]+")) {
+			diagnostics.add(new AssetDiagnostic("INVALID_RESOURCE_NAME", AssetDiagnostic.Severity.ERROR,
+					source.relativePath(), value, "Resource identifiers must use lowercase namespace:path syntax"));
+			return;
+		}
 		if (!isReferenceCandidate(value, candidate.expectedPrefix()))
 			return;
 		String targetPath;
@@ -287,10 +332,39 @@ public final class AssetWorkspaceService {
 					source.relativePath(), value, "Asset reference escapes the workspace"));
 			return;
 		}
+		if ((MinecraftModelResolver.modelId(source.relativePath()) != null
+				|| MinecraftRenderReferences.isDocument(source.relativePath(), "items")
+				|| MinecraftRenderReferences.isDocument(source.relativePath(), "blockstates"))
+				&& Set.of("models/", "textures/").contains(Objects.toString(candidate.expectedPrefix(), ""))) {
+			try {
+				var found = modelResolver.lookup(candidate.expectedPrefix().replace("/", ""), value, source.relativePath());
+				references.add(new AssetReference(source.id(), source.relativePath(), candidate.pointer(), value,
+						candidate.expectedPrefix(), found.path(), found.assetId(), AssetReference.ReferenceKind.RESOURCE_ID,
+						found.state(), found.source(), found.version()));
+				if (!found.resolved()) diagnostics.add(new AssetDiagnostic(found.state().equals("unverified")
+						? "EXTERNAL_ASSET_REFERENCE_UNVERIFIED" : found.state().equals("invalid") ? "INVALID_ASSET_DOCUMENT" : "MISSING_ASSET_REFERENCE",
+						found.state().equals("unverified") ? AssetDiagnostic.Severity.WARNING : AssetDiagnostic.Severity.ERROR,
+						source.relativePath(), found.path(), "Resource is " + found.state() + " in " + found.source()
+								+ " at " + candidate.pointer(), candidate.pointer()));
+			} catch (IllegalArgumentException exception) {
+				diagnostics.add(new AssetDiagnostic("INVALID_RESOURCE_NAME", AssetDiagnostic.Severity.ERROR,
+						source.relativePath(), value, "Invalid Minecraft resource identifier at " + candidate.pointer(), candidate.pointer()));
+			}
+			return;
+		}
 		AssetDescriptor target = byPath.get(targetPath);
 		if (target == null) {
-			diagnostics.add(new AssetDiagnostic("MISSING_ASSET_REFERENCE", AssetDiagnostic.Severity.ERROR,
-					source.relativePath(), targetPath, "Referenced asset does not exist"));
+			var resolved = externalResources.resolve(targetPath, namespace(source.relativePath()));
+			references.add(new AssetReference(source.id(), source.relativePath(), candidate.pointer(), value,
+					candidate.expectedPrefix(), targetPath, null, AssetReference.ReferenceKind.RESOURCE_ID,
+					resolved.state(), resolved.source(), resolved.version()));
+			if (resolved.state().equals("missing"))
+				diagnostics.add(new AssetDiagnostic("MISSING_ASSET_REFERENCE", AssetDiagnostic.Severity.ERROR,
+						source.relativePath(), targetPath, "Reference is absent from the available resource catalog: " + resolved.source()));
+			else if (resolved.state().equals("unverified"))
+				diagnostics.add(new AssetDiagnostic("EXTERNAL_ASSET_REFERENCE_UNVERIFIED", AssetDiagnostic.Severity.WARNING,
+						source.relativePath(), targetPath, "External resource catalog is unavailable for " + resolved.version()
+							+ "; resolve the workspace dependencies and check again. No download was attempted."));
 			return;
 		}
 		AssetReference.ReferenceKind kind = value.indexOf(':') >= 0 ? AssetReference.ReferenceKind.RESOURCE_ID

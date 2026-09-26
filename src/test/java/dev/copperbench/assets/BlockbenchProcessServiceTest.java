@@ -44,6 +44,37 @@ class BlockbenchProcessServiceTest {
 		assertEquals("BLOCKBENCH_NOT_CONFIGURED", service.status().diagnosticCode());
 	}
 
+	@Test void taskLaunchUsesItsEditingCopyAndExitDoesNotCommitOrImport() throws IOException {
+		var taskId = java.util.UUID.randomUUID();
+		Path edit = workspace.resolve(".copperbench/modeling-tasks/" + taskId + "/edit/model.bbmodel");
+		Files.createDirectories(edit.getParent());
+		Files.writeString(edit, "{}");
+		Path executable = temp.resolve("Blockbench.exe");
+		Files.write(executable, new byte[] { 1 });
+		FakeProcess process = new FakeProcess(9931);
+		AtomicReference<List<String>> command = new AtomicReference<>();
+		BlockbenchProcessService.EditLifecycle lifecycle = new BlockbenchProcessService.EditLifecycle() {
+			@Override public Path modelingEdit(java.util.UUID requested) { assertEquals(taskId, requested); return edit; }
+			@Override public BlockbenchProcessService.PreparedEdit prepare(AssetDescriptor asset) { throw new AssertionError("Task already has a recovery point"); }
+			@Override public BlockbenchProcessService.Completion complete(BlockbenchProcessService.PreparedEdit prepared, AssetDescriptor current) {
+				throw new AssertionError("Editor exit cannot import or commit a task");
+			}
+		};
+		try (var service = new BlockbenchProcessService(new AssetWorkspaceService(workspace), executable,
+				arguments -> { command.set(arguments); return process; }, new BlockbenchInstallationDetector(path -> "5.1.6"), lifecycle)) {
+			assertEquals(BlockbenchProcessService.State.RUNNING, service.openTask(taskId).state());
+			assertEquals(List.of(executable.toString(), edit.toString()), command.get());
+			Files.writeString(edit, "{\"saved\":true}");
+			process.finish(0);
+			var exited = service.status();
+			assertEquals(BlockbenchProcessService.State.EXITED, exited.state());
+			assertTrue(!exited.changeCommitted());
+			assertTrue(!exited.openedSha256().equals(exited.currentSha256()));
+			assertNull(exited.workspaceRevision());
+			assertEquals("{}", Files.readString(workspace.resolve(model.relativePath())));
+		}
+	}
+
 	@Test void detectsAnInstallationAddedAfterTheProductStarted() throws IOException {
 		AtomicReference<Path> installed = new AtomicReference<>();
 		AtomicReference<List<String>> command = new AtomicReference<>();

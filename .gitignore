@@ -39,6 +39,11 @@ ui-shell/playwright-report/
 ui-shell/test-results/
 ui-shell/blob-report/
 
+# Local acceptance runs, desktop registration, and private conversation archives
+/output/
+/.codex/
+/docs/history-session/
+
 # Signing material never belongs in git
 codesign-chain.pem
 *.pfx

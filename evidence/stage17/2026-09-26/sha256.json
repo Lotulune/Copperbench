@@ -1,0 +1,15 @@
+{
+  "candidate-proof.json": "9f9b64ac6ac8f1600d17c6d056cae4adcd661d05be2d74831ef123ce293501fd",
+  "client-actions.jsonl": "75c12bc9e3139b1470d71c3f05b1b10d690733a062fd96243ecc5882bcf77e61",
+  "client-model-restored.png": "cbbabfd317858ecee09c69da7d1d243065f9bf839dcb9702ba256a927e0aff97",
+  "client-process-exit.json": "d6d43f2463596e2da916c1c34048d4a2ccafecc62e57663467ab1fc902423bd5",
+  "client-proof.json": "952e3a8d8756289991aa54bb2d7a3b9d89f6dd67249a0335a5aa1aa9c42c3d03",
+  "client-saved-title.png": "023b54eb22f5953ca864a0221ec47710954dba365d107f44ea1d8adeb0e3706d",
+  "client-verifications.json": "6ea9ed3ee758f0b8bf3426e05022d874af2543694f8289928b7dab28858d07c8",
+  "defaults-linux-installed.json": "625cf278d18658e55d87122be04086c5fe0a9ce0421161486f3f58670cef9d63",
+  "defaults-linux-portable.json": "f256017864b38cbd74abf397de40c56bec2177d434c39604a7709262d74561b5",
+  "defaults-windows.json": "8ee823887e4af02eace9562698d8580f04535756678a2854ee37675102a1f0e1",
+  "final-source-audit.json": "32448695cb060902a10f30f9c087b93e5a11e2153454acf9e0f14fa804710b5c",
+  "installation-proof.json": "57a31515d72287e50256242fe5ab1a661a7acc0c84a7016c2d77285ce5e4fa97",
+  "regression-summary.json": "85059955413f66dc0bb009f07f52ec631735cd863e3dcf7a3dde79b94f3f692d"
+}

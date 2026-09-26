@@ -1,0 +1,121 @@
+{
+  "status": "passed",
+  "sourceFiles": 27227,
+  "changedFrozenFiles": [],
+  "applicationSha256": "6797747dbd09c2cbaf9a383784f751ff65ddcc27e4e18ec775b36c68ab594879",
+  "windowsLauncherSha256": "06f358ba077e1112cf2e7d3f814f58373fb7e359ec7779071191add33e862a75",
+  "changedClassesFromV37": [
+    "dev/copperbench/core/application/WorkspaceApplicationService$3.class",
+    "dev/copperbench/core/application/WorkspaceApplicationService$AssetImportBatchPlanGrant.class",
+    "dev/copperbench/core/application/WorkspaceApplicationService$AssetImportMutation.class",
+    "dev/copperbench/core/application/WorkspaceApplicationService$AssetImportPlanGrant.class",
+    "dev/copperbench/core/application/WorkspaceApplicationService$AssetImportSelectionGrant.class",
+    "dev/copperbench/core/application/WorkspaceApplicationService$AssetImportSourceGrant.class",
+    "dev/copperbench/core/application/WorkspaceApplicationService$BlockbenchPreparation.class",
+    "dev/copperbench/core/application/WorkspaceApplicationService$BlockbenchPreparationException.class",
+    "dev/copperbench/core/application/WorkspaceApplicationService$DatagenMutation.class",
+    "dev/copperbench/core/application/WorkspaceApplicationService$ListCursorException.class",
+    "dev/copperbench/core/application/WorkspaceApplicationService$Mutation.class",
+    "dev/copperbench/core/application/WorkspaceApplicationService$RefactorDraft.class",
+    "dev/copperbench/core/application/WorkspaceApplicationService$RegistryEdit.class",
+    "dev/copperbench/core/application/WorkspaceApplicationService$RegistryLocation.class",
+    "dev/copperbench/core/application/WorkspaceApplicationService$RegistryMutation.class",
+    "dev/copperbench/core/application/WorkspaceApplicationService$RegistryValidationException.class",
+    "dev/copperbench/core/application/WorkspaceApplicationService$TaskMutation.class",
+    "dev/copperbench/core/application/WorkspaceApplicationService$WorkspaceCreationMutation.class",
+    "dev/copperbench/core/application/WorkspaceApplicationService.class"
+  ],
+  "addedClasses": [],
+  "removedClasses": [],
+  "unchangedClasses": 2159,
+  "publicFiles": [
+    {
+      "path": "sdk/python/README.md",
+      "sha256": "a587fe16787054e7d103222a4691d12f954277299b1e3053bf243c7d186e0438"
+    },
+    {
+      "path": "docs/stage-17-agent-workflow.md",
+      "sha256": "e1e888c57099ffc6d7dd48a4ef4aead73a9fb38d07542d1943c1284b7015a153"
+    },
+    {
+      "path": "docs/ai/task-authorization-and-acceptance.md",
+      "sha256": "362b32b020ff7075d578f58c14e67c6fd57160bdcc6adc40b4602ffa40401701"
+    },
+    {
+      "path": "docs/ai/client-acceptance.md",
+      "sha256": "3490c3e816e272286cb8e2b70bb61b82d4c5e5b8514551e63d3156cb542a3ea6"
+    },
+    {
+      "path": "docs/user/python-workbench.md",
+      "sha256": "d47198049556ca13ea37e48c9af18d71ddc4ac5946a606e203bead6fc9307f5b"
+    },
+    {
+      "path": "examples/agent-native/lifecycle-1.21.1/README.md",
+      "sha256": "d1b9b456d9fdb17fe73aea3846161406c9948db74274f52e889f33105fb242d0"
+    },
+    {
+      "path": "scripts/prepare-client-trial.py",
+      "sha256": "6a7ad629a8ed0d5880646b8964be6ea4204faf4b50cd5398f5fd2b09014fdb1f"
+    },
+    {
+      "path": "examples/agent-native/lifecycle-1.21.1/render.py",
+      "sha256": "37bb4fec08855ca0dc44a3810bdffc1a234b0ac276e36b6291bae422cecbc464"
+    },
+    {
+      "path": "ui-core/schemas/v1.0/asset.schema.json",
+      "sha256": "06b0fe968146e41f28d6028c9d1751cc07b1faf9773b38f7a58df4ffdf4347b6"
+    },
+    {
+      "path": "ui-core/schemas/v1.0/command-result.schema.json",
+      "sha256": "95875e7bf6bae73d019d1aa05a64e9a75a8e59118d180b6df9fbd44439ecc145"
+    },
+    {
+      "path": "ui-core/schemas/v1.0/command.schema.json",
+      "sha256": "3ad0236125dcb169ab450144794b449ec192e4f99e7560e1553cabb466e6fbb1"
+    },
+    {
+      "path": "ui-core/schemas/v1.0/common.schema.json",
+      "sha256": "a822b6f1d90d0eba3a5f2680f78318c12a1805f624b902e8f61835da7751fb39"
+    },
+    {
+      "path": "ui-core/schemas/v1.0/event.schema.json",
+      "sha256": "ac453180a5b5e66efb821d78fac4c5f6a5c6aef7e6232992c5a28e23fa0f3053"
+    },
+    {
+      "path": "ui-core/schemas/v1.0/handshake-result.schema.json",
+      "sha256": "0c2874a139e4ee0e70bebc385696b3e2ab305dcfa9e019e6eea7e0ecf2202386"
+    },
+    {
+      "path": "ui-core/schemas/v1.0/handshake.schema.json",
+      "sha256": "2b97c8f8b712ee82a9813b953a17fa1ef92f5c893749da2db584dfcf8cc8288d"
+    },
+    {
+      "path": "ui-core/schemas/v1.0/query-result.schema.json",
+      "sha256": "24886bfbd402289079bc4af0b476480b8bfbb109a9924748f34acbc4b1f6529a"
+    },
+    {
+      "path": "ui-core/schemas/v1.0/query.schema.json",
+      "sha256": "b99ec0de5c5481cafff314d59fa730f542193378ed8b94db856c71d47551adaf"
+    },
+    {
+      "path": "ui-core/schemas/v1.0/release.schema.json",
+      "sha256": "ce44eb3845c1b496a049eb5c3d74d4dcaada8c9c7086ff2eb5e68b4181db81fc"
+    },
+    {
+      "path": "ui-core/schemas/v1.0/scenario.schema.json",
+      "sha256": "c1b475d4e2e25f7177c2285be130921a6a85600c4ce15ef25cf18b1612ea11ae"
+    },
+    {
+      "path": "ui-core/schemas/v1.0/tracks.schema.json",
+      "sha256": "b00102a29c52fcb176936bf9d5a3573033ed6859a1f4f1ae2a15d679606c2318"
+    },
+    {
+      "path": "examples/agent-native/lifecycle-1.21.1/fabric.java.template",
+      "sha256": "8be211afc220811b90674faa09f3df40fc479206f4d231927db5ea3afaa3ebba"
+    },
+    {
+      "path": "examples/agent-native/lifecycle-1.21.1/neoforge.java.template",
+      "sha256": "11d3406145f93d202306ced3c42120b6610956ea649c577c1d25e227eee07048"
+    }
+  ]
+}

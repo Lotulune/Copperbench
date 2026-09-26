@@ -176,8 +176,9 @@ public class ${name}Block extends <#if data.plantType == "normal">Flower<#elseif
 				return Shapes.empty();
 			<#else>
 				<#if !data.disableOffset> Vec3 offset = state.getOffset(world, pos); </#if>
-					<@boundingBoxWithRotation data.positiveBoundingBoxes() data.negativeBoundingBoxes() data.disableOffset 0/>
-				</#if>
+				VoxelShape shape = <@boundingBoxWithRotation data/>;
+				return shape<#if !data.disableOffset>.move(offset.x, offset.y, offset.z)</#if>;
+			</#if>
 		}
 	</#if>
 

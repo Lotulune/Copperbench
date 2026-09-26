@@ -215,7 +215,7 @@ class HistoryContractTest {
 		UUID restoredElementId = uuid(90);
 		JsonObject values = new JsonObject();
 		JsonObject fields = new JsonObject();
-		fields.addProperty("hardness", 101);
+		fields.addProperty("hardness", 64001);
 		values.add("fields", fields);
 		values.addProperty("targetId", uuid(999).toString());
 		WorkspaceState restoredSnapshot = stateAtRestoredPoint();

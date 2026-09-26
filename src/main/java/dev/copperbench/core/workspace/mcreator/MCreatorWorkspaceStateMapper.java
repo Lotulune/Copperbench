@@ -51,6 +51,8 @@ public final class MCreatorWorkspaceStateMapper {
 			JsonObject raw = JsonParser.parseString(Files.readString(definitionFile)).getAsJsonObject();
 			values = raw.has("definition") && raw.get("definition").isJsonObject()
 					? raw.getAsJsonObject("definition").deepCopy() : raw;
+			if (element.getTypeString().equals("loottable"))
+				values = dev.copperbench.core.application.LootTableFieldContract.projectDefinition(values);
 		}
 		if (values == null)
 			values = new JsonObject();
@@ -60,7 +62,19 @@ public final class MCreatorWorkspaceStateMapper {
 				? Files.getLastModifiedTime(definitionFile).toInstant() : Instant.EPOCH;
 		String displayName = values.has("displayName") && values.get("displayName").isJsonPrimitive()
 				? values.get("displayName").getAsString() : displayName(element.getName());
-		return new Element(id, element.getTypeString(), element.getRegistryName(), displayName, "valid",
+		// Product names are internal names. Keep the historical projection for imported upstream
+		// names outside the public contract (for example CamelCase), without changing stored data.
+		String name = element.getName().matches("^[a-z][a-z0-9_]{0,63}$") ? element.getName() : element.getRegistryName();
+		String validity = "valid";
+		if (element.getTypeString().equals("procedure") && !element.isCodeLocked()) {
+			try {
+				var codec = new dev.copperbench.procedure.ProcedureIrCodec();
+				var ir = codec.read(dev.copperbench.core.application.BlockFieldContract.merged(values), id);
+				if (codec.validate(ir).stream().anyMatch(dev.copperbench.procedure.ProcedureIr.ValidationIssue::error)
+						|| !MCreatorProcedureContextValidation.validate(workspace, ir).isEmpty()) validity = "invalid";
+			} catch (RuntimeException invalidGraph) { validity = "invalid"; }
+		}
+		return new Element(id, element.getTypeString(), name, displayName, validity,
 				element.isCodeLocked() ? "manual" : "generated",
 				updatedAt, values);
 	}
@@ -110,6 +124,7 @@ public final class MCreatorWorkspaceStateMapper {
 			values.add("codeFiles", refreshed);
 		}
 		values.add("sourceFingerprints", fingerprints);
+		dev.copperbench.core.application.CodeFieldContract.refreshStoredAliases(values);
 		return values;
 	}
 

@@ -9,6 +9,26 @@ import java.util.List;
 /** Participates in a validated content transaction before its new revision becomes visible. */
 @FunctionalInterface public interface WorkspaceMutationGateway {
 
+	/** Additional read-only Procedure checks using the backend's active generator/plugin metadata. */
+	default List<dev.copperbench.procedure.ProcedureIr.ValidationIssue> procedureContextIssues(dev.copperbench.procedure.ProcedureIr ir) {
+		return List.of();
+	}
+
+	/** Read-only external triggers available to the active generator with its enabled APIs. */
+	default com.google.gson.JsonArray procedureTriggerCatalog() {
+		return new com.google.gson.JsonArray();
+	}
+
+	/** Read-only durable generator identity; a resource ID is not proof of runtime registration. */
+	default com.google.gson.JsonObject elementIdentity(Element element) {
+		return new com.google.gson.JsonObject();
+	}
+
+	/** Read-only comparison with the durable definition; implementations may expose reviewed reconciliation data. */
+	default com.google.gson.JsonObject elementConfiguration(Element element) {
+		return new com.google.gson.JsonObject();
+	}
+
 	void persist(WorkspaceState before, WorkspaceState after, Operation operation, Element affectedElement)
 			throws Exception;
 

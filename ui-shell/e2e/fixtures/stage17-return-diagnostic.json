@@ -1,0 +1,117 @@
+{
+  "ir": {
+    "schemaVersion": "1.0",
+    "trigger": "mod_serverload",
+    "nodes": [
+      {
+        "id": "aa37fd22-6ad1-414e-9e90-25c2a8fb7232",
+        "type": "coord_x",
+        "kind": "value",
+        "x": 40.0,
+        "y": 40.0,
+        "fields": {},
+        "inputs": {},
+        "next": null,
+        "unknown": false
+      },
+      {
+        "id": "c7b0bbc4-840b-32c7-9eba-d806ec766cef",
+        "type": "return_logic",
+        "kind": "statement",
+        "x": 40.0,
+        "y": 40.0,
+        "fields": {},
+        "inputs": {
+          "VALUE": "aa37fd22-6ad1-414e-9e90-25c2a8fb7232"
+        },
+        "next": null,
+        "unknown": false
+      },
+      {
+        "id": "56e6b870-87df-3a40-afe0-8002d884b349",
+        "type": "event_trigger",
+        "kind": "statement",
+        "x": 40.0,
+        "y": 40.0,
+        "fields": {
+          "trigger": "mod_serverload"
+        },
+        "inputs": {},
+        "next": "c7b0bbc4-840b-32c7-9eba-d806ec766cef",
+        "unknown": false
+      }
+    ],
+    "dependencies": [
+      {
+        "id": "aa1ed860-71e4-3c6f-81df-6e908d3b10f9",
+        "kind": "context",
+        "name": "coord_x",
+        "dataType": "number",
+        "target": "coord_x"
+      }
+    ],
+    "unknownRoot": {}
+  },
+  "diagnostics": [
+    {
+      "code": "PROCEDURE_RETURN_TYPE_MISMATCH",
+      "severity": "error",
+      "message": {
+        "key": "diagnostic.procedure_return_type_mismatch",
+        "fallback": "Return value must have type logic, but the connected node produces number.",
+        "args": {
+          "nodeId": "c7b0bbc4-840b-32c7-9eba-d806ec766cef",
+          "port": "VALUE"
+        }
+      },
+      "path": "/elements/873bda5a-3e07-4ee1-86b6-7850cb25f18e/procedureIr/nodes/c7b0bbc4-840b-32c7-9eba-d806ec766cef/ports/VALUE",
+      "elementId": "873bda5a-3e07-4ee1-86b6-7850cb25f18e",
+      "recoverable": true,
+      "actions": [
+        {
+          "id": "open_procedure_node",
+          "label": {
+            "key": "action.open_procedure_node",
+            "fallback": "Locate node",
+            "args": {}
+          },
+          "kind": "open_procedure_node",
+          "target": "c7b0bbc4-840b-32c7-9eba-d806ec766cef",
+          "payload": {
+            "nodeId": "c7b0bbc4-840b-32c7-9eba-d806ec766cef",
+            "port": "VALUE"
+          }
+        }
+      ]
+    },
+    {
+      "code": "PROCEDURE_CONTEXT_MISSING",
+      "severity": "error",
+      "message": {
+        "key": "diagnostic.procedure_context_missing",
+        "fallback": "Trigger mod_serverload does not provide x of type number. Use a compatible trigger or supply context through a caller.",
+        "args": {
+          "nodeId": "aa37fd22-6ad1-414e-9e90-25c2a8fb7232"
+        }
+      },
+      "path": "/elements/873bda5a-3e07-4ee1-86b6-7850cb25f18e/procedureIr/nodes/aa37fd22-6ad1-414e-9e90-25c2a8fb7232",
+      "elementId": "873bda5a-3e07-4ee1-86b6-7850cb25f18e",
+      "recoverable": true,
+      "actions": [
+        {
+          "id": "open_procedure_node",
+          "label": {
+            "key": "action.open_procedure_node",
+            "fallback": "Locate node",
+            "args": {}
+          },
+          "kind": "open_procedure_node",
+          "target": "aa37fd22-6ad1-414e-9e90-25c2a8fb7232",
+          "payload": {
+            "nodeId": "aa37fd22-6ad1-414e-9e90-25c2a8fb7232"
+          }
+        }
+      ]
+    }
+  ]
+}

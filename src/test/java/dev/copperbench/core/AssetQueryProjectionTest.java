@@ -48,8 +48,8 @@ class AssetQueryProjectionTest {
 		Path elementOnlyTexture = temp.resolve("assets/copperbench/textures/block/element_only.png");
 		Files.createDirectories(model.getParent());
 		Files.createDirectories(texture.getParent());
-		Files.writeString(model, "{\"textures\":{\"all\":\"copperbench:block/lamp\"},"
-				+ "\"missing\":\"copperbench:block/missing\"}");
+		Files.writeString(model, "{\"textures\":{\"all\":\"copperbench:block/lamp\","
+				+ "\"missing\":\"copperbench:block/missing\"}}");
 		Files.write(texture, new byte[] { 1, 2, 3 });
 		Files.write(duplicateTexture, new byte[] { 1, 2, 3 });
 		Files.write(elementOnlyTexture, new byte[] { 4, 5, 6 });
@@ -81,7 +81,7 @@ class AssetQueryProjectionTest {
 		assertEquals(4, projection.getAsJsonArray("assets").size());
 		assertTrue(projection.getAsJsonArray("assets").toString().contains("assets/copperbench/models/block/lamp.json"));
 		assertTrue(projection.getAsJsonArray("assets").get(0).getAsJsonObject().has("updatedAt"));
-		assertEquals(1, projection.getAsJsonArray("references").size());
+		assertEquals(2, projection.getAsJsonArray("references").size());
 		assertEquals("assets/copperbench/textures/block/lamp.png",
 				projection.getAsJsonArray("references").get(0).getAsJsonObject().get("targetPath").getAsString());
 		JsonObject reference = projection.getAsJsonArray("references").get(0).getAsJsonObject();
@@ -94,15 +94,15 @@ class AssetQueryProjectionTest {
 		JsonObject diagnostic = projection.getAsJsonArray("diagnostics").get(0).getAsJsonObject();
 		assertEquals("MISSING_ASSET_REFERENCE", diagnostic.get("code").getAsString());
 		assertEquals("error", diagnostic.get("severity").getAsString());
-		assertEquals("/assets/" + modelAssetId, diagnostic.get("path").getAsString());
+		assertEquals("/assets/" + modelAssetId + "/textures/missing", diagnostic.get("path").getAsString());
 		assertEquals(modelAssetId, diagnostic.getAsJsonArray("actions").get(0).getAsJsonObject()
 				.get("target").getAsString());
 		assertEquals("open_asset", diagnostic.getAsJsonArray("actions").get(0).getAsJsonObject()
 				.get("kind").getAsString());
-		assertEquals("assets/copperbench/block/missing.json",
+		assertEquals("assets/copperbench/textures/block/missing.png",
 				diagnostic.getAsJsonObject("message").getAsJsonObject("args").get("targetPath").getAsString());
 		assertEquals("MISSING_ASSET_REFERENCE", result.diagnostics().getFirst().code());
-		assertEquals("/assets/" + modelAssetId, result.diagnostics().getFirst().path());
+		assertEquals("/assets/" + modelAssetId + "/textures/missing", result.diagnostics().getFirst().path());
 		JsonObject health = projection.getAsJsonObject("health");
 		assertEquals(4, health.get("totalAssets").getAsInt());
 		assertEquals(1, health.get("errorAssets").getAsInt());

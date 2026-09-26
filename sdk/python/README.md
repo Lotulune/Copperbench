@@ -2,6 +2,12 @@
 
 Python 3.11+。`Workspace` 直接调用产品 Core，可连接桌面当前工作区，也可独立打开工作区；`CopperbenchClient` 提供可选的 MCP 调用方式。
 
+字段能力、内部名称与游戏注册 ID、冷工程准备、模型回导和可信产物导出见[结构化编辑与验收产物](../../docs/stage-17-agent-workflow.md)。发行包同时提供该文档，以及 [Fabric / NeoForge 1.21.1 Code 生命周期示例](../../examples/agent-native/lifecycle-1.21.1/README.md)。
+
+通用 `workspace.command` / `workspace.query` 的操作参数可查随包 [Core 命令 schema](../../ui-core/schemas/v1.0/command.schema.json) 与 [Core 查询 schema](../../ui-core/schemas/v1.0/query.schema.json)：各 operation 对应的 `payload` 就是关键字参数结构，SDK负责协议封装；跨文件引用的定义也在同一目录。MCP工具的参数以服务端 `tools/list` 为准，不能直接照搬 Core 请求封装。
+
+建模查询的返回结构见 [Core 查询结果 schema](../../ui-core/schemas/v1.0/query-result.schema.json) 和 [资产定义中的 modelingTask](../../ui-core/schemas/v1.0/asset.schema.json)。`elementContext` 记录任务开始时选定的元素与建议路径，`binding` 单独描述当前关联；旧任务可以没有这两项。`state=imported` 或 `binding.state=bound` 均不代表构建或游戏验证已通过。
+
 桌面内可直接使用导航栏的「Python 工作台」：持久控制台、脚本编辑与执行、当前选择、代码补全、异常定位和停止/重启，详见 [Python 工作台使用说明](../../docs/user/python-workbench.md)。源码仓库中的文档路径为 `docs/user/python-workbench.md`，发行包 SDK 可参考本页接口说明。
 
 ## 安装与打开工作区
@@ -90,13 +96,27 @@ workspace.command(
 )
 ```
 
-`query()` / `command()` 的操作名和 payload 字段沿用 UI-Core 契约，未承诺未实现的任意内部 Java 方法。常用便捷方法包括元素创建/更新、过程更新、生成/构建/校验、客户端/服务器、GameTest 和任务查询。完整操作名见源码 `UiCore.Operation`。
+`query()` / `command()` 的操作名和 payload 字段沿用 UI-Core 契约，未承诺未实现的任意内部 Java 方法。常用便捷方法包括元素创建/更新、过程更新、生成/构建/校验、客户端/服务器、GameTest 和任务查询。完整公开操作名和参数见本页开头链接的随包 Core 命令与查询 schema，无需读取产品实现。
 
 ## 版本、授权与错误
 
 每次修改默认使用当前会话最后观察到的 revision，也可显式传 `expected_revision=...`。冲突不会自动重试或覆盖；先检查 `NativeApiError.details`，重新读取状态，再决定后续操作。一次网络或进程故障不触发自动重放写操作。
 
 普通本地工作区操作使用 `HEADLESS / WORKSPACE` 核心权限。创建工作区、历史恢复等受保护操作仍执行现有批准规则，不能通过 `userApproved=True` 伪造桌面用户。需要任务授权时，在打开会话时传入用户签发的 `task_authorization_id`；该 ID 自动附在核心声明支持任务授权的命令中。撤销授权和取消任务不依赖仍然有效的授权。服务器 EULA 规则保留。
+
+在桌面「AI 与 MCP → 任务授权」审查目录、操作和期限后创建授权。要发现已经签发的授权，可在同一系统用户下执行只读命令；此命令不创建授权，也不接受 EULA：
+
+```powershell
+# Windows：在安装目录中执行
+.\copperbench.exe bootstrap list-authorizations
+```
+
+```sh
+# Ubuntu deb 安装；便携包改用包内 ./copperbench.sh
+/usr/bin/copperbench bootstrap list-authorizations
+```
+
+核对返回记录的 `root`、`capabilities`、`active`、`expiresAt`；运行专用服务器还须 `serverEulaAccepted=true`。NeoForge 1.20.1 的 GameTest 使用专用服务器，因此需要覆盖测试工作区的 `run_server` 授权。通过 `Workspace.open(..., task_authorization_id=authorization_id)` 或 `Workspace.connect(..., task_authorization_id=authorization_id)` 携带它。完整流程与各轨道边界见随包[任务授权与自动验收](../../docs/ai/task-authorization-and-acceptance.md)。
 
 ```python
 from copperbench import NativeApiError

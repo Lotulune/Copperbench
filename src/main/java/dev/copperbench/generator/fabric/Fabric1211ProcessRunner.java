@@ -82,6 +82,7 @@ import java.util.function.Supplier;
 			}
 			command.add("--no-daemon");
 			command.addAll(arguments);
+			var resourceCapture = dev.copperbench.generator.ResourceDependencyCapture.prepare(workspaceRoot, command, output);
 			ProcessBuilder builder = new ProcessBuilder(command).directory(workspaceRoot.toFile())
 					.redirectErrorStream(true);
 			Path resolvedJavaHome = javaHome == null ? null : javaHome.get();
@@ -93,18 +94,19 @@ import java.util.function.Supplier;
 			if (resolvedJavaHome != null) {
 				builder.environment().put("JAVA_HOME", resolvedJavaHome.toAbsolutePath().normalize().toString());
 			}
-			String configuredGradleUserHome = System.getenv("COPPERBENCH_GRADLE_USER_HOME");
-			if (configuredGradleUserHome != null && !configuredGradleUserHome.isBlank()) {
-				builder.environment().put("GRADLE_USER_HOME", configuredGradleUserHome);
-			}
+			configureGradleHome(builder.environment(), net.mcreator.io.UserFolderManager.getGradleHome().toPath());
 			if (resolvedJavaHome != null)
 				dev.copperbench.gradle.GradleRuntimeCompatibility.configure(resolvedJavaHome, builder.environment(), output);
 			Process process;
+			boolean observedSuccessfulExit = false;
+			try {
+			if (Thread.currentThread().isInterrupted()) throw new InterruptedException("Fabric process was cancelled before launch");
 			try {
 				process = builder.start();
 			} catch (IOException exception) {
 				throw new GradleProcessRunner.ProcessStartException(command.getFirst(), workspaceRoot, exception);
 			}
+			try {
 			AtomicBoolean marker = new AtomicBoolean();
 			AtomicBoolean serverReady = new AtomicBoolean();
 			AtomicBoolean serverFatal = new AtomicBoolean();
@@ -134,6 +136,7 @@ import java.util.function.Supplier;
 			boolean serverRun = isServerRun(arguments);
 			Instant serverReadyAt = null;
 			while (process.isAlive() && (noTimeout || Instant.now().isBefore(deadline))) {
+				if (readFailure.get() != null) throw readFailure.get();
 				if (Thread.currentThread().isInterrupted()) {
 					destroy(process);
 					throw new InterruptedException("Fabric process was cancelled");
@@ -161,12 +164,34 @@ import java.util.function.Supplier;
 						: serverRun && marker.get() && serverReady.get() && !serverFatal.get(), runtimeFailureCode.get());
 			}
 			reader.join(Duration.ofSeconds(10));
+			if (reader.isAlive()) throw new IOException("Process output did not close after exit; result is unconfirmed");
 			if (readFailure.get() != null) throw readFailure.get();
+			observedSuccessfulExit = process.exitValue() == 0;
 			boolean stableServerExit = serverRun && stabilityWindowSatisfied(serverReadyAt, Instant.now());
 			return new ProcessResult(process.exitValue(),
 					clientRun ? marker.get()
 							: serverRun ? stableServerExit && marker.get() && serverReady.get() && !serverFatal.get()
-									: marker.get(), runtimeFailureCode.get());
+								: marker.get(), runtimeFailureCode.get());
+			} finally {
+				// waitFor/join throw on cancellation before the loop can observe the interrupt flag.
+				// Keep cleanup on every exceptional path, including failures in the output consumer.
+				if (process.isAlive()) destroy(process);
+			}
+			} catch (InterruptedException exception) {
+				Thread.currentThread().interrupt();
+				throw exception;
+			} finally {
+				if (resourceCapture != null) resourceCapture.finish(observedSuccessfulExit);
+			}
+		}
+
+		static void configureGradleHome(java.util.Map<String, String> environment, Path productGradleHome) {
+			String configured = environment.get("COPPERBENCH_GRADLE_USER_HOME");
+			if (configured == null || configured.isBlank()) configured = environment.get("GRADLE_USER_HOME");
+			if (configured == null || configured.isBlank()) configured = productGradleHome.toAbsolutePath().normalize().toString();
+			// Match GUI setup: this directory holds the chosen mirror init script and downloaded dependencies.
+			// Explicit caller overrides remain authoritative.
+			environment.put("GRADLE_USER_HOME", configured);
 		}
 
 		private static void destroy(Process process) {
@@ -219,6 +244,13 @@ import java.util.function.Supplier;
 
 	static boolean isMinecraftServerReadyLine(String line) {
 		return line != null && line.contains("Done (") && line.contains("For help, type \"help\"");
+	}
+
+	static boolean isMinecraftClientRenderingLine(String line) {
+		// Atlas creation on the render thread is observed after graphics initialization.
+		// Mod initialization and audio startup can occur without a usable game window.
+		return line != null && line.contains("[Render thread/INFO]")
+				&& line.matches(".*\\bCreated: [1-9][0-9]*x[1-9][0-9]*x[0-9]+ [a-z0-9_.-]+:[a-z0-9_./-]+-atlas(?:\\s.*)?$");
 	}
 
 	static boolean isMinecraftServerFatalLine(String line) {

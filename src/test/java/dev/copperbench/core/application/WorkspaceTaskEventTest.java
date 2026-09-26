@@ -167,6 +167,7 @@ class WorkspaceTaskEventTest {
 
 			UUID failedTask = startBuild(service, 20);
 			awaitTaskState(tasks, failedTask, "failed");
+			awaitEvent(received, "task_completed", failedTask);
 			assertTrue(received.stream().anyMatch(event -> event.event().equals("task_progressed")));
 			assertTrue(received.stream().anyMatch(event -> event.event().equals("task_log_appended")));
 			assertTrue(received.stream().anyMatch(event -> event.event().equals("diagnostics_changed")));

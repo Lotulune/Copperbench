@@ -387,7 +387,7 @@ class WorkspaceApplicationServiceTest {
 		payload.addProperty("elementId", elementId.toString());
 		JsonObject change = new JsonObject();
 		change.addProperty("path", "/fields/hardness");
-		change.addProperty("value", 101);
+		change.addProperty("value", 64001);
 		JsonArray changes = new JsonArray();
 		changes.add(change);
 		payload.add("changes", changes);
@@ -399,8 +399,7 @@ class WorkspaceApplicationServiceTest {
 		assertEquals("rejected", outcome.result().status());
 		var diagnostic = outcome.result().diagnostics().getFirst();
 		assertEquals("FIELD_VALUE_OUT_OF_RANGE", diagnostic.code());
-		assertEquals(0, diagnostic.message().args().get("min").getAsInt());
-		assertEquals(100, diagnostic.message().args().get("max").getAsInt());
+		assertTrue(diagnostic.message().args().get("reason").getAsString().contains("64000"));
 		assertEquals("/elements/" + elementId + "/fields/hardness", diagnostic.path());
 		assertEquals(elementId, diagnostic.elementId());
 		assertEquals("open_field", diagnostic.actions().getFirst().kind());
@@ -605,8 +604,11 @@ class WorkspaceApplicationServiceTest {
 		assertEquals("generation", editorSectionId(structureSections, "/startHeightMin"));
 
 		Fixture plantFixture = fixture();
+		JsonObject plantValues = new JsonObject();
+		plantValues.addProperty("texture", "minecraft:poppy");
+		plantValues.addProperty("suspiciousStewEffect", "SPEED");
 		CommandOutcome plantCreated = plantFixture.service.execute(
-				createElementCommand(uuid(68), "plant", "double_plant", new JsonObject()), context);
+				createElementCommand(uuid(68), "plant", "double_plant", plantValues), context);
 		JsonArray plantSections = editorSections(plantFixture, plantCreated, uuid(69), context);
 		JsonObject bottomTexture = editorField(plantSections, "/textureBottom");
 		assertEquals("block", bottomTexture.get("resourceType").getAsString());
@@ -646,8 +648,13 @@ class WorkspaceApplicationServiceTest {
 		int sequence = 70;
 		for (String type : types) {
 			Fixture fixture = fixture();
+			JsonObject initialValues = new JsonObject();
+			if (type.equals("plant")) {
+				initialValues.addProperty("texture", "minecraft:poppy");
+				initialValues.addProperty("suspiciousStewEffect", "SPEED");
+			}
 			CommandOutcome created = fixture.service.execute(
-					createElementCommand(uuid(sequence++), type, "depth_" + type, new JsonObject()), context);
+					createElementCommand(uuid(sequence++), type, "depth_" + type, initialValues), context);
 			assertEquals("committed", created.result().status(), type + " minimal Stage 12 create should commit");
 			JsonArray sections = editorSections(fixture, created, uuid(sequence++), context);
 			assertTrue(sections.size() > 1, type + " should expose Stage 12 domain sections");
@@ -820,6 +827,35 @@ class WorkspaceApplicationServiceTest {
 			return "resource".equals(edge.get("kind").getAsString())
 					&& "minecraft:copper_ingot".equals(edge.get("targetName").getAsString());
 		}));
+	}
+
+	@Test void procedureReturnPreviewBlocksGenerationButKeepsAnEditableDraft() {
+		Fixture fixture = fixture();
+		RequestContext context = new RequestContext(Actor.UI, PermissionProfile.WORKSPACE);
+		UUID returnId = uuid(960), valueId = uuid(961);
+		JsonObject values = new JsonObject();
+		values.addProperty("procedurexml", "<xml><block type=\"event_trigger\"><field name=\"trigger\">no_ext_trigger</field><next>"
+				+ "<block type=\"return_number\" id=\"" + returnId + "\"><value name=\"VALUE\"><block type=\"math_number\" id=\""
+				+ valueId + "\"><field name=\"NUM\">17</field></block></value></block></next></block></xml>");
+		var created = fixture.service.execute(createTypedCommand(uuid(962), 0, "procedure", "return_preview", values), context);
+		assertEquals("committed", created.result().status());
+		String elementId = created.result().data().getAsJsonObject().getAsJsonObject("element").get("id").getAsString();
+		JsonObject replacement = new JsonObject(); replacement.addProperty("type", "text"); replacement.addProperty("kind", "value");
+		JsonObject fields = new JsonObject(); fields.addProperty("TEXT", "not a number"); replacement.add("fields", fields);
+		JsonObject edit = new JsonObject(); edit.addProperty("operation", "replace_node"); edit.addProperty("nodeId", valueId.toString()); edit.add("node", replacement);
+		JsonArray edits = new JsonArray(); edits.add(edit);
+		JsonObject payload = new JsonObject(); payload.addProperty("elementId", elementId); payload.add("edits", edits);
+		var preview = fixture.service.query(Query.of(uuid(963), WORKSPACE_ID, Operation.PREVIEW_PROCEDURE_CHANGE, payload), context);
+		JsonObject data = preview.data().getAsJsonObject();
+		assertTrue(data.get("canSaveDraft").getAsBoolean());
+		assertFalse(data.get("canGenerate").getAsBoolean());
+		JsonObject diagnostic = data.getAsJsonArray("diagnostics").get(0).getAsJsonObject();
+		assertEquals("PROCEDURE_RETURN_TYPE_MISMATCH", diagnostic.get("code").getAsString());
+		assertTrue(diagnostic.get("path").getAsString().endsWith("/nodes/" + returnId + "/ports/VALUE"));
+		assertEquals(returnId.toString(), diagnostic.getAsJsonArray("actions").get(0).getAsJsonObject().get("target").getAsString());
+		var updated = fixture.service.execute(Command.of(uuid(964), WORKSPACE_ID, 1, Operation.UPDATE_PROCEDURE, payload), context);
+		assertEquals("committed", updated.result().status());
+		assertEquals("invalid", updated.result().data().getAsJsonObject().getAsJsonObject("element").get("state").getAsString());
 	}
 
 	@Test void procedurePreviewExposesStableNodeAndPortNavigationAction() {

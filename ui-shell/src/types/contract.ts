@@ -177,6 +177,13 @@ export interface ModElementSummary {
   id: UUID;
   type: ModElementType | string;
   name: string;
+  identity?: {
+    internalName: string;
+    registryName: string;
+    source: 'generator_definition';
+    namespace?: string;
+    resourceId?: string;
+  };
   displayName: string;
   state: 'valid' | 'invalid' | 'draft' | 'unsupported';
   ownership: 'generated' | 'manual' | 'mixed';
@@ -197,6 +204,8 @@ export interface TaskSummary {
   diagnostics: DiagnosticCounts;
   sourceSnapshot?: { sha256: string; fileCount: number; bytes: number; manifestPath: string };
   verification?: GameTestVerification;
+  verifiedExport?: { exportDirectory: string; artifactSha256: string; status: 'passed_current_input' | 'passed_historical_input' };
+  resultObservation?: 'unconfirmed_after_session_loss';
   gameTestSetup?: { state: string; configurationPath: string; starterScope?: 'mod_loading_only'; createdPaths?: string[] };
 }
 
@@ -234,6 +243,10 @@ export interface WorkspaceHealthProjection {
   revision: Revision;
   elements: ElementCounts;
   diagnostics: {
+    scope?: 'workspace_current';
+    collectionState?: 'complete' | 'partial';
+    snapshotId?: string;
+    items?: Diagnostic[];
     total: number;
     error: number;
     warning: number;
@@ -290,6 +303,7 @@ export interface WorkbenchProjection {
   connection: ConnectionProjection;
   elementCounts: ElementCounts;
   activeTasks: TaskSummary[];
+  recentTasks?: TaskSummary[];
   capabilities: CapabilityDecision[];
   recentElements: ModElementSummary[];
 }
@@ -363,6 +377,8 @@ export interface ProcedureEditorProjection {
   readOnly: boolean;
   ir: ProcedureIr;
   nodeCatalog: ProcedureNodeCatalogItem[];
+  /** Optional for compatibility with older hosts. Never infer external trigger IDs when absent. */
+  triggerCatalog?: Array<{ id: string; label: LocalizedText; dependencies: Array<{ name: string; type: string }> }>;
   symbols: ProcedureSymbols;
   sourcePreview: string;
   sourceOwnership: 'generated' | 'manual' | 'mixed';
@@ -535,6 +551,12 @@ export interface ModElementEditorProjection {
   element: ModElementSummary;
   sections: EditorSection[];
   capabilities: CapabilityDecision[];
+  configuration?: {
+    status: 'consistent' | 'drift' | 'unverified';
+    generationState?: 'pending' | 'ready';
+    differences?: { path: string; declared: unknown; effective: unknown }[];
+    planOperations?: Record<'adopt_definition' | 'reapply_declared', Omit<WorkspacePlanStep, 'plannedId'>>;
+  };
 }
 
 export interface ModElementChangePreview {
@@ -1204,7 +1226,10 @@ export interface AssetProjectionReference {
   rawValue: string;
   expectedPrefix: string | null;
   targetPath: string;
-  targetAssetId: string;
+  targetAssetId: string | null;
+  resolution?: 'workspace_resolved' | 'vanilla_resolved' | 'dependency_resolved' | 'missing' | 'unverified' | 'invalid';
+  resourceSource?: string | null;
+  resourceVersion?: string | null;
   kind: 'RESOURCE_ID' | 'JSON_STRING' | 'FILE_PATH';
 }
 

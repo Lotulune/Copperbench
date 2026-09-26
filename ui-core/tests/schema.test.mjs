@@ -3,9 +3,47 @@ import test from 'node:test';
 import { readFile } from 'node:fs/promises';
 import { createValidator, validateAll } from '../scripts/validate.mjs';
 
+test('Procedure trigger catalogs carry typed dependencies and remain optional for older hosts', async () => {
+  const { ajv } = await createValidator();
+  const validate = ajv.getSchema('urn:ui-core:1.0:query-result');
+  const result = { messageType: 'query_result', schemaVersion: '1.0', requestId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa31',
+    workspaceId: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', operation: 'get_procedure_editor',
+    status: 'succeeded', revision: 1, diagnostics: [], data: {} };
+  assert.equal(validate(result), true, JSON.stringify(validate.errors));
+  result.data.triggerCatalog = [{ id: 'player_ticks', label: { key: 'trigger.player_ticks', fallback: 'Player tick' },
+    dependencies: [{ name: 'x', type: 'number' }] }];
+  assert.equal(validate(result), true, JSON.stringify(validate.errors));
+  result.data.triggerCatalog[0].dependencies[0].type = 3;
+  assert.equal(validate(result), false);
+  result.data.triggerCatalog[0].dependencies[0].type = 'number';
+  result.data.triggerCatalog[0].id = '';
+  assert.equal(validate(result), false);
+});
+
 async function schema(name) {
   return JSON.parse(await readFile(new URL(`../schemas/v1.0/${name}.schema.json`, import.meta.url), 'utf8'));
 }
+
+test('element identity distinguishes internal names from generator resource IDs without requiring new fields in old clients', async () => {
+  const { ajv } = await createValidator();
+  const validate = ajv.compile({ $ref: 'urn:ui-core:1.0:common#/$defs/modElementSummary' });
+  const element = { id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa31', type: 'block', name: 'contract_probe_v6',
+    displayName: 'Contract Probe', state: 'valid', ownership: 'generated', updatedAt: '2026-09-20T00:00:00Z',
+    diagnostics: { error: 0, warning: 0, info: 0 } };
+  assert.equal(validate(element), true, JSON.stringify(validate.errors));
+  element.identity = { internalName: 'contract_probe_v6', registryName: 'contract_probe_v_6',
+    namespace: 'structured_forge', resourceId: 'structured_forge:contract_probe_v_6', source: 'generator_definition' };
+  assert.equal(validate(element), true, JSON.stringify(validate.errors));
+  element.identity.resourceId = 'structured_forge:InvalidName';
+  assert.equal(validate(element), false);
+  delete element.identity.resourceId;
+  delete element.identity.namespace;
+  element.ownership = 'manual';
+  assert.equal(validate(element), true, JSON.stringify(validate.errors));
+  const query = { messageType: 'query', schemaVersion: '1.0', requestId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa31',
+    workspaceId: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', operation: 'list_mod_elements', payload: { limit: 100, fields: ['id', 'identity'] } };
+  assert.equal(ajv.getSchema('urn:ui-core:1.0:query')(query), true);
+});
 
 test('Blockbench discovery accepts explicit probing and rejects unexpected execution options', async () => {
   const { ajv } = await createValidator();
@@ -36,6 +74,12 @@ test('modeling tasks require a single source and a saved file hash for completio
   assert.equal(validate(request), false);
   delete request.payload.targetRelativePath;
   assert.equal(validate(request), true, JSON.stringify(validate.errors));
+  request.payload.elementId = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd';
+  assert.equal(validate(request), true, JSON.stringify(validate.errors));
+  delete request.payload.assetId;
+  assert.equal(validate(request), true, JSON.stringify(validate.errors));
+  delete request.payload.elementId;
+  assert.equal(validate(request), false);
   request.operation = 'finish_blockbench_task';
   delete request.payload.assetId;
   assert.equal(validate(request), false);
@@ -43,6 +87,39 @@ test('modeling tasks require a single source and a saved file hash for completio
   assert.equal(validate(request), true, JSON.stringify(validate.errors));
   request.payload.launch = true;
   assert.equal(validate(request), false);
+});
+
+test('modeling query results describe persisted context and independent binding while accepting legacy tasks', async () => {
+  const { ajv } = await createValidator();
+  const validate = ajv.getSchema('urn:ui-core:1.0:query-result');
+  const task = { taskId: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', workspaceId: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+    targetRelativePath: 'models/blockbench/lamp.bbmodel', openedRevision: 0, state: 'editing', editSha256: null };
+  const response = { messageType: 'query_result', schemaVersion: '1.0', requestId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa31',
+    workspaceId: task.workspaceId, operation: 'get_blockbench_task', status: 'succeeded', revision: 0, diagnostics: [], data: task };
+  assert.equal(validate(response), true, JSON.stringify(validate.errors));
+  task.elementContext = { elementId: 'dddddddd-dddd-4ddd-8ddd-dddddddddddd', name: 'lamp', type: 'block',
+    namespace: 'example', modelResource: 'example:custom/lamp', textureDirectory: 'src/main/resources/assets/example/textures/block' };
+  for (const state of ['unbound', 'manual', 'element_missing']) {
+    task.binding = { state };
+    assert.equal(validate(response), true, JSON.stringify(validate.errors));
+  }
+  task.binding = { state: 'bound' };
+  assert.equal(validate(response), false);
+  task.binding.modelResource = 'example:custom/lamp';
+  task.state = 'imported';
+  assert.equal(validate(response), true, JSON.stringify(validate.errors));
+  task.binding.state = 'succeeded';
+  assert.equal(validate(response), false);
+  task.binding.state = 'bound';
+  task.elementContext.type = 'procedure';
+  assert.equal(validate(response), false);
+  task.elementContext.type = 'block';
+  response.operation = 'list_blockbench_tasks'; response.data = { tasks: [task] };
+  assert.equal(validate(response), true, JSON.stringify(validate.errors));
+  task.editSha256 = 'invalid';
+  assert.equal(validate(response), false);
+  response.status = 'failed'; response.data = null;
+  assert.equal(validate(response), true, JSON.stringify(validate.errors));
 });
 
 test('all UI-Core schemas compile and all mock scenarios validate', async () => {
@@ -82,6 +159,28 @@ test('command and query result operation sets match their request envelopes', as
 
   assert.deepEqual(commandResult.properties.operation.enum, command.properties.operation.enum);
   assert.deepEqual(queryResult.properties.operation.enum, query.properties.operation.enum);
+});
+
+test('Stage17 auto mapping, external references and verified exports match the published contract', async () => {
+  const { ajv } = await createValidator();
+  const query = { messageType: 'query', schemaVersion: '1.0', requestId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa31',
+    workspaceId: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', operation: 'preview_blockbench_import',
+    payload: { taskId: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', elementId: 'dddddddd-dddd-4ddd-8ddd-dddddddddddd' } };
+  const validateQuery = ajv.getSchema('urn:ui-core:1.0:query');
+  assert.equal(validateQuery(query), true, JSON.stringify(validateQuery.errors));
+  delete query.payload.elementId;
+  assert.equal(validateQuery(query), false);
+  const command = { ...query, messageType: 'command', operation: 'export_workspace', expectedRevision: 0,
+    payload: { clientMutationId: query.requestId, scope: 'workspace', verifiedTaskId: query.payload.taskId, allowHistorical: true } };
+  const validateCommand = ajv.getSchema('urn:ui-core:1.0:command');
+  assert.equal(validateCommand(command), true, JSON.stringify(validateCommand.errors));
+  command.payload.allowHistorical = 'true';
+  assert.equal(validateCommand(command), false);
+  const asset = await schema('asset');
+  const validateReference = ajv.compile(asset.$defs.reference);
+  assert.equal(validateReference({ sourceAssetId: `asset:${'a'.repeat(64)}`, sourcePath: 'assets/mod/models/test.json',
+    sourcePointer: '/parent', rawValue: 'minecraft:block/cube_all', targetPath: 'assets/minecraft/models/block/cube_all.json',
+    targetAssetId: null, kind: 'RESOURCE_ID', resolution: 'vanilla_resolved', resourceSource: 'minecraft-client.jar', resourceVersion: '1.21.1' }), true);
 });
 
 test('list_mod_elements accepts the unified cursor query contract and rejects unknown fields', async () => {

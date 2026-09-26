@@ -95,6 +95,21 @@ class NativeApiTest(unittest.TestCase):
         self.assertEqual(3, len(self.requests()))
         self.assertEqual('succeeded', client.get_workspace()['status'])
 
+    def test_plan_query_revision_is_payload_only_and_apply_uses_plan_revision(self):
+        client = self.open()
+        client.build()
+        client.plan_workspace_changes([], idempotency_key='stage17')
+        client.get_workspace()
+        plan = {'baseRevision': 0}
+        with self.assertRaises(NativeApiError):
+            client.apply_workspace_plan(plan)
+        requests = self.requests()
+        planning = next(r for r in requests if r['operation'] == 'plan_workspace_changes')
+        self.assertEqual(1, planning['payload']['expectedRevision'])
+        self.assertNotIn('expectedRevision', planning)
+        self.assertTrue(all('expectedRevision' not in r['payload'] for r in requests if r['operation'] == 'get_workbench'))
+        self.assertEqual(1, len([r for r in requests if r['operation'] == 'apply_workspace_plan']))
+
     def test_authorization_is_attached_to_commands_but_cancel_remains_available(self):
         client = self.open(task_authorization_id='approved-id')
         client.build()

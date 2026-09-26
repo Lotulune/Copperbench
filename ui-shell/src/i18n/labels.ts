@@ -1,4 +1,5 @@
 import { zh } from './zh';
+import { UI_LOCALE } from './locale';
 import type { ModElementType } from '../types/contract';
 
 // Display labels only: persisted identifiers and generated code remain unchanged.
@@ -12,9 +13,33 @@ export const ELEMENT_LABELS: Record<ModElementType, string> = {
 };
 
 export function elementLabel(value: string): string {
+  if (UI_LOCALE === 'en') return englishElements[value as ModElementType] ?? value;
   const label = ELEMENT_LABELS[value as ModElementType];
   const english = value === 'achievement' ? 'Advancement / achievement' : value === 'loottable' ? 'Loot Table' : value === 'procedure' ? 'Procedure' : value === 'function' ? 'Function' : value;
   return label ? `${label}（${english}）` : value;
+}
+
+const englishElements: Record<ModElementType, string> = {
+  block: 'Block', item: 'Item', recipe: 'Recipe', procedure: 'Procedure', function: 'Function', loottable: 'Loot table', achievement: 'Advancement',
+  armor: 'Armor', armortrim: 'Armor trim', tool: 'Tool', itemextension: 'Item extension', attribute: 'Attribute', bannerpattern: 'Banner pattern',
+  command: 'Command', damagetype: 'Damage type', enchantment: 'Enchantment', gamerule: 'Game rule', keybind: 'Key binding', painting: 'Painting', particle: 'Particle',
+  potion: 'Potion', potioneffect: 'Potion effect', tab: 'Creative tab', villagerprofession: 'Villager profession', villagertrade: 'Villager trade', biome: 'Biome',
+  dimension: 'Dimension', feature: 'World feature', fluid: 'Fluid', plant: 'Plant', structure: 'Structure', livingentity: 'Living entity', specialentity: 'Special entity',
+  projectile: 'Projectile', gui: 'GUI', overlay: 'Overlay', code: 'Code'
+};
+
+const englishValues: Record<string, string> = {
+  succeeded: 'Completed', committed: 'Saved', queued: 'Queued', running: 'Running', failed: 'Failed', cancelled: 'Cancelled',
+  read_only: 'Read only', workspace: 'Workspace read/write', full_access: 'Full access',
+  run_client: 'Test client', run_server: 'Test server', run_gametest: 'GameTest', run_datagen: 'Data generation',
+  generate: 'Generate code', manual: 'Manually maintained', generated: 'Generated', mixed: 'Mixed ownership',
+  preserve_unknown: 'Preserve unknown data', not_applicable: 'Not applicable', new_ui: 'Workbench', legacy_window: 'Legacy window',
+  logic: 'Boolean', itemstack: 'Item stack', element: 'Element', registry: 'Registry', resource: 'Resource'
+};
+
+function readableIdentifier(value: string): string {
+  const text = value.replace(/([a-z0-9])([A-Z])/g, '$1 $2').replaceAll('_', ' ');
+  return text.length ? text.charAt(0).toUpperCase() + text.slice(1).toLowerCase() : text;
 }
 
 const labels: Record<string, string> = {
@@ -162,10 +187,12 @@ const labels: Record<string, string> = {
 
 /** Unknown extension values stay visible for diagnosis. */
 export function valueLabel(value: string): string {
+  if (UI_LOCALE === 'en') return englishValues[value] ?? (labels[value] ? readableIdentifier(value) : value);
   return labels[value] ?? value;
 }
 
 /** Labels for schema fields; extension properties remain identifiable. */
 export function fieldLabel(key: string): string {
+  if (UI_LOCALE === 'en') return zh[`field.${key}`] ? readableIdentifier(key) : key;
   return zh[`field.${key}`] ?? key;
 }

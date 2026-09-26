@@ -90,6 +90,7 @@ public final class JcefBlockbenchBridgeTransport extends CefMessageRouterHandler
 			BlockbenchProcessService.Snapshot snapshot = switch (operation) {
 				case "status" -> service.status();
 				case "open_asset" -> service.openAsset(requiredString(payload, "assetId"));
+				case "open_task" -> service.openTask(java.util.UUID.fromString(requiredString(payload, "taskId")));
 				default -> throw new IllegalArgumentException("Unsupported Blockbench bridge operation");
 			};
 			callback.success(toWireJson(snapshot));
@@ -161,7 +162,8 @@ public final class JcefBlockbenchBridgeTransport extends CefMessageRouterHandler
 				        status: function() { return invoke({ operation: 'status' }); },
 				        selectExecutable: function() { return invoke({ operation: 'select_executable' }); },
 				        dismissSetup: function() { return invoke({ operation: 'dismiss_setup' }); },
-				        openAsset: function(assetId) { return invoke({ operation: 'open_asset', assetId: assetId }); }
+				        openAsset: function(assetId) { return invoke({ operation: 'open_asset', assetId: assetId }); },
+				        openTask: function(taskId) { return invoke({ operation: 'open_task', taskId: taskId }); }
 				    };
 				})();
 				""".formatted(JSON.toJson(QUERY_PREFIX), JSON.toJson(SCHEMA_VERSION));

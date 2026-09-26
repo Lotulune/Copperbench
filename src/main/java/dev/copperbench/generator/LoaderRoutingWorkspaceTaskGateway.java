@@ -33,6 +33,10 @@ import java.util.function.Supplier;
 
 /** Routes shared task operations to the workspace's single active loader target. */
 public final class LoaderRoutingWorkspaceTaskGateway implements WorkspaceTaskGateway, AutoCloseable {
+	@Override public void setGenerationPreparation(GenerationPreparation preparation) {
+		List.of(fabric, fabric261, fabric262, fabric1201, neoForge, neoForge261, neoForge262, neoForge1201)
+				.forEach(gateway -> gateway.setGenerationPreparation(preparation));
+	}
 
 	private final RevisionedWorkspaceStore store;
 	private final Fabric1211WorkspaceTaskGateway fabric;
@@ -106,6 +110,13 @@ public final class LoaderRoutingWorkspaceTaskGateway implements WorkspaceTaskGat
 		tasks.addAll(neoForge1201.active(workspaceId));
 		tasks.addAll(resourcePack.active(workspaceId));
 		return List.copyOf(tasks);
+	}
+
+	@Override public List<JsonObject> recent(UUID workspaceId) {
+		return List.of(fabric, fabric261, fabric262, fabric1201, neoForge, neoForge261, neoForge262, neoForge1201, resourcePack)
+				.stream().flatMap(gateway -> gateway.recent(workspaceId).stream())
+				.sorted(java.util.Comparator.comparing((JsonObject task) -> task.has("startedAt")
+						? task.get("startedAt").getAsString() : "").reversed()).limit(100).toList();
 	}
 
 	@Override public Optional<JsonObject> cancel(UUID workspaceId, UUID taskId) {

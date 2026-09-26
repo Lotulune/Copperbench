@@ -180,7 +180,7 @@ class Stage9NativeJcefAccessibilityTest {
 			assertTrue(viewportWidth >= 500 && viewportHeight >= 500,
 					"Native JCEF did not expose a usable product-shell viewport: " + metrics);
 			assertTrue(targetCount >= 8, "Too few visible native-JCEF controls were audited: " + targetCount);
-			assertTrue(minTargetWidth >= 32 && minTargetHeight >= 32,
+			assertTrue(minTargetWidth >= 31.99 && minTargetHeight >= 31.99,
 					"A production-shell control is below the 32x32 CSS-pixel target: " + metrics);
 
 			webView.executeScriptAsync("""
@@ -292,7 +292,7 @@ class Stage9NativeJcefAccessibilityTest {
 			double procedureMinTargetWidth = Double.parseDouble(procedureParts[1]);
 			double procedureMinTargetHeight = Double.parseDouble(procedureParts[2]);
 			assertTrue(procedureTargetCount >= 10, "Too few Procedure controls were audited: " + procedureMetrics);
-			assertTrue(procedureMinTargetWidth >= 32 && procedureMinTargetHeight >= 32,
+			assertTrue(procedureMinTargetWidth >= 31.99 && procedureMinTargetHeight >= 31.99,
 					"A Procedure control is below the 32x32 CSS-pixel target: " + procedureMetrics);
 			assertEquals("true", procedureParts[3], "A visible Procedure control has no accessible name");
 

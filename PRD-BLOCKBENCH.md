@@ -1,5 +1,7 @@
 # Copperbench PRD：Blockbench 自动建模与可选工具接入
 
+> 后续优化（2026-09-20）：[Stage 17](./PRD-STAGE-17.md) 的 S17-05/07 跟踪新试作的连接诊断复核与连续回导引导；本文件保留首轮 BB-01～05 及 M1～M4 的历史范围和证据。
+
 > 版本：1.6 · 日期：2026-09-14 · 状态：首轮范围完成，Windows / Ubuntu R7 端到端验收通过；第三方图形稳定性及展示限制已记录
 > 用户已批准：独立安装、按需引导、复用社区 Blockbench MCP、Copperbench 管理建模任务及资产回导。
 > 2026-09-14 后续授权：整理并提交、推送已完成工作；排除仍在处理的 `feature/ui-ux-redesign`，不发布安装包。见[提交前验证](./docs/testing/modeling-scripting-closeout-2026-09-14.md)。

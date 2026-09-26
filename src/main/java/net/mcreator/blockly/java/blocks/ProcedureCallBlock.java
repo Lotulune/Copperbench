@@ -42,12 +42,17 @@ public class ProcedureCallBlock implements IBlockGenerator {
 	}
 
 	@Override public void generateBlock(BlocklyToCode master, Element block) throws TemplateGeneratorException {
-		Element procedureField = XMLUtil.getFirstChildrenWithName(block, "field");
+		String requestedTarget = dev.copperbench.procedure.WorkspaceProcedureTargets.requestedTarget(block);
 		String type = block.getAttribute("type");
 
-		if (procedureField != null && procedureField.getTextContent() != null && !procedureField.getTextContent()
-				.isEmpty()) {
-			Procedure procedure = new Procedure(procedureField.getTextContent());
+		if (!requestedTarget.isBlank()) {
+			String resolvedName = dev.copperbench.procedure.WorkspaceProcedureTargets.resolveName(master.getWorkspace(), requestedTarget);
+			if (resolvedName == null) {
+				master.addCompileNote(new BlocklyCompileNote(BlocklyCompileNote.Type.ERROR,
+						L10N.t("blockly.warnings.call_procedure.nonexistent", requestedTarget)));
+				return;
+			}
+			Procedure procedure = new Procedure(resolvedName);
 			List<Dependency> dependencies = procedure.getDependencies(master.getWorkspace());
 
 			// If the procedure doesn't actually exist, add a warning and skip this block

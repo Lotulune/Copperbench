@@ -1,0 +1,36 @@
+// Executed only as part of an explicitly requested managed Gradle operation.
+// A health query never runs Gradle or resolves dependencies.
+import groovy.json.JsonOutput
+
+gradle.projectsEvaluated {
+    def target = rootProject.findProperty('copperbenchResourceSnapshotOutput')
+    if (target == null) return
+    rootProject.tasks.register(rootProject.property('copperbenchResourceCaptureTask').toString()) {
+        notCompatibleWithConfigurationCache('Records the resolved runtime artifacts for the desktop resource inspector')
+        doLast {
+            def result = [schemaVersion: '1.0', configurations: [], artifacts: [], complete: true]
+            try {
+                [rootProject].each { project ->
+                    ['runtimeClasspath', 'clientRuntimeClasspath'].each { name ->
+                        def configuration = project.configurations.findByName(name)
+                        if (configuration != null && configuration.canBeResolved) {
+                            result.configurations.add(project.path + ':' + name)
+                            configuration.incoming.artifacts.artifacts.each { artifact ->
+                                result.artifacts.add([path: artifact.file.canonicalPath,
+                                    component: artifact.id.componentIdentifier.displayName,
+                                    configuration: project.path + ':' + name])
+                            }
+                        }
+                    }
+                }
+                if (result.configurations.isEmpty()) result.complete = false
+            } catch (Exception failure) {
+                result.complete = false
+                result.failureType = failure.class.name
+            }
+            def output = rootProject.file(target)
+            output.parentFile.mkdirs()
+            output.setText(JsonOutput.toJson(result), 'UTF-8')
+        }
+    }
+}

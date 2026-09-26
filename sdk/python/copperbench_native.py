@@ -261,6 +261,30 @@ class Workspace:
     def get_workspace(self) -> dict[str, Any]:
         return self.query("get_workbench")
 
+    def field_contract(self, element_type: str = "block") -> dict[str, Any]:
+        """Discover the Core contract before constructing structured writes."""
+        return self.query("get_workspace_environment")["data"]["fieldContracts"][element_type]
+
+    def plan_workspace_changes(self, operations: list[dict[str, Any]], *, idempotency_key: str,
+                               expected_revision: int | None = None,
+                               require_recovery_point: bool = False) -> dict[str, Any]:
+        """Plan queries carry expectedRevision in their payload, unlike ordinary queries."""
+        return self.query("plan_workspace_changes", operations=operations, idempotencyKey=idempotency_key,
+                          expectedRevision=self.revision if expected_revision is None else expected_revision,
+                          requireRecoveryPoint=require_recovery_point)
+
+    def preview_workspace_plan(self, plan: dict[str, Any]) -> dict[str, Any]:
+        return self.query("preview_workspace_plan", plan=plan)
+
+    def apply_workspace_plan(self, plan: dict[str, Any], *, expected_revision: int | None = None) -> dict[str, Any]:
+        """Apply once; conflicts never trigger automatic replay."""
+        return self.command("apply_workspace_plan", plan=plan,
+                            expected_revision=plan["baseRevision"] if expected_revision is None else expected_revision)
+
+    def export_verified_artifact(self, task_id: str, *, allow_historical: bool = False) -> dict[str, Any]:
+        """Start a hash-verified export of the selected acceptance artifact; wait for its terminal task."""
+        return self.command("export_workspace", verifiedTaskId=task_id, allowHistorical=allow_historical)
+
     def get_context(self) -> dict[str, Any]:
         return self._call('context', 'get', {})['data']
 

@@ -18,6 +18,7 @@ public final class BlockbenchProcessService implements AutoCloseable {
 	private AssetTaskLease lease;
 	private Snapshot snapshot;
 	private PreparedEdit preparedEdit;
+	private Path modelingEdit;
 
 	/** The product reuses the same locator as setup diagnostics, including installs made after startup. */
 	public static BlockbenchProcessService autoDetected(AssetWorkspaceService assets, EditLifecycle lifecycle) {
@@ -69,11 +70,11 @@ public final class BlockbenchProcessService implements AutoCloseable {
 	public synchronized Snapshot status() {
 		if (process != null && !process.isAlive()) {
 			int exitCode = process.exitValue();
-			String currentHash = currentHash(snapshot.relativePath());
+			String currentHash = modelingEdit == null ? currentHash(snapshot.relativePath()) : modelingHash();
 			String diagnostic = exitCode == 0 ? null : "BLOCKBENCH_EXITED_ABNORMALLY";
 			Completion completion = null;
 			if (currentHash == null) diagnostic = "ASSET_MISSING_AFTER_BLOCKBENCH";
-			else if (!currentHash.equals(snapshot.openedSha256())) {
+			else if (modelingEdit == null && !currentHash.equals(snapshot.openedSha256())) {
 				diagnostic = "ASSET_CHANGED_EXTERNALLY";
 				try {
 					AssetDescriptor current = assets.findByRelativePath(snapshot.relativePath()).orElseThrow(() ->
@@ -90,6 +91,7 @@ public final class BlockbenchProcessService implements AutoCloseable {
 					preparedEdit == null ? null : preparedEdit.recoveryPointId(),
 					completion == null ? null : completion.workspaceRevision(), completion != null);
 			process = null;
+			modelingEdit = null;
 			preparedEdit = null;
 			releaseLease();
 		}
@@ -139,6 +141,45 @@ public final class BlockbenchProcessService implements AutoCloseable {
 		}
 	}
 
+	/** Launch only the editing copy of a durable task. Editor exit never freezes or imports it. */
+	public synchronized Snapshot openTask(java.util.UUID taskId) {
+		if (status().state() == State.RUNNING)
+			throw new BlockbenchBridgeException("BLOCKBENCH_ALREADY_RUNNING", "Blockbench is already running; open the task copy from its File menu");
+		Path file = lifecycle.modelingEdit(taskId);
+		Path expected = assets.workspaceRoot().resolve(".copperbench/modeling-tasks/" + taskId + "/edit/model.bbmodel").toAbsolutePath().normalize();
+		if (!expected.equals(file.toAbsolutePath().normalize()))
+			throw new BlockbenchBridgeException("MODEL_PATH_INVALID", "The task does not resolve to its editing copy");
+		if (executableResolver != null) {
+			executable = executableResolver.get();
+			installation = detector.detect(executable);
+		}
+		if (!isAvailable()) return snapshot = availabilitySnapshot();
+		try {
+			AssetDescriptor descriptor = AssetDescriptor.fromFile(assets.workspaceRoot(), file);
+			lease = AssetTaskLease.tryAcquire(assets.workspaceRoot(), descriptor.id()).orElseThrow(() ->
+					new BlockbenchBridgeException("BLOCKBENCH_ASSET_LEASED", "This task copy is already open in Blockbench"));
+			modelingEdit = file;
+			process = starter.start(List.of(executable.toString(), file.toString()));
+			return snapshot = new Snapshot(State.RUNNING, descriptor.id(), descriptor.relativePath(), process.pid(), null,
+					descriptor.sha256(), descriptor.sha256(), installation.version(), null, null, null, false);
+		} catch (IOException exception) {
+			modelingEdit = null;
+			releaseLease();
+			throw new BlockbenchBridgeException("BLOCKBENCH_START_FAILED", "Could not open the task copy; its files are preserved");
+		} catch (RuntimeException exception) {
+			modelingEdit = null;
+			releaseLease();
+			throw exception;
+		}
+	}
+
+	private String modelingHash() {
+		try {
+			if (!modelingEdit.toRealPath().equals(modelingEdit.toAbsolutePath().normalize())) return null;
+			return AssetDescriptor.fromFile(assets.workspaceRoot(), modelingEdit).sha256();
+		} catch (IOException | RuntimeException exception) { return null; }
+	}
+
 	private boolean isAvailable() {
 		return installation.state() == BlockbenchInstallationDetector.State.READY
 				|| installation.state() == BlockbenchInstallationDetector.State.READY_UNVERIFIED;
@@ -176,6 +217,7 @@ public final class BlockbenchProcessService implements AutoCloseable {
 		if (process != null && process.isAlive()) process.destroy();
 		process = null;
 		preparedEdit = null;
+		modelingEdit = null;
 		releaseLease();
 		snapshot = availabilitySnapshot();
 	}
@@ -195,6 +237,9 @@ public final class BlockbenchProcessService implements AutoCloseable {
 	}
 
 	public interface EditLifecycle {
+		default Path modelingEdit(java.util.UUID taskId) {
+			throw new BlockbenchBridgeException("MODEL_TASK_UNAVAILABLE", "Durable modeling tasks are not available in this host");
+		}
 		PreparedEdit prepare(AssetDescriptor asset);
 		Completion complete(PreparedEdit prepared, AssetDescriptor current);
 

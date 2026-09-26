@@ -1,0 +1,49 @@
+[
+  {
+    "at": "2026-09-26T11:02:03.735351+00:00",
+    "author": "planner",
+    "expectation": "World-model restoration after the prior v37 normal exit is visible in new PID 33292, exact world PRD17 Scene C v7: copper-brown 16x12x16 model at the prior position, hotbar count 3. Current player is Player429, prior was Player369; this proves restored world/model state, not fixed-UUID player inventory continuity. Save-and-quit dispatched its final click but returned blocked/WINDOW_NOT_VISIBLE; process receipt confirms PID exited, logs show all dimensions saved and Stopping!, task fec60b90-d36c-4c6a-ad6f-ea5c15907a76 and reopened public record both succeeded. Product/source fingerprints unchanged. No new placement performed.",
+    "verdict": "passed",
+    "requested_verdict": "passed",
+    "evidence": [
+      {
+        "path": "actions.jsonl",
+        "sha256_at_recording": "d74a77ee9cfee566bc439989e9729bcd015c243bba6c63c3d14a6bc80c3fe35b"
+      },
+      {
+        "path": "frame-283c7afe-a952-410f-b828-f4ede882857b.png",
+        "sha256_at_recording": "cbbabfd317858ecee09c69da7d1d243065f9bf839dcb9702ba256a927e0aff97"
+      },
+      {
+        "path": "frame-ed0da6d0-be4a-4901-a741-3412c8c2ad8b.png",
+        "sha256_at_recording": "023b54eb22f5953ca864a0221ec47710954dba365d107f44ea1d8adeb0e3706d"
+      },
+      {
+        "path": "log-e343c684-ab9a-45cc-8aa0-fdf4f8d2741a.txt",
+        "sha256_at_recording": "63505e9013a3ab7585c45e7cb92c0f85a96a511871ed8066725610fa08ec9fc8"
+      },
+      {
+        "path": "log-f86b8c8d-b233-4bbe-95fb-da0f1bfed07e.txt",
+        "sha256_at_recording": "09199cddd822fe050ddbde8ce4d4c1954b3073b5babfc9467b236f078e886f9d"
+      },
+      {
+        "path": "process-exit.json",
+        "sha256_at_recording": "d6d43f2463596e2da916c1c34048d4a2ccafecc62e57663467ab1fc902423bd5"
+      },
+      {
+        "path": "public-task-final.json",
+        "sha256_at_recording": "4b51248b62496bb32ca3320e9278b4b4b5e7a1af99ca287d78ffb7e2cd626691"
+      },
+      {
+        "path": "public-task-reopened.json",
+        "sha256_at_recording": "06d659b7ea662d97325569d62d47c29b0ce89507e7a050aacd21eaa4213d36cb"
+      },
+      {
+        "path": "identity-comparison.json",
+        "sha256_at_recording": "c3e21df4cb7a3ac7d81cb77e87bc91832973ac49541740858407758c8e0a652e"
+      }
+    ],
+    "assessment_source": "external_planner",
+    "bridge_independently_verified": false
+  }
+]
