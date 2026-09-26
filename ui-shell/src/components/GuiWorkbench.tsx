@@ -1,3 +1,4 @@
+import { tr } from '../i18n/locale';
 import { fieldLabel, valueLabel } from '../i18n/labels';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -217,19 +218,19 @@ function layoutIssues(values: Record<string, unknown>, components: GuiComponentW
   const issues: LayoutIssue[] = [];
   const width = Number(values['/width'] ?? 176);
   const height = Number(values['/height'] ?? 166);
-  if (width <= 0 || height <= 0) issues.push({ index: null, message: 'GUI 宽度和高度必须大于 0。' });
-  if (width > 512 || height > 512) issues.push({ index: null, message: 'GUI 尺寸超过上游支持的 512 px 上限。' });
+  if (width <= 0 || height <= 0) issues.push({ index: null, message: tr("GUI 宽度和高度必须大于 0。") });
+  if (width > 512 || height > 512) issues.push({ index: null, message: tr("GUI 尺寸超过上游支持的 512 px 上限。") });
 
   const named = new Map<string, number>();
   components.forEach((component, index) => {
     if ((component.type === 'inputslot' || component.type === 'outputslot') && Number(values['/type'] ?? 0) !== 1) {
-      issues.push({ index, message: '槽位组件要求界面类型为“含物品槽（With slots）”。' });
+      issues.push({ index, message: tr("槽位组件要求界面类型为“含物品槽（With slots）”。") });
     }
     const name = component.data.name;
     if (typeof name === 'string' && name.trim()) {
       const previous = named.get(name);
       if (previous !== undefined) {
-        issues.push({ index, message: `组件名称“${name}”与第 ${previous + 1} 个组件重复。` });
+        issues.push({ index, message: tr("组件名称“{0}”与第 {1} 个组件重复。", [name, previous + 1]) });
       } else {
         named.set(name, index);
       }
@@ -238,11 +239,11 @@ function layoutIssues(values: Record<string, unknown>, components: GuiComponentW
     const y = Number(component.data.y ?? 0);
     const size = componentSize(component);
     if (!Number.isFinite(x) || !Number.isFinite(y)) {
-      issues.push({ index, message: '组件坐标不是有效数字。' });
+      issues.push({ index, message: tr("组件坐标不是有效数字。") });
       return;
     }
     if (x < 0 || y < 0 || x + size.width > WYSIWYG_WIDTH || y + size.height > WYSIWYG_HEIGHT) {
-      issues.push({ index, message: '组件超出 MCreator 427×240 WYSIWYG 画布范围。' });
+      issues.push({ index, message: tr("组件超出 MCreator 427×240 WYSIWYG 画布范围。") });
     }
   });
   return issues;
@@ -309,7 +310,7 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
         if (componentsFrom(next).length > 0) setSelectedIndex(0);
       })
       .catch(() => {
-        if (!cancelled) setSaveMessage('无法加载 GUI 编辑器投影。');
+        if (!cancelled) setSaveMessage(tr("无法加载 GUI 编辑器投影。"));
       });
     return () => {
       cancelled = true;
@@ -418,12 +419,12 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
       const result = await updateModElement(element.id, changes);
       if (result.status === 'committed') {
         setBase(clone(values));
-        setSaveMessage('GUI 更改已保存。');
+        setSaveMessage(tr("GUI 更改已保存。"));
       } else {
-        setSaveMessage(result.diagnostics.map((diagnostic) => t(diagnostic.message)).join('；') || '保存被 Core 拒绝。');
+        setSaveMessage(result.diagnostics.map((diagnostic) => t(diagnostic.message)).join('；') || tr("保存被 Core 拒绝。"));
       }
     } catch {
-      setSaveMessage('保存失败，工作区未发生更改。');
+      setSaveMessage(tr("保存失败，工作区未发生更改。"));
     } finally {
       setSaving(false);
     }
@@ -437,8 +438,7 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
   if (!editor) {
     return (
       <div data-testid="gui-workbench-loading" style={{ padding: 24, color: 'var(--text-sub)' }}>
-        正在加载 GUI 深度编辑器…
-      </div>
+        {tr("正在加载 GUI 深度编辑器…")}</div>
     );
   }
 
@@ -446,17 +446,17 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
     <div data-testid="gui-workbench" style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, height: '100%' }}>
       <header style={{ height: 52, padding: '0 14px', display: 'flex', alignItems: 'center', gap: 10,
         background: 'var(--bg-surface)', borderBottom: '1px solid var(--border-subtle)' }}>
-        <button type="button" onClick={onClose} aria-label="返回元素列表" className="btn-secondary" style={{ padding: 6 }}>
+        <button type="button" onClick={onClose} aria-label={tr("返回元素列表")} className="btn-secondary" style={{ padding: 6 }}>
           <ArrowLeft size={14} />
         </button>
         <Layers3 size={17} color="var(--accent-copper)" />
         <div style={{ minWidth: 0, flex: 1 }}>
           <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--text-main)' }}>{element.displayName}</div>
-          <div style={{ fontSize: 10, color: 'var(--text-sub)' }}>界面（GUI）编辑 · 布局、组件与事件</div>
+          <div style={{ fontSize: 10, color: 'var(--text-sub)' }}>{tr("界面（GUI）编辑 · 布局、组件与事件")}</div>
         </div>
         {impact.length > 0 && (
           <span className="badge badge-blue" data-testid="gui-generation-impact">
-            生成影响：{impact.join(', ')}
+            {tr("生成影响：")}{impact.join(', ')}
           </span>
         )}
         {saveMessage && <span style={{ fontSize: 10, color: 'var(--text-sub)' }}>{saveMessage}</span>}
@@ -467,7 +467,7 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
           disabled={saving || changes.length === 0 || issues.length > 0}
           onClick={save}
         >
-          <Save size={13} /> {saving ? '保存中…' : '保存 GUI'}
+          <Save size={13} /> {saving ? tr("保存中…") : tr("保存 GUI")}
         </button>
       </header>
 
@@ -477,24 +477,24 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
           <div style={{ padding: 12, borderBottom: '1px solid var(--border-subtle)', display: 'flex', gap: 8,
             alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
-              <div style={{ fontWeight: 700, fontSize: 11, color: 'var(--text-main)' }}>组件树</div>
-              <div style={{ fontSize: 9, color: 'var(--text-sub)' }}>{components.length} 个组件</div>
+              <div style={{ fontWeight: 700, fontSize: 11, color: 'var(--text-main)' }}>{tr("组件树")}</div>
+              <div style={{ fontSize: 9, color: 'var(--text-sub)' }}>{components.length} {tr(" 个组件")}</div>
             </div>
             <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
               <select
-                aria-label="新增组件类型"
+                aria-label={tr("新增组件类型")}
                 data-testid="gui-add-component-type"
                 value={newComponentType}
                 onChange={(event) => setNewComponentType(event.target.value as typeof newComponentType)}
                 style={{ maxWidth: 112, fontSize: 9, padding: '4px 5px' }}
               >
-                <option value="button">按钮（Button）</option>
-                <option value="label">文本标签（Label）</option>
-                <option value="image">图片（Image）</option>
-                <option value="inputslot">输入槽（Input Slot）</option>
-                <option value="outputslot">输出槽（Output Slot）</option>
+                <option value="button">{tr("按钮（Button）")}</option>
+                <option value="label">{tr("文本标签（Label）")}</option>
+                <option value="image">{tr("图片（Image）")}</option>
+                <option value="inputslot">{tr("输入槽（Input Slot）")}</option>
+                <option value="outputslot">{tr("输出槽（Output Slot）")}</option>
               </select>
-              <button type="button" className="btn-secondary" onClick={addComponent} data-testid="gui-add-component-btn" aria-label="添加组件">
+              <button type="button" className="btn-secondary" onClick={addComponent} data-testid="gui-add-component-btn" aria-label={tr("添加组件")}>
                 <Plus size={12} />
               </button>
             </div>
@@ -502,8 +502,7 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
           <div data-testid="gui-component-tree" style={{ flex: 1, overflowY: 'auto', padding: 8 }}>
             {components.length === 0 ? (
               <div style={{ padding: '24px 8px', fontSize: 10, color: 'var(--text-sub)', textAlign: 'center' }}>
-                当前界面没有组件。可添加按钮、文本标签、图片或物品槽。
-              </div>
+                {tr("当前界面没有组件。可添加按钮、文本标签、图片或物品槽。")}</div>
             ) : components.map((component, index) => {
               const componentIssues = issues.filter((issue) => issue.index === index);
               return (
@@ -534,35 +533,30 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
           <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', gap: 12,
             alignItems: 'center', flexWrap: 'wrap' }}>
             <label style={{ fontSize: 10, color: 'var(--text-sub)' }}>
-              类型
-              <select
+              {tr("类型")}<select
                 data-testid="gui-type"
                 value={Number(values['/type'] ?? 0)}
                 onChange={(event) => setValue('/type', Number(event.target.value))}
                 style={{ marginLeft: 5 }}
               >
-                <option value={0}>无物品槽</option>
-                <option value={1}>含物品槽</option>
+                <option value={0}>{tr("无物品槽")}</option>
+                <option value={1}>{tr("含物品槽")}</option>
               </select>
             </label>
             <label style={{ fontSize: 10, color: 'var(--text-sub)' }}>
-              宽度
-              <input data-testid="gui-width" type="number" min={0} max={512} value={guiWidth}
+              {tr("宽度")}<input data-testid="gui-width" type="number" min={0} max={512} value={guiWidth}
                 onChange={(event) => setValue('/width', Number(event.target.value))} style={{ width: 72, marginLeft: 5 }} />
             </label>
             <label style={{ fontSize: 10, color: 'var(--text-sub)' }}>
-              高度
-              <input data-testid="gui-height" type="number" min={0} max={512} value={guiHeight}
+              {tr("高度")}<input data-testid="gui-height" type="number" min={0} max={512} value={guiHeight}
                 onChange={(event) => setValue('/height', Number(event.target.value))} style={{ width: 72, marginLeft: 5 }} />
             </label>
             <label style={{ fontSize: 10, color: 'var(--text-sub)', display: 'flex', alignItems: 'center', gap: 5 }}>
               <input type="checkbox" checked={Boolean(values['/renderBgLayer'])}
-                onChange={(event) => setValue('/renderBgLayer', event.target.checked)} /> 渲染背景层
-            </label>
+                onChange={(event) => setValue('/renderBgLayer', event.target.checked)} /> {tr(" 渲染背景层")}</label>
             <label style={{ fontSize: 10, color: 'var(--text-sub)', display: 'flex', alignItems: 'center', gap: 5 }}>
               <input type="checkbox" checked={Boolean(values['/doesPauseGame'])}
-                onChange={(event) => setValue('/doesPauseGame', event.target.checked)} /> 暂停游戏
-            </label>
+                onChange={(event) => setValue('/doesPauseGame', event.target.checked)} /> {tr(" 暂停游戏")}</label>
           </div>
 
           <div style={{ flex: 1, minHeight: 0, overflow: 'auto', display: 'grid', placeItems: 'center', padding: 20 }}>
@@ -601,7 +595,7 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
               borderTop: '1px solid var(--border-subtle)', background: 'var(--badge-amber-bg)', fontSize: 9 }}>
               {issues.map((issue, index) => (
                 <div key={`${issue.index}-${index}`} style={{ display: 'flex', gap: 5, color: 'var(--badge-amber)', marginBottom: 3 }}>
-                  <AlertTriangle size={10} /> {issue.index === null ? '' : `组件 ${issue.index + 1}：`}{issue.message}
+                  <AlertTriangle size={10} /> {issue.index === null ? '' : tr("组件 {0}：", [issue.index + 1])}{issue.message}
                 </div>
               ))}
             </div>
@@ -610,7 +604,7 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
 
         <aside style={{ borderLeft: '1px solid var(--border-subtle)', background: 'var(--bg-surface)', minHeight: 0,
           overflowY: 'auto', padding: 12 }}>
-          <div style={{ fontWeight: 700, fontSize: 11, color: 'var(--text-main)', marginBottom: 8 }}>GUI 事件绑定</div>
+          <div style={{ fontWeight: 700, fontSize: 11, color: 'var(--text-main)', marginBottom: 8 }}>{tr("GUI 事件绑定")}</div>
           {(['/onOpen', '/onTick', '/onClosed'] as const).map((path) => (
             <label key={path} style={{ display: 'block', fontSize: 9, color: 'var(--text-sub)', marginBottom: 7 }}>
               {fieldLabel(path.slice(1))}
@@ -624,7 +618,7 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
 
           <div style={{ height: 1, background: 'var(--border-subtle)', margin: '12px 0' }} />
           {!selected || selectedIndex === null ? (
-            <div style={{ fontSize: 10, color: 'var(--text-sub)' }}>选择一个组件后可编辑其上游原始字段。</div>
+            <div style={{ fontSize: 10, color: 'var(--text-sub)' }}>{tr("选择一个组件后可编辑其上游原始字段。")}</div>
           ) : (
             <>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
@@ -632,13 +626,13 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
                   <div style={{ fontWeight: 700, fontSize: 11, color: 'var(--text-main)' }}>{componentName(selected, selectedIndex)}</div>
                   <div style={{ fontSize: 9, color: 'var(--text-sub)' }}>{valueLabel(selected.type)}</div>
                 </div>
-                <button type="button" aria-label="上移组件" onClick={() => moveSelected(-1)} disabled={selectedIndex === 0} style={{ padding: 4 }}>
+                <button type="button" aria-label={tr("上移组件")} onClick={() => moveSelected(-1)} disabled={selectedIndex === 0} style={{ padding: 4 }}>
                   <ChevronUp size={12} />
                 </button>
-                <button type="button" aria-label="下移组件" onClick={() => moveSelected(1)} disabled={selectedIndex === components.length - 1} style={{ padding: 4 }}>
+                <button type="button" aria-label={tr("下移组件")} onClick={() => moveSelected(1)} disabled={selectedIndex === components.length - 1} style={{ padding: 4 }}>
                   <ChevronDown size={12} />
                 </button>
-                <button type="button" aria-label="删除组件" onClick={deleteSelected} className="btn-danger" style={{ padding: 4 }}>
+                <button type="button" aria-label={tr("删除组件")} onClick={deleteSelected} className="btn-danger" style={{ padding: 4 }}>
                   <Trash2 size={12} />
                 </button>
               </div>
@@ -646,8 +640,7 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
               {selected.type === 'label' && (
                 <>
                   <label style={{ display: 'block', marginBottom: 8, fontSize: 9, color: 'var(--text-sub)' }}>
-                    固定文本（text.fixedValue）
-                    <input
+                    {tr("固定文本（text.fixedValue）")}<input
                       data-testid="gui-component-field-label-text"
                       value={labelText(selected)}
                       onChange={(event) => updateComponentObjectField('text', 'fixedValue', event.target.value)}
@@ -655,8 +648,7 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
                     />
                   </label>
                   <label style={{ display: 'block', marginBottom: 8, fontSize: 9, color: 'var(--text-sub)' }}>
-                    颜色（color）
-                    <input
+                    {tr("颜色（color）")}<input
                       data-testid="gui-component-field-label-color"
                       type="color"
                       value={argbToHex(selected.data.color)}
@@ -672,10 +664,9 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
                 if (key === 'anchorPoint') {
                   return (
                     <label key={key} htmlFor={inputId} style={{ display: 'block', marginBottom: 8, fontSize: 9, color: 'var(--text-sub)' }}>
-                      锚点（anchorPoint）
-                      <select id={inputId} value={String(value ?? '')} onChange={(event) => updateComponentField(key, event.target.value || null)}
+                      {tr("锚点（anchorPoint）")}<select id={inputId} value={String(value ?? '')} onChange={(event) => updateComponentField(key, event.target.value || null)}
                         style={{ width: '100%', marginTop: 3 }}>
-                        {ANCHORS.map((anchor) => <option key={anchor} value={anchor}>{anchor ? valueLabel(anchor) : '无'}</option>)}
+                        {ANCHORS.map((anchor) => <option key={anchor} value={anchor}>{anchor ? valueLabel(anchor) : tr("无")}</option>)}
                       </select>
                     </label>
                   );
@@ -702,8 +693,7 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
                 if (PROCEDURE_FIELDS.has(key)) {
                   return (
                     <label key={key} htmlFor={inputId} style={{ display: 'block', marginBottom: 8, fontSize: 9, color: 'var(--text-sub)' }}>
-                      {fieldLabel(key)} · 过程（Procedure）
-                      <input id={inputId} list="gui-procedure-options" value={String(value ?? '')}
+                      {fieldLabel(key)} {tr(" · 过程（Procedure）")}<input id={inputId} list="gui-procedure-options" value={String(value ?? '')}
                         onChange={(event) => updateComponentField(key, event.target.value || null)} style={{ width: '100%', marginTop: 3 }} />
                     </label>
                   );
@@ -722,7 +712,7 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
 
               {Object.entries(selected.data).some(([, value]) => value !== null && typeof value === 'object') && (
                 <details style={{ marginTop: 8 }}>
-                  <summary style={{ fontSize: 9, color: 'var(--text-sub)', cursor: 'pointer' }}>复杂字段（只读保留）</summary>
+                  <summary style={{ fontSize: 9, color: 'var(--text-sub)', cursor: 'pointer' }}>{tr("复杂字段（只读保留）")}</summary>
                   <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: 8, color: 'var(--text-sub)',
                     background: 'var(--bg-panel)', padding: 7, borderRadius: 4 }}>
                     {JSON.stringify(Object.fromEntries(Object.entries(selected.data)

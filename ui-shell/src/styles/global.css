@@ -2966,3 +2966,10 @@ html[data-window-resize-cursor="ew-resize"] *, html[data-window-resize-cursor="e
 html[data-window-resize-cursor="ns-resize"] *, html[data-window-resize-cursor="ns-resize"] { cursor: ns-resize !important; }
 html[data-window-resize-cursor="nwse-resize"] *, html[data-window-resize-cursor="nwse-resize"] { cursor: nwse-resize !important; }
 html[data-window-resize-cursor="nesw-resize"] *, html[data-window-resize-cursor="nesw-resize"] { cursor: nesw-resize !important; }
+
+/* Reserve room for longer English labels at desktop and compact widths. */
+html[lang="en"] .asset-header-actions { max-width: 100%; min-width: 0; }
+html[lang="en"] .asset-search-field { width: min(280px, 30vw); min-width: 180px; }
+html[lang="en"] .asset-header-actions > :last-child { flex-shrink: 0; }
+
+.asset-status-badge { flex-shrink: 0; white-space: nowrap; }

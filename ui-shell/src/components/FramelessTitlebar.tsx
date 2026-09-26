@@ -1,3 +1,4 @@
+import { LanguageSelector } from './LanguageSelector';
 import React, { useEffect, useRef } from 'react';
 import {
   Cog,
@@ -17,7 +18,7 @@ import {
   TestTube2
 } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
-import { uiText, useUiLocale, setUiLocale } from '../i18n';
+import { uiText, useUiLocale } from '../i18n';
 import productIcon from '../../../src/main/resources/net/mcreator/ui/res/icon.png';
 import {
   WINDOW_CHROME_SCHEMA_VERSION,
@@ -333,18 +334,7 @@ export const FramelessTitlebar: React.FC = () => {
 
       {/* Right: Tools & Window Controls */}
       <div className="titlebar-tools">
-        <select
-          aria-label={uiText('界面语言', 'Interface language')}
-          data-testid="ui-language-select"
-          data-window-chrome-kind="client"
-          data-window-chrome-id="language"
-          value={locale}
-          onChange={event => setUiLocale(event.target.value === 'en' ? 'en' : 'zh')}
-          style={{ width: '86px', minHeight: '28px', fontSize: '12px', WebkitAppRegion: 'no-drag' } as React.CSSProperties}
-        >
-          <option value="zh">中文</option>
-          <option value="en">{uiText('English', 'English')}</option>
-        </select>
+        <LanguageSelector />
         <button
           type="button"
           className="btn-secondary titlebar-tool"

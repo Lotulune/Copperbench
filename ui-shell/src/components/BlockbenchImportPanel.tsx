@@ -1,3 +1,4 @@
+import { tr } from '../i18n/locale';
 import { safeRandomUUID } from '../bridge/JcefCoreBridge';
 import React, { useEffect, useState } from 'react';
 import { coreBridge } from '../bridge';
@@ -62,7 +63,7 @@ export const BlockbenchImportPanel: React.FC<{
   };
   const inspect = async () => {
     if (!state.workbench) return;
-    setChecking(true); setPreview(null); setMessage('正在验证导出文件及资源引用…');
+    setChecking(true); setPreview(null); setMessage(tr("正在验证导出文件及资源引用…"));
     try {
       const result = await coreBridge.sendQuery<Preview>({ messageType: 'query', schemaVersion: '1.0',
         requestId: safeRandomUUID(), workspaceId: state.workbench.workspace.id,
@@ -76,9 +77,9 @@ export const BlockbenchImportPanel: React.FC<{
   };
 
   if (taskState === 'importing') return <div>
-    <p role="alert">上一次回导未完成。恢复只处理本任务记录的文件；遇到其他修改会停止并保留备份。</p>
+    <p role="alert">{tr("上一次回导未完成。恢复只处理本任务记录的文件；遇到其他修改会停止并保留备份。")}</p>
     <button className="btn-secondary" type="button" disabled={!writable || busy}
-      onClick={() => void run('recover_blockbench_import', { taskId })}>恢复中断的回导</button>
+      onClick={() => void run('recover_blockbench_import', { taskId })}>{tr("恢复中断的回导")}</button>
   </div>;
   if (taskState === 'imported') return <div>
     <p>{bound ? '文件已回导，元素定义已关联。下一步：构建并在游戏内验证。' : '文件已回导，关联尚未确认。下一步：关联所选模型；失败时可直接重试，已导入文件保留。'}</p>
@@ -115,9 +116,9 @@ export const BlockbenchImportPanel: React.FC<{
     <p>模型建议存入命名空间下的 models/custom 目录，避免与生成器的方块／物品模型同名。</p>
     <p role="status">{message}</p>
     {outputs.map((row, index) => <div className="blockbench-setup-actions" key={index}>
-      <label>编辑目录内的导出文件<input value={row.sourceRelativePath} placeholder="例如 export/lamp.json" disabled={checking || busy}
+      <label>{tr("编辑目录内的导出文件")}<input value={row.sourceRelativePath} placeholder={tr("例如 export/lamp.json")} disabled={checking || busy}
         onChange={event => edit(index, 'sourceRelativePath', event.target.value)} /></label>
-      <label>工作区目标路径<input value={row.targetRelativePath} placeholder="例如 src/main/resources/assets/模组标识/models/custom/lamp.json" disabled={checking || busy}
+      <label>{tr("工作区目标路径")}<input value={row.targetRelativePath} placeholder={tr("例如 src/main/resources/assets/模组标识/models/custom/lamp.json")} disabled={checking || busy}
         onChange={event => edit(index, 'targetRelativePath', event.target.value)} /></label>
       <button className="btn-secondary" type="button" disabled={outputs.length === 1 || checking || busy}
         onClick={() => { setOutputs(outputs.filter((_, position) => position !== index)); setManualMapping(true); setPreview(null); }}>移除此映射</button>

@@ -1,3 +1,4 @@
+import { tr, UI_LOCALE } from '../i18n/locale';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   Check,
@@ -14,37 +15,37 @@ import { useDialogA11y } from '../hooks/useDialogA11y';
 import type { HistoryComparison, RecoveryPoint, RecoveryRestorePreview, WorkspaceChange } from '../types/contract';
 
 const actorLabels: Record<RecoveryPoint['actor'], string> = {
-  ui: '界面',
+  ui: tr("界面"),
   mcp: 'MCP',
   headless: 'Headless',
-  legacy_ui: '旧版界面',
-  system: '系统'
+  legacy_ui: tr("旧版界面"),
+  system: tr("系统")
 };
 
 const sourceLabels: Record<NonNullable<RecoveryPoint['source']>, string> = {
-  manual: '手动',
-  automation: '自动操作',
-  workspace_plan: '工作区计划',
+  manual: tr("手动"),
+  automation: tr("自动操作"),
+  workspace_plan: tr("工作区计划"),
   procedure: 'Procedure',
-  asset: '资产',
+  asset: tr("资产"),
   datagen: 'Datagen',
-  registry: '注册表',
+  registry: tr("注册表"),
   blockbench: 'Blockbench',
-  restore_safety: '还原保护'
+  restore_safety: tr("还原保护")
 };
 
 const changeLabels: Record<WorkspaceChange['type'], string> = {
-  add: '新增',
-  modify: '修改',
-  delete: '删除',
-  rename: '重命名',
-  copy: '复制'
+  add: tr("新增"),
+  modify: tr("修改"),
+  delete: tr("删除"),
+  rename: tr("重命名"),
+  copy: tr("复制")
 };
 
 const objectKindLabels: Record<NonNullable<WorkspaceChange['objectKind']>, string> = {
-  workspace: '工作区',
+  workspace: tr("工作区"),
   mod_element: 'Mod Element',
-  asset: '资产'
+  asset: tr("资产")
 };
 
 function changeText(change: WorkspaceChange): string {
@@ -52,13 +53,13 @@ function changeText(change: WorkspaceChange): string {
     ? `${objectKindLabels[change.objectKind]} ${change.objectName} · `
     : '';
   const fields = change.fieldChanges?.length
-    ? ` · 字段 ${change.fieldChanges.slice(0, 4).map((field) => field.pointer).join('、')}${change.fieldChanges.length > 4 ? ` 等 ${change.fieldChanges.length} 项` : ''}`
+    ? tr(" · 字段 {0}{1}", [change.fieldChanges.slice(0, 4).map((field) => field.pointer).join('、'), change.fieldChanges.length > 4 ? ` 等 ${change.fieldChanges.length} 项` : ''])
     : '';
   return `${semantic}${changeLabels[change.type]}${fields} · ${change.path}`;
 }
 
 function formatTime(value: string) {
-  return new Intl.DateTimeFormat('zh-CN', {
+  return new Intl.DateTimeFormat(UI_LOCALE === 'en' ? 'en-US' : 'zh-CN', {
     month: '2-digit',
     day: '2-digit',
     hour: '2-digit',
@@ -178,7 +179,7 @@ export const HistoryView: React.FC = () => {
       setCreateOpen(false);
       setLabel('');
       setSelectedId(result.data?.recoveryPoint?.id ?? null);
-      setStatus(`已创建恢复点“${trimmed}”`);
+      setStatus(tr("已创建恢复点“{0}”", [trimmed]));
     }
   };
 
@@ -189,8 +190,8 @@ export const HistoryView: React.FC = () => {
       setRestoreOpen(false);
       const issueCount = result.diagnostics?.length ?? 0;
       setStatus(issueCount > 0
-        ? `已还原到“${selected.label}”，重新校验发现 ${issueCount} 个需要处理的问题`
-        : `已还原到“${selected.label}”，重新校验通过`);
+        ? tr("已还原到“{0}”，重新校验发现 {1} 个需要处理的问题", [selected.label, issueCount])
+        : tr("已还原到“{0}”，重新校验通过", [selected.label]));
     }
   };
 
@@ -200,8 +201,8 @@ export const HistoryView: React.FC = () => {
         <div className="stage2-view-title">
           <GitBranch size={20} aria-hidden="true" />
           <div>
-            <h2>本地历史</h2>
-            <span>工作区修订 {state.workbench?.workspace.revision ?? 0}</span>
+            <h2>{tr("本地历史")}</h2>
+            <span>{tr("工作区修订 ")}{state.workbench?.workspace.revision ?? 0}</span>
           </div>
         </div>
         <button
@@ -211,46 +212,45 @@ export const HistoryView: React.FC = () => {
           onClick={() => setCreateOpen(true)}
         >
           <Plus size={15} aria-hidden="true" />
-          创建恢复点
-        </button>
+          {tr("创建恢复点")}</button>
       </header>
 
       <div className="history-workspace">
-        <aside className="history-timeline" aria-label="恢复点时间线">
-          <div className="history-filter-bar" aria-label="筛选恢复点">
+        <aside className="history-timeline" aria-label={tr("恢复点时间线")}>
+          <div className="history-filter-bar" aria-label={tr("筛选恢复点")}>
             <input
               type="search"
               data-testid="history-search"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="搜索恢复点"
+              placeholder={tr("搜索恢复点")}
             />
             <div className="history-filter-row">
               <select
                 data-testid="history-source-filter"
-                aria-label="按来源筛选"
+                aria-label={tr("按来源筛选")}
                 value={sourceFilter}
                 onChange={(event) => setSourceFilter(event.target.value)}
               >
-                <option value="">全部来源</option>
+                <option value="">{tr("全部来源")}</option>
                 {Object.entries(sourceLabels).map(([value, text]) => (
                   <option value={value} key={value}>{text}</option>
                 ))}
               </select>
               <select
                 data-testid="history-actor-filter"
-                aria-label="按操作者筛选"
+                aria-label={tr("按操作者筛选")}
                 value={actorFilter}
                 onChange={(event) => setActorFilter(event.target.value)}
               >
-                <option value="">全部操作者</option>
+                <option value="">{tr("全部操作者")}</option>
                 {Object.entries(actorLabels).map(([value, text]) => (
                   <option value={value} key={value}>{text}</option>
                 ))}
               </select>
             </div>
           </div>
-          <div className="history-section-label">恢复点 · {filteredPoints.length}/{state.recoveryPoints.length}</div>
+          <div className="history-section-label">{tr("恢复点 · ")}{filteredPoints.length}/{state.recoveryPoints.length}</div>
           <div className="history-list">
             {filteredPoints.map((point) => {
               const selectedPoint = point.id === selectedId;
@@ -268,7 +268,7 @@ export const HistoryView: React.FC = () => {
                   <span className="history-point-content">
                     <span className="history-point-title">
                       {point.label}
-                      {current && <span className="history-current">当前</span>}
+                      {current && <span className="history-current">{tr("当前")}</span>}
                     </span>
                     <span className="history-point-meta">
                       {sourceLabels[point.source ?? 'manual']} · {actorLabels[point.actor]} · {formatTime(point.createdAt)}
@@ -278,7 +278,7 @@ export const HistoryView: React.FC = () => {
                 </button>
               );
             })}
-            {filteredPoints.length === 0 && <div className="stage2-empty">没有匹配的恢复点</div>}
+            {filteredPoints.length === 0 && <div className="stage2-empty">{tr("没有匹配的恢复点")}</div>}
           </div>
         </aside>
 
@@ -287,7 +287,7 @@ export const HistoryView: React.FC = () => {
             <>
               <div className="history-detail-heading">
                 <div>
-                  <span className="history-section-label">所选恢复点</span>
+                  <span className="history-section-label">{tr("所选恢复点")}</span>
                   <h3>{selected.label}</h3>
                   <p>{selected.id.slice(0, 12)} · {actorLabels[selected.actor]} · {formatTime(selected.createdAt)}</p>
                 </div>
@@ -299,20 +299,19 @@ export const HistoryView: React.FC = () => {
                   onClick={() => setRestoreOpen(true)}
                 >
                   <RotateCcw size={15} aria-hidden="true" />
-                  还原到此处
-                </button>
+                  {tr("还原到此处")}</button>
               </div>
 
               <div className="history-diff-heading">
                 <div>
                   <FileDiff size={16} aria-hidden="true" />
-                  <span>与上一恢复点比较</span>
+                  <span>{tr("与上一恢复点比较")}</span>
                 </div>
-                <span>{comparisonLoading ? '读取中…' : `${changes.length} 个文件`}</span>
+                <span>{comparisonLoading ? tr("读取中…") : tr("{0} 个文件", [changes.length])}</span>
               </div>
-              <div className="history-change-list" aria-label="文件差异">
+              <div className="history-change-list" aria-label={tr("文件差异")}>
                 {!comparisonLoading && changes.length === 0 && (
-                  <div className="stage2-empty" data-testid="history-no-changes">没有可比较的文件变化</div>
+                  <div className="stage2-empty" data-testid="history-no-changes">{tr("没有可比较的文件变化")}</div>
                 )}
                 {changes.map((change) => (
                   <div className="history-change" data-testid="history-change" key={`${change.type}:${change.path}`}>
@@ -323,7 +322,7 @@ export const HistoryView: React.FC = () => {
               </div>
             </>
           ) : (
-            <div className="stage2-empty">尚无恢复点</div>
+            <div className="stage2-empty">{tr("尚无恢复点")}</div>
           )}
         </div>
       </div>
@@ -343,13 +342,13 @@ export const HistoryView: React.FC = () => {
             ref={createDialogRef}
           >
             <div className="modal-header">
-              <h3 id="create-recovery-title">创建恢复点</h3>
-              <button className="icon-button" type="button" aria-label="关闭" onClick={() => setCreateOpen(false)}>
+              <h3 id="create-recovery-title">{tr("创建恢复点")}</h3>
+              <button className="icon-button" type="button" aria-label={tr("关闭")} onClick={() => setCreateOpen(false)}>
                 <X size={16} />
               </button>
             </div>
             <div className="modal-body">
-              <label className="field-label" htmlFor="recovery-label">名称</label>
+              <label className="field-label" htmlFor="recovery-label">{tr("名称")}</label>
               <input
                 id="recovery-label"
                 data-testid="recovery-label-input"
@@ -357,11 +356,11 @@ export const HistoryView: React.FC = () => {
                 maxLength={200}
                 autoComplete="off"
                 onChange={(event) => setLabel(event.target.value)}
-                placeholder="例如：导入纹理前"
+                placeholder={tr("例如：导入纹理前")}
               />
             </div>
             <div className="modal-footer">
-              <button className="btn-secondary" type="button" onClick={() => setCreateOpen(false)}>取消</button>
+              <button className="btn-secondary" type="button" onClick={() => setCreateOpen(false)}>{tr("取消")}</button>
               <button
                 className="btn-primary"
                 type="button"
@@ -370,8 +369,7 @@ export const HistoryView: React.FC = () => {
                 onClick={() => void createPoint()}
               >
                 <Plus size={15} aria-hidden="true" />
-                创建
-              </button>
+                {tr("创建")}</button>
             </div>
           </div>
         </div>
@@ -390,20 +388,20 @@ export const HistoryView: React.FC = () => {
             <div className="modal-header">
               <div className="dialog-title-with-icon">
                 <ShieldAlert size={18} aria-hidden="true" />
-                <h3 id="restore-recovery-title">确认还原工作区</h3>
+                <h3 id="restore-recovery-title">{tr("确认还原工作区")}</h3>
               </div>
-              <button className="icon-button" type="button" aria-label="关闭" onClick={() => setRestoreOpen(false)}>
+              <button className="icon-button" type="button" aria-label={tr("关闭")} onClick={() => setRestoreOpen(false)}>
                 <X size={16} />
               </button>
             </div>
             <div className="modal-body">
-              <p>将工作区还原到“{selected.label}”。当前状态会先创建恢复点，然后重新校验工作区。</p>
-              <p>以下是从当前工作区还原到该恢复点将涉及的文件变化：</p>
+              <p>{tr("将工作区还原到“")}{selected.label}{tr("”。当前状态会先创建恢复点，然后重新校验工作区。")}</p>
+              <p>{tr("以下是从当前工作区还原到该恢复点将涉及的文件变化：")}</p>
               <div className="dialog-impact-list">
-                {restorePreviewLoading && <span data-testid="restore-preview-loading">正在读取恢复影响…</span>}
-                {restorePreviewFailed && <span data-testid="restore-preview-failed">无法读取恢复影响，暂不能执行还原。</span>}
+                {restorePreviewLoading && <span data-testid="restore-preview-loading">{tr("正在读取恢复影响…")}</span>}
+                {restorePreviewFailed && <span data-testid="restore-preview-failed">{tr("无法读取恢复影响，暂不能执行还原。")}</span>}
                 {!restorePreviewLoading && restorePreview && restorePreview.changes.length === 0 && (
-                  <span data-testid="restore-preview-empty">当前工作区与该恢复点没有文件差异。</span>
+                  <span data-testid="restore-preview-empty">{tr("当前工作区与该恢复点没有文件差异。")}</span>
                 )}
                 {restorePreview?.changes.slice(0, 8).map((change) => (
                   <code key={`${change.type}:${change.path}`}>{changeText(change)}</code>
@@ -411,7 +409,7 @@ export const HistoryView: React.FC = () => {
               </div>
             </div>
             <div className="modal-footer">
-              <button className="btn-secondary" type="button" onClick={() => setRestoreOpen(false)}>取消</button>
+              <button className="btn-secondary" type="button" onClick={() => setRestoreOpen(false)}>{tr("取消")}</button>
               <button
                 className="btn-danger"
                 type="button"
@@ -420,8 +418,7 @@ export const HistoryView: React.FC = () => {
                 onClick={() => void restorePoint()}
               >
                 <RotateCcw size={15} aria-hidden="true" />
-                确认还原
-              </button>
+                {tr("确认还原")}</button>
             </div>
           </div>
         </div>

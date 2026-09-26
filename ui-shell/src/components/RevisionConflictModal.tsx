@@ -1,3 +1,4 @@
+import { tr } from '../i18n/locale';
 import React from 'react';
 import { AlertOctagon, RefreshCw, Copy, Trash2, X } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
@@ -38,14 +39,14 @@ export const RevisionConflictModal: React.FC = () => {
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
-        aria-label="版本并发写入冲突"
+        aria-label={tr("版本并发写入冲突")}
         className="modal-card animate-fade-in"
         style={{ width: '500px' }}
       >
         <div className="modal-header" style={{ background: 'var(--badge-red-bg)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--badge-red)', fontWeight: 700 }}>
             <AlertOctagon size={18} />
-            <span>版本并发写入冲突</span>
+            <span>{tr("版本并发写入冲突")}</span>
           </div>
           <button onClick={() => setIsConflictModalOpen(false)} style={{ color: 'var(--text-muted)' }}>
             <X size={16} />
@@ -56,7 +57,7 @@ export const RevisionConflictModal: React.FC = () => {
           <div style={{ fontSize: '13px', color: 'var(--text-main)', lineHeight: '1.6' }}>
             {conflictDiagnostic
               ? t(conflictDiagnostic.message)
-              : '此编辑器打开后工作区已被修改。为避免静默覆盖或数据丢失，你的更改未提交。'}
+              : tr("此编辑器打开后工作区已被修改。为避免静默覆盖或数据丢失，你的更改未提交。")}
           </div>
 
           {conflictDiagnostic?.path && (
@@ -73,8 +74,8 @@ export const RevisionConflictModal: React.FC = () => {
                 fontFamily: 'var(--font-mono)'
               }}
             >
-              <div><strong>变更路径：</strong>{conflictDiagnostic.path}</div>
-              <div><strong>写入者：</strong>MCP 自动化会话</div>
+              <div><strong>{tr("变更路径：")}</strong>{conflictDiagnostic.path}</div>
+              <div><strong>{tr("写入者：")}</strong>{tr("MCP 自动化会话")}</div>
             </div>
           )}
         </div>
@@ -82,13 +83,13 @@ export const RevisionConflictModal: React.FC = () => {
         <div className="modal-footer" style={{ justifyContent: 'space-between' }}>
           <button className="btn-secondary" onClick={handleDiscard}>
             <Trash2 size={13} />
-            <span>放弃修改</span>
+            <span>{tr("放弃修改")}</span>
           </button>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <button className="btn-secondary" onClick={handleCreateCopy}>
               <Copy size={13} />
-              <span>克隆为草稿</span>
+              <span>{tr("克隆为草稿")}</span>
             </button>
             <button
               className="btn-primary"
@@ -96,7 +97,7 @@ export const RevisionConflictModal: React.FC = () => {
               data-testid="conflict-refresh-btn"
             >
               <RefreshCw size={13} />
-              <span>查看最新</span>
+              <span>{tr("查看最新")}</span>
             </button>
           </div>
         </div>

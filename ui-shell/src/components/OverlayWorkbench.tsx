@@ -1,3 +1,4 @@
+import { tr } from '../i18n/locale';
 import { fieldLabel, valueLabel } from '../i18n/labels';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -122,26 +123,26 @@ function validateOverlay(values: Record<string, unknown>, components: OverlayCom
   for (const path of ['/gridSettings/sx', '/gridSettings/sy', '/gridSettings/ox', '/gridSettings/oy']) {
     const value = Number(values[path]);
     if (!Number.isFinite(value) || value < 1 || value > 100) {
-      issues.push({ index: null, message: `${path.split('/').pop()} 必须在 1–100 之间。` });
+      issues.push({ index: null, message: tr("{0} 必须在 1–100 之间。", [path.split('/').pop()]) });
     }
   }
-  if (!String(values['/overlayTarget'] ?? '').trim()) issues.push({ index: null, message: 'Overlay Target 不能为空。' });
+  if (!String(values['/overlayTarget'] ?? '').trim()) issues.push({ index: null, message: tr("Overlay Target 不能为空。") });
 
   components.forEach((component, index) => {
     if (!LEGAL_COMPONENTS.has(component.type)) {
-      issues.push({ index, message: `Overlay 不支持 ${component.type}；上游仅允许 Label / Image / Sprite / EntityModel。` });
+      issues.push({ index, message: tr("Overlay 不支持 {0}；上游仅允许 Label / Image / Sprite / EntityModel。", [component.type]) });
       return;
     }
     const x = Number(component.data.x ?? 0);
     const y = Number(component.data.y ?? 0);
-    if (!Number.isFinite(x) || !Number.isFinite(y)) issues.push({ index, message: '组件坐标不是有效数字。' });
-    if (component.type === 'image' && !String(component.data.image ?? '').trim()) issues.push({ index, message: 'Image 必须选择 SCREEN texture。' });
+    if (!Number.isFinite(x) || !Number.isFinite(y)) issues.push({ index, message: tr("组件坐标不是有效数字。") });
+    if (component.type === 'image' && !String(component.data.image ?? '').trim()) issues.push({ index, message: tr("Image 必须选择 SCREEN texture。") });
     if (component.type === 'sprite') {
-      if (!String(component.data.sprite ?? '').trim()) issues.push({ index, message: 'Sprite 必须选择 SCREEN texture。' });
-      if (Number(component.data.spritesCount ?? 0) < 1) issues.push({ index, message: 'Sprite spritesCount 必须至少为 1。' });
+      if (!String(component.data.sprite ?? '').trim()) issues.push({ index, message: tr("Sprite 必须选择 SCREEN texture。") });
+      if (Number(component.data.spritesCount ?? 0) < 1) issues.push({ index, message: tr("Sprite spritesCount 必须至少为 1。") });
     }
     if (component.type === 'entitymodel' && !String(component.data.entityModel ?? '').trim()) {
-      issues.push({ index, message: 'EntityModel 必须绑定返回 Entity 的 Procedure。' });
+      issues.push({ index, message: tr("EntityModel 必须绑定返回 Entity 的 Procedure。") });
     }
   });
   return issues;
@@ -212,7 +213,7 @@ export const OverlayWorkbench: React.FC<OverlayWorkbenchProps> = ({ element, onC
         setSelectedIndex(componentsFrom(next).length > 0 ? 0 : null);
       })
       .catch(() => {
-        if (!cancelled) setMessage('无法加载 Overlay 编辑器投影。');
+        if (!cancelled) setMessage(tr("无法加载 Overlay 编辑器投影。"));
       });
     return () => { cancelled = true; };
   }, [element.id, getModElementEditor, listAssets]);
@@ -270,11 +271,11 @@ export const OverlayWorkbench: React.FC<OverlayWorkbenchProps> = ({ element, onC
     const texture = textures[0]?.relativePath ?? '';
     const procedure = procedures[0]?.name ?? '';
     if ((newComponentType === 'image' || newComponentType === 'sprite') && !texture) {
-      setMessage('添加 Image / Sprite 前需要先导入 SCREEN texture。');
+      setMessage(tr("添加 Image / Sprite 前需要先导入 SCREEN texture。"));
       return;
     }
     if (newComponentType === 'entitymodel' && !procedure) {
-      setMessage('添加 EntityModel 前需要至少一个返回 Entity 的 Procedure。');
+      setMessage(tr("添加 EntityModel 前需要至少一个返回 Entity 的 Procedure。"));
       return;
     }
     const component = newComponentType === 'label' ? createLabel(components.length)
@@ -312,36 +313,36 @@ export const OverlayWorkbench: React.FC<OverlayWorkbenchProps> = ({ element, onC
       const result = await updateModElement(element.id, changes);
       if (result.status === 'committed') {
         setBase(clone(values));
-        setMessage('Overlay 更改已保存。');
+        setMessage(tr("Overlay 更改已保存。"));
       } else {
-        setMessage(result.diagnostics.map((diagnostic) => t(diagnostic.message)).join('；') || '保存被 Core 拒绝。');
+        setMessage(result.diagnostics.map((diagnostic) => t(diagnostic.message)).join('；') || tr("保存被 Core 拒绝。"));
       }
     } catch {
-      setMessage('保存失败，工作区未发生更改。');
+      setMessage(tr("保存失败，工作区未发生更改。"));
     } finally {
       setSaving(false);
     }
   };
 
   if (!editor) {
-    return <div data-testid="overlay-workbench-loading" style={{ padding: 24, color: 'var(--text-sub)' }}>正在加载 Overlay 深度编辑器…</div>;
+    return <div data-testid="overlay-workbench-loading" style={{ padding: 24, color: 'var(--text-sub)' }}>{tr("正在加载 Overlay 深度编辑器…")}</div>;
   }
 
   return (
     <div data-testid="overlay-workbench" style={{ flex: 1, minWidth: 0, height: '100%', display: 'flex', flexDirection: 'column' }}>
       <header style={{ height: 52, padding: '0 14px', display: 'flex', alignItems: 'center', gap: 10,
         background: 'var(--bg-surface)', borderBottom: '1px solid var(--border-subtle)' }}>
-        <button type="button" onClick={onClose} aria-label="返回元素列表" className="btn-secondary" style={{ padding: 6 }}><ArrowLeft size={14} /></button>
+        <button type="button" onClick={onClose} aria-label={tr("返回元素列表")} className="btn-secondary" style={{ padding: 6 }}><ArrowLeft size={14} /></button>
         <Layers3 size={17} color="var(--accent-copper)" />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--text-main)' }}>{element.displayName}</div>
-          <div style={{ fontSize: 10, color: 'var(--text-sub)' }}>Overlay 深度编辑 · 上游 WYSIWYG Overlay 组件子集</div>
+          <div style={{ fontSize: 10, color: 'var(--text-sub)' }}>{tr("Overlay 深度编辑 · 上游 WYSIWYG Overlay 组件子集")}</div>
         </div>
-        {impact.length > 0 && <span className="badge badge-blue" data-testid="overlay-generation-impact">生成影响：{impact.join(', ')}</span>}
+        {impact.length > 0 && <span className="badge badge-blue" data-testid="overlay-generation-impact">{tr("生成影响：")}{impact.join(', ')}</span>}
         {message && <span style={{ maxWidth: 280, fontSize: 10, color: 'var(--text-sub)' }}>{message}</span>}
         <button type="button" className="btn-primary" data-testid="overlay-save-btn"
           disabled={saving || changes.length === 0 || issues.length > 0} onClick={save}>
-          <Save size={13} /> {saving ? '保存中…' : '保存 Overlay'}
+          <Save size={13} /> {saving ? tr("保存中…") : tr("保存 Overlay")}
         </button>
       </header>
 
@@ -349,22 +350,21 @@ export const OverlayWorkbench: React.FC<OverlayWorkbenchProps> = ({ element, onC
         <aside style={{ minHeight: 0, display: 'flex', flexDirection: 'column', background: 'var(--bg-surface)', borderRight: '1px solid var(--border-subtle)' }}>
           <div style={{ padding: 12, borderBottom: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', gap: 6 }}>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 11, fontWeight: 700 }}>组件树</div>
-              <div style={{ fontSize: 9, color: 'var(--text-sub)' }}>{components.length} 个 Overlay 组件</div>
+              <div style={{ fontSize: 11, fontWeight: 700 }}>{tr("组件树")}</div>
+              <div style={{ fontSize: 9, color: 'var(--text-sub)' }}>{components.length} {tr(" 个 Overlay 组件")}</div>
             </div>
             <select data-testid="overlay-add-component-type" value={newComponentType}
               onChange={(event) => setNewComponentType(event.target.value as OverlayComponentType)} style={{ fontSize: 9, maxWidth: 105 }}>
-              <option value="label">文本标签（Label）</option>
-              <option value="image">图片（Image）</option>
-              <option value="sprite">精灵图（Sprite）</option>
-              <option value="entitymodel">实体模型（EntityModel）</option>
+              <option value="label">{tr("文本标签（Label）")}</option>
+              <option value="image">{tr("图片（Image）")}</option>
+              <option value="sprite">{tr("精灵图（Sprite）")}</option>
+              <option value="entitymodel">{tr("实体模型（EntityModel）")}</option>
             </select>
-            <button type="button" className="btn-secondary" data-testid="overlay-add-component-btn" onClick={addComponent} aria-label="添加 Overlay 组件"><Plus size={12} /></button>
+            <button type="button" className="btn-secondary" data-testid="overlay-add-component-btn" onClick={addComponent} aria-label={tr("添加 Overlay 组件")}><Plus size={12} /></button>
           </div>
           <div data-testid="overlay-component-tree" style={{ flex: 1, overflowY: 'auto', padding: 8 }}>
             {components.length === 0 ? <div style={{ padding: 18, fontSize: 10, color: 'var(--text-sub)', textAlign: 'center' }}>
-              Overlay 可添加 Label、Image、Sprite、EntityModel。
-            </div> : components.map((component, index) => {
+              {tr("Overlay 可添加 Label、Image、Sprite、EntityModel。")}</div> : components.map((component, index) => {
               const invalid = issues.some((issue) => issue.index === index);
               return <button type="button" key={`${component.type}-${index}`} data-testid={`overlay-component-${index}`}
                 onClick={() => setSelectedIndex(index)} aria-pressed={selectedIndex === index}
@@ -383,23 +383,19 @@ export const OverlayWorkbench: React.FC<OverlayWorkbenchProps> = ({ element, onC
 
         <main style={{ minHeight: 0, minWidth: 0, display: 'flex', flexDirection: 'column', background: 'var(--bg-base)' }}>
           <div style={{ padding: '9px 12px', display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', borderBottom: '1px solid var(--border-subtle)' }}>
-            <label style={{ fontSize: 9, color: 'var(--text-sub)' }}>显示目标（Target）
-              <input data-testid="overlay-target" list="overlay-targets" value={String(values['/overlayTarget'] ?? 'Ingame')}
+            <label style={{ fontSize: 9, color: 'var(--text-sub)' }}>{tr("显示目标（Target）")}<input data-testid="overlay-target" list="overlay-targets" value={String(values['/overlayTarget'] ?? 'Ingame')}
                 onChange={(event) => setValue('/overlayTarget', event.target.value)} style={{ marginLeft: 4, width: 120 }} />
             </label>
             <datalist id="overlay-targets">{OVERLAY_TARGETS.map((target) => <option key={target} value={target} />)}</datalist>
-            <label style={{ fontSize: 9, color: 'var(--text-sub)' }}>优先级（Priority）
-              <select data-testid="overlay-priority" value={String(values['/priority'] ?? 'NORMAL')}
+            <label style={{ fontSize: 9, color: 'var(--text-sub)' }}>{tr("优先级（Priority）")}<select data-testid="overlay-priority" value={String(values['/priority'] ?? 'NORMAL')}
                 onChange={(event) => setValue('/priority', event.target.value)} style={{ marginLeft: 4 }}>
                 {['LOWEST', 'LOW', 'NORMAL', 'HIGH', 'HIGHEST'].map((priority) => <option key={priority} value={priority}>{priority}</option>)}
               </select>
             </label>
-            <label style={{ fontSize: 9, color: 'var(--text-sub)' }}>基础纹理（Base Texture）
-              <input data-testid="overlay-base-texture" list="overlay-textures" value={String(values['/baseTexture'] ?? '')}
+            <label style={{ fontSize: 9, color: 'var(--text-sub)' }}>{tr("基础纹理（Base Texture）")}<input data-testid="overlay-base-texture" list="overlay-textures" value={String(values['/baseTexture'] ?? '')}
                 onChange={(event) => setValue('/baseTexture', event.target.value)} style={{ marginLeft: 4, width: 150 }} />
             </label>
-            <label style={{ fontSize: 9, color: 'var(--text-sub)' }}>显示条件（Display Condition）
-              <input data-testid="overlay-display-condition" list="overlay-procedures" value={String(values['/displayCondition'] ?? '')}
+            <label style={{ fontSize: 9, color: 'var(--text-sub)' }}>{tr("显示条件（Display Condition）")}<input data-testid="overlay-display-condition" list="overlay-procedures" value={String(values['/displayCondition'] ?? '')}
                 onChange={(event) => setValue('/displayCondition', event.target.value || null)} style={{ marginLeft: 4, width: 130 }} />
             </label>
           </div>
@@ -414,8 +410,7 @@ export const OverlayWorkbench: React.FC<OverlayWorkbenchProps> = ({ element, onC
             </label>)}
             <label style={{ display: 'flex', gap: 4, alignItems: 'center', fontSize: 9, color: 'var(--text-sub)' }}>
               <input data-testid="overlay-grid-snap" type="checkbox" checked={Boolean(values['/gridSettings/snapOnGrid'])}
-                onChange={(event) => setValue('/gridSettings/snapOnGrid', event.target.checked)} /> 吸附网格
-            </label>
+                onChange={(event) => setValue('/gridSettings/snapOnGrid', event.target.checked)} /> {tr(" 吸附网格")}</label>
           </div>
 
           <div style={{ flex: 1, minHeight: 0, overflow: 'auto', display: 'grid', placeItems: 'center', padding: 20 }}>
@@ -443,7 +438,7 @@ export const OverlayWorkbench: React.FC<OverlayWorkbenchProps> = ({ element, onC
           {issues.length > 0 && <div data-testid="overlay-layout-diagnostics" style={{ maxHeight: 90, overflowY: 'auto', padding: '8px 12px',
             borderTop: '1px solid var(--border-subtle)', background: 'var(--badge-amber-bg)', fontSize: 9 }}>
             {issues.map((issue, index) => <div key={`${issue.index}-${index}`} style={{ display: 'flex', gap: 5, color: 'var(--badge-amber)', marginBottom: 3 }}>
-              <AlertTriangle size={10} /> {issue.index === null ? '' : `组件 ${issue.index + 1}：`}{issue.message}
+              <AlertTriangle size={10} /> {issue.index === null ? '' : tr("组件 {0}：", [issue.index + 1])}{issue.message}
             </div>)}
           </div>}
         </main>
@@ -451,70 +446,58 @@ export const OverlayWorkbench: React.FC<OverlayWorkbenchProps> = ({ element, onC
         <aside style={{ minHeight: 0, overflowY: 'auto', padding: 12, background: 'var(--bg-surface)', borderLeft: '1px solid var(--border-subtle)' }}>
           <datalist id="overlay-textures">{textures.map((asset) => <option key={asset.id} value={asset.relativePath}>{asset.relativePath}</option>)}</datalist>
           <datalist id="overlay-procedures">{procedures.map((procedure) => <option key={procedure.id} value={procedure.name}>{procedure.displayName}</option>)}</datalist>
-          {!selected || selectedIndex === null ? <div style={{ fontSize: 10, color: 'var(--text-sub)' }}>选择 Overlay 组件以编辑原生字段。</div> : <>
+          {!selected || selectedIndex === null ? <div style={{ fontSize: 10, color: 'var(--text-sub)' }}>{tr("选择 Overlay 组件以编辑原生字段。")}</div> : <>
             <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 10 }}>
               <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 11 }}>{componentName(selected, selectedIndex)}</div>
                 <div style={{ fontSize: 9, color: 'var(--text-sub)' }}>{valueLabel(selected.type)}</div></div>
-              <button type="button" aria-label="上移 Overlay 组件" onClick={() => moveSelected(-1)} disabled={selectedIndex === 0} style={{ padding: 4 }}><ChevronUp size={12} /></button>
-              <button type="button" aria-label="下移 Overlay 组件" onClick={() => moveSelected(1)} disabled={selectedIndex === components.length - 1} style={{ padding: 4 }}><ChevronDown size={12} /></button>
-              <button type="button" aria-label="删除 Overlay 组件" onClick={deleteSelected} className="btn-danger" style={{ padding: 4 }}><Trash2 size={12} /></button>
+              <button type="button" aria-label={tr("上移 Overlay 组件")} onClick={() => moveSelected(-1)} disabled={selectedIndex === 0} style={{ padding: 4 }}><ChevronUp size={12} /></button>
+              <button type="button" aria-label={tr("下移 Overlay 组件")} onClick={() => moveSelected(1)} disabled={selectedIndex === components.length - 1} style={{ padding: 4 }}><ChevronDown size={12} /></button>
+              <button type="button" aria-label={tr("删除 Overlay 组件")} onClick={deleteSelected} className="btn-danger" style={{ padding: 4 }}><Trash2 size={12} /></button>
             </div>
 
             {(['x', 'y'] as const).map((key) => <label key={key} style={{ display: 'block', marginBottom: 7, fontSize: 9, color: 'var(--text-sub)' }}>{fieldLabel(key)}
               <input data-testid={`overlay-component-field-${key}`} type="number" value={Number(selected.data[key] ?? 0)}
                 onChange={(event) => updateComponentField(key, Number(event.target.value))} style={{ width: '100%', marginTop: 3 }} />
             </label>)}
-            <label style={{ display: 'block', marginBottom: 7, fontSize: 9, color: 'var(--text-sub)' }}>锚点（anchorPoint）
-              <select value={String(selected.data.anchorPoint ?? '')} onChange={(event) => updateComponentField('anchorPoint', event.target.value || null)}
-                style={{ width: '100%', marginTop: 3 }}>{ANCHORS.map((anchor) => <option key={anchor} value={anchor}>{anchor ? valueLabel(anchor) : '无'}</option>)}</select>
+            <label style={{ display: 'block', marginBottom: 7, fontSize: 9, color: 'var(--text-sub)' }}>{tr("锚点（anchorPoint）")}<select value={String(selected.data.anchorPoint ?? '')} onChange={(event) => updateComponentField('anchorPoint', event.target.value || null)}
+                style={{ width: '100%', marginTop: 3 }}>{ANCHORS.map((anchor) => <option key={anchor} value={anchor}>{anchor ? valueLabel(anchor) : tr("无")}</option>)}</select>
             </label>
             <label style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 8, fontSize: 9, color: 'var(--text-sub)' }}>
-              <input type="checkbox" checked={Boolean(selected.data.locked)} onChange={(event) => updateComponentField('locked', event.target.checked)} /> 锁定（locked）
-            </label>
+              <input type="checkbox" checked={Boolean(selected.data.locked)} onChange={(event) => updateComponentField('locked', event.target.checked)} /> {tr(" 锁定（locked）")}</label>
 
             {selected.type === 'label' && <>
-              <label style={{ display: 'block', marginBottom: 7, fontSize: 9, color: 'var(--text-sub)' }}>名称（name）
-                <input value={String(selected.data.name ?? '')} onChange={(event) => updateComponentField('name', event.target.value)} style={{ width: '100%', marginTop: 3 }} />
+              <label style={{ display: 'block', marginBottom: 7, fontSize: 9, color: 'var(--text-sub)' }}>{tr("名称（name）")}<input value={String(selected.data.name ?? '')} onChange={(event) => updateComponentField('name', event.target.value)} style={{ width: '100%', marginTop: 3 }} />
               </label>
-              <label style={{ display: 'block', marginBottom: 7, fontSize: 9, color: 'var(--text-sub)' }}>固定文本（text.fixedValue）
-                <input data-testid="overlay-component-field-label-text" value={labelText(selected)}
+              <label style={{ display: 'block', marginBottom: 7, fontSize: 9, color: 'var(--text-sub)' }}>{tr("固定文本（text.fixedValue）")}<input data-testid="overlay-component-field-label-text" value={labelText(selected)}
                   onChange={(event) => updateObjectField('text', 'fixedValue', event.target.value)} style={{ width: '100%', marginTop: 3 }} />
               </label>
-              <label style={{ display: 'block', marginBottom: 7, fontSize: 9, color: 'var(--text-sub)' }}>颜色（color）
-                <input type="color" value={argbToHex(selected.data.color)} onChange={(event) => updateComponentField('color', hexToArgb(event.target.value))}
+              <label style={{ display: 'block', marginBottom: 7, fontSize: 9, color: 'var(--text-sub)' }}>{tr("颜色（color）")}<input type="color" value={argbToHex(selected.data.color)} onChange={(event) => updateComponentField('color', hexToArgb(event.target.value))}
                   style={{ width: '100%', marginTop: 3, minHeight: 28 }} />
               </label>
               <label style={{ display: 'flex', gap: 5, marginBottom: 7, fontSize: 9, color: 'var(--text-sub)' }}>
-                <input type="checkbox" checked={Boolean(selected.data.hasShadow)} onChange={(event) => updateComponentField('hasShadow', event.target.checked)} /> 文字阴影（hasShadow）
-              </label>
+                <input type="checkbox" checked={Boolean(selected.data.hasShadow)} onChange={(event) => updateComponentField('hasShadow', event.target.checked)} /> {tr(" 文字阴影（hasShadow）")}</label>
             </>}
 
             {selected.type === 'image' && <>
-              <label style={{ display: 'block', marginBottom: 7, fontSize: 9, color: 'var(--text-sub)' }}>图片（image）
-                <input list="overlay-textures" value={String(selected.data.image ?? '')} onChange={(event) => updateComponentField('image', event.target.value)} style={{ width: '100%', marginTop: 3 }} />
+              <label style={{ display: 'block', marginBottom: 7, fontSize: 9, color: 'var(--text-sub)' }}>{tr("图片（image）")}<input list="overlay-textures" value={String(selected.data.image ?? '')} onChange={(event) => updateComponentField('image', event.target.value)} style={{ width: '100%', marginTop: 3 }} />
               </label>
               <label style={{ display: 'flex', gap: 5, marginBottom: 7, fontSize: 9, color: 'var(--text-sub)' }}>
-                <input type="checkbox" checked={Boolean(selected.data.use1Xscale)} onChange={(event) => updateComponentField('use1Xscale', event.target.checked)} /> 使用原始比例（use1Xscale）
-              </label>
+                <input type="checkbox" checked={Boolean(selected.data.use1Xscale)} onChange={(event) => updateComponentField('use1Xscale', event.target.checked)} /> {tr(" 使用原始比例（use1Xscale）")}</label>
             </>}
 
             {selected.type === 'sprite' && <>
-              <label style={{ display: 'block', marginBottom: 7, fontSize: 9, color: 'var(--text-sub)' }}>精灵图（sprite）
-                <input list="overlay-textures" value={String(selected.data.sprite ?? '')} onChange={(event) => updateComponentField('sprite', event.target.value)} style={{ width: '100%', marginTop: 3 }} />
+              <label style={{ display: 'block', marginBottom: 7, fontSize: 9, color: 'var(--text-sub)' }}>{tr("精灵图（sprite）")}<input list="overlay-textures" value={String(selected.data.sprite ?? '')} onChange={(event) => updateComponentField('sprite', event.target.value)} style={{ width: '100%', marginTop: 3 }} />
               </label>
-              <label style={{ display: 'block', marginBottom: 7, fontSize: 9, color: 'var(--text-sub)' }}>精灵帧数（spritesCount）
-                <input data-testid="overlay-component-field-spritesCount" type="number" min={1} value={Number(selected.data.spritesCount ?? 1)}
+              <label style={{ display: 'block', marginBottom: 7, fontSize: 9, color: 'var(--text-sub)' }}>{tr("精灵帧数（spritesCount）")}<input data-testid="overlay-component-field-spritesCount" type="number" min={1} value={Number(selected.data.spritesCount ?? 1)}
                   onChange={(event) => updateComponentField('spritesCount', Number(event.target.value))} style={{ width: '100%', marginTop: 3 }} />
               </label>
-              <label style={{ display: 'block', marginBottom: 7, fontSize: 9, color: 'var(--text-sub)' }}>固定帧序号（spriteIndex.fixedValue）
-                <input type="number" value={Number((selected.data.spriteIndex as Record<string, unknown> | undefined)?.fixedValue ?? 0)}
+              <label style={{ display: 'block', marginBottom: 7, fontSize: 9, color: 'var(--text-sub)' }}>{tr("固定帧序号（spriteIndex.fixedValue）")}<input type="number" value={Number((selected.data.spriteIndex as Record<string, unknown> | undefined)?.fixedValue ?? 0)}
                   onChange={(event) => updateObjectField('spriteIndex', 'fixedValue', Number(event.target.value))} style={{ width: '100%', marginTop: 3 }} />
               </label>
             </>}
 
             {selected.type === 'entitymodel' && <>
-              <label style={{ display: 'block', marginBottom: 7, fontSize: 9, color: 'var(--text-sub)' }}>实体模型来源过程（entityModel）
-                <input data-testid="overlay-component-field-entityModel" list="overlay-procedures" value={String(selected.data.entityModel ?? '')}
+              <label style={{ display: 'block', marginBottom: 7, fontSize: 9, color: 'var(--text-sub)' }}>{tr("实体模型来源过程（entityModel）")}<input data-testid="overlay-component-field-entityModel" list="overlay-procedures" value={String(selected.data.entityModel ?? '')}
                   onChange={(event) => updateComponentField('entityModel', event.target.value || null)} style={{ width: '100%', marginTop: 3 }} />
               </label>
               {(['scale', 'rotationX'] as const).map((key) => <label key={key} style={{ display: 'block', marginBottom: 7, fontSize: 9, color: 'var(--text-sub)' }}>{fieldLabel(key)}
@@ -523,12 +506,10 @@ export const OverlayWorkbench: React.FC<OverlayWorkbenchProps> = ({ element, onC
               </label>)}
               <label style={{ display: 'flex', gap: 5, marginBottom: 7, fontSize: 9, color: 'var(--text-sub)' }}>
                 <input type="checkbox" checked={Boolean(selected.data.followMouseMovement)}
-                  onChange={(event) => updateComponentField('followMouseMovement', event.target.checked)} /> 跟随鼠标（followMouseMovement）
-              </label>
+                  onChange={(event) => updateComponentField('followMouseMovement', event.target.checked)} /> {tr(" 跟随鼠标（followMouseMovement）")}</label>
             </>}
 
-            <label style={{ display: 'block', marginBottom: 7, fontSize: 9, color: 'var(--text-sub)' }}>显示条件过程（displayCondition）
-              <input list="overlay-procedures" value={String(selected.data.displayCondition ?? '')}
+            <label style={{ display: 'block', marginBottom: 7, fontSize: 9, color: 'var(--text-sub)' }}>{tr("显示条件过程（displayCondition）")}<input list="overlay-procedures" value={String(selected.data.displayCondition ?? '')}
                 onChange={(event) => updateComponentField('displayCondition', event.target.value || null)} style={{ width: '100%', marginTop: 3 }} />
             </label>
           </>}

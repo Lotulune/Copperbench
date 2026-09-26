@@ -1,8 +1,8 @@
 import { LocalizedText } from '../types/contract';
 import { zh } from './zh';
 import { en } from './en';
-import { valueLabel } from './labels';
-import { UI_LOCALE, uiText } from './locale';
+import { valueLabel, fieldLabel } from './labels';
+import { UI_LOCALE, uiText, tr } from './locale';
 export { UI_LOCALE, setUiLocale, useUiLocale, uiText, englishCount } from './locale';
 
 /** Store messages without choosing a language until they are rendered. */
@@ -37,5 +37,6 @@ export function t(localized: LocalizedText | null | undefined): string {
     const entry = en[localized.key];
     if (entry) return formatTemplate(entry, localized.args);
   }
-  return formatTemplate(localized.fallback, localized.args);
+  if (UI_LOCALE === 'en' && localized.key.startsWith('field.') && /[\u3400-\u9fff]/.test(localized.fallback)) return fieldLabel(localized.key.slice(6));
+  return formatTemplate(UI_LOCALE === 'en' ? tr(localized.fallback) : localized.fallback, localized.args);
 }

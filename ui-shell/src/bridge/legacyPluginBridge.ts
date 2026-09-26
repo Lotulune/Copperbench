@@ -1,3 +1,4 @@
+import { tr } from '../i18n/locale';
 export interface NativeLegacyPluginHost {
   readonly available: boolean;
   invoke(action: 'open'): Promise<void>;
@@ -30,7 +31,7 @@ class UnavailableLegacyPluginBridge implements LegacyPluginBridge {
   public readonly available = false;
 
   public open(): Promise<void> {
-    return Promise.reject(new Error('旧版插件窗口仅可在桌面应用中打开'));
+    return Promise.reject(new Error(tr("旧版插件窗口仅可在桌面应用中打开")));
   }
 }
 

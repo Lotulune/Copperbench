@@ -1,3 +1,4 @@
+import { tr } from '../i18n/locale';
 import { valueLabel } from '../i18n/labels';
 import React, { useDeferredValue, useEffect, useMemo, useState } from 'react';
 import {
@@ -1181,14 +1182,14 @@ const AssetCard: React.FC<{
             <strong title={asset.name}>{asset.name}</strong>
             <span className={`badge badge-${statusClass(asset.validation)} asset-status-badge`}>
               <StatusIcon status={asset.validation} size={11} />
-              {asset.validationLabel}
+              {UI_LOCALE === 'en' ? valueLabel(asset.validation) : asset.validationLabel}
             </span>
           </div>
 
           <div className="asset-card-category-row">
-            <span>{asset.categoryLabel}</span>
+            <span>{UI_LOCALE === 'en' ? valueLabel(asset.category) : asset.categoryLabel}</span>
             <span className="asset-dot">·</span>
-            <span>{asset.sourceLabel}</span>
+            <span>{UI_LOCALE === 'en' ? valueLabel(asset.source) : asset.sourceLabel}</span>
           </div>
 
           <small className="asset-card-path" title={asset.path}>
@@ -1251,16 +1252,16 @@ const AssetDetails: React.FC<{
         <div className="asset-details-title-wrap">
           <strong title={asset.name}>{asset.name}</strong>
           <div className="asset-details-sub">
-            <small>{asset.categoryLabel}</small>
+            <small>{UI_LOCALE === 'en' ? valueLabel(asset.category) : asset.categoryLabel}</small>
             <span className="asset-dot">·</span>
-            <small>{asset.sourceLabel}</small>
+            <small>{UI_LOCALE === 'en' ? valueLabel(asset.source) : asset.sourceLabel}</small>
           </div>
         </div>
       </div>
 
       <div className={`badge badge-${statusClass(asset.validation)} asset-details-status`}>
         <StatusIcon status={asset.validation} size={12} />
-        <span>{asset.validationLabel}</span>
+        <span>{UI_LOCALE === 'en' ? valueLabel(asset.validation) : asset.validationLabel}</span>
       </div>
 
       {/* Surface Preview Canvas */}
@@ -1399,7 +1400,7 @@ const AssetDetails: React.FC<{
       )}
 
       {/* Description Summary */}
-      <p className="asset-description">{asset.description}</p>
+      <p className="asset-description">{UI_LOCALE === 'en' && asset.description === '工作区真实资产，由 AssetWorkspaceService 实时索引。' ? tr(asset.description) : asset.description}</p>
 
       {/* Action Buttons */}
       <div className="asset-details-actions">

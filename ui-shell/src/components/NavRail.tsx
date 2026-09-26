@@ -1,3 +1,4 @@
+import { UI_LOCALE } from '../i18n/locale';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   LayoutDashboard,
@@ -62,7 +63,7 @@ export const NavRail: React.FC = () => {
       className="nav-rail"
       data-testid="nav-rail"
       style={{
-        width: '190px',
+        width: UI_LOCALE === 'en' ? '232px' : '190px',
         background: 'var(--navrail-bg)',
         borderRight: '1px solid var(--border-subtle)',
         display: 'flex',

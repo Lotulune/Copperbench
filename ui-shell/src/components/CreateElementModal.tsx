@@ -1,3 +1,4 @@
+import { tr } from '../i18n/locale';
 import { elementLabel } from '../i18n/labels';
 import React, { useState } from 'react';
 import { X, Plus, Box, Compass, Scroll, Terminal, FileCode2, Gift, Trophy } from 'lucide-react';
@@ -20,12 +21,12 @@ export const CreateElementModal: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
-      setError('元素标识符不能为空');
+      setError(tr("元素标识符不能为空"));
       return;
     }
     // Validate identifier format
     if (!/^[a-z][a-z0-9_]{0,63}$/.test(name.trim())) {
-      setError('标识符须以小写字母开头，仅含小写字母、数字或下划线，长度为 1–64（如 copper_lamp）。');
+      setError(tr("标识符须以小写字母开头，仅含小写字母、数字或下划线，长度为 1–64（如 copper_lamp）。"));
       return;
     }
 
@@ -38,11 +39,11 @@ export const CreateElementModal: React.FC = () => {
         setIsCreateModalOpen(false);
         setName('');
       } else {
-        setError('创建元素失败');
+        setError(tr("创建元素失败"));
       }
     } catch {
       setIsSubmitting(false);
-      setError('创建元素时发生错误');
+      setError(tr("创建元素时发生错误"));
     }
   };
 
@@ -52,15 +53,14 @@ export const CreateElementModal: React.FC = () => {
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
-        aria-label="创建模组元素"
+        aria-label={tr("创建模组元素")}
         className="modal-card animate-fade-in"
         style={{ width: '460px' }}
       >
         <div className="modal-header">
           <div style={{ fontWeight: 700, fontSize: '14px', color: 'var(--text-main)' }}>
-            创建模组元素
-          </div>
-          <button type="button" aria-label="关闭创建元素对话框" onClick={() => setIsCreateModalOpen(false)} style={{ color: 'var(--text-muted)' }}>
+            {tr("创建模组元素")}</div>
+          <button type="button" aria-label={tr("关闭创建元素对话框")} onClick={() => setIsCreateModalOpen(false)} style={{ color: 'var(--text-muted)' }}>
             <X size={16} />
           </button>
         </div>
@@ -76,8 +76,7 @@ export const CreateElementModal: React.FC = () => {
             {/* Element Type Selection */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)' }}>
-                元素类型
-              </label>
+                {tr("元素类型")}</label>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
                 {ALL_MOD_ELEMENT_TYPES.map((type) => {
                   const Icon = typeIcons[type] ?? Compass;
@@ -114,20 +113,18 @@ export const CreateElementModal: React.FC = () => {
             {/* Name Identifier */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               <label htmlFor="create-element-name" style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)' }}>
-                标识符（内部 ID）
-              </label>
+                {tr("标识符（内部 ID）")}</label>
               <input
                 id="create-element-name"
                 type="text"
-                placeholder="例如 copper_lamp、trail_lantern"
+                placeholder={tr("例如 copper_lamp、trail_lantern")}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 autoFocus
                 data-testid="create-element-name-input"
               />
               <span style={{ fontSize: '10px', color: 'var(--text-sub)' }}>
-                以小写字母开头，后续可用小写字母、数字或下划线，共 1–64 个字符。
-              </span>
+                {tr("以小写字母开头，后续可用小写字母、数字或下划线，共 1–64 个字符。")}</span>
             </div>
           </div>
 
@@ -137,8 +134,7 @@ export const CreateElementModal: React.FC = () => {
               className="btn-secondary"
               onClick={() => setIsCreateModalOpen(false)}
             >
-              取消
-            </button>
+              {tr("取消")}</button>
             <button
               type="submit"
               className="btn-primary"
@@ -146,7 +142,7 @@ export const CreateElementModal: React.FC = () => {
               data-testid="create-element-submit-btn"
             >
               <Plus size={14} />
-              <span>{isSubmitting ? '创建中…' : '创建元素'}</span>
+              <span>{isSubmitting ? tr("创建中…") : tr("创建元素")}</span>
             </button>
           </div>
         </form>

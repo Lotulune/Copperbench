@@ -1,3 +1,4 @@
+import { tr } from '../i18n/locale';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Layers,
@@ -87,7 +88,7 @@ export const NewWorkspaceView: React.FC = () => {
       .then((data) => {
         if (cancelled) return;
         if (!data) {
-          setCatalogError('生成器目录返回了空结果。');
+          setCatalogError(tr("生成器目录返回了空结果。"));
           return;
         }
         setCatalog(data);
@@ -97,7 +98,7 @@ export const NewWorkspaceView: React.FC = () => {
         }
       })
       .catch(() => {
-        if (!cancelled) setCatalogError('生成器目录无法加载。');
+        if (!cancelled) setCatalogError(tr("生成器目录无法加载。"));
       });
     return () => {
       cancelled = true;
@@ -124,12 +125,12 @@ export const NewWorkspaceView: React.FC = () => {
       const generators = catalog.generators.filter((generator) => generator.trackId === id);
       const minecraftVersion = generators[0]?.minecraftVersion;
       const label = id === 'latest_stable'
-        ? `最新稳定轨 · Minecraft ${minecraftVersion}`
+        ? tr("最新稳定轨 · Minecraft {0}", [minecraftVersion])
         : id === 'previous_stable'
-          ? `前一稳定轨 · Minecraft ${minecraftVersion}`
+          ? tr("前一稳定轨 · Minecraft {0}", [minecraftVersion])
           : id === 'resource_pack'
-            ? `独立资源包 · Minecraft ${minecraftVersion}`
-            : `维护轨 · Minecraft ${minecraftVersion}`;
+            ? tr("独立资源包 · Minecraft {0}", [minecraftVersion])
+            : tr("维护轨 · Minecraft {0}", [minecraftVersion]);
       return { id, label, generators };
     });
   }, [catalog]);
@@ -166,7 +167,7 @@ export const NewWorkspaceView: React.FC = () => {
           setOpenError(null);
         } catch (error: unknown) {
           setOpenError(
-            error instanceof Error ? error.message : '新工作区已创建，但在新窗口打开失败。'
+            error instanceof Error ? error.message : tr("新工作区已创建，但在新窗口打开失败。")
           );
         }
       }
@@ -188,7 +189,7 @@ export const NewWorkspaceView: React.FC = () => {
             severity: 'error',
             message: {
               key: 'diagnostic.bridge_transport_failed',
-              fallback: '与 Java Core 的通信失败，工作区未创建。'
+              fallback: tr("与 Java Core 的通信失败，工作区未创建。")
             },
             path: null,
             elementId: null,
@@ -224,7 +225,7 @@ export const NewWorkspaceView: React.FC = () => {
       setDiagnosticActionError(null);
     } catch {
       if (failureId && navigator.clipboard) void navigator.clipboard.writeText(failureId);
-      setDiagnosticActionError(`当前宿主无法打开应用日志，错误编号 ${failureId} 已复制。`);
+      setDiagnosticActionError(tr("当前宿主无法打开应用日志，错误编号 {0} 已复制。", [failureId]));
     }
   };
 
@@ -250,10 +251,9 @@ export const NewWorkspaceView: React.FC = () => {
           <Layers size={24} />
         </div>
         <div>
-          <h2 style={{ fontSize: '18px', fontWeight: 700, margin: 0 }}>新建工作区</h2>
+          <h2 style={{ fontSize: '18px', fontWeight: 700, margin: 0 }}>{tr("新建工作区")}</h2>
           <p style={{ fontSize: '12px', color: 'var(--text-sub)', margin: '4px 0 0 0' }}>
-            四轨 Fabric / NeoForge 与独立资源包生成器 · 创建后写入 .mcreator 工作区文件并在新窗口打开
-          </p>
+            {tr("四轨 Fabric / NeoForge 与独立资源包生成器 · 创建后写入 .mcreator 工作区文件并在新窗口打开")}</p>
         </div>
       </div>
 
@@ -266,12 +266,12 @@ export const NewWorkspaceView: React.FC = () => {
         >
           <CheckCircle2 size={20} color="var(--badge-green)" />
           <div>
-            <strong style={{ fontSize: '13px', color: 'var(--text-main)' }}>工作区已创建！</strong>
+            <strong style={{ fontSize: '13px', color: 'var(--text-main)' }}>{tr("工作区已创建！")}</strong>
             <div style={{ fontSize: '12px', color: 'var(--text-sub)' }}>
-              工作区文件：<code>{result.data.workspaceFile}</code>（生成器 <code>{result.data.generatorId}</code>）。
+              {tr("工作区文件：")}<code>{result.data.workspaceFile}</code>{tr("（生成器 ")}<code>{result.data.generatorId}</code>）。
               {workspaceOpenBridge.available
-                ? '宿主正在新窗口中打开该工作区。'
-                : '浏览器预览环境不连接 Swing 宿主，请在桌面版中打开该工作区文件。'}
+                ? tr("宿主正在新窗口中打开该工作区。")
+                : tr("浏览器预览环境不连接 Swing 宿主，请在桌面版中打开该工作区文件。")}
             </div>
           </div>
         </div>
@@ -281,7 +281,7 @@ export const NewWorkspaceView: React.FC = () => {
       {created && openError && (
         <div role="alert" style={{ background: 'var(--badge-amber-bg)', border: '1px solid rgba(210, 153, 34, 0.4)', borderRadius: 'var(--radius-md)', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '12px', color: 'var(--text-main)' }}>
           <AlertTriangle size={16} color="var(--badge-amber)" />
-          <span>新工作区已创建，但在新窗口打开失败：{openError}</span>
+          <span>{tr("新工作区已创建，但在新窗口打开失败：")}{openError}</span>
         </div>
       )}
 
@@ -296,8 +296,7 @@ export const NewWorkspaceView: React.FC = () => {
           style={{ background: 'var(--badge-red-bg)', border: '1px solid rgba(248, 81, 73, 0.4)', borderRadius: 'var(--radius-md)', padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: '8px' }}
         >
           <strong id="workspace-error-summary-title" style={{ fontSize: '13px', color: 'var(--text-main)' }}>
-            工作区未创建，请修正以下问题
-          </strong>
+            {tr("工作区未创建，请修正以下问题")}</strong>
           {result.diagnostics.map((d) => (
             <div key={d.code} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
               <AlertTriangle size={14} color="var(--badge-red)" style={{ flexShrink: 0, marginTop: '2px' }} />
@@ -317,7 +316,7 @@ export const NewWorkspaceView: React.FC = () => {
                 <code style={{ marginLeft: '8px', fontSize: '10px', color: 'var(--text-sub)' }}>{d.code}</code>
                 {d.message.args?.failureId != null && (
                   <code style={{ marginLeft: '8px', fontSize: '10px', color: 'var(--text-sub)' }}>
-                    错误编号：{String(d.message.args.failureId)}
+                    {tr("错误编号：")}{String(d.message.args.failureId)}
                   </code>
                 )}
                 {d.actions.filter((action) => action.kind === 'open_logs').map((action) => (
@@ -343,8 +342,7 @@ export const NewWorkspaceView: React.FC = () => {
               style={{ alignSelf: 'flex-start', marginTop: '4px', fontSize: '11px', padding: '4px 10px' }}
             >
               <RefreshCw size={12} aria-hidden="true" />
-              重新尝试
-            </button>
+              {tr("重新尝试")}</button>
           )}
           {diagnosticActionError && (
             <span role="alert" style={{ fontSize: '11px', color: 'var(--badge-red)' }}>
@@ -365,8 +363,7 @@ export const NewWorkspaceView: React.FC = () => {
             style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}
           >
             <RefreshCw size={12} aria-hidden="true" />
-            重试
-          </button>
+            {tr("重试")}</button>
         </div>
       )}
 
@@ -380,13 +377,12 @@ export const NewWorkspaceView: React.FC = () => {
           aria-describedby={fieldError('generatorId') ? 'new-workspace-generator-error' : undefined}
           style={{ background: 'var(--bg-panel)', border: fieldError('generatorId') ? '1px solid var(--badge-red)' : '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}
         >
-          <h3 style={{ fontSize: '14px', fontWeight: 700, margin: 0 }}>选择生成器</h3>
+          <h3 style={{ fontSize: '14px', fontWeight: 700, margin: 0 }}>{tr("选择生成器")}</h3>
 
           {!catalog && !catalogError && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-sub)', fontSize: '12px' }}>
               <Loader2 size={14} className="spin" />
-              正在加载生成器目录…
-            </div>
+              {tr("正在加载生成器目录…")}</div>
           )}
 
           {groupedByTrack.map((track) => (
@@ -405,7 +401,7 @@ export const NewWorkspaceView: React.FC = () => {
                       disabled={!g.available}
                       onClick={() => setGeneratorId(g.generatorId)}
                       aria-pressed={isSel}
-                      title={g.available ? g.workspaceGeneratorName : '生成器插件未安装或未加载'}
+                      title={g.available ? g.workspaceGeneratorName : tr("生成器插件未安装或未加载")}
                       style={{
                         padding: '10px 12px',
                         background: isSel ? 'var(--accent-copper-dim)' : 'var(--bg-canvas)',
@@ -423,10 +419,10 @@ export const NewWorkspaceView: React.FC = () => {
                       }}
                     >
                       <span style={{ fontSize: '12px' }}>
-                        {g.loader === 'resource_pack' ? '资源包' : g.loader === 'neoforge' ? 'NeoForge' : 'Fabric'} {g.minecraftVersion}
+                        {g.loader === 'resource_pack' ? tr("资源包") : g.loader === 'neoforge' ? 'NeoForge' : 'Fabric'} {g.minecraftVersion}
                       </span>
                       <span style={{ fontSize: '10px', color: 'var(--text-sub)' }}>
-                        {g.available ? g.generatorId : `${g.generatorId} · 未安装`}
+                        {g.available ? g.generatorId : tr("{0} · 未安装", [g.generatorId])}
                       </span>
                     </button>
                   );
@@ -438,8 +434,8 @@ export const NewWorkspaceView: React.FC = () => {
           {selectedGenerator && (
             <div data-testid="selected-generator-info" style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--bg-canvas)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)', padding: '8px 12px', fontSize: '11px', color: 'var(--text-sub)' }}>
               <Info size={13} color="var(--accent-copper)" />
-              当前选择：<code style={{ color: 'var(--accent-copper)' }}>{selectedGenerator.workspaceGeneratorName}</code>
-              {selectedGenerator.dynamic && <span className="badge badge-copper" style={{ fontSize: '9px' }}>动态轨</span>}
+              {tr("当前选择：")}<code style={{ color: 'var(--accent-copper)' }}>{selectedGenerator.workspaceGeneratorName}</code>
+              {selectedGenerator.dynamic && <span className="badge badge-copper" style={{ fontSize: '9px' }}>{tr("动态轨")}</span>}
             </div>
           )}
           {fieldError('generatorId') && (
@@ -451,17 +447,17 @@ export const NewWorkspaceView: React.FC = () => {
 
         {/* 右列：表单 */}
         <div style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          <h3 style={{ fontSize: '14px', fontWeight: 700, margin: 0 }}>工作区信息</h3>
+          <h3 style={{ fontSize: '14px', fontWeight: 700, margin: 0 }}>{tr("工作区信息")}</h3>
 
           <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px', fontWeight: 600 }}>
-            {isResourcePack ? '资源包名称' : '模组名称'}
+            {isResourcePack ? tr("资源包名称") : tr("模组名称")}
             <input
               id={FIELD_ELEMENT_ID.modName}
               type="text"
               data-testid="new-workspace-mod-name-input"
               value={modName}
               onChange={(e) => setModName(e.target.value)}
-              placeholder="例如 Copper Trails"
+              placeholder={tr("例如 Copper Trails")}
               maxLength={64}
               aria-invalid={fieldError('modName') ? true : undefined}
               aria-describedby={fieldError('modName') ? 'new-workspace-mod-name-error' : undefined}
@@ -475,21 +471,21 @@ export const NewWorkspaceView: React.FC = () => {
           </label>
 
           <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px', fontWeight: 600 }}>
-            {isResourcePack ? '资源包 ID（命名空间）' : '模组 ID（modid）'}
+            {isResourcePack ? tr("资源包 ID（命名空间）") : tr("模组 ID（modid）")}
             <input
               id={FIELD_ELEMENT_ID.modId}
               type="text"
               data-testid="new-workspace-mod-id-input"
               value={modId}
               onChange={(e) => setModId(e.target.value.toLowerCase())}
-              placeholder="例如 copper_trails"
+              placeholder={tr("例如 copper_trails")}
               maxLength={32}
               aria-invalid={fieldError('modId') ? true : undefined}
               aria-describedby={`new-workspace-mod-id-help${fieldError('modId') ? ' new-workspace-mod-id-error' : ''}`}
               style={{ padding: '8px 10px', borderRadius: 'var(--radius-sm)', border: fieldError('modId') ? '1px solid var(--badge-red)' : '1px solid var(--border-subtle)', background: 'var(--bg-canvas)', color: 'var(--text-main)', fontSize: '12px' }}
             />
             <span id="new-workspace-mod-id-help" style={{ fontSize: '10px', color: 'var(--text-sub)' }}>
-              2-32 位小写字母、数字或下划线，用作工作区文件名与 {isResourcePack ? '资源包命名空间' : 'mod ID'}。
+              {tr("2-32 位小写字母、数字或下划线，用作工作区文件名与 ")}{isResourcePack ? tr("资源包命名空间") : 'mod ID'}。
             </span>
             {fieldError('modId') && (
               <span id="new-workspace-mod-id-error" role="alert" style={{ fontSize: '11px', color: 'var(--badge-red)' }}>
@@ -500,8 +496,7 @@ export const NewWorkspaceView: React.FC = () => {
 
           {!isResourcePack && (
             <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px', fontWeight: 600 }}>
-              Java 包名
-              <input
+              {tr("Java 包名")}<input
                 id={FIELD_ELEMENT_ID.packageName}
                 type="text"
                 data-testid="new-workspace-package-input"
@@ -516,8 +511,7 @@ export const NewWorkspaceView: React.FC = () => {
                 style={{ padding: '8px 10px', borderRadius: 'var(--radius-sm)', border: fieldError('packageName') ? '1px solid var(--badge-red)' : '1px solid var(--border-subtle)', background: 'var(--bg-canvas)', color: 'var(--text-main)', fontSize: '12px' }}
               />
               <span id="new-workspace-package-help" style={{ fontSize: '10px', color: 'var(--text-sub)' }}>
-                留空时自动使用 net.mcreator.&lt;modid&gt;。
-              </span>
+                {tr("留空时自动使用 net.mcreator.&lt;modid&gt;。")}</span>
               {fieldError('packageName') && (
                 <span id="new-workspace-package-error" role="alert" style={{ fontSize: '11px', color: 'var(--badge-red)' }}>
                   {t(fieldError('packageName')!.message)}
@@ -527,8 +521,7 @@ export const NewWorkspaceView: React.FC = () => {
           )}
 
           <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px', fontWeight: 600 }}>
-            工作区文件夹
-            <div style={{ display: 'flex', gap: '8px' }}>
+            {tr("工作区文件夹")}<div style={{ display: 'flex', gap: '8px' }}>
               <input
                 id={FIELD_ELEMENT_ID.workspaceFolderPath}
                 type="text"
@@ -545,17 +538,16 @@ export const NewWorkspaceView: React.FC = () => {
                 className="btn-secondary"
                 data-testid="new-workspace-browse-btn"
                 disabled
-                title="当前无法浏览文件夹，请手动输入路径"
+                title={tr("当前无法浏览文件夹，请手动输入路径")}
                 style={{ fontSize: '12px', padding: '6px 12px', opacity: 0.6, display: 'flex', alignItems: 'center', gap: '6px' }}
               >
                 <FolderOpen size={12} />
-                浏览…
-              </button>
+                {tr("浏览…")}</button>
             </div>
             <span id="new-workspace-folder-help" style={{ fontSize: '10px', color: 'var(--text-sub)' }}>
               {catalog ? (
-                <>必须位于建议根目录之下：<code>{catalog.suggestedWorkspaceFoldersRoot}</code>{suggestedFolder && <>（默认 <code>{suggestedFolder}</code>）</>}</>
-              ) : '必须位于建议的工作区根目录之下。'}
+                <>{tr("必须位于建议根目录之下：")}<code>{catalog.suggestedWorkspaceFoldersRoot}</code>{suggestedFolder && <>{tr("（默认 ")}<code>{suggestedFolder}</code>）</>}</>
+              ) : tr("必须位于建议的工作区根目录之下。")}
             </span>
             {fieldError('workspaceFolderPath') && (
               <span id="new-workspace-folder-error" role="alert" style={{ fontSize: '11px', color: 'var(--badge-red)' }}>
@@ -565,8 +557,7 @@ export const NewWorkspaceView: React.FC = () => {
           </label>
 
           <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px', fontWeight: 600 }}>
-            版本号
-            <input
+            {tr("版本号")}<input
               type="text"
               data-testid="new-workspace-version-input"
               value={version}
@@ -583,8 +574,7 @@ export const NewWorkspaceView: React.FC = () => {
         <div role="note" style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', fontSize: '12px', color: 'var(--text-main)', lineHeight: 1.5 }}>
           <ShieldCheck size={16} color="var(--badge-blue)" style={{ flexShrink: 0, marginTop: '2px' }} />
           <span>
-            将在所选位置创建文件夹和 <code>.mcreator</code> 工作区文件，请核对路径后确认。
-          </span>
+            {tr("将在所选位置创建文件夹和 ")}<code>.mcreator</code> {tr(" 工作区文件，请核对路径后确认。")}</span>
         </div>
 
         <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>
@@ -594,7 +584,7 @@ export const NewWorkspaceView: React.FC = () => {
             checked={userApproved}
             onChange={(e) => setUserApproved(e.target.checked)}
           />
-          <span>我确认在上述文件夹中创建新的工作区</span>
+          <span>{tr("我确认在上述文件夹中创建新的工作区")}</span>
         </label>
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -606,12 +596,11 @@ export const NewWorkspaceView: React.FC = () => {
             style={{ fontSize: '12px', padding: '6px 16px', display: 'flex', alignItems: 'center', gap: '6px' }}
           >
             {submitting ? <Loader2 size={13} className="spin" /> : <Layers size={13} />}
-            <span>{submitting ? '正在创建…' : '创建工作区'}</span>
+            <span>{submitting ? tr("正在创建…") : tr("创建工作区")}</span>
           </button>
           {!userApproved && (
             <span style={{ fontSize: '11px', color: 'var(--badge-amber)' }}>
-              必须勾选确认后方可创建
-            </span>
+              {tr("必须勾选确认后方可创建")}</span>
           )}
         </div>
       </div>

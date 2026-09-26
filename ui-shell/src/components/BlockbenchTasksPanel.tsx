@@ -1,3 +1,4 @@
+import { tr } from '../i18n/locale';
 import { safeRandomUUID } from '../bridge/JcefCoreBridge';
 import React, { useEffect, useRef, useState } from 'react';
 import { coreBridge, isNativeHostPresent } from '../bridge';
@@ -19,10 +20,10 @@ interface ModelingTask {
   elementContext?: { elementId: string; name: string; type: string; namespace: string; modelResource: string; textureDirectory: string };
   binding?: { state: 'bound' | 'unbound' | 'manual' | 'element_missing'; modelResource?: string };
 }
-const labels = { editing: '编辑中', ready_to_import: '候选已保存，待回导', cancelled: '已取消，文件保留', importing: '回导中断，需要恢复', imported: '文件已回导' };
 
 export const BlockbenchTasksPanel: React.FC<{ source?: { id: string; name: string; path: string } | null; element?: ModElementSummary }> = ({ source, element }) => {
   const { state } = useWorkbench();
+  const labels = { editing: tr("编辑中"), ready_to_import: tr("候选已保存，待回导"), cancelled: tr("已取消，文件保留"), importing: tr("回导中断，需要恢复"), imported: tr("文件已回导") };
   const [tasks, setTasks] = useState<ModelingTask[]>([]);
   const [target, setTarget] = useState('models/blockbench/new_model.bbmodel');
   const [busy, setBusy] = useState(false);
@@ -51,10 +52,10 @@ export const BlockbenchTasksPanel: React.FC<{ source?: { id: string; name: strin
 
   const refresh = async () => {
     const workspaceId = state.workbench?.workspace.id;
-    if (!workspaceId) throw new Error('请先打开工作区。');
+    if (!workspaceId) throw new Error(tr("请先打开工作区。"));
     const result = await coreBridge.sendQuery<{ tasks: ModelingTask[] }>({ messageType: 'query', schemaVersion: '1.0',
       requestId: safeRandomUUID(), workspaceId, operation: 'list_blockbench_tasks', payload: {} });
-    if (result.status !== 'succeeded') throw new Error(t(result.diagnostics[0]?.message) || '任务列表读取失败。');
+    if (result.status !== 'succeeded') throw new Error(t(result.diagnostics[0]?.message) || tr("任务列表读取失败。"));
     setTasks(result.data?.tasks ?? []);
     setLoaded(true);
     if (element) {
@@ -97,7 +98,7 @@ export const BlockbenchTasksPanel: React.FC<{ source?: { id: string; name: strin
         payload: { ...payload, clientMutationId: safeRandomUUID() } });
       if (result.status !== 'completed' && result.status !== 'committed') {
         const diagnostic = result.diagnostics[0];
-        throw new Error(`${t(diagnostic?.message) || '任务未完成。'}${diagnostic ? `（${diagnostic.code}）` : ''}`);
+        throw new Error(tr("{0}{1}", [t(diagnostic?.message) || tr("任务未完成。"), diagnostic ? `（${diagnostic.code}）` : '']));
       }
       setRetry(null);
       setMessage(operation === 'finish_blockbench_task' ? '候选已保存；源资产未被覆盖，尚未导出或回导到游戏。'
@@ -108,7 +109,7 @@ export const BlockbenchTasksPanel: React.FC<{ source?: { id: string; name: strin
         : '编辑副本已准备。打开 Blockbench 后保存该副本，并在编辑目录导出游戏 JSON 和 PNG。');
       await refresh();
       return true;
-    } catch (error) { setMessage(error instanceof Error ? error.message : '任务操作失败。'); return false; }
+    } catch (error) { setMessage(error instanceof Error ? error.message : tr("任务操作失败。")); return false; }
     finally { setBusy(false); }
   };
   const begin = (assetId?: string) => {
@@ -161,8 +162,8 @@ export const BlockbenchTasksPanel: React.FC<{ source?: { id: string; name: strin
       </details>}
       <div className="blockbench-setup-actions">
         <button className="btn-secondary" type="button" disabled={busy} onClick={() => {
-          setBusy(true); void refresh().then(() => setMessage('已刷新磁盘保存状态。')).catch(error => setMessage(error.message)).finally(() => setBusy(false));
-        }}>刷新任务与保存状态</button>
+          setBusy(true); void refresh().then(() => setMessage(tr("已刷新磁盘保存状态。"))).catch(error => setMessage(error.message)).finally(() => setBusy(false));
+        }}>{tr("刷新任务与保存状态")}</button>
       </div>
       {loaded && visibleTasks.length === 0 && <p>{element ? "当前元素没有关联的建模任务。" : "当前没有建模任务。"}</p>}
       {visibleTasks.map(task => <article className="blockbench-task" key={task.taskId} tabIndex={-1}
@@ -199,9 +200,9 @@ export const BlockbenchTasksPanel: React.FC<{ source?: { id: string; name: strin
               .catch(() => setMessage('复制失败，请手动复制上方编辑目录。'));
           }}>复制编辑目录</button>
           <button className="btn-secondary" type="button" disabled={!writable || busy || task.state !== 'editing' || task.sourceChanged || !task.editSha256}
-            onClick={() => void run('finish_blockbench_task', { taskId: task.taskId, savedSha256: task.editSha256 })}>确认磁盘保存并生成候选</button>
+            onClick={() => void run('finish_blockbench_task', { taskId: task.taskId, savedSha256: task.editSha256 })}>{tr("确认磁盘保存并生成候选")}</button>
           <button className="btn-secondary" type="button" disabled={!writable || busy || !['editing', 'ready_to_import'].includes(task.state)}
-            onClick={() => void run('cancel_blockbench_task', { taskId: task.taskId })}>取消任务并保留文件</button>
+            onClick={() => void run('cancel_blockbench_task', { taskId: task.taskId })}>{tr("取消任务并保留文件")}</button>
         </div>
         <BlockbenchImportPanel taskId={task.taskId} taskState={task.state} writable={writable} busy={busy} files={task.importFiles} run={run}
           targetElementId={task.elementContext?.elementId} binding={task.binding} invalidCandidate={task.candidateChanged || task.sourceChanged} />
