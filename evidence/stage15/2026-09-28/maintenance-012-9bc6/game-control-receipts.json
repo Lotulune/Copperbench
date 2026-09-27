@@ -1,0 +1,107 @@
+{
+  "status": "passed",
+  "userAuthorization": "允许这两次主菜单退出",
+  "scope": "Wayland and Xorg title-menu Quit Game for installed acceptance; no world navigation",
+  "mechanism": "Hyper-V; host Minecraft MCP reports Windows-only backend and cannot target the guest",
+  "bridgeVersionObserved": "0.3.0",
+  "parallelMinecraftControllerAttached": false,
+  "jevCalls": 0,
+  "freshScreenshotsMatchedInspectedTitleAndButtons": true,
+  "receipts": [
+    {
+      "at": "2026-09-27T17:39:08.3626611Z",
+      "vm": "Copperbench-Stage17-Linux",
+      "before": "quit-validated-228c5082231349418b242e69307e6c2a.png",
+      "after": "wayland-agent-retry-game-quit.png",
+      "x": 612,
+      "y": 549,
+      "inputAndSettleMs": 1818,
+      "totalMs": 2177,
+      "mechanism": "Hyper-V guest input; not Minecraft MCP"
+    },
+    {
+      "at": "2026-09-27T17:39:08.3813033Z",
+      "reference": "wayland-game-before-quit.png",
+      "validated": "quit-validated-228c5082231349418b242e69307e6c2a.png",
+      "after": "wayland-agent-retry-game-quit.png",
+      "matchedRegions": [
+        "Minecraft title bar",
+        "Singleplayer button",
+        "Quit Game button"
+      ],
+      "action": "user-authorized Linux title-menu Quit Game",
+      "noWorldOpened": true
+    },
+    {
+      "at": "2026-09-27T17:39:11.2954659Z",
+      "vm": "Copperbench-Stage17-Linux",
+      "before": "product-close-validated-accfd0f2afa5401a82c13a7d72148480.png",
+      "after": "wayland-agent-retry-product-closed.png",
+      "x": 1007,
+      "y": 49,
+      "inputAndSettleMs": 1267,
+      "totalMs": 1629,
+      "mechanism": "Hyper-V guest input; not Minecraft MCP"
+    },
+    {
+      "at": "2026-09-27T17:39:11.3084530Z",
+      "reference": "wayland-agent-retry-start.png",
+      "validated": "product-close-validated-accfd0f2afa5401a82c13a7d72148480.png",
+      "after": "wayland-agent-retry-product-closed.png",
+      "action": "normal close after Agent verifier shutdown prompt",
+      "matchedRegions": [
+        "exact workspace and product title",
+        "Copperbench logo",
+        "selected overview navigation"
+      ]
+    },
+    {
+      "at": "2026-09-27T19:48:49.7367913Z",
+      "vm": "Copperbench-Stage17-Linux",
+      "before": "quit-validated-0f74bd0700724e6e930b9e7808f60862.png",
+      "after": "xorg-agent-game-quit.png",
+      "x": 612,
+      "y": 549,
+      "inputAndSettleMs": 1790,
+      "totalMs": 2161,
+      "mechanism": "Hyper-V guest input; not Minecraft MCP"
+    },
+    {
+      "at": "2026-09-27T19:48:49.7664720Z",
+      "reference": "wayland-game-before-quit.png",
+      "validated": "quit-validated-0f74bd0700724e6e930b9e7808f60862.png",
+      "after": "xorg-agent-game-quit.png",
+      "matchedRegions": [
+        "Minecraft title bar",
+        "Singleplayer button",
+        "Quit Game button"
+      ],
+      "action": "user-authorized Linux title-menu Quit Game",
+      "noWorldOpened": true
+    },
+    {
+      "at": "2026-09-27T19:48:52.6969379Z",
+      "vm": "Copperbench-Stage17-Linux",
+      "before": "product-close-validated-61b8c31948d64254a910f2dc68f79783.png",
+      "after": "xorg-agent-product-closed.png",
+      "x": 1007,
+      "y": 49,
+      "inputAndSettleMs": 1268,
+      "totalMs": 1639,
+      "mechanism": "Hyper-V guest input; not Minecraft MCP"
+    },
+    {
+      "at": "2026-09-27T19:48:52.7110539Z",
+      "reference": "wayland-agent-retry-start.png",
+      "validated": "product-close-validated-61b8c31948d64254a910f2dc68f79783.png",
+      "after": "xorg-agent-product-closed.png",
+      "action": "normal close after Agent verifier shutdown prompt",
+      "matchedRegions": [
+        "exact workspace and product title",
+        "Copperbench logo",
+        "selected overview navigation"
+      ]
+    }
+  ],
+  "timingPolicy": "Input/capture timings are recorded per action. No model-efficiency or gameplay claim is made."
+}

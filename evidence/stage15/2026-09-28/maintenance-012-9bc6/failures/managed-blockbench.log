@@ -1,0 +1,7 @@
+{"desktop": {"DISPLAY": ":0", "XAUTHORITY": "/run/user/1000/.mutter-Xwaylandauth.8RWAW3", "WAYLAND_DISPLAY": "wayland-0", "DBUS_SESSION_BUS_ADDRESS": "unix:path=/run/user/1000/bus", "XDG_SESSION_TYPE": "wayland", "XDG_CURRENT_DESKTOP": "ubuntu:GNOME", "XDG_RUNTIME_DIR": "/run/user/1000"}}
+Stage 15 Blockbench gate: a real Blockbench window should now show stage15_blockbench_probe_23d44244.bbmodel.
+Add or rename a visible model element, save the .bbmodel, then close Blockbench normally.
+Do not edit the probe file from another program; this gate is specifically for Blockbench.
+Exception in thread "main" java.lang.IllegalStateException: The .bbmodel did not change; make a visible edit in Blockbench and save before closing
+	at Stage15InstalledBlockbenchVerifier.require(Stage15InstalledBlockbenchVerifier.java:141)
+	at Stage15InstalledBlockbenchVerifier.main(Stage15InstalledBlockbenchVerifier.java:114)

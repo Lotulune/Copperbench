@@ -13,10 +13,25 @@ The user authorized committing, pushing and publishing the product maintenance c
 
 | Gate | Current state |
 | --- | --- |
-| Required PR and merged-main CI | Pending |
-| New Linux candidate and provenance | Pending |
-| Fresh digest-bound Linux installed acceptance | Pending |
+| Required implementation PR and merged-main CI | Passed: PR #83; main `9bc6d104`; run `36321809512` |
+| New Linux candidate and provenance | Passed: run `36321809542`; all six frozen assets verified |
+| Fresh digest-bound Linux installed acceptance | Passed: ten gates and both preference migrations; [immutable installed report](maintenance-012-linux-installed-2026-09-28.md) |
+| Release-readiness declaration PR and latest-main CI | Required before signing final tags |
 | Signed latest-main Windows/Linux tags | Pending |
+| Exact 0.1.2 draft notes created and read back before production approval | Required: [Windows body](../releases/v0.1.2-windows.md), [Linux body](../releases/v0.1.2-linux.md) |
 | Protected packaging/promotion and publication | Pending |
 
 Public Windows/Linux 0.1.1 remain the downloadable baseline until these gates complete. Current-source success does not authorize promoting the old Linux candidate as 0.1.2.
+
+The accepted 0.1.2 Linux binaries are bound to source `9bc6d104688c24512468880abdc2a96828fcaab8`. Their original metadata remains unchanged. The final signed release commit may add only the allowed documentation, evidence and release-control declarations. Both platforms remain held until the release-readiness checks pass; the existing protected release workflows then recheck source, signatures, assets and provenance.
+
+## Versioned release-note operation
+
+The existing Windows workflow's automatic draft fallback reads `docs/releases/v0.1.1.md`; the Linux fallback reads the older general Linux notes. Those fallbacks must not create the 0.1.2 public text. Both workflows explicitly reuse an existing draft, including its body. This release therefore uses the following required operation without changing CI or historical release notes:
+
+1. After protected PR/main checks pass, create and verify the two signed latest-main tags.
+2. Before approving either production job, create the Windows and Linux drafts with their tracked version-specific bodies linked above. Use `--verify-tag --draft --prerelease=false` and the corresponding `--notes-file`; do not create or replace a tag through the release API.
+3. Read both drafts back from GitHub. Require the expected tag, draft state and exact body equality with the tracked files. Preserve these receipts. A mismatch blocks production approval until corrected while still a draft.
+4. Approve the existing protected workflows. Their draft-reuse branches preserve these bodies while validating/uploading the payload. Verify both public bodies again with final asset and workflow receipts.
+
+For these tags, pre-created/read-back drafts are a publication requirement, not an optional manual note. A later release must choose its own correct notes or separately authorize a CI change before relying on the automatic fallback.

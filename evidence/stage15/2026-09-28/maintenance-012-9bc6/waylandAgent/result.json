@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "1.0",
+  "status": "passed",
+  "candidateSha256": "fd43bd23926a2f37042f14d6a65a7d606b59b08035a92d490ff5ded156931aef",
+  "endpoint": "http://127.0.0.1:41763/mcp",
+  "permissionProfile": "workspace",
+  "tokenPersisted": false,
+  "automationAuditCredentialLeak": false,
+  "agentLoop": {
+    "initializeProtocolVersion": "2025-11-25",
+    "workspaceId": "9dc5c2a8-30d9-458c-930c-6b14dccdcef7",
+    "initialRevision": 5,
+    "finalRevision": 8,
+    "initialElementCount": 4,
+    "finalElementCount": 7,
+    "planPreviewWouldApply": true,
+    "firstBuildState": "succeeded",
+    "revisionConflictCode": "WORKSPACE_REVISION_CONFLICT",
+    "conflictRetryCommitted": true,
+    "finalBuildState": "succeeded",
+    "runClientLifecycle": {
+      "taskId": "93e2654f-521b-4dab-8949-d3cd0717a928",
+      "renderMarkers": [
+        "Backend library: LWJGL version",
+        "Reloading ResourceManager:",
+        "minecraft:textures/atlas/blocks.png-atlas"
+      ],
+      "renderReady": true,
+      "stableBeforeUserCloseSeconds": 10,
+      "terminalStateAfterUserClose": "succeeded"
+    }
+  },
+  "shutdown": {
+    "descriptorRemoved": true,
+    "oldConnectionRejected": true,
+    "oldConnectionFailureCode": "MCP_TRANSPORT_FAILED"
+  },
+  "formalSupportClaim": false
+}

@@ -1,0 +1,12 @@
+{
+  "status": "passed",
+  "candidateSha256": "fd43bd23926a2f37042f14d6a65a7d606b59b08035a92d490ff5ded156931aef",
+  "installedProductJarSha256": "042b68b13fb1eede795b2e506b3ef5f7b4b5d1a15c99aededb01b93d13af6ce7",
+  "dpkgVerifyCleanAfterAllGates": true,
+  "noProductOrBlockbenchProcessRemaining": true,
+  "restoredDesktop": "GNOME Wayland",
+  "restoredSessionId": "2113",
+  "evidenceSource": "Final read-only SSH process/hash/dpkg checks and inspected restored desktop screenshot",
+  "desktopScreenshotCapturedAt": "2026-09-27T20:03:50.700122+00:00",
+  "integrityCheckPhase": "Read-only installed hash/dpkg/process checks after all gates, before restoring the desktop session"
+}

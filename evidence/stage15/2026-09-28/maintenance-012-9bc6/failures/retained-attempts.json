@@ -1,0 +1,32 @@
+{
+  "policy": "Failures remain failures; only the distinct successful receipts are promoted. Original local logs are preserved under output/maintenance-release-012 and the dedicated guest root.",
+  "attempts": [
+    {
+      "path": "wayland-fabric",
+      "result": "failed",
+      "reason": "Timed out waiting for graphical JCEF probe while normal GNOME keyring authentication was pending. Existing private credential unlocked the keyring; no password or policy reset."
+    },
+    {
+      "path": "managed-blockbench",
+      "result": "failed",
+      "reason": "Planner closed the first probe before confirming the Add Mesh dialog; the verifier correctly rejected an unchanged model. A distinct probe was visibly edited, saved and closed for the accepted retry."
+    },
+    {
+      "path": "wayland-agent",
+      "result": "failed",
+      "taskId": "00726bde-2092-4f29-b5aa-8ff976de0aab",
+      "reason": "The unchanged verifier exceeded its 900-second normal-close wait while the scoped Hyper-V exception was pending. The client was normally closed after authorization; a new full Agent run passed."
+    },
+    {
+      "path": "xorg-fabric",
+      "result": "failed-not-Xorg-evidence",
+      "actualSessionType": "wayland",
+      "reason": "A delayed login returned to the account list and lost the Xorg selection. The misnamed run also timed out at the keyring. Fresh xorg-fabric-verified and xorg-neoforge receipts prove actual x11."
+    },
+    {
+      "path": "ui-persistence-finalizer",
+      "result": "harness-path-correction",
+      "reason": "An adapted evidence finalizer initially retained the old stable_persistence filename. Corrected to the already observed maintenance_persistence file; all three original runtime hashes matched and both normal closes exited zero."
+    }
+  ]
+}

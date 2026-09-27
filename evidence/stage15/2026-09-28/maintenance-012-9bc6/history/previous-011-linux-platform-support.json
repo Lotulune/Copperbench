@@ -82,7 +82,7 @@
     "sha256": "0f5ab45a1312e5e5c05330033d4c8fcc084b2f2ea6f11060a4a20c8b217327ab",
     "path": "evidence/stage15/2026-09-27/stable-011-b813/preferences-migration/result.json"
   },
-  "promotionAuthorizationPath": "evidence/stage15/2026-09-28/maintenance-012-9bc6/history/previous-011-linux-candidate-authorization.json",
+  "promotionAuthorizationPath": "release-control/linux-candidate-authorization.json",
   "promotionAuthorizationSha256": "aba2e4cbbcb4bd04deb76d56fa68700e32c6c27615f08a8d87abc805eec4a8b0",
   "publicReleaseReceipt": {
     "path": "evidence/stage17/2026-09-27/stable-publication/linux/public-release.json",

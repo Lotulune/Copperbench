@@ -1,0 +1,53 @@
+{
+  "status": "passed",
+  "installedProductJarSha256": "042b68b13fb1eede795b2e506b3ef5f7b4b5d1a15c99aededb01b93d13af6ce7",
+  "normalProductExitCodes": {
+    "uiCreate": 0,
+    "uiReopen": 0,
+    "waylandAgent": 0,
+    "xorgAgent": 0,
+    "assetCenter": 0
+  },
+  "sessions": {
+    "wayland-agent-retry": {
+      "verifierExitCode": 0,
+      "actions": [
+        {
+          "at": "2026-09-27T17:39:08.450953+00:00",
+          "script": "Quit-ObservedLinuxClient.ps1",
+          "exitCode": 0,
+          "output": "D:\\AICoding\\Minecraft_ModCreator\\output\\maintenance-release-012\\wayland-agent-retry-game-quit.png\n",
+          "error": ""
+        },
+        {
+          "at": "2026-09-27T17:39:11.376889+00:00",
+          "script": "Close-ObservedLinuxProduct.ps1",
+          "exitCode": 0,
+          "output": "D:\\AICoding\\Minecraft_ModCreator\\output\\maintenance-release-012\\wayland-agent-retry-product-closed.png\n",
+          "error": ""
+        }
+      ],
+      "control": "user-authorized Hyper-V; pixel-matched inspected screenshots; no world navigation"
+    },
+    "xorg-agent": {
+      "verifierExitCode": 0,
+      "actions": [
+        {
+          "at": "2026-09-27T19:48:49.841398+00:00",
+          "script": "Quit-ObservedLinuxClient.ps1",
+          "exitCode": 0,
+          "output": "D:\\AICoding\\Minecraft_ModCreator\\output\\maintenance-release-012\\xorg-agent-game-quit.png\n",
+          "error": ""
+        },
+        {
+          "at": "2026-09-27T19:48:52.783645+00:00",
+          "script": "Close-ObservedLinuxProduct.ps1",
+          "exitCode": 0,
+          "output": "D:\\AICoding\\Minecraft_ModCreator\\output\\maintenance-release-012\\xorg-agent-product-closed.png\n",
+          "error": ""
+        }
+      ],
+      "control": "user-authorized Hyper-V; pixel-matched inspected screenshots; no world navigation"
+    }
+  }
+}

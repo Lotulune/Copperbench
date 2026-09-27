@@ -1,0 +1,7 @@
+{
+  "status": "passed",
+  "sha256": "14576bfafd24cf773b689fecb448aa7dd2f78cf05fd80e79c25eefe874e408fa",
+  "sourceCommit": "9bc6d104688c24512468880abdc2a96828fcaab8",
+  "workflowRunId": "36321809542",
+  "scope": "gh attestation verify against exact source digest and candidate workflow succeeded"
+}
