@@ -12,7 +12,7 @@ public final class ProductIdentity {
 	private static final Properties CONFIG = loadConfig();
 
 	public static final String NAME = CONFIG.getProperty("product.name", "Copperbench");
-	public static final String VERSION = CONFIG.getProperty("product.version", "0.1.1");
+	public static final String VERSION = CONFIG.getProperty("product.version", "0.1.2");
 	public static final String ID = CONFIG.getProperty("product.id", "dev.copperbench.studio");
 	public static final String PUBLISHER = CONFIG.getProperty("product.publisher", "Copperbench Contributors");
 	public static final String UPSTREAM_NAME = "MCreator";

@@ -9,7 +9,7 @@
   "product": {
     "id": "dev.copperbench.studio",
     "name": "Copperbench",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "stage": 17,
     "channel": "stable",
     "targetPlatforms": ["windows-11-x64", "ubuntu-24.04-x86_64"],
@@ -19,22 +19,16 @@
   },
   "delivery": {
     "stableRelease": {
-      "tag": "v0.1.1",
-      "linuxTag": "v0.1.1-linux-stable",
-      "status": "public-stable",
-      "linuxStatus": "public-stable",
+      "tag": "v0.1.2",
+      "linuxTag": "v0.1.2-linux-stable",
+      "status": "pending-validation",
+      "linuxStatus": "pending-exact-candidate-acceptance",
       "decision": "approved",
-      "decisionDate": "2026-09-26",
-      "scope": "Windows 11 x64 and Ubuntu 24.04 x86_64 GNOME; existing explicit certification exclusions remain exclusions.",
+      "decisionDate": "2026-09-27",
+      "scope": "Windows 11 x64 and Ubuntu 24.04 x86_64 GNOME; publish both only after fresh Linux 0.1.2 candidate acceptance.",
       "sourcePolicy": "Signed latest-main tags; Windows built from the release commit; Linux exact promotion requires fresh digest-bound installed candidate acceptance.",
-      "developmentEvidence": "evidence/stage17/2026-09-26/README.md",
-      "integrationReport": "docs/testing/stage17-release-integration-2026-09-26.md",
-      "releaseCommit": "9bf1b78b0936352596acb67809ffb3866be87751",
-      "releaseUrl": "https://github.com/Lotulune/Copperbench/releases/tag/v0.1.1",
-      "linuxReleaseUrl": "https://github.com/Lotulune/Copperbench/releases/tag/v0.1.1-linux-stable",
-      "windowsWorkflowRun": "https://github.com/Lotulune/Copperbench/actions/runs/36269926810",
-      "linuxWorkflowRun": "https://github.com/Lotulune/Copperbench/actions/runs/36269931890",
-      "publicationEvidence": "evidence/stage17/2026-09-27/stable-publication/verification.json"
+      "developmentEvidence": "evidence/maintenance/2026-09-27/verification.json",
+      "integrationReport": "docs/testing/maintenance-release-0.1.2.md"
     },
     "linuxRelease": {
       "tag": "v0.1.1-linux-stable",
@@ -184,6 +178,7 @@
     "notApplicable": ["bebiome", "beblock", "beentity", "beitem", "bescript"]
   },
   "gates": [
+    {"id": "maintenance-012-release-integration", "status": "in-progress", "betaBlocking": false, "stableBlocking": true, "evidence": ["docs/testing/maintenance-release-0.1.2.md", "evidence/maintenance/2026-09-27/verification.json"]},
     {
       "id": "stage17-installed-function-save",
       "status": "passed",
@@ -234,7 +229,7 @@
     "desktopLifecycle": "passed-ui-token-renewal-auth-and-shutdown"
   },
   "knownLimitations": [
-    "After applying a Blockbench import, asset refresh can collapse the modeling-task panel. Reopen it to continue binding; the original full-suite continuity test remains failing. See docs/testing/stage17-stable-publication-2026-09-27.md.",
+    "Published 0.1.1 packages retain the disclosed Blockbench task-panel collapse. The 0.1.2 source fixes it and passed the original continuity assertion plus a native JCEF replay; package publication remains subject to the current release declaration. See docs/testing/maintenance-2026-09-27.md.",
     "Linux formal support covers Ubuntu 24.04 LTS x86_64 with GNOME Wayland/Xorg; installed runtime replay covers Fabric and NeoForge 1.21.1. Other Linux distributions/architectures are not certified. Linux 0.1.1 is publicly released as stable; frozen candidate/pre-publication metadata retains its historical false support flags; current classification is in release-control/linux-platform-support.json.",
     "PR #56 post-review binary-source candidate d0d96877 passed Build and test #173, Nightly product gates #28, clean Windows 11 installation, bundled-JDK Run Client replay through the real desktop UI, visible one-time-token MCP authentication, the full external-Agent read/write/plan/build/conflict/code-compile loop, workspace-scoped descriptor cleanup, and old endpoint/token invalidation. Preview 8 was subsequently built and published from main@69469b8f; the tracked delta from d0d96877 is limited to product-status and its installed-product evidence document, with no product/runtime/build/SDK source changes. Beta 4 release workflow 33751421385 still generated transient Beta-tag packages/SBOM as part of the normal job, then replaced the release payload with the frozen Preview 8 EXE/ZIP/MSIX/SBOM after candidate hash verification and published those candidate bytes byte-for-byte. No additional G7 replay is claimed for the public Preview 8/Beta 4 bytes because the automation sandbox denied Hyper-V guest writes during the public-candidate replay attempt.",
     "Release Git Tags contain SSH signatures; GitHub reports unknown_key until the public signing key is registered.",

@@ -63,7 +63,7 @@ The workbench supports English and Simplified Chinese. Use the language selector
 
 | Platform | Packages | Installation |
 | --- | --- | --- |
-| Windows 11 x64 | EXE installer · Portable ZIP | [Windows quick start](docs/user/getting-started.md) |
+| Windows 11 x64 | EXE installer · Portable ZIP | [Quick start](docs/user/getting-started.md) |
 | Ubuntu 24.04 LTS x86_64 | Debian `.deb` · Portable `.tar.gz` | [Linux installation notes](docs/releases/linux-release-notes.md) |
 
 Ubuntu testing covers GNOME Wayland and Xorg. Other Linux distributions and architectures have not been validated.
@@ -72,7 +72,9 @@ Ubuntu testing covers GNOME Wayland and Xorg. Other Linux distributions and arch
 2. **Create a workspace** — Choose Fabric or NeoForge and a Minecraft version, then enter a mod name and workspace folder.
 3. **Make an item** — Add an item, save and build the project, then launch the test client.
 
-Copperbench 0.1.1 is available as a stable release for Windows and Linux. Windows installers are unsigned and may trigger SmartScreen. The first build needs an internet connection to download dependencies. Known interface issues are listed in the release notes.
+Stable Windows and Linux packages are distributed through GitHub Releases; check each platform's release version before downloading. Windows installers are unsigned and may trigger SmartScreen. The first build needs an internet connection to download dependencies. Known interface issues are listed in the release notes.
+
+The 0.1.2 maintenance changes address asset-refresh continuity and clipboard feedback; see the [release notes](docs/releases/v0.1.2.md) and [publication status](docs/testing/maintenance-release-0.1.2.md). These changes are not included in older 0.1.1 packages.
 
 ## Documentation
 

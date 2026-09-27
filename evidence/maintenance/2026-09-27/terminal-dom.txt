@@ -1,0 +1,212 @@
+Copperbench
+Maintenance Fixture
+修订 3
+Fabric 1.21.1
+生成
+构建
+测试客户端
+中文
+English
+自绘窗口
+导航
+总览
+模组元素
+1
+变量与数据
+引用
+版本与迁移
+4轨
+新建工作区
+4×2
+资产与模型
+Python 工作台
+本地历史
+AI 与 MCP
+读写
+插件中心
+A/B/C
+帮助与关于
+0.1.1
+设置
+模组创作工作台
+JCEF 原生桥接 · 协议 v1.0
+资产与模型工作台
+资产与 Blockbench 集成 · 模型、纹理、动画与资源包 · 引用关系可追溯
+搜索资产
+已索引 (7/7)
+连接 Blockbench · 可选建模工具
+建模任务 · 编辑副本与保存候选
+
+模型已关联到元素；请构建并在游戏中检查。
+
+创建另一个建模副本
+刷新任务与保存状态
+maintenance_lamp · 文件已回导
+创建副本：已完成
+打开编辑器、保存磁盘副本：已确认保存
+识别游戏导出、预览并回导：已回导
+关联、构建与游戏验证：定义已关联，继续构建与验证
+
+源模型候选：已保存；游戏 JSON／PNG：已回导，构建和游戏效果仍需验证
+
+在 Blockbench 打开副本
+复制文件路径
+复制编辑目录
+确认磁盘保存并生成候选
+取消任务并保留文件
+
+文件已回导，元素定义已关联。下一步：构建并在游戏内验证。
+
+关联元素
+请选择方块或物品
+maintenance_lamp
+导入的游戏模型
+请选择模型
+maintenance_fixture:custom/maintenance_lamp
+关联所选模型
+构建工作区
+启动客户端验证
+查看资源路径与保存详情
+分类导航
+全部资产
+7
+模型 (BBModel)
+4
+材质贴图
+1
+动作骨骼
+0
+语言包
+1
+声音音效
+0
+资源包
+0
+方块状态
+1
+其他
+0
+资产健康
+0
+有错误的资产
+0
+有警告的资产
+2
+未使用
+0
+可清理候选
+全部
+有问题
+错误
+静态未引用
+可安全清理候选
+重复内容
+引用关系随工作区修订保存。
+7 项可用资产
+排序
+最近更新
+资产名称
+引用数
+文件大小
+导入
+批量导入
+或将资产文件拖放到窗口
+JSON
+en_us
+已校验
+语言
+·
+工作区
+src/main/resources/assets/maintenance_fixture/lang/en_us.json
+70 B
+0
+JSON
+maintenance_lamp
+已校验
+方块状态
+·
+工作区
+src/main/resources/assets/maintenance_fixture/blockstates/maintenance_lamp.json
+99 B
+0
+JSON
+maintenance_lamp
+已校验
+模型
+·
+工作区
+src/main/resources/assets/maintenance_fixture/models/block/maintenance_lamp.json
+337 B
+2
+JSON
+maintenance_lamp
+已校验
+模型
+·
+工作区
+src/main/resources/assets/maintenance_fixture/models/item/maintenance_lamp.json
+312 B
+0
+PNG
+lamp
+已校验
+纹理
+·
+工作区
+src/main/resources/assets/maintenance_fixture/textures/block/lamp.png
+68 B
+1
+JSON
+maintenance_lamp
+已校验
+模型
+·
+工作区
+src/main/resources/assets/maintenance_fixture/models/custom/maintenance_lamp.json
+133 B
+0
+BBMODEL
+maintenance_lamp
+已校验
+模型
+·
+工作区
+models/blockbench/maintenance_lamp.bbmodel
+217 B
+0
+maintenance_lamp
+方块状态
+·
+工作区
+已校验
+JSON
+无预览尺寸
+稳定标识
+asset:f719b1747237b1d86d847f906a522913d25380b29f51f38dd83dc4f1a4d35080
+路径
+src/main/resources/assets/maintenance_fixture/blockstates/maintenance_lamp.json
+大小
+99 B
+来源
+工作区
+更新时间
+09/27 21:11
+使用状态
+不参与静态未使用判断
+入站引用
+0
+暂无入站引用关系。
+出站依赖
+1
+工作区已解析maintenance_fixture:block/maintenance_lamp
+
+工作区真实资产，由 AssetWorkspaceService 实时索引。
+
+重命名 / 移动
+替换文件
+在 Blockbench 打开
+核心：已连接
+在线
+桥接：就绪
+0 错误，0 警告
+MCP: 工作区读写（Workspace）
