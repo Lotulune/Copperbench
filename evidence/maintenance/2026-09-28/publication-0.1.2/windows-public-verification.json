@@ -1,0 +1,56 @@
+{
+  "status": "passed",
+  "platform": "windows",
+  "releaseTag": "v0.1.2",
+  "releaseCommit": "410e11b9bc2d3eff477215bbd0040f00a19abc43",
+  "releaseUrl": "https://github.com/Lotulune/Copperbench/releases/tag/v0.1.2",
+  "publishedAt": "2026-09-27T22:10:48Z",
+  "workflowRunId": "36352304576",
+  "workflowSucceeded": true,
+  "publicNonPrerelease": true,
+  "notesExactMatch": true,
+  "notesSha256": "7b3433d8d039c03fafa9ca0693de40559bb0dc716f3eb2f33e2273a90a583e2a",
+  "verificationMethod": "Public uploaded-asset digests compared with provenance-verified SHA256SUMS and source metadata; the protected release workflow separately compared every uploaded asset digest with its locally built payload hash",
+  "assets": {
+    "Copperbench.0.1.2.Windows.64bit.exe": {
+      "sha256": "d3ad0370cad96119b24f6215e1bdf94859aeb47b8c582914ffcc9403bd2e0f36",
+      "size": 722449498
+    },
+    "Copperbench.0.1.2.Windows.64bit.msix": {
+      "sha256": "07cadba30ab4e1b6149f3135f5e3beed1c95ce15ff57878bac4d6acb740969ca",
+      "size": 780383904
+    },
+    "Copperbench.0.1.2.Windows.64bit.zip": {
+      "sha256": "4182c87631e327b3f096b461c402f5a5af76b2a8ad13bd673d02f4d0a5f5400d",
+      "size": 759164991
+    },
+    "copperbench.spdx.json": {
+      "sha256": "4ab47402d17ceb904ec3b357600d03548d9602543c9d089fc6814522c48111c7",
+      "size": 2015583
+    },
+    "LICENSE-ADDITIONAL-TERMS.md": {
+      "sha256": "8d1a71caa1e2829c91d3a6b4b41ec7eea5525a63a796eca37f3d917818a9936e",
+      "size": 2484
+    },
+    "LICENSE.txt": {
+      "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+      "size": 35149
+    },
+    "product-status.json": {
+      "sha256": "031dc06e020b666c3868df965d6b1eeaca77ef1faa0051b59f1b588a2ef980cf",
+      "size": 25875
+    },
+    "RELEASE-METADATA.json": {
+      "sha256": "6bcead0d6fe6158219f57e24ecb30c25dbfcb1a90b4c83d58c6b2ea69c3022b0",
+      "size": 416
+    },
+    "THIRD_PARTY_NOTICES.md": {
+      "sha256": "1705c3fc3238ea5a583cf19a27a4c9f2d784429eb1b968c719d4645dc164902c",
+      "size": 3463
+    },
+    "SHA256SUMS.txt": {
+      "sha256": "fe08f4dbabf1f90e97eb1ce19d5acde41e24b313f4ea12ce96e1f8e1fbdc0ab2",
+      "size": 839
+    }
+  }
+}

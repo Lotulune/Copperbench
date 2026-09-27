@@ -1,0 +1,26 @@
+{
+  "status": "passed",
+  "releaseCommit": "410e11b9bc2d3eff477215bbd0040f00a19abc43",
+  "notes": [
+    {
+      "platform": "windows",
+      "tag": "v0.1.2",
+      "releaseId": 397822350,
+      "state": "public",
+      "versionedNoteFile": "docs/releases/v0.1.2-windows.md",
+      "bodySha256": "7b3433d8d039c03fafa9ca0693de40559bb0dc716f3eb2f33e2273a90a583e2a",
+      "exactBodyMatch": true,
+      "url": "https://github.com/Lotulune/Copperbench/releases/tag/v0.1.2"
+    },
+    {
+      "platform": "linux",
+      "tag": "v0.1.2-linux-stable",
+      "releaseId": 397822363,
+      "state": "public",
+      "versionedNoteFile": "docs/releases/v0.1.2-linux.md",
+      "bodySha256": "54966470716258f32fe8c6db73c7f917fc07d0635121749a0362fe8f16b827c9",
+      "exactBodyMatch": true,
+      "url": "https://github.com/Lotulune/Copperbench/releases/tag/v0.1.2-linux-stable"
+    }
+  ]
+}

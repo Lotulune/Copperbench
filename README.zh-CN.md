@@ -64,7 +64,7 @@ Copperbench 基于 MCreator，提供模组元素编辑、Blockly 逻辑、模型
 | 系统 | 下载格式 | 安装说明 |
 | --- | --- | --- |
 | Windows 11 x64 | EXE 安装包 · 便携版 ZIP | [快速开始](docs/user/getting-started.md) |
-| Ubuntu 24.04 LTS x86_64 | Debian `.deb` · 便携版 `.tar.gz` | [Linux 安装说明](docs/releases/linux-release-notes.md) |
+| Ubuntu 24.04 LTS x86_64 | Debian `.deb` · 便携版 `.tar.gz` | [Linux 安装说明](docs/user/linux-installation.md) |
 
 Ubuntu 已验证 GNOME Wayland 和 Xorg。其他 Linux 发行版和架构尚未验证。
 

@@ -1,0 +1,77 @@
+{
+  "algorithm": "sha256",
+  "files": [
+    {
+      "path": "evidence/maintenance/2026-09-28/publication-0.1.2/current-nightly.json",
+      "sha256": "63cec567ecd9be9c4e8fe36f2bad6b52e720448adea55d9181a29c72852d1b5f"
+    },
+    {
+      "path": "evidence/maintenance/2026-09-28/publication-0.1.2/draft-notes-verification.json",
+      "sha256": "874c17e6df3df5e1ade7d034d6fd27059f26fd8586123f80d942dd5a27585f60"
+    },
+    {
+      "path": "evidence/maintenance/2026-09-28/publication-0.1.2/linux-public-release.json",
+      "sha256": "a441df291325439feed08917cde90e43d33a26cf5c553a8e588dc4549bb3cd39"
+    },
+    {
+      "path": "evidence/maintenance/2026-09-28/publication-0.1.2/linux-public-verification.json",
+      "sha256": "5a353c3afba6b5bb7b3d7dce304a1bf153cc11eafa3aabe6f4c9b8732d35857a"
+    },
+    {
+      "path": "evidence/maintenance/2026-09-28/publication-0.1.2/linux-publication-run.json",
+      "sha256": "78cc1d7cb856d6e3a88bbc259f6568e2e55d185ea825d6c35115f4698949e2ec"
+    },
+    {
+      "path": "evidence/maintenance/2026-09-28/publication-0.1.2/previous-product-status.json",
+      "sha256": "031dc06e020b666c3868df965d6b1eeaca77ef1faa0051b59f1b588a2ef980cf"
+    },
+    {
+      "path": "evidence/maintenance/2026-09-28/publication-0.1.2/public-notes-verification.json",
+      "sha256": "7702abc2dbe130fd79df9f6b1fdd918fe76c963604c6493da9180b8f8515af54"
+    },
+    {
+      "path": "evidence/maintenance/2026-09-28/publication-0.1.2/release-main-ci.json",
+      "sha256": "24b57174d221d77fce39a385220094f0ccfa905471099c1fee80bcd9362db4ae"
+    },
+    {
+      "path": "evidence/maintenance/2026-09-28/publication-0.1.2/RELEASE-METADATA.json.public-provenance.json",
+      "sha256": "50a687e5d39497c236aea42a17f4dd1bc93858cfc65b1c49eecb3843a9d8c1d5"
+    },
+    {
+      "path": "evidence/maintenance/2026-09-28/publication-0.1.2/SHA256SUMS.txt.public-provenance.json",
+      "sha256": "50a687e5d39497c236aea42a17f4dd1bc93858cfc65b1c49eecb3843a9d8c1d5"
+    },
+    {
+      "path": "evidence/maintenance/2026-09-28/publication-0.1.2/v0.1.2-linux-stable-signature.txt",
+      "sha256": "01c5397dcda3b121bd4c513dd6ceb4907cd8ccbfcb7a055fe11fcda4f07f6c4a"
+    },
+    {
+      "path": "evidence/maintenance/2026-09-28/publication-0.1.2/v0.1.2-signature.txt",
+      "sha256": "01c5397dcda3b121bd4c513dd6ceb4907cd8ccbfcb7a055fe11fcda4f07f6c4a"
+    },
+    {
+      "path": "evidence/maintenance/2026-09-28/publication-0.1.2/verification.json",
+      "sha256": "0cb11d7b7c9e0add37a7bfb053b318365a6acc5f92025868b467fb8e4f29de83"
+    },
+    {
+      "path": "evidence/maintenance/2026-09-28/publication-0.1.2/windows-public-release.json",
+      "sha256": "caeed235419bdebb809d241082f5664405b587965036c0c2c93f1d84793e98a0"
+    },
+    {
+      "path": "evidence/maintenance/2026-09-28/publication-0.1.2/windows-public-verification.json",
+      "sha256": "d624cf665dbed66b27446a75a0451b1740d76e3fa72a6fc5f386942c995a1240"
+    },
+    {
+      "path": "evidence/maintenance/2026-09-28/publication-0.1.2/windows-publication-run.json",
+      "sha256": "d49469966d81894b9eb87a9b1ab66ae96b3c1133376430394a8e8f8d840a0094"
+    },
+    {
+      "path": "evidence/maintenance/2026-09-28/publication-0.1.2/windows-RELEASE-METADATA.json",
+      "sha256": "6bcead0d6fe6158219f57e24ecb30c25dbfcb1a90b4c83d58c6b2ea69c3022b0"
+    },
+    {
+      "path": "evidence/maintenance/2026-09-28/publication-0.1.2/windows-SHA256SUMS.txt",
+      "sha256": "fe08f4dbabf1f90e97eb1ce19d5acde41e24b313f4ea12ce96e1f8e1fbdc0ab2"
+    }
+  ]
+}
