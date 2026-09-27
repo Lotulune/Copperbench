@@ -1,0 +1,114 @@
+{
+  "status": "passed",
+  "date": "2026-09-28",
+  "releaseCommit": "410e11b9bc2d3eff477215bbd0040f00a19abc43",
+  "linuxBinarySourceCommit": "9bc6d104688c24512468880abdc2a96828fcaab8",
+  "publicReleases": {
+    "windows": {
+      "status": "passed",
+      "platform": "windows",
+      "releaseTag": "v0.1.2",
+      "releaseCommit": "410e11b9bc2d3eff477215bbd0040f00a19abc43",
+      "releaseUrl": "https://github.com/Lotulune/Copperbench/releases/tag/v0.1.2",
+      "publishedAt": "2026-09-27T22:10:48Z",
+      "workflowRunId": "36352304576",
+      "workflowSucceeded": true,
+      "publicNonPrerelease": true,
+      "notesExactMatch": true,
+      "notesSha256": "7b3433d8d039c03fafa9ca0693de40559bb0dc716f3eb2f33e2273a90a583e2a",
+      "verificationMethod": "Public uploaded-asset digests compared with provenance-verified SHA256SUMS and source metadata; the protected release workflow separately compared every uploaded asset digest with its locally built payload hash",
+      "assets": {
+        "Copperbench.0.1.2.Windows.64bit.exe": {
+          "sha256": "d3ad0370cad96119b24f6215e1bdf94859aeb47b8c582914ffcc9403bd2e0f36",
+          "size": 722449498
+        },
+        "Copperbench.0.1.2.Windows.64bit.msix": {
+          "sha256": "07cadba30ab4e1b6149f3135f5e3beed1c95ce15ff57878bac4d6acb740969ca",
+          "size": 780383904
+        },
+        "Copperbench.0.1.2.Windows.64bit.zip": {
+          "sha256": "4182c87631e327b3f096b461c402f5a5af76b2a8ad13bd673d02f4d0a5f5400d",
+          "size": 759164991
+        },
+        "copperbench.spdx.json": {
+          "sha256": "4ab47402d17ceb904ec3b357600d03548d9602543c9d089fc6814522c48111c7",
+          "size": 2015583
+        },
+        "LICENSE-ADDITIONAL-TERMS.md": {
+          "sha256": "8d1a71caa1e2829c91d3a6b4b41ec7eea5525a63a796eca37f3d917818a9936e",
+          "size": 2484
+        },
+        "LICENSE.txt": {
+          "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+          "size": 35149
+        },
+        "product-status.json": {
+          "sha256": "031dc06e020b666c3868df965d6b1eeaca77ef1faa0051b59f1b588a2ef980cf",
+          "size": 25875
+        },
+        "RELEASE-METADATA.json": {
+          "sha256": "6bcead0d6fe6158219f57e24ecb30c25dbfcb1a90b4c83d58c6b2ea69c3022b0",
+          "size": 416
+        },
+        "THIRD_PARTY_NOTICES.md": {
+          "sha256": "1705c3fc3238ea5a583cf19a27a4c9f2d784429eb1b968c719d4645dc164902c",
+          "size": 3463
+        },
+        "SHA256SUMS.txt": {
+          "sha256": "fe08f4dbabf1f90e97eb1ce19d5acde41e24b313f4ea12ce96e1f8e1fbdc0ab2",
+          "size": 839
+        }
+      }
+    },
+    "linux": {
+      "status": "passed",
+      "platform": "linux",
+      "releaseTag": "v0.1.2-linux-stable",
+      "releaseCommit": "410e11b9bc2d3eff477215bbd0040f00a19abc43",
+      "releaseUrl": "https://github.com/Lotulune/Copperbench/releases/tag/v0.1.2-linux-stable",
+      "publishedAt": "2026-09-27T21:47:22Z",
+      "workflowRunId": "36352554854",
+      "workflowSucceeded": true,
+      "publicNonPrerelease": true,
+      "notesExactMatch": true,
+      "notesSha256": "54966470716258f32fe8c6db73c7f917fc07d0635121749a0362fe8f16b827c9",
+      "verificationMethod": "Every public asset digest and size compared with exact provenance-verified local candidate bytes and the committed promotion authorization",
+      "assets": {
+        "Copperbench.0.1.2.Linux.x86_64.tar.gz": {
+          "sha256": "14576bfafd24cf773b689fecb448aa7dd2f78cf05fd80e79c25eefe874e408fa",
+          "size": 968869856
+        },
+        "copperbench-linux.spdx.json": {
+          "sha256": "9a811f5f301170e3e53ae93de1cb134e79da061f3215f1a1722dccb76102f598",
+          "size": 4390155
+        },
+        "copperbench_0.1.2_amd64.deb": {
+          "sha256": "fd43bd23926a2f37042f14d6a65a7d606b59b08035a92d490ff5ded156931aef",
+          "size": 888622228
+        },
+        "linux-candidate-manifest.json": {
+          "sha256": "7dfafc67aa436deaee6b69d456f69e5425ded68cc2879163591cb3f265ee93f3",
+          "size": 6509
+        },
+        "LINUX-CANDIDATE-METADATA.json": {
+          "sha256": "e6f6e0e3d686efe0cdfe19151cfce57b7cfaf86bd9809149521f1f75f914f2ec",
+          "size": 1735
+        },
+        "linux-candidate-sha256.txt": {
+          "sha256": "7d327f96de8a48c2a618e2e389be35daa74d8ba23ba5b910092a9933d929af54",
+          "size": 549
+        },
+        "LINUX-RELEASE-AUTHORIZATION.json": {
+          "sha256": "ba4c51f0e6d9388b218d3d0c146b165f579d6745f47f0c8ca69c57752a0302d2",
+          "size": 3303
+        }
+      }
+    }
+  },
+  "evidencePolicy": "Public release receipts, uploaded asset digests, successful protected workflows, exact note bodies, SSH tag signatures and Windows metadata/checksum provenance are retained. Linux installation evidence remains immutable and bound through the promotion authorization.",
+  "limits": [
+    "Windows public large binaries were verified through GitHub uploaded-asset digests against attested checksums, not a new local full download or clean-install replay.",
+    "Linux support remains limited to the distribution, desktop, architecture and installed runtime tracks in the support record.",
+    "External-user and Agent efficiency validation are deferred."
+  ]
+}

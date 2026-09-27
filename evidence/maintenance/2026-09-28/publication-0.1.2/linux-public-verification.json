@@ -1,0 +1,44 @@
+{
+  "status": "passed",
+  "platform": "linux",
+  "releaseTag": "v0.1.2-linux-stable",
+  "releaseCommit": "410e11b9bc2d3eff477215bbd0040f00a19abc43",
+  "releaseUrl": "https://github.com/Lotulune/Copperbench/releases/tag/v0.1.2-linux-stable",
+  "publishedAt": "2026-09-27T21:47:22Z",
+  "workflowRunId": "36352554854",
+  "workflowSucceeded": true,
+  "publicNonPrerelease": true,
+  "notesExactMatch": true,
+  "notesSha256": "54966470716258f32fe8c6db73c7f917fc07d0635121749a0362fe8f16b827c9",
+  "verificationMethod": "Every public asset digest and size compared with exact provenance-verified local candidate bytes and the committed promotion authorization",
+  "assets": {
+    "Copperbench.0.1.2.Linux.x86_64.tar.gz": {
+      "sha256": "14576bfafd24cf773b689fecb448aa7dd2f78cf05fd80e79c25eefe874e408fa",
+      "size": 968869856
+    },
+    "copperbench-linux.spdx.json": {
+      "sha256": "9a811f5f301170e3e53ae93de1cb134e79da061f3215f1a1722dccb76102f598",
+      "size": 4390155
+    },
+    "copperbench_0.1.2_amd64.deb": {
+      "sha256": "fd43bd23926a2f37042f14d6a65a7d606b59b08035a92d490ff5ded156931aef",
+      "size": 888622228
+    },
+    "linux-candidate-manifest.json": {
+      "sha256": "7dfafc67aa436deaee6b69d456f69e5425ded68cc2879163591cb3f265ee93f3",
+      "size": 6509
+    },
+    "LINUX-CANDIDATE-METADATA.json": {
+      "sha256": "e6f6e0e3d686efe0cdfe19151cfce57b7cfaf86bd9809149521f1f75f914f2ec",
+      "size": 1735
+    },
+    "linux-candidate-sha256.txt": {
+      "sha256": "7d327f96de8a48c2a618e2e389be35daa74d8ba23ba5b910092a9933d929af54",
+      "size": 549
+    },
+    "LINUX-RELEASE-AUTHORIZATION.json": {
+      "sha256": "ba4c51f0e6d9388b218d3d0c146b165f579d6745f47f0c8ca69c57752a0302d2",
+      "size": 3303
+    }
+  }
+}
