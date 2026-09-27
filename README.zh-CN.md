@@ -72,9 +72,9 @@ Ubuntu 已验证 GNOME Wayland 和 Xorg。其他 Linux 发行版和架构尚未�
 2. **新建工作区** — 选择 Fabric 或 NeoForge 及 Minecraft 版本，填写模组名称与目录。
 3. **做一个物品** — 新建物品、保存并构建，然后启动测试客户端。
 
-Copperbench 0.1.1 已提供 Windows 与 Linux 稳定版。Windows 安装包未签名，SmartScreen 可能提示警告。首次构建需要联网下载依赖；已知界面问题请参阅对应版本的发布说明。
+Windows 与 Linux 稳定版通过 GitHub Releases 分发，下载时请核对对应平台的版本。Windows 安装包未签名，SmartScreen 可能提示警告。首次构建需要联网下载依赖；已知界面问题请参阅对应版本的发布说明。
 
-当前源码维护涉及资产刷新连续性与复制反馈，检查结果和限制见[维护记录](docs/testing/maintenance-2026-09-27.md)。这些源码改动尚未进入已发布的 0.1.1 安装包。
+0.1.2 维护改动修复资产刷新连续性与复制反馈，内容见[发布说明](docs/releases/v0.1.2.md)，交付进度见[发布状态](docs/testing/maintenance-release-0.1.2.md)。旧版 0.1.1 安装包不包含这些修复。
 
 ## 文档
 

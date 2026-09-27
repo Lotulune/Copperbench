@@ -54,7 +54,7 @@ export const NavRail: React.FC = () => {
     { id: 'history', label: uiText('本地历史', 'Local history'), icon: GitBranch },
     { id: 'ai', label: uiText('AI 与 MCP', 'AI & MCP'), icon: Bot, badge: permission === 'workspace' ? uiText('读写', 'RW') : permission === 'full_access' ? uiText('完全', 'Full') : uiText('只读', 'RO'), badgeType: 'green' },
     { id: 'plugins', label: uiText('插件中心', 'Plugins'), icon: Plug, badge: 'A/B/C', badgeType: 'blue' },
-    { id: 'help', label: uiText('帮助与关于', 'Help & about'), icon: HelpCircle, badge: '0.1.1', badgeType: 'copper' },
+    { id: 'help', label: uiText('帮助与关于', 'Help & about'), icon: HelpCircle, badge: '0.1.2', badgeType: 'copper' },
     { id: 'settings', label: uiText('设置', 'Settings'), icon: Settings }
   ];
 
