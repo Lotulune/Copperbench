@@ -19,7 +19,6 @@ import dev.copperbench.core.contract.UiCore.PermissionProfile;
 import dev.copperbench.core.contract.UiCore.Query;
 import dev.copperbench.core.contract.UiCore.QueryResult;
 import dev.copperbench.core.contract.UiCore.RequestContext;
-import dev.copperbench.core.diagnostics.AssetDiagnosticProjection;
 import dev.copperbench.core.workspace.RevisionedWorkspaceStore;
 import dev.copperbench.core.workspace.RevisionedWorkspaceStore.Decision;
 import dev.copperbench.core.workspace.RevisionedWorkspaceStore.TransactionResult;
@@ -37,7 +36,6 @@ import dev.copperbench.assets.AssetMoveService.AssetMoveException;
 import dev.copperbench.assets.AssetDescriptor;
 import dev.copperbench.assets.AssetHealthReport;
 import dev.copperbench.assets.AssetPathViolationException;
-import dev.copperbench.assets.AssetReference;
 import dev.copperbench.assets.AssetReferenceGraph;
 import dev.copperbench.assets.AssetWorkspaceService;
 import dev.copperbench.assets.BlockbenchBridgeException;
@@ -113,6 +111,8 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
+import static dev.copperbench.core.application.AssetProjectionService.asset;
+
 /** Shared command/query service for legacy UI, JCEF, MCP and headless adapters. */
 public final class WorkspaceApplicationService {
 
@@ -146,6 +146,7 @@ public final class WorkspaceApplicationService {
 	private final LocalWorkspaceTemplateService localTemplates;
 	private final TaskAuthorizationStore taskAuthorizations;
 	private final WorkspaceReferenceIndex references = new WorkspaceReferenceIndex();
+	private final AssetProjectionService assetProjections = new AssetProjectionService(references);
 	private final Map<UUID, CopyOnWriteArrayList<Consumer<Event>>> eventListeners = new ConcurrentHashMap<>();
 	private final Map<UUID, Deque<Event>> taskEventHistory = new ConcurrentHashMap<>();
 	private final Map<String, AssetImportSourceGrant> assetImportSourceGrants = new ConcurrentHashMap<>();
@@ -185,10 +186,10 @@ public final class WorkspaceApplicationService {
 			assetHealth.addProperty("reasonCode", "ASSET_WORKSPACE_ROOT_UNAVAILABLE");
 		} else {
 			try {
-				AssetReferenceGraph graph = new AssetWorkspaceService(root).referenceGraph();
-				AssetHealthReport health = workspaceAssetHealth(graph, state);
-				assetDiagnostics = graph.diagnostics().stream().map(AssetDiagnosticProjection::project).toList();
-				assetSnapshot = GSON.toJson(graph.assets()) + GSON.toJson(graph.references());
+				AssetProjectionService.Observation observation = assetProjections.read(root, state);
+				AssetHealthReport health = observation.health();
+				assetDiagnostics = observation.diagnostics();
+				assetSnapshot = observation.snapshot();
 				assetHealth.addProperty("indexed", true);
 				assetHealth.add("summary", GSON.toJsonTree(health.summary()));
 				assetHealth.add("diagnostics", GSON.toJsonTree(assetDiagnostics));
@@ -431,8 +432,8 @@ public final class WorkspaceApplicationService {
 
 		assetImportBatchPlanGrants.remove(approved.id());
 		approved.sourceGrantIds().forEach(assetImportSourceGrants::remove);
-		AssetReferenceGraph refreshed = new AssetWorkspaceService(root).referenceGraph();
-		AssetHealthReport refreshedHealth = workspaceAssetHealth(refreshed,
+		AssetReferenceGraph refreshed = assetProjections.scan(root);
+		AssetHealthReport refreshedHealth = assetProjections.health(refreshed,
 				store.read(command.workspaceId()).orElseThrow());
 		JsonObject data = new JsonObject();
 		data.addProperty("complete", true);
@@ -696,8 +697,8 @@ public final class WorkspaceApplicationService {
 			return failed(command, transaction.revision(), mutation.diagnostic());
 
 		assetMovePlanGrants.remove(approved.id());
-		AssetReferenceGraph refreshed = new AssetWorkspaceService(root).referenceGraph();
-		AssetHealthReport refreshedHealth = workspaceAssetHealth(refreshed,
+		AssetReferenceGraph refreshed = assetProjections.scan(root);
+		AssetHealthReport refreshedHealth = assetProjections.health(refreshed,
 				store.read(command.workspaceId()).orElseThrow());
 		JsonObject data = new JsonObject();
 		data.addProperty("complete", true);
@@ -801,8 +802,8 @@ public final class WorkspaceApplicationService {
 
 		assetImportPlanGrants.remove(approved.id());
 		assetImportSourceGrants.remove(approved.sourceGrantId());
-		AssetReferenceGraph refreshed = new AssetWorkspaceService(root).referenceGraph();
-		AssetHealthReport refreshedHealth = workspaceAssetHealth(refreshed,
+		AssetReferenceGraph refreshed = assetProjections.scan(root);
+		AssetHealthReport refreshedHealth = assetProjections.health(refreshed,
 				store.read(command.workspaceId()).orElseThrow());
 		JsonObject data = new JsonObject();
 		data.addProperty("complete", true);
@@ -1221,8 +1222,8 @@ public final class WorkspaceApplicationService {
 			throw new BlockbenchBridgeException("BLOCKBENCH_REVISION_COMMIT_FAILED",
 					"Could not register the external Blockbench edit as a workspace revision");
 
-		AssetReferenceGraph refreshed = new AssetWorkspaceService(root).referenceGraph();
-		AssetHealthReport health = workspaceAssetHealth(refreshed, store.read(workspaceId).orElseThrow());
+		AssetReferenceGraph refreshed = assetProjections.scan(root);
+		AssetHealthReport health = assetProjections.health(refreshed, store.read(workspaceId).orElseThrow());
 		AssetDescriptor refreshedAsset = refreshed.assets().stream()
 				.filter(asset -> asset.relativePath().equals(current.relativePath())).findFirst().orElseThrow();
 		JsonObject payload = new JsonObject();
@@ -1593,8 +1594,8 @@ public final class WorkspaceApplicationService {
 			if (rejection.get() != null) return failed(command, transaction.revision(), rejection.get());
 			modelingImportGrants.remove(token);
 			JsonObject data = transaction.value();
-			AssetReferenceGraph graph = new AssetWorkspaceService(workspaceRoot(command.workspaceId())).referenceGraph();
-			AssetHealthReport health = workspaceAssetHealth(graph, store.read(command.workspaceId()).orElseThrow());
+			AssetReferenceGraph graph = assetProjections.scan(workspaceRoot(command.workspaceId()));
+			AssetHealthReport health = assetProjections.health(graph, store.read(command.workspaceId()).orElseThrow());
 			JsonArray importedAssets = new JsonArray();
 			for (AssetDescriptor asset : graph.assets()) if (grant.plan().batch().items().stream().anyMatch(item -> item.targetRelativePath().equals(asset.relativePath())))
 				importedAssets.add(asset(asset, health.findById(asset.id()).orElseThrow()));
@@ -1715,111 +1716,14 @@ public final class WorkspaceApplicationService {
 					"diagnostic.asset_workspace_root_unavailable",
 					"The workspace root is not available for asset indexing.", null, null));
 		try {
-			AssetReferenceGraph graph = new AssetWorkspaceService(root).referenceGraph();
-			AssetHealthReport health = workspaceAssetHealth(graph, state);
-			JsonObject projection = new JsonObject();
-			projection.addProperty("schemaVersion", UiCore.SCHEMA_VERSION);
-			projection.add("assets", GSON.toJsonTree(graph.assets().stream()
-					.map(descriptor -> asset(descriptor, health.findById(descriptor.id()).orElseThrow())).toList()));
-			projection.add("references", GSON.toJsonTree(graph.references().stream()
-					.map(WorkspaceApplicationService::assetReference).toList()));
-			List<Diagnostic> diagnostics = graph.diagnostics().stream().map(AssetDiagnosticProjection::project).toList();
-			projection.add("diagnostics", GSON.toJsonTree(diagnostics));
-			projection.add("health", GSON.toJsonTree(health.summary()));
+			AssetProjectionService.Observation observation = assetProjections.read(root, state);
 			return new QueryResult("query_result", UiCore.SCHEMA_VERSION, query.requestId(), query.workspaceId(),
-					query.operation(), "succeeded", state.revision(), projection, diagnostics);
+					query.operation(), "succeeded", state.revision(), observation.projection(), observation.diagnostics());
 		} catch (RuntimeException exception) {
 			return queryFailure(query, state.revision(), failureDiagnostic(query, "ASSET_QUERY_FAILED",
 					"diagnostic.asset_query_failed", "The workspace asset index could not be read.", null, null,
 					exception));
 		}
-	}
-
-	private AssetHealthReport workspaceAssetHealth(AssetReferenceGraph graph, WorkspaceState state) {
-		JsonObject referenceProjection = references.projection(state, "");
-		Map<String, Integer> resourceReferences = new HashMap<>();
-		for (JsonElement raw : referenceProjection.getAsJsonArray("edges")) {
-			JsonObject edge = raw.getAsJsonObject();
-			if (!edge.has("kind") || !edge.get("kind").getAsString().equals("resource") || !edge.has("target")) continue;
-			String target = edge.get("target").getAsString().trim().toLowerCase(Locale.ROOT);
-			if (!target.isBlank()) resourceReferences.merge(target, 1, Integer::sum);
-		}
-		Set<String> textSignals = new LinkedHashSet<>();
-		for (Element element : state.elements()) {
-			textSignals.add(element.name().toLowerCase(Locale.ROOT));
-			textSignals.add(element.displayName().toLowerCase(Locale.ROOT));
-			collectWorkspaceTextSignals(element.values(), textSignals);
-		}
-		collectWorkspaceTextSignals(state.generator(), textSignals);
-		collectWorkspaceTextSignals(state.upstreamDocument(), textSignals);
-		collectWorkspaceTextSignals(state.registries(), textSignals);
-		boolean workspaceUsageComplete = "mod".equals(state.kind()) && state.elements().stream()
-				.allMatch(element -> ElementCoverageCatalog.isFirstParty(element.type()) && !element.type().equals("code")
-						&& workspaceTextSignalsComplete(element.values()))
-				&& workspaceTextSignalsComplete(state.generator())
-				&& workspaceTextSignalsComplete(state.upstreamDocument());
-		return graph.healthReport(resourceReferences, textSignals, workspaceUsageComplete);
-	}
-
-	private static boolean workspaceTextSignalsComplete(JsonElement value) {
-		if (value == null || value.isJsonNull()) return true;
-		if (value.isJsonPrimitive()) {
-			return !value.getAsJsonPrimitive().isString() || value.getAsString().length() <= 512;
-		}
-		if (value.isJsonArray()) {
-			for (JsonElement child : value.getAsJsonArray())
-				if (!workspaceTextSignalsComplete(child)) return false;
-			return true;
-		}
-		for (JsonElement child : value.getAsJsonObject().asMap().values())
-			if (!workspaceTextSignalsComplete(child)) return false;
-		return true;
-	}
-
-	private static void collectWorkspaceTextSignals(JsonElement value, Set<String> target) {
-		if (value == null || value.isJsonNull()) return;
-		if (value.isJsonPrimitive()) {
-			if (value.getAsJsonPrimitive().isString()) {
-				String text = value.getAsString().trim().toLowerCase(Locale.ROOT);
-				if (!text.isBlank() && text.length() <= 512) target.add(text);
-			}
-			return;
-		}
-		if (value.isJsonArray()) {
-			for (JsonElement child : value.getAsJsonArray()) collectWorkspaceTextSignals(child, target);
-			return;
-		}
-		for (JsonElement child : value.getAsJsonObject().asMap().values()) collectWorkspaceTextSignals(child, target);
-	}
-
-	private static JsonObject asset(AssetDescriptor descriptor, AssetHealthReport.Entry health) {
-		JsonObject value = new JsonObject();
-		value.addProperty("id", descriptor.id());
-		value.addProperty("relativePath", descriptor.relativePath());
-		value.addProperty("category", descriptor.category().name());
-		value.addProperty("size", descriptor.size());
-		value.addProperty("sha256", descriptor.sha256());
-		value.addProperty("mediaType", descriptor.mediaType());
-		value.addProperty("updatedAt", descriptor.updatedAt().toString());
-		value.add("health", GSON.toJsonTree(health));
-		return value;
-	}
-
-	private static JsonObject assetReference(AssetReference reference) {
-		JsonObject value = new JsonObject();
-		value.addProperty("sourceAssetId", reference.sourceAssetId());
-		value.addProperty("sourcePath", reference.sourcePath());
-		value.addProperty("sourcePointer", reference.sourcePointer());
-		value.addProperty("rawValue", reference.rawValue());
-		if (reference.expectedPrefix() == null) value.add("expectedPrefix", JsonNull.INSTANCE);
-		else value.addProperty("expectedPrefix", reference.expectedPrefix());
-		value.addProperty("targetPath", reference.targetPath());
-		value.addProperty("targetAssetId", reference.targetAssetId());
-		value.addProperty("resolution", reference.resolution());
-		value.addProperty("resourceSource", reference.resourceSource());
-		value.addProperty("resourceVersion", reference.resourceVersion());
-		value.addProperty("kind", reference.kind().name());
-		return value;
 	}
 
 	private CommandOutcome createWorkspace(Command command, RequestContext context) {

@@ -1,0 +1,40 @@
+{
+  "tool": "@modelcontextprotocol/conformance",
+  "toolVersion": "0.1.16",
+  "specVersion": "2025-11-25",
+  "applicableScenarios": [
+    {
+      "scenario": "server-initialize",
+      "checks": 1,
+      "failures": 0
+    },
+    {
+      "scenario": "logging-set-level",
+      "checks": 1,
+      "failures": 0
+    },
+    {
+      "scenario": "ping",
+      "checks": 1,
+      "failures": 0
+    },
+    {
+      "scenario": "tools-list",
+      "checks": 1,
+      "failures": 0
+    },
+    {
+      "scenario": "server-sse-multiple-streams",
+      "checks": 2,
+      "failures": 0
+    },
+    {
+      "scenario": "dns-rebinding-protection",
+      "checks": 2,
+      "failures": 0
+    }
+  ],
+  "checks": 8,
+  "failures": 0,
+  "windowsCliExitIssue": "UV_HANDLE_CLOSING may occur after a successful report; checks.json is authoritative."
+}

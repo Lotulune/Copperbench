@@ -2,20 +2,24 @@
 
 ## Current baseline
 
-- Public prereleases: Windows `v0.1.0-beta.4`; Linux `v0.1.0-linux-preview.2`.
+- Public stable releases: Windows `v0.1.1`; Linux `v0.1.1-linux-stable`. Publication and binary provenance are recorded in [Stage 17 stable publication](./testing/stage17-stable-publication-2026-09-27.md).
 - Stage 11 / Public Beta V1 product closure is complete.
 - Stage 12 / complex element depth is complete in the current implementation line: all 37 first-party Java Mod Element types now share the structured editor/schema path, unknown fields survive save/reopen, field diagnostics can locate the affected editor field, and the eight supported Fabric/NeoForge generator tracks pass the Stage 12 edited-fixture golden build. See [Stage 12 closure evidence](./testing/stage12-complex-element-depth-2026-09-05.md).
 - Stage 13 / creator productivity is complete on the current development line. Procedure Workbench 2.0, Asset Center, Diagnostics 2.0, Local History/Recovery, Migration/Refactor and Workspace Health all satisfy the Stage 13 Definition of Done, including the final clean-installed Windows Explorer drag/drop and failure → location → recovery-protected repair → rebuild product replays. See [Stage 13 closure evidence](./testing/stage13-closure-2026-09-07.md).
 - The installed-product P0 hardening for bundled JDK resolution, real Run Client lifecycle, desktop MCP integration, and the external-Agent product loop is complete and represented by Beta 4.
 - All current beta-blocking gates in `product-status.json` are `passed`; `product.betaEligible=true`.
-- Formal desktop support covers Windows 11 x64 and Ubuntu 24.04 LTS x86_64 with GNOME Wayland/Xorg. Linux release and certification evidence is recorded in [Stage15 closure](./testing/stage15-closure-2026-09-11.md); the Linux channel remains Preview.
+- Formal desktop support covers Windows 11 x64 and Ubuntu 24.04 LTS x86_64 with GNOME Wayland/Xorg. Linux 0.1.1 is stable; current installed acceptance covers Fabric/NeoForge 1.21.1 and does not certify other distributions, architectures or cold-cache/default-network builds. See [Stage 17 installed acceptance](./testing/stage17-stable-installed-acceptance-2026-09-27.md).
 - Stage 14 / native-first general-Agent workbench is complete on the current development line: 14A source integrity, 14B native bootstrap/authoring, 14C layered packaged runtime/gameplay evidence, and 14D review/reuse are all closed by their own DoD. See [Stage 14C runtime/gameplay closure evidence](./testing/stage14-runtime-gameplay-closure-2026-09-08.md).
 
 The historical Stage 9–11 evidence remains authoritative for the Beta 4 baseline. New development should reopen and revalidate the corresponding installed-product gate whenever it changes the validated JDK, Run Client, Desktop MCP, or external-Agent product path, or when regression evidence shows the validated behavior changed; otherwise the existing passed gate state remains the baseline.
 
 ## Next product work
 
-The active roadmap remains `PRD-NEXT.md`. Stages 12, 13, 14 and **Stage15 Linux formal-support work are complete** within their accepted scope. Stage15 closure binds Run42 installed evidence to the signed, production-approved public Linux Preview 2 and its unchanged binary digests.
+The roadmap entry is [PRD-NEXT.md](../PRD-NEXT.md); Stage 17 and 0.1.1 publication are the current delivered baseline. Earlier closure records, including Stage 15 Linux Preview 2, retain their historical scope and binary digests.
+
+The current maintenance batch fixes asset-refresh continuity, clipboard success feedback and current user documentation, followed by one internal extraction of asset reads/health projection. Source changes are not included in the published 0.1.1 packages. Checks and outstanding limitations are recorded in the [maintenance acceptance record](./testing/maintenance-2026-09-27.md).
+
+External-user trials are deferred and are not a gate for these maintenance batches. Internal regression does not establish unfamiliar-user usability or a time/token advantage over direct Agent development. Published 0.1.1 still has the disclosed modeling-task panel collapse; reopen the panel to continue binding.
 
 The remaining roadmap work is continuous maintenance: Minecraft/loader/generator/toolchain compatibility, regression coverage, and the independent semantic check for the historical Fabric Commands remap warning. Broader Linux distributions, architectures and installed game-version tracks need their own evidence before support expands.
 

@@ -63,7 +63,7 @@ Copperbench 基于 MCreator，提供模组元素编辑、Blockly 逻辑、模型
 
 | 系统 | 下载格式 | 安装说明 |
 | --- | --- | --- |
-| Windows 11 x64 | EXE 安装包 · 便携版 ZIP | [Windows 快速开始](docs/user/getting-started.md) |
+| Windows 11 x64 | EXE 安装包 · 便携版 ZIP | [快速开始](docs/user/getting-started.md) |
 | Ubuntu 24.04 LTS x86_64 | Debian `.deb` · 便携版 `.tar.gz` | [Linux 安装说明](docs/releases/linux-release-notes.md) |
 
 Ubuntu 已验证 GNOME Wayland 和 Xorg。其他 Linux 发行版和架构尚未验证。
@@ -73,6 +73,8 @@ Ubuntu 已验证 GNOME Wayland 和 Xorg。其他 Linux 发行版和架构尚未�
 3. **做一个物品** — 新建物品、保存并构建，然后启动测试客户端。
 
 Copperbench 0.1.1 已提供 Windows 与 Linux 稳定版。Windows 安装包未签名，SmartScreen 可能提示警告。首次构建需要联网下载依赖；已知界面问题请参阅对应版本的发布说明。
+
+当前源码维护涉及资产刷新连续性与复制反馈，检查结果和限制见[维护记录](docs/testing/maintenance-2026-09-27.md)。这些源码改动尚未进入已发布的 0.1.1 安装包。
 
 ## 文档
 

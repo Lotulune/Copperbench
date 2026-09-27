@@ -1,0 +1,1814 @@
+{
+  "schemaVersion": "1.0",
+  "date": "2026-09-27",
+  "baseCommit": "77a45d51830073ad021c1cb27b1d6cbbf433ec2f",
+  "sourceState": "uncommitted maintenance delta",
+  "sourceFiles": [
+    {
+      "path": "ui-shell/src/components/AssetBrowserView.tsx",
+      "sha256": "848603a32f4b65188f5e72c1b120f67d2b19a56faf09fcd30b4e637845619704"
+    },
+    {
+      "path": "ui-shell/e2e/asset-continuity.spec.ts",
+      "sha256": "a69bfc66a5adce43dd66b294aebaa6f6ce0132ce3daa932d07690863a329179d"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/core/application/AssetProjectionService.java",
+      "sha256": "e16ee1c65faf44d43b642a1376265e10221a37f4865db839ca53c7304a487519",
+      "testedSha256": "53d96a0f851209abbabb27c2652db39a20352d958b5931c0644511e6175e1536"
+    },
+    {
+      "path": "src/main/java/dev/copperbench/core/application/WorkspaceApplicationService.java",
+      "sha256": "0538a87599c4f9302101881dfe94338aaf9c4d8ddcd246efc7196d1d3e9f1946"
+    },
+    {
+      "path": "src/test/java/dev/copperbench/core/AssetProjectionCompatibilityTest.java",
+      "sha256": "b95ea89cdef64e09a08dc24a0bb181ba50c4d25d3971fb8cc7685cb8dbd69525"
+    },
+    {
+      "path": "src/test/java/dev/copperbench/shell/AssetMaintenanceJcefTest.java",
+      "sha256": "8639a3b7bdaa325375953b55e77b342eed05341669d87626271426c3ff8dd821"
+    }
+  ],
+  "batch1": {
+    "uiBuild": "passed",
+    "targetedPlaywright": {
+      "projects": [
+        "chromium",
+        "compact-1366"
+      ],
+      "passed": 74,
+      "failed": 0
+    },
+    "currentDocsLinks": {
+      "failed": 0,
+      "checked": 6
+    },
+    "productStatus": "passed",
+    "fullMarkdownLinks": "failed: existing ignored output and bridge .venv documents"
+  },
+  "batch2": {
+    "baselineAssetContracts": {
+      "failed": 0,
+      "passed": 4
+    },
+    "java": {
+      "errors": 0,
+      "passed": 928,
+      "tests": 987,
+      "suites": 238,
+      "failed": 0,
+      "skipped": 59
+    },
+    "javadoc": "passed",
+    "uiCore": {
+      "failed": 0,
+      "passed": 29
+    },
+    "fullChromium": {
+      "failed": 0,
+      "passed": 196
+    },
+    "mcp": {
+      "tool": "@modelcontextprotocol/conformance",
+      "toolVersion": "0.1.16",
+      "specVersion": "2025-11-25",
+      "applicableScenarios": [
+        {
+          "scenario": "server-initialize",
+          "checks": 1,
+          "failures": 0
+        },
+        {
+          "scenario": "logging-set-level",
+          "checks": 1,
+          "failures": 0
+        },
+        {
+          "scenario": "ping",
+          "checks": 1,
+          "failures": 0
+        },
+        {
+          "scenario": "tools-list",
+          "checks": 1,
+          "failures": 0
+        },
+        {
+          "scenario": "server-sse-multiple-streams",
+          "checks": 2,
+          "failures": 0
+        },
+        {
+          "scenario": "dns-rebinding-protection",
+          "checks": 2,
+          "failures": 0
+        }
+      ],
+      "checks": 8,
+      "failures": 0,
+      "windowsCliExitIssue": "UV_HANDLE_CLOSING may occur after a successful report; checks.json is authoritative."
+    }
+  },
+  "desktop": {
+    "status": "passed",
+    "test": "AssetMaintenanceJcefTest",
+    "runtime": "Windows JBR 25 / real JCEF, source-built bundled UI, real MCreator workspace/session/persistence",
+    "preparation": "Create a disposable block/task and exported JSON/PNG via Java fixture; no external Blockbench editor launched",
+    "actions": [
+      "UI preview",
+      "UI import",
+      "UI bind",
+      "focus-triggered asset refresh with actual query completion",
+      "close and reopen workspace"
+    ],
+    "screenshot": "bound-refresh.png",
+    "binding": "bound.json",
+    "reopened": "reopened.json",
+    "scope": "Interface continuity and binding persistence only; no mod build or Minecraft gameplay acceptance"
+  },
+  "excluded": [
+    "external-user usability",
+    "Agent efficiency comparison",
+    "new public release",
+    "new Linux installed acceptance",
+    "gameplay",
+    "cold-cache certification"
+  ],
+  "javaSuites": [
+    {
+      "name": "dev.copperbench.assets.AssetImportBatchServiceTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.assets.AssetImportServiceTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.assets.AssetMoveServiceTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.assets.AssetMutationHistoryBoundaryTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.assets.AssetPublishBatchServiceTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.assets.AssetWorkspaceServiceTest",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.assets.BbmodelRoundTripServiceTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.assets.BlockbenchConfigurationTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.assets.BlockbenchEnvironmentServiceTest",
+      "tests": 15,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.assets.BlockbenchExecutableLocatorTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1
+    },
+    {
+      "name": "dev.copperbench.assets.BlockbenchImportServiceTest",
+      "tests": 18,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.assets.BlockbenchInstallationDetectorTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2
+    },
+    {
+      "name": "dev.copperbench.assets.BlockbenchModelingServiceTest",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.assets.BlockbenchProcessServiceTest",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1
+    },
+    {
+      "name": "dev.copperbench.assets.BlockbenchSemanticsTest",
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.assets.DependencyResourceIndexTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.assets.ResourcePack1211ClientLoadProbeTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1
+    },
+    {
+      "name": "dev.copperbench.assets.ResourcePackClientLoadServiceTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.assets.ResourcePackExportServiceTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.assets.Stage17RealItemReferencesTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1
+    },
+    {
+      "name": "dev.copperbench.assets.Stage17RealResourceCatalogTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1
+    },
+    {
+      "name": "dev.copperbench.assets.Stage17ResourceResolutionTest",
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.assets.Stage17RuntimeDependencyCaptureTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2
+    },
+    {
+      "name": "dev.copperbench.automation.AutomationSecurityTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.automation.security.TaskAuthorizationStoreTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.bridge.JcefAssetImportBridgeTransportTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.bridge.JcefBlockbenchBridgeTransportTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.bridge.JcefBridgeEndpointTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.bridge.JcefCoreBridgeTransportTest",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.bridge.JcefDiagnosticsBridgeTransportTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.bridge.JcefLegacyPluginBridgeTransportTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.bridge.JcefMcpBridgeTransportTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.bridge.JcefPythonBridgeTransportTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.bridge.JcefWindowBridgeTransportTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.core.application.BlockFieldContractTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.core.application.CustomFieldInputContractTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.core.application.HistoryListCursorTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.core.application.LocalWorkspaceTemplateServiceTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.core.application.ProcedureFieldContractTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.core.application.SecondaryListCursorTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.core.application.WorkspaceElementListCursorTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.core.application.WorkspaceHealthScaleTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1
+    },
+    {
+      "name": "dev.copperbench.core.application.WorkspacePlanEngineTest",
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.core.application.WorkspaceTaskEventTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.core.AssetImportApplicationServiceTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.core.AssetMoveApplicationServiceTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.core.AssetProjectionCompatibilityTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.core.AssetQueryProjectionTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.core.BlockbenchEditApplicationServiceTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.core.HistoryContractTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.core.plugin.InstalledPluginInventoryServiceTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.core.PluginCompatibilityClassifierTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.core.SchemaNegotiatorTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.core.Stage17ModelingWorkflowTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.core.Stage67ApplicationServiceTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.core.Stage7G6GateTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.core.Stage8G7GateTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.core.TaskAuthorizationApplicationTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.core.workspace.mcreator.BiomeDimensionPersistenceTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.core.workspace.mcreator.CodeElementPersistenceTest",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.core.workspace.mcreator.FirstPartyDataElementPersistenceTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.core.workspace.mcreator.GuiElementPersistenceTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.core.workspace.mcreator.MCreatorGenerationPreparationTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.core.workspace.mcreator.MCreatorWorkspaceStateMapperTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.core.workspace.mcreator.OverlayElementPersistenceTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.core.workspace.mcreator.ProjectileLifecyclePersistenceTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.core.workspace.mcreator.Stage17BlockConsistencyTest",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.core.workspace.mcreator.Stage17CodeFieldContractTest",
+      "tests": 17,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.core.workspace.mcreator.Stage17ColdWorkspaceProbeTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 3
+    },
+    {
+      "name": "dev.copperbench.core.workspace.mcreator.Stage17CustomAdapterContractTest",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.core.workspace.mcreator.Stage17ElementIdentityTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.core.workspace.mcreator.Stage17LootTableContractTest",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.core.workspace.mcreator.Stage17MappedTypesTest",
+      "tests": 19,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.core.workspace.mcreator.Stage17NestedFieldContractTest",
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.core.workspace.mcreator.Stage17NestedReferenceContractTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.core.workspace.mcreator.Stage17ProcedureBodyContractTest",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.core.workspace.mcreator.Stage17ProcedureCallGenerationTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.core.workspace.mcreator.Stage17ProcedureContextTest",
+      "tests": 20,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.core.workspace.mcreator.Stage17ProcedurePreservationTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.core.workspace.mcreator.Stage17ProcedureReturnCallGenerationTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.core.workspace.mcreator.Stage17ProcedureTriggerCatalogTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.core.workspace.mcreator.Stage17RecoveryPersistenceTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.core.workspace.mcreator.Stage17SpecializedFieldContractTest",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.core.workspace.WorkspaceCreationServiceTest",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.core.WorkspaceApplicationServiceTest",
+      "tests": 25,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.core.WorkspacePersistenceFoundationTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.core.WorkspaceRegistryContractTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.diagnostics.DiagnosticBundleServiceTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.diagnostics.Stage13DiagnosticsFixtureExportTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1
+    },
+    {
+      "name": "dev.copperbench.generator.BundledJdkLocatorTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.generator.fabric.Fabric1201CompileProbeTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1
+    },
+    {
+      "name": "dev.copperbench.generator.fabric.Fabric1201GeneratorTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.generator.fabric.Fabric1201RunClientProbeTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1
+    },
+    {
+      "name": "dev.copperbench.generator.fabric.Fabric1211GeneratorTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.generator.fabric.Fabric1211GoldenBuildTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1
+    },
+    {
+      "name": "dev.copperbench.generator.fabric.Fabric1211GoldenRunClientTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1
+    },
+    {
+      "name": "dev.copperbench.generator.fabric.Fabric1211ProcessRunnerTest",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.generator.fabric.Fabric1211ProjectileTemplateRegressionTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.generator.fabric.Fabric1211RestoreBuildTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.generator.fabric.Fabric1211TaskGatewayTest",
+      "tests": 21,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.generator.fabric.Fabric261CompileProbeTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1
+    },
+    {
+      "name": "dev.copperbench.generator.fabric.Fabric261GeneratorTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.generator.fabric.Fabric261RunClientProbeTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1
+    },
+    {
+      "name": "dev.copperbench.generator.fabric.Fabric262CompileProbeTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1
+    },
+    {
+      "name": "dev.copperbench.generator.fabric.Fabric262GeneratorTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.generator.fabric.Fabric262RunClientProbeTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1
+    },
+    {
+      "name": "dev.copperbench.generator.fabric.NewWorkspaceFabricGeneratorPluginsTest",
+      "tests": 22,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.generator.fabric.Stage17ProcessLifecycleTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.generator.GameTestHostCompilationTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1
+    },
+    {
+      "name": "dev.copperbench.generator.GameTestModIdentitySmokeTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1
+    },
+    {
+      "name": "dev.copperbench.generator.GameTestPackagedHostSmokeTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1
+    },
+    {
+      "name": "dev.copperbench.generator.GameTestReportTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.generator.GameTestRunDirectoryTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.generator.GameTestWorkflowTest",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.generator.neoforge.LoaderRoutingWorkspaceTaskGatewayTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.generator.neoforge.NeoForge1201CompileProbeTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1
+    },
+    {
+      "name": "dev.copperbench.generator.neoforge.NeoForge1201GeneratorTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.generator.neoforge.NeoForge1201RunClientProbeTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1
+    },
+    {
+      "name": "dev.copperbench.generator.neoforge.NeoForge1211GeneratorTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.generator.neoforge.NeoForge1211GoldenBuildTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1
+    },
+    {
+      "name": "dev.copperbench.generator.neoforge.NeoForge1211GoldenRunClientTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1
+    },
+    {
+      "name": "dev.copperbench.generator.neoforge.NeoForge1211TaskGatewayTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.generator.neoforge.NeoForge261CompileProbeTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1
+    },
+    {
+      "name": "dev.copperbench.generator.neoforge.NeoForge261GeneratorTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.generator.neoforge.NeoForge261RunClientProbeTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1
+    },
+    {
+      "name": "dev.copperbench.generator.neoforge.NeoForge262CompileProbeTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1
+    },
+    {
+      "name": "dev.copperbench.generator.neoforge.NeoForge262GeneratorTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.generator.neoforge.NeoForge262RunClientProbeTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1
+    },
+    {
+      "name": "dev.copperbench.generator.PluginWorkspaceLayoutTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.generator.resourcepack.ResourcePackWorkspaceTaskGatewayTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.generator.Stage14CFabricGameplayMatrixTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1
+    },
+    {
+      "name": "dev.copperbench.generator.Stage14CFabricPackagedMatrixTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1
+    },
+    {
+      "name": "dev.copperbench.generator.Stage14CNeoForgeGameplayMatrixTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1
+    },
+    {
+      "name": "dev.copperbench.generator.Stage14CPackagedBehaviorTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1
+    },
+    {
+      "name": "dev.copperbench.generator.Stage17PackagedBlockGameTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1
+    },
+    {
+      "name": "dev.copperbench.generator.Stage17ProcedureTaskValidationTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.generator.Stage17TaskSessionRecoveryTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.generator.Stage9ManagedTaskMatrixTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.generator.Stage9RealServerReadinessProbeTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1
+    },
+    {
+      "name": "dev.copperbench.generator.Stage9ServerReadinessContractTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.generator.VerifiedArtifactExporterTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.generator.workspace.NewWorkspaceGeneratorGoldenBuildTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 5
+    },
+    {
+      "name": "dev.copperbench.generator.workspace.WorkspaceIdentityTemplateTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.generator.WorkspaceEnvironmentContextTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.generator.WorkspaceExecutionSnapshotTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.generator.WorkspaceModIdentityTest",
+      "tests": 16,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.gradle.DesktopGradleRuntimeTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.gradle.GradleDistributionPoolTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.gradle.GradleDownloadProgressTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.gradle.GradleRuntimeCompatibilityTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.gradle.GradleSyncBuildActionCompatibilityTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.gradle.MinecraftMappingsCacheRepairTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.headless.BlockbenchNativeElementTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.headless.BootstrapProductLauncherTest",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.headless.DesktopPythonRuntimeTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.headless.HeadlessCliTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.headless.HeadlessProductLauncherTest",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.headless.LocalApprovalWindowTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 3
+    },
+    {
+      "name": "dev.copperbench.headless.NativeApiProductTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.headless.NativeApiSessionTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.headless.Stage14BNativeAuthoringLoopTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.history.LocalHistoryServiceTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.mcp.DesktopMcpAgentLoopTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.mcp.DesktopMcpRuntimeTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.mcp.McpHttpServerTest",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.migration.LoaderMigrationRebuildServiceTest",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1
+    },
+    {
+      "name": "dev.copperbench.migration.LoaderMigrationServiceTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.migration.UpstreamWorkspaceImportServiceTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.network.ChinaMirrorServiceTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.platform.DesktopSessionCapabilitiesTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.platform.ExecutableFilePermissionsTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.platform.GraphicalCiModeTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.platform.LegacyPreferencesMigrationTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.platform.LinuxDesktopPathIntegrationTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.platform.PrivatePathPermissionsTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.platform.RuntimePlatformTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.platform.UserDataPathsTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.procedure.ProcedureIrCodecTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.procedure.ProcedureIrScaleGateTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1
+    },
+    {
+      "name": "dev.copperbench.procedure.Stage17ProcedureReturnValidationTest",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.ProductIdentityTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.references.WorkspaceReferenceIndexScaleTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1
+    },
+    {
+      "name": "dev.copperbench.references.WorkspaceReferenceIndexTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.release.BundledPluginInventoryTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.release.DevelopmentSbomTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.release.ElementCoverageCatalogTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.release.FeatureCoverageCatalogTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.release.GeneratorElementCapabilityCatalogTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.release.LinuxCandidateManifestTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.release.LinuxDistributionLayoutTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.release.OfflineCachedBuildTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2
+    },
+    {
+      "name": "dev.copperbench.release.OfflineLocalOperationsTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.release.ReleaseManifestTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.release.SourceDistributionCompletenessTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.release.SupportedPlatformTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.release.UpstreamToolCatalogTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.release.UserGuideLocatorTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.release.WindowsDistributionLayoutTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.release.WindowsInstallerSafetyTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.release.WindowsInstallRehearsalSafetyTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.release.WindowsReleaseReadinessTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.sdk.ExperimentalExtensionManifestTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.shell.BlockbenchStartupPanelTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.shell.CopperbenchProductShellJcefSmokeTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 3
+    },
+    {
+      "name": "dev.copperbench.shell.CopperbenchProductShellResourceTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.shell.GraphicalProductProbeTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.shell.LegacyPluginWindowTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.shell.ProductShellSettingsTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.shell.RecoverableBrowserHostTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.shell.Stage10NativeJcefDiagnosticsBundleTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.shell.Stage10NativeJcefTaskReconnectTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.shell.Stage9NativeJcefAccessibilityTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.shell.Stage9NativeJcefScaleGateTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1
+    },
+    {
+      "name": "dev.copperbench.shell.UiLocalePreferencesTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.tracks.VersionTrackCatalogTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.window.ProductShellJcefSnapDpiSmokeTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1
+    },
+    {
+      "name": "dev.copperbench.window.WindowChromeHitTestTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dev.copperbench.window.WindowsWindowChromeControllerSmokeTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1
+    },
+    {
+      "name": "net.mcreator.integration.generator.GeneratorsTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1
+    },
+    {
+      "name": "net.mcreator.integration.ui.DialogsTest",
+      "tests": 24,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "net.mcreator.integration.ui.ImageMakerTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "net.mcreator.integration.ui.ModElementUITest$AddonGeneratorTests",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "net.mcreator.integration.ui.ModElementUITest$JavaGeneratorTests",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "net.mcreator.integration.workspace.ReferencesFinderTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "net.mcreator.integration.WorkspaceConvertersTest",
+      "tests": 15,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "net.mcreator.io.LoggingConfigurationTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "net.mcreator.io.zip.ZipIOWindowsPublishTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "net.mcreator.io.ZipIOTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "net.mcreator.plugin.PluginLoaderSwingFixtureTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "net.mcreator.ui.chromium.CefUtilsAccessibilityTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "net.mcreator.ui.chromium.WindowsDisplayAdapterProbeTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "net.mcreator.unit.io.EncryptUtilsTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "net.mcreator.unit.io.TransliterationTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "net.mcreator.unit.java.JavaConventionsTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "net.mcreator.unit.util.diff.ListDiffTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "net.mcreator.unit.util.GSONUtilsTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "net.mcreator.workspace.LocalTemplateWorkspacePlanIntegrationTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "net.mcreator.workspace.WorkspacePersistenceCompatibilityTest",
+      "tests": 24,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "stagingNormalization": {
+    "paths": [
+      "evidence/maintenance/2026-09-27/mcp-summary.json",
+      "evidence/maintenance/2026-09-27/verification.json",
+      "src/main/java/dev/copperbench/core/application/AssetProjectionService.java"
+    ],
+    "scope": "CRLF to LF only before committing; testedSha256 retains original compiled input bytes where different."
+  }
+}

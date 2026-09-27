@@ -63,7 +63,7 @@ The workbench supports English and Simplified Chinese. Use the language selector
 
 | Platform | Packages | Installation |
 | --- | --- | --- |
-| Windows 11 x64 | EXE installer · Portable ZIP | [Windows quick start](docs/user/getting-started.md) |
+| Windows 11 x64 | EXE installer · Portable ZIP | [Quick start](docs/user/getting-started.md) |
 | Ubuntu 24.04 LTS x86_64 | Debian `.deb` · Portable `.tar.gz` | [Linux installation notes](docs/releases/linux-release-notes.md) |
 
 Ubuntu testing covers GNOME Wayland and Xorg. Other Linux distributions and architectures have not been validated.
@@ -73,6 +73,8 @@ Ubuntu testing covers GNOME Wayland and Xorg. Other Linux distributions and arch
 3. **Make an item** — Add an item, save and build the project, then launch the test client.
 
 Copperbench 0.1.1 is available as a stable release for Windows and Linux. Windows installers are unsigned and may trigger SmartScreen. The first build needs an internet connection to download dependencies. Known interface issues are listed in the release notes.
+
+The current source maintenance work addresses asset-refresh continuity and clipboard feedback; its checks and limitations are tracked in the [maintenance record](docs/testing/maintenance-2026-09-27.md). These source changes are not included in the published 0.1.1 packages.
 
 ## Documentation
 

@@ -1,6 +1,6 @@
 import { tr } from '../i18n/locale';
 import { valueLabel } from '../i18n/labels';
-import React, { useDeferredValue, useEffect, useMemo, useState } from 'react';
+import React, { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import {
   AlertCircle, AlertTriangle, Box, CheckCircle2, CircleDashed,
   Copy, CornerDownRight, FileJson, FileText,
@@ -145,6 +145,12 @@ function formatBytes(bytes: number) {
 }
 
 export const AssetBrowserView: React.FC = () => {
+  const { state } = useWorkbench();
+  return <WorkspaceAssetBrowser key={state.workbench?.workspace.id ?? state.currentScenarioId} />;
+};
+
+// Revision refreshes retain local UI state; changing workspaces resets it all.
+const WorkspaceAssetBrowser: React.FC = () => {
   const locale = useUiLocale();
   const CATEGORY_ITEMS = categoryItems();
   const {
@@ -166,7 +172,9 @@ export const AssetBrowserView: React.FC = () => {
   const [notice, setNotice] = useState<AssetMessage | null>(null);
   const [openingBlockbench, setOpeningBlockbench] = useState(false);
   const [blockbenchSessionAssetId, setBlockbenchSessionAssetId] = useState<string | null>(null);
-  const [copiedId, setCopiedId] = useState(false);
+  const [copyFeedback, setCopyFeedback] = useState<{ id: string; status: 'success' | 'error' } | null>(null);
+  const copyRequest = useRef(0);
+  const copyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [importReview, setImportReview] = useState<AssetImportReviewState | null>(null);
   const [batchImportReview, setBatchImportReview] = useState<AssetBatchImportReviewState | null>(null);
   const [moveReview, setMoveReview] = useState<AssetMoveReviewState | null>(null);
@@ -272,6 +280,14 @@ export const AssetBrowserView: React.FC = () => {
     return filteredAssets.find((asset) => asset.id === selectedId) ?? filteredAssets[0] ?? null;
   }, [filteredAssets, selectedId]);
 
+  useEffect(() => {
+    setCopyFeedback(null);
+    return () => {
+      copyRequest.current++;
+      if (copyTimer.current) clearTimeout(copyTimer.current);
+    };
+  }, [selectedAsset?.id]);
+
   const categoryCounts = useMemo(() => {
     const counts: Record<string, number> = { all: assets.length };
     for (const asset of assets) {
@@ -280,10 +296,19 @@ export const AssetBrowserView: React.FC = () => {
     return counts;
   }, [assets]);
 
-  const copyStableId = (id: string) => {
-    navigator.clipboard?.writeText(id).catch(() => {});
-    setCopiedId(true);
-    setTimeout(() => setCopiedId(false), 1600);
+  const copyStableId = async (id: string) => {
+    const request = ++copyRequest.current;
+    if (copyTimer.current) clearTimeout(copyTimer.current);
+    setCopyFeedback(null);
+    try {
+      if (!navigator.clipboard?.writeText) throw new Error('Clipboard unavailable');
+      await navigator.clipboard.writeText(id);
+      if (request !== copyRequest.current) return;
+      setCopyFeedback({ id, status: 'success' });
+      copyTimer.current = setTimeout(() => setCopyFeedback(null), 1600);
+    } catch {
+      if (request === copyRequest.current) setCopyFeedback({ id, status: 'error' });
+    }
   };
 
   const beginMove = (asset: AssetRecord) => {
@@ -487,19 +512,6 @@ export const AssetBrowserView: React.FC = () => {
     };
   }, [blockbenchSessionAssetId]);
 
-  if (mode === 'loading') {
-    return <AssetStateView mode="loading" query={query} setQuery={setQuery} />;
-  }
-  if (mode === 'error') {
-    return <AssetStateView mode="error" query={query} setQuery={setQuery} onRetry={() => {
-      setModeOverride(null);
-      setReloadToken((token) => token + 1);
-    }} />;
-  }
-  if (mode === 'empty') {
-    return <AssetStateView mode="empty" query={query} setQuery={setQuery} onRetry={() => void beginImport()} />;
-  }
-
   return (
     <section className="stage2-view asset-browser-view animate-fade-in" data-testid="asset-browser">
       <AssetHeader
@@ -511,7 +523,13 @@ export const AssetBrowserView: React.FC = () => {
 
       <BlockbenchSetupPanel />
       <BlockbenchTasksPanel source={selectedAsset} />
-      <div className="asset-browser-body">
+      {mode !== 'ready' ? <AssetStateView mode={mode} onRetry={() => {
+        if (mode === 'empty') void beginImport();
+        else {
+          setModeOverride(null);
+          setReloadToken(token => token + 1);
+        }
+      }} /> : <div className="asset-browser-body">
         {/* Left Category Rail */}
         <aside className="asset-category-panel" aria-label={uiText("资产分类", "Asset categories")}>
           <div className="asset-panel-label">
@@ -691,7 +709,7 @@ export const AssetBrowserView: React.FC = () => {
         <AssetDetails
           asset={selectedAsset}
           notice={notice}
-          copiedId={copiedId}
+          copyStatus={copyFeedback?.id === selectedAsset?.id ? copyFeedback?.status : undefined}
           openingBlockbench={openingBlockbench}
           onCopyId={copyStableId}
           onImport={(asset) => void beginImport(asset)}
@@ -699,7 +717,7 @@ export const AssetBrowserView: React.FC = () => {
           onOpenBlockbench={openInBlockbench}
           onDismissNotice={() => setNotice(null)}
         />
-      </div>
+      </div>}
 
       {importReview && (
         <AssetImportReview
@@ -1046,37 +1064,9 @@ const AssetHeader: React.FC<{
 /* State placeholder view for loading / error / empty */
 const AssetStateView: React.FC<{
   mode: Exclude<BrowserMode, 'ready'>;
-  query: string;
-  setQuery: (q: string) => void;
   onRetry?: () => void;
-}> = ({ mode, query, setQuery, onRetry }) => {
+}> = ({ mode, onRetry }) => {
   return (
-    <section className="stage2-view asset-browser-view animate-fade-in" data-testid="asset-browser">
-      <header className="stage2-view-header asset-browser-header">
-        <div className="stage2-view-title">
-          <Palette size={20} aria-hidden="true" />
-          <div>
-            <h2>{uiText("资产与模型工作台", "Assets and models")}</h2>
-            <span>{uiText("资产与 Blockbench 集成 · 模型、纹理、动画与资源包 · 引用关系可追溯", "Assets and Blockbench integration · Models, textures, animations and resource packs · Traceable references")}</span>
-          </div>
-        </div>
-        <div className="asset-header-actions">
-          <label className="asset-search-field">
-            <Search size={14} aria-hidden="true" />
-            <span className="sr-only">{uiText("搜索资产", "Search assets")}</span>
-            <input
-              data-testid="asset-search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder={uiText("搜索名称、路径或标识…", "Search name, path or ID…")}
-              disabled
-            />
-          </label>
-        </div>
-      </header>
-
-      <BlockbenchSetupPanel />
-      <BlockbenchTasksPanel />
       <div
         className={`asset-state-panel${mode === 'error' ? ' asset-state-error' : ''}`}
         data-testid={`asset-browser-${mode}`}
@@ -1122,7 +1112,6 @@ const AssetStateView: React.FC<{
           </>
         )}
       </div>
-    </section>
   );
 };
 
@@ -1213,7 +1202,7 @@ const AssetCard: React.FC<{
 const AssetDetails: React.FC<{
   asset: AssetRecord | null;
   notice: AssetMessage | null;
-  copiedId: boolean;
+  copyStatus?: 'success' | 'error';
   openingBlockbench: boolean;
   onCopyId: (id: string) => void;
   onImport: (asset: AssetRecord) => void;
@@ -1223,7 +1212,7 @@ const AssetDetails: React.FC<{
 }> = ({
   asset,
   notice,
-  copiedId,
+  copyStatus,
   openingBlockbench,
   onCopyId,
   onImport,
@@ -1290,8 +1279,12 @@ const AssetDetails: React.FC<{
               title={uiText("复制稳定标识", "Copy stable ID")}
               aria-label={uiText("复制稳定标识", "Copy stable ID")}
             >
-              {copiedId ? <CheckCircle2 size={12} className="text-green" /> : <Copy size={12} />}
+              {copyStatus === 'success' ? <CheckCircle2 size={12} className="text-green" /> : <Copy size={12} />}
             </button>
+            {copyStatus && <span data-testid="asset-copy-feedback" role={copyStatus === 'error' ? 'alert' : 'status'}>
+              {copyStatus === 'success' ? uiText("已复制", "Copied")
+                : uiText("复制失败，请选中标识手动复制。", "Copy failed. Select the ID and copy it manually.")}
+            </span>}
           </dd>
         </div>
         <div className="asset-metadata-row">

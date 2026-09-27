@@ -6,7 +6,7 @@
 
 一个工作区同一时间只有一个活动生成器（Fabric 或 NeoForge 的某一个版本）。创建、打开、从官方 MCreator 迁入都走同一套 Java 服务。迁入会复制到新目录，并保留未知字段。
 
-工作区文件扩展名仍是 `.mcreator`，以便兼容上游插件。用户设置在 `%USERPROFILE%\.copperbench`。
+工作区文件扩展名仍是 `.mcreator`，以便兼容上游插件。用户设置位于用户目录下的 `.copperbench`：Windows 为 `%USERPROFILE%\.copperbench`，Linux 为 `~/.copperbench`。
 
 ## 版本轨道
 
@@ -17,7 +17,11 @@
 | 维护 1.21.1 | 正式支持，有黄金构建 / runClient |
 | 维护 1.20.1 | Fabric / NeoForge 正式支持（编译 + runClient）。NeoForge 钉选 `1.20.1-47.1.106` |
 
-「新建工作区」列出已安装的生成器插件。Fabric 与 NeoForge 均有 26.2、26.1.2、1.21.1、1.20.1，并提供独立 `resourcepack-1.21.1` 资源包生成器。产品外壳有自己的「新建工作区」视图（导航栏「新建工作区」）：选择生成器、填写模组名 / ID / 包名 / 文件夹，校验通过并确认后创建，随后在新窗口打开；选择资源包时不需要 Java 包名。MCP 与 headless 也可列出生成器并提交创建命令，但必须显式提供用户批准事实。旧版 Swing 对话框仍保留可回退。阶段 8 第一方纵向切片（方块、物品、配方、Procedure）四轨均有编译 + runClient 证据；阶段 9 又将 Function、Loot Table、Advancement 纳入第一方 CRUD，其专用编辑器、八生成器黄金生成/编译和八轨真实 dedicated-server readiness 已通过。阶段 9 仍未关闭的发布门禁包括大工作区/Procedure 性能、真实 JCEF/可访问性、最终 Windows 11 RC 完整矩阵重放和外部测试者。八个工作区生成器插件空工作区有独立 Gradle 黄金编译证据。资源包工作区可导出 ZIP；`prepare_resource_pack_client` 只准备测试客户端文件，不自动启动 Minecraft。尚未宣称每一个模组元素类型都能生成可编译代码。阶段 9 需求见 [PRD-STAGE-9.md](../../PRD-STAGE-9.md)，状态见 [剩余完善清单](../remaining-work.md)。你正在用的发行预览包可能落后于源码。
+「新建工作区」列出已安装的生成器插件。Fabric 与 NeoForge 均有 26.2、26.1.2、1.21.1、1.20.1，并提供独立 `resourcepack-1.21.1` 资源包生成器。选择生成器、填写模组名 / ID / 包名 / 文件夹，校验通过并确认后创建，随后在新窗口打开；选择资源包时不需要 Java 包名。MCP 与 headless 也可列出生成器并提交创建命令，但必须显式提供用户批准事实。旧版 Swing 对话框仍保留可回退。
+
+八条生成器轨道有黄金生成与编译证据；这些证据不代表所有元素、字段组合及玩法均已验证。0.1.1 安装候选的客户端复演覆盖 Fabric / NeoForge 1.21.1，具体环境和场景见[安装验收](../testing/stage17-stable-installed-acceptance-2026-09-27.md)。物理屏幕阅读器认证、最终干净 Windows RC 复演、外部测试者认证，以及 Linux 冷缓存／默认网络认证不在当前发布宣称内。外部试用延期，不阻塞本轮维护；内部回归也不替代陌生用户可用性验证。
+
+资源包工作区可导出 ZIP；`prepare_resource_pack_client` 只准备测试客户端文件，不自动启动 Minecraft。当前状态见[剩余完善清单](../remaining-work.md)，历史 Stage 9 需求保留在 [PRD-STAGE-9.md](../../PRD-STAGE-9.md)。下载包与后续源码维护的区别见[维护记录](../testing/maintenance-2026-09-27.md)。
 
 ## 模组元素
 
@@ -29,7 +33,7 @@
 
 变量、标签和语言位于「创作数据」视图，支持创建、编辑、引用计数以及重命名影响预览。语言工具支持 CSV/JSON 导入导出，以及 merge/keep/replace 冲突处理和缺失/重复键统计。
 
-顶部运行入口提供客户端、专用服务端、datagen 和已有 GameTest。datagen 完成后只生成隔离暂存结果；必须先查看文件差异并明确确认，才会发布到工作区。Fabric / NeoForge 26.2、26.1.2、1.21.1、1.20.1 的真实 dedicated-server readiness 已 8/8 通过；datagen 和 GameTest 继续按 Stage 9 开发预览能力处理。
+顶部运行入口提供客户端、专用服务端、datagen 和已有 GameTest。datagen 完成后只生成隔离暂存结果；必须先查看文件差异并明确确认，才会发布到工作区。历史 dedicated-server readiness 的八轨通过记录只覆盖对应工程与环境。GameTest 验收和已验证产物导出只证明报告所列测试及绑定的 JAR，不隐含客户端玩法通过；各轨能力以当前生成器与任务诊断为准。
 
 ## 本地历史
 
@@ -66,7 +70,7 @@ Fabric Maven 与 NeoForge 专用仓库仍走官方地址。之后可在偏好设
 
 ## 安装与卸载
 
-仅支持 64 位 Windows 11（build 22000 及以上）。Windows 10 会在安装器和启动时被拒绝。
+0.1.1 稳定版支持 Windows 11 x64（build 22000 及以上）和 Ubuntu 24.04 LTS x86_64（GNOME Wayland / Xorg）。Windows 10 会在安装器和启动时被拒绝；其他 Linux 发行版和架构尚未验证。安装入口见[快速开始](./getting-started.md)和 [Linux 安装说明](../releases/linux-release-notes.md)。
 
 安装后默认打开新产品外壳（无边框 JCEF 工作台）。若要旧版 Swing 工作区，启动时加 `-Dcopperbench.productShell=false`。
 
