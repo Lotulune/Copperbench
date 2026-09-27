@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "1.0",
+  "probe": "graphical-product-shell",
+  "status": "ready",
+  "observedAt": "2026-09-27T19:53:20.840368346Z",
+  "formalSupportClaim": false,
+  "jcefMainFrameLoaded": true,
+  "workspaceId": "3f2c633b-ff8c-4cd8-a5ee-73645f66ccf6",
+  "workspaceRoot": "/home/stage17/maintenance-012-20260927/neoforge-1.21.1",
+  "platform": {
+    "os": "linux",
+    "arch": "x86_64",
+    "desktop": {
+      "sessionType": "x11",
+      "waylandDisplayPresent": false,
+      "x11DisplayPresent": true,
+      "certificationRole": "stage15-compatibility-target",
+      "knownLimitations": [
+        "X11 requires compatibility evidence separate from the primary Wayland path."
+      ],
+      "stage15CertificationPending": true
+    }
+  },
+  "mcp": {
+    "status": "listening",
+    "url": "http://127.0.0.1:38337/mcp",
+    "workspaceId": "3f2c633b-ff8c-4cd8-a5ee-73645f66ccf6",
+    "permissionProfile": "workspace",
+    "expiresAt": "2026-09-28T07:53:19.825419530Z",
+    "tokenAvailable": true
+  }
+}

@@ -2,8 +2,8 @@
   "$schema": "./schemas/product-status.schema.json",
   "schemaVersion": "1.0",
   "snapshot": {
-    "date": "2026-09-27",
-    "lastVerifiedCommit": "9bf1b78b0936352596acb67809ffb3866be87751",
+    "date": "2026-09-28",
+    "lastVerifiedCommit": "9bc6d104688c24512468880abdc2a96828fcaab8",
     "policy": "Only code, automated checks, and evidence tied to a commit can promote a gate."
   },
   "product": {
@@ -21,8 +21,8 @@
     "stableRelease": {
       "tag": "v0.1.2",
       "linuxTag": "v0.1.2-linux-stable",
-      "status": "pending-validation",
-      "linuxStatus": "pending-exact-candidate-acceptance",
+      "status": "ready",
+      "linuxStatus": "exact-candidate-accepted-awaiting-publication",
       "decision": "approved",
       "decisionDate": "2026-09-27",
       "scope": "Windows 11 x64 and Ubuntu 24.04 x86_64 GNOME; publish both only after fresh Linux 0.1.2 candidate acceptance.",
@@ -178,7 +178,7 @@
     "notApplicable": ["bebiome", "beblock", "beentity", "beitem", "bescript"]
   },
   "gates": [
-    {"id": "maintenance-012-release-integration", "status": "in-progress", "betaBlocking": false, "stableBlocking": true, "evidence": ["docs/testing/maintenance-release-0.1.2.md", "evidence/maintenance/2026-09-27/verification.json"]},
+    {"id": "maintenance-012-release-integration", "status": "passed", "betaBlocking": false, "stableBlocking": true, "evidence": ["docs/testing/maintenance-release-0.1.2.md", "docs/testing/maintenance-012-linux-installed-2026-09-28.md", "release-control/linux-candidate-authorization.json", "evidence/maintenance/2026-09-27/verification.json"]},
     {
       "id": "stage17-installed-function-save",
       "status": "passed",

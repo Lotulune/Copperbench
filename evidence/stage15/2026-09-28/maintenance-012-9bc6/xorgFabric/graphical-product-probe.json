@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "1.0",
+  "probe": "graphical-product-shell",
+  "status": "ready",
+  "observedAt": "2026-09-27T19:52:18.750675590Z",
+  "formalSupportClaim": false,
+  "jcefMainFrameLoaded": true,
+  "workspaceId": "867e1bef-2a16-4220-9e6d-6e62becd13a8",
+  "workspaceRoot": "/home/stage17/maintenance-012-20260927/fabric-1.21.1",
+  "platform": {
+    "os": "linux",
+    "arch": "x86_64",
+    "desktop": {
+      "sessionType": "x11",
+      "waylandDisplayPresent": false,
+      "x11DisplayPresent": true,
+      "certificationRole": "stage15-compatibility-target",
+      "knownLimitations": [
+        "X11 requires compatibility evidence separate from the primary Wayland path."
+      ],
+      "stage15CertificationPending": true
+    }
+  },
+  "mcp": {
+    "status": "listening",
+    "url": "http://127.0.0.1:33393/mcp",
+    "workspaceId": "867e1bef-2a16-4220-9e6d-6e62becd13a8",
+    "permissionProfile": "workspace",
+    "expiresAt": "2026-09-28T07:52:17.662473294Z",
+    "tokenAvailable": true
+  }
+}
