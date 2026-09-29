@@ -2,7 +2,7 @@
   "schemaVersion": "1.0",
   "product": {
     "name": "Copperbench",
-    "version": "0.1.2",
+    "version": "0.1.3",
     "id": "dev.copperbench.studio",
     "publisher": "Copperbench Contributors",
     "license": "GPL-3.0-only",
@@ -251,11 +251,11 @@
     "schemaVersion": "1.0",
     "kind": "development-inventory",
     "productId": "dev.copperbench.studio",
-    "productVersion": "0.1.2",
+    "productVersion": "0.1.3",
     "components": [
       {
         "name": "Copperbench",
-        "version": "0.1.2",
+        "version": "0.1.3",
         "type": "application",
         "license": "GPL-3.0-only",
         "path": "."
@@ -276,77 +276,77 @@
       },
       {
         "name": "core",
-        "version": "0.1.2",
+        "version": "0.1.3",
         "type": "plugin",
         "license": "GPL-3.0-only",
         "path": "plugins/mcreator-core"
       },
       {
         "name": "generator-1.20.1",
-        "version": "0.1.2",
+        "version": "0.1.3",
         "type": "plugin",
         "license": "GPL-3.0-only",
         "path": "plugins/generator-1.20.1"
       },
       {
         "name": "generator-1.21.1",
-        "version": "0.1.2",
+        "version": "0.1.3",
         "type": "plugin",
         "license": "GPL-3.0-only",
         "path": "plugins/generator-1.21.1"
       },
       {
         "name": "generator-26.1.x",
-        "version": "0.1.2",
+        "version": "0.1.3",
         "type": "plugin",
         "license": "GPL-3.0-only",
         "path": "plugins/generator-26.1.x"
       },
       {
         "name": "generator-26.2",
-        "version": "0.1.2",
+        "version": "0.1.3",
         "type": "plugin",
         "license": "GPL-3.0-only",
         "path": "plugins/generator-26.2"
       },
       {
         "name": "generator-addon-26.1x",
-        "version": "0.1.2",
+        "version": "0.1.3",
         "type": "plugin",
         "license": "GPL-3.0-only",
         "path": "plugins/generator-addon-26.1x"
       },
       {
         "name": "generator-fabric-26.1.2",
-        "version": "0.1.2",
+        "version": "0.1.3",
         "type": "plugin",
         "license": "GPL-3.0-only",
         "path": "plugins/generator-fabric-26.1.2"
       },
       {
         "name": "generator-fabric-26.2",
-        "version": "0.1.2",
+        "version": "0.1.3",
         "type": "plugin",
         "license": "GPL-3.0-only",
         "path": "plugins/generator-fabric-26.2"
       },
       {
         "name": "localization",
-        "version": "0.1.2",
+        "version": "0.1.3",
         "type": "plugin",
         "license": "GPL-3.0-only",
         "path": "plugins/mcreator-localization"
       },
       {
         "name": "mcreator-link",
-        "version": "0.1.2",
+        "version": "0.1.3",
         "type": "plugin",
         "license": "GPL-3.0-only",
         "path": "plugins/mcreator-link"
       },
       {
         "name": "themes",
-        "version": "0.1.2",
+        "version": "0.1.3",
         "type": "plugin",
         "license": "GPL-3.0-only",
         "path": "plugins/mcreator-themes"

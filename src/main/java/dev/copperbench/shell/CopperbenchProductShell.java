@@ -193,9 +193,7 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 							windowChromeController::isUsingCustomFrame, windowChromeController::pointerGesture)
 					: JcefWindowBridgeTransport.attach(webView, owner, closeAction);
 			legacyPluginTransport = JcefLegacyPluginBridgeTransport.attach(webView, openLegacyPluginWindow);
-			workspaceOpenTransport = openWorkspaceAction != null
-					? JcefWorkspaceOpenBridgeTransport.attach(webView, openWorkspaceAction)
-					: null;
+			workspaceOpenTransport = JcefWorkspaceOpenBridgeTransport.attach(webView, openWorkspaceAction, workspaceRoot);
 			diagnosticsTransport = JcefDiagnosticsBridgeTransport.attach(webView,
 					new DiagnosticBundleService(UserFolderManager.getFileFromUserFolder("diagnostics").toPath(),
 							logRoot(), workspaceRoot, () -> diagnosticSnapshot(session), Clock.systemUTC()));
