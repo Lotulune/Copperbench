@@ -113,7 +113,7 @@ export const HelpView: React.FC = () => {
               <h1 style={{ fontSize: '20px', fontWeight: 700, margin: 0, color: 'var(--text-main)' }}>
                 {tr("帮助与使用说明")}</h1>
               <p style={{ fontSize: '12px', color: 'var(--text-sub)', margin: '4px 0 0 0' }}>
-                {tr("Copperbench 0.1.2 使用指南")}</p>
+                {tr("Copperbench 0.1.3 使用指南")}</p>
             </div>
           </div>
 
@@ -248,7 +248,7 @@ export const HelpView: React.FC = () => {
         >
           <ShieldAlert size={16} color="var(--badge-amber)" style={{ flexShrink: 0, marginTop: '2px' }} aria-hidden="true" />
           <div style={{ lineHeight: 1.5 }}>
-            <strong>{tr("版本声明：")}</strong> {tr(" Copperbench 0.1.2 采用 GPL-3.0-only 协议开源，独立衍生自 MCreator 2026.2.33518。当前为稳定版，安装包未做生产代码签名，通过 GitHub 分发。")}</div>
+            <strong>{tr("版本声明：")}</strong> {tr(" Copperbench 0.1.3 采用 GPL-3.0-only 协议开源，独立衍生自 MCreator 2026.2.33518。当前为稳定版，安装包未做生产代码签名，通过 GitHub 分发。")}</div>
         </div>
       </section>
 

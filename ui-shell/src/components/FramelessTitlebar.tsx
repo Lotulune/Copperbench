@@ -1,8 +1,9 @@
 import { LanguageSelector } from './LanguageSelector';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Cog,
   Hammer,
+  FolderOpen,
   Play,
   Sun,
   Moon,
@@ -18,6 +19,7 @@ import {
   TestTube2
 } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
+import { workspaceOpenBridge } from '../bridge/workspaceOpenBridge';
 import { uiText, useUiLocale } from '../i18n';
 import productIcon from '../../../src/main/resources/net/mcreator/ui/res/icon.png';
 import {
@@ -58,6 +60,20 @@ export const FramelessTitlebar: React.FC = () => {
 
   const workspace = state.workbench?.workspace;
   const generator = workspace?.generator;
+  const [openingBuildFolder, setOpeningBuildFolder] = useState(false);
+  const openBuildFolder = async () => {
+    if (openingBuildFolder) return;
+    setOpeningBuildFolder(true);
+    try {
+      await workspaceOpenBridge.openBuildFolder();
+    } catch (error) {
+      window.alert((error as { code?: number })?.code === 404
+        ? uiText('尚未生成 JAR 输出文件夹，请先构建工作区。', 'The JAR output folder does not exist yet. Build the workspace first.')
+        : uiText('无法打开 JAR 文件夹，请检查系统文件管理器是否可用。', 'Could not open the JAR folder. Check that your system file manager is available.'));
+    } finally {
+      setOpeningBuildFolder(false);
+    }
+  };
 
   const maximizedRef = useRef(isMaximized);
   maximizedRef.current = isMaximized;
@@ -279,6 +295,24 @@ export const FramelessTitlebar: React.FC = () => {
         >
           <Hammer size={13} aria-hidden="true" />
           <span className="titlebar-action-label">{uiText('构建', 'Build')}</span>
+        </button>
+
+        <button
+          type="button"
+          className="btn-secondary titlebar-action"
+          onClick={() => void openBuildFolder()}
+          disabled={!workspace || !workspaceOpenBridge.buildFolderAvailable || openingBuildFolder}
+          title={workspaceOpenBridge.buildFolderAvailable
+            ? uiText('打开当前工作区的 JAR 输出文件夹（build/libs）', 'Open the current workspace JAR output folder (build/libs)')
+            : uiText('打开 JAR 文件夹需要支持此功能的桌面版本', 'Opening the JAR folder requires a supported desktop version')}
+          aria-label={uiText('打开 JAR 文件夹', 'Open JAR folder')}
+          aria-busy={openingBuildFolder}
+          data-testid="titlebar-open-jar-folder-btn"
+          data-window-chrome-kind="client"
+          data-window-chrome-id="open-jar-folder"
+        >
+          <FolderOpen size={13} aria-hidden="true" />
+          <span className="titlebar-action-label">{uiText('JAR 文件夹', 'JAR folder')}</span>
         </button>
 
         <button
