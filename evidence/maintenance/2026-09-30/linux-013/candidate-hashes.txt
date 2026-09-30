@@ -1,0 +1,6 @@
+Ubuntu 24.04 package candidate smoke	UNKNOWN STEP	2026-09-29T14:52:03.8846130Z Linux candidate metadata verified: sha256:ff62bb5f51fbb834640a30e9b2f6ade87cdc33b901051cd9306053daa4dab408
+Ubuntu 24.04 package candidate smoke	UNKNOWN STEP	2026-09-29T14:52:04.8708977Z 5498bd1d9d16c8801082b0f0a0917d3e1a5951a403fc53caa9ef7ed603975f5e  build/export/Copperbench 0.1.3 Linux x86_64.tar.gz
+Ubuntu 24.04 package candidate smoke	UNKNOWN STEP	2026-09-29T14:52:04.8710482Z c6f3d3ad8fa1ef0f02d96b92a6d651ca117204dc6de0375a6e4ad7a7100ed99c  build/export/LINUX-CANDIDATE-METADATA.json
+Ubuntu 24.04 package candidate smoke	UNKNOWN STEP	2026-09-29T14:52:04.8739568Z 5af9457d021dc421b82fcec7a2e0b3ff00d3fd068854de12d6359ef41fff8b67  build/export/copperbench-linux.spdx.json
+Ubuntu 24.04 package candidate smoke	UNKNOWN STEP	2026-09-29T14:52:05.5066021Z 7d411248d3ae802e93806adcdd25174eeed0d55a8d68123cbb26b3257e78e4c3  build/export/copperbench_0.1.3_amd64.deb
+Ubuntu 24.04 package candidate smoke	UNKNOWN STEP	2026-09-29T14:52:05.5069091Z d8b3710e63b870073df27c4186de9d436ddfbcf7595244f8f593ca845d4bfe15  build/export/linux-candidate-manifest.json

@@ -82,7 +82,7 @@
     "path": "evidence/stage15/2026-09-28/maintenance-012-9bc6/preferences-migration/result.json",
     "sha256": "568e4f98410f2e76a369b2817f85bcc3a57f003e49121c53eab84080d9dd1ff0"
   },
-  "promotionAuthorizationPath": "release-control/linux-candidate-authorization.json",
+  "promotionAuthorizationPath": "evidence/maintenance/2026-09-30/linux-013/previous-012-authorization.json",
   "promotionAuthorizationSha256": "ba4c51f0e6d9388b218d3d0c146b165f579d6745f47f0c8ca69c57752a0302d2",
   "publicReleaseReceipt": {
     "path": "evidence/maintenance/2026-09-28/publication-0.1.2/linux-public-release.json",
