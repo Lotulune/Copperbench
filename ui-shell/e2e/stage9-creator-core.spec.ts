@@ -289,11 +289,10 @@ test.describe('Stage 9 creator core', () => {
     await expect(page.locator('[data-testid="advancement-validation-alert"]')).not.toBeVisible();
     await expect(page.locator('[data-testid="advancement-save-btn"]')).toBeEnabled();
 
-    // Add a criteria and save cleanly
+    // Edit the persisted Blockly condition and save cleanly.
     await page.click('[data-testid="advancement-tab-criteria"]');
-    await page.click('[data-testid="advancement-add-criteria-btn"]');
-    await expect(page.locator('[data-testid="criteria-card-1"]')).toBeVisible();
-    await page.fill('[data-testid="criteria-name-input-1"]', 'has_copper_pickaxe');
+    await page.getByTestId('advancement-trigger-xml').fill(
+      '<xml><block type="advancement_trigger" x="60" y="80"><next><shadow type="custom_trigger"></shadow></next></block></xml>');
     await page.click('[data-testid="advancement-save-btn"]');
     await expect(page.getByText('已保存')).toBeVisible();
   });

@@ -8,7 +8,6 @@ import {
   Check,
   X,
   Plus,
-  Trash2,
   AlertTriangle,
   Award,
   Sparkles,
@@ -18,7 +17,7 @@ import {
   Eye
 } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
-import { ModElementSummary, FieldChange, ModElementEditorProjection } from '../types/contract';
+import { ModElementSummary, FieldChange, EditorField, ModElementEditorProjection } from '../types/contract';
 import { t } from '../i18n';
 
 interface AdvancementWorkbenchProps {
@@ -27,24 +26,6 @@ interface AdvancementWorkbenchProps {
 }
 
 type AdvancementTab = 'display' | 'criteria' | 'rewards' | 'preview';
-
-interface CriteriaEntry {
-  id: string;
-  name: string;
-  trigger: string;
-  item?: string;
-}
-
-const TRIGGER_TYPES = [
-  { value: 'minecraft:inventory_changed', label: tr("获得指定物品 (inventory_changed)") },
-  { value: 'minecraft:impossible', label: tr("由函数/命令手动触发 (impossible)") },
-  { value: 'minecraft:player_killed_entity', label: tr("击杀实体 (player_killed_entity)") },
-  { value: 'minecraft:tick', label: tr("每刻持续检测 (tick)") },
-  { value: 'minecraft:recipe_unlocked', label: tr("解锁配方 (recipe_unlocked)") },
-  { value: 'minecraft:consume_item', label: tr("食用/使用物品 (consume_item)") },
-  { value: 'minecraft:location', label: tr("到达指定地点/群系 (location)") },
-  { value: 'minecraft:hero_of_the_village', label: tr("村庄英雄 (hero_of_the_village)") }
-];
 
 const BACKGROUND_PRESETS = [
   { value: 'Default', label: tr("默认石质背景") },
@@ -189,8 +170,8 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
 
   const [activeTab, setActiveTab] = useState<AdvancementTab>('display');
   const [achievementName, setAchievementName] = useState<string>(element.displayName || tr("新进度"));
-  const [achievementDescription, setAchievementDescription] = useState<string>(tr("探索未知领域并制作你的第一个铜制工具。"));
-  const [achievementIcon, setAchievementIcon] = useState<string>('minecraft:diamond');
+  const [achievementDescription, setAchievementDescription] = useState<string>('');
+  const [achievementIcon, setAchievementIcon] = useState<string>('Blocks.STONE');
   const [achievementType, setAchievementType] = useState<'task' | 'goal' | 'challenge'>('task');
   const [background, setBackground] = useState<string>('Default');
   const [parent, setParent] = useState<string>('root');
@@ -199,16 +180,12 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
   const [hideIfNotCompleted, setHideIfNotCompleted] = useState<boolean>(false);
   const [disableDisplay, setDisableDisplay] = useState<boolean>(false);
 
-  const [criteria, setCriteria] = useState<CriteriaEntry[]>([
-    {
-      id: 'crit_1',
-      name: 'has_copper_item',
-      trigger: 'minecraft:inventory_changed',
-      item: 'minecraft:copper_ingot'
-    }
-  ]);
+  const [triggerXml, setTriggerXml] = useState('');
+  const [fields, setFields] = useState<Record<string, EditorField>>({});
+  const [projectionLoaded, setProjectionLoaded] = useState(false);
+  const canEdit = (name: string) => projectionLoaded && fields[name]?.readOnly === false;
 
-  const [rewardXP, setRewardXP] = useState<number>(50);
+  const [rewardXP, setRewardXP] = useState<number>(0);
   const [rewardLoot, setRewardLoot] = useState<string[]>([]);
   const [rewardRecipes, setRewardRecipes] = useState<string[]>([]);
   const [rewardFunction, setRewardFunction] = useState<string>('');
@@ -222,8 +199,19 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
   // Load existing projection
   useEffect(() => {
     let cancelled = false;
+    setProjectionLoaded(false);
+    setFields({});
+    setTriggerXml('');
+    setAchievementName(element.displayName || ''); setAchievementDescription('');
+    setAchievementIcon('Blocks.STONE'); setAchievementType('task'); setParent('root');
+    setBackground('Default'); setShowPopup(true); setAnnounceToChat(true);
+    setHideIfNotCompleted(false); setDisableDisplay(false);
+    setRewardXP(0); setRewardLoot([]); setRewardRecipes([]); setRewardFunction('');
+    setMessage(null);
+    setIsDirty(false);
     getModElementEditor(element.id).then((projection) => {
-      if (cancelled || !projection) return;
+      if (cancelled) return;
+      if (!projection) throw new Error('Editor projection unavailable');
       const allFields = projection.sections.flatMap((s) => s.fields);
       const nameField = allFields.find((f) => f.path === '/title' || f.path === '/fields/title' || f.path === '/fields/achievementName');
       const descField = allFields.find((f) => f.path === '/description' || f.path === '/fields/description' || f.path === '/fields/achievementDescription');
@@ -239,13 +227,14 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
       const lootField = allFields.find((f) => f.path === '/rewardLoot' || f.path === '/fields/rewardLoot');
       const recipesField = allFields.find((f) => f.path === '/rewardRecipes' || f.path === '/fields/rewardRecipes');
       const functionField = allFields.find((f) => f.path === '/rewardFunction' || f.path === '/fields/rewardFunction');
-      const criteriaField = allFields.find((f) => f.path === '/criteria' || f.path === '/fields/criteria' || f.path === '/triggerxml' || f.path === '/fields/triggerxml');
+      const triggerField = allFields.find((f) => f.path === '/triggerxml' || f.path === '/fields/triggerxml');
+      setFields(Object.fromEntries(allFields.map((field) => [field.path.split('/').pop()!, field])));
 
       if (nameField && typeof nameField.value === 'string') setAchievementName(nameField.value);
       if (descField && typeof descField.value === 'string') setAchievementDescription(descField.value);
       if (iconField && typeof iconField.value === 'string') setAchievementIcon(iconField.value);
       if (typeField && typeof typeField.value === 'string') setAchievementType(typeField.value as 'task' | 'goal' | 'challenge');
-      if (parentField && typeof parentField.value === 'string') setParent(parentField.value);
+      if (parentField && typeof parentField.value === 'string') setParent(parentField.value === 'ROOT' ? 'root' : parentField.value);
       if (bgField && typeof bgField.value === 'string') setBackground(bgField.value);
       if (popupField && typeof popupField.value === 'boolean') setShowPopup(popupField.value);
       if (chatField && typeof chatField.value === 'boolean') setAnnounceToChat(chatField.value);
@@ -255,12 +244,11 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
       if (lootField && Array.isArray(lootField.value)) setRewardLoot(lootField.value as string[]);
       if (recipesField && Array.isArray(recipesField.value)) setRewardRecipes(recipesField.value as string[]);
       if (functionField && typeof functionField.value === 'string') setRewardFunction(functionField.value);
-      if (criteriaField && Array.isArray(criteriaField.value) && criteriaField.value.length > 0) {
-        setCriteria(criteriaField.value as CriteriaEntry[]);
-      }
+      if (triggerField && typeof triggerField.value === 'string') setTriggerXml(triggerField.value);
+      setProjectionLoaded(true);
       setIsDirty(false);
     }).catch(() => {
-      // Keep defaults
+      if (!cancelled) setMessage(tr("无法加载进度编辑信息，请返回后重试。"));
     });
     return () => {
       cancelled = true;
@@ -302,44 +290,18 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
     if (!achievementIcon.trim()) {
       diags.push(tr("进度图标 (Icon) 不能为空。"));
     }
-    if (criteria.length === 0) {
-      diags.push(tr("进度必须包含至少一个触发条件 (Criteria)。"));
-    }
-    criteria.forEach((crit, idx) => {
-      if (!crit.name.trim()) {
-        diags.push(tr("第 {0} 个条件未设置标识符。", [idx + 1]));
+    if (fields.triggerxml && triggerXml !== fields.triggerxml.value) {
+      const xml = new DOMParser().parseFromString(triggerXml, 'application/xml');
+      if (xml.querySelector('parsererror') || xml.documentElement.localName !== 'xml'
+          || !xml.querySelector('block[type="advancement_trigger"]')) {
+        diags.push(tr("触发条件必须是包含 advancement_trigger 的有效 Blockly XML。"));
       }
-    });
+    }
     if (isParentCycle) {
       diags.push(tr("检测到循环父级进度依赖，不能将自身或其子级设为父级。"));
     }
     return diags;
-  }, [achievementName, achievementIcon, criteria, isParentCycle]);
-
-  const handleAddCriteria = () => {
-    const newCrit: CriteriaEntry = {
-      id: 'crit_' + Math.random().toString(36).substring(2, 9),
-      name: `criteria_${criteria.length + 1}`,
-      trigger: 'minecraft:inventory_changed',
-      item: 'minecraft:copper_ingot'
-    };
-    setCriteria([...criteria, newCrit]);
-    setIsDirty(true);
-  };
-
-  const handleRemoveCriteria = (critId: string) => {
-    if (criteria.length <= 1) {
-      setMessage(tr("进度必须保留至少一个触发条件。"));
-      return;
-    }
-    setCriteria(criteria.filter((c) => c.id !== critId));
-    setIsDirty(true);
-  };
-
-  const handleUpdateCriteria = (critId: string, updates: Partial<CriteriaEntry>) => {
-    setCriteria(criteria.map((c) => (c.id === critId ? { ...c, ...updates } : c)));
-    setIsDirty(true);
-  };
+  }, [achievementName, achievementIcon, triggerXml, fields, isParentCycle]);
 
   const handleAddRewardLoot = () => {
     const trimmed = newRewardLoot.trim();
@@ -352,6 +314,7 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
   };
 
   const handleSave = async () => {
+    if (!projectionLoaded || isSaving) return;
     if (diagnostics.length > 0) {
       setMessage(tr("请先修复配置错误：{0}", [diagnostics[0]]));
       return;
@@ -367,7 +330,7 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
       { path: '/icon', value: achievementIcon },
       { path: '/frame', value: achievementType },
       { path: '/background', value: background },
-      { path: '/parent', value: parent },
+      { path: '/parent', value: parent === 'root' ? (fields.parent?.value === 'root' ? 'root' : 'ROOT') : parent },
       { path: '/showPopup', value: showPopup },
       { path: '/announceToChat', value: announceToChat },
       { path: '/hideIfNotCompleted', value: hideIfNotCompleted },
@@ -376,14 +339,31 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
       { path: '/rewardLoot', value: rewardLoot },
       { path: '/rewardRecipes', value: rewardRecipes },
       { path: '/rewardFunction', value: rewardFunction },
-      { path: '/criteria', value: criteria }
-    ];
+      { path: '/triggerxml', value: triggerXml }
+    ].flatMap((change) => {
+      const field = fields[change.path.slice(1)];
+      const original = change.path === '/rewardFunction' && field?.value === null ? '' : field?.value;
+      return field && !field.readOnly && JSON.stringify(original) !== JSON.stringify(change.value)
+        ? [{ path: field.path, value: change.value }] : [];
+    });
+
+    if (changes.length === 0) {
+      setIsSaving(false);
+      setSaveSuccess(true);
+      setIsDirty(false);
+      setTimeout(() => setSaveSuccess(false), 2500);
+      return;
+    }
 
     try {
       const result = await updateModElement(element.id, changes);
       setIsSaving(false);
       if (result.status === 'committed') {
         setSaveSuccess(true);
+        setFields((previous) => Object.fromEntries(Object.entries(previous).map(([name, field]) => {
+          const change = changes.find((candidate) => candidate.path === field.path);
+          return [name, change ? { ...field, value: change.value } : field];
+        })));
         setIsDirty(false);
         setTimeout(() => setSaveSuccess(false), 2500);
       } else {
@@ -529,7 +509,7 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
             }}
           >
             <Sparkles size={13} />
-            <span>{tr("触发条件 (")}{criteria.length})</span>
+            <span>{tr("触发条件 (Criteria & Triggers)")}</span>
           </button>
 
           <button
@@ -593,7 +573,7 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
             type="button"
             className="btn-primary"
             onClick={handleSave}
-            disabled={isSaving || diagnostics.length > 0}
+            disabled={!projectionLoaded || isSaving || diagnostics.length > 0 || !Object.values(fields).some((field) => !field.readOnly)}
             data-testid="advancement-save-btn"
             style={{ fontSize: '12px', minWidth: '90px' }}
           >
@@ -687,6 +667,7 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
                   setIsDirty(true);
                 }}
                 data-testid="advancement-parent-select"
+                  disabled={!canEdit('parent')}
                 style={{ fontSize: '12px' }}
               >
                 <option value="root">{tr("根进度 (Root - 无父级，作为标签页起点)")}</option>
@@ -720,6 +701,7 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
                     setIsDirty(true);
                   }}
                   data-testid="advancement-title-input"
+                  disabled={!canEdit('title')}
                 />
               </label>
 
@@ -733,6 +715,7 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
                     setIsDirty(true);
                   }}
                   data-testid="advancement-desc-input"
+                  disabled={!canEdit('description')}
                 />
               </label>
 
@@ -748,6 +731,7 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
                     }}
                     placeholder="minecraft:diamond"
                     data-testid="advancement-icon-input"
+                  disabled={!canEdit('icon')}
                     style={{ fontFamily: 'var(--font-mono)' }}
                   />
                 </label>
@@ -761,6 +745,7 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
                       setIsDirty(true);
                     }}
                     data-testid="advancement-type-select"
+                  disabled={!canEdit('frame')}
                   >
                     <option value="task">{tr("普通任务 (Task - 方形边框)")}</option>
                     <option value="goal">{tr("阶段目标 (Goal - 圆角金边)")}</option>
@@ -779,6 +764,7 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
                       setIsDirty(true);
                     }}
                     data-testid="advancement-bg-select"
+                  disabled={!canEdit('background')}
                   >
                     {BACKGROUND_PRESETS.map((bg) => (
                       <option key={bg.value} value={bg.value}>
@@ -811,6 +797,7 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
                     setIsDirty(true);
                   }}
                   data-testid="advancement-popup-toggle"
+                  disabled={!canEdit('showPopup')}
                 />
                 <span>{tr("达成时在右上角弹出通知 (showPopup)")}</span>
               </label>
@@ -824,6 +811,7 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
                     setIsDirty(true);
                   }}
                   data-testid="advancement-chat-toggle"
+                  disabled={!canEdit('announceToChat')}
                 />
                 <span>{tr("在聊天栏通报给全服玩家 (announceToChat)")}</span>
               </label>
@@ -837,6 +825,7 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
                     setIsDirty(true);
                   }}
                   data-testid="advancement-hidden-toggle"
+                  disabled={!canEdit('hideIfNotCompleted')}
                 />
                 <span>{tr("未达成前隐藏此进度 (hideIfNotCompleted)")}</span>
               </label>
@@ -850,6 +839,7 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
                     setIsDirty(true);
                   }}
                   data-testid="advancement-disable-toggle"
+                  disabled={!canEdit('disableDisplay')}
                 />
                 <span>{tr("隐藏界面显示（仅作为逻辑条件）")}</span>
               </label>
@@ -858,105 +848,23 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
         )}
 
         {activeTab === 'criteria' && (
-          <div style={{ maxWidth: '780px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div>
-                <h2 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-main)' }}>
-                  {tr("触发条件 (Criteria & Triggers)")}</h2>
-                <p style={{ fontSize: '11px', color: 'var(--text-sub)' }}>
-                  {tr("定义玩家如何达成此进度。多个条件默认需要全部满足。")}</p>
-              </div>
-              <button
-                type="button"
-                className="btn-primary"
-                onClick={handleAddCriteria}
-                data-testid="advancement-add-criteria-btn"
-                style={{ padding: '4px 10px', fontSize: '11px' }}
-              >
-                <Plus size={13} />
-                <span>{tr("添加条件")}</span>
-              </button>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {criteria.map((crit, idx) => (
-                <div
-                  key={crit.id}
-                  data-testid={`criteria-card-${idx}`}
-                  style={{
-                    background: 'var(--bg-surface)',
-                    border: '1px solid var(--border-subtle)',
-                    borderRadius: 'var(--radius-md)',
-                    padding: '16px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '12px'
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent-copper)' }}>
-                        {tr("条件 #")}{idx + 1}
-                      </span>
-                      <input
-                        type="text"
-                        value={crit.name}
-                        onChange={(e) => handleUpdateCriteria(crit.id, { name: e.target.value })}
-                        placeholder={tr("条件标识符")}
-                        data-testid={`criteria-name-input-${idx}`}
-                        style={{ fontSize: '11px', width: '180px', fontFamily: 'var(--font-mono)' }}
-                      />
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveCriteria(crit.id)}
-                      data-testid={`criteria-delete-btn-${idx}`}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: 'var(--badge-red)',
-                        cursor: 'pointer',
-                        padding: '4px'
-                      }}
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                    <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '10px', color: 'var(--text-sub)' }}>
-                      <span>{tr("触发器类型 (Trigger Type)")}</span>
-                      <select
-                        value={crit.trigger}
-                        onChange={(e) => handleUpdateCriteria(crit.id, { trigger: e.target.value })}
-                        data-testid={`criteria-trigger-select-${idx}`}
-                        style={{ fontSize: '11px' }}
-                      >
-                        {TRIGGER_TYPES.map((trig) => (
-                          <option key={trig.value} value={trig.value}>
-                            {trig.label}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-
-                    {crit.trigger === 'minecraft:inventory_changed' && (
-                      <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '10px', color: 'var(--text-sub)' }}>
-                        <span>{tr("物品要求 (Item ID)")}</span>
-                        <input
-                          type="text"
-                          value={crit.item || ''}
-                          onChange={(e) => handleUpdateCriteria(crit.id, { item: e.target.value })}
-                          placeholder={tr("例如 minecraft:copper_ingot")}
-                          data-testid={`criteria-item-input-${idx}`}
-                          style={{ fontFamily: 'var(--font-mono)', fontSize: '11px' }}
-                        />
-                      </label>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
+          <div style={{ maxWidth: '780px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <label htmlFor="advancement-trigger-xml" style={{ fontSize: '14px', fontWeight: 700 }}>
+              {tr("触发条件 XML（triggerxml）")}
+            </label>
+            <p style={{ fontSize: '12px', color: 'var(--text-sub)' }}>
+              {tr("这里显示实际保存的 Blockly 触发条件。仅修改显示或奖励属性时，原有条件会完整保留。")}
+            </p>
+            <textarea
+              id="advancement-trigger-xml"
+              data-testid="advancement-trigger-xml"
+              value={triggerXml}
+              readOnly={!canEdit('triggerxml')}
+              rows={16}
+              spellCheck={false}
+              style={{ fontFamily: 'var(--font-mono)', width: '100%' }}
+              onChange={(event) => { setTriggerXml(event.target.value); setIsDirty(true); }}
+            />
           </div>
         )}
 
@@ -993,6 +901,7 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
                     setIsDirty(true);
                   }}
                   data-testid="advancement-reward-xp-input"
+                  disabled={!canEdit('rewardXP')}
                   style={{ width: '160px' }}
                 />
               </label>
@@ -1009,6 +918,7 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
                   }}
                   placeholder={tr("例如 copperbench:reward_celebration")}
                   data-testid="advancement-reward-function-input"
+                  disabled={!canEdit('rewardFunction')}
                   style={{ fontFamily: 'var(--font-mono)' }}
                 />
               </label>
@@ -1027,13 +937,14 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
                       if (e.key === 'Enter') handleAddRewardLoot();
                     }}
                     data-testid="advancement-reward-loot-input"
+                    disabled={!canEdit('rewardLoot')}
                     style={{ flex: 1, fontFamily: 'var(--font-mono)', fontSize: '11px' }}
                   />
                   <button
                     type="button"
                     className="btn-secondary"
                     onClick={handleAddRewardLoot}
-                    disabled={!newRewardLoot.trim()}
+                    disabled={!canEdit('rewardLoot') || !newRewardLoot.trim()}
                     data-testid="advancement-reward-loot-add-btn"
                   >
                     <Plus size={13} />
@@ -1053,7 +964,8 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
                         <code>{lt}</code>
                         <button
                           type="button"
-                          onClick={() => setRewardLoot(rewardLoot.filter((r) => r !== lt))}
+                          disabled={!canEdit('rewardLoot')}
+                          onClick={() => { setRewardLoot(rewardLoot.filter((r) => r !== lt)); setIsDirty(true); }}
                           style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer' }}
                         >
                           <X size={12} />

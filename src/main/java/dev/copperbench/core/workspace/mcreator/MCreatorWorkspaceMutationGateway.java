@@ -71,9 +71,8 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 	private static final String EMPTY_PROCEDURE_XML = "<xml xmlns=\"https://developers.google.com/blockly/xml\">"
 			+ "<block type=\"event_trigger\" deletable=\"false\" x=\"40\" y=\"40\">"
 			+ "<field name=\"trigger\">no_ext_trigger</field></block></xml>";
-	private static final String EMPTY_ADVANCEMENT_TRIGGER_XML = "<xml xmlns=\"https://developers.google.com/blockly/xml\">"
-			+ "<block type=\"advancement_trigger\" deletable=\"false\" x=\"40\" y=\"80\">"
-			+ "<next><shadow type=\"custom_trigger\"></shadow></next></block></xml>";
+	private static final String EMPTY_ADVANCEMENT_TRIGGER_XML =
+            dev.copperbench.core.application.SpecializedFieldContract.DEFAULT_ADVANCEMENT_TRIGGER_XML;
 	private static final Gson GENERIC_FIELD_GSON = genericFieldGson();
 
 	private final Workspace workspace;

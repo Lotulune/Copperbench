@@ -3573,19 +3573,12 @@ export class MockCoreBridge implements CoreBridge {
                       diagnostics: []
                     },
                     {
-                      path: '/criteria',
-                      label: { key: 'field.criteria', fallback: 'Criteria' },
-                      control: 'json',
+                      path: '/triggerxml',
+                      label: { key: 'field.triggerxml', fallback: 'Trigger XML' },
+                      control: 'textarea',
                       required: false,
                       readOnly: false,
-                      value: [
-                        {
-                          id: 'crit_1',
-                          name: 'has_copper_item',
-                          trigger: 'minecraft:inventory_changed',
-                          item: 'minecraft:copper_ingot'
-                        }
-                      ],
+                      value: '<xml xmlns="https://developers.google.com/blockly/xml"><block type="advancement_trigger"><next><shadow type="custom_trigger"></shadow></next></block></xml>',
                       options: [],
                       diagnostics: []
                     }

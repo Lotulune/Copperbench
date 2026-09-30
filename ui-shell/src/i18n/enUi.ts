@@ -1,5 +1,9 @@
 /** English translations of authored interface messages. User content is never translated. */
 export const enUi: Record<string, string> = {
+  "无法加载进度编辑信息，请返回后重试。": "Could not load the advancement editor. Go back and retry.",
+  "触发条件必须是包含 advancement_trigger 的有效 Blockly XML。": "Triggers must be valid Blockly XML containing advancement_trigger.",
+  "触发条件 XML（triggerxml）": "Trigger XML (triggerxml)",
+  "这里显示实际保存的 Blockly 触发条件。仅修改显示或奖励属性时，原有条件会完整保留。": "This is the saved Blockly trigger data. Editing display or reward properties preserves the original triggers.",
   "获得指定物品 (inventory_changed)": "Obtain an item (inventory_changed)",
   "由函数/命令手动触发 (impossible)": "Trigger from a function or command (impossible)",
   "击杀实体 (player_killed_entity)": "Kill an entity (player_killed_entity)",

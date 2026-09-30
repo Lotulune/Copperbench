@@ -5550,6 +5550,7 @@ public final class WorkspaceApplicationService {
 				if (!values.has("pools")) values.add("pools", new JsonArray());
 			}
 			case "achievement" -> {
+				if (!values.has("triggerxml")) values.addProperty("triggerxml", SpecializedFieldContract.DEFAULT_ADVANCEMENT_TRIGGER_XML);
 				if (!values.has("title")) values.addProperty("title", displayName(name));
 				if (!values.has("description")) values.addProperty("description", "");
 				if (!values.has("icon")) values.addProperty("icon", "Blocks.STONE");
