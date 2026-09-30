@@ -1,0 +1,9 @@
+# Linux 0.1.3 maintenance publication
+
+The owner explicitly approved using the successful candidate CI instead of repeating the ten full installed acceptance gates for this small JAR-folder button patch. This exception is limited to `v0.1.3-linux-stable`, source `6fd7acfdb0049a875ff1a0f7971d8fa63fb63040`, candidate run `36583819071`. It does not change the default acceptance rules for other releases.
+
+The [candidate run](https://github.com/Lotulune/Copperbench/actions/runs/36583819071) passed Linux regressions, portable/deb layout and bundled-runtime checks, isolated headless bootstrap, packaged JCEF X11 startup, and Fabric/NeoForge 1.21.1 X11 render preflights. The saved [run receipt](../../evidence/maintenance/2026-09-30/linux-013/candidate-run.json), [job receipt](../../evidence/maintenance/2026-09-30/linux-013/candidate-jobs.json) and [hash log excerpt](../../evidence/maintenance/2026-09-30/linux-013/candidate-hashes.txt) identify the frozen candidate.
+
+No fresh full GNOME Wayland/Xorg installed acceptance, real-desktop file-manager opening, gameplay, or preference migration replay is claimed. Historical 0.1.2 evidence remains bound to its original bytes and is not used as 0.1.3 installed evidence. Its [original authorization](../../evidence/maintenance/2026-09-30/linux-013/previous-012-authorization.json) remains archived unchanged.
+
+The production workflow retrieves the existing candidate remotely. Its signed latest-main tag, source-delta restriction, package hashes, build provenance, draft download comparison and production approval remain enforced. There is no local binary download requirement and no rebuild of the candidate. Publish with the [0.1.3 Linux notes](../releases/v0.1.3-linux.md); a ready authorization is not a claim that the release is already public.

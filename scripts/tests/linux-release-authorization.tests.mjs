@@ -184,3 +184,65 @@ test('stable Linux tags retain exact binary and installed acceptance gates', (t)
   assert.throws(() => validateAuthorization(auth, metadata, root, stableTag), /Package digest mismatch/);
   assert.throws(() => validateHeader(auth, 'v0.1.0-linux-unknown'), /dedicated Linux/);
 });
+
+function maintenanceFixture(t) {
+  const { root } = fixture(t);
+  const auth = read(resolve(repository, 'evidence/maintenance/2026-09-30/linux-013/maintenance-authorization.json'));
+  for (const entry of [auth.candidateCi.run, auth.candidateCi.jobs,
+    { path: auth.validationReportPath, sha256: auth.validationReportSha256 }]) {
+    const target = resolve(root, entry.path);
+    mkdirSync(dirname(target), { recursive: true });
+    writeFileSync(target, readFileSync(resolve(repository, entry.path)));
+  }
+  // Unit-only metadata; production checks the real artifact and its provenance remotely.
+  const metadata = { kind: 'stage15-linux-immutable-candidate', status: 'development-not-certified',
+    formalSupportClaim: false, exactBinaryPromotionEligible: false, candidateId: auth.candidateId,
+    source: { commit: auth.candidateSourceCommit, workflowRunId: auth.candidateWorkflowRunId },
+    assets: { deb: { sha256: auth.debSha256 }, portable: { sha256: auth.portableSha256 } } };
+  const check = () => validateAuthorization(auth, metadata, root, auth.releaseTag);
+  const mutate = (kind, update) => {
+    const entry = auth.candidateCi[kind], path = resolve(root, entry.path), data = read(path);
+    update(data); writeFileSync(path, JSON.stringify(data)); entry.sha256 = sha(readFileSync(path));
+  };
+  return { auth, root, check, mutate };
+}
+
+test('owner-approved 0.1.3 maintenance uses bound candidate CI without claiming installed acceptance', (t) => {
+  const { check } = maintenanceFixture(t);
+  assert.equal(check().ciStepsVerified, 12);
+  assert.equal(check().fullInstalledAcceptance, 'not-repeated');
+});
+
+test('maintenance approval cannot be reused for another release, source or run', (t) => {
+  const { auth, check } = maintenanceFixture(t);
+  for (const [key, invalid] of [['releaseTag', 'v0.1.4-linux-stable'], ['candidateSourceCommit', 'a'.repeat(40)],
+    ['candidateWorkflowRunId', '123'], ['acceptancePolicy', 'skip-all']]) {
+    const original = auth[key]; auth[key] = invalid;
+    assert.throws(check, /limited to the approved/); auth[key] = original;
+  }
+  auth.maintenanceApproval.approved = false;
+  assert.throws(check, /explicit approval/);
+});
+
+test('maintenance CI rejects failed or foreign runs and skipped smoke steps', (t) => {
+  const { check, mutate } = maintenanceFixture(t);
+  mutate('run', run => { run.conclusion = 'failure'; });
+  assert.throws(check, /CI identity or result mismatch/);
+  mutate('run', run => { run.conclusion = 'success'; run.repository.full_name = 'other/repository'; });
+  assert.throws(check, /CI identity or result mismatch/);
+  mutate('run', run => { run.repository.full_name = 'Lotulune/Copperbench'; });
+  mutate('jobs', receipt => { receipt.jobs[0].steps.find(step => step.name === 'Launch packaged JCEF product shell under Xvfb').conclusion = 'skipped'; });
+  assert.throws(check, /step did not pass/);
+});
+
+test('maintenance rejects changed receipts, substituted packages and historical installed evidence', (t) => {
+  const { auth, root, check } = maintenanceFixture(t);
+  auth.debSha256 = '0'.repeat(64);
+  assert.throws(check, /Package digest mismatch/);
+  auth.debSha256 = read(resolve(repository, 'evidence/maintenance/2026-09-30/linux-013/maintenance-authorization.json')).debSha256;
+  auth.acceptedEvidence = {};
+  assert.throws(check, /must not reuse historical/);
+  delete auth.acceptedEvidence;
+  writeFileSync(resolve(root, auth.candidateCi.run.path), '{}');
+  assert.throws(check, /digest mismatch/);
+});
