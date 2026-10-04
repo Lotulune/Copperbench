@@ -14,13 +14,20 @@ import dev.copperbench.migration.MigrationReport.Disposition;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFileAttributeView;
+import java.nio.file.attribute.PosixFilePermission;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.abort;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 class UpstreamWorkspaceImportServiceTest {
 
@@ -54,6 +61,134 @@ class UpstreamWorkspaceImportServiceTest {
 
 	@Test void missingWorkspaceFileIsRejected() {
 		assertThrows(IllegalArgumentException.class, () -> service.preview(temp.resolve("empty")));
+	}
+
+	@Test void copyingPreservesExecutableWorkspaceScripts() throws Exception {
+		Path source = upstream();
+		assumeTrue(Files.getFileAttributeView(source, PosixFileAttributeView.class) != null,
+				"POSIX permissions are unavailable in this test environment");
+		Path script = Files.writeString(source.resolve("gradlew"), "#!/bin/sh\nexit 0\n");
+		Set<PosixFilePermission> permissions = Set.of(PosixFilePermission.OWNER_READ,
+				PosixFilePermission.OWNER_WRITE, PosixFilePermission.OWNER_EXECUTE);
+		Files.setPosixFilePermissions(script, permissions);
+		Path target = temp.resolve("imported");
+
+		service.execute(source, target);
+
+		assertEquals(permissions, Files.getPosixFilePermissions(target.resolve("gradlew")));
+		assertEquals(Files.readString(script), Files.readString(target.resolve("gradlew")));
+	}
+
+	@Test void previewAndExecuteRejectSourceFileLinksBeforeCreatingTheTarget() throws Exception {
+		Path source = upstream();
+		String descriptorBefore = Files.readString(source.resolve("workspace.mcreator"));
+		Path outside = temp.resolve("external-document.txt");
+		Files.writeString(outside, "private fixture content");
+		createFileLink(source.resolve("copied-secret.txt"), outside);
+		Path target = temp.resolve("imported");
+
+		assertThrows(IOException.class, () -> service.preview(source));
+		assertThrows(IOException.class, () -> service.execute(source, target));
+
+		assertFalse(Files.exists(target), "A rejected source must not leave a partial import");
+		assertEquals(descriptorBefore, Files.readString(source.resolve("workspace.mcreator")));
+		assertEquals("private fixture content", Files.readString(outside));
+	}
+
+	@Test void executeRejectsSiblingTargetLinkedIntoAnExcludedSourceDirectory() throws Exception {
+		Path source = upstream();
+		Path internal = Files.createDirectory(source.resolve("internal.tmp"));
+		Path target = temp.resolve("imported");
+		createDirectoryLink(target, internal);
+		String before = WorkspaceTreeHasher.hash(source);
+
+		assertThrows(IOException.class, () -> service.execute(source, target));
+
+		assertEquals(before, WorkspaceTreeHasher.hash(source));
+		try (var children = Files.list(internal)) {
+			assertTrue(children.findAny().isEmpty(), "Source hash exclusions must not hide import writes");
+		}
+	}
+
+	@Test void executeRejectsTargetWithARedirectedAncestorBeforeCreatingMissingParents() throws Exception {
+		Path source = upstream();
+		Path outside = Files.createDirectory(temp.resolve("outside"));
+		Path linkedParent = temp.resolve("linked-output");
+		createDirectoryLink(linkedParent, outside);
+		Path target = linkedParent.resolve("not-created/imported");
+		String before = WorkspaceTreeHasher.hash(source);
+
+		assertThrows(IOException.class, () -> service.execute(source, target));
+
+		assertFalse(Files.exists(outside.resolve("not-created")), "Reject before creating directories through a link");
+		assertEquals(before, WorkspaceTreeHasher.hash(source));
+	}
+
+	@Test void previewAndExecuteRejectAnExternallyLinkedWorkspaceDescriptor() throws Exception {
+		Path source = upstream();
+		Path descriptor = source.resolve("workspace.mcreator");
+		Path outside = Files.createDirectory(temp.resolve("outside"));
+		Path externalDescriptor = Files.move(descriptor, outside.resolve("workspace.mcreator"));
+		Files.writeString(outside.resolve("external-document.txt"), "private fixture content");
+		String before = Files.readString(externalDescriptor);
+		createFileLink(descriptor, externalDescriptor);
+		Path target = temp.resolve("imported");
+
+		assertThrows(IOException.class, () -> service.preview(source));
+		assertThrows(IOException.class, () -> service.execute(source, target));
+
+		assertFalse(Files.exists(target), "An external descriptor must never select its parent as the import source");
+		assertEquals(before, Files.readString(externalDescriptor));
+		assertEquals("private fixture content", Files.readString(outside.resolve("external-document.txt")));
+	}
+
+	@Test void executeCreatesMissingTargetParentsForAnOrdinarySiblingDirectory() throws Exception {
+		Path source = upstream();
+		String before = WorkspaceTreeHasher.hash(source);
+		Path target = temp.resolve("new-parent/nested/imported");
+
+		MigrationReport report = service.execute(source, target);
+
+		assertTrue(report.complete());
+		assertTrue(report.sourceUnchanged());
+		assertEquals(before, WorkspaceTreeHasher.hash(source));
+		assertEquals(Files.readString(source.resolve("workspace.mcreator")),
+				Files.readString(target.resolve("workspace.mcreator")));
+		assertTrue(Files.isRegularFile(target.resolve(".copperbench/import/report.json")));
+	}
+
+	@Test void executeAcceptsAnExistingEmptyTargetDirectory() throws Exception {
+		Path source = upstream();
+		String before = WorkspaceTreeHasher.hash(source);
+		Path target = Files.createDirectory(temp.resolve("existing-import"));
+
+		MigrationReport report = service.execute(source, target);
+
+		assertTrue(report.complete());
+		assertTrue(report.sourceUnchanged());
+		assertEquals(before, WorkspaceTreeHasher.hash(source));
+		assertEquals(Files.readString(source.resolve("workspace.mcreator")),
+				Files.readString(target.resolve("workspace.mcreator")));
+		assertTrue(Files.isRegularFile(target.resolve(".copperbench/import/report.json")));
+	}
+
+	private static void createFileLink(Path link, Path target) {
+		try {
+			Files.createSymbolicLink(link, target);
+		} catch (UnsupportedOperationException | IOException exception) {
+			abort("File symbolic links are unavailable in this test environment: " + exception.getMessage());
+		}
+	}
+
+	private static void createDirectoryLink(Path link, Path target) throws Exception {
+		if (java.io.File.separatorChar == '\\') {
+			Process process = new ProcessBuilder("cmd.exe", "/c", "mklink", "/J", link.toString(), target.toString())
+					.redirectErrorStream(true).start();
+			String detail = new String(process.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+			assertEquals(0, process.waitFor(), detail);
+		} else {
+			Files.createSymbolicLink(link, target);
+		}
 	}
 
 	private Path upstream() throws Exception {
