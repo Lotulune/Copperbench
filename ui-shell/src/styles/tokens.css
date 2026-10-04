@@ -1,106 +1,110 @@
 :root,
 [data-theme="dark"] {
-  --bg-base: #0c0e12;
-  --bg-surface: #12151b;
-  --bg-panel: #181d24;
-  --bg-card: #151921;
-  --bg-card-hover: #1c222c;
-  --bg-input: #0e1116;
+  color-scheme: dark;
+  --bg-base: #121516;
+  --bg-surface: #1a1e1f;
+  --bg-panel: #222728;
+  --bg-card: #1a1e1f;
+  --bg-card-hover: #272d2e;
+  --bg-input: #15191a;
   --bg-hover: rgba(255, 255, 255, 0.04);
   --bg-active: rgba(255, 255, 255, 0.08);
 
-  --border-subtle: #202632;
-  --border-focus: #c87a3e;
-  --border-active: #323b4d;
+  --border-subtle: #303637;
+  --border-focus: #e2aa7a;
+  --border-active: #657172;
 
-  --text-main: #f1f4f8;
-  --text-muted: #8c97a8;
-  /* 次要文字需保证在 bg-base/bg-panel 上 ≥4.5:1（WCAG AA），原 #505967 仅 2.4:1 */
-  --text-sub: #7d8798;
+  --text-main: #ecefed;
+  --text-muted: #a8b2b0;
+  /* Secondary text remains readable on both canvas and panel surfaces. */
+  --text-sub: #98a3a0;
 
-  --accent-copper: #c87a3e;
-  --accent-copper-hover: #d98a4e;
-  --accent-copper-active: #a9622d;
-  --accent-copper-dim: rgba(200, 122, 62, 0.12);
-  --accent-copper-glow: rgba(200, 122, 62, 0.25);
-  /* 实心填充（主按钮/选中标签）专用：白字对比度 ≥4.5:1，原 #c87a3e 仅 3.3:1 */
-  --accent-copper-fill: #a9622d;
-  --accent-copper-fill-hover: #9a5a28;
-  --accent-copper-fill-active: #8f5226;
-  --text-on-accent: #ffffff;
+  --accent-copper: #e2aa7a;
+  --accent-copper-hover: #f2bd90;
+  --accent-copper-active: #d49a68;
+  --accent-copper-dim: rgba(226, 170, 122, 0.1);
+  --accent-copper-glow: rgba(226, 170, 122, 0.16);
+  /* Dark text on copper fill; light mode supplies its own contrasting pair. */
+  --accent-copper-fill: #e2aa7a;
+  --accent-copper-fill-hover: #f2bd90;
+  --accent-copper-fill-active: #d49a68;
+  --text-on-accent: #241a12;
 
-  --badge-green: #3fb950;
-  --badge-green-bg: rgba(63, 185, 80, 0.12);
-  --badge-amber: #d29922;
-  --badge-amber-bg: rgba(210, 153, 34, 0.12);
-  --badge-red: #f85149;
-  --badge-red-bg: rgba(248, 81, 73, 0.12);
-  --badge-blue: #58a6ff;
-  --badge-blue-bg: rgba(88, 166, 255, 0.12);
+  --badge-green: #8bc5a5;
+  --badge-green-bg: rgba(139, 197, 165, 0.1);
+  --badge-amber: #dfbd73;
+  --badge-amber-bg: rgba(223, 189, 115, 0.1);
+  --badge-red: #f49c96;
+  --badge-red-bg: rgba(244, 156, 150, 0.1);
+  --badge-blue: #94bde8;
+  --badge-blue-bg: rgba(148, 189, 232, 0.1);
 
-  --titlebar-bg: #0f1217;
-  --navrail-bg: #12151b;
-  --footer-bg: #0f1217;
-  --drawer-bg: #13171f;
-  --modal-bg: #151a22;
+  --titlebar-bg: #171b1c;
+  --navrail-bg: #171b1c;
+  --footer-bg: #171b1c;
+  --drawer-bg: #1a1e1f;
+  --modal-bg: #1a1e1f;
   --modal-overlay: rgba(5, 7, 10, 0.75);
 
   --radius-xs: 4px;
-  --radius-sm: 6px;
-  --radius-md: 10px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
   --radius-lg: 16px;
   --radius-full: 9999px;
 
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.6);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.12);
+  --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 20px 64px rgba(0, 0, 0, 0.4);
+  --page-gutter: clamp(20px, 2.4vw, 40px);
+  --nav-width: 220px;
 
   --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
   --font-mono: "JetBrains Mono", "Fira Code", "Cascadia Code", Consolas, monospace;
 }
 
 [data-theme="light"] {
-  --bg-base: #f6f8fa;
+  color-scheme: light;
+  --bg-base: #f4f5f2;
   --bg-surface: #ffffff;
-  --bg-panel: #f0f3f6;
+  --bg-panel: #eef1ed;
   --bg-card: #ffffff;
-  --bg-card-hover: #f3f6f9;
+  --bg-card-hover: #f3f5f1;
   --bg-input: #ffffff;
   --bg-hover: rgba(0, 0, 0, 0.04);
   --bg-active: rgba(0, 0, 0, 0.08);
 
-  --border-subtle: #d0d7de;
-  --border-focus: #9a4c17;
-  --border-active: #afb8c1;
+  --border-subtle: #dce1da;
+  --border-focus: #985029;
+  --border-active: #89988b;
 
-  --text-main: #1f2328;
-  --text-muted: #656d76;
-  /* 次要文字需保证在白底/面板上 ≥4.5:1（WCAG AA），原 #8c959f 仅 2.7:1 */
-  --text-sub: #66707b;
+  --text-main: #26332d;
+  --text-muted: #5d6b62;
+  /* Secondary text meets normal-text contrast on light surfaces. */
+  --text-sub: #606e64;
 
-  --accent-copper: #9a4c17;
+  --accent-copper: #985029;
   --accent-copper-hover: #833e11;
   --accent-copper-active: #6e330d;
-  --accent-copper-dim: rgba(154, 76, 23, 0.08);
+  --accent-copper-dim: #f4e9dd;
   --accent-copper-glow: rgba(154, 76, 23, 0.2);
   /* 实心填充（主按钮/选中标签）专用：白字对比度 ≥4.5:1 */
-  --accent-copper-fill: #9a4c17;
+  --accent-copper-fill: #985029;
   --accent-copper-fill-hover: #833e11;
   --accent-copper-fill-active: #6e330d;
   --text-on-accent: #ffffff;
 
-  --badge-green: #1a7f37;
-  --badge-green-bg: #dafbe1;
-  --badge-amber: #9a6700;
-  --badge-amber-bg: #fff8c5;
-  --badge-red: #cf222e;
-  --badge-red-bg: #ffebe9;
-  --badge-blue: #0969da;
-  --badge-blue-bg: #ddf4ff;
+  --badge-green: #296745;
+  --badge-green-bg: #e8f2eb;
+  --badge-amber: #865d15;
+  --badge-amber-bg: #faf0d8;
+  --badge-red: #b63737;
+  --badge-red-bg: #fceceb;
+  --badge-blue: #326398;
+  --badge-blue-bg: #eaf1f9;
 
-  --titlebar-bg: #eaeff4;
-  --navrail-bg: #ffffff;
-  --footer-bg: #eaeff4;
+  --titlebar-bg: #fafbf8;
+  --navrail-bg: #fafbf8;
+  --footer-bg: #fafbf8;
   --drawer-bg: #ffffff;
   --modal-bg: #ffffff;
   --modal-overlay: rgba(15, 23, 42, 0.5);

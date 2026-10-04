@@ -22,6 +22,7 @@ import { ScenarioSwitcher } from './components/ScenarioSwitcher';
 import { PythonWorkbench } from './components/PythonWorkbench';
 import { PythonContextSync } from './components/PythonContextSync';
 import './styles/global.css';
+import './styles/workbench.css';
 
 const ShellContent: React.FC = () => {
   const { activeView, announcement, state } = useWorkbench();

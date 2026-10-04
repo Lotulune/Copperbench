@@ -155,7 +155,7 @@ test.describe('Adaptive Layout, Frameless Window & Theme Tests', () => {
 
   test('navigation rail tabs switch views properly', async ({ page }) => {
     await page.click('[data-testid="nav-assets"]');
-    await expect(page.getByText('资产与 Blockbench 集成')).toBeVisible();
+    await expect(page.getByRole('heading', { name: '资产与模型工作台' })).toBeVisible();
 
     await page.click('[data-testid="nav-history"]');
     await expect(page.getByRole('heading', { name: '本地历史' })).toBeVisible();
