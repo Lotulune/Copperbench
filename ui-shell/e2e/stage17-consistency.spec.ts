@@ -127,7 +127,7 @@ test('global diagnostic counts share the Core snapshot instead of invalid elemen
   await page.goto('/');
   await expect(page.getByTestId('workspace-health-diagnostics')).toContainText('7 条 · 5 错误');
   await expect(page.getByTestId('diagnostics-badge')).toContainText('5 错误，2 警告（部分检查）');
-  await expect(page.getByText('当前工作区 / 错误诊断').locator('..')).toContainText('5');
+  await expect(page.getByText('错误诊断', { exact: true }).locator('..')).toContainText('5');
   await page.getByTestId('nav-assets').click();
   await page.getByTestId('diagnostics-badge').click();
   await expect(page.getByTestId('workspace-health-panel')).toBeVisible();

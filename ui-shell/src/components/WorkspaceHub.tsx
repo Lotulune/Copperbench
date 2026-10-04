@@ -1,4 +1,4 @@
-import { elementLabel, valueLabel } from '../i18n/labels';
+import { elementLabel, elementShortLabel, valueLabel } from '../i18n/labels';
 import React from 'react';
 import {
   CheckCircle2,
@@ -11,9 +11,12 @@ import {
   Compass,
   ArrowRight,
   Lock,
-  Cpu,
   Clock,
-  Sparkles
+  Sparkles,
+  Palette,
+  GitBranch,
+  FileCode2,
+  Terminal
 } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
 import { TaskSummary } from '../types/contract';
@@ -63,10 +66,7 @@ export const WorkspaceHub: React.FC = () => {
         <div style={{ animation: 'pulseGlow 1.5s infinite', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
           <Sparkles size={36} color="var(--accent-copper)" />
           <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-main)' }}>
-            {uiText('正在加载工作区投影…', 'Loading workspace…')}
-          </div>
-          <div style={{ fontSize: '12px', color: 'var(--text-sub)' }}>
-            {uiText('正在协商 UI-Core 协议 v1.0', 'Connecting to UI-Core protocol v1.0')}
+            {uiText('正在加载工作区…', 'Loading workspace…')}
           </div>
         </div>
       </div>
@@ -77,14 +77,6 @@ export const WorkspaceHub: React.FC = () => {
     <div
       className="workspace-hub animate-fade-in"
       data-testid="workbench-main"
-      style={{
-        flex: 1,
-        padding: '24px',
-        overflowY: 'auto',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '24px'
-      }}
     >
       <BlockbenchOnboarding />
 
@@ -170,69 +162,32 @@ export const WorkspaceHub: React.FC = () => {
         </div>
       )}
 
-      {/* Top Banner / Workspace Overview Card */}
-      <div
-        style={{
-          background: 'var(--bg-surface)',
-          border: '1px solid var(--border-subtle)',
-          borderRadius: 'var(--radius-lg)',
-          padding: '20px 24px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          boxShadow: 'var(--shadow-sm)'
-        }}
-      >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <h1 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-main)' }}>
-              {workspace?.name || t({ key: 'workspace.default_name', fallback: 'Minecraft Mod Workspace' })}
-            </h1>
-            <span className="badge badge-copper">{uiText('修订', 'Revision')} {workspace?.revision ?? 0}</span>
-            <button
-              type="button"
-              className="badge badge-blue"
-              data-testid="hub-tracks-badge"
-              onClick={() => setActiveView('tracks')}
-              style={{ cursor: 'pointer', border: '1px solid rgba(88, 166, 255, 0.3)' }}
-              title={uiText('查看版本轨道与迁移矩阵', 'View version tracks and migration matrix')}
-            >
-              {workspace?.generator?.displayName || uiText('生成器信息不可用', 'Generator information unavailable')}
+      <header className="hub-header">
+        <div className="hub-heading">
+          <div className="hub-eyebrow">{uiText('工作区总览', 'WORKSPACE OVERVIEW')}</div>
+          <h1>{workspace?.name || t({ key: 'workspace.default_name', fallback: 'Minecraft Mod Workspace' })}</h1>
+          <div className="hub-workspace-meta">
+            <button type="button" className="hub-generator" data-testid="hub-tracks-badge"
+              onClick={() => setActiveView('tracks')} title={uiText('查看版本与迁移', 'View version tracks')}>
+              <Box size={14} aria-hidden="true" />
+              {workspace?.generator?.displayName || uiText('生成器不可用', 'Generator unavailable')}
+              <ArrowRight size={12} aria-hidden="true" />
             </button>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '12px', color: 'var(--text-muted)' }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <Lock size={13} color="var(--badge-green)" />
-              <span>{uiText('写入锁：', 'Write lock: ')}{workspace?.lock.state === 'write_available' ? uiText('可用（本机可写）', 'Available (local write access)') : uiText('已锁定', 'Locked')}</span>
+            <span className="hub-lock"><Lock size={13} aria-hidden="true" />
+              {workspace?.lock.state === 'write_available' ? uiText('可编辑', 'Editable') : uiText('已锁定', 'Locked')}
             </span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <Cpu size={13} />
-              <span>{uiText('兼容模式：', 'Compatibility: ')}{valueLabel(workspace?.compatibility.mode ?? 'unknown')}{uiText('（未知数据保留）', ' (unknown data preserved)')}</span>
-            </span>
+            <span>{uiText('修订', 'Revision')} {workspace?.revision ?? 0}</span>
           </div>
         </div>
-
-        {/* Quick Actions */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <button
-            className="btn-primary"
-            onClick={() => setIsCreateModalOpen(true)}
-            data-testid="empty-primary-action"
-          >
-            <Plus size={14} />
-            <span>{uiText('新建元素', 'New element')}</span>
+        <div className="hub-header-actions">
+          <button className="btn-secondary" onClick={() => buildWorkspace()} data-testid="hub-build-btn">
+            <Hammer size={16} aria-hidden="true" />{uiText('构建模组', 'Build mod')}
           </button>
-
-          <button
-            className="btn-secondary"
-            onClick={() => buildWorkspace()}
-            data-testid="hub-build-btn"
-          >
-            <Hammer size={14} />
-            <span>{uiText('构建模组', 'Build mod')}</span>
+          <button className="btn-primary" onClick={() => setIsCreateModalOpen(true)} data-testid="empty-primary-action">
+            <Plus size={16} aria-hidden="true" />{uiText('新建元素', 'New element')}
           </button>
         </div>
-      </div>
+      </header>
 
       {/* Active Tasks Widget (If any) */}
       {activeTasks.length > 0 && (
@@ -299,341 +254,133 @@ export const WorkspaceHub: React.FC = () => {
         </div>
       )}
 
-      {/* Health & Element Counts Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
-        <div
-          style={{
-            background: 'var(--bg-surface)',
-            border: '1px solid var(--border-subtle)',
-            borderRadius: 'var(--radius-md)',
-            padding: '16px 20px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between'
-          }}
-        >
-          <div>
-            <div style={{ fontSize: '11px', color: 'var(--text-sub)', fontWeight: 600, textTransform: 'uppercase' }}>
-              {uiText('元素总数', 'Total elements')}
-            </div>
-            <div style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text-main)', marginTop: '4px' }}>
-              {elementCounts.total}
-            </div>
-          </div>
-          <Box size={28} color="var(--accent-copper)" />
-        </div>
-
-        <div
-          style={{
-            background: 'var(--bg-surface)',
-            border: '1px solid var(--border-subtle)',
-            borderRadius: 'var(--radius-md)',
-            padding: '16px 20px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between'
-          }}
-        >
-          <div>
-            <div style={{ fontSize: '11px', color: 'var(--text-sub)', fontWeight: 600, textTransform: 'uppercase' }}>
-              {uiText('有效就绪', 'Valid and ready')}
-            </div>
-            <div style={{ fontSize: '24px', fontWeight: 700, color: 'var(--badge-green)', marginTop: '4px' }}>
-              {elementCounts.valid}
-            </div>
-          </div>
-          <CheckCircle2 size={28} color="var(--badge-green)" />
-        </div>
-
-        <div
-          style={{
-            background: 'var(--bg-surface)',
-            border: '1px solid var(--border-subtle)',
-            borderRadius: 'var(--radius-md)',
-            padding: '16px 20px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between'
-          }}
-        >
-          <div>
-            <div style={{ fontSize: '11px', color: 'var(--text-sub)', fontWeight: 600, textTransform: 'uppercase' }}>
-              {uiText('草稿进行中', 'Drafts in progress')}
-            </div>
-            <div style={{ fontSize: '24px', fontWeight: 700, color: 'var(--badge-amber)', marginTop: '4px' }}>
-              {elementCounts.draft}
-            </div>
-          </div>
-          <FileEdit size={28} color="var(--badge-amber)" />
-        </div>
-
-        <div
-          style={{
-            background: 'var(--bg-surface)',
-            border: '1px solid var(--border-subtle)',
-            borderRadius: 'var(--radius-md)',
-            padding: '16px 20px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between'
-          }}
-        >
-          <div>
-            <div style={{ fontSize: '11px', color: 'var(--text-sub)', fontWeight: 600, textTransform: 'uppercase' }}>
-              {uiText('当前工作区 / 错误诊断', 'Current workspace / errors')}
-            </div>
-            <div style={{ fontSize: '24px', fontWeight: 700, color: (workspaceHealth?.diagnostics.error ?? 0) > 0 ? 'var(--badge-red)' : 'var(--text-sub)', marginTop: '4px' }}>
-              {workspaceHealth ? workspaceHealth.diagnostics.error : uiText('检查中…', 'Checking…')}
-            </div>
-          </div>
-          <AlertCircle size={28} color={(workspaceHealth?.diagnostics.error ?? 0) > 0 ? 'var(--badge-red)' : 'var(--text-sub)'} />
-        </div>
+      <div className="hub-metrics">
+        {[
+          { label: uiText('元素总数', 'Total elements'), value: elementCounts.total, icon: Box, tone: 'copper' },
+          { label: uiText('有效就绪', 'Ready to use'), value: elementCounts.valid, icon: CheckCircle2, tone: 'green' },
+          { label: uiText('草稿', 'Drafts'), value: elementCounts.draft, icon: FileEdit, tone: 'amber' },
+          { label: uiText('错误诊断', 'Errors'), value: workspaceHealth ? workspaceHealth.diagnostics.error : '—', icon: AlertCircle,
+            tone: (workspaceHealth?.diagnostics.error ?? 0) > 0 ? 'red' : 'neutral' }
+        ].map(metric => <div className="hub-metric" key={metric.label}>
+          <div><span>{metric.label}</span><strong>{metric.value}</strong></div>
+          <span className={`hub-metric-icon tone-${metric.tone}`}><metric.icon size={21} aria-hidden="true" /></span>
+        </div>)}
       </div>
 
-      {workspaceHealth && (
-        <div
-          data-testid="workspace-health-panel"
-          id="workspace-health-panel"
-          tabIndex={-1}
-          role="region"
-          aria-label={uiText('项目健康', 'Workspace health')}
-          style={{
-            background: 'var(--bg-surface)',
-            border: '1px solid var(--border-subtle)',
-            borderRadius: 'var(--radius-lg)',
-            padding: '20px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '14px'
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
-            <div>
-              <h2 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-main)' }}>{uiText('项目健康', 'Workspace health')}</h2>
-              <div style={{ marginTop: '4px', fontSize: '11px', color: 'var(--text-sub)' }}>
-                {uiText('汇总已确认的诊断、引用、资产和任务状态。', 'Confirmed diagnostics, references, assets and task status.')}
-              </div>
+      <div className="hub-columns">
+        <section className="hub-panel hub-recent" aria-labelledby="recent-elements-title">
+          <div className="hub-panel-heading">
+            <h2 id="recent-elements-title"><Clock size={17} aria-hidden="true" />{uiText('近期元素', 'Recent elements')}</h2>
+            <button className="hub-text-button" onClick={() => setActiveView('elements')}>
+              {uiText('查看全部元素', 'View all elements')}<ArrowRight size={14} aria-hidden="true" />
+            </button>
+          </div>
+          {recentElements.length === 0 ? (
+            <div className="hub-empty">
+              <span className="hub-empty-icon"><Box size={30} aria-hidden="true" /></span>
+              <h3>{uiText('从第一个元素开始', 'Start with your first element')}</h3>
+              <p>{uiText('创建方块、物品或配方，开始构建你的模组。', 'Create a block, item or recipe to start your mod.')}</p>
+              <button className="btn-secondary" onClick={() => setIsCreateModalOpen(true)}>
+                <Plus size={15} aria-hidden="true" />{uiText('新建元素', 'New element')}
+              </button>
             </div>
-            <span className="badge badge-copper">{uiText('修订', 'Revision')} {workspaceHealth.revision}</span>
-          </div>
-
-          <div className="workspace-health-grid">
-            <div
-              data-testid="workspace-health-diagnostics"
-              style={{
-                minHeight: '58px', padding: '8px 12px', border: '1px solid var(--border-subtle)',
-                borderRadius: 'var(--radius-sm)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start'
-              }}
-            >
-              <span>{uiText('诊断', 'Diagnostics')}</span>
-              <strong>{uiText(`${workspaceHealth.diagnostics.total} 条 · ${workspaceHealth.diagnostics.error} 错误`, `${workspaceHealth.diagnostics.total} total · ${englishCount(workspaceHealth.diagnostics.error, 'error')}`)}</strong>
-            </div>
-            <button
-              type="button"
-              className="btn-secondary"
-              data-testid="workspace-health-elements"
-              onClick={() => setActiveView('elements')}
-              style={{ justifyContent: 'space-between', minHeight: '58px' }}
-            >
-              <span>{uiText('元素状态', 'Element status')}</span>
-              <strong>{uiText(`${workspaceHealth.elements.invalid} 无效 · ${workspaceHealth.elements.draft} 草稿`, `${workspaceHealth.elements.invalid} invalid · ${englishCount(workspaceHealth.elements.draft, 'draft')}`)}</strong>
-            </button>
-            <button
-              type="button"
-              className="btn-secondary"
-              data-testid="workspace-health-references"
-              onClick={() => setActiveView('data')}
-              style={{ justifyContent: 'space-between', minHeight: '58px' }}
-            >
-              <span>{uiText('结构化引用', 'Structured references')}</span>
-              <strong>{uiText(`${workspaceHealth.references.danglingCount} 个断引用`, englishCount(workspaceHealth.references.danglingCount, 'broken reference'))}</strong>
-            </button>
-            <button
-              type="button"
-              className="btn-secondary"
-              data-testid="workspace-health-assets"
-              onClick={() => setActiveView('assets')}
-              style={{ justifyContent: 'space-between', minHeight: '58px' }}
-            >
-              <span>{uiText('资产', 'Assets')}</span>
-              <strong>
-                {workspaceHealth.assets.indexed && workspaceHealth.assets.summary
-                  ? uiText(`${workspaceHealth.assets.summary.missingReferences} 缺失 · ${workspaceHealth.assets.summary.unusedAssets} 未使用`, `${workspaceHealth.assets.summary.missingReferences} missing · ${workspaceHealth.assets.summary.unusedAssets} unused`)
-                  : workspaceHealth.assets.reasonCode ?? uiText('未建立索引', 'Not indexed')}
-              </strong>
-            </button>
-            <button
-              type="button"
-              className="btn-secondary"
-              data-testid="workspace-health-generator"
-              onClick={() => setActiveView('tracks')}
-              style={{ justifyContent: 'space-between', minHeight: '58px' }}
-            >
-              <span>{uiText('生成器', 'Generator')}</span>
-              <strong>{valueLabel(workspaceHealth.generator.status)} · {workspaceHealth.generator.generatable ? uiText('可生成', 'Can generate') : uiText('不可生成', 'Cannot generate')}</strong>
-            </button>
-            <button
-              type="button"
-              className="btn-secondary"
-              data-testid="workspace-health-tasks"
-              onClick={() => setIsTaskDrawerOpen(true)}
-              style={{ justifyContent: 'space-between', minHeight: '58px' }}
-            >
-              <span>{uiText('当前会话任务', 'Current session tasks')}</span>
-              <strong>{uiText(`${workspaceHealth.tasks.activeCount} 运行中 · ${workspaceHealth.tasks.recentFailed.length} 最近失败`, `${workspaceHealth.tasks.activeCount} active · ${englishCount(workspaceHealth.tasks.recentFailed.length, 'recent failure')}`)}</strong>
-            </button>
-            <button
-              type="button"
-              className="btn-secondary"
-              data-testid="workspace-health-recovery"
-              onClick={() => setActiveView('history')}
-              style={{ justifyContent: 'space-between', minHeight: '58px' }}
-            >
-              <span>{uiText('本地恢复', 'Local recovery')}</span>
-              <strong>
-                {workspaceHealth.recovery.available
-                  ? uiText(`${workspaceHealth.recovery.recoveryPointCount} 个恢复点`, englishCount(workspaceHealth.recovery.recoveryPointCount, 'recovery point'))
-                  : workspaceHealth.recovery.reasonCode ?? uiText('不可用', 'Unavailable')}
-              </strong>
-            </button>
-            <button
-              type="button"
-              className="btn-secondary"
-              data-testid="workspace-health-risk"
-              onClick={() => setActiveView('tracks')}
-              style={{ justifyContent: 'space-between', minHeight: '58px' }}
-            >
-              <span>{uiText('高风险变更', 'High-impact changes')}</span>
-              <strong>
-                {uiText(`${workspaceHealth.risk.loaderMigration.availableTargetCount} 个迁移目标 · ${workspaceHealth.risk.aiBatchChanges.highImpactOperationThreshold}+ 操作标记高影响`,
-                  `${englishCount(workspaceHealth.risk.loaderMigration.availableTargetCount, 'migration target')} · ${workspaceHealth.risk.aiBatchChanges.highImpactOperationThreshold}+ operations flagged as high impact`)}
-              </strong>
-            </button>
-          </div>
-
-          {workspaceHealth.diagnostics.collectionState === 'partial' && <p role="status">{uiText('部分检查尚未完成，当前数量仅包含已采集的诊断。', 'Some checks are incomplete. Counts include only collected diagnostics.')}</p>}
-          {!!workspaceHealth.diagnostics.items?.length && <details>
-            <summary>{uiText(`查看当前工作区诊断（${workspaceHealth.diagnostics.total} 条）`, `View current workspace diagnostics (${workspaceHealth.diagnostics.total})`)}</summary>
-            <ul>{workspaceHealth.diagnostics.items.map((diagnostic, index) => <li key={`${diagnostic.code}-${index}`}>
-              {t(diagnostic.message)}{' '}
-              {diagnostic.actions.map(action => <button type="button" key={`${action.kind}-${action.target}`}
-                onClick={() => runDiagnosticAction(action, diagnostic)}>{t(action.label)}</button>)}
-            </li>)}</ul>
-          </details>}
-        </div>
-      )}
-
-      {/* Recent Elements Queue Section */}
-      <div
-        style={{
-          background: 'var(--bg-surface)',
-          border: '1px solid var(--border-subtle)',
-          borderRadius: 'var(--radius-lg)',
-          padding: '20px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '14px'
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Clock size={16} color="var(--accent-copper)" />
-            <h2 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-main)' }}>
-              {uiText('近期元素', 'Recent elements')}
-            </h2>
-          </div>
-
-          <button
-            className="btn-secondary"
-            style={{ fontSize: '11px', padding: '4px 10px' }}
-            onClick={() => setActiveView('elements')}
-          >
-            <span>{uiText('查看全部元素', 'View all elements')}</span>
-            <ArrowRight size={12} />
-          </button>
-        </div>
-
-        {recentElements.length === 0 ? (
-          <div
-            style={{
-              padding: '32px 16px',
-              textAlign: 'center',
-              color: 'var(--text-muted)',
-              fontSize: '13px'
-            }}
-          >
-            {uiText('此工作区还没有模组元素。点击', 'This workspace has no mod elements. Select ')}<strong>{uiText('新建元素', 'New element')}</strong>{uiText('创建你的第一个方块或物品！', ' to create your first block or item.')}
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {recentElements.map((elem) => (
-              <button
-                type="button"
-                key={elem.id}
-                data-element-id={elem.id}
-                onClick={() => {
-                  setSelectedElementId(elem.id);
-                  setActiveView('elements');
-                }}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '12px 16px',
-                  background: 'var(--bg-panel)',
-                  border: '1px solid var(--border-subtle)',
-                  borderRadius: 'var(--radius-md)',
-                  cursor: 'pointer',
-                  width: '100%',
-                  textAlign: 'left',
-                  transition: 'all 0.15s ease'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--border-focus)';
-                  e.currentTarget.style.background = 'var(--bg-hover)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                  e.currentTarget.style.background = 'var(--bg-panel)';
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <div
-                    style={{
-                      width: '32px',
-                      height: '32px',
-                      borderRadius: 'var(--radius-sm)',
-                      background: elem.type === 'block' ? 'var(--accent-copper-dim)' : 'var(--badge-blue-bg)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: elem.type === 'block' ? 'var(--accent-copper)' : 'var(--badge-blue)'
-                    }}
-                  >
-                    {elem.type === 'block' ? <Box size={16} /> : <Compass size={16} />}
-                  </div>
-
-                  <div>
-                    <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--text-main)' }}>
-                      {elem.displayName}
-                    </div>
-                    <div style={{ fontSize: '11px', color: 'var(--text-sub)' }}>
-                      {elem.name} · {valueLabel(elem.ownership)}
-                    </div>
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          ) : (
+            <div className="hub-recent-list">
+              {recentElements.map(elem => (
+                <button type="button" className="hub-recent-item" key={elem.id} data-element-id={elem.id}
+                  onClick={() => { setSelectedElementId(elem.id); setActiveView('elements'); }}>
+                  <span className={`hub-element-icon ${elem.type === 'block' ? 'tone-copper' : 'tone-blue'}`}>
+                    {elem.type === 'block' ? <Box size={20} aria-hidden="true" />
+                      : elem.type === 'function' ? <FileCode2 size={20} aria-hidden="true" />
+                      : elem.type === 'procedure' ? <Terminal size={20} aria-hidden="true" />
+                      : <Compass size={20} aria-hidden="true" />}
+                  </span>
+                  <span className="hub-element-copy"><strong>{elem.displayName}</strong><span>{elem.name}</span></span>
+                  <span className="hub-element-type" title={elementLabel(elem.type)}>{elementShortLabel(elem.type)}</span>
                   <span className={`badge badge-${elem.state === 'valid' ? 'green' : elem.state === 'draft' ? 'amber' : 'red'}`}>
                     {valueLabel(elem.state)}
                   </span>
-                  <span className="badge badge-copper" style={{ fontSize: '10px' }}>
-                    {elementLabel(elem.type)}
-                  </span>
-                </div>
-              </button>
-            ))}
+                  <ArrowRight className="hub-row-arrow" size={15} aria-hidden="true" />
+                </button>
+              ))}
+            </div>
+          )}
+          <div className="hub-shortcuts">
+            <button onClick={() => setActiveView('assets')}><Palette size={18} aria-hidden="true" />
+              <span>{uiText('管理资产', 'Manage assets')}</span><ArrowRight size={14} aria-hidden="true" />
+            </button>
+            <button onClick={() => setActiveView('history')}><GitBranch size={18} aria-hidden="true" />
+              <span>{uiText('查看历史', 'Local history')}</span><ArrowRight size={14} aria-hidden="true" />
+            </button>
           </div>
+        </section>
+
+        {workspaceHealth && (
+          <section className="hub-panel hub-health" data-testid="workspace-health-panel" id="workspace-health-panel"
+            tabIndex={-1} role="region" aria-label={uiText('项目健康', 'Workspace health')}>
+            <div className="hub-panel-heading">
+              <h2><CheckCircle2 size={17} aria-hidden="true" />{uiText('项目健康', 'Workspace health')}</h2>
+              <span className="hub-revision">{uiText('修订', 'Rev.')} {workspaceHealth.revision}</span>
+            </div>
+            <div className="workspace-health-grid">
+              <div className="hub-health-row" data-testid="workspace-health-diagnostics">
+                <span>{uiText('诊断', 'Diagnostics')}</span>
+                <strong className={workspaceHealth.diagnostics.error > 0 ? 'health-error' : ''}>
+                  {uiText(`${workspaceHealth.diagnostics.total} 条 · ${workspaceHealth.diagnostics.error} 错误`,
+                    `${workspaceHealth.diagnostics.total} total · ${englishCount(workspaceHealth.diagnostics.error, 'error')}`)}
+                </strong>
+              </div>
+              {[
+                { id: 'elements', label: uiText('元素状态', 'Elements'),
+                  value: uiText(`${workspaceHealth.elements.invalid} 无效 · ${workspaceHealth.elements.draft} 草稿`,
+                    `${workspaceHealth.elements.invalid} invalid · ${englishCount(workspaceHealth.elements.draft, 'draft')}`),
+                  action: () => setActiveView('elements') },
+                { id: 'references', label: uiText('结构化引用', 'References'),
+                  value: uiText(`${workspaceHealth.references.danglingCount} 个断引用`, englishCount(workspaceHealth.references.danglingCount, 'broken reference')),
+                  action: () => setActiveView('data') },
+                { id: 'assets', label: uiText('资产', 'Assets'),
+                  value: workspaceHealth.assets.indexed && workspaceHealth.assets.summary
+                    ? uiText(`${workspaceHealth.assets.summary.missingReferences} 缺失 · ${workspaceHealth.assets.summary.unusedAssets} 未使用`,
+                      `${workspaceHealth.assets.summary.missingReferences} missing · ${workspaceHealth.assets.summary.unusedAssets} unused`)
+                    : workspaceHealth.assets.reasonCode ?? uiText('未建立索引', 'Not indexed'),
+                  action: () => setActiveView('assets') },
+                { id: 'generator', label: uiText('生成器', 'Generator'),
+                  value: `${valueLabel(workspaceHealth.generator.status)} · ${workspaceHealth.generator.generatable ? uiText('可生成', 'Can generate') : uiText('不可生成', 'Cannot generate')}`,
+                  action: () => setActiveView('tracks') },
+                { id: 'tasks', label: uiText('会话任务', 'Session tasks'),
+                  value: uiText(`${workspaceHealth.tasks.activeCount} 运行中 · ${workspaceHealth.tasks.recentFailed.length} 最近失败`,
+                    `${workspaceHealth.tasks.activeCount} active · ${englishCount(workspaceHealth.tasks.recentFailed.length, 'recent failure')}`),
+                  action: () => setIsTaskDrawerOpen(true) },
+                { id: 'recovery', label: uiText('本地恢复', 'Recovery'),
+                  value: workspaceHealth.recovery.available
+                    ? uiText(`${workspaceHealth.recovery.recoveryPointCount} 个恢复点`, englishCount(workspaceHealth.recovery.recoveryPointCount, 'recovery point'))
+                    : workspaceHealth.recovery.reasonCode ?? uiText('不可用', 'Unavailable'),
+                  action: () => setActiveView('history') }
+              ].map(item => <button type="button" className="hub-health-row" key={item.id}
+                data-testid={`workspace-health-${item.id}`} onClick={item.action}>
+                <span>{item.label}</span><strong>{item.value}</strong><ArrowRight size={13} aria-hidden="true" />
+              </button>)}
+            </div>
+            <button type="button" className="hub-risk-note" data-testid="workspace-health-risk" onClick={() => setActiveView('tracks')}>
+              <AlertTriangle size={15} aria-hidden="true" />
+              <span><strong>{uiText('高风险变更', 'High-impact changes')}</strong>
+                <span>{uiText(`${workspaceHealth.risk.loaderMigration.availableTargetCount} 个迁移目标 · ${workspaceHealth.risk.aiBatchChanges.highImpactOperationThreshold}+ 操作标记高影响`,
+                  `${englishCount(workspaceHealth.risk.loaderMigration.availableTargetCount, 'migration target')} · ${workspaceHealth.risk.aiBatchChanges.highImpactOperationThreshold}+ operations flagged as high impact`)}</span>
+              </span>
+              <ArrowRight size={13} aria-hidden="true" />
+            </button>
+            {workspaceHealth.diagnostics.collectionState === 'partial' && <p className="hub-health-note" role="status">
+              {uiText('部分检查尚未完成，当前数量仅包含已采集的诊断。', 'Some checks are incomplete. Counts include only collected diagnostics.')}
+            </p>}
+            {!!workspaceHealth.diagnostics.items?.length && <details className="hub-diagnostic-details">
+              <summary>{uiText(`查看当前工作区诊断（${workspaceHealth.diagnostics.total} 条）`, `View current workspace diagnostics (${workspaceHealth.diagnostics.total})`)}</summary>
+              <ul>{workspaceHealth.diagnostics.items.map((diagnostic, index) => <li key={`${diagnostic.code}-${index}`}>
+                {t(diagnostic.message)}{' '}
+                {diagnostic.actions.map(action => <button type="button" className="hub-text-button" key={`${action.kind}-${action.target}`}
+                  onClick={() => runDiagnosticAction(action, diagnostic)}>{t(action.label)}</button>)}
+              </li>)}</ul>
+            </details>}
+          </section>
         )}
       </div>
     </div>

@@ -99,8 +99,8 @@ export const ScenarioSwitcher: React.FC = () => {
       <button
         onClick={() => setIsOpen(!isOpen)}
         style={{
-          background: 'var(--accent-copper)',
-          color: '#ffffff',
+          background: 'var(--accent-copper-fill)',
+          color: 'var(--text-on-accent)',
           padding: '6px 12px',
           borderRadius: 'var(--radius-full)',
           boxShadow: 'var(--shadow-md)',

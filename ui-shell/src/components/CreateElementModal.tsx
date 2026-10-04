@@ -1,5 +1,5 @@
-import { tr } from '../i18n/locale';
-import { elementLabel } from '../i18n/labels';
+import { tr, uiText } from '../i18n/locale';
+import { elementLabel, elementShortLabel } from '../i18n/labels';
 import React, { useState } from 'react';
 import { X, Plus, Box, Compass, Scroll, Terminal, FileCode2, Gift, Trophy } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
@@ -54,12 +54,10 @@ export const CreateElementModal: React.FC = () => {
         role="dialog"
         aria-modal="true"
         aria-label={tr("创建模组元素")}
-        className="modal-card animate-fade-in"
-        style={{ width: '460px' }}
+        className="modal-card create-element-card animate-fade-in"
       >
         <div className="modal-header">
-          <div style={{ fontWeight: 700, fontSize: '14px', color: 'var(--text-main)' }}>
-            {tr("创建模组元素")}</div>
+          <h2>{tr("创建模组元素")}</h2>
           <button type="button" aria-label={tr("关闭创建元素对话框")} onClick={() => setIsCreateModalOpen(false)} style={{ color: 'var(--text-muted)' }}>
             <X size={16} />
           </button>
@@ -68,16 +66,37 @@ export const CreateElementModal: React.FC = () => {
         <form onSubmit={handleSubmit}>
           <div className="modal-body">
             {error && (
-              <div style={{ background: 'var(--badge-red-bg)', border: '1px solid rgba(248, 81, 73, 0.3)', padding: '8px 12px', borderRadius: 'var(--radius-sm)', color: 'var(--badge-red)', fontSize: '11px' }}>
+              <div role="alert" id="create-element-error" style={{ background: 'var(--badge-red-bg)', border: '1px solid rgba(248, 81, 73, 0.3)', padding: '8px 12px', borderRadius: 'var(--radius-sm)', color: 'var(--badge-red)', fontSize: '12px' }}>
                 {error}
               </div>
             )}
 
+            {/* Name Identifier */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label htmlFor="create-element-name" style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>
+                {uiText("元素标识符", "Element identifier")}</label>
+              <input
+                id="create-element-name"
+                type="text"
+                placeholder={tr("例如 copper_lamp、trail_lantern")}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                aria-invalid={!!error}
+                aria-describedby={error ? "create-element-error create-element-hint" : "create-element-hint"}
+                autoComplete="off"
+                spellCheck={false}
+                autoFocus
+                data-testid="create-element-name-input"
+              />
+              <span id="create-element-hint" style={{ fontSize: '12px', color: 'var(--text-sub)' }}>
+                {uiText("小写字母开头，可用数字和下划线，最多 64 个字符。", "Start with a lowercase letter. Use letters, numbers or underscores, up to 64 characters.")}</span>
+            </div>
+
             {/* Element Type Selection */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)' }}>
+              <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>
                 {tr("元素类型")}</label>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
+              <div className="create-type-grid" role="group" aria-label={tr("元素类型")}>
                 {ALL_MOD_ELEMENT_TYPES.map((type) => {
                   const Icon = typeIcons[type] ?? Compass;
                   const item = { type, label: elementLabel(type), icon: Icon };
@@ -88,6 +107,8 @@ export const CreateElementModal: React.FC = () => {
                       type="button"
                       data-testid={`create-element-type-${item.type}`}
                       onClick={() => setElementType(item.type as ModElementType)}
+                      aria-label={item.label}
+                      title={item.label}
                       aria-pressed={isSel}
                       style={{
                         padding: '10px',
@@ -103,29 +124,14 @@ export const CreateElementModal: React.FC = () => {
                       }}
                     >
                       <Icon size={16} />
-                      <span style={{ fontSize: '12px' }}>{item.label}</span>
+                      <span style={{ fontSize: '12px' }}>{elementShortLabel(item.type)}</span>
                     </button>
                   );
                 })}
               </div>
             </div>
 
-            {/* Name Identifier */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label htmlFor="create-element-name" style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)' }}>
-                {tr("标识符（内部 ID）")}</label>
-              <input
-                id="create-element-name"
-                type="text"
-                placeholder={tr("例如 copper_lamp、trail_lantern")}
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                autoFocus
-                data-testid="create-element-name-input"
-              />
-              <span style={{ fontSize: '10px', color: 'var(--text-sub)' }}>
-                {tr("以小写字母开头，后续可用小写字母、数字或下划线，共 1–64 个字符。")}</span>
-            </div>
+
           </div>
 
           <div className="modal-footer">

@@ -19,6 +19,11 @@ export function elementLabel(value: string): string {
   return label ? `${label}（${english}）` : value;
 }
 
+/** Compact UI labels keep technical names available through elementLabel tooltips. */
+export function elementShortLabel(value: string): string {
+  return UI_LOCALE === 'en' ? englishElements[value as ModElementType] ?? value : ELEMENT_LABELS[value as ModElementType] ?? value;
+}
+
 const englishElements: Record<ModElementType, string> = {
   block: 'Block', item: 'Item', recipe: 'Recipe', procedure: 'Procedure', function: 'Function', loottable: 'Loot table', achievement: 'Advancement',
   armor: 'Armor', armortrim: 'Armor trim', tool: 'Tool', itemextension: 'Item extension', attribute: 'Attribute', bannerpattern: 'Banner pattern',
