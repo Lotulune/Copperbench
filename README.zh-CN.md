@@ -4,7 +4,7 @@
   <p><strong>在桌面上制作、构建和测试 Minecraft Java 模组。</strong></p>
   <p><a href="README.md">English</a> · <strong>简体中文</strong></p>
   <p>
-    <a href="https://github.com/Lotulune/Copperbench/releases">下载</a> ·
+    <a href="docs/releases/current.md">下载</a> ·
     <a href="#showcase">截图</a> ·
     <a href="#getting-started">开始使用</a> ·
     <a href="#development">源码运行</a>
@@ -61,20 +61,15 @@ Copperbench 基于 MCreator，提供模组元素编辑、Blockly 逻辑、模型
 
 工作台支持简体中文和英文，可在标题栏切换。请先保存编辑内容，再确认重新加载界面。
 
-| 系统 | 下载格式 | 安装说明 |
-| --- | --- | --- |
-| Windows 11 x64 | EXE 安装包 · 便携版 ZIP | [快速开始](docs/user/getting-started.md) |
-| Ubuntu 24.04 LTS x86_64 | Debian `.deb` · 便携版 `.tar.gz` | [Linux 安装说明](docs/user/linux-installation.md) |
+[当前下载](docs/releases/current.md)集中列出 Windows 11 x64 与 Ubuntu 24.04 LTS x86_64 的公开安装包、平台版本和验证范围。安装步骤见[快速开始](docs/user/getting-started.md)和 [Linux 安装说明](docs/user/linux-installation.md)。Ubuntu 已验证 GNOME Wayland 和 Xorg；其他 Linux 发行版和架构尚未验证。
 
-Ubuntu 已验证 GNOME Wayland 和 Xorg。其他 Linux 发行版和架构尚未验证。
-
-1. **下载安装** — 在 [GitHub Releases](https://github.com/Lotulune/Copperbench/releases) 选择系统对应的包，对照该版本附带的校验文件核验下载包（Windows 为 `SHA256SUMS.txt`；Linux 为 `linux-candidate-sha256.txt`）。
+1. **下载安装** — 在[当前下载](docs/releases/current.md)选择系统对应的版本，对照该 Release 附带的校验文件核验下载包（Windows 为 `SHA256SUMS.txt`；Linux 为 `linux-candidate-sha256.txt`）。
 2. **新建工作区** — 选择 Fabric 或 NeoForge 及 Minecraft 版本，填写模组名称与目录。
 3. **做一个物品** — 新建物品、保存并构建，然后启动测试客户端。
 
 Windows 与 Linux 稳定版通过 GitHub Releases 分发，下载时请核对对应平台的版本。Windows 安装包未签名，SmartScreen 可能提示警告。首次构建需要联网下载依赖；已知界面问题请参阅对应版本的发布说明。
 
-0.1.2 维护改动修复资产刷新连续性与复制反馈，内容见[发布说明](docs/releases/v0.1.2.md)，交付进度见[发布状态](docs/testing/maintenance-release-0.1.2.md)。旧版 0.1.1 安装包不包含这些修复。
+各平台的发布说明及验证范围见[当前下载](docs/releases/current.md)。本源码分支中的可靠性与文档修正尚未发布。
 
 ## 文档
 

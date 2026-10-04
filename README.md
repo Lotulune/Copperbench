@@ -4,7 +4,7 @@
   <p><strong>Create, build, and test Minecraft Java mods on your desktop.</strong></p>
   <p><strong>English</strong> · <a href="README.zh-CN.md">简体中文</a></p>
   <p>
-    <a href="https://github.com/Lotulune/Copperbench/releases">Downloads</a> ·
+    <a href="docs/releases/current.md">Downloads</a> ·
     <a href="#showcase">Screenshots</a> ·
     <a href="#getting-started">Getting started</a> ·
     <a href="#development">Run from source</a>
@@ -61,20 +61,15 @@ See the [user guide](docs/user/README.md) for supported features. Source builds 
 
 The workbench supports English and Simplified Chinese. Use the language selector in the title bar; save your edits before confirming the reload.
 
-| Platform | Packages | Installation |
-| --- | --- | --- |
-| Windows 11 x64 | EXE installer · Portable ZIP | [Quick start](docs/user/getting-started.md) |
-| Ubuntu 24.04 LTS x86_64 | Debian `.deb` · Portable `.tar.gz` | [Linux installation notes](docs/user/linux-installation.md) |
+See [current downloads](docs/releases/current.md) for the published Windows 11 x64 and Ubuntu 24.04 LTS x86_64 packages, platform versions and verification scope. Installation instructions are in the [quick start](docs/user/getting-started.md) and [Linux installation notes](docs/user/linux-installation.md). Ubuntu testing covers GNOME Wayland and Xorg; other Linux distributions and architectures have not been validated.
 
-Ubuntu testing covers GNOME Wayland and Xorg. Other Linux distributions and architectures have not been validated.
-
-1. **Download and install** — Choose the package for your system on [GitHub Releases](https://github.com/Lotulune/Copperbench/releases) and verify it against the checksum manifest attached to that release (`SHA256SUMS.txt` for Windows; `linux-candidate-sha256.txt` for Linux releases).
+1. **Download and install** — Choose your platform from [current downloads](docs/releases/current.md) and verify the package against the checksum manifest attached to that release (`SHA256SUMS.txt` for Windows; `linux-candidate-sha256.txt` for Linux releases).
 2. **Create a workspace** — Choose Fabric or NeoForge and a Minecraft version, then enter a mod name and workspace folder.
 3. **Make an item** — Add an item, save and build the project, then launch the test client.
 
 Stable Windows and Linux packages are distributed through GitHub Releases; check each platform's release version before downloading. Windows installers are unsigned and may trigger SmartScreen. The first build needs an internet connection to download dependencies. Known interface issues are listed in the release notes.
 
-The 0.1.2 maintenance changes address asset-refresh continuity and clipboard feedback; see the [release notes](docs/releases/v0.1.2.md) and [publication status](docs/testing/maintenance-release-0.1.2.md). These changes are not included in older 0.1.1 packages.
+Platform-specific release notes and their verification limits are linked from [current downloads](docs/releases/current.md). The reliability and documentation fixes in this source branch remain unreleased.
 
 ## Documentation
 

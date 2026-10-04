@@ -1,5 +1,14 @@
 # Project agent instructions
 
+## Repository map and validation
+
+- Setup and contribution flow: [CONTRIBUTING.md](CONTRIBUTING.md); current downloads: [docs/releases/current.md](docs/releases/current.md).
+- Java Core, adapters and MCP: `src/main/java/dev/copperbench/`; tests mirror these packages in `src/test/java/dev/copperbench/`. Run the relevant Gradle test classes; public Java API changes also need `javadoc`.
+- UI: `ui-shell/src/` and `ui-shell/e2e/`; use `npm test --prefix ui-shell`, the UI build and affected Playwright cases. Shared contracts live in `ui-core/schemas/v1.0/`; validate them with `npm test --prefix ui-core`.
+- Python SDK: `sdk/python/`; run `python -m unittest discover -s sdk/python -p 'test_*.py'`. Native/Core operation names come from the UI-Core schemas; MCP tool names come from `McpToolCatalog` and the running server's `tools/list`.
+- TypeScript SDK: `sdk/typescript/`; after `npm ci --prefix ui-shell`, run `npm run test:sdk --prefix ui-shell` using the UI shell's TypeScript development dependency.
+- Documentation: run `node scripts/verify-markdown-links.mjs`. The verification table in `CONTRIBUTING.md` gives commands by changed layer; source checks do not replace installed-product or gameplay evidence.
+
 ## Language and evidence
 
 - Reply to the user in Chinese. Use English for commands and tool arguments when practical.

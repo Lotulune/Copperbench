@@ -95,14 +95,20 @@ jobs:
       - name: Build UI shell
         working-directory: ui-shell
         run: npm run build
+      - name: Test production bridge and localization logic
+        working-directory: ui-shell
+        run: npm test
+      - name: Test TypeScript MCP client reliability
+        working-directory: ui-shell
+        run: npm run test:sdk
       - name: Install Chromium
         working-directory: ui-shell
         run: npx playwright install --with-deps chromium
       - name: Run fast product-shell smoke tests
         working-directory: ui-shell
-        run: npx playwright test e2e/scenarios.spec.ts e2e/new-workspace.spec.ts e2e/sdk-connection-security.spec.ts --project=chromium
-      - name: Test Python SDK connection metadata security
-        run: python sdk/python/test_connection_security.py
+        run: npx playwright test e2e/scenarios.spec.ts e2e/new-workspace.spec.ts e2e/sdk-connection-security.spec.ts e2e/jcef-bridge.spec.ts --project=chromium
+      - name: Test Python SDK reliability and connection security
+        run: python -m unittest discover -s sdk/python -p 'test_*.py'
       - name: Validate product status
         run: |
           node --test scripts/tests/product-release-history.tests.mjs

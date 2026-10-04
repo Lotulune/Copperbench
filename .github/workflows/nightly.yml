@@ -42,6 +42,19 @@ jobs:
         run: |
           npm ci --prefix ui-core
           npm ci --prefix ui-shell
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - name: Run SDK and production bridge regression
+        shell: pwsh
+        run: |
+          python -m unittest discover -s sdk/python -p 'test_*.py'
+          if ($LASTEXITCODE -ne 0) { throw 'Python SDK regression failed' }
+          npm test --prefix ui-shell
+          if ($LASTEXITCODE -ne 0) { throw 'Production bridge regression failed' }
+          npm run test:sdk --prefix ui-shell
+          if ($LASTEXITCODE -ne 0) { throw 'TypeScript MCP SDK regression failed' }
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
       - name: Run full Java, Javadoc, and scale regression
