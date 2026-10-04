@@ -82,10 +82,9 @@ jobs:
         run: |
           .\gradlew.bat --no-daemon --no-build-cache clean test javadoc
           if ($LASTEXITCODE -ne 0) { throw 'Release Java tests and Javadoc failed' }
+          # Gradle test already builds the UI shell through processResources -> buildUiShell.
           npm test --prefix ui-core
           if ($LASTEXITCODE -ne 0) { throw 'Release UI contract tests failed' }
-          npm run build --prefix ui-shell
-          if ($LASTEXITCODE -ne 0) { throw 'Release UI build failed' }
       - name: Build unsigned Windows packages
         shell: pwsh
         run: |

@@ -33,7 +33,37 @@ Run the checks for the affected layer. A documentation correction needs link and
 | MCP transport or tool contracts | `pwsh -NoProfile -File ./scripts/verify-mcp-conformance.ps1 -OutputDirectory build/mcp-conformance-results`; consult [MCP setup](docs/ai/getting-started.md) and the affected Java tests. |
 | Product status or release declarations | `node scripts/verify-product-status.mjs`; verify publication and package-specific acceptance separately. |
 
-Before the first Playwright run, install Chromium from `ui-shell` with `npx playwright install chromium`. Java tests that create windows require a display; the Linux CI uses Xvfb. Existing PR workflows in [.github/workflows/test.yml](.github/workflows/test.yml) run the required Java, UI and MCP checks. Generator, installed-product and Minecraft gameplay changes need the relevant runtime evidence described in [AGENTS.md](AGENTS.md) and the corresponding existing test guide; a successful build alone does not establish gameplay correctness.
+Before the first Playwright run, install Chromium from `ui-shell` with `npx playwright install chromium`. Java tests that create windows require a display; the Linux CI uses Xvfb. Generator, installed-product and Minecraft gameplay changes need the relevant runtime evidence described in [AGENTS.md](AGENTS.md) and the corresponding existing test guide; a successful build alone does not establish gameplay correctness.
+
+## How CI selects checks
+
+[Build and test](.github/workflows/test.yml) runs once for each PR update. Pushes to `main` and manual runs keep the full Java, UI and Windows MCP regression. Feature branches use the PR run rather than a second push-triggered run; use a draft PR or a manual run for a branch that is not ready for review.
+
+The three required check names remain **Java tests and Javadoc**, **UI contract, build, and smoke tests**, and **MCP conformance**. PRs use the following routing:
+
+| PR changes | Checks that run |
+| --- | --- |
+| Recognized repository guides and `docs/**/*.md` | Markdown links and product status; no JDK, npm dependencies, Chromium, or Windows runner. |
+| Python MCP client `sdk/python/copperbench.py` or Python unit tests | Python SDK tests plus the always-on repository checks. |
+| TypeScript SDK | TypeScript SDK tests and the existing connection-file security regression plus repository checks; installs the UI shell development dependencies, without a UI build or Chromium. |
+| Shared MCP fixtures or `sdk/protocol.md` | Both SDK test suites plus repository checks. |
+| Allowlisted ordinary editors, translation dictionaries, local CSS, UI tests, Playwright configuration and fixtures | UI contract tests, production build, bridge/localization tests, and the existing four Chromium smoke specs. |
+| UI-Core test/validation code | UI contract tests plus repository checks. |
+| Java, native Python integration, startup/native UI, shared schemas, production build/dependency configuration, CI itself, or any unrecognized path | Full Java, frontend and Windows MCP regression. |
+
+Mixed changes take the union of their checks. A missing or ambiguous Git comparison selects the full regression. If the selector itself fails or emits invalid outputs, the required checks fail; they only skip after a successful explicit decision. The workflow is always triggered for PRs so a documentation-only change does not leave a required check permanently pending. Its Actions summary lists the selected checks.
+
+The small allowlist is in [scripts/ci/select_checks.py](scripts/ci/select_checks.py). Inspect a proposed change locally with:
+
+```sh
+python scripts/ci/select_checks.py --paths README.md
+python scripts/ci/select_checks.py --paths sdk/python/copperbench.py sdk/tests/mcp-client-reliability.json
+python -m unittest discover -s scripts/tests -p 'test_ci_selection.py'
+```
+
+For UI changes outside the four PR smoke specs, run the affected Playwright cases locally as well. The daily [Nightly product gates](.github/workflows/nightly.yml) keep the full Chromium suite, Java scale regression and eight generator tracks. Nightly and Windows release tests already build the UI through Gradle's `processResources → buildUiShell` dependency; they do not need another explicit `npm run build` in the same job.
+
+[Linux candidate validation](.github/workflows/stage15-linux-candidate.yml) keeps its separate package, JCEF and Minecraft render checks. PRs that only change allowlisted editors, dictionaries, local styles or frontend tests skip that workflow; native integration, startup and packaging changes retain it. `main` uses broader package-input coverage and manual runs remain available. A passing candidate workflow still does not replace installed-product or gameplay acceptance.
 
 ## Prepare a pull request
 

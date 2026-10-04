@@ -41,7 +41,9 @@ jobs:
         shell: pwsh
         run: |
           npm ci --prefix ui-core
+          if ($LASTEXITCODE -ne 0) { throw 'UI contract dependency installation failed' }
           npm ci --prefix ui-shell
+          if ($LASTEXITCODE -ne 0) { throw 'UI shell dependency installation failed' }
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
@@ -63,23 +65,29 @@ jobs:
           .\gradlew.bat --no-daemon --no-build-cache clean test javadoc
           '-Dcopperbench.stage9.scale=true'
           '-Dcopperbench.uiWindowTimeoutSeconds=20'
-      - name: Run UI contract and production build
+      # Gradle test already builds the UI shell through processResources -> buildUiShell.
+      - name: Run UI contract tests
         shell: pwsh
         run: |
           npm test --prefix ui-core
-          npm run build --prefix ui-shell
+          if ($LASTEXITCODE -ne 0) { throw 'UI contract tests failed' }
       - name: Run full Playwright suite
         working-directory: ui-shell
         shell: pwsh
         run: |
           npx playwright install --with-deps chromium
+          if ($LASTEXITCODE -ne 0) { throw 'Playwright browser installation failed' }
           npx playwright test --project=chromium
+          if ($LASTEXITCODE -ne 0) { throw 'Playwright regression failed' }
       - name: Verify status, documentation, and MCP
         shell: pwsh
         run: |
           node scripts/verify-product-status.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Product status validation failed' }
           node scripts/verify-markdown-links.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Markdown link validation failed' }
           pwsh -NoProfile -File ./scripts/verify-mcp-conformance.ps1 -OutputDirectory build/nightly-results/mcp
+          if ($LASTEXITCODE -ne 0) { throw 'MCP conformance failed' }
       - name: Upload nightly regression evidence
         uses: actions/upload-artifact@v7
         if: always()
