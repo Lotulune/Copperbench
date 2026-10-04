@@ -668,6 +668,93 @@ test.describe('JCEF Bridge & Host Transport Integration', () => {
     await expect(page.locator('[data-task-id="44444444-4444-4444-8444-444444444444"]')).toHaveCount(0);
   });
 
+  test('keeps task drawer completion controls after an older detail query returns', async ({ page }) => {
+    await page.addInitScript(() => {
+      const workspaceId = '11111111-1111-4111-8111-111111111111';
+      const taskId = '44444444-4444-4444-8444-444444444444';
+      const modulePath = '/src/mock/mockBridge.ts';
+      const ready = import(modulePath).then(({ MockCoreBridge }) => new MockCoreBridge());
+      const listeners = new Set<(raw: string) => void>();
+      let releaseDetail: (() => void) | undefined;
+      let taskState: 'absent' | 'running' | 'succeeded' = 'absent';
+      const running = {
+        id: taskId, kind: 'run_datagen', state: 'running', cancellable: true, progress: 0.5,
+        stage: { key: 'task.run_datagen.running', fallback: 'Running datagen', args: {} },
+        startedAt: '2026-10-04T10:00:00Z', completedAt: null,
+        diagnostics: { error: 0, warning: 0, info: 0 }
+      };
+      const completed = {
+        ...running, state: 'succeeded', cancellable: false, progress: 1,
+        stage: { key: 'task.run_datagen.completed', fallback: 'Datagen completed', args: {} },
+        completedAt: '2026-10-04T10:00:01Z'
+      };
+      window.__COPPERBENCH_UI_LOCALE__ = 'zh';
+      window.copperbenchHost = {
+        workspaceId,
+        async invoke(raw: string) {
+          const request = JSON.parse(raw);
+          if (request.operation === 'get_task' && request.payload.taskId === taskId) {
+            const stale = JSON.stringify({
+              messageType: 'query_result', schemaVersion: '1.0', requestId: request.requestId,
+              workspaceId, operation: 'get_task', revision: 1, status: 'succeeded', diagnostics: [],
+              data: { task: running, diagnostics: [], logs: [{ sequence: 1,
+                timestamp: running.startedAt, level: 'info', text: 'Delayed task query log' }] }
+            });
+            return await new Promise<string>((resolve) => {
+              releaseDetail = () => resolve(stale);
+              window.sessionStorage.setItem('taskDetailPending', 'true');
+            });
+          }
+          const core = await ready;
+          const result = request.messageType === 'handshake' ? await core.negotiateHandshake(request)
+            : request.messageType === 'command' ? await core.sendCommand(request) : await core.sendQuery(request);
+          if (request.messageType === 'query') result.revision = 1;
+          if (request.operation === 'get_workbench') {
+            result.data.workspace.revision = 1;
+            result.data.activeTasks = taskState === 'running' ? [running] : [];
+            result.data.recentTasks = taskState === 'absent' ? [] : [taskState === 'running' ? running : completed];
+          }
+          return JSON.stringify(result);
+        },
+        onEvent(listener: (raw: string) => void) {
+          listeners.add(listener);
+          return () => listeners.delete(listener);
+        }
+      };
+      const emit = (sequence: number, event: string, task: typeof running | typeof completed) => {
+        const raw = JSON.stringify({ messageType: 'event', schemaVersion: '1.0', workspaceId,
+          revision: 1, sequence, event, payload: { task } });
+        listeners.forEach((listener) => listener(raw));
+      };
+      Object.assign(window, {
+        __TASK_DETAIL_START__: () => { taskState = 'running'; emit(1, 'task_started', running); },
+        __TASK_DETAIL_COMPLETE__: () => { taskState = 'succeeded'; emit(2, 'task_completed', completed); },
+        __TASK_DETAIL_RELEASE__: () => releaseDetail?.()
+      });
+    });
+
+    await page.goto('/');
+    await expect(page.getByTestId('app-shell')).toBeVisible();
+    await expect(page.getByText('Copper Trails').first()).toBeVisible();
+    await page.evaluate(() => (window as unknown as { __TASK_DETAIL_START__: () => void }).__TASK_DETAIL_START__());
+    await expect(page.locator('[data-task-id="44444444-4444-4444-8444-444444444444"]')).toHaveCount(1);
+    await page.getByTestId('running-task-pill').click();
+    const drawer = page.getByTestId('task-drawer');
+    await expect(drawer).toBeVisible();
+    await expect(page.getByTestId('task-cancel-btn')).toBeVisible();
+    await expect.poll(() => page.evaluate(() => window.sessionStorage.getItem('taskDetailPending'))).toBe('true');
+
+    await page.evaluate(() => (window as unknown as { __TASK_DETAIL_COMPLETE__: () => void }).__TASK_DETAIL_COMPLETE__());
+    await expect(page.getByTestId('datagen-preview-btn')).toBeVisible();
+    await expect(page.getByTestId('task-cancel-btn')).toHaveCount(0);
+    await page.evaluate(() => (window as unknown as { __TASK_DETAIL_RELEASE__: () => void }).__TASK_DETAIL_RELEASE__());
+    await expect(drawer).toContainText('Delayed task query log');
+    await expect(drawer).toContainText('已完成');
+    await expect(page.getByTestId('datagen-preview-btn')).toBeVisible();
+    await expect(page.getByTestId('task-cancel-btn')).toHaveCount(0);
+    await expect(page.locator('[data-task-id="44444444-4444-4444-8444-444444444444"]')).toHaveCount(0);
+  });
+
   test('deduplicates task logs and gives pushed completion precedence over a stale poll', async ({ page }) => {
     await page.goto('/');
     const outcome = await page.evaluate(async () => {

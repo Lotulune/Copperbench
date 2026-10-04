@@ -92,6 +92,7 @@ export function createBrowserJcefTransport(
 
 type EventListener = (event: CoreEvent) => void;
 type StateListener = (state: BridgeState) => void;
+type TaskQueryWatermark = { eventSequence: number; requestSequence: number };
 
 const initialState = (): BridgeState => ({
   currentScenarioId: 'native',
@@ -120,6 +121,9 @@ export class JcefCoreBridge implements CoreBridge {
   private readonly stateListeners = new Set<StateListener>();
   private readonly hostUnsubscribe: () => void;
   private readonly taskPollers = new Map<string, ReturnType<typeof setTimeout>>();
+  private readonly taskUpdateSequences = new Map<string, number>();
+  private readonly appliedTaskQuerySequences = new Map<string, number>();
+  private nextTaskQuerySequence = 0;
   private lastEventSequence = 0;
   private projectionRefresh: Promise<void> | null = null;
   private projectionRefreshRequested = false;
@@ -174,9 +178,15 @@ export class JcefCoreBridge implements CoreBridge {
   }
 
   public async sendQuery<T>(query: Query): Promise<QueryResult<T>> {
+    const taskWatermark = query.operation === 'get_task'
+      ? { eventSequence: this.lastEventSequence, requestSequence: ++this.nextTaskQuerySequence }
+      : undefined;
     const result = await this.invoke<QueryResult<T>>(query);
-    this.applyQueryResult(result as QueryResult);
+    if (this.disposed) return result;
+    this.applyQueryResult(result as QueryResult, taskWatermark);
     this.notify();
+    // Preserve request-specific data (for example source previews). A superseded
+    // task snapshot may not update shared state; scheduling must read that state.
     return result;
   }
 
@@ -192,6 +202,8 @@ export class JcefCoreBridge implements CoreBridge {
     this.hostUnsubscribe();
     this.taskPollers.forEach((timer) => clearTimeout(timer));
     this.taskPollers.clear();
+    this.taskUpdateSequences.clear();
+    this.appliedTaskQuerySequences.clear();
     this.eventListeners.clear();
     this.stateListeners.clear();
   }
@@ -336,7 +348,7 @@ export class JcefCoreBridge implements CoreBridge {
     }
   }
 
-  private applyQueryResult(result: QueryResult): void {
+  private applyQueryResult(result: QueryResult, taskWatermark?: TaskQueryWatermark): void {
     if (result.status !== 'succeeded' || !result.data) {
       this.state.diagnostics = [...result.diagnostics];
       return;
@@ -357,13 +369,7 @@ export class JcefCoreBridge implements CoreBridge {
         break;
       }
       case 'get_task': {
-        const projection = result.data as TaskProjection;
-        this.state.tasks[projection.task.id] = projection.task;
-        this.state.taskDiagnostics[projection.task.id] = [...projection.diagnostics];
-        const existing = this.state.taskLogs[projection.task.id] ?? [];
-        const bySequence = new Map(existing.map((entry) => [entry.sequence, entry]));
-        projection.logs.forEach((entry) => bySequence.set(entry.sequence, entry));
-        this.state.taskLogs[projection.task.id] = [...bySequence.values()].sort((left, right) => left.sequence - right.sequence);
+        this.applyTaskProjection(result.data as TaskProjection, taskWatermark);
         break;
       }
       case 'get_history': {
@@ -413,25 +419,24 @@ export class JcefCoreBridge implements CoreBridge {
       case 'task_started':
       case 'task_progressed':
       case 'task_completed':
+        this.taskUpdateSequences.set(event.payload.task.id, event.sequence);
         this.state.tasks[event.payload.task.id] = event.payload.task;
         this.synchronizeActiveTask(event.payload.task);
         break;
       case 'task_log_appended': {
-        const current = this.state.taskLogs[event.payload.taskId] ?? [];
-        const bySequence = new Map(current.map((entry) => [entry.sequence, entry]));
-        event.payload.entries.forEach((entry) => bySequence.set(entry.sequence, entry));
-        this.state.taskLogs[event.payload.taskId] = [...bySequence.values()].sort(
-          (left, right) => left.sequence - right.sequence
-        );
+        this.mergeTaskLogs(event.payload.taskId, event.payload.entries);
         break;
       }
-      case 'diagnostics_changed':
+      case 'diagnostics_changed': {
+        const taskDiagnostics = this.diagnosticsByTask(event.payload.diagnostics);
+        for (const taskId of Object.keys(taskDiagnostics)) this.taskUpdateSequences.set(taskId, event.sequence);
         this.state.diagnostics = [...event.payload.diagnostics];
         this.state.taskDiagnostics = {
           ...this.state.taskDiagnostics,
-          ...this.diagnosticsByTask(event.payload.diagnostics)
+          ...taskDiagnostics
         };
         break;
+      }
       case 'connectivity_changed':
         if (this.state.workbench) this.state.workbench.connection = event.payload;
         break;
@@ -517,6 +522,33 @@ export class JcefCoreBridge implements CoreBridge {
     this.state.workbench.activeTasks = activeTasks;
   }
 
+  private applyTaskProjection(projection: TaskProjection, watermark?: TaskQueryWatermark): void {
+    const taskId = projection.task.id;
+    // Logs have their own immutable sequence. Even an old task snapshot can fill
+    // a missing log interval without replacing newer task state or diagnostics.
+    this.mergeTaskLogs(taskId, projection.logs);
+    if (watermark && (
+      (this.taskUpdateSequences.get(taskId) ?? 0) > watermark.eventSequence
+      || (this.appliedTaskQuerySequences.get(taskId) ?? 0) > watermark.requestSequence
+    )) return;
+
+    this.state.tasks[taskId] = projection.task;
+    this.state.taskDiagnostics[taskId] = [...projection.diagnostics];
+    this.synchronizeActiveTask(projection.task);
+    if (watermark) this.appliedTaskQuerySequences.set(taskId, watermark.requestSequence);
+  }
+
+  private mergeTaskLogs(taskId: string, entries: TaskProjection['logs']): void {
+    const bySequence = new Map((this.state.taskLogs[taskId] ?? []).map((entry) => [entry.sequence, entry]));
+    entries.forEach((entry) => bySequence.set(entry.sequence, entry));
+    this.state.taskLogs[taskId] = [...bySequence.values()].sort((left, right) => left.sequence - right.sequence);
+  }
+
+  private isTaskActive(taskId: string): boolean {
+    const task = this.state.tasks[taskId];
+    return task?.state === 'queued' || task?.state === 'running';
+  }
+
   private diagnosticsByTask(diagnostics: BridgeState['diagnostics']): BridgeState['taskDiagnostics'] {
     const grouped: BridgeState['taskDiagnostics'] = {};
     for (const diagnostic of diagnostics) {
@@ -547,12 +579,11 @@ export class JcefCoreBridge implements CoreBridge {
       this.taskPollers.delete(taskId);
       if (this.disposed) return;
       try {
-        const baselineSequence = this.lastEventSequence;
         const afterLogSequence = (this.state.taskLogs[taskId] ?? []).reduce(
           (maximum, entry) => Math.max(maximum, entry.sequence),
           0
         );
-        const result = await this.invoke<QueryResult<TaskProjection>>({
+        const result = await this.sendQuery<TaskProjection>({
           messageType: 'query',
           schemaVersion: '1.0',
           requestId: safeRandomUUID(),
@@ -561,22 +592,12 @@ export class JcefCoreBridge implements CoreBridge {
           payload: { taskId, afterLogSequence }
         });
         if (this.disposed) return;
-        if (this.lastEventSequence !== baselineSequence) {
-          const currentTask = this.state.tasks[taskId];
-          if (currentTask?.state === 'queued' || currentTask?.state === 'running') {
-            this.taskPollers.set(taskId, setTimeout(refresh, 500));
-          }
-          return;
-        }
-        this.applyQueryResult(result);
-        this.notify();
-        const task = (result.data as TaskProjection | null)?.task;
-        if (!this.disposed && (task?.state === 'queued' || task?.state === 'running')) {
+        if (result.status === 'succeeded' && result.data && this.isTaskActive(taskId)) {
           this.taskPollers.set(taskId, setTimeout(refresh, 500));
         }
       } catch (error) {
         console.warn('[Copperbench Bridge] Task refresh failed:', error);
-        if (!this.disposed) this.taskPollers.set(taskId, setTimeout(refresh, 1000));
+        if (!this.disposed && this.isTaskActive(taskId)) this.taskPollers.set(taskId, setTimeout(refresh, 1000));
       }
     };
     // Leave the originating command observable to native hosts before polling task state.
