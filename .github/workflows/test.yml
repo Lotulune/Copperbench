@@ -151,6 +151,24 @@ jobs:
         run: npm ci
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
+      - name: Test filesystem boundaries on Windows
+        shell: pwsh
+        run: >-
+          .\gradlew.bat --no-daemon --no-build-cache test
+          --tests dev.copperbench.core.workspace.WorkspaceFilesTest
+          --tests dev.copperbench.assets.ResourcePackExportServiceTest
+          --tests dev.copperbench.migration.LoaderMigrationServiceTest
+          --tests dev.copperbench.migration.UpstreamWorkspaceImportServiceTest
+      - name: Upload Windows filesystem test results
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: windows-filesystem-results
+          path: |
+            build/test-results/test/
+            build/reports/tests/test/
+          if-no-files-found: ignore
+          retention-days: 14
       - name: Verify signed release-source gate
         shell: pwsh
         run: pwsh -NoProfile -File ./scripts/tests/verify-release-source.tests.ps1
