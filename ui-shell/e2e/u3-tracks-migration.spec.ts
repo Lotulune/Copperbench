@@ -7,7 +7,7 @@ test.describe('U3: Version Tracks, Loader Migration, Upstream Import, and Publis
     await page.getByRole('button', { name: '展开或收起工具' }).click();
   });
 
-  test('shows actual versions and support status with secondary details collapsed', async ({ page }, testInfo) => {
+  test('shows versions and support status without repeated support disclosures', async ({ page }, testInfo) => {
     await page.click('[data-testid="nav-tracks"]');
     await expect(page.locator('[data-testid="tracks-view"]')).toBeVisible();
     const view = page.getByTestId('tracks-view');
@@ -24,19 +24,49 @@ test.describe('U3: Version Tracks, Loader Migration, Upstream Import, and Publis
     await expect(page.locator('[data-testid="track-card-minecraft_1_20_1"]')).toBeVisible();
 
     await expect(page.locator('[data-testid="status-supported"]').first()).toBeVisible();
-    await expect(page.getByText('TRACK_SUPPORTED').first()).not.toBeVisible();
+    await expect(page.getByText('支持详情', { exact: true })).toHaveCount(0);
+    await expect(page.getByText('TRACK_SUPPORTED')).toHaveCount(0);
     await expect(page.getByText('Minecraft 26.2').first()).toBeVisible();
     await expect(view).toContainText('NeoForge');
     await expect(view).toContainText('Fabric');
+    await expect(page.getByTestId('loader-row-minecraft_1_20_1-neoforge').locator('.track-loader-actions > span'))
+      .toHaveAttribute('title', /工作区模板使用 Forge 1\.20\.1/);
     expect(await view.evaluate(element => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
     await page.screenshot({ path: testInfo.outputPath('versions.png') });
-    await page.getByText('支持详情', { exact: true }).first().click();
-    await expect(page.getByText('TRACK_SUPPORTED').first()).toBeVisible();
     await page.getByTestId('tab-upstream-import').focus();
     await page.keyboard.press('Enter');
     await expect(page.getByTestId('upstream-import-section')).toBeVisible();
     await page.keyboard.press('Enter');
     await expect(page.getByTestId('upstream-import-section')).not.toBeVisible();
+  });
+
+  test('keeps Core unavailable and preview reasons beside their status', async ({ page }) => {
+    await page.evaluate(async () => {
+      const modulePath = '/src/mock/mockBridge.ts';
+      const { MockCoreBridge } = await import(modulePath);
+      const original = MockCoreBridge.prototype.sendQuery;
+      MockCoreBridge.prototype.sendQuery = async function(query: { operation: string }) {
+        const result = await original.call(this, query);
+        if (query.operation === 'get_version_tracks') {
+          const [unavailable, preview] = result.data.tracks[0].loaders;
+          unavailable.status = 'unavailable';
+          unavailable.notes = '缺少所需生成器插件。';
+          unavailable.reasonCode = 'GENERATOR_PLUGIN_UNAVAILABLE';
+          preview.status = 'preview';
+          preview.notes = '部分元素暂不支持生成，请先检查迁移报告。';
+          preview.reasonCode = 'GENERATOR_PREVIEW';
+        }
+        return result;
+      };
+    });
+    await page.click('[data-testid="nav-tracks"]');
+    const unavailable = page.getByTestId('loader-row-latest_stable-fabric');
+    await expect(unavailable.getByTestId('status-unavailable')).toBeVisible();
+    await expect(unavailable).toContainText('缺少所需生成器插件。');
+    await expect(unavailable.getByRole('button', { name: '迁移', exact: true })).toHaveCount(0);
+    const preview = page.getByTestId('loader-row-latest_stable-neoforge');
+    await expect(preview.getByTestId('status-preview')).toBeVisible();
+    await expect(preview).toContainText('部分元素暂不支持生成，请先检查迁移报告。');
   });
 
   test('previews loader migration with 5 disposition groups and requires explicit confirmation to execute', async ({ page }) => {

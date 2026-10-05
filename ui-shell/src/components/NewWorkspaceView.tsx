@@ -20,6 +20,7 @@ import {
   Diagnostic
 } from '../types/contract';
 import { t } from '../i18n';
+import './newWorkspace.css';
 
 type WorkspaceFormField = 'generatorId' | 'modName' | 'modId' | 'packageName' | 'workspaceFolderPath';
 
@@ -361,10 +362,11 @@ export const NewWorkspaceView: React.FC = () => {
         </div>
       )}
 
-      <div className="new-workspace-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(320px, 1fr) minmax(320px, 1fr)', gap: '20px', alignItems: 'start' }}>
+      <div className="new-workspace-grid">
         {/* 左列：生成器选择 */}
         <div
           id={FIELD_ELEMENT_ID.generatorId}
+          className="new-workspace-card"
           data-testid="generator-catalog"
           tabIndex={-1}
           aria-invalid={fieldError('generatorId') ? true : undefined}
@@ -384,7 +386,7 @@ export const NewWorkspaceView: React.FC = () => {
               <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-sub)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                 {track.label}
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
+              <div className="new-workspace-generator-options">
                 {track.generators.map((g: NewWorkspaceGenerator) => {
                   const isSel = generatorId === g.generatorId;
                   return (
@@ -426,7 +428,7 @@ export const NewWorkspaceView: React.FC = () => {
           ))}
 
           {selectedGenerator && (
-            <div data-testid="selected-generator-info" style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--bg-canvas)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)', padding: '8px 12px', fontSize: '11px', color: 'var(--text-sub)' }}>
+            <div className="new-workspace-selected-generator" data-testid="selected-generator-info" style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--bg-canvas)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)', padding: '8px 12px', fontSize: '11px', color: 'var(--text-sub)' }}>
               <Info size={13} color="var(--accent-copper)" />
               {tr("当前选择：")}<code style={{ color: 'var(--accent-copper)' }}>{selectedGenerator.workspaceGeneratorName}</code>
               {selectedGenerator.dynamic && <span className="badge badge-copper" style={{ fontSize: '9px' }}>{tr("动态轨")}</span>}
@@ -440,7 +442,7 @@ export const NewWorkspaceView: React.FC = () => {
         </div>
 
         {/* 右列：表单 */}
-        <div style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+        <div className="new-workspace-card" data-testid="new-workspace-info" style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <h3 style={{ fontSize: '14px', fontWeight: 700, margin: 0 }}>{tr("工作区信息")}</h3>
 
           <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px', fontWeight: 600 }}>

@@ -1,4 +1,5 @@
 import { tr, uiText } from '../i18n/locale';
+import './creatorData.css';
 import { valueLabel } from '../i18n/labels';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {

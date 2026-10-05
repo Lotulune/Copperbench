@@ -35,6 +35,57 @@ test.describe('New Workspace (product shell native flow)', () => {
     await expect(page.locator('[data-testid="selected-generator-info"]')).toContainText('neoforge-26.2');
   });
 
+  test('desktop columns share a bottom edge without stretching form controls', async ({ page }, testInfo) => {
+    await page.click('[data-testid="nav-new-workspace"]');
+    await expect(page.getByTestId('generator-option-fabric-26.2')).toBeVisible();
+
+    for (const viewport of [{ width: 1382, height: 956 }, { width: 1366, height: 768 }]) {
+      await page.setViewportSize(viewport);
+      const catalog = await page.getByTestId('generator-catalog').boundingBox();
+      const information = await page.getByTestId('new-workspace-info').boundingBox();
+      expect(catalog).not.toBeNull();
+      expect(information).not.toBeNull();
+      expect(information!.x).toBeGreaterThan(catalog!.x + catalog!.width);
+      expect(Math.abs(catalog!.y + catalog!.height - information!.y - information!.height)).toBeLessThan(1);
+      expect((await page.getByTestId('new-workspace-mod-name-input').boundingBox())!.height).toBeLessThan(40);
+      await page.screenshot({ path: testInfo.outputPath(`new-workspace-${viewport.width}.png`), animations: 'disabled' });
+    }
+
+    await page.getByTestId('generator-option-resourcepack-1.21.1').click();
+    await expect(page.getByTestId('new-workspace-package-input')).toHaveCount(0);
+    const cardHeights = await page.locator('.new-workspace-card').evaluateAll(cards => cards.map(card => card.getBoundingClientRect().height));
+    expect(Math.abs(cardHeights[0] - cardHeights[1])).toBeLessThan(1);
+  });
+
+  test('narrow columns stack and keep path hints and validation inside the form', async ({ page }, testInfo) => {
+    await page.click('[data-testid="nav-new-workspace"]');
+    await expect(page.getByTestId('generator-option-fabric-26.2')).toBeVisible();
+
+    for (const width of [720, 520]) {
+      await page.setViewportSize({ width, height: 900 });
+      const catalog = await page.getByTestId('generator-catalog').boundingBox();
+      const information = await page.getByTestId('new-workspace-info').boundingBox();
+      expect(information!.y).toBeGreaterThan(catalog!.y + catalog!.height);
+      expect(Math.abs(information!.x - catalog!.x)).toBeLessThan(1);
+      await page.getByTestId('new-workspace-mod-name-input').fill('Copper Trails');
+      await page.getByTestId('new-workspace-mod-id-input').fill('1nv@lid');
+      await page.getByTestId('new-workspace-folder-input').fill('C:\\Users\\example\\MCreatorWorkspaces\\demo');
+      await page.getByTestId('confirm-create-workspace-checkbox').check();
+      await page.getByTestId('create-workspace-submit-btn').click();
+      await expect(page.locator('#new-workspace-mod-id-error')).toContainText('模组 ID 必须为');
+      await page.getByTestId('new-workspace-info').scrollIntoViewIfNeeded();
+      const overflow = await page.getByTestId('new-workspace-view').evaluate(form => form.scrollWidth - form.clientWidth);
+      expect(overflow).toBeLessThanOrEqual(1);
+      const card = await page.getByTestId('new-workspace-info').boundingBox();
+      for (const selector of ['#new-workspace-folder-help', '#new-workspace-mod-id-error']) {
+        const message = await page.locator(selector).boundingBox();
+        expect(message!.x).toBeGreaterThanOrEqual(card!.x);
+        expect(message!.x + message!.width).toBeLessThanOrEqual(card!.x + card!.width);
+      }
+      await page.screenshot({ path: testInfo.outputPath(`new-workspace-${width}.png`), animations: 'disabled' });
+    }
+  });
+
   test('resource-pack selection uses pack terminology and does not require a Java package', async ({ page }) => {
     await page.click('[data-testid="nav-new-workspace"]');
     await page.click('[data-testid="generator-option-resourcepack-1.21.1"]');

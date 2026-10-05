@@ -480,7 +480,7 @@ export const TracksAndMigrationView: React.FC = () => {
                       {isCurrentGenerator(loader) && <span className="track-current-label">{uiText('当前', 'Current')}</span>}
                     </div>
                     <div className="track-loader-actions">
-                      {getStatusBadge(loader.status)}
+                      <span title={loader.notes || undefined}>{getStatusBadge(loader.status)}</span>
                       {migrationTargets.some(target => target.loader.generatorId === loader.generatorId) && (
                         <button type="button" className="btn-ghost" data-testid={`migrate-to-${loader.generatorId}`} onClick={() => {
                           setTargetGeneratorId(loader.generatorId);
@@ -490,11 +490,9 @@ export const TracksAndMigrationView: React.FC = () => {
                         }}>{uiText('迁移', 'Migrate')}<MoveRight size={13} aria-hidden="true" /></button>
                       )}
                     </div>
-                    <details className="track-support-details">
-                      <summary>{uiText('支持详情', 'Support details')}</summary>
-                      <p>{loader.notes}</p>
-                      <code>{loader.generatorId} · {loader.reasonCode}</code>
-                    </details>
+                    {(loader.status === 'unavailable' || loader.status === 'preview') && loader.notes && (
+                      <p className="track-availability-note">{loader.notes}</p>
+                    )}
                   </div>
                 ))}
               </section>
