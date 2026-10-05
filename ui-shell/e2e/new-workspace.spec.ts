@@ -41,10 +41,11 @@ test.describe('New Workspace (product shell native flow)', () => {
 
     for (const viewport of [{ width: 1382, height: 956 }, { width: 1366, height: 768 }]) {
       await page.setViewportSize(viewport);
-      const catalog = await page.getByTestId('generator-catalog').boundingBox();
-      const information = await page.getByTestId('new-workspace-info').boundingBox();
-      expect(catalog).not.toBeNull();
-      expect(information).not.toBeNull();
+      // Read both cards in one frame while their shared entrance animation runs.
+      const cards = await page.locator('.new-workspace-card').evaluateAll(nodes =>
+        nodes.map(node => node.getBoundingClientRect().toJSON()));
+      expect(cards).toHaveLength(2);
+      const [catalog, information] = cards;
       expect(information!.x).toBeGreaterThan(catalog!.x + catalog!.width);
       expect(Math.abs(catalog!.y + catalog!.height - information!.y - information!.height)).toBeLessThan(1);
       expect((await page.getByTestId('new-workspace-mod-name-input').boundingBox())!.height).toBeLessThan(40);
@@ -63,8 +64,10 @@ test.describe('New Workspace (product shell native flow)', () => {
 
     for (const width of [720, 520]) {
       await page.setViewportSize({ width, height: 900 });
-      const catalog = await page.getByTestId('generator-catalog').boundingBox();
-      const information = await page.getByTestId('new-workspace-info').boundingBox();
+      const cards = await page.locator('.new-workspace-card').evaluateAll(nodes =>
+        nodes.map(node => node.getBoundingClientRect().toJSON()));
+      expect(cards).toHaveLength(2);
+      const [catalog, information] = cards;
       expect(information!.y).toBeGreaterThan(catalog!.y + catalog!.height);
       expect(Math.abs(information!.x - catalog!.x)).toBeLessThan(1);
       await page.getByTestId('new-workspace-mod-name-input').fill('Copper Trails');
