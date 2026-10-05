@@ -39,6 +39,7 @@ import java.time.Clock;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 /** Hosts the offline React workbench and its scoped native transports. */
@@ -53,6 +54,7 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 	private final RecoverableBrowserHost browserHost;
 	private final KeyEventDispatcher keyboardShortcutDispatcher;
 	private final AtomicBoolean closed = new AtomicBoolean(false);
+	private final AtomicInteger unsavedSourceCount = new AtomicInteger();
 
 	private CopperbenchProductShell(JFrame owner, Workspace workspace, Path distributionRoot, Runnable closeAction,
 			Runnable openLegacyPluginWindow, Consumer<File> openWorkspaceAction,
@@ -85,7 +87,8 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 		try {
 			createdBrowserHost = new RecoverableBrowserHost(
 					() -> createBrowser(createdSession, owner, closeAction, openLegacyPluginWindow,
-							openWorkspaceAction, windowChromeController, workspaceRoot, createdMcpRuntime, createdPythonConsole), closeAction);
+							openWorkspaceAction, windowChromeController, workspaceRoot, createdMcpRuntime, createdPythonConsole,
+							unsavedSourceCount::set), closeAction);
 		} catch (RuntimeException exception) {
 			if (createdPythonConsole != null) createdPythonConsole.close();
 			if (createdPythonRuntime != null) createdPythonRuntime.close();
@@ -119,6 +122,8 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 	public UUID workspaceId() {
 		return session.workspaceId();
 	}
+
+	public int unsavedSourceCount() { return unsavedSourceCount.get(); }
 
 	@Override public void close() {
 		if (!closed.compareAndSet(false, true))
@@ -175,7 +180,7 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 	private static RecoverableBrowserHost.BrowserHandle createBrowser(MCreatorWorkspaceSession session, JFrame owner,
 			Runnable closeAction, Runnable openLegacyPluginWindow, Consumer<File> openWorkspaceAction,
 			WindowsWindowChromeController windowChromeController, Path workspaceRoot, DesktopMcpRuntime mcpRuntime,
-			dev.copperbench.headless.PythonConsoleService pythonConsole) {
+			dev.copperbench.headless.PythonConsoleService pythonConsole, Consumer<Integer> unsavedSourceConsumer) {
 		WebView webView = new WebView(UI_URL);
 		JcefCoreBridgeTransport coreTransport = null;
 		JcefWindowBridgeTransport windowTransport = null;
@@ -190,8 +195,8 @@ public final class CopperbenchProductShell extends JPanel implements AutoCloseab
 			coreTransport = webView.attachCoreBridge(session.workspaceId(), session.uiEntry());
 			windowTransport = windowChromeController != null
 					? JcefWindowBridgeTransport.attach(webView, owner, closeAction, windowChromeController::accept,
-							windowChromeController::isUsingCustomFrame, windowChromeController::pointerGesture)
-					: JcefWindowBridgeTransport.attach(webView, owner, closeAction);
+							windowChromeController::isUsingCustomFrame, windowChromeController::pointerGesture, unsavedSourceConsumer)
+					: JcefWindowBridgeTransport.attach(webView, owner, closeAction, null, () -> false, null, unsavedSourceConsumer);
 			legacyPluginTransport = JcefLegacyPluginBridgeTransport.attach(webView, openLegacyPluginWindow);
 			workspaceOpenTransport = JcefWorkspaceOpenBridgeTransport.attach(webView, openWorkspaceAction, workspaceRoot);
 			diagnosticsTransport = JcefDiagnosticsBridgeTransport.attach(webView,

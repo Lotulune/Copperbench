@@ -24,6 +24,231 @@ async function schema(name) {
   return JSON.parse(await readFile(new URL(`../schemas/v1.0/${name}.schema.json`, import.meta.url), 'utf8'));
 }
 
+test('wire operations cover Java and UI callers, with matching request and response categories', async () => {
+  const [command, query, java, typescript, { ajv }] = await Promise.all([
+    schema('command'), schema('query'),
+    readFile(new URL('../../src/main/java/dev/copperbench/core/contract/UiCore.java', import.meta.url), 'utf8'),
+    readFile(new URL('../../ui-shell/src/types/contract.ts', import.meta.url), 'utf8'),
+    createValidator()
+  ]);
+  const operationEnum = java.match(/public enum Operation\s*\{([\s\S]*?)\n\s*\}/)?.[1];
+  assert.ok(operationEnum, 'Java wire operation enum must remain discoverable');
+  const coreOperations = [...operationEnum.matchAll(/@SerializedName\("([a-z_]+)"\)/g)].map(match => match[1]);
+  assert.ok(coreOperations.length > 0, 'Java wire operation enum must not be empty');
+  const schemas = { Command: command, Query: query };
+  const allOperations = [...command.properties.operation.enum, ...query.properties.operation.enum];
+  assert.equal(new Set(allOperations).size, allOperations.length, 'an operation belongs to exactly one request category');
+  assert.deepEqual([...allOperations].sort(), [...coreOperations].sort(), 'schemas must describe the operations exposed by Core');
+  for (const [kind, document] of Object.entries(schemas)) {
+    const union = typescript.match(new RegExp(`export type ${kind}Operation\\s*=([\\s\\S]*?);`))?.[1];
+    assert.ok(union, `${kind} UI operation union must remain discoverable`);
+    const uiOperations = [...union.matchAll(/'([a-z_]+)'/g)].map(match => match[1]);
+    assert.ok(uiOperations.length > 0, `${kind} UI operation union must not be empty`);
+    const supported = new Set(document.properties.operation.enum);
+    assert.deepEqual(uiOperations.filter(operation => !supported.has(operation)), [], `${kind} operations used by UI must be supported`);
+    const validateResponseOperation = ajv.compile({ $ref: `urn:ui-core:1.0:${kind.toLowerCase()}-result#/properties/operation` });
+    for (const operation of [...allOperations, 'unknown_operation']) {
+      assert.equal(validateResponseOperation(operation), supported.has(operation), `${kind} response category for ${operation}`);
+    }
+  }
+});
+
+const operationProbeId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa31';
+const operationProbeWorkspace = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+
+function operationRequest(messageType, operation, payload) {
+  return { messageType, schemaVersion: '1.0', requestId: operationProbeId,
+    workspaceId: operationProbeWorkspace, operation, payload,
+    ...(messageType === 'command' ? { expectedRevision: 7 } : {}) };
+}
+
+test('workspace source edits require a disk hash, revision and bounded text while reads remain separate', async () => {
+  const { ajv } = await createValidator();
+  const command = ajv.getSchema('urn:ui-core:1.0:command');
+  const query = ajv.getSchema('urn:ui-core:1.0:query');
+  const update = operationRequest('command', 'update_workspace_file', {
+    clientMutationId: operationProbeId, relativePath: 'src/main/java/example/Entry.java', content: '', expectedSha256: 'a'.repeat(64)
+  });
+  assert.equal(command(update), true, JSON.stringify(command.errors));
+  delete update.expectedRevision;
+  assert.equal(command(update), false);
+  update.expectedRevision = 7;
+  delete update.payload.expectedSha256;
+  assert.equal(command(update), false);
+  update.payload.expectedSha256 = 'stale';
+  assert.equal(command(update), false);
+  update.payload.expectedSha256 = 'b'.repeat(64);
+  update.payload.content = 'x'.repeat(1048577);
+  assert.equal(command(update), false);
+  update.payload.content = 'class Entry {}';
+  update.payload.force = true;
+  assert.equal(command(update), false, 'there is no force-overwrite escape hatch');
+  assert.equal(query(operationRequest('query', 'read_workspace_file', { relativePath: 'src/main/java/example/Entry.java' })), true);
+  assert.equal(query(operationRequest('query', 'read_workspace_file', {})), false);
+  assert.equal(query(operationRequest('query', 'list_workspace_files', { limit: 200, offset: 0, search: 'Entry' })), true);
+  for (const payload of [{ limit: 201 }, { offset: -1 }, { offset: 1.5 }])
+    assert.equal(query(operationRequest('query', 'list_workspace_files', payload)), false);
+  assert.equal(query(operationRequest('query', 'get_workspace_source_index', {})), true);
+  assert.equal(query(operationRequest('query', 'get_workspace_source_index', { root: 'C:/' })), false);
+});
+
+test('source projections retain ownership, evidence locations and conflict-compatible response shapes', async () => {
+  const { ajv } = await createValidator();
+  const query = ajv.getSchema('urn:ui-core:1.0:query-result');
+  const command = ajv.getSchema('urn:ui-core:1.0:command-result');
+  const file = { relativePath: 'src/main/java/Entry.java', name: 'Entry.java', language: 'java', size: 14,
+    ownership: 'manual', editable: true, reasonCode: null };
+  const response = { messageType: 'query_result', schemaVersion: '1.0', requestId: operationProbeId,
+    workspaceId: operationProbeWorkspace, operation: 'read_workspace_file', status: 'succeeded', revision: 7,
+    data: { ...file, content: 'class Entry {}', sha256: 'a'.repeat(64) }, diagnostics: [] };
+  assert.equal(query(response), true, JSON.stringify(query.errors));
+  delete response.data.sha256;
+  assert.equal(query(response), false, 'read cannot drop the concurrency fingerprint');
+  response.operation = 'list_workspace_files';
+  response.data = { files: [file], total: 1, nextOffset: null, truncated: false, maxFileBytes: 1048576 };
+  assert.equal(query(response), true, JSON.stringify(query.errors));
+  delete file.editable;
+  assert.equal(query(response), false, 'file ownership must include the concrete editability decision');
+  response.operation = 'get_workspace_source_index';
+  response.data = { entries: [{ id: 'evidence-id', kind: 'registration', relativePath: 'src/main/java/Entry.java',
+    line: 4, symbol: 'ITEM · Registry.register', evidence: 'Registry.register(...)' }], scannedFiles: 1, truncated: false };
+  assert.equal(query(response), true, JSON.stringify(query.errors));
+  response.data.entries[0].line = 0;
+  assert.equal(query(response), false);
+  response.status = 'rejected'; response.data = null;
+  assert.equal(query(response), true, 'failures do not pretend to have a successful projection');
+  const saved = { ...response, messageType: 'command_result', operation: 'update_workspace_file', status: 'committed',
+    newRevision: 8, recoveryPointId: null, task: null, conflict: null, denial: null,
+    data: { relativePath: 'src/main/java/Entry.java', sha256: 'b'.repeat(64), size: 0, changed: true } };
+  delete saved.revision;
+  assert.equal(command(saved), true, JSON.stringify(command.errors));
+  delete saved.data.changed;
+  assert.equal(command(saved), false);
+});
+
+test('asset preview and apply contracts preserve grant, plan-token and batch boundaries', async () => {
+  const { ajv } = await createValidator();
+  const command = ajv.getSchema('urn:ui-core:1.0:command');
+  const query = ajv.getSchema('urn:ui-core:1.0:query');
+  const destination = 'src/main/resources/assets/example/textures/block/copper.png';
+  for (const operation of ['import_asset', 'import_asset_batch', 'move_asset']) {
+    const request = operationRequest('command', operation, {
+      clientMutationId: operationProbeId, taskAuthorizationId: operationProbeId, planToken: 'reviewed-plan'
+    });
+    assert.equal(command(request), true, `${operation}: ${JSON.stringify(command.errors)}`);
+    if (operation !== 'move_asset') {
+      request.payload.confirmReplace = false;
+      assert.equal(command(request), true, JSON.stringify(command.errors));
+      request.payload.confirmReplace = 'false';
+      assert.equal(command(request), false, 'replacement confirmation must be a boolean');
+      delete request.payload.confirmReplace;
+    }
+    delete request.payload.planToken;
+    assert.equal(command(request), false, 'apply must reference a reviewed plan');
+    request.payload.planToken = '';
+    assert.equal(command(request), false, 'plan token must not be empty');
+    request.payload.planToken = 'reviewed-plan';
+    request.payload.sourcePath = 'C:/unreviewed.png';
+    assert.equal(command(request), false, 'apply cannot replace the reviewed source with a file path');
+  }
+  const item = { sourceGrantId: 'selected-source-grant', targetRelativePath: destination };
+  const request = operationRequest('query', 'preview_asset_import', { ...item });
+  assert.equal(query(request), true, JSON.stringify(query.errors));
+  delete request.payload.sourceGrantId;
+  request.payload.sourcePath = 'C:/ungranted.png';
+  assert.equal(query(request), false, 'preview requires a source grant, not an arbitrary file');
+  request.operation = 'preview_asset_move';
+  request.payload = { sourceAssetId: 'asset:models/block/copper.json', targetRelativePath: destination };
+  assert.equal(query(request), true, JSON.stringify(query.errors));
+  delete request.payload.sourceAssetId;
+  assert.equal(query(request), false);
+  request.operation = 'preview_asset_import_batch';
+  request.payload = { items: Array.from({ length: 64 }, () => ({ ...item })) };
+  assert.equal(query(request), true, JSON.stringify(query.errors));
+  request.payload.items.push({ ...item });
+  assert.equal(query(request), false, 'Core supports at most 64 items');
+  request.payload.items = [];
+  assert.equal(query(request), false, 'a batch must contain an item');
+});
+
+test('Procedure refactor contracts require the selected refactor inputs and a revision-bound plan', async () => {
+  const { ajv } = await createValidator();
+  const validate = ajv.getSchema('urn:ui-core:1.0:query');
+  const variants = [
+    { kind: 'extract_node', elementId: operationProbeId, nodeId: operationProbeId, newProcedureName: 'shared_logic' },
+    { kind: 'replace_call_target', sourceProcedureId: operationProbeId, targetProcedureId: operationProbeId },
+    { kind: 'replace_resource_target', sourceResource: 'example:copper', targetResource: 'example:iron' }
+  ];
+  for (const variant of variants) {
+    const payload = { ...variant, expectedRevision: 7, idempotencyKey: 'refactor-request' };
+    const request = operationRequest('query', 'plan_procedure_refactor', payload);
+    assert.equal(validate(request), true, JSON.stringify(validate.errors));
+    for (const field of Object.keys(payload)) {
+      request.payload = { ...payload };
+      delete request.payload[field];
+      assert.equal(validate(request), false, `${variant.kind} requires ${field}`);
+    }
+    request.payload = { ...payload, expectedRevision: -1 };
+    assert.equal(validate(request), false);
+    request.payload = { ...payload, idempotencyKey: '' };
+    assert.equal(validate(request), false);
+  }
+});
+
+test('source management and local templates accept supported inputs and reject invalid selections', async () => {
+  const { ajv } = await createValidator();
+  const command = ajv.getSchema('urn:ui-core:1.0:command');
+  const query = ajv.getSchema('urn:ui-core:1.0:query');
+  const request = operationRequest('command', 'set_mod_element_source_management', {
+    clientMutationId: operationProbeId, elementId: operationProbeId, mode: 'manual'
+  });
+  assert.equal(command(request), true, JSON.stringify(command.errors));
+  request.payload.mode = 'generated'; request.payload.userApproved = true;
+  assert.equal(command(request), true, JSON.stringify(command.errors));
+  request.payload.mode = 'mixed';
+  assert.equal(command(request), false);
+  request.operation = 'create_local_template';
+  request.payload = { clientMutationId: operationProbeId, templateName: 'copper_tools', elementIds: [operationProbeId] };
+  assert.equal(command(request), true, JSON.stringify(command.errors));
+  request.payload.elementIds = [];
+  assert.equal(command(request), false, 'an empty template is rejected by Core');
+  request.payload.assetPaths = ['src/main/resources/assets/example/textures/item/copper.png'];
+  assert.equal(command(request), true, JSON.stringify(command.errors));
+  request.payload.assetPaths = Array(65).fill('texture.png');
+  assert.equal(command(request), false);
+  request.payload.assetPaths = ['texture.png']; request.payload.templateName = '../outside';
+  assert.equal(command(request), false);
+  const preview = operationRequest('query', 'preview_local_template_instantiation', {
+    templateName: 'copper_tools', expectedRevision: 7, idempotencyKey: 'template-request'
+  });
+  assert.equal(query(preview), true, JSON.stringify(query.errors));
+  delete preview.payload.idempotencyKey;
+  assert.equal(query(preview), false);
+  const list = operationRequest('query', 'list_local_templates', {});
+  assert.equal(query(list), true, JSON.stringify(query.errors));
+  list.payload.directory = 'C:/elsewhere';
+  assert.equal(query(list), false);
+});
+
+test('new operation responses accept success and failure envelopes', async () => {
+  const { ajv } = await createValidator();
+  for (const [kind, operations] of [
+    ['command', ['import_asset', 'import_asset_batch', 'move_asset', 'set_mod_element_source_management', 'create_local_template']],
+    ['query', ['preview_asset_import', 'preview_asset_import_batch', 'preview_asset_move', 'plan_procedure_refactor', 'list_local_templates', 'preview_local_template_instantiation']]
+  ]) {
+    const validate = ajv.getSchema(`urn:ui-core:1.0:${kind}-result`);
+    for (const operation of operations) {
+      const response = { messageType: `${kind}_result`, schemaVersion: '1.0', requestId: operationProbeId,
+        workspaceId: operationProbeWorkspace, operation, diagnostics: [], data: {},
+        ...(kind === 'command' ? { status: 'committed', newRevision: 8, recoveryPointId: null, task: null, conflict: null, denial: null }
+          : { status: 'succeeded', revision: 7 }) };
+      assert.equal(validate(response), true, `${operation}: ${JSON.stringify(validate.errors)}`);
+      response.status = 'failed'; response.data = null;
+      assert.equal(validate(response), true, `${operation}: ${JSON.stringify(validate.errors)}`);
+    }
+  }
+});
+
 test('element identity distinguishes internal names from generator resource IDs without requiring new fields in old clients', async () => {
   const { ajv } = await createValidator();
   const validate = ajv.compile({ $ref: 'urn:ui-core:1.0:common#/$defs/modElementSummary' });
@@ -149,16 +374,6 @@ test('modeling imports require concrete mappings, a preview token, and typed rep
   assert.equal(validateCommand(command), true, JSON.stringify(validateCommand.errors));
   command.payload.confirmReplace = 'true';
   assert.equal(validateCommand(command), false);
-});
-
-test('command and query result operation sets match their request envelopes', async () => {
-  const command = await schema('command');
-  const commandResult = await schema('command-result');
-  const query = await schema('query');
-  const queryResult = await schema('query-result');
-
-  assert.deepEqual(commandResult.properties.operation.enum, command.properties.operation.enum);
-  assert.deepEqual(queryResult.properties.operation.enum, query.properties.operation.enum);
 });
 
 test('Stage17 auto mapping, external references and verified exports match the published contract', async () => {

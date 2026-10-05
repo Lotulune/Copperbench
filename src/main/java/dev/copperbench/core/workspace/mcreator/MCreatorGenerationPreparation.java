@@ -142,7 +142,9 @@ final class MCreatorGenerationPreparation {
         // Code elements and locked sources remain outside generation ownership.
         if (pending(opened) == null && operation != Operation.GENERATE_WORKSPACE
                 && (!needsDependencies(opened) || managedElements(opened).isEmpty())) return;
-        if (dev.copperbench.tracks.VersionTrackCatalog.official().findGenerator(state.generator().get("id").getAsString()).isEmpty()) return;
+        String generatorId = state.generator().get("id").getAsString();
+        if (dev.copperbench.tracks.VersionTrackCatalog.official().findGenerator(generatorId).isEmpty()
+                && !dev.copperbench.generator.datapack.DataPackWorkspaceTaskGateway.GENERATOR_IDS.contains(generatorId)) return;
         if (target.equals(source)) {
             prepare(opened, state, operation, output, true);
         } else {

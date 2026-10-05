@@ -1,4 +1,5 @@
-import { tr } from '../i18n/locale';
+import { tr, uiText } from '../i18n/locale';
+import './creatorData.css';
 import { valueLabel } from '../i18n/labels';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
@@ -158,7 +159,7 @@ export const CreatorDataView: React.FC = () => {
       setMessage(result.diagnostics[0] ? t(result.diagnostics[0].message) : tr("创建注册表条目失败。"));
       return;
     }
-    setMessage(tr("已创建 {0}，稳定 ID 为 {1}", [name.trim(), result.data?.entry?.id ?? '-']));
+    setMessage(uiText(`已创建 ${name.trim()}。`, `Created ${name.trim()}.`));
     resetForm();
     await refresh();
   };
@@ -335,7 +336,6 @@ export const CreatorDataView: React.FC = () => {
       <header className="creator-data-header">
         <div>
           <h1><Database size={18} />{tr("工作区数据")}</h1>
-          <p>{tr("管理变量、标签和语言词条，查看引用及重命名影响")}</p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           {tab === 'languageKeys' && (

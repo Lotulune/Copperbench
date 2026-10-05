@@ -32,45 +32,7 @@
       "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
     },
     "operation": {
-      "type": "string",
-      "enum": [
-        "import_blockbench_task",
-        "recover_blockbench_import",
-        "bind_blockbench_model",
-        "begin_blockbench_task",
-        "finish_blockbench_task",
-        "cancel_blockbench_task",
-        "create_workspace",
-        "create_mod_element",
-        "update_mod_element",
-        "delete_mod_element",
-        "update_procedure",
-        "create_registry_entry",
-        "update_registry_entry",
-        "delete_registry_entry",
-        "rename_registry_entry",
-        "apply_workspace_plan",
-        "validate_workspace",
-        "generate_workspace",
-        "build_workspace",
-        "export_workspace",
-        "run_client",
-        "run_server",
-        "run_datagen",
-        "publish_datagen_output",
-        "run_gametest",
-        "cancel_task",
-        "create_recovery_point",
-        "restore_recovery_point",
-        "resolve_operation_approval",
-        "execute_loader_migration",
-        "import_upstream_workspace",
-        "create_publish_batch",
-        "prepare_resource_pack_client",
-        "prepare_game_tests",
-        "create_task_authorization",
-        "revoke_task_authorization"
-      ]
+      "$ref": "urn:ui-core:1.0:command#/properties/operation"
     },
     "status": {
       "type": "string",
@@ -144,6 +106,16 @@
     }
   },
   "allOf": [
+    {
+      "if": {"properties": {"operation": {"const": "update_workspace_file"}, "status": {"enum": ["committed", "completed"]}}, "required": ["operation", "status"]},
+      "then": {"properties": {"data": {
+        "type": "object", "required": ["relativePath", "sha256", "size", "changed"],
+        "properties": {
+          "relativePath": {"type": "string", "minLength": 1}, "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+          "size": {"type": "integer", "minimum": 0, "maximum": 1048576}, "changed": {"type": "boolean"}
+        }, "additionalProperties": false
+      }}}
+    },
     {
       "if": {
         "properties": {

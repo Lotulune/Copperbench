@@ -103,7 +103,7 @@ test.describe('Adaptive Layout, Frameless Window & Theme Tests', () => {
     });
     expect(snapshot.sequence).toBeGreaterThan(0);
     expect(snapshot.regions.map((region: { id: string }) => region.id)).toEqual(expect.arrayContaining([
-      'titlebar', 'build', 'run-client', 'theme', 'system-frame-fallback', 'minimize', 'maximize', 'close'
+      'titlebar', 'theme', 'system-frame-fallback', 'minimize', 'maximize', 'close'
     ]));
     expect(snapshot.regions.find((region: { id: string }) => region.id === 'maximize').kind).toBe('maximize');
     expect(snapshot.regions.every((region: { bounds: { width: number; height: number } }) =>
@@ -155,17 +155,18 @@ test.describe('Adaptive Layout, Frameless Window & Theme Tests', () => {
 
   test('navigation rail tabs switch views properly', async ({ page }) => {
     await page.click('[data-testid="nav-assets"]');
-    await expect(page.getByRole('heading', { name: '资产与模型工作台' })).toBeVisible();
+    await expect(page.getByTestId('asset-browser')).toBeVisible();
 
     await page.click('[data-testid="nav-history"]');
     await expect(page.getByRole('heading', { name: '本地历史' })).toBeVisible();
 
+    if (!(await page.getByTestId('nav-ai').isVisible())) await page.getByTestId('nav-tools-toggle').click();
     await page.click('[data-testid="nav-ai"]');
     await expect(page.getByRole('heading', { name: 'AI 与 MCP' })).toBeVisible();
 
 
     await page.click('[data-testid="nav-plugins"]');
-    await expect(page.getByText('MCreator 插件兼容中心')).toBeVisible();
+    await expect(page.getByRole('heading', { name: '插件', exact: true })).toBeVisible();
     await expect(page.locator('[data-testid="installed-plugin-inventory"]')).toContainText('Generator 1.21.1');
     await expect(page.locator('[data-testid="upstream-tool-catalog"]')).toContainText('旧版窗口');
     await expect(page.locator('[data-testid="open-legacy-plugin-window"]')).toBeDisabled();
@@ -173,7 +174,7 @@ test.describe('Adaptive Layout, Frameless Window & Theme Tests', () => {
     await page.click('[data-testid="nav-help"]');
     await expect(page.locator('[data-testid="help-view"]')).toBeVisible();
     await expect(page.locator('[data-testid="about-panel"]')).toBeVisible();
-    await expect(page.locator('[data-testid="about-panel"]')).toContainText('Copperbench 0.1.3');
+    await expect(page.locator('[data-testid="about-panel"]')).toContainText('Copperbench 0.1.4');
 
     await page.click('[data-testid="nav-hub"]');
     await expect(page.locator('[data-testid="workbench-main"]')).toBeVisible();
@@ -185,13 +186,13 @@ test.describe('Adaptive Layout, Frameless Window & Theme Tests', () => {
     await expect(helpView).toBeVisible();
 
     // Header and dev-build badge
-    await expect(helpView).toContainText('帮助与使用说明');
+    await expect(helpView.getByRole('heading', { name: '帮助', exact: true })).toBeVisible();
     await expect(helpView).toContainText('稳定版');
 
     // About panel facts
     const aboutPanel = page.locator('[data-testid="about-panel"]');
     await expect(aboutPanel).toBeVisible();
-    await expect(aboutPanel).toContainText('Copperbench 0.1.3');
+    await expect(aboutPanel).toContainText('Copperbench 0.1.4');
     await expect(aboutPanel).toContainText('GPL-3.0');
     await expect(aboutPanel).toContainText('MCreator 2026.2.33518');
     await expect(aboutPanel).toContainText('稳定版');
@@ -199,6 +200,8 @@ test.describe('Adaptive Layout, Frameless Window & Theme Tests', () => {
 
     // Honest version tracks table
     const tracksTable = page.locator('[data-testid="help-tracks-table"]');
+    await expect(tracksTable).toBeHidden();
+    await page.getByTestId('help-track-details').locator(':scope > summary').click();
     await expect(tracksTable).toBeVisible();
     await expect(page.locator('[data-testid="help-track-row-1.21.1"]')).toContainText('正式支持');
     await expect(page.locator('[data-testid="help-track-row-26.2"]')).toContainText('Fabric / NeoForge 正式支持');
@@ -208,6 +211,9 @@ test.describe('Adaptive Layout, Frameless Window & Theme Tests', () => {
     // User guide sections
     await expect(page.locator('[data-testid="guide-section-workspace"]')).toContainText('工作区');
     await expect(page.locator('[data-testid="guide-section-mod-elements"]')).toContainText('模组元素');
+    await page.getByTestId('guide-section-mod-elements').locator(':scope > summary').focus();
+    await page.keyboard.press('Enter');
+    await expect(page.getByTestId('guide-link-mod-elements')).toBeVisible();
     await expect(page.locator('[data-testid="guide-section-mod-elements"]')).toContainText('可视化创建');
     await expect(page.locator('[data-testid="guide-section-local-history"]')).toContainText('本地历史');
     await expect(page.locator('[data-testid="guide-section-mcp-permissions"]')).toContainText('MCP 权限');

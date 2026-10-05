@@ -44,12 +44,13 @@ test('reviewed replacements require confirmation and imported models can be boun
     };
   });
   await page.goto('/'); await page.getByTestId('nav-assets').click();
+  await page.getByTestId('asset-modeling-disclosure').locator(':scope > summary').click();
   const panel = page.getByTestId('blockbench-tasks'); await panel.locator('summary').first().click();
   await panel.getByRole('button', { name: '刷新任务与保存状态' }).click();
   await panel.locator('.modeling-import-review summary').click();
   await panel.getByLabel('编辑目录内的导出文件').fill('export/lamp.json');
   await panel.getByLabel('工作区目标路径').fill('src/main/resources/assets/test/models/custom/lamp.json');
-  await panel.getByRole('button', { name: '预览回导' }).click();
+  await panel.getByRole('button', { name: '识别并预览回导', exact: true }).click();
   await expect(panel.getByRole('button', { name: '应用回导' })).toBeDisabled();
   await panel.getByRole('checkbox').check();
   await panel.getByRole('button', { name: '应用回导' }).click();
@@ -57,7 +58,7 @@ test('reviewed replacements require confirmation and imported models can be boun
   await panel.getByLabel('关联元素').selectOption({ index: 1 });
   await panel.getByLabel('导入的游戏模型').selectOption('test:custom/lamp');
   await panel.getByRole('button', { name: '关联所选模型' }).click();
-  await expect(panel).toContainText('模型已关联到元素');
+  await expect(panel).toContainText('模型已关联');
   const calls = await page.evaluate(() => (window as any).modelingCalls);
   expect(calls[0].payload.confirmReplace).toBe(true);
   expect(calls[0].payload.planToken).toBe('review-token');
@@ -83,7 +84,7 @@ test('first workbench modeling setup is optional and skipping persists through t
   });
   await page.goto('/');
   await expect(page.getByTestId('blockbench-onboarding')).toBeVisible();
-  await page.getByRole('button', { name: '稍后设置，继续制作模组' }).click();
+  await page.getByRole('button', { name: '稍后设置', exact: true }).click();
   await expect(page.getByTestId('blockbench-onboarding')).toHaveCount(0);
   await page.getByTestId('nav-assets').click(); await page.getByTestId('nav-hub').click();
   await expect(page.getByTestId('blockbench-onboarding')).toHaveCount(0);

@@ -6,7 +6,7 @@ import { mcpRuntimeBridge } from '../bridge/mcpRuntimeBridge';
 import { useWorkbench } from '../context/WorkbenchContext';
 import { useDialogA11y } from '../hooks/useDialogA11y';
 import { useMcpRuntimeState } from '../hooks/useMcpRuntimeState';
-import { t } from '../i18n';
+import { t, uiText } from '../i18n';
 import type { OperationApproval, PermissionProfile } from '../types/contract';
 import { TaskAuthorizationPanel } from './TaskAuthorizationPanel';
 import { BlockbenchSetupPanel } from './BlockbenchSetupPanel';
@@ -103,7 +103,6 @@ export const AIControlView: React.FC = () => {
           <Bot size={20} aria-hidden="true" />
           <div>
             <h2>{tr("AI 与 MCP")}</h2>
-            <span>{tr("本地连接 · 审计开启")}</span>
           </div>
         </div>
         <span className={`connection-state${mcp?.status === 'listening' ? '' : ' is-offline'}`}>
@@ -111,13 +110,12 @@ export const AIControlView: React.FC = () => {
         </span>
       </header>
 
-      <BlockbenchSetupPanel />
+      <details className="ai-integration-settings"><summary>{uiText('Blockbench', 'Blockbench')}</summary><BlockbenchSetupPanel /></details>
       <div className="ai-control-layout">
         <section className="permission-panel" aria-labelledby="mcp-runtime-heading">
           <div className="stage2-section-heading">
             <div>
               <h3 id="mcp-runtime-heading">{tr("本机 MCP 服务")}</h3>
-              <p>{mcp?.status === 'listening' ? tr("仅监听 127.0.0.1；没有客户端连接时不会显示“已连接”。") : tr("当前工作区没有可用的 MCP 监听端点。")}</p>
             </div>
             <Bot size={18} aria-hidden="true" />
           </div>
@@ -147,7 +145,7 @@ export const AIControlView: React.FC = () => {
           <div className="stage2-section-heading">
             <div>
               <h3 id="permission-heading">{tr("权限档位")}</h3>
-              <p>{tr("选择后立即应用并记住当前工作区的权限。旧令牌会失效，请用新令牌重新连接。")}</p>
+              <p>{uiText('切换后，需用新令牌重新连接。', 'Reconnect with a new token after switching.')}</p>
             </div>
             <ShieldCheck size={18} aria-hidden="true" />
           </div>
@@ -181,7 +179,6 @@ export const AIControlView: React.FC = () => {
           <div className="stage2-section-heading">
             <div>
               <h3 id="approval-heading">{tr("待处理审批")}</h3>
-              <p>{state.operationApprovals.length} {tr(" 项受保护操作")}</p>
             </div>
             <span className="approval-count">{state.operationApprovals.length}</span>
           </div>

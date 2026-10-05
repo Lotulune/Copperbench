@@ -66,7 +66,7 @@ test.describe('Stage 9 creator core', () => {
     await page.getByRole('button', { name: '重命名变量 player_energy' }).click();
     await page.getByLabel('新的变量名称').fill('player_stamina');
     await page.getByRole('button', { name: '预览安全重命名' }).click();
-    await expect(page.locator('[data-testid="procedure-refactor-preview"]')).toContainText('1 个受影响元素 · 2 项语义变更');
+    await expect(page.locator('[data-testid="procedure-refactor-preview"]')).toContainText('1 个受影响元素 · 2 项更改');
     await expect(page.locator('[data-testid="procedure-refactor-preview"]')).toContainText('应用前将创建恢复点');
     await page.getByRole('button', { name: '应用重构' }).click();
     await expect(page.locator('.procedure-message')).toContainText('已安全重命名 player_energy → player_stamina');
@@ -95,8 +95,8 @@ test.describe('Stage 9 creator core', () => {
     await page.getByLabel('提取后的过程名称（Procedure）').fill('shared_energy_logic');
     await page.getByRole('button', { name: '预览提取计划' }).click();
 
-    await expect(page.locator('[data-testid="procedure-extract-preview"]')).toContainText('2 步原子计划');
-    await expect(page.locator('[data-testid="procedure-extract-preview"]')).toContainText('恢复保护可用');
+    await expect(page.locator('[data-testid="procedure-extract-preview"]')).toContainText('2 项操作 · 2 项更改');
+    await expect(page.locator('[data-testid="procedure-extract-preview"]')).toContainText('应用前创建恢复点');
     await page.getByRole('button', { name: '应用提取' }).click();
     await expect(page.locator('.procedure-message')).toContainText('已将 variables_set_number 提取为 shared_energy_logic');
     await expect(page.locator('.procedure-message')).toContainText('恢复点 rec-');
@@ -145,6 +145,7 @@ test.describe('Stage 9 creator core', () => {
   });
 
   test('reviews and explicitly publishes isolated datagen output', async ({ page }) => {
+    await page.getByTestId('compact-run-menu').click();
     await page.getByRole('button', { name: '在暂存区运行数据生成' }).click();
     await expect(page.getByText('任务完成').first()).toBeVisible({ timeout: 5000 });
     await page.getByRole('button', { name: '查看暂存差异' }).click();
@@ -159,7 +160,13 @@ test.describe('Stage 9 creator core', () => {
     await page.locator('[data-testid="datagen-publish-btn"]').click();
     await page.locator('[data-testid="datagen-confirm-publish"]').click();
     await expect(page.locator('[data-testid="datagen-preview"]')).toContainText('生成结果已发布');
-    await expect(page.getByText('修订 43').first()).toBeVisible();
+    // The quiet overview no longer displays protocol revisions; still verify
+    // that publication advances the committed bridge projection.
+    await expect.poll(() => page.evaluate(async () => {
+      const modulePath = '/src/bridge/index.ts';
+      const { coreBridge } = await import(/* @vite-ignore */ modulePath);
+      return coreBridge.getState().workbench?.workspace.revision;
+    })).toBe(43);
     await expect(page.locator('[data-testid="datagen-publish-btn"]')).not.toBeVisible();
   });
 
@@ -289,11 +296,10 @@ test.describe('Stage 9 creator core', () => {
     await expect(page.locator('[data-testid="advancement-validation-alert"]')).not.toBeVisible();
     await expect(page.locator('[data-testid="advancement-save-btn"]')).toBeEnabled();
 
-    // Add a criteria and save cleanly
+    // Edit the persisted Blockly condition and save cleanly.
     await page.click('[data-testid="advancement-tab-criteria"]');
-    await page.click('[data-testid="advancement-add-criteria-btn"]');
-    await expect(page.locator('[data-testid="criteria-card-1"]')).toBeVisible();
-    await page.fill('[data-testid="criteria-name-input-1"]', 'has_copper_pickaxe');
+    await page.getByTestId('advancement-trigger-xml').fill(
+      '<xml><block type="advancement_trigger" x="60" y="80"><next><shadow type="custom_trigger"></shadow></next></block></xml>');
     await page.click('[data-testid="advancement-save-btn"]');
     await expect(page.getByText('已保存')).toBeVisible();
   });

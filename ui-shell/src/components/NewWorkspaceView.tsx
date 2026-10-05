@@ -20,6 +20,7 @@ import {
   Diagnostic
 } from '../types/contract';
 import { t } from '../i18n';
+import './newWorkspace.css';
 
 type WorkspaceFormField = 'generatorId' | 'modName' | 'modId' | 'packageName' | 'workspaceFolderPath';
 
@@ -124,13 +125,9 @@ export const NewWorkspaceView: React.FC = () => {
     return [...new Set(catalog.generators.map((generator) => generator.trackId))].map((id) => {
       const generators = catalog.generators.filter((generator) => generator.trackId === id);
       const minecraftVersion = generators[0]?.minecraftVersion;
-      const label = id === 'latest_stable'
-        ? tr("最新稳定轨 · Minecraft {0}", [minecraftVersion])
-        : id === 'previous_stable'
-          ? tr("前一稳定轨 · Minecraft {0}", [minecraftVersion])
-          : id === 'resource_pack'
-            ? tr("独立资源包 · Minecraft {0}", [minecraftVersion])
-            : tr("维护轨 · Minecraft {0}", [minecraftVersion]);
+      const label = id === 'resource_pack'
+        ? tr("独立资源包 · Minecraft {0}", [minecraftVersion])
+        : `Minecraft ${minecraftVersion}`;
       return { id, label, generators };
     });
   }, [catalog]);
@@ -252,8 +249,6 @@ export const NewWorkspaceView: React.FC = () => {
         </div>
         <div>
           <h2 style={{ fontSize: '18px', fontWeight: 700, margin: 0 }}>{tr("新建工作区")}</h2>
-          <p style={{ fontSize: '12px', color: 'var(--text-sub)', margin: '4px 0 0 0' }}>
-            {tr("四轨 Fabric / NeoForge 与独立资源包生成器 · 创建后写入 .mcreator 工作区文件并在新窗口打开")}</p>
         </div>
       </div>
 
@@ -270,8 +265,8 @@ export const NewWorkspaceView: React.FC = () => {
             <div style={{ fontSize: '12px', color: 'var(--text-sub)' }}>
               {tr("工作区文件：")}<code>{result.data.workspaceFile}</code>{tr("（生成器 ")}<code>{result.data.generatorId}</code>）。
               {workspaceOpenBridge.available
-                ? tr("宿主正在新窗口中打开该工作区。")
-                : tr("浏览器预览环境不连接 Swing 宿主，请在桌面版中打开该工作区文件。")}
+                ? tr("正在新窗口中打开工作区。")
+                : tr("请在桌面版中打开此工作区。")}
             </div>
           </div>
         </div>
@@ -367,10 +362,11 @@ export const NewWorkspaceView: React.FC = () => {
         </div>
       )}
 
-      <div className="new-workspace-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(320px, 1fr) minmax(320px, 1fr)', gap: '20px', alignItems: 'start' }}>
+      <div className="new-workspace-grid">
         {/* 左列：生成器选择 */}
         <div
           id={FIELD_ELEMENT_ID.generatorId}
+          className="new-workspace-card"
           data-testid="generator-catalog"
           tabIndex={-1}
           aria-invalid={fieldError('generatorId') ? true : undefined}
@@ -390,7 +386,7 @@ export const NewWorkspaceView: React.FC = () => {
               <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-sub)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                 {track.label}
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
+              <div className="new-workspace-generator-options">
                 {track.generators.map((g: NewWorkspaceGenerator) => {
                   const isSel = generatorId === g.generatorId;
                   return (
@@ -432,7 +428,7 @@ export const NewWorkspaceView: React.FC = () => {
           ))}
 
           {selectedGenerator && (
-            <div data-testid="selected-generator-info" style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--bg-canvas)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)', padding: '8px 12px', fontSize: '11px', color: 'var(--text-sub)' }}>
+            <div className="new-workspace-selected-generator" data-testid="selected-generator-info" style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--bg-canvas)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)', padding: '8px 12px', fontSize: '11px', color: 'var(--text-sub)' }}>
               <Info size={13} color="var(--accent-copper)" />
               {tr("当前选择：")}<code style={{ color: 'var(--accent-copper)' }}>{selectedGenerator.workspaceGeneratorName}</code>
               {selectedGenerator.dynamic && <span className="badge badge-copper" style={{ fontSize: '9px' }}>{tr("动态轨")}</span>}
@@ -446,7 +442,7 @@ export const NewWorkspaceView: React.FC = () => {
         </div>
 
         {/* 右列：表单 */}
-        <div style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+        <div className="new-workspace-card" data-testid="new-workspace-info" style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <h3 style={{ fontSize: '14px', fontWeight: 700, margin: 0 }}>{tr("工作区信息")}</h3>
 
           <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px', fontWeight: 600 }}>

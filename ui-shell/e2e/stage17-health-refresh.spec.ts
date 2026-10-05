@@ -98,6 +98,9 @@ test('external asset reindex refreshes global counts without a revision change',
     await expect(badge).toContainText('Checking diagnostics');
     await page.evaluate(() => window.dispatchEvent(new Event('asset-fixture-release')));
     await expect(badge).toContainText(`${errors} errors, 0 warnings`);
+    const checks = page.getByTestId('asset-checks-disclosure');
+    if (!(await checks.evaluate(element => (element as HTMLDetailsElement).open))) await checks.locator(':scope > summary').click();
+    await expect(page.getByTestId('asset-health-panel')).toBeVisible();
     await expect(page.getByTestId('asset-health-summary')).toContainText(`${errors ? 3 : 0} Assets with errors`);
     for (const label of await page.getByTestId('asset-health-summary').locator('span').all()) {
       expect(await label.evaluate(el => el.scrollWidth <= el.clientWidth + 1)).toBe(true);

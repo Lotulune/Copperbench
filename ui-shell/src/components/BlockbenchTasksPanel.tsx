@@ -6,7 +6,7 @@ import { mcpRuntimeBridge } from '../bridge/mcpRuntimeBridge';
 import { useWorkbench } from '../context/WorkbenchContext';
 import type { AssetProjection, CommandOperation, ModElementSummary } from '../types/contract';
 import { blockbenchBridge } from '../bridge/blockbenchBridge';
-import { t } from '../i18n';
+import { t, uiText } from '../i18n';
 import './blockbenchSetup.css';
 import { BlockbenchImportPanel } from './BlockbenchImportPanel';
 
@@ -101,12 +101,12 @@ export const BlockbenchTasksPanel: React.FC<{ source?: { id: string; name: strin
         throw new Error(tr("{0}{1}", [t(diagnostic?.message) || tr("任务未完成。"), diagnostic ? `（${diagnostic.code}）` : '']));
       }
       setRetry(null);
-      setMessage(operation === 'finish_blockbench_task' ? '候选已保存；源资产未被覆盖，尚未导出或回导到游戏。'
-        : operation === 'cancel_blockbench_task' ? '任务已取消，副本和候选文件均已保留。'
-        : operation === 'import_blockbench_task' ? '编辑源、游戏模型和贴图已回导，资产索引已刷新；请继续关联元素并构建测试。'
-        : operation === 'recover_blockbench_import' ? '中断的回导已恢复，候选仍可重新预览。'
-        : operation === 'bind_blockbench_model' ? '模型已关联到元素；请构建并在游戏中检查。'
-        : '编辑副本已准备。打开 Blockbench 后保存该副本，并在编辑目录导出游戏 JSON 和 PNG。');
+      setMessage(operation === 'finish_blockbench_task' ? uiText('候选已保存，待回导。', 'Candidate saved; ready to import.')
+        : operation === 'cancel_blockbench_task' ? uiText('任务已取消，文件已保留。', 'Task cancelled; files retained.')
+        : operation === 'import_blockbench_task' ? uiText('模型与贴图已回导。', 'Model and textures imported.')
+        : operation === 'recover_blockbench_import' ? uiText('回导已恢复。', 'Import recovered.')
+        : operation === 'bind_blockbench_model' ? uiText('模型已关联。', 'Model linked.')
+        : uiText('编辑副本已准备。', 'Editing copy is ready.'));
       await refresh();
       return true;
     } catch (error) { setMessage(error instanceof Error ? error.message : tr("任务操作失败。")); return false; }
@@ -149,12 +149,11 @@ export const BlockbenchTasksPanel: React.FC<{ source?: { id: string; name: strin
 
   return <details name="blockbench-tools" className="blockbench-setup" data-testid="blockbench-tasks"
     onToggle={event => setExpanded(event.currentTarget.open)}>
-    <summary>{element ? '为此元素制作 Blockbench 模型' : '建模任务 · 编辑副本与保存候选'}</summary>
+    <summary>{element ? uiText('Blockbench 模型', 'Blockbench model') : uiText('建模任务', 'Modeling tasks')}</summary>
     <div className="blockbench-setup-content">
-      {visibleTasks.length === 0 && <p>支持 Java 方块／物品模型。先选择或创建副本，再保存、导出并回导；可随时重开继续。</p>}
-      {!isNativeHostPresent() && <p>预览模式仅展示任务入口，请在桌面产品中创建任务。</p>}
-      {manual && <p role="alert">此元素由手写源码管理，无法自动关联模型。请在源码中显式注册资源；建模文件仍可从资产页单独编辑。</p>}
-      {element && !manual && visibleTasks.length === 0 && <p>目标元素：{element.name}。模型与贴图路径由产品建议，无需逐项填写。</p>}
+      {visibleTasks.length === 0 && <p>{uiText('Java 方块 / 物品模型', 'Java block / item models')}</p>}
+      {!isNativeHostPresent() && <p>{uiText('请在桌面应用中创建任务。', 'Create tasks in the desktop app.')}</p>}
+      {manual && <p role="alert">{uiText('此元素由源码管理，需在源码中关联模型。', 'This element is source-managed. Link its model in source.')}</p>}
       <p className="modeling-task-message" role="status">{message}</p>
       {visibleTasks.length === 0 ? creationControls : <details className="modeling-extra-task" open={creationExpanded}
         onToggle={event => setCreationExpanded(event.currentTarget.open)}>
@@ -171,7 +170,8 @@ export const BlockbenchTasksPanel: React.FC<{ source?: { id: string; name: strin
           if (node) taskCards.current.set(task.taskId, node); else taskCards.current.delete(task.taskId);
         }}>
         <strong>{task.elementContext?.name ?? task.targetRelativePath.split(/[\\/]/).pop()} · {labels[task.state]}</strong>
-        {task.state === 'cancelled' ? <p>此任务已取消，编辑副本和已有候选保留；可查看文件或创建新的建模副本。</p> : <>
+        {task.state === 'cancelled' ? <p>{uiText('编辑副本与候选文件已保留。', 'Editing copies and candidate files are retained.')}</p> : <details>
+        <summary>{uiText('操作步骤', 'Workflow steps')}</summary>
         <ol aria-label="建模步骤" className="modeling-steps">
           <li>创建副本：已完成</li>
           <li aria-current={task.state === 'editing' ? 'step' : undefined}>打开编辑器、保存磁盘副本：{['ready_to_import', 'imported'].includes(task.state) && !task.candidateChanged ? '已确认保存' : '待确认'}</li>
@@ -179,16 +179,15 @@ export const BlockbenchTasksPanel: React.FC<{ source?: { id: string; name: strin
           <li aria-current={task.state === 'imported' ? 'step' : undefined}>关联、构建与游戏验证：{task.binding?.state === 'bound' ? '定义已关联，继续构建与验证' : '尚未确认完成'}</li>
         </ol>
 
-        <p>源模型候选：{task.candidateChanged ? '已变化，需要重新核验' : ['ready_to_import', 'imported'].includes(task.state) ? '已保存' : '未生成'}；游戏 JSON／PNG：{task.state === 'imported' ? '已回导，构建和游戏效果仍需验证' : '尚未回导，请识别并预览导出文件'}</p>
-        </>}
+        </details>}
         {task.sourceChanged && <p role="alert">源文件或目标已发生变化，请处理冲突后重新创建任务；当前副本仍被保留。</p>}
-        {task.candidateChanged && <p role="alert">候选或编辑副本在完成后发生变化，请重新建模并核验，勿将此记录当作有效回导结果。</p>}
+        {task.candidateChanged && <p role="alert">{uiText('候选或编辑副本在完成后发生变化，请重新核验。', 'The candidate or editing copy changed after completion. Verify it again.')}</p>}
         <div className="blockbench-setup-actions">
           <button className="btn-secondary" type="button" disabled={!writable || busy || task.state !== 'editing' || task.sourceChanged}
             onClick={() => {
               setBusy(true);
               void blockbenchBridge.openTask(task.taskId).then(result => setMessage(result.state === 'running'
-                ? '已打开编辑副本。请保存模型，并在同一编辑目录导出游戏 JSON 和 PNG，再返回检查磁盘保存。'
+                ? uiText('已打开副本。请在编辑目录保存并导出 JSON 和 PNG。', 'Copy opened. Save and export JSON and PNG in the editing folder.')
                 : `尚未打开编辑器（${result.diagnosticCode ?? result.state}）。可在安装设置中选择 Blockbench，或复制路径后手工打开。`))
                 .catch(error => setMessage(error.message)).finally(() => setBusy(false));
             }}>在 Blockbench 打开副本</button>

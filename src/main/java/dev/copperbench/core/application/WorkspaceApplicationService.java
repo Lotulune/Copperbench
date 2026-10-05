@@ -1376,6 +1376,7 @@ public final class WorkspaceApplicationService {
 			case CREATE_WORKSPACE -> createWorkspace(command, context);
 			case CREATE_MOD_ELEMENT -> create(command, context);
 			case UPDATE_MOD_ELEMENT -> update(command, context);
+			case UPDATE_WORKSPACE_FILE -> updateWorkspaceFile(command, context);
 			case SET_MOD_ELEMENT_SOURCE_MANAGEMENT -> setSourceManagement(command, context);
 			case DELETE_MOD_ELEMENT -> delete(command, context);
 			case UPDATE_PROCEDURE -> updateProcedure(command, context);
@@ -1427,6 +1428,18 @@ public final class WorkspaceApplicationService {
 				case GET_WORKSPACE_HEALTH -> querySuccess(query, state.revision(), workspaceHealth(query, state));
 				case LIST_NEW_WORKSPACE_GENERATORS -> querySuccess(query, state.revision(), newWorkspaceGenerators());
 				case LIST_ASSETS -> listAssets(query, state);
+				case GET_ASSET_PREVIEW -> {
+					try {
+						Path root = workspaceRoot(query.workspaceId());
+						if (root == null) throw new IllegalArgumentException("Workspace root is unavailable.");
+						yield querySuccess(query, state.revision(), AssetPreviewService.preview(root, assetProjections.scan(root),
+								requiredString(query.payload(), "assetId"), requiredString(query.payload(), "expectedSha256")));
+					} catch (java.io.IOException | IllegalArgumentException | IllegalStateException exception) {
+						JsonObject args = new JsonObject(); args.addProperty("detail", exception.getMessage());
+						yield queryFailure(query, state.revision(), diagnostic("ASSET_PREVIEW_UNAVAILABLE", "diagnostic.asset_query_failed",
+								exception.getMessage(), args, null, null));
+					}
+				}
 				case GET_BLOCKBENCH_TASK -> querySuccess(query, state.revision(), modelingTaskProjection(state, modeling(query.workspaceId()).get(
 						UUID.fromString(requiredString(query.payload(), "taskId")))));
 				case LIST_BLOCKBENCH_TASKS -> {
@@ -1444,6 +1457,7 @@ public final class WorkspaceApplicationService {
 				case GET_PROCEDURE_EDITOR -> procedureEditor(query, state, context);
 				case PREVIEW_PROCEDURE_CHANGE -> previewProcedure(query, state);
 				case GET_WORKSPACE_REFERENCES -> workspaceReferences(query, state);
+				case LIST_WORKSPACE_FILES, READ_WORKSPACE_FILE, GET_WORKSPACE_SOURCE_INDEX -> workspaceSources(query, state, context);
 				case LIST_WORKSPACE_REGISTRIES -> listRegistries(query, state);
 				case PREVIEW_REGISTRY_RENAME -> previewRegistryRename(query, state);
 				case LIST_LOCAL_TEMPLATES -> querySuccess(query, state.revision(), localTemplates.list());
@@ -5550,6 +5564,7 @@ public final class WorkspaceApplicationService {
 				if (!values.has("pools")) values.add("pools", new JsonArray());
 			}
 			case "achievement" -> {
+				if (!values.has("triggerxml")) values.addProperty("triggerxml", SpecializedFieldContract.DEFAULT_ADVANCEMENT_TRIGGER_XML);
 				if (!values.has("title")) values.addProperty("title", displayName(name));
 				if (!values.has("description")) values.addProperty("description", "");
 				if (!values.has("icon")) values.addProperty("icon", "Blocks.STONE");
@@ -5669,6 +5684,105 @@ public final class WorkspaceApplicationService {
 	private Event event(Command command, long revision, long sequence, String eventName, JsonObject payload) {
 		return new Event("event", UiCore.SCHEMA_VERSION, ids.get(), command.workspaceId(), revision, sequence,
 				clock.instant().toString(), eventName, command.requestId(), payload);
+	}
+
+	private WorkspaceSourceService sources(UUID workspaceId, RequestContext context) {
+		return new WorkspaceSourceService(workspaceRoot(workspaceId), mutations.workspaceSourceOwnership(),
+				history != null && context.permission() != PermissionProfile.READ_ONLY);
+	}
+
+	private QueryResult workspaceSources(Query query, WorkspaceState state, RequestContext context) {
+		try {
+			TransactionResult<JsonObject> read = store.coordinate(query.workspaceId(), state.revision(), current -> {
+				try {
+					WorkspaceSourceService sources = sources(query.workspaceId(), context);
+					return switch (query.operation()) {
+						case READ_WORKSPACE_FILE -> sources.read(requiredString(query.payload(), "relativePath"));
+						case GET_WORKSPACE_SOURCE_INDEX -> sources.index();
+						default -> sources.list(Objects.requireNonNullElse(optionalString(query.payload(), "search"), ""),
+								query.payload().has("offset") ? query.payload().get("offset").getAsInt() : 0,
+								query.payload().has("limit") ? query.payload().get("limit").getAsInt() : 100);
+					};
+				} catch (java.io.IOException exception) { throw new java.io.UncheckedIOException(exception); }
+			});
+			if (read.status() == TransactionResult.Status.NOT_FOUND) return queryFailure(query, 0, workspaceNotFound());
+			if (read.status() == TransactionResult.Status.CONFLICT) return queryFailure(query, read.revision(),
+					sourceDiagnostic("WORKSPACE_REVISION_CONFLICT", "The workspace changed while reading source files. Reload the view."));
+			return querySuccess(query, read.revision(), read.value());
+		} catch (WorkspaceSourceService.SourceFailure exception) {
+			return queryFailure(query, state.revision(), sourceDiagnostic(exception.code, exception.getMessage()));
+		} catch (java.io.UncheckedIOException exception) {
+			return queryFailure(query, state.revision(), sourceDiagnostic("WORKSPACE_SOURCE_IO", exception.getCause().getMessage()));
+		}
+	}
+
+	private CommandOutcome updateWorkspaceFile(Command command, RequestContext context) {
+		if (history == null) return failed(command, currentRevision(command.workspaceId()), historyUnavailable());
+		try {
+			WorkspaceSourceService sources = sources(command.workspaceId(), context);
+			String path = requiredString(command.payload(), "relativePath");
+			// Empty text is a valid replacement, but JSON null/numbers are not text.
+			JsonElement content = command.payload().get("content");
+			if (content == null || !content.isJsonPrimitive() || !content.getAsJsonPrimitive().isString())
+				throw new IllegalArgumentException("content must be a string");
+			WorkspaceSourceService.Edit edit = sources.prepare(path, content.getAsString(), requiredString(command.payload(), "expectedSha256"));
+			if (!edit.changed()) {
+				TransactionResult<JsonObject> unchanged = store.coordinate(command.workspaceId(), command.expectedRevision(), state -> {
+					try { sources.verify(edit); } catch (java.io.IOException exception) { throw new java.io.UncheckedIOException(exception); }
+					return edit.result();
+				});
+				CommandOutcome failure = checkFailure(command, unchanged);
+				if (failure != null) return failure;
+				return new CommandOutcome(result(command, "completed", unchanged.revision(), JsonNull.INSTANCE,
+						edit.result(), List.of(), JsonNull.INSTANCE, JsonNull.INSTANCE), List.of());
+			}
+			AtomicReference<RecoveryPoint> recovery = new AtomicReference<>();
+			TransactionResult<RevisionedWorkspaceStore.Replacement> transaction = store.restore(command.workspaceId(), command.expectedRevision(), newRevision -> {
+				WorkspaceState previous = store.read(command.workspaceId()).orElseThrow();
+				sources.verify(edit);
+				recovery.set(history.createRecoveryPoint(new RecoveryPointRequest("Before source edit: " + path,
+						context.actor(), Objects.requireNonNullElse(optionalString(command.payload(), "clientMutationId"), command.requestId().toString()), RecoveryPointSource.MANUAL)));
+				AtomicReference<WorkspaceState> reloaded = new AtomicReference<>();
+				try { sources.apply(edit, () -> {
+					try {
+						WorkspaceState next = reloader == null ? previous.copy() : reloader.reload(command.workspaceId());
+						mutations.persistRestoredRevision(next, newRevision);
+						reloaded.set(next);
+					} catch (Exception exception) {
+						try { mutations.persistRestoredRevision(previous, previous.revision()); }
+						catch (Exception rollback) { exception.addSuppressed(rollback); }
+						throw exception;
+					}
+				}); } catch (Exception exception) {
+					// Source rollback has completed; refresh the adapter's mutable workspace from those restored bytes.
+					if (reloader != null) try { reloader.reload(command.workspaceId()); }
+					catch (Exception rollback) { exception.addSuppressed(rollback); }
+					throw exception;
+				}
+				return new RevisionedWorkspaceStore.Restoration(reloaded.get(), Set.of("/" + path));
+			});
+			CommandOutcome failure = checkFailure(command, transaction);
+			if (failure != null) return failure;
+			JsonObject payload = new JsonObject(); payload.add("changedPaths", GSON.toJsonTree(List.of("/" + path)));
+			payload.addProperty("actor", wire(context.actor()));
+			return new CommandOutcome(result(command, "committed", transaction.revision(), recovery.get(), JsonNull.INSTANCE,
+					edit.result(), List.of(), JsonNull.INSTANCE, JsonNull.INSTANCE), List.of(event(command, transaction.revision(),
+					transaction.value().sequence(), "workspace_revision_advanced", payload)));
+		} catch (WorkspaceSourceService.SourceFailure exception) {
+			return failed(command, currentRevision(command.workspaceId()), sourceDiagnostic(exception.code, exception.getMessage()));
+		} catch (IllegalArgumentException exception) {
+			return failed(command, currentRevision(command.workspaceId()), invalidPayload(exception.getMessage()));
+		} catch (Exception exception) {
+			LOG.warn("Workspace source edit failed", exception);
+			String detail = exception.getSuppressed().length == 0 ? "The source edit failed and was not committed."
+					: "The source edit failed and rollback could not finish. Reload the workspace and inspect the file and recovery point.";
+			return failed(command, currentRevision(command.workspaceId()), sourceDiagnostic("WORKSPACE_SOURCE_IO", detail));
+		}
+	}
+
+	private Diagnostic sourceDiagnostic(String code, String detail) {
+		JsonObject args = new JsonObject(); args.addProperty("detail", detail);
+		return diagnostic(code, "diagnostic.workspace_source_failed", detail, args, null, null);
 	}
 
 	private QueryResult querySuccess(Query query, long revision, JsonElement data) {

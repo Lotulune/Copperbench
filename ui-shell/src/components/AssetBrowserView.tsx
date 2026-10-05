@@ -1,20 +1,22 @@
 import { valueLabel } from '../i18n/labels';
 import React, { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  AlertCircle, AlertTriangle, Box, CheckCircle2, CircleDashed,
+  AlertCircle, AlertTriangle, Box, CheckCircle2,
   Copy, CornerDownRight, FileJson, FileText,
-  Image, Info, Layers, Link2, ListFilter,
+  Image, Info, Link2, ListFilter,
   Music, PackageOpen, Palette, RefreshCw, Search,
-  SlidersHorizontal, Sparkles, Tag, Upload, XCircle
+  Sparkles, Upload, XCircle
 } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
-import { assetRecordsFromProjection, AssetCategory, AssetRecord, AssetValidationStatus } from '../types/assets';
+import { assetRecordsFromProjection, AssetCategory, AssetRecord } from '../types/assets';
 import type { AssetImportPreview, AssetImportBatchPreview, AssetMovePreview, AssetProjection, AssetProjectionHealthSummary, Diagnostic, LocalizedText } from '../types/contract';
 import { blockbenchBridge } from '../bridge/blockbenchBridge';
 import { assetImportBridge, type AssetImportSelectionGrant } from '../bridge/assetImportBridge';
 import { t, uiText, useUiLocale, UI_LOCALE } from '../i18n';
 import { BlockbenchSetupPanel } from './BlockbenchSetupPanel';
 import { BlockbenchTasksPanel } from './BlockbenchTasksPanel';
+import { AssetPreview } from './AssetPreview';
+import './assetBrowser.css';
 
 type BrowserMode = 'ready' | 'empty' | 'loading' | 'error';
 type CategoryFilter = 'all' | AssetCategory;
@@ -87,12 +89,12 @@ interface CategoryConfig {
 }
 
 const categoryItems = (): readonly CategoryConfig[] => [
-  { id: 'all', label: uiText("全部资产", "All assets"), icon: ListFilter, description: uiText("工作区全部资源与定义", "All workspace resources and definitions") },
-  { id: 'model', label: uiText("模型 (BBModel)", "Models (BBModel)"), icon: Box, description: uiText("Blockbench 与实体/方块模型", "Blockbench, entity and block models") },
-  { id: 'texture', label: uiText("材质贴图", "Textures"), icon: Palette, description: uiText("16x16 / 32x32 纹理", "16x16 / 32x32 textures") },
-  { id: 'animation', label: uiText("动作骨骼", "Animations"), icon: Sparkles, description: uiText("关键帧与动画驱动", "Keyframes and animation drivers") },
-  { id: 'language', label: uiText("语言包", "Languages"), icon: FileText, description: uiText("多语言翻译映射", "Translations for multiple languages") },
-  { id: 'sound', label: uiText("声音音效", "Sounds"), icon: Music, description: uiText("事件音频与音效剪辑", "Event audio and sound clips") },
+  { id: 'all', label: uiText("全部", "All"), icon: ListFilter, description: uiText("工作区全部资源与定义", "All workspace resources and definitions") },
+  { id: 'model', label: uiText("模型", "Models"), icon: Box, description: uiText("Minecraft JSON 与 Blockbench 模型", "Minecraft JSON and Blockbench models") },
+  { id: 'texture', label: uiText("纹理", "Textures"), icon: Palette, description: uiText("16x16 / 32x32 纹理", "16x16 / 32x32 textures") },
+  { id: 'animation', label: uiText("动画", "Animations"), icon: Sparkles, description: uiText("关键帧与动画驱动", "Keyframes and animation drivers") },
+  { id: 'language', label: uiText("语言", "Languages"), icon: FileText, description: uiText("多语言翻译映射", "Translations for multiple languages") },
+  { id: 'sound', label: uiText("声音", "Sounds"), icon: Music, description: uiText("事件音频与音效剪辑", "Event audio and sound clips") },
   { id: 'resource_pack', label: uiText("资源包", "Resource packs"), icon: PackageOpen, description: uiText("独立导出与打包", "Standalone export and packaging") },
   { id: 'blockstate', label: uiText("方块状态", "Block states"), icon: FileJson, description: uiText("方块模型状态映射", "Block model state mappings") },
   { id: 'other', label: uiText("其他", "Other"), icon: FileJson, description: uiText("工作区中的其他受支持文件", "Other supported workspace files") }
@@ -113,17 +115,6 @@ function AssetCategoryIcon({ category, size = 16, className }: { category?: Asse
   if (category === 'language') return <FileText size={size} className={className} aria-hidden="true" />;
   if (category === 'resource_pack') return <PackageOpen size={size} className={className} aria-hidden="true" />;
   return <FileJson size={size} className={className} aria-hidden="true" />;
-}
-
-function StatusIcon({ status, size = 12 }: { status: AssetValidationStatus; size?: number }) {
-  if (status === 'ready') return <CheckCircle2 size={size} aria-hidden="true" />;
-  if (status === 'warning') return <AlertTriangle size={size} aria-hidden="true" />;
-  if (status === 'error') return <XCircle size={size} aria-hidden="true" />;
-  return <CircleDashed size={size} aria-hidden="true" />;
-}
-
-function statusClass(status: AssetValidationStatus) {
-  return status === 'ready' ? 'green' : status === 'warning' ? 'amber' : status === 'error' ? 'red' : 'blue';
 }
 
 function formatDate(value?: string) {
@@ -462,7 +453,7 @@ const WorkspaceAssetBrowser: React.FC = () => {
         setBlockbenchSessionAssetId(asset.id);
         setNotice(assetMessage(`Blockbench 桥接就绪：已打开模型 ${asset.name}。`, `Blockbench bridge ready: opened model ${asset.name}.`));
       } else if (result.diagnosticCode === 'BLOCKBENCH_NOT_CONFIGURED') {
-        setNotice(assetMessage("尚未配置 Blockbench，请展开上方“连接 Blockbench”查看安装与检测说明。", "Blockbench is not configured. Expand Connect Blockbench above for installation and connection instructions."));
+        setNotice(assetMessage("尚未配置 Blockbench，请展开“Blockbench 工具”进行连接。", "Blockbench is not configured. Open Blockbench tools to connect it."));
       } else {
         setNotice(assetMessage(`Blockbench 无法打开该资产（${result.diagnosticCode ?? result.state}）。`, `Blockbench could not open this asset (${result.diagnosticCode ?? result.state}).`));
       }
@@ -512,59 +503,57 @@ const WorkspaceAssetBrowser: React.FC = () => {
   }, [blockbenchSessionAssetId]);
 
   return (
-    <section className="stage2-view asset-browser-view animate-fade-in" data-testid="asset-browser">
-      <AssetHeader
-        query={query}
-        setQuery={setQuery}
-        totalAssets={assets.length}
-        filteredCount={filteredAssets.length}
-      />
-
-      <div className="asset-modeling-tools">
-        <BlockbenchSetupPanel />
-        <BlockbenchTasksPanel source={selectedAsset} />
-      </div>
+    <section className="asset-library" data-testid="asset-browser">
+      <div className="asset-library-page">
+      <header className="asset-library-heading">
+        <div>
+          <h1>{uiText('资产与模型', 'Assets and models')}</h1>
+          <p>{uiText(`${assets.length} 个资源文件`, `${assets.length} resource files`)}</p></div>
+        <div className="asset-library-heading-actions">
+          <button type="button" className="asset-library-button" data-testid="asset-import-button" onClick={() => void beginImport()}><Upload size={14} />{uiText('导入资产', 'Import assets')}</button>
+          <details className="asset-library-more"><summary aria-label={uiText('更多资产操作', 'More asset actions')}>•••</summary><div>
+            <button type="button" data-testid="asset-batch-import-button" onClick={() => void beginBatchImport()}><PackageOpen size={14} />{uiText('批量导入', 'Batch import')}</button>
+            <button type="button" onClick={() => setReloadToken(value => value + 1)}><RefreshCw size={14} />{uiText('刷新资产', 'Refresh assets')}</button>
+            <span data-testid="asset-drop-hint">{uiText('支持拖放文件', 'Drop files to import')}</span>
+          </div></details>
+        </div>
+      </header>
+      {notice && <div className="asset-library-notice" role="status" data-testid="asset-notice"><span>{renderAssetMessage(notice)}</span>
+        <button type="button" aria-label={uiText('关闭提示', 'Dismiss notice')} onClick={() => setNotice(null)}><XCircle size={14} /></button></div>}
+      <nav className="asset-library-types" aria-label={uiText('资产类型过滤器', 'Asset type filters')}>
+        {CATEGORY_ITEMS.filter(item => item.id === 'all' || categoryCounts[item.id]).map(item => <button type="button" key={item.id}
+          aria-pressed={category === item.id} data-testid={`asset-category-${item.id}`} onClick={() => {
+            setCategory(item.id);
+            if (!assets.some(asset => asset.id === selectedId && (item.id === 'all' || asset.category === item.id)))
+              setSelectedId(assets.find(asset => item.id === 'all' || asset.category === item.id)?.id ?? '');
+          }}>{item.label}<span>{categoryCounts[item.id] ?? 0}</span></button>)}
+        {healthFilter !== 'all' && <button type="button" className="asset-library-filter-clear" onClick={() => setHealthFilter('all')}><XCircle size={12} />{uiText('清除检查筛选', 'Clear health filter')}</button>}
+      </nav>
       {mode !== 'ready' ? <AssetStateView mode={mode} onRetry={() => {
         if (mode === 'empty') void beginImport();
-        else {
-          setModeOverride(null);
-          setReloadToken(token => token + 1);
-        }
-      }} /> : <div className="asset-browser-body">
-        {/* Left Category Rail */}
-        <aside className="asset-category-panel" aria-label={uiText("资产分类", "Asset categories")}>
-          <div className="asset-panel-label">
-            <Layers size={13} aria-hidden="true" />
-            <span>{uiText("分类导航", "Categories")}</span>
+        else { setModeOverride(null); setReloadToken(token => token + 1); }
+      }} /> : <div className="asset-library-browser" data-testid="asset-library-browser">
+        <aside className="asset-library-files" aria-label={uiText('资产列表', 'Asset list')}>
+          <label className="asset-library-search"><Search size={13} /><input data-testid="asset-search" value={query} onChange={event => setQuery(event.target.value)}
+            placeholder={uiText('搜索文件…', 'Find a file…')} aria-label={uiText('搜索资产', 'Search assets')} /></label>
+          <label className="asset-library-sort"><span>{uiText(`${filteredAssets.length} 个文件`, `${filteredAssets.length} files`)}</span>
+            <select aria-label={uiText('资产排序', 'Sort assets')} value={sort} onChange={event => setSort(event.target.value as SortField)}>
+              <option value="updated">{uiText('最近更新', 'Recent')}</option><option value="name">{uiText('名称', 'Name')}</option>
+              <option value="references">{uiText('引用数', 'References')}</option><option value="size">{uiText('大小', 'Size')}</option>
+            </select></label>
+          <div className="asset-library-file-list">
+            {filteredAssets.length ? filteredAssets.map(asset => <AssetCard key={asset.id} asset={asset} selected={selectedAsset?.id === asset.id} onSelect={() => setSelectedId(asset.id)} />)
+              : <div className="asset-library-no-results" data-testid="asset-browser-no-results" role="status"><p>{uiText('没有匹配的文件', 'No matching files')}</p>
+                <button type="button" onClick={() => { setQuery(''); setCategory('all'); setHealthFilter('all'); }}>{uiText('清除筛选', 'Clear filters')}</button></div>}
           </div>
-
-          <nav className="asset-category-list" aria-label={uiText("资产类型过滤器", "Asset type filters")}>
-            {CATEGORY_ITEMS.map((item) => {
-              const Icon = item.icon;
-              const count = categoryCounts[item.id] ?? 0;
-              const active = category === item.id;
-              return (
-                <button
-                  type="button"
-                  key={item.id}
-                  className={`asset-category-button${active ? ' is-active' : ''}`}
-                  aria-pressed={active}
-                  data-testid={`asset-category-${item.id}`}
-                  onClick={() => {
-                    setCategory(item.id);
-                    const firstInCat = assets.find(a => item.id === 'all' || a.category === item.id);
-                    if (firstInCat) setSelectedId(firstInCat.id);
-                  }}
-                  title={item.description}
-                >
-                  <Icon size={14} aria-hidden="true" />
-                  <span className="asset-cat-label">{item.label}</span>
-                  <span className="asset-cat-badge">{count}</span>
-                </button>
-              );
-            })}
-          </nav>
-
+        </aside>
+        <AssetDetails asset={selectedAsset} copyStatus={copyFeedback && copyFeedback.id === selectedAsset?.id ? copyFeedback.status : undefined}
+          openingBlockbench={openingBlockbench} onCopyId={copyStableId} onImport={asset => void beginImport(asset)} onMove={beginMove} onOpenBlockbench={openInBlockbench}
+          assets={assets} onSelectAsset={id => setAssetFocusId(id)} />
+      </div>}
+      <div className="asset-library-secondary">
+        <details className="asset-library-checks" data-testid="asset-checks-disclosure"><summary>{uiText('检查与筛选', 'Checks & filters')}
+          {!!assetDiagnostics.length && <span>{assetDiagnostics.length}</span>}</summary>
           <div className="asset-health-panel" data-testid="asset-health-panel" aria-label={uiText("资产健康筛选", "Asset health filters")}>
             <div className="asset-panel-label">
               <AlertTriangle size={13} aria-hidden="true" />
@@ -582,7 +571,7 @@ const WorkspaceAssetBrowser: React.FC = () => {
                 ['issues', uiText("有问题", "With issues")],
                 ['errors', uiText("错误", "Errors")],
                 ['unused', uiText("静态未引用", "No static references")],
-                ['safe-unused', uiText("可安全清理候选", "Safe cleanup candidates")],
+                ['safe-unused', uiText("静态清理候选", "Static cleanup candidates")],
                 ['duplicates', uiText("重复内容", "Duplicate content")]
               ] as const).map(([id, label]) => (
                 <button
@@ -612,113 +601,13 @@ const WorkspaceAssetBrowser: React.FC = () => {
 
           <AssetDiagnosticsPanel diagnostics={assetDiagnostics} onAction={runDiagnosticAction} />
 
-          <div className="asset-category-hint">
-            <Link2 size={13} aria-hidden="true" />
-            <span>{uiText("引用关系随工作区修订保存。", "References are saved with each workspace revision.")}</span>
-          </div>
-        </aside>
 
-        {/* Middle Asset List Panel */}
-        <main className="asset-list-panel" aria-label={uiText("资产内容列表", "Asset contents")}>
-          <div className="asset-list-toolbar">
-            <div className="asset-list-meta">
-              <span className="asset-result-count">
-                <strong>{filteredAssets.length}</strong> {uiText("项可用资产", "available assets")}</span>
-              {category !== 'all' && (
-                <span className="asset-filter-tag">
-                  <Tag size={10} aria-hidden="true" />
-                  {CATEGORY_ITEMS.find(c => c.id === category)?.label}
-                </span>
-              )}
-            </div>
-
-            <div className="asset-toolbar-controls">
-              <label className="asset-sort-control">
-                <SlidersHorizontal size={13} aria-hidden="true" />
-                <span className="sr-only">{uiText("排序", "Sort")}</span>
-                <select
-                  aria-label={uiText("资产排序", "Sort assets")}
-                  value={sort}
-                  onChange={(e) => setSort(e.target.value as SortField)}
-                >
-                  <option value="updated">{uiText("最近更新", "Recently updated")}</option>
-                  <option value="name">{uiText("资产名称", "Asset name")}</option>
-                  <option value="references">{uiText("引用数", "Reference count")}</option>
-                  <option value="size">{uiText("文件大小", "File size")}</option>
-                </select>
-              </label>
-
-              <button
-                type="button"
-                className="asset-import-inline-btn btn-secondary"
-                onClick={() => void beginImport()}
-                data-testid="asset-import-button"
-                title={uiText("导入外部模型或贴图", "Import an external model or texture")}
-              >
-                <Upload size={12} aria-hidden="true" />
-                <span>{uiText("导入", "Import")}</span>
-              </button>
-              <button
-                type="button"
-                className="asset-import-inline-btn btn-secondary"
-                onClick={() => void beginBatchImport()}
-                data-testid="asset-batch-import-button"
-                title={uiText("选择多个文件并在一次计划中导入", "Select multiple files to import in one plan")}
-              >
-                <PackageOpen size={12} aria-hidden="true" />
-                <span>{uiText("批量导入", "Batch import")}</span>
-              </button>
-              <span className="asset-drop-hint" data-testid="asset-drop-hint">{uiText("或将资产文件拖放到窗口", "or drop asset files into this window")}</span>
-            </div>
-          </div>
-
-          {filteredAssets.length === 0 ? (
-            <div className="asset-no-results" data-testid="asset-browser-no-results" role="status">
-              <div className="asset-empty-icon-wrap">
-                <Search size={22} aria-hidden="true" />
-              </div>
-              <strong>{uiText("没有匹配的资产", "No matching assets")}</strong>
-              <span>{uiText("当前搜索条件或分类筛选下未找到相关文件。", "No files match the current search or category filters.")}</span>
-              <button
-                type="button"
-                className="btn-secondary"
-                onClick={() => {
-                  setQuery('');
-                  setCategory('all');
-                  setHealthFilter('all');
-                }}
-              >
-                <XCircle size={13} aria-hidden="true" />
-                <span>{uiText("清除筛选", "Clear filters")}</span>
-              </button>
-            </div>
-          ) : (
-            <div className="asset-card-grid" aria-label={uiText("资产列表", "Asset list")} role="list">
-              {filteredAssets.map((asset) => (
-                <AssetCard
-                  key={asset.id}
-                  asset={asset}
-                  selected={selectedAsset?.id === asset.id}
-                  onSelect={() => setSelectedId(asset.id)}
-                />
-              ))}
-            </div>
-          )}
-        </main>
-
-        {/* Right Details & Diagnostics Panel */}
-        <AssetDetails
-          asset={selectedAsset}
-          notice={notice}
-          copyStatus={copyFeedback?.id === selectedAsset?.id ? copyFeedback?.status : undefined}
-          openingBlockbench={openingBlockbench}
-          onCopyId={copyStableId}
-          onImport={(asset) => void beginImport(asset)}
-          onMove={beginMove}
-          onOpenBlockbench={openInBlockbench}
-          onDismissNotice={() => setNotice(null)}
-        />
-      </div>}
+        </details>
+        <details className="asset-library-modeling" data-testid="asset-modeling-disclosure"><summary>{uiText('Blockbench 工具', 'Blockbench tools')}</summary>
+          <BlockbenchSetupPanel /><BlockbenchTasksPanel source={selectedAsset} />
+        </details>
+      </div>
+      </div>
 
       {importReview && (
         <AssetImportReview
@@ -785,7 +674,7 @@ const AssetBatchImportReview: React.FC<{
         <div className="asset-import-review-heading">
           <div>
             <strong>{uiText("批量导入资产", "Import asset batch")}</strong>
-            <span>{uiText("整个批次会先审阅目标与冲突，再用一个恢复点和一个工作区 revision 原子提交。", "Review all targets and conflicts before committing the batch atomically with one recovery point and one workspace revision.")}</span>
+            <span>{uiText("确认目标路径和需要替换的文件。", "Review the destination paths and replacements.")}</span>
           </div>
           <button type="button" className="asset-clear-button" onClick={onCancel} aria-label={uiText("取消批量导入", "Cancel batch import")}>
             <XCircle size={16} />
@@ -865,7 +754,7 @@ const AssetMoveReview: React.FC<{
         <div className="asset-import-review-heading">
           <div>
             <strong>{uiText("重命名 / 移动资产", "Rename / move asset")}</strong>
-            <span>{uiText("先审阅新路径和每一条引用改写；任何无法安全改写的引用都会阻止提交。", "Review the new path and each reference rewrite. Any reference that cannot be safely rewritten blocks the change.")}</span>
+            <span>{uiText("确认新路径与受影响的引用。", "Review the new path and affected references.")}</span>
           </div>
           <button type="button" className="asset-clear-button" onClick={onCancel} aria-label={uiText("取消移动", "Cancel move")}>
             <XCircle size={16} />
@@ -950,7 +839,7 @@ const AssetImportReview: React.FC<{
         <div className="asset-import-review-heading">
           <div>
             <strong>{uiText("导入资产", "Import asset")}</strong>
-            <span>{uiText("先检查目标路径、冲突和重复内容，再写入工作区。", "Check the target path, conflicts and duplicate content before writing to the workspace.")}</span>
+            <span>{uiText("确认目标路径和替换状态。", "Review the destination and replacement status.")}</span>
           </div>
           <button type="button" className="asset-clear-button" onClick={onCancel} aria-label={uiText("取消导入", "Cancel import")}>
             <XCircle size={16} />
@@ -1013,55 +902,6 @@ const AssetImportReview: React.FC<{
   );
 };
 
-/* Header Section with live indexing status and search */
-const AssetHeader: React.FC<{
-  query: string;
-  setQuery: (q: string) => void;
-  totalAssets: number;
-  filteredCount: number;
-}> = ({ query, setQuery, totalAssets, filteredCount }) => {
-  return (
-    <header className="stage2-view-header asset-browser-header">
-      <div className="stage2-view-title">
-        <Palette size={20} aria-hidden="true" />
-        <div>
-          <h2>{uiText("资产与模型工作台", "Assets and models")}</h2>
-          <span>{uiText("管理模型、纹理与资源包", "Manage models, textures and resource packs")}</span>
-        </div>
-      </div>
-
-      <div className="asset-header-actions">
-        <label className="asset-search-field">
-          <Search size={14} aria-hidden="true" />
-          <span className="sr-only">{uiText("搜索资产", "Search assets")}</span>
-          <input
-            data-testid="asset-search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder={uiText("搜索名称、路径或标识…", "Search name, path or ID…")}
-            aria-label={uiText("搜索资产", "Search assets")}
-          />
-          {query && (
-            <button
-              type="button"
-              className="asset-clear-button"
-              onClick={() => setQuery('')}
-              aria-label={uiText("清除搜索", "Clear search")}
-            >
-              <XCircle size={13} />
-            </button>
-          )}
-        </label>
-
-        <span className="connection-state" title={uiText("资产索引与底层虚拟文件系统保持同步", "Asset index is synchronized with the underlying virtual file system")}>
-          <span aria-hidden="true" />
-          <span>{uiText('已索引', 'Indexed')} ({filteredCount}/{totalAssets})</span>
-        </span>
-      </div>
-    </header>
-  );
-};
-
 /* State placeholder view for loading / error / empty */
 const AssetStateView: React.FC<{
   mode: Exclude<BrowserMode, 'ready'>;
@@ -1080,7 +920,7 @@ const AssetStateView: React.FC<{
               <RefreshCw className="asset-state-spinner" size={28} aria-hidden="true" />
             </div>
             <strong>{uiText("正在读取工作区资产", "Loading workspace assets")}</strong>
-            <span>{uiText("正在建立路径、引用和校验投影…", "Collecting paths, references and validation results…")}</span>
+
           </>
         ) : mode === 'error' ? (
           <>
@@ -1088,7 +928,7 @@ const AssetStateView: React.FC<{
               <XCircle size={30} aria-hidden="true" />
             </div>
             <strong>{uiText("资产投影暂时不可用", "Asset data is temporarily unavailable")}</strong>
-            <span>{uiText("工作区桥接返回了不完整的资产索引，原始文件不会被修改。", "The workspace bridge returned an incomplete asset index. Original files will not be changed.")}</span>
+            <span>{uiText("请重新读取资产列表。", "Reload the asset list to try again.")}</span>
             <button type="button" className="btn-secondary" onClick={onRetry}>
               <RefreshCw size={13} aria-hidden="true" />
               <span>{uiText("重新读取", "Reload")}</span>
@@ -1100,7 +940,7 @@ const AssetStateView: React.FC<{
               <PackageOpen size={32} aria-hidden="true" />
             </div>
             <strong>{uiText("工作区还没有资产", "This workspace has no assets yet")}</strong>
-            <span>{uiText("导入 Blockbench 模型、纹理或一个独立资源包，资产会自动建立引用关系。", "Import a Blockbench model, texture or standalone resource pack to index its references automatically.")}</span>
+            <span>{uiText("导入模型、纹理或资源包。", "Import models, textures, or resource packs.")}</span>
             <button
               type="button"
               className="btn-primary"
@@ -1147,303 +987,80 @@ const AssetDiagnosticsPanel: React.FC<{
   );
 };
 
-const AssetCard: React.FC<{
-  asset: AssetRecord;
-  selected: boolean;
-  onSelect: () => void;
-}> = ({ asset, selected, onSelect }) => {
-  return (
-    <button
-      type="button"
-      className={`asset-card${selected ? ' is-selected' : ''}`}
-      data-testid={`asset-card-${asset.id}`}
-      data-asset-id={asset.id}
-      aria-pressed={selected}
-      onClick={onSelect}
-    >
-      <div className="asset-card-main">
-        <div className="asset-card-preview">
-          <AssetCategoryIcon category={asset.category} size={20} />
-          <span className="asset-card-format-tag">{asset.format}</span>
-        </div>
+const AssetCard: React.FC<{ asset: AssetRecord; selected: boolean; onSelect: () => void }> = ({ asset, selected, onSelect }) => (
+  <button type="button" className="asset-library-file" data-testid={`asset-card-${asset.id}`} data-asset-id={asset.id} aria-pressed={selected} onClick={onSelect} title={asset.path}>
+    <AssetCategoryIcon category={asset.category} size={17} /><span><strong>{asset.path.split('/').pop() ?? asset.name}</strong><small>{UI_LOCALE === 'en' ? valueLabel(asset.category) : asset.categoryLabel}</small></span>
+    {asset.validation === 'error' && <AlertCircle size={12} className="asset-library-file-error" aria-label={uiText('有错误', 'Has errors')} />}
+  </button>
+);
 
-        <div className="asset-card-copy">
-          <div className="asset-card-header-row">
-            <strong title={asset.name}>{asset.name}</strong>
-            <span className={`badge badge-${statusClass(asset.validation)} asset-status-badge`}>
-              <StatusIcon status={asset.validation} size={11} />
-              {UI_LOCALE === 'en' ? valueLabel(asset.validation) : asset.validationLabel}
-            </span>
-          </div>
-
-          <div className="asset-card-category-row">
-            <span>{UI_LOCALE === 'en' ? valueLabel(asset.category) : asset.categoryLabel}</span>
-            <span className="asset-dot">·</span>
-            <span>{UI_LOCALE === 'en' ? valueLabel(asset.source) : asset.sourceLabel}</span>
-          </div>
-
-          <small className="asset-card-path" title={asset.path}>
-            {asset.path}
-          </small>
-        </div>
-      </div>
-
-      <div className="asset-card-footer">
-        <span className="asset-card-size">{asset.size}</span>
-        <span className="asset-card-refs" title={uiText(`被 ${asset.references.length} 个对象引用`, `Referencing objects: ${asset.references.length}`)}>
-          <Link2 size={11} aria-hidden="true" />
-          <span>{asset.references.length}</span>
-        </span>
-      </div>
-    </button>
-  );
-};
-
-/* Right Sidebar Detail Panel */
 const AssetDetails: React.FC<{
   asset: AssetRecord | null;
-  notice: AssetMessage | null;
+  assets: readonly AssetRecord[];
   copyStatus?: 'success' | 'error';
   openingBlockbench: boolean;
   onCopyId: (id: string) => void;
   onImport: (asset: AssetRecord) => void;
   onMove: (asset: AssetRecord) => void;
   onOpenBlockbench: (asset: AssetRecord) => void;
-  onDismissNotice: () => void;
-}> = ({
-  asset,
-  notice,
-  copyStatus,
-  openingBlockbench,
-  onCopyId,
-  onImport,
-  onMove,
-  onOpenBlockbench,
-  onDismissNotice
-}) => {
-  if (!asset) {
-    return (
-      <aside className="asset-details-panel" aria-label={uiText("资产详情", "Asset details")}>
-        <div className="asset-details-empty">
-          <Info size={22} aria-hidden="true" />
-          <span>{uiText("选择一项资产查看详情。", "Select an asset to view its details.")}</span>
-        </div>
-      </aside>
-    );
-  }
-
-  return (
-    <aside className="asset-details-panel" aria-label={uiText("资产详情", "Asset details")} data-testid="asset-details">
-      {/* Detail Header */}
-      <div className="asset-details-heading">
-        <div className="asset-details-icon">
-          <AssetCategoryIcon category={asset.category} size={20} />
-        </div>
-        <div className="asset-details-title-wrap">
-          <strong title={asset.name}>{asset.name}</strong>
-          <div className="asset-details-sub">
-            <small>{UI_LOCALE === 'en' ? valueLabel(asset.category) : asset.categoryLabel}</small>
-            <span className="asset-dot">·</span>
-            <small>{UI_LOCALE === 'en' ? valueLabel(asset.source) : asset.sourceLabel}</small>
-          </div>
-        </div>
+  onSelectAsset: (id: string) => void;
+}> = ({ asset, assets, copyStatus, openingBlockbench, onCopyId, onImport, onMove, onOpenBlockbench, onSelectAsset }) => {
+  const { state, openSource } = useWorkbench();
+  const inspector = useRef<HTMLElement>(null);
+  useEffect(() => { if (inspector.current) inspector.current.scrollTop = 0; }, [asset?.id]);
+  if (!asset) return <section className="asset-library-inspector asset-library-inspector-empty" aria-label={uiText('资产详情', 'Asset details')}>
+    <Info size={22} /><p>{uiText('选择一个文件查看详情', 'Select a file to view its details')}</p></section>;
+  const fileName = asset.path.split('/').pop() ?? asset.name;
+  const canOpenSource = /\.(json|mcmeta|properties|txt|lang|java|mcreator)$/i.test(asset.path);
+  const referenceLink = (path: string, id?: string | null) => {
+    const target = id ? assets.find(item => item.id === id) : assets.find(item => item.path === path);
+    return target ? <button type="button" className="asset-library-reference-link" onClick={() => onSelectAsset(target.id)} title={path}><code>{path}</code></button> : <code>{path}</code>;
+  };
+  return <section ref={inspector} className="asset-library-inspector" aria-label={uiText('资产详情', 'Asset details')} data-testid="asset-details">
+    <header className="asset-library-file-heading"><h2>{fileName}</h2><span>{asset.categoryLabel}</span></header>
+    <div className="asset-library-path"><code>{asset.path}</code><span>{asset.size}</span></div>
+    <AssetPreview key={asset.id} workspaceId={state.workbench?.workspace.id} asset={asset} />
+    <div className="asset-library-file-actions">
+      {canOpenSource && <button type="button" className="asset-library-source-link" onClick={() => openSource(asset.path)}><FileText size={14} />{uiText('查看文件源码', 'View source')}</button>}
+      {asset.category === 'model' && <button type="button" className="asset-library-button" data-testid="asset-open-blockbench" disabled={openingBlockbench}
+        onClick={() => onOpenBlockbench(asset)}><Box size={14} />{openingBlockbench ? uiText('正在打开…', 'Opening…') : uiText('在 Blockbench 打开', 'Open in Blockbench')}</button>}
+      <details className="asset-library-more"><summary aria-label={uiText('文件操作', 'File actions')}>•••</summary><div>
+        <button type="button" data-testid="asset-move-button" onClick={() => onMove(asset)}><CornerDownRight size={14} />{uiText('重命名 / 移动', 'Rename / move')}</button>
+        <button type="button" onClick={() => onImport(asset)}><Upload size={14} />{uiText('替换文件', 'Replace file')}</button>
+      </div></details>
+    </div>
+    <details className="asset-library-disclosure" data-testid="asset-references-disclosure"><summary><Link2 size={13} />{uiText('引用关系', 'References')}<span>{asset.inboundCount ?? asset.references.length} / {asset.outboundCount ?? asset.outgoingReferences?.length ?? 0}</span></summary>
+      <div className="asset-library-reference-group"><h3>{uiText('入站引用', 'Inbound references')}</h3>
+        {asset.references.length === 0 ? <p>{uiText('暂无入站引用', 'No inbound references')}</p>
+          : <ul aria-label={uiText('引用该资产的来源', 'Sources referencing this asset')}>{asset.references.map(path => <li key={path}>{referenceLink(path)}</li>)}</ul>}
       </div>
-
-      <div className={`badge badge-${statusClass(asset.validation)} asset-details-status`}>
-        <StatusIcon status={asset.validation} size={12} />
-        <span>{UI_LOCALE === 'en' ? valueLabel(asset.validation) : asset.validationLabel}</span>
+      <div className="asset-library-reference-group" data-testid="asset-outgoing-references"><h3>{uiText('出站依赖', 'Outbound dependencies')}</h3>
+        {(asset.outgoingReferences?.length ?? 0) === 0 ? <p>{uiText('暂无出站依赖', 'No outbound dependencies')}</p>
+          : <ul aria-label={uiText('该资产引用的目标', 'Targets referenced by this asset')}>
+            {asset.outgoingResolution?.length ? asset.outgoingResolution.map((reference, index) => <li key={`${reference.sourcePointer}:${reference.targetPath}:${index}`}>
+              <div className="asset-library-reference-state"><span>{resourceResolutionLabel(reference.resolution ?? (reference.targetAssetId ? 'workspace_resolved' : 'unverified'))}</span><code>{reference.rawValue}</code></div>
+              {referenceLink(reference.targetPath, reference.targetAssetId)}
+              <details><summary>{uiText('引用详情', 'Reference details')}</summary>
+                <p>{uiText('位置：', 'Location: ')}<code>{reference.sourcePointer || '/'}</code></p>
+                {reference.resourceSource && <p>{uiText('来源：', 'Source: ')}<code>{reference.resourceSource}</code></p>}
+                {reference.resourceVersion && <p>{uiText('版本：', 'Version: ')}<code>{reference.resourceVersion}</code></p>}
+              </details>
+            </li>) : asset.outgoingReferences?.map((path, index) => <li key={`${path}:${index}`}>{referenceLink(path)}</li>)}
+          </ul>}
       </div>
-
-      {/* Surface Preview Canvas */}
-      <div className="asset-preview-surface" aria-label={uiText("资产预览", "Asset preview")}>
-        <div className="asset-preview-icon-cluster">
-          <AssetCategoryIcon category={asset.category} size={42} />
-        </div>
-        <div className="asset-preview-specs">
-          <span className="asset-preview-format">{asset.format}</span>
-          <small className="asset-preview-dimensions">{asset.dimensions ?? (asset.category === 'model' ? uiText("无模型预览", "No model preview") : uiText("无预览尺寸", "No preview dimensions"))}</small>
-        </div>
-      </div>
-
-      {/* Structured Metadata DL */}
-      <dl className="asset-metadata">
-        <div className="asset-metadata-row asset-id-row">
-          <dt>{uiText("稳定标识", "Stable ID")}</dt>
-          <dd>
-            <code data-testid="asset-stable-id" title={asset.id}>
-              {asset.id}
-            </code>
-            <button
-              type="button"
-              className="asset-id-copy-btn"
-              onClick={() => onCopyId(asset.id)}
-              title={uiText("复制稳定标识", "Copy stable ID")}
-              aria-label={uiText("复制稳定标识", "Copy stable ID")}
-            >
-              {copyStatus === 'success' ? <CheckCircle2 size={12} className="text-green" /> : <Copy size={12} />}
-            </button>
-            {copyStatus && <span data-testid="asset-copy-feedback" role={copyStatus === 'error' ? 'alert' : 'status'}>
-              {copyStatus === 'success' ? uiText("已复制", "Copied")
-                : uiText("复制失败，请选中标识手动复制。", "Copy failed. Select the ID and copy it manually.")}
-            </span>}
-          </dd>
-        </div>
-        <div className="asset-metadata-row">
-          <dt>{uiText("路径", "Path")}</dt>
-          <dd title={asset.path}><code>{asset.path}</code></dd>
-        </div>
-        <div className="asset-metadata-row">
-          <dt>{uiText("大小", "Size")}</dt>
-          <dd>{asset.size}</dd>
-        </div>
-        <div className="asset-metadata-row">
-          <dt>{uiText("来源", "Source")}</dt>
-          <dd>{asset.sourceLabel}</dd>
-        </div>
-        <div className="asset-metadata-row">
-          <dt>{uiText("更新时间", "Updated")}</dt>
-          <dd>{formatDate(asset.updatedAt)}</dd>
-        </div>
-        <div className="asset-metadata-row">
-          <dt>{uiText("使用状态", "Usage")}</dt>
-          <dd data-testid="asset-usage-status">
-            {asset.safeUnused ? uiText("可安全清理候选（模型/纹理引用检查已完成）", "Safe cleanup candidate (model and texture reference checks completed)") : asset.unused ? (asset.cleanupAssessed ? uiText("静态未引用，但存在工作区引用信号", "No static inbound references, but workspace reference signals exist") : uiText("静态未引用候选（安全清理尚未评估）", "No static inbound references (cleanup safety not assessed)")) : asset.usageAssessed ? uiText("存在静态入站引用", "Has static inbound references") : uiText("不参与静态未使用判断", "Not assessed for static unused status")}
-          </dd>
-        </div>
+    </details>
+    <details className="asset-library-disclosure" data-testid="asset-metadata-disclosure"><summary>{uiText('文件信息', 'File information')}</summary>
+      <dl className="asset-library-metadata">
+        <div><dt>{uiText('稳定标识', 'Stable ID')}</dt><dd><code data-testid="asset-stable-id">{asset.id}</code><button type="button" aria-label={uiText('复制稳定标识', 'Copy stable ID')} onClick={() => onCopyId(asset.id)}>
+          {copyStatus === 'success' ? <CheckCircle2 size={13} /> : <Copy size={13} />}</button>
+          {copyStatus && <span data-testid="asset-copy-feedback" role={copyStatus === 'error' ? 'alert' : 'status'}>{copyStatus === 'success' ? uiText('已复制', 'Copied') : uiText('复制失败，请手动复制。', 'Copy failed. Copy the ID manually.')}</span>}</dd></div>
+        {asset.sha256 && <div><dt>{uiText('SHA-256', 'SHA-256')}</dt><dd><code>{asset.sha256}</code></dd></div>}
+        <div><dt>{uiText('更新时间', 'Updated')}</dt><dd>{formatDate(asset.updatedAt)}</dd></div>
+        <div><dt>{uiText('状态', 'Status')}</dt><dd>{asset.validationLabel}</dd></div>
+        <div><dt>{uiText('使用状态', 'Usage')}</dt><dd data-testid="asset-usage-status">{asset.unused ? uiText('静态未引用', 'No static inbound references') : asset.usageAssessed ? uiText('存在静态引用', 'Has static references') : uiText('未评估', 'Not assessed')}</dd></div>
       </dl>
-
-      {/* Reference Diagnostics */}
-      <div className="asset-reference-section">
-        <div className="asset-panel-label">
-          <Link2 size={14} aria-hidden="true" />
-          <span>{uiText("入站引用", "Inbound references")}</span>
-          <span className="asset-ref-count-badge">{asset.inboundCount ?? asset.references.length}</span>
-        </div>
-
-        {asset.references.length === 0 ? (
-          <div className="asset-reference-empty">{uiText("暂无入站引用关系。", "No inbound references.")}</div>
-        ) : (
-          <ul className="asset-reference-list" aria-label={uiText("引用该资产的来源", "Sources referencing this asset")}>
-            {asset.references.map((reference) => (
-              <li key={reference} className="asset-reference-item">
-                <CornerDownRight size={11} className="asset-ref-arrow" aria-hidden="true" />
-                <code title={reference}>{reference}</code>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-
-      <div className="asset-reference-section" data-testid="asset-outgoing-references">
-        <div className="asset-panel-label">
-          <CornerDownRight size={14} aria-hidden="true" />
-          <span>{uiText("出站依赖", "Outbound dependencies")}</span>
-          <span className="asset-ref-count-badge">{asset.outboundCount ?? asset.outgoingReferences?.length ?? 0}</span>
-        </div>
-        {(asset.outgoingReferences?.length ?? 0) === 0 ? (
-          <div className="asset-reference-empty">{uiText("该资产没有静态出站依赖。", "This asset has no static outbound dependencies.")}</div>
-        ) : (
-          <ul className="asset-reference-list" aria-label={uiText("该资产引用的目标", "Targets referenced by this asset")}>
-            {asset.outgoingResolution?.length ? asset.outgoingResolution.map((reference, index) => (
-              <li key={`${reference.sourcePointer}:${reference.targetPath}:${index}`} className="asset-reference-item">
-                <details className="asset-resource-resolution">
-                  <summary>
-                    <span>{resourceResolutionLabel(reference.resolution ?? (reference.targetAssetId ? 'workspace_resolved' : 'unverified'))}</span>
-                    <code>{reference.rawValue}</code>
-                  </summary>
-                  <p>{uiText("引用位置：", "Reference location: ")}<code>{reference.sourcePointer || '/'}</code></p>
-                  <p>{uiText("目标：", "Target: ")}<code>{reference.targetPath}</code></p>
-                  <p>{uiText("来源及依据：", "Source and evidence: ")}<code>{reference.resourceSource ?? (reference.targetAssetId ? uiText("工作区索引", "Workspace index") : uiText("来源未提供", "Source not provided"))}</code></p>
-                  {reference.resourceVersion && <p>{uiText("资源版本：", "Resource version: ")}<code>{reference.resourceVersion}</code></p>}
-                  {reference.resolution === 'unverified' && <p>{uiText("请先完成工作区依赖同步或构建，再重新检查；本次检查未下载外部资源。", "Sync workspace dependencies or build, then check again. This check did not download external resources.")}</p>}
-                </details>
-              </li>
-            )) : asset.outgoingReferences?.map((reference, index) => (
-              <li key={`${reference}:${index}`} className="asset-reference-item">
-                <CornerDownRight size={11} className="asset-ref-arrow" aria-hidden="true" />
-                <code title={reference}>{reference}</code>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-
-      {(asset.issueCodes?.length ?? 0) > 0 && (
-        <div className="asset-health-issues" data-testid="asset-health-issue-codes">
-          <div className="asset-panel-label">
-            <AlertTriangle size={14} aria-hidden="true" />
-            <span>{uiText("健康诊断", "Health diagnostics")}</span>
-          </div>
-          {asset.issueCodes?.map((code) => <code key={code}>{code}</code>)}
-        </div>
-      )}
-
-      {(asset.duplicatePaths?.length ?? 0) > 0 && (
-        <div className="asset-reference-section" data-testid="asset-duplicate-paths">
-          <div className="asset-panel-label">
-            <Copy size={14} aria-hidden="true" />
-            <span>{uiText("相同内容", "Identical content")}</span>
-            <span className="asset-ref-count-badge">{asset.duplicatePaths?.length ?? 0}</span>
-          </div>
-          <ul className="asset-reference-list" aria-label={uiText("内容完全相同的其它资产", "Other assets with identical content")}>
-            {asset.duplicatePaths?.map((path) => (
-              <li key={path} className="asset-reference-item"><code title={path}>{path}</code></li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {/* Description Summary */}
-      {asset.description && asset.description !== '工作区真实资产，由 AssetWorkspaceService 实时索引。' && <p className="asset-description">{asset.description}</p>}
-
-      {/* Action Buttons */}
-      <div className="asset-details-actions">
-        <button
-          type="button"
-          className="btn-secondary asset-action-btn"
-          onClick={() => onMove(asset)}
-          data-testid="asset-move-button"
-        >
-          <CornerDownRight size={14} aria-hidden="true" />
-          <span>{uiText("重命名 / 移动", "Rename / move")}</span>
-        </button>
-
-        <button
-          type="button"
-          className="btn-secondary asset-action-btn"
-          onClick={() => onImport(asset)}
-        >
-          <Upload size={14} aria-hidden="true" />
-          <span>{uiText("替换文件", "Replace file")}</span>
-        </button>
-
-        <button
-          type="button"
-          className="btn-primary asset-action-btn"
-          data-testid="asset-open-blockbench"
-          disabled={openingBlockbench}
-          onClick={() => onOpenBlockbench(asset)}
-        >
-          <Box size={14} aria-hidden="true" />
-          <span>{openingBlockbench ? uiText("正在打开…", "Opening…") : uiText("在 Blockbench 打开", "Open in Blockbench")}</span>
-        </button>
-      </div>
-
-      {/* Notice Message Banner */}
-      {notice && (
-        <div className="asset-notice" role="status" data-testid="asset-notice">
-          <AlertCircle size={14} className="asset-notice-icon" aria-hidden="true" />
-          <span className="asset-notice-text">{renderAssetMessage(notice)}</span>
-          <button
-            type="button"
-            className="asset-clear-button asset-notice-close"
-            aria-label={uiText("关闭提示", "Dismiss notice")}
-            onClick={onDismissNotice}
-          >
-            <XCircle size={14} />
-          </button>
-        </div>
-      )}
-    </aside>
-  );
+      {!!asset.issueCodes?.length && <div className="asset-library-issue-codes" data-testid="asset-health-issue-codes">{asset.issueCodes.map(code => <code key={code}>{code}</code>)}</div>}
+      {!!asset.duplicatePaths?.length && <div className="asset-library-reference-group" data-testid="asset-duplicate-paths"><h3>{uiText('相同内容', 'Identical content')}</h3><ul>{asset.duplicatePaths.map(path => <li key={path}>{referenceLink(path)}</li>)}</ul></div>}
+    </details>
+  </section>;
 };

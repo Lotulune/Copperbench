@@ -121,10 +121,10 @@ export const StatusFooter: React.FC = () => {
           </button>
         )}
 
-        {!runningTask && Object.keys(state.tasks).length > 0 && <button
+        {!runningTask && <button
           data-testid="recent-tasks-button" onClick={() => setIsTaskDrawerOpen(!isTaskDrawerOpen)}
           style={{ color: 'var(--text-sub)', whiteSpace: 'nowrap' }}>
-          {t({ key: 'task.recent_selector', fallback: 'Recent tasks' })}
+          {Object.keys(state.tasks).length > 0 ? t({ key: 'task.recent_selector', fallback: 'Recent tasks' }) : uiText('任务与日志', 'Tasks & logs')}
         </button>}
 
         {/* Diagnostics Badge */}

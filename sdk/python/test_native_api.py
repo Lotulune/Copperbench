@@ -33,6 +33,12 @@ for line in sys.stdin:
     if operation == 'crash':
         sys.exit(2)
     result = {'status': 'succeeded', 'revision': revision, 'data': {}}
+    if request['kind'] == 'handshake':
+        compatible = '1.0' in request['payload']['supportedSchemaVersions']
+        result = {'messageType': 'handshake_result', 'requestId': request['id'],
+                  'status': 'compatible' if compatible else 'incompatible',
+                  'selectedSchemaVersion': '1.0' if compatible else None,
+                  'coreSchemaVersions': ['1.0'], 'diagnostics': []}
     if request['kind'] == 'command':
         if request['expectedRevision'] != revision:
             result = {'status': 'rejected', 'conflict': {'actualRevision': revision}, 'diagnostics': []}
@@ -73,6 +79,13 @@ class NativeApiTest(unittest.TestCase):
 
     def requests(self):
         return [json.loads(line) for line in self.host.with_suffix('.requests').read_text(encoding='utf-8').splitlines()]
+
+    def test_schema_negotiation_returns_incompatibility_without_closing_session(self):
+        client = self.open()
+        self.assertEqual('compatible', client.negotiate_schema(['1.0'])['status'])
+        self.assertEqual('incompatible', client.negotiate_schema(['99.0'])['status'])
+        self.assertEqual('succeeded', client.query('get_workbench')['status'])
+        self.assertEqual(0, client.revision)
 
     def test_native_calls_need_no_network_and_preserve_revision_and_unicode(self):
         with patch('socket.socket', side_effect=AssertionError('Network must not be used')):

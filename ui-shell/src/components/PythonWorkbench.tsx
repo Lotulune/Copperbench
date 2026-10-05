@@ -164,9 +164,9 @@ export function PythonWorkbench({ visible }: { visible: boolean }) {
   };
 
   return <section className="python-workbench" hidden={!visible} data-testid="python-workbench">
-    <header className="python-heading"><div><h1><Terminal size={22} /> {tr(" Python 工作台")}</h1><p>{tr("当前工程直接可用 · 变量跨运行保留 · MCP 为可选入口")}</p></div>
+    <header className="python-heading"><div><h1><Terminal size={22} /> {tr(" Python 工作台")}</h1></div>
       <span role="status">{stateLabels[status?.state ?? 'stopped']}{status?.lastResult && status.lastResult !== 'idle' ? ` · ${resultLabels[status.lastResult]}` : ''}</span></header>
-    {!pythonBridge.available && <p role="alert">{tr("请在支持 Python 工作台的桌面版本中打开工程；浏览器预览不会执行脚本。")}</p>}
+    {!pythonBridge.available && <p role="alert">{tr("执行脚本需要桌面版。")}</p>}
     {error && <p role="alert" className="python-error">{error}{tr("。无法启动时，请选择 Python 3.11 或更新版本的解释器。")}</p>}
     <div className="python-runtime"><label>{tr("Python 解释器")}<input aria-label={tr("Python 解释器路径")} value={python} onChange={event => setPython(event.target.value)} placeholder={tr("留空自动查找，也可选择解释器路径")} disabled={busy} /></label>
       <button onClick={() => void chooseFile('select_python')} disabled={!pythonBridge.available || busy}>{tr("选择解释器")}</button>

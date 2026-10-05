@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { openToolView } from './navigation';
 
 const installSelectableHost = async (page: Page, mode: 'normal' | 'reject' | 'stop' | 'pending' = 'normal') => {
   await page.addInitScript((mode) => {
@@ -42,7 +43,7 @@ const installSelectableHost = async (page: Page, mode: 'normal' | 'reject' | 'st
 
 const openPermissions = async (page: Page) => {
   await page.goto('/');
-  await page.getByTestId('nav-ai').click();
+  await openToolView(page, 'ai');
   return page.getByRole('group', { name: '权限档位' });
 };
 
@@ -50,7 +51,7 @@ test.describe('Desktop MCP runtime state', () => {
   test('browser fallback never claims an MCP client is connected', async ({ page }) => {
     await page.goto('/');
     await page.waitForSelector('[data-testid="app-shell"]');
-    await page.click('[data-testid="nav-ai"]');
+    await openToolView(page, 'ai');
 
     await expect(page.getByRole('heading', { name: '本机 MCP 服务' })).toBeVisible();
     await expect(page.getByText('未启动', { exact: true }).first()).toBeVisible();
@@ -97,7 +98,7 @@ test.describe('Desktop MCP runtime state', () => {
 
     await page.goto('/');
     await page.waitForSelector('[data-testid="app-shell"]');
-    await page.click('[data-testid="nav-ai"]');
+    await openToolView(page, 'ai');
 
     await expect(page.getByText('服务已启动', { exact: true }).first()).toBeVisible();
     await expect(page.getByText('http://127.0.0.1:43123/mcp', { exact: true })).toBeVisible();
@@ -195,7 +196,7 @@ test.describe('Desktop MCP runtime state', () => {
     await page.emulateMedia({ colorScheme: 'dark', reducedMotion: 'reduce' });
     await installSelectableHost(page);
     await page.goto('/');
-    await page.getByTestId('nav-ai').click();
+    await openToolView(page, 'ai');
     const options = page.getByRole('group', { name: 'Permission profile' });
     await expect(options.getByRole('button', { name: 'Full access' })).toBeInViewport({ ratio: 1 });
     const choice = options.getByRole('button', { name: 'Read only' });

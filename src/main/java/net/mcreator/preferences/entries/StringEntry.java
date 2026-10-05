@@ -73,4 +73,7 @@ public class StringEntry extends PreferencesEntry<String> {
 		return new JsonPrimitive(value);
 	}
 
+	public String[] choices() { return choices.clone(); }
+	public boolean editable() { return editable; }
+
 }

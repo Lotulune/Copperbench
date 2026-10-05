@@ -72,6 +72,17 @@ public final class NativeApiSession {
             id = request.get("id").getAsString();
             UUID requestId = UUID.fromString(id);
             String name = request.get("operation").getAsString();
+            if ("handshake".equals(request.get("kind").getAsString())) {
+                JsonObject payload = request.getAsJsonObject("payload").deepCopy();
+                payload.addProperty("requestId", id);
+                var handshake = UiCore.wireGson().fromJson(payload, UiCore.Handshake.class);
+                var result = new dev.copperbench.core.contract.SchemaNegotiator(
+                        java.util.List.of(UiCore.SCHEMA_VERSION)).negotiate(handshake);
+                JsonObject response = new JsonObject();
+                response.addProperty("id", id);
+                response.add("result", UiCore.wireGson().toJsonTree(result));
+                return response;
+            }
             if ("context".equals(request.get("kind").getAsString())) {
                 JsonObject response = new JsonObject();
                 response.addProperty("id", id);

@@ -1,0 +1,14 @@
+<!-- SPDX-License-Identifier: GPL-3.0-only -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" role="img" aria-label="青晶矿簇">
+ <rect x="2" y="2" width="76" height="76" rx="16" fill="#25363e"/>
+ <path d="m15 53 20-10 31 11v9L40 73 15 62Z" fill="#18292e"/>
+ <path d="m17 53 21-9 25 11-23 11Z" fill="#607d82"/>
+ <path d="m17 55 21 10v5L17 61Z" fill="#435f64"/><path d="m41 66 22-9v5l-22 8Z" fill="#304b52"/>
+ <path d="m29 53-8-7V28l7-8 8 5v27l-4 4Z" fill="#3b9f9b" stroke="#18343b" stroke-width="2"/>
+ <path d="m28 23 5 3v22l-5 4Z" fill="#85d5c1"/>
+ <path d="m35 54-5-6V18L40 8l10 9v32L40 59Z" fill="#4ab7b6" stroke="#18343b" stroke-width="2"/>
+ <path d="m40 12 7 6-7 5-7-5Z" fill="#c5ece0"/>
+ <path d="m33 21 6 4v29l-6-6Z" fill="#83ded0"/><path d="m41 25 6-4v27l-6 6Z" fill="#25869b"/>
+ <path d="m49 56-5-7V34l9-9 9 7v16l-9 12Z" fill="#43adb1" stroke="#18343b" stroke-width="2"/>
+ <path d="m53 29 6 4-6 4-6-3Z" fill="#b7e9de"/><path d="m47 37 5 3v15l-5-6Z" fill="#79d4c4"/>
+</svg>

@@ -1,31 +1,9 @@
-import { tr } from '../i18n/locale';
+import { tr, uiText } from '../i18n/locale';
 import React, { useState } from 'react';
-import {
-  HelpCircle,
-  ShieldAlert,
-  Layers,
-  Box,
-  Palette,
-  GitBranch,
-  Bot,
-  Plug,
-  Compass,
-  Download,
-  ArrowRight,
-  ShieldCheck,
-  CheckCircle2,
-  AlertTriangle,
-  FileArchive,
-  LoaderCircle
-} from 'lucide-react';
+import { ArrowRight, FileArchive, LoaderCircle } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
 import { diagnosticsBridge } from '../bridge/diagnosticsBridge';
-import {
-  ABOUT_FACTS,
-  TRACK_HONEST_FACTS,
-  USER_GUIDE_SECTIONS,
-  UserGuideSection
-} from '../content/userGuide';
+import { ABOUT_FACTS, TRACK_HONEST_FACTS, USER_GUIDE_SECTIONS } from '../content/userGuide';
 
 export const HelpView: React.FC = () => {
   const { setActiveView } = useWorkbench();
@@ -46,401 +24,74 @@ export const HelpView: React.FC = () => {
     }
   };
 
-  const getSectionIcon = (id: string) => {
-    switch (id) {
-      case 'workspace':
-        return <Layers size={18} color="var(--accent-copper)" aria-hidden="true" />;
-      case 'version-tracks':
-        return <Compass size={18} color="var(--accent-copper)" aria-hidden="true" />;
-      case 'mod-elements':
-        return <Box size={18} color="var(--accent-copper)" aria-hidden="true" />;
-      case 'local-history':
-        return <GitBranch size={18} color="var(--badge-blue)" aria-hidden="true" />;
-      case 'mcp-permissions':
-        return <Bot size={18} color="var(--badge-green)" aria-hidden="true" />;
-      case 'blockbench-assets':
-        return <Palette size={18} color="var(--badge-blue)" aria-hidden="true" />;
-      case 'loader-migration':
-        return <Compass size={18} color="var(--badge-amber)" aria-hidden="true" />;
-      case 'plugins':
-        return <Plug size={18} color="var(--badge-blue)" aria-hidden="true" />;
-      case 'install-uninstall':
-        return <Download size={18} color="var(--accent-copper)" aria-hidden="true" />;
-      default:
-        return <HelpCircle size={18} color="var(--accent-copper)" aria-hidden="true" />;
-    }
-  };
+  return <div className="help-view" data-testid="help-view" style={{ flex: 1, minWidth: 0, padding: '24px', overflowY: 'auto' }}>
+    <div style={{ width: '100%', maxWidth: 980, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 24 }}>
+      <h1 style={{ margin: 0, fontSize: 22, fontWeight: 550 }}>{uiText('帮助', 'Help')}</h1>
 
-  return (
-    <div
-      className="help-view animate-fade-in"
-      data-testid="help-view"
-      style={{
-        flex: 1,
-        padding: '24px',
-        overflowY: 'auto',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '24px'
-      }}
-    >
-      {/* Header & Source Notice */}
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '12px',
-          borderBottom: '1px solid var(--border-subtle)',
-          paddingBottom: '16px'
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div
-              style={{
-                padding: '8px',
-                borderRadius: 'var(--radius-md)',
-                background: 'var(--accent-copper-dim)',
-                color: 'var(--accent-copper)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
-            >
-              <HelpCircle size={24} aria-hidden="true" />
-            </div>
-            <div>
-              <h1 style={{ fontSize: '20px', fontWeight: 700, margin: 0, color: 'var(--text-main)' }}>
-                {tr("帮助与使用说明")}</h1>
-              <p style={{ fontSize: '12px', color: 'var(--text-sub)', margin: '4px 0 0 0' }}>
-                {tr("Copperbench 0.1.3 使用指南")}</p>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span className="badge badge-blue" style={{ fontSize: '11px', padding: '3px 8px' }}>
-              {tr("稳定版")}</span>
-          </div>
-        </div>
-      </div>
-
-      <section
-        data-testid="diagnostic-support-panel"
-        aria-labelledby="diagnostic-support-heading"
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'minmax(0, 1fr) auto',
-          gap: '12px 20px',
-          alignItems: 'center',
-          padding: '16px 20px',
-          borderTop: '1px solid var(--border-subtle)',
-          borderBottom: '1px solid var(--border-subtle)',
-          background: 'var(--bg-surface)'
-        }}
-      >
+      <section data-testid="diagnostic-support-panel" aria-labelledby="diagnostic-support-heading"
+        style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 16, paddingBottom: 20, borderBottom: '1px solid var(--border-subtle)' }}>
         <div style={{ minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <FileArchive size={18} color="var(--accent-copper)" aria-hidden="true" />
-            <h2 id="diagnostic-support-heading" style={{ margin: 0, fontSize: '15px' }}>{tr("诊断与反馈")}</h2>
-          </div>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '10px', fontSize: '12px', color: 'var(--text-muted)' }}>
-            <input
-              type="checkbox"
-              checked={includeWorkspaceFiles}
-              onChange={(event) => setIncludeWorkspaceFiles(event.target.checked)}
-              data-testid="diagnostic-include-workspace"
-            />
-            <span>{tr("附加最小复现文件（可能包含工作区源码与内容）")}</span>
+          <h2 id="diagnostic-support-heading" style={{ margin: '0 0 10px', fontSize: 14 }}>{tr("诊断与反馈")}</h2>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--text-muted)' }}>
+            <input type="checkbox" checked={includeWorkspaceFiles} onChange={event => setIncludeWorkspaceFiles(event.target.checked)} data-testid="diagnostic-include-workspace" />
+            <span>{uiText('附加复现文件（可能含源码与内容）', 'Include reproduction files (may contain source and content)')}</span>
           </label>
-          <div role="status" aria-live="polite" data-testid="diagnostic-export-status" style={{ minHeight: '18px', marginTop: '6px', fontSize: '11px', color: 'var(--text-sub)' }}>
-            {diagnosticExportStatus}
-          </div>
+          {diagnosticExportStatus && <div role="status" aria-live="polite" data-testid="diagnostic-export-status" style={{ marginTop: 8, fontSize: 12 }}>{diagnosticExportStatus}</div>}
         </div>
-        <button
-          type="button"
-          className="btn-primary"
-          onClick={() => void exportDiagnostics()}
-          disabled={!diagnosticsBridge.available || exportingDiagnostics}
-          data-testid="diagnostic-export-btn"
-          title={diagnosticsBridge.available ? tr("将诊断包保存到本机并打开文件位置") : tr("仅桌面宿主可导出诊断包")}
-        >
+        <button type="button" className="btn-primary" onClick={() => void exportDiagnostics()}
+          disabled={!diagnosticsBridge.available || exportingDiagnostics} data-testid="diagnostic-export-btn"
+          title={diagnosticsBridge.available ? tr("将诊断包保存到本机并打开文件位置") : tr("仅桌面宿主可导出诊断包")}>
           {exportingDiagnostics ? <LoaderCircle className="spin" size={14} aria-hidden="true" /> : <FileArchive size={14} aria-hidden="true" />}
           <span>{exportingDiagnostics ? tr("正在导出") : tr("导出脱敏诊断包")}</span>
         </button>
       </section>
 
-      {/* About Panel Card */}
-      <section
-        className="about-panel"
-        data-testid="about-panel"
-        aria-labelledby="about-panel-heading"
-        style={{
-          background: 'var(--bg-surface)',
-          border: '1px solid var(--border-subtle)',
-          borderRadius: 'var(--radius-lg)',
-          padding: '20px 24px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '16px',
-          boxShadow: 'var(--shadow-sm)'
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '12px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <ShieldCheck size={18} color="var(--accent-copper)" aria-hidden="true" />
-            <h2 id="about-panel-heading" style={{ fontSize: '16px', fontWeight: 700, margin: 0, color: 'var(--text-main)' }}>
-              {tr("关于 Copperbench")}</h2>
+      <section aria-labelledby="user-guide-sections-heading">
+        <h2 id="user-guide-sections-heading" style={{ fontSize: 14, margin: '0 0 8px' }}>{uiText('使用指南', 'User guide')}</h2>
+        {USER_GUIDE_SECTIONS.map(section => <details key={section.id} data-testid={`guide-section-${section.id}`}
+          style={{ borderBottom: '1px solid var(--border-subtle)', fontSize: 13 }}>
+          <summary style={{ cursor: 'pointer', padding: '12px 0', fontWeight: 500 }}>{section.title}</summary>
+          <div style={{ padding: '0 0 14px 16px', color: 'var(--text-muted)', lineHeight: 1.6 }}>
+            {section.content.map((paragraph, index) => <p key={index} style={{ margin: '0 0 8px' }}>{paragraph}</p>)}
+            {section.table && <div style={{ overflowX: 'auto', margin: '12px 0' }}><table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+              <thead><tr>{section.table.headers.map((heading, index) => <th key={index} style={{ padding: 8, textAlign: 'left' }}>{heading}</th>)}</tr></thead>
+              <tbody>{section.table.rows.map((row, index) => <tr key={index}>{row.map((cell, column) => <td key={column} style={{ padding: 8, borderTop: '1px solid var(--border-subtle)' }}>{cell}</td>)}</tr>)}</tbody>
+            </table></div>}
+            {section.linkView && section.linkLabel && <button type="button" className="btn-secondary" onClick={() => setActiveView(section.linkView!)} data-testid={`guide-link-${section.id}`}>
+              {section.linkLabel}<ArrowRight size={12} aria-hidden="true" />
+            </button>}
           </div>
-          <span className="badge badge-copper" style={{ fontSize: '11px' }}>
-            {tr("产品事实")}</span>
-        </div>
-
-        {/* Facts Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
-          {ABOUT_FACTS.map((fact) => (
-            <div
-              key={fact.label}
-              style={{
-                background: 'var(--bg-panel)',
-                border: '1px solid var(--border-subtle)',
-                borderRadius: 'var(--radius-md)',
-                padding: '12px 14px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '4px'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: '11px', color: 'var(--text-sub)', fontWeight: 600 }}>
-                  {fact.label}
-                </span>
-                {fact.badge && (
-                  <span className={`badge badge-${fact.badgeType ?? 'copper'}`} style={{ fontSize: '10px' }}>
-                    {fact.badge}
-                  </span>
-                )}
-              </div>
-              <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-main)' }}>
-                {fact.value}
-              </div>
-              {fact.description && (
-                <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                  {fact.description}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-
-        {/* Notice regarding unsigned development build */}
-        <div
-          style={{
-            background: 'var(--badge-amber-bg)',
-            border: '1px solid rgba(210, 153, 34, 0.3)',
-            borderRadius: 'var(--radius-md)',
-            padding: '10px 14px',
-            display: 'flex',
-            alignItems: 'flex-start',
-            gap: '10px',
-            fontSize: '12px',
-            color: 'var(--text-main)'
-          }}
-        >
-          <ShieldAlert size={16} color="var(--badge-amber)" style={{ flexShrink: 0, marginTop: '2px' }} aria-hidden="true" />
-          <div style={{ lineHeight: 1.5 }}>
-            <strong>{tr("版本声明：")}</strong> {tr(" Copperbench 0.1.3 采用 GPL-3.0-only 协议开源，独立衍生自 MCreator 2026.2.33518。当前为稳定版，安装包未做生产代码签名，通过 GitHub 分发。")}</div>
-        </div>
+        </details>)}
       </section>
 
-      {/* Honest Track Status Section */}
-      <section
-        aria-labelledby="tracks-honest-heading"
-        style={{
-          background: 'var(--bg-surface)',
-          border: '1px solid var(--border-subtle)',
-          borderRadius: 'var(--radius-lg)',
-          padding: '20px 24px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '14px',
-          boxShadow: 'var(--shadow-sm)'
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Compass size={18} color="var(--accent-copper)" aria-hidden="true" />
-            <h2 id="tracks-honest-heading" style={{ fontSize: '15px', fontWeight: 700, margin: 0, color: 'var(--text-main)' }}>
-              {tr("版本轨道支持状态")}</h2>
-          </div>
-
-          <button
-            type="button"
-            className="btn-secondary"
-            onClick={() => setActiveView('tracks')}
-            data-testid="help-to-tracks-btn"
-            style={{ fontSize: '11px', padding: '4px 10px', display: 'flex', alignItems: 'center', gap: '6px' }}
-          >
-            <span>{tr("进入版本与迁移工作台")}</span>
-            <ArrowRight size={12} aria-hidden="true" />
-          </button>
+      <section aria-labelledby="help-versions-heading">
+        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
+          <h2 id="help-versions-heading" style={{ fontSize: 14, margin: 0 }}>{uiText('Minecraft 版本', 'Minecraft versions')}</h2>
+          <button type="button" className="btn-secondary" onClick={() => setActiveView('tracks')} data-testid="help-to-tracks-btn">{uiText('版本与迁移', 'Versions & migration')}<ArrowRight size={12} aria-hidden="true" /></button>
         </div>
-
-        <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0, lineHeight: 1.5 }}>
-          {tr("各轨道的支持状态与「版本轨道」页面保持一致。新项目建议优先选择标记为正式支持的轨道，实际可用的 Fabric / NeoForge 版本以「新建工作区」页面为准。仅支持 Windows 11 x64。")}</p>
-
-        <div style={{ overflowX: 'auto' }}>
-          <table
-            data-testid="help-tracks-table"
-            style={{
-              width: '100%',
-              borderCollapse: 'collapse',
-              fontSize: '12px'
-            }}
-          >
-            <thead>
-              <tr style={{ borderBottom: '1px solid var(--border-active)', textAlign: 'left' }}>
-                <th style={{ padding: '8px 10px', width: '130px' }}>{tr("轨道名称")}</th>
-                <th style={{ padding: '8px 10px', width: '110px' }}>{tr("Minecraft 版本")}</th>
-                <th style={{ padding: '8px 10px', width: '220px' }}>{tr("支持状态")}</th>
-                <th style={{ padding: '8px 10px' }}>{tr("说明")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {TRACK_HONEST_FACTS.map((track) => (
-                <tr
-                  key={track.trackName}
-                  data-testid={`help-track-row-${track.minecraftVersion}`}
-                  style={{
-                    borderBottom: '1px solid var(--border-subtle)',
-                    background: track.isGolden ? 'var(--accent-copper-dim)' : 'transparent'
-                  }}
-                >
-                  <td style={{ padding: '10px 10px', fontWeight: 600, color: 'var(--text-main)' }}>
-                    {track.trackName}
-                  </td>
-                  <td style={{ padding: '10px 10px', color: 'var(--text-sub)' }}>
-                    {track.minecraftVersion}
-                  </td>
-                  <td style={{ padding: '10px 10px' }}>
-                    <span className={`badge badge-${track.isGolden ? 'green' : 'amber'}`}>
-                      {track.isGolden ? <CheckCircle2 size={11} aria-hidden="true" /> : <AlertTriangle size={11} aria-hidden="true" />}
-                      <span>{track.statusLabel}</span>
-                    </span>
-                  </td>
-                  <td style={{ padding: '10px 10px', color: 'var(--text-muted)' }}>
-                    {track.notes}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <details data-testid="help-track-details" style={{ marginTop: 10 }}>
+          <summary style={{ cursor: 'pointer', fontSize: 13 }}>{uiText('查看支持状态', 'View supported versions')}</summary>
+          <div style={{ overflowX: 'auto', marginTop: 10 }}><table data-testid="help-tracks-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+            <thead><tr style={{ textAlign: 'left' }}>
+              <th style={{ padding: 8 }}>{tr("轨道名称")}</th><th style={{ padding: 8 }}>{tr("Minecraft 版本")}</th>
+              <th style={{ padding: 8 }}>{tr("支持状态")}</th><th style={{ padding: 8 }}>{tr("说明")}</th>
+            </tr></thead>
+            <tbody>{TRACK_HONEST_FACTS.map(track => <tr key={track.trackName} data-testid={`help-track-row-${track.minecraftVersion}`} style={{ borderTop: '1px solid var(--border-subtle)' }}>
+              <td style={{ padding: 8 }}>{track.trackName}</td><td style={{ padding: 8 }}>{track.minecraftVersion}</td>
+              <td style={{ padding: 8 }}>{track.statusLabel}</td><td style={{ padding: 8, color: 'var(--text-muted)' }}>{track.notes}</td>
+            </tr>)}</tbody>
+          </table></div>
+        </details>
       </section>
 
-      {/* Complete User Guide Sections */}
-      <section
-        aria-labelledby="user-guide-sections-heading"
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '16px'
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Layers size={18} color="var(--accent-copper)" aria-hidden="true" />
-          <h2 id="user-guide-sections-heading" style={{ fontSize: '16px', fontWeight: 700, margin: 0, color: 'var(--text-main)' }}>
-            {tr("功能使用指南")}</h2>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '16px' }}>
-          {USER_GUIDE_SECTIONS.map((section: UserGuideSection) => (
-            <div
-              key={section.id}
-              data-testid={`guide-section-${section.id}`}
-              style={{
-                background: 'var(--bg-surface)',
-                border: '1px solid var(--border-subtle)',
-                borderRadius: 'var(--radius-md)',
-                padding: '16px 18px',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                gap: '12px'
-              }}
-            >
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '8px' }}>
-                  {getSectionIcon(section.id)}
-                  <h3 style={{ fontSize: '14px', fontWeight: 700, margin: 0, color: 'var(--text-main)' }}>
-                    {section.title}
-                  </h3>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  {section.content.map((paragraph, idx) => (
-                    <p
-                      key={idx}
-                      style={{
-                        fontSize: '12px',
-                        color: 'var(--text-muted)',
-                        lineHeight: 1.5,
-                        margin: 0
-                      }}
-                    >
-                      {paragraph}
-                    </p>
-                  ))}
-                </div>
-
-                {section.table && (
-                  <div style={{ overflowX: 'auto', marginTop: '4px' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px' }}>
-                      <thead>
-                        <tr style={{ borderBottom: '1px solid var(--border-active)', textAlign: 'left' }}>
-                          {section.table.headers.map((h, i) => (
-                            <th key={i} style={{ padding: '6px 8px' }}>{h}</th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {section.table.rows.map((r, i) => (
-                          <tr key={i} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                            {r.map((cell, j) => (
-                              <td key={j} style={{ padding: '6px 8px', color: j === 0 ? 'var(--text-main)' : 'var(--text-muted)' }}>
-                                {cell}
-                              </td>
-                            ))}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-
-              {section.linkView && section.linkLabel && (
-                <div style={{ paddingTop: '8px', borderTop: '1px dashed var(--border-subtle)' }}>
-                  <button
-                    type="button"
-                    className="btn-secondary"
-                    onClick={() => setActiveView(section.linkView!)}
-                    data-testid={`guide-link-${section.id}`}
-                    style={{
-                      fontSize: '11px',
-                      padding: '4px 10px',
-                      width: '100%',
-                      justifyContent: 'space-between'
-                    }}
-                  >
-                    <span>{section.linkLabel}</span>
-                    <ArrowRight size={12} aria-hidden="true" />
-                  </button>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
+      <section className="about-panel" data-testid="about-panel" aria-labelledby="about-panel-heading" style={{ paddingTop: 18, borderTop: '1px solid var(--border-subtle)' }}>
+        <h2 id="about-panel-heading" style={{ fontSize: 14, margin: '0 0 12px' }}>{tr("关于 Copperbench")}</h2>
+        <dl style={{ margin: 0, display: 'flex', flexDirection: 'column', gap: 9, fontSize: 12 }}>
+          {ABOUT_FACTS.map(fact => <div key={fact.label} style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 16px' }}>
+            <dt style={{ width: 145, color: 'var(--text-muted)' }}>{fact.label}</dt><dd style={{ margin: 0 }} title={fact.description}>{fact.value}</dd>
+          </div>)}
+        </dl>
       </section>
     </div>
-  );
+  </div>;
 };

@@ -1,8 +1,8 @@
 # Current downloads / 当前下载
 
-Checked on 2026-10-05 (Asia/Tokyo). This index lists published packages; source changes do not update existing downloads.
+Checked on 2026-10-06 (Asia/Tokyo). This index lists published packages; source changes do not update existing downloads.
 
-当前公开版本如下。0.1.3 之后正在开发的可靠性与文档修正**尚未发布**，下列安装包不包含这些改动。
+当前公开版本如下。Windows 0.1.4 已获发布授权，正在完成集成检查和打包；发布成功前，下列 0.1.3 安装包不包含新版界面、源码编辑和关系图等改动。查看 [0.1.4 发布说明](v0.1.4.md)与[验证进度](../testing/product-shell-release-0.1.4.md)。Linux 继续保持 0.1.3，本轮不发布新的 Linux 安装包。
 
 | Platform / 平台 | Stable release / 稳定版 | Packages / 格式 | Installation / 安装 |
 | --- | --- | --- | --- |

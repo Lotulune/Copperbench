@@ -76,12 +76,12 @@ test('compact run menu exposes actions, dismisses with Escape, and opens task fe
   await page.goto('/');
   const trigger = page.getByTestId('compact-run-menu');
   await trigger.click();
-  await expect(page.locator('.compact-run-popover')).toBeVisible();
+  await expect(page.locator('.workspace-actions-popover')).toBeVisible();
   await page.keyboard.press('Escape');
-  await expect(page.locator('.compact-run-popover')).not.toBeVisible();
+  await expect(page.locator('.workspace-actions-popover')).not.toBeVisible();
   await expect(trigger).toBeFocused();
   await page.keyboard.press('Enter');
-  await page.locator('.compact-run-popover').getByRole('button', { name: '在暂存区运行数据生成', exact: true }).click();
-  await expect(page.locator('.compact-run-popover')).not.toBeVisible();
+  await page.locator('.workspace-actions-popover').getByRole('button', { name: '在暂存区运行数据生成', exact: true }).click();
+  await expect(page.locator('.workspace-actions-popover')).not.toBeVisible();
   await expect(page.getByTestId('task-drawer')).toBeVisible();
 });

@@ -10,6 +10,9 @@
 package dev.copperbench.bridge;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import dev.copperbench.shell.AppPreferencesService;
 import dev.copperbench.shell.UiLocalePreferences;
 import dev.copperbench.window.WindowChromeSnapshot;
 import dev.copperbench.window.WindowsWindowChromeController.PointerGesture;
@@ -37,6 +40,8 @@ public final class JcefWindowBridgeTransport extends CefMessageRouterHandlerAdap
 	public static final String QUERY_PREFIX = "copperbench:window:";
 	public static final String REGION_QUERY_PREFIX = "copperbench:window-regions:";
 	public static final String GESTURE_QUERY_PREFIX = "copperbench:window-gesture:";
+	public static final String PREFERENCES_QUERY_PREFIX = "copperbench:preferences:";
+	public static final String UNSAVED_SOURCE_QUERY_PREFIX = "copperbench:unsaved-source:";
 	private static final Set<String> ACTIONS = Set.of("minimize", "toggle_maximize", "close", "open_preferences", "set_locale_en", "set_locale_zh");
 	private static final Gson JSON = new Gson();
 
@@ -46,6 +51,7 @@ public final class JcefWindowBridgeTransport extends CefMessageRouterHandlerAdap
 	private final Consumer<WindowChromeSnapshot> chromeRegionConsumer;
 	private final BooleanSupplier nativeChromeAvailable;
 	private final Consumer<PointerGesture> pointerGestureConsumer;
+	private final Consumer<Integer> unsavedSourceConsumer;
 	private final WindowStateListener windowStateListener;
 	private final CefBrowser expectedBrowser;
 	private final CefMessageRouter router;
@@ -55,12 +61,13 @@ public final class JcefWindowBridgeTransport extends CefMessageRouterHandlerAdap
 
 	private JcefWindowBridgeTransport(WebView webView, JFrame window, Runnable closeAction,
 			Consumer<WindowChromeSnapshot> chromeRegionConsumer, BooleanSupplier nativeChromeAvailable,
-			Consumer<PointerGesture> pointerGestureConsumer) {
+			Consumer<PointerGesture> pointerGestureConsumer, Consumer<Integer> unsavedSourceConsumer) {
 		this.webView = Objects.requireNonNull(webView, "webView must not be null");
 		this.window = Objects.requireNonNull(window, "window must not be null");
 		this.closeAction = Objects.requireNonNull(closeAction, "closeAction must not be null");
 		this.chromeRegionConsumer = chromeRegionConsumer;
 		this.pointerGestureConsumer = pointerGestureConsumer;
+		this.unsavedSourceConsumer = unsavedSourceConsumer;
 		this.windowStateListener = event -> publishWindowState();
 		window.addWindowStateListener(windowStateListener);
 		this.nativeChromeAvailable = Objects.requireNonNull(nativeChromeAvailable,
@@ -76,26 +83,34 @@ public final class JcefWindowBridgeTransport extends CefMessageRouterHandlerAdap
 	}
 
 	public static JcefWindowBridgeTransport attach(WebView webView, JFrame window, Runnable closeAction) {
-		return new JcefWindowBridgeTransport(webView, window, closeAction, null, () -> false, null);
+		return new JcefWindowBridgeTransport(webView, window, closeAction, null, () -> false, null, null);
 	}
 
 	public static JcefWindowBridgeTransport attach(WebView webView, JFrame window, Runnable closeAction,
 			Consumer<WindowChromeSnapshot> chromeRegionConsumer, BooleanSupplier nativeChromeAvailable) {
 		return new JcefWindowBridgeTransport(webView, window, closeAction, chromeRegionConsumer,
-				nativeChromeAvailable, null);
+				nativeChromeAvailable, null, null);
 	}
 
 	public static JcefWindowBridgeTransport attach(WebView webView, JFrame window, Runnable closeAction,
 			Consumer<WindowChromeSnapshot> chromeRegionConsumer, BooleanSupplier nativeChromeAvailable,
 			Consumer<PointerGesture> pointerGestureConsumer) {
 		return new JcefWindowBridgeTransport(webView, window, closeAction, chromeRegionConsumer,
-				nativeChromeAvailable, pointerGestureConsumer);
+				nativeChromeAvailable, pointerGestureConsumer, null);
+	}
+
+	public static JcefWindowBridgeTransport attach(WebView webView, JFrame window, Runnable closeAction,
+			Consumer<WindowChromeSnapshot> chromeRegionConsumer, BooleanSupplier nativeChromeAvailable,
+			Consumer<PointerGesture> pointerGestureConsumer, Consumer<Integer> unsavedSourceConsumer) {
+		return new JcefWindowBridgeTransport(webView, window, closeAction, chromeRegionConsumer,
+				nativeChromeAvailable, pointerGestureConsumer, unsavedSourceConsumer);
 	}
 
 	private void installHost() {
 		if (!closed.get()) {
 			boolean nativeChrome = nativeChromeActive();
-			webView.executeScriptAsync(generateLocaleBootstrapScript(UiLocalePreferences.read()) + generateBootstrapScript(!nativeChrome, nativeChrome));
+			webView.executeScriptAsync(generateLocaleBootstrapScript(UiLocalePreferences.read())
+					+ generateBootstrapScript(!nativeChrome, nativeChrome, unsavedSourceConsumer != null));
 			publishWindowState();
 		}
 	}
@@ -118,7 +133,9 @@ public final class JcefWindowBridgeTransport extends CefMessageRouterHandlerAdap
 		boolean actionRequest = request != null && request.startsWith(QUERY_PREFIX);
 		boolean regionRequest = request != null && request.startsWith(REGION_QUERY_PREFIX);
 		boolean gestureRequest = request != null && request.startsWith(GESTURE_QUERY_PREFIX);
-		if (!actionRequest && !regionRequest && !gestureRequest)
+		boolean preferencesRequest = request != null && request.startsWith(PREFERENCES_QUERY_PREFIX);
+		boolean unsavedRequest = request != null && request.startsWith(UNSAVED_SOURCE_QUERY_PREFIX);
+		if (!actionRequest && !regionRequest && !gestureRequest && !preferencesRequest && !unsavedRequest)
 			return false;
 		if (closed.get()) {
 			callback.failure(503, "Window bridge is closed");
@@ -128,6 +145,44 @@ public final class JcefWindowBridgeTransport extends CefMessageRouterHandlerAdap
 			return false;
 		if (frame != null && !frame.isMain()) {
 			callback.failure(403, "Window bridge is only available to the main frame");
+			return true;
+		}
+
+		if (unsavedRequest) {
+			if (unsavedSourceConsumer == null) { callback.failure(409, "Unsaved-source guard is unavailable"); return true; }
+			try {
+				// The shell stores the count atomically; no UI work or filesystem writes occur here.
+				unsavedSourceConsumer.accept(parseUnsavedSourceCount(request.substring(UNSAVED_SOURCE_QUERY_PREFIX.length())));
+				callback.success("{}");
+			} catch (RuntimeException exception) { callback.failure(400, "Invalid unsaved-source report"); }
+			return true;
+		}
+
+		if (preferencesRequest) {
+			if (request.length() > 32_768) {
+				callback.failure(400, "Preferences request is too large");
+				return true;
+			}
+			// Serialize with native preference dialogs and publish success only after persistence.
+			SwingUtilities.invokeLater(() -> {
+				if (closed.get()) { callback.failure(503, "Window bridge is closed"); return; }
+				try {
+					JsonObject message = JsonParser.parseString(request.substring(PREFERENCES_QUERY_PREFIX.length())).getAsJsonObject();
+					AppPreferencesService service = AppPreferencesService.current();
+					JsonObject result = switch (message.get("operation").getAsString()) {
+						case "get" -> service.read();
+						case "save" -> service.save(message.getAsJsonObject("payload"));
+						default -> throw new IllegalArgumentException("Unsupported preferences operation");
+					};
+					callback.success(JSON.toJson(result));
+				} catch (IllegalStateException exception) {
+					callback.failure(409, exception.getMessage());
+				} catch (java.io.IOException | SecurityException exception) {
+					callback.failure(500, "Could not read or save preferences; changes were not applied");
+				} catch (RuntimeException exception) {
+					callback.failure(400, "Invalid preferences request: " + exception.getMessage());
+				}
+			});
 			return true;
 		}
 
@@ -206,6 +261,24 @@ public final class JcefWindowBridgeTransport extends CefMessageRouterHandlerAdap
 	}
 
 	public static String generateBootstrapScript(boolean systemFrame, boolean chromeRegions) {
+		return generateBootstrapScript(systemFrame, chromeRegions, false);
+	}
+
+	public static String generateBootstrapScript(boolean systemFrame, boolean chromeRegions, boolean unsavedSourceGuard) {
+		String unsavedProperties = unsavedSourceGuard ? """
+				        unsavedChangesSchemaVersion: '1.0',
+				        reportUnsavedChanges: function(count) {
+				            return new Promise(function(resolve, reject) {
+				                if (!Number.isSafeInteger(count) || count < 0 || count > 1000000) {
+				                    reject(new Error('Invalid unsaved source count')); return;
+				                }
+				                window.cefQuery({request: %s + JSON.stringify({schemaVersion:'1.0',count:count}),persistent:false,
+				                    onSuccess: function() { resolve(); },
+				                    onFailure: function(code,message) { reject(new Error('Unsaved source report [' + code + ']: ' + message)); }
+				                });
+				            });
+				        },
+				""".formatted(JSON.toJson(UNSAVED_SOURCE_QUERY_PREFIX)) : "";
 		String chromeProperties = chromeRegions ? """
 				        chromeRegionSchemaVersion: %s,
 				        pointerGesture: function(gesture) {
@@ -234,10 +307,24 @@ public final class JcefWindowBridgeTransport extends CefMessageRouterHandlerAdap
 				JSON.toJson(REGION_QUERY_PREFIX)) : "";
 		return """
 				(function() {
+				    function preferences(operation, payload) {
+				        return new Promise(function(resolve, reject) {
+				            if (typeof window.cefQuery !== 'function') {
+				                reject(new Error('JCEF preferences transport is not available')); return;
+				            }
+				            window.cefQuery({request: %s + JSON.stringify({operation:operation,payload:payload}),persistent:false,
+				                onSuccess: function(value) { try { resolve(JSON.parse(value)); } catch (error) { reject(error); } },
+				                onFailure: function(code,message) { reject(new Error('Preferences [' + code + ']: ' + message)); }
+				            });
+				        });
+				    }
 				    window.__COPPERBENCH_WINDOW_HOST__ = {
 				        systemFrame: %s,
 				        preferencesAvailable: true,
-				%s
+				        preferencesSchemaVersion: '1.0',
+				        getPreferences: function() { return preferences('get'); },
+				        savePreferences: function(patch) { return preferences('save', patch); },
+				%s%s
 				        invoke: function(action) {
 				            return new Promise(function(resolve, reject) {
 				                if (typeof window.cefQuery !== 'function') {
@@ -256,7 +343,19 @@ public final class JcefWindowBridgeTransport extends CefMessageRouterHandlerAdap
 				        }
 				    };
 				})();
-				""".formatted(systemFrame, chromeProperties, JSON.toJson(QUERY_PREFIX));
+				""".formatted(JSON.toJson(PREFERENCES_QUERY_PREFIX), systemFrame, chromeProperties, unsavedProperties, JSON.toJson(QUERY_PREFIX));
+	}
+
+	static int parseUnsavedSourceCount(String json) {
+		if (json == null || json.length() > 256) throw new IllegalArgumentException("Report exceeds its size limit");
+		JsonObject value = JsonParser.parseString(json).getAsJsonObject();
+		if (value.size() != 2 || !value.has("schemaVersion") || !value.get("schemaVersion").isJsonPrimitive()
+				|| !value.getAsJsonPrimitive("schemaVersion").isString() || !"1.0".equals(value.get("schemaVersion").getAsString())
+				|| !value.has("count") || !value.get("count").isJsonPrimitive() || !value.getAsJsonPrimitive("count").isNumber())
+			throw new IllegalArgumentException("Invalid report shape");
+		int count = value.get("count").getAsBigDecimal().intValueExact();
+		if (count < 0 || count > 1_000_000) throw new IllegalArgumentException("Invalid source count");
+		return count;
 	}
 
 	@Override public void close() {

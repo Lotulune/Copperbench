@@ -25,6 +25,9 @@ import {
 } from '../types/contract';
 import { t, uiText, uiMessage, renderUiMessage, englishCount, type UiMessage } from '../i18n';
 import { BlockbenchTasksPanel } from './BlockbenchTasksPanel';
+import {
+  clearElementEditorDraft, elementEditorDraftKey, getElementEditorDraft, setElementEditorDraft
+} from '../hooks/elementEditorDrafts';
 
 interface ElementInspectorProps {
   element: ModElementSummary;
@@ -144,7 +147,13 @@ function loaderExtensionName(path: string): string | null {
   return match[1].charAt(0).toUpperCase() + match[1].slice(1);
 }
 
-export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onClose }) => {
+export const ElementInspector: React.FC<ElementInspectorProps> = (props) => {
+  const { state } = useWorkbench();
+  const draftKey = elementEditorDraftKey(state.workbench?.workspace.id ?? '', props.element.id);
+  return <ElementInspectorContent key={draftKey} {...props} draftKey={draftKey} />;
+};
+
+const ElementInspectorContent: React.FC<ElementInspectorProps & { draftKey: string }> = ({ element, onClose, draftKey }) => {
   const {
     updateModElement,
     deleteModElement,
@@ -174,25 +183,35 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
     };
   }, []);
 
-  const [editor, setEditor] = useState<ModElementEditorProjection | null>(null);
+  const [restoredDraft] = useState(() => getElementEditorDraft(draftKey));
+  const [editor, setEditor] = useState<ModElementEditorProjection | null>(restoredDraft?.editor ?? null);
   const [configurationPlan, setConfigurationPlan] = useState<WorkspacePlan | null>(null);
-  const [values, setValues] = useState<Record<string, unknown>>({});
+  const [values, setValues] = useState<Record<string, unknown>>(restoredDraft?.values ?? {});
   const [assets, setAssets] = useState<AssetProjection | null>(null);
   const [preview, setPreview] = useState<ModElementChangePreview | null>(null);
   const [isPreviewing, setIsPreviewing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [localErrors, setLocalErrors] = useState<UiMessage[]>([]);
-  const [referenceDrafts, setReferenceDrafts] = useState<Record<string, string>>({});
-  const [externalChange, setExternalChange] = useState(false);
+  const [referenceDrafts, setReferenceDrafts] = useState<Record<string, string>>(restoredDraft?.referenceDrafts ?? {});
+  const [externalChange, setExternalChange] = useState(restoredDraft?.externalChange ?? false);
   const [reloadVersion, setReloadVersion] = useState(0);
   const forceReload = useRef(false);
-  const baseRevision = useRef(state.workbench?.workspace.revision ?? 0);
+  const baseRevision = useRef(restoredDraft?.baseRevision ?? state.workbench?.workspace.revision ?? 0);
   const revisionRef = useRef(baseRevision.current);
   revisionRef.current = state.workbench?.workspace.revision ?? 0;
   const pending = useMemo(() => collectFieldChanges(editor, values), [editor, values]);
-  const draftRef = useRef({ editor, pending, isSaving });
-  draftRef.current = { editor, pending, isSaving };
+  const hasDraft = pending.invalidJson || pending.changes.length > 0 || Object.values(referenceDrafts).some(value => value.length > 0);
+  const draftRef = useRef({ editor, hasDraft, isSaving });
+  draftRef.current = { editor, hasDraft, isSaving };
+
+  useEffect(() => {
+    if (editor && hasDraft) {
+      setElementEditorDraft(draftKey, { editor, values, referenceDrafts, baseRevision: baseRevision.current, externalChange });
+    } else {
+      clearElementEditorDraft(draftKey);
+    }
+  }, [draftKey, editor, values, referenceDrafts, hasDraft, externalChange]);
 
   // Keep the latest query dispatcher without re-running the projection fetch
   // on unrelated bridge state changes.
@@ -221,8 +240,10 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
     const draft = draftRef.current;
     if (draft.editor?.element.id === element.id && !forceReload.current) {
       if (draft.isSaving) return;
-      if (draft.pending.invalidJson || draft.pending.changes.length > 0) {
-        setExternalChange(true);
+      if (draft.hasDraft) {
+        if (draft.editor.element.updatedAt !== element.updatedAt || baseRevision.current !== revisionRef.current) {
+          setExternalChange(true);
+        }
         return;
       }
     }
@@ -337,6 +358,30 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
 
     if (result.status === 'committed') {
       baseRevision.current = result.newRevision;
+      // Rebase immediately, including when the follow-up projection query
+      // fails or the user leaves this route before that query completes.
+      const committedEditor = {
+        ...editor,
+        element: result.data?.element ?? editor.element,
+        sections: editor.sections.map(section => ({
+          ...section,
+          fields: section.fields.map(field => ({ ...field, value: fieldValue(field, values) }))
+        }))
+      };
+      const cachedDraft = getElementEditorDraft(draftKey);
+      // A newer inspector can already be editing this element while this
+      // request finishes. Only replace the snapshot this request committed.
+      if (cachedDraft?.values === values && cachedDraft.referenceDrafts === referenceDrafts) {
+        if (Object.values(referenceDrafts).some(value => value.length > 0)) {
+          // Unadded references were not submitted. Keep them even when this
+          // inspector unmounted before the command completed.
+          setElementEditorDraft(draftKey, { editor: committedEditor, values, referenceDrafts,
+            baseRevision: result.newRevision, externalChange: false });
+        } else {
+          clearElementEditorDraft(draftKey);
+        }
+      }
+      setEditor(committedEditor);
       setExternalChange(false);
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 2000);
@@ -349,6 +394,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
           const committed = { ...values };
           const rebased = {
             ...refreshed,
+            element: result.data?.element ?? refreshed.element,
             sections: refreshed.sections.map((section) => ({
               ...section,
               fields: section.fields.map((field) => ({
@@ -364,7 +410,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
           setPreview(null);
         }
       } catch {
-        setLocalErrors([uiMessage("元素已保存，但无法刷新编辑器投影。", "The element was saved, but the editor could not be refreshed.")]);
+        setLocalErrors([uiMessage("元素已保存，但无法刷新编辑器。", "The element was saved, but the editor could not be refreshed.")]);
       }
     } else if (result.conflict) {
       setExternalChange(true);
@@ -377,7 +423,10 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
     if (window.confirm(uiText(`确定要删除「${element.displayName}」吗？`, `Delete "${element.displayName}"?`))) {
       try {
         const result = await deleteModElement(element.id);
-        if (result.status === 'committed') onClose();
+        if (result.status === 'committed') {
+          clearElementEditorDraft(draftKey);
+          onClose();
+        }
         else setLocalErrors(result.diagnostics.map((diagnostic) => diagnostic.message));
       } catch {
         setLocalErrors([uiMessage("删除失败，元素未被移除。", "Delete failed. The element was not removed.")]);
@@ -462,7 +511,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
   const renderControl = (field: EditorField) => {
     const value = values[field.path];
     const enabledByCondition = conditionActive(field, values);
-    const disabled = field.readOnly || !enabledByCondition;
+    const disabled = isSaving || field.readOnly || !enabledByCondition;
     const commonStyle = disabled ? { background: 'var(--bg-hover)' } : {};
     const controlId = fieldControlId(field.path);
 
@@ -808,7 +857,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
           </div>
           <div>
             <div style={{ fontWeight: 700, fontSize: '13px', color: 'var(--text-main)' }}>
-              {uiText("检查器", "Inspector")}</div>
+              {element.displayName}</div>
             <div style={{ fontSize: '12px', color: 'var(--text-sub)' }}>
               {elementLabel(element.type)} · {element.name}
             </div>
@@ -830,6 +879,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
 
       {/* Form Content */}
       <div
+        className="element-editor-form"
         style={{
           padding: '18px',
           overflowY: 'auto',
@@ -882,6 +932,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
           <div role="alert" data-testid="inspector-external-change">
             <p>{uiText("此元素或工作区已被其他操作修改。当前草稿已保留，请核对最新内容后再编辑。", "Another operation changed this element or workspace. Your draft is preserved. Review the latest content before continuing.")}</p>
             <button type="button" className="btn-secondary" onClick={() => {
+              clearElementEditorDraft(draftKey);
               forceReload.current = true;
               setReloadVersion((version) => version + 1);
             }} data-testid="inspector-reload-latest">
@@ -933,7 +984,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
                 {uiText(`${preview?.semanticSummary?.changedFieldCount ?? pending.changes.length} 个字段`, englishCount(preview?.semanticSummary?.changedFieldCount ?? pending.changes.length, 'field'))}</span>
             </div>
             {isPreviewing ? (
-              <div style={{ fontSize: '12px', color: 'var(--text-sub)' }}>{uiText("正在分析语义与生成影响…", "Analyzing semantic and generation impact…")}</div>
+              <div style={{ fontSize: '12px', color: 'var(--text-sub)' }}>{uiText("正在检查更改…", "Checking changes…")}</div>
             ) : preview ? (
               <>
                 <div style={{ fontSize: '12px', color: 'var(--text-sub)' }}>
@@ -951,7 +1002,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
                 )}
               </>
             ) : (
-              <div style={{ fontSize: '12px', color: 'var(--badge-amber)' }}>{uiText("暂时无法读取生成影响，保存仍会走 Core 校验。", "Generation impact is unavailable. Saving will still run Core validation.")}</div>
+              <div style={{ fontSize: '12px', color: 'var(--badge-amber)' }}>{uiText("无法预览生成影响，可继续保存。", "Generation impact is unavailable. You can still save.")}</div>
             )}
           </div>
         )}
@@ -970,10 +1021,10 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
               fontSize: '12px'
             }}
           >
-            {uiText("正在加载编辑器投影…", "Loading editor…")}</div>
+            {uiText("正在加载…", "Loading…")}</div>
         ) : (
           editor.sections.map((section) => (
-            <div key={section.id} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <section className="element-editor-section" key={section.id}>
               <div style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-sub)', letterSpacing: '0.5px' }}>
                 {t(section.title)}
               </div>
@@ -999,7 +1050,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
                         data-testid={`field-condition-${fieldTestSuffix(field.path)}`}
                         style={{ fontSize: '12px', color: enabledByCondition ? 'var(--badge-blue)' : 'var(--text-sub)' }}
                       >
-                        {enabledByCondition ? uiText("条件已启用 · 当前字段必填", "Condition enabled · This field is required") : uiText("条件未启用 · 当前字段不会参与生成", "Condition disabled · This field will not affect generation")}
+                        {enabledByCondition ? uiText("必填", "Required") : uiText("未启用", "Inactive")}
                       </div>
                     )}
                     {pickerIssue && (
@@ -1098,6 +1149,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
                   <div
                     key={field.path}
                     data-field-path={field.path}
+                    className="element-editor-field"
                     style={{
                       display: 'flex',
                       flexDirection: 'column',
@@ -1113,11 +1165,11 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
                           {uiText("只读保留", "Preserved, read only")}</span>
                       )}
                     </label>
-                    {controlBlock}
+                    <div className="element-editor-control">{controlBlock}</div>
                   </div>
                 );
               })}
-            </div>
+            </section>
           ))
         )}
       </div>

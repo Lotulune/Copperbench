@@ -71,9 +71,8 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 	private static final String EMPTY_PROCEDURE_XML = "<xml xmlns=\"https://developers.google.com/blockly/xml\">"
 			+ "<block type=\"event_trigger\" deletable=\"false\" x=\"40\" y=\"40\">"
 			+ "<field name=\"trigger\">no_ext_trigger</field></block></xml>";
-	private static final String EMPTY_ADVANCEMENT_TRIGGER_XML = "<xml xmlns=\"https://developers.google.com/blockly/xml\">"
-			+ "<block type=\"advancement_trigger\" deletable=\"false\" x=\"40\" y=\"80\">"
-			+ "<next><shadow type=\"custom_trigger\"></shadow></next></block></xml>";
+	private static final String EMPTY_ADVANCEMENT_TRIGGER_XML =
+            dev.copperbench.core.application.SpecializedFieldContract.DEFAULT_ADVANCEMENT_TRIGGER_XML;
 	private static final Gson GENERIC_FIELD_GSON = genericFieldGson();
 
 	private final Workspace workspace;
@@ -626,6 +625,45 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 
 	@Override public void persistRestoredRevision(WorkspaceState restored, long newRevision) throws Exception {
 		workspace.getFileManager().synchronizeProductRevision(workspaceId, newRevision);
+	}
+
+	@Override public Map<String, String> workspaceSourceOwnership() {
+		Path root = workspace.getWorkspaceFolder().toPath().toAbsolutePath().normalize();
+		Map<String, String> ownership = new LinkedHashMap<>();
+		java.util.function.BiConsumer<Path, String> add = (path, mode) -> {
+			Path absolute = path.toAbsolutePath().normalize();
+			if (absolute.startsWith(root)) ownership.merge(root.relativize(absolute).toString().replace('\\', '/'), mode,
+					(left, right) -> left.equals("generated") || right.equals("generated") ? "generated" : "manual");
+		};
+		if (workspace.getMetadata("files") instanceof List<?> files)
+			for (Object relative : files) add.accept(root.resolve(relative.toString()), "generated");
+		if (workspace.getGenerator() != null && workspace.getGenerator().getGeneratorConfiguration() != null) {
+			workspace.getGenerator().getModBaseGeneratorTemplatesList().forEach(template -> add.accept(template.getFile().toPath(), "generated"));
+			AtomicInteger templateId = new AtomicInteger();
+			for (ModElementType<?> type : workspace.getGenerator().getGeneratorConfiguration().getGeneratorStats().getSupportedModElementTypes())
+				workspace.getGenerator().getGlobalTemplatesListForModElementType(type, templateId)
+						.forEach(template -> add.accept(template.getFile().toPath(), "generated"));
+			for (BaseType type : BaseType.values())
+				workspace.getGenerator().getGlobalTemplatesListForDefinition(
+						workspace.getGenerator().getGeneratorConfiguration().getDefinitionsProvider().getBaseTypeDefinition(type), templateId)
+						.forEach(template -> add.accept(template.getFile().toPath(), "generated"));
+			// Localization generation empties this exact generator-owned folder, including files not in language_map.
+			Map<?, ?> language = workspace.getGeneratorConfiguration().getLanguageFileSpecification();
+			if ("json".equals(language.get("format")) || "keyvalue".equals(language.get("format"))) {
+				Path languageRoot = workspace.getGenerator().getLangFilesRoot().toPath().toAbsolutePath().normalize();
+				if (languageRoot.startsWith(root)) ownership.put(root.relativize(languageRoot).toString().replace('\\', '/') + "/", "generated");
+			}
+			if (!workspace.getGeneratorConfiguration().getTagsSpecification().isEmpty())
+				for (var tag : workspace.getTagElements().keySet()) {
+					File path = net.mcreator.generator.TagsUtils.getTagFileFor(workspace, tag);
+					if (path != null) add.accept(path.toPath(), "generated");
+				}
+		}
+		for (ModElement element : workspace.getModElements()) {
+			String mode = element.isCodeLocked() || element.getTypeString().equals("code") ? "manual" : "generated";
+			associatedPaths(element).forEach(path -> add.accept(path, mode));
+		}
+		return Map.copyOf(ownership);
 	}
 
 	@Override public void persistWorkspaceData(WorkspaceState before, WorkspaceState after, Operation operation)

@@ -4,14 +4,17 @@ test.describe('Stage 13: unified Refactor Workbench', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
     await page.waitForSelector('[data-testid="app-shell"]');
+    await page.getByRole('button', { name: '展开或收起工具' }).click();
     await page.click('[data-testid="nav-tracks"]');
+    await expect(page.locator('[data-testid="refactor-workbench-section"]')).not.toBeVisible();
     await page.click('[data-testid="tab-refactor-workbench"]');
     await expect(page.locator('[data-testid="refactor-workbench-section"]')).toBeVisible();
   });
 
   test('previews and applies a reference-aware registry rename through WorkspacePlan', async ({ page }) => {
     await expect(page.locator('[data-testid="refactor-registry-card"]')).toBeVisible();
-    await expect(page.locator('[data-testid="refactor-procedure-note"]')).toContainText('Procedure');
+    await expect(page.getByTestId('refactor-workbench-section')).not.toContainText('Core');
+    await expect(page.getByTestId('refactor-workbench-section')).not.toContainText('JSON Pointer');
 
     await expect(page.locator('[data-testid="refactor-registry-select"]'))
       .toHaveValue('7a4be662-5208-4cc7-8984-c08ae63a447a');
@@ -22,7 +25,6 @@ test.describe('Stage 13: unified Refactor Workbench', () => {
     await expect(impact).toBeVisible();
     await expect(impact).toContainText('player_energy');
     await expect(impact).toContainText('player_energy_v2');
-    await expect(impact).toContainText('恢复保护就绪');
     await expect(page.locator('[data-testid="apply-registry-refactor"]')).toBeEnabled();
 
     await page.click('[data-testid="apply-registry-refactor"]');

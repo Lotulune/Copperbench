@@ -12,6 +12,21 @@ import java.util.*;
 public final class SpecializedFieldContract {
     private SpecializedFieldContract() {}
 
+    public static final String DEFAULT_ADVANCEMENT_TRIGGER_XML = "<xml xmlns=\"https://developers.google.com/blockly/xml\">"
+            + "<block type=\"advancement_trigger\" deletable=\"false\" x=\"40\" y=\"80\">"
+            + "<next><shadow type=\"custom_trigger\"></shadow></next></block></xml>";
+
+    public static JsonObject projectAdvancementDefinition(JsonObject definition) {
+        JsonObject result = definition.deepCopy();
+        ACHIEVEMENT_ALIASES.forEach((publicName, storedName) -> {
+            if (result.has(storedName)) {
+                if (!result.has(publicName)) result.add(publicName, result.get(storedName));
+                result.remove(storedName);
+            }
+        });
+        return result;
+    }
+
     private static final Map<String, String> ACHIEVEMENT_ALIASES = Map.of(
             "title", "achievementName", "description", "achievementDescription",
             "icon", "achievementIcon", "frame", "achievementType");

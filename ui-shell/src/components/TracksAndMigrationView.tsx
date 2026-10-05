@@ -2,8 +2,6 @@ import { tr } from '../i18n/locale';
 import { elementLabel, valueLabel } from '../i18n/labels';
 import React, { useState, useEffect, useMemo } from 'react';
 import {
-  Compass,
-  ShieldCheck,
   AlertTriangle,
   FileArchive,
   Info,
@@ -11,12 +9,12 @@ import {
   Play,
   Plus,
   Lock,
-  GitBranch,
   MoveRight
 } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
 import { useDialogA11y } from '../hooks/useDialogA11y';
-import { t } from '../i18n';
+import { t, uiText } from '../i18n';
+import './tracksMigration.css';
 import {
   VersionTracksProjection,
   VersionTrack,
@@ -35,7 +33,7 @@ import {
   AssetMovePreview
 } from '../types/contract';
 
-type U3Tab = 'matrix' | 'migration' | 'refactor' | 'upstream' | 'publish';
+type U3Tab = 'matrix' | 'migration' | 'publish';
 
 const sanitizeOutputName = (raw: string): string => {
   return raw.toLowerCase().replace(/[^a-z0-9_-]/g, '_').replace(/^_+/, 'w_').slice(0, 64);
@@ -71,6 +69,8 @@ export const TracksAndMigrationView: React.FC = () => {
   } = useWorkbench();
 
   const [activeTab, setActiveTab] = useState<U3Tab>('matrix');
+  const [refactorOpen, setRefactorOpen] = useState(false);
+  const [upstreamOpen, setUpstreamOpen] = useState(false);
 
   // Track Matrix state
   const [tracksData, setTracksData] = useState<VersionTracksProjection | null>(state.versionTracks);
@@ -227,7 +227,7 @@ export const TracksAndMigrationView: React.FC = () => {
   }, [activeTab, listPublishBatches]);
 
   useEffect(() => {
-    if (activeTab !== 'refactor') return;
+    if (!refactorOpen) return;
     let mounted = true;
     void Promise.all([listWorkspaceRegistries(), listAssets()]).then(([registries, assets]) => {
       if (!mounted) return;
@@ -250,7 +250,7 @@ export const TracksAndMigrationView: React.FC = () => {
       });
     });
     return () => { mounted = false; };
-  }, [activeTab, listAssets, listWorkspaceRegistries]);
+  }, [refactorOpen, listAssets, listWorkspaceRegistries]);
 
   const refactorRegistryEntries = useMemo(() => {
     const registries = refactorRegistries?.registries;
@@ -449,188 +449,68 @@ export const TracksAndMigrationView: React.FC = () => {
 
   return (
     <div className="tracks-migration-view animate-fade-in" data-testid="tracks-view" style={{ flex: 1, padding: '24px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      {/* Header */}
-      <div className="track-view-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '16px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ padding: '8px', borderRadius: 'var(--radius-md)', background: 'var(--accent-copper-dim)', color: 'var(--accent-copper)' }}>
-            <Compass size={24} />
-          </div>
-          <div>
-            <h2 style={{ fontSize: '18px', fontWeight: 700, margin: 0 }}>{tr("版本轨道与工作区迁移")}</h2>
-            <p style={{ fontSize: '12px', color: 'var(--text-sub)', margin: '4px 0 0 0' }}>
-              {tr("Minecraft 4轨版本矩阵 · 跨加载器副本迁移 · 上游迁入与资源包发布")}</p>
-          </div>
-        </div>
+      <header className="track-view-header">
+        <h2>{uiText('版本与迁移', 'Versions & migration')}</h2>
+        <nav className="track-view-tabs" aria-label={uiText('版本操作', 'Version actions')}>
+          <button type="button" className={activeTab === 'matrix' ? 'is-active' : ''} aria-current={activeTab === 'matrix' ? 'page' : undefined}
+            data-testid="tab-track-matrix" onClick={() => setActiveTab('matrix')}>{uiText('可用版本', 'Available versions')}</button>
+          <button type="button" className={activeTab === 'migration' ? 'is-active' : ''} aria-current={activeTab === 'migration' ? 'page' : undefined}
+            data-testid="tab-loader-migration" onClick={() => setActiveTab('migration')}>{uiText('迁移工作区', 'Migrate workspace')}</button>
+          <button type="button" className={activeTab === 'publish' ? 'is-active' : ''} aria-current={activeTab === 'publish' ? 'page' : undefined}
+            data-testid="tab-publish-batches" onClick={() => setActiveTab('publish')}>{uiText('资源包发布', 'Resource pack releases')}</button>
+        </nav>
+      </header>
 
-        {/* Tab Switcher */}
-        <div className="track-view-tabs" style={{ display: 'flex', gap: '6px', background: 'var(--bg-panel)', padding: '4px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
-          <button
-            type="button"
-            className={`btn-ghost ${activeTab === 'matrix' ? 'is-active' : ''}`}
-            data-testid="tab-track-matrix"
-            onClick={() => setActiveTab('matrix')}
-            style={{ fontSize: '12px', padding: '6px 12px', borderRadius: 'var(--radius-sm)', background: activeTab === 'matrix' ? 'var(--accent-copper-dim)' : 'transparent', color: activeTab === 'matrix' ? 'var(--accent-copper)' : 'var(--text-main)', fontWeight: activeTab === 'matrix' ? 600 : 400 }}
-          >
-            {tr("版本轨道矩阵")}</button>
-          <button
-            type="button"
-            className={`btn-ghost ${activeTab === 'migration' ? 'is-active' : ''}`}
-            data-testid="tab-loader-migration"
-            onClick={() => setActiveTab('migration')}
-            style={{ fontSize: '12px', padding: '6px 12px', borderRadius: 'var(--radius-sm)', background: activeTab === 'migration' ? 'var(--accent-copper-dim)' : 'transparent', color: activeTab === 'migration' ? 'var(--accent-copper)' : 'var(--text-main)', fontWeight: activeTab === 'migration' ? 600 : 400 }}
-          >
-            {tr("加载器迁移")}</button>
-          <button
-            type="button"
-            className={`btn-ghost ${activeTab === 'upstream' ? 'is-active' : ''}`}
-            data-testid="tab-upstream-import"
-            onClick={() => setActiveTab('upstream')}
-            style={{ fontSize: '12px', padding: '6px 12px', borderRadius: 'var(--radius-sm)', background: activeTab === 'upstream' ? 'var(--accent-copper-dim)' : 'transparent', color: activeTab === 'upstream' ? 'var(--accent-copper)' : 'var(--text-main)', fontWeight: activeTab === 'upstream' ? 600 : 400 }}
-          >
-            {tr("上游工作区迁入")}</button>
-          <button
-            type="button"
-            className={`btn-ghost ${activeTab === 'refactor' ? 'is-active' : ''}`}
-            data-testid="tab-refactor-workbench"
-            onClick={() => setActiveTab('refactor')}
-            style={{ fontSize: '12px', padding: '6px 12px', borderRadius: 'var(--radius-sm)', background: activeTab === 'refactor' ? 'var(--accent-copper-dim)' : 'transparent', color: activeTab === 'refactor' ? 'var(--accent-copper)' : 'var(--text-main)', fontWeight: activeTab === 'refactor' ? 600 : 400 }}
-          >
-            {tr("重构工作台")}</button>
-          <button
-            type="button"
-            className={`btn-ghost ${activeTab === 'publish' ? 'is-active' : ''}`}
-            data-testid="tab-publish-batches"
-            onClick={() => setActiveTab('publish')}
-            style={{ fontSize: '12px', padding: '6px 12px', borderRadius: 'var(--radius-sm)', background: activeTab === 'publish' ? 'var(--accent-copper-dim)' : 'transparent', color: activeTab === 'publish' ? 'var(--accent-copper)' : 'var(--text-main)', fontWeight: activeTab === 'publish' ? 600 : 400 }}
-          >
-            {tr("资源包发布批次")}</button>
-        </div>
-      </div>
-
-      {/* Tab 1: Version Track Matrix */}
       {activeTab === 'matrix' && (
-        <div className="track-matrix-content animate-fade-in" data-testid="track-matrix-section" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div className="track-workspace-summary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--bg-panel)', padding: '12px 16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px' }}>
-              <Info size={16} color="var(--accent-copper)" />
-              <span>{tr("当前工作区所用生成器：")}</span>
-              <code style={{ background: 'var(--bg-canvas)', padding: '2px 8px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', fontWeight: 600 }}>
-                {tracksData?.currentWorkspace?.generator?.displayName ?? state.workbench?.workspace.generator.displayName ?? tr("生成器信息不可用")}
-                {' '}({tracksData?.currentWorkspace?.generator?.id ?? state.workbench?.workspace.generator.id ?? 'unknown'})
-              </code>
-            </div>
-            <div style={{ fontSize: '12px', color: 'var(--text-sub)' }}>
-              {tracksData
-                ? tr("版本策略：最新稳定轨 {0} · 前一稳定轨 {1} · 维护轨", [tracksData.latestMinecraftVersion, tracksData.previousMinecraftVersion])
-                : tr("正在读取版本轨道策略…")}
-            </div>
+        <section className="track-matrix-content" data-testid="track-matrix-section">
+          <div className="track-workspace-summary">
+            <span>{uiText('当前工作区', 'Current workspace')}</span>
+            <strong>{tracksData?.currentWorkspace?.generator?.displayName ?? state.workbench?.workspace.generator.displayName ?? tr("生成器信息不可用")}</strong>
           </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 360px), 1fr))', gap: '16px' }}>
+          <div className="track-version-grid">
             {tracksData?.tracks.map((track: VersionTrack) => (
-              <div
-                key={track.id}
-                className="track-card"
-                data-testid={`track-card-${track.id}`}
-                style={{
-                  background: 'var(--bg-panel)',
-                  border: '1px solid var(--border-subtle)',
-                  borderRadius: 'var(--radius-md)',
-                  padding: '16px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '12px'
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '10px' }}>
-                  <div>
-                    <h3 style={{ fontSize: '14px', fontWeight: 700, margin: 0 }}>{track.displayName}</h3>
-                    <div style={{ fontSize: '11px', color: 'var(--text-sub)', marginTop: '2px' }}>
-                      Minecraft {track.minecraftVersion} {track.dynamic && tr("· 动态轨")}
+              <section key={track.id} className="track-card" data-testid={`track-card-${track.id}`}>
+                <h3>Minecraft {track.minecraftVersion}</h3>
+                {track.loaders.map((loader: TrackLoader) => (
+                  <div key={`${track.id}-${loader.loader}`} className={`track-loader-row${isCurrentGenerator(loader) ? ' is-current' : ''}`}
+                    data-testid={`loader-row-${track.id}-${loader.loader}`}>
+                    <div className="track-loader-title">
+                      <strong>{loader.loader === 'resource_pack' ? uiText('资源包', 'Resource pack') : loader.loader === 'neoforge' ? 'NeoForge' : 'Fabric'}</strong>
+                      <span>{loader.minecraftVersion}</span>
+                      {isCurrentGenerator(loader) && <span className="track-current-label">{uiText('当前', 'Current')}</span>}
                     </div>
+                    <div className="track-loader-actions">
+                      <span title={loader.notes || undefined}>{getStatusBadge(loader.status)}</span>
+                      {migrationTargets.some(target => target.loader.generatorId === loader.generatorId) && (
+                        <button type="button" className="btn-ghost" data-testid={`migrate-to-${loader.generatorId}`} onClick={() => {
+                          setTargetGeneratorId(loader.generatorId);
+                          setMigrationOutputName(sanitizeOutputName(`workspace_${loader.generatorId}`));
+                          setActiveTab('migration');
+                          void handlePreviewMigration(loader.generatorId);
+                        }}>{uiText('迁移', 'Migrate')}<MoveRight size={13} aria-hidden="true" /></button>
+                      )}
+                    </div>
+                    {(loader.status === 'unavailable' || loader.status === 'preview') && loader.notes && (
+                      <p className="track-availability-note">{loader.notes}</p>
+                    )}
                   </div>
-                  <span className={`badge ${track.dynamic ? 'badge-copper' : 'badge-blue'}`} style={{ fontSize: '10px' }}>
-                    {track.id}
-                  </span>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  {track.loaders.map((loader: TrackLoader) => {
-                    const isCurrent = isCurrentGenerator(loader);
-                    return (
-                      <div
-                        key={`${track.id}-${loader.loader}`}
-                        data-testid={`loader-row-${track.id}-${loader.loader}`}
-                        style={{
-                          background: isCurrent ? 'var(--accent-copper-dim)' : 'var(--bg-canvas)',
-                          border: isCurrent ? '1px solid var(--accent-copper)' : '1px solid var(--border-subtle)',
-                          borderRadius: 'var(--radius-sm)',
-                          padding: '10px 12px',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: '6px'
-                        }}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <strong style={{ textTransform: 'capitalize', fontSize: '13px' }}>{loader.loader === 'resource_pack' ? tr("资源包（Resource Pack）") : loader.loader === 'neoforge' ? 'NeoForge' : 'Fabric'}</strong>
-                            <code style={{ fontSize: '11px', color: 'var(--text-sub)' }}>{loader.generatorId}</code>
-                            {isCurrent && <span className="badge badge-copper" style={{ fontSize: '9px' }}>{tr("当前工作区")}</span>}
-                          </div>
-                          {getStatusBadge(loader.status)}
-                        </div>
-
-                        <div style={{ fontSize: '11px', color: 'var(--text-main)', lineHeight: 1.4 }}>
-                          {loader.notes}
-                        </div>
-
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px', paddingTop: '4px', borderTop: '1px dashed var(--border-subtle)' }}>
-                          <span style={{ fontSize: '10px', color: 'var(--text-sub)' }}>
-                            {tr("代码: ")}<code style={{ color: 'var(--accent-copper)' }}>{loader.reasonCode}</code>
-                          </span>
-                          {loader.status !== 'unavailable' && !isCurrent && (
-                            <button
-                              type="button"
-                              className="btn-ghost"
-                              data-testid={`migrate-to-${loader.generatorId}`}
-                              style={{ fontSize: '11px', padding: '2px 8px', color: 'var(--accent-copper)' }}
-                              onClick={() => {
-                                setTargetGeneratorId(loader.generatorId);
-                                setMigrationOutputName(sanitizeOutputName(`workspace_${loader.generatorId}`));
-                                setActiveTab('migration');
-                                void handlePreviewMigration(loader.generatorId);
-                              }}
-                            >
-                              {tr("准备迁移至此加载器 &rarr;")}</button>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
+                ))}
+              </section>
             ))}
           </div>
-        </div>
+        </section>
       )}
 
       {/* Tab 2: Loader Migration */}
       {activeTab === 'migration' && (
         <div className="migration-content animate-fade-in" data-testid="loader-migration-section" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {/* Top Info Alert */}
-          <div role="note" style={{ background: 'var(--badge-blue-bg)', border: '1px solid rgba(88, 166, 255, 0.4)', borderRadius: 'var(--radius-md)', padding: '12px 16px', display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-            <ShieldCheck size={18} color="var(--badge-blue)" style={{ flexShrink: 0, marginTop: '2px' }} />
-            <div style={{ fontSize: '12px', color: 'var(--text-main)', lineHeight: 1.5 }}>
-              <strong>{tr("安全拷贝保证：")}</strong> {tr(" 迁移结果写入新副本，保留原工作区。请先预览差异，检查丢失、降级或需手动处理的内容。")}</div>
-          </div>
-
           {/* Configuration Form */}
           <div style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            <h3 style={{ fontSize: '14px', fontWeight: 700, margin: 0 }}>{tr("选择迁移目标生成器")}</h3>
+            <h3 style={{ fontSize: '14px', fontWeight: 700, margin: 0 }}>{uiText('迁移目标', 'Migration target')}</h3>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
               <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px', fontWeight: 600 }}>
-                {tr("目标生成器")}<select
+                {uiText('版本与加载器', 'Version & loader')}<select
                   data-testid="migration-target-select"
                   value={targetGeneratorId}
                   onChange={(e) => {
@@ -643,10 +523,9 @@ export const TracksAndMigrationView: React.FC = () => {
                   }}
                   style={{ padding: '8px 10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', background: 'var(--bg-canvas)', color: 'var(--text-main)', fontSize: '12px' }}
                 >
-                  {migrationTargets.map(({ loader, track }) => (
+                  {migrationTargets.map(({ loader }) => (
                     <option key={loader.generatorId} value={loader.generatorId}>
                       {loader.loader === 'neoforge' ? 'NeoForge' : 'Fabric'} {loader.minecraftVersion}
-                      {' · '}{track.id === 'latest_stable' ? tr("最新稳定轨") : track.id === 'previous_stable' ? tr("前一稳定轨") : tr("维护轨")}
                       {' · '}{loader.status === 'supported' ? tr("正式支持") : loader.status === 'preview' ? tr("技术预览") : tr("并轨共用")}
                     </option>
                   ))}
@@ -675,7 +554,7 @@ export const TracksAndMigrationView: React.FC = () => {
                 disabled={migrationLoading || !targetGeneratorId}
                 style={{ fontSize: '12px', padding: '6px 14px' }}
               >
-                {migrationLoading ? tr("正在分析差异…") : tr("分析跨加载器迁移差异")}
+                {migrationLoading ? tr("正在分析差异…") : uiText('预览迁移', 'Preview migration')}
               </button>
             </div>
           </div>
@@ -688,9 +567,6 @@ export const TracksAndMigrationView: React.FC = () => {
                   <h4 style={{ fontSize: '14px', fontWeight: 700, margin: 0 }}>
                     {tr("迁移可行性报告：")}{migrationPreview.sourceGeneratorId} &rarr; {migrationPreview.targetGeneratorId}
                   </h4>
-                  <div style={{ fontSize: '11px', color: 'var(--text-sub)', marginTop: '2px' }}>
-                    {tr("源工作区保持只读未受影响（SHA-256: ")}{migrationPreview.sourceHash ? migrationPreview.sourceHash.slice(0, 16) + '…' : tr("已校验")}）
-                  </div>
                 </div>
                 <div>
                   {migrationPreview.complete ? (
@@ -749,6 +625,7 @@ export const TracksAndMigrationView: React.FC = () => {
 
               {/* Explicit User Confirmation */}
               <div style={{ background: 'var(--bg-canvas)', padding: '12px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <p className="migration-consequence">{uiText('迁移会创建新副本，原工作区不变。', 'Migration creates a new copy and leaves the source workspace unchanged.')}</p>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>
                   <input
                     type="checkbox"
@@ -756,7 +633,7 @@ export const TracksAndMigrationView: React.FC = () => {
                     checked={migrationConfirmed}
                     onChange={(e) => setMigrationConfirmed(e.target.checked)}
                   />
-                  <span>{tr("我已知晓目标生成器差异，并确认执行迁移并写入新副本目录")}</span>
+                  <span>{uiText('已查看差异，确认迁移', 'I have reviewed the differences and confirm migration')}</span>
                 </label>
 
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -768,12 +645,9 @@ export const TracksAndMigrationView: React.FC = () => {
                     onClick={() => void handleExecuteMigration()}
                     style={{ fontSize: '12px', padding: '6px 16px' }}
                   >
-                    {migrationLoading ? tr("正在执行迁移…") : tr("执行加载器迁移并生成新副本")}
+                    {migrationLoading ? tr("正在执行迁移…") : uiText('创建迁移副本', 'Create migrated copy')}
                   </button>
-                  {!migrationConfirmed && (
-                    <span style={{ fontSize: '11px', color: 'var(--badge-amber)' }}>
-                      {tr("必须勾选确认后方可执行迁移")}</span>
-                  )}
+
                 </div>
               </div>
             </div>
@@ -808,9 +682,7 @@ export const TracksAndMigrationView: React.FC = () => {
             >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
                 <div>
-                  <strong style={{ fontSize: '13px' }}>{tr("源工作区 → 迁移结果语义对比")}</strong>
-                  <div style={{ marginTop: '3px', fontSize: '11px', color: 'var(--text-sub)' }}>
-                    {tr("只比较 generator、工作区元数据与 Mod Element 定义；生成源码和构建产物不计入语义变化。")}</div>
+                  <strong style={{ fontSize: '13px' }}>{uiText('迁移结果', 'Migration changes')}</strong>
                 </div>
                 {migrationResult.data.semanticComparison.workspaceMetadataPreserved ? (
                   <span className="badge badge-green" data-testid="migration-metadata-preserved">{tr("元数据保持")}</span>
@@ -880,301 +752,12 @@ export const TracksAndMigrationView: React.FC = () => {
         </div>
       )}
 
-      {/* Refactor Workbench: orchestrates existing Core plans instead of owning mutations. */}
-      {activeTab === 'refactor' && (
-        <div className="refactor-workbench-content animate-fade-in" data-testid="refactor-workbench-section" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div role="note" style={{ background: 'var(--badge-blue-bg)', border: '1px solid rgba(88, 166, 255, 0.4)', borderRadius: 'var(--radius-md)', padding: '12px 16px', display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-            <GitBranch size={18} color="var(--badge-blue)" style={{ flexShrink: 0, marginTop: '2px' }} />
-            <div style={{ fontSize: '12px', lineHeight: 1.5 }}>
-              <strong>{tr("统一影响预览，不新增第二套重构引擎。")}</strong>
-              <div style={{ color: 'var(--text-sub)', marginTop: '3px' }}>
-                {tr("Registry 重命名复用 protected WorkspacePlan；资产移动复用 Asset Center 的引用图与 recovery。Procedure 调用/资源批量替换继续使用同一 Core 的 Procedure Refactor Plan。")}</div>
-            </div>
-          </div>
-
-          {refactorResult && (
-            <div
-              data-testid="refactor-result"
-              role="status"
-              style={{
-                background: refactorResult.status === 'committed' ? 'var(--badge-green-bg)' : 'var(--badge-amber-bg)',
-                border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '10px 14px',
-                fontSize: '12px'
-              }}
-            >
-              {refactorResult.status === 'committed' ? tr("重构已提交，并使用现有恢复机制保护。") : tr("重构未提交：{0}", [valueLabel(refactorResult.status)])}
-            </div>
-          )}
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '16px' }}>
-            <section data-testid="refactor-registry-card" style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div>
-                <h3 style={{ margin: 0, fontSize: '14px' }}>{tr("Registry 引用感知重命名")}</h3>
-                <p style={{ margin: '4px 0 0', color: 'var(--text-sub)', fontSize: '11px' }}>{tr("先看引用影响，再生成 recovery-protected WorkspacePlan；应用时仍走共享 Core。")}</p>
-              </div>
-              <label style={{ display: 'flex', flexDirection: 'column', gap: '5px', fontSize: '11px' }}>
-                {tr("Registry 条目")}<select data-testid="refactor-registry-select" value={selectedRegistryId} onChange={(event) => handleRegistrySelection(event.target.value)}>
-                  {refactorRegistryEntries.map((entry) => (
-                    <option key={entry.id} value={entry.id}>{entry.name ?? entry.key ?? entry.id} · {valueLabel(entry.kind)}</option>
-                  ))}
-                </select>
-              </label>
-              <label style={{ display: 'flex', flexDirection: 'column', gap: '5px', fontSize: '11px' }}>
-                {tr("新名称")}<input data-testid="refactor-registry-new-name" value={registryNewName} onChange={(event) => {
-                  setRegistryNewName(event.target.value);
-                  setRegistryRenamePreview(null);
-                  setRegistryRenamePlan(null);
-                }} />
-              </label>
-              <button type="button" className="btn-secondary" data-testid="preview-registry-refactor" disabled={refactorBusy || !selectedRegistryId || !registryNewName.trim()} onClick={() => void handlePreviewRegistryRefactor()}>
-                {tr("生成影响图与计划")}</button>
-
-              {registryRenamePreview && registryRenamePlan && (
-                <div data-testid="registry-refactor-impact" style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
-                    <div className="stage2-stat-card"><span>{tr("受影响元素")}</span><strong>{registryRenamePreview.impactedElementCount}</strong></div>
-                    <div className="stage2-stat-card"><span>{tr("引用边")}</span><strong>{registryRenamePreview.references.edges.length}</strong></div>
-                    <div className="stage2-stat-card"><span>{tr("持久化路径")}</span><strong>{registryRenamePlan.changedPaths.length}</strong></div>
-                  </div>
-                  <div style={{ fontSize: '11px', color: 'var(--text-sub)' }}>
-                    {registryRenamePreview.oldName} <MoveRight size={12} style={{ verticalAlign: '-2px' }} /> {registryRenamePreview.newName}
-                  </div>
-                  <div style={{ fontSize: '11px', color: registryRenamePlan.safety.ready ? 'var(--badge-green)' : 'var(--badge-red)' }}>
-                    {registryRenamePlan.safety.ready ? tr("恢复保护就绪，可应用计划。") : tr("恢复保护不可用，计划不可应用。")}
-                  </div>
-                  <button type="button" className="btn-primary" data-testid="apply-registry-refactor" disabled={refactorBusy || !registryRenamePreview.canApply || !registryRenamePlan.safety.ready} onClick={() => void handleApplyRegistryRefactor()}>
-                    {tr("应用已审阅计划")}</button>
-                </div>
-              )}
-            </section>
-
-            <section data-testid="refactor-asset-card" style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div>
-                <h3 style={{ margin: 0, fontSize: '14px' }}>{tr("资产重命名 / 移动")}</h3>
-                <p style={{ margin: '4px 0 0', color: 'var(--text-sub)', fontSize: '11px' }}>{tr("复用 Asset Center 的引用图，预览精确 JSON Pointer rewrite 后再移动。")}</p>
-              </div>
-              <label style={{ display: 'flex', flexDirection: 'column', gap: '5px', fontSize: '11px' }}>
-                {tr("源资产")}<select data-testid="refactor-asset-select" value={selectedAssetId} onChange={(event) => handleAssetSelection(event.target.value)}>
-                  {(refactorAssets?.assets ?? []).map((asset) => (
-                    <option key={asset.id} value={asset.id}>{asset.relativePath}</option>
-                  ))}
-                </select>
-              </label>
-              <label style={{ display: 'flex', flexDirection: 'column', gap: '5px', fontSize: '11px' }}>
-                {tr("目标路径")}<input data-testid="refactor-asset-target" value={assetTargetPath} onChange={(event) => {
-                  setAssetTargetPath(event.target.value);
-                  setAssetMovePreview(null);
-                }} />
-              </label>
-              <button type="button" className="btn-secondary" data-testid="preview-asset-refactor" disabled={refactorBusy || !selectedAssetId || !assetTargetPath.trim()} onClick={() => void handlePreviewAssetRefactor()}>
-                {tr("预览移动与引用重写")}</button>
-
-              {assetMovePreview && (
-                <div data-testid="asset-refactor-impact" style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
-                    <div className="stage2-stat-card"><span>{tr("入站引用")}</span><strong>{assetMovePreview.referenceCount}</strong></div>
-                    <div className="stage2-stat-card"><span>{tr("精确重写")}</span><strong>{assetMovePreview.rewrites.length}</strong></div>
-                  </div>
-                  <code style={{ fontSize: '10px', overflowWrap: 'anywhere' }}>{assetMovePreview.sourceRelativePath} → {assetMovePreview.targetRelativePath}</code>
-                  {assetMovePreview.issueCodes.length > 0 && (
-                    <div data-testid="asset-refactor-issues" style={{ color: 'var(--badge-amber)', fontSize: '10px' }}>{assetMovePreview.issueCodes.join(' · ')}</div>
-                  )}
-                  {assetMovePreview.rewrites.slice(0, 5).map((rewrite) => (
-                    <div key={`${rewrite.sourcePath}:${rewrite.sourcePointer}`} style={{ fontSize: '10px', color: 'var(--text-sub)' }}>
-                      <code>{rewrite.sourcePath}{rewrite.sourcePointer}</code> · {rewrite.oldRawValue} → {rewrite.newRawValue}
-                    </div>
-                  ))}
-                  <button type="button" className="btn-primary" data-testid="apply-asset-refactor" disabled={refactorBusy || !assetMovePreview.canApply} onClick={() => void handleApplyAssetRefactor()}>
-                    {tr("应用移动与引用重写")}</button>
-                </div>
-              )}
-            </section>
-          </div>
-
-          <div data-testid="refactor-procedure-note" style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '12px 16px', fontSize: '11px', color: 'var(--text-sub)' }}>
-            {tr("Procedure 的批量调用目标替换、资源引用替换与逻辑抽取继续在 Procedure Workbench 中执行；它们已经共享 protected WorkspacePlan，因此这里不复制第二套编辑器。")}</div>
-        </div>
-      )}
-
-      {/* Tab 3: Upstream Import */}
-      {activeTab === 'upstream' && (
-        <div className="upstream-import-content animate-fade-in" data-testid="upstream-import-section" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {/* Desktop Full Access Notice */}
-          <div role="alert" style={{ background: 'var(--badge-amber-bg)', border: '1px solid rgba(210, 153, 34, 0.4)', borderRadius: 'var(--radius-md)', padding: '12px 16px', display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-            <AlertTriangle size={18} color="var(--badge-amber)" style={{ flexShrink: 0, marginTop: '2px' }} />
-            <div style={{ fontSize: '12px', color: 'var(--text-main)', lineHeight: 1.5 }}>
-              <strong>{tr("环境约束说明：")}</strong> {tr(" 迁入外部上游工作区需要桌面宿主提供的系统文件选择器与完全访问（Full Access）权限。在浏览器与模拟环境下，直接文件系统选择器处于禁用状态。")}</div>
-          </div>
-
-          <div style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            <h3 style={{ fontSize: '14px', fontWeight: 700, margin: 0 }}>{tr("上游工作区迁入配置")}</h3>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px', fontWeight: 600 }}>
-                {tr("上游工作区路径（模拟夹具固定路径）")}<div style={{ display: 'flex', gap: '8px' }}>
-                  <input
-                    type="text"
-                    data-testid="upstream-path-input"
-                    value={upstreamSourcePath}
-                    onChange={(e) => setUpstreamSourcePath(e.target.value)}
-                    style={{ flex: 1, padding: '8px 10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', background: 'var(--bg-canvas)', color: 'var(--text-main)', fontSize: '12px' }}
-                  />
-                  <button
-                    type="button"
-                    className="btn-secondary"
-                    data-testid="upstream-browse-btn"
-                    disabled
-                    title={tr("仅桌面完全访问（Full Access）宿主可用")}
-                    style={{ fontSize: '12px', padding: '6px 12px', opacity: 0.6 }}
-                  >
-                    <Lock size={12} style={{ marginRight: '4px' }} />
-                    {tr("浏览… (仅桌面完全访问（Full Access）)")}</button>
-                </div>
-              </label>
-
-              <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px', fontWeight: 600 }}>
-                {tr("新工作区副本名称")}<input
-                  type="text"
-                  data-testid="upstream-output-name-input"
-                  value={upstreamOutputName}
-                  onChange={(e) => setUpstreamOutputName(e.target.value)}
-                  placeholder="workspace_imported_copy"
-                  style={{ padding: '8px 10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', background: 'var(--bg-canvas)', color: 'var(--text-main)', fontSize: '12px' }}
-                />
-              </label>
-            </div>
-
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <button
-                type="button"
-                className="btn-secondary"
-                data-testid="preview-upstream-btn"
-                onClick={() => void handlePreviewUpstream()}
-                disabled={upstreamLoading}
-                style={{ fontSize: '12px', padding: '6px 14px' }}
-              >
-                {upstreamLoading ? tr("正在分析上游工作区…") : tr("分析上游工程兼容性")}
-              </button>
-            </div>
-          </div>
-
-          {/* Upstream Preview Report */}
-          {upstreamPreview && (
-            <div data-testid="upstream-preview-report" style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '10px' }}>
-                <div>
-                  <h4 style={{ fontSize: '14px', fontWeight: 700, margin: 0 }}>
-                    {tr("检测到上游格式：")}{upstreamPreview.sourceGeneratorId}
-                  </h4>
-                  <div style={{ fontSize: '11px', color: 'var(--text-sub)', marginTop: '2px' }}>
-                    {tr("源工作区保持只读未受影响（SHA-256: ")}{upstreamPreview.sourceHash ? upstreamPreview.sourceHash.slice(0, 16) + '…' : tr("已校验")}）
-                  </div>
-                </div>
-                <span className="badge badge-green">{tr("可安全迁入")}</span>
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                {upstreamPreview.items.map((item: MigrationItem) => (
-                  <div
-                    key={item.path}
-                    style={{
-                      background: 'var(--bg-canvas)',
-                      border: '1px solid var(--border-subtle)',
-                      borderRadius: 'var(--radius-sm)',
-                      padding: '8px 12px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      fontSize: '12px'
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <strong>{item.name}</strong>
-                      <code style={{ fontSize: '10px', color: 'var(--text-sub)' }}>{item.path}</code>
-                      <span className="badge" style={{ fontSize: '10px' }}>{elementLabel(item.type)}</span>
-                      <span style={{ color: 'var(--accent-copper)', fontSize: '11px' }}>{item.reasonCode}</span>
-                    </div>
-                    <div style={{ fontSize: '11px', color: 'var(--text-sub)', maxWidth: '45%' }}>
-                      {item.nextStep}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>
-                <input
-                  type="checkbox"
-                  data-testid="confirm-upstream-checkbox"
-                  checked={upstreamConfirmed}
-                  onChange={(e) => setUpstreamConfirmed(e.target.checked)}
-                />
-                <span>{tr("确认迁入上游工程至新副本")}</span>
-              </label>
-
-              <button
-                type="button"
-                className="btn-primary"
-                data-testid="import-upstream-btn"
-                disabled={!upstreamConfirmed || upstreamLoading}
-                onClick={() => void handleExecuteUpstreamImport()}
-                style={{ fontSize: '12px', padding: '6px 16px', alignSelf: 'flex-start' }}
-              >
-                {upstreamLoading ? tr("正在迁入…") : tr("开始迁入并创建独立副本")}
-              </button>
-            </div>
-          )}
-
-          {/* Upstream Denial Banner */}
-          {renderActionableDiagnostics(upstreamResult, 'upstream-diagnostics-banner')}
-
-          {upstreamResult && upstreamResult.status === 'rejected' && upstreamResult.denial && (
-            <div data-testid="upstream-denial-banner" style={{ background: 'var(--badge-red-bg)', border: '1px solid rgba(248, 81, 73, 0.4)', borderRadius: 'var(--radius-md)', padding: '14px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <AlertTriangle size={20} color="var(--badge-red)" />
-                <div>
-                  <strong style={{ fontSize: '13px', color: 'var(--badge-red)' }}>{tr("权限不足（PERMISSION_DENIED）")}</strong>
-                  <div style={{ fontSize: '12px', color: 'var(--text-sub)' }}>
-                    {tr("迁入上游工作区需要桌面 完全访问（Full Access）权限（当前配置: ")}{valueLabel(upstreamResult.denial.currentProfile)}{tr("，所需配置: ")}{valueLabel(upstreamResult.denial.requiredProfile)}）。
-                  </div>
-                </div>
-              </div>
-              <button
-                type="button"
-                className="btn-primary"
-                data-testid="elevate-full-access-btn"
-                onClick={() => {
-                  elevatePermission('full_access');
-                  setUpstreamResult(null);
-                }}
-                style={{ fontSize: '11px', padding: '4px 12px' }}
-              >
-                {tr("提升至完全访问（Full Access）")}</button>
-            </div>
-          )}
-
-          {/* Upstream Success Banner */}
-          {upstreamResult && upstreamResult.status === 'committed' && (
-            <div data-testid="upstream-success-banner" style={{ background: 'var(--badge-green-bg)', border: '1px solid rgba(63, 185, 80, 0.4)', borderRadius: 'var(--radius-md)', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <CheckCircle2 size={20} color="var(--badge-green)" />
-              <div>
-                <strong style={{ fontSize: '13px', color: 'var(--text-main)' }}>{tr("上游工作区迁入成功！")}</strong>
-                <div style={{ fontSize: '12px', color: 'var(--text-sub)' }}>
-                  {tr("已创建新副本至 ")}<code>{upstreamResult.data?.targetDirectory ?? `workspaces/${upstreamOutputName}`}</code>。
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
       {/* Tab 4: Resource Pack Publish Batches */}
       {activeTab === 'publish' && (
         <div className="publish-batches-content animate-fade-in" data-testid="publish-batches-section" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
               <h3 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>{tr("资源包发布与分发批次")}</h3>
-              <p style={{ fontSize: '12px', color: 'var(--text-sub)', margin: '2px 0 0 0' }}>
-                {tr("打包与验证独立资源包 · 支持导出与测试客户端挂载")}</p>
             </div>
             <button
               type="button"
@@ -1213,8 +796,6 @@ export const TracksAndMigrationView: React.FC = () => {
             >
               <FileArchive size={36} color="var(--accent-copper)" />
               <strong style={{ fontSize: '14px', color: 'var(--text-main)' }}>{tr("暂无资源包发布批次")}</strong>
-              <p style={{ fontSize: '12px', color: 'var(--text-sub)', maxWidth: '400px', margin: 0 }}>
-                {tr("创建发布批次以打包和验证独立资源包，支持生成 distribution zip 并装载到测试客户端。")}</p>
               <button
                 type="button"
                 className="btn-secondary"
@@ -1369,6 +950,280 @@ export const TracksAndMigrationView: React.FC = () => {
           )}
         </div>
       )}
+
+      {/* Refactor Workbench: orchestrates existing Core plans instead of owning mutations. */}
+      <details className="tracks-advanced" open={refactorOpen} onToggle={event => setRefactorOpen(event.currentTarget.open)}>
+        <summary data-testid="tab-refactor-workbench">{uiText('重命名与移动', 'Rename & move')}</summary>
+      {refactorOpen && (
+        <div className="refactor-workbench-content animate-fade-in" data-testid="refactor-workbench-section" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {refactorResult && (
+            <div
+              data-testid="refactor-result"
+              role="status"
+              style={{
+                background: refactorResult.status === 'committed' ? 'var(--badge-green-bg)' : 'var(--badge-amber-bg)',
+                border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '10px 14px',
+                fontSize: '12px'
+              }}
+            >
+              {refactorResult.status === 'committed' ? uiText('重构已提交', 'Changes applied') : tr("重构未提交：{0}", [valueLabel(refactorResult.status)])}
+            </div>
+          )}
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '16px' }}>
+            <section data-testid="refactor-registry-card" style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '14px' }}>{uiText('注册项重命名', 'Rename registry entry')}</h3>
+              </div>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: '5px', fontSize: '11px' }}>
+                {uiText('注册项', 'Registry entry')}<select data-testid="refactor-registry-select" value={selectedRegistryId} onChange={(event) => handleRegistrySelection(event.target.value)}>
+                  {refactorRegistryEntries.map((entry) => (
+                    <option key={entry.id} value={entry.id}>{entry.name ?? entry.key ?? entry.id} · {valueLabel(entry.kind)}</option>
+                  ))}
+                </select>
+              </label>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: '5px', fontSize: '11px' }}>
+                {tr("新名称")}<input data-testid="refactor-registry-new-name" value={registryNewName} onChange={(event) => {
+                  setRegistryNewName(event.target.value);
+                  setRegistryRenamePreview(null);
+                  setRegistryRenamePlan(null);
+                }} />
+              </label>
+              <button type="button" className="btn-secondary" data-testid="preview-registry-refactor" disabled={refactorBusy || !selectedRegistryId || !registryNewName.trim()} onClick={() => void handlePreviewRegistryRefactor()}>
+                {uiText('预览影响', 'Preview impact')}</button>
+
+              {registryRenamePreview && registryRenamePlan && (
+                <div data-testid="registry-refactor-impact" style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+                    <div className="stage2-stat-card"><span>{tr("受影响元素")}</span><strong>{registryRenamePreview.impactedElementCount}</strong></div>
+                    <div className="stage2-stat-card"><span>{tr("引用边")}</span><strong>{registryRenamePreview.references.edges.length}</strong></div>
+                    <div className="stage2-stat-card"><span>{uiText('文件', 'Files')}</span><strong>{registryRenamePlan.changedPaths.length}</strong></div>
+                  </div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-sub)' }}>
+                    {registryRenamePreview.oldName} <MoveRight size={12} style={{ verticalAlign: '-2px' }} /> {registryRenamePreview.newName}
+                  </div>
+                  {!registryRenamePlan.safety.ready && <div role="alert" style={{ fontSize: '12px', color: 'var(--badge-red)' }}>
+                    {uiText('恢复点不可用，暂时无法应用。', 'A recovery point is unavailable. Changes cannot be applied.')}
+                  </div>}
+                  <button type="button" className="btn-primary" data-testid="apply-registry-refactor" disabled={refactorBusy || !registryRenamePreview.canApply || !registryRenamePlan.safety.ready} onClick={() => void handleApplyRegistryRefactor()}>
+                    {tr("应用已审阅计划")}</button>
+                </div>
+              )}
+            </section>
+
+            <section data-testid="refactor-asset-card" style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '14px' }}>{tr("资产重命名 / 移动")}</h3>
+              </div>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: '5px', fontSize: '11px' }}>
+                {tr("源资产")}<select data-testid="refactor-asset-select" value={selectedAssetId} onChange={(event) => handleAssetSelection(event.target.value)}>
+                  {(refactorAssets?.assets ?? []).map((asset) => (
+                    <option key={asset.id} value={asset.id}>{asset.relativePath}</option>
+                  ))}
+                </select>
+              </label>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: '5px', fontSize: '11px' }}>
+                {tr("目标路径")}<input data-testid="refactor-asset-target" value={assetTargetPath} onChange={(event) => {
+                  setAssetTargetPath(event.target.value);
+                  setAssetMovePreview(null);
+                }} />
+              </label>
+              <button type="button" className="btn-secondary" data-testid="preview-asset-refactor" disabled={refactorBusy || !selectedAssetId || !assetTargetPath.trim()} onClick={() => void handlePreviewAssetRefactor()}>
+                {tr("预览移动与引用重写")}</button>
+
+              {assetMovePreview && (
+                <div data-testid="asset-refactor-impact" style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
+                    <div className="stage2-stat-card"><span>{tr("入站引用")}</span><strong>{assetMovePreview.referenceCount}</strong></div>
+                    <div className="stage2-stat-card"><span>{tr("精确重写")}</span><strong>{assetMovePreview.rewrites.length}</strong></div>
+                  </div>
+                  <code style={{ fontSize: '10px', overflowWrap: 'anywhere' }}>{assetMovePreview.sourceRelativePath} → {assetMovePreview.targetRelativePath}</code>
+                  {assetMovePreview.issueCodes.length > 0 && (
+                    <div data-testid="asset-refactor-issues" style={{ color: 'var(--badge-amber)', fontSize: '10px' }}>{assetMovePreview.issueCodes.join(' · ')}</div>
+                  )}
+                  {assetMovePreview.rewrites.slice(0, 5).map((rewrite) => (
+                    <div key={`${rewrite.sourcePath}:${rewrite.sourcePointer}`} style={{ fontSize: '10px', color: 'var(--text-sub)' }}>
+                      <code>{rewrite.sourcePath}{rewrite.sourcePointer}</code> · {rewrite.oldRawValue} → {rewrite.newRawValue}
+                    </div>
+                  ))}
+                  <button type="button" className="btn-primary" data-testid="apply-asset-refactor" disabled={refactorBusy || !assetMovePreview.canApply} onClick={() => void handleApplyAssetRefactor()}>
+                    {tr("应用移动与引用重写")}</button>
+                </div>
+              )}
+            </section>
+          </div>
+
+        </div>
+      )}
+
+      </details>
+
+      {/* Upstream import */}
+      <details className="tracks-advanced" open={upstreamOpen} onToggle={event => setUpstreamOpen(event.currentTarget.open)}>
+        <summary data-testid="tab-upstream-import">{uiText('导入 MCreator 工作区', 'Import MCreator workspace')}</summary>
+      {upstreamOpen && (
+        <div className="upstream-import-content animate-fade-in" data-testid="upstream-import-section" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <h3 style={{ fontSize: '14px', fontWeight: 700, margin: 0 }}>{uiText('导入工作区', 'Import workspace')}</h3>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px', fontWeight: 600 }}>
+                {tr("上游工作区路径（模拟夹具固定路径）")}<div style={{ display: 'flex', gap: '8px' }}>
+                  <input
+                    type="text"
+                    data-testid="upstream-path-input"
+                    value={upstreamSourcePath}
+                    onChange={(e) => setUpstreamSourcePath(e.target.value)}
+                    style={{ flex: 1, padding: '8px 10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', background: 'var(--bg-canvas)', color: 'var(--text-main)', fontSize: '12px' }}
+                  />
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    data-testid="upstream-browse-btn"
+                    disabled
+                    title={uiText('文件选择不可用，请输入路径', 'File picker unavailable. Enter a path.')}
+                    style={{ fontSize: '12px', padding: '6px 12px', opacity: 0.6 }}
+                  >
+                    <Lock size={12} style={{ marginRight: '4px' }} />
+                    {uiText('浏览…', 'Browse…')}</button>
+                </div>
+                <span className="tracks-field-note">{uiText('文件选择不可用，请输入路径。', 'File picker unavailable. Enter a path.')}</span>
+              </label>
+
+              <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px', fontWeight: 600 }}>
+                {tr("新工作区副本名称")}<input
+                  type="text"
+                  data-testid="upstream-output-name-input"
+                  value={upstreamOutputName}
+                  onChange={(e) => setUpstreamOutputName(e.target.value)}
+                  placeholder="workspace_imported_copy"
+                  style={{ padding: '8px 10px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', background: 'var(--bg-canvas)', color: 'var(--text-main)', fontSize: '12px' }}
+                />
+              </label>
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button
+                type="button"
+                className="btn-secondary"
+                data-testid="preview-upstream-btn"
+                onClick={() => void handlePreviewUpstream()}
+                disabled={upstreamLoading}
+                style={{ fontSize: '12px', padding: '6px 14px' }}
+              >
+                {upstreamLoading ? tr("正在分析上游工作区…") : tr("分析上游工程兼容性")}
+              </button>
+            </div>
+          </div>
+
+          {/* Upstream Preview Report */}
+          {upstreamPreview && (
+            <div data-testid="upstream-preview-report" style={{ background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '10px' }}>
+                <div>
+                  <h4 style={{ fontSize: '14px', fontWeight: 700, margin: 0 }}>
+                    {tr("检测到上游格式：")}{upstreamPreview.sourceGeneratorId}
+                  </h4>
+                </div>
+                <span className="badge badge-green">{tr("可安全迁入")}</span>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                {upstreamPreview.items.map((item: MigrationItem) => (
+                  <div
+                    key={item.path}
+                    style={{
+                      background: 'var(--bg-canvas)',
+                      border: '1px solid var(--border-subtle)',
+                      borderRadius: 'var(--radius-sm)',
+                      padding: '8px 12px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      fontSize: '12px'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <strong>{item.name}</strong>
+                      <code style={{ fontSize: '10px', color: 'var(--text-sub)' }}>{item.path}</code>
+                      <span className="badge" style={{ fontSize: '10px' }}>{elementLabel(item.type)}</span>
+                      <span style={{ color: 'var(--accent-copper)', fontSize: '11px' }}>{item.reasonCode}</span>
+                    </div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-sub)', maxWidth: '45%' }}>
+                      {item.nextStep}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>
+                <input
+                  type="checkbox"
+                  data-testid="confirm-upstream-checkbox"
+                  checked={upstreamConfirmed}
+                  onChange={(e) => setUpstreamConfirmed(e.target.checked)}
+                />
+                <span>{tr("确认迁入上游工程至新副本")}</span>
+              </label>
+
+              <button
+                type="button"
+                className="btn-primary"
+                data-testid="import-upstream-btn"
+                disabled={!upstreamConfirmed || upstreamLoading}
+                onClick={() => void handleExecuteUpstreamImport()}
+                style={{ fontSize: '12px', padding: '6px 16px', alignSelf: 'flex-start' }}
+              >
+                {upstreamLoading ? tr("正在迁入…") : tr("开始迁入并创建独立副本")}
+              </button>
+            </div>
+          )}
+
+          {/* Upstream Denial Banner */}
+          {renderActionableDiagnostics(upstreamResult, 'upstream-diagnostics-banner')}
+
+          {upstreamResult && upstreamResult.status === 'rejected' && upstreamResult.denial && (
+            <div data-testid="upstream-denial-banner" style={{ background: 'var(--badge-red-bg)', border: '1px solid rgba(248, 81, 73, 0.4)', borderRadius: 'var(--radius-md)', padding: '14px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <AlertTriangle size={20} color="var(--badge-red)" />
+                <div>
+                  <strong style={{ fontSize: '13px', color: 'var(--badge-red)' }}>{tr("权限不足（PERMISSION_DENIED）")}</strong>
+                  <div style={{ fontSize: '12px', color: 'var(--text-sub)' }}>
+                    {uiText(`需要${valueLabel(upstreamResult.denial.requiredProfile)}权限；当前为${valueLabel(upstreamResult.denial.currentProfile)}。`,
+                      `Requires ${valueLabel(upstreamResult.denial.requiredProfile)}; current permission: ${valueLabel(upstreamResult.denial.currentProfile)}.`)}
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                className="btn-primary"
+                data-testid="elevate-full-access-btn"
+                onClick={() => {
+                  elevatePermission('full_access');
+                  setUpstreamResult(null);
+                }}
+                style={{ fontSize: '11px', padding: '4px 12px' }}
+              >
+                {uiText('允许完全访问', 'Allow full access')}</button>
+            </div>
+          )}
+
+          {/* Upstream Success Banner */}
+          {upstreamResult && upstreamResult.status === 'committed' && (
+            <div data-testid="upstream-success-banner" style={{ background: 'var(--badge-green-bg)', border: '1px solid rgba(63, 185, 80, 0.4)', borderRadius: 'var(--radius-md)', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <CheckCircle2 size={20} color="var(--badge-green)" />
+              <div>
+                <strong style={{ fontSize: '13px', color: 'var(--text-main)' }}>{tr("上游工作区迁入成功！")}</strong>
+                <div style={{ fontSize: '12px', color: 'var(--text-sub)' }}>
+                  {tr("已创建新副本至 ")}<code>{upstreamResult.data?.targetDirectory ?? `workspaces/${upstreamOutputName}`}</code>。
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      </details>
     </div>
   );
 };

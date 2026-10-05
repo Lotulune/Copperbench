@@ -76,6 +76,19 @@ class NativeApiSessionTest {
         assertEquals("succeeded", lines.get(2).getAsJsonObject("result").get("status").getAsString());
     }
 
+    @Test void schemaNegotiationUsesCoreVersionsWithoutMutatingWorkspace() {
+        var api = session(PermissionProfile.READ_ONLY);
+        var compatible = api.dispatch(request("handshake", "handshake", 0,
+                "{\"supportedSchemaVersions\":[\"1.0\"],\"client\":{\"name\":\"preview\",\"version\":\"1\"}}"));
+        assertEquals("compatible", compatible.getAsJsonObject("result").get("status").getAsString());
+        assertEquals(compatible.get("id"), compatible.getAsJsonObject("result").get("requestId"));
+        var incompatible = api.dispatch(request("handshake", "handshake", 0,
+                "{\"supportedSchemaVersions\":[\"99.0\"],\"client\":{\"name\":\"preview\",\"version\":\"1\"}}"));
+        assertEquals("incompatible", incompatible.getAsJsonObject("result").get("status").getAsString());
+        assertEquals(0, api.dispatch(request("query", "get_workbench", 0, "{}"))
+                .getAsJsonObject("result").get("revision").getAsLong());
+    }
+
     @Test void oversizedRequestStopsSessionBeforeDispatch() throws Exception {
         var output = new StringWriter();
         assertEquals(HeadlessExitCode.INVALID_ARGUMENTS.code(), session(PermissionProfile.WORKSPACE).serve(

@@ -29,6 +29,7 @@ export const TaskDrawer: React.FC = () => {
     exportVerifiedArtifact,
     previewDatagenOutput,
     previewTaskSource,
+    openSource,
     publishDatagenOutput,
     runDiagnosticAction,
     planWorkspaceChanges,
@@ -329,7 +330,7 @@ export const TaskDrawer: React.FC = () => {
       {activeTask?.verifiedExport && <section className="gametest-verification" aria-label={uiText("已验证产物导出", "Verified artifact export")}>
         <strong>{activeTask.verifiedExport.status === 'passed_historical_input' ? uiText("已导出历史已验证产物", "Previously verified artifact exported") : uiText("已导出当前输入的已验证产物", "Verified artifact for current input exported")}</strong>
         <p>{activeTask.verifiedExport.exportDirectory}</p>
-        <p>{uiText("JAR、GameTest 报告和相对路径证明清单位于上述目录。", "The directory above contains the JAR, GameTest report and relative-path evidence manifest.")}</p>
+        <p>{uiText("导出内容：JAR、GameTest 报告和文件清单。", "Exported: JAR, GameTest report and file manifest.")}</p>
       </section>}
       {activeTask?.gameTestSetup && <section className="gametest-verification" aria-label={uiText("GameTest 模板", "GameTest templates")}>
         <strong>{uiText("测试入口已准备", "Test entry point prepared")}</strong><p>{uiText("初始用例只检查模组加载。请补充玩法断言后，再将结果作为玩法验收证据。", "The initial test only checks mod loading. Add gameplay assertions before using the results as gameplay acceptance evidence.")}</p>
@@ -376,7 +377,7 @@ export const TaskDrawer: React.FC = () => {
               onClick={() => setConfirmPublish(true)}
               disabled={datagenBusy || datagenPreview.stale}
               data-testid="datagen-publish-btn"
-              title={uiText("校验当前修订与预览哈希后写入工作区", "Validate the current revision and preview hash before writing to the workspace")}
+              title={uiText("写入工作区", "Write to workspace")}
             >
               {datagenBusy ? <LoaderCircle className="spin" size={14} /> : <Upload size={14} />}
               <span>{uiText("发布到工作区", "Publish to workspace")}</span>
@@ -506,6 +507,10 @@ export const TaskDrawer: React.FC = () => {
                 </code>
               )}
             </div>
+            {sourcePreview && <button type="button" className="btn-secondary" data-testid="task-source-open-editor"
+              onClick={() => { openSource(sourcePreview.path, sourcePreview.line); setIsTaskDrawerOpen(false); }}>
+              {uiText('在源码编辑器中打开', 'Open in source editor')}
+            </button>}
             <button
               type="button"
               className="btn-secondary"
@@ -618,7 +623,7 @@ export const TaskDrawer: React.FC = () => {
           >
             <h2 id="datagen-publish-title" style={{ margin: 0, fontSize: '16px' }}>{uiText("发布数据生成结果", "Publish generated data")}</h2>
             <p style={{ margin: '10px 0 16px', color: 'var(--text-muted)', fontSize: '12px', lineHeight: 1.6 }}>
-              {uiText(`将 ${datagenPreview.changeCount} 个暂存文件写入当前工作区。发布前会创建恢复点，并再次校验工作区修订和清单哈希。`, `Write ${englishCount(datagenPreview.changeCount, 'staged file')} to this workspace. Before publishing, a recovery point will be created and the workspace revision and manifest hash checked again.`)}
+              {uiText(`将 ${datagenPreview.changeCount} 个暂存文件写入工作区，并创建恢复点。`, `Write ${englishCount(datagenPreview.changeCount, 'staged file')} to the workspace and create a recovery point.`)}
             </p>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
               <button type="button" className="btn-secondary" onClick={() => setConfirmPublish(false)}>{uiText("取消", "Cancel")}</button>

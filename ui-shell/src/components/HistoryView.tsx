@@ -1,4 +1,4 @@
-import { tr, UI_LOCALE } from '../i18n/locale';
+import { tr, UI_LOCALE, uiText } from '../i18n/locale';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   Check,
@@ -202,7 +202,6 @@ export const HistoryView: React.FC = () => {
           <GitBranch size={20} aria-hidden="true" />
           <div>
             <h2>{tr("本地历史")}</h2>
-            <span>{tr("工作区修订 ")}{state.workbench?.workspace.revision ?? 0}</span>
           </div>
         </div>
         <button
@@ -289,7 +288,7 @@ export const HistoryView: React.FC = () => {
                 <div>
                   <span className="history-section-label">{tr("所选恢复点")}</span>
                   <h3>{selected.label}</h3>
-                  <p>{selected.id.slice(0, 12)} · {actorLabels[selected.actor]} · {formatTime(selected.createdAt)}</p>
+                  <p title={selected.id}>{actorLabels[selected.actor]} · {formatTime(selected.createdAt)}</p>
                 </div>
                 <button
                   className="btn-secondary"
@@ -395,8 +394,7 @@ export const HistoryView: React.FC = () => {
               </button>
             </div>
             <div className="modal-body">
-              <p>{tr("将工作区还原到“")}{selected.label}{tr("”。当前状态会先创建恢复点，然后重新校验工作区。")}</p>
-              <p>{tr("以下是从当前工作区还原到该恢复点将涉及的文件变化：")}</p>
+              <p>{uiText(`还原到“${selected.label}”？当前状态会先创建恢复点。`, `Restore “${selected.label}”? A recovery point will preserve the current state.`)}</p>
               <div className="dialog-impact-list">
                 {restorePreviewLoading && <span data-testid="restore-preview-loading">{tr("正在读取恢复影响…")}</span>}
                 {restorePreviewFailed && <span data-testid="restore-preview-failed">{tr("无法读取恢复影响，暂不能执行还原。")}</span>}

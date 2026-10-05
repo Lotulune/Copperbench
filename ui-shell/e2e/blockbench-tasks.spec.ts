@@ -55,8 +55,9 @@ test('native task UI preserves racing-save rejection without replaying writes an
   });
   await page.goto('/');
   await page.getByTestId('nav-assets').click();
+  await page.getByTestId('asset-modeling-disclosure').locator(':scope > summary').click();
   const panel = page.getByTestId('blockbench-tasks');
-  await panel.locator('summary').click();
+  await panel.locator(':scope > summary').click();
   await panel.getByRole('button', { name: '新建建模副本' }).click();
   await expect(panel).toContainText('编辑副本已准备');
   await page.evaluate(() => (window as any).saveModel());
@@ -67,7 +68,9 @@ test('native task UI preserves racing-save rejection without replaying writes an
   await panel.getByRole('button', { name: '确认磁盘保存并生成候选' }).click();
   await expect(panel).toContainText('候选已保存，待回导');
   expect(await page.evaluate(() => (window as any).finishRequests)).toBe(2);
-  await expect(panel).toContainText('尚未导出或回导到游戏');
+  await expect(panel.getByRole('status')).toContainText('候选已保存，待回导');
+  await panel.getByText('操作步骤', { exact: true }).click();
+  await expect(panel.getByLabel('建模步骤')).toContainText('尚未回导');
   await page.screenshot({ path: testInfo.outputPath('modeling-candidate.png') });
   await page.evaluate(() => (window as any).changeCandidate());
   await panel.getByRole('button', { name: '刷新任务与保存状态' }).click();
@@ -80,9 +83,10 @@ test('native task UI preserves racing-save rejection without replaying writes an
 test('preview mode does not pretend to create files or choose an installation', async ({ page }) => {
   await page.goto('/');
   await page.getByTestId('nav-assets').click();
-  await page.getByTestId('blockbench-tasks').locator('summary').click();
+  await page.getByTestId('asset-modeling-disclosure').locator(':scope > summary').click();
+  await page.getByTestId('blockbench-tasks').locator(':scope > summary').click();
   await expect(page.getByRole('button', { name: '新建建模副本' })).toBeDisabled();
-  await page.getByTestId('blockbench-setup').locator('summary').click();
+  await page.getByTestId('blockbench-setup').locator(':scope > summary').click();
   await page.getByRole('button', { name: '选择安装位置' }).click();
   await expect(page.getByTestId('blockbench-setup').getByRole('status')).toContainText('请在桌面产品中选择安装位置');
 });

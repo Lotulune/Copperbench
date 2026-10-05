@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { openToolView } from './navigation';
 
 async function focusInside(page: import('@playwright/test').Page, selector: string) {
   return page.evaluate((sel) => {
@@ -106,7 +107,7 @@ test.describe('Accessibility baseline (NFR-UI-08)', () => {
   test('protected-operation dialog moves focus in, traps Tab and closes on Escape', async ({ page }) => {
     await page.click('[data-testid="scenario-switcher-trigger"]');
     await page.click('[data-testid="scenario-btn-approval-required"]');
-    await page.click('[data-testid="nav-ai"]');
+    await openToolView(page, 'ai');
     await page.click('[data-testid="review-approval"]');
 
     const dialog = page.locator('[data-testid="approval-dialog"]');
@@ -137,7 +138,7 @@ test.describe('Accessibility baseline (NFR-UI-08)', () => {
   });
 
   test('resource-pack batch dialog supports focus trapping and Escape recovery', async ({ page }) => {
-    await page.click('[data-testid="nav-tracks"]');
+    await openToolView(page, 'tracks');
     await page.click('[data-testid="tab-publish-batches"]');
     await page.click('[data-testid="new-batch-btn"]');
 
@@ -155,6 +156,7 @@ test.describe('Accessibility baseline (NFR-UI-08)', () => {
   test('datagen publish confirmation supports focus trapping and Escape recovery', async ({ page }) => {
     await page.click('[data-testid="scenario-switcher-trigger"]');
     await page.click('[data-testid="scenario-btn-ready"]');
+    await page.getByTestId('compact-run-menu').click();
     await page.getByRole('button', { name: '在暂存区运行数据生成' }).click();
     await expect(page.getByText('任务完成').first()).toBeVisible({ timeout: 5000 });
     await page.getByRole('button', { name: '查看暂存差异' }).click();

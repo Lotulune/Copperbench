@@ -231,7 +231,9 @@ class Workspace:
             if not isinstance(result, dict):
                 self.close()
                 raise NativeApiError("Missing Core result", "NATIVE_INVALID_RESPONSE", response)
-            if result.get("status") not in {"succeeded", "committed", "accepted", "completed", "cancelled"}:
+            allowed_statuses = {"compatible", "incompatible"} if kind == "handshake" else {
+                "succeeded", "committed", "accepted", "completed", "cancelled"}
+            if result.get("status") not in allowed_statuses:
                 diagnostics = result.get("diagnostics") or []
                 diagnostic = diagnostics[0] if diagnostics else {}
                 message = diagnostic.get("message", {})
@@ -247,6 +249,13 @@ class Workspace:
     def query(self, operation: str, **payload: Any) -> dict[str, Any]:
         """Query Core using its operation name and payload fields; returns the Core envelope."""
         return self._call("query", operation, payload)
+
+    def negotiate_schema(self, supported_versions: Sequence[str], *, client_name: str = "python",
+                         client_version: str = "1") -> dict[str, Any]:
+        """Negotiate the UI-Core wire schema with the running Core, without mutation."""
+        return self._call("handshake", "handshake", {
+            "supportedSchemaVersions": list(supported_versions),
+            "client": {"name": client_name, "version": client_version}})
 
     def command(self, operation: str, *, expected_revision: int | None = None, **payload: Any) -> dict[str, Any]:
         """Execute once at the last observed revision (or the explicit revision).

@@ -18,12 +18,13 @@ test('loaded asset labels change language without reloading the projection or lo
   await page.getByTestId('nav-assets').click();
   await page.getByTestId('asset-category-texture').click();
   await page.getByTestId('asset-search').fill('copper_lamp');
+  await page.getByTestId('asset-metadata-disclosure').locator(':scope > summary').click();
   const id = await page.getByTestId('asset-stable-id').innerText();
   const reads = await page.evaluate(() => sessionStorage.getItem('assetReads'));
   await page.getByTestId('ui-language-select').selectOption('en');
   await expect(page.getByTestId('asset-category-texture')).toContainText('Textures');
   await expect(page.getByTestId('asset-details')).toContainText('Texture');
-  await expect(page.getByTestId('asset-details')).toContainText('Workspace');
+  await expect(page.getByTestId('asset-usage-status')).toHaveText('Has static references');
   await expect(page.getByTestId('asset-search')).toHaveValue('copper_lamp');
   await expect(page.getByTestId('asset-category-texture')).toHaveAttribute('aria-pressed', 'true');
   await expect(page.getByTestId('asset-stable-id')).toHaveText(id);
@@ -63,34 +64,37 @@ test('English resource evidence retains raw paths and supports keyboard expansio
   await page.getByTestId('ui-language-select').selectOption('en');
   await page.getByTestId('nav-assets').click();
   const references = page.getByTestId('asset-outgoing-references');
+  await page.getByTestId('asset-references-disclosure').locator(':scope > summary').click();
+  await expect(references).toBeVisible();
   await expect(references).toContainText('Resolved in vanilla');
   for (const summary of await references.locator('summary').all()) {
     await summary.focus(); await page.keyboard.press('Enter');
   }
-  await expect(references).toContainText('Reference location: /parent');
+  await expect(references).toContainText('Location: /parent');
   await expect(references).toContainText('/textures/中文');
-  await expect(references).toContainText('Resource version: 1.21.1');
-  await expect(references).toContainText('This check did not download external resources.');
+  await expect(references).toContainText('Version: 1.21.1');
+  await expect(references).toContainText('Not verified');
+  await expect(references).toContainText('external_catalog_unavailable');
   await expect(references).toContainText('a'.repeat(64));
   for (const [width, height] of [[1280, 720], [1920, 1080]]) {
     await page.setViewportSize({ width, height });
-    for (const selector of ['.asset-browser-header', '.asset-header-actions', '.asset-list-toolbar', '.asset-details-panel', '.asset-resource-resolution']) {
+    for (const selector of ['.asset-library-heading', '.asset-library-heading-actions', '.asset-library-types', '.asset-library-inspector', '.asset-library-reference-group']) {
+      expect(await page.locator(selector).count(), selector).toBeGreaterThan(0);
       for (const element of await page.locator(selector).all()) {
         expect(await element.evaluate(el => el.scrollWidth <= el.clientWidth + 1), selector).toBe(true);
       }
     }
-    for (const label of await page.locator('.asset-import-inline-btn span, .asset-status-badge').all()) {
-      const bounds = await label.boundingBox();
-      expect(bounds!.height).toBeLessThan(25);
-    }
-    const toolbar = await page.locator('.asset-list-toolbar').boundingBox();
-    const controls = await page.locator('.asset-toolbar-controls').boundingBox();
-    const firstCard = await page.locator('.asset-card').first().boundingBox();
-    expect(controls!.y + controls!.height).toBeLessThanOrEqual(toolbar!.y + toolbar!.height + 1);
-    expect(firstCard!.y).toBeGreaterThanOrEqual(toolbar!.y + toolbar!.height);
+    const heading = await page.locator('.asset-library-heading').boundingBox();
+    const actions = await page.locator('.asset-library-heading-actions').boundingBox();
+    const sort = await page.locator('.asset-library-sort').boundingBox();
+    const firstFile = await page.locator('.asset-library-file').first().boundingBox();
+    expect(actions!.y + actions!.height).toBeLessThanOrEqual(heading!.y + heading!.height + 1);
+    expect(firstFile!.y).toBeGreaterThanOrEqual(sort!.y + sort!.height);
+    await page.getByRole('heading', { name: 'Assets and models', exact: true }).scrollIntoViewIfNeeded();
+    await expect(page.getByRole('heading', { name: 'Assets and models', exact: true })).toBeInViewport();
     await references.scrollIntoViewIfNeeded();
     await expect(page.getByTestId('asset-browser')).toHaveCSS('opacity', '1');
-    await expect(page.getByRole('heading', { name: 'Assets and models', exact: true })).toBeInViewport();
+    await expect(references).toBeInViewport();
     // A viewport resize and nested scrolling both require a completed browser paint.
     await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
     await page.screenshot({ path: testInfo.outputPath(`english-assets-${width}.png`), animations: 'disabled' });
@@ -113,13 +117,14 @@ test('import and move drafts survive language changes and notices translate afte
   await expect(page.getByTestId('asset-notice')).toContainText(`Imported ${target}`);
   await page.getByTestId('ui-language-select').selectOption('zh');
   await expect(page.getByTestId('asset-notice')).toContainText(`已导入 ${target}`);
+  await page.getByTestId('asset-details').getByLabel('文件操作', { exact: true }).click();
   await page.getByTestId('asset-move-button').click();
   const moved = 'assets/coppertrails/models/block/renamed_language.json';
   await page.getByTestId('asset-move-target').fill(moved);
   await page.getByTestId('ui-language-select').selectOption('en');
   await expect(page.getByTestId('asset-move-target')).toHaveValue(moved);
   await expect(page.getByTestId('asset-move-commit')).toBeDisabled();
-  await expect(page.getByTestId('asset-move-review')).toContainText('Review the new path and each reference rewrite.');
+  await expect(page.getByTestId('asset-move-review')).toContainText('Review the new path and affected references.');
 });
 
 test('an existing unavailable notice changes language without opening Blockbench again', async ({ page }) => {
@@ -185,7 +190,7 @@ test('empty, loading, failed and no-results asset states have English recovery c
   await page.getByTestId('ui-language-select').selectOption('en');
   await page.getByTestId('nav-assets').click();
   await page.getByTestId('asset-search').fill('no_such_asset');
-  await expect(page.getByTestId('asset-browser-no-results')).toContainText('No matching assets');
+  await expect(page.getByTestId('asset-browser-no-results')).toContainText('No matching files');
   await page.getByRole('button', { name: 'Clear filters', exact: true }).click();
   await expect(page.getByTestId('asset-search')).toHaveValue('');
   for (const [scenario, testId, message] of [

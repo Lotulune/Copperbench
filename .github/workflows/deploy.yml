@@ -143,7 +143,8 @@ jobs:
             if (-not $release.isDraft) { throw "Release $env:RELEASE_TAG is already public and cannot be overwritten" }
           } else {
             $stable = $env:RELEASE_TAG -match '^v\d+\.\d+\.\d+$'
-            $notes = if ($stable) { 'docs/releases/v0.1.1.md' } else { 'docs/releases/preview-template.md' }
+            $notes = if ($stable) { "docs/releases/$env:RELEASE_TAG.md" } else { 'docs/releases/preview-template.md' }
+            if (-not (Test-Path -LiteralPath $notes -PathType Leaf)) { throw "Release notes are missing: $notes" }
             gh release create $env:RELEASE_TAG --verify-tag --draft "--prerelease=$(!$stable)" --title "Copperbench $env:RELEASE_TAG" --notes-file $notes
             if ($LASTEXITCODE -ne 0) { throw "Failed to create draft release $env:RELEASE_TAG" }
           }
