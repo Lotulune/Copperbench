@@ -1,4 +1,3 @@
-import { tr } from '../i18n/locale';
 import { valueLabel } from '../i18n/labels';
 import React, { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -521,8 +520,10 @@ const WorkspaceAssetBrowser: React.FC = () => {
         filteredCount={filteredAssets.length}
       />
 
-      <BlockbenchSetupPanel />
-      <BlockbenchTasksPanel source={selectedAsset} />
+      <div className="asset-modeling-tools">
+        <BlockbenchSetupPanel />
+        <BlockbenchTasksPanel source={selectedAsset} />
+      </div>
       {mode !== 'ready' ? <AssetStateView mode={mode} onRetry={() => {
         if (mode === 'empty') void beginImport();
         else {
@@ -1025,7 +1026,7 @@ const AssetHeader: React.FC<{
         <Palette size={20} aria-hidden="true" />
         <div>
           <h2>{uiText("资产与模型工作台", "Assets and models")}</h2>
-          <span>{uiText("资产与 Blockbench 集成 · 模型、纹理、动画与资源包 · 引用关系可追溯", "Assets and Blockbench integration · Models, textures, animations and resource packs · Traceable references")}</span>
+          <span>{uiText("管理模型、纹理与资源包", "Manage models, textures and resource packs")}</span>
         </div>
       </div>
 
@@ -1393,7 +1394,7 @@ const AssetDetails: React.FC<{
       )}
 
       {/* Description Summary */}
-      <p className="asset-description">{UI_LOCALE === 'en' && asset.description === '工作区真实资产，由 AssetWorkspaceService 实时索引。' ? tr(asset.description) : asset.description}</p>
+      {asset.description && asset.description !== '工作区真实资产，由 AssetWorkspaceService 实时索引。' && <p className="asset-description">{asset.description}</p>}
 
       {/* Action Buttons */}
       <div className="asset-details-actions">

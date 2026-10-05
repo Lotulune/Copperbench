@@ -1,5 +1,5 @@
 import { tr } from '../i18n/locale';
-import { elementLabel, valueLabel } from '../i18n/labels';
+import { elementShortLabel, valueLabel } from '../i18n/labels';
 import React, { useState, useMemo, useEffect } from 'react';
 import {
   Box,
@@ -15,12 +15,12 @@ import {
   Trophy,
   ChevronLeft,
   ChevronRight,
-  ArrowUpDown
+  X
 } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
 import { ALL_MOD_ELEMENT_TYPES, ModElementType } from '../types/contract';
 import { ElementInspector } from './ElementInspector';
-import { t } from '../i18n';
+import { t, uiText } from '../i18n';
 
 const ProcedureWorkbench = React.lazy(() => import('./ProcedureWorkbench').then((module) => ({
   default: module.ProcedureWorkbench
@@ -45,6 +45,8 @@ const GuiWorkbench = React.lazy(() => import('./GuiWorkbench').then((module) => 
 const OverlayWorkbench = React.lazy(() => import('./OverlayWorkbench').then((module) => ({
   default: module.OverlayWorkbench
 })));
+
+const COMMON_TYPES = ['all', 'block', 'item', 'procedure', 'recipe'] as const;
 
 type SortOption = 'updated_desc' | 'updated_asc' | 'name_asc' | 'name_desc' | 'type_asc';
 
@@ -71,11 +73,12 @@ export const ModElementsWorkbench: React.FC = () => {
     setCurrentPage(1);
   }, [searchQuery, selectedType, selectedState, sortBy, pageSize]);
 
+  const normalizedSearch = searchQuery.trim().toLowerCase();
   const filteredAndSortedElements = useMemo(() => {
     let list = state.elements.filter((elem) => {
       const matchSearch =
-        elem.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        elem.displayName.toLowerCase().includes(searchQuery.toLowerCase());
+        elem.name.toLowerCase().includes(normalizedSearch) ||
+        elem.displayName.toLowerCase().includes(normalizedSearch);
       const matchType = selectedType === 'all' || elem.type === selectedType;
       const matchState = selectedState === 'all' || elem.state === selectedState;
       return matchSearch && matchType && matchState;
@@ -99,9 +102,13 @@ export const ModElementsWorkbench: React.FC = () => {
     });
 
     return list;
-  }, [state.elements, searchQuery, selectedType, selectedState, sortBy]);
+  }, [state.elements, normalizedSearch, selectedType, selectedState, sortBy]);
+
+  const hasFilters = normalizedSearch !== '' || selectedType !== 'all' || selectedState !== 'all';
+  const clearFilters = () => { setSearchQuery(''); setSelectedType('all'); setSelectedState('all'); };
 
   const totalPages = Math.max(1, Math.ceil(filteredAndSortedElements.length / pageSize));
+  useEffect(() => { setCurrentPage(page => Math.min(page, totalPages)); }, [totalPages]);
   const paginatedElements = useMemo(() => {
     const start = (currentPage - 1) * pageSize;
     return filteredAndSortedElements.slice(start, start + pageSize);
@@ -190,6 +197,7 @@ export const ModElementsWorkbench: React.FC = () => {
     >
       {/* Left / Center: Main Elements Area */}
       <div
+        className="elements-main"
         style={{
           flex: 1,
           display: 'flex',
@@ -198,168 +206,71 @@ export const ModElementsWorkbench: React.FC = () => {
           background: 'var(--bg-base)'
         }}
       >
-        {/* Filter & Action Toolbar */}
-        <div
-          style={{
-            padding: '12px 18px',
-            background: 'var(--bg-surface)',
-            borderBottom: '1px solid var(--border-subtle)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '12px',
-            flexWrap: 'wrap'
-          }}
-        >
-          {/* Search & Type Filters */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, flexWrap: 'wrap' }}>
-            <div style={{ position: 'relative', width: '200px' }}>
-              <Search
-                size={14}
-                style={{ position: 'absolute', left: '10px', top: '9px', color: 'var(--text-sub)' }}
-              />
-              <input
-                type="text"
-                placeholder={t({ key: 'placeholder.filter_elements', fallback: 'Filter elements...' })}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                style={{ paddingLeft: '30px', width: '100%', fontSize: '11px' }}
-                data-testid="elements-search-input"
-              />
+        <header className="elements-header">
+          <div className="elements-title-row">
+            <div className="elements-title"><h1>{uiText('模组元素', 'Mod elements')}</h1>
+              <span className="elements-count">{state.elements.length}</span>
             </div>
-
-            {/* Type Selector Pills */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '2px', background: 'var(--bg-panel)', padding: '2px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', flexWrap: 'wrap' }}>
-              {(['all', ...ALL_MOD_ELEMENT_TYPES] as const).map((type) => (
-                <button
-                  key={type}
-                  onClick={() => setSelectedType(type)}
-                  aria-pressed={selectedType === type}
-                  data-testid={`filter-type-${type}`}
-                  style={{
-                    padding: '3px 8px',
-                    fontSize: '11px',
-                    fontWeight: selectedType === type ? 600 : 500,
-                    borderRadius: 'var(--radius-xs)',
-                    background: selectedType === type ? 'var(--accent-copper-fill)' : 'transparent',
-                    color: selectedType === type ? 'var(--text-on-accent)' : 'var(--text-muted)'
-                  }}
-                >
-                  {type === 'all' ? tr("全部") : elementLabel(type)}
-                </button>
-              ))}
-            </div>
-
-            {/* State Filter */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              {(['all', 'valid', 'draft'] as const).map((st) => (
-                <button
-                  key={st}
-                  onClick={() => setSelectedState(st)}
-                  aria-pressed={selectedState === st}
-                  style={{
-                    padding: '3px 8px',
-                    fontSize: '11px',
-                    borderRadius: 'var(--radius-xs)',
-                    border: '1px solid var(--border-subtle)',
-                    background: selectedState === st ? 'var(--bg-hover)' : 'transparent',
-                    color: selectedState === st ? 'var(--text-main)' : 'var(--text-sub)'
-                  }}
-                >
-                  {st === 'all' ? tr("全部状态") : st === 'valid' ? tr("有效") : tr("草稿")}
-                </button>
-              ))}
-            </div>
-
-            {/* Sort Dropdown */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <ArrowUpDown size={13} color="var(--text-sub)" />
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as SortOption)}
-                data-testid="elements-sort-select"
-                style={{ padding: '3px 6px', fontSize: '11px' }}
-              >
-                <option value="updated_desc">{tr("最新更新")}</option>
-                <option value="updated_asc">{tr("最早更新")}</option>
-                <option value="name_asc">{tr("名称 (A-Z)")}</option>
-                <option value="name_desc">{tr("名称 (Z-A)")}</option>
-                <option value="type_asc">{tr("类型")}</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Right: View Mode & Create Action */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', background: 'var(--bg-panel)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', padding: '2px' }}>
-              <button
-                onClick={() => setViewMode('grid')}
-                aria-pressed={viewMode === 'grid'}
-                aria-label={tr("卡片网格视图")}
-                style={{
-                  padding: '4px 6px',
-                  borderRadius: 'var(--radius-xs)',
-                  background: viewMode === 'grid' ? 'var(--bg-hover)' : 'transparent',
-                  color: viewMode === 'grid' ? 'var(--accent-copper)' : 'var(--text-sub)'
-                }}
-                title={tr("卡片网格视图")}
-              >
-                <LayoutGrid size={14} />
-              </button>
-              <button
-                onClick={() => setViewMode('table')}
-                aria-pressed={viewMode === 'table'}
-                aria-label={tr("紧凑表格视图")}
-                style={{
-                  padding: '4px 6px',
-                  borderRadius: 'var(--radius-xs)',
-                  background: viewMode === 'table' ? 'var(--bg-hover)' : 'transparent',
-                  color: viewMode === 'table' ? 'var(--accent-copper)' : 'var(--text-sub)'
-                }}
-                title={tr("紧凑表格视图")}
-              >
-                <ListIcon size={14} />
-              </button>
-            </div>
-
-            <button
-              className="btn-primary"
-              onClick={() => setIsCreateModalOpen(true)}
-              data-testid="create-element-btn"
-            >
-              <Plus size={14} />
-              <span>{tr("新建元素")}</span>
+            <button className="btn-primary" onClick={() => setIsCreateModalOpen(true)} data-testid="create-element-btn">
+              <Plus size={16} aria-hidden="true" /><span>{tr("新建元素")}</span>
             </button>
           </div>
-        </div>
+          <div className="elements-toolbar">
+            <label className="elements-search">
+              <Search size={16} aria-hidden="true" />
+              <span className="sr-only">{uiText('搜索模组元素', 'Search mod elements')}</span>
+              <input type="search" placeholder={t({ key: 'placeholder.filter_elements', fallback: 'Filter elements...' })}
+                value={searchQuery} onChange={e => setSearchQuery(e.target.value)} data-testid="elements-search-input" />
+            </label>
+            <select value={selectedState} aria-label={uiText('元素状态', 'Element status')}
+              data-testid="elements-state-select" onChange={e => setSelectedState(e.target.value as typeof selectedState)}>
+              <option value="all">{tr("全部状态")}</option><option value="valid">{tr("有效")}</option>
+              <option value="draft">{tr("草稿")}</option><option value="invalid">{uiText('无效', 'Invalid')}</option>
+            </select>
+            <select value={sortBy} onChange={e => setSortBy(e.target.value as SortOption)}
+              aria-label={uiText('排序方式', 'Sort elements')} data-testid="elements-sort-select">
+              <option value="updated_desc">{tr("最新更新")}</option><option value="updated_asc">{tr("最早更新")}</option>
+              <option value="name_asc">{tr("名称 (A-Z)")}</option><option value="name_desc">{tr("名称 (Z-A)")}</option>
+              <option value="type_asc">{tr("类型")}</option>
+            </select>
+            <div className="elements-view-toggle" role="group" aria-label={uiText('显示方式', 'View mode')}>
+              <button onClick={() => setViewMode('grid')} aria-pressed={viewMode === 'grid'}
+                aria-label={tr("卡片网格视图")} title={tr("卡片网格视图")}><LayoutGrid size={17} aria-hidden="true" /></button>
+              <button onClick={() => setViewMode('table')} aria-pressed={viewMode === 'table'}
+                aria-label={tr("紧凑表格视图")} title={tr("紧凑表格视图")}><ListIcon size={17} aria-hidden="true" /></button>
+            </div>
+          </div>
+          <div className="elements-type-filters" role="group" aria-label={uiText('元素类型', 'Element type')}>
+            {COMMON_TYPES.map(type => <button key={type} onClick={() => setSelectedType(type)}
+              aria-pressed={selectedType === type} data-testid={`filter-type-${type}`}>
+              {type === 'all' ? tr("全部") : elementShortLabel(type)}
+            </button>)}
+            <select className="elements-more-types" aria-label={uiText('更多元素类型', 'More element types')}
+              data-testid="elements-type-select"
+              value={COMMON_TYPES.some(type => type === selectedType) ? '' : selectedType}
+              onChange={e => { if (e.target.value) setSelectedType(e.target.value as ModElementType); }}>
+              <option value="" disabled>{uiText('更多类型', 'More types')}</option>
+              {ALL_MOD_ELEMENT_TYPES.filter(type => !COMMON_TYPES.some(common => common === type)).map(type =>
+                <option value={type} key={type}>{elementShortLabel(type)}</option>)}
+            </select>
+            {hasFilters && <button className="elements-clear-filters" onClick={clearFilters} data-testid="elements-clear-filters">
+              <X size={13} aria-hidden="true" />{uiText('清除筛选', 'Clear filters')}
+            </button>}
+          </div>
+        </header>
 
         {/* Elements View Area */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '16px' }}>
+        <div className="elements-results">
           {filteredAndSortedElements.length === 0 ? (
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                height: '70%',
-                gap: '14px',
-                color: 'var(--text-muted)'
-              }}
-            >
-              <Box size={40} color="var(--border-active)" />
-              <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-main)' }}>
-                {tr("没有匹配的模组元素")}</div>
-              <div style={{ fontSize: '12px', color: 'var(--text-sub)' }}>
-                {tr("创建方块、物品、配方、过程或数据驱动元素开始创作。")}</div>
-              <button
-                className="btn-primary"
-                onClick={() => setIsCreateModalOpen(true)}
-                data-testid="empty-primary-action"
-              >
-                <Plus size={14} />
-                <span>{tr("新建模组元素")}</span>
-              </button>
+            <div className="elements-empty">
+              <span className="hub-empty-icon">{hasFilters ? <Search size={30} aria-hidden="true" /> : <Box size={30} aria-hidden="true" />}</span>
+              <h2>{hasFilters ? uiText('没有匹配的模组元素', 'No matching elements') : uiText('还没有模组元素', 'No mod elements yet')}</h2>
+              <p>{hasFilters ? uiText('试试其他关键词，或清除筛选条件。', 'Try another keyword or clear your filters.')
+                : uiText('创建第一个方块、物品或配方。', 'Create your first block, item or recipe.')}</p>
+              {hasFilters ? <button className="btn-secondary" onClick={clearFilters}>{uiText('清除筛选', 'Clear filters')}</button>
+                : <button className="btn-primary" onClick={() => setIsCreateModalOpen(true)} data-testid="empty-primary-action">
+                  <Plus size={16} aria-hidden="true" />{tr("新建模组元素")}
+                </button>}
             </div>
           ) : viewMode === 'grid' ? (
             <div className="elements-grid">
@@ -369,6 +280,7 @@ export const ModElementsWorkbench: React.FC = () => {
                   <button
                     type="button"
                     key={elem.id}
+                    className="element-card"
                     data-element-id={elem.id}
                     onClick={() => setSelectedElementId(elem.id)}
                     aria-pressed={isSelected}
@@ -385,7 +297,7 @@ export const ModElementsWorkbench: React.FC = () => {
                       display: 'flex',
                       flexDirection: 'column',
                       gap: '12px',
-                      boxShadow: isSelected ? '0 0 0 2px var(--accent-copper-dim)' : 'var(--shadow-sm)',
+                      boxShadow: isSelected ? '0 0 0 2px var(--accent-copper-dim)' : 'none',
                       transition: 'all 0.15s ease'
                     }}
                     onMouseEnter={(e) => {
@@ -441,7 +353,7 @@ export const ModElementsWorkbench: React.FC = () => {
                       <div style={{ fontWeight: 700, fontSize: '14px', color: 'var(--text-main)' }}>
                         {elem.displayName}
                       </div>
-                      <div style={{ fontSize: '11px', color: 'var(--text-sub)', marginTop: '2px', fontFamily: 'var(--font-mono)' }}>
+                      <div style={{ fontSize: '12px', color: 'var(--text-sub)', marginTop: '2px', fontFamily: 'var(--font-mono)' }}>
                         {elem.name}
                       </div>
                     </div>
@@ -454,12 +366,12 @@ export const ModElementsWorkbench: React.FC = () => {
                         justifyContent: 'space-between',
                         borderTop: '1px solid var(--border-subtle)',
                         paddingTop: '8px',
-                        fontSize: '10px',
+                        fontSize: '12px',
                         color: 'var(--text-sub)'
                       }}
                     >
                       <span>{valueLabel(elem.ownership)}</span>
-                      <span className="badge badge-copper">{elementLabel(elem.type)}</span>
+                      <span className="badge badge-copper">{elementShortLabel(elem.type)}</span>
                     </div>
                   </button>
                 );
@@ -467,6 +379,7 @@ export const ModElementsWorkbench: React.FC = () => {
             </div>
           ) : (
             <div
+              className="elements-table"
               style={{
                 background: 'var(--bg-surface)',
                 border: '1px solid var(--border-subtle)',
@@ -510,7 +423,7 @@ export const ModElementsWorkbench: React.FC = () => {
                           {elem.displayName} <span style={{ color: 'var(--text-sub)', fontWeight: 400 }}>({elem.name})</span>
                         </td>
                         <td style={{ padding: '10px 14px' }}>
-                          <span className="badge badge-copper">{elementLabel(elem.type)}</span>
+                          <span className="badge badge-copper">{elementShortLabel(elem.type)}</span>
                         </td>
                         <td style={{ padding: '10px 14px' }}>
                           <span className={`badge badge-${elem.state === 'valid' ? 'green' : 'amber'}`}>
@@ -534,7 +447,7 @@ export const ModElementsWorkbench: React.FC = () => {
 
         {/* Large Workspace Pagination Controls */}
         {totalPages > 1 && (
-          <footer
+          <footer className="elements-pagination"
             data-testid="elements-pagination"
             style={{
               padding: '10px 18px',
@@ -543,7 +456,7 @@ export const ModElementsWorkbench: React.FC = () => {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              fontSize: '11px',
+              fontSize: '12px',
               color: 'var(--text-sub)'
             }}
           >
@@ -553,10 +466,11 @@ export const ModElementsWorkbench: React.FC = () => {
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <span>{tr("每页：")}</span>
                 <select
+                  aria-label={uiText("每页元素数量", "Elements per page")}
                   value={pageSize}
                   onChange={(e) => setPageSize(parseInt(e.target.value) || 24)}
                   data-testid="elements-page-size-select"
-                  style={{ padding: '2px 6px', fontSize: '11px' }}
+                  style={{ padding: '2px 6px', fontSize: '12px' }}
                 >
                   <option value={24}>{tr("24 项")}</option>
                   <option value={48}>{tr("48 项")}</option>

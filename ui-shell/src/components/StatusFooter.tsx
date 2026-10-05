@@ -56,10 +56,11 @@ export const StatusFooter: React.FC = () => {
         {/* Core Connection */}
         <div
           style={{ display: 'flex', alignItems: 'center', gap: '5px' }}
+          data-healthy={connection.core === 'connected'}
           data-testid="core-status"
           title={`${uiText('Java 核心', 'Java Core')}: ${valueLabel(connection.core)}`}
         >
-          <Server size={12} color="var(--badge-green)" />
+          <Server size={12} color={connection.core === 'connected' ? 'var(--badge-green)' : 'var(--badge-amber)'} />
           <span>{uiText('核心：', 'Core: ')}{valueLabel(connection.core)}</span>
         </div>
 
@@ -85,6 +86,7 @@ export const StatusFooter: React.FC = () => {
         {/* Bridge Status */}
         <div
           style={{ display: 'flex', alignItems: 'center', gap: '5px' }}
+          data-healthy={connection.bridge === 'ready'}
           data-testid="bridge-status"
         >
           <Activity size={12} color="var(--accent-copper)" />

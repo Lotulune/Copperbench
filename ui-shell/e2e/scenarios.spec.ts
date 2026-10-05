@@ -76,7 +76,7 @@ test.describe('UI-Core v1.0 Contract Scenarios', () => {
     await page.click('[data-testid="scenario-btn-loading-workbench"]');
 
     await expect(page.locator('[data-testid="workbench-loading"]')).toBeVisible();
-    await expect(page.getByText('正在加载工作区投影…')).toBeVisible();
+    await expect(page.getByText('正在加载工作区…')).toBeVisible();
   });
 
   test('scenario: validation-failed shows field diagnostic error', async ({ page }) => {
