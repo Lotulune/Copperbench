@@ -1,16 +1,17 @@
 package dev.copperbench.assets;
 
 import com.google.gson.JsonParser;
+import dev.copperbench.core.workspace.WorkspaceFiles;
 
 import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.file.AtomicMoveNotSupportedException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Comparator;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Locale;
@@ -33,30 +34,32 @@ public final class ResourcePackExportService {
 		if (!output.getFileName().toString().toLowerCase(Locale.ROOT).endsWith(".zip"))
 			throw new AssetPathViolationException("Resource pack output must be a .zip file");
 		Path metadata = source.resolve("pack.mcmeta");
-		if (!Files.isRegularFile(metadata))
+		if (!Files.isRegularFile(metadata, LinkOption.NOFOLLOW_LINKS))
 			throw new AssetPathViolationException("Resource pack requires pack.mcmeta");
 		try {
-			JsonParser.parseString(Files.readString(metadata));
-			List<Path> files = Files.walk(source).filter(Files::isRegularFile).filter(path -> !Files.isSymbolicLink(path))
-					.sorted(Comparator.comparing(path -> source.relativize(path).toString().replace('\\', '/'))).toList();
-			Path temp = output.resolveSibling(output.getFileName() + ".tmp");
-			Files.createDirectories(output.getParent());
-			try (OutputStream stream = Files.newOutputStream(temp); ZipOutputStream zip = new ZipOutputStream(stream)) {
-				for (Path file : files) {
-					String name = source.relativize(file).toString().replace('\\', '/');
-					ZipEntry entry = new ZipEntry(name);
-					entry.setTime(0L);
-					zip.putNextEntry(entry);
-					Files.copy(file, zip);
-					zip.closeEntry();
+			List<Path> files = WorkspaceFiles.regularFiles(source, relative -> false);
+			WorkspaceFiles.requireRegularFile(source, metadata);
+			try (var reader = new InputStreamReader(Files.newInputStream(metadata, LinkOption.NOFOLLOW_LINKS),
+					StandardCharsets.UTF_8)) {
+				JsonParser.parseReader(reader);
+			}
+			WorkspaceFiles.writeAtomically(assets.workspaceRoot(), output, stream -> {
+				try (ZipOutputStream zip = new ZipOutputStream(stream)) {
+					for (Path file : files) {
+						Path input = WorkspaceFiles.requireRegularFile(source, file);
+						String name = source.relativize(file).toString().replace('\\', '/');
+						ZipEntry entry = new ZipEntry(name);
+						entry.setTime(0L);
+						zip.putNextEntry(entry);
+						try (InputStream content = Files.newInputStream(input, LinkOption.NOFOLLOW_LINKS)) {
+							content.transferTo(zip);
+						}
+						zip.closeEntry();
+					}
 				}
-			}
-			try {
-				Files.move(temp, output, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
-			} catch (AtomicMoveNotSupportedException exception) {
-				Files.move(temp, output, StandardCopyOption.REPLACE_EXISTING);
-			}
-			return new ExportResult(outputRelativePath.replace('\\', '/'), sha256(output), files.size());
+			});
+			return new ExportResult(outputRelativePath.replace('\\', '/'),
+					sha256(WorkspaceFiles.requireRegularFile(assets.workspaceRoot(), output)), files.size());
 		} catch (IOException | RuntimeException exception) {
 			throw new AssetPathViolationException("Resource pack export failed: " + exception.getMessage());
 		}
@@ -65,9 +68,7 @@ public final class ResourcePackExportService {
 	private Path resolveDirectory(String relative) {
 		Path path = resolveWorkspacePath(relative);
 		try {
-			Path real = path.toRealPath();
-			if (!Files.isDirectory(real) || !real.startsWith(assets.workspaceRoot())) throw new IOException();
-			return real;
+			return WorkspaceFiles.requireDirectory(WorkspaceFiles.requireWithin(assets.workspaceRoot(), path));
 		} catch (IOException exception) {
 			throw new AssetPathViolationException("Resource pack directory is not authorized");
 		}
@@ -75,16 +76,14 @@ public final class ResourcePackExportService {
 
 	private Path resolveOutput(String relative) {
 		Path path = resolveWorkspacePath(relative);
-		if (path.getFileName() == null || path.startsWith(assets.workspaceRoot().resolve(".copperbench")))
-			throw new AssetPathViolationException("Resource pack output is not authorized");
 		try {
-			Path parent = path.getParent();
-			if (parent != null && Files.exists(parent) && !parent.toRealPath().startsWith(assets.workspaceRoot()))
-				throw new IOException("output parent escapes workspace");
+			Path canonical = WorkspaceFiles.requireWithin(assets.workspaceRoot(), path);
+			if (canonical.getFileName() == null || canonical.startsWith(assets.workspaceRoot().resolve(".copperbench")))
+				throw new IOException("Resource pack output is not authorized");
+			return canonical;
 		} catch (IOException exception) {
 			throw new AssetPathViolationException("Resource pack output is not authorized");
 		}
-		return path;
 	}
 
 	private Path resolveWorkspacePath(String relative) {
@@ -98,8 +97,14 @@ public final class ResourcePackExportService {
 	}
 
 	private static String sha256(Path path) throws IOException {
-		try { return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(Files.readAllBytes(path))); }
-		catch (NoSuchAlgorithmException exception) { throw new AssertionError(exception); }
+		try {
+			MessageDigest digest = MessageDigest.getInstance("SHA-256");
+			try (InputStream input = Files.newInputStream(path, LinkOption.NOFOLLOW_LINKS)) {
+				byte[] buffer = new byte[8192];
+				for (int read; (read = input.read(buffer)) != -1;) digest.update(buffer, 0, read);
+			}
+			return HexFormat.of().formatHex(digest.digest());
+		} catch (NoSuchAlgorithmException exception) { throw new AssertionError(exception); }
 	}
 
 	public record ExportResult(String relativePath, String sha256, int fileCount) { }

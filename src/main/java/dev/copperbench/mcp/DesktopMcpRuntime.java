@@ -12,7 +12,9 @@ package dev.copperbench.mcp;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import dev.copperbench.assets.AssetWorkspaceService;
+import dev.copperbench.automation.audit.AuditRecord;
 import dev.copperbench.automation.audit.JsonLineAuditLog;
 import dev.copperbench.automation.security.WorkspaceToken;
 import dev.copperbench.automation.security.WorkspaceTokenService;
@@ -30,6 +32,7 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Executors;
@@ -47,88 +50,70 @@ public final class DesktopMcpRuntime implements AutoCloseable {
 	private static final Duration TOKEN_RENEWAL_LEAD = Duration.ofMinutes(5);
 
 	private final UUID workspaceId;
-	private final PermissionProfile permissionProfile;
+	private PermissionProfile permissionProfile = PermissionProfile.WORKSPACE;
 	private final Path connectionFile;
+	private final Path settingsFile;
+	private final Path workspaceRoot;
+	private final McpWorkspaceEntryAdapter adapter;
+	private final JsonLineAuditLog audit;
 	private final WorkspaceTokenService tokens;
 	private final Clock clock;
-	private final AtomicReference<WorkspaceToken> activeToken;
-	private final CopperbenchMcpServer server;
-	private final String endpoint;
-	private final String failure;
-	private final AtomicReference<String> oneTimeToken;
+	private final AtomicReference<WorkspaceToken> activeToken = new AtomicReference<>();
+	private CopperbenchMcpServer server;
+	private String endpoint;
+	private String failure;
+	private final AtomicReference<String> oneTimeToken = new AtomicReference<>();
 	private final ScheduledExecutorService tokenRenewal;
 	private final AtomicBoolean closed = new AtomicBoolean(false);
 
-	private DesktopMcpRuntime(UUID workspaceId, PermissionProfile permissionProfile, Path connectionFile,
-			WorkspaceTokenService tokens, WorkspaceToken token, CopperbenchMcpServer server, String endpoint,
-			Clock clock, String failure) {
+	private DesktopMcpRuntime(Path workspaceRoot, UUID workspaceId, McpWorkspaceEntryAdapter adapter, Clock clock) {
 		this.workspaceId = workspaceId;
-		this.permissionProfile = permissionProfile;
-		this.connectionFile = connectionFile;
-		this.tokens = tokens;
+		this.workspaceRoot = workspaceRoot.toAbsolutePath().normalize();
+		this.connectionFile = this.workspaceRoot.resolve(".copperbench/mcp-connection.json");
+		this.settingsFile = this.workspaceRoot.resolve(".copperbench/mcp-settings.json");
+		this.adapter = adapter;
+		this.audit = new JsonLineAuditLog(this.workspaceRoot.resolve(".copperbench/automation-audit.jsonl"));
+		this.tokens = new WorkspaceTokenService(clock, TOKEN_TTL);
 		this.clock = clock;
-		this.activeToken = new AtomicReference<>(token);
-		this.server = server;
-		this.endpoint = endpoint;
-		this.failure = failure;
-		this.oneTimeToken = new AtomicReference<>(token == null ? null : token.value());
-		if (token == null) {
-			this.tokenRenewal = null;
-		} else {
-			this.tokenRenewal = Executors.newSingleThreadScheduledExecutor(runnable -> {
-				Thread thread = new Thread(runnable, "Copperbench-MCP-token-renewal-" + workspaceId);
-				thread.setDaemon(true);
-				return thread;
-			});
-			this.tokenRenewal.scheduleWithFixedDelay(this::renewTokenSafely, 1, 1, TimeUnit.MINUTES);
-		}
+		this.tokenRenewal = Executors.newSingleThreadScheduledExecutor(runnable -> {
+			Thread thread = new Thread(runnable, "Copperbench-MCP-token-renewal-" + workspaceId);
+			thread.setDaemon(true);
+			return thread;
+		});
 	}
 
 	public static DesktopMcpRuntime start(Path workspaceRoot, UUID workspaceId, McpWorkspaceEntryAdapter adapter,
 			Clock clock) {
-		Path root = workspaceRoot.toAbsolutePath().normalize();
-		Path connectionFile = root.resolve(".copperbench/mcp-connection.json").normalize();
-		PermissionProfile permission = PermissionProfile.WORKSPACE;
-		WorkspaceTokenService tokens = new WorkspaceTokenService(clock, TOKEN_TTL);
-		WorkspaceToken token = tokens.issue(workspaceId, permission);
-		CopperbenchMcpServer server = null;
+		DesktopMcpRuntime runtime = new DesktopMcpRuntime(workspaceRoot, workspaceId, adapter, clock);
 		try {
-			server = CopperbenchMcpServer.start(new McpServerConfiguration(0, workspaceId, permission,
-					Set.of("http://mcreator", "http://localhost:5173", "http://127.0.0.1:5173"), clock),
-					tokens, adapter, new JsonLineAuditLog(root.resolve(".copperbench/automation-audit.jsonl")),
-					new AssetWorkspaceService(root));
-			String endpoint = "http://127.0.0.1:" + server.address().getPort() + "/mcp";
-			writeConnectionFile(connectionFile, endpoint, workspaceId, permission, token.expiresAt());
-			return new DesktopMcpRuntime(workspaceId, permission, connectionFile, tokens, token, server, endpoint, clock,
-					null);
+			if (Files.exists(runtime.settingsFile)) {
+				JsonObject settings = JsonParser.parseString(Files.readString(runtime.settingsFile,
+						StandardCharsets.UTF_8)).getAsJsonObject();
+				if (!settings.has("schemaVersion") || !settings.get("schemaVersion").isJsonPrimitive()
+						|| !settings.getAsJsonPrimitive("schemaVersion").isString()
+						|| !settings.get("schemaVersion").getAsString().equals("1.0"))
+					throw new IllegalArgumentException("Unsupported MCP settings version");
+				if (!settings.has("permissionProfile") || !settings.get("permissionProfile").isJsonPrimitive()
+						|| !settings.getAsJsonPrimitive("permissionProfile").isString())
+					throw new IllegalArgumentException("Invalid stored MCP permission profile");
+				runtime.permissionProfile = parsePermissionProfile(settings.get("permissionProfile").getAsString());
+			}
+			runtime.startServer(0);
 		} catch (Exception exception) {
-			if (server != null) {
-				try {
-					server.close();
-				} catch (RuntimeException closeFailure) {
-					exception.addSuppressed(closeFailure);
-				}
-			}
-			tokens.revoke(token.value());
-			try {
-				Files.deleteIfExists(connectionFile);
-			} catch (Exception cleanupFailure) {
-				exception.addSuppressed(cleanupFailure);
-			}
-			LOG.error("Could not start desktop MCP for workspace {}", workspaceId, exception);
-			return new DesktopMcpRuntime(workspaceId, permission, connectionFile, tokens, null, null, null, clock,
-					exception.getClass().getSimpleName() + ": " + exception.getMessage());
+			runtime.failClosed(exception);
 		}
+		runtime.tokenRenewal.scheduleWithFixedDelay(runtime::renewTokenSafely, 1, 1, TimeUnit.MINUTES);
+		return runtime;
 	}
 
-	public RuntimeState state() {
+	public synchronized RuntimeState state() {
 		renewTokenIfNeeded();
 		WorkspaceToken token = activeToken.get();
 		return new RuntimeState(server != null && !closed.get() ? "listening" : "not_started", endpoint, workspaceId,
 				permissionProfile, token == null ? null : token.expiresAt(), oneTimeToken.get() != null, failure);
 	}
 
-	public Optional<String> revealTokenOnce() {
+	public synchronized Optional<String> revealTokenOnce() {
 		if (closed.get()) return Optional.empty();
 		renewTokenIfNeeded();
 		return Optional.ofNullable(oneTimeToken.getAndSet(null));
@@ -138,16 +123,77 @@ public final class DesktopMcpRuntime implements AutoCloseable {
 		return connectionFile;
 	}
 
-	@Override public void close() {
+	/** Desktop-only: retires the old authenticated sessions before changing the Core permission boundary. */
+	public synchronized RuntimeState setPermissionProfile(PermissionProfile profile) {
+		Objects.requireNonNull(profile, "Permission profile is required");
+		if (closed.get()) throw new IllegalStateException("Desktop MCP runtime is closed");
+		if (server != null && permissionProfile == profile) return state();
+		int port = server == null ? 0 : server.address().getPort();
+		PermissionProfile previous = permissionProfile;
+		try {
+			stopServer();
+			permissionProfile = profile;
+			startServer(port);
+			JsonObject settings = new JsonObject();
+			settings.addProperty("schemaVersion", "1.0");
+			settings.addProperty("permissionProfile", wire(profile));
+			audit.append(new AuditRecord(clock.instant(), "desktop-ui", "set_mcp_permission_profile",
+					wire(previous) + " -> " + wire(profile), "selected", -1, null));
+			writePrivateJson(settingsFile, settings);
+			failure = null;
+		} catch (Exception exception) {
+			failClosed(exception);
+		}
+		return state();
+	}
+
+	public static PermissionProfile parsePermissionProfile(String value) {
+		return switch (value) {
+			case "read_only" -> PermissionProfile.READ_ONLY;
+			case "workspace" -> PermissionProfile.WORKSPACE;
+			case "full_access" -> PermissionProfile.FULL_ACCESS;
+			default -> throw new IllegalArgumentException("Unknown MCP permission profile");
+		};
+	}
+
+	private void startServer(int port) throws Exception {
+		WorkspaceToken token = tokens.issue(workspaceId, permissionProfile);
+		server = CopperbenchMcpServer.start(new McpServerConfiguration(port, workspaceId, permissionProfile,
+				Set.of("http://mcreator", "http://localhost:5173", "http://127.0.0.1:5173"), clock),
+				tokens, adapter.withPermissionProfile(permissionProfile), audit, new AssetWorkspaceService(workspaceRoot));
+		endpoint = "http://127.0.0.1:" + server.address().getPort() + "/mcp";
+		writeConnectionFile(connectionFile, endpoint, workspaceId, permissionProfile, token.expiresAt());
+		activeToken.set(token);
+		oneTimeToken.set(token.value());
+	}
+
+	private void failClosed(Exception exception) {
+		try {
+			stopServer();
+		} catch (RuntimeException cleanupFailure) {
+			exception.addSuppressed(cleanupFailure);
+		}
+		failure = exception.getClass().getSimpleName() + ": " + exception.getMessage();
+		LOG.error("Could not configure desktop MCP for workspace {}", workspaceId, exception);
+	}
+
+	@Override public synchronized void close() {
 		if (!closed.compareAndSet(false, true)) return;
-		if (tokenRenewal != null) tokenRenewal.shutdownNow();
+		tokenRenewal.shutdownNow();
+		stopServer();
+	}
+
+	private void stopServer() {
 		oneTimeToken.set(null);
 		activeToken.set(null);
 		tokens.revokeWorkspace(workspaceId);
 		RuntimeException failure = null;
-		if (server != null) {
+		CopperbenchMcpServer previous = server;
+		server = null;
+		endpoint = null;
+		if (previous != null) {
 			try {
-				server.close();
+				previous.close();
 			} catch (RuntimeException exception) {
 				failure = exception;
 			}
@@ -187,7 +233,6 @@ public final class DesktopMcpRuntime implements AutoCloseable {
 
 	private static void writeConnectionFile(Path connectionFile, String endpoint, UUID workspaceId,
 			PermissionProfile permission, Instant expiresAt) throws Exception {
-		PrivatePathPermissions.createPrivateDirectory(connectionFile.getParent());
 		JsonObject connection = new JsonObject();
 		connection.addProperty("schemaVersion", "1.0");
 		connection.addProperty("status", "listening");
@@ -196,15 +241,23 @@ public final class DesktopMcpRuntime implements AutoCloseable {
 		connection.addProperty("permissionProfile", wire(permission));
 		connection.addProperty("expiresAt", expiresAt.toString());
 		connection.addProperty("tokenDelivery", "ui-once");
-		Path temporary = connectionFile.resolveSibling(connectionFile.getFileName() + ".tmp");
-		Files.writeString(temporary, JSON.toJson(connection) + System.lineSeparator(), StandardCharsets.UTF_8);
-		PrivatePathPermissions.makePrivateFile(temporary);
+		writePrivateJson(connectionFile, connection);
+	}
+
+	private static void writePrivateJson(Path target, JsonObject value) throws Exception {
+		PrivatePathPermissions.createPrivateDirectory(target.getParent());
+		Path temporary = Files.createTempFile(target.getParent(), target.getFileName().toString(), ".tmp");
 		try {
-			Files.move(temporary, connectionFile, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
-		} catch (java.nio.file.AtomicMoveNotSupportedException ignored) {
-			Files.move(temporary, connectionFile, StandardCopyOption.REPLACE_EXISTING);
+			PrivatePathPermissions.makePrivateFile(temporary);
+			Files.writeString(temporary, JSON.toJson(value) + System.lineSeparator(), StandardCharsets.UTF_8);
+			try {
+				Files.move(temporary, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+			} catch (java.nio.file.AtomicMoveNotSupportedException ignored) {
+				Files.move(temporary, target, StandardCopyOption.REPLACE_EXISTING);
+			}
+		} finally {
+			Files.deleteIfExists(temporary);
 		}
-		PrivatePathPermissions.makePrivateFile(connectionFile);
 	}
 
 	private static String wire(PermissionProfile permission) {

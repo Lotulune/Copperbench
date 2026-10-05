@@ -14,6 +14,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import dev.copperbench.core.workspace.WorkspaceFiles;
 import dev.copperbench.core.workspace.WorkspaceState;
 import dev.copperbench.core.workspace.WorkspaceState.Element;
 import dev.copperbench.migration.MigrationReport.Disposition;
@@ -25,12 +26,9 @@ import dev.copperbench.release.ElementCoverageCatalog;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.StandardCopyOption;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -66,29 +64,29 @@ public final class LoaderMigrationService {
 		Objects.requireNonNull(source);
 		Objects.requireNonNull(targetGeneratorId);
 		Objects.requireNonNull(targetRoot);
-		String before = sourceRoot == null ? sourceHash(source) : WorkspaceTreeHasher.hash(sourceRoot);
+		Path origin = sourceRoot == null ? null : WorkspaceFiles.requireDirectory(sourceRoot);
+		String before = origin == null ? sourceHash(source) : WorkspaceTreeHasher.hash(origin);
 		MigrationReport preview = preview(source, targetGeneratorId, before, null);
 		if (!catalog.migratable(generatorId(source), targetGeneratorId))
 			return new MigrationReport("loader", generatorId(source), targetGeneratorId, before, null, true, false,
 					preview.items());
-		Path destination = targetRoot.toAbsolutePath().normalize();
-		Path origin = sourceRoot == null ? null : sourceRoot.toAbsolutePath().normalize();
-		if (sourceRoot != null) {
-			if (destination.startsWith(origin) || origin.startsWith(destination))
-				throw new IllegalArgumentException("Migration target must be outside the source workspace");
-			if (Files.exists(destination)) {
-				try (var children = Files.list(destination)) {
-					if (children.findAny().isPresent())
-						throw new IllegalArgumentException("Migration target must be an empty directory");
-				}
+		Path destination = WorkspaceFiles.canonicalPath(targetRoot);
+		if (origin != null && (destination.startsWith(origin) || origin.startsWith(destination)))
+			throw new IllegalArgumentException("Migration target must be outside the source workspace");
+		if (Files.exists(destination, LinkOption.NOFOLLOW_LINKS)) {
+			try (var children = Files.list(destination)) {
+				if (children.findAny().isPresent())
+					throw new IllegalArgumentException("Migration target must be an empty directory");
 			}
-			copyTree(origin, destination);
+		}
+		if (origin != null) {
+			WorkspaceFiles.copyTree(origin, destination,
+					relative -> WorkspaceTreeHasher.excluded(origin, origin.resolve(relative)));
 			rewriteGenerator(destination, targetGeneratorId, source.generator());
 		} else {
-			Files.createDirectories(destination);
 			writeProjection(destination, source, targetGeneratorId);
 		}
-		String after = sourceRoot == null ? sourceHash(source) : WorkspaceTreeHasher.hash(sourceRoot);
+		String after = origin == null ? sourceHash(source) : WorkspaceTreeHasher.hash(origin);
 		boolean unchanged = before.equals(after);
 		boolean complete = unchanged && preview.items().stream()
 				.noneMatch(item -> item.disposition() == Disposition.BLOCKED);
@@ -301,32 +299,10 @@ public final class LoaderMigrationService {
 		}
 	}
 
-	private static void copyTree(Path source, Path target) throws IOException {
-		Files.walkFileTree(source, new SimpleFileVisitor<>() {
-			@Override
-			public FileVisitResult preVisitDirectory(Path directory, BasicFileAttributes attributes) throws IOException {
-				if (WorkspaceTreeHasher.excluded(source, directory) && !directory.equals(source))
-					return FileVisitResult.SKIP_SUBTREE;
-				Files.createDirectories(target.resolve(source.relativize(directory)));
-				return FileVisitResult.CONTINUE;
-			}
-
-			@Override
-			public FileVisitResult visitFile(Path file, BasicFileAttributes attributes) throws IOException {
-				if (WorkspaceTreeHasher.excluded(source, file))
-					return FileVisitResult.CONTINUE;
-				Path destination = target.resolve(source.relativize(file));
-				Files.createDirectories(destination.getParent());
-				Files.copy(file, destination, StandardCopyOption.REPLACE_EXISTING);
-				return FileVisitResult.CONTINUE;
-			}
-		});
-	}
-
 	private static void rewriteGenerator(Path targetRoot, String targetGeneratorId, JsonObject sourceGenerator)
 			throws IOException {
-		Path workspaceFile = targetRoot.resolve("workspace.mcreator");
-		JsonObject document = Files.isRegularFile(workspaceFile)
+		Path workspaceFile = WorkspaceFiles.requireWithin(targetRoot, targetRoot.resolve("workspace.mcreator"));
+		JsonObject document = Files.isRegularFile(workspaceFile, LinkOption.NOFOLLOW_LINKS)
 				? JsonParser.parseString(Files.readString(workspaceFile, StandardCharsets.UTF_8)).getAsJsonObject()
 				: new JsonObject();
 		JsonObject settings = document.has("workspaceSettings") && document.get("workspaceSettings").isJsonObject()
@@ -342,7 +318,8 @@ public final class LoaderMigrationService {
 		generator.addProperty("displayName", displayName(targetGeneratorId));
 		product.add("generator", generator);
 		document.add("dev.copperbench", product);
-		Files.writeString(workspaceFile, JSON.toJson(document), StandardCharsets.UTF_8);
+		WorkspaceFiles.writeAtomically(targetRoot, workspaceFile,
+				output -> output.write(JSON.toJson(document).getBytes(StandardCharsets.UTF_8)));
 	}
 
 	private static void writeProjection(Path targetRoot, WorkspaceState source, String targetGeneratorId)
@@ -351,13 +328,13 @@ public final class LoaderMigrationService {
 		projection.addProperty("sourceWorkspaceId", source.id().toString());
 		projection.addProperty("targetGeneratorId", targetGeneratorId);
 		projection.add("upstreamDocument", source.upstreamDocument());
-		Files.writeString(targetRoot.resolve("migration-projection.json"), JSON.toJson(projection),
-				StandardCharsets.UTF_8);
+		WorkspaceFiles.writeAtomically(targetRoot, targetRoot.resolve("migration-projection.json"),
+				output -> output.write(JSON.toJson(projection).getBytes(StandardCharsets.UTF_8)));
 	}
 
 	private static void writeReport(Path targetRoot, MigrationReport report) throws IOException {
-		Files.writeString(targetRoot.resolve("migration-report.json"), JSON.toJson(report.toJson()),
-				StandardCharsets.UTF_8);
+		WorkspaceFiles.writeAtomically(targetRoot, targetRoot.resolve("migration-report.json"),
+				output -> output.write(JSON.toJson(report.toJson()).getBytes(StandardCharsets.UTF_8)));
 	}
 
 	private static String displayName(String generatorId) {

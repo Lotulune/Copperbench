@@ -13,6 +13,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import dev.copperbench.mcp.DesktopMcpRuntime;
+import dev.copperbench.core.contract.UiCore.PermissionProfile;
 import net.mcreator.ui.chromium.WebView;
 import org.cef.browser.CefBrowser;
 import org.cef.browser.CefFrame;
@@ -26,6 +27,8 @@ import java.awt.datatransfer.StringSelection;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /** Exposes desktop MCP runtime state and one-time token reveal to the trusted React shell. */
 public final class JcefMcpBridgeTransport extends CefMessageRouterHandlerAdapter implements Closeable {
@@ -40,6 +43,7 @@ public final class JcefMcpBridgeTransport extends CefMessageRouterHandlerAdapter
 	private final Runnable closeListener;
 	private final DesktopMcpRuntime runtime;
 	private final AtomicBoolean closed = new AtomicBoolean(false);
+	private final ExecutorService requests = Executors.newSingleThreadExecutor(Thread.ofVirtual().factory());
 
 	private JcefMcpBridgeTransport(WebView webView, DesktopMcpRuntime runtime) {
 		this.webView = Objects.requireNonNull(webView);
@@ -78,6 +82,19 @@ public final class JcefMcpBridgeTransport extends CefMessageRouterHandlerAdapter
 			JsonObject payload = JsonParser.parseString(request.substring(QUERY_PREFIX.length())).getAsJsonObject();
 			requireOperation(payload);
 			String operation = payload.get("operation").getAsString();
+			if (operation.equals("set_permission_profile")) {
+				PermissionProfile profile = requestedPermissionProfile(payload);
+				requests.execute(() -> {
+					if (closed.get()) return;
+					try {
+						var state = runtime.setPermissionProfile(profile);
+						if (!closed.get()) callback.success(JSON.toJson(state.toJson()));
+					} catch (RuntimeException exception) {
+						if (!closed.get()) callback.failure(503, "MCP permission change failed");
+					}
+				});
+				return true;
+			}
 			if (operation.equals("get_state")) {
 				requireOnly(payload, Set.of("operation"));
 				callback.success(JSON.toJson(runtime.state().toJson()));
@@ -121,6 +138,22 @@ public final class JcefMcpBridgeTransport extends CefMessageRouterHandlerAdapter
 				(function() {
 				    window.__COPPERBENCH_MCP_HOST__ = {
 				        available: true,
+				        setPermissionProfile: function(profile) {
+				            return new Promise(function(resolve, reject) {
+				                if (typeof window.cefQuery !== 'function') {
+				                    reject(new Error('JCEF MCP runtime transport is not available'));
+				                    return;
+				                }
+				                window.cefQuery({
+				                    request: %s + JSON.stringify({ operation: 'set_permission_profile', profile: profile }),
+				                    persistent: false,
+				                    onSuccess: function(response) { resolve(JSON.parse(response)); },
+				                    onFailure: function(code, message) {
+				                        reject(new Error('MCP permission change failed [' + code + ']: ' + message));
+				                    }
+				                });
+				            });
+				        },
 				        getState: function() {
 				            return new Promise(function(resolve, reject) {
 				                if (typeof window.cefQuery !== 'function') {
@@ -171,7 +204,16 @@ public final class JcefMcpBridgeTransport extends CefMessageRouterHandlerAdapter
 				        }
 				    };
 				})();
-				""".formatted(JSON.toJson(QUERY_PREFIX), JSON.toJson(QUERY_PREFIX), JSON.toJson(QUERY_PREFIX));
+				""".formatted(JSON.toJson(QUERY_PREFIX), JSON.toJson(QUERY_PREFIX), JSON.toJson(QUERY_PREFIX),
+				JSON.toJson(QUERY_PREFIX));
+	}
+
+	static PermissionProfile requestedPermissionProfile(JsonObject payload) {
+		requireOnly(payload, Set.of("operation", "profile"));
+		if (!payload.has("profile") || !payload.get("profile").isJsonPrimitive()
+				|| !payload.getAsJsonPrimitive("profile").isString())
+			throw new IllegalArgumentException("Missing MCP permission profile");
+		return DesktopMcpRuntime.parsePermissionProfile(payload.get("profile").getAsString());
 	}
 
 	private static void requireOperation(JsonObject payload) {
@@ -186,6 +228,7 @@ public final class JcefMcpBridgeTransport extends CefMessageRouterHandlerAdapter
 
 	@Override public void close() {
 		if (!closed.compareAndSet(false, true)) return;
+		requests.shutdownNow();
 		webView.removeLoadStartListener(loadStartListener);
 		webView.removeCloseListener(closeListener);
 		try {

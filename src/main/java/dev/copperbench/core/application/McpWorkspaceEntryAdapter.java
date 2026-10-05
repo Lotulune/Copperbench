@@ -12,9 +12,16 @@ import dev.copperbench.core.contract.UiCore.RequestContext;
 public final class McpWorkspaceEntryAdapter {
 
 	private final WorkspaceEntryAdapter delegate;
+	private final WorkspaceApplicationService service;
 
 	public McpWorkspaceEntryAdapter(WorkspaceApplicationService service, PermissionProfile permission) {
+		this.service = service;
 		this.delegate = new WorkspaceEntryAdapter(service, new RequestContext(Actor.MCP, permission));
+	}
+
+	/** Creates an immutable permission boundary for a replacement MCP server. */
+	public McpWorkspaceEntryAdapter withPermissionProfile(PermissionProfile permission) {
+		return new McpWorkspaceEntryAdapter(service, permission);
 	}
 
 	public CommandOutcome execute(Command command) {

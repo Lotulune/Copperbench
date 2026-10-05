@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - main
-      - "feature/**"
-      - "dev/**"
   pull_request:
     branches:
       - main
@@ -13,17 +11,48 @@ on:
 
 permissions:
   contents: read
-  checks: write
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
+  changes:
+    name: Select checks for changed layers
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      java: ${{ steps.select.outputs.java }}
+      windows: ${{ steps.select.outputs.windows }}
+      ui: ${{ steps.select.outputs.ui }}
+      contract: ${{ steps.select.outputs.contract }}
+      python: ${{ steps.select.outputs.python }}
+      typescript: ${{ steps.select.outputs.typescript }}
+    steps:
+      - name: Checkout repository and comparison history
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Test change selection and failure handling
+        run: python3 -m unittest discover -s scripts/tests -p 'test_ci_selection.py'
+      - name: Select checks
+        id: select
+        run: python3 scripts/ci/select_checks.py
+
   java:
     name: Java tests and Javadoc
+    needs: changes
+    # Only a successful plan with an explicit false may skip a required check.
+    if: ${{ always() && (needs.changes.result != 'success' || needs.changes.outputs.java != 'false') }}
     runs-on: ubuntu-latest
     steps:
+      - name: Require successful Java check selection
+        env:
+          CI_PLAN_RESULT: ${{ needs.changes.result }}
+          CI_RUN_JAVA: ${{ needs.changes.outputs.java }}
+        run: test "$CI_PLAN_RESULT" = success && test "$CI_RUN_JAVA" = true
       - name: Checkout repository
         uses: actions/checkout@v7
       - name: Set up JDK 25 with JCEF
@@ -49,8 +78,10 @@ jobs:
         run: xvfb-run -a ./gradlew --no-daemon --no-build-cache clean test javadoc
       - name: Publish Java test report
         uses: mikepenz/action-junit-report@d9f48fc87bc235f7e214acf696ca5abc0a986f16
-        if: always()
+        if: ${{ always() && needs.changes.result == 'success' && needs.changes.outputs.java == 'true' }}
         with:
+          # Keep the report in this job; forks do not need checks:write.
+          annotate_only: true
           include_passed: true
           detailed_summary: true
           report_paths: "**/build/test-results/test/TEST-*.xml"
@@ -67,42 +98,70 @@ jobs:
 
   frontend:
     name: UI contract, build, and smoke tests
+    needs: changes
+    if: always()
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
+      - name: Require complete and successful check selection
+        env:
+          CI_PLAN_RESULT: ${{ needs.changes.result }}
+          CI_PLAN_OUTPUTS: ${{ toJSON(needs.changes.outputs) }}
+        run: python3 scripts/ci/select_checks.py --verify-plan
       - name: Set up Node.js
         uses: actions/setup-node@v6
         with:
           node-version: 22
-          cache: npm
+          cache: ${{ (needs.changes.outputs.ui == 'true' || needs.changes.outputs.contract == 'true' || needs.changes.outputs.typescript == 'true') && 'npm' || '' }}
           cache-dependency-path: |
             ui-core/package-lock.json
             ui-shell/package-lock.json
       - name: Set up Python
+        if: needs.changes.outputs.python == 'true'
         uses: actions/setup-python@v6
         with:
           python-version: "3.11"
       - name: Install UI contract dependencies
+        if: needs.changes.outputs.contract == 'true'
         working-directory: ui-core
         run: npm ci
       - name: Install UI shell dependencies
+        if: needs.changes.outputs.ui == 'true' || needs.changes.outputs.typescript == 'true'
         working-directory: ui-shell
         run: npm ci
       - name: Validate UI schemas
+        if: needs.changes.outputs.contract == 'true'
         working-directory: ui-core
         run: npm test
       - name: Build UI shell
+        if: needs.changes.outputs.ui == 'true'
         working-directory: ui-shell
         run: npm run build
+      - name: Test production bridge and localization logic
+        if: needs.changes.outputs.ui == 'true'
+        working-directory: ui-shell
+        run: npm test
+      - name: Test TypeScript MCP client reliability
+        if: needs.changes.outputs.typescript == 'true'
+        working-directory: ui-shell
+        run: npm run test:sdk
+      - name: Test SDK connection-file security without a browser
+        if: needs.changes.outputs.typescript == 'true' && needs.changes.outputs.ui != 'true'
+        working-directory: ui-shell
+        # This existing spec uses Node filesystem APIs, with no browser/page fixture.
+        run: npx playwright test e2e/sdk-connection-security.spec.ts --project=chromium
       - name: Install Chromium
+        if: needs.changes.outputs.ui == 'true'
         working-directory: ui-shell
         run: npx playwright install --with-deps chromium
       - name: Run fast product-shell smoke tests
+        if: needs.changes.outputs.ui == 'true'
         working-directory: ui-shell
-        run: npx playwright test e2e/scenarios.spec.ts e2e/new-workspace.spec.ts e2e/sdk-connection-security.spec.ts --project=chromium
-      - name: Test Python SDK connection metadata security
-        run: python sdk/python/test_connection_security.py
+        run: npx playwright test e2e/scenarios.spec.ts e2e/new-workspace.spec.ts e2e/sdk-connection-security.spec.ts e2e/jcef-bridge.spec.ts e2e/mcp-runtime.spec.ts --project=chromium
+      - name: Test Python SDK reliability and connection security
+        if: needs.changes.outputs.python == 'true'
+        run: python -m unittest discover -s sdk/python -p 'test_*.py'
       - name: Validate product status
         run: |
           node --test scripts/tests/product-release-history.tests.mjs
@@ -111,7 +170,7 @@ jobs:
         run: node scripts/verify-markdown-links.mjs
       - name: Upload Playwright diagnostics
         uses: actions/upload-artifact@v7
-        if: failure()
+        if: ${{ failure() && needs.changes.outputs.ui == 'true' }}
         with:
           name: playwright-diagnostics
           path: |
@@ -122,8 +181,19 @@ jobs:
 
   mcp-conformance:
     name: MCP conformance
+    needs: changes
+    if: ${{ always() && (needs.changes.result != 'success' || needs.changes.outputs.windows != 'false') }}
     runs-on: windows-latest
     steps:
+      - name: Require successful Windows check selection
+        shell: pwsh
+        env:
+          CI_PLAN_RESULT: ${{ needs.changes.result }}
+          CI_RUN_WINDOWS: ${{ needs.changes.outputs.windows }}
+        run: |
+          if ($env:CI_PLAN_RESULT -cne 'success' -or $env:CI_RUN_WINDOWS -cne 'true') {
+            throw 'CI change selection failed or returned an invalid Windows output'
+          }
       - name: Checkout repository
         uses: actions/checkout@v7
       - name: Set up JDK 25 with JCEF
@@ -145,6 +215,24 @@ jobs:
         run: npm ci
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
+      - name: Test filesystem boundaries on Windows
+        shell: pwsh
+        run: >-
+          .\gradlew.bat --no-daemon --no-build-cache test
+          --tests dev.copperbench.core.workspace.WorkspaceFilesTest
+          --tests dev.copperbench.assets.ResourcePackExportServiceTest
+          --tests dev.copperbench.migration.LoaderMigrationServiceTest
+          --tests dev.copperbench.migration.UpstreamWorkspaceImportServiceTest
+      - name: Upload Windows filesystem test results
+        uses: actions/upload-artifact@v7
+        if: ${{ always() && needs.changes.result == 'success' && needs.changes.outputs.windows == 'true' }}
+        with:
+          name: windows-filesystem-results
+          path: |
+            build/test-results/test/
+            build/reports/tests/test/
+          if-no-files-found: ignore
+          retention-days: 14
       - name: Verify signed release-source gate
         shell: pwsh
         run: pwsh -NoProfile -File ./scripts/tests/verify-release-source.tests.ps1
@@ -158,7 +246,7 @@ jobs:
         run: pwsh -NoProfile -File ./scripts/verify-mcp-conformance.ps1 -OutputDirectory build/mcp-conformance-results
       - name: Upload MCP conformance report
         uses: actions/upload-artifact@v7
-        if: always()
+        if: ${{ always() && needs.changes.result == 'success' && needs.changes.outputs.windows == 'true' }}
         with:
           name: mcp-conformance-results
           path: build/mcp-conformance-results/

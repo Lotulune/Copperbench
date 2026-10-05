@@ -41,16 +41,18 @@ body:
       label: Operating system
       options:
         - Windows 11 x64
-        - Other (unsupported)
+        - Ubuntu 24.04 LTS x86_64 - GNOME Wayland
+        - Ubuntu 24.04 LTS x86_64 - GNOME Xorg
+        - Other (not validated; describe below)
     validations:
       required: true
   - type: textarea
     attributes:
       label: Version and source commit
       placeholder: |
-        Copperbench version: 0.1.0
+        Copperbench version: from About or release metadata
         Source commit: full 40-character SHA from release metadata
-        Windows build: 22000+
+        OS version/build and desktop session: Windows build, or Linux distribution and Wayland/Xorg
     validations:
       required: true
   - type: input
