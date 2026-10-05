@@ -1,6 +1,40 @@
 import { test, expect } from '@playwright/test';
+import { openToolView } from './navigation';
 
 test.describe('JCEF Bridge & Host Transport Integration', () => {
+  test('keeps the workbench loading until its first Core projection arrives', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.getByTestId('workbench-main')).toBeVisible();
+    const result = await page.evaluate(async () => {
+      const { JcefCoreBridge } = await import('/src/bridge/JcefCoreBridge.ts');
+      const { coreBridge: fixture } = await import('/src/bridge/index.ts');
+      const workspaceId = fixture.getState().workbench!.workspace.id;
+      let release!: () => void;
+      let reached!: () => void;
+      const gate = new Promise<void>(resolve => { release = resolve; });
+      const requested = new Promise<void>(resolve => { reached = resolve; });
+      const bridge = new JcefCoreBridge({ workspaceId, onEvent: () => () => {}, invoke: async raw => {
+        const envelope = JSON.parse(raw);
+        if (envelope.messageType === 'handshake') return JSON.stringify({
+          messageType: 'handshake_result', requestId: envelope.requestId, status: 'compatible',
+          selectedSchemaVersion: '1.0', coreSchemaVersions: ['1.0'], diagnostics: []
+        });
+        if (envelope.operation === 'get_workbench') { reached(); await gate; }
+        return JSON.stringify(await fixture.sendQuery(envelope));
+      } });
+      const handshake = bridge.negotiateHandshake({ messageType: 'handshake', requestId: crypto.randomUUID(),
+        supportedSchemaVersions: ['1.0'], client: { name: 'loading-test', version: '1' } });
+      await requested;
+      const pending = { viewport: bridge.getState().viewportState, workspace: bridge.getState().workbench };
+      release(); await handshake;
+      const ready = bridge.getState().viewportState;
+      bridge.dispose();
+      return { pending, ready };
+    });
+    expect(result.pending).toEqual({ viewport: 'loading', workspace: null });
+    expect(result.ready).toBe('ready');
+  });
+
   test('default browser environment uses MockCoreBridge and retains interactive scenario testing', async ({ page }) => {
     await page.goto('/');
     await page.waitForSelector('[data-testid="app-shell"]');
@@ -24,7 +58,7 @@ test.describe('JCEF Bridge & Host Transport Integration', () => {
 
     await page.goto('/');
     await page.waitForSelector('[data-testid="app-shell"]');
-    await page.click('[data-testid="nav-plugins"]');
+    await openToolView(page, 'plugins');
 
     const openButton = page.locator('[data-testid="open-legacy-plugin-window"]');
     await expect(openButton).toBeEnabled();

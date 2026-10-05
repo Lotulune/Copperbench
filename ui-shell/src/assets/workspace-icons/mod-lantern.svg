@@ -1,0 +1,13 @@
+<!-- SPDX-License-Identifier: GPL-3.0-only -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" role="img" aria-label="铜灯笼">
+ <rect x="2" y="2" width="76" height="76" rx="16" fill="#30312a"/>
+ <path d="M34 10h12v15H34Z" fill="none" stroke="#d59a62" stroke-width="4"/>
+ <path d="m40 20 21 10v28L40 71 19 59V31Z" fill="#17251f"/>
+ <path d="m40 23 18 9-18 10-18-10Z" fill="#bb8954"/>
+ <path d="m24 36 14 8v20l-14-8Z" fill="#ffd67b"/><path d="m42 44 14-8v20l-14 8Z" fill="#d39a44"/>
+ <path d="m27 42 8 4v13l-8-4Z" fill="#fff2bb"/><path d="m45 47 8-5v12l-8 5Z" fill="#f9ce70"/>
+ <path d="m40 27 10 5-10 6-10-6Z" fill="#5b7457"/>
+ <path d="m21 34 5 3v21l12 7V44l4-2v23l12-7V37l5-3v26L40 71 21 60Z" fill="#8e5e3e"/>
+ <path d="m22 52 17 10 19-11v6L40 68 22 58Z" fill="#b77d4d"/>
+ <path d="M38 41h4v27h-4Z" fill="#cf9c65"/>
+</svg>

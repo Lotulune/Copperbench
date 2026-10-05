@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { openToolView } from './navigation';
 
 async function loadScenario(page: import('@playwright/test').Page, scenarioId: string) {
   await page.click('[data-testid="scenario-switcher-trigger"]');
@@ -47,7 +48,7 @@ test.describe('Stage 2 local history and protected approvals', () => {
 
   test('requires an explicit decision and blocks AI Java plugin enablement', async ({ page }) => {
     await loadScenario(page, 'approval-required');
-    await page.click('[data-testid="nav-ai"]');
+    await openToolView(page, 'ai');
 
     const queue = page.locator('[data-testid="approval-queue"]');
     await expect(queue).toBeVisible();

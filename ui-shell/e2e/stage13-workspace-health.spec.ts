@@ -15,6 +15,7 @@ test.describe('Stage 13: Workspace Health', () => {
     await expect(page.locator('[data-testid="workspace-health-recovery"]')).toContainText('3 个恢复点');
     await expect(page.locator('[data-testid="workspace-health-risk"]')).toContainText('5+ 操作标记高影响');
 
+    await panel.locator('summary').click();
     await page.click('[data-testid="workspace-health-assets"]');
     await expect(page.locator('[data-testid="asset-browser"]')).toBeVisible();
   });

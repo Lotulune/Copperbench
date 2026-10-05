@@ -149,7 +149,7 @@ export class JcefCoreBridge implements CoreBridge {
     const result = await this.invoke<HandshakeResult>(request);
     this.state.schemaIncompatible = result.status === 'incompatible';
     this.state.diagnostics = [...result.diagnostics];
-    this.state.viewportState = result.status === 'compatible' ? 'ready' : 'error';
+    this.state.viewportState = result.status === 'compatible' ? 'loading' : 'error';
     this.notify();
     if (result.status === 'compatible') await this.refreshInitialProjection();
     return result;

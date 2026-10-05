@@ -988,9 +988,7 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
                 <h3 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-main)' }}>
-                  {tr("生成的 Minecraft 战利品表数据包格式")}</h3>
-                <p style={{ fontSize: '11px', color: 'var(--text-sub)' }}>
-                  {tr("根据上述结构化设计实时生成的 数据包战利品表（Loot Table）JSON。")}</p>
+                  {tr("战利品表 JSON")}</h3>
               </div>
             </div>
             <pre

@@ -1,5 +1,10 @@
 /** Known editor labels. Older hosts may supply bilingual fallbacks for these keys. */
 export const en: Record<string, string> = {
+  'diagnostic.workspace_source_failed': 'Source operation failed: {detail}',
+  'diagnostic.workspace_source_not_found': 'Source file not found.',
+  'diagnostic.workspace_source_conflict': 'The file changed externally. Read the latest version to continue.',
+  'diagnostic.workspace_source_read_only': 'This file is read only and cannot be saved.',
+  'diagnostic.workspace_source_too_large': 'The file exceeds 1 MiB and cannot be saved.',
   'editor.general': 'General attributes',
   'editor.section.general': 'General attributes',
   'editor.section.identity': 'Identity and basics',

@@ -4,11 +4,18 @@ test.describe('U3: Version Tracks, Loader Migration, Upstream Import, and Publis
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
     await page.waitForSelector('[data-testid="app-shell"]');
+    await page.getByRole('button', { name: '展开或收起工具' }).click();
   });
 
-  test('renders 4-track version matrix with statuses, reason codes, and current generator', async ({ page }) => {
+  test('shows actual versions and support status with secondary details collapsed', async ({ page }, testInfo) => {
     await page.click('[data-testid="nav-tracks"]');
     await expect(page.locator('[data-testid="tracks-view"]')).toBeVisible();
+    const view = page.getByTestId('tracks-view');
+    await expect(view.getByRole('heading', { name: '版本与迁移', exact: true })).toBeVisible();
+    expect(await view.innerText()).not.toContain('前一稳定轨');
+    expect(await view.innerText()).not.toContain('版本策略');
+    await expect(page.getByTestId('refactor-workbench-section')).not.toBeVisible();
+    await expect(page.getByTestId('upstream-import-section')).not.toBeVisible();
 
     // Verify track cards exist
     await expect(page.locator('[data-testid="track-card-latest_stable"]')).toBeVisible();
@@ -17,8 +24,19 @@ test.describe('U3: Version Tracks, Loader Migration, Upstream Import, and Publis
     await expect(page.locator('[data-testid="track-card-minecraft_1_20_1"]')).toBeVisible();
 
     await expect(page.locator('[data-testid="status-supported"]').first()).toBeVisible();
-    await expect(page.getByText('TRACK_SUPPORTED').first()).toBeVisible();
+    await expect(page.getByText('TRACK_SUPPORTED').first()).not.toBeVisible();
     await expect(page.getByText('Minecraft 26.2').first()).toBeVisible();
+    await expect(view).toContainText('NeoForge');
+    await expect(view).toContainText('Fabric');
+    expect(await view.evaluate(element => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
+    await page.screenshot({ path: testInfo.outputPath('versions.png') });
+    await page.getByText('支持详情', { exact: true }).first().click();
+    await expect(page.getByText('TRACK_SUPPORTED').first()).toBeVisible();
+    await page.getByTestId('tab-upstream-import').focus();
+    await page.keyboard.press('Enter');
+    await expect(page.getByTestId('upstream-import-section')).toBeVisible();
+    await page.keyboard.press('Enter');
+    await expect(page.getByTestId('upstream-import-section')).not.toBeVisible();
   });
 
   test('previews loader migration with 5 disposition groups and requires explicit confirmation to execute', async ({ page }) => {
@@ -26,7 +44,7 @@ test.describe('U3: Version Tracks, Loader Migration, Upstream Import, and Publis
     await page.click('[data-testid="tab-loader-migration"]');
 
     await expect(page.locator('[data-testid="loader-migration-section"]')).toBeVisible();
-    await expect(page.getByText('安全拷贝保证：')).toBeVisible();
+    await expect(page.getByText('安全拷贝保证：')).not.toBeVisible();
 
     // Select NeoForge 1.21.1 and preview
     await page.selectOption('[data-testid="migration-target-select"]', 'neoforge-1.21.1');
@@ -34,6 +52,7 @@ test.describe('U3: Version Tracks, Loader Migration, Upstream Import, and Publis
 
     // Verify preview report renders with disposition groups
     await expect(page.locator('[data-testid="migration-preview-report"]')).toBeVisible();
+    await expect(page.getByText('迁移会创建新副本，原工作区不变。', { exact: true })).toBeVisible();
     await expect(page.locator('[data-testid="preview-complete-badge"]')).toBeVisible();
     await expect(page.locator('[data-testid="disposition-group-supported"]')).toBeVisible();
     await expect(page.locator('[data-testid="disposition-group-substitute"]')).toBeVisible();
@@ -88,12 +107,13 @@ test.describe('U3: Version Tracks, Loader Migration, Upstream Import, and Publis
     await expect(page.getByText('迁移未完成，原工作区未修改。请检查迁移报告中的阻断项和手动处理项。')).toBeVisible();
   });
 
-  test('upstream workspace import displays desktop full access notice, denies non-elevated import, and succeeds on full access', async ({ page }) => {
+  test('expands import on demand, preserves permission denial and succeeds on full access', async ({ page }) => {
     await page.click('[data-testid="nav-tracks"]');
     await page.click('[data-testid="tab-upstream-import"]');
 
     await expect(page.locator('[data-testid="upstream-import-section"]')).toBeVisible();
-    await expect(page.getByText('环境约束说明：')).toBeVisible();
+    await expect(page.getByText('文件选择不可用，请输入路径。', { exact: true })).toBeVisible();
+    await expect(page.getByText('环境约束说明：')).not.toBeVisible();
     await expect(page.locator('[data-testid="upstream-browse-btn"]')).toBeDisabled();
 
     // Preview upstream import

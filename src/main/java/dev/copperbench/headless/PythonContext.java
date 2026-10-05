@@ -4,6 +4,7 @@ import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import dev.copperbench.core.application.HeadlessWorkspaceEntryAdapter;
 import dev.copperbench.core.contract.UiCore;
+import dev.copperbench.shell.AppPreferencesService;
 
 import java.util.UUID;
 
@@ -51,6 +52,22 @@ public final class PythonContext {
     }
 
     public JsonObject dispatch(String operation, JsonObject payload) {
+        if (operation.equals("get_preferences") || operation.equals("save_preferences")) {
+            JsonObject result = new JsonObject();
+            try {
+                AppPreferencesService service = AppPreferencesService.current();
+                result.add("data", operation.equals("get_preferences") ? service.read() : service.save(payload));
+                result.addProperty("status", "succeeded");
+            } catch (java.io.IOException | RuntimeException failure) {
+                result.addProperty("status", "failed");
+                JsonObject error = new JsonObject();
+                error.addProperty("code", failure instanceof IllegalStateException ? "PREFERENCES_CONFLICT"
+                        : failure instanceof IllegalArgumentException ? "PREFERENCES_INVALID" : "PREFERENCES_IO");
+                error.addProperty("message", failure.getMessage());
+                result.add("error", error);
+            }
+            return result;
+        }
         if (operation.equals("select")) {
             select(payload.has("elementId") && !payload.get("elementId").isJsonNull()
                     ? UUID.fromString(payload.get("elementId").getAsString()) : null);

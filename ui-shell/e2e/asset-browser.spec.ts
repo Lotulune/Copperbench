@@ -8,6 +8,20 @@ test.describe('U3 asset browser', () => {
     await expect(page.locator('[data-testid="asset-browser"]')).toBeVisible();
   });
 
+  test('filtering and selecting assets keeps the page heading in place', async ({ page }) => {
+    await page.setViewportSize({ width: 1366, height: 768 });
+    const browser = page.getByTestId('asset-browser');
+    const heading = browser.getByRole('heading', { name: '资产与模型', exact: true });
+    const before = await heading.boundingBox();
+    await page.getByTestId('asset-category-texture').click();
+    await page.locator('.asset-library-file').first().click();
+    await expect.poll(() => browser.evaluate(element => element.scrollTop)).toBe(0);
+    await page.getByTestId('asset-category-model').click();
+    await page.locator('.asset-library-file').first().click();
+    await expect.poll(() => browser.evaluate(element => element.scrollTop)).toBe(0);
+    expect((await heading.boundingBox())!.y).toBeCloseTo(before!.y, 0);
+  });
+
   test('filters by category and exposes stable ID/reference metadata', async ({ page }) => {
     await expect(page.locator('[data-testid="asset-card-asset:1111111111111111111111111111111111111111111111111111111111111111"]')).toBeVisible();
     await expect(page.locator('[data-testid="asset-stable-id"]')).toHaveText('asset:1111111111111111111111111111111111111111111111111111111111111111');
@@ -30,15 +44,18 @@ test.describe('U3 asset browser', () => {
   });
 
   test('filters Core-owned asset health and identifies static unreferenced candidates', async ({ page }) => {
+    await page.getByTestId('asset-checks-disclosure').locator('summary').first().click();
     await expect(page.locator('[data-testid="asset-health-summary"]')).toBeVisible();
     await page.locator('[data-testid="asset-health-unused"]').click();
     await expect(page.locator('[data-testid="asset-card-asset:3333333333333333333333333333333333333333333333333333333333333333"]')).toBeVisible();
     await expect(page.locator('[data-testid="asset-card-asset:1111111111111111111111111111111111111111111111111111111111111111"]')).not.toBeVisible();
     await expect(page.locator('[data-testid="asset-usage-status"]')).toContainText('静态未引用');
+    await page.getByTestId('asset-references-disclosure').locator('summary').first().click();
     await expect(page.locator('[data-testid="asset-outgoing-references"]')).toBeVisible();
   });
 
   test('navigates shared resource diagnostics to the stable source asset', async ({ page }) => {
+    await page.getByTestId('asset-checks-disclosure').locator('summary').first().click();
     const assetId = 'asset:3333333333333333333333333333333333333333333333333333333333333333';
     await expect(page.getByTestId('asset-diagnostics-panel')).toBeVisible();
     await expect(page.getByTestId('asset-diagnostic-MISSING_ASSET_REFERENCE')).toContainText('MISSING_ASSET_REFERENCE');
@@ -51,14 +68,16 @@ test.describe('U3 asset browser', () => {
   });
 
   test('separates conservatively safe cleanup candidates from static-unreferenced assets', async ({ page }) => {
+    await page.getByTestId('asset-checks-disclosure').locator('summary').first().click();
     await expect(page.getByTestId('asset-health-safe-summary')).toContainText('1');
     await page.getByTestId('asset-health-safe-unused').click();
     await expect(page.getByTestId('asset-card-asset:7777777777777777777777777777777777777777777777777777777777777777')).toBeVisible();
     await expect(page.getByTestId('asset-card-asset:3333333333333333333333333333333333333333333333333333333333333333')).not.toBeVisible();
-    await expect(page.getByTestId('asset-usage-status')).toContainText('可安全清理候选');
+    await expect(page.getByTestId('asset-usage-status')).toContainText('静态未引用');
   });
 
   test('filters exact duplicate-content candidates from Core-owned health', async ({ page }) => {
+    await page.getByTestId('asset-checks-disclosure').locator('summary').first().click();
     await page.getByTestId('asset-health-duplicates').click();
     await expect(page.getByTestId('asset-health-duplicate-summary')).toContainText('重复组 1');
     await expect(page.getByTestId('asset-card-asset:5555555555555555555555555555555555555555555555555555555555555555')).toBeVisible();
@@ -83,6 +102,7 @@ test.describe('U3 asset browser', () => {
 
   test('requires an explicit reviewed replacement action for an existing asset', async ({ page }) => {
     await page.getByTestId('asset-category-texture').click();
+    await page.getByLabel('文件操作', { exact: true }).click();
     await page.getByRole('button', { name: '替换文件' }).click();
 
     await expect(page.getByTestId('asset-import-review')).toBeVisible();
@@ -99,6 +119,7 @@ test.describe('U3 asset browser', () => {
   });
 
   test('reviews a mixed create/replace batch and commits it through one batch action', async ({ page }) => {
+    await page.getByLabel('更多资产操作', { exact: true }).click();
     await page.getByTestId('asset-batch-import-button').click();
     await expect(page.getByTestId('asset-batch-import-review')).toBeVisible();
     await expect(page.getByTestId('asset-batch-item-0')).toContainText('batch_texture.png');
@@ -119,6 +140,7 @@ test.describe('U3 asset browser', () => {
   });
 
   test('blocks an intra-batch target collision before any batch write', async ({ page }) => {
+    await page.getByLabel('更多资产操作', { exact: true }).click();
     await page.getByTestId('asset-batch-import-button').click();
     const shared = 'assets/coppertrails/textures/imported/shared.png';
     await page.getByTestId('asset-batch-target-0').fill(shared);
@@ -130,6 +152,7 @@ test.describe('U3 asset browser', () => {
   });
 
   test('keeps batch import review controls at the >=32px interaction target baseline', async ({ page }) => {
+    await page.getByLabel('更多资产操作', { exact: true }).click();
     await page.getByTestId('asset-batch-import-button').click();
     const controls = await page.getByTestId('asset-batch-import-review').locator('button:visible, input:visible').all();
     for (const control of controls) {
@@ -165,6 +188,7 @@ test.describe('U3 asset browser', () => {
 
   test('reviews exact reference rewrites before a reference-safe asset move', async ({ page }) => {
     await page.getByTestId('asset-category-texture').click();
+    await page.getByLabel('文件操作', { exact: true }).click();
     await page.getByTestId('asset-move-button').click();
     await expect(page.getByTestId('asset-move-review')).toBeVisible();
 
@@ -186,6 +210,7 @@ test.describe('U3 asset browser', () => {
 
   test('blocks an unchanged asset move before any write is possible', async ({ page }) => {
     await page.getByTestId('asset-category-texture').click();
+    await page.getByLabel('文件操作', { exact: true }).click();
     await page.getByTestId('asset-move-button').click();
     await page.getByTestId('asset-move-preview').click();
 
@@ -195,6 +220,7 @@ test.describe('U3 asset browser', () => {
 
   test('keeps asset move review controls at the >=32px interaction target baseline', async ({ page }) => {
     await page.getByTestId('asset-category-texture').click();
+    await page.getByLabel('文件操作', { exact: true }).click();
     await page.getByTestId('asset-move-button').click();
     const controls = await page.getByTestId('asset-move-review').locator('button:visible, input:visible').all();
     for (const control of controls) {

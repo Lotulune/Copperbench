@@ -1,7 +1,7 @@
-import { tr } from '../i18n/locale';
+import { tr, uiText } from '../i18n/locale';
 import { valueLabel } from '../i18n/labels';
 import React, { useEffect, useState } from 'react';
-import { ExternalLink, Plug, ShieldAlert } from 'lucide-react';
+import { ExternalLink, Plug } from 'lucide-react';
 import { legacyPluginBridge } from '../bridge/legacyPluginBridge';
 import { AssetBrowserView } from './AssetBrowserView';
 import { useWorkbench } from '../context/WorkbenchContext';
@@ -77,11 +77,9 @@ export const PluginsView: React.FC = () => {
     <div className="animate-fade-in" style={{ flex: 1, padding: '32px', display: 'flex', flexDirection: 'column', gap: '20px', overflow: 'auto' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
         <Plug size={24} color="var(--accent-copper)" aria-hidden="true" />
-        <h2 style={{ fontSize: '18px', fontWeight: 700 }}>{tr("MCreator 插件兼容中心")}</h2>
+        <h2 style={{ fontSize: '18px', fontWeight: 700 }}>{uiText('插件', 'Plugins')}</h2>
       </div>
 
-      <p style={{ color: 'var(--text-muted)', lineHeight: '1.6', maxWidth: '760px' }}>
-        {tr("插件按其依赖的扩展点分级。Java 插件默认禁用，启用或版本哈希变化仍需要用户明确确认。清单只做静态扫描，不会加载 Java 代码。")}</p>
 
       <div data-testid="installed-plugin-inventory">
         <h3 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '8px' }}>{tr("已安装插件")}</h3>
@@ -127,8 +125,8 @@ export const PluginsView: React.FC = () => {
       </div>
 
       {upstreamTools && (
-        <div data-testid="upstream-tool-catalog">
-          <h3 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '8px' }}>{tr("上游工具去向")}</h3>
+        <details data-testid="upstream-tool-catalog">
+          <summary style={{ cursor: 'pointer', fontSize: '13px' }}>{uiText('旧版工具入口', 'Legacy tool locations')}</summary>
           <p style={{ color: 'var(--text-muted)', fontSize: '12px', lineHeight: '1.5', maxWidth: '960px' }}>
             {upstreamTools.notes}
           </p>
@@ -150,9 +148,11 @@ export const PluginsView: React.FC = () => {
               ))}
             </tbody>
           </table>
-        </div>
+        </details>
       )}
 
+      <details><summary style={{ cursor: 'pointer', fontSize: '13px' }}>{uiText('兼容性与权限', 'Compatibility and permissions')}</summary>
+      <p style={{ color: 'var(--text-muted)', fontSize: '12px' }}>{uiText('Java 插件默认禁用，启用或版本变化时需确认。', 'Java plugins are disabled by default. Enabling or changing versions requires confirmation.')}</p>
       <table style={{ borderCollapse: 'collapse', width: 'min(760px, 100%)', fontSize: '13px' }}>
         <thead>
           <tr style={{ borderBottom: '1px solid var(--border-active)', textAlign: 'left' }}>
@@ -171,12 +171,8 @@ export const PluginsView: React.FC = () => {
           ))}
         </tbody>
       </table>
-
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', maxWidth: '760px', color: 'var(--badge-amber)' }}>
-        <ShieldAlert size={18} aria-hidden="true" style={{ flex: '0 0 auto', marginTop: '2px' }} />
-        <span style={{ color: 'var(--text-muted)', lineHeight: '1.6' }}>
-          {tr("旧版窗口运行上游 Swing 扩展点，不继承新工作台的视觉与布局保证。关闭窗口不会卸载插件逻辑。")}</span>
-      </div>
+      <p style={{ color: 'var(--text-muted)', fontSize: '12px' }}>{uiText('旧版插件在独立窗口运行，关闭窗口不会卸载插件。', 'Legacy plugins run in a separate window. Closing it does not unload plugins.')}</p>
+      </details>
 
       <div>
         <button
@@ -192,7 +188,7 @@ export const PluginsView: React.FC = () => {
         </button>
         {!legacyPluginBridge.available && (
           <div style={{ marginTop: '8px', color: 'var(--text-muted)', fontSize: '12px' }}>
-            {tr("当前浏览器预览不连接 Swing 宿主。")}</div>
+            {uiText('此功能需桌面应用。', 'Requires the desktop app.')}</div>
         )}
         {openError && (
           <div role="alert" style={{ marginTop: '8px', color: 'var(--badge-red)', fontSize: '12px' }}>

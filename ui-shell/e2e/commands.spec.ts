@@ -326,6 +326,7 @@ test.describe('Interactive UI-Core Commands & Mutations', () => {
   });
 
   test('generate_workspace triggers task progress and completes', async ({ page }) => {
+    await page.getByTestId('compact-run-menu').click();
     await page.click('[data-testid="titlebar-generate-btn"]');
 
     await expect(page.locator('[data-testid="task-drawer"]')).toBeVisible();

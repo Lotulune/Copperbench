@@ -29,6 +29,7 @@ export const TaskDrawer: React.FC = () => {
     exportVerifiedArtifact,
     previewDatagenOutput,
     previewTaskSource,
+    openSource,
     publishDatagenOutput,
     runDiagnosticAction,
     planWorkspaceChanges,
@@ -241,16 +242,16 @@ export const TaskDrawer: React.FC = () => {
 
           {activeTask && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span className="badge badge-copper" style={{ fontSize: '10px' }}>
+              <span className="badge badge-copper" style={{ fontSize: '12px' }}>
                 {valueLabel(activeTask.kind)}
               </span>
               <span
                 className={`badge badge-${activeTask.state === 'succeeded' ? 'green' : activeTask.state === 'running' ? 'amber' : 'red'}`}
-                style={{ fontSize: '10px' }}
+                style={{ fontSize: '12px' }}
               >
                 {valueLabel(activeTask.state)}
               </span>
-              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+              <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
                 {t(activeTask.stage)}
               </span>
             </div>
@@ -266,7 +267,7 @@ export const TaskDrawer: React.FC = () => {
             <button
               type="button"
               className="btn-secondary"
-              style={{ fontSize: '11px', minHeight: '28px', padding: '3px 9px' }}
+              style={{ fontSize: '12px', minHeight: '28px', padding: '3px 9px' }}
               onClick={loadDatagenPreview}
               disabled={datagenBusy}
               data-testid="datagen-preview-btn"
@@ -278,7 +279,7 @@ export const TaskDrawer: React.FC = () => {
           {activeTask?.cancellable && (
             <button
               className="btn-danger"
-              style={{ fontSize: '11px', padding: '2px 8px' }}
+              style={{ fontSize: '12px', padding: '2px 8px' }}
               onClick={() => cancelTask(activeTask.id)}
               data-testid="task-cancel-btn"
             >
@@ -329,7 +330,7 @@ export const TaskDrawer: React.FC = () => {
       {activeTask?.verifiedExport && <section className="gametest-verification" aria-label={uiText("已验证产物导出", "Verified artifact export")}>
         <strong>{activeTask.verifiedExport.status === 'passed_historical_input' ? uiText("已导出历史已验证产物", "Previously verified artifact exported") : uiText("已导出当前输入的已验证产物", "Verified artifact for current input exported")}</strong>
         <p>{activeTask.verifiedExport.exportDirectory}</p>
-        <p>{uiText("JAR、GameTest 报告和相对路径证明清单位于上述目录。", "The directory above contains the JAR, GameTest report and relative-path evidence manifest.")}</p>
+        <p>{uiText("导出内容：JAR、GameTest 报告和文件清单。", "Exported: JAR, GameTest report and file manifest.")}</p>
       </section>}
       {activeTask?.gameTestSetup && <section className="gametest-verification" aria-label={uiText("GameTest 模板", "GameTest templates")}>
         <strong>{uiText("测试入口已准备", "Test entry point prepared")}</strong><p>{uiText("初始用例只检查模组加载。请补充玩法断言后，再将结果作为玩法验收证据。", "The initial test only checks mod loading. Add gameplay assertions before using the results as gameplay acceptance evidence.")}</p>
@@ -356,7 +357,7 @@ export const TaskDrawer: React.FC = () => {
               {datagenPreview?.stale && <span className="badge badge-red">{uiText("修订已过期", "Revision is stale")}</span>}
             </div>
             {datagenPreview && (
-              <div style={{ marginTop: '6px', maxHeight: '48px', overflowY: 'auto', fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--text-muted)' }}>
+              <div style={{ marginTop: '6px', maxHeight: '48px', overflowY: 'auto', fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--text-muted)' }}>
                 {datagenPreview.files.map((file) => (
                   <div key={file.path} title={file.sha256} style={{ display: 'flex', gap: '8px' }}>
                     <span style={{ color: file.status === 'add' ? 'var(--badge-green)' : file.status === 'modify' ? 'var(--badge-amber)' : 'var(--text-sub)', width: '50px', flexShrink: 0 }}>
@@ -367,7 +368,7 @@ export const TaskDrawer: React.FC = () => {
                 ))}
               </div>
             )}
-            {datagenError && <div style={{ marginTop: '4px', color: 'var(--badge-red)', fontSize: '11px' }}>{renderUiMessage(datagenError)}</div>}
+            {datagenError && <div style={{ marginTop: '4px', color: 'var(--badge-red)', fontSize: '12px' }}>{renderUiMessage(datagenError)}</div>}
           </div>
           {datagenPreview?.canPublish && (
             <button
@@ -376,7 +377,7 @@ export const TaskDrawer: React.FC = () => {
               onClick={() => setConfirmPublish(true)}
               disabled={datagenBusy || datagenPreview.stale}
               data-testid="datagen-publish-btn"
-              title={uiText("校验当前修订与预览哈希后写入工作区", "Validate the current revision and preview hash before writing to the workspace")}
+              title={uiText("写入工作区", "Write to workspace")}
             >
               {datagenBusy ? <LoaderCircle className="spin" size={14} /> : <Upload size={14} />}
               <span>{uiText("发布到工作区", "Publish to workspace")}</span>
@@ -401,18 +402,18 @@ export const TaskDrawer: React.FC = () => {
             </div>
             {repairPlan && (
               <>
-                <div data-testid="task-repair-summary" style={{ marginTop: '5px', fontSize: '11px', color: 'var(--text-muted)' }}>
+                <div data-testid="task-repair-summary" style={{ marginTop: '5px', fontSize: '12px', color: 'var(--text-muted)' }}>
                   {t({ key: 'repair.preview.summary', fallback: '{objects} affected objects · {operations} operations · {paths} changed paths', args: { objects: repairPlan.review.summary.affectedObjectCount, operations: repairPlan.operationCount, paths: repairPlan.changedPaths.length } })}
                 </div>
-                <code style={{ display: 'block', marginTop: '5px', fontSize: '10px', color: 'var(--text-sub)', overflowWrap: 'anywhere' }}>{repairPlan.changedPaths.join(', ')}</code>
-                <details style={{ marginTop: '6px', fontSize: '10px' }}>
+                <code style={{ display: 'block', marginTop: '5px', fontSize: '12px', color: 'var(--text-sub)', overflowWrap: 'anywhere' }}>{repairPlan.changedPaths.join(', ')}</code>
+                <details style={{ marginTop: '6px', fontSize: '12px' }}>
                   <summary>{t({ key: 'repair.preview.semantic_diff', fallback: 'Semantic diff' })}</summary>
                   <pre data-testid="task-repair-semantic-diff" style={{ margin: '6px 0 0', maxHeight: '80px', overflow: 'auto', whiteSpace: 'pre-wrap' }}>{JSON.stringify(repairPlan.semanticDiff, null, 2)}</pre>
                 </details>
-                {!repairPlan.safety.ready && <div data-testid="task-repair-safety-blocked" style={{ marginTop: '5px', color: 'var(--badge-red)', fontSize: '11px' }}>{t({ key: 'repair.preview.safety_blocked', fallback: 'This repair cannot be applied because a required recovery point is unavailable.' })}</div>}
+                {!repairPlan.safety.ready && <div data-testid="task-repair-safety-blocked" style={{ marginTop: '5px', color: 'var(--badge-red)', fontSize: '12px' }}>{t({ key: 'repair.preview.safety_blocked', fallback: 'This repair cannot be applied because a required recovery point is unavailable.' })}</div>}
               </>
             )}
-            {repairError && <div data-testid="task-repair-error" style={{ marginTop: '5px', color: 'var(--badge-red)', fontSize: '11px' }}>{renderUiMessage(repairError)}</div>}
+            {repairError && <div data-testid="task-repair-error" style={{ marginTop: '5px', color: 'var(--badge-red)', fontSize: '12px' }}>{renderUiMessage(repairError)}</div>}
           </div>
           {repairPlan && (
             <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
@@ -450,13 +451,13 @@ export const TaskDrawer: React.FC = () => {
               style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: '8px 12px', alignItems: 'center' }}
             >
               <div style={{ minWidth: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--badge-red)', fontSize: '11px', fontWeight: 600 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--badge-red)', fontSize: '12px', fontWeight: 600 }}>
                   <AlertTriangle size={13} />
                   <code>{diagnostic.code}</code>
                 </div>
-                <div style={{ marginTop: '3px', fontSize: '11px', color: 'var(--text-main)' }}>{t(diagnostic.message)}</div>
+                <div style={{ marginTop: '3px', fontSize: '12px', color: 'var(--text-main)' }}>{t(diagnostic.message)}</div>
                 {diagnostic.path && (
-                  <code style={{ display: 'block', marginTop: '3px', fontSize: '10px', color: 'var(--text-sub)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <code style={{ display: 'block', marginTop: '3px', fontSize: '12px', color: 'var(--text-sub)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {diagnostic.path}
                   </code>
                 )}
@@ -468,7 +469,7 @@ export const TaskDrawer: React.FC = () => {
                       key={action.id}
                       type="button"
                       className="btn-secondary"
-                      style={{ fontSize: '11px', minHeight: '32px', padding: '4px 9px' }}
+                      style={{ fontSize: '12px', minHeight: '32px', padding: '4px 9px' }}
                       onClick={() => void handleDiagnosticAction(action, diagnostic)}
                       disabled={(action.kind === 'open_source' && sourceBusy)
                         || (action.kind === 'preview_repair' && repairBusy)}
@@ -498,7 +499,7 @@ export const TaskDrawer: React.FC = () => {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', padding: '7px 12px', borderBottom: '1px solid var(--border-subtle)' }}>
-            <div style={{ minWidth: 0, fontSize: '11px' }}>
+            <div style={{ minWidth: 0, fontSize: '12px' }}>
               <strong>{uiText("生成源码", "Generated source")}</strong>
               {sourcePreview && (
                 <code style={{ marginLeft: '8px', color: 'var(--text-sub)' }}>
@@ -506,6 +507,10 @@ export const TaskDrawer: React.FC = () => {
                 </code>
               )}
             </div>
+            {sourcePreview && <button type="button" className="btn-secondary" data-testid="task-source-open-editor"
+              onClick={() => { openSource(sourcePreview.path, sourcePreview.line); setIsTaskDrawerOpen(false); }}>
+              {uiText('在源码编辑器中打开', 'Open in source editor')}
+            </button>}
             <button
               type="button"
               className="btn-secondary"
@@ -516,11 +521,11 @@ export const TaskDrawer: React.FC = () => {
               {uiText("关闭", "Close")}</button>
           </div>
           {sourceError ? (
-            <div data-testid="task-source-error" style={{ padding: '12px', color: 'var(--badge-red)', fontSize: '11px' }}>{renderUiMessage(sourceError)}</div>
+            <div data-testid="task-source-error" style={{ padding: '12px', color: 'var(--badge-red)', fontSize: '12px' }}>{renderUiMessage(sourceError)}</div>
           ) : (
             <pre
               data-testid="task-source-content"
-              style={{ margin: 0, padding: '10px 12px', overflow: 'auto', fontFamily: 'var(--font-mono)', fontSize: '11px', lineHeight: 1.5, whiteSpace: 'pre' }}
+              style={{ margin: 0, padding: '10px 12px', overflow: 'auto', fontFamily: 'var(--font-mono)', fontSize: '12px', lineHeight: 1.5, whiteSpace: 'pre' }}
             >
               {sourcePreview?.content}
             </pre>
@@ -540,7 +545,7 @@ export const TaskDrawer: React.FC = () => {
           overflowY: 'auto',
           background: 'var(--bg-input)',
           fontFamily: 'var(--font-mono)',
-          fontSize: '11px',
+          fontSize: '12px',
           display: 'flex',
           flexDirection: 'column',
           gap: '4px',
@@ -618,7 +623,7 @@ export const TaskDrawer: React.FC = () => {
           >
             <h2 id="datagen-publish-title" style={{ margin: 0, fontSize: '16px' }}>{uiText("发布数据生成结果", "Publish generated data")}</h2>
             <p style={{ margin: '10px 0 16px', color: 'var(--text-muted)', fontSize: '12px', lineHeight: 1.6 }}>
-              {uiText(`将 ${datagenPreview.changeCount} 个暂存文件写入当前工作区。发布前会创建恢复点，并再次校验工作区修订和清单哈希。`, `Write ${englishCount(datagenPreview.changeCount, 'staged file')} to this workspace. Before publishing, a recovery point will be created and the workspace revision and manifest hash checked again.`)}
+              {uiText(`将 ${datagenPreview.changeCount} 个暂存文件写入工作区，并创建恢复点。`, `Write ${englishCount(datagenPreview.changeCount, 'staged file')} to the workspace and create a recovery point.`)}
             </p>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
               <button type="button" className="btn-secondary" onClick={() => setConfirmPublish(false)}>{uiText("取消", "Cancel")}</button>

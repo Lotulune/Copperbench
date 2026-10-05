@@ -1,8 +1,9 @@
 import { test, expect } from '@playwright/test';
+import { openToolView } from './navigation';
 
 test('browser preview never pretends to execute Python', async ({ page }) => {
   await page.goto('/');
-  await page.getByTestId('nav-python').click();
+  await openToolView(page, 'python');
   await expect(page.getByTestId('python-workbench')).toContainText('浏览器预览不会执行脚本');
   await expect(page.getByTestId('python-run')).toBeDisabled();
 });
@@ -53,13 +54,13 @@ test('workbench preserves drafts, executes through the host, completes code and 
     } };
   });
   await page.goto('/');
-  await page.getByTestId('nav-python').click();
+  await openToolView(page, 'python');
   const source = page.getByTestId('python-source');
   await source.fill("print('UI probe')");
   await page.getByTestId('python-run').click();
   await expect(page.getByTestId('python-output')).toContainText('Python UI probe passed');
   await page.getByTestId('nav-elements').click();
-  await page.getByTestId('nav-python').click();
+  await openToolView(page, 'python');
   await expect(source).toHaveValue("print('UI probe')");
   await expect(page.getByTestId('python-output')).toContainText('Python UI probe passed');
   const consoleInput = page.getByTestId('python-console-input');

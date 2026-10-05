@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { WorkbenchProvider, useWorkbench } from './context/WorkbenchContext';
 import { FramelessTitlebar } from './components/FramelessTitlebar';
 import { NavRail } from './components/NavRail';
@@ -21,10 +21,17 @@ import { StartupFailureView } from './components/StartupFailureView';
 import { ScenarioSwitcher } from './components/ScenarioSwitcher';
 import { PythonWorkbench } from './components/PythonWorkbench';
 import { PythonContextSync } from './components/PythonContextSync';
+import { RelationshipGraphView } from './components/RelationshipGraphView';
+import { SourceWorkbench } from './components/SourceWorkbench';
+import { SettingsView } from './components/SettingsView';
+import { WorkbenchNavigationBar } from './components/WorkbenchNavigationBar';
 import './styles/global.css';
+import './styles/workbench.css';
 
 const ShellContent: React.FC = () => {
-  const { activeView, announcement, state } = useWorkbench();
+  const { activeView, announcement, state, sourceFocusRequest } = useWorkbench();
+  const [settingsOpened, setSettingsOpened] = useState(activeView === 'settings');
+  useEffect(() => { if (activeView === 'settings') setSettingsOpened(true); }, [activeView]);
 
   return (
     <div className="app-shell" data-testid="app-shell">
@@ -40,9 +47,12 @@ const ShellContent: React.FC = () => {
       <div className="app-main-layout">
         <NavRail />
 
-        <main className="app-content-canvas">
+        <main className="app-content-canvas" data-active-view={activeView}>
+          <WorkbenchNavigationBar key={`navigation-${state.workbench?.workspace.id}`} />
+          <div className="workbench-view-content">
           {activeView === 'hub' && <WorkspaceHub />}
-          {activeView === 'elements' && <ModElementsWorkbench />}
+          {activeView === 'elements' && <ModElementsWorkbench key={`elements-${state.workbench?.workspace.id}`} />}
+          {activeView === 'relations' && <RelationshipGraphView key={`relations-${state.workbench?.workspace.id}`} />}
           {activeView === 'data' && <CreatorDataView />}
           {activeView === 'tracks' && <TracksAndMigrationView />}
           {activeView === 'new-workspace' && <NewWorkspaceView />}
@@ -51,7 +61,11 @@ const ShellContent: React.FC = () => {
           {activeView === 'ai' && <AIControlView />}
           {activeView === 'plugins' && <PluginsView />}
           {activeView === 'help' && <HelpView />}
-          {state.workbench && <PythonWorkbench key={state.workbench.workspace.id} visible={activeView === 'python'} />}
+          {(settingsOpened || activeView === 'settings') && <div className="workbench-persistent-view" hidden={activeView !== 'settings'}><SettingsView /></div>}
+          {state.workbench && <SourceWorkbench key={`source-${state.workbench.workspace.id}`} active={activeView === 'source'}
+            focusRequest={sourceFocusRequest?.workspaceId === state.workbench.workspace.id ? sourceFocusRequest : null} />}
+          {state.workbench && <PythonWorkbench key={`python-${state.workbench.workspace.id}`} visible={activeView === 'python'} />}
+          </div>
 
           <TaskDrawer />
         </main>

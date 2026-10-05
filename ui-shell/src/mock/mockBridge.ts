@@ -65,6 +65,7 @@ import {
 } from '../bridge/CoreBridge';
 import { SCENARIOS } from './scenarios';
 import { ASSET_FIXTURES } from './assetFixtures';
+import { sourceFixtures, sourceHash, sourceIndexFixture } from './sourceFixtures';
 import versionTracksData from '../../../ui-core/fixtures/v1.0/tracks/version-tracks.json';
 import releaseNotesData from '../../../ui-core/fixtures/v1.0/release/release-notes.json';
 
@@ -273,6 +274,7 @@ export class MockCoreBridge implements CoreBridge {
   private sequenceCounter = 100;
   private procedureIrs = new Map<UUID, ProcedureIr>();
   private mockRegistries = initialMockRegistries();
+  private sourceFiles = sourceFixtures();
 
   constructor() {
     this.loadScenario('ready');
@@ -316,6 +318,7 @@ export class MockCoreBridge implements CoreBridge {
     this.sequenceCounter = 100;
     this.procedureIrs.clear();
     this.mockRegistries = initialMockRegistries();
+    this.sourceFiles = sourceFixtures();
 
     // If extends, load base scenario first
     if (scenario.extendsScenarioId && SCENARIOS[scenario.extendsScenarioId]) {
@@ -1007,6 +1010,31 @@ export class MockCoreBridge implements CoreBridge {
     const newRevision = currentRevision + 1;
 
     switch (command.operation) {
+      case 'update_workspace_file': {
+        const payload = command.payload as { relativePath: string; content: string; expectedSha256: string };
+        const file = this.sourceFiles.get(payload.relativePath);
+        const currentHash = file ? await sourceHash(file.content) : '';
+        const code = !file ? 'WORKSPACE_SOURCE_NOT_FOUND' : !file.editable ? 'WORKSPACE_SOURCE_READ_ONLY'
+          : currentHash !== payload.expectedSha256 ? 'WORKSPACE_SOURCE_CONFLICT'
+            : new TextEncoder().encode(payload.content).length > 1048576 ? 'WORKSPACE_SOURCE_TOO_LARGE' : null;
+        if (code) return { messageType: 'command_result', schemaVersion: '1.0', requestId: command.requestId,
+          workspaceId, operation: command.operation, status: 'rejected', newRevision: currentRevision,
+          diagnostics: [{ code, severity: 'error', message: { key: `diagnostic.${code.toLowerCase()}`, fallback: code },
+            path: payload.relativePath, recoverable: true, actions: [] }] };
+        const changed = file!.content !== payload.content;
+        const saved = { ...file!, content: payload.content, sha256: await sourceHash(payload.content), size: new TextEncoder().encode(payload.content).length };
+        this.sourceFiles.set(payload.relativePath, saved);
+        const revision = changed ? newRevision : currentRevision;
+        if (this.state.workbench) this.state.workbench.workspace.revision = revision;
+        this.state.viewportState = 'ready';
+        this.notifyEvent({ messageType: 'event', schemaVersion: '1.0', eventId: generateUUID(), workspaceId,
+          revision, sequence: ++this.sequenceCounter, occurredAt: new Date().toISOString(), causedByRequestId: command.requestId,
+          event: 'workspace_revision_advanced', payload: { changedPaths: [payload.relativePath], actor: 'ui' } });
+        this.notifyState();
+        return { messageType: 'command_result', schemaVersion: '1.0', requestId: command.requestId,
+          workspaceId, operation: command.operation, status: 'committed', newRevision: revision,
+          data: { relativePath: payload.relativePath, sha256: saved.sha256, size: saved.size, changed }, diagnostics: [] };
+      }
       case 'create_task_authorization':
       case 'revoke_task_authorization': {
         const payload = command.payload as unknown as import('../types/contract').TaskAuthorizationRequest & { authorizationId?: string };
@@ -2492,6 +2520,25 @@ export class MockCoreBridge implements CoreBridge {
 
     let data: unknown = null;
     switch (query.operation) {
+      case 'list_workspace_files': {
+        const payload = query.payload as { search?: string; offset?: number; limit?: number };
+        const files = [...this.sourceFiles.values()].filter(file => file.relativePath.toLowerCase().includes((payload.search ?? '').toLowerCase()))
+          .sort((a, b) => a.relativePath.localeCompare(b.relativePath));
+        const offset = Math.max(0, payload.offset ?? 0), limit = Math.min(200, Math.max(1, payload.limit ?? 200));
+        data = { files: files.slice(offset, offset + limit).map(({ content: _content, sha256: _hash, ...file }) => file), total: files.length,
+          nextOffset: offset + limit < files.length ? offset + limit : null, truncated: false, maxFileBytes: 1048576 };
+        break;
+      }
+      case 'read_workspace_file': {
+        const path = (query.payload as { relativePath: string }).relativePath;
+        const file = this.sourceFiles.get(path);
+        if (!file) return { messageType: 'query_result', schemaVersion: '1.0', requestId: query.requestId,
+          workspaceId, operation: query.operation, status: 'failed', revision, data: null as T,
+          diagnostics: [{ code: 'WORKSPACE_SOURCE_NOT_FOUND', severity: 'error', message: { key: 'diagnostic.workspace_source_not_found', fallback: 'File not found.' }, path, recoverable: true, actions: [] }] };
+        data = { ...file, sha256: await sourceHash(file.content) };
+        break;
+      }
+      case 'get_workspace_source_index': data = structuredClone(sourceIndexFixture); break;
       case 'list_task_authorizations': data = { schemaVersion: '1.0', authorizations: this.taskAuthorizations.map(item => ({ ...item })) }; break;
       case 'get_workspace_environment': data = { execution: { workspaceRoot: 'D:/MockWorkspace' } }; break;
       case 'get_blockbench_environment': {

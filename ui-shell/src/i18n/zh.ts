@@ -4,6 +4,11 @@
  * 新增合同 key 时必须同步补齐词条，缺失时 UI 回退英文 fallback。
  */
 export const zh: Record<string, string> = {
+  'diagnostic.workspace_source_failed': '源码操作失败：{detail}',
+  'diagnostic.workspace_source_not_found': '找不到源码文件。',
+  'diagnostic.workspace_source_conflict': '文件已在外部修改，请读取最新版本后继续。',
+  'diagnostic.workspace_source_read_only': '此文件只读，无法保存修改。',
+  'diagnostic.workspace_source_too_large': '文件超过 1 MiB，无法保存。',
   'diagnostic.verified_export_failed': '已验证产物导出被拒绝：{reason}',
   'task.interrupted_unconfirmed': '上次会话未记录任务终态，结果未确认；请核对日志后再运行。',
   'diagnostic.configuration_drift': '声明配置与实际定义不一致。请审查两份值，再选择采用当前定义或重新应用声明配置。',

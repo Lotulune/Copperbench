@@ -8,6 +8,7 @@ test.beforeEach(async ({ page }) => {
 test('optional setup is keyboard reachable and never pretends preview can connect', async ({ page }, testInfo) => {
   await page.goto('/');
   await page.getByTestId('nav-assets').click();
+  await page.getByTestId('asset-modeling-disclosure').locator(':scope > summary').click();
   const setup = page.getByTestId('blockbench-setup');
   await expect(setup).not.toHaveAttribute('open', '');
   await setup.locator(':scope > summary').focus();
@@ -32,9 +33,13 @@ test('setup remains available in an empty workspace and AI settings', async ({ p
   await page.getByTestId('scenario-switcher-trigger').click();
   await page.getByTestId('scenario-btn-empty-workspace').click();
   await page.getByTestId('nav-assets').click();
+  await page.getByTestId('asset-modeling-disclosure').locator(':scope > summary').click();
   await page.getByTestId('blockbench-setup').locator(':scope > summary').click();
+  await page.getByTestId('blockbench-setup').getByText('安装步骤', { exact: true }).click();
   await expect(page.getByRole('button', { name: '复制官方下载地址' })).toBeVisible();
+  if (!(await page.getByTestId('nav-ai').isVisible())) await page.getByTestId('nav-tools-toggle').click();
   await page.getByTestId('nav-ai').click();
+  await page.locator('.ai-integration-settings > summary').click();
   await expect(page.getByTestId('blockbench-setup')).toBeVisible();
 });
 
@@ -62,6 +67,7 @@ test('failed connection preserves installed editor and exposes actionable runtim
   });
   await page.goto('/');
   await page.getByTestId('nav-assets').click();
+  await page.getByTestId('asset-modeling-disclosure').locator(':scope > summary').click();
   const setup = page.getByTestId('blockbench-setup');
   await setup.locator(':scope > summary').click();
   await setup.getByRole('button', { name: '测试 MCP 连接' }).click();

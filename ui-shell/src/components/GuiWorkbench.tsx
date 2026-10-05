@@ -438,7 +438,7 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
   if (!editor) {
     return (
       <div data-testid="gui-workbench-loading" style={{ padding: 24, color: 'var(--text-sub)' }}>
-        {tr("正在加载 GUI 深度编辑器…")}</div>
+        {tr("正在加载界面编辑器…")}</div>
     );
   }
 
@@ -618,7 +618,7 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
 
           <div style={{ height: 1, background: 'var(--border-subtle)', margin: '12px 0' }} />
           {!selected || selectedIndex === null ? (
-            <div style={{ fontSize: 10, color: 'var(--text-sub)' }}>{tr("选择一个组件后可编辑其上游原始字段。")}</div>
+            <div style={{ fontSize: 10, color: 'var(--text-sub)' }}>{tr("选择组件以编辑属性。")}</div>
           ) : (
             <>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
@@ -640,7 +640,7 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
               {selected.type === 'label' && (
                 <>
                   <label style={{ display: 'block', marginBottom: 8, fontSize: 9, color: 'var(--text-sub)' }}>
-                    {tr("固定文本（text.fixedValue）")}<input
+                    {tr("固定文本")}<input
                       data-testid="gui-component-field-label-text"
                       value={labelText(selected)}
                       onChange={(event) => updateComponentObjectField('text', 'fixedValue', event.target.value)}
@@ -648,7 +648,7 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
                     />
                   </label>
                   <label style={{ display: 'block', marginBottom: 8, fontSize: 9, color: 'var(--text-sub)' }}>
-                    {tr("颜色（color）")}<input
+                    {tr("颜色")}<input
                       data-testid="gui-component-field-label-color"
                       type="color"
                       value={argbToHex(selected.data.color)}
@@ -664,7 +664,7 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
                 if (key === 'anchorPoint') {
                   return (
                     <label key={key} htmlFor={inputId} style={{ display: 'block', marginBottom: 8, fontSize: 9, color: 'var(--text-sub)' }}>
-                      {tr("锚点（anchorPoint）")}<select id={inputId} value={String(value ?? '')} onChange={(event) => updateComponentField(key, event.target.value || null)}
+                      {tr("锚点")}<select id={inputId} value={String(value ?? '')} onChange={(event) => updateComponentField(key, event.target.value || null)}
                         style={{ width: '100%', marginTop: 3 }}>
                         {ANCHORS.map((anchor) => <option key={anchor} value={anchor}>{anchor ? valueLabel(anchor) : tr("无")}</option>)}
                       </select>

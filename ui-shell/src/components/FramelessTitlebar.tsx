@@ -1,10 +1,6 @@
 import { LanguageSelector } from './LanguageSelector';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
-  Cog,
-  Hammer,
-  FolderOpen,
-  Play,
   Sun,
   Moon,
   Monitor,
@@ -12,16 +8,14 @@ import {
   Square,
   Copy,
   X,
-  Layers,
   ShieldCheck,
-  Server,
-  DatabaseZap,
-  TestTube2
+  Search
 } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
-import { workspaceOpenBridge } from '../bridge/workspaceOpenBridge';
+import { OPEN_WORKBENCH_SEARCH_EVENT } from './workbenchNavigation';
 import { uiText, useUiLocale } from '../i18n';
 import productIcon from '../../../src/main/resources/net/mcreator/ui/res/icon.png';
+import { hasUnsavedSourceDrafts } from '../hooks/sourceDraftGuard';
 import {
   WINDOW_CHROME_SCHEMA_VERSION,
   WindowChromeRegion,
@@ -42,38 +36,14 @@ export const FramelessTitlebar: React.FC = () => {
   const titlebarRef = useRef<HTMLElement>(null);
   const reportSequence = useRef(0);
   const {
-    state,
     theme,
     themePreference,
     toggleTheme,
     isMaximized,
     toggleMaximize,
     systemFrameFallback,
-    toggleSystemFrameFallback,
-    generateWorkspace,
-    buildWorkspace,
-    runClient,
-    runServer,
-    runDatagen,
-    runGameTest
+    toggleSystemFrameFallback
   } = useWorkbench();
-
-  const workspace = state.workbench?.workspace;
-  const generator = workspace?.generator;
-  const [openingBuildFolder, setOpeningBuildFolder] = useState(false);
-  const openBuildFolder = async () => {
-    if (openingBuildFolder) return;
-    setOpeningBuildFolder(true);
-    try {
-      await workspaceOpenBridge.openBuildFolder();
-    } catch (error) {
-      window.alert((error as { code?: number })?.code === 404
-        ? uiText('尚未生成 JAR 输出文件夹，请先构建工作区。', 'The JAR output folder does not exist yet. Build the workspace first.')
-        : uiText('无法打开 JAR 文件夹，请检查系统文件管理器是否可用。', 'Could not open the JAR folder. Check that your system file manager is available.'));
-    } finally {
-      setOpeningBuildFolder(false);
-    }
-  };
 
   const maximizedRef = useRef(isMaximized);
   maximizedRef.current = isMaximized;
@@ -232,7 +202,7 @@ export const FramelessTitlebar: React.FC = () => {
       if (cleanupDpr) cleanupDpr();
       window.cancelAnimationFrame(animationFrame);
     };
-  }, [generator?.displayName, systemFrameFallback, workspace?.id, workspace?.name, workspace?.revision, locale]);
+  }, [systemFrameFallback, locale]);
 
   return (
     <header
@@ -249,122 +219,13 @@ export const FramelessTitlebar: React.FC = () => {
           <span>Copperbench</span>
         </div>
 
-        {workspace && (
-          <div
-            className="titlebar-workspace"
-            title={`${workspace.name}, ${uiText('修订', 'revision')} ${workspace.revision}${generator ? `, ${generator.displayName}` : ''}`}
-            data-testid="titlebar-workspace"
-          >
-            <Layers size={12} color="var(--text-muted)" aria-hidden="true" />
-            <span className="titlebar-workspace-name">{workspace.name}</span>
-            <span className="badge badge-copper titlebar-revision">
-              {uiText('修订', 'Rev.')} {workspace.revision}
-            </span>
-            {generator && (
-              <span className="badge badge-blue titlebar-generator">
-                {generator.displayName}
-              </span>
-            )}
-          </div>
-        )}
       </div>
-
-      {/* Middle: Fast Action Controls */}
-      <div className="titlebar-actions">
-        <button
-          type="button"
-          className="btn-secondary titlebar-action"
-          onClick={() => generateWorkspace()}
-          title={`${uiText('生成工作区源码', 'Generate workspace sources')}${generator ? ` (${generator.displayName})` : ''}`}
-          data-testid="titlebar-generate-btn"
-          data-window-chrome-kind="client"
-          data-window-chrome-id="generate"
-        >
-          <Cog size={13} aria-hidden="true" />
-          <span className="titlebar-action-label">{uiText('生成', 'Generate')}</span>
-        </button>
-
-        <button
-          type="button"
-          className="btn-primary titlebar-action"
-          onClick={() => buildWorkspace()}
-          title={`${uiText('构建工作区', 'Build workspace')}${generator ? ` (${generator.displayName})` : ''}`}
-          data-testid="titlebar-build-btn"
-          data-window-chrome-kind="client"
-          data-window-chrome-id="build"
-        >
-          <Hammer size={13} aria-hidden="true" />
-          <span className="titlebar-action-label">{uiText('构建', 'Build')}</span>
-        </button>
-
-        <button
-          type="button"
-          className="btn-secondary titlebar-action"
-          onClick={() => void openBuildFolder()}
-          disabled={!workspace || !workspaceOpenBridge.buildFolderAvailable || openingBuildFolder}
-          title={workspaceOpenBridge.buildFolderAvailable
-            ? uiText('打开当前工作区的 JAR 输出文件夹（build/libs）', 'Open the current workspace JAR output folder (build/libs)')
-            : uiText('打开 JAR 文件夹需要支持此功能的桌面版本', 'Opening the JAR folder requires a supported desktop version')}
-          aria-label={uiText('打开 JAR 文件夹', 'Open JAR folder')}
-          aria-busy={openingBuildFolder}
-          data-testid="titlebar-open-jar-folder-btn"
-          data-window-chrome-kind="client"
-          data-window-chrome-id="open-jar-folder"
-        >
-          <FolderOpen size={13} aria-hidden="true" />
-          <span className="titlebar-action-label">{uiText('JAR 文件夹', 'JAR folder')}</span>
-        </button>
-
-        <button
-          type="button"
-          className="btn-secondary titlebar-action"
-          onClick={() => runClient()}
-          title={uiText('运行 Minecraft 测试客户端', 'Run the Minecraft test client')}
-          data-testid="titlebar-run-btn"
-          data-window-chrome-kind="client"
-          data-window-chrome-id="run-client"
-        >
-          <Play size={13} aria-hidden="true" />
-          <span className="titlebar-action-label">{uiText('测试客户端', 'Test client')}</span>
-        </button>
-
-        <button
-          type="button"
-          className="btn-secondary titlebar-tool"
-          onClick={() => {
-            const accepted = window.confirm(uiText('仅在隔离测试目录启动专用服务端。确认接受 Minecraft EULA 并继续？', 'Start a dedicated server in the isolated test directory. Accept the Minecraft EULA and continue?'));
-            if (accepted) void runServer(true);
-          }}
-          title={uiText('运行隔离专用服务端', 'Run isolated dedicated server')}
-          aria-label={uiText('运行隔离专用服务端', 'Run isolated dedicated server')}
-          data-window-chrome-kind="client"
-          data-window-chrome-id="run-server"
-        >
-          <Server size={13} aria-hidden="true" />
-        </button>
-        <button
-          type="button"
-          className="btn-secondary titlebar-tool"
-          onClick={() => void runDatagen()}
-          title={uiText('在暂存区运行数据生成', 'Run staged data generation')}
-          aria-label={uiText('在暂存区运行数据生成', 'Run staged data generation')}
-          data-window-chrome-kind="client"
-          data-window-chrome-id="run-datagen"
-        >
-          <DatabaseZap size={13} aria-hidden="true" />
-        </button>
-        <button
-          type="button"
-          className="btn-secondary titlebar-tool"
-          onClick={() => void runGameTest()}
-          title={uiText('运行已有 GameTest', 'Run existing GameTests')}
-          aria-label={uiText('运行已有 GameTest', 'Run existing GameTests')}
-          data-window-chrome-kind="client"
-          data-window-chrome-id="run-gametest"
-        >
-          <TestTube2 size={13} aria-hidden="true" />
-        </button>
-      </div>
+      <button type="button" className="workbench-command-trigger" data-testid="workbench-command-trigger"
+        data-window-chrome-kind="client" data-window-chrome-id="command-search"
+        onClick={() => window.dispatchEvent(new Event(OPEN_WORKBENCH_SEARCH_EVENT))}
+        aria-keyshortcuts="Control+K Meta+K" aria-label={uiText('搜索元素与工具', 'Search elements and tools')}>
+        <Search size={14} aria-hidden="true" /><span>{uiText('搜索元素与工具', 'Search elements and tools')}</span><kbd>{uiText('Ctrl K', 'Ctrl K')}</kbd>
+      </button>
 
       {/* Right: Tools & Window Controls */}
       <div className="titlebar-tools">
@@ -387,7 +248,8 @@ export const FramelessTitlebar: React.FC = () => {
           className={`btn-secondary titlebar-fallback${systemFrameFallback ? ' is-active' : ''}`}
           onClick={toggleSystemFrameFallback}
           disabled={!windowBridge.canToggleFrame}
-          title={windowBridge.canToggleFrame ? uiText('切换系统窗口框架回退（NFR-UI-06）', 'Toggle system window frame (NFR-UI-06)') : uiText('当前使用系统窗口框架', 'Using the system window frame')}
+          title={windowBridge.canToggleFrame ? uiText('切换系统窗口边框', 'Toggle system window frame') : uiText('当前使用系统窗口框架', 'Using the system window frame')}
+          aria-label={uiText("切换系统窗口边框", "Toggle system window frame")}
           data-testid="system-fallback-toggle-btn"
           data-window-chrome-kind="client"
           data-window-chrome-id="system-frame-fallback"
@@ -428,11 +290,13 @@ export const FramelessTitlebar: React.FC = () => {
             <button
               type="button"
               className="titlebar-window-button titlebar-close-button"
-              onClick={() => windowBridge.close()}
+              onClick={() => {
+                if (windowBridge.canGuardUnsavedChanges || !hasUnsavedSourceDrafts() || window.confirm(uiText('源码有未保存的修改。关闭窗口并放弃这些草稿？', 'Source files have unsaved changes. Close the window and discard these drafts?'))) windowBridge.close();
+              }}
               title={uiText('关闭', 'Close')}
               aria-label={uiText('关闭', 'Close')}
               data-testid="window-close-btn"
-              data-window-chrome-kind="close"
+              data-window-chrome-kind="client"
               data-window-chrome-id="close"
             >
               <X size={14} aria-hidden="true" />

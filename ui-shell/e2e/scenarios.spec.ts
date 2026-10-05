@@ -76,7 +76,7 @@ test.describe('UI-Core v1.0 Contract Scenarios', () => {
     await page.click('[data-testid="scenario-btn-loading-workbench"]');
 
     await expect(page.locator('[data-testid="workbench-loading"]')).toBeVisible();
-    await expect(page.getByText('正在加载工作区投影…')).toBeVisible();
+    await expect(page.getByText('正在加载工作区…')).toBeVisible();
   });
 
   test('scenario: validation-failed shows field diagnostic error', async ({ page }) => {
@@ -158,12 +158,13 @@ test.describe('UI-Core v1.0 Contract Scenarios', () => {
     // Top-level diagnostic banner explains current vs required permission
     await expect(page.locator('[data-testid="global-diagnostics-banner"]')).toBeVisible();
     await expect(page.getByText('需要工作区写入权限才能执行构建。').first()).toBeVisible();
-    await expect(page.locator('[data-testid="permission-alert"]')).toContainText('MCP: 只读（Read Only）');
+    await expect(page.locator('[data-testid="permission-alert"]')).toContainText('MCP: 未启动');
 
     // Request elevation resolves the denial
     await page.click('[data-testid="diag-action-request_workspace_permission"]');
     await expect(page.locator('[data-testid="global-diagnostics-banner"]')).not.toBeVisible();
-    await expect(page.locator('[data-testid="permission-alert"]')).toContainText('MCP: 工作区读写（Workspace）');
+    // Changing mock workspace permissions does not start or authorize a native MCP server.
+    await expect(page.locator('[data-testid="permission-alert"]')).toContainText('MCP: 未启动');
   });
 
   test('scenario: external-process-exited surfaces failure with log entry point', async ({ page }) => {

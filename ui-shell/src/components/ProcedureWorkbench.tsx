@@ -1141,9 +1141,9 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
                   </div>
                   {semanticRefactorPlan && (
                     <div className={`procedure-refactor-preview ${semanticRefactorPlan.safety.ready ? 'ready' : 'blocked'}`} data-testid="procedure-extract-preview">
-                      <strong>{semanticRefactorPlan.operationCount} {tr(" 步原子计划 · ")}{semanticRefactorPlan.semanticDiff.length} {tr(" 项语义变更")}</strong>
-                      <span>{semanticRefactorPlan.changedPaths.length} {tr(" 条持久化路径")}</span>
-                      <span>{semanticRefactorPlan.safety.ready ? tr("恢复保护可用：应用前将创建 recovery point。") : tr("恢复保护不可用：禁止应用。")}</span>
+                      <strong>{semanticRefactorPlan.operationCount} {tr(" 项操作 · ")}{semanticRefactorPlan.semanticDiff.length} {tr(" 项更改")}</strong>
+                      <span>{semanticRefactorPlan.changedPaths.length} {tr(" 个文件")}</span>
+                      <span>{semanticRefactorPlan.safety.ready ? tr("应用前创建恢复点。") : tr("恢复保护不可用：禁止应用。")}</span>
                       <code>{semanticRefactorPlan.planId}</code>
                       <WorkspacePlanReview plan={semanticRefactorPlan} testId="procedure-extract-plan-review" />
                     </div>
@@ -1253,8 +1253,8 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
                   </div>
                   {refactorImpact && refactorPlan && (
                     <div className={`procedure-refactor-preview ${refactorPlan.safety.ready ? 'ready' : 'blocked'}`} data-testid="procedure-refactor-preview">
-                      <strong>{refactorImpact.impactedElementCount} {tr(" 个受影响元素 · ")}{refactorPlan.semanticDiff.length} {tr(" 项语义变更")}</strong>
-                      <span>{refactorPlan.changedPaths.length} {tr(" 条持久化路径")}</span>
+                      <strong>{refactorImpact.impactedElementCount} {tr(" 个受影响元素 · ")}{refactorPlan.semanticDiff.length} {tr(" 项更改")}</strong>
+                      <span>{refactorPlan.changedPaths.length} {tr(" 个文件")}</span>
                       <span>{refactorPlan.safety.ready
                         ? tr("恢复保护可用：应用前将创建恢复点。")
                         : tr("恢复保护不可用：该重构被禁止应用。")}</span>
@@ -1337,8 +1337,8 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
                   </div>
                   {semanticRefactorPlan && (
                     <div className={`procedure-refactor-preview ${semanticRefactorPlan.safety.ready ? 'ready' : 'blocked'}`} data-testid="procedure-call-refactor-preview">
-                      <strong>{semanticRefactorPlan.operationCount} {tr(" 个受影响 过程（Procedure）· ")}{semanticRefactorPlan.semanticDiff.length} {tr(" 项语义变更")}</strong>
-                      <span>{semanticRefactorPlan.changedPaths.length} {tr(" 条持久化路径")}</span>
+                      <strong>{semanticRefactorPlan.operationCount} {tr(" 个受影响 过程（Procedure）· ")}{semanticRefactorPlan.semanticDiff.length} {tr(" 项更改")}</strong>
+                      <span>{semanticRefactorPlan.changedPaths.length} {tr(" 个文件")}</span>
                       <span>{semanticRefactorPlan.safety.ready ? tr("恢复保护可用：批量替换将作为单个 revision 提交。") : tr("恢复保护不可用：禁止应用。")}</span>
                       <code>{semanticRefactorPlan.planId}</code>
                       <WorkspacePlanReview plan={semanticRefactorPlan} testId="procedure-call-plan-review" />

@@ -1,0 +1,98 @@
+.relationship-graph-view, .relationship-canvas { display:flex; flex-direction:column; flex:1; min-width:0; min-height:0; height:100%; color:var(--text-main); background:var(--bg-base); }
+.relationship-data-status { display:flex; align-items:center; justify-content:space-between; padding:3px 24px; min-height:32px; color:var(--text-sub); font-size:12px; border-bottom:1px solid var(--border-subtle); }
+.relationship-data-status [role="alert"] { color:var(--badge-red); }
+.relationship-data-status button { display:grid; place-items:center; width:32px; height:32px; color:var(--text-muted); border-radius:6px; }
+.relationship-heading { display:flex; align-items:center; justify-content:space-between; gap:24px; padding:22px 24px 18px; flex-shrink:0; }
+.relationship-heading h1 { display:flex; align-items:center; gap:10px; font-size:21px; font-weight:600; margin:0; letter-spacing:-.35px; }
+.relationship-heading h1 svg { color:var(--text-muted); }
+.relationship-heading p { display:flex; flex-wrap:wrap; gap:8px; margin:7px 0 0; color:var(--text-sub); font-size:12px; }
+.relationship-search { position:relative; display:flex; align-items:center; gap:8px; width:min(360px,45%); min-width:190px; padding:0 10px; min-height:36px; border:1px solid var(--border-subtle); border-radius:7px; background:var(--bg-input); color:var(--text-sub); }
+.relationship-search:focus-within { border-color:var(--border-focus); }
+.relationship-search input { flex:1; min-width:0; width:100%; padding:8px 0; border:0; outline:0; box-shadow:none; background:transparent; color:var(--text-main); font-size:13px; }
+.relationship-search input::-webkit-search-cancel-button { display:none; }
+.relationship-search > button { display:grid; place-items:center; min-width:32px; min-height:32px; color:var(--text-sub); }
+.relationship-search-results { position:absolute; top:calc(100% + 7px); right:0; width:max(100%,320px); max-height:320px; overflow-y:auto; z-index:15; padding:5px; border:1px solid var(--border-subtle); border-radius:8px; background:var(--bg-surface); box-shadow:var(--shadow-md); }
+.relationship-search-results button { display:flex; flex-direction:column; align-items:flex-start; width:100%; gap:4px; padding:9px 10px; border-radius:5px; text-align:left; }
+.relationship-search-results button:hover, .relationship-search-results button[aria-selected="true"] { background:var(--bg-hover); }
+.relationship-search-results strong { font-size:13px; font-weight:500; }
+.relationship-search-results span, .relationship-search-results p { font-size:12px; color:var(--text-sub); max-width:100%; overflow-wrap:anywhere; }
+.relationship-search-results p { padding:10px; margin:0; }
+.relationship-tools { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:0 24px 13px; flex-shrink:0; }
+.relationship-legend { display:flex; align-items:center; flex-wrap:wrap; gap:9px 14px; color:var(--text-muted); font-size:12px; }
+.relationship-legend > span { display:inline-flex; align-items:center; gap:6px; }
+.relationship-legend i { width:17px; border-top:2px dashed var(--relationship-kind,var(--text-sub)); }
+.relationship-legend .relationship-hierarchy-swatch { border-top:1px solid var(--border-active); }
+.relationship-tool-actions { display:flex; align-items:center; gap:6px; flex-shrink:0; }
+.relationship-tool-actions button { min-height:32px; min-width:32px; display:inline-flex; align-items:center; justify-content:center; gap:6px; border-radius:6px; padding:5px 8px; color:var(--text-muted); font-size:12px; }
+.relationship-canvas button:hover:not(:disabled), .relationship-data-status button:hover:not(:disabled) { background:var(--bg-hover); color:var(--text-main); }
+.relationship-canvas button:disabled { opacity:.45; cursor:default; }
+.relationship-canvas :where(button,input,[role="button"],svg):focus-visible { outline:2px solid var(--border-focus); outline-offset:3px; }
+.relationship-tool-actions .relationship-diagnostics-toggle { color:var(--badge-amber); }
+.relationship-viewport { position:relative; flex:1; min-height:200px; overflow:hidden; border-top:1px solid var(--border-subtle); border-bottom:1px solid var(--border-subtle); background:var(--bg-base); }
+.relationship-viewport > svg { display:block; position:absolute; inset:0; touch-action:none; cursor:grab; user-select:none; }
+.relationship-viewport.is-panning > svg { cursor:grabbing; }
+.relationship-grid-dot { fill:var(--border-subtle); }
+.relationship-node { cursor:grab; color:var(--text-muted); outline:none; }
+.relationship-node.is-dragging { cursor:grabbing; }
+.relationship-node.is-dragging .relationship-node-surface { stroke:var(--border-focus); stroke-width:2; }
+.relationship-node-movement { display:flex; align-items:center; gap:5px; flex-shrink:0; padding:0 24px 12px; color:var(--text-muted); }
+.relationship-node-movement select { max-width:240px; min-width:100px; height:32px; padding:4px 8px; border:1px solid var(--border-subtle); border-radius:5px; background:var(--bg-input); color:var(--text-main); font-size:12px; }
+.relationship-node-movement button { display:grid; place-items:center; width:32px; height:32px; flex-shrink:0; border:1px solid var(--border-subtle); border-radius:5px; color:var(--text-muted); }
+.relationship-node-movement span { padding-left:6px; font-size:12px; }
+.relationship-node-surface { fill:var(--bg-surface); stroke:var(--border-subtle); stroke-width:1.2; }
+.relationship-node:hover .relationship-node-surface { fill:var(--bg-card-hover); stroke:var(--border-active); }
+.relationship-node.is-selected .relationship-node-surface { stroke:var(--border-active); stroke-width:1.6; }
+.relationship-node:focus .relationship-node-surface { stroke:var(--border-focus); stroke-width:2.5; }
+.relationship-node.is-workspace .relationship-node-surface { fill:var(--bg-panel); stroke:var(--accent-copper); }
+.relationship-node.is-workspace { color:var(--accent-copper); }
+.relationship-node.is-unresolved .relationship-node-surface { stroke-dasharray:5 3; }
+.relationship-node-label { fill:var(--text-main); font-family:var(--font-sans); font-size:14px; font-weight:500; }
+.relationship-node-subtitle { fill:var(--text-sub); font-family:var(--font-sans); font-size:12px; }
+.relationship-diagnostic-dot { fill:var(--badge-amber); }
+.relationship-kind-0 { --relationship-kind:var(--badge-blue); }
+.relationship-kind-1 { --relationship-kind:var(--accent-copper); }
+.relationship-kind-2 { --relationship-kind:var(--badge-green); }
+.relationship-kind-3 { --relationship-kind:var(--badge-amber); }
+.relationship-kind-4 { --relationship-kind:var(--text-muted); }
+.relationship-edge path { fill:none; stroke:var(--border-active); stroke-width:1.15; opacity:.65; }
+.relationship-edge.is-reference path { stroke:var(--relationship-kind); stroke-width:1.5; stroke-dasharray:6 4; opacity:.85; }
+.relationship-edge.is-reference.relationship-kind-1 path { stroke-dasharray:10 4; }
+.relationship-edge.is-reference.relationship-kind-2 path { stroke-dasharray:2 4; }
+.relationship-edge.is-reference.relationship-kind-3 path { stroke-dasharray:9 3 2 3; }
+.relationship-edge.is-selected > path:first-child { stroke-width:2.7; opacity:1; }
+.relationship-edge:focus > path:first-child { stroke:var(--border-focus); stroke-width:2.7; opacity:1; }
+.relationship-arrow { fill:var(--relationship-kind); }
+.relationship-edge .relationship-edge-hit { stroke:transparent; stroke-width:15; stroke-dasharray:none; opacity:1; pointer-events:stroke; cursor:pointer; }
+.relationship-edge-label { fill:var(--relationship-kind); font-family:var(--font-mono); font-size:11px; paint-order:stroke; stroke:var(--bg-base); stroke-width:5px; stroke-linejoin:round; cursor:pointer; }
+.relationship-zoom { display:flex; align-items:center; gap:2px; position:absolute; bottom:15px; left:17px; padding:3px; border:1px solid var(--border-subtle); border-radius:7px; background:var(--bg-surface); }
+.relationship-zoom button { display:grid; place-items:center; min-width:32px; min-height:32px; color:var(--text-muted); border-radius:4px; }
+.relationship-zoom output { min-width:48px; text-align:center; font-size:12px; font-variant-numeric:tabular-nums; color:var(--text-muted); }
+.relationship-details { position:absolute; top:16px; right:16px; width:min(300px,calc(100% - 32px)); max-height:calc(100% - 32px); overflow:auto; padding:14px; border:1px solid var(--border-subtle); border-radius:8px; background:var(--bg-surface); box-shadow:var(--shadow-sm); }
+.relationship-details-heading { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.relationship-details-heading strong { font-size:14px; font-weight:600; overflow-wrap:anywhere; }
+.relationship-details-heading button { display:grid; place-items:center; min-width:32px; min-height:32px; color:var(--text-sub); }
+.relationship-details p { margin:10px 0 0; color:var(--text-muted); font-size:12px; line-height:1.6; overflow-wrap:anywhere; }
+.relationship-details dl { margin:12px 0 0; display:grid; grid-template-columns:72px minmax(0,1fr); gap:9px; font-size:12px; }
+.relationship-details dt { color:var(--text-sub); }
+.relationship-details dd { margin:0; overflow-wrap:anywhere; color:var(--text-main); }
+.relationship-details code { font-size:11px; overflow-wrap:anywhere; }
+.relationship-diagnostic-list { margin:12px 0 0; list-style:none; padding:0; display:flex; flex-direction:column; gap:12px; }
+.relationship-diagnostic-list li { display:flex; flex-direction:column; gap:5px; padding-top:10px; border-top:1px solid var(--border-subtle); font-size:12px; line-height:1.5; overflow-wrap:anywhere; }
+.relationship-diagnostic-list li strong { font-size:11px; color:var(--badge-amber); }
+.relationship-diagnostic-list li[data-severity="error"] strong { color:var(--badge-red); }
+.relationship-diagnostic-list code { color:var(--text-sub); }
+.relationship-reference-list { display:flex; flex-direction:column; gap:2px; list-style:none; padding:0; margin:8px 0 0; }
+.relationship-reference-list button { display:flex; flex-direction:column; align-items:flex-start; gap:5px; padding:9px 0; border-bottom:1px solid var(--border-subtle); text-align:left; width:100%; }
+.relationship-reference-list strong { font-size:12px; font-weight:500; color:var(--badge-blue); }
+.relationship-reference-list span { font-size:12px; line-height:1.5; overflow-wrap:anywhere; }
+.relationship-reference-list code { color:var(--text-sub); }
+.relationship-reference-actions { display:flex; gap:8px; margin-top:12px; }
+.relationship-reference-actions button { min-height:32px; padding:5px 9px; border:1px solid var(--border-subtle); border-radius:5px; font-size:12px; }
+.relationship-pages { display:flex; flex-wrap:wrap; gap:8px 18px; flex-shrink:0; padding:0 20px; background:var(--bg-surface); }
+.relationship-pages:has(>div) { padding-top:5px; padding-bottom:5px; border-bottom:1px solid var(--border-subtle); }
+.relationship-page-control { display:flex; align-items:center; gap:5px; font-size:12px; color:var(--text-muted); }
+.relationship-page-control button { display:grid; place-items:center; width:32px; height:32px; border-radius:4px; color:var(--text-muted); }
+.relationship-footer { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-shrink:0; padding:11px 24px; font-size:12px; color:var(--text-sub); }
+.relationship-empty { display:grid; place-items:center; flex:1; padding:24px; color:var(--text-muted); font-size:14px; }
+@media (max-width:900px) { .relationship-heading { padding:16px; gap:12px; } .relationship-heading h1 { font-size:18px; } .relationship-tools { padding:0 16px 10px; } .relationship-legend { gap:6px 10px; } .relationship-footer { padding:9px 16px; } .relationship-footer > span:first-child { display:none; } }
+@media (max-width:600px) { .relationship-heading { flex-wrap:wrap; } .relationship-search { width:100%; } .relationship-tools { align-items:flex-start; flex-wrap:wrap; } .relationship-legend > span:nth-child(n+4) { display:none; } .relationship-search-results { width:100%; min-width:0; } .relationship-tool-actions { gap:1px; flex-wrap:wrap; } .relationship-node-movement { padding:0 16px 10px; flex-wrap:wrap; } .relationship-node-movement span { width:100%; padding:4px 0 0; } }

@@ -1,10 +1,11 @@
 import { test, expect } from '@playwright/test';
+import { openToolView } from './navigation';
 import { CopperbenchClient } from '../../sdk/typescript/copperbench';
 
 test('user reviews bounded authority, cancels, issues and revokes it', async ({ page }, testInfo) => {
   await page.emulateMedia({ colorScheme: 'dark' });
   await page.goto('/');
-  await page.getByTestId('nav-ai').click();
+  await openToolView(page, 'ai');
   const panel = page.getByRole('region', { name: '任务授权', exact: true });
   await expect(panel.getByLabel('授权目录（绝对路径，包含子目录）')).toHaveValue('D:/MockWorkspace');
   await panel.getByLabel('任务名称', { exact: true }).fill('寻路铃验收');
@@ -34,7 +35,7 @@ test('user reviews bounded authority, cancels, issues and revokes it', async ({ 
 });
 
 test('dedicated server authority requires a separate EULA choice', async ({ page }) => {
-  await page.goto('/'); await page.getByTestId('nav-ai').click();
+  await page.goto('/'); await openToolView(page, 'ai');
   const panel = page.getByRole('region', { name: '任务授权', exact: true });
   await panel.getByRole('checkbox', { name: '运行专用服务器', exact: true }).check();
   const acceptance = panel.getByRole('checkbox', { name: /我已阅读并接受/ });

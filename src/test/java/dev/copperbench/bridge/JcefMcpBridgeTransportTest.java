@@ -10,8 +10,12 @@
 package dev.copperbench.bridge;
 
 import org.junit.jupiter.api.Test;
+import com.google.gson.JsonParser;
+import dev.copperbench.core.contract.UiCore.PermissionProfile;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class JcefMcpBridgeTransportTest {
 
@@ -26,5 +30,21 @@ class JcefMcpBridgeTransportTest {
 		assertTrue(script.contains("get_state"));
 		assertTrue(script.contains("reveal_token_once"));
 		assertTrue(script.contains("copy_text"));
+		assertTrue(script.contains("setPermissionProfile"));
+		assertTrue(script.contains("set_permission_profile"));
+	}
+
+	@Test void permissionRequestsAcceptOnlyKnownProfilesAndProperties() {
+		for (String value : new String[] {"read_only", "workspace", "full_access"}) {
+			var payload = JsonParser.parseString("{\"operation\":\"set_permission_profile\",\"profile\":\"" + value + "\"}").getAsJsonObject();
+			assertEquals(PermissionProfile.valueOf(value.toUpperCase(java.util.Locale.ROOT)),
+					JcefMcpBridgeTransport.requestedPermissionProfile(payload));
+		}
+		for (String payload : new String[] {"{}", "{\"profile\":null}", "{\"profile\":true}", "{\"profile\":[]}",
+				"{\"profile\":\"FULL_ACCESS\"}", "{\"profile\":\"admin\"}",
+				"{\"profile\":\"full_access\",\"workspaceId\":\"other\"}"}) {
+			assertThrows(IllegalArgumentException.class, () -> JcefMcpBridgeTransport.requestedPermissionProfile(
+					JsonParser.parseString(payload).getAsJsonObject()), payload);
+		}
 	}
 }

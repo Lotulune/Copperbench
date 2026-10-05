@@ -28,43 +28,7 @@
       "$ref": "urn:ui-core:1.0:common#/$defs/uuid"
     },
     "operation": {
-      "type": "string",
-      "enum": [
-        "preview_blockbench_import",
-        "get_blockbench_task",
-        "list_blockbench_tasks",
-        "get_workbench",
-        "get_workspace_health",
-        "list_new_workspace_generators",
-        "list_assets",
-        "list_mod_elements",
-        "get_mod_element_editor",
-        "preview_mod_element_change",
-        "get_procedure_editor",
-        "preview_procedure_change",
-        "get_workspace_references",
-        "list_workspace_registries",
-        "preview_registry_rename",
-        "plan_workspace_changes",
-        "preview_workspace_plan",
-        "preview_datagen_output",
-        "get_task",
-        "get_history",
-        "get_diff",
-        "preview_recovery_restore",
-        "list_operation_approvals",
-        "get_version_tracks",
-        "get_release_notes",
-        "preview_loader_migration",
-        "preview_upstream_import",
-        "list_publish_batches",
-        "list_installed_plugins",
-        "get_element_coverage",
-        "get_upstream_tools",
-        "list_task_authorizations",
-        "get_workspace_environment",
-        "get_blockbench_environment"
-      ]
+      "$ref": "urn:ui-core:1.0:query#/properties/operation"
     },
     "status": {
       "type": "string",
@@ -86,6 +50,43 @@
     }
   },
   "allOf": [
+    {
+      "if": {"properties": {"operation": {"const": "list_workspace_files"}, "status": {"const": "succeeded"}}, "required": ["operation", "status"]},
+      "then": {"properties": {"data": {
+        "type": "object", "required": ["files", "total", "nextOffset", "truncated", "maxFileBytes"],
+        "properties": {
+          "files": {"type": "array", "maxItems": 200, "items": {"$ref": "#/$defs/workspaceSourceFile"}},
+          "total": {"type": "integer", "minimum": 0}, "nextOffset": {"type": ["integer", "null"], "minimum": 0},
+          "truncated": {"type": "boolean"}, "maxFileBytes": {"type": "integer", "minimum": 1}
+        }, "additionalProperties": false
+      }}}
+    },
+    {
+      "if": {"properties": {"operation": {"const": "read_workspace_file"}, "status": {"const": "succeeded"}}, "required": ["operation", "status"]},
+      "then": {"properties": {"data": {
+        "allOf": [{"$ref": "#/$defs/workspaceSourceFile"}, {
+          "type": "object", "required": ["content", "sha256"],
+          "properties": {"content": {"type": "string", "maxLength": 1048576}, "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}}
+        }]
+      }}}
+    },
+    {
+      "if": {"properties": {"operation": {"const": "get_workspace_source_index"}, "status": {"const": "succeeded"}}, "required": ["operation", "status"]},
+      "then": {"properties": {"data": {
+        "type": "object", "required": ["entries", "scannedFiles", "truncated"],
+        "properties": {
+          "entries": {"type": "array", "maxItems": 300, "items": {
+            "type": "object", "required": ["id", "kind", "relativePath", "line", "symbol", "evidence"],
+            "properties": {
+              "id": {"type": "string", "minLength": 1}, "kind": {"enum": ["entrypoint", "registration", "resource_reference"]},
+              "relativePath": {"type": "string", "minLength": 1}, "line": {"type": "integer", "minimum": 1},
+              "symbol": {"type": "string"}, "evidence": {"type": "string"}, "resourceId": {"type": "string"}
+            }, "additionalProperties": false
+          }},
+          "scannedFiles": {"type": "integer", "minimum": 0}, "skippedFiles": {"type": "integer", "minimum": 0}, "truncated": {"type": "boolean"}
+        }, "additionalProperties": false
+      }}}
+    },
     {
       "if": { "properties": { "operation": { "const": "get_procedure_editor" }, "status": { "const": "succeeded" } }, "required": ["operation", "status"] },
       "then": { "properties": { "data": {
@@ -384,5 +385,15 @@
       }
     }
   ],
+  "$defs": {
+    "workspaceSourceFile": {
+      "type": "object", "required": ["relativePath", "name", "language", "size", "ownership", "editable", "reasonCode"],
+      "properties": {
+        "relativePath": {"type": "string", "minLength": 1}, "name": {"type": "string", "minLength": 1}, "language": {"type": "string"},
+        "size": {"type": "integer", "minimum": 0}, "ownership": {"enum": ["manual", "generated"]},
+        "editable": {"type": "boolean"}, "reasonCode": {"type": ["string", "null"]}
+      }
+    }
+  },
   "additionalProperties": false
 }

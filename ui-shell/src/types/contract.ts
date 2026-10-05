@@ -415,6 +415,7 @@ export interface WorkspaceReferenceEdge {
   target: string;
   targetId: UUID | null;
   kind: string;
+  resolution?: 'resolved' | 'external' | 'ambiguous' | 'missing' | 'type_mismatch';
   sourceKind?: string;
   sourceType?: string;
   sourceName?: string;
@@ -858,6 +859,7 @@ export interface ApplyWorkspacePlanPayload extends WorkspacePlanEnvelopePayload 
 }
 
 export type CommandOperation =
+  | 'update_workspace_file'
   | 'prepare_game_tests'
   | 'create_task_authorization'
   | 'revoke_task_authorization'
@@ -934,6 +936,10 @@ export interface PermissionDenial {
 }
 
 export interface CommandResultData {
+  relativePath?: string;
+  sha256?: string;
+  size?: number;
+  changed?: boolean;
   element?: ModElementSummary;
   elementId?: UUID;
   entry?: RegistryEntry;
@@ -1016,6 +1022,9 @@ export interface CommandResult {
  * ========================================================================= */
 
 export type QueryOperation =
+  | 'list_workspace_files'
+  | 'read_workspace_file'
+  | 'get_workspace_source_index'
   | 'list_task_authorizations'
   | 'get_workspace_environment'
   | 'get_blockbench_environment'
@@ -1026,6 +1035,7 @@ export type QueryOperation =
   | 'get_workspace_health'
   | 'list_new_workspace_generators'
   | 'list_assets'
+  | 'get_asset_preview'
   | 'preview_asset_import'
   | 'preview_asset_import_batch'
   | 'preview_asset_move'
@@ -1054,6 +1064,51 @@ export type QueryOperation =
   | 'list_installed_plugins'
   | 'get_element_coverage'
   | 'get_upstream_tools';
+
+export interface WorkspaceSourceFile {
+  relativePath: string;
+  name: string;
+  language: string;
+  size: number;
+  ownership: 'manual' | 'generated';
+  editable: boolean;
+  reasonCode: string | null;
+}
+
+export interface WorkspaceSourceContent extends WorkspaceSourceFile {
+  content: string;
+  sha256: string;
+}
+
+export interface WorkspaceSourceFiles {
+  files: WorkspaceSourceFile[];
+  total: number;
+  nextOffset: number | null;
+  truncated: boolean;
+  maxFileBytes: number;
+}
+
+export interface WorkspaceSourceIndex {
+  skippedFiles?: number;
+  entries: Array<{
+    id: string;
+    kind: 'entrypoint' | 'registration' | 'resource_reference';
+    relativePath: string;
+    line: number;
+    symbol: string;
+    evidence: string;
+    resourceId?: string;
+  }>;
+  scannedFiles: number;
+  truncated: boolean;
+}
+
+export interface UpdateWorkspaceFilePayload {
+  clientMutationId: UUID;
+  relativePath: string;
+  content: string;
+  expectedSha256: string;
+}
 
 export interface ElementCoverage {
   schemaVersion: '1.0';

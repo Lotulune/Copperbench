@@ -325,7 +325,7 @@ export const OverlayWorkbench: React.FC<OverlayWorkbenchProps> = ({ element, onC
   };
 
   if (!editor) {
-    return <div data-testid="overlay-workbench-loading" style={{ padding: 24, color: 'var(--text-sub)' }}>{tr("正在加载 Overlay 深度编辑器…")}</div>;
+    return <div data-testid="overlay-workbench-loading" style={{ padding: 24, color: 'var(--text-sub)' }}>{tr("正在加载叠加层编辑器…")}</div>;
   }
 
   return (
@@ -336,7 +336,7 @@ export const OverlayWorkbench: React.FC<OverlayWorkbenchProps> = ({ element, onC
         <Layers3 size={17} color="var(--accent-copper)" />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--text-main)' }}>{element.displayName}</div>
-          <div style={{ fontSize: 10, color: 'var(--text-sub)' }}>{tr("Overlay 深度编辑 · 上游 WYSIWYG Overlay 组件子集")}</div>
+          <div style={{ fontSize: 10, color: 'var(--text-sub)' }}>{tr("叠加层布局")}</div>
         </div>
         {impact.length > 0 && <span className="badge badge-blue" data-testid="overlay-generation-impact">{tr("生成影响：")}{impact.join(', ')}</span>}
         {message && <span style={{ maxWidth: 280, fontSize: 10, color: 'var(--text-sub)' }}>{message}</span>}
@@ -446,7 +446,7 @@ export const OverlayWorkbench: React.FC<OverlayWorkbenchProps> = ({ element, onC
         <aside style={{ minHeight: 0, overflowY: 'auto', padding: 12, background: 'var(--bg-surface)', borderLeft: '1px solid var(--border-subtle)' }}>
           <datalist id="overlay-textures">{textures.map((asset) => <option key={asset.id} value={asset.relativePath}>{asset.relativePath}</option>)}</datalist>
           <datalist id="overlay-procedures">{procedures.map((procedure) => <option key={procedure.id} value={procedure.name}>{procedure.displayName}</option>)}</datalist>
-          {!selected || selectedIndex === null ? <div style={{ fontSize: 10, color: 'var(--text-sub)' }}>{tr("选择 Overlay 组件以编辑原生字段。")}</div> : <>
+          {!selected || selectedIndex === null ? <div style={{ fontSize: 10, color: 'var(--text-sub)' }}>{tr("选择组件以编辑属性。")}</div> : <>
             <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 10 }}>
               <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 11 }}>{componentName(selected, selectedIndex)}</div>
                 <div style={{ fontSize: 9, color: 'var(--text-sub)' }}>{valueLabel(selected.type)}</div></div>
@@ -459,7 +459,7 @@ export const OverlayWorkbench: React.FC<OverlayWorkbenchProps> = ({ element, onC
               <input data-testid={`overlay-component-field-${key}`} type="number" value={Number(selected.data[key] ?? 0)}
                 onChange={(event) => updateComponentField(key, Number(event.target.value))} style={{ width: '100%', marginTop: 3 }} />
             </label>)}
-            <label style={{ display: 'block', marginBottom: 7, fontSize: 9, color: 'var(--text-sub)' }}>{tr("锚点（anchorPoint）")}<select value={String(selected.data.anchorPoint ?? '')} onChange={(event) => updateComponentField('anchorPoint', event.target.value || null)}
+            <label style={{ display: 'block', marginBottom: 7, fontSize: 9, color: 'var(--text-sub)' }}>{tr("锚点")}<select value={String(selected.data.anchorPoint ?? '')} onChange={(event) => updateComponentField('anchorPoint', event.target.value || null)}
                 style={{ width: '100%', marginTop: 3 }}>{ANCHORS.map((anchor) => <option key={anchor} value={anchor}>{anchor ? valueLabel(anchor) : tr("无")}</option>)}</select>
             </label>
             <label style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 8, fontSize: 9, color: 'var(--text-sub)' }}>
@@ -468,10 +468,10 @@ export const OverlayWorkbench: React.FC<OverlayWorkbenchProps> = ({ element, onC
             {selected.type === 'label' && <>
               <label style={{ display: 'block', marginBottom: 7, fontSize: 9, color: 'var(--text-sub)' }}>{tr("名称（name）")}<input value={String(selected.data.name ?? '')} onChange={(event) => updateComponentField('name', event.target.value)} style={{ width: '100%', marginTop: 3 }} />
               </label>
-              <label style={{ display: 'block', marginBottom: 7, fontSize: 9, color: 'var(--text-sub)' }}>{tr("固定文本（text.fixedValue）")}<input data-testid="overlay-component-field-label-text" value={labelText(selected)}
+              <label style={{ display: 'block', marginBottom: 7, fontSize: 9, color: 'var(--text-sub)' }}>{tr("固定文本")}<input data-testid="overlay-component-field-label-text" value={labelText(selected)}
                   onChange={(event) => updateObjectField('text', 'fixedValue', event.target.value)} style={{ width: '100%', marginTop: 3 }} />
               </label>
-              <label style={{ display: 'block', marginBottom: 7, fontSize: 9, color: 'var(--text-sub)' }}>{tr("颜色（color）")}<input type="color" value={argbToHex(selected.data.color)} onChange={(event) => updateComponentField('color', hexToArgb(event.target.value))}
+              <label style={{ display: 'block', marginBottom: 7, fontSize: 9, color: 'var(--text-sub)' }}>{tr("颜色")}<input type="color" value={argbToHex(selected.data.color)} onChange={(event) => updateComponentField('color', hexToArgb(event.target.value))}
                   style={{ width: '100%', marginTop: 3, minHeight: 28 }} />
               </label>
               <label style={{ display: 'flex', gap: 5, marginBottom: 7, fontSize: 9, color: 'var(--text-sub)' }}>
@@ -491,7 +491,7 @@ export const OverlayWorkbench: React.FC<OverlayWorkbenchProps> = ({ element, onC
               <label style={{ display: 'block', marginBottom: 7, fontSize: 9, color: 'var(--text-sub)' }}>{tr("精灵帧数（spritesCount）")}<input data-testid="overlay-component-field-spritesCount" type="number" min={1} value={Number(selected.data.spritesCount ?? 1)}
                   onChange={(event) => updateComponentField('spritesCount', Number(event.target.value))} style={{ width: '100%', marginTop: 3 }} />
               </label>
-              <label style={{ display: 'block', marginBottom: 7, fontSize: 9, color: 'var(--text-sub)' }}>{tr("固定帧序号（spriteIndex.fixedValue）")}<input type="number" value={Number((selected.data.spriteIndex as Record<string, unknown> | undefined)?.fixedValue ?? 0)}
+              <label style={{ display: 'block', marginBottom: 7, fontSize: 9, color: 'var(--text-sub)' }}>{tr("固定帧序号")}<input type="number" value={Number((selected.data.spriteIndex as Record<string, unknown> | undefined)?.fixedValue ?? 0)}
                   onChange={(event) => updateObjectField('spriteIndex', 'fixedValue', Number(event.target.value))} style={{ width: '100%', marginTop: 3 }} />
               </label>
             </>}

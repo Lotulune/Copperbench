@@ -1,6 +1,7 @@
+import { safeRandomUUID } from '../bridge/JcefCoreBridge';
 import { tr } from '../i18n/locale';
 import { useTheme, ThemePreference } from '../hooks/useTheme';
-import React, { createContext, useContext, useEffect, useState, useMemo, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { useUiLocale } from '../i18n/locale';
 import {
   UUID,
@@ -51,7 +52,14 @@ import { windowBridge } from '../bridge/windowBridge';
 import { diagnosticsBridge } from '../bridge/diagnosticsBridge';
 import { t } from '../i18n';
 
-export type NavView = 'hub' | 'elements' | 'data' | 'assets' | 'history' | 'ai' | 'plugins' | 'tracks' | 'new-workspace' | 'help' | 'python';
+export type NavView = 'hub' | 'elements' | 'relations' | 'data' | 'assets' | 'history' | 'ai' | 'plugins' | 'tracks' | 'new-workspace' | 'help' | 'python' | 'source' | 'settings';
+
+export interface SourceFocusRequest {
+  workspaceId: UUID;
+  path: string;
+  line?: number;
+  requestId: string;
+}
 
 export interface ProcedureFocusRequest {
   elementId: UUID;
@@ -68,6 +76,8 @@ interface WorkbenchContextType {
   toggleTheme: () => void;
   activeView: NavView;
   setActiveView: (view: NavView) => void;
+  sourceFocusRequest: SourceFocusRequest | null;
+  openSource: (path: string, line?: number) => void;
   selectedElementId: UUID | null;
   selectedElement: ModElementSummary | null;
   setSelectedElementId: (id: UUID | null) => void;
@@ -199,6 +209,14 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [state, setState] = useState<BridgeState>(coreBridge.getState());
   const { theme, themePreference, toggleTheme } = useTheme();
   const [activeView, setActiveView] = useState<NavView>('hub');
+  const activeViewRef = useRef(activeView);
+  activeViewRef.current = activeView;
+  const [sourceFocusRequest, setSourceFocusRequest] = useState<SourceFocusRequest | null>(null);
+  const openSource = useCallback((path: string, line?: number) => {
+    if (!state.workbench) return;
+    setSourceFocusRequest({ workspaceId: state.workbench.workspace.id, path, line, requestId: safeRandomUUID() });
+    setActiveView('source');
+  }, [state.workbench?.workspace.id]);
   const [selectedElementId, setSelectedElementId] = useState<UUID | null>(null);
   const [assetFocusId, setAssetFocusId] = useState<string | null>(null);
   const [procedureFocusRequest, setProcedureFocusRequest] = useState<ProcedureFocusRequest | null>(null);
@@ -285,7 +303,8 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   // The conflict arbitration dialog follows the projected viewport state; it
   // can still be dismissed manually and will not force itself open again.
   useEffect(() => {
-    setIsConflictModalOpen(state.viewportState === 'conflict');
+    // The source editor owns its file/hash conflict recovery and keeps its draft.
+    setIsConflictModalOpen(state.viewportState === 'conflict' && activeViewRef.current !== 'source');
   }, [state.viewportState]);
 
 
@@ -331,10 +350,13 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   }, []);
 
+  const selectedEditorElement = selectedElementId ? state.elementEditors[selectedElementId]?.element : undefined;
   const selectedElement = useMemo(() => {
     if (!selectedElementId) return null;
-    return state.elements.find((e) => e.id === selectedElementId) || null;
-  }, [selectedElementId, state.elements]);
+    // Deep links may target an element beyond the loaded list page. Its Core
+    // editor projection supplies the same summary without fetching every page.
+    return state.elements.find((e) => e.id === selectedElementId) ?? selectedEditorElement ?? null;
+  }, [selectedElementId, state.elements, selectedEditorElement]);
 
   const clearProcedureFocusRequest = useCallback(() => setProcedureFocusRequest(null), []);
 
@@ -563,7 +585,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const res = await coreBridge.sendQuery<WorkspaceReferenceProjection>({
       messageType: 'query', schemaVersion: '1.0', requestId: generateUUID(),
       workspaceId: state.workbench?.workspace.id ?? '', operation: 'get_workspace_references',
-      payload: target ? { target } : {}
+      payload: { target: target ?? '' }
     });
     return res.data ?? null;
   }, [state.workbench]);
@@ -1336,6 +1358,8 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       toggleTheme,
       activeView,
       setActiveView,
+      sourceFocusRequest,
+      openSource,
       selectedElementId,
       selectedElement,
       setSelectedElementId,
@@ -1424,6 +1448,8 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       themePreference,
       toggleTheme,
       activeView,
+      sourceFocusRequest,
+      openSource,
       selectedElementId,
       selectedElement,
       assetFocusId,

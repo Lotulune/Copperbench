@@ -9,6 +9,11 @@ import java.util.List;
 /** Participates in a validated content transaction before its new revision becomes visible. */
 @FunctionalInterface public interface WorkspaceMutationGateway {
 
+	/** File ownership supplied by the active generator; trailing-slash keys own a directory. Absent files are independently maintained. */
+	default java.util.Map<String, String> workspaceSourceOwnership() {
+		return java.util.Map.of();
+	}
+
 	/** Additional read-only Procedure checks using the backend's active generator/plugin metadata. */
 	default List<dev.copperbench.procedure.ProcedureIr.ValidationIssue> procedureContextIssues(dev.copperbench.procedure.ProcedureIr ir) {
 		return List.of();

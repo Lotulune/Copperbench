@@ -5,7 +5,7 @@ import { safeRandomUUID } from '../bridge/JcefCoreBridge';
 import { mcpRuntimeBridge } from '../bridge/mcpRuntimeBridge';
 import { blockbenchBridge } from '../bridge/blockbenchBridge';
 import { useWorkbench } from '../context/WorkbenchContext';
-import { t } from '../i18n';
+import { t, uiText } from '../i18n';
 import './blockbenchSetup.css';
 
 interface Environment {
@@ -79,9 +79,8 @@ export const BlockbenchSetupPanel: React.FC = () => {
   };
 
   return <details name="blockbench-tools" className="blockbench-setup" data-testid="blockbench-setup">
-    <summary>{tr("连接 Blockbench · 可选建模工具")}</summary>
+    <summary>{uiText('Blockbench 设置', 'Blockbench setup')}</summary>
     <div className="blockbench-setup-content">
-      <p>{tr("使用独立开源工具 Blockbench 编辑模型；AI 建模还需要社区 MCP 插件。可稍后设置，继续制作模组。")}</p>
       <div className="blockbench-setup-status" aria-live="polite" aria-atomic="true">
         <span>{tr("编辑器：")}{environment ? tr(editorLabels[environment.editor.state] ?? environment.editor.state) || tr("状态未知") : tr("尚未检测")}
           {environment?.editor.version ? `（${environment.editor.version}）` : ''}</span>
@@ -110,7 +109,7 @@ export const BlockbenchSetupPanel: React.FC = () => {
         }}>{tr("选择安装位置")}</button>
         <button className="btn-secondary" type="button" disabled={busy} onClick={() => void inspect(false)}>{tr("重新检测安装")}</button>
       </div>
-      <ol>
+      <details className="blockbench-setup-note"><summary>{uiText('安装步骤', 'Installation steps')}</summary><ol>
         <li>{tr("从官网下载桌面版 Blockbench。已有安装会优先复用；安装完成后重新检测。")}<div className="blockbench-setup-link"><code>{downloadUrl}</code>
             <button className="btn-secondary" type="button" onClick={() => void copy('https://www.blockbench.net/', tr("官方下载地址"))}>{tr("复制官方下载地址")}</button></div>
         </li>
@@ -118,7 +117,7 @@ export const BlockbenchSetupPanel: React.FC = () => {
             <button className="btn-secondary" type="button" onClick={() => void copy('https://github.com/jasonjgardner/blockbench-mcp-plugin', tr("社区插件说明地址"))}>{tr("复制插件说明地址")}</button></div>
         </li>
         <li>{tr("填写插件显示的本机服务地址，测试后将该地址添加到 Agent；Copperbench MCP 仍负责模组工作区。")}</li>
-      </ol>
+      </ol></details>
       <label htmlFor={endpointId}>{tr("Blockbench MCP 本机地址")}</label>
       <div className="blockbench-setup-actions">
         <input id={endpointId} value={endpoint} maxLength={512} spellCheck={false} disabled={busy}
@@ -126,9 +125,11 @@ export const BlockbenchSetupPanel: React.FC = () => {
         <button className="btn-secondary" type="button" disabled={busy} onClick={() => void inspect(true)}>{busy ? tr("检测中…") : tr("测试 MCP 连接")}</button>
         <button className="btn-secondary" type="button" disabled={busy} onClick={() => void copy(endpoint, tr("连接地址"))}>{tr("复制连接地址")}</button>
       </div>
-      <p className="blockbench-setup-note">{tr("连接测试仅发送握手与工具查询，不上传工作区、不执行建模。工具可发现不代表 Agent 已连接或模型已回导。")}</p>
+      <details className="blockbench-setup-note"><summary>{uiText('连接与回导说明', 'Connection and import help')}</summary>
+      <p>{uiText('连接测试只检查服务。模型和贴图需在建模任务中回导。', 'The connection test checks the service. Import models and textures from a modeling task.')}</p>
       <p className="blockbench-setup-note">{tr("可在资产中心创建建模副本，保存候选后预览并回导导出的模型和贴图，再关联元素。原有手工编辑可使用“在 Blockbench 打开”。安装位置选择会保存在本机，启动参数如有指定则优先。")}</p>
       <p className="blockbench-setup-note">{tr("Blockbench 与社区 MCP 插件均为独立 GPLv3 项目；社区插件并非 Blockbench 官方 MCP。Copperbench 当前不捆绑或自动安装它们。")}</p>
+      </details>
       <p role="status" className="blockbench-setup-message">{message}</p>
     </div>
   </details>;

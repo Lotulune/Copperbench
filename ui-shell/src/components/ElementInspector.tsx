@@ -25,6 +25,9 @@ import {
 } from '../types/contract';
 import { t, uiText, uiMessage, renderUiMessage, englishCount, type UiMessage } from '../i18n';
 import { BlockbenchTasksPanel } from './BlockbenchTasksPanel';
+import {
+  clearElementEditorDraft, elementEditorDraftKey, getElementEditorDraft, setElementEditorDraft
+} from '../hooks/elementEditorDrafts';
 
 interface ElementInspectorProps {
   element: ModElementSummary;
@@ -144,7 +147,13 @@ function loaderExtensionName(path: string): string | null {
   return match[1].charAt(0).toUpperCase() + match[1].slice(1);
 }
 
-export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onClose }) => {
+export const ElementInspector: React.FC<ElementInspectorProps> = (props) => {
+  const { state } = useWorkbench();
+  const draftKey = elementEditorDraftKey(state.workbench?.workspace.id ?? '', props.element.id);
+  return <ElementInspectorContent key={draftKey} {...props} draftKey={draftKey} />;
+};
+
+const ElementInspectorContent: React.FC<ElementInspectorProps & { draftKey: string }> = ({ element, onClose, draftKey }) => {
   const {
     updateModElement,
     deleteModElement,
@@ -156,25 +165,53 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
     applyWorkspacePlan,
     state
   } = useWorkbench();
-  const [editor, setEditor] = useState<ModElementEditorProjection | null>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const invokerRef = useRef(document.activeElement instanceof HTMLElement ? document.activeElement : null);
+
+  useEffect(() => {
+    const compact = window.matchMedia('(max-width: 760px)');
+    if (compact.matches) closeButtonRef.current?.focus();
+    const onResize = () => {
+      if (compact.matches && (document.activeElement === document.body || document.activeElement?.closest('.elements-main'))) {
+        closeButtonRef.current?.focus();
+      }
+    };
+    compact.addEventListener('change', onResize);
+    return () => {
+      compact.removeEventListener('change', onResize);
+      if (invokerRef.current?.isConnected) invokerRef.current.focus();
+    };
+  }, []);
+
+  const [restoredDraft] = useState(() => getElementEditorDraft(draftKey));
+  const [editor, setEditor] = useState<ModElementEditorProjection | null>(restoredDraft?.editor ?? null);
   const [configurationPlan, setConfigurationPlan] = useState<WorkspacePlan | null>(null);
-  const [values, setValues] = useState<Record<string, unknown>>({});
+  const [values, setValues] = useState<Record<string, unknown>>(restoredDraft?.values ?? {});
   const [assets, setAssets] = useState<AssetProjection | null>(null);
   const [preview, setPreview] = useState<ModElementChangePreview | null>(null);
   const [isPreviewing, setIsPreviewing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [localErrors, setLocalErrors] = useState<UiMessage[]>([]);
-  const [referenceDrafts, setReferenceDrafts] = useState<Record<string, string>>({});
-  const [externalChange, setExternalChange] = useState(false);
+  const [referenceDrafts, setReferenceDrafts] = useState<Record<string, string>>(restoredDraft?.referenceDrafts ?? {});
+  const [externalChange, setExternalChange] = useState(restoredDraft?.externalChange ?? false);
   const [reloadVersion, setReloadVersion] = useState(0);
   const forceReload = useRef(false);
-  const baseRevision = useRef(state.workbench?.workspace.revision ?? 0);
+  const baseRevision = useRef(restoredDraft?.baseRevision ?? state.workbench?.workspace.revision ?? 0);
   const revisionRef = useRef(baseRevision.current);
   revisionRef.current = state.workbench?.workspace.revision ?? 0;
   const pending = useMemo(() => collectFieldChanges(editor, values), [editor, values]);
-  const draftRef = useRef({ editor, pending, isSaving });
-  draftRef.current = { editor, pending, isSaving };
+  const hasDraft = pending.invalidJson || pending.changes.length > 0 || Object.values(referenceDrafts).some(value => value.length > 0);
+  const draftRef = useRef({ editor, hasDraft, isSaving });
+  draftRef.current = { editor, hasDraft, isSaving };
+
+  useEffect(() => {
+    if (editor && hasDraft) {
+      setElementEditorDraft(draftKey, { editor, values, referenceDrafts, baseRevision: baseRevision.current, externalChange });
+    } else {
+      clearElementEditorDraft(draftKey);
+    }
+  }, [draftKey, editor, values, referenceDrafts, hasDraft, externalChange]);
 
   // Keep the latest query dispatcher without re-running the projection fetch
   // on unrelated bridge state changes.
@@ -203,8 +240,10 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
     const draft = draftRef.current;
     if (draft.editor?.element.id === element.id && !forceReload.current) {
       if (draft.isSaving) return;
-      if (draft.pending.invalidJson || draft.pending.changes.length > 0) {
-        setExternalChange(true);
+      if (draft.hasDraft) {
+        if (draft.editor.element.updatedAt !== element.updatedAt || baseRevision.current !== revisionRef.current) {
+          setExternalChange(true);
+        }
         return;
       }
     }
@@ -319,6 +358,30 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
 
     if (result.status === 'committed') {
       baseRevision.current = result.newRevision;
+      // Rebase immediately, including when the follow-up projection query
+      // fails or the user leaves this route before that query completes.
+      const committedEditor = {
+        ...editor,
+        element: result.data?.element ?? editor.element,
+        sections: editor.sections.map(section => ({
+          ...section,
+          fields: section.fields.map(field => ({ ...field, value: fieldValue(field, values) }))
+        }))
+      };
+      const cachedDraft = getElementEditorDraft(draftKey);
+      // A newer inspector can already be editing this element while this
+      // request finishes. Only replace the snapshot this request committed.
+      if (cachedDraft?.values === values && cachedDraft.referenceDrafts === referenceDrafts) {
+        if (Object.values(referenceDrafts).some(value => value.length > 0)) {
+          // Unadded references were not submitted. Keep them even when this
+          // inspector unmounted before the command completed.
+          setElementEditorDraft(draftKey, { editor: committedEditor, values, referenceDrafts,
+            baseRevision: result.newRevision, externalChange: false });
+        } else {
+          clearElementEditorDraft(draftKey);
+        }
+      }
+      setEditor(committedEditor);
       setExternalChange(false);
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 2000);
@@ -331,6 +394,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
           const committed = { ...values };
           const rebased = {
             ...refreshed,
+            element: result.data?.element ?? refreshed.element,
             sections: refreshed.sections.map((section) => ({
               ...section,
               fields: section.fields.map((field) => ({
@@ -346,7 +410,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
           setPreview(null);
         }
       } catch {
-        setLocalErrors([uiMessage("元素已保存，但无法刷新编辑器投影。", "The element was saved, but the editor could not be refreshed.")]);
+        setLocalErrors([uiMessage("元素已保存，但无法刷新编辑器。", "The element was saved, but the editor could not be refreshed.")]);
       }
     } else if (result.conflict) {
       setExternalChange(true);
@@ -359,7 +423,10 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
     if (window.confirm(uiText(`确定要删除「${element.displayName}」吗？`, `Delete "${element.displayName}"?`))) {
       try {
         const result = await deleteModElement(element.id);
-        if (result.status === 'committed') onClose();
+        if (result.status === 'committed') {
+          clearElementEditorDraft(draftKey);
+          onClose();
+        }
         else setLocalErrors(result.diagnostics.map((diagnostic) => diagnostic.message));
       } catch {
         setLocalErrors([uiMessage("删除失败，元素未被移除。", "Delete failed. The element was not removed.")]);
@@ -444,7 +511,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
   const renderControl = (field: EditorField) => {
     const value = values[field.path];
     const enabledByCondition = conditionActive(field, values);
-    const disabled = field.readOnly || !enabledByCondition;
+    const disabled = isSaving || field.readOnly || !enabledByCondition;
     const commonStyle = disabled ? { background: 'var(--bg-hover)' } : {};
     const controlId = fieldControlId(field.path);
 
@@ -561,7 +628,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
                   </datalist>
                 )}
               </div>
-              <div style={{ fontSize: '10px', color: 'var(--text-sub)' }}>
+              <div style={{ fontSize: '12px', color: 'var(--text-sub)' }}>
                 {field.control === 'resource_reference'
                   ? uiText("资源选择器", "Resource picker")
                   : field.control === 'element_reference'
@@ -631,7 +698,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
               {current.map((item, index) => (
                 <div key={index} style={{ border: '1px solid var(--border-main)', borderRadius: '6px', padding: '8px', display: 'grid', gap: '7px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <strong style={{ fontSize: '11px' }}>#{index + 1}</strong>
+                    <strong style={{ fontSize: '12px' }}>#{index + 1}</strong>
                     <button type="button" className="btn-secondary" disabled={disabled}
                       onClick={() => setValues((prev) => ({ ...prev, [field.path]: current.filter((_, itemIndex) => itemIndex !== index) }))}
                       data-testid={`field-${fieldTestSuffix(field.path)}-${index}-remove`}>
@@ -640,7 +707,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
                   </div>
                   {itemFields.map((itemField) => (
                     <label key={itemField.path} style={{ display: 'grid', gridTemplateColumns: 'minmax(100px, 0.8fr) minmax(0, 1.4fr)', gap: '8px', alignItems: 'center' }}>
-                      <span style={{ fontSize: '11px', color: 'var(--text-sub)' }}>{t(itemField.label)}</span>
+                      <span style={{ fontSize: '12px', color: 'var(--text-sub)' }}>{t(itemField.label)}</span>
                       {renderItemControl(itemField, item, index)}
                     </label>
                   ))}
@@ -721,7 +788,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
                   </datalist>
                 )}
               </div>
-              <div style={{ fontSize: '10px', color: 'var(--text-sub)' }}>
+              <div style={{ fontSize: '12px', color: 'var(--text-sub)' }}>
                 {uiText(`Biome 引用列表 · ${candidates.length} 个候选 · 支持 CUSTOM:、标签或完整上游引用`, `Biome references · Candidates: ${candidates.length} · Supports CUSTOM:, tags and full upstream references`)}
               </div>
             </div>
@@ -790,8 +857,8 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
           </div>
           <div>
             <div style={{ fontWeight: 700, fontSize: '13px', color: 'var(--text-main)' }}>
-              {uiText("检查器", "Inspector")}</div>
-            <div style={{ fontSize: '11px', color: 'var(--text-sub)' }}>
+              {element.displayName}</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-sub)' }}>
               {elementLabel(element.type)} · {element.name}
             </div>
           </div>
@@ -803,6 +870,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
           onClick={onClose}
           style={{ padding: '4px', borderRadius: 'var(--radius-xs)', color: 'var(--text-muted)' }}
           title={uiText("关闭检查器", "Close inspector")}
+          ref={closeButtonRef}
           data-testid="inspector-close-btn"
         >
           <X size={16} />
@@ -811,6 +879,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
 
       {/* Form Content */}
       <div
+        className="element-editor-form"
         style={{
           padding: '18px',
           overflowY: 'auto',
@@ -863,6 +932,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
           <div role="alert" data-testid="inspector-external-change">
             <p>{uiText("此元素或工作区已被其他操作修改。当前草稿已保留，请核对最新内容后再编辑。", "Another operation changed this element or workspace. Your draft is preserved. Review the latest content before continuing.")}</p>
             <button type="button" className="btn-secondary" onClick={() => {
+              clearElementEditorDraft(draftKey);
               forceReload.current = true;
               setReloadVersion((version) => version + 1);
             }} data-testid="inspector-reload-latest">
@@ -888,7 +958,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
               <span>{uiText("校验未通过", "Validation failed")}</span>
             </div>
             {errorMessagesToDisplay.map((msg, idx) => (
-              <div key={idx} style={{ fontSize: '11px', color: 'var(--text-main)' }}>
+              <div key={idx} style={{ fontSize: '12px', color: 'var(--text-main)' }}>
                 • {renderUiMessage(msg)}
               </div>
             ))}
@@ -909,15 +979,15 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
-              <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-main)' }}>{uiText("更改影响预览", "Change impact preview")}</span>
-              <span className="badge badge-blue" style={{ fontSize: '9px' }}>
+              <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-main)' }}>{uiText("更改影响预览", "Change impact preview")}</span>
+              <span className="badge badge-blue" style={{ fontSize: '11px' }}>
                 {uiText(`${preview?.semanticSummary?.changedFieldCount ?? pending.changes.length} 个字段`, englishCount(preview?.semanticSummary?.changedFieldCount ?? pending.changes.length, 'field'))}</span>
             </div>
             {isPreviewing ? (
-              <div style={{ fontSize: '10px', color: 'var(--text-sub)' }}>{uiText("正在分析语义与生成影响…", "Analyzing semantic and generation impact…")}</div>
+              <div style={{ fontSize: '12px', color: 'var(--text-sub)' }}>{uiText("正在检查更改…", "Checking changes…")}</div>
             ) : preview ? (
               <>
-                <div style={{ fontSize: '10px', color: 'var(--text-sub)' }}>
+                <div style={{ fontSize: '12px', color: 'var(--text-sub)' }}>
                   {uiText("分区：", "Sections: ")}{(preview.semanticSummary?.sections ?? [])
                     .map((id) => editor.sections.find((section) => section.id === id))
                     .filter(Boolean)
@@ -925,14 +995,14 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
                     .join(uiText('、', ', ')) || uiText("通用属性", "General attributes")}
                 </div>
                 {preview.generationImpact && (
-                  <div style={{ fontSize: '10px', color: 'var(--badge-blue)' }}>
+                  <div style={{ fontSize: '12px', color: 'var(--badge-blue)' }}>
                     {uiText("保存后需重新生成当前元素 · ", "Regenerate this element after saving · ")}{preview.generationImpact.affectedDomains.map(generationDomainLabel).join(uiText('、', ', '))}
                     {preview.generationImpact.generatorId ? ` · ${preview.generationImpact.generatorId}` : ''}
                   </div>
                 )}
               </>
             ) : (
-              <div style={{ fontSize: '10px', color: 'var(--badge-amber)' }}>{uiText("暂时无法读取生成影响，保存仍会走 Core 校验。", "Generation impact is unavailable. Saving will still run Core validation.")}</div>
+              <div style={{ fontSize: '12px', color: 'var(--badge-amber)' }}>{uiText("无法预览生成影响，可继续保存。", "Generation impact is unavailable. You can still save.")}</div>
             )}
           </div>
         )}
@@ -951,11 +1021,11 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
               fontSize: '12px'
             }}
           >
-            {uiText("正在加载编辑器投影…", "Loading editor…")}</div>
+            {uiText("正在加载…", "Loading…")}</div>
         ) : (
           editor.sections.map((section) => (
-            <div key={section.id} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-sub)', letterSpacing: '0.5px' }}>
+            <section className="element-editor-section" key={section.id}>
+              <div style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-sub)', letterSpacing: '0.5px' }}>
                 {t(section.title)}
               </div>
 
@@ -971,23 +1041,23 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
                   <>
                     {renderControl(field)}
                     {field.constraints && field.control === 'number' && (
-                      <div style={{ fontSize: '10px', color: 'var(--text-sub)' }}>
+                      <div style={{ fontSize: '12px', color: 'var(--text-sub)' }}>
                         {uiText("范围：", "Range: ")}{field.constraints.min} - {field.constraints.max}
                       </div>
                     )}
                     {field.condition && (
                       <div
                         data-testid={`field-condition-${fieldTestSuffix(field.path)}`}
-                        style={{ fontSize: '10px', color: enabledByCondition ? 'var(--badge-blue)' : 'var(--text-sub)' }}
+                        style={{ fontSize: '12px', color: enabledByCondition ? 'var(--badge-blue)' : 'var(--text-sub)' }}
                       >
-                        {enabledByCondition ? uiText("条件已启用 · 当前字段必填", "Condition enabled · This field is required") : uiText("条件未启用 · 当前字段不会参与生成", "Condition disabled · This field will not affect generation")}
+                        {enabledByCondition ? uiText("必填", "Required") : uiText("未启用", "Inactive")}
                       </div>
                     )}
                     {pickerIssue && (
                       <div
                         data-testid={`reference-issue-${fieldTestSuffix(field.path)}`}
                         style={{
-                          fontSize: '10px',
+                          fontSize: '12px',
                           color: 'var(--badge-amber)',
                           display: 'flex',
                           alignItems: 'flex-start',
@@ -1001,7 +1071,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
                     {fieldDiagnostic && (
                       <div
                         style={{
-                          fontSize: '10px',
+                          fontSize: '12px',
                           color: fieldDiagnostic.severity === 'error' ? 'var(--badge-red)' : 'var(--badge-amber)',
                           display: 'flex',
                           flexDirection: 'column',
@@ -1020,7 +1090,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
                                 key={action.id}
                                 type="button"
                                 className="btn-secondary"
-                                style={{ fontSize: '10px', padding: '3px 8px' }}
+                                style={{ fontSize: '12px', padding: '3px 8px' }}
                                 onClick={() => runDiagnosticAction(action, fieldDiagnostic)}
                                 data-testid={`diag-action-${action.id}`}
                               >
@@ -1050,20 +1120,20 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
                       }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--badge-blue)' }}>
+                        <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--badge-blue)' }}>
                           {extensionName} {uiText("加载器扩展", "loader extension")}</span>
-                        <span className="badge badge-amber" style={{ fontSize: '9px' }}>
+                        <span className="badge badge-amber" style={{ fontSize: '11px' }}>
                           {uiText("只读保留", "Preserved, read only")}</span>
                       </div>
 
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        <label htmlFor={controlId} style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)' }}>
+                        <label htmlFor={controlId} style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>
                           {t(field.label)}
                         </label>
                         {controlBlock}
                       </div>
 
-                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '6px', fontSize: '10px', color: 'var(--badge-amber)' }}>
+                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '6px', fontSize: '12px', color: 'var(--badge-amber)' }}>
                         <Info size={13} style={{ flexShrink: 0, marginTop: '2px' }} />
                         <span>
                           {field.help
@@ -1079,6 +1149,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
                   <div
                     key={field.path}
                     data-field-path={field.path}
+                    className="element-editor-field"
                     style={{
                       display: 'flex',
                       flexDirection: 'column',
@@ -1086,19 +1157,19 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
                       opacity: field.readOnly || !enabledByCondition ? 0.72 : 1
                     }}
                   >
-                    <label htmlFor={controlId} style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)' }}>
+                    <label htmlFor={controlId} style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>
                       {t(field.label)}
                       {(field.required || (field.condition && enabledByCondition)) && <span style={{ color: 'var(--badge-red)' }}> *</span>}
                       {field.readOnly && (
-                        <span className="badge badge-amber" style={{ fontSize: '9px', marginLeft: '6px' }}>
+                        <span className="badge badge-amber" style={{ fontSize: '11px', marginLeft: '6px' }}>
                           {uiText("只读保留", "Preserved, read only")}</span>
                       )}
                     </label>
-                    {controlBlock}
+                    <div className="element-editor-control">{controlBlock}</div>
                   </div>
                 );
               })}
-            </div>
+            </section>
           ))
         )}
       </div>
@@ -1116,7 +1187,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
       >
         <button
           className="btn-danger"
-          style={{ fontSize: '11px' }}
+          style={{ fontSize: '12px' }}
           onClick={handleDelete}
           data-testid="inspector-delete-btn"
         >
@@ -1126,7 +1197,7 @@ export const ElementInspector: React.FC<ElementInspectorProps> = ({ element, onC
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           {saveSuccess && (
-            <span style={{ color: 'var(--badge-green)', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <span style={{ color: 'var(--badge-green)', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
               <Check size={13} /> {uiText("已保存", "Saved")}</span>
           )}
           <button

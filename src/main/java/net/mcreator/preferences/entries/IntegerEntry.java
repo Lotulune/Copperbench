@@ -61,4 +61,7 @@ public class IntegerEntry extends PreferencesEntry<Integer> {
 		return new JsonPrimitive(value);
 	}
 
+	public int minimum() { return min; }
+	public int maximum() { return max; }
+
 }

@@ -124,13 +124,9 @@ export const NewWorkspaceView: React.FC = () => {
     return [...new Set(catalog.generators.map((generator) => generator.trackId))].map((id) => {
       const generators = catalog.generators.filter((generator) => generator.trackId === id);
       const minecraftVersion = generators[0]?.minecraftVersion;
-      const label = id === 'latest_stable'
-        ? tr("最新稳定轨 · Minecraft {0}", [minecraftVersion])
-        : id === 'previous_stable'
-          ? tr("前一稳定轨 · Minecraft {0}", [minecraftVersion])
-          : id === 'resource_pack'
-            ? tr("独立资源包 · Minecraft {0}", [minecraftVersion])
-            : tr("维护轨 · Minecraft {0}", [minecraftVersion]);
+      const label = id === 'resource_pack'
+        ? tr("独立资源包 · Minecraft {0}", [minecraftVersion])
+        : `Minecraft ${minecraftVersion}`;
       return { id, label, generators };
     });
   }, [catalog]);
@@ -252,8 +248,6 @@ export const NewWorkspaceView: React.FC = () => {
         </div>
         <div>
           <h2 style={{ fontSize: '18px', fontWeight: 700, margin: 0 }}>{tr("新建工作区")}</h2>
-          <p style={{ fontSize: '12px', color: 'var(--text-sub)', margin: '4px 0 0 0' }}>
-            {tr("四轨 Fabric / NeoForge 与独立资源包生成器 · 创建后写入 .mcreator 工作区文件并在新窗口打开")}</p>
         </div>
       </div>
 
@@ -270,8 +264,8 @@ export const NewWorkspaceView: React.FC = () => {
             <div style={{ fontSize: '12px', color: 'var(--text-sub)' }}>
               {tr("工作区文件：")}<code>{result.data.workspaceFile}</code>{tr("（生成器 ")}<code>{result.data.generatorId}</code>）。
               {workspaceOpenBridge.available
-                ? tr("宿主正在新窗口中打开该工作区。")
-                : tr("浏览器预览环境不连接 Swing 宿主，请在桌面版中打开该工作区文件。")}
+                ? tr("正在新窗口中打开工作区。")
+                : tr("请在桌面版中打开此工作区。")}
             </div>
           </div>
         </div>
