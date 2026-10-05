@@ -930,7 +930,9 @@ input:disabled, select:disabled, textarea:disabled {
   min-height: 0;
   display: grid;
   grid-template-columns: minmax(280px, 360px) minmax(440px, 1fr);
-  overflow: hidden;
+  grid-auto-rows: max-content;
+  align-content: start;
+  overflow-y: auto;
 }
 
 .permission-panel,
@@ -992,6 +994,19 @@ input:disabled, select:disabled, textarea:disabled {
 .permission-option.is-active {
   border-color: var(--accent-copper);
   background: var(--accent-copper-dim);
+}
+
+.permission-option:not(:disabled) {
+  cursor: pointer;
+}
+
+.permission-option:not(:disabled):hover {
+  border-color: var(--accent-copper);
+}
+
+.permission-option:focus-visible {
+  outline: 2px solid var(--accent-copper);
+  outline-offset: 2px;
 }
 
 .procedure-graph-navigation {

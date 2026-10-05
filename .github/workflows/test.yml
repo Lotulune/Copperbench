@@ -158,7 +158,7 @@ jobs:
       - name: Run fast product-shell smoke tests
         if: needs.changes.outputs.ui == 'true'
         working-directory: ui-shell
-        run: npx playwright test e2e/scenarios.spec.ts e2e/new-workspace.spec.ts e2e/sdk-connection-security.spec.ts e2e/jcef-bridge.spec.ts --project=chromium
+        run: npx playwright test e2e/scenarios.spec.ts e2e/new-workspace.spec.ts e2e/sdk-connection-security.spec.ts e2e/jcef-bridge.spec.ts e2e/mcp-runtime.spec.ts --project=chromium
       - name: Test Python SDK reliability and connection security
         if: needs.changes.outputs.python == 'true'
         run: python -m unittest discover -s sdk/python -p 'test_*.py'

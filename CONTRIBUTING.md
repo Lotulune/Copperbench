@@ -47,7 +47,7 @@ The three required check names remain **Java tests and Javadoc**, **UI contract,
 | Python MCP client `sdk/python/copperbench.py` or Python unit tests | Python SDK tests plus the always-on repository checks. |
 | TypeScript SDK | TypeScript SDK tests and the existing connection-file security regression plus repository checks; installs the UI shell development dependencies, without a UI build or Chromium. |
 | Shared MCP fixtures or `sdk/protocol.md` | Both SDK test suites plus repository checks. |
-| Allowlisted ordinary editors, translation dictionaries, local CSS, UI tests, Playwright configuration and fixtures | UI contract tests, production build, bridge/localization tests, and the existing four Chromium smoke specs. |
+| Allowlisted ordinary editors, translation dictionaries, local CSS, UI tests, Playwright configuration and fixtures | UI contract tests, production build, bridge/localization tests, and the five Chromium smoke specs, including desktop MCP permission selection. |
 | UI-Core test/validation code | UI contract tests plus repository checks. |
 | Java, native Python integration, startup/native UI, shared schemas, production build/dependency configuration, CI itself, or any unrecognized path | Full Java, frontend and Windows MCP regression. |
 
@@ -61,7 +61,7 @@ python scripts/ci/select_checks.py --paths sdk/python/copperbench.py sdk/tests/m
 python -m unittest discover -s scripts/tests -p 'test_ci_selection.py'
 ```
 
-For UI changes outside the four PR smoke specs, run the affected Playwright cases locally as well. The daily [Nightly product gates](.github/workflows/nightly.yml) keep the full Chromium suite, Java scale regression and eight generator tracks. Nightly and Windows release tests already build the UI through Gradle's `processResources → buildUiShell` dependency; they do not need another explicit `npm run build` in the same job.
+For UI changes outside the five PR smoke specs, run the affected Playwright cases locally as well. The daily [Nightly product gates](.github/workflows/nightly.yml) keep the full Chromium suite, Java scale regression and eight generator tracks. Nightly and Windows release tests already build the UI through Gradle's `processResources → buildUiShell` dependency; they do not need another explicit `npm run build` in the same job.
 
 [Linux candidate validation](.github/workflows/stage15-linux-candidate.yml) keeps its separate package, JCEF and Minecraft render checks. PRs that only change allowlisted editors, dictionaries, local styles or frontend tests skip that workflow; native integration, startup and packaging changes retain it. `main` uses broader package-input coverage and manual runs remain available. A passing candidate workflow still does not replace installed-product or gameplay acceptance.
 

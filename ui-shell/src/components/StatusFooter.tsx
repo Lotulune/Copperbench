@@ -159,13 +159,13 @@ export const StatusFooter: React.FC = () => {
             border: '1px solid var(--border-subtle)',
             padding: '2px 8px',
             borderRadius: 'var(--radius-full)',
-            color: permission === 'workspace' ? 'var(--badge-green)' : permission === 'full_access' ? 'var(--accent-copper)' : 'var(--badge-amber)'
+            color: mcp?.status !== 'listening' ? 'var(--text-muted)' : permission === 'workspace' ? 'var(--badge-green)' : permission === 'full_access' ? 'var(--accent-copper)' : 'var(--badge-amber)'
           }}
           title={mcp?.status === 'listening' ? `${uiText('MCP 服务已启动', 'MCP server listening')}: ${permission}` : uiText('MCP 服务未启动', 'MCP server is not running')}
           data-testid="permission-alert"
         >
           <Shield size={11} />
-          <span style={{ fontWeight: 600 }}>MCP: {valueLabel(permission)}</span>
+          <span style={{ fontWeight: 600 }}>MCP: {mcp?.status === 'listening' ? valueLabel(permission) : uiText('未启动', 'Not running')}</span>
         </div>
       </div>
     </footer>

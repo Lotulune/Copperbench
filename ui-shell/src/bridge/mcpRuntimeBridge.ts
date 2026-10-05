@@ -1,4 +1,13 @@
 import { tr } from '../i18n/locale';
+import type { PermissionProfile } from '../types/contract';
+
+const listeners = new Set<() => void>();
+const notifyChanged = () => listeners.forEach(listener => listener());
+
+export const subscribeMcpRuntime = (listener: () => void) => {
+  listeners.add(listener);
+  return () => { listeners.delete(listener); };
+};
 export interface McpRuntimeState {
   status: 'listening' | 'not_started';
   url: string | null;
@@ -16,6 +25,7 @@ interface McpTokenResponse {
 export interface NativeMcpRuntimeHost {
   readonly available: boolean;
   getState(): Promise<McpRuntimeState>;
+  setPermissionProfile(profile: PermissionProfile): Promise<McpRuntimeState>;
   revealTokenOnce(): Promise<McpTokenResponse>;
   copyText(text: string): Promise<void>;
 }
@@ -29,6 +39,7 @@ declare global {
 export interface McpRuntimeBridge {
   readonly available: boolean;
   getState(): Promise<McpRuntimeState>;
+  setPermissionProfile(profile: PermissionProfile): Promise<McpRuntimeState>;
   revealTokenOnce(): Promise<McpTokenResponse>;
   copyText(text: string): Promise<void>;
 }
@@ -44,8 +55,18 @@ class JcefMcpRuntimeBridge implements McpRuntimeBridge {
     return this.host.getState();
   }
 
-  public revealTokenOnce(): Promise<McpTokenResponse> {
-    return this.host.revealTokenOnce();
+  public async setPermissionProfile(profile: PermissionProfile): Promise<McpRuntimeState> {
+    try {
+      return await this.host.setPermissionProfile(profile);
+    } finally {
+      notifyChanged();
+    }
+  }
+
+  public async revealTokenOnce(): Promise<McpTokenResponse> {
+    const response = await this.host.revealTokenOnce();
+    notifyChanged();
+    return response;
   }
 
   public copyText(text: string): Promise<void> {
@@ -70,6 +91,10 @@ class UnavailableMcpRuntimeBridge implements McpRuntimeBridge {
 
   public revealTokenOnce(): Promise<McpTokenResponse> {
     return Promise.reject(new Error(tr("MCP 令牌仅可在桌面宿主中获取")));
+  }
+
+  public setPermissionProfile(_profile: PermissionProfile): Promise<McpRuntimeState> {
+    return Promise.reject(new Error(tr("MCP 权限仅可在桌面宿主中更改")));
   }
 
   public copyText(text: string): Promise<void> {

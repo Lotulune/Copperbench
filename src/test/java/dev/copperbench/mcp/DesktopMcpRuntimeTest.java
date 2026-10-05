@@ -44,6 +44,8 @@ import java.util.function.Supplier;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 class DesktopMcpRuntimeTest {
 
@@ -137,6 +139,146 @@ class DesktopMcpRuntimeTest {
 			assertEquals(401, post(endpoint, initializeBody(), initialToken, null).statusCode());
 			assertEquals(200, post(endpoint, initializeBody(), renewedToken, null).statusCode());
 		}
+	}
+
+	@Test void permissionChangesRevokeAllOldCredentialsAndEnforceTheSelectedCoreProfile() throws Exception {
+		MutableClock clock = new MutableClock(CLOCK.instant());
+		try (LocalHistoryService history = JGitLocalHistoryService.open(workspace, clock);
+				DesktopMcpRuntime runtime = DesktopMcpRuntime.start(workspace, WORKSPACE_ID, adapter(history), clock)) {
+			URI endpoint = URI.create(runtime.state().url());
+			String originalToken = runtime.revealTokenOnce().orElseThrow();
+			String originalSession = initialize(endpoint, originalToken);
+			clock.advance(Duration.ofHours(11).plusMinutes(56));
+			String renewedToken = runtime.revealTokenOnce().orElseThrow();
+			assertEquals(200, post(endpoint, initializeBody(), originalToken, null).statusCode());
+
+			var readOnly = runtime.setPermissionProfile(PermissionProfile.READ_ONLY);
+			assertEquals("listening", readOnly.status(), readOnly.failure());
+			assertEquals(endpoint.toString(), readOnly.url(), "changing profile preserves the configured URL");
+			assertEquals(401, post(endpoint, initializeBody(), originalToken, null).statusCode());
+			assertEquals(401, post(endpoint, initializeBody(), renewedToken, originalSession).statusCode());
+			String readToken = runtime.revealTokenOnce().orElseThrow();
+			String readSession = initialize(endpoint, readToken);
+			assertEquals(404, post(endpoint, "{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"ping\"}",
+					readToken, originalSession).statusCode(), "a replacement token cannot revive an old session");
+			JsonObject read = call(endpoint, readToken, readSession, "get_workspace", "{}");
+			assertEquals("read_only", read.getAsJsonObject("data").getAsJsonObject("permission").get("profile").getAsString());
+			String create = "{\"elementType\":\"item\",\"name\":\"permission_item\",\"initialValues\":{},\"expectedRevision\":7}";
+			JsonObject denied = call(endpoint, readToken, readSession, "create_mod_element", create);
+			assertEquals("rejected", denied.get("status").getAsString(), denied.toString());
+			assertEquals("PERMISSION_DENIED", denied.getAsJsonArray("diagnostics").get(0).getAsJsonObject().get("code").getAsString());
+			assertEquals("read_only", denied.getAsJsonObject("denial").get("currentProfile").getAsString());
+			assertEquals(7, call(endpoint, readToken, readSession, "get_workspace", "{}").get("revision").getAsLong());
+
+			var writable = runtime.setPermissionProfile(PermissionProfile.WORKSPACE);
+			assertEquals("listening", writable.status(), writable.failure());
+			assertEquals(401, post(endpoint, initializeBody(), readToken, null).statusCode());
+			String writeToken = runtime.revealTokenOnce().orElseThrow();
+			String writeSession = initialize(endpoint, writeToken);
+			JsonObject created = call(endpoint, writeToken, writeSession, "create_mod_element", create);
+			assertEquals("committed", created.get("status").getAsString(), created.toString());
+			assertEquals(8, created.get("newRevision").getAsLong());
+			assertFalse(runtime.setPermissionProfile(PermissionProfile.WORKSPACE).tokenAvailable(),
+					"selecting the current profile must not rotate credentials again");
+			assertEquals(200, post(endpoint, initializeBody(), writeToken, null).statusCode());
+
+			var full = runtime.setPermissionProfile(PermissionProfile.FULL_ACCESS);
+			assertEquals("listening", full.status(), full.failure());
+			assertEquals(401, post(endpoint, initializeBody(), writeToken, null).statusCode());
+			String fullToken = runtime.revealTokenOnce().orElseThrow();
+			String fullSession = initialize(endpoint, fullToken);
+			JsonObject fullState = call(endpoint, fullToken, fullSession, "get_workspace", "{}");
+			assertEquals("full_access", fullState.getAsJsonObject("data").getAsJsonObject("permission").get("profile").getAsString());
+			assertTrue(fullState.getAsJsonObject("data").getAsJsonObject("permission").get("protectedOperationsAlwaysConfirm").getAsBoolean());
+			JsonObject protectedImport = call(endpoint, fullToken, fullSession, "import_upstream_workspace",
+					"{\"sourceWorkspacePath\":\"unused\",\"outputName\":\"copy\",\"userApproved\":false,\"expectedRevision\":8}");
+			assertEquals("rejected", protectedImport.get("status").getAsString());
+			assertTrue(protectedImport.getAsJsonObject("denial").get("protectedOperation").getAsBoolean());
+			var listing = post(endpoint, "{\"jsonrpc\":\"2.0\",\"id\":3,\"method\":\"tools/list\"}", fullToken, fullSession);
+			assertFalse(listing.body().contains("set_permission_profile"), "agents cannot change their own profile");
+			assertTrue(Files.readString(runtime.connectionFile()).contains("full_access"));
+			String audit = Files.readString(workspace.resolve(".copperbench/automation-audit.jsonl"));
+			assertTrue(audit.contains("set_mcp_permission_profile"));
+			assertFalse(audit.contains(fullToken));
+			assertFalse(Files.readString(runtime.connectionFile()).contains(fullToken));
+		}
+	}
+
+	@Test void selectedPermissionSurvivesReopeningOnlyThisWorkspace() throws Exception {
+		try (LocalHistoryService history = JGitLocalHistoryService.open(workspace, CLOCK)) {
+			String oldToken;
+			try (DesktopMcpRuntime runtime = DesktopMcpRuntime.start(workspace, WORKSPACE_ID, adapter(history), CLOCK)) {
+				assertEquals("listening", runtime.setPermissionProfile(PermissionProfile.READ_ONLY).status());
+				oldToken = runtime.revealTokenOnce().orElseThrow();
+			}
+			try (DesktopMcpRuntime reopened = DesktopMcpRuntime.start(workspace, WORKSPACE_ID, adapter(history), CLOCK)) {
+				assertEquals("listening", reopened.state().status(), reopened.state().failure());
+				assertEquals(PermissionProfile.READ_ONLY, reopened.state().permissionProfile());
+				URI endpoint = URI.create(reopened.state().url());
+				assertEquals(401, post(endpoint, initializeBody(), oldToken, null).statusCode());
+				String token = reopened.revealTokenOnce().orElseThrow();
+				String session = initialize(endpoint, token);
+				assertEquals("read_only", call(endpoint, token, session, "get_workspace", "{}")
+						.getAsJsonObject("data").getAsJsonObject("permission").get("profile").getAsString());
+			}
+			Path other = Files.createDirectory(workspace.resolve("other-workspace"));
+			try (DesktopMcpRuntime unrelated = DesktopMcpRuntime.start(other, WORKSPACE_ID, adapter(history), CLOCK)) {
+				assertEquals(PermissionProfile.WORKSPACE, unrelated.state().permissionProfile());
+			}
+		}
+	}
+
+	@Test void failedSettingsPublicationStopsTheServerAndAllowsExplicitRetry() throws Exception {
+		try (LocalHistoryService history = JGitLocalHistoryService.open(workspace, CLOCK);
+				DesktopMcpRuntime runtime = DesktopMcpRuntime.start(workspace, WORKSPACE_ID, adapter(history), CLOCK)) {
+			Path settings = Files.createDirectory(workspace.resolve(".copperbench/mcp-settings.json"));
+			Path blocker = Files.writeString(settings.resolve("blocker"), "owned test fixture");
+			var failed = runtime.setPermissionProfile(PermissionProfile.READ_ONLY);
+			assertEquals("not_started", failed.status());
+			assertNull(failed.url());
+			assertFalse(failed.tokenAvailable());
+			assertFalse(Files.exists(runtime.connectionFile()));
+			assertFalse(failed.failure().isBlank());
+			Files.delete(blocker);
+			Files.delete(settings);
+			var retried = runtime.setPermissionProfile(PermissionProfile.READ_ONLY);
+			assertEquals("listening", retried.status(), retried.failure());
+			assertNull(retried.failure());
+		}
+	}
+
+	@Test void invalidStoredPermissionsFailClosedUntilTheUserSelectsAValidProfile() throws Exception {
+		Files.createDirectories(workspace.resolve(".copperbench"));
+		Files.writeString(workspace.resolve(".copperbench/mcp-settings.json"),
+				"{\"schemaVersion\":\"1.0\",\"permissionProfile\":\"unrestricted\"}");
+		try (LocalHistoryService history = JGitLocalHistoryService.open(workspace, CLOCK);
+				DesktopMcpRuntime runtime = DesktopMcpRuntime.start(workspace, WORKSPACE_ID, adapter(history), CLOCK)) {
+			assertEquals("not_started", runtime.state().status());
+			assertTrue(runtime.revealTokenOnce().isEmpty());
+			assertEquals("listening", runtime.setPermissionProfile(PermissionProfile.READ_ONLY).status());
+			runtime.close();
+			assertThrows(IllegalStateException.class, () -> runtime.setPermissionProfile(PermissionProfile.FULL_ACCESS));
+		}
+	}
+
+	private static String initialize(URI endpoint, String token) throws Exception {
+		var response = post(endpoint, initializeBody(), token, null);
+		assertEquals(200, response.statusCode(), response.body());
+		String session = response.headers().firstValue("mcp-session-id").orElseThrow();
+		post(endpoint, "{\"jsonrpc\":\"2.0\",\"method\":\"notifications/initialized\"}", token, session);
+		return session;
+	}
+
+	private static JsonObject call(URI endpoint, String token, String session, String name, String arguments)
+			throws Exception {
+		String body = "{\"jsonrpc\":\"2.0\",\"id\":5,\"method\":\"tools/call\",\"params\":{\"name\":\"" +
+				name + "\",\"arguments\":" + arguments + "}}";
+		var response = post(endpoint, body, token, session);
+		assertEquals(200, response.statusCode(), response.body());
+		String data = response.body().lines().filter(line -> line.startsWith("data: ")).findFirst().orElseThrow().substring(6);
+		String text = JsonParser.parseString(data).getAsJsonObject().getAsJsonObject("result")
+				.getAsJsonArray("content").get(0).getAsJsonObject().get("text").getAsString();
+		return JsonParser.parseString(text).getAsJsonObject();
 	}
 
 	private static HttpResponse<String> post(URI endpoint, String body, String token, String sessionId)
