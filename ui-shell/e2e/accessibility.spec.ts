@@ -156,6 +156,7 @@ test.describe('Accessibility baseline (NFR-UI-08)', () => {
   test('datagen publish confirmation supports focus trapping and Escape recovery', async ({ page }) => {
     await page.click('[data-testid="scenario-switcher-trigger"]');
     await page.click('[data-testid="scenario-btn-ready"]');
+    await page.getByTestId('compact-run-menu').click();
     await page.getByRole('button', { name: '在暂存区运行数据生成' }).click();
     await expect(page.getByText('任务完成').first()).toBeVisible({ timeout: 5000 });
     await page.getByRole('button', { name: '查看暂存差异' }).click();

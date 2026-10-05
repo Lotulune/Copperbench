@@ -166,10 +166,10 @@ test.describe('Interactive UI-Core Commands & Mutations', () => {
     await expect(page.locator('[data-testid="field-mainFillerBlock"]')).toHaveValue('Blocks.STONE#0');
     await expect(page.locator('[data-testid="field-fluidBlock"]')).toHaveValue('Blocks.WATER');
     await expect(page.locator('[data-testid="field-portalFrame"]')).toBeDisabled();
-    await expect(page.locator('[data-testid="field-condition-portalFrame"]')).toContainText('条件未启用');
+    await expect(page.locator('[data-testid="field-condition-portalFrame"]')).toHaveText('未启用');
     await page.check('[data-testid="field-enablePortal"]');
     await expect(page.locator('[data-testid="field-portalFrame"]')).toBeEnabled();
-    await expect(page.locator('[data-testid="field-condition-portalFrame"]')).toContainText('条件已启用');
+    await expect(page.locator('[data-testid="field-condition-portalFrame"]')).toHaveText('必填');
     await expect(page.locator('[data-testid="validation-alert"]')).toContainText('启用 enablePortal 时必须填写 portalFrame');
     await expect(page.locator('[data-testid="inspector-save-btn"]')).toBeDisabled();
     await page.uncheck('[data-testid="field-enablePortal"]');
@@ -336,12 +336,12 @@ test.describe('Interactive UI-Core Commands & Mutations', () => {
 
   test('MCP permission status does not fake elevation when the desktop runtime is unavailable', async ({ page }) => {
     const permBtn = page.locator('[data-testid="permission-alert"]');
-    await expect(permBtn).toContainText('MCP: 工作区读写（Workspace）');
+    await expect(permBtn).toContainText('MCP: 未启动');
 
     await permBtn.click();
-    await expect(permBtn).toContainText('MCP: 工作区读写（Workspace）');
+    await expect(permBtn).toContainText('MCP: 未启动');
 
     await permBtn.click();
-    await expect(permBtn).toContainText('MCP: 工作区读写（Workspace）');
+    await expect(permBtn).toContainText('MCP: 未启动');
   });
 });

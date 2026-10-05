@@ -59,7 +59,7 @@ test.describe('UI-Core v1.0 Contract Scenarios', () => {
 
     // Verify Element counts
     await expect(page.locator('[data-testid="workbench-main"]')).toBeVisible();
-    await expect(page.getByText('元素总数')).toBeVisible();
+    await expect(page.locator('.overview-counts > span').filter({ hasText: '模组元素' })).toHaveText('模组元素 2');
     await expect(page.getByText('Copper Lamp').first()).toBeVisible();
   });
 
@@ -172,7 +172,7 @@ test.describe('UI-Core v1.0 Contract Scenarios', () => {
     await page.click('[data-testid="scenario-btn-external-process-exited"]');
 
     await expect(page.locator('[data-testid="task-failure"]')).toBeVisible();
-    await expect(page.getByText('测试客户端 任务失败').first()).toBeVisible();
+    await expect(page.getByTestId('task-failure')).toContainText('测试客户端 失败');
     await expect(page.getByText('意外退出').first()).toBeVisible();
 
     // The task-level entry point opens the drawer and the payload taskId keeps the runtime diagnostic attached
