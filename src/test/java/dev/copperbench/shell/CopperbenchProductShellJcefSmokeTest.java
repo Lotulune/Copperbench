@@ -65,6 +65,16 @@ class CopperbenchProductShellJcefSmokeTest {
 
 	private static final UUID WORKSPACE_ID = UUID.fromString("11111111-1111-4111-8111-111111111141");
 	private static final Gson JSON = new Gson();
+	private static final String WORKSPACE_NAME = "JCEF Smoke Workspace";
+	// Verify the native transport and the exact fixture projection rendered by React,
+	// independently of localized status copy or a merely mounted application shell.
+	private static final String NATIVE_WORKSPACE_READY = """
+			typeof window.cefQuery === 'function'
+			    && window.copperbenchHost?.workspaceId === %s
+			    && typeof window.copperbenchHost.invoke === 'function'
+			    && document.querySelector('[data-testid=workbench-main] h1')?.textContent?.trim() === %s
+			    && document.querySelector('[data-testid=workbench-loading]') === null
+			""".formatted(JSON.toJson(WORKSPACE_ID.toString()), JSON.toJson(WORKSPACE_NAME));
 
 	@BeforeAll static void initializePreferences() throws Exception {
 		LoggingSystem.init();
@@ -106,8 +116,7 @@ class CopperbenchProductShellJcefSmokeTest {
 			String ready = "false";
 			long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(20);
 			while (!"true".equals(ready) && System.nanoTime() < deadline) {
-				ready = webView.executeScript("document.querySelector('[data-testid=app-shell]') !== null"
-						+ " && document.body.textContent.includes('JCEF 原生桥接')",
+				ready = webView.executeScript(NATIVE_WORKSPACE_READY,
 						WebView.JSExecutionType.RETURN_VALUE);
 				if (!"true".equals(ready))
 					Thread.sleep(100);
@@ -118,6 +127,10 @@ class CopperbenchProductShellJcefSmokeTest {
 					"window.__COPPERBENCH_LEGACY_PLUGIN_HOST__?.available === true",
 					WebView.JSExecutionType.RETURN_VALUE);
 			assertEquals("true", legacyHostReady, "React shell did not bind the legacy plugin host");
+			webView.executeScriptAsync("document.querySelector('[data-testid=nav-tools-toggle]')?.click()");
+			await(() -> "true".equals(webView.executeScript(
+					"document.querySelector('[data-testid=nav-tools-toggle]')?.getAttribute('aria-expanded') === 'true'",
+					WebView.JSExecutionType.RETURN_VALUE)), 5, "Tools navigation did not expand before opening plugins");
 			webView.executeScriptAsync("document.querySelector('[data-testid=nav-plugins]').click()");
 			String legacyButtonEnabled = "false";
 			deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
@@ -228,8 +241,7 @@ class CopperbenchProductShellJcefSmokeTest {
 		if (webView == null)
 			return false;
 		return "true".equals(webView.executeScript(
-				"document.querySelector('[data-testid=app-shell]') !== null"
-						+ " && document.body.textContent.includes('JCEF 原生桥接')",
+				NATIVE_WORKSPACE_READY,
 				WebView.JSExecutionType.RETURN_VALUE));
 	}
 
@@ -293,7 +305,7 @@ class CopperbenchProductShellJcefSmokeTest {
 		generator.addProperty("minecraftVersion", "1.21.1");
 		generator.addProperty("displayName", "Fabric 1.21.1");
 		generator.addProperty("state", "ready");
-		return new WorkspaceState(WORKSPACE_ID, "JCEF Smoke Workspace", "mod", 0, false, generator,
+		return new WorkspaceState(WORKSPACE_ID, WORKSPACE_NAME, "mod", 0, false, generator,
 				new JsonObject(), List.of());
 	}
 

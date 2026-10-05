@@ -63,6 +63,16 @@ class Stage9NativeJcefAccessibilityTest {
 
 	private static final UUID WORKSPACE_ID = UUID.fromString("11111111-1111-4111-8111-111111111139");
 	private static final Gson JSON = new Gson();
+	private static final String WORKSPACE_NAME = "Native JCEF Accessibility";
+	// Verify the native transport and the exact fixture projection rendered by React,
+	// independently of localized status copy or a merely mounted application shell.
+	private static final String NATIVE_WORKSPACE_READY = """
+			typeof window.cefQuery === 'function'
+			    && window.copperbenchHost?.workspaceId === %s
+			    && typeof window.copperbenchHost.invoke === 'function'
+			    && document.querySelector('[data-testid=workbench-main] h1')?.textContent?.trim() === %s
+			    && document.querySelector('[data-testid=workbench-loading]') === null
+			""".formatted(JSON.toJson(WORKSPACE_ID.toString()), JSON.toJson(WORKSPACE_NAME));
 
 	@BeforeAll static void initializeJcefPrerequisites() throws Exception {
 		LoggingSystem.init();
@@ -109,8 +119,7 @@ class Stage9NativeJcefAccessibilityTest {
 			webView.forceLoad();
 			assertTrue(loaded.await(30, TimeUnit.SECONDS), "Production React shell did not finish loading");
 			await(() -> "true".equals(js(webView,
-					"document.querySelector('[data-testid=app-shell]') !== null"
-							+ " && document.body.textContent.includes('JCEF 原生桥接')")), 30,
+					NATIVE_WORKSPACE_READY)), 30,
 					"Production shell did not bind the native JCEF UI-Core host");
 
 			AxTreeMetrics axTree = captureDevToolsAxTree(webView);
@@ -220,21 +229,26 @@ class Stage9NativeJcefAccessibilityTest {
 			await(() -> "true".equals(js(webView,
 					"document.querySelector('[data-testid=create-element-modal]') !== null")), 10,
 					"Create-element dialog did not reopen for the Procedure audit");
+			webView.executeScriptAsync(
+					"document.querySelector('[data-testid=create-element-type-procedure]')?.click()");
+			await(() -> "true".equals(js(webView,
+					"document.querySelector('[data-testid=create-element-type-procedure]')?.getAttribute('aria-pressed') === 'true'")),
+					10, "Procedure type was not selected in the create-element dialog");
 			webView.executeScriptAsync("""
 					(function() {
 					    var modal = document.querySelector('[data-testid=create-element-modal]');
-					    var typeButton = Array.from(modal?.querySelectorAll('button') || [])
-					        .find(function(button) { return button.textContent?.trim() === '过程（Procedure）'; });
-					    typeButton?.click();
 					    var input = modal?.querySelector('[data-testid=create-element-name-input]');
 					    if (input) {
 					        var setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
 					        setter?.call(input, 'native_accessible_flow');
 					        input.dispatchEvent(new Event('input', { bubbles: true }));
 					    }
-					    modal?.querySelector('[data-testid=create-element-submit-btn]')?.click();
 					})()
 					""");
+			await(() -> "true".equals(js(webView,
+					"document.querySelector('[data-testid=create-element-name-input]')?.value === 'native_accessible_flow'")),
+					10, "Procedure identifier was not entered in the create-element dialog");
+			webView.executeScriptAsync("document.querySelector('[data-testid=create-element-submit-btn]')?.click()");
 			await(() -> "true".equals(js(webView,
 					"document.querySelector('[data-testid=procedure-workbench]') !== null")), 20,
 					"Procedure workbench did not open through the real JCEF/Core path");
@@ -410,7 +424,7 @@ class Stage9NativeJcefAccessibilityTest {
 		generator.addProperty("minecraftVersion", "1.21.1");
 		generator.addProperty("displayName", "Fabric 1.21.1");
 		generator.addProperty("state", "ready");
-		return new WorkspaceState(WORKSPACE_ID, "Native JCEF Accessibility", "mod", 0, false, generator,
+		return new WorkspaceState(WORKSPACE_ID, WORKSPACE_NAME, "mod", 0, false, generator,
 				new JsonObject(), List.of());
 	}
 
