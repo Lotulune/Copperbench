@@ -14,18 +14,16 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import dev.copperbench.core.workspace.WorkspaceFiles;
 import dev.copperbench.migration.MigrationReport.Disposition;
 import dev.copperbench.migration.MigrationReport.MigrationItem;
 import dev.copperbench.release.ElementCoverageCatalog;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.StandardCopyOption;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -53,25 +51,25 @@ public final class UpstreamWorkspaceImportService {
 	}
 
 	public MigrationReport execute(Path sourceRoot, Path targetRoot) throws IOException {
-		Path origin = requireWorkspaceFile(sourceRoot).getParent();
-		Path destination = Objects.requireNonNull(targetRoot).toAbsolutePath().normalize();
-		if (destination.startsWith(origin.toAbsolutePath().normalize())
-				|| origin.toAbsolutePath().normalize().startsWith(destination))
+		requireWorkspaceFile(sourceRoot);
+		Path origin = WorkspaceFiles.requireDirectory(sourceRoot);
+		Path destination = WorkspaceFiles.canonicalPath(Objects.requireNonNull(targetRoot));
+		if (destination.startsWith(origin) || origin.startsWith(destination))
 			throw new IllegalArgumentException("Import target must be outside the source workspace");
-		if (Files.exists(destination)) {
+		if (Files.exists(destination, LinkOption.NOFOLLOW_LINKS)) {
 			try (Stream<Path> children = Files.list(destination)) {
 				if (children.findAny().isPresent())
 					throw new IllegalArgumentException("Import target must be an empty directory");
 			}
 		}
 		String before = WorkspaceTreeHasher.hash(origin);
-		copyTree(origin, destination);
-		Files.createDirectories(destination.resolve(".copperbench/import"));
+		WorkspaceFiles.copyTree(origin, destination, relative -> WorkspaceTreeHasher.excluded(origin, origin.resolve(relative)));
 		MigrationReport preview = buildReport(destination.resolve("workspace.mcreator"), before,
 				destination.toString().replace('\\', '/'), true);
-		Files.writeString(destination.resolve(".copperbench/import/report.json"), JSON.toJson(preview.toJson()),
-				StandardCharsets.UTF_8);
-		Files.writeString(destination.resolve(".copperbench/import/source-hash.txt"), before, StandardCharsets.UTF_8);
+		WorkspaceFiles.writeAtomically(destination, destination.resolve(".copperbench/import/report.json"),
+				output -> output.write(JSON.toJson(preview.toJson()).getBytes(StandardCharsets.UTF_8)));
+		WorkspaceFiles.writeAtomically(destination, destination.resolve(".copperbench/import/source-hash.txt"),
+				output -> output.write(before.getBytes(StandardCharsets.UTF_8)));
 		String after = WorkspaceTreeHasher.hash(origin);
 		boolean unchanged = before.equals(after);
 		return new MigrationReport(preview.kind(), preview.sourceGeneratorId(), preview.targetGeneratorId(), before,
@@ -147,31 +145,10 @@ public final class UpstreamWorkspaceImportService {
 	private static Path requireWorkspaceFile(Path sourceRoot) throws IOException {
 		if (sourceRoot == null || !Files.isDirectory(sourceRoot))
 			throw new IllegalArgumentException("Upstream workspace directory is required");
-		Path workspaceFile = sourceRoot.toAbsolutePath().normalize().resolve("workspace.mcreator");
-		if (!Files.isRegularFile(workspaceFile))
+		Path root = WorkspaceFiles.requireDirectory(sourceRoot);
+		Path workspaceFile = WorkspaceFiles.requireWithin(root, root.resolve("workspace.mcreator"));
+		if (!Files.isRegularFile(workspaceFile, LinkOption.NOFOLLOW_LINKS))
 			throw new IllegalArgumentException("Upstream workspace must contain workspace.mcreator");
-		return workspaceFile.toRealPath();
-	}
-
-	private static void copyTree(Path source, Path target) throws IOException {
-		Files.walkFileTree(source, new SimpleFileVisitor<>() {
-			@Override
-			public FileVisitResult preVisitDirectory(Path directory, BasicFileAttributes attributes) throws IOException {
-				if (WorkspaceTreeHasher.excluded(source, directory) && !directory.equals(source))
-					return FileVisitResult.SKIP_SUBTREE;
-				Files.createDirectories(target.resolve(source.relativize(directory)));
-				return FileVisitResult.CONTINUE;
-			}
-
-			@Override
-			public FileVisitResult visitFile(Path file, BasicFileAttributes attributes) throws IOException {
-				if (WorkspaceTreeHasher.excluded(source, file))
-					return FileVisitResult.CONTINUE;
-				Path destination = target.resolve(source.relativize(file));
-				Files.createDirectories(destination.getParent());
-				Files.copy(file, destination, StandardCopyOption.REPLACE_EXISTING);
-				return FileVisitResult.CONTINUE;
-			}
-		});
+		return workspaceFile;
 	}
 }

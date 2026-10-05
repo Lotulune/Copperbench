@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from http.client import IncompleteRead
 from pathlib import Path
 import urllib.error
 import urllib.parse
@@ -44,6 +45,17 @@ TASK_AUTHORIZED_TOOLS = {
     "create_recovery_point", "restore_recovery_point", "publish_datagen_output", "prepare_game_tests",
     "build_workspace", "generate_workspace", "validate_workspace", "run_gametest", "run_datagen", "run_client", "run_server",
 }
+
+# Audited reads only. A new tool, plan/preview issuance, or external probe must
+# remain single-attempt until its effects have been reviewed. Keep the same
+# allowlist in the TypeScript client; shared transport fixtures exercise both.
+RETRY_SAFE_TOOLS = frozenset({
+    "get_workspace", "get_workspace_environment", "get_workspace_health", "get_task",
+    "list_mod_elements", "read_mod_element", "get_procedure", "list_workspace_registries",
+    "get_workspace_references", "list_recovery_points", "list_task_authorizations",
+})
+
+SUCCESS_STATUSES = frozenset({"succeeded", "committed", "accepted", "completed", "cancelled"})
 
 
 class CopperbenchClient:
@@ -188,15 +200,32 @@ class CopperbenchClient:
         if self.task_authorization_id and name in TASK_AUTHORIZED_TOOLS:
             arguments = {"taskAuthorizationId": self.task_authorization_id, **arguments}
         result = self._rpc("tools/call", {"name": name, "arguments": arguments})
+        if "isError" in result and type(result["isError"]) is not bool:
+            raise CopperbenchError(f"Tool {name} returned an invalid isError flag", "MCP_TOOL_RESULT_INVALID", result)
         content = result.get("content") if isinstance(result.get("content"), list) else []
         text = next((item.get("text") for item in content if isinstance(item, dict) and item.get("type") == "text"), None)
         if not isinstance(text, str):
-            raise CopperbenchError(f"Tool {name} returned no JSON content")
-        value = json.loads(text)
-        if value.get("status") in {"rejected", "failed"}:
+            raise CopperbenchError(f"Tool {name} returned no JSON text content", "MCP_TOOL_RESULT_INVALID", result)
+        try:
+            value = json.loads(text)
+        except json.JSONDecodeError as error:
+            raise CopperbenchError(f"Tool {name} returned invalid JSON content", "MCP_TOOL_RESULT_INVALID", result) from error
+        if not isinstance(value, dict):
+            raise CopperbenchError(f"Tool {name} returned a non-object result", "MCP_TOOL_RESULT_INVALID", result)
+        status = value.get("status")
+        if result.get("isError") is True or status in ("rejected", "failed") or (
+            isinstance(value.get("code"), str) and value["code"]
+            and (not isinstance(status, str) or status not in SUCCESS_STATUSES)
+        ):
             diagnostics = value.get("diagnostics") if isinstance(value.get("diagnostics"), list) else []
-            diagnostic = diagnostics[0] if diagnostics and isinstance(diagnostics[0], dict) else {}
-            raise CopperbenchError(f"Tool {name} was rejected", diagnostic.get("code"), value)
+            diagnostic = next((item for item in diagnostics if isinstance(item, dict)
+                               and isinstance(item.get("code"), str) and item["code"]), {})
+            code = value.get("code")
+            if not isinstance(code, str) or not code:
+                code = diagnostic.get("code", "MCP_TOOL_ERROR")
+            raise CopperbenchError(f"Tool {name} failed ({code})", code, value)
+        if not isinstance(status, str) or status not in SUCCESS_STATUSES:
+            raise CopperbenchError(f"Tool {name} returned no recognized result status", "MCP_TOOL_RESULT_INVALID", value)
         return value
 
     def _rpc(self, method: str, params: dict[str, Any], notification: bool = False) -> dict[str, Any]:
@@ -213,38 +242,60 @@ class CopperbenchClient:
         if self._session_id:
             headers["mcp-session-id"] = self._session_id
         request = urllib.request.Request(self.endpoint, json.dumps(body).encode(), headers, method="POST")
-        for attempt in range(self.max_transport_retries + 1):
+        max_retries = self.max_transport_retries if (
+            method == "tools/call" and params.get("name") in RETRY_SAFE_TOOLS
+        ) else 0
+        for attempt in range(max_retries + 1):
             try:
                 with urllib.request.urlopen(request, timeout=self.timeout) as response:
                     raw = response.read().decode()
                     self._session_id = self._session_id or response.headers.get("mcp-session-id")
                 break
             except urllib.error.HTTPError as error:
-                if error.code not in {502, 503, 504} or attempt >= self.max_transport_retries:
-                    raise CopperbenchError(f"MCP HTTP {error.code}", f"HTTP_{error.code}", error.read().decode()) from error
-                error.read()
+                try:
+                    detail = error.read().decode(errors="replace")
+                except (OSError, IncompleteRead):
+                    detail = "HTTP error response body was unavailable"
+                if error.code not in {502, 503, 504} or attempt >= max_retries:
+                    raise CopperbenchError(f"MCP HTTP {error.code}", f"HTTP_{error.code}", detail) from error
                 time.sleep(self.retry_backoff_seconds * 2 ** attempt)
-            except (urllib.error.URLError, TimeoutError, ConnectionError) as error:
-                if attempt >= self.max_transport_retries:
+            except (urllib.error.URLError, TimeoutError, ConnectionError, IncompleteRead) as error:
+                if attempt >= max_retries:
                     raise CopperbenchError("MCP transport failed", "MCP_TRANSPORT_FAILED", str(error)) from error
                 time.sleep(self.retry_backoff_seconds * 2 ** attempt)
+            except UnicodeDecodeError as error:
+                raise CopperbenchError("MCP response is not valid UTF-8", "MCP_RESPONSE_INVALID", str(error)) from error
         if notification:
             return {}
         envelope = _parse_rpc_envelope(raw)
-        if envelope.get("error"):
+        if envelope.get("jsonrpc") != "2.0" or type(envelope.get("id")) is not int or envelope["id"] != body["id"]:
+            raise CopperbenchError("MCP response has an invalid version or request ID", "MCP_RESPONSE_INVALID", envelope)
+        if ("error" in envelope) == ("result" in envelope):
+            raise CopperbenchError("MCP response must contain exactly one result or error", "MCP_RESPONSE_INVALID", envelope)
+        if "error" in envelope:
             error = envelope["error"]
-            raise CopperbenchError(str(error.get("message", "MCP request failed")), str(error.get("code", "MCP_ERROR")), error)
-        return envelope.get("result", {})
+            if (not isinstance(error, dict) or not isinstance(error.get("message"), str)
+                or type(error.get("code")) not in (int, str) or error.get("code") == ""):
+                raise CopperbenchError("MCP response has an invalid JSON-RPC error", "MCP_RESPONSE_INVALID", envelope)
+            raise CopperbenchError(error["message"], str(error["code"]), error)
+        if not isinstance(envelope["result"], dict):
+            raise CopperbenchError("MCP response result must be an object", "MCP_RESPONSE_INVALID", envelope)
+        return envelope["result"]
 
 
 def _parse_rpc_envelope(body: str) -> dict[str, Any]:
     body = body.strip()
-    if body.startswith("{"):
-        return json.loads(body)
-    for line in body.splitlines():
-        if line.startswith("data: "):
-            return json.loads(line[6:])
-    raise CopperbenchError("MCP response did not contain a JSON-RPC envelope", "MCP_RESPONSE_INVALID", body)
+    encoded = body if body.startswith("{") else next(
+        (line[5:].lstrip(" ") for line in body.splitlines() if line.startswith("data:")), None)
+    if encoded is None:
+        raise CopperbenchError("MCP response did not contain a JSON-RPC envelope", "MCP_RESPONSE_INVALID", body)
+    try:
+        envelope = json.loads(encoded)
+    except json.JSONDecodeError as error:
+        raise CopperbenchError("MCP response contained invalid JSON", "MCP_RESPONSE_INVALID", body) from error
+    if not isinstance(envelope, dict):
+        raise CopperbenchError("MCP response envelope must be an object", "MCP_RESPONSE_INVALID", body)
+    return envelope
 
 
 def read_workspace_connection(workspace: str | Path) -> dict[str, str]:

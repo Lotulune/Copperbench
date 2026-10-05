@@ -9,7 +9,7 @@
   "product": {
     "id": "dev.copperbench.studio",
     "name": "Copperbench",
-    "version": "0.1.3",
+    "version": "0.1.4",
     "stage": 17,
     "channel": "stable",
     "targetPlatforms": ["windows-11-x64", "ubuntu-24.04-x86_64"],
@@ -19,20 +19,20 @@
   },
   "delivery": {
     "stableRelease": {
-      "tag": "v0.1.3",
+      "tag": "v0.1.4",
       "linuxTag": "v0.1.3-linux-stable",
-      "status": "public-stable",
-      "linuxStatus": "ready",
+      "status": "ready",
+      "linuxStatus": "public-stable",
       "decision": "approved",
-      "decisionDate": "2026-09-29",
-      "scope": "Windows 11 x64 0.1.3 is public. Linux x86_64 0.1.3 is approved for candidate-CI maintenance publication; full installed acceptance is not repeated.",
-      "sourcePolicy": "Signed latest-main Windows tag; existing protected packaging workflow. Prior stable gates are historical baseline evidence, not fresh 0.1.3 acceptance.",
-      "developmentEvidence": "docs/testing/maintenance-release-0.1.3.md",
-      "integrationReport": "docs/testing/maintenance-release-0.1.3.md"
+      "decisionDate": "2026-10-06",
+      "scope": "Windows 11 x64 0.1.4 Product Shell release is authorized by the user's direct publication request. Linux x86_64 remains at published 0.1.3; this decision does not authorize a new Linux release.",
+      "sourcePolicy": "Signed latest-main Windows tag and existing protected packaging workflow. Historical stable gates and snapshot retain their original source and binary scope; they are not fresh 0.1.4 installed or gameplay acceptance.",
+      "developmentEvidence": "docs/testing/product-shell-release-0.1.4.md",
+      "integrationReport": "docs/testing/product-shell-release-0.1.4.md"
     },
     "linuxMaintenanceRelease": {
       "tag": "v0.1.3-linux-stable",
-      "status": "ready",
+      "status": "public-stable",
       "candidateSourceCommit": "6fd7acfdb0049a875ff1a0f7971d8fa63fb63040",
       "candidateWorkflowRunId": "36583819071",
       "acceptancePolicy": "maintenance-ci-0.1.3",
@@ -93,12 +93,12 @@
       "releaseWorkflowRun": "https://github.com/Lotulune/Copperbench/actions/runs/36352304576"
     },
     "releaseContract": {
-      "tag": "v0.1.3",
-      "purpose": "windows-maintenance-release",
-      "sourcePolicy": "Windows is built from the signed release commit; Linux 0.1.2 remains the published Linux baseline.",
+      "tag": "v0.1.4",
+      "purpose": "windows-product-shell-release",
+      "sourcePolicy": "Windows is built from the signed release commit; Linux 0.1.3 remains the published Linux version without a new Linux authorization.",
       "signedTagRequired": true,
       "productionApprovalRequired": true,
-      "publicStateSource": "https://api.github.com/repos/Lotulune/Copperbench/releases/tags/v0.1.3"
+      "publicStateSource": "https://api.github.com/repos/Lotulune/Copperbench/releases/tags/v0.1.4"
     },
     "betaRelease": {
       "historical": true,

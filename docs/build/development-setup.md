@@ -28,6 +28,8 @@ $env:Path = "$env:JAVA_HOME\bin;$env:Path"
 
 ## 日常验证
 
+按本次改动选择下面的命令；[贡献指南](../../CONTRIBUTING.md#choose-verification-for-the-change)列出了各层对应的检查。`gradlew test` 已通过资源任务构建 UI，同一工作区不需要紧接着再运行一次 `npm run build`；仅改前端、没有运行 Gradle 时，仍应执行前端生产构建。PR 的自动分流规则见[CI 检查选择](../../CONTRIBUTING.md#how-ci-selects-checks)。
+
 ```powershell
 .\gradlew.bat --no-daemon test javadoc
 npm test --prefix ui-core

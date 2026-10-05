@@ -76,14 +76,14 @@ workspace.create_mod_element(
 
 Core 默认采用普通植物、十字模型和植物脚步声。缺少效果返回 `FIELD_REQUIRED_BY_CONDITION`，缺少该模型需要的贴图返回 `FIELD_REQUIRED`；诊断路径指出待补字段，不以泛化持久化错误代替。双层植物还需底部贴图。保存及源码生成不替代资源可用性或游戏行为验收。
 
-元素内部名称和游戏注册名分别读取。创建返回的 `data.element.identity`、`get_mod_element_editor` 的 `data.element.identity` 以及 `list_mod_elements` 的各项 `identity` 使用同一投影，创建后即可查询，无需先重开。例如内部名 `contract_probe_v6` 对应 `identity.internalName=contract_probe_v6`、`identity.registryName=contract_probe_v_6`；受管方块/物品还提供完整 `identity.resourceId=structured_forge:contract_probe_v_6`，编写命令或 GameTest 时使用该字段，不从 `name` 猜注册 ID。合法内部名称的 `element.name` 在重开后保持不变；旧上游工程中不符合公开名称格式的名称仍保留历史列表投影，实际内部名见 `identity.internalName`，不会改写原文件。`identity.source=generator_definition` 只说明生成器定义，不能证明游戏已注册或行为已通过。手写/锁定元素及其他类型不推断完整资源 ID；应依据其实际代码和行为验收。
+元素内部名称和游戏注册名分别读取。创建返回的 `data.element.identity`、MCP `read_mod_element`（Native/Core 对应 `get_mod_element_editor`）的 `data.element.identity` 以及 `list_mod_elements` 的各项 `identity` 使用同一投影，创建后即可查询，无需先重开。例如内部名 `contract_probe_v6` 对应 `identity.internalName=contract_probe_v6`、`identity.registryName=contract_probe_v_6`；受管方块/物品还提供完整 `identity.resourceId=structured_forge:contract_probe_v_6`，编写命令或 GameTest 时使用该字段，不从 `name` 猜注册 ID。合法内部名称的 `element.name` 在重开后保持不变；旧上游工程中不符合公开名称格式的名称仍保留历史列表投影，实际内部名见 `identity.internalName`，不会改写原文件。`identity.source=generator_definition` 只说明生成器定义，不能证明游戏已注册或行为已通过。手写/锁定元素及其他类型不推断完整资源 ID；应依据其实际代码和行为验收。
 
 ```python
 editor = workspace.query("get_mod_element_editor", elementId=element_id)["data"]
 resource_id = editor["element"]["identity"].get("resourceId")
 ```
 
-等价 MCP 请求为 `get_mod_element_editor({"elementId":"元素 UUID"})`；列表可投影 `fields=["id","name","identity"]`。这些都是只读查询，不携带 `expectedRevision`。
+等价 MCP 请求为 `read_mod_element({"elementId":"元素 UUID"})`。`get_mod_element_editor` 是 Native/Core 查询操作名，供上面的 `workspace.query(...)` 使用，并不是 MCP 工具名；MCP 客户端应按服务端 `tools/list` 发现工具。列表可投影 `fields=["id","name","identity"]`。这些都是只读查询，不携带 `expectedRevision`。
 
 工作区缺少生成器依赖缓存时，字段修改仍会保存真实定义，但不会写出缺少导入的 Java。此时编辑器的 `configuration.generationState` 为 `pending`。运行公开的 `generate()` 或 `build()`，并等待返回的任务终态；任务会先准备依赖、建立类型索引，再生成受管源码。不带待生成标记的旧冷工程也会在直接构建时准备受管源码；代码锁定元素和 Code 元素保持原有所有权。普通字段查询和修改不会因此下载依赖。准备期间输入变化或目标源码被外部修改会拒绝生成，分别报告 `GENERATION_INPUT_CHANGED` / `GENERATION_SOURCE_CONFLICT`，应审查当前文件后重新操作；不要手工补导入掩盖准备失败。
 
