@@ -1,6 +1,6 @@
 # Minecraft Mod Creator 产品需求文档
 
-> 状态：需求基线 v1（阶段 0–7 已关闭；阶段 8 历史见 [阶段 8 路线](./docs/roadmap/stage-8-windows-beta-ga.md)；当前需求见 [PRD-NEXT.md](./PRD-NEXT.md)）<br>
+> 状态：历史需求基线 v1（阶段 0–7 已关闭；阶段 8 历史见 [阶段 8 路线](./docs/roadmap/stage-8-windows-beta-ga.md)；当前交付和维护入口见 [项目文档导航](./docs/README.md)，后续历史需求见 [PRD-NEXT.md](./PRD-NEXT.md)）<br>
 > 更新日期：2026-08-22  
 > 首发平台：Windows 11 x64（Windows 10 不支持）  
 > 开源许可：GPL-3.0，保留并兼容 MCreator 插件生态  

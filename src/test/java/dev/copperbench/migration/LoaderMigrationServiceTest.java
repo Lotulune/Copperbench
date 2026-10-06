@@ -19,6 +19,7 @@ import dev.copperbench.tracks.VersionTrackCatalog;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -28,7 +29,9 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.abort;
 
 class LoaderMigrationServiceTest {
 
@@ -99,6 +102,122 @@ class LoaderMigrationServiceTest {
 				.getAsJsonObject();
 		assertTrue(persistedReport.getAsJsonObject("semanticComparison").get("generatorChanged").getAsBoolean());
 		assertEquals(1, persistedReport.getAsJsonObject("semanticComparison").get("preservedElementCount").getAsInt());
+	}
+
+	@Test void executeRejectsSourceFileLinksBeforeCreatingTheTarget() throws Exception {
+		Path source = sourceWorkspace();
+		String descriptorBefore = Files.readString(source.resolve("workspace.mcreator"));
+		Path outside = temp.resolve("external-document.txt");
+		Files.writeString(outside, "private fixture content");
+		createFileLink(source.resolve("copied-secret.txt"), outside);
+		Path target = temp.resolve("copy");
+
+		assertThrows(IOException.class, () -> service.execute(workspace(false), "neoforge-1.21.1", source, target));
+
+		assertFalse(Files.exists(target), "A rejected source must not leave a partial migration");
+		assertEquals(descriptorBefore, Files.readString(source.resolve("workspace.mcreator")));
+		assertEquals("private fixture content", Files.readString(outside));
+	}
+
+	@Test void executeRejectsSiblingTargetLinkedIntoAnExcludedSourceDirectory() throws Exception {
+		Path source = sourceWorkspace();
+		Path internal = Files.createDirectory(source.resolve("internal.tmp"));
+		Path target = temp.resolve("copy");
+		createDirectoryLink(target, internal);
+		String before = WorkspaceTreeHasher.hash(source);
+
+		assertThrows(IOException.class, () -> service.execute(workspace(false), "neoforge-1.21.1", source, target));
+
+		assertEquals(before, WorkspaceTreeHasher.hash(source));
+		try (var children = Files.list(internal)) {
+			assertTrue(children.findAny().isEmpty(), "Source hash exclusions must not hide migration writes");
+		}
+	}
+
+	@Test void executeRejectsTargetWithARedirectedAncestorBeforeCreatingMissingParents() throws Exception {
+		Path source = sourceWorkspace();
+		Path outside = Files.createDirectory(temp.resolve("outside"));
+		Path linkedParent = temp.resolve("linked-output");
+		createDirectoryLink(linkedParent, outside);
+		Path target = linkedParent.resolve("not-created/copy");
+		String before = WorkspaceTreeHasher.hash(source);
+
+		assertThrows(IOException.class, () -> service.execute(workspace(false), "neoforge-1.21.1", source, target));
+
+		assertFalse(Files.exists(outside.resolve("not-created")), "Reject before creating directories through a link");
+		assertEquals(before, WorkspaceTreeHasher.hash(source));
+	}
+
+	@Test void executeRejectsWorkspaceDescriptorsLinkedOutsideTheSource() throws Exception {
+		Path source = sourceWorkspace();
+		Path descriptor = source.resolve("workspace.mcreator");
+		Path outside = Files.createDirectory(temp.resolve("outside"));
+		Path externalDescriptor = Files.move(descriptor, outside.resolve("workspace.mcreator"));
+		String before = Files.readString(externalDescriptor);
+		createFileLink(descriptor, externalDescriptor);
+		Path target = temp.resolve("copy");
+
+		assertThrows(IOException.class, () -> service.execute(workspace(false), "neoforge-1.21.1", source, target));
+
+		assertFalse(Files.exists(target));
+		assertEquals(before, Files.readString(externalDescriptor));
+	}
+
+	@Test void executeCreatesMissingTargetParentsForAnOrdinarySiblingDirectory() throws Exception {
+		Path source = sourceWorkspace();
+		String before = WorkspaceTreeHasher.hash(source);
+		Path target = temp.resolve("new-parent/nested/copy");
+
+		MigrationReport report = service.execute(workspace(false), "neoforge-1.21.1", source, target);
+
+		assertTrue(report.complete());
+		assertTrue(report.sourceUnchanged());
+		assertEquals(before, WorkspaceTreeHasher.hash(source));
+		assertEquals("neoforge-1.21.1", JsonParser.parseString(Files.readString(target.resolve("workspace.mcreator")))
+				.getAsJsonObject().getAsJsonObject("workspaceSettings").get("currentGenerator").getAsString());
+		assertTrue(Files.isRegularFile(target.resolve("migration-report.json")));
+	}
+
+	@Test void executeAcceptsAnExistingEmptyTargetDirectory() throws Exception {
+		Path source = sourceWorkspace();
+		String before = WorkspaceTreeHasher.hash(source);
+		Path target = Files.createDirectory(temp.resolve("existing-copy"));
+
+		MigrationReport report = service.execute(workspace(false), "neoforge-1.21.1", source, target);
+
+		assertTrue(report.complete());
+		assertTrue(report.sourceUnchanged());
+		assertEquals(before, WorkspaceTreeHasher.hash(source));
+		assertEquals("neoforge-1.21.1", JsonParser.parseString(Files.readString(target.resolve("workspace.mcreator")))
+				.getAsJsonObject().getAsJsonObject("workspaceSettings").get("currentGenerator").getAsString());
+		assertTrue(Files.isRegularFile(target.resolve("migration-report.json")));
+	}
+
+	private Path sourceWorkspace() throws IOException {
+		Path source = Files.createDirectory(temp.resolve("source"));
+		Files.writeString(source.resolve("workspace.mcreator"), """
+				{"workspaceSettings":{"modName":"Copper Trails","currentGenerator":"fabric-1.21.1"}}
+				""", StandardCharsets.UTF_8);
+		return source;
+	}
+
+	private static void createFileLink(Path link, Path target) {
+		try {
+			Files.createSymbolicLink(link, target);
+		} catch (UnsupportedOperationException | IOException exception) {
+			abort("File symbolic links are unavailable in this test environment: " + exception.getMessage());
+		}
+	}
+
+	private static void createDirectoryLink(Path link, Path target) throws Exception {
+		if (java.io.File.separatorChar == '\\') {
+			Process process = new ProcessBuilder("cmd.exe", "/c", "mklink", "/J", link.toString(), target.toString())
+					.redirectErrorStream(true).start();
+			String detail = new String(process.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+			assertEquals(0, process.waitFor(), detail);
+		} else {
+			Files.createSymbolicLink(link, target);
+		}
 	}
 
 	private static MigrationReport.MigrationItem item(MigrationReport report, String path) {

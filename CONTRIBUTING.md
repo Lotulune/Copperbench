@@ -1,49 +1,80 @@
-If you are interested in helping with MCreator development, you are welcome to support this project by 
-opening pull requests. Even if you do not code, you can help by [contributing translations](https://translate.mcreator.net/), [in-app tips](https://github.com/MCreator/MCreator/tree/master/plugins/mcreator-localization/help), or
-by [donating](https://mcreator.net/donate).
+# Contributing to Copperbench
 
-# General contributing tips
+Copperbench is an independent derivative of MCreator. Use this repository's [issue tracker](https://github.com/Lotulune/Copperbench/issues) for Copperbench bugs and proposals, and open pull requests against **`main`**. Upstream source and attribution records are in [UPSTREAM.md](UPSTREAM.md).
 
-* **Always prioritize bug fixes and Minecraft version updates before new features. We may close new features when bug fixes or generator updates are needed due to limited reviewing resources we have.**
-* **Check, try, test existing PRs and leave feedback** of other contributors and leave feedback on them (test on different Minecraft versions, test on your workspaces, ...). This helps maintainers with the reviewing process a lot.
-* A good starting point into contributing is fixing or adding one of the features requested on our forums or bug reports from the issue tracker
-* Follow existing code style, naming conventions, and UI/UX philosophy as much as possible, texts in UI should be written "Everywhere like this" and not "Do Not Write Like This"
-* When adding features to code generators, make sure to cover all generators currently supported
-* Maintainers of this project do this for a hobby. There might be cases of slow responses, or even inability to review or merge PR due to its scope and our (time) inability to review it properly or assist with changes needed to make it acceptable for merge.
-* Be human, we are humans too, keep the community positive when collaborating with contributors and maintainers :)
+Bug reports are useful contributions. Include the Copperbench version, operating system and desktop session, generator, steps to reproduce, and the expected and actual result. The bug-report form accepts Windows 11 and Ubuntu 24.04 GNOME Wayland/Xorg. Review diagnostic bundles before attaching them; include only information needed to reproduce the problem.
 
-# Pull request rules
+## Run from source
 
-Some features might not be accepted into the core if they do not follow our guidelines, are low quality, or steer MCreator away from its roadmap 
-or do not fit the current UX flow of the application. Too specific features that would make UI more complex, but would not be beneficial to the
-most of the users might be rejected too, or suggested to be distributed in a plugin format. Expect comments on code after the code review. You will likely
-need to change some code parts based on the maintainer's suggestions.
+Use JDK 25 (JetBrains Runtime with JCEF for the desktop shell), Node.js 22, npm and Git. Python SDK tests require Python 3.11 or later. PowerShell scripts require PowerShell 7. See the [development setup guide](docs/build/development-setup.md) for JDK configuration and Windows launcher troubleshooting.
 
-General rules on pull requests are:
+From the repository root:
 
-* The contributed code must pass all tests and be mergeable into the master branch.
-* **Separate different features in different pull requests.**
-* **Surprise PRs will likely get closed.** This means PRs that alter a lot of code or change UX dynamics without discussion with maintainers will likely get closed. These PRs usually diverge from our roadmap too much and/or take too much resources to review compared to benefit aligned with the roadmap. We are aware these PRs usually take a lot of time and effort to make, but sometimes hard decisions need to be made.
-* **Avoid big PRs.** Similar as the previous rule. They will be likely take much more time to review. Large PRs might not be accepted due to amount of code reviewing and testing needed. Similar rule applies to PRs that significantly change core implementation.
-* **PRs with low code quality, bugs (or code that seems untested), may be closed without further comments.** PRs from contributors breaking this rule multiple times may no longer be accepted.
-* Refactoring the code or code cleanup just for the sake of it is not desired. Such PRs can introduce bugs on the cost of making the code prettier. We may close such PRs if we consider them as not needed.
-* Prepare a changelog of your pull request that is ready to be used in the final MCreator changelog
-* Add tests for features you added with the PR, if new fields were added to mod elements, update TestWorkspaceDataProvider
-* If a contributor opens multiple new PRs without finishing old ones, we may assume the older PRs are no longer in their interest and close them, so other contributors and maintainers don't spend too much time reviewing PRs that will likely not get merged down the road.
+```sh
+npm ci --prefix ui-core
+npm ci --prefix ui-shell
+./gradlew runProductShell
+```
 
-Some more useful resources on PRs and contributing code that help the keep code and community spirit better (worth reading as these tips apply to other open-source projects too):
+On Windows, use `.\gradlew.bat` instead of `./gradlew`. Use the repository's Gradle Wrapper throughout. Initial dependency downloads require network access.
 
-* [A Polite Guide to Pull Requests](https://thenewstack.io/code-n00b-polite-guide-pull-requests/)
-* [The (written) unwritten guide to pull requests](https://www.atlassian.com/blog/git/written-unwritten-guide-pull-requests)
-* [Pull Request Etiquette for Reviewers and Authors](https://betterprogramming.pub/pull-request-etiquettes-for-reviewer-and-author-f4e80360f92c)
+## Choose verification for the change
 
-Getting started tips on actual code development for MCreator can be found on [MCreator developers wiki](https://github.com/MCreator/MCreator/wiki).
+Run the checks for the affected layer. A documentation correction needs link and content checks; it does not require an unrelated gameplay replay. Report exactly what ran, what passed or failed, and what the environment prevented you from checking.
 
-# CLA
+| Changed layer | Useful local checks |
+| --- | --- |
+| Documentation | `node scripts/verify-markdown-links.mjs`; check current download links against [GitHub Releases](https://github.com/Lotulune/Copperbench/releases). |
+| Java implementation | Run the relevant class with Gradle, for example `./gradlew --no-daemon test --tests dev.copperbench.bridge.JcefWindowBridgeTransportTest`. Use `./gradlew --no-daemon test` for a broader Java regression when needed. Public Java API changes also use `./gradlew javadoc`. |
+| Shared UI-Core schemas | `npm test --prefix ui-core` |
+| UI implementation | `npm test --prefix ui-shell` and `npm run build --prefix ui-shell`, then the affected Playwright spec. The existing startup smoke checks are `npm run test:e2e --prefix ui-shell -- e2e/scenarios.spec.ts e2e/new-workspace.spec.ts --project=chromium`. |
+| Python SDK | `python -m unittest discover -s sdk/python -p 'test_*.py'`; native process and desktop integration checks are documented in [sdk/python/README.md](sdk/python/README.md). |
+| TypeScript SDK | After `npm ci --prefix ui-shell`, run `npm run test:sdk --prefix ui-shell`; it uses the UI shell's TypeScript development dependency. |
+| MCP transport or tool contracts | `pwsh -NoProfile -File ./scripts/verify-mcp-conformance.ps1 -OutputDirectory build/mcp-conformance-results`; consult [MCP setup](docs/ai/getting-started.md) and the affected Java tests. |
+| Product status or release declarations | `node scripts/verify-product-status.mjs`; verify publication and package-specific acceptance separately. |
 
-Before we can use your code, you must sign the [MCreator CLA](https://cla-assistant.io/MCreator/MCreator), which you can do online.
-The CLA is necessary mainly because you own the copyright to your changes, even after your contribution 
-becomes part of our codebase, so we need your permission to use and distribute your code. We also need to be sure 
-of various other things—for instance that you'll tell us if you know that your code infringes on other people's patents. 
-You don't have to sign the CLA until after you've submitted your code for review, and we approved it, but you must do it before
- we can put your code into our codebase.
+Before the first Playwright run, install Chromium from `ui-shell` with `npx playwright install chromium`. Java tests that create windows require a display; the Linux CI uses Xvfb. Generator, installed-product and Minecraft gameplay changes need the relevant runtime evidence described in [AGENTS.md](AGENTS.md) and the corresponding existing test guide; a successful build alone does not establish gameplay correctness.
+
+## How CI selects checks
+
+[Build and test](.github/workflows/test.yml) runs once for each PR update. Pushes to `main` and manual runs keep the full Java, UI and Windows MCP regression. Feature branches use the PR run rather than a second push-triggered run; use a draft PR or a manual run for a branch that is not ready for review.
+
+The three required check names remain **Java tests and Javadoc**, **UI contract, build, and smoke tests**, and **MCP conformance**. PRs use the following routing:
+
+| PR changes | Checks that run |
+| --- | --- |
+| Recognized repository guides and `docs/**/*.md` | Markdown links and product status; no JDK, npm dependencies, Chromium, or Windows runner. |
+| Python MCP client `sdk/python/copperbench.py` or Python unit tests | Python SDK tests plus the always-on repository checks. |
+| TypeScript SDK | TypeScript SDK tests and the existing connection-file security regression plus repository checks; installs the UI shell development dependencies, without a UI build or Chromium. |
+| Shared MCP fixtures or `sdk/protocol.md` | Both SDK test suites plus repository checks. |
+| Allowlisted ordinary editors, translation dictionaries, local CSS, UI tests, Playwright configuration and fixtures | UI contract tests, production build, bridge/localization tests, and the five Chromium smoke specs, including desktop MCP permission selection. |
+| UI-Core test/validation code | UI contract tests plus repository checks. |
+| Java, native Python integration, startup/native UI, shared schemas, production build/dependency configuration, CI itself, or any unrecognized path | Full Java, frontend and Windows MCP regression. |
+
+Mixed changes take the union of their checks. A missing or ambiguous Git comparison selects the full regression. If the selector itself fails or emits invalid outputs, the required checks fail; they only skip after a successful explicit decision. The workflow is always triggered for PRs so a documentation-only change does not leave a required check permanently pending. Its Actions summary lists the selected checks.
+
+The small allowlist is in [scripts/ci/select_checks.py](scripts/ci/select_checks.py). Inspect a proposed change locally with:
+
+```sh
+python scripts/ci/select_checks.py --paths README.md
+python scripts/ci/select_checks.py --paths sdk/python/copperbench.py sdk/tests/mcp-client-reliability.json
+python -m unittest discover -s scripts/tests -p 'test_ci_selection.py'
+```
+
+For UI changes outside the five PR smoke specs, run the affected Playwright cases locally as well. The daily [Nightly product gates](.github/workflows/nightly.yml) keep the full Chromium suite, Java scale regression and eight generator tracks. Nightly and Windows release tests already build the UI through Gradle's `processResources → buildUiShell` dependency; they do not need another explicit `npm run build` in the same job.
+
+[Linux candidate validation](.github/workflows/stage15-linux-candidate.yml) keeps its separate package, JCEF and Minecraft render checks. PRs that only change allowlisted editors, dictionaries, local styles or frontend tests skip that workflow; native integration, startup and packaging changes retain it. `main` uses broader package-input coverage and manual runs remain available. A passing candidate workflow still does not replace installed-product or gameplay acceptance.
+
+## Prepare a pull request
+
+- Keep each change focused on one problem and preserve unrelated working-tree changes.
+- Explain the problem, the resulting behavior, and the checks that support it. Record remaining limits, especially where a test uses a fixture or simulated host.
+- Follow the surrounding code and UI conventions. Update the public contract, examples or user guide when behavior changes; retain unknown workspace fields and source ownership rules.
+- For a reproduced bug, add a focused regression where it can verify the failure. Use existing tests and fixtures where they cover the behavior.
+- Keep JDKs, dependency caches, build outputs, credentials and user workspaces out of commits.
+
+## Upstream and release records
+
+Preserve existing copyright headers, third-party notices and the [project license](LICENSE.txt). Follow [UPSTREAM.md](UPSTREAM.md) for imported or changed upstream code and record the change in [CHANGES-FROM-UPSTREAM.md](CHANGES-FROM-UPSTREAM.md).
+
+[Current downloads](docs/releases/current.md) is the entry point for published platform versions. Update that index when a release is published. Keep previous release notes, source commits, binary hashes and acceptance records tied to the version they describe; a source change or passing test does not publish a package.

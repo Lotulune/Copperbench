@@ -5,7 +5,7 @@ Copperbench 发布未签名的 Windows 11 x64 安装包。稳定版使用 `vX.Y.
 ## 发布前提
 
 1. `main` 的 `Build and test`、`Generate documentation` 全部通过。
-2. `product.version`、发布说明和目标 Tag 一致。
+2. `src/main/resources/mcreator.conf`、`product-status.json`、`ui-shell/package.json` / `package-lock.json` 与发布说明、目标 Tag 版本一致；同步 [release-notes 夹具](../../ui-core/fixtures/v1.0/release/release-notes.json)中的当前产品与第一方插件版本，以及 UI 帮助页（`userGuide.ts`）、握手身份（`CoreBridge.ts`）和相关测试期望。保留第三方依赖版本和历史支持记录。
 3. Tag 是由 `.github/release-signers` 中允许签名者签署的 annotated Tag，指向干净、已推送且等于最新 `main` HEAD 的提交，格式为 `vX.Y.Z` 或 `vX.Y.Z-preview.N`。
 4. Stage 9 未关闭门禁仍明确标为开发预览，不能写成正式支持。
 5. GitHub `production` Environment 建议配置必需审阅者。

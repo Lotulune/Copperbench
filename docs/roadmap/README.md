@@ -2,13 +2,13 @@
 
 本路线图不承诺日历日期。阶段按可验证依赖排序，每个阶段只有通过对应门禁才能退出；团队规模和实际吞吐确定后再估算时间。
 
-## 当前下一阶段（2026-09-20）
+## 当前交付与维护
 
-[Stage 17：编辑一致性、可信诊断与复杂 Mod 制作体验](../../PRD-STAGE-17.md) 已进入收尾。17A～17C 已有固定候选、双平台和 UI/任务证据；v37 独立模型客户端保存重进和本轮正常退出终态已复核，仍待跨进程恢复、MCP 清理及两处默认值修正的新候选验证，阶段未关闭。依据为[收尾复核](../testing/stage-17-closeout-review-2026-09-26.md)及[最终门禁核对](../testing/stage-17-final-gate-review-2026-09-25.md)。
+Windows / Linux **0.1.4** 均已发布，包含新版 Product Shell、源码编辑、关系图和资产预览，见[当前下载](../releases/current.md)。[Stage 17](../../PRD-STAGE-17.md) 已完成，历史收尾见[发布记录](../testing/stage17-stable-publication-2026-09-27.md)。后续工作以[持续维护清单](../remaining-work.md)为准。
 
 Stage 10～15 的后续记录见 [PRD-NEXT](../../PRD-NEXT.md)，[Stage 16](./stage-16-agent-reliability.md) 和 [Blockbench 专项](../../PRD-BLOCKBENCH.md) 保留各自历史验收范围。下方阶段 0～9 及早期 UI/首版范围说明作为历史路线保存，不代表当前支持范围重新回退。
 
-## 阶段总览
+## 历史阶段总览（0–9）
 
 | 阶段 | 名称 | 主要结果 | 依赖 |
 | --- | --- | --- | --- |
@@ -23,7 +23,7 @@ Stage 10～15 的后续记录见 [PRD-NEXT](../../PRD-NEXT.md)，[Stage 16](./st
 | 8 | [Windows Beta 与正式发布](./stage-8-windows-beta-ga.md) | 阶段 8 已收口；后续可信预览见 [`PRD-NEXT.md`](../../PRD-NEXT.md) | 0-7 |
 | 9 | [可视化逻辑与创作者核心](../../PRD-STAGE-9.md) | Procedure、工作区数据、数据驱动元素和服务端验证闭环 | 8 |
 
-## UI 并行工作流
+## 历史 UI 并行工作流
 
 UI 不需要等待阶段 3 才开始，但不得提前绑定未稳定的核心内部类。
 
@@ -37,7 +37,7 @@ UI 不需要等待阶段 3 才开始，但不得提前绑定未稳定的核心�
 
 截至 2026-08-25：U0–U2 与 G4 自动化完成。阶段 7 G 切片已落地；U3 交接见 [`u3-stage-7-ui-brief.md`](../handoffs/u3-stage-7-ui-brief.md)。阶段 8 的新建工作区落盘/三入口、八插件空工程、资产页、资源包工作区、离线宣称、当前 Windows 预览包导出、授权后的安装演练和 Hyper-V G7 最终复验均有证据；发布记录见 [`stage-8-release-preview-2026-08-23.md`](../testing/stage-8-release-preview-2026-08-23.md)。G7 已通过，VMware 不属于门禁。阶段 9 的创作者核心闭环正在实施，当前证据见 [`stage-9-creator-core-2026-08-25.md`](../testing/stage-9-creator-core-2026-08-25.md)；未通过 G9.5 前不进入正式支持声明。
 
-## 首个正式版本定义
+## 首期范围定义（历史）
 
 首个正式版本是仅支持 Windows 11 x64、离线优先、公开 GPL 的 MCreator 分支产品。它内置 Fabric 与 NeoForge，维护最新稳定版、前一个稳定版、1.21.1 和 1.20.1，提供本地 Git 历史、第一方 MCP、headless 构建/校验/导出、资源包能力和 Blockbench 往返。
 

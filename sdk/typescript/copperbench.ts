@@ -207,14 +207,36 @@ export class CopperbenchClient {
       argumentsValue = { taskAuthorizationId: this.options.taskAuthorizationId, ...argumentsValue };
     }
     return this.rpc('tools/call', { name, arguments: argumentsValue }).then((result) => {
+      if ('isError' in result && typeof result.isError !== 'boolean') {
+        throw new CopperbenchError(`Tool ${name} returned an invalid isError flag`, 'MCP_TOOL_RESULT_INVALID', result);
+      }
       const content = Array.isArray(result.content) ? result.content : [];
       const textItem = content.find((item) => item && typeof item === 'object' && (item as JsonObject).type === 'text') as JsonObject | undefined;
       const text = textItem?.text;
-      if (typeof text !== 'string') throw new CopperbenchError(`Tool ${name} returned no JSON content`);
-      const value = JSON.parse(text) as JsonObject;
-      if (value.status === 'rejected' || value.status === 'failed') {
-        const diagnostic = Array.isArray(value.diagnostics) ? value.diagnostics[0] as JsonObject | undefined : undefined;
-        throw new CopperbenchError(`Tool ${name} was rejected`, typeof diagnostic?.code === 'string' ? diagnostic.code : undefined, value);
+      if (typeof text !== 'string') {
+        throw new CopperbenchError(`Tool ${name} returned no JSON text content`, 'MCP_TOOL_RESULT_INVALID', result);
+      }
+      let value: unknown;
+      try {
+        value = JSON.parse(text);
+      } catch {
+        throw new CopperbenchError(`Tool ${name} returned invalid JSON content`, 'MCP_TOOL_RESULT_INVALID', result);
+      }
+      if (!isJsonObject(value)) {
+        throw new CopperbenchError(`Tool ${name} returned a non-object result`, 'MCP_TOOL_RESULT_INVALID', result);
+      }
+      if (result.isError === true || value.status === 'rejected' || value.status === 'failed'
+        || (typeof value.code === 'string' && value.code
+          && (typeof value.status !== 'string' || !SUCCESS_STATUSES.has(value.status)))) {
+        const diagnostic = Array.isArray(value.diagnostics)
+          ? value.diagnostics.find((item) => isJsonObject(item) && typeof item.code === 'string' && item.code) as JsonObject | undefined
+          : undefined;
+        const code = typeof value.code === 'string' && value.code ? value.code
+          : typeof diagnostic?.code === 'string' ? diagnostic.code : 'MCP_TOOL_ERROR';
+        throw new CopperbenchError(`Tool ${name} failed (${code})`, code, value);
+      }
+      if (typeof value.status !== 'string' || !SUCCESS_STATUSES.has(value.status)) {
+        throw new CopperbenchError(`Tool ${name} returned no recognized result status`, 'MCP_TOOL_RESULT_INVALID', value);
       }
       return value;
     });
@@ -231,30 +253,56 @@ export class CopperbenchClient {
     const body: JsonObject = { jsonrpc: '2.0', method, params };
     if (!notification) body.id = this.nextRequestId++;
     let response: Response | undefined;
-    const maxRetries = Math.max(0, Math.min(2, this.options.maxTransportRetries ?? 2));
+    let raw = '';
+    const retrySafe = method === 'tools/call' && typeof params.name === 'string' && RETRY_SAFE_TOOLS.has(params.name);
+    const maxRetries = retrySafe ? Math.max(0, Math.min(2, this.options.maxTransportRetries ?? 2)) : 0;
     const backoffMs = Math.max(0, this.options.retryBackoffMs ?? 100);
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
         response = await this.request(this.options.endpoint, { method: 'POST', headers, body: JSON.stringify(body) });
+        if (response.ok) {
+          raw = await response.text();
+        } else {
+          try {
+            raw = await response.text();
+          } catch {
+            // A broken error body must not turn a 4xx denial into a retryable
+            // transport failure, or hide the status of an uncertain write.
+            raw = 'HTTP error response body was unavailable';
+          }
+        }
       } catch (error) {
         if (attempt >= maxRetries) throw new CopperbenchError('MCP transport failed', 'MCP_TRANSPORT_FAILED', error);
         await new Promise((resolve) => setTimeout(resolve, backoffMs * 2 ** attempt));
         continue;
       }
       if (response.ok || ![502, 503, 504].includes(response.status) || attempt >= maxRetries) break;
-      await response.arrayBuffer();
       await new Promise((resolve) => setTimeout(resolve, backoffMs * 2 ** attempt));
     }
     if (!response) throw new CopperbenchError('MCP transport failed', 'MCP_TRANSPORT_FAILED');
-    if (!response.ok) throw new CopperbenchError(`MCP HTTP ${response.status}`, `HTTP_${response.status}`, await response.text());
+    if (!response.ok) throw new CopperbenchError(`MCP HTTP ${response.status}`, `HTTP_${response.status}`, raw);
     this.sessionId ??= response.headers.get('mcp-session-id') ?? undefined;
     if (notification) return {};
-    const envelope = parseRpcEnvelope(await response.text());
-    if (envelope.error) {
-      const error = envelope.error as JsonObject;
-      throw new CopperbenchError(String(error.message ?? 'MCP request failed'), String(error.code ?? 'MCP_ERROR'), error);
+    const envelope = parseRpcEnvelope(raw);
+    if (envelope.jsonrpc !== '2.0' || envelope.id !== body.id) {
+      throw new CopperbenchError('MCP response has an invalid version or request ID', 'MCP_RESPONSE_INVALID', envelope);
     }
-    return (envelope.result ?? {}) as JsonObject;
+    if (('error' in envelope) === ('result' in envelope)) {
+      throw new CopperbenchError('MCP response must contain exactly one result or error', 'MCP_RESPONSE_INVALID', envelope);
+    }
+    if ('error' in envelope) {
+      const error = envelope.error;
+      if (!isJsonObject(error) || typeof error.message !== 'string'
+        || !((typeof error.code === 'number' && Number.isInteger(error.code))
+          || (typeof error.code === 'string' && error.code.length > 0))) {
+        throw new CopperbenchError('MCP response has an invalid JSON-RPC error', 'MCP_RESPONSE_INVALID', envelope);
+      }
+      throw new CopperbenchError(error.message, String(error.code), error);
+    }
+    if (!isJsonObject(envelope.result)) {
+      throw new CopperbenchError('MCP response result must be an object', 'MCP_RESPONSE_INVALID', envelope);
+    }
+    return envelope.result;
   }
 }
 
@@ -266,12 +314,37 @@ const TASK_AUTHORIZED_TOOLS = new Set([
   'build_workspace', 'generate_workspace', 'validate_workspace', 'run_gametest', 'run_datagen', 'run_client', 'run_server'
 ]);
 
+// Audited reads only. Plans, previews, external probes and unknown/new tools
+// remain single-attempt. Shared transport fixtures exercise the Python parity.
+const RETRY_SAFE_TOOLS = new Set([
+  'get_workspace', 'get_workspace_environment', 'get_workspace_health', 'get_task',
+  'list_mod_elements', 'read_mod_element', 'get_procedure', 'list_workspace_registries',
+  'get_workspace_references', 'list_recovery_points', 'list_task_authorizations'
+]);
+
+const SUCCESS_STATUSES = new Set(['succeeded', 'committed', 'accepted', 'completed', 'cancelled']);
+
+function isJsonObject(value: unknown): value is JsonObject {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
 function parseRpcEnvelope(body: string): JsonObject {
   const trimmed = body.trim();
-  if (trimmed.startsWith('{')) return JSON.parse(trimmed) as JsonObject;
-  const line = trimmed.split(/\r?\n/).find((value) => value.startsWith('data: '));
-  if (!line) throw new CopperbenchError('MCP response did not contain a JSON-RPC envelope', 'MCP_RESPONSE_INVALID', body);
-  return JSON.parse(line.slice(6)) as JsonObject;
+  const encoded = trimmed.startsWith('{') ? trimmed
+    : trimmed.split(/\r?\n/).find((line) => line.startsWith('data:'))?.slice(5).trimStart();
+  if (encoded === undefined) {
+    throw new CopperbenchError('MCP response did not contain a JSON-RPC envelope', 'MCP_RESPONSE_INVALID', body);
+  }
+  let envelope: unknown;
+  try {
+    envelope = JSON.parse(encoded);
+  } catch {
+    throw new CopperbenchError('MCP response contained invalid JSON', 'MCP_RESPONSE_INVALID', body);
+  }
+  if (!isJsonObject(envelope)) {
+    throw new CopperbenchError('MCP response envelope must be an object', 'MCP_RESPONSE_INVALID', body);
+  }
+  return envelope;
 }
 
 export function readWorkspaceConnection(workspacePath: string): WorkspaceConnection {

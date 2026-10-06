@@ -103,8 +103,10 @@ jobs:
           if ! gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json isDraft,assets > draft-state.json; then
             prerelease=true
             [[ "$RELEASE_TAG" != *-linux-stable ]] || prerelease=false
+            notes_file="docs/releases/${RELEASE_TAG%%-linux-*}-linux.md"
+            test -f "$notes_file"
             gh release create "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --verify-tag --draft "--prerelease=$prerelease" \
-              --title "Copperbench $RELEASE_TAG — Linux x86_64" --notes-file docs/releases/linux-release-notes.md
+              --title "Copperbench $RELEASE_TAG — Linux x86_64" --notes-file "$notes_file"
             gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json isDraft,assets > draft-state.json
           fi
           node scripts/verify-linux-release-authorization.mjs --draft-state draft-state.json --payload payload --missing-list missing-assets.txt

@@ -9,18 +9,19 @@
 
 package dev.copperbench.migration;
 
+import dev.copperbench.core.workspace.WorkspaceFiles;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Comparator;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Locale;
-import java.util.stream.Stream;
 
 /** Deterministic SHA-256 of a workspace tree, excluding Git metadata and OS junk. */
 public final class WorkspaceTreeHasher {
@@ -29,17 +30,14 @@ public final class WorkspaceTreeHasher {
 	}
 
 	public static String hash(Path root) throws IOException {
-		Path real = root.toRealPath();
+		Path real = WorkspaceFiles.requireDirectory(root);
 		MessageDigest digest = sha256();
-		List<Path> files;
-		try (Stream<Path> stream = Files.walk(real)) {
-			files = stream.filter(Files::isRegularFile).filter(path -> !excluded(real, path))
-					.sorted(Comparator.comparing(path -> normalize(real.relativize(path)))).toList();
-		}
+		List<Path> files = WorkspaceFiles.regularFiles(real, relative -> excluded(real, real.resolve(relative)));
 		for (Path file : files) {
+			WorkspaceFiles.requireRegularFile(real, file);
 			digest.update(normalize(real.relativize(file)).getBytes(StandardCharsets.UTF_8));
 			digest.update((byte) 0);
-			try (InputStream input = Files.newInputStream(file)) {
+			try (InputStream input = Files.newInputStream(file, LinkOption.NOFOLLOW_LINKS)) {
 				byte[] buffer = new byte[8192];
 				int read;
 				while ((read = input.read(buffer)) != -1)

@@ -2,7 +2,7 @@
 
 ## 安装前
 
-Copperbench 0.1.2 已提供 Windows 与 Linux 稳定版。支持 Windows 11 x64（build 22000 及以上）和 Ubuntu 24.04 LTS x86_64（GNOME Wayland / Xorg）；其他 Linux 发行版和架构尚未验证。
+Copperbench 当前公开稳定版为 **0.1.4**，Windows 与 Linux 下载链接统一列在[当前下载](../releases/current.md)。目标平台为 Windows 11 x64（build 22000 及以上）和 Ubuntu 24.04 LTS x86_64（GNOME Wayland / Xorg）；其他 Linux 发行版和架构尚未验证。
 
 只从项目 GitHub Releases 下载，并使用同一 Release 附带的校验文件：Windows 为 `SHA256SUMS.txt`，Linux 为 `linux-candidate-sha256.txt`。Windows 安装包没有 Authenticode 签名，SmartScreen 可能显示警告。
 
@@ -24,4 +24,4 @@ datagen 输出先进入隔离暂存区，查看差异并明确确认后才发布
 
 详细能力和验证边界见[稳定版使用说明](./README.md)。遇到启动、网络或构建问题时查阅[故障排查](./troubleshooting.md)。首次构建需要联网，暖缓存验证不代表冷缓存或离线构建认证。
 
-0.1.2 已修复模型回导后的任务面板连续性和复制反馈，见[发布记录](../testing/maintenance-release-0.1.2.md)。旧版 0.1.1 安装包不会随源码更新而自动包含这些修复。
+0.1.4 提供新版工作台、源码编辑、关系图、资产分类与预览，以及主题、语言和编辑器设置。具体改动、已知问题和验证范围见[当前下载中的平台发布说明](../releases/current.md)。旧安装包不会随源码更新自动包含这些功能。

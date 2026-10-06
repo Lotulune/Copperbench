@@ -1,0 +1,11 @@
+# Linux 0.1.4 publication
+
+Linux 0.1.4 was published as a stable release at **2026-10-06T08:14:15Z**. Download the Debian package and portable archive from [v0.1.4-linux-stable](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.4-linux-stable).
+
+- [PR #93](https://github.com/Lotulune/Copperbench/pull/93) merged as `e0a0f28134dc274db47c9151465ee199c5b427ed`; the signed Linux release tag points to that commit.
+- Product source and immutable binaries remain `aabd70bc3b0eb05f8ef0484209d87f2bc3f63c4f`, candidate run [37391113672](https://github.com/Lotulune/Copperbench/actions/runs/37391113672), shared with Windows 0.1.4. The promotion delta contains release controls, tests, documentation and evidence only.
+- PR [required CI](https://github.com/Lotulune/Copperbench/actions/runs/37432411394) and [Linux release authorization checks](https://github.com/Lotulune/Copperbench/actions/runs/37432411431) passed. Local release authorization tests passed 24/24; Markdown and product-status checks passed.
+- Protected [publication workflow 37433909734](https://github.com/Lotulune/Copperbench/actions/runs/37433909734) passed. It verified the signed latest-main tag, exact candidate hashes and provenance, then compared every draft download byte-for-byte before publishing.
+- Independent [public verification](../../evidence/maintenance/2026-10-06/publication-0.1.4/linux/linux-public-verification.json) confirmed all seven published asset digests, the original candidate identity and exact authorization bytes. Downloaded metadata and checksum files also passed GitHub attestation verification against the original candidate source/workflow with self-hosted runners denied. The local check did not download the two large binaries again; their public API hashes match the attested manifests, while full draft-byte comparison ran in the protected workflow.
+
+The [authorization record](product-shell-linux-release-0.1.4.md) preserves the owner's explicit decision to publish using passed CI. Full installed GNOME Wayland/Xorg acceptance, Blockbench desktop round trips, UI persistence, preference migration and full gameplay acceptance were **not repeated**. Historical installed results retain their original version and package hashes.

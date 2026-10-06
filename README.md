@@ -3,87 +3,70 @@
   <h1>Copperbench</h1>
   <p><strong>Create, build, and test Minecraft Java mods on your desktop.</strong></p>
   <p><strong>English</strong> · <a href="README.zh-CN.md">简体中文</a></p>
-  <p>
-    <a href="https://github.com/Lotulune/Copperbench/releases">Downloads</a> ·
-    <a href="#showcase">Screenshots</a> ·
-    <a href="#getting-started">Getting started</a> ·
-    <a href="#development">Run from source</a>
-  </p>
+  <p><a href="docs/releases/current.md">Download 0.1.4</a> · <a href="docs/README.md">Documentation</a> · <a href="#development">Run from source</a></p>
 </div>
 
-Copperbench is built on MCreator, with mod element editors, Blockly logic, model and texture management, local history, and an MCP interface for external AI tools. It supports Fabric and NeoForge.
+Copperbench is a Minecraft Java mod creation tool built on MCreator, with Fabric and NeoForge support. Create content with Mod Element editors and Blockly, edit manual source files, manage models and textures, and connect external AI tools through local MCP.
+
+**Current stable release: 0.1.4 for Windows and Linux.** The refreshed workbench adds source editing, a relationship graph, asset filtering and previews, with simpler navigation and settings.
+
+<a id="getting-started"></a>
+
+## Download and get started
+
+| Platform | Current release | Packages | Guide |
+| --- | --- | --- | --- |
+| Windows 11 x64 | [0.1.4](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.4) | EXE · Portable ZIP · MSIX | [Quick start](docs/user/getting-started.md) |
+| Ubuntu 24.04 LTS x86_64 | [0.1.4](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.4-linux-stable) | Debian .deb · Portable .tar.gz | [Linux installation](docs/user/linux-installation.md) |
+
+1. Download your platform's package and verify it against the attached checksum manifest.
+2. Create a workspace and choose a loader and Minecraft version.
+3. Add a Mod Element, save, build, and launch the test client.
+
+The workbench supports English and Simplified Chinese. Bundled Fabric / NeoForge generators cover Minecraft **26.2, 26.1.2, 1.21.1 and 1.20.1**; each workspace uses one active generator.
+
+Windows packages are not Authenticode-signed and may trigger SmartScreen. The first build needs network access; Blockbench is installed separately. Release checks passed for 0.1.4, while full installed-product and gameplay acceptance were not repeated. See [current downloads](docs/releases/current.md) for each platform's verification scope and known issues.
 
 <a id="showcase"></a>
 
-## See it in use
+## Workbench
 
-**Workbench** — View mod elements, project diagnostics, and build controls.
-
-![Copperbench workbench with mod elements and project status](assets/screenshots/en/workbench.png)
+![Copperbench 0.1.4 workspace overview](assets/screenshots/v0.1.4/en/workbench.png)
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/screenshots/en/function.png" alt="Function editor in English" width="480"></td>
-    <td width="50%"><img src="assets/screenshots/en/procedure.png" alt="Blockly procedure editor in English" width="480"></td>
+    <td width="50%"><img src="assets/screenshots/v0.1.4/en/source.png" alt="Source editor" width="480"></td>
+    <td width="50%"><img src="assets/screenshots/v0.1.4/en/relations.png" alt="Workspace relationship graph" width="480"></td>
   </tr>
   <tr>
-    <td><strong>Edit functions</strong><br>Write mcfunction commands, check syntax diagnostics, and save your work.</td>
-    <td><strong>Build procedures</strong><br>Connect Blockly nodes and inspect the resulting logic.</td>
-  </tr>
-  <tr>
-    <td><img src="assets/screenshots/en/assets.png" alt="Workspace assets and reference details in English" width="480"></td>
-    <td><img src="assets/screenshots/en/history.png" alt="Recovery points and file changes in English" width="480"></td>
-  </tr>
-  <tr>
-    <td><strong>Manage assets</strong><br>Browse textures, check references, and find duplicate files.</td>
-    <td><strong>Review local history</strong><br>Compare recovery points and see which files changed.</td>
+    <td><strong>Source</strong><br>File tree, search, editor tabs and read-only generated files.</td>
+    <td><strong>Relationships</strong><br>Browse elements and assets, expand groups and locate related content.</td>
   </tr>
 </table>
 
-<sub>Captured from a Windows desktop development build on September 14, 2026, using the Mossglow example workspace. Downloaded releases may differ. Blockbench is installed separately.</sub>
+<sub>Browser captures of the 0.1.4 frontend with the bundled Copper Trails example data. [Capture details](assets/screenshots/README.md)</sub>
 
 ## What you can do
 
 | Feature | In practice |
 | --- | --- |
-| Mods | Edit blocks, items, recipes, entities, and more; build procedures with Blockly. |
-| Assets | Manage models, textures, tags, and translations; export resource pack ZIPs. |
-| Builds | Build projects, launch test clients or dedicated servers, and inspect task logs. |
-| History | Create local recovery points and preview the files a restore will change. |
-| Migration | Preview same-version Fabric ↔ NeoForge migration into a new workspace. |
-| Automation | Read projects, make changes, and run builds through local MCP or headless interfaces. |
+| Mod Elements and logic | Edit blocks, items, entities and more; build Procedures with Blockly. |
+| Source | Browse, search and edit manual files, retain drafts and detect external changes. Generated files stay read-only. |
+| Assets and models | Filter by type, inspect references, preview images and supported models, and open assets in Blockbench. |
+| Relationship graph | Search, collapse, pan, zoom and move nodes; open their element or asset without changing business references. |
+| Workspace tools | Edit variables, tags and translations; review diagnostics, local history, migrations and settings. |
+| Builds and automation | Build projects, launch clients or servers, and drive workspace operations through MCP, SDKs or headless interfaces. |
 
-See the [user guide](docs/user/README.md) for supported features. Source builds may include features absent from downloads; Bedrock Add-ons are outside the current first-party editing scope.
-
-<a id="getting-started"></a>
-
-## Getting started
-
-The workbench supports English and Simplified Chinese. Use the language selector in the title bar; save your edits before confirming the reload.
-
-| Platform | Packages | Installation |
-| --- | --- | --- |
-| Windows 11 x64 | EXE installer · Portable ZIP | [Quick start](docs/user/getting-started.md) |
-| Ubuntu 24.04 LTS x86_64 | Debian `.deb` · Portable `.tar.gz` | [Linux installation notes](docs/user/linux-installation.md) |
-
-Ubuntu testing covers GNOME Wayland and Xorg. Other Linux distributions and architectures have not been validated.
-
-1. **Download and install** — Choose the package for your system on [GitHub Releases](https://github.com/Lotulune/Copperbench/releases) and verify it against the checksum manifest attached to that release (`SHA256SUMS.txt` for Windows; `linux-candidate-sha256.txt` for Linux releases).
-2. **Create a workspace** — Choose Fabric or NeoForge and a Minecraft version, then enter a mod name and workspace folder.
-3. **Make an item** — Add an item, save and build the project, then launch the test client.
-
-Stable Windows and Linux packages are distributed through GitHub Releases; check each platform's release version before downloading. Windows installers are unsigned and may trigger SmartScreen. The first build needs an internet connection to download dependencies. Known interface issues are listed in the release notes.
-
-The 0.1.2 maintenance changes address asset-refresh continuity and clipboard feedback; see the [release notes](docs/releases/v0.1.2.md) and [publication status](docs/testing/maintenance-release-0.1.2.md). These changes are not included in older 0.1.1 packages.
+See the [user guide](docs/user/README.md) for feature and generator coverage. Bedrock Add-ons are outside the current first-party Java editing scope.
 
 ## Documentation
 
-Most of the detailed guides below are currently written in Chinese.
+Most detailed guides are currently in Chinese.
 
-- [User guide](docs/user/README.md) · [Troubleshooting](docs/user/troubleshooting.md)
+- [Documentation index](docs/README.md) · [User guide](docs/user/README.md) · [Troubleshooting](docs/user/troubleshooting.md)
 - [MCP setup](docs/ai/getting-started.md) · [Agent examples](docs/ai/agent-playbook.md) · [SDK](sdk/README.md)
-- [Development setup](docs/build/development-setup.md) · [Clean Windows build](docs/build/windows-clean-build.md)
-- [Roadmap](PRD-NEXT.md) · [Contributing](CONTRIBUTING.md)
+- [Development setup](docs/build/development-setup.md) · [Contributing](CONTRIBUTING.md) · [Repository layout](docs/maintenance/repository-maintenance.md)
+- [Current follow-up](docs/remaining-work.md) · [Tests and release records](docs/testing/README.md) · [Historical roadmap](docs/roadmap/README.md)
 
 <a id="development"></a>
 

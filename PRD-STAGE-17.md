@@ -1,5 +1,10 @@
 # Copperbench Stage 17 PRD：编辑一致性、可信诊断与复杂 Mod 制作体验
 
+> Stage 17 已完成并进入双平台 0.1.1 稳定版，见[Stage 17 发布记录](./docs/testing/stage17-stable-publication-2026-09-27.md)。当前公开版本为 0.1.4，见[当前下载](./docs/releases/current.md)；当前待办见[持续维护清单](./docs/remaining-work.md)。下方过程快照保留当时语境。
+
+<details>
+<summary>历史实施进度（2026-09-20～26，含候选与收尾记录）</summary>
+
 > 版本：1.0 · 日期：2026-09-20 · 状态：v38 开发候选验收通过，未发布；最新候选见[v38 安装与最终收尾](./docs/testing/stage-17-v38-closeout-2026-09-26.md)，汇总见[收尾证据账本](./docs/testing/stage-17-closeout-ledger-2026-09-24.md)和[诊断 UI 分层矩阵](./docs/testing/stage-17-ui-evidence-matrix-2026-09-24.md)；此前进展见[v30 过程调用生成链验证](./docs/testing/stage-17-procedure-calls-2026-09-23.md)、[v28 嵌套过程引用验证](./docs/testing/stage-17-nested-references-2026-09-23.md)、[v27 引用存在性与目标类别验证](./docs/testing/stage-17-references-2026-09-23.md)、[双平台恢复与回滚验证](./docs/testing/stage-17-recovery-2026-09-23.md)、[v26 Procedure XML 保留复验](./docs/testing/stage-17-procedure-preservation-2026-09-23.md)、[v25 Procedure 正文](./docs/testing/stage-17-procedure-bodies-2026-09-23.md)、[v24 Code 保存](./docs/testing/stage-17-code-fields-2026-09-23.md)、[v21 自定义字段](./docs/testing/stage-17-custom-adapters-2026-09-23.md)、[v20 通用字段](./docs/testing/stage-17-generic-fields-2026-09-23.md)及[v19 恢复边界](./docs/testing/stage-17-closeout-2026-09-23.md)，运行证据见[连接与运行复验](./docs/testing/stage-17-network-and-runtime-2026-09-22.md)，历史证据见[实施记录](./docs/testing/stage-17-implementation-2026-09-20.md)
 > 输入：[共鸣工坊测试发现](./docs/testing/resonance-forge-findings-2026-09-20.md)
 > 过程语义源码进展：[返回值校验与 UUID 返回调用](./docs/testing/stage-17-procedure-returns-2026-09-23.md)；上下文、调用类型兼容及安装／运行证据仍待完成。
@@ -29,6 +34,8 @@
 > 9 月 26 日授权后续接：v38 已安装至 Ubuntu 测试机，实际安装入口八轨复验通过；v37 新进程已恢复同一世界中的原模型，保存/正常退出、公开任务及重开终态、MCP 验证/清理通过。玩家变化与旧失联任务边界保留；修正后的完整回归正在收尾，详见上述 v38 记录。
 
 > 9 月 26 日最终结论：G17-A～D 按原 PRD 受影响范围验收通过；v38 Ubuntu 授权安装与八轨复验、v37 新进程世界模型恢复/正常退出/MCP 留证清理完成。最后完整回归 924 通过、59 条件跳过、0 失败/错误（共 983 项）。历史失败、跳过、玩家身份变化和独立试作介入边界均保留，未提交、推送或发布。详见[最终门禁结论](./docs/testing/stage-17-final-gate-review-2026-09-25.md)；以上进展条目为各时点历史，不代表尾项仍未完成。
+
+</details>
 
 ## 1. 为什么做这一阶段
 

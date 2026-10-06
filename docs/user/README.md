@@ -1,6 +1,6 @@
 # Copperbench 使用说明（稳定版）
 
-这是稳定版说明，不是商店发行手册。产品名 `Copperbench` 是公开名称。公开分发走 GitHub，安装包未签名。
+本指南对应 Copperbench 0.1.4。Windows 与 Linux 安装包、发布说明和验证范围见[当前下载](../releases/current.md)。
 
 ## 工作区
 
@@ -21,7 +21,7 @@
 
 八条生成器轨道有黄金生成与编译证据；这些证据不代表所有元素、字段组合及玩法均已验证。0.1.2 Linux 安装包的客户端复演覆盖 Fabric / NeoForge 1.21.1，具体环境和场景见[安装验收](../testing/maintenance-012-linux-installed-2026-09-28.md)。物理屏幕阅读器认证、最终干净 Windows RC 复演、外部测试者认证，以及 Linux 冷缓存／默认网络认证不在当前发布宣称内。外部试用延期，不阻塞本轮维护；内部回归也不替代陌生用户可用性验证。
 
-资源包工作区可导出 ZIP；`prepare_resource_pack_client` 只准备测试客户端文件，不自动启动 Minecraft。当前状态见[剩余完善清单](../remaining-work.md)，历史 Stage 9 需求保留在 [PRD-STAGE-9.md](../../PRD-STAGE-9.md)。0.1.2 已发布的维护修复和验证范围见[发布记录](../testing/maintenance-release-0.1.2.md)。
+资源包工作区可导出 ZIP；`prepare_resource_pack_client` 只准备测试客户端文件，不自动启动 Minecraft。当前状态见[剩余完善清单](../remaining-work.md)，历史 Stage 9 需求保留在 [PRD-STAGE-9.md](../../PRD-STAGE-9.md)。当前版本的变更与验证范围见[Windows 0.1.4](../releases/v0.1.4.md)和[Linux 0.1.4](../releases/v0.1.4-linux.md)。
 
 ## 模组元素
 
@@ -31,9 +31,16 @@
 
 保存复杂元素时，未在当前编辑器中展示的字段和未知插件字段不会被静默删除；保存后重新打开工作区仍会保留。字段校验失败时，诊断会关联到具体元素和字段，支持直接定位到对应编辑控件。Procedure 继续使用内置 Blockly 工作台；未知上游 Blockly 节点只读显示并在往返保存时保留。Bedrock Add-on 类型仍不属于当前第一方 Java Mod Element 范围。
 
-变量、标签和语言位于「创作数据」视图，支持创建、编辑、引用计数以及重命名影响预览。语言工具支持 CSV/JSON 导入导出，以及 merge/keep/replace 冲突处理和缺失/重复键统计。
+变量、标签和语言位于「变量与数据」视图，支持创建、编辑、引用计数以及重命名影响预览。语言工具支持 CSV/JSON 导入导出，以及 merge/keep/replace 冲突处理和缺失/重复键统计。
 
 顶部运行入口提供客户端、专用服务端、datagen 和已有 GameTest。datagen 完成后只生成隔离暂存结果；必须先查看文件差异并明确确认，才会发布到工作区。历史 dedicated-server readiness 的八轨通过记录只覆盖对应工程与环境。GameTest 验收和已验证产物导出只证明报告所列测试及绑定的 JAR，不隐含客户端玩法通过；各轨能力以当前生成器与任务诊断为准。
+
+## 源码、关系图与资产
+
+- **源码**：浏览文件树、搜索并编辑手写文本文件，打开多个编辑标签页。切换页面保留草稿；保存时检查文件哈希与 Workspace Revision。生成器管理的文件只读。
+- **关系图**：按模组元素类型和资产类型浏览工作区，搜索定位、展开分组、平移、缩放或移动节点。点击元素进入原编辑器，点击资产打开检查器；移动节点只调整显示位置。
+- **资产与模型**：按类型筛选、搜索文件，查看引用和预览。支持的图片可平面查看或以纹理挤出方式观察；支持的模型 JSON 展示解析出的纹理与内容，其他格式可交给外部工具。
+- **设置**：调整主题、语言和源码编辑器偏好；低频工具位于侧栏的“工具”分组。
 
 ## 本地历史
 
@@ -70,7 +77,7 @@ Fabric Maven 与 NeoForge 专用仓库仍走官方地址。之后可在偏好设
 
 ## 安装与卸载
 
-0.1.2 稳定版支持 Windows 11 x64（build 22000 及以上）和 Ubuntu 24.04 LTS x86_64（GNOME Wayland / Xorg）。Windows 10 会在安装器和启动时被拒绝；其他 Linux 发行版和架构尚未验证。安装入口见[快速开始](./getting-started.md)和 [Linux 安装说明](./linux-installation.md)。
+0.1.4 的目标平台为 Windows 11 x64（build 22000 及以上）和 Ubuntu 24.04 LTS x86_64（GNOME Wayland / Xorg）。Windows 10 会在安装器和启动时被拒绝；其他 Linux 发行版和架构尚未验证。安装入口见[快速开始](./getting-started.md)和 [Linux 安装说明](./linux-installation.md)。
 
 安装后默认打开新产品外壳（无边框 JCEF 工作台）。若要旧版 Swing 工作区，启动时加 `-Dcopperbench.productShell=false`。
 

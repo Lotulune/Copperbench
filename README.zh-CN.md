@@ -3,85 +3,68 @@
   <h1>Copperbench</h1>
   <p><strong>在桌面上制作、构建和测试 Minecraft Java 模组。</strong></p>
   <p><a href="README.md">English</a> · <strong>简体中文</strong></p>
-  <p>
-    <a href="https://github.com/Lotulune/Copperbench/releases">下载</a> ·
-    <a href="#showcase">截图</a> ·
-    <a href="#getting-started">开始使用</a> ·
-    <a href="#development">源码运行</a>
-  </p>
+  <p><a href="docs/releases/current.md">下载 0.1.4</a> · <a href="docs/README.md">文档</a> · <a href="#development">源码运行</a></p>
 </div>
 
-Copperbench 基于 MCreator，提供模组元素编辑、Blockly 逻辑、模型与纹理管理、本地历史，以及供外部 AI 工具使用的 MCP 接口。支持 Fabric 和 NeoForge。
+Copperbench 是基于 MCreator 的 Minecraft Java 模组创作工具，支持 Fabric 和 NeoForge。用模组元素编辑器和 Blockly 制作内容，也可以编辑手写源码、管理模型与纹理，并通过本机 MCP 接入外部 AI 工具。
+
+**当前稳定版：0.1.4，Windows 与 Linux 均已发布。** 新版工作台加入源码编辑、关系图、资产分类与预览，并简化导航和设置。
+
+<a id="getting-started"></a>
+
+## 下载与开始使用
+
+| 平台 | 当前版本 | 安装包 | 指南 |
+| --- | --- | --- | --- |
+| Windows 11 x64 | [0.1.4](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.4) | EXE · 便携 ZIP · MSIX | [快速开始](docs/user/getting-started.md) |
+| Ubuntu 24.04 LTS x86_64 | [0.1.4](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.4-linux-stable) | Debian .deb · 便携 .tar.gz | [Linux 安装](docs/user/linux-installation.md) |
+
+1. 下载对应平台的安装包，用 Release 附带的校验文件核验。
+2. 新建工作区，选择加载器和 Minecraft 版本。
+3. 添加模组元素，保存、构建，然后启动测试客户端。
+
+工作台支持简体中文和英文。内置 Fabric / NeoForge 生成器覆盖 Minecraft **26.2、26.1.2、1.21.1、1.20.1**；一个工作区同时使用一个活动生成器。
+
+Windows 安装包未做 Authenticode 签名，可能出现 SmartScreen 提示。首次构建需要联网，Blockbench 需单独安装。0.1.4 的发布检查已通过，本次未重跑完整安装与游戏验收；各平台的实际验证范围和已知问题见[当前下载](docs/releases/current.md)。
 
 <a id="showcase"></a>
 
-## 看看它怎么用
+## 工作台
 
-**工作台** — 查看模组元素、项目诊断和构建入口。
-
-![Copperbench 工作台，显示模组元素与项目状态](assets/screenshots/zh-CN/workbench.png)
+![Copperbench 0.1.4 工作台概览](assets/screenshots/v0.1.4/zh-CN/workbench.png)
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/screenshots/zh-CN/function.png" alt="中文版函数编辑器" width="480"></td>
-    <td width="50%"><img src="assets/screenshots/zh-CN/procedure.png" alt="中文版 Blockly 过程编辑器" width="480"></td>
+    <td width="50%"><img src="assets/screenshots/v0.1.4/zh-CN/source.png" alt="源码编辑器" width="480"></td>
+    <td width="50%"><img src="assets/screenshots/v0.1.4/zh-CN/relations.png" alt="工作区关系图" width="480"></td>
   </tr>
   <tr>
-    <td><strong>编辑函数</strong><br>编写 mcfunction，查看语法诊断，保存后继续编辑。</td>
-    <td><strong>编排逻辑</strong><br>连接 Blockly 节点，查看对应的过程逻辑。</td>
-  </tr>
-  <tr>
-    <td><img src="assets/screenshots/zh-CN/assets.png" alt="中文版资产列表与引用详情" width="480"></td>
-    <td><img src="assets/screenshots/zh-CN/history.png" alt="中文版恢复点与文件变化" width="480"></td>
-  </tr>
-  <tr>
-    <td><strong>管理资产</strong><br>浏览纹理、检查引用关系，找出内容重复的文件。</td>
-    <td><strong>查看本地历史</strong><br>比较恢复点，查看具体哪些文件发生了变化。</td>
+    <td><strong>源码</strong><br>文件树、搜索、编辑标签页与生成文件只读标识。</td>
+    <td><strong>关系图</strong><br>浏览元素与资产，展开分组并定位相关内容。</td>
   </tr>
 </table>
 
-<sub>截图于 2026 年 9 月 14 日拍摄，使用 Windows 桌面开发构建和 Mossglow 示例工程；下载包的界面可能不同。Blockbench 需单独安装。</sub>
+<sub>0.1.4 前端的浏览器截图，使用内置 Copper Trails 示例数据。 [截图来源](assets/screenshots/README.md)</sub>
 
 ## 能做什么
 
 | 功能 | 用法 |
 | --- | --- |
-| 模组 | 编辑方块、物品、配方、实体等元素，用 Blockly 编排 Procedure。 |
-| 资源 | 管理模型、纹理、标签和语言文件，导出资源包 ZIP。 |
-| 构建 | 构建工程，启动测试客户端或专用服务端，查看任务日志。 |
-| 历史 | 创建本地恢复点，预览还原涉及的文件。 |
-| 迁移 | 预览同版本 Fabric ↔ NeoForge 迁移，复制到新工作区。 |
-| 自动化 | 通过本机 MCP 或 headless 接口读取工程、修改内容和执行构建。 |
+| 模组元素与逻辑 | 编辑方块、物品、实体等元素，用 Blockly 编排 Procedure。 |
+| 源码 | 浏览、搜索和编辑手写文件；保留草稿，检查外部修改冲突。生成文件只读。 |
+| 资产与模型 | 按类型筛选模型、纹理等资产，检查引用，预览图片和支持的模型，连接 Blockbench。 |
+| 关系图 | 搜索、折叠、平移、缩放和移动节点，点击打开元素或资产；不修改业务引用。 |
+| 工作区工具 | 编辑变量、标签与翻译，查看诊断、本地历史、版本迁移和设置。 |
+| 构建与自动化 | 构建、运行客户端或服务端，通过 MCP / SDK / headless 驱动工作区操作。 |
 
-具体支持范围见[使用说明](docs/user/README.md)。源码中的功能可能尚未进入下载包；Bedrock Add-on 不在当前第一方编辑范围内。
-
-<a id="getting-started"></a>
-
-## 开始使用
-
-工作台支持简体中文和英文，可在标题栏切换。请先保存编辑内容，再确认重新加载界面。
-
-| 系统 | 下载格式 | 安装说明 |
-| --- | --- | --- |
-| Windows 11 x64 | EXE 安装包 · 便携版 ZIP | [快速开始](docs/user/getting-started.md) |
-| Ubuntu 24.04 LTS x86_64 | Debian `.deb` · 便携版 `.tar.gz` | [Linux 安装说明](docs/user/linux-installation.md) |
-
-Ubuntu 已验证 GNOME Wayland 和 Xorg。其他 Linux 发行版和架构尚未验证。
-
-1. **下载安装** — 在 [GitHub Releases](https://github.com/Lotulune/Copperbench/releases) 选择系统对应的包，对照该版本附带的校验文件核验下载包（Windows 为 `SHA256SUMS.txt`；Linux 为 `linux-candidate-sha256.txt`）。
-2. **新建工作区** — 选择 Fabric 或 NeoForge 及 Minecraft 版本，填写模组名称与目录。
-3. **做一个物品** — 新建物品、保存并构建，然后启动测试客户端。
-
-Windows 与 Linux 稳定版通过 GitHub Releases 分发，下载时请核对对应平台的版本。Windows 安装包未签名，SmartScreen 可能提示警告。首次构建需要联网下载依赖；已知界面问题请参阅对应版本的发布说明。
-
-0.1.2 维护改动修复资产刷新连续性与复制反馈，内容见[发布说明](docs/releases/v0.1.2.md)，交付进度见[发布状态](docs/testing/maintenance-release-0.1.2.md)。旧版 0.1.1 安装包不包含这些修复。
+具体功能与生成器范围见[使用说明](docs/user/README.md)。Bedrock Add-on 不属于当前第一方 Java 模组编辑范围。
 
 ## 文档
 
-- [使用说明](docs/user/README.md) · [故障排查](docs/user/troubleshooting.md)
+- [文档导航](docs/README.md) · [使用说明](docs/user/README.md) · [故障排查](docs/user/troubleshooting.md)
 - [MCP 接入](docs/ai/getting-started.md) · [Agent 操作示例](docs/ai/agent-playbook.md) · [SDK](sdk/README.md)
-- [开发环境](docs/build/development-setup.md) · [Windows 干净构建](docs/build/windows-clean-build.md)
-- [后续计划](PRD-NEXT.md) · [贡献指南](CONTRIBUTING.md)
+- [开发环境](docs/build/development-setup.md) · [贡献指南](CONTRIBUTING.md) · [项目目录与维护](docs/maintenance/repository-maintenance.md)
+- [当前待办](docs/remaining-work.md) · [测试与发布记录](docs/testing/README.md) · [历史路线](docs/roadmap/README.md)
 
 <a id="development"></a>
 

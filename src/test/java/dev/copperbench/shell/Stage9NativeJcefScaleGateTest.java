@@ -80,6 +80,16 @@ class Stage9NativeJcefScaleGateTest {
 	private static final UUID FILTER_ALPHA_ID = UUID.fromString("33333333-3333-4333-8333-333333339501");
 	private static final UUID FILTER_BETA_ID = UUID.fromString("33333333-3333-4333-8333-333333339502");
 	private static final Gson JSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+	private static final String WORKSPACE_NAME = "Stage 9 Native Scale Gate";
+	// Verify the native transport and the exact fixture projection rendered by React,
+	// independently of localized status copy or a merely mounted application shell.
+	private static final String NATIVE_WORKSPACE_READY = """
+			typeof window.cefQuery === 'function'
+			    && window.copperbenchHost?.workspaceId === %s
+			    && typeof window.copperbenchHost.invoke === 'function'
+			    && document.querySelector('[data-testid=workbench-main] h1')?.textContent?.trim() === %s
+			    && document.querySelector('[data-testid=workbench-loading]') === null
+			""".formatted(JSON.toJson(WORKSPACE_ID.toString()), JSON.toJson(WORKSPACE_NAME));
 
 	@BeforeAll static void initializeJcefPrerequisites() throws Exception {
 		LoggingSystem.init();
@@ -123,8 +133,7 @@ class Stage9NativeJcefScaleGateTest {
 			webView.forceLoad();
 			assertTrue(loaded.await(30, TimeUnit.SECONDS), "Production React shell did not finish loading");
 			await(() -> "true".equals(js(webView,
-					"document.querySelector('[data-testid=app-shell]') !== null"
-							+ " && document.body.textContent.includes('JCEF 原生桥接')")), 30,
+					NATIVE_WORKSPACE_READY)), 30,
 					"Production shell did not bind the native JCEF UI-Core host");
 
 			clickTestId(webView, "nav-elements");
@@ -437,7 +446,7 @@ class Stage9NativeJcefScaleGateTest {
 		generator.addProperty("minecraftVersion", "1.21.1");
 		generator.addProperty("displayName", "Fabric 1.21.1");
 		generator.addProperty("state", "ready");
-		return new WorkspaceState(WORKSPACE_ID, "Stage 9 Native Scale Gate", "mod", 0, false, generator,
+		return new WorkspaceState(WORKSPACE_ID, WORKSPACE_NAME, "mod", 0, false, generator,
 				new JsonObject(), elements);
 	}
 
