@@ -1,0 +1,97 @@
+{
+  "checkedAt": "2026-10-06T08:38:10.855Z",
+  "releaseTag": "v0.1.4-linux-stable",
+  "releaseUrl": "https://github.com/Lotulune/Copperbench/releases/tag/v0.1.4-linux-stable",
+  "publishedAt": "2026-10-06T08:14:15Z",
+  "draft": false,
+  "prerelease": false,
+  "releaseCommit": "e0a0f28134dc274db47c9151465ee199c5b427ed",
+  "candidateSourceCommit": "aabd70bc3b0eb05f8ef0484209d87f2bc3f63c4f",
+  "candidateWorkflowRunId": "37391113672",
+  "releaseWorkflowRunId": "37433909734",
+  "releaseWorkflowUrl": "https://github.com/Lotulune/Copperbench/actions/runs/37433909734",
+  "releaseWorkflowConclusion": "success",
+  "signedTagVerified": true,
+  "acceptance": {
+    "candidateId": "sha256:7bc4cfcea7942930a0f24084dedcd3585e7319563c06856ed50f2f55b89c9715",
+    "releaseTag": "v0.1.4-linux-stable",
+    "acceptancePolicy": "maintenance-ci-0.1.4",
+    "ciStepsVerified": 12,
+    "fullInstalledAcceptance": "not-repeated"
+  },
+  "publicAssetCount": 7,
+  "allPublicAssetDigestsMatch": true,
+  "localDownloadedFiles": [
+    {
+      "name": "LINUX-CANDIDATE-METADATA.json",
+      "sha256": "0cdb94cfa2b5e71128164642808351ca255cfcf58dc48793d9b12352fdfadfb2",
+      "size": 1735
+    },
+    {
+      "name": "linux-candidate-sha256.txt",
+      "sha256": "ca0bd2590d6732d2047c8c4872a2f1b9401d5df1a84a5a7284de2ade5fc9c9ab",
+      "size": 549
+    },
+    {
+      "name": "LINUX-RELEASE-AUTHORIZATION.json",
+      "sha256": "59597a8d097bd792c0cef3bf6fbeaf8047fed13d4a49b70e2293eb28a12d5b06",
+      "size": 1557
+    },
+    {
+      "name": "linux-candidate-manifest.json",
+      "sha256": "77dff27727968e63d0b6caf72f19c380d8b2c70b9a00b4f9f32ae8c9a7082273",
+      "size": 6509
+    }
+  ],
+  "localProvenanceVerified": [
+    "LINUX-CANDIDATE-METADATA.json",
+    "linux-candidate-sha256.txt"
+  ],
+  "binaryVerification": "Protected publication workflow verified every frozen asset provenance and compared all draft downloads byte-for-byte; local verification checked public API digests against the attested metadata and checksum manifest.",
+  "fullInstalledAcceptance": "not-repeated",
+  "fullGameplayAcceptance": "not-repeated",
+  "assets": [
+    {
+      "name": "copperbench-linux.spdx.json",
+      "size": 4390155,
+      "digest": "sha256:21c4e8d52e48785a6e0e0bdac6100d940941aaf71ac7dec2b1d7d1ddf6cc77d7",
+      "downloadUrl": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.4-linux-stable/copperbench-linux.spdx.json"
+    },
+    {
+      "name": "Copperbench.0.1.4.Linux.x86_64.tar.gz",
+      "size": 968971250,
+      "digest": "sha256:e141762c65e2c8c309eef0be3b3c5f64f422bcd590c1158a2dda443f8ae181ae",
+      "downloadUrl": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.4-linux-stable/Copperbench.0.1.4.Linux.x86_64.tar.gz"
+    },
+    {
+      "name": "copperbench_0.1.4_amd64.deb",
+      "size": 888726864,
+      "digest": "sha256:0460c27bb26927ef8240265775b6f071a49614119043ef21c4616f285c4512d4",
+      "downloadUrl": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.4-linux-stable/copperbench_0.1.4_amd64.deb"
+    },
+    {
+      "name": "linux-candidate-manifest.json",
+      "size": 6509,
+      "digest": "sha256:77dff27727968e63d0b6caf72f19c380d8b2c70b9a00b4f9f32ae8c9a7082273",
+      "downloadUrl": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.4-linux-stable/linux-candidate-manifest.json"
+    },
+    {
+      "name": "LINUX-CANDIDATE-METADATA.json",
+      "size": 1735,
+      "digest": "sha256:0cdb94cfa2b5e71128164642808351ca255cfcf58dc48793d9b12352fdfadfb2",
+      "downloadUrl": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.4-linux-stable/LINUX-CANDIDATE-METADATA.json"
+    },
+    {
+      "name": "linux-candidate-sha256.txt",
+      "size": 549,
+      "digest": "sha256:ca0bd2590d6732d2047c8c4872a2f1b9401d5df1a84a5a7284de2ade5fc9c9ab",
+      "downloadUrl": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.4-linux-stable/linux-candidate-sha256.txt"
+    },
+    {
+      "name": "LINUX-RELEASE-AUTHORIZATION.json",
+      "size": 1557,
+      "digest": "sha256:59597a8d097bd792c0cef3bf6fbeaf8047fed13d4a49b70e2293eb28a12d5b06",
+      "downloadUrl": "https://github.com/Lotulune/Copperbench/releases/download/v0.1.4-linux-stable/LINUX-RELEASE-AUTHORIZATION.json"
+    }
+  ]
+}

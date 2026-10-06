@@ -4,7 +4,7 @@
 
 The user directly authorized pushing and publishing this Windows 11 x64 release on 2026-10-06. The signed, pushed `v0.1.4` tag points to [aabd70bc3b0eb05f8ef0484209d87f2bc3f63c4f](https://github.com/Lotulune/Copperbench/commit/aabd70bc3b0eb05f8ef0484209d87f2bc3f63c4f), after [PR #90](https://github.com/Lotulune/Copperbench/pull/90) and [PR #91](https://github.com/Lotulune/Copperbench/pull/91) merged. The production environment approval was granted. Publication is recorded separately below.
 
-Linux remains at published [0.1.3](https://github.com/Lotulune/Copperbench/releases/tag/v0.1.3-linux-stable); no new Linux release is authorized. Historical snapshot/gates, Beta provenance, Linux support records and 0.1.2 binary hashes keep their original scope.
+Linux 0.1.4 was subsequently [published](product-shell-linux-publication-0.1.4.md) from the same product source. The initial Windows-only scope was an implementation omission; the owner explicitly approved Linux publication using its passed candidate CI without repeating full installed acceptance. Historical snapshot/gates, Beta provenance, Linux support records and 0.1.2 binary hashes keep their original scope.
 
 ## Changes
 

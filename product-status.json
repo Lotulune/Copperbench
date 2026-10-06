@@ -20,12 +20,12 @@
   "delivery": {
     "stableRelease": {
       "tag": "v0.1.4",
-      "linuxTag": "v0.1.3-linux-stable",
+      "linuxTag": "v0.1.4-linux-stable",
       "status": "public-stable",
       "linuxStatus": "public-stable",
       "decision": "approved",
       "decisionDate": "2026-10-06",
-      "scope": "Windows 11 x64 0.1.4 Product Shell release; publication and assets are recorded below. Linux x86_64 remains at published 0.1.3 with no new Linux authorization.",
+      "scope": "Windows 11 x64 and Linux x86_64 0.1.4 Product Shell releases are public. Linux exact-candidate publication is recorded under linuxMaintenanceRelease.",
       "sourcePolicy": "Signed latest-main Windows tag and existing protected packaging workflow. Historical stable gates and snapshot retain their original source and binary scope; they are not fresh 0.1.4 installed or gameplay acceptance.",
       "developmentEvidence": "docs/testing/product-shell-release-0.1.4.md",
       "integrationReport": "docs/testing/product-shell-release-0.1.4.md",
@@ -50,14 +50,20 @@
       }
     },
     "linuxMaintenanceRelease": {
-      "tag": "v0.1.3-linux-stable",
+      "tag": "v0.1.4-linux-stable",
       "status": "public-stable",
-      "candidateSourceCommit": "6fd7acfdb0049a875ff1a0f7971d8fa63fb63040",
-      "candidateWorkflowRunId": "36583819071",
-      "acceptancePolicy": "maintenance-ci-0.1.3",
+      "candidateSourceCommit": "aabd70bc3b0eb05f8ef0484209d87f2bc3f63c4f",
+      "candidateWorkflowRunId": "37391113672",
+      "acceptancePolicy": "maintenance-ci-0.1.4",
       "formalSupportClaim": false,
       "fullInstalledAcceptance": "not-repeated",
-      "integrationReport": "docs/testing/maintenance-linux-0.1.3.md"
+      "integrationReport": "docs/testing/product-shell-linux-publication-0.1.4.md",
+      "releaseCommit": "e0a0f28134dc274db47c9151465ee199c5b427ed",
+      "releaseUrl": "https://github.com/Lotulune/Copperbench/releases/tag/v0.1.4-linux-stable",
+      "publishedAt": "2026-10-06T08:14:15Z",
+      "releaseWorkflowRun": "https://github.com/Lotulune/Copperbench/actions/runs/37433909734",
+      "releaseWorkflowConclusion": "success",
+      "assetProof": "evidence/maintenance/2026-10-06/publication-0.1.4/linux/linux-public-verification.json"
     },
     "linuxRelease": {
       "tag": "v0.1.2-linux-stable",
@@ -113,8 +119,8 @@
     },
     "releaseContract": {
       "tag": "v0.1.4",
-      "purpose": "windows-product-shell-release",
-      "sourcePolicy": "Windows is built from the signed release commit; Linux 0.1.3 remains the published Linux version without a new Linux authorization.",
+      "purpose": "product-shell-release",
+      "sourcePolicy": "Windows is built from its signed release commit. Linux promotes the unchanged candidate from the same product source under its separately signed tag and owner-approved CI acceptance scope.",
       "signedTagRequired": true,
       "productionApprovalRequired": true,
       "publicStateSource": "https://api.github.com/repos/Lotulune/Copperbench/releases/tags/v0.1.4"
