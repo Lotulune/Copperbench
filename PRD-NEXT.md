@@ -1,6 +1,10 @@
 # Copperbench PRD：Public Beta 基线、Stage 11 全量 Mod Element、安装产品 Agent 闭环与后续深化路线
 
-> 下一阶段执行入口（2026-09-20）：[Stage 17：编辑一致性、可信诊断与复杂 Mod 制作体验](./PRD-STAGE-17.md)。依据共鸣工坊实作，优先解决字段提交与生成结果分离、资产误报和诊断口径，再完善建模引导与验收交付。状态为计划，不改变既有阶段的历史验收或公开发布状态。
+> 当前交付：Windows / Linux 0.1.4 已发布，见[当前下载](./docs/releases/current.md)。Stage 17 的历史收尾已完成；后续事项以[持续维护清单](./docs/remaining-work.md)为准。本文件保留历史需求与兼容、验收约束。
+
+## 历史路线快照
+
+以下状态对应各自记录日期，包含当时的计划、未发布候选和 Beta 基线，不代表当前交付状态。[Stage 17](./PRD-STAGE-17.md) 和 [Blockbench 专项](./PRD-BLOCKBENCH.md) 均保留各自实施与验收记录。
 
 > 新执行入口（2026-09-13）：[Blockbench 自动建模与可选工具接入 PRD](./PRD-BLOCKBENCH.md)。独立跟踪连接检测、安装引导、建模任务和回导验收，不改变既有阶段的历史完成状态。
 

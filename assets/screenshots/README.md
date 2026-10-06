@@ -1,11 +1,11 @@
 # README screenshots
 
-Captured on Windows on 2026-09-14 from the production React bundle in native JCEF, connected to a separate on-disk **Mossglow Workshop** example through `MCreatorWorkspaceSession` and the Java UI-Core bridge.
+## Current: 0.1.4
 
-- `en/`: English workbench, function editor, Blockly editor, assets, and local history.
-- `zh-CN/`: the same workspace and views with Simplified Chinese selected.
-- All images are 1600 × 1000 PNGs exported directly by Chromium `Page.captureScreenshot`. They have no mouse-cursor layer and were not retouched.
-- The example contains a block, an item, a function, a seven-node procedure, textures, and two recovery points. Duplicate-texture warnings shown in Assets are actual index results.
-- These are development-build screenshots, not evidence of a new packaged release or an in-game acceptance test. User content and code retain their original language.
+**v0.1.4/en/** and **v0.1.4/zh-CN/** show the overview, manual-source editor and relationship graph in the 0.1.4 React frontend. Captured on 2026-10-06 from product source **aabd70bc3b0eb05f8ef0484209d87f2bc3f63c4f** (unchanged frontend in documentation checkout **b9c36480**).
 
-The workbench language preference is stored by the desktop host independently of Chromium's temporary cache. The browser preview uses local storage. Switching languages asks the user to save their edits before reloading.
+These are direct, unretouched 1600 × 1000 Chromium screenshots of the browser preview using the repository's bundled **Copper Trails** mock data. The scenario selector and example diagnostics remain visible. They show the interface; they are not native JCEF, installed-package or gameplay acceptance evidence. No user workspace is included.
+
+## Historical: 2026-09-14
+
+The original **en/** and **zh-CN/** images remain available for historical references. They show a Windows native JCEF development build with the on-disk **Mossglow Workshop** example through the Java UI-Core bridge. They include the workbench, Function, Procedure, asset and history views and do not represent the 0.1.4 layout.

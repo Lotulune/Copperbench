@@ -1,11 +1,11 @@
 # 项目文档导航
 
-已关闭能力读根目录 [PRD](../PRD.md)。当前下一阶段交付读 [Stage 17 PRD](../PRD-STAGE-17.md)，历史深化路线读 [PRD-NEXT.md](../PRD-NEXT.md)。本目录保存开发、用户、AI、ADR、架构和阶段证据。
+当前公开稳定版为 Windows **0.1.4** 与 Linux **0.1.4**。下载、安装格式与验证范围统一见[当前下载](./releases/current.md)；后续工作见[持续维护清单](./remaining-work.md)。历史需求与验收保留各自日期、候选和验证范围。
 
 ## 从这里开始
 
-1. 已关闭能力：根目录 [PRD](../PRD.md)。
-2. 下一阶段：[Stage 17 PRD](../PRD-STAGE-17.md)；依据：[共鸣工坊试作发现](./testing/resonance-forge-findings-2026-09-20.md)。历史路线见 [PRD-NEXT.md](../PRD-NEXT.md)；历史状态索引 [剩余完善清单](./remaining-work.md)。
+1. 使用产品：[用户指南](./user/README.md)、[Windows 0.1.4](./releases/v0.1.4.md)、[Linux 0.1.4](./releases/v0.1.4-linux.md)。
+2. 开发与维护：[开发环境](./build/development-setup.md)、[剩余完善清单](./remaining-work.md)、[测试与证据索引](./testing/README.md)。
 3. 术语存在歧义时查询 [领域词汇表](../CONTEXT.md)。
 4. 只有遇到专项问题时，才从本页选择对应附件。
 
@@ -34,15 +34,20 @@
 - [上游插件兼容架构](./architecture/plugin-compatibility.md)
 - [MCP 与自动化权限模型](./security/permission-model.md)
 - [Fabric 1.21.1 纵向能力清单](./compatibility/fabric-1211-vertical-slice.md)
-- [阶段 3 桥接集成准备](./handoffs/stage-3-bridge-readiness.md)
-- [阶段 3 G2/G3 验证记录](./testing/stage-3-g2-g3-2026-08-17.md)
 - [阶段与发布门禁](./testing/release-gates.md)
-- [阶段 10 可信预览与 Stage 9 收口](../PRD-NEXT.md)
 - [剩余完善清单](./remaining-work.md)
-- [UI 重写交接简报](./handoffs/ui-rewrite-brief.md)
-- [zcode UI-Core v0.1 交接](./handoffs/zcode-ui-core-v0.1.md)
-- [阶段 0 基线执行记录](./testing/stage-0-baseline-2026-08-16.md)
 - [Windows 干净构建基线](./build/windows-clean-build.md)
+
+## 历史需求与交接
+
+- [2026-08-25 项目评估](./research/project-assessment-2026-08-25.md)
+
+- [阶段 0–7 需求基线](../PRD.md)、[阶段 9](../PRD-STAGE-9.md)、[后续深化路线](../PRD-NEXT.md)、[Stage 17](../PRD-STAGE-17.md)
+- [历史路线图](./roadmap/README.md)、[Blockbench 专项](../PRD-BLOCKBENCH.md)
+- [UI 重写交接简报](./handoffs/ui-rewrite-brief.md)、[zcode UI-Core v0.1 交接](./handoffs/zcode-ui-core-v0.1.md)
+- [阶段 3 桥接集成准备](./handoffs/stage-3-bridge-readiness.md)、[阶段 3 G2/G3 验证记录](./testing/stage-3-g2-g3-2026-08-17.md)、[阶段 0 基线执行记录](./testing/stage-0-baseline-2026-08-16.md)
+
+这些文档中的“待完成”“未发布”描述对应当时的状态。当前发布与支持范围以上方交付基线为准；历史证据原址保留，避免破坏链接和发布哈希绑定。
 
 ## 开发与发布
 
@@ -54,7 +59,7 @@
 ## 用户与 AI
 
 - [快速开始](./user/getting-started.md)
-- [开发测试版使用说明](./user/README.md)
+- [用户指南](./user/README.md)
 - [故障排查](./user/troubleshooting.md)
 - [MCP 接入快速开始](./ai/getting-started.md)
 - [AI SDK 与评测](../sdk/README.md)
@@ -69,4 +74,4 @@
 
 ## 执行前确认
 
-[执行期未决事项](./open-decisions.md)仅记录必须基于原型、固定提交或实际兼容测试才能确定的内容。已由 ADR 固化的决策不得在任务实现中被隐式改写。下一阶段实现以 [Stage 17 PRD](../PRD-STAGE-17.md) 为准，并遵守 [PRD-NEXT.md](../PRD-NEXT.md) 保留的兼容与发布门禁。
+[执行期未决事项](./open-decisions.md)记录需要实测的决策边界；当前待办以 [剩余完善清单](./remaining-work.md) 为入口。已由 ADR 固化的决策不得在任务实现中被隐式改写。维护变更继续遵守既有兼容与发布门禁；项目目录和本地清理边界见 [仓库维护说明](./maintenance/repository-maintenance.md)。
