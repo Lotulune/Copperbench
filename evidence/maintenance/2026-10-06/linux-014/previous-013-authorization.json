@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "linux-release-authorization",
+  "status": "approved",
+  "releaseTag": "v0.1.3-linux-stable",
+  "releaseEligible": true,
+  "formalSupportClaim": false,
+  "candidateId": "sha256:ff62bb5f51fbb834640a30e9b2f6ade87cdc33b901051cd9306053daa4dab408",
+  "candidateSourceCommit": "6fd7acfdb0049a875ff1a0f7971d8fa63fb63040",
+  "candidateWorkflowRunId": "36583819071",
+  "debSha256": "7d411248d3ae802e93806adcdd25174eeed0d55a8d68123cbb26b3257e78e4c3",
+  "portableSha256": "5498bd1d9d16c8801082b0f0a0917d3e1a5951a403fc53caa9ef7ed603975f5e",
+  "validationReportPath": "docs/testing/maintenance-linux-0.1.3.md",
+  "validationReportSha256": "66d8d7778ce8f9ef9e50878daf1a53fe729b29ea21bdb12a5c601c1f56acf80c",
+  "acceptancePolicy": "maintenance-ci-0.1.3",
+  "fullInstalledAcceptance": "not-repeated",
+  "maintenanceApproval": {
+    "approved": true,
+    "releaseTag": "v0.1.3-linux-stable",
+    "date": "2026-09-30",
+    "scope": "Owner explicitly approved candidate CI in place of full installed replay for this patch; retain signature, provenance, hashes and upload verification."
+  },
+  "candidateCi": {
+    "run": {
+      "path": "evidence/maintenance/2026-09-30/linux-013/candidate-run.json",
+      "sha256": "46982f5b355d3304baee80a57dcf25783b907af9beaa187cc9bc9b682001c214"
+    },
+    "jobs": {
+      "path": "evidence/maintenance/2026-09-30/linux-013/candidate-jobs.json",
+      "sha256": "c7d70814e2d57e4698dfef864deec75cf53407ce38bee36113c4d411e1e5fe18"
+    }
+  }
+}

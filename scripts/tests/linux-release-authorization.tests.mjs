@@ -157,6 +157,14 @@ test('Linux publication keeps production review and excludes Linux tags from Win
   assert.match(windows, /"!v\*-linux-\*"/);
 });
 
+test('Linux publication requires notes for the selected product version', () => {
+  const workflow = readFileSync(resolve(repository, '.github/workflows/linux-release-control.yml'), 'utf8');
+  assert.ok(workflow.includes('notes_file="docs/releases/${RELEASE_TAG%%-linux-*}-linux.md"'));
+  assert.ok(workflow.includes('test -f "$notes_file"'));
+  assert.ok(workflow.includes('--notes-file "$notes_file"'));
+  assert.doesNotMatch(workflow, /--notes-file docs\/releases\/linux-release-notes\.md/);
+});
+
 test('GitHub-normalized portable names resume without reupload and retain the original upload path', () => {
   const original = 'Copperbench 0.1.0 Linux x86_64.tar.gz';
   const published = 'Copperbench.0.1.0.Linux.x86_64.tar.gz';
@@ -185,9 +193,9 @@ test('stable Linux tags retain exact binary and installed acceptance gates', (t)
   assert.throws(() => validateHeader(auth, 'v0.1.0-linux-unknown'), /dedicated Linux/);
 });
 
-function maintenanceFixture(t) {
+function maintenanceFixture(t, authorizationPath = 'evidence/maintenance/2026-09-30/linux-013/maintenance-authorization.json') {
   const { root } = fixture(t);
-  const auth = read(resolve(repository, 'evidence/maintenance/2026-09-30/linux-013/maintenance-authorization.json'));
+  const auth = read(resolve(repository, authorizationPath));
   for (const entry of [auth.candidateCi.run, auth.candidateCi.jobs,
     { path: auth.validationReportPath, sha256: auth.validationReportSha256 }]) {
     const target = resolve(root, entry.path);
@@ -245,4 +253,36 @@ test('maintenance rejects changed receipts, substituted packages and historical 
   delete auth.acceptedEvidence;
   writeFileSync(resolve(root, auth.candidateCi.run.path), '{}');
   assert.throws(check, /digest mismatch/);
+});
+
+test('owner-approved 0.1.4 uses its own bound CI without claiming fresh installed acceptance', (t) => {
+  const { auth, check } = maintenanceFixture(t, 'evidence/maintenance/2026-10-06/linux-014/maintenance-authorization.json');
+  assert.equal(auth.releaseTag, 'v0.1.4-linux-stable');
+  assert.equal(check().ciStepsVerified, 12);
+  assert.equal(check().fullInstalledAcceptance, 'not-repeated');
+});
+
+test('0.1.4 approval cannot authorize another candidate, release or installed-support claim', (t) => {
+  const { auth, check } = maintenanceFixture(t, 'evidence/maintenance/2026-10-06/linux-014/maintenance-authorization.json');
+  for (const [key, invalid] of [['releaseTag', 'v0.1.5-linux-stable'], ['candidateSourceCommit', 'a'.repeat(40)],
+    ['candidateWorkflowRunId', '123'], ['acceptancePolicy', 'maintenance-ci-0.1.3']]) {
+    const original = auth[key]; auth[key] = invalid;
+    assert.throws(check, /limited to the approved/); auth[key] = original;
+  }
+  auth.formalSupportClaim = true;
+  assert.throws(check, /honest installed-acceptance/);
+  auth.formalSupportClaim = false;
+  auth.maintenanceApproval.approved = false;
+  assert.throws(check, /explicit approval/);
+});
+
+test('0.1.4 approval rejects missing runtime preflights and old installed results', (t) => {
+  const { auth, check, mutate } = maintenanceFixture(t, 'evidence/maintenance/2026-10-06/linux-014/maintenance-authorization.json');
+  auth.acceptedEvidence = {};
+  assert.throws(check, /must not reuse historical/);
+  delete auth.acceptedEvidence;
+  mutate('jobs', receipt => {
+    receipt.jobs[0].steps.find(step => step.name === 'Run packaged Fabric 1.21.1 X11 render preflight under Xvfb').conclusion = 'skipped';
+  });
+  assert.throws(check, /step did not pass/);
 });
