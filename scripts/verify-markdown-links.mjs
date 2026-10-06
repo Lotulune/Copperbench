@@ -1,10 +1,9 @@
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
-import { dirname, extname, join, normalize, resolve, sep } from 'node:path';
+import { existsSync, readFileSync, statSync } from 'node:fs';
+import { dirname, extname, normalize, resolve, sep } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const ignoredDirectories = new Set(['.git', '.gradle', '.tmp', 'build', 'node_modules', 'test-results']);
 const trackedPathList = execFileSync('git', ['ls-files', '--cached', '--others', '--exclude-standard', '-z'], {
   cwd: repositoryRoot,
   encoding: 'utf8',
@@ -12,17 +11,10 @@ const trackedPathList = execFileSync('git', ['ls-files', '--cached', '--others',
 }).split('\0').filter(Boolean).map((path) => normalize(resolve(repositoryRoot, path)));
 const trackedPaths = new Set(trackedPathList);
 
-function markdownFiles(directory) {
-  return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
-    if (entry.isDirectory() && ignoredDirectories.has(entry.name)) return [];
-    const path = join(directory, entry.name);
-    if (entry.isDirectory()) {
-      if (path !== repositoryRoot && existsSync(join(path, '.git'))) return [];
-      return markdownFiles(path);
-    }
-    return extname(entry.name).toLowerCase() === '.md' ? [path] : [];
-  });
-}
+// Check repository documents, including new files, without traversing ignored
+// build output or dependencies. Deleted tracked files are no longer sources.
+const markdownFiles = [...trackedPaths].filter((path) =>
+  extname(path).toLowerCase() === '.md' && existsSync(path) && statSync(path).isFile());
 
 function localTargets(markdown) {
   const targets = [];
@@ -35,7 +27,7 @@ function localTargets(markdown) {
 }
 
 const failures = [];
-for (const file of markdownFiles(repositoryRoot)) {
+for (const file of markdownFiles) {
   const markdown = readFileSync(file, 'utf8');
   for (let target of localTargets(markdown)) {
     if (!target || target.startsWith('#') || /^(?:[a-z]+:|\/\/)/i.test(target)) continue;
