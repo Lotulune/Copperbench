@@ -22,10 +22,15 @@ export function validateHeader(auth, tag) {
   for (const key of ['debSha256', 'portableSha256', 'validationReportSha256'])
     requireValue(/^[0-9a-f]{64}$/.test(auth[key]), `Invalid ${key}`);
   if (auth.acceptancePolicy !== undefined) {
-    requireValue(auth.acceptancePolicy === 'maintenance-ci-0.1.3'
+    const approved013 = auth.acceptancePolicy === 'maintenance-ci-0.1.3'
       && tag === 'v0.1.3-linux-stable'
       && auth.candidateSourceCommit === '6fd7acfdb0049a875ff1a0f7971d8fa63fb63040'
-      && auth.candidateWorkflowRunId === '36583819071', 'Maintenance authorization is limited to the approved 0.1.3 candidate');
+      && auth.candidateWorkflowRunId === '36583819071';
+    const approved014 = auth.acceptancePolicy === 'maintenance-ci-0.1.4'
+      && tag === 'v0.1.4-linux-stable'
+      && auth.candidateSourceCommit === 'aabd70bc3b0eb05f8ef0484209d87f2bc3f63c4f'
+      && auth.candidateWorkflowRunId === '37391113672';
+    requireValue(approved013 || approved014, 'Maintenance authorization is limited to the approved 0.1.3 and 0.1.4 candidates');
     requireValue(auth.formalSupportClaim === false && auth.fullInstalledAcceptance === 'not-repeated'
       && auth.maintenanceApproval?.approved === true && auth.maintenanceApproval?.releaseTag === tag,
       'Maintenance publication requires explicit approval and an honest installed-acceptance classification');
@@ -116,7 +121,7 @@ export function validateAuthorization(auth, metadata, root, tag) {
   requireValue(auth.debSha256 === metadata.assets?.deb?.sha256
     && auth.portableSha256 === metadata.assets?.portable?.sha256, 'Package digest mismatch');
   boundFile(root, { path: auth.validationReportPath, sha256: auth.validationReportSha256 }, 'docs/testing/');
-  if (auth.acceptancePolicy === 'maintenance-ci-0.1.3') return validateMaintenanceCi(auth, root, tag);
+  if (auth.acceptancePolicy !== undefined) return validateMaintenanceCi(auth, root, tag);
   assert.deepEqual(Object.keys(auth.acceptedEvidence ?? {}).sort(), [...gateNames].sort(), 'Required gate set mismatch');
   const paths = new Set();
   const hashes = new Set();
