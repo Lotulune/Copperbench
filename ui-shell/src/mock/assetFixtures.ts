@@ -18,12 +18,14 @@ export const ASSET_FIXTURES: readonly AssetRecord[] = [
   {
     id: 'asset:3333333333333333333333333333333333333333333333333333333333333333', name: 'copper_lamp_idle', category: 'animation', categoryLabel: '动画',
     path: 'assets/coppertrails/animations/copper_lamp_idle.animation.json', format: 'JSON', size: '2.8 KB', sizeBytes: 2867, dimensions: '12 帧',
+    sourceAvailable: true,
     updatedAt: '2026-08-16T08:12:00Z', source: 'blockbench', sourceLabel: 'Blockbench', references: ['model:copper_lamp'],
     validation: 'warning', validationLabel: '需检查', description: '铜灯微光动画，当前检测到一个未绑定的可选骨骼轨道。'
   },
   {
     id: 'asset:4444444444444444444444444444444444444444444444444444444444444444', name: 'zh_cn', category: 'language', categoryLabel: '语言',
     path: 'assets/coppertrails/lang/zh_cn.json', format: 'JSON', size: '1.1 KB', sizeBytes: 1126,
+    sourceAvailable: true,
     updatedAt: '2026-08-15T11:25:00Z', source: 'workspace', sourceLabel: '工作区', references: ['block.coppertrails.copper_lamp', 'item.coppertrails.copper_lamp'],
     validation: 'ready', validationLabel: '已校验', description: '简体中文本地化文本，包含当前工作区公开的元素名称。'
   },

@@ -1,6 +1,7 @@
 import { windowBridge } from '../bridge/windowBridge';
 
 let draftCount = -1;
+const counts = new Map<string, number>();
 let pendingReport = Promise.resolve();
 
 function beforeUnload(event: BeforeUnloadEvent) {
@@ -9,9 +10,11 @@ function beforeUnload(event: BeforeUnloadEvent) {
 }
 
 /** Includes inactive workspace sessions; closing the shell discards all of them. */
-export function hasUnsavedSourceDrafts(): boolean { return draftCount > 0; }
+export function hasUnsavedDrafts(): boolean { return draftCount > 0; }
 
-export function setUnsavedSourceDraftCount(value: number): void {
+export function setUnsavedDraftCount(owner: string, count: number): void {
+  counts.set(owner, count);
+  const value = [...counts.values()].reduce((sum, current) => sum + current, 0);
   if (draftCount === value) return;
   const hadDrafts = draftCount > 0;
   draftCount = value;
@@ -21,6 +24,6 @@ export function setUnsavedSourceDraftCount(value: number): void {
   if (windowBridge.canGuardUnsavedChanges) {
     // Keep reports in order so a delayed clean acknowledgement cannot erase a newer dirty count.
     pendingReport = pendingReport.then(() => windowBridge.reportUnsavedChanges(value))
-      .catch(error => { console.warn('[Copperbench Source] Could not report unsaved drafts:', error); });
+      .catch(error => { console.warn('[Copperbench] Could not report unsaved drafts:', error); });
   }
 }

@@ -93,6 +93,7 @@ function mockAssetProjection() {
     return {
       id: asset.id,
       relativePath: asset.path,
+      sourceAvailable: asset.sourceAvailable === true,
       category: asset.category.toUpperCase() as 'MODEL' | 'TEXTURE' | 'ANIMATION' | 'LANGUAGE' | 'SOUND' | 'RESOURCE_PACK',
       size: asset.sizeBytes,
       sha256: '0000000000000000000000000000000000000000000000000000000000000000',

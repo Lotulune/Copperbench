@@ -128,6 +128,7 @@ final class AssetProjectionService {
 		value.addProperty("size", descriptor.size());
 		value.addProperty("sha256", descriptor.sha256());
 		value.addProperty("mediaType", descriptor.mediaType());
+		value.addProperty("sourceAvailable", WorkspaceSourceService.supports(descriptor.relativePath(), descriptor.size()));
 		value.addProperty("updatedAt", descriptor.updatedAt().toString());
 		value.add("health", GSON.toJsonTree(health));
 		return value;

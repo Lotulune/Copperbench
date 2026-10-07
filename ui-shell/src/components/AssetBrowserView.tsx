@@ -1011,7 +1011,7 @@ const AssetDetails: React.FC<{
   if (!asset) return <section className="asset-library-inspector asset-library-inspector-empty" aria-label={uiText('资产详情', 'Asset details')}>
     <Info size={22} /><p>{uiText('选择一个文件查看详情', 'Select a file to view its details')}</p></section>;
   const fileName = asset.path.split('/').pop() ?? asset.name;
-  const canOpenSource = /\.(json|mcmeta|properties|txt|lang|java|mcreator)$/i.test(asset.path);
+  const canOpenSource = asset.sourceAvailable === true;
   const referenceLink = (path: string, id?: string | null) => {
     const target = id ? assets.find(item => item.id === id) : assets.find(item => item.path === path);
     return target ? <button type="button" className="asset-library-reference-link" onClick={() => onSelectAsset(target.id)} title={path}><code>{path}</code></button> : <code>{path}</code>;

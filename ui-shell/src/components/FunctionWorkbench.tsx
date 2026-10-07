@@ -1,6 +1,6 @@
 import { tr } from '../i18n/locale';
 import { valueLabel } from '../i18n/labels';
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useSyncExternalStore } from 'react';
 import {
   ArrowLeft,
   FileCode2,
@@ -17,8 +17,10 @@ import {
   RotateCcw
 } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
-import { ModElementSummary, FieldChange, EditorField } from '../types/contract';
-import { t } from '../i18n';
+import { ModElementSummary, FieldChange } from '../types/contract';
+import { t, uiText } from '../i18n';
+import { elementEditorDraftKey } from '../hooks/elementEditorDrafts';
+import { functionFields, functionHasChanges, getFunctionSession, loadedFunction, subscribeFunctionSessions, updateFunctionSession } from '../hooks/functionEditorSessions';
 
 interface FunctionWorkbenchProps {
   element: ModElementSummary;
@@ -66,57 +68,51 @@ const SNIPPETS: Array<{ label: string; snippet: string; description: string }> =
 ];
 
 export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, onClose }) => {
-  const { updateModElement, getModElementEditor } = useWorkbench();
+  const { state } = useWorkbench();
+  const sessionKey = elementEditorDraftKey(state.workbench!.workspace.id, element.id);
+  return <FunctionEditor key={sessionKey} sessionKey={sessionKey} element={element} onClose={onClose} />;
+};
+
+const FunctionEditor: React.FC<FunctionWorkbenchProps & { sessionKey: string }> = ({ element, onClose, sessionKey }) => {
+  const { state, updateModElement, getModElementEditor } = useWorkbench();
+  const current = useSyncExternalStore(subscribeFunctionSessions, () => getFunctionSession(sessionKey));
+  const { code, tags, namespace, newTag, saving: isSaving, error: message } = current;
+  const fields = functionFields(current.editor);
+  const projectionLoaded = current.editor !== null && !current.loading;
+  const isDirty = functionHasChanges(current);
+  const change = (values: Partial<typeof current>) => updateFunctionSession(sessionKey, old => ({ ...old, ...values }));
+  const setCode = (value: React.SetStateAction<string>) => updateFunctionSession(sessionKey, old => ({ ...old,
+    code: typeof value === 'function' ? value(old.code) : value }));
+  const setTags = (value: string[]) => change({ tags: value });
+  const setNamespace = (value: string) => change({ namespace: value });
+  const setNewTag = (value: string) => change({ newTag: value });
+  const setMessage = (value: string | null) => change({ error: value });
 
   const [activeTab, setActiveTab] = useState<FunctionTab>('editor');
-  const [code, setCode] = useState<string>('');
-  const [tags, setTags] = useState<string[]>([]);
-  const [namespace, setNamespace] = useState<string>('');
-  const [fields, setFields] = useState<{ code?: EditorField; tags?: EditorField; namespace?: EditorField }>({});
-  const [projectionLoaded, setProjectionLoaded] = useState(false);
-  const canEditCode = projectionLoaded && fields.code?.readOnly === false;
-  const canEditTags = projectionLoaded && fields.tags?.readOnly === false;
-  const canEditNamespace = projectionLoaded && fields.namespace?.readOnly === false;
-  const [newTag, setNewTag] = useState<string>('');
-  const [isSaving, setIsSaving] = useState(false);
+  const canEditCode = projectionLoaded && !isSaving && fields.code?.readOnly === false;
+  const canEditTags = projectionLoaded && !isSaving && fields.tags?.readOnly === false;
+  const canEditNamespace = projectionLoaded && !isSaving && fields.namespace?.readOnly === false;
   const [saveSuccess, setSaveSuccess] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
-  const [isDirty, setIsDirty] = useState(false);
-
-  // Load initial field values from editor projection if available
+  const getEditor = useRef(getModElementEditor);
+  getEditor.current = getModElementEditor;
+  const revision = useRef(state.workbench?.workspace.revision ?? 0);
+  revision.current = state.workbench?.workspace.revision ?? 0;
+  const load = async () => {
+    const existing = getFunctionSession(sessionKey);
+    if (existing.loading || existing.saving) return;
+    const observedRevision = revision.current;
+    change({ loading: true, error: null });
+    try {
+      const editor = await getEditor.current(element.id);
+      if (!editor || editor.element.id !== element.id) throw new Error('Editor projection unavailable');
+      updateFunctionSession(sessionKey, () => loadedFunction(editor, observedRevision));
+    } catch { change({ loading: false, error: tr("无法加载函数编辑信息，请返回后重试。") }); }
+  };
   useEffect(() => {
-    let cancelled = false;
-    setProjectionLoaded(false);
-    setFields({});
-    setCode(''); setTags([]); setNamespace('');
-    setMessage(null); setIsDirty(false); setSaveSuccess(false);
-    getModElementEditor(element.id).then((projection) => {
-      if (cancelled) return;
-      if (!projection) throw new Error('Editor projection unavailable');
-      const allFields = projection.sections.flatMap((s) => s.fields);
-      const codeField = allFields.find((f) => f.path === '/code' || f.path === '/fields/code');
-      const tagsField = allFields.find((f) => f.path === '/tags' || f.path === '/fields/tags');
-      const nsField = allFields.find((f) => f.path === '/namespace' || f.path === '/fields/namespace');
-      setFields({ code: codeField, tags: tagsField, namespace: nsField });
-
-      if (codeField && typeof codeField.value === 'string') {
-        setCode(codeField.value);
-      }
-      if (tagsField && Array.isArray(tagsField.value)) {
-        setTags(tagsField.value as string[]);
-      }
-      if (nsField && typeof nsField.value === 'string') {
-        setNamespace(nsField.value);
-      }
-      setIsDirty(false);
-      setProjectionLoaded(true);
-    }).catch(() => {
-      if (!cancelled) setMessage(tr("无法加载函数编辑信息，请返回后重试。"));
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [element.id, getModElementEditor]);
+    const existing = getFunctionSession(sessionKey);
+    if (functionHasChanges(existing) || existing.newTag || existing.saving) return;
+    if (!existing.editor || existing.editor.element.updatedAt !== element.updatedAt || existing.revision !== revision.current) void load();
+  }, [sessionKey, element.updatedAt, state.workbench?.workspace.revision]);
 
   // Linting: check for lines starting with '/' or empty command errors
   const lineDiagnostics = useMemo(() => {
@@ -153,7 +149,6 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
   const handleCodeChange = (newText: string) => {
     if (!canEditCode) return;
     setCode(newText);
-    setIsDirty(true);
     setSaveSuccess(false);
   };
 
@@ -164,7 +159,6 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
       const updated = prev + (endsWithNewline ? '' : '\n') + snippetText + '\n';
       return updated;
     });
-    setIsDirty(true);
   };
 
   const handleStripLeadingSlashes = () => {
@@ -181,7 +175,6 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
       return line;
     });
     setCode(fixed.join('\n'));
-    setIsDirty(true);
     setMessage(tr("已自动移除 {0} 处命令开头的 '/' 斜杠。", [fixCount]));
   };
 
@@ -191,7 +184,6 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
     if (!tag) return;
     if (!tags.includes(tag)) {
       setTags([...tags, tag]);
-      setIsDirty(true);
     }
     setNewTag('');
   };
@@ -199,12 +191,12 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
   const handleRemoveTag = (tagToRemove: string) => {
     if (!canEditTags) return;
     setTags(tags.filter((t) => t !== tagToRemove));
-    setIsDirty(true);
   };
 
   const handleSave = async () => {
     if (!projectionLoaded || isSaving || !isDirty) return;
-    setIsSaving(true);
+    const submitted = getFunctionSession(sessionKey);
+    change({ saving: true });
     setMessage(null);
     setSaveSuccess(false);
 
@@ -215,17 +207,23 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
     if (canEditNamespace && fields.namespace) changes.push({ path: fields.namespace.path, value: namespace });
 
     try {
-      const result = await updateModElement(element.id, changes);
-      setIsSaving(false);
+      const result = await updateModElement(element.id, changes, submitted.revision);
       if (result.status === 'committed') {
+        // Update the shared session even if this editor was closed during save.
+        updateFunctionSession(sessionKey, old => ({ ...old, saving: false, revision: result.newRevision,
+          editor: { ...submitted.editor!, element: result.data?.element ?? submitted.editor!.element,
+            sections: submitted.editor!.sections.map(section => ({ ...section, fields: section.fields.map(field => {
+              const committed = changes.find(change => change.path === field.path);
+              return committed ? { ...field, value: committed.value } : field;
+            }) })) } }));
         setSaveSuccess(true);
-        setIsDirty(false);
         setTimeout(() => setSaveSuccess(false), 2500);
       } else {
+        change({ saving: false });
         setMessage(result.diagnostics[0] ? t(result.diagnostics[0].message) : tr("保存函数失败。"));
       }
     } catch {
-      setIsSaving(false);
+      change({ saving: false });
       setMessage(tr("保存函数时发生网络或宿主错误。"));
     }
   };
@@ -419,6 +417,11 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
               <Check size={14} /> {tr(" 已保存")}</span>
           )}
 
+          {(isDirty || newTag || message) && <button type="button" className="btn-secondary"
+            disabled={isSaving || current.loading} data-testid="function-reload"
+            onClick={() => {
+              if (!(isDirty || newTag) || window.confirm(uiText('放弃此函数的未保存修改并重新加载？', 'Discard unsaved changes to this function and reload?'))) void load();
+            }}><RotateCcw size={14} />{uiText('重新加载', 'Reload')}</button>}
           <button
             type="button"
             className="btn-primary"
@@ -627,7 +630,6 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
                   readOnly={!canEditNamespace}
                   onChange={(e) => {
                     setNamespace(e.target.value);
-                    setIsDirty(true);
                   }}
                   data-testid="function-namespace-input"
                   style={{
@@ -681,7 +683,6 @@ export const FunctionWorkbench: React.FC<FunctionWorkbenchProps> = ({ element, o
                       onClick={() => {
                         if (isAssigned) handleRemoveTag(preset.tag);
                         else setTags([...tags, preset.tag]);
-                        setIsDirty(true);
                       }}
                       style={{
                         padding: '8px 12px',

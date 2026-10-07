@@ -14,6 +14,7 @@ export type AssetCategory =
 export type AssetValidationStatus = 'ready' | 'draft' | 'warning' | 'error';
 
 export interface AssetRecord {
+  readonly sourceAvailable?: boolean;
   readonly id: string;
   readonly name: string;
   readonly category: AssetCategory;
@@ -100,6 +101,7 @@ export function assetRecordsFromProjection(projection: AssetProjection): AssetRe
     const validation = validationFor(asset);
     return {
       id: asset.id,
+      sourceAvailable: asset.sourceAvailable,
       name: assetName(asset.relativePath),
       category,
       categoryLabel: categoryLabels()[category] ?? category,
