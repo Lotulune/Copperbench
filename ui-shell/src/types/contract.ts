@@ -1234,6 +1234,7 @@ export type AssetProjectionCategory =
   | 'OTHER';
 
 export interface AssetProjectionAsset {
+  sourceAvailable?: boolean;
   id: string;
   relativePath: string;
   category: AssetProjectionCategory;

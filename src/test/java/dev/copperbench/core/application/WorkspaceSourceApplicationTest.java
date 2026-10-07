@@ -85,6 +85,36 @@ class WorkspaceSourceApplicationTest {
 		}
 	}
 
+	@Test void assetSourceCapabilityMatchesListingReadingAndGuardedSaving() throws Exception {
+		try (Fixture fixture = fixture(false)) {
+			for (String path : List.of("models/custom/lamp.json", "assets/example/lang/legacy.lang", "assets/example/private.mcreator")) {
+				Files.createDirectories(root.resolve(path).getParent());
+				Files.writeString(root.resolve(path), path.endsWith(".lang") ? "item.example=Example" : "{}");
+			}
+			var assets = fixture.service.query(Query.of(UUID.randomUUID(), ID, Operation.LIST_ASSETS, new JsonObject()), CONTEXT);
+			assertEquals("succeeded", assets.status());
+			for (var raw : assets.data().getAsJsonObject().getAsJsonArray("assets")) {
+				var asset = raw.getAsJsonObject();
+				String path = asset.get("relativePath").getAsString();
+				boolean supported = !path.endsWith(".mcreator");
+				assertEquals(supported, asset.get("sourceAvailable").getAsBoolean(), path);
+				var query = new JsonObject(); query.addProperty("relativePath", path);
+				var read = fixture.service.query(Query.of(UUID.randomUUID(), ID, Operation.READ_WORKSPACE_FILE, query), CONTEXT);
+				assertEquals(supported ? "succeeded" : "rejected", read.status(), path);
+			}
+			var source = new WorkspaceSourceService(root, java.util.Map.of(), true);
+			assertEquals(1, source.list("models/custom/lamp.json", 0, 200).getAsJsonArray("files").size());
+			for (String path : List.of("models/custom/lamp.json", "assets/example/lang/legacy.lang")) {
+				var before = source.read(path);
+				var edit = source.prepare(path, before.get("content").getAsString() + "\n", before.get("sha256").getAsString());
+				source.apply(edit, () -> {});
+				assertTrue(Files.readString(root.resolve(path)).endsWith("\n"));
+			}
+			assertFalse(WorkspaceSourceService.supports("models/../private.json", 2));
+			assertFalse(WorkspaceSourceService.supports("models/big.json", WorkspaceSourceService.MAX_FILE_BYTES + 1L));
+		}
+	}
+
 	private Fixture fixture(boolean failPersist) throws Exception {
 		Files.createDirectories(root.resolve(FILE).getParent()); Files.writeString(root.resolve(FILE), "class Entry {}");
 		Files.writeString(root.resolve("workspace.mcreator"), "{}");

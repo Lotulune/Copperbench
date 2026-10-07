@@ -1,4 +1,5 @@
 import type { ModElementEditorProjection } from '../types/contract';
+import { setUnsavedDraftCount } from './unsavedDraftGuard';
 
 export interface ElementEditorDraft {
   editor: ModElementEditorProjection;
@@ -22,8 +23,10 @@ export function getElementEditorDraft(key: string): ElementEditorDraft | undefin
 
 export function setElementEditorDraft(key: string, draft: ElementEditorDraft): void {
   drafts.set(key, draft);
+  setUnsavedDraftCount('elements', drafts.size);
 }
 
 export function clearElementEditorDraft(key: string): void {
   drafts.delete(key);
+  setUnsavedDraftCount('elements', drafts.size);
 }

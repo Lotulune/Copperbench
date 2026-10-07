@@ -95,6 +95,7 @@
         "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
         "mediaType": { "type": "string", "minLength": 1 },
         "updatedAt": { "type": "string", "format": "date-time" },
+        "sourceAvailable": { "type": "boolean", "description": "The Core source reader supports this asset path, format and size." },
         "health": { "$ref": "#/$defs/healthEntry" }
       },
       "additionalProperties": false

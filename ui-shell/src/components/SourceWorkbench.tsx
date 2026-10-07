@@ -3,7 +3,7 @@ import { ChevronRight, FileCode2, Folder, RefreshCw, Save, Search, X } from 'luc
 import { useWorkbench } from '../context/WorkbenchContext';
 import { sourceBridge } from '../bridge/sourceBridge';
 import { windowBridge, type AppPreferencesSnapshot } from '../bridge/windowBridge';
-import { setUnsavedSourceDraftCount } from '../hooks/sourceDraftGuard';
+import { setUnsavedDraftCount } from '../hooks/unsavedDraftGuard';
 import { t, uiText } from '../i18n';
 import type { WorkspaceSourceContent, WorkspaceSourceFile, WorkspaceSourceFiles, WorkspaceSourceIndex } from '../types/contract';
 import './sourceWorkbench.css';
@@ -47,7 +47,7 @@ function sourceText(content: string, original: string) {
   return editorText(content).replace(/\n/g, newline);
 }
 function dirty(tab: SourceTab) { return Boolean(tab.file && tab.content !== editorText(tab.file.content)); }
-function syncDraftGuard() { setUnsavedSourceDraftCount([...sessions.values()].reduce((count, state) => count + state.tabs.filter(dirty).length, 0)); }
+function syncDraftGuard() { setUnsavedDraftCount('sources', [...sessions.values()].reduce((count, state) => count + state.tabs.filter(dirty).length, 0)); }
 function message(error: unknown) { return error instanceof Error ? error.message : String(error); }
 
 type Tree = { folders: Map<string, Tree>; files: WorkspaceSourceFile[] };

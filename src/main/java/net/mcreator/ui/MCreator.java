@@ -347,16 +347,7 @@ public abstract class MCreator extends MCreatorFrame {
 	}
 
 	public boolean closeThisMCreator(boolean returnToProjectSelector) {
-		int unsavedSources = productShell == null ? 0 : productShell.unsavedSourceCount();
-		if (unsavedSources > 0) {
-			boolean english = "en".equals(dev.copperbench.shell.UiLocalePreferences.read());
-			String message = english
-					? "Unsaved changes in " + unsavedSources + (unsavedSources == 1 ? " source file" : " source files") + ". Close and discard these drafts?"
-					: "还有 " + unsavedSources + " 个源码文件的修改尚未保存。关闭并放弃这些草稿？";
-			Object[] options = english ? new Object[]{"Keep editing", "Close and discard"} : new Object[]{"继续编辑", "关闭并放弃"};
-			if (JOptionPane.showOptionDialog(this, message, english ? "Unsaved source changes" : "未保存的源码",
-					JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]) != 1) return false;
-		}
+		if (productShell != null && !productShell.confirmClose()) return false;
 		boolean safetoexit = gradleConsole.getStatus() != GradleConsole.RUNNING;
 		if (!safetoexit) {
 			if (gradleConsole.isGradleSetupTaskRunning()) {

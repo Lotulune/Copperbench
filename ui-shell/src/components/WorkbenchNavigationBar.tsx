@@ -42,6 +42,9 @@ export const WorkbenchNavigationBar: React.FC = () => {
     ...state.elements.map(element => ({ id: element.id, label: element.displayName, detail: element.name, icon: Box,
       run: () => { setSelectedElementId(element.id); setActiveView('elements'); } }))
   ].filter(item => `${item.label} ${item.detail}`.toLowerCase().includes(normalized)).slice(0, 30);
+  useEffect(() => {
+    if (open) document.getElementById(`workbench-command-${selection}`)?.scrollIntoView({ block: 'nearest' });
+  }, [open, selection, normalized, results.length]);
   const visibleTabs = tabs.includes(activeView) ? tabs : [...tabs, activeView];
   useEffect(() => {
     const list = tabListRef.current;

@@ -15,7 +15,7 @@ import { useWorkbench } from '../context/WorkbenchContext';
 import { OPEN_WORKBENCH_SEARCH_EVENT } from './workbenchNavigation';
 import { uiText, useUiLocale } from '../i18n';
 import productIcon from '../../../src/main/resources/net/mcreator/ui/res/icon.png';
-import { hasUnsavedSourceDrafts } from '../hooks/sourceDraftGuard';
+import { hasUnsavedDrafts } from '../hooks/unsavedDraftGuard';
 import {
   WINDOW_CHROME_SCHEMA_VERSION,
   WindowChromeRegion,
@@ -291,7 +291,7 @@ export const FramelessTitlebar: React.FC = () => {
               type="button"
               className="titlebar-window-button titlebar-close-button"
               onClick={() => {
-                if (windowBridge.canGuardUnsavedChanges || !hasUnsavedSourceDrafts() || window.confirm(uiText('源码有未保存的修改。关闭窗口并放弃这些草稿？', 'Source files have unsaved changes. Close the window and discard these drafts?'))) windowBridge.close();
+                if (windowBridge.canGuardUnsavedChanges || !hasUnsavedDrafts() || window.confirm(uiText('有未保存的修改。关闭窗口并放弃这些草稿？', 'There are unsaved changes. Close the window and discard these drafts?'))) windowBridge.close();
               }}
               title={uiText('关闭', 'Close')}
               aria-label={uiText('关闭', 'Close')}

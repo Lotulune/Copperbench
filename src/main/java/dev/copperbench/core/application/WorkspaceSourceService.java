@@ -21,7 +21,7 @@ import java.util.*;
 final class WorkspaceSourceService {
 	static final int MAX_FILE_BYTES = 1024 * 1024;
 	private static final int MAX_FILES = 2000, MAX_VISITED = 10000, MAX_INDEX_BYTES = 16 * 1024 * 1024, MAX_EVIDENCE = 300;
-	private static final Set<String> EXTENSIONS = Set.of("java", "json", "mcmeta", "xml", "properties", "toml", "yaml", "yml", "txt", "md", "gradle", "kts", "vert", "frag", "glsl", "vsh", "fsh");
+	private static final Set<String> EXTENSIONS = Set.of("java", "json", "mcmeta", "xml", "properties", "toml", "yaml", "yml", "txt", "md", "gradle", "kts", "vert", "frag", "glsl", "vsh", "fsh", "lang");
 	private static final Set<String> ROOT_FILES = Set.of("build.gradle", "build.gradle.kts", "settings.gradle", "settings.gradle.kts", "mcreator.gradle", "gradle.properties", "README.md", "pack.mcmeta");
 	private static final Set<String> EXCLUDED = Set.of("build", "target", "out", "run", "node_modules", "output", "logs", "cache", "caches");
 	private final Path root;
@@ -146,14 +146,18 @@ final class WorkspaceSourceService {
 	private static boolean allowed(String relative) {
 		if (relative == null || relative.isBlank() || relative.length() > 1024 || relative.contains("\\") || relative.contains(":")) return false;
 		for (String part : relative.split("/", -1)) if (part.isBlank() || part.startsWith(".") || EXCLUDED.contains(part)) return false;
-		return (relative.startsWith("src/") || relative.startsWith("assets/") || relative.startsWith("data/") || ROOT_FILES.contains(relative))
+		return (relative.startsWith("src/") || relative.startsWith("assets/") || relative.startsWith("data/") || relative.startsWith("models/") || ROOT_FILES.contains(relative))
 				&& EXTENSIONS.contains(extension(relative));
+	}
+
+	static boolean supports(String relative, long size) {
+		return allowed(relative) && size <= MAX_FILE_BYTES;
 	}
 
 	private Inventory inventory() throws IOException {
 		List<String> paths = new ArrayList<>(); boolean[] truncated = { false }; int[] visited = { 0 };
 		Path realRoot = root.toRealPath();
-		for (String directory : List.of("src", "assets", "data")) {
+		for (String directory : List.of("src", "assets", "data", "models")) {
 			if (!Files.isDirectory(root.resolve(directory), LinkOption.NOFOLLOW_LINKS)) continue;
 			Files.walkFileTree(root.resolve(directory), EnumSet.noneOf(FileVisitOption.class), 16, new SimpleFileVisitor<>() {
 				@Override public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
