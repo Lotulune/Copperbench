@@ -1071,7 +1071,8 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 			String relative = conflict.relativePath();
 			if (relative != null) args.addProperty("sourcePath", relative);
 			JsonObject diagnostic = addFailureDiagnostic("GENERATION_SOURCE_CONFLICT", failureId, taskKind,
-					"diagnostic.generation_source_conflict", relative == null ? "Generation stopped: {reason}"
+					relative == null ? "diagnostic.generation_source_conflict_reason" : "diagnostic.generation_source_conflict_at_path",
+					relative == null ? "Generation stopped: {reason}"
 							: "Generation stopped at {sourcePath}: {reason}", args);
 			if (relative == null) return;
 			String path = "/" + relative;

@@ -48,3 +48,25 @@ test('the actual Blockbench modeling manifest does not require a task.json trans
   assert.match(source, /resolve\("task\.json"\)/);
   assert.equal(collectLocalizationKeys(source, '.java').has('task.json'), false);
 });
+
+test('source conflict messages keep legacy, reason-only and located argument shapes in both locales', () => {
+  const shapes = new Map([
+    ['diagnostic.generation_source_conflict', []],
+    ['diagnostic.generation_source_conflict_reason', ['reason']],
+    ['diagnostic.generation_source_conflict_at_path', ['reason', 'sourcePath']]
+  ]);
+  const java = readFileSync(new URL('../../src/main/java/dev/copperbench/generator/GradleWorkspaceTaskGateway.java',
+    import.meta.url), 'utf8');
+  const referenced = collectLocalizationKeys(java, '.java');
+  for (const locale of ['zh', 'en']) {
+    const catalog = readFileSync(new URL(`../src/i18n/${locale}.ts`, import.meta.url), 'utf8');
+    const messages = new Map([...catalog.matchAll(/^\s*'([^']+)'\s*:\s*'((?:\\'|[^'])*)'/gm)]
+      .map(match => [match[1], match[2]]));
+    for (const [key, expected] of shapes) {
+      assert.equal(referenced.has(key), true, `${key} must remain discoverable from the real producer`);
+      assert.equal(messages.has(key), true, `${locale} must translate ${key}`);
+      const actual = [...messages.get(key).matchAll(/\{(\w+)\}/g)].map(match => match[1]).sort();
+      assert.deepEqual(actual, expected, `${locale}:${key} requires the correct argument shape`);
+    }
+  }
+});

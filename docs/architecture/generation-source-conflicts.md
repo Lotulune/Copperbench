@@ -9,7 +9,7 @@ Generation refuses to overwrite an existing base or element target unless the co
   "code": "GENERATION_SOURCE_CONFLICT",
   "severity": "error",
   "message": {
-    "key": "diagnostic.generation_source_conflict",
+    "key": "diagnostic.generation_source_conflict_at_path",
     "fallback": "Generation stopped at {sourcePath}: {reason}",
     "args": {
       "sourcePath": "src/main/java/example/ExampleMod.java",
@@ -28,6 +28,8 @@ Generation refuses to overwrite an existing base or element target unless the co
 The leading slash on `diagnostic.path` follows the existing diagnostic contract: it denotes a workspace-relative location, not a host filesystem absolute path. `message.args.sourcePath` contains the same location without that slash. Runtime responses also contain task context arguments and an `open_logs` action. Existing Java files receive an `open_source` action only when the existing bounded task-source preview can safely capture their contents; other file types still expose their location. These previews are snapshots for the active task session, not permission to read arbitrary paths.
 
 The fields use the current UI-Core v1.0 schema. No additional top-level diagnostic property or new operation is required. Agents should use the fields rather than parse translated text. More than one unowned candidate or changed recorded input can produce more than one diagnostic in the same failed task; these are the conflicts found during that preflight, not a complete proposed regeneration plan.
+
+Localized messages have three parameter shapes: the legacy `diagnostic.generation_source_conflict` is a generic message without parameters; `diagnostic.generation_source_conflict_reason` requires only `reason`; and `diagnostic.generation_source_conflict_at_path` requires both `sourcePath` and `reason`. The English and Chinese dictionaries preserve those shapes, including when no safe location is available.
 
 | `reasonCode` | `ownership` | Meaning |
 | --- | --- | --- |

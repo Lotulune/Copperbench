@@ -6,7 +6,7 @@
 
 ## 状态
 
-首批代码已实现，本地可运行的针对性检查通过；Java、Javadoc、真实源码运行时与打包后的服务端 GameTest 等待本批 CI。Stage 18 整体仍未关闭。本记录在每项实际验证后更新，保留源码、协议、服务端与桌面的范围区别。
+首批代码已实现，本地针对性检查与第一轮真实 Native mod 回归通过。第一轮常规CI发现遗漏的中文诊断消息；已经补齐三种参数形状的中英词条并通过本地UI生产构建，正在集成修复后的同源CI。Java测试、Javadoc、完整UI与Windows MCP是否通过以该轮实际结果为准。Stage 18 整体仍未关闭。
 
 ## 基线变化
 
@@ -31,6 +31,17 @@
 - `node scripts/verify-markdown-links.mjs`、`git diff --check`：通过。
 
 本地Java运行时不可用，不把已添加的Java测试记为通过；后续以CI日志及实际产物为准。
+
+## 集成发现与修复
+
+首个远端提交为 `de4c794ab43b839793438bf333bcc59250a84f8b`，评审入口：[PR98](https://github.com/Lotulune/Copperbench/pull/98)。
+
+- [真实Native mod回归 37818611410](https://github.com/Lotulune/Copperbench/actions/runs/37818611410)成功：46项必需probe全部通过，包括实际字段发现、可读错误、带路径归属拒绝且revision/源码不变、独立原生副本构建、注入编译错误与修复重建、打包后GameTest、导出字节哈希及重开。该结果对应上述首个提交，后续修复另行复测。
+- [常规CI 37818611368](https://github.com/Lotulune/Copperbench/actions/runs/37818611368)的UI schema 35/35通过，随后UI构建发现缺少 `diagnostic.generation_source_conflict` 的中文词条。生产Java编译成功，但此job中的Java测试与Javadoc未执行；报告步骤显示success但明确没有JUnit结果，不能计为测试通过。
+- [Linux candidate 37818611327](https://github.com/Lotulune/Copperbench/actions/runs/37818611327)的打包步骤也在同一个i18n检查失败。
+- 修复时为通用无参数、仅原因、路径加原因分别使用对应message key，补齐中英词条；6/6本地化回归通过。CI同款 `npm run build --prefix ui-shell` 本地成功，包含392/392中文key、1696条英文消息校验、TypeScript编译和Vite生产构建。
+
+保留本次失败记录；后续成功结果不覆盖这次真实发现。
 
 ## 已知边界
 
