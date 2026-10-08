@@ -1,5 +1,14 @@
 import { test, expect, type Page } from '@playwright/test';
 
+async function expectWorkspaceRevision(page: Page, revision: number) {
+  // The titlebar no longer renders revisions. Check the active UI bridge, not the fixture core.
+  await expect.poll(() => page.evaluate(async () => {
+    const modulePath = '/src/bridge/index.ts';
+    const { coreBridge } = await import(modulePath);
+    return coreBridge.getState().workbench?.workspace.revision;
+  })).toBe(revision);
+}
+
 async function installFixture(page: Page, mode: 'saveFailure' | 'invalidJson' | 'sourceUnavailable' | 'repairStale' | 'invalidRevision', invalidRevision?: unknown) {
   await page.addInitScript(({ mode, invalidRevision }) => {
     const modulePath = '/src/mock/mockBridge.ts';
@@ -64,7 +73,7 @@ test('failed field save retains its draft and raw diagnostic arguments across la
   await expect(page.getByLabel('Hardness', { exact: false })).toHaveValue('2');
   await expect(field).toHaveValue('User draft 中文');
   await expect(page.getByTestId('element-change-preview')).toContainText('1 field');
-  await expect(page.getByTestId('titlebar-workspace')).toContainText('42');
+  await expectWorkspaceRevision(page, 42);
   expect(await page.evaluate(() => JSON.parse(sessionStorage.getItem('diagnosticCommands') ?? '[]'))).toEqual(['update_mod_element']);
   for (const [width, height] of [[1280, 720], [1920, 1080]]) {
     await page.setViewportSize({ width, height });
@@ -86,9 +95,9 @@ for (const [name, revision] of [['missing', undefined], ['null', null], ['string
     await expect(page.getByTestId('validation-alert')).toContainText('保存失败');
     await page.getByTestId('ui-language-select').selectOption('en');
     await expect(page.getByTestId('validation-alert')).toContainText('Save failed.');
-    await expect(page.getByTestId('titlebar-workspace')).toContainText('42');
-    await expect(page.getByTestId('titlebar-workspace')).not.toContainText('NaN');
+    await expectWorkspaceRevision(page, 42);
     await expect(page.getByTestId('field-displayName')).toHaveValue('Preserved draft');
+    expect(await page.evaluate(() => JSON.parse(sessionStorage.getItem('diagnosticCommands') ?? '[]'))).toEqual(['update_mod_element']);
   });
 }
 
@@ -156,6 +165,7 @@ test('stale repair remains blocked after changing language', async ({ page }) =>
 test('English datagen publication keeps explicit confirmation and keyboard cancellation', async ({ page }, testInfo) => {
   await page.goto('/');
   await page.getByTestId('ui-language-select').selectOption('en');
+  await page.getByTestId('compact-run-menu').click();
   await page.getByRole('button', { name: 'Run staged data generation', exact: true }).click();
   await expect(page.getByRole('button', { name: 'View staged changes', exact: true })).toBeVisible({ timeout: 5000 });
   await page.getByRole('button', { name: 'View staged changes', exact: true }).click();

@@ -42,6 +42,8 @@ test('replacement modeling task takes focus ahead of cancelled history and remai
   const panel = await open();
   await expect(panel.locator('.blockbench-task')).toContainText('已取消，文件保留');
   await expect(panel.locator('.blockbench-task')).not.toContainText('源模型候选：未生成');
+  await expect(panel.locator('.blockbench-task')).toContainText('编辑副本与候选文件已保留。');
+  await expect(panel.getByRole('button', { name: '确认磁盘保存并生成候选' })).toBeDisabled();
   await panel.locator('.modeling-extra-task > summary').click();
   await panel.getByRole('button', { name: '新建建模副本', exact: true }).click();
   const first = panel.locator('.blockbench-task').first();
@@ -71,6 +73,7 @@ test('element guided modeling preserves its target across reopen and separates i
       workspaceId: '11111111-1111-4111-8111-111111111111', onEvent() { return () => {}; },
       async invoke(raw) {
         const request = JSON.parse(raw), core = await ready;
+        if (request.messageType === 'command') calls.push(request);
         const envelope = { schemaVersion: '1.0', requestId: request.requestId, workspaceId: request.workspaceId, operation: request.operation, diagnostics: [] };
         if (request.operation === 'list_blockbench_tasks') return JSON.stringify({ ...envelope, messageType: 'query_result', status: 'succeeded', revision: 42, data: { tasks: task ? [task] : [] } });
         if (request.operation === 'get_blockbench_task') {
@@ -86,7 +89,6 @@ test('element guided modeling preserves its target across reopen and separates i
           } });
         }
         if (['begin_blockbench_task', 'finish_blockbench_task', 'import_blockbench_task', 'bind_blockbench_model'].includes(request.operation)) {
-          calls.push(request);
           if (request.operation === 'begin_blockbench_task') task = {
             taskId: request.payload.taskId, state: 'editing', targetRelativePath: 'models/blockbench/lamp.bbmodel',
             editPath: 'C:/fixture/edit/model.bbmodel', editSha256: 'a'.repeat(64), candidatePath: null, sourceChanged: false,
@@ -119,7 +121,9 @@ test('element guided modeling preserves its target across reopen and separates i
   await page.goto('/');
   await page.getByTestId('nav-elements').click();
   await page.getByTestId('filter-type-block').click();
-  await page.locator('[data-element-id]').first().click();
+  const element = page.locator('[data-element-id]').first();
+  const elementId = await element.getAttribute('data-element-id');
+  await element.click();
   const panel = page.getByTestId('element-inspector').getByTestId('blockbench-tasks');
   await panel.locator(':scope > summary').focus(); await page.keyboard.press('Enter');
   await expect(panel.getByLabel('新模型目标路径')).toHaveCount(0);
@@ -128,10 +132,15 @@ test('element guided modeling preserves its target across reopen and separates i
   await expect(panel.locator('.modeling-task-details')).toHaveJSProperty('open', false);
   await expect(panel.getByRole('button', { name: '在 Blockbench 打开副本' })).toBeInViewport();
   await panel.getByRole('button', { name: '在 Blockbench 打开副本' }).click();
-  await expect(panel).toContainText('已打开编辑副本');
+  await expect(panel.getByRole('status')).toContainText('已打开副本。请在编辑目录保存并导出 JSON 和 PNG。');
   await page.evaluate(() => (window as any).saveModelWithoutFocus());
   await panel.getByRole('button', { name: '确认磁盘保存并生成候选' }).click();
-  await expect(panel).toContainText('源模型候选：已保存');
+  await expect(panel.locator('.blockbench-task > strong')).toContainText('候选已保存，待回导');
+  const details = panel.locator('.modeling-task-details');
+  await details.locator(':scope > summary').click();
+  await expect(details.getByText('C:/fixture/candidate.bbmodel', { exact: true })).toBeVisible();
+  await expect(details).toContainText('test:custom/lamp');
+  await details.locator(':scope > summary').click();
   const finishCalls = await page.evaluate(() => (window as any).guidedCalls);
   const finish = finishCalls.filter((call: any) => call.operation === 'finish_blockbench_task');
   expect(finish).toHaveLength(1);
@@ -140,16 +149,22 @@ test('element guided modeling preserves its target across reopen and separates i
     .toBeLessThan(finishCalls.findIndex((call: any) => call.operation === 'finish_blockbench_task'));
   await page.reload();
   await page.getByTestId('nav-assets').click();
+  await page.getByTestId('asset-modeling-disclosure').locator(':scope > summary').click();
   const restored = page.getByTestId('blockbench-tasks');
   await restored.locator(':scope > summary').click();
   await expect(restored).toContainText('Guided Lamp');
-  await expect(restored).toContainText('源模型候选：已保存');
+  await expect(restored.locator('.blockbench-task > strong')).toContainText('候选已保存，待回导');
+  await restored.locator('.modeling-task-details > summary').click();
+  await expect(restored.getByText('C:/fixture/candidate.bbmodel', { exact: true })).toBeVisible();
+  await expect(restored).toContainText('test:custom/lamp');
+  await restored.locator('.modeling-task-details > summary').click();
   await restored.locator('.modeling-import-review summary').click();
   await expect(restored.getByLabel('目标元素')).toBeDisabled();
   await restored.getByRole('button', { name: '识别并预览回导' }).click();
   const preview = await page.evaluate(() => (window as any).guidedCalls.find((call: any) => call.operation === 'preview_blockbench_import'));
   expect(preview.payload.outputs).toBeUndefined();
-  expect(preview.payload.elementId).toBeTruthy();
+  expect(preview.payload.elementId).toBe(elementId);
+  expect(preview.payload.taskId).toBe(finish[0].payload.taskId);
   await restored.getByRole('button', { name: '应用回导', exact: true }).click();
   await expect(restored.getByLabel('导入的游戏模型')).toHaveValue('test:custom/lamp');
   await expect(restored.getByRole('button', { name: '构建工作区', exact: true })).toBeDisabled();
@@ -159,22 +174,36 @@ test('element guided modeling preserves its target across reopen and separates i
   await restored.getByRole('button', { name: '关联所选模型' }).click();
   await expect(restored.getByRole('button', { name: '构建工作区', exact: true })).toBeEnabled();
   await expect(restored).toContainText('元素定义已关联');
+  const importCommands = await page.evaluate(() => (window as any).guidedCalls
+    .filter((call: any) => call.messageType === 'command'));
+  expect(importCommands.map((call: any) => call.operation)).toEqual([
+    'import_blockbench_task', 'bind_blockbench_model', 'bind_blockbench_model'
+  ]);
+  for (const call of importCommands) expect(call.payload.taskId).toBe(finish[0].payload.taskId);
+  for (const call of importCommands.slice(1)) {
+    expect(call.payload.elementId).toBe(elementId);
+    expect(call.payload.modelResource).toBe('test:custom/lamp');
+  }
   expect(await restored.evaluate(element => element.scrollWidth <= element.clientWidth)).toBe(true);
   await page.screenshot({ path: testInfo.outputPath('guided-modeling-bound.png') });
   await page.reload(); await page.getByTestId('nav-assets').click();
+  await page.getByTestId('asset-modeling-disclosure').locator(':scope > summary').click();
   await restored.locator(':scope > summary').click();
   await expect(restored.getByRole('button', { name: '构建工作区', exact: true })).toBeEnabled();
-  await expect(restored).toContainText('游戏效果仍需验证');
+  await expect(restored).toContainText('下一步：构建并在游戏内验证。');
 });
 
 test('handwritten element explains its restriction before creating or previewing a task', async ({ page }) => {
   await page.addInitScript(() => {
     const modulePath = '/src/mock/mockBridge.ts';
     const ready = import(modulePath).then(({ MockCoreBridge }) => new MockCoreBridge());
+    const calls: string[] = [];
+    (window as any).handwrittenModelingCalls = calls;
     window.copperbenchHost = {
       workspaceId: '11111111-1111-4111-8111-111111111111', onEvent() { return () => {}; },
       async invoke(raw) {
         const request = JSON.parse(raw), core = await ready;
+        if (request.messageType === 'command' || request.operation === 'preview_blockbench_import') calls.push(request.operation);
         const result = request.messageType === 'handshake' ? await core.negotiateHandshake(request)
           : request.messageType === 'command' ? await core.sendCommand(request) : await core.sendQuery(request);
         if (request.operation === 'get_mod_element_editor') result.data.element.ownership = 'manual';
@@ -188,7 +217,8 @@ test('handwritten element explains its restriction before creating or previewing
   await page.getByTestId('filter-type-block').click(); await page.locator('[data-element-id]').first().click();
   const panel = page.getByTestId('element-inspector').getByTestId('blockbench-tasks');
   await panel.locator(':scope > summary').click();
-  await expect(panel.getByRole('alert')).toContainText('手写源码管理，无法自动关联模型');
+  await expect(panel.getByRole('alert')).toContainText('此元素由源码管理，需在源码中关联模型。');
   await expect(panel.getByRole('button', { name: '新建建模副本' })).toBeDisabled();
   await expect(panel.getByRole('button', { name: '识别并预览回导' })).toHaveCount(0);
+  expect(await page.evaluate(() => (window as any).handwrittenModelingCalls)).toEqual([]);
 });

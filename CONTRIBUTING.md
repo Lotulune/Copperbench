@@ -47,11 +47,12 @@ The three required check names remain **Java tests and Javadoc**, **UI contract,
 | Python MCP client `sdk/python/copperbench.py` or Python unit tests | Python SDK tests plus the always-on repository checks. |
 | TypeScript SDK | TypeScript SDK tests and the existing connection-file security regression plus repository checks; installs the UI shell development dependencies, without a UI build or Chromium. |
 | Shared MCP fixtures or `sdk/protocol.md` | Both SDK test suites plus repository checks. |
-| Allowlisted ordinary editors, translation dictionaries, local CSS, UI tests, Playwright configuration and fixtures | UI contract tests, production build, bridge/localization tests, and the five Chromium smoke specs, including desktop MCP permission selection. |
+| Allowlisted ordinary editors, translation dictionaries, local CSS, and `ui-shell/tests/` | UI contract tests, production build, bridge/localization tests, and the five Chromium smoke specs, including desktop MCP permission selection. |
+| `ui-shell/e2e/**`, Playwright configuration, or shared UI mock fixtures | The same UI checks with the full Chromium suite instead of only the five smoke specs. |
 | UI-Core test/validation code | UI contract tests plus repository checks. |
 | Java, native Python integration, startup/native UI, shared schemas, production build/dependency configuration, CI itself, or any unrecognized path | Full Java, frontend and Windows MCP regression. |
 
-Mixed changes take the union of their checks. A missing or ambiguous Git comparison selects the full regression. If the selector itself fails or emits invalid outputs, the required checks fail; they only skip after a successful explicit decision. The workflow is always triggered for PRs so a documentation-only change does not leave a required check permanently pending. Its Actions summary lists the selected checks.
+Mixed changes take the union of their checks. Full regression plans, including `main` and manual runs, also run the full Chromium suite and Python SDK tests on both Ubuntu and Windows. A missing or ambiguous Git comparison selects the full regression. If the selector itself fails or emits invalid outputs, the required checks fail; they only skip after a successful explicit decision. The workflow is always triggered for PRs so a documentation-only change does not leave a required check permanently pending. Its Actions summary lists the selected checks and Chromium coverage.
 
 The small allowlist is in [scripts/ci/select_checks.py](scripts/ci/select_checks.py). Inspect a proposed change locally with:
 
@@ -61,7 +62,7 @@ python scripts/ci/select_checks.py --paths sdk/python/copperbench.py sdk/tests/m
 python -m unittest discover -s scripts/tests -p 'test_ci_selection.py'
 ```
 
-For UI changes outside the five PR smoke specs, run the affected Playwright cases locally as well. The daily [Nightly product gates](.github/workflows/nightly.yml) keep the full Chromium suite, Java scale regression and eight generator tracks. Nightly and Windows release tests already build the UI through Gradle's `processResources → buildUiShell` dependency; they do not need another explicit `npm run build` in the same job.
+For ordinary UI code changes covered by smoke-only routing, run the affected Playwright cases locally as well. Changes to any e2e spec, fixture or shared browser configuration automatically receive the full Chromium suite in PR CI. The daily [Nightly product gates](.github/workflows/nightly.yml) keep the full Chromium suite, Java scale regression and eight generator tracks. Nightly and Windows release tests already build the UI through Gradle's `processResources → buildUiShell` dependency; they do not need another explicit `npm run build` in the same job.
 
 [Linux candidate validation](.github/workflows/stage15-linux-candidate.yml) keeps its separate package, JCEF and Minecraft render checks. PRs that only change allowlisted editors, dictionaries, local styles or frontend tests skip that workflow; native integration, startup and packaging changes retain it. `main` uses broader package-input coverage and manual runs remain available. A passing candidate workflow still does not replace installed-product or gameplay acceptance.
 

@@ -15,6 +15,7 @@ from copperbench import Workspace, NativeApiError
 HOST = r'''
 import json, pathlib, sys, time
 mode = sys.argv[1]
+initial_response_delay = float(sys.argv[2])
 log = pathlib.Path(__file__).with_suffix('.requests')
 if mode == 'startup_failure':
     print(json.dumps({'status': 'failed', 'code': 'WORKSPACE_WRITE_LOCKED'}), flush=True)
@@ -28,6 +29,9 @@ for line in sys.stdin:
     with log.open('a', encoding='utf-8') as file:
         file.write(line)
     operation = request['operation']
+    if operation == 'get_workbench' and initial_response_delay:
+        time.sleep(initial_response_delay)
+        initial_response_delay = 0
     if operation == 'slow':
         time.sleep(30)
     if operation == 'crash':
@@ -72,8 +76,9 @@ class NativeApiTest(unittest.TestCase):
         self.host = self.root / 'fixture.py'
         self.host.write_text(HOST, encoding='utf-8')
 
-    def open(self, mode='normal', **kwargs):
-        client = Workspace.open(self.workspace, launcher=[sys.executable, str(self.host), mode], **kwargs)
+    def open(self, mode='normal', *, initial_response_delay=0, **kwargs):
+        client = Workspace.open(self.workspace,
+                                launcher=[sys.executable, str(self.host), mode, str(initial_response_delay)], **kwargs)
         self.addCleanup(client.close)
         return client
 
@@ -148,7 +153,9 @@ class NativeApiTest(unittest.TestCase):
         self.assertEqual('NATIVE_SESSION_CLOSED', closed.exception.code)
 
     def test_timeout_closes_process_without_retrying_mutation(self):
-        client = self.open(request_timeout=0.1)
+        # Healthy initialization may exceed the deadline of the operation under test.
+        client = self.open(initial_response_delay=0.2)
+        client.request_timeout = 0.1
         with self.assertRaises(NativeApiError) as raised:
             client.command('slow')
         self.assertEqual('NATIVE_TIMEOUT', raised.exception.code)
@@ -163,7 +170,9 @@ class NativeApiTest(unittest.TestCase):
         self.assertIsNotNone(client._process.poll())
 
     def test_timeout_includes_a_blocked_pipe_write(self):
-        client = self.open('blocked_write', request_timeout=0.1)
+        # Finish the initial query before applying the short blocked-write deadline.
+        client = self.open('blocked_write', initial_response_delay=0.2)
+        client.request_timeout = 0.1
         started = time.monotonic()
         with self.assertRaises(NativeApiError) as raised:
             client.command('update_mod_element', text='x' * 1024 * 1024)

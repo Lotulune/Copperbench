@@ -47,7 +47,9 @@ test('dedicated server authority requires a separate EULA choice', async ({ page
 });
 
 test('task drawer exposes actual counts, cases and artifact identity', async ({ page }) => {
-  await page.goto('/'); await page.getByRole('button', { name: '运行已有 GameTest', exact: true }).click();
+  await page.goto('/');
+  await page.getByTestId('compact-run-menu').click();
+  await page.getByRole('button', { name: '运行已有 GameTest', exact: true }).click();
   const report = page.getByRole('region', { name: 'GameTest 验收报告' });
   await expect(report).toContainText('配置的测试已通过');
   await expect(report.locator('dl')).toContainText('发现3');

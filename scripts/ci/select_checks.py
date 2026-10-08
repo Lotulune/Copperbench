@@ -9,6 +9,7 @@ import subprocess
 
 
 CHECKS = ("java", "windows", "ui", "contract", "python", "typescript")
+PLAN_OUTPUTS = (*CHECKS, "ui_full_e2e")
 ROOT_DOCS = {
     "AGENTS.md", "CHANGES-FROM-UPSTREAM.md", "CONTEXT.md", "CONTRIBUTING.md",
     "README.md", "README.zh-CN.md", "UPSTREAM.md",
@@ -24,17 +25,20 @@ UI_COMPONENTS = {
     "TracksAndMigrationView.tsx", "blockbenchSetup.css", "pythonWorkbench.css",
     "taskAuthorization.css",
 }
+# Changes to browser configuration or shared mock fixtures can affect any spec.
+UI_E2E_FILES = {
+    *("ui-shell/src/mock/" + name for name in ("assetFixtures.ts", "mockBridge.ts", "scenarios.ts", "windowBridge.ts")),
+    "ui-shell/playwright.config.ts", "ui-shell/playwright.stage17-matrix.config.ts",
+}
 UI_FILES = {
     *("ui-shell/src/components/" + name for name in UI_COMPONENTS),
     *("ui-shell/src/i18n/" + name for name in ("en.ts", "enUi.ts", "zh.ts", "blocklyZh.ts", "labels.ts")),
-    *("ui-shell/src/mock/" + name for name in ("assetFixtures.ts", "mockBridge.ts", "scenarios.ts", "windowBridge.ts")),
-    "ui-shell/src/content/userGuide.ts", "ui-shell/playwright.config.ts",
-    "ui-shell/playwright.stage17-matrix.config.ts",
+    *UI_E2E_FILES, "ui-shell/src/content/userGuide.ts",
 }
 
 
 def full_plan(reason):
-    return {"checks": dict.fromkeys(CHECKS, True), "reason": reason}
+    return {"checks": dict.fromkeys(CHECKS, True), "ui_full_e2e": True, "reason": reason}
 
 
 def checks_for_path(path):
@@ -58,7 +62,10 @@ def select_checks(paths):
         return full_plan("No complete changed-file list; run all checks.")
     selected = set().union(*(checks_for_path(path) for path in paths))
     reason = "A shared, runtime, build, CI, or unrecognized path requires all checks." if selected == set(CHECKS) else "PR checks selected from the changed layers."
-    return {"checks": {name: name in selected for name in CHECKS}, "reason": reason}
+    full_e2e = selected == set(CHECKS) or any(
+        path in UI_E2E_FILES or path.startswith("ui-shell/e2e/") for path in paths
+    )
+    return {"checks": {name: name in selected for name in CHECKS}, "ui_full_e2e": full_e2e, "reason": reason}
 
 
 def changed_paths(repository, event):
@@ -98,8 +105,10 @@ def plan_for_event(event_name, event_path, repository):
 
 
 def verify_plan(result, outputs):
-    if result != "success" or not isinstance(outputs, dict) or set(outputs) != set(CHECKS) or any(value not in ("true", "false") for value in outputs.values()):
+    if result != "success" or not isinstance(outputs, dict) or set(outputs) != set(PLAN_OUTPUTS) or any(value not in ("true", "false") for value in outputs.values()):
         raise ValueError("CI change selection failed or returned missing/invalid outputs")
+    if outputs["ui_full_e2e"] == "true" and outputs["ui"] != "true":
+        raise ValueError("Full Chromium selection requires UI checks")
 
 
 def main():
@@ -117,7 +126,7 @@ def main():
     print(json.dumps(plan, indent=2))
     if not args.paths and os.environ.get("GITHUB_OUTPUT"):
         with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
-            for name, enabled in plan["checks"].items():
+            for name, enabled in {**plan["checks"], "ui_full_e2e": plan["ui_full_e2e"]}.items():
                 output.write(f"{name}={str(enabled).lower()}\n")
     if not args.paths and os.environ.get("GITHUB_STEP_SUMMARY"):
         with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
@@ -125,6 +134,8 @@ def main():
             summary.write("Markdown links and product status always run.\n\n| Check | Run |\n| --- | --- |\n")
             for name, enabled in plan["checks"].items():
                 summary.write(f"| {name} | {'yes' if enabled else 'skip'} |\n")
+            if plan["checks"]["ui"]:
+                summary.write("\nChromium coverage: " + ("full suite" if plan["ui_full_e2e"] else "five smoke specs") + ".\n")
 
 
 if __name__ == "__main__":

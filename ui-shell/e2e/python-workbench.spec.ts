@@ -4,7 +4,7 @@ import { openToolView } from './navigation';
 test('browser preview never pretends to execute Python', async ({ page }) => {
   await page.goto('/');
   await openToolView(page, 'python');
-  await expect(page.getByTestId('python-workbench')).toContainText('浏览器预览不会执行脚本');
+  await expect(page.getByTestId('python-workbench').getByRole('alert')).toHaveText('执行脚本需要桌面版。');
   await expect(page.getByTestId('python-run')).toBeDisabled();
 });
 
