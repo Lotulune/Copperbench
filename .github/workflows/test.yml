@@ -26,6 +26,7 @@ jobs:
       java: ${{ steps.select.outputs.java }}
       windows: ${{ steps.select.outputs.windows }}
       ui: ${{ steps.select.outputs.ui }}
+      ui_full_e2e: ${{ steps.select.outputs.ui_full_e2e }}
       contract: ${{ steps.select.outputs.contract }}
       python: ${{ steps.select.outputs.python }}
       typescript: ${{ steps.select.outputs.typescript }}
@@ -156,9 +157,13 @@ jobs:
         working-directory: ui-shell
         run: npx playwright install --with-deps chromium
       - name: Run fast product-shell smoke tests
-        if: needs.changes.outputs.ui == 'true'
+        if: needs.changes.outputs.ui == 'true' && needs.changes.outputs.ui_full_e2e == 'false'
         working-directory: ui-shell
         run: npx playwright test e2e/scenarios.spec.ts e2e/new-workspace.spec.ts e2e/sdk-connection-security.spec.ts e2e/jcef-bridge.spec.ts e2e/mcp-runtime.spec.ts --project=chromium
+      - name: Run full Chromium suite
+        if: needs.changes.outputs.ui == 'true' && needs.changes.outputs.ui_full_e2e == 'true'
+        working-directory: ui-shell
+        run: npx playwright test --project=chromium
       - name: Test Python SDK reliability and connection security
         if: needs.changes.outputs.python == 'true'
         run: python -m unittest discover -s sdk/python -p 'test_*.py'
@@ -196,6 +201,14 @@ jobs:
           }
       - name: Checkout repository
         uses: actions/checkout@v7
+      - name: Set up Python for Windows SDK tests
+        if: needs.changes.outputs.python == 'true'
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - name: Test Python SDK reliability and connection security on Windows
+        if: needs.changes.outputs.python == 'true'
+        run: python -m unittest discover -s sdk/python -p 'test_*.py'
       - name: Set up JDK 25 with JCEF
         uses: actions/setup-java@v6
         with:

@@ -89,6 +89,12 @@ export function SettingsView() {
     finally { setSaving(false); }
   }
 
+  async function openAdvanced() {
+    setError(null);
+    try { await windowBridge.openPreferences(); }
+    catch (failure) { setError(String(failure)); }
+  }
+
   function edit(key: string, value: AppPreferenceValue) {
     setDraft(current => ({ ...current, [key]: value })); setSaved(false);
   }
@@ -121,9 +127,11 @@ export function SettingsView() {
       <header className="settings-heading">
         <div><h1>{uiText('设置', 'Settings')}</h1></div>
         {windowBridge.canOpenPreferences && <button className="settings-secondary" type="button" disabled={saving || dirty}
-          onClick={() => { void windowBridge.openPreferences().catch(failure => setError(String(failure))); }}>
+          onClick={() => { void openAdvanced(); }}>
           <ExternalLink size={14} />{uiText('高级设置', 'Advanced settings')}</button>}
       </header>
+      {error && <div className="settings-error" role="alert"><strong>{uiText('无法完成操作', 'Could not complete the operation')}</strong><p>{error}</p>
+        {windowBridge.canManagePreferences && <span>{uiText('当前更改尚未保存。重新加载将丢弃页面中的更改。', 'Your changes have not been saved. Reloading discards changes on this page.')}</span>}</div>}
       {!windowBridge.canManagePreferences ? <div className="settings-unavailable">
         <Settings2 size={24} /><h2>{uiText('应用设置不可用', 'Application settings are unavailable')}</h2>
         <p>{uiText('请在桌面应用中打开。', 'Open this page in the desktop app.')}</p>
@@ -137,8 +145,6 @@ export function SettingsView() {
             placeholder={uiText('搜索设置', 'Search settings')} aria-label={uiText('搜索设置', 'Search settings')}
             onChange={event => setSearch(event.target.value)} /></label>
         </div>
-        {error && <div className="settings-error" role="alert"><strong>{uiText('无法完成操作', 'Could not complete the operation')}</strong><p>{error}</p>
-          <span>{uiText('当前更改尚未保存。重新加载将丢弃页面中的更改。', 'Your changes have not been saved. Reloading discards changes on this page.')}</span></div>}
         {loading ? <p className="settings-empty" role="status">{uiText('正在读取设置…', 'Loading settings…')}</p>
           : <form onSubmit={event => { event.preventDefault(); void save(); }}>
             <fieldset className="settings-fields" disabled={saving}>

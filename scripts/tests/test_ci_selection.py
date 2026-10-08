@@ -16,12 +16,15 @@ selection = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(selection)
 
 CHECKS = {"java", "windows", "ui", "contract", "python", "typescript"}
+PLAN_OUTPUTS = CHECKS | {"ui_full_e2e"}
 
 
 class SelectionAssertions:
-    def assert_checks(self, plan, expected):
+    def assert_checks(self, plan, expected, full_e2e=None):
         self.assertEqual({name: name in expected for name in CHECKS}, plan["checks"])
         self.assertTrue(all(type(value) is bool for value in plan["checks"].values()))
+        self.assertIs(type(plan["ui_full_e2e"]), bool)
+        self.assertEqual(expected == CHECKS if full_e2e is None else full_e2e, plan["ui_full_e2e"])
 
 
 class PathSelectionTest(SelectionAssertions, unittest.TestCase):
@@ -83,10 +86,33 @@ class PathSelectionTest(SelectionAssertions, unittest.TestCase):
         ]), CHECKS)
         self.assert_checks(selection.select_checks([]), CHECKS)
 
+    def test_changed_browser_suite_inputs_run_full_chromium(self):
+        paths = {
+            "ui-shell/e2e/python-workbench.spec.ts",
+            "ui-shell/e2e/new-regression.spec.ts",
+            "ui-shell/e2e/fixtures/stage17-return-diagnostic.json",
+            "ui-shell/e2e/helpers/shared.ts",
+            "ui-shell/e2e/visual-matrix.spec.ts-snapshots/example.png",
+            *selection.UI_E2E_FILES,
+        }
+        for path in paths:
+            with self.subTest(path=path):
+                self.assert_checks(selection.select_checks([path]), {"ui", "contract"}, full_e2e=True)
+        self.assert_checks(selection.select_checks([
+            "README.md", "sdk/python/copperbench.py", "ui-shell/e2e/new-regression.spec.ts",
+        ]), {"ui", "contract", "python"}, full_e2e=True)
+
+    def test_ordinary_allowlisted_ui_changes_keep_smoke_coverage(self):
+        paths = (selection.UI_FILES - selection.UI_E2E_FILES) | {"ui-shell/tests/bridge.test.ts"}
+        for path in paths:
+            with self.subTest(path=path):
+                self.assert_checks(selection.select_checks([path]), {"ui", "contract"}, full_e2e=False)
+
     def test_verify_plan_accepts_only_successful_complete_boolean_outputs(self):
-        valid = dict.fromkeys(CHECKS, "false")
+        valid = dict.fromkeys(PLAN_OUTPUTS, "false")
         selection.verify_plan("success", valid)
         selection.verify_plan("success", {**valid, "java": "true"})
+        selection.verify_plan("success", {**valid, "ui": "true", "ui_full_e2e": "true"})
         invalid = (
             ("failure", valid),
             ("cancelled", valid),
@@ -94,16 +120,61 @@ class PathSelectionTest(SelectionAssertions, unittest.TestCase):
             (None, valid),
             ("success", {}),
             ("success", {key: value for key, value in valid.items() if key != "windows"}),
+            ("success", {key: value for key, value in valid.items() if key != "ui_full_e2e"}),
             ("success", {**valid, "unexpected": "true"}),
             ("success", {**valid, "java": ""}),
             ("success", {**valid, "java": "TRUE"}),
             ("success", {**valid, "java": True}),
+            ("success", {**valid, "ui_full_e2e": ""}),
+            ("success", {**valid, "ui_full_e2e": "TRUE"}),
+            ("success", {**valid, "ui_full_e2e": True}),
+            ("success", {**valid, "ui_full_e2e": "true"}),
             ("success", list(CHECKS)),
         )
         for result, outputs in invalid:
             with self.subTest(result=result, outputs=outputs):
                 with self.assertRaises(ValueError):
                     selection.verify_plan(result, outputs)
+
+
+class WorkflowRoutingTest(unittest.TestCase):
+    def setUp(self):
+        self.workflow = (SCRIPT.parents[2] / ".github/workflows/test.yml").read_text(encoding="utf-8")
+
+    def step(self, name):
+        match = re.search(
+            rf"(?m)^      - name: {re.escape(name)}\n((?:^        .*\n|^\n)*)", self.workflow,
+        )
+        self.assertIsNotNone(match, f"Missing workflow step: {name}")
+        return match.group(1)
+
+    def test_workflow_exposes_every_validated_output_and_keeps_required_names(self):
+        outputs = re.findall(r"(?m)^      (\w+): \$\{\{ steps\.select\.outputs\.(\w+) \}\}$", self.workflow)
+        self.assertEqual({(name, name) for name in PLAN_OUTPUTS}, set(outputs))
+        for name in ("Java tests and Javadoc", "UI contract, build, and smoke tests", "MCP conformance"):
+            self.assertIn(f"    name: {name}\n", self.workflow)
+        self.assertIn("run: python3 scripts/ci/select_checks.py --verify-plan", self.workflow)
+        self.assertLess(self.workflow.index("--verify-plan"), self.workflow.index("Run fast product-shell smoke tests"))
+
+    def test_smoke_and_full_chromium_routes_are_mutually_exclusive(self):
+        smoke = self.step("Run fast product-shell smoke tests")
+        full = self.step("Run full Chromium suite")
+        self.assertIn("if: needs.changes.outputs.ui == 'true' && needs.changes.outputs.ui_full_e2e == 'false'\n", smoke)
+        self.assertIn("if: needs.changes.outputs.ui == 'true' && needs.changes.outputs.ui_full_e2e == 'true'\n", full)
+        self.assertIn("run: npx playwright test e2e/scenarios.spec.ts e2e/new-workspace.spec.ts e2e/sdk-connection-security.spec.ts e2e/jcef-bridge.spec.ts e2e/mcp-runtime.spec.ts --project=chromium\n", smoke)
+        self.assertIn("run: npx playwright test --project=chromium\n", full)
+
+    def test_full_windows_route_also_runs_python_sdk_regressions(self):
+        windows = self.workflow.split("  mcp-conformance:\n", 1)[1]
+        for name in ("Set up Python for Windows SDK tests", "Test Python SDK reliability and connection security on Windows"):
+            step = self.step(name)
+            self.assertIn(f"      - name: {name}\n", windows)
+            self.assertIn("if: needs.changes.outputs.python == 'true'\n", step)
+        self.assertIn('python-version: "3.11"', self.step("Set up Python for Windows SDK tests"))
+        self.assertIn("run: python -m unittest discover -s sdk/python -p 'test_*.py'\n",
+                      self.step("Test Python SDK reliability and connection security on Windows"))
+        self.assertIn("run: python -m unittest discover -s sdk/python -p 'test_*.py'\n",
+                      self.step("Test Python SDK reliability and connection security"))
 
 
 class GitSelectionTest(SelectionAssertions, unittest.TestCase):
@@ -204,6 +275,15 @@ class GitSelectionTest(SelectionAssertions, unittest.TestCase):
                          set(selection.changed_paths(self.repository, event)))
         self.assert_checks(self.plan(event), CHECKS)
 
+    def test_renamed_e2e_input_keeps_full_chromium_coverage(self):
+        source = self.write("ui-shell/e2e/fixtures/shared.json", "{}\n")
+        base = self.commit("Add a shared browser fixture")
+        destination = self.repository / "docs/fixture.md"
+        destination.parent.mkdir()
+        source.rename(destination)
+        head = self.commit("Move the fixture to documentation")
+        self.assert_checks(self.plan(self.event(head, base)), {"ui", "contract"}, full_e2e=True)
+
     def test_nul_delimited_names_and_mode_only_changes_are_preserved(self):
         names = ("docs/space and 中文.md", "docs/line\nbreak\t.md", "docs/literal\\backslash.md")
         for name in names:
@@ -302,8 +382,8 @@ class GitSelectionTest(SelectionAssertions, unittest.TestCase):
         )
         self.assert_checks(json.loads(process.stdout), set())
         lines = output.read_text(encoding="utf-8").splitlines()
-        self.assertEqual(len(CHECKS), len(lines))
-        self.assertEqual({f"{name}=false" for name in CHECKS}, set(lines))
+        self.assertEqual(len(PLAN_OUTPUTS), len(lines))
+        self.assertEqual({f"{name}=false" for name in PLAN_OUTPUTS}, set(lines))
         self.assertIn("Markdown links and product status always run.", summary.read_text(encoding="utf-8"))
         # Exercise the workflow guard entry point, including a crashed classifier.
         for result, successful in (("success", True), ("failure", False), ("cancelled", False)):
@@ -311,10 +391,28 @@ class GitSelectionTest(SelectionAssertions, unittest.TestCase):
                 guard = subprocess.run(
                     [sys.executable, str(SCRIPT), "--verify-plan"], cwd=self.repository,
                     env={**environment, "CI_PLAN_RESULT": result,
-                         "CI_PLAN_OUTPUTS": json.dumps(dict.fromkeys(CHECKS, "false"))},
+                         "CI_PLAN_OUTPUTS": json.dumps(dict.fromkeys(PLAN_OUTPUTS, "false"))},
                     capture_output=True, text=True, timeout=15,
                 )
                 self.assertEqual(successful, guard.returncode == 0)
+
+    def test_cli_emits_full_chromium_output_and_summary(self):
+        self.write("ui-shell/e2e/new-regression.spec.ts", "// Browser regression fixture.\n")
+        head = self.commit("Add a browser regression")
+        output = self.root / "github-output.txt"
+        summary = self.root / "github-summary.md"
+        process = subprocess.run(
+            [sys.executable, str(SCRIPT)], cwd=self.repository,
+            env={**os.environ, "GITHUB_EVENT_NAME": "pull_request",
+                 "GITHUB_EVENT_PATH": str(self.event_file(self.event(head))),
+                 "GITHUB_OUTPUT": str(output), "GITHUB_STEP_SUMMARY": str(summary)},
+            capture_output=True, text=True, check=True, timeout=15,
+        )
+        self.assert_checks(json.loads(process.stdout), {"ui", "contract"}, full_e2e=True)
+        outputs = dict(line.split("=", 1) for line in output.read_text(encoding="utf-8").splitlines())
+        self.assertEqual("true", outputs["ui_full_e2e"])
+        selection.verify_plan("success", outputs)
+        self.assertIn("Chromium coverage: full suite.", summary.read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":

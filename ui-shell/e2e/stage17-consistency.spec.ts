@@ -1,20 +1,27 @@
 import { test, expect } from '@playwright/test';
 
-test('asset index text remains readable beside its status dot at supported window widths', async ({ page }, testInfo) => {
+test('asset resource count stays accurate and readable at supported window widths', async ({ page }, testInfo) => {
   await page.goto('/');
   await page.getByTestId('nav-assets').click();
-  const header = page.locator('.asset-browser-header').first();
-  const count = header.locator('.connection-state > span:not([aria-hidden])');
+  const header = page.locator('.asset-library-heading');
+  const count = header.getByText(/^\d+ 个资源文件$/);
+  await expect(count).toHaveText(/^[1-9]\d* 个资源文件$/);
+  const assetCount = await page.getByTestId(/^asset-card-/).count();
+  expect(assetCount).toBeGreaterThan(0);
   for (const [width, height] of [[1280, 720], [1366, 768], [1920, 1080]]) {
     await page.setViewportSize({ width, height });
-    await expect(count).toHaveText(/已索引 \(\d+\/\d+\)/);
+    await expect(count).toHaveText(`${assetCount} 个资源文件`);
+    await expect(count).toBeVisible();
+    expect(await count.evaluate(element => element.scrollWidth <= element.clientWidth)).toBe(true);
     const text = await count.boundingBox(), bounds = await header.boundingBox();
     expect(text).not.toBeNull(); expect(bounds).not.toBeNull();
     expect(text!.width).toBeGreaterThan(40);
     expect(text!.height).toBeLessThan(25);
+    expect(text!.x).toBeGreaterThanOrEqual(bounds!.x);
+    expect(text!.y).toBeGreaterThanOrEqual(bounds!.y);
     expect(text!.x + text!.width).toBeLessThanOrEqual(bounds!.x + bounds!.width);
     expect(text!.y + text!.height).toBeLessThanOrEqual(bounds!.y + bounds!.height);
-    await header.screenshot({ path: testInfo.outputPath(`asset-index-${width}.png`) });
+    await header.screenshot({ path: testInfo.outputPath(`asset-count-${width}.png`) });
   }
 });
 
@@ -85,6 +92,7 @@ test('resource details distinguish vanilla resolution from unavailable dependenc
               targetPath: 'assets/thirdparty/textures/block/lamp.png', targetAssetId: null, kind: 'RESOURCE_ID',
               resolution: 'unverified', resourceSource: 'external_catalog_unavailable', resourceVersion: '1.21.1' }
           ];
+          asset.health.outboundCount = 2;
         }
         return JSON.stringify(result);
       }
@@ -92,16 +100,27 @@ test('resource details distinguish vanilla resolution from unavailable dependenc
   });
   await page.goto('/');
   await page.getByTestId('nav-assets').click();
+  await page.getByTestId(`asset-card-asset:${'1'.repeat(64)}`).click();
+  await page.getByTestId('asset-references-disclosure').locator(':scope > summary').click();
   const references = page.getByTestId('asset-outgoing-references');
-  await expect(references).toContainText('原版已解析');
-  const summary = references.locator('summary').filter({ hasText: 'minecraft:block/cube_all' });
-  await summary.focus();
+  await expect(references).toBeVisible();
+  const vanilla = references.getByRole('listitem').filter({ hasText: 'minecraft:block/cube_all' });
+  const dependency = references.getByRole('listitem').filter({ hasText: 'thirdparty:block/lamp' });
+  await expect(vanilla.getByText('原版已解析', { exact: true })).toBeVisible();
+  await expect(vanilla.getByText('assets/minecraft/models/block/cube_all.json', { exact: true })).toBeVisible();
+  await vanilla.locator('summary').focus();
   await page.keyboard.press('Enter');
-  await expect(references).toContainText('引用位置：/parent');
-  await expect(references).toContainText('资源版本：1.21.1');
-  await expect(references).toContainText('a'.repeat(64));
-  await references.locator('summary').filter({ hasText: 'thirdparty:block/lamp' }).click();
-  await expect(references).toContainText('本次检查未下载外部资源');
+  await expect(vanilla.locator('details')).toHaveAttribute('open', '');
+  await expect(vanilla.getByText('位置：/parent', { exact: true })).toBeVisible();
+  await expect(vanilla.getByText('版本：1.21.1', { exact: true })).toBeVisible();
+  await expect(vanilla.getByText('minecraft-client.jar sha256=' + 'a'.repeat(64), { exact: true })).toBeVisible();
+  await expect(dependency.getByText('尚未验证', { exact: true })).toBeVisible();
+  await expect(dependency.getByText('已证实缺失', { exact: true })).toHaveCount(0);
+  await expect(dependency.getByText('assets/thirdparty/textures/block/lamp.png', { exact: true })).toBeVisible();
+  await dependency.locator('summary').click();
+  await expect(dependency.getByText('位置：/textures/all', { exact: true })).toBeVisible();
+  await expect(dependency.getByText('版本：1.21.1', { exact: true })).toBeVisible();
+  await expect(dependency.getByText('external_catalog_unavailable', { exact: true })).toBeVisible();
   expect(await references.evaluate(element => element.scrollWidth <= element.clientWidth)).toBe(true);
 });
 
