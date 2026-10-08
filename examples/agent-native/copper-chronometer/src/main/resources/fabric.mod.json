@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "id": "copper_chronometer",
+  "version": "${version}",
+  "name": "Copper Chronometer",
+  "description": "A craftable world clock with per-item display preference, created to evaluate Copperbench.",
+  "environment": "*",
+  "license": "GPL-3.0-only",
+  "entrypoints": {
+    "main": [
+      "dev.chronometer.CopperChronometer"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.19.3",
+    "minecraft": "~1.21.1",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "item.copper_chronometer.chronometer": "铜质昼夜仪",
+  "message.copper_chronometer.reading": "第 %s 天 · %s · %s · 距下一时段 %s 刻",
+  "message.copper_chronometer.mode": "时间显示：%s",
+  "message.copper_chronometer.dimension": "昼夜仪只能读取主世界的日夜时间。",
+  "format.copper_chronometer.twelve_hour": "12 小时制",
+  "format.copper_chronometer.twenty_four_hour": "24 小时制",
+  "phase.copper_chronometer.day": "白天",
+  "phase.copper_chronometer.dusk": "黄昏",
+  "phase.copper_chronometer.night": "夜晚",
+  "phase.copper_chronometer.dawn": "黎明"
+}
