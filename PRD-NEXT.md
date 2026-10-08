@@ -2,6 +2,8 @@
 
 > 当前交付：Windows / Linux 0.1.4 已发布，见[当前下载](./docs/releases/current.md)。Stage 17 的历史收尾已完成；后续事项以[持续维护清单](./docs/remaining-work.md)为准。本文件保留历史需求与兼容、验收约束。
 
+> 下一阶段开发入口（2026-10-09）：[Stage 18：Agent 首次成功、可恢复诊断与真实交付回归](./PRD-STAGE-18.md)。首批按[执行记录](./docs/testing/stage-18-initial-implementation-2026-10-09.md)跟踪，Stage 18 整体尚未关闭。
+
 ## 历史路线快照
 
 以下状态对应各自记录日期，包含当时的计划、未发布候选和 Beta 基线，不代表当前交付状态。[Stage 17](./PRD-STAGE-17.md) 和 [Blockbench 专项](./PRD-BLOCKBENCH.md) 均保留各自实施与验收记录。

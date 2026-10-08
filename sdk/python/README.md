@@ -98,6 +98,49 @@ workspace.command(
 
 `query()` / `command()` 的操作名和 payload 字段沿用 UI-Core 契约，未承诺未实现的任意内部 Java 方法。常用便捷方法包括元素创建/更新、过程更新、生成/构建/校验、客户端/服务器、GameTest 和任务查询。完整公开操作名和参数见本页开头链接的随包 Core 命令与查询 schema，无需读取产品实现。
 
+## 字段发现与可读诊断
+
+先查询当前 Core 公布的字段契约，再组织结构化写入：
+
+```python
+item_contract = workspace.field_contract("item")
+recipe_contract = workspace.field_contract("recipe")
+item_fields = {field["name"]: field for field in item_contract["fields"]}
+print(item_contract["coverage"], item_fields["stackSize"])
+print(next(field for field in recipe_contract["fields"] if field["name"] == "recipeType"))
+```
+
+`item` 和 `recipe` 的 `coverage` 为 `partial`：它们列出经过审查的定义字段输入形状，复用实际写入校验使用的存储类型、`Numeric` 范围和 `LimitedOptions` 选项。常用字段包括物品的 `stackSize`、`rarity`、耐久、食物属性，以及配方的 `recipeType`、`recipeRetstackSize`、`recipeSlots`、输出引用、烧炼时间与经验。它们没有承诺所有元素字段、完整条件规则、默认值、引用是否存在、当前生成器支持或游戏验收。未列出的字段可结合既有元素的 `get_mod_element_editor` 与 `fieldContracts.generic` / `custom` 边界检查。
+
+| 字段描述 | 含义 |
+| --- | --- |
+| `name`、`path`、`compatibilityPath` | 输入名称、顶层 JSON Pointer，以及旧的 `/fields/...` 路径。两个拼写同时提供时必须一致。 |
+| `type` | 非空输入的 JSON 类型；`integer` 不接受小数截断或字符串转换。引用允许 `type: ["string", "object"]`，对象只接受字符串 `value`。 |
+| `min`、`max`、`options` | 当前校验实际执行的数字范围或枚举；没有把界面 `step` 当成强制步长，也没有把界面初始值当成持久化默认值。 |
+| `items` | 数组元素的输入形状；数组元素不能为 `null`。它本身不承诺配方槽位数量或引用有效。 |
+| `nullable` | 输入类型检查是否接受空值；其他上下文检查和适配器仍可拒绝或规范化空值。 |
+
+物品堆叠量使用规范字段 `stackSize`，当前范围为 `1..99`。旧适配器的 `maxStackSize` 别名不属于此严格输入形状子集。现有权限、revision、别名冲突和持久化检查照常执行。
+
+未知类型、较旧 Core 未提供的契约，或无效的契约响应都会得到 `NATIVE_FIELD_CONTRACT_UNAVAILABLE`。SDK 不会把通用契约悄悄当成指定类型，也不会泄漏 `KeyError`：
+
+```python
+from copperbench import NativeApiError
+
+try:
+    contract = workspace.field_contract("item")
+except NativeApiError as error:
+    if error.code != "NATIVE_FIELD_CONTRACT_UNAVAILABLE":
+        raise
+    print(str(error))
+    print(error.details["availableTypes"])
+    print(error.details["nextAction"])
+```
+
+`details` 还保留请求的 `elementType`、稳定的 `reason`（`type_not_advertised`、`contracts_not_advertised` 或 `contract_invalid`）和原始 `environment` 查询结果。按照运行中 Core 实际返回的能力选择路径；如所需契约尚未公布，更新 Copperbench 或先查看既有元素编辑器。此发现失败不会关闭会话或重放修改。
+
+Core 拒绝操作时，`str(NativeApiError)` 会把诊断 `fallback` 中简单的 `{field}`、`{reason}` 等占位符替换为 `args` 中对应的 JSON 标量。例如 `{field}: {reason}` 可显示为 `/commands/0: Expected a non-null command string.`。替换只执行一遍，参数值自带的花括号不再展开；缺失参数、双花括号、属性/索引/格式表达式保持原文，不求值。错误的 `code` 和原始 Core `details` 保持不变，便于机器分类及人工追查。
+
 ## 版本、授权与错误
 
 每次修改默认使用当前会话最后观察到的 revision，也可显式传 `expected_revision=...`。冲突不会自动重试或覆盖；先检查 `NativeApiError.details`，重新读取状态，再决定后续操作。一次网络或进程故障不触发自动重放写操作。

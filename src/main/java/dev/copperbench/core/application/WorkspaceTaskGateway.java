@@ -19,12 +19,78 @@ public interface WorkspaceTaskGateway {
 
 	default void setGenerationPreparation(GenerationPreparation preparation) { }
 
+	/** Preparation failure with optional, explicitly classified source conflicts. */
 	final class GenerationPreparationException extends java.io.IOException {
-		private final String code;
-		public GenerationPreparationException(String code, String message, Throwable cause) {
-			super(message, cause); this.code = code;
+		/** Safe fallback for conflicts whose source location is not known. */
+		public static final String SOURCE_CONFLICT_MESSAGE = "Source files changed or are not owned by the generator. Review them before generating again.";
+
+		/** Stable reasons and the ownership evidence available when generation stopped. */
+		public enum ConflictReason {
+			UNOWNED_BASE_FILE("The existing base file is not owned by this generator.", "not_owned_by_generator"),
+			UNOWNED_ELEMENT_FILE("The existing element file is not owned by this generator.", "not_owned_by_generator"),
+			SOURCE_CHANGED("The source no longer matches the recorded generation input.", "recorded_input"),
+			PATH_OUTSIDE_WORKSPACE("A source path leaves the workspace; its location is withheld.", "unknown"),
+			INVALID_SOURCE_PATH("A source path is not a safe workspace-relative file path.", "unknown"),
+			UNSAFE_PATH("A source path contains a symbolic link or another filesystem redirection.", "unknown"),
+			NON_REGULAR_FILE("The source path must refer to a regular file.", "unknown"),
+			AMBIGUOUS_USER_CODE_REGION("User-code regions are nested, duplicated or unnamed.", "unknown"),
+			MISMATCHED_USER_CODE_REGION("A user-code region end does not match its start.", "unknown"),
+			UNCLOSED_USER_CODE_REGION("A user-code region has no matching end.", "unknown");
+
+			private final String explanation;
+			private final String ownership;
+			ConflictReason(String explanation, String ownership) {
+				this.explanation = explanation; this.ownership = ownership;
+			}
+			/** @return fixed, non-sensitive explanation, independent of exception text */
+			public String explanation() { return explanation; }
+			/** @return ownership evidence, not permission to overwrite the source */
+			public String ownership() { return ownership; }
 		}
+
+		/**
+		 * A conflict location uses forward slashes and is relative to the workspace root.
+		 * Absolute paths, traversal, control characters and platform-specific separators are rejected.
+		 * A null path means that no safe location is available; it must not be reconstructed from a cause.
+		 * @param relativePath safe workspace-relative file path, or null
+		 * @param reason explicit conflict classification
+		 */
+		public record SourceConflict(String relativePath, ConflictReason reason) {
+			public SourceConflict {
+				java.util.Objects.requireNonNull(reason, "Conflict reason is required");
+				if (relativePath != null && (relativePath.isBlank() || relativePath.indexOf('\\') >= 0
+						|| relativePath.indexOf(':') >= 0 || relativePath.chars().anyMatch(Character::isISOControl)
+						|| java.util.Arrays.stream(relativePath.split("/", -1))
+								.anyMatch(part -> part.isEmpty() || part.equals(".") || part.equals(".."))))
+					throw new IllegalArgumentException("Conflict location must be a safe workspace-relative file path");
+			}
+		}
+
+		private final String code;
+		private final List<SourceConflict> conflicts;
+		/**
+		 * Creates a legacy preparation failure without a source location.
+		 * @param code stable diagnostic code
+		 * @param message public explanation; source-conflict responses use a fixed safe fallback
+		 * @param cause internal cause, never used to infer a public source path
+		 */
+		public GenerationPreparationException(String code, String message, Throwable cause) {
+			super(message, cause); this.code = code; this.conflicts = List.of();
+		}
+		/**
+		 * Creates a source conflict with explicitly checked locations.
+		 * @param conflicts one or more classified conflicts
+		 * @param cause internal cause, not part of the public diagnostic
+		 */
+		public GenerationPreparationException(List<SourceConflict> conflicts, Throwable cause) {
+			super(SOURCE_CONFLICT_MESSAGE, cause); this.code = "GENERATION_SOURCE_CONFLICT";
+			this.conflicts = List.copyOf(conflicts);
+			if (this.conflicts.isEmpty()) throw new IllegalArgumentException("At least one source conflict is required");
+		}
+		/** @return stable diagnostic code */
 		public String code() { return code; }
+		/** @return immutable conflict details; legacy failures return an empty list */
+		public List<SourceConflict> conflicts() { return conflicts; }
 	}
 
 	JsonObject start(UUID workspaceId, Operation operation, JsonObject payload);

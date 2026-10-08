@@ -3,6 +3,8 @@ package dev.copperbench.core.workspace.mcreator;
 import com.google.gson.JsonObject;
 import dev.copperbench.core.application.InMemoryWorkspaceTaskGateway;
 import dev.copperbench.core.application.WorkspaceTaskGateway;
+import dev.copperbench.core.application.WorkspaceTaskGateway.GenerationPreparationException;
+import dev.copperbench.core.application.WorkspaceTaskGateway.GenerationPreparationException.ConflictReason;
 import dev.copperbench.core.contract.UiCore.Command;
 import dev.copperbench.core.contract.UiCore.Operation;
 import dev.copperbench.core.workspace.RevisionedWorkspaceStore;
@@ -71,8 +73,12 @@ class MCreatorGenerationPreparationTest {
             var failure = assertThrows(WorkspaceTaskGateway.GenerationPreparationException.class,
                     () -> preparation.prepare(state, root, Operation.BUILD_WORKSPACE, ignored -> fail("No external setup should start before conflict detection")));
             assertEquals("GENERATION_SOURCE_CONFLICT", failure.code());
+            assertEquals("src/main/java/net/mcreator/cold_fields/block/cold_blockBlock.java", failure.conflicts().getFirst().relativePath());
+            assertEquals(ConflictReason.SOURCE_CHANGED, failure.conflicts().getFirst().reason());
             assertEquals("// Externally authored source\n", Files.readString(target));
             assertNotNull(workspace.getMetadata(MCreatorGenerationPreparation.PENDING));
+            assertEquals(state.revision(), store.read(state.id()).orElseThrow().revision());
+            assertFalse(Files.exists(root.resolve("mcreator.gradle")));
         }
     }
 
@@ -103,8 +109,89 @@ class MCreatorGenerationPreparationTest {
                     () -> new MCreatorGenerationPreparation(workspace, store).prepare(state, root, Operation.BUILD_WORKSPACE,
                             ignored -> fail("Ownership conflicts must be rejected before dependency setup")));
             assertEquals("GENERATION_SOURCE_CONFLICT", failure.code());
+            assertEquals("src/main/java/net/mcreator/cold_fields/block/cold_blockBlock.java", failure.conflicts().getFirst().relativePath());
+            assertEquals(ConflictReason.UNOWNED_ELEMENT_FILE, failure.conflicts().getFirst().reason());
             assertEquals("// Legacy external source\n", Files.readString(target));
+            assertEquals(state.revision(), store.read(state.id()).orElseThrow().revision());
+            assertFalse(Files.exists(root.resolve("mcreator.gradle")));
         }
+    }
+
+    @Test void reportsAllUnownedBaseCandidatesBeforeAnyFileOrRevisionChange() throws Exception {
+        try (Workspace workspace = cold()) {
+            workspace.putMetadata("files", List.of());
+            workspace.getFileManager().saveWorkspaceDirectlyAndWait();
+            var state = new MCreatorWorkspaceStateMapper().map(workspace,
+                    workspace.getFileManager().loadOrCreateProductMetadata(UUID.randomUUID()));
+            var store = new RevisionedWorkspaceStore(); store.register(state);
+            var candidates = workspace.getGenerator().getModBaseGeneratorTemplatesList().stream()
+                    .map(template -> template.getFile().toPath()).filter(Files::isRegularFile)
+                    .map(path -> root.toAbsolutePath().relativize(path.toAbsolutePath()).toString().replace('\\', '/'))
+                    .collect(java.util.stream.Collectors.toSet());
+            assertTrue(candidates.size() > 1, "The fixture must exercise more than one conflicting base target");
+            var before = fileBytes();
+            var failure = assertThrows(GenerationPreparationException.class,
+                    () -> new MCreatorGenerationPreparation(workspace, store).prepare(state, root, Operation.GENERATE_WORKSPACE,
+                            ignored -> fail("Source conflicts must stop before dependency setup")));
+            assertEquals(candidates, failure.conflicts().stream().map(GenerationPreparationException.SourceConflict::relativePath)
+                    .collect(java.util.stream.Collectors.toSet()));
+            assertTrue(failure.conflicts().stream().allMatch(conflict -> conflict.reason() == ConflictReason.UNOWNED_BASE_FILE));
+            assertEquals(before, fileBytes());
+            assertEquals(state.revision(), store.read(state.id()).orElseThrow().revision());
+            assertEquals(List.of(), workspace.getMetadata("files"));
+        }
+    }
+
+    @Test void traversalAndAbsolutePendingPathsAreRejectedWithoutDisclosingTheirLocations() throws Exception {
+        try (Workspace workspace = cold()) {
+            var state = new MCreatorWorkspaceStateMapper().map(workspace,
+                    workspace.getFileManager().loadOrCreateProductMetadata(UUID.randomUUID()));
+            var store = new RevisionedWorkspaceStore(); store.register(state);
+            for (String path : List.of("../private-source.java", "nested/../../private-source.java",
+                    root.resolveSibling("private-source.java").toAbsolutePath().toString())) {
+                setPending(workspace, path, "absent");
+                var before = fileBytes();
+                var failure = assertThrows(GenerationPreparationException.class,
+                        () -> new MCreatorGenerationPreparation(workspace, store).prepare(state, root, Operation.GENERATE_WORKSPACE,
+                                ignored -> fail("Unsafe inputs must stop before setup")));
+                assertEquals(ConflictReason.PATH_OUTSIDE_WORKSPACE, failure.conflicts().getFirst().reason());
+                assertNull(failure.conflicts().getFirst().relativePath());
+                assertFalse(failure.getMessage().contains("private-source"));
+                assertEquals(before, fileBytes());
+                assertEquals(state.revision(), store.read(state.id()).orElseThrow().revision());
+            }
+        }
+    }
+
+    @Test void redirectedPendingSourceIsRejectedWithoutReadingItsTarget() throws Exception {
+        try (Workspace workspace = cold()) {
+            Path link = root.resolve("src/main/java/Redirected.java");
+            Files.createDirectories(link.getParent());
+            try { Files.createSymbolicLink(link, root.resolve("private-target.java")); }
+            catch (java.io.IOException | UnsupportedOperationException denied) {
+                org.junit.jupiter.api.Assumptions.abort("This environment cannot create test symlinks");
+            }
+            setPending(workspace, "src/main/java/Redirected.java", "absent");
+            var failure = assertThrows(GenerationPreparationException.class, () -> MCreatorGenerationPreparation.verifyPending(workspace));
+            assertEquals(ConflictReason.UNSAFE_PATH, failure.conflicts().getFirst().reason());
+            assertEquals("src/main/java/Redirected.java", failure.conflicts().getFirst().relativePath());
+            assertFalse(failure.getMessage().contains("private-target"));
+        }
+    }
+
+    private static void setPending(Workspace workspace, String path, String hash) {
+        JsonObject pending = new JsonObject(), files = new JsonObject();
+        files.addProperty(path, hash); pending.add("files", files); pending.add("elements", new com.google.gson.JsonArray());
+        workspace.putMetadata(MCreatorGenerationPreparation.PENDING, pending);
+    }
+
+    private java.util.Map<String, String> fileBytes() throws Exception {
+        var result = new java.util.TreeMap<String, String>();
+        try (var paths = Files.walk(root)) {
+            for (Path path : paths.filter(Files::isRegularFile).toList())
+                result.put(root.relativize(path).toString(), java.util.Base64.getEncoder().encodeToString(Files.readAllBytes(path)));
+        }
+        return result;
     }
 
     @Test void documentedUserCodeEditsRemainPreservedButGeneratedCodeAndBoundaryEditsAreRejected() throws Exception {
@@ -120,9 +207,36 @@ class MCreatorGenerationPreparationTest {
             String regenerated = net.mcreator.generator.usercode.UserCodeProcessor.processUserCode(main.toFile(), original, "//");
             assertTrue(regenerated.contains("stage17_machine_runtime.init();"));
             Files.writeString(main, authored + "\n// Changed generated region\n");
-            assertThrows(java.io.IOException.class, () -> MCreatorGenerationPreparation.verifyPending(workspace));
+            var changed = assertThrows(GenerationPreparationException.class, () -> MCreatorGenerationPreparation.verifyPending(workspace));
+            assertEquals(ConflictReason.SOURCE_CHANGED, changed.conflicts().getFirst().reason());
+            assertEquals("src/main/java/net/mcreator/cold_fields/ColdFieldsMod.java", changed.conflicts().getFirst().relativePath());
             Files.writeString(main, authored.replace(end, "// End of user code block wrong region"));
-            assertThrows(java.io.IOException.class, () -> MCreatorGenerationPreparation.verifyPending(workspace));
+            var malformed = assertThrows(GenerationPreparationException.class, () -> MCreatorGenerationPreparation.verifyPending(workspace));
+            assertEquals(ConflictReason.MISMATCHED_USER_CODE_REGION, malformed.conflicts().getFirst().reason());
+            assertEquals("src/main/java/net/mcreator/cold_fields/ColdFieldsMod.java", malformed.conflicts().getFirst().relativePath());
+        }
+    }
+
+    @Test void unknownPreparationCauseCannotSupplyAPublicConflictPathOrRawMessage() throws Exception {
+        try (Workspace workspace = cold(); var session = MCreatorWorkspaceSession.attach(workspace, UUID.randomUUID(),
+                new InMemoryWorkspaceTaskGateway(Clock.systemUTC(), UUID::randomUUID), Clock.systemUTC(), UUID::randomUUID)) {
+            assertEquals("committed", session.uiEntry().execute(Command.of(UUID.randomUUID(), session.workspaceId(), 0,
+                    Operation.CREATE_MOD_ELEMENT, createPayload())).result().status());
+            var state = new MCreatorWorkspaceStateMapper().map(workspace, workspace.getFileManager().loadOrCreateProductMetadata(session.workspaceId()));
+            var store = new RevisionedWorkspaceStore(); store.register(state);
+            for (String rawMessage : List.of("private-token at /private/source.java",
+                    "GENERATION_SOURCE_CONFLICT: private-token at /private/source.java")) {
+                var preparation = new MCreatorGenerationPreparation(workspace, store, javaHome -> (folder, arguments, timeout, output) -> {
+                    throw new java.io.IOException(rawMessage);
+                });
+                var failure = assertThrows(GenerationPreparationException.class,
+                        () -> preparation.prepare(state, root, Operation.GENERATE_WORKSPACE, ignored -> {}));
+                assertEquals(rawMessage.startsWith("GENERATION_SOURCE_CONFLICT:")
+                        ? "GENERATION_SOURCE_CONFLICT" : "GENERATOR_SOURCE_PREPARATION_FAILED", failure.code());
+                assertTrue(failure.conflicts().isEmpty());
+                assertFalse(failure.getMessage().contains("private-token"));
+                assertFalse(failure.getMessage().contains("/private"));
+            }
         }
     }
 

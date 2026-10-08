@@ -1,0 +1,625 @@
+#!/usr/bin/env python3
+"""Run the S18-05 real Native SDK and packaged-JAR regression.
+
+This measures a source runtime, not installed-product UI or player interactions.
+Every SDK response and failure remains in the evidence. The mixed-authoring copy
+must reject unowned source generation with a locatable diagnostic. Delivery uses
+a separate original native copy; no ownership, approval or EULA record is forged.
+Any failed or unverified required probe makes this regression fail, even when
+the independent delivery path produces a verified JAR.
+"""
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import sys
+import time
+import traceback
+import zipfile
+
+BASE_COMMIT = "2bfbb48e80dac267b2043ffcbfc795a0bdd931a3"
+EXCLUDED = {".git", ".gradle", ".copperbench", ".mcreator", "__pycache__",
+            "build", "out", "run", "runs", "logs", "output", "node_modules"}
+BROKEN_SOURCE = ("package dev.chronometer.evaluation;\n"
+                 "public final class BrokenProbe { this is deliberately invalid Java }\n")
+REQUIRED_CHECKS = frozenset(
+    (phase, name)
+    for phase, names in {
+        "mixed": (
+            "native_session_opened", "workspace_environment_available",
+            "field_contract_item", "field_contract_recipe", "field_contract_block",
+            "field_contract_code", "field_contract_function", "unsupported_contract_has_recovery",
+            "invalid_function_type_rejected_without_revision_change", "field_error_is_readable",
+            "structured_function_created", "stale_revision_rejected", "generate_workspace",
+            "manual_sources_after_generation", "source_ownership_conflict_is_locatable",
+            "rejected_generation_preserves_revision", "manual_sources_after_mixed_path",
+        ),
+        "mixed-reopen": ("native_session_opened", "function_persisted"),
+        "delivery": (
+            "native_session_opened", "workspace_environment_available",
+            "field_contract_item", "field_contract_recipe", "field_contract_block",
+            "field_contract_code", "field_contract_function", "unsupported_contract_has_recovery",
+            "build_workspace", "manual_sources_after_baseline", "fault_injected",
+            "build_with_injected_error", "compile_diagnostic_locates_fault", "fault_removed",
+            "build_after_repair", "manual_sources_after_repair", "packaged_test_configuration",
+            "run_game_tests", "packaged_behavior_verified", "export_verified_artifact",
+            "verified_export_matches_acceptance", "exported_bytes_match_acceptance",
+        ),
+        "delivery-reopen": (
+            "native_session_opened", "workspace_environment_available",
+            "acceptance_persisted", "manual_sources_preserved",
+        ),
+        "harness": ("evidence_collection_complete",),
+    }.items()
+    for name in names
+)
+
+
+def regression_succeeded(delivery_succeeded: bool, boundary_succeeded: bool, checks: list[dict]) -> bool:
+    """Delivery cannot hide a failed, missing or unverified contract probe."""
+    observed = {(check.get("phase"), check.get("name")) for check in checks}
+    return bool(delivery_succeeded and boundary_succeeded
+                and REQUIRED_CHECKS <= observed
+                and all(check.get("status") == "passed" for check in checks))
+
+
+def query_at_revision(response, operation: str, workspace_id: str, revision: int) -> bool:
+    """Require a fresh, successful response; a cached SDK revision is insufficient."""
+    if not isinstance(response, dict) or response.get("status") != "succeeded":
+        return False
+    if (response.get("operation") != operation or response.get("workspaceId") != workspace_id
+            or type(response.get("revision")) is not int or response["revision"] != revision):
+        return False
+    data = response.get("data")
+    if not isinstance(data, dict):
+        return False
+    workspace = data.get("workspace") if operation == "get_workbench" else data
+    id_key = "id" if operation == "get_workbench" else "workspaceId"
+    return (isinstance(workspace, dict) and workspace.get(id_key) == workspace_id
+            and type(workspace.get("revision")) is int and workspace["revision"] == revision)
+
+
+def locatable_source_conflict(diagnostic: dict, root: Path) -> bool:
+    """A Core source pointer must resolve to a protected workspace file."""
+    pointer = diagnostic.get("path")
+    if diagnostic.get("code") != "GENERATION_SOURCE_CONFLICT" or not isinstance(pointer, str):
+        return False
+    if not pointer.startswith("/src/") or "\\" in pointer or ".." in pointer.split("/"):
+        return False
+    candidate = root / pointer.lstrip("/")
+    return candidate.resolve().is_relative_to(root.resolve()) and candidate.is_file()
+
+
+def digest(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def write_json(path: Path, value) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_suffix(path.suffix + ".tmp")
+    temporary.write_text(json.dumps(value, ensure_ascii=False, indent=2, default=str) + "\n",
+                         encoding="utf-8")
+    temporary.replace(path)
+
+
+def source_files(root: Path):
+    for path in sorted(root.rglob("*")):
+        relative = path.relative_to(root)
+        if any(part in EXCLUDED for part in relative.parts) or path.is_symlink():
+            continue
+        if path.is_file():
+            yield path, relative
+
+
+def source_archive(root: Path, destination: Path) -> dict:
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    manifest = []
+    with zipfile.ZipFile(destination, "w", zipfile.ZIP_DEFLATED) as archive:
+        for path, relative in source_files(root):
+            if path.stat().st_size > 5 * 1024 * 1024:
+                raise ValueError(f"Unexpectedly large source file: {relative}")
+            archive.write(path, str(relative))
+            manifest.append({"path": relative.as_posix(), "sha256": digest(path),
+                             "bytes": path.stat().st_size})
+    return {"sourceDirectory": str(root), "archive": str(destination),
+            "sha256": digest(destination), "files": manifest}
+
+
+def protected_sources(root: Path) -> dict:
+    return {relative.as_posix(): digest(path) for path, relative in source_files(root)
+            if relative.parts[0] == "src" or relative.as_posix() in {
+                "build.gradle", "settings.gradle", "gradle.properties", "copperbench-tests.json"}}
+
+
+def collect(args, repo: Path) -> dict:
+    evidence = args.evidence.resolve()
+    evidence.mkdir(parents=True, exist_ok=True)
+    report_path = evidence / "trial.json"
+    report = json.loads(report_path.read_text()) if report_path.exists() else {
+        "schemaVersion": "1.0", "status": "bootstrap_not_completed",
+        "assessedProductBase": BASE_COMMIT, "checks": [], "calls": []}
+    source = Path(report.get("deliveryWorkspace", str(args.source.resolve())))
+    if source.is_dir():
+        try:
+            manifest = source_archive(source, evidence / "copper-chronometer-source.zip")
+            write_json(evidence / "source-manifest.json", manifest)
+            built = []
+            for jar in sorted((source / "build/libs").glob("*.jar")):
+                if jar.name.endswith(("-sources.jar", "-javadoc.jar")) or jar.stat().st_size > 10 * 1024 * 1024:
+                    continue
+                destination = evidence / "build-artifacts" / jar.name
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(jar, destination)
+                built.append({"path": str(destination.relative_to(evidence)), "sha256": digest(jar),
+                              "scope": "Build output only; use the separate verified-export receipt for gameplay acceptance."})
+            if built:
+                write_json(evidence / "build-artifacts/manifest.json", built)
+        except Exception as error:
+            report.setdefault("collectionErrors", []).append(str(error))
+    else:
+        report.setdefault("collectionErrors", []).append("Source workspace is missing during evidence collection")
+    # Linux product logs follow XDG state paths, as documented by the official
+    # launcher. Collect only Copperbench logs from this disposable runner.
+    try:
+        state_root = Path(os.environ.get("XDG_STATE_HOME", str(Path.home() / ".local/state")))
+        log_candidates = list((repo / "logs").glob("*.log"))
+        log_candidates += list((state_root / "copperbench").glob("*.log"))
+        logs = sorted(log_candidates, key=lambda p: p.stat().st_mtime, reverse=True)[:8]
+        for index, path in enumerate(logs):
+            target = evidence / "product-logs" / f"{index:02d}-{path.name}"
+            target.parent.mkdir(parents=True, exist_ok=True)
+            with path.open("rb") as stream:
+                size = path.stat().st_size
+                stream.seek(max(0, size - 256 * 1024))
+                target.write_bytes(stream.read())
+    except Exception as error:
+        report.setdefault("collectionErrors", []).append(str(error))
+    if report.get("collectionErrors"):
+        report["status"] = "incomplete"
+    write_json(report_path, report)
+    return report
+
+
+class Trial:
+    def __init__(self, args, repo, workspace_type, api_error_type):
+        self.args, self.repo = args, repo
+        self.Workspace, self.ApiError = workspace_type, api_error_type
+        self.started = time.monotonic()
+        self.deadline = self.started + args.budget_seconds
+        self.evidence = args.evidence.resolve()
+        self.evidence.mkdir(parents=True, exist_ok=True)
+        self.client = None
+        self.last_error = None
+        self.call_count = 0
+        self.report = {
+            "schemaVersion": "1.0", "status": "running",
+            "assessedProductBase": BASE_COMMIT,
+            "evaluatedCommit": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=repo, text=True).strip(),
+            "runUrl": ("https://github.com/" + os.environ.get("GITHUB_REPOSITORY", "Lotulune/Copperbench")
+                       + "/actions/runs/" + os.environ.get("GITHUB_RUN_ID", "local")),
+            "cachePolicy": "Existing Gradle caches may be restored; not cold-cache and not a speed comparison.",
+            "scope": "Real source Native SDK, disposable workspace writes and packaged server-side GameTests.",
+            "unverified": ["Installed desktop", "Client input and rendering", "Audio/visual quality", "External-user usability"],
+            "authorization": "No task authorization or EULA acceptance is created by this harness.",
+            "workspaces": {}, "calls": [], "checks": [], "taskPolls": 0,
+        }
+        self.save()
+
+    def save(self):
+        self.report["elapsedSeconds"] = round(time.monotonic() - self.started, 3)
+        write_json(self.evidence / "trial.json", self.report)
+
+    def check(self, phase, name, passed, details=None, status=None):
+        result = {"phase": phase, "name": name,
+                  "status": status or ("passed" if passed else "failed"), "details": details}
+        self.report["checks"].append(result)
+        print(json.dumps({"phase": phase, "check": name, "status": result["status"]}), flush=True)
+        self.save()
+        return passed
+
+    def call(self, phase, name, operation, payload, fn):
+        self.call_count += 1
+        started = time.monotonic()
+        self.last_error = None
+        record = {"sequence": self.call_count, "phase": phase, "name": name,
+                  "operation": operation, "payload": payload}
+        try:
+            if started >= self.deadline - 10:
+                raise TimeoutError("Evaluation time budget exhausted before starting this operation")
+            value = fn()
+            record.update(outcome="returned", response=value)
+        except Exception as error:
+            self.last_error = {"type": type(error).__name__,
+                               "code": getattr(error, "code", None), "message": str(error),
+                               "details": getattr(error, "details", None)}
+            record.update(outcome="exception", error=self.last_error)
+            value = None
+        record["elapsedSeconds"] = round(time.monotonic() - started, 3)
+        path = self.evidence / "calls" / f"{self.call_count:03d}-{phase}-{name}.json"
+        write_json(path, record)
+        self.report["calls"].append({key: record[key] for key in (
+            "sequence", "phase", "name", "operation", "outcome", "elapsedSeconds")})
+        self.report["calls"][-1]["evidence"] = str(path.relative_to(self.evidence))
+        print(json.dumps({"phase": phase, "operation": operation,
+                          "outcome": record["outcome"], "seconds": record["elapsedSeconds"]}), flush=True)
+        self.save()
+        return value
+
+    def open(self, phase, root):
+        self.close()
+        self.report["workspaces"][phase] = str(root)
+        cp = self.args.classpath_file.resolve().read_text(encoding="utf-8").strip()
+        launcher = [self.args.java, "--add-opens=java.base/java.lang=ALL-UNNAMED",
+                    "--enable-native-access=ALL-UNNAMED,jcef"]
+        # Match platform/linux/copperbench.sh and the existing installed probe.
+        # This is the supported Linux entry point, not allowUnsupportedOs.
+        if sys.platform.startswith("linux"):
+            launcher.append("-Dcopperbench.stage15LinuxCandidate=true")
+        launcher += ["-cp", cp, "net.mcreator.Launcher"]
+        def launch():
+            self.client = self.Workspace.open(
+                root / "copper_chronometer.mcreator", launcher=launcher, cwd=self.repo,
+                startup_timeout=min(120, max(1, self.deadline - time.monotonic() - 10)),
+                request_timeout=60)
+            return {"workspaceId": self.client.workspace_id, "revision": self.client.revision,
+                    "operations": self.client.operations, "launcher": launcher, "cwd": str(self.repo)}
+        opened = self.call(phase, "open", "Workspace.open", {"workspace": str(root)}, launch)
+        return self.check(phase, "native_session_opened", opened is not None)
+
+    def close(self):
+        if self.client is not None:
+            self.client.close()
+            self.client = None
+
+    def environment_query(self, phase):
+        revision = self.client.revision
+        response = self.call(phase, "environment", "get_workspace_environment", {},
+                             lambda: self.client.query("get_workspace_environment"))
+        return self.check(phase, "workspace_environment_available",
+                          query_at_revision(response, "get_workspace_environment",
+                                            self.client.workspace_id, revision))
+
+    def environment(self, phase):
+        self.environment_query(phase)
+        for element_type in ("item", "recipe", "block", "code", "function"):
+            value = self.call(phase, "field-" + element_type, "Workspace.field_contract",
+                              {"elementType": element_type},
+                              lambda kind=element_type: self.client.field_contract(kind))
+            meaningful = isinstance(value, dict) and bool(value)
+            if element_type in {"item", "recipe"}:
+                meaningful = meaningful and isinstance(value.get("fields"), list) and bool(value["fields"])
+            self.check(phase, "field_contract_" + element_type, meaningful)
+        missing = self.call(phase, "field-unsupported", "Workspace.field_contract",
+                            {"elementType": "__stage18_unknown__"},
+                            lambda: self.client.field_contract("__stage18_unknown__"))
+        error = self.last_error or {}
+        available = (error.get("details") or {}).get("availableTypes", [])
+        self.check(phase, "unsupported_contract_has_recovery", missing is None
+                   and error.get("code") == "NATIVE_FIELD_CONTRACT_UNAVAILABLE"
+                   and "item" in available and "recipe" in available, error)
+
+    def task(self, phase, name, fn, seconds, expected_state="succeeded"):
+        operation = {"build_with_injected_error": "build_workspace", "build_after_repair": "build_workspace",
+                     "run_game_tests": "run_gametest", "export_verified_artifact": "export_workspace"}.get(name, name)
+        payload = {"scope": "workspace"} if operation != "export_workspace" else {
+            "verifiedTaskId": self.report.get("acceptanceTaskId"), "allowHistorical": False}
+        accepted = self.call(phase, name + "-start", operation,
+                             {"expectedRevision": self.client.revision, "payload": payload}, fn)
+        if not accepted or accepted.get("status") != "accepted" or not accepted.get("task", {}).get("id"):
+            self.check(phase, name, False, {"reason": "Task was not accepted", "error": self.last_error})
+            return None
+        task_id = accepted["task"]["id"]
+        deadline = min(self.deadline - 15, time.monotonic() + seconds)
+        after = 0
+        all_logs = []
+        last = None
+        update_path = self.evidence / "tasks" / f"{phase}-{name}-{task_id}.jsonl"
+        update_path.parent.mkdir(parents=True, exist_ok=True)
+        started = time.monotonic()
+        try:
+            with update_path.open("w", encoding="utf-8") as updates:
+                while time.monotonic() < deadline:
+                    result = self.client.get_task(task_id, after)
+                    self.report["taskPolls"] += 1
+                    data = result["data"]
+                    entries = data.get("logs", [])
+                    for entry in entries:
+                        after = max(after, entry["sequence"])
+                        all_logs.append(entry)
+                    state = data["task"].get("state")
+                    signature = json.dumps(data["task"], sort_keys=True)
+                    if entries or signature != last:
+                        updates.write(json.dumps(result, ensure_ascii=False) + "\n")
+                        updates.flush()
+                        last = signature
+                    if state not in ("queued", "running"):
+                        data["logs"] = all_logs
+                        write_json(update_path.with_suffix(".json"), result)
+                        self.check(phase, name, state == expected_state,
+                                   {"taskId": task_id, "state": state, "expectedState": expected_state,
+                                    "elapsedSeconds": round(time.monotonic() - started, 3),
+                                    "evidence": str(update_path.with_suffix(".json").relative_to(self.evidence))})
+                        return result
+                    time.sleep(min(1, max(0.01, deadline - time.monotonic())))
+            self.call(phase, name + "-cancel", "cancel_task", {"taskId": task_id},
+                      lambda: self.client.cancel_task(task_id))
+            self.check(phase, name, False, {"reason": "Operation budget exhausted", "taskId": task_id},
+                       status="unverified")
+        except Exception as error:
+            self.check(phase, name, False, {"taskId": task_id, "code": getattr(error, "code", None),
+                                          "message": str(error), "details": getattr(error, "details", None)})
+        return None
+
+    def intact(self, phase, root, expected, label):
+        changed = [{"path": relative, "expectedSha256": before,
+                    "actualSha256": digest(root / relative) if (root / relative).is_file() else None}
+                   for relative, before in expected.items()
+                   if not (root / relative).is_file() or digest(root / relative) != before]
+        return self.check(phase, label, not changed, changed)
+
+    def mixed_probe(self, root):
+        phase = "mixed"
+        expected = protected_sources(root)
+        if not self.open(phase, root):
+            return False
+        self.environment(phase)
+        before = self.client.revision
+        invalid = self.call(phase, "invalid-function", "create_mod_element",
+                            {"elementType": "function", "name": "chrono_invalid_probe",
+                             "initialValues": {"commands": [1]}},
+                            lambda: self.client.create_mod_element(
+                                elementType="function", name="chrono_invalid_probe",
+                                initialValues={"commands": [1]}))
+        error = self.last_error
+        observed = self.call(phase, "after-invalid", "get_workbench", {}, self.client.get_workspace)
+        self.check(phase, "invalid_function_type_rejected_without_revision_change",
+                   invalid is None and bool(error) and error.get("code") == "FIELD_TYPE_INVALID"
+                   and query_at_revision(observed, "get_workbench", self.client.workspace_id, before)
+                   and self.client.revision == before,
+                   {"revisionBefore": before, "revisionAfter": self.client.revision, "error": error})
+        self.check(phase, "field_error_is_readable", bool(error)
+                   and "/commands/0" in error.get("message", "")
+                   and "Expected a non-null command string." in error.get("message", "")
+                   and "{field}" not in error.get("message", ""), error)
+        created = self.call(phase, "create-function", "create_mod_element",
+                            {"elementType": "function", "name": "chrono_ready",
+                             "initialValues": {"commands": ["say Copper Chronometer ready"]}},
+                            lambda: self.client.create_mod_element(
+                                elementType="function", name="chrono_ready",
+                                initialValues={"commands": ["say Copper Chronometer ready"]}))
+        if not created:
+            self.check(phase, "structured_function_created", False, self.last_error)
+            return False
+        self.check(phase, "structured_function_created", created.get("status") == "committed")
+        element_id = created.get("data", {}).get("element", {}).get("id")
+        current_revision = self.client.revision
+        stale_payload = {"elementId": element_id,
+                         "changes": [{"path": "/commands", "value": ["say stale overwrite"]}]}
+        stale = self.call(phase, "stale-write", "update_mod_element",
+                          {"expectedRevision": before, **stale_payload},
+                          lambda: self.client.command("update_mod_element",
+                                                       expected_revision=before, **stale_payload))
+        stale_error = self.last_error
+        observed = self.call(phase, "after-stale", "get_workbench", {}, self.client.get_workspace)
+        self.check(phase, "stale_revision_rejected",
+                   stale is None and bool(stale_error) and stale_error.get("code") == "REVISION_CONFLICT"
+                   and query_at_revision(observed, "get_workbench", self.client.workspace_id, current_revision)
+                   and self.client.revision == current_revision,
+                   {"staleRevision": before, "currentRevision": self.client.revision, "error": stale_error})
+        generate = self.task(phase, "generate_workspace", self.client.generate, 420, expected_state="failed")
+        intact = self.intact(phase, root, expected, "manual_sources_after_generation")
+        diagnostics = (generate or {}).get("data", {}).get("diagnostics", [])
+        boundary_ok = self.check(phase, "source_ownership_conflict_is_locatable",
+                                 bool(generate) and generate["data"]["task"]["state"] == "failed"
+                                 and any(locatable_source_conflict(d, root) for d in diagnostics), diagnostics)
+        observed = self.call(phase, "after-generation", "get_workbench", {}, self.client.get_workspace)
+        self.check(phase, "rejected_generation_preserves_revision",
+                   query_at_revision(observed, "get_workbench", self.client.workspace_id, current_revision)
+                   and self.client.revision == current_revision,
+                   {"before": current_revision, "after": self.client.revision})
+        boundary_ok = self.intact(phase, root, expected, "manual_sources_after_mixed_path") and intact and boundary_ok
+        self.close()
+        if self.open("mixed-reopen", root):
+            elements = self.call("mixed-reopen", "elements", "list_mod_elements", {},
+                                 lambda: list(self.client.list_mod_elements()))
+            element = next((item for item in elements or [] if item.get("name") == "chrono_ready"), None)
+            editor = self.call("mixed-reopen", "function-editor", "get_mod_element_editor",
+                               {"elementId": element["id"]},
+                               lambda: self.client.query("get_mod_element_editor", elementId=element["id"])) if element else None
+            body_present = bool(editor and "say Copper Chronometer ready" in json.dumps(editor))
+            self.check("mixed-reopen", "function_persisted", body_present,
+                       {"present": element is not None, "bodyPreserved": body_present})
+        self.close()
+        return boundary_ok
+
+    def delivery_trial(self, root):
+        phase = "delivery"
+        expected = protected_sources(root)
+        self.report["deliveryWorkspace"] = str(root)
+        if not self.open(phase, root):
+            return False
+        self.environment(phase)
+        # build() itself runs the real generator boundary. This separate native
+        # copy has no structured element and no forged ownership metadata.
+        baseline = self.task(phase, "build_workspace", self.client.build, 480)
+        if not baseline or baseline["data"]["task"]["state"] != "succeeded":
+            self.check(phase, "acceptance", False, "Baseline build failed; GameTest has no valid prerequisite.",
+                       status="unverified")
+            return False
+        if not self.intact(phase, root, expected, "manual_sources_after_baseline"):
+            return False
+        probe = root / "src/main/java/dev/chronometer/evaluation/BrokenProbe.java"
+        if probe.exists():
+            raise RuntimeError("Refusing to overwrite an existing BrokenProbe.java")
+        probe.parent.mkdir(parents=True, exist_ok=True)
+        probe.write_text(BROKEN_SOURCE, encoding="utf-8")
+        self.check(phase, "fault_injected", True,
+                   {"path": str(probe.relative_to(root)), "sha256": digest(probe),
+                    "source": BROKEN_SOURCE, "actor": "evaluation harness, direct source edit"})
+        broken = None
+        try:
+            broken = self.task(phase, "build_with_injected_error", self.client.build, 180,
+                               expected_state="failed")
+            diagnostics = (broken or {}).get("data", {}).get("diagnostics", [])
+            self.check(phase, "compile_diagnostic_locates_fault",
+                       any(d.get("code") == "JAVA_COMPILE_ERROR"
+                           and d.get("path") == "/src/main/java/dev/chronometer/evaluation/BrokenProbe.java"
+                           for d in diagnostics),
+                       {"diagnostics": diagnostics})
+        finally:
+            if probe.exists() and probe.read_text(encoding="utf-8") == BROKEN_SOURCE:
+                probe.unlink()
+                self.check(phase, "fault_removed", True, {"path": str(probe.relative_to(root))})
+            elif probe.exists():
+                self.check(phase, "fault_removed", False, "Probe bytes changed unexpectedly; preserved for review.")
+        repaired = self.task(phase, "build_after_repair", self.client.build, 240)
+        if not repaired or repaired["data"]["task"]["state"] != "succeeded":
+            return False
+        if not self.intact(phase, root, expected, "manual_sources_after_repair"):
+            return False
+        configuration = json.loads((root / "copperbench-tests.json").read_text(encoding="utf-8"))
+        self.check(phase, "packaged_test_configuration",
+                   configuration.get("mode") == "packaged_jar" and configuration.get("minimumTests", 0) >= 12,
+                   configuration)
+        if configuration.get("mode") != "packaged_jar" or configuration.get("minimumTests", 0) < 12:
+            return False
+        acceptance = self.task(phase, "run_game_tests", self.client.run_game_tests, 660)
+        task = (acceptance or {}).get("data", {}).get("task", {})
+        verification = task.get("verification", {})
+        verified = (task.get("state") == "succeeded" and verification.get("status") == "passed"
+                    and verification.get("mode") == "packaged_jar"
+                    and verification.get("acceptanceExecuted", 0) >= configuration["minimumTests"]
+                    and verification.get("sourceCurrentAtCompletion") is True)
+        self.check(phase, "packaged_behavior_verified", verified, verification)
+        if not verified:
+            return False
+        acceptance_id = task["id"]
+        self.report["acceptanceTaskId"] = acceptance_id
+        self.report["verification"] = verification
+        for key, name, hash_key in (("artifactPath", "accepted-mod.jar", "artifactSha256"),
+                                    ("reportPath", "gametest-results.xml", "reportSha256")):
+            source = Path(verification[key])
+            if not source.is_file() or source.stat().st_size > 10 * 1024 * 1024 or digest(source) != verification[hash_key]:
+                raise RuntimeError(f"Acceptance evidence is missing, too large or changed: {key}")
+            destination = self.evidence / "artifacts" / name
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source, destination)
+        exported = self.task(phase, "export_verified_artifact",
+                             lambda: self.client.export_verified_artifact(acceptance_id), 90)
+        export_receipt = (exported or {}).get("data", {}).get("task", {}).get("verifiedExport", {})
+        export_ok = (bool(exported) and exported["data"]["task"]["state"] == "succeeded"
+                     and export_receipt.get("artifactSha256") == verification.get("artifactSha256")
+                     and export_receipt.get("status") == "passed_current_input")
+        self.check(phase, "verified_export_matches_acceptance", export_ok, export_receipt)
+        export_bytes_ok = False
+        if export_ok:
+            directory = Path(export_receipt["exportDirectory"])
+            for name in ("verified-mod.jar", "gametest-results.xml", "verification.json"):
+                path = directory / name
+                if not path.is_file() or path.stat().st_size > 10 * 1024 * 1024:
+                    raise RuntimeError(f"Invalid verified-export payload: {name}")
+                shutil.copy2(path, self.evidence / "artifacts" / name)
+            actual_hashes = {
+                "artifactSha256": digest(self.evidence / "artifacts/verified-mod.jar"),
+                "reportSha256": digest(self.evidence / "artifacts/gametest-results.xml"),
+            }
+            export_bytes_ok = all(actual_hashes[key] == verification.get(key) for key in actual_hashes)
+            self.check(phase, "exported_bytes_match_acceptance", export_bytes_ok, actual_hashes)
+            self.report["verifiedExport"] = export_receipt
+        self.close()
+        reopen_ok = self.open("delivery-reopen", root)
+        if reopen_ok:
+            environment_ok = self.environment_query("delivery-reopen")
+            remembered = self.call("delivery-reopen", "acceptance-task", "get_task",
+                                   {"taskId": acceptance_id},
+                                   lambda: self.client.get_task(acceptance_id))
+            remembered_task = (remembered or {}).get("data", {}).get("task", {})
+            reopen_ok = (environment_ok and remembered_task.get("state") == "succeeded"
+                         and remembered_task.get("verification", {}).get("artifactSha256")
+                         == verification.get("artifactSha256"))
+            self.check("delivery-reopen", "acceptance_persisted", reopen_ok)
+            reopen_ok = self.intact("delivery-reopen", root, expected, "manual_sources_preserved") and reopen_ok
+        return verified and export_ok and export_bytes_ok and reopen_ok
+
+    def run(self):
+        root = self.args.workspace_root.resolve()
+        root.mkdir(parents=True, exist_ok=True)
+        mixed_root = root / "mixed-structured"
+        native_root = root / "native-authoring"
+        if mixed_root.exists() or native_root.exists():
+            raise RuntimeError("Disposable trial destinations already exist; refusing to overwrite them")
+        shutil.copytree(self.args.source.resolve(), mixed_root)
+        boundary_ok = False
+        try:
+            boundary_ok = self.mixed_probe(mixed_root)
+        except Exception as error:
+            self.check("mixed", "unexpected_exception", False,
+                       {"message": str(error), "traceback": traceback.format_exc()})
+        finally:
+            self.close()
+        self.report["mixedWorkflowSucceeded"] = False
+        self.report["ownershipBoundary"] = {
+            "expected": "Unowned base files prevent managed generation without changing manual sources.",
+            "verified": boundary_ok, "ownershipMetadataModifiedByHarness": False}
+        shutil.copytree(self.args.source.resolve(), native_root)
+        selected = native_root
+        success = False
+        try:
+            success = self.delivery_trial(selected)
+        except Exception as error:
+            self.check("delivery", "unexpected_exception", False,
+                       {"message": str(error), "traceback": traceback.format_exc()})
+        finally:
+            self.close()
+            self.report["deliverySucceeded"] = success
+            self.save()
+            self.report = collect(self.args, self.repo)
+            self.check("harness", "evidence_collection_complete", not self.report.get("collectionErrors"),
+                       self.report.get("collectionErrors", []))
+            success = regression_succeeded(success, boundary_ok, self.report["checks"])
+            observed = {(check["phase"], check["name"]) for check in self.report["checks"]}
+            self.report["missingRequiredChecks"] = [
+                {"phase": phase, "name": name} for phase, name in sorted(REQUIRED_CHECKS - observed)]
+            self.report["status"] = "completed" if success else "incomplete"
+            self.save()
+        return 0 if success else 1
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--source", type=Path, required=True)
+    parser.add_argument("--workspace-root", type=Path, required=True)
+    parser.add_argument("--evidence", type=Path, required=True)
+    parser.add_argument("--classpath-file", type=Path)
+    parser.add_argument("--java")
+    parser.add_argument("--budget-seconds", type=int, default=1320)
+    parser.add_argument("--collect-only", action="store_true")
+    args = parser.parse_args()
+    repo = Path(__file__).resolve().parents[2]
+    if args.collect_only:
+        report = collect(args, repo)
+        return 1 if report.get("collectionErrors") else 0
+    if not args.java or not args.classpath_file:
+        parser.error("--java and --classpath-file are required for a trial")
+    sys.path.insert(0, str(repo / "sdk/python"))
+    from copperbench import Workspace, NativeApiError
+    trial = Trial(args, repo, Workspace, NativeApiError)
+    try:
+        return trial.run()
+    except Exception as error:
+        trial.check("harness", "unexpected_exception", False,
+                    {"message": str(error), "traceback": traceback.format_exc()})
+        trial.report["status"] = "incomplete"
+        trial.close()
+        trial.save()
+        collect(args, repo)
+        return 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

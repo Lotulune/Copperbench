@@ -15,6 +15,8 @@ The historical Stage 9–11 evidence remains authoritative for the Beta 4 baseli
 
 ## Next product work
 
+The next development entry is [Stage 18](../PRD-STAGE-18.md), started on 2026-10-09 after the Copper Chronometer trial. It tracks discoverable contracts, actionable generation diagnostics, independent regression results and real mod delivery evidence. The [initial implementation record](./testing/stage-18-initial-implementation-2026-10-09.md) distinguishes implemented source changes from outstanding full-stage gates. Historical stage and release acceptance remains scoped to its original evidence.
+
 This page is the current follow-up entry; [PRD-NEXT.md](../PRD-NEXT.md) preserves historical requirements. Stage 17 and earlier maintenance releases retain their original acceptance scope. Earlier closure records, including Stage 15 Linux Preview 2, retain their historical scope and binary digests.
 
 The repository review's reliability changes shipped in 0.1.4. Full installed-product and gameplay acceptance were not repeated; the release records retain that limit. Remaining UI issue: a failed asset-preview message can retain its old language after a locale change; retrying the preview refreshes it.

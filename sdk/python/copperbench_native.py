@@ -8,6 +8,7 @@ import math
 import os
 from pathlib import Path
 import queue
+import re
 import shutil
 import socket
 import subprocess
@@ -22,6 +23,35 @@ class NativeApiError(RuntimeError):
         super().__init__(message)
         self.code = code
         self.details = details
+
+
+def _diagnostic_text(message: Any, code: str) -> str:
+    """Render direct named JSON args once; never evaluate format expressions."""
+    if not isinstance(message, dict):
+        return str(message)
+    fallback = message.get("fallback")
+    if not isinstance(fallback, str):
+        return code
+    args = message.get("args")
+    if not isinstance(args, dict):
+        return fallback
+
+    def replace(match: re.Match[str]) -> str:
+        name = match.group(1)
+        if name not in args:
+            return match.group(0)
+        value = args[name]
+        if isinstance(value, str):
+            return value
+        # LocalizedText.args allows only JSON scalars. Keep malformed nested
+        # values literal instead of traversing objects or hiding the diagnostic.
+        if value is None or type(value) in (int, bool) or type(value) is float and math.isfinite(value):
+            return json.dumps(value, ensure_ascii=False)
+        return match.group(0)
+
+    # Leave missing names, double braces, indexing, attributes and format specs
+    # literal. re.sub does not rescan substituted values containing braces.
+    return re.sub(r"(?<!\{)\{([A-Za-z_][A-Za-z0-9_]*)\}(?!\})", replace, fallback)
 
 
 class Workspace:
@@ -240,7 +270,7 @@ class Workspace:
                 code = diagnostic.get("code", "CORE_OPERATION_REJECTED")
                 if result.get("conflict"):
                     code = "REVISION_CONFLICT"
-                raise NativeApiError(message.get("fallback", code) if isinstance(message, dict) else str(message), code, result)
+                raise NativeApiError(_diagnostic_text(message, code), code, result)
             revision = result.get("newRevision", result.get("revision"))
             if type(revision) is int:
                 self.revision = revision
@@ -271,8 +301,32 @@ class Workspace:
         return self.query("get_workbench")
 
     def field_contract(self, element_type: str = "block") -> dict[str, Any]:
-        """Discover the Core contract before constructing structured writes."""
-        return self.query("get_workspace_environment")["data"]["fieldContracts"][element_type]
+        """Read the running Core's contract, which may cover only some fields.
+
+        Unadvertised or malformed contracts raise NATIVE_FIELD_CONTRACT_UNAVAILABLE
+        with availableTypes and nextAction; no generic contract is substituted.
+        """
+        if not isinstance(element_type, str) or not element_type:
+            raise ValueError("element_type must be a nonempty string")
+        result = self.query("get_workspace_environment")
+        data = result.get("data")
+        contracts = data.get("fieldContracts") if isinstance(data, dict) else None
+        if isinstance(contracts, dict) and isinstance(contracts.get(element_type), dict):
+            return contracts[element_type]
+        available = (sorted(name for name, value in contracts.items() if isinstance(value, dict))
+                     if isinstance(contracts, dict) else [])
+        reason = ("contracts_not_advertised" if not isinstance(contracts, dict) else
+                  "contract_invalid" if element_type in contracts else "type_not_advertised")
+        next_action = ("Inspect get_workspace_environment.data.fieldContracts and choose an advertised type; "
+                       "update Copperbench if this Core does not advertise the contract you need. "
+                       "For an existing element, inspect get_mod_element_editor before constructing writes.")
+        raise NativeApiError(
+            f"Field contract {element_type!r} is unavailable. Available types: {', '.join(available) or 'none'}. "
+            + next_action,
+            "NATIVE_FIELD_CONTRACT_UNAVAILABLE",
+            {"elementType": element_type, "availableTypes": available, "reason": reason,
+             "nextAction": next_action, "environment": result},
+        )
 
     def plan_workspace_changes(self, operations: list[dict[str, Any]], *, idempotency_key: str,
                                expected_revision: int | None = None,
