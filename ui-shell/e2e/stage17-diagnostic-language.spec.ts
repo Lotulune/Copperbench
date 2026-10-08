@@ -174,7 +174,7 @@ test('English datagen publication keeps explicit confirmation and keyboard cance
   const dialog = page.getByTestId('datagen-publish-dialog');
   await expect(dialog).toHaveAccessibleName('Publish generated data');
   await expect(dialog).toContainText('recovery point');
-  await expect(dialog).toContainText('Write 1 staged file to this workspace.');
+  await expect(dialog).toContainText('Write 1 staged file to the workspace and create a recovery point.');
   await page.screenshot({ path: testInfo.outputPath('english-datagen-confirmation.png'), animations: 'disabled' });
   await page.keyboard.press('Escape');
   await expect(dialog).toHaveCount(0);
