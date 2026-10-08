@@ -80,9 +80,25 @@ def collect(args, repo: Path) -> None:
         try:
             manifest = source_archive(source, evidence / "copper-chronometer-source.zip")
             write_json(evidence / "source-manifest.json", manifest)
+            built = []
+            for jar in sorted((source / "build/libs").glob("*.jar")):
+                if jar.name.endswith(("-sources.jar", "-javadoc.jar")) or jar.stat().st_size > 10 * 1024 * 1024:
+                    continue
+                destination = evidence / "build-artifacts" / jar.name
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(jar, destination)
+                built.append({"path": str(destination.relative_to(evidence)), "sha256": digest(jar),
+                              "scope": "Build output only; use the separate verified-export receipt for gameplay acceptance."})
+            if built:
+                write_json(evidence / "build-artifacts/manifest.json", built)
         except Exception as error:
             report.setdefault("collectionErrors", []).append(str(error))
-    logs = sorted((repo / "logs").glob("*.log"), key=lambda p: p.stat().st_mtime, reverse=True)[:8]
+    # Linux product logs follow XDG state paths, as documented by the official
+    # launcher. Collect only Copperbench logs from this disposable runner.
+    state_root = Path(os.environ.get("XDG_STATE_HOME", str(Path.home() / ".local/state")))
+    log_candidates = list((repo / "logs").glob("*.log"))
+    log_candidates += list((state_root / "copperbench").glob("*.log"))
+    logs = sorted(log_candidates, key=lambda p: p.stat().st_mtime, reverse=True)[:8]
     for index, path in enumerate(logs):
         target = evidence / "product-logs" / f"{index:02d}-{path.name}"
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -163,7 +179,12 @@ class Trial:
         self.report["workspaces"][phase] = str(root)
         cp = self.args.classpath_file.resolve().read_text(encoding="utf-8").strip()
         launcher = [self.args.java, "--add-opens=java.base/java.lang=ALL-UNNAMED",
-                    "--enable-native-access=ALL-UNNAMED,jcef", "-cp", cp, "net.mcreator.Launcher"]
+                    "--enable-native-access=ALL-UNNAMED,jcef"]
+        # Match platform/linux/copperbench.sh and the existing installed probe.
+        # This is the supported Linux entry point, not allowUnsupportedOs.
+        if sys.platform.startswith("linux"):
+            launcher.append("-Dcopperbench.stage15LinuxCandidate=true")
+        launcher += ["-cp", cp, "net.mcreator.Launcher"]
         def launch():
             self.client = self.Workspace.open(
                 root / "copper_chronometer.mcreator", launcher=launcher, cwd=self.repo,
@@ -451,7 +472,8 @@ class Trial:
                        {"message": str(error), "traceback": traceback.format_exc()})
         finally:
             self.close()
-            self.report["status"] = ("completed" if mixed_ok else "completed_with_mixed_workflow_friction") if success else "incomplete"
+            findings = not mixed_ok or any(check["status"] == "failed" for check in self.report["checks"])
+            self.report["status"] = ("completed_with_findings" if findings else "completed") if success else "incomplete"
             self.save()
             collect(self.args, self.repo)
         return 0 if success else 1
