@@ -181,6 +181,21 @@ reproduced the failure first and passed after the fix; all nine helper tests
 pass on Windows (`harness-relative-before.*`, `harness-relative-fixed.*`).
 The corrected normal run and SDK-failure scenario still require completion.
 
+That first run's summary retained all 14 shard results: Windows/Linux SDK,
+UI and wrapper passed; Core, MCP and the eight generator shards failed. The
+wrapper job passed its full 24-case matrix on the hosted network. This does
+not rewrite the failed local-network receipts or certify a later source SHA.
+Its initial artifact unnecessarily included 1.7 GB of Gradle caches; uploads
+now retain the receipts, raw logs and small test artifacts without those caches.
+
+The MCP server was ready, but the first CLI scenario produced no report within
+60 seconds. Tool preparation now has a separate 180-second bound and logs;
+scenario invocations use the prepared npm cache offline and keep their original
+60-second deadline. A real local run from an empty, isolated npm cache passed
+all eight conformance checks in 64.181 seconds overall. Setup and protocol
+failures remain distinct; the initial hosted log did not establish which part
+of the CLI startup consumed its timeout.
+
 The three PR required checks remain unchanged;
 no local receipt is substituted for those checks. M1 player crafting/save/
 reopen, M3 same-candidate installers and unfamiliar-user trials remain

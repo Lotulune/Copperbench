@@ -329,7 +329,13 @@ jobs:
         with:
           name: nightly-gate-wrapper-${{ github.run_attempt }}
           path: |
-            build/nightly-results/wrapper/
+            build/nightly-results/wrapper/*.json
+            build/nightly-results/wrapper/*.log
+            build/nightly-results/wrapper/cache/result.json
+            build/nightly-results/wrapper/cache/cache-run-*/results.json
+            build/nightly-results/wrapper/cache/cache-run-*/*/*.log
+            build/nightly-results/wrapper/cache/cache-run-*/*/*/build/libs/wrapper-cache-gate.jar
+            build/nightly-results/wrapper/cache/cache-run-*/tampered/*.zip
           if-no-files-found: error
           retention-days: 30
 
