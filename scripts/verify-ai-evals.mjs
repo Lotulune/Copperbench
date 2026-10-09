@@ -14,16 +14,63 @@ if (manifest.schemaVersion !== '1.0' || !Array.isArray(manifest.cases)) {
 if (manifest.cases.length < manifest.minimumCases || manifest.cases.length < 10) {
   throw new Error(`AI eval suite has ${manifest.cases.length} cases; at least 10 are required`);
 }
+// S18-05: legacy IDs/coverage labels are compatible identifiers, not runtime proof.
+const expectedScope = {
+  kind: 'protocol-contract',
+  transport: 'loopback-http-mcp',
+  host: 'McpConformanceServerMain',
+  taskGateway: 'InMemoryWorkspaceTaskGateway',
+  workspaceMutation: 'no-op',
+  modelDriven: false,
+  realBuild: false,
+  repairLoop: false,
+  transportReconnect: false,
+  gameplay: false
+};
+for (const [key, value] of Object.entries(expectedScope)) {
+  if (manifest.scope?.[key] !== value) {
+    throw new Error(`AI contract eval scope.${key} must be ${JSON.stringify(value)}`);
+  }
+}
+if (manifest.displayName !== 'Copperbench MCP protocol-contract evaluations') {
+  throw new Error('AI eval displayName must identify protocol-contract evaluations');
+}
+const requiredObservedCoverage = {
+  'create-element': ['fixture-element-create'],
+  'procedure-edit': ['fixture-procedure-edit'],
+  'rename-reference': ['fixture-registry-rename'],
+  'build-repair': ['build-task-acceptance', 'running-task-query', 'build-task-cancellation'],
+  'revision-conflict': ['stale-revision-denial'],
+  'readonly-denial': ['read-only-mutation-denial'],
+  'datagen-cancel': ['datagen-task-acceptance', 'datagen-task-cancellation'],
+  'datagen-publish': ['fixture-datagen-preview', 'manifest-hash-shape-check', 'fixture-datagen-publish'],
+  'recovery-restore': ['recovery-point-creation', 'restore-approval-denial'],
+  'task-reconnect': ['same-client-task-polling']
+};
 const ids = new Set();
 const covered = new Set();
+const observed = new Set();
 for (const item of manifest.cases) {
   if (!item.id || ids.has(item.id)) throw new Error(`Duplicate or missing eval id: ${item.id}`);
   if (!item.operation || !item.expected || !Array.isArray(item.covers) || item.covers.length === 0) {
     throw new Error(`Eval ${item.id} is missing operation, expected result, or coverage`);
   }
+  if (typeof item.displayName !== 'string' || !item.displayName.trim() ||
+      !Array.isArray(item.observedCoverage) || item.observedCoverage.length === 0 ||
+      item.observedCoverage.some((value) => typeof value !== 'string' || !value.trim())) {
+    throw new Error(`Eval ${item.id} must describe observed protocol-contract coverage`);
+  }
+  const expectedCoverage = requiredObservedCoverage[item.id];
+  if (expectedCoverage && (item.observedCoverage.length !== expectedCoverage.length ||
+      expectedCoverage.some((value) => !item.observedCoverage.includes(value)))) {
+    throw new Error(`Eval ${item.id} observedCoverage must describe its executed fixture checks`);
+  }
   ids.add(item.id);
   item.covers.forEach((value) => covered.add(value));
+  item.observedCoverage.forEach((value) => observed.add(value));
 }
+const missingIds = Object.keys(requiredObservedCoverage).filter((id) => !ids.has(id));
+if (missingIds.length) throw new Error(`AI contract eval suite is missing legacy case IDs: ${missingIds.join(', ')}`);
 const requiredCoverage = [
   'create elements', 'Procedure modification', 'rename references', 'build repair',
   'revision conflicts', 'unauthorized access rejection', 'datagen cancellation',
@@ -71,4 +118,4 @@ for (const [name, quickstart] of [['TypeScript', typescriptQuickstart], ['Python
 for (const liveFile of ['scripts/run-ai-live-evals.py', 'scripts/verify-ai-live-evals.ps1']) {
   if (!fs.existsSync(path.join(root, liveFile))) throw new Error(`AI live eval runner is missing: ${liveFile}`);
 }
-console.log(`AI eval manifest passed: ${manifest.cases.length} cases, ${covered.size} coverage targets.`);
+console.log(`AI protocol-contract manifest passed: ${manifest.cases.length} cases, ${observed.size} observed contract checks (${covered.size} legacy coverage labels).`);

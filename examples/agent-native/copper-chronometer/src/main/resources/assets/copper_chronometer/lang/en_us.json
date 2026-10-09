@@ -1,0 +1,12 @@
+{
+  "item.copper_chronometer.chronometer": "Copper Chronometer",
+  "message.copper_chronometer.reading": "Day %s · %s · %s · next phase in %s ticks",
+  "message.copper_chronometer.mode": "Clock display: %s",
+  "message.copper_chronometer.dimension": "The chronometer reads the Overworld sky only.",
+  "format.copper_chronometer.twelve_hour": "12-hour",
+  "format.copper_chronometer.twenty_four_hour": "24-hour",
+  "phase.copper_chronometer.day": "Day",
+  "phase.copper_chronometer.dusk": "Dusk",
+  "phase.copper_chronometer.night": "Night",
+  "phase.copper_chronometer.dawn": "Dawn"
+}

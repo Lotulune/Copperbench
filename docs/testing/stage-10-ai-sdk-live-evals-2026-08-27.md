@@ -5,6 +5,12 @@ Nightly `33098518016` passed on
 `main@e8caf01891238469cbb99c403c7c304fa535e5f6`, which contains the merged
 SDK/eval implementation, so the gate is **passed**.
 
+Scope clarification (S18-05): the historical 10/10 result is a fixture-backed
+HTTP MCP protocol-contract run. The harness does not execute a model, a real
+Gradle build/repair loop, a transport disconnection/reconnect, or Minecraft
+gameplay. Legacy case IDs remain compatible; current reports identify their
+[observed coverage and scope](stage18-protocol-contract-evals.md).
+
 ## Harness
 
 - `scripts/run-ai-live-evals.py` drives the dependency-free Python SDK against
@@ -50,7 +56,8 @@ Workspace-profile cases:
 6. datagen cancellation;
 7. datagen preview and publish with manifest hash;
 8. protected recovery restore rejection with `USER_APPROVAL_REQUIRED`;
-9. reconnect-compatible `get_task` polling.
+9. repeated `get_task` polling in the same client session, without a transport
+   interruption or re-initialization.
 
 Read-only-profile case:
 

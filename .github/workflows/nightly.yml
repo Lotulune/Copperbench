@@ -14,8 +14,9 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  product-regression:
-    name: Nightly product regression
+  # S18-04: independent suites retain their failure signals and finish separately.
+  java-regression:
+    name: Nightly Java, Javadoc, and scale
     runs-on: windows-latest
     timeout-minutes: 45
     steps:
@@ -34,70 +35,284 @@ jobs:
         with:
           node-version: 22
           cache: npm
+          cache-dependency-path: ui-shell/package-lock.json
+      - name: Install UI shell dependencies
+        working-directory: ui-shell
+        run: npm ci
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+      - name: Run full Java, Javadoc, and scale regression
+        shell: pwsh
+        # clean removes build/; keep the open Tee log outside that directory.
+        run: |
+          New-Item -ItemType Directory -Force output/nightly-results/java | Out-Null
+          .\gradlew.bat --no-daemon --no-build-cache --continue clean test javadoc '-Dcopperbench.stage9.scale=true' '-Dcopperbench.uiWindowTimeoutSeconds=20' 2>&1 | Tee-Object output/nightly-results/java/gradle.log
+          if ($LASTEXITCODE -ne 0) { throw 'Java, Javadoc, or scale regression failed' }
+      # processResources -> buildUiShell builds the production UI for Java tests.
+      - name: Upload Java regression evidence
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: nightly-java-regression
+          path: |
+            output/nightly-results/java/
+            build/reports/tests/
+            build/test-results/
+            logs/
+          if-no-files-found: warn
+          retention-days: 30
+
+  sdk-regression:
+    name: Nightly SDK and production bridge
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ui-shell/package-lock.json
+      - name: Install UI shell dependencies
+        id: dependencies
+        working-directory: ui-shell
+        run: npm ci
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - name: Run Python SDK regression
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force build/nightly-results/sdk | Out-Null
+          python -m unittest discover -s sdk/python -p 'test_*.py' 2>&1 | Tee-Object build/nightly-results/sdk/python.log
+          if ($LASTEXITCODE -ne 0) { throw 'Python SDK regression failed' }
+      - name: Run production bridge regression
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force build/nightly-results/sdk | Out-Null
+          npm test --prefix ui-shell 2>&1 | Tee-Object build/nightly-results/sdk/production-bridge.log
+          if ($LASTEXITCODE -ne 0) { throw 'Production bridge regression failed' }
+      - name: Run TypeScript SDK regression
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force build/nightly-results/sdk | Out-Null
+          npm run test:sdk --prefix ui-shell 2>&1 | Tee-Object build/nightly-results/sdk/typescript.log
+          if ($LASTEXITCODE -ne 0) { throw 'TypeScript MCP SDK regression failed' }
+      - name: Upload SDK regression evidence
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: nightly-sdk-regression
+          path: build/nightly-results/sdk/
+          if-no-files-found: warn
+          retention-days: 30
+
+  ui-regression:
+    name: Nightly UI contract, build, and full Chromium
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
           cache-dependency-path: |
             ui-core/package-lock.json
             ui-shell/package-lock.json
       - name: Install UI dependencies
+        id: dependencies
         shell: pwsh
         run: |
           npm ci --prefix ui-core
           if ($LASTEXITCODE -ne 0) { throw 'UI contract dependency installation failed' }
           npm ci --prefix ui-shell
           if ($LASTEXITCODE -ne 0) { throw 'UI shell dependency installation failed' }
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.11"
-      - name: Run SDK and production bridge regression
-        shell: pwsh
-        run: |
-          python -m unittest discover -s sdk/python -p 'test_*.py'
-          if ($LASTEXITCODE -ne 0) { throw 'Python SDK regression failed' }
-          npm test --prefix ui-shell
-          if ($LASTEXITCODE -ne 0) { throw 'Production bridge regression failed' }
-          npm run test:sdk --prefix ui-shell
-          if ($LASTEXITCODE -ne 0) { throw 'TypeScript MCP SDK regression failed' }
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v6
-      - name: Run full Java, Javadoc, and scale regression
-        shell: pwsh
-        run: >-
-          .\gradlew.bat --no-daemon --no-build-cache clean test javadoc
-          '-Dcopperbench.stage9.scale=true'
-          '-Dcopperbench.uiWindowTimeoutSeconds=20'
-      # Gradle test already builds the UI shell through processResources -> buildUiShell.
       - name: Run UI contract tests
         shell: pwsh
         run: |
-          npm test --prefix ui-core
+          New-Item -ItemType Directory -Force build/nightly-results/ui | Out-Null
+          npm test --prefix ui-core 2>&1 | Tee-Object build/nightly-results/ui/contract.log
           if ($LASTEXITCODE -ne 0) { throw 'UI contract tests failed' }
+      - name: Build production UI
+        id: build
+        if: ${{ !cancelled() && steps.dependencies.outcome == 'success' }}
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force build/nightly-results/ui | Out-Null
+          npm run build --prefix ui-shell 2>&1 | Tee-Object build/nightly-results/ui/build.log
+          if ($LASTEXITCODE -ne 0) { throw 'Production UI build failed' }
       - name: Run full Playwright suite
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
         working-directory: ui-shell
         shell: pwsh
         run: |
           npx playwright install --with-deps chromium
           if ($LASTEXITCODE -ne 0) { throw 'Playwright browser installation failed' }
-          npx playwright test --project=chromium
+          npx playwright test --project=chromium 2>&1 | Tee-Object ../build/nightly-results/ui/playwright.log
           if ($LASTEXITCODE -ne 0) { throw 'Playwright regression failed' }
-      - name: Verify status, documentation, and MCP
+      - name: Upload UI regression evidence
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: nightly-ui-regression
+          path: |
+            build/nightly-results/ui/
+            ui-shell/playwright-report/
+            ui-shell/test-results/
+          if-no-files-found: warn
+          retention-days: 30
+
+  mcp-regression:
+    name: Nightly MCP conformance
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+      - name: Set up JDK 25 with JCEF
+        uses: actions/setup-java@v6
+        with:
+          java-version: "25.0.2"
+          distribution: jetbrains
+          java-package: jdk+jcef
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ui-shell/package-lock.json
+      - name: Install UI shell dependencies
+        working-directory: ui-shell
+        run: npm ci
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+      # Keep cold compilation outside the MCP launcher's bounded startup wait.
+      - name: Compile MCP test host
+        shell: pwsh
+        run: .\gradlew.bat --no-daemon --no-build-cache testClasses
+      - name: Run MCP conformance
+        shell: pwsh
+        run: pwsh -NoProfile -File ./scripts/verify-mcp-conformance.ps1 -OutputDirectory build/nightly-results/mcp
+      - name: Upload MCP evidence
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: nightly-mcp-regression
+          path: |
+            build/nightly-results/mcp/
+            build/reports/tests/
+            logs/
+          if-no-files-found: warn
+          retention-days: 30
+
+  repository-checks:
+    name: Nightly documentation, status, and eval contracts
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+      - name: Set up Node.js
+        id: node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - name: Verify Nightly structure and eval scope
         shell: pwsh
         run: |
-          node scripts/verify-product-status.mjs
+          New-Item -ItemType Directory -Force build/nightly-results/repository | Out-Null
+          python -m unittest discover -s scripts/tests -p 'test_nightly_and_eval_contracts.py' 2>&1 | Tee-Object build/nightly-results/repository/contracts.log
+          if ($LASTEXITCODE -ne 0) { throw 'Nightly or eval contract regression failed' }
+      - name: Verify product status
+        if: ${{ !cancelled() && steps.node.outcome == 'success' }}
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force build/nightly-results/repository | Out-Null
+          node scripts/verify-product-status.mjs 2>&1 | Tee-Object build/nightly-results/repository/product-status.log
           if ($LASTEXITCODE -ne 0) { throw 'Product status validation failed' }
-          node scripts/verify-markdown-links.mjs
+      - name: Verify Markdown links
+        if: ${{ !cancelled() && steps.node.outcome == 'success' }}
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force build/nightly-results/repository | Out-Null
+          node scripts/verify-markdown-links.mjs 2>&1 | Tee-Object build/nightly-results/repository/markdown-links.log
           if ($LASTEXITCODE -ne 0) { throw 'Markdown link validation failed' }
-          pwsh -NoProfile -File ./scripts/verify-mcp-conformance.ps1 -OutputDirectory build/nightly-results/mcp
-          if ($LASTEXITCODE -ne 0) { throw 'MCP conformance failed' }
-      - name: Upload nightly regression evidence
+      - name: Verify AI protocol-contract manifest
+        if: ${{ !cancelled() && steps.node.outcome == 'success' }}
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force build/nightly-results/repository | Out-Null
+          node scripts/verify-ai-evals.mjs 2>&1 | Tee-Object build/nightly-results/repository/eval-manifest.log
+          if ($LASTEXITCODE -ne 0) { throw 'AI protocol-contract manifest validation failed' }
+      - name: Upload repository verification evidence
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: nightly-repository-checks
+          path: build/nightly-results/repository/
+          if-no-files-found: warn
+          retention-days: 30
+
+  product-regression:
+    name: Nightly product regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [java-regression, sdk-regression, ui-regression, mcp-regression, repository-checks]
+    if: always()
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - name: Report independent suite results
+        shell: python {0}
+        env:
+          JAVA_RESULT: ${{ needs.java-regression.result }}
+          SDK_RESULT: ${{ needs.sdk-regression.result }}
+          UI_RESULT: ${{ needs.ui-regression.result }}
+          MCP_RESULT: ${{ needs.mcp-regression.result }}
+          REPOSITORY_RESULT: ${{ needs.repository-checks.result }}
+        run: |
+          import json
+          import os
+          from pathlib import Path
+
+          suites = {name: os.environ.get(f"{name}_RESULT", "missing") for name in
+                    ("JAVA", "SDK", "UI", "MCP", "REPOSITORY")}
+          failures = {name: result for name, result in suites.items() if result != "success"}
+          output = Path("build/nightly-results")
+          output.mkdir(parents=True, exist_ok=True)
+          report = {"suites": suites, "passed": len(suites) - len(failures), "failed": len(failures)}
+          (output / "summary.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+          summary = "## Nightly independent suite results\n\n| Suite | Result |\n| --- | --- |\n"
+          summary += "".join(f"| {name} | {result} |\n" for name, result in suites.items())
+          summary += "\nDetailed evidence is retained in each suite artifact. Generator tracks report separately.\n"
+          with Path(os.environ["GITHUB_STEP_SUMMARY"]).open("a", encoding="utf-8") as stream:
+              stream.write(summary)
+          print(json.dumps(report, indent=2))
+          for name, result in failures.items():
+              print(f"::error::{name} suite did not pass: {result}")
+          raise SystemExit(bool(failures))
+      - name: Upload nightly regression summary
         uses: actions/upload-artifact@v7
         if: always()
         with:
           name: nightly-product-regression
-          path: |
-            build/nightly-results/
-            build/reports/tests/
-            ui-shell/playwright-report/
-            ui-shell/test-results/
+          path: build/nightly-results/
           if-no-files-found: warn
           retention-days: 30
 

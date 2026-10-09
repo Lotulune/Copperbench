@@ -1,4 +1,9 @@
-"""Execute Copperbench AI evals against a real local HTTP MCP session."""
+"""Run MCP protocol-contract evaluations against the loopback test host.
+
+S18-05: the HTTP transport is real; workspace mutations and task execution use
+fixtures. This harness does not run a model, build repair, transport reconnect,
+or Minecraft gameplay. Legacy case IDs remain stable for report consumers.
+"""
 
 from __future__ import annotations
 
@@ -13,6 +18,27 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from sdk.python.copperbench import CopperbenchClient, CopperbenchError
+
+
+def build_report(mode: str, results: list[dict[str, str]]) -> dict[str, Any]:
+    manifest = json.loads((ROOT / "sdk/evals/manifest.json").read_text(encoding="utf-8"))
+    definitions = {case["id"]: case for case in manifest["cases"]}
+    cases = [{
+        **result,
+        "displayName": definitions[result["id"]]["displayName"],
+        "observedCoverage": definitions[result["id"]]["observedCoverage"],
+    } for result in results]
+    passed = sum(case["status"] == "passed" for case in cases)
+    return {
+        "mode": mode,
+        "passed": passed,
+        "failed": len(cases) - passed,
+        "cases": cases,
+        "schemaVersion": manifest["schemaVersion"],
+        "suite": manifest["suite"],
+        "displayName": manifest["displayName"],
+        "scope": manifest["scope"],
+    }
 
 
 def expect_status(value: dict[str, Any], expected: str) -> None:
@@ -100,6 +126,7 @@ def run_workspace(client: CopperbenchClient) -> list[dict[str, str]]:
         raise AssertionError(f"build task was not queryable: {polled}")
     cancelled_build = client.cancel_task(build_task, revision)
     expect_status(cancelled_build, "cancelled")
+    # Legacy ID: this tests task acceptance/query/cancel, not a build or repair.
     results.append({"id": "build-repair", "status": "passed"})
 
     rejected(lambda: client.create_mod_element(
@@ -135,19 +162,21 @@ def run_workspace(client: CopperbenchClient) -> list[dict[str, str]]:
     rejected(lambda: client.restore_recovery_point(recovery_point_id, revision), "USER_APPROVAL_REQUIRED")
     results.append({"id": "recovery-restore", "status": "passed"})
 
-    reconnect_task = client.build_workspace(revision)
-    reconnect_id = task_id(reconnect_task)
-    first = client.get_task(reconnect_id, 0)
-    second = client.get_task(reconnect_id, 0)
+    polling_task = client.build_workspace(revision)
+    expect_status(polling_task, "accepted")
+    polling_id = task_id(polling_task)
+    first = client.get_task(polling_id, 0)
+    second = client.get_task(polling_id, 0)
     if first.get("status") != "succeeded" or second.get("status") != "succeeded":
-        raise AssertionError("task polling reconnect compatibility failed")
-    client.cancel_task(reconnect_id, revision)
+        raise AssertionError("repeated task polling in the same client session failed")
+    expect_status(client.cancel_task(polling_id, revision), "cancelled")
+    # Legacy ID: no connection is interrupted or re-established in this case.
     results.append({"id": "task-reconnect", "status": "passed"})
     return results
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("connection", type=Path)
     parser.add_argument("--mode", choices=["workspace", "read_only"], required=True)
     parser.add_argument("--output", type=Path)
@@ -158,7 +187,7 @@ def main() -> None:
     client = CopperbenchClient(endpoint, connection["token"], connection["workspaceId"])
     client.initialize("copperbench-ai-live-eval", "0.1.0")
     results = run_workspace(client) if args.mode == "workspace" else run_read_only(client)
-    summary = {"mode": args.mode, "passed": len(results), "failed": 0, "cases": results}
+    summary = build_report(args.mode, results)
     encoded = json.dumps(summary, ensure_ascii=False, indent=2)
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)
