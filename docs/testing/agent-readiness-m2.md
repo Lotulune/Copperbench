@@ -196,6 +196,16 @@ all eight conformance checks in 64.181 seconds overall. Setup and protocol
 failures remain distinct; the initial hosted log did not establish which part
 of the CLI startup consumed its timeout.
 
+The [second normal run](https://github.com/Lotulune/Copperbench/actions/runs/37902924779)
+on `20527f2f3d4b93c4a18eba277fb222e0e6b133c0` passed SDKs, UI, MCP and the
+wrapper matrix; all 24 wrapper case logs were downloaded and their hashes
+matched. Core then exposed a Windows file-lock error: Gradle `clean` tried to
+remove its active `build/nightly-results/core/java-javadoc-scale.log`. Core
+receipts now live under ignored `output/nightly-results/core`, outside the
+clean target. The clean build remains required; this is not a weakened gate.
+Generator completion and corrected full-run/fault-injection results remain
+separate from those partial results.
+
 The three PR required checks remain unchanged;
 no local receipt is substituted for those checks. M1 player crafting/save/
 reopen, M3 same-candidate installers and unfamiliar-user trials remain

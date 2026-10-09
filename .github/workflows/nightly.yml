@@ -151,24 +151,24 @@ jobs:
       - uses: gradle/actions/setup-gradle@v6
       - name: java-javadoc-scale
         run: >-
-          python scripts/ci/nightly.py run --output build/nightly-results/core
+          python scripts/ci/nightly.py run --output output/nightly-results/core
           --id java-javadoc-scale -- ./gradlew.bat --no-daemon --no-build-cache clean test javadoc "-Dcopperbench.stage9.scale=true" "-Dcopperbench.uiWindowTimeoutSeconds=20"
       - run: npm ci --prefix ui-core
       - name: doctor-schema
         run: >-
-          python scripts/ci/nightly.py run --output build/nightly-results/core
+          python scripts/ci/nightly.py run --output output/nightly-results/core
           --id doctor-schema -- node scripts/verify-workspace-doctor-evidence.mjs
       - name: Finalize evidence
         if: always()
         run: >-
-          python scripts/ci/nightly.py finalize --output build/nightly-results/core
+          python scripts/ci/nightly.py finalize --output output/nightly-results/core
           --gate core --job-status "${{ job.status }}"
       - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: nightly-gate-core-${{ github.run_attempt }}
           path: |
-            build/nightly-results/core/
+            output/nightly-results/core/
             build/reports/tests/
             build/reports/workspace-doctor/
             build/test-results/
