@@ -106,6 +106,18 @@ class NightlyEvidenceTest(unittest.TestCase):
         self.assertEqual(7, report['exitCode'])
         self.assertIn(b'argument with spaces', (self.root/'batch.log').read_bytes())
 
+    @unittest.skipUnless(os.name == 'nt', 'Windows relative batch launch regression')
+    def test_windows_forward_slash_launcher_runs_from_repository_root(self):
+        launcher = self.root/'gradlew.bat'
+        launcher.write_text('@echo off\necho relative launcher reached\nexit /b 23\n', encoding='utf-8')
+        # Python 3.11 can return the input spelling from which(). The hosted
+        # checkout has no spaces, so cmd otherwise receives ./gradlew.bat bare.
+        with patch.object(nightly, 'ROOT', self.root), patch.object(nightly.shutil, 'which', return_value='./gradlew.bat'):
+            self.assertEqual(1, nightly.run_check(self.root, 'relative-batch', ['./gradlew.bat']))
+        report = json.loads((self.root/'relative-batch.json').read_text())
+        self.assertEqual(23, report['exitCode'])
+        self.assertIn(b'relative launcher reached', (self.root/'relative-batch.log').read_bytes())
+
     def test_unavailable_hosted_job_api_still_writes_failure_summary(self):
         target = self.root/'summary.json'
         result = subprocess.run([sys.executable, str(Path(nightly.__file__)), 'summarize',

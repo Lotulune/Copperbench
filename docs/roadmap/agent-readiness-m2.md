@@ -46,7 +46,9 @@ tree, not a published package. See the [validation record](../testing/agent-read
 - [ ] One failed SDK suite leaves the other independent suites observable and
   the combined result failed. Hosted workflow execution is reported separately
   from local orchestration checks. The local summary/receipt regressions pass;
-  hosted execution still requires push/dispatch authorization.
+  hosted execution is authorized. The first normal run exposed the Windows
+  relative batch-path bug, which is fixed with an actual failing-then-passing
+  regression; corrected hosted runs are still pending.
 - [x] Actual-head/source evidence inventory and requirement-by-requirement audit.
   The inventory binds this local dirty tree and retained receipts; it does not
   claim a new committed or hosted acceptance result.

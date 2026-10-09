@@ -66,6 +66,8 @@ def run_check(directory: Path, check: str, command: list[str], inject=False):
             argv = list(command)
             executable = shutil.which(argv[0]) or argv[0]
             if os.name == 'nt' and Path(executable).suffix.lower() in ('.cmd', '.bat'):
+                # cmd treats an unquoted ./launcher.bat as the command '.'.
+                executable = str((ROOT / executable).resolve())
                 # Only repository-owned, explicit argv is accepted by this runner.
                 # cmd parses the /c tail itself; passing it through Popen's argv
                 # quoting would turn the executable's quotes into literal backslashes.

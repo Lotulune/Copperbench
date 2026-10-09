@@ -169,8 +169,19 @@ only `blocked by policy`; no forwarding channel was created. This download
 failure does not establish a recurrence of the independently repaired Codex
 streaming failure.
 
-Hosted SDK-failure injection and the normal full Nightly still need an
-authorized push/dispatch. The three PR required checks remain unchanged;
+The user authorized commit, push, a draft PR and both Nightly scenarios.
+The first [normal hosted run](https://github.com/Lotulune/Copperbench/actions/runs/37901516483)
+on `d87c5919e8013edb70494d014eca5b8fa4ad5449` exposed a Windows Python 3.11
+launcher spelling issue: `shutil.which` retained `./gradlew.bat`, which `cmd`
+parsed as the command `.` on a checkout path without spaces. Core and
+generator jobs failed before Gradle started; their logs and failed receipts
+remain available. The launcher now resolves batch paths against the actual
+repository root before quoting them. A regression that runs a real batch
+reproduced the failure first and passed after the fix; all nine helper tests
+pass on Windows (`harness-relative-before.*`, `harness-relative-fixed.*`).
+The corrected normal run and SDK-failure scenario still require completion.
+
+The three PR required checks remain unchanged;
 no local receipt is substituted for those checks. M1 player crafting/save/
 reopen, M3 same-candidate installers and unfamiliar-user trials remain
 unverified. The current chat's successful `mc_doctor` call still reported
