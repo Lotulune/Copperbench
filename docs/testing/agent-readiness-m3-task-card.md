@@ -16,8 +16,10 @@ an item named `discovery_item`, limited to stacks of 16, and a recipe named
 Change its return expression from `return (count + 15) / 16;` to
 `return missing_m1_symbol;`. Build, find the error from the returned diagnostics,
 repair it explicitly and build again. Preserve the failed task and its original
-diagnostics. On a separate disposable copy, use the API to change the item's
-stack size to 15, leaving regeneration pending, and confirm preflight is ready.
+diagnostics. Make a separate disposable copy without the workspace's `.mcreator`
+generator cache or `.gradle`, `build`, `run` and `.copperbench` runtime output.
+Use the API to change the item's stack size to 15, leaving regeneration pending,
+and confirm preflight is ready with `dependenciesRequired=true`.
 Then append a comment to the generated item Java file. Require preflight to
 report `SOURCE_CHANGED` and generation to preserve the external edit. This
 copy is separate from the verified 16-item-stack artifact.
@@ -29,7 +31,9 @@ verification still belongs to the current input. Report protocol, compilation,
 business-test and player results separately.
 
 For the player portion, use the installed product to launch a client containing
-that verified JAR. Craft with a wrong ingredient, then actually craft 17 items
+that verified JAR. Fix the test player's username and UUID in the isolated client
+host, and check the actual identity on both runs. Craft with a wrong ingredient,
+then actually craft 17 items
 from sticks. Show the 16+1 stacks. Save that inventory, leave the world and close
 Minecraft normally. Relaunch through the same product, enter the same world and
 show the restored inventory. Record both client processes and product tasks.

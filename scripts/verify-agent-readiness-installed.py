@@ -38,6 +38,38 @@ def inventory(root):
     return result
 
 
+def verify_conflict_copy(root, workspace_name, conflict_root, open_workspace, save, terminal):
+    # A warm copy generates during the edit itself. Omit its generator import
+    # cache so the managed edit is genuinely deferred until the build task.
+    shutil.copytree(root, conflict_root,
+                    ignore=shutil.ignore_patterns(".gradle", ".mcreator", "build", "run", ".copperbench"))
+    sources = list(conflict_root.glob("src/main/java/**/item/discovery_itemItem.java"))
+    assert len(sources) == 1, "Expected one generated fixture item source"
+    protected = sources[0]
+    with open_workspace(conflict_root / workspace_name) as workspace:
+        item_id = next(element["id"] for element in workspace.list_mod_elements()
+                       if element["name"] == "discovery_item")
+        updated = workspace.update_mod_element(elementId=item_id, changes=[{"path": "/stackSize", "value": 15}])
+        save("conflict-managed-edit", updated)
+        ready = workspace.preview_generation()
+        save("conflict-before-external-edit", ready)
+        assert ready["data"]["status"] == "ready", ready
+        assert ready["data"]["dependenciesRequired"] is True, "Conflict fixture must have a cold generator cache"
+        protected.write_bytes(protected.read_bytes() + b"\n// M3 external edit: preserve these exact bytes.\n")
+        external_hash = digest(protected)
+        before = inventory(conflict_root)
+        preflight = workspace.preview_generation()
+        save("conflict-preflight", preflight)
+        assert preflight["data"]["status"] == "conflicted", preflight
+        assert inventory(conflict_root) == before, "Conflict preflight modified the copy"
+        assert any(conflict["relativePath"] == protected.relative_to(conflict_root).as_posix()
+                   and conflict["reasonCode"] == "SOURCE_CHANGED"
+                   for conflict in preflight["data"]["conflicts"]), preflight
+        terminal(workspace, "conflict-build", workspace.build(), "failed", "GENERATION_SOURCE_CONFLICT")
+        assert digest(protected) == external_hash, "Rejected build changed the external edit"
+    save("external-edit-preserved", {"path": str(protected), "sha256": external_hash, "unchanged": True})
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--product-root", required=True, type=Path)
@@ -199,32 +231,7 @@ def main():
             terminal(workspace, "reopened-verified-export", workspace.export_verified_artifact(accepted["id"]))
             save("reconnect", {"oldPid": old_process.pid, "oldExitCode": old_process.returncode,
                  "newPid": workspace._process.pid, "revision": saved_revision, "restoredTaskId": accepted["id"]})
-        shutil.copytree(root, conflict_root, ignore=shutil.ignore_patterns(".gradle", "build", "run", ".copperbench"))
-        sources = list(conflict_root.glob("src/main/java/**/item/discovery_itemItem.java"))
-        assert len(sources) == 1, "Expected one generated fixture item source"
-        protected = sources[0]
-        with open_workspace(conflict_root / workspace_file.name) as workspace:
-            item_id = next(element["id"] for element in workspace.list_mod_elements()
-                           if element["name"] == "discovery_item")
-            # Queue a managed regeneration before the external edit. A native-only
-            # build without a pending edit does not request source replacement.
-            workspace.update_mod_element(elementId=item_id, changes=[{"path": "/stackSize", "value": 15}])
-            ready = workspace.preview_generation()
-            save("conflict-before-external-edit", ready)
-            assert ready["data"]["status"] == "ready", ready
-            protected.write_bytes(protected.read_bytes() + b"\n// M3 external edit: preserve these exact bytes.\n")
-            external_hash = digest(protected)
-            before = inventory(conflict_root)
-            preflight = workspace.preview_generation()
-            save("conflict-preflight", preflight)
-            assert preflight["data"]["status"] == "conflicted", preflight
-            assert inventory(conflict_root) == before, "Conflict preflight modified the copy"
-            assert any(conflict["relativePath"] == protected.relative_to(conflict_root).as_posix()
-                       and conflict["reasonCode"] == "SOURCE_CHANGED"
-                       for conflict in preflight["data"]["conflicts"]), preflight
-            terminal(workspace, "conflict-build", workspace.build(), "failed", "GENERATION_SOURCE_CONFLICT")
-            assert digest(protected) == external_hash, "Rejected build changed the external edit"
-        save("external-edit-preserved", {"path": str(protected), "sha256": external_hash, "unchanged": True})
+        verify_conflict_copy(root, workspace_file.name, conflict_root, open_workspace, save, terminal)
         assert digest(package) == record["candidateSha256"]
         assert digest(product / "lib/copperbench.jar") == record["applicationSha256"]
         record.update(status="passed", workspaceFile=str(workspace_file), verificationFile=str(output / "verification.json"))

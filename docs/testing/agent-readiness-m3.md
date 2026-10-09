@@ -1,8 +1,11 @@
 # M3 installed-product acceptance record
 
-Status: fixes and available results delivered; remaining acceptance deferred at
-**the user's request** on 2026-10-09. M3 is not complete. Both test VMs are saved
-and consume no assigned RAM. No host desktop focus or VMConnect window was used.
+Status: resumed at the user's request on **2026-10-10 JST**. Both installed
+platforms now pass packaged GameTest and workspace UI checks; Ubuntu also passes
+actual crafting and full-client persistence. M3 is not complete. See the
+[resumed results and repairs](agent-readiness-m3-resume-2026-10-10.md) for new
+attempts, task IDs, candidate identity and retained failures. No host desktop
+focus or VMConnect window was used; the VMs run serially.
 The [fixed task card](agent-readiness-m3-task-card.md) and
 [installed replay](../../scripts/verify-agent-readiness-installed.py) remain the
 entry points for resuming this [PRD milestone](../roadmap/agent-readiness-prd-2026-10-09.md).
@@ -30,7 +33,8 @@ The complete Linux artifact ZIP matches GitHub's SHA-256
 `1b22b866f71b4b1d7557a4a43114ea52b96e026bdd2a12cdce544bb99752e579`.
 Its deb, portable archive, SBOM and manifest passed the candidate metadata
 validator. Interrupted transfers and bounded range retries are recorded; no
-partial archive was installed. The corrected deb has **not yet been installed**.
+partial archive was installed. The corrected deb was installed successfully in
+the resumed run; its application hash is recorded in the resumed results.
 Later task-harness and documentation edits do not change these frozen binaries.
 
 All three required PR checks passed on `37fcb5b4`: Java/Javadoc, UI
@@ -58,7 +62,7 @@ failures occurred in those passing runs. Local Gradle compilation passed.
 Earlier host Windows attempts stopped at Java's `CreateProcess error=5` when
 starting `cmd.exe`; this did not recur in the fresh Windows guest.
 
-## Windows installed observations
+## Earlier Windows installed observations, 2026-10-09
 
 A new Hyper-V guest runs Windows 11 Pro x64, build 26200. The verified installer
 completed with exit 0 under `C:/Copperbench-M3`. The welcome window, mirror choice
@@ -82,9 +86,9 @@ The inventory helper now records the writer lease's presence and size, matching
 the Core tests, while hashing every other workspace file. The second attempt
 exercised that correction. Its harness SHA-256 is
 `2cc0728c826a4343ccab3489005b89447527698d398bc162e7f6e31f68bc08e7`.
-The conflict fixture also now queues a managed edit before the external source
-change and requires the exact `SOURCE_CHANGED` conflict. That later portion of
-the installed replay has not been reached.
+At that point the conflict fixture queued a managed edit before the external
+source change, but neither earlier replay reached it. The resumed run exposed
+and corrected its retained-cache prerequisite, as recorded separately.
 
 Windows run-002 task identities:
 
@@ -111,12 +115,11 @@ shutdown. The verification reports **0 discovered / 0 acceptance executed**,
 with a required minimum of 5. A zero failure counter does not make this a pass.
 The unverified mod artifact SHA-256 is
 `cbeb70e122aaa6d1a833b1e9776056c0f7b63abc7d16c5ac26fefe1eed08dd3e`.
-No verified export or reconnect acceptance followed.
+No verified export or reconnect acceptance followed that run-002 failure.
 
 No user application was closed or reconfigured to reclaim memory. The user
-chose to receive the fixes and existing results now and arrange remaining
-acceptance later. The VM memory minimum has not yet been changed; reserve the
-required host capacity before configuring and rerunning it.
+chose to defer further acceptance on 2026-10-09. On resumption the VM memory
+minimum was raised to 4 GiB; the new successful runs are recorded separately.
 
 ## Earlier Ubuntu installed attempts
 
@@ -162,11 +165,11 @@ No guest network tunnel or host-wide proxy change was introduced in this work.
 These dependency/download failures are separate observations from the previously
 investigated Codex response-stream fault.
 
-The user authorized direct guest control. Guest Python Bridge doctor reported
-`linux-x11`, bridge 0.3.0. It was never attached to Minecraft, and no guest game
-client was launched. The chat's Windows Minecraft MCP connection was not used.
-The controller was stopped before saving the Ubuntu guest. Follow the
-[bridge contract](../../tools/minecraft-control-bridge/README.md) when resuming.
+Before the pause, guest Python Bridge doctor reported `linux-x11`, bridge 0.3.0,
+but no Minecraft attachment or client launch followed. Resumed gameplay now has
+separate input and image evidence. The chat's Windows Minecraft MCP connection
+was not used; direct guest control followed the
+[bridge contract](../../tools/minecraft-control-bridge/README.md).
 
 Local evidence is under `build/m3-validation/`, with the durable copy at
 `output/agent-readiness/m3-20261009` in the primary checkout. The Windows archive
@@ -180,25 +183,22 @@ exact locations without putting credentials in the repository.
 
 | Check on corrected candidates | Windows 11 guest | Ubuntu GNOME guest |
 | --- | --- | --- |
-| Install and launch welcome/preferences | passed | not executed |
-| Native creation, read-only discovery and doctor | passed | not executed |
-| Build, deliberate error diagnosis and repair | passed | not executed |
-| Workspace JCEF UI task | not executed | not executed |
-| Five packaged-JAR business tests | failed before tests due to memory | not executed |
-| Verified export, reconnect and external-edit conflict | not executed | not executed |
-| Player crafting, 16+1 stacking, save/close/rejoin | not executed | not executed |
+| Install and launch product UI | passed | passed |
+| Native creation, read-only discovery and doctor | passed | passed |
+| Build, deliberate error diagnosis and repair | passed | passed |
+| Workspace JCEF edit/save/build | passed, warm copy | passed, warm copy |
+| Five packaged-JAR business tests | 5/5 passed after memory correction | 5/5 passed |
+| Verified export, reconnect and external-edit conflict | passed; conflict tested in a separate corrected replay | passed in full run-006 |
+| Player crafting, 16+1 stacking, save/close/rejoin | client renders with guest Mesa; player input blocked by unconfirmed IME, pending permission for a guest English keyboard | passed with two actual client processes and matching UUID |
 
-Resume after reserving about 4–5 GiB for one test guest; keep the two VMs serial.
-Configure an adequate guest memory minimum before launching new JVMs, restore
-fresh task authorization when expired, install the corrected deb, and run the
-fixed task through the installed SDK. Preserve the current failed attempts.
-Use the same verified JAR for the subsequent client trial, and separately record
-preparation commands, actual crafting, player/UUID identity, normal process exit
-and restored nondefault inventory. See the
-[packaged-client procedure](../ai/client-acceptance.md).
+Keep the guests serial and retain the explicit warm-cache boundary. New player
+trials must use the same verified JAR and preserve preparation/input, player UUID,
+normal exit and restored-inventory evidence. See the
+[packaged-client procedure](../ai/client-acceptance.md) and
+[resumed record](agent-readiness-m3-resume-2026-10-10.md).
 
 The 20 preregistered autonomous-agent tasks and 5–8 unfamiliar-user trials have
 not been executed. No participants were contacted. Scripted replay is not an
 agent success-rate measurement or a user study. The task card records the
 required denominator, rescue, abandonment and artifact evidence; arrange those
-remaining trials separately when the user resumes acceptance.
+remaining trials separately from these installed-product regressions.
