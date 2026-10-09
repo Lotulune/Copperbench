@@ -119,7 +119,7 @@ final class MCreatorGenerationPreparation {
                     : message.startsWith("GENERATOR_DECOMPILATION_FAILED:") ? "GENERATOR_DECOMPILATION_FAILED"
                     : "GENERATOR_SOURCE_PREPARATION_FAILED";
             String explanation = switch (code) {
-                case "GENERATION_SOURCE_CONFLICT" -> "Source files changed or are not owned by the generator. Review them before generating again.";
+                case "GENERATION_SOURCE_CONFLICT" -> GenerationPreparationDiagnostics.sourceConflict(message);
                 case "GENERATION_INPUT_CHANGED" -> "Workspace inputs changed while dependencies were prepared. Run generation again for the current inputs.";
                 case "GENERATOR_DEPENDENCIES_UNAVAILABLE" -> "Generator dependencies could not be prepared. Inspect the setup log and retry after resolving dependencies.";
                 case "GENERATOR_LOCAL_IPC_UNAVAILABLE" -> "Loom could not access its local IPC file in this execution context. Retry from the desktop product or a normal local terminal; changing dependency mirrors does not repair local IPC.";

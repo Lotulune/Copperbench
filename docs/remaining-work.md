@@ -15,6 +15,8 @@ The historical Stage 9–11 evidence remains authoritative for the Beta 4 baseli
 
 ## Next product work
 
+The [2026-10-09 Agent readiness and trusted-delivery PRD](./roadmap/agent-readiness-prd-2026-10-09.md) proposes the next development batches: contract discovery, actionable diagnostics, read-only generation preflight, independent regression results and real artifact acceptance. Its [first implementation record](./testing/agent-readiness-2026-10-09.md) distinguishes implemented SDK/diagnostic fixes from pending Core work and unverified installed/gameplay scope. This proposal does not reopen historical gates or change the published release's support claims by itself.
+
 This page is the current follow-up entry; [PRD-NEXT.md](../PRD-NEXT.md) preserves historical requirements. Stage 17 and earlier maintenance releases retain their original acceptance scope. Earlier closure records, including Stage 15 Linux Preview 2, retain their historical scope and binary digests.
 
 The repository review's reliability changes shipped in 0.1.4. Full installed-product and gameplay acceptance were not repeated; the release records retain that limit. Remaining UI issue: a failed asset-preview message can retain its old language after a locale change; retrying the preview refreshes it.
@@ -40,7 +42,7 @@ The remaining roadmap work is continuous maintenance: Minecraft/loader/generator
 - **CB-AUDIT-07 — closed for modern NeoForge runtime generation**: `neoforge-1.21.1`, `neoforge-26.1.2`, and `neoforge-26.2` no longer register the generated main class on `NeoForge.EVENT_BUS` when it has no generated `@SubscribeEvent` method. The three failed Copperbench packaged gameplay cells were regenerated through the production generator path and now pass initializer, packaged-JAR load, server-ready and gameplay verification.
 - Cross-track Stage 14A source-integrity and the affected Windows installed-product Desktop MCP path have been revalidated. Stage 14C now records Fabric 8/8 behavior-passed cells and NeoForge 6 behavior-passed cells plus two explicit NeoForge 1.20.1 EULA authorization blocks; the NeoForge matrix is 8/8 closure-satisfied without accepting EULA or relabeling `not_run` gameplay as passed.
 - **Stage 14B/14D — closed on the current development line**: product bootstrap discovery/local approval, native multi-file failure-repair-build-reopen, Workspace Plan high-impact review/read-only/recovery/tamper gates, explicit experimental-extension compatibility boundaries, and real MCreator local-template Procedure+asset round-trip all pass targeted regression. Template target-path conflict and signed-plan tampering are rejected before mutation.
-- **Stage 14C / Stage 14 overall — closed on the current development line**: packaged runtime layers remain separate, the same-Agent comparison retains its cache/timing caveats, and the full closure rationale is recorded in [Stage 14C runtime/gameplay closure evidence](./testing/stage14-runtime-gameplay-closure-2026-09-08.md). Stage15 has subsequently completed its independent Linux acceptance and public release.
+- **Stage 14C / Stage 14 overall — closed on the current development line**: packaged runtime layers remain separate, the same-Agent comparison retains its cache/timing caveats, and the full closure rationale is recorded in [Stage 14C runtime/gameplay-closure](./testing/stage14-runtime-gameplay-closure-2026-09-08.md). Stage15 has subsequently completed its independent Linux acceptance and public release.
 
 ## Non-blocking follow-up
 
