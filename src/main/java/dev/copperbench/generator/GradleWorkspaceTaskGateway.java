@@ -269,7 +269,14 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 		} catch (WorkspaceTaskGateway.GenerationPreparationException exception) {
 			if (job.isCancelled() || job.cancellationRequested()) return;
 			String failureId = UUID.randomUUID().toString();
-			LOG.error("Generator source preparation failed {}", failureId, exception);
+			if ("GENERATION_SOURCE_CONFLICT".equals(exception.code())) {
+				// Neither legacy messages nor arbitrary causes are a source-location contract.
+				job.log("error", exception.code() + ": " + dev.copperbench.core.application.GenerationPreparationDiagnostics.sourceConflict(exception.conflicts()));
+				job.fail(exception.code(), failureId, taskKind(operation), "diagnostic.generation_source_conflict",
+						WorkspaceTaskGateway.GenerationPreparationException.SOURCE_CONFLICT_MESSAGE, null, exception.conflicts());
+				return;
+			}
+			LOG.error("Generator source preparation failed {} ({})", failureId, exception.code());
 			job.log("error", exception.code() + ": " + exception.getMessage());
 			JsonObject args = new JsonObject(); args.addProperty("reason", exception.getMessage());
             if (exception.code().equals("GENERATOR_LOCAL_IPC_UNAVAILABLE"))
@@ -991,6 +998,11 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 
 		private void fail(String code, String failureId, String taskKind, String messageKey, String fallback,
 				JsonObject extraArgs) {
+			fail(code, failureId, taskKind, messageKey, fallback, extraArgs, List.of());
+		}
+
+		private void fail(String code, String failureId, String taskKind, String messageKey, String fallback,
+				JsonObject extraArgs, List<WorkspaceTaskGateway.GenerationPreparationException.SourceConflict> conflicts) {
 			synchronized (this) {
 				if (!isRunning()) return;
 				failVerification(code);
@@ -1000,7 +1012,8 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 			WorkspaceTaskGateway.TaskEvent completedEvent;
 			synchronized (this) {
 				if (!isRunning()) return;
-				addFailureDiagnostic(code, failureId, taskKind, messageKey, fallback, extraArgs);
+				if (conflicts.isEmpty()) addFailureDiagnostic(code, failureId, taskKind, messageKey, fallback, extraArgs);
+				else for (var conflict : conflicts) addSourceConflictDiagnostic(failureId, taskKind, conflict);
 				completeFailure();
 				List<JsonObject> diagnostics = diagnostics();
 				diagnosticsEvent = new WorkspaceTaskGateway.TaskEvent(workspaceId, id(), "diagnostics_changed", summary,
@@ -1019,7 +1032,7 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 			persistVerification();
 		}
 
-		private void addFailureDiagnostic(String code, String failureId, String taskKind, String messageKey,
+		private JsonObject addFailureDiagnostic(String code, String failureId, String taskKind, String messageKey,
 				String fallback, JsonObject extraArgs) {
 			JsonObject args = new JsonObject();
 			args.addProperty("backend", backend.displayName());
@@ -1046,6 +1059,45 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 			actions.add(action);
 			diagnostic.add("actions", actions);
 			diagnosticEntries.add(diagnostic);
+			return diagnostic;
+		}
+
+		private void addSourceConflictDiagnostic(String failureId, String taskKind,
+				WorkspaceTaskGateway.GenerationPreparationException.SourceConflict conflict) {
+			JsonObject args = new JsonObject();
+			args.addProperty("reason", conflict.reason().explanation());
+			args.addProperty("reasonCode", conflict.reason().name());
+			args.addProperty("ownership", conflict.reason().ownership());
+			String relative = conflict.relativePath();
+			if (relative != null) {
+				args.addProperty("sourcePath", relative);
+				args.addProperty("displaySourcePath", dev.copperbench.core.application.GenerationPreparationDiagnostics.displaySourcePath(conflict));
+			}
+			JsonObject diagnostic = addFailureDiagnostic("GENERATION_SOURCE_CONFLICT", failureId, taskKind,
+					relative == null ? "diagnostic.generation_source_conflict_reason" : "diagnostic.generation_source_conflict_at_path",
+					relative == null ? "Generation stopped: {reason}"
+							: "Generation stopped at {displaySourcePath}: {reason}", args);
+			if (relative == null) return;
+			String path = "/" + relative;
+			diagnostic.addProperty("path", path);
+			if (conflict.reason() == WorkspaceTaskGateway.GenerationPreparationException.ConflictReason.UNSAFE_PATH) return;
+			// Reuse the existing bounded Java-source preview only when a safe file can actually be captured.
+			// Resources, directories, redirected paths and unavailable files still have a diagnostic location.
+			try {
+				Path source = executionRoot.resolve(relative);
+				WorkspaceExecutionSnapshot.rejectLinks(source);
+				JsonObject preview = captureSourcePreview(executionRoot, source.toString(), path, "1");
+				if (preview == null) return;
+				sourcePreviews.put(path, preview);
+				JsonObject action = new JsonObject();
+				action.addProperty("id", "open_conflicting_source");
+				action.add("label", localized("action.open_source", "View conflicting source"));
+				action.addProperty("kind", "open_source");
+				action.addProperty("target", path);
+				diagnostic.getAsJsonArray("actions").add(action);
+			} catch (java.io.IOException | RuntimeException unavailable) {
+				// A location diagnostic never grants read access through an unsafe or missing path.
+			}
 		}
 
 		private JsonObject procedureDiagnosticTarget(String path, UUID elementId) {

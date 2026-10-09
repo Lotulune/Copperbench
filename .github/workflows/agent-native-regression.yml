@@ -1,0 +1,195 @@
+name: Native mod regression
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/main/java/**'
+      - 'sdk/python/copperbench_native.py'
+      - 'examples/agent-native/copper-chronometer/**'
+      - 'scripts/evaluation/run-chronometer-trial.py'
+      - 'scripts/tests/test_chronometer_regression.py'
+      - 'scripts/tests/test_nightly_and_eval_contracts.py'
+      - 'scripts/run-ai-live-evals.py'
+      - 'scripts/verify-ai-evals.mjs'
+      - 'scripts/verify-ai-live-evals.ps1'
+      - 'sdk/evals/manifest.json'
+      - '.github/workflows/nightly.yml'
+      - 'plugins/generator-1.21.1/fabric-1.21.1/**'
+      - 'build.gradle'
+      - 'settings.gradle'
+      - 'gradle/**'
+      - '.github/workflows/agent-native-regression.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'src/main/java/**'
+      - 'sdk/python/copperbench_native.py'
+      - 'examples/agent-native/copper-chronometer/**'
+      - 'scripts/evaluation/run-chronometer-trial.py'
+      - 'scripts/tests/test_chronometer_regression.py'
+      - 'scripts/tests/test_nightly_and_eval_contracts.py'
+      - 'scripts/run-ai-live-evals.py'
+      - 'scripts/verify-ai-evals.mjs'
+      - 'scripts/verify-ai-live-evals.ps1'
+      - 'sdk/evals/manifest.json'
+      - '.github/workflows/nightly.yml'
+      - 'plugins/generator-1.21.1/fabric-1.21.1/**'
+      - 'build.gradle'
+      - 'settings.gradle'
+      - 'gradle/**'
+      - '.github/workflows/agent-native-regression.yml'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: native-mod-regression-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  native-mod-trial:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Check out the product and regression fixture
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Set up Java 21 for Fabric 1.21.1
+        uses: actions/setup-java@v6
+        with:
+          java-version: "21"
+          distribution: temurin
+
+      - name: Retain the sidecar Java path
+        shell: bash
+        run: |
+          echo "COPPERBENCH_EVAL_JAVA21=$JAVA_HOME" >> "$GITHUB_ENV"
+
+      - name: Set up the product Java 25 runtime with JCEF
+        uses: actions/setup-java@v6
+        with:
+          java-version: "25.0.2"
+          distribution: jetbrains
+          java-package: jdk+jcef
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Verify that failed probes keep the regression red
+        run: |
+          python -m unittest discover -s scripts/tests -p 'test_chronometer_regression.py'
+          python -m unittest discover -s scripts/tests -p 'test_nightly_and_eval_contracts.py'
+          node scripts/verify-ai-evals.mjs
+
+      - name: Set up Gradle using existing read-only caches
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-read-only: true
+
+      - name: Prepare source-runtime paths and evidence
+        shell: bash
+        run: |
+          mkdir -p build/evaluation jdk
+          ln -s "$COPPERBENCH_EVAL_JAVA21" jdk/jdk21_linux_64
+          ln -s "$JAVA_HOME" jdk/jbr25_linux_64
+          echo "COPPERBENCH_EVAL_JAVA25=$JAVA_HOME/bin/java" >> "$GITHUB_ENV"
+          cat > "$RUNNER_TEMP/copperbench-evaluation.init.gradle" <<'GRADLE'
+          gradle.projectsEvaluated {
+              def p = gradle.rootProject
+              p.tasks.register('evaluationRuntimeClasspath') {
+                  dependsOn p.tasks.named('classes'), p.tasks.named('localIpcAgentJar')
+                  doLast {
+                      def target = p.layout.buildDirectory.file('evaluation/runtime-classpath.txt').get().asFile
+                      target.parentFile.mkdirs()
+                      target.setText(p.sourceSets.main.runtimeClasspath.asPath, 'UTF-8')
+                  }
+              }
+          }
+          GRADLE
+          python - <<'PY'
+          import json, os, platform, subprocess
+          from pathlib import Path
+          record = {
+              "repositoryCommit": os.environ.get("GITHUB_SHA"),
+              "assessedProductBase": "2bfbb48e80dac267b2043ffcbfc795a0bdd931a3",
+              "runId": os.environ.get("GITHUB_RUN_ID"),
+              "runner": platform.platform(),
+              "cachePolicy": "Gradle read-only cache restore is allowed; this is not a cold-cache trial.",
+              "uiScope": "Source headless runtime; buildUiShell is excluded. No installed JCEF or client visual claim.",
+              "java21": os.environ["COPPERBENCH_EVAL_JAVA21"],
+              "java25": os.environ["JAVA_HOME"],
+              "python": platform.python_version(),
+              "node": subprocess.check_output(["node", "--version"], text=True).strip(),
+              "authorization": "No task authorization is issued and no EULA is accepted by the harness."
+          }
+          Path("build/evaluation/runner-environment.json").write_text(json.dumps(record, indent=2) + "\n")
+          PY
+
+      - name: Run the independent Java time-calculation contract
+        timeout-minutes: 2
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p "$RUNNER_TEMP/chronometer-contract-classes"
+          "$COPPERBENCH_EVAL_JAVA21/bin/javac" --release 21 \
+            -d "$RUNNER_TEMP/chronometer-contract-classes" \
+            examples/agent-native/copper-chronometer/src/main/java/dev/chronometer/ClockReading.java \
+            examples/agent-native/copper-chronometer/src/contractTest/java/dev/chronometer/ClockReadingContractTest.java
+          "$COPPERBENCH_EVAL_JAVA21/bin/java" \
+            -cp "$RUNNER_TEMP/chronometer-contract-classes" \
+            dev.chronometer.ClockReadingContractTest \
+            2>&1 | tee build/evaluation/clock-reading-contract.log
+
+      - name: Compile the actual headless product runtime
+        timeout-minutes: 10
+        shell: bash
+        run: |
+          set -o pipefail
+          ./gradlew --no-daemon --console=plain \
+            -I "$RUNNER_TEMP/copperbench-evaluation.init.gradle" \
+            classes localIpcAgentJar evaluationRuntimeClasspath -x buildUiShell \
+            2>&1 | tee build/evaluation/product-compile.log
+
+      - name: Exercise the Native SDK and packaged mod acceptance
+        timeout-minutes: 23
+        shell: bash
+        run: |
+          set -o pipefail
+          python scripts/evaluation/run-chronometer-trial.py \
+            --source examples/agent-native/copper-chronometer \
+            --workspace-root "$RUNNER_TEMP/copper-chronometer" \
+            --classpath-file build/evaluation/runtime-classpath.txt \
+            --java "$COPPERBENCH_EVAL_JAVA25" \
+            --evidence build/evaluation --budget-seconds 1320 \
+            2>&1 | tee build/evaluation/native-trial.log
+
+      - name: Collect bounded evidence even after a failed step
+        if: always()
+        shell: bash
+        run: |
+          python scripts/evaluation/run-chronometer-trial.py \
+            --source examples/agent-native/copper-chronometer \
+            --workspace-root "$RUNNER_TEMP/copper-chronometer" \
+            --evidence build/evaluation --collect-only
+
+      - name: Upload mod sources, small artifacts and observations
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: copper-chronometer-regression-${{ github.run_id }}
+          path: build/evaluation/
+          if-no-files-found: error
+          retention-days: 14

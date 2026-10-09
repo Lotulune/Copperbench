@@ -2,6 +2,9 @@ package dev.copperbench.core.workspace.mcreator;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import dev.copperbench.core.application.WorkspaceTaskGateway.GenerationPreparationException;
+import dev.copperbench.core.application.WorkspaceTaskGateway.GenerationPreparationException.ConflictReason;
+import dev.copperbench.core.application.WorkspaceTaskGateway.GenerationPreparationException.SourceConflict;
 import dev.copperbench.core.contract.UiCore.Operation;
 import dev.copperbench.core.workspace.RevisionedWorkspaceStore;
 import dev.copperbench.core.workspace.WorkspaceState;
@@ -81,13 +84,13 @@ final class MCreatorGenerationPreparation {
         manual.forEach(pending.getAsJsonObject("files")::remove);
         for (Path path : paths) {
             String relative = relative(root, path);
-            if (!manual.contains(relative)) pending.getAsJsonObject("files").addProperty(relative, hash(path));
+            if (!manual.contains(relative)) pending.getAsJsonObject("files").addProperty(relative, hash(root, path));
         }
         // Cold setup rebuilds the complete managed registry, including sources already rendered without imports.
         for (ModElement element : workspace.getModElements()) if (!element.isCodeLocked() && !element.getTypeString().equals("code")) {
             for (var file : element.getAssociatedFiles()) {
                 String relative = relative(root, file.toPath());
-                if (!pending.getAsJsonObject("files").has(relative)) pending.getAsJsonObject("files").addProperty(relative, hash(file.toPath()));
+                if (!pending.getAsJsonObject("files").has(relative)) pending.getAsJsonObject("files").addProperty(relative, hash(root, file.toPath()));
             }
         }
         Set<String> selected = new LinkedHashSet<>();
@@ -111,6 +114,7 @@ final class MCreatorGenerationPreparation {
         try { prepareImpl(state, target, operation, output); }
         catch (IOException | UncheckedIOException exception) {
             Throwable cause = exception instanceof UncheckedIOException wrapped ? wrapped.getCause() : exception;
+            if (cause instanceof GenerationPreparationException conflict) throw conflict;
             String message = Objects.toString(cause.getMessage(), "");
             String code = message.startsWith("GENERATION_SOURCE_CONFLICT:") ? "GENERATION_SOURCE_CONFLICT"
                     : message.startsWith("GENERATION_INPUT_CHANGED:") ? "GENERATION_INPUT_CHANGED"
@@ -119,7 +123,7 @@ final class MCreatorGenerationPreparation {
                     : message.startsWith("GENERATOR_DECOMPILATION_FAILED:") ? "GENERATOR_DECOMPILATION_FAILED"
                     : "GENERATOR_SOURCE_PREPARATION_FAILED";
             String explanation = switch (code) {
-                case "GENERATION_SOURCE_CONFLICT" -> "Source files changed or are not owned by the generator. Review them before generating again.";
+                case "GENERATION_SOURCE_CONFLICT" -> GenerationPreparationException.SOURCE_CONFLICT_MESSAGE;
                 case "GENERATION_INPUT_CHANGED" -> "Workspace inputs changed while dependencies were prepared. Run generation again for the current inputs.";
                 case "GENERATOR_DEPENDENCIES_UNAVAILABLE" -> "Generator dependencies could not be prepared. Inspect the setup log and retry after resolving dependencies.";
                 case "GENERATOR_LOCAL_IPC_UNAVAILABLE" -> "Loom could not access its local IPC file in this execution context. Retry from the desktop product or a normal local terminal; changing dependency mirrors does not repair local IPC.";
@@ -133,18 +137,19 @@ final class MCreatorGenerationPreparation {
     private void prepareImpl(WorkspaceState state, Path target, Operation operation, Consumer<String> output) throws Exception {
         Path source = opened.getWorkspaceFolder().toPath().toAbsolutePath().normalize();
         target = target.toAbsolutePath().normalize();
-        // Upstream declares this generated include even when it is empty. Restore it only when missing.
-        if (Files.isRegularFile(target.resolve("build.gradle")) && !Files.exists(target.resolve("mcreator.gradle"))) {
-            if (target.equals(source)) net.mcreator.gradle.GradleUtils.updateMCreatorBuildFile(opened);
-            else Files.writeString(target.resolve("mcreator.gradle"), net.mcreator.gradle.GradleUtils.mcreatorBuildFileContent(opened), java.nio.charset.StandardCharsets.UTF_8);
-        }
         // Older cold workspaces predate pending metadata but still need their managed sources prepared.
         // Code elements and locked sources remain outside generation ownership.
         if (pending(opened) == null && operation != Operation.GENERATE_WORKSPACE
-                && (!needsDependencies(opened) || managedElements(opened).isEmpty())) return;
+                && (!needsDependencies(opened) || managedElements(opened).isEmpty())) {
+            restoreMissingGradleInclude(opened, target);
+            return;
+        }
         String generatorId = state.generator().get("id").getAsString();
         if (dev.copperbench.tracks.VersionTrackCatalog.official().findGenerator(generatorId).isEmpty()
-                && !dev.copperbench.generator.datapack.DataPackWorkspaceTaskGateway.GENERATOR_IDS.contains(generatorId)) return;
+                && !dev.copperbench.generator.datapack.DataPackWorkspaceTaskGateway.GENERATOR_IDS.contains(generatorId)) {
+            restoreMissingGradleInclude(opened, target);
+            return;
+        }
         if (target.equals(source)) {
             prepare(opened, state, operation, output, true);
         } else {
@@ -154,6 +159,13 @@ final class MCreatorGenerationPreparation {
                 prepare(copied, state, operation, output, false);
             }
         }
+    }
+
+    private static void restoreMissingGradleInclude(Workspace workspace, Path target) throws IOException {
+        // Upstream declares this include even when empty. Run only after source-conflict preflight.
+        if (Files.isRegularFile(target.resolve("build.gradle")) && !Files.exists(target.resolve("mcreator.gradle")))
+            Files.writeString(target.resolve("mcreator.gradle"), net.mcreator.gradle.GradleUtils.mcreatorBuildFileContent(workspace),
+                    java.nio.charset.StandardCharsets.UTF_8);
     }
 
     private void prepare(Workspace workspace, WorkspaceState state, Operation operation, Consumer<String> output,
@@ -167,13 +179,14 @@ final class MCreatorGenerationPreparation {
         Path root = workspace.getWorkspaceFolder().toPath().toAbsolutePath().normalize();
         var planned = plannedPaths(workspace, elements);
         JsonObject expected = new JsonObject();
-        for (Path path : planned) expected.addProperty(relative(root, path), hash(path));
+        for (Path path : planned) expected.addProperty(relative(root, path), hash(root, path));
         // Definitions and ownership must also remain unchanged during the potentially slow dependency preparation.
-        expected.addProperty(relative(root, workspace.getFileManager().getWorkspaceFile().toPath()), hash(workspace.getFileManager().getWorkspaceFile().toPath()));
+        expected.addProperty(relative(root, workspace.getFileManager().getWorkspaceFile().toPath()), hash(root, workspace.getFileManager().getWorkspaceFile().toPath()));
         for (ModElement element : elements) {
             Path definition = workspace.getFolderManager().getModElementsDir().toPath().resolve(element.getName() + ".mod.json");
-            expected.addProperty(relative(root, definition), hash(definition));
+            expected.addProperty(relative(root, definition), hash(root, definition));
         }
+        restoreMissingGradleInclude(workspace, root);
         if (needsDependencies(workspace)) {
             output.accept("GENERATOR_DEPENDENCIES_PREPARING: preparing the workspace's declared Gradle dependencies");
             net.mcreator.gradle.GradleUtils.updateMCreatorBuildFile(workspace);
@@ -221,11 +234,13 @@ final class MCreatorGenerationPreparation {
     private static Set<Path> plannedPaths(Workspace workspace, List<ModElement> elements) throws IOException {
         Path root = workspace.getWorkspaceFolder().toPath().toAbsolutePath().normalize();
         Set<Path> paths = new LinkedHashSet<>(), baseOwned = new LinkedHashSet<>();
+        List<SourceConflict> conflicts = new ArrayList<>();
         if (workspace.getMetadata("files") instanceof List<?> files) for (Object file : files) baseOwned.add(root.resolve(file.toString()).normalize());
         for (var template : workspace.getGenerator().getModBaseGeneratorTemplatesList()) {
             Path path = template.getFile().toPath().toAbsolutePath().normalize();
             relative(root, path);
-            if (Files.exists(path) && !baseOwned.contains(path)) throw new IOException("GENERATION_SOURCE_CONFLICT: unowned base file " + relative(root, path));
+            if (Files.exists(path) && !baseOwned.contains(path))
+                conflicts.add(new SourceConflict(relative(root, path), ConflictReason.UNOWNED_BASE_FILE));
             paths.add(path);
         }
         paths.addAll(baseOwned);
@@ -233,11 +248,15 @@ final class MCreatorGenerationPreparation {
             Set<Path> owned = new LinkedHashSet<>(); element.getAssociatedFiles().forEach(file -> owned.add(file.toPath().toAbsolutePath().normalize()));
             for (var template : workspace.getGenerator().getModElementGeneratorTemplatesList(element.getGeneratableElement())) {
                 Path path = template.getFile().toPath().toAbsolutePath().normalize(); relative(root, path);
-                if (Files.exists(path) && !owned.contains(path)) throw new IOException("GENERATION_SOURCE_CONFLICT: unowned element file " + relative(root, path));
+                if (Files.exists(path) && !owned.contains(path))
+                    conflicts.add(new SourceConflict(relative(root, path), ConflictReason.UNOWNED_ELEMENT_FILE));
                 paths.add(path);
             }
             paths.addAll(owned);
         }
+        // Validate metadata-owned paths as well before returning a set that could later be written.
+        for (Path path : paths) relative(root, path);
+        if (!conflicts.isEmpty()) throw new GenerationPreparationException(conflicts.stream().distinct().toList(), null);
         return paths;
     }
 
@@ -270,15 +289,26 @@ final class MCreatorGenerationPreparation {
 
     private static String relative(Path root, Path path) throws IOException {
         path = path.toAbsolutePath().normalize(); root = root.toAbsolutePath().normalize();
-        if (!path.startsWith(root)) throw new IOException("GENERATION_SOURCE_CONFLICT: source path leaves workspace");
-        WorkspaceExecutionSnapshot.rejectLinks(path);
-        return root.relativize(path).toString().replace('\\', '/');
+        if (!path.startsWith(root)) throw conflict(null, ConflictReason.PATH_OUTSIDE_WORKSPACE);
+        String relative = root.relativize(path).toString().replace(java.io.File.separatorChar, '/');
+        try { new SourceConflict(relative, ConflictReason.INVALID_SOURCE_PATH); }
+        catch (IllegalArgumentException invalid) { throw conflict(null, ConflictReason.INVALID_SOURCE_PATH); }
+        try { WorkspaceExecutionSnapshot.rejectLinks(path); }
+        catch (WorkspaceExecutionSnapshot.SnapshotException unsafe) {
+            throw new GenerationPreparationException(List.of(new SourceConflict(relative, ConflictReason.UNSAFE_PATH)), unsafe);
+        }
+        return relative;
     }
 
-    private static String hash(Path path) throws IOException {
-        WorkspaceExecutionSnapshot.rejectLinks(path);
+    private static GenerationPreparationException conflict(String relative, ConflictReason reason) {
+        return new GenerationPreparationException(List.of(new SourceConflict(relative, reason)), null);
+    }
+
+    private static String hash(Path root, Path path) throws IOException {
+        String relative = relative(root, path);
+        path = path.toAbsolutePath().normalize();
         if (!Files.exists(path)) return "absent";
-        if (!Files.isRegularFile(path)) throw new IOException("GENERATION_SOURCE_CONFLICT: expected a regular file");
+        if (!Files.isRegularFile(path)) throw conflict(relative, ConflictReason.NON_REGULAR_FILE);
         if (!path.getFileName().toString().endsWith(".java")) return WorkspaceExecutionSnapshot.sha256(path);
         String content = Files.readString(path);
         StringBuilder protectedCode = new StringBuilder();
@@ -289,14 +319,14 @@ final class MCreatorGenerationPreparation {
             String trimmed = line.strip();
             if (trimmed.startsWith(start)) {
                 String name = trimmed.substring(start.length()).strip();
-                if (active != null || name.isEmpty() || !names.add(name)) throw new IOException("GENERATION_SOURCE_CONFLICT: ambiguous user-code region");
+                if (active != null || name.isEmpty() || !names.add(name)) throw conflict(relative, ConflictReason.AMBIGUOUS_USER_CODE_REGION);
                 active = name; protectedCode.append(line);
             } else if (trimmed.startsWith(end)) {
-                if (active == null || !trimmed.equals(end + active)) throw new IOException("GENERATION_SOURCE_CONFLICT: mismatched user-code region");
+                if (active == null || !trimmed.equals(end + active)) throw conflict(relative, ConflictReason.MISMATCHED_USER_CODE_REGION);
                 active = null; protectedCode.append(line);
             } else if (active == null) protectedCode.append(line);
         }
-        if (active != null) throw new IOException("GENERATION_SOURCE_CONFLICT: unclosed user-code region");
+        if (active != null) throw conflict(relative, ConflictReason.UNCLOSED_USER_CODE_REGION);
         try {
             return "generated-v1:" + HexFormat.of().formatHex(java.security.MessageDigest.getInstance("SHA-256")
                     .digest(protectedCode.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8)));
@@ -304,13 +334,15 @@ final class MCreatorGenerationPreparation {
     }
 
     private static void verify(Path root, JsonObject expected) throws IOException {
+        List<SourceConflict> conflicts = new ArrayList<>();
         for (var entry : expected.entrySet()) {
-            Path path = root.resolve(entry.getKey()); relative(root, path);
+            Path path = root.resolve(entry.getKey()).toAbsolutePath().normalize(); String relative = relative(root, path);
             String expectedHash = entry.getValue().getAsString();
             String actual = expectedHash.matches("[0-9a-f]{64}") && Files.isRegularFile(path)
-                    ? WorkspaceExecutionSnapshot.sha256(path) : hash(path);
+                    ? WorkspaceExecutionSnapshot.sha256(path) : hash(root, path);
             if (!expectedHash.equals(actual))
-                throw new IOException("GENERATION_SOURCE_CONFLICT: source changed before generation: " + entry.getKey());
+                conflicts.add(new SourceConflict(relative, ConflictReason.SOURCE_CHANGED));
         }
+        if (!conflicts.isEmpty()) throw new GenerationPreparationException(conflicts.stream().distinct().toList(), null);
     }
 }

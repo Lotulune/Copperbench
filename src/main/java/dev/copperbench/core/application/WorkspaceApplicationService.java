@@ -506,6 +506,8 @@ public final class WorkspaceApplicationService {
 			projection.add("generator", state.generator());
 			JsonObject fieldContracts = new JsonObject();
 			fieldContracts.add("block", BlockFieldContract.capabilities(optionalString(state.generator(), "id")));
+			fieldContracts.add("item", ItemRecipeFieldContract.capabilities("item"));
+			fieldContracts.add("recipe", ItemRecipeFieldContract.capabilities("recipe"));
 			fieldContracts.add("loottable", LootTableFieldContract.capabilities());
 			fieldContracts.add("function", FunctionFieldContract.capabilities());
 			fieldContracts.add("projectile", SpecializedFieldContract.capabilities("projectile"));
