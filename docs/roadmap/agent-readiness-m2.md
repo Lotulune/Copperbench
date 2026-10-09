@@ -1,11 +1,13 @@
 # M2: continuous verification and read-only environment discovery
 
 This work follows the [2026-10-09 PRD](agent-readiness-prd-2026-10-09.md).
-Status: implementation complete; consolidated local validation executed on
-2026-10-09, with two exit gates still open: official-source cold/warm wrapper
-downloads and hosted Nightly fault injection. M2 is not closed. The results
-apply to `436a41761d885fa5ad0d76500e2257438137d75f` plus this uncommitted working
-tree, not a published package. See the [validation record](../testing/agent-readiness-m2.md).
+Status: M2 source acceptance closed on 2026-10-09. Normal Nightly passed all
+14 shards; deliberate Windows SDK failure left the other 13 shards passed
+and the overall result failed. Both runs use `d73b5651bc0a2c2675735f6cd387c0f085235c82`.
+A later payload-retention correction is covered by 10 helper tests and six
+real checksum-rejection replays, separately from those complete hosted runs.
+This is not installed-package or player acceptance. See the
+[validation record](../testing/agent-readiness-m2.md).
 
 ## Implementation scope
 
@@ -39,29 +41,30 @@ tree, not a published package. See the [validation record](../testing/agent-read
 - [x] Real Windows/Linux timeout repetition receipts, with failures retained.
 - [x] Read-only doctor against real Core/workspace, and negative environment
   states without mutations or implicit network probes.
-- [ ] Actual cold/default, cold/mirror, tampered-checksum and warm-build receipts.
-  Mirror cold, tampered-checksum rejection and mirror warm each pass 6/6.
-  Official cold fails 6/6 on this network; its six dependent warm cases are
-  explicitly not attempted and fail the combined gate.
-- [ ] One failed SDK suite leaves the other independent suites observable and
-  the combined result failed. Hosted workflow execution is reported separately
-  from local orchestration checks. The local summary/receipt regressions pass;
-  hosted execution is authorized. The first normal run exposed the Windows
-  relative batch-path bug, which is fixed with an actual failing-then-passing
-  regression; corrected hosted runs are still pending.
+- [x] Actual cold/default, cold/mirror, tampered-checksum and warm-build receipts.
+  The final normal hosted run passes all 24 cases, six in each category. Raw
+  log and retained final JAR hashes match. Earlier local official downloads
+  remain failed; the later per-case ZIP retention fix has separate actual
+  negative-case evidence and does not rewrite old artifacts.
+- [x] One failed SDK suite leaves the other independent suites observable and
+  the combined result failed. The same-source hosted fault-injection run
+  fails only Windows SDK with exit 97; the other 13 gate shards pass. Actual
+  jobs, current identity, required receipts and raw log hashes were verified.
 - [x] Actual-head/source evidence inventory and requirement-by-requirement audit.
-  The inventory binds this local dirty tree and retained receipts; it does not
-  claim a new committed or hosted acceptance result.
+  The initial inventory preserves the original local dirty tree. Hosted
+  evidence binds the two completed runs to `d73b5651`; the retention follow-up
+  records its own source hashes and focused results.
 
 Latest local SDK results are Python 72/72 and TypeScript 16/16 on both Windows
 and the Ubuntu VM. Each OS also completed 100 repetitions of each of two
 Native timeout cases, without changing the target timeout. The UI checks pass
 38 contract, 30 unit and 29 distinct affected browser cases; the production
 build and 107 distinct focused Java cases/Javadoc pass. These are scoped
-results, not a full hosted Nightly or installed-product replay.
+local results. The hosted record adds complete Nightly evidence without
+claiming an installed-product replay.
 
-The three existing PR required-check names remain unchanged. Commits, pushes,
-workflow dispatch, installer releases and external messages are not implied by
-this ledger. M1 player crafting/save-reopen remains unverified; M3 installed
+The three existing PR required-check names remain unchanged. The authorized
+changes and runs are linked from [draft PR #100](https://github.com/Lotulune/Copperbench/pull/100).
+No merge or publication is included. M1 player crafting/save-reopen remains unverified; M3 installed
 package and unfamiliar-user work stays in the full PRD scope. Any game input
 must use the isolated test VM, not the user's foreground desktop.

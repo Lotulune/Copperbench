@@ -12,7 +12,7 @@ Python 3.11+。`Workspace` 直接调用产品 Core，可连接桌面当前工作
 
 ## 安装与打开工作区
 
-接入前只读检查可运行 `copperbench headless --workspace <path.mcreator> doctor`；它不打开写入会话、不下载依赖，也不创建授权。已有 Native 或 MCP 会话可调用 `workspace.doctor()` / `client.doctor()`。报告区分产品 Java 25、工作区 JDK、wrapper、缓存和未知的网络/渲染状态；查询成功不代表构建或游戏通过。详见 [M2 环境与完整性说明](../../docs/testing/agent-readiness-m2.md)。
+接入前只读检查可运行 `copperbench headless --workspace <path.mcreator> doctor`；它不打开写入会话、不下载依赖，也不创建授权。已有 Native 或 MCP 会话可调用 `workspace.doctor()` / `client.doctor()`。报告区分产品 Java 25、工作区 JDK、wrapper、缓存和未知的网络/渲染状态；查询成功不代表构建或游戏通过。报告结构见随包 [doctor schema](../../ui-core/schemas/v1.0/workspace-doctor.schema.json)。
 
 item/recipe 创建前可调用 `workspace.discover_field_contract("item")`：
 `availability` 为 `available`、`not_exposed` 或 `unsupported`，只有
@@ -29,8 +29,8 @@ options = workspace.field_reference_options(
 旧 Core 未公开新查询时返回 `not_exposed`；原 `field_contract()` 的格式和
 缺失契约错误保持兼容。查询不创建探针元素。字段默认值、嵌套输入形状、条件要求、
 引用入口和生成器限制来自 Core；最小示例进入八轨道的保存、生成与重开验证。
-真实构建与可信导出的执行入口见
-[M1 固定样本](../../examples/agent-readiness/m1-delivery/README.md)。
+真实构建与可信导出的固定样本位于源码仓库
+`examples/agent-readiness/m1-delivery/README.md`。
 
 在包含本功能的 Copperbench 构建中，SDK 位于 `sdk/python`。也可使用源码中的同名目录：
 
@@ -136,7 +136,8 @@ for conflict in data["conflicts"]:
 
 `inputFingerprint` 使用任务快照相同的工作区输入摘要规则，排除缓存、构建输出和运行目录；无法安全读取时允许为 `null`。依赖准备是否需要执行由 `dependenciesRequired` 单独表示。旧 Core 不支持该查询时保留其错误码，不回退到创建探针元素或执行生成。源码冲突任务还在原始诊断的 `message.args.conflicts` 中提供结构化详情，原日志仍保留。
 
-当前真实适配器验证范围见[生成预检记录](../../docs/testing/generation-preflight-2026-10-09.md)。
+当前真实适配器验证范围记录在源码仓库
+`docs/testing/generation-preflight-2026-10-09.md`。
 
 `ELEMENT_CONVERSION_REQUIRED` 表示现有读取器需要转换元素格式；预检会返回 `unknown`，保留原文件，等待旧工程格式升级的明确评审。判断复用 Core 的转换注册表，无需转换的旧格式仍可读取。未来格式、类型不匹配或损坏定义也不会通过预检触发自动保存。
 

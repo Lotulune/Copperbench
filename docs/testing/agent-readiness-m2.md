@@ -1,9 +1,11 @@
 # M2 environment and integrity gates
 
-Implementation and consolidated local validation were performed on 2026-10-09.
-M2 remains open: official-source cold downloads failed on the local network,
-and hosted fault injection has not run. See the
-[milestone ledger](../roadmap/agent-readiness-m2.md).
+M2 source acceptance was completed on 2026-10-09. The normal and SDK-failure
+Nightly scenarios both satisfy their acceptance conditions on the same
+`d73b5651bc0a2c2675735f6cd387c0f085235c82` source. A subsequent wrapper evidence
+retention fix has its own focused checks below; the full Nightly results are
+not attributed to that later commit. Installed-product and player acceptance
+remain separate. See the [milestone ledger](../roadmap/agent-readiness-m2.md).
 
 ## Environment discovery
 
@@ -42,8 +44,8 @@ a failed attempt; old successful artifacts cannot satisfy a new attempt.
 
 The original PR workflow's three required check names are unchanged.
 Editing this workflow does not execute hosted CI. Local summary regressions
-are orchestration tests; the actual hosted fault-injection run remains a
-separate acceptance item.
+are orchestration tests; actual hosted execution and its evidence are recorded
+separately below.
 
 SDK timeout repetition runs each existing target operation-timeout case 100
 times on each OS without enlarging its deadline. Initialization remains
@@ -104,8 +106,8 @@ path cannot serve as release-build evidence.
 
 ## Consolidated local results
 
-Source is `436a41761d885fa5ad0d76500e2257438137d75f` plus the uncommitted M1/M2
-changes in `codex/generation-preflight`. Evidence is under
+The initial local source was `436a41761d885fa5ad0d76500e2257438137d75f` plus
+the then-uncommitted M1/M2 changes in `codex/generation-preflight`. Evidence is under
 `build/m2-validation/`. The harness's `sha=local` fields are not commit-bound
 CI evidence; `source-inventory.json` records the actual HEAD, dirty diff and
 individual file hashes after validation. Earlier failures remain alongside
@@ -116,7 +118,7 @@ their corrective reruns.
 | Windows SDK | Python 72/72; TypeScript 16/16 | `python-contract.*`, `typescript-contract.*` |
 | Ubuntu 24.04 VM SDK | Python 72/72; TypeScript 16/16; copied archive hash matched | `linux/*contract-linux.*`, `linux-transfer-final.json` |
 | Native timeout repetition | Each of two cases ran 100 times per OS; 0 failures/errors/skips | `timeout-windows-rounds.json`, `linux/timeout-linux-rounds.json` |
-| Nightly/wrapper helper regressions | 8/8, including an actual Windows batch path with spaces | `harness.*` |
+| Nightly/wrapper helper regressions | Initial 8/8; 9/9 after the relative batch-path fix; 10/10 after payload-retention correction | `harness.*`, `harness-relative-fixed.*`, `wrapper-retention-harness.*` |
 | Workflow structure | Six independent job definitions, 14 gate shards, always summary/upload, no failure masking | `nightly-yaml.*` |
 | Java and Javadoc | 107 distinct focused cases passed after corrections; Javadoc and full classes/resources passed | `java-coverage-final.json`, `java-recheck.*`, `doctor-launcher.*`, `doctor-final.*`, `mcp-doctor-final.*` |
 | Doctor schema | Two actual backend/product-launcher reports conform | `doctor-schema-final.*`; `build/reports/workspace-doctor/` |
@@ -159,7 +161,51 @@ Ubuntu GNOME installed-package certification.
   with a 1 GiB test heap, and did not change global Java/proxy settings. A CLI
   usage assertion was corrected for the new doctor command before rerunning.
 
-### Open gates
+## Hosted acceptance and retained failed attempts
+
+Both final scenarios ran at attempt 1 on
+`d73b5651bc0a2c2675735f6cd387c0f085235c82`:
+
+| Scenario | Actual result | Evidence check |
+| --- | --- | --- |
+| [Normal Nightly](https://github.com/Lotulune/Copperbench/actions/runs/37904752724) | 14/14 gate shards passed; run succeeded | Actual job conclusions, source/run/attempt, required receipts and raw log hashes verified |
+| [SDK failure injection](https://github.com/Lotulune/Copperbench/actions/runs/37905007491) | Only Windows SDK failed; the other 13 shards passed; summary and run failed | Exactly one injected receipt, exit 97 and matching raw log; no unrelated suite was skipped or cancelled |
+
+The downloaded evidence was recomputed through the production
+`scripts/ci/nightly.py` summary implementation. Both scenario acceptance
+results are `passed` in `build/m2-validation/hosted/acceptance.json`; this does
+not relabel the deliberately failed injected workflow as successful.
+
+Normal Core/Javadoc execution recorded 1,093 Java cases: 1,033 passed,
+60 conditionally skipped, zero failures/errors. All four required scale suites
+actually executed with zero skips. The real doctor reports passed their schema
+gate. Core receipts and raw logs were independently verified in
+`hosted/final-core-summary.json`.
+
+The normal wrapper job passed all 24 cases: six official cold builds, six
+official-cache offline builds, six mirror cold builds and six checksum
+rejections. All 24 raw log hashes and the 12 retained final warm/mirror JAR
+hashes matched (`hosted/final-wrapper-summary.json`). The earlier local network
+failures below remain failed historical results.
+
+### Wrapper artifact retention follow-up
+
+Archive review found that two negative-test ZIPs had been overwritten by later
+cases using another wrapper JAR with the same distribution filename. All six
+rejection logs still contain the tested payload digests, but only four of the
+six archived ZIP digests matched their original receipts. The original hosted
+artifacts and this limitation are preserved.
+
+Commit `84c6da13a4da02484e98703a04ed5791b748a5f4` gives each negative case a
+distinct ZIP path and records that path in its receipt. A regression first
+reproduced the shared-path failure; all 10 helper tests pass after the fix.
+Six real wrapper invocations then rejected the altered archives before any
+build, with all six retained payload and log hashes matching. These focused
+checks are in `wrapper-retention-harness.*`, `wrapper-retention-negative.*`
+and `wrapper-retention/result.json`, which records the tested source hashes.
+They do not claim another complete official/mirror/warm or hosted Nightly run.
+
+### Earlier failures and corrections
 
 Official `services.gradle.org` downloads timed out on the local path (the
 first wrapper case reached the 600-second deadline). The mirror results do
@@ -179,7 +225,7 @@ remain available. The launcher now resolves batch paths against the actual
 repository root before quoting them. A regression that runs a real batch
 reproduced the failure first and passed after the fix; all nine helper tests
 pass on Windows (`harness-relative-before.*`, `harness-relative-fixed.*`).
-The corrected normal run and SDK-failure scenario still require completion.
+The completed corrected runs are listed above.
 
 That first run's summary retained all 14 shard results: Windows/Linux SDK,
 UI and wrapper passed; Core, MCP and the eight generator shards failed. The
@@ -203,11 +249,13 @@ matched. Core then exposed a Windows file-lock error: Gradle `clean` tried to
 remove its active `build/nightly-results/core/java-javadoc-scale.log`. Core
 receipts now live under ignored `output/nightly-results/core`, outside the
 clean target. The clean build remains required; this is not a weakened gate.
-Generator completion and corrected full-run/fault-injection results remain
-separate from those partial results.
+The unfinished jobs in that superseded run were cancelled; they are not
+counted as passed. The final normal and injected runs provide independent
+complete results on `d73b5651`.
 
-The three PR required checks remain unchanged;
-no local receipt is substituted for those checks. M1 player crafting/save/
+The three PR required checks remain unchanged and passed on `d73b5651`;
+later PR heads require their own check status. No local receipt is substituted
+for those checks. M1 player crafting/save/
 reopen, M3 same-candidate installers and unfamiliar-user trials remain
 unverified. The current chat's successful `mc_doctor` call still reported
 `platform=windows`; the project configuration points to the VM, but the MCP

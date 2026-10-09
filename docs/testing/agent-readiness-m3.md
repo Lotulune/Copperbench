@@ -1,9 +1,44 @@
 # M3 installed-product and user acceptance worksheet
 
-Status: prepared, not executed. This worksheet implements the remaining
+Status: candidate preparation and Windows packaged CLI doctor executed;
+installed-product and player acceptance remain unexecuted. This worksheet implements the remaining
 [PRD scope](../roadmap/agent-readiness-prd-2026-10-09.md); it is not a release
 approval or a passed validation record. The M1/M2 local source evidence does
 not certify a new installer.
+
+## Candidate preparation observations
+
+Private Windows candidates built from `20527f2f3d4b93c4a18eba277fb222e0e6b133c0`
+retain the development version string 0.1.4. They were not installed, signed
+or published. The portable ZIP SHA-256 is
+`f8d42c0f6cd8520cf4dcd0cf5c4a87ab22b746587010aefbfb25aca951b611e7`;
+the EXE installer SHA-256 is
+`511151e33fec0158cd76c5d3966854d9c6303e616fe796fd648abb09e6988a90`.
+The first installer attempt failed fetching NSIS; the successful rerun used
+an existing NSIS 3.12 cache after file-by-file hash comparison.
+
+The real packaged `copperbench.exe headless ... doctor` returned exit 0 in
+1.587 seconds. Its report passed the shared schema; the workspace, isolated
+home/temp/log/user-data and package file-name set remained unchanged. This
+was a background CLI invocation, not an installed GUI or game replay.
+
+The [Linux candidate job](https://github.com/Lotulune/Copperbench/actions/runs/37902909910)
+passed on PR merge `da711b2760a047e01ca131dd88caaf7cdd5a4b64`.
+GitHub commit metadata confirms its Git tree and the Windows source tree are
+both `f03c2c15e387e03fddc37cc370b92eaadfc25f84`. Linux package hashes were
+observed in the job log; its package bytes were not downloaded and independently
+hashed locally. Neither result certifies Ubuntu GNOME installed acceptance.
+
+The source SDK README now links doctor to the shipped schema and identifies
+the M1 fixture and preflight validation report as source-repository paths.
+All nine remaining relative link targets exist in both source and the prepared
+Windows package layout. Those README edits are not in the existing candidate
+bytes, so this candidate has not been frozen for M3 acceptance.
+
+Local evidence is retained under `build/m3-validation/`: artifact hashes,
+packaged doctor/nonmutation receipts, cached NSIS provenance, cross-platform
+source metadata and SDK README link checks. These observations leave every
+unexecuted cell below open.
 
 ## Candidate and host prerequisites
 
