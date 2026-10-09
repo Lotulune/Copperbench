@@ -26,8 +26,16 @@ def digest(path):
 
 
 def inventory(root):
-    return {path.relative_to(root).as_posix(): digest(path)
-            for path in sorted(root.rglob("*")) if path.is_file()}
+    result = {}
+    for path in sorted(root.rglob("*")):
+        if not path.is_file():
+            continue
+        relative = path.relative_to(root).as_posix()
+        # Windows exclusively locks the live writer lease. Track its presence and
+        # size, as the Core preflight tests do; hash every other workspace file.
+        result[relative] = ({"writerLeaseBytes": path.stat().st_size}
+                            if relative == ".copperbench/workspace.write.lock" else digest(path))
+    return result
 
 
 def main():
@@ -134,7 +142,8 @@ def main():
         before = inventory(root)
         save("doctor", cli("doctor", ["headless", "--workspace", str(workspace_file), "doctor"], timeout=180))
         assert inventory(root) == before, "Doctor modified the workspace"
-        save("doctor-nonmutation", {"scope": "all workspace files", "files": len(before), "unchanged": True})
+        save("doctor-nonmutation", {"scope": "workspace file hashes; writer lease presence and size",
+                                   "files": len(before), "unchanged": True})
         tests = root / "src/gametest/java/copperbench/acceptance/ContractGameTests.java"
         tests.parent.mkdir(parents=True)
         shutil.copy2(fixture / "ContractGameTests.java", tests)
@@ -194,15 +203,25 @@ def main():
         sources = list(conflict_root.glob("src/main/java/**/item/discovery_itemItem.java"))
         assert len(sources) == 1, "Expected one generated fixture item source"
         protected = sources[0]
-        protected.write_bytes(protected.read_bytes() + b"\n// M3 external edit: preserve these exact bytes.\n")
-        external_hash = digest(protected)
         with open_workspace(conflict_root / workspace_file.name) as workspace:
+            item_id = next(element["id"] for element in workspace.list_mod_elements()
+                           if element["name"] == "discovery_item")
+            # Queue a managed regeneration before the external edit. A native-only
+            # build without a pending edit does not request source replacement.
+            workspace.update_mod_element(elementId=item_id, changes=[{"path": "/stackSize", "value": 15}])
+            ready = workspace.preview_generation()
+            save("conflict-before-external-edit", ready)
+            assert ready["data"]["status"] == "ready", ready
+            protected.write_bytes(protected.read_bytes() + b"\n// M3 external edit: preserve these exact bytes.\n")
+            external_hash = digest(protected)
             before = inventory(conflict_root)
             preflight = workspace.preview_generation()
             save("conflict-preflight", preflight)
             assert preflight["data"]["status"] == "conflicted", preflight
             assert inventory(conflict_root) == before, "Conflict preflight modified the copy"
-            assert protected.relative_to(conflict_root).as_posix() in json.dumps(preflight)
+            assert any(conflict["relativePath"] == protected.relative_to(conflict_root).as_posix()
+                       and conflict["reasonCode"] == "SOURCE_CHANGED"
+                       for conflict in preflight["data"]["conflicts"]), preflight
             terminal(workspace, "conflict-build", workspace.build(), "failed", "GENERATION_SOURCE_CONFLICT")
             assert digest(protected) == external_hash, "Rejected build changed the external edit"
         save("external-edit-preserved", {"path": str(protected), "sha256": external_hash, "unchanged": True})

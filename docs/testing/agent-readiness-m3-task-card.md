@@ -16,9 +16,11 @@ an item named `discovery_item`, limited to stacks of 16, and a recipe named
 Change its return expression from `return (count + 15) / 16;` to
 `return missing_m1_symbol;`. Build, find the error from the returned diagnostics,
 repair it explicitly and build again. Preserve the failed task and its original
-diagnostics. On a separate disposable copy, append a comment to the generated
-item Java file and check that preflight identifies the conflict and generation
-refuses to overwrite the external edit.
+diagnostics. On a separate disposable copy, use the API to change the item's
+stack size to 15, leaving regeneration pending, and confirm preflight is ready.
+Then append a comment to the generated item Java file. Require preflight to
+report `SOURCE_CHANGED` and generation to preserve the external edit. This
+copy is separate from the verified 16-item-stack artifact.
 
 Use the supplied five independent tests in the
 [fixed fixture](../../examples/agent-readiness/m1-delivery/README.md) to verify the
