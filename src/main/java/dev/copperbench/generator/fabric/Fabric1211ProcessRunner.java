@@ -81,6 +81,10 @@ import java.util.function.Supplier;
 				command.add(configuredGradle == null || configuredGradle.isBlank() ? "./gradlew" : configuredGradle);
 			}
 			command.add("--no-daemon");
+			var preferences = net.mcreator.preferences.PreferencesManager.PREFERENCES;
+			if (preferences != null && preferences.gradle.offline.get()
+					&& !arguments.contains("--offline") && !arguments.contains("-o"))
+				command.add("--offline");
 			command.addAll(arguments);
 			var resourceCapture = dev.copperbench.generator.ResourceDependencyCapture.prepare(workspaceRoot, command, output);
 			ProcessBuilder builder = new ProcessBuilder(command).directory(workspaceRoot.toFile())
