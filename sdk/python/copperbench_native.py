@@ -25,33 +25,38 @@ class NativeApiError(RuntimeError):
         self.details = details
 
 
-def _diagnostic_text(message: Any, code: str) -> str:
-    """Render direct named JSON args once; never evaluate format expressions."""
+def _render_message(message: Any, default: str) -> str:
+    """Render Core's named placeholders without format evaluation or mutation.
+
+    Unknown placeholders stay visible. Values are inserted once, literally;
+    attribute/index access, format specifications and recursive expansion are
+    intentionally unsupported. Raw keys and arguments remain in error.details.
+    """
+    if isinstance(message, str):
+        return message or default
     if not isinstance(message, dict):
-        return str(message)
+        return default
     fallback = message.get("fallback")
-    if not isinstance(fallback, str):
-        return code
-    args = message.get("args")
-    if not isinstance(args, dict):
+    if not isinstance(fallback, str) or not fallback:
+        fallback = default
+    arguments = message.get("args")
+    if not isinstance(arguments, dict):
         return fallback
 
-    def replace(match: re.Match[str]) -> str:
+    def substitute(match: re.Match[str]) -> str:
         name = match.group(1)
-        if name not in args:
+        if name not in arguments:
             return match.group(0)
-        value = args[name]
+        value = arguments[name]
         if isinstance(value, str):
             return value
-        # LocalizedText.args allows only JSON scalars. Keep malformed nested
-        # values literal instead of traversing objects or hiding the diagnostic.
-        if value is None or type(value) in (int, bool) or type(value) is float and math.isfinite(value):
-            return json.dumps(value, ensure_ascii=False)
+        if value is None or type(value) in (bool, int):
+            return json.dumps(value)
+        if type(value) is float and math.isfinite(value):
+            return json.dumps(value)
         return match.group(0)
 
-    # Leave missing names, double braces, indexing, attributes and format specs
-    # literal. re.sub does not rescan substituted values containing braces.
-    return re.sub(r"(?<!\{)\{([A-Za-z_][A-Za-z0-9_]*)\}(?!\})", replace, fallback)
+    return re.sub(r"(?<!\{)\{([A-Za-z_][A-Za-z0-9_]*)\}(?!\})", substitute, fallback)
 
 
 class Workspace:
@@ -256,7 +261,7 @@ class Workspace:
                 raise NativeApiError("Core pipe disconnected; request was not retried", "NATIVE_PROCESS_EXITED") from error
             if "error" in response:
                 error = response["error"]
-                raise NativeApiError(error["message"], error["code"], response)
+                raise NativeApiError(_render_message(error.get("message"), error["code"]), error["code"], response)
             result = response.get("result")
             if not isinstance(result, dict):
                 self.close()
@@ -265,12 +270,16 @@ class Workspace:
                 "succeeded", "committed", "accepted", "completed", "cancelled"}
             if result.get("status") not in allowed_statuses:
                 diagnostics = result.get("diagnostics") or []
-                diagnostic = diagnostics[0] if diagnostics else {}
+                diagnostic = diagnostics[0] if isinstance(diagnostics, list) and diagnostics else {}
+                if not isinstance(diagnostic, dict):
+                    diagnostic = {}
                 message = diagnostic.get("message", {})
-                code = diagnostic.get("code", "CORE_OPERATION_REJECTED")
+                code = diagnostic.get("code")
+                if not isinstance(code, str) or not code:
+                    code = "CORE_OPERATION_REJECTED"
                 if result.get("conflict"):
                     code = "REVISION_CONFLICT"
-                raise NativeApiError(_diagnostic_text(message, code), code, result)
+                raise NativeApiError(_render_message(message, code), code, result)
             revision = result.get("newRevision", result.get("revision"))
             if type(revision) is int:
                 self.revision = revision
@@ -300,33 +309,60 @@ class Workspace:
     def get_workspace(self) -> dict[str, Any]:
         return self.query("get_workbench")
 
-    def field_contract(self, element_type: str = "block") -> dict[str, Any]:
-        """Read the running Core's contract, which may cover only some fields.
-
-        Unadvertised or malformed contracts raise NATIVE_FIELD_CONTRACT_UNAVAILABLE
-        with availableTypes and nextAction; no generic contract is substituted.
-        """
-        if not isinstance(element_type, str) or not element_type:
-            raise ValueError("element_type must be a nonempty string")
+    def _field_contract_environment(self) -> tuple[dict[str, Any], dict[str, Any]]:
         result = self.query("get_workspace_environment")
         data = result.get("data")
         contracts = data.get("fieldContracts") if isinstance(data, dict) else None
-        if isinstance(contracts, dict) and isinstance(contracts.get(element_type), dict):
-            return contracts[element_type]
-        available = (sorted(name for name, value in contracts.items() if isinstance(value, dict))
-                     if isinstance(contracts, dict) else [])
-        reason = ("contracts_not_advertised" if not isinstance(contracts, dict) else
-                  "contract_invalid" if element_type in contracts else "type_not_advertised")
-        next_action = ("Inspect get_workspace_environment.data.fieldContracts and choose an advertised type; "
-                       "update Copperbench if this Core does not advertise the contract you need. "
-                       "For an existing element, inspect get_mod_element_editor before constructing writes.")
-        raise NativeApiError(
-            f"Field contract {element_type!r} is unavailable. Available types: {', '.join(available) or 'none'}. "
-            + next_action,
-            "NATIVE_FIELD_CONTRACT_UNAVAILABLE",
-            {"elementType": element_type, "availableTypes": available, "reason": reason,
-             "nextAction": next_action, "environment": result},
-        )
+        if (not isinstance(contracts, dict)
+                or any(not isinstance(name, str) or not name.strip() or not isinstance(contract, dict)
+                       for name, contract in contracts.items())):
+            raise NativeApiError("Core returned invalid field contract metadata",
+                                 "NATIVE_INVALID_RESPONSE", result)
+        return result, contracts
+
+    def available_field_contracts(self) -> tuple[str, ...]:
+        """List contract names published by this Core, not all creatable types.
+
+        This is one read-only query. Generic input contracts may be listed;
+        they do not substitute for a missing type-specific creation contract.
+        """
+        _, contracts = self._field_contract_environment()
+        return tuple(sorted(contracts))
+
+    def field_contract(self, element_type: str = "block") -> dict[str, Any]:
+        """Read a published contract or raise NATIVE_FIELD_CONTRACT_UNAVAILABLE.
+
+        An absent type in a valid map is unavailable; malformed metadata raises
+        NATIVE_INVALID_RESPONSE with the raw Core envelope. Returned contracts
+        may advertise partial coverage. Missing types do not imply they cannot
+        be created. This method never creates a probe element, guesses fields or retries a write.
+        Inspect an existing element with get_mod_element_editor when needed.
+        """
+        if not isinstance(element_type, str) or not element_type.strip():
+            raise ValueError("element_type must be a nonempty string")
+        result, contracts = self._field_contract_environment()
+        data = result["data"]
+        if element_type not in contracts:
+            available = sorted(contracts)
+            next_action = ("Inspect get_workspace_environment.data.fieldContracts and choose an advertised type; "
+                           "update Copperbench if this Core does not advertise the contract you need. "
+                           "For an existing element, query get_mod_element_editor with its elementId.")
+            raise NativeApiError(
+                f"Core does not publish a field contract for {element_type!r}. "
+                f"Available contracts: {', '.join(available) or '(none)'}. "
+                "For an existing element, query get_mod_element_editor with its elementId. "
+                "No probe element was created and no fields were guessed.",
+                "NATIVE_FIELD_CONTRACT_UNAVAILABLE", {
+                    "elementType": element_type,
+                    "availableTypes": available,
+                    "reason": "type_not_advertised",
+                    "nextAction": next_action,
+                    "environment": result,
+                    "generator": data.get("generator"),
+                    "inspection": {"operation": "get_mod_element_editor",
+                                   "requires": ["elementId"], "scope": "existing_element"},
+                })
+        return contracts[element_type]
 
     def plan_workspace_changes(self, operations: list[dict[str, Any]], *, idempotency_key: str,
                                expected_revision: int | None = None,
@@ -412,8 +448,8 @@ class Workspace:
 
     def wait_task(self, task_id: str, *, timeout: float = 2700, poll_interval: float = 0.2) -> dict[str, Any]:
         """Wait for a terminal task result. Timeout leaves the task running in this session."""
-        if timeout <= 0 or poll_interval <= 0:
-            raise ValueError("timeout and poll_interval must be positive")
+        self._check_timeout(timeout)
+        self._check_timeout(poll_interval)
         deadline = time.monotonic() + timeout
         after_sequence = 0
         logs = []

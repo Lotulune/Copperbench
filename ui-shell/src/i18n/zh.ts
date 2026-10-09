@@ -11,7 +11,7 @@ export const zh: Record<string, string> = {
   'diagnostic.workspace_source_too_large': '文件超过 1 MiB，无法保存。',
   'diagnostic.generation_source_conflict': '源码文件已变更或不归生成器管理，请检查后再生成。',
   'diagnostic.generation_source_conflict_reason': '生成已停止：{reason}',
-  'diagnostic.generation_source_conflict_at_path': '生成在 {sourcePath} 处停止：{reason}',
+  'diagnostic.generation_source_conflict_at_path': '生成在 {displaySourcePath} 处停止：{reason}',
   'diagnostic.verified_export_failed': '已验证产物导出被拒绝：{reason}',
   'task.interrupted_unconfirmed': '上次会话未记录任务终态，结果未确认；请核对日志后再运行。',
   'diagnostic.configuration_drift': '声明配置与实际定义不一致。请审查两份值，再选择采用当前定义或重新应用声明配置。',

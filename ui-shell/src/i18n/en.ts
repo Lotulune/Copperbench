@@ -7,7 +7,7 @@ export const en: Record<string, string> = {
   'diagnostic.workspace_source_too_large': 'The file exceeds 1 MiB and cannot be saved.',
   'diagnostic.generation_source_conflict': 'Source files changed or are not owned by the generator. Review them before generating again.',
   'diagnostic.generation_source_conflict_reason': 'Generation stopped: {reason}',
-  'diagnostic.generation_source_conflict_at_path': 'Generation stopped at {sourcePath}: {reason}',
+  'diagnostic.generation_source_conflict_at_path': 'Generation stopped at {displaySourcePath}: {reason}',
   'editor.general': 'General attributes',
   'editor.section.general': 'General attributes',
   'editor.section.identity': 'Identity and basics',

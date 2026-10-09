@@ -53,7 +53,7 @@ test('source conflict messages keep legacy, reason-only and located argument sha
   const shapes = new Map([
     ['diagnostic.generation_source_conflict', []],
     ['diagnostic.generation_source_conflict_reason', ['reason']],
-    ['diagnostic.generation_source_conflict_at_path', ['reason', 'sourcePath']]
+    ['diagnostic.generation_source_conflict_at_path', ['displaySourcePath', 'reason']]
   ]);
   const java = readFileSync(new URL('../../src/main/java/dev/copperbench/generator/GradleWorkspaceTaskGateway.java',
     import.meta.url), 'utf8');

@@ -138,3 +138,11 @@ UI中的精简连接安全入口、fast smoke入口与此次完整Chromium路径
 当前会话没有可交互的桌面Minecraft客户端与minecraft-control连接。铜质昼夜仪的真实客户端输入与显示、音效、玩家实际合成、完整世界保存重进、外部用户及冷缓存默认网络体验仍待验证。Linux候选包的Xvfb自动化结果按上一节范围单独成立。
 
 完整类型/轨道发现、完整生成预检、安装体验、职责重构与外部试用按PRD后续批次继续。
+
+## PR98 / PR99 对齐说明
+
+本记录既有通过、失败和产物摘要保持绑定上文列出的确切提交与运行。PR98 记录提交 `dedf7f3f6732a91fcc4021ef75a83d46489bfbf1` 与 PR99 原始提交 `436a41761d885fa5ad0d76500e2257438137d75f` 的组合不是原验证提交 `886fc5ee432e6af212491a1c2a07d95b8153239e`；不得继承其 CI、候选包或真实 mod 通过结论。本次仅对齐现有 PR 分支，不修改 main 或发布包。
+
+保留本记录的 partial 字段投影、类型化多冲突诊断、独立 Nightly、八轨 generator 矩阵和真实 Native mod 严格门禁，并补入 PR99 的排序 `available_field_contracts()`、有限等待参数校验与兼容诊断加固。统一 SDK 契约：有效映射缺少请求类型返回 `NATIVE_FIELD_CONTRACT_UNAVAILABLE`，details 提供 `availableTypes`、`reason=type_not_advertised`、`nextAction`、generator、检查入口与 environment；畸形元数据返回 `NATIVE_INVALID_RESPONSE` 并保留原始 envelope。上文首批“缺失、未知和非对象契约使用稳定错误”是历史范围描述，不能解读为这些情况在当前契约中使用同一错误码。
+
+[配套 Agent readiness PRD](../roadmap/agent-readiness-prd-2026-10-09.md)与[原分支实施记录](./agent-readiness-2026-10-09.md)已明确区分现有实现和后续需求。组合提交的 CI 尚须独立确认；完整类型/八轨契约、只读生成预检、新拆分后的同源完整 Nightly、安装版和真实客户端玩法边界不变。

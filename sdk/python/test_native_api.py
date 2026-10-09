@@ -157,20 +157,26 @@ class NativeApiTest(unittest.TestCase):
         self.assertEqual(0, client.revision)
         self.assertTrue(all(request['kind'] == 'query' for request in self.requests()))
 
-    def test_older_or_incomplete_services_do_not_leak_key_errors(self):
-        for mode, available, reason in (
-                ('legacy_contracts', ['block'], 'type_not_advertised'),
-                ('missing_contracts', [], 'contracts_not_advertised'),
-                ('invalid_contracts', [], 'contracts_not_advertised'),
-                ('invalid_contract', ['block', 'recipe'], 'contract_invalid')):
+    def test_older_service_missing_type_is_unavailable(self):
+        with self.open('legacy_contracts') as client:
+            with self.assertRaises(NativeApiError) as raised:
+                client.field_contract('item')
+            error = raised.exception
+            self.assertEqual('NATIVE_FIELD_CONTRACT_UNAVAILABLE', error.code)
+            self.assertEqual(['block'], error.details['availableTypes'])
+            self.assertEqual('type_not_advertised', error.details['reason'])
+            self.assertIn('update Copperbench', error.details['nextAction'])
+            self.assertEqual('succeeded', client.get_workspace()['status'])
+
+    def test_malformed_metadata_is_invalid_and_preserves_raw_envelope(self):
+        for mode in ('missing_contracts', 'invalid_contracts', 'invalid_contract'):
             with self.subTest(mode=mode), self.open(mode) as client:
-                with self.assertRaises(NativeApiError) as raised:
-                    client.field_contract('item')
-                error = raised.exception
-                self.assertEqual('NATIVE_FIELD_CONTRACT_UNAVAILABLE', error.code)
-                self.assertEqual(available, error.details['availableTypes'])
-                self.assertEqual(reason, error.details['reason'])
-                self.assertIn('update Copperbench', error.details['nextAction'])
+                envelope = client.query('get_workspace_environment')
+                for discover in (lambda: client.field_contract('item'), client.available_field_contracts):
+                    with self.assertRaises(NativeApiError) as raised:
+                        discover()
+                    self.assertEqual('NATIVE_INVALID_RESPONSE', raised.exception.code)
+                    self.assertEqual(envelope, raised.exception.details)
                 self.assertEqual('succeeded', client.get_workspace()['status'])
 
     def test_diagnostic_fallback_renders_args_and_preserves_the_core_receipt(self):

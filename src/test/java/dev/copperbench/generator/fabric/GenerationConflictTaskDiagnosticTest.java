@@ -48,6 +48,8 @@ class GenerationConflictTaskDiagnosticTest {
             assertEquals("/" + javaPath, source.get("path").getAsString());
             var args = source.getAsJsonObject("message").getAsJsonObject("args");
             assertEquals(javaPath, args.get("sourcePath").getAsString());
+            assertEquals(javaPath, args.get("displaySourcePath").getAsString());
+            assertTrue(tasks.logs(state.id(), taskId).toString().contains(javaPath));
             assertEquals("UNOWNED_BASE_FILE", args.get("reasonCode").getAsString());
             assertEquals("not_owned_by_generator", args.get("ownership").getAsString());
             assertTrue(source.getAsJsonArray("actions").asList().stream().map(value -> value.getAsJsonObject())
@@ -82,6 +84,8 @@ class GenerationConflictTaskDiagnosticTest {
         var cause = new IOException("private-token at /private/secret/source.java");
         for (var failure : List.of(
                 new GenerationPreparationException("GENERATION_SOURCE_CONFLICT", cause.getMessage(), cause),
+                new GenerationPreparationException("GENERATION_SOURCE_CONFLICT",
+                        "GENERATION_SOURCE_CONFLICT: " + cause.getMessage(), cause),
                 new GenerationPreparationException(List.of(new SourceConflict(null, ConflictReason.PATH_OUTSIDE_WORKSPACE)), cause))) {
             try (var tasks = gateway(store)) {
                 tasks.setGenerationPreparation((snapshot, folder, operation, output) -> { throw failure; });
@@ -96,6 +100,35 @@ class GenerationConflictTaskDiagnosticTest {
                 assertSafePublicOutput(diagnostic.toString() + tasks.logs(state.id(), taskId));
                 assertEquals(state.revision(), store.read(state.id()).orElseThrow().revision());
             }
+        }
+    }
+
+    @Test void boundedDisplayPreservesStructuredLocationWithoutInventingSourceActions() throws Exception {
+        var state = Fabric1211GoldenWorkspace.create();
+        var store = new RevisionedWorkspaceStore(); store.register(state);
+        String relative = "src/铜仪\u202e\u2028/" + "x".repeat(600) + ".java";
+        try (var tasks = gateway(store)) {
+            tasks.setGenerationPreparation((snapshot, folder, operation, output) -> {
+                throw new GenerationPreparationException(List.of(
+                        new SourceConflict(relative, ConflictReason.SOURCE_CHANGED)),
+                        new IOException("private-token at /private/secret/source.java"));
+            });
+            var taskId = UUID.fromString(tasks.start(state.id(), Operation.GENERATE_WORKSPACE, new JsonObject()).get("id").getAsString());
+            assertEquals("failed", await(tasks, state.id(), taskId).get("state").getAsString());
+            var diagnostic = tasks.diagnostics(state.id(), taskId).getFirst();
+            var args = diagnostic.getAsJsonObject("message").getAsJsonObject("args");
+            assertEquals(relative, args.get("sourcePath").getAsString());
+            assertEquals("/" + relative, diagnostic.get("path").getAsString());
+            String display = args.get("displaySourcePath").getAsString();
+            assertTrue(display.endsWith(" [truncated]"));
+            assertTrue(display.codePointCount(0, display.length()) <= 524);
+            assertFalse(display.contains("\u202e"));
+            assertFalse(display.contains("\u2028"));
+            assertEquals("SOURCE_CHANGED", args.get("reasonCode").getAsString());
+            assertTrue(diagnostic.getAsJsonArray("actions").asList().stream()
+                    .allMatch(value -> value.getAsJsonObject().get("kind").getAsString().equals("open_logs")));
+            assertSafePublicOutput(diagnostic.toString() + tasks.logs(state.id(), taskId));
+            assertFalse(tasks.logs(state.id(), taskId).toString().contains("x".repeat(600)));
         }
     }
 

@@ -22,7 +22,7 @@ public interface WorkspaceTaskGateway {
 	/** Preparation failure with optional, explicitly classified source conflicts. */
 	final class GenerationPreparationException extends java.io.IOException {
 		/** Safe fallback for conflicts whose source location is not known. */
-		public static final String SOURCE_CONFLICT_MESSAGE = "Source files changed or are not owned by the generator. Review them before generating again.";
+		public static final String SOURCE_CONFLICT_MESSAGE = "Source files changed or are not owned by the generator. Review the reported files and their ownership before generating again. Do not delete manual files or claim ownership automatically.";
 
 		/** Stable reasons and the ownership evidence available when generation stopped. */
 		public enum ConflictReason {
@@ -75,7 +75,7 @@ public interface WorkspaceTaskGateway {
 		 * @param cause internal cause, never used to infer a public source path
 		 */
 		public GenerationPreparationException(String code, String message, Throwable cause) {
-			super(message, cause); this.code = code; this.conflicts = List.of();
+			super("GENERATION_SOURCE_CONFLICT".equals(code) ? SOURCE_CONFLICT_MESSAGE : message, cause); this.code = code; this.conflicts = List.of();
 		}
 		/**
 		 * Creates a source conflict with explicitly checked locations.
@@ -83,7 +83,7 @@ public interface WorkspaceTaskGateway {
 		 * @param cause internal cause, not part of the public diagnostic
 		 */
 		public GenerationPreparationException(List<SourceConflict> conflicts, Throwable cause) {
-			super(SOURCE_CONFLICT_MESSAGE, cause); this.code = "GENERATION_SOURCE_CONFLICT";
+			super(GenerationPreparationDiagnostics.sourceConflict(conflicts), cause); this.code = "GENERATION_SOURCE_CONFLICT";
 			this.conflicts = List.copyOf(conflicts);
 			if (this.conflicts.isEmpty()) throw new IllegalArgumentException("At least one source conflict is required");
 		}

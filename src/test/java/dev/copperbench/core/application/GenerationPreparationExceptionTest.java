@@ -34,7 +34,10 @@ class GenerationPreparationExceptionTest {
         conflicts.clear();
         assertEquals(1, typed.conflicts().size());
         assertEquals("GENERATION_SOURCE_CONFLICT", typed.code());
-        assertEquals(GenerationPreparationException.SOURCE_CONFLICT_MESSAGE, typed.getMessage());
+        assertTrue(typed.getMessage().contains("src/main/java/Example.java"));
+        assertTrue(typed.getMessage().contains(ConflictReason.UNOWNED_BASE_FILE.explanation()));
+        assertFalse(typed.getMessage().contains("/private/secret"));
+        assertEquals(GenerationPreparationException.SOURCE_CONFLICT_MESSAGE, legacy.getMessage());
         assertThrows(UnsupportedOperationException.class, () -> typed.conflicts().clear());
         assertThrows(IllegalArgumentException.class, () -> new GenerationPreparationException(List.of(), cause));
         assertNull(new SourceConflict(null, ConflictReason.PATH_OUTSIDE_WORKSPACE).relativePath());

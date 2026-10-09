@@ -122,7 +122,7 @@ print(next(field for field in recipe_contract["fields"] if field["name"] == "rec
 
 物品堆叠量使用规范字段 `stackSize`，当前范围为 `1..99`。旧适配器的 `maxStackSize` 别名不属于此严格输入形状子集。现有权限、revision、别名冲突和持久化检查照常执行。
 
-未知类型、较旧 Core 未提供的契约，或无效的契约响应都会得到 `NATIVE_FIELD_CONTRACT_UNAVAILABLE`。SDK 不会把通用契约悄悄当成指定类型，也不会泄漏 `KeyError`：
+有效契约映射中未公布的类型（包括较旧 Core 缺少的类型）会得到 `NATIVE_FIELD_CONTRACT_UNAVAILABLE`；缺失或畸形的契约映射、非对象契约和无效名称会得到 `NATIVE_INVALID_RESPONSE`，其 `details` 保留原始查询结果。SDK 不会把通用契约悄悄当成指定类型，也不会泄漏 `KeyError`：
 
 ```python
 from copperbench import NativeApiError
@@ -137,7 +137,7 @@ except NativeApiError as error:
     print(error.details["nextAction"])
 ```
 
-`details` 还保留请求的 `elementType`、稳定的 `reason`（`type_not_advertised`、`contracts_not_advertised` 或 `contract_invalid`）和原始 `environment` 查询结果。按照运行中 Core 实际返回的能力选择路径；如所需契约尚未公布，更新 Copperbench 或先查看既有元素编辑器。此发现失败不会关闭会话或重放修改。
+`details` 还保留请求的 `elementType`、稳定的 `reason=type_not_advertised`、`nextAction`、`generator`、既有元素的 `inspection` 查询入口和原始 `environment` 查询结果。按照运行中 Core 实际返回的能力选择路径；如所需契约尚未公布，更新 Copperbench 或先查看既有元素编辑器。此发现失败不会关闭会话或重放修改。
 
 Core 拒绝操作时，`str(NativeApiError)` 会把诊断 `fallback` 中简单的 `{field}`、`{reason}` 等占位符替换为 `args` 中对应的 JSON 标量。例如 `{field}: {reason}` 可显示为 `/commands/0: Expected a non-null command string.`。替换只执行一遍，参数值自带的花括号不再展开；缺失参数、双花括号、属性/索引/格式表达式保持原文，不求值。错误的 `code` 和原始 Core `details` 保持不变，便于机器分类及人工追查。
 

@@ -271,7 +271,7 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 			String failureId = UUID.randomUUID().toString();
 			if ("GENERATION_SOURCE_CONFLICT".equals(exception.code())) {
 				// Neither legacy messages nor arbitrary causes are a source-location contract.
-				job.log("error", exception.code() + ": " + WorkspaceTaskGateway.GenerationPreparationException.SOURCE_CONFLICT_MESSAGE);
+				job.log("error", exception.code() + ": " + dev.copperbench.core.application.GenerationPreparationDiagnostics.sourceConflict(exception.conflicts()));
 				job.fail(exception.code(), failureId, taskKind(operation), "diagnostic.generation_source_conflict",
 						WorkspaceTaskGateway.GenerationPreparationException.SOURCE_CONFLICT_MESSAGE, null, exception.conflicts());
 				return;
@@ -1069,11 +1069,14 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 			args.addProperty("reasonCode", conflict.reason().name());
 			args.addProperty("ownership", conflict.reason().ownership());
 			String relative = conflict.relativePath();
-			if (relative != null) args.addProperty("sourcePath", relative);
+			if (relative != null) {
+				args.addProperty("sourcePath", relative);
+				args.addProperty("displaySourcePath", dev.copperbench.core.application.GenerationPreparationDiagnostics.displaySourcePath(conflict));
+			}
 			JsonObject diagnostic = addFailureDiagnostic("GENERATION_SOURCE_CONFLICT", failureId, taskKind,
 					relative == null ? "diagnostic.generation_source_conflict_reason" : "diagnostic.generation_source_conflict_at_path",
 					relative == null ? "Generation stopped: {reason}"
-							: "Generation stopped at {sourcePath}: {reason}", args);
+							: "Generation stopped at {displaySourcePath}: {reason}", args);
 			if (relative == null) return;
 			String path = "/" + relative;
 			diagnostic.addProperty("path", path);
