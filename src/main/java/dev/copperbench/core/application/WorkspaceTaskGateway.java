@@ -21,10 +21,15 @@ public interface WorkspaceTaskGateway {
 
 	final class GenerationPreparationException extends java.io.IOException {
 		private final String code;
+		private final JsonObject details;
 		public GenerationPreparationException(String code, String message, Throwable cause) {
-			super(message, cause); this.code = code;
+			this(code, message, cause, new JsonObject());
+		}
+		public GenerationPreparationException(String code, String message, Throwable cause, JsonObject details) {
+			super(message, cause); this.code = code; this.details = details.deepCopy();
 		}
 		public String code() { return code; }
+		public JsonObject details() { return details.deepCopy(); }
 	}
 
 	JsonObject start(UUID workspaceId, Operation operation, JsonObject payload);

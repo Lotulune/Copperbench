@@ -55,7 +55,7 @@ export const BlockbenchTasksPanel: React.FC<{ source?: { id: string; name: strin
     if (!workspaceId) throw new Error(tr("请先打开工作区。"));
     const result = await coreBridge.sendQuery<{ tasks: ModelingTask[] }>({ messageType: 'query', schemaVersion: '1.0',
       requestId: safeRandomUUID(), workspaceId, operation: 'list_blockbench_tasks', payload: {} });
-    if (result.status !== 'succeeded') throw new Error(t(result.diagnostics[0]?.message) || tr("任务列表读取失败。"));
+    if (result.status !== 'succeeded') throw new Error(t(result.diagnostics[0]?.message, result.diagnostics[0]?.code) || tr("任务列表读取失败。"));
     setTasks(result.data?.tasks ?? []);
     setLoaded(true);
     if (element) {
@@ -84,7 +84,7 @@ export const BlockbenchTasksPanel: React.FC<{ source?: { id: string; name: strin
           requestId: safeRandomUUID(), workspaceId: workspace.id, operation: 'get_blockbench_task', payload: { taskId: payload.taskId } });
         if (current.status !== 'succeeded' || !current.data) {
           const diagnostic = current.diagnostics[0];
-          throw new Error(`${t(diagnostic?.message) || '无法读取磁盘保存状态。'}${diagnostic ? `（${diagnostic.code}）` : ''}`);
+          throw new Error(`${t(diagnostic?.message, diagnostic?.code) || '无法读取磁盘保存状态。'}${diagnostic ? `（${diagnostic.code}）` : ''}`);
         }
         const saved = current.data;
         setTasks(previous => previous.map(task => task.taskId === saved.taskId ? saved : task));
@@ -98,7 +98,7 @@ export const BlockbenchTasksPanel: React.FC<{ source?: { id: string; name: strin
         payload: { ...payload, clientMutationId: safeRandomUUID() } });
       if (result.status !== 'completed' && result.status !== 'committed') {
         const diagnostic = result.diagnostics[0];
-        throw new Error(tr("{0}{1}", [t(diagnostic?.message) || tr("任务未完成。"), diagnostic ? `（${diagnostic.code}）` : '']));
+        throw new Error(tr("{0}{1}", [t(diagnostic?.message, diagnostic?.code) || tr("任务未完成。"), diagnostic ? `（${diagnostic.code}）` : '']));
       }
       setRetry(null);
       setMessage(operation === 'finish_blockbench_task' ? uiText('候选已保存，待回导。', 'Candidate saved; ready to import.')

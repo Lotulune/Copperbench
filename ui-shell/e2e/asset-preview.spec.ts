@@ -3,7 +3,7 @@ import { expect, test, type Page } from '@playwright/test';
 const textureId = `asset:${'2'.repeat(64)}`;
 const modelId = `asset:${'1'.repeat(64)}`;
 
-async function installProjection(page: Page, mode: 'ready' | 'stale' | 'unsupported' = 'ready') {
+async function installProjection(page: Page, mode: 'ready' | 'stale' | 'unsupported' | 'diagnosticFailure' = 'ready') {
   await page.addInitScript(() => localStorage.setItem('copperbench.ui.locale', 'en'));
   await page.goto('/');
   await page.waitForSelector('[data-testid="app-shell"]');
@@ -23,6 +23,11 @@ async function installProjection(page: Page, mode: 'ready' | 'stale' | 'unsuppor
     coreBridge.sendQuery = async (query: { operation: string; workspaceId: string; requestId: string; payload: { assetId: string; expectedSha256: string } }) => {
       if (query.operation !== 'get_asset_preview') return original(query);
       (window as unknown as { __PREVIEW_REQUESTS__: unknown[] }).__PREVIEW_REQUESTS__.push(query.payload);
+      if (mode === 'diagnosticFailure') return { messageType: 'query_result', schemaVersion: '1.0', requestId: query.requestId,
+        workspaceId: query.workspaceId, operation: query.operation, status: 'failed', revision: 42, data: null,
+        diagnostics: [{ code: 'ASSET_PREVIEW_FIXTURE', severity: 'error', path: null, recoverable: true, actions: [],
+          message: { key: 'diagnostic.field_contract_invalid', fallback: '{field}: {reason}',
+            args: { field: 'preview_field', reason: '原始原因 中文', detail: 'raw-detail' } } }] };
       const data = { schemaVersion: '1.0', assetId: query.payload.assetId, relativePath: 'assets/test/models/item/test.json',
         sha256: mode === 'stale' ? '9'.repeat(64) : query.payload.expectedSha256, mediaType: 'application/json', size: 80,
         kind: mode === 'unsupported' ? 'unsupported' : query.payload.assetId === texture.assetId ? 'image' : 'model_json',
@@ -109,4 +114,18 @@ test('narrow asset layout keeps file search and preview controls reachable', asy
   expect(inspector!.y).toBeGreaterThanOrEqual(files!.y + files!.height - 1);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   await page.screenshot({ path: testInfo.outputPath('assets-narrow.png') });
+});
+
+test('an existing preview failure changes language without retrying the read', async ({ page }) => {
+  await installProjection(page, 'diagnosticFailure');
+  await page.getByTestId(`asset-card-${textureId}`).click();
+  const preview = page.getByTestId('asset-content-preview');
+  await expect(preview.getByRole('alert')).toContainText('preview_field: 原始原因 中文 raw-detail');
+  const reads = () => page.evaluate(() => (window as unknown as { __PREVIEW_REQUESTS__: unknown[] }).__PREVIEW_REQUESTS__.length);
+  const requestsBeforeLanguageChange = await reads();
+  expect(requestsBeforeLanguageChange).toBeGreaterThan(0);
+  await page.getByTestId('ui-language-select').selectOption('zh');
+  await expect(preview.getByRole('alert')).toContainText('preview_field：原始原因 中文 raw-detail');
+  await expect(preview.getByRole('button', { name: '重试预览' })).toBeVisible();
+  expect(await reads()).toBe(requestsBeforeLanguageChange);
 });

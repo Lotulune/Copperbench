@@ -14,6 +14,77 @@ from copperbench_native import NativeApiError, Workspace
 
 
 class NativeReadinessTest(unittest.TestCase):
+    def test_doctor_preserves_unknown_observations_without_starting_a_task(self):
+        response = {"status": "succeeded", "revision": 7, "data": {"status": "unknown", "readOnly": True}}
+        client, requests = self.client(response)
+        self.assertEqual(response, client.doctor())
+        self.assertEqual(["get_workspace_doctor"], [request["operation"] for request in requests])
+        self.assertEqual("query", requests[0]["kind"])
+        self.assertEqual({}, requests[0]["payload"])
+        client.close.assert_not_called()
+
+    def test_discovery_older_core_is_explicit_and_does_not_probe(self):
+        client, requests = self.client(self.environment({"block": {"contractVersion": 1}}))
+        result = client.discover_field_contract("item")
+        self.assertEqual("not_exposed", result["availability"])
+        self.assertFalse(result["complete"])
+        self.assertEqual("FIELD_CONTRACT_DISCOVERY_UNAVAILABLE", result["reasonCode"])
+        self.assertEqual(["get_workspace_environment"], [r["operation"] for r in requests])
+        self.assertTrue(all(r["kind"] == "query" for r in requests))
+
+    def test_discovery_three_states_and_invalid_metadata_preserve_session(self):
+        for availability in ("available", "not_exposed", "unsupported"):
+            complete = availability == "available"
+            data = {"elementType": "item", "generatorId": "fabric-1.21.1",
+                    "contractVersion": "1", "availability": availability, "complete": complete,
+                    "fields": [{"path": "/stackSize", "inputSchema": {"type": "integer"}}] if complete else [],
+                    "alternatives": [], "minimalExample": {"elementType": "item", "name": "Probe", "initialValues": {}}}
+            environment = self.environment({"item": data} if complete else {})
+            environment["data"]["fieldContractDiscovery"] = "get_mod_element_field_contract"
+            client, requests = self.client(environment)
+            def receive(timeout):
+                return {"id": requests[-1]["id"], "result": environment if requests[-1]["operation"] == "get_workspace_environment"
+                        else {"status": "succeeded", "revision": 7, "data": data}}
+            client._receive = receive
+            self.assertEqual(data, client.discover_field_contract("item"))
+            self.assertTrue(all(r["kind"] == "query" for r in requests))
+            malformed = copy.deepcopy(data)
+            malformed["complete"] = not complete
+            data = malformed
+            with self.assertRaises(NativeApiError) as raised:
+                client.discover_field_contract("item")
+            self.assertEqual("NATIVE_INVALID_RESPONSE", raised.exception.code)
+            client.close.assert_not_called()
+
+    def test_new_contract_is_readable_through_legacy_sdk_method(self):
+        contract = {"contractVersion": "1", "availability": "available", "complete": True, "fields": []}
+        client, requests = self.client(self.environment({"item": contract}))
+        self.assertEqual(contract, client.field_contract("item"))
+        self.assertEqual(1, len(requests))
+
+    def test_discovery_malformed_generator_uses_stable_error(self):
+        result = self.environment({})
+        result["data"]["generator"] = []
+        client, requests = self.client(result)
+        with self.assertRaises(NativeApiError) as raised:
+            client.discover_field_contract("recipe")
+        self.assertEqual("NATIVE_INVALID_RESPONSE", raised.exception.code)
+        self.assertEqual(1, len(requests))
+
+    def test_preflight_is_one_read_preserving_conflicts_and_unknown_status(self):
+        for status in ("ready", "conflicted", "unknown"):
+            with self.subTest(status=status):
+                response = {"status": "succeeded", "revision": 7,
+                            "data": {"status": status, "conflicts": [{"reasonCode": "SOURCE_CHANGED"}]}}
+                client, requests = self.client(response)
+                self.assertEqual(response, client.preview_generation())
+                self.assertEqual(1, len(requests))
+                self.assertEqual("query", requests[0]["kind"])
+                self.assertEqual("preview_generation", requests[0]["operation"])
+                self.assertEqual({}, requests[0]["payload"])
+                self.assertEqual(7, client.revision)
+                client.close.assert_not_called()
+
     def client(self, result):
         """Exercise the actual _call path while replacing only its transport."""
         client = Workspace.__new__(Workspace)

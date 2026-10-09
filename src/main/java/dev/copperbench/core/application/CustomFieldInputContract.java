@@ -11,6 +11,86 @@ import java.util.*;
 public final class CustomFieldInputContract {
     private CustomFieldInputContract() {}
 
+    private static final Set<String> PROPERTY_TYPES = Set.of("logic", "integer", "number", "string");
+
+    private static Class<?> fixedType(Class<?> kind) {
+        return kind == LogicProcedure.class ? boolean.class : kind == NumberProcedure.class ? double.class
+                : kind == StringProcedure.class ? String.class : kind == StringListProcedure.class ? String[].class : null;
+    }
+
+    private static Class<?> propertyType(String type) {
+        return switch (type) { case "logic" -> boolean.class; case "integer" -> int.class; case "number" -> double.class; default -> String.class; };
+    }
+
+    /** The discovery projection lives beside the corresponding custom serializer validation. */
+    static JsonObject shape(Class<?> kind, Field field, int depth) {
+        if (Procedure.class.isAssignableFrom(kind)) {
+            Class<?> fixed = fixedType(kind);
+            JsonObject name = FieldInputProjection.typed("string");
+            JsonObject object;
+            if (fixed == null) object = FieldInputProjection.object(Map.of("name", name), "name");
+            else {
+                JsonObject value = FieldInputProjection.schema(fixed, field, true, depth + 1);
+                object = FieldInputProjection.object(Map.of("name", FieldInputProjection.nullable(name),
+                        "fixedValue", FieldInputProjection.nullable(value)));
+                JsonObject named = new JsonObject(), namedProperties = new JsonObject(), nonblank = FieldInputProjection.typed("string");
+                nonblank.addProperty("pattern", "\\S"); namedProperties.add("name", nonblank);
+                named.add("properties", namedProperties); named.add("required", new Gson().toJsonTree(List.of("name")));
+                JsonObject constant = new JsonObject(), constantProperties = new JsonObject();
+                constantProperties.add("fixedValue", value); constant.add("properties", constantProperties);
+                constant.add("required", new Gson().toJsonTree(List.of("fixedValue")));
+                object.add("anyOf", FieldInputProjection.union(named, constant).get("anyOf"));
+            }
+            JsonObject result = FieldInputProjection.union(fixed == null ? name : FieldInputProjection.schema(fixed, field, true, depth + 1), object);
+            JsonObject reference = new JsonObject(); reference.addProperty("operation", "list_mod_elements");
+            reference.addProperty("elementType", "procedure"); reference.addProperty("encoding", "unprefixed_name");
+            result.add("reference", reference);
+            return result;
+        }
+        if (kind == StateMap.class) {
+            JsonObject result = FieldInputProjection.typed("array");
+            JsonArray variants = new JsonArray();
+            for (String type : PROPERTY_TYPES.stream().sorted().toList()) {
+                variants.add(FieldInputProjection.object(Map.of("property", propertyShape(type, false, depth),
+                        "value", FieldInputProjection.schema(propertyType(type), null, true, depth + 1)), "property", "value"));
+            }
+            JsonObject entry = new JsonObject(); entry.add("anyOf", variants); result.add("items", entry);
+            result.addProperty("valueConstraints", "Property names must be unique; numeric values lie within property.min/max; string values belong to property.arrayData when supplied.");
+            return result;
+        }
+        if (kind == PropertyData.class || kind == PropertyDataWithValue.class) {
+            JsonObject result = new JsonObject(); JsonArray variants = new JsonArray();
+            for (String type : PROPERTY_TYPES.stream().sorted().toList()) variants.add(propertyShape(type, kind == PropertyDataWithValue.class, depth));
+            result.add("anyOf", variants); return result;
+        }
+        if (kind == GUIComponent.class) {
+            JsonObject result = new JsonObject(); JsonArray variants = new JsonArray();
+            GUIComponent.getTypeMappings().forEach((name, storage) -> {
+                JsonObject discriminator = new JsonObject(); discriminator.addProperty("const", name);
+                variants.add(FieldInputProjection.object(Map.of("type", discriminator,
+                        "data", FieldInputProjection.schema(storage, null, true, depth + 1)), "type", "data"));
+            });
+            result.add("anyOf", variants); return result;
+        }
+        throw new IllegalArgumentException("Unreviewed custom field shape " + kind);
+    }
+
+    private static JsonObject propertyShape(String type, boolean hasValue, int depth) {
+        Map<String, JsonObject> members = new LinkedHashMap<>();
+        JsonObject discriminator = new JsonObject(); discriminator.addProperty("const", type); members.put("type", discriminator);
+        JsonObject name = FieldInputProjection.typed("string"); name.addProperty("pattern", "\\S"); members.put("name", name);
+        JsonObject value = FieldInputProjection.schema(propertyType(type), null, true, depth + 1);
+        if (type.equals("integer") || type.equals("number")) {
+            JsonObject bound = value.deepCopy(); bound.addProperty("default", 0);
+            members.put("min", bound); members.put("max", bound.deepCopy());
+        }
+        if (type.equals("string")) members.put("arrayData", FieldInputProjection.schema(String[].class, null, false, depth + 1));
+        if (hasValue) members.put("value", value);
+        JsonObject result = FieldInputProjection.object(members, hasValue ? new String[]{"type", "name", "value"} : new String[]{"type", "name"});
+        result.addProperty("valueConstraints", "min <= max; numeric value is within min/max; string value belongs to arrayData when supplied.");
+        return result;
+    }
+
     public static JsonObject capabilities() {
         JsonObject result = new JsonObject();
         result.addProperty("contractVersion", 1);
@@ -67,8 +147,7 @@ public final class CustomFieldInputContract {
     }
 
     private static BlockFieldContract.Issue procedure(Class<?> kind, JsonElement raw, String path, Field field, boolean preservation, int depth) {
-        Class<?> fixed = kind == LogicProcedure.class ? boolean.class : kind == NumberProcedure.class ? double.class
-                : kind == StringProcedure.class ? String.class : kind == StringListProcedure.class ? String[].class : null;
+        Class<?> fixed = fixedType(kind);
         if (!raw.isJsonObject()) {
             if (preservation) return null;
             if (fixed == null) return string(raw) ? null : invalid(path, "a procedure name string, name object or null");
@@ -95,7 +174,7 @@ public final class CustomFieldInputContract {
         JsonObject object = raw.getAsJsonObject();
         if (!string(object.get("type"))) return preservation ? null : invalid(path + "/type", "a property type string");
         String type = object.get("type").getAsString();
-        if (!Set.of("logic", "integer", "number", "string").contains(type))
+        if (!PROPERTY_TYPES.contains(type))
             return issue("FIELD_ENUM_INVALID", path + "/type", "Choose a supported property type: logic, integer, number or string.");
         Set<String> allowed = new HashSet<>(Set.of("type", "name"));
         if (type.equals("integer") || type.equals("number")) allowed.addAll(Set.of("min", "max"));
@@ -106,7 +185,7 @@ public final class CustomFieldInputContract {
         if (unknown != null) return unknown;
         if (preservation) return null;
         if (!string(object.get("name")) || object.get("name").getAsString().isBlank()) return invalid(path + "/name", "a non-empty property name");
-        Class<?> valueType = switch (type) { case "logic" -> boolean.class; case "integer" -> int.class; case "number" -> double.class; default -> String.class; };
+        Class<?> valueType = propertyType(type);
         if (type.equals("integer") || type.equals("number")) {
             for (String key : List.of("min", "max")) if (object.has(key)) {
                 var problem = GenericFieldInputContract.inspect(valueType, object.get(key), path + "/" + key, null, true, false, depth + 1);

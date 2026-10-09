@@ -67,6 +67,7 @@ public final class PluginWorkspaceLayout {
 			throws IOException {
 		Path normalizedRoot = root.toAbsolutePath().normalize();
 		Path normalizedDistribution = distributionRoot.toAbsolutePath().normalize();
+		String checksum = GradleDistributionIntegrity.require(gradleWrapperZip);
 		Path posixLauncher = normalizedRoot.resolve("gradlew");
 		copyIfMissing(posixLauncher, normalizedDistribution.resolve("gradlew"));
 		normalizeLauncherLineEndings(posixLauncher);
@@ -81,13 +82,14 @@ public final class PluginWorkspaceLayout {
 					distributionBase=GRADLE_USER_HOME
 					distributionPath=wrapper/dists
 					distributionUrl=https\\://mirrors.huaweicloud.com/gradle/%s
+					distributionSha256Sum=%s
 					networkTimeout=60000
 					retries=3
 					retryBackOffMs=2000
 					validateDistributionUrl=true
 					zipStoreBase=GRADLE_USER_HOME
 					zipStorePath=wrapper/dists
-					""".formatted(gradleWrapperZip).replace("\r\n", "\n"), StandardCharsets.UTF_8);
+					""".formatted(gradleWrapperZip, checksum).replace("\r\n", "\n"), StandardCharsets.UTF_8);
 		}
 	}
 

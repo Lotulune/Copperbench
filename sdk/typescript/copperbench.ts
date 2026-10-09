@@ -76,6 +76,24 @@ export class CopperbenchClient {
     return this.callTool('get_workspace_health', {});
   }
 
+  /** Read source safety without writes/downloads; ready never authorizes generation or proves a build. */
+  public previewGeneration(): Promise<JsonObject> {
+    return this.callTool('preview_generation', {});
+  }
+
+  /** Read environment findings without starting downloads, tasks or authorization. */
+  public doctor(): Promise<JsonObject> {
+    return this.callTool('get_workspace_doctor', {});
+  }
+
+  public getModElementFieldContract(elementType: string): Promise<JsonObject> {
+    return this.callTool('get_mod_element_field_contract', { elementType });
+  }
+
+  public getFieldReferenceOptions(elementType: string, mappingSource: string, options: JsonObject = {}): Promise<JsonObject> {
+    return this.callTool('get_field_reference_options', { ...options, elementType, mappingSource });
+  }
+
   public async *listModElements(args: JsonObject = {}): AsyncGenerator<JsonObject, void, void> {
     let cursor: string | undefined;
     do {
@@ -220,9 +238,11 @@ export class CopperbenchClient {
       try {
         value = JSON.parse(text);
       } catch {
+        if (result.isError === true) throw new CopperbenchError(text || 'MCP_TOOL_RESULT_INVALID', 'MCP_TOOL_RESULT_INVALID', result);
         throw new CopperbenchError(`Tool ${name} returned invalid JSON content`, 'MCP_TOOL_RESULT_INVALID', result);
       }
       if (!isJsonObject(value)) {
+        if (result.isError === true) throw new CopperbenchError(text || 'MCP_TOOL_RESULT_INVALID', 'MCP_TOOL_RESULT_INVALID', result);
         throw new CopperbenchError(`Tool ${name} returned a non-object result`, 'MCP_TOOL_RESULT_INVALID', result);
       }
       if (result.isError === true || value.status === 'rejected' || value.status === 'failed'
@@ -231,9 +251,9 @@ export class CopperbenchClient {
         const diagnostic = Array.isArray(value.diagnostics)
           ? value.diagnostics.find((item) => isJsonObject(item) && typeof item.code === 'string' && item.code) as JsonObject | undefined
           : undefined;
-        const code = typeof value.code === 'string' && value.code ? value.code
+        const code = value.conflict ? 'REVISION_CONFLICT' : typeof value.code === 'string' && value.code ? value.code
           : typeof diagnostic?.code === 'string' ? diagnostic.code : 'MCP_TOOL_ERROR';
-        throw new CopperbenchError(`Tool ${name} failed (${code})`, code, value);
+        throw new CopperbenchError(renderDiagnosticMessage(diagnostic?.message ?? value.message, code), code, value);
       }
       if (typeof value.status !== 'string' || !SUCCESS_STATUSES.has(value.status)) {
         throw new CopperbenchError(`Tool ${name} returned no recognized result status`, 'MCP_TOOL_RESULT_INVALID', value);
@@ -317,7 +337,7 @@ const TASK_AUTHORIZED_TOOLS = new Set([
 // Audited reads only. Plans, previews, external probes and unknown/new tools
 // remain single-attempt. Shared transport fixtures exercise the Python parity.
 const RETRY_SAFE_TOOLS = new Set([
-  'get_workspace', 'get_workspace_environment', 'get_workspace_health', 'get_task',
+  'get_workspace', 'get_workspace_environment', 'get_workspace_doctor', 'preview_generation', 'get_mod_element_field_contract', 'get_field_reference_options', 'get_workspace_health', 'get_task',
   'list_mod_elements', 'read_mod_element', 'get_procedure', 'list_workspace_registries',
   'get_workspace_references', 'list_recovery_points', 'list_task_authorizations'
 ]);
@@ -395,4 +415,21 @@ export function readWorkspaceConnection(workspacePath: string): WorkspaceConnect
     throw new CopperbenchError('MCP connection metadata has no workspaceId', 'MCP_CONNECTION_FILE_INVALID', connection);
   }
   return { url: connection.url as string, workspaceId: connection.workspaceId };
+}
+/** Single-pass named placeholders; raw diagnostic objects remain untouched. */
+export function renderDiagnosticMessage(message: unknown, fallbackCode: string): string {
+  if (typeof message === 'string') return message || fallbackCode;
+  if (!isJsonObject(message)) return fallbackCode;
+  const template = typeof message.fallback === 'string' && message.fallback ? message.fallback : fallbackCode;
+  const args = message.args;
+  if (!isJsonObject(args)) return template;
+  return template.replace(/\{([A-Za-z_][A-Za-z0-9_]*)\}/g, (match, name: string) => {
+    if (!Object.hasOwn(args, name)) return match;
+    const value = args[name];
+    if (typeof value === 'string') return value;
+    if (value === null || typeof value === 'boolean' || (typeof value === 'number' && Number.isFinite(value))) {
+      return JSON.stringify(value);
+    }
+    return match;
+  });
 }

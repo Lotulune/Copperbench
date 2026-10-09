@@ -67,6 +67,20 @@ class WorkspaceApplicationServiceTest {
 		assertEquals(GSON.toJsonTree(legacy.query(query)), GSON.toJsonTree(headless.query(query)));
 	}
 
+	@Test void doctorIsReadOnlyAndDoesNotAcceptProbeOrApprovalPayloads() {
+		Fixture fixture = fixture();
+		HeadlessWorkspaceEntryAdapter entry = new HeadlessWorkspaceEntryAdapter(fixture.service, PermissionProfile.READ_ONLY);
+		var before = entry.query(Query.of(uuid(90), WORKSPACE_ID, Operation.GET_WORKBENCH, new JsonObject()));
+		var result = entry.query(Query.of(uuid(91), WORKSPACE_ID, Operation.GET_WORKSPACE_DOCTOR, new JsonObject()));
+		assertEquals("succeeded", result.status());
+		assertEquals(before.revision(), result.revision());
+		assertTrue(result.data().getAsJsonObject().get("readOnly").getAsBoolean());
+		JsonObject forbidden = new JsonObject(); forbidden.addProperty("probeNetwork", true);
+		var rejected = entry.query(Query.of(uuid(92), WORKSPACE_ID, Operation.GET_WORKSPACE_DOCTOR, forbidden));
+		assertNotEquals("succeeded", rejected.status());
+		assertEquals(before.revision(), rejected.revision());
+	}
+
 	@Test void stage12BiomeAndDimensionExposeCanonicalElementReferencePickers() {
 		Fixture fixture = fixture();
 		assertEquals("committed", fixture.service.execute(

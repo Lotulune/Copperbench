@@ -119,7 +119,7 @@ public final class WorkspaceApplicationService {
 	private static final Gson GSON = new Gson();
 	private static final Logger LOG = LogManager.getLogger(WorkspaceApplicationService.class);
 	private static final Marker OPERATION_FAILURE = MarkerManager.getMarker("COPPERBENCH_OPERATION_FAILURE");
-	private static final Pattern ELEMENT_NAME = Pattern.compile("^[a-z][a-z0-9_]{0,63}$");
+	private static final Pattern ELEMENT_NAME = ElementMappingSupport.ELEMENT_NAME;
 	private static final Pattern VARIABLE_NAME = Pattern.compile("^[A-Za-z_][A-Za-z0-9_]{0,63}$");
 	private static final Pattern RESOURCE_PATH = Pattern.compile("^[a-z0-9_./-]+$");
 	private static final Pattern LANGUAGE_KEY = Pattern.compile("^[a-z0-9_.-]+$");
@@ -514,7 +514,12 @@ public final class WorkspaceApplicationService {
 			fieldContracts.add("custom", CustomFieldInputContract.capabilities());
 			fieldContracts.add("code", CodeFieldContract.capabilities());
 			fieldContracts.add("procedure", ProcedureFieldContract.capabilities());
+			for (String type : List.of("item", "recipe")) {
+				JsonObject contract = ElementFieldContract.discover(type, optionalString(state.generator(), "id"));
+				if (contract.get("complete").getAsBoolean()) fieldContracts.add(type, contract);
+			}
 			projection.add("fieldContracts", fieldContracts);
+			projection.addProperty("fieldContractDiscovery", "get_mod_element_field_contract");
 			projection.add("application", ApplicationBuildIdentity.inspect());
 			Path root = workspaceRoot(query.workspaceId());
 			if (root == null) projection.add("workspaceRoot", JsonNull.INSTANCE);
@@ -531,6 +536,7 @@ public final class WorkspaceApplicationService {
 			workflow.addProperty("diagnosticsOperation", "get_task");
 			workflow.addProperty("healthOperation", "get_workspace_health");
 			workflow.addProperty("planOperation", "plan_workspace_changes");
+			workflow.addProperty("generationPreflightOperation", "preview_generation");
 			projection.add("agentWorkflow", workflow);
 			return querySuccess(query, state.revision(), projection);
 		} catch (RuntimeException exception) {
@@ -538,6 +544,49 @@ public final class WorkspaceApplicationService {
 					"WORKSPACE_ENVIRONMENT_UNAVAILABLE", "diagnostic.workspace_environment_unavailable",
 					"The workspace execution environment could not be resolved.", null, null, exception));
 		}
+	}
+
+	private QueryResult previewGeneration(Query query, WorkspaceState state) {
+		if (!query.payload().isEmpty())
+			return queryFailure(query, state.revision(), invalidPayload("preview_generation accepts an empty payload"));
+		var observation = store.coordinate(state.id(), state.revision(), mutations::previewGeneration);
+		if (observation.status() != RevisionedWorkspaceStore.TransactionResult.Status.COORDINATED) {
+			JsonObject args = new JsonObject();
+			args.addProperty("reason", "Workspace revision changed before generation preflight; query current inputs again.");
+			return queryFailure(query, observation.revision(), diagnostic("GENERATION_INPUT_CHANGED",
+					"diagnostic.generator_preparation_failed", "Generator preparation failed: {reason}", args, null, null));
+		}
+		return querySuccess(query, observation.revision(), observation.value());
+	}
+
+	private QueryResult fieldContract(Query query, WorkspaceState state) {
+		try {
+			Set<String> allowed = query.operation() == Operation.GET_FIELD_REFERENCE_OPTIONS
+					? Set.of("elementType", "mappingSource", "search", "offset", "limit") : Set.of("elementType");
+			if (!allowed.containsAll(query.payload().keySet())) throw new IllegalArgumentException("Unknown discovery parameter");
+			String type = discoveryString(query.payload(), "elementType", false);
+			if (!ElementFieldContract.known(type))
+				return queryFailure(query, state.revision(), diagnostic("ELEMENT_TYPE_UNKNOWN",
+						"diagnostic.element_type_unknown", "Unknown mod element type.", "/elementType", null));
+			String generator = optionalString(state.generator(), "id");
+			JsonObject result = query.operation() == Operation.GET_FIELD_REFERENCE_OPTIONS
+					? ElementFieldContract.referenceOptions(type, generator, discoveryString(query.payload(), "mappingSource", false),
+						query.payload().has("search") ? discoveryString(query.payload(), "search", true) : "",
+						query.payload().has("offset") ? query.payload().get("offset").getAsBigDecimal().intValueExact() : 0,
+						query.payload().has("limit") ? query.payload().get("limit").getAsBigDecimal().intValueExact() : 100)
+					: ElementFieldContract.discover(type, generator);
+			return querySuccess(query, state.revision(), result);
+		} catch (RuntimeException exception) {
+			return queryFailure(query, state.revision(), invalidPayload(exception.getMessage()));
+		}
+	}
+
+	private static String discoveryString(JsonObject payload, String name, boolean emptyAllowed) {
+		JsonElement value = payload.get(name);
+		if (value == null || !value.isJsonPrimitive() || !value.getAsJsonPrimitive().isString()
+				|| !emptyAllowed && value.getAsString().isBlank())
+			throw new IllegalArgumentException(name + " must be " + (emptyAllowed ? "a string" : "a nonempty string"));
+		return value.getAsString();
 	}
 
 	private QueryResult previewRecoveryRestore(Query query, WorkspaceState state) {
@@ -922,19 +971,7 @@ public final class WorkspaceApplicationService {
 
 	private static JsonObject conditionalMetadata(String elementType, String fieldName) {
 		Field field = conditionalField(elementType, fieldName);
-		if (field == null) return null;
-		JsonObject condition = new JsonObject();
-		condition.addProperty("operator", "any_truthy");
-		JsonArray paths = new JsonArray();
-		JsonArray expressions = new JsonArray();
-		for (String expression : field.getAnnotation(NonNullIf.class).value()) {
-			expressions.add(expression);
-			String dependency = conditionFieldName(expression);
-			if (!dependency.isBlank()) paths.add("/" + dependency);
-		}
-		condition.add("paths", paths);
-		condition.add("expressions", expressions);
-		return condition;
+		return FieldInputProjection.condition(field);
 	}
 
 	private static boolean jsonTruthy(JsonElement value) {
@@ -955,7 +992,7 @@ public final class WorkspaceApplicationService {
 		return condition;
 	}
 
-	private static boolean conditionExpressionMatches(JsonObject values, String expression) {
+	static boolean conditionExpressionMatches(JsonObject values, String expression) {
 		String condition = expression == null ? "" : expression.trim();
 		boolean negate = condition.startsWith("!");
 		if (negate) condition = condition.substring(1).trim();
@@ -1418,6 +1455,14 @@ public final class WorkspaceApplicationService {
 				case LIST_TASK_AUTHORIZATIONS -> listTaskAuthorizations(query, state, context);
 				case GET_WORKBENCH -> querySuccess(query, state.revision(), workbench(state, context));
 				case GET_WORKSPACE_ENVIRONMENT -> workspaceEnvironment(query, state);
+				case GET_WORKSPACE_DOCTOR -> {
+					if (!query.payload().isEmpty())
+						yield queryFailure(query, state.revision(), invalidPayload("get_workspace_doctor accepts an empty payload"));
+					yield querySuccess(query, state.revision(), WorkspaceDoctor.inspect(workspaceRoot(state.id()),
+							optionalString(state.generator(), "id"), () -> tasks.environment(state.id())));
+				}
+				case PREVIEW_GENERATION -> previewGeneration(query, state);
+				case GET_MOD_ELEMENT_FIELD_CONTRACT, GET_FIELD_REFERENCE_OPTIONS -> fieldContract(query, state);
 				case GET_BLOCKBENCH_ENVIRONMENT -> {
 					JsonObject environment = new dev.copperbench.assets.BlockbenchEnvironmentService().inspect(query.payload());
 					environment.addProperty("managedModelingTasksAvailable", history != null && workspaceRoot(query.workspaceId()) != null);
@@ -3414,6 +3459,8 @@ public final class WorkspaceApplicationService {
 		projection.add("sections", editorSections(displayed, readOnly || "drift".equals(optionalString(configuration, "status")), state));
 		projection.add("capabilities", capabilities(context));
 		projection.add("sourceManagement", sourceManagementProjection(element, context));
+		if (ElementFieldContract.supports(element.type()))
+			projection.add("fieldContract", ElementFieldContract.discover(element.type(), optionalString(state.generator(), "id")));
 		if (element.type().equals("block"))
 			projection.add("fieldContract", BlockFieldContract.capabilities(state.generator().get("id").getAsString()));
 		if (!outsideSlice)
@@ -4813,6 +4860,8 @@ public final class WorkspaceApplicationService {
 		String fieldName = editorFieldName(path);
 		String normalizedFieldName = fieldName.toLowerCase(Locale.ROOT);
 		Field reflectedField = stage12Field(elementType, fieldName);
+		if (ElementFieldContract.supports(elementType) && reflectedField != null)
+			field.add("inputSchema", FieldInputProjection.schema(reflectedField));
 		String control = value instanceof JsonElement element && element.isJsonArray() ? "json" : "text";
 		if (reflectedField != null && Collection.class.isAssignableFrom(reflectedField.getType())) control = "json";
 		if (isElementReferenceListField(elementType, fieldName)) control = "element_reference_list";
@@ -4829,7 +4878,7 @@ public final class WorkspaceApplicationService {
 			control = "select";
 		if ((elementType.equals("tool") && Set.of("renderType", "blockingRenderType").contains(fieldName))
 				|| (elementType.equals("armor") && fieldName.endsWith("ItemRenderType"))) control = "select";
-		if (fieldName.equals("type") || fieldName.equals("frame") || fieldName.equals("toolType")
+		if (fieldName.equals("type") || fieldName.equals("frame") || fieldName.equals("toolType") && !elementType.equals("item")
 				|| fieldName.equals("rarity") || fieldName.equals("sentiment") || fieldName.equals("priority")
 				|| fieldName.equals("entityType") || (elementType.equals("livingentity")
 				&& Set.of("bossBarColor", "bossBarType", "mobBehaviourType", "mobCreatureType", "aiBase")
@@ -4910,7 +4959,7 @@ public final class WorkspaceApplicationService {
 				default -> List.of("Generic", "Block", "Entity", "Chest", "Fishing", "Advancement reward", "Gift", "Archaeology");
 			};
 			for (String option : typeOptions) options.add(fieldOption(option, option));
-		} else if (fieldName.equals("toolType")) {
+		} else if (fieldName.equals("toolType") && !elementType.equals("item")) {
 			for (String option : List.of("Pickaxe", "Axe", "Shovel", "Hoe", "Sword", "MultiTool"))
 				options.add(fieldOption(option, option));
 		} else if (fieldName.equals("rarity")) {
@@ -5233,12 +5282,7 @@ public final class WorkspaceApplicationService {
 	private JsonObject editorConstraints(String elementType, String fieldName) {
 		Field reflected = stage12Field(elementType, fieldName);
 		if (reflected != null && reflected.isAnnotationPresent(Numeric.class)) {
-			Numeric numeric = reflected.getAnnotation(Numeric.class);
-			JsonObject constraints = new JsonObject();
-			constraints.addProperty("min", numeric.min());
-			constraints.addProperty("max", numeric.max());
-			constraints.addProperty("step", numeric.step());
-			return constraints;
+			return FieldInputProjection.constraints(reflected);
 		}
 		double[] constraint = switch (elementType) {
 			case "livingentity" -> switch (fieldName) {

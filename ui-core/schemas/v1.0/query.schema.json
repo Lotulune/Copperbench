@@ -70,6 +70,10 @@
         "get_upstream_tools",
         "list_task_authorizations",
         "get_workspace_environment",
+        "get_workspace_doctor",
+        "preview_generation",
+        "get_mod_element_field_contract",
+        "get_field_reference_options",
         "get_blockbench_environment"
       ]
     },
@@ -78,6 +82,26 @@
     }
   },
   "allOf": [
+    {
+      "if": {"properties": {"operation": {"const": "get_workspace_doctor"}}, "required": ["operation"]},
+      "then": {"properties": {"payload": {"$ref": "#/$defs/emptyPayload"}}}
+    },
+    {
+      "if": {"properties": {"operation": {"const": "get_mod_element_field_contract"}}, "required": ["operation"]},
+      "then": {"properties": {"payload": {"type": "object", "required": ["elementType"],
+        "properties": {"elementType": {"type": "string", "minLength": 1}}, "additionalProperties": false}}}
+    },
+    {
+      "if": {"properties": {"operation": {"const": "get_field_reference_options"}}, "required": ["operation"]},
+      "then": {"properties": {"payload": {"type": "object", "required": ["elementType", "mappingSource"],
+        "properties": {"elementType": {"type": "string", "minLength": 1}, "mappingSource": {"type": "string", "minLength": 1},
+          "search": {"type": "string"}, "offset": {"type": "integer", "minimum": 0}, "limit": {"type": "integer", "minimum": 1, "maximum": 200}},
+        "additionalProperties": false}}}
+    },
+    {
+      "if": {"properties": {"operation": {"const": "preview_generation"}}, "required": ["operation"]},
+      "then": {"properties": {"payload": {"$ref": "#/$defs/emptyPayload"}}}
+    },
     {
       "if": {"properties": {"operation": {"const": "get_asset_preview"}}, "required": ["operation"]},
       "then": {"properties": {"payload": {"type": "object", "required": ["assetId", "expectedSha256"],

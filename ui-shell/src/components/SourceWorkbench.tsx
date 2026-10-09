@@ -4,7 +4,7 @@ import { useWorkbench } from '../context/WorkbenchContext';
 import { sourceBridge } from '../bridge/sourceBridge';
 import { windowBridge, type AppPreferencesSnapshot } from '../bridge/windowBridge';
 import { setUnsavedDraftCount } from '../hooks/unsavedDraftGuard';
-import { t, uiText } from '../i18n';
+import { diagnosticMessages, renderUiMessage, type UiMessage, uiText } from '../i18n';
 import type { WorkspaceSourceContent, WorkspaceSourceFile, WorkspaceSourceFiles, WorkspaceSourceIndex } from '../types/contract';
 import './sourceWorkbench.css';
 
@@ -17,7 +17,7 @@ interface SourceTab {
   loading: boolean;
   readToken?: number;
   saving: boolean;
-  error?: string;
+  error?: UiMessage;
   conflict?: boolean;
   latest?: { data: WorkspaceSourceContent; revision: number };
 }
@@ -247,7 +247,7 @@ function SourceWorkspace({ workspaceId, active, focusRequest }: { workspaceId: s
       } else {
         const conflict = Boolean(result.conflict) || result.diagnostics.some(item => item.code === 'WORKSPACE_SOURCE_CONFLICT' || item.code === 'WORKSPACE_REVISION_CONFLICT');
         changeTab(workspaceId, path, old => ({ ...old, saving: false, conflict,
-          error: result.diagnostics.map(item => t(item.message)).join('\n') || uiText('保存失败，请重试。', 'Save failed. Please retry.') }));
+          error: diagnosticMessages(result.diagnostics, uiText('保存失败，请重试。', 'Save failed. Please retry.'), '\n') }));
         if (conflict) await read(path);
       }
     } catch (error) { changeTab(workspaceId, path, old => ({ ...old, saving: false, error: message(error) })); }
@@ -337,7 +337,7 @@ function SourceWorkspace({ workspaceId, active, focusRequest }: { workspaceId: s
             <RefreshCw size={14} aria-hidden="true" />{uiText('读取最新版本', 'Read latest version')}</button>
           <button type="button" onClick={() => void save()} disabled={!tab.file?.editable || !dirty(tab) || tab.loading || tab.saving || tab.conflict} data-testid="source-save">
             <Save size={14} aria-hidden="true" />{tab.saving ? uiText('保存中…', 'Saving…') : uiText('保存', 'Save')}</button></header>
-        {tab.error && <p className="source-notice" role="alert">{tab.error}</p>}
+        {tab.error && <p className="source-notice" role="alert">{renderUiMessage(tab.error)}</p>}
         {preferencesError && <p className="source-notice" role="alert">{uiText('无法读取编辑器设置：', 'Could not read editor preferences: ')}{preferencesError}</p>}
         {tab.latest && <div className="source-conflict" role="alert" data-testid="source-conflict">
           <p>{uiText('文件已更新；草稿已保留。', 'The file changed; your draft is preserved.')}</p>

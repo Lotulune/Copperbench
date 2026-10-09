@@ -186,9 +186,8 @@ import java.util.function.Supplier;
 		}
 
 		static void configureGradleHome(java.util.Map<String, String> environment, Path productGradleHome) {
-			String configured = environment.get("COPPERBENCH_GRADLE_USER_HOME");
-			if (configured == null || configured.isBlank()) configured = environment.get("GRADLE_USER_HOME");
-			if (configured == null || configured.isBlank()) configured = productGradleHome.toAbsolutePath().normalize().toString();
+			String configured = dev.copperbench.generator.WorkspaceExecutionEnvironment
+					.gradleHome(environment, productGradleHome);
 			// Match GUI setup: this directory holds the chosen mirror init script and downloaded dependencies.
 			// Explicit caller overrides remain authoritative.
 			environment.put("GRADLE_USER_HOME", configured);

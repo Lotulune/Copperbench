@@ -1,4 +1,5 @@
 import type { ModElementEditorProjection } from '../types/contract';
+import type { UiMessage } from '../i18n';
 import { setUnsavedDraftCount } from './unsavedDraftGuard';
 
 export interface FunctionEditorSession {
@@ -10,7 +11,7 @@ export interface FunctionEditorSession {
   revision: number;
   loading: boolean;
   saving: boolean;
-  error: string | null;
+  error: UiMessage | null;
 }
 
 const sessions = new Map<string, FunctionEditorSession>();

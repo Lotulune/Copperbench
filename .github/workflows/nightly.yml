@@ -3,24 +3,137 @@ name: Nightly product gates
 on:
   schedule:
     - cron: "30 16 * * *"
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      inject_failure:
+        description: "Acceptance scenario: deliberately fail one SDK job"
+        type: choice
+        default: none
+        options: [none, sdk-windows]
 
 permissions:
   contents: read
-  checks: write
 
 concurrency:
   group: nightly-product-gates
   cancel-in-progress: false
 
 jobs:
-  product-regression:
-    name: Nightly product regression
+  sdk:
+    name: SDK regression (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            gate: sdk-windows
+          - os: ubuntu-24.04
+            gate: sdk-linux
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ui-shell/package-lock.json
+      - run: npm ci --prefix ui-shell
+      - name: harness
+        run: >-
+          python scripts/ci/nightly.py run --output build/nightly-results/${{ matrix.gate }}
+          --id harness -- python -m unittest discover -s scripts/ci -p "test_*.py"
+      - name: python
+        env:
+          NIGHTLY_INJECT_FAILURE: ${{ inputs.inject_failure == matrix.gate && 'true' || 'false' }}
+        run: >-
+          python scripts/ci/nightly.py run --output build/nightly-results/${{ matrix.gate }}
+          --id python -- python -m unittest discover -s sdk/python -p "test_*.py"
+      - name: typescript
+        run: >-
+          python scripts/ci/nightly.py run --output build/nightly-results/${{ matrix.gate }}
+          --id typescript -- npm run test:sdk --prefix ui-shell
+      - name: timeout-repeat
+        run: >-
+          python scripts/ci/nightly.py run --output build/nightly-results/${{ matrix.gate }}
+          --id timeout-repeat -- python scripts/ci/repeat_sdk_timeouts.py --count 100 --output build/nightly-results/${{ matrix.gate }}/timeout-repetitions.json
+      - name: Finalize evidence
+        if: always()
+        run: >-
+          python scripts/ci/nightly.py finalize --output build/nightly-results/${{ matrix.gate }}
+          --gate ${{ matrix.gate }} --job-status "${{ job.status }}"
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: nightly-gate-${{ matrix.gate }}-${{ github.run_attempt }}
+          path: |
+            build/nightly-results/${{ matrix.gate }}/
+          if-no-files-found: error
+          retention-days: 30
+
+  ui:
+    name: UI regression
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ui-shell/package-lock.json
+      - run: npm ci --prefix ui-shell
+      - run: npm ci --prefix ui-core
+      - run: npx playwright install --with-deps chromium
+        working-directory: ui-shell
+      - name: contract
+        run: >-
+          python scripts/ci/nightly.py run --output build/nightly-results/ui
+          --id contract -- npm test --prefix ui-core
+      - name: unit
+        run: >-
+          python scripts/ci/nightly.py run --output build/nightly-results/ui
+          --id unit -- npm test --prefix ui-shell
+      - name: build
+        run: >-
+          python scripts/ci/nightly.py run --output build/nightly-results/ui
+          --id build -- npm run build --prefix ui-shell
+      - name: playwright
+        run: >-
+          python scripts/ci/nightly.py run --output build/nightly-results/ui
+          --id playwright -- npm run test:e2e --prefix ui-shell -- --project=chromium
+      - name: Finalize evidence
+        if: always()
+        run: >-
+          python scripts/ci/nightly.py finalize --output build/nightly-results/ui
+          --gate ui --job-status "${{ job.status }}"
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: nightly-gate-ui-${{ github.run_attempt }}
+          path: |
+            build/nightly-results/ui/
+            ui-shell/playwright-report/
+            ui-shell/test-results/
+            build/reports/ui-dependencies.json
+          if-no-files-found: error
+          retention-days: 30
+
+  core:
+    name: Core, Javadoc and scale regression
     runs-on: windows-latest
     timeout-minutes: 45
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v7
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
       - name: Set up JDK 25 with JCEF
         uses: actions/setup-java@v6
         with:
@@ -29,76 +142,87 @@ jobs:
           java-package: jdk+jcef
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Set up Node.js
-        uses: actions/setup-node@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: |
-            ui-core/package-lock.json
-            ui-shell/package-lock.json
-      - name: Install UI dependencies
-        shell: pwsh
-        run: |
-          npm ci --prefix ui-core
-          if ($LASTEXITCODE -ne 0) { throw 'UI contract dependency installation failed' }
-          npm ci --prefix ui-shell
-          if ($LASTEXITCODE -ne 0) { throw 'UI shell dependency installation failed' }
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.11"
-      - name: Run SDK and production bridge regression
-        shell: pwsh
-        run: |
-          python -m unittest discover -s sdk/python -p 'test_*.py'
-          if ($LASTEXITCODE -ne 0) { throw 'Python SDK regression failed' }
-          npm test --prefix ui-shell
-          if ($LASTEXITCODE -ne 0) { throw 'Production bridge regression failed' }
-          npm run test:sdk --prefix ui-shell
-          if ($LASTEXITCODE -ne 0) { throw 'TypeScript MCP SDK regression failed' }
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v6
-      - name: Run full Java, Javadoc, and scale regression
-        shell: pwsh
+          cache-dependency-path: ui-shell/package-lock.json
+      - run: npm ci --prefix ui-shell
+      - uses: gradle/actions/setup-gradle@v6
+      - name: java-javadoc-scale
         run: >-
-          .\gradlew.bat --no-daemon --no-build-cache clean test javadoc
-          '-Dcopperbench.stage9.scale=true'
-          '-Dcopperbench.uiWindowTimeoutSeconds=20'
-      # Gradle test already builds the UI shell through processResources -> buildUiShell.
-      - name: Run UI contract tests
-        shell: pwsh
-        run: |
-          npm test --prefix ui-core
-          if ($LASTEXITCODE -ne 0) { throw 'UI contract tests failed' }
-      - name: Run full Playwright suite
-        working-directory: ui-shell
-        shell: pwsh
-        run: |
-          npx playwright install --with-deps chromium
-          if ($LASTEXITCODE -ne 0) { throw 'Playwright browser installation failed' }
-          npx playwright test --project=chromium
-          if ($LASTEXITCODE -ne 0) { throw 'Playwright regression failed' }
-      - name: Verify status, documentation, and MCP
-        shell: pwsh
-        run: |
-          node scripts/verify-product-status.mjs
-          if ($LASTEXITCODE -ne 0) { throw 'Product status validation failed' }
-          node scripts/verify-markdown-links.mjs
-          if ($LASTEXITCODE -ne 0) { throw 'Markdown link validation failed' }
-          pwsh -NoProfile -File ./scripts/verify-mcp-conformance.ps1 -OutputDirectory build/nightly-results/mcp
-          if ($LASTEXITCODE -ne 0) { throw 'MCP conformance failed' }
-      - name: Upload nightly regression evidence
-        uses: actions/upload-artifact@v7
+          python scripts/ci/nightly.py run --output build/nightly-results/core
+          --id java-javadoc-scale -- ./gradlew.bat --no-daemon --no-build-cache clean test javadoc "-Dcopperbench.stage9.scale=true" "-Dcopperbench.uiWindowTimeoutSeconds=20"
+      - run: npm ci --prefix ui-core
+      - name: doctor-schema
+        run: >-
+          python scripts/ci/nightly.py run --output build/nightly-results/core
+          --id doctor-schema -- node scripts/verify-workspace-doctor-evidence.mjs
+      - name: Finalize evidence
+        if: always()
+        run: >-
+          python scripts/ci/nightly.py finalize --output build/nightly-results/core
+          --gate core --job-status "${{ job.status }}"
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
-          name: nightly-product-regression
+          name: nightly-gate-core-${{ github.run_attempt }}
           path: |
-            build/nightly-results/
+            build/nightly-results/core/
             build/reports/tests/
-            ui-shell/playwright-report/
-            ui-shell/test-results/
-          if-no-files-found: warn
+            build/reports/workspace-doctor/
+            build/test-results/
+          if-no-files-found: error
+          retention-days: 30
+
+  mcp:
+    name: MCP regression
+    runs-on: windows-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - name: Set up JDK 25 with JCEF
+        uses: actions/setup-java@v6
+        with:
+          java-version: "25.0.2"
+          distribution: jetbrains
+          java-package: jdk+jcef
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ui-shell/package-lock.json
+      - run: npm ci --prefix ui-shell
+      - uses: gradle/actions/setup-gradle@v6
+      - name: status
+        run: >-
+          python scripts/ci/nightly.py run --output build/nightly-results/mcp
+          --id status -- node scripts/verify-product-status.mjs
+      - name: documentation
+        run: >-
+          python scripts/ci/nightly.py run --output build/nightly-results/mcp
+          --id documentation -- node scripts/verify-markdown-links.mjs
+      - name: conformance
+        run: >-
+          python scripts/ci/nightly.py run --output build/nightly-results/mcp
+          --id conformance -- pwsh -NoProfile -File ./scripts/verify-mcp-conformance.ps1 -OutputDirectory build/nightly-results/mcp/conformance
+      - name: Finalize evidence
+        if: always()
+        run: >-
+          python scripts/ci/nightly.py finalize --output build/nightly-results/mcp
+          --gate mcp --job-status "${{ job.status }}"
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: nightly-gate-mcp-${{ github.run_attempt }}
+          path: |
+            build/nightly-results/mcp/
+          if-no-files-found: error
           retention-days: 30
 
   stage9-generator-golden:
@@ -119,16 +243,18 @@ jobs:
           - fabric-1.20.1
           - neoforge-1.20.1
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v7
-      - name: Set up JDK 21
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - name: Set up workspace JDK 21
         uses: actions/setup-java@v6
         with:
           java-version: "21"
           distribution: temurin
       - name: Record JDK 21 home
         shell: pwsh
-        run: "Write-Output \"COPPERBENCH_JDK21_HOME=$env:JAVA_HOME\" >> $env:GITHUB_ENV"
+        run: '"COPPERBENCH_JDK21_HOME=$env:JAVA_HOME" >> $env:GITHUB_ENV'
       - name: Set up JDK 25 with JCEF
         uses: actions/setup-java@v6
         with:
@@ -140,35 +266,114 @@ jobs:
       - name: Expose JDK 21 to legacy generators
         shell: pwsh
         run: |
+          $ErrorActionPreference = 'Stop'
           New-Item -ItemType Directory -Force -Path jdk | Out-Null
           New-Item -ItemType Junction -Path jdk/jdk21_win_64 -Target $env:COPPERBENCH_JDK21_HOME | Out-Null
-      - name: Set up Node.js
-        uses: actions/setup-node@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: npm
           cache-dependency-path: ui-shell/package-lock.json
-      - name: Install UI shell dependencies
-        working-directory: ui-shell
-        run: npm ci
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v6
-      - name: Generate Stage 9 content and build workspace
-        shell: pwsh
+      - run: npm ci --prefix ui-shell
+      - uses: gradle/actions/setup-gradle@v6
+      - name: golden
         run: >-
-          .\gradlew.bat --no-daemon --no-build-cache test
-          --tests dev.copperbench.generator.workspace.NewWorkspaceGeneratorGoldenBuildTest
-          '-Dcopperbench.stage9.workspaceGeneratorBuild=true'
-          '-Dcopperbench.stage9.workspaceGeneratorId=${{ matrix.generator }}'
-      - name: Upload generator diagnostics
-        uses: actions/upload-artifact@v7
+          python scripts/ci/nightly.py run --output build/nightly-results/generator-${{ matrix.generator }}
+          --id golden -- ./gradlew.bat --no-daemon --no-build-cache test --tests dev.copperbench.generator.workspace.NewWorkspaceGeneratorGoldenBuildTest "-Dcopperbench.stage9.workspaceGeneratorBuild=true" "-Dcopperbench.stage9.workspaceGeneratorId=${{ matrix.generator }}"
+      - name: Finalize evidence
+        if: always()
+        run: >-
+          python scripts/ci/nightly.py finalize --output build/nightly-results/generator-${{ matrix.generator }}
+          --gate generator-${{ matrix.generator }} --job-status "${{ job.status }}"
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
-          name: stage9-generator-${{ matrix.generator }}
+          name: nightly-gate-generator-${{ matrix.generator }}-${{ github.run_attempt }}
           path: |
+            build/nightly-results/generator-${{ matrix.generator }}/
             build/test-results/test/
             build/reports/tests/test/
             build/stage9-workspace-generator-logs/
             logs/
-          if-no-files-found: warn
+          if-no-files-found: error
+          retention-days: 30
+
+  wrapper:
+    name: Wrapper integrity and cache gates
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - uses: actions/setup-java@v6
+        with:
+          java-version: "17"
+          distribution: temurin
+      - name: manifest
+        run: >-
+          python scripts/ci/nightly.py run --output build/nightly-results/wrapper
+          --id manifest -- python scripts/ci/wrapper_integrity.py check
+      - name: cache-matrix
+        run: >-
+          python scripts/ci/nightly.py run --output build/nightly-results/wrapper
+          --id cache-matrix -- python scripts/ci/wrapper_integrity.py live --output build/nightly-results/wrapper/cache
+      - name: Finalize evidence
+        if: always()
+        run: >-
+          python scripts/ci/nightly.py finalize --output build/nightly-results/wrapper
+          --gate wrapper --job-status "${{ job.status }}"
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: nightly-gate-wrapper-${{ github.run_attempt }}
+          path: |
+            build/nightly-results/wrapper/
+          if-no-files-found: error
+          retention-days: 30
+
+  summary:
+    name: Nightly product regression
+    if: always()
+    needs: [sdk, ui, core, mcp, stage9-generator-golden, wrapper]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - name: Read actual hosted job conclusions
+        if: always()
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const fs = require('fs');
+            const jobs = await github.paginate(github.rest.actions.listJobsForWorkflowRun, {
+              ...context.repo, run_id: context.runId, filter: 'latest', per_page: 100
+            });
+            fs.mkdirSync('build/nightly-summary', { recursive: true });
+            fs.writeFileSync('build/nightly-summary/jobs.json', JSON.stringify(jobs, null, 2));
+      - name: Download evidence from this attempt
+        if: always()
+        uses: actions/download-artifact@v8
+        with:
+          pattern: nightly-gate-*-${{ github.run_attempt }}
+          path: build/nightly-artifacts
+      - name: Account for every gate and matrix shard
+        if: always()
+        run: >-
+          python scripts/ci/nightly.py summarize
+          --jobs build/nightly-summary/jobs.json --artifacts build/nightly-artifacts
+          --output build/nightly-summary/result.json
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: nightly-summary-${{ github.run_attempt }}
+          path: build/nightly-summary/
+          if-no-files-found: error
           retention-days: 30

@@ -309,11 +309,28 @@ class Workspace:
     def get_workspace(self) -> dict[str, Any]:
         return self.query("get_workbench")
 
+    def preview_generation(self) -> dict[str, Any]:
+        """Read source conflicts and input identity without mutation or downloads.
+
+        Inspect data.status (ready/conflicted/unknown); ready is not build or
+        gameplay acceptance. Generation always rechecks the current inputs.
+        """
+        return self.query("preview_generation")
+
+    def doctor(self) -> dict[str, Any]:
+        """Inspect this session's backend without writes, downloads or implicit authorization.
+
+        For checks before opening a writer session, use the product command
+        ``headless --workspace <path.mcreator> doctor``.
+        """
+        return self.query("get_workspace_doctor")
+
     def _field_contract_environment(self) -> tuple[dict[str, Any], dict[str, Any]]:
         result = self.query("get_workspace_environment")
         data = result.get("data")
         contracts = data.get("fieldContracts") if isinstance(data, dict) else None
         if (not isinstance(contracts, dict)
+                or ("generator" in data and not isinstance(data["generator"], dict))
                 or any(not isinstance(name, str) or not name or not isinstance(contract, dict)
                        for name, contract in contracts.items())):
             raise NativeApiError("Core returned invalid field contract metadata",
@@ -354,6 +371,56 @@ class Workspace:
                                    "requires": ["elementId"], "scope": "existing_element"},
                 })
         return contracts[element_type]
+
+    def discover_field_contract(self, element_type: str) -> dict[str, Any]:
+        """Read versioned creation metadata with available/not_exposed/unsupported states.
+
+        Older Cores retain their original field_contract() format. Missing new
+        discovery support is explicit; it never creates a probe or guesses fields.
+        """
+        if not isinstance(element_type, str) or not element_type.strip():
+            raise ValueError("element_type must be a nonempty string")
+        environment, contracts = self._field_contract_environment()
+        operation = environment.get("fieldContractDiscovery")
+        if operation is None:
+            return {"elementType": element_type,
+                    "generatorId": environment.get("generator", {}).get("id", ""),
+                    "contractVersion": "1", "availability": "not_exposed",
+                    "complete": False, "fields": [],
+                    "reasonCode": "FIELD_CONTRACT_DISCOVERY_UNAVAILABLE",
+                    "availableContracts": sorted(contracts),
+                    "alternatives": [{"operation": "get_mod_element_editor",
+                                      "requires": ["elementId"]}]}
+        if operation != "get_mod_element_field_contract":
+            raise NativeApiError("Core returned invalid discovery metadata",
+                                 "NATIVE_INVALID_RESPONSE", environment)
+        result = self.query(operation, elementType=element_type)
+        data = result.get("data")
+        if (not isinstance(data, dict) or data.get("elementType") != element_type
+                or not isinstance(data.get("generatorId"), str)
+                or data.get("contractVersion") != "1"
+                or data.get("availability") not in ("available", "not_exposed", "unsupported")
+                or not isinstance(data.get("complete"), bool)
+                or data["complete"] != (data["availability"] == "available")
+                or not isinstance(data.get("fields"), list)
+                or not isinstance(data.get("alternatives"), list)
+                or (data["complete"] and (not data["fields"]
+                    or not isinstance(data.get("minimalExample"), dict)))
+                or (not data["complete"] and data["fields"])
+                or any(not isinstance(field, dict)
+                       or not isinstance(field.get("path"), str)
+                       or not field["path"].startswith("/")
+                       or not isinstance(field.get("inputSchema"), dict)
+                       for field in data["fields"])):
+            raise NativeApiError("Core returned invalid field contract metadata",
+                                 "NATIVE_INVALID_RESPONSE", result)
+        return data
+
+    def field_reference_options(self, element_type: str, mapping_source: str, *,
+                                search: str = "", offset: int = 0, limit: int = 100) -> dict[str, Any]:
+        """Page the installed generator's vanilla reference values."""
+        return self.query("get_field_reference_options", elementType=element_type,
+                          mappingSource=mapping_source, search=search, offset=offset, limit=limit)
 
     def plan_workspace_changes(self, operations: list[dict[str, Any]], *, idempotency_key: str,
                                expected_revision: int | None = None,
