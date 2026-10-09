@@ -1,12 +1,40 @@
+import contextlib
+import io
+import json
 import shutil
 import tempfile
 from pathlib import Path
 import unittest
+from unittest.mock import patch
 
 import wrapper_integrity as integrity
 
 
 class WrapperIntegrityTest(unittest.TestCase):
+    def test_live_retains_distinct_payloads_for_wrappers_sharing_a_distribution(self):
+        original = integrity.inventory()[0]
+        rows = [original, {**original, 'jarSha256': 'another-wrapper', 'jarVersion': 'another'}]
+        rejected_urls = []
+
+        def execute(project, home, url, expected, log, *, cold, rejected=False):
+            if rejected:
+                rejected_urls.append(url)
+            return {'status': 'passed'}
+
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory)
+            with patch.object(integrity, 'inventory', return_value=rows), \
+                    patch.object(integrity, 'execute', side_effect=execute), \
+                    contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(0, integrity.live(output))
+            self.assertEqual(2, len(set(rejected_urls)), 'Each wrapper must retain its own payload')
+            results_path = next(output.glob('cache-run-*/results.json'))
+            results = json.loads(results_path.read_text(encoding='utf-8'))
+            for result in results:
+                if result['case'] == 'wrong-digest':
+                    payload = results_path.parent/result['payloadPath']
+                    self.assertEqual(result['payloadSha256'], integrity.digest(payload))
+
     def test_manifest_rejects_unreviewed_distribution_wrong_digest_and_changed_jar(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

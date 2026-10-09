@@ -163,15 +163,16 @@ def live(output: Path):
                 elif source == 'official':
                     results.append({'case': 'warm-offline-build', **row, 'status': 'failed',
                                     'reason': 'Cold official download/build failed; warm build was not attempted.'})
-            tampered = served/row['archive']
+            tampered = served/f"{index}-{row['archive']}"
             with zipfile.ZipFile(tampered, 'w') as archive:
                 archive.writestr('deliberately-altered.txt', 'digest must reject this payload')
             bad_project = case/'wrong-digest'
             prepare(bad_project, jar)
-            url = f'http://127.0.0.1:{server.server_port}/'+row['archive']
+            url = f'http://127.0.0.1:{server.server_port}/'+tampered.name
             result = execute(bad_project, case/'wrong-digest-home', url, row['sha256'],
                              case/'wrong-digest.log', cold=True, rejected=True)
             results.append({'case': 'wrong-digest', 'payload': 'deliberately altered loopback ZIP',
+                            'payloadPath': tampered.relative_to(run).as_posix(),
                             'payloadSha256': digest(tampered), **row, **result})
             save_results(run, results)
     finally:
