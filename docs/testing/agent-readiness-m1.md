@@ -93,6 +93,14 @@ using the existing cross-platform permission helper. Eight-track template tests
 check the permission on POSIX, and the Linux candidate lane runs them explicitly.
 Windows checks exercise the copy/identity paths but cannot establish POSIX modes.
 
+On `885ab083`, the [Linux template checks](https://github.com/Lotulune/Copperbench/actions/runs/38078109098)
+passed their POSIX permission assertions. [Real delivery](https://github.com/Lotulune/Copperbench/actions/runs/38078109119)
+then failed with `No such file or directory` starting that launcher. Byte inspection
+found CRLF shebangs in all four Fabric wrapper templates. The same copy entry now
+normalizes only the POSIX `gradlew` text to LF before setting its owner execute bit;
+the eight-track test also checks that copied launchers contain no CR characters.
+Template inputs and Windows batch scripts remain byte-for-byte unchanged.
+
 ## Current-source results
 
 | Layer/check | Observed result |

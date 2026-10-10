@@ -168,11 +168,14 @@ public class WorkspaceGeneratorSetup {
 						freemarkerTemplate.process(workspace.getGenerator().getBaseDataModelProvider().provide(),
 								stringWriter, InlineTemplatesHandler.getConfiguration().getObjectWrapper());
 						GradleTrackingFileIO.writeFile(workspace, stringWriter.getBuffer().toString(), outFile);
+					} else if (outFile.getName().equals("gradlew")) {
+						String launcher = IOUtils.toString(stream, StandardCharsets.UTF_8);
+						FileUtils.writeStringToFile(outFile, launcher.replace("\r\n", "\n").replace('\r', '\n'),
+								StandardCharsets.UTF_8);
+						ExecutableFilePermissions.ensureOwnerExecutable(outFile.toPath());
 					} else {
 						FileUtils.copyInputStreamToFile(stream, outFile);
 					}
-					if (outFile.getName().equals("gradlew"))
-						ExecutableFilePermissions.ensureOwnerExecutable(outFile.toPath());
 				}
 			} catch (Exception e) {
 				if (failOnCopyError)

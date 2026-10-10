@@ -53,6 +53,8 @@ class WorkspaceIdentityTemplateTest {
 				WorkspaceGeneratorSetup.setupWorkspaceBaseOrThrow(workspace);
 				Path wrapper = workspaceRoot.resolve("gradlew");
 				assertTrue(Files.isRegularFile(wrapper), "Workspace setup must copy the Gradle launcher");
+				assertFalse(Files.readString(wrapper).contains("\r"),
+						"Workspace setup must normalize the POSIX launcher before dependency preparation");
 				if (ExecutableFilePermissions.posixSupported(wrapper))
 					assertTrue(Files.getPosixFilePermissions(wrapper).contains(PosixFilePermission.OWNER_EXECUTE),
 							"Workspace setup must make its Gradle launcher executable before dependency preparation");
