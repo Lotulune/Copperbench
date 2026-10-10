@@ -14,6 +14,7 @@ This distribution is based on MCreator `2026.2.33518` at commit `361429609b77203
 
 ## Build and test fixes
 
+- Mark copied workspace `gradlew` launchers owner-executable on POSIX so cold managed dependency preparation can start them before later generation stages.
 - Apply the configured Gradle offline mode to managed build, test and client processes, including Native SDK tasks, without duplicating explicit offline arguments.
 - Protect unsaved React element and function drafts, as well as source drafts, through the native workspace close confirmation.
 - Added a shared structural Blockbench texture reader for the asset graph and round-trip inspection, including array textures, UUID/index face bindings, embedded images, local files and external references. Intentional deletions remain reviewable changes, not automatic import vetoes. Regression inputs include the original lantern review models and a native Blockbench 5.1.6 save.

@@ -84,6 +84,15 @@ a nonempty checkpoint list and records its hashes. The temporary in-process
 preference is restored in `finally`; no global preferences are saved. All
 production query behavior and the complete file comparison remain unchanged.
 
+On `a9f2ef3e`, [the next run](https://github.com/Lotulune/Copperbench/actions/runs/38077601154)
+passed discovery with an empty changed-path list, then reached the initial build.
+That build failed with `GENERATOR_SOURCE_PREPARATION_FAILED`; the retained product
+log identifies POSIX `Permission denied` when starting the newly copied
+`./gradlew`. Workspace template copying now marks that launcher owner-executable
+using the existing cross-platform permission helper. Eight-track template tests
+check the permission on POSIX, and the Linux candidate lane runs them explicitly.
+Windows checks exercise the copy/identity paths but cannot establish POSIX modes.
+
 ## Current-source results
 
 | Layer/check | Observed result |

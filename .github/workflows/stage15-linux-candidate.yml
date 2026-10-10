@@ -201,6 +201,7 @@ jobs:
             --tests dev.copperbench.platform.UserDataPathsTest \
             --tests dev.copperbench.generator.BundledJdkLocatorTest \
             --tests dev.copperbench.generator.WorkspaceEnvironmentContextTest \
+            --tests dev.copperbench.generator.workspace.WorkspaceIdentityTemplateTest \
             --tests dev.copperbench.gradle.GradleDistributionPoolTest \
             --tests dev.copperbench.assets.BlockbenchExecutableLocatorTest \
             --tests dev.copperbench.assets.BlockbenchInstallationDetectorTest \
