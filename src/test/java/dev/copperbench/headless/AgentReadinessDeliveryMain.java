@@ -6,10 +6,14 @@ import dev.copperbench.platform.RuntimePlatform;
 import dev.copperbench.release.SupportedPlatform;
 import dev.copperbench.testing.McreatorTestRuntime;
 import net.mcreator.generator.setup.WorkspaceGeneratorSetup;
+import net.mcreator.preferences.PreferencesManager;
 import net.mcreator.workspace.Workspace;
+import net.mcreator.workspace.localhistory.HistoryCheckpoint;
 import net.mcreator.workspace.settings.WorkspaceSettings;
 import java.nio.file.*;
 import java.time.Instant;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 /** Opt-in real product delivery gate. No simulated task gateway, authority issuance or EULA acceptance. */
@@ -25,11 +29,25 @@ public final class AgentReadinessDeliveryMain {
         var settings = new WorkspaceSettings("m1_delivery");
         settings.setModName("M1 Delivery"); settings.setVersion("1.0.0"); settings.setCurrentGenerator("fabric-1.21.1");
         JsonObject config = new JsonObject();
+        boolean localHistoryEnabled = PreferencesManager.PREFERENCES.backups.enableLocalHistory.get();
+        PreferencesManager.PREFERENCES.backups.enableLocalHistory.set(true);
         try (Workspace workspace = Workspace.createWorkspace(file.toFile(), settings)) {
             WorkspaceGeneratorSetup.setupWorkspaceBaseOrThrow(workspace);
             if (!workspace.getGenerator().generateBase()) throw new IllegalStateException("Fixture base generation failed");
             workspace.getFileManager().saveWorkspaceDirectlyAndWait();
             config.addProperty("generatorVersion", workspace.getGenerator().getFullGeneratorVersion());
+            // The unit-test runtime disables legacy history. Prepare its initial
+            // checkpoint here so opening the real product does not initialize it
+            // concurrently with the subsequent discovery no-write measurement.
+            CompletableFuture<List<HistoryCheckpoint>> historyReady = new CompletableFuture<>();
+            workspace.getHistoryManager().getCheckpoints(historyReady::complete);
+            List<HistoryCheckpoint> checkpoints = historyReady.get(30, TimeUnit.SECONDS);
+            if (checkpoints.isEmpty()) throw new IllegalStateException("Fixture local history did not initialize");
+            JsonArray history = new JsonArray();
+            checkpoints.forEach(checkpoint -> history.add(checkpoint.hash()));
+            config.add("preparedHistoryCheckpoints", history);
+        } finally {
+            PreferencesManager.PREFERENCES.backups.enableLocalHistory.set(localHistoryEnabled);
         }
         Path fixture = repository.resolve("examples/agent-readiness/m1-delivery");
         Files.copy(fixture.resolve("copperbench-tests.json"), root.resolve("copperbench-tests.json"));

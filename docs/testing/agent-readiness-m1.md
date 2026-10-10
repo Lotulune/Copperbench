@@ -74,6 +74,16 @@ does not retry a discovery query, ignore history paths or weaken the equality
 assertion. This separates startup activity from query effects; a probe that
 persists still fails the gate.
 
+The [next run on `2f99c2b9`](https://github.com/Lotulune/Copperbench/actions/runs/38077189593)
+waited 3.111 seconds for the probe, then found the initial history commit writing
+`refs/heads/master` during discovery. The root cause is the harness's unit-test
+runtime disabling legacy history when creating the fixture, while the actual
+product enables and initializes it on first open. Fixture preparation now enables
+history in the harness process, waits for its queued checkpoint callback, requires
+a nonempty checkpoint list and records its hashes. The temporary in-process
+preference is restored in `finally`; no global preferences are saved. All
+production query behavior and the complete file comparison remain unchanged.
+
 ## Current-source results
 
 | Layer/check | Observed result |
