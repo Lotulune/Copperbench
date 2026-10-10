@@ -53,6 +53,9 @@ M1 server gate. This exception records the user's direction, not a passing
 client result. The protocol/delivery CI definitions were not dispatched during
 that original acceptance. A later [CI entry follow-up](../testing/agent-readiness-m1.md#ci-entry-follow-up)
 adds PR execution because manual dispatch required default-branch registration.
+Both independent jobs subsequently passed on `5e40d0b0`; the downloaded real
+delivery receipts, business cases and final hashes were
+[independently audited](../testing/agent-readiness-m1.md#hosted-closure-on-5e40d0b0).
 
 Subsequent [M3 installed acceptance](../testing/agent-readiness-m3-resume-2026-10-10.md)
 completed actual crafting, full-client exit and new-process persistence on

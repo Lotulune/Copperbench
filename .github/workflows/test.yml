@@ -251,6 +251,17 @@ jobs:
             build/reports/tests/test/
           if-no-files-found: ignore
           retention-days: 14
+      - name: Test NSIS tool setup and partial-cache recovery
+        shell: pwsh
+        run: pwsh -NoProfile -File ./scripts/test-nsis-setup.ps1
+      - name: Upload NSIS setup evidence
+        uses: actions/upload-artifact@v7
+        if: ${{ always() && needs.changes.result == 'success' && needs.changes.outputs.windows == 'true' }}
+        with:
+          name: windows-nsis-setup-results
+          path: build/nsis-setup-regression/
+          if-no-files-found: error
+          retention-days: 14
       - name: Verify signed release-source gate
         shell: pwsh
         run: pwsh -NoProfile -File ./scripts/tests/verify-release-source.tests.ps1

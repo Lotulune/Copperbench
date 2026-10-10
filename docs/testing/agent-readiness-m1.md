@@ -101,7 +101,47 @@ normalizes only the POSIX `gradlew` text to LF before setting its owner execute 
 the eight-track test also checks that copied launchers contain no CR characters.
 Template inputs and Windows batch scripts remain byte-for-byte unchanged.
 
-## Current-source results
+### Hosted closure on `5e40d0b0`
+
+[Run 38078554385](https://github.com/Lotulune/Copperbench/actions/runs/38078554385)
+passed both independent jobs on exact head
+`5e40d0b048f306b4955aa9877b71d1da6c3a077c`, with an empty source delta.
+Protocol/adapter checks passed 36 Java and 72 Python cases. The real delivery
+completed in 359.710 seconds and passed the full discovery, deliberate compile
+failure, explicit repair, packaged-JAR acceptance, verified export and reconnect
+sequence. The complete discovery inventories matched, without excluded paths.
+
+The downloaded raw evidence was independently checked, including fixture hashes,
+the compile diagnostic at line 8, all five named business cases in the XML,
+seven rejected exports, the actual five-case run rejected against a six-case
+minimum, and final input/JAR/report hashes. Reconnect closed PID 2563 with exit 0
+and opened PID 4504; the final current-input acceptance and export also survived
+another reopen. Earlier failures above remain failed observations.
+
+| Observation | Task ID |
+| --- | --- |
+| Initial build | `19e82a63-b6b0-40df-9f03-1e0d15db6a84` |
+| Deliberate compile failure | `b65f3544-954f-48ff-b819-b12a3b75080f` |
+| Explicit repair/build | `3594206a-2524-4684-851f-fae71886015c` |
+| Final acceptance, 5 passed / 0 failed / 0 skipped | `48ec3096-041a-4139-9dec-d2e8dc110bf5` |
+| Final verified export | `1f67ae69-a276-4461-97c8-7d5088c34ae7` |
+| Final export after reopen | `5b45c191-8373-49ed-a688-16dd7c3fff2a` |
+
+Final Mod JAR SHA-256:
+`cbeb70e122aaa6d1a833b1e9776056c0f7b63abc7d16c5ac26fefe1eed08dd3e`.
+Report SHA-256:
+`701bda22216f9d0119b872965ecccdb2ce9bea426078f357938723af199030fe`.
+Input SHA-256:
+`7666aae1392471ecfb4ecf0e90ee719fe31c919aab2c53da6f568f6398203da0`.
+The Mod JAR hash is not the Copperbench application hash.
+
+Local downloaded evidence is under
+`build/cache-provenance-phase/m1-current-delivery/Copperbench/Copperbench/build/reports/m1-delivery/delivery-2540349751856782485`,
+including `result.json`, raw receipts and `independent-audit.json`.
+This closes the independent M1 CI follow-up. It does not establish installation,
+cold/warm cache or player acceptance for a new candidate.
+
+## Initial local M1 results
 
 | Layer/check | Observed result |
 | --- | --- |
@@ -245,7 +285,9 @@ is inferred. Machine-readable attempt status and copied bridge receipts are in
 `output/minecraft-validation/m1-delivery-20261009`.
 
 Actual crafting, observed stack limits and a complete client save/restart/reopen
-remain **unverified**. Item serialization in the five server tests does not fill
-this player-observation gap. This user-deferred extra client layer does not change
-the completed M1 headless/packaged-server exit condition; M3 player and installed
-acceptance remains open. No desktop retry or follow-up automation was scheduled.
+were **unverified in this original attempt**. Item serialization in the five
+server tests did not fill that player-observation gap. No desktop retry or
+follow-up automation was scheduled at that time. Subsequent
+[M3 installed acceptance](agent-readiness-m3-resume-2026-10-10.md) completed these
+player actions on its separately frozen candidates; that evidence does not
+automatically apply to the later cache-policy candidate.

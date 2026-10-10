@@ -87,10 +87,74 @@ passed with the step. The enclosing candidate workflow was later cancelled when
 a newer commit superseded it, so this establishes the bootstrap correction, not
 a complete candidate workflow pass.
 
+## Completed hosted source checks
+
+For PR head `5e40d0b048f306b4955aa9877b71d1da6c3a077c`, all three hosted
+workflows completed successfully. Required CI and the Linux candidate checked
+out merge commit `32b0b7bc6dc5effcf23881eb724a632a3a956f74`; M1 checked out the
+exact PR head. Local Git comparison confirms both commits have tree
+`34b3a4381cc8be5455f86ac53ed3c90759ade8eb`, with no file differences.
+
+| Workflow/layer | Observed result |
+| --- | --- |
+| [Required CI](https://github.com/Lotulune/Copperbench/actions/runs/38078554306): Java and Javadoc | 1,122 cases: 1,053 passed, 69 skipped, zero failures; all eight wrapper-copy tracks and the new cache cases passed |
+| Required CI: full Chromium | 277 passed |
+| Required CI: Python SDK | 72 passed on each of Linux and Windows |
+| Required CI: CI selection / installed-study Python | 21 / 25 passed, including the two POSIX filename fixtures that cannot run on this Windows filesystem |
+| Required CI: Windows filesystem selection | 47 passed, 1 POSIX-permission case skipped, zero failures; all Fabric process/cache cases passed |
+| Required CI: MCP conformance | 8 checks, zero failures |
+| [Independent M1](https://github.com/Lotulune/Copperbench/actions/runs/38078554385) | Both jobs passed; 36 Java/72 Python protocol cases; real delivery, five business GameTests, seven negative exports, genuine reconnect and final reopen independently audited |
+| [Linux candidate](https://github.com/Lotulune/Copperbench/actions/runs/38078554319) | Isolated bootstrap, JCEF, Fabric/NeoForge 1.21.1 X11 render preflight, packaging, SBOM and provenance upload passed |
+
+The [M1 record](agent-readiness-m1.md#hosted-closure-on-5e40d0b0) binds the actual
+tasks and final Mod JAR/report/input digests. These hosted results do not resolve
+the earlier local Java child-start denial or convert any superseded run to a pass.
+
+## Frozen Linux candidate
+
+Artifact `11680081123` from run `38078554319` was downloaded into
+`build/cache-provenance-phase/frozen-linux-candidate`. The repository metadata
+verifier recalculated all four asset digests and the candidate ID against actual
+merge source `32b0b7bc6dc5effcf23881eb724a632a3a956f74`.
+
+- Candidate ID: `sha256:d250a078176625db248346f94568a2897008dda858c836b3d19edc06f6b7bb7f`.
+- Portable SHA-256: `4e00a9de833d0ab3a17be29e77cfcaae24fd34d713b3f01f49ba6db490119aad`.
+- Debian SHA-256: `17366606c8a0f08d7586631dbb850960e4e2c24b1ebf137b2be8445ad7164396`.
+- Application JAR SHA-256, independently extracted from both packages:
+  `757302cef35293a4d74bdc6294dfc792c1b47cc9e23c97c3822554b97faa26f7`.
+
+The matching application files are 7,801,588 bytes. `application-identity.json`
+records their archive member names and the package identities. GitHub's outer
+artifact ZIP digest was advertised by the API, but that ZIP was not retained or
+independently rehashed; the verified package digests above are separate evidence.
+The private candidate retains its development support/promotion limits.
+
+## Windows packaging follow-up
+
+The same merge source produced a Windows portable ZIP, but installer preparation
+failed because `build/tools/nsis/makensis.exe` did not exist. The NSIS distribution
+had extracted into `nsis-3.12`; its unchecked directory rename had not completed,
+while the plugin populated a separate `nsis` directory. A subsequent directory
+existence check treated that partial tool cache as ready.
+
+Setup now copies the archive contents directly to the final tool directory,
+checks compiler and plugin files independently, and rejects a missing required
+file after extraction. A real Gradle fixture reproduced the original missing
+compiler failure. After the change, all four isolated scenarios passed: compiler
+recovery with an existing plugin, plugin recovery with an existing compiler,
+complete-cache reuse without downloads, and rejection of a malformed compiler
+archive. The fixtures use local ZIPs, execute the actual setup task and retain
+their source copy and logs. Windows CI runs
+`pwsh -NoProfile -File scripts/test-nsis-setup.ps1` and uploads those receipts.
+
+The original failed packaging log and portable bytes remain under
+`build/cache-provenance-phase`; a complete installer build is recorded separately
+when executed. This setup-only correction does not alter the frozen Linux bytes.
+
 ## Installed acceptance boundary
 
 No new Minecraft or installed cold/warm replay was run for this source check.
-Both test VMs were observed saved with zero assigned memory; the host had about
+During the initial source checks, both VMs were saved with zero assigned memory; the host had about
 2 GiB available, below either guest's 4 GiB startup memory. No guest was started
 and no host focus was taken. Actual installed cold/warm acceptance still requires
 the new candidate, an existing scoped authorization and the

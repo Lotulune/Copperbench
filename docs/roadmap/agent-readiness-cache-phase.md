@@ -33,7 +33,12 @@ and [operator instructions](../testing/agent-readiness-m3-task-card.md#cold-and-
 The [consolidated verification record](../testing/installed-cache-provenance-2026-10-11.md)
 preserves the local successes, Java child-start rejection and Windows-incompatible
 CI filename fixtures. Hosted CI runs the affected Windows cases and the complete
-Linux suites. Installed cold/warm acceptance remains a separate open layer.
+Linux suites. The required, Linux-candidate and independent M1 workflows all
+passed for `5e40d0b0` (the candidate/required merge tree is identical). The Linux
+package and embedded application hashes are frozen in that record. Windows
+packaging then exposed an unchecked NSIS directory rename; direct extraction,
+partial-cache repair and four real Gradle fixture checks address it separately.
+Installed cold/warm acceptance remains a separate open layer.
 
 At phase acceptance, run the installed-run provenance Python regressions together
 with CI selection tests; the focused Java cache/pool/process/environment/doctor
