@@ -49,6 +49,12 @@ The workflow also retains the product's XDG state logs, which the earlier
 repository-local `logs/` artifact path missed. Original failure artifacts remain
 available; a later run must establish the corrected real-delivery result.
 
+The next workflow attempt on `13cbe030` was rejected before creating jobs because
+the new log-directory variable used `runner.temp` in job-level `env`. The
+[GitHub context reference](https://docs.github.com/en/actions/reference/workflows-and-actions/contexts#context-availability)
+allows `runner` in step-level `env`, so the variable was moved to the delivery
+step. This validation failure is not counted as a product execution.
+
 ## Current-source results
 
 | Layer/check | Observed result |

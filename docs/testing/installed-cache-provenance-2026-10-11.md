@@ -79,6 +79,14 @@ default-cache/distribution assertions remain in place, and no cache payload is
 included in this diagnostic artifact. Follow-up candidate results belong on
 [draft PR #100](https://github.com/Lotulune/Copperbench/pull/100).
 
+The corrected bootstrap step passed on `a07d8995` in
+[run 38075315603](https://github.com/Lotulune/Copperbench/actions/runs/38075315603).
+Its downloaded JSON reports `status=succeeded`, and the directory artifact shows
+the isolated XDG cache. The original checks for all three seeded Gradle versions
+passed with the step. The enclosing candidate workflow was later cancelled when
+a newer commit superseded it, so this establishes the bootstrap correction, not
+a complete candidate workflow pass.
+
 ## Installed acceptance boundary
 
 No new Minecraft or installed cold/warm replay was run for this source check.

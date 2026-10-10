@@ -79,8 +79,6 @@ jobs:
     name: M1 real Fabric delivery
     runs-on: ubuntu-latest
     timeout-minutes: 90
-    env:
-      XDG_STATE_HOME: ${{ runner.temp }}/m1-delivery-state
     steps:
       - uses: actions/checkout@v7
         with:
@@ -109,6 +107,8 @@ jobs:
         run: npm ci --prefix ui-shell
       - name: Build, break, repair, accept, export and reconnect using the real product
         shell: bash
+        env:
+          XDG_STATE_HOME: ${{ runner.temp }}/m1-delivery-state
         run: |
           set -euo pipefail
           mkdir -p build/reports/m1-delivery
