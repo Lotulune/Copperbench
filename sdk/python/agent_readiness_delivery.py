@@ -137,6 +137,7 @@ try:
     broken_code = correct_code.replace("return (count + 15) / 16;", "return missing_m1_symbol;")
     with open_workspace() as workspace:
         before = inventory()
+        save("discovery-files-before.json", before)
         item = workspace.discover_field_contract("item")
         recipe = workspace.discover_field_contract("recipe")
         assert item["complete"] and recipe["complete"]
@@ -144,7 +145,12 @@ try:
         options = workspace.field_reference_options("recipe", "blocksitems", search="Items.STICK", limit=1)
         assert options["data"]["options"][0]["value"] == "Items.STICK"
         save("discovery.json", {"item": item, "recipe": recipe, "references": options})
-        assert before == inventory(), "Discovery modified the workspace"
+        after = inventory()
+        save("discovery-files-after.json", after)
+        changed_paths = sorted(path for path in before.keys() | after.keys()
+                               if before.get(path) != after.get(path))
+        save("discovery-file-changes.json", changed_paths)
+        assert before == after, f"Discovery modified workspace paths: {changed_paths}"
         assert workspace.revision == 0
         workspace.create_mod_element(**item["minimalExample"])
         recipe_payload = copy.deepcopy(recipe["minimalExample"])

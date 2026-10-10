@@ -55,6 +55,14 @@ the new log-directory variable used `runner.temp` in job-level `env`. The
 allows `runner` in step-level `env`, so the variable was moved to the delivery
 step. This validation failure is not counted as a product execution.
 
+On `b7b4b840`, [real delivery](https://github.com/Lotulune/Copperbench/actions/runs/38076405188)
+opened its Native session successfully, then failed the discovery no-write
+assertion before starting a build. The original assertion retained no file
+comparison, so this run alone cannot identify the changed paths or their cause.
+The gate now saves both inventories and the exact changed-path list before
+checking the same equality condition. Protocol validation passed independently;
+the failed delivery remains a failed result.
+
 ## Current-source results
 
 | Layer/check | Observed result |
