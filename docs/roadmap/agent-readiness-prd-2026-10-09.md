@@ -1,6 +1,6 @@
 # Copperbench 下一阶段 PRD：Agent 就绪度与可信交付
 
-版本：1.0｜日期：2026-10-09（日本时间）｜状态：M1 本地链路通过；M2 本地及远端门禁已闭合；2026-10-10 恢复 M3，Windows 与 Ubuntu 安装版 GameTest、工作区界面、实际合成及完整存档重进通过；自主 agent 与陌生用户研究尚未完成。
+版本：1.0｜日期：2026-10-09（日本时间）｜状态更新于 2026-10-11：M1、M2 验收通过；Windows 与 Ubuntu 安装版 GameTest、工作区界面、实际合成及完整存档重进通过；自主 agent 研究按用户要求提前结束，不补跑剩余六次；陌生用户研究待参与者；AR-09 只读投影拆分与等价回归完成。
 
 本阶段不预先指定发布版本，不覆盖历史 `PRD-NEXT.md`、Stage 14–17 结项记录或 0.1.4 发布结论。产品基线为 `2bfbb48e80dac267b2043ffcbfc795a0bdd931a3`。首批实现及验证边界见[实施记录](../testing/agent-readiness-2026-10-09.md)。
 
@@ -50,13 +50,13 @@ P1 是本阶段核心工作；P2 是发布质量及扩大试用前的后续工�
 | --- | --- | --- | --- |
 | AR-01 | P1 | 完整预创建字段契约发现 | M1 已实现：item/recipe 同源完整契约、三态发现、引用查询与最小示例；八轨道创建、保存、模板生成和重开通过，见[M1 记录](../testing/agent-readiness-m1.md) |
 | AR-02 | P1 | 可读诊断与原始证据并存 | Native/MCP Python、TypeScript、UI 已对齐；保留原始错误与任务状态，切语言不重放保存/预览；[M2 本地回归通过](../testing/agent-readiness-m2.md) |
-| AR-03 | P1 | 生成冲突定位与只读预检 | 开发分支已加入只读预检、结构化冲突与执行共用计划；验证范围见[后续实施记录](../testing/generation-preflight-2026-10-09.md)，其他轨道和安装版仍待验收 |
+| AR-03 | P1 | 生成冲突定位与只读预检 | 已加入只读预检、结构化冲突与执行共用计划；[源码验证](../testing/generation-preflight-2026-10-09.md)与[双平台安装版冲突保护](../testing/agent-readiness-m3-resume-2026-10-10.md)已通过，各轨道证据范围保持原义 |
 | AR-04 | P1 | 回归独立执行与可靠超时 | 正常 Nightly 的 14 个独立结果单元全部通过；SDK 故障注入仅使目标单元失败，其他 13 个仍执行通过；见 [M2 记录](../testing/agent-readiness-m2.md) |
 | AR-05 | P1 | 真实 mod 交付门禁 | Fabric 1.21.1 真实正负链、5 个业务 GameTest、同 JAR 导出与真重连已在本地及 Nightly 执行；真实客户端与安装版证据由 [M3](../testing/agent-readiness-m3.md) 单独提供 |
 | AR-06 | P2 | 只读环境检查与接入说明 | Core/CLI/MCP/SDK doctor 已实现；真实启动器无写入和报告 schema 验证通过，不自动安装或授权 |
 | AR-07 | P2 | 构建校验与依赖风险处理 | 17 份现用 wrapper 已加官方摘要；远端 24 组下载用例通过；负向 ZIP 覆盖问题已修复并单独重放 6 个拒绝用例，历史证据限制见 [M2 记录](../testing/agent-readiness-m2.md) |
-| AR-08 | P2 | 安装版与陌生用户任务验证 | Windows 与 Ubuntu 安装版 GameTest、导出与重连、源码冲突保护、实际界面与玩家验收通过；冷缓存边界与自主 agent、陌生用户研究仍保留，见 [M3 记录](../testing/agent-readiness-m3.md) |
-| AR-09 | P2 | 有边界的维护性改进 | M1 已抽取字段契约与输入投影并完成八轨道适配器回归；未扩大到事务、授权或回滚重构 |
+| AR-08 | P2 | 安装版与陌生用户任务验证 | 双平台安装版与玩家验收通过；[自主 agent 研究](../testing/agent-readiness-m3-study-2026-10-10.md)按用户要求在 14 次启动后结束，不声称达到原 20 次目标；冷缓存边界及待参与者的陌生用户研究见 [M3 记录](../testing/agent-readiness-m3.md) |
+| AR-09 | P2 | 有边界的维护性改进 | M1 共享字段契约基础上，已进一步抽取环境与编辑器的只读契约选择；[19 项等价检查及 65 项定向回归通过](../testing/field-contract-projection-2026-10-11.md)，保留八轨道适配器覆盖；事务、授权和回滚保持原实现 |
 
 ## 5. 详细功能规格
 

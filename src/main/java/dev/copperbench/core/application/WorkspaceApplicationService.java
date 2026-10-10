@@ -504,21 +504,7 @@ public final class WorkspaceApplicationService {
 			projection.addProperty("workspaceKind", state.kind());
 			projection.addProperty("revision", state.revision());
 			projection.add("generator", state.generator());
-			JsonObject fieldContracts = new JsonObject();
-			fieldContracts.add("block", BlockFieldContract.capabilities(optionalString(state.generator(), "id")));
-			fieldContracts.add("loottable", LootTableFieldContract.capabilities());
-			fieldContracts.add("function", FunctionFieldContract.capabilities());
-			fieldContracts.add("projectile", SpecializedFieldContract.capabilities("projectile"));
-			fieldContracts.add("achievement", SpecializedFieldContract.capabilities("achievement"));
-			fieldContracts.add("generic", GenericFieldInputContract.capabilities());
-			fieldContracts.add("custom", CustomFieldInputContract.capabilities());
-			fieldContracts.add("code", CodeFieldContract.capabilities());
-			fieldContracts.add("procedure", ProcedureFieldContract.capabilities());
-			for (String type : List.of("item", "recipe")) {
-				JsonObject contract = ElementFieldContract.discover(type, optionalString(state.generator(), "id"));
-				if (contract.get("complete").getAsBoolean()) fieldContracts.add(type, contract);
-			}
-			projection.add("fieldContracts", fieldContracts);
+			projection.add("fieldContracts", FieldContractProjection.environment(optionalString(state.generator(), "id")));
 			projection.addProperty("fieldContractDiscovery", "get_mod_element_field_contract");
 			projection.add("application", ApplicationBuildIdentity.inspect());
 			Path root = workspaceRoot(query.workspaceId());
@@ -3415,7 +3401,7 @@ public final class WorkspaceApplicationService {
 	private QueryResult editor(Query query, WorkspaceState state, RequestContext context) {
 		if (!query.payload().has("elementId") && "block".equals(optionalString(query.payload(), "elementType"))) {
 			JsonObject projection = new JsonObject();
-			projection.add("fieldContract", BlockFieldContract.capabilities(state.generator().get("id").getAsString()));
+			projection.add("fieldContract", FieldContractProjection.editor("block", state.generator().get("id").getAsString()));
 			return querySuccess(query, state.revision(), projection);
 		}
 		UUID elementId = UUID.fromString(requiredString(query.payload(), "elementId"));
@@ -3459,10 +3445,10 @@ public final class WorkspaceApplicationService {
 		projection.add("sections", editorSections(displayed, readOnly || "drift".equals(optionalString(configuration, "status")), state));
 		projection.add("capabilities", capabilities(context));
 		projection.add("sourceManagement", sourceManagementProjection(element, context));
-		if (ElementFieldContract.supports(element.type()))
-			projection.add("fieldContract", ElementFieldContract.discover(element.type(), optionalString(state.generator(), "id")));
-		if (element.type().equals("block"))
-			projection.add("fieldContract", BlockFieldContract.capabilities(state.generator().get("id").getAsString()));
+		String generatorId = element.type().equals("block")
+				? state.generator().get("id").getAsString() : optionalString(state.generator(), "id");
+		JsonObject fieldContract = FieldContractProjection.editor(element.type(), generatorId);
+		if (fieldContract != null) projection.add("fieldContract", fieldContract);
 		if (!outsideSlice)
 			return querySuccess(query, state.revision(), projection);
 		return new QueryResult("query_result", UiCore.SCHEMA_VERSION, query.requestId(), query.workspaceId(),
