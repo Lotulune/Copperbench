@@ -100,7 +100,7 @@ public final class WorkspaceDoctor {
         report.add("execution", observed);
         javaFinding(findings, observed.has("java") ? observed.getAsJsonObject("java") : new JsonObject());
         wrapperFinding(findings, root, observed.has("gradle") ? observed.getAsJsonObject("gradle") : new JsonObject());
-        cacheFinding(findings, observed, environment);
+        cacheFinding(findings, observed);
         JsonObject network = new JsonObject();
         network.addProperty("proxyConfigured", List.of("HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY",
                 "http_proxy", "https_proxy", "all_proxy").stream().anyMatch(key -> present(environment, key)));
@@ -240,17 +240,20 @@ public final class WorkspaceDoctor {
                 "Local wrapper launcher and JAR observation.", "Use the workspace's reviewed wrapper runtime files.", detail);
     }
 
-    private static void cacheFinding(JsonArray findings, JsonObject execution, Map<String, String> environment) {
+    private static void cacheFinding(JsonArray findings, JsonObject execution) {
         JsonObject detail = new JsonObject();
         if (!execution.has("gradle") || !execution.getAsJsonObject("gradle").has("userHome")) {
             finding(findings, "cache", "unknown", "CACHE_LOCATION_UNKNOWN", "The backend did not declare its cache directory.",
                     "Resolve the execution backend before checking its cache.", detail);
             return;
         }
-        Path path = Path.of(execution.getAsJsonObject("gradle").get("userHome").getAsString());
+        JsonObject gradle = execution.getAsJsonObject("gradle");
+        Path path = Path.of(gradle.get("userHome").getAsString());
         detail.addProperty("path", path.toString());
-        detail.addProperty("origin", present(environment, "COPPERBENCH_GRADLE_USER_HOME") ? "COPPERBENCH_GRADLE_USER_HOME"
-                : present(environment, "GRADLE_USER_HOME") ? "GRADLE_USER_HOME" : "product_default");
+        String source = string(gradle, "userHomeSource");
+        detail.addProperty("origin", source == null || source.isBlank() ? "backend_unreported" : source);
+        if (gradle.has("reuseExternalDistributions"))
+            detail.add("reuseExternalDistributions", gradle.get("reuseExternalDistributions").deepCopy());
         detail.addProperty("directoryPresent", Files.isDirectory(path));
         detail.addProperty("artifactCompleteness", "unknown");
         detail.addProperty("downloadIntegrity", "unknown");

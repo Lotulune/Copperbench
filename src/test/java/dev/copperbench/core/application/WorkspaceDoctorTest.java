@@ -95,11 +95,24 @@ class WorkspaceDoctorTest {
 
     @Test void cachePrecedenceMatchesTheProcessRunnerWithoutPreparingDirectories() throws Exception {
         Path defaults = directory.resolve("product-cache");
-        assertEquals("caller-cache", WorkspaceExecutionEnvironment.gradleHome(
+        assertEquals(Path.of("caller-cache").toAbsolutePath().toString(), WorkspaceExecutionEnvironment.gradleHome(
                 Map.of("COPPERBENCH_GRADLE_USER_HOME","caller-cache","GRADLE_USER_HOME","environment-cache"), defaults));
-        assertEquals("environment-cache", WorkspaceExecutionEnvironment.gradleHome(Map.of("GRADLE_USER_HOME","environment-cache"), defaults));
+        assertEquals(Path.of("environment-cache").toAbsolutePath().toString(), WorkspaceExecutionEnvironment.gradleHome(Map.of("GRADLE_USER_HOME","environment-cache"), defaults));
         assertEquals(defaults.toAbsolutePath().toString(), WorkspaceExecutionEnvironment.gradleHome(Map.of(), defaults));
         assertFalse(Files.exists(defaults));
+    }
+
+    @Test void cacheOriginComesFromTheBackendRatherThanTheInspectorsEnvironment() throws Exception {
+        JsonObject execution = fakeExecution("21.0.8");
+        assertEquals("backend_unreported", row(inspect(execution), "cache").getAsJsonObject("details").get("origin").getAsString());
+        execution.getAsJsonObject("gradle").addProperty("userHomeSource", "copperbench.gradle.user.home");
+        execution.getAsJsonObject("gradle").addProperty("reuseExternalDistributions", false);
+        JsonObject report = WorkspaceDoctor.inspect(directory.resolve("workspace"), "fabric-1.21.1", () -> execution,
+                Map.of("GRADLE_USER_HOME", "unrelated-inspector-cache"));
+        JsonObject detail = row(report, "cache").getAsJsonObject("details");
+        assertEquals("copperbench.gradle.user.home", detail.get("origin").getAsString());
+        assertFalse(detail.get("reuseExternalDistributions").getAsBoolean());
+        assertEquals("unknown", detail.get("artifactCompleteness").getAsString());
     }
 
     private JsonObject fakeExecution(String version) throws Exception {

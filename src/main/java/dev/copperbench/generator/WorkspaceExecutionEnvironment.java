@@ -81,8 +81,12 @@ public final class WorkspaceExecutionEnvironment {
         gradle.addProperty("distribution", archive);
         gradle.addProperty("windowsLauncher", root.resolve("gradlew.bat").toString());
         gradle.addProperty("posixLauncher", root.resolve("gradlew").toString());
-        Path cache = Path.of(gradleHome(System.getenv(), net.mcreator.io.UserFolderManager.getGradleHome().toPath()));
-        gradle.addProperty("userHome", (cache.isAbsolute() ? cache : root.resolve(cache)).normalize().toString());
+        Path cache = net.mcreator.io.UserFolderManager.getGradleHome().toPath();
+        gradle.addProperty("userHome", cache.toString());
+        gradle.addProperty("userHomeSource", dev.copperbench.gradle.GradleCachePolicy.userHomeSource(
+                System.getenv(), System.getProperty("copperbench.gradle.user.home")));
+        gradle.addProperty("reuseExternalDistributions",
+                dev.copperbench.gradle.GradleCachePolicy.reuseExternalDistributions(System.getenv()));
         String launcher = System.getenv("COPPERBENCH_STAGE5_GRADLE_EXECUTABLE");
         if (launcher != null && !launcher.isBlank()) gradle.addProperty("launcherOverride", launcher);
         JsonObject tasks = new JsonObject();
@@ -95,8 +99,7 @@ public final class WorkspaceExecutionEnvironment {
 
     /** Resolves the same caller overrides and product cache default used by launched Gradle processes. */
     public static String gradleHome(Map<String, String> environment, Path productDefault) {
-        String configured = environment.get("COPPERBENCH_GRADLE_USER_HOME");
-        if (configured == null || configured.isBlank()) configured = environment.get("GRADLE_USER_HOME");
-        return configured == null || configured.isBlank() ? productDefault.toAbsolutePath().normalize().toString() : configured;
+        return dev.copperbench.gradle.GradleCachePolicy.userHome(environment,
+                System.getProperty("copperbench.gradle.user.home"), productDefault).toString();
     }
 }

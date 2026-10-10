@@ -202,6 +202,7 @@ public final class GradleDistributionPool {
 	}
 
 	static List<Path> extraSearchRoots() {
+		if (!GradleCachePolicy.reuseExternalDistributions(System.getenv())) return List.of();
 		List<Path> roots = new ArrayList<>();
 		String userHome = System.getProperty("user.home");
 		if (userHome != null)

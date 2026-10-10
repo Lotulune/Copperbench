@@ -38,8 +38,8 @@ jobs:
           persist-credentials: false
       - name: Test change selection and failure handling
         run: python3 -m unittest discover -s scripts/tests -p 'test_ci_selection.py'
-      - name: Test M3 study registration and evidence accounting
-        run: python3 -m unittest discover -s scripts/tests -p 'test_agent_readiness_study.py'
+      - name: Test installed-run provenance and study evidence accounting
+        run: python3 -m unittest discover -s scripts/tests -p 'test_agent_readiness*.py'
       - name: Select checks
         id: select
         run: python3 scripts/ci/select_checks.py
@@ -238,6 +238,9 @@ jobs:
           --tests dev.copperbench.assets.ResourcePackExportServiceTest
           --tests dev.copperbench.migration.LoaderMigrationServiceTest
           --tests dev.copperbench.migration.UpstreamWorkspaceImportServiceTest
+          --tests dev.copperbench.gradle.GradleCachePolicyTest
+          --tests dev.copperbench.gradle.GradleCacheProcessTest
+          --tests dev.copperbench.generator.fabric.Fabric1211ProcessRunnerTest
       - name: Upload Windows filesystem test results
         uses: actions/upload-artifact@v7
         if: ${{ always() && needs.changes.result == 'success' && needs.changes.outputs.windows == 'true' }}

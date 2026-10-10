@@ -74,6 +74,7 @@ python3 verify-agent-readiness-installed.py
   --product-root /opt/copperbench
   --candidate-package /home/cbtest/candidate/copperbench_0.1.4_amd64.deb
   --candidate-sha256 <frozen-deb-sha256>
+  --application-sha256 <application-jar-sha256-from-the-frozen-candidate>
   --source-commit <full-source-commit>
   --workspace-folder /home/cbtest/workspaces/m3/run-001
   --task-authorization <approved-task-id>
@@ -87,3 +88,43 @@ task result, the verification and export, failure details and `evidence-hashes.j
 The script intentionally reports `playerBehaviorVerified=false` and
 `autonomousAgentSuccessMeasured=false`. Complete actual player and study records
 separately in the [M3 worksheet](agent-readiness-m3.md).
+
+### Cold and warm Gradle cache runs
+
+The default `--cache-mode retained` preserves the existing environment and records
+its initial cache condition as unverified. `--cache-policy` is an operator note;
+it cannot establish a cold-cache result.
+
+For a cold run, add `--cache-mode cold --gradle-user-home <new-absolute-path>`
+to the installed replay command. The directory must not exist. The harness creates
+it empty, records `cache-before.json`, and launches all product processes with
+that cache and `COPPERBENCH_GRADLE_REUSE_EXTERNAL=false`. Workspace, conflicting
+copy, output and cache directories must be separate from one another and the
+candidate/fixture inputs. No existing directory is cleared or replaced.
+
+The current candidate must report the selected cache and disabled external
+distribution reuse through its environment API. The installed application JAR must
+match `--application-sha256`, frozen from the selected candidate before installation.
+The running application must then match those bytes. These checks occur at every SDK connection, including
+reconnect and the conflict copy. Package, launcher, application, bundled SDK and
+fixture hashes are checked again at completion. The supplied source commit remains
+explicitly operator-declared; these binary checks do not invent Git provenance
+that an older package does not contain.
+
+After that cold replay passes, run the same candidate and fixture with new
+workspace/output paths, `--cache-mode warm`, the same `--gradle-user-home`, and
+`--warm-from <cold-output>/result.json`. Warm mode requires a successful cold
+receipt, matching inputs and retained payload hashes. A retained-cache result,
+failed cold run, changed cache manifest, changed dependency or different candidate
+cannot satisfy this prerequisite. The warm run executes the full fixed task again;
+it does not reuse the earlier task results.
+
+`cache-after.json` hashes dependency payloads, wrapper distribution archives/JARs
+and Loom archives; mutable resolution indexes and daemon logs are outside that
+payload comparison. Both runs retain CLI failures, task results, process identity
+and cache manifests. Product preferences, task authorization and network settings
+remain the operator's existing configuration, so a cold Gradle cache alone does
+not establish default-network or offline-build acceptance. Existing wrapper
+official/mirror/checksum gates remain separate. Use the installed candidate's
+existing authorization; the harness never creates one. Run without Python `-O`,
+which would disable the original delivery assertions and is rejected at startup.
