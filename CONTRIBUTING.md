@@ -66,6 +66,8 @@ For ordinary UI code changes covered by smoke-only routing, run the affected Pla
 
 [Linux candidate validation](.github/workflows/stage15-linux-candidate.yml) keeps its separate package, JCEF and Minecraft render checks. PRs that only change allowlisted editors, dictionaries, local styles or frontend tests skip that workflow; native integration, startup and packaging changes retain it. `main` uses broader package-input coverage and manual runs remain available. A passing candidate workflow still does not replace installed-product or gameplay acceptance.
 
+[Agent readiness M1 gates](.github/workflows/agent-readiness-m1.yml) separately run the real build/failure/repair/packaged-JAR/export/reconnect chain when a PR changes Java runtime or test sources, generator plugins, Python SDK, UI-Core contracts/validation, or the build/dependency inputs used by that chain. Its gate scripts and fixtures also trigger it. Documentation-only and ordinary UI component changes do not select this additional workflow. The existing three required check names are unchanged; routing regressions are covered by `scripts/tests/test_ci_selection.py`.
+
 ## Prepare a pull request
 
 - Keep each change focused on one problem and preserve unrelated working-tree changes.

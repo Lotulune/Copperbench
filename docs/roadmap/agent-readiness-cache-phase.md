@@ -58,5 +58,6 @@ checks. Real installed cold/warm replays remain a distinct acceptance layer and
 must retain the actual cache manifests, product hashes and task results. Passing
 the source probes does not fill those cells.
 
-The owner-ended independent-agent study stays closed. Unfamiliar-user research
-remains deferred without participants. Host focus was not used.
+The user has terminated both the independent-agent and unfamiliar-user studies.
+Neither is pending or a remaining gate. Existing evidence is retained, without
+claiming the original research targets were met. Host focus was not used.

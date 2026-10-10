@@ -5,8 +5,9 @@ Twenty attempts were preregistered; fourteen started. The user stopped execution
 during agent-014 and cancelled the remaining six attempts. All fourteen started
 attempts are reviewed, sealed and backed up; no attempt is running. The frozen
 plan and original failures are retained. The planned 20-attempt >=80% target is
-not claimed as achieved. The 5–8 unfamiliar-user study remains pending because
-participants are unavailable; no one has been contacted.
+not claimed as achieved. The user has also terminated the 5–8 unfamiliar-user
+study before recruitment; no one was contacted. Neither study is pending or a
+remaining acceptance gate.
 
 ## Reviewed results at closure
 

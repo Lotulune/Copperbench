@@ -7,7 +7,10 @@ guest Mesa and an explicitly authorized guest US keyboard. The later
 [cache provenance phase](installed-cache-provenance-2026-10-11.md#corrected-candidate-acceptance-on-298846dc)
 completed installed cold/warm delivery on both platforms with its own frozen
 candidates. These layers retain their separate identities and failed attempts.
-The unfamiliar-user trial remains deferred, so M3's research scope is incomplete.
+The user has terminated both research work packages: the independent-agent study
+ended after fourteen starts, and the unfamiliar-user trial was cancelled before
+recruitment. Neither is pending or a remaining acceptance gate. Original targets
+and observed results remain distinct.
 No host focus or VMConnect was used; the guests ran serially and are now saved.
 The [fixed task card](agent-readiness-m3-task-card.md) and
 [installed replay](../../scripts/verify-agent-readiness-installed.py) remain the
@@ -215,6 +218,8 @@ closed early at the user's request: fourteen of twenty registered attempts
 started, with eleven completions (ten unassisted), one deadline failure, one
 transport abandonment and one user-requested abandonment. The remaining six
 will not run under this request; the original 20-attempt target is not claimed.
-All started attempts and their evidence remain recorded. The 5–8 unfamiliar-user
-trial remains pending because no participants are available. No one was contacted;
-scripted replay and autonomous agents do not supply unfamiliar-user evidence.
+All started attempts and their evidence remain recorded. The user also terminated
+the 5–8 unfamiliar-user trial before recruitment; no one was contacted. Both
+research work packages are closed by scope decision, without claiming their
+original targets were met. Scripted replay and autonomous agents do not supply
+unfamiliar-user evidence.

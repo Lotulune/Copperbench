@@ -153,14 +153,16 @@ public final class Fabric1211Generator {
 		}
 
 		Set<String> availableResults = new HashSet<>();
-		Set<String> elementNames = workspace.elements().stream().map(Element::name).collect(java.util.stream.Collectors.toSet());
+		boolean nativeDefinitions = dev.copperbench.core.application.ElementGenerationValidation.nativeDefinitions(workspace);
+		Set<String> elementNames = nativeDefinitions
+				? dev.copperbench.core.workspace.mcreator.MCreatorWorkspaceStateMapper.internalElementNames(workspace) : Set.of();
 		workspace.elements().stream().filter(element -> element.type().equals("block") || element.type().equals("item"))
 				.map(Element::name).forEach(availableResults::add);
 		for (Element element : workspace.elements()) {
 			JsonObject values = fields(element);
 			String base = "/elements/" + element.id() + "/values/fields";
 			try {
-				if (dev.copperbench.core.application.ElementGenerationValidation.nativeDefinitions(workspace)
+				if (nativeDefinitions
 						&& dev.copperbench.core.application.ElementFieldContract.supports(element.type())) {
 					var definitionIssue = dev.copperbench.core.application.ElementGenerationValidation.validate(element.type(), values, elementNames);
 					if (definitionIssue != null) issues.add(issue(definitionIssue.code(), definitionIssue.message(), base + definitionIssue.path(), element));

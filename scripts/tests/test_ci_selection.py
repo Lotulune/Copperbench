@@ -1,4 +1,5 @@
 import importlib.util
+import fnmatch
 import json
 import os
 from pathlib import Path
@@ -140,6 +141,31 @@ class PathSelectionTest(SelectionAssertions, unittest.TestCase):
 class WorkflowRoutingTest(unittest.TestCase):
     def setUp(self):
         self.workflow = (SCRIPT.parents[2] / ".github/workflows/test.yml").read_text(encoding="utf-8")
+
+    def test_real_delivery_workflow_follows_its_production_inputs(self):
+        workflow = (SCRIPT.parents[2] / ".github/workflows/agent-readiness-m1.yml").read_text(encoding="utf-8")
+        paths = re.findall(r"(?m)^      - '([^']+)'$", workflow)
+        for path in (
+            "src/main/java/dev/copperbench/generator/VerifiedArtifactExporter.java",
+            "src/main/java/dev/copperbench/core/application/ElementFieldContract.java",
+            "src/main/java/net/mcreator/workspace/Workspace.java",
+            "src/main/resources/dev/copperbench/generator/gradle-integrity.properties",
+            "src/gradleBridge/java/dev/copperbench/gradle/GradleLoopbackAgent.java",
+            "src/test/java/dev/copperbench/core/workspace/mcreator/NativeElementReferenceValidationTest.java",
+            "sdk/python/copperbench_native.py", "sdk/python/copperbench.py",
+            "plugins/generator-1.21.1/fabric-1.21.1/templates/item.java.ftl",
+            "ui-core/schemas/v1.0/element-field-contract.schema.json",
+            "ui-core/scripts/validate.mjs", "ui-core/package-lock.json",
+            "build.gradle", "settings.gradle", "gradle.properties", "gradlew", "gradlew.bat",
+            "gradle/wrapper/gradle-wrapper.properties", "platform/setup.gradle",
+            "ui-shell/package-lock.json", "ui-shell/scripts/build-dependency-evidence.mjs",
+            "scripts/tests/test_ci_selection.py", "sdk/python/agent_readiness_delivery.py",
+        ):
+            with self.subTest(path=path):
+                self.assertTrue(any(fnmatch.fnmatchcase(path, pattern) for pattern in paths), path)
+        for path in ("README.md", "docs/testing/pr100-review-2026-10-11.md", "ui-shell/src/components/AssetPreview.tsx"):
+            with self.subTest(unrelated_path=path):
+                self.assertFalse(any(fnmatch.fnmatchcase(path, pattern) for pattern in paths), path)
 
     def step(self, name):
         match = re.search(

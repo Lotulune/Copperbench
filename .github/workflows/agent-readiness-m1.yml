@@ -6,9 +6,29 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/agent-readiness-m1.yml'
-      - 'src/test/java/dev/copperbench/headless/AgentReadinessDeliveryMain.java'
-      - 'sdk/python/agent_readiness_delivery.py'
+      # Exercise delivery when its implementation or build inputs change.
+      - 'src/main/**'
+      - 'src/gradleBridge/**'
+      - 'src/test/**'
+      - 'plugins/**'
+      - 'sdk/python/**'
+      - 'ui-core/schemas/**'
+      - 'ui-core/scripts/**'
+      - 'ui-core/package*.json'
+      - 'build.gradle'
+      - 'settings.gradle'
+      - 'gradle.properties'
+      - 'gradlew'
+      - 'gradlew.bat'
+      - 'gradle/**'
+      - 'platform/**'
+      - 'lib/**'
+      - 'ui-shell/package*.json'
+      - 'ui-shell/vite.config.*'
+      - 'ui-shell/tsconfig*.json'
+      - 'ui-shell/scripts/**'
       - 'scripts/verify-field-contract-evidence.mjs'
+      - 'scripts/tests/test_ci_selection.py'
       - 'examples/agent-readiness/m1-delivery/**'
 
 permissions:
@@ -48,6 +68,7 @@ jobs:
             --tests dev.copperbench.headless.NativeApiSessionTest \
             --tests dev.copperbench.mcp.McpHttpServerTest \
             --tests dev.copperbench.core.workspace.mcreator.ElementFieldDiscoveryTest \
+            --tests dev.copperbench.core.workspace.mcreator.NativeElementReferenceValidationTest \
             --tests dev.copperbench.generator.VerifiedArtifactExporterTest \
             --tests dev.copperbench.generator.GameTestReportTest \
             2>&1 | tee build/reports/m1-protocol/gradle.log

@@ -126,5 +126,7 @@ node scripts/verify-markdown-links.mjs
 The PR workflow also runs the recorder regression before check selection.
 The user authorized 20 independent agent trials on 2026-10-10. Their frozen
 configuration and execution status are recorded in the
-[study record](agent-readiness-m3-study-2026-10-10.md). No unfamiliar participants
-are currently available; the user explicitly left that study pending.
+[study record](agent-readiness-m3-study-2026-10-10.md). The user subsequently
+terminated both research work packages. The agent study ended after fourteen
+starts, and the unfamiliar-user study was cancelled before recruitment. This
+preregistered plan is retained as history; it does not authorize new trials.

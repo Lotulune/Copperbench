@@ -350,5 +350,6 @@ settings, user applications and original product profiles were untouched.
 This closes the installed cache provenance development phase for the frozen
 `298846dc` candidates and recorded environments. The default-network failures
 remain failures; previous player/desktop evidence retains its earlier candidate
-identities. The owner-ended agent study stays closed, and unfamiliar-user
-research remains deferred until participants are available.
+identities. The user has terminated both the independent-agent and unfamiliar-user
+studies. Neither is pending or a remaining acceptance gate; existing records do
+not imply their original research targets were met.

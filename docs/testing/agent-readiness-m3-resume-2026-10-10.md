@@ -240,6 +240,7 @@ records the frozen 20-attempt registration and the user's later early stop.
 Fourteen attempts started: eleven completed (ten unassisted), one failed and
 two were abandoned, including the user-stopped final attempt. Six were never
 dispatched. The planned sample and success-rate target are not claimed complete.
-The unfamiliar-user study remains pending because participants are unavailable;
-no one was contacted. Scripted replay is not a user study. Linux still has
+The user has also terminated the unfamiliar-user study before recruitment;
+no one was contacted. Neither research work package remains pending. Scripted
+replay is not a user study. Linux still has
 `formalSupportClaim=false`. The PR remains draft; no merge or release is included.
