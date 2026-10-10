@@ -2,6 +2,14 @@ name: Agent readiness M1 gates
 
 on:
   workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/agent-readiness-m1.yml'
+      - 'src/test/java/dev/copperbench/headless/AgentReadinessDeliveryMain.java'
+      - 'sdk/python/agent_readiness_delivery.py'
+      - 'scripts/verify-field-contract-evidence.mjs'
+      - 'examples/agent-readiness/m1-delivery/**'
 
 permissions:
   contents: read
@@ -13,6 +21,8 @@ jobs:
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-java@v6
         with:
           java-version: "25.0.2"
@@ -30,16 +40,25 @@ jobs:
       - name: Install UI build dependencies
         run: npm ci --prefix ui-shell
       - name: Run protocol and eight-track adapter contracts
-        run: >-
-          xvfb-run -a ./gradlew --no-daemon test
-          --tests dev.copperbench.headless.NativeApiSessionTest
-          --tests dev.copperbench.mcp.McpHttpServerTest
-          --tests dev.copperbench.core.workspace.mcreator.ElementFieldDiscoveryTest
-          --tests dev.copperbench.generator.VerifiedArtifactExporterTest
-          --tests dev.copperbench.generator.GameTestReportTest
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/reports/m1-protocol
+          xvfb-run -a ./gradlew --no-daemon test \
+            --tests dev.copperbench.headless.NativeApiSessionTest \
+            --tests dev.copperbench.mcp.McpHttpServerTest \
+            --tests dev.copperbench.core.workspace.mcreator.ElementFieldDiscoveryTest \
+            --tests dev.copperbench.generator.VerifiedArtifactExporterTest \
+            --tests dev.copperbench.generator.GameTestReportTest \
+            2>&1 | tee build/reports/m1-protocol/gradle.log
       - name: Test Native and MCP Python clients
         if: always()
-        run: python -m unittest discover -s sdk/python -p 'test_*.py'
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/reports/m1-protocol
+          python -m unittest discover -s sdk/python -p 'test_*.py' \
+            2>&1 | tee build/reports/m1-protocol/python.log
       - name: Install contract validator
         run: npm ci --prefix ui-core
       - name: Validate actual adapter envelopes, examples and defaults
@@ -53,6 +72,7 @@ jobs:
             build/test-results/
             build/reports/tests/
             build/reports/m1-discovery/
+            build/reports/m1-protocol/
           if-no-files-found: warn
 
   delivery:
@@ -61,6 +81,8 @@ jobs:
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-java@v6
         with:
           java-version: "21"
@@ -84,7 +106,12 @@ jobs:
       - name: Install UI build dependencies
         run: npm ci --prefix ui-shell
       - name: Build, break, repair, accept, export and reconnect using the real product
-        run: xvfb-run -a ./gradlew --no-daemon runAgentReadinessDelivery -PnativePythonExecutable=python
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/reports/m1-delivery
+          xvfb-run -a ./gradlew --no-daemon runAgentReadinessDelivery -PnativePythonExecutable=python \
+            2>&1 | tee build/reports/m1-delivery/gradle.log
       - name: Preserve delivery evidence including failures
         if: always()
         uses: actions/upload-artifact@v7

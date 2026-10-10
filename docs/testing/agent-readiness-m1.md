@@ -20,7 +20,22 @@ released package. Prior AR-03 results are regression background.
   export, genuine reconnect and negative gates.
 - [Separate CI jobs](../../.github/workflows/agent-readiness-m1.yml) distinguish
   protocol/adapter evidence from real delivery. They run independently on manual
-  dispatch and do not rename any existing required check.
+  dispatch or PR changes to the gate definition, runner or fixed fixture, and do
+  not rename any existing required check. PR runs check out the exact head commit.
+
+## CI entry follow-up
+
+On 2026-10-11, manual dispatch against `codex/generation-preflight` returned HTTP
+404 because this workflow was not registered on the default branch. The workflow
+now also runs for PR changes to its own definition and dedicated gate inputs,
+allowing it to be verified before merging. General product changes still use the
+existing required/Nightly checks; the M1 manual entry remains available once
+registered. Protocol and delivery are independent jobs, and their Gradle/Python
+console logs are retained alongside structured evidence even on failure. Piped
+logging uses `pipefail`, so a successful log write cannot hide a failed command.
+This trigger correction does not itself establish a successful delivery run;
+hosted results remain separately bound to their tested commit on
+[draft PR #100](https://github.com/Lotulune/Copperbench/pull/100).
 
 ## Current-source results
 
