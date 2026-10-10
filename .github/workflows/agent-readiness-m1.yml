@@ -79,6 +79,8 @@ jobs:
     name: M1 real Fabric delivery
     runs-on: ubuntu-latest
     timeout-minutes: 90
+    env:
+      XDG_STATE_HOME: ${{ runner.temp }}/m1-delivery-state
     steps:
       - uses: actions/checkout@v7
         with:
@@ -121,4 +123,5 @@ jobs:
             build/reports/m1-delivery/
             build/m1-workspaces/*/.copperbench/task-records/
             logs/
+            ${{ runner.temp }}/m1-delivery-state/copperbench/logs/
           if-no-files-found: warn

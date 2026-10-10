@@ -37,6 +37,18 @@ This trigger correction does not itself establish a successful delivery run;
 hosted results remain separately bound to their tested commit on
 [draft PR #100](https://github.com/Lotulune/Copperbench/pull/100).
 
+The first [PR execution](https://github.com/Lotulune/Copperbench/actions/runs/38075315759)
+checked out `a07d8995` with an empty source delta. Protocol/adapter verification
+passed 36 Java cases and all 72 Python SDK tests; schema evidence validation also
+passed. Real delivery failed before its first session or task: the Native pipe
+closed after 0.772 seconds. Its captured launcher omitted the Linux candidate
+property required by `SupportedPlatform`, which the packaged Linux shell already
+sets. The source harness now supplies that same property only on Linux x64. It
+does not broaden platform support or enable the general unsupported-OS override.
+The workflow also retains the product's XDG state logs, which the earlier
+repository-local `logs/` artifact path missed. Original failure artifacts remain
+available; a later run must establish the corrected real-delivery result.
+
 ## Current-source results
 
 | Layer/check | Observed result |

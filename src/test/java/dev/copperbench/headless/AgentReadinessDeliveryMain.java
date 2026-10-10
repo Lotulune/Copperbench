@@ -2,6 +2,8 @@ package dev.copperbench.headless;
 
 import com.google.gson.*;
 import dev.copperbench.generator.WorkspaceExecutionSnapshot;
+import dev.copperbench.platform.RuntimePlatform;
+import dev.copperbench.release.SupportedPlatform;
 import dev.copperbench.testing.McreatorTestRuntime;
 import net.mcreator.generator.setup.WorkspaceGeneratorSetup;
 import net.mcreator.workspace.Workspace;
@@ -46,6 +48,8 @@ public final class AgentReadinessDeliveryMain {
         JsonArray launcher = new JsonArray();
         launcher.add(Path.of(System.getProperty("java.home"), "bin", "java").toString());
         launcher.add("--add-opens=java.base/java.lang=ALL-UNNAMED"); launcher.add("--enable-native-access=ALL-UNNAMED,jcef");
+        if (RuntimePlatform.current().isLinuxX64())
+            launcher.add("-D" + SupportedPlatform.STAGE15_LINUX_CANDIDATE_PROPERTY + "=true");
         launcher.add("-cp"); launcher.add(System.getProperty("java.class.path")); launcher.add("net.mcreator.Launcher");
         config.add("launcher", launcher);
         Path configFile = evidence.resolve("config.json"); Files.writeString(configFile, new GsonBuilder().setPrettyPrinting().create().toJson(config));
