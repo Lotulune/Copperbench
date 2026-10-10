@@ -104,7 +104,7 @@ the controller was detached and stopped.
 The mailbox recorded 44 Bridge API calls, including startup diagnostics.
 Elapsed time includes planner decisions and calibration; no speedup claim is made.
 
-## Windows client boundary
+## Windows client environment and gameplay
 
 The public bootstrap created `C:/M3/workspaces/client-003` and verified deployment
 of the same tested JAR. Task `c2d7a37f-2543-45cb-ac09-8bb94b4f9de1` loaded the mod
@@ -126,14 +126,60 @@ Loaded-module inspection confirmed both Mesa DLL paths. The client later closed
 normally, the product task succeeded, and a real SDK reconnect recovered that
 terminal state. This is a rendering/lifecycle pass, not a player-behavior pass.
 
-Player acceptance remains unverified. Guest Bridge 0.3.0 stopped on
+The earlier attempt stopped before player acceptance. Guest Bridge 0.3.0 stopped on
 `IME_SWITCH_UNCONFIRMED`; its preserve mode also rejected `IME_ACTIVE`. Guest
 layout enumeration found only Chinese HKL `134481924`, with no existing English
 layout. The original long world name was truncated in the form and no world
 creation was submitted. Focus recovery and mode-switch attempts are recorded;
-none are counted as gameplay. The user's agent instructions prohibit installing
-keyboard layouts, so adding a guest-only US keyboard requires a separate explicit
-authorization. No keyboard layout was installed or loaded as a workaround.
+none are counted as gameplay. No keyboard layout was installed in that attempt.
+
+The next run used the same installed product, empty client host and verified
+external JAR. The 960x600 client created the unique world
+`M3 Windows 2026-10-10`: Survival, Peaceful, commands enabled, Superflat,
+seed `20261010`, structures disabled. Preparation commands supplied only
+17 sticks and one dirt. Actual clicks placed dirt in the 2x2 grid and clicked
+the empty output; no item appeared. Replacing dirt with sticks, one normal craft
+and a Shift-click consumed all 17 sticks and produced 16+1 Discovery Items.
+The remaining single item was moved from slot 8 to slot 2.
+
+The original Chinese IME initially acknowledged closed mode, but later rejected
+batch `wr028` with `IME_SWITCH_UNCONFIRMED` before any keys. Input was stopped
+and detached. The user then explicitly authorized a US keyboard **only in the
+test guest**. It was added for guest user `m3admin`, preserving the Chinese
+language entry, and selected for the exact game thread. Subsequent receipts
+reported language ID `1033`, `ime_open=false`, and no further keyboard changes
+or rejections. The bridge guards and host keyboard settings were unchanged.
+
+Actual inventory and UUID queries confirmed slots 0/1/2 contained 16 Discovery
+Items, one dirt and one Discovery Item, with no sticks; username `CopperbenchM3`
+and UUID `7815ca73-e68b-3a9d-ad39-9a880f72891e` matched the fixture. PID `12092`
+saved and fully exited; product task `54881eac-5fa7-4351-8d5f-db3f67f0c4d2`
+succeeded. A new installed-SDK client, PID `6560`, task
+`7513221a-7c3f-4470-b5d2-b0b003f4ac89`, entered the same exact world and restored
+that inventory and UUID. No inventory-changing commands ran in the second
+process. It also saved and closed normally. Both task launchers exited 0,
+real SDK reconnection recovered both successful tasks, and before/after JAR
+identity checks passed.
+
+A Windows-specific menu profile was calibrated from reviewed title, world-list,
+pause and HUD screenshots. Deterministic `enter_world` and `save_and_quit`
+completed with the exact-name and uniqueness guards. Both final close inputs
+reported interrupted because the window disappeared; process exit, saved-world
+logs and successful product tasks independently confirmed normal shutdown.
+Jev was not used. The guest has no OpenAL audio device; audio was outside this
+crafting/persistence acceptance. Rendering remains the documented Mesa scope.
+
+| Windows control phase | Attach-to-detach | Input | Capture / frames | Batches / rejected |
+| --- | --- | --- | --- | --- |
+| Crafting before the IME stop | 364.19 s | 16.72 s | 3.38 s / 19 | 17 / 1 |
+| First client after keyboard selection | 233.35 s | 8.24 s | 2.03 s / 11 | 9 / 0 |
+| New client and persistence | 129.58 s | 6.57 s | 3.99 s / 27 | 9 / 0 |
+
+An initial unfocused attachment lasted 10.86 s and sent no input. The mailbox
+recorded 61 Bridge API calls including startup diagnostics. From the first
+client task start through the second task completion, elapsed time was 1170.59 s;
+this includes startup, decisions, calibration and the detached authorization
+wait. Per-session times exclude that detached wait. No speedup claim is made.
 
 ## Test and guest-infrastructure repairs
 
@@ -147,6 +193,13 @@ All required checks passed on `b3c72a81`
 ([CI](https://github.com/Lotulune/Copperbench/actions/runs/37959130174),
 [candidate smoke](https://github.com/Lotulune/Copperbench/actions/runs/37959130230)).
 The frozen product binaries remain unchanged.
+
+The subsequent replay/documentation head `b0548b17` also passed all three
+[required checks](https://github.com/Lotulune/Copperbench/actions/runs/37971687265)
+and the [Linux candidate smoke](https://github.com/Lotulune/Copperbench/actions/runs/37971687255).
+The latter was still running in the earlier handoff and is now confirmed passed.
+This Windows gameplay continuation changes acceptance records only; the prior
+installed GameTest and normal/injected Nightly runs were not repeated.
 
 Ubuntu lost networking after reboot because Netplan selected NetworkManager
 although that service was absent and systemd-networkd was active. A separate
@@ -168,6 +221,14 @@ The additional Windows client archive SHA-256 is
 it includes the original OpenGL failure, Mesa deployment hashes, loaded modules,
 rendering task and keyboard rejections. Both VMs were saved after normal product
 exit and controller cleanup and have zero assigned RAM.
+
+The additional `windows-gameplay-20261010.zip` has SHA-256
+`911bdef57d39554c7c3c42be2636600b3e71c5abeeb6fdd19777acdbba59881e`.
+Its 282 files include both completed client tasks, actual input/screenshots,
+planner verdicts, keyboard authorization/setup records, calibrated menu profile,
+the verified external JAR and the saved world. Transfer SHA-256 and ZIP CRC
+checks passed. Earlier archives and rejected attempts remain intact. Guest
+controllers and product processes exited before the Windows VM was saved again.
 
 Twenty preregistered autonomous-agent tasks and 5–8 unfamiliar-user trials have
 not run; no participants were contacted. Scripted replay is neither a measured

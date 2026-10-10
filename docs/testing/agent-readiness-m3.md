@@ -1,8 +1,9 @@
 # M3 installed-product acceptance record
 
 Status: resumed at the user's request on **2026-10-10 JST**. Both installed
-platforms now pass packaged GameTest and workspace UI checks; Ubuntu also passes
-actual crafting and full-client persistence. M3 is not complete. See the
+platforms now pass packaged GameTest, workspace UI checks, actual crafting and
+full-client persistence. Windows gameplay used guest Mesa and an explicitly
+authorized guest US keyboard. M3 is not complete. See the
 [resumed results and repairs](agent-readiness-m3-resume-2026-10-10.md) for new
 attempts, task IDs, candidate identity and retained failures. No host desktop
 focus or VMConnect window was used; the VMs run serially.
@@ -179,7 +180,7 @@ results, the memory failure and the explicit interruption. Guest workspaces and
 candidate bytes remain available. The local handoff report identifies their
 exact locations without putting credentials in the repository.
 
-## Remaining acceptance
+## Current acceptance matrix and remaining studies
 
 | Check on corrected candidates | Windows 11 guest | Ubuntu GNOME guest |
 | --- | --- | --- |
@@ -189,7 +190,7 @@ exact locations without putting credentials in the repository.
 | Workspace JCEF edit/save/build | passed, warm copy | passed, warm copy |
 | Five packaged-JAR business tests | 5/5 passed after memory correction | 5/5 passed |
 | Verified export, reconnect and external-edit conflict | passed; conflict tested in a separate corrected replay | passed in full run-006 |
-| Player crafting, 16+1 stacking, save/close/rejoin | client renders with guest Mesa; player input blocked by unconfirmed IME, pending permission for a guest English keyboard | passed with two actual client processes and matching UUID |
+| Player crafting, 16+1 stacking, save/close/rejoin | passed with guest Mesa, authorized guest US keyboard, two actual client processes and matching UUID | passed with two actual client processes and matching UUID |
 
 Keep the guests serial and retain the explicit warm-cache boundary. New player
 trials must use the same verified JAR and preserve preparation/input, player UUID,
