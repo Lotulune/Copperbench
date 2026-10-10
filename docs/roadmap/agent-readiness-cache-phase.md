@@ -38,7 +38,11 @@ passed for `5e40d0b0` (the candidate/required merge tree is identical). The Linu
 package and embedded application hashes are frozen in that record. Windows
 packaging then exposed an unchecked NSIS directory rename; direct extraction,
 partial-cache repair and four real Gradle fixture checks address it separately.
-Installed cold/warm acceptance remains a separate open layer.
+The refreshed `1dbaf930` workflows and Windows installer then passed. An installed
+cold attempt exposed a second application copy embedded in the Windows launcher:
+its runtime digest identified the EXE instead of the shipped JAR. Windows now
+loads the external JAR, with an actual launcher/doctor regression in CI. The
+retained failed attempts do not satisfy cold/warm acceptance, which remains open.
 
 At phase acceptance, run the installed-run provenance Python regressions together
 with CI selection tests; the focused Java cache/pool/process/environment/doctor

@@ -151,7 +151,7 @@ The original failed packaging log and portable bytes remain under
 `build/cache-provenance-phase`; a complete installer build is recorded separately
 when executed. This setup-only correction does not alter the frozen Linux bytes.
 
-## Installed acceptance boundary
+## Initial installed acceptance boundary
 
 No new Minecraft or installed cold/warm replay was run for this source check.
 During the initial source checks, both VMs were saved with zero assigned memory; the host had about
@@ -160,3 +160,87 @@ and no host focus was taken. Actual installed cold/warm acceptance still require
 the new candidate, an existing scoped authorization and the
 [documented paired runs](agent-readiness-m3-task-card.md#cold-and-warm-gradle-cache-runs).
 Old warm-cache player evidence remains bound to its original candidate.
+
+## Refreshed candidate and hosted checks on 1dbaf930
+
+The NSIS repair was built from clean head
+`1dbaf930907500be3b834997d3c29824d5bbea88`. The complete Windows portable ZIP
+and installer build passed in 4m 5s. All three hosted workflows also passed:
+
+- [Required CI](https://github.com/Lotulune/Copperbench/actions/runs/38081040573):
+  Java 1,053 passed / 69 skipped / zero failed; Chromium 277 passed; Python SDK
+  72 per OS; CI selection 21 and installed/study Python 25 passed. The four
+  NSIS setup cases passed on hosted Windows as well as locally.
+- [Independent M1](https://github.com/Lotulune/Copperbench/actions/runs/38081040543):
+  protocol 36 Java / 72 Python; the real delivery retained five business cases,
+  seven negative export refusals, minimum-six/actual-five rejection, actual
+  reconnect and final reopen/export. The downloaded raw evidence was independently
+  audited; delivery elapsed 437.230 seconds. Final Mod JAR SHA-256:
+  `cbeb70e122aaa6d1a833b1e9776056c0f7b63abc7d16c5ac26fefe1eed08dd3e`.
+- [Linux candidate](https://github.com/Lotulune/Copperbench/actions/runs/38081040535):
+  isolated bootstrap, JCEF, Fabric/NeoForge X11 preflight and packaging passed.
+  Its actual merge source, also used by required CI, is
+  `006a4be97a86b8795ceec035e25ed5ff54b15567`. Its Git tree exactly equals the
+  Windows/head tree `e2049068cea956bf83fbf0787e2e4ffcae68556d`.
+
+The Windows installer SHA-256 is
+`d32448e08c71d508620fd205220cbd2488c9f987acd48e54ad19c7742a5291dc`;
+portable ZIP `75da02525519b59b8aa45a9994069ad7c7ac7cea4a80e8c002516b7c5cffb8dd`;
+application JAR `c1302cb5e1c3830e97c97e822ddc51bea785fdef8a8f076a62ace45f82ad4e82`.
+The unsigned private installer completed in the isolated Windows 11 guest with
+exit 0; installed JAR bytes match that frozen identity.
+
+Linux artifact `11680547841` was downloaded and its four asset digests and
+candidate ID recalculated. Candidate ID:
+`sha256:65770e2780a1a5e3ada8bf35b14bddd538b73d84c1784e4eeefecbbeefd4603e`;
+Debian SHA-256 `1c3e623e116a4c7e6cc7f47c6db8f0413479a38248b5baf2026141e5dee6e8f4`;
+portable SHA-256 `4e00a9de833d0ab3a17be29e77cfcaae24fd34d713b3f01f49ba6db490119aad`.
+Independent extraction from both packages yields application JAR
+`757302cef35293a4d74bdc6294dfc792c1b47cc9e23c97c3822554b97faa26f7`.
+The outer GitHub artifact ZIP was not independently rehashed. This candidate has
+not yet been installed in the Ubuntu guest.
+
+## Windows installed failures and launcher correction
+
+Three fresh-cache attempts on the installed `1dbaf930` candidate are retained;
+none qualifies as a successful cold replay or a warm-run prerequisite:
+
+| Attempt | Observed terminal result |
+| --- | --- |
+| `cold-001` | Bootstrap failed downloading official Gradle 9.7.0 with a connection timeout; no business task ran |
+| `mirror-cold-001` | Product mirror mode downloaded Gradle/Fabric dependencies, then failed resolving Minecraft libraries; the daemon log records BMCL DNS failure |
+| `dns-cold-001` | With a temporary resolver in the isolated guest, official-source workspace creation completed, but the running-application identity check rejected the session before business tasks |
+
+The last attempt began at `2026-10-10T20:49:15Z` and failed after 254.896 seconds.
+Its environment reported application SHA-256
+`01b503a712807479c0cd2f9589c748182f680bfdefb568d6ef5147afa921583f`, which is the
+frozen **launcher EXE** hash, rather than the installed application JAR hash.
+Launch4j embedded a second application copy in the EXE and loaded classes from
+that container. The guard correctly refused to treat these different bytes as
+the same application.
+
+Windows packaging now leaves the JAR external, selects `lib/copperbench.jar`
+explicitly before other libraries and uses the matching Launch4j library path.
+The packaged runtime consequently has one application copy to identify.
+[The launcher regression](../../scripts/verify-windows-application-identity.py)
+runs the actual EXE's read-only doctor with local metadata, compares its reported
+digest to the shipped JAR, and checks that metadata/profile/product files remain
+unchanged. Windows CI builds the exported layout and retains its raw response.
+This check does not replace installed cold/warm delivery acceptance.
+
+The local exported Windows build passed in 37 seconds. In the isolated guest,
+the new regression reproduced the old launcher's mismatch, then passed against
+the corrected launcher in a separate product path containing spaces. Its reported
+JAR hash exactly matched `521407f2f186bbe0bc765d0a9980c7ff60b7d311f99aa2c0a5a09f8dddcb2b59`;
+metadata stayed unchanged and no profile was created. That focused fixture used
+the earlier installation's JBR through a guest-local junction; it establishes
+launcher behavior, not installation of a new candidate. Both raw results are
+retained as `windows-launcher-before` / `windows-launcher-after`.
+
+The temporary Windows guest DNS was restored to its original DHCP value at
+`2026-10-10T20:59:08Z`, after all replay processes exited. Both guests were saved
+with zero assigned memory. No host focus, user application or host proxy setting
+was changed. Raw attempts, package identities and DNS restoration remain in
+`build/cache-provenance-phase`. The next installed pair requires a newly frozen
+Windows candidate containing the launcher correction; the three failures above
+are not overwritten or retried under their original IDs.

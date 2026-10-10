@@ -14,6 +14,7 @@ This distribution is based on MCreator `2026.2.33518` at commit `361429609b77203
 
 ## Build and test fixes
 
+- Load the external application JAR from the Windows launcher instead of embedding a second copy, so runtime and package identity checks refer to the same bytes; verify the real launcher through read-only doctor in Windows CI.
 - Extract the Windows NSIS compiler directly into its tool directory and repair missing compiler/plugin files independently; reject incomplete downloads before installer compilation.
 - Normalize copied workspace `gradlew` launchers to LF and mark them owner-executable on POSIX so cold managed dependency preparation can start them before later generation stages.
 - Apply the configured Gradle offline mode to managed build, test and client processes, including Native SDK tasks, without duplicating explicit offline arguments.

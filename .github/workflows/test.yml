@@ -262,6 +262,20 @@ jobs:
           path: build/nsis-setup-regression/
           if-no-files-found: error
           retention-days: 14
+      - name: Build and verify Windows launcher application identity
+        shell: pwsh
+        run: |
+          .\gradlew.bat --no-daemon exportWin64
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python scripts/verify-windows-application-identity.py --product-root build/export/win64 --output build/windows-application-identity
+      - name: Upload Windows application identity evidence
+        uses: actions/upload-artifact@v7
+        if: ${{ always() && needs.changes.result == 'success' && needs.changes.outputs.windows == 'true' }}
+        with:
+          name: windows-application-identity
+          path: build/windows-application-identity/
+          if-no-files-found: warn
+          retention-days: 14
       - name: Verify signed release-source gate
         shell: pwsh
         run: pwsh -NoProfile -File ./scripts/tests/verify-release-source.tests.ps1
