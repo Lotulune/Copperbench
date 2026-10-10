@@ -63,6 +63,29 @@ def inventory():
             for p in sorted(root.rglob("*")) if p.is_file()}
 
 
+def discovery_baseline():
+    # JGit's asynchronous filesystem calibration can outlive the Native ready
+    # message. Let this observed startup work finish before measuring queries;
+    # keep every file in the before/after discovery comparison.
+    started = time.monotonic()
+    observed_probes = set()
+    while True:
+        probes = {path.relative_to(root).as_posix()
+                  for path in (root / ".mcreator/localHistory").glob(".probe-*")}
+        observed_probes.update(probes)
+        elapsed = time.monotonic() - started
+        receipt = {"status": "waiting" if probes else "ready", "elapsedSeconds": round(elapsed, 3),
+                   "observedProbes": sorted(observed_probes), "remainingProbes": sorted(probes)}
+        if not probes:
+            save("discovery-startup.json", receipt)
+            return inventory()
+        if elapsed >= 30:
+            receipt["status"] = "timed_out"
+            save("discovery-startup.json", receipt)
+            raise AssertionError("Local history filesystem probes did not finish before discovery")
+        time.sleep(0.1)
+
+
 def terminal(workspace, label, accepted, expected="succeeded", code=None):
     assert accepted["status"] == "accepted", accepted
     task_id = accepted["task"]["id"]
@@ -136,7 +159,7 @@ try:
     assert correct_code.count("return (count + 15) / 16;") == 1
     broken_code = correct_code.replace("return (count + 15) / 16;", "return missing_m1_symbol;")
     with open_workspace() as workspace:
-        before = inventory()
+        before = discovery_baseline()
         save("discovery-files-before.json", before)
         item = workspace.discover_field_contract("item")
         recipe = workspace.discover_field_contract("recipe")

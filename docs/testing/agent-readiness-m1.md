@@ -63,6 +63,17 @@ The gate now saves both inventories and the exact changed-path list before
 checking the same equality condition. Protocol validation passed independently;
 the failed delivery remains a failed result.
 
+The instrumented [run on `cef39491`](https://github.com/Lotulune/Copperbench/actions/runs/38076700126)
+identified one changed path: a temporary `.mcreator/localHistory/.probe-<UUID>`
+file disappeared; all other inventoried file hashes matched. JGit's asynchronous
+filesystem calibration was still active after Native readiness. The gate now
+waits up to 30 seconds for those observed startup probes to finish before the
+first discovery query, recording their paths, elapsed time and any timeout in
+`discovery-startup.json`. It keeps every file in both discovery inventories and
+does not retry a discovery query, ignore history paths or weaken the equality
+assertion. This separates startup activity from query effects; a probe that
+persists still fails the gate.
+
 ## Current-source results
 
 | Layer/check | Observed result |
