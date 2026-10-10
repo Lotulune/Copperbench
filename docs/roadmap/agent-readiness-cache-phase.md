@@ -41,8 +41,15 @@ partial-cache repair and four real Gradle fixture checks address it separately.
 The refreshed `1dbaf930` workflows and Windows installer then passed. An installed
 cold attempt exposed a second application copy embedded in the Windows launcher:
 its runtime digest identified the EXE instead of the shipped JAR. Windows now
-loads the external JAR, with an actual launcher/doctor regression in CI. The
-retained failed attempts do not satisfy cold/warm acceptance, which remains open.
+loads the external JAR, with an actual launcher/doctor regression in CI.
+
+Phase acceptance is complete on frozen product `298846dc` (Linux merge tree
+`6349bb78`). Required CI, independent M1 and Linux candidate gates passed. Actual
+installed cold and warm runs passed on Windows and Ubuntu, with five raw business
+cases, current-input export/reconnect and source protection in each run. The
+verification record binds the package/application digests and empty/retained cache
+manifests. Failed default-network attempts remain recorded; the successful pairs
+used temporary guest resolvers that were restored before saving both guests.
 
 At phase acceptance, run the installed-run provenance Python regressions together
 with CI selection tests; the focused Java cache/pool/process/environment/doctor
@@ -51,5 +58,5 @@ checks. Real installed cold/warm replays remain a distinct acceptance layer and
 must retain the actual cache manifests, product hashes and task results. Passing
 the source probes does not fill those cells.
 
-The owner-ended independent-agent study stays closed. This phase does not create
-participants, reopen the remaining six agent attempts or control host focus.
+The owner-ended independent-agent study stays closed. Unfamiliar-user research
+remains deferred without participants. Host focus was not used.

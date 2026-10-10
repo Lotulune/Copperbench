@@ -244,3 +244,111 @@ was changed. Raw attempts, package identities and DNS restoration remain in
 `build/cache-provenance-phase`. The next installed pair requires a newly frozen
 Windows candidate containing the launcher correction; the three failures above
 are not overwritten or retried under their original IDs.
+
+## Corrected candidate acceptance on 298846dc
+
+Product source `298846dccbec03d02c94735ad69ecce70128b0a1` contains the Windows
+launcher correction. The complete Windows ZIP/installer build passed in 5m 27s,
+with clean source at both ends. The later documentation changes do not alter
+these frozen candidate identities.
+
+| Candidate | Frozen identity |
+| --- | --- |
+| Windows installer | `8857dcfe81b040fb75fc427aab2830f4ccc08496335aab97a41d40394eb2942c` |
+| Windows portable ZIP | `0a10841e3daf1cf1eafee390cf4b0a2d1ce72e01f3391ec966c4a6352358fcd7` |
+| Windows application JAR | `521407f2f186bbe0bc765d0a9980c7ff60b7d311f99aa2c0a5a09f8dddcb2b59` |
+| Windows launcher EXE | `1f3ad01ce78f05521bf93b61515d8dc75b120708edf4c9553a95ad37a91a18ec` |
+| Linux candidate ID | `sha256:d88fae48871b01041986c6d6b70effaf27bc3f12c8ba47baae33132048aeac67` |
+| Linux Debian package | `6cf69e089528b0f0e66b2015cdca30576d31b373fc3a27781b473e8cd464c4f4` |
+| Linux portable archive | `d7ea510174e1a60ffa45d9a7ed98b42dd0b81189efa6a0dace3d5d42d832e1bc` |
+| Linux application JAR, independently extracted from both formats | `be7fdd77e395564d90b0d6674cb39197f22dc202146cc1776913aa43037cea8d` |
+
+All three workflows passed:
+[required CI](https://github.com/Lotulune/Copperbench/actions/runs/38086281375),
+[M1](https://github.com/Lotulune/Copperbench/actions/runs/38086281382) and
+[Linux candidate](https://github.com/Lotulune/Copperbench/actions/runs/38086281377).
+Required CI reports Java 1,053 passed / 69 skipped / zero failed, Chromium 277,
+SDK 72 per OS, CI selection 21 and installed/study 25. The four NSIS cases and
+new actual Windows launcher identity check passed; the latter's raw doctor
+response was downloaded and checked. M1's raw five business cases, seven refusal
+receipts, real reconnect and final export/reopen passed independent review;
+delivery elapsed 431.003 seconds.
+
+The Linux candidate and required CI used merge source
+`6349bb783a04369e51d9e973d8037de85af61f70`, whose tree exactly matches the product
+head (`f636dd2afc70a08fa029ac2481904caff80d3b4b`). Linux artifact `11681829037`
+passed all four asset hashes and candidate-ID checks. The outer artifact ZIP
+digest is GitHub-advertised only. Both candidates were installed in their
+respective isolated guests with installer exit 0 and matching application bytes.
+Neither candidate was published or promoted.
+
+### Windows installed cold/warm pair
+
+| Replay | Measured cache condition | Elapsed | Business acceptance |
+| --- | --- | --- | --- |
+| `cold-001` | Empty before launch; 1,151 retained payloads afterward | 477.907 s | 5 passed, 0 failed, 0 skipped |
+| `warm-001` | All 1,151 cold payload identities matched before launch | 281.511 s | 5 passed, 0 failed, 0 skipped |
+
+Each run completed discovery, initial build, intentional compile failure and
+located diagnostic, explicit repair, packaged-JAR tests, current-input export,
+actual process reconnect/reopened export and refusal to overwrite an external
+source edit. Three distinct SDK sessions per replay reported the frozen JAR
+digest, the selected Gradle home and disabled external-distribution reuse.
+Independent review checked original evidence hashes, all seven task terminal
+states, exported JAR/XML bytes, the five named XML cases, preserved source bytes
+and the cold/warm manifests. Both exported Mod JARs have SHA-256
+`cbeb70e122aaa6d1a833b1e9776056c0f7b63abc7d16c5ac26fefe1eed08dd3e`.
+
+The pair used a separate product profile, 1,024 MiB Gradle heap, official sources
+and offline/mirror settings disabled. Temporary DNS `223.5.5.5` in the Windows
+guest was restored to the original DHCP value at `2026-10-10T21:32:40Z` after
+the replay processes exited. Thus these are measured cold/warm results under
+the recorded resolver configuration, not proof of the unmodified default
+network or offline builds. Windows was saved before Ubuntu resumed.
+
+Evidence roots are `build/cache-provenance-phase/windows-298846dc-cold-001` and
+`windows-298846dc-warm-001`, each including `independent-audit.json` and copied
+export/report/source bytes. Installation transport interruption and the stale
+numeric-interface preflight error are retained separately; neither started a
+delivery replay. The actual pair was not restarted or relabeled after a failure.
+
+### Ubuntu installed cold/warm pair
+
+The first default-resolver `cold-001` attempt failed after 65.097 seconds while
+downloading the official Gradle distribution (`Read timed out`, 60-second download
+timeout). It ran no business task and remains preserved in
+`build/cache-provenance-phase/linux-298846dc-default`. A fresh cache and new
+workspace/output IDs were then used with temporary guest DNS `223.5.5.5`:
+
+| Replay | Measured cache condition | Elapsed | Business acceptance |
+| --- | --- | --- | --- |
+| `dns-cold-001` | Empty before launch; 1,135 retained payloads afterward | 306.052 s | 5 passed, 0 failed, 0 skipped |
+| `dns-warm-001` | All 1,135 cold payload identities matched before launch | 132.368 s | 5 passed, 0 failed, 0 skipped |
+
+Both runs passed the same full installed-product task and independent raw-evidence
+audit as Windows: compile fault/repair, current packaged-JAR acceptance, export,
+real reconnect, and preservation of the external source edit. Their exported
+Mod JAR digest is the same `cbeb70e1…e08dd3e` reported above. The bundled SDK
+SHA-256 is `4dbce6a46f9bb40a5230d44b80a94952f4206e3155c833dd14b50ceb35c134f2`
+on both platforms; the sealed harness and fixture files were unchanged.
+
+Ubuntu used a new product profile with a 1,024 MiB Gradle heap, official sources,
+offline/mirror settings disabled and a real four-hour approval limited to
+create/edit/build/test in the test directory. The older study grant was not
+reused. The initial operator preflight's Windows path-separator error was fixed
+before the first replay started; its original stderr remains available. The
+existing isolated X11 display served the product bootstrap environment. These
+scripted API checks did not launch a Minecraft client or measure agent success.
+
+Raw runs, original evidence manifests, copied exported JAR/XML and protected
+source bytes are under `build/cache-provenance-phase/linux-298846dc-dns`.
+The original Linux resolver was restored at `2026-10-10T21:51:11Z`; its persistent
+network configuration was unchanged. Cleanup confirmed zero owned product/replay
+processes and saved both VMs with zero assigned memory. Host focus, host proxy
+settings, user applications and original product profiles were untouched.
+
+This closes the installed cache provenance development phase for the frozen
+`298846dc` candidates and recorded environments. The default-network failures
+remain failures; previous player/desktop evidence retains its earlier candidate
+identities. The owner-ended agent study stays closed, and unfamiliar-user
+research remains deferred until participants are available.

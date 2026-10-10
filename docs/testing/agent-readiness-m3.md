@@ -1,12 +1,14 @@
 # M3 installed-product acceptance record
 
-Status: resumed at the user's request on **2026-10-10 JST**. Both installed
-platforms now pass packaged GameTest, workspace UI checks, actual crafting and
-full-client persistence. Windows gameplay used guest Mesa and an explicitly
-authorized guest US keyboard. M3 is not complete. See the
-[resumed results and repairs](agent-readiness-m3-resume-2026-10-10.md) for new
-attempts, task IDs, candidate identity and retained failures. No host desktop
-focus or VMConnect window was used; the VMs run serially.
+Status updated **2026-10-11 JST**. The earlier candidates passed packaged
+GameTest, workspace UI, actual crafting and full-client persistence in the
+[resumed results](agent-readiness-m3-resume-2026-10-10.md). Windows gameplay used
+guest Mesa and an explicitly authorized guest US keyboard. The later
+[cache provenance phase](installed-cache-provenance-2026-10-11.md#corrected-candidate-acceptance-on-298846dc)
+completed installed cold/warm delivery on both platforms with its own frozen
+candidates. These layers retain their separate identities and failed attempts.
+The unfamiliar-user trial remains deferred, so M3's research scope is incomplete.
+No host focus or VMConnect was used; the guests ran serially and are now saved.
 The [fixed task card](agent-readiness-m3-task-card.md) and
 [installed replay](../../scripts/verify-agent-readiness-installed.py) remain the
 entry points for resuming this [PRD milestone](../roadmap/agent-readiness-prd-2026-10-09.md).
@@ -180,7 +182,10 @@ results, the memory failure and the explicit interruption. Guest workspaces and
 candidate bytes remain available. The local handoff report identifies their
 exact locations without putting credentials in the repository.
 
-## Current acceptance matrix and remaining studies
+## Earlier desktop/player acceptance and remaining studies
+
+The following desktop/player matrix retains the frozen `37fcb5b4` candidate
+identities recorded above and in the resumed record.
 
 | Check on corrected candidates | Windows 11 guest | Ubuntu GNOME guest |
 | --- | --- | --- |
@@ -197,6 +202,13 @@ trials must use the same verified JAR and preserve preparation/input, player UUI
 normal exit and restored-inventory evidence. See the
 [packaged-client procedure](../ai/client-acceptance.md) and
 [resumed record](agent-readiness-m3-resume-2026-10-10.md).
+
+The subsequent [installed cache provenance phase](installed-cache-provenance-2026-10-11.md#corrected-candidate-acceptance-on-298846dc)
+completed measured cold/warm API delivery on the `298846dc` Windows candidate and
+its identical Linux source tree. All four runs passed five business cases,
+current-input export/reconnect and source protection. Raw cache manifests and
+binary identities are retained separately; temporary guest resolvers were
+restored. The earlier desktop/player rows above keep their original scope.
 
 The subsequent [independent-agent study](agent-readiness-m3-study-2026-10-10.md)
 closed early at the user's request: fourteen of twenty registered attempts
