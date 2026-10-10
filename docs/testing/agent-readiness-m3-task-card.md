@@ -51,6 +51,10 @@ participant IDs and this same card. The denominator includes every registered
 attempt that started. Do not infer a >=80% success rate from a repeated script.
 The scripted check below is a separate installed-product regression.
 
+Use the [study recorder](agent-readiness-m3-study.md) to freeze the complete
+registration, record independent execution IDs and rescues, retain terminal
+evidence, and calculate the started-attempt denominator without dropping failures.
+
 No participants have been recruited or contacted by this card. Record actual
 results only; neither the script nor an agent role-playing a participant supplies
 unfamiliar-user evidence.

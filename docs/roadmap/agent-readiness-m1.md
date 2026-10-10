@@ -52,6 +52,11 @@ client save/restart/reopen are unverified and remain separate from the completed
 M1 server gate. This exception records the user's direction, not a passing
 client result. The protocol/delivery CI definitions have not been dispatched.
 
+Subsequent [M3 installed acceptance](../testing/agent-readiness-m3-resume-2026-10-10.md)
+completed actual crafting, full-client exit and new-process persistence on
+Windows and Ubuntu in isolated VMs. That later evidence closes the player
+follow-up without changing what was observed during the original M1 run.
+
 M2 environment/Nightly/wrapper work and M3 installed-package/external-user work
 remain separate milestones. No EULA acceptance, authorization issuance, commit,
 push, merge or release is implied by this ledger.

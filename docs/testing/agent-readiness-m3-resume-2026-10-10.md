@@ -201,6 +201,11 @@ The latter was still running in the earlier handoff and is now confirmed passed.
 This Windows gameplay continuation changes acceptance records only; the prior
 installed GameTest and normal/injected Nightly runs were not repeated.
 
+The resulting record commit `16db7e52` subsequently passed all
+[required checks](https://github.com/Lotulune/Copperbench/actions/runs/38021217075)
+and [candidate smoke](https://github.com/Lotulune/Copperbench/actions/runs/38021217092).
+These results belong to that commit, separately from later study-tool changes.
+
 Ubuntu lost networking after reboot because Netplan selected NetworkManager
 although that service was absent and systemd-networkd was active. A separate
 local Netplan override selects networkd. Normal shutdown/reboot confirmed DHCP
@@ -234,3 +239,7 @@ Twenty preregistered autonomous-agent tasks and 5–8 unfamiliar-user trials hav
 not run; no participants were contacted. Scripted replay is neither a measured
 agent success rate nor a user study. Linux still has `formalSupportClaim=false`.
 The PR remains draft; no merge or release is included.
+
+The subsequent [independent-agent study](agent-readiness-m3-study-2026-10-10.md)
+records the user's authorization, frozen 20-attempt registration and execution.
+The unfamiliar-user study remains pending because no participants are available.

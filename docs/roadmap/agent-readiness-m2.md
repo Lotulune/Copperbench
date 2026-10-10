@@ -65,6 +65,8 @@ claiming an installed-product replay.
 
 The three existing PR required-check names remain unchanged. The authorized
 changes and runs are linked from [draft PR #100](https://github.com/Lotulune/Copperbench/pull/100).
-No merge or publication is included. M1 player crafting/save-reopen remains unverified; M3 installed
-package and unfamiliar-user work stays in the full PRD scope. Any game input
+No merge or publication is included. Subsequent
+[M3 installed acceptance](../testing/agent-readiness-m3-resume-2026-10-10.md)
+completed Windows and Ubuntu package and player checks. Independent agent
+trials and unfamiliar-user work remain in the full PRD scope. Any game input
 must use the isolated test VM, not the user's foreground desktop.
