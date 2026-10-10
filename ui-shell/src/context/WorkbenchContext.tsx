@@ -340,7 +340,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const expected = projected.expectedUi;
     if (expected?.announcement) {
       const match = projected.diagnostics.find((d) => d.code === expected.announcement);
-      setAnnouncement(match ? t(match.message) : expected.announcement);
+      setAnnouncement(match ? t(match.message, match.code) : expected.announcement);
     } else {
       setAnnouncement(null);
     }
@@ -388,7 +388,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       });
       if (res.status !== 'succeeded' || !res.data) {
         const diagnostic = res.diagnostics[0];
-        throw new Error(diagnostic ? t(diagnostic.message) : tr("资产批量导入预览失败。"));
+        throw new Error(diagnostic ? t(diagnostic.message, diagnostic.code) : tr("资产批量导入预览失败。"));
       }
       return res.data as AssetImportBatchPreview;
     },
@@ -425,7 +425,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       });
       if (res.status !== 'succeeded' || !res.data) {
         const diagnostic = res.diagnostics[0];
-        throw new Error(diagnostic ? t(diagnostic.message) : tr("资产移动预览失败。"));
+        throw new Error(diagnostic ? t(diagnostic.message, diagnostic.code) : tr("资产移动预览失败。"));
       }
       return res.data as AssetMovePreview;
     },
@@ -1162,7 +1162,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       });
       if (res.status !== 'succeeded' || !res.data) {
         const diagnostic = res.diagnostics[0];
-        throw new Error(diagnostic ? t(diagnostic.message) : tr("资产导入预览失败。"));
+        throw new Error(diagnostic ? t(diagnostic.message, diagnostic.code) : tr("资产导入预览失败。"));
       }
       return res.data as AssetImportPreview;
     },
@@ -1246,7 +1246,7 @@ export const WorkbenchProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     });
     if (res.status !== 'succeeded' || !res.data) {
       const diagnostic = res.diagnostics[0];
-      throw new Error(diagnostic ? t(diagnostic.message) : tr("生成器目录无法加载。"));
+      throw new Error(diagnostic ? t(diagnostic.message, diagnostic.code) : tr("生成器目录无法加载。"));
     }
     return res.data as NewWorkspaceGeneratorCatalog;
     },

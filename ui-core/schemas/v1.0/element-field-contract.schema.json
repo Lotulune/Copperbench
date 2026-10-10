@@ -1,0 +1,194 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ui-core:1.0:element-field-contract",
+  "type": "object",
+  "required": [
+    "elementType",
+    "generatorId",
+    "contractVersion",
+    "availability",
+    "complete",
+    "reasonCode",
+    "fields",
+    "alternatives"
+  ],
+  "properties": {
+    "elementType": {
+      "type": "string",
+      "minLength": 1
+    },
+    "generatorId": {
+      "type": "string"
+    },
+    "contractVersion": {
+      "const": "1"
+    },
+    "availability": {
+      "enum": [
+        "available",
+        "not_exposed",
+        "unsupported"
+      ]
+    },
+    "complete": {
+      "type": "boolean"
+    },
+    "reasonCode": {
+      "type": "string"
+    },
+    "fields": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "path",
+          "compatibilityPath",
+          "inputSchema",
+          "requiredOnCreate",
+          "generatorSupport"
+        ],
+        "properties": {
+          "path": {
+            "type": "string",
+            "pattern": "^/[^/]+$"
+          },
+          "compatibilityPath": {
+            "type": "string",
+            "pattern": "^/fields/"
+          },
+          "inputSchema": {
+            "type": "object"
+          },
+          "requiredOnCreate": {
+            "type": "boolean"
+          },
+          "generatorSupport": {
+            "enum": [
+              "declared",
+              "excluded",
+              "product",
+              "product_metadata_backend_dependent"
+            ]
+          }
+        }
+      }
+    },
+    "alternatives": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "operation",
+          "requires"
+        ],
+        "properties": {
+          "operation": {
+            "type": "string"
+          },
+          "requires": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "minimalExample": {
+      "type": "object",
+      "required": [
+        "elementType",
+        "name",
+        "initialValues"
+      ],
+      "properties": {
+        "elementType": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "initialValues": {
+          "type": "object"
+        }
+      }
+    },
+    "generatorRestrictions": {
+      "type": "object",
+      "required": [
+        "source",
+        "includedFields",
+        "excludedFields",
+        "scope"
+      ],
+      "properties": {
+        "source": {
+          "const": "active_generator_definition"
+        },
+        "includedFields": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "string"
+          }
+        },
+        "excludedFields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "scope": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "availability": {
+            "const": "available"
+          }
+        },
+        "required": [
+          "availability"
+        ]
+      },
+      "then": {
+        "required": [
+          "minimalExample",
+          "generatorRestrictions",
+          "createNameSchema"
+        ],
+        "properties": {
+          "minimalExample": {},
+          "generatorRestrictions": {},
+          "createNameSchema": {"type": "object"},
+          "complete": {
+            "const": true
+          },
+          "fields": {
+            "type": "array",
+            "minItems": 1
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "complete": {
+            "const": false
+          },
+          "fields": {
+            "type": "array",
+            "maxItems": 0
+          }
+        }
+      }
+    }
+  ]
+}

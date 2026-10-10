@@ -23,6 +23,7 @@ public final class VerifiedArtifactExporter {
             throw new VerificationException("VERIFIED_ARTIFACT_UNAVAILABLE: A passed packaged-JAR record with artifact and report hashes is required.");
         Path artifact = checkedFile(verification, "artifactPath", "artifactSha256");
         Path report = checkedFile(verification, "reportPath", "reportSha256");
+        validateAcceptance(verification, report);
         boolean current = verification.has("sourceSnapshot") && verification.getAsJsonObject("sourceSnapshot").get("sha256")
                 .getAsString().equals(WorkspaceExecutionSnapshot.fingerprint(root, () -> false));
         if (!current && !allowHistorical) throw new VerificationException("VERIFICATION_INPUT_CHANGED: Explicitly select historical export or rerun acceptance.");
@@ -58,6 +59,30 @@ public final class VerifiedArtifactExporter {
         JsonObject result = receipt.deepCopy();
         result.addProperty("exportDirectory", destination.toString());
         return result;
+    }
+
+    /** Revalidate raw cases at the delivery boundary, including recovered task records. */
+    private static void validateAcceptance(JsonObject record, Path report) throws VerificationException {
+        try {
+            if (!"packaged_jar".equals(record.get("mode").getAsString())
+                    || record.get("processExitCode").getAsBigDecimal().signum() != 0)
+                throw new IllegalArgumentException("A successful packaged-JAR process is required.");
+            int minimum = record.get("minimumTests").getAsBigDecimal().intValueExact();
+            if (minimum < 1 || minimum > 10_000) throw new IllegalArgumentException("Invalid minimumTests.");
+            if (!record.getAsJsonObject("sourceSnapshot").get("sha256").getAsString().matches("[a-f0-9]{64}"))
+                throw new IllegalArgumentException("Original input identity is required, including for historical export.");
+            JsonObject parsed = GameTestReport.read(report, java.time.Instant.parse(record.get("startedAt").getAsString()), minimum);
+            if (!"passed".equals(parsed.get("status").getAsString()))
+                throw new VerificationException("VERIFIED_ACCEPTANCE_INVALID: " + parsed.get("reasonCode").getAsString());
+            for (String key : new String[]{"reportSha256", "discovered", "executed", "passed", "failed", "skipped", "frameworkTests", "acceptanceExecuted", "cases"}) {
+                if (!parsed.get(key).equals(record.get(key)))
+                    throw new VerificationException("VERIFIED_ACCEPTANCE_INVALID: Report differs from recorded " + key + ".");
+            }
+        } catch (VerificationException exception) {
+            throw exception;
+        } catch (RuntimeException exception) {
+            throw new VerificationException("VERIFIED_ACCEPTANCE_INVALID: The acceptance record is incomplete or malformed.");
+        }
     }
 
     private static Path checkedFile(JsonObject record, String pathKey, String hashKey) throws IOException {

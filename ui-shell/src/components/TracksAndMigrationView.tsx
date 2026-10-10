@@ -138,7 +138,7 @@ export const TracksAndMigrationView: React.FC = () => {
             <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: '7px' }}>
               <div style={{ fontSize: '12px', color: 'var(--text-main)', lineHeight: 1.5 }}>
                 <code style={{ marginRight: '8px', fontSize: '10px', color: 'var(--text-sub)' }}>{diagnostic.code}</code>
-                {t(diagnostic.message)}
+                {t(diagnostic.message, diagnostic.code)}
                 {diagnostic.message.args?.failureId != null && (
                   <code style={{ marginLeft: '8px', fontSize: '10px', color: 'var(--text-sub)', overflowWrap: 'anywhere' }}>
                     {tr("错误编号：")}{String(diagnostic.message.args.failureId)}

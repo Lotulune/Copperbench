@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+import math
+import re
 from http.client import IncompleteRead
 from pathlib import Path
 import urllib.error
@@ -31,6 +33,38 @@ def __dir__():
                                    'utils', 'types', 'app', 'use_workspace', 'api_help'})
 
 
+def _render_message(message: Any, default: str) -> str:
+    """Literal, single-pass Core formatting; parity is checked against shared fixtures.
+
+    Kept in this file so the MCP client remains independently distributable.
+    """
+    if isinstance(message, str):
+        return message or default
+    if not isinstance(message, dict):
+        return default
+    fallback = message.get("fallback")
+    if not isinstance(fallback, str) or not fallback:
+        fallback = default
+    arguments = message.get("args")
+    if not isinstance(arguments, dict):
+        return fallback
+
+    def substitute(match: re.Match[str]) -> str:
+        name = match.group(1)
+        if name not in arguments:
+            return match.group(0)
+        value = arguments[name]
+        if isinstance(value, str):
+            return value
+        if value is None or type(value) in (bool, int):
+            return json.dumps(value)
+        if type(value) is float and math.isfinite(value):
+            return json.dumps(value)
+        return match.group(0)
+
+    return re.sub(r"\{([A-Za-z_][A-Za-z0-9_]*)\}", substitute, fallback)
+
+
 class CopperbenchError(RuntimeError):
     def __init__(self, message: str, code: str | None = None, details: Any = None):
         super().__init__(message)
@@ -50,7 +84,7 @@ TASK_AUTHORIZED_TOOLS = {
 # remain single-attempt until its effects have been reviewed. Keep the same
 # allowlist in the TypeScript client; shared transport fixtures exercise both.
 RETRY_SAFE_TOOLS = frozenset({
-    "get_workspace", "get_workspace_environment", "get_workspace_health", "get_task",
+    "get_workspace", "get_workspace_environment", "get_workspace_doctor", "preview_generation", "get_mod_element_field_contract", "get_field_reference_options", "get_workspace_health", "get_task",
     "list_mod_elements", "read_mod_element", "get_procedure", "list_workspace_registries",
     "get_workspace_references", "list_recovery_points", "list_task_authorizations",
 })
@@ -91,6 +125,22 @@ class CopperbenchClient:
 
     def get_workspace_health(self) -> dict[str, Any]:
         return self.call_tool("get_workspace_health", {})
+
+    def preview_generation(self) -> dict[str, Any]:
+        """Read source safety; ready is an observation, not build acceptance or a write permit."""
+        return self.call_tool("preview_generation", {})
+
+    def doctor(self) -> dict[str, Any]:
+        """Read local environment findings; no download, task or authorization is started."""
+        return self.call_tool("get_workspace_doctor", {})
+
+    def get_mod_element_field_contract(self, element_type: str) -> dict[str, Any]:
+        """Discover creation metadata without creating an element."""
+        return self.call_tool("get_mod_element_field_contract", {"elementType": element_type})
+
+    def get_field_reference_options(self, element_type: str, mapping_source: str, **options: Any) -> dict[str, Any]:
+        return self.call_tool("get_field_reference_options",
+                              {"elementType": element_type, "mappingSource": mapping_source, **options})
 
     def list_mod_elements(self, **arguments: Any) -> Iterator[dict[str, Any]]:
         cursor: str | None = None
@@ -209,8 +259,12 @@ class CopperbenchClient:
         try:
             value = json.loads(text)
         except json.JSONDecodeError as error:
+            if result.get("isError") is True:
+                raise CopperbenchError(text or "MCP_TOOL_RESULT_INVALID", "MCP_TOOL_RESULT_INVALID", result) from error
             raise CopperbenchError(f"Tool {name} returned invalid JSON content", "MCP_TOOL_RESULT_INVALID", result) from error
         if not isinstance(value, dict):
+            if result.get("isError") is True:
+                raise CopperbenchError(text or "MCP_TOOL_RESULT_INVALID", "MCP_TOOL_RESULT_INVALID", result)
             raise CopperbenchError(f"Tool {name} returned a non-object result", "MCP_TOOL_RESULT_INVALID", result)
         status = value.get("status")
         if result.get("isError") is True or status in ("rejected", "failed") or (
@@ -223,7 +277,10 @@ class CopperbenchClient:
             code = value.get("code")
             if not isinstance(code, str) or not code:
                 code = diagnostic.get("code", "MCP_TOOL_ERROR")
-            raise CopperbenchError(f"Tool {name} failed ({code})", code, value)
+            if value.get("conflict"):
+                code = "REVISION_CONFLICT"
+            message = diagnostic.get("message", value.get("message"))
+            raise CopperbenchError(_render_message(message, code), code, value)
         if not isinstance(status, str) or status not in SUCCESS_STATUSES:
             raise CopperbenchError(f"Tool {name} returned no recognized result status", "MCP_TOOL_RESULT_INVALID", value)
         return value

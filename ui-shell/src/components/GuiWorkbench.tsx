@@ -19,7 +19,7 @@ import {
   ModElementEditorProjection,
   ModElementSummary
 } from '../types/contract';
-import { t } from '../i18n';
+import { diagnosticMessages, renderUiMessage, type UiMessage } from '../i18n';
 
 interface GuiWorkbenchProps {
   element: ModElementSummary;
@@ -290,7 +290,7 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
   const [assets, setAssets] = useState<AssetProjection | null>(null);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
-  const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const [saveMessage, setSaveMessage] = useState<UiMessage | null>(null);
   const [impact, setImpact] = useState<string[]>([]);
   const [newComponentType, setNewComponentType] = useState<'button' | 'label' | 'image' | 'inputslot' | 'outputslot'>('button');
   const requestToken = useRef(0);
@@ -421,7 +421,7 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
         setBase(clone(values));
         setSaveMessage(tr("GUI 更改已保存。"));
       } else {
-        setSaveMessage(result.diagnostics.map((diagnostic) => t(diagnostic.message)).join('；') || tr("保存被 Core 拒绝。"));
+        setSaveMessage(diagnosticMessages(result.diagnostics, tr("保存被 Core 拒绝。")));
       }
     } catch {
       setSaveMessage(tr("保存失败，工作区未发生更改。"));
@@ -459,7 +459,7 @@ export const GuiWorkbench: React.FC<GuiWorkbenchProps> = ({ element, onClose }) 
             {tr("生成影响：")}{impact.join(', ')}
           </span>
         )}
-        {saveMessage && <span style={{ fontSize: 10, color: 'var(--text-sub)' }}>{saveMessage}</span>}
+        {saveMessage && <span style={{ fontSize: 10, color: 'var(--text-sub)' }}>{renderUiMessage(saveMessage)}</span>}
         <button
           type="button"
           className="btn-primary"

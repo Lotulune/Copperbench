@@ -29,11 +29,14 @@ import net.mcreator.ui.validation.ValidationResult;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.AWTEventListener;
+import java.awt.event.WindowEvent;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
@@ -102,32 +105,47 @@ public class UITestUtil {
 	}
 
 	public static void waitUntilWindowIsOpen(Window master, Runnable openTask) throws Throwable {
-		int frames_start = Window.getWindows().length;
-
+		// Retain identities: disposed windows may be collected while a new one opens.
+		Set<Window> existing = new HashSet<>(Arrays.asList(Window.getWindows()));
+		CountDownLatch opened = new CountDownLatch(1);
+		CountDownLatch openerFinished = new CountDownLatch(1);
 		AtomicReference<Throwable> throwableAtomic = new AtomicReference<>(null);
+		AWTEventListener listener = event -> {
+			if (event instanceof WindowEvent windowEvent && windowEvent.getID() == WindowEvent.WINDOW_OPENED
+					&& !existing.contains(windowEvent.getWindow()) && windowEvent.getWindow() != master)
+				opened.countDown();
+		};
+		Toolkit toolkit = Toolkit.getDefaultToolkit();
+		toolkit.addAWTEventListener(listener, AWTEvent.WINDOW_EVENT_MASK);
 
 		SwingUtilities.invokeLater(() -> {
 			try {
 				openTask.run();
 			} catch (Throwable t) {
 				throwableAtomic.set(t);
+				opened.countDown();
+			} finally {
+				openerFinished.countDown();
 			}
 		});
 
-		long start = System.currentTimeMillis();
-		while (Window.getWindows().length == frames_start) {
-			//noinspection BusyWait
-			Thread.sleep(50);
-
-			if (System.currentTimeMillis() - start > WINDOW_OPEN_TIMEOUT.toMillis())
-				throw new TimeoutException();
-
-			if (throwableAtomic.get() != null)
-				throw throwableAtomic.get();
+		try {
+			if (!opened.await(WINDOW_OPEN_TIMEOUT.toMillis(), TimeUnit.MILLISECONDS))
+				throw new TimeoutException("No new window was shown within " + WINDOW_OPEN_TIMEOUT);
+		} finally {
+			toolkit.removeAWTEventListener(listener);
+			// Modal openers need an EDT close before their setVisible call can return.
+			FutureTask<Void> cleanup = new FutureTask<>(() -> {
+				Arrays.stream(Window.getWindows()).filter(w -> w != master && !existing.contains(w))
+						.forEach(Window::dispose);
+				return null;
+			});
+			SwingUtilities.invokeLater(cleanup);
+			cleanup.get(WINDOW_OPEN_TIMEOUT.toMillis(), TimeUnit.MILLISECONDS);
 		}
 
-		Arrays.stream(Window.getWindows()).filter(w -> w != master).forEach(Window::dispose);
-
+		if (!openerFinished.await(WINDOW_OPEN_TIMEOUT.toMillis(), TimeUnit.MILLISECONDS))
+			throw new TimeoutException("Window opener did not finish after closing its windows");
 		if (throwableAtomic.get() != null)
 			throw throwableAtomic.get();
 	}

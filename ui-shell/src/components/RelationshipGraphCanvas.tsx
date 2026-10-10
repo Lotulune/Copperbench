@@ -473,7 +473,7 @@ export const RelationshipGraphCanvas: React.FC<RelationshipGraphCanvasProps> = (
           </>}
         </>}
         {displayedDiagnostics.length > 0 && <ul className="relationship-diagnostic-list">{displayedDiagnostics.slice(currentDiagnosticPage * 20, (currentDiagnosticPage + 1) * 20).map((diagnostic, index) =>
-          <li key={`${diagnostic.code}-${index}`} data-severity={diagnostic.severity}><strong>{diagnostic.code}</strong><span>{t(diagnostic.message)}</span>
+          <li key={`${diagnostic.code}-${index}`} data-severity={diagnostic.severity}><strong>{diagnostic.code}</strong><span>{t(diagnostic.message, diagnostic.code)}</span>
             {diagnostic.path && <code>{diagnostic.path}</code>}</li>)}</ul>}
         {diagnosticPageCount > 1 && <div className="relationship-page-control">
           <button type="button" aria-label={uiText('上一页诊断', 'Previous diagnostics')} disabled={currentDiagnosticPage === 0}

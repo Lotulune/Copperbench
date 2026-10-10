@@ -24,6 +24,61 @@ async function schema(name) {
   return JSON.parse(await readFile(new URL(`../schemas/v1.0/${name}.schema.json`, import.meta.url), 'utf8'));
 }
 
+test('creation discovery distinguishes availability and validates read-only paging', async () => {
+  const { ajv } = await createValidator();
+  const query = ajv.getSchema('urn:ui-core:1.0:query');
+  assert.equal(query(operationRequest('query', 'get_mod_element_field_contract', { elementType: 'item' })), true);
+  assert.equal(query(operationRequest('query', 'get_mod_element_field_contract', { elementType: 'item', createProbe: true })), false);
+  assert.equal(query(operationRequest('query', 'get_field_reference_options', { elementType: 'recipe', mappingSource: 'blocksitems', limit: 200 })), true);
+  assert.equal(query(operationRequest('query', 'get_field_reference_options', { elementType: 'recipe', mappingSource: 'blocksitems', limit: 201 })), false);
+  const validate = ajv.getSchema('urn:ui-core:1.0:element-field-contract');
+  const data = { elementType: 'item', generatorId: 'fabric-1.21.1', contractVersion: '1',
+    availability: 'not_exposed', complete: false, reasonCode: 'FIELD_CONTRACT_UNAVAILABLE', fields: [], alternatives: [] };
+  assert.equal(validate(data), true, JSON.stringify(validate.errors));
+  data.availability = 'unsupported';
+  assert.equal(validate(data), true, JSON.stringify(validate.errors));
+  data.complete = true;
+  assert.equal(validate(data), false);
+  data.availability = 'available';
+  assert.equal(validate(data), false, 'available requires usable fields, restrictions and an example');
+  data.fields = [{ path: '/stackSize', compatibilityPath: '/fields/stackSize', inputSchema: { type: 'integer' }, requiredOnCreate: false, generatorSupport: 'declared' }];
+  data.minimalExample = { elementType: 'item', name: 'Item', initialValues: {} };
+  data.generatorRestrictions = { source: 'active_generator_definition', includedFields: null, excludedFields: [], scope: 'template coverage' };
+  data.createNameSchema = { type: 'string', pattern: '^[a-z][a-z0-9_]{0,63}$' };
+  assert.equal(validate(data), true, JSON.stringify(validate.errors));
+});
+
+test('generation preflight has no mutation payload and cannot claim ready with unknown input or conflicts', async () => {
+  const { ajv } = await createValidator();
+  const query = ajv.getSchema('urn:ui-core:1.0:query');
+  assert.equal(query(operationRequest('query', 'preview_generation', {})), true, JSON.stringify(query.errors));
+  for (const payload of [{ takeOwnership: true }, { force: true }, { expectedRevision: 7 }])
+    assert.equal(query(operationRequest('query', 'preview_generation', payload)), false);
+  const validate = ajv.getSchema('urn:ui-core:1.0:query-result');
+  const data = { contractVersion: '1', scope: 'generation_source_safety', revision: 7,
+    generator: { id: 'fabric-1.21.1' }, status: 'ready', reasonCode: null,
+    inputFingerprint: 'a'.repeat(64), fingerprintScope: 'workspace_inputs', managedPaths: ['src/main/java/Entry.java'],
+    managedPathCount: 1, managedPathsTruncated: false, conflicts: [], conflictCount: 0, conflictsTruncated: false,
+    dependenciesRequired: true, executionRechecksInputs: true, nextSteps: ['inspect_source', 'keep_native_workflow', 'review_migration'] };
+  const result = { messageType: 'query_result', schemaVersion: '1.0', requestId: operationProbeId,
+    workspaceId: operationProbeWorkspace, operation: 'preview_generation', status: 'succeeded', revision: 7, data, diagnostics: [] };
+  assert.equal(validate(result), true, JSON.stringify(validate.errors));
+  data.inputFingerprint = null;
+  assert.equal(validate(result), false);
+  data.status = 'unknown'; data.reasonCode = 'GENERATION_PREFLIGHT_UNAVAILABLE';
+  assert.equal(validate(result), true, JSON.stringify(validate.errors));
+  data.status = 'conflicted'; data.reasonCode = null;
+  data.conflictCount = 1; data.conflicts = [{ relativePath: 'src/main/java/Entry.java', reasonCode: 'SOURCE_CHANGED',
+    expectedOwnership: 'generated', observedOwnership: 'unknown' }];
+  assert.equal(validate(result), true, JSON.stringify(validate.errors));
+  data.conflicts[0].relativePath = '../outside.java';
+  assert.equal(validate(result), false);
+  data.conflicts[0].relativePath = null;
+  assert.equal(validate(result), true, JSON.stringify(validate.errors));
+  data.conflicts = Array.from({ length: 101 }, () => data.conflicts[0]);
+  assert.equal(validate(result), false, 'Conflict lists must remain bounded');
+});
+
 test('wire operations cover Java and UI callers, with matching request and response categories', async () => {
   const [command, query, java, typescript, { ajv }] = await Promise.all([
     schema('command'), schema('query'),
@@ -825,4 +880,30 @@ test('task summaries carry bounded verification and source identity including pe
   assert.equal(validate(task), false);
   task.verification.executed = 1; task.verification.artifactSha256 = 'unbound';
   assert.equal(validate(task), false);
+});
+
+test('doctor query is read-only and observations cannot imply a network probe or authorization', async () => {
+  const { ajv } = await createValidator();
+  const query = ajv.getSchema('urn:ui-core:1.0:query');
+  assert.equal(query(operationRequest('query', 'get_workspace_doctor', {})), true);
+  for (const payload of [{ probeNetwork: true }, { approve: true }, { download: false }]) {
+    assert.equal(query(operationRequest('query', 'get_workspace_doctor', payload)), false);
+  }
+  const validate = ajv.getSchema('urn:ui-core:1.0:workspace-doctor');
+  const report = { schemaVersion:'1.0', scope:'local_observation', readOnly:true, networkProbed:false,
+    generatorId:'fabric-1.21.1', workspaceRoot:'/tmp/workspace', processWorkingDirectory:'/opt/copperbench',
+    application:{}, execution:{}, status:'unknown', capabilities:{ coreSchemaVersion:'1.0',
+      doctorSchemaVersion:'1.0', queries:['get_workspace_doctor'], implicitNetworkProbe:false, implicitTaskAuthorization:false },
+    findings: ['product_java','workspace_java','workspace_directory','backend','wrapper','cache','network','renderer'].map(id =>
+      ({ id, status:'unknown', code:'NOT_OBSERVED', message:'No evidence', nextStep:'Inspect the declared environment', details:{} })) };
+  assert.equal(validate(report), true, JSON.stringify(validate.errors));
+  for (const value of ['missing','unsupported','blocked','available']) {
+    report.findings[0].status = value;
+    assert.equal(validate(report), true, JSON.stringify(validate.errors));
+  }
+  report.networkProbed = true;
+  assert.equal(validate(report), false);
+  report.networkProbed = false;
+  report.findings[0].status = 'assumed';
+  assert.equal(validate(report), false);
 });

@@ -352,6 +352,8 @@ class McpHttpServerTest {
 			assertEquals(200, tools.statusCode());
 			assertTrue(tools.body().contains("get_workspace"));
 			assertTrue(tools.body().contains("get_workspace_environment"));
+			assertTrue(tools.body().contains("get_workspace_doctor"));
+			assertTrue(tools.body().contains("preview_generation"));
 			assertTrue(tools.body().contains("list_new_workspace_generators"));
 			assertTrue(tools.body().contains("create_workspace"));
 			assertTrue(tools.body().contains("preview_mod_element_change"));
@@ -412,12 +414,39 @@ class McpHttpServerTest {
 					"{\"jsonrpc\":\"2.0\",\"id\":36,\"method\":\"tools/call\",\"params\":{\"name\":\"get_workspace_environment\",\"arguments\":{}}}",
 					token.value(), sessionId, "http://localhost:5173");
 			JsonObject environment = toolResult(environmentResult);
+			var doctor = toolResult(post(endpoint,
+					"{\"jsonrpc\":\"2.0\",\"id\":86,\"method\":\"tools/call\",\"params\":{\"name\":\"get_workspace_doctor\",\"arguments\":{}}}",
+					token.value(), sessionId, "http://localhost:5173"));
+			assertEquals("succeeded", doctor.get("status").getAsString());
+			assertTrue(doctor.getAsJsonObject("data").get("readOnly").getAsBoolean());
+			assertFalse(doctor.getAsJsonObject("data").get("networkProbed").getAsBoolean());
+			assertEquals(environment.get("revision"), doctor.get("revision"));
+			var forbiddenProbeResponse = post(endpoint,
+					"{\"jsonrpc\":\"2.0\",\"id\":87,\"method\":\"tools/call\",\"params\":{\"name\":\"get_workspace_doctor\",\"arguments\":{\"probeNetwork\":true}}}",
+					token.value(), sessionId, "http://localhost:5173");
+			String forbiddenData = forbiddenProbeResponse.body().lines().filter(line -> line.startsWith("data: "))
+					.findFirst().orElseThrow().substring(6);
+			JsonObject forbiddenProbe = JsonParser.parseString(forbiddenData).getAsJsonObject().getAsJsonObject("result");
+			assertTrue(forbiddenProbe.get("isError").getAsBoolean());
+			assertTrue(forbiddenProbe.toString().contains("probeNetwork"));
+			var afterProbe = toolResult(post(endpoint,
+					"{\"jsonrpc\":\"2.0\",\"id\":88,\"method\":\"tools/call\",\"params\":{\"name\":\"get_workspace_doctor\",\"arguments\":{}}}",
+					token.value(), sessionId, "http://localhost:5173"));
+			assertEquals(doctor.get("revision"), afterProbe.get("revision"));
 			assertEquals("succeeded", environment.get("status").getAsString());
 			assertTrue(environment.getAsJsonObject("data").has("execution"));
 			assertTrue(environment.getAsJsonObject("data").getAsJsonObject("agentWorkflow")
 					.get("nativeFilesAuthoritative").getAsBoolean());
 			assertTrue(environment.getAsJsonObject("data").getAsJsonObject("agentWorkflow")
 					.get("structuredElementsOptional").getAsBoolean());
+
+			var generationPreview = toolResult(post(endpoint,
+					"{\"jsonrpc\":\"2.0\",\"id\":37,\"method\":\"tools/call\",\"params\":{\"name\":\"preview_generation\",\"arguments\":{}}}",
+					token.value(), sessionId, "http://localhost:5173"));
+			assertEquals("succeeded", generationPreview.get("status").getAsString());
+			assertEquals("unknown", generationPreview.getAsJsonObject("data").get("status").getAsString());
+			assertEquals("GENERATION_PREFLIGHT_UNAVAILABLE", generationPreview.getAsJsonObject("data").get("reasonCode").getAsString());
+			assertTrue(generationPreview.getAsJsonObject("data").get("inputFingerprint").isJsonNull());
 
 			HttpResponse<String> generatorsResult = post(endpoint,
 					"{\"jsonrpc\":\"2.0\",\"id\":33,\"method\":\"tools/call\",\"params\":{\"name\":\"list_new_workspace_generators\",\"arguments\":{}}}",

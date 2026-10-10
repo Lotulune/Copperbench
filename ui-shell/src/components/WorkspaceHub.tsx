@@ -70,7 +70,7 @@ export const WorkspaceHub = () => {
           <button type="button" className="overview-link" data-testid="open-failed-task-logs-btn" onClick={() => setIsTaskDrawerOpen(true)}>{uiText('查看任务日志', 'View task logs')}<ArrowRight size={13} aria-hidden="true" /></button>
         </div>}
         {topLevelDiagnostics.map((diagnostic, index) => <div className="overview-alert-row" key={`${diagnostic.code}-${index}`}><AlertTriangle size={15} aria-hidden="true" />
-          <span>{t(diagnostic.message)}</span><div className="overview-inline-actions">{diagnostic.actions.map(action => <button type="button" className="overview-link" key={action.id}
+          <span>{t(diagnostic.message, diagnostic.code)}</span><div className="overview-inline-actions">{diagnostic.actions.map(action => <button type="button" className="overview-link" key={action.id}
             data-testid={`diag-action-${action.id}`} onClick={() => runDiagnosticAction(action, diagnostic)}>{t(action.label)}</button>)}</div>
         </div>)}
       </section>}
@@ -120,7 +120,7 @@ export const WorkspaceHub = () => {
               { id: 'recovery', label: uiText('本地恢复', 'Recovery'), value: workspaceHealth.recovery.available ? uiText(`${workspaceHealth.recovery.recoveryPointCount} 个恢复点`, englishCount(workspaceHealth.recovery.recoveryPointCount, 'recovery point')) : uiText('不可用', 'Unavailable'), action: () => setActiveView('history') }
             ].map(item => <button type="button" key={item.id} data-testid={`workspace-health-${item.id}`} onClick={item.action}><span>{item.label}</span><strong>{item.value}</strong><ArrowRight size={12} aria-hidden="true" /></button>)}</div>
             <button type="button" className="overview-health-risk" data-testid="workspace-health-risk" onClick={() => setActiveView('tracks')}>{uiText('版本与变更', 'Versions & changes')}<span>{uiText(`${workspaceHealth.risk.loaderMigration.availableTargetCount} 个迁移目标 · ${workspaceHealth.risk.aiBatchChanges.highImpactOperationThreshold}+ 操作标记高影响`, `${englishCount(workspaceHealth.risk.loaderMigration.availableTargetCount, 'migration target')} · ${workspaceHealth.risk.aiBatchChanges.highImpactOperationThreshold}+ operations flagged as high impact`)}</span><ArrowRight size={12} aria-hidden="true" /></button>
-            {!!workspaceHealth.diagnostics.items?.length && <ul className="overview-diagnostic-list">{workspaceHealth.diagnostics.items.map((diagnostic, index) => <li key={`${diagnostic.code}-${index}`}><span>{t(diagnostic.message)}</span>
+            {!!workspaceHealth.diagnostics.items?.length && <ul className="overview-diagnostic-list">{workspaceHealth.diagnostics.items.map((diagnostic, index) => <li key={`${diagnostic.code}-${index}`}><span>{t(diagnostic.message, diagnostic.code)}</span>
               <div className="overview-inline-actions">{diagnostic.actions.map(action => <button type="button" className="overview-link" key={`${action.id}-${action.target}`} onClick={() => runDiagnosticAction(action, diagnostic)}>{t(action.label)}</button>)}</div>
             </li>)}</ul>}
           </div>

@@ -16,6 +16,23 @@ class RecordingClient(CopperbenchClient):
 
 
 class RefactorWrapperTest(unittest.TestCase):
+    def test_doctor_uses_only_the_read_tool(self) -> None:
+        client = RecordingClient()
+        client.doctor()
+        self.assertEqual([("get_workspace_doctor", {})], client.calls)
+
+    def test_discovery_wrappers_do_not_mutate(self) -> None:
+        client = RecordingClient()
+        client.get_mod_element_field_contract("recipe")
+        client.get_field_reference_options("recipe", "blocksitems", search="STICK", limit=1)
+        self.assertEqual([("get_mod_element_field_contract", {"elementType": "recipe"}),
+                         ("get_field_reference_options", {"elementType": "recipe", "mappingSource": "blocksitems", "search": "STICK", "limit": 1})], client.calls)
+
+    def test_generation_preview_uses_only_the_read_tool(self) -> None:
+        client = RecordingClient()
+        client.preview_generation()
+        self.assertEqual([("preview_generation", {})], client.calls)
+
     def test_refactor_wrappers_forward_to_matching_mcp_tools(self) -> None:
         client = RecordingClient()
 

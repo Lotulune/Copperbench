@@ -321,6 +321,60 @@ class EngineTests(unittest.TestCase):
         self.assert_code("INVALID_VERIFICATION", lambda: self.engine.record_verification(
             self.sid, "Expected", "passed", ["../../outside.png"]))
 
+    def test_verification_equivalent_session_paths_have_identical_evidence(self):
+        root = self.engine.evidence.root
+        frame = self.frame["image"]["relative_path"]
+        (root / "nested").mkdir()
+        expected = [{"path": ref, "sha256_at_recording": sha256(root / ref)}
+                    for ref in ("actions.jsonl", frame)]
+        references = [
+            ["actions.jsonl", frame],
+            [str((root / "actions.jsonl").resolve()), str((root / frame).resolve())],
+            ["./actions.jsonl", "./" + frame],
+            ["nested/../actions.jsonl", "nested/../" + frame],
+        ]
+        for refs in references:
+            with self.subTest(refs=refs):
+                record = self.engine.record_verification(self.sid, "Expected change", "passed", refs)
+                self.assertEqual("passed", record["verdict"])
+                self.assertEqual(expected, record["evidence"])
+                self.assertEqual("external_planner", record["assessment_source"])
+                self.assertFalse(record["bridge_independently_verified"])
+
+    def test_verification_nested_actions_file_is_not_the_session_log(self):
+        root = self.engine.evidence.root
+        nested = root / "nested"
+        nested.mkdir()
+        (nested / "actions.jsonl").write_text("{}\n", encoding="utf-8")
+        record = self.engine.record_verification(self.sid, "Expected change", "passed",
+            [str((nested / "actions.jsonl").resolve()), self.frame["image"]["relative_path"]])
+        self.assertEqual("unverified", record["verdict"])
+        self.assertEqual("passed", record["requested_verdict"])
+
+    def test_verification_existing_other_session_files_are_rejected(self):
+        outside = self.root / "other-session"
+        outside.mkdir()
+        (outside / "actions.jsonl").write_text("{}\n", encoding="utf-8")
+        frame = self.frame["image"]["relative_path"]
+        (outside / "frame.png").write_bytes((self.engine.evidence.root / frame).read_bytes())
+        for refs in ([str(outside / "actions.jsonl"), str(outside / "frame.png")],
+                     ["../other-session/actions.jsonl", "../other-session/frame.png"]):
+            with self.subTest(refs=refs):
+                self.assert_code("INVALID_VERIFICATION", lambda: self.engine.record_verification(
+                    self.sid, "Expected change", "passed", refs))
+
+    def test_verification_symlink_escape_is_rejected(self):
+        root = self.engine.evidence.root
+        outside = self.root / "outside.png"
+        outside.write_bytes((root / self.frame["image"]["relative_path"]).read_bytes())
+        link = root / "linked.png"
+        try:
+            link.symlink_to(outside)
+        except (OSError, NotImplementedError) as error:
+            self.skipTest(f"Symlinks unavailable: {error}")
+        self.assert_code("INVALID_VERIFICATION", lambda: self.engine.record_verification(
+            self.sid, "Expected change", "passed", ["actions.jsonl", "linked.png"]))
+
     def test_detach_manifest_and_artifact_change(self):
         (self.root / "mods").mkdir()
         (self.root / "mods/new.jar").write_bytes(b"changed")

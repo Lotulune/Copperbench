@@ -12,6 +12,26 @@ Python 3.11+。`Workspace` 直接调用产品 Core，可连接桌面当前工作
 
 ## 安装与打开工作区
 
+接入前只读检查可运行 `copperbench headless --workspace <path.mcreator> doctor`；它不打开写入会话、不下载依赖，也不创建授权。已有 Native 或 MCP 会话可调用 `workspace.doctor()` / `client.doctor()`。报告区分产品 Java 25、工作区 JDK、wrapper、缓存和未知的网络/渲染状态；查询成功不代表构建或游戏通过。报告结构见随包 [doctor schema](../../ui-core/schemas/v1.0/workspace-doctor.schema.json)。
+
+item/recipe 创建前可调用 `workspace.discover_field_contract("item")`：
+`availability` 为 `available`、`not_exposed` 或 `unsupported`，只有
+`complete=True` 才提供完整字段与最小创建示例。例如：
+
+```python
+contract = workspace.discover_field_contract("item")
+if contract["complete"]:
+    created = workspace.create_mod_element(**contract["minimalExample"])
+options = workspace.field_reference_options(
+    "recipe", "blocksitems", search="Items.STICK", limit=20)
+```
+
+旧 Core 未公开新查询时返回 `not_exposed`；原 `field_contract()` 的格式和
+缺失契约错误保持兼容。查询不创建探针元素。字段默认值、嵌套输入形状、条件要求、
+引用入口和生成器限制来自 Core；最小示例进入八轨道的保存、生成与重开验证。
+真实构建与可信导出的固定样本位于源码仓库
+`examples/agent-readiness/m1-delivery/README.md`。
+
 在包含本功能的 Copperbench 构建中，SDK 位于 `sdk/python`。也可使用源码中的同名目录：
 
 ```powershell
@@ -98,6 +118,29 @@ workspace.command(
 
 `query()` / `command()` 的操作名和 payload 字段沿用 UI-Core 契约，未承诺未实现的任意内部 Java 方法。常用便捷方法包括元素创建/更新、过程更新、生成/构建/校验、客户端/服务器、GameTest 和任务查询。完整公开操作名和参数见本页开头链接的随包 Core 命令与查询 schema，无需读取产品实现。
 
+## 生成前只读预检
+
+```python
+preview = workspace.preview_generation()
+data = preview["data"]
+print(data["status"], data["revision"], data["inputFingerprint"])
+for conflict in data["conflicts"]:
+    print(conflict["relativePath"], conflict["reasonCode"], conflict["observedOwnership"])
+```
+
+`preview_generation()` 查询源文件归属与生成计划，不写文件、不启动 Gradle、不下载依赖，也不申请或颁发授权。Python MCP 客户端提供同名方法；TypeScript MCP 客户端提供 `previewGeneration()`。直接 Core/MCP 调用均使用 `preview_generation` 和空参数。
+
+`data.status` 为 `ready`、`conflicted` 或 `unknown`。`ready` 仅表示本次生成源码保护检查通过；构建、Java 编译、GameTest 和游戏验收仍须分别执行。实际生成会重新检查 revision、路径、归属和逐文件指纹，预检结果不能作为写锁或接管文件的凭证。已有手写源码可继续使用原生路线，迁移归属需要另行明确评审。
+
+`managedPaths` 最多返回 200 项，`conflicts` 最多返回 100 项；总数与 `managedPathsTruncated` / `conflictsTruncated` 明确标记省略。每个冲突保留工作区相对路径、`reasonCode`、预期归属和观察到的归属；越界路径返回 `relativePath=null`，链接路径仅用于定位，不能据此绕过文件读取保护。元数据损坏、无法建立完整计划或无法取得输入摘要时，`reasonCode` 给出原因，不推断为原生或受管工程。
+
+`inputFingerprint` 使用任务快照相同的工作区输入摘要规则，排除缓存、构建输出和运行目录；无法安全读取时允许为 `null`。依赖准备是否需要执行由 `dependenciesRequired` 单独表示。旧 Core 不支持该查询时保留其错误码，不回退到创建探针元素或执行生成。源码冲突任务还在原始诊断的 `message.args.conflicts` 中提供结构化详情，原日志仍保留。
+
+当前真实适配器验证范围记录在源码仓库
+`docs/testing/generation-preflight-2026-10-09.md`。
+
+`ELEMENT_CONVERSION_REQUIRED` 表示现有读取器需要转换元素格式；预检会返回 `unknown`，保留原文件，等待旧工程格式升级的明确评审。判断复用 Core 的转换注册表，无需转换的旧格式仍可读取。未来格式、类型不匹配或损坏定义也不会通过预检触发自动保存。
+
 ## 版本、授权与错误
 
 每次修改默认使用当前会话最后观察到的 revision，也可显式传 `expected_revision=...`。冲突不会自动重试或覆盖；先检查 `NativeApiError.details`，重新读取状态，再决定后续操作。一次网络或进程故障不触发自动重放写操作。
@@ -132,6 +175,10 @@ except NativeApiError as error:
 ## MCP 兼容
 
 现有 `CopperbenchClient.from_workspace(path, token=...)` 保持原行为，仍连接桌面 MCP 服务。选择 `Workspace.open` 不会改变 MCP 的认证、权限或协议，也不会自动启动桌面应用。
+
+SDK 显示诊断中的原始原因，并保留 `error.code` 与未经改写的 `error.details`。
+若 MCP 在进入 Core 前以纯文本拒绝参数，错误码仍为 `MCP_TOOL_RESULT_INVALID`，
+显示文本保留服务器的具体原因，`details` 保留完整工具响应；不会自动重放调用。
 
 ## 开发验证
 

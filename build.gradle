@@ -425,6 +425,16 @@ tasks.register('runNativePythonSmoke', JavaExec.class) {
     args providers.gradleProperty('nativePythonExecutable').getOrElse('python')
 }
 
+tasks.register('runAgentReadinessDelivery', JavaExec.class) {
+    group = 'verification'
+    description = 'Runs the M1 real Core/Native SDK build, repair, packaged-JAR acceptance, export and reconnect gate.'
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED', '--enable-native-access=ALL-UNNAMED,jcef'
+    mainClass.set('dev.copperbench.headless.AgentReadinessDeliveryMain')
+    args providers.gradleProperty('nativePythonExecutable').getOrElse('python')
+}
+
 apply from: 'platform/setup.gradle'
 tasks.register('writeLinuxCandidateManifest', JavaExec) {
     group = 'export'

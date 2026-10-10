@@ -54,6 +54,14 @@ public class Launcher {
 		boolean machineReadable = headless || bootstrap;
 		PrintWriter machineOutput = machineReadable ? new PrintWriter(
 				new OutputStreamWriter(new FileOutputStream(FileDescriptor.out), StandardCharsets.UTF_8), true) : null;
+		// Pre-session doctor must precede log directories, preferences, IPC probes and workspace bootstrap.
+		if (headless && args.length >= 4 && "doctor".equals(args[3])) {
+			System.setProperty("java.awt.headless", "true");
+			System.setProperty("log4j.configurationFile", Launcher.class.getResource("/doctor-log4j2.xml").toExternalForm());
+			System.setOut(System.err);
+			System.exit(HeadlessProductLauncher.run(Arrays.copyOfRange(args, 1, args.length), machineOutput));
+			return;
+		}
 		// Keep the native API pipe free of incidental stdout from plugins and runtime initialization.
 		if (headless && args.length == 4 && "api".equals(args[3]))
 			System.setOut(System.err);

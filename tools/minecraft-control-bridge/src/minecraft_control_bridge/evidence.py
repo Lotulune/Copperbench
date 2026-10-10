@@ -41,17 +41,24 @@ class Evidence:
         if verdict not in {"passed", "failed", "unverified"} or author != "planner":
             raise BridgeError("INVALID_VERIFICATION", "Only planner-authored passed/failed/unverified records are accepted")
         if not isinstance(evidence_refs, list) or len(evidence_refs) > 64:
-            raise BridgeError("INVALID_VERIFICATION", "Provide at most 64 relative evidence paths")
+            raise BridgeError("INVALID_VERIFICATION", "Provide at most 64 session evidence paths")
+        session_root = self.root.resolve()
+        validated_refs = []
         for ref in evidence_refs:
-            if not isinstance(ref, str) or not (self.root / ref).resolve().is_relative_to(self.root.resolve()):
+            if not isinstance(ref, str):
                 raise BridgeError("INVALID_VERIFICATION", "Evidence must belong to this session")
-            if not (self.root / ref).is_file():
+            path = (session_root / ref).resolve()
+            if not path.is_relative_to(session_root):
+                raise BridgeError("INVALID_VERIFICATION", "Evidence must belong to this session")
+            if not path.is_file():
                 raise BridgeError("INVALID_VERIFICATION", "Evidence file does not exist")
+            validated_refs.append((path.relative_to(session_root).as_posix(), path))
         # A tool receipt or just a screenshot does not establish gameplay behavior.
-        backed = "actions.jsonl" in evidence_refs and any(ref.endswith(".png") for ref in evidence_refs)
+        backed = any(ref == "actions.jsonl" for ref, _ in validated_refs) and any(
+            path.suffix == ".png" for _, path in validated_refs)
         record = {"at": utc(), "author": author, "expectation": expectation,
                   "verdict": verdict if backed else "unverified", "requested_verdict": verdict,
-                  "evidence": [{"path": ref, "sha256_at_recording": sha256(self.root / ref)} for ref in evidence_refs],
+                  "evidence": [{"path": ref, "sha256_at_recording": sha256(path)} for ref, path in validated_refs],
                   "assessment_source": "external_planner", "bridge_independently_verified": False}
         self.verifications.append(record)
         self.write_json("verifications.json", self.verifications)

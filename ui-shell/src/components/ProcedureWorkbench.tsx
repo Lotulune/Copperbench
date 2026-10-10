@@ -35,7 +35,7 @@ import {
   RegistryRenamePreview,
   WorkspacePlan
 } from '../types/contract';
-import { t, uiText } from '../i18n';
+import { t, uiText, diagnosticMessages, renderUiMessage, type UiMessage } from '../i18n';
 
 let blocksRegistered = false;
 const blocklyChineseMessages = Object.fromEntries(
@@ -406,7 +406,7 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
   const [semanticRefactorPlan, setSemanticRefactorPlan] = useState<WorkspacePlan | null>(null);
   const [refactorBusy, setRefactorBusy] = useState(false);
   const [panel, setPanel] = useState<ProcedurePanel>('source');
-  const [message, setMessage] = useState<string | null>(null);
+  const [message, setMessage] = useState<UiMessage | null>(null);
   const [canvasError, setCanvasError] = useState<string | null>(null);
   const previewSequenceRef = useRef(0);
 
@@ -660,7 +660,7 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
     try {
       const result = await applyWorkspacePlan(semanticRefactorPlan);
       if (result.status !== 'committed') {
-        setMessage(result.diagnostics[0] ? t(result.diagnostics[0].message) : tr("资源批量替换计划应用失败。"));
+        setMessage(diagnosticMessages(result.diagnostics.slice(0, 1), tr("资源批量替换计划应用失败。")));
         return;
       }
       const recovery = result.recoveryPointId ? tr("，恢复点 {0}", [result.recoveryPointId]) : '';
@@ -731,7 +731,7 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
     try {
       const result = await applyWorkspacePlan(semanticRefactorPlan);
       if (result.status !== 'committed') {
-        setMessage(result.diagnostics[0] ? t(result.diagnostics[0].message) : tr("逻辑提取计划应用失败。"));
+        setMessage(diagnosticMessages(result.diagnostics.slice(0, 1), tr("逻辑提取计划应用失败。")));
         return;
       }
       const recovery = result.recoveryPointId ? tr("，恢复点 {0}", [result.recoveryPointId]) : '';
@@ -797,7 +797,7 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
       const target = projection?.symbols.availableProcedures.find((candidate) => candidate.id === callRefactorDraft.targetProcedureId);
       const result = await applyWorkspacePlan(semanticRefactorPlan);
       if (result.status !== 'committed') {
-        setMessage(result.diagnostics[0] ? t(result.diagnostics[0].message) : tr("批量调用替换计划应用失败。"));
+        setMessage(diagnosticMessages(result.diagnostics.slice(0, 1), tr("批量调用替换计划应用失败。")));
         return;
       }
       const recovery = result.recoveryPointId ? tr("，恢复点 {0}", [result.recoveryPointId]) : '';
@@ -869,7 +869,7 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
     try {
       const result = await applyWorkspacePlan(refactorPlan);
       if (result.status !== 'committed') {
-        setMessage(result.diagnostics[0] ? t(result.diagnostics[0].message) : tr("变量重命名计划应用失败。"));
+        setMessage(diagnosticMessages(result.diagnostics.slice(0, 1), tr("变量重命名计划应用失败。")));
         return;
       }
       const recovery = result.recoveryPointId ? tr("，恢复点 {0}", [result.recoveryPointId]) : '';
@@ -900,7 +900,7 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
     try {
       const result = await updateProcedure(element.id, edits);
       if (result.status !== 'committed') {
-        setMessage(result.diagnostics[0] ? t(result.diagnostics[0].message) : tr("过程保存失败。"));
+        setMessage(diagnosticMessages(result.diagnostics.slice(0, 1), tr("过程保存失败。")));
         return;
       }
       setDirty(false);
@@ -1005,7 +1005,7 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
         </div>
       </header>
 
-      {message && <div className="procedure-message" role="status">{message}</div>}
+      {message && <div className="procedure-message" role="status">{renderUiMessage(message)}</div>}
       {canvasError && <div className="procedure-message" role="alert" data-testid="procedure-render-error">
         {uiText('此过程暂时无法在可视化画布中打开，原始内容未修改。可查看源码和诊断，或返回元素列表。',
           'This procedure cannot be opened on the visual canvas. Its contents are unchanged. Review the source and diagnostics, or return to the element list.')}
@@ -1157,7 +1157,7 @@ export const ProcedureWorkbench: React.FC<ProcedureWorkbenchProps> = ({ element,
             <div id="procedure-panel-diagnostics" role="tabpanel" aria-labelledby="procedure-tab-diagnostics" className="procedure-panel-content procedure-list-content">
               {diagnostics.length === 0 ? <p>{tr("当前图没有诊断。")}</p> : diagnostics.map((diagnostic) => (
                 <div className={`procedure-diagnostic ${diagnostic.severity}`} key={`${diagnostic.code}-${diagnostic.path}`}>
-                  <strong>{diagnostic.code}</strong><span>{t(diagnostic.message)}</span><code>{diagnostic.path}</code>
+                  <strong>{diagnostic.code}</strong><span>{t(diagnostic.message, diagnostic.code)}</span><code>{diagnostic.path}</code>
                   {diagnosticNodeId(diagnostic) && (
                     <button type="button" onClick={() => selectNode(diagnosticNodeId(diagnostic)!)}>
                       <LocateFixed size={12} aria-hidden="true" />{tr("定位节点")}</button>

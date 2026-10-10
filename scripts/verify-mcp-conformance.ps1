@@ -32,6 +32,26 @@ $gradleProcess = $null
 $proxyProcess = $null
 $npxCommand = (Get-Command 'npx.cmd' -ErrorAction Stop).Source
 
+function Initialize-ConformanceCli {
+	$stdoutPath = Join-Path $outputPath 'cli-setup.out.log'
+	$stderrPath = Join-Path $outputPath 'cli-setup.err.log'
+	$process = Start-Process -FilePath $npxCommand `
+		-ArgumentList @('--yes', '@modelcontextprotocol/conformance@0.1.16', '--help') `
+		-WorkingDirectory $repositoryRoot `
+		-RedirectStandardOutput $stdoutPath -RedirectStandardError $stderrPath `
+		-WindowStyle Hidden -PassThru
+	try {
+		if (-not $process.WaitForExit(180000)) {
+			throw "Conformance CLI preparation timed out before any scenario. See $stdoutPath and $stderrPath"
+		}
+		if ($process.ExitCode -ne 0) {
+			throw "Conformance CLI preparation failed (exit $($process.ExitCode)). See $stdoutPath and $stderrPath"
+		}
+	} finally {
+		if (-not $process.HasExited) { Stop-ProcessTree -ProcessId $process.Id }
+	}
+}
+
 function Stop-ProcessTree([int] $ProcessId) {
 	$children = Get-CimInstance Win32_Process -Filter "ParentProcessId = $ProcessId" -ErrorAction SilentlyContinue
 	foreach ($child in $children) {
@@ -45,6 +65,7 @@ function Invoke-ConformanceScenario([string] $Scenario) {
 	$stderrPath = Join-Path $outputPath ("cli-$Scenario.err.log")
 	$process = Start-Process -FilePath $npxCommand `
 		-ArgumentList @(
+			'--offline',
 			'--yes',
 			'@modelcontextprotocol/conformance@0.1.16',
 			'server',
@@ -100,6 +121,9 @@ function Invoke-ConformanceScenario([string] $Scenario) {
 try {
 	[IO.Directory]::CreateDirectory($runDirectory) | Out-Null
 	[IO.Directory]::CreateDirectory($outputPath) | Out-Null
+	# Dependency preparation has its own bound and logs. The 60-second scenario
+	# deadline measures a prepared CLI against a ready server, not npm downloads.
+	Initialize-ConformanceCli
 	$gradleProcess = Start-Process -FilePath (Join-Path $repositoryRoot 'gradlew.bat') `
 		-ArgumentList @('runMcpConformanceServer', '--no-daemon', "--args=$runDirectory") `
 		-WorkingDirectory $repositoryRoot `

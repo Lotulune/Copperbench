@@ -1,12 +1,14 @@
 package dev.copperbench.core.application;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonElement;
 import net.mcreator.element.ModElementTypeLoader;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
 /** Inventory of the existing specialized adapters; unknown metadata does not imply a write capability. */
 public final class ElementMappingSupport {
+    public static final java.util.regex.Pattern ELEMENT_NAME = java.util.regex.Pattern.compile("^[a-z][a-z0-9_]{0,63}$");
     private ElementMappingSupport() {}
     private static final Map<String, Set<String>> SPECIALIZED = Map.of(
         "procedure", Set.of("procedurexml", "procedureIr"),
@@ -47,6 +49,14 @@ public final class ElementMappingSupport {
     public static BlockFieldContract.Issue unsupportedChange(String type, JsonObject before, JsonObject after) {
         JsonObject oldValues = BlockFieldContract.merged(before), nextValues = BlockFieldContract.merged(after);
         Set<String> supported = fields(type);
+        if (Set.of("item", "recipe").contains(type)) {
+            for (String name : List.of("displayName", "description", "modelResource", "textureBase64")) {
+                JsonElement value = nextValues.get(name);
+                if (value != null && (!value.isJsonPrimitive() || !value.getAsJsonPrimitive().isString()))
+                    return new BlockFieldContract.Issue("FIELD_TYPE_INVALID", BlockFieldContract.path(after, name),
+                            "Expected a non-null string.");
+            }
+        }
         for (var entry : nextValues.entrySet())
             if (!supported.contains(entry.getKey()) && !entry.getValue().equals(oldValues.get(entry.getKey())))
                 return new BlockFieldContract.Issue("FIELD_UNSUPPORTED", BlockFieldContract.path(after, entry.getKey()),
@@ -54,6 +64,13 @@ public final class ElementMappingSupport {
         if (type.equals("item") && nextValues.has("stackSize") && nextValues.has("maxStackSize")
                 && !nextValues.get("stackSize").equals(nextValues.get("maxStackSize")))
             return new BlockFieldContract.Issue("FIELD_ALIAS_CONFLICT", "/maxStackSize", "stackSize and maxStackSize must agree.");
+        if (type.equals("item") && nextValues.has("maxStackSize")) {
+            try {
+                var issue = GenericFieldInputContract.validate(net.mcreator.element.types.Item.class.getField("stackSize"),
+                        nextValues.get("maxStackSize"), BlockFieldContract.path(after, "maxStackSize"));
+                if (issue != null) return issue;
+            } catch (NoSuchFieldException exception) { throw new IllegalStateException(exception); }
+        }
         if (type.equals("loottable")) return LootTableFieldContract.validate(before, after);
         if (type.equals("function")) return FunctionFieldContract.validate(after);
         if (type.equals("code")) return CodeFieldContract.validate(after);

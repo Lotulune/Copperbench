@@ -123,6 +123,9 @@ public final class Fabric1211Generator {
 		for (Element element : workspace.elements()) {
 			if (element.type().equals("procedure") && hasProcedureBody(fields(element)))
 				throw new IllegalArgumentException("Structured Procedure bodies require the workspace's plugin generator; refusing to replace the body with a message-only placeholder.");
+			if (dev.copperbench.core.application.ElementGenerationValidation.nativeDefinitions(workspace)
+					&& dev.copperbench.core.application.ElementFieldContract.supports(element.type()))
+				throw new IllegalArgumentException("Native item/recipe definitions require preparation by the workspace plugin generator.");
 		}
 		List<String> generated = new ArrayList<>();
 		Files.createDirectories(root);
@@ -150,12 +153,19 @@ public final class Fabric1211Generator {
 		}
 
 		Set<String> availableResults = new HashSet<>();
+		Set<String> elementNames = workspace.elements().stream().map(Element::name).collect(java.util.stream.Collectors.toSet());
 		workspace.elements().stream().filter(element -> element.type().equals("block") || element.type().equals("item"))
 				.map(Element::name).forEach(availableResults::add);
 		for (Element element : workspace.elements()) {
 			JsonObject values = fields(element);
 			String base = "/elements/" + element.id() + "/values/fields";
 			try {
+				if (dev.copperbench.core.application.ElementGenerationValidation.nativeDefinitions(workspace)
+						&& dev.copperbench.core.application.ElementFieldContract.supports(element.type())) {
+					var definitionIssue = dev.copperbench.core.application.ElementGenerationValidation.validate(element.type(), values, elementNames);
+					if (definitionIssue != null) issues.add(issue(definitionIssue.code(), definitionIssue.message(), base + definitionIssue.path(), element));
+					continue;
+				}
 				switch (element.type()) {
 					case "block" -> {
 						double hardness = number(values, "hardness", 2.0);
@@ -299,13 +309,15 @@ public final class Fabric1211Generator {
 				distributionBase=GRADLE_USER_HOME
 				distributionPath=wrapper/dists
 				distributionUrl=https\\://mirrors.huaweicloud.com/gradle/%s
+				distributionSha256Sum=%s
 				networkTimeout=60000
 				retries=3
 				retryBackOffMs=2000
 				validateDistributionUrl=true
 				zipStoreBase=GRADLE_USER_HOME
 				zipStorePath=wrapper/dists
-				""".formatted(profile.gradleWrapperZip()), generated);
+				""".formatted(profile.gradleWrapperZip(),
+						dev.copperbench.generator.GradleDistributionIntegrity.require(profile.gradleWrapperZip())), generated);
 		copy(root, "gradlew", distributionRoot.resolve("gradlew"), generated);
 		ExecutableFilePermissions.ensureOwnerExecutable(root.resolve("gradlew"));
 		copy(root, "gradlew.bat", distributionRoot.resolve("gradlew.bat"), generated);

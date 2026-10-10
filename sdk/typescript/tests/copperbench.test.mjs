@@ -29,6 +29,33 @@ function toolResult(payload, metadata = {}) {
   return { content: [{ type: 'text', text: JSON.stringify(payload) }], ...metadata };
 }
 
+test('generation preview preserves unknown and conflict observations as read results', async () => {
+  for (const status of ['ready', 'conflicted', 'unknown']) {
+    const sent = [];
+    const envelope = { status: 'succeeded', revision: 7, data: { status, conflicts: [{ reasonCode: 'SOURCE_CHANGED' }] } };
+    const sdk = client(async (_, request) => {
+      sent.push(JSON.parse(request.body));
+      return reply(request, toolResult(envelope));
+    });
+    assert.deepEqual(await sdk.previewGeneration(), envelope);
+    assert.equal(sent.length, 1);
+    assert.equal(sent[0].params.name, 'preview_generation');
+    assert.deepEqual(sent[0].params.arguments, {});
+  }
+});
+
+test('discovery wrappers preserve metadata and bounded reference paging', async () => {
+  const sent = [];
+  const envelope = { status: 'succeeded', revision: 7, data: { availability: 'not_exposed', complete: false, fields: [] } };
+  const sdk = client(async (_, request) => {
+    sent.push(JSON.parse(request.body)); return reply(request, toolResult(envelope));
+  });
+  assert.deepEqual(await sdk.getModElementFieldContract('item'), envelope);
+  await sdk.getFieldReferenceOptions('recipe', 'blocksitems', { limit: 1, offset: 2 });
+  assert.deepEqual(sent.map(r => r.params.name), ['get_mod_element_field_contract', 'get_field_reference_options']);
+  assert.deepEqual(sent[1].params.arguments, { elementType: 'recipe', mappingSource: 'blocksitems', limit: 1, offset: 2 });
+});
+
 function reply(request, result, { sse = false, headers = {} } = {}) {
   const body = JSON.stringify({ jsonrpc: '2.0', id: JSON.parse(request.body).id, result });
   return new Response(sse ? `event: message\r\ndata:${body}\r\n\r\n` : body, { headers });
@@ -207,4 +234,53 @@ test('session and incremental log cursor survive a read retry', async () => {
   assert.equal(requests.at(-2).body, requests.at(-1).body);
   assert.deepEqual(JSON.parse(requests.at(-1).body).params.arguments, { taskId: 'task-1', afterLogSequence: 37 });
   assert.equal(result.data.logs[0].sequence, 38);
+});
+
+test('shared diagnostics render literally and retain raw task/conflict evidence', async () => {
+  const fixtures = JSON.parse(readFileSync(new URL('../../tests/diagnostic-rendering.json', import.meta.url), 'utf8'));
+  for (const fixture of fixtures.cases) {
+    const payload = { status: 'failed', revision: 7, task: { id: 'active-task', state: 'running' },
+      diagnostics: [{ code: fixtures.code, message: fixture.message }] };
+    const before = structuredClone(payload);
+    const sent = [];
+    const sdk = client(async (_, request) => {
+      sent.push(JSON.parse(request.body));
+      return reply(request, toolResult(sent.length === 1 ? payload : { status: 'succeeded', data: { status: 'unknown', readOnly: true } }));
+    });
+    await assert.rejects(() => sdk.callTool('create_mod_element', {}), error => {
+      assert.equal(error.code, fixtures.code);
+      assert.equal(error.message, fixture.expected, fixture.name);
+      assert.deepEqual(error.details, before);
+      return true;
+    });
+    assert.deepEqual(payload, before);
+    assert.equal(sent.length, 1, 'A rejected write must not be replayed');
+    assert.equal((await sdk.doctor()).data.status, 'unknown');
+    assert.equal(sent[1].params.name, 'get_workspace_doctor');
+    assert.deepEqual(sent[1].params.arguments, {});
+  }
+  const payload = { status: 'rejected', conflict: { actualRevision: 8 },
+    diagnostics: [{ code: 'OTHER', message: { fallback: 'Conflict {revision}', args: { revision: 8 } } }] };
+  const sdk = client(async (_, request) => reply(request, toolResult(payload)));
+  await assert.rejects(() => sdk.callTool('create_mod_element', {}), error => {
+    assert.equal(error.code, 'REVISION_CONFLICT');
+    assert.equal(error.message, 'Conflict 8');
+    assert.deepEqual(error.details, payload);
+    return true;
+  });
+});
+
+test('plain MCP input-validation errors preserve their reason and raw result without replay', async () => {
+  for (const text of ['Input validation error: unexpected probeNetwork', '404', '"Legacy error"']) {
+    const result = { isError: true, content: [{ type: 'text', text }] };
+    let calls = 0;
+    const sdk = client(async (_, request) => { calls++; return reply(request, result); });
+    await assert.rejects(() => sdk.callTool('get_workspace_doctor', { probeNetwork: true }), error => {
+      assert.equal(error.code, 'MCP_TOOL_RESULT_INVALID');
+      assert.equal(error.message, text);
+      assert.deepEqual(error.details, result);
+      return true;
+    });
+    assert.equal(calls, 1);
+  }
 });
