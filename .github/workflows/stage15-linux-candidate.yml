@@ -269,6 +269,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          trap 'echo "Packaged bootstrap failed at line $LINENO: $BASH_COMMAND" >&2' ERR
           root="$(find build/stage15-linux-smoke -mindepth 1 -maxdepth 1 -type d -print -quit)"
           test -n "$root"
           minimal_path="$PWD/build/stage15-minimal-path"
@@ -280,7 +281,7 @@ jobs:
           test ! -e "$minimal_path/java"
           test ! -e "$minimal_path/gradle"
           test ! -e "$minimal_path/git"
-          env \
+          env -u GRADLE_USER_HOME -u COPPERBENCH_GRADLE_USER_HOME -u COPPERBENCH_GRADLE_REUSE_EXTERNAL \
             PATH="$minimal_path" \
             HOME="$isolated_home" \
             XDG_DATA_HOME="$isolated_home/data" \
@@ -288,9 +289,10 @@ jobs:
             XDG_CACHE_HOME="$isolated_home/cache" \
             XDG_STATE_HOME="$isolated_home/state" \
             XDG_RUNTIME_DIR="$isolated_home/runtime" \
-            JAVA_TOOL_OPTIONS="-Djava.awt.headless=true" \
+            JAVA_TOOL_OPTIONS="-Djava.awt.headless=true -Duser.home=$isolated_home" \
             /usr/bin/bash "$root/copperbench.sh" bootstrap list-generators \
-            > build/stage15-packaged-bootstrap.json
+            > build/stage15-packaged-bootstrap.json \
+            2> build/stage15-packaged-bootstrap.stderr.log
           grep -q '"status":"succeeded"' build/stage15-packaged-bootstrap.json
           grep -q '"fabric-1.21.1"' build/stage15-packaged-bootstrap.json
           grep -q '"neoforge-1.21.1"' build/stage15-packaged-bootstrap.json
@@ -305,6 +307,27 @@ jobs:
             test "${#installs[@]}" -ge 1
             test -f "${installs[0]}/bin/gradle"
           done
+
+      - name: Record packaged bootstrap directories
+        if: always()
+        shell: bash
+        run: |
+          if [[ -d build/stage15-isolated-home ]]; then
+            find build/stage15-isolated-home -maxdepth 3 -type d -print \
+              > build/stage15-packaged-bootstrap-directories.txt
+          fi
+
+      - name: Upload packaged bootstrap diagnostics
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: stage15-packaged-bootstrap-diagnostics
+          path: |
+            build/stage15-packaged-bootstrap.json
+            build/stage15-packaged-bootstrap.stderr.log
+            build/stage15-packaged-bootstrap-directories.txt
+          if-no-files-found: warn
+          retention-days: 7
 
       - name: Launch packaged JCEF product shell under Xvfb
         timeout-minutes: 8

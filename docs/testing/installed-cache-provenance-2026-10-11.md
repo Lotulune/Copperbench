@@ -52,8 +52,32 @@ or network settings were changed. First-run XML and the focused failure are kept
 The existing Windows CI job now includes cache-policy, separate-process and
 Fabric process regressions, retaining its test XML artifact. Linux CI runs the
 complete Java and CI-selection suites plus all installed-run Python regressions.
-Current-head hosted results belong on [draft PR #100](https://github.com/Lotulune/Copperbench/pull/100);
-the local table above is not a claim that those later runs passed.
+
+## Hosted verification and fixture correction
+
+For `d8cca505`, [required CI](https://github.com/Lotulune/Copperbench/actions/runs/38074060359)
+passed all four jobs, including Java/Javadoc, full Chromium, selection and Windows
+MCP. Downloaded Windows XML records 12/12 Fabric process cases, 3/3 cache policy
+cases and the separate-JVM cache probe passing, without failures or skips. The
+local Java child-start rejection did not reproduce on that clean Windows runner;
+its underlying host cause remains unresolved.
+
+The same source's [Linux candidate run](https://github.com/Lotulune/Copperbench/actions/runs/38074060464)
+failed its packaged headless bootstrap step. Its runner environment included
+`GRADLE_USER_HOME=/home/runner/.gradle`, but the fixture asserted that the default
+XDG cache was populated. The new shared resolver correctly honors the explicit
+override. The original run retained neither the bootstrap stdout nor the failed
+assertion, so the logs establish the conflicting fixture environment, not which
+individual assertion failed.
+
+The fixture now removes inherited Gradle home/reuse overrides and sets the JVM
+user home for its default-cache check. The graphical shell fixture explicitly
+selects its isolated cache, matching the existing runClient fixture. Bootstrap
+stdout, stderr and a shallow directory inventory are uploaded on success and
+failure; failed shell assertions are identified in the job log. The original
+default-cache/distribution assertions remain in place, and no cache payload is
+included in this diagnostic artifact. Follow-up candidate results belong on
+[draft PR #100](https://github.com/Lotulune/Copperbench/pull/100).
 
 ## Installed acceptance boundary
 
