@@ -198,8 +198,11 @@ normal exit and restored-inventory evidence. See the
 [packaged-client procedure](../ai/client-acceptance.md) and
 [resumed record](agent-readiness-m3-resume-2026-10-10.md).
 
-The 20 preregistered autonomous-agent tasks and 5–8 unfamiliar-user trials have
-not been executed. No participants were contacted. Scripted replay is not an
-agent success-rate measurement or a user study. The task card records the
-required denominator, rescue, abandonment and artifact evidence; arrange those
-remaining trials separately from these installed-product regressions.
+The subsequent [independent-agent study](agent-readiness-m3-study-2026-10-10.md)
+closed early at the user's request: fourteen of twenty registered attempts
+started, with eleven completions (ten unassisted), one deadline failure, one
+transport abandonment and one user-requested abandonment. The remaining six
+will not run under this request; the original 20-attempt target is not claimed.
+All started attempts and their evidence remain recorded. The 5–8 unfamiliar-user
+trial remains pending because no participants are available. No one was contacted;
+scripted replay and autonomous agents do not supply unfamiliar-user evidence.

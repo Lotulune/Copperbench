@@ -235,11 +235,11 @@ the verified external JAR and the saved world. Transfer SHA-256 and ZIP CRC
 checks passed. Earlier archives and rejected attempts remain intact. Guest
 controllers and product processes exited before the Windows VM was saved again.
 
-Twenty preregistered autonomous-agent tasks and 5–8 unfamiliar-user trials have
-not run; no participants were contacted. Scripted replay is neither a measured
-agent success rate nor a user study. Linux still has `formalSupportClaim=false`.
-The PR remains draft; no merge or release is included.
-
 The subsequent [independent-agent study](agent-readiness-m3-study-2026-10-10.md)
-records the user's authorization, frozen 20-attempt registration and execution.
-The unfamiliar-user study remains pending because no participants are available.
+records the frozen 20-attempt registration and the user's later early stop.
+Fourteen attempts started: eleven completed (ten unassisted), one failed and
+two were abandoned, including the user-stopped final attempt. Six were never
+dispatched. The planned sample and success-rate target are not claimed complete.
+The unfamiliar-user study remains pending because participants are unavailable;
+no one was contacted. Scripted replay is not a user study. Linux still has
+`formalSupportClaim=false`. The PR remains draft; no merge or release is included.
