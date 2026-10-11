@@ -972,7 +972,7 @@ const AssetDiagnosticsPanel: React.FC<{
         <div key={`${diagnostic.code}-${diagnostic.path ?? ''}`} data-testid={`asset-diagnostic-${diagnostic.code}`}
           style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '8px 0' }}>
           <code style={{ fontSize: '10px', color: 'var(--text-sub)', overflowWrap: 'anywhere' }}>{diagnostic.code}</code>
-          <span style={{ fontSize: '11px', lineHeight: 1.5 }}>{t(diagnostic.message)}</span>
+          <span style={{ fontSize: '11px', lineHeight: 1.5 }}>{t(diagnostic.message, diagnostic.code)}</span>
           {diagnostic.actions.map((action) => (
             <button key={action.id} type="button" className="btn-secondary"
               data-testid={`asset-diagnostic-action-${action.id}`}

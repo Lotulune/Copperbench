@@ -204,8 +204,25 @@ final class McpToolCatalog {
 		tools.add(queryTool("get_workspace_environment",
 				"Read the active generator, Loader/JDK/Gradle context, source/resource roots and native-first workflow entry points",
 				Operation.GET_WORKSPACE_ENVIRONMENT, EMPTY_SCHEMA, arguments -> new JsonObject()));
+		tools.add(queryTool("get_workspace_doctor",
+				"Observe local product/workspace Java, wrapper, cache and renderer facts without downloads, writes or authorization changes; unknown is not build acceptance.",
+				Operation.GET_WORKSPACE_DOCTOR, EMPTY_SCHEMA, arguments -> GSON.toJsonTree(arguments).getAsJsonObject()));
+		tools.add(queryTool("preview_generation",
+				"Inspect generation source ownership, conflicts and current input fingerprint without writing files or preparing dependencies. "
+						+ "Ready is a source-safety observation, not build acceptance; execution rechecks inputs.",
+				Operation.PREVIEW_GENERATION, EMPTY_SCHEMA, arguments -> new JsonObject()));
 		tools.add(queryTool("list_new_workspace_generators", "List generators available for new workspaces",
 				Operation.LIST_NEW_WORKSPACE_GENERATORS, EMPTY_SCHEMA, arguments -> new JsonObject()));
+		tools.add(queryTool("get_mod_element_field_contract", "Discover a complete creation contract or explicit unsupported/not_exposed state without mutation",
+				Operation.GET_MOD_ELEMENT_FIELD_CONTRACT,
+				requiredSchema(Map.of("elementType", Map.of("type", "string", "minLength", 1)), List.of("elementType")),
+				arguments -> GSON.toJsonTree(arguments).getAsJsonObject()));
+		tools.add(queryTool("get_field_reference_options", "Page installed generator reference values for an element contract",
+				Operation.GET_FIELD_REFERENCE_OPTIONS,
+				requiredSchema(Map.of("elementType", Map.of("type", "string", "minLength", 1),
+						"mappingSource", Map.of("type", "string", "minLength", 1), "search", Map.of("type", "string"),
+						"offset", Map.of("type", "integer", "minimum", 0), "limit", Map.of("type", "integer", "minimum", 1, "maximum", 200)),
+						List.of("elementType", "mappingSource")), arguments -> GSON.toJsonTree(arguments).getAsJsonObject()));
 		tools.add(commandTool("create_workspace", "Create a new workspace after explicit user approval",
 				Operation.CREATE_WORKSPACE,
 				requiredSchema(Map.of("generatorId", Map.of("type", "string", "minLength", 1),

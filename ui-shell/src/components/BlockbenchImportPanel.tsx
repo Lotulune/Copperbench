@@ -49,7 +49,7 @@ export const BlockbenchImportPanel: React.FC<{
     try {
       const result = await (client ? runClient() : buildWorkspace());
       if (result.status !== 'accepted' && result.status !== 'completed' && result.status !== 'committed')
-        throw new Error(t(result.diagnostics[0]?.message) || '任务未启动，已导入文件和关联仍保留。');
+        throw new Error(t(result.diagnostics[0]?.message, result.diagnostics[0]?.code) || '任务未启动，已导入文件和关联仍保留。');
       setStartedTaskId(result.task?.id ?? null);
       setMessage(client ? '客户端任务已提交；请在游戏内核验形状、贴图，并正常退出。' : '构建任务已提交；请等待任务终态，提交不代表构建成功。');
     } catch (error) { setMessage(error instanceof Error ? error.message : '任务启动失败。'); }
@@ -69,7 +69,7 @@ export const BlockbenchImportPanel: React.FC<{
         requestId: safeRandomUUID(), workspaceId: state.workbench.workspace.id,
         operation: 'preview_blockbench_import', payload: !manualMapping
           ? { taskId, elementId } : { taskId, outputs } });
-      if (result.status !== 'succeeded' || !result.data) throw new Error(`${t(result.diagnostics[0]?.message) || '回导预览失败'}（${result.diagnostics[0]?.code ?? '未知错误'}）`);
+      if (result.status !== 'succeeded' || !result.data) throw new Error(`${t(result.diagnostics[0]?.message, result.diagnostics[0]?.code) || '回导预览失败'}（${result.diagnostics[0]?.code ?? '未知错误'}）`);
       setPreview(result.data); if (result.data.outputs) setOutputs(result.data.outputs);
       setConfirm(false); setMessage('请核对下方文件，再应用回导。');
     } catch (error) { setMessage(error instanceof Error ? error.message : '回导预览失败。'); }

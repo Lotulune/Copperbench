@@ -67,7 +67,9 @@ class PluginWorkspaceLayoutTest {
 			Files.setPosixFilePermissions(existing,
 					Set.of(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE));
 
-		PluginWorkspaceLayout.ensureGradleRuntime(workspace, distribution, "gradle-9.2.1-bin.zip");
+		PluginWorkspaceLayout.ensureGradleRuntime(workspace, distribution, "gradle-9.6.0-bin.zip");
+		assertTrue(Files.readString(workspace.resolve("gradle/wrapper/gradle-wrapper.properties"))
+				.contains("distributionSha256Sum=" + GradleDistributionIntegrity.require("gradle-9.6.0-bin.zip")));
 
 		assertEquals("#!/bin/sh\necho workspace\n", Files.readString(existing));
 		if (java.io.File.separatorChar != '\\') assertTrue(Files.isExecutable(existing));

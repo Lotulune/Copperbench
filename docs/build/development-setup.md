@@ -72,3 +72,21 @@ npx --prefix ui-shell playwright install chromium
 - UI 输出：`ui-shell/dist/`
 
 不要提交 JDK、缓存、构建输出、签名证书或工作区用户数据。完整的隔离构建方法见 [Windows 干净构建基线](./windows-clean-build.md)。
+
+## 工作区 Gradle 缓存
+
+产品的工作区初始化、Core 构建和 doctor 使用同一缓存目录解析规则，优先级为
+显式 JVM 属性 `copperbench.gradle.user.home`、`COPPERBENCH_GRADLE_USER_HOME`、
+`GRADLE_USER_HOME`，最后是产品缓存目录下的 `gradle`。
+相对路径在产品进程的工作目录下转为绝对路径，后续切换到工作区执行不会改变其含义。
+这些配置不改变构建 Copperbench 本身的 Gradle Wrapper 参数。
+
+默认仍会复用其他本地缓存及安装包内已有的 Gradle distribution。需要隔离下载时，
+为启动的产品进程设置 `COPPERBENCH_GRADLE_REUSE_EXTERNAL=false`，并指定全新的
+Gradle 缓存目录；该选项只阻止跨目录借用，保留所选目录自身的复用能力。
+`true` 恢复默认行为，其他非空值会被拒绝。程序不会清空任何已有缓存。
+
+`get_workspace_environment.execution.gradle` 会报告 `userHome`、`userHomeSource`
+和 `reuseExternalDistributions`，doctor 使用同一后端事实。它们说明实际配置，
+不证明缓存内容完整或下载已经通过摘要校验。冷/热缓存安装回放及记录方式见
+[M3 固定任务卡](../testing/agent-readiness-m3-task-card.md#cold-and-warm-gradle-cache-runs)。

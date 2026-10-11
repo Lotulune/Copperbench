@@ -54,6 +54,7 @@ export const zh: Record<string, string> = {
   'diagnostic.command_payload_invalid': '命令参数无效，请检查输入后重试。',
   'diagnostic.list_cursor_invalid': '列表分页游标无效或已过期，请重新读取列表后继续。',
   'diagnostic.element_type_outside_first_party_slice': '当前版本暂不支持编辑此元素类型，可只读查看。',
+  'diagnostic.element_type_unknown': '未知的 Mod 元素类型。',
   'diagnostic.history_diff_failed': '无法比较所选的两个恢复点。',
   'diagnostic.history_read_failed': '无法读取本地历史记录。',
   'diagnostic.history_unavailable': '当前工作区不支持本地历史记录。',

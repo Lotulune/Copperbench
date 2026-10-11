@@ -9,6 +9,11 @@ import java.util.List;
 /** Participates in a validated content transaction before its new revision becomes visible. */
 @FunctionalInterface public interface WorkspaceMutationGateway {
 
+	/** Read-only generation source plan; unavailable adapters report unknown instead of inferring ownership. */
+	default com.google.gson.JsonObject previewGeneration(WorkspaceState state) {
+		return GenerationPreflight.unknown(state, "GENERATION_PREFLIGHT_UNAVAILABLE");
+	}
+
 	/** File ownership supplied by the active generator; trailing-slash keys own a directory. Absent files are independently maintained. */
 	default java.util.Map<String, String> workspaceSourceOwnership() {
 		return java.util.Map.of();

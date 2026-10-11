@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
 import { ModElementSummary, FieldChange } from '../types/contract';
-import { t, uiText } from '../i18n';
+import { uiText, diagnosticMessages, renderUiMessage, type UiMessage } from '../i18n';
 import { elementEditorDraftKey } from '../hooks/elementEditorDrafts';
 import { functionFields, functionHasChanges, getFunctionSession, loadedFunction, subscribeFunctionSessions, updateFunctionSession } from '../hooks/functionEditorSessions';
 
@@ -86,7 +86,7 @@ const FunctionEditor: React.FC<FunctionWorkbenchProps & { sessionKey: string }> 
   const setTags = (value: string[]) => change({ tags: value });
   const setNamespace = (value: string) => change({ namespace: value });
   const setNewTag = (value: string) => change({ newTag: value });
-  const setMessage = (value: string | null) => change({ error: value });
+  const setMessage = (value: UiMessage | null) => change({ error: value });
 
   const [activeTab, setActiveTab] = useState<FunctionTab>('editor');
   const canEditCode = projectionLoaded && !isSaving && fields.code?.readOnly === false;
@@ -220,7 +220,7 @@ const FunctionEditor: React.FC<FunctionWorkbenchProps & { sessionKey: string }> 
         setTimeout(() => setSaveSuccess(false), 2500);
       } else {
         change({ saving: false });
-        setMessage(result.diagnostics[0] ? t(result.diagnostics[0].message) : tr("保存函数失败。"));
+        setMessage(diagnosticMessages(result.diagnostics.slice(0, 1), tr("保存函数失败。")));
       }
     } catch {
       change({ saving: false });
@@ -451,7 +451,7 @@ const FunctionEditor: React.FC<FunctionWorkbenchProps & { sessionKey: string }> 
             justifyContent: 'space-between'
           }}
         >
-          <span>{message}</span>
+          <span data-testid="function-status-message">{renderUiMessage(message)}</span>
           <button
             type="button"
             onClick={() => setMessage(null)}

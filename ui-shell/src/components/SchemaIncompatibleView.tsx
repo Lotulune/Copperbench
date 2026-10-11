@@ -55,7 +55,7 @@ export const SchemaIncompatibleView: React.FC = () => {
             <div><strong>{tr("UI 协议版本：")}</strong>{String(incompatDiagnostic?.message.args?.ui ?? tr("未知"))}</div>
             <div><strong>{tr("Core 协议版本：")}</strong>{String(incompatDiagnostic?.message.args?.core ?? tr("未知"))}</div>
             <div style={{ color: 'var(--badge-red)' }}>
-              {tr("错误：")}{incompatDiagnostic ? t(incompatDiagnostic.message) : 'UI_CORE_SCHEMA_INCOMPATIBLE'}
+              {tr("错误：")}{incompatDiagnostic ? t(incompatDiagnostic.message, incompatDiagnostic.code) : 'UI_CORE_SCHEMA_INCOMPATIBLE'}
             </div>
           </div>
         </div>

@@ -157,22 +157,36 @@ tasks.register('downloadNSIS') {
     group = 'setup'
     doLast {
         if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-            if (!file('build/tools/nsis/').exists()) {
+            if (!file('build/tools/nsis/makensis.exe').isFile()) {
                 download.run {
                     src nsis_url
                     dest 'build/tmp/nsis'
                     overwrite true
                 }
-                copy { from zipTree(file('build/tmp/nsis')) into file('build/tools/') }
-                file('build/tools/nsis-3.12').renameTo(file('build/tools/nsis'))
+                copy {
+                    from(zipTree(file('build/tmp/nsis'))) {
+                        include 'nsis-3.12/**'
+                        eachFile { details -> details.path = details.path.replaceFirst('^nsis-3.12/', '') }
+                        includeEmptyDirs = false
+                    }
+                    into file('build/tools/nsis/')
+                }
+                if (!file('build/tools/nsis/makensis.exe').isFile()) {
+                    throw new GradleException('NSIS compiler is missing after extraction')
+                }
                 delete 'build/tmp/nsis'
+            }
 
+            if (!file('build/tools/nsis/Plugins/x86-unicode/LockedList.dll').isFile()) {
                 download.run {
                     src nsis_lockedlist_plugin_url
                     dest 'build/tmp/nsis_lockedlist_plugin'
                     overwrite true
                 }
                 copy { from zipTree(file('build/tmp/nsis_lockedlist_plugin')) into file('build/tools/nsis/') }
+                if (!file('build/tools/nsis/Plugins/x86-unicode/LockedList.dll').isFile()) {
+                    throw new GradleException('NSIS LockedList plugin is missing after extraction')
+                }
                 delete 'build/tmp/nsis_lockedlist_plugin'
             }
         }

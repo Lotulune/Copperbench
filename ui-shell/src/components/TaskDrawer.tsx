@@ -455,7 +455,7 @@ export const TaskDrawer: React.FC = () => {
                   <AlertTriangle size={13} />
                   <code>{diagnostic.code}</code>
                 </div>
-                <div style={{ marginTop: '3px', fontSize: '12px', color: 'var(--text-main)' }}>{t(diagnostic.message)}</div>
+                <div style={{ marginTop: '3px', fontSize: '12px', color: 'var(--text-main)' }}>{t(diagnostic.message, diagnostic.code)}</div>
                 {diagnostic.path && (
                   <code style={{ display: 'block', marginTop: '3px', fontSize: '12px', color: 'var(--text-sub)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {diagnostic.path}

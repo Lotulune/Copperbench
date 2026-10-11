@@ -56,7 +56,7 @@ export const RevisionConflictModal: React.FC = () => {
         <div className="modal-body">
           <div style={{ fontSize: '13px', color: 'var(--text-main)', lineHeight: '1.6' }}>
             {conflictDiagnostic
-              ? t(conflictDiagnostic.message)
+              ? t(conflictDiagnostic.message, conflictDiagnostic.code)
               : tr("此编辑器打开后工作区已被修改。为避免静默覆盖或数据丢失，你的更改未提交。")}
           </div>
 

@@ -21,6 +21,7 @@ package net.mcreator.generator.setup;
 import dev.copperbench.gradle.GradleDistributionPool;
 import dev.copperbench.gradle.MinecraftMappingsCacheRepair;
 import dev.copperbench.network.ChinaMirrorService;
+import dev.copperbench.platform.ExecutableFilePermissions;
 import freemarker.template.Template;
 import net.mcreator.generator.Generator;
 import net.mcreator.generator.GeneratorConfiguration;
@@ -167,6 +168,11 @@ public class WorkspaceGeneratorSetup {
 						freemarkerTemplate.process(workspace.getGenerator().getBaseDataModelProvider().provide(),
 								stringWriter, InlineTemplatesHandler.getConfiguration().getObjectWrapper());
 						GradleTrackingFileIO.writeFile(workspace, stringWriter.getBuffer().toString(), outFile);
+					} else if (outFile.getName().equals("gradlew")) {
+						String launcher = IOUtils.toString(stream, StandardCharsets.UTF_8);
+						FileUtils.writeStringToFile(outFile, launcher.replace("\r\n", "\n").replace('\r', '\n'),
+								StandardCharsets.UTF_8);
+						ExecutableFilePermissions.ensureOwnerExecutable(outFile.toPath());
 					} else {
 						FileUtils.copyInputStreamToFile(stream, outFile);
 					}

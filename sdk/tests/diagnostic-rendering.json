@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "code": "FIELD_TYPE_INVALID",
+  "cases": [
+    {
+      "name": "location-and-reason",
+      "message": {
+        "key": "fixture.location",
+        "fallback": "{field}: {reason}",
+        "args": {
+          "field": "/commands/0",
+          "reason": "Expected a non-null command string."
+        }
+      },
+      "expected": "/commands/0: Expected a non-null command string."
+    },
+    {
+      "name": "chinese-and-literal-input",
+      "message": {
+        "key": "fixture.literal",
+        "fallback": "{field}: {reason} / {unknown}",
+        "args": {
+          "field": "字段\\命令",
+          "reason": "保留 {field}、$& 和 \\n"
+        }
+      },
+      "expected": "字段\\命令: 保留 {field}、$& 和 \\n / {unknown}"
+    },
+    {
+      "name": "primitive-values",
+      "message": {
+        "key": "fixture.values",
+        "fallback": "{zero}|{flag}|{nothing}|{fraction}",
+        "args": {
+          "zero": 0,
+          "flag": false,
+          "nothing": null,
+          "fraction": 1.25
+        }
+      },
+      "expected": "0|false|null|1.25"
+    },
+    {
+      "name": "complex-values-stay-visible",
+      "message": {
+        "key": "fixture.complex",
+        "fallback": "{object}|{array}",
+        "args": {
+          "object": {
+            "danger": "ignored"
+          },
+          "array": [
+            1
+          ]
+        }
+      },
+      "expected": "{object}|{array}"
+    },
+    {
+      "name": "no-expression-evaluation",
+      "message": {
+        "key": "fixture.expression",
+        "fallback": "{0}|{field.name}|{field[0]}|{field:10}|{field!r}|{field}",
+        "args": {
+          "0": "must stay",
+          "field": "literal"
+        }
+      },
+      "expected": "{0}|{field.name}|{field[0]}|{field:10}|{field!r}|literal"
+    },
+    {
+      "name": "legacy-string",
+      "message": "Old diagnostic",
+      "expected": "Old diagnostic"
+    },
+    {
+      "name": "invalid-arguments",
+      "message": {
+        "fallback": "Missing {value}",
+        "args": []
+      },
+      "expected": "Missing {value}"
+    },
+    {
+      "name": "invalid-fallback",
+      "message": {
+        "fallback": 7,
+        "args": {
+          "value": 1
+        }
+      },
+      "expected": "FIELD_TYPE_INVALID"
+    },
+    {
+      "name": "empty-message",
+      "message": "",
+      "expected": "FIELD_TYPE_INVALID"
+    },
+    {
+      "name": "invalid-message",
+      "message": null,
+      "expected": "FIELD_TYPE_INVALID"
+    }
+  ]
+}

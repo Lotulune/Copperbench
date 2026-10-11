@@ -440,8 +440,8 @@ const ElementInspectorContent: React.FC<ElementInspectorProps & { draftKey: stri
       : pending.invalidJson
         ? [uiText("JSON 字段格式无效；请修正括号、引号或逗号后再保存。", "Invalid JSON field. Check brackets, quotes and commas before saving.")]
         : preview && !preview.canApply
-          ? preview.diagnostics.filter((d) => d.severity === 'error').map((d) => t(d.message))
-      : elementDiagnostics.filter((d) => d.severity === 'error').map((d) => t(d.message));
+          ? preview.diagnostics.filter((d) => d.severity === 'error').map((d) => t(d.message, d.code))
+      : elementDiagnostics.filter((d) => d.severity === 'error').map((d) => t(d.message, d.code));
 
   const elementPathPrefix = `/elements/${element.id}`;
   const diagnosticByPath = new Map(
@@ -1081,7 +1081,7 @@ const ElementInspectorContent: React.FC<ElementInspectorProps & { draftKey: stri
                       >
                         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '4px' }}>
                           <AlertTriangle size={11} style={{ flexShrink: 0, marginTop: '1px' }} />
-                          <span>{t(fieldDiagnostic.message)}</span>
+                          <span>{t(fieldDiagnostic.message, fieldDiagnostic.code)}</span>
                         </div>
                         {fieldDiagnostic.actions.length > 0 && (
                           <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', paddingLeft: '15px' }}>

@@ -90,10 +90,8 @@ public class UserFolderManager {
 	}
 
 	public static File getGradleHome() {
-		String override = System.getProperty(GRADLE_HOME_PROPERTY);
-		if (override != null && !override.isBlank())
-			return new File(override);
-		return getFileFromCacheFolder("gradle");
+		return dev.copperbench.gradle.GradleCachePolicy.userHome(System.getenv(),
+				System.getProperty(GRADLE_HOME_PROPERTY), getFileFromCacheFolder("gradle").toPath()).toFile();
 	}
 
 }

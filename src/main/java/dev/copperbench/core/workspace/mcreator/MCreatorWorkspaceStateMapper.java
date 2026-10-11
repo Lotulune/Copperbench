@@ -21,7 +21,10 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HexFormat;
 import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 /** Projects an opened upstream workspace into the application service's transaction state. */
@@ -41,7 +44,7 @@ public final class MCreatorWorkspaceStateMapper {
 	}
 
 	private Element projectElement(Workspace workspace, UUID workspaceId, ModElement element) throws IOException {
-		UUID id = storedElementId(element);
+		UUID id = storedElementId(element.getMetadata(MCreatorWorkspaceMutationGateway.ELEMENT_ID_METADATA));
 		if (id == null)
 			id = elementId(workspaceId, element);
 		Path definitionFile = workspace.getFolderManager().getModElementsDir().toPath()
@@ -180,8 +183,31 @@ public final class MCreatorWorkspaceStateMapper {
 		return generator;
 	}
 
-	private UUID storedElementId(ModElement element) {
-		Object value = element.getMetadata(MCreatorWorkspaceMutationGateway.ELEMENT_ID_METADATA);
+	/**
+	 * Resolves native reference names for the current elements without changing their public projection.
+	 * The serialized identities describe imported elements; new elements use their current internal name.
+	 * Removed identities in an older upstream snapshot never reintroduce a deleted reference target.
+	 *
+	 * @param state current workspace state, including its upstream snapshot
+	 * @return internal names of elements still present in this state
+	 */
+	public static Set<String> internalElementNames(WorkspaceState state) {
+		Map<UUID, String> names = new LinkedHashMap<>();
+		state.elements().forEach(element -> names.put(element.id(), element.name()));
+		JsonArray serialized = state.upstreamDocument().getAsJsonArray("mod_elements");
+		if (serialized != null) for (JsonElement entry : serialized) {
+			JsonObject element = entry.getAsJsonObject();
+			String name = element.get("name").getAsString();
+			JsonObject metadata = element.getAsJsonObject("metadata");
+			JsonElement stored = metadata == null ? null : metadata.get(MCreatorWorkspaceMutationGateway.ELEMENT_ID_METADATA);
+			UUID id = storedElementId(stored != null && stored.isJsonPrimitive() ? stored.getAsString() : null);
+			if (id == null) id = elementId(state.id(), element.get("type").getAsString(), name);
+			if (names.containsKey(id)) names.put(id, name);
+		}
+		return Set.copyOf(names.values());
+	}
+
+	private static UUID storedElementId(Object value) {
 		if (value == null)
 			return null;
 		try {
@@ -200,7 +226,11 @@ public final class MCreatorWorkspaceStateMapper {
 	}
 
 	public static UUID elementId(UUID workspaceId, ModElement element) {
-		String identity = workspaceId + "\n" + element.getTypeString() + "\n" + element.getName();
+		return elementId(workspaceId, element.getTypeString(), element.getName());
+	}
+
+	private static UUID elementId(UUID workspaceId, String type, String name) {
+		String identity = workspaceId + "\n" + type + "\n" + name;
 		return UUID.nameUUIDFromBytes(identity.getBytes(StandardCharsets.UTF_8));
 	}
 

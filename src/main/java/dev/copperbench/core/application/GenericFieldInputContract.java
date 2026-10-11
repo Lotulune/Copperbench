@@ -47,6 +47,11 @@ public final class GenericFieldInputContract {
         return inspect(field.getGenericType(), value, path, field, false, false, 0);
     }
 
+    static Integer fixedArraySize(Field field) {
+        return field != null && field.getDeclaringClass() == net.mcreator.element.types.Recipe.class
+                && field.getName().equals("recipeSlots") ? 9 : null;
+    }
+
     /** Unknown nested keys can disappear when Gson replaces arrays without stable item identities. */
     public static BlockFieldContract.Issue preservationIssue(Class<?> storage, JsonObject definition) {
         for (Field field : storage.getFields()) {
@@ -69,6 +74,9 @@ public final class GenericFieldInputContract {
             return CustomFieldInputContract.inspect(kind, raw, path, field, unknownOnly, depth);
         if (kind.isArray() || Collection.class.isAssignableFrom(kind)) {
             if (!raw.isJsonArray()) return unknownOnly ? null : invalid(path, "an array");
+            Integer size = fixedArraySize(field);
+            if (!unknownOnly && size != null && raw.getAsJsonArray().size() != size)
+                return issue("FIELD_VALUE_OUT_OF_RANGE", path, "Expected exactly " + size + " slots.");
             Type itemType = kind.isArray() ? kind.getComponentType() : type instanceof ParameterizedType p ? p.getActualTypeArguments()[0] : Object.class;
             for (int i = 0; i < raw.getAsJsonArray().size(); i++) {
                 var issue = inspect(itemType, raw.getAsJsonArray().get(i), path + "/" + i, null, true, unknownOnly, depth + 1);

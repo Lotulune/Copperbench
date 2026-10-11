@@ -44,7 +44,7 @@ export const StartupFailureView: React.FC = () => {
               userSelect: 'text'
             }}
           >
-            {diagnostic ? `${diagnostic.code}: ${t(diagnostic.message)}` : 'UI_CORE_STARTUP_FAILED'}
+            {diagnostic ? `${diagnostic.code}: ${t(diagnostic.message, diagnostic.code)}` : 'UI_CORE_STARTUP_FAILED'}
           </div>
           <p style={{ color: 'var(--text-sub)', fontSize: '11px' }}>
             {tr("请从 Copperbench 桌面程序启动，或检查 JCEF 宿主初始化日志后重启应用。")}</p>

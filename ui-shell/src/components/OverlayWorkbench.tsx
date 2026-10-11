@@ -20,7 +20,7 @@ import {
   ModElementEditorProjection,
   ModElementSummary
 } from '../types/contract';
-import { t } from '../i18n';
+import { diagnosticMessages, renderUiMessage, type UiMessage } from '../i18n';
 
 interface OverlayWorkbenchProps {
   element: ModElementSummary;
@@ -196,7 +196,7 @@ export const OverlayWorkbench: React.FC<OverlayWorkbenchProps> = ({ element, onC
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [newComponentType, setNewComponentType] = useState<OverlayComponentType>('label');
   const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
+  const [message, setMessage] = useState<UiMessage | null>(null);
   const [impact, setImpact] = useState<string[]>([]);
   const previewToken = useRef(0);
 
@@ -315,7 +315,7 @@ export const OverlayWorkbench: React.FC<OverlayWorkbenchProps> = ({ element, onC
         setBase(clone(values));
         setMessage(tr("Overlay 更改已保存。"));
       } else {
-        setMessage(result.diagnostics.map((diagnostic) => t(diagnostic.message)).join('；') || tr("保存被 Core 拒绝。"));
+        setMessage(diagnosticMessages(result.diagnostics, tr("保存被 Core 拒绝。")));
       }
     } catch {
       setMessage(tr("保存失败，工作区未发生更改。"));
@@ -339,7 +339,7 @@ export const OverlayWorkbench: React.FC<OverlayWorkbenchProps> = ({ element, onC
           <div style={{ fontSize: 10, color: 'var(--text-sub)' }}>{tr("叠加层布局")}</div>
         </div>
         {impact.length > 0 && <span className="badge badge-blue" data-testid="overlay-generation-impact">{tr("生成影响：")}{impact.join(', ')}</span>}
-        {message && <span style={{ maxWidth: 280, fontSize: 10, color: 'var(--text-sub)' }}>{message}</span>}
+        {message && <span style={{ maxWidth: 280, fontSize: 10, color: 'var(--text-sub)' }}>{renderUiMessage(message)}</span>}
         <button type="button" className="btn-primary" data-testid="overlay-save-btn"
           disabled={saving || changes.length === 0 || issues.length > 0} onClick={save}>
           <Save size={13} /> {saving ? tr("保存中…") : tr("保存 Overlay")}

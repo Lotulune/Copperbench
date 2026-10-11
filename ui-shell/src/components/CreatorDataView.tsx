@@ -29,7 +29,7 @@ import {
   WorkspaceRegistriesProjection
 } from '../types/contract';
 import { LanguageImportModal, ParsedLanguageEntry, ImportConflictMode } from './LanguageImportModal';
-import { t } from '../i18n';
+import { diagnosticMessages, renderUiMessage, type UiMessage } from '../i18n';
 
 type RegistryName = 'variables' | 'tags' | 'languageKeys';
 type DataTab = RegistryName | 'references';
@@ -77,7 +77,7 @@ export const CreatorDataView: React.FC = () => {
   const [projection, setProjection] = useState<WorkspaceRegistriesProjection | null>(null);
   const [references, setReferences] = useState<WorkspaceReferenceProjection | null>(null);
   const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState<string | null>(null);
+  const [message, setMessage] = useState<UiMessage | null>(null);
 
   // Creation form states
   const [showCreate, setShowCreate] = useState(false);
@@ -156,7 +156,7 @@ export const CreatorDataView: React.FC = () => {
     }
     const result = await createRegistryEntry(tab, entry);
     if (result.status !== 'committed') {
-      setMessage(result.diagnostics[0] ? t(result.diagnostics[0].message) : tr("创建注册表条目失败。"));
+      setMessage(diagnosticMessages(result.diagnostics.slice(0, 1), tr("创建注册表条目失败。")));
       return;
     }
     setMessage(uiText(`已创建 ${name.trim()}。`, `Created ${name.trim()}.`));
@@ -178,7 +178,7 @@ export const CreatorDataView: React.FC = () => {
     if (!renamePreview) return;
     const result = await renameRegistryEntry(renamePreview.entryId, renamePreview.newName);
     if (result.status !== 'committed') {
-      setMessage(result.diagnostics[0] ? t(result.diagnostics[0].message) : tr("重命名失败。"));
+      setMessage(diagnosticMessages(result.diagnostics.slice(0, 1), tr("重命名失败。")));
       return;
     }
     setMessage(tr("已将 {0} 重命名为 {1}，并更新 {2} 个元素。", [renamePreview.oldName, renamePreview.newName, result.data?.changedElementIds?.length ?? 0]));
@@ -198,7 +198,7 @@ export const CreatorDataView: React.FC = () => {
     if (!window.confirm(tr("确定删除“{0}”吗？删除前会创建本地恢复点。", [entryName(entry)]))) return;
     const result = await deleteRegistryEntry(entry.id);
     if (result.status !== 'committed') {
-      setMessage(result.diagnostics[0] ? t(result.diagnostics[0].message) : tr("删除失败。"));
+      setMessage(diagnosticMessages(result.diagnostics.slice(0, 1), tr("删除失败。")));
       return;
     }
     setMessage(tr("已删除 {0}。", [entryName(entry)]));
@@ -404,7 +404,7 @@ export const CreatorDataView: React.FC = () => {
 
       {message && (
         <div className="creator-data-message" role="status">
-          {message}
+          {renderUiMessage(message)}
           <button onClick={() => setMessage(null)} aria-label={tr("关闭消息")}>
             <X size={13} />
           </button>

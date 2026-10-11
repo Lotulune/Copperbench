@@ -76,6 +76,11 @@ class HeadlessCliTest {
 				PermissionProfile.READ_ONLY), WORKSPACE_ID, ids);
 
 		assertSuccessful(cli, "validate", "validate_workspace");
+		RunResult doctor = run(cli, "doctor");
+		assertEquals(HeadlessExitCode.SUCCESS.code(), doctor.exitCode());
+		assertEquals("get_workspace_doctor", doctor.json().get("operation").getAsString());
+		assertEquals("succeeded", doctor.json().get("status").getAsString());
+		assertTrue(doctor.json().getAsJsonObject("data").get("readOnly").getAsBoolean());
 		RunResult denied = run(cli, "build");
 		assertEquals(HeadlessExitCode.PERMISSION_DENIED.code(), denied.exitCode());
 		assertEquals("rejected", denied.json().get("status").getAsString());

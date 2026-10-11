@@ -55,6 +55,7 @@ export XDG_CONFIG_HOME="$isolated_home/config"
 export XDG_CACHE_HOME="$isolated_home/cache"
 export XDG_STATE_HOME="$isolated_home/state"
 export XDG_RUNTIME_DIR="$isolated_home/runtime"
+export COPPERBENCH_GRADLE_USER_HOME="$isolated_home/cache/copperbench/gradle"
 export JAVA_TOOL_OPTIONS="-Duser.home=$isolated_home"
 
 echo "[stage15-x11] preparing deterministic graphical workspace fixture"

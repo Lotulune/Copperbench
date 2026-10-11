@@ -305,9 +305,9 @@ export const NewWorkspaceView: React.FC = () => {
                     }}
                     style={{ color: 'inherit' }}
                   >
-                    {t(d.message)}
+                    {t(d.message, d.code)}
                   </a>
-                ) : t(d.message)}
+                ) : t(d.message, d.code)}
                 <code style={{ marginLeft: '8px', fontSize: '10px', color: 'var(--text-sub)' }}>{d.code}</code>
                 {d.message.args?.failureId != null && (
                   <code style={{ marginLeft: '8px', fontSize: '10px', color: 'var(--text-sub)' }}>

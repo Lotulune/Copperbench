@@ -10,6 +10,7 @@
 package dev.copperbench.generator.workspace;
 
 import dev.copperbench.testing.McreatorTestRuntime;
+import dev.copperbench.platform.ExecutableFilePermissions;
 import net.mcreator.generator.setup.WorkspaceGeneratorSetup;
 import net.mcreator.workspace.Workspace;
 import net.mcreator.workspace.settings.WorkspaceSettings;
@@ -20,6 +21,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermission;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -49,6 +51,13 @@ class WorkspaceIdentityTemplateTest {
 			settings.setCurrentGenerator(generatorId);
 			try (Workspace workspace = Workspace.createWorkspace(workspaceRoot.resolve(modId + ".mcreator").toFile(), settings)) {
 				WorkspaceGeneratorSetup.setupWorkspaceBaseOrThrow(workspace);
+				Path wrapper = workspaceRoot.resolve("gradlew");
+				assertTrue(Files.isRegularFile(wrapper), "Workspace setup must copy the Gradle launcher");
+				assertFalse(Files.readString(wrapper).contains("\r"),
+						"Workspace setup must normalize the POSIX launcher before dependency preparation");
+				if (ExecutableFilePermissions.posixSupported(wrapper))
+					assertTrue(Files.getPosixFilePermissions(wrapper).contains(PosixFilePermission.OWNER_EXECUTE),
+							"Workspace setup must make its Gradle launcher executable before dependency preparation");
 				String buildGradle = Files.readString(workspaceRoot.resolve("build.gradle"));
 				assertTrue(buildGradle.contains("base.archivesName = \"" + modId + "\""), buildGradle);
 				assertFalse(buildGradle.contains("base.archivesName = \"modid\""), buildGradle);

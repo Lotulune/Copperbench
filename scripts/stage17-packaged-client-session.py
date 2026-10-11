@@ -25,7 +25,7 @@ def main():
     before = trial.check(args.manifest)
     manifest = json.loads(args.manifest.read_text(encoding='utf-8'))
     product = args.product.resolve()
-    launcher = product / 'copperbench.exe'
+    launcher = product / ('copperbench.exe' if sys.platform == 'win32' else 'copperbench.sh')
     assert trial.digest(launcher) == manifest['productExeSha256']
     app_hash = trial.digest(product / 'lib/copperbench.jar')
     assert app_hash == args.expected_application_sha256

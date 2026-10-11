@@ -67,6 +67,43 @@ class WorkspaceApplicationServiceTest {
 		assertEquals(GSON.toJsonTree(legacy.query(query)), GSON.toJsonTree(headless.query(query)));
 	}
 
+	@Test void doctorIsReadOnlyAndDoesNotAcceptProbeOrApprovalPayloads() {
+		Fixture fixture = fixture();
+		HeadlessWorkspaceEntryAdapter entry = new HeadlessWorkspaceEntryAdapter(fixture.service, PermissionProfile.READ_ONLY);
+		var before = entry.query(Query.of(uuid(90), WORKSPACE_ID, Operation.GET_WORKBENCH, new JsonObject()));
+		var result = entry.query(Query.of(uuid(91), WORKSPACE_ID, Operation.GET_WORKSPACE_DOCTOR, new JsonObject()));
+		assertEquals("succeeded", result.status());
+		assertEquals(before.revision(), result.revision());
+		assertTrue(result.data().getAsJsonObject().get("readOnly").getAsBoolean());
+		JsonObject forbidden = new JsonObject(); forbidden.addProperty("probeNetwork", true);
+		var rejected = entry.query(Query.of(uuid(92), WORKSPACE_ID, Operation.GET_WORKSPACE_DOCTOR, forbidden));
+		assertNotEquals("succeeded", rejected.status());
+		assertEquals(before.revision(), rejected.revision());
+	}
+
+	@Test void blockCreationAndExistingEditorsKeepTheEnvironmentContract() {
+		Fixture fixture = fixture();
+		HeadlessWorkspaceEntryAdapter reader = new HeadlessWorkspaceEntryAdapter(fixture.service, PermissionProfile.READ_ONLY);
+		var environment = reader.query(Query.of(uuid(90), WORKSPACE_ID, Operation.GET_WORKSPACE_ENVIRONMENT, new JsonObject()));
+		assertEquals("succeeded", environment.status());
+		JsonObject contract = environment.data().getAsJsonObject().getAsJsonObject("fieldContracts").getAsJsonObject("block");
+		JsonObject previewPayload = new JsonObject(); previewPayload.addProperty("elementType", "block");
+		var preview = reader.query(Query.of(uuid(91), WORKSPACE_ID, Operation.GET_MOD_ELEMENT_EDITOR, previewPayload));
+		assertEquals("succeeded", preview.status());
+		assertEquals(0, preview.revision());
+		assertEquals(contract, preview.data().getAsJsonObject().get("fieldContract"));
+
+		var created = fixture.service.execute(createTypedCommand(uuid(30), 0, "block", "contract_probe", new JsonObject()),
+				new RequestContext(Actor.UI, PermissionProfile.WORKSPACE)).result();
+		assertEquals("committed", created.status());
+		JsonObject editorPayload = new JsonObject();
+		editorPayload.add("elementId", created.data().getAsJsonObject().getAsJsonObject("element").get("id"));
+		var editor = reader.query(Query.of(uuid(92), WORKSPACE_ID, Operation.GET_MOD_ELEMENT_EDITOR, editorPayload));
+		assertEquals("succeeded", editor.status());
+		assertEquals(created.newRevision(), editor.revision());
+		assertEquals(contract, editor.data().getAsJsonObject().get("fieldContract"));
+	}
+
 	@Test void stage12BiomeAndDimensionExposeCanonicalElementReferencePickers() {
 		Fixture fixture = fixture();
 		assertEquals("committed", fixture.service.execute(

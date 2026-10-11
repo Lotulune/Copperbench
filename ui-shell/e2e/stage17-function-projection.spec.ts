@@ -1,6 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 
-async function openFunction(page: Page, mode: 'absent' | 'readOnly' | 'nested' | 'failed' | 'allReadOnly') {
+async function openFunction(page: Page, mode: 'absent' | 'readOnly' | 'nested' | 'failed' | 'allReadOnly' | 'saveFailure') {
   await page.addInitScript(({ mode }) => {
     const ready = import('/src/mock/mockBridge.ts').then(({ MockCoreBridge }) => {
       const core = new MockCoreBridge(); core.loadScenario('ready'); return core;
@@ -15,6 +15,14 @@ async function openFunction(page: Page, mode: 'absent' | 'readOnly' | 'nested' |
         if (request.operation === 'update_mod_element') {
           const changes = request.payload.changes;
           sessionStorage.setItem('functionChanges', JSON.stringify(changes));
+          sessionStorage.setItem('functionSaveCount', String(Number(sessionStorage.getItem('functionSaveCount') ?? 0) + 1));
+          if (mode === 'saveFailure') {
+            return JSON.stringify({ messageType: 'command_result', schemaVersion: '1.0', requestId: request.requestId,
+              workspaceId: request.workspaceId, operation: request.operation, status: 'rejected', newRevision: request.expectedRevision,
+              diagnostics: [{ code: 'FIELD_TYPE_INVALID', severity: 'error', recoverable: true, path: '/code', actions: [],
+                message: { key: 'diagnostic.field_contract_invalid', fallback: '{field}: {reason}',
+                  args: { field: '/code', reason: 'Raw function reason 中文' } } }] });
+          }
           if (changes.some((change: { path: string }) => ![`${prefix}/code`, `${prefix}/namespace`].includes(change.path))) {
             return JSON.stringify({ messageType: 'command_result', schemaVersion: '1.0', requestId: request.requestId,
               workspaceId: request.workspaceId, operation: request.operation, status: 'rejected', newRevision: request.expectedRevision,
@@ -84,4 +92,23 @@ test('read-only function code and namespace stay inspectable without any write c
   await expect(page.getByTestId('function-namespace-input')).not.toBeEditable();
   await expect(page.getByTestId('snippet-execute')).toBeDisabled();
   await expect(page.getByTestId('function-save-btn')).toBeDisabled();
+});
+
+test('a saved failure banner rerenders raw arguments without losing the draft or replaying save', async ({ page }, testInfo) => {
+  await openFunction(page, 'saveFailure');
+  const editor = page.getByTestId('function-code-editor');
+  const draft = 'say keep this draft 中文\n';
+  await editor.fill(draft);
+  await page.getByTestId('function-save-btn').click();
+  await expect(page.getByTestId('function-status-message')).toHaveText('/code：Raw function reason 中文');
+  await page.getByTestId('ui-language-select').selectOption('en');
+  await expect(page.getByTestId('function-status-message')).toHaveText('/code: Raw function reason 中文');
+  await expect(editor).toHaveValue(draft);
+  await expect(page.getByTestId('function-dirty-badge')).toBeVisible();
+  await page.screenshot({ path: testInfo.outputPath('function-failure-english.png'), animations: 'disabled' });
+  expect(await page.evaluate(() => sessionStorage.getItem('functionSaveCount'))).toBe('1');
+  await page.getByTestId('function-back-btn').click();
+  await page.locator('[data-element-id]').filter({ hasText: 'stable_persistence' }).first().click();
+  await expect(editor).toHaveValue(draft);
+  await expect(page.getByTestId('function-status-message')).toHaveText('/code: Raw function reason 中文');
 });

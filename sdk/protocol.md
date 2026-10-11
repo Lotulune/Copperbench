@@ -9,7 +9,7 @@ without rereading the workspace.
 
 - The MCP SDKs automatically retry transport failures (connection reset,
   timeout, interrupted response body, or HTTP 502/503/504) only for an explicit
-  allowlist of audited reads: `get_workspace`, `get_workspace_environment`,
+  allowlist of audited reads: `get_workspace`, `get_workspace_environment`, `preview_generation`,
   `get_workspace_health`, `get_task`, `list_mod_elements`, `read_mod_element`,
   `get_procedure`, `list_workspace_registries`, `get_workspace_references`,
   `list_recovery_points`, and `list_task_authorizations`. The limit is two
@@ -55,6 +55,13 @@ payloads, invalid error flags, or unrecognized result statuses use
 `completed`, and `cancelled` payloads remain unchanged. A task returned by a
 successful query may itself be failed; callers must still inspect task state.
 
+When MCP rejects input before Core runs, its error text may not be a Core JSON
+object. Such `isError: true` results retain `MCP_TOOL_RESULT_INVALID` for
+compatibility, but display the original text and preserve the entire MCP tool
+result in `details`. They are sent once, without replaying the operation. The
+classification describes the missing Core result envelope, not whether the
+server's plain-text MCP error is valid.
+
 This is a behavior change for integrations that relied on automatic write
 replay or treated error-only payloads as success. Python Native `Workspace`
 requests continue to execute once; this MCP change does not alter its transport
@@ -67,6 +74,29 @@ existing `ui-shell` TypeScript development dependency (`npm ci --prefix
 ui-shell`); the shipped SDKs still need no third-party runtime dependencies.
 
 ## Task authority and acceptance evidence
+
+`get_mod_element_field_contract({elementType})` is a read-only versioned
+creation query. It distinguishes `available` (complete input metadata),
+`not_exposed` and `unsupported`; unknown types return `ELEMENT_TYPE_UNKNOWN`.
+Item/recipe fields include JSON pointers, input schemas, creation defaults,
+conditional requirements, reference discovery, generator exclusions and a
+consumable `minimalExample` payload for `create_mod_element`. The environment
+`fieldContracts` includes these contracts only when complete, preserving old
+SDK readers. Other existing formats remain unchanged. `fieldContractDiscovery`
+advertises the new query.
+
+`get_field_reference_options` accepts `elementType`, a published
+`mappingSource`, optional `search`, `offset` (default 0) and `limit`
+(1–200, default 100). It pages installed vanilla mappings for the current
+generator and returns total/truncated plus required API names. Workspace and
+asset references use the discovery operations recorded on each input shape.
+Discovery never creates a probe, prepares dependencies or changes revision.
+
+Verified export reparses the recorded XML, requires successful `packaged_jar`
+execution and its configured minimum, and compares recorded counts/cases with
+the raw report. Incomplete older acceptance records must be rerun;
+`allowHistorical` only relaxes current-input matching. Invalid acceptance uses
+`VERIFIED_ACCEPTANCE_INVALID`; hash changes retain `VERIFIED_EVIDENCE_CHANGED`.
 
 Mutating tools accept optional `taskAuthorizationId` metadata. The authorization
 is issued by the local user, scoped to a directory and operation categories,
@@ -83,3 +113,37 @@ packaged-JAR mode also records the deployed artifact hash. These fields are an
 additive preview schema extension. Custom GameTest tasks that previously only
 printed success must write JUnit/GameTest XML and configure its path. See the
 [configuration and migration notes](../docs/ai/task-authorization-and-acceptance.md).
+
+## Read-only doctor and diagnostic presentation
+
+`get_workspace_doctor({})` returns
+[workspace-doctor v1.0](../ui-core/schemas/v1.0/workspace-doctor.schema.json).
+Python Native `workspace.doctor()`, Python MCP `client.doctor()` and
+TypeScript `client.doctor()` preserve the same result envelope. Query success
+means observations were collected; inspect `data.findings` for
+`available / missing / unsupported / blocked / unknown`. It is not build,
+network or graphical acceptance.
+
+The product's Java 25 process and the workspace backend's selected JDK are
+separate findings. Java metadata comes from the selected JDK's release file,
+not just a generator declaration. Legacy tracks compile for 17 using the
+backend's bundled Java 21 runtime. Wrapper configuration, wrapper runtime
+files, cache directory and unverified dependency completeness remain distinct.
+Proxy presence is reported without exposing credentials. No network probe,
+installation, EULA acceptance or task authorization is performed.
+
+For checks **before opening a writer session**, use:
+`copperbench headless --workspace <path.mcreator> doctor`.
+This command bypasses workspace/bootstrap/metadata/history initialization.
+An SDK `Workspace.open(...)` still has its normal session-opening behavior;
+calling doctor inside that session does not undo opening it. Extra doctor
+payloads/options, including probe/approval flags, are rejected.
+
+Diagnostic display uses the shared
+[message fixtures](tests/diagnostic-rendering.json): a single literal pass over
+simple named placeholders; unknown names and complex/nonfinite values remain
+visible. Legacy strings remain accepted. Malformed presentation falls back to
+the stable error code. SDK errors preserve raw `details`, including localized
+key/args, conflict information, actions and task state. UI locale changes render
+the original message again. Presentation never retries a mutation or closes
+an otherwise healthy session.

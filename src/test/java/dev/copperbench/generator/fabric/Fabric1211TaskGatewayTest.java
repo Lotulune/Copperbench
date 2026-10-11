@@ -89,6 +89,36 @@ class Fabric1211TaskGatewayTest {
 		}
 	}
 
+	@Test void sourceConflictTaskRetainsStructuredPathsAlongsideLogsAndTerminalFailure() throws Exception {
+		RevisionedWorkspaceStore store = new RevisionedWorkspaceStore();
+		store.register(Fabric1211GoldenWorkspace.create());
+		JsonObject details = com.google.gson.JsonParser.parseString("""
+				{"conflicts":[{"relativePath":"src/main/java/Manual.java","reasonCode":"UNOWNED_BASE_FILE",
+				"expectedOwnership":"generated","observedOwnership":"unowned"}],"conflictCount":1,"conflictsTruncated":false}
+				""").getAsJsonObject();
+		try (var tasks = new Fabric1211WorkspaceTaskGateway(store, ignored -> generatedWorkspace,
+				Path.of(".").toAbsolutePath(), CLOCK, UUID::randomUUID)) {
+			tasks.setGenerationPreparation((state, root, operation, output) -> {
+				throw new dev.copperbench.core.application.WorkspaceTaskGateway.GenerationPreparationException(
+						"GENERATION_SOURCE_CONFLICT", "Unowned source: src/main/java/Manual.java", new IOException("unowned file"), details);
+			});
+			var service = new WorkspaceApplicationService(store, tasks, CLOCK, UUID::randomUUID);
+			JsonObject payload = new JsonObject(); payload.addProperty("scope", "workspace");
+			payload.addProperty("clientMutationId", UUID.randomUUID().toString());
+			var accepted = service.execute(Command.of(UUID.randomUUID(), WORKSPACE_ID, 4, Operation.GENERATE_WORKSPACE, payload), UI);
+			UUID id = UUID.fromString(accepted.result().task().getAsJsonObject().get("id").getAsString());
+			var result = awaitTask(service, id);
+			assertEquals("failed", result.getAsJsonObject("task").get("state").getAsString());
+			var diagnostic = result.getAsJsonArray("diagnostics").get(0).getAsJsonObject();
+			assertEquals("GENERATION_SOURCE_CONFLICT", diagnostic.get("code").getAsString());
+			JsonObject args = diagnostic.getAsJsonObject("message").getAsJsonObject("args");
+			assertEquals(details.get("conflicts"), args.get("conflicts"));
+			assertEquals(1, args.get("conflictCount").getAsInt());
+			assertFalse(args.get("conflictsTruncated").getAsBoolean());
+			assertTrue(result.getAsJsonArray("logs").toString().contains("src/main/java/Manual.java"));
+		}
+	}
+
 	@Test void exportFailuresAreSpecificAndRecentTasksSurviveRoutingAndReopen() throws Exception {
 		RevisionedWorkspaceStore store = new RevisionedWorkspaceStore();
 		store.register(Fabric1211GoldenWorkspace.create());

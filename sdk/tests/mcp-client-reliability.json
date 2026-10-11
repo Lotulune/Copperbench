@@ -1,7 +1,9 @@
 {
   "readTools": [
+    {"name": "get_workspace_doctor", "arguments": {}},
     {"name": "get_workspace", "arguments": {}},
     {"name": "get_workspace_environment", "arguments": {}},
+    {"name": "preview_generation", "arguments": {}},
     {"name": "get_workspace_health", "arguments": {}},
     {"name": "get_task", "arguments": {"taskId": "task-1", "afterLogSequence": 37}},
     {"name": "list_mod_elements", "arguments": {"cursor": "page-2", "limit": 5}},

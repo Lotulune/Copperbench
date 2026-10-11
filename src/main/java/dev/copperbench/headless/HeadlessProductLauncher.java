@@ -114,6 +114,21 @@ public final class HeadlessProductLauncher {
 	static int run(String[] arguments, PrintWriter output, java.io.Reader input) {
 		try {
 			Invocation invocation = parse(arguments);
+			if ("doctor".equals(invocation.commandArguments()[0])) {
+				if (invocation.commandArguments().length != 1)
+					throw new IllegalArgumentException("Usage: headless --workspace <path.mcreator> doctor");
+				JsonObject response = new JsonObject();
+				response.addProperty("schemaVersion", "1.0");
+				response.addProperty("operation", "get_workspace_doctor");
+				response.addProperty("status", "succeeded");
+				response.addProperty("exitCode", 0);
+				response.add("data", dev.copperbench.core.application.WorkspaceDoctor.inspectClosed(
+						invocation.workspace(), Path.of(System.getProperty("user.dir"))));
+				response.add("diagnostics", new JsonArray());
+				output.println(GSON.toJson(response));
+				output.flush();
+				return 0;
+			}
 			boolean stream = false;
 			for (int index = 0; index < invocation.commandArguments().length; index++)
 				if (invocation.commandArguments()[index].equals("--stream") && index + 1 < invocation.commandArguments().length)

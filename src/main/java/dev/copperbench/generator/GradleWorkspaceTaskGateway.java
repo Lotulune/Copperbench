@@ -272,6 +272,7 @@ public final class GradleWorkspaceTaskGateway implements WorkspaceTaskGateway, A
 			LOG.error("Generator source preparation failed {}", failureId, exception);
 			job.log("error", exception.code() + ": " + exception.getMessage());
 			JsonObject args = new JsonObject(); args.addProperty("reason", exception.getMessage());
+            exception.details().entrySet().forEach(entry -> args.add(entry.getKey(), entry.getValue()));
             if (exception.code().equals("GENERATOR_LOCAL_IPC_UNAVAILABLE"))
 				job.fail(exception.code(), failureId, taskKind(operation), "diagnostic.generator_local_ipc_unavailable",
                         "Loom could not access its local IPC file. Retry from the desktop product or a normal local terminal; dependency mirrors do not repair local IPC.", args);

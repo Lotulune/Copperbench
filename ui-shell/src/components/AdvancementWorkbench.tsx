@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
 import { ModElementSummary, FieldChange, EditorField, ModElementEditorProjection } from '../types/contract';
-import { t } from '../i18n';
+import { diagnosticMessages, renderUiMessage, type UiMessage } from '../i18n';
 
 interface AdvancementWorkbenchProps {
   element: ModElementSummary;
@@ -193,7 +193,7 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
 
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [saveSuccess, setSaveSuccess] = useState<boolean>(false);
-  const [message, setMessage] = useState<string | null>(null);
+  const [message, setMessage] = useState<UiMessage | null>(null);
   const [isDirty, setIsDirty] = useState<boolean>(false);
 
   // Load existing projection
@@ -367,7 +367,7 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
         setIsDirty(false);
         setTimeout(() => setSaveSuccess(false), 2500);
       } else {
-        setMessage(result.diagnostics[0] ? t(result.diagnostics[0].message) : tr("保存进度失败。"));
+        setMessage(diagnosticMessages(result.diagnostics.slice(0, 1), tr("保存进度失败。")));
       }
     } catch {
       setIsSaving(false);
@@ -618,7 +618,7 @@ export const AdvancementWorkbench: React.FC<AdvancementWorkbenchProps> = ({ elem
             justifyContent: 'space-between'
           }}
         >
-          <span>{message}</span>
+          <span>{renderUiMessage(message)}</span>
           <button
             type="button"
             onClick={() => setMessage(null)}

@@ -58,17 +58,21 @@ import static org.junit.jupiter.api.Assertions.fail;
 		ImageMakerView imv = new ImageMakerView(mcreator);
 		imv.newImage(new Layer(100, 100, 0, 0, "Layer", Color.red));
 
-		UITestUtil.waitUntilWindowIsOpen(mcreator, () -> new DesaturateDialog(mcreator, imv.getCanvas(), null, null));
-		UITestUtil.waitUntilWindowIsOpen(mcreator, () -> new FromTemplateDialog(mcreator, imv.getCanvas(), null));
-		UITestUtil.waitUntilWindowIsOpen(mcreator, () -> new HSVNoiseDialog(mcreator, imv.getCanvas(), null, null));
-		UITestUtil.waitUntilWindowIsOpen(mcreator, () -> new NewImageDialog(mcreator));
-		UITestUtil.waitUntilWindowIsOpen(mcreator, () -> new NewLayerDialog(mcreator, imv.getCanvas()));
 		UITestUtil.waitUntilWindowIsOpen(mcreator,
-				() -> new RecolorDialog(mcreator, imv.getCanvas(), null, new ColorSelector(mcreator), null));
-		UITestUtil.waitUntilWindowIsOpen(mcreator, () -> new ResizeCanvasDialog(mcreator, imv.getCanvas()));
+				() -> new DesaturateDialog(mcreator, imv.getCanvas(), null, null).setVisible(true));
+		UITestUtil.waitUntilWindowIsOpen(mcreator,
+				() -> new FromTemplateDialog(mcreator, imv.getCanvas(), null).setVisible(true));
+		UITestUtil.waitUntilWindowIsOpen(mcreator,
+				() -> new HSVNoiseDialog(mcreator, imv.getCanvas(), null, null).setVisible(true));
+		UITestUtil.waitUntilWindowIsOpen(mcreator, () -> new NewImageDialog(mcreator).setVisible(true));
+		UITestUtil.waitUntilWindowIsOpen(mcreator, () -> new NewLayerDialog(mcreator, imv.getCanvas()).setVisible(true));
+		UITestUtil.waitUntilWindowIsOpen(mcreator,
+				() -> new RecolorDialog(mcreator, imv.getCanvas(), null, new ColorSelector(mcreator), null).setVisible(true));
+		UITestUtil.waitUntilWindowIsOpen(mcreator,
+				() -> new ResizeCanvasDialog(mcreator, imv.getCanvas()).setVisible(true));
 		UITestUtil.waitUntilWindowIsOpen(mcreator,
 				() -> new ResizeDialog(mcreator, imv.getCanvas(), imv.getToolPanel().getCurrentTool().getLayer(),
-						null));
+						null).setVisible(true));
 	}
 
 }

@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "vite",
     "check:i18n": "node scripts/check-i18n.mjs",
-    "build": "npm run check:i18n && tsc && vite build",
+    "build": "npm run check:i18n && tsc && node scripts/build-dependency-evidence.mjs",
     "preview": "vite preview",
     "test": "node --experimental-strip-types --test tests/*.test.mjs",
     "test:sdk": "node --test ../sdk/typescript/tests/*.test.mjs",

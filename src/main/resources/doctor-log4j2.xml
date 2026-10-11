@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Standalone read-only doctor initializes no log directories or appenders. -->
+<Configuration status="OFF">
+    <Appenders/>
+    <Loggers><Root level="OFF"/></Loggers>
+</Configuration>

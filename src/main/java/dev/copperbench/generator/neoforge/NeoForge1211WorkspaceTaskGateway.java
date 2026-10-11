@@ -8,7 +8,6 @@
  */
 
 package dev.copperbench.generator.neoforge;
-import dev.copperbench.platform.RuntimePlatform;
 
 import com.google.gson.JsonObject;
 import dev.copperbench.core.application.WorkspaceTaskGateway;
@@ -103,37 +102,8 @@ public final class NeoForge1211WorkspaceTaskGateway implements WorkspaceTaskGate
 	}
 
 	@Override public JsonObject environment(UUID workspaceId) {
-		Path root = workspaceRoots.apply(workspaceId).toAbsolutePath().normalize();
-		Path javaHome = BundledJdkLocator.locate(distributionRoot, profile.javaRelease()).toAbsolutePath().normalize();
-		JsonObject environment = new JsonObject();
-		environment.addProperty("generatorId", profile.generatorId());
-		environment.addProperty("loader", "neoforge");
-		environment.addProperty("minecraftVersion", profile.minecraftVersion());
-		environment.addProperty("loaderVersion", profile.neoForgeVersion());
-		environment.addProperty("loaderDependency", profile.loaderDependency());
-		environment.addProperty("workspaceRoot", root.toString());
-		environment.addProperty("sourceRoot", root.resolve("src/main/java").toString());
-		environment.addProperty("resourceRoot", root.resolve("src/main/resources").toString());
-		JsonObject java = new JsonObject();
-		java.addProperty("requiredRelease", profile.javaRelease());
-		java.addProperty("home", javaHome.toString());
-		java.addProperty("executable", javaHome.resolve("bin").resolve(RuntimePlatform.current().javaExecutableName()).toString());
-		environment.add("java", java);
-		JsonObject gradle = new JsonObject();
-		gradle.addProperty("distribution", profile.fabricProfile().gradleWrapperZip());
-		gradle.addProperty("windowsLauncher", root.resolve("gradlew.bat").toString());
-		gradle.addProperty("posixLauncher", root.resolve("gradlew").toString());
-		JsonObject tasks = new JsonObject();
-		tasks.addProperty("build", "build");
-		tasks.addProperty("runClient", "runClient");
-		tasks.addProperty("runServer", "runServer");
-		tasks.addProperty("runDatagen", "runDatagen");
-		tasks.addProperty("runGameTest", "runGameTest");
-		gradle.add("tasks", tasks);
-		environment.add("gradle", gradle);
-		environment.add("testing", dev.copperbench.generator.GameTestSupport.describe(root,
-				new NeoForge1211Generator(distributionRoot, profile).gameTestEnvironment()));
-		return environment;
+		return dev.copperbench.generator.WorkspaceExecutionEnvironment.neoForge(
+				workspaceRoots.apply(workspaceId), distributionRoot, profile);
 	}
 
 	@Override public Optional<JsonObject> sourcePreview(UUID workspaceId, UUID taskId, String sourcePath) {

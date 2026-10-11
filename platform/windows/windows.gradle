@@ -3,11 +3,12 @@ import org.apache.tools.ant.taskdefs.condition.Os
 launch4j {
     outfile = 'copperbench.exe'
     mainClassName = 'net.mcreator.Launcher'
-    dontWrapJar = false
+    // Load the shipped JAR so runtime identity and the verified package refer to the same bytes.
+    dontWrapJar = true
     copyConfigurable = []
-    classpath = ["./lib/*"]
+    classpath = ["./lib/copperbench.jar", "./lib/*"]
     jvmOptions = ["--add-opens=java.base/java.lang=ALL-UNNAMED", "--enable-native-access=ALL-UNNAMED,jcef", "-Dcopperbench.productShell=true"]
-    libraryDir = "null"
+    libraryDir = "lib"
     stayAlive = true
 
     bundledJrePath = 'jdk'

@@ -38,6 +38,58 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class HeadlessProductLauncherTest {
+	@Test void actualProductDoctorSkipsPreferencesLogsAndIpcBootstrap(@TempDir Path directory) throws Exception {
+		Path observed = directory.resolve("observed");
+		Path workspace = observed.resolve("workspace/doctor.mcreator");
+		Files.createDirectories(workspace.getParent());
+		Files.writeString(workspace, "{\"workspaceSettings\":{\"currentGenerator\":\"fabric-1.21.1\"}}");
+		List<Path> before;
+		try (var files = Files.walk(observed)) { before = files.sorted().toList(); }
+		Path binary = Path.of(System.getProperty("java.home"), "bin", java.io.File.separatorChar == '\\' ? "java.exe" : "java");
+		String classpath = System.getProperty("copperbench.test.runtimeClasspath");
+		assertTrue(classpath != null && !classpath.isBlank());
+		Path output = directory.resolve("stdout.json"), errors = directory.resolve("stderr.log");
+		ProcessBuilder command = new ProcessBuilder(binary.toString(), "-Djava.awt.headless=true", "-XX:-UsePerfData",
+				"-Duser.home=" + observed.resolve("home"), "-Djava.io.tmpdir=" + observed.resolve("temp"),
+				"-Dlog_directory=" + observed.resolve("logs"), "-cp", classpath, "net.mcreator.Launcher",
+				"headless", "--workspace", workspace.toString(), "doctor");
+		command.environment().put("COPPERBENCH_HOME", observed.resolve("user-data").toString());
+		Process process = command.redirectOutput(output.toFile()).redirectError(errors.toFile()).start();
+		try {
+			assertTrue(process.waitFor(30, java.util.concurrent.TimeUnit.SECONDS), "Standalone doctor must not wait for runtime setup");
+			assertEquals(0, process.exitValue(), () -> {
+				try { return Files.readString(errors); } catch (Exception error) { return error.toString(); }
+			});
+		} finally { if (process.isAlive()) process.destroyForcibly(); }
+		JsonObject result = JsonParser.parseString(Files.readString(output)).getAsJsonObject();
+		assertEquals("get_workspace_doctor", result.get("operation").getAsString());
+		assertTrue(result.getAsJsonObject("data").get("readOnly").getAsBoolean());
+		try (var files = Files.walk(observed)) { assertEquals(before, files.sorted().toList()); }
+		assertEquals("{\"workspaceSettings\":{\"currentGenerator\":\"fabric-1.21.1\"}}", Files.readString(workspace));
+		Path receipt = Path.of("build/reports/workspace-doctor/product-launcher.json");
+		Files.createDirectories(receipt.getParent());
+		Files.writeString(receipt, result.getAsJsonObject("data").toString());
+	}
+
+	@Test void doctorBypassesWorkspaceOpeningAndRejectsSideEffectOptions(@TempDir Path root) throws Exception {
+		Path file = root.resolve("doctor.mcreator");
+		String original = "{\"workspaceSettings\":{\"currentGenerator\":\"fabric-1.21.1\"}}";
+		Files.writeString(file, original);
+		StringWriter output = new StringWriter();
+		int code = HeadlessProductLauncher.run(new String[] { "--workspace", file.toString(), "doctor" }, new PrintWriter(output));
+		assertEquals(0, code, output.toString());
+		JsonObject result = JsonParser.parseString(output.toString()).getAsJsonObject();
+		assertEquals("get_workspace_doctor", result.get("operation").getAsString());
+		assertTrue(result.getAsJsonObject("data").get("readOnly").getAsBoolean());
+		assertFalse(result.getAsJsonObject("data").get("networkProbed").getAsBoolean());
+		assertEquals(original, Files.readString(file));
+		try (var files = Files.list(root)) { assertEquals(List.of(file), files.toList()); }
+		output = new StringWriter();
+		assertEquals(HeadlessExitCode.INVALID_ARGUMENTS.code(), HeadlessProductLauncher.run(
+				new String[] { "--workspace", file.toString(), "doctor", "--approve", "true" }, new PrintWriter(output)));
+		try (var files = Files.list(root)) { assertEquals(List.of(file), files.toList()); }
+	}
+
 
 	@TempDir Path tempDir;
 

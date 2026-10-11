@@ -65,6 +65,15 @@ import java.lang.reflect.Modifier;
 /** Transaction participant for all first-party Java elements backed by the upstream model classes. */
 public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutationGateway {
 
+	@Override public JsonObject previewGeneration(WorkspaceState state) {
+		String generatorId = workspace.getWorkspaceSettings().getCurrentGenerator();
+		if (dev.copperbench.tracks.VersionTrackCatalog.official().findGenerator(generatorId).isEmpty()
+				&& !dev.copperbench.generator.datapack.DataPackWorkspaceTaskGateway.GENERATOR_IDS.contains(generatorId))
+			return dev.copperbench.core.application.GenerationPreflight.unknown(state, "GENERATOR_UNSUPPORTED");
+		return MCreatorGenerationPlan.inspect(workspace, MCreatorGenerationPreparation.managedElements(workspace))
+				.preview(state, MCreatorGenerationPreparation.needsDependencies(workspace));
+	}
+
 	public static final String ELEMENT_ID_METADATA = "dev.copperbench.elementId";
 	public static final String ELEMENT_VALUES_METADATA = "dev.copperbench.values";
 	static final String CODE_FILES_METADATA = "dev.copperbench.codeFiles";
@@ -73,27 +82,11 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 			+ "<field name=\"trigger\">no_ext_trigger</field></block></xml>";
 	private static final String EMPTY_ADVANCEMENT_TRIGGER_XML =
             dev.copperbench.core.application.SpecializedFieldContract.DEFAULT_ADVANCEMENT_TRIGGER_XML;
-	private static final Gson GENERIC_FIELD_GSON = genericFieldGson();
+	private static final Gson GENERIC_FIELD_GSON = dev.copperbench.core.application.ElementFieldCodec.gson();
 
 	private final Workspace workspace;
 	private final UUID workspaceId;
 	private final List<WorkspaceMutationObserver> observers;
-
-	private static Gson genericFieldGson() {
-		GsonBuilder builder = new GsonBuilder().disableHtmlEscaping().setStrictness(Strictness.LENIENT)
-				.registerTypeAdapter(Color.class, new JsonDeserializer<Color>() {
-					@Override public Color deserialize(JsonElement json, java.lang.reflect.Type type,
-							JsonDeserializationContext context) throws JsonParseException {
-						if (json == null || json.isJsonNull()) return null;
-						int value = json.isJsonObject() ? json.getAsJsonObject().get("value").getAsInt() : json.getAsInt();
-						return new Color(value, true);
-					}
-				});
-		RetvalProcedure.GSON_ADAPTERS.forEach(builder::registerTypeAdapter);
-		builder.registerTypeAdapter(net.mcreator.ui.minecraft.states.StateMap.class, new net.mcreator.ui.minecraft.states.StateMap.GSONAdapter());
-		builder.registerTypeHierarchyAdapter(MappableElement.class, new MappableElement.GSONAdapter());
-		return builder.create();
-	}
 
 	private List<Path> plannedRollbackPaths(WorkspaceState before, WorkspaceState after) {
 		Set<Path> paths = new LinkedHashSet<>();
@@ -926,11 +919,7 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 	}
 
 	private Item newItem(ModElement modElement, Element element) {
-		Item item = new Item(modElement);
-		item.customModelName = "Normal";
-		item.stackSize = 64;
-		item.toolType = 1;
-		item.animation = new ItemUseAnimation(workspace, "eat");
+		Item item = dev.copperbench.core.application.StructuredElementDefaults.item(modElement, workspace, element.displayName());
 		applyItem(item, element);
 		return item;
 	}
@@ -982,13 +971,7 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 	}
 
 	private Recipe newRecipe(ModElement modElement, Element element) {
-		Recipe recipe = new Recipe(modElement);
-		recipe.name = element.name();
-		recipe.recipeType = "Crafting";
-		recipe.recipeSlots = new MItemBlock[9];
-		for (int index = 0; index < recipe.recipeSlots.length; index++)
-			recipe.recipeSlots[index] = new MItemBlock(workspace, "");
-		recipe.recipeReturnStack = new MItemBlock(workspace, "");
+		Recipe recipe = dev.copperbench.core.application.StructuredElementDefaults.recipe(modElement, workspace, element.name());
 		applyGenericValues(recipe, element);
 		recipe.name = element.name();
 		return recipe;
@@ -1191,7 +1174,7 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 		} catch (NoSuchFieldException | IllegalAccessException ignored) {
 			// Some upstream types intentionally do not expose a name field.
 		}
-		fillMissingStringDefaults(definition);
+		dev.copperbench.core.application.StructuredElementDefaults.fillStrings(definition);
 	}
 
 	private static void validatePrimitiveInput(Field field, JsonElement raw, Element element) {
@@ -1220,21 +1203,6 @@ public final class MCreatorWorkspaceMutationGateway implements WorkspaceMutation
 		if (options != null && (type == int.class ? raw.getAsInt() < 0 || raw.getAsInt() >= options.value().length
 				: type == String.class && !java.util.Arrays.asList(options.value()).contains(raw.getAsString())))
 			throw new ElementFieldException("FIELD_ENUM_INVALID", path, element.id(), "Choose one of " + java.util.Arrays.toString(options.value()));
-	}
-
-	private void fillMissingStringDefaults(GeneratableElement definition) {
-		for (Field field : definition.getClass().getFields()) {
-			if (Modifier.isStatic(field.getModifiers()) || field.getType() != String.class)
-				continue;
-			try {
-				if (field.get(definition) != null)
-					continue;
-				var options = field.getAnnotation(net.mcreator.element.types.interfaces.LimitedOptions.class);
-				field.set(definition, options != null && options.value().length > 0 ? options.value()[0] : "");
-			} catch (IllegalAccessException ignored) {
-				// Keep the upstream constructor default when the field cannot be written.
-			}
-		}
 	}
 
 	private void persistCustomCode(ModElement modElement, Element previous, Element element,

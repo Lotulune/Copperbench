@@ -60,7 +60,7 @@ export const BlockbenchSetupPanel: React.FC = () => {
       });
       if (sequence !== requestSequence.current) return;
       if (result.status !== 'succeeded' || !result.data?.editor || !result.data?.mcp)
-        throw new Error(t(result.diagnostics[0]?.message) || tr("检测不可用，请确认桌面产品已更新。"));
+        throw new Error(t(result.diagnostics[0]?.message, result.diagnostics[0]?.code) || tr("检测不可用，请确认桌面产品已更新。"));
       setEnvironment(result.data);
       setMessage(result.data.inspectionState && result.data.inspectionState !== 'completed'
         ? '本次检测未完成；已获取的信息保留，可稍后重试。'

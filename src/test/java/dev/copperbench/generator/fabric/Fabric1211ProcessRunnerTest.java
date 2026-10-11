@@ -83,6 +83,44 @@ class Fabric1211ProcessRunnerTest {
 				"GLFW error 65550: X11: The DISPLAY environment variable is missing"));
 	}
 
+	@Test
+	@org.junit.jupiter.api.parallel.ResourceLock("MCREATOR_PREFERENCES")
+	void externalGradleProcessHonorsTheOfflinePreference() throws Exception {
+		org.junit.jupiter.api.Assumptions.assumeTrue(System.getenv("COPPERBENCH_STAGE5_GRADLE_EXECUTABLE") == null);
+		var root = java.nio.file.Files.createTempDirectory(java.nio.file.Path.of("build").toAbsolutePath(), "m3-process-offline-");
+		boolean windows = RuntimePlatform.current().operatingSystem() == RuntimePlatform.OperatingSystem.WINDOWS;
+		var wrapper = root.resolve(windows ? "gradlew.bat" : "gradlew");
+		java.nio.file.Files.writeString(wrapper, windows
+				? "@echo off\r\n:arguments\r\nif \"%~1\"==\"\" exit /b 0\r\necho OBSERVED_ARG=%~1\r\nshift\r\ngoto arguments\r\n"
+				: "#!/bin/sh\nprintf 'OBSERVED_ARG=%s\\n' \"$@\"\n");
+		if (!windows) assertTrue(wrapper.toFile().setExecutable(true));
+		var previousPreferences = net.mcreator.preferences.PreferencesManager.PREFERENCES;
+		if (previousPreferences == null)
+			net.mcreator.preferences.PreferencesManager.PREFERENCES = new net.mcreator.preferences.data.PreferencesData();
+		var preference = net.mcreator.preferences.PreferencesManager.PREFERENCES.gradle.offline;
+		boolean previous = preference.get();
+		var runner = Fabric1211ProcessRunner.system();
+		try {
+			for (boolean offline : List.of(false, true)) {
+				preference.set(offline);
+				List<String> output = new java.util.concurrent.CopyOnWriteArrayList<>();
+				var result = runner.run(root, List.of("help"), java.time.Duration.ofSeconds(15), output::add);
+				assertEquals(0, result.exitCode(), output.toString());
+				assertEquals(offline ? 1 : 0, output.stream().filter("OBSERVED_ARG=--offline"::equals).count(), output.toString());
+			}
+			for (String explicitFlag : List.of("--offline", "-o")) {
+				List<String> output = new java.util.concurrent.CopyOnWriteArrayList<>();
+				var result = runner.run(root, List.of("help", explicitFlag), java.time.Duration.ofSeconds(15), output::add);
+				assertEquals(0, result.exitCode(), output.toString());
+				assertEquals(1, output.stream().filter(line -> line.equals("OBSERVED_ARG=--offline")
+						|| line.equals("OBSERVED_ARG=-o")).count(), output.toString());
+			}
+		} finally {
+			preference.set(previous);
+			net.mcreator.preferences.PreferencesManager.PREFERENCES = previousPreferences;
+		}
+	}
+
 	@Test void recognizesRootAndQualifiedRunClientTasks() {
 		assertTrue(Fabric1211ProcessRunner.isClientRun(List.of("runClient")));
 		assertTrue(Fabric1211ProcessRunner.isClientRun(List.of(":packloader:runClient")));

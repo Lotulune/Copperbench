@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { useWorkbench } from '../context/WorkbenchContext';
 import { ModElementSummary, FieldChange } from '../types/contract';
-import { t } from '../i18n';
+import { diagnosticMessages, renderUiMessage, type UiMessage } from '../i18n';
 
 interface LootTableWorkbenchProps {
   element: ModElementSummary;
@@ -117,7 +117,7 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
   const [activeTab, setActiveTab] = useState<'designer' | 'json'>('designer');
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
+  const [message, setMessage] = useState<UiMessage | null>(null);
   const [isDirty, setIsDirty] = useState<boolean>(false);
 
   // Load existing data if projection provides it
@@ -397,7 +397,7 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
         setIsDirty(false);
         setTimeout(() => setSaveSuccess(false), 2500);
       } else {
-        setMessage(result.diagnostics[0] ? t(result.diagnostics[0].message) : tr("保存战利品表失败。"));
+        setMessage(diagnosticMessages(result.diagnostics.slice(0, 1), tr("保存战利品表失败。")));
       }
     } catch {
       setIsSaving(false);
@@ -617,7 +617,7 @@ export const LootTableWorkbench: React.FC<LootTableWorkbenchProps> = ({ element,
             justifyContent: 'space-between'
           }}
         >
-          <span>{message}</span>
+          <span>{renderUiMessage(message)}</span>
           <button
             type="button"
             onClick={() => setMessage(null)}
