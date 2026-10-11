@@ -1,7 +1,7 @@
 # 信息架构与自适应工作台规范（Information Architecture & Adaptive Workbench）
 
-> 状态：U0 已关闭。选定方向 A「专注工坊流」（左导航轨 + 自适应主区 + 检查器）。B/C 仅作历史原型。  
-> 现行导航在 U0 之后已增加「版本与迁移」「新建工作区」「帮助与关于」。资产页实接与资源包工作区进入新外壳的完成证据见 [阶段 8 验证](../testing/stage-8-workspace-generators-assets-2026-08-23.md)。<br>
+> 状态：U0 历史设计，已关闭。当时选定方向 A「专注工坊流」（左导航轨 + 自适应主区 + 检查器）；三套原型均已退役。当前产品布局与宣传图片见[当前素材索引](../../assets/screenshots/README.md)，实现见 [ui-shell/src](../../ui-shell/src/)。<br>
+> 阶段 8 导航在 U0 之后增加了「版本与迁移」「新建工作区」「帮助与关于」。资产页实接与资源包工作区进入新外壳的历史完成证据见 [阶段 8 验证](../testing/stage-8-workspace-generators-assets-2026-08-23.md)。<br>
 > 对应需求：`NFR-UI-01`、`NFR-UI-02`、`NFR-UI-03`、`NFR-UI-04`、`NFR-UI-05`、`NFR-UI-06`、`NFR-UI-07`、`NFR-UI-08`  
 > 架构原则：高信息密度、自适应重排、离线优先、无边框系统级融合、类型化契约驱动
 

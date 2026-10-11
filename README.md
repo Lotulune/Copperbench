@@ -44,7 +44,7 @@ Windows packages are not Authenticode-signed and may trigger SmartScreen. The fi
   </tr>
 </table>
 
-<sub>Browser captures of the 0.1.4 frontend with the bundled Copper Trails example data. [Capture details](assets/screenshots/README.md)</sub>
+<sub>Browser captures of the 0.1.4 frontend with the bundled Copper Trails example data. [Current promotional images and capture details](assets/screenshots/README.md)</sub>
 
 ## What you can do
 

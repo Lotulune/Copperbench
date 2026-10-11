@@ -6,8 +6,9 @@
 
 1. 使用产品：[用户指南](./user/README.md)、[Windows 0.1.4](./releases/v0.1.4.md)、[Linux 0.1.4](./releases/v0.1.4-linux.md)。
 2. 开发与维护：[开发环境](./build/development-setup.md)、[剩余完善清单](./remaining-work.md)、[测试与证据索引](./testing/README.md)。
-3. 术语存在歧义时查询 [领域词汇表](../CONTEXT.md)。
-4. 只有遇到专项问题时，才从本页选择对应附件。
+3. 制作宣传片、封面或产品介绍：[当前宣传素材与截图来源](../assets/screenshots/README.md)。
+4. 术语存在歧义时查询 [领域词汇表](../CONTEXT.md)。
+5. 只有遇到专项问题时，才从本页选择对应附件。
 
 ## 决策记录
 
@@ -47,7 +48,7 @@
 - [UI 重写交接简报](./handoffs/ui-rewrite-brief.md)、[zcode UI-Core v0.1 交接](./handoffs/zcode-ui-core-v0.1.md)
 - [阶段 3 桥接集成准备](./handoffs/stage-3-bridge-readiness.md)、[阶段 3 G2/G3 验证记录](./testing/stage-3-g2-g3-2026-08-17.md)、[阶段 0 基线执行记录](./testing/stage-0-baseline-2026-08-16.md)
 
-这些文档中的“待完成”“未发布”描述对应当时的状态。当前发布与支持范围以上方交付基线为准；历史证据原址保留，避免破坏链接和发布哈希绑定。
+这些文档中的“待完成”“未发布”描述对应当时的状态。当前发布与支持范围以上方交付基线为准；历史证据原址保留，避免破坏链接和发布哈希绑定。已退役的展示截图和 U0 原型通过固定 Git 快照追溯，不作为当前界面素材。
 
 ## 开发与发布
 

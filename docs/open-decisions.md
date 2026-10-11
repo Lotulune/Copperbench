@@ -11,7 +11,7 @@
 | 事项 | 结论 | 证据 |
 | --- | --- | --- |
 | 首个 MCreator 稳定标签及 Fabric Generator 固定提交 | MCreator `2026.2.33518` / `361429609b772039a3eb9ab81662c25b225f1d0d`；Fabric Generator `26.1.2-2026.2-2.8` / `abfe19329126b679a26baafe5cade5a75d455528` | [`UPSTREAM.md`](../UPSTREAM.md)、[`baseline.lock.json`](../compliance/baseline.lock.json) |
-| 三套 UI 方向中的最终信息架构与视觉方向 | 选定方向 A「专注工坊流」：左导航 + 中主区 + 右检查器、铜强调色、无边框标题栏。B/C 保留为历史原型，不再并行实现。 | [`information-architecture.md`](./architecture/information-architecture.md)、[`prototypes/`](../prototypes/)、现行 `ui-shell` 产品壳 |
+| 三套 UI 方向中的最终信息架构与视觉方向 | U0 当时选定方向 A「专注工坊流」：左导航 + 中主区 + 右检查器、铜强调色、无边框标题栏。三套原型均已退役；当前界面见[展示素材](../assets/screenshots/README.md)。 | [`information-architecture.md`](./architecture/information-architecture.md)、[U0 原型历史快照](https://github.com/Lotulune/Copperbench/tree/70261a71ce0403e00f8c118026f80c3579d554b7/prototypes)、现行 `ui-shell` 产品壳 |
 | 被保留、迁移到新外壳或仅在旧版窗口开放的上游高级功能 | 机器可读盘点：新 UI / 旧版窗口 / 不支持 / 不适用。旧版窗口不是视觉承诺。 | [`UpstreamToolCatalog`](../src/main/java/dev/copperbench/release/UpstreamToolCatalog.java)、`get_upstream_tools` |
 | 首个正式版完整 Mod Element 覆盖清单 | 第一方切片为 block / item / recipe / procedure，覆盖全部 8 个第一方生成器。迁入的上游类型只读；create/update 拒绝。 | [`ElementCoverageCatalog`](../src/main/java/dev/copperbench/release/ElementCoverageCatalog.java)、`get_element_coverage` / `headless elements` |
 | 无开发工具的干净 Windows 11 安装环境 | Hyper-V 客户机断网状态下 `copperbench.exe` 10 秒常驻通过；静默安装/升级/卸载通过；工作区与 `.copperbench` 保留。 | [`hyperv-g7-guest-checks.json`](../evidence/stage-8/2026-08-23/hyperv-g7-guest-checks.json) |

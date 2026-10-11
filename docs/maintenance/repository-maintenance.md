@@ -9,19 +9,26 @@
 | `sdk/`、`scripts/`、`tools/` | SDK、构建/验收脚本和 Minecraft 控制桥 |
 | `docs/user/`、`docs/build/`、`docs/ai/` | 使用、开发和 AI 接入说明 |
 | `docs/research/` | 按原始日期保留的调研与项目评估 |
-| `assets/screenshots/` | README 展示图；当前截图按产品版本分目录，旧图保留来源说明 |
+| `assets/screenshots/` | 当前 README 与宣传用界面图；按产品版本分目录，入口列明可用图片与截图来源 |
 | `PRD*.md`、`docs/roadmap/`、`docs/handoffs/` | 需求演进、历史路线和交接上下文 |
 | `docs/testing/`、`evidence/` | 按日期、候选和验证层级保存的验收记录 |
 | `product-status.json`、`release-control/` | 交付状态、固定候选和发布授权 |
 | `.tmp/`、`build/`、`output/` | 本地中间文件混合区，包含工作树、测试工程、证据和构建产物 |
 
-当前文档入口为 [文档导航](../README.md)和 [测试索引](../testing/README.md)。历史文件保留原路径；过期状态由入口说明和历史分区区分，避免破坏已有链接或证据哈希。
+当前文档入口为 [文档导航](../README.md)和 [测试索引](../testing/README.md)。验收证据保留原路径和原始字节；退役展示素材与原型通过固定 Git 快照追溯，避免被误作当前产品界面。
+
+## 2026-10-11 过期展示素材清理
+
+- 移除 `assets/screenshots/en/`、`assets/screenshots/zh-CN/` 下共 10 张 2026-09-14 的旧原生界面图；这些无版本路径中的图片早于 UI 改版，已被 0.1.4 展示图替代。
+- 移除 `prototypes/` 下 4 个 U0 HTML 页面及其 `mock-core.js`。该设计阶段已关闭，当前产品、构建和测试没有引用这些原型；三处历史文档入口改为[固定 Git 快照](https://github.com/Lotulune/Copperbench/tree/70261a71ce0403e00f8c118026f80c3579d554b7/prototypes)。
+- [当前宣传素材索引](../../assets/screenshots/README.md)列出 6 张中英文 0.1.4 图片与品牌图标，并注明浏览器示例来源；中英文 README、文档导航和 `AGENTS.md` 均指向该入口。
+- `evidence/` 中的发布验收图片、日志和哈希绑定文件保持不变；新增[证据目录说明](../../evidence/README.md)，明确按日期和候选读取，不用作当前宣传素材。未把旧图替换成新图或改写历史验收结果。
 
 ## 2026-10-06 文档整理
 
 - 中英文 README、快速开始、用户指南和当前待办统一到已发布的 Windows / Linux 0.1.4；下载地址与验证范围以[当前下载](../releases/current.md)为准。
 - 根目录的 2026-08-25 项目评估移入 [docs/research](../research/project-assessment-2026-08-25.md)，正文不变。PRD 和路线图保留历史内容，并在入口标明其历史状态。
-- 0.1.4 截图放在 `assets/screenshots/v0.1.4/`，旧截图继续保留；[截图说明](../../assets/screenshots/README.md)区分浏览器示例和历史原生界面。
+- 0.1.4 截图放在 `assets/screenshots/v0.1.4/`，当时保留了旧截图；旧展示图随后在 2026-10-11 退役，来源仍可从[截图说明](../../assets/screenshots/README.md)追溯。
 - 文档链接检查按 Git 文件清单扫描，包括尚未暂存的新文档。忽略构建输出和第三方依赖中的 Markdown；已跟踪文件即使位于忽略目录中也继续检查。
 - 本机旧工作台原型的 126 个文件已完整归档到 Git 忽略的 `output/workbench-next-archive/`，逐文件 SHA-256 不变；不把本地示例工程发布到 GitHub。
 - 本轮不改发布授权或历史验收证据，不把未提交的 Minecraft 控制桥工作带入文档发布。
