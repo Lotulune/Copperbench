@@ -423,7 +423,7 @@ export function renderDiagnosticMessage(message: unknown, fallbackCode: string):
   const template = typeof message.fallback === 'string' && message.fallback ? message.fallback : fallbackCode;
   const args = message.args;
   if (!isJsonObject(args)) return template;
-  return template.replace(/\{([A-Za-z_][A-Za-z0-9_]*)\}/g, (match, name: string) => {
+  return template.replace(/(?<!\{)\{([A-Za-z_][A-Za-z0-9_]*)\}(?!\})/g, (match, name: string) => {
     if (!Object.hasOwn(args, name)) return match;
     const value = args[name];
     if (typeof value === 'string') return value;

@@ -28,7 +28,7 @@ export function renderUiMessage(message: UiMessage): string {
  */
 export function formatTemplate(template: string, args?: Record<string, unknown>): string {
   if (!args || typeof args !== 'object' || Array.isArray(args)) return template;
-  return template.replace(/\{([A-Za-z_][A-Za-z0-9_]*)\}/g, (match, name: string) => {
+  return template.replace(/(?<!\{)\{([A-Za-z_][A-Za-z0-9_]*)\}(?!\})/g, (match, name: string) => {
     if (!Object.hasOwn(args, name)) return match;
     const value = args[name];
     if (typeof value === 'string') return value;

@@ -9,12 +9,12 @@ async function expectWorkspaceRevision(page: Page, revision: number) {
   })).toBe(revision);
 }
 
-async function installFixture(page: Page, mode: 'saveFailure' | 'invalidJson' | 'sourceUnavailable' | 'repairStale' | 'invalidRevision', invalidRevision?: unknown) {
+async function installFixture(page: Page, mode: 'saveFailure' | 'invalidJson' | 'sourceUnavailable' | 'sourceConflict' | 'repairStale' | 'invalidRevision', invalidRevision?: unknown) {
   await page.addInitScript(({ mode, invalidRevision }) => {
     const modulePath = '/src/mock/mockBridge.ts';
     const ready = import(modulePath).then(({ MockCoreBridge }) => {
       const core = new MockCoreBridge();
-      core.loadScenario(mode === 'sourceUnavailable' ? 'compile-diagnostic' : mode === 'repairStale' ? 'generator-repair' : 'ready');
+      core.loadScenario(mode === 'sourceUnavailable' || mode === 'sourceConflict' ? 'compile-diagnostic' : mode === 'repairStale' ? 'generator-repair' : 'ready');
       return core;
     });
     window.copperbenchHost = {
@@ -44,6 +44,20 @@ async function installFixture(page: Page, mode: 'saveFailure' | 'invalidJson' | 
             control: 'json', value: { user: '中文' }, readOnly: false, required: false, options: [], diagnostics: [] }];
         }
         if (request.operation === 'get_task') {
+          if (mode === 'sourceConflict') {
+            for (const diagnostic of result.data.diagnostics) {
+              const relative = diagnostic.path.replace(/^\//, '');
+              diagnostic.code = 'GENERATION_SOURCE_CONFLICT';
+              diagnostic.message = { key: 'diagnostic.generation_source_conflict_at',
+                fallback: 'Source conflict at {displaySourcePath}. Review the file and its ownership before generating again.',
+                args: { displaySourcePath: relative, sourcePath: relative, reasonCode: 'SOURCE_CHANGED' } };
+              diagnostic.actions = [{ id: 'open_conflict_source', kind: 'open_source', target: diagnostic.path,
+                label: { key: 'action.open_conflict_source', fallback: 'View source' } },
+                ...diagnostic.actions.filter((action: { kind: string }) => action.kind === 'open_logs')];
+            }
+            if (request.payload.sourcePath)
+              sessionStorage.setItem('sourceReads', String(Number(sessionStorage.getItem('sourceReads') ?? 0) + 1));
+          }
           if (mode === 'sourceUnavailable' && request.payload.sourcePath) {
             sessionStorage.setItem('sourceReads', String(Number(sessionStorage.getItem('sourceReads') ?? 0) + 1));
             result.data.source = null;
@@ -124,7 +138,7 @@ test('English compiler diagnostics open source and locate the owning element', a
   await page.getByTestId('task-diag-action-open_generated_source').click();
   const source = await page.getByTestId('task-source-content').innerText();
   await page.getByTestId('ui-language-select').selectOption('en');
-  await expect(page.getByTestId('task-source-preview')).toHaveAttribute('aria-label', 'Generated source preview');
+  await expect(page.getByTestId('task-source-preview')).toHaveAttribute('aria-label', 'Source preview');
   await expect(page.getByTestId('task-source-content')).toHaveText(source);
   await expect(page.getByTestId('task-source-preview')).toContainText('CopperLampElement.java:42');
   for (const [width, height] of [[1280, 720], [1920, 1080]]) {
@@ -139,14 +153,30 @@ test('English compiler diagnostics open source and locate the owning element', a
   await expect(page.getByTestId('field-name')).toHaveValue('copper_lamp');
 });
 
+test('generation conflict location opens its source through the existing task actions', async ({ page }, testInfo) => {
+  await installFixture(page, 'sourceConflict');
+  await page.goto('/');
+  await page.getByTestId('recent-tasks-button').click();
+  await expect(page.getByTestId('task-diagnostics')).toContainText('源码冲突');
+  await page.getByTestId('ui-language-select').selectOption('en');
+  await expect(page.getByTestId('task-diagnostics')).toContainText('Source conflict at');
+  await page.getByTestId('task-diag-action-open_conflict_source').click();
+  await expect(page.getByTestId('task-source-content')).toContainText('CopperLampElement');
+  expect(await page.evaluate(() => sessionStorage.getItem('sourceReads'))).toBe('1');
+  await page.screenshot({ path: testInfo.outputPath('generation-conflict-source.png') });
+  await page.getByTestId('task-source-open-editor').click();
+  await expect(page.getByTestId('source-workbench')).toContainText('CopperLampElement.java');
+  await expect(page.getByTestId('task-drawer')).toBeHidden();
+});
+
 test('source preview failure changes language without another source request', async ({ page }) => {
   await installFixture(page, 'sourceUnavailable');
   await page.goto('/');
   await page.getByTestId('recent-tasks-button').click();
   await page.getByTestId('task-diag-action-open_generated_source').click();
-  await expect(page.getByTestId('task-source-error')).toContainText('生成源码预览不可用');
+  await expect(page.getByTestId('task-source-error')).toContainText('源码预览不可用');
   await page.getByTestId('ui-language-select').selectOption('en');
-  await expect(page.getByTestId('task-source-error')).toContainText('Generated source preview is unavailable.');
+  await expect(page.getByTestId('task-source-error')).toContainText('Source preview is unavailable.');
   expect(await page.evaluate(() => sessionStorage.getItem('sourceReads'))).toBe('1');
 });
 

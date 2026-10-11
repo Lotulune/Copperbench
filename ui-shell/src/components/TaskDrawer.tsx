@@ -126,13 +126,13 @@ export const TaskDrawer: React.FC = () => {
       const preview = await previewTaskSource(activeTask.id, action.target);
       if (!preview) {
         setSourcePreview(null);
-        setSourceError(uiMessage("生成源码预览不可用。", "Generated source preview is unavailable."));
+        setSourceError(uiMessage("源码预览不可用。", "Source preview is unavailable."));
         return;
       }
       setSourcePreview(preview);
     } catch {
       setSourcePreview(null);
-      setSourceError(uiMessage("生成源码预览不可用。", "Generated source preview is unavailable."));
+      setSourceError(uiMessage("源码预览不可用。", "Source preview is unavailable."));
     } finally {
       setSourceBusy(false);
     }
@@ -488,7 +488,7 @@ export const TaskDrawer: React.FC = () => {
       {(sourcePreview || sourceError) && (
         <section
           data-testid="task-source-preview"
-          aria-label={uiText("生成源码预览", "Generated source preview")}
+          aria-label={uiText("源码预览", "Source preview")}
           style={{
             borderBottom: '1px solid var(--border-subtle)',
             background: 'var(--bg-input)',
@@ -500,7 +500,7 @@ export const TaskDrawer: React.FC = () => {
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', padding: '7px 12px', borderBottom: '1px solid var(--border-subtle)' }}>
             <div style={{ minWidth: 0, fontSize: '12px' }}>
-              <strong>{uiText("生成源码", "Generated source")}</strong>
+              <strong>{uiText("源码", "Source")}</strong>
               {sourcePreview && (
                 <code style={{ marginLeft: '8px', color: 'var(--text-sub)' }}>
                   {sourcePreview.path}{sourcePreview.line > 0 ? `:${sourcePreview.line}` : ''}

@@ -56,7 +56,7 @@ def _render_message(message: Any, default: str) -> str:
             return json.dumps(value)
         return match.group(0)
 
-    return re.sub(r"\{([A-Za-z_][A-Za-z0-9_]*)\}", substitute, fallback)
+    return re.sub(r"(?<!\{)\{([A-Za-z_][A-Za-z0-9_]*)\}(?!\})", substitute, fallback)
 
 
 class Workspace:
@@ -331,11 +331,11 @@ class Workspace:
         contracts = data.get("fieldContracts") if isinstance(data, dict) else None
         if (not isinstance(contracts, dict)
                 or ("generator" in data and not isinstance(data["generator"], dict))
-                or any(not isinstance(name, str) or not name or not isinstance(contract, dict)
+                or any(not isinstance(name, str) or not name.strip() or not isinstance(contract, dict)
                        for name, contract in contracts.items())):
             raise NativeApiError("Core returned invalid field contract metadata",
                                  "NATIVE_INVALID_RESPONSE", result)
-        return data, contracts
+        return result, contracts
 
     def available_field_contracts(self) -> tuple[str, ...]:
         """List contract names published by this Core, not all creatable types.
@@ -347,7 +347,7 @@ class Workspace:
         return tuple(sorted(contracts))
 
     def field_contract(self, element_type: str = "block") -> dict[str, Any]:
-        """Read a published contract or raise FIELD_CONTRACT_UNAVAILABLE.
+        """Read a published contract or raise NATIVE_FIELD_CONTRACT_UNAVAILABLE.
 
         Missing metadata is not proof that an element cannot be created. This
         method never creates a probe element, guesses fields or retries a write.
@@ -355,17 +355,24 @@ class Workspace:
         """
         if not isinstance(element_type, str) or not element_type.strip():
             raise ValueError("element_type must be a nonempty string")
-        data, contracts = self._field_contract_environment()
+        result, contracts = self._field_contract_environment()
+        data = result["data"]
         if element_type not in contracts:
             available = sorted(contracts)
+            next_action = ("Inspect get_workspace_environment.data.fieldContracts and choose an advertised type; "
+                           "update Copperbench if this Core does not advertise the contract you need. "
+                           "For an existing element, query get_mod_element_editor with its elementId.")
             raise NativeApiError(
                 f"Core does not publish a field contract for {element_type!r}. "
                 f"Available contracts: {', '.join(available) or '(none)'}. "
                 "For an existing element, query get_mod_element_editor with its elementId. "
                 "No probe element was created and no fields were guessed.",
-                "FIELD_CONTRACT_UNAVAILABLE", {
+                "NATIVE_FIELD_CONTRACT_UNAVAILABLE", {
                     "elementType": element_type,
-                    "availableContracts": available,
+                    "availableTypes": available,
+                    "reason": "type_not_advertised",
+                    "nextAction": next_action,
+                    "environment": result,
                     "generator": data.get("generator"),
                     "inspection": {"operation": "get_mod_element_editor",
                                    "requires": ["elementId"], "scope": "existing_element"},
@@ -380,7 +387,8 @@ class Workspace:
         """
         if not isinstance(element_type, str) or not element_type.strip():
             raise ValueError("element_type must be a nonempty string")
-        environment, contracts = self._field_contract_environment()
+        result, contracts = self._field_contract_environment()
+        environment = result["data"]
         operation = environment.get("fieldContractDiscovery")
         if operation is None:
             return {"elementType": element_type,
@@ -393,7 +401,7 @@ class Workspace:
                                       "requires": ["elementId"]}]}
         if operation != "get_mod_element_field_contract":
             raise NativeApiError("Core returned invalid discovery metadata",
-                                 "NATIVE_INVALID_RESPONSE", environment)
+                                 "NATIVE_INVALID_RESPONSE", result)
         result = self.query(operation, elementType=element_type)
         data = result.get("data")
         if (not isinstance(data, dict) or data.get("elementType") != element_type
