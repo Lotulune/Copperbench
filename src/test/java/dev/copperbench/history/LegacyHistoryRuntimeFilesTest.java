@@ -49,6 +49,7 @@ class LegacyHistoryRuntimeFilesTest {
                 git.commit().setMessage("old runtime entries").setAuthor("Fixture", "fixture@example.invalid")
                         .setCommitter("Fixture", "fixture@example.invalid").setSign(false).call();
             }
+            Files.createDirectories(gitDirectory.resolve("info"));
             Files.writeString(gitDirectory.resolve("info/exclude"), "# Keep custom ignores\n*.private\n.mcreator/\n");
         }
         PreferencesManager.PREFERENCES.backups.enableLocalHistory.set(true);
